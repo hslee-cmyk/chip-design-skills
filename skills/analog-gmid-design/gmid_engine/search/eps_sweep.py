@@ -17,7 +17,7 @@ import math
 import statistics
 
 from .l_bin_search import polish_l_cells
-from .pareto import nondominated
+from .pareto import nondominated_results
 from .search_ceiling import search_ceiling
 from .search_values import AXIS_AREA, AXIS_POWER, STATUS_PENDING_SEAL7, STATUS_SEALED, FrontPoint, StartPoint
 from .slsqp_outer import solve_eps
@@ -43,11 +43,8 @@ _CLASSES = (
 def _filter(sctx, entries, status, measured):
     pool = [(pid, s) for pid, s in entries if s.best is not None and s.best.status == status
             and (measured is None or (not s.best.unmeasured) == measured)]
-    points = tuple((pid, (s.best.objectives.power_w, s.best.objectives.area_m2),
-                    sum(r.c for r in s.best.constraints if r.active)) for pid, s in pool)
-    b_p = {pid: s.best.objectives.power_resolution_w for pid, s in pool}
-    res = nondominated(points, (lambda p, q: max(b_p[p], b_p[q]), sctx.domain.area_resolution_m2))
-    by = {i: points[k][0] for i, k in res.dominated}
+    res = nondominated_results(tuple((pid, s.best) for pid, s in pool), sctx.domain.area_resolution_m2)
+    by = {i: pool[k][0] for i, k in res.dominated}
     kept = tuple(FrontPoint(pool[i][0], pool[i][1].best, (("minimize", pool[i][1].minimize), ("eps", pool[i][1].eps)))
                  for i in res.kept)
     removed = tuple((pool[i][0], by[i]) for i in sorted(by))

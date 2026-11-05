@@ -29,7 +29,7 @@
 6. 비트리 MOS 엣지 = 종속 소자(좌표는 노드 VGS 순방향). 분류: gate·source 가 둘 다 고정 -> `fixed_vgs`, 같은 kind·같은
    (gate, source) 대표가 있으면 `parallel_vgs`(v0, partner), 나머지 `cycle_vgs`(v1·v2).
 7. [U17 ①-b, 설계 40 §2.4.8 '1변수 writer 집합'] `device.dc_self_referential` = MOS 마다 그 소자가 쓰는 노드가 자기 d·s·bulk 중 하나인가(diode 의 gate 쓰기,
-   소스 추종의 source 쓰기 -- 1변수 방정식 노드). 쓰기 계획의 파생이라 S0 수준 필드이고(θ 무관), 평가 커널 `dc_columns`·탐색 상자 `cell_floor` 가 읽기만 한다.
+   소스 추종의 source 쓰기 -- 1변수 방정식 노드). 쓰기 계획의 파생이라 S0 수준 필드이고(θ 무관), 평가 커널 `dc_solve`·탐색 상자 `cell_floor` 가 읽기만 한다.
 (출력 포트 구조 분류 필드는 두지 않는다 -- 측정 구성은 출력 꼴과 무관하게 봉인점 KCL 로 잰다, 계획 N3.8 'ICMR servo 감도 -- KCL', 카드 IT-2c.)
 정지: 입력 DC 미선언이고 입력 포트(G_vgs 밖 고립 입력 포트 포함)가 둘 이상인데 차동쌍 하나가 아니다 -> `StructureUnresolvedError`(rule_branch
 `input_cm_undefined`, ports = 그 포트 넷들, 탐색 전 정지 -- DEC-106). 비트리 저항 엣지(값이 정해진 저항 루프 -- 저항을 종속시키는 규칙이 없음) -> `StructureUnresolvedError`

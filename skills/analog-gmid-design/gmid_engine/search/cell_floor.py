@@ -7,7 +7,7 @@
   어느 격자 동작점에서도 강반전 분지 시작 위다. 칸 안 앵커 사이 L(선형 보간)의 정점은 따로 묶지 않는다(앵커 최댓값).
 * `variables` 의 `ln_idu` 성분(= 쓰기 소자 m)마다 m 의 칸(`cells` = `domain.l_cells` 순 칸 index)으로 하한을 고르고, 원래 lo < 하한 <
   hi 일 때만 돌려준다. `one_var_only` 면 1변수 노드 writer(diode 의 gate 쓰기·소스 추종의 source 쓰기 = writer 소자의 d·s·bulk 가
-  그 노드를 포함)만 -- 쓰기 계획이 S0 당 한 번 쓴 소자 필드 `device.dc_self_referential`(설계 40 §2.4.8 '1변수 writer 집합')을 읽는다(sizing `dc_columns` 와 같은 필드).
+  그 노드를 포함)만 -- 쓰기 계획이 S0 당 한 번 쓴 소자 필드 `device.dc_self_referential`(설계 40 §2.4.8 '1변수 writer 집합')을 읽는다(sizing `dc_solve` 와 같은 필드).
   이 소자들은 정점 아래 좌표에서 노드 근이 늘 없다(분지 규칙).
 * `start`(θ Mapping)가 있으면 하한 = min(칸 정점 하한, 시작 좌표) -- 받아들인 시작점 자체를 상자 밖으로 내몰지 않는다.
 * 캐시: `sctx.cell_floors`(S0 수명, (kind, w_key, 칸) 마다 1회 -- LUT 파생이라 U17 ③에서 LUT memo 함수로 옮긴다, 설계 40 §2.4.6). LUT memo 의 derived 영역은

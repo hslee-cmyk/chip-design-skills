@@ -21,7 +21,7 @@
 import dataclasses
 
 from gmid_engine.core import NonconvergentError
-from gmid_engine.layout import F_FLOORPLAN, F_GROUPS, LAYOUT_KEY, passives_from_decl
+from gmid_engine.layout import F_FLOORPLAN, F_GROUPS, F_ROW_GROUPS, LAYOUT_KEY, passives_from_decl
 from gmid_engine.metrics import PassiveAreaDecl
 from gmid_engine.search import STATUS_SEALED, evaluate
 
@@ -91,12 +91,13 @@ def converge_point(sctx, pdk, point):
     if nonpositive:
         return done(STATUS_UNPLACEABLE, start, None, None, (), None, None, (), frozenset(), {}, 0,
                     (("nonpositive_current", nonpositive),))
-    current, pdk_now, pdk_candidates = start, pdk, pdk
+    current, pdk_now = start, pdk
+    excluded_groups = ()                                  # ((행 그룹 rid, (뺀 폭 키, ...)), ...) -- 키 제외는 행 그룹 단위(설계 40 §3.7-A 6)
     rejected, relaxed, first_seen, previous_geometry, previous_layout = frozenset(), frozenset(), {}, None, None
     iterations, k_bound, layouts, visited = [], None, 0, []
     while True:
         placed = place_layout(memo, current.evaluation.snapshot, pdk_now, _passives(sctx, current), rejected, relaxed, first_seen,
-                              previous_layout, kinds, donors=sctx.dc.donors, counters=sctx.dc.counters)
+                              previous_layout, kinds, excluded_groups, donors=sctx.dc.donors, counters=sctx.dc.counters)
         layouts += placed.layout_calls
         pdk_now, relaxed, first_seen, previous_layout = placed.pdk, placed.relaxed, placed.first_seen, placed.layout
         if placed.unplaced:
@@ -137,11 +138,12 @@ def converge_point(sctx, pdk, point):
         if reject:
             rejected = rejected | frozenset(reject)
             continue
-        gone, narrower = key_exclusion(pdk_candidates, placed.placements, kinds, sized_w)
+        gone, narrower = key_exclusion(pdk, placed.layout.snapshot.value("graph", LAYOUT_KEY, F_ROW_GROUPS), placed.placements, sized_w,
+                                       excluded_groups, dict(current.evaluation.snapshot.column("device", "dc_colour")))
         if narrower is not None:
             excluded.append(gone)
             iterations[-1] = dataclasses.replace(iterations[-1], status="excluded", excluded=(gone,))
-            pdk_candidates = pdk_now = narrower              # 좁히기는 후보에서 다시 시작한다(제외는 후보 집합을 줄인다)
+            excluded_groups = narrower                       # 그 행 그룹의 후보만 줄인다(다른 행 그룹은 그대로) -- 같은 현재 점에서 다시 놓는다
             continue
         violated = tuple(sorted((row.c, row.name) for row in result.constraints if row.c < 0))
         return done(STATUS_INFEASIBLE, current, placed, geometry, iterations, k_bound, result.failure, rejected, relaxed, first_seen,

@@ -5,7 +5,7 @@ design_gb7_dc_canonical; 7·9 = 영역 판정 `dc_seal_region`). 계약: `CONTRA
 `dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, LutAccess(memo))` (S0 당 1회) ->
 `size_and_seal(ctx, theta, parent=None)` (θ 마다).
 """
-from ._helpers_dc_solve import Circuit
+from ._helpers_dc_solve import Circuit, default_port_views, pivot_config, sense_signs
 from .bracket_root import bracket_root
 from .block_dc import dc_solve
 from .block_currents import dc_currents
@@ -39,6 +39,7 @@ from .s2_values import (
     DEP_FIXED,
     DEP_PARALLEL,
     DEP_TREE,
+    ICM_CONFIG_SERVO,
     ICM_CONFIG_WRITER,
     INPUT_STATUS_MEASURED,
     INPUT_STATUS_UNMEASURED,
@@ -59,6 +60,9 @@ from .s2_values import (
     REASON_NEWTON_SINGULAR,
     REASON_NEWTON_START,
     REASON_NO_ROOT,
+    REASON_REALIZED_FINGER_MISSING,
+    REASON_SERVO_BRANCH_MISMATCH,
+    REASON_SERVO_VIEW_UNRESOLVED,
     REASON_STRICT_RECHECK,
     REASON_TOL_UNDEFINED,
     REASON_VDSAT_MISSING,
@@ -184,6 +188,9 @@ __all__ = (
     "COORD_WRITER",
     "CURRENT_SOURCE",
     "Circuit",
+    "default_port_views",
+    "pivot_config",
+    "sense_signs",
     "ColumnNeighbor",
     "CurrentBasis",
     "CurrentTerm",
@@ -200,6 +207,7 @@ __all__ = (
     "DcInputs",
     "DeviceCoord",
     "DeviceOp",
+    "ICM_CONFIG_SERVO",
     "ICM_CONFIG_WRITER",
     "INPUT_STATUS_MEASURED",
     "INPUT_STATUS_UNMEASURED",
@@ -231,6 +239,9 @@ __all__ = (
     "REASON_NEWTON_LINE_SEARCH",
     "REASON_NEWTON_SINGULAR",
     "REASON_NEWTON_START",
+    "REASON_REALIZED_FINGER_MISSING",
+    "REASON_SERVO_BRANCH_MISMATCH",
+    "REASON_SERVO_VIEW_UNRESOLVED",
     "REASON_STRICT_RECHECK",
     "REASON_TOL_UNDEFINED",
     "REASON_VDSAT_MISSING",

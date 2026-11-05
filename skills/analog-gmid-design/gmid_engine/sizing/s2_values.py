@@ -54,7 +54,7 @@ THETA_LN_IDU = "ln_idu"
 THETA_L = "L"
 THETA_Y = "y"
 THETA_CURRENT = "current"
-THETA_RESISTANCE = "resistance"                        # DC 경로 저항(값 미선언) -- dc_columns 가 읽는다
+THETA_RESISTANCE = "resistance"                        # DC 경로 저항(값 미선언) -- dc_solve 가 읽는다
 THETA_CAPACITANCE = "capacitance"                      # [DEC-92] engine 커패시터 -- DC 블록이 읽지 않는다
 THETA_SS_RESISTANCE = "ss_resistance"                  # [DEC-92 (3)(b)] DC 전류 0(잎 가지치기) engine 저항 중 구조 규칙 밖
 THETA_KINDS = (THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE, THETA_SS_RESISTANCE, THETA_Y)
@@ -103,6 +103,9 @@ REASON_VDSAT_MISSING = "lut_vdsat_column_missing"
 REASON_LUT_QUERY = "lut_query_failed"
 REASON_NO_ROOT = "no_root_in_window"
 REASON_STRICT_RECHECK = "strict_recheck_residual"     # 다변수 SCC 수렴 뒤 strict 검증 바퀴 잔차 > tol
+REASON_REALIZED_FINGER_MISSING = "realized_finger_missing"       # 실현 평가 입력 `search_ref` 에 그 소자 `dc_finger` 행이 없다(J-9)
+REASON_SERVO_VIEW_UNRESOLVED = "realized_servo_view_unresolved"     # servo 갈래인데 기본 포트 뷰·감지 부호를 정할 수 없다(측정 구성이 servo 로 판정한 뒤라 정상 경로에서는 없다)
+REASON_SERVO_BRANCH_MISMATCH = "realized_servo_branch_mismatch"   # 실현 스냅샷 피벗 판정이 풀이가 탄 갈래(탐색 스냅샷 판정)와 다르다
 REASON_NEWTON_START = "newton_start_outside_domain"    # 감쇠 Newton 시작점이 정의역 밖(LUT 조회 실패·빈 창)
 REASON_NEWTON_SINGULAR = "newton_singular"             # 야코비안 LU 영 피벗
 REASON_NEWTON_LINE_SEARCH = "newton_line_search"       # 역추적 선 탐색이 잔차를 줄이는 α 를 못 찾음
@@ -129,7 +132,7 @@ DC_THETA_SCHEMA_WRITER = "dc_theta_schema"
 KERNEL_CONTEXT_WRITER = "kernel_context"               # graph/kernel: fixed_values·resistor_values·l_ties (`build_kernel_context` 의 계산 블록)
 DC_CURRENTS_WRITER = "dc_currents"
 DC_LENGTHS_WRITER = "dc_lengths"
-DC_SOLVE_WRITER = "dc_solve"                           # 노드 풀이 + 슬라이스 선택 + 소자 동작점 (WB-1, 옛 dc_columns·dc_widths 를 합침)
+DC_SOLVE_WRITER = "dc_solve"                           # 노드 풀이 + 슬라이스 선택 + 소자 동작점 (WB-1, 노드 풀이와 W 계산을 합친 블록)
 DC_TOLERANCES_WRITER = "dc_tolerances"
 DC_SEAL_NODE_CONFLICT_WRITER = "dc_seal_node_conflict"
 DC_SEAL_VGS_MATCH_WRITER = "dc_seal_vgs_match"
@@ -175,6 +178,7 @@ SS_NODAL_WRITER = "ss_nodal"                           # graph.ss_nodal: 봉인�
 SS_OFF_OP_WRITER = "ss_off_op"                       # device.off_op: `off` 선언 소자의 동작점 (EO-1 범위 4)
 SS_OFF_DELTA_WRITER = "ss_off_delta"                   # graph.ss_off_delta: off 소자 전류 효과의 1차 ΔV (EO-1 범위 4)
 ICM_CONFIG_WRITER = "icm_config"                       # node.dc_window_cfg + graph.icm_config: ICMR 측정 구성·창·V_cm 칸 (card IT-2c)
+ICM_CONFIG_SERVO = "servo"                             # `IcmConfig.config` 어휘: 입력 둘 servo 갈래 (측정 구성 `icm_config` 와 실현 평가 `dc_solve` 가 같은 이름을 읽는다)
 SS_WRITES = (
     (SS_DEV_WRITER, (("device", "ss_dev"),)),
     (METRICS_SS_WRITER, (("graph", "metrics_ss"),)),
@@ -255,6 +259,9 @@ class RealizedFinger:
 
     search_ref: object
     fp: str
+
+    def __canonical__(self):
+        return ("realized_finger", self.fp)         # 참조의 지문 -- 스냅샷 값을 입력 버전에 옮겨 담지 않는다
 
 
 @dataclasses.dataclass(frozen=True)

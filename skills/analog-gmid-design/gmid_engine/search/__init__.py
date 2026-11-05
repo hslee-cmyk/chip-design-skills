@@ -33,6 +33,7 @@ from .open_run import open_run
 from .noise_decl import noise_decl
 from .orbit_ties import orbit_ties
 from .pareto import nondominated
+from .realize_front import RealizeOutcome, realize_front
 from .off_judged import check_off_judged_by
 from .seal7_pending import seal_status
 from .s0_fields import (
@@ -188,6 +189,8 @@ __all__ = (
     "node_across_front",
     "read_front_entries",
     "nondominated",
+    "RealizeOutcome",
+    "realize_front",
     "objective_values",
     "open_run",
     "polish_l_cells",

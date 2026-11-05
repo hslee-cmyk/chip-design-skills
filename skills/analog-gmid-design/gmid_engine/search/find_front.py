@@ -33,6 +33,7 @@ from .eps_sweep import sweep_front
 from .gate_run import run_sensitivity_gate
 from ._helpers_ceiling import e_total, gate_reserve
 from .layer0_center import layer0_start
+from .realize_front import realize_front
 from .search_ceiling import search_ceiling
 from .search_values import AXIS_AREA, AXIS_POWER, STATUS_PENDING_SEAL7, SearchFront
 from .start_points import start_points
@@ -68,10 +69,20 @@ def _bin_rule_note(lut):
             "midpoint_unverified_slices": unverified}
 
 
-def _point_record(sctx, point):
+def _slice_rounds(snapshot):
+    """그 평가 노드 풀이 수(`dc_scc_log` 첫 항목 `slice_rounds` -- 모든 항목이 같은 값, J-8). SCC 기록이 없으면 None."""
+    for _key, logs in snapshot.column("graph", "dc_scc_log"):
+        return logs[0].slice_rounds if logs else None
+    return None
+
+
+def _point_record(sctx, point, residual=None):
     res = point.result
     ref = None if sctx.archive is None else sctx.archive.write_snapshot(res.evaluation.snapshot)
-    return {"point_id": point.point_id, "status": res.status, "seq": res.seq,
+    extra = {"slice_rounds": _slice_rounds(res.evaluation.snapshot)}
+    if residual is not None:
+        extra["finger_residual"] = {m: r for m, r in residual}      # 탐색 평가 `FingerGeom.residual` (실현 평가 값 0.0 이 아니다)
+    return {**extra, "point_id": point.point_id, "status": res.status, "seq": res.seq,
             "theta_hex": [[list(k), float(v).hex()] for k, v in res.theta], "cells": list(res.key.cells),
             AXIS_POWER: res.objectives.power_w, AXIS_AREA: res.objectives.area_m2,
             "gate_area_m2": res.objectives.gate_area_m2, "passives_in_area": sctx.area_decl is not None,
@@ -102,6 +113,9 @@ def find_front(sctx, given_starts):
     if total is not None and sctx.dc.donors.entry_count() > sctx.dc.donors.index_bound(total):
         raise RuntimeError("find_front: 블록 결과 색인 항목 수 " + str(sctx.dc.donors.entry_count()) + " 가 상한 " + str(sctx.dc.donors.index_bound(total)) + " 를 넘었다")
     sctx.dc.donors.close_bound()
+    realized = realize_front(sctx, tuple(out["front"]))      # front 출력 전 관문(WB-1): 실현 평가를 거친 점만 front·선택·oracle 입력이 된다
+    front = realized.points
+    residual = dict(realized.finger_residual)
     notes.append({"verdict": gate.verdict, "reason": gate.reason, "rule": "sensitivity_gate", "errors": list(gate.errors),
                   "checks": len(gate.checks), "unchecked": sum(1 for c in gate.checks if c[4] is None), "unmeasured": list(gate.unmeasured),
                   "epsilon_db": gate.epsilon})
@@ -167,13 +181,16 @@ def find_front(sctx, given_starts):
         sctx.archive.append_run({
             "run_id": run_id, "s0": sctx.context_fp, "schema_fp": sctx.schema_fp, "settings": sctx.settings,
             "starts": list(start_log), "resolution": dict(out["resolution"]),
-            "front": [_point_record(sctx, p) for p in out["front"]],
+            "front": [_point_record(sctx, p, residual[p.point_id]) for p in front],
             "pending_front": [_point_record(sctx, p) for p in out["pending_front"]],
             "unmeasured_front": [_point_record(sctx, p) for p in out["unmeasured_front"]],
             "removed": [{"point_id": a, "reason": "dominated", "by": b}
                         for a, b in out["front_removed"] + out["pending_front_removed"]
-                        + out["unmeasured_front_removed"]],
+                        + out["unmeasured_front_removed"]]
+                       + [{"point_id": a, "reason": "dominated_realized", "by": b} for a, b in realized.removed],
+            "realize": {"lost": [{"point_id": pid, "reason": reason, "detail": detail} for pid, reason, detail in realized.lost],
+                        "n_lost": len(realized.lost)},
             "failed_eps": list(out["failed_eps"]), "notes": notes, "perf": perf, "env_fp": env_fp})
     pending = tuple(p for p in out["pending_front"] if p.result.status == STATUS_PENDING_SEAL7)
-    return SearchFront(run_id, out["front"], pending, out["failed_eps"], out["resolution"],
+    return SearchFront(run_id, front, pending, out["failed_eps"], out["resolution"],
                        tuple(sorted(perf.items())), tuple(notes), out["unmeasured_front"])

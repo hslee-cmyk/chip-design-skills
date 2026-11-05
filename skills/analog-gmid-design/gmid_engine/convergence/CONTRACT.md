@@ -15,9 +15,8 @@
 | `convergence_values.py` | 0 | (데이터) | `ConvergedPoint`·`ConvergedFront`·`Iteration`·`Relaxation`·`Placement`·`PlacedLayout`·`JunctionChange`·`DroppedPoint`, 상수 `STATUS_*`·`DROP_*`·`RELAX_*` |
 | `layout_input.py` | 1 | `layout_input_of` | 봉인 스냅샷 -> `LayoutInput` (1절) |
 | `effective_placement.py` | 1 | `effective_placement` | 레이아웃 필드(설계점 스냅샷) -> 소자별 실효 배치 (2절) |
-| `kernel_keys.py` | 1 | `kernel_keys` | kind 별 평가 커널 폭 키와 충돌 (3절) |
-| `key_exclusion.py` | 1 | `key_exclusion` | 거절된 기하의 폭 키 제외 (7절) |
-| `layout_score.py` | 1 | `layout_score` | 레이아웃 후보 점수 (3절) |
+| `key_exclusion.py` | 1 | `key_exclusion` | 거절된 기하의 폭 후보를 행 그룹 단위로 제외 (7절, WB-1) |
+| `layout_score.py` | 1 | `layout_score` | 레이아웃 후보 점수 (3절; WB-1 뒤 프로덕션 호출처 없음 -- 정리는 gap 판정 몫) |
 | `realized_geometry.py` | 1 | `realized_geometry` | `search.RealizedGeometry` (4절) |
 | `w_loop_bound.py` | 1 | `w_loop_bound` | W_request 루프 `K_max` (5절) |
 | `junction_change.py` | 1 | `junction_change` | 접합 용량 전·후 (4절) |
@@ -68,11 +67,9 @@
   (레이아웃이 후보 실현 W 를 만드는 식과 같아 다음 레이아웃의 실현 W 와 비트가 같다), `pending=True`.
 * `unplaced` = `ly_finger` 값이 없는(사용 가능한 폭 슬라이스가 없는) 소자 이름, 이름순.
 
-## 3. `kernel_keys(placements, kinds, current) -> (keys, conflicts)` · `layout_score(snapshot, unplaced) -> tuple`
+## 3. `layout_score(snapshot, unplaced) -> tuple`
 
-* 평가 커널의 `LutAccess.w_keys` 는 kind 마다 슬라이스 하나다(sizing 계약). **[개정 예정 -- design 40 v1.15.2 §3.7-A 6·10·11, card WB-1]**: 이 전제는 폐기된다 -- 실현 기하 입력은 레이아웃 lineage의 S2 `layout` 필드 열을 가리키는 지문 달린 참조 `RealizedGeometry(layout_ref, w_request)`(값 칸 `finger`·`diffusion`·`w_keys` 없음 -- graph 규칙 4)이고 슬라이스는 DC 블록이 참조로 읽은 finger_w로 `lut.slice_of_finger`가 정한다; `kernel_keys`·`place_layout` kind 키 좁히기는 삭제, `key_exclusion`은 레이아웃 행 그룹 단위로 단위만 재정의하고 이 루프의 수렴 판정·상한은 바꾸지 않는다(계획 WB-1 범위 5). `kinds` = {소자: kind}, `current` = ((kind, 키), ...).
-  `keys` = `current` 의 kind 순 ((kind, 키), ...): 그 kind 의 배치가 쓰는 키(여럿이면 가장 작은 값 -- 충돌이라 의미 없음), 배치 소자가 없는 kind 는 `current` 값.
-  `conflicts` = ((kind, (사용 키 오름차순)), ...) 둘 이상 쓰는 kind.
+* [WB-1 반영] 평가 커널 폭 슬라이스는 kind 마다 하나가 아니다 -- 실현 기하 입력은 레이아웃 lineage의 S2 `layout` 필드 열을 가리키는 지문 달린 참조 `RealizedGeometry(layout_ref, w_request)`(값 칸 `finger`·`diffusion`·`w_keys` 없음 -- graph 규칙 4)이고 슬라이스는 DC 블록이 참조로 읽은 finger_w로 `lut.slice_of_finger`가 정한다. kind 키 운반(`kernel_keys`)과 `place_layout` kind 키 좁히기는 삭제됐고, `key_exclusion`은 레이아웃 행 그룹 단위다(7절). 이 루프의 수렴 판정·상한은 바꾸지 않는다(계획 WB-1 범위 5).
 * `layout_score` = 작을수록 좋은 사전식 점수 `(놓지 못한 소자 수, 배치 못 한 common-centroid 요구 그룹 수(CC_REQUIRED_ROLES, pattern None, pending 아님),
   pending 그룹 수, ly_floorplan.outline_area_m2)` -- `snapshot` = `LayoutResult.snapshot`.
 
@@ -97,12 +94,12 @@
 
 ## 7. `place_layout` · `converge_point`
 
-`place_layout(memo, snapshot, pdk, passives, rejected, relaxed, first_seen, previous, kinds, current_keys, *, donors, counters) -> PlacedLayout` -- 평가 커널 호출 0.
+`place_layout(memo, snapshot, pdk, passives, rejected, relaxed, first_seen, previous, kinds, excluded=(), *, donors, counters) -> PlacedLayout`(`excluded` = ((행 그룹 rid, (뺀 폭 키, ...)), ...)) -- 평가 커널 호출 0.
 [XRUN-F1 B] `donors`·`counters` = 필수 키워드(기본값 없음) -- `converge_point` 가 `sctx.dc.donors`·`.counters` 에서 꺼내 넘기고 `run_layout` 에 그대로 쓴다.
 `run_layout` 의 **유일한 프로덕션 호출처**. 반복(상태는 `pdk`·`relaxed` 뿐이고 둘 다 단조: 폭 키 집합은 줄고 완화 집합은 는다):
 1. `layout_input_of` -> `run_layout(layout_input, memo, snapshot, previous)`(레이아웃 필드는 설계점 `snapshot` 위, 재시도는 같은 설계점 lineage) -> `effective_placement`.
    `unplaced` 가 있으면 멈춘다. `PlacedLayout` 은 입력 사본(`layout_input`)을 두지 않는다(입력은 스냅샷의 `ly_*` 입력 필드).
-2. `kernel_keys` 충돌이 있으면 충돌 kind 마다 사용된 키 각각으로 PDK 폭 키를 좁혀 다시 놓아 `layout_score` 가 가장 작은 키(동점은 작은 키)로 좁힌다. 1 로.
+2. (WB-1: kind 키 충돌 좁히기 삭제 -- 소자마다 실현 기하의 슬라이스가 따로다.)
 3. `relaxation_decision` 의 `relax` 가 있으면 `relaxed` 에 더하고 1 로. `not_relaxable`·`relax` 의 완화 전 `GroupLayout` 은 `first_seen` 에 gid 별로 처음 한 번만 남긴다.
 `PlacedLayout.layout_calls` = 이 호출의 `run_layout` 횟수(좁히기 시험 포함), `narrowed` = ((kind, 키), ...).
 

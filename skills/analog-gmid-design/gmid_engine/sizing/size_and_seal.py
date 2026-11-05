@@ -18,11 +18,13 @@
   parent 에 의존하지 않으므로 같은 θ 는 parent 와 무관하게 같은 봉인 결과를 낸다. 수동소자 θ 만 바뀐 자식의 DC 재사용은 입력 버전 일치로 성립한다.
 * **W_request**(설계 40 §3.7, 계획 N3.17 LY3): `w_request` = {MOS: W(m)} 또는 ((MOS, W), ...) -- 그 소자의 W 는 고정 입력이다. 쓰기 소자의 θ
   ln IDu 는 무시되고 ln(ID·L/W) 로 대체되며(ID·L 은 ②③ 이 정한 값), 종속 소자는 요청 W 로 `dc_solve` 가 쓰고 봉인 3 이 어긋남을 판정한다.
+* **실현 평가**(설계 40 §3.7-A 2-5 (ii)): `realized` = `RealizedFinger`(탐색 스냅샷 참조 + (MOS, m, w_s) 지문) -- `dc_solve` 가 그 (m, w_s) 로 W' 고정 KCL 을 다시 푼다. `parent`
+  는 쓰지 않는다(`ctx.base` 에서 따로 시작). `w_request` 와 함께 줄 수 없다(`ValueError`).
 * 실패: 후보 실패 = `SealViolationError`·`NonconvergentError`(core `CANDIDATE_FAILURE_CLASSES`) -- 탐색 층이 이름으로 잡아 S3
   실패 레코드로 남긴다. 그 밖(ValueError·TypeError = 호출 계약 위반)은 잡지 않는다.
 """
 from .kernel_run import run_kernel
 
 
-def size_and_seal(ctx, theta, parent=None, w_request=()):
-    return run_kernel(ctx, theta, parent, w_request, True)
+def size_and_seal(ctx, theta, parent=None, w_request=(), realized=None):
+    return run_kernel(ctx, theta, parent, w_request, True, realized)

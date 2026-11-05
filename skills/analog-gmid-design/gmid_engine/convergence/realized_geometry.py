@@ -9,7 +9,7 @@
 * `layout_ref` = ((소자, `metrics.DiffusionGeometry(finger_w, ad, as, pd, ps, m = n_fingers)`), ...) 이름순 -- `ly_diffusion` 필드 그대로의 참조 값(엔진 접합 용량과 오라클 입력이
   같은 값, LY8; `dc_solve` 는 거기서 배치 소자의 finger 폭을 읽어 `slice_of_finger` 로 슬라이스를 정한다). 요청 대기 소자는 뺀다: 레이아웃이 놓은 잠정 기하가 요청한 (키, nf) 와
   다르므로 그 소자는 LUT 생성 규칙 기하와 탐색 규칙 슬라이스를 쓰고, 요청이 실현되면 다음 레이아웃의 기하가 들어온다.
-* 폭 키(kind 당 슬라이스 하나) 운반은 없다(`kernel_keys` 삭제): 슬라이스는 소자마다 `dc_solve` 가 고른다.
+* 폭 키(kind 당 슬라이스 하나) 운반은 없다(kind 키 운반 삭제): 슬라이스는 소자마다 `dc_solve` 가 고른다.
 """
 from gmid_engine.layout import F_DIFFUSION, LAYOUT_KEY
 from gmid_engine.metrics import DiffusionGeometry

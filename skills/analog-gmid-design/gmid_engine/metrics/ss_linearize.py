@@ -10,7 +10,7 @@
   writes `device.ss_dev` = `SsDevice`(MOS 마다).
 * [NFR-5] `lut_rel_tol` = `dc_op.gm_id · dc_tol_v`(무차원, metrics CONTRACT 9.1) -- tol_V(id_equivalent) = |Δln ID| / (gm/ID) 의 정의를
   되돌린 LUT 전류의 상대 불확실성. `dc_tol_v` 가 None 이거나 없으면 None(분해능 미정).
-* 소자마다 같은 동작점의 LUT 조회 세 가지(모두 LUT memo point 영역 -- `op_point` 는 `dc_widths` 가 같은 키로 이미 불러
+* 소자마다 같은 동작점의 LUT 조회 세 가지(모두 LUT memo point 영역 -- `op_point` 는 `dc_solve` 가 같은 키로 이미 불러
   적중이다): gm = `dc_gm`(dc 단계 필드를 읽는다 -- 다시 계산하지 않는다), gds = `op_point(...).gds_per_w`·W, gmb = lut `gmb(...)`·W/w_m,
   용량 = lut `caps(..., W)`(cgg·cgd·cgs·cgb·모형). [lut r6] `gmb` 는 GMBS 열이 있으면 열 정의(정본, lut CONTRACT 4.4), 없으면
   r5 VS 칸 할선 -- 어느 쪽인지 `gmb_model` 에 적는다(열 출처 규칙 4.3 과 같은 판정: 그 폭 슬라이스 열, 아니면 같은 폭 키의

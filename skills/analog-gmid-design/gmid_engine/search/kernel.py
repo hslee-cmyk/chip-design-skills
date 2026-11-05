@@ -1,6 +1,9 @@
 """평가 커널 조립 -- θ 하나 -> GB7 DC 정본 + 봉인 + 목적 + 제약, 캐시·S3 (설계 design_mod6_search_front 2.2·2.3·7절).
 
-진입점: `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None) -> EvalResult`.
+진입점: `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None, realized=None) -> EvalResult`.
+
+* [WB-1] `realized` = `sizing.RealizedFinger`(실현 평가: front 점의 θ + 탐색 스냅샷의 (m, w_s)) -- 키의 `w_fixed_fp` = `realized.fp`, `parent` 는 쓰지 않고 `ctx.base` 에서 따로 시작한다
+  (탐색 스냅샷의 child 가 아니다). `geometry` 와 동시에 주면 `ValueError`.
 
 * `theta` = {(kind, key): 값} 또는 쌍 iterable(스키마 전 성분), `cells` = L 칸 index 벡터(MOS 이름순), `parent` = 같은
   컨텍스트의 이전 EvalResult(그 `evaluation` 스냅샷을 sizing 이 재사용 -- 바뀐 성분을 읽는 블록만 다시 계산, 필드가 곧 캐시),
@@ -89,13 +92,16 @@ def _record(sctx, result, origin):
     sctx.archive.append_eval(rec)
 
 
-def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
+def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None, realized=None):
+    if geometry is not None and realized is not None:
+        raise ValueError("evaluate: geometry(레이아웃 뒤)와 realized(실현 평가)는 동시에 줄 수 없다")
     sctx.counters["requests"] += 1
     dc = sctx.dc
     theta = expand_ties(sctx.domain.ties, theta if isinstance(theta, Mapping) else dict(theta),
                          sctx.domain.negated, sctx.domain.zeros)    # [r12] 묶인 성분은 대표 값
     pairs = tuple(sorted(theta.items()))
-    key = eval_key(sctx.context_fp, sctx.schema_fp, pairs, cells, None if geometry is None else fp_of(geometry))
+    key = eval_key(sctx.context_fp, sctx.schema_fp, pairs, cells,
+                   fp_of(geometry) if geometry is not None else (None if realized is None else realized.fp))
     hit = sctx.cache.get(key)
     if hit is not None:
         sctx.counters["hits"] += 1
@@ -121,7 +127,7 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
     base = None if parent is None else parent.evaluation
     evaluation, failure, partial, objectives, rows, status = None, None, None, None, (), STATUS_FAILED
     try:
-        evaluation = size_and_seal(dc, dict(pairs), parent=base, w_request=() if geometry is None else geometry.w_request)
+        evaluation = size_and_seal(dc, dict(pairs), parent=base, w_request=() if geometry is None else geometry.w_request, realized=realized)
     except CANDIDATE_FAILURE_CLASSES as exc:
         failure, partial = exc.record, exc.partial
     unmeasured, bundle = (), None

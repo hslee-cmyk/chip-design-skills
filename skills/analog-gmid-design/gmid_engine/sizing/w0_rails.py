@@ -4,7 +4,7 @@
 
 * reads `node.is_rail`. extras `supplies` = graph `supplies_declaration` 이 정규화한 ((레일, V), ...)(커널 컨텍스트가 검사).
 * writes `node.dc_rail_v` = 레일 노드마다 V. 레일 밖 노드에는 쓰지 않는다(노드전압 하나 = writer 하나: 레일은 이 블록,
-  나머지는 `dc_columns`).
+  나머지는 `dc_solve`).
 """
 from gmid_engine.core import compute_block
 

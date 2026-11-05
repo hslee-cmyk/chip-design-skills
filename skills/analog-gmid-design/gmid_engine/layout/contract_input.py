@@ -106,16 +106,20 @@ class MatchingGroup:
 
 @dataclasses.dataclass(frozen=True)
 class RowGroup:
-    """행 그룹(같은 kind·body 넷의 diffusion 묶음)."""
+    """행 그룹(같은 kind·body 넷의 diffusion 묶음). `excluded_keys` = 이 행 그룹이 후보로 쓰지 않는 폭 키(오름차순 정수 tuple, MOD8 키 제외 -- WB-1 그룹 단위,
+    다른 행 그룹의 후보는 그대로)."""
 
     rid: str
     kind: str
     body_net: str
     members: tuple
+    excluded_keys: tuple = ()
 
     def __post_init__(self):
         _names(self.members, self.rid + ".members")
         _require(self.kind in KINDS, self.rid + ": kind " + repr(self.kind))
+        _require(all(isinstance(k, int) and not isinstance(k, bool) for k in self.excluded_keys) and tuple(sorted(set(self.excluded_keys))) == tuple(self.excluded_keys),
+                 self.rid + ": excluded_keys 는 중복 없는 오름차순 정수 tuple")
 
 
 @dataclasses.dataclass(frozen=True)

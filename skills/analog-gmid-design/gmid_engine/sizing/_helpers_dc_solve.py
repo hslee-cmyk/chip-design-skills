@@ -3,7 +3,7 @@
 공개: `Circuit(projection, *, lut, linear)` -- 블록이 투영(`.column(kind, field)` 질의만)에서 읽는 열을 한 번 풀어 읽기 전용 값(`MappingProxyType`·tuple·frozenset)으로 두는
 묶음. 속성은 호출자가 바꿀 수 없다. 쓰기가 필요한 상태(θ·고정 값·tol 셀 등)는 이 클래스를 잇는 `block_dc._Circuit` 가 가진다.
 
-* 읽는 열: `node.dc_writer`·`node.dc_rail_v`·`device.pins`·`device.kind`·`device.bulk`·`device.dc_L`·`device.dc_colour`·`device.dc_coord` (모두 `dc_columns` READS 의 부분집합).
+* 읽는 열: `node.dc_writer`·`node.dc_rail_v`·`device.pins`·`device.kind`·`device.bulk`·`device.dc_L`·`device.dc_colour`·`device.dc_coord` (모두 `dc_solve` READS 의 부분집합).
   `lut` = `LutAccess`(VDSAT 조회), `linear` = `triode` 선언 소자 이름 집합 -- 두 키워드는 필수(빠지면 `TypeError`).
 * `mos_point(m, values) -> (vgs, vds, vsb)`·`vds_vsb(m, values) -> (vds, vsb)`: 노드전압 `values` 에서 LUT 축 크기(kind 부호 반영, `_helpers_lut.terminal_voltages`).
 * `canonical_writers()`: (넷, writer) 를 쓰기 순번 순으로(이름순이 아니다 -- 이름 치환이 행·합산 순서를 바꾸지 않게).
@@ -15,15 +15,47 @@
   `values` 에 레일이 없으면 이 묶음의 `node.dc_rail_v` 로 채운다(레일 값은 입력이 아니라 선언이다). `off` 선언·전도 판정은 없다.
 * `port_window(value, slope, dlo, dhi) -> (lo, hi)`: 포트 창 = 두 끝 전압 V + s·dlo, V + s·dhi 의 [min, max] ∩ [레일 최소, 레일 최대](감도 음수 포트는 아래 끝이 위 끝이 된다).
   감도 0 이면 포트가 x 를 따라 움직이지 않으므로 두 끝이 모두 V.
+* `default_port_views(projection, directions) -> tuple`·`sense_signs(view, roles) -> tuple | None`: ICMR 측정 구성(`icm_config`)과 실현 평가 servo(`dc_solve`)가 같이 읽는
+  기본 포트 전달 뷰와 감지 부호의 정의 한 곳(투영에 `graph.views`·`node.port_role` 열이 있어야 한다).
 """
 import types
 
-from gmid_engine.graph import MOS_TERMINAL_NAMES
+from gmid_engine.authoring import INPUT_DIRECTION, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P
+from gmid_engine.graph import MOS_TERMINAL_NAMES, S1V_KEY, VIEW_TRANSFER, default_port_seeds
 
 from ._helpers_lut import terminal_voltages
 
 _ROW_SAT = "sat"                                      # `region_rows` 행 종류: 선언 없음(포화)
 _ROW_TRIODE = "triode"                                # `intended_region: triode` 선언 소자
+
+
+def default_port_views(projection, directions):
+    """기본 포트 전달 뷰 목록 -- S1v `graph.views` 가 있으면 그 `default_port` 뷰, 없으면 같은 규칙을 포트 사실에서(규칙 정의는 `graph/views.py` 하나)."""
+    found = dict(projection.column("graph", "views"))
+    if S1V_KEY in found:
+        return tuple(view for view in found[S1V_KEY] if view.kind == VIEW_TRANSFER and view.default_port)
+    roles = dict(projection.column("node", "port_role"))
+    inputs = tuple((net, roles[net]) for net, d in sorted(directions.items()) if d == INPUT_DIRECTION)
+    outputs = tuple((net, roles[net]) for net, d in sorted(directions.items()) if d is not None and d != INPUT_DIRECTION)
+    return tuple(default_port_seeds(inputs, outputs))
+
+
+def pivot_config(snapshot):
+    """스냅샷의 servo 피벗 판정 `graph.icm_config.config`(IT-2c; 필드가 없으면 None) -- 실현 평가 갈래(`dc_solve`)와 갈래 대조(`realize_front`)가 같은 읽기 한 곳을 쓴다."""
+    found = [cfg.config for _key, cfg in snapshot.column("graph", "icm_config")]
+    return found[0] if found else None
+
+
+def sense_signs(view, roles):
+    """뷰 감지 넷 -> ((넷, 부호), ...): 출력 하나 = +1, 차동 출력쌍 = (p +1, n −1), 그 밖은 None."""
+    sense = tuple(view.sense)
+    if len(sense) == 1:
+        return ((sense[0], 1.0),)
+    plus = tuple(net for net in sense if roles.get(net) == ROLE_DIFFERENTIAL_OUTPUT_P)
+    minus = tuple(net for net in sense if roles.get(net) == ROLE_DIFFERENTIAL_OUTPUT_N)
+    if len(sense) == len(plus) + len(minus) and len(plus) == 1 and len(minus) == 1:
+        return ((plus[0], 1.0), (minus[0], -1.0))
+    return None
 
 
 class Circuit:

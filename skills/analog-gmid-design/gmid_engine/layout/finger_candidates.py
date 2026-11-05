@@ -13,15 +13,15 @@ import math
 
 from gmid_engine.core import compute_block
 
-from ._ly_fields import DEVICE, F_FW_CAND, F_POINT, F_PDK, F_SLICES, GRAPH, GRAPH_KEY, WRITER_FW_CAND
+from ._ly_fields import DEVICE, F_FW_CAND, F_POINT, F_PDK, F_ROW_GROUPS, F_SLICES, GRAPH, GRAPH_KEY, WRITER_FW_CAND
 from .contract_output import FingerCandidate
 from .w_tolerance import w_tolerance
 
 
-def _candidates(gm_id, slices, grid_m):
+def _candidates(gm_id, slices, grid_m, excluded=()):
     out = []
     for s in slices:
-        if s.reason:
+        if s.reason or s.finger_w_key in excluded:     # 사용 불가 슬라이스, 그리고 MOD8 이 이 소자의 행 그룹에서 뺀 폭 키(WB-1 그룹 단위 키 제외)
             continue
         tol = w_tolerance(gm_id, s.tol_v_V, s.finger_w_m, grid_m)
         ratio = s.W_need_m / s.finger_w_m
@@ -33,17 +33,18 @@ def _candidates(gm_id, slices, grid_m):
     return tuple(out)
 
 
-@compute_block(WRITER_FW_CAND, reads=((DEVICE, F_POINT), (DEVICE, F_SLICES), (GRAPH, F_PDK)),
+@compute_block(WRITER_FW_CAND, reads=((DEVICE, F_POINT), (DEVICE, F_SLICES), (GRAPH, F_PDK), (GRAPH, F_ROW_GROUPS)),
                writes=((DEVICE, F_FW_CAND),))
 def finger_candidates(projection):
-    """소자마다 `FingerCandidate` tuple(폭 키 오름차순, 같은 폭은 nf 오름차순)."""
+    """소자마다 `FingerCandidate` tuple(폭 키 오름차순, 같은 폭은 nf 오름차순). 소자가 속한 행 그룹의 `excluded_keys` 폭은 후보에서 뺀다."""
     grid = projection.value(GRAPH, GRAPH_KEY, F_PDK).manufacturing_grid_m
     slices_of = dict(projection.column(DEVICE, F_SLICES))
+    excluded_of = {name: rg.excluded_keys for rg in projection.value(GRAPH, GRAPH_KEY, F_ROW_GROUPS) for name in rg.members}
     memo = {}
     out = {}
     for name, point in projection.column(DEVICE, F_POINT):
-        memo_key = (point.gm_id, slices_of[name])
+        memo_key = (point.gm_id, slices_of[name], excluded_of.get(name, ()))
         if memo_key not in memo:
-            memo[memo_key] = _candidates(point.gm_id, slices_of[name], grid)
+            memo[memo_key] = _candidates(point.gm_id, slices_of[name], grid, memo_key[2])
         out[name] = memo[memo_key]
     return {(DEVICE, F_FW_CAND): out}

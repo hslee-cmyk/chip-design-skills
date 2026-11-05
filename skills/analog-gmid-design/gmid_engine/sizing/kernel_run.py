@@ -28,6 +28,7 @@ from .s2_values import (
     THETA_Y,
     DcEvaluation,
     KernelContext,
+    RealizedFinger,
     RealizedGeometry,
     Theta,
 )
@@ -64,10 +65,13 @@ def _call_block(ctx, block, snapshot, extras, before):
         raise
 
 
-def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
-    """평가 커널 본체 -- `size_and_seal`(위반이면 예외)과 `size_and_seal_local`(위반 보고서를 그대로 읽는다)이 같은 계산을 쓴다."""
+def run_kernel(ctx, theta, parent, w_request, raise_on_violation, realized=None):
+    """평가 커널 본체 -- `size_and_seal`(위반이면 예외)과 `size_and_seal_local`(위반 보고서를 그대로 읽는다)이 같은 계산을 쓴다.
+    `realized` = `RealizedFinger`(실현 평가: DC 블록이 W' 고정으로 다시 푼다) 또는 None. W_request 와 함께 줄 수 없다(`ValueError`)."""
     if not isinstance(ctx, KernelContext):
         raise TypeError("size_and_seal: ctx 는 build_kernel_context 결과여야 한다")
+    if realized is not None and (not isinstance(realized, RealizedFinger) or w_request):
+        raise ValueError("size_and_seal: realized 는 RealizedFinger 여야 하고 w_request 와 함께 줄 수 없다")
     base = ctx.base
     snapshot = base
     theta = check_theta(base.value("graph", KERNEL_KEY, "theta_schema"), theta.values if isinstance(theta, Theta) else theta)
@@ -100,6 +104,8 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     columns_extras = (column_items, base.value("graph", KERNEL_KEY, "fixed_values"), resistor_values, ctx.lut)
     if requested:
         columns_extras += (RealizedGeometry(None, requested),)
+    elif realized is not None:
+        columns_extras += (None, realized)
     later = list(zip(later_blocks, (columns_extras,)))
     for block, extras in later:
         snapshot = _call_block(ctx, block, snapshot, extras, done)

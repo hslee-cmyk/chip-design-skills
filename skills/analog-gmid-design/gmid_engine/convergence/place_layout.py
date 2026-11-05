@@ -1,6 +1,7 @@
 """평가 커널 호출 없이 레이아웃을 놓는다 -- 폭 키 좁히기와 완화 판정을 포함 (계획 N3.17 LY5·LY7, 설계 40 §3.9 U14).
 
-진입점: `place_layout(memo, snapshot, pdk, passives, rejected, relaxed, first_seen, previous, kinds, *, donors, counters) -> PlacedLayout`.
+진입점: `place_layout(memo, snapshot, pdk, passives, rejected, relaxed, first_seen, previous, kinds, excluded=(), *, donors, counters) -> PlacedLayout`
+(`excluded` = ((행 그룹 rid, (뺀 폭 키, ...)), ...) -- `key_exclusion` 이 행 그룹 단위로 뺀 폭 후보, `layout_input_of` 로 그대로 넘긴다).
 `donors`·`counters` = 필수 키워드(기본값 없음) -- `converge_point` 가 `sctx.dc` 에서 꺼내 넘기는 실행 하나의 블록 결과 색인·계수. `run_layout` 에 그대로 넘긴다.
 
 `snapshot` = 설계점(봉인 S2) 스냅샷 -- 레이아웃 필드는 그 위에 쓰인다(설계 40 v1.6 §2.4.7, 별도 lineage 없음). 레이아웃 결과는 `LayoutResult.snapshot` 의 `ly_*` 필드로 읽는다.
@@ -18,12 +19,12 @@ from .layout_input import layout_input_of
 from .relaxation import relaxation_decision
 
 
-def place_layout(memo, snapshot, pdk, passives, rejected, relaxed, first_seen, previous, kinds, *, donors, counters):
+def place_layout(memo, snapshot, pdk, passives, rejected, relaxed, first_seen, previous, kinds, excluded=(), *, donors, counters):
     relaxed = set(relaxed)
     first_seen = dict(first_seen)
     calls = 0
     while True:
-        layout_input, undelivered = layout_input_of(snapshot, pdk, passives, rejected, relaxed)
+        layout_input, undelivered = layout_input_of(snapshot, pdk, passives, rejected, relaxed, excluded)
         layout = run_layout(layout_input, memo, snapshot, previous, donors=donors, counters=counters)
         calls += 1
         previous = layout

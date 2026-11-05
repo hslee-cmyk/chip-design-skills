@@ -24,7 +24,7 @@ from .contract_input import (
     MatchingGroup,
     RowGroup,
 )
-from ._ly_fields import F_DIFFUSION, F_FINGER, F_FLOORPLAN, F_GROUPS, F_GROUPS_IN, F_POINT
+from ._ly_fields import F_DIFFUSION, F_FINGER, F_FLOORPLAN, F_GROUPS, F_GROUPS_IN, F_POINT, F_ROW_GROUPS
 from ._ly_fields import GRAPH_KEY as LAYOUT_KEY
 from .contract_output import LayoutOutputs, LayoutResult
 from .outputs import layout_outputs
@@ -40,6 +40,7 @@ __all__ = (
     "F_GROUPS",
     "F_GROUPS_IN",
     "F_POINT",
+    "F_ROW_GROUPS",
     "LAYOUT_KEY",
     "LayoutDevice",
     "LayoutInput",

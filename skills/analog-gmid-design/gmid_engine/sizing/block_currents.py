@@ -4,7 +4,7 @@
 
 * reads `graph.dc_current_basis` 만(노드전압을 읽지 않는다 -- gm/ID 매개화에서 VGS 가 ID 를 포함하지 않는다, DEC-70).
 * extras `theta_currents` = ((원소, A), ...) θ 전류 성분(기저 `free` 와 같은 키, 아니면 `ValueError`).
-* writes `device.dc_current` = 모든 DC 원소 전류(전도 방향 양수, 저항 포함) + 잎 가지치기 저항 0.0 (WB-1: 둘째 필드 `dc_drop_current` 삭제 -- 저항 강하는 이 필드를 읽는다).
+* writes `device.dc_current` = 모든 DC 원소 전류(전도 방향 양수, 저항 포함) + 잎 가지치기 저항 0.0 (WB-1: 저항 강하 전류는 따로 필드를 두지 않고 이 필드를 읽는다).
 * 전도 MOS 전류 ≤ 0(유리수로 정확히 잼)은 θ 정의역(`ThetaSchema.current_cone`) 밖이라 `check_theta` 가 먼저 거부한다.
   이 블록을 정의역 밖 θ 로 직접 부르면 `ValueError`(호출 계약 위반, 후보 실패가 아니다).
 """
