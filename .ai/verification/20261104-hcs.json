@@ -3,8 +3,8 @@
   "spec_card": "docs/02-design/specs/20261104-hcs.spec.md",
   "evidence_type": "red-green",
   "base_commit": "eecae6218e2b1ad9c0476ea88c8e0ab7c29960ac",
-  "test_commit": "0c314488c932e3e6d5c3bb110092ca71334531f5",
-  "code_commit": "c8b922d0f540618ee01fb3c9c287a4cdef078059",
+  "test_commit": "3fc801432424a847d39bf8ca9a05c851e1718456",
+  "code_commit": "f7ae342ba3d72701fc4b880d5fcc5a1c43f4c969",
   "red": {
     "test_ids": [
       "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_reason_constants_and_value_type",
@@ -152,11 +152,11 @@
   "checks": {
     "V1": {
       "verdict": "N/A",
-      "basis": "전체 test 안 돌림(임시 규칙 O-229). 돌린 범위 = 격리 복제본 iso, 머리 e1a99778: card test 12파일(test_s2_values 포함) 350 중 346 통과 4 실패 / card 소비자 5파일(input_window·scc_newton·size_and_seal_local·metrics_aux·icm_config) 150 통과 / search/test_canonical_order 12 통과 / tests/structure 171 통과 1 deselected / 2회로 연기 stage_b 10 통과, s0 10 통과 1 실패, g10 2 통과. 안 돌린 것(다른 회로·SPICE·13회로 변화표)은 통과로 세지 않는다."
+      "basis": "전체 test 안 돌림(임시 규칙 O-229). 돌린 범위 = 격리 복제본 iso, 머리 e1a99778: card test 12파일(test_s2_values 포함) 350 중 346 통과 4 실패 / card 소비자 5파일(input_window·scc_newton·size_and_seal_local·metrics_aux·icm_config) 150 통과 / search/test_canonical_order 12 통과 / tests/structure 171 통과 1 deselected / 2회로 연기 stage_b 10 통과, s0 10 통과 1 실패, g10 2 통과. 안 돌린 것(다른 회로·SPICE·13회로 변화표)은 통과로 세지 않는다. [A-103 재판정, 머리 820eac2c, 새 복제본 iso2] test_s2_values 50 통과 / lut 3파일(test_sat_threshold·test_vdsat_tolerance·test_lut_memo) 110 통과 / test_canonical_order 12 통과 / tests/structure 171 통과 1 deselected / 2회로 연기 stage_b 10·s0 11·g10 2 통과. 머리에서 다시 돈 것은 이것뿐이다. 나머지 card test(앞 판정 12파일 중 3파일 밖 + 소비자 5파일)는 e1a99778 값이고 재실행 안 함(그 사이 skills 변경 = vdsat_tolerance.py 한 줄, test_s2_values.py, 기준선 fixture 세 파일뿐)."
     },
     "V2": {
-      "verdict": "FAIL",
-      "basis": "green 불성립. Major M-1: tests/sizing/test_s2_values.py 4 실패(test_s2_writers_is_s1_plus_dc_table_exactly, test_dc_writes_constant_matches_table, test_block_name_and_writes_match_table[dc_widths], test_block_reads_declared_as_contract[dc_widths]). base eecae621 은 50 통과, head 는 DC_TABLE·READS 표에 device.dc_sat_v 와 dc_widths READS device.region_decl 이 없다. 엔진은 card 계약대로이고 test 표가 낡았다. card test 목록(spec 'test 역할 몫')에 이 파일이 빠져 있다. Major M-2: test_s0_field_values_unchanged_from_base[folded_cascode] 실패, 원인·제안 = V5·V9·s0_baseline_proposal.json. red: base 엔진 + test 0c314488 9파일 107 실패 158 통과, 이 중 card 이름 test 69건 기록(AttributeError 38, ImportError 15 = 신규 심볼, AssertionError 15·Failed 1 = 동작 red, 예: vds_min_v 0.125 != 0.5, headroom 옛 값 범위 밖). S10·S12·S13 은 A-90 대로 red test 없음."
+      "verdict": "PASS",
+      "basis": "M-1·M-2 해소(앞 판정 FAIL 은 커밋 639eef25). M-1: 3fc80143 의 test_s2_values.py 변경 = DC_TABLE 에 device.dc_sat_v -> dc_widths 행 추가, 표 크기 단언 33 -> 34, dc_widths READS 기대 집합에 device.region_decl 추가. interface 2절(writer = dc_op 와 같은 블록 dc_widths)·spec 재작성 범위(READS device.region_decl)와 일치. 삭제·완화 0, 집합 같음 단언 그대로라 약화 아님. 50 통과. M-2: 기준선 diff 칸 14 = start.row_fp 13 + ladder_fp 1, s0_baseline_proposal.json 값과 칸별 전부 같음, 제안 밖 칸 0, 다른 회로·최상위 변경 0(scripts/cmp_baseline_a103.py). s0 연기 folded_cascode 포함 11 통과. 적용 주체 = test 역할(판정자 아님, A-103). red 근거는 앞 판정 그대로(base 엔진 + test 0c314488)."
     },
     "V3": {
       "verdict": "FAIL",
@@ -168,11 +168,11 @@
     },
     "V5": {
       "verdict": "PASS",
-      "basis": "기준 약화 없음. (a) test_region_seal_reverse_vds_costs_no_vdsat_lookup 정상 점 '조회 >= 2 -> 0': 봉인이 필드만 읽는 계약 변경의 결과이고 대조 역할은 LUT 와 다른 값을 주입하는 test_dc_sat_v_field_* + LutCalls 호출 0 이 맡는다(m6 죽음). (b) S8 토큰 금지 -> 호출 금지: interface S8 문언이 `tol_vdsat(` 이고 다른 삭제 이름은 그대로 금지, m13 죽음. (c) state() 재주입은 닫힌 식이라 피검 함수 기대값 아님. (d) test_off_gate 조회 수 1+extra -> extra, off 닫힌 식 s′ -0.009765625 불변. (e) 옛 '표 없으면 0' test 는 삭제 이름 KeyError 로 대체. 기준선 u17_1b_s0_baseline.json 은 이 판정에서 건드리지 않았다(제안 파일만, 아래 V9)."
+      "basis": "기준 약화 없음. (a) test_region_seal_reverse_vds_costs_no_vdsat_lookup 정상 점 '조회 >= 2 -> 0': 봉인이 필드만 읽는 계약 변경의 결과이고 대조 역할은 LUT 와 다른 값을 주입하는 test_dc_sat_v_field_* + LutCalls 호출 0 이 맡는다(m6 죽음). (b) S8 토큰 금지 -> 호출 금지: interface S8 문언이 `tol_vdsat(` 이고 다른 삭제 이름은 그대로 금지, m13 죽음. (c) state() 재주입은 닫힌 식이라 피검 함수 기대값 아님. (d) test_off_gate 조회 수 1+extra -> extra, off 닫힌 식 s′ -0.009765625 불변. (e) 옛 '표 없으면 0' test 는 삭제 이름 KeyError 로 대체. 기준선 u17_1b_s0_baseline.json 은 이 판정에서 건드리지 않았다(제안 파일만, 아래 V9). [A-103] 기준선 갱신은 O-204 card 항목의 값 변화이고 원인은 앞 판정이 원인 대조로 쟀다(iv_domain 옛 tol 복원 -> 13/13 복귀). 기준 약화 아님. 다른 탐색 회로 7개 기준선은 안 돌렸고 통과로 세지 않는다."
     },
     "V6": {
       "verdict": "PASS",
-      "basis": "tests/structure 171 통과 1 deselected, 래칫 new 0, stale 2: (g8_memo_lookup_form sizing/block_columns.py _vds_floor) = spec 이 예고한 줄어듦, (vt_assign sizing/s2_values.py NO_ORDER_HINTS:OrderHints) = TB-1 때부터 있던 것. gmid_engine/graph diff 0, structure.json 변경 0, assets 변경 0(rule_hash 해당 없음). 회로 이름 0·PDK 이름 0(diff 추가 줄 grep, 규칙 D·E 통과)."
+      "basis": "tests/structure 171 통과 1 deselected, 래칫 new 0, stale 2: (g8_memo_lookup_form sizing/block_columns.py _vds_floor) = spec 이 예고한 줄어듦, (vt_assign sizing/s2_values.py NO_ORDER_HINTS:OrderHints) = TB-1 때부터 있던 것. gmid_engine/graph diff 0, structure.json 변경 0, assets 변경 0(rule_hash 해당 없음). 회로 이름 0·PDK 이름 0(diff 추가 줄 grep, 규칙 D·E 통과). [A-103, 머리 820eac2c] 171 통과 1 deselected, stale 같은 2건, 래칫 new 0. f7ae342b = lut/vdsat_tolerance.py 한 줄이 (\"table\", \"tol_vdsat\") 로 복귀, 다른 변경 0(Role: code, 오케스트레이터). 3파일 110 통과."
     },
     "V7": {
       "verdict": "PASS",
@@ -266,16 +266,57 @@
       "name": "sat_threshold 호출당 us(vdsat 적중 9.5)",
       "value": 206.1,
       "command": "scripts/time_sat.py"
+    },
+    {
+      "name": "A-103 test_s2_values 통과",
+      "value": 50,
+      "command": "out2/s2"
+    },
+    {
+      "name": "A-103 lut 3파일 통과",
+      "value": 110,
+      "command": "out2/three"
+    },
+    {
+      "name": "A-103 test_canonical_order 통과",
+      "value": 12,
+      "command": "out2/canon"
+    },
+    {
+      "name": "A-103 tests/structure 통과",
+      "value": 171,
+      "command": "out2/structure"
+    },
+    {
+      "name": "A-103 연기 stage_b 통과",
+      "value": 10,
+      "command": "out2/smoke_stageb"
+    },
+    {
+      "name": "A-103 연기 s0 통과",
+      "value": 11,
+      "command": "out2/smoke_s0"
+    },
+    {
+      "name": "A-103 연기 g10 통과",
+      "value": 2,
+      "command": "out2/smoke_g10"
+    },
+    {
+      "name": "A-103 기준선 변경 칸(제안과 같음)",
+      "value": 14,
+      "command": "scripts/cmp_baseline_a103.py"
     }
   ],
   "approvals": [],
   "auditor_run": {
-    "time": "2026-11-05T16:45:00+09:00",
+    "time": "2026-11-05T17:30:00+09:00",
     "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-hcs-audit",
     "commands": [
       "V1: 전체 test 안 돌림(O-229), 범위 = out/*.meta 파일별 실행",
       "격리: git clone --no-hardlinks --no-local <audit worktree> iso, remote remove origin, 머리 e1a99778",
-      "격리: git archive eecae621 -> base, red(+ tests 0c314488); git archive HEAD -> mut, attr"
+      "격리: git archive eecae621 -> base, red(+ tests 0c314488); git archive HEAD -> mut, attr",
+      "격리: git clone --no-hardlinks --no-local <audit worktree> iso2, remote remove origin, 머리 820eac2c (A-103 재판정)"
     ]
   }
 }
