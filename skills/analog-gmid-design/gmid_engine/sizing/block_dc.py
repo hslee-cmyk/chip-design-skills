@@ -37,7 +37,6 @@
 """
 import dataclasses
 import math
-import types
 
 from gmid_engine.authoring import INPUT_DIRECTION, REGION_OFF, REGION_TRIODE
 from gmid_engine.core import NonconvergentError, SealViolationError, compute_block
@@ -147,7 +146,6 @@ class _Circuit(Circuit):
         self.classes = dict(projection.column("device", "element_class"))
         self.current = dict(projection.column("device", "dc_current"))
         self.geometry, self.realized = geometry, realized
-        self.keys = types.MappingProxyType({})     # 소자 -> 지금 쓰는 슬라이스 키(블록 안 값: 쓰기 소자 = 선택 결과, 종속 소자 = 기준 슬라이스에서 시작해 Rʳ 되풀이로 바뀐다). 읽기 전용, `set_keys` 만 통째로 바꾼다
         self.net_colour = dict(projection.column("node", "dc_colour"))
         self.self_ref = frozenset(m for m, flag in projection.column("device", "dc_self_referential") if flag)   # 쓰기 계획 파생 S0 필드(1변수 writer)
         self.order = projection.value("graph", DC_KEY, "dc_scc_order")
@@ -161,10 +159,6 @@ class _Circuit(Circuit):
             self.order_terms.setdefault(source_side, []).append((True, sink_side))
             self.order_terms.setdefault(sink_side, []).append((False, source_side))
         self.tol_cells = {}                        # (소자, VDS) -> tol_V 또는 None -- `tolerance` 의 한 평가 안 재사용
-
-    def set_keys(self, updates):
-        """슬라이스 키 사상을 갱신분 `updates` 를 겹친 새 읽기 전용 사상으로 통째로 바꾼다(제자리 변경 없음)."""
-        self.keys = types.MappingProxyType({**self.keys, **updates})
 
     def kvl_window(self, net, values):
         """W4 순서 창: x 에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이 되는 쪽 -- x 가 전류가 나가는 단자면
@@ -210,37 +204,37 @@ class _Circuit(Circuit):
             total += v0 + (v1 - v0) * pos / length
         return total / len(cols)
 
-    def transient(self, exc, m, vds):
+    def transient(self, keys, exc, m, vds):
         """반복 중(시작값 둘째 단계 포함, strict=False) 현재 값을 유지할 LUT 정의역 이탈인가: `lut_axis_out_of_range`·
         `lut_target_out_of_range`, 또는 VDS 정의역 하한(`vds_floor`(LUT 파생)) 아래에서 난 `lut_curve_undefined`."""
         lut_reason = dict(exc.record.detail).get("lut_reason")
         if lut_reason in _TRANSIENT_LUT_REASONS:
             return True
-        return lut_reason == _CURVE_UNDEFINED and vds < derived(self.lut.memo, "vds_floor", self.kinds[m], self.keys[m])
+        return lut_reason == _CURVE_UNDEFINED and vds < derived(self.lut.memo, "vds_floor", self.kinds[m], keys[m])
 
-    def start_writer(self, net, values):
+    def start_writer(self, keys, net, values):
         """시작값 둘째 단계(쓰기 계획 순서): MOS writer 노드는 writer 식을 VDS = 레일 범위 절반에서 한 번 평가한 값
         (diode·소스 추종의 고정점 근처). VSB 는 `vgs_gate`(source 를 안다)면 현재값, `vgs_source`(source 가 x 자신)면 0
         -- 체효과가 가장 작은 쪽에서 시작해 소스 추종이 레일 밖으로 튀지 않게 한다. 저항은 writer 식, W4 는 기둥
         위치 시작값 그대로. 시작값일 뿐이고 수렴값은 시작값과 무관하다(수렴 판정 = N3.6)."""
         w = self.writers[net]
         if self.self_referential(net):
-            return self.solve_self(net, values, strict=False)[0]
+            return self.solve_self(keys, net, values, strict=False)[0]
         if w.relation in (REL_VGS_GATE, REL_VGS_SOURCE):
             m = w.element
             _vds, vsb = self.vds_vsb(m, values)
             vsb = vsb if w.relation == REL_VGS_GATE else 0.0
             vds = (self.hi - self.lo) / 2
             try:
-                vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.keys[m], self.L[m], vds, vsb, self.ln_idu[m])
+                vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], keys[m], self.L[m], vds, vsb, self.ln_idu[m])
             except SealViolationError as exc:
-                if not self.transient(exc, m, vds):
+                if not self.transient(keys, exc, m, vds):
                     raise
                 return values[net]
             sign = self.kind_sign(self.kinds[m])
             return values[w.known] + sign * vgs if w.relation == REL_VGS_GATE else values[w.known] - sign * vgs
         if w.relation == REL_RESISTOR:
-            return self.update(net, values)
+            return self.update(keys, net, values)
         return values[net]
 
     def self_referential(self, net):
@@ -249,12 +243,12 @@ class _Circuit(Circuit):
         w = self.writers[net]
         return w.relation in (REL_VGS_GATE, REL_VGS_SOURCE) and w.element in self.self_ref
 
-    def _vgs_signed(self, m, vds, vsb):
+    def _vgs_signed(self, keys, m, vds, vsb):
         """bisection 용 VGS: 목표 전류가 그 (vds, vsb) 곡선의 강반전 분지 위 범위 밖이면 부호가 정해진 무한대
         (위 = +inf: 필요한 VGS 가 격자 위, 아래 = −inf: 분지 시작 아래) -- 단조 함수의 정의역 밖 쪽을 알려 준다.
         그 밖 LUT 실패(축 밖·비단조)는 소자 이름을 붙여 그대로 낸다."""
         kind = self.kinds[m]
-        w_key = self.keys[m]
+        w_key = keys[m]
         try:
             return vgs_for_current_density(self.lut.memo, kind, w_key, self.ln_idu[m], self.L[m], vds, vsb)
         except SealViolationError as exc:
@@ -263,7 +257,7 @@ class _Circuit(Circuit):
                 raise with_device(exc, m, "vgs_of_coordinate") from exc
             return math.inf if detail["target"] > detail["branch_max"] else -math.inf
 
-    def solve_self(self, net, values, strict=True):
+    def solve_self(self, keys, net, values, strict=True):
         """1변수 노드 x = g(x) 를 구간 괄호 근 찾기(`bracket_root`, Brent 법)로 푼다(설계 3.4). 구간 = 레일 전압 범위 ∩ {writer 소자의 VDS·VSB 가
         LUT 축 안}(VDS·VSB 는 x 의 1차식이라 두 점에서 계수를 잰다). h(x) = x − g(x) 끝점 부호가 같으면 근 없음 ->
         `SealViolationError`(reason `no_root_in_window`, item = 구간 끝이 VDS 축(순서·포화 쪽)에서 왔으면 7, 레일·VS 축(벌크
@@ -279,7 +273,7 @@ class _Circuit(Circuit):
         w = self.writers[net]
         m = w.element
         kind = self.kinds[m]
-        grids = self.lut.memo.lut.slice_map[(kind, self.keys[m])].grids
+        grids = self.lut.memo.lut.slice_map[(kind, keys[m])].grids
         sign = self.kind_sign(kind)
         known = values[w.known]
 
@@ -290,7 +284,7 @@ class _Circuit(Circuit):
 
         (vds0, vsb0), (vds1, vsb1) = channel(0.0), channel(1.0)
         bounds = [(self.lo, self.hi, _BOUND_RAIL)]
-        vds_domain = (derived(self.lut.memo, "vds_floor", kind, self.keys[m]), grids[_VDS_AXIS][-1])
+        vds_domain = (derived(self.lut.memo, "vds_floor", kind, keys[m]), grids[_VDS_AXIS][-1])
         for a, b, axis, label in ((vds0, vds1 - vds0, vds_domain, _BOUND_VDS),
                                   (vsb0, vsb1 - vsb0, grids[_VS_AXIS], _BOUND_VS)):
             if b != 0:
@@ -301,7 +295,7 @@ class _Circuit(Circuit):
 
         def h(x):
             vds, vsb = vds0 + (vds1 - vds0) * x, vsb0 + (vsb1 - vsb0) * x
-            vgs = self._vgs_signed(m, vds, vsb)
+            vgs = self._vgs_signed(keys, m, vds, vsb)
             target = known + sign * vgs if w.relation == REL_VGS_GATE else known - sign * vgs
             return x - target
 
@@ -313,7 +307,7 @@ class _Circuit(Circuit):
                                                            "bounds": (lo_from, hi_from)})
         middle = dict(values)
         middle[net] = (lo + hi) / 2
-        tol = self.tolerance((m,), middle)
+        tol = self.tolerance(keys, (m,), middle)
 
         def solved():
             root, h_a, h_b = bracket_root(h, lo, hi, tol)
@@ -325,7 +319,7 @@ class _Circuit(Circuit):
 
         # h 는 (소자 종류·L·ln IDu·writer 관계·known 값·VDS/VSB 의 x 1차식 계수·구간·tol) 만의 함수 -- 같은 입력이면 풀이를 다시
         # 하지 않는다(GS 반복·strict 재검증·FD 형제·탐색 평가 사이 중복). LUT memo root 영역(상한 있는 LRU).
-        key = (kind, self.keys[m], self.L[m], self.ln_idu[m], w.relation, known, vds0, vds1, vsb0, vsb1, lo, hi, tol)
+        key = (kind, keys[m], self.L[m], self.ln_idu[m], w.relation, known, vds0, vds1, vsb0, vsb1, lo, hi, tol)
         x, h_lo, h_hi = self.lut.memo.lookup("root", _SOLVE_SELF_MEMO, key, solved)
         if x is None and not strict:
             return values[net], 0, tol                     # SD-1: 근 없음 = 현재 반복값 유지(작은 |h| 끝점 대체 없음)
@@ -371,10 +365,10 @@ class _Circuit(Circuit):
         except SealViolationError as exc:
             raise with_device(exc, m, "finger_slice") from exc
 
-    def tol_cell(self, m, vds):
+    def tol_cell(self, keys, m, vds):
         """소자 m 의 슬라이스(`keys[m]`) (L 앵커, VDS) 셀 id_equivalent tol_V -- 정의된 셀이 없으면 None."""
         try:
-            return tol_v_table(self.lut.memo, self.kinds[m], self.keys[m]).at(self.L[m], vds, "id_equivalent")
+            return tol_v_table(self.lut.memo, self.kinds[m], keys[m]).at(self.L[m], vds, "id_equivalent")
         except SealViolationError as exc:
             raise with_device(exc, m, "tol_v_cell") from exc
 
@@ -382,21 +376,21 @@ class _Circuit(Circuit):
         d, _g, s = (self.pins[m][t] for t in MOS_TERMINAL_NAMES)
         return d in values and s in values and self.bulk[m] in values
 
-    def update(self, net, values, strict=True):
+    def update(self, keys, net, values, strict=True):
         """노드 writer 식. `strict=False`(다변수 SCC Gauss-Seidel 반복 중): 1변수 노드는 투영 bisection, MOS writer 의 LUT
         정의역 이탈(`lut_axis_out_of_range`·`lut_target_out_of_range`·VDS 정의역 하한 아래의 `lut_curve_undefined` -- 이웃의
         과도 반복값 때문)과 W4 창이 빈 경우는 실패
         대신 현재 값을 그대로 둔다. 수렴 뒤 `strict=True` 검증 한 바퀴가 같은 식을 다시 재므로 최종값에 남지 않는다."""
         w = self.writers[net]
         if self.self_referential(net):
-            return self.solve_self(net, values, strict=strict)[0]
+            return self.solve_self(keys, net, values, strict=strict)[0]
         if w.relation in (REL_VGS_GATE, REL_VGS_SOURCE):
             m = w.element
             vds, vsb = self.vds_vsb(m, values)
             try:
-                vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.keys[m], self.L[m], vds, vsb, self.ln_idu[m])
+                vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], keys[m], self.L[m], vds, vsb, self.ln_idu[m])
             except SealViolationError as exc:
-                if strict or not self.transient(exc, m, vds):
+                if strict or not self.transient(keys, exc, m, vds):
                     raise
                 return values[net]
             sign = self.kind_sign(self.kinds[m])
@@ -414,7 +408,7 @@ class _Circuit(Circuit):
                                              "lo": lo, "hi": hi, "constraints": ncols})
         return lo + self.theta[(THETA_Y, w.y_key)] * (hi - lo)
 
-    def writer_grad(self, net, values):
+    def writer_grad(self, keys, net, values):
         """writer 식 값 g 와 노드전압에 대한 편미분 {노드: ∂g/∂V}(Newton 야코비안 행). 1변수 노드도 bisection 이 아니라 식
         그대로(x 를 읽는 VDS·VSB 항이 야코비안 대각에 들어간다).
         * MOS writer(부호 s, gate 쓰기 σ = +1 / source 쓰기 σ = −1): g = V(known) + s·σ·VGS(ln IDu, VDS, VSB). VGS 는 lnID(VGS,
@@ -430,8 +424,8 @@ class _Circuit(Circuit):
             kind = self.kinds[m]
             d, _g, s = (self.pins[m][t] for t in MOS_TERMINAL_NAMES)
             vds, vsb = self.vds_vsb(m, values)
-            vgs = _vgs_of_coordinate(self.lut, m, kind, self.keys[m], self.L[m], vds, vsb, self.ln_idu[m])
-            w_key = self.keys[m]
+            vgs = _vgs_of_coordinate(self.lut, m, kind, keys[m], self.L[m], vds, vsb, self.ln_idu[m])
+            w_key = keys[m]
             point = forward_point(self.lut, m, kind, w_key, self.L[m], vgs, vds, vsb)
             w_m = self.lut.memo.lut.slice_map[(kind, w_key)].w_m
             try:
@@ -471,7 +465,7 @@ class _Circuit(Circuit):
             grad[hi_node] = grad.get(hi_node, 0.0) + y
         return lo + y * (hi - lo), grad
 
-    def newton_system(self, nodes, values):
+    def newton_system(self, keys, nodes, values):
         """SCC 잔차 r_i = V_i − g_i(V) 와 야코비안 J = I − ∂g/∂V(SCC 노드 열만 -- 바깥 노드는 이미 확정된 상수).
         한 노드라도 정의역 밖(LUT 조회 실패·빈 창 = `SealViolationError`)이면 None(선 탐색이 α 를 줄인다)."""
         index = {n: i for i, n in enumerate(nodes)}
@@ -479,7 +473,7 @@ class _Circuit(Circuit):
         rows = []
         for n in nodes:
             try:
-                g, grad = self.writer_grad(n, values)
+                g, grad = self.writer_grad(keys, n, values)
             except SealViolationError:
                 return None
             residuals.append(values[n] - g)
@@ -500,13 +494,13 @@ class _Circuit(Circuit):
         v = i * self.resistance[r]
         return -v if near == t0 else v
 
-    def tolerance(self, devices, values):
+    def tolerance(self, keys, devices, values):
         tols = []
         for m in devices:
             vds, _vsb = self.vds_vsb(m, values)
-            key = (m, self.keys[m], vds)                   # 한 평가 안에서 같은 (소자, 슬라이스, VDS) 셀 조회는 한 번(L·kind 는 소자마다 고정)
+            key = (m, keys[m], vds)                   # 한 평가 안에서 같은 (소자, 슬라이스, VDS) 셀 조회는 한 번(L·kind 는 소자마다 고정)
             if key not in self.tol_cells:
-                self.tol_cells[key] = self.tol_cell(m, vds)
+                self.tol_cells[key] = self.tol_cell(keys, m, vds)
             tol = self.tol_cells[key]
             if tol is not None:
                 tols.append(tol)
@@ -515,17 +509,17 @@ class _Circuit(Circuit):
         return min(tols)
 
 
-def _strict_recheck(c, entry, values, tol):
+def _strict_recheck(c, keys, entry, values, tol):
     """검증 바퀴: 수렴점에서 SCC 노드마다 writer 식을 strict 로 다시 잰다(1변수는 bisection 전체). 정의역 밖이면 그
     `SealViolationError` 그대로, |새 값 − 수렴값| > tol 이면 `NonconvergentError`(reason `strict_recheck_residual`)."""
     for net in entry.nodes:
-        residual = abs(c.update(net, values) - values[net])
+        residual = abs(c.update(keys, net, values) - values[net])
         if residual > tol:
             raise NonconvergentError(devices=entry.devices, margin=residual / tol,
                                      detail={"node": net, "reason": REASON_STRICT_RECHECK, "nodes": entry.nodes})
 
 
-def _solve(c):
+def _solve(c, keys):
     """쓰기 계획 위상 순서로 SCC 를 풀어 (노드전압, SccLog 열, Rʳ 소자 집합)을 낸다 -- 현재 `c.theta` 한 벌에 대한 풀이 한 번.
     Rʳ 소자 = writer 없는 순환 SCC 의 수렴 허용오차 셀을 내는 종속 MOS(이 풀이의 지역 값)."""
     values = dict(c.rail_v)
@@ -538,19 +532,19 @@ def _solve(c):
         entry_devices = tuple(sorted(entry.devices, key=lambda m: (c.device_colour.get(m, 0), m)))      # 구조 색 순서(이름이 처음 실패할 소자를 정하지 않게)
         if not entry.cyclic:
             (net,) = entry.nodes
-            values[net] = c.update(net, values)
+            values[net] = c.update(keys, net, values)
             logs.append(SccLog(entry.index, entry.nodes, 1, (), None, None))
             continue
         for net in entry.nodes:
             values[net] = c.start(net)
         if len(entry.nodes) == 1:
             (net,) = entry.nodes
-            values[net], k, tol = c.solve_self(net, values)
+            values[net], k, tol = c.solve_self(keys, net, values)
             logs.append(SccLog(entry.index, entry.nodes, k, (), tol, k, SCC_BISECTION))
             continue
         positional = dict(values)
         for net in entry.nodes:
-            values[net] = c.start_writer(net, values)
+            values[net] = c.start_writer(keys, net, values)
         writers = tuple(sorted({c.writers[n].element for n in entry.nodes
                                 if c.writers[n].relation in (REL_VGS_GATE, REL_VGS_SOURCE)},
                                key=lambda m: (c.device_colour.get(m, 0), m)))              # 구조 색 순서 -- 이름이 처음 실패할 소자를 정하지 않게
@@ -561,13 +555,13 @@ def _solve(c):
             r_dep.update(m for m in devices if c.coord[m].role != COORD_WRITER)
 
         def tolerance(v, devs=devices):
-            return c.tolerance(devs, v)
+            return c.tolerance(keys, devs, v)
 
         method, fallback, solved, seal_failure = SCC_GAUSS_SEIDEL, None, None, None
         try:
             solved, (k, deltas, tol, limit) = gauss_seidel(
-                entry.nodes, values, lambda n, v: c.update(n, v, strict=False), tolerance, c.hi - c.lo, entry_devices)
-            _strict_recheck(c, entry, solved, tol)
+                entry.nodes, values, lambda n, v: c.update(keys, n, v, strict=False), tolerance, c.hi - c.lo, entry_devices)
+            _strict_recheck(c, keys, entry, solved, tol)
         except NonconvergentError as exc:                  # Gauss-Seidel 이 K_max 안에 tol 에 닿지 못함(측정한 q 로 판정)
             stopped = dict(exc.record.detail)              # 또는 수렴 판정 뒤 strict 검증 잔차 > tol
             gs_deltas = stopped.get("deltas", deltas if solved is not None else ())
@@ -583,7 +577,7 @@ def _solve(c):
             starts = (values, positional) if solved is None else (values, solved, positional)
 
             def system(v, nodes=entry.nodes):
-                return c.newton_system(nodes, v)
+                return c.newton_system(keys, nodes, v)
 
             start = next((s for s in starts if system(s) is not None), values)
             try:
@@ -593,7 +587,7 @@ def _solve(c):
                 if seal_failure is None:                   # 있었으면 그 사실(봉인 위반)을 낸다(strict 검증 규약 불변)
                     raise
                 raise seal_failure from newton_exc
-            _strict_recheck(c, entry, solved, tol)
+            _strict_recheck(c, keys, entry, solved, tol)
         values = solved
         logs.append(SccLog(entry.index, entry.nodes, k, deltas, tol, limit, method, fallback))
     return values, tuple(logs), r_dep
@@ -609,17 +603,17 @@ def _windows(c, values):
     return out
 
 
-def _rounds(c):
+def _rounds(c, keys):
     """노드 풀이(+ Rʳ 키 되풀이): (values, logs, 풀이 횟수, {Rʳ 소자: FingerSlice}). 키 벡터가 직전과 같으면 수렴, 이전 벡터로 돌아가면 `slice_cycle`."""
     seen = []
     rounds = 0
     while True:
-        values, logs, r_dep = _solve(c)
+        values, logs, r_dep = _solve(c, keys)
         rounds += 1
         devices = sorted(r_dep)
         if not devices:
             return values, logs, rounds, {}
-        now = tuple((m, c.keys[m]) for m in devices)
+        now = tuple((m, keys[m]) for m in devices)
         picks = {m: c.pick_dependent(m, values) for m in devices}
         after = tuple((m, picks[m].w_key) for m in devices)
         if after == now:
@@ -627,7 +621,7 @@ def _rounds(c):
         seen.append(now)
         if after in seen:
             raise SealViolationError(devices=tuple(devices), detail={"reason": REASON_SLICE_CYCLE, "cycle": tuple(seen) + (after,)})
-        c.set_keys({m: picks[m].w_key for m in devices})
+        keys = {**keys, **{m: picks[m].w_key for m in devices}}
 
 
 def _slice_pick(c, m, count, finger_w):
@@ -680,9 +674,9 @@ def _layout_picks(c, ref):
     return picks, widths
 
 
-def _mos_flow(c, m, v, width):
+def _mos_flow(c, keys, m, v, width):
     """MOS m 의 전도 전류 I = IDu·W'/L 과 단자 넷 전압에 대한 편미분 {넷: ∂I/∂V}(LUT 순방향 IDu·gm/ID·gm/gds, lut `gmb`; 같은 점의 한 곡면)."""
-    kind, key, length = c.kinds[m], c.keys[m], c.L[m]
+    kind, key, length = c.kinds[m], keys[m], c.L[m]
     vgs, vds, vsb = c.mos_point(m, v)
     point = forward_point(c.lut, m, kind, key, length, vgs, vds, vsb)
     scale = width / length
@@ -705,7 +699,7 @@ def _mos_flow(c, m, v, width):
 _VID = "\0input_difference"                    # 입력 차 미지수의 풀이 변수 이름(넷 이름과 겹치지 않는다)
 
 
-def _kcl_system(c, ends, widths, free, inputs, excite, sense, ref_v):
+def _kcl_system(c, keys, ends, widths, free, inputs, excite, sense, ref_v):
     """실현 평가·레이아웃 뒤 평가 KCL 계 `(full, system)` -- W'·바이어스(고정 노드) 고정, 미지수 = 입력 외 KCL 노드 전압. servo 갈래(`sense` 있음)는 입력 공통모드 고정 + 입력 차 하나(`_VID`)를
     더한 미지수와 출력 묶음 행(감지 넷의 부호 합 = 탐색 점 값)을 더하고, 입력 고정 갈래(`sense` 비어 있음)는 입력을 기준 스냅샷 값에 고정하고 노드 KCL 행만 둔다(미지수 = 행).
     KCL 은 봉인 3 과 같은 식: MOS = 순방향 LUT IDu·W'/L, 저항 = 전압차/R, 이상 전류원 = `device.dc_current`. 행은 노드의 gm 로 나눠
@@ -737,7 +731,7 @@ def _kcl_system(c, ends, widths, free, inputs, excite, sense, ref_v):
             for name, a, b in ends:
                 cls = c.classes[name]
                 if cls == ELEMENT_MOS:
-                    current, deriv, gm = _mos_flow(c, name, v, widths[name])
+                    current, deriv, gm = _mos_flow(c, keys, name, v, widths[name])
                 elif cls == ELEMENT_PASSIVE:
                     r = c.resistance[name]
                     current, deriv, gm = (v[a] - v[b]) / r, ({a: 1.0 / r, b: -1.0 / r} if a != b else {}), 1.0 / r
@@ -776,7 +770,7 @@ def _kcl_system(c, ends, widths, free, inputs, excite, sense, ref_v):
     return full, system
 
 
-def _kcl_solve(c, projection, ref, widths):
+def _kcl_solve(c, keys, projection, ref, widths):
     """W' 고정 KCL 재풀이: (값 {넷: V}, SccLog). 갈래는 기준 스냅샷의 피벗 판정 `graph.icm_config.config` 가 정한다.
     servo: 입력 포트는 기본 포트 뷰 여기 가중 e 로 한 미지수 Δ 만큼 움직이고(공통모드 고정) 감지 합은 기준 점 값에 묶인다.
     입력 고정(판정 불능 None·`as_is_single_input`): 입력을 기준 점 값에 고정하고 출력·나머지 KCL 노드를 푼다(출력 묶음 행·입력 차 미지수 없음).
@@ -797,7 +791,7 @@ def _kcl_solve(c, projection, ref, widths):
     held = frozenset(n for n, w in c.writers.items() if w.relation in (REL_TARGET, REL_INPUT_DC))
     free = sorted((n for n in flow_nets if n not in c.rail_v and n not in inputs and n not in held),
                   key=lambda n: (c.net_colour.get(n, 0), n))
-    full, system = _kcl_system(c, tuple(basis.ends), widths, free, inputs, excite, sense, ref_v)
+    full, system = _kcl_system(c, keys, tuple(basis.ends), widths, free, inputs, excite, sense, ref_v)
     nodes = tuple(free) + ((_VID,) if servo else ())
     start = {n: ref_v[n] for n in free}
     if servo:
@@ -805,7 +799,7 @@ def _kcl_solve(c, projection, ref, widths):
     devices = tuple(sorted(c.coord))
 
     def tolerance(x):
-        return c.tolerance(devices, full(x))
+        return c.tolerance(keys, devices, full(x))
 
     if not nodes:                                   # 입력 고정 갈래에 풀 노드가 없다(모든 KCL 노드가 입력·고정) -- 행이 없어 기준 점 값 그대로
         return full({}), SccLog(0, (), 0, (), None, None, SCC_NEWTON)
@@ -825,8 +819,8 @@ def _resolved(c, projection):
     풀이는 W'·바이어스 고정 KCL(`_kcl_solve`) 하나이고 노드 재풀이 없는 갈래는 없다."""
     ref = c.realized.search_ref
     picks, widths = (_realized_picks if c.geometry is None else _layout_picks)(c, ref)
-    c.set_keys({m: p.w_key for m, p in picks.items()})
-    values, log = _kcl_solve(c, projection, ref, widths)
+    keys = {m: p.w_key for m, p in picks.items()}
+    values, log = _kcl_solve(c, keys, projection, ref, widths)
     return values, (log,), 1, picks, widths
 
 
@@ -836,7 +830,7 @@ def _outputs(c, projection, values, logs, rounds, picks, widths=None):
     requested = {} if c.geometry is None else dict(c.geometry.w_request)
     ln_idu, ops, sat, fingers = {}, {}, {}, {}
     for m, coord in c.coord.items():
-        kind, key = c.kinds[m], c.keys[m]
+        kind, key = c.kinds[m], picks[m].w_key
         vgs, vds, vsb = c.mos_point(m, values)
         point = forward_point(c.lut, m, kind, key, c.L[m], vgs, vds, vsb)
         pick = picks[m]
@@ -864,7 +858,7 @@ def _outputs(c, projection, values, logs, rounds, picks, widths=None):
     for m in ln_idu:
         d, g, s = (c.pins[m][t] for t in MOS_TERMINAL_NAMES)
         _vgs, vds, vsb = c.mos_point(m, values)
-        vgs = _vgs_of_coordinate(c.lut, m, c.kinds[m], c.keys[m], c.L[m], vds, vsb, ln_idu[m])
+        vgs = _vgs_of_coordinate(c.lut, m, c.kinds[m], picks[m].w_key, c.L[m], vds, vsb, ln_idu[m])
         sign = c.kind_sign(c.kinds[m])
         paths[g].append(PathValue((_REL_MOS, m), values[s] + sign * vgs))
         paths[s].append(PathValue((_REL_MOS, m), values[g] - sign * vgs))
@@ -895,17 +889,16 @@ def dc_solve(projection):
     if c.realized is not None:
         values, logs, rounds, picks, widths = _resolved(c, projection)
         return _outputs(c, projection, values, logs, rounds, picks, widths)
-    picks = {}
+    picks, keys = {}, {}
     for m, coord in sorted(c.coord.items()):
         if coord.role == COORD_WRITER:
             picks[m] = c.pick_writer(m)
-            c.set_keys({m: picks[m].w_key})
+            keys[m] = picks[m].w_key
         else:
-            c.set_keys({m: c.reference_key(m)})
-    values, logs, rounds, rpicks = _rounds(c)
+            keys[m] = c.reference_key(m)
+    values, logs, rounds, rpicks = _rounds(c, keys)
     picks.update(rpicks)
     for m, coord in sorted(c.coord.items()):
         if coord.role != COORD_WRITER and m not in picks:
             picks[m] = c.pick_dependent(m, values)
-        c.set_keys({m: picks[m].w_key})
     return _outputs(c, projection, values, logs, rounds, picks)
