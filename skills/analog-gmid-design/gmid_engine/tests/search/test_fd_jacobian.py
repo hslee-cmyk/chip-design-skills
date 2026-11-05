@@ -86,8 +86,9 @@ def test_skip_returns_base_without_evaluation(tmp_path, lut_sealed):
     assert dict(s.counters) == before
 
 
-def test_current_column_reuses_columns_block(tmp_path, lut_sealed):
-    """I-4: FD parent = base -> current 열에서 sizing dc_solve computes 0 (DC 저항 없음), dc_currents 1."""
+def test_current_column_recomputes_dc_solve_once(tmp_path, lut_sealed):
+    """I-4 [WB-1 갱신]: FD parent = base -> current 열에서 dc_currents 1회, dc_solve 1회(노드 풀이와 W 가 한 블록이고 dc_current 를 읽는다 -- 옛 '노드 풀이 블록 재계산 0' 은
+    블록 분할 소멸로 사라진 계약, G-10: 같은 입력 재계산은 0 이므로 각 블록 정확히 1회)."""
     th = theta_r4c(y=0.3)
     case, s, base, vs, x, f = _setup(tmp_path, lut_sealed, th)
     i = [v.component for v in vs].index(("current", "M2"))
@@ -96,7 +97,7 @@ def test_current_column_reuses_columns_block(tmp_path, lut_sealed):
     c0, u0 = block_row(s.dc.counters, dc_solve.name)[4], block_row(s.dc.counters, dc_currents.name)[4]
     res, h = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip, ceiling=None)[i]
     assert res is not None and h != 0.0
-    assert block_row(s.dc.counters, dc_solve.name)[4] == c0
+    assert block_row(s.dc.counters, dc_solve.name)[4] == c0 + 1
     assert block_row(s.dc.counters, dc_currents.name)[4] == u0 + 1
 
 

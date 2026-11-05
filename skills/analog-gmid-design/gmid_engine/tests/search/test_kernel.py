@@ -238,7 +238,7 @@ def test_evals_record_fields(case_c):
 
 
 def test_parent_reuses_lineage(case_c):
-    """parent = 앞 결과 -> sizing 은 그 lineage 에서 이어 계산(current 성분만 다르면 dc_solve 재계산 0, I-4 와 같은 근거)."""
+    """parent = 앞 결과 -> sizing 은 그 lineage 에서 이어 계산(current 성분만 다르면 dc_currents·dc_solve 각 1회 -- [WB-1] 노드 풀이 블록이 W 블록과 합쳐졌다, I-4 와 같은 근거)."""
     from gmid_engine.sizing import dc_solve, dc_currents
     case, _ = case_c
     s = case.sctx
@@ -247,7 +247,7 @@ def test_parent_reuses_lineage(case_c):
     c0, u0 = block_row(s.dc.counters, dc_solve.name)[4], block_row(s.dc.counters, dc_currents.name)[4]
     r = evaluate(s, th_sorted(theta_r4c(i2=1.1e-5)), CELLS_C, parent=base)
     assert r.status == STATUS_SEALED
-    assert block_row(s.dc.counters, dc_solve.name)[4] == c0
+    assert block_row(s.dc.counters, dc_solve.name)[4] == c0 + 1
     assert block_row(s.dc.counters, dc_currents.name)[4] == u0 + 1
 
 
@@ -360,7 +360,7 @@ def test_pending_point_passive_values_reused_on_mos_theta_only_change(tmp_path, 
     pv0 = dict(r0.evaluation.snapshot.column("device", "passive_value"))
     assert pv0 == {"Cz": th0[("capacitance", "Cz")], "Rz": th0[("ss_resistance", "Rz")]}
     fixed = r0.evaluation
-    monkeypatch.setattr(kernel, "size_and_seal", lambda dc, theta, parent=None, w_request=(): fixed)
+    monkeypatch.setattr(kernel, "size_and_seal", lambda dc, theta, parent=None, w_request=(), realized=None: fixed)
 
     th_mos = dict(th0)
     th_mos[("ln_idu", "M1")] = th0[("ln_idu", "M1")] + 0.01

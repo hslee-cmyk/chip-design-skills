@@ -33,6 +33,14 @@
 | `tests/convergence/test_place_layout.py::test_conflict_narrows_kind_to_best_scoring_key`, `test_score_tie_picks_smaller_key` | kind 키 충돌 좁히기(`narrowed`)·`PlacedLayout.keys` 삭제 | `test_place_layout.py::test_excluded_row_group_keys_reach_layout_input_unchanged_and_pdk_is_not_narrowed`, `test_key_exclusion.py` |
 | `tests/convergence/test_convergence_values.py` 의 `kernel_keys` 진입점 항목, `PlacedLayout.narrowed·keys` 칸 단언 | 위와 같음 | 같은 파일 15 진입점·`PlacedLayout` 칸 등식 |
 
+## 기대 횟수가 바뀐 test (블록 합침의 직접 결과, 폐기 아님)
+
+| test | 옛 → 새 | 근거 |
+|---|---|---|
+| `tests/search/test_fd_jacobian.py::test_current_column_recomputes_dc_solve_once` (옛 `..._reuses_columns_block`) | 노드 풀이 블록 computes 증분 0 → dc_solve 1 | 노드 풀이·W 블록 합침. dc_solve 가 `dc_current` 를 읽는다(D40 §3.7-A 1 READS). dc_currents 1 은 그대로 |
+| `tests/search/test_kernel.py::test_parent_reuses_lineage` | 같음 | 같음 |
+| `tests/sizing/test_size_and_seal.py::test_current_perturbation_*` | 위 폐기 표 | 위 폐기 표 |
+
 ## 대체 서명으로 바꾼 test (단언 의미 유지)
 
 * `test_realized_geometry.py`: `realized_geometry(snapshot, placements, keys)` -> `(snapshot, placements)`, 반환 `RealizedGeometry(layout_ref, w_request)`(`w_keys`·`diffusion` 칸 없음).
