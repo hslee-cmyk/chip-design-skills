@@ -31,7 +31,7 @@ from gmid_engine.graph import build_s1
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.metrics import JunctionSource, metric_catalog
 from gmid_engine.search import SearchSettings, build_search_context, layer0_start, open_run
-from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, LutAccess
 
 from .topogen import add_tag_noise, flip_polarity, random_renaming, rename, rename_spec, shuffle_order, synthetic_spec
 from .topogen import synthetic_topologies
@@ -102,7 +102,7 @@ class Env:
                                 verify_midpoints=loc.midpoints_path, noise_npz=loc.noise_path,
                                 mismatch_npz=loc.mismatch_path, bin_rule=loc.bin_rule_path)
         self.memo = LutMemo(self.lut, point=MEMO_POINT, curve=MEMO_CURVE, root=MEMO_ROOT)
-        self.access = pre_layout_lut_access(self.memo)
+        self.access = LutAccess(self.memo)
         self.lut_rule = read_pdk_decl(str(LUT_RULE_DECL), decl_memo)
         self.junction = JunctionSource.from_decls(self.pdk, self.lut_rule, self.lut)
         cat = dict(metric_catalog())

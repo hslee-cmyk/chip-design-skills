@@ -55,7 +55,6 @@ DEVICE_OF = {"nmos": "toyn", "pmos": "toyp"}
 SUFFIX = {"nmos": "_n", "pmos": "_p"}
 TOY_SPEC = LutSpec(GRID_M, (("nmos", 1e-6), ("pmos", 1e-6)), (("toyn", "nmos"), ("toyp", "pmos")),
                    (("nmos", "_n"), ("pmos", "_p")))
-W_KEYS = (("nmos", W_KEY), ("pmos", W_KEY))
 EPS = np.finfo(float).eps
 
 
@@ -376,7 +375,7 @@ def toy_lut(toy_lut_paths):
 
 
 def new_access(lut, n=4096):
-    return LutAccess(LutMemo(lut, point=n, curve=n, root=n), W_KEYS)
+    return LutAccess(LutMemo(lut, point=n, curve=n, root=n))
 
 
 @pytest.fixture(scope="session")
@@ -700,8 +699,8 @@ def terminal_mag(kind, V, d, g, s, b):
 
 
 def expected_columns(snap, theta, fixed_values=(), resistor_values=()):
-    """순환 SCC 가 없는 회로의 dc_columns 독립 계산(CONTRACT 5.4 writer 식 + 창). 스냅샷에서는 계획 결과
-    (dc_writer·dc_scc_order·dc_drop_current·dc_L·dc_rail_v)와 S1 필드만 입력으로 읽는다.
+    """순환 SCC 가 없는 회로의 dc_solve 노드 풀이 독립 계산(CONTRACT 5.4 writer 식 + 창). 스냅샷에서는 계획 결과
+    (dc_writer·dc_scc_order·dc_current(저항 강하 전류 포함, WB-1)·dc_L·dc_rail_v)와 S1 필드만 입력으로 읽는다.
     반환: (V, windows, ln_idu)."""
     from gmid_engine.sizing import DC_KEY
     th = dict(theta)
@@ -713,7 +712,7 @@ def expected_columns(snap, theta, fixed_values=(), resistor_values=()):
             V[n] = fixed[n]
     mt = mos_table(snap)
     L = dict(snap.column("device", "dc_L"))
-    drop = dict(snap.column("device", "dc_drop_current"))
+    drop = dict(snap.column("device", "dc_current"))                # WB-1: 저항 강하 전류는 dc_current 가 담는다(전도 방향 양수)
     rvals = dict(resistor_values)
     rails = [v for _, v in snap.column("node", "dc_rail_v")]
     windows = {}
@@ -763,8 +762,10 @@ def expected_columns(snap, theta, fixed_values=(), resistor_values=()):
 
 
 def run_blocks(ctx, theta, upto="widths"):
-    """size_and_seal 의 평가 블록 4개를 계약 7절 호출 순서대로 직접 부른다(봉인 전 스냅샷)."""
-    from gmid_engine.sizing import dc_columns, dc_currents, dc_lengths, dc_widths
+    """size_and_seal 의 평가 블록 셋(dc_currents -> dc_lengths -> dc_solve, WB-1 §3)을 호출 순서대로 직접 부른다(봉인 전 스냅샷).
+    `dc_solve` 가 옛 `dc_solve`(노드 풀이)와 `dc_solve`(W)를 합친 블록이라 `upto` 의 "columns"·"widths" 는 같은 스냅샷을 낸다.
+    `geometry`·`realized` 는 dc_solve 의 두 선택 인자(기본 None = 탐색 평가)."""
+    from gmid_engine.sizing import dc_currents, dc_lengths, dc_solve
     run = dict(donors=ctx.donors, counters=ctx.counters)          # [card B C6] ctx 의 실행(두 객체) 그대로
     th = dict(theta)
     snap = dc_currents(ctx.base, tuple(sorted((k, v) for (t, k), v in th.items() if t == "current")), **run)
@@ -772,22 +773,19 @@ def run_blocks(ctx, theta, upto="widths"):
     if upto == "lengths":
         return snap
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
-    snap = dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run)
-    if upto == "columns":
-        return snap
-    return dc_widths(snap, ctx.lut, **run)
+    return dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run)
 
 
 def eval_calls(ctx, theta):
-    """평가 블록 4개 호출 목록 ((block, extras), ...) 과 그 결과 스냅샷(봉인 전).
+    """평가 블록 셋(dc_currents, dc_lengths, dc_solve) 호출 목록 ((block, extras), ...) 과 그 결과 스냅샷(봉인 전).
     `calls` 형식은 계약에 적혀 있지 않아 공개 함수 `seal_versions` 가 받는 형식((블록, extras tuple), ...)을 쓴다."""
-    from gmid_engine.sizing import dc_columns, dc_currents, dc_lengths, dc_widths
+    from gmid_engine.sizing import dc_currents, dc_lengths, dc_solve
     th = dict(theta)
     cur = tuple(sorted((k, v) for (t, k), v in th.items() if t == "current"))
     ls = tuple(sorted((k, v) for (t, k), v in th.items() if t == "L"))
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     calls = ((dc_currents, (cur,)), (dc_lengths, (ls,)),
-             (dc_columns, (items, kfixed(ctx), kres(ctx), ctx.lut)), (dc_widths, (ctx.lut,)))
+             (dc_solve, (items, kfixed(ctx), kres(ctx), ctx.lut)))
     snap = ctx.base
     for blk, ex in calls:
         snap = blk(snap, *ex, donors=ctx.donors, counters=ctx.counters)

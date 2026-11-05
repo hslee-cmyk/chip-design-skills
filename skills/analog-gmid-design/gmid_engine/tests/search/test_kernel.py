@@ -238,16 +238,16 @@ def test_evals_record_fields(case_c):
 
 
 def test_parent_reuses_lineage(case_c):
-    """parent = 앞 결과 -> sizing 은 그 lineage 에서 이어 계산(current 성분만 다르면 dc_columns 재계산 0, I-4 와 같은 근거)."""
-    from gmid_engine.sizing import dc_columns, dc_currents
+    """parent = 앞 결과 -> sizing 은 그 lineage 에서 이어 계산(current 성분만 다르면 dc_solve 재계산 0, I-4 와 같은 근거)."""
+    from gmid_engine.sizing import dc_solve, dc_currents
     case, _ = case_c
     s = case.sctx
     base = evaluate(s, th_sorted(theta_r4c()), CELLS_C)
     # [XRUN-F1 card B C1·C6] 계수 = 그 탐색 컨텍스트 실행(sctx.dc.counters)의 행 computes(인덱스 4)
-    c0, u0 = block_row(s.dc.counters, dc_columns.name)[4], block_row(s.dc.counters, dc_currents.name)[4]
+    c0, u0 = block_row(s.dc.counters, dc_solve.name)[4], block_row(s.dc.counters, dc_currents.name)[4]
     r = evaluate(s, th_sorted(theta_r4c(i2=1.1e-5)), CELLS_C, parent=base)
     assert r.status == STATUS_SEALED
-    assert block_row(s.dc.counters, dc_columns.name)[4] == c0
+    assert block_row(s.dc.counters, dc_solve.name)[4] == c0
     assert block_row(s.dc.counters, dc_currents.name)[4] == u0 + 1
 
 
@@ -392,7 +392,7 @@ def test_pending_point_passive_values_reused_on_mos_theta_only_change(tmp_path, 
 # 각 경우 전제(status == failed, 실패 분류·detail 원인)를 먼저 단언한다.
 # =====================================================================================================================
 
-DC_ORDER = ("dc_currents", "dc_lengths", "dc_columns", "dc_widths")          # sizing CONTRACT 7절 평가 블록 4개 호출 순서
+DC_ORDER = ("dc_currents", "dc_lengths", "dc_solve", "dc_solve")          # sizing CONTRACT 7절 평가 블록 4개 호출 순서
 
 
 def _rows_now(s):
@@ -442,7 +442,7 @@ def _failed_line_and_result(case, root):
 
 
 def test_partial_snapshot_dc_block_failure(tmp_path, lut_sealed, short_root):
-    """B-T19 (1) C7: DC 블록 단계(전류·길이·기둥·폭) 실패 -- partial.block_versions 에 앞 블록은 있고 실패한 블록(여기서는 기둥 dc_columns,
+    """B-T19 (1) C7: DC 블록 단계(전류·길이·기둥·폭) 실패 -- partial.block_versions 에 앞 블록은 있고 실패한 블록(여기서는 기둥 dc_solve,
     빈 창)은 없다, 봉인 보고 없음. 실패 줄 snapshot_fp == partial.fp, evaluation 은 None."""
     from gmid_engine.core import GraphSnapshot
     case = _empty_window_case(tmp_path, lut_sealed, short_root)
@@ -453,7 +453,7 @@ def test_partial_snapshot_dc_block_failure(tmp_path, lut_sealed, short_root):
     assert isinstance(r.partial, GraphSnapshot)
     bv = r.partial.block_versions
     assert "dc_currents" in bv and "dc_lengths" in bv                                   # 앞 블록
-    assert "dc_columns" not in bv and "dc_widths" not in bv                             # 실패한 블록과 그 뒤
+    assert "dc_solve" not in bv and "dc_solve" not in bv                             # 실패한 블록과 그 뒤
     assert "dc_seal_report" not in bv
     assert line["ok"] is False and "fail" in line
     assert line["snapshot_fp"] == r.partial.fp                                          # C7 S3 evals 실패 줄

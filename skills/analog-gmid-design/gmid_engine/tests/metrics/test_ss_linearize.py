@@ -1,6 +1,6 @@
 """`ss_dev` 계산 블록(봉인 op -> MOS 소신호) -- metrics CONTRACT 7.2 (+ 7.7 S-6·S-7·S-11·S-12, lut CONTRACT r6 4.1·4.3·4.4).
 
-입력: 손 S2 스냅샷(S1 -> lift_s1 -> 권한표 writer `dc_widths` 로 `device.dc_op` 열을, [U17 ①] writer `dc_tolerances` 로 `device.dc_gm`
+입력: 손 S2 스냅샷(S1 -> lift_s1 -> 권한표 writer `dc_solve` 로 `device.dc_op` 열을, [U17 ①] writer `dc_tolerances` 로 `device.dc_gm`
 열(= 손 dc_op 의 gm_id × current, 설계 40 v1.6 §3.7-3 정의)을 손으로 쓴다) + toy LUT r6 + toy 접합 선언
 (conftest `toy_junction_decls` -- core 9.1 형식 PDK 선언·LUT 규칙 선언, 8.5 소비자 호출 `JunctionSource.from_decls`).
 기대값: conftest `oracle_ss` -- toy LUT npz 의 해석식과 numpy 다중선형 보간으로 7.2 식을 따로 계산(피검 함수·lut 조회 함수 미사용).

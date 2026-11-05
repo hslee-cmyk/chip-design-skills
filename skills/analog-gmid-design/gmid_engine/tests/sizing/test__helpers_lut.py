@@ -1,7 +1,7 @@
-"""helper `_helpers_lut`(`terminal_voltages`·`w_key_of`·`with_device`·`forward_point`·`tol_v_cell`) -- CONTRACT 5.4·5.7·6절.
+"""helper `_helpers_lut`(`terminal_voltages`·소자 슬라이스·`with_device`·`forward_point`·`tol_v_cell`) -- CONTRACT 5.4·5.7·6절.
 helper 는 비공개라 공개 블록 결과로 확인한다:
 - terminal_voltages: s = +1(nmos)/−1(pmos), vgs = s(V(g)−V(s)), vds = s(V(d)−V(s)), vsb = s(V(s)−V(b)).
-- w_key_of: DeviceOp.w_key = w_keys[kind].
+- 소자 슬라이스(WB-1): DeviceOp.w_key = 그 소자 dc_finger 의 슬라이스 키(round(w_f_m / grid)).
 - forward_point: idu_forward = op_point(노드 점).IDu (toy 닫힌 식).
 - tol_v_cell: dc_tol_v = tol_v_table(kind, w_key).at(L, vds, "id_equivalent").
 - with_device: LUT 실패를 SealViolationError(devices = 소자, reason lut_query_failed, lut_reason, device_query)로 감싼다.
@@ -33,8 +33,10 @@ def test_terminal_voltage_signs(ctx_c):
 def test_w_key_and_forward_point_match_lut(ctx_c):
     ctx = ctx_c[2]
     snap = run_blocks(ctx, theta_c())
+    fing = dict(snap.column("device", "dc_finger"))
     for m, op in dict(snap.column("device", "dc_op")).items():
-        assert op.w_key == dict(ctx.lut.w_keys)[op.kind] == W_KEY
+        # toy LUT 는 슬라이스가 하나(키 100)라 후보가 하나: DeviceOp.w_key 와 dc_finger 가 같은 슬라이스를 가리킨다
+        assert op.w_key == round(fing[m].w_f_m / 1e-8) == W_KEY
         direct = op_point(ctx.lut.memo, op.kind, op.w_key, op.L, op.vgs, op.vds, op.vsb)
         assert op.idu_forward == direct.IDu and op.gm_id == direct.gm_over_id
         assert rel_close(op.idu_forward, math.exp(Oracle.ln_idu(op.kind, op.vgs, op.vds, op.vsb)), 1e-9)
@@ -58,19 +60,6 @@ def test_lut_failure_wrapped_with_device(ctx_c):
     assert d["reason"] == "lut_query_failed"
     assert d["lut_reason"] in ("lut_target_out_of_range", "lut_target_non_monotonic")
     assert d["device_query"] == "vgs_of_coordinate"
-
-
-def test_w_keys_choose_slice(tmp_path, toy_lut):
-    """w_keys 에 없는 폭은 컨텍스트 단계에서 거부(슬라이스 대체 없음)."""
-    from gmid_engine.graph import build_s1
-    from gmid_engine.sizing import DcInputs, build_kernel_context
-    from gmid_engine.search import open_run
-    from .conftest import SUPPLIES, load_doc
-    donors, counters = open_run()
-    s1 = build_s1(load_doc(tmp_path, circuit_cs_pmos_load()), dict(SUPPLIES), donors=donors, counters=counters)
-    acc = LutAccess(LutMemo(toy_lut, point=8, curve=8, root=8), (("nmos", 101), ("pmos", 100)))
-    with pytest.raises(ValueError):
-        build_kernel_context(s1, DcInputs(tuple(sorted(SUPPLIES.items()))), acc, donors=donors, counters=counters)
 
 
 def test_toy_lut_is_hermite_consistent(toy_lut):

@@ -17,7 +17,7 @@ def test_tol_zero_gives_infinite_margin_fail(ctx_c):
     snap, _ = with_tol(ctx_c[2], theta_c())
     ops = dict(snap.column("device", "dc_op"))
     s2 = tamper(snap, "dc_tolerances", "device", "dc_tol_v", {"M1": 0.0})
-    s2 = tamper(s2, "dc_widths", "device", "dc_op",
+    s2 = tamper(s2, "dc_solve", "device", "dc_op",
                 {"M1": dataclasses.replace(ops["M1"], idu_forward=ops["M1"].idu_forward * 1.001)})
     item = seal_item(dc_seal_vgs_match(s2, **run_of(ctx_c[2])), 2)
     assert item.status == "fail" and item.tol == 0.0
@@ -36,7 +36,7 @@ def test_zero_magnitude_zero_tol_is_pass(ctx_c):
 def test_fail_targets_only_failing_rows(ctx_c):
     snap, _ = with_tol(ctx_c[2], theta_c())
     ops = dict(snap.column("device", "dc_op"))
-    s2 = tamper(snap, "dc_widths", "device", "dc_op",
+    s2 = tamper(snap, "dc_solve", "device", "dc_op",
                 {"M2": dataclasses.replace(ops["M2"], idu_forward=ops["M2"].idu_forward * 3.0)})
     s2 = tamper(s2, "dc_tolerances", "device", "dc_tol_v", {"M1": None})
     item = seal_item(dc_seal_vgs_match(s2, **run_of(ctx_c[2])), 2)
@@ -62,7 +62,7 @@ def test_node_values_use_rail_value_on_rails(ctx_c):
     snap, _ = with_tol(ctx_c[2], theta_c())
     pv = dict(snap.column("node", "dc_path_values"))["gnd"]
     new = tuple(PathValue(p.relation, 0.2) if p.relation == ("vgs", "M1") else p for p in pv)
-    s2 = tamper(snap, "dc_columns", "node", "dc_path_values", {"gnd": new})
+    s2 = tamper(snap, "dc_solve", "node", "dc_path_values", {"gnd": new})
     item = seal_item(dc_seal_node_conflict(s2, **run_of(ctx_c[2])), 1)
     assert item.status == "fail" and item.nodes == ("gnd",)
     assert abs(item.magnitude - 0.2) <= 1e-15

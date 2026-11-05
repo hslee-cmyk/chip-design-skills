@@ -75,10 +75,7 @@ def test_l_classes_reach_theta_schema(real_lut, tmp_path):
                          donors=donors, counters=counters)
     d_plain, c_plain = open_run()          # [card B C6] S1 만 있는 비교 쪽 = 다른 실행(build_s1·build_kernel_context 가 같은 쌍)
     s1 = build_s1(load_topology(str(LIBRARY / (circuit + ".topology.json"))), _supplies(circuit), donors=d_plain, counters=c_plain)
-    w_keys = {}
-    for (kind, w_key) in sorted(real_lut.slice_map):
-        w_keys.setdefault(kind, w_key)
-    access = LutAccess(LutMemo(real_lut, point=4096, curve=4096, root=4096), tuple(sorted(w_keys.items())))
+    access = LutAccess(LutMemo(real_lut, point=4096, curve=4096, root=4096))
     inputs = DcInputs(tuple(sorted(_supplies(circuit).items())))
     # [U17 ①-b] build_kernel_context(l_classes=) 삭제(설계 40 v1.9.1 §2.4.7·§2.4.8 커널 컨텍스트 구조 파생 행): L 동치류는 S1v 필드 graph/s1v: l_classes 에서
     # 읽는다 -> S1 만 있는 s1 이면 L 공유 없음, 단계 A 결과 S1Graph(S1v 필드 포함)면 L 공유. l_ties·θ 스키마는 graph/kernel 필드.

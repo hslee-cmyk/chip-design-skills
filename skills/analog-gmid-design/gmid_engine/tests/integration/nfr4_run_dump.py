@@ -332,7 +332,7 @@ def main(argv=None):
     from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
     from gmid_engine.pipeline import run_stage_a, run_stage_b
     from gmid_engine.search import SearchSettings, build_search_context, find_front, open_run
-    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, LutAccess
 
     loc = resolve_lut_location(str(SKILL / "assets" / "lut_v2_location.json"), os.environ)
     man = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
@@ -397,7 +397,7 @@ def main(argv=None):
     snapshot = None
     if (a.status, b.status) == ("ok", "ok"):
         record["searched"] = True
-        kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo), donors=a.donors, counters=a.counters)
+        kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), LutAccess(memo), donors=a.donors, counters=a.counters)
         s3 = work / "s3"
         s3.mkdir(exist_ok=True)
         sctx = build_search_context(kctx, a.spec, settings, str(s3), pdk, rule, code_fp=a.code_fp)

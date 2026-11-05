@@ -53,8 +53,8 @@ def _ops(snap):
 def put(snap, **m1):
     """M1 의 dc_op 점을 정해 넣는다(벌크 등 나머지는 그대로)."""
     op = _ops(snap)["M1"]
-    return tamper(snap, "dc_widths", "device", "dc_op", {"M1": dataclasses.replace(op, **m1)},
-                  version=snap.block_version("dc_widths"))
+    return tamper(snap, "dc_solve", "device", "dc_op", {"M1": dataclasses.replace(op, **m1)},
+                  version=snap.block_version("dc_solve"))
 
 
 def dv(snap, **nets):
@@ -257,8 +257,8 @@ def SatBound(*args):                                  # noqa: N802 -- 신규 심
 
 
 def sat(snap, bound):
-    """M1 의 dc_sat_v 를 정해 넣는다(writer dc_widths, conftest tamper 꼴)."""
-    return tamper(snap, "dc_widths", "device", "dc_sat_v", {"M1": bound}, version=snap.block_version("dc_widths"))
+    """M1 의 dc_sat_v 를 정해 넣는다(writer dc_solve, conftest tamper 꼴)."""
+    return tamper(snap, "dc_solve", "device", "dc_sat_v", {"M1": bound}, version=snap.block_version("dc_solve"))
 
 
 def _base_v0(case):

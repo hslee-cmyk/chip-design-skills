@@ -40,7 +40,7 @@ from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.pipeline import run_stage_a, run_stage_b
 from gmid_engine.search import SearchSettings, build_search_context, find_front, open_run
-from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, LutAccess
 skill = Path(skill)
 lib = skill / "assets" / "library"
 loc = resolve_lut_location(str(skill / "assets" / "lut_v2_location.json"), os.environ)
@@ -65,7 +65,7 @@ a = run_stage_a(lib / (circuit + ".topology.json"), lib / (circuit + ".sizing_sp
 memo = LutMemo(lut, point=1 << 16, curve=1 << 14, root=1 << 16)
 b = run_stage_b(a, memo, pdk, output_dir=Path(out_dir), diagnostic=True, settings=settings)
 assert (a.status, b.status) == ("ok", "ok"), (a.status, b.status)
-kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo), donors=a.donors, counters=a.counters)
+kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), LutAccess(memo), donors=a.donors, counters=a.counters)
 sctx = build_search_context(kctx, a.spec, settings, s3_root, pdk, rule, code_fp=a.code_fp)
 fr = find_front(sctx, [])
 with open(out_json, "w", encoding="utf-8") as f:

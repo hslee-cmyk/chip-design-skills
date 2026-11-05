@@ -25,7 +25,7 @@ from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.pipeline import run_stage_a, run_stage_b
 from gmid_engine.search import SearchSettings, build_search_context, find_front, open_run
-from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, LutAccess
 
 import o227_stop_pin      # 정지 사유 고정 헬퍼·표(O-227 임시) -- tests/integration/o227_stop_pin.py
 from test_s0_layer_9circuits import DEVICE_START, GRAPH_ROWS, _baseline  # noqa: E402  S0 수준 블록 정의·기준선 조회 한 곳
@@ -124,7 +124,7 @@ def test_no_same_input_recompute_in_one_run(env, circuit, tmp_path):
         return
     root = tempfile.mkdtemp(prefix="g10", dir=os.environ.get("TEMP") or None)     # 짧은 경로(지문 64자 + 파일 이름)
     try:
-        kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo), donors=a.donors, counters=a.counters)
+        kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), LutAccess(memo), donors=a.donors, counters=a.counters)
         sctx = build_search_context(kctx, a.spec, _settings(), root, env.pdk, env.rule, code_fp=a.code_fp)
         fr = find_front(sctx, [])
         perf = dict(fr.perf)

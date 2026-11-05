@@ -591,8 +591,8 @@ def test_it1_writer_block_owns_plan_fields():
     assert ("node", "dc_writer") in w and ("device", "dc_coord") in w
     r = set(dc_writer_plan.reads)
     assert ("node", "port_role") in r and ("graph", "gvgs_summary") in r
-    from gmid_engine.sizing import dc_columns
-    assert ("node", "port_direction") in set(dc_columns.reads)                                    # 41:672 -- dc_columns 가 S1 포트 방향을 READS 로 읽는다
+    from gmid_engine.sizing import dc_solve
+    assert ("node", "port_direction") in set(dc_solve.reads)                                    # 41:672 -- dc_solve 가 S1 포트 방향을 READS 로 읽는다
 
 
 # ---------------------------------------------------------------- [IT-1 T-5b] g = s 소자의 쓰기 계획 (O-210 RR-6)

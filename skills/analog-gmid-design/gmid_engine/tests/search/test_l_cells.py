@@ -29,7 +29,7 @@ def test_empty_bin_map_one_cell_per_anchor(lut_sealed, kind):
 def test_real_lut_bins(real_lut_v2, kind):
     lut, _ = real_lut_v2
     acc = new_access(lut)
-    sl = lut.slice_map[(kind, dict(acc.w_keys)[kind])]
+    sl = lut.slice_map[(kind, lut.cap_map[kind].w_key)]
     anchors = tuple(float(x) for x in sl.grids[0])
     exp = expect_cells(anchors, tuple(sl.l_bins.anchor_bin))
     got = l_cells(acc, kind)

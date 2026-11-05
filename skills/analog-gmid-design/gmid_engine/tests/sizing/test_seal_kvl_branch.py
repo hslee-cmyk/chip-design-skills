@@ -58,7 +58,7 @@ def test_branch_sum_pass(ctx_c):
 def test_branch_sum_fail_hand(ctx_c):
     snap, _ = with_tol(ctx_c[2], theta_c())
     ops = dict(snap.column("device", "dc_op"))
-    s2 = tamper(snap, "dc_widths", "device", "dc_op",
+    s2 = tamper(snap, "dc_solve", "device", "dc_op",
                 {"M1": dataclasses.replace(ops["M1"], idu_forward=ops["M1"].idu_forward * 10.0)})
     s2 = set_branches(s2, [("M1", "M2")])
     exp = judge_expect(rows_of(s2))
@@ -76,7 +76,7 @@ def test_branch_each_member_within_tol_passes(ctx_c):
     tolv = dict(snap.column("device", "dc_tol_v"))
     upd = {m: dataclasses.replace(ops[m], idu_forward=ops[m].idu_forward * math.exp(0.9 * tolv[m] * ops[m].gm_id))
            for m in ("M1", "M2")}
-    s2 = set_branches(tamper(snap, "dc_widths", "device", "dc_op", upd), [("M1", "M2")])
+    s2 = set_branches(tamper(snap, "dc_solve", "device", "dc_op", upd), [("M1", "M2")])
     assert run(s2).status == "pass"
 
 

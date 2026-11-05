@@ -1,7 +1,7 @@
 """`build_kernel_context(s1graph, inputs, lut)` -- CONTRACT 1.3·1.4: 인자 검사·실패 조건·KernelContext 구성.
 
-- 형식 위반 TypeError, supplies 거부 SchemaRejectedError 그대로, S1 과 다른 supplies ValueError, w_keys 누락·슬라이스 없음
-  ValueError, node_targets 넷이 S1 노드 아님 ValueError, 계획 블록 정지는 그대로 전파.
+- 형식 위반 TypeError, supplies 거부 SchemaRejectedError 그대로, S1 과 다른 supplies ValueError,
+  node_targets 넷이 S1 노드 아님 ValueError, 계획 블록 정지는 그대로 전파.
 - fixed_values = W3 ∪ 입력 포트(input_dc_v), W3 우선, 이름순. resistor_values = 가지치기 안 된 저항 중 값 있는 것.
   plan_versions = 계획 블록 5개 (writer, block_version) 순서.
 - LutAccess: require_immutable 통과, fp_of 는 memo 상태와 무관.
@@ -16,7 +16,7 @@ from gmid_engine.search import open_run
 from gmid_engine.sizing import (DC_KEY, KERNEL_KEY, S2_WRITERS, DcInputs, KernelContext, LutAccess, ThetaSchema,
                                 build_kernel_context)
 
-from .conftest import (NINE, SUPPLIES, W_KEYS, build_ctx, circuit_cs_pmos_load, detail, library_ctx, load_doc,
+from .conftest import (NINE, SUPPLIES, build_ctx, circuit_cs_pmos_load, detail, library_ctx, load_doc,
                        mos, new_access, topo, two)
 from .conftest import inject_l_classes, kfixed, kplan, kres, kschema, kties  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
@@ -95,20 +95,6 @@ def test_supplies_differ_from_s1(parts):
         build_kernel_context(s1, DcInputs((("gnd", 0.0), ("vdd", 1.5))), acc, **_fresh())
 
 
-def test_w_keys_missing_kind(parts, toy_lut):
-    s1, inputs, _ = parts
-    acc = LutAccess(LutMemo(toy_lut, point=16, curve=16, root=16), (("nmos", 100),))
-    with pytest.raises(ValueError):
-        build_kernel_context(s1, inputs, acc, **_fresh())
-
-
-def test_w_key_not_in_slice_map(parts, toy_lut):
-    s1, inputs, _ = parts
-    acc = LutAccess(LutMemo(toy_lut, point=16, curve=16, root=16), (("nmos", 100), ("pmos", 200)))
-    with pytest.raises(ValueError):
-        build_kernel_context(s1, inputs, acc, **_fresh())
-
-
 def test_node_target_not_s1_node(parts):
     s1, _, acc = parts
     with pytest.raises(ValueError):
@@ -169,15 +155,13 @@ def test_kcl_conflict_propagates(tmp_path, toy_access):
 
 
 def test_lut_access_fingerprint_independent_of_memo_state(toy_lut):
-    a = LutAccess(LutMemo(toy_lut, point=8, curve=8, root=8), W_KEYS)
-    b = LutAccess(LutMemo(toy_lut, point=999, curve=7, root=3), W_KEYS)
+    a = LutAccess(LutMemo(toy_lut, point=8, curve=8, root=8))
+    b = LutAccess(LutMemo(toy_lut, point=999, curve=7, root=3))
     assert require_immutable(a) is None
     fa = fp_of(a)
     assert fa == fp_of(b)
     op_point(a.memo, "nmos", 100, 1e-6, 0.5, 0.9, 0.0)                       # memo 내용 변화
     assert fp_of(a) == fa
-    c = LutAccess(LutMemo(toy_lut, point=8, curve=8, root=8), (("nmos", 100),))
-    assert fp_of(c) != fa                                                    # w_keys 는 지문에 든다
 
 
 # ---------------------------------------------------------------------------

@@ -26,7 +26,7 @@ from gmid_engine.convergence import (
     converge_point,
 )
 from gmid_engine.core import fp_of
-from gmid_engine.layout import F_DIFFUSION, F_FLOORPLAN, F_POINT, LAYOUT_KEY, layout_outputs
+from gmid_engine.layout import F_DIFFUSION, F_FLOORPLAN, F_POINT, LAYOUT_KEY, RowGroup, layout_outputs
 from gmid_engine.layout import _ly_fields as lf
 from gmid_engine.search import FrontPoint
 
@@ -51,7 +51,11 @@ SIZED_W = 1e-6
 
 
 def snap(W=SIZED_W, current=1e-6, cdb=1e-15, csb=2e-15):
-    return FakeSnapshot({("device", "dc_op"): {"M1": op(W=W, current=current)}, ("device", "ss_dev"): {"M1": ssdev(cdb, csb)}})
+    return FakeSnapshot({("device", "dc_op"): {"M1": op(W=W, current=current)}, ("device", "ss_dev"): {"M1": ssdev(cdb, csb)},
+                         ("device", "dc_colour"): {"M1": 0}})      # [WB-1] key_exclusion 의 동률 순서 입력(구조 색)
+
+
+ROW_GROUPS = (RowGroup("R1", "nmos", "gnd", ("M1",)),)
 
 
 class Loop:
@@ -64,23 +68,23 @@ class Loop:
         self.pdk = pdk(pdk_keys)
 
     # -- 가짜 place_layout (CONTRACT 7절 시그니처 + [XRUN-F1 card B C6] 필수 키워드 donors·counters)
-    def place_layout(self, memo, snapshot, pdk_, passives, rejected, relaxed, first_seen, previous, kinds, current_keys, *,
+    def place_layout(self, memo, snapshot, pdk_, passives, rejected, relaxed, first_seen, previous, kinds, excluded=(), *,
                      donors, counters):
         n = len(self.place_args)
         self.place_args.append(SimpleNamespace(memo=memo, snapshot=snapshot, pdk=pdk_, rejected=rejected, relaxed=relaxed,
-                                               previous=previous, kinds=kinds, current_keys=current_keys, sctx_kernel=None,
+                                               previous=previous, kinds=kinds, excluded=excluded, sctx_kernel=None,
                                                donors=donors, counters=counters))
         spec = self.layouts[min(n, len(self.layouts) - 1)]
         if spec == "unplaced":
-            lay = layout()
-            out = PlacedLayout(lay, (), (), ("M1",), (), pdk_, frozenset(relaxed), dict(first_seen), 1, ())
+            lay = layout(row_groups=ROW_GROUPS)
+            out = PlacedLayout(lay, (), (), ("M1",), pdk_, frozenset(relaxed), dict(first_seen), 1)
         else:
             W, key, nf, pending, tol, ad, area = spec
             pl = (placement("M1", key, nf, W, pending=pending, tol=tol),)
             diff = () if ad is None else (ddiff("M1", key * GRID, nf, ad, ad, 1e-6, 1e-6),)
-            lay = layout(diffusion=diff, plan=floorplan(1e-5, 1e-5, area=area))
-            out = PlacedLayout(lay, (("gx", "members_span_row_groups"),), pl, (), (("nmos", key),), pdk_, frozenset(relaxed),
-                               dict(first_seen), 1, ())
+            lay = layout(diffusion=diff, plan=floorplan(1e-5, 1e-5, area=area), row_groups=ROW_GROUPS)
+            out = PlacedLayout(lay, (("gx", "members_span_row_groups"),), pl, (), pdk_, frozenset(relaxed),
+                               dict(first_seen), 1)
         self.placed.append(out)
         return out
 
@@ -118,7 +122,7 @@ def run(monkeypatch):
         from gmid_engine.search import open_run
         donors, counters = open_run()          # [XRUN-F1 card B C6] 커널 컨텍스트 대역 sctx.dc 의 실행 두 객체
         sctx = SimpleNamespace(counters={"kernel_calls": 0}, area_decl=None,
-                               dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO", w_keys=(("nmos", 30),)),
+                               dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO"),
                                                   donors=donors, counters=counters))
         start = start or eval_result(snap(), power=2e-3, area=7e-11, constraints=rows(3.0), tag="start")
         point = FrontPoint("p0", start, ())
@@ -141,7 +145,7 @@ def test_fixed_point_converges_after_one_reevaluation(run):
     assert [(i.index, i.status, i.kernel_calls) for i in cp.iterations] == [(1, "sealed", 1)]
     assert cp.result.tag == "eval1"
     assert cp.geometry == loop.eval_args[-1].geometry                    # 불변식 4: 마지막 기하 == 마지막 통과 재평가의 기하
-    assert cp.geometry.w_request == (("M1", 2e-6),) and cp.geometry.w_keys == (("nmos", 10),)
+    assert cp.geometry.w_request == (("M1", 2e-6),)
     # evaluate 는 출발 점의 θ·L 칸으로, parent = 현재 점(처음엔 출발 점)
     assert loop.eval_args[0].theta == start.theta and loop.eval_args[0].cells == start.key.cells
     assert loop.eval_args[0].parent is start
@@ -149,7 +153,7 @@ def test_fixed_point_converges_after_one_reevaluation(run):
     assert loop.place_args[1].snapshot is cp.result.evaluation.snapshot
     assert loop.place_args[0].previous is None and loop.place_args[1].previous is None
     assert cp.layout is loop.placed[-1].layout                                    # ConvergedPoint.layout = 마지막 LayoutResult
-    assert loop.place_args[0].current_keys == (("nmos", 30),) and loop.place_args[1].current_keys == (("nmos", 10),)
+    assert loop.place_args[0].excluded == () and loop.place_args[1].excluded == ()          # [WB-1] 키 제외 입력 없음(kind 키 운반 삭제)
     # [XRUN-F1 card B C6] converge_point 는 서명 그대로이고 place_layout 에 sctx.dc 의 두 객체를 그대로(is) 넘긴다
     for a in loop.place_args:
         assert a.donors is sctx.dc.donors and a.counters is sctx.dc.counters
@@ -171,7 +175,7 @@ def test_diffusion_only_change_is_reevaluated_not_a_cycle(run):
     assert cp.status == STATUS_CONVERGED
     assert [i.status for i in cp.iterations] == ["sealed", "sealed"]
     assert cp.kernel_calls == 2 == sctx.counters["kernel_calls"]
-    assert dict(cp.geometry.diffusion)["M1"].ad_m2 == 2e-13
+    assert dict(cp.geometry.layout_ref)["M1"].ad_m2 == 2e-13
 
 
 # ---------------------------------------------------------------- K_max (불변식 5)
@@ -223,9 +227,9 @@ def test_key_exclusion_then_infeasible_when_no_key_left(run):
     loop = Loop([lay(2e-6, key=20), lay(1.5e-6, key=10)], verdict=lambda g, n: "fail", pdk_keys=(("nmos", (10, 20)),))
     cp, sctx, start = run(loop)
     assert cp.status == STATUS_INFEASIBLE
-    assert [(i.status, i.excluded) for i in cp.iterations] == [("excluded", (("nmos", 20),)), ("failed", ())]
-    assert cp.excluded == (("nmos", 20),)
-    assert loop.place_args[1].pdk.slice_width_keys == (("nmos", (10,)),)      # 뺀 키 없이 다시 놓는다
+    assert [(i.status, i.excluded) for i in cp.iterations] == [("excluded", (("R1", 20),)), ("failed", ())]      # [WB-1] 행 그룹 R1 의 후보 20 을 뺀다
+    assert cp.excluded == (("R1", 20),)
+    assert loop.place_args[1].excluded == (("R1", (20,)),)      # 뺀 후보 없이 다시 놓는다(PDK 후보는 그대로, 제외는 행 그룹별 입력)
     assert loop.place_args[1].previous is loop.placed[0].layout                # 같은 current 재시도 = 같은 설계점 lineage 의 앞 결과
     assert cp.result is None                                                  # 통과한 재검증 없음
     notes = dict(cp.notes)
@@ -413,7 +417,7 @@ def test_passives_read_from_evaluation_snapshot_field(monkeypatch):
     from gmid_engine.search import open_run
     donors, counters = open_run()          # [XRUN-F1 card B C6] 커널 컨텍스트 대역 sctx.dc 의 실행 두 객체
     sctx = SimpleNamespace(counters={"kernel_calls": 0}, area_decl=decl,
-                           dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO", w_keys=(("nmos", 30),)),
+                           dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO"),
                                               donors=donors, counters=counters))
     s0 = snap()
     s0.fields[("device", "passive_value")] = dict(PV_START)

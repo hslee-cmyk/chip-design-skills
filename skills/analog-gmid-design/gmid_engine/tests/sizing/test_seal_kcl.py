@@ -89,7 +89,7 @@ def test_hand_tol_is_max_tolv_times_own_dc_gm(ctx_c, toy_lut_paths):
 def test_fail_mos_current_mismatch(ctx_c):
     snap, _ = with_tol(ctx_c[2], theta_c())
     op = dict(snap.column("device", "dc_op"))["M1"]
-    bad = tamper(snap, "dc_widths", "device", "dc_op", {"M1": dataclasses.replace(op, idu_forward=op.idu_forward * 1e6)})
+    bad = tamper(snap, "dc_solve", "device", "dc_op", {"M1": dataclasses.replace(op, idu_forward=op.idu_forward * 1e6)})
     exp = judge_expect(rows_of(bad, ()))
     assert exp["status"] == "fail" and exp["nodes"] == ("out",)
     assert_item(run(bad), exp, 3)

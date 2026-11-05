@@ -108,7 +108,7 @@ def test_real_lut_v2(real_lut_v2, kind):
     """실 LUT v2: npz 를 직접 읽어 같은 정의로 계산(데이터 없으면 fixture 가 FAIL)."""
     lut, files = real_lut_v2
     acc = new_access(lut)
-    wk = dict(acc.w_keys)[kind]
+    wk = lut.cap_map[kind].w_key                     # 기준 폭 키 (WB-1: LutAccess 에 키 칸 없음)
     arrs = {}
     for (k, w), p in files.items():
         if k == kind:

@@ -34,15 +34,15 @@ DC_TABLE = {
     # `theta_schema`(옛 graph/dc `dc_theta_schema` 를 옮김, writer dc_theta_schema 유지).
     ("graph", "theta_schema"): "dc_theta_schema",
     ("device", "dc_current"): "dc_currents",
-    ("device", "dc_drop_current"): "dc_currents",
     ("device", "dc_L"): "dc_lengths",
-    ("node", "dc_v"): "dc_columns",
-    ("node", "dc_path_values"): "dc_columns",
-    ("node", "dc_window"): "dc_columns",
-    ("device", "dc_ln_idu"): "dc_columns",
-    ("graph", "dc_scc_log"): "dc_columns",
-    ("device", "dc_op"): "dc_widths",
-    ("device", "dc_sat_v"): "dc_widths",                     # [HC-S A-103 M-1] 새 필드 device.dc_sat_v, writer = dc_widths
+    ("node", "dc_v"): "dc_solve",
+    ("node", "dc_path_values"): "dc_solve",
+    ("node", "dc_window"): "dc_solve",
+    ("device", "dc_ln_idu"): "dc_solve",
+    ("graph", "dc_scc_log"): "dc_solve",
+    ("device", "dc_op"): "dc_solve",
+    ("device", "dc_sat_v"): "dc_solve",                     # [HC-S A-103 M-1] 새 필드 device.dc_sat_v, writer = dc_solve
+    ("device", "dc_finger"): "dc_solve",                    # [WB-1 D40 §2.4.8·§3.7-A 3] 새 필드 device.dc_finger = {MOS: FingerGeom}, writer = dc_solve
     ("device", "dc_tol_v"): "dc_tolerances",
     ("device", "dc_gm"): "dc_tolerances",                    # [U17 ①] 설계 40 §2.4.8 소유표·§3.7-3 (옛 dc_gm_bound 폐기)
     ("graph", "dc_seal_1"): "dc_seal_node_conflict",
@@ -60,7 +60,7 @@ DC_TABLE = {
 BLOCKS = {
     "dc_rails": S.dc_rails, "dc_current_basis": S.dc_current_basis, "dc_writer_plan": S.dc_writer_plan,
     "dc_scc_order": S.dc_scc_order, "dc_theta_schema": S.dc_theta_schema, "dc_currents": S.dc_currents,
-    "dc_lengths": S.dc_lengths, "dc_columns": S.dc_columns, "dc_widths": S.dc_widths,
+    "dc_lengths": S.dc_lengths, "dc_solve": S.dc_solve,
     "dc_tolerances": S.dc_tolerances, "dc_seal_node_conflict": S.dc_seal_node_conflict,
     "dc_seal_vgs_match": S.dc_seal_vgs_match, "dc_seal_kcl": S.dc_seal_kcl,
     "dc_seal_bulk_reverse": S.dc_seal_bulk_reverse, "dc_seal_region": S.dc_seal_region, "dc_region_decl": S.dc_region_decl,
@@ -78,6 +78,7 @@ def test_dc_table_has_32_fields():
     # [EO-1 범위 4] dc_off_current·dc_conduction_floor −2, device.region_decl +1 (S0 행) = 32.
     # [TB-1] device.theta_class +1 = 33.
     # [HC-S A-103] device.dc_sat_v +1 = 34.
+    # [WB-1] 저항 강하 전류 둘째 필드 삭제 −1, device.dc_finger 추가 +1 = 34 (노드 풀이·폭 블록이 dc_solve 하나로 합쳐져도 행 수는 필드 수).
     assert len(DC_TABLE) == 34
 
 
@@ -163,16 +164,13 @@ READS = {
                      ("graph", "columns"), ("graph", "branches")},
     "dc_currents": {("graph", "dc_current_basis")},
     "dc_lengths": {("device", "element_class"), ("device", "region_decl")},  # [EO-1 범위 4, A-88] off·triode 목록은 extras 가 아니라 S0 필드 device.region_decl READS
-    "dc_columns": {("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"),
-                   ("device", "dc_drop_current"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"),
-                   ("device", "bulk"), ("device", "element_class"), ("device", "dc_coord"),
-                   ("graph", "dc_scc_order"),
-                   ("device", "dc_self_referential"),   # [U17 ①-b] §2.4.8 1변수 writer 집합은 S0 필드 -- 기둥 블록이 읽는다
-                   ("device", "dc_colour"), ("node", "dc_colour"),
-                   ("node", "port_direction"), ("device", "region_decl")},   # [EO-1 범위 4, A-88] region_decl READS; [IT-1 K-3 ext, O-84] 41:672 -- 입력 포트 판정은 S1 포트 방향 READS     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
-    "dc_widths": {("node", "dc_v"), ("node", "dc_rail_v"), ("device", "dc_current"), ("device", "dc_L"),
-                  ("device", "dc_ln_idu"), ("device", "pins"), ("device", "kind"), ("device", "bulk"),
-                  ("device", "region_decl")},   # [HC-S A-103 M-1] dc_sat_v 산출이 선언 영역 region_decl READS
+    # [WB-1] dc_solve = 옛 노드 풀이 블록 + 옛 폭 블록(D40 §3.7-A 1 READS 그대로 + 선언 영역 region_decl[EO-1 A-88, HC-S A-103 M-1: dc_sat_v 산출]).
+    # node.dc_v·device.dc_ln_idu 는 같은 블록이 쓰므로 읽지 않는다. 설계 문언에 없는 읽기가 있으면 이 등식이 깨진다(design 이 정본).
+    "dc_solve": {("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"), ("node", "dc_colour"),
+                 ("node", "port_direction"),
+                 ("device", "dc_current"), ("device", "dc_L"), ("device", "dc_colour"), ("device", "pins"), ("device", "kind"),
+                 ("device", "bulk"), ("device", "element_class"), ("device", "dc_coord"), ("device", "dc_self_referential"),
+                 ("graph", "dc_scc_order"), ("device", "region_decl")},
 }
 
 
@@ -301,7 +299,7 @@ def test_value_fields_as_contract():
     old_window = S.Window(0.0, 1.8, 2)
     assert (old_window.input_status, old_window.tol_v) == (None, None)
     # [r6] method·fallback 필드 추가(옛 6칸 뒤, 6칸 생성 호환). [r7] 2절: 기본값 method="direct", fallback=None.
-    assert names(S.SccLog) == ("index", "nodes", "iterations", "deltas", "tol", "k_max", "method", "fallback")
+    assert names(S.SccLog) == ("index", "nodes", "iterations", "deltas", "tol", "k_max", "method", "fallback", "slice_rounds")      # [WB-1 §3] slice_rounds 칸 추가
     old = S.SccLog(0, ("x",), 1, (0.0,), 1e-3, 11)
     assert (old.index, old.nodes, old.iterations, old.deltas, old.tol, old.k_max) == (0, ("x",), 1, (0.0,), 1e-3, 11)
     assert old.method == "direct" == S.SCC_DIRECT and old.fallback is None

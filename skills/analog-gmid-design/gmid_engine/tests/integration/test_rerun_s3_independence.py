@@ -85,7 +85,7 @@ def _points(seq):
 def _chain(env, out, archive_root):
     """단계 A -> B -> 커널 컨텍스트 -> 탐색 컨텍스트(archive_root) -> find_front(given 없음). -> C3 출력 묶음."""
     from gmid_engine.search import build_search_context, find_front, open_run
-    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, LutAccess
     # [XRUN-F1 card B C1·C6] 실행 경계 = 새 open_run 쌍(옛 블록 객체 reset_stats 는 없어졌다 -- 계수는 실행마다 RunCounters)
     donors, counters = open_run()
     a = run_stage_a(LIBRARY / (CIRCUIT + ".topology.json"), LIBRARY / (CIRCUIT + ".sizing_spec.json"), env.lut, output_dir=out,
@@ -93,7 +93,7 @@ def _chain(env, out, archive_root):
     memo = LutMemo(env.lut, point=1 << 16, curve=1 << 14, root=1 << 16)
     b = run_stage_b(a, memo, env.pdk, output_dir=out, diagnostic=True, settings=_settings())
     assert (a.status, b.status) == ("ok", "ok"), (a.status, b.status)
-    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo), donors=a.donors, counters=a.counters)
+    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), LutAccess(memo), donors=a.donors, counters=a.counters)
     sctx = build_search_context(kctx, a.spec, _settings(), str(archive_root), env.pdk, env.rule, code_fp=a.code_fp)
     d = Path(archive_root) / sctx.context_fp
     n_evals, n_runs = len(_jsonl(d / "evals.jsonl")), len(_jsonl(d / "runs.jsonl"))

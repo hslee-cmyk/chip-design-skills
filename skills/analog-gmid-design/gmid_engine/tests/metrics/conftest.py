@@ -661,7 +661,6 @@ LUT_KSCALE = {"nmos": 1.0, "pmos": 1.5}         # 용량 kind 배율(두 kind �
 GMBS_COEF = {"slice": (0.0, 2.0 * 2.0), "cap": (0.3, -0.04)}
 LUT_SPEC_ARGS = (LUT_GRID, (("nmos", 1e-6), ("pmos", 1e-6)), (("toyn", "nmos"), ("toyp", "pmos")),
                  (("nmos", "_n"), ("pmos", "_p")))
-LUT_WKEYS = (("nmos", LUT_WKEY), ("pmos", LUT_WKEY))
 
 
 def _mesh(L, VGS, VDS, VS):
@@ -753,7 +752,7 @@ def load_lut_v2(root, **kw):
 def lut_access(lut, n=4096):
     from gmid_engine.lut import LutMemo
     from gmid_engine.sizing import LutAccess
-    return LutAccess(LutMemo(lut, point=n, curve=n, root=n), LUT_WKEYS)
+    return LutAccess(LutMemo(lut, point=n, curve=n, root=n))
 
 
 def _cell(grid, x):

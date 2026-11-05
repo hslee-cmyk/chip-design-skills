@@ -26,7 +26,7 @@ def run(snap):
 
 def scale_idu(snap, m, k):
     op = dict(snap.column("device", "dc_op"))[m]
-    return tamper(snap, "dc_widths", "device", "dc_op", {m: dataclasses.replace(op, idu_forward=op.idu_forward * k)})
+    return tamper(snap, "dc_solve", "device", "dc_op", {m: dataclasses.replace(op, idu_forward=op.idu_forward * k)})
 
 
 @pytest.mark.parametrize("which", ["C", "A"])

@@ -13,7 +13,7 @@ import pytest
 
 from gmid_engine.core import SchemaRejectedError
 from gmid_engine.search import S3Archive, SearchSettings, build_search_context, search_domain
-from gmid_engine.sizing import dc_columns, dc_currents, dc_widths
+from gmid_engine.sizing import dc_solve, dc_currents, dc_solve
 
 from .conftest import domain_of  # [U17 ①-b] graph/kernel: search_domain 필드 읽기
 from .conftest import CODE_FP, SRC, build_case, circuit_c, circuit_p, write_pdk
@@ -106,7 +106,7 @@ def test_theta_resistance_without_bounds_rejected_before_kernel(tmp_path, lut_se
     with pytest.raises(SchemaRejectedError) as e:
         build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),), rbounds=None, run=run)
     assert dict(e.value.record.detail)["reason"] == "theta_resistance_bounds_undeclared"
-    assert [block_row(run["counters"], b.name)[0] for b in (dc_currents, dc_columns, dc_widths)] == [0, 0, 0]
+    assert [block_row(run["counters"], b.name)[0] for b in (dc_currents, dc_solve, dc_solve)] == [0, 0, 0]
 
 
 def test_settings_type_checked(tmp_path, lut_sealed):
@@ -161,7 +161,7 @@ def test_theta_capacitance_without_bounds_rejected_before_kernel(tmp_path, lut_s
         build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=None, run=run)
     det = dict(e.value.record.detail)
     assert det["reason"] == "theta_capacitance_bounds_undeclared" and tuple(det["capacitors"]) == ("Cz",)
-    assert [block_row(run["counters"], b.name)[0] for b in (dc_currents, dc_columns, dc_widths)] == [0, 0, 0]
+    assert [block_row(run["counters"], b.name)[0] for b in (dc_currents, dc_solve, dc_solve)] == [0, 0, 0]
 
 
 def test_junction_built_once_per_context(tmp_path, lut_sealed):
@@ -503,10 +503,10 @@ def _eval_table(sctx):
 def _build_with_caller_cap(tmp, lut, cap, **kw):
     """search conftest `build_case` 와 같은 입력, 호출자 memo 상한만 `cap`(영역 셋 모두)."""
     from gmid_engine.graph import build_s1
-    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, LutAccess
     from .conftest import load_spec, write_decls
     tmp = Path(tmp)
-    acc = pre_layout_lut_access(LutMemo(lut, point=cap, curve=cap, root=cap))
+    acc = LutAccess(LutMemo(lut, point=cap, curve=cap, root=cap))
     td, spec = load_spec(tmp / "case", circuit_c())
     inputs = dc_inputs_from_spec(spec)
     run = fresh_run()                      # [XRUN-F1 card B C0·C6] 이 build 하나 = 실행 하나

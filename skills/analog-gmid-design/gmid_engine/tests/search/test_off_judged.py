@@ -136,7 +136,7 @@ def test_off_judged_return_value_is_none_not_truthy_report():
 
 # ---- 경로: build_search_context ------------------------------------------------------------------------------
 
-EVAL_BLOCKS = ("dc_currents", "dc_lengths", "dc_columns", "dc_widths", "dc_tolerances", "dc_seal_region",
+EVAL_BLOCKS = ("dc_currents", "dc_lengths", "dc_solve", "dc_solve", "dc_tolerances", "dc_seal_region",
                "dc_seal_bulk_reverse", "dc_seal_vgs_match")
 OFF_SRC = {"kind": "user_spec", "record": "off judged path test", "decided": "2026-11-04"}
 

@@ -105,7 +105,7 @@ def floor_lut(tmp_path_factory):
 
 def _tols(lut, case):
     """kind -> tol_at(L, VDS) (lut 공개 API 입력, conftest `tol_v_at`)."""
-    wk = dict(case.acc.w_keys)
+    wk = {k: lut.cap_map[k].w_key for k in ("nmos", "pmos")}      # 기준 폭 키(WB-1: LutAccess 에 키 칸 없음, 기준 = 기준 LUT 의 w_key)
     return {k: tol_v_at(lut, k, wk[k]) for k in ("nmos", "pmos")}
 
 
@@ -332,7 +332,7 @@ def test_real_lut_v2_multi_anchor_cells(tmp_path, real_lut_v2):
     case = build_case(tmp_path, circuit_diode(), lut, pdk=pdk, rule=rule)
     s = case.sctx
     V = s.domain.variables
-    wk = dict(case.acc.w_keys)
+    wk = {k: lut.cap_map[k].w_key for k in ("nmos", "pmos")}
     tols = _tols(lut, case)
     arrs = {}
     for kind in ("nmos", "pmos"):

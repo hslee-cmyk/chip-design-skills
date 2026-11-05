@@ -128,10 +128,10 @@ def _search_context(env, a, b):
     """①-b 뒤 커널 컨텍스트·탐색 컨텍스트 생성. L 동치류는 S0 필드 `graph/s1v: l_classes` 에서 읽는다. 탐색 설정은 tests/search/u13_real.py 와
     같은 입력. [xrun] interface card C1: build_search_context 는 s0 키워드를 받지 않는다(S0 저장 폐지) -- 같은 실행 안 단계 B 결과를 메모리로 넘긴다."""
     from gmid_engine.search import build_search_context
-    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, LutAccess
     _s0_of(b)                             # 결과가 S0 수준 스냅샷 참조를 싣는다(§2.4.7)
     # [XRUN-F1 card B C6] 커널 컨텍스트 = 단계 A 와 같은 실행(단계 A 결과의 두 칸)
-    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(env.memo), donors=a.donors, counters=a.counters)
+    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), LutAccess(env.memo), donors=a.donors, counters=a.counters)
     return build_search_context(kctx, a.spec, _settings(), None, env.pdk, env.rule, code_fp=a.code_fp)
 
 

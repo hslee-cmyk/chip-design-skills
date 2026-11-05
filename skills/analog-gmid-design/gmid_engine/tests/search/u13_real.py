@@ -112,13 +112,13 @@ def _recipe(a, b, topology, settings):
 def _contexts(recipe, kernel):
     """recipe -> 커널·탐색 컨텍스트 묶음. kernel = 실행 두 객체 키워드(dict), None 이면 새 실행 하나(새 open_run() 쌍 -- card B C0)."""
     from gmid_engine.search import build_search_context, open_run
-    from gmid_engine.sizing import build_kernel_context, pre_layout_lut_access
+    from gmid_engine.sizing import build_kernel_context, LutAccess
     from .u13_hand import read_s1v, start_of
     env = real_env()
     if kernel is None:
         donors, counters = open_run()
         kernel = dict(donors=donors, counters=counters)
-    kctx = build_kernel_context(recipe.s0, recipe.inputs, pre_layout_lut_access(env.memo), **kernel)
+    kctx = build_kernel_context(recipe.s0, recipe.inputs, LutAccess(env.memo), **kernel)
     sctx = build_search_context(kctx, recipe.spec, recipe.settings, None, env.pdk, env.rule, code_fp=recipe.code_fp)
     return SimpleNamespace(s1v=read_s1v(recipe.s0), ach=recipe.s0, spec=recipe.spec, kctx=kctx, sctx=sctx, start=start_of(sctx),
                            topology=recipe.topology, settings=recipe.settings, pdk=env.pdk, rule=env.rule)

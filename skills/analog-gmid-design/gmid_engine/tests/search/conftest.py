@@ -174,8 +174,8 @@ def lut_pending(tmp_path_factory):
 
 def new_access(lut):
     from gmid_engine.lut import LutMemo
-    from gmid_engine.sizing import pre_layout_lut_access
-    return pre_layout_lut_access(LutMemo(lut, point=4096, curve=4096, root=4096))
+    from gmid_engine.sizing import LutAccess
+    return LutAccess(LutMemo(lut, point=4096, curve=4096, root=4096))
 
 
 @pytest.fixture
@@ -490,7 +490,7 @@ def expected_fd_steps(sctx, base, vgs_grid=R4_VGS, vds_grid=R4_VDS):
     tol = col(snap, "device", "dc_tol_v")
     writers = col(snap, "node", "dc_writer")
     windows = col(snap, "node", "dc_window")
-    drop = col(snap, "device", "dc_drop_current")
+    drop = col(snap, "device", "dc_current")
     th = dict(base.theta)
     cone = dict(schema_of(sctx.dc).current_cone)
     out = []

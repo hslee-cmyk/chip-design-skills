@@ -138,11 +138,11 @@ def contexts_of(recipe, kernel=None):
     """recipe(실행과 무관한 입력) -> 커널·탐색 컨텍스트 묶음 SimpleNamespace(s1v, ach, spec, kctx, sctx, start, pdk, rule, settings, lut).
     kernel = 실행 두 객체 키워드(dict), 없으면 새 실행 하나(새 open_run() 쌍 -- card B C0)."""
     from gmid_engine.search import build_search_context, open_run
-    from gmid_engine.sizing import build_kernel_context, pre_layout_lut_access
+    from gmid_engine.sizing import build_kernel_context, LutAccess
     if kernel is None:
         donors, counters = open_run()
         kernel = dict(donors=donors, counters=counters)
-    kctx = build_kernel_context(recipe.s0, recipe.inputs, pre_layout_lut_access(memo_of(recipe.lut)), **kernel)
+    kctx = build_kernel_context(recipe.s0, recipe.inputs, LutAccess(memo_of(recipe.lut)), **kernel)
     sctx = build_search_context(kctx, recipe.spec, recipe.settings, None, recipe.pdk, recipe.rule, code_fp=recipe.code_fp)
     return SimpleNamespace(s1v=recipe.s1v, ach=recipe.ach, spec=recipe.spec, kctx=kctx, sctx=sctx, start=start_of(sctx),
                            pdk=recipe.pdk, rule=recipe.rule, settings=recipe.settings, lut=recipe.lut)

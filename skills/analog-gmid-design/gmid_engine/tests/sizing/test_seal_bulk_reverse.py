@@ -62,11 +62,11 @@ def test_drain_below_bulk_term(ctx_c):
     """−(vds + vsb) 항: vds = 0.1, vsb = −0.2 로 바꾼 DeviceOp -> max(0, 0.2, 0.1) = 0.2."""
     snap, _ = with_tol(ctx_c[2], theta_c())
     op = dict(snap.column("device", "dc_op"))["M1"]
-    s2 = tamper(snap, "dc_widths", "device", "dc_op", {"M1": dataclasses.replace(op, vds=0.05, vsb=0.1 - 0.2)})
+    s2 = tamper(snap, "dc_solve", "device", "dc_op", {"M1": dataclasses.replace(op, vds=0.05, vsb=0.1 - 0.2)})
     exp = judge_expect(rows_of(s2))
     assert_item(run(s2), exp, 6)
     assert rel_close(run(s2).magnitude, 0.1, 1e-9)
-    s3 = tamper(snap, "dc_widths", "device", "dc_op", {"M1": dataclasses.replace(op, vds=-0.3, vsb=0.1)})
+    s3 = tamper(snap, "dc_solve", "device", "dc_op", {"M1": dataclasses.replace(op, vds=-0.3, vsb=0.1)})
     assert rel_close(run(s3).magnitude, 0.2, 1e-9)                    # −(−0.3 + 0.1) = 0.2
 
 
@@ -102,7 +102,7 @@ def _put(snap, m1_vds, m1_vsb, m2_vds=0.5, m2_vsb=0.25):
     ops = _ops_of(snap)
     upd = {"M1": dataclasses.replace(ops["M1"], vds=m1_vds, vsb=m1_vsb),
            "M2": dataclasses.replace(ops["M2"], vds=m2_vds, vsb=m2_vsb)}
-    return tamper(snap, "dc_widths", "device", "dc_op", upd)
+    return tamper(snap, "dc_solve", "device", "dc_op", upd)
 
 
 def _tol_m1(snap):
