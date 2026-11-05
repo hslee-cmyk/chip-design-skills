@@ -60,7 +60,7 @@ def _difference(volts, nets):
 
 
 def _structure(ss, block, drive, others, exclude, extra, ground):
-    """미지수 집합·스탬프 소자(모듈 문서). -> (고정 집합 F, 미지수 U_b(전하 넷 제외), 전하 넷, 스탬프 MOS 라벨 집합, 스탬프 저항 라벨 집합) -- 넷은 노드 index."""
+    """미지수 집합·스탬프 소자(모듈 문서). -> (고정 집합 F, 미지수 U_b(전하 넷 제외), 전하 넷, 스탬프 MOS 라벨 집합, 스탬프 저항 라벨 집합, 전회로 C 또는 None(전하 넷 씨앗 없음)) -- 넷은 노드 index."""
     index = {net: i for i, net in enumerate(ss.nodes)}
     mos = {m.label: m for m in ss.circuit.mos}
     res = {r.label: r for r in ss.circuit.resistors}
@@ -87,8 +87,7 @@ def _structure(ss, block, drive, others, exclude, extra, ground):
     outputs = {index[n] for n in block.outputs if n in index}
     conducting = {t for m in mos.values() for t in (m.d, m.s)} | {t for r in res.values() for t in (r.a, r.b)}
     cap_only = set(range(len(ss.nodes))) - conducting - fixed
-    capacitors = [(k.a, k.b) for k in ss.circuit.capacitors if k.a in cap_only and k.b in cap_only]
-    c_pairs = capacitance_matrix(ss.circuit, len(ss.nodes)) != 0.0               # 전하 행이 읽는 C 와 같은 조립(소자 용량 + MOS 다섯 용량)
+    c_full = None                                                              # 전하 넷 씨앗이 있을 때만 한 번 조립(확장·독자·전하 행이 같은 C 를 읽는다)
     dropped = set()
     while True:
         stamped_mos = {l for l, m in mos.items() if l not in barred and (m.d in unknown or m.s in unknown)} | (set(extra) & set(mos))
@@ -96,20 +95,26 @@ def _structure(ss, block, drive, others, exclude, extra, ground):
         live = {l: r for l, r in res.items() if l not in dropped and l not in barred and (r.a in unknown or r.b in unknown or l in extra)}
         count = collections.Counter(t for r in live.values() for t in (r.a, r.b))
         charge = {t for l in stamped_mos for t in (mos[l].g, mos[l].b)} & cap_only | (unknown & cap_only)
-        grown = True
-        while grown:                                                           # 용량으로 이어진 같은 종류(용량 전용)의 넷
-            grown = False
-            for a, b in capacitors:
-                if (a in charge) != (b in charge):
-                    charge |= {a, b}
-                    grown = True
-        read = {int(t) for o in charge for t in numpy.flatnonzero(c_pairs[o]) if t != o}   # 블록 안 C 독자: 전하 넷과 (소자 용량·MOS 단자 용량으로) 이어진 넷
+        read = set()
+        if charge:
+            if c_full is None:
+                c_full = capacitance_matrix(ss.circuit, len(ss.nodes))
+            c_pairs = c_full != 0.0
+            grown = True
+            while grown:                                                       # 용량(소자·MOS 단자)으로 이어진 같은 종류(용량 전용)의 넷
+                grown = False
+                for o in tuple(charge):
+                    new = {int(t) for t in numpy.flatnonzero(c_pairs[o])} & cap_only - charge
+                    if new:
+                        charge |= new
+                        grown = True
+            read = {int(t) for o in charge for t in numpy.flatnonzero(c_pairs[o]) if t != o}   # 블록 안 C 독자: 전하 넷과 용량으로 이어진 넷
         dead = {n for n in unknown if n not in outputs and n not in touched and n not in read and count[n] == 1}
         if not dead:
             break
         unknown -= dead                                                        # 막다른 가지: 넷과 그 저항을 뺀다(되풀이)
         dropped |= {l for l, r in live.items() if r.a in dead or r.b in dead}
-    return fixed, unknown - charge, charge, stamped_mos, set(live)
+    return fixed, unknown - charge, charge, stamped_mos, set(live), c_full
 
 
 def _stamp(ss, mos_labels, res_labels, zeroed=()):
@@ -139,13 +144,13 @@ def block_local_gain(ss, block, drive=None, others=(), exclude=(), extra=(), gro
     drive = _unit_drive(block.inputs) if drive is None else drive
     index = {net: i for i, net in enumerate(ss.nodes)}
     size = len(ss.nodes)
-    fixed, unknown, charge, mos_labels, res_labels = _structure(ss, block, drive, others, exclude, extra, ground)
+    fixed, unknown, charge, mos_labels, res_labels, c_full = _structure(ss, block, drive, others, exclude, extra, ground)
     members = tuple(sorted(mos_labels | res_labels))
     if charge and ss.missing:                                                  # 전하 보존 행은 그 넷에 닿는 모든 용량이 필요하다 -- 값 없는 수동소자가 있으면 C 가 불완전
         return BlockGain(block.key, None, None, None, undefined=_undefined("singular_dc"), members=members)
     mos, res = _stamp(ss, mos_labels, res_labels)
     g = block_stamp_matrix(ss.nodes, mos, res)[0]
-    c = capacitance_matrix(ss.circuit, size) if charge else numpy.zeros((size, size))
+    c = c_full if charge else numpy.zeros((size, size))
     fixed_all = set(range(size)) - unknown - charge
     factor = nodal_factor(g, fixed_all, c=c)
     volt, residual = nodal_solve(factor, size, {index[n]: v for n, v in drive.items()})
