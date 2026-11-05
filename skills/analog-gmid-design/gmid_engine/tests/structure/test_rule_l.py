@@ -27,7 +27,7 @@ F_G13 = (
     ("L-5", "diode", "graph/net_model.py", "net_model"),
     ("L-5", "diode", "graph/node_impedance.py", "node_impedance"),
     ("L-5", "same_vgs", "metrics/block_gain_model.py", "block_gain_model_of"),
-    ("L-5", "same_vgs", "sizing/writer_plan.py", "dc_writer_plan"),
+    ("L-5", "same_vgs", "sizing/writer_plan.py", "_edges"),
 )
 # O-27·O-36 (card 현재 엔진 test 4)
 O27_O36 = (

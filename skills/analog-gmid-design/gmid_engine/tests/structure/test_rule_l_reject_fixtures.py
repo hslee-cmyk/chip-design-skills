@@ -120,6 +120,80 @@ EXACT = {
     "L9e": (params(), []),
 }
 
+# 판정 A-117 추가분 -- (case id, 픽스처 폴더, params, 기대). 같은 트리를 params만 바꿔 두 번 쓰는 자리가 있다.
+# oracle (a): 기대는 픽스처 소스를 읽고 손으로 적었다. 뮤턴트 생존 10개를 겨냥하는 입력은 주석에 이름을 단다.
+OPF = [(("L-5", "op_copy", "graph/op_user.py", "f"), OPC)]
+ADD = [
+    # L-3 별칭: 별칭을 거친 읽기는 읽기이고, 안 읽으면 위반
+    ("L3f", "L3f", params(), []),
+    ("L3g", "L3g", params(), [(("L-3", "blk.graph.beta"), "reads_not_read")]),
+    ("L3h", "L3h", params(), []),
+    # diode / same_vgs 경계
+    ("L5k-len", "L5k-len", params(l5_concepts=DIODE_GS), []),
+    ("L5k-isinst", "L5k-isinst", params(l5_concepts=DIODE_GS), []),
+    ("L5k-canon", "L5k-canon", params(l5_concepts=DIODE_GS), l5("same_vgs")),
+    # op_copy 끊김 아님(float, Op-float-cuts)과 sink 꼴
+    ("L5e-float", "L5e-float", params(l5_concepts=OP_COPY), OPF),
+    ("L5e-attr", "L5e-attr", params(l5_concepts=OP_COPY), OPF),
+    ("L5e-gsub", "L5e-gsub", params(l5_concepts=OP_COPY), OPF),
+    ("L5e-global", "L5e-global", params(l5_concepts=OP_COPY), OPF),
+    ("L5e-gupd", "L5e-gupd", params(l5_concepts=OP_COPY), OPF),
+    ("L5e-meth", "L5e-meth", params(l5_concepts=OP_COPY), OPF),
+    ("L5e-json", "L5e-json", params(l5_concepts=OP_COPY), OPF),
+    # 스냅샷 운반 함수는 키에서 제외, 사본을 만든 inner만
+    ("L5f-carry", "L5f-carry", params(l5_concepts=OP_COPY),
+     [(("L-5", "op_copy", "graph/op_user.py", "inner"), OPC)]),
+    # 필드 단위 추적: 같은 객체의 다른 칸은 clean, 오염된 칸은 위반
+    ("L5g-clean", "L5g-clean", params(l5_concepts=OP_COPY), []),
+    ("L5g-taint", "L5g-taint", params(l5_concepts=OP_COPY),
+     [(("L-5", "op_copy", "graph/op_user.py", "lay"), OPC)]),
+    # 출력 함수 면제가 실제로 일한다(Op-output-exempt): 목록에 있으면 clean, 없으면 같은 코드가 위반
+    ("L5h-on", "L5h-exempt", params(l5_concepts=OP_COPY, output_functions=("graph/op_user.py:_report",)), []),
+    ("L5h-off", "L5h-exempt", params(l5_concepts=OP_COPY),
+     [(("L-5", "op_copy", "graph/op_user.py", "_report"), OPC)]),
+    # writer 파일 면제(Op-writer-exempt), 도달 밖 함수도 검사(Op-reach)
+    ("L5i-writer", "L5i-writer", params(l5_concepts=OP_COPY), []),
+    ("L5j-reach", "L5j-reach", params(l5_concepts=OP_COPY),
+     [(("L-5", "op_copy", "graph/tail.py", "_late"), OPC)]),
+    # L-4 목록(L4-exempt): 출력 전용·지문 전용 목록의 칸은 면제, 다른 칸 이름은 면제 아님
+    ("L4d-output", "L4d", params(output_only_slots=("Row.unused",)), []),
+    ("L4d-fingerprint", "L4d", params(fingerprint_only_slots=("Row.unused",)), []),
+    ("L4d-other", "L4d", params(output_only_slots=("Row.other",), fingerprint_only_slots=("Row.other",)),
+     [(("L-4", "core.values.Row.unused"), "slot_no_reader")]),
+    # 읽기 판정: kind 인자가 권한표 kind가 아니면 다른 객체의 메서드(Read-kindfilter)
+    ("L10a", "L10a", params(), [(("L-1", "graph.alpha"), NR)]),
+    # 지역 변수가 import 이름을 가림(Graph-shadow): 가려진 import는 호출이 아니다
+    ("L11", "L11", params(), [(("L-1x", "graph.h.helper"), NC)]),
+    # 블록 없는 WriterTable 행(Table-wt-off): 읽는 행은 clean, 안 읽는 행은 no_reader
+    ("LW1", "LW1", params(), [(("L-1", "graph.beta"), NR)]),
+]
+
+
+@pytest.mark.parametrize("case", [c[0] for c in ADD])
+def test_rule_l_fixture_a117_added_violation_set(case):
+    """A-117 추가 픽스처: (키, code) 집합이 손으로 적은 기대와 정확히 같다. oracle (a)."""
+    _, fid, p, expected = next(c for c in ADD if c[0] == case)
+    assert _got(fid, p) == sorted(expected)
+
+
+def test_rule_l_l3x_unresolvable_reads_not_silent():
+    """L3x(L3-unresolved-reads): 풀 수 없는 `reads=`(호출 결과)는 조용히 통과하지 않는다. code는 card에 없어 둘 중 하나로 본다."""
+    got = check_rule_l(root("L3x"), params())
+    assert got
+    assert {v.code for v in got} <= {"reads_unverifiable", "writer_table_unresolved"}
+
+
+def test_rule_l_writer_table_unresolved_row():
+    """LW2(Table-wt-off): 풀 수 없는 WriterTable 행은 writer_table_unresolved(키 앞 칸 L-1, 파일 core/tables.py)."""
+    got = check_rule_l(root("LW2"), params())
+    assert [(v.key[0], v.key[2], v.code) for v in got] == [("L-1", "core/tables.py", "writer_table_unresolved")]
+
+
+def test_rule_l_missing_entry_point_not_silent():
+    """L10b(Entry-missing): 트리에 없는 진입점을 목록에 두면 조용히 무시하지 않고 위반으로 보고한다(fail-closed)."""
+    got = check_rule_l(root("L10b"), params(entry_points=(ENTRY, "pipeline/stage_a.py:no_such_entry")))
+    assert any("no_such_entry" in (str(v.key) + v.detail) for v in got)
+
 
 def _got(fid, p):
     return [(v.key, v.code) for v in check_rule_l(root(fid), p)]
@@ -134,7 +208,7 @@ def test_rule_l_fixture_exact_violation_set(fid):
 
 def test_rule_l_fixture_count_covers_card_table():
     """card 픽스처 표의 트리 입력형 id가 모두 디스크에 있다(빠뜨린 픽스처를 막는다)."""
-    need = set(EXACT) | {"L9c", "LT", "L5a-11"}
+    need = set(EXACT) | {"L9c", "LT", "L5a-11", "L3x", "L10b", "LW2"} | {c[1] for c in ADD}
     have = {p.name for p in FIX.iterdir() if p.is_dir()}
     assert need == have
 
