@@ -8181,6 +8181,19 @@ card `20261104-op7a` 멈춤 항목 S-2·S-3 답. oracle-portability OP-7 행(v0.
 
 oracle-portability v0.6.29 전파. 측정 게이트 표 OP-7 행(P:1393)의 출처 식별 문언만 바꾼다. 경위·측정 = oracle-portability history 0.6.29 행. 독립 판정 전. **원래 취지와 다름**: 독립 재측정 → 생성기 자기 기록(oracle X-38). 옛 문언: «LUT 생성 모드 출처 식별(경계 L마다 LUT `ID` 한 칸 대조, 한 프로세스 순차)과 선언 칸». front matter `version`이 6.38.13에 머물러 있어 이 판으로 맞췄다.
 
+## v6.38.21 (2026-11-06, 위임 O-226 A-123·A-124, 사용자 결정 O-237·O-238)
+
+WB-1 계획 문언 개정. 독립 판정 전. 근거 실측 = `wt/_drafts/evidence/2026-11-06/wb1_resolve_check.md`, `wb1_questions_check.md`, `wb1_three_questions.md`(점검자 ≠ 권고 작성자). 코드 변경 0.
+- **N6.32 범위 5**: 레이아웃 뒤 재평가 꼴(W′·바이어스 고정 KCL 재풀이 + 재봉인)과 레이아웃 입력 기준점(= 사이징 점)을 이 card 안으로 넣는다. 루프 수렴 판정·상한은 그대로 범위 밖(구현 단위 9). 이유(A-124): WB-1이 슬라이스를 실제로 바꾸면서 base에서 수렴하던 `two_stage_ota` 레이아웃 뒤 test가 노드 재풀이 없는 봉인 재판정으로는 깨진다(회귀). 실측(`wb1_three_questions.md` 질문 1): 레이아웃 뒤 재평가 20회 전부 봉인 3 실패 → `infeasible_after_layout`, 같은 기하 7개를 W′ 고정 KCL 재풀이로 넣으면 7/7 봉인 통과. 기준점: 재풀이 스냅샷을 다음 레이아웃 보존량 입력으로 읽으면 common_gate에서 전류가 −40 %, −70 %로 걷고 '수렴'으로 끝났다(fail-closed가 아님, `wb1_resolve_check.md` 4절). 옛 문언: «**범위 진술**(검증 9 V9-2): 이 card는 레이아웃 뒤 루프(DEC-89 재평가·N3.17 LY1·LY3)의 수렴 판정·상한을 바꾸지 않는다(범위 밖) -- 그 루프도 DEC-105 (2) 'DC 블록' (iii)의 원칙을 따르고, 어긋나는 구현은 N6.1 구현 단위 9(MOD7·MOD8 -- N6.35 R12·E-24)의 재작성 범위로 적는다.»
+- **design 옛 근거가 무너진 경위**(D40 §3.7-A 6 '종속 소자 어긋남은 봉인 3이 판정'): 그 문언은 (a) LY1이 (ID, VGS, L)을 지켜 노드가 거의 안 움직이고 (b) 봉인 3 tol이 기준 폭 키 셀(mV)이라는 두 전제에 기댔다. (a) 레이아웃 `slice_density`는 아직 gm/ID 보존이라 VGS가 최대 52.8 mV 옮겨진다(LY1·O-186 L2 미구현, 배정 LI-1). (b) WB-1 슬라이스별 tol은 기준 키 밖에서 L 축 외부 값 없이 µV 단위다(자료 범위 차 -- 넓히는 근거가 아님, O-200·O-240). VGS를 보존해도 봉인만으로는 OTA 23회·키 제외 22로 진다.
+- **레이아웃 VGS 보존(O-186 L2)은 LI-1에 그대로**, 순서도 당기지 않는다(A-124: `converge` 비test 호출처 0, 연기 test·LA-1 측정 경로 밖; 그 사이 folded·common_gate 레이아웃 뒤는 fail-closed 탈락, OTA는 봉인 통과 자기 정합 점 ΔVGS 52.8 mV). VGS 보존을 WB-1로 당기는 안은 WB-1 범위·M-TH1c `vgs_root.py` 삭제 배정·N6.1 EO-1 다리 순서·O-27 사본 증가 금지와 모순이라 철회했다.
+- **DEC-105 (2) 피벗 판정 불능 갈래**(A-123 (3), O-237): 옛 문언 «servo 피벗이 판정 불능(IT-2 피벗 판정 -- DE-1 병합 뒤 DEC-23 A_dc 정의 불능 갈래와 같은 답)이면 입력을 봉인점 값에 고정하고 봉인만 다시 잰다(V_id*는 그 갈래대로 정의 불능; A_dc는 입력→출력 전달이라 ΔW 전류 주입에 대한 출력 감도(g_out이 정함)를 제한하지 않는다 -- 봉인이 실패하면 그 점은 front에서 빠진다, fail-closed).» 같은 행의 '물리 처리 = W′·바이어스 고정 KCL 재풀이'와 O-237 '피벗 판정 불능이면 입력 고정'(재풀이의 한 구성)에 맞춘다. `as_is_single_input`을 판정 불능에 넣은 것은 card R-6의 읽기였고 원 결정 근거가 없었다(`wb1_resolve_check.md` 4절). 입력 하나 구성은 피벗을 판정하지 않아 servo 갈래 근거(a_e)가 없으므로 입력 고정 갈래로 둔다(servo로 보내는 안 = 근거 결정 없음·common_gate 실측에서 짐 -- 기각). pushpull 실측에서 세 갈래 차는 0.02 mV 이하.
+- **DEC-105 (2) 'front 처리'·DEC-78 전력 축**(A-123 (4)): as-built `metrics/dc_metrics.py:75`가 MOS 채널 전류로 θ `device.dc_current`를 읽고 실현 평가 `DeviceOp.current` = I′라 같은 정의 '소자 동작점 전류'가 두 값이었다(실측 two_stage_ota 4.7 %, common_gate 3.4배). 읽는 필드를 `DeviceOp.current` 하나로 정했다(정의 축: `dc_current` = θ 설계 전류).
+- 완료 조건 (8) 추가. DEC-89 (2)·LY1·LY7·DEC-105 (2) (iii)에 재평가 꼴·기준점 참조 문구.
+- 봉인 3 입력 넷 행(입력 원 전류)은 사용자 질문으로 남는다(A-123·A-124). 이 개정은 그 행을 바꾸지 않고 tol을 넓히는 문언이 없다(O-200·O-240).
+- 못 잰 것(LA-1 재점검 입력): ngcc·pushpull 레이아웃 루프, folded 재풀이 비수렴 원인, W_request 경로와 그 기준점, OTA 한 점.
+- **원래 취지와 다름**: 범위 5 진술(재평가 꼴·기준점을 범위 안으로), 피벗 판정 불능 '봉인만' → 재풀이, 입력 하나 구성 처리.
+
 ## v6.38.20 (2026-11-05, 위임 O-226 A-112, 사용자 결정 O-238)
 
 SF-1 범위 9 R_min 되살림. 독립 판정 전. A-96 (3)·O-234의 R_min 항목 철회, 나머지 PDK 비종속 변경(세 수, κ·R, 머리 면적 수 하나, `derived_quantities`, `CapArrayDecl`)은 그대로. 근거 = O-173 D19(실현 가능 = E-0), O-197, `wt/_drafts/evidence/2026-10-29/handcalc_principle_audit.md`(HCA:32·177·232·252, §2.3 -- R_min은 E-0이라 단순화에서도 남는다), oracle DUT = 이상 R이고 LY8은 그 뒤라 엔진 밖에서 R_min을 막는 자리가 없다(A-112). 사례 값은 `wt/_drafts/evidence/2026-11-05/sf1r9_sg_pdk_cases.md` 3절(그 절의 '철회' 표지는 효력 없음).
