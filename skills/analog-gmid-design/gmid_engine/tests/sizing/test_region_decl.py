@@ -12,7 +12,7 @@ from gmid_engine.authoring import RegionDecl
 from gmid_engine.core import StructureUnresolvedError
 from gmid_engine.sizing import DC_KEY, size_and_seal
 
-from .conftest import build_ctx, circuit_cs_pmos_load, kschema, mos, r4_ln_idu, topo, two
+from .conftest import build_ctx, circuit_cs_pmos_load, detail, kschema, mos, r4_ln_idu, topo, two
 
 OFF_MB = RegionDecl("Mb", "off", None, ("gain_ss_db",), 1e-6, 1e-6)
 
@@ -119,3 +119,80 @@ def test_region_decl_node_only_set_by_off_device_stops(tmp_path_factory, r4_acce
     doc2 = dict(doc, topology_name="rd_offnode_b")
     with pytest.raises(StructureUnresolvedError):
         build_ctx(tmp_path_factory.mktemp("rd10b"), doc2, r4_access, regions=(off,))
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+# [A-91 M-1] off_only_node: off 소자 d·s 가 닿는 비고정 넷 중, off 채널을 뺀 전압 결정 DC 요소(켜진 소자 채널, R, L, 전압원)로 고정 넷에 닿지
+# 않는 넷이 있으면 구조 정지. 게이트·C·전류원은 전압을 정하지 못한다.
+# oracle (a)/(d): 물리 불변식·회로 해석 결론 -- DC 에서 C 는 열림, 전류원은 전류만 정하고 MOS gate 는 전류 0 이므로 그 넷의 DC 전위를 정할 경로가
+# 없다(KCL 만으로 전위가 자유 -> 정지가 맞다). 통과 사례는 같은 넷이 R·켜진 채널로 레일에 묶이는 구성(KVL 이 전위를 정한다).
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+OFF_X = RegionDecl("Moff", "off", None, ("gain_ss_db",), 1e-6, 1e-6)
+_PORTS = {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")}
+
+
+def _off_doc(name, extra_mos=(), passives=(), sources=(), bias=(), off_d="y", off_s="gnd"):
+    net = [mos("M1", "nmos", "out", "in", "gnd"), mos("Moff", "nmos", off_d, "in", off_s), *extra_mos]
+    return topo(name, net, _PORTS, passives=[two("R1", "resistor", "vdd", "out"), *passives], sources=sources, bias=bias)
+
+
+def _stops(tmp, doc, access, regions=(OFF_X,)):
+    with pytest.raises(StructureUnresolvedError) as ei:
+        build_ctx(tmp, doc, access, regions=tuple(regions))
+    d = detail(ei.value)
+    assert d["rule_branch"] == "off_only_node" and d["reason"] == "unsupported_rule_branch", d   # 사유까지(다른 정지 사유면 실패)
+
+
+def test_off_only_node_drain_with_capacitor_only_stops(tmp_path_factory, r4_access):
+    """(a) off drain y 에 C 만 닿는다(C 는 DC 열림)."""
+    doc = _off_doc("oo_a", passives=[two("C1", "capacitor", "y", "gnd")])
+    _stops(tmp_path_factory.mktemp("oo_a1"), doc, r4_access)
+
+
+def test_off_only_node_resistor_island_with_capacitor_stops(tmp_path_factory, r4_access):
+    """(b) x-R-z, z-C 섬: R 로 이어진 두 넷 모두 고정 넷에 DC 경로가 없다."""
+    doc = _off_doc("oo_b", passives=[two("Rz", "resistor", "y", "z"), two("C1", "capacitor", "z", "gnd")])
+    _stops(tmp_path_factory.mktemp("oo_b"), doc, r4_access)
+
+
+def test_off_only_node_drain_with_current_source_only_stops(tmp_path_factory, r4_access):
+    """(c) off drain y + 전류원뿐(전류원은 전압을 정하지 못한다)."""
+    doc = _off_doc("oo_c", sources=[two("IY", "current_source", "vdd", "y")])
+    _stops(tmp_path_factory.mktemp("oo_c"), doc, r4_access)
+
+
+def test_off_only_node_drain_with_on_device_gate_only_stops(tmp_path_factory, r4_access):
+    """(d) off drain y + 켜진 소자 M2 의 gate 뿐(gate 는 전류 0)."""
+    doc = _off_doc("oo_d", extra_mos=[mos("M2", "nmos", "out", "y", "gnd")])
+    _stops(tmp_path_factory.mktemp("oo_d"), doc, r4_access)
+
+
+def test_off_only_node_series_middle_between_two_off_stops(tmp_path_factory, r4_access):
+    """(e2) 직렬 중간 넷 x: 두 소자 모두 off 이면 x 에 채널 전압원이 없다."""
+    doc = topo("oo_e2", [mos("M1", "nmos", "out", "in", "gnd"), mos("Mo1", "nmos", "out", "in", "x"),
+                         mos("Mo2", "nmos", "x", "in", "gnd")], _PORTS, passives=[two("R1", "resistor", "vdd", "out")])
+    both = (RegionDecl("Mo1", "off", None, ("gain_ss_db",), 1e-6, 1e-6), RegionDecl("Mo2", "off", None, ("gain_ss_db",), 1e-6, 1e-6))
+    _stops(tmp_path_factory.mktemp("oo_e2"), doc, r4_access, both)
+
+
+@pytest.mark.parametrize("name,doc_kw", [
+    ("f_resistor_to_rail", dict(passives=[two("Rz", "resistor", "y", "vdd")])),                                 # (f) x-R-레일
+    ("g_on_channel_to_rail", dict(extra_mos=[mos("M2", "nmos", "y", "in", "gnd")],
+                                  sources=[two("IY", "current_source", "vdd", "y")])),                    # (g) 켜진 소자 채널(전류는 전류원이 댄다)
+])
+def test_off_only_node_passes_when_node_tied_to_rail(tmp_path_factory, r4_access, name, doc_kw):
+    build_ctx(tmp_path_factory.mktemp("oo_" + name), _off_doc("oo_" + name, **doc_kw), r4_access, regions=(OFF_X,))
+
+
+def test_off_only_node_series_middle_with_one_on_device_passes(tmp_path_factory, r4_access):
+    """(e3) 직렬 중간 x 에 켜진 소자 Mo2 의 채널(x-gnd)이 닿는다 -> 통과(Mo2 전류는 전류원 IX 가 댄다)."""
+    doc = topo("oo_e3", [mos("M1", "nmos", "out", "in", "gnd"), mos("Mo1", "nmos", "out", "in", "x"),
+                         mos("Mo2", "nmos", "x", "in", "gnd")], _PORTS, passives=[two("R1", "resistor", "vdd", "out")],
+               sources=[two("IX", "current_source", "vdd", "x")])
+    build_ctx(tmp_path_factory.mktemp("oo_e3"), doc, r4_access, regions=(RegionDecl("Mo1", "off", None, ("gain_ss_db",), 1e-6, 1e-6),))
+
+
+def test_off_only_node_passes_when_drain_is_fixed_rail(tmp_path_factory, r4_access):
+    """(h) off 소자의 d 가 고정 넷(레일)에 직접 닿는다: 비고정 넷이 없어 정지 대상 없음."""
+    doc = _off_doc("oo_h", off_d="vdd", off_s="gnd")
+    build_ctx(tmp_path_factory.mktemp("oo_h"), doc, r4_access, regions=(OFF_X,))
