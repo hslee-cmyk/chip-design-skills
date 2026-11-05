@@ -12,7 +12,8 @@ import pytest
 
 from gmid_engine.metrics import Capacitor, MosSmallSignal, Resistor, SmallSignalCircuit
 from gmid_engine.metrics._helpers_dc import limit_matrix
-from gmid_engine.metrics._helpers_nodal import capacitance_matrix, conductance_matrix, nodal_adjoint, nodal_factor, nodal_solve
+from gmid_engine.metrics._helpers_nodal import capacitance_matrix, nodal_adjoint, nodal_factor, nodal_solve
+from gmid_engine.metrics.ss_nodal import conductance_matrix
 
 from . import u7_hand as H
 

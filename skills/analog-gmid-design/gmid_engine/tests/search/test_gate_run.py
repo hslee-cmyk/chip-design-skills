@@ -113,7 +113,7 @@ def test_ub1_unmeasured_perturbations_are_rows_not_skips(monkeypatch):
     no_eval = types.SimpleNamespace(evaluation=None, theta=THETA, key=types.SimpleNamespace(cells=("c",)))
 
     def make(second):
-        def fake(sctx, variables, x, base, cells, to_theta, origin, skip):
+        def fake(sctx, variables, x, base, cells, to_theta, origin, skip, ceiling=None):
             out = []
             for i, v in enumerate(variables):
                 if i in skip:
