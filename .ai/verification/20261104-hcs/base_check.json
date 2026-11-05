@@ -1,0 +1,19 @@
+{
+ "freeze_test_commit": "0c314488c932e3e6d5c3bb110092ca71334531f5",
+ "base_commit": "eecae6218e2b1ad9c0476ea88c8e0ab7c29960ac",
+ "head": "e1a99778554288e7b9328ed5f68077a6c01db78a",
+ "red_tree": "git archive eecae621 + tests 0c314488",
+ "red_result": "9파일 265건 중 107 failed 158 passed; 카드 이름 test 69건",
+ "red_types": {
+  "AttributeError": 38,
+  "ImportError": 15,
+  "AssertionError": 15,
+  "Failed": 1
+ },
+ "behavior_red_examples": [
+  "test_vds_cost_is_min_vdsat_over_saturable_points: 0.125 != 0.5",
+  "test_headroom_lower_bound..: 옛 값 범위 밖",
+  "test_headroom_without_vdsat_column: inactive 행 없음"
+ ],
+ "base_required_test_s2_values": "50 passed (head 는 4 failed)"
+}
