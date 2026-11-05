@@ -196,3 +196,35 @@ def test_off_only_node_passes_when_drain_is_fixed_rail(tmp_path_factory, r4_acce
     """(h) off 소자의 d 가 고정 넷(레일)에 직접 닿는다: 비고정 넷이 없어 정지 대상 없음."""
     doc = _off_doc("oo_h", off_d="vdd", off_s="gnd")
     build_ctx(tmp_path_factory.mktemp("oo_h"), doc, r4_access, regions=(OFF_X,))
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+# [A-92] off 소자 gate: 고정 넷에서 DC 전도로 닿지 않는 넷에 off 소자 g 가 닿고 켜진 소자 gate 는 닿지 않으면 구조 정지.
+# oracle (a)/(d): 물리 불변식 -- 게이트는 전류 0 이고 C 는 DC 열림이라, 그 넷의 DC 전위를 정할 경로가 없다(off 전류의 결정자 미정).
+# 켜진 소자 gate 를 공유하는 넷은 기존 W2·bias 규칙 몫이라 off_only_node 로 정지하면 안 된다(A-92 결정).
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+def _off_gate_doc(name, extra_mos=(), bias=()):
+    # Moff: d=vdd, s=gnd 모두 고정 넷(d·s 규칙 (1)에 걸리지 않음), gate 는 비고정 넷 gg, gg 에는 C1 만(DC 열림)
+    net = [mos("M1", "nmos", "out", "in", "gnd"), mos("Moff", "nmos", "vdd", "gg", "gnd"), *extra_mos]
+    return topo(name, net, _PORTS, passives=[two("R1", "resistor", "vdd", "out"), two("C1", "capacitor", "gg", "gnd")], bias=bias)
+
+
+def test_off_only_node_off_gate_with_capacitor_only_stops(tmp_path_factory, r4_access):
+    """(i) off gate 넷 gg 에 C 뿐, off 소자 d·s 는 고정 넷 -> off_only_node 구조 정지."""
+    _stops(tmp_path_factory.mktemp("oo_i"), _off_gate_doc("oo_i"), r4_access)
+
+
+def test_off_gate_shared_with_on_device_gate_does_not_stop_as_off_only_node(tmp_path_factory, r4_access):
+    """(j) gg 가 켜진 소자 M2 의 gate 도 된다 -> off_only_node 사유로는 정지하지 않는다(다른 사유 정지·통과는 허용, 사유는 보고)."""
+    doc = _off_gate_doc("oo_j", extra_mos=[mos("M2", "nmos", "out", "gg", "gnd")])
+    try:
+        build_ctx(tmp_path_factory.mktemp("oo_j"), doc, r4_access, regions=(OFF_X,))
+    except StructureUnresolvedError as e:
+        d = detail(e)
+        assert d.get("rule_branch") != "off_only_node", d
+
+
+def test_dc_writer_plan_reads_device_dc_nets():
+    """graph 정본: 전도 엣지는 정본 필드 device.dc_nets 를 읽는다(둘째 정의 금지, 계획 N3.3·A-92)."""
+    from gmid_engine.sizing import dc_writer_plan
+    assert ("device", "dc_nets") in set(dc_writer_plan.reads)
