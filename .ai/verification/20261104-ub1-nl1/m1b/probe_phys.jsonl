@@ -1,0 +1,11 @@
+{"engine_gain": -1.4461584099673683, "hand_gain": -1.4461584099673683, "rel": 0.0, "engine_n1": 0.5250667457727678, "hand_n1": 0.5250667457727678, "engine_n2": 0.07712844853159298, "hand_n2": 0.07712844853159298, "members": ["M1", "RL"], "undefined": [], "case": "1_charge_island_two_nets"}
+{"engine_gain": 117.18749999999984, "hand_gain": 117.1875, "engine_node_v": [["in", 1.0], ["mz", -18.74999999999998], ["n", -4.687499999999994], ["o2", 117.18749999999984], ["out", -18.74999999999998]], "members": ["M1", "M2", "R1", "R2", "Rz"], "undefined": [], "hand_vn": -4.6875, "verdict": "엔진 == 손?True", "case": "2_dead_end_read_by_capacitor"}
+{"v_o2": 117.18749999999984, "hand": 117.1875, "charge": ["n"], "case": "2b_same_circuit_full_nodal"}
+{"gain": 0.0, "zout": 0.0, "undefined": [], "node_v": [["in", 1.0], ["out", 0.0], ["x", -8.333333333333334]], "case": "3_output_only_on_excluded_device"}
+{"gain": -2.0833333333333335, "hand_gain": -2.0833333333333335, "zout": NaN, "zout_isnan": true, "undefined": [], "case": "4_output_is_charge_net"}
+{"ok": false, "verdict": "undeterminable", "reason": "perturbation_unmeasured", "checks": [["a", null, null, null, null]], "case": "5a_gate_nan_dec"}
+{"ok": false, "verdict": "undeterminable", "reason": "perturbation_unmeasured", "checks": [["a", null, null, null, null]], "case": "5b_gate_nan_full"}
+{"ok": false, "verdict": "undeterminable", "reason": "base_undefined", "checks": [["a", null, null, null, null]], "case": "5c_gate_nan_base"}
+{"ok": false, "verdict": "undeterminable", "reason": "base_undefined", "checks": [["a", null, null, null, null]], "case": "5d_gate_minf_both"}
+{"lu_none": true, "floating": [], "charge": [], "unknown": [3, 4], "solve": "(None, None)", "case": "6_full_gate_only_no_c"}
+{"sigma": NaN, "full": "OffsetAnalysis(sigma_in_mv=nan, excess=nan, a_dm=-8.333333333333334, contrib=(OffsetContribution(device='M1', variance_v2=9.999999999999997e-07, share=0.0, sigma_vgs_v=0.001, z_ohm=-8333.333333333334, matching=''), OffsetContribution(device='Moff', variance_v2=nan, share=0.0, sigma_vgs_v=0.001, z_ohm=nan, matching='')), resolution_mv=None, excess_resolution=None, solve_residual=0.0, undefined=())", "case": "7_offset_nan_leak"}

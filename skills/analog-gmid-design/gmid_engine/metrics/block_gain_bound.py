@@ -10,6 +10,11 @@
   이웃 사이 구간(로그 좌표)을 이분 세분한다(구간의 두 중점을 평가해 5점 중 최대를 새 중심으로, 반복 상한 K_max = ceil(log2(구간 폭 / tol)) -- `sizing.k_max` 식, tol = √(배정밀도 ε):
   극값 근처 gain 은 (Δ)² 로 변해 상대 √ε 보다 작은 차는 보이지 않는다). 축 끝이 최대면 그대로 인증한다. 마지막 바퀴에서도 gain 이 상대 √ε 보다 크게 오르면 `unknown`(`continuous_axis_not_refined`).
   연속 축마다 한 번씩 (축 수 + 1)바퀴. 단봉(unimodal) 가정 -- 구간 안 다중 극값은 잡지 못한다(설계 N5 와 같은 한계).
+* **L bin 안쪽 극값**(E-16, 41 §4.2): 연속 축 세분 뒤 최대 행의 각 L 축에서 `tables.same_l_bin` 이 그 축 소자 kind 모두에 참인 이웃 앵커 구간 안쪽을 `row_gains(..., cont={L 축: L})`
+  (`tables.lookup_at_l`) 로 같은 단봉 최대 찾기(다섯 점 이분, tol = √eps × L 크기)를 **늘** 돌려 안쪽 최대가 끝값보다 크면 `a_max_db`·`row_condition` L 값을 올린다. 찾기 중 NaN 이 나오면 인증하지
+  않는다(`unknown`, `bin_interior_unchecked` -- 끝점 인증 금지). bin 이 다른 구간은 보지 않는다. 구간 안 단봉 가정(N5 와 같은 한계).
+* **행 모드 한계 표시**: `model.decomposed_only`(되먹임 저항)이면 행 값이 상한이 아니어서 인증하지 않는다(`unknown`, `decomposed_only_bound`, `found_db` 는 전처럼). 비멤버 MOS 를 값 없이 뺀 블록
+  (`model.omitted_load`)은 모든 반환 자리에서 `load_note = ("load_admittance_unfixed", (소자, ...))` 를 단다(출력 전용).
 * **분해능** `b_GB4,i`(dB) = 최대 행과 그 격자 이웃 행(각 축 ±1, 연속 축은 세분 마지막 구간 끝)의 gain 차 |20·log10 비|의 최댓값.
 * **하한 추정** `found_db` -- 격자 곱이 예산을 넘어도 같은 평가기로 **좌표 상승**(시작점 `bit_length(최대 축 크기)`개, 축마다 모든 값을 훑는 반복, 변화 없으면 끝; 연속 축은 기준점에 고정 --
   `_reference_pick`: 축 중앙에서 출발해 모든 MOS 전류가 양수가 될 때까지 전류 여유를 최급 상승으로 올린 점)으로 찾은 최대 gain. 상한이 아니라 하한 추정이고 판정에 쓰지 않는다(Σ 판정은 `certified` 상한만
@@ -23,8 +28,12 @@ import numpy as np
 from gmid_engine.core import AMPLITUDE_DB_PER_DECADE
 
 from .achievability_types import (
+    AXIS_KIND_L,
     AXIS_KIND_RESISTOR,
     REASON_AXIS_RANGE,
+    REASON_BIN_INTERIOR,
+    REASON_DECOMPOSED_ONLY,
+    REASON_LOAD_UNFIXED,
     REASON_NON_CONVERGED,
     REASON_OVER_BUDGET,
     STATUS_CERTIFIED,
@@ -196,6 +205,56 @@ def _refine(model, tables, idx, gain):
     return best, values, brackets, converged, n_rows
 
 
+def _interval_max(model, tables, idx, axis, lo, hi, values):
+    """같은 bin 이웃 앵커 구간 (lo, hi) m 안쪽 최대: 다섯 점 이분(연속 축 세분과 같은 방식) -> (gain, L, NaN 이 나왔는가, 평가 행 수). 다른 축은 `idx`·`values` 에 고정."""
+    left, right = lo, hi
+    mid = (lo + hi) / 2
+    tol = _TOL * hi
+    best, best_l, n_rows = -math.inf, mid, 0
+    for _round in range(max(1, math.ceil(math.log2((hi - lo) / tol)))):
+        pts = np.asarray([left, (left + mid) / 2, mid, (mid + right) / 2, right])
+        cont = {c: np.full(len(pts), v) for c, v in values.items() if c != axis}
+        cont[axis] = pts
+        gains = _eval(model, tables, np.repeat(np.asarray(idx, dtype=int)[None, :], len(pts), axis=0), cont)
+        n_rows += len(pts)
+        if not np.all(np.isfinite(gains)):
+            return best, best_l, True, n_rows
+        j = int(np.argmax(gains))
+        if gains[j] > best:
+            best, best_l = float(gains[j]), float(pts[j])
+        left, mid, right = pts[max(j - 1, 0)], pts[j], pts[min(j + 1, len(pts) - 1)]
+        if right - left <= tol:
+            break
+    return best, best_l, False, n_rows
+
+
+def _interior(model, tables, idx, best, values):
+    """E-16(모듈 문서): 최대 행의 L 축마다 같은 bin 이웃 앵커 구간 안쪽 최대. -> (best, values, 못 읽었는가, 평가 행 수)."""
+    l_axes = [a for a, ax in enumerate(model.axes) if ax.kind == AXIS_KIND_L]
+    values, n_rows = dict(values), 0
+    for _pass in range(len(l_axes) + 1):
+        changed = False
+        for a in l_axes:
+            kinds = {m.kind for m in model.mos if m.l_axis == a}
+            k = int(idx[a])
+            anchors = model.axes[a].values
+            for j in (k - 1, k + 1):
+                if not 0 <= j < model.axes[a].size:
+                    continue
+                lo_i, hi_i = min(j, k), max(j, k)
+                if not all(tables.same_l_bin(kind, lo_i, hi_i) for kind in kinds):
+                    continue
+                gain, l_value, unchecked, rows = _interval_max(model, tables, idx, a, float(anchors[lo_i]), float(anchors[hi_i]), values)
+                n_rows += rows
+                if unchecked:
+                    return best, values, True, n_rows
+                if gain > best:
+                    best, values[a], changed = gain, l_value, True
+        if not changed:
+            break
+    return best, values, False, n_rows
+
+
 def _resolution(model, tables, idx, gain, brackets):
     """분해능 b (dB): 최대 행과 격자 이웃 행(연속 축은 세분 마지막 구간 끝)의 gain 차 최댓값."""
     spread = 0.0
@@ -230,18 +289,27 @@ def block_gain_bound(model, tables, budget, members):
     over = model.pi > budget
     f_gain, f_idx, f_rows = _ascent(model, tables, sizes)
     found = None if f_idx is None else _db(f_gain)
+    note = (REASON_LOAD_UNFIXED, tuple(model.omitted_load)) if model.omitted_load else None
+    if model.decomposed_only:
+        return BlockBound(model.key, model.role, STATUS_UNKNOWN, None, None, model.pi, axes, (), REASON_DECOMPOSED_ONLY, found,
+                          tuple(members), f_rows, note)
     if over:
         return BlockBound(model.key, model.role, STATUS_UNKNOWN, None, None, model.pi, axes, (), REASON_OVER_BUDGET, found,
-                          tuple(members), f_rows)
+                          tuple(members), f_rows, note)
     best, idx, n_rows = _exhaustive(model, tables, sizes)
     if idx is None:
         return BlockBound(model.key, model.role, STATUS_UNKNOWN, None, None, model.pi, axes, (), REASON_AXIS_RANGE, found,
-                          tuple(members), n_rows + f_rows)
+                          tuple(members), n_rows + f_rows, note)
     best, values, brackets, converged, r_rows = _refine(model, tables, idx, best)
     n_rows += r_rows
     if not converged:
         return BlockBound(model.key, model.role, STATUS_UNKNOWN, None, None, model.pi, axes, _condition(model, idx, values),
-                          REASON_NON_CONVERGED, found, tuple(members), n_rows + f_rows)
+                          REASON_NON_CONVERGED, found, tuple(members), n_rows + f_rows, note)
+    best, values, unchecked, l_rows = _interior(model, tables, idx, best, values)
+    n_rows += l_rows
+    if unchecked:
+        return BlockBound(model.key, model.role, STATUS_UNKNOWN, None, None, model.pi, axes, _condition(model, idx, values),
+                          REASON_BIN_INTERIOR, found, tuple(members), n_rows + f_rows, note)
     b = _resolution(model, tables, idx, best, brackets)
     return BlockBound(model.key, model.role, STATUS_CERTIFIED, _db(best), b, model.pi, axes, _condition(model, idx, values), None,
-                      _db(best) if found is None else max(found, _db(best)), tuple(members), n_rows + f_rows)
+                      _db(best) if found is None else max(found, _db(best)), tuple(members), n_rows + f_rows, note)

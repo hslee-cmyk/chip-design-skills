@@ -148,6 +148,33 @@ def test_feedforward_unknown_bound_prevents_verdict(ff_case):
     assert (b.status, b.exit_code) == ("ok", 0)
 
 
+@pytest.mark.parametrize("name", ["ngcc_3stage_ff", "two_stage_ota"])
+def test_ub1_block_spec_others_are_other_blocks_nodes(name):
+    """T-12a [UB-1 C-14] oracle (a): `block_spec(view, block, local).others` == (같은 뷰 다른 블록 `nodes` 합집합 − 자기 `nodes`) 정렬 tuple.
+    local = 소자 종류표만 가진 손 객체(MOS -> ELEMENT_MOS, 수동소자 -> ELEMENT_PASSIVE, 이상 전원 -> ELEMENT_SOURCE)."""
+    import json
+    import types
+    from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, ELEMENT_SOURCE
+    from gmid_engine.metrics.achievability import block_spec
+    from . import u7_ngcc as N
+    import s1v_hand as SH
+    doc = json.loads((N.LIB / (name + ".topology.json")).read_text(encoding="utf-8"))
+    cls = {e["name"]: ELEMENT_MOS for e in doc["netlist"]}
+    cls.update({e["name"]: ELEMENT_PASSIVE for e in doc.get("passive_elements") or ()})
+    cls.update({e["name"]: ELEMENT_SOURCE for e in doc.get("ideal_sources") or ()})
+    _s1, s1v = SH.build_lib(name)
+    seen = 0
+    for view in s1v.views:
+        if view.kind != "transfer" or not view.blocks:
+            continue
+        for blk in view.blocks:
+            want = tuple(sorted(set().union(*[set(o.nodes) for o in view.blocks if o is not blk]) - set(blk.nodes)))
+            got = getattr(block_spec(view, blk, types.SimpleNamespace(cls=cls)), "others", "absent")
+            assert got == want, (name, blk.key)
+            seen += 1
+    assert seen >= 2
+
+
 def _it1_sym_nocap_doc():
     """T-1f DOF 용 대칭 차동 toy(커패시터 없음): M1(o1, inp, t) M2(o2, inn, t) M5(t, vb, gnd) M3(o1, pb, vdd) M4(o2, pb, vdd), p inp · n inn."""
     return topology("achsymdof",

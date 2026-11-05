@@ -90,3 +90,22 @@ def test_non_transfer_views_skipped(tmp_path):
     ms = N.structure_of(s1v)
     assert len(ms.views) == kinds.count("transfer")
     assert len(kinds) > len(ms.views)
+
+
+def test_ub1_block_members_and_view_ac_ground():
+    """T-12 [UB-1 C-14] oracle (d) ngcc 사실 표(설계 41 sec 1.13) + S1v 블록 roles: 모든 전달 뷰·블록에서 `members` == S1v 블록 roles 의 소자 이름
+    집합(정렬 tuple; input_cells 만 담는 구현을 거른다), FF 묶음 셀(FF1 = {M5, M6A, M6B, M7}, FF2 = {M14})은 어느 블록 members 에도 없다.
+    뷰 `ac_ground` == S1v `view.ac_ground` 정렬 tuple."""
+    s1v = N.s1v()
+    ms = N.structure_of(s1v)
+    tv = [v for v in s1v.views if v.kind == "transfer"]
+    assert len(tv) == len(ms.views) >= 1
+    ff_cells = {"M5", "M6A", "M6B", "M7", "M14"}
+    for sv, mv in zip(tv, ms.views):
+        assert mv.ac_ground == tuple(sorted(sv.ac_ground)) and len(mv.ac_ground) > 0
+        by_key = {b.key: b for b in sv.blocks}
+        for b in mv.blocks:
+            want = tuple(sorted(name for name, _role in by_key[b.key].roles))
+            assert b.members == want, b.key
+            assert set(b.input_cells) <= set(b.members)
+            assert not ff_cells & set(b.members), b.key

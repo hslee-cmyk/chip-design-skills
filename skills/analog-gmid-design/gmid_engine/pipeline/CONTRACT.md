@@ -80,7 +80,7 @@ JSON 키(키 정렬): `circuit`, `status`, `exit_code`, `env_fp`, `count_budget`
 * 보고서 `<output_dir>/<회로>.stage_b.json`(키 정렬)·`.stage_b.md`: 키 `circuit`, `status`, `exit_code`, `diagnostic`, `count_budget`(N_S), `stop_reasons`, `achievability`(None 이거나 `metrics.Achievability` 의 JSON:
   `gain`{view, blocks[], ff[], sum_db, b_db, target_db, verdict, n_unknown, found_sum_db}, `area`{a_lb_m2, terms, budget_m2, b_a_m2, verdict, not_certified}, `headroom[]`, `buffer_window_report[]`, `warnings`,
   `dof`, `curves`{요약: 슬라이스·축별 칸 개수, 격자 전용 칸은 (kind, w_key, 축)별 개수}, `count_budget`). 블록 행 `BlockBound`: `status`(certified|unknown), `a_max_db`·`b_db`(인증만), `pi`(격자 곱), `axes`, `row_condition`,
-  `reason`(미상 사유), `found_db`(하한 추정 -- 상한이 아니다).
+  `reason`(미상 사유), `found_db`(하한 추정 -- 상한이 아니다), `load_note`(None 또는 ["load_admittance_unfixed", [소자, ...]] -- 행 모드가 값 없이 뺀 비멤버 부하, 출력 전용).
 * 결과 `StageBResult(exit_code, status, diagnostic, report, report_paths, s1=None)`([U17 ①-b] -- 위 머리 단락).
 * 소비처(배선): `achievability.area.a_lb_m2` 는 U11 `search.front_diagnosis` 의 `front_missing` 노트 `A_lb` 자리(지금 `not_computed:achievability_u9_missing`)에 들어간다 -- U11(`budget_report.py`)이 이 브랜치에 병합되면
   `front_diagnosis` 가 `StageBResult.achievability.area` 를 받아 `A_lb` 와 `A_lb/예산` 을 채운다(설계 40 §7.1-4 (i)).

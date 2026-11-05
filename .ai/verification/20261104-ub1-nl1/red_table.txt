@@ -1,0 +1,53 @@
+{'error': 1, 'pass': 199, 'failure': 40}
+{'ImportError': 1, 'AssertionError': 31, 'TypeError': 2, 'AttributeError': 7}
+::gmid_engine.tests.metrics.test__helpers_nodal | error | ImportError | collection failure
+metrics.test_achievability::test_ub1_block_spec_others_are_other_blocks_nodes[ngcc_3stage_ff] | failure | AssertionError | AssertionError: ('ngcc_3stage_ff', ('V1',))
+metrics.test_achievability::test_ub1_block_spec_others_are_other_blocks_nodes[two_stage_ota] | failure | AssertionError | AssertionError: ('two_stage_ota', ('O1',))
+metrics.test_achievability_types::test_ub1_new_fields_defaults_and_fingerprint | failure | AssertionError | AssertionError: assert 'absent' is None
+metrics.test_aux_types::test_ub1_new_fields_defaults | failure | AssertionError | AssertionError: assert 'absent' == ()
+metrics.test_block_gain_bound::test_ub1_bound_load_note_lists_omitted_load | failure | AssertionError | AssertionError: assert 'absent' == ('load_admittance_unfixed', ('M2',))
+metrics.test_block_gain_bound::test_ub1_bound_decomposed_only_is_unknown | failure | AssertionError | AssertionError: assert ('certified' == 'unknown'
+metrics.test_block_gain_bound::test_ub1_e16_interior_maximum_of_same_bin_interval | failure | AssertionError | assert 35.56302500767287 == 39.0848501887865 ± 1.3e-07
+metrics.test_block_gain_bound::test_ub1_e16_nan_interior_is_unknown | failure | AssertionError | AssertionError: assert ('certified' == 'unknown'
+metrics.test_block_gain_bound::test_ub1_e16_extremum_near_interval_end | failure | AssertionError | assert 35.56302500767287 == 39.0848501887865 ± 1.3e-07
+metrics.test_block_gain_bound::test_ub1_e16_real_tables_operating_path | failure | AssertionError | assert 0 > 0
+metrics.test_block_gain_model::test_ub1_row_mode_omits_unfixed_load_and_bounds_sealed | failure | AssertionError | AssertionError: assert None == ('M2',)
+metrics.test_block_gain_model::test_ub1_row_mode_feedback_resistor_marks_decomposed_only | failure | AssertionError | AssertionError: assert None is True
+metrics.test_block_gain_model::test_ub1_row_mode_output_exception_and_gate_reader | failure | AssertionError | AssertionError: assert 'block_output_missing' is None
+metrics.test_block_gain_model::test_ub1_row_mode_rejects_charge_node | failure | AssertionError | AssertionError: assert (BlockModel(key=('out',), role='main', nodes=('out',), driven=('in',), patterns=((('in', 1.0),),), outputs=(('out', 1),...05, 4.64158883e-05,\n    
+metrics.test_block_gain_model::test_ub1_both_modes_same_unknown_set_and_value | failure | AssertionError | AssertionError: assert {'n5', 'y'} == {'y'}
+metrics.test_block_gain_model::test_ub1_row_mode_follower_omitted_load | failure | AssertionError | AssertionError: assert None == ('M2',)
+metrics.test_block_model::test_closure_pulls_series_rz_mid_net_without_changing_gain | failure | AssertionError | AssertionError: assert ('Rz' not in ('M1', 'RL', 'Rz'))
+metrics.test_block_model::test_ub1_capacitive_divider_gate_net_is_charge_conserved | failure | AssertionError | assert 0.0 == -3.926701570680628 ± 3.9e-10
+metrics.test_block_model::test_ub1_charge_net_without_capacitors_or_with_missing_one_is_singular | failure | AssertionError | AssertionError: assert (set() == {'singular_dc'}
+metrics.test_block_model::test_ub1_non_member_mos_does_not_widen_unknown_set | failure | AssertionError | assert -1.2412702595862433 == -1.226492232215863 ± 1.2e-12
+metrics.test_block_model::test_ub1_view_ground_net_argument | failure | TypeError | TypeError: block_local_gain() got an unexpected keyword argument 'ground'
+metrics.test_block_param_tables::test_ub1_same_l_bin_follows_anchor_bin_map | failure | AttributeError | AttributeError: 'ParamTables' object has no attribute 'same_l_bin'
+metrics.test_block_param_tables::test_ub1_lookup_at_l_between_anchors_in_same_bin | failure | AttributeError | AttributeError: 'ParamTables' object has no attribute 'lookup_at_l'
+metrics.test_block_param_tables::test_ub1_lookup_at_l_across_bins_is_nan | failure | AttributeError | AttributeError: 'ParamTables' object has no attribute 'lookup_at_l'
+metrics.test_block_param_tables::test_ub1_map_less_table_has_no_same_bin_neighbours | failure | AttributeError | AttributeError: 'ParamTables' object has no attribute 'same_l_bin'
+metrics.test_block_residual::test_ub1_block_residual_passes_view_ac_ground | failure | AssertionError | assert -18.749999999999996 == -5.607476635514018 ± 5.6e-12
+metrics.test_ff_gm_ratio::test_ub1_ff_gm_ratio_passes_view_ac_ground | failure | AssertionError | assert 15.0 == 3.9705882352941173 ± 4.0e-09
+metrics.test_icm_config::test_it2c_l8e_assembly_cancellation_pivot_resolution_unit | failure | TypeError | TypeError: nodal_factor() got an unexpected keyword argument 'c'
+metrics.test_metric_structure::test_ub1_block_members_and_view_ac_ground | failure | AttributeError | AttributeError: 'ViewStruct' object has no attribute 'ac_ground'
+metrics.test_sensitivity_gate::test_undefined_values_unchecked_not_error | failure | AssertionError | AssertionError: assert (True is False)
+metrics.test_sensitivity_gate::test_no_runs | failure | AssertionError | assert (True is False)
+metrics.test_sensitivity_gate::test_ub1_verdict_priority_error_beats_unmeasured | failure | AttributeError | AttributeError: 'GateResult' object has no attribute 'verdict'
+metrics.test_sensitivity_gate::test_ub1_verdict_ok_branch | failure | AttributeError | AttributeError: 'GateResult' object has no attribute 'verdict'
+search.test_find_front::test_ub1_gate_note_exactly_one_row_with_fields | failure | AssertionError | assert 0 == 1
+search.test_find_front::test_ub1_gate_note_front_empty | failure | AssertionError | assert 0 == 1
+search.test_gate_run::test_no_report_no_gate | failure | AssertionError | assert None is not None
+search.test_gate_run::test_all_directions_read_no_gate | failure | AssertionError | assert None is not None
+search.test_gate_run::test_ub1_base_db_undefined_is_undeterminable_without_perturbation | failure | AssertionError | assert None is not None
+search.test_gate_run::test_ub1_unmeasured_perturbations_are_rows_not_skips | failure | AssertionError | AssertionError: assert (True is False)
+search.test_iv_gain_l::test_ub1_omitted_load_block_adds_inactive_row | failure | AssertionError | AssertionError: assert () == (('gain_l_6.4...ce_unfixed'),)
+---- pass ub1
+metrics.test_block_gain_bound::test_ub1_e16_other_bin_interval_not_looked_at
+metrics.test_block_gain_bound::test_ub1_e16_interior_not_above_ends_keeps_anchor_value
+metrics.test_block_gain_model::test_ub1_row_mode_dead_end_branch_dropped
+metrics.test_block_model::test_ub1_cs_to_cg_adjacent_blocks
+metrics.test_block_model::test_ub1_dead_end_branch_output_exception_and_gate_reader
+metrics.test_block_model::test_ub1_non_member_load_is_stamped_in_sealed_mode
+metrics.test_block_model::test_ub1_hand_calculation_cascode_and_ota5
+metrics.test_block_model::test_ub1_closure_stops_at_other_block_net
+metrics.test_block_residual::test_ub1_block_residual_passes_block_members

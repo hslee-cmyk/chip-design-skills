@@ -1,0 +1,521 @@
+[
+{
+"n": 0,
+"name": "T-10a owners 에서 block.members 뺌",
+"status": "killed",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 13.8,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_ub1_hand_calculation_cascode_and_ota5"
+]
+},
+{
+"n": 1,
+"name": "metric_structure members 안 채움",
+"status": "killed",
+"tests": [
+"test_metric_structure.py",
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.6,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_metric_structure.py::test_ub1_block_members_and_view_ac_ground"
+]
+},
+{
+"n": 2,
+"name": "block_residual ground 안 넘김",
+"status": "killed",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.6,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_residual.py::test_ub1_block_residual_passes_view_ac_ground"
+]
+},
+{
+"n": 3,
+"name": "ff_gm_ratio ground 안 넘김",
+"status": "killed",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.7,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_ff_gm_ratio.py::test_ub1_ff_gm_ratio_passes_view_ac_ground"
+]
+},
+{
+"n": 4,
+"name": "limit_matrix 행 교체 없음",
+"status": "killed",
+"tests": [
+"test__helpers_nodal.py",
+"test_dc_limit.py",
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.3,
+"by": [
+"FAILED gmid_engine/tests/metrics/test__helpers_nodal.py::test_ub1_limit_matrix_replaces_only_charge_rows"
+]
+},
+{
+"n": 5,
+"name": "capacitance_matrix MOS 용량 뺌",
+"status": "killed",
+"tests": [
+"test__helpers_nodal.py",
+"test_dc_limit.py",
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 4.2,
+"by": [
+"FAILED gmid_engine/tests/metrics/test__helpers_nodal.py::test_ub1_capacitance_matrix_by_stamps"
+]
+},
+{
+"n": 6,
+"name": "capacitance_matrix 커패시터 뺌",
+"status": "killed",
+"tests": [
+"test__helpers_nodal.py",
+"test_dc_limit.py",
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.6,
+"by": [
+"FAILED gmid_engine/tests/metrics/test__helpers_nodal.py::test_ub1_capacitance_matrix_by_stamps"
+]
+},
+{
+"n": 7,
+"name": "전하 노드 주입 거부 없앰",
+"status": "killed",
+"tests": [
+"test__helpers_nodal.py",
+"test_dc_limit.py"
+],
+"secs": 2.6,
+"by": [
+"FAILED gmid_engine/tests/metrics/test__helpers_nodal.py::test_ub1_charge_node_injection_and_adjoint"
+]
+},
+{
+"n": 8,
+"name": "수반 전하 칸 NaN 없앰",
+"status": "killed",
+"tests": [
+"test__helpers_nodal.py",
+"test_dc_limit.py"
+],
+"secs": 2.7,
+"by": [
+"FAILED gmid_engine/tests/metrics/test__helpers_nodal.py::test_ub1_charge_node_injection_and_adjoint"
+]
+},
+{
+"n": 9,
+"name": "floating 에 read 조건 뺌(옛 0 V)",
+"status": "killed",
+"tests": [
+"test__helpers_nodal.py",
+"test_dc_limit.py",
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.3,
+"by": [
+"FAILED gmid_engine/tests/metrics/test__helpers_nodal.py::test_floating_node_excluded_and_zero"
+]
+},
+{
+"n": 10,
+"name": "block_local_gain missing 거부 없앰",
+"status": "killed",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.2,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_ub1_charge_net_without_capacitors_or_with_missing_one_is_singular"
+]
+},
+{
+"n": 11,
+"name": "block_local_gain C 늘 조립(A-4)",
+"status": "survived",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.7,
+"by": []
+},
+{
+"n": 12,
+"name": "막다른 규칙 gate 독자 뺌",
+"status": "killed",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.5,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_ub1_dead_end_branch_output_exception_and_gate_reader"
+]
+},
+{
+"n": 13,
+"name": "막다른 규칙 출력 예외 뺌",
+"status": "killed",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 5.0,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_ub1_dead_end_branch_output_exception_and_gate_reader"
+]
+},
+{
+"n": 14,
+"name": "막다른 가지 안 뺌",
+"status": "killed",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.6,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_closure_pulls_series_rz_mid_net_without_changing_gain"
+]
+},
+{
+"n": 15,
+"name": "비멤버 MOS 스탬프 안 함",
+"status": "killed",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.2,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_cs_gain_zout_members"
+]
+},
+{
+"n": 16,
+"name": "용량 폐포 없앰",
+"status": "survived",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.6,
+"by": []
+},
+{
+"n": 17,
+"name": "남의 블록 넷 F 에서 뺌",
+"status": "killed",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py"
+],
+"secs": 2.1,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_ub1_closure_stops_at_other_block_net"
+]
+},
+{
+"n": 18,
+"name": "행 모드 전하 넷 거부 없앰",
+"status": "killed",
+"tests": [
+"test_block_gain_model.py",
+"test_block_gain_bound.py",
+"test_block_param_tables.py",
+"test_iv_gain_l.py"
+],
+"secs": 2.4,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_gain_model.py::test_ub1_row_mode_rejects_charge_node"
+]
+},
+{
+"n": 19,
+"name": "행 모드 others F 에서 뺌",
+"status": "survived",
+"tests": [
+"test_block_gain_model.py",
+"test_block_gain_bound.py",
+"test_block_param_tables.py",
+"test_iv_gain_l.py"
+],
+"secs": 14.2,
+"by": []
+},
+{
+"n": 20,
+"name": "omitted_load 안 적음",
+"status": "killed",
+"tests": [
+"test_block_gain_model.py",
+"test_block_gain_bound.py",
+"test_block_param_tables.py",
+"test_iv_gain_l.py"
+],
+"secs": 2.3,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_gain_model.py::test_ub1_row_mode_omits_unfixed_load_and_bounds_sealed"
+]
+},
+{
+"n": 21,
+"name": "decomposed_only 인증 허용",
+"status": "killed",
+"tests": [
+"test_block_gain_model.py",
+"test_block_gain_bound.py",
+"test_block_param_tables.py",
+"test_iv_gain_l.py"
+],
+"secs": 3.6,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_gain_bound.py::test_ub1_bound_decomposed_only_is_unknown"
+]
+},
+{
+"n": 22,
+"name": "E-16 안쪽 찾기 없앰",
+"status": "killed",
+"tests": [
+"test_block_gain_model.py",
+"test_block_gain_bound.py",
+"test_block_param_tables.py",
+"test_iv_gain_l.py"
+],
+"secs": 3.6,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_gain_bound.py::test_ub1_e16_interior_maximum_of_same_bin_interval"
+]
+},
+{
+"n": 23,
+"name": "E-16 NaN 끝점 인증",
+"status": "killed",
+"tests": [
+"test_block_gain_model.py",
+"test_block_gain_bound.py",
+"test_block_param_tables.py",
+"test_iv_gain_l.py"
+],
+"secs": 3.3,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_gain_bound.py::test_ub1_e16_nan_interior_is_unknown"
+]
+},
+{
+"n": 24,
+"name": "E-16 bin 검사 없앰",
+"status": "killed",
+"tests": [
+"test_block_gain_model.py",
+"test_block_gain_bound.py",
+"test_block_param_tables.py",
+"test_iv_gain_l.py"
+],
+"secs": 3.5,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_gain_bound.py::test_follower_bound_is_certified_with_hand_max_and_resolution"
+]
+},
+{
+"n": 25,
+"name": "same_l_bin 지도 없으면 참",
+"status": "killed",
+"tests": [
+"test_block_gain_model.py",
+"test_block_gain_bound.py",
+"test_block_param_tables.py",
+"test_iv_gain_l.py"
+],
+"secs": 3.1,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_block_gain_bound.py::test_follower_bound_is_certified_with_hand_max_and_resolution"
+]
+},
+{
+"n": 26,
+"name": "게이트 None 섭동 조용히 생략",
+"status": "killed",
+"tests": [
+"test_sensitivity_gate.py",
+"test_gate_run.py",
+"test_find_front.py"
+],
+"secs": 2.6,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_sensitivity_gate.py::test_undefined_values_unchecked_not_error"
+]
+},
+{
+"n": 27,
+"name": "게이트 base None 판정 없앰",
+"status": "killed",
+"tests": [
+"test_sensitivity_gate.py",
+"test_gate_run.py",
+"test_find_front.py"
+],
+"secs": 2.3,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_sensitivity_gate.py::test_undefined_values_unchecked_not_error"
+]
+},
+{
+"n": 28,
+"name": "게이트 빈 runs ok",
+"status": "killed",
+"tests": [
+"test_sensitivity_gate.py",
+"test_gate_run.py",
+"test_find_front.py"
+],
+"secs": 2.4,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_sensitivity_gate.py::test_no_runs - Ass..."
+]
+},
+{
+"n": 29,
+"name": "gate_run res None 조용한 생략",
+"status": "killed",
+"tests": [
+"test_sensitivity_gate.py",
+"test_gate_run.py",
+"test_find_front.py"
+],
+"secs": 2.4,
+"by": [
+"FAILED gmid_engine/tests/search/test_gate_run.py::test_ub1_unmeasured_perturbations_are_rows_not_skips"
+]
+},
+{
+"n": 30,
+"name": "gate_run ceiling 안 넘김",
+"status": "killed",
+"tests": [
+"test_sensitivity_gate.py",
+"test_gate_run.py",
+"test_find_front.py"
+],
+"secs": 2.5,
+"by": [
+"FAILED gmid_engine/tests/search/test_gate_run.py::test_gate_entry_budget_ceiling_is_e_total"
+]
+},
+{
+"n": 31,
+"name": "find_front 빈 front 행 없음",
+"status": "killed",
+"tests": [
+"test_sensitivity_gate.py",
+"test_gate_run.py",
+"test_find_front.py"
+],
+"secs": 10.6,
+"by": [
+"FAILED gmid_engine/tests/search/test_find_front.py::test_ub1_gate_note_front_empty"
+]
+},
+{
+"n": 32,
+"name": "icm floating 만",
+"status": "killed",
+"tests": [
+"test_icm_config.py"
+],
+"secs": 19.8,
+"by": [
+"FAILED gmid_engine/tests/metrics/test_icm_config.py::test_it2c_capacitive_only_node_is_icm_capacitive_only_node"
+]
+},
+{
+"n": 33,
+"name": "off_delta 전하 노드 허용",
+"status": "survived",
+"tests": [
+"test_ss_off_delta.py"
+],
+"secs": 3.6,
+"by": []
+},
+{
+"n": 34,
+"name": "ss_nodal missing·전하 거부 없앰",
+"status": "survived",
+"tests": [
+"test_metrics_aux.py",
+"test_ss_metrics.py",
+"test__helpers_nodal.py"
+],
+"secs": 15.2,
+"by": []
+},
+{
+"n": 35,
+"name": "view_factor C 영행렬",
+"status": "survived",
+"tests": [
+"test_block_model.py",
+"test_block_residual.py",
+"test_ff_gm_ratio.py",
+"test_offset_analysis.py"
+],
+"secs": 2.6,
+"by": []
+},
+{
+"n": 36,
+"name": "iv_gain_l 사유 행 없앰",
+"status": "killed",
+"tests": [
+"test_block_gain_model.py",
+"test_block_gain_bound.py",
+"test_block_param_tables.py",
+"test_iv_gain_l.py"
+],
+"secs": 12.4,
+"by": [
+"FAILED gmid_engine/tests/search/test_iv_gain_l.py::test_ub1_omitted_load_block_adds_inactive_row"
+]
+}
+]

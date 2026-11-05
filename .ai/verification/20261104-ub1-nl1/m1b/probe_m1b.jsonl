@@ -1,0 +1,7 @@
+{"block_gain": -6.25, "full_gain": -6.46551724137931, "hand_gain": -6.46551724137931, "hand_v1": 0.3448275862068965, "hand_v2": 0.06896551724137931, "node_v": [["in", 1.0], ["n1", 0.3333333333333333], ["out", -6.25]], "rel_err": 0.033333333333333215, "undefined": [], "case": "a_cgb_island_with_c3"}
+{"block_gain": -6.25, "full_gain": -7.5, "hand_gain": -7.499999999999999, "hand_v1": 0.39999999999999997, "hand_v2": 0.39999999999999997, "node_v": [["in", 1.0], ["n1", 0.3333333333333333], ["out", -6.25]], "rel_err": 0.16666666666666652, "undefined": [], "case": "b_cgb_island_only_cgb"}
+{"block_gain": -6.25, "full_gain": -6.46551724137931, "hand_gain": -6.46551724137931, "hand_v1": 0.3448275862068965, "hand_v2": 0.06896551724137931, "node_v": [["in", 1.0], ["n1", 0.3333333333333333], ["out", -6.25]], "rel_err": 0.033333333333333215, "undefined": [], "case": "c_cgb_island_swapped_g_b"}
+{"blocks": 1, "charge_nets": 0, "per_structure_loop": {"_structure": 1}, "one_block_residual": {"_structure": 1}, "case": "c_matrix_calls_folded_cascode"}
+{"blocks": 3, "charge_nets": 0, "per_structure_loop": {"_structure": 3}, "one_block_residual": {"_structure": 12}, "case": "c_matrix_calls_ngcc_3stage_ff"}
+{"blocks": 2, "charge_nets": 0, "per_structure_loop": {"_structure": 2}, "one_block_residual": {"_structure": 2}, "case": "c_matrix_calls_two_stage_ota"}
+{"sites": {"_structure": 1, "block_local_gain": 1}, "case": "c_matrix_calls_one_charge_block"}

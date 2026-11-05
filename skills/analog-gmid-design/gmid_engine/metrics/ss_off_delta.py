@@ -51,10 +51,10 @@ def ss_off_delta(projection):
         injection[index[drain]] = injection.get(index[drain], 0.0) - sign * delta
         injection[index[source]] = injection.get(index[source], 0.0) + sign * delta
         sources[m] = delta
-    unknown, lu, _piv, _coupling, floating = nodal.factor
+    unknown, lu, _piv, _coupling, floating, charge = nodal.factor
     if unknown.size and lu is None:
         raise _undefined(names, "singular")
-    stuck = sorted(nodal.nodes[i] for i in injection if i in floating)
+    stuck = sorted(nodal.nodes[i] for i in injection if i in floating or i in charge)      # 전도 경로 없는 용량 전용 노드(전하 노드 포함)에는 직류 전류가 쌓여 극한이 없다
     if stuck:
         raise _undefined(names, "floating_injection_net:" + ",".join(stuck))
     volt, _residual = nodal_solve(nodal.factor, len(nodal.nodes), None, injection)

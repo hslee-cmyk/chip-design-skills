@@ -11,7 +11,7 @@
 """
 import numpy
 
-from ._helpers_nodal import nodal_factor
+from ._helpers_nodal import capacitance_matrix, charge_seeded, nodal_factor
 from .ss_nodal import nodal_of
 
 PARAMETER_ORDER = ("gm", "gmb", "gds")          # `MosSmallSignal` 소신호 파라미터 필드 순서(스탬프 항목 단위)
@@ -37,4 +37,4 @@ def view_system(ss, view):
 def view_factor(ss, nodal, fixed):
     base = nodal_of(ss) if nodal is None else nodal
     fixed = frozenset(int(i) for i in fixed)
-    return base.factor if fixed == base.fixed else nodal_factor(base.g, fixed)
+    return base.factor if fixed == base.fixed else nodal_factor(base.g, fixed, c=capacitance_matrix(ss.circuit, len(ss.nodes)) if charge_seeded(base.g, fixed) else numpy.zeros(base.g.shape))

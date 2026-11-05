@@ -44,12 +44,61 @@ def test_change_within_epsilon_is_not_error():
 
 
 def test_undefined_values_unchecked_not_error():
-    got = sensitivity_gate((40.0, 40.0, 1e-12), (("a", None, 41.0, 1e-12), ("b", 40.0, 41.0, None)))
-    assert got.ok is True and got.errors == ()
-    assert [c[4] for c in got.checks] == [None, None]
-    assert got.epsilon is None
-    assert sensitivity_gate((None, 40.0, 1e-12), (("a", 40.0, 41.0, 1e-12),)).ok is True
+    """[UB-1 E-01 뜻 교체, fail-open -> fail-closed] 값이 없는 섭동·기준은 '통과'가 아니라 undeterminable(ok False).
+    oracle (a): C-10 우선순위 -- 오류 없고 None 섭동 있음 -> undeterminable/perturbation_unmeasured, unmeasured = 그 이름;
+    base 에 None -> undeterminable/base_undefined, unmeasured = 전 이름."""
+    got = sensitivity_gate((40.0, 40.0, 1e-12), (("a", None, 41.0, 1e-12),))
+    assert got.ok is False and got.errors == ()
+    assert got.verdict == "undeterminable" and got.reason == "perturbation_unmeasured"
+    assert got.unmeasured == ("a",)
+    assert [c[4] for c in got.checks] == [None]
+    # 칸 하나만 None 이어도(분해 dB·전회로 dB·잔차 중 어느 하나) None 섭동(C-10 문언)
+    both = sensitivity_gate((40.0, 40.0, 1e-12), (("a", None, 41.0, 1e-12), ("b", 40.0, 41.0, None)))
+    assert both.ok is False and both.verdict == "undeterminable" and both.reason == "perturbation_unmeasured"
+    assert both.unmeasured == ("a", "b") and [c[4] for c in both.checks] == [None, None]
+    only_b = sensitivity_gate((40.0, 40.0, 1e-12), (("b", 40.0, 41.0, None),))
+    assert only_b.verdict == "undeterminable" and only_b.unmeasured == ("b",)
+    base_none = sensitivity_gate((None, 40.0, 1e-12), (("a", 40.0, 41.0, 1e-12), ("b", 40.0, 40.0, 1e-12)))
+    assert base_none.ok is False and base_none.verdict == "undeterminable" and base_none.reason == "base_undefined"
+    assert base_none.unmeasured == ("a", "b")
+    assert sensitivity_gate((40.0, None, 1e-12), (("a", 40.0, 41.0, 1e-12),)).reason == "base_undefined"
+    assert sensitivity_gate((40.0, 40.0, None), (("a", 40.0, 41.0, 1e-12),)).reason == "base_undefined"
 
 
 def test_no_runs():
-    assert sensitivity_gate((40.0, 40.0, 1e-12), ()) == GateResult(True, (), (), None)
+    """[UB-1 E-01 뜻 교체] 섭동이 없으면 통과가 아니다: gate_empty/no_perturbation(ok False). runs 빈 것이 base None 보다 먼저."""
+    got = sensitivity_gate((40.0, 40.0, 1e-12), ())
+    assert got.ok is False and got.verdict == "gate_empty" and got.reason == "no_perturbation"
+    assert got.errors == () and got.unmeasured == ()
+    assert sensitivity_gate((None, None, None), ()).reason == "no_perturbation"
+
+
+def test_ub1_verdict_priority_error_beats_unmeasured():
+    """T-6 (a): 오류 >= 1 이면 verdict error(reason None), None 섭동은 unmeasured 에 남는다."""
+    base = (60.0, 60.0, 1e-12)
+    got = sensitivity_gate(base, (("current:I1", 60.0, 60.5, 1e-12), ("b", None, 61.0, 1e-12)))
+    assert got.ok is False and got.verdict == "error" and got.reason is None
+    assert got.errors == ("current:I1",) and got.unmeasured == ("b",)
+
+
+def test_ub1_verdict_ok_branch():
+    """T-6 (a): 모두 측정되고 오류 없으면 ok(reason None, unmeasured 빈) -- ok 칸 == (verdict == "ok")."""
+    got = sensitivity_gate((60.0, 60.0, 1e-12), (("a", 60.0, 60.0, 1e-12), ("b", 60.3, 60.3, 1e-12)))
+    assert got.verdict == "ok" and got.reason is None and got.unmeasured == () and got.errors == ()
+    assert got.ok is True
+    assert got.epsilon == pytest.approx(1e-12 * K, rel=1e-12)
+
+
+@pytest.mark.parametrize("base,runs,reason,names", [
+    ((40.0, 40.0, 1e-12), (("a", float("nan"), 41.0, 1e-12),), "perturbation_unmeasured", ("a",)),
+    ((40.0, 40.0, 1e-12), (("a", 40.0, float("inf"), 1e-12),), "perturbation_unmeasured", ("a",)),
+    ((40.0, 40.0, 1e-12), (("a", 40.0, 41.0, float("nan")),), "perturbation_unmeasured", ("a",)),
+    ((float("nan"), 40.0, 1e-12), (("a", 40.0, 41.0, 1e-12),), "base_undefined", ("a",)),
+    ((float("-inf"), 40.0, 1e-12), (("a", float("-inf"), 41.0, 1e-12),), "base_undefined", ("a",)),
+])
+def test_a107_nonfinite_input_is_unmeasured_not_ok(base, runs, reason, names):
+    """[A-107 m2] oracle (d) interface C-10 어휘: NaN·inf 는 측정 불능(None 과 같은 취급) -> ok False, verdict undeterminable,
+    reason 은 섭동 칸이면 perturbation_unmeasured, base 칸이면 base_undefined(unmeasured = 전 이름)."""
+    got = sensitivity_gate(base, runs)
+    assert got.ok is False and got.verdict == "undeterminable"
+    assert got.reason == reason and got.unmeasured == names

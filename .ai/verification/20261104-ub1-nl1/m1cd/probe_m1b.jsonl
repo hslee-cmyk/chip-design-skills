@@ -1,0 +1,7 @@
+{"block_gain": -6.46551724137931, "full_gain": -6.46551724137931, "hand_gain": -6.46551724137931, "hand_v1": 0.3448275862068965, "hand_v2": 0.06896551724137931, "node_v": [["in", 1.0], ["n1", 0.3448275862068965], ["n2", 0.06896551724137931], ["out", -6.46551724137931]], "rel_err": 0.0, "undefined": [], "case": "a_cgb_island_with_c3"}
+{"block_gain": -7.5, "full_gain": -7.5, "hand_gain": -7.499999999999999, "hand_v1": 0.39999999999999997, "hand_v2": 0.39999999999999997, "node_v": [["in", 1.0], ["n1", 0.4], ["n2", 0.4], ["out", -7.5]], "rel_err": 2.220446049250313e-16, "undefined": [], "case": "b_cgb_island_only_cgb"}
+{"block_gain": -6.46551724137931, "full_gain": -6.46551724137931, "hand_gain": -6.46551724137931, "hand_v1": 0.3448275862068965, "hand_v2": 0.06896551724137931, "node_v": [["in", 1.0], ["n1", 0.3448275862068965], ["n2", 0.06896551724137931], ["out", -6.46551724137931]], "rel_err": 0.0, "undefined": [], "case": "c_cgb_island_swapped_g_b"}
+{"blocks": 1, "charge_nets": 0, "per_structure_loop": {}, "one_block_residual": {}, "case": "c_matrix_calls_folded_cascode"}
+{"blocks": 3, "charge_nets": 0, "per_structure_loop": {}, "one_block_residual": {}, "case": "c_matrix_calls_ngcc_3stage_ff"}
+{"blocks": 2, "charge_nets": 0, "per_structure_loop": {}, "one_block_residual": {}, "case": "c_matrix_calls_two_stage_ota"}
+{"sites": {"_structure": 1}, "case": "c_matrix_calls_one_charge_block"}

@@ -25,7 +25,7 @@ import statistics
 import time
 
 from gmid_engine.core import blas_environment, fp_of
-from gmid_engine.metrics import verified_by
+from gmid_engine.metrics import GATE_EMPTY, GATE_REASON_FRONT_EMPTY, GateResult, verified_by
 
 from .eps_sweep import sweep_front
 from .gate_run import run_sensitivity_gate
@@ -66,7 +66,8 @@ def find_front(sctx, given_starts):
     search_ceiling(sctx, final=True)      # 게이트 전: 평가가 n_θ + 1 개 미만이라 유도 전이가 없었다면 지금 D 를 정한다(D − R 보다 탐색이 더 썼으면 ValueError)
     notes = [dict(n) for n in sctx.constraint_notes]
     k_gate = sctx.counters["kernel_calls"]
-    gate = run_sensitivity_gate(sctx, out["front"][0].result) if out["front"] else None      # [U7] 최종 해의 감도 게이트(40 §3.8-2), 탐색 예산을 다 써도 돈다
+    gate = (run_sensitivity_gate(sctx, out["front"][0].result) if out["front"]       # [U7] 최종 해의 감도 게이트(40 §3.8-2), 탐색 예산을 다 써도 돈다 -- 언제나 한 행(E-01)
+            else GateResult(False, (), (), None, GATE_EMPTY, GATE_REASON_FRONT_EMPTY, ()))
     if sctx.counters["kernel_calls"] - k_gate > gate_reserve(sctx):
         raise RuntimeError("find_front: 감도 게이트가 예약 R=" + str(gate_reserve(sctx)) + " 보다 많은 커널 평가를 썼다: " + str(sctx.counters["kernel_calls"] - k_gate))
     total = e_total(sctx)
@@ -75,9 +76,9 @@ def find_front(sctx, given_starts):
     if total is not None and sctx.dc.donors.entry_count() > sctx.dc.donors.index_bound(total):
         raise RuntimeError("find_front: 블록 결과 색인 항목 수 " + str(sctx.dc.donors.entry_count()) + " 가 상한 " + str(sctx.dc.donors.index_bound(total)) + " 를 넘었다")
     sctx.dc.donors.close_bound()
-    if gate is not None:
-        notes.append({"verdict": "ok" if gate.ok else "error", "rule": "sensitivity_gate", "errors": list(gate.errors),
-                      "checks": len(gate.checks), "unchecked": sum(1 for c in gate.checks if c[4] is None), "epsilon_db": gate.epsilon})
+    notes.append({"verdict": gate.verdict, "reason": gate.reason, "rule": "sensitivity_gate", "errors": list(gate.errors),
+                  "checks": len(gate.checks), "unchecked": sum(1 for c in gate.checks if c[4] is None), "unmeasured": list(gate.unmeasured),
+                  "epsilon_db": gate.epsilon})
     probe = next((s.best for _p, s in out["solves"] if s.best is not None), None)
     if probe is not None and (probe.objectives.passive_value_undetermined or probe.objectives.passive_area_undeclared):
         notes.append({"verdict": "review_needed", "rule": "DEC-79",

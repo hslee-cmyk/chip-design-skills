@@ -2,13 +2,16 @@
 
 진입점: `block_gain_model_of(local, spec) -> (BlockModel | None, 미상 사유 | None)`  (`local` = `LocalInputs`, `spec` = `BlockSpec`).
 
-**모형**(ω → 0, 커패시터는 열림): 미지수 = 블록 노드 중 교류접지·여기 넷이 아닌 것(저항 끝만 달린 막다른 가지는 DC 에 닿지 않으므로 뺀다). 각 MOS 는 `i = gm·(vg−vs) + gds·(vd−vs) +
-gmb·(vb−vs)`(드레인에서 소스로, 양/음극 모두 LUT 크기 값을 같은 식에 넣는다), 저항은 컨덕턴스. 여기 = 입력 넷 단위 전압(`excite` 가 가중을 주면 그대로, 차동 입력은 ±½),
-출력 = 넷 하나(`+`) 또는 둘(`+`/`−`, 차동 블록). 블록 밖 넷(블록 노드에 없는 것·레일)은 교류접지다.
+**모형**(ω → 0, 커패시터는 열림, 설계 41 §2.5): 미지수 집합 U_b 는 봉인 모드(`block_model.block_local_gain`)와 같은 규칙이다 -- 고정 집합 F = 교류접지(`spec.ground` ∪ 레일) ∪ 여기 넷 ∪ 남의 블록 넷(`spec.others`),
+U_b = (블록 노드 ∪ 블록 소자의 d·s·저항 단자 ∪ 저항 폐포) − F, 막다른 가지(저항 단자 하나뿐, 출력 아님, 스탬프 MOS 의 d·s·g·b 가 안 닿는 넷)는 뺀다. 각 MOS 는 `i = gm·(vg−vs) + gds·(vd−vs) +
+gmb·(vb−vs)`(드레인에서 소스로, 양/음극 모두 LUT 크기 값을 같은 식에 넣는다), 저항은 컨덕턴스(조립은 `block_gain_rows.block_stamp_matrix` 하나). 여기 = 입력 넷 단위 전압(`excite` 가 가중을 주면 그대로,
+차동 입력은 ±½), 출력 = 넷 하나(`+`) 또는 둘(`+`/`−`, 차동 블록). U_b 에 d 또는 s 가 닿는 비멤버 MOS 는 이 모드에 값이 없어(비멤버 동작점·θ 없음) 스탬프하지 않고 `BlockModel.omitted_load` 에 적는다
+(그 부하 어드미턴스가 정해지지 않아 행 값은 상한 쪽이다). 스탬프 저항이 U_b 와 입력·남의 블록 넷을 이으면 `decomposed_only`(되먹임 -- 행 값은 상한이 아니다). 스탬프 MOS 의 gate·bulk 가 F·U_b 밖이고 전회로에
+DC 전도 단자가 없는 넷(용량 전용 넷)을 읽으면 이 모드는 용량 값(비멤버 동작점)이 없어 모델이 없다(`charge_node_row_mode`).
 
 **축**(설계 표, 등식으로 묶인 것은 축 하나):
 * `vgs` -- 같은 VGS 묶음(같은 (gate, source) 넷)과 같은 자기동형 궤도의 MOS 를 한 그룹으로, 그룹마다 LUT VGS 격자 마디(= gm/ID 축; 행마다 `intrinsic_gain_curve` 의 강반전 분지 마디만 유효).
-* `L` -- 같은 L 동치류(S1v derived)와 같은 궤도의 MOS 를 한 그룹으로, 그룹마다 LUT L 앵커(bin 내부 극값 추가는 하지 않는다 -- 아래 '설계와 다른 점').
+* `L` -- 같은 L 동치류(S1v derived)와 같은 궤도의 MOS 를 한 그룹으로, 그룹마다 LUT L 앵커(같은 bin 이웃 앵커 사이 안쪽 최대는 `block_gain_bound` 가 `row_gains(cont={L 축: L})` 로 찾는다).
 * `vds` -- 비 diode MOS 를 같은 궤도끼리 묶어 그룹마다 LUT VDS 격자. diode(gate == drain) MOS 는 VDS = VGS 라 축이 없다(VDS 격자에 VGS 마디 값이 모두 있을 때; 없으면 diode 도 자기 축을 갖는다).
 * `vsb` -- 소스 넷이 bulk 넷과 다른 MOS 를 같은 궤도끼리 묶어 그룹마다 LUT VS 격자(K3). 소스 = bulk 면 VSB = 격자 0 마디.
 * `current` -- 블록 MOS 전류식(`CurrentBasis` 행)이 읽는 θ 전류 **대표** 원소(`LocalInputs.cur_rep`: 탐색 변수와 같은 자기동형 묶음, 부호 ±1, 구조적 0 은 항을 뺀다)마다 하나,
@@ -17,15 +20,16 @@ gmb·(vb−vs)`(드레인에서 소스로, 양/음극 모두 LUT 크기 값을 �
 * `resistor` -- DC 에 걸린 값 미선언(θ) 저항마다 컨덕턴스 로그 균등 격자(θ 상자 양끝의 1/R 사이). 값 선언 저항은 고정 컨덕턴스.
 `current`·`resistor` 축은 연속량이라 `continuous` 로 표시한다(비단조 축 세분 대상, 41 §4.2).
 
-**설계와 다른 점**(기록): (1) 저항 컨덕턴스 후보에 이웃 소자 gds 값을 더하지 않고 θ 상자 양끝 사이 로그 균등 격자 + 세분만 쓴다(세분이 극값을 찾는다). (2) L 앵커 사이 bin 내부 극값 점은 추가하지
-않는다(L 방향 gain 이 bin 안에서 단조가 아닌 경우의 세분은 미구현 -- 보고서 `axes` 에 L 축이 앵커 격자임이 드러난다). (3) 기둥 VDS 는 그룹마다 독립 축으로 두어(KVL 로 묶이는 합을 쓰지 않음)
-격자 곱이 설계보다 크다 -- 풀이 공간의 상위 집합이라 상한으로는 안전하고 Π 만 커진다.
+**설계와 다른 점**(기록): (1) 저항 컨덕턴스 후보에 이웃 소자 gds 값을 더하지 않고 θ 상자 양끝 사이 로그 균등 격자 + 세분만 쓴다(세분이 극값을 찾는다). (2) 기둥 VDS 는 그룹마다 독립 축으로 두어
+(KVL 로 묶이는 합을 쓰지 않음) 격자 곱이 설계보다 크다 -- 풀이 공간의 상위 집합이라 상한으로는 안전하고 Π 만 커진다.
 
-미상 사유: 구동 입력 없음·셋 이상, 출력 없음·셋 이상, θ 전류/저항 상자 없음.
+미상 사유: 구동 입력 없음·셋 이상, 출력 없음·셋 이상, θ 전류/저항 상자 없음, 용량 전용 넷(`charge_node_row_mode`).
 """
 import math
 
 import numpy as np
+
+from gmid_engine.graph import ELEMENT_MOS
 
 from .achievability_types import (
     AXIS_KIND_CURRENT,
@@ -34,6 +38,7 @@ from .achievability_types import (
     AXIS_KIND_VDS,
     AXIS_KIND_VGS,
     AXIS_KIND_VSB,
+    REASON_CHARGE_NODE_ROW,
     REASON_MULTI_INPUT,
     REASON_NO_CURRENT_BOX,
     REASON_NO_OUTPUT,
@@ -105,24 +110,49 @@ def _outputs(spec, key):
     return None, REASON_NO_OUTPUT
 
 
-def _active_resistors(local, resistors, mos, ground, drive, key):
-    """막다른 저항(끝 하나가 다른 DC 가지 없이 이 저항에만 달린 넷)을 되풀이해 뺀 저항 이름 tuple."""
-    active = set(resistors)
+def _row_structure(local, spec, fixed, key):
+    """행 모드 미지수 집합 U_b 와 스탬프 소자(모듈 문서, 봉인 모드 `block_model._structure` 와 같은 규칙).
+    -> (U_b 넷 set, 스탬프 MOS tuple, 스탬프 저항 tuple, 생략 MOS tuple, 되먹임 여부, 용량 전용 넷을 읽는가)."""
+    pins = local.pins
+    resistors_all = sorted(n for n, k in local.kind.items() if k == KIND_RESISTOR)
+    owned = set(spec.nodes)
+    for m in spec.members:
+        owned |= {pins[m]["d"], pins[m]["s"]}
+    for r in spec.passives:
+        if local.kind[r] == KIND_RESISTOR:
+            owned |= {pins[r]["t0"], pins[r]["t1"]}
+    unknown = owned - fixed
+    changed = True
+    while changed:                                                  # 저항 폐포: U_b 에 닿는 저항의 다른 끝(F 밖)
+        changed = False
+        for r in resistors_all:
+            ends = {pins[r]["t0"], pins[r]["t1"]}
+            if ends & unknown and ends - fixed - unknown:
+                unknown |= ends - fixed
+                changed = True
+    outputs = set(spec.outputs)
+    dropped = set()
     while True:
-        degree = {}
-        for m in mos:
-            for net in (local.pins[m]["d"], local.pins[m]["s"]):
-                degree[net] = degree.get(net, 0) + 1
-        for r in active:
-            for term in ("t0", "t1"):
-                net = local.pins[r][term]
-                degree[net] = degree.get(net, 0) + 1
-        dead = sorted(r for r in active
-                      if any(local.pins[r][t] not in ground and local.pins[r][t] not in drive and degree[local.pins[r][t]] == 1
-                             for t in ("t0", "t1")))
+        stamped = {m for m in spec.members if pins[m]["d"] in unknown or pins[m]["s"] in unknown}
+        touched = {pins[m][t] for m in stamped for t in ("d", "g", "s")} | {local.bulk.get(m) for m in stamped}
+        live = {r for r in resistors_all if r not in dropped and (pins[r]["t0"] in unknown or pins[r]["t1"] in unknown)}
+        count = {}
+        for r in live:
+            for t in ("t0", "t1"):
+                count[pins[r][t]] = count.get(pins[r][t], 0) + 1
+        dead = {n for n in unknown if n not in outputs and n not in touched and count.get(n, 0) == 1}
         if not dead:
-            return tuple(sorted(active, key=key))
-        active -= set(dead)
+            break
+        unknown -= dead                                             # 막다른 가지: 넷과 그 저항을 뺀다(되풀이)
+        dropped |= {r for r in live if pins[r]["t0"] in dead or pins[r]["t1"] in dead}
+    attach = local.attach or {}
+    charge = any(net is not None and net not in fixed and net not in unknown and attach.get(net, 0) == 0
+                 for m in stamped for net in (pins[m]["g"], local.bulk.get(m)))
+    omitted = tuple(sorted((n for n in pins if local.cls.get(n) == ELEMENT_MOS and n not in spec.members
+                            and (pins[n]["d"] in unknown or pins[n]["s"] in unknown)), key=key))
+    across = set(spec.inputs) | (set(spec.others) - set(spec.nodes))
+    decomposed = any((pins[r]["t0"] in across and pins[r]["t1"] in unknown) or (pins[r]["t1"] in across and pins[r]["t0"] in unknown) for r in live)
+    return unknown, tuple(sorted(stamped, key=key)), tuple(sorted(live, key=key)), omitted, decomposed, charge
 
 
 def _log_grid(lo, hi, count):
@@ -142,22 +172,17 @@ def block_gain_model_of(local, spec):
     drive = tuple(sorted((n for n in (spec.inputs if spec.drive is None else spec.drive) if n not in ground), key=nkey))
     if not drive:
         return None, REASON_NO_DRIVE
-    if spec.nodes:                       # 블록 노드 집합이 주어지면 그 밖 넷(채널·저항 끝)은 교류접지다(41 §2.1 '블록 밖 노드는 교류접지')
-        channel = {local.pins[m][t] for m in spec.members for t in ("d", "s")}
-        resistive = {local.pins[r][t] for r in spec.passives if local.kind[r] == KIND_RESISTOR for t in ("t0", "t1")}
-        attach = local.attach or {}
-        # 단, 전체 회로에서 이 블록 말고 다른 DC 전도 소자가 없는 넷(커패시터·게이트만 달린 막다른 넷)은 DC 에 뜬 넷이라 접지가 아니다 -- 그 끝의 저항은 DC 에 닿지 않는다
-        ground = ground | frozenset(n for n in channel | resistive if n not in spec.nodes and n not in drive and attach.get(n, math.inf) > 1)
     patterns, reason = _patterns(spec, drive)
     if patterns is None:
         return None, reason
     outputs, reason = _outputs(spec, nkey)
     if outputs is None:
         return None, reason
-    mos = tuple(sorted(spec.members, key=dkey))
-    resistors = _active_resistors(local, [p for p in spec.passives if local.kind[p] == KIND_RESISTOR], mos, ground, drive, dkey)
-    touched = {local.pins[m][t] for m in mos for t in ("d", "s")} | {local.pins[r][t] for r in resistors for t in ("t0", "t1")}
-    nodes = tuple(sorted((n for n in touched if n not in ground and n not in drive), key=nkey))
+    fixed = set(ground) | set(drive) | (set(spec.others) - set(spec.nodes))
+    unknown, mos, resistors, omitted, decomposed, charge = _row_structure(local, spec, fixed, dkey)
+    if charge:
+        return None, REASON_CHARGE_NODE_ROW
+    nodes = tuple(sorted(unknown, key=nkey))
     known = set(nodes) | set(drive)
     if any(net not in known and net not in ground for net, _sign in outputs):
         return None, REASON_NO_OUTPUT
@@ -245,6 +270,6 @@ def block_gain_model_of(local, spec):
             res_local.append(ResLocal(r, pins["t0"], pins["t1"], -1, 1 / local.element_value[r]))
     pi = math.prod(a.size for a in axes)
     model = BlockModel(spec.key, spec.role, nodes, drive, patterns, outputs, tuple(mos_local), tuple(res_local), tuple(axes), pi,
-                       () if reference is None else (reference,))
+                       () if reference is None else (reference,), omitted, decomposed)
     return model, None
 

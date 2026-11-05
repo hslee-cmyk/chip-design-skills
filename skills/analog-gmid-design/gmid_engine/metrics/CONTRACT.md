@@ -126,7 +126,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - (행 노드, 열 노드, 값) tuple. KCL 행 = 노드에서 나가는 전류. MOS G 행: drain (d,d,gds)(d,g,gm)(d,b,gmb)(d,s,−(gm+gmb+gds)),
   source 는 부호 반대. 값 0 항목은 내지 않는다. 저항 = 1/R 의 2단자 4항목, 커패시터 = C 의 4항목. 다른 형식은 `TypeError`.
 - [IT-2c] `StampSet(g=(), c=(), g_ops=())`: `g_ops` = `g` 와 같은 길이·순서의 연산 수(길이가 다르면 `ValueError`). MOS (d, s)·(s, s) 항목 2(gm + gmb + gds 의 덧셈 2회), 나머지 6항목 0;
-  저항 네 항목 각 1(1/R 나눗셈); 커패시터는 g 가 비어 g_ops 도 빈 값. `conductance_matrix(circuit, size, *, bound=False)` 가 `bound=True` 면 `(g, g_bound)` 를 낸다:
+  저항 네 항목 각 1(1/R 나눗셈); 커패시터는 g 가 비어 g_ops 도 빈 값. `conductance_matrix(circuit, size, *, bound=False)`(`ss_nodal.py` 에 정의) 가 `bound=True` 면 `(g, g_bound)` 를 낸다:
   E_ij = γ_{max(k_ij−1, 0)}·S_ij + C_ij + γ_{n+1}·|Ĝ_ij| (S = Σ|ĝ_s|, k = 스탬프 항 수, C = Σ γ_{c_s}|ĝ_s|, γ_m = m·u/(1 − m·u), u = ε/2, n = size).
 
 ### 3.2 `build_mna(circuit, excitations, senses) -> MnaSystem`
@@ -502,7 +502,7 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 | 1 | `ss_off_op.py` [EO-1 범위 4] | `ss_off_op` | `ss_off_op` | `device.off_op` = `OffOp(vgs, vds, vsb, w_key)`(`off` 선언 소자만) |
 | 1 | `ss_off_gate.py` [EO-1 범위 4] | `off_region_gate`(필드를 쓰지 않는 함수) | -- | -- |
 | 1 | `ss_circuit.py` [IT-2c] | `ss_circuit_field`(순수 조립 함수 `ss_circuit`·`is_dc_conducting_passive`·`CODE_PASSIVE_MISSING`) | `ss_circuit` | `graph.ss_circuit`(key `METRICS_KEY`) = `SsCircuit` |
-| 3 | `ss_nodal.py` [IT-2c] | `ss_nodal_system`(조립 함수 `nodal_of`) | `ss_nodal` | `graph.ss_nodal`(key `METRICS_KEY`) = `NodalSystem` 또는 `Undefined` |
+| 3 | `ss_nodal.py` [IT-2c] | `ss_nodal_system`(조립 함수 `nodal_of`), `conductance_matrix`(G·g_bound 조립, A-105 에서 `_helpers_nodal` 로부터 이동) | `ss_nodal` | `graph.ss_nodal`(key `METRICS_KEY`) = `NodalSystem` 또는 `Undefined` |
 | 4 | `ss_off_delta.py` [EO-1 범위 4] | `ss_off_delta` | `ss_off_delta` | `graph.ss_off_delta`(key `METRICS_KEY`) = `OffDelta(node_dv, sources)` |
 | 3 | `icm_config.py` [IT-2c] | `icm_config_window`(`kvl_sensitivity`·`_transfer_resolution`) | `icm_config` | `node.dc_window_cfg`(입력 포트마다 `Window`)·`graph.icm_config`(`IcmConfig`) |
 | 3 | `dc_metrics.py` | `metrics_dc` | `metrics_dc` | `graph.metrics_dc`(key `METRICS_KEY` = `"metrics"`) |
@@ -1247,7 +1247,7 @@ max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미
 | 파일 | 진입점 | 내용 |
 |---|---|---|
 | `aux_types.py` | (데이터) | 결과·구조 입력 frozen 레코드(12.1) |
-| `_helpers_nodal.py` | `conductance_matrix`, `nodal_factor`, `nodal_solve`, `nodal_adjoint` | ω → 0 노달 풀이(용량 열린 회로, 전도 경로 있는 노드), LU 1회, 정방향·수반 |
+| `_helpers_nodal.py` | `capacitance_matrix`, `nodal_factor(g, fixed, *, c)`, `nodal_solve`, `nodal_adjoint` | ω → 0 노달 풀이(전도 노드는 G 행, 용량 전용 노드는 `_helpers_dc.limit_matrix` 의 전하 보존 행), LU 1회, 정방향·수반 |
 | `_helpers_view.py` | `view_system`, 상수 `PARAMETER_ORDER` | 전달 뷰 -> (고정 노드, 구동, 관측 벡터, 여기 쌍, 감지 쌍) |
 | `metric_structure.py` | `metric_structure(s1v) -> MetricStructure` | S1v -> 주경로 블록 사슬·FF 묶음·입력 셀·신호 셀·극점 노드·방향 셀 |
 | `device_sigma.py` | `device_sigmas(lut, mismatch, devices)` | 소자별 σ_VGS(U3 `mismatch_sigma_vgs`)와 tol_mismatch 1차 전파 |
@@ -1258,11 +1258,11 @@ max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미
 | `icm_window.py` [IT-2d] | `icm_window_metrics(config, ports, input_dc) -> IcmWindow` (순수) | `icmr_v`·`icm_margin_v`·`required_input_cm_v` (`graph.icm_config` V_cm 칸) |
 | `ls_fields.py` | `ls_fields(ss, vstruct, ops, volts, bounds, lut, rel_tols, driving, outputs) -> LsFields` | 슬루 등가 용량 `c_slew_farad`·방향별 최대 전류 |
 | `nqs_ratio.py` | `nqs_ratio(devices, ugf_hz) -> NqsRatio` | ugf / 신호 경로 최소 f_T |
-| `block_model.py` | `block_local_gain(ss, block, drive, others, exclude, extra) -> BlockGain` | 블록 국소 gain·Z_out·노드 전압 |
+| `block_model.py` | `block_local_gain(ss, block, drive, others, exclude, extra, ground) -> BlockGain` | 블록 국소 gain·Z_out·노드 전압(설계 41 §2.5 미지수 집합 U_b, 스탬프 조립 `block_gain_rows.block_stamp_matrix`) |
 | `block_residual.py` | `block_residual(ss, view, vstruct) -> BlockResidual` | 분해 합성 A_decomp·`gain_residual_db`·FF 기여·rout 잔차 |
 | `ff_gm_ratio.py` | `ff_gm_ratio(ss, vstruct, rel_tols) -> FfRatio` | `ff_gm_ratio` |
 | `coupled_residual.py` | `coupled_residual(residuals_db) -> CoupledResidual` | r̂(중앙값)·r̂_spread |
-| `sensitivity_gate.py` | `sensitivity_gate(base, runs) -> GateResult` | 감도 게이트 판정 |
+| `sensitivity_gate.py` | `sensitivity_gate(base, runs) -> GateResult` | 감도 게이트 판정(`verdict` ok·error·undeterminable·gate_empty -- 못 잰 것은 통과가 아니다) |
 | `verified_by.py` / `model_error.py` | `verified_by(metric)` / `model_error_pairs(derived)` | 검증 출처·모델 오차 읽기 |
 | `metrics_aux.py` | `metrics_aux`(`@compute_block`, writer `metrics_aux`, 필드 `graph.metrics_aux`) | 위 함수들을 봉인 스냅샷에 배선 |
 | (search) `residual_probe.py`, `gate_run.py`, `ls_constraints.py` | `residual_probe`, `run_sensitivity_gate`, `ls_constraint_rows` | 결합 잔차 측정, 게이트 실행, driving_spec 제약 행 |
@@ -1314,8 +1314,9 @@ Z_i = z[s_i] − z[d_i], z = 관측 벡터의 수반 풀이(LU 1회 -- 소자마
 
 ### 12.6 블록 모델·잔차·FF (41 §2, D-BM·D-J2)
 
-`block_local_gain`: 미지수 = 블록 소유 노드(블록 노드 − 입력), 입력 넷은 `drive` 로 구동(생략 = 단위 구동: 입력 하나 1 V, 둘 ±1/2 V 이름순), 블록 밖(`others` = 다른 블록 노드)·접지 = 0.
-스탬프 소자 = **netlist 인접**(소유 노드에 채널·저항 단자가 닿는 MOS·저항) -- S1v `roles` 가 아니다(버퍼 블록의 부하 소자도 같은 규칙으로 붙는다, 12.9 (3)). 소유도 접지도 다른 블록도 아닌 넷은 미지수로 폐포(Rz–Cc 중간 넷, FF 내부 넷).
+`block_local_gain`: 고정 집합 F = 교류접지(`ss.ground_nets` ∪ `ground`) ∪ 여기 넷(입력·`drive`) ∪ 남의 블록 넷(`others`), 입력 넷은 `drive` 로 구동(생략 = 단위 구동: 입력 하나 1 V, 둘 ±1/2 V 이름순).
+미지수 U_b = (블록 노드 ∪ 블록 소자(`BlockStruct.members`)·`extra` 의 d·s·저항 단자 ∪ 저항 폐포 ∪ 용량 전용 넷) − F. 스탬프 소자 = d 또는 s 가 U_b 에 닿는 MOS(멤버·비멤버 구분 없는 단자 스탬프, U_b 를 넓히지 않는다)·U_b 에 닿는 저항·`extra`;
+막다른 가지는 뺀다. 용량 전용 넷은 전하 보존 행(전회로 C, 전하 넷이 있을 때만 조립)으로 풀며 0 V 로 채우지 않는다(값 없는 수동소자가 있으면 `singular_dc`). 행 모드(`block_gain_model_of`)와 같은 U_b 규칙.
 `exclude` = FF 묶음 소자(주경로 블록에서 뺀다), `extra` = merge 블록에 합류시킬 FF 소자. 산출 `BlockGain(gain 부호 있음, gain_db, zout_ohm, node_v, members, decomposed_only, solve_residual)`.
 `block_residual`: 주경로 사슬을 **앞 블록의 해 전압을 다음 입력으로** 이어 푼다(`gain_residual_db` = 전회로 DC 이득 dB − 20·log10|A_decomp|). FF: A_decomp = FF 소자를 merge 블록 해에 넣고 탭 전압(사슬 해)으로 구동한 사슬의 감지값.
 FF 소자는 merge 블록 국소 모형에 항상 들어간다(gds 부하 = Z_merge 의 일부, 블록 gain·Z_out 에 반영). `ff_contrib` = 경로 항 A_in→tap·G_ff·Z_merge = (그 묶음 탭만 구동한 사슬 − 구동 없는 사슬) 감지값 (`gain_db`, `sign` 주경로와 같은 방향 +1/반대 −1). `rout_residual_ohm` = 전회로 rout − 감지 넷을 출력으로 갖는 마지막 블록의 Z_out(FF 부하는 이 잔차에 나타난다).

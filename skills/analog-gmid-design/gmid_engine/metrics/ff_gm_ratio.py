@@ -18,12 +18,11 @@ import dataclasses
 
 import numpy
 
-from ._helpers_nodal import conductance_matrix
 from ._helpers_view import PARAMETER_ORDER
 from .aux_types import FfRatio
+from .block_gain_rows import block_stamp_matrix
 from .block_model import block_local_gain
 from .mna_types import Undefined
-from .records import SmallSignalCircuit
 
 QUANTITY = "ratio"
 
@@ -43,16 +42,17 @@ def _one(ss, f, vstruct):
     index = {net: i for i, net in enumerate(ss.nodes)}
     every = {n for b in vstruct.blocks for n in b.nodes}
     others_ff = tuple(sorted({m for g in vstruct.ff if g.id != f.id for m in g.members}))
-    found = block_local_gain(ss, bb, None, others=every - set(bb.nodes), exclude=others_ff, extra=f.members)
+    found = block_local_gain(ss, bb, None, others=every - set(bb.nodes), exclude=others_ff, extra=f.members, ground=vstruct.ac_ground)
     if found.gain is None and any(u.code == "singular_dc" for u in found.undefined):
         return "singular_dc"
     volt = numpy.zeros(len(ss.nodes))
     for net, v in found.node_v:
         volt[index[net]] = v
     mos = {m.label: m for m in ss.circuit.mos}
-    ff_circuit = SmallSignalCircuit(mos=tuple(m for m in ss.circuit.mos if m.label in f.members),
-                                    resistors=tuple(r for r in ss.circuit.resistors if r.label in f.members))
-    current = (conductance_matrix(ff_circuit, len(ss.nodes)) @ volt)[index[f.merge]]
+    names = ss.nodes
+    ff_mos = tuple((names[m.d], names[m.g], names[m.s], names[m.b], m.gm, m.gds, m.gmb) for m in ss.circuit.mos if m.label in f.members)
+    ff_res = tuple((names[r.a], names[r.b], 1.0 / r.ohm) for r in ss.circuit.resistors if r.label in f.members)
+    current = (block_stamp_matrix(names, ff_mos, ff_res)[0] @ volt)[index[f.merge]]
     gm_in = sum(mos[c].gm for c in f.bypassed_input_cells if c in mos) / len(f.bypassed_input_cells)
     if not gm_in > 0:
         return "gm_in_zero"
