@@ -313,7 +313,7 @@ def test_region_judge_called_once_per_device_in_seal(mk, monkeypatch):
     """한 평가(블록 한 번)에서 judge_region 은 소자당 1회 -- 봉인 쪽 호출 계수(M1, M2 = 2)."""
     ctx = mk()
     snap = state(ctx)
-    mod = importlib.import_module(dc_seal_region.__module__)
+    mod = importlib.import_module("gmid_engine.sizing.seal_region")   # 모듈 이름 직접(M-3, A-91)
     real = mod.judge_region
     seen = []
 

@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.16.11
-plan_version: 6.38.13
+version: 1.16.16
+plan_version: 6.38.19
 ---
 
 # gain-budget-gmid-sizing -- 41-gain-budget Design Document
@@ -570,15 +570,15 @@ r̂는 쓰지 않는다(모델 오차는 O-178로 폐지). 블록 하나라도 �
 
 ### 4.4 면적 하한 (결정 11, 인증된 하한만, C1)
 
-A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
+A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c A_C(C_c,min)
 
 | 항 | 뜻 |
 |---|---|
 | I_k,cert | 선언된 이상 전류원(`value_dc_amp`)과 KCL로 값이 고정된 가지 전류. 그 밖의 소자는 0 |
 | L_min,k | LUT 최소 L 점(PDK 최소 L 이상) |
 | IDu_max,k | LUT 최대 전류밀도 |
-| C_c,min | 값이 선언되지 않은 보상 커패시터의 spec θ 하한, 선언값이 있으면 그 값. 측정 부하는 뺀다 |
-| ρ_MIM | PDK 선언 `mim_cap_density_f_per_m2` |
+| C_c,min | 값이 선언된 커패시터는 그 값, 그 밖은 적용 상자 하한 C_u. 측정 부하는 뺀다. 값이 C_u 아래면 항을 넣지 않는다(40 §3.1-1) |
+| A_C | 단위 캡 배열 면적(40 §7.1) |
 
 - A_lb > A_budget + b_A이면 INFEASIBLE_TARGET(`area_budget_below_lower_bound`)로 정지한다.
 - 출발값으로 계산한 면적 추정 A_est는 보고만 한다.
@@ -1005,9 +1005,9 @@ E-21 기준 폭 toy(P:2171 끝)는 생산자 경로라 4.9 T-P6이 받는다. G1
 | O-222 | 4.8-7, T-G4 |
 | O-144 J4·O-183 | 4.8-4 로더 커밋 |
 
-### 4.9 card EO-1 범위 (1)~(3) -- 엔진 점 → oracle 입력 생산자와 판정 배선 (초안)
+### 4.9 card EO-1 범위 (1)~(3) -- 엔진 점 → oracle 입력 생산자와 판정 배선
 
-**상태**: **초안 -- 독립 검증·design↔계획 gap 전**(2026-11-03, 브랜치 `design/eo1`). 계약 = oracle design §11.1·§11.4·§11.7(판 = `design/op0` v0.4.0, 미승인 -- 칸 이름이 바뀌면 이 절 표를 따라 고친다). 정의 = 계획 N6.20, DEC-98·T4-pre(40 §10.5). 엔진 파일 인용은 재작성 범위 표시뿐이다(원칙 8). 40 §11 U17 ②의 나눔: 이 절 = 생산자·시작점 판정, front 판정 배선 = LA-1(범위 (3), LA-Q5).
+**상태**: 승인(묶음 ⑥, 위임 A-27). 계약 = oracle design §11.1·§11.4·§11.7(칸 이름이 바뀌면 이 절 표를 따라 고친다). 정의 = 계획 N6.20, DEC-98·T4-pre(40 §10.5). 엔진 파일 인용은 재작성 범위 표시뿐이다(원칙 8). 40 §11 U17 ②의 나눔: 이 절 = 생산자·시작점 판정, front 판정 배선 = LA-1(범위 (3), LA-Q5).
 
 **병합 둘**(위임 A-14): (i) 범위 4 + SF-1 로더 조각 -- 선행 IT-1 + IT-2(표 #13), 뒤따름 card C·HC-S(표 #7) (ii) 범위 1~3 -- 선행 (i)·OP-3(+ OP-2), 뒤따름 LA-1·DE-1. 판정 실행 = OP-5 뒤(+ OP-7 선언, A-8).
 
@@ -1017,8 +1017,8 @@ E-21 기준 폭 toy(P:2171 끝)는 생산자 경로라 4.9 T-P6이 받는다. G1
 # E/search/oracle_input.py -- 생산자 하나(완료 (6): 엔진 점 → oracle 입력 변환 자리 하나)
 def oracle_input_of(snapshot, spec, topology_ref, run_decl, lut_files) -> dict        # 부수 효과 0, 스냅샷 안 바꿈
 # E/search/oracle_bridge.py -- 판정 배선
-def judge_point(snapshot, ...) -> OracleRef                                            # 입력 파일 쓰기 → oracle_run 외부 실행 → 참조
-def bridge_status(ref) -> str                                                          # 기록을 읽어 다리 상태
+def judge_point(snapshot, spec, call, record_root) -> OracleRef | OracleReject        # 입력 파일 쓰기 → call.runner(외부 oracle 진입점 또는 test stub) → 참조
+def bridge_status(ref) -> str                                                          # 기록을 읽어 다리 상태. OP-5 엔진 커밋이 소비자와 함께 넣는다(위임 A-97)
 ```
 
 - oracle은 외부 단계다. `tools/spice_oracle` import 0, 엔진 쪽 LUT 재계산·판정 0.
@@ -1050,16 +1050,16 @@ def bridge_status(ref) -> str                                                   
 
 **4.9-3 판정 배선(범위 (2))**
 
-- **대상 = 시작점**(N6.3 (iii)): 그 실행의 출발점 가운데 커널 평가가 봉인 통과인 점. 스냅샷은 S3 색인 참조로 읽고 재평가 0. 봉인 통과 점이 없으면 oracle을 부르지 않고 `no_sealed_start`를 기록한다.
+- **대상 = 시작점**(N6.3 (iii)): 그 실행의 출발점 가운데 커널 평가가 봉인 통과인 점. 스냅샷은 LA-1 전까지 `sctx.cache`의 그 점 결과를 읽기만 하고(쓰기·새 슬롯 0) LA-1이 S3 색인 열거(PS-7)로 바꾼다. 재평가 0. 봉인 통과 점이 없으면 oracle을 부르지 않고 `no_sealed_start`를 기록한다.
 - **자리**: `find_front`가 탐색을 끝낸 뒤, 실행 기록을 쓰기 전. 탐색 궤적·front에 영향 0(front 판정은 범위 (3)이라 이 card에서 읽지 않음). 실행 설정은 `--bias free`, T4-pre 기하.
 - **`run_decl`이 없거나 기록 폴더(archive)가 없으면** 실행하지 않고 notes에 `oracle_undeclared`·`oracle_no_record_root`. 다리는 '보류'이고 통과로 세지 않는다.
-- **`run_decl` 파일과 호출자의 경로 전달은 OP-5 통합 병합의 엔진 커밋에서 처음 넣는다**(위임 A-23, A-8). 범위 1~3 병합에는 생산자·`judge_point`·`bridge_status`와 stub test만 있고 다리는 항상 `oracle_undeclared` 보류다. `threshold_eps1` 분기는 인자로 직접 준 경로에 대한 방어로 남긴다(보류, 통과로 세지 않음). 계획 N6.20 완료 (3)의 'OP-3 코어 판정' 문언은 'OP-5 판'으로 고칠 계획 표지(A-23).
+- **`run_decl` 파일과 호출자의 경로 전달은 OP-5 통합 병합의 엔진 커밋에서 처음 넣는다**(위임 A-23, A-8). 범위 1~3 병합에는 생산자·`judge_point`와 stub test만 있고 다리는 항상 `oracle_undeclared` 보류다. `bridge_status`는 소비자가 있는 OP-5 엔진 커밋에서 넣는다(위임 A-97, 만들면 배선). 계획 N6.20 완료 (3)의 'OP-3 코어 판정' 문언은 'OP-5 판'으로 고칠 계획 표지(A-23).
 - **OP-7 거부**: 선언 호환 모드가 없으면 oracle이 실행을 거부한다(P:305 reader (ii)). 그 거부도 아래 거부 기록 경로로 온다. 별도 표 없음.
 - **점 레코드**(graph 규칙 4 -- 참조만): `starts[]` 행에 `oracle = OracleRef(record_id, compare_ref, input_sha256)` 또는 `oracle_reject = (reject_ref, code, stage)`. verdict·꺼짐 판은 기록 파일에 있고 `bridge_status`가 읽는다. 결과 객체(`EvalResult`·`SearchFront`)에 값 칸을 더하지 않는다.
-- **`bridge_status`**: `compare.json`의 `record_id`를 §11.7 식으로 대조(다르면 `record_mismatch`) 뒤 `summary.conduction_definition` 읽음. `channel_sign` = verdict 유효. `threshold_eps1` = '보류(채울 card = OP-5)'(N6.20, N6.3 (iv)). 그 밖 값 = 판정 불능. EO-1이 읽는 칸은 §11.7 목록 밖으로 나가지 않는다.
+- **`bridge_status`**(OP-5 엔진 커밋): `compare.json`의 `record_id`를 §11.7 식으로 대조(다르면 `record_mismatch`) 뒤 `summary.conduction_definition` 읽음. `channel_sign` = verdict 유효. `threshold_eps1` = '보류(채울 card = OP-5)'(N6.20, N6.3 (iv)). 그 밖 값 = 판정 불능. EO-1이 읽는 칸은 §11.7 목록 밖으로 나가지 않는다.
 - **2단계 없음**: `conduction.points[]` 재판정·`stage2_judgment`·재요청 자리 0(O-205 (2)·O-210 RR-2). 기록·대조용 읽기는 OP-5 통합 병합 몫이다.
 
-**4.9-4 뒤 card가 갱신하는 칸**(O-183 과도기 0 -- 그 card 같은 병합): **OP-5 통합 병합 = `/kcl_zero_current_devices`(`graph.dc_current_basis` 빈 항 행 직렬화 -- DR-1 전에는 빈 배열), `/intended_region`, `/dc_sweep`(`input_dc` 포함) 생산, `judge.sat_margin_V`·`swing_icmr.input_dc_V`·`input_dc_pending` 삭제**, HC-O·OP-10 = G-18 나머지 확장 칸, SF-1 범위 3·8·9 = 출력 범위, `counted_rails`, DUT 저항 C_par/2, LA-1 = front 판정 호출(범위 (3)), DR-1 = 빈 항 행 생산 card(생산자 코드 변경 0). 귀결(표지): OP-5 뒤 DR-1 전에는 엔진 빈 집합이라 oracle과 `kcl_zero_set_mismatch`가 날 수 있으나, 그런 소자가 있는 점은 봉인 9 거부(N3.6 표 9행)라 oracle까지 오지 않는다.
+**4.9-4 뒤 card가 갱신하는 칸**(O-183 과도기 0 -- 그 card 같은 병합): **OP-5 통합 병합 = `/kcl_zero_current_devices`(`graph.dc_current_basis` 빈 항 행 직렬화 -- DR-1 전에는 빈 배열), `/intended_region`, `/dc_sweep`(`input_dc` 포함) 생산, `judge.sat_margin_V`·`swing_icmr.input_dc_V`·`input_dc_pending` 삭제**, HC-O·OP-10 = G-18 나머지 확장 칸, SF-1 범위 3·8·9 = 출력 범위, `counted_rails`(범위 8은 `acceptance`의 `verified_by(metric).kind` 직접 읽기를 판정 대상 칸·`spice_unverifiable` 칸 READS로 바꾼다, 같은 정의), DUT 저항 C_par/2, LA-1 = front 판정 호출(범위 (3)), DR-1 = 빈 항 행 생산 card(생산자 코드 변경 0). 귀결(표지): OP-5 뒤 DR-1 전에는 엔진 빈 집합이라 oracle과 `kcl_zero_set_mismatch`가 날 수 있으나, 그런 소자가 있는 점은 봉인 9 거부(N3.6 표 9행)라 oracle까지 오지 않는다.
 
 **4.9-5 채택 사실**(위임, O-226 -- LA-1 측정 시점 재검토 대상; 안 비교 원문 = design 이력 H41-41)
 
@@ -1083,7 +1083,7 @@ def bridge_status(ref) -> str                                                   
 | T-B1 | stub oracle로 시작점 판정: 기록 생기고 `starts[]` 행에 참조, 탐색 결과 비트 불변(완료 (3)). 실제 oracle 1회는 OP-5 통합 병합 판정으로 옮김(범위 1~3 병합 = '미완료(보류 다리)', A-10) | 칸 없음 red |
 | T-B2 | 거부 입력 → `oracle_reject`, 반환 코드 2 처리. 봉인 통과 점 없음 → `no_sealed_start`, 호출 0 | -- |
 | T-B3 | `run_decl` 없음·archive 없음 → notes 사유, 호출 0, 다리 '보류' | -- |
-| T-B4 | `bridge_status`: `channel_sign` 유효, `threshold_eps1` 보류, 모르는 값 판정 불능, `record_id` 불일치 거부 | -- |
+| T-B4(OP-5 card) | `bridge_status`: `channel_sign` 유효, `threshold_eps1` 보류, 모르는 값 판정 불능, `record_id` 불일치 거부 | -- |
 | T-B5 | 값 칸 0: `EvalResult`·`SearchFront` 필드 불변, 2단계 호출 자리 0 | -- |
 | T-X2 | 검증자 변화표: 결과에 판정 칸이 새로 생김, 원인 기록(완료 (4)). 값 **미측정** | -- |
 
@@ -2556,7 +2556,7 @@ def loop_roles(view_loops, transfer_views, declared_pm_views) -> tuple[LoopRole,
 | LA-1 10 (d) 가드 합 행(§6.4-2a) | (a) 부하 둘 이상 toy에서 합 행이 동시 상한 선택을 막음; 변화표 행 = card LA-1 변화표 '가드 정정'(합 행 발동 회로·W 클램프 제외 수) | `tests/search/test_start_intervals.py` | O-34 동작 변경 기록 |
 | LA-1 10 (f) CM 평형·기준(40 §5-6) | (a) 저항 감지 + 오차 쌍 toy(θ 전류 축 −1), 단일 출력 무동작, CM 기준 toy 넷(외부 미선언 → `cm_reference_undeclared`, 외부 선언 → F, 내부 생성 → KVL writer, 외부 + 출력 CM 둘 다 → `cm_reference_double_declared`), R1·R2 묶음 기록 | `tests/sizing/test_current_basis.py`, `tests/sizing/test_writer_plan.py` | `cm_reference_undetermined` grep 0 |
 | RS-1 (1)~(3)(40 §3.8-9) | (a) 단일 소자 Δgm = LUT 기울기 × tol_V 닫힌 식, 약반전 점 새 Δp < 옛 Δp; (2) library 13회로 (O-182 Q-LB1) 분해능 표·판정 분류 변화표, (3) 최악 선형 대 RSS 기록 = card RS-1 판정 기록 | `tests/metrics/test_lut_parameters.py` | 열마다 Δp, 결합 최악 선형 |
-| SF-1 범위 8~11(40 §3.1-1) | (a) `counted_rails` 거부 셋·보류 정지, 판정 대상 칸 `judged_targets` 두 축·`unjudged`·`pending_spice` 점 → 미판정(base red)·`ConstraintDecl.judged` grep 0, DUT 전력 toy(V_0 = 0 V 레일 단자 합 -- 계획 P7, 40 §3.1-1), 저항 C_par/2·R_min 종류 후보 toy(계획 SF-1 범위 9 (a)~(d)), 선언 미러 비 toy 넷, 칸 삭제 선언 거부, θ 상자 (a)~(d) toy·`zero_cancel_box` 손계산 구간 | `tests/search/test_constraint_classes.py`, `tests/authoring/test_spec_settings.py`, `tests/metrics/test_supply.py`, `tests/sizing/test_current_basis.py`, `tests/sizing/test_theta_schema.py` | base red 항목은 계획 SF-1 완료 조건 그대로 |
+| SF-1 범위 8~11(40 §3.1-1) | (a) `counted_rails` 거부 셋·보류 정지, 판정 대상 칸 `judged_targets` 두 축·`unjudged`·`pending_spice` 점 → 미판정(base red)·`ConstraintDecl.judged` grep 0, DUT 전력 toy(V_0 = 0 V 레일 단자 합 -- 계획 P7, 40 §3.1-1), 저항 C_par/2·선언 시점 종류 선택 toy(계획 SF-1 범위 9 (4)), 선언 미러 비 toy 넷, 칸 삭제 선언 거부, θ 상자 (a)~(d) toy·`zero_cancel_box` 손계산 구간 | `tests/search/test_constraint_classes.py`, `tests/authoring/test_spec_settings.py`, `tests/metrics/test_supply.py`, `tests/sizing/test_current_basis.py`, `tests/sizing/test_theta_schema.py` | base red 항목은 계획 SF-1 완료 조건 그대로 |
 | SB-1 (4) 거짓 거부(§6.8-1) | (c) 하한이 이긴 사건 전수의 하한 전 점 oracle 판정 = card SB-1 판정 기록 | -- (판정 기록) | 거짓 거부 기록·원인 분류, 정의 원인 결함 0건(O-178 (5) -- v1.16.1) |
 | LA-1 10 (g) 나머지(N6.35 E-07·E-14·E-15·E-24~E-26·E-34·E-35 -- gap D13) | (a) 미지수 2 KCL 행 toy → `kcl_row_underdetermined`(base 무기록 red), `tol_vdsat_max` 열 없는 toy → `tol_vdsat_table_missing`(base 0.0 red), 영점 R 손계산 toy(θ 성분 R → 매크로 풀이 값·망 유지, base 상자 중점·망 열기 -- red; 비θ 갈래 0 -- 계획 표 #12, v1.16.1); grep 0 = `T_refilter`·`E_refilter: 0`·`reserve_evals = 0`·`_e_total` N_T 0·'card C'·`compensation_fixed_fallback`·`constraint_rows` `_undefined` | `tests/search/test_iv_currents.py`, `tests/lut/test_derived_fns.py`, `tests/search/test_macro_poles.py`, grep = card LA-1 판정 기록 | 계획 N6.35 행 '완료 toy' 그대로 |
 | LA-1 12 C 열 스탬프(범위 16, 사용자 결정 O-179 (1) -- v1.16.1 gap 누락 반영) | (a) 단일 소자 g–s·g–b·g–d·d–b 스탬프 값 = LUT C 열 손계산 toy(base = `cgg − cgd` 근사 -- red), 근사 갈래 `git grep` 0(`E/lut/cap_query.py` 갈래 삭제), 회로별 변화표(값 변화 0 예상 -- 변화가 있으면 원인 기록) | `tests/metrics/` C 열 스탬프 toy(파일 이름은 test 주체가 겹침 확인) | 계획 LA-1 완료 조건 12 |
