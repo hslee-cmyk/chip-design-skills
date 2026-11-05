@@ -209,7 +209,8 @@ def test_real_anchor_bins_match_ngspice(real_lut, ngspice_bins, kind, device):
 # 경계 바로 위 -- 비앵커 조회의 b(거부 detail 의 bin 경계·bin 앵커)가 showmod 의 bin 과 같다.
 # [r6] LUT v2 는 경계값 0.18·0.25·0.5·1·2·4·8 µm 가 모두 앵커라(옛 12-L 의 0.18·0.185·0.255·2.0 은 v2 앵커) 경계 위 값만 쓴다
 # (0.1825·0.2525 는 제조 격자 반 칸 -- ngspice 는 1 nm 넘게 위라 위 bin, 4.0.1).
-BOUNDARY_L_UM = (0.1825, 0.2525, 0.505, 1.005, 2.005, 4.005, 8.005)
+# [WB-1 §1] 0.1825·0.2525 행 삭제: 격자 5 nm 의 반 칸 점은 round 로 앵커 0.18·0.25 가 된다(비앵커 아님).
+BOUNDARY_L_UM = (0.505, 1.005, 2.005, 4.005, 8.005)
 
 
 @pytest.mark.lut_realdata
