@@ -46,7 +46,8 @@ def _on_grid(v):
 
 
 def test_function_names():
-    assert {name for name, _region, _fn in DERIVED_FUNCTIONS} == {"edge_costs", "reference_vds", "tol_vdsat_max", "param_row"}
+    # [card 20261104-hcs 계약 변경 -- 승인 대기] tol_vdsat_max 는 삭제(card §1·S8: 판정 여유에 tol 을 더하지 않고 sat_threshold 가 정본), vds_floor 가 옮겨 온다.
+    assert {name for name, _region, _fn in DERIVED_FUNCTIONS} == {"edge_costs", "reference_vds", "param_row", "vds_floor"}
 
 
 def test_edge_cost_is_frozen_lut_value_type():
@@ -112,9 +113,10 @@ def test_param_row_vs_axis_is_lut_grid():
     assert 0.45 in VS_GRID and 0.9 in VS_GRID          # 위 매개변수는 LUT 격자 마디(닫힌 식이 정확한 곳)
 
 
-def test_tol_vdsat_max_zero_without_table_and_for_linear_vdsat(plain, with_vdsat):
-    assert derived(plain, "tol_vdsat_max", "nmos", W_KEY, 1e-6, 0.9) == 0.0
-    assert derived(with_vdsat, "tol_vdsat_max", "nmos", W_KEY, 1e-6, 0.9) == pytest.approx(0.0, abs=1e-12)
+def test_tol_vdsat_max_is_removed_and_unknown_to_derived(plain):
+    # [card 20261104-hcs 계약 변경 -- 승인 대기] 옛 '표 없으면 0' test 의 대체: 삭제된 이름은 모르는 이름이라 KeyError(0 으로 바꾸지 않는다).
+    with pytest.raises(KeyError):
+        derived(plain, "tol_vdsat_max", "nmos", W_KEY, 1e-6, 0.9)
 
 
 @pytest.mark.parametrize("kind", ["nmos", "pmos"])
@@ -150,3 +152,67 @@ def test_real_lut_bins_follow_slice_anchor_bins():
         assert e.vgs_min_v == min(v for _, v in e.vgs_min_by_bin)
         grid = lut.slice_map[(kind, w_key)].grids[1]
         assert min(abs(e.vgs_min_v - g) for g in grid) <= 1e-12
+
+
+# ===========================================================================
+# [card 20261104-hcs] S3 / S7 / S7b -- edge_costs.vds_min_v 는 포화 가능 점의 VDSAT 최솟값(tol 합 없음), vds_floor 는 derived 표
+# oracle: (손) 아래 VDSAT 배열 지정으로 정답이 정해지는 합성 입력 / (b) vds_floor 는 sizing conftest `r4_vds_floor`(npz 직접).
+# ===========================================================================
+import numpy as np  # noqa: E402
+
+from gmid_engine.lut import DERIVED_TABLES  # noqa: E402
+
+from sizing.conftest import r4_arrays, r4_vds_floor, write_r4_lut  # noqa: E402
+
+from .hcs_cases import memo_of as r4_memo_of, write_lut_with_vdsat  # noqa: E402
+
+R4_W_KEY = 100
+
+
+def _unsat_min_lut(root):
+    """VDSAT = 0.5 + 0.0625·VGS, 단 VDS 열 0 은 0.125 + 0.0625·VGS. gm/ID = 20 − 8·VGS 단조라 마스크 전 칸 참, 분지 = 전부.
+    VDS 격자 0.25 간격: VDS 0 열은 VDSAT 이 가장 작지만(0.125) 0 < 0.125 라 포화 아님; VDS 0.25 는 0.25 < 0.5 포화 아님; VDS 0.5 는 0.5 ≥ 0.5
+    (VGS = 0, 등호 경계) -> 포화 가능 점의 VDSAT 최솟값 = 0.5 (손). 비포화 점까지 보면 0.125."""
+    def fn(kind, a):
+        v = 0.5 + 0.0625 * a["VGS"][None, :, None, None] + np.zeros(a["ID"].shape)
+        v[:, :, 0, :] = 0.125 + 0.0625 * a["VGS"][None, :, None]
+        return v
+    return write_lut_with_vdsat(root, fn)
+
+
+@pytest.mark.parametrize("kind", ["nmos", "pmos"])
+def test_vds_cost_is_min_vdsat_over_saturable_points_not_unsaturated_ones(tmp_path, kind):
+    e = derived(r4_memo_of(_unsat_min_lut(tmp_path)), "edge_costs", kind, R4_W_KEY)
+    assert e.vds_min_v == 0.5                                       # 이진 분수라 정확(손)
+    assert e.vds_min_v != 0.125
+
+
+@pytest.mark.parametrize("kind", ["nmos", "pmos"])
+def test_vds_cost_zero_and_no_saturation_filter_without_vdsat_column(tmp_path, kind):
+    """S3: 열 없음 -> vds_min_v = 0.0 (사유 없는 0 이 정의, 포화 거르기 없음). 거르지 않으므로 VGS 비용은 '모든 점이 포화 가능'한 같은 LUT(VDSAT = 0)와 같다."""
+    nocol = r4_memo_of(write_r4_lut(tmp_path / "n", vdsat=()))
+    zero = r4_memo_of(write_lut_with_vdsat(tmp_path / "z", lambda k, a: np.zeros(a["ID"].shape)))
+    en, ez = derived(nocol, "edge_costs", kind, R4_W_KEY), derived(zero, "edge_costs", kind, R4_W_KEY)
+    assert en.vds_min_v == 0.0 and ez.vds_min_v == 0.0
+    assert en.vgs_min_v == ez.vgs_min_v and en.vgs_min_by_bin == ez.vgs_min_by_bin
+
+
+def test_vds_floor_is_registered_after_existing_derived_tables():
+    assert "vds_floor" in DERIVED_TABLES and DERIVED_TABLES[-1] == "vds_floor"
+    assert DERIVED_TABLES[:-1] == ("curve_report", "edge_costs", "midpoint_l_bin_checks", "noise_planes", "tol_mismatch_table",
+                                   "tol_noise_table", "tol_v_table", "tol_vdsat_table")           # 기존 항목 그대로, 뒤에 추가
+
+
+@pytest.mark.parametrize("kind,off_cols,off_points,want", [
+    ("nmos", 0, (), 0.0),                                          # 꺼진 곳 없음 -> VDS 격자 최소
+    ("nmos", 2, (), 0.5),                                          # VDS 열 0·1 꺼짐 -> 첫 켜진 열 0.5
+    ("pmos", 1, (), 0.25),
+    ("nmos", 0, ((0, 3, 5, 2),), 1.5),                             # VDS 열 5 의 한 점 GM = 0 -> 그 열 이후 전부 참인 첫 열 = 6 -> 1.5
+])
+def test_vds_floor_matches_independent_closed_form(tmp_path, kind, off_cols, off_points, want):
+    assert "vds_floor" in DERIVED_TABLES                           # 신규 이름 등록(없으면 derived 가 KeyError 라 먼저 단언으로 거른다)
+    lut = write_r4_lut(tmp_path, off_cols={kind: off_cols}, off_points={kind: off_points})
+    got = derived(r4_memo_of(lut), "vds_floor", kind, R4_W_KEY)
+    ref = r4_vds_floor(r4_arrays(kind, off_cols=off_cols, off_points=off_points))      # oracle (b)
+    assert ref == want                                                                  # 입력 검사
+    assert got == ref

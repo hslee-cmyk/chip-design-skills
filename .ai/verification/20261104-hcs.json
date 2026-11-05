@@ -1,0 +1,322 @@
+{
+  "id": "20261104-hcs",
+  "spec_card": "docs/02-design/specs/20261104-hcs.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "eecae6218e2b1ad9c0476ea88c8e0ab7c29960ac",
+  "test_commit": "3fc801432424a847d39bf8ca9a05c851e1718456",
+  "code_commit": "f7ae342ba3d72701fc4b880d5fcc5a1c43f4c969",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_reason_constants_and_value_type",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_reverse_vds_is_a_reason_and_costs_no_lookup[-0.25-nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_reverse_vds_is_a_reason_and_costs_no_lookup[-0.25-pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_reverse_vds_is_a_reason_and_costs_no_lookup[-1e-12-nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_reverse_vds_is_a_reason_and_costs_no_lookup[-1e-12-pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_reverse_vds_outranks_missing_column_and_domain",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_vds_zero_is_not_reverse[nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_vds_zero_is_not_reverse[pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[0.5-0.0-1e-06-nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[0.5-0.0-1e-06-pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[0.5-0.0-2e-06-nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[0.5-0.0-2e-06-pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[0.3125-0.125-1e-06-nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[0.3125-0.125-1e-06-pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[0.3125-0.125-2e-06-nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[0.3125-0.125-2e-06-pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[1.0-0.5-1e-06-nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[1.0-0.5-1e-06-pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[1.0-0.5-2e-06-nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_value_row_matches_closed_form[1.0-0.5-2e-06-pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_tol_cell_none_keeps_value",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_column_unavailable_is_a_reason_not_zero[nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_column_unavailable_is_a_reason_not_zero[pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_axis_outside_is_lut_domain[vgs_out]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_axis_outside_is_lut_domain[vds_out]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_axis_outside_is_lut_domain[vsb_out]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_axis_outside_is_lut_domain[L_out]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_missing_slice_is_keyerror_not_a_reason",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_tol_is_the_anchor_bin_cell_not_wrapped_maximum[0]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_tol_is_the_anchor_bin_cell_not_wrapped_maximum[1]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_removed_names_absent_from_engine_sources",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_tol_vdsat_is_never_called_in_engine_sources",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold::test_sat_threshold_no_direct_vdsat_lookup_in_metrics_or_seal_region",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold_grid::test_sat_threshold_grid_entries_equal_sat_threshold_at_every_grid_point[nmos-cap_column_only]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold_grid::test_sat_threshold_grid_entries_equal_sat_threshold_at_every_grid_point[nmos-mixed]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold_grid::test_sat_threshold_grid_entries_equal_sat_threshold_at_every_grid_point[nmos-slice_column]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold_grid::test_sat_threshold_grid_entries_equal_sat_threshold_at_every_grid_point[pmos-cap_column_only]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold_grid::test_sat_threshold_grid_entries_equal_sat_threshold_at_every_grid_point[pmos-mixed]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold_grid::test_sat_threshold_grid_entries_equal_sat_threshold_at_every_grid_point[pmos-slice_column]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold_grid::test_sat_threshold_grid_is_none_without_a_vdsat_column[nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_sat_threshold_grid::test_sat_threshold_grid_is_none_without_a_vdsat_column[pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_derived_fns::test_tol_vdsat_max_is_removed_and_unknown_to_derived",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_derived_fns::test_vds_cost_is_min_vdsat_over_saturable_points_not_unsaturated_ones[nmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_derived_fns::test_vds_cost_is_min_vdsat_over_saturable_points_not_unsaturated_ones[pmos]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_derived_fns::test_vds_floor_is_registered_after_existing_derived_tables",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_derived_fns::test_vds_floor_matches_independent_closed_form[nmos-0-off_points0-0.0]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_derived_fns::test_vds_floor_matches_independent_closed_form[nmos-2-off_points1-0.5]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_derived_fns::test_vds_floor_matches_independent_closed_form[pmos-1-off_points2-0.25]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_derived_fns::test_vds_floor_matches_independent_closed_form[nmos-0-off_points3-1.5]",
+      "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_gate::test_off_gate_reads_the_field_baseline_not_the_lut_value",
+      "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_gate::test_off_gate_correction_lookups_are_sat_threshold_per_nonzero_term_and_baseline_costs_none[no_shift]",
+      "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_gate::test_off_gate_correction_lookups_are_sat_threshold_per_nonzero_term_and_baseline_costs_none[vds_only]",
+      "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_gate::test_off_gate_correction_lookups_are_sat_threshold_per_nonzero_term_and_baseline_costs_none[vds_and_vgs]",
+      "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_gate::test_off_gate_field_reason_reverse_vds_triode_same_as_t_g6",
+      "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_gate::test_off_gate_field_forward_vds_to_reverse_undeclared_rejected_triode_passes",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_iv_headroom::test_headroom_lower_bound_is_the_vdsat_curve_crossing_without_tol_terms[1.2]",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_iv_headroom::test_headroom_lower_bound_is_the_vdsat_curve_crossing_without_tol_terms[1.35]",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_iv_headroom::test_headroom_without_vdsat_column_is_an_inactive_row_not_a_substitute_bound",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_widths::test_dc_sat_v_undeclared_devices_hold_the_lut_values_at_their_operating_points",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_widths::test_dc_sat_v_writer_is_dc_widths_in_the_authority_table",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_widths::test_dc_sat_v_off_declared_has_reason_and_triode_has_the_lut_value",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_region::test_region_seal_reverse_vds_costs_no_vdsat_lookup",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_region::test_dc_sat_v_field_at_vdsat_passes_indistinct_zero_and_costs_no_lut_lookup",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_region::test_dc_sat_v_field_half_tol_below_vdsat_fails_indistinct_and_costs_no_lut_lookup",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_region::test_dc_sat_v_field_tol_none_keeps_judgment_and_lists_indistinct_undefined",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_region::test_dc_sat_v_reason_reverse_vds_is_the_reverse_row_without_lut_lookup",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_region::test_dc_sat_v_reason_lut_domain_is_item9_undefined",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_region::test_dc_sat_v_reason_column_unavailable_is_item7_undefined_even_when_lut_has_the_column",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_region::test_dc_sat_v_without_vdsat_column_is_reason_not_zero_and_seal7_pending"
+    ],
+    "failure_hashes": [
+      "5cad73e0adf29e0b35c8cabc6fcebdad636bed259154f120f259892a3d7e7915",
+      "eba2b71a25be255c8bd6c0d6f47c1cbbd435f24fbccccabcd1576ed69af7e00f",
+      "d6e1d0435697c82f42fd655c49f5548bcd724331a23ab2dbd50710bf189345cc",
+      "ac468c92c349b43fbeb81331ebc75af112f3a706a94d86384d16ff202cb46e07",
+      "4ccaf1b4ece4086c84c5da562ab17d5d0c5860bac96256a74335809cafa897aa",
+      "4146e649dd5579365353e36fee38249f2188d11f119dc93ff871acdd2f0aaa23",
+      "a1ede0b8fbcc41fa40c50f5077c73cab1838abb6bd445dc3559b9d3e07522252",
+      "2ce6b6abe1d54867214e853b6b9d39019c412e31cdfb566aad6ca7edc78f5c10",
+      "6416cbe3fcb781c7d5a7604d1f05d6c59ebca30a3f18751af7fd1b7232424040",
+      "8bf8d4f974a7fa422cb8c511686d5ed6821c2d719fbf003bde4a7dd6b54f782f",
+      "716b73d0d19c7babc0ba86d13e14c22ceea68bc19ae326a8612f08db5133b03f",
+      "a3b4a427014f3d09c4626aa2896866c80b4d5aa533e3303ace0d393eca1e09fe",
+      "e0326020282586fea5d084fc7372e2f39a7c5c031210368f0510d9c2048a4e6f",
+      "2f1a31e0baa28189fe306633cafeba21a4a9d40cd3db76bf240effda7b31a0a0",
+      "28a4b50a7b5ea509ceedd2b1a9996328dc83f93d2abd5a9347609102e7725807",
+      "90489c82be8a4b12dea7fa16903e9a34bc5a568c3470a1a3aebab2cbd5a6592b",
+      "1e0d841bebbee683d560ecb945a70f646338166bd9e5164e1887e8368ff48a7e",
+      "328454e45a90181d8d52541ff9e637aa186e7e4665b70e2bb9c238c9f76f3080",
+      "f1b6f13a84f94fd90c3ffebc35dba6c5c859e1c47f1f857edee6541de6020fb1",
+      "ecf4d4141a065cc67eb11d520d380603e472d5ffcd9d6ec4534a63ff8b1e4db5",
+      "29a0b70210c0ae2a0c65ae9ecf04c9704ee15812a776fd39c530faf22610acf5",
+      "87550e7fb6fcb4a5d220234bbb51fe1e81b7de4b21ad9d76f751d4daf09baa89",
+      "071465eea8cf59cb9d3a061c12ed76f37bf385f0705d9332a709c13be7153baf",
+      "74b11bdaf55e2e34055a2fd870a3f3ea76f5d607dd6696553b5cf5d796a1a451",
+      "4cce7dca2c3eead7bdd74f56fcfa3d6a4f086cc6d0109678a3c1c928ee023e06",
+      "6cda414189af1b8ff7aba1b36520719963402e05f0d001a2cfd4ed4cd083dd80",
+      "5fcf927efaf13ac0f589bbc1fc2bd0fde94ff2d717912eee66dbcd9be35e1b21",
+      "f16942fe87f51af5e5101e4a9d1beadfed898f19949f8592df3efba4936855af",
+      "f79ef50accc0701386255b7146917dc879958e330e97d2c24bca5ae3038670b2",
+      "624086e4e9db1df1e84e4fa4d650242fc584837a03d5d37fbe51558d45fca2f5",
+      "0e7447ff9efa1867f89a224b5258ff7fb87543b448d89c39f6199d2c0968b9d4",
+      "074320ac2773a9cc967d68c391d4889d1231c5361ff3e07d0dfd8191b235b194",
+      "4cc830e112a4e47e28c3de263eb1c5377cf922e155ce6ed8b778e66cb63cf492",
+      "00d30cf2986819942897a347bc8d9e33cc6d64bc32c76d1a7c8b76984121b96e",
+      "a54955c918562924b5b8138c500910b83c71d0d9770c8f41f5651d8f5e426e10",
+      "ccd5fd4c8b7d83b9516494d377c66f2313e39f43c56ea5d0fd86f600209bdbee",
+      "f6fd42b7626eac71a64c15a788c852eca5bf358a64609ffe675c9bc3cd8a9cec",
+      "5b98daee9e52235949dbd488e2412a45d43d844d6db2bf76f46b757ce362cb38",
+      "a81ef454ddeb26c53f278ca9de872214768fe749409f3db7bade912f8e4a4fa5",
+      "5882917781da05b00b4da86d12650ddbe9abdf44223dd469f9166ef9bf813306",
+      "b2ee3138849dd56751446fcdbaca52531a151cc5734e1c6c6b1547360ac34409",
+      "c3edb5dfce725db9579478b2843dafe1ec2962f8d28121725c59fa6c3412b300",
+      "3bca08801c9f5f39774db6fede17cb0d94920499eed532a5399d79fb5342e10f",
+      "71672035d566c0abce23ecdb3e84cfdc6e810054546c8ae9bcee5fba97ce7ac6",
+      "362236399b84657debe109be2e64bdb61e693f03b7051e417f73e1a3273d6c53",
+      "eebbe9fe913862b17626f40b0823c1122e97daccd926e2184376e0243a54eb86",
+      "f9b9abf97a33f316323a062ea4e9055d0030f5a95427d7fd602f411ceb963038",
+      "1923da274ca9dc2d5ee1453a14421c791db521d1540ab070bcf6193096c39552",
+      "cc27d7e8f1b11475ab8fa44d53364b459b7218f2ee3f295da6fa3fa6c68a5d83",
+      "eb4801e99651049f1dff372beff6178ed670aad797bb1c4a07ee8443354e5186",
+      "1b78258fb6f1ae6c62398e162d9cd3bb1489043123882264abf87450ee81d2fd",
+      "7a761934d449d17ac77f9d4d91bc1db4c05b7079fceca13193109b46cb6879a2",
+      "5b49ed6e28cb03bf569e1e61d83308f24822b7b07e4ccfa797fa9441fb6647a5",
+      "eb7c5648622b39a921046903cef7d62256510378450f31a4458f28d87fc2c972",
+      "3fea4d96f971ddb46dcfae13f8ac87bcdd030ac3910bf7afde461672f5f774eb",
+      "83c298b855054013df92cfaa7d0587193e545dc2bc6757f1d43db4a86a7b3bae",
+      "c1f20ccdead551b62272e30c5b827a47dcb75756c4178128ad6a3a7799d55d8d",
+      "9bd67868985eec9967366a0d9f17b0e61494141f7132777cddb8331034c7ce0e",
+      "d4f71d140c996a47939a16e760d38e6af7ed5ebb37e4e0f0ac14c9c2c93eb359",
+      "642139390a6a9d3e44c502aef2ba03c3bca1f55047860815e73a89b5af896af1",
+      "a596e9444295156dea0574f56c0307e0c8122f2ef6fb7e8be0ecc8b94fa572b5",
+      "6a030f2a448103c60007099e4a0348d21ffedd21f51be5d5b86de4bc6c6dab64",
+      "1bdfacd2443f42be0c28d0915ea73741b9b9623f12ae850643d803d5d0c6e5ca",
+      "c2497329630fdb54b59c46b6f62883821f510ddb808ee25c74d4396b8d07df19",
+      "89c549b4738b377632d74600ee0db6da36a83652224f2199fbabc5734b184021",
+      "95b9c34be9464c67f2f5e19e3cb28da08e240d82ea25922dc715b247939d01c4",
+      "033598689e98b07c22ced831f8019445d6142d5ec2f1a7360a35b3df13b82026",
+      "33116bc4fcc7181f4d25c584f8309744c8e2da512ec31579a6f9f5467963c7d4",
+      "8693ad5473f66fb21b35918ed1f7183ff594cfc7f54f28aa41dfd4a2b0105037"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "N/A",
+      "basis": "전체 test 안 돌림(임시 규칙 O-229). 돌린 범위 = 격리 복제본 iso, 머리 e1a99778: card test 12파일(test_s2_values 포함) 350 중 346 통과 4 실패 / card 소비자 5파일(input_window·scc_newton·size_and_seal_local·metrics_aux·icm_config) 150 통과 / search/test_canonical_order 12 통과 / tests/structure 171 통과 1 deselected / 2회로 연기 stage_b 10 통과, s0 10 통과 1 실패, g10 2 통과. 안 돌린 것(다른 회로·SPICE·13회로 변화표)은 통과로 세지 않는다. [A-103 재판정, 머리 820eac2c, 새 복제본 iso2] test_s2_values 50 통과 / lut 3파일(test_sat_threshold·test_vdsat_tolerance·test_lut_memo) 110 통과 / test_canonical_order 12 통과 / tests/structure 171 통과 1 deselected / 2회로 연기 stage_b 10·s0 11·g10 2 통과. 머리에서 다시 돈 것은 이것뿐이다. 나머지 card test(앞 판정 12파일 중 3파일 밖 + 소비자 5파일)는 e1a99778 값이고 재실행 안 함(그 사이 skills 변경 = vdsat_tolerance.py 한 줄, test_s2_values.py, 기준선 fixture 세 파일뿐)."
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "M-1·M-2 해소(앞 판정 FAIL 은 커밋 639eef25). M-1: 3fc80143 의 test_s2_values.py 변경 = DC_TABLE 에 device.dc_sat_v -> dc_widths 행 추가, 표 크기 단언 33 -> 34, dc_widths READS 기대 집합에 device.region_decl 추가. interface 2절(writer = dc_op 와 같은 블록 dc_widths)·spec 재작성 범위(READS device.region_decl)와 일치. 삭제·완화 0, 집합 같음 단언 그대로라 약화 아님. 50 통과. M-2: 기준선 diff 칸 14 = start.row_fp 13 + ladder_fp 1, s0_baseline_proposal.json 값과 칸별 전부 같음, 제안 밖 칸 0, 다른 회로·최상위 변경 0(scripts/cmp_baseline_a103.py). s0 연기 folded_cascode 포함 11 통과. 적용 주체 = test 역할(판정자 아님, A-103). red 근거는 앞 판정 그대로(base 엔진 + test 0c314488)."
+    },
+    "V3": {
+      "verdict": "FAIL",
+      "basis": "복사본 뮤턴트 12(대조 m0 은 트리에 tools 가 없어 test_region_oracle_tool 1건만 실패, 복제본에서는 통과). 죽음 6: m4 headroom level tol, m6 봉인 tol, m7 vds<=0, m9 off 항목 삭제, m10 _reference_vds IDu 제거, m13 tol_vdsat( 호출. 생존 6: m1 region_rows 여유에 tol, m2 sat_v 에 tol, m3 iv_domain 탐침에 tol, m5 edge_costs 포화 술어 >, m8 격자 불일치 거부 삭제, m11 봉인점 region_rows 가 필드 대신 LUT. m1·m2·m3 은 A-90 S13·S12·S10 공백 그대로이고 O-204 값이 test 로 고정되지 않았다는 뜻이다(값은 V9 직접 호출이 잰다). test 공백이고 Major 기준 밖(minor, LA-1 재점검 입력). 결과 = mutants.jsonl."
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: S1·S3b·행 4·5 = r4 닫힌 식(conftest, npz 직접, 판정자 손 재계산 0.25, 2^-10, 0.0625 일치), S2 = lut 공개 함수 tol_vdsat_table(별도 test 대상, card 허용), S7 = 지정 배열 손 0.5, S9 = 꺾은선 교점 손, S11 = 2진 분수 손(V0 주입 s′ +0.171875 / −0.015625 판정자 재계산 일치). 피검 함수로 기대값을 만든 곳 0: test_seal_region state()·_inject_closed_form 은 r4_vdsat_at·r4_tol_vdsat·상수만 쓰고 sat_threshold 를 부르지 않는다. 다만 test_floor_cached_in_lut_memo 가 memo 키 \"vds_floor\" 를 단언한다(interface 4절 단언 금지, 옛 test 꼴 유지, minor). 자기참조 lint 도구 안 돌림(O-229 규칙 4)."
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "기준 약화 없음. (a) test_region_seal_reverse_vds_costs_no_vdsat_lookup 정상 점 '조회 >= 2 -> 0': 봉인이 필드만 읽는 계약 변경의 결과이고 대조 역할은 LUT 와 다른 값을 주입하는 test_dc_sat_v_field_* + LutCalls 호출 0 이 맡는다(m6 죽음). (b) S8 토큰 금지 -> 호출 금지: interface S8 문언이 `tol_vdsat(` 이고 다른 삭제 이름은 그대로 금지, m13 죽음. (c) state() 재주입은 닫힌 식이라 피검 함수 기대값 아님. (d) test_off_gate 조회 수 1+extra -> extra, off 닫힌 식 s′ -0.009765625 불변. (e) 옛 '표 없으면 0' test 는 삭제 이름 KeyError 로 대체. 기준선 u17_1b_s0_baseline.json 은 이 판정에서 건드리지 않았다(제안 파일만, 아래 V9). [A-103] 기준선 갱신은 O-204 card 항목의 값 변화이고 원인은 앞 판정이 원인 대조로 쟀다(iv_domain 옛 tol 복원 -> 13/13 복귀). 기준 약화 아님. 다른 탐색 회로 7개 기준선은 안 돌렸고 통과로 세지 않는다."
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "tests/structure 171 통과 1 deselected, 래칫 new 0, stale 2: (g8_memo_lookup_form sizing/block_columns.py _vds_floor) = spec 이 예고한 줄어듦, (vt_assign sizing/s2_values.py NO_ORDER_HINTS:OrderHints) = TB-1 때부터 있던 것. gmid_engine/graph diff 0, structure.json 변경 0, assets 변경 0(rule_hash 해당 없음). 회로 이름 0·PDK 이름 0(diff 추가 줄 grep, 규칙 D·E 통과). [A-103, 머리 820eac2c] 171 통과 1 deselected, stale 같은 2건, 래칫 new 0. f7ae342b = lut/vdsat_tolerance.py 한 줄이 (\"table\", \"tol_vdsat\") 로 복귀, 다른 변경 0(Role: code, 오케스트레이터). 3파일 110 통과."
+    },
+    "V7": {
+      "verdict": "PASS",
+      "basis": "필드 수 1(device.dc_sat_v, writer dc_widths 하나, S2_WRITERS 단언) / 소비자 0 인 필드 0(dc_seal_region, metrics_aux._sat_devices, icm_config region_rows, off_region_gate 4곳) / 정본 우회 의심 0: 봉인 7·_sat_devices·봉인점 region_rows·관문 기준값 LUT 재호출 0(소스 grep 과 LUT 와 다른 값 주입 측정), region_rows 의 sat=None 호출은 block_columns:197 시도 전압 하나뿐 / KVL·KCL 관계 미적용 0(풀이 변경 없음) / graph 밖 저장 자리 0(새 cache·슬롯 0, sat_threshold_grid 는 LUT 배열 참조, vds_floor 는 옛 sizing_vds_floor 항목이 옮겨 온 승인 예외 LUT memo). _vds_domain_floor 는 이름만 바꾼 둘째 생산자가 아니다: 옛 함수는 삭제됐고 정의 1, 소비자는 derived 경유 block_columns 2곳뿐. off_declared 항목은 interface 2절·HC-D 3.3 이 정한 것이고 작성자 임의가 아니다. 다만 그 항목의 현재 엔진 소비자는 0(소비자는 dc_op 키로만 읽는다, seal_region·ss_off_gate 의 REASON_OFF_DECLARED 갈래 도달 0, minor). 사실 기록: D40 §2.4.8(:455) 소유표 소비자 칸에 icm_config 봉인점 region_rows 없음, 이 card 는 docs 중 레지스트리만 바꿨다. vdsat_curve 는 여전히 마디마다 vdsat 을 부른다: 계약 5 '곡선 생성이 sat_threshold_grid 를 읽는다'·HC-D J2 문언과 다르다(_has_vdsat_column 존재 확인으로만 씀). 같은 LUT 열을 읽는 곡선 층이라 graph 필드 둘째 생산자는 아니다(minor)."
+    },
+    "V8": {
+      "verdict": "PASS",
+      "basis": "폴백 발동 0/32: 실제 LUT 32 슬라이스 전부 슬라이스에 VDSAT 열(sat_threshold_grid 값 32, None 0, 예외 0, 기준 LUT 격자 = 슬라이스 격자 32/32). 그래서 vdsat_grid_not_slice_grid 와 _reference_vds IDu 갈래는 실제 LUT 에서 발동 0. _reference_vds IDu 갈래: spec '코드 변경 없음' 목록과 다르지만 S9(contract 5)를 통과시키려면 필요하다(m10 이 S9 를 죽인다). 옛 정지 lut_curve_undefined_for_all_l 대신 VDSAT 경계 비활성으로 계속 간다. 판정 쪽 fail-open 아님: 봉인 7 undefined, seal_status 대기, swing sat_unavailable 이고 출발값 전용(EP-7). 다만 r4 toy 에서 기준 VDS = 0.0 V 로 곡선을 읽는다(물리적으로 포화 기준점이 아님, 출발값에만 쓰임). card 근거가 문언으로 없어 minor, LA-1 재점검 입력."
+    },
+    "V9": {
+      "verdict": "PASS",
+      "basis": "O-204 손 대조: sat_threshold 행 1~5 (reverse_vds 조회 0 / column / lut_domain / 0.0625, None / 0.25, 2^-10). 봉인 7(주입 VDSAT 0.75, tol 0.125): VDS = VDSAT pass slack 0, -tol/2 fail, +tol/2 pass, -1 ulp fail, tol 은 indistinct 기록만. 실제 writer 값 M1 0.303125 tol 2^-10, M2 0.671875 tol 2^-9 = 손 보간 일치. 창 행: 0.596875, 0.228125 = VDS - vdsat, triode 부호 반대, 사유 3종·열 없음 -> None. sat_v: A(0.25, 2^-10), 사유 3종(None, None), tol None(0.25, None). domain 탐침: VDSAT 0.2495 + tol 0.000977 사이 마디가 0.25(옛 0.5), 탐침 집합 = 독립 올림 {0.25, 0.5, 0.75, 1.0}. edge_costs 등호: 포화 가능 점이 전부 VDS = VDSAT 인 LUT 에서 0.25. 문제 남김(minor, 회귀 아님): 실제 사슬에서 VDS < 0 은 dc_widths 의 forward_point 가 먼저 lut_query_failed(axis VDS) 로 멈춰 reverse_vds 가 필드에 들어가지 않는다. 함수 수준 계약은 맞고 fail-closed 이나, 41 §4.8-2 VDS < 0 행과 '역방향 VDS 는 LUT 축 오류가 아니다'는 tamper 입력으로만 닿는다(triode VDS < 0 은 설계상 통과인데 실제로는 거부). 기준선 항목: start.row 변화 원인 = domain_bounds tol 삭제. head + iv_domain 만 옛 tol 복원 -> start.row 13/13, graph/start 8/8 기준선 일치. 작성자 보고 원인 edge_costs.vds_min_v 는 틀렸다(32 슬라이스 변화 0, vgs_min·기준 VDS 도 0). 값 변화: pmos M3~M6 lut_inverse_domain lo 1.3949 -> 1.4832, area_gm_id hi 21.581 -> 21.449, nmos gm_id_hi 수 ppb. 의도된 O-204 변화."
+    },
+    "V10": {
+      "verdict": "N/A",
+      "basis": "완료 수치: 위 V1~V9. 미완료(보류 다리): SPICE, (a) 시작점 ngspice, (b) headroom_unattainable 하네스, 13회로 변화표(sat_v, vds_min_v), 조회값 필드별 동일성 -- 통과로 세지 않는다(O-229, A-5, A-10). 연기 시험 회로 = 브리핑의 folded_cascode·ngcc_3stage_ff(spec 의 두 회로와 다름, O-229 규칙 2 우선). ngcc_3stage_ff 는 기준선 status review_needed 라 SEARCHED 밖이다: test_s0_field_values_unchanged_from_base[ngcc] 는 수집되지 않으므로 start.row 불변의 증거가 아니다. 기준선의 다른 탐색 회로 7개는 안 돌렸다."
+    }
+  },
+  "reproduced_numbers": [
+    {
+      "name": "card test 12파일 통과",
+      "value": 346,
+      "command": "out/card1"
+    },
+    {
+      "name": "card test 12파일 실패(test_s2_values)",
+      "value": 4,
+      "command": "out/card1"
+    },
+    {
+      "name": "base test_s2_values 통과",
+      "value": 50,
+      "command": "out/base_s2"
+    },
+    {
+      "name": "소비자 5파일 통과",
+      "value": 150,
+      "command": "out/card2"
+    },
+    {
+      "name": "search/test_canonical_order 통과",
+      "value": 12,
+      "command": "out/canon"
+    },
+    {
+      "name": "tests/structure 통과",
+      "value": 171,
+      "command": "out/structure"
+    },
+    {
+      "name": "래칫 stale",
+      "value": 2,
+      "command": "out/structure"
+    },
+    {
+      "name": "연기 stage_b 통과",
+      "value": 10,
+      "command": "out/smoke_stageb"
+    },
+    {
+      "name": "연기 s0 통과",
+      "value": 10,
+      "command": "out/smoke_s0"
+    },
+    {
+      "name": "연기 s0 실패(folded_cascode 기준선)",
+      "value": 1,
+      "command": "out/smoke_s0"
+    },
+    {
+      "name": "연기 g10 통과",
+      "value": 2,
+      "command": "out/smoke_g10"
+    },
+    {
+      "name": "실제 LUT 슬라이스 수(vds_min_v 변화 0)",
+      "value": 32,
+      "command": "scripts/cmp_dumps.py"
+    },
+    {
+      "name": "원인 대조 복원 뒤 기준선 일치 start.row",
+      "value": 13,
+      "command": "scripts/patch_attr.py + dump_s0_rows.py"
+    },
+    {
+      "name": "뮤턴트 생존",
+      "value": 6,
+      "command": "mutants.jsonl"
+    },
+    {
+      "name": "sat_threshold 호출당 us(vdsat 적중 9.5)",
+      "value": 206.1,
+      "command": "scripts/time_sat.py"
+    },
+    {
+      "name": "A-103 test_s2_values 통과",
+      "value": 50,
+      "command": "out2/s2"
+    },
+    {
+      "name": "A-103 lut 3파일 통과",
+      "value": 110,
+      "command": "out2/three"
+    },
+    {
+      "name": "A-103 test_canonical_order 통과",
+      "value": 12,
+      "command": "out2/canon"
+    },
+    {
+      "name": "A-103 tests/structure 통과",
+      "value": 171,
+      "command": "out2/structure"
+    },
+    {
+      "name": "A-103 연기 stage_b 통과",
+      "value": 10,
+      "command": "out2/smoke_stageb"
+    },
+    {
+      "name": "A-103 연기 s0 통과",
+      "value": 11,
+      "command": "out2/smoke_s0"
+    },
+    {
+      "name": "A-103 연기 g10 통과",
+      "value": 2,
+      "command": "out2/smoke_g10"
+    },
+    {
+      "name": "A-103 기준선 변경 칸(제안과 같음)",
+      "value": 14,
+      "command": "scripts/cmp_baseline_a103.py"
+    }
+  ],
+  "approvals": [],
+  "auditor_run": {
+    "time": "2026-11-05T17:30:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-hcs-audit",
+    "commands": [
+      "V1: 전체 test 안 돌림(O-229), 범위 = out/*.meta 파일별 실행",
+      "격리: git clone --no-hardlinks --no-local <audit worktree> iso, remote remove origin, 머리 e1a99778",
+      "격리: git archive eecae621 -> base, red(+ tests 0c314488); git archive HEAD -> mut, attr",
+      "격리: git clone --no-hardlinks --no-local <audit worktree> iso2, remote remove origin, 머리 820eac2c (A-103 재판정)"
+    ]
+  }
+}

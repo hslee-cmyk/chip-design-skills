@@ -44,13 +44,33 @@ def mk(tmp_path_factory, r4_access):
     return make
 
 
-def state(ctx, m1=None, m2=None):
+def state(ctx, m1=None, m2=None, tol_defined=True, column=True):
     """봉인 전 스냅샷의 dc_op 를 점으로 정해 넣는다(기본 = 둘 다 깊은 포화)."""
     snap, _ = with_tol(ctx, theta_r4c())
     ops = dict(snap.column("device", "dc_op"))
     upd = {"M1": dataclasses.replace(ops["M1"], **{**M1_OK, **(m1 or {})}),
            "M2": dataclasses.replace(ops["M2"], **{**M2_OK, **(m2 or {})})}
-    return tamper(snap, "dc_widths", "device", "dc_op", upd, version=snap.block_version("dc_widths"))
+    snap = tamper(snap, "dc_widths", "device", "dc_op", upd, version=snap.block_version("dc_widths"))
+    return _inject_closed_form(snap, upd, tol_defined, column)
+
+
+def _inject_closed_form(snap, ops, tol_defined, column):
+    """[card 20261104-hcs] oracle (a)/(식): 점을 바꿨으므로 `dc_sat_v` 도 같은 점의 닫힌 식으로 다시 정한다.
+    VDS < 0 -> reverse_vds; 축 밖(L 앵커·VGS·VS) -> lut_domain; 그 밖 -> (r4_vdsat_at, r4_tol_vdsat | tol 셀 없음 None).
+    기대값 원천은 conftest 닫힌 식(피검 함수 아님)."""
+    from gmid_engine.lut import SatBound
+    out = {}
+    for name, op in ops.items():
+        if op.vds < 0.0:
+            out[name] = SatBound(None, None, "reverse_vds")
+        elif not column:                                         # VDSAT 열 없는 LUT: 사유 `vdsat_column_unavailable`
+            out[name] = SatBound(None, None, "vdsat_column_unavailable")
+        elif op.L not in R4_L or not (0.0 <= op.vgs <= 2.0) or not (-0.5 <= op.vsb <= 2.0):
+            out[name] = SatBound(None, None, "lut_domain")
+        else:
+            out[name] = SatBound(r4_vdsat_at(op.kind, op.L, op.vgs, op.vsb),
+                                 r4_tol_vdsat(op.kind) if tol_defined else None, None)
+    return tamper(snap, "dc_widths", "device", "dc_sat_v", out, version=snap.block_version("dc_widths"))
 
 
 def run(snap, lut):
@@ -172,11 +192,11 @@ def test_region_seal_tol_undefined_keeps_judgment_and_lists_indistinct_undefined
     """VGS·VDS·VS 축 2점이면 tol 셀이 None(내부 격자점 없음). 판정은 그대로, 소자는 indistinct_undefined 에 든다."""
     lut = write_r4_lut(tmp_path_factory.mktemp("r4_2pt"), grids=(R4_L, (0.0, 2.0), (0.0, 2.0), (0.0, 2.0)))
     ctx = mk(access=new_access(lut))
-    ok = state(ctx, m1=dict(vgs=0.0, vds=0.5), m2=dict(vgs=0.0, vds=1.0))     # vdsat: M1 0.0625, M2 0.25 (격자점, 손계산)
+    ok = state(ctx, m1=dict(vgs=0.0, vds=0.5), m2=dict(vgs=0.0, vds=1.0), tol_defined=False)     # vdsat: M1 0.0625, M2 0.25 (격자점, 손계산)
     i7, i9 = items(ok, ctx.lut)
     assert (i7.status, i9.status) == ("pass", "pass")
     assert set(dict(i7.detail)["indistinct_undefined"]) == {"M1", "M2"}
-    bad = state(ctx, m1=dict(vgs=0.0, vds=0.03125), m2=dict(vgs=0.0, vds=1.0))   # M1 0.03125 < 0.0625
+    bad = state(ctx, m1=dict(vgs=0.0, vds=0.03125), m2=dict(vgs=0.0, vds=1.0), tol_defined=False)   # M1 0.03125 < 0.0625
     j7, _ = items(bad, ctx.lut)
     assert j7.status == "fail" and j7.devices == ("M1",)
     assert set(dict(j7.detail)["indistinct_undefined"]) == {"M1", "M2"}
@@ -186,7 +206,7 @@ def test_region_seal_column_missing_item7_undefined_and_pending_seal7(mk, tmp_pa
     """VDSAT 열 없는 LUT: 모든 소자 행 6 -> 7 undefined(reason 열 없음), 보고서 상태 = 봉인 7 대기 그대로."""
     lut = write_r4_lut(tmp_path_factory.mktemp("r4_nocol"), vdsat=())
     ctx = mk(access=new_access(lut))
-    i7, i9 = items(state(ctx), ctx.lut)
+    i7, i9 = items(state(ctx, column=False), ctx.lut)
     assert i7.status == "undefined" and i7.devices == ("M1", "M2")
     assert dict(i7.detail)["reason"] == REASON_MISSING
     assert i9.status == "pass"
@@ -243,7 +263,7 @@ def test_region_seal_reverse_vds_same_with_column_missing_lut(mk, tmp_path_facto
     """열 없는 LUT 에서도 VDS < 0 소자는 undefined 가 아니라 fail(행 3). 다른 소자(행 6)는 fail 의 devices 에 들지 않는다."""
     lut = write_r4_lut(tmp_path_factory.mktemp("r4_nocol_rv"), vdsat=())
     ctx = mk(access=new_access(lut))
-    i7, _ = items(state(ctx, m1=dict(vds=-0.125)), ctx.lut)
+    i7, _ = items(state(ctx, m1=dict(vds=-0.125), column=False), ctx.lut)
     assert i7.status == "fail" and i7.devices == ("M1",)
     assert tuple(dict(i7.detail)["reverse_vds"]) == ("M1",)
 
@@ -254,7 +274,7 @@ def _point_lookups(ctx):
 
 
 def test_region_seal_reverse_vds_costs_no_vdsat_lookup(mk):
-    """두 소자 모두 VDS < 0: LUT VDSAT 조회 0 (point 영역 조회 수 불변). 대조: 정상 점은 소자마다 조회가 있다."""
+    """두 소자 모두 VDS < 0: LUT VDSAT 조회 0 (point 영역 조회 수 불변). 대조: 정상 점도 0 -- 입력은 `dc_sat_v` 필드이고 봉인은 LUT VDSAT 조회 0 (card 20261104-hcs §2)."""
     ctx = mk()
     snap = state(ctx, m1=dict(vds=-0.125), m2=dict(vds=-0.25))
     before = _point_lookups(ctx)
@@ -262,7 +282,7 @@ def test_region_seal_reverse_vds_costs_no_vdsat_lookup(mk):
     assert i7.status == "fail" and i7.devices == ("M1", "M2")
     assert _point_lookups(ctx) == before
     run(state(ctx), ctx.lut)
-    assert _point_lookups(ctx) - before >= 2
+    assert _point_lookups(ctx) == before
 
 
 def test_region_seal_reverse_vds_triode_passes(mk):
@@ -366,3 +386,110 @@ def test_region_triode_declared_triode_point_seals_with_no_window_config_field(m
 def test_region_word_input_window_mismatch_absent_from_engine_sources():
     word = "input_window_operating_point_" + "mismatch"
     assert words_in_engine((word,)) == set()
+
+
+# ===============================================================================================================
+# [card 20261104-hcs] S3·S4 -- 봉인 7·9 의 vdsat·tol 입력은 `device.dc_sat_v` 필드(LUT 조회 0)
+# oracle (식) card §2 소비자 표 + EO-1 표: 수 -> 그 수 / reverse_vds -> VDS < 0 행 / lut_domain -> OUT_OF_DOMAIN(9 undefined) /
+# vdsat_column_unavailable -> 7 undefined / tol None -> indistinct_undefined. 필드는 LUT 와 **다른 값**을 주입해 필드에서 읽었음을 판별한다.
+# 값은 2진 분수(정확). 주입 = conftest `tamper` 꼴(writer dc_widths).
+# ===============================================================================================================
+from lut.hcs_cases import LutCalls  # noqa: E402
+
+ZERO_CALLS = {"vdsat": 0, "tol_vdsat_table": 0, "sat_threshold": 0}
+F_VDSAT, F_TOL = 0.5, 0.0625                       # 주입 필드 값(LUT 의 M1 값 0.25 / 2^-10 과 다르다)
+
+
+def _sat(*args):
+    from gmid_engine.lut import SatBound
+    return SatBound(*args)
+
+
+def _inject(snap, **sat):
+    return tamper(snap, "dc_widths", "device", "dc_sat_v", sat, version=snap.block_version("dc_widths"))
+
+
+def _lut_lookups(ctx):
+    return {k: v.hits + v.misses for k, v in ctx.lut.memo.stats() if k in ("point", "derived")}
+
+
+def _run_counted(ctx, snap, monkeypatch):
+    calls = LutCalls(monkeypatch)
+    before = _lut_lookups(ctx)
+    out = items(snap, ctx.lut)
+    return out, calls.n, {k: v - before[k] for k, v in _lut_lookups(ctx).items()}
+
+
+def test_dc_sat_v_field_at_vdsat_passes_indistinct_zero_and_costs_no_lut_lookup(mk, monkeypatch):
+    ctx = mk()
+    snap = _inject(state(ctx, m1=dict(vds=F_VDSAT), m2=dict(vds=1.5)), M1=_sat(F_VDSAT, F_TOL, None), M2=_sat(0.25, F_TOL, None))
+    (i7, _), n, d = _run_counted(ctx, snap, monkeypatch)
+    assert i7.status == "pass"
+    assert _indistinct(i7) == (("M1", 0.0),)
+    assert dict(i7.detail)["slack_v"] == 0.0
+    assert n == ZERO_CALLS
+    assert d == {"point": 0, "derived": 0}
+
+
+def test_dc_sat_v_field_half_tol_below_vdsat_fails_indistinct_and_costs_no_lut_lookup(mk, monkeypatch):
+    ctx = mk()
+    snap = _inject(state(ctx, m1=dict(vds=F_VDSAT - F_TOL / 2), m2=dict(vds=1.5)),
+                   M1=_sat(F_VDSAT, F_TOL, None), M2=_sat(0.25, F_TOL, None))
+    (i7, _), n, d = _run_counted(ctx, snap, monkeypatch)
+    assert i7.status == "fail" and i7.devices == ("M1",)
+    assert _indistinct(i7) == (("M1", -F_TOL / 2),)
+    assert dict(i7.detail)["slack_v"] == -F_TOL / 2
+    assert n == ZERO_CALLS
+    assert d == {"point": 0, "derived": 0}
+
+
+def test_dc_sat_v_field_tol_none_keeps_judgment_and_lists_indistinct_undefined(mk):
+    ctx = mk()
+    ok = _inject(state(ctx, m1=dict(vds=F_VDSAT), m2=dict(vds=1.5)), M1=_sat(F_VDSAT, None, None), M2=_sat(0.25, F_TOL, None))
+    i7, _ = items(ok, ctx.lut)
+    assert i7.status == "pass" and set(dict(i7.detail)["indistinct_undefined"]) == {"M1"}
+    bad = _inject(state(ctx, m1=dict(vds=math.nextafter(F_VDSAT, 0.0)), m2=dict(vds=1.5)),
+                  M1=_sat(F_VDSAT, None, None), M2=_sat(0.25, F_TOL, None))
+    j7, _ = items(bad, ctx.lut)
+    assert j7.status == "fail" and j7.devices == ("M1",)
+
+
+def test_dc_sat_v_reason_reverse_vds_is_the_reverse_row_without_lut_lookup(mk, monkeypatch):
+    ctx = mk()
+    snap = _inject(state(ctx, m1=dict(vds=-0.125, vgs=2.25), m2=dict(vds=1.5)),
+                   M1=_sat(None, None, "reverse_vds"), M2=_sat(0.25, F_TOL, None))
+    (i7, i9), n, d = _run_counted(ctx, snap, monkeypatch)
+    assert i7.status == "fail" and i7.devices == ("M1",)
+    assert tuple(dict(i7.detail)["reverse_vds"]) == ("M1",)
+    assert i9.status == "pass"
+    assert n == ZERO_CALLS and d == {"point": 0, "derived": 0}
+
+
+def test_dc_sat_v_reason_lut_domain_is_item9_undefined(mk):
+    ctx = mk()
+    snap = _inject(state(ctx, m2=dict(vds=1.5)), M1=_sat(None, None, "lut_domain"), M2=_sat(0.25, F_TOL, None))
+    _, i9 = items(snap, ctx.lut)
+    assert i9.status == "undefined" and i9.devices == ("M1",)
+
+
+def test_dc_sat_v_reason_column_unavailable_is_item7_undefined_even_when_lut_has_the_column(mk):
+    """LUT 에는 열이 있는데 필드가 사유를 주면 필드를 따른다 -> 필드가 소비자의 유일한 입력."""
+    ctx = mk()
+    snap = _inject(state(ctx), M1=_sat(None, None, "vdsat_column_unavailable"), M2=_sat(None, None, "vdsat_column_unavailable"))
+    i7, i9 = items(snap, ctx.lut)
+    assert i7.status == "undefined" and i7.devices == ("M1", "M2")
+    assert dict(i7.detail)["reason"] == REASON_MISSING
+    assert i9.status == "pass"
+
+
+def test_dc_sat_v_without_vdsat_column_is_reason_not_zero_and_seal7_pending(mk, tmp_path_factory):
+    """S3 사슬 전체: 열 없는 LUT 를 size_and_seal 로 끝까지 -> 필드 = 사유 `vdsat_column_unavailable`(0 대체 아님), 봉인 7 undefined, 대기 상태."""
+    lut = write_r4_lut(tmp_path_factory.mktemp("r4_nocol_f"), vdsat=())
+    ctx = mk(access=new_access(lut))
+    ev = size_and_seal(ctx, theta_r4c())
+    col = dict(ev.snapshot.column("device", "dc_sat_v"))
+    assert set(col) == {"M1", "M2"}
+    for name, sb in col.items():
+        assert (sb.vdsat_v, sb.tol_v, sb.reason) == (None, None, "vdsat_column_unavailable"), name
+    assert ev.report.items[6].status == "undefined"
+    assert seal_status(ev) == STATUS_PENDING_SEAL7

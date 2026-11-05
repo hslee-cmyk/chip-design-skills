@@ -128,7 +128,8 @@ def test_off_gate_closed_form_vsb_term_with_source_degeneration(tmp_path):
                                  {"R1": r1, "Rs": rs})
     case = build_case(tmp_path, topo, {"Moff": off_entry()}, th,
                       elements=(("R1", "resistor", None), ("Rs", "resistor", None), ("CL", "capacitor", 1e-12)))
-    snap = dv(put(_snap(case), vgs=0.5, vds=0.5, vsb=0.25), ss=0.0625, out=-0.1875)
+    # [card 20261104-hcs] 기준 VDSAT 은 필드 `dc_sat_v` -- dc_op 점(vgs 0.5, vsb 0.25)의 닫힌 식 값 0.25 + 0.125*0.25 = 0.28125(위 docstring 손계산)를 같이 주입한다.
+    snap = dv(sat(put(_snap(case), vgs=0.5, vds=0.5, vsb=0.25), SatBound(0.28125, 0.0625, None)), ss=0.0625, out=-0.1875)
     _, sp = rejected(case, snap)
     assert sp == {"M1": -0.009765625}
 
@@ -216,7 +217,8 @@ def test_off_gate_zero_shift_terms_cost_no_lookup(tmp_path, nets, extra):
     base = dv(put(_snap(case), vgs=0.5, vds=1.0, vsb=0.0), **nets)
     before = point_lookups(case)
     assert gate(case, base) is None
-    assert point_lookups(case) - before == 1 + extra
+    # [card 20261104-hcs 계약 변경 -- 승인 대기] 기준 VDSAT 은 필드 `dc_sat_v` 읽기라 점 조회가 아니다: 조회 = ΔX != 0 인 항마다 1 (옛: 기준 1 + 항 수)
+    assert point_lookups(case) - before == extra
 
 
 # ---- T-G3 파이프라인 안의 자리: 거부 때 metric·icm_config 호출 0, 부분 스냅샷 -------------------------------------------
@@ -233,3 +235,79 @@ def test_off_gate_pipeline_rejection_stops_before_metrics(tmp_path):
              ("ss_off_op", "ss_dev", "ss_off_delta", "metrics_ss", "metrics_dc", "icm_config")}
     assert all(calls[n] >= 1 for n in ("ss_off_op", "ss_dev", "ss_off_delta")), calls
     assert calls["metrics_ss"] == 0 and calls["metrics_dc"] == 0 and calls["icm_config"] == 0, calls
+
+
+# ===============================================================================================================
+# [card 20261104-hcs] S11 -- 관문의 기준 VDSAT·vdsat(X) = 필드 `device.dc_sat_v.vdsat_v`, 보정점 vdsat(X + ΔX) = sat_threshold (항마다 1회, ΔX = 0 이면 0회)
+# oracle (식): card §2 관문 행 + EO-1 §4 식 VDSAT′ = VDSAT + Σ_X [vdsat(X+ΔX) − vdsat(X)], vdsat(X) = 필드 값. 필드는 LUT 와 **다른** 기준값을 주입한다.
+# (손) 2진 분수: nmos M1 L=1µm, vdsat(vgs 0.75, vds 0.5, vsb 0) = 0.390625, vdsat(vgs 0.5, vds 0.375/0.1875, vsb 0) = 0.25 (VDS 무관 열).
+#   주입 기준 V0 = 0.4375, 점 (vgs 0.5, vds 0.5): s = 0.0625. ΔVGS = +0.25, ΔVDS = Δ:
+#   VDSAT′ = 0.4375 + (0.390625 − 0.4375) + (0.25 − 0.4375) = 0.203125.
+#   Δ = −0.125 -> VDS′ = 0.375, s′ = +0.171875 통과 (LUT 기준이면 VDSAT′ = 0.390625, s′ = −0.015625 거부 -- 판별).
+#   Δ = −0.3125 -> VDS′ = 0.1875, s′ = −0.015625 거부 (LUT 기준이면 −0.203125).
+# ===============================================================================================================
+from lut.hcs_cases import LutCalls  # noqa: E402
+
+V0 = 0.4375
+
+
+def SatBound(*args):                                  # noqa: N802 -- 신규 심볼이라 지연 import(기존 test 의 수집을 막지 않는다)
+    from gmid_engine.lut import SatBound as _SatBound
+    return _SatBound(*args)
+
+
+def sat(snap, bound):
+    """M1 의 dc_sat_v 를 정해 넣는다(writer dc_widths, conftest tamper 꼴)."""
+    return tamper(snap, "dc_widths", "device", "dc_sat_v", {"M1": bound}, version=snap.block_version("dc_widths"))
+
+
+def _base_v0(case):
+    return sat(put(_snap(case), vgs=0.5, vds=0.5, vsb=0.0), SatBound(V0, 0.0625, None))
+
+
+def test_off_gate_reads_the_field_baseline_not_the_lut_value(tmp_path):
+    case = _case_a(tmp_path)
+    base = _base_v0(case)
+    assert gate(case, dv(base, out=-0.125, **{"in": 0.25})) is None            # s′ = +0.171875 (필드 기준)
+    _, sp = rejected(case, dv(base, out=-0.3125, **{"in": 0.25}))              # s′ = −0.015625 (필드 기준)
+    assert sp == {"M1": -0.015625}
+
+
+@pytest.mark.parametrize("nets,extra", [({}, 0), ({"out": -0.0625}, 1), ({"out": -0.0625, "in": 0.0625}, 2)],
+                         ids=["no_shift", "vds_only", "vds_and_vgs"])
+def test_off_gate_correction_lookups_are_sat_threshold_per_nonzero_term_and_baseline_costs_none(tmp_path, monkeypatch, nets, extra):
+    """기준 VDSAT 은 필드(조회 0) + ΔX != 0 인 항마다 sat_threshold 1회. ΔX = 0 이면 sat_threshold·lut vdsat 직접 호출 0."""
+    case = _case_a(tmp_path)
+    base = dv(sat(put(_snap(case), vgs=0.5, vds=1.0, vsb=0.0), SatBound(0.25, 0.0625, None)), **nets)
+    calls = LutCalls(monkeypatch)
+    before = point_lookups(case)
+    assert gate(case, base) is None
+    assert point_lookups(case) - before == extra
+    assert calls.n["sat_threshold"] == extra
+    if extra == 0:
+        assert calls.n == {"vdsat": 0, "tol_vdsat_table": 0, "sat_threshold": 0}
+
+
+def test_off_gate_field_reason_reverse_vds_triode_same_as_t_g6(tmp_path, monkeypatch):
+    """기준 VDS < 0 (필드 사유 reverse_vds): triode 는 VDS′ < 0 이면 통과(조회 0), VDS′ = 0 정확히·> 0 이면 s′ None 으로 거부. 예외는 SealViolationError(off_gate)뿐."""
+    case = _case_a(tmp_path, triode=True)
+    base = sat(put(_snap(case), vgs=0.5, vds=-0.25, vsb=0.0), SatBound(None, None, "reverse_vds"))
+    calls = LutCalls(monkeypatch)
+    before = point_lookups(case)
+    assert gate(case, dv(base, out=0.125)) is None
+    assert point_lookups(case) == before and calls.n == {"vdsat": 0, "tol_vdsat_table": 0, "sat_threshold": 0}
+    _, sp0 = rejected(case, dv(base, out=0.25))
+    assert sp0 == {"M1": None}
+    _, sp1 = rejected(case, dv(base, out=0.5))
+    assert sp1 == {"M1": None}
+
+
+def test_off_gate_field_forward_vds_to_reverse_undeclared_rejected_triode_passes(tmp_path):
+    """기준 VDS >= 0 (필드 수), VDS + ΔVDS < 0: 선언 없음 -> off_gate(예외는 SealViolationError 뿐), triode -> 통과."""
+    undeclared = _case_a(tmp_path / "u")
+    base = sat(put(_snap(undeclared), vgs=0.5, vds=0.125, vsb=0.0), SatBound(0.25, 0.0625, None))
+    devices, _ = rejected(undeclared, dv(base, out=-0.25))
+    assert devices == ("M1",)
+    tri = _case_a(tmp_path / "t", triode=True)
+    base_t = sat(put(_snap(tri), vgs=0.5, vds=0.125, vsb=0.0), SatBound(0.25, 0.0625, None))
+    assert gate(tri, dv(base_t, out=-0.25)) is None

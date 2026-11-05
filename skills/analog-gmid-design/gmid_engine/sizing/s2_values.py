@@ -155,7 +155,7 @@ DC_WRITES = (
     (DC_LENGTHS_WRITER, (("device", "dc_L"),)),
     (DC_COLUMNS_WRITER, (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"),
                          ("device", "dc_ln_idu"), ("graph", "dc_scc_log"))),
-    (DC_WIDTHS_WRITER, (("device", "dc_op"),)),
+    (DC_WIDTHS_WRITER, (("device", "dc_op"), ("device", "dc_sat_v"))),
     (DC_TOLERANCES_WRITER, (("device", "dc_tol_v"), ("device", "dc_gm"))),
     (DC_SEAL_NODE_CONFLICT_WRITER, (("graph", "dc_seal_1"),)),
     (DC_SEAL_VGS_MATCH_WRITER, (("graph", "dc_seal_2"),)),

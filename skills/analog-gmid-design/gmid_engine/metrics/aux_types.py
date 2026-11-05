@@ -94,7 +94,7 @@ class MetricStructure:
 @dataclasses.dataclass(frozen=True)
 class SatDevice:
     """포화 경로 합의 MOS 하나(`ls_swing` 입력). `polarity` = +1(NMOS)/−1(PMOS), `d`·`g`·`s` = 넷, `vgs_v` = |VGS|(봉인 op, VSB 포함),
-    `sat_v` = VDSAT + tol_vdsat(None 이면 LUT 열이 없거나 tol 미정), `sat_tol_v`·`vgs_tol_v` = 각 엣지 값의 허용오차(분해능 전파 -- 없으면 None),
+    `sat_v` = VDSAT(`device.dc_sat_v.vdsat_v`, tol 을 더하지 않는다; None 이면 값이 없는 사유 -- LUT 열 없음·정의역 밖·역방향 VDS), `sat_tol_v`·`vgs_tol_v` = 각 엣지 값의 허용오차(분해능 전파 -- 없으면 None),
     `linear` = 선형 영역 선언 소자(포화 판정 제외)."""
 
     label: str

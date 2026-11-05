@@ -2,13 +2,13 @@
 O-58·O-108·O-115·O-204·O-205, 카드 IT-2c).
 
 진입점: `icm_config_window`(`@compute_block`, writer `icm_config`) -- `icm_config_window(snapshot, lut, donors=, counters=)`.
-reads `node.{dc_writer, dc_rail_v, port_direction, port_role, dc_v}`, `device.{pins, kind, bulk, dc_L, dc_colour, dc_coord, dc_tol_v}`, `graph.{ss_nodal, views}`;
+reads `node.{dc_writer, dc_rail_v, port_direction, port_role, dc_v}`, `device.{pins, kind, bulk, dc_L, dc_colour, dc_coord, dc_tol_v, dc_sat_v}`, `graph.{ss_nodal, views}`;
 writes `node.dc_window_cfg`(입력 포트마다 `Window`, 구성이 None 이면 항목 없음)·`graph.icm_config`(key `METRICS_KEY`) = `IcmConfig`.
 
 **물리 틀**(원칙 3·4): ICMR·창은 DC 양이고 설계점 질문이 아니라 정해진 회로를 흔드는 섭동 질문이다 -- W·바이어스 전압 고정 KCL. 봉인점 DC 야코비안 `graph.ss_nodal`(용량 개방, 고정 =
 교류접지 ∪ 입력 넷)에서 입력 포트를 모두 같은 x 로 움직이는 구동의 응답 vx 와 여기 방향 e 로 움직이는 구동의 응답 ve 를 같은 인수분해 위에서 풀고(`nodal_solve` 두 번), 감지 c 의
 행 δs = 0 을 Schur 1칸으로 강제한다(servo): s_n = vx_n − (ve_n/span)·(c·vx)/a_e, a_e = c·ve/span. θ 감도(`writer_grad`)는 부르지 않는다. 경계 행 = 포화·`triode` 영역 행뿐
-(`Circuit.region_rows`, VDS = VDSAT, 판정 여유 0 -- tol 항·전도 행 없음). 창 끝 = `saturation_window` 의 행 교집합, 끝 상태는 레일 안 입력으로 자른다.
+(`Circuit.region_rows`, VDS = VDSAT, 판정 여유 0 -- tol 항·전도 행 없음; VDSAT = 봉인점 필드 `device.dc_sat_v`, LUT 재호출 0). 창 끝 = `saturation_window` 의 행 교집합, 끝 상태는 레일 안 입력으로 자른다.
 
 **갈래 순서**(앞이 이긴다, category 모두 `definitional`, 구성 None·`IcmConfig.undefined` 원소 하나·`node.dc_window_cfg` 항목 없음):
 1 `graph.ss_nodal` 이 `Undefined` -> 같은 code·detail / 2 입력 포트 셋 이상 -> `icm_inputs_unsupported` / 3 입력 0 -> `view_required`(default_views 0) /
@@ -47,7 +47,7 @@ from .mna_types import Undefined
 READS = (
     ("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_v"),
     ("device", "pins"), ("device", "kind"), ("device", "bulk"), ("device", "dc_L"), ("device", "dc_colour"), ("device", "dc_coord"),
-    ("device", "dc_tol_v"), ("device", "region_decl"),
+    ("device", "dc_tol_v"), ("device", "dc_sat_v"), ("device", "region_decl"),
     ("graph", "ss_nodal"), ("graph", "views"),
 )
 WRITES = (("node", "dc_window_cfg"), ("graph", "icm_config"))
@@ -240,7 +240,7 @@ def icm_config_window(projection):
     ends = None
     if slope is not None and rails:
         circuit = Circuit(projection, lut=lut, linear=linear)
-        rows = circuit.region_rows(volts)
+        rows = circuit.region_rows(volts, dict(projection.column("device", "dc_sat_v")))
         ends = None if rows is None else _end_state(circuit, rows, slope, inputs, volts)
     if ends is None:
         windows = {net: Window(None, None, 0, input_status=INPUT_STATUS_UNMEASURED) for net in inputs}
