@@ -134,30 +134,38 @@ def test_dc_solve_dependent_all_candidates_missing(tmp_path):
 
 # ---------------------------------------------------------------- D-2 (Rʳ ≠ ∅, 관찰 stub, 미측정)
 def circuit_r_dep():
-    """card §3 D-2: _scc_s_doc 에서 M1 gate nb1 을 diode M0 nmos (nb1, nb1, gnd) + 이상 전류원 vdd -> nb1 로 쓴다."""
+    """card §3 D-2 의 전제 '단일 순환 SCC {vin, vout} + Rʳ ≠ ∅' 를 만족하는 손 회로 (dispute 2 재유도).
+    _scc_s_doc 와 같은 M1 nmos (vin, nb1, gnd), M2 nmos (vout, nb2, vin), M3 pmos (vout, pb, vdd). 옛 안은 M1 gate nb1 을 diode M0 + 이상 전류원으로 만들어 nb1 에
+    1변수 순환 SCC 가 하나 더 생겼다(순환 SCC 둘). 여기서는 nb1 을 **선언 목표 전압**(spec 노드 목표 0.6 V, W3 `declared_target`)으로 둔다: nb1 은 순환에 들지 않고(고정 노드),
+    M1 의 VGS 가 선언값으로 고정돼 M1 은 θ ln IDu 가 없는 종속 소자(`fixed_vgs`)이며, 순환 SCC {vin, vout}(writer 없는 W4 뿌리 둘)의 소자라 Rʳ = {M1}."""
     return topo("wb1_r_dep",
-                [mos("M0", "nmos", "nb1", "nb1", "gnd"), mos("M1", "nmos", "vin", "nb1", "gnd"),
-                 mos("M2", "nmos", "vout", "nb2", "vin"), mos("M3", "pmos", "vout", "pb", "vdd")],
+                [mos("M1", "nmos", "vin", "nb1", "gnd"), mos("M2", "nmos", "vout", "nb2", "vin"), mos("M3", "pmos", "vout", "pb", "vdd")],
                 {"vin": ("input", "single_ended_input"), "vout": ("output", "single_ended_output")},
-                bias=["nb2", "pb"], sources=[two("I0", "current_source", "vdd", "nb1")])
+                bias=["nb1", "nb2", "pb"])
+
+
+VGS_M1 = 0.6                      # nb1 선언 목표 (입력 선언, 기대값 아님)
 
 
 def r_dep_setup(tmp_path, access):
-    ctx = build_ctx(tmp_path, circuit_r_dep(), access, element_values=(("I0", 1e-5),))[2]
+    ctx = build_ctx(tmp_path, circuit_r_dep(), access, node_targets=(("nb1", VGS_M1),))[2]
     entries = [e for e in ctx.base.value("graph", DC_KEY, "dc_scc_order") if e.cyclic]
-    assert len(entries) == 1 and set(entries[0].nodes) == {"vin", "vout"}               # 전제 1
+    assert len(entries) == 1 and set(entries[0].nodes) == {"vin", "vout"}               # 전제 1 (단일 순환 SCC)
     for n in ("vin", "vout"):
-        assert ctx.base.value("node", n, "dc_writer").relation not in ("vgs_gate", "vgs_source")   # 전제 2
-    assert ctx.base.value("device", "M1", "dc_coord").role != "writer"                  # 전제 3
-    y1, y2 = 0.3, 0.5
-    vout = 1.8 * y2 / (1.0 - y1 * (1.0 - y2))
-    vin = y1 * vout
-    coord = {("ln_idu", "M0"): r4_ln_idu("nmos", 0.6, 0.6, 0.0),
-             ("ln_idu", "M2"): r4_ln_idu("nmos", 0.7, vout - vin, vin),
-             ("ln_idu", "M3"): r4_ln_idu("pmos", 0.7, 1.8 - vout, 0.0), ("y", "vin"): y1, ("y", "vout"): y2}
-    th = {("L", "M0"): 1e-6, ("L", "M1"): 2e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6}
-    th.update(coord)
-    th.update(free_currents(ctx, {"M0": 1e-5, "M1": 1e-5, "M2": 1e-5, "M3": 1e-5}))
+        assert ctx.base.value("node", n, "dc_writer").relation not in ("vgs_gate", "vgs_source")   # 전제 2 (writer 없는 SCC)
+    assert ctx.base.value("device", "M1", "dc_coord").role != "writer"                  # 전제 3 (M1 종속 = Rʳ)
+    assert "M1" in entries[0].devices
+    # 손 설계점: V(vin) = 0.5, V(vout) = 1.1 -> 창 위치 y1 = V(vin)/V(vout) (vin 창 [0, V(vout)]), y2 = (V(vout) - V(vin))/(1.8 - V(vin)) (vout 창 [V(vin), 1.8])
+    vin, vout = 0.5, 1.1
+    y1, y2 = vin / vout, (vout - vin) / (1.8 - vin)
+    assert abs(1.8 * y2 / (1.0 - y1 * (1.0 - y2)) - vout) <= 1e-12                      # 창 식 검산 (손)
+    # 봉인 7 손 확인 (r4 VDSAT = c0 + c1·VGS + c2·VGS² + cs·VS + cl·(L 앵커 index), nmos (0.0625, 0.25, 0.25, 0.125, 0.0625), pmos (0.125, 0.25, 0.5, 0.0625, 0.125)):
+    #   M1 (L = 2e-6, index 1): VDSAT = 0.0625 + 0.15 + 0.09 + 0 + 0.0625 = 0.365 < VDS = 0.5
+    #   M2 (L = 1e-6, VGS 0.7, VSB 0.5): 0.0625 + 0.175 + 0.1225 + 0.0625 = 0.4225 < VDS = 0.6
+    #   M3 (L = 1e-6, VSG 0.7): 0.125 + 0.175 + 0.245 = 0.545 < VSD = 0.7
+    th = {("L", "M1"): 2e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6, ("current", "M3"): 1e-5,
+          ("ln_idu", "M2"): r4_ln_idu("nmos", 0.7, vout - vin, vin), ("ln_idu", "M3"): r4_ln_idu("pmos", 0.7, 1.8 - vout, 0.0),
+          ("y", "vin"): y1, ("y", "vout"): y2}
     assert set(th) == set(kschema(ctx).components)
     return ctx, th
 
@@ -258,10 +266,25 @@ def test_window_w3_both_is_rail_range(tmp_path, r4_access):
     assert (w.lo, w.hi) == (0.0, 1.8)
 
 
+def circuit_gate_only_root():
+    """게이트에만 닿는 W4 뿌리 회로(회로 이름 0): M1 nmos (out, in, t, bulk t) -- 소스 t 는 이상 전류원 I1 t -> gnd 로 떠 있어 in 은 VGS 관계로 고정되지 않는
+    θ y 뿌리이고(`('y','in')` 가 θ 스키마에 든다), in 에 닿는 채널 단자는 없다. M2 pmos (out, pb, vdd) 부하, pb 바이어스. """
+    return topo("wb1_w4_gate_only", [mos("M1", "nmos", "out", "in", "t", "t"), mos("M2", "pmos", "out", "pb", "vdd", "vdd")],
+                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
+                sources=[two("I1", "current_source", "t", "gnd")], bias=["pb"])
+
+
 def test_window_w4_gate_only_root_is_rail_range_without_constraints(tmp_path, r4_access):
-    ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), r4_access)[2]
-    ev = size_and_seal(ctx, theta_r4c())
-    assert "in" in dict(ev.snapshot.column("node", "dc_window"))                # 입력 포트는 창 키에 든다(IT-2b)
-    w = _window(ev, "in")                                                       # in: M1 gate 에만 닿는 입력 포트
+    """T-W4: 뿌리 넷에 채널 소자가 없다(게이트에만 닿는다) -> 창 = 레일 범위 [gnd, vdd], `Window.constraints` = 0(채널 소자에서 오는 V_DS >= 0 제약 0개).
+    oracle (손): 채널 단자가 닿지 않아 제약 소자 없음 -> 창 = 레일 범위. 기대 [0, 1.8] 는 SUPPLIES 선언값(입력)."""
+    ctx = build_ctx(tmp_path, circuit_gate_only_root(), r4_access, element_values=(("I1", 1e-5),))[2]
+    comps = set(kschema(ctx).components)
+    assert ("y", "in") in comps and ("y", "out") in comps                      # 전제: in 은 θ y 뿌리 (이 회로의 통과는 미측정 -- 깨지면 멈추고 보고)
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("y", "in"): 0.5, ("y", "out"): 0.5,
+          ("ln_idu", "M1"): r4_ln_idu("nmos", 0.6, 0.75, 0.0), ("ln_idu", "M2"): r4_ln_idu("pmos", 0.7, 0.75, 0.0)}
+    assert set(th) == comps
+    ev = size_and_seal(ctx, th)
+    assert "in" in dict(ev.snapshot.column("node", "dc_window"))
+    w = _window(ev, "in")
     assert (w.lo, w.hi) == (0.0, 1.8)
-    assert len(w.constraints) == 0
+    assert w.constraints == 0

@@ -197,11 +197,57 @@ def test_slice_block_value_e4_empty_bin_map_leaves_amax_undetermined(tmp_path_fa
 
 
 # ---------------------------------------------------------------- s4: 열 없음은 조용히 빠지지 않는다
+# card 뜻(interface §5 '블록 값', s4): 포락 항은 `is_slice_gap(exc)` 인 실패만 뺀다. 슬라이스 틈(`lut_axis_out_of_range` 등)이 아닌 실패 --
+# 특히 `lut_column_unavailable` -- 는 광범위 except 에 삼켜지지 않고 올라간다.
+# 근거(dispute 1): 합성 LUT 는 GMBS 열이 없어도 `lut.gmb` 가 VS 할선(lut CONTRACT 4.4 (4))으로 값을 내므로 이 LUT 로는 `lut_column_unavailable` 이 나지 않는다
+# (실측). 그래서 단언을 '다른 열' 로 넓히지 않고, 같은 계약(분류 경로)을 슬라이스 하나의 `param_row` 조회가 던지는 사유로 직접 시험한다:
+# LutMemo 공개 주입점 `lookup(region, fn_name, key, compute)` 를 감싸 폭 키 200 슬라이스의 `param_row` 조회만 사유를 던진다(관찰 지점은 §9 밖이라
+# 공개 memo 서브클래스만 쓴다). oracle (d): `is_slice_gap` 어휘 = SLICE_GAP_REASONS 다섯(F-3), 그 밖 사유는 전파.
+from gmid_engine.lut import LutMemo, SLICE_GAP_REASONS, is_slice_gap  # noqa: E402
+
+
+class FailingSliceMemo(LutMemo):
+    """폭 키 `fail_key` 슬라이스의 `param_row` 조회가 주어진 사유로 실패한다. `raised` = 던진 횟수(공허 통과 방지)."""
+
+    def __init__(self, lut, reason, fail_key=200, n=8192):
+        super().__init__(lut, point=n, curve=n, root=n)
+        self.reason, self.fail_key, self.raised = reason, fail_key, 0
+
+    def lookup(self, region, fn_name, key, compute):
+        if fn_name == "param_row" and self.fail_key in tuple(key):
+            self.raised += 1
+            raise SealViolationError(devices=(), margin=None, detail={"reason": self.reason, "w_key": self.fail_key})
+        return super().lookup(region, fn_name, key, compute)
+
+
+@pytest.fixture(scope="module")
+def lut_same_rows(tmp_path_factory):               # 두 슬라이스의 행이 같다(y 0.1·GMBS 배율 1.0) -> 한 슬라이스를 빼도 포락 값이 같다
+    return write_slice_lut(tmp_path_factory.mktemp("wb1_s4"), ((1e-6, 0.1, 1.0), (2e-6, 0.1, 1.0)))
+
+
 @pytest.mark.parametrize("side,zside", [("upper", "min"), ("lower", "max")])
-def test_slice_param_tables_column_unavailable_propagates(tmp_path_factory, side, zside):
-    lut = write_slice_lut(tmp_path_factory.mktemp("wb1_nogmbs"), ((1e-6, 0.1, 1.0), (2e-6, 0.1, 1.0)), gmbs=False)
-    t = ParamTables(memo_of(lut), GRIDS, side=side, z_side=zside)
+def test_slice_param_tables_column_unavailable_propagates(lut_same_rows, side, zside):
+    reason = "lut_column_unavailable"
+    assert reason not in SLICE_GAP_REASONS                                  # 슬라이스 틈 어휘 밖
+    memo = FailingSliceMemo(lut_same_rows, reason)
+    t = ParamTables(memo, GRIDS, side=side, z_side=zside)
     il, idd, iss, iv = all_index()
     with pytest.raises(SealViolationError) as ei:
         t.lookup("nmos", il, idd, iss, iv)
-    assert detail(ei.value)["reason"] == "lut_column_unavailable"
+    assert detail(ei.value)["reason"] == reason and not is_slice_gap(ei.value)
+    assert memo.raised >= 1
+
+
+@pytest.mark.parametrize("side,zside", [("upper", "min"), ("lower", "max")])
+def test_slice_param_tables_slice_gap_is_dropped_from_envelope(lut_same_rows, side, zside):
+    """대조(양성): 슬라이스 틈 사유(`lut_axis_out_of_range`)는 그 슬라이스 항만 포락에서 빠지고 남은 슬라이스 값이 나온다 -- 행이 같은 슬라이스라 값이 같다."""
+    reason = "lut_axis_out_of_range"
+    assert reason in SLICE_GAP_REASONS
+    memo = FailingSliceMemo(lut_same_rows, reason)
+    t = ParamTables(memo, GRIDS, side=side, z_side=zside)
+    ref = ParamTables(memo_of(lut_same_rows), GRIDS, side=side, z_side=zside)
+    il, idd, iss, iv = all_index()
+    got, want = t.lookup("nmos", il, idd, iss, iv), ref.lookup("nmos", il, idd, iss, iv)
+    assert memo.raised >= 1
+    for a, b in zip(got, want):
+        assert np.allclose(np.asarray(a), np.asarray(b), rtol=1e-9, atol=1e-12, equal_nan=True)

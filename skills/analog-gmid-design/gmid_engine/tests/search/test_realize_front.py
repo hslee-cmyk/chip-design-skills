@@ -68,6 +68,13 @@ def r2(tmp_path_factory):
     return case, th, ev
 
 
+@pytest.fixture
+def r2_own(tmp_path):
+    """R-3 전용: 경우마다 독립 sctx(평가 캐시 `sctx.cache` 공유 0) -- 모듈 fixture 를 쓰면 첫 경우가 채운 캐시 때문에 둘째 경우의 양성 대조(`finger_slice` 호출 >= 1)가 항상 0 이다."""
+    case = bins_case(tmp_path, circuit_r2(), elements=R2_ELEMENTS)
+    return case, r2_theta(case.dc)
+
+
 def realize(case, *evs, ids=None):
     from gmid_engine.search import FrontPoint, realize_front
     ids = ids or ["p%d" % i for i in range(len(evs))]
@@ -126,17 +133,18 @@ def test_realize_r2_input_difference_shift_matches_closed_form(r2):
 
 # ---------------------------------------------------------------- R-3
 @pytest.mark.parametrize("m, w_s_key", [(2, 100), (1, 200)])
-def test_realize_r3_zero_residual_keeps_input_finger_without_reselecting(r2, monkeypatch, m, w_s_key):
+def test_realize_r3_zero_residual_keeps_input_finger_without_reselecting(r2_own, monkeypatch, m, w_s_key):
     from gmid_engine.search import evaluate
     from gmid_engine.sizing import FingerGeom
-    case, th, _ = r2
+    case, th = r2_own
     bd = sys.modules["gmid_engine.sizing.block_dc"]                  # 관찰 지점 §9 (패키지가 재수출하지 않음)
     c = Count(bd.finger_slice)
     monkeypatch.setattr(bd, "finger_slice", c)
-    th2 = dict(th)
-    th2[("L", "M1")] = 1e-6                                          # 같은 θ 를 새 키로 평가 -> 탐색 경로가 finger_slice 를 부른다(양성 대조)
-    th2[("current", "M3")] = math.nextafter(th2[("current", "M3")], 1.0)
-    ev = evaluate(case.sctx, sorted_theta(th2), R2_CELLS)
+    # `r2_theta` 의 고정점 반복이 이미 이 θ 로 `size_and_seal` 을 불러 실행 색인(donors)에 DC 블록 결과가 있다 -> 입력 버전이 다른 θ(전류 1 ulp)로 평가해야
+    # 탐색 경로가 `finger_slice` 를 실제로 부른다(양성 대조). 평가 캐시는 이 경우의 새 sctx 라 경우 사이 공유가 없다.
+    th = dict(th)
+    th[("current", "M3")] = math.nextafter(th[("current", "M3")], 1.0)
+    ev = evaluate(case.sctx, sorted_theta(th), R2_CELLS)
     assert c.n >= 1
     c.n = 0
     op1 = dict(ev.evaluation.snapshot.column("device", "dc_op"))["M1"]
