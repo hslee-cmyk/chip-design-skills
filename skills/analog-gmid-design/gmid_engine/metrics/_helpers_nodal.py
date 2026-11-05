@@ -39,6 +39,12 @@ def capacitance_matrix(circuit, size):
     return _assemble(tuple(two_terminal_stamps(k) for k in circuit.capacitors) + tuple(mos_stamps(m) for m in circuit.mos), "c", size)
 
 
+def charge_seeded(g, fixed):
+    """비고정 행 중 G 행이 0 인 넷(전하 넷 씨앗)이 있는가. 없으면 C 는 floating·charge 를 바꾸지 못하므로(g_row 가 참) 전회로 C 를 조립하지 않는다."""
+    fixed_set = frozenset(int(f) for f in fixed)
+    return any(not g[i].any() for i in range(g.shape[0]) if i not in fixed_set)
+
+
 def nodal_factor(g, fixed, *, c):
     """G (n, n), 고정 노드 집합, C (n, n) -> `(unknown, lu, piv, coupling, floating, charge)`(모듈 문서)."""
     size = g.shape[0]

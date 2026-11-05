@@ -11,11 +11,12 @@ oracle (a) 손 폐형식(R' = 1/(1/R + gds)):
 from __future__ import annotations
 
 import dataclasses
+import sys
 
 import pytest
 
 from gmid_engine.metrics import (BlockGain, Capacitor, MosSmallSignal, Resistor, SmallSignalCircuit, SsCircuit,
-                                 block_local_gain)
+                                 block_local_gain, block_residual)
 
 from . import u7_hand as H
 from .conftest import codes
@@ -398,3 +399,63 @@ def test_ub1_dead_end_resistor_to_unread_capacitor_island_stays_dead_end():
     assert got.undefined == ()
     assert got.gain == pytest.approx(-18.75, rel=1e-9)
     assert "Rz" not in got.members
+
+
+def _ub1_mos_cap_island(c3, swap=False):
+    """in -C1 2p- n1 -C2 3p- gnd, M1(d out, g n1, s gnd), RL(vdd–out), 스탬프되지 않는 M3(d vdd, s gnd, cgb 1p)가 g n1·b n2
+    (swap: g n2·b n1)로 n1–n2 를 잇는다. c3 > 0 이면 n2 -C3- gnd. 블록 멤버 = M1, RL."""
+    nets = ("gnd", "vdd", "in", "n1", "n2", "out")
+    i = {n: k for k, n in enumerate(nets)}
+    g3, b3 = (i["n2"], i["n1"]) if swap else (i["n1"], i["n2"])
+    mos = (MosSmallSignal(i["out"], i["n1"], i["gnd"], i["gnd"], 1e-3, 0.0, 2e-5, label="M1"),
+           MosSmallSignal(i["vdd"], g3, i["gnd"], b3, 1e-4, 0.0, 1e-5, cgb=1e-12, label="M3"))
+    res = (Resistor(i["vdd"], i["out"], 3e4, label="RL"),)
+    caps = [Capacitor(i["in"], i["n1"], 2e-12, label="C1"), Capacitor(i["n1"], i["gnd"], 3e-12, label="C2")]
+    if c3:
+        caps.append(Capacitor(i["n2"], i["gnd"], c3, label="C3"))
+    ss = SsCircuit(nets, SmallSignalCircuit(mos=mos, resistors=res, capacitors=tuple(caps)), ("RL",),
+                   tuple(c.label for c in caps), ("gnd", "vdd"), ("in",))
+    return block_local_gain(ss, H.block(("out",), ("in",), ("out",), ("in", "out"), members=("M1", "RL")))
+
+
+def test_ub1_charge_net_extends_through_mos_terminal_capacitor():
+    """[A-107 M-1c] oracle (a) 전하 보존 손 KCL. MOS 단자 용량(cgb 1p)으로 이어진 전하 넷 n2 도 전하 분배에 든다:
+    KCL(n1): (C1 + C2 + cgb)·v1 − cgb·v2 = C1, KCL(n2): −cgb·v1 + (cgb + C3)·v2 = 0, gain = −gm/(gds + 1/RL)·v1, gm/(gds+G) = 18.75.
+    a (C3 = 4p): v2 = v1/5 -> (6 − 0.2)·v1 = 2 -> v1 = 0.3448276 -> gain = −6.46551724.
+    b (C3 없음): v2 = v1 -> (6 − 1)·v1 = 2 -> v1 = 0.4 -> gain = −7.5.
+    c (a 에서 M3 의 g·b 교환): cgb 는 단자 대칭 -> −6.46551724. n2 를 놓치면 −6.25."""
+    for c3, swap, want in ((4e-12, False, -6.46551724), (0.0, False, -7.5), (4e-12, True, -6.46551724)):
+        got = _ub1_mos_cap_island(c3, swap)
+        assert got.undefined == ()
+        assert got.gain == pytest.approx(want, rel=1e-7)
+
+
+def _count_c_assemblies(monkeypatch):
+    """`sys.modules` 의 block_model·block_residual 모듈 자리에서 `capacitance_matrix` 를 감싸 호출 수를 센다."""
+    calls = []
+    for name in ("gmid_engine.metrics.block_model", "gmid_engine.metrics.block_residual"):
+        mod = sys.modules.get(name)
+        orig = getattr(mod, "capacitance_matrix", None)
+        if orig is not None:
+            def wrapped(*a, _o=orig, **k):
+                calls.append(1)
+                return _o(*a, **k)
+            monkeypatch.setattr(mod, "capacitance_matrix", wrapped)
+    return calls
+
+
+def test_ub1_c_matrix_assembled_only_for_charge_nets_and_once(monkeypatch):
+    """[A-107 M-1d A-4] 계약: 전하 넷 0 인 블록은 C 조립 0 회, 전하 넷 있는 block_local_gain 1 회는 정확히 1 회(같은 입력 재조립 0).
+    oracle (d) 계약 선언(조립은 전하 행이 쓸 때만, 한 번만). 대조: 전하 넷 있는 호출은 ≥ 1 이어야 계수기가 살아 있음을 보인다."""
+    calls = _count_c_assemblies(monkeypatch)
+    nets, m, rr = _cs()
+    ss = H.circuit(nets, m, rr, ("gnd", "vdd"), ("in",))
+    block_local_gain(ss, H.block(("out",), ("in",), ("out",), ("in", "out"), members=("M1", "RL")))
+    assert len(calls) == 0
+    cn, cm, cr, ground, inputs = H.chain3(None, False)
+    css = H.circuit(cn, cm, cr, ground, inputs)
+    block_residual(css, H.transfer({"in": 1.0}, "out"), H.chain3_struct(False))
+    assert len(calls) == 0
+    got = _ub1_mos_cap_island(4e-12)
+    assert got.undefined == ()
+    assert len(calls) == 1

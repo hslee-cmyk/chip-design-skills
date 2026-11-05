@@ -18,7 +18,7 @@ import numpy
 from gmid_engine.core import compute_block
 from gmid_engine.sizing import METRICS_KEY, SS_NODAL_WRITER
 
-from ._helpers_nodal import capacitance_matrix, nodal_factor
+from ._helpers_nodal import capacitance_matrix, charge_seeded, nodal_factor
 from .aux_types import NodalSystem
 from .mna_types import Undefined
 from .ss_circuit import CODE_PASSIVE_MISSING, is_dc_conducting_passive
@@ -64,8 +64,8 @@ def nodal_of(ss):
     index = {net: i for i, net in enumerate(ss.nodes)}
     g, g_bound = conductance_matrix(ss.circuit, len(ss.nodes), bound=True)
     fixed = frozenset(index[net] for net in tuple(ss.ground_nets) + tuple(ss.input_nets))
-    c = capacitance_matrix(ss.circuit, len(ss.nodes))               # 용량 전용 노드는 전하 보존 행으로 푼다(NL-1) -- G 와 g_bound 는 DC 전도만
-    return NodalSystem(tuple(ss.nodes), fixed, g, g_bound, nodal_factor(g, fixed, c=c))
+    c = capacitance_matrix(ss.circuit, len(ss.nodes)) if charge_seeded(g, fixed) else numpy.zeros(g.shape)
+    return NodalSystem(tuple(ss.nodes), fixed, g, g_bound, nodal_factor(g, fixed, c=c))   # 용량 전용 노드(G 행 0)가 있을 때만 C 조립 -- 전하 보존 행(NL-1)
 
 
 @compute_block(SS_NODAL_WRITER, reads=READS, writes=WRITES)
