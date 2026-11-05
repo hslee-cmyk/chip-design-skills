@@ -42,6 +42,7 @@ DC_TABLE = {
     ("device", "dc_ln_idu"): "dc_columns",
     ("graph", "dc_scc_log"): "dc_columns",
     ("device", "dc_op"): "dc_widths",
+    ("device", "dc_sat_v"): "dc_widths",                     # [HC-S A-103 M-1] 새 필드 device.dc_sat_v, writer = dc_widths
     ("device", "dc_tol_v"): "dc_tolerances",
     ("device", "dc_gm"): "dc_tolerances",                    # [U17 ①] 설계 40 §2.4.8 소유표·§3.7-3 (옛 dc_gm_bound 폐기)
     ("graph", "dc_seal_1"): "dc_seal_node_conflict",
@@ -76,7 +77,8 @@ def test_dc_table_has_32_fields():
     # [IT-2c 갱신, 승인 동작 변경 O-109·O-205] node.dc_output_structure 삭제(계획 v6.38.8 N3.8, design 41 v1.16.3 §4.7-W) −1 = 33.
     # [EO-1 범위 4] dc_off_current·dc_conduction_floor −2, device.region_decl +1 (S0 행) = 32.
     # [TB-1] device.theta_class +1 = 33.
-    assert len(DC_TABLE) == 33
+    # [HC-S A-103] device.dc_sat_v +1 = 34.
+    assert len(DC_TABLE) == 34
 
 
 # [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
@@ -169,7 +171,8 @@ READS = {
                    ("device", "dc_colour"), ("node", "dc_colour"),
                    ("node", "port_direction"), ("device", "region_decl")},   # [EO-1 범위 4, A-88] region_decl READS; [IT-1 K-3 ext, O-84] 41:672 -- 입력 포트 판정은 S1 포트 방향 READS     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
     "dc_widths": {("node", "dc_v"), ("node", "dc_rail_v"), ("device", "dc_current"), ("device", "dc_L"),
-                  ("device", "dc_ln_idu"), ("device", "pins"), ("device", "kind"), ("device", "bulk")},
+                  ("device", "dc_ln_idu"), ("device", "pins"), ("device", "kind"), ("device", "bulk"),
+                  ("device", "region_decl")},   # [HC-S A-103 M-1] dc_sat_v 산출이 선언 영역 region_decl READS
 }
 
 
