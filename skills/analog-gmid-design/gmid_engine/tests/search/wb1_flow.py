@@ -23,9 +23,10 @@ from metrics.conftest import fresh_run
 CONS = (("gain_ss_db", ">=", 10.0, None),)
 
 
-def bins_case(tmp, doc, constraints=CONS, elements=(), eval_budget=40, widths=(1e-6, 2e-6), archive_root=None, budget_s=600.0):
+def bins_case(tmp, doc, constraints=CONS, elements=(), eval_budget=40, widths=(1e-6, 2e-6), archive_root=None, budget_s=600.0,
+               idu_factor=None):
     tmp = Path(tmp)
-    lut, _, _ = write_r4_bins_lut(tmp / "lut", widths=widths)
+    lut, _, _ = write_r4_bins_lut(tmp / "lut", widths=widths, idu_factor=idu_factor)
     acc = access_of(lut)
     td, spec = load_spec(tmp / "case", doc, elements=elements, constraints=constraints)
     inputs = dc_inputs_from_spec(spec)

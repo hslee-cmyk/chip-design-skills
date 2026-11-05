@@ -16,8 +16,9 @@ from .conftest import (DEVICE_OF, GRID_M, R4_GRIDS, R4_L, SUFFIX, TOY_SPEC, W_M,
 
 
 def write_r4_bins_lut(root, widths=(1e-6, 2e-6), rule="lower", grids=R4_GRIDS, vdsat=("nmos", "pmos"), cap_vdsat=(),
-                      kinds=("nmos", "pmos"), l_anchors=None, simulator="ngspice-46"):
-    """-> (LutSet, 폴더, write_toy_bins 반환). 기준 폭 = W_M(1e-6, cap 의 w_ref_m). widths 에 W_M 이 있어야 한다."""
+                      kinds=("nmos", "pmos"), l_anchors=None, simulator="ngspice-46", idu_factor=None):
+    """-> (LutSet, 폴더, write_toy_bins 반환). 기준 폭 = W_M(1e-6, cap 의 w_ref_m). widths 에 W_M 이 있어야 한다.
+    idu_factor = {폭: 배율} -- 그 폭 슬라이스의 ID·GM·GDS 에 폭 비 말고 배율을 더 곱한다(IDu 가 슬라이스마다 달라진다, interface M-5). 기본 비례."""
     root = Path(root)
     root.mkdir(parents=True, exist_ok=True)
     l_anchors = tuple(l_anchors or grids[0])
@@ -26,7 +27,7 @@ def write_r4_bins_lut(root, widths=(1e-6, 2e-6), rule="lower", grids=R4_GRIDS, v
     for kind in kinds:
         for W in widths:
             a = r4_arrays(kind, kind in vdsat, 0, (), grids)
-            k = W / W_M
+            k = W / W_M * dict(idu_factor or {}).get(W, 1.0)
             a.update(W=np.float64(W), ID=a["ID"] * k, GM=a["GM"] * k, GDS=a["GDS"] * k)
             a["meta_json"] = np.str_(json.dumps(tb.meta(kind)))
             name = "r4_%s.npz" % kind if W == widths[0] else "r4_%s_w%d.npz" % (kind, round(W / GRID_M))
