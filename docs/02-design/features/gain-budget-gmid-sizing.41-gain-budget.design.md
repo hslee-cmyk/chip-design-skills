@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.16.15
-plan_version: 6.38.18
+version: 1.16.16
+plan_version: 6.38.19
 ---
 
 # gain-budget-gmid-sizing -- 41-gain-budget Design Document
@@ -1005,7 +1005,7 @@ E-21 기준 폭 toy(P:2171 끝)는 생산자 경로라 4.9 T-P6이 받는다. G1
 | O-222 | 4.8-7, T-G4 |
 | O-144 J4·O-183 | 4.8-4 로더 커밋 |
 
-### 4.9 card EO-1 범위 (1)~(3) -- 엔진 점 → oracle 입력 생산자와 판정 배선 (초안)
+### 4.9 card EO-1 범위 (1)~(3) -- 엔진 점 → oracle 입력 생산자와 판정 배선
 
 **상태**: 승인(묶음 ⑥, 위임 A-27). 계약 = oracle design §11.1·§11.4·§11.7(칸 이름이 바뀌면 이 절 표를 따라 고친다). 정의 = 계획 N6.20, DEC-98·T4-pre(40 §10.5). 엔진 파일 인용은 재작성 범위 표시뿐이다(원칙 8). 40 §11 U17 ②의 나눔: 이 절 = 생산자·시작점 판정, front 판정 배선 = LA-1(범위 (3), LA-Q5).
 
@@ -1018,7 +1018,7 @@ E-21 기준 폭 toy(P:2171 끝)는 생산자 경로라 4.9 T-P6이 받는다. G1
 def oracle_input_of(snapshot, spec, topology_ref, run_decl, lut_files) -> dict        # 부수 효과 0, 스냅샷 안 바꿈
 # E/search/oracle_bridge.py -- 판정 배선
 def judge_point(snapshot, spec, call, record_root) -> OracleRef | OracleReject        # 입력 파일 쓰기 → call.runner(외부 oracle 진입점 또는 test stub) → 참조
-def bridge_status(ref) -> str                                                          # 기록을 읽어 다리 상태
+def bridge_status(ref) -> str                                                          # 기록을 읽어 다리 상태. OP-5 엔진 커밋이 소비자와 함께 넣는다(위임 A-97)
 ```
 
 - oracle은 외부 단계다. `tools/spice_oracle` import 0, 엔진 쪽 LUT 재계산·판정 0.
@@ -1053,10 +1053,10 @@ def bridge_status(ref) -> str                                                   
 - **대상 = 시작점**(N6.3 (iii)): 그 실행의 출발점 가운데 커널 평가가 봉인 통과인 점. 스냅샷은 LA-1 전까지 `sctx.cache`의 그 점 결과를 읽기만 하고(쓰기·새 슬롯 0) LA-1이 S3 색인 열거(PS-7)로 바꾼다. 재평가 0. 봉인 통과 점이 없으면 oracle을 부르지 않고 `no_sealed_start`를 기록한다.
 - **자리**: `find_front`가 탐색을 끝낸 뒤, 실행 기록을 쓰기 전. 탐색 궤적·front에 영향 0(front 판정은 범위 (3)이라 이 card에서 읽지 않음). 실행 설정은 `--bias free`, T4-pre 기하.
 - **`run_decl`이 없거나 기록 폴더(archive)가 없으면** 실행하지 않고 notes에 `oracle_undeclared`·`oracle_no_record_root`. 다리는 '보류'이고 통과로 세지 않는다.
-- **`run_decl` 파일과 호출자의 경로 전달은 OP-5 통합 병합의 엔진 커밋에서 처음 넣는다**(위임 A-23, A-8). 범위 1~3 병합에는 생산자·`judge_point`·`bridge_status`와 stub test만 있고 다리는 항상 `oracle_undeclared` 보류다. `threshold_eps1` 분기는 인자로 직접 준 경로에 대한 방어로 남긴다(보류, 통과로 세지 않음). 계획 N6.20 완료 (3)의 'OP-3 코어 판정' 문언은 'OP-5 판'으로 고칠 계획 표지(A-23).
+- **`run_decl` 파일과 호출자의 경로 전달은 OP-5 통합 병합의 엔진 커밋에서 처음 넣는다**(위임 A-23, A-8). 범위 1~3 병합에는 생산자·`judge_point`와 stub test만 있고 다리는 항상 `oracle_undeclared` 보류다. `bridge_status`는 소비자가 있는 OP-5 엔진 커밋에서 넣는다(위임 A-97, 만들면 배선). 계획 N6.20 완료 (3)의 'OP-3 코어 판정' 문언은 'OP-5 판'으로 고칠 계획 표지(A-23).
 - **OP-7 거부**: 선언 호환 모드가 없으면 oracle이 실행을 거부한다(P:305 reader (ii)). 그 거부도 아래 거부 기록 경로로 온다. 별도 표 없음.
 - **점 레코드**(graph 규칙 4 -- 참조만): `starts[]` 행에 `oracle = OracleRef(record_id, compare_ref, input_sha256)` 또는 `oracle_reject = (reject_ref, code, stage)`. verdict·꺼짐 판은 기록 파일에 있고 `bridge_status`가 읽는다. 결과 객체(`EvalResult`·`SearchFront`)에 값 칸을 더하지 않는다.
-- **`bridge_status`**: `compare.json`의 `record_id`를 §11.7 식으로 대조(다르면 `record_mismatch`) 뒤 `summary.conduction_definition` 읽음. `channel_sign` = verdict 유효. `threshold_eps1` = '보류(채울 card = OP-5)'(N6.20, N6.3 (iv)). 그 밖 값 = 판정 불능. EO-1이 읽는 칸은 §11.7 목록 밖으로 나가지 않는다.
+- **`bridge_status`**(OP-5 엔진 커밋): `compare.json`의 `record_id`를 §11.7 식으로 대조(다르면 `record_mismatch`) 뒤 `summary.conduction_definition` 읽음. `channel_sign` = verdict 유효. `threshold_eps1` = '보류(채울 card = OP-5)'(N6.20, N6.3 (iv)). 그 밖 값 = 판정 불능. EO-1이 읽는 칸은 §11.7 목록 밖으로 나가지 않는다.
 - **2단계 없음**: `conduction.points[]` 재판정·`stage2_judgment`·재요청 자리 0(O-205 (2)·O-210 RR-2). 기록·대조용 읽기는 OP-5 통합 병합 몫이다.
 
 **4.9-4 뒤 card가 갱신하는 칸**(O-183 과도기 0 -- 그 card 같은 병합): **OP-5 통합 병합 = `/kcl_zero_current_devices`(`graph.dc_current_basis` 빈 항 행 직렬화 -- DR-1 전에는 빈 배열), `/intended_region`, `/dc_sweep`(`input_dc` 포함) 생산, `judge.sat_margin_V`·`swing_icmr.input_dc_V`·`input_dc_pending` 삭제**, HC-O·OP-10 = G-18 나머지 확장 칸, SF-1 범위 3·8·9 = 출력 범위, `counted_rails`(범위 8은 `acceptance`의 `verified_by(metric).kind` 직접 읽기를 판정 대상 칸·`spice_unverifiable` 칸 READS로 바꾼다, 같은 정의), DUT 저항 C_par/2, LA-1 = front 판정 호출(범위 (3)), DR-1 = 빈 항 행 생산 card(생산자 코드 변경 0). 귀결(표지): OP-5 뒤 DR-1 전에는 엔진 빈 집합이라 oracle과 `kcl_zero_set_mismatch`가 날 수 있으나, 그런 소자가 있는 점은 봉인 9 거부(N3.6 표 9행)라 oracle까지 오지 않는다.
@@ -1083,7 +1083,7 @@ def bridge_status(ref) -> str                                                   
 | T-B1 | stub oracle로 시작점 판정: 기록 생기고 `starts[]` 행에 참조, 탐색 결과 비트 불변(완료 (3)). 실제 oracle 1회는 OP-5 통합 병합 판정으로 옮김(범위 1~3 병합 = '미완료(보류 다리)', A-10) | 칸 없음 red |
 | T-B2 | 거부 입력 → `oracle_reject`, 반환 코드 2 처리. 봉인 통과 점 없음 → `no_sealed_start`, 호출 0 | -- |
 | T-B3 | `run_decl` 없음·archive 없음 → notes 사유, 호출 0, 다리 '보류' | -- |
-| T-B4 | `bridge_status`: `channel_sign` 유효, `threshold_eps1` 보류, 모르는 값 판정 불능, `record_id` 불일치 거부 | -- |
+| T-B4(OP-5 card) | `bridge_status`: `channel_sign` 유효, `threshold_eps1` 보류, 모르는 값 판정 불능, `record_id` 불일치 거부 | -- |
 | T-B5 | 값 칸 0: `EvalResult`·`SearchFront` 필드 불변, 2단계 호출 자리 0 | -- |
 | T-X2 | 검증자 변화표: 결과에 판정 칸이 새로 생김, 원인 기록(완료 (4)). 값 **미측정** | -- |
 
