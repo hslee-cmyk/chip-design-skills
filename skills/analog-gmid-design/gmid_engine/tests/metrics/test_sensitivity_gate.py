@@ -87,3 +87,18 @@ def test_ub1_verdict_ok_branch():
     assert got.verdict == "ok" and got.reason is None and got.unmeasured == () and got.errors == ()
     assert got.ok is True
     assert got.epsilon == pytest.approx(1e-12 * K, rel=1e-12)
+
+
+@pytest.mark.parametrize("base,runs,reason,names", [
+    ((40.0, 40.0, 1e-12), (("a", float("nan"), 41.0, 1e-12),), "perturbation_unmeasured", ("a",)),
+    ((40.0, 40.0, 1e-12), (("a", 40.0, float("inf"), 1e-12),), "perturbation_unmeasured", ("a",)),
+    ((40.0, 40.0, 1e-12), (("a", 40.0, 41.0, float("nan")),), "perturbation_unmeasured", ("a",)),
+    ((float("nan"), 40.0, 1e-12), (("a", 40.0, 41.0, 1e-12),), "base_undefined", ("a",)),
+    ((float("-inf"), 40.0, 1e-12), (("a", float("-inf"), 41.0, 1e-12),), "base_undefined", ("a",)),
+])
+def test_a107_nonfinite_input_is_unmeasured_not_ok(base, runs, reason, names):
+    """[A-107 m2] oracle (d) interface C-10 어휘: NaN·inf 는 측정 불능(None 과 같은 취급) -> ok False, verdict undeterminable,
+    reason 은 섭동 칸이면 perturbation_unmeasured, base 칸이면 base_undefined(unmeasured = 전 이름)."""
+    got = sensitivity_gate(base, runs)
+    assert got.ok is False and got.verdict == "undeterminable"
+    assert got.reason == reason and got.unmeasured == names

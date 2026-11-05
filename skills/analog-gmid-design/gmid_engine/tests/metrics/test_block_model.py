@@ -329,3 +329,29 @@ def test_ub1_closure_stops_at_other_block_net():
     assert got.gain == pytest.approx(-GM / (GDS + 1 / R + 1 / rx), rel=1e-12)
     assert "Rx" in got.members and "v2" not in dict(got.node_v)
     assert got.decomposed_only is True
+
+
+def test_ub1_dead_end_resistor_net_read_by_capacitor_to_charge_net():
+    """[A-107 M-1] oracle (a) 구성 정답 + 손 KCL. out -Rz- mz -Cc- n -C2- gnd, M2(d o2, g n), M1 이 out 을 구동.
+    Rz 에 흐르는 DC 전류 0(mz 는 용량으로만 이어짐) -> V(mz) = V(out). 전하 넷 n 은 용량 분배(ω→0 전하 보존):
+    V(out) = −gm1/(gds1 + 1/R1) = −1e-3/(2e-5 + 1/3e4) = −18.75,
+    V(n) = Cc/(Cc + C2)·V(mz) = 1/(1+3)·(−18.75) = −4.6875,
+    gain = V(o2) = −gm2/(gds2 + 1/R2)·V(n) = −2e-3/(3e-5 + 1/2e4)·(−4.6875) = 117.1875.
+    막다른 가지 규칙이 용량 독자를 놓치면 mz 를 뺀 뒤 gain −0.0."""
+    nets = ("gnd", "vdd", "in", "out", "mz", "n", "o2")
+    i = {n: k for k, n in enumerate(nets)}
+    gm1, gds1, r1, gm2, gds2, r2, ccz, c2z, rz = 1e-3, 2e-5, 3e4, 2e-3, 3e-5, 2e4, 1e-12, 3e-12, 1e3
+    mos = (MosSmallSignal(i["out"], i["in"], i["gnd"], i["gnd"], gm1, 0.0, gds1, label="M1"),
+           MosSmallSignal(i["o2"], i["n"], i["gnd"], i["gnd"], gm2, 0.0, gds2, label="M2"))
+    res = (Resistor(i["vdd"], i["out"], r1, label="R1"), Resistor(i["vdd"], i["o2"], r2, label="R2"),
+           Resistor(i["out"], i["mz"], rz, label="Rz"))
+    caps = (Capacitor(i["mz"], i["n"], ccz, label="Cc"), Capacitor(i["n"], i["gnd"], c2z, label="C2"))
+    ss = SsCircuit(nets, SmallSignalCircuit(mos=mos, resistors=res, capacitors=caps), tuple(r.label for r in res),
+                   tuple(c.label for c in caps), ("gnd", "vdd"), ("in",))
+    b = H.block(("o2",), ("in",), ("o2",), ("in", "out", "mz", "n", "o2"),
+                members=("M1", "M2", "R1", "R2", "Rz", "Cc", "C2"))
+    got = block_local_gain(ss, b)
+    assert got.undefined == ()
+    assert dict(got.node_v)["mz"] == pytest.approx(-18.75, rel=1e-9)
+    assert dict(got.node_v)["n"] == pytest.approx(-4.6875, rel=1e-9)
+    assert got.gain == pytest.approx(117.1875, rel=1e-9)
