@@ -1043,3 +1043,10 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   (1) θ 전류 정의역 원뿔이 θ 에 비선형(곱)이 되며 (2) `search_domain`(상자: 멤버·기준 전류 상자에서 도출 가능)·`fd_jacobian`·`orbit_ties`·`current_symmetry`·
   `layer0_center`·`start_points`·`cone_rows` 가 모두 새 종류를 알아야 한다 -- 소유가 다른 단위(U11 search 정비·U15)의 파일이라 이 단위에서 쓰면 쓰이지 않는 코드가 되거나 search 를 깨뜨린다.
   대칭 묶음의 비율 1 은 이미 search `orbit_ties` 가 같은 궤도 전류 성분을 한 변수로 묶어 준다(U2).
+
+## 15. [WB-1 DC 블록] `dc_solve` (writer `dc_solve`)
+
+옛 `dc_columns`·`dc_widths`·`pre_layout_lut_access`·`kernel_keys`·`dc_drop_current` 를 대체한다. `LutAccess(memo)` 는 slice 키 칸이 없다. 순서: 쓰기 소자 `finger_slice`(상수 W) -> 노드 풀이 -> 종속 소자 선택(`W(s) = ID·L/IDu_s`)
+-> Rʳ(writer 없는 순환 SCC 의 허용오차 셀을 내는 종속 소자)이 있고 키 벡터가 바뀌었으면 다시 풀이, 이전 벡터로 돌아가면 `slice_cycle`. `DeviceOp.w_key`·`gm_id`·`idu_forward`·`dc_finger` 가 같은 슬라이스를 가리킨다.
+`device.dc_finger` = `FingerGeom(m, w_f_m, residual)`(탐색 평가), 레이아웃 뒤(`RealizedGeometry(layout_ref, w_request)`)는 빈 열. `SccLog.slice_rounds` = 그 평가 노드 풀이 수.
+미구현: 실현 평가(`RealizedFinger`, W′·바이어스 고정 재풀이) -- `realize_front` 와 함께.
