@@ -155,6 +155,38 @@ def test_unmeasured_points_never_in_final_front(tmp_path, lut_sealed, short_root
     assert run["front"] == [] and len(run["unmeasured_front"]) == len(fr.unmeasured_front)
 
 
+UB1_GATE_FIELDS = ("verdict", "reason", "errors", "checks", "unchecked", "unmeasured", "epsilon_db")
+
+
+def _ub1_gate_rows(fr):
+    return [n for n in _notes(fr) if n.get("rule") == "sensitivity_gate"]
+
+
+def test_ub1_gate_note_exactly_one_row_with_fields(tmp_path, lut_sealed):
+    """[UB-1 E-01, interface C-12] notes 에 rule == "sensitivity_gate" 행이 언제나 정확히 하나, 칸 verdict·reason·errors·checks·unchecked·
+    unmeasured·epsilon_db. 사유 규칙(C-10): reason 이 없는 판정은 ok·error 뿐. (판정 값 자체는 회로 의존 -- 손으로 못 정하므로 규칙만.)"""
+    _, fr = _run(tmp_path, lut_sealed, eval_budget=30)
+    rows = _ub1_gate_rows(fr)
+    assert len(rows) == 1
+    g = rows[0]
+    for k in UB1_GATE_FIELDS:
+        assert k in g, k
+    assert g["verdict"] in ("ok", "error", "undeterminable", "gate_empty")
+    assert (g["reason"] is None) == (g["verdict"] in ("ok", "error"))
+
+
+def test_ub1_gate_note_front_empty(tmp_path, lut_sealed, short_root):
+    """[interface C-12] front 가 비면 게이트 행은 gate_empty / front_empty (C 값 없는 용량으로 front 가 빈 입력 -- 위 test 와 같은 구성)."""
+    _, fr = _run(tmp_path, lut_sealed, constraints=SS, eval_budget=30, archive_root=short_root,
+                 topo=circuit_c(with_cap=True), elements=(("CL", "capacitor", PENDING),))
+    assert tuple(fr.front) == ()
+    rows = _ub1_gate_rows(fr)
+    assert len(rows) == 1
+    assert rows[0]["verdict"] == "gate_empty" and rows[0]["reason"] == "front_empty"
+    for k in UB1_GATE_FIELDS:
+        assert k in rows[0], k
+
+
 def test_front_points_respect_w_min(tmp_path, lut_sealed):
     """S-18: W_min 을 시작점 W 보다 크게 선언(시작점은 w_min 행 음수) -> front 점은 모두 W ≥ W_min(w_min 행 c ≥ 0)."""
     from gmid_engine.search import evaluate

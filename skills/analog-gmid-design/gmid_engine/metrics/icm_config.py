@@ -146,7 +146,7 @@ def _select(projection, nodal, inputs, directions):
     sense = _sense_signs(view, dict(projection.column("node", "port_role")))
     if sense is None:
         return _undefined(F_VIEW_REQUIRED, (("sense", tuple(view.sense)),))
-    floating = tuple(sorted(nodal.nodes[i] for i in nodal.factor[4]))
+    floating = tuple(sorted(nodal.nodes[i] for i in tuple(nodal.factor[4]) + tuple(nodal.factor[5])))      # DC 전도 경로 없는 용량 전용 노드 = floating ∪ charge(NL-1 이 둘로 가른다)
     if floating:
         return _undefined(CODE_CAPACITIVE_ONLY, (("nets", floating),))
     return CONFIGS[len(inputs) - 1], tuple(view.excite), sense

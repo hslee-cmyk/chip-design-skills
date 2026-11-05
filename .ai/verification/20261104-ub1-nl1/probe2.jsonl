@@ -1,0 +1,6 @@
+{"engine_out": -3.9682539682539675, "hand_out": -3.968253968253968, "charge": ["n"], "case": "a_view_factor_other_fixed_charge"}
+{"value": "Undefined(quantity='ss_nodal', code='passive_value_undeclared', category='definitional', detail=(('elements', ('C1',)),))", "case": "b1_missing_and_charge"}
+{"type": "Undefined", "lu_none": null, "repr": "Undefined(quantity='ss_nodal', code='passive_value_undeclared', category='definitional', detail=(('elements', ('C1', 'C2')),))", "case": "b2_missing_all_caps_on_net"}
+{"floating": [], "charge": [], "lu_none": true, "case": "c0_classify"}
+{"got": "Undefined(quantity='icm_config', code='icm_servo_pivot_unresolved', category='definitional', detail=(('singular', True),))", "case": "c1_icm_servo"}
+{"got": "(None, None, None)", "case": "c1_icm_as_is"}

@@ -1,0 +1,8 @@
+{
+"name": "read 를 모든 C 넷으로 넓힘(과잉 제외)",
+"rc": 1,
+"last": "1 failed, 21 passed in 0.51s",
+"failed": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_ub1_dead_end_resistor_to_unread_capacitor_island_stays_dead_e"
+]
+}

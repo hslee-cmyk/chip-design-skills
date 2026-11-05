@@ -177,12 +177,15 @@ def local_inputs(devs, *, rails=("gnd", "vdd"), grids=GRIDS, passives=(), orbit=
 
 
 def block_spec(key, members, inputs, outputs, nodes, ground=("gnd", "vdd"), excite=None, passives=(), role="main",
-               drive=None):
+               drive=None, others=()):
+    """[UB-1] `others` = 같은 뷰 남의 블록 노드 넷 정렬(칸이 없는 판(base)에서는 칸 없이 만든다 -- 그 판의 단정이 AssertionError 로 빨갛다)."""
+    import dataclasses
     from gmid_engine.metrics import BlockSpec
+    kw = {"others": tuple(sorted(others))} if others and "others" in {f.name for f in dataclasses.fields(BlockSpec)} else {}
     return BlockSpec(key=tuple(key), role=role, members=tuple(sorted(members)), passives=tuple(sorted(passives)),
                      inputs=tuple(inputs), outputs=tuple(outputs), ground=frozenset(ground),
                      excite=tuple(excite) if excite is not None else tuple((n, 1.0) for n in inputs),
-                     nodes=tuple(nodes), drive=drive)
+                     nodes=tuple(nodes), drive=drive, **kw)
 
 
 # ---------------------------------------------------------------- BlockModel (손 -- row_gains·block_gain_bound 입력)

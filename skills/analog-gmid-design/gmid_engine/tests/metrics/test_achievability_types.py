@@ -35,3 +35,20 @@ def test_result_records_are_fingerprintable_and_frozen():
     assert isinstance(fp_of(dof), str)
     with pytest.raises(dataclasses.FrozenInstanceError):
         bb.status = "unknown"
+
+
+def test_ub1_new_fields_defaults_and_fingerprint():
+    """[UB-1] 새 칸은 끝에 있고 기본값이 있다: BlockBound.load_note None, BlockSpec.others (), BlockModel.omitted_load ()·decomposed_only False.
+    load_note 는 지문에 든다(값이 다르면 지문이 다르다). oracle (a) 구성."""
+    from .gb4_hand import block_spec, cs_model
+    bb = M.BlockBound(key=("out",), role="main", status="certified", a_max_db=1.0, b_db=0.1, pi=10, axes=(("vgs", 10),),
+                      row_condition=(("vgs:M1", 0.5),), reason=None, found_db=None, members=("M1",), n_rows=10)
+    assert getattr(bb, "load_note", "absent") is None
+    note = ("load_admittance_unfixed", ("M2",))
+    noted = dataclasses.replace(bb, load_note=note)
+    assert noted.load_note == note and fp_of(noted) != fp_of(bb)
+    names = [f.name for f in dataclasses.fields(M.BlockBound)]
+    assert names[-1] == "load_note"
+    assert getattr(block_spec(("out",), ("M1",), ("in",), ("out",), ("in", "out")), "others", "absent") == ()
+    m = cs_model()
+    assert getattr(m, "omitted_load", "absent") == () and getattr(m, "decomposed_only", "absent") is False

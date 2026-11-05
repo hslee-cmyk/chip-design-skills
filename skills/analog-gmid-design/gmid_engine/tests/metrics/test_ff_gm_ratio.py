@@ -119,3 +119,22 @@ def _ngcc_struct():
     """ngcc 구조 입력 -- 실제 S1v 에서(metric_structure)."""
     (vs,) = N.structure_of(N.s1v()).views
     return vs
+
+
+def test_ub1_ff_gm_ratio_passes_view_ac_ground():
+    """T-10b [UB-1] (a): 탭 v1(B_b = (v1,) 내부 노드), Mf(d out, g v1, s gnd), B_b = M1(d v1, g in, s gnd) + R1, Rb(v1-vb2).
+    vb2 는 ss.ground_nets 밖이고 vstruct.ac_ground 에만 있다. G_ff = gmf*V(v1) 이고 V(v1) = -gm1/(gds1 + G1 + 1/Rb)(Rb 는 v1 의 1/Rb 부하)이므로
+    r_ff = gmf/(gds1 + G1 + 1/Rb). 접지가 안 넘어가면 Rb 가 막다른 가지로 빠져 gmf/(gds1 + G1)."""
+    gm1, gds1, r1, gmf, gdsf, rb, rl, gmm = 1.2e-3, 1.5e-5, 4e4, 6e-4, 2e-5, 9e3, 3e4, 1.5e-3
+    nets = ("gnd", "vdd", "vb2", "in", "v1", "out")
+    m = (H.mos("M1", "v1", "in", "gnd", "gnd", gm1, gds1), H.mos("Mm", "out", "v1", "gnd", "gnd", gmm, 1e-5),
+         H.mos("Mf", "out", "v1", "gnd", "gnd", gmf, gdsf))
+    rr = (H.res("R1", "vdd", "v1", r1), H.res("Rb", "v1", "vb2", rb), H.res("RL", "vdd", "out", rl))
+    ss = H.circuit(nets, m, rr, ("gnd", "vdd"), ("in",))
+    b1 = H.block(("v1",), ("in",), ("v1",), ("in", "v1"), stage=1, input_cells=("M1",), members=("M1", "R1"))
+    b2 = H.block(("out",), ("v1",), ("out",), ("v1", "out"), stage=2, input_cells=("Mm",), members=("Mm", "RL"))
+    vs = H.vstruct("t", {"in": 1.0}, ("out",), (b1, b2), (H.ff("v1->out", "v1", "out", ("Mf",), ("out",), ("v1",), ("M1",)),),
+                   ("M1",), ("M1", "Mm", "Mf"), ac_ground=("vb2",))
+    got = ff_gm_ratio(ss, vs)
+    assert got.undefined == ()
+    assert got.ratio == pytest.approx(gmf / (gds1 + 1 / r1 + 1 / rb), rel=1e-9)

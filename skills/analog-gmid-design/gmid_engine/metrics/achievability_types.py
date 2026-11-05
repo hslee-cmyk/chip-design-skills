@@ -25,6 +25,10 @@ REASON_AXIS_RANGE = "axis_range_empty"                   # LUT 격자 위 유효
 REASON_NON_CONVERGED = "continuous_axis_not_refined"     # 비단조 축 세분이 상한 안에 끝나지 않았다(41 §4.2 '비단조 축 처리')
 REASON_MEMBER_UNKNOWN = "member_bound_unknown"           # 합성 성분(FF 의 입력→탭 상한 등)이 미상
 REASON_NO_CURRENT_BOX = "current_box_missing"
+REASON_CHARGE_NODE_ROW = "charge_node_row_mode"           # 행 모드: 스탬프 MOS 가 용량 전용 넷을 읽는다 -- 전하 보존 행에 필요한 비멤버 용량 값이 이 모드에 없다(설계 41 §2.5-9)
+REASON_DECOMPOSED_ONLY = "decomposed_only_bound"         # 되먹임 수동소자가 있는 블록의 행 값은 상한이 아니다
+REASON_BIN_INTERIOR = "bin_interior_unchecked"           # L bin 안쪽 점을 못 읽었다(NaN) -- 끝점 인증 금지
+REASON_LOAD_UNFIXED = "load_admittance_unfixed"          # 행 모드가 값 없이 뺀 비멤버 MOS 의 부하 어드미턴스
 # ---- 역할
 ROLE_MAIN = "main"
 ROLE_FF = "ff"
@@ -104,7 +108,8 @@ class BlockBound:
     `key` = 블록 키(출력노드 정렬 tuple) 또는 FF 묶음 id 를 담은 1-tuple, `role` ∈ {main, ff}, `status` ∈ {certified, unknown}, `a_max_db`·`b_db` = 인증 때만(dB),
     `pi` = 격자 곱 Π(int, 항상), `axes` = ((축 종류, 크기), ...) 정렬 안 한 정의 순서, `row_condition` = 최대 행의 축별 값((이름, 값), ...) , `reason` = 미상 사유 또는 None,
     `found_db` = 격자 일부(좌표 상승)로 찾은 최대 gain(dB) -- **상한이 아니라 하한 추정**이며 판정에 쓰지 않고 보고만 한다(없으면 None), `members` = 국소 모델의 MOS 이름,
-    `n_rows` = 평가한 행 수."""
+    `n_rows` = 평가한 행 수, `load_note` = None 또는 ("load_admittance_unfixed", (소자, ...)) -- 행 모드가 값 없이 0 으로 둔 비멤버 MOS(`BlockModel.omitted_load`)가 있는 블록의 상한은
+    그 부하 어드미턴스가 정해지지 않은 값이다(출력 전용, 보고 사유 칸)."""
 
     key: tuple
     role: str
@@ -118,6 +123,7 @@ class BlockBound:
     found_db: object
     members: tuple
     n_rows: int
+    load_note: object = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -258,7 +264,8 @@ class LocalView:
 @dataclasses.dataclass(frozen=True)
 class BlockSpec:
     """국소 모델 하나의 대상: `key`, `role`, `members` = MOS 이름(정렬), `passives` = 수동소자 이름(정렬), `inputs`·`outputs` = 넷, `ground` = 교류접지 넷,
-    `excite` = ((넷, 가중), ...) 뷰 여기, `nodes` = 블록 노드 집합(교류접지 포함 가능), `drive` = 여기를 줄 넷 tuple 을 직접 정할 때(None 이면 `inputs` 에서 교류접지를 뺀 것)."""
+    `excite` = ((넷, 가중), ...) 뷰 여기, `nodes` = 블록 노드 집합(교류접지 포함 가능), `drive` = 여기를 줄 넷 tuple 을 직접 정할 때(None 이면 `inputs` 에서 교류접지를 뺀 것),
+    `others` = 같은 뷰 남의 블록 노드 넷(자기 `nodes` 제외) 정렬 tuple -- 미지수 집합 U_b 의 고정 집합 F 에 든다(S1v 뷰 값의 투영)."""
 
     key: tuple
     role: str
@@ -270,6 +277,7 @@ class BlockSpec:
     excite: tuple
     nodes: tuple
     drive: object = None
+    others: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -316,7 +324,9 @@ class ResLocal:
 @dataclasses.dataclass(frozen=True, eq=False)
 class BlockModel:
     """블록 국소 소신호 모델(ω → 0, 커패시터 열림). `nodes` = 미지 넷, `driven` = 구동 넷, `patterns` = 여기 패턴 tuple(각 ((넷, 가중), ...)),
-    `outputs` = ((넷, 부호), ...) (gain = max_패턴 |Σ 부호·V|), `axes`, `pi` = 격자 곱, `normalized_axis` = 공통 전류 배율로 뺀 축의 이름 또는 None."""
+    `outputs` = ((넷, 부호), ...) (gain = max_패턴 |Σ 부호·V|), `axes`, `pi` = 격자 곱, `normalized_axis` = 공통 전류 배율로 뺀 축의 이름 또는 None,
+    `omitted_load` = 값이 없어 0 으로 둔 비멤버 MOS 이름(구조 색 순; 그 단자 어드미턴스가 정해지지 않은 부하 -- 행 모드 값은 그만큼 상한 쪽), `decomposed_only` = 스탬프 저항이 미지수 집합과
+    입력·남의 블록 넷을 잇는다(되먹임: 행 모드 값은 상한이 아니다)."""
 
     key: tuple
     role: str
@@ -329,3 +339,5 @@ class BlockModel:
     axes: tuple
     pi: int
     normalized: tuple
+    omitted_load: tuple = ()
+    decomposed_only: bool = False

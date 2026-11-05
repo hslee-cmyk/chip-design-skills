@@ -1,0 +1,33 @@
+[
+{
+"name": "대조",
+"rc": 0,
+"last": "32 passed in 0.71s",
+"failed": []
+},
+{
+"name": "막다른 규칙 용량 독자 뺌",
+"rc": 1,
+"last": "1 failed, 19 passed in 0.32s",
+"failed": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_ub1_dead_end_resistor_net_read_by_capacitor_to_char"
+]
+},
+{
+"name": "용량 독자를 모든 C 넷으로(과잉 제외)",
+"rc": 0,
+"last": "40 passed in 1.71s",
+"failed": []
+},
+{
+"name": "gate _finite 가 None 만",
+"rc": 1,
+"last": "5 failed, 7 passed in 0.12s",
+"failed": [
+"FAILED gmid_engine/tests/metrics/test_sensitivity_gate.py::test_a107_nonfinite_input_is_unmeasured_not_ok[base",
+"FAILED gmid_engine/tests/metrics/test_sensitivity_gate.py::test_a107_nonfinite_input_is_unmeasured_not_ok[base",
+"FAILED gmid_engine/tests/metrics/test_sensitivity_gate.py::test_a107_nonfinite_input_is_unmeasured_not_ok[base",
+"FAILED gmid_engine/tests/metrics/test_sensitivity_gate.py::test_a107_nonfinite_input_is_unmeasured_not_ok[base"
+]
+}
+]

@@ -859,7 +859,8 @@ def test_it2c_l8e_assembly_cancellation_pivot_resolution_unit():
     from fractions import Fraction
     import numpy as np
     from gmid_engine.metrics import Resistor, SmallSignalCircuit
-    from gmid_engine.metrics._helpers_nodal import conductance_matrix, nodal_factor, nodal_solve
+    from gmid_engine.metrics._helpers_nodal import nodal_factor, nodal_solve
+    from gmid_engine.metrics.ss_nodal import conductance_matrix
     from gmid_engine.metrics.aux_types import NodalSystem
     from gmid_engine.metrics.icm_config import _transfer_resolution
     rs = (10.0, 5.0, 10.0 / 3.0, 1000.0)
@@ -867,7 +868,7 @@ def test_it2c_l8e_assembly_cancellation_pivot_resolution_unit():
     n, fixed = 4, {0, 1, 2}
     g, gb = conductance_matrix(ck, n, bound=True)
     assert g[3, 1] != g[3, 2]
-    sysm = NodalSystem(("gnd", "a", "b", "s"), frozenset(fixed), g, gb, nodal_factor(g, fixed))
+    sysm = NodalSystem(("gnd", "a", "b", "s"), frozenset(fixed), g, gb, nodal_factor(g, fixed, c=np.zeros_like(g)))
     for arr in (sysm.g, sysm.g_bound):
         arr.flags.writeable = False
     volt, _res = nodal_solve(sysm.factor, n, {1: 0.9, 2: -0.9})

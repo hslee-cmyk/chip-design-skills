@@ -670,8 +670,8 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 |---|---|---|
 | 계수 예산 N_S (kind 별 LUT 격자점 수 합 또는 spec 선언값) | `search.count_budget(lut, kinds, declared=None)` | `pipeline.structure_count_budget` 은 얇은 호출이다(공개 이름 유지). metrics 가 search 보다 아래 층이라 `achievability` 는 값을 인자로 받는다. 새 격자 곱 상한을 만들지 않는다 |
 | LUT 곡선 칸 분류 -> 해법(역산 허용 / 격자 전용 / 로드 거부) | `metrics.curve_checks` (`CurveChecks`) | 분류 자료는 `DcSlice.on_mask`·`vds_slope_ok`·`vs_slope_ok`·`fc_ok_*`(lut). 칸 분류를 다시 계산하지 않는다 |
-| 블록 국소 소신호 모델 + 행 풀이 | `metrics.block_gain_model_of` -> `metrics.row_gains`(`ParamTables`) | 소자 파라미터는 `lut.intrinsic_gain_curve`·`gmb`·`op_point` 에서 `ParamTables` 가 한 번 읽는다. 블록 gain 은 U7 `block_model`(봉인 스냅샷 기준) 과 다른 양이다(여기는 LUT 격자 행 기준 상한). U7 이 들어오면 MNA 조립 도우미는 공유를 검토 |
-| 블록 gain 상한 A_i,max (격자 전수 + 예산 게이트 + 비단조 축 세분) | `metrics.block_gain_bound` | 상한은 `certified` 만 판정에 쓴다. 좌표 상승 `found_db` 는 하한 추정(보고만) |
+| 블록 국소 소신호 모델 + 행 풀이 | `metrics.block_gain_model_of` -> `metrics.row_gains`(`ParamTables`) | 소자 파라미터는 `lut.intrinsic_gain_curve`·`gmb`·`op_point` 에서 `ParamTables` 가 한 번 읽는다. 블록 gain 은 U7 `block_model`(봉인 스냅샷 기준) 과 다른 양이다(여기는 LUT 격자 행 기준 상한). 두 모드는 미지수 집합 U_b 규칙과 스탬프 조립(`block_gain_rows.block_stamp_matrix` 하나)이 같고 값 출처만 다르다(41 §2.5). U7 이 들어오면 MNA 조립 도우미는 공유를 검토 |
+| 블록 gain 상한 A_i,max (격자 전수 + 예산 게이트 + 비단조 축 세분 + L bin 안쪽 최대) | `metrics.block_gain_bound` | 상한은 `certified` 만 판정에 쓴다. 좌표 상승 `found_db` 는 하한 추정(보고만) |
 | Σ gain 판정(feedforward 포함) | `metrics.achievability` 의 `GainCheck` | 주경로 블록만(U1b `ViewS1v.blocks`), FF 는 `ViewS1v.feedforward` |
 | 인증된 면적 하한 A_lb | `metrics.area_lower_bound` | 입력 면적 분해능 b_A·수동소자 단위 면적은 `search_domain`·`search.passive_area_decl`. U11 `front_diagnosis` 의 `A_lb` 가 이 값을 쓴다 |
 | 헤드룸 경로 엣지 비용의 LUT 최솟값 / 창 폭 상한 / 짧은 L bin 경고 | `metrics.edge_costs` / `metrics.headroom_bound` | 전도 봉인 9 의 식(`gm·tol_V >= I_off`)·포화 술어 `VDS >= VDSAT`(tol 합 없음, O-204 -- card HC-S: `vds_min_v` = 포화 가능 격자점의 VDSAT 최솟값, 열 없음 0.0)을 쓴다. 새 임계값을 만들지 않는다 |
@@ -757,7 +757,7 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | VDS 정의역 하한 [HC-S] | `lut/derived_fns.py` `derived(memo, "vds_floor", kind, w_key)` (`DERIVED_TABLES` 맨 뒤) | 옛 `sizing/block_columns._vds_floor` 삭제. 소비자 `block_columns` 의 `transient`·`solve_self` |
 | off 소자 동작점·전류·1차 ΔV [EO-1 범위 4] | graph 필드 `device.off_op`(writer `ss_off_op`)·`graph.ss_off_delta`(writer `ss_off_delta`); 전류 식 `metrics/ss_linearize.py` `off_current` | `ss_dev`(스탬프 gm)와 `ss_off_delta`(주입)가 `off_current` 하나를 부른다. 관문 `off_region_gate` 가 `ss_off_delta` 를 읽는다 |
 | off 선언 `judged_by` 검사(O-h) [EO-1 범위 4] | `search/off_judged.py` `check_off_judged_by` | `build_search_context` 가 `constraint_classes` 뒤 탐색 전 한 번 부른다 |
-| 컨덕턴스 조립 오차 상계 `g_bound` [IT-2c] | `metrics/_helpers_nodal.py` `conductance_matrix(circuit, size, *, bound=True)` -- `StampSet.g_ops`(연산 수) 입력 | 소비자 `icm_config._transfer_resolution` |
+| 컨덕턴스 조립 오차 상계 `g_bound` [IT-2c] | `metrics/ss_nodal.py` `conductance_matrix(circuit, size, *, bound=True)` -- `StampSet.g_ops`(연산 수) 입력 | 소비자 `icm_config._transfer_resolution` |
 | ICMR 측정 구성·창·V_cm 칸 [IT-2c] | graph 필드 `node.dc_window_cfg`·`graph.icm_config` -- writer `icm_config`(`metrics/icm_config.py`) | 감도 식은 `kvl_sensitivity` 하나(호출 자리 하나), 판정 분해능 식은 `_transfer_resolution` 하나. 소비자 `metrics_aux._icm_ports`·`icm_window_metrics` [IT-2d 이행]. 피벗 두 칸은 출력 전용 |
 | 기본 포트 뷰 규칙(입력 role -> 여기 가중·감지 넷) [IT-2c] | `graph/views.py` `default_port_seeds(inputs, outputs)` | `collect_views` 와 `icm_config`(S1v 필드가 없는 스냅샷) 가 같은 함수를 부른다. S1v 가 있으면 `ViewS1v.default_port` 를 읽는다 |
 | 계산 블록 입력 버전 `fp_of((name, code_hash, 투영 지문))` [XRUN-F1 card B] | `core.ComputeBlock.input_version(snapshot, *extras)` (`ComputeBlock.__call__` 과 같은 비공개 helper 하나로 (투영, 버전)을 한 번만 만든다) | `sizing/seal_versions.py` 의 같은 식 사본은 삭제했다 -- 입력 버전 식을 호출부에서 다시 적지 않는다 |
