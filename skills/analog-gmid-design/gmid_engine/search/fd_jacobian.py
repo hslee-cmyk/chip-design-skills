@@ -45,7 +45,6 @@ def _cell_width(grid, value):
 def _steps(sctx, variables, base):
     snap = base.evaluation.snapshot
     lut = sctx.dc.lut
-    w_keys = dict(lut.w_keys)
     ops = dict(snap.column("device", "dc_op"))
     tols = dict(snap.column("device", "dc_tol_v"))
     defined = [tols[m] * ops[m].gm_id for m in ops if tols.get(m)]
@@ -59,17 +58,17 @@ def _steps(sctx, variables, base):
     for node, win in snap.column("node", "dc_window"):
         if writers[node].relation in (REL_WINDOW, REL_INPUT_POINT):      # y 스텝은 W4 뿌리 창 폭만(입력 점은 p 포트 항목 하나 -- n 포트 항목 없음, 설계 41 4.7-6)
             windows[writers[node].y_key] = win.hi - win.lo
-    currents = dict(snap.column("device", "dc_drop_current"))
+    currents = dict(snap.column("device", "dc_current"))
     theta = dict(base.theta)
     steps = []
     for var in variables:
         kind, key = var.component
         if kind == THETA_LN_IDU:
             op = ops[key]
-            sl = lut.memo.lut.slice_map[(op.kind, w_keys[op.kind])]
+            sl = lut.memo.lut.slice_map[(op.kind, op.w_key)]
             steps.append(_cell_width(sl.VGS_grid, op.vgs) * op.gm_id)
         elif kind == THETA_Y:
-            vds = np.diff(np.asarray(lut.memo.lut.slice_map[lut.w_keys[0]].grids[2], dtype=float))
+            vds = np.diff(np.asarray(next(iter(lut.memo.lut.slice_map.values())).grids[2], dtype=float))
             width = windows.get(key)
             steps.append(float(np.min(vds)) / width if width else None)
         elif kind == THETA_CURRENT:

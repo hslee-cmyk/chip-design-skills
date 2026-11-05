@@ -129,8 +129,7 @@ DC_THETA_SCHEMA_WRITER = "dc_theta_schema"
 KERNEL_CONTEXT_WRITER = "kernel_context"               # graph/kernel: fixed_values·resistor_values·l_ties (`build_kernel_context` 의 계산 블록)
 DC_CURRENTS_WRITER = "dc_currents"
 DC_LENGTHS_WRITER = "dc_lengths"
-DC_COLUMNS_WRITER = "dc_columns"
-DC_WIDTHS_WRITER = "dc_widths"
+DC_SOLVE_WRITER = "dc_solve"                           # 노드 풀이 + 슬라이스 선택 + 소자 동작점 (WB-1, 옛 dc_columns·dc_widths 를 합침)
 DC_TOLERANCES_WRITER = "dc_tolerances"
 DC_SEAL_NODE_CONFLICT_WRITER = "dc_seal_node_conflict"
 DC_SEAL_VGS_MATCH_WRITER = "dc_seal_vgs_match"
@@ -150,11 +149,10 @@ DC_WRITES = (
     (KERNEL_CONTEXT_WRITER, (("graph", "fixed_values"), ("graph", "resistor_values"), ("graph", "l_ties"))),
     (DC_SCC_ORDER_WRITER, (("graph", "dc_scc_order"), ("node", "dc_column_nbrs"))),
     (DC_THETA_SCHEMA_WRITER, (("graph", "theta_schema"),)),          # graph/kernel: theta_schema (옛 graph/dc: dc_theta_schema 를 옮김, v1.9.1 D8)
-    (DC_CURRENTS_WRITER, (("device", "dc_current"), ("device", "dc_drop_current"))),
+    (DC_CURRENTS_WRITER, (("device", "dc_current"),)),
     (DC_LENGTHS_WRITER, (("device", "dc_L"),)),
-    (DC_COLUMNS_WRITER, (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"),
-                         ("device", "dc_ln_idu"), ("graph", "dc_scc_log"))),
-    (DC_WIDTHS_WRITER, (("device", "dc_op"), ("device", "dc_sat_v"))),
+    (DC_SOLVE_WRITER, (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"), ("device", "dc_ln_idu"),
+                       ("device", "dc_op"), ("device", "dc_sat_v"), ("device", "dc_finger"), ("graph", "dc_scc_log"))),
     (DC_TOLERANCES_WRITER, (("device", "dc_tol_v"), ("device", "dc_gm"))),
     (DC_SEAL_NODE_CONFLICT_WRITER, (("graph", "dc_seal_1"),)),
     (DC_SEAL_VGS_MATCH_WRITER, (("graph", "dc_seal_2"),)),
@@ -233,15 +231,38 @@ class ThetaClass:
 
 @dataclasses.dataclass(frozen=True)
 class LutAccess:
-    """계산 블록 추가 인자로 넘기는 LUT 손잡이. `memo` = lut.LutMemo(graph 밖 유일 memo), `w_keys` = ((kind, w_key), ...)
-    -- 레이아웃 전 사이징이 쓰는 폭 슬라이스. 지문(`__canonical__`)은 (LUT 내용 지문, w_keys) 라서 같은 LUT·같은 슬라이스면
-    블록 입력 버전이 같고, memo 상태(캐시)는 결과에 영향이 없어 지문에 들지 않는다."""
+    """계산 블록 추가 인자로 넘기는 LUT 손잡이. `memo` = lut.LutMemo(graph 밖 유일 memo). 지문(`__canonical__`)은 LUT 내용 지문이라 같은 LUT 면 블록 입력 버전이
+    같고, memo 상태(캐시)는 결과에 영향이 없어 지문에 들지 않는다. 소자별 폭 슬라이스는 블록 안 값(`finger_slice` 선택)이라 이 손잡이에 칸이 없다(WB-1)."""
 
     memo: object
-    w_keys: tuple
 
     def __canonical__(self):
-        return (self.memo.lut.fp, self.w_keys)
+        return self.memo.lut.fp
+
+
+@dataclasses.dataclass(frozen=True)
+class FingerGeom:
+    """`device.dc_finger` 한 소자: 손가락 수 `m`, 슬라이스 폭 `w_f_m`(m), 잔차 `residual` = m·w_f/W − 1 (탐색 평가는 선택 잔차, 실현 평가는 0.0)."""
+
+    m: int
+    w_f_m: float
+    residual: float
+
+
+@dataclasses.dataclass(frozen=True)
+class RealizedFinger:
+    """실현 평가 입력: `search_ref` = 탐색 평가 스냅샷 참조(`device.dc_finger` 를 읽는다), `fp` = (MOS, m, w_s) 열 지문 -- 평가 키 성분(참조 + 지문, 값 사본 아님)."""
+
+    search_ref: object
+    fp: str
+
+
+@dataclasses.dataclass(frozen=True)
+class RealizedGeometry:
+    """레이아웃 뒤 평가 입력: `layout_ref` = 레이아웃 결과 스냅샷 참조(소자별 배치 손가락·확산 기하는 거기서 읽는다), `w_request` = ((MOS, W(m)), ...) 소자 이름순 -- 요청 총 폭 고정 입력."""
+
+    layout_ref: object
+    w_request: tuple
 
 
 @dataclasses.dataclass(frozen=True)
@@ -396,6 +417,7 @@ class SccLog:
     k_max: object
     method: str = SCC_DIRECT
     fallback: object = None
+    slice_rounds: int = 1
 
 
 @dataclasses.dataclass(frozen=True)

@@ -31,7 +31,6 @@ def _row(name, c):
 def constraint_rows(snapshot, lut_access, w_min_m, grid_m):
     tols = dict(snapshot.column("device", "dc_tol_v"))
     coords = dict(snapshot.column("device", "dc_coord"))
-    w_keys = dict(lut_access.w_keys)
     rows, undefined = [], []
     for m, op in snapshot.column("device", "dc_op"):
         rows.append(_row(CON_WMIN + ":" + m, (op.W - w_min_m) / grid_m))
@@ -42,9 +41,9 @@ def constraint_rows(snapshot, lut_access, w_min_m, grid_m):
         rows.append(_row(CON_SEAL6 + ":" + m, (min(op.vsb, op.vds + op.vsb) + tol) / tol))
         if coords[m].role != COORD_WRITER:
             continue
-        curve = gm_id_curve(lut_access.memo, op.kind, w_keys[op.kind], op.L, op.vds, op.vsb)
+        curve = gm_id_curve(lut_access.memo, op.kind, op.w_key, op.L, op.vds, op.vsb)
         peak = int(np.argmax(curve.gm_id_vals))
-        w_m = lut_access.memo.lut.slice_map[(op.kind, w_keys[op.kind])].w_m
+        w_m = lut_access.memo.lut.slice_map[(op.kind, op.w_key)].w_m
         r_peak = math.log(float(curve.id_vals[peak])) + math.log(op.L) - math.log(w_m)
         rows.append(_row(CON_INVERSION + ":" + m, (op.ln_idu - r_peak) * op.gm_id / tol))
     return tuple(rows), tuple(sorted(undefined))

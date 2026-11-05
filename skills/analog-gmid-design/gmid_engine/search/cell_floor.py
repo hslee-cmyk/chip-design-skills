@@ -92,7 +92,6 @@ def _one_var_writers(sctx):
 
 def ln_idu_floors(sctx, variables, cells, one_var_only=False, start=None):
     kinds = dict(sctx.dc.base.column("device", "kind"))
-    w_keys = dict(sctx.dc.lut.w_keys)
     cell_of = {mos: table[j] for (mos, table), j in zip(sctx.domain.l_cells, cells)}
     for member, owner in sctx.dc.base.value("graph", KERNEL_KEY, "l_ties"):        # L 동치류 멤버의 L 은 주인 θ L (θ 스키마에 멤버 L 성분 없음, 설계 40 §3.7)
         cell_of[member] = cell_of[owner]
@@ -102,7 +101,7 @@ def ln_idu_floors(sctx, variables, cells, one_var_only=False, start=None):
         ckind, m = var.component
         if ckind != THETA_LN_IDU:
             continue
-        key = (kinds[m], w_keys[kinds[m]], cell_of[m])
+        key = (kinds[m], sctx.dc.lut.memo.lut.cap_map[kinds[m]].w_key, cell_of[m])
         parts = [_conduction_floor(sctx, *key)]
         if chosen is None or m in chosen:
             parts.append(_peak_floor(sctx, *key))

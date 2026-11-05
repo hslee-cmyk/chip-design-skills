@@ -2,7 +2,7 @@
 
 진입점: `current_box(lut_access, kind) -> (I_off, I_max)`(A). S0 당 kind 마다 1회(`search_domain` 이 표로 든다).
 
-* I_off(하한) = 레이아웃 전 폭 슬라이스(`lut_access.w_keys[kind]`)에서 VGS = 0 격자면의 ID 중 최솟값(on_mask 점만) --
+* I_off(하한) = 레이아웃 전 기준 폭 슬라이스(`cap_map[kind].w_key`)에서 VGS = 0 격자면의 ID 중 최솟값(on_mask 점만) --
   SPICE 오라클 `off_current_A`(엔진이 LUT VGS=0 누설 ID 로 내는 양)와 같은 열이다. 소자 기하·바이어스가 θ 로 정해지기 전이라
   격자 전체 최솟값을 쓴다: 이보다 작은 전류는 어느 동작점에서도 꺼진 소자와 구별되지 않는다.
 * I_max(상한) = 그 kind 의 모든 폭 슬라이스에서 ID 최댓값(각 슬라이스는 자기 폭 w_m 의 ID) -- 특성화된 최대 단일 finger 폭의
@@ -19,7 +19,7 @@ from gmid_engine.core import SchemaRejectedError
 
 def current_box(lut_access, kind):
     lut = lut_access.memo.lut
-    sl = lut.slice_map[(kind, dict(lut_access.w_keys)[kind])]
+    sl = lut.slice_map[(kind, lut.cap_map[kind].w_key)]
     vgs = [float(v) for v in sl.VGS_grid]
     zero = [i for i, v in enumerate(vgs) if abs(v) <= math.ulp(max(abs(vgs[0]), abs(vgs[-1])))]
     if not zero:

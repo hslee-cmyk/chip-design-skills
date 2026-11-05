@@ -15,13 +15,14 @@ ratified(`l_owner` 사실) 만 L 공유), S1v 필드가 없으면 소자마다 L
 모든 블록은 입력 버전이 같으면 재사용이라 같은 실행 안에서 같은 S0 수준 스냅샷 위의 다음 호출은 계산 0 이다(디스크 스냅샷·실행 사이 재사용은 없다).
 결과 `KernelContext(base, inputs, lut, donors, counters)` 는 참조만 담는다 -- θ 스키마·고정 노드·저항 값·L 묶음은 `base` 의 `graph/kernel` 필드, 계획 블록 입력 버전은
 `base.block_version(writer)`(writer = `PLAN_WRITERS`)로 읽는다(사본 없음).
-* `lut.w_keys` 에 S1 MOS kind 가 모두 있어야 하고 그 (kind, w_key) 슬라이스가 LUT 에 있어야 한다(`ValueError`).
+* S1 MOS kind 마다 LUT 슬라이스가 하나 이상 있어야 한다(`ValueError`; 소자별 슬라이스는 `dc_solve` 가 고른다).
 * 노드 목표 넷은 S1 노드여야 한다(`ValueError` -- spec 로더가 이미 거부하는 경우라 계약 위반).
 * `inputs.engine_elements` 이름은 S1 원소여야 한다(`ValueError`, 같은 이유). 그중 수동소자만 `dc_theta_schema` 로 간다.
 * L 동치류가 S1 원소가 아니거나 MOS 만의 서로소 묶음이 아니면 `ValueError`(`kernel_fields`).
 """
 from gmid_engine.core import fp_of
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, ELEMENT_SOURCE, S1_SYMMETRY_WRITER, S1Graph, s1_symmetry, supplies_declaration
+from gmid_engine.lut import build_slice_tables
 
 from .current_basis import dc_current_basis
 from .kernel_fields import kernel_fields
@@ -63,9 +64,9 @@ def build_kernel_context(s1graph, inputs, lut, *, donors, counters):
         raise ValueError("build_kernel_context: S1 을 만든 supplies_v 와 inputs.supplies_v 가 다르다(bulk 기본 규칙 불일치)")
     classes = dict(s1graph.column("device", "element_class"))
     kinds = dict(s1graph.column("device", "kind"))
-    w_keys = dict(lut.w_keys)
+    sliced = {k for (k, _key) in lut.memo.lut.slice_map}
     for kind in sorted({kinds[n] for n, c in classes.items() if c == ELEMENT_MOS}):
-        if kind not in w_keys or (kind, w_keys[kind]) not in lut.memo.lut.slice_map:
+        if kind not in sliced:
             raise ValueError("build_kernel_context: LUT 폭 슬라이스가 없는 kind " + repr(kind))
     nodes = {net for net, _r in s1graph.column("node", "is_rail")}
     targets = dict(inputs.node_targets)
@@ -89,4 +90,5 @@ def build_kernel_context(s1graph, inputs, lut, *, donors, counters):
     base = kernel_fields(base, tuple(sorted(targets.items())), inputs.input_dc_v, tuple(inputs.element_values), donors=donors, counters=counters)
     engine_passives = tuple(n for n in sorted(inputs.engine_elements) if classes[n] == ELEMENT_PASSIVE)
     base = dc_theta_schema(base, engine_passives, donors=donors, counters=counters)
+    build_slice_tables(lut.memo)           # 슬라이스별 tol 표(J-6) -- memo 를 확정하는 자리
     return KernelContext(base, inputs, lut, donors, counters)

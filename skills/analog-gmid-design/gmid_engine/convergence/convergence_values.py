@@ -61,19 +61,17 @@ class Placement:
 @dataclasses.dataclass(frozen=True, eq=False)
 class PlacedLayout:
     """`place_layout` 결과(평가 커널 호출 없이 얻은 레이아웃). `layout` = 마지막 `run_layout` 결과(설계점 스냅샷 -- 그 입력도 `ly_*` 입력 필드), `undelivered` = 넘기지 못한 matching 그룹,
-    `placements`·`unplaced` = `effective_placement`, `keys` = `kernel_keys` 가 고른 ((kind, 키), ...), `pdk` = 폭 키를 좁힌 뒤의 `LayoutPdk`, `relaxed` = 완화 입력으로 바꾼
-    gid 집합(frozenset), `first_seen` = {gid: 완화 판정 시점의 `GroupLayout`}, `layout_calls` = 이 호출의 `run_layout` 횟수, `narrowed` = ((kind, 키), ...) 이 호출에서 좁힌 kind."""
+    `placements`·`unplaced` = `effective_placement`, `pdk` = 이 호출의 `LayoutPdk`, `relaxed` = 완화 입력으로 바꾼
+    gid 집합(frozenset), `first_seen` = {gid: 완화 판정 시점의 `GroupLayout`}, `layout_calls` = 이 호출의 `run_layout` 횟수."""
 
     layout: object
     undelivered: tuple
     placements: tuple
     unplaced: tuple
-    keys: tuple
     pdk: object
     relaxed: frozenset
     first_seen: dict
     layout_calls: int
-    narrowed: tuple
 
 
 @dataclasses.dataclass(frozen=True)

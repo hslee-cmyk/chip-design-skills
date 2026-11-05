@@ -43,7 +43,7 @@ REASON_AREA = "area_budget_below_lower_bound"
 REASON_GAIN = "gain_target_above_upper_bound"
 REASON_DOF = "overconstrained"
 # ---- 곡선 칸 해법(41 §4.1)
-METHOD_INVERSE = "inverse"          # 단조 Hermite 칸: 역산 허용(`vgs_for_gm_id`, `vgs_for_current_density`)
+METHOD_INVERSE = "inverse"          # 단조 Hermite 칸: 역산 허용(`vgs_for_current_density`)
 METHOD_GRID_ONLY = "grid_only"      # 비단조·Fritsch–Carlson 위반·기울기 미정의: 격자 전수만, 역산은 `lut_hermite_nonmonotone_cell` 로 실패
 CELL_HERMITE = "hermite"
 CELL_FC_VIOLATION = "fc_violation"
@@ -203,7 +203,7 @@ class LocalInputs:
     `basis_rows` = MOS(및 수동소자) 전류 = ((원천 원소, 계수), ...) (`CurrentBasis.rows`), `free` = θ 전류 원소(기저), `fixed` = (값 선언 이상 전류원, A),
     `cur_rep` = (θ 전류 원소, (대표 원소, 부호 ±1) 또는 (None, 0)=구조적 0)(자기동형 묶음 -- 탐색 변수와 같은 묶음, 없는 원소는 자기 자신 +1),
     `current_box` = (대표 θ 전류 원소, (하한 A, 상한 A)), `element_value` = (수동소자, 선언값 또는 None), `resistor_box` = (θ 저항, (하한 Ω, 상한 Ω)),
-    `w_keys` = (kind, 레이아웃 전 폭 슬라이스 키), `grids` = (L, VGS, VDS, VS) LUT 격자 float tuple 넷(모든 슬라이스 공통, lut 불변식),
+    `grids` = (L, VGS, VDS, VS) LUT 격자 float tuple 넷(모든 슬라이스 공통, lut 불변식),
     `attach` = (넷, 전체 회로에서 그 넷에 닿는 DC 전도 소자 단자 수(MOS drain·source, 저항 단자))(블록 밖 넷이 다른 DC 가지를 가지는지 -- 아니면 DC 에 뜬 막다른 넷),
     `node_colour`·`device_colour` = (이름, 구조 색 순위)(`dc_colour` -- 정점마다 유일하고 이름이 정하지 않는다; 순회·합산 순서를 이름이 아니라 이 순위로 정해 이름 치환에 결과가 비트 단위로 같게 한다)."""
 
@@ -221,7 +221,6 @@ class LocalInputs:
     current_box: tuple
     element_value: tuple
     resistor_box: tuple
-    w_keys: tuple
     grids: tuple
     node_colour: tuple
     device_colour: tuple
@@ -232,7 +231,7 @@ class LocalInputs:
         """사전 질의용 `LocalView`(읽을 때마다 새로 만든다 -- 부르는 블록이 호출 안에서 한 번 읽어 넘긴다)."""
         return LocalView(dict(self.kind), {n: dict(p) for n, p in self.pins}, dict(self.cls), dict(self.bulk), self.rails, dict(self.orbit),
                          dict(self.l_label), dict(self.basis_rows), self.free, dict(self.fixed), dict(self.cur_rep), dict(self.current_box),
-                         dict(self.element_value), dict(self.resistor_box), dict(self.w_keys), self.grids, dict(self.node_colour),
+                         dict(self.element_value), dict(self.resistor_box), self.grids, dict(self.node_colour),
                          dict(self.device_colour), dict(self.attach))
 
 
@@ -254,7 +253,6 @@ class LocalView:
     current_box: dict
     element_value: dict
     resistor_box: dict
-    w_keys: dict
     grids: tuple
     node_colour: dict
     device_colour: dict

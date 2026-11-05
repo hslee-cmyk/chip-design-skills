@@ -11,9 +11,11 @@
   `dc_op` 하나만 읽으므로 parent(S2p)·이전 평가와 무관하다: 같은 θ 는 parent 와 상관없이 같은 봉인 결과를 낸다(사용자 결정 G-3').
   순환 없음: `dc_op` 는 ⑤ W 블록이 쓰고 tol_I 는 봉인 3 에서만 쓴다(SCC 수렴은 tol_V).
 """
-from gmid_engine.core import compute_block
+from gmid_engine.core import SealViolationError, compute_block
 
-from ._helpers_lut import tol_v_cell
+from gmid_engine.lut import tol_v_table
+
+from ._helpers_lut import with_device
 from .s2_values import DC_TOLERANCES_WRITER
 
 READS = (("device", "dc_op"),)
@@ -26,6 +28,9 @@ def dc_tolerances(projection):
     tols = {}
     gm = {}
     for m, op in projection.column("device", "dc_op"):
-        tols[m] = tol_v_cell(lut, m, op.kind, op.L, op.vds)
+        try:
+            tols[m] = tol_v_table(lut.memo, op.kind, op.w_key).at(op.L, op.vds, "id_equivalent")      # 그 소자 슬라이스의 셀
+        except SealViolationError as exc:
+            raise with_device(exc, m, "tol_v_cell") from exc
         gm[m] = op.gm_id * op.current
     return {("device", "dc_tol_v"): tols, ("device", "dc_gm"): gm}

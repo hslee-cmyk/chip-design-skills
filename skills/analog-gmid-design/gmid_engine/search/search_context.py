@@ -25,7 +25,7 @@ import dataclasses
 from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
 from gmid_engine.core import PdkDecl, blas_environment, fp_of
 from gmid_engine.graph import ELEMENT_MOS, S1_WRITERS, S1V_KEY
-from gmid_engine.lut import LutMemo, require_lut_data
+from gmid_engine.lut import LutMemo, build_slice_tables, require_lut_data
 from gmid_engine.metrics import (NoiseAnalysis, junction_field, metric_registry, metric_structure, mismatch_field, model_error_field)
 from gmid_engine.sizing import KERNEL_KEY, PLAN_WRITERS, LutAccess
 
@@ -138,7 +138,8 @@ def _wire_sweep_memo(ctx):
     n_theta = len(centre_start(ctx)[0])
     old = ctx.dc.lut
     memo = LutMemo.counting(old.memo.lut, n_theta, table_cache=old.memo.table_cache)
-    ctx.dc = dataclasses.replace(ctx.dc, lut=LutAccess(memo, old.w_keys))
+    ctx.dc = dataclasses.replace(ctx.dc, lut=LutAccess(memo))
+    build_slice_tables(memo)                # 슬라이스별 tol 표(J-6) -- memo 를 바꾼 직후 구성, 계수 창은 첫 커널 평가부터라 세지 않는다
 
 
 _OFFSET_METRICS = ("offset_in_sigma_mv", "offset_excess")

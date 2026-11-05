@@ -2,15 +2,14 @@
 design_gb7_dc_canonical; 7·9 = 영역 판정 `dc_seal_region`). 계약: `CONTRACT.md`.
 
 다른 패키지와 test 는 이 `__all__` 만 쓴다. 공개 흐름:
-`dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, pre_layout_lut_access(memo))` (S0 당 1회) ->
+`dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, LutAccess(memo))` (S0 당 1회) ->
 `size_and_seal(ctx, theta, parent=None)` (θ 마다).
 """
 from ._helpers_dc_solve import Circuit
 from .bracket_root import bracket_root
-from .block_columns import dc_columns
+from .block_dc import dc_solve
 from .block_currents import dc_currents
 from .block_lengths import dc_lengths
-from .block_widths import dc_widths
 from .current_basis import dc_current_basis
 from .dc_inputs import dc_inputs_from_spec
 from .fixed_point import gauss_seidel
@@ -20,7 +19,6 @@ from .junction_forward import junction_forward
 from .k_max import k_max
 from .kernel_context import PLAN_WRITERS, build_kernel_context
 from .kernel_fields import kernel_fields
-from .pre_layout_widths import pre_layout_lut_access
 from .region_decl import dc_region_decl
 from .region_judge import OUT_OF_DOMAIN, RegionJudgment, judge_region
 from .region_mismatch import region_mismatch
@@ -135,7 +133,11 @@ from .s2_values import (
     DeviceCoord,
     DeviceOp,
     KernelContext,
+    DC_SOLVE_WRITER,
+    FingerGeom,
     LutAccess,
+    RealizedFinger,
+    RealizedGeometry,
     NodeWrite,
     PathValue,
     SccEntry,
@@ -203,7 +205,11 @@ __all__ = (
     "INPUT_STATUS_UNMEASURED",
     "KernelContext",
     "LocalSeal",
+    "DC_SOLVE_WRITER",
+    "FingerGeom",
     "LutAccess",
+    "RealizedFinger",
+    "RealizedGeometry",
     "OUT_OF_DOMAIN",
     "METRICS_AUX_WRITER",
     "METRICS_DC_WRITER",
@@ -307,9 +313,9 @@ __all__ = (
     "build_kernel_context",
     "kernel_fields",
     "check_theta",
-    "dc_columns",
     "dc_current_basis",
     "dc_currents",
+    "dc_solve",
     "dc_inputs_from_spec",
     "dc_lengths",
     "dc_rails",
@@ -326,7 +332,6 @@ __all__ = (
     "terminal_voltages",
     "dc_theta_schema",
     "dc_tolerances",
-    "dc_widths",
     "dc_writer_plan",
     "gauss_seidel",
     "judge_region",
@@ -334,7 +339,6 @@ __all__ = (
     "k_max",
     "lift_s1",
     "newton_solve",
-    "pre_layout_lut_access",
     "region_mismatch",
     "saturation_window",
     "seal_dc",

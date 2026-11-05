@@ -93,24 +93,22 @@ def converge_point(sctx, pdk, point):
                     (("nonpositive_current", nonpositive),))
     current, pdk_now, pdk_candidates = start, pdk, pdk
     rejected, relaxed, first_seen, previous_geometry, previous_layout = frozenset(), frozenset(), {}, None, None
-    keys_now = tuple(sorted(sctx.dc.lut.w_keys))
     iterations, k_bound, layouts, visited = [], None, 0, []
     while True:
         placed = place_layout(memo, current.evaluation.snapshot, pdk_now, _passives(sctx, current), rejected, relaxed, first_seen,
-                              previous_layout, kinds, keys_now, donors=sctx.dc.donors, counters=sctx.dc.counters)
+                              previous_layout, kinds, donors=sctx.dc.donors, counters=sctx.dc.counters)
         layouts += placed.layout_calls
         pdk_now, relaxed, first_seen, previous_layout = placed.pdk, placed.relaxed, placed.first_seen, placed.layout
-        narrowed.update(placed.narrowed)
         if placed.unplaced:
             return done(STATUS_UNPLACEABLE, current, placed, None, iterations, k_bound, None, rejected, relaxed, first_seen,
                         layouts, (("unplaced_devices", placed.unplaced),))
-        geometry = realized_geometry(placed.layout.snapshot, placed.placements, placed.keys)
+        geometry = realized_geometry(placed.layout.snapshot, placed.placements)
         if geometry == previous_geometry:
             return done(STATUS_CONVERGED, current, placed, geometry, iterations, k_bound, None, rejected, relaxed, first_seen, layouts)
         bound, dlnw, tol = w_loop_bound(placed.placements, sized_w)
         if k_bound is None:
             k_bound = bound
-        dc_state = (geometry.w_request, geometry.w_keys)        # 다음 레이아웃은 평가 점의 DC 상태(고정 W·슬라이스)만 읽는다 -- 확산 기하는 출력이다
+        dc_state = geometry.w_request        # 다음 레이아웃은 평가 점의 DC 상태(고정 W)만 읽는다 -- 확산 기하는 출력이다
         cycle = dc_state in visited[:-1]
         if cycle or sum(1 for i in iterations if i.status != "excluded") >= k_bound:
             # 같은 상태(PDK 후보·거부·완화)에서 이미 평가한 DC 상태(고정 W·폭 슬라이스)로 돌아왔다 = 주기 -- 결정론적 반복이라 K_max 까지 돌아도 벗어나지 못한다
@@ -132,7 +130,6 @@ def converge_point(sctx, pdk, point):
         if accepted:
             current, previous_geometry = result, geometry
             previous_layout = None                               # 새 설계점: 레이아웃은 그 설계점 스냅샷 위에 다시 쓴다(설계 40 v1.6 §2.4.7, 별도 lineage 없음)
-            keys_now = tuple(sorted(geometry.w_keys))
             if not visited or visited[-1] != dc_state:
                 visited.append(dc_state)
             continue
@@ -140,7 +137,7 @@ def converge_point(sctx, pdk, point):
         if reject:
             rejected = rejected | frozenset(reject)
             continue
-        gone, narrower = key_exclusion(pdk_candidates, placed.placements, kinds, sized_w, placed.keys)
+        gone, narrower = key_exclusion(pdk_candidates, placed.placements, kinds, sized_w)
         if narrower is not None:
             excluded.append(gone)
             iterations[-1] = dataclasses.replace(iterations[-1], status="excluded", excluded=(gone,))

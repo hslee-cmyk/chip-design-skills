@@ -1,56 +1,51 @@
-"""④ 노드전압 정본 풀이 계산 블록 -- 쓰기 계획대로 SCC 위상 순서로 노드전압을 쓰고 종속 소자 좌표를 순방향으로 정한다
-(설계 3.2 3·3.3·3.4, 계획 DEC-31 노드전압 = DC 정본, N3.4, SC-c, DEC-88).
+"""④⑤ DC 블록 `dc_solve` -- 노드전압 정본 풀이 + 소자별 폭 슬라이스 선택 + 소자 동작점 (WB-1, 설계 40 §3.7-A, 계획 DEC-105 (2)·DEC-31·DEC-88).
 
-진입점: `dc_columns`(`@compute_block`) -- `dc_columns(snapshot, theta_items, fixed_values, resistor_values, lut)`.
+진입점: `dc_solve`(`@compute_block`, writer `dc_solve`) -- `dc_solve(snapshot, column_items, fixed_values, resistor_values, lut, geometry=None, realized=None)`.
+옛 `dc_columns`(노드전압)·`dc_widths`(W·동작점)를 합쳤다 -- `device.dc_op`·`dc_sat_v`·`dc_ln_idu`·`node.dc_v`·`dc_path_values`·`dc_window`·`graph.dc_scc_log` 와 새 필드
+`device.dc_finger`(`FingerGeom(m, w_f_m, residual)`)의 writer 는 이 블록 하나다.
 
-* extras: `theta_items` = θ 의 ln_idu·y·resistance 성분 (((kind, key), v), ...), `fixed_values` = ((넷, V), ...) W3·입력 DC,
-  `resistor_values` = ((저항, Ω), ...) spec 선언값, `lut` = LutAccess.
+* extras: `column_items` = θ 의 ln_idu·y·resistance 성분 (((kind, key), v), ...), `fixed_values` = ((넷, V), ...) W3·입력 DC, `resistor_values` = ((저항, Ω), ...) spec 선언값,
+  `lut` = LutAccess(memo 만 -- 슬라이스 키 칸 없음), `geometry` = `RealizedGeometry`(레이아웃 뒤, 없으면 None), `realized` = `RealizedFinger`(실현 평가, 없으면 None).
+* **순서(한 호출, 설계 40 §3.7-A 2)**: (1) 쓰기 소자(`dc_coord.role` = writer)마다 W = ID·L/exp(θ ln IDu) 를 상수로 `finger_slice` 가 (m, 슬라이스 폭, 키)를 고른다(반복 없음).
+  (2) 노드 풀이(SCC 위상 순서; Rʳ 소자의 시작 키 = 그 kind 기준 폭 슬라이스 `cap_map[kind].w_key`). (3) 종속 소자마다 후보 슬라이스 s 의 W(s) = ID·L/IDu_s(노드 점)를
+  `finger_slice` 에 넘겨 (m, s) 를 고른다(`op_point` 가 `is_slice_gap` 이면 그 후보를 뺀다, 그 밖 예외는 그대로). (4) Rʳ ≠ ∅ 이고 키 벡터가 달라졌으면 (2)부터 다시, 직전과 같으면 수렴, 이전
+  벡터로 돌아가면 `SealViolationError`(reason `slice_cycle`, devices = Rʳ, detail `cycle`). Rʳ = writer 없는 순환 SCC 에서 수렴 허용오차 셀을 내는 종속 MOS(그 슬라이스 tol 표가 노드 풀이의
+  tol 이 된다). Rʳ = ∅ 이면 노드 풀이는 한 번이다. (5) `DeviceOp.w_key`·`gm_id`·`idu_forward`·`dc_finger` 가 같은 슬라이스를 가리킨다.
+* 평가는 θ 의 순수 함수다. `slice_missing` 이 나면 `devices = (소자,)` 를 채워 다시 던진다(reason 은 그대로).
+* **레이아웃 뒤(`geometry`)**: `w_request` 소자는 총 폭이 요청값(`DeviceOp.W`)이고 `dc_finger` 행을 쓰지 않는다(빈 열). `layout_ref`(= 배치 소자의 실현 확산 기하 ((소자, 기하), ...))에 있는 소자는
+  그 finger 폭 `finger_w` 의 `slice_of_finger` 가 슬라이스이고(선택 함수를 부르지 않는다), 없는 소자(요청 대기)는 탐색 규칙(상수 W)을 쓴다.
+  **미구현(보고)**: 실현 평가(`realized`, W′·바이어스 고정 KCL 재풀이)는 이 커밋에 없다(`realized` 를 주면 `NotImplementedError`).
 * 노드 x 의 writer 식(소자 m, kind 부호 s = +1 nmos / −1 pmos, VDS·VSB 는 노드전압 차의 크기):
-  `vgs_gate`: V(g) = V(s) + s·VGS(ln IDu_m, L_m, VDS, VSB) / `vgs_source`: V(s) = V(g) − s·VGS(...) /
-  `resistor_drop`: V(t1) = V(t0) − I·R(또는 반대쪽) /
-  `free_window`(W4): V = lo + y·(hi − lo), [lo, hi] = x 에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이
-  되는 쪽의 교집합(전류가 나가는 단자면 lo ≥ V(반대), 들어오는 단자면 hi ≤ V(반대)), 제약 없는 쪽은 레일 전압 범위 끝.
-  설계 3.4 는 기둥(레일~x 소자들의 VDsat 합)으로 적었으나 S1 기둥은 노드-단순 경로라 전류 방향을 거스르는 경로(분기 노드에서
-  위로 돌아가는 경로)를 포함해 순서가 뒤집힌다 -- 인접 소자 제약을 이웃 노드가 다시 자기 창 안에 있는 사슬로 쓰면 같은
-  뜻이다. **VDsat 항은 넣지 않는다**: lut r6 에 VDSAT 열 조회가 생겼지만 인접 MOS 의 VDsat 은 그 소자 gate·bulk·x 자신을
-  읽어야 해서 W4 의존(`dc_scc_order`)을 바꿔야 한다(계약 12절 O1 잔여, 결정 대기) -- 창은 KVL 순서 창이고 포화는 봉인 7 이
-  판정한다. 창이 비면(lo > hi) `SealViolationError`(item 7, reason `empty_window`).
-* 1변수 노드(diode gate·소스 추종 source)는 구간 bisection(`solve_self`, 설계 3.4). VDS 쪽 구간 끝 = writer 슬라이스의 VDS
-  정의역 하한(`vds_floor`(LUT 파생), 데이터 유도), 끝점은 부동소수 반올림으로 축 밖에 떨어지지 않게 안쪽으로 맞춘다(`_inward`). 다변수 순환 SCC 는 `gauss_seidel`
-  (N3.6 q 규칙·K_max) -- 반복 중에는 정의역 이탈을 투영하고(`update(strict=False)`) 수렴 뒤 strict 검증 바퀴로 확인한다.
-  Gauss-Seidel 이 K_max 안에 tol 에 닿지 못하면(측정한 수축비 q 로 판정 -- q ≥ 1 또는 q < 1 이지만 남은 상한 안 도달 불가)
-  같은 시작값에서 SCC 잔차 r = V − g(V) 에 감쇠 Newton(`newton_solve`, 야코비안 = `writer_grad` 의 LUT 미분)으로 바꾼다.
-  strict 검증 바퀴는 두 경우 모두 같다. GS 수렴점의 strict 검증이 `SealViolationError` 였는데 Newton 도
-  `NonconvergentError` 로 끝나면 그 strict 검증 위반을 그대로 낸다(cause = Newton 실패). 허용오차 = SCC 쓰기 MOS(없으면 단자가 닿는 MOS) id_equivalent tol_V
-  셀의 최솟값(현재 반복값의 L·VDS). 폭 = 레일 전압 범위. 시작값 = 기둥 위치 비례(레일 사이 선형, 기둥 밖이면 레일 중앙)
-  다음 `start_writer`(MOS writer 식 1회). 저항 강하 전류는 `device.dc_drop_current`(저항만)를 읽는다 -- MOS 전류만 바뀐 θ 는
-  이 블록을 다시 돌리지 않는다.
-* 종속 소자 좌표 ln IDu = ln(순방향 LUT IDu(노드 VGS, VDS, VSB)) -- 같은 gate 넷에 소자마다 다른 전압을 요구하는 상태는
-  표현할 수 없다(설계 3.3 4). 쓰기 소자 좌표 = θ.
-* `path_values`(봉인 1 입력): 노드에 닿는 관계마다 그 관계가 함의하는 노드 전압(MOS = 좌표에서 VGS 역산, 저항 = 강하,
-  W4·고정 = 값).
-* **커널 창 `node.dc_window`**(설계 40 3.11-1, 계획 N6.35 E-13, card WB-1 범위 3a): W4 뿌리 항목마다 **KVL 순서 창 하나**(`kvl_window`) -- 상태 칸
-  `input_status`·`tol_v` 는 쓰지 않는다(None). 입력 창(ICMR) 측정은 측정 구성 블록 `icm_config`(`node.dc_window_cfg`) 한 자리다.
-* writes `node.dc_v`(레일 밖 모든 노드), `node.dc_path_values`(모든 노드), `node.dc_window`(W4 뿌리),
-  `device.dc_ln_idu`(모든 MOS), `graph.dc_scc_log`.
+  `vgs_gate`: V(g) = V(s) + s·VGS(ln IDu_m, L_m, VDS, VSB) / `vgs_source`: V(s) = V(g) − s·VGS(...) / `resistor_drop`: V(t1) = V(t0) − I·R(또는 반대쪽) /
+  `free_window`(W4): V = lo + y·(hi − lo), [lo, hi] = x 에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이 되는 쪽의 교집합(KVL 순서 창, VDSAT 항 없음), 제약 없는 쪽은 레일 전압 범위 끝.
+  창이 비면(lo > hi) `SealViolationError`(item 7, reason `empty_window`). 저항 강하 전류는 `device.dc_current` 를 읽는다(둘째 필드 `dc_drop_current` 삭제).
+* 1변수 노드(diode gate·소스 추종 source)는 구간 괄호 근(`solve_self`, Brent). VDS 쪽 구간 끝 = writer 슬라이스의 VDS 정의역 하한(`vds_floor`), 다변수 순환 SCC 는 `gauss_seidel`
+  (N3.6 q 규칙·K_max) 뒤 strict 검증 바퀴, 못 닿으면 감쇠 Newton(`newton_solve`). 허용오차 = SCC 쓰기 MOS(없으면 단자가 닿는 MOS) 슬라이스의 id_equivalent tol_V 셀의 최솟값(N3.6, tol_V 는 수치 자기 정합
+  tolerance 이고 물리 경계가 아니다 O-240). 폭 = 레일 전압 범위.
+* 종속 소자 좌표 ln IDu = ln(그 소자 슬라이스의 순방향 LUT IDu(노드 VGS, VDS, VSB)). 쓰기 소자 좌표 = θ.
+* `path_values`(봉인 1 입력): 노드에 닿는 관계마다 그 관계가 함의하는 노드 전압(MOS = 좌표에서 VGS 역산, 저항 = 강하, W4·고정 = 값).
+* `dc_sat_v` = `sat_threshold(memo, kind, DeviceOp.w_key, L, vgs, vds, vsb)`(선언 없음·`triode`, 비전도 포함), `off` 선언 소자 = `SatBound(None, None, "off_declared")`.
+* 커널 창 `node.dc_window` = W4 뿌리마다 KVL 순서 창 하나(상태·`tol_v` 없음); 입력 창 측정은 `icm_config` 한 자리.
 """
+import dataclasses
 import math
 
-from gmid_engine.authoring import REGION_TRIODE
+from gmid_engine.authoring import REGION_OFF, REGION_TRIODE
 from gmid_engine.core import NonconvergentError, SealViolationError, compute_block
 from gmid_engine.graph import MOS_TERMINAL_NAMES
-from gmid_engine.lut import AXES, derived, gmb, vgs_for_current_density
+from gmid_engine.lut import (AXES, tol_v_table, REASON_OFF_DECLARED, FingerSlice, SatBound, derived, finger_slice, gmb, is_slice_gap, op_point,
+                             sat_threshold, slice_of_finger, vgs_for_current_density)
 
 from ._helpers_dc_solve import Circuit
-from ._helpers_lut import forward_point, tol_v_cell, w_key_of, with_device
+from ._helpers_lut import with_device
 from .bracket_root import bracket_root
 from .fixed_point import gauss_seidel
 from .k_max import k_max
 from .scc_newton import newton_solve
 from .s2_values import (
     COORD_WRITER,
-    DC_COLUMNS_WRITER,
     DC_KEY,
+    DC_SOLVE_WRITER,
     PATH_FIXED,
     PATH_MOS,
     PATH_RESISTOR,
@@ -76,17 +71,19 @@ from .s2_values import (
     THETA_Y,
     PathValue,
     SccLog,
+    DeviceOp,
+    FingerGeom,
     Window,
 )
 
 READS = (
     ("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"),
-    ("device", "dc_drop_current"), ("node", "dc_colour"), ("device", "dc_colour"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"), ("device", "bulk"),
+    ("device", "dc_current"), ("node", "dc_colour"), ("device", "dc_colour"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"), ("device", "bulk"),
     ("device", "element_class"), ("device", "dc_coord"), ("graph", "dc_scc_order"), ("device", "dc_self_referential"),
     ("node", "port_direction"), ("device", "region_decl"),
 )
-WRITES = (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"), ("device", "dc_ln_idu"),
-          ("graph", "dc_scc_log"))
+WRITES = (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"), ("device", "dc_ln_idu"), ("device", "dc_op"),
+          ("device", "dc_sat_v"), ("device", "dc_finger"), ("graph", "dc_scc_log"))
 _REL_MOS, _REL_RES, _REL_FIXED, _REL_Y = PATH_MOS, PATH_RESISTOR, PATH_FIXED, PATH_Y
 def _is_root(w):
     """W4 뿌리 writer 인가 -- `free_window` 또는 입력 점의 뿌리(`input_point` 이고 known 없음; known 이 있으면 뿌리와 같은 전압인 짝 포트)."""
@@ -99,6 +96,7 @@ _CURVE_UNDEFINED = "lut_curve_undefined"     # lut CONTRACT 4.1 -- VDS 정의역
 _VDS_AXIS, _VS_AXIS = AXES.index("VDS"), AXES.index("VS")
 _BOUND_RAIL, _BOUND_VDS, _BOUND_VS = "rail", "vds_axis", "vs_axis"
 _SOLVE_SELF_MEMO = "solve_self"            # LUT memo root 영역의 함수 이름 칸(1변수 풀이 재사용)
+REASON_SLICE_CYCLE = "slice_cycle"                        # Rʳ 키 벡터가 이전 벡터로 돌아옴
 _GS_STOPPED = "gauss_seidel_stopped"                  # SccLog.fallback[0]: GS 가 K_max 안 tol 도달 불가로 멈춤
 
 
@@ -110,9 +108,16 @@ def _inward(x, toward, a, b, axis):
     return x
 
 
-def _vgs_of_coordinate(lut, device, kind, L, vds, vsb, ln_idu):
+def forward_point(lut, device, kind, w_key, L, vgs, vds, vsb):
+    """순방향 조회 OpPoint(IDu, gm_over_id, ...) -- 소자 슬라이스 `w_key` 의 점."""
+    try:
+        return op_point(lut.memo, kind, w_key, L, vgs, vds, vsb)
+    except SealViolationError as exc:
+        raise with_device(exc, device, "forward_point") from exc
+
+
+def _vgs_of_coordinate(lut, device, kind, w_key, L, vds, vsb, ln_idu):
     """좌표 ln IDu(DEC-88)에서 VGS 크기 -- 강반전 분지 역산(lut `vgs_for_current_density`: 칸 안 Hermite 근, DEC-87)."""
-    w_key = w_key_of(lut, kind)
     try:
         return vgs_for_current_density(lut.memo, kind, w_key, ln_idu, L, vds, vsb)
     except SealViolationError as exc:
@@ -123,13 +128,17 @@ class _Circuit(Circuit):
     """블록 한 번의 입력 묶음과 writer 식 -- 읽기 전용 공용 부분(`Circuit`)에 θ·고정 값 등 이 블록이 쓰는 상태를 더한다."""
 
     def __init__(self, projection):
-        theta_items, fixed_values, resistor_values, lut = projection.extras
+        theta_items, fixed_values, resistor_values, lut, geometry, realized = (tuple(projection.extras) + (None, None))[:6]
         super().__init__(projection, lut=lut, linear=frozenset(m for m, r in projection.column("device", "region_decl") if r.region == REGION_TRIODE))      # `triode` 선언 소자 -- 창 경계 행이 triode 행(`region_rows`)
         self.theta = dict(theta_items)
         self.fixed = dict(fixed_values)
         self.nbrs = dict(projection.column("node", "dc_column_nbrs"))
         self.classes = dict(projection.column("device", "element_class"))
-        self.current = dict(projection.column("device", "dc_drop_current"))
+        self.current = dict(projection.column("device", "dc_current"))
+        self.geometry, self.realized = geometry, realized
+        self.placed = {} if geometry is None or geometry.layout_ref is None else dict(geometry.layout_ref)      # 배치 소자 -> 확산 기하(finger_w, m)
+        self.keys = {}                             # 소자 -> 지금 쓰는 슬라이스 키(블록 안 값: 쓰기 소자 = 선택 결과, 종속 소자 = 기준 슬라이스에서 시작해 Rʳ 되풀이로 바뀐다)
+        self.r_dep = set()                         # Rʳ: writer 없는 순환 SCC 의 수렴 허용오차 셀을 내는 종속 MOS(`_solve` 가 채운다)
         self.net_colour = dict(projection.column("node", "dc_colour"))
         self.self_ref = frozenset(m for m, flag in projection.column("device", "dc_self_referential") if flag)   # 쓰기 계획 파생 S0 필드(1변수 writer)
         self.order = projection.value("graph", DC_KEY, "dc_scc_order")
@@ -194,7 +203,7 @@ class _Circuit(Circuit):
         lut_reason = dict(exc.record.detail).get("lut_reason")
         if lut_reason in _TRANSIENT_LUT_REASONS:
             return True
-        return lut_reason == _CURVE_UNDEFINED and vds < derived(self.lut.memo, "vds_floor", self.kinds[m], w_key_of(self.lut, self.kinds[m]))
+        return lut_reason == _CURVE_UNDEFINED and vds < derived(self.lut.memo, "vds_floor", self.kinds[m], self.keys[m])
 
     def start_writer(self, net, values):
         """시작값 둘째 단계(쓰기 계획 순서): MOS writer 노드는 writer 식을 VDS = 레일 범위 절반에서 한 번 평가한 값
@@ -210,7 +219,7 @@ class _Circuit(Circuit):
             vsb = vsb if w.relation == REL_VGS_GATE else 0.0
             vds = (self.hi - self.lo) / 2
             try:
-                vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.L[m], vds, vsb, self.ln_idu[m])
+                vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.keys[m], self.L[m], vds, vsb, self.ln_idu[m])
             except SealViolationError as exc:
                 if not self.transient(exc, m, vds):
                     raise
@@ -232,7 +241,7 @@ class _Circuit(Circuit):
         (위 = +inf: 필요한 VGS 가 격자 위, 아래 = −inf: 분지 시작 아래) -- 단조 함수의 정의역 밖 쪽을 알려 준다.
         그 밖 LUT 실패(축 밖·비단조)는 소자 이름을 붙여 그대로 낸다."""
         kind = self.kinds[m]
-        w_key = w_key_of(self.lut, kind)
+        w_key = self.keys[m]
         try:
             return vgs_for_current_density(self.lut.memo, kind, w_key, self.ln_idu[m], self.L[m], vds, vsb)
         except SealViolationError as exc:
@@ -257,7 +266,7 @@ class _Circuit(Circuit):
         w = self.writers[net]
         m = w.element
         kind = self.kinds[m]
-        grids = self.lut.memo.lut.slice_map[(kind, w_key_of(self.lut, kind))].grids
+        grids = self.lut.memo.lut.slice_map[(kind, self.keys[m])].grids
         sign = self.kind_sign(kind)
         known = values[w.known]
 
@@ -268,7 +277,7 @@ class _Circuit(Circuit):
 
         (vds0, vsb0), (vds1, vsb1) = channel(0.0), channel(1.0)
         bounds = [(self.lo, self.hi, _BOUND_RAIL)]
-        vds_domain = (derived(self.lut.memo, "vds_floor", kind, w_key_of(self.lut, kind)), grids[_VDS_AXIS][-1])
+        vds_domain = (derived(self.lut.memo, "vds_floor", kind, self.keys[m]), grids[_VDS_AXIS][-1])
         for a, b, axis, label in ((vds0, vds1 - vds0, vds_domain, _BOUND_VDS),
                                   (vsb0, vsb1 - vsb0, grids[_VS_AXIS], _BOUND_VS)):
             if b != 0:
@@ -303,7 +312,7 @@ class _Circuit(Circuit):
 
         # h 는 (소자 종류·L·ln IDu·writer 관계·known 값·VDS/VSB 의 x 1차식 계수·구간·tol) 만의 함수 -- 같은 입력이면 풀이를 다시
         # 하지 않는다(GS 반복·strict 재검증·FD 형제·탐색 평가 사이 중복). LUT memo root 영역(상한 있는 LRU).
-        key = (kind, self.L[m], self.ln_idu[m], w.relation, known, vds0, vds1, vsb0, vsb1, lo, hi, tol)
+        key = (kind, self.keys[m], self.L[m], self.ln_idu[m], w.relation, known, vds0, vds1, vsb0, vsb1, lo, hi, tol)
         x, h_lo, h_hi = self.lut.memo.lookup("root", _SOLVE_SELF_MEMO, key, solved)
         if x is None and not strict:
             return min((abs(h_lo), lo), (abs(h_hi), hi))[1], 0, tol
@@ -314,6 +323,61 @@ class _Circuit(Circuit):
                                      detail={"item": item, "reason": REASON_NO_ROOT, "node": net, "lo": lo, "hi": hi,
                                              "h_lo": h_lo, "h_hi": h_hi, "bounds": (lo_from, hi_from)})
         return x, k_max(hi - lo, tol) if hi > lo else 1, tol
+
+    def reference_key(self, m):
+        """종속 소자의 시작 키 = 그 kind 기준 폭 슬라이스 키(`cap_map[kind].w_key`, LUT 선언만의 함수). 없으면 `slice_missing`."""
+        if m in self.placed:
+            return self.placed_slice(m).w_key
+        key = self.lut.memo.lut.cap_map[self.kinds[m]].w_key
+        if key is None:
+            raise SealViolationError(devices=(m,), detail={"reason": "slice_missing", "kind": self.kinds[m], "L": self.L[m], "why": "no_w_hi", "excluded": ()})
+        return key
+
+    def pick_writer(self, m):
+        """쓰기 소자 m 의 (m, 슬라이스 폭, 키): W = ID·L/exp(θ ln IDu) 를 상수로 `finger_slice`(반복 없음)."""
+        width = self.current[m] * self.L[m] / math.exp(self.ln_idu[m])
+        if m in self.placed:
+            return self.placed_slice(m)
+        try:
+            return finger_slice(self.lut.memo.lut, self.kinds[m], self.L[m], lambda _key: width)
+        except SealViolationError as exc:
+            raise with_device(exc, m, "finger_slice") from exc
+
+    def placed_slice(self, m):
+        """레이아웃이 놓은 소자의 (nf, finger 폭, 슬라이스 키) -- 선택 함수 없이 `slice_of_finger`."""
+        geom = self.placed[m]
+        try:
+            return FingerSlice(round(geom.m), geom.finger_w, slice_of_finger(self.lut.memo.lut, self.kinds[m], self.L[m], geom.finger_w))
+        except SealViolationError as exc:
+            raise with_device(exc, m, "slice_of_finger") from exc
+
+    def pick_dependent(self, m, values):
+        """종속 소자 m 의 선택: 후보 슬라이스 s 마다 W(s) = ID·L/IDu_s(노드 점)(조회 불능 사유 다섯은 후보 제외, 그 밖은 그대로)."""
+        if m in self.placed:
+            return self.placed_slice(m)
+        kind, current, length = self.kinds[m], self.current[m], self.L[m]
+        vgs, vds, vsb = self.mos_point(m, values)
+
+        def w_of(key):
+            try:
+                idu = op_point(self.lut.memo, kind, key, length, vgs, vds, vsb).IDu
+            except SealViolationError as exc:
+                if is_slice_gap(exc):
+                    return None
+                raise
+            return current * length / idu if idu > 0 and math.isfinite(idu) else None
+
+        try:
+            return finger_slice(self.lut.memo.lut, kind, length, w_of)
+        except SealViolationError as exc:
+            raise with_device(exc, m, "finger_slice") from exc
+
+    def tol_cell(self, m, vds):
+        """소자 m 의 슬라이스(`keys[m]`) (L 앵커, VDS) 셀 id_equivalent tol_V -- 정의된 셀이 없으면 None."""
+        try:
+            return tol_v_table(self.lut.memo, self.kinds[m], self.keys[m]).at(self.L[m], vds, "id_equivalent")
+        except SealViolationError as exc:
+            raise with_device(exc, m, "tol_v_cell") from exc
 
     def has_channel_values(self, m, values):
         d, _g, s = (self.pins[m][t] for t in MOS_TERMINAL_NAMES)
@@ -331,7 +395,7 @@ class _Circuit(Circuit):
             m = w.element
             vds, vsb = self.vds_vsb(m, values)
             try:
-                vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.L[m], vds, vsb, self.ln_idu[m])
+                vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.keys[m], self.L[m], vds, vsb, self.ln_idu[m])
             except SealViolationError as exc:
                 if strict or not self.transient(exc, m, vds):
                     raise
@@ -367,9 +431,9 @@ class _Circuit(Circuit):
             kind = self.kinds[m]
             d, _g, s = (self.pins[m][t] for t in MOS_TERMINAL_NAMES)
             vds, vsb = self.vds_vsb(m, values)
-            vgs = _vgs_of_coordinate(self.lut, m, kind, self.L[m], vds, vsb, self.ln_idu[m])
-            point = forward_point(self.lut, m, kind, self.L[m], vgs, vds, vsb)
-            w_key = w_key_of(self.lut, kind)
+            vgs = _vgs_of_coordinate(self.lut, m, kind, self.keys[m], self.L[m], vds, vsb, self.ln_idu[m])
+            w_key = self.keys[m]
+            point = forward_point(self.lut, m, kind, w_key, self.L[m], vgs, vds, vsb)
             w_m = self.lut.memo.lut.slice_map[(kind, w_key)].w_m
             try:
                 gmb_w = gmb(self.lut.memo, kind, w_key, self.L[m], vgs, vds, vsb)
@@ -441,9 +505,9 @@ class _Circuit(Circuit):
         tols = []
         for m in devices:
             vds, _vsb = self.vds_vsb(m, values)
-            key = (m, vds)                                 # 한 평가 안에서 같은 (소자, VDS) 셀 조회는 한 번(L·kind 는 소자마다 고정)
+            key = (m, self.keys[m], vds)                   # 한 평가 안에서 같은 (소자, 슬라이스, VDS) 셀 조회는 한 번(L·kind 는 소자마다 고정)
             if key not in self.tol_cells:
-                self.tol_cells[key] = tol_v_cell(self.lut, m, self.kinds[m], self.L[m], vds)
+                self.tol_cells[key] = self.tol_cell(m, vds)
             tol = self.tol_cells[key]
             if tol is not None:
                 tols.append(tol)
@@ -490,6 +554,8 @@ def _solve(c):
                                 if c.writers[n].relation in (REL_VGS_GATE, REL_VGS_SOURCE)},
                                key=lambda m: (c.device_colour.get(m, 0), m)))              # 구조 색 순서 -- 이름이 처음 실패할 소자를 정하지 않게
         devices = writers or tuple(m for m in entry_devices if c.has_channel_values(m, values))
+        if not writers:
+            c.r_dep.update(devices)                        # Rʳ -- 수렴 허용오차 셀을 종속 소자가 내는 SCC
 
         def tolerance(v, devs=devices):
             return c.tolerance(devs, v)
@@ -540,23 +606,70 @@ def _windows(c, values):
     return out
 
 
-@compute_block(DC_COLUMNS_WRITER, reads=READS, writes=WRITES)
-def dc_columns(projection):
+def _rounds(c):
+    """노드 풀이(+ Rʳ 키 되풀이): (values, logs, 풀이 횟수, {Rʳ 소자: FingerSlice}). 키 벡터가 직전과 같으면 수렴, 이전 벡터로 돌아가면 `slice_cycle`."""
+    seen = []
+    rounds = 0
+    while True:
+        values, logs = _solve(c)
+        rounds += 1
+        devices = sorted(c.r_dep - c.placed.keys())            # 배치 소자의 키는 고정이다
+        if not devices:
+            return values, logs, rounds, {}
+        now = tuple((m, c.keys[m]) for m in devices)
+        picks = {m: c.pick_dependent(m, values) for m in devices}
+        after = tuple((m, picks[m].w_key) for m in devices)
+        if after == now:
+            return values, logs, rounds, picks
+        seen.append(now)
+        if after in seen:
+            raise SealViolationError(devices=tuple(devices), detail={"reason": REASON_SLICE_CYCLE, "cycle": tuple(seen) + (after,)})
+        c.keys.update({m: picks[m].w_key for m in devices})
+
+
+@compute_block(DC_SOLVE_WRITER, reads=READS, writes=WRITES)
+def dc_solve(projection):
     c = _Circuit(projection)
-    values, logs = _solve(c)
-    logs = list(logs)
-    ln_idu = {}
-    for m, coord in c.coord.items():
+    if c.realized is not None:
+        raise NotImplementedError("dc_solve: 실현 평가(RealizedFinger)는 이 커밋에 없다")
+    requested = {} if c.geometry is None else dict(c.geometry.w_request)
+    picks = {}
+    for m, coord in sorted(c.coord.items()):
         if coord.role == COORD_WRITER:
-            ln_idu[m] = c.ln_idu[m]
+            picks[m] = c.pick_writer(m)
+            c.keys[m] = picks[m].w_key
         else:
-            vgs, vds, vsb = c.mos_point(m, values)
-            ln_idu[m] = math.log(forward_point(c.lut, m, c.kinds[m], c.L[m], vgs, vds, vsb).IDu)
+            c.keys[m] = c.reference_key(m)
+    values, logs, rounds, rpicks = _rounds(c)
+    picks.update(rpicks)
+    for m, coord in sorted(c.coord.items()):
+        if coord.role != COORD_WRITER and m not in picks:
+            picks[m] = c.pick_dependent(m, values)
+        c.keys[m] = picks[m].w_key
+    ln_idu, ops, sat, fingers = {}, {}, {}, {}
+    for m, coord in c.coord.items():
+        kind, key = c.kinds[m], c.keys[m]
+        vgs, vds, vsb = c.mos_point(m, values)
+        point = forward_point(c.lut, m, kind, key, c.L[m], vgs, vds, vsb)
+        ln_idu[m] = c.ln_idu[m] if coord.role == COORD_WRITER else math.log(point.IDu)
+        free_width = c.current[m] * c.L[m] / math.exp(ln_idu[m])
+        width = requested[m] if m in requested else free_width
+        ops[m] = DeviceOp(kind, c.current[m], ln_idu[m], point.gm_over_id, c.L[m], width, vgs, vds, vsb, key, point.IDu)
+        pick = picks[m]
+        if c.geometry is None:
+            fingers[m] = FingerGeom(pick.m, pick.w_f_m, pick.m * pick.w_f_m / free_width - 1.0)
+        try:
+            sat[m] = sat_threshold(c.lut.memo, kind, key, c.L[m], vgs, vds, vsb)
+        except SealViolationError as exc:                # 값 없음 사유가 아닌 LUT 실패는 소자 이름을 붙여 낸다(fail-closed)
+            raise with_device(exc, m, "sat_threshold") from exc
+    for m, region in projection.column("device", "region_decl"):       # `off` 선언 소자는 동작점(dc_op)이 없다 -- 값 없이 사유만
+        if region.region == REGION_OFF:
+            sat[m] = SatBound(None, None, REASON_OFF_DECLARED)
     paths = {net: [] for net in c.writers}
     for m in ln_idu:
         d, g, s = (c.pins[m][t] for t in MOS_TERMINAL_NAMES)
         _vgs, vds, vsb = c.mos_point(m, values)
-        vgs = _vgs_of_coordinate(c.lut, m, c.kinds[m], c.L[m], vds, vsb, ln_idu[m])
+        vgs = _vgs_of_coordinate(c.lut, m, c.kinds[m], c.keys[m], c.L[m], vds, vsb, ln_idu[m])
         sign = c.kind_sign(c.kinds[m])
         paths[g].append(PathValue((_REL_MOS, m), values[s] + sign * vgs))
         paths[s].append(PathValue((_REL_MOS, m), values[g] - sign * vgs))
@@ -574,5 +687,8 @@ def dc_columns(projection):
         ("node", "dc_path_values"): {net: tuple(sorted(p, key=lambda x: x.relation)) for net, p in paths.items()},
         ("node", "dc_window"): _windows(c, values),
         ("device", "dc_ln_idu"): ln_idu,
-        ("graph", "dc_scc_log"): {DC_KEY: tuple(logs)},
+        ("device", "dc_op"): ops,
+        ("device", "dc_sat_v"): sat,
+        ("device", "dc_finger"): fingers,
+        ("graph", "dc_scc_log"): {DC_KEY: tuple(dataclasses.replace(entry, slice_rounds=rounds) for entry in logs)},
     }

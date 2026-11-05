@@ -19,7 +19,7 @@ import dataclasses
 import types
 
 AXES = ("L", "VGS", "VDS", "VS")
-TOL_V_METRICS = ("gm_id_inverse", "id_equivalent")
+TOL_V_METRICS = ("id_equivalent",)
 TOL_VDSAT_METRICS = ("vdsat",)
 # 기준 LUT 선택 열(LUT v2 생성기 meta `units` 의 키) -- 있으면 읽고, 없으면 그 열을 쓰는 조회가 `lut_column_unavailable`.
 CAP_TABLE_COLUMNS = ("CDD", "CSS", "GDS", "GM", "GMBS", "ID", "SVG2_1HZ", "SVG2_HF", "VDSAT", "VTH")
@@ -348,16 +348,10 @@ class TolVCell:
     """tol_V 표 한 칸((kind, w_key, L 앵커, VDS)). 값은 보간 축 leave-one-out(운영 보간과 같은 방법)의 오차를 축마다
     Richardson 환산(÷ 2^p, p = 그 축·지표의 보간 차수, lut/CONTRACT.md 5절)한 셀 안 최댓값(V), 정의 안 되면 None.
 
-    `gm_id_inverse_v`: |LOO 곡선에서 gm/ID 역산한 VGS - 참 VGS| / 2^p. `id_equivalent_v`: |ln ID_loo - ln ID| / (gm/ID) / 2^p.
-    `n_targets`: gm/ID 역산 시도 수((목표, 축) 쌍), `n_inverse_failed`: 그중 LOO 곡선에 강반전 해가 없던 수(값에 넣지 않음).
-    `gm_id_inverse_loo_v`·`id_equivalent_loo_v`: 환산 전 LOO 값(간격 2배 격자의 오차)의 셀 안 최댓값(진단·환산 검증용).
+    `id_equivalent_v`: |ln ID_loo - ln ID| / (gm/ID) / 2^p. `id_equivalent_loo_v`: 환산 전 LOO 값(간격 2배 격자의 오차)의 셀 안 최댓값(진단·환산 검증용).
     """
 
-    gm_id_inverse_v: object
     id_equivalent_v: object
-    n_targets: int
-    n_inverse_failed: int
-    gm_id_inverse_loo_v: object = None
     id_equivalent_loo_v: object = None
 
 
@@ -376,15 +370,12 @@ class MidpointRow:
     """[r6] 검증 중점이 잰 앵커 2개 bin 하나의 L 보간 오차(V, lut/CONTRACT.md 5.1). `model` = 그 bin `.model` 이름,
     `L_points` = 그 bin 에 든 중점들(m, 오름차순), 세 값 = VDS 격자점마다의 tuple(길이 = VDS 격자 수) -- 그 VDS 의 점·목표와
     그 중점들 전체의 최댓값(정의된 점이 없으면 그 원소 None).
-    `n_targets`·`n_inverse_failed` = gm/ID 역산 시도·해 없음 수(중점 합)."""
+    """
 
     model: str
     L_points: tuple
-    gm_id_inverse_v: object
     id_equivalent_v: object
     vdsat_v: object
-    n_targets: int
-    n_inverse_failed: int
 
 
 @dataclasses.dataclass(frozen=True)

@@ -128,16 +128,6 @@ def cell_max(per_point):
     return out
 
 
-def branch_targets(g, on_curve):
-    """(곡선 index, VGS index) 목표 쌍: 정점 이후이고 오른쪽 모든 점보다 gm/ID 가 큰 점(그 VGS 가 그 곡선의 강반전 분지 해).
-    `g` 모양 (곡선, VGS), `on_curve` 모양 (곡선,)."""
-    right = np.full(g.shape, -np.inf)
-    right[:, :-1] = np.maximum.accumulate(g[:, :0:-1], axis=1)[:, ::-1]
-    cols = np.arange(g.shape[1])
-    mask = (g > right) & (cols[None, :] >= np.argmax(g, axis=1)[:, None]) & on_curve[:, None]
-    return np.nonzero(mask)
-
-
 def with_external(value, ext):
     """셀 값과 외부 bin 값의 최댓값. 셀 값이 None(그 셀에 켜진 격자점 없음)이면 None 그대로."""
     if value is None or ext is None:

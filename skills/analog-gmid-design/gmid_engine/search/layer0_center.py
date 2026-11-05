@@ -538,7 +538,8 @@ def _repair(sctx, variables, res, cells, tag, gmid_max):
 
 def _gmid_max(sctx):
     out = {}
-    for kind, w_key in sctx.dc.lut.w_keys:
+    for kind, cap in sorted(sctx.dc.lut.memo.lut.cap_map.items()):
+        w_key = cap.w_key
         sl = sctx.dc.lut.memo.lut.slice_map[(kind, w_key)]
         on = np.asarray(sl.on_mask, dtype=bool)
         out[kind] = float(np.exp(np.max(np.where(on, np.asarray(sl.log_GM) - np.asarray(sl.log_ID), -np.inf))))
