@@ -1,0 +1,221 @@
+{
+ "id": "20261104-ub1-nl1",
+ "spec_card": "docs/02-design/specs/20261104-ub1-nl1.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "2f60222a20704cafca856d183ab09fd436c10327",
+ "test_commit": "4dcddf2ef2be8aa91a0f46d8171bd05779d73313",
+ "code_commit": "507c5a37d8e3a0226b0d3859113766bece50b822",
+ "red": {
+  "test_ids": [
+   "skills/analog-gmid-design/::gmid_engine.tests.metrics.test__helpers_nodal",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_achievability::test_ub1_block_spec_others_are_other_blocks_nodes[ngcc_3stage_ff]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_achievability::test_ub1_block_spec_others_are_other_blocks_nodes[two_stage_ota]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_achievability_types::test_ub1_new_fields_defaults_and_fingerprint",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_aux_types::test_ub1_new_fields_defaults",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_bound::test_ub1_bound_load_note_lists_omitted_load",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_bound::test_ub1_bound_decomposed_only_is_unknown",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_bound::test_ub1_e16_interior_maximum_of_same_bin_interval",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_bound::test_ub1_e16_nan_interior_is_unknown",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_bound::test_ub1_e16_extremum_near_interval_end",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_bound::test_ub1_e16_real_tables_operating_path",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_model::test_ub1_row_mode_omits_unfixed_load_and_bounds_sealed",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_model::test_ub1_row_mode_feedback_resistor_marks_decomposed_only",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_model::test_ub1_row_mode_output_exception_and_gate_reader",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_model::test_ub1_row_mode_rejects_charge_node",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_model::test_ub1_both_modes_same_unknown_set_and_value",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_gain_model::test_ub1_row_mode_follower_omitted_load",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_model::test_closure_pulls_series_rz_mid_net_without_changing_gain",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_model::test_ub1_capacitive_divider_gate_net_is_charge_conserved",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_model::test_ub1_charge_net_without_capacitors_or_with_missing_one_is_singular",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_model::test_ub1_non_member_mos_does_not_widen_unknown_set",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_param_tables::test_ub1_same_l_bin_follows_anchor_bin_map",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_param_tables::test_ub1_lookup_at_l_between_anchors_in_same_bin",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_param_tables::test_ub1_lookup_at_l_across_bins_is_nan",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_param_tables::test_ub1_map_less_table_has_no_same_bin_neighbours",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_block_residual::test_ub1_block_residual_passes_view_ac_ground",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ff_gm_ratio::test_ub1_ff_gm_ratio_passes_view_ac_ground",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_metric_structure::test_ub1_block_members_and_view_ac_ground",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_sensitivity_gate::test_undefined_values_unchecked_not_error",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_sensitivity_gate::test_no_runs",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_sensitivity_gate::test_ub1_verdict_priority_error_beats_unmeasured",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_sensitivity_gate::test_ub1_verdict_ok_branch",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front::test_ub1_gate_note_exactly_one_row_with_fields",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front::test_ub1_gate_note_front_empty",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_gate_run::test_no_report_no_gate",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_gate_run::test_all_directions_read_no_gate",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_gate_run::test_ub1_base_db_undefined_is_undeterminable_without_perturbation",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_gate_run::test_ub1_unmeasured_perturbations_are_rows_not_skips",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_iv_gain_l::test_ub1_omitted_load_block_adds_inactive_row"
+  ],
+  "failure_hashes": [
+   "abce3b5a06b61cec9ad111a578c1df18ee6b4acac459e336676f954f22fe0577",
+   "75bef2829e2c78f842067537bd89f4e40db1294758dc8ebf23335afb0325a75b",
+   "7ff78c68c30501c68ae860eaf3b69c2261f6e6519ffa0194940875a6f3b303c5",
+   "5fa58ce8d23ae8b0540e8103b862223aca9c620ecd41b7061293b45326e9bbeb",
+   "bf3b1d4f3a74dd6a286b538e7bd4a68cf861552fb951676a4ad27406430412e2",
+   "a3e7a44220299331da76ba99890356c0a92a11a643cfbac0e4d3b691b4f4da74",
+   "b95e837ad189c9d0396072344c9e30cb4f9b4d7896a22bccd9a18eeba48410f3",
+   "2b8790dffb97f2106c78964b9c9fe9ff818c2b522b30a5d267e4ef7c0f0ab061",
+   "363bd6161cacb55b27b73636712f0849fdf9ff30a3eb1f614c1465dd329dd245",
+   "193314d57aea3614ea9ded324bb02308b730411caf3ef8b02d00f489f38c0190",
+   "06f4345df92f14760e25412c755d406ea8c38b5d1912cce19b1b96ccea10e871",
+   "6dbc8583df260feff9bb766001ceacefbe143d23e719939ccc284607c4b0d874",
+   "6ebe94b23b434e48dccaa486996911aadd5834f92eae32c4bc0b3a468a7a054e",
+   "b3c3a6afc242a919570c0a7f0f55ecd2a37761fb8adc649188573248b269100f",
+   "c47bae5961870e88d235482fdbdfce67402789291202af4e174e7b5c6129805d",
+   "ebaaf333593f331449b27a7e35cd9df089001c94b1d3fed4f243bed5ad851bbc",
+   "a06477562a09e39dc66c44cf7c7a3c552b8da0b19692de3689ec0ffe1770b642",
+   "24222219feada4bfd469a5890c9f1a90480f13e510a9886b6361e53806bea856",
+   "633d1d95d4ea9867fb9d3c5878a75a5cacc418040e3324f1864b6daf0e836b85",
+   "338428c94e4b2195963c7c0ae95cf5b4e57f9e26525f5a42b26e41efe88dae8f",
+   "fa7bf4048a454802fbd3da2a4f785b2532126d300f5d2065cf3f8cd2bff232f7",
+   "8adf9a7833562f5369fe3c1e7274c1881906b67e25e9322d6388f70c29bafa84",
+   "b757dbf921fad1b5599faeebc4b41269bd9a9a6917d7919108c7e3a1b093af49",
+   "11331ccf680feec5c74bc4728ac17bc96632214629d575c31bd104e6559a0c46",
+   "59c568bcfc2676e1c1b47646148313b445203c1bac1168304fea06be29ea4ff6",
+   "ce2855b664b4151efc41c42412a6e6662e9a6ed3b5e3296f44d9dc136ea6120d",
+   "0f66f653976408c652798206ddc13673618a29a916e23480080cafe0ddd09046",
+   "c8a03a50ae677fad6ca645cd03c78f8ee6eececd38a42c60e8bd22196eddd4f6",
+   "8ed7266482b4f03c1d9a6329a8d3dc1e85bef2a0f46ffa458a2f7ba815b5d971",
+   "54ab48f442ae059d6ba57f263d6e993d97a0e27979b28f49efa1e470ab724497",
+   "f9af1f16f35ae9a012137123e58310bc605ebb663615815eee4641fb2825bf05",
+   "338ab9c15e0adb7cbd238aeff9093f1d566faa8ce8204582196ee73270dc38f5",
+   "b88679dee167a9d1b4bdf638119097102cfbfa44bd655f4469391363b4f3a499",
+   "d029837c22d0c83a863eb46a7d6258f2c8697846209d701604715afbc95ae339",
+   "5fb0585e383e407236876b889a0caad81666544db0e62ba947a1bc220f5c4a7f",
+   "86953744c79056dce1a0aa5e0eabe6080bf58f888d69fbae038aed69ced30896",
+   "7adc8c256cdb8c011e8a9b62b2d12e90be4ead3501c0ecfa888063e9a8ca8d00",
+   "9359039d05f8715cd2fdfbe00669311f84f3e1f2ea6b2ff9d33e5c8d4aff7d1d",
+   "911846df71e277dad89ad169ee3b55839065516cc34134259835881cbef56d66"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "N/A",
+   "basis": "전체 test 안 돌림(임시 규칙 O-229, interface A-3 포함). 돌린 범위 = 격리 복제본 iso3 머리 90d4814c: card test 16파일 + test_s2_values + search/test_canonical_order 315 통과 1 deselected / 소비자 metrics 9파일(pencil·stamp·mna·dc_limit·offset·off_delta·view) 99 통과 / tests/structure 171 통과 1 deselected / 2회로 연기 g10 2 통과, stage_b 10 통과, s0 8 통과 3 실패(V2 M-2). 안 돌린 것(다른 11회로, 전체 test, SPICE, 13회로 변화표)은 통과로 세지 않는다."
+  },
+  "V2": {
+   "verdict": "FAIL",
+   "basis": "M-2 필수 test 실패. test_s0_layer_9circuits: test_stage_reports_unchanged_from_base[folded_cascode, ngcc_3stage_ff], test_s0_field_values_unchanged_from_base[folded_cascode]. 원인 칸 실측(cmp_chain.txt, head 대 master 사슬 덤프 13칸): 숫자 칸 변경 0. gain = load_note 칸 추가(folded None, ngcc 블록 Vout (M7, M14), FF (M14), (M7)), metric_structure = BlockStruct.members·ViewStruct.ac_ground 칸 추가. start·kernel·context_fp 불변. fixture u17_1b_s0_baseline.json 이 interface '바뀌는 기존 test' 에 없어 갱신되지 않았다. 제안 3칸 s0_baseline_proposal.json(옛 값 = master 덤프 3/3), 복사본 mut 에 적용하면 s0 연기 11 통과. 적용은 test 역할. red-green 자체: master 엔진 + head test 40 failed 1 error 199 passed(AssertionError 31, AttributeError 7, ImportError 1, 새 키워드 TypeError 2는 red 로 안 셈), head 315 통과. 표 sha256 bfdd19188f1404cea4dd438128189a278590662b8d2b0b80512922bcd7a058dd. base 표 재현 동결 판정은 base_check.json(T = 1a562edd, 그 뒤 test 변경 = 4dcddf2e 시그니처 3곳뿐, 기대값 변화 0)."
+  },
+  "V3": {
+   "verdict": "PASS",
+   "basis": "복사본 뮤턴트 37 (mutate_changed.py 는 gmid_engine/tests 미지원, 손 뮤턴트 mutants_ub1.py). 죽음 31, 생존 6 (minor): block_local_gain C 늘 조립(A-4); 용량 폐포 없앰; 행 모드 others F 에서 뺌; off_delta 전하 노드 허용; ss_nodal missing·전하 거부 없앰; view_factor C 영행렬. 대조: 변경 없는 복사본 68 통과(assets 포함 뒤 재측정, assets 없는 첫 회의 거짓 죽음 6건 재실행). T-10a: 대조 통과, _structure 가 members 안 읽음 사망, block_residual 이 members 비움 사망(t10a.json). 생존 11·16·19·33·34·35 는 test 빈칸이고 동작은 판정자 probe 로 직접 잼(V9)."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: 동결 때 hand_check 24/24(base_check.json) + 이번 판정 독립 손 풀이(probe_phys.py 엔진 풀이 미사용). oracle 대조: T-4 계열 = 전하 섬 두 넷 5 용량 합성 회로 n1·n2·gain rel 0 일치. oracle 대조: view_factor 다른 고정 집합 + 전하 넷 -3.96825397 = 손 일치. oracle 대조: T-1~T-3·T-5·T-7·T-9~T-11 은 base_check 항목 그대로, 그 뒤 test 변경 시그니처뿐. UNJUDGED: test_lint.py 는 gmid_engine/tests 패키지 경로를 못 풀어 미측정(base_check 와 같음), 6자리 이상 소수 리터럴·skip·xfail 추가 0 은 손 grep."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "기준 약화 0. git diff 2f60222a..HEAD tests 삭제 줄 전수 대조(weakening_diff.py 는 대상 밖이라 근거로 안 씀): 뜻 교체 6(test_floating_node_excluded_and_zero, test_closure_pulls_series_rz, test_undefined_values_unchecked_not_error, test_no_runs, test_no_report_no_gate, test_all_directions_read_no_gate)은 전부 interface 지목이고 fail-open -> fail-closed 방향. 나머지 삭제 줄 = 시그니처·import. fixture 미변경."
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "tests/structure 171 통과 1 deselected, G-8 래칫 new 0, stale 2(g8_memo_lookup_form block_columns._vds_floor, vt_assign s2_values.NO_ORDER_HINTS, master 와 같음). 잠금 grep (a) block_model·ff_gm_ratio·block_residual 의 conductance_matrix·mos_stamps·two_terminal_stamps 0 (b) 전하 행 교체 대입 _helpers_dc.limit_matrix 한 자리 (c) block_model·block_gain_model·ff_gm_ratio 의 _select 0 (e) attach.get(n, math.inf) 0. A-5: 변경 파일에 gmid_engine/graph·규칙 파일 0(rule_hash 무변경). 회로 이름·PDK 값·새 상수 diff grep 0."
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "새 칸 9 / 소비자 0 인 칸 0(members·ac_ground·others·omitted_load·decomposed_only 엔진 소비, load_note·verdict·reason·unmeasured 출력 전용 선언) / 정본 우회 의심 1(C 행렬: nodal_of 와 view_factor 다른 고정 집합 갈래가 같은 ss.circuit 에서 각각 조립. 필드가 아니라 writer 둘은 아니고 공식도 capacitance_matrix 하나, interface 소비자 표에 있음. 발동 측정 folded 평가에서 base_hit 2 other_fixed 0. minor) / KVL·KCL 관계 미적용 1(V9 M-1) / graph 밖 저장 자리 0(새 cache·memo·sctx·값 칸 grep 0, lookup_at_l 은 U-87 LUT memo 만). G-10: 2회로 test 통과, 블록 계수 folded computes 33 recompute 0, ngcc 26 / 0, master 와 같음. A-4: folded capacitance_matrix@block_local_gain 0, @nodal_of 1, 같은 입력 추가 호출 0. A-105: conductance_matrix·_gamma AST 같음, 200/200 비트 동일, 조립 자리 ss_nodal.nodal_of 하나. pencil 교체 200/200 비트 동일."
+  },
+  "V8": {
+   "verdict": "PASS",
+   "basis": "폴백 새로 없음. 구조 측정 library 9/13(u7_ngcc 합성 값, 19 블록, probe_library.jsonl): 전하 넷 0, 전회로 floating 0, 특이 0, 출력 무스탬프 0, NaN zout 0. 4회로(cnr_ota, erfc_ota, r2r_opamp, rfc_ota)는 helper KeyError 로 미측정, 통과로 안 셈. A-6: block_local_gain·block_residual 값의 제약 행·봉인·front 비지배 소비자 0(metrics_aux 보고, gate_run, kernel 기록, residual_probe 뿐), ff_gm_ratio 는 library spec 선언 0. E-16 은 두 회로 6 블록 전부 grid_product_over_budget 이라 실제 표 경로 발동 0, toy T-5e 만."
+  },
+  "V9": {
+   "verdict": "FAIL",
+   "basis": "M-1 물리 정합 위반: 막다른 가지 규칙(block_model._structure dead)이 용량 독자를 안 본다. 회로 out -Rz- mz -Cc- n -C2- gnd, M2(g n, d o2): 저항 전류 0 이라 V(mz) = V(out) = -18.75, V(n) = -4.6875, gain 117.1875(손, 같은 회로 전회로 nodal_of 도 117.1875). 블록 풀이는 mz 를 빼고 0 V 로 고정해 n = 0, gain -0.0, undefined 없음(probe_phys.jsonl case 2). 옛 '0 V 조용한 처리' 가 이 경로에 남았다. interface 막다른 넷 문언에도 빠진 조건. 수정 방향: 전하 넷과 용량으로 이어진 넷은 막다른 가지가 아니다. 나머지 통과: 전하 섬 손 일치, C 없음 singular_dc, 전회로 gate 전용 C 없음 lu None, 전하 주입 거부(직류 극한 없음, 옛 floating 거부와 같은 뜻), missing + 전하 Undefined(passive_value_undeclared), DC 소비자 _unavailable·icm _select 가 Undefined 를 막음. C 열 스탬프(O-179): stamp_mos·mna 변경 0, pencil 비트 동일, 소비자 test 통과."
+  },
+  "V10": {
+   "verdict": "N/A",
+   "basis": "재현할 수치 없음(spec). 미완료(보류 다리): 13회로 변화표, UB-0 값 차이, NL-1 SPICE(EO-1·OP-5·CL-1). 통과로 세지 않는다. UB-1 SPICE 는 대상 없음(A-6)."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "card test 통과",
+   "value": 315,
+   "command": "out/card1"
+  },
+  {
+   "name": "structure 통과",
+   "value": 171,
+   "command": "out/structure"
+  },
+  {
+   "name": "연기 g10 통과",
+   "value": 2,
+   "command": "out/smoke_g10"
+  },
+  {
+   "name": "연기 stage_b 통과",
+   "value": 10,
+   "command": "out/smoke_stageb"
+  },
+  {
+   "name": "연기 s0 통과",
+   "value": 8,
+   "command": "out/smoke_s0"
+  },
+  {
+   "name": "연기 s0 실패",
+   "value": 3,
+   "command": "out/smoke_s0"
+  },
+  {
+   "name": "소비자 test 통과",
+   "value": 99,
+   "command": "out/consumers"
+  },
+  {
+   "name": "뮤턴트 죽음",
+   "value": 31,
+   "command": "mutants_final.json"
+  },
+  {
+   "name": "뮤턴트 생존",
+   "value": 6,
+   "command": "mutants_final.json"
+  },
+  {
+   "name": "M-1 손 gain",
+   "value": 117.1875,
+   "command": "probe_phys.jsonl case 2"
+  },
+  {
+   "name": "M-1 엔진 gain",
+   "value": 0.0,
+   "command": "probe_phys.jsonl case 2"
+  },
+  {
+   "name": "기준선 제안 칸",
+   "value": 3,
+   "command": "s0_baseline_proposal.json"
+  },
+  {
+   "name": "제안 적용 뒤 s0 통과(복사본)",
+   "value": 11,
+   "command": "scripts/proposal.py"
+  },
+  {
+   "name": "구조 측정 회로",
+   "value": 9,
+   "command": "probe_library.jsonl"
+  },
+  {
+   "name": "구조 측정 전하 블록",
+   "value": 0,
+   "command": "probe_library.jsonl"
+  }
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-11-05T18:09:43+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-ub1-nl1-audit",
+  "commands": [
+   "V1: 전체 test 안 돌림(O-229), 범위 = runpt.sh 파일별 실행, 결과 out/*.meta",
+   "격리: git clone --no-hardlinks --no-local <audit worktree> iso3, remote remove origin, 머리 90d4814c",
+   "격리: git archive 2f60222a -> base3, basered(+ head tests) red; git archive HEAD -> mut 뮤턴트"
+  ]
+ }
+}

@@ -1,0 +1,27 @@
+{
+ "cause": "값 변화 0. gain 칸 = load_note 칸 추가(folded None, ngcc 값 3행), metric_structure = BlockStruct.members·ViewStruct.ac_ground 칸 추가. 숫자 칸 변경 0 (run3/out/cmp_chain.txt)",
+ "applied_by": "test 역할(판정자 아님)",
+ "cells": [
+  {
+   "circuit": "folded_cascode",
+   "cell": "achievability_sha.gain",
+   "old": "80cb498e02ebd88838a851c974f978b95e44ac9e3e0d8775a35ae8d6e575d6b6",
+   "base_dump": "80cb498e02ebd88838a851c974f978b95e44ac9e3e0d8775a35ae8d6e575d6b6",
+   "new": "cadbe6d8b6ec45b37353378b32657ab827d2e3310d91970928f399fdbe365b90"
+  },
+  {
+   "circuit": "folded_cascode",
+   "cell": "kernel.metric_structure_fp",
+   "old": "bfe721dad0a98ef13191716f924022f068966f3807017f85b45fc172ca1a6c90",
+   "base_dump": "bfe721dad0a98ef13191716f924022f068966f3807017f85b45fc172ca1a6c90",
+   "new": "2816d2f6289a681fd62238b36aa9532d38c076f605e0ee3287674f63f4f760ad"
+  },
+  {
+   "circuit": "ngcc_3stage_ff",
+   "cell": "achievability_sha.gain",
+   "old": "bb7b0bbe506ff1f8db63293427dea0d8299588345f1223c8087a87a82f8f98b4",
+   "base_dump": "bb7b0bbe506ff1f8db63293427dea0d8299588345f1223c8087a87a82f8f98b4",
+   "new": "693bec07136c970f0e82c85a3977396a86fe0977fa907bf5747de8b299f4280e"
+  }
+ ]
+}

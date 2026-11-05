@@ -1,0 +1,80 @@
+{
+ "rc": 0,
+ "counts": {
+  "capacitance_matrix@nodal_of": 1,
+  "view_factor:base_hit": 2,
+  "view_factor@offset_analysis": 1,
+  "view_factor@block_residual": 1,
+  "block_local_gain": 1
+ },
+ "same_input_extra_calls": {},
+ "distinct_inputs": 1,
+ "times": {
+  "count_calls.py:cap_counted": {
+   "calls": 1,
+   "tottime": 0.0,
+   "cumtime": 0.0005
+  },
+  "expression.py:evaluate": {
+   "calls": 13,
+   "tottime": 0.0,
+   "cumtime": 0.0002
+  },
+  "stamp_mos.py:mos_stamps": {
+   "calls": 156,
+   "tottime": 0.0017,
+   "cumtime": 0.0027
+  },
+  "block_model.py:block_local_gain": {
+   "calls": 1,
+   "tottime": 0.0002,
+   "cumtime": 0.0023
+  },
+  "block_gain_rows.py:block_stamp_matrix": {
+   "calls": 700,
+   "tottime": 0.2083,
+   "cumtime": 0.6598
+  },
+  "ss_nodal.py:conductance_matrix": {
+   "calls": 1,
+   "tottime": 0.0004,
+   "cumtime": 0.0013
+  },
+  "_helpers_nodal.py:nodal_factor": {
+   "calls": 2,
+   "tottime": 0.0002,
+   "cumtime": 0.001
+  },
+  "block_residual.py:block_residual": {
+   "calls": 1,
+   "tottime": 0.0001,
+   "cumtime": 0.003
+  },
+  "ss_nodal.py:nodal_of": {
+   "calls": 1,
+   "tottime": 0.0001,
+   "cumtime": 0.0026
+  },
+  "ss_nodal.py:ss_nodal_system": {
+   "calls": 1,
+   "tottime": 0.0,
+   "cumtime": 0.0027
+  },
+  "block_model.py:_structure": {
+   "calls": 1,
+   "tottime": 0.0001,
+   "cumtime": 0.0001
+  },
+  "kernel.py:evaluate": {
+   "calls": 4,
+   "tottime": 0.0004,
+   "cumtime": 2.68
+  },
+  "_helpers_nodal.py:capacitance_matrix": {
+   "calls": 1,
+   "tottime": 0.0,
+   "cumtime": 0.0004
+  }
+ },
+ "total_tt": 63.56
+}

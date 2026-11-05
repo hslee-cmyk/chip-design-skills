@@ -1,0 +1,310 @@
+{
+ "id": "20261104-ub1-nl1",
+ "step": "순서 3 freeze",
+ "committed": false,
+ "freeze": {
+  "test_end_commit": "1a562eddb1de47d4eaaabb9c05133202b7173170",
+  "test_tree": "3d83efbd4034da298e48927482110aceaaeacc3e",
+  "test_branch": "role/test/20261104-ub1-nl1",
+  "base_commit": "e33100cc4c4ebf2fa7dc6bb787f2680a35958eef",
+  "commits": [
+   "484148af test",
+   "acd8e852 docs spec·interface",
+   "1a562edd test 보강"
+  ],
+  "test_diff_sha256_from_base": "b0401c6ca610199d6cc3d43bd17758243663f7ac016f516f02b245523637c1e7",
+  "diff_outside_tests": "spec·interface 문서 둘뿐, 엔진 0",
+  "verdict": "동결 통과, T = 1a562edd, Major 0"
+ },
+ "environment": {
+  "isolated_head": "C:/Users/HSLEE/AppData/Local/Temp/la1s_ub1_audit/ub1-iso",
+  "isolated_base": "C:/Users/HSLEE/AppData/Local/Temp/la1s_ub1_audit/ub1-base (detached e33100cc + gmid_engine/tests를 484148af로 덮음, 커밋 안 함)",
+  "command": "python -m pytest <바뀐 test 파일 11개> -p no:cacheprovider --continue-on-collection-errors --tb=short -q -rfE --junitxml=run/base_new_tests.xml",
+  "merge_gate": "미사용(spec card phase: DEC-86, N6.3 절차)",
+  "memory": "관련 test만 실행. library 전체 실행 안 함(이 파일들 안 test_library_residual_floor 포함 76 s)"
+ },
+ "red": {
+  "summary": {
+   "passed": 152,
+   "failed": 39,
+   "collection_error": 1
+  },
+  "type_counts": {
+   "AssertionError": 31,
+   "AttributeError": 7,
+   "ImportError": 1,
+   "TypeError": 1
+  },
+  "uncounted": [
+   "test_block_model::test_ub1_view_ground_net_argument (새 키워드)"
+  ],
+  "table_sha256": "08a6593a723f7c3b66df5521f54eebef7de099b8383bdd664e222da83d630762",
+  "table": "C:/Users/HSLEE/AppData/Local/Temp/la1s_ub1_audit/run/base2_table.txt",
+  "new_rows": {
+   "T-13": "red: inactive () == 사유 한 행",
+   "T-5e (i)(ii)": "red: same_l_bin·lookup_at_l AttributeError 신규 심볼",
+   "T-5e (iii)": "red: 호출 수 0",
+   "T-12": "red: ac_ground AttributeError 신규 칸",
+   "T-12a": "red 2회로: others 없음",
+   "T-10b": "red: 15.0 == 3.9706. 15.0 = gmf/(gds1+G1)로 interface 문장과 같음",
+   "T-10a": "base green(base 채널 폐포가 x를 끌어옴). interface '칸 추가 뒤 판정'대로 head 쪽 전달 잠금, red로 안 셈",
+   "C-10 칸 하나 None": "red",
+   "C-11 res None": "red"
+  }
+ },
+ "not_run_at_base": {
+  "file": "tests/metrics/test__helpers_nodal.py",
+  "cause": "모듈 머리 import limit_matrix·capacitance_matrix -> ImportError(신규 심볼, 허용). 파일 전체 13 test 수집 실패",
+  "shim_table": "C:/Users/HSLEE/AppData/Local/Temp/la1s_ub1_audit/run/base_nodal_table.txt (감사 전용 자리표 ub1_import_shim, 엔진·test 불변), sha256 ac135d5d0c773957df026a51f59820c6d20efc1e69a2db8c39b7781ce70cfb4c",
+  "tests": {
+   "keyword_TypeError_not_counted": [
+    "test_solve_divider_and_injection",
+    "test_adjoint_matches_per_node_forward_injection",
+    "test_floating_node_excluded_and_zero",
+    "test_ub1_floating_means_no_entry_anywhere",
+    "test_ub1_charge_node_solution_matches_closed_form_and_dc_limit",
+    "test_ub1_charge_node_injection_and_adjoint",
+    "test_ub1_c_has_no_effect_without_charge_nodes",
+    "test_singular_returns_none",
+    "test_no_unknowns_returns_drive"
+   ],
+   "new_symbol": [
+    "test_ub1_capacitance_matrix_by_stamps",
+    "test_ub1_limit_matrix_replaces_only_charge_rows"
+   ],
+   "green_with_shim": [
+    "test_conductance_matrix_one_mos_by_device_equation",
+    "test_conductance_matrix_resistor_and_capacitor_open"
+   ]
+  },
+  "behaviour_evidence_instead_of_red": {
+   "P1 solve_dc_limit oracle": "-3.926701570680628 == 닫힌 식 -3.926701570680628 (T-4a oracle이 base에서 돎)",
+   "P1b 옛 0 V": "T-4 회로 floating (2,), v_out 0.0",
+   "P1c 옛 floating 뜻": "floating (3,), lu 있음 -- 새 뜻 test와 반대"
+  },
+  "count_as_red": false
+ },
+ "scope_check": {
+  "meaning_replaced_existing_tests": {
+   "count": 6,
+   "note": "지시문의 5개가 아니라 6개. 전부 interface 지목",
+   "items": {
+    "test_floating_node_excluded_and_zero": "interface '바뀌는 기존 test'",
+    "test_closure_pulls_series_rz_mid_net_without_changing_gain": "interface T-3",
+    "test_undefined_values_unchecked_not_error": "interface T-6",
+    "test_no_runs": "interface T-6",
+    "test_no_report_no_gate": "interface T-6a",
+    "test_all_directions_read_no_gate": "interface T-6a"
+   }
+  },
+  "helper_changes": {
+   "u7_hand.block·vstruct": "interface 지목. 칸 없는 판 분기는 base 전용, head 무동작",
+   "gb4_hand.block_spec others": "interface T-2 호출 형태가 지목",
+   "test_gate_run._snapshot None 가드": "T-6a base_undefined 입력에 필요. 기대값 변화 없음",
+   "test__helpers_nodal._f": "interface '모든 nodal_factor에 c='"
+  },
+  "out_of_scope": 0,
+  "weakening_by_hand": "fail-open을 fail-closed로 바꾸는 쪽. 다만 test_undefined_values의 부분 None 입력 ('b',40,41,None)이 사라짐(m1)"
+ },
+ "tools": {
+  "weakening_diff": {
+   "verdict": "PASS",
+   "note": "TEST_PREFIX가 assets/tests라 gmid_engine/tests는 대상 밖. diff_paths 0으로 무의미, 근거로 안 씀. 손 대조로 대체"
+  },
+  "test_lint": {
+   "verdict": "ERROR",
+   "note": "module-dir를 gmid_engine으로 줘도 패키지 경로를 못 풂(exit 2). 미측정. 손 grep: 6자리 이상 소수 리터럴·except·skip·xfail 추가 0"
+  },
+  "mutate_changed": "미실행(코드 없음, 순서 6 몫)"
+ },
+ "oracle_check": {
+  "method": "감사자 hand_check.py: 직접 세운 KCL 행렬 풀이 대 interface·test 닫힌 식. 엔진·test import 0",
+  "result": "24/24, rel < 1e-11",
+  "file": "C:/Users/HSLEE/AppData/Local/Temp/la1s_ub1_audit/run/hand_check.jsonl",
+  "sha256": "71423c8c0ab84119a7e05f6cc537d33d8859c077a372f580205fe13528f112df",
+  "items": {
+   "oracle 대조: T-1 CS→CG": "gain A·B, zout A·B 일치, g_in = gm2 + gmb2 + gds2",
+   "oracle 대조: T-2 상한": "행 = gm1/(gds1+G1), 비 = (gds1+G1+g_in)/(gds1+G1). base 행 값도 일치(P2)",
+   "oracle 대조: T-2b·T-3·T-3a·T-3b": "일치",
+   "oracle 대조: T-4 계열": "V(n), gain, z[out] 일치. solve_dc_limit도 일치(P1). C 손 스탬프 대조",
+   "oracle 대조: T-5": "t = 1/2, 값 1, 단봉",
+   "oracle 대조: T-5d": "t = 1/16, 값 1, 단봉, t = 1/4 값 0.1407. docstring '약 +0.14h'와 같음",
+   "oracle 대조: T-7 ii·T-9·T-9a·T-10·T-11": "일치",
+   "oracle 대조: T-8": "손 2x2 풀이 == ref_solve(P4), ref_solve는 피검 함수 아님",
+   "oracle 대조: T-12 입력": "base S1v: FF 셀 ∩ roles 0, input_cells ⊆ roles, 선언 레일·bias ⊆ ac_ground, 입력 넷 없음(probe_s1v.jsonl)",
+   "oracle 대조: T-6·T-6a·T-6b": "C-10~C-12 규칙 문장 대조. 수치 아님"
+  },
+  "subject_output_copied": 0,
+  "note": "T-2의 sealed는 G6이 정한 비교 대상이고 비를 닫힌 식으로 단정한다. T-3·T-8의 봉인 값도 닫힌 식·ref_solve와 함께 단정한다"
+ },
+ "findings": {
+  "major": [],
+  "minor": [
+   "T-4·T-4a 허용오차 1e-10·1e-9(위 항목)",
+   "T-10a는 base green이라 red 증거가 아님. 순서 6 뮤테이션에서 members 전달 제거가 잡히는지 볼 것"
+  ]
+ },
+ "deferred_not_passed": [
+  "head 쪽 A-1, A-2~A-7, 뮤테이션 = 순서 6",
+  "13회로 변화표·UB-0 값 = LA-1 측정 시점",
+  "NL-1 SPICE = EO-1·OP-5·CL-1",
+  "test_lint, weakening_diff 실효 판정 = 미측정(도구가 gmid_engine/tests 미지원), 손 대조로 대체"
+ ],
+ "history_484148af": {
+  "freeze": {
+   "test_end_commit": "484148af5378e318cbfeafb41255a6022719d697",
+   "test_tree": "b09b220a7bbe37f56f42b845e422d1569eba97f5",
+   "test_branch": "role/test/20261104-ub1-nl1",
+   "base_commit": "e33100cc4c4ebf2fa7dc6bb787f2680a35958eef",
+   "test_diff_sha256": "6310e0446e135ca1530bb1e3962d20a7e8ce084b9b0ad109ec2eb36b46b962ad",
+   "diff_outside_tests": 0,
+   "note": "해시는 격리 복제본 git으로 직접 잼. 13 파일, 전부 gmid_engine/tests 안. 새 test 파일 0.",
+   "verdict": "동결 보류: Major 3 해소 전까지 이 해시를 최종 T로 쓰지 않는다"
+  },
+  "red": {
+   "summary": {
+    "passed": 126,
+    "failed": 30,
+    "collection_error": 1
+   },
+   "type_counts": {
+    "AssertionError": 26,
+    "AttributeError": 3,
+    "ImportError": 1,
+    "TypeError": 1
+   },
+   "uncounted": [
+    "test_block_model::test_ub1_view_ground_net_argument (새 키워드 ground= TypeError, interface T-10대로 red로 안 셈)"
+   ],
+   "allowed_types_only": true,
+   "except_exception_pass": 0,
+   "table_sha256": "923e914d5dc9c6d4da3029b9fe1bdd85056c83008c8b7825a5124d4a551a5fa2",
+   "table": "C:/Users/HSLEE/AppData/Local/Temp/la1s_ub1_audit/run/base_table.txt",
+   "cause_check": {
+    "T-2 row_mode_omits": "omitted_load None == ('M2',). 행 값 자체는 base도 닫힌 식과 같음(probe P2 3.2941176)",
+    "T-2 load_note": "'absent' == 사유 쌍",
+    "T-2b": "decomposed_only None, bound certified",
+    "T-3 closure": "Rz가 members에 남음",
+    "T-3a row": "block_output_missing(base U9에 mz 없음)",
+    "T-3b row": "T-3a에 막혀 test에서 안 돎. probe P3: base gate 접지 gain 0.0 -- interface와 같음",
+    "T-4": "gain 0.0 == -3.9267 (0 V 처리)",
+    "T-4b, T-4f": "undefined 없음 == singular_dc",
+    "T-4d": "base가 모델을 돌려줌",
+    "T-5, T-5d": "35.5630 끝점 == 39.0849",
+    "T-5b": "NaN인데 certified",
+    "T-6": "ok True, verdict 칸 없음(AttributeError 신규 심볼)",
+    "T-6a": "None 반환 또는 조용한 생략",
+    "T-6b": "rule 행 0개",
+    "T-8": "{n5,y} == {y}, base U9가 n5 접지",
+    "T-9 row": "omitted_load None. 행 값은 base도 닫힌 식과 같음(probe P2 0.89385)",
+    "T-9a": "-1.2413 == -1.2265, 채널 확장",
+    "T-10 residual": "-18.75 == -5.607, ac_ground 미전달(interface는 keyword 비계수로만 적었으나 이 test는 실제 Assertion red)",
+    "T-12": "BlockStruct.members 없음(AttributeError 신규 심볼)"
+   },
+   "green_at_base_as_declared": [
+    "T-1",
+    "T-3a·T-3b 봉인",
+    "T-3 행",
+    "T-5a",
+    "T-5c",
+    "T-7 ii·iii",
+    "T-9 봉인",
+    "T-11"
+   ]
+  },
+  "findings": {
+   "major": [
+    {
+     "id": "M1",
+     "what": "C-7 gain_l_bounds inactive 행에 test도 interface toy 행도 없다. interface는 base 'red'라고 적었는데 재현할 test가 없어 A-1이 비고, omitted_load 소비자 배선이 코드 grep에만 의존한다",
+     "verdict": "누락 불허. 입력 실현성 실측: probe_t13.jsonl, base inactive = [] 라 red가 된다"
+    },
+    {
+     "id": "M2",
+     "what": "T-5 전부 가짜 표. 실제 ParamTables.lookup_at_l·same_l_bin test 0. 실제 same_l_bin이 항상 거짓이어도 전부 green이라 E-16이 운영 경로에서 조용히 무동작일 수 있다. bin 지도 없는 표의 same_l_bin 뜻도 미정의",
+     "verdict": "test·문언 추가 필요"
+    },
+    {
+     "id": "M3",
+     "what": "C-14 block_spec이 others를 채우는지 test 0. T-12 'members ⊇ S1v roles'도 input_cells ⊆ members로만 단정해 members = input_cells 구현이 통과한다. 운영 입력이 비면 C-3이 조용히 깨진다",
+     "verdict": "test 추가 필요"
+    }
+   ],
+   "minor": [
+    {
+     "id": "m1",
+     "what": "test_undefined_values에서 부분 None 입력 소실. C-10 'None 섭동'이 결과 칸 어느 하나라도 None임을 단정 안 함"
+    },
+    {
+     "id": "m2",
+     "what": "C-11 평가 실패(res None) 갈래 test 없음. res is base·보고 없음·평가 없음만"
+    },
+    {
+     "id": "m3",
+     "what": "T-5·T-5d abs=1e-5 dB. interface 'abs = 세분 허용 √eps 환산'은 8.686·√eps ≈ 1.3e-7 dB"
+    },
+    {
+     "id": "m4",
+     "what": "block_residual._cascade의 members 전달, ff_gm_ratio._one의 ground= 전달 직접 test 없음"
+    },
+    {
+     "id": "m5",
+     "what": "C-5 found_db '전처럼' 미단정. 저항 toy는 기준점이 없어 None"
+    },
+    {
+     "id": "m6",
+     "what": "spec 문언: 소비자 표 decomposed_only -> gain_l_bounds, G7 '같은 bin 구간 전부'. interface·A-37과 어긋남"
+    }
+   ],
+   "c5_gain_l_bounds": "test 누락 허용. decomposed_only -> certify 안 됨 -> iv_context._gain_inputs가 gain None + u9_value_not_certified로 막아 gain_l_bounds에 안 온다. 기존 test_uncertified_a_max_inactive_with_reason이 그 갈래를 잡는다. spec 소비자 표만 고친다(m6)"
+  },
+  "ambiguities": {
+   "author_list": "작성자 모호점 9개 목록을 받지 못했다(지시문에 없음, wt/_drafts·la1s_ub1_test 검색 0). 아래는 감사자가 독립으로 찾은 모호점",
+   "forces_wrong_implementation": 0,
+   "items": [
+    {
+     "at": "same_l_bin 지도 없음",
+     "forces_wrong": false,
+     "note": "기존 certified test가 거짓을 강제. 문언 없음"
+    },
+    {
+     "at": "T-4f ss.missing 용량 판별",
+     "forces_wrong": false,
+     "note": "SsCircuit에 종류 칸 없음. 이름으로 가르면 규칙 위반, 전하 넷 + missing 비어 있지 않음이면 맞음"
+    },
+    {
+     "at": "C-13 이웃 구간 대 spec G7 구간 전부",
+     "forces_wrong": false,
+     "note": "A-37·design v1.16.4 = 이웃. spec만 낡음"
+    },
+    {
+     "at": "T-5 동률 최대 행",
+     "forces_wrong": false,
+     "note": "기존 '동률은 앞선 행'이면 index 0"
+    },
+    {
+     "at": "C-10 부분 None",
+     "forces_wrong": false,
+     "note": "m1과 같이 정한다"
+    }
+   ]
+  }
+ },
+ "refreeze_premises": {
+  "T-13 MP 멤버": "맞음. base 측정 첫 블록 members (MN1, MP1), test가 spec1.members == (MN1,)을 단정해 전제가 깨지면 빨갛게 드러남. 접두는 test 입력 선택이고 엔진 규칙이 아님. probe_t13.jsonl",
+  "T-5e (iii) L=2 µm·이웃 [1.5, 2]": "맞음. base 최대 행 vgs 0, L 2 µm, vds 1.0. L별 최대 212.63 / 221.08 / 231.11로 동률 없음. 구간 41점 전부 정의, 단조 증가, a_max_db == want_db == 47.2764. run/probe_t5e.jsonl sha256 02e44a44116439ffbba7cff6d0b8aacbc860c0ea0f27fa8736b13c25c1d9a770",
+  "T-5e (i)": "anchor_bin (0,0,0,1,1,3,3,4), 1.25 µm x 중점 오차 0(3마디), 2.5 µm param_row None. test 전제와 같음",
+  "독립성": "작성자 probe_t5e.jsonl은 읽지 않고 감사자가 따로 잼"
+ },
+ "author_ambiguities_9": {
+  "평가 실패 행 표현": "해소: C-11 (이름, None, None, None), res None 단정 추가. 강제 오류 없음",
+  "residual만 None": "해소: C-10 칸 하나라도 None. 강제 오류 없음",
+  "members ⊇ roles 범위": "해소: T-12 ==. ngcc roles에 FF 셀 0, input_cells ⊆ roles 실측. 강제 오류 없음",
+  "T-6b 판정 값": "허용: 회로 의존이라 규칙만 단정, front_empty만 값 단정. 강제 오류 없음",
+  "T-4 rel 허용오차": "허용: T-4 1e-10, T-4a 1e-9는 interface rel=1e-12 관행보다 느슨하나 G·C 혼합 행 스케일 때문이고 닫힌 식 단정이라 뜻을 안 바꿈. 감사자 직접 풀이는 < 1e-11. Minor",
+  "T-5 abs": "해소: (20/ln 10)·√eps ≈ 1.3e-7 dB. 기존 세분이 log L √eps까지 좁히고 극값 근처 오차는 Δ²라 달성 가능(코드 읽기 판단, head 실측은 순서 6)",
+  "gain_l_bounds inactive": "해소: T-13",
+  "행 모드 current 축": "맞음: base 축 (current, I0, 19), 값 일치(probe P2). 전류 공통 toy는 축 없음. 강제 오류 없음",
+  "CRLF": "무관: 저장 lf, 작업본 crlf, 단정이 줄 끝에 안 기댐. test 4파일 확인"
+ }
+}
