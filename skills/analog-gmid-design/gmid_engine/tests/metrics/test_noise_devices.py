@@ -87,3 +87,20 @@ def test_no_noise_file(tmp_path):
     out = noise_devices(_Snap({"M1": _op()}), _access(tmp_path, with_noise=False), JUNCTION, NoiseDecl())
     assert out.f_lo is None
     assert out.devices[0].failure == "lut_noise_unavailable"                # lut CONTRACT 9.3 사유
+
+
+@pytest.mark.parametrize("w_key", [150, 50, 1000])
+def test_noise_reads_reference_width_table_for_any_device_slice(tmp_path, w_key):
+    """[WB-1 C-1, interface 5절] 잡음 표(SVG2 열)의 키는 `cap_map[kind].w_key`(기준 폭 표 키)이지 소자의 `DeviceOp.w_key` 가 아니다: 기준 슬라이스가 아닌
+    슬라이스(좁은 폭 150·50, 넓은 폭 1000)에 앉은 소자도 잡음 조회가 성공하고(failure None), 값은 기준 폭 환산 그대로 (A0·w_ref/W, B0·w_ref/W).
+    소자 키(150·50·1000 은 이 toy 에 없는 슬라이스)로 조회하는 구현이면 조회가 실패하거나 예외라 red 이다(base 에서의 실제 실패 형태는 auditor 판정). oracle (a) lut CONTRACT 9.6 손계산 toy:
+    모든 점 S_vg = A0/f + B0 라 슬라이스와 무관하게 폭 환산만 남는다. 기준 키와 같은 값이 나옴을 w_key=100 소자와 직접 대조한다."""
+    W = 4e-6
+    acc = _access(tmp_path)
+    assert acc.memo.lut.cap_map["nmos"].w_key == 100                          # 전제: 기준 폭 표 키 100(소자 키와 다르게 고른 값 150·50·1000)
+    out = noise_devices(_Snap({"M1": _op(W=W, w_key=w_key), "M0": _op(W=W, w_key=100)}), acc, JUNCTION, NoiseDecl())
+    d, ref = out.devices[1], out.devices[0]
+    assert (ref.name, d.name) == ("M0", "M1")
+    assert d.failure is None and d.b_status == "known"
+    assert d.a == pytest.approx(A0 * W_REF / W, rel=1e-9) and d.b == pytest.approx(B0 * W_REF / W, rel=1e-9)
+    assert (d.a, d.b, d.ef) == (ref.a, ref.b, ref.ef)

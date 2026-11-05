@@ -256,7 +256,7 @@ class RealPath:
             before = sctx.counters["kernel_calls"]
             placed = real_place(*a, **k)
             spy.place.append((before, sctx.counters["kernel_calls"], placed,
-                              None if placed.unplaced else realized_geometry(placed.layout.snapshot, placed.placements, placed.keys)))
+                              None if placed.unplaced else realized_geometry(placed.layout.snapshot, placed.placements)))
             return placed
 
         def eval_spy(*a, **k):

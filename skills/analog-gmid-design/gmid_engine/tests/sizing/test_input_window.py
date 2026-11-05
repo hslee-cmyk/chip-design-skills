@@ -269,55 +269,16 @@ def test_follower_oracle_window():
     assert not lo <= 0.18 <= hi and not lo <= 1.62 <= hi
 
 
-@pytest.mark.parametrize("y", [0.02, 0.25, 0.5, 0.75, 0.98])
-def test_interior_y_maps_into_saturation_window(pend, y):
-    """J-E: 창 안 y -> 봉인(모든 MOS 포화). V(in) = lo + y·(hi − lo)(기록된 창), V(in) 은 정확한 창 안. 기록된 창의 끝은 정확한
-    창 끝과 tol_V 안에서 같다(경계는 봉인 시점 값 -- 해상도 = 그 점의 tol_V)."""
-    f = Follower(0.9, 0.3)
-    lo_e, hi_e = f.window(0.9)
-    ev = size_and_seal(pend, _theta(pend, 0.9, 0.3, y))
-    assert ev.sealed is not None
-    w = _window(ev)
-    vin = node_voltages(ev.snapshot)["in"]
-    assert abs(vin - (w.lo + y * (w.hi - w.lo))) <= 1e-12
-    assert lo_e <= vin <= hi_e
-    tv = _tol_v(ev)
-    assert abs(w.lo - lo_e) <= tv and abs(w.hi - hi_e) <= tv
-
-
-@pytest.mark.parametrize("y", [0.0, 1.0])
-def test_window_ends_are_saturated(pend, y):
-    """설계 41 §4.6: y_icm 범위 = 입력 창이고 '경계는 봉인 시점 값이며 tol 을 포함한다' -> θ 정의역의 끝 y = 0·1 도 창 안이라
-    포화 여유 ≥ 0(봉인 7 pass). 정확한 창 끝에서의 독립 풀이 여유는 0(전제).
-    [IT-2c 갱신 -- A-83, O-103 꼴] 창 행이 판정 여유 0(VDS − VDSAT)이 되고 봉인 7 은 EO-1 까지 +tol_VDsat 라 더 엄격하다(card '원래 취지와 다름' 넷째 줄,
-    fail-open 아님) -> 정확한 끝 점은 '봉인'이거나 '봉인 7 거부이면서 |slack_v| ≤ tol_v'(`test_mid_window_ends_have_nonnegative_saturation_slack` 와 같은 허용,
-    넓히지 않음). 다른 거부 사유는 실패. EO-1 뒤 경계가 통일되면 이 단언을 다시 조인다(봉인만 허용). oracle: (a) 물리 불변식(포화 여유) + (b) Follower 독립 풀이."""
-    f = Follower(0.9, 0.3)
-    lo_e, hi_e = f.window(0.9)
-    assert abs(f.solve(lo_e)[2]) <= 1e-9 and abs(f.solve(hi_e)[3]) <= 1e-9            # 전제
-    snap, sealed, slack_v = _evaluate_point(pend, _theta(pend, 0.9, 0.3, y), True)     # 봉인 7 외 거부 사유는 _evaluate_point 가 실패시킨다
-    if sealed:
-        assert seal_item(snap, 7).status == "pass"
-    else:
-        assert abs(slack_v) <= _tol_of_window(snap), slack_v
-
-
-def test_window_found_when_rail_midpoint_is_outside(pend):
-    """VGS 0.6/0.3 구성: 정확한 창 ≈ [0.604, 0.738](독립 풀이, 비어 있지 않음)이고 레일 중앙 0.9 V 는 창 밖·풀이 불가(y 의 1변수
-    구간에 근 없음). 설계는 '범위 = 입력 창' 이므로 y = 0.5 는 창 안 점으로 봉인되어야 한다(선언 입력 DC 0.67 V 로 같은 θ 가 봉인됨
-    -- 아래 전제). CONTRACT 14.6 의 '(1)이 풀리지 않으면 종래 사상(레일 범위)' 은 이 경우 창을 찾지 못한다."""
-    f = Follower(0.6, 0.3)
-    lo_e, hi_e = f.window(0.67)
-    assert 0.60 < lo_e < 0.61 and 0.73 < hi_e < 0.74
-    ev = size_and_seal(pend, _theta(pend, 0.6, 0.3, 0.5))
-    assert ev.sealed is not None
-    assert lo_e <= node_voltages(ev.snapshot)["in"] <= hi_e
-
-
-# [U4 후속] CONTRACT 14.6: (1)이 y = 1/2 에서 풀리지 않으면 순서 창 안을 1/4, 3/4, 1/8, 3/8, ... 로 훑고(시도 ≤ k_max), (5) 창 끝은
-# 뉴턴으로 다듬어 y = 0·1 도 봉인 7 포화 여유 ≥ 0. 설계 41 §4.6 '범위 = 입력 창, 경계는 봉인 시점 값이며 tol 을 포함한다'.
-# 구성 두 개 -- 정확한 창이 레일 중앙(0.9 V) 아래(VGS_A 0.6)와 위(VGS_A 1.1) -- 의 정확한 창은 Follower 독립 풀이(oracle (a)+(b)).
-_OFF_MID = {"below": (0.6, 0.3, 0.67), "above": (1.1, 0.3, 1.08)}
+# [WB-1 3a E-13 이행] 커널 `node.dc_window[뿌리]` 는 **KVL 순서 창**(뿌리 넷에 채널이 닿는 전도 MOS 의 V_DS ≥ 0 교집합, VDSAT·tol 읽기 0)이다.
+# 이 toy 의 뿌리 `in` 은 게이트만 닿으므로 창 = 레일 범위(`test_block_dc.py::test_window_w4_gate_only_root_is_rail_range_without_constraints`)이고
+# V(in) = lo + y·(hi − lo) 는 포화 창 [lo*, hi*] 와 무관하다. 옛 test 들의 '창 안 y 는 모두 봉인, 창 끝 y=0·1 도 포화 여유 ≥ 0, 비면 empty_window' 전제
+# (커널이 포화 여유로 창을 좁히고 y 를 그 안에 사상)는 사라졌다 -> RETIRED_TESTS_wb1.md. 살아 있는 물리 단언은 아래 새 test 로 옮긴다:
+#   (1) 정확한 포화 창(Follower 독립 풀이) 안으로 사상되는 y 는 봉인 7 pass + 독립 여유 ≥ 0,
+#   (2) 창 밖으로 사상되는 y 는 어떤 경우에도 봉인되지 않고 SealViolationError(봉인 7 `slack_v` 가 독립 여유 이하),
+#   (3) 정확한 포화 창이 빈 구성은 모든 y 가 거부,
+#   (4) 기록된 순서 창은 포화 창보다 넓다(커널이 포화 여유로 좁히지 않는다 -- E-13).
+# oracle: (a) 물리 불변식(포화 여유 VDS − VDSAT ≥ 0) + (b) Follower 독립 풀이(r4 닫힌 식 bisection). 피검 함수로 기대값을 만들지 않는다.
+_CONFIGS = {"mid": (0.9, 0.3, 0.9), "below": (0.6, 0.3, 0.67), "above": (1.1, 0.3, 1.08)}      # (VGS_A, VGS_B, 창 안 추측 V(in))
 
 
 def _oracle_slacks(ev):
@@ -329,77 +290,87 @@ def _oracle_slacks(ev):
     return sa, sb
 
 
-@pytest.fixture(scope="module")
-def off_mid_windows():
-    out = {}
-    for key, (va, vb, guess) in _OFF_MID.items():
-        lo, hi = Follower(va, vb).window(guess)
-        assert not lo <= 0.9 <= hi                                                    # 전제: 레일 중앙은 창 밖
-        out[key] = (lo, hi)
-    return out
+def _recorded_window(pend, va=None, vb=None):
+    """커널이 기록한 입력 창(순서 창). 게이트만 닿는 뿌리라 창은 y·소자 좌표와 무관한 레일 범위이므로 기준 구성(VGS 0.9/0.3, y 0.5)의 열 평가에서 읽는다
+    (va·vb 는 받기만 한다: 포화 아닌 구성은 열 평가에서 VDS < 0 LUT 정의역 밖으로 거부될 수 있어 구성별로 못 읽는다). 다른 구성의 봉인 test 는 자기 평가의
+    창이 이것과 같음을 따로 단언한다."""
+    return dict(run_blocks(pend, _theta(pend, 0.9, 0.3, 0.5), upto="columns").column("node", "dc_window"))["in"]
 
 
-def _evaluate_point(pend, theta, end):
-    """(스냅샷, 봉인 여부, 엔진 봉인 7 `slack_v`). 끝점(end)이면 봉인 7 거부(SealViolationError, 항목 7)도 허용한다 -- 그때 노드전압·창은 같은 θ 의
-    커널 열 평가(`run_blocks(upto="columns")`)에서 읽고 `slack_v` 는 거부 detail 의 `item_detail` 에서 읽는다. 내부 점은 봉인되어야 한다(거부는 그대로 실패)."""
-    try:
-        ev = size_and_seal(pend, theta)
-        return ev.snapshot, True, None
-    except SealViolationError as exc:
-        if not end:
-            raise
-        d = detail(exc)
-        assert d["item"] == 7, d
-        return run_blocks(pend, theta, upto="columns"), False, dict(d["item_detail"])["slack_v"]
+def _y_for(w, vin):
+    """기록된 창 [lo, hi] 에서 V(in) = lo + y·(hi − lo) 가 되는 y (사상 정의의 역)."""
+    return (vin - w.lo) / (w.hi - w.lo)
 
 
-def _tol_of_window(snap):
-    """끝점 판정 허용오차 = `node.dc_window` 입력 항목의 `tol_v`. None 이면 그 사례는 무효 -- 통과로 세지 않고 실패시킨다(사용자 결정 O-103)."""
-    tv = dict(snap.column("node", "dc_window"))["in"].tol_v
-    assert tv is not None, "tol_v 미정 -- 끝점 판정 무효(통과로 세지 않는다)"
-    return tv
+def test_recorded_window_is_order_window_wider_than_exact_saturation_window(pend):
+    """E-13: 순서 창은 V_DS ≥ 0 만 쓰고 포화 여유를 쓰지 않는다 -> 기록된 창은 정확한 포화 창을 **포함하고 더 넓다**(옛: 포화 창 끝 ±tol_V 와 같음).
+    oracle (b): Follower 독립 풀이의 정확한 포화 창."""
+    for va, vb, guess in _CONFIGS.values():
+        lo_e, hi_e = Follower(va, vb).window(guess)
+        w = _recorded_window(pend, va, vb)
+        assert w.lo < lo_e < hi_e < w.hi, (w.lo, w.hi, lo_e, hi_e)
 
 
-@pytest.mark.parametrize("key", sorted(_OFF_MID))
-@pytest.mark.parametrize("y", [0.0, 0.125, 0.25, 0.5, 0.75, 0.875, 1.0])
-def test_off_mid_window_maps_y_and_ends_saturated(pend, off_mid_windows, key, y):
-    """레일 중앙이 창 밖인 두 구성(아래·위): 내부 y 는 봉인되고(봉인 7 pass) 독립 여유 ≥ −1e-12, V(in) = lo + y·(hi − lo)(기록된 창), 기록된 창 끝은 정확한
-    창 끝과 tol_V 안. [IT-2b 갱신 -- 사용자 결정 O-103 동작 변경] 끝점 y = 0·1 은 '봉인되거나, 봉인 7 거부이면서 엔진 `slack_v` 와 독립 oracle 여유가 모두
-    |·| ≤ `node.dc_window.tol_v`'이다(옛 단언: 끝점도 봉인 + 여유 ≥ −1e-12). tol_v 가 None 이면 그 사례는 무효로 실패."""
-    va, vb, _ = _OFF_MID[key]
-    lo_e, hi_e = off_mid_windows[key]
-    end = y in (0.0, 1.0)
-    snap, sealed, slack_v = _evaluate_point(pend, _theta(pend, va, vb, y), end)
-    w = dict(snap.column("node", "dc_window"))["in"]
-    vin = node_voltages(snap)["in"]
-    assert abs(vin - (w.lo + y * (w.hi - w.lo))) <= 1e-12
-    tv = _tol_v(SimpleNamespace(snapshot=snap)) if sealed else _tol_of_window(snap)
-    assert abs(w.lo - lo_e) <= tv and abs(w.hi - hi_e) <= tv
-    assert lo_e - tv <= vin <= hi_e + tv
-    oracle = min(_oracle_slacks(SimpleNamespace(snapshot=snap)))
-    if sealed:
-        assert seal_item(snap, 7).status == "pass"
-        assert oracle >= -1e-12, oracle          # [A-91 복원] 봉인 끝점도 O-204 정의 여유(VDS - VDSAT) >= 0
-    else:
-        assert abs(slack_v) <= tv and abs(oracle) <= tv, (slack_v, oracle, tv)
+@pytest.mark.parametrize("t", [0.3, 0.5, 0.7])
+@pytest.mark.parametrize("key", sorted(_CONFIGS))
+def test_y_mapped_inside_exact_saturation_window_seals(pend, key, t):
+    """(1) 정확한 포화 창 [lo*, hi*] 의 t 분위 V(in) 로 사상되는 y(= 기록된 창의 역사상)는 봉인되고 봉인 7 pass, 엔진이 낸 노드전압에서 독립으로 잰
+    포화 여유 VDS − VDSAT 은 두 소자 모두 ≥ 0, V(in) 은 사상 정의 lo + y·(hi − lo) 와 1e-12 안으로 같다. oracle (a)+(b)."""
+    va, vb, guess = _CONFIGS[key]
+    lo_e, hi_e = Follower(va, vb).window(guess)
+    w = _recorded_window(pend, va, vb)
+    target = lo_e + t * (hi_e - lo_e)
+    ev = size_and_seal(pend, _theta(pend, va, vb, _y_for(w, target)))
+    assert ev.sealed is not None
+    assert seal_item(ev.snapshot, 7).status == "pass"
+    assert _window(ev) == w                                                        # 창은 구성과 무관한 레일 범위
+    vin = node_voltages(ev.snapshot)["in"]
+    assert abs(vin - target) <= 1e-9
+    assert lo_e <= vin <= hi_e
+    assert min(_oracle_slacks(ev)) >= -1e-12
+
+
+@pytest.mark.parametrize("d", [0.1, 0.3])
+@pytest.mark.parametrize("side", ["below", "above"])
+@pytest.mark.parametrize("key", sorted(_CONFIGS))
+def test_y_mapped_outside_exact_saturation_window_is_never_sealed(pend, key, side, d):
+    """(2) 정확한 포화 창에서 d 만큼 벗어난 V(in) 로 사상되는 y 는 봉인되지 않는다(SealViolationError: 포화 여유 음수 -> 봉인 7 또는 VDS < 0 LUT 정의역 밖).
+    창 끝 쪽 레일 안에 드는 점만 쓴다(전제). 이 거부가 빠지면 포화 아닌 점이 봉인된다 -> fail-open. oracle (a)+(b)."""
+    va, vb, guess = _CONFIGS[key]
+    lo_e, hi_e = Follower(va, vb).window(guess)
+    w = _recorded_window(pend, va, vb)
+    vin = lo_e - d if side == "below" else hi_e + d
+    assert w.lo < vin < w.hi                                                       # 전제: 레일 안
+    with pytest.raises(SealViolationError):
+        size_and_seal(pend, _theta(pend, va, vb, _y_for(w, vin)))
 
 
 @pytest.mark.parametrize("y", [0.0, 1.0])
-def test_mid_window_ends_have_nonnegative_saturation_slack(pend, y):
-    """레일 중앙이 창 안인 구성(VGS 0.9/0.3)의 창 끝 y = 0·1. [IT-2b 갱신 -- 사용자 결정 O-103] 끝점은 '봉인(독립 여유 ≥ −1e-12)'이거나 '봉인 7 거부이면서
-    엔진 `slack_v` 와 독립 oracle 여유가 모두 |·| ≤ `node.dc_window.tol_v`'. 두 경우 모두 끝 쪽 V(in) 은 정확한 창 끝에서 tol_V 안(끝이 정확한 창 끝 근처).
-    tol_v 가 None 이면 그 사례는 무효로 실패."""
-    snap, sealed, slack_v = _evaluate_point(pend, _theta(pend, 0.9, 0.3, y), True)
-    sa, sb = _oracle_slacks(SimpleNamespace(snapshot=snap))
-    tv = _tol_v(SimpleNamespace(snapshot=snap)) if sealed else _tol_of_window(snap)
-    if sealed:
-        assert seal_item(snap, 7).status == "pass"
-        assert min(sa, sb) >= -1e-12           # [A-91 복원] O-204 정의 여유(VDS - VDSAT) >= 0
-    else:
-        assert abs(slack_v) <= tv and abs(min(sa, sb)) <= tv, (slack_v, sa, sb, tv)
-    lo_e, hi_e = Follower(0.9, 0.3).window(0.9)
-    vin = node_voltages(snap)["in"]
-    assert abs(vin - (lo_e if y == 0.0 else hi_e)) <= tv
+@pytest.mark.parametrize("key", sorted(_CONFIGS))
+def test_rail_end_y_is_never_sealed(pend, key, y):
+    """(2') 레일 범위 끝 y = 0·1 (V(in) = 레일 하·상단)은 모든 구성에서 정확한 포화 창 밖이라(전제) 봉인되지 않는다. 옛 test_window_ends_are_saturated 가
+    '창 끝 y 도 포화'였던 전제는 E-13 으로 사라졌고 물리 결론(포화가 아니면 봉인 안 됨)만 남는다."""
+    va, vb, guess = _CONFIGS[key]
+    lo_e, hi_e = Follower(va, vb).window(guess)
+    w = _recorded_window(pend, va, vb)
+    assert not lo_e <= (w.lo if y == 0.0 else w.hi) <= hi_e                        # 전제
+    with pytest.raises(SealViolationError):
+        size_and_seal(pend, _theta(pend, va, vb, y))
+
+
+def test_seal7_slack_v_is_not_better_than_independent_slack(pend):
+    """봉인 7 거부의 `slack_v`(엔진)는 같은 점에서 독립으로 잰 O-204 여유 VDS − VDSAT(문턱 없음) 이하다 -- 봉인 7 은 +tol_VDsat 를 더 요구하므로
+    엔진 여유가 독립 여유보다 클 수 없다. V(in) 0.45 V(포화 창 [0.79, 1.04] 밖)에서 음수. oracle (a)+(b)."""
+    va, vb, guess = _CONFIGS["mid"]
+    w = _recorded_window(pend, va, vb)
+    theta = _theta(pend, va, vb, _y_for(w, 0.45))
+    with pytest.raises(SealViolationError) as ei:
+        size_and_seal(pend, theta)
+    d = detail(ei.value)
+    assert d["item"] == 7
+    slack_v = dict(d["item_detail"])["slack_v"]
+    ind = min(_oracle_slacks(SimpleNamespace(snapshot=run_blocks(pend, theta, upto="columns"))))
+    assert slack_v < 0 and slack_v <= ind + 1e-12, (slack_v, ind)
 
 
 def test_declared_input_dc_same_theta_seals(tmp_path, r4_access):
@@ -415,20 +386,20 @@ def test_declared_input_dc_same_theta_seals(tmp_path, r4_access):
     # sizing 층 test 에서 metrics 층을 부르는 근거가 interface 에 없다. 선언 입력 DC 포트의 cfg `measured` 창 단언은 tests/metrics/test_icm_config*.py 가 맡는다.
 
 
-def test_empty_window_rejected(pend):
+def test_empty_exact_saturation_window_rejects_every_y(pend):
     """VGS 0.5/0.6: slack_A + slack_B = V(x) − VDSAT_A − VDSAT_B − 2·tol 은 V(in) 에 거의 무관(V(x) 는 VDS(MA) 의 LAM 항으로만
-    움직임)하고 음수다(독립 풀이로 V(y) > 0 인 0.7..1.3 V 격자 확인, 손계산 ≈ 0.5 − 0.25 − 0.3025 − 0.002) -> 창이 비었다 ->
-    SealViolationError(empty_window, 봉인 7 항목, 후보 실패)."""
+    움직임)하고 음수다(독립 풀이로 V(y) > 0 인 0.7..1.3 V 격자 확인, 손계산 ≈ 0.5 − 0.25 − 0.3025 − 0.002) -> 포화 창이 비었다 -> 어떤 y 도 봉인되지 않는다.
+    [WB-1 E-13 이행] 옛 단언 `reason == "empty_window"`(커널이 포화 창을 좁혀 비면 그 사유로 거부)는 사라졌다: 순서 창은 포화 여유를 쓰지 않아
+    창은 비지 않고 거부는 봉인 7(포화 여유 음수) 또는 VDS < 0 LUT 정의역 밖(`lut_query_failed`)이 낸다. 물리 결론(포화 점이 없으면 봉인 없음)은 유지. oracle (b)."""
     f = Follower(0.5, 0.6)
     assert all(sum(f.solve(0.7 + 0.03 * i)[2:]) < -0.05 for i in range(21))            # 전제
-    for y in (0.0, 0.5, 1.0):
-        with pytest.raises(SealViolationError) as ei:
+    for y in (0.0, 0.25, 0.5, 0.75, 1.0):
+        with pytest.raises(SealViolationError):
             size_and_seal(pend, _theta(pend, 0.5, 0.6, y))
-        d = detail(ei.value)
-        assert d["reason"] == "empty_window" and d["item"] == 7 and d["node"] == "in"
 
 
 def test_repeat_identical(pend):
-    a = size_and_seal(pend, _theta(pend, 0.9, 0.3, 0.3))
-    b = size_and_seal(pend, _theta(pend, 0.9, 0.3, 0.3))
+    """같은 θ(포화 창 안 y = 0.5 -> V(in) 0.9 V) 두 번 -> 같은 스냅샷 지문·같은 창. oracle (c): 결정성."""
+    a = size_and_seal(pend, _theta(pend, 0.9, 0.3, 0.5))
+    b = size_and_seal(pend, _theta(pend, 0.9, 0.3, 0.5))
     assert a.snapshot.fp == b.snapshot.fp and _window(a) == _window(b)

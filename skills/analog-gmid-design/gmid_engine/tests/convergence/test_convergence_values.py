@@ -25,17 +25,17 @@ from gmid_engine.convergence import (
     Relaxation,
 )
 
-ENTRY_POINTS = ("layout_input_of", "effective_placement", "key_exclusion", "layout_score", "realized_geometry",
+ENTRY_POINTS = ("layout_input_of", "effective_placement", "key_exclusion", "realized_geometry",
                 "w_loop_bound", "junction_change", "relaxation_decision", "relaxation_records", "refilter", "admit_candidates",
-                "alternation_bound", "place_layout", "converge_point", "converge")          # CONTRACT 0절 표 진입점 15개 (WB-1: kind 키 운반 `kernel_` + `keys` 삭제로 16 -> 15)
+                "alternation_bound", "place_layout", "converge_point", "converge")          # CONTRACT 0절 표 진입점 14개 (WB-1: kind 키 운반 `kernel_` + `keys` 삭제, `layout_score` 삭제로 16 -> 14)
 
 
 def fields(cls):
     return [f.name for f in dataclasses.fields(cls)]
 
 
-def test_public_api_has_15_entry_points_and_records():
-    assert len(ENTRY_POINTS) == 15
+def test_public_api_has_14_entry_points_and_records():
+    assert len(ENTRY_POINTS) == 14
     for name in ENTRY_POINTS:
         assert name in conv.__all__ and callable(getattr(conv, name))
     for name in ("ConvergedFront", "ConvergedPoint", "DroppedPoint", "Iteration", "JunctionChange", "Placement", "PlacedLayout",

@@ -161,3 +161,15 @@ def test_no_gbw_target_macro_inactive():
                   constraints=(("pm_ss_deg", ">=", PM),)).start
     assert st.macro.gm == ()
     assert ("macro_inactive", (("reason", "gbw_target_missing"),)) in st.macro.records
+
+
+def test_e18_macro_without_cdd_column_is_rejected():
+    """[WB-1 C-3, E-18] 매크로 모델의 소자 drain 용량은 CDD 열의 양이다. 기준 표에 CDD 가 없으면 매크로 경로(`current_model`)가
+    `SealViolationError(lut_column_unavailable, column = "CDD")` 로 거부하고 cgd 로 대체하지 않는다(대체했다면 이 회로가 통과해 매크로가 풀린다).
+    같은 회로가 CDD 열이 있으면 풀린다(위 test 들) -> 거부 원인은 열 부재. oracle (d) E-18 문언. 거부 케이스 pytest.raises 1."""
+    from gmid_engine.core import SealViolationError
+    with pytest.raises(SealViolationError) as ei:
+        toy_case(cs_chain(2), cap_scale=TINY, elements=(("C1", "capacitor", 1e-12), ("C2", "capacitor", 2e-12)),
+                 constraints=TARGETS, cdd=False)
+    det = dict(ei.value.record.detail)
+    assert det["reason"] == "lut_column_unavailable" and det["column"] == "CDD"

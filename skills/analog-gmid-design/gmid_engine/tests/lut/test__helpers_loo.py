@@ -4,7 +4,7 @@ r5 `tolerance.py` 안 helper(l_interior·l_loo_report·external_by_model·loo·c
 식·순서·오류는 r5 와 같다(test_tolerance 의 r5 test 가 그대로 지난다). 여기서는 r6 에서 바뀐/더해진 공용 동작을 본다:
 - [결정 A] 외부 L 값은 **셀 단위**: 값 칸 = VDS 격자점마다의 수열(길이 len(vds_grid), 원소 float/None), 그 bin 두 앵커 행의 셀 (i, k) 에는
   k 번째 원소만. 수 하나 = 모든 k 같은 값, None = 모든 k None(`per_vds` 정규화), 길이 다르면 ValueError.
-  정규화 형식 = (model, (k 별 tuple), (k 별 tuple)) model 정렬 -> memo 키(수 하나와 그 수를 모든 VDS 에 둔 수열은 같은 키).
+  정규화 형식 = (model, (k 별 tuple)) model 정렬 [WB-1: 값 칸 id_equivalent 하나] -> memo 키(수 하나와 그 수를 모든 VDS 에 둔 수열은 같은 키).
 - 상태 이름·오류 규칙은 tol_v_table·tol_vdsat_table 가 같다(같은 helper).
 """
 import pytest
@@ -18,37 +18,33 @@ M = "toyn__model."
 
 def test_tol_v_per_vds_elements_go_to_their_cell_only(bin_memo):
     base = tol_v_table(bin_memo, "nmos", 100, ())
-    t = tol_v_table(bin_memo, "nmos", 100, ((M + "1", (0.5, None), (None, 0.25)),))
+    t = tol_v_table(bin_memo, "nmos", 100, ((M + "1", (0.5, None)),))
     for i in range(len(BIN_L)):
         for k in range(2):
             b, c = base.cells[i][k], t.cells[i][k]
-            assert (c.n_targets, c.n_inverse_failed) == (b.n_targets, b.n_inverse_failed)
-            assert (c.gm_id_inverse_loo_v, c.id_equivalent_loo_v) == (b.gm_id_inverse_loo_v, b.id_equivalent_loo_v)
-            inv, eq = b.gm_id_inverse_v, b.id_equivalent_v
-            if i in (3, 4):
-                if k == 0 and inv is not None:
-                    inv = max(inv, 0.5)
-                if k == 1 and eq is not None:
-                    eq = max(eq, 0.25)
-            assert (c.gm_id_inverse_v, c.id_equivalent_v) == (inv, eq), (i, k)
-    assert any(t.cells[i][0].gm_id_inverse_v == 0.5 for i in (3, 4))                 # 실제로 올라갔다
-    assert all(t.cells[i][1].gm_id_inverse_v == base.cells[i][1].gm_id_inverse_v for i in (3, 4))   # k = 1 은 그대로
-    assert tuple(t.l_bin_checks) == ((M + "1", (0.5, None), (None, 0.25)),)
+            assert c.id_equivalent_loo_v == b.id_equivalent_loo_v
+            eq = b.id_equivalent_v
+            if i in (3, 4) and k == 0 and eq is not None:
+                eq = max(eq, 0.5)
+            assert c.id_equivalent_v == eq, (i, k)
+    assert any(t.cells[i][0].id_equivalent_v == 0.5 for i in (3, 4))                 # 실제로 올라갔다
+    assert all(t.cells[i][1].id_equivalent_v == base.cells[i][1].id_equivalent_v for i in (3, 4))   # k = 1 (원소 None) 은 그대로
+    assert tuple(t.l_bin_checks) == ((M + "1", (0.5, None)),)
 
 
 def test_tol_v_scalar_equals_broadcast_sequence_same_key(bin_memo):
-    a = tol_v_table(bin_memo, "nmos", 100, ((M + "3", None, 0.25), (M + "1", 0.5, None)))
-    b = tol_v_table(bin_memo, "nmos", 100, ((M + "1", (0.5, 0.5), (None, None)), (M + "3", [None, None], (0.25, 0.25))))
+    a = tol_v_table(bin_memo, "nmos", 100, ((M + "3", 0.25), (M + "1", 0.5)))
+    b = tol_v_table(bin_memo, "nmos", 100, ((M + "1", (0.5, 0.5)), (M + "3", [0.25, 0.25])))
     assert a is b
-    assert tuple(a.l_bin_checks) == ((M + "1", (0.5, 0.5), (None, None)), (M + "3", (None, None), (0.25, 0.25)))
-    c = tol_v_table(bin_memo, "nmos", 100, ((M + "1", (0.5, 0.4), None), (M + "3", None, 0.25)))
+    assert tuple(a.l_bin_checks) == ((M + "1", (0.5, 0.5)), (M + "3", (0.25, 0.25)))
+    c = tol_v_table(bin_memo, "nmos", 100, ((M + "1", (0.5, 0.4)), (M + "3", 0.25)))
     assert c is not a                                                                   # 한 원소만 달라도 다른 키
 
 
 @pytest.mark.parametrize("checks", [
-    ((M + "1", (0.1, 0.2, 0.3), 0.1),),          # gm_id_inverse 수열 길이 3 ≠ VDS 2
-    ((M + "1", 0.1, (0.1,)),),                   # id_equivalent 수열 길이 1
-    ((M + "1", (), ()),),                        # 빈 수열
+    ((M + "1", (0.1, 0.2, 0.3)),),               # id_equivalent 수열 길이 3 ≠ VDS 2
+    ((M + "1", (0.1,)),),                        # 수열 길이 1
+    ((M + "1", ()),),                            # 빈 수열
 ])
 def test_tol_v_length_mismatch_valueerror(bin_memo, checks):
     with pytest.raises(ValueError):
@@ -57,7 +53,7 @@ def test_tol_v_length_mismatch_valueerror(bin_memo, checks):
 
 def test_all_none_values_change_nothing(bin_memo):
     base = tol_v_table(bin_memo, "nmos", 100, ())
-    t = tol_v_table(bin_memo, "nmos", 100, ((M + "1", None, None),))
+    t = tol_v_table(bin_memo, "nmos", 100, ((M + "1", None),))
     assert all(t.cells[i][k] == base.cells[i][k] for i in range(len(BIN_L)) for k in range(2))
 
 
@@ -76,9 +72,9 @@ def test_status_names_shared_between_tables(mid_toy_build):
 
 
 @pytest.mark.parametrize("fn,checks", [
-    (tol_v_table, ((M + "1", 0.1, 0.1), (M + "1", 0.2, 0.2))),
+    (tol_v_table, ((M + "1", 0.1), (M + "1", 0.2))),
     (tol_vdsat_table, ((M + "1", 0.1), (M + "1", 0.2))),
-    (tol_v_table, ((M + "0", 0.1, 0.1),)),
+    (tol_v_table, ((M + "0", 0.1),)),
     (tol_vdsat_table, ((M + "0", 0.1),)),
 ])
 def test_error_rules_shared(mid_toy_build, fn, checks):

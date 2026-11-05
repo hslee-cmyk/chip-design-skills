@@ -210,10 +210,10 @@ def test_edge_one_ulp_shares_memo_key(toy, edge, a, sign):
 def test_edge_tol_v_at(toy_memo, edge, a, sign):
     from gmid_engine.lut import tol_v_table
     t = tol_v_table(toy_memo, "nmos", 100)
-    for metric in ("gm_id_inverse", "id_equivalent"):
+    for metric in ("id_equivalent",):
         assert t.at(a + sign * math.ulp(a), 0.75, metric) == t.at(a, 0.75, metric)
     with pytest.raises(SealViolationError) as ei:
-        t.at(a + sign * 1e-8, 0.75, "gm_id_inverse")                       # [WB-1] 옛 2 ulp -> 한 격자 간격(격자 정수 비교)
+        t.at(a + sign * 1e-8, 0.75, "id_equivalent")                      # [WB-1] 옛 2 ulp -> 한 격자 간격(격자 정수 비교)
     det = detail_of(ei.value)
     assert det["reason"] == "lut_axis_out_of_range" and det["axis"] == "L" and det["table"] == "tol_v"
 

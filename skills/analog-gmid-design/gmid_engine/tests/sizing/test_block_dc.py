@@ -1036,6 +1036,36 @@ def test_cyclic_strict_recheck_below_floor_fails(tmp_path, acc_f, vin, ok):
         assert d["vds"] < _floor("nmos", "F")
 
 
+def test_gs_nonstrict_rootless_window_keeps_current_iterate_and_final_is_rejected(tmp_path, acc_f, monkeypatch):
+    """[WB-1 D-7, interface SD-1 'GS 비엄격'] 다변수 순환 SCC {x, y} 의 반복 중(strict=False) 1변수 노드 y 가 근이 없으면 **현재 반복값을 그대로 유지**한다
+    (구간 끝·가운데·작은 |h| 끝점으로 바꾸지 않는다); 수렴 뒤 strict 바퀴는 그대로 실패시킨다(투영이 최종값에 남지 않는다).
+    손 회로: _cycle_ctx(nmos) 에서 입력 DC 0.5 V 로 선언하고 MB 의 VGS 를 0.6 V 로 두면 y* = V(in) − VGS_B = −0.1 V < 레일 하단 0 V
+    -> y 의 어느 구간에도 근이 없다(h 끝 부호 같음, oracle (a) 손 계산). 반복 시작값 y = 0.75 V(레일 중앙의 시작 규칙이 아니라 호출 때 받은 현재값)가 그대로 돌아와야 하고
+    반복 수 0 으로 보고된다. 호출 감시는 공개 메서드 `_Circuit.solve_self(net, values, strict)` 의 입출력만 읽는다(값 계산 아님).
+    거부 케이스 pytest.raises 1(수렴 뒤 strict 바퀴는 근 없음 `no_root_in_window` 이거나 후속 실패라 SealViolationError 만 단언)."""
+    from gmid_engine.sizing import block_dc
+    real = block_dc._Circuit.solve_self
+    calls = []
+
+    def spy(self, net, values, strict=True):
+        out = real(self, net, values, strict)
+        calls.append((net, strict, values[net], out))
+        return out
+
+    monkeypatch.setattr(block_dc._Circuit, "solve_self", spy)
+    vin = 0.5
+    ctx = _cycle_ctx(tmp_path, acc_f, "nmos", vin)
+    th = _cycle_theta("nmos", vin, 0.6, 0.1, vgs_b=0.6)               # y* = 0.5 − 0.6 = −0.1 (θ 의 y 인자는 MA 의 VDS 용일 뿐)
+    assert set(th) == set(kschema(ctx).components)
+    assert vin - 0.6 < 0.0                                             # 전제(손): 근이 레일 하단 0 V 아래
+    with pytest.raises(SealViolationError):
+        run_blocks(ctx, th, upto="columns")
+    loose = [c for c in calls if c[0] == "y" and not c[1]]
+    assert loose, "전제: 반복 중 y 의 비엄격 풀이가 불렸다"
+    for _net, _strict, current, (value, iterations, _tol) in loose:
+        assert value == current and iterations == 0                  # 현재 반복값 그대로, 반복 0
+
+
 # ===========================================================================
 # [r9] 성능 항목 1·6 (사용자 승인 2026-10-08) -- solve_self 입력 재사용, tol_V 셀 한 평가 안 재사용 (CONTRACT 5.4, 5.6c)
 # ===========================================================================

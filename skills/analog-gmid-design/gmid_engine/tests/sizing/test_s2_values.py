@@ -165,12 +165,15 @@ READS = {
     "dc_currents": {("graph", "dc_current_basis")},
     "dc_lengths": {("device", "element_class"), ("device", "region_decl")},  # [EO-1 범위 4, A-88] off·triode 목록은 extras 가 아니라 S0 필드 device.region_decl READS
     # [WB-1] dc_solve = 옛 노드 풀이 블록 + 옛 폭 블록(D40 §3.7-A 1 READS 그대로 + 선언 영역 region_decl[EO-1 A-88, HC-S A-103 M-1: dc_sat_v 산출]).
-    # node.dc_v·device.dc_ln_idu 는 같은 블록이 쓰므로 읽지 않는다. 설계 문언에 없는 읽기가 있으면 이 등식이 깨진다(design 이 정본).
+    # node.dc_v·device.dc_ln_idu 는 같은 블록이 쓰므로 읽지 않는다. 설계 문언에 없던 읽기 3개(`graph.views`·`graph.dc_current_basis`·`node.port_role`, servo 풀이)는 아래에 따로 표지해 넣었다.
     "dc_solve": {("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"), ("node", "dc_colour"),
                  ("node", "port_direction"),
                  ("device", "dc_current"), ("device", "dc_L"), ("device", "dc_colour"), ("device", "pins"), ("device", "kind"),
                  ("device", "bulk"), ("device", "element_class"), ("device", "dc_coord"), ("device", "dc_self_referential"),
-                 ("graph", "dc_scc_order"), ("device", "region_decl")},
+                 ("graph", "dc_scc_order"), ("device", "region_decl"),
+                 # 코드가 실현 평가 servo 풀이 `_servo_solve`(block_dc.py:753-763)에서 실제로 읽는 항목 -- oracle (c)/(식): 코드 읽기 사실. 설계 40 §3.7-A 1 READS 문언에는 없다(문언 누락,
+                 # 읽는 한 선언해야 하므로 선언 목록이 맞다; 설계 문언 보강은 코드 작성자 몫으로 보고에 표지).
+                 ("graph", "views"), ("graph", "dc_current_basis"), ("node", "port_role")},
 }
 
 

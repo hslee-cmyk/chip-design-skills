@@ -4,7 +4,7 @@
 - 중점마다 순서대로: width_differs -> bins_unavailable -> is_anchor -> outside_model_bins -> single_point(앵커 < 2, model)·
   bin_has_interior_anchors(> 2) -> not_bracketed. 남은 중점: t = (L_m − a0)/(a1 − a0), 세 값은 **VDS 격자점 k 마다의 tuple**(결정 A):
   id_equivalent_v[k] = max |lnID(i0) + t·(lnID(i1) − lnID(i0)) − lnID_m| / gm_id_m (중점 on ∧ 슬라이스 on(i0) ∧ on(i1)),
-  gm_id_inverse_v[k] = max |strong_inversion_root(L 선형 보간 곡선, g_j) − VGS_j| (5절 목표 규칙), vdsat_v[k] = max |선형 보간 − VDSAT_m|
+  [WB-1 M-TH1c: gm_id_inverse_v·n_targets·n_inverse_failed 칸 삭제 -- 해당 단언 폐기] vdsat_v[k] = max |선형 보간 − VDSAT_m|
   (출처 4.3, 축 같을 때). Richardson 환산 없음. 같은 bin 의 중점은 한 MidpointRow 로(k 마다 최댓값, 개수 합), rows = model 정렬.
 - 기대값: conftest `midpoint_ref`(npz 직접 -- 5.1 식의 독립 구현), 중점 toy 의 닫힌 식(VDSAT 오차 = 0.05·(Lu_m − Lu0)(Lu1 − Lu_m)·(1 + d)).
 """
@@ -94,9 +94,7 @@ def test_rows_and_skipped_match_independent(mid_toy):
     for r, e in zip(mc.rows, exp):
         assert isinstance(r, MidpointRow)
         assert tuple(r.L_points) == e["L"]
-        assert (r.n_targets, r.n_inverse_failed) == (e["n_t"], e["n_f"])
         _assert_tuple_close(r.id_equivalent_v, e["eq"], e["eq_b"], (e["model"], "eq"))
-        _assert_tuple_close(r.gm_id_inverse_v, e["inv"], e["inv_b"], (e["model"], "inv"))
         # vdsat: 선형 보간·뺄셈 두 경로 반올림 -- 값 크기 상한 Vmax = 그 VDS 의 중점 toy VDSAT 최댓값(앵커 i1 쪽)
         Lu1 = BIN_L[e["i1"]] / 1e-6
         vmax = [0.1 + 0.2 + 0.05 * Lu1 ** 2 * (1 + d) for d in z["VDS"]]
@@ -106,15 +104,12 @@ def test_rows_and_skipped_match_independent(mid_toy):
 
 def test_hand_values_vdsat_and_targets(mid_toy):
     """닫힌 식: bin B 의 중점 3.25·3.5 µm -> VDSAT 오차 0.05·(Lu_m − 3)(4 − Lu_m)·(1 + d) 의 max = 3.5 µm 의 0.0125·(1 + d)
-    -> (0.01875, 0.025). 판별: id_equivalent·gm_id_inverse 도 0 이 아니다(c(L) 이 L 에 2차). 목표 수 = 중점 2 × VS 2 × 목표 3."""
+    -> (0.01875, 0.025). 판별: id_equivalent 도 0 이 아니다(c(L) 이 L 에 2차). [WB-1] 목표 수 단언은 칸 삭제로 폐기."""
     mc = midpoint_l_bin_checks(new_memo(mid_toy.load()), "nmos", 100)
     row = {r.model: r for r in mc.rows}[M + "1"]
     for k, hand in enumerate((0.0125 * 1.5, 0.0125 * 2.0)):
         assert abs(row.vdsat_v[k] - hand) <= 8 * gamma_n() * 1.0, (k, row.vdsat_v[k], hand)
     assert all(v is not None and v > 0 for v in row.id_equivalent_v)
-    assert any(v is not None and v > 0 for v in row.gm_id_inverse_v)
-    # 중점 곡선 g = c(L_m)·(20 − 12v) 는 감소 -> VGS 3 점 모두 목표(5절 규칙): 중점 2 × VDS 2 × VS 2 × 목표 3 = 24
-    assert row.n_targets == 24
     # 행은 L_points 두 개(3.25·3.5 µm)를 합쳤다
     assert tuple(row.L_points) == (3.25e-6, 3.5e-6)
 
@@ -124,7 +119,7 @@ def test_per_vds_tuples_have_grid_length(mid_toy):
     mc = midpoint_l_bin_checks(new_memo(lut), "nmos", 100)
     n = len(lut.slice_map[("nmos", 100)].grids[2])
     for r in mc.rows:
-        for f in ("gm_id_inverse_v", "id_equivalent_v", "vdsat_v"):
+        for f in ("id_equivalent_v", "vdsat_v"):
             assert isinstance(getattr(r, f), tuple) and len(getattr(r, f)) == n
 
 
@@ -194,7 +189,7 @@ def test_memo_derived_and_tol_default(mid_toy):
     assert st.misses == 2
     mc = midpoint_l_bin_checks(m, "nmos", 100)
     assert midpoint_l_bin_checks(m, "nmos", 100) is mc
-    explicit = tuple((r.model, r.gm_id_inverse_v, r.id_equivalent_v) for r in mc.rows)
+    explicit = tuple((r.model, r.id_equivalent_v) for r in mc.rows)
     assert tol_v_table(m, "nmos", 100, explicit) is t
     st2 = dict(m.stats())["derived"]
     assert st2.misses == 2 and st2.hits >= 2
@@ -277,37 +272,33 @@ def test_real_rows_match_independent(real_lut, raw_slice, raw_mid, ngspice_bins,
         def kmax(key):
             return [max((r[key][k] for r in refs if r[key][k] is not None), default=None) for k in range(nV)]
         assert tuple(row.L_points) == tuple(mids_m[mi] for mi in mis)
-        assert (row.n_targets, row.n_inverse_failed) == (sum(r["n_t"] for r in refs), sum(r["n_f"] for r in refs)), model
         _assert_tuple_close(row.id_equivalent_v, kmax("eq"), kmax("eq_bound"), (model, "eq"))
-        _assert_tuple_close(row.gm_id_inverse_v, kmax("inv"), kmax("inv_bound"), (model, "inv"))
         vd = kmax("vdsat")
         _assert_tuple_close(row.vdsat_v, vd, [0 if v is None else 8 * gamma_n() * 2.0 for v in vd], (model, "vdsat"))
         assert row.vdsat_v[0] is None                                # k = 0 은 ID = 0 (VDS = 0 열)
 
 
-# CONTRACT 8절 표(2026-10-08 실측, w_key 1000): (kind, model 접미) -> ((n_targets, 실패), inv mV, eq mV, vdsat mV)
+# CONTRACT 8절 표(2026-10-08 실측, w_key 1000): (kind, model 접미) -> (eq mV, vdsat mV)  [WB-1: n_targets·실패·inv 열 폐기]
 # oracle (d): 계약에 기록된 값(code author 측정 문장). 독립 재계산 대조는 위 test_real_rows_match_independent 가 한다.
 CONTRACT_8_TABLE = {
-    ("nmos", "26"): ((23520, 0), "518", "18.9", "2.49"), ("pmos", "26"): ((19671, 1569), "316", "22.7", "32.5"),
-    ("nmos", "23"): ((23520, 3598), "289", "26.5", "2.87"), ("pmos", "23"): ((22992, 0), "635", "12.8", "1.33"),
-    ("nmos", "22"): ((23520, 39), "364", "16.0", "3.28"), ("pmos", "22"): ((22207, 6341), "252", "8.43", "0.79"),
-    ("nmos", "21"): ((23520, 3691), "155", "44.6", "6.39"), ("pmos", "21"): ((21850, 0), "648", "21.4", "0.77"),
+    ("nmos", "26"): ("18.9", "2.49"), ("pmos", "26"): ("22.7", "32.5"),
+    ("nmos", "23"): ("26.5", "2.87"), ("pmos", "23"): ("12.8", "1.33"),
+    ("nmos", "22"): ("16.0", "3.28"), ("pmos", "22"): ("8.43", "0.79"),
+    ("nmos", "21"): ("44.6", "6.39"), ("pmos", "21"): ("21.4", "0.77"),
 }
 
 
 @pytest.mark.lut_realdata
 def test_real_contract_measured_summary(real_lut):
-    """CONTRACT 8절 표(2026-10-08) 대조: bin 별 목표·실패 수 정확히, VDS 별 max(mV) 는 표기 마지막 자리 반 단위 안."""
+    """CONTRACT 8절 표(2026-10-08) 대조: VDS 별 max(mV) 는 표기 마지막 자리 반 단위 안."""
     m = new_memo(real_lut)
     seen = set()
     for kind in ("nmos", "pmos"):
         for row in midpoint_l_bin_checks(m, kind, 1000).rows:
             key = (kind, row.model.rsplit(".", 1)[1])
-            cnt, inv, eq, vd = CONTRACT_8_TABLE[key]
+            eq, vd = CONTRACT_8_TABLE[key]
             seen.add(key)
-            assert (row.n_targets, row.n_inverse_failed) == cnt, key
-            for got, want in ((max(x for x in row.gm_id_inverse_v if x is not None), inv),
-                              (max(x for x in row.id_equivalent_v if x is not None), eq),
+            for got, want in ((max(x for x in row.id_equivalent_v if x is not None), eq),
                               (max(x for x in row.vdsat_v if x is not None), vd)):
                 dec = len(want.split(".")[1]) if "." in want else 0
                 assert abs(got / 1e-3 - float(want)) <= 0.5 * 10 ** (-dec), (key, got, want)   # mV 표기 마지막 자리 반 단위

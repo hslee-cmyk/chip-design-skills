@@ -29,7 +29,8 @@ PERF_KEYS = ("requests", "kernel_calls", "hits", "fail_hits", "outside_domain", 
 # blocks·block_totals·block_index_entries·block_index_bound -> 22개 그대로.
 PERF_BLOCK_KEYS = ("blocks", "block_totals", "block_index_entries", "block_index_bound")
 OLD_BLOCK_KEYS = ("block_calls", "block_reuses", "block_computes", "block_recomputes_same_input")
-PERF_KEYS_C7 = PERF_KEYS + PERF_BLOCK_KEYS
+PERF_SOLVER_KEYS = ("solver_stops",)      # [WB-1 범위 3a-0, interface 커밋 2] 계측 `perf.solver_stops`(출력 전용): 풀이 종류 {eps, layer0} 별 정지 사유 집계 -> 23개
+PERF_KEYS_C7 = PERF_KEYS + PERF_BLOCK_KEYS + PERF_SOLVER_KEYS
 BLOCK_ROW_FIELDS = ("calls", "reuses", "grafts", "replays", "computes", "recomputes_same_input")
 
 
@@ -66,7 +67,7 @@ def test_sealed_run_perf_and_invariants(tmp_path, lut_sealed, short_root):
 def test_perf_key_set_exact_in_result_and_runs_line(tmp_path, lut_sealed, short_root):
     """[xrun XR-7] interface card C7(양성 형식): find_front perf 키 집합과 runs.jsonl 줄 perf 키 집합이 정확히 목록과 같다.
     [XRUN-F1 card A] xrunf1a C6: 22개(lut_memo_bound 추가)."""
-    assert len(PERF_KEYS_C7) == len(set(PERF_KEYS_C7)) == 22
+    assert len(PERF_KEYS_C7) == len(set(PERF_KEYS_C7)) == 23
     case, fr = _run(tmp_path, lut_sealed, eval_budget=30, archive_root=short_root)
     assert set(dict(fr.perf)) == set(PERF_KEYS_C7)
     (run,) = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "runs.jsonl").read_text(encoding="utf-8")
@@ -81,7 +82,7 @@ def test_perf_blocks_rows_totals_and_index_bound(tmp_path, lut_sealed, short_roo
     E_total = eval_budget + 2 × 정의역 변수 수(test 가 계산). 같은 입력 재계산 0."""
     case, fr = _run(tmp_path, lut_sealed, constraints=SS, eval_budget=40, archive_root=short_root)
     perf = dict(fr.perf)
-    assert set(perf) == set(PERF_KEYS_C7) and len(perf) == 22
+    assert set(perf) == set(PERF_KEYS_C7) and len(perf) == 23
     assert not set(OLD_BLOCK_KEYS) & set(perf)
     rows = [dict(r) for r in perf["blocks"]]                 # 행 = 칸 이름 -> 값(매핑 또는 (이름, 값) 쌍)
     assert rows, "전제: 블록 행이 있다"
@@ -517,7 +518,7 @@ def test_gate_entry_budget_end_check_violation_runtime_error(tmp_path, lut_seale
 def test_gate_entry_budget_perf_declared_and_block_index_bound(tmp_path, lut_sealed, short_root):
     case, fr = _run(tmp_path, lut_sealed, constraints=SS, eval_budget=12, archive_root=short_root)
     perf = dict(fr.perf)
-    assert set(perf) == set(PERF_KEYS_C7) and len(perf) == 22                   # perf 키 22개 그대로
+    assert set(perf) == set(PERF_KEYS_C7) and len(perf) == 23                   # perf 키 23개 그대로(WB-1 solver_stops 추가)
     assert perf["eval_budget_source"] == "declared" and perf["eval_budget"] == 12
     e_total = 12 + 2 * len(case.sctx.domain.variables)                          # 손: E_B + R
     assert perf["block_index_bound"] == len(perf["blocks"]) * (e_total + 1)
