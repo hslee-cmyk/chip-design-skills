@@ -18,6 +18,8 @@ class RuleLParams(NamedTuple):
     output_only_fields: tuple
     output_only_slots: tuple
     fingerprint_only_slots: tuple
+    # O-241 손 분류 표: 행 = (위반 키, 칸 경로 tuple, 사본이 아닌 근거 `파일:행`). 검증자가 쓴다(도구 작성자는 채우지 않는다).
+    op_copy_cleared: tuple = ()
 
 
 PARAMS = RuleLParams(
@@ -72,6 +74,7 @@ PARAMS = RuleLParams(
         "SealItem.magnitude",
     ),
     fingerprint_only_slots=(),
+    op_copy_cleared=(),
 )
 
 BASELINE = (

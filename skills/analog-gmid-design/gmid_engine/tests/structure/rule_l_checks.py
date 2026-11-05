@@ -24,16 +24,43 @@ GATE, DRAIN, SOURCE = ("g", "gate", "MOS_GATE"), ("d", "drain", "MOS_DRAIN"), ("
 KEY_WRAPPERS = ("sorted", "tuple", "frozenset", "list")
 KEY_METHODS = ("setdefault", "get", "pop", "__contains__")
 CONTAINER_ADD = ("append", "extend", "add", "update", "setdefault", "insert")
-VALUE_VIEWS = ("items", "values", "keys", "get", "copy")
-SERIALIZERS = ("dumps", "dump", "write_text", "write_bytes", "writelines", "pickle", "print")
-BENIGN_METHODS = frozenset(VALUE_VIEWS) | frozenset(CONTAINER_ADD) | {"pop", "index", "count", "sort", "join", "format", "split", "strip", "startswith",
-                                                                     "endswith", "lower", "upper", "replace", "encode", "decode", "clear", "remove", "discard"}
+VALUE_VIEWS = ("items", "values", "keys", "get", "copy", "pop", "popitem", "setdefault")      # 칸 값을 돌려주는 수신자 흐름(라벨만 따라간다, 면제 아님)
+OP_COPY_ROUNDS = 24                  # 동작점 사본 고정점 상한. 다 돌고도 더 자라면 추적 실패(op_copy)로 낸다
+# 동작점 사본의 예외 -- 값을 보관하지 않음이 언어 정의로 확정된 내장의 닫힌 목록 하나(N3.1-5, 지문 대상). 이름 허용 목록은 이것뿐이다.
+#  * 내장 함수: 이름이 지역·엔진·import 어디에도 가려지지 않은 경우에 한한다(새 값·불리언·개수를 돌려주며 인자를 쥐지 않음).
+#  * 내장 형 메서드: 수신자가 그 형으로 확정된 경우에 한한다(수신자 형을 못 정하면 예외 아님).
+BUILTIN_PURE_FUNCS = frozenset({"abs", "all", "any", "ascii", "bin", "callable", "chr", "divmod", "format", "hasattr", "hash", "hex", "id",
+                                "isinstance", "issubclass", "len", "oct", "ord", "pow", "range", "repr", "round", "sum", "type"})
+BUILTIN_FLOW_FUNCS = frozenset({"float", "int", "str", "bool", "dict", "tuple", "list", "set", "frozenset", "sorted", "reversed", "getattr",
+                                "min", "max", "zip", "enumerate", "iter", "next", "filter", "map"})   # 인자의 칸 값을 그대로 담아 돌려준다(라벨 흐름)
+_STR_METHODS = frozenset({"capitalize", "casefold", "center", "count", "encode", "endswith", "expandtabs", "find", "format", "format_map", "index",
+                          "isalnum", "isalpha", "isascii", "isdecimal", "isdigit", "isidentifier", "islower", "isnumeric", "isprintable",
+                          "isspace", "istitle", "isupper", "join", "ljust", "lower", "lstrip", "partition", "removeprefix", "removesuffix",
+                          "replace", "rfind", "rindex", "rjust", "rpartition", "rsplit", "rstrip", "split", "splitlines", "startswith", "strip",
+                          "swapcase", "title", "translate", "upper", "zfill"})
+BUILTIN_TYPE_METHODS = {
+    "str": _STR_METHODS,
+    "list": frozenset({"clear", "copy", "count", "index", "pop", "remove", "reverse", "sort"}),
+    "dict": frozenset({"clear", "copy", "get", "items", "keys", "pop", "popitem", "values"}),
+    "set": frozenset({"clear", "copy", "difference", "discard", "intersection", "isdisjoint", "issubset", "issuperset", "pop", "remove",
+                      "symmetric_difference", "union"}),
+    "tuple": frozenset({"count", "index"}),
+}
+BUILTIN_TYPE_ADD = {                 # 수신자(지역에서 새로 만든 내장 컨테이너) 자신에 값을 담는 메서드 -- 수신자 변수에 라벨이 옮겨 붙는다
+    "list": frozenset({"append", "extend", "insert"}),
+    "dict": frozenset({"setdefault", "update"}),
+    "set": frozenset({"add", "update"}),
+}
+_FRESH_TYPES = {ast.List: "list", ast.ListComp: "list", ast.Dict: "dict", ast.DictComp: "dict", ast.Set: "set", ast.SetComp: "set",
+                ast.Tuple: "tuple", ast.JoinedStr: "str"}
+_FRESH_CALLS = {"list": "list", "dict": "dict", "set": "set", "tuple": "tuple", "str": "str", "frozenset": "frozenset", "sorted": "list"}
 
 
 class Violation(NamedTuple):
     key: tuple
     code: str
     detail: str
+    paths: tuple = ()            # op_copy: 잡힌 칸 경로(튜플의 튜플). 판정용 정보이고 위반 키에는 들어가지 않는다
 
 
 class DebtReport(NamedTuple):
@@ -903,9 +930,12 @@ class _OpCopy:
 
     def __init__(self, eng, reach, source, exempt_sids, writer_file):
         self.eng, self.source = eng, source
-        self.cands = [sid for sid in sorted(eng.scopes) if not sid.endswith(":<module>")
+        self.cands = [sid for sid in sorted(eng.scopes) if not sid.endswith(":<module>") and sid in reach          # 도달 조건(N3.1-5)
                       and eng.modules[eng.scopes[sid].module] != writer_file and not _under(sid, exempt_sids)]
         self.cset = set(self.cands)
+        self.types = {}
+        self.nonconverged = False
+        self.read_ids = {sid: {id(r[4]) for r in eng.scopes[sid].reads} for sid in self.cands}      # 정본 읽기 호출(인자는 키 문자열)
         self.src_ids = {sid: {id(r[4]) for r in eng.scopes[sid].reads if (r[0], r[1]) == source} for sid in self.cands}
         self.params = {sid: self._params_of(eng.scopes[sid]) for sid in self.cands}
         self.T = {sid: {p: {"P:" + p} for p in self.params[sid]} for sid in self.cands}      # 이름 -> 라벨
@@ -933,12 +963,76 @@ class _OpCopy:
             cur = cur.parent
         return False
 
-    def _ext_receiver(self, scope, fn):
-        """수신자가 외부 모듈 이름(math·numpy 등)인가 -- 산술 호출이라 새 값을 만든다(직렬화 이름만 영속 자리)."""
-        recv = fn.value
-        if isinstance(recv, ast.Name) and recv.id not in scope.local_names:
-            res = self.eng.resolve_symbol(scope.module, recv.id)
-            return bool(res and res[0] == "ext")
+    # ---- 내장 형 확정(예외 목록의 조건) ----
+    def _shadowed(self, scope, name):
+        """name 이 내장 이름이 아니게 가려졌는가(지역 이름·엔진 정의·import)."""
+        return name in scope.local_names or name in scope.locals or self.eng.resolve_symbol(scope.module, name) is not None \
+            or self.eng._enclosing_nested(scope, name) is not None
+
+    def _expr_type(self, scope, expr):
+        """식이 내장 형(str·list·dict·set·tuple·frozenset)의 새 값이면 그 형, 아니면 None."""
+        if isinstance(expr, ast.Constant) and isinstance(expr.value, str):
+            return "str"
+        kind = _FRESH_TYPES.get(type(expr))
+        if kind:
+            return kind
+        if isinstance(expr, ast.Call) and isinstance(expr.func, ast.Name) and expr.func.id in _FRESH_CALLS and not self._shadowed(scope, expr.func.id):
+            return _FRESH_CALLS[expr.func.id]
+        return None
+
+    def _name_types(self, sid):
+        """이름 -> 내장 형. 한 함수 안에서 그 이름의 모든 묶임이 같은 형의 새 값 대입뿐일 때만 확정한다(매개변수·루프·with·전역 선언은 확정 아님)."""
+        if sid in self.types:
+            return self.types[sid]
+        scope = self.eng.scopes[sid]
+        seen, bad = {}, set(scope.locals)
+        direct = set()
+        for root in scope.body_nodes:
+            for node in ast.walk(root):
+                if isinstance(node, (ast.Global, ast.Nonlocal)):
+                    bad |= set(node.names)
+                elif isinstance(node, ast.Assign):
+                    for tgt in node.targets:
+                        if isinstance(tgt, ast.Name):
+                            direct.add(id(tgt))
+                            seen.setdefault(tgt.id, set()).add(self._expr_type(scope, node.value))
+                elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.value is not None:
+                    direct.add(id(node.target))
+                    seen.setdefault(node.target.id, set()).add(self._expr_type(scope, node.value))
+        for root in scope.body_nodes:
+            for node in ast.walk(root):
+                if isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)) and id(node) not in direct:
+                    bad.add(node.id)
+        out = {}
+        for name, kinds in seen.items():
+            if name not in bad and len(kinds) == 1 and None not in kinds:
+                out[name] = next(iter(kinds))
+        self.types[sid] = out
+        return out
+
+    def _btype(self, sid, expr):
+        """수신자 식의 내장 형(확정된 것만)."""
+        scope = self.eng.scopes[sid]
+        if isinstance(expr, ast.Name):
+            return self._name_types(sid).get(expr.id)
+        return self._expr_type(scope, expr)
+
+    def _local_container(self, sid, expr):
+        """첨자 대상이 이 함수 안에서 새로 만든 list·dict·set 이름 하나(첨자만 겹침)인가 -- 호출보다 오래 살 수 없는 자리."""
+        while isinstance(expr, ast.Subscript):
+            expr = expr.value
+        return isinstance(expr, ast.Name) and self._name_types(sid).get(expr.id) in ("list", "dict", "set")
+
+    def _resolved_call(self, sid, node):
+        """호출이 풀리는가: 엔진 안 정확한 대상, 이름이 안 가려진 내장 함수, 내장 형으로 확정된 수신자의 그 형 메서드. 나머지는 추적 불능."""
+        scope, fn = self.eng.scopes[sid], node.func
+        if self._precise(scope, fn):
+            return True
+        if isinstance(fn, ast.Name):
+            return (fn.id in BUILTIN_PURE_FUNCS or fn.id in BUILTIN_FLOW_FUNCS) and not self._shadowed(scope, fn.id)
+        if isinstance(fn, ast.Attribute):
+            kind = self._btype(sid, fn.value)
+            return kind is not None and (fn.attr in BUILTIN_TYPE_METHODS.get(kind, ()) or fn.attr in BUILTIN_TYPE_ADD.get(kind, ()))
         return False
 
     @staticmethod
@@ -1042,23 +1136,72 @@ class _OpCopy:
                 out |= _OpCopy._remap({lab}, lambda b: "X:" + b[2:] if b[:2] == "P:" else b)
         return out
 
-    def _ctor_fields(self, cid):
+    def _init_attrs(self, init, param):
+        """__init__ 안에서 param 이 담기는 인스턴스 속성 이름들. param 을 다른 데 쓰면(속성 대입 밖) '?'(어느 속성이든)을 더한다."""
+        attrs, covered = set(), set()
+        for root in init.body_nodes:
+            for node in ast.walk(root):
+                if not isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)) or getattr(node, "value", None) is None:
+                    continue
+                names = {n for n in ast.walk(node.value) if isinstance(n, ast.Name) and n.id == param}
+                if not names:
+                    continue
+                for tgt in (node.targets if isinstance(node, ast.Assign) else [node.target]):
+                    cur = tgt
+                    while isinstance(cur, (ast.Attribute, ast.Subscript)):
+                        if isinstance(cur, ast.Attribute) and isinstance(cur.value, ast.Name) and cur.value.id == "self":
+                            attrs.add(cur.attr)
+                            covered |= {id(n) for n in names}
+                            break
+                        cur = cur.value
+        for root in init.body_nodes:
+            for node in ast.walk(root):
+                if isinstance(node, ast.Name) and node.id == param and isinstance(node.ctx, ast.Load) and id(node) not in covered:
+                    attrs.add("?")
+        return sorted(attrs)
+
+    def _ctor_info(self, cid, depth=0):
+        """(위치 매개변수 이름들, {매개변수: [속성...]}) 또는 None(풀지 못함 -- 인자는 '어느 속성이든'으로 본다).
+        __init__ 이 있으면 매개변수 -> 대입되는 속성, 없으면 칸 선언(상속 칸이 앞)이고 칸 이름 = 속성 이름이다."""
+        if depth > 6:
+            return None
         init = self.eng.scopes.get(cid + ".__init__")
         if init is not None:
-            return [a.arg for a in init.node.args.posonlyargs + init.node.args.args][1:]
+            a = init.node.args
+            pos = [x.arg for x in a.posonlyargs + a.args][1:]
+            kwonly = [x.arg for x in a.kwonlyargs]
+            return pos, {n: self._init_attrs(init, n) for n in pos + kwonly}
         node = self.eng.classes.get(cid)
-        return [i.target.id for i in node.body if isinstance(i, ast.AnnAssign) and isinstance(i.target, ast.Name)] if node is not None else []
+        if node is None:
+            return None
+        fields, amap = [], {}
+        for base in node.bases:
+            res = self.eng.resolve_symbol(cid.split(":")[0], base.id) if isinstance(base, ast.Name) else None
+            if res is None or res[0] != "cls":
+                return None
+            info = self._ctor_info(res[1], depth + 1)
+            if info is None:
+                return None
+            fields += info[0]
+            amap.update(info[1])
+        own = [i.target.id for i in node.body if isinstance(i, ast.AnnAssign) and isinstance(i.target, ast.Name)]
+        for name in own:
+            amap[name] = [name]
+        return fields + own, amap
 
     def _ctor_labels(self, sid, expr, cid, extra):
-        names = self._ctor_fields(cid)
+        info = self._ctor_info(cid)
         out = set()
         contain = lambda b: "Z:" + b[2:] if b[:2] == "P:" else b       # noqa: E731
         for i, a in enumerate(expr.args):
-            f = "?" if isinstance(a, ast.Starred) or i >= len(names) else names[i]
-            out |= {self._cap("@" + f + "|" + lab) for lab in self._remap(self.labels(sid, a, False, extra), contain)}
+            wild = info is None or isinstance(a, ast.Starred) or i >= len(info[0])
+            heads = ["?"] if wild else info[1].get(info[0][i], [])
+            labs = self._remap(self.labels(sid, a, False, extra), contain)
+            out |= {self._cap("@" + f + "|" + lab) for f in heads for lab in labs}
         for k in expr.keywords:
-            f = k.arg or "?"
-            out |= {self._cap("@" + f + "|" + lab) for lab in self._remap(self.labels(sid, k.value, False, extra), contain)}
+            heads = ["?"] if (info is None or k.arg is None or k.arg not in info[1]) else info[1][k.arg]
+            labs = self._remap(self.labels(sid, k.value, False, extra), contain)
+            out |= {self._cap("@" + f + "|" + lab) for f in heads for lab in labs}
         return out
 
     # ---- 라벨 ----
@@ -1126,12 +1269,20 @@ class _OpCopy:
         return out
 
     # ---- 고정점 ----
+    @staticmethod
+    def _leaf_targets(target):
+        if isinstance(target, (ast.Tuple, ast.List)):
+            return [leaf for elt in target.elts for leaf in _OpCopy._leaf_targets(elt)]
+        if isinstance(target, ast.Starred):
+            return _OpCopy._leaf_targets(target.value)
+        return [target]
+
     def _step(self, sid):
         eng = self.eng
         scope = eng.scopes[sid]
         grew = False
         T, D = self.T[sid], self.D[sid]
-        globals_ = {n for root in scope.body_nodes for g in ast.walk(root) if isinstance(g, ast.Global) for n in g.names}
+        globals_ = {n for root in scope.body_nodes for g in ast.walk(root) if isinstance(g, (ast.Global, ast.Nonlocal)) for n in g.names}
 
         def put(table, names, labs):
             nonlocal grew
@@ -1161,21 +1312,23 @@ class _OpCopy:
                         names = self._store_names(target)
                         put(T, names, set(t))
                         put(D, names, set(d))
-                        if t and isinstance(target, (ast.Attribute, ast.Subscript, ast.Name)):
-                            base = target
-                            while isinstance(base, (ast.Attribute, ast.Subscript)):
-                                base = base.value
-                            if isinstance(base, ast.Name) and base.id != "self":
-                                is_global = base.id in globals_ or base.id not in scope.local_names
-                                if isinstance(target, ast.Attribute) or (is_global and (target is not base or base.id in globals_)):
-                                    sink(set(t))
+                        if not t:
+                            continue
+                        for leaf in self._leaf_targets(target):
+                            if isinstance(leaf, ast.Name):
+                                if leaf.id in globals_:
+                                    sink(set(t))                          # 전역·바깥 함수 변수에 담는다
+                            elif isinstance(leaf, ast.Attribute):
+                                sink(set(t))                              # 속성: 객체(self·넘겨받은 것·전역)가 호출보다 오래 사는지 풀리지 않는다
+                            elif isinstance(leaf, ast.Subscript) and not self._local_container(sid, leaf):
+                                sink(set(t))                              # 첨자: 이 함수에서 새로 만든 컨테이너가 아니면 오래 사는지 풀리지 않는다
                 elif isinstance(node, (ast.For, ast.comprehension)):
                     got = self.labels(sid, node.iter, False)
                     for n, labs_ in self._iter_bind(node.target, node.iter, got).items():
                         put(T, {n}, labs_)
-                elif isinstance(node, ast.Return) and node.value is not None:
+                elif isinstance(node, (ast.Return, ast.Yield, ast.YieldFrom)) and node.value is not None:
                     t, d = self.labels(sid, node.value, False), self.labels(sid, node.value, True)
-                    if self._is_block(scope):
+                    if self._is_block(scope) and isinstance(node, ast.Return):
                         sink(set(t))
                     else:
                         if not t <= self.ret[sid]:
@@ -1187,36 +1340,20 @@ class _OpCopy:
                 elif isinstance(node, ast.Call):
                     fn = node.func
                     args = list(node.args) + [k.value for k in node.keywords]
+                    arg_labs = set().union(*(self.labels(sid, a, False) for a in args)) if args else set()
+                    arg_dlabs = set().union(*(self.labels(sid, a, True) for a in args)) if args else set()
                     if isinstance(fn, ast.Attribute) and fn.attr in CONTAINER_ADD:
-                        t = set().union(*(self.labels(sid, a, False) for a in args)) if args else set()
-                        d = set().union(*(self.labels(sid, a, True) for a in args)) if args else set()
                         base = fn.value
                         while isinstance(base, (ast.Attribute, ast.Subscript)):
                             base = base.value
                         if isinstance(base, ast.Name):
-                            put(T, {base.id}, t)
-                            put(D, {base.id}, d)
-                    got_all = set().union(*(self.labels(sid, a, False) for a in args)) if args else set()
-                    got_src = {lab_ for lab_ in got_all if self._split(lab_)[1] == "S" or self._split(lab_)[1][:2] == "R:"}
-                    if isinstance(fn, ast.Attribute) and fn.attr in CONTAINER_ADD:
-                        cbase = fn.value
-                        while isinstance(cbase, (ast.Attribute, ast.Subscript)):
-                            cbase = cbase.value
-                        if isinstance(cbase, ast.Name) and cbase.id != "self" and (cbase.id in globals_ or cbase.id not in scope.local_names):
-                            sink(set(got_all))                       # 모듈 전역 컨테이너에 담는다
-                    if isinstance(fn, ast.Attribute) and fn.attr in SERIALIZERS and got_src:
-                        sink(got_src)                                # 직렬화·파일 쓰기
-                    elif (isinstance(fn, ast.Attribute) and not scope.site_map.get(id(fn)) and fn.attr not in BENIGN_METHODS
-                          and not self._ext_receiver(scope, fn)
-                          and fn.attr not in SERIALIZERS and fn.attr != "write" and got_src):
-                        sink(got_src)                                # 엔진 안에 정의가 없는 메서드: 추적 불능
+                            put(T, {base.id}, arg_labs)                   # 흐름 추적(수신자 변수에 라벨이 옮겨 붙는다)
+                            put(D, {base.id}, arg_dlabs)
                     if isinstance(fn, ast.Attribute) and fn.attr == "write":
-                        sink(got_all)
-                    elif isinstance(fn, (ast.Subscript, ast.Call)) or (
-                            isinstance(fn, ast.Name) and fn.id in scope.local_names and fn.id not in scope.locals
-                            and eng._enclosing_nested(scope, fn.id) is None):
-                        got = set().union(*(self.labels(sid, a, False) for a in args)) if args else set()
-                        sink({lab_ for lab_ in got if lab_ == "S" or lab_[:2] == "R:"})
+                        sink(arg_labs)                                    # 정본 쓰기·파일 쓰기: 정의된 영속 자리
+                    elif id(node) not in self.read_ids[sid] and not self._resolved_call(sid, node):
+                        recv_labs = self.labels(sid, fn.value, False) if isinstance(fn, ast.Attribute) else set()
+                        sink(arg_labs | recv_labs)                        # 추적 불능 호출(엔진 안 정의로 안 풀림): 넘긴 값 모두 영속으로 본다
                     for callee in self._precise(scope, fn):
                         if callee not in self.cset or callee in eng.classes:
                             continue
@@ -1234,26 +1371,46 @@ class _OpCopy:
         return grew
 
     def run(self):
-        for _ in range(24):
+        for _ in range(OP_COPY_ROUNDS):
             grew = False
             for sid in self.cands:
                 grew = self._step(sid) or grew
             if not grew:
-                break
+                return
+        self.nonconverged = True            # 상한까지 돌고도 더 자란다: 추적이 끊겼으니 조용히 멈추지 않고 위반으로 낸다
+
+    @staticmethod
+    def _path(lab):
+        """라벨의 칸 경로: 바깥 칸부터 안쪽 칸 순서의 이름 tuple (칸 접두가 없으면 빈 tuple)."""
+        pre = _OpCopy._split(lab)[0]
+        return tuple(h[1:] for h in pre.split("|") if h.startswith("@"))
 
     def copies(self):
+        """{사본 자리 함수 sid: {칸 경로, ...}}."""
         self.run()
-        flagged = {sid for sid in self.cands if self._s_tainted(sid, self.sink_local[sid])}
+        found = {}
+        for sid in self.cands:
+            for lab in self.sink_local[sid]:
+                if self._s_tainted(sid, [lab]):
+                    found.setdefault(sid, set()).add(self._path(lab))
         for sid in self.cands:
             for lab in self.sink[sid]:
                 base = self._split(lab)[1]
                 if base[:2] == "R:" and base[2:] in self.cset:
-                    flagged.add(base[2:])
-        return flagged
+                    callee = base[2:]       # 사본을 만든 피호출: 칸 경로 = 받은 쪽에서 담은 칸 + 피호출이 돌려준 칸
+                    inner = {self._path(r) for r in self.ret[callee] if self._split(r)[1] == "S"} or {()}
+                    found.setdefault(callee, set()).update(self._path(lab) + path for path in inner)
+        return found
+
+
+def _fmt_path(path):
+    return ".".join(path) if path else "<칸 전체>"
 
 
 def _rule_l5(eng, reach, params, out):
     output_sids = {_spec_sid(s) for s in params.output_functions}
+    cleared = tuple(getattr(params, "op_copy_cleared", ()))
+    op_found = {}
     for concept, (canon, writer_file) in sorted(params.l5_concepts.items()):
         if concept not in ("diode", "same_vgs", "op_copy"):
             raise ValueError("규칙 L-5: 등록 개념의 판정기가 없다: " + concept)
@@ -1263,9 +1420,18 @@ def _rule_l5(eng, reach, params, out):
         if concept == "op_copy":
             kind, _, field = canon.partition(".")
             op = _OpCopy(eng, reach, (kind, field), output_sids, writer_file)
-            for sid in sorted(op.copies()):
+            found = op.copies()
+            if op.nonconverged:
+                out.append(Violation(("L-5", "op_copy", writer_file, "<fixed_point>"), "op_copy",
+                                     "추적이 %d회 안에 끝나지 않았다(추적 실패)" % OP_COPY_ROUNDS))
+            for sid in sorted(found):
                 scope = eng.scopes[sid]
-                out.append(Violation(("L-5", "op_copy", eng.modules[scope.module], _qual(sid)), "op_copy", "정본 %s 의 칸 값을 영속 자리에 그대로 담거나 추적이 끊긴다" % canon))
+                key = ("L-5", "op_copy", eng.modules[scope.module], _qual(sid))
+                op_found[key] = found[sid]
+                left = tuple(sorted(pa for pa in found[sid] if (key, pa) not in {(r[0], tuple(r[1])) for r in cleared}))
+                if left:
+                    out.append(Violation(key, "op_copy", "정본 %s 의 칸 값을 영속 자리에 그대로 담거나 추적이 끊긴다; 칸 경로: %s"
+                                         % (canon, ", ".join(_fmt_path(pa) for pa in left)), left))
             continue
         for sid in sorted(eng.scopes):
             scope = eng.scopes[sid]
@@ -1274,6 +1440,15 @@ def _rule_l5(eng, reach, params, out):
             diode, same = _predicate_sites(scope)
             if (concept == "diode" and diode) or (concept == "same_vgs" and same):
                 out.append(Violation(("L-5", concept, eng.modules[scope.module], _qual(sid)), "predicate_recomputed", "정본 %s 를 다시 계산한다" % canon))
+    stale = {}
+    for row in cleared:
+        key, path = tuple(row[0]), tuple(row[1])
+        if path not in op_found.get(key, ()):
+            where = key[2:4] if len(key) >= 4 else ("<행>", str(key))
+            stale.setdefault(("L-5", "op_copy_cleared") + tuple(where), []).append(path)
+    for key, paths in sorted(stale.items()):
+        out.append(Violation(key, "op_copy_cleared_stale", "표 행이 지금 잡히지 않는다(낡은 항목): " + ", ".join(_fmt_path(pa) for pa in sorted(paths)),
+                             tuple(sorted(paths))))
 
 
 # ------------------------------------------------------------------ L-1x

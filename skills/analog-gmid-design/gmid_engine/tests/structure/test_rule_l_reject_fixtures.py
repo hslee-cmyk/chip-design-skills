@@ -123,6 +123,12 @@ EXACT = {
 # 판정 A-117 추가분 -- (case id, 픽스처 폴더, params, 기대). 같은 트리를 params만 바꿔 두 번 쓰는 자리가 있다.
 # oracle (a): 기대는 픽스처 소스를 읽고 손으로 적었다. 뮤턴트 생존 10개를 겨냥하는 입력은 주석에 이름을 단다.
 OPF = [(("L-5", "op_copy", "graph/op_user.py", "f"), OPC)]
+
+
+def OPP(fn, file="graph/op_user.py"):      # noqa: N802
+    return (("L-5", "op_copy", file, fn), OPC)
+
+
 ADD = [
     # L-3 별칭: 별칭을 거친 읽기는 읽기이고, 안 읽으면 위반
     ("L3f", "L3f", params(), []),
@@ -131,7 +137,8 @@ ADD = [
     # diode / same_vgs 경계
     ("L5k-len", "L5k-len", params(l5_concepts=DIODE_GS), []),
     ("L5k-isinst", "L5k-isinst", params(l5_concepts=DIODE_GS), []),
-    ("L5k-canon", "L5k-canon", params(l5_concepts=DIODE_GS), l5("same_vgs")),
+    # canon((g, s)) 꼴(check)과 canon(g), canon(s) 꼴(edges, 묶음 키 성분을 사용자 함수로 감싼 꼴) 둘 다 위반
+    ("L5k-canon", "L5k-canon", params(l5_concepts=DIODE_GS), l5("same_vgs") + l5("same_vgs", fn="edges")),
     # op_copy 끊김 아님(float, Op-float-cuts)과 sink 꼴
     ("L5e-float", "L5e-float", params(l5_concepts=OP_COPY), OPF),
     ("L5e-attr", "L5e-attr", params(l5_concepts=OP_COPY), OPF),
@@ -151,9 +158,10 @@ ADD = [
     ("L5h-on", "L5h-exempt", params(l5_concepts=OP_COPY, output_functions=("graph/op_user.py:_report",)), []),
     ("L5h-off", "L5h-exempt", params(l5_concepts=OP_COPY),
      [(("L-5", "op_copy", "graph/op_user.py", "_report"), OPC)]),
-    # writer 파일 면제(Op-writer-exempt), 도달 밖 함수도 검사(Op-reach)
+    # writer 파일 면제(Op-writer-exempt), 도달 조건(N3.1-5): 진입점에서 도달하지 않는 함수는 대상 밖, 같은 함수가 도달하면 위반
     ("L5i-writer", "L5i-writer", params(l5_concepts=OP_COPY), []),
-    ("L5j-reach", "L5j-reach", params(l5_concepts=OP_COPY),
+    ("L5j-reach", "L5j-reach", params(l5_concepts=OP_COPY), []),
+    ("L5j-reach-on", "L5j-reach-on", params(l5_concepts=OP_COPY),
      [(("L-5", "op_copy", "graph/tail.py", "_late"), OPC)]),
     # L-4 목록(L4-exempt): 출력 전용·지문 전용 목록의 칸은 면제, 다른 칸 이름은 면제 아님
     ("L4d-output", "L4d", params(output_only_slots=("Row.unused",)), []),
@@ -166,6 +174,44 @@ ADD = [
     ("L11", "L11", params(), [(("L-1x", "graph.h.helper"), NC)]),
     # 블록 없는 WriterTable 행(Table-wt-off): 읽는 행은 clean, 안 읽는 행은 no_reader
     ("LW1", "LW1", params(), [(("L-1", "graph.beta"), NR)]),
+    # ---- O-241: 허용 목록 없는 fail-closed. 기대는 픽스처 소스를 읽고 손으로 적었다(A-117 재판정 주입 21꼴, inject2.txt) ----
+    # (iv) 호출보다 오래 사는지 풀리지 않는 객체에 담기: 컨텍스트 첨자·append·update, 넘겨받은 dict 첨자(인자로 받은 값, 직접 읽은 값), 인스턴스 속성
+    ("L5m-ctx-subscript", "L5m-ctx-subscript", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-ctx-append", "L5m-ctx-append", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-ctx-update", "L5m-ctx-update", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-param-dict", "L5m-param-dict", params(l5_concepts=OP_COPY), [OPP("keep")]),
+    ("L5m-param-dict-arg", "L5m-param-dict-arg", params(l5_concepts=OP_COPY), [OPP("keep")]),
+    ("L5m-self-attr", "L5m-self-attr", params(l5_concepts=OP_COPY), [OPP("_K.keep")]),
+    # (ii) 엔진에 같은 이름 메서드가 있는 S3 append_eval: 수신자 형이 안 풀리니 추적 불능(Arc 는 아무도 안 만든다 -> L-1x)
+    ("L5m-s3-append-eval", "L5m-s3-append-eval", params(l5_concepts=OP_COPY),
+     [(("L-1x", "graph.op_user.Arc"), NC), OPP("place")]),
+    # (iii) 직렬화 이름 목록 없이: 이름 import, 외부 모듈 함수·메서드, 파일 객체 메서드
+    ("L5m-from-json-dumps", "L5m-from-json-dumps", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-yaml-safe-dump", "L5m-yaml-safe-dump", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-numpy-save", "L5m-numpy-save", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-pickle-dump", "L5m-pickle-dump", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-writelines", "L5m-writelines", params(l5_concepts=OP_COPY), [OPP("place")]),
+    # 흐름이 끊기던 꼴: dataclasses.replace, copy.copy, 칸 이름 != 인자 이름, 상속 칸, dict.pop, 메서드 반환, 깊은 중첩
+    ("L5m-dc-replace", "L5m-dc-replace", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-copy-copy", "L5m-copy-copy", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-ctor-rename", "L5m-ctor-rename", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-ctor-base-field", "L5m-ctor-base-field", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-pop-bag", "L5m-pop-bag", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-method-getter", "L5m-method-getter", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-three-layers", "L5m-three-layers", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-three-layers-stored", "L5m-three-layers-stored", params(l5_concepts=OP_COPY), [OPP("place")]),
+    # 외부 라이브러리 산술(math.log)도 엔진 안 정의로 안 풀리는 호출이다 -> 위반(옛 inject2 의 clean 기대는 O-241 로 바뀜, 검증자가 손 분류)
+    ("L5m-ext-math", "L5m-ext-math", params(l5_concepts=OP_COPY), [OPP("place")]),
+    # 같은 객체의 다른 칸(속성 이름이 인자 이름과 다른 __init__ 포함)은 오염 아님
+    ("L5m-field-other-clean", "L5m-field-other-clean", params(l5_concepts=OP_COPY), []),
+    # 예외 목록: 이름이 안 가려진 내장 함수, 내장 형으로 확정된 수신자의 그 형 메서드, 이 함수에서 새로 만든 컨테이너에 담기만
+    ("L5m-builtin-pure-clean", "L5m-builtin-pure-clean", params(l5_concepts=OP_COPY), []),
+    ("L5m-typed-method-clean", "L5m-typed-method-clean", params(l5_concepts=OP_COPY), []),
+    ("L5m-local-container-clean", "L5m-local-container-clean", params(l5_concepts=OP_COPY), []),
+    # 예외 조건이 일한다: 수신자 형을 못 정함(같은 이름 index), 내장 이름을 매개변수가 가림, 새 컨테이너가 호출로 빠져나감
+    ("L5m-untyped-method", "L5m-untyped-method", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-shadow-builtin", "L5m-shadow-builtin", params(l5_concepts=OP_COPY), [OPP("place")]),
+    ("L5m-local-container-escape", "L5m-local-container-escape", params(l5_concepts=OP_COPY), [OPP("place")]),
 ]
 
 
@@ -208,7 +254,7 @@ def test_rule_l_fixture_exact_violation_set(fid):
 
 def test_rule_l_fixture_count_covers_card_table():
     """card 픽스처 표의 트리 입력형 id가 모두 디스크에 있다(빠뜨린 픽스처를 막는다)."""
-    need = set(EXACT) | {"L9c", "LT", "L5a-11", "L3x", "L10b", "LW2"} | {c[1] for c in ADD}
+    need = set(EXACT) | {"L9c", "LT", "L5a-11", "L3x", "L10b", "LW2", "L5p-path-field", "L5p-path-two"} | {c[1] for c in ADD}
     have = {p.name for p in FIX.iterdir() if p.is_dir()}
     assert need == have
 
@@ -342,3 +388,103 @@ def test_rule_l_fingerprint_newline_normalized(tmp_path):
     c1, t1 = _fp_inputs(lf, b"a = 1\nb = 2\n", b"x = 1\ny = 2\n")
     c2, t2 = _fp_inputs(crlf, b"a = 1\r\nb = 2\r\n", b"x = 1\r\ny = 2\r\n")
     assert fingerprint(PARAMS, c1, t1) == fingerprint(PARAMS, c2, t2)
+
+
+# ---------------------------------------------------------------- O-241: 칸 경로 출력, 손 분류 표(op_copy_cleared), 고정점 fail-closed
+
+PLACE = ("L-5", "op_copy", "graph/op_user.py", "place")
+OPC_PARAMS = dict(l5_concepts=OP_COPY)
+
+
+def _op(fid, **kw):
+    return check_rule_l(root(fid), params(**OPC_PARAMS, **kw))
+
+
+def test_rule_l_op_copy_reports_caught_field_paths():
+    """칸 경로 출력: 객체의 `current` 칸이 닿으면 ('current',), 정본 값 전체가 닿으면 ()이다. 위반 키는 interface 키 꼴 그대로.
+    oracle (a): L5p-path-field 는 Row(current=동작점 값, n=상수)를 묶음째 쓴다 -> 오염된 칸은 current 하나. L5p-path-two 는 더해서 값 자체를 쓴다."""
+    one = _op("L5p-path-field")
+    assert [(v.key, v.paths) for v in one] == [(PLACE, (("current",),))]
+    two = _op("L5p-path-two")
+    assert [(v.key, v.paths) for v in two] == [(PLACE, ((), ("current",)))]
+
+
+def test_rule_l_op_copy_reports_callee_made_copy_path():
+    """사본을 만든 피호출(`_row`)의 칸 경로는 피호출이 돌려준 칸이다. oracle (a): L5b-1 의 `_row` 는 Row(current=...)를 돌려준다."""
+    got = {v.key: v.paths for v in _op("L5b-1", output_functions=())}
+    assert got[("L-5", "op_copy", "graph/op_user.py", "_row")] == (("current",),)
+    assert got[PLACE] == ((),)
+
+
+def _row(path, key=PLACE, ref="graph/op_user.py:12"):
+    return (key, path, ref)
+
+
+def test_rule_l_op_copy_cleared_row_hides_only_listed_path():
+    """표 행이 (키, 칸 경로)를 가린다. 구성: path-field 는 ('current',) 하나만 잡힌다 -> 그 행이면 위반 0."""
+    assert _op("L5p-path-field", op_copy_cleared=(_row(("current",)),)) == ()
+
+
+def test_rule_l_op_copy_cleared_new_path_still_violation():
+    """새 칸 경로 = 위반. 구성: path-two 는 () 와 ('current',) 둘이 잡힌다. ('current',) 행만 있으면 () 는 위반으로 남고 남은 경로만 낸다."""
+    got = _op("L5p-path-two", op_copy_cleared=(_row(("current",)),))
+    assert [(v.key, v.code, v.paths) for v in got] == [(PLACE, "op_copy", ((),))]
+
+
+def test_rule_l_op_copy_cleared_row_for_other_key_hides_nothing():
+    """행의 키가 다르면 가리지 않는다. 구성: 키의 함수 이름만 다른 행(`other`)은 place 를 가리지 못하고, 자기는 낡은 항목이다."""
+    other = ("L-5", "op_copy", "graph/op_user.py", "other")
+    got = _op("L5p-path-field", op_copy_cleared=(_row(("current",), key=other),))
+    assert sorted((v.key, v.code) for v in got) == sorted([(("L-5", "op_copy_cleared", "graph/op_user.py", "other"), "op_copy_cleared_stale"),
+                                                           (PLACE, "op_copy")])
+
+
+def test_rule_l_op_copy_cleared_stale_row_is_violation():
+    """잡히지 않는 행 = 위반(op_copy_cleared_stale). 구성: ('current',) 는 잡히지만 ('n',) 은 잡히지 않는다 -> 낡은 행 하나만 위반이고 키는 op_copy 와 다르다."""
+    got = _op("L5p-path-field", op_copy_cleared=(_row(("current",)), _row(("n",))))
+    assert [(v.key, v.code, v.paths) for v in got] == [(("L-5", "op_copy_cleared", "graph/op_user.py", "place"), "op_copy_cleared_stale", (("n",),))]
+
+
+def test_rule_l_op_copy_cleared_stale_when_nothing_caught():
+    """깨끗한 트리에 행이 있으면 모두 낡은 항목이다. 구성: L5g-clean 은 위반 0 이므로 어떤 행도 가릴 것이 없다."""
+    row = _row((), key=("L-5", "op_copy", "graph/op_user.py", "lay"))
+    got = _op("L5g-clean", op_copy_cleared=(row,))
+    assert [(v.key, v.code) for v in got] == [(("L-5", "op_copy_cleared", "graph/op_user.py", "lay"), "op_copy_cleared_stale")]
+
+
+def test_rule_l_op_copy_cleared_default_empty_changes_nothing():
+    """표가 비면(기본) 행 없는 호출과 같다. 구성: 같은 트리, 행 인자 유무."""
+    assert _op("L5p-path-field") == _op("L5p-path-field", op_copy_cleared=())
+    assert len(_op("L5p-path-field")) == 1
+
+
+def test_rule_l_fingerprint_includes_op_copy_cleared(tmp_path):
+    """표는 지문 대상이다: 행 하나가 늘면 지문이 바뀐다(N3.1-6 (d)). 구성: 같은 입력에서 행만 다르다."""
+    c, t = _fp_inputs(tmp_path)
+    base = fingerprint(PARAMS, c, t)
+    changed = fingerprint(PARAMS._replace(op_copy_cleared=((PLACE, ("current",), "graph/op_user.py:12"),)), c, t)
+    assert changed != base
+    other_path = fingerprint(PARAMS._replace(op_copy_cleared=((PLACE, ("n",), "graph/op_user.py:12"),)), c, t)
+    assert other_path != changed
+
+
+def test_rule_l_op_copy_fixed_point_overflow_is_violation(monkeypatch):
+    """고정점 상한을 넘으면 조용히 멈추지 않고 추적 실패(op_copy)로 낸다. 구성: 상한 1회로 낮추면 L5b-1(라벨이 두 함수를 거쳐 퍼짐)은 첫 회에 더 자란다.
+    기본 상한에서는 같은 트리에 추적 실패 키가 없다."""
+    import rule_l_checks
+    key = ("L-5", "op_copy", "graph/op_block.py", "<fixed_point>")
+    assert key not in {v.key for v in _op("L5b-1")}
+    monkeypatch.setattr(rule_l_checks, "OP_COPY_ROUNDS", 1)
+    got = [v for v in _op("L5b-1") if v.key == key]
+    assert [v.code for v in got] == ["op_copy"]
+
+
+def test_rule_l_op_copy_has_no_name_allowlists():
+    """허용 목록 금지(O-241): 이름으로 면제·직렬화를 가르던 상수와 외부 수신자 면제가 도구에 없다. 예외는 닫힌 내장 목록 하나뿐.
+    구성: rule_l_checks 의 최상위 이름과 클래스 메서드 이름을 AST 로 본다."""
+    import ast
+    import rule_l_checks
+    tree = ast.parse(Path(rule_l_checks.__file__).read_text(encoding="utf-8"))
+    names = {t.id for n in ast.walk(tree) if isinstance(n, ast.Assign) for t in n.targets if isinstance(t, ast.Name)}
+    names |= {n.name for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
+    assert not names & {"BENIGN_METHODS", "SERIALIZERS", "_ext_receiver"}
