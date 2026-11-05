@@ -1,0 +1,9 @@
+{
+ "base": "90ef9e5f6ff04a631e170dca60d1a73dece11b04",
+ "freeze_test_commit": "a5caed3f8149b647db61030c1296ab7910eb6c9b",
+ "red_commit": "55115a2902c801cf3633c5c003f1dd1f36259799",
+ "red_assertion": {
+  "test_gate_entry_budget_kernel_calls_within_search_budget[24]": "(27, 24)",
+  "test_gate_entry_budget_kernel_calls_within_search_budget[40]": "(45, 40)"
+ }
+}

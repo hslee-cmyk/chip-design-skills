@@ -1,0 +1,156 @@
+{
+ "id": "20261104-xrunf1c",
+ "spec_card": "docs/02-design/specs/20261104-xrunf1c.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "90ef9e5f6ff04a631e170dca60d1a73dece11b04",
+ "test_commit": "a5caed3f8149b647db61030c1296ab7910eb6c9b",
+ "code_commit": "a0ee0c421dedfb6f09ecea5981b123e088fae4ff",
+ "red": {
+  "test_ids": [
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_gate_entry_budget_kernel_calls_within_search_budget[8]",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_gate_entry_budget_kernel_calls_within_search_budget[12]",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_gate_entry_budget_kernel_calls_within_search_budget[24]",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_gate_entry_budget_kernel_calls_within_search_budget[40]"
+  ],
+  "failure_hashes": [
+   "3c0eb526c114e50a9233bff312b22b6e689475b12780a5f752332f4d0a41f676",
+   "746a8d646d1270ce58c40a9360117c6253acad0a9d43f7a7e43d228ff3f03d36",
+   "72e1d20eaff84f1d3cdddca3736f590f6be16352facdad7e15ea67b637c16eb1",
+   "261e200dee8275193ad274b5d7bf223a845228a018a7efbf0a84a454558ef202"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "N/A",
+   "basis": "전체 test 안 돌림, 임시 규칙 O-229. 잰 범위 = 머리 a5caed3f 격리 복제본: card test 14파일 + canonical_order + tests/structure + test_it2c_l8e = 384 통과 0 실패(1 deselected), 2회로 연기 stage_b·s0·g10 23 통과 0 실패. 안 돌린 test 를 통과로 세지 않는다. 판정 범위 90ef9e5f..a5caed3f."
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "red = 코드 90ef9e5f + card test(55115a29): C-T11 게이트 진입 단언 4건 AssertionError(예: (27, 24), (45, 40)), 끝 확인 DID NOT RAISE, gate ceiling 인자 없음. 새 모듈 3 파일은 부재 수집 오류. 머리 전부 통과."
+  },
+  "V3": {
+   "verdict": "FAIL",
+   "basis": "손 뮤턴트 7, kill 2(M3 층 0 반복 중 shortfall, M4 외층 반복 중 shortfall), 생존 5: M1 find_front 의 search_ceiling(final=True) 삭제, M2 사다리 칸 정지 확인 삭제, M5 끝의 색인 상한 확인 삭제, M6 게이트 R 확인 삭제, M7 사다리 start_status 값 변경. M1·M2·M7 은 interface C-T11·C-T6 가 요구한 test 가 없어서 생존 -- Major-2. 전체는 measures.json mutants."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "자기참조 없음(코드 읽기). oracle 대조: search_ceiling·search_stop·e_total·fd 상계·색인 상한 경계값은 정의에서 손 계산(B=100, t=0.5 -> D=200 등) -- 일치. test_layer0_stops_at_search_budget 의 K 는 큰 예산 실행 관찰값이고 작은 예산 구성용일 뿐 기대값이 아니다. C-T13 만 두 실행끼리 비교(oracle 없음) -- V5 Major-1. UNJUDGED 0."
+  },
+  "V5": {
+   "verdict": "FAIL",
+   "basis": "기준 약화 2. test diff sha256 7137d7b1635ce81b628a0ebc5902e0e4b6e38686f85dd7271cd5003f7445dbd8. Major-1: C-T13 -- interface 는 'E_B 넉넉히 선언, eval_budget 사유 0, shortfall 0, 궤적 동일 쌍 비교'인데 test_gate_entry_budget_same_input_same_trajectory_and_no_shortfall_escape 는 E_B=30 같은 입력 두 번의 결정성만 본다. 이 입력은 무동작이 아니다(머리에서 shortfall 7, eval_budget 정지 5). docstring 근거 '어떤 E_B 로도 예산을 다 쓴다'는 틀렸다: toy E_B=20000·100000 에서 kernel 7892, stops_eval 0, shortfall 0. dispute 에 이 항목이 없다. Major-2: interface C-T6 '사다리 칸 예산 도달 평가 0·start_status', C-T11 '평가 n_θ 이하 실행의 게이트 전 유도'에 해당 test 없음, dispute 없음, 뮤턴트 M1·M2·M7 생존. 그 밖: 기존 단언 삭제는 test_eval_budget_derived_once_after_n_plus_one 1건뿐이고 test_search_ceiling·test_evaluate_does_not_derive 대체가 같은 계약을 더 좁게 잡는다(약화 아님, n_evals 값 단언 제외는 C11). 가짜 sctx 칸 eval_budget·eval_budget_source 는 SearchContext 기존 칸(search_context.py diff 에 새 self 칸 0) -- 새 슬롯 인정 아님. test_residual_probe·fd·layer0·slsqp 의 수정은 서명 통과와 칸 보강뿐."
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "tests/structure 통과, g8 래칫 new 0·stale 0. 회로 이름·PDK 값 0. 문언 grep: find_front _e_total·2 * 0, kernel EvalBudget 0, sctx.eval_budget 직접 읽기는 허용 목록 안. 잔여 1(minor): search/CONTRACT.md:387 `_budget_stop`."
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "graph 정본: 필드 수 0, 소비자 0 인 것 0, 정본 우회 의심 0, KVL·KCL 관계 미적용 0(계산 변경 없음, 실행 제어만), graph 밖 저장 자리 2 = S3Index._parts·_total_of. _parts writer = register·register_failure 두 줄, 소비자 = index_bound 하나, 자기 키의 파생(spec '(블록, 분할) 수'), 둘째 생산자 0. _total_of = 호출 가능 참조, E_total 값 사본 0. 새 def 소비자: search_ceiling·search_stop·gate_reserve·e_total·FdBudgetShortfall·open_bound·close_bound·index_bound 모두 엔진 소비자 >= 1. residual_probe 는 production 호출자 0(표지대로). sctx.eval_budget writer = search_ceiling._derive 하나(+ search_context 생성). sctx 새 칸 0. 게이트 묶음 변수 = domain.variables, R = 2 × 같은 변수 수로 일치. open_bound(total_of)·e_total·ceiling 필수 키워드·상한 검사 find_front 안: card 대로. 판정식 중복(minor): entry_count() > index_bound 가 _check_bound 와 find_front 끝 둘(끝 확인 자체는 card 요구). G-10 test 통과(2회로, recomputes_same_input 0·recompute_same_key 0)."
+  },
+  "V8": {
+   "verdict": "PASS",
+   "basis": "폴백 0. ValueError·RuntimeError·FdBudgetShortfall 은 CANDIDATE_FAILURE_CLASSES·InfeasibleSizingError 밖, 새 넓은 except 0. 잡는 자리 = layer0·slsqp 네 곳 FdBudgetShortfall 만, 게이트는 안 잡음. 실측: folded_cascode 유도 B=0.05 s -> ValueError time_budget_below_search_reserve(D=0). 물리 경계 판정 변경 0, 수치 경계가 물리 경계를 정하는 자리 0."
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "도입 해당 없음: 실행 제어만, 물리 값·E-0 관문·봉인 변경 0(diff). 첫 스텝 shortfall 의 best 는 point() 를 통과한 받아들일 상태 + c >= 0 만. 무동작 궤적 실측: toy E_B=20000·100000 base·머리 θ·seq 7892/7892 동일, front 3 동일."
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "spec 재현 수치를 직접 쟀다(reproduced_numbers, measures.json). 미완료(보류 다리: 13회로 변화표 = LA-1 측정 시점, SPICE = OP-5·CL-1) -- 통과로 세지 않음. 실 회로에서 게이트가 돈 것은 common_gate_amplifier 1개, folded_cascode·two_stage_ota 는 front 0 이라 게이트 안 돎. ngcc_3stage_ff 는 탐색 안 함."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "card·구조·canonical·회귀 test 통과 수",
+   "value": 384,
+   "command": "r1_card.txt"
+  },
+  {
+   "name": "2회로 연기 통과 수",
+   "value": 23,
+   "command": "r4_smoke.txt"
+  },
+  {
+   "name": "toy E_B=40 base 게이트 진입 kernel_calls",
+   "value": 45,
+   "command": "test_zz_aud_toy base"
+  },
+  {
+   "name": "toy E_B=40 머리 게이트 진입 kernel_calls",
+   "value": 38,
+   "command": "test_zz_aud_toy head"
+  },
+  {
+   "name": "toy E_B=20000 커널 평가 수",
+   "value": 7892,
+   "command": "test_zz_aud_toy head"
+  },
+  {
+   "name": "toy E_B=20000 eval_budget 정지 수",
+   "value": 0,
+   "command": "test_zz_aud_toy head"
+  },
+  {
+   "name": "common_gate E_B=200 kernel_calls",
+   "value": 66,
+   "command": "test_zz_aud_real"
+  },
+  {
+   "name": "common_gate E_B=200 게이트 진입 kernel_calls",
+   "value": 66,
+   "command": "test_zz_aud_real"
+  },
+  {
+   "name": "common_gate E_B=200 게이트 안 커널 평가 수",
+   "value": 0,
+   "command": "test_zz_aud_real"
+  },
+  {
+   "name": "common_gate R",
+   "value": 12,
+   "command": "test_zz_aud_real"
+  },
+  {
+   "name": "common_gate block_index_entries",
+   "value": 1223,
+   "command": "test_zz_aud_real"
+  },
+  {
+   "name": "common_gate block_index_bound",
+   "value": 11076,
+   "command": "test_zz_aud_real"
+  },
+  {
+   "name": "folded_cascode E_B=40 base kernel_calls",
+   "value": 64,
+   "command": "test_zz_aud_real red"
+  },
+  {
+   "name": "folded_cascode E_B=40 머리 kernel_calls",
+   "value": 1,
+   "command": "test_zz_aud_real iso"
+  },
+  {
+   "name": "folded_cascode FD 변수 수",
+   "value": 25,
+   "command": "fd_log"
+  },
+  {
+   "name": "손 뮤턴트 생존 수",
+   "value": 5,
+   "command": "mutate.py"
+  }
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-11-05T03:04:17Z",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261103-xrunf1c-audit",
+  "commands": [
+   "V1: 전체 실행 안 함(임시 규칙 O-229), 범위 실행 = python -m pytest <card 14파일> test_canonical_order.py tests/structure test_it2c_l8e -q; stage_b·s0·g10 --run-slow -k 'folded_cascode or ngcc_3stage_ff'",
+   "git clone --no-hardlinks --no-local <worktree> la1s_xrunf1c_audit/iso; git -C iso remote remove origin; red = iso 복제 뒤 switch --detach 55115a29",
+   "복제본 안 측정: test_zz_aud_toy, test_zz_aud_real, test_zz_aud_ladder, mutate.py (커밋 안 함)"
+  ]
+ }
+}
