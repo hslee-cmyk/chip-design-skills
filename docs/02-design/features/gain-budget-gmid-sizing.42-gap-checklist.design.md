@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.16.16
-plan_version: 6.38.19
+version: 1.16.17
+plan_version: 6.38.20
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
@@ -362,7 +362,7 @@ plan_version: 6.38.19
 | D-LOWN | (card GV-1 범위 3 -- N6.35 E-10) L 주인 = S1v 전달 뷰에서, 뷰가 둘 이상·출발점 다름·전달 뷰 없음 = `l_owner_view_ambiguous` 정의 불능, 첫 뷰 대체 삭제 | 40 §3.11-7 | MISS | as-built `l_classes._main_path_starts` 첫 뷰 |
 | D-MRD | (card SF-1 범위 10 -- ID: 기존 D-MR(`mirror_ratio_sigma_pct`)과 중복 해소) 선언 미러 비 `human.mirror_ratios`만 `dc_current_basis` 강제 행, 정지 `mirror_ratio_not_mirror`·`mirror_ratio_symmetry_conflict`, ρ θ 종류 없음 | 40 §3.1-1·§3.7-2 | MISS | as-built `E/sizing/current_basis.py:12`('강제하지 않는다') |
 | D-PW | (card SF-1 범위 8 정의 항목 -- O-172 A18) DUT 전력 `power_dc_w` = Σ 셈 레일 V·I, V_0 = 넷리스트 0 V, 측정 부하 가감 없음(계획 DEC-78 v6.38.4 P7, 승인 O-173 C5 -- 40 §3.1-1; oracle OP-11 = 레일 전압원 전류 − 측정 부하 원소 전류) | 40 §3.1-1 | MISS | as-built `E/metrics/supply.py`(레일 전체 전류) |
-| D-RMIN | (card SF-1 범위 9 -- 계획 v6.38.18, 이름은 옛 R_min 항목 그대로) 저항 소신호 = 이상 R + 양 끝 C_par/2, C_par = κ·R(종류별 선언 양, 소신호 MNA만), 필드 `device: passive_realization` = `area_m2`·`c_par_f`(40 §3.1-1), 종류 = 선언 시점 선택. R_min 조건·값 R별 선택·실현 불능 사유 없음(O-233) | 40 §3.1-1 | MISS | as-built C_par 없음 |
+| D-RMIN | (card SF-1 범위 9 -- 계획 v6.38.20, O-173 D18·D19, O-197) 저항 소신호 = 이상 R + 양 끝 C_par/2, C_par = κ·R(종류별 선언 양, 소신호 MNA만), 필드 `device: passive_realization` = `area_m2`·`c_par_f`(40 §3.1-1), 값 R별 종류 = `resistor_kind_for`(R ≥ `r_min_ohm` 후보 중 Ω당 면적 최소, 동률 이름순), 후보 0 = 그 점 `resistor_kind_unrealizable`(E-0, 봉인 아닌 점 포함), 선언 종류 0 = `area_undefined`, `PassiveAreaDecl.resistor` = 후보 튜플, 후보 칸 `r_min_ohm` 필수(값 = 기록 파일) | 40 §3.1-1·§7.1 | MISS | as-built 선언 시점 선택 `E/core/pdk_decl.py`(R_min 없음), C_par 없음 |
 | D-U12 | (40 §3.5 상태표에서 옮김) 단일단 gm_1 규칙(U-12, 계획상 확정 대기) | 40 §3.5 | MISS | -- |
 | D-PMCM | (40 §4 상태표에서 옮김) `pm_cm_ss_deg` oracle 측정 -- `[ng-cmfb-pm]`에 있고 `[ng-bridge]` `ORACLE_MEASURES`에는 없음 | 40 §4 | PART | `[ng-cmfb-pm]` |
 | D-FCOP | (40 §3.4 상태표에서 옮김) LUT 곡선 FC 위반 칸에서 `op_point`가 사유 기록 없이 선형으로 넘어감(분류는 있고 해법 매핑 없음) | 40 §3.4 | PART | `E/lut/lut_set.py`, `E/lut/curve_check.py` |
