@@ -1,0 +1,3 @@
+icm {'__type__': 'IcmConfig', 'config': 'servo', 'pivot_a_e': 1.5, 'pivot_resolution': 0.25, 'vcm0': 0.6, 'vcm_lo': 0.5, 'vcm_hi': 0.7, 'undefined': []}
+seal {'__type__': 'SealItem', 'item': 1, 'status': 'pass', 'magnitude': 0.125, 'tol': 1.0, 'margin': 0.125, 'devices': [], 'nodes': [], 'detail': []}
+41 중 속성 읽기 있음: []

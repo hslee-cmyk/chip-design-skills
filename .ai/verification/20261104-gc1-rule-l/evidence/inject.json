@@ -1,0 +1,233 @@
+[
+ {
+  "name": "float_write",
+  "want": "catch",
+  "why": "N3.1-5 float()",
+  "got": [
+   [
+    "L-5",
+    "op_copy",
+    "graph/op_user.py",
+    "place"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "int_write",
+  "want": "catch",
+  "why": "N3.1-5 int()",
+  "got": [
+   [
+    "L-5",
+    "op_copy",
+    "graph/op_user.py",
+    "place"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "column_loop_write",
+  "want": "catch",
+  "why": "루프·튜플 풀기",
+  "got": [
+   [
+    "L-5",
+    "op_copy",
+    "graph/op_user.py",
+    "place"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "whole_object_write",
+  "want": "catch",
+  "why": "DeviceOp 객체 자체",
+  "got": [
+   [
+    "L-5",
+    "op_copy",
+    "graph/op_user.py",
+    "place"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "attr_ctx",
+  "want": "catch",
+  "why": "(iv) 실행 컨텍스트 속성",
+  "got": [
+   [
+    "L-5",
+    "op_copy",
+    "graph/op_user.py",
+    "place"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "module_dict",
+  "want": "catch",
+  "why": "(iv) 모듈 전역",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "module_global",
+  "want": "catch",
+  "why": "(iv) 모듈 전역",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "module_update",
+  "want": "catch",
+  "why": "(iv) 모듈 전역",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "method_call_unknown",
+  "want": "catch",
+  "why": "계약 7 '추적 실패는 위반'",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "json_dump",
+  "want": "catch",
+  "why": "(iii) 결과 JSON, 출력 함수 아님",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "arith_clean",
+  "want": "clean",
+  "why": "산술로 끊김",
+  "got": [],
+  "ok": true
+ },
+ {
+  "name": "temp_clean",
+  "want": "clean",
+  "why": "계산 입력",
+  "got": [],
+  "ok": true
+ },
+ {
+  "name": "snapshot_carry_clean",
+  "want": "clean",
+  "why": "스냅샷 참조 -- dc_op 칸 사본이 아님(graph 규칙 4 참조 전달)",
+  "got": [],
+  "ok": true
+ },
+ {
+  "name": "kind_only_key_clean",
+  "want": "clean",
+  "why": "반환 뒤 산술",
+  "got": [],
+  "ok": true
+ },
+ {
+  "name": "diode_wrapped",
+  "want": "catch",
+  "why": "F-G13 일반",
+  "got": [
+   [
+    "L-5",
+    "diode",
+    "graph/user.py",
+    "check"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "diode_var",
+  "want": "catch",
+  "why": "이름 꼴",
+  "got": [
+   [
+    "L-5",
+    "diode",
+    "graph/user.py",
+    "check"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "same_vgs_wrap",
+  "want": "catch",
+  "why": "_edges 꼴",
+  "got": [
+   [
+    "L-5",
+    "same_vgs",
+    "graph/user.py",
+    "check"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "nonpin_g_s_wrap",
+  "want": "catch",
+  "why": "이름만으로 잡음(도구 한계 표지)",
+  "got": [
+   [
+    "L-5",
+    "same_vgs",
+    "graph/user.py",
+    "check"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "len_wrap_fp",
+  "want": "clean",
+  "why": "핀 비교 아님 -- len(g)==len(d) 과잉 여부",
+  "got": [
+   [
+    "L-5",
+    "diode",
+    "graph/user.py",
+    "check"
+   ]
+  ],
+  "ok": false
+ },
+ {
+  "name": "isinstance_wrap_fp",
+  "want": "clean",
+  "why": "핀 비교 아님 -- 임의 호출 첫 인자 풀기 과잉 여부",
+  "got": [
+   [
+    "L-5",
+    "diode",
+    "graph/user.py",
+    "check"
+   ]
+  ],
+  "ok": false
+ },
+ {
+  "name": "get_wrap",
+  "want": "catch",
+  "why": "전압 값 비교는 핀 비교와 다름 -- 표지",
+  "got": [
+   [
+    "L-5",
+    "diode",
+    "graph/user.py",
+    "check"
+   ]
+  ],
+  "ok": true
+ }
+]

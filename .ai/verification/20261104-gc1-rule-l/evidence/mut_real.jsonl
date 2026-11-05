@@ -1,0 +1,16 @@
+{"i": 14, "name": "L3-unresolved-reads-ok", "lost": [], "n_lost": 0, "gained": [], "n_gained": 0}
+{"i": 19, "name": "L4-exempt-off", "lost": [], "n_lost": 0, "gained": [], "n_gained": 0}
+{"i": 20, "name": "L4-any-class", "lost": [], "n_lost": 0, "gained": [["L-4", "layout.transistor.Transistor.finger_w"], ["L-4", "layout.transistor.Transistor.l"], ["L-4", "layout.transistor.Transistor.stack_id"]], "n_gained": 3}
+{"i": 21, "name": "L4-any-module", "lost": [], "n_lost": 0, "gained": [["L-4", "authoring.cm_partition.CmPartition.consumers"], ["L-4", "core.blas_env.BlasEnvironment.blas"], ["L-4", "core.blas_env.BlasEnvironment.numpy_version"], ["L-4", "core.blas_env.BlasEnvironment.scipy_version"], ["L-4", "core.pdk_decl.PdkMismatchBlock.line"], ["L-4", "core.pdk_decl.PdkMismatchModel.model_sha256"], ["L-4", "core.pdk_decl.PdkMismatchModel.slope_sha256"], ["L-4", "core.pdk_decl.PdkRule.line"]], "n_gained": 26}
+{"i": 24, "name": "Pin-unwrap-off", "lost": [["L-5", "same_vgs", "sizing/writer_plan.py", "_edges"]], "n_lost": 1, "gained": [], "n_gained": 0}
+{"i": 41, "name": "Op-attr-sink-off", "lost": [["L-5", "op_copy", "core/failure_partial.py", "attach_partial"], ["L-5", "op_copy", "search/eps_sweep.py", "_filter"], ["L-5", "op_copy", "search/eps_sweep.py", "_warm"], ["L-5", "op_copy", "search/eps_sweep.py", "sweep_front"], ["L-5", "op_copy", "search/layer0_center.py", "_maxmin"], ["L-5", "op_copy", "search/layer0_center.py", "_repair"], ["L-5", "op_copy", "search/layer0_center.py", "_repairable"], ["L-5", "op_copy", "search/slsqp_outer.py", "_layout"]], "n_lost": 8, "gained": [], "n_gained": 0}
+{"i": 43, "name": "Op-output-exempt-off", "lost": [], "n_lost": 0, "gained": [], "n_gained": 0}
+{"i": 44, "name": "Op-writer-exempt-off", "lost": [], "n_lost": 0, "gained": [], "n_gained": 0}
+{"i": 45, "name": "Op-reach-off", "lost": [], "n_lost": 0, "gained": [], "n_gained": 0}
+{"i": 46, "name": "Op-float-cuts", "lost": [], "n_lost": 0, "gained": [], "n_gained": 0}
+{"i": 51, "name": "Graph-toplevel-not-root", "lost": [], "n_lost": 0, "gained": [["L-1", "device.ly_attrs"], ["L-1", "device.ly_fw_cand"], ["L-1", "device.ly_pins"], ["L-1", "device.ly_slices"], ["L-1", "device.ly_w_adjustable"], ["L-1", "graph.ly_passives"], ["L-1", "graph.ly_rejected"], ["L-1", "graph.ly_row_groups"]], "n_gained": 8}
+{"i": 52, "name": "Graph-shadow-ignored", "lost": [], "n_lost": 0, "gained": [], "n_gained": 0}
+{"i": 55, "name": "Read-kindfilter-off", "lost": [], "n_lost": 0, "gained": [], "n_gained": 0}
+{"i": 57, "name": "Table-wt-off", "lost": [], "n_lost": 0, "gained": [], "n_gained": 0}
+{"i": 58, "name": "Table-wt-rows-off", "lost": [["L-1", "graph.dof_numeric"], ["L-1", "graph.residual_probe"]], "n_lost": 2, "gained": [], "n_gained": 0}
+{"i": 59, "name": "Entry-missing-off", "lost": [], "n_lost": 0, "gained": [], "n_gained": 0}

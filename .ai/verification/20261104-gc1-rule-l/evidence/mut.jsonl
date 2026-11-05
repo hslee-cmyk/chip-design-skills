@@ -1,0 +1,70 @@
+{"i": 0, "name": "L1-off", "killed": true, "n_fail": 6, "fails": ["test_rule_l_fixture_exact_violation_set[L1a]", "test_rule_l_fixture_exact_violation_set[L1b]", "test_rule_l_fixture_exact_violation_set[L1d]", "test_rule_l_fixture_exact_violation_set[L9a]", "test_rule_l_fixture_exact_violation_set[L9b]", "test_rule_l_l9c_closure_variable_is_dynamic"], "tail": "6 failed, 47 passed in 1.91s"}
+{"i": 1, "name": "L1-writer-self-counts", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L1d]"], "tail": "1 failed, 52 passed in 1.07s"}
+{"i": 2, "name": "L1-reach-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L1b]"], "tail": "1 failed, 52 passed in 1.07s"}
+{"i": 3, "name": "L2-undeclared-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L2a]"], "tail": "1 failed, 52 passed in 1.01s"}
+{"i": 4, "name": "L2-unreach-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L2c]"], "tail": "1 failed, 52 passed in 1.10s"}
+{"i": 5, "name": "L1d-off", "killed": true, "n_fail": 3, "fails": ["test_rule_l_fixture_exact_violation_set[L9a]", "test_rule_l_fixture_exact_violation_set[L9b]", "test_rule_l_l9c_closure_variable_is_dynamic"], "tail": "3 failed, 50 passed in 1.12s"}
+{"i": 6, "name": "L1d-allow-all", "killed": true, "n_fail": 3, "fails": ["test_rule_l_fixture_exact_violation_set[L9a]", "test_rule_l_fixture_exact_violation_set[L9b]", "test_rule_l_l9c_closure_variable_is_dynamic"], "tail": "3 failed, 50 passed in 1.13s"}
+{"i": 7, "name": "L1d-allowfile-ignored", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L9d]"], "tail": "1 failed, 52 passed in 1.09s"}
+{"i": 8, "name": "L3-off", "killed": true, "n_fail": 4, "fails": ["test_rule_l_fixture_exact_violation_set[L3a]", "test_rule_l_fixture_exact_violation_set[L3b]", "test_rule_l_fixture_exact_violation_set[L3d]", "test_rule_l_fixture_exact_violation_set[L3e]"], "tail": "4 failed, 49 passed in 1.18s"}
+{"i": 9, "name": "L3-unverif-as-notread", "killed": true, "n_fail": 2, "fails": ["test_rule_l_fixture_exact_violation_set[L3d]", "test_rule_l_fixture_exact_violation_set[L3e]"], "tail": "2 failed, 51 passed in 1.15s"}
+{"i": 10, "name": "L3-notread-as-unverif", "killed": true, "n_fail": 2, "fails": ["test_rule_l_fixture_exact_violation_set[L3a]", "test_rule_l_fixture_exact_violation_set[L3b]"], "tail": "2 failed, 51 passed in 1.56s"}
+{"i": 11, "name": "L3-helper-reads-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L3c]"], "tail": "1 failed, 52 passed in 1.18s"}
+{"i": 12, "name": "L3-otherpkg-ok", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L3e]"], "tail": "1 failed, 52 passed in 1.11s"}
+{"i": 13, "name": "L3-helper-pass-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L3d]"], "tail": "1 failed, 52 passed in 1.13s"}
+{"i": 14, "name": "L3-unresolved-reads-ok", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.13s"}
+{"i": 15, "name": "L4-off", "killed": true, "n_fail": 2, "fails": ["test_rule_l_fixture_exact_violation_set[L4a]", "test_rule_l_fixture_exact_violation_set[L4c]"], "tail": "2 failed, 51 passed in 1.33s"}
+{"i": 16, "name": "L4-self-counts", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L4c]"], "tail": "1 failed, 52 passed in 1.30s"}
+{"i": 17, "name": "L4-getattr-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L4b]"], "tail": "1 failed, 52 passed in 1.15s"}
+{"i": 18, "name": "L4-strings-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L4b]"], "tail": "1 failed, 52 passed in 1.16s"}
+{"i": 19, "name": "L4-exempt-off", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.12s"}
+{"i": 20, "name": "L4-any-class", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.16s"}
+{"i": 21, "name": "L4-any-module", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.09s"}
+{"i": 22, "name": "Diode-off", "killed": true, "n_fail": 4, "fails": ["test_rule_l_fixture_exact_violation_set[L5a-1]", "test_rule_l_fixture_exact_violation_set[L5a-2]", "test_rule_l_fixture_exact_violation_set[L5a-3]", "test_rule_l_fixture_exact_violation_set[L5a-4]"], "tail": "4 failed, 49 passed in 1.09s"}
+{"i": 23, "name": "Diode-noteq-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L5a-2]"], "tail": "1 failed, 52 passed in 1.25s"}
+{"i": 24, "name": "Pin-unwrap-off", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.22s"}
+{"i": 25, "name": "Pin-subscript-off", "killed": true, "n_fail": 2, "fails": ["test_rule_l_fixture_exact_violation_set[L5a-3]", "test_rule_l_fixture_exact_violation_set[L5a-5]"], "tail": "2 failed, 51 passed in 1.23s"}
+{"i": 26, "name": "Pin-attr-off", "killed": true, "n_fail": 3, "fails": ["test_rule_l_fixture_exact_violation_set[L5a-1]", "test_rule_l_fixture_exact_violation_set[L5a-2]", "test_rule_l_fixture_exact_violation_set[L5a-4]"], "tail": "3 failed, 50 passed in 1.20s"}
+{"i": 27, "name": "Gs-off", "killed": true, "n_fail": 3, "fails": ["test_rule_l_fixture_exact_violation_set[L5a-5]", "test_rule_l_fixture_exact_violation_set[L5a-7]", "test_rule_l_fixture_exact_violation_set[L5a-8]"], "tail": "3 failed, 50 passed in 1.20s"}
+{"i": 28, "name": "Gs-any-position", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L5a-10]"], "tail": "1 failed, 52 passed in 1.24s"}
+{"i": 29, "name": "Gs-kinddict-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L5a-6]"], "tail": "1 failed, 52 passed in 1.70s"}
+{"i": 30, "name": "Key-lambda-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L5a-5]"], "tail": "1 failed, 52 passed in 1.25s"}
+{"i": 31, "name": "Key-in-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L5a-7]"], "tail": "1 failed, 52 passed in 1.18s"}
+{"i": 32, "name": "Key-wrapper-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L5a-8]"], "tail": "1 failed, 52 passed in 1.15s"}
+{"i": 33, "name": "Writerfile-exempt-off", "killed": true, "n_fail": 10, "fails": ["test_rule_l_fixture_exact_violation_set[L5a-1]", "test_rule_l_fixture_exact_violation_set[L5a-10]", "test_rule_l_fixture_exact_violation_set[L5a-2]", "test_rule_l_fixture_exact_violation_set[L5a-3]", "test_rule_l_fixture_exact_violation_set[L5a-4]", "test_rule_l_fixture_exact_violation_set[L5a-5]"], "tail": "10 failed, 43 passed in 1.40s"}
+{"i": 34, "name": "Writerfile-missing-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_l5a_11_missing_writer_file"], "tail": "1 failed, 52 passed in 1.18s"}
+{"i": 35, "name": "Op-off", "killed": true, "n_fail": 3, "fails": ["test_rule_l_fixture_exact_violation_set[L5b-1]", "test_rule_l_fixture_exact_violation_set[L5b-2]", "test_rule_l_fixture_exact_violation_set[L5b-3]"], "tail": "3 failed, 50 passed in 1.24s"}
+{"i": 36, "name": "Op-return-off", "killed": true, "n_fail": 2, "fails": ["test_rule_l_fixture_exact_violation_set[L5b-1]", "test_rule_l_fixture_exact_violation_set[L5b-2]"], "tail": "2 failed, 51 passed in 1.40s"}
+{"i": 37, "name": "Op-local-off", "killed": true, "n_fail": 3, "fails": ["test_rule_l_fixture_exact_violation_set[L5b-1]", "test_rule_l_fixture_exact_violation_set[L5b-2]", "test_rule_l_fixture_exact_violation_set[L5b-3]"], "tail": "3 failed, 50 passed in 1.23s"}
+{"i": 38, "name": "Op-write-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L5b-1]"], "tail": "1 failed, 52 passed in 1.41s"}
+{"i": 39, "name": "Op-blockret-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L5b-2]"], "tail": "1 failed, 52 passed in 2.39s"}
+{"i": 40, "name": "Op-untracked-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L5b-3]"], "tail": "1 failed, 52 passed in 1.42s"}
+{"i": 41, "name": "Op-attr-sink-off", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.27s"}
+{"i": 42, "name": "Op-arith-flows", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L5c-2]"], "tail": "1 failed, 52 passed in 1.21s"}
+{"i": 43, "name": "Op-output-exempt-off", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.16s"}
+{"i": 44, "name": "Op-writer-exempt-off", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.17s"}
+{"i": 45, "name": "Op-reach-off", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.12s"}
+{"i": 46, "name": "Op-float-cuts", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.16s"}
+{"i": 47, "name": "L1x-off", "killed": true, "n_fail": 3, "fails": ["test_rule_l_fixture_exact_violation_set[L1b]", "test_rule_l_fixture_exact_violation_set[L8a]", "test_rule_l_fixture_exact_violation_set[L8b]"], "tail": "3 failed, 50 passed in 1.09s"}
+{"i": 48, "name": "L1x-class-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L8a]"], "tail": "1 failed, 52 passed in 1.11s"}
+{"i": 49, "name": "L1x-entry-not-exempt", "killed": true, "n_fail": 44, "fails": ["test_rule_l_fixture_exact_violation_set[L1a]", "test_rule_l_fixture_exact_violation_set[L1b]", "test_rule_l_fixture_exact_violation_set[L1c]", "test_rule_l_fixture_exact_violation_set[L1d]", "test_rule_l_fixture_exact_violation_set[L2a]", "test_rule_l_fixture_exact_violation_set[L2b]"], "tail": "44 failed, 9 passed in 1.30s"}
+{"i": 50, "name": "Graph-reexport-sub-first", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L8e]"], "tail": "1 failed, 52 passed in 1.12s"}
+{"i": 51, "name": "Graph-toplevel-not-root", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.25s"}
+{"i": 52, "name": "Graph-shadow-ignored", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.32s"}
+{"i": 53, "name": "Const-add-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L9e]"], "tail": "1 failed, 52 passed in 1.24s"}
+{"i": 54, "name": "Const-loop-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L1c]"], "tail": "1 failed, 52 passed in 1.24s"}
+{"i": 55, "name": "Read-kindfilter-off", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.11s"}
+{"i": 56, "name": "Table-writes-unresolved-off", "killed": true, "n_fail": 0, "fails": [], "tail": "1 error in 0.89s"}
+{"i": 57, "name": "Table-wt-off", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.15s"}
+{"i": 58, "name": "Table-wt-rows-off", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.29s"}
+{"i": 59, "name": "Entry-missing-off", "killed": false, "n_fail": 0, "fails": [], "tail": "53 passed in 1.19s"}
+{"i": 60, "name": "Debt-missing-off", "killed": true, "n_fail": 2, "fails": ["test_rule_l_debt_l6_deleted_item_and_addition_outside_baseline", "test_rule_l_debt_l6b_violation_without_item_is_missing"], "tail": "2 failed, 51 passed in 1.18s"}
+{"i": 61, "name": "Debt-stale-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_debt_l7_fixed_but_still_listed_is_stale"], "tail": "1 failed, 52 passed in 1.23s"}
+{"i": 62, "name": "Debt-outside-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_debt_l6_deleted_item_and_addition_outside_baseline"], "tail": "1 failed, 52 passed in 1.17s"}
+{"i": 63, "name": "Debt-bad-vocab-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_debt_l6c_vocabulary_and_blank_card"], "tail": "1 failed, 52 passed in 1.18s"}
+{"i": 64, "name": "Debt-bad-card-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_debt_l6c_vocabulary_and_blank_card"], "tail": "1 failed, 52 passed in 1.19s"}
+{"i": 65, "name": "Fp-params-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fingerprint_changes_on_one_char_or_one_param"], "tail": "1 failed, 52 passed in 1.16s"}
+{"i": 66, "name": "Fp-checks-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fingerprint_changes_on_one_char_or_one_param"], "tail": "1 failed, 52 passed in 1.18s"}
+{"i": 67, "name": "Fp-tables-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fingerprint_changes_on_one_char_or_one_param"], "tail": "1 failed, 52 passed in 1.35s"}
+{"i": 68, "name": "Fp-newline-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fingerprint_newline_normalized"], "tail": "1 failed, 52 passed in 1.22s"}
+{"i": 69, "name": "Sort-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_fixture_exact_violation_set[L8a]"], "tail": "1 failed, 52 passed in 1.15s"}

@@ -1,0 +1,41 @@
+('achievability', 'not', True) 15
+('build_s1v', 'not', False) 36
+('build_s1v', 'not', True) 2
+('coupling_vars', 'not', False) 34
+('coupling_vars', 'not', True) 4
+('dc_columns', 'unv', False) 8
+('icm_config', 'unv', False) 6
+('icm_config', 'unv', True) 1
+('ly_canonical_naming', 'unv', False) 3
+('ly_pattern_select', 'not', False) 1
+('ly_rows', 'not', False) 1
+('metrics_aux', 'unv', True) 4
+('metrics_dc', 'unv', False) 2
+('s1_dc_conduction', 'not', False) 1
+('s1_gvgs', 'not', False) 1
+('s1_symmetry', 'unv', False) 4
+('search_domain', 'not', False) 3
+('ss_off_delta', 'not', False) 1
+('start_intervals', 'unv', False) 2
+not_read but read in the same file:
+  achievability.device.bulk ['metrics/achievability.py:111']
+  achievability.device.dc_colour ['metrics/achievability.py:145']
+  achievability.device.element_class ['metrics/achievability.py:108']
+  achievability.device.kind ['metrics/achievability.py:109']
+  achievability.device.pins ['metrics/achievability.py:110', 'metrics/achievability.py:141']
+  achievability.graph.dc_current_basis ['metrics/achievability.py:123', 'metrics/achievability.py:249']
+  achievability.graph.fixed_values ['metrics/achievability.py:323']
+  achievability.graph.l_classes ['metrics/achievability.py:119']
+  achievability.graph.l_ties ['metrics/achievability.py:297']
+  achievability.graph.orbits ['metrics/achievability.py:113']
+  achievability.node.dc_colour ['metrics/achievability.py:144']
+  achievability.node.dc_writer ['metrics/achievability.py:300']
+  achievability.node.is_rail ['metrics/achievability.py:112', 'metrics/achievability.py:296']
+  achievability.node.port_direction ['metrics/achievability.py:274']
+  achievability.node.port_role ['metrics/achievability.py:275']
+  build_s1v.device.dc_role ['graph/s1v_fields.py:158', 'graph/s1v_fields.py:171']
+  build_s1v.graph.matching_groups ['graph/s1v_fields.py:172']
+  coupling_vars.graph.branches ['graph/coupling_vars.py:116']
+  coupling_vars.graph.columns ['graph/coupling_vars.py:119']
+  coupling_vars.graph.matching_groups ['graph/coupling_vars.py:86']
+  coupling_vars.graph.rel_equal_vgs ['graph/coupling_vars.py:96']
