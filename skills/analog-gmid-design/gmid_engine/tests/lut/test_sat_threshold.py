@@ -144,7 +144,7 @@ def test_sat_threshold_tol_is_the_anchor_bin_cell_not_wrapped_maximum(mid_toy_bu
 
 # ---- S8 소스 훑기 -----------------------------------------------------------------------------------------------------------
 
-REMOVED_NAMES = ("_tol_vdsat_max", "_tol_vdsat_grid", "tol_vdsat_max", "_vds_floor", "tol_vdsat")
+REMOVED_NAMES = ("_tol_vdsat_max", "_tol_vdsat_grid", "tol_vdsat_max", "_vds_floor")
 
 
 def _names_in(path):
@@ -162,6 +162,11 @@ def _names_in(path):
 def test_sat_threshold_removed_names_absent_from_engine_sources():
     hits = {(p.name, n) for p in engine_sources() for n in _names_in(p)}
     assert hits == set()
+
+
+def test_sat_threshold_tol_vdsat_is_never_called_in_engine_sources():
+    """card S8 문언: `tol_vdsat(` 호출 0 (이름 토큰 전면 금지가 아니라 호출 금지 -- 삭제 이름 금지는 위 test 가 유지)."""
+    assert calls_of("tol_vdsat") == set()
 
 
 def test_sat_threshold_no_direct_vdsat_lookup_in_metrics_or_seal_region():

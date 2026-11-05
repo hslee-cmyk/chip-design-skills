@@ -489,14 +489,14 @@ def test_root_above_floor_solved(tmp_path, acc_f, kind, vgs1):
 
 
 def test_floor_cached_in_lut_memo(tmp_path, acc_f):
-    """값은 LUT memo derived 영역 키 ("sizing_vds_floor", kind, w_key) 에 슬라이스당 1회."""
+    """값은 LUT memo derived 영역 키 ("vds_floor", kind, w_key) 에 슬라이스당 1회 (card 20261104-hcs: 정본 `derived(memo, "vds_floor", ...)`)."""
     ctx = _diode_ctx(tmp_path, acc_f, "nmos")
     run_blocks(ctx, _diode_theta(ctx, "nmos", 0.6), upto="columns")
     misses = dict(acc_f.memo.stats())["derived"].misses
 
     def not_cached():
         raise AssertionError("하한이 derived memo 에 없다")
-    assert acc_f.memo.lookup("derived", "sizing_vds_floor", ("nmos", 100), not_cached) == _floor("nmos", "F")
+    assert acc_f.memo.lookup("derived", "vds_floor", ("nmos", 100), not_cached) == _floor("nmos", "F")
     run_blocks(ctx, _diode_theta(ctx, "nmos", 0.45), upto="columns")
     assert dict(acc_f.memo.stats())["derived"].misses == misses
 

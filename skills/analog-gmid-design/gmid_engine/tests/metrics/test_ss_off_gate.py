@@ -128,7 +128,8 @@ def test_off_gate_closed_form_vsb_term_with_source_degeneration(tmp_path):
                                  {"R1": r1, "Rs": rs})
     case = build_case(tmp_path, topo, {"Moff": off_entry()}, th,
                       elements=(("R1", "resistor", None), ("Rs", "resistor", None), ("CL", "capacitor", 1e-12)))
-    snap = dv(put(_snap(case), vgs=0.5, vds=0.5, vsb=0.25), ss=0.0625, out=-0.1875)
+    # [card 20261104-hcs] 기준 VDSAT 은 필드 `dc_sat_v` -- dc_op 점(vgs 0.5, vsb 0.25)의 닫힌 식 값 0.25 + 0.125*0.25 = 0.28125(위 docstring 손계산)를 같이 주입한다.
+    snap = dv(sat(put(_snap(case), vgs=0.5, vds=0.5, vsb=0.25), SatBound(0.28125, 0.0625, None)), ss=0.0625, out=-0.1875)
     _, sp = rejected(case, snap)
     assert sp == {"M1": -0.009765625}
 
