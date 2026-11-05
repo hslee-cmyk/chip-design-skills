@@ -1,0 +1,180 @@
+{
+  "id": "20261104-tb1-theta-class",
+  "spec_card": "docs/02-design/specs/20261104-tb1-theta-class.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "a5caed3f8149b647db61030c1296ab7910eb6c9b",
+  "test_commit": "966b2ecc9d7f6d1ac2a07dcf7fbad25da45dca4c",
+  "code_commit": "7a0fb746b291fe878bf696febe7fa5176b343305",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_theta_class.py",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_in_loop_b_diode_first",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_in_loop_b_source_chain_downstream",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_in_loop_b_beats_non_b_regardless_of_position",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_in_loop_b_canonical_position_first_is_dependent",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_symmetric_orbit_representative",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_no_b_diode_stays_independent[F]",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_no_b_diode_stays_independent[S]",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_no_b_canonical_position_last_is_dependent[F]",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_no_b_canonical_position_last_is_dependent[S]",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_parallel_keeps_diode_and_loop_chooses_among_rest",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_w4_root_tie_stops_with_dc_colour_not_unique",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_w4_root_tie_vocabulary_is_gone",
+      "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_removed_hint_arguments_and_names"
+    ],
+    "failure_hashes": [
+      "374d3acf76832ce7c571ff7ada59265fc9eb4da1555c8bc9b4224d37d59c840b",
+      "27a35109730d0ae94e2c72e984701c46f850990302329723d38cc8c7b328572d",
+      "dc2ee28bb0c816252c2783bc252c89c24149144d03bd3330e57f8c6fc3dde7ac",
+      "a18ecf14b82ffc8097f7afbfda32efed93bc12fadafe7280f9c36cbdf82c2aa8",
+      "34b100f8d135a1c08947e79b19f53e154e2709971c6d075b161f03694ef78c33",
+      "3fea1ec113a1fe984e69b02ad716334f2c0ae32c17d1f3f0fe508b3b58c92ca9",
+      "029a28ca289a105691347defa297fc657b24588d5ff87ddd90c825580a9281a4",
+      "dd45d29b6d8650381ab7ca27149c0d26ac8ac030fe1d739ec434e987e07b3bfb",
+      "beb5c99fb48f77c5e1b47dc12f6ae3f0cea567d110413a71a3661879800c5da1",
+      "44a0c88593fff7726a5a51713a14733bbf3bf8301f82229c2c2c20fbde319aac",
+      "79973589609160de49a5e95b616e73c0f19a505c9b13c7ff15dd200be448a481",
+      "619e1fcef6c4a9b837f7c0666034917b995f7aff45ce7d6474e5dfc796c3e6c8",
+      "af01da63b78e990ca95982ec9b0e5fc89068cf48f506a2a15bff3dc4e81475dc",
+      "649cf5f1f5fee973b6d2ff6805450ebe54484aaf8f31c84e545c37f842802cda"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "N/A",
+      "basis": "전체 test 안 돌림(임시 규칙 O-229). 돌린 범위 = 격리 복제본 iso2, 머리 bac4c5de: test_theta_class 11 통과 / card test 8파일 380 중 379 통과 1 실패 / test_icm_config 36 통과 / search/test_canonical_order 12 통과 / tests/structure 171 통과 1 deselected / 2회로 연기 stage_b 10·s0 11·g10 2 = 23 통과. 안 돌린 것은 통과로 세지 않는다."
+    },
+    "V2": {
+      "verdict": "FAIL",
+      "basis": "red: a5caed3f 코드 + 966b2ecc card test(test_theta_class·test_writer_plan·test_structure_load·sizing/conftest) 위에서 잰 허용 타입 red 14건. 허용 밖 SchemaRejectedError 6건(새 concept 거부)은 red 로 세지 않았다. green: test_s2_values::test_block_reads_declared_as_contract[dc_writer_plan] 1건 실패(M-2) -- 머리 코드 READS 에 device.dc_nets·node.ac_ground_class 가 있는데 기대에 없다. master 6b21ede5 에서도 같은 test 가 실패하므로(1 failed 7 passed) TB-1 이 만든 것이 아니라 EO-1 A-93 의 test 갱신 누락이다. 기준(필수 test 실패)대로 FAIL. T-T6 이름 전단사 toy(test_dependent_member_name_bijection_in_loop·outside_loop)는 base 에서 통과해 red 가 아니다: card 'base 는 red, 고리 밖 red toy 를 못 찾으면 보고' 대로 보고(minor)."
+    },
+    "V3": {
+      "verdict": "FAIL",
+      "basis": "복사본 뮤턴트 13(대조 m0 101 통과): 죽음 8(m1 첫 뷰 복원, m3, m4, m7, m9, m10, m11, m12), 생존 5: m2 성분 안 W4 동률 정지, m5 소스 사슬 하류 끔, m6 궤도 대표 끔, m8 S 순위 끔, m13 FF 셀 B. 대상 test 는 test_theta_class·test_writer_plan 2파일뿐. test 공백이고 Major 기준 밖(minor, LA-1 재점검 입력). m5 는 library 기대 test T-T12 가 없어 current_reuse 종속을 test 가 고정하지 않는다는 뜻이다(값은 판정자 S0 표가 잰다)."
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: 새 test 기대 {M1:S, M2:S, 부하·꼬리·바이어스:B} = 연결에서 손 유도와 일치, 판정자 toy T1 도 같음. test_it2c_l8e 는 θ 키 M1 -> M2 한 곳만 바뀌고 값·물리 단언 불변(diff), 36 통과. 앞 판정의 test_dc_inputs 기대값 자기참조 지적은 그대로(왕복 안 함). library §5 표·T-T12 는 없어 기대값 대조는 판정자 S0 표로만 했다: current_reuse M11b·M14a·M20b·M23a, r2r M22·M23 이 계획 손 판정과 일치."
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "기준 약화 없음. 1139bbcd..bac4c5de 의 test diff = test_it2c_l8e θ 키 1줄과 test_theta_class 추가뿐, 단언 삭제 0. A-89 자기동형 단언은 앞 판정대로 약화 아님(전수 자기동형 2, 불변 선택 0, 비자기동형 toy σ 일치 3/3). 다만 새 넷 이름 test 는 입력 넷만 바꾸고 분류만 단언한다(판정자 전체 이름 바꿈으로 보충, V9)."
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "tests/structure 171 통과 1 deselected, 래칫 new 0, stale 1(vt_assign sizing/s2_values.py NO_ORDER_HINTS:OrderHints -- 옛 이름이 기준선에 남음, 사실 기록)."
+    },
+    "V7": {
+      "verdict": "PASS",
+      "basis": "필드 수 2(device.theta_class, graph/s1v dependent_facts) / 소비자 0 인 필드 0(둘 다 dc_writer_plan READS) / 정본 우회 의심 0 / KVL·KCL 관계 미적용 0 / graph 밖 저장 자리 0(새 cache·memo·슬롯 없음, diff grep·코드 읽기). rel_kvl_branch 와 쓰기 계획 기본 사이클은 F 집합·저항·숲이 달라 둘째 생산자 아님. gain 뷰 id 는 s1v_fields 지역 변수라 정본 필드가 없다. graph/·assets diff 1139bbcd 대비 0, rule_hash 불변, 사실 stale 0(test_library_structure_files_are_applied_not_stale 통과). D40 §2.4.8 소유표·§3.7 MISS 행 미갱신은 사실 기록."
+    },
+    "V8": {
+      "verdict": "PASS",
+      "basis": "우회 발동 0. W4 동률은 정지(dc_colour_not_unique), library 발동 0, w4_root 기록 0. views[:1] 제거로 이름 순서로 조용히 정하던 자리(앞 M-1)가 없어졌다. 레일 여기 뷰는 블록 역할이 없어 S 를 넓히지 않는다(P_ota_psrr_vdd)."
+    },
+    "V9": {
+      "verdict": "PASS",
+      "basis": "S 넓힘의 물리 위반 없음(A-100 원래 취지와 다름 = minor). 값: 부분 뷰 toy Q(gain 이 ia 뷰에만) 넓은 뷰 {M1:S, M2:S}, 좁은 뷰 {M1:S, M2:F}, 종속 집합 같음. toy 6개 종속 6/6 같음. library 11회로에서 F 전부 -> S 종속 변화 0/11. 코드상 B 집합은 S 넓힘과 무관하다(signal 합집합이 이미 모든 뷰의 input 을 비 B 로 둔다). 강제 스트레스: F 하나 -> S 8/46, B 하나 -> S 26/133 에서 종속이 바뀌나 종속 수 변화는 0, 즉 θ 차원 불변(O-127). 같은 점 값 비교: 인버터 toy 에서 종속 Mn(θ ln_idu Mp = -13.1816) 과 종속 Mp(θ ln_idu Mn = -8.6484) 의 VGS 1.05·0.75(합 1.8 = 공급), VDS 0.9, 차이 4.4e-16. 선택만 다르고 물리는 같다. 주의: S 의 gm 요구 뜻을 LA-1 이 읽을 때 gain 제약 없는 뷰의 입력도 S 다. 재점검 입력."
+    },
+    "V10": {
+      "verdict": "N/A",
+      "basis": "S0 표 재현: 13회로, 빌드 11, 정지 2(cnr_ota dc_resistor_cycle, erfc_ota mos_zero_current_structural), 종속·분류 7ede59f2 대비 13/13 불변, 종속 총수 base 대비 11/11 불변, 고리 14 B 규칙 전부 충족, 대칭 생성자 닫힘 위반 0. 이름 전단사: library S1v 경로 33/33, 다중 뷰 toy 전체 이름 10/10. 미완료(보류 다리): SPICE, 13회로 변화표, front, I_Q 대 oracle -- 통과로 세지 않음."
+    }
+  },
+  "reproduced_numbers": [
+    {
+      "name": "test_theta_class 통과",
+      "value": 11,
+      "command": "out2/new_tests"
+    },
+    {
+      "name": "card test 8파일 통과",
+      "value": 379,
+      "command": "out2/card"
+    },
+    {
+      "name": "card test 8파일 실패(M-2)",
+      "value": 1,
+      "command": "out2/card"
+    },
+    {
+      "name": "test_icm_config 통과",
+      "value": 36,
+      "command": "out2/icm"
+    },
+    {
+      "name": "canonical_order 통과",
+      "value": 12,
+      "command": "out2/canon"
+    },
+    {
+      "name": "tests/structure 통과",
+      "value": 171,
+      "command": "out2/structure"
+    },
+    {
+      "name": "2회로 연기 통과",
+      "value": 23,
+      "command": "out2/smoke_stageb smoke_s0 smoke_g10"
+    },
+    {
+      "name": "래칫 stale",
+      "value": 1,
+      "command": "out2/structure"
+    },
+    {
+      "name": "red 허용 타입 건수",
+      "value": 14,
+      "command": "out2/red"
+    },
+    {
+      "name": "뮤턴트 죽음",
+      "value": 8,
+      "command": "out2/mut"
+    },
+    {
+      "name": "뮤턴트 생존",
+      "value": 5,
+      "command": "out2/mut"
+    },
+    {
+      "name": "library 이름 전단사 일치",
+      "value": 33,
+      "command": "out2/toys T7_total"
+    },
+    {
+      "name": "다중 뷰 toy 전체 이름 일치",
+      "value": 10,
+      "command": "out2/toys5 T1_full_rename"
+    },
+    {
+      "name": "F 전부 S 스트레스 종속 변화 회로",
+      "value": 0,
+      "command": "out2/toys5 lib_total"
+    },
+    {
+      "name": "스트레스 종속 수 변화",
+      "value": 0,
+      "command": "out2/toys5 lib_total"
+    },
+    {
+      "name": "인버터 같은 점 VGS 차이",
+      "value": 4.440892098500626e-16,
+      "command": "out2/toys6 compare"
+    },
+    {
+      "name": "메모리 최저 여유 GB",
+      "value": 3.3,
+      "command": "out2 meta"
+    }
+  ],
+  "approvals": [],
+  "auditor_run": {
+    "time": "2026-11-05T15:52:43+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-tb1-audit",
+    "commands": [
+      "V1: 전체 test 안 돌림(O-229), 범위 = out2/*.meta 파일별 실행",
+      "격리: git clone --no-hardlinks --no-local <audit worktree> iso2, remote remove origin"
+    ]
+  }
+}
