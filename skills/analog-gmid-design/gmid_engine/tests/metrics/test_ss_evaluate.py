@@ -627,7 +627,7 @@ def test_s15_rule_equals_spec_declared_value(zc_cell, tmp_path):
 def _dc_blocks():
     from gmid_engine import sizing as S
     return (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
-            S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
+            S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_region, S.dc_seal_kvl_branch,
             S.dc_seal_report)
 
 
@@ -882,3 +882,63 @@ def test_it2d_o215_icmr_judged_by_region_row_window(tmp_path, r4_lut_f):
     assert len(row) == 1 and row[0].c < 0.0
     res = T2.by_metric(ref1.ss)["icmr_v"]
     assert row[0].c == pytest.approx((icmr - bound) / res.resolution, rel=1e-9)
+# ---------------------------------------------------------------------------------------------------------------
+# [EO-1 범위 4, interface card 20261104-eo1r4-sf1l §4 T-O5·T-O6·T-N1] off 소자 스탬프·완주·off 없음
+# oracle (손): sizing conftest r4 합성 LUT 해석식(VGS = 0·VSB = 0 에서 IDu = I0·exp(LAM·VDS), off 소자 gds = LAM·ΔI), 다른 MOS 의 gm·gds 는 npz 독립 보간.
+# 회로 A + off 소자(Moff nmos (out, gnd, gnd, gnd)): out 의 출력 컨덕턴스 g_out = 1/R + gds(M1) + gds(off), 이득 = 20·log10(gm1/g_out), rout = 1/g_out.
+# ---------------------------------------------------------------------------------------------------------------
+
+def _off_a(tmp, w_m=1e-6, with_off=True, cons=None, name="ev_off_a"):
+    from .off_cases import CONS, build_case, circuit_a, off_entry, theta_a as theta_off_a
+    off = [("Moff", "nmos", "out", "gnd", "gnd", "gnd")] if with_off else []
+    return build_case(tmp, circuit_a(off, name=name), {"Moff": off_entry(w_m, 1e-6)} if with_off else {}, theta_off_a,
+                      constraints=CONS if cons is None else cons)
+
+
+@pytest.mark.parametrize("w_m", [1e-6, 2e-6])
+def test_off_stamp_enters_output_conductance(tmp_path, w_m):
+    """off 소자 gds 가 out 노드 G 에 든다: rout·이득이 off 소자 gds 를 포함한 손계산과 같다. w_m 이 배가 되면 스탬프도 배가 된다."""
+    from .off_cases import evaluate, gds_lut, gds_off, graph_field
+    case = _off_a(tmp_path, w_m)
+    res = evaluate(case)
+    snap = res.snapshot
+    op = snap.value("device", "M1", "dc_op")
+    dI = dict(graph_field(snap, "ss_off_delta").sources)["Moff"]
+    g_off = gds_off(dI)
+    g_out = 1.0 / 9e4 + gds_lut("nmos", op.L, op.vgs, op.vds, op.vsb, op.W) + g_off
+    m = bundle_map(res.ss)
+    assert rel_close(m["rout_ss_ohm"].value, 1.0 / g_out, 1e-9)
+    assert rel_close(m["gain_ss_db"].value, 20.0 * math.log10(op.gm_id * op.current / g_out), 1e-9)
+    assert rel_close(dI, 1e-11 * math.exp(0.1 * snap.value("node", "out", "dc_v")) * w_m / 1e-6, 1e-9)   # 손계산 ΔI = I0·e^(LAM·VDS)·w/l
+
+
+def test_off_stamp_w_double_doubles_delta_and_stamp(tmp_path):
+    from .off_cases import evaluate, graph_field
+    a = graph_field(evaluate(_off_a(tmp_path / "a", 1e-6)).snapshot, "ss_off_delta")
+    b = graph_field(evaluate(_off_a(tmp_path / "b", 2e-6)).snapshot, "ss_off_delta")
+    assert rel_close(dict(b.sources)["Moff"], 2.0 * dict(a.sources)["Moff"], 1e-12)
+
+
+def test_off_circuit_runs_all_requested_ss_metrics(tmp_path):
+    """T-O6(부분): off 소자가 있는 회로에서 ss metric 요청 전체(이득·rout·PM·기생 PM·전력·면적)가 KeyError 없이 완주한다.
+    잡음·offset 등 aux metric 은 이 파일의 회로에 noise 선언이 없어 포함하지 않았다(보고)."""
+    from .off_cases import CONS_FULL, evaluate
+    res = evaluate(_off_a(tmp_path, cons=CONS_FULL))
+    names = [q.metric for q, _ in res.ss.entries]
+    assert names == ["gain_ss_db", "rout_ss_ohm", "pm_ss_deg", "parasitic_pm_ss_deg"]
+    m = bundle_map(res.ss)
+    assert all(m[n].value is not None for n in names)
+    assert m["pm_ss_deg"].value == m["parasitic_pm_ss_deg"].value
+    assert [q.metric for q, _ in res.dc.entries] == ["power_dc_w", "supply_current_dc", "area_search_m2"]
+
+
+def test_no_off_declaration_means_no_off_layer(tmp_path):
+    """T-N1: off 선언이 없으면 off 블록 호출 0, 필드 없음(값이 아니라 필드 부재)."""
+    from .off_cases import evaluate, graph_field
+    case = _off_a(tmp_path, with_off=False, name="ev_off_none")
+    res = evaluate(case)
+    snap = res.snapshot
+    assert all(snap.field("device", d, "off_op") is None for d in snap.keys("device"))
+    assert graph_field(snap, "ss_off_delta") is None
+    for blk in ("ss_off_op", "ss_off_delta"):
+        assert block_row(case.ctx.counters, blk)[0] == 0

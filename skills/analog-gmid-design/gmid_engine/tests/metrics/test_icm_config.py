@@ -911,39 +911,32 @@ def _tk_topo(extra_branch):
     return topo_doc("it2c_tk%s" % ("b" if extra_branch else "a"), mos=mos, passives=pas, rails=("vdd", "gnd"), bias=bias)
 
 
-def test_it2c_tk_empty_window_dlo_gt_dhi_is_unmeasured(tmp_path):
-    """oracle 대조: (손) T-K 빈 창 (a) (빈칸 답 2-5). `triode` 선언 M1 이 봉인점에서 포화(EO-1 전까지 봉인 통과): 행 (out, gnd, −1, VDSAT − VDS) slack < 0,
-    |s_out| = gm/(gds + 1/R) -> Δlo = |slack|/|s_out|, 레일 Δhi = 1.8 − V_in. 전제 Δlo > Δhi -> 양수 폭 창이 아니다: cfg 모든 포트 `unmeasured`, V_cm 끝 None.
-    (EO-1 이 봉인 거부로 바꾸면 그 card 가 이 test 를 옮긴다 -- 표지.)"""
+def test_it2c_tk_triode_declared_saturated_point_is_rejected_by_seal(tmp_path):
+    """[EO-1 범위 4로 옮김; 옛 T-K 빈 창 (a) 'triode 선언 M1 이 봉인점에서 포화 -> cfg unmeasured'] 그 입력은 이제 봉인 단계에서 거부된다
+    (interface 20261104-eo1r4-sf1l §1 표 행 10, T-S2·T-M1): `triode` 선언 M1 이 V(out) = 1.8 − I·R = 1.75 V > VDSAT = 0.1 + 0.2·0.6 = 0.22 V(포화)이면
+    size_and_seal 이 봉인 7 로 거부(devices (M1,))하므로 icm_config 까지 가지 않는다. 손 유도 전제: 동작점이 포화."""
+    from gmid_engine.core import SealViolationError
     i, r = 1e-5, 5e3
+    assert 1.8 - i * r > _vdsat(0.6)                                                 # 전제(포화)
     th = {("L", "M1"): L0, ("ln_idu", "M1"): lut_ln_idu("nmos", 0.6, 1.8 - i * r, 0.0), ("current", "R1"): i, ("resistance", "R1"): r}
-    snap = _evaluate_region(tmp_path, _tk_topo(False), (("R1", "resistor", None), ("CL", "capacitor", 1e-12)), th, {"M1": "triode"})
-    ss, op = snap.value("device", "M1", "ss_dev"), snap.value("device", "M1", "dc_op")
-    rv = snap.value("device", "R1", "passive_value")
-    slack = _vdsat(op.vgs) - op.vds
-    s_out = ss.gm / (ss.gds + 1.0 / rv)
-    dlo_row, dhi_rail = abs(slack) / s_out, SUP["vdd"] - op.vgs
-    assert slack < 0 and dlo_row > dhi_rail                                          # 전제
-    w = snap.value("node", "in", "dc_window_cfg")
-    assert (w.lo, w.hi, w.constraints, w.input_status) == (None, None, 0, "unmeasured")
-    cfg = _icm(snap)
-    assert cfg.vcm_lo is None and cfg.vcm_hi is None
+    with pytest.raises(SealViolationError) as ei:
+        _evaluate_region(tmp_path, _tk_topo(False), (("R1", "resistor", None), ("CL", "capacitor", 1e-12)), th, {"M1": "triode"})
+    assert dict(ei.value.record.detail)["item"] == 7 and ei.value.record.devices == ("M1",)
 
 
-def test_it2c_tk_skipped_row_with_negative_slack_is_unmeasured(tmp_path):
-    """oracle 대조: (손) T-K 빈 창 (b) (빈칸 답 2-5). 입력과 무관한 가지 Mb (b, vb, gnd) + Rb (vdd, b) 의 Mb 를 `triode` 로 선언하나 봉인점은 포화: 그 행의 기울기 = 0
-    (건너뜀)인데 slack = VDSAT − VDS < 0 -> 모든 입력 포트 `unmeasured`(건너뛴 행이 이미 위반)."""
+def test_it2c_tk_skipped_row_triode_declared_saturated_is_rejected_by_seal(tmp_path):
+    """[EO-1 범위 4로 옮김; 옛 T-K 빈 창 (b)] 입력과 무관한 가지 Mb (b, vb, gnd) + Rb (vdd, b) 의 Mb 를 `triode` 로 선언하나 봉인점은 포화(V(b) = 1.75 V > VDSAT 0.22 V)
+    -> 봉인 7 거부(devices (Mb,)). 건너뛴 행의 slack < 0 이 cfg unmeasured 로 가던 경로는 봉인이 먼저 막는다."""
+    from gmid_engine.core import SealViolationError
     i, r = 1e-5, 5e3
+    assert 1.8 - i * r > _vdsat(0.6)                                                 # 전제(포화)
     th = {("L", "M1"): L0, ("L", "Mb"): L0, ("ln_idu", "M1"): lut_ln_idu("nmos", 0.6, 0.9, 0.0),
           ("ln_idu", "Mb"): lut_ln_idu("nmos", 0.6, 1.8 - i * r, 0.0),
           ("current", "R1"): 1e-5, ("resistance", "R1"): 9e4, ("current", "Rb"): i, ("resistance", "Rb"): r}
-    topo = _tk_topo(True)
-    snap = _evaluate_region(tmp_path, topo, (("R1", "resistor", None), ("Rb", "resistor", None), ("CL", "capacitor", 1e-12)), th,
-                            {"Mb": "triode"})
-    opb = snap.value("device", "Mb", "dc_op")
-    assert _vdsat(opb.vgs) - opb.vds < 0                                              # 전제: 건너뛸 행의 slack < 0
-    w = snap.value("node", "in", "dc_window_cfg")
-    assert (w.lo, w.hi, w.input_status) == (None, None, "unmeasured")
+    with pytest.raises(SealViolationError) as ei:
+        _evaluate_region(tmp_path, _tk_topo(True), (("R1", "resistor", None), ("Rb", "resistor", None), ("CL", "capacitor", 1e-12)), th,
+                         {"Mb": "triode"})
+    assert dict(ei.value.record.detail)["item"] == 7 and ei.value.record.devices == ("Mb",)
 
 
 def test_it2c_region_rows_hand_values(tmp_path):

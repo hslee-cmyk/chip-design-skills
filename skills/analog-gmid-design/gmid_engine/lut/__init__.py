@@ -3,6 +3,7 @@
 계약: lut/CONTRACT.md. 조회 함수는 첫 인자로 `LutMemo`(LutSet + 상한 LRU memo) 를 받는다.
 """
 
+from .axis_bounds import lut_axis_bounds
 from .axis_guard import check_axes
 from .cap_query import caps
 from .curve_check import curve_report
@@ -157,6 +158,7 @@ __all__ = (
     "tol_noise_table",
     "tol_v_table",
     "tol_vdsat_table",
+    "lut_axis_bounds",
     "vdsat",
     "vdsat_curve",
     "vgs_for_current_density",

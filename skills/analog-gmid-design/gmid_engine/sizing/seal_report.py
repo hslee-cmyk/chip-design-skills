@@ -2,7 +2,7 @@
 
 진입점: `dc_seal_report`(`@compute_block`) -- `dc_seal_report(snapshot, item4, item5)`.
 
-reads 봉인 1·2·3·6·7·8·9 필드, extras = 봉인 4·5 결과(메타데이터 검사라 함수가 만든 SealItem). writes `graph.dc_seal_report`
+reads 봉인 1·2·3·6·7·8·9 필드(7·9 = writer `dc_seal_region` 하나), extras = 봉인 4·5 결과(메타데이터 검사라 함수가 만든 SealItem). writes `graph.dc_seal_report`
 = SealReport(items 항목 순, status): fail 이 하나라도 있으면 violated, 없고 undefined 가 있으면 undefined, 모두 pass 면 sealed.
 """
 from gmid_engine.core import compute_block

@@ -15,6 +15,7 @@
 """
 from fractions import Fraction
 
+from gmid_engine.authoring import REGION_OFF
 from gmid_engine.core import InfeasibleTargetError, StructureUnresolvedError, compute_block
 from gmid_engine.graph import (
     ELEMENT_MOS,
@@ -39,7 +40,7 @@ from .s2_values import (
 
 READS = (
     ("device", "dc_nets"), ("device", "element_class"), ("device", "kind"), ("device", "pins"),
-    ("node", "is_rail"), ("graph", "dc_pruned"), ("device", "dc_colour"), ("graph", "orbits"),
+    ("node", "is_rail"), ("graph", "dc_pruned"), ("device", "dc_colour"), ("graph", "orbits"), ("device", "region_decl"),
 )
 WRITES = (("graph", "dc_current_basis"),)
 _PMOS = "pmos"
@@ -77,6 +78,7 @@ def _rref(rows, n_cols):
 @compute_block(DC_CURRENT_BASIS_WRITER, reads=READS, writes=WRITES)
 def dc_current_basis(projection):
     (declared,) = projection.extras
+    off = frozenset(m for m, r in projection.column("device", "region_decl") if r.region == REGION_OFF)      # `off` 선언 소자(READS `device.region_decl`) -- 전류 기저 항이 없다(꺼짐 모형: DC 전류 0)
     declared = {name: value for name, value in declared if value is not None}
     pruned = tuple(sorted({element for element, _round in projection.value("graph", GRAPH_KEY, "dc_pruned")}))
     classes = dict(projection.column("device", "element_class"))
@@ -84,7 +86,7 @@ def dc_current_basis(projection):
     pins = dict(projection.column("device", "pins"))
     rails = {net for net, is_rail in projection.column("node", "is_rail") if is_rail}
     elements = tuple(name for name, nets in projection.column("device", "dc_nets")
-                     if nets is not None and name not in pruned)
+                     if nets is not None and name not in pruned and name not in off)
     ends = tuple((name,) + _ends(name, classes[name], kinds[name], pins[name]) for name in elements)
     fixed = tuple((name, float(declared[name])) for name in elements
                   if classes[name] == ELEMENT_SOURCE and kinds[name] == CURRENT_SOURCE and name in declared)

@@ -33,6 +33,7 @@ from .open_run import open_run
 from .noise_decl import noise_decl
 from .orbit_ties import orbit_ties
 from .pareto import nondominated
+from .off_judged import check_off_judged_by
 from .seal7_pending import seal_status
 from .s0_fields import (
     CONSTRAINT_CLASSES_WRITER,
@@ -170,6 +171,7 @@ __all__ = (
     "expand_ties",
     "orbit_ties",
     "passive_area_decl",
+    "check_off_judged_by",
     "constraint_classes",
     "constraint_rows",
     "noise_decl",

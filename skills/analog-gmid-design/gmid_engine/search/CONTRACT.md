@@ -195,6 +195,7 @@
 | 1 | `l_cells.py` | `l_cells` |
 | 1 | `objectives.py` | `objective_values` |
 | 1 | `pareto.py` | `nondominated` |
+| 1 | `off_judged.py` [EO-1 범위 4] | `check_off_judged_by` (3.30) |
 | 1 | `seal7_pending.py` | `seal_status` ★ 봉인 7 대기 스위치(4절) |
 | 1 | `ss_constraints.py` [r2] | `ss_constraint_rows` ★ ss_linearize 연결 자리 |
 | 2 | `constraints.py` | `constraint_rows` |
@@ -630,6 +631,13 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   기준점이 상자 밖일 때 '검사 못 함' 보고는 후속 항목이다(이 card 밖).
 - 새 점을 만드는 곳(상자 중심 `_box_centre`, Halton 시험점, 수리 bisection)은 대상이 아니다. 관찰 지점: 세 모듈(`layer0_center`·`slsqp_outer`·`gate_run`)의 모듈 속성 `fd_jacobian`(이름·서명·호출 방식 불변), `kernel.size_and_seal`.
 
+### 3.30 [EO-1 범위 4] `check_off_judged_by(region_decl, constraint_classes, declared) -> None` -- O-h (card 20261104-eo1r4-sf1l §5, 계획 O-221·O-222, 위임 A-45)
+- `build_search_context` 가 `constraint_classes` 블록 뒤 탐색 전 실행당 한 번 부른다(평가 호출 0). `region_decl` = S0 술어 필드 `device.region_decl` 값({소자: `RegionDecl`}), `constraint_classes` = 그 블록이 쓴
+  `ConstraintClasses(judged, ss, notes)`, `declared` = `spec.judged_constraints`(`ss` 위치가 가리키는 선언). **판정 제약 칸** = `.judged` 의 metric ∪ `declared[i].metric`(i ∈ `.ss`) -- `.notes` 는 아니다.
+- `off` 소자마다 `judged_by`: 빈 값 -> `off_judged_by_undeclared`; 판정 제약 칸에 없는 metric -> `off_judged_by_not_judged`; `verified_by(metric).kind` ≠ `spice_oracle`(`spice_unverifiable`·`engine_only`)이거나 레지스트리 밖 ->
+  `off_judged_by_unverified`. 첫 어긴 사유(표 순서)로 `SchemaRejectedError`(detail gate `off_judged_by`, reason, violations) -- stop 부류, 후보 실패 기록 아님. 통과하면 None, 값을 저장하지 않는다.
+- `search_domain` 의 kind 상자 목록은 전류 기저 MOS(`graph.dc_current_basis.mos`)의 kind 라 `off` 소자만 가진 kind 는 상자가 없다.
+
 ## 4. ★ 봉인 7 대기 스위치 (`seal7_pending.seal_status`, sizing O1)
 
 | 입력 DcEvaluation | 결과 |
@@ -642,7 +650,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 
 - 대기 점은 탐색이 따라가지만(목적·제약이 정의됨) **최종 `front` 에 들어갈 수 없다** -- `pending_front` 로만 나온다(봉인 7 을 통과로
   치거나 2/(gm/ID) 로 대신하지 않는다). 봉인 7 행은 제약에 없다(VDSAT 없음).
-- VDSAT 접근자가 생겨 `dc_seal_saturation` 이 pass/fail 을 내면 `REASON_VDSAT_MISSING` 이 사라져 이 표의 둘째 줄이 발동 0 이 되고
+- VDSAT 접근자가 생겨 `dc_seal_region` 이 봉인 7 pass/fail 을 내면 `REASON_VDSAT_MISSING` 이 사라져 이 표의 둘째 줄이 발동 0 이 되고
   `front` 가 채워진다(코드 변경 없음). 그때 `seal7_pending.py` 는 무동작이다.
 
 ## 5. 불변식 (test 가 확인할 성질)

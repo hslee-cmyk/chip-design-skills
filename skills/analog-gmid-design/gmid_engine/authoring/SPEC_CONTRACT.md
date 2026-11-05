@@ -91,9 +91,11 @@ search CONTRACT r10). 원소별 θ 수동소자 탐색 상자. 단위 = 원소 k
 {min, max, source} 닫힌 어휘(`_` 주석 키 허용), 출처 필수(search 섹션 허용 kind = user_spec·plan_rule). 결정 대기 표지는 받지
 않는다(상자가 없으면 칸을 비운다 -- 그 원소는 search 가 `theta_*_bounds_undeclared` 로 거부). 칸이 없거나 빈 객체여도 로드는 통과.
 
-[2026-10-08] `intended_region` 영역 어휘 = `REGIONS` = (`REGION_TRIODE` = `"triode"`,)(design_spec_format 표 1.6) -- 공개 상수
-`REGION_TRIODE` 가 정본이다. 그 밖 낱말(예 `"linear"`, `"saturation"`)은 `type`. 소비자: sizing `LINEAR_REGION`(= 이 상수)이
-`linear_devices`(봉인 7 포화 여유 제외 대상)를 만든다 -- sizing 은 낱말을 따로 정의하지 않는다.
+[2026-11-04] `intended_region` 영역 어휘 = `REGIONS` = (`REGION_TRIODE` = `"triode"`, `REGION_OFF` = `"off"`)(design_spec_format 표 1.6,
+O-221) -- 공개 상수가 정본이다. 그 밖 낱말(예 `"linear"`, `"saturation"`)은 `type`. `off` 항목 = `{"region": "off", "w_m", "l_m",
+"judged_by": [metric...], "source"}`: `w_m`·`l_m` 은 양수 필수, `judged_by` 는 문자열 목록(칸 없음·`[]` 는 로드 통과, 정지는 search
+`check_off_judged_by` 몫). `w_m`·`l_m`·`judged_by` 는 `off` 에만 받는다(그 밖 소자는 `type`). `RegionDecl` 은 `judged_by`(tuple)·`w_m`·`l_m` 칸을
+가진다. 소비자: sizing `dc_region_decl`(술어 필드 `device.region_decl`)이 `triode`·`off` 선언을 읽는다 -- sizing 은 낱말을 따로 정의하지 않는다.
 
 출처 `source`(모든 값 선언에 필수): kind ∈ {user_spec, pending_spice, reference, plan_rule}.
 | kind | 필수 부필드 | 허용 섹션 |

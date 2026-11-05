@@ -32,15 +32,17 @@
 """
 from collections import deque
 
-from gmid_engine.authoring import INPUT_DIRECTION, ROLE_DIFFERENTIAL_INPUT_N, ROLE_DIFFERENTIAL_INPUT_P
+from gmid_engine.authoring import REGION_OFF, INPUT_DIRECTION, ROLE_DIFFERENTIAL_INPUT_N, ROLE_DIFFERENTIAL_INPUT_P
 from gmid_engine.core import StructureUnresolvedError, compute_block
-from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, GRAPH_KEY, MOS_TERMINAL_NAMES, UNSUPPORTED_RULE_BRANCH
+from gmid_engine.graph import AC_GROUND_GATE_ONLY, ELEMENT_MOS, ELEMENT_PASSIVE, GRAPH_KEY, MOS_TERMINAL_NAMES, UNSUPPORTED_RULE_BRANCH
 
 from .s2_values import (
     BRANCH_INPUT_CM_UNDEFINED,
     BRANCH_INPUT_TARGET_ONE_PORT,
+    BRANCH_OFF_ONLY_NODE,
     BRANCH_RESISTOR_CYCLE,
     COORD_DEPENDENT,
+    CURRENT_SOURCE,
     COORD_WRITER,
     DC_KEY,
     DC_WRITER_PLAN_WRITER,
@@ -73,7 +75,7 @@ from .s2_values import (
 READS = (
     ("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
     ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_colour"), ("device", "dc_colour"),
-    ("device", "bulk"), ("graph", "gvgs_summary"),
+    ("device", "bulk"), ("graph", "gvgs_summary"), ("device", "region_decl"), ("device", "dc_nets"), ("node", "ac_ground_class"),
 )
 WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))
 _SELF_RELATIONS = (REL_VGS_GATE, REL_VGS_SOURCE)
@@ -121,11 +123,34 @@ def _edges(classes, kinds, pins, diode, colour, hints):
     return sorted(edges)
 
 
+def _off_undetermined_nets(off, kinds, pins, dc_nets, seeds):
+    """전압 결정 넷(`seeds` = 레일·고정 넷·선언 bias·입력 포트)에서 BFS 로 닿지 않는 넷 중 `off` 소자 d·g·s 가 닿는 넷(정렬).
+    전도 엣지 = 정본 `device.dc_nets`(None 아닌 원소)에서 `off` 소자와 전류원을 뺀 것. 게이트·전류원·off 채널은 전압을 정하지 못한다. `off` 선언이 없으면 빈 결과."""
+    if not off:
+        return []
+    adj = {}
+    for name, nets in dc_nets.items():
+        if nets is None or name in off or kinds[name] == CURRENT_SOURCE:
+            continue
+        adj.setdefault(nets[0], set()).add(nets[1])
+        adj.setdefault(nets[1], set()).add(nets[0])
+    reached = set(seeds)
+    queue = deque(reached)
+    while queue:
+        for nxt in adj.get(queue.popleft(), ()):
+            if nxt not in reached:
+                reached.add(nxt)
+                queue.append(nxt)
+    touched = {net for name in off for net in dict(pins[name]).values()}
+    return sorted(touched - reached)
+
+
 @compute_block(DC_WRITER_PLAN_WRITER, reads=READS, writes=WRITES)
 def dc_writer_plan(projection):
     target_nets, input_dc_declared, *rest = projection.extras
     hints = rest[0] if rest else NO_ORDER_HINTS
-    classes = dict(projection.column("device", "element_class"))
+    off = frozenset(m for m, r in projection.column("device", "region_decl") if r.region == REGION_OFF)      # `off` 선언 소자(READS `device.region_decl`) -- 쓰기 계획 엣지·좌표가 없다
+    classes = {n: c for n, c in projection.column("device", "element_class") if n not in off}
     kinds = dict(projection.column("device", "kind"))
     pins = dict(projection.column("device", "pins"))
     diode = dict(projection.column("device", "is_diode"))
@@ -148,6 +173,12 @@ def dc_writer_plan(projection):
     if input_dc_declared:
         for net in inputs:
             fixed.setdefault(net, (TIER_W2, REL_INPUT_DC))
+    on_gates = {dict(pins[m])[MOS_TERMINAL_NAMES[1]] for m, c in classes.items() if c == ELEMENT_MOS}      # 켜진 MOS 의 gate 넷(`classes` 는 off 제외)
+    bias = {net for net, cls in projection.column("node", "ac_ground_class") if cls == AC_GROUND_GATE_ONLY and net in on_gates}     # 선언 bias(gate 전용 미구동 넷, S1 정본) 중 켜진 소자 VGS 가 전위를 정하는 넷
+    only_off = _off_undetermined_nets(off, kinds, pins, dict(projection.column("device", "dc_nets")), set(fixed) | set(inputs) | bias)
+    if only_off:      # 전압 결정 넷(고정 넷·입력 포트)에 전도 엣지(`dc_nets`−off−전류원)로 닿지 않는 넷에 off d·g·s 가 닿으면 전위 결정자가 없어 θ 변수가 된다 -- W4 로 두지 않고 정지(물리 관문)
+        raise StructureUnresolvedError(devices=tuple(sorted(m for m in off if set(dict(pins[m]).values()) & set(only_off))),
+                                       detail={"reason": UNSUPPORTED_RULE_BRANCH, "rule_branch": BRANCH_OFF_ONLY_NODE, "nets": tuple(only_off)})
     for net in sorted(fixed, key=node_key):
         plan.put(net, *fixed[net])
     free_inputs = tuple(sorted((net for net in inputs if net not in fixed), key=node_key))

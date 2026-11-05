@@ -27,7 +27,7 @@
   (결정 대기 등)는 `metrics_ss` 가 `passive_value_undeclared` 로 보고한다.
 * 요청 = 제약의 (metric, view) 중복 제거(문서 순서). view_kind 가 있는 metric -> `metrics_ss`, 없는 metric(전력·면적)은
   `metrics_dc` 묶음이 늘 낸다(목적 축). 미등록 metric 은 `KeyError`(spec 로드가 `metric_unknown` 으로 먼저 거른다).
-* 블록 순서: `passive_values(element_values, zero_cancel, theta_passive_pairs(θ))` -> `ss_dev(lut)` -> `ss_circuit` -> `metrics_ss(requests)` -> `ss_nodal` -> `icm_config(lut, 선형 선언 소자)`
+* 블록 순서: [`off` 선언이 있으면 `ss_off_op(lut)`] -> `passive_values(element_values, zero_cancel, theta_passive_pairs(θ))` -> `ss_dev(lut)` -> `ss_circuit` -> `ss_nodal` -> [`off` 선언이 있으면 `ss_off_delta(lut)` -> 관문 `off_region_gate(lut)`(거부 = `SealViolationError` reason `off_gate`, 나머지 소비자 앞)] -> `metrics_ss(requests)` -> `icm_config(lut)`
   -> (aux 요청 또는 전달 뷰가 있으면) `metrics_aux` -> `metrics_dc(counted_rails)`. `ss_nodal`·`icm_config` 는 요청과 무관하게 늘 부른다(측정 구성은 봉인 뒤 모든 점의 필드다).
   입력 버전이 같으면 재사용, FD 로 θ 한 성분이 바뀌면 그 성분을 읽는 블록만 다시: DC 성분이면 dc_op·dc_gm 을 읽는 블록(바뀌지 않은 소자의
   LUT 조회는 memo 적중), θ 수동소자 성분이면 `ss_dev` 재사용·`passive_values`·`metrics_ss`·`metrics_dc` 만.
@@ -37,6 +37,7 @@
   parent 로, 같은 θ 를 다시 볼 때는 `ss_evaluate(lineage.sealed, ...)` 로 넘긴다. 그 lineage 에서 `size_and_seal` 이 낸 스냅샷에는
   앞 점의 ss 필드가 입력 버전과 함께 남아 있다 -- `ss_evaluate` 를 거치기 전에는 읽지 않는다(값의 정본은 이 함수의 결과).
 """
+from gmid_engine.authoring import REGION_OFF
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, attach_partial
 from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, DcEvaluation, KernelContext, SealedSnapshot, Theta, check_theta
 
@@ -52,6 +53,9 @@ from .ss_circuit import ss_circuit_field
 from .ss_linearize import ss_dev
 from .ss_metrics import metrics_ss
 from .ss_nodal import ss_nodal_system
+from .ss_off_delta import ss_off_delta
+from .ss_off_gate import off_region_gate
+from .ss_off_op import ss_off_op
 from .ss_types import MetricBundle, MetricRequest, SsEvaluation
 
 def _requests(constraints):
@@ -100,21 +104,27 @@ def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, 
     ss_requests = tuple(r for r in requests if registry[r.metric].signature.view_kind is not None and r not in aux_requests)
     keys = {"donors": ctx.donors, "counters": ctx.counters}      # 실행 하나의 블록 결과 색인·계수 -- 모든 블록 호출에 같은 객체
     snapshot = sealed.snapshot
+    off = any(r.region == REGION_OFF for _m, r in ctx.base.column("device", "region_decl"))                         # `off` 선언 소자가 있는가 -- 술어 필드 `device.region_decl`(없으면 off 층 블록 호출 0, 필드 없음)
     try:
+        if off:
+            snapshot = ss_off_op(snapshot, ctx.lut, **keys)       # off 소자 동작점 -- 정지 사유 셋(off_vgs_negative·off_bulk_forward·off_outside_lut)
         snapshot = passive_values(snapshot, ctx.inputs.element_values, schema.zero_cancel, theta_passive_pairs(theta.values), **keys)
         snapshot = ss_dev(snapshot, ctx.lut, junction, *((diffusion,) if diffusion else ()), **keys)
         snapshot = ss_circuit_field(snapshot, **keys)         # 소신호 회로 조립 자리 하나 -- metrics_ss·ss_nodal·metrics_aux 가 필드를 읽는다
+        snapshot = ss_nodal_system(snapshot, **keys)          # 봉인점 노달 계(G·g_bound·인수분해) -- 측정 구성과 metrics_aux 의 세 조립 자리가 읽는다
+        if off:
+            snapshot = ss_off_delta(snapshot, ctx.lut, **keys)    # off 소자 전류 효과의 1차 ΔV = G⁻¹·주입 (G = 위 노달 계, off 스탬프 포함)
+            off_region_gate(snapshot, ctx.lut)                    # 관문 G2-a: 선언 없는 소자(포화)·triode 소자(선형)의 영역 판정이 ΔV 로 뒤집히면 거부
         noisy = any(registry[r.metric].source_type is NoiseAnalysis for r in ss_requests)
         extra = (noise_devices(snapshot, ctx.lut, junction, NoiseDecl() if noise_decl is None else noise_decl),) if noisy else ()
         snapshot = metrics_ss(snapshot, ss_requests, *extra, **keys)
         bundle = snapshot.value("graph", METRICS_KEY, "metrics_ss")
-        snapshot = ss_nodal_system(snapshot, **keys)          # 봉인점 노달 계(G·g_bound·인수분해) -- 측정 구성과 metrics_aux 의 세 조립 자리가 읽는다
-        snapshot = icm_config_window(snapshot, ctx.lut, frozenset(ctx.inputs.linear_devices), **keys)    # ICMR 측정 구성·창(node.dc_window_cfg)·V_cm 칸
+        snapshot = icm_config_window(snapshot, ctx.lut, **keys)    # ICMR 측정 구성·창(node.dc_window_cfg)·V_cm 칸
         views = () if structure is None else _transfer_views(requests, registry)
         if aux_requests or views:
             ugf = next((res.value for req, res in bundle.entries if req.metric == UGF_METRIC and res.value is not None), None)
             snapshot = metrics_aux(snapshot, aux_requests, ctx.lut, mismatch, structure, ctx.inputs.node_targets, ctx.inputs.input_dc_v,
-                                   ctx.inputs.linear_devices, views, ugf, driving, **keys)
+                                   views, ugf, driving, **keys)
             bundle = _merged(bundle, snapshot.value("graph", METRICS_KEY, "metrics_aux"))
         snapshot = metrics_dc(snapshot, tuple(counted_rails), *(() if area_decl is None else (area_decl,)), **keys)
     except CANDIDATE_FAILURE_CLASSES as exc:

@@ -1,10 +1,10 @@
-"""`seal_dc(snapshot, calls, lut, resistances, linear_devices) -> DcEvaluation` -- CONTRACT 6절.
+"""`seal_dc(snapshot, calls, lut, resistances) -> DcEvaluation` -- CONTRACT 6절.
 
 순서 tol -> 1·2·3·6·7·8·[r8] 9 -> 4(calls + 위 8개) -> 5 -> report. violated -> SealViolationError(devices = margin 최대 fail
 항목의 devices, margin = 그 margin, detail = item·nodes·items((번호, 상태, margin) [r8] 9개)·item_detail). undefined ->
 DcEvaluation(sealed=None). [r4] VDSAT 열이 없는 LUT(conftest 기본 toy)에서는 항목 7 이 undefined 라 SealedSnapshot 이 나오지
 않고(음성 확인), 열이 있는 LUT(r4 toy)에서는 1~9 가 모두 pass 인 점이 SealedSnapshot 이 된다 -- 7 fail 이면 나오지 않는다(음성).
-봉인 9 단독 실패의 음성 확인은 test_seal_conduction.py.
+봉인 9 단독 실패의 음성 확인은 test_seal_region.py. [EO-1 범위 4] linear_devices 인자는 없어지고(interface §2) 선언은 ctx 의 regions 로 온다.
 위반은 출력 필드를 자기 block_version 그대로 바꿔 넣어 만든다(입력 투영이 같아 봉인 4 는 pass 로 남는다).
 """
 import dataclasses
@@ -17,8 +17,8 @@ from gmid_engine.sizing import DC_KEY, DcEvaluation, PathValue, SealReport, Seal
 from .conftest import (eval_calls, node_voltages, resistances_of, run_of, tamper, theta_a, theta_c, theta_r4c)
 
 
-def _seal(ctx, snap, calls, th, lin=()):
-    return seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), tuple(lin), base=ctx.base, **run_of(ctx))
+def _seal(ctx, snap, calls, th):
+    return seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), base=ctx.base, **run_of(ctx))
 
 
 def test_undefined_evaluation(ctx_c):
@@ -32,15 +32,20 @@ def test_undefined_evaluation(ctx_c):
     assert ev.snapshot.value("graph", DC_KEY, "dc_seal_report") == ev.report
     for n in (1, 2, 3, 6, 7, 8, 9):
         assert ev.snapshot.value("graph", DC_KEY, "dc_seal_%d" % n) == ev.report.items[n - 1]
-    # 봉인 4 = calls 4개 + 봉인 계산 블록 8개(tol + 1·2·3·6·7·8·[r8] 9)
-    assert dict(ev.report.items[3].detail)["n_checked"] == len(calls) + 8
+    # 봉인 4 = calls 4개 + 봉인 계산 블록 7개(tol + 1·2·3·6·영역 판정(7·9)·8)
+    assert dict(ev.report.items[3].detail)["n_checked"] == len(calls) + 7      # [EO-1 범위 4] 봉인 계산 블록 7개(tol + 1·2·3·6·7/9·8)
 
 
-def test_linear_devices_reach_item7(ctx_c):
-    ctx, th = ctx_c[2], theta_c()
+def test_triode_declaration_reaches_item7(tmp_path, toy_access):
+    """[EO-1 범위 4] 옛 test_linear_devices_reach_item7: M2 를 선언하면 봉인 7 행이 달라진다. 새 계약(card §1 행 6)에서 triode 도 VDSAT 열이 없으면
+    unresolved 행이라, 열 없는 toy 에서 M1(선언 없음)·M2(triode) 둘 다 미정 -> devices ("M1", "M2") (옛: M2 가 빠져 ("M1",))."""
+    from gmid_engine.authoring import RegionDecl
+    from .conftest import build_ctx, circuit_cs_pmos_load
+    ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), toy_access, regions=(RegionDecl("M2", "triode"),))[2]
+    th = theta_c()
     snap, calls = eval_calls(ctx, th)
-    ev = _seal(ctx, snap, calls, th, ("M2",))
-    assert ev.report.items[6].devices == ("M1",)
+    ev = _seal(ctx, snap, calls, th)
+    assert ev.report.items[6].status == "undefined" and ev.report.items[6].devices == ("M1", "M2")
 
 
 @pytest.mark.parametrize("y", [0.2, 0.5, 0.8])
@@ -138,19 +143,24 @@ def test_no_sealed_snapshot_when_item7_fails(ctx_r4c, y, dev):
     assert st[7] == "fail" and all(st[n] == "pass" for n in st if n != 7)
     assert d["item"] == 7 and rec.devices == (dev,)
     m7 = {x[0]: x[2] for x in d["items"]}[7]
-    assert rec.margin == m7 and m7 > 1.0
-    assert dict(d["item_detail"])["worst"] == dev
+    # [EO-1 범위 4, interface §2 / A-88] 봉인 7·9 의 tol·margin 은 None(판정에 문턱이 없다), detail 키는 slack_v·reverse_vds·indistinct… (worst 없음).
+    # fail 과 devices 단언은 그대로. 여유는 slack_v: VDS < vdsat 인 fail 소자라 음수.
+    assert rec.margin is None and m7 is None
+    assert dict(d["item_detail"])["slack_v"] < 0.0
     with pytest.raises(SealViolationError):
         size_and_seal(ctx_r4c, th)
 
 
-def test_linear_declared_failing_device_still_sealed(ctx_r4c):
-    """봉인 7 행에서 빠지는 linear 선언 소자는 포화 위반이어도 봉인을 막지 않는다(음성의 반대쪽)."""
+def test_triode_declared_triode_point_still_sealed(tmp_path, r4_access):
+    """[EO-1 범위 4] 옛 'linear 선언 소자는 봉인 7 행에서 빠진다' -> 새 계약: triode 선언 소자는 VDS < vdsat(실제로 triode)일 때 표 행 9 로 통과한다
+    (포화 위반이어도 봉인을 막지 않는다는 옛 뜻은 triode 점이 통과한다로 바뀜 -- 반대로 포화면 행 10 으로 거부, test_seal_region 이 본다)."""
+    from gmid_engine.authoring import RegionDecl
+    from .conftest import build_ctx, circuit_cs_pmos_load
+    ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), r4_access, regions=(RegionDecl("M1", "triode"),))[2]
     th = theta_r4c(y=0.1)                                       # M1 VDS 0.18 < VDsat
-    snap, calls = eval_calls(ctx_r4c, th)
-    ev = _seal(ctx_r4c, snap, calls, th, ("M1",))
+    snap, calls = eval_calls(ctx, th)
+    ev = _seal(ctx, snap, calls, th)
     assert ev.report.status == "sealed" and isinstance(ev.sealed, SealedSnapshot)
-    assert dict(ev.report.items[6].detail)["n_checked"] == 1
 
 
 @pytest.mark.parametrize("missing", ["donors", "counters", "both"])
@@ -160,7 +170,7 @@ def test_seal_dc_run_pair_keywords_required(ctx_c, missing):
     snap, calls = eval_calls(ctx, th)
     kw = {k: v for k, v in run_of(ctx).items() if missing != "both" and k != missing}
     with pytest.raises(TypeError):
-        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), base=ctx.base, **kw)
+        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), base=ctx.base, **kw)
 
 
 # [IT-2a T-L11e, design 41 v1.12.8 L11 (d); oracle (a)/(d) 계약 선언: base 는 필수 -- None·생략은 건너뛰어 pass 하지 않고 TypeError]
@@ -175,7 +185,7 @@ def test_it2a_seal_dc_base_none_type_error(ctx_c):
     ctx, th = ctx_c[2], theta_c()
     snap, calls = eval_calls(ctx, th)
     with pytest.raises(TypeError):
-        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), base=None, **run_of(ctx))
+        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), base=None, **run_of(ctx))
 
 
 def test_it2a_seal_dc_base_keyword_required(ctx_c):
@@ -183,4 +193,4 @@ def test_it2a_seal_dc_base_keyword_required(ctx_c):
     ctx, th = ctx_c[2], theta_c()
     snap, calls = eval_calls(ctx, th)
     with pytest.raises(TypeError):
-        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), **run_of(ctx))
+        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), **run_of(ctx))
