@@ -43,7 +43,7 @@ LAYERS = (
     (
         "core",
         (
-            ("blas_env.py", "canonical_key.py", "determinism.py", "donors.py", "fingerprint.py", "graft.py", "immutability.py", "margin.py",
+            ("blas_env.py", "canonical_key.py", "determinism.py", "donors.py", "file_sha256.py", "fingerprint.py", "graft.py", "immutability.py", "margin.py",
              "run_counters.py", "units.py", "writer_error.py"),
             ("bounded_lru.py", "engine_code_fp.py", "failure_record.py", "field_value.py", "metric_signature.py", "projection.py",
              "writer_table.py"),
@@ -197,6 +197,8 @@ LAYERS = (
 MODULES = (
     ModuleEntry("core/determinism.py", "entry", "sorted_items",
                 "정렬된 tuple 순회 도우미", ("NFR-4", "IC2")),
+    ModuleEntry("core/file_sha256.py", "entry", "file_sha256",
+                "파일 내용 sha256(CRLF -> LF 환산) -- 위치·bin 선언 파일의 기계 독립 지문", ("WB-1", "DEC-105")),
     ModuleEntry("core/blas_env.py", "entry", "pin_blas_threads",
                 "BLAS 스레드 1 고정·확인(import 때 1회, 못 하면 RuntimeError)과 재확인용 실행 환경 값 `blas_environment()`(무상태, 지문 `env_fp`의 출처)",
                 ("NFR-4", "EP-9")),
@@ -272,9 +274,9 @@ MODULES = (
     ModuleEntry("lut/_helpers_root.py", "helper", None,
                 "gm/ID 곡선 정점·강반전 분지 칸 선택(분지 규칙)·칸 안 Hermite 미분 근", ("DEC-11", "DEC-87", "N3.6")),
     ModuleEntry("lut/_helpers_bins.py", "helper", None,
-                "PDK 모델 bin 소속 판정(양끝 닫힘·경계 공유 시 아래 bin, 1 ulp) -- 로드 배정과 조회가 같은 규칙", ("LR3",)),
+                "PDK 모델 bin 소속 판정(격자 정수 비교·양끝 닫힘·경계 공유 시 선언 rule) -- 로드 배정과 조회가 같은 규칙", ("LR3",)),
     ModuleEntry("lut/_helpers_anchor.py", "helper", None,
-                "조회 L 위치: 앵커(1 ulp 일치) 또는 같은 모델 bin 안 두 앵커 사이 보간, bin 경계 건너면 거부", ("LR3",)),
+                "조회 L 위치: 앵커(격자 정수 일치) 또는 같은 모델 bin 안 두 앵커 사이 보간, bin 경계 건너면 거부", ("LR3",)),
     ModuleEntry("lut/_helpers_width.py", "helper", None,
                 "폭 키 판정(round(W/grid), 2 ulp) -- 슬라이스·기준 LUT·검증 중점 폭이 같은 규칙", ("E5", "LR3")),
     ModuleEntry("lut/_helpers_columns.py", "helper", None,

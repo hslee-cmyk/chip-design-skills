@@ -11,7 +11,7 @@ from ._helpers_gmid_axis import axis_curve
 def idu_curve(memo, kind, w_key, L, vds, vsb):
     """`GmIdAxisCurve`(quantity "idu_a", A). 실패: `gm_id_curve` 사유."""
     sl = memo.lut.slice_map[(kind, w_key)]
-    l_val = l_position(sl.grids[0], sl.l_bins, L, (("kind", kind), ("w_key", w_key)))[2]
+    l_val = l_position(sl.grids[0], sl.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, (("kind", kind), ("w_key", w_key)))[2]
 
     def values(curve, nodes):
         return np.asarray(curve.id_vals[nodes]) * l_val / sl.w_m

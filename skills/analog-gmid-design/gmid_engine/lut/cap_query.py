@@ -29,7 +29,7 @@ def caps(memo, kind, L, vgs, vds, vsb, W):
     """
     cap = memo.lut.cap_map[kind]
     context = (("kind", kind), ("table", "cap"))
-    lo, hi, l_val = l_position(cap.grids[0], cap.l_bins, L, context)
+    lo, hi, l_val = l_position(cap.grids[0], cap.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, context)
     rest = (float(vgs), float(vds), float(vsb))
     W = float(W)
     check_axes(cap.grids[1:], AXES[1:], rest, context)

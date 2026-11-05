@@ -103,6 +103,8 @@ class LutProvenance:
     [r6] `midpoints_*`: bin 검증 중점 파일(선택, `load_lut_set(verify_midpoints=)`)의 경로·sha256·meta `L_source`
     (키 정렬 쌍 tuple)·측정 조건(`cap_conditions` 와 같은 형식). 없으면 None·None·()·().
     [r7] `noise_*`·`mismatch_*`: 잡음 r1 파일·mismatch 감도 r1 파일(선택)의 경로와 sha256(없으면 None).
+    [WB-1 범위 0] `bin_rule`·`bin_rule_sha256`: 적용한 bin 규칙 선언의 `rule`("lower"·"upper")과 LF 환산 sha256(필수, 키워드 전용).
+    `bin_rule_machine_dependent`: 줄바꿈 때문에 기록 sha256 이 raw 바이트 값인 ((세트, 모델 파일 상대 경로), ...) 정렬 tuple(지문에 넣지 않는다).
     """
 
     manifest_path: str
@@ -120,6 +122,9 @@ class LutProvenance:
     noise_sha256: object = None
     mismatch_path: object = None
     mismatch_sha256: object = None
+    bin_rule: str = dataclasses.field(kw_only=True)
+    bin_rule_sha256: str = dataclasses.field(kw_only=True)
+    bin_rule_machine_dependent: tuple = dataclasses.field(kw_only=True)
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -249,6 +254,11 @@ class LutSet:
 
     def __canonical__(self):
         return self.fp
+
+    @property
+    def bin_rule(self):
+        """적용한 bin 규칙("lower"·"upper") -- `provenance.bin_rule` 을 읽는다(사본 칸 아님)."""
+        return self.provenance.bin_rule
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -393,7 +403,8 @@ class MidpointChecks:
 class LutLocation:
     """[r6] 설정 파일로 정한 LUT 데이터 위치(lut/CONTRACT.md 1.8). 경로는 절대 경로, 파일 sha256 은 설정 기록과 대조됨.
     `midpoints_path`·`pdk_root` 는 설정에 없으면 None. `sources` = ((항목, "env:<이름>" 또는 "config_default"), ...).
-    [r7] `noise_path`·`mismatch_path`: 잡음 r1·mismatch 감도 r1 파일(설정 `files.noise`·`files.mismatch`, 없으면 None)."""
+    [r7] `noise_path`·`mismatch_path`: 잡음 r1·mismatch 감도 r1 파일(설정 `files.noise`·`files.mismatch`, 없으면 None).
+    [WB-1 범위 0] `bin_rule_path`: bin 규칙 선언 파일의 절대 경로(설정 최상위 `bin_rule`, LF 환산 sha256 대조 통과; 끝 칸 기본 None)."""
 
     config_path: str
     root: str
@@ -404,6 +415,7 @@ class LutLocation:
     sources: tuple
     noise_path: object = None
     mismatch_path: object = None
+    bin_rule_path: object = None
 
 
 @dataclasses.dataclass(frozen=True)

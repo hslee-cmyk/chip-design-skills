@@ -18,13 +18,15 @@ from .noise_planes import STATUS_KNOWN, noise_planes
 class TolNoiseTable:
     """(kind) 잡음 허용오차 표. `cells[i_L][i_vds]` = TolNoiseCell, 축은 `L_anchors`·`vds_grid`. `l_bins`·`l_loo`·`l_loo_bins`: tol_V 표와 같은 뜻."""
 
-    def __init__(self, kind, w_key, L_anchors, vds_grid, cells, l_bins, l_loo, l_loo_bins):
+    def __init__(self, kind, w_key, L_anchors, vds_grid, cells, l_bins, grid_m, rule, l_loo, l_loo_bins):
         self.kind = kind
         self.w_key = w_key
         self.L_anchors = L_anchors
         self.vds_grid = vds_grid
         self.cells = cells
         self.l_bins = l_bins
+        self.grid_m = grid_m
+        self.rule = rule
         self.l_loo = l_loo
         self.l_loo_bins = l_loo_bins
 
@@ -49,6 +51,6 @@ def tol_noise_table(memo, kind):
         b_cells = linear_loo_cells(ln_b, table.grids, interior)
         cells = tuple(tuple(TolNoiseCell(opt(planes.tol_a[i, k]), opt(b_cells[i, k])) for k in range(len(table.grids[2])))
                       for i in range(len(table.grids[0])))
-        return TolNoiseTable(kind, table.w_key, table.grids[0], table.grids[2], cells, table.l_bins, l_loo, l_loo_bins)
+        return TolNoiseTable(kind, table.w_key, table.grids[0], table.grids[2], cells, table.l_bins, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, l_loo, l_loo_bins)
 
     return memo.lookup_persistent("derived", "tol_noise_table", (kind,), compute, (table.sha256, planes), (AXES, TOL_NOISE_METRICS))

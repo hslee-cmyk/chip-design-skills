@@ -207,13 +207,15 @@ class TolVTable:
     [r6] `l_bin_checks`: 실제로 쓴 외부 값((model, gm_id_inverse_v, id_equivalent_v), ...) model 정렬 -- 기본 경로면 중점 파일에서 온 값.
     """
 
-    def __init__(self, kind, w_key, L_anchors, vds_grid, cells, l_bins, l_loo, l_loo_bins, loo_orders, l_bin_checks=()):
+    def __init__(self, kind, w_key, L_anchors, vds_grid, cells, l_bins, grid_m, rule, l_loo, l_loo_bins, loo_orders, l_bin_checks=()):
         self.kind = kind
         self.w_key = w_key
         self.L_anchors = L_anchors
         self.vds_grid = vds_grid
         self.cells = cells
         self.l_bins = l_bins
+        self.grid_m = grid_m
+        self.rule = rule
         self.l_loo = l_loo
         self.l_loo_bins = l_loo_bins
         self.loo_orders = loo_orders
@@ -279,7 +281,7 @@ def tol_v_table(memo, kind, w_key, l_bin_checks=None):
                     n_try, n_failed, opt(inv_raw), opt(eq_raw[i, k])))
             cells.append(tuple(row))
         orders = tuple((m, a, meth, p, 2.0 ** -p) for m, a, meth, p in LOO_ORDERS)
-        return TolVTable(kind, w_key, sl.grids[0], sl.grids[2], tuple(cells), sl.l_bins, l_loo, l_loo_bins, orders,
+        return TolVTable(kind, w_key, sl.grids[0], sl.grids[2], tuple(cells), sl.l_bins, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, l_loo, l_loo_bins, orders,
                          checks)
 
     return memo.lookup_persistent("derived", "tol_v_table", (kind, w_key, checks), compute, sl,

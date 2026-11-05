@@ -25,7 +25,7 @@ def gm_id_curve(memo, kind, w_key, L, vds, vsb):
     """
     sl = memo.lut.slice_map[(kind, w_key)]
     context = (("kind", kind), ("w_key", w_key))
-    lo, hi, l_val = l_position(sl.grids[0], sl.l_bins, L, context)
+    lo, hi, l_val = l_position(sl.grids[0], sl.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, context)
     vds, vsb = float(vds), float(vsb)
     check_axes((sl.grids[2], sl.grids[3]), (AXES[2], AXES[3]), (vds, vsb), context)
 

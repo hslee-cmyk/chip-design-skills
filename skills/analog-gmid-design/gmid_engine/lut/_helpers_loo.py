@@ -154,7 +154,7 @@ def table_at(table, field, L, vds, context):
     """표 `table`(속성 L_anchors·l_bins·vds_grid·cells)의 조회점 (L, vds) 값: L 이 앵커면 그 행, 같은 bin 보간이면 양옆
     앵커 두 행(CONTRACT 4.0), VDS 칸 [k, k+1] (`bisect_right − 1`, 마지막 격자점은 마지막 칸) -- 그 셀들의 `field` 중 정의된
     값의 최댓값(없으면 None). 실패: L 위치·VDS 축 -> `SealViolationError`(context 를 detail 에)."""
-    lo, hi, _ = l_position(table.L_anchors, table.l_bins, L, context)
+    lo, hi, _ = l_position(table.L_anchors, table.l_bins, L, table.grid_m, table.rule, context)
     vds = float(vds)
     check_axes((table.vds_grid,), (AXES[2],), (vds,), context)
     k = min(bisect.bisect_right(table.vds_grid, vds) - 1, len(table.vds_grid) - 2)

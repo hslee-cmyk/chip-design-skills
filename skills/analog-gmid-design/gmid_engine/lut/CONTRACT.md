@@ -185,7 +185,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   3. W bin: 블록들의 서로 다른 `(wmin, wmax)` 쌍을 오름차순으로 놓고 4.0.1 규칙(`bin_index`)으로 슬라이스 W(`w_m`)의 쌍을 고른다
      → `w_bin`. 없으면 `lut_model_bins_no_width`(detail `path, w_m`).
   4. `bins` = 그 `w_bin` 과 같은 `(wmin, wmax)` 블록의 `LBin(model, lmin, lmax)`, (lmin, lmax, model) 오름차순. 이웃 두 bin 이
-     `lo_b < hi_a` 이고 `|hi_a − lo_b| > ulp(lo_b)` 이면(겹침) `lut_model_bins_overlap`(detail `path, w_m, models`).
+     격자 정수로 `round(lo_b/grid) < round(hi_a/grid)` 이면(겹침, WB-1 범위 0) `lut_model_bins_overlap`(detail `path, w_m, models`).
   5. `anchor_bin[i]` = L 축 앵커 i 의 `bins` index(4.0.1 규칙). 어느 앵커라도 bin 이 없으면 `lut_l_anchor_outside_model_bins`(detail `path, w_m, L`).
   `model_files` = 읽은 상대 경로 tuple. **`CapTable.l_bins`** = 그 kind 슬라이스 중 `w_m == w_ref_m` 인 것의 지도(없으면 빈 지도 --
   기준 LUT 는 모델 파일 기록이 없으므로 채택 폭 슬라이스의 지도를 빌린다).
@@ -410,10 +410,10 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 
 ### 4.0 [r4 전면 교체] L = 앵커 또는 같은 모델 bin 안 보간 (사용자 결정 2026-10-07)
 적용 경로: op_point·gm_id_curve·vgs_for_gm_id·gm_id_for_target·gmb·caps·TolVTable.at(모두 같은 판정 `l_position`). 판정 순서:
-1. **앵커**(r2/r3 그대로): 조회 L 이 L 축 앵커 a 와 `|L − a| ≤ math.ulp(a)` 이면 그 앵커. 이 검사가 범위 검사보다 **먼저**다(대칭 --
-   격자 양끝 앵커도 바깥쪽 1 ulp 까지 받는다. 예 `L_max + ulp(L_max)` → 마지막 앵커). L 값으로 앵커 값 a 를 쓰고(`IDu = ID·a/w_m`,
+1. **앵커**(r2/r3 그대로): 조회 L 의 제조 격자 정수 `round(L/grid)` 가 L 축 앵커 a 의 `round(a/grid)` 와 같으면 그 앵커(WB-1 범위 0: `l_position(l_grid, l_bins, L, grid_m, rule, context)`, float 근접 허용폭 없음). 이 검사가 범위 검사보다 **먼저**다(대칭 --
+   격자 양끝 앵커도 바깥쪽 같은 격자 정수까지 받는다). L 값으로 앵커 값 a 를 쓰고(`IDu = ID·a/w_m`,
    `id_a = IDu·W/a`), 결과는 r2 앵커 조회와 **비트 단위로 같다**(L 격자 = (a,) 한 장, L 가중치 (1, 0)).
-2. 범위: 1 ulp 를 넘어 L 격자 밖(NaN 포함) → `lut_axis_out_of_range`(axis "L", 4.1).
+2. 범위: 앵커의 격자 정수 밖으로 L 격자 밖(NaN 포함) → `lut_axis_out_of_range`(axis "L", 4.1).
 3. 양옆 앵커 below = L[k−1] < L < above = L[k] (k = `bisect_right(L 격자, L)`). 표의 bin 지도(`DcSlice.l_bins`, 용량은 `CapTable.l_bins`,
    tol_V 는 `TolVTable.l_bins`)가
    - **빈 지도** → `lut_l_not_anchor`(r2 사유 키 유지, detail 에 `bins: "unavailable"` 추가).
@@ -435,10 +435,11 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   6.7234·6.5923 사이.
 
 #### 4.0.1 [r4] bin 소속 규칙 (`_helpers_bins.bin_index`, 로드 배정과 조회가 같은 함수)
+- **현행(WB-1 범위 0, DEC-105 (2))**: 구간 끝과 x 를 제조 격자 정수 `round(값/grid_m)` 로 바꿔 정수끼리 닫힌 구간으로 비교한다(`bin_index(intervals, x, grid_m, rule)`, float 근접 허용폭 없음). 두 구간이 품으면 LUT 세트의 bin 선언(`LutSet.bin_rule`, 위치 설정 `bin_rule` 키 -> `LutLocation.bin_rule_path` -> `load_lut_set(..., bin_rule=)` 필수)의 `rule` 이 고른다: `"lower"` = 앞(lo 가 작은) 구간, `"upper"` = 뒤 구간. 세트(슬라이스·cap·noise·mismatch)의 모델 파일 sha256 묶음·시뮬레이터 판이 선언 밖이면 `bin_tie_undeclared`(detail `set`, `why`), `lut_fingerprint` 에 `bin_rule_sha256`(선언 LF 환산 sha256)이 들어간다. 아래 "아래 구간 우선" 문단은 선언 `rule = lower` 일 때의 규칙이고 실측은 그 선언의 출처 사례다.
 - **예정(2026-10-16, oracle-portability 계획 D-4 승인)**: 경계 규칙의 정본은 card OP-7에서 'LUT 생성 실행에 묶은 bin 규칙 선언(모델 파일 sha256 묶음 + 생성 시뮬레이터 판)'으로 옮긴다(design oracle-portability §16). 그때까지 아래 규칙과 실측 문단이 현행이다. 아래 실측은 그 선언의 출처 사례로 남는다.
 - 값 x 는 `lo ≤ x ≤ hi` 인 구간에 든다(**양끝 닫힘**). 경계를 공유한 두 구간이 다 품으면 **lo 가 작은(아래) 구간**이 이긴다.
   그래서 경계값 L = b 는 `lmax = b` 인 아래 bin 이다 -- 사실상 `lmin < L ≤ lmax`(맨 아래 bin 만 `lmin` 포함). W 도 같다(W = wmax 인 아래 W bin).
-  경계 비교는 그 경계값의 1 ulp 이내를 같은 값으로 본다(LUT L 은 `µm × 1e-6` 곱이라 경계와 1 ulp 어긋날 수 있다. 예: 슬라이스 W
+  경계 비교는 격자 정수 비교다(LUT L 은 `µm × 1e-6` 곱이라 경계와 1 ulp 어긋날 수 있으나 같은 정수다. 예: 슬라이스 W
   4.9999999999999996e-06 은 경계 5e-06 위로 보아 W bin (3e-6, 5e-6)).
 - 근거(ngspice-46 실측, sky130 tt, `showmod` 의 lmin·lmax·wmin·wmax): (1) 생성 슬라이스 32개 × L 앵커 12개 = 384점 전부를 이 규칙의 예측과
   대조해 **384/384 일치**(code author 실측 2026-10-07, 스크립트 `scratchpad/bin_verify.py`·결과 `bin_verify.out`) (2) W = 5 µm 에서 L = 0.5 µm →
@@ -680,7 +681,7 @@ memo 에 저장 안 됨)·4.0·4.1 사유.
 - `lut.midpoints` 에 kind 가 없으면 `MidpointChecks(kind, w_key, (), (), None)`.
 - 중점 m(L_m, `L_points` 순서)마다 아래 순서로 판정, 쓰지 않으면 `skipped` 에 `(L_m, 사유, model 또는 None)`:
   1. 중점 표 `w_key` ≠ 조회 w_key → `"width_differs"`(다른 폭으로 옮기지 않는다) 2. 슬라이스 bin 지도 없음 → `"bins_unavailable"`
-  3. L 앵커와 1 ulp 이내 → `"is_anchor"` 4. `bin_index`(4.0.1)로 bin 없음 → `"outside_model_bins"` 5. 그 bin 의 앵커 수 < 2 → `"single_point"`(model 있음),
+  3. L 앵커와 같은 격자 정수 → `"is_anchor"` 4. `bin_index`(4.0.1)로 bin 없음 → `"outside_model_bins"` 5. 그 bin 의 앵커 수 < 2 → `"single_point"`(model 있음),
   > 2 → `"bin_has_interior_anchors"` 6. 두 앵커 a0 < L_m < a1 가 아님 → `"not_bracketed"`.
 - 남은 중점: t = (L_m − a0)/(a1 − a0), 슬라이스 앵커 행 i0·i1. [r6 결정 A] **세 값은 VDS 격자점 k 마다의 tuple**(길이 = 슬라이스 VDS
   격자 수, 그 k 에 점·목표가 없으면 원소 None) -- 아래 max 는 그 VDS_k 의 (VGS, VS) 점·목표에 대해.

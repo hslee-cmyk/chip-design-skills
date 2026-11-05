@@ -20,7 +20,6 @@ lut_regen_plan.md 2절 K2', 계획 N3.6).
   `lut_l_bin_unbracketed`), "bin_has_interior_anchors"(앵커 3개 이상 -- L 방향 LOO 가 있다), "not_bracketed"(bin 안이지만
   두 앵커 바깥 -- 조회가 거부되는 L).
 """
-import math
 
 import numpy as np
 
@@ -95,6 +94,7 @@ def midpoint_l_bin_checks(memo, kind, w_key):
             return MidpointChecks(kind, w_key, (), (), None)
         l_grid = sl.grids[0]
         bins = sl.l_bins
+        grid_m, rule = memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule
         skipped, per_model = [], {}
         for m, L_m in enumerate(mt.L_points):
             if mt.w_key != w_key:
@@ -103,10 +103,10 @@ def midpoint_l_bin_checks(memo, kind, w_key):
             if not bins.bins:
                 skipped.append((L_m, "bins_unavailable", None))
                 continue
-            if any(abs(L_m - a) <= math.ulp(a) for a in l_grid):
+            if any(round(L_m / grid_m) == round(a / grid_m) for a in l_grid):
                 skipped.append((L_m, "is_anchor", None))
                 continue
-            b = bin_index(tuple((x.lmin, x.lmax) for x in bins.bins), L_m)
+            b = bin_index(tuple((x.lmin, x.lmax) for x in bins.bins), L_m, grid_m, rule)
             if b is None:
                 skipped.append((L_m, "outside_model_bins", None))
                 continue

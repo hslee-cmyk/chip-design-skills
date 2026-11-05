@@ -33,7 +33,6 @@
   (승인 L 파일), 기준 LUT meta 에 `L_source` sha256 이 있으면 같은 값 -- 아니면 거부. kind 마다 `MidpointTable`.
 """
 import json
-import math
 import re
 import types
 
@@ -84,7 +83,7 @@ def _bin_blocks(path):
     return tuple(out)
 
 
-def _l_bin_map(src, l_grid, parsed):
+def _l_bin_map(src, l_grid, parsed, grid_m, rule):
     """슬라이스 `src` 의 `LBinMap`. `parsed` = 이 로드의 {모델 경로: bin 블록} (같은 파일 1회 파싱)."""
     blocks = []
     for _, path in src.model_paths:
@@ -94,15 +93,15 @@ def _l_bin_map(src, l_grid, parsed):
     if not blocks:
         return NO_BINS
     w_rows = sorted({(b[3], b[4]) for b in blocks})
-    j = bin_index(w_rows, src.w_m)
+    j = bin_index(w_rows, src.w_m, grid_m, rule)
     if j is None:
         raise schema_rejected("lut_model_bins_no_width", path=src.path, w_m=src.w_m)
     row = sorted((b[1], b[2], b[0]) for b in blocks if (b[3], b[4]) == w_rows[j])
     for (_, hi_a, name_a), (lo_b, _, name_b) in zip(row, row[1:]):
-        if lo_b < hi_a and abs(hi_a - lo_b) > math.ulp(lo_b):
+        if round(lo_b / grid_m) < round(hi_a / grid_m):
             raise schema_rejected("lut_model_bins_overlap", path=src.path, w_m=src.w_m, models=(name_a, name_b))
     intervals = tuple((lo, hi) for lo, hi, _ in row)
-    anchor_bin = tuple(bin_index(intervals, L) for L in l_grid)
+    anchor_bin = tuple(bin_index(intervals, L, grid_m, rule) for L in l_grid)
     if None in anchor_bin:
         raise schema_rejected("lut_l_anchor_outside_model_bins", path=src.path, w_m=src.w_m,
                               L=float(l_grid[anchor_bin.index(None)]))
@@ -179,7 +178,7 @@ def _check_units(path, grids, log_id, pairs):
             raise schema_rejected("lut_unit_mismatch", path=path, column=name, cells_outside=n_out, cells=n_use)
 
 
-def _build_slice(src, grids, parsed):
+def _build_slice(src, grids, parsed, grid_m, rule):
     with np.load(src.path) as npz:
         if npz_grids(npz) != grids:
             raise schema_rejected("lut_slice_axes_mismatch", path=src.path)
@@ -216,7 +215,7 @@ def _build_slice(src, grids, parsed):
         _readonly(raw_id), _readonly(vth), on_mask, log_id, log_gm, log_gds,
         (("GDS", floor_gds), ("GM", floor_gm), ("ID", floor_id)),
         (("GDS", np_gds), ("GM", np_gm), ("ID", np_id)),
-        _l_bin_map(src, grids[0], parsed),
+        _l_bin_map(src, grids[0], parsed, grid_m, rule),
         vds_slope_ok, fc_vgs, fc_vds, (("VDS", n_vds, bad_vds), ("VGS", n_vgs, bad_vgs), ("VS", n_vs, bad_vs)),
         columns, vs_slope_ok, fc_vs,
     )
@@ -375,10 +374,13 @@ def _midpoint_tables(spec, prov, grids, slice_conditions, caps):
     return types.MappingProxyType(out)
 
 
-def load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None, noise_npz=None,
+def load_lut_set(manifest_path, cap_npz_path, spec, *, bin_rule, pdk_root=None, verify_midpoints=None, noise_npz=None,
                  mismatch_npz=None):
     """manifest(슬라이스 목록)·기준 LUT 경로와 `LutSpec` 으로 불변 `LutSet` 을 만든다.
 
+    `bin_rule`(필수 키워드): bin 규칙 선언 파일 경로(`LutLocation.bin_rule_path`, 스키마 `lut_bin_rule/1`, 기본값 없음 --
+    `bin_rule=None`·파일 없음은 거부). 세트(슬라이스·cap·noise·mismatch)의 모델 파일·시뮬레이터 판 기록이 선언 안이어야 하고 어긋나면
+    `bin_tie_undeclared`(`provenance.py`). 선언의 `rule` 이 bin 경계 소속(`bin_index`)을 정한다.
     `pdk_root`: 모델 파일을 찾을 PDK 루트(None = 슬라이스 meta 의 절대 경로). `verify_midpoints`: bin 검증 중점 npz(선택 --
     주면 tol 표의 앵커 2개 bin 외부 값 원천, lut/CONTRACT.md 5.1). [r7] `noise_npz`·`mismatch_npz`: 잡음 r1·mismatch 감도 r1 npz(선택,
     기준 LUT 에 묶임 -- 9.1·10.1; `LutSet.noise`·`LutSet.mismatch`).
@@ -386,8 +388,8 @@ def load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_mid
     선언 밖 소자, 폭이 제조 격자 밖, (kind, 폭 키) 중복, 축·형상 불일치, 측정 조건 불일치, 양수 원소 없는 배열,
     용량 열·kind 접미사 없음, 용량 기준 폭 미확정, 모델 파일(bin 지도 원천) 없음·불일치·bin 블록 결함, 중점 파일 결함.
     """
-    prov = lut_provenance(manifest_path, cap_npz_path, spec, pdk_root=pdk_root, verify_midpoints=verify_midpoints,
-                          noise_npz=noise_npz, mismatch_npz=mismatch_npz)
+    prov = lut_provenance(manifest_path, cap_npz_path, spec, bin_rule=bin_rule, pdk_root=pdk_root,
+                          verify_midpoints=verify_midpoints, noise_npz=noise_npz, mismatch_npz=mismatch_npz)
     conditions = {s.conditions for s in prov.slices}
     if len(conditions) != 1:
         raise schema_rejected("lut_conditions_mismatch", conditions=tuple(sorted(conditions)))
@@ -401,7 +403,7 @@ def load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_mid
     with np.load(prov.slices[0].path) as npz:
         grids = npz_grids(npz)
     parsed = {}
-    slices = [_build_slice(src, grids, parsed) for src in prov.slices]
+    slices = [_build_slice(src, grids, parsed, spec.manufacturing_grid_m, prov.bin_rule) for src in prov.slices]
     by_kind = {}
     for s in slices:
         by_kind.setdefault(s.kind, []).append(s)

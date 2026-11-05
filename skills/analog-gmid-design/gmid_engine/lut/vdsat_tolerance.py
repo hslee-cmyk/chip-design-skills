@@ -41,7 +41,7 @@ class TolVdsatTable:
     `loo_orders`: ((지표, 축, 방법, p, 2^-p), ...). `l_bin_checks`: 실제로 쓴 외부 값((model, vdsat_v), ...).
     """
 
-    def __init__(self, kind, w_key, origin, L_anchors, vds_grid, cells, l_bins, l_loo, l_loo_bins, loo_orders,
+    def __init__(self, kind, w_key, origin, L_anchors, vds_grid, cells, l_bins, grid_m, rule, l_loo, l_loo_bins, loo_orders,
                  l_bin_checks):
         self.kind = kind
         self.w_key = w_key
@@ -50,6 +50,8 @@ class TolVdsatTable:
         self.vds_grid = vds_grid
         self.cells = cells
         self.l_bins = l_bins
+        self.grid_m = grid_m
+        self.rule = rule
         self.l_loo = l_loo
         self.l_loo_bins = l_loo_bins
         self.loo_orders = loo_orders
@@ -117,7 +119,7 @@ def tol_vdsat_table(memo, kind, w_key, l_bin_checks=None):
                   for k in range(len(src.grids[2])))
             for i in range(len(src.grids[0])))
         orders = tuple((m, a, meth, p, 2.0 ** -p) for m, a, meth, p in LOO_ORDERS)
-        return TolVdsatTable(kind, w_key, src.origin, src.grids[0], src.grids[2], cells, src.l_bins, l_loo, l_loo_bins,
+        return TolVdsatTable(kind, w_key, src.origin, src.grids[0], src.grids[2], cells, src.l_bins, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, l_loo, l_loo_bins,
                              orders, checks)
 
     return memo.lookup_persistent("derived", "tol_vdsat_table", (kind, w_key, checks), compute, src,

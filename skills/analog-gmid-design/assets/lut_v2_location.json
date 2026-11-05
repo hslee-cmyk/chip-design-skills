@@ -4,6 +4,7 @@
  "root": {"env": "GMID_LUT_V2_ROOT", "default": "C:/Users/HSLEE/Documents/Todoc/fpga/lut_data/sky130_lut_v2"},
  "table_cache": {"env": "GMID_LUT_TABLE_CACHE_DIR", "default": "C:/Users/HSLEE/Documents/Todoc/fpga/lut_table_cache"},
  "pdk_root": {"env": "GMID_PDK_ROOT", "default": "C:/pdk/sky130_fd_pr"},
+ "bin_rule": {"path": "lut_v2_bin_rule.json", "sha256": "fa4c4c277a735fb5b353b9e72678115f061a836f1b7831543989b7a27a9f8b79"},
  "files": {
   "manifest": {"path": "manifest.json", "sha256": "a25b903657bfe6725b6d0f0d3f11435288fdfb37b0912d176638861c804cb2d2"},
   "cap_npz": {"path": "sky130_nfet_pfet_lut_v2_r2.npz", "sha256": "938e95b9b101d45140720c0655ecebed96e62c664de7121dbf399f6b1aa1efe2"},

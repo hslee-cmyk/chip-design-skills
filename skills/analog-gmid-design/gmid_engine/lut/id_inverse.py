@@ -80,7 +80,7 @@ def gm_id_for_target(memo, kind, w_key, L, vds, vsb, *, W, gm=None, current=None
             y, m = curve.log_id_vals, curve.gm_id_vals
             vgs = float(hermite_root(v[j], v[j + 1], y[j], y[j + 1], m[j], m[j + 1], residual))
         op = op_point(memo, kind, w_key, L, vgs, vds, vsb)
-        id_a = op.IDu * W / l_position(sl.grids[0], sl.l_bins, L)[-1]
+        id_a = op.IDu * W / l_position(sl.grids[0], sl.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule)[-1]
         return TargetSolution(vgs, op.gm_over_id, id_a, op.gm_over_id * id_a)
 
     return memo.lookup("root", "gm_id_for_target", (kind, w_key, quantity, target, L, vds, vsb, W), compute)

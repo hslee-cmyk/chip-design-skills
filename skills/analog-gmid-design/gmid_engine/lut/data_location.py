@@ -10,12 +10,17 @@
   (절대 경로·`..` 금지). root·pdk_root = 환경 변수가 비어 있지 않으면 그 값, 아니면 `default`.
 * 파일마다 sha256 을 다시 재서 설정 값과 대조한다(manifest 가 슬라이스 sha256 을 고정하고 `load_lut_set` 이 그것을 대조하므로
   슬라이스는 여기서 다시 재지 않는다 -- 같은 파일 두 번 해시 안 함). 다르면 거부(조용히 다른 데이터를 쓰지 않음).
-* 결과 `LutLocation` 을 `load_lut_set(location.manifest_path, location.cap_npz_path, spec, pdk_root=location.pdk_root,
-  verify_midpoints=location.midpoints_path, noise_npz=location.noise_path, mismatch_npz=location.mismatch_path)` 로 넘긴다.
+* [WB-1 범위 0] 설정 최상위 `"bin_rule": {"path", "sha256"}`(필수, `files` 밖): bin 규칙 선언 파일. `path` 는 **설정 파일 폴더** 기준 상대
+  경로(절대 경로·`..` 금지), sha256 은 줄바꿈 LF 환산 값(`core.file_sha256`)과 대조한다(CRLF 로 바뀐 같은 파일은 통과).
+* 결과 `LutLocation` 을 `load_lut_set(location.manifest_path, location.cap_npz_path, spec, bin_rule=location.bin_rule_path,
+  pdk_root=location.pdk_root, verify_midpoints=location.midpoints_path, noise_npz=location.noise_path,
+  mismatch_npz=location.mismatch_path)` 로 넘긴다.
 """
 import hashlib
 import json
 import os
+
+from gmid_engine.core import file_sha256
 
 from ._helpers_fail import schema_rejected
 from .lut_types import LutLocation
@@ -55,6 +60,25 @@ def _file(root, item, spec):
     return path
 
 
+def _bin_rule(config_path, spec):
+    """설정 최상위 `bin_rule`({"path", "sha256"}, `files` 밖)의 선언 파일 절대 경로. `path` 는 **설정 파일 폴더** 기준 상대 경로이고
+    sha256 은 LF 환산 값(`core.file_sha256`)과 대조한다. 형식 오류 -> `lut_location_config_invalid`(item "bin_rule"), 파일 없음 ->
+    `lut_location_file_missing`, 값 다름 -> `lut_location_sha256_mismatch`."""
+    rel = spec.get("path") if isinstance(spec, dict) else None
+    if (not isinstance(rel, str) or not rel or os.path.isabs(rel) or rel.startswith(("/", "\\")) or os.path.splitdrive(rel)[0]
+            or ".." in rel.replace("\\", "/").split("/") or not spec.get("sha256")):
+        raise schema_rejected("lut_location_config_invalid", item="bin_rule",
+                              why="object with relative path without '..' and sha256 required")
+    path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(config_path)), rel))
+    if not os.path.isfile(path):
+        raise schema_rejected("lut_location_file_missing", item="bin_rule", path=path)
+    actual = file_sha256(path)
+    if actual != spec["sha256"]:
+        raise schema_rejected("lut_location_sha256_mismatch", item="bin_rule", path=path, recorded=str(spec["sha256"]),
+                              actual=actual)
+    return path
+
+
 def resolve_lut_location(config_path, env):
     """설정 파일 `config_path` 와 환경 매핑 `env`(보통 `os.environ`)로 `LutLocation` 을 만든다.
 
@@ -81,6 +105,9 @@ def resolve_lut_location(config_path, env):
     pdk_root = None
     if isinstance(config.get("pdk_root"), dict):
         pdk_root = os.path.abspath(_choose(config["pdk_root"], env, "pdk_root", sources))
+    if "bin_rule" not in config:
+        raise schema_rejected("lut_location_config_invalid", item="bin_rule", why="required declaration entry missing")
+    bin_rule_path = _bin_rule(config_path, config["bin_rule"])
     return LutLocation(os.path.abspath(config_path), root, paths["manifest"], paths["cap_npz"],
                        paths.get("verify_midpoints"), pdk_root, tuple(sorted(sources)), paths.get("noise"),
-                       paths.get("mismatch"))
+                       paths.get("mismatch"), bin_rule_path)

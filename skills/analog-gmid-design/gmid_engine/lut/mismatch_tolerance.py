@@ -18,7 +18,7 @@ from .lut_types import AXES, TolMismatchCell
 class TolMismatchTable:
     """(kind) mismatch 허용오차 표. `cells[i_L][i_vds]` = TolMismatchCell, 축은 `L_anchors`·`vds_grid`. `l_bins`·`l_loo`·`l_loo_bins`: tol_V 표와 같은 뜻."""
 
-    def __init__(self, kind, w_key, params, L_anchors, vds_grid, cells, l_bins, l_loo, l_loo_bins):
+    def __init__(self, kind, w_key, params, L_anchors, vds_grid, cells, l_bins, grid_m, rule, l_loo, l_loo_bins):
         self.kind = kind
         self.w_key = w_key
         self.params = params
@@ -26,6 +26,8 @@ class TolMismatchTable:
         self.vds_grid = vds_grid
         self.cells = cells
         self.l_bins = l_bins
+        self.grid_m = grid_m
+        self.rule = rule
         self.l_loo = l_loo
         self.l_loo_bins = l_loo_bins
 
@@ -35,7 +37,7 @@ class TolMismatchTable:
         if param not in self.params:
             raise ValueError("TolMismatchTable.at: param 은 %s 중 하나" % (self.params,))
         context = (("kind", self.kind), ("table", "tol_mismatch"), ("w_key", self.w_key))
-        lo, hi, _ = l_position(self.L_anchors, self.l_bins, L, context)
+        lo, hi, _ = l_position(self.L_anchors, self.l_bins, L, self.grid_m, self.rule, context)
         vds = float(vds)
         check_axes((self.vds_grid,), (AXES[2],), (vds,), context)
         k = min(int(np.searchsorted(self.vds_grid, vds, side="right")) - 1, len(self.vds_grid) - 2)
@@ -58,6 +60,6 @@ def tol_mismatch_table(memo, kind):
                   for k in range(len(table.grids[2])))
             for i in range(len(table.grids[0])))
         return TolMismatchTable(kind, table.w_key, table.params, table.grids[0], table.grids[2], cells, table.l_bins,
-                                l_loo, l_loo_bins)
+                                memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, l_loo, l_loo_bins)
 
     return memo.lookup_persistent("derived", "tol_mismatch_table", (kind,), compute, table, (AXES,))
