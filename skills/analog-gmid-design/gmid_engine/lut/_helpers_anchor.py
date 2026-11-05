@@ -10,6 +10,7 @@
   그 앵커들 바깥(양옆 앵커가 서로 다른 bin)이면 `lut_l_cross_bin`. lut/CONTRACT.md 4.0.
 """
 import bisect
+import math
 
 from ._helpers_bins import bin_index
 from ._helpers_fail import seal_violation
@@ -25,7 +26,7 @@ def l_position(l_grid, l_bins, L, grid_m, rule, context=()):
     """
     L = float(L)
     i = bisect.bisect_left(l_grid, L)
-    li = round(L / grid_m)
+    li = round(L / grid_m) if math.isfinite(L) else None     # NaN·inf 는 앵커가 아니다 -> 아래 check_axes 가 거부
     for j in (i - 1, i):
         if 0 <= j < len(l_grid) and li == round(l_grid[j] / grid_m):
             return j, j, l_grid[j]

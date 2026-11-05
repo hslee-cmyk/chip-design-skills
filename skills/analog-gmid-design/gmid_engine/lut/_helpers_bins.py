@@ -7,6 +7,8 @@ bin 규칙(WB-1 범위 0, DEC-105 (2), lut/CONTRACT.md 4.0.1): 구간 끝과 x �
 (`LutSet.bin_rule`)에서 오고 이 함수에 기본값이 없다.
 """
 
+import math
+
 RULES = ("lower", "upper")
 
 
@@ -17,6 +19,8 @@ def bin_index(intervals, x, grid_m, rule):
     """
     if rule not in RULES:
         raise ValueError("bin_index: rule 은 %s 중 하나" % (RULES,))
+    if not math.isfinite(x):
+        return None
     xi = round(x / grid_m)
     hits = [j for j, (lo, hi) in enumerate(intervals) if round(lo / grid_m) <= xi <= round(hi / grid_m)]
     if not hits:

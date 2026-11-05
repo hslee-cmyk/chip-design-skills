@@ -21,6 +21,8 @@ lut_regen_plan.md 2절 K2', 계획 N3.6).
   두 앵커 바깥 -- 조회가 거부되는 L).
 """
 
+import math
+
 import numpy as np
 
 from ._helpers_bins import bin_index
@@ -103,7 +105,7 @@ def midpoint_l_bin_checks(memo, kind, w_key):
             if not bins.bins:
                 skipped.append((L_m, "bins_unavailable", None))
                 continue
-            if any(round(L_m / grid_m) == round(a / grid_m) for a in l_grid):
+            if math.isfinite(L_m) and any(round(L_m / grid_m) == round(a / grid_m) for a in l_grid):
                 skipped.append((L_m, "is_anchor", None))
                 continue
             b = bin_index(tuple((x.lmin, x.lmax) for x in bins.bins), L_m, grid_m, rule)
