@@ -171,7 +171,7 @@ def local_inputs(devs, *, rails=("gnd", "vdd"), grids=GRIDS, passives=(), orbit=
         cur_rep=tup(dict(cur_rep) if cur_rep is not None else {e: (e, 1) for e in free}),
         current_box=tup(dict(current_box) if current_box is not None else {e: (1e-6, 1e-4) for e in free}),
         element_value=tup(dict(element_value or {})), resistor_box=tup(dict(resistor_box or {})),
-        w_keys=tup({"nmos": W_KEY, "pmos": W_KEY}), grids=tuple(tuple(float(x) for x in g) for g in grids),
+        grids=tuple(tuple(float(x) for x in g) for g in grids),
         node_colour=(), device_colour=(), attach=())
     return stored.view
 

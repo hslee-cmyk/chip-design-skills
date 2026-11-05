@@ -14,7 +14,6 @@ from gmid_engine.metrics import ParamTables
 from .gb4_hand import (A, GRIDS, L_GRID, LAM, VDS_GRID, VGS_GRID, VS_GRID, W_KEY, branch_start, fp_default, memo_of,
                        write_lut)
 
-W_KEYS = {"nmos": W_KEY, "pmos": W_KEY}
 
 # 정점이 안쪽인 gm/ID: f'(g) = 10 + 10g − 10g² (g = 0.5 에서 최대 12.5), f = 10g + 5g² − 10g³/3. VGS 격자 0..1.5 (0.125 간격)
 PEAK_VGS = tuple(0.125 * i for i in range(13))
@@ -47,7 +46,7 @@ def _all_index(grids):
 
 @pytest.mark.parametrize("kind", ["nmos", "pmos"])
 def test_lookup_matches_closed_form_on_every_grid_node(toy, kind):
-    t = ParamTables(memo_of(toy), W_KEYS, GRIDS)
+    t = ParamTables(memo_of(toy), GRIDS, side="upper", z_side="max")
     il, idd, iss, iv = _all_index(GRIDS)
     x, y, z = t.lookup(kind, il, idd, iss, iv)
     vgs = np.asarray(VGS_GRID)[iv]
@@ -58,7 +57,7 @@ def test_lookup_matches_closed_form_on_every_grid_node(toy, kind):
 
 
 def test_nodes_below_gm_id_peak_are_invalid(peak):
-    t = ParamTables(memo_of(peak), W_KEYS, PEAK_GRIDS)
+    t = ParamTables(memo_of(peak), PEAK_GRIDS, side="upper", z_side="max")
     p = branch_start(fp_peak, PEAK_VGS)
     assert p == 4                                      # 손: f' 최대 g = 0.5 = 격자 index 4
     il, idd, iss, iv = _all_index(PEAK_GRIDS)
@@ -71,7 +70,7 @@ def test_nodes_below_gm_id_peak_are_invalid(peak):
 
 
 def test_lookup_shape_follows_index_arrays(toy):
-    t = ParamTables(memo_of(toy), W_KEYS, GRIDS)
+    t = ParamTables(memo_of(toy), GRIDS, side="upper", z_side="max")
     il = np.zeros((2, 3), int)
     x, y, z = t.lookup("nmos", il, il, il + 1, il + 2)
     assert x.shape == y.shape == z.shape == (2, 3)
@@ -81,7 +80,7 @@ def test_lookup_shape_follows_index_arrays(toy):
 
 def test_curves_are_built_once_per_entry(toy):
     # 행 memo: 같은 (kind, L, VDS, VS) 항목은 한 번만 만든다; 만든 곡선 수 상한 = kind 마다 |L|·|VDS|·|VS| (계약 10.3, 모듈 문서 `loads`)
-    t = ParamTables(memo_of(toy), W_KEYS, GRIDS)
+    t = ParamTables(memo_of(toy), GRIDS, side="upper", z_side="max")
     il, idd, iss, iv = _all_index(GRIDS)
     t.lookup("nmos", il, idd, iss, iv)
     first = t.loads
@@ -101,7 +100,7 @@ def bin_env(tmp_path_factory):
     lut = BinToy(tmp_path_factory.mktemp("ub1_bin_tables"), bin_model_text()).load(TOY_SPEC)
     memo = new_memo(lut)
     grids = lut.slice_map[("nmos", 100)].grids
-    return memo, ParamTables(memo, {"nmos": 100}, grids), grids
+    return memo, ParamTables(memo, grids, side="upper", z_side="max"), grids
 
 
 def test_ub1_same_l_bin_follows_anchor_bin_map(bin_env):
@@ -144,5 +143,5 @@ def test_ub1_lookup_at_l_across_bins_is_nan(bin_env):
 
 
 def test_ub1_map_less_table_has_no_same_bin_neighbours(toy):
-    t = ParamTables(memo_of(toy), W_KEYS, GRIDS)
+    t = ParamTables(memo_of(toy), GRIDS, side="upper", z_side="max")
     assert [t.same_l_bin("nmos", a, a + 1) for a in range(len(L_GRID) - 1)] == [False] * (len(L_GRID) - 1)

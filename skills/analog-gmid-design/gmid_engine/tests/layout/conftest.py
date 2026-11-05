@@ -214,9 +214,9 @@ def make_input(devices, groups, row_groups, pdk, rejected=(), passives=()):
     return LayoutInput(tuple(devices), tuple(groups), tuple(row_groups), pdk, tuple(rejected), tuple(passives))
 
 
-def rg(rid, members, kind="nmos", body="sub"):
+def rg(rid, members, kind="nmos", body="sub", excluded_keys=()):
     from gmid_engine.layout import RowGroup
-    return RowGroup(rid, kind, body, tuple(members))
+    return RowGroup(rid, kind, body, tuple(members), tuple(excluded_keys))
 
 
 def mg(gid, members, role, hub=None, patterns=("common_centroid", "interdigitation")):

@@ -115,8 +115,8 @@ def _js(decl_paths, lut):
 
 def _bit_junction(op, js):
     """S-11: 계약 문장 그대로 -- 같은 dc_op·JunctionSource 로 공개 junction_caps 를 부른 값(w_m = 슬라이스 폭)."""
-    jc = junction_caps(js.params_of(op.kind), js.pre_layout_geometry(LUT_WM, op.W / LUT_WM), op.vds + op.vsb, op.vsb,
-                       js.temp_c)
+    jc = junction_caps(js.params_of(op.kind), js.pre_layout_geometry(LUT_WM, max(1, round(op.W / LUT_WM))), op.vds + op.vsb, op.vsb,
+                       js.temp_c)       # 손 dc_finger 행(conftest hand_write): 손가락 폭 = 슬라이스 폭, 손가락 수 = round(W/w_m)
     return jc.cdb, jc.csb
 
 
@@ -137,8 +137,9 @@ def _check(ss, exp, op, js, rtol=1e-12, temp_c=27.0, params=None, rule=None):
 def test_block_declaration():
     """reads device.dc_op·[9절] device.dc_tol_v·[U17 ①, 설계 40 §3.7-3] device.dc_gm·[EO-1 범위 4, A-88] device.off_op·device.region_decl·device.kind, writes device.ss_dev, writer = 권한표 writer_of."""
     assert ss_dev.name == SS_DEV_WRITER == S2_WRITERS.writer_of("device", "ss_dev") == "ss_dev"
+    # [WB-1 C-2] 접합 인자(ad/as/pd/ps)는 소자 손가락 기하 `device.dc_finger` 를 읽는다(총 폭 W 가 아니다)
     assert set(ss_dev.reads) == {("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm"), ("device", "off_op"),
-                                    ("device", "region_decl"), ("device", "kind")}
+                                    ("device", "region_decl"), ("device", "kind"), ("device", "dc_finger")}
     assert tuple(ss_dev.writes) == (("device", "ss_dev"),)
 
 
@@ -201,7 +202,7 @@ def test_junction_bias_and_side_mapping(tmp_path, lut_a, decl_paths):
     for alt in (swapped_bias, other_kind):
         assert not rel_close(ss.cdb, alt[0], 1e-6), alt
     assert not rel_close(ss.csb, other_kind[1], 1e-6)
-    assert rel_close(ss.cdb, m_one[0] * op.W / LUT_WM, JUNCTION_RTOL)      # 소자 전체 = m 배
+    assert rel_close(ss.cdb, m_one[0] * max(1, round(op.W / LUT_WM)), JUNCTION_RTOL)      # 소자 전체 = 손가락 수 m 배 (dc_finger)
     assert ss.cdb != ss.csb
 
 

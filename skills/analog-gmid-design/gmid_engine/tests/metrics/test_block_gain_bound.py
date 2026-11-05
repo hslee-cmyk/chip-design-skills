@@ -21,14 +21,13 @@ from gmid_engine.metrics import BlockBound, ParamTables, ResLocal, block_gain_bo
 
 from .gb4_hand import GRIDS, L_GRID, VDS_GRID, VGS_GRID, W_KEY, axis, cs_model, db, follower_model, memo_of, model, mosl, write_lut
 
-W_KEYS = {"nmos": W_KEY, "pmos": W_KEY}
 FOL_AMAX = 5.6 / 3.9
 FOL_B = db(FOL_AMAX / (5.6 / 5.7))
 
 
 @pytest.fixture(scope="module")
 def tables(tmp_path_factory):
-    return ParamTables(memo_of(write_lut(tmp_path_factory.mktemp("bound_toy"))), W_KEYS, GRIDS)
+    return ParamTables(memo_of(write_lut(tmp_path_factory.mktemp("bound_toy"))), GRIDS, side="upper", z_side="max")
 
 
 def _cond(bb):
@@ -250,7 +249,7 @@ def test_ub1_e16_real_tables_operating_path(tmp_path):
             self.at_l.append(np.asarray(l_m, dtype=float).copy())
             return super().lookup_at_l(kind, l_m, i_d, i_s, i_v)
 
-    tb = CountTables(memo, {"nmos": 100}, grids)
+    tb = CountTables(memo, grids, side="upper", z_side="max")
     axes = (axis("vgs", ("M1",), grids[1]), axis("L", ("M1",), grids[0]), axis("vds", ("M1",), grids[2]))
     m = model(("out",), ("out",), ("in",), ((("in", 1.0),),), (("out", 1),),
               (mosl("M1", "nmos", "out", "in", "gnd", "gnd", 0, 1, 2, -1),), axes, normalized=("I0",))

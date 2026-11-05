@@ -950,11 +950,12 @@ def test_it2c_region_rows_hand_values(tmp_path):
     snap, ctx = _cs(tmp_path, i=1e-5, r=9e4)
     values = dict(snap.column("node", "dc_v"))
     vdsat = _vdsat(0.6)
-    rows = Circuit(snap, lut=ctx.lut, linear=frozenset()).region_rows(values)
+    sat = dict(snap.column("device", "dc_sat_v"))                                   # [HC-S] 정의역 판정 경계(SatBound)는 dc_solve 가 쓰는 열을 입력으로 받는다
+    rows = Circuit(snap, lut=ctx.lut, linear=frozenset()).region_rows(values, sat)
     assert rows is not None and len(rows) == 1
     a, b, sign, slack, kind = rows[0]
     assert (a, b, sign, kind) == ("out", "gnd", 1, "sat") and abs(slack - (0.9 - vdsat)) <= 1e-9
-    rows = Circuit(snap, lut=ctx.lut, linear=frozenset({"M1"})).region_rows(values)
+    rows = Circuit(snap, lut=ctx.lut, linear=frozenset({"M1"})).region_rows(values, sat)
     a, b, sign, slack, kind = rows[0]
     assert (a, b, sign, kind) == ("out", "gnd", -1, "triode") and abs(slack - (vdsat - 0.9)) <= 1e-9
 

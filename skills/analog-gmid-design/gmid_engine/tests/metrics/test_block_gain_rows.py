@@ -17,14 +17,13 @@ from gmid_engine.metrics import ParamTables, row_gains
 from .gb4_hand import (GRIDS, L_GRID, LAM, VDS_GRID, VGS_GRID, VS_GRID, W_KEY, axis, cs_model, follower_model, memo_of, model,
                        mosl, solve_lin, write_lut)
 
-W_KEYS = {"nmos": W_KEY, "pmos": W_KEY}
 G = np.asarray(VGS_GRID)
 S = np.asarray(VS_GRID)
 
 
 @pytest.fixture(scope="module")
 def tables(tmp_path_factory):
-    return ParamTables(memo_of(write_lut(tmp_path_factory.mktemp("rows_toy"))), W_KEYS, GRIDS)
+    return ParamTables(memo_of(write_lut(tmp_path_factory.mktemp("rows_toy"))), GRIDS, side="upper", z_side="max")
 
 
 def _rand_rows(m, n, seed):

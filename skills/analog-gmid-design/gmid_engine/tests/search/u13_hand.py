@@ -37,6 +37,7 @@ VS_GRID = (-0.45, 0.0, 0.45, 0.9, 1.35, 1.8)
 GRIDS = (L_GRID, VGS_GRID, VDS_GRID, VS_GRID)
 CGG_REF = 1e-15
 CGD_REF = 2e-16
+CDD_REF = CGD_REF                    # [WB-1 E-18] 기준 표의 CDD 열(드레인 용량): 값은 옛 cgd 대체와 같게 둬 기대 닫힌 식이 그대로다
 GMID_MAX = B                         # gm/ID 정점(VGS = 0)
 GMID_MIN = B - C * VGS_GRID[-1]      # 5.6 (VGS = 1.8)
 
@@ -51,7 +52,7 @@ def gm_id_for_vdsat(v):
     return 2.0 / v
 
 
-def write_toy_lut(root, cap_scale=1.0, grids=GRIDS):
+def write_toy_lut(root, cap_scale=1.0, grids=GRIDS, cdd=True):
     """VDSAT 열과 용량 배율이 있는 해석식 toy LUT 를 쓰고 엔진 로더로 읽는다(입력 생성). -> LutSet."""
     from gmid_engine.lut import LutSpec, load_lut_set
     root = Path(root)
@@ -71,6 +72,8 @@ def write_toy_lut(root, cap_scale=1.0, grids=GRIDS):
     for kind in KINDS:
         cap["CGG" + SUFFIX[kind]] = np.full(shp, CGG_REF * cap_scale)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, CGD_REF * cap_scale)
+        if cdd:
+            cap["CDD" + SUFFIX[kind]] = np.full(shp, CDD_REF * cap_scale)
     np.savez(root / "cap.npz", **cap)
     spec = LutSpec(GRID_M, (("nmos", W_M), ("pmos", W_M)), (("toyn", "nmos"), ("toyp", "pmos")),
                    (("nmos", "_n"), ("pmos", "_p")))
@@ -225,26 +228,26 @@ _TOY_RECIPES = {}                     # [XRUN-F1 card B 규칙 M M-d] 실행과 
 _TOY_CASE_CAP = 24
 
 
-def toy_env(cap_scale=1.0):
-    """(LUT, decls, 작업 폴더) -- cap_scale 마다 한 번."""
+def toy_env(cap_scale=1.0, cdd=True):
+    """(LUT, decls, 작업 폴더) -- (cap_scale, cdd) 마다 한 번. cdd=False 면 기준 표에 CDD 열이 없다(E-18 거부 시험)."""
     import os
     import tempfile
-    if cap_scale not in _TOY:
+    if (cap_scale, cdd) not in _TOY:
         root = Path(tempfile.mkdtemp(prefix="u13t", dir=os.environ.get("TEMP") or None))
-        _TOY[cap_scale] = SimpleNamespace(lut=write_toy_lut(root / "lut", cap_scale=cap_scale), decls=toy_decls(root / "pdk"),
-                                          root=root, n=0)
-    return _TOY[cap_scale]
+        _TOY[(cap_scale, cdd)] = SimpleNamespace(lut=write_toy_lut(root / "lut", cap_scale=cap_scale, cdd=cdd), decls=toy_decls(root / "pdk"),
+                                                 root=root, n=0)
+    return _TOY[(cap_scale, cdd)]
 
 
-def toy_case(topo_doc, *, cap_scale=1.0, elements=(), constraints=(), fresh=False, **kw):
+def toy_case(topo_doc, *, cap_scale=1.0, elements=(), constraints=(), fresh=False, cdd=True, **kw):
     """toy 회로 한 건(단계 A·B 는 같은 입력에 한 번만; fresh=True 면 새로 -- 결정론 test 용).
     [XRUN-F1 card B 규칙 M M-d] 프로세스 캐시는 실행과 무관한 입력(recipe -- S0 수준 S1Graph·spec 등)뿐이고, 커널·탐색 컨텍스트는 부를 때마다
     새 실행(새 open_run() 쌍)으로 만든다(실행의 두 객체를 test 사이에 보관하지 않는다)."""
-    key = (cap_scale, json.dumps(topo_doc, sort_keys=True), tuple(elements), tuple(constraints),
+    key = (cap_scale, cdd, json.dumps(topo_doc, sort_keys=True), tuple(elements), tuple(constraints),
            tuple(sorted((k, repr(v)) for k, v in kw.items())))
     if not fresh and key in _TOY_RECIPES:
         return contexts_of(_TOY_RECIPES[key])
-    env = toy_env(cap_scale)
+    env = toy_env(cap_scale, cdd)
     env.n += 1
     case = build(env.root / ("c%03d" % env.n), env.lut, env.decls, topo_doc, elements=elements, constraints=constraints, **kw)
     if not fresh:

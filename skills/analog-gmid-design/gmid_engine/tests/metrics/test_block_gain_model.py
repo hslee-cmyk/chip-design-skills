@@ -203,12 +203,11 @@ from gmid_engine.metrics import ParamTables, block_local_gain, row_gains  # noqa
 from . import u7_hand as H  # noqa: E402
 from .gb4_hand import LAM, W_KEY, memo_of, write_lut, x_of, z_of  # noqa: E402
 
-UB1_W_KEYS = {"nmos": W_KEY, "pmos": W_KEY}
 
 
 @pytest.fixture(scope="module")
 def ub1_tables(tmp_path_factory):
-    return ParamTables(memo_of(write_lut(tmp_path_factory.mktemp("ub1_rows_toy"))), UB1_W_KEYS, GRIDS)
+    return ParamTables(memo_of(write_lut(tmp_path_factory.mktemp("ub1_rows_toy"))), GRIDS, side="upper", z_side="max")
 
 
 def _ub1_loc(devs, passives=(), **kw):

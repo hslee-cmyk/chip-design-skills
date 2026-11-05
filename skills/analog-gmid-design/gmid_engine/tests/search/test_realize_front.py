@@ -321,3 +321,35 @@ def test_realize_r10_json_finger_residual_and_selection_residual(tmp_path, short
         assert dict(entry["finger_residual"]) == want                 # 탐색 residual (실현 후 0.0 이 아님)
         assert "slice_rounds" in entry
     assert {"lost", "n_lost"} <= set(dict(run["realize"]))
+
+
+def test_realize_r10_json_finger_residual_is_the_tampered_search_value(tmp_path, monkeypatch, short_root):
+    """R-10 후반 (interface §6, reader 잠금 S-4): 탐색 점의 `dc_finger` 한 소자를 `FingerGeom(m, w_f, -0.5)` 로 바꾸면(같은 m·w_f 라 실현 평가는 그대로 통과) JSON
+    `front[i].finger_residual[소자]` = -0.5 이다. 단언 = 바꾼 값 그대로(탐색 `FingerGeom.residual` 을 읽는다 -- 실현 평가의 0.0 이 아니다).
+    oracle (d): interface 표 '탐색 FingerGeom.residual'. 선택 경로 손 값(슬라이스 {5 µm}, W = 12e-6 -> (2, 5e-6), r = -1/6)은 위 test 가 본다."""
+    from gmid_engine.sizing import FingerGeom
+    from gmid_engine.search import find_front
+    case = bins_case(tmp_path, circuit_c(), archive_root=short_root)
+    ff = mod("find_front")
+    real_sweep = ff.sweep_front
+    seen = []
+
+    def sweep(*a, **k):
+        out = dict(real_sweep(*a, **k))
+        pts = []
+        for p in out["front"]:
+            fing = dict(p.result.evaluation.snapshot.column("device", "dc_finger"))
+            m1 = fing["M1"]
+            tam = with_fingers(p.result, {"M1": FingerGeom(m1.m, m1.w_f_m, -0.5)})        # 실현 평가가 쓰는 m·w_f 는 그대로, residual 만 바꾼다
+            pts.append(dataclasses.replace(p, result=tam))
+            seen.append(p.point_id)
+        out["front"] = tuple(pts)
+        return out
+    monkeypatch.setattr(ff, "sweep_front", sweep)
+    fr = find_front(case.sctx, [theta_r4c()])
+    assert seen and len(fr.front) >= 1                                    # 양성 대조: 탐색 점을 실제로 바꿨고 실현 뒤 front 가 남았다
+    (run,) = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "runs.jsonl").read_text(encoding="utf-8").splitlines() if x.strip()]
+    assert len(run["front"]) == len(fr.front)
+    for entry in run["front"]:
+        assert dict(entry["finger_residual"])["M1"] == -0.5
+

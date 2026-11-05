@@ -121,7 +121,8 @@ def test_block_reuse_counts(toy_lut):
 def test_reads_declaration():
     # oracle (d): design 40 v1.11.2 §2.4.8 '세 블록 READS' 행(O-36 (3) (a)·O-39 (2)) -- `ly_finger_candidates` READS device `ly_point`(gm_id)·
     # `ly_slices`, graph `ly_pdk`. 옛 소자 통째 필드 열 읽기 없음, 참고 W 를 담은 `ly_attrs` 를 읽지 않는다.
-    assert set(finger_candidates.reads) == {("device", "ly_point"), ("device", "ly_slices"), ("graph", "ly_pdk")}
+    # [WB-1 L-1] + graph `ly_row_groups`: 후보 폭 키 제외는 소자가 속한 행 그룹의 `excluded_keys`(그룹 단위 키 제외)
+    assert set(finger_candidates.reads) == {("device", "ly_point"), ("device", "ly_slices"), ("graph", "ly_pdk"), ("graph", "ly_row_groups")}
 
 
 def test_reference_w_not_in_input_version(toy_lut):
@@ -131,3 +132,20 @@ def test_reference_w_not_in_input_version(toy_lut):
     snaps = [staged_snapshot(make_input(ds, [], [rg("r", [d.name for d in ds])], toy_pdk(toy_lut)), new_memo(toy_lut))
              for ds in (devs, other)]
     assert finger_candidates.input_version(snaps[0]) == finger_candidates.input_version(snaps[1])
+
+
+def test_row_group_excluded_keys_remove_only_that_groups_width_candidates(toy_lut):
+    """[WB-1 L-1] 키 제외는 행 그룹 단위다: 행 그룹 R1 이 폭 키 100 을 뺀 후보 집합에서는 R1 소자의 후보 폭 키가 {200} 뿐이고, 제외가 없는 R2 소자는 {100, 200} 그대로다.
+    oracle (a): 독립 규칙(위 `_expected`) -- 제외 키의 슬라이스만 후보에서 빠진다. 같은 사양 소자(같은 W·gm/ID)로 제외 효과만 갈린다."""
+    devs = [dev("A", "x", "y", 2e-6), dev("B", "u", "v", 2e-6)]
+    snap_in = make_input(devs, [], [rg("R1", ["A"], excluded_keys=(100,)), rg("R2", ["B"])], toy_pdk(toy_lut))
+    snap = staged_snapshot(snap_in, new_memo(toy_lut))
+    out = finger_candidates(snap, **fresh_run())
+    cand = device_column(out, "ly_fw_cand")
+    keys = {n: {c.finger_w_key for c in cs} for n, cs in cand.items()}
+    assert keys["B"] == {100, 200}                                     # 양성 대조: 제외 없는 그룹은 후보가 둘 다 있다
+    assert keys["A"] == {200}
+    slices = device_column(snap, "ly_slices")
+    want_a = [(key, nf) for key, nf, *_r in _expected(slices["A"], devs[0].gm_id) if key != 100]
+    assert [(c.finger_w_key, c.n_fingers) for c in cand["A"]] == want_a
+

@@ -68,10 +68,12 @@ def test_off_delta_off_op_point_and_key(tmp_path):
     assert snap.field("device", "M1", "off_op") is None                      # 선언 소자에만
 
 
-@pytest.mark.parametrize("k", [2.0, 0.5])
-def test_off_delta_scales_with_w_over_l(tmp_path, k):
-    base = graph_field(evaluate(case_a(tmp_path / "b")).snapshot, "ss_off_delta")
-    scaled = graph_field(evaluate(case_a(tmp_path / "s", w_m=k * 1e-6, name="od_a_k")).snapshot, "ss_off_delta")
+@pytest.mark.parametrize("w_base, w_scaled", [(1e-6, 2e-6), (2e-6, 1e-6)])
+def test_off_delta_scales_with_w_over_l(tmp_path, w_base, w_scaled):
+    """[WB-1 T-O5'] w_m 은 슬라이스 폭이다(LUT 슬라이스 {1 µm, 2 µm}, 같은 IDu): ΔI_off ∝ w_m. 옛 k = 0.5 는 슬라이스 0.5 µm(W_min 밖)가 없어 같은 비(1/2)를 2 µm -> 1 µm 로 본다. 기대 = 손 W 비."""
+    k = w_scaled / w_base
+    base = graph_field(evaluate(case_a(tmp_path / "b", w_m=w_base)).snapshot, "ss_off_delta")
+    scaled = graph_field(evaluate(case_a(tmp_path / "s", w_m=w_scaled, name="od_a_k")).snapshot, "ss_off_delta")
     assert rel_close(dict(scaled.sources)["Moff"], k * dict(base.sources)["Moff"], 1e-12)
 
 

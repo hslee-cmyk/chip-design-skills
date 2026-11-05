@@ -27,7 +27,8 @@ def test_public_api():
                            "CC_REQUIRED_ROLES", "EXCLUDED_ROLES", "PATTERNS", "PATTERN_COMMON_CENTROID", "PATTERN_INTERDIGITATION",
                            "ROLE_DIFF_PAIR", "ROLE_MIRROR", "ROLE_BRANCH_SYMMETRIC", "ROLE_BIAS_DISTRIBUTION", "ROLE_FEEDBACK_SHARED",
                            "LayoutOutputs", "layout_outputs",
-                           "LAYOUT_KEY", "F_POINT", "F_GROUPS_IN", "F_GROUPS", "F_FINGER", "F_FLOORPLAN", "F_DIFFUSION"}
+                           "LAYOUT_KEY", "F_POINT", "F_GROUPS_IN", "F_GROUPS", "F_FINGER", "F_FLOORPLAN", "F_DIFFUSION",
+                           "F_ROW_GROUPS"}           # [WB-1 L-1] 행 그룹 필드 이름 공개: 키 제외(MOD8)가 행 그룹 단위로 읽는다
     import gmid_engine.layout as layout_pkg
     from gmid_engine.layout import _ly_fields as lf
     # 공개 필드 이름은 `_ly_fields.py` 의 그 값이다(design §2.4.8 "as-built `_ly_fields.py` 필드 이름 그대로")
@@ -60,7 +61,7 @@ def test_field_order():
     assert f(LayoutDevice) == ["name", "kind", "drain", "gate", "source", "body", "W_m", "L_m", "ID_A", "gm_id", "vds_V",
                                "vsb_V", "diode", "W_adjustable"]
     assert f(MatchingGroup) == ["gid", "members", "role", "hub_net", "allowed_patterns"]
-    assert f(RowGroup) == ["rid", "kind", "body_net", "members"]
+    assert f(RowGroup) == ["rid", "kind", "body_net", "members", "excluded_keys"]          # [WB-1 L-1] 행 그룹 단위 폭 키 제외
     assert f(LayoutPdk) == ["manufacturing_grid_m", "slice_width_keys", "finger_pitch_overhead_m", "row_gap_m", "dummy_w_m",
                             "tap_w_m", "well_spacing_m", "rule_ids", "source_fp"]
     # [U12] CONTRACT 4.1: LayoutInput(..., rejected_requests=(), passives=()) -- 판정 축 면적의 수동소자 블록(D-LY4)
@@ -118,6 +119,15 @@ def test_rowgroup_rejects():
         RowGroup("r", "nmos", "sub", ("A", "A"))
     with pytest.raises(ValueError):
         RowGroup("r", "jfet", "sub", ("A",))
+
+
+@pytest.mark.parametrize("bad", [(200, 100), (100, 100), (1.5,), (True,), ("100",)])
+def test_rowgroup_excluded_keys_must_be_ascending_unique_ints(bad):
+    """[WB-1 L-1] `excluded_keys` = 중복 없는 오름차순 정수 tuple(폭 키). 대조(정상)가 먼저 통과해야 거부가 공허하지 않다."""
+    assert RowGroup("r", "nmos", "sub", ("A",), (100, 200)).excluded_keys == (100, 200)
+    assert RowGroup("r", "nmos", "sub", ("A",)).excluded_keys == ()
+    with pytest.raises(ValueError):
+        RowGroup("r", "nmos", "sub", ("A",), bad)
 
 
 # --- LayoutPdk ------------------------------------------------------------------------------------------------------

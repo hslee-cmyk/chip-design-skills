@@ -179,10 +179,11 @@ def test_s11_junction_caps_and_approximation(base):
     _, _, _, _, res, js = base
     op = res.snapshot.value("device", "M1", "dc_op")
     ss = res.snapshot.value("device", "M1", "ss_dev")
-    jc = junction_caps(js.params_of(op.kind), js.pre_layout_geometry(LUT_WM, op.W / LUT_WM), op.vds + op.vsb, op.vsb,
+    fg = res.snapshot.value("device", "M1", "dc_finger")                      # C-2: 접합 인자 = 소자 손가락 기하 (w_f, m)
+    jc = junction_caps(js.params_of(op.kind), js.pre_layout_geometry(fg.w_f_m, fg.m), op.vds + op.vsb, op.vsb,
                        js.temp_c)
     assert (ss.cdb, ss.csb) == (jc.cdb, jc.csb)
-    cdb, csb = oracle_junction(op)
+    cdb, csb = oracle_junction(op, w_m=fg.w_f_m, m=fg.m)
     assert rel_close(ss.cdb, cdb, JUNCTION_RTOL) and rel_close(ss.csb, csb, JUNCTION_RTOL)
     assert ss.cdb > 0.0 and ss.csb > 0.0
     assert ss.junction_model == JUNCTION_LUT_RULE == "pdk_bsim4_lut_rule_diffusion"
@@ -462,7 +463,8 @@ def test_sky130_decls_ss_dev_junction_matches_reference(base):
     ss = r.snapshot.value("device", "M1", "ss_dev")
     # 규칙 기하: core 9.4 표 lut_diffusion_* (ad/w = 2.5e-12/5e-6, pd − w = 7e-6 − 5e-6) 를 같은 식으로 따로 계산
     ad_w, pd_x = 2.5e-12 / 5e-6, 7e-6 - 5e-6
-    geo = (LUT_WM, ad_w * LUT_WM, ad_w * LUT_WM, LUT_WM + pd_x, LUT_WM + pd_x, op.W / LUT_WM)
+    fg = r.snapshot.value("device", "M1", "dc_finger")                          # C-2: 접합 인자 = dc_finger (w_f, m)
+    geo = (fg.w_f_m, ad_w * fg.w_f_m, ad_w * fg.w_f_m, fg.w_f_m + pd_x, fg.w_f_m + pd_x, float(fg.m))
     cdb, csb = ref_caps(tj.sky_ref_params("nmos"), geo, op.vds + op.vsb, op.vsb, 27.0)
     assert rel_close(ss.cdb, cdb, JUNCTION_RTOL) and rel_close(ss.csb, csb, JUNCTION_RTOL), (ss.cdb, cdb, ss.csb, csb)
     # 7.2 예의 전제(같은 픽스처 점) -- 같으면 작성자 실측 숫자와도 대조
