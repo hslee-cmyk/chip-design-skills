@@ -46,15 +46,10 @@ def _tail_stages(views):
     return {}
 
 
-def gain_transfer_views(views, gain_views=()):
-    """gain 제약 전달 뷰 = 전달 뷰 중 id 가 `gain_views` 안인 것(뷰 순서 그대로). 순수 함수 -- `l_equivalence_classes` 와 θ 분류(`theta_class`)가 같은 정의를 부른다."""
-    return tuple(v for v in views if v.kind == VIEW_TRANSFER and v.id in gain_views)
-
-
 def _main_path_starts(views, gain_views):
     """gain 제약 전달 뷰(없으면 첫 전달 뷰)의 주경로 stage 시작 셀 -> 그 블록의 stage."""
     transfer = [v for v in views if v.kind == VIEW_TRANSFER]
-    chosen = next(iter(gain_transfer_views(views, gain_views)), transfer[0] if transfer else None)
+    chosen = next((v for v in transfer if v.id in gain_views), transfer[0] if transfer else None)
     starts = {}
     for block in () if chosen is None else chosen.blocks:
         for name, role in block.roles:

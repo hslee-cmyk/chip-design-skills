@@ -39,7 +39,6 @@ from .s1_key import s1_key
 from .s1_model import S1Graph
 from .s1_structure import s1_structure
 from .s1_symmetry import s1_symmetry
-from .l_classes import gain_transfer_views
 from .s1v_build import build_s1v
 from .s1v_fields import s1v_fields
 from .s1v_findings import s1v_findings
@@ -379,7 +378,6 @@ __all__ = (
     "FfRatioCandidate",
     "structure_tables",
     "s1v_fields",
-    "gain_transfer_views",
     "s1v_findings",
     "S1V_RULE_FILES",
     "SPEC_VIEW_LOOP",
