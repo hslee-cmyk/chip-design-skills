@@ -57,7 +57,9 @@ def snap(tmp_path_factory):
     s = ctx.base
     s = hand_write(s, "device", "dc_current", CUR)
     s = hand_write(s, "node", "dc_v", VOLT)
-    ops = {m: device_op("pmos" if m == "M2" else "nmos", l, 0.7, 0.9, 0.0, w) for m, (w, l) in WL.items()}
+    # [dispute 7.4, 계약 23] MOS 채널 레일 전류의 전력 축 = `DeviceOp.current` 이므로 손 dc_op 전류를 같은 소자의 손 dc_current(CUR, 위 기대 주석의 출처)와 같게 둔다
+    # (device_op 기본 10 µA 면 gnd 레일이 -30 µA 가 되어 기대 -17 µA 와 어긋난다). 기대값(EXP_RAIL)은 그대로.
+    ops = {m: device_op("pmos" if m == "M2" else "nmos", l, 0.7, 0.9, 0.0, w, current=CUR[m]) for m, (w, l) in WL.items()}
     return hand_write(s, "device", "dc_op", ops)
 
 

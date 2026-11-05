@@ -8,11 +8,13 @@ oracle 종류와 출처
   ln(1 + r)/g 근사는 쓰지 않는다. 단언 = ||V_id(실현) - V_id(탐색)| - Δ| <= tol_V(봉인 tol 최솟값, 바꾸지 않음) 와 |V_id 이동| >= Δ/2 (공허 방지).
   VGS0 는 선언 상수(wb1_flow.VGS0 = θ 입력)이고 탐색 스냅샷 dc_op 값과 같음을 전제 단언한다. 판정 mi-10: 측정과 손 값의 차(약 4.5 mV, 원인 미상)는 tol 을 바꾸지 않고
   단언 메시지·보고에 두 값을 남긴다.
-- R-6 ([기대 변경 2026-11-06 O-237]): 입력 고정 갈래 = KCL 재풀이 + 재봉인. ΔV(out) = -a·[(1 + r)·e^{LAM·ΔV} - 1] 의 근(`wb1_hand.single_input_out_shift`, 이분법)과 같음.
-  a = V_dd - V(out)_탐색, r = W'/W - 1. 옛 '재풀이 0, 봉인만' 단언은 폐기. R-6c: 레일 안 근 없음(F(V_gnd) < 0) -> lost, fail-closed. R-15 (동작 대체, mi-7):
+- R-6 ([기대 변경 2026-11-06 O-237]): 입력 고정 갈래 = KCL 재풀이 + 재봉인. ΔV(out) = a·[(1 + r)·e^{-LAM·ΔV} - 1] 의 근(`wb1_hand.source_load_out_shift`, 이분법; 회로 = M1 pmos 소스 vdd + 저항 out -> gnd [dispute 7.1],
+  nmos·vdd 저항 꼴의 거울)과 같음. a = V(out)_탐색 = R·I, r = W'/W - 1. 옛 '재풀이 0, 봉인만' 단언은 폐기. R-6c: 레일 안 근 없음(F(V_gnd) < 0) -> lost, fail-closed. R-15 (동작 대체, mi-7):
   입력 고정 경로에서 실현 뒤 출력 넷 KCL 이 성립(저항 전류 = M1 채널 전류 I')하고 출력이 움직임 -- 재풀이 없는 경로는 KCL 이 깨져 봉인 3 이 실패한다.
 - R-16 ([새 2026-11-06 A-123 (4)]): KCL 항등식 V_dd·V(s)_실현/R (MOS 채널 전류 = I' = 저항 전류), 비교 허용 = V_dd·tol_V/R (카드의 tol_V 계열). 공허 방지 = θ 전류 셈과의
   차 > `power_resolution_w`. 이상 전류원 항: P = V_dd·(V(s)/R + I_b), I_b = 선언 입력 값.
+  [개정 2026-11-06, dispute 7.2] 비교 허용 = 그 평가의 `objectives.power_resolution_w`(graph 필드, Σ_레일 |V_k|·봉인 3 tol_I -- 엔진 KCL 허용 정의). 채널 전류 = 저항 전류
+  단언의 허용 = power_resolution_w / V_dd (vdd 레일만 셈). 옛 허용 V_dd·tol_V/R 은 엔진 정의에 없는 발명 상수라 폐기.
 - R-3~R-8, R-12 (d): interface 표의 사유 어휘·r = 0 이면 입력 값 유지·`finger_slice` 호출 0(관찰 지점 §9) -- 같은 test 에서 탐색 평가의 호출 >= 1 을 먼저 단언.
 - R-5 (구성): 탐색에서 비지배인 두 점(전력 낮음·면적 큼 / 전력 높음·면적 작음), 한 점 M1 을 큰 W' 로 tamper -> 실현 면적이 커져 다른 점이 지배.
 - R-9: `find_front` 모듈 전역 `sweep_front`·`realize_front` (관찰 지점 §9).
@@ -28,10 +30,10 @@ from pathlib import Path
 import pytest
 
 from sizing.conftest import B, C, LAM, column_dict, seal_item
-from wb1_hand import diff_pair_input_shift, out_kcl_at_gnd, single_input_out_shift
+from wb1_hand import diff_pair_input_shift, source_load_kcl_at_vdd, source_load_out_shift
 
 from .conftest import CELLS_C, circuit_c, theta_r4c
-from .wb1_flow import (R2_CELLS, R2_ELEMENTS, R6_ELEMENTS, R6_RBOUNDS, VDD, VGS0, bins_case, circuit_r16, circuit_r2, circuit_r6, r2_theta,
+from .wb1_flow import (R2_CELLS, R2_ELEMENTS, R6_ELEMENTS, R6_FINGER_W, R6_I, R6_R, R6_RBOUNDS, VDD, VGS0, bins_case, circuit_r16, circuit_r2, circuit_r6, r2_theta,
                        single_mos_resistor_theta, sorted_theta)
 
 GRID = 1e-8
@@ -236,19 +238,23 @@ def test_realize_r6_unresolved_servo_pivot_keeps_input_value(tmp_path):
 
 # ---------------------------------------------------------------- R-6 (기대 변경 2026-11-06, A-123 (3)·O-237) / R-6c / R-15
 # 옛 R-6 의 '재풀이 0, 봉인만' 기대는 효력 없음 -- 위 test 는 입력 값 유지·W' 이행만 단언하므로(재풀이 여부 불문) 그대로 둔다.
-# 새 기대(oracle (a), 합성 R-6 회로): 입력 고정 갈래는 KCL 재풀이 + 재봉인. 손 값 = wb1_hand.single_input_out_shift (독립 이분법).
-R6_I, R6_R, R6_FINGER_W = 1e-5, 9e4, 2e-6                    # θ 입력 (M1 전류, 저항, 손가락 폭). V(out)_탐색 = V_dd − I·R = 0.9 V, M1 포화(손: VDSAT_n(0.6) = 0.3025 V)
+# 새 기대(oracle (a), 합성 R-6 회로): 입력 고정 갈래는 KCL 재풀이 + 재봉인. 손 값 = wb1_hand.source_load_out_shift (독립 이분법).
+# [개정 2026-11-06, dispute 7.1] 회로 = M1 pmos (out, in, vdd, bulk = vdd) + 저항 out -> gnd (vdd 레일에 채널이 닿아 전력 분해능 정의).
+# θ 입력 (M1 전류, 저항, 손가락 폭) = wb1_flow.R6_I, R6_R, R6_FINGER_W. V(out)_탐색 = I·R = 0.75 V (a), VSD(M1) = 1.05 V, M1 포화(손: VDSAT_p(0.6) = 0.455 V).
 
 
 @pytest.fixture(scope="module")
 def r6(tmp_path_factory):
     from gmid_engine.search import evaluate
     case = bins_case(tmp_path_factory.mktemp("wb1_r6"), circuit_r6(), elements=R6_ELEMENTS, rbounds=R6_RBOUNDS)
-    th = single_mos_resistor_theta(case.dc, R6_I, R6_R, VDD - R6_I * R6_R)
+    th = single_mos_resistor_theta(case.dc, R6_I, R6_R, VDD - R6_I * R6_R, kind="pmos")
     ev = evaluate(case.sctx, sorted_theta(th), (0,))
     snap = ev.evaluation.snapshot
     v = dict(snap.column("node", "dc_v"))
-    assert v["out"] == pytest.approx(VDD - R6_I * R6_R, abs=1e-9)                        # 전제 (손): 탐색 KCL R·I = a
+    assert v["out"] == pytest.approx(R6_I * R6_R, abs=1e-9)                              # 전제 (손): 탐색 KCL V(out) = R·I = a
+    from gmid_engine.search import STATUS_SEALED
+    assert ev.status == STATUS_SEALED                                                    # 전제: 전력 분해능이 정의돼 탐색 평가가 봉인 (옛 회로는 seal_undefined)
+    assert ev.objectives.power_resolution_w is not None and ev.objectives.power_resolution_w > 0.0
     cfg = next(iter(dict(snap.column("graph", "icm_config")).values()))
     assert cfg.config in (None, "as_is_single_input")                                    # 전제 (미측정, base 재확인): 입력 고정 갈래
     assert dict(snap.column("device", "dc_op"))["M1"].W > 0.0
@@ -262,7 +268,7 @@ def r6_point(ev, m, icm_none=False):
     snap = ev.evaluation.snapshot
     w = dict(snap.column("device", "dc_op"))["M1"].W
     r = m * R6_FINGER_W / w - 1.0
-    a = VDD - dict(snap.column("node", "dc_v"))["out"]
+    a = dict(snap.column("node", "dc_v"))["out"]                     # a = V(out)_탐색 = R·I (레일 소스 꼴)
     tam = with_fingers(ev, {"M1": FingerGeom(m, R6_FINGER_W, 0.0)})
     if icm_none:
         key, cfg = next(iter(dict(snap.column("graph", "icm_config")).items()))
@@ -274,10 +280,10 @@ def r6_point(ev, m, icm_none=False):
 @pytest.mark.parametrize("icm_none", [False, True], ids=["natural_as_is_single_input", "icm_config_none"])
 def test_realize_r6_input_fixed_branch_resolves_kcl_and_reseals(r6, icm_none):
     case, th, ev = r6
-    tam, r, a = r6_point(ev, 18, icm_none)                         # m = 18 (손): W' = 36 µm, r ≈ 0.52 -> 손 근 V(out) ≈ 0.49 V (레일 안, M1 포화)
-    assert 0.4 <= r <= 0.6                                          # 전제: 손으로 고른 r
-    hand = single_input_out_shift(a, r, LAM)                        # ΔV(out) (음수)
-    assert VDD - a + hand > 0.3025                                  # 전제 (손): 재풀이 점에서도 M1 포화(VDS >= VDSAT_n(0.6))
+    tam, r, a = r6_point(ev, 18, icm_none)                         # m = 18 (손): W' = 36 µm, r ≈ 0.5 -> 손 근 V(out) ≈ 1.1 V (레일 안, M1 포화)
+    assert 0.4 <= r <= 0.7                                          # 전제: 손으로 고른 r
+    hand = source_load_out_shift(a, r, LAM)                         # ΔV(out) (양수: 전류가 늘어 출력이 vdd 쪽으로)
+    assert VDD - (a + hand) > 0.455                                 # 전제 (손): 재풀이 점에서도 M1 포화(VSD >= VDSAT_p(0.6))
     _, out = realize(case, tam)
     assert len(out.points) == 1 and out.lost == (), out.lost        # 옛 기대(봉인만)이면 out 넷 봉인 3 실패 -> lost (red)
     snap, rsnap = ev.evaluation.snapshot, out.points[0].result.evaluation.snapshot
@@ -296,10 +302,10 @@ def test_realize_r6c_no_root_inside_rails_is_lost_fail_closed(r6):
     snap = ev.evaluation.snapshot
     v_out0 = dict(snap.column("node", "dc_v"))["out"]
     ok_point, r_ok, _a = r6_point(ev, 18)
-    assert out_kcl_at_gnd(VDD, 0.0, R6_R, R6_I, v_out0, r_ok, LAM) > 0.0          # 전제 (손): 통제 점은 근이 레일 안에 있다
+    assert source_load_kcl_at_vdd(VDD, R6_R, R6_I, v_out0, r_ok, LAM) > 0.0       # 전제 (손): 통제 점은 근이 레일 안에 있다
     bad_point, r_bad, _ = r6_point(ev, 36)                          # m = 36 (손): W' = 72 µm
-    f_gnd = out_kcl_at_gnd(VDD, 0.0, R6_R, R6_I, v_out0, r_bad, LAM)
-    assert f_gnd < 0.0, f_gnd                                       # 전제 (손, 판정 MJ-1): F(V_gnd) < 0 = 레일 안에 근이 없음
+    f_vdd = source_load_kcl_at_vdd(VDD, R6_R, R6_I, v_out0, r_bad, LAM)
+    assert f_vdd < 0.0, f_vdd                                       # 전제 (손, 판정 MJ-1 의 거울): F(V_dd) < 0 = 레일 안에 근이 없음
     _, out = realize(case, ok_point, bad_point, ids=["ok", "bad"])
     assert [p.point_id for p in out.points] == ["ok"]               # 통제 점은 front 에 남고(base 에서는 red), 근 없는 점은 front 에 없다
     lost = lost_of(out)
@@ -318,7 +324,7 @@ def test_realize_r15_input_fixed_realized_point_satisfies_output_kcl(r6):
     v0 = dict(ev.evaluation.snapshot.column("node", "dc_v"))
     assert abs(v1["out"] - v0["out"]) > 0.1                          # 공허 방지: 출력이 실제로 움직였다 (재풀이 호출)
     tol = min(x for _, x in rsnap.column("device", "dc_tol_v") if x is not None)
-    i_r = (VDD - v1["out"]) / R6_R
+    i_r = v1["out"] / R6_R
     i_m1 = dict(rsnap.column("device", "dc_op"))["M1"].current
     assert abs(i_r - i_m1) <= tol / R6_R, ("R_current_A", i_r, "M1_current_A", i_m1)
 
@@ -330,7 +336,7 @@ R16_I, R16_R = 1e-5, 2.5e4                                           # θ 입력
 def r16_case(tmp, with_source):
     from gmid_engine.search import evaluate
     els = R6_ELEMENTS + ((("I2", "current_source", R16_IB),) if with_source else ())
-    case = bins_case(tmp, circuit_r16(with_source), elements=els, rbounds=R6_RBOUNDS)
+    case = bins_case(tmp, circuit_r16(with_source), constraints=(), elements=els, rbounds=R6_RBOUNDS)   # 소스 팔로어는 gain_ss_db >= 10 을 지킬 수 없다 (dispute 7.2 (i))
     th = single_mos_resistor_theta(case.dc, R16_I, R16_R, VDD - R16_I * R16_R)
     ev = evaluate(case.sctx, sorted_theta(th), (0,))
     return case, th, ev
@@ -342,7 +348,8 @@ R16_IB = 2e-6                                                        # 선언 �
 @pytest.mark.parametrize("with_source", [False, True], ids=["mos_channel_only", "with_ideal_current_source"])
 def test_realize_r16_power_is_rail_current_of_realized_channel_current(tmp_path, with_source):
     """oracle (a) KCL 항등식: vdd 레일 전류 = M1 채널 전류 I' = 저항 전류 V(s)_실현/R (+ 이상 전류원 선언 값 I_b). 기대 = V_dd·(V(s)_실현/R + I_b).
-    비교 허용 = V_dd·tol_V/R (수치 자기 정합 tol, 카드의 tol_V 계열 -- 숫자 발명 없음). 공허 방지 = θ 전류로 셈한 값과의 차 > power_resolution_w."""
+    비교 허용 = 그 평가의 objectives.power_resolution_w (graph 필드: Σ_레일 |V_k|·봉인 3 tol_I -- 엔진 KCL 허용 정의, 숫자 발명 없음).
+    공허 방지 = θ 전류로 셈한 값과의 차 > power_resolution_w."""
     case, th, ev = r16_case(tmp_path, with_source)
     ib = R16_IB if with_source else 0.0
     snap = ev.evaluation.snapshot
@@ -362,14 +369,15 @@ def test_realize_r16_power_is_rail_current_of_realized_channel_current(tmp_path,
     res = out.points[0].result
     rsnap = res.evaluation.snapshot
     v1 = dict(rsnap.column("node", "dc_v"))
-    tol = min(x for _, x in rsnap.column("device", "dc_tol_v") if x is not None)
+    p_res = res.objectives.power_resolution_w                        # graph 필드 = Σ_레일 |V_k|·tol_I,k (이 회로는 vdd 레일만 센다)
+    assert p_res is not None and p_res > 0.0
     hand = VDD * (v1["s"] / R16_R + ib)                              # KCL 항등식 (MOS 전류 = I' = V(s)/R)
     got = res.objectives.power_w
-    assert abs(got - hand) <= VDD * tol / R16_R, ("measured_power_W", got, "hand_power_W", hand, "tol_W", VDD * tol / R16_R)
+    assert abs(got - hand) <= p_res, ("measured_power_W", got, "hand_power_W", hand, "power_resolution_W", p_res)
     theta_current_power = VDD * (R16_I + ib)
-    assert abs(got - theta_current_power) > res.objectives.power_resolution_w, (got, theta_current_power)      # 공허 방지 (θ 전류를 읽으면 red)
+    assert abs(got - theta_current_power) > p_res, (got, theta_current_power, p_res)      # 공허 방지 (θ 전류를 읽으면 red)
     i_m1 = dict(rsnap.column("device", "dc_op"))["M1"].current
-    assert abs(i_m1 - v1["s"] / R16_R) <= tol / R16_R                # 채널 전류 = 저항 전류
+    assert abs(i_m1 - v1["s"] / R16_R) <= p_res / VDD                # 채널 전류 = 저항 전류, 허용 = power_resolution_w / V_dd (같은 정의, vdd 만 셈)
     if with_source:
         assert dict(rsnap.column("device", "dc_current"))["I2"] == pytest.approx(R16_IB, rel=1e-12)       # 이상 전류원 항의 출처(선언 입력)
 

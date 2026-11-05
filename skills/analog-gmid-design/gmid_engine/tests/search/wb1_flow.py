@@ -83,10 +83,16 @@ R6_ELEMENTS = (("R1", "resistor", None),)
 
 
 def circuit_r6():
-    """R-6 회로: M1 nmos (out, in, gnd, bulk = gnd), 저항 R vdd -> out. 포트 in 단일 입력(MOS gate 에만 닿음), out 단일 출력."""
-    return topo("wb1_r6", [mos("M1", "nmos", "out", "in", "gnd", "gnd")],
+    """R-6 회로 ([개정 2026-11-06, dispute 7.1] 레일에 MOS 채널이 닿는 꼴): M1 pmos (out, in, vdd, bulk = vdd), 저항 R out -> gnd.
+    포트 in 단일 입력(MOS gate 에만 닿음), out 단일 출력. vdd 레일에 채널이 닿아 전력 분해능(Σ_레일 |V_k|·tol_I)이 정의된다
+    (옛 nmos·gnd 꼴은 gnd = 0 V 라 정의 불능 -> 평가가 seal_undefined 로 front 에서 빠졌다)."""
+    return topo("wb1_r6", [mos("M1", "pmos", "out", "in", "vdd", "vdd")],
                 {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
-                passives=[two("R1", "resistor", "vdd", "out")])
+                passives=[two("R1", "resistor", "out", "gnd")])
+
+
+# R-6·R-6c·R-13(b)·R-15 공용 θ 입력 (dispute 7.1). 손 선택: V(out)_탐색 = I·R = 0.75 V, VSD(M1) = 1.05 V >= VDSAT_p(0.6) = 0.125 + 0.25·0.6 + 0.5·0.36 = 0.455 V.
+R6_I, R6_R, R6_FINGER_W = 5e-6, 1.5e5, 2e-6
 
 
 def circuit_r16(with_source=False):
@@ -97,10 +103,10 @@ def circuit_r16(with_source=False):
                 sources=[two("I2", "current_source", "vdd", "gnd")] if with_source else ())
 
 
-def single_mos_resistor_theta(dc, i, r, v_ds, l=1e-6, vgs=VGS0):
-    """한 MOS + θ 저항 회로의 θ: ln IDu 는 VGS = vgs, VDS = v_ds, VSB = 0 의 r4 식(입력), 전류 성분 키는 스키마에서 읽는다."""
+def single_mos_resistor_theta(dc, i, r, v_ds, l=1e-6, vgs=VGS0, kind="nmos"):
+    """한 MOS + θ 저항 회로의 θ: ln IDu 는 VGS(pmos 는 VSG) = vgs, VDS(pmos 는 VSD) = v_ds, VSB = 0 의 r4 식(입력), 전류 성분 키는 스키마에서 읽는다."""
     from .conftest import schema_of
-    th = {("L", "M1"): l, ("ln_idu", "M1"): r4_ln_idu("nmos", vgs, v_ds, 0.0), ("resistance", "R1"): r}
+    th = {("L", "M1"): l, ("ln_idu", "M1"): r4_ln_idu(kind, vgs, v_ds, 0.0), ("resistance", "R1"): r}
     for k in schema_of(dc).components:
         if k[0] == "current":
             th[k] = i

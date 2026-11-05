@@ -92,20 +92,20 @@ def test_layout_resolve_r13a_servo_branch_follows_the_vgs2_fixed_point(tmp_path)
 def test_layout_resolve_r13b_input_fixed_branch_follows_the_output_fixed_point(tmp_path):
     from gmid_engine.search import evaluate
     from sizing.conftest import LAM, seal_item
-    from search.wb1_flow import (R6_ELEMENTS, R6_RBOUNDS, VDD, bins_case, circuit_r6, single_mos_resistor_theta, sorted_theta)
-    from wb1_hand import single_input_out_shift
-    i, rr = 1e-5, 9e4                                                              # θ 입력: V(out)_사이징 = 0.9 V, a = I·R
+    from search.wb1_flow import (R6_ELEMENTS, R6_I, R6_R, R6_RBOUNDS, VDD, bins_case, circuit_r6, single_mos_resistor_theta, sorted_theta)
+    from wb1_hand import source_load_out_shift
+    i, rr = R6_I, R6_R                                                             # θ 입력: V(out)_사이징 = I·R = 0.75 V = a (회로 = M1 pmos 소스 vdd, dispute 7.1)
     case = bins_case(tmp_path, circuit_r6(), elements=R6_ELEMENTS, rbounds=R6_RBOUNDS)
-    ev = evaluate(case.sctx, sorted_theta(single_mos_resistor_theta(case.dc, i, rr, VDD - i * rr)), (0,))
+    ev = evaluate(case.sctx, sorted_theta(single_mos_resistor_theta(case.dc, i, rr, VDD - i * rr, kind="pmos")), (0,))
     snap = ev.evaluation.snapshot
     cfg = next(iter(dict(snap.column("graph", "icm_config")).values()))
     assert cfg.config in (None, "as_is_single_input")                              # 전제 (base 재확인): 입력 고정 갈래
     w = dict(snap.column("device", "dc_op"))["M1"].W
-    r = 18 * 2e-6 / w - 1.0                                                        # 레이아웃 M1 = (nf 18, finger_w 2e-6): r ≈ 0.52 (손)
-    assert 0.4 <= r <= 0.6
-    a = VDD - dict(snap.column("node", "dc_v"))["out"]
-    hand = single_input_out_shift(a, r, LAM)                                       # 손: ΔV(out) = −a·[(1 + r)·e^{LAM·ΔV} − 1]
-    assert VDD - a + hand > 0.3025                                                 # 전제 (손): 재풀이 점에서도 M1 포화
+    r = 18 * 2e-6 / w - 1.0                                                        # 레이아웃 M1 = (nf 18, finger_w 2e-6): r ≈ 0.5 (손)
+    assert 0.4 <= r <= 0.7
+    a = dict(snap.column("node", "dc_v"))["out"]
+    hand = source_load_out_shift(a, r, LAM)                                        # 손: ΔV(out) = a·[(1 + r)·e^{−LAM·ΔV} − 1]
+    assert VDD - (a + hand) > 0.455                                                # 전제 (손): 재풀이 점에서도 M1 포화 (VSD >= VDSAT_p(0.6))
     out = evaluate(case.sctx, ev.theta, ev.key.cells, parent=ev, geometry=_geometry(snap, M1=(2e-6, 18)))
     assert out.failure is None and out.evaluation is not None, out.failure        # 옛 기대(봉인만)이면 봉인 3 실패 (red)
     rsnap = out.evaluation.snapshot

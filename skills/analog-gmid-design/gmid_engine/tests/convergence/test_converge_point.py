@@ -358,11 +358,12 @@ def test_real_kernel_counts_and_fixed_point(real, name):
 
 @pytest.mark.parametrize("name", REAL)
 def test_real_layout_fields_live_on_design_point_snapshot(real, name):
-    """[U17 1-e] design 40 v1.6 §2.4.7·§2.4.8: 수렴 레이아웃의 `ly_*` 필드는 재검증 점(설계점) 스냅샷의 S2 필드다 -- 별도 lineage 없음.
-    설계점 writer 의 block_version·소자 `dc_op` 레코드가 그대로이고 레이아웃 writer 가 더해졌다(writer = MOD7 블록, `_ly_fields.LY_WRITERS`)."""
+    """[U17 1-e, 개정 2026-11-06 A-124 / dispute 7.3] design 40 v1.6 §2.4.7·§2.4.8 + card §8 기준점 규칙: 수렴 레이아웃의 `ly_*` 필드는 **루프에 들어온 front 점 스냅샷**
+    (`start.evaluation.snapshot`)의 S2 필드다 -- 재검증(재평가) 점이 아니다(재평가는 `dc_solve` 를 다시 돌려 block_version·dc_op 가 front 점과 다르고, 다음 레이아웃의 입력도 아니다).
+    front 점 writer 의 block_version·소자 `dc_op` 레코드가 그대로이고 레이아웃 writer 가 더해졌다(writer = MOD7 블록, `_ly_fields.LY_WRITERS`)."""
     r = real.run(name)
     cp = r.point
-    dp = cp.result.evaluation.snapshot
+    dp = r.start.evaluation.snapshot                                  # 기준점 = front 점 (R-14 로 바꾼 두 단언과 같은 규칙)
     snap = cp.layout.snapshot
     ly_writers = {w for _f, w in lf.LY_WRITERS.entries}
     for writer, version in dp.block_versions.items():

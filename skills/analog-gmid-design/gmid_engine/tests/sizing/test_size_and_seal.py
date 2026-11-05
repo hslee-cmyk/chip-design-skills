@@ -331,7 +331,7 @@ def test_failure_seal_violation(tmp_path, toy_access):
 
 def test_diode_mirror_full_evaluation(tmp_path, toy_access):
     """1변수 노드(diode) 가 있는 회로도 봉인 1·2·3·4·5·6·8·[r8] 9 pass, 7 undefined -> sealed None."""
-    from .test_block_columns import _mirror_ctx, _mirror_theta
+    from .test_block_dc import _mirror_ctx, _mirror_theta
     ctx = _mirror_ctx(tmp_path, toy_access)
     ev = size_and_seal(ctx, _mirror_theta(ctx, 0.6))
     assert ev.sealed is None and ev.report.status == "undefined"
@@ -339,7 +339,7 @@ def test_diode_mirror_full_evaluation(tmp_path, toy_access):
 
 
 def test_failure_no_root_in_window(tmp_path, toy_access):
-    from .test_block_columns import _mirror_ctx, _mirror_theta
+    from .test_block_dc import _mirror_ctx, _mirror_theta
     ctx = _mirror_ctx(tmp_path, toy_access)
     with pytest.raises(SealViolationError) as ei:
         size_and_seal(ctx, _mirror_theta(ctx, 2.0))

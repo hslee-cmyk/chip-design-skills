@@ -64,3 +64,19 @@ def out_kcl_at_gnd(vdd, vgnd, res, i, v_out0, r, lam):
     """R-6c 조건 (판정 MJ-1): F(V) = (V_dd − V)/R − (1 + r)·I·e^{lam·(V − V_out0)} 은 V 에 대해 감소하고 F(V_dd) < 0 이므로 근이 [V_gnd, V_dd] 에 있을 조건은
     F(V_gnd) >= 0 이다. 반환 F(V_gnd) (음수면 레일 안에 근이 없다)."""
     return (vdd - vgnd) / res - (1.0 + r) * i * math.exp(lam * (vgnd - v_out0))
+
+
+# ---- 레일 소스 꼴 (dispute 7.1, 2026-11-06): M1 pmos (out, in, vdd, bulk = vdd), 저항 R out -> gnd ----
+# 유도(r4 식 ID ∝ (W/L)·exp(B·VSG − C·VSG²/2 + LAM·VSD), source = bulk = vdd 라 VS 항 0, VSG = V_dd − V(in) 불변): VSD = V_dd − V(out) 이므로
+# M1 전류 I′ = (1 + r)·I·e^{−LAM·ΔV(out)}, 출력 KCL V(out)/R = I′, 탐색 KCL R·I = a = V(out)_탐색 -> ΔV = a·[(1 + r)·e^{−LAM·ΔV} − 1].
+# u = V_dd − V(out) 로 거울을 취하면 위 식은 nmos·vdd 저항 꼴(`single_input_out_shift`)과 같은 식이다(ΔV_nmos = −ΔV_pmos, 같은 a).
+def source_load_out_shift(a, r, lam):
+    """레일 소스 꼴(pmos 소스 = vdd, 저항 out -> gnd)의 ΔV(out) = a·[(1 + r)·e^{−lam·ΔV} − 1] 의 근 (양수 쪽으로 증가). 레일 안 근이 없으면 None."""
+    shift = single_input_out_shift(a, r, lam)
+    return None if shift is None else -shift
+
+
+def source_load_kcl_at_vdd(vdd, res, i, v_out0, r, lam):
+    """레일 소스 꼴의 R-6c 조건: F(V) = V/R − (1 + r)·I·e^{−lam·(V − V_out0)} 은 V 에 대해 증가하고 F(V_gnd) < 0 이므로 근이 [V_gnd, V_dd] 에 있을 조건은
+    F(V_dd) >= 0 이다. 반환 F(V_dd) (음수면 레일 안에 근이 없다). 거울 u = V_dd − V 로 `out_kcl_at_gnd` 와 같은 식(독립 한 줄 식)."""
+    return vdd / res - (1.0 + r) * i * math.exp(-lam * (vdd - v_out0))

@@ -15,9 +15,14 @@ import pytest
 
 from gmid_engine.search import STATUS_PENDING_SEAL7, STATUS_SEALED, SearchFront, find_front
 
-from .conftest import PENDING, SKILL_DIR, TESTS_DIR, build_case, circuit_c, front_signature, theta_r4c, write_pdk
+from .conftest import PENDING, SKILL_DIR, TESTS_DIR, build_case, circuit_c, circuit_p, front_signature, theta_p, theta_r4c, write_pdk
 
 SS = (("gain_ss_db", ">=", 10.0, None),)
+# [WB-1 v6.38.21, dispute 7.5] 면적 예산·게이트 진입 예산 test 의 회로 입력 = 회로 P (conftest: M1 pmos (out, in, vdd) + R1 (out, gnd), 출력 DC = I·R 을 저항이 정한다).
+# 회로 C(nmos 싱크 + 고정 게이트 pmos 전류원 CS 단)는 출력이 고임피던스라 W' 반올림 뒤 입력 고정 KCL 근이 레일 밖이거나 M2 triode 가 되어 front 가 `lost`(fail-closed)로 빈다 --
+# 그 판정은 물리적으로 맞으므로 단언·예산 수(8·12·24·40, 면적 예산)는 그대로 두고 W' 실현이 정의되는 회로로 입력만 바꿨다.
+P_ELEMENTS = (("R1", "resistor", None),)
+P_RBOUNDS = (1e3, 1e6)                       # θ 저항 상자 (손 선택 R = 9e4 를 품는 탐색 정의역 입력)
 PERF_KEYS = ("requests", "kernel_calls", "hits", "fail_hits", "outside_domain", "recompute_same_key",
              "unique_keys", "eval_time_median_s", "wall_s", "lut_memo_evictions", "lut_memo_bound", "n_starts", "n_solves",
              "eval_budget", "eval_budget_source", "frozen_columns", "stops_eval_budget", "stops_wall_budget")
@@ -351,7 +356,11 @@ def test_no_budget_keeps_s3b_provisional(tmp_path, lut_sealed):
 
 
 def test_front_points_inside_area_budget(tmp_path, lut_sealed):
-    case, fr = _run(tmp_path, lut_sealed, eval_budget=40, constraints=(("area_search_m2", "<=", A_BUDGET, None),))
+    # [dispute 7.5] 회로 입력만 회로 P(저항 부하, 면적 = 수동소자 제외 Σ W·L 이라 아래 단언 그대로)로 바꿨다. 예산 A_BUDGET 은 그대로이고, 회로 P 는 게이트 이득 제약
+    # 없이는 front 가 비므로(수동소자 θ 가 있는 회로의 탐색 입력) 이득 제약 SS 를 함께 선언한다 -- 면적 행 단언과 무관한 구성 입력.
+    case = build_case(tmp_path, circuit_p(), lut_sealed, eval_budget=40, elements=P_ELEMENTS, rbounds=P_RBOUNDS,
+                      constraints=(("area_search_m2", "<=", A_BUDGET, None),) + SS)
+    fr = find_front(case.sctx, [theta_p(case.dc)])
     b_a = case.sctx.domain.area_resolution_m2
     assert len(fr.front) >= 1
     for p in fr.front:
@@ -474,9 +483,13 @@ def test_lut_memo_bound_unfixed_without_kernel_eval(tmp_path, lut_sealed, monkey
 # 쓴 뒤 예산을 확인해 게이트 진입 때 kernel_calls 가 E_B 를 넘었다).
 # =====================================================================================================================
 
-def _gated_run(tmp_path, lut, monkeypatch, e_b, inject=None):
+def _gated_run(tmp_path, lut, monkeypatch, e_b, inject=None, resistive=False):
+    """resistive=True (dispute 7.5): 회로 C 대신 회로 P(저항 부하) -- W' 실현이 정의되는 회로. 기본(False)은 회로 C 그대로(다른 test 불변)."""
     ff_mod = importlib.import_module("gmid_engine.search.find_front")
-    case = build_case(tmp_path, circuit_c(), lut, eval_budget=e_b, constraints=SS)
+    if resistive:
+        case = build_case(tmp_path, circuit_p(), lut, eval_budget=e_b, constraints=SS, elements=P_ELEMENTS, rbounds=P_RBOUNDS)
+    else:
+        case = build_case(tmp_path, circuit_c(), lut, eval_budget=e_b, constraints=SS)
     s = case.sctx
     seen = []
     real = ff_mod.run_sensitivity_gate
@@ -494,8 +507,8 @@ def _gated_run(tmp_path, lut, monkeypatch, e_b, inject=None):
 
 @pytest.mark.parametrize("e_b", [8, 12, 24, 40])
 def test_gate_entry_budget_kernel_calls_within_search_budget(tmp_path, lut_sealed, monkeypatch, e_b):
-    case, s, seen = _gated_run(tmp_path, lut_sealed, monkeypatch, e_b)
-    fr = find_front(s, [theta_r4c()])
+    case, s, seen = _gated_run(tmp_path, lut_sealed, monkeypatch, e_b, resistive=True)      # [dispute 7.5] 회로 P (n_θ = 3, R = 6): 선언 E_B 별 R = 2 n_θ 는 s.domain 에서 읽는다
+    fr = find_front(s, [theta_p(case.dc)])
     r = 2 * len(s.domain.variables)
     assert len(fr.front) >= 1                                                   # 전제: front 점이 있다
     assert len(seen) == 1, seen                                                 # 탐색 예산을 다 써도 게이트가 돈다
