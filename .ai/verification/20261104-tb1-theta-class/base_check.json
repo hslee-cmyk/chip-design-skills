@@ -1,0 +1,31 @@
+{
+  "id": "20261104-tb1-theta-class",
+  "status": "미완 -- 판정 기록 본문(.ai/verification/20261104-tb1-theta-class.json) 없음. red 수집 실행이 메모리 부족으로 외부 종료됐고 지시대로 재시작하지 않았다. red-green 스키마의 red 칸을 실측으로 채울 수 없어 본문을 쓰지 않았다.",
+  "base_commit": "a5caed3f",
+  "head_commit": "7ede59f214aa3f6bd329ef7f0f3cb2fe99a09c13",
+  "verdict_so_far": "FAIL -- Major 1건(M-1). 나머지 항목은 아래 실측 범위 안에서만",
+  "measured": {
+    "card_tests_and_canonical_order": "401 passed, 1 failed (test_it2c_l8e_exact_zero_pivot_pipeline_toy) -- card.log",
+    "tests_structure": "171 passed, 1 deselected -- structure.log",
+    "smoke_2_circuits": "23 passed, 141 deselected, folded_cascode or ngcc_3stage_ff, stage_b·s0·g10 -- smoke.log",
+    "s0_table": "13회로, 11 빌드, 2 정지(cnr_ota dc_resistor_cycle, erfc_ota mos_zero_current_structural), base 대비 종속 총수 11/11 불변 -- s0_head.jsonl, s0_base.jsonl",
+    "library_rename_s1v_path": "11회로 x 시드 3 = 33: 종속 33/33, theta_class 33/33, 색 대응 동형 33/33 -- toys.jsonl T7_total",
+    "symmetric_loop_pair_closure": "12/12 닫힘 -- toys3.jsonl",
+    "sym4_automorphism_bruteforce": "자기동형 2개(항등, 분기 맞바꿈), 모든 자기동형에 불변인 선택 0 -- toys.jsonl T5"
+  },
+  "not_measured": [
+    "red 수집(base 코드 + head test) -- 외부 종료",
+    "test_it2c_l8e θ 키를 M2로 바꾼 사본의 통과 확인 -- 실행이 끝나기 전에 종료, 기록 없음",
+    "tests/metrics/test_icm_config.py 전체 -- 대기열 종료로 안 돌림",
+    "전체 test, ngspice, 13회로 변화표, front, I_Q 대 oracle -- O-229 보류, 통과로 세지 않음"
+  ],
+  "major": [
+    {
+      "id": "M-1",
+      "where": "skills/analog-gmid-design/gmid_engine/sizing/theta_class.py:35 gain_view = views[:1]; 뷰 순서 = graph/views.py collect_views 의 sorted_items (excite, sense 넷 이름 키)",
+      "fact": "입력 넷 이름만 바꾼 같은 회로(M1 과 M2 는 비자기동형)에서 theta_class 가 {M1:S, M2:F} -> {M1:F, M2:S} 로 뒤바뀐다. 정지·기록 없음. 계약 6(이름 전단사 불변)·계약 2(gain 제약 전달 뷰) 위반",
+      "reproduce": "toys2.py, toys2.jsonl T1_multiview_name",
+      "reach": "library 전달 뷰가 둘 이상인 회로 0/13, 이 card 안에서 종속 선택 변화는 toy 2개에서 0"
+    }
+  ]
+}
