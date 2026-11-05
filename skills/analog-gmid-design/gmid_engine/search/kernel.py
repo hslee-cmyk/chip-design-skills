@@ -14,7 +14,7 @@
 * 블록 호출(`passive_values`·`metrics_dc`)은 `dc`(`KernelContext`)의 색인·계수로 부른다 -- 같은 입력은 계보와 무관하게 이식·재연된다.
 * 성공: `seal_status`(봉인 7 대기 스위치) -> 목적(`objective_values`, 점의 b_P 포함 -- None 이면 `STATUS_UNDEFINED`) ->
   제약(`constraint_rows` + 목적 축 spec 제약(전력 분모 = 그 점의 b_P) + `ss_constraint_rows`, 재지 못한 ss 제약은 `unmeasured`).
-* E_B(평가 수 예산)가 선언되지 않았으면 평가 수가 n + 1 을 넘는 순간 한 번 ⌊B / median(평가 시간)⌋ 로 정한다(기록).
+* 평가 시간은 `sctx.eval_times` 에 기록만 한다. 예산(E_B·D)은 이 함수가 쓰지 않는다 -- 유도는 `search_ceiling` 한 자리, 정지는 `search_stop`(탐색 단계의 단일 평가는 평가 전에 본다).
 * 커널을 부른 평가만 S3 evals 에 한 줄(설계 8절). 같은 키를 두 번 계산하면 `recompute_same_key` +1(정상 0).
 """
 import dataclasses
@@ -28,7 +28,6 @@ from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, DcEvaluation, LutAccess,
 
 from .cone_rows import cone_rows
 from .constraints import constraint_rows
-from .eval_budget import EvalBudget
 from .eval_key import eval_key
 from .ls_constraints import ls_constraint_rows
 from .tie_expand import expand_ties
@@ -157,12 +156,6 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
             unmeasured = unmeasured + ls_unmeasured
             rows = seal_rows + _spec_rows(sctx, objectives) + ss_rows + ls_rows
     sctx.eval_times.append(time.perf_counter() - start)
-    if sctx.eval_budget is None and len(sctx.eval_times) > len(sctx.domain.variables):
-        # E_B 를 한 번 정한다: 평가 한 sweep(n + 1 = FD Jacobian 한 번) 뒤의 시간 중앙값 t_ref -- 첫 평가의 LUT 파생표(tol_V) 1회
-        # 비용이 중앙값을 끌지 않게. 이후 모든 한도는 평가 수(결정론). 값·근거는 기록되고 settings.eval_budget 으로 재현한다.
-        sctx.eval_budget = EvalBudget(sctx.settings.front_budget_s, sctx.eval_times).limit()
-        if sctx.eval_budget is not None:
-            sctx.eval_budget_source = "derived_once:floor(B/median_t_eval)@n_evals=" + str(len(sctx.eval_times))
     result = EvalResult(key, pairs, status, evaluation, objectives, rows, cone, failure, sctx.seq, unmeasured,
                         () if bundle is None else bundle.warnings, partial)
     if memo.bound_state == "window_open":

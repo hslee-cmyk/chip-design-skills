@@ -9,7 +9,7 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
   as-built `slsqp_outer` maxiter 식 Σ⌈log2(폭/h)⌉ 평가 수 -- 부르는 쪽이 센다. 외층 예약분은 **한 번만** 뺀다, N4).
 * `limit()` = 총 평가 수 한도 = floor(B / t_eval) − reserve_evals(T_used 를 빼기 전의 같은 식 -- 이미 쓴 평가도 한도 안에 센다). `remaining()` = max(0, limit() − len(times)) = 지금부터의
   N_T(평가 시간이 균일할 때 정의 식과 같다). 두 값 모두 평가 수라 같은 입력이면 같은 정수다(결정론, 벽시계는 입력으로만 들어온다).
-* as-built 소비자: `kernel.evaluate` 가 평가 한 sweep(n + 1) 뒤 한 번 `limit()` 로 E_B 를 정한다(reserve_evals = 0 -- 층 0 gain 예산 U15 가 들어오기 전). U15 `layer0_budget` 이 `remaining()` 을 읽는다.
+* 소비자: `search_ceiling` 이 평가 시간 n_θ + 1 개 뒤 한 번 `limit()` 로 D 를 정한다(`kernel.evaluate` 는 쓰지 않는다; reserve_evals = 0 -- 층 0 gain 예산 U15 가 들어오기 전). U15 `layer0_budget` 이 `remaining()` 을 읽는다.
 """
 import statistics
 

@@ -88,6 +88,8 @@ from .search_values import (
     StartPoint,
     Variable,
 )
+from .search_ceiling import search_ceiling
+from .search_stop import search_stop
 from .slsqp_outer import solve_eps
 from .ss_constraints import ss_constraint_rows
 from .start_intervals import start_intervals
@@ -191,7 +193,9 @@ __all__ = (
     "objective_values",
     "open_run",
     "polish_l_cells",
+    "search_ceiling",
     "search_domain",
+    "search_stop",
     "seal_status",
     "solve_eps",
     "ss_constraint_rows",

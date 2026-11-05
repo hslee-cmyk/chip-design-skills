@@ -126,3 +126,38 @@ def test_lb_stop_checked_at_return_after_no_accept_round(tmp_path, lut_sealed):
     _out3, why3 = polish_l_cells(s, done, ("L",))
     assert time.perf_counter() > s.deadline and _kc(s) < s.eval_budget     # 전제: 반환 전 마감이 지났고 E_B 는 남았다
     assert why3 == "wall_budget"
+
+
+# =====================================================================================================================
+# [XRUN-F1 card C] interface card xrunf1c C6 (C-T8) -- polish_l_cells 의 정지는 탐색 예산 기준.
+# oracle: (손) 구성 -- 유도 실행(전이 뒤) 상태를 만든다: sctx.eval_budget = D, eval_budget_source = "derived_once:…" 이면 탐색 예산 = D − R,
+# R = 2 n_θ (정의 1절). D = kernel_calls + R 로 정하면 탐색 예산 = kernel_calls -> 들어올 때 이미 도달: 평가 0, 사유 eval_budget.
+# 대조: 같은 D 를 선언 실행(source "declared")으로 읽으면 탐색 예산 = D = kernel_calls + R 이라 도달하지 않는다 -- 그래서 사유가 갈린다.
+# =====================================================================================================================
+
+def _derived_state(s, search_budget):
+    r = 2 * len(s.domain.variables)
+    s.eval_budget = search_budget + r
+    s.eval_budget_source = "derived_once:floor(B/median_t_eval)@n_evals=%d" % (len(s.domain.variables) + 1)
+    return r
+
+
+def test_lb_stop_derived_budget_is_d_minus_reserve_no_evaluation(tmp_path, lut_sealed):
+    case, s, sr = _solved(tmp_path, lut_sealed, AXIS_AREA)
+    s.deadline = None
+    k0 = _kc(s)
+    _derived_state(s, k0)                                                   # 탐색 예산 = 지금 kernel_calls
+    _out, why = polish_l_cells(s, sr, ("L",))
+    assert why == "eval_budget"
+    assert _kc(s) == k0                                                     # 도달 -> 평가 안 함
+
+
+def test_lb_stop_declared_same_d_does_not_stop_at_d_minus_reserve(tmp_path, lut_sealed):
+    case, s, sr = _solved(tmp_path, lut_sealed, AXIS_AREA)
+    s.deadline = None
+    k0 = _kc(s)
+    s.eval_budget = k0 + 2 * len(s.domain.variables)                        # 선언 실행: 탐색 예산 = E_B = k0 + R (> k0)
+    assert s.eval_budget_source == "declared"
+    _out, why = polish_l_cells(s, sr, ("L",))
+    assert _kc(s) > k0                                                      # 평가가 돌았다
+    assert why in ("converged", "eval_budget")

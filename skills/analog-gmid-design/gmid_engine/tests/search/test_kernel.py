@@ -232,22 +232,9 @@ def test_evals_record_fields(case_c):
     assert [c["name"] for c in rec["constraints"]] == [x.name for x in r.constraints]
 
 
-def test_eval_budget_derived_once_after_n_plus_one(tmp_path, lut_sealed):
-    """1.1·3.10 7: eval_budget None -> 평가 시간 수가 n(정의역 연속 변수 수)을 넘는 순간 한 번 E_B 를 정하고 기록."""
-    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=None, budget_s=30.0)
-    s = case.sctx
-    n = len(s.domain.variables)
-    assert s.eval_budget is None
-    for k in range(n + 1):
-        evaluate(s, th_sorted(theta_r4c(i2=1e-5 * (1 + 0.01 * k))), CELLS_C)
-        if k < n:
-            assert s.eval_budget is None, k
-    eb = s.eval_budget
-    assert isinstance(eb, int) and eb > 0
-    m = re.fullmatch(r"derived_once:floor\(B/median_t_eval\)@n_evals=(\d+)", s.eval_budget_source)
-    assert m and int(m.group(1)) == n + 1
-    evaluate(s, th_sorted(theta_r4c(i2=3e-5)), CELLS_C)
-    assert s.eval_budget == eb                      # 한 번만
+# [XRUN-F1 card C] 삭제: test_eval_budget_derived_once_after_n_plus_one -- evaluate 가 n_θ+1 번째 평가에서 E_B 를 유도한다는 옛 계약이다.
+# 계약 C6 은 evaluate 가 eval_times 만 기록한다고 정한다. 대체: test_evaluate_does_not_derive_or_change_eval_budget(이 파일, 불변 단언),
+# 유도 자체는 test_search_ceiling.py 가 본다.
 
 
 def test_parent_reuses_lineage(case_c):
@@ -626,3 +613,22 @@ def test_partial_snapshot_results_reused_by_later_evaluation(tmp_path, lut_seale
         d = row_delta(block_row(s.dc.counters, b), before[b])
         assert d[2] >= 1 and d[4] == 0 and d[5] == 0, (b, d)
     _assert_no_same_input_recompute(s)
+
+
+# =====================================================================================================================
+# [XRUN-F1 card C] interface card xrunf1c C6 (C-T9) -- kernel.evaluate 는 eval_times 만 기록한다. sctx.eval_budget·eval_budget_source 불변.
+# oracle: (손) 구성 -- 유도 실행(eval_budget None)에서 서로 다른 θ 로 n_θ + 2 번 평가(위 test_eval_budget_derived_once_after_n_plus_one 가
+# 옛 계약에서 n_θ + 1 번째 평가가 유도했던 지점을 지나 한 번 더). 평가 전과 같은 값이어야 한다. 평가 시간 목록 길이 = 커널 평가 수(손: 매번 새 θ).
+# =====================================================================================================================
+
+def test_evaluate_does_not_derive_or_change_eval_budget(tmp_path, lut_sealed):
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=None, budget_s=30.0)
+    s = case.sctx
+    n = len(s.domain.variables)
+    b0, src0 = s.eval_budget, s.eval_budget_source
+    assert b0 is None
+    for k in range(n + 2):
+        evaluate(s, th_sorted(theta_r4c(i2=1e-5 * (1 + 0.01 * k))), CELLS_C)
+        assert s.eval_budget is None and s.eval_budget_source == src0, k
+    assert len(s.eval_times) == n + 2 == dict(s.counters)["kernel_calls"]        # 평가 시간은 기록한다
+    assert all(t >= 0.0 for t in s.eval_times)

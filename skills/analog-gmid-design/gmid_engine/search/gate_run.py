@@ -8,11 +8,14 @@
   W4 자유 노드 전압 y 는 모든 MOS 의 동작점을 움직이므로 읽는 쪽이다(섭동 안 함).
   스텝과 섭동 점 평가는 `fd_jacobian` 이 하는 그대로다(그 좌표의 LUT 해상도 스텝, parent = 기준 점 -- 바뀐 성분을 읽는 블록만 다시 계산, 같은 키는 캐시 적중). 읽는 소자를 건드리는
   변수는 `skip` 으로 평가하지 않는다.
+* 묶음 `ceiling` = `e_total(sctx)`(게이트 예산 = E_total, 탐색 예산이 아니다). `FdBudgetShortfall` 은 잡지 않는다 -- 게이트 예약 R 이 지켜졌다면 나지 않으므로 나면 결함으로 실행이 멈춘다.
+  게이트 시작 뒤 `search_ceiling`·`search_stop` 을 부르지 않는다(게이트는 탐색 예산을 다 써도 언제나 돈다).
 * 섭동 점의 보고를 metrics `sensitivity_gate` 에 넘겨 판정한다(ε = 풀이 상대 잔차 × 이득 dB 의 감도). 섭동 점이 받아들일 상태가 아니거나 보고가 없으면 그 방향은 검사하지 못한 것.
 """
 from gmid_engine.metrics import REPORT_BLOCK_RESIDUAL, sensitivity_gate
 from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, THETA_CURRENT, THETA_Y
 
+from ._helpers_ceiling import e_total
 from .fd_jacobian import fd_jacobian
 from .theta_coords import ThetaCoords
 
@@ -51,7 +54,7 @@ def run_sensitivity_gate(sctx, base, origin=()):
     if len(skip) == len(variables):
         return None
     coords = ThetaCoords.start(variables, dict(base.theta))      # 시작 좌표 원값 보존 정본. 자르지 않는다(X-14: fd_jacobian 이 움직이는 좌표만 상자 안으로 맞춘다)
-    columns = fd_jacobian(sctx, variables, list(coords.x0), base, base.key.cells, coords.to_theta, origin, skip)
+    columns = fd_jacobian(sctx, variables, list(coords.x0), base, base.key.cells, coords.to_theta, origin, skip, ceiling=e_total(sctx))
     runs = []
     for i, (var, (res, _step)) in enumerate(zip(variables, columns)):
         if i in skip or res is None or res is base:

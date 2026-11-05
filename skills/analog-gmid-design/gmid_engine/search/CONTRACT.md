@@ -201,7 +201,10 @@
 | 2 | `constraints.py` | `constraint_rows` |
 | 2 | `search_domain.py` | `search_domain` |
 | 3 | `search_context.py` | `build_search_context`(+ 비진입 공개 클래스 `SearchContext`) |
+| 3 | `search_ceiling.py` [XRUN-F1 C] | `search_ceiling` (3.31) |
+| 0 | `_helpers_ceiling.py` [XRUN-F1 C] | `gate_reserve`·`e_total` (3.33, 규칙 H helper) |
 | 4 | `kernel.py` | `evaluate` |
+| 4 | `search_stop.py` [XRUN-F1 C] | `search_stop` (3.32) |
 | 5 | `fd_jacobian.py` | `fd_jacobian` |
 | 5 | `front_query.py` | `node_across_front` |
 | 1 | `front_entries.py` [U-90] | `read_front_entries` |
@@ -228,7 +231,7 @@ front  = find_front(sctx, given_starts)                                         
 | 필드 | 뜻 | 상태 |
 |---|---|---|
 | `front_budget_s` | front 벽시계 예산 B(s) -- 바깥 정지(`wall_budget`, 기록)와 E_B 유도에만 | spec `search.front_budget_s` = PA-2 결정 대기, U-47 보류 -> 부르는 쪽 선언 |
-| `eval_budget` | 커널 평가 수 예산 E_B(int) 또는 None | None -> `evaluate` 가 커널 평가 수가 n + 1(n = 정의역 연속 변수 수, FD 한 번)을 넘는 순간 E_B = ⌊B / median(평가 시간)⌋ 를 한 번 정하고 기록(`eval_budget_source` = "derived_once:floor(B/median_t_eval)@n_evals=<수>") -- 첫 평가의 LUT 파생표(tol_V) 1회 비용이 중앙값을 끌지 않게 한 sweep 뒤에 잰다. 같은 E_B 를 넘기면 같은 결과 |
+| `eval_budget` | 커널 평가 수 예산 E_B(int) 또는 None | None -> [XRUN-F1 C] `search_ceiling` 이 평가 시간이 n_θ + 1 개 이상이 된 뒤 D = ⌊B / median(첫 n_θ + 1 개 평가 시간)⌋ 를 한 번 정하고 기록(`evaluate` 는 쓰지 않는다; 뜻 갈림: 선언 실행 `eval_budget` = 탐색 예산 E_B·E_total = E_B + R, 유도 실행 `eval_budget` = D = E_total·탐색 예산 = D − R, R = 2 n_θ)(`eval_budget_source` = "derived_once:floor(B/median_t_eval)@n_evals=<수>") -- 첫 평가의 LUT 파생표(tol_V) 1회 비용이 중앙값을 끌지 않게 한 sweep 뒤에 잰다. 같은 E_B 를 넘기면 같은 결과 |
 | `resistance_bounds_ohm` | θ 저항 상자 (lo, hi) Ω 또는 None | PDK 선언에 수동소자 범위 없음 -> θ 저항이 있는 회로는 필수. 없으면 `search_domain` 이 `SchemaRejectedError`(3.7) |
 | `sources` | ((필드, 출처 문자열), ...) | S3 runs 에 그대로 기록 |
 
@@ -365,8 +368,8 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
    (그 밖은 원래 상자), 시험 점 = lo'_m + φ·(hi − lo'_m). **모든 쓰기 소자에 적용**: 보장('어느 격자 동작점에서도 좌표가 강반전 분지
    시작 위' = 그 칸 앵커 L 에서 `inversion_floor` 행 c ≥ 0)이 소자 역할과 무관하게 (kind, w_key, 칸) 만으로 정해져 diode 와 같다
    (diode 는 이 보장이 곧 노드 근 존재의 필요조건, 일반 writer 는 연속 제약 하나를 미리 만족). 칸 안 앵커 사이 L(선형 보간)의 정점은
-   따로 묶지 않았다(앵커 최댓값). 최대-최소 SLSQP 의 bounds 는 원래 상자 그대로. k 마다 시험 전 한도: `_budget_stop`(kernel_calls ≥ E_B 또는 벽시계 -> stop 접미
-   `probe_eval_budget`·`probe_wall_budget`), deadline 이 None 일 때만: E_B 도 None 이면 `probe_budget_undeclared`, 시험 수 ≥ E_B 면
+   따로 묶지 않았다(앵커 최댓값). 최대-최소 SLSQP 의 bounds 는 원래 상자 그대로. k 마다 시험 전 한도: `search_stop`(kernel_calls ≥ 탐색 예산 또는 벽시계 -> stop 접미
+   `probe_eval_budget`·`probe_wall_budget`), deadline 이 None 일 때만: 탐색 예산(`search_ceiling`)도 None 이면 `probe_budget_undeclared`, 시험 수 ≥ 탐색 예산이면
    `probe_eval_budget`(원뿔 밖 점은 커널 0 이라 커널 수만으로 끝나지 않는다 -- deadline 이 있으면 벽시계가 끝을 보장한다). `evaluate(..., origin = tag + (("probe", k),))`, 처음
    받아들일 상태인 점에서 멈추고 그 점이 4 의 출발점(`origin_point` "halton:<k>", `probes` = k). 없으면 start None, stop =
    "start_" + (출발 실패 사유 또는 상태) + "+" + 한도 사유. 중심이 받아들여지면 `probes` 0, `origin_point` "centre".
@@ -464,10 +467,12 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
    상태 = `STATUS_UNDEFINED`. `STATUS_UNDEFINED` 가 아니면 제약 = `constraint_rows` 행 + 목적 축 spec 행(`spec:<m><op>`,
    c = (값 − 목표)/분해능(>=) 또는 (목표 − 값)/분해능(<=), 분해능 = 그 점의 b_P 또는 b_A) + `ss_constraint_rows` 행,
    `unmeasured` = ss_constraint_rows 의 미측정 목록.
-7. 캐시 저장, archive 가 있으면 evals 한 줄(8절). [r2] `eval_budget` 이 None 이고 평가 시간 수 > n 이면 E_B 를 정한다(1.1).
+7. 캐시 저장, archive 가 있으면 evals 한 줄(8절). [XRUN-F1 C] 예산은 쓰지 않는다 -- 평가 시간만 `eval_times` 에 기록(유도는 `search_ceiling`, 3.31).
 - 같은 키를 커널로 두 번 계산하면 recompute_same_key +1(캐시가 막으므로 정상 0).
 
-### 3.11 `fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()) -> ((EvalResult | None, step), ...)`
+### 3.11 `fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset(), *, ceiling) -> ((EvalResult | None, step), ...)`
+- [XRUN-F1 C] `ceiling` 필수 키워드(빠지면 `TypeError`; None = 확인 없음). 시작 전 상계 = 평가할 열 수 × 2(`skip`·스텝 0·None 열 제외)와 남은 한도(`ceiling` − `kernel_calls`)를 비교해
+  남은 한도 < 상계면 평가 0개로 `FdBudgetShortfall(needed, remaining)`(`InfeasibleSizingError` 하위 아님). 묶음 시작 뒤에는 멈추지 않는다. 열 평가 규칙은 아래 그대로.
 - [r2] index ∈ `skip`(고정된 변수) -> (base, 0.0), 평가 없음.
 - 스텝(base 스냅샷에서): `ln_idu` = (dc_op.vgs 를 품는 VGS 격자 칸 폭) × gm_id; `y` = 첫 w_key 슬라이스 VDS 격자 최소 간격 /
   (그 y 키를 쓰는 노드 `dc_window` 의 hi − lo)(창 없음·폭 0 -> None); `current` = 그 기저를 항으로 갖는 MOS 의 tol·gm_id 최솟값
@@ -1125,11 +1130,37 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 - fail-closed: 같은 키 두 번째 `register`/`register_failure` -> `ValueError`(원천은 키마다 하나, 첫 등록 유지). `snapshot.block_version(writer) != input_version` -> `ValueError`. 한 키에 성공과 실패를 함께
   등록하려 하면(순서 무관) `ValueError`. `snapshot` 이 `GraphSnapshot` 아니면·`record` 가 `FailureRecord` 아니면 `TypeError`.
 - `entry_count() -> int`: 성공 키 수 + 실패 키 수(`perf.block_index_entries` 의 출처, 값 사본이 아니라 개수).
-- 상한 검사(card C)·B_S0(OS-5)는 이 card 에 없다.
+- [XRUN-F1 C] 항목 수 상한: `open_bound(total_of)`(인자 없는 호출 가능 객체, E_total 또는 None; 닫기 전 두 번째 호출 `ValueError`)·`close_bound()`·`index_bound(total)` = (등록된 서로 다른 (블록, 분할) 수) × (total + 1).
+  열린 동안 `register`·`register_failure` 직후 `entry_count()` > `index_bound(total_of())` 면 `RuntimeError`(같은 값은 통과, `total_of()` None 이면 검사 없음). 열기 전·닫은 뒤 등록은 검사하지 않는다.
+  색인은 E_total 값을 보관하지 않고 참조만 쥔다. B_S0(OS-5)는 이 card 에 없다.
 
 ### 3.28 `open_run() -> (donors, counters)` (`open_run.py`) -- 색인·계수의 유일한 생성 자리
-- 인자 없음. 부를 때마다 새 `S3Index` 와 새 `RunCounters`(core 6.3)의 쌍을 돌려준다(앞 호출의 것과 `is` 아님, 항목·계수 0). 다른 실행과 아무것도 나누지 않는다.
+- 인자 없음(card C 도 서명을 바꾸지 않는다: 상한은 `find_front` 가 `open_bound`/`close_bound` 로 연다). 부를 때마다 새 `S3Index` 와 새 `RunCounters`(core 6.3)의 쌍을 돌려준다(앞 호출의 것과 `is` 아님, 항목·계수 0). 다른 실행과 아무것도 나누지 않는다.
 - **구조 규칙 M**(`tests/structure`): (M-a) 엔진 소스에서 `open_run` 참조는 `search/open_run.py`·`search/__init__.py` 뿐. (M-b) `S3Index(`·`RunCounters(` 생성 호출은 정의 모듈과 `open_run.py` 에만.
   (M-c) `run_stage_a` 호출의 `donors`·`counters` 는 같은 함수 본문의 `donors, counters = open_run()` 튜플 풀기로 만든 두 이름이고 그 호출 하나에만 쓴다. (M-d) 결과 보관 금지(모듈 수준 이름·클래스 속성·
   session/module/package fixture·기본 인자값·`lru_cache`·모듈 컨테이너 변경 등). (M-f) `S3Index`·`RunCounters` 를 `pickle`/`json`/`shelve`/`marshal` 에 쓰지 않는다.
 - 평가의 부분 스냅샷·`EvalResult.partial`·실패 줄 `snapshot_fp` 는 3.10, `perf` 의 블록 계수·색인 칸은 3.16.
+
+## [XRUN-F1 C] 평가 예산 상한 (설계 40 §2.4.5·§2.4.14 C 행, 사용자 결정 X-8·X-15~X-17)
+
+정의: n_θ = `len(sctx.domain.variables)`, R = 2 n_θ(`gate_reserve`). 선언 실행: 탐색 예산 = E_B, E_total = E_B + R. 유도 실행: D = ⌊B / 평가 시간 중앙값⌋, E_total = D, 탐색 예산 = D − R. 숫자 계산 자리는 `_helpers_ceiling`·`search_ceiling` 한 곳이다.
+
+### 3.31 `search_ceiling(sctx, *, final=False) -> int | None` (`search_ceiling.py`)
+- 선언: E_B 그대로(작은 값도 거부 없음). 유도 전(`eval_budget` None) 평가 시간 < n_θ + 1 개: None, 상태 불변. ≥ n_θ + 1 개: 첫 n_θ + 1 개로 D, `sctx.eval_budget` = D, `eval_budget_source` = "derived_once:floor(B/median_t_eval)@n_evals=<수>".
+  그 전이 호출에서 `kernel_calls` ≥ D − R 이면 `ValueError`(`time_budget_below_search_reserve`). 전이 뒤 `kernel_calls` > D − R 이면 `RuntimeError`. 반환 = 탐색 예산.
+- `final=True`(`find_front` 가 게이트 전에 한 번): 평가 시간 ≥ 1 개면 그 전부로 유도, `kernel_calls` > D − R 이면 `ValueError`. 평가 시간 0 개면 None.
+
+### 3.32 `search_stop(sctx) -> "eval_budget" | "wall_budget" | None` (`search_stop.py`)
+- `kernel_calls` ≥ 탐색 예산 -> "eval_budget", `sctx.deadline` 지남 -> "wall_budget", 그 밖 None. 탐색 단계의 단일 평가(층 0 사다리 칸·최대-최소 점·수리·Halton·외층 점·L-b 시험 점·`residual_probe`·주어진 시작점)는 평가 전에 본다.
+  층 0 시작점 재확인(`start_points`)은 캐시 적중이라 확인하지 않는다. 주어진 시작점이 닿으면 그 뒤 후보를 평가하지 않고 기록 `starts` 의 `status` = 정지 사유.
+
+### 3.33 `gate_reserve(sctx) -> R`, `e_total(sctx) -> int | None` (`_helpers_ceiling.py`)
+- 선언 E_B + R, 유도 D, `eval_budget` None 이면 None. 소비자 `search_ceiling`·`gate_run`·`find_front`.
+
+### 3.34 층 0·외층·게이트·`find_front`
+- `layer0_center`·`slsqp_outer`: FD 호출 `ceiling=search_ceiling(sctx)`. 반복 중 `FdBudgetShortfall` -> 정지 사유 `eval_budget`, `aborts` 에 `eval_budget`, 수락점 중 best. 첫 스텝 shortfall -> 반복 0·재시작 0·정지 `eval_budget`·`aborts` == (`eval_budget`,),
+  외층 best = 시작점이 c ≥ 0 이면 그것 아니면 None, 층 0 best = 시작점 항목. 관찰 지점 `layer0_center.scipy_minimize` 그대로.
+- `l_bin_search`·`eps_sweep`(`E_B` 칸 = `search_ceiling` 값, N_ε = ⌊(탐색 예산 − E_fixed)/e_ε⌋)·`residual_probe` 는 탐색 예산 기준.
+- `gate_run.run_sensitivity_gate`: 묶음 `ceiling` = `e_total(sctx)`, `FdBudgetShortfall` 을 잡지 않음, 게이트 시작 뒤 `search_ceiling`·`search_stop` 호출 0.
+- `find_front`: 진입 `donors.open_bound(E_total)`, `sweep_front` 뒤 `search_ceiling(sctx, final=True)`, 게이트(front 점이 있으면 탐색 예산을 다 써도 돈다), 끝 확인(`kernel_calls` > E_total 또는 색인 항목 수 > 상한 -> `RuntimeError`) 뒤 `close_bound()`.
+  결과 JSON 칸 변경 0; `perf.eval_budget` 뜻은 선언 = E_B, 유도 = D; `perf.block_index_bound` = `donors.index_bound(E_total)`; `resolution.E_B` = `search_ceiling` 값.
