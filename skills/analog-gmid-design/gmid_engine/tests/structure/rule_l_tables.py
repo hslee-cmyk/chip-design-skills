@@ -2,8 +2,8 @@
 
 출처: interface card 20261104-gc1-rule-l 'PARAMS 값'(spec S-1~S-3, 위임 A-32/O-226)과
 `baseline_items.jsonl`(390행)을 그대로 옮겼다. 기준선 상수는 병합 base master에서 검증자가 다시 잰다.
-op_copy 개념의 writer 파일(`sizing/s2_values.py`)은 card가 '쓰는 블록 파일'로만 적어, 계획 history의
-`dc_op`(`sizing/s2_values.py:381-396`) 인용에서 가져왔다 -- 기준선 재측정 때 검증자가 확인한다.
+op_copy 개념의 writer 파일은 `sizing/block_widths.py`, output_only_slots 4개도 판정 A-117 지시
+(baseline_proposal.json; interface card '빈 tuple' 문언과 달라 S-8 근거 행을 판정 기록에 적는다).
 """
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ PARAMS = RuleLParams(
     l5_concepts={
         "diode": ("device.is_diode", "graph/s1_structure.py"),
         "same_vgs": ("graph.gs_groups", "graph/gs_groups.py"),
-        "op_copy": ("device.dc_op", "sizing/s2_values.py"),
+        "op_copy": ("device.dc_op", "sizing/block_widths.py"),
     },
     output_only_fields=tuple(
         (f, "pipeline/stage_b.py:_ach_body", "F-G3 정상 출력 전용 8개(GC:251)")
@@ -65,7 +65,12 @@ PARAMS = RuleLParams(
             "graph.warnings",
         )
     ),
-    output_only_slots=(),
+    output_only_slots=(
+        "BlockBound.load_note",
+        "IcmConfig.pivot_a_e",
+        "IcmConfig.pivot_resolution",
+        "SealItem.magnitude",
+    ),
     fingerprint_only_slots=(),
 )
 
