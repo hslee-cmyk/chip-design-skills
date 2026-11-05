@@ -3,8 +3,8 @@
  "spec_card": "docs/02-design/specs/20261104-eo1r4-sf1l.spec.md",
  "evidence_type": "red-green",
  "base_commit": "58c9045a8257573ad84344044fb32cf0127a954b",
- "test_commit": "9dfd19e099a30fc3f153ff333fac639a4e48247e",
- "code_commit": "23b563d39e4c4588756f2174799a81bce38f14c4",
+ "test_commit": "3a7b1c78a0595895471513e53996be58d5951736",
+ "code_commit": "bbde5a11e2422e620c17a8b69b9d1c33b792c55e",
  "red": {
   "test_ids": [
    "skills/analog-gmid-design/gmid_engine/tests/sizing/test_region_judge.py",
@@ -144,11 +144,11 @@
  "checks": {
   "V1": {
    "verdict": "N/A",
-   "basis": "전체 test 안 돌림, 임시 규칙 O-229. A-91 재판정 범위(격리 복제본 367664ab, Major 항목만): 수정 test 3파일 104 통과, tests/structure 171 통과(1 deselected, 래칫 stale 0), canonical_order 12 통과, 2회로 연기 23 통과 190 deselected, 봉인 6 무관 측정 없음. 첫 판정의 card 28파일 871 통과는 90ef9e5f 값이고 재측정 안 함(통과로 세지 않음)."
+   "basis": "전체 test 안 돌림, 임시 규칙 O-229. A-92 재판정 범위(격리 복제본 bfc799f5, 남은 Major 항목만): 수정 test 3파일 107 통과, tests/structure 171 통과(1 deselected), canonical_order 12 통과, 2회로 연기 23 통과 190 deselected. 첫 판정의 card 28파일 871 통과는 90ef9e5f 값이고 재측정 안 함(통과로 세지 않음)."
   },
   "V2": {
    "verdict": "PASS",
-   "basis": "red-green. base 58c9045a 엔진 + head test 13파일: 65 실패·수집 오류(COLLECT 8, AssertionError 21, AttributeError 5, ImportError 1, KeyError 2, TypeError 1, SchemaRejectedError 27), 통과 43. 같은 13파일 head 250 통과. T-S8 red 사유 확인: 순방향 tol/2 AssertionError('pass' == 'fail'), indistinct KeyError. 수집 오류 8은 신규 이름 ImportError(N3.12.3 순서 3 허용). 커밋 트레일러 Role test/code 분리 확인: 90ef9e5f·b6405320 test, a15f95b6·7f663bbe·eec0cb6f code. T(90ef9e5f)가 code 뒤인 것은 dispute A-88 경로이고 그 약화 여부는 V5에 적었다. [A-91 재판정] red 목록은 첫 판정(90ef9e5f) 값 그대로이고 새 test(test_off_only_node_*)의 red 는 다시 재지 않았다. 9dfd19e0 test, 23b563d3 code 트레일러 확인."
+   "basis": "red-green. base 58c9045a 엔진 + head test 13파일: 65 실패·수집 오류(COLLECT 8, AssertionError 21, AttributeError 5, ImportError 1, KeyError 2, TypeError 1, SchemaRejectedError 27), 통과 43. 같은 13파일 head 250 통과. T-S8 red 사유 확인: 순방향 tol/2 AssertionError('pass' == 'fail'), indistinct KeyError. 수집 오류 8은 신규 이름 ImportError(N3.12.3 순서 3 허용). 커밋 트레일러 Role test/code 분리 확인: 90ef9e5f·b6405320 test, a15f95b6·7f663bbe·eec0cb6f code. T(90ef9e5f)가 code 뒤인 것은 dispute A-88 경로이고 그 약화 여부는 V5에 적었다. [A-91 재판정] red 목록은 첫 판정(90ef9e5f) 값 그대로이고 새 test(test_off_only_node_*)의 red 는 다시 재지 않았다. 9dfd19e0 test, 23b563d3 code 트레일러 확인. [A-92 재판정] 새 test red 를 23b563d3 엔진 + 머리 test 로 재측정: test_off_only_node_off_gate_with_capacitor_only_stops(DID NOT RAISE), test_dc_writer_plan_reads_device_dc_nets(AssertionError) red 2, test_off_gate_shared_with_on_device_gate_does_not_stop_as_off_only_node 는 base 도 통과(회귀 방지 test, red 아님). test_region_decl 2 실패 19 통과. 3a7b1c78 test, bbde5a11 code 트레일러 확인."
   },
   "V3": {
    "verdict": "PASS",
@@ -160,15 +160,15 @@
   },
   "V5": {
    "verdict": "PASS",
-   "basis": "Major-2 해소. test_input_window: `- TOL` 삭제, 봉인 끝점 단언 oracle >= -1e-12, min(sa, sb) >= -1e-12 복원(base 58c9045a 판과 같은 단언, 정의만 O-204). 내부 점도 같은 단언. 봉인 7 거부 끝점 분기는 base 그대로(|slack_v|, |oracle| <= tv, O-103)이고 넓히지 않았다. 실측 O-204 여유: 봉인 끝점 +3.389e-6, +7.181e-7, +1.513e-6, +1.800e-6 V, 거부 끝점 -1.777e-6, -1.768e-6 V(엔진 slack_v 와 차 ≤ 6e-17), 내부 y=0.125~0.875 최소 +0.0169 V. 1 mV 문턱 뮤턴트 kill. test_seal_region 변경은 import 인자 한 줄이고 단언 수 불변, test_region_decl 은 추가만. 약화 없음. 첫 판정의 나머지 test 대조는 유효."
+   "basis": "Major-2 해소. test_input_window: `- TOL` 삭제, 봉인 끝점 단언 oracle >= -1e-12, min(sa, sb) >= -1e-12 복원(base 58c9045a 판과 같은 단언, 정의만 O-204). 내부 점도 같은 단언. 봉인 7 거부 끝점 분기는 base 그대로(|slack_v|, |oracle| <= tv, O-103)이고 넓히지 않았다. 실측 O-204 여유: 봉인 끝점 +3.389e-6, +7.181e-7, +1.513e-6, +1.800e-6 V, 거부 끝점 -1.777e-6, -1.768e-6 V(엔진 slack_v 와 차 ≤ 6e-17), 내부 y=0.125~0.875 최소 +0.0169 V. 1 mV 문턱 뮤턴트 kill. test_seal_region 변경은 import 인자 한 줄이고 단언 수 불변, test_region_decl 은 추가만. 약화 없음. 첫 판정의 나머지 test 대조는 유효. [A-92 재판정] test_input_window.py·test_seal_region.py 는 057678a2 뒤 변경 0(diff). M-2 해소 유지. test_region_decl 은 추가만. 다만 test (j)는 'off_only_node 사유가 아니면 정지·통과 모두 허용'이라 공유 넷 결과를 단언하지 않는다(minor)."
   },
   "V6": {
    "verdict": "PASS",
    "basis": "tests/structure 171 통과, 규칙 A~M 위반 0, 래칫 new 0·stale 0. 폐기 이름: 엔진 소스 0(test_removed_names). interface §2 'tests 포함 grep 0'은 미충족 -- test 주석·음성 단언 포함 21회, 8파일(minor). scan_shared_calls: judge_region 자리 2 = 클래스 D(입력 다름), 새 B 0. E/graph 변경 0, structure.json 변경 0. 로더 커밋 a15f95b6 표지 1, 로더 파일 5개 밖 변경 0."
   },
   "V7": {
-   "verdict": "FAIL",
-   "basis": "Major-5 graph 정본 위반(새 발견). _off_undetermined_nets 가 DC 전도 엣지를 pins·kind 로 다시 만든다(MOS d-s, passive != capacitor, source != current_source). 정본은 device.dc_nets(authoring dc_edges_unpruned, 그 머리 문서 '엔진에서 이 정의를 두는 유일한 곳, 두 번째 정의를 만들지 않는다')이고 dc_current_basis 가 이미 READS 한다. 실측: library 10회로(나머지 3은 측정 스크립트 레일 입력에서 S1 정지) 321 원소에서 helper 엣지 == dc_nets - current_source, 불일치 0 -- 정의가 같다. 정본은 허용 목록 DC_CONDUCTING_PASSIVE_KINDS 인데 helper 는 금지 목록이라 새 수동 kind 가 생기면 갈라진다. 수정 = READS device.dc_nets 에서 off·current_source 만 뺀다. Major-3 해소: self.__module__ 줄 삭제, core 파일 base 58c9045a 와 동일(diff 0). 나머지 통과: 새 필드 0, cache·슬롯 0, 값 저장 0(지역 인접 dict 는 호출 안 버림), element_class·kind·pins 는 이미 READS. 기록 수치: 새 필드 0 / 소비자 0 필드 0 / 정본 우회 1(dc_nets) / KVL·KCL 관계 미적용 1(V9 게이트 넷) / graph 밖 저장 0. 앞 판정의 나머지 graph 항목은 유효."
+   "verdict": "PASS",
+   "basis": "Major-5 해소. 전도 엣지 = READS device.dc_nets 하나(writer_plan READS 에 있음, CONTRACT 3 반영). pins·kind 로 엣지를 만드는 코드 0: pins 는 off 소자 d·g·s 와 켜진 gate 넷 읽기에만, kind 는 current_source 제외에만 쓴다. current_source 제외는 정본 필드 위 거르기이고 정의 재구성이 아니다(정의 축이 'DC 전도'와 '전압 결정'으로 다름, CONTRACT 에 적음). 실측: helper 직접 호출에서 dc_nets 만 바꾸면 결과가 갈린다(R 엣지 있음 [] / None ['x']), pins 는 그대로. 입력 버전: dc_nets 값 변경 시 dc_writer_plan 입력 버전 변경, 같은 값 다시 쓰면 동일. CAPACITOR·ELEMENT_SOURCE import 삭제. Major-3 해소 유지: core 는 base 58c9045a 와 diff 0. 새 필드 0, cache·슬롯 0, 값 저장 0. 기록 수치: 새 필드 0 / 소비자 0 필드 0 / 정본 우회 0 / KVL·KCL 관계 미적용 1(V9) / graph 밖 저장 0. 앞 판정의 나머지 graph 항목은 유효."
   },
   "V8": {
    "verdict": "PASS",
@@ -176,7 +176,7 @@
   },
   "V9": {
    "verdict": "FAIL",
-   "basis": "Major-1 일부 해소, 게이트 넷으로 잔존. 해소: off drain + C, 섬(x-R-z-C), off drain + 켜진 gate, 직렬 중간 모두 off_only_node 정지(devices = off 소자). R 로 레일에 닿으면 통과, dv = -1.1972e-6 V. off 없으면 빈 결과(early return), 연기 무동작. 잔존(재현): Moff gate x + Cx(x, gnd), d·s 고정: who = {Moff, Cx} 라 `who <= off` 를 피하고 d·s 집합 밖이다. x 가 W4 free_window, θ (y, x), y=0.25 봉인 sealed·ss 통과, vgs = 0.45 V, ΔI_off = 39.4 nA, ΔV_out = -3.26 mV -- off 전류가 물리 결정자 없는 θ 값으로 자릿수가 움직인다. y=0.75 는 off_gate(s′ None)로 수치 거부일 뿐이다. 게이트 전용 넷은 topology gate_only_undeclared, 게이트 + 섬은 hidden_rail 이 먼저 거부하므로 남은 구멍은 게이트 + C 류다. 규칙 판단: 게이트 넷 정지는 물리에 맞다(게이트는 DC 전위를 정하지 않으므로 off 전류 결정자가 미정). 두 규칙은 지금 꼴로 하나로 줄지 않는다: 게이트에 d·s 규칙을 그대로 쓰면 켜진 게이트 W2·bias 공유 넷을 과거부한다. 한 규칙 꼴 = off 소자 d·g·s 넷 중 도달 안 되고 g 인 경우 켜진 소자 gate 도 닿지 않는 넷. 전압 결정 요소 읽기: 물리 맞음(R·L·V·켜진 채널, C·전류원·gate 제외), fail-open 방향 측정 = 전압원은 S1 정지 실측(source_kind_unsupported), 인덕터는 SUPPORTED_PASSIVE_KINDS 밖이라 S1 정지(코드 대조만, 측정 스크립트 spec 입력에서 막혀 실측 못 함) -- 지금 도달 0, 다만 금지 목록 표현은 V7. devices 를 off 로 좁힌 것 = 문제 없음, 정지 넷이 off 소자에 닿는 것은 구성상 성립. minor: 입력 포트(입력 DC 미선언)에 off drain 은 정지한다(drain_on_input) -- 이상 입력원이 정하는 넷이라 과거부, fail-closed. 벌크 전용 넷 θ 는 선행 동작(앞 판정). 앞 판정의 나머지 물리 항목은 유효."
+   "basis": "Major-1 잔존(켜진 gate 공유 넷). 해소 유지: 게이트 + C(gate_cap), off drain + C, 섬, off drain + 켜진 gate, 직렬 중간 모두 off_only_node 정지. R 로 레일 통과(dv = -1.197e-6 V), 게이트 R 로 레일 통과(vgg 0), 게이트가 켜진 채널 넷(out) 통과, 입력 공유 통과(vgs 0.6 V). off 없으면 early return, 연기 무동작. 잔존 재현: gg = M2 gate + Moff gate + C1(DC 구동 없음, bias·포트 선언 아님). off_only_node 를 켜진 gate 예외로 피하고 다른 규칙으로도 정지하지 않는다. gg 가 W2 vgs_gate, θ 는 ln_idu(M2), 봉인 sealed, ss 통과. θ 로 ΔI_off 가 움직인다: vgg 0.50 V -> 88.7 nA, ΔV_out -7.3 mV; 0.60 V -> 421.9 nA, -34.7 mV; 0.75 V -> 3.77 uA, -302 mV. 물리: gg 에 DC 경로가 없어 전위 결정자가 없다(C 는 DC 열림, gate 전류 0). A-92 근거 '기존 W2·bias 규칙 몫'은 이 넷에 성립하지 않는다 -- W2 는 θ 로 값을 쓸 뿐 구동을 확인하지 않고, topology gate_only_undeclared 는 C 가 있으면 피한다. 지시 기준 'θ 로 남아 물리에 어긋남'으로 Major. 대조: 같은 회로에서 off 를 빼도 sealed(선행 구멍, off 무관, gg W2) -- 켜진 소자 전용 쪽 원인은 이 card 밖이다. bias 선언 공유 넷(share_on_gate_bias)은 외부 구동이라 물리에 맞다. 수정 방향(미측정): 게이트 예외를 '켜진 gate 가 닿고 포트·bias 로 선언된 넷'으로 좁힌다. library: 게이트 + C 만 닿는 넷은 Vim·Vip(입력 포트)·agnd(레일)뿐이고, 선언 안 된 넷은 0/13. minor: 입력 포트에 off gate 만(lone_input)·off drain 은 정지(이상 입력이 정하는 넷, 과거부, fail-closed). 인덕터: dc_nets 전도 엣지 아님(DC_CONDUCTING_PASSIVE_KINDS = resistor), 물리로는 DC 단락이라 어긋나지만 topology 로드 후 build_s1 이 passive_kind_unsupported 로 정지함을 실측, off 유무 모두 -- fail-closed, minor. 앞 판정의 나머지 물리 항목은 유효."
   },
   "V10": {
    "verdict": "N/A",
@@ -298,11 +298,46 @@
    "name": "게이트 + C 잔존 사례 ΔI_off A",
    "value": 3.9441943819803043e-08,
    "command": "v3 test_zz_r.py test_cases[0.25-gate_cap]"
+  },
+  {
+   "name": "A-92 수정 test 3파일 수",
+   "value": 107,
+   "command": "v4/run_req.py card"
+  },
+  {
+   "name": "A-92 tests/structure 수",
+   "value": 171,
+   "command": "v4/run_req.py structure"
+  },
+  {
+   "name": "A-92 canonical_order 수",
+   "value": 12,
+   "command": "v4/run_req.py canon"
+  },
+  {
+   "name": "A-92 2회로 연기 수",
+   "value": 23,
+   "command": "v4/run_req.py smoke"
+  },
+  {
+   "name": "새 test red 수(23b563d3)",
+   "value": 2,
+   "command": "v4/red pytest test_region_decl.py"
+  },
+  {
+   "name": "공유 넷 ΔI_off A (vgg 0.50)",
+   "value": 8.866186052257983e-08,
+   "command": "v4 test_zz_r.py test_share_theta_sweep"
+  },
+  {
+   "name": "공유 넷 ΔI_off A (vgg 0.75)",
+   "value": 3.7699982415587463e-06,
+   "command": "v4 test_zz_r.py test_share_theta_sweep"
   }
  ],
  "approvals": [],
  "auditor_run": {
-  "time": "2026-11-05T02:02:35Z",
+  "time": "2026-11-05T02:27:09Z",
   "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-eo1r4-audit",
   "commands": [
    "V1: 전체 실행 안 함(임시 규칙 O-229), 범위 실행 = python run_req.py (card·structure·canon·smoke)",
@@ -310,7 +345,8 @@
    "python driver2.py red module mut seal6 (base 58c9045a 엔진 + head test, core 한 줄 제거, 손 뮤턴트 12, 봉인 6 관찰 연기)",
    "pytest test_zz_audit.py test_zz_v2.py test_zz_v3.py test_zz_v4.py test_zz_iw.py (복제본 전용, 커밋 안 함)",
    "python tools/audit/scan_shared_calls.py --engine E --out res/scan --touching <엔진 변경 파일>",
-   "A-91 재판정: git clone --no-hardlinks --no-local <worktree> la1s_eo1r4_audit/v3/iso; git -C v3/iso remote remove origin; python v3/run_req.py; pytest test_zz_r.py test_zz_iw.py(복제본 전용); 뮤턴트 v3/mut"
+   "A-91 재판정: git clone --no-hardlinks --no-local <worktree> la1s_eo1r4_audit/v3/iso; git -C v3/iso remote remove origin; python v3/run_req.py; pytest test_zz_r.py test_zz_iw.py(복제본 전용); 뮤턴트 v3/mut",
+   "A-92 재판정: git clone --no-hardlinks --no-local <worktree> la1s_eo1r4_audit/v4/iso; git -C v4/iso remote remove origin; python v4/run_req.py; pytest test_zz_r.py test_zz_r2.py(복제본 전용); v4/red = 23b563d3 엔진 + 머리 test. library 넷 판별 = test_zz_r2.py test_library, 포트·레일 대조는 load_topology"
   ]
  }
 }
