@@ -12,6 +12,7 @@
   수동소자가 있으면 `review_needed`), 층 0 결과(최소형 -- 정밀화 GB3·GB4·knee 는 범위 밖, S-4), 판정 축 재필터 미실행(MOD8 몫 -- `convergence.converge(sctx, pdk_decl, front.front)` 가 이 front 를 받아 한다; 패키지 순서상 여기서 부를 수 없고 U16 파이프라인이 부른다), 모델 오차 미측정('추정').
 * [NFR-4] 진입에서 `core.blas_environment()` 로 BLAS 스레드 1 을 다시 확인하고(재확인 (c)) 그 값의 `fp_of` 를 runs 줄 최상위 키 `env_fp` 에 둔다. notes 에는 L-b 정지 사유
   `{"verdict": "l_search", "rule": "LR10", "stops": [...]}` 가 언제나 한 줄 더해진다(`sweep_front` 의 `lb_stops`, L-b 가 돌지 않았으면 빈 목록).
+* 계측 `perf.solver_stops`(WB-1 범위 3a-0, 출력 전용): 풀이 종류 {eps, layer0}마다 정지 사유 집계(converged 수·abnormal {사유: 수}·budget {eval_budget, wall_budget}).
 * 계측 `perf`(설계 7.4): requests·kernel_calls·hits·fail_hits·outside_domain·recompute_same_key, 고유 키 수,
   평가 시간 중앙값, LUT memo 퇴출 수, 블록 계수(`blocks` = 실행 하나가 단계 A 부터 부른 모든 (블록, 분할)의 행 -- `sctx.dc.counters.snapshot()`,
   `block_totals` = 여섯 계수 칸의 합), 블록 결과 색인 크기(`block_index_entries` = `entry_count()`, `block_index_bound` = `donors.index_bound(E_total)` 또는 null,
@@ -40,6 +41,20 @@ from .start_points import start_points
 _LAYER0_REFINEMENTS_OUT_OF_SCOPE = ("GB3 블록 분해·GB4 블록 gain 상한표(블록 gain 예산, DEC-71 (3)(6)·DEC-73)",
                                     "LR5 knee 앵커(집계·측정점·격자 의존 열린 항목)",
                                     "GB5 층 0 근사식(DEC-92 (2), comp_approx_gap)")
+
+
+_STOP_CONVERGED = "converged"
+_STOP_BUDGETS = ("eval_budget", "wall_budget")
+
+
+def _stop_counts(stops):
+    """풀이 정지 사유 열 -> {"converged": n, "abnormal": {사유: n}, "budget": {"eval_budget": n, "wall_budget": n}}(출력 전용, WB-1 범위 3a-0)."""
+    abnormal = {}
+    for s in stops:
+        if s != _STOP_CONVERGED and s not in _STOP_BUDGETS:
+            abnormal[str(s)] = abnormal.get(str(s), 0) + 1
+    return {"converged": sum(1 for s in stops if s == _STOP_CONVERGED), "abnormal": dict(sorted(abnormal.items())),
+            "budget": {b: sum(1 for s in stops if s == b) for b in _STOP_BUDGETS}}
 
 
 def _point_record(sctx, point):
@@ -132,7 +147,9 @@ def find_front(sctx, given_starts):
                 n_solves=len(out["solves"]), eval_budget=sctx.eval_budget, eval_budget_source=sctx.eval_budget_source,
                 frozen_columns=sum(len(s.frozen) for _p, s in out["solves"]),
                 stops_eval_budget=sum(1 for _p, s in out["solves"] if s.stop == "eval_budget"),
-                stops_wall_budget=sum(1 for _p, s in out["solves"] if s.stop == "wall_budget"))
+                stops_wall_budget=sum(1 for _p, s in out["solves"] if s.stop == "wall_budget"),
+                solver_stops={"eps": _stop_counts(tuple(s.stop for _p, s in out["solves"])),
+                              "layer0": _stop_counts((layer0.stop,))})
     run_id = fp_of((sctx.context_fp, sctx.code_fp, sctx.settings, sctx.eval_budget, tuple(s.theta for s in starts)))
     if sctx.archive is not None:
         sctx.archive.append_run({
