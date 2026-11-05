@@ -25,6 +25,9 @@ KEY_WRAPPERS = ("sorted", "tuple", "frozenset", "list")
 KEY_METHODS = ("setdefault", "get", "pop", "__contains__")
 CONTAINER_ADD = ("append", "extend", "add", "update", "setdefault", "insert")
 VALUE_VIEWS = ("items", "values", "keys", "get", "copy")
+SERIALIZERS = ("dumps", "dump", "write_text", "write_bytes", "writelines", "pickle", "print")
+BENIGN_METHODS = frozenset(VALUE_VIEWS) | frozenset(CONTAINER_ADD) | {"pop", "index", "count", "sort", "join", "format", "split", "strip", "startswith",
+                                                                     "endswith", "lower", "upper", "replace", "encode", "decode", "clear", "remove", "discard"}
 
 
 class Violation(NamedTuple):
@@ -727,6 +730,17 @@ def _rule_l3(eng, blocks, out):
         found = set()
         tainted = {param}
         helpers, passes_on = [], []
+        grew = True
+        while grew:                                  # 별칭(p = projection)도 투영이다
+            grew = False
+            for sc in _descendants(scope):
+                for root in sc.body_nodes:
+                    for node in ast.walk(root):
+                        if isinstance(node, ast.Assign) and isinstance(node.value, ast.Name) and node.value.id in tainted:
+                            for target in node.targets:
+                                if isinstance(target, ast.Name) and target.id not in tainted:
+                                    tainted.add(target.id)
+                                    grew = True
         for sc in _descendants(scope):
             for kind, field, _l, _h, _n in sc.reads:
                 found.add((kind, field))
@@ -810,16 +824,17 @@ def _rule_l4(eng, params, out):
                 if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
                     slot = item.target.id
                     key = "%s.%s.%s" % (mod, stmt.name, slot)
-                    if slot in loads or slot in strings or key in exempt:
+                    if slot in loads or slot in strings or any(key == e or key.endswith("." + e) for e in exempt):
                         continue
                     out.append(Violation(("L-4", key), "slot_no_reader", "칸을 self 밖에서 읽는 곳·getattr·등록 문자열이 없다"))
 
 
 # ------------------------------------------------------------------ L-5
 
-def _pin_token(expr):
-    if isinstance(expr, ast.Call) and expr.args and not expr.keywords:
-        return _pin_token(expr.args[0])         # canon(gate, point) 처럼 핀을 한 번 감싼 꼴도 같은 핀이다
+def _pin_token(expr, unwrap=False):
+    if (unwrap and isinstance(expr, ast.Call) and isinstance(expr.func, ast.Name) and expr.func.id not in BUILTIN_WRAP
+            and expr.args and not expr.keywords):
+        return _pin_token(expr.args[0])         # canon(gate, point) 처럼 사용자 함수로 핀을 감싼 묶음 키 성분(len(g) 같은 내장 호출은 아니다)
     if isinstance(expr, ast.Attribute):
         name = expr.attr
     elif isinstance(expr, ast.Subscript):
@@ -843,7 +858,7 @@ def _pin_token(expr):
 def _is_key_position(node):
     """node(필요하면 sorted·tuple 래퍼 안쪽)가 묶음 키 자리에 있는가."""
     cur = node
-    while isinstance(cur.parent, ast.Call) and isinstance(cur.parent.func, ast.Name) and cur.parent.func.id in KEY_WRAPPERS and cur.parent.args and cur.parent.args[0] is cur:
+    while isinstance(cur.parent, ast.Call) and isinstance(cur.parent.func, ast.Name) and cur.parent.args and cur.parent.args[0] is cur and len(cur.parent.args) == 1:
         cur = cur.parent
     par = cur.parent
     if isinstance(par, ast.Subscript) and par.slice is cur:
@@ -871,7 +886,7 @@ def _predicate_sites(scope):
                 if {_pin_token(node.left), _pin_token(node.comparators[0])} == {"g", "d"}:
                     diode = True
             elif isinstance(node, ast.Tuple) and isinstance(node.ctx, ast.Load) and len(node.elts) in (2, 3):
-                toks = [_pin_token(e) for e in node.elts]
+                toks = [_pin_token(e, True) for e in node.elts]
                 if toks[-2:] == ["g", "s"] and _is_key_position(node):
                     same = True
             elif isinstance(node, ast.DictComp) and isinstance(node.key, ast.Tuple) and len(node.key.elts) == 3:
@@ -888,7 +903,7 @@ class _OpCopy:
 
     def __init__(self, eng, reach, source, exempt_sids, writer_file):
         self.eng, self.source = eng, source
-        self.cands = [sid for sid in sorted(reach) if sid in eng.scopes and not sid.endswith(":<module>")
+        self.cands = [sid for sid in sorted(eng.scopes) if not sid.endswith(":<module>")
                       and eng.modules[eng.scopes[sid].module] != writer_file and not _under(sid, exempt_sids)]
         self.cset = set(self.cands)
         self.src_ids = {sid: {id(r[4]) for r in eng.scopes[sid].reads if (r[0], r[1]) == source} for sid in self.cands}
@@ -916,6 +931,14 @@ class _OpCopy:
             if isinstance(cur.node, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(_is_block_dec(d) for d in cur.node.decorator_list):
                 return True
             cur = cur.parent
+        return False
+
+    def _ext_receiver(self, scope, fn):
+        """수신자가 외부 모듈 이름(math·numpy 등)인가 -- 산술 호출이라 새 값을 만든다(직렬화 이름만 영속 자리)."""
+        recv = fn.value
+        if isinstance(recv, ast.Name) and recv.id not in scope.local_names:
+            res = self.eng.resolve_symbol(scope.module, recv.id)
+            return bool(res and res[0] == "ext")
         return False
 
     @staticmethod
@@ -965,37 +988,88 @@ class _OpCopy:
             params = params[1:]
         return list(zip(params, call.args)) + [(k.arg, k.value) for k in call.keywords if k.arg]
 
+    @staticmethod
+    def _split(lab):
+        """라벨 = [@칸|]* 기본라벨. (접두, 기본)."""
+        pre, sep, base = lab.rpartition("|")
+        return pre + sep, base
+
+    @staticmethod
+    def _cap(lab):
+        """칸 접두는 두 겹까지만 구분한다(고정점이 끝나도록). 더 깊으면 '어느 칸이든'(@?)으로 합친다."""
+        if lab.count("@") <= 2:
+            return lab
+        return "@?|" + lab.rpartition("|")[2]
+
+    @staticmethod
+    def _remap(labels, fn):
+        out = set()
+        for lab in labels:
+            pre, base = _OpCopy._split(lab)
+            out.add(pre + fn(base))
+        return out
+
     def _s_tainted(self, sid, labels):
-        return "S" in labels or any(lab[:2] == "R:" or (lab[:2] in ("P:", "X:", "Y:", "Z:") and lab[2:] in self.recv[sid]) for lab in labels)
+        for lab in labels:
+            b = self._split(lab)[1]
+            if b == "S" or b[:2] == "R:" or (b[:2] in ("P:", "X:", "Y:", "Z:") and b[2:] in self.recv[sid]):
+                return True
+        return False
 
     def _extracted(self, sid, labels):
         """칸을 꺼냈거나 객체에 담은 값('S' 또는 X:)이 닿는가. 매개변수를 그대로 돌려주는 운반(P:)은 아니다."""
-        return "S" in labels or any(lab.startswith("X:") and lab[2:] in self.recv[sid] for lab in labels)
+        for lab in labels:
+            b = self._split(lab)[1]
+            if b == "S" or (b.startswith("X:") and b[2:] in self.recv[sid]):
+                return True
+        return False
 
     @staticmethod
     def _carried(labels, callee):
         """피호출이 칸을 꺼내 돌려준 값: 호출한 쪽에서는 운반(Y:)이고, 출처 자체는 피호출이 만든 사본 후보(R:)다."""
-        return {"R:" + callee if lab == "S" else ("Y:" + lab[2:] if lab[:2] in ("P:", "X:", "Z:") else lab) for lab in labels}
+        return _OpCopy._remap(labels, lambda b: "R:" + callee if b == "S" else ("Y:" + b[2:] if b[:2] in ("P:", "X:", "Z:") else b))
 
     @staticmethod
-    def _as_extracted(labels):
-        """매개변수에서 칸을 꺼낸 값(X:)."""
-        return {"X:" + lab[2:] if lab[:2] == "P:" else lab for lab in labels}
+    def _attr_labels(labels, attr):
+        """속성 읽기: 칸 접두가 있으면 그 칸만 풀리고(다른 칸은 오염 아님), 접두가 없으면 객체 전체를 꺼낸 것(P: -> X:)이다."""
+        out = set()
+        for lab in labels:
+            if lab.startswith("@"):
+                head, _, rest = lab.partition("|")
+                if head[1:] in (attr, "?"):
+                    out |= _OpCopy._remap({rest}, lambda b: "X:" + b[2:] if b[:2] == "P:" else b)
+            else:
+                out |= _OpCopy._remap({lab}, lambda b: "X:" + b[2:] if b[:2] == "P:" else b)
+        return out
 
-    @staticmethod
-    def _as_contained(labels):
-        """매개변수를 객체에 담은 값(Z:) -- 추적은 하지만 이 함수가 칸을 꺼낸 것은 아니다."""
-        return {"Z:" + lab[2:] if lab[:2] == "P:" else lab for lab in labels}
+    def _ctor_fields(self, cid):
+        init = self.eng.scopes.get(cid + ".__init__")
+        if init is not None:
+            return [a.arg for a in init.node.args.posonlyargs + init.node.args.args][1:]
+        node = self.eng.classes.get(cid)
+        return [i.target.id for i in node.body if isinstance(i, ast.AnnAssign) and isinstance(i.target, ast.Name)] if node is not None else []
+
+    def _ctor_labels(self, sid, expr, cid, extra):
+        names = self._ctor_fields(cid)
+        out = set()
+        contain = lambda b: "Z:" + b[2:] if b[:2] == "P:" else b       # noqa: E731
+        for i, a in enumerate(expr.args):
+            f = "?" if isinstance(a, ast.Starred) or i >= len(names) else names[i]
+            out |= {self._cap("@" + f + "|" + lab) for lab in self._remap(self.labels(sid, a, False, extra), contain)}
+        for k in expr.keywords:
+            f = k.arg or "?"
+            out |= {self._cap("@" + f + "|" + lab) for lab in self._remap(self.labels(sid, k.value, False, extra), contain)}
+        return out
 
     # ---- 라벨 ----
     def labels(self, sid, expr, direct, extra=None):
-        env = (self.D if direct else self.T)[sid]
+        env = self.T[sid]
         extra = extra or {}
         lab = self.labels
         if isinstance(expr, ast.Name):
             return extra.get(expr.id) or env.get(expr.id, set())
         if isinstance(expr, ast.Attribute):
-            return self._as_extracted(lab(sid, expr.value, direct, extra))
+            return self._attr_labels(lab(sid, expr.value, direct, extra), expr.attr)
         if isinstance(expr, (ast.Subscript, ast.Starred)):
             return lab(sid, expr.value, direct, extra)
         if isinstance(expr, (ast.Tuple, ast.List, ast.Set)):
@@ -1028,21 +1102,27 @@ class _OpCopy:
         targets = self._precise(scope, fn)
         if isinstance(fn, ast.Attribute) and fn.attr in VALUE_VIEWS and not any(tg in eng.scopes for tg in targets):
             return lab(sid, fn.value, direct, extra)
-        if any(tg in eng.classes for tg in targets):
-            return self._as_contained(set().union(*(lab(sid, a, direct, extra) for a in args))) if args else set()
+        clss = [tg for tg in targets if tg in eng.classes]
+        if clss:
+            return self._ctor_labels(sid, expr, clss[0], extra) if args else set()
         out = set()
         for tg in targets:
             if tg not in self.cset or self._is_block(eng.scopes[tg]):
                 continue
             retl = self.ret[tg]
-            out |= {lab_ for lab_ in retl if lab_[:2] == "R:"}
+            out |= {lab_ for lab_ in retl if self._split(lab_)[1][:2] == "R:"}
             if self._extracted(tg, retl):
                 out.add("R:" + tg)
             for pname, aexpr in self._actuals(tg, expr):
-                if "P:" + pname in retl:
-                    out |= lab(sid, aexpr, False, extra)
-                if any(k + pname in retl for k in ("X:", "Y:", "Z:")):
-                    out |= self._carried(lab(sid, aexpr, False, extra), tg)
+                al = None
+                for lab_ in retl:
+                    pre, b = self._split(lab_)
+                    if b == "P:" + pname:
+                        al = lab(sid, aexpr, False, extra) if al is None else al
+                        out |= {self._cap(pre + a) for a in al}
+                    elif b in ("X:" + pname, "Y:" + pname, "Z:" + pname):
+                        al = lab(sid, aexpr, False, extra) if al is None else al
+                        out |= {self._cap(pre + c) for c in self._carried(al, tg)}
         return out
 
     # ---- 고정점 ----
@@ -1051,6 +1131,7 @@ class _OpCopy:
         scope = eng.scopes[sid]
         grew = False
         T, D = self.T[sid], self.D[sid]
+        globals_ = {n for root in scope.body_nodes for g in ast.walk(root) if isinstance(g, ast.Global) for n in g.names}
 
         def put(table, names, labs):
             nonlocal grew
@@ -1080,12 +1161,14 @@ class _OpCopy:
                         names = self._store_names(target)
                         put(T, names, set(t))
                         put(D, names, set(d))
-                        if isinstance(node, ast.Assign) and isinstance(target, ast.Attribute) and t:
+                        if t and isinstance(target, (ast.Attribute, ast.Subscript, ast.Name)):
                             base = target
                             while isinstance(base, (ast.Attribute, ast.Subscript)):
                                 base = base.value
-                            if not (isinstance(base, ast.Name) and base.id == "self"):
-                                sink(set(t))
+                            if isinstance(base, ast.Name) and base.id != "self":
+                                is_global = base.id in globals_ or base.id not in scope.local_names
+                                if isinstance(target, ast.Attribute) or (is_global and (target is not base or base.id in globals_)):
+                                    sink(set(t))
                 elif isinstance(node, (ast.For, ast.comprehension)):
                     got = self.labels(sid, node.iter, False)
                     for n, labs_ in self._iter_bind(node.target, node.iter, got).items():
@@ -1113,8 +1196,22 @@ class _OpCopy:
                         if isinstance(base, ast.Name):
                             put(T, {base.id}, t)
                             put(D, {base.id}, d)
+                    got_all = set().union(*(self.labels(sid, a, False) for a in args)) if args else set()
+                    got_src = {lab_ for lab_ in got_all if self._split(lab_)[1] == "S" or self._split(lab_)[1][:2] == "R:"}
+                    if isinstance(fn, ast.Attribute) and fn.attr in CONTAINER_ADD:
+                        cbase = fn.value
+                        while isinstance(cbase, (ast.Attribute, ast.Subscript)):
+                            cbase = cbase.value
+                        if isinstance(cbase, ast.Name) and cbase.id != "self" and (cbase.id in globals_ or cbase.id not in scope.local_names):
+                            sink(set(got_all))                       # 모듈 전역 컨테이너에 담는다
+                    if isinstance(fn, ast.Attribute) and fn.attr in SERIALIZERS and got_src:
+                        sink(got_src)                                # 직렬화·파일 쓰기
+                    elif (isinstance(fn, ast.Attribute) and not scope.site_map.get(id(fn)) and fn.attr not in BENIGN_METHODS
+                          and not self._ext_receiver(scope, fn)
+                          and fn.attr not in SERIALIZERS and fn.attr != "write" and got_src):
+                        sink(got_src)                                # 엔진 안에 정의가 없는 메서드: 추적 불능
                     if isinstance(fn, ast.Attribute) and fn.attr == "write":
-                        sink(set().union(*(self.labels(sid, a, False) for a in args)) if args else set())
+                        sink(got_all)
                     elif isinstance(fn, (ast.Subscript, ast.Call)) or (
                             isinstance(fn, ast.Name) and fn.id in scope.local_names and fn.id not in scope.locals
                             and eng._enclosing_nested(scope, fn.id) is None):
@@ -1132,7 +1229,7 @@ class _OpCopy:
                             if self._s_tainted(sid, lab_a) and pname not in self.recv[callee]:
                                 self.recv[callee].add(pname)
                                 grew = True
-                            if any(k + pname in self.sink[callee] for k in ("P:", "X:", "Y:", "Z:")):
+                            if any(self._split(l)[1] in (k + pname for k in ("P:", "X:", "Y:", "Z:")) for l in self.sink[callee]):
                                 sink(set(lab_a), local=False)
         return grew
 
@@ -1149,8 +1246,9 @@ class _OpCopy:
         flagged = {sid for sid in self.cands if self._s_tainted(sid, self.sink_local[sid])}
         for sid in self.cands:
             for lab in self.sink[sid]:
-                if lab[:2] == "R:" and lab[2:] in self.cset:
-                    flagged.add(lab[2:])
+                base = self._split(lab)[1]
+                if base[:2] == "R:" and base[2:] in self.cset:
+                    flagged.add(base[2:])
         return flagged
 
 
