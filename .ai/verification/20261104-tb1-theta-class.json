@@ -3,7 +3,7 @@
   "spec_card": "docs/02-design/specs/20261104-tb1-theta-class.spec.md",
   "evidence_type": "red-green",
   "base_commit": "a5caed3f8149b647db61030c1296ab7910eb6c9b",
-  "test_commit": "966b2ecc9d7f6d1ac2a07dcf7fbad25da45dca4c",
+  "test_commit": "aecdeeb316616ddc51c0e535c617e09b8c27317b",
   "code_commit": "7a0fb746b291fe878bf696febe7fa5176b343305",
   "red": {
     "test_ids": [
@@ -42,15 +42,15 @@
   "checks": {
     "V1": {
       "verdict": "N/A",
-      "basis": "전체 test 안 돌림(임시 규칙 O-229). 돌린 범위 = 격리 복제본 iso2, 머리 bac4c5de: test_theta_class 11 통과 / card test 8파일 380 중 379 통과 1 실패 / test_icm_config 36 통과 / search/test_canonical_order 12 통과 / tests/structure 171 통과 1 deselected / 2회로 연기 stage_b 10·s0 11·g10 2 = 23 통과. 안 돌린 것은 통과로 세지 않는다."
+      "basis": "전체 test 안 돌림(임시 규칙 O-229). 돌린 범위 = 격리 복제본 iso2, 머리 bac4c5de: test_theta_class 11 통과 / card test 8파일 380 중 379 통과 1 실패 / test_icm_config 36 통과 / search/test_canonical_order 12 통과 / tests/structure 171 통과 1 deselected / 2회로 연기 stage_b 10·s0 11·g10 2 = 23 통과. 안 돌린 것은 통과로 세지 않는다. [M-2 재판정, 머리 14273270, 복제본 iso3] card test 묶음(test_s2_values 포함 9파일) 391 통과 0 실패. test_icm_config·canonical·structure·2회로 연기 수치는 bac4c5de 값 인용이고 재실행 안 함(머리 다름, 그 사이 skills 변경 = test_s2_values.py 한 줄뿐)."
     },
     "V2": {
-      "verdict": "FAIL",
-      "basis": "red: a5caed3f 코드 + 966b2ecc card test(test_theta_class·test_writer_plan·test_structure_load·sizing/conftest) 위에서 잰 허용 타입 red 14건. 허용 밖 SchemaRejectedError 6건(새 concept 거부)은 red 로 세지 않았다. green: test_s2_values::test_block_reads_declared_as_contract[dc_writer_plan] 1건 실패(M-2) -- 머리 코드 READS 에 device.dc_nets·node.ac_ground_class 가 있는데 기대에 없다. master 6b21ede5 에서도 같은 test 가 실패하므로(1 failed 7 passed) TB-1 이 만든 것이 아니라 EO-1 A-93 의 test 갱신 누락이다. 기준(필수 test 실패)대로 FAIL. T-T6 이름 전단사 toy(test_dependent_member_name_bijection_in_loop·outside_loop)는 base 에서 통과해 red 가 아니다: card 'base 는 red, 고리 밖 red toy 를 못 찾으면 보고' 대로 보고(minor)."
+      "verdict": "PASS",
+      "basis": "M-2 해소(bac4c5de 판정 FAIL 은 커밋 0054ec4e). aecdeeb3 의 skills diff = test_s2_values.py 한 줄 추가, 두 칸 device.dc_nets·node.ac_ground_class 뿐. 수정 주체 = 오케스트레이터, 판정 독립. 두 칸은 writer_plan READS 와 일치하고 writer_plan 이 실제로 읽는다(_off_undetermined_nets 전도 엣지 = dc_nets, 선언 bias = ac_ground_class), EO-1 A-92 전도 엣지 정본·A-93 전압 결정 넷 문언과 맞다. 약화 아님: 그 test 는 집합 같음을 단언하므로 칸을 지우거나 넓힌 것이 아니라 계약을 코드에 맞춘 것이다. green: 머리 14273270 card test 391 통과. red: a5caed3f 코드 + 966b2ecc card test 허용 타입 red 14건(기록), SchemaRejectedError 6건은 세지 않음. T-T6 이름 전단사 toy 는 base 에서도 통과해 red 아님(minor 보고)."
     },
     "V3": {
       "verdict": "FAIL",
-      "basis": "복사본 뮤턴트 13(대조 m0 101 통과): 죽음 8(m1 첫 뷰 복원, m3, m4, m7, m9, m10, m11, m12), 생존 5: m2 성분 안 W4 동률 정지, m5 소스 사슬 하류 끔, m6 궤도 대표 끔, m8 S 순위 끔, m13 FF 셀 B. 대상 test 는 test_theta_class·test_writer_plan 2파일뿐. test 공백이고 Major 기준 밖(minor, LA-1 재점검 입력). m5 는 library 기대 test T-T12 가 없어 current_reuse 종속을 test 가 고정하지 않는다는 뜻이다(값은 판정자 S0 표가 잰다)."
+      "basis": "복사본 뮤턴트 13(대조 m0 101 통과): 죽음 8(m1 첫 뷰 복원, m3, m4, m7, m9, m10, m11, m12), 생존 5: m2 성분 안 W4 동률 정지, m5 소스 사슬 하류 끔, m6 궤도 대표 끔, m8 S 순위 끔, m13 FF 셀 B. 대상 test 는 test_theta_class·test_writer_plan 2파일뿐. test 공백이고 Major 기준 밖(minor, LA-1 재점검 입력). m5 는 library 기대 test T-T12 가 없어 current_reuse 종속을 test 가 고정하지 않는다는 뜻이다(값은 판정자 S0 표가 잰다). 뮤턴트는 bac4c5de 기준이고 M-2 수정이 test 기대 한 줄뿐이라 재실행 안 함."
     },
     "V4": {
       "verdict": "PASS",
@@ -58,7 +58,7 @@
     },
     "V5": {
       "verdict": "PASS",
-      "basis": "기준 약화 없음. 1139bbcd..bac4c5de 의 test diff = test_it2c_l8e θ 키 1줄과 test_theta_class 추가뿐, 단언 삭제 0. A-89 자기동형 단언은 앞 판정대로 약화 아님(전수 자기동형 2, 불변 선택 0, 비자기동형 toy σ 일치 3/3). 다만 새 넷 이름 test 는 입력 넷만 바꾸고 분류만 단언한다(판정자 전체 이름 바꿈으로 보충, V9)."
+      "basis": "기준 약화 없음. 1139bbcd..bac4c5de 의 test diff = test_it2c_l8e θ 키 1줄과 test_theta_class 추가뿐, 단언 삭제 0. A-89 자기동형 단언은 앞 판정대로 약화 아님(전수 자기동형 2, 불변 선택 0, 비자기동형 toy σ 일치 3/3). 다만 새 넷 이름 test 는 입력 넷만 바꾸고 분류만 단언한다(판정자 전체 이름 바꿈으로 보충, V9). aecdeeb3: 기대 집합에 두 칸 추가뿐, 약화 아님."
     },
     "V6": {
       "verdict": "PASS",
@@ -88,14 +88,14 @@
       "command": "out2/new_tests"
     },
     {
-      "name": "card test 8파일 통과",
-      "value": 379,
-      "command": "out2/card"
+      "name": "card test 묶음 통과(14273270, 9파일)",
+      "value": 391,
+      "command": "out2/m2_card"
     },
     {
-      "name": "card test 8파일 실패(M-2)",
-      "value": 1,
-      "command": "out2/card"
+      "name": "card test 묶음 실패(14273270)",
+      "value": 0,
+      "command": "out2/m2_card"
     },
     {
       "name": "test_icm_config 통과",
@@ -170,11 +170,12 @@
   ],
   "approvals": [],
   "auditor_run": {
-    "time": "2026-11-05T15:52:43+09:00",
+    "time": "2026-11-05T15:56:09+09:00",
     "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-tb1-audit",
     "commands": [
       "V1: 전체 test 안 돌림(O-229), 범위 = out2/*.meta 파일별 실행",
-      "격리: git clone --no-hardlinks --no-local <audit worktree> iso2, remote remove origin"
+      "격리: git clone --no-hardlinks --no-local <audit worktree> iso2, remote remove origin",
+      "격리: git clone --no-hardlinks --no-local <audit worktree> iso3, remote remove origin, 머리 14273270"
     ]
   }
 }
