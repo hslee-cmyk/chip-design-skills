@@ -8181,6 +8181,14 @@ card `20261104-op7a` 멈춤 항목 S-2·S-3 답. oracle-portability OP-7 행(v0.
 
 oracle-portability v0.6.29 전파. 측정 게이트 표 OP-7 행(P:1393)의 출처 식별 문언만 바꾼다. 경위·측정 = oracle-portability history 0.6.29 행. 독립 판정 전. **원래 취지와 다름**: 독립 재측정 → 생성기 자기 기록(oracle X-38). 옛 문언: «LUT 생성 모드 출처 식별(경계 L마다 LUT `ID` 한 칸 대조, 한 프로세스 순차)과 선언 칸». front matter `version`이 6.38.13에 머물러 있어 이 판으로 맞췄다.
 
+## v6.38.20 (2026-11-05, 위임 O-226 A-112, 사용자 결정 O-238)
+
+SF-1 범위 9 R_min 되살림. 독립 판정 전. A-96 (3)·O-234의 R_min 항목 철회, 나머지 PDK 비종속 변경(세 수, κ·R, 머리 면적 수 하나, `derived_quantities`, `CapArrayDecl`)은 그대로. 근거 = O-173 D19(실현 가능 = E-0), O-197, `wt/_drafts/evidence/2026-10-29/handcalc_principle_audit.md`(HCA:32·177·232·252, §2.3 -- R_min은 E-0이라 단순화에서도 남는다), oracle DUT = 이상 R이고 LY8은 그 뒤라 엔진 밖에서 R_min을 막는 자리가 없다(A-112). 사례 값은 `wt/_drafts/evidence/2026-11-05/sf1r9_sg_pdk_cases.md` 3절(그 절의 '철회' 표지는 효력 없음).
+- v6.38.17 꼴과 다른 점(**원래 취지와 다름**, A-112 지시 범위): `r_min_ohm`은 선택 칸(칸 없음 = 0)이 아니라 필수 칸(접촉 항 없는 종류 = 값 0, 기록 파일). 행 칸 `r_kind`·`l_m` 없음(`kind`는 소비자 LY8이 생길 때, 원칙 9). 선언 종류 0은 `resistor_kind_unrealizable`이 아니라 기존 `area_undefined`(A-96 통일 유지).
+- `PassiveAreaDecl.resistor` = 고정 1종 -> 후보 튜플(후보 이름순, 그 순서가 동률 규칙이라 이름 칸 없음). 고정 이름 `resistor_*` 삭제.
+- 재작성 범위 사실: 봉인 아닌 점의 `passive_values` 호출(`E/search/kernel.py:142-147`)은 후보 실패 잡기 밖이다. 저항 실현 불능을 그 점 E-0으로 두려면 이 호출을 잡기 안에 넣어야 한다(N3.3 백로그 중 이 몫만 이 범위).
+- 표지(LA-1 재점검 입력, 규칙 추가 없음): R이 어떤 종류의 R_min을 넘으면 면적·C_par가 계단으로 바뀌어 면적이 R에 단조가 아니다(사례 Ω당 면적 비 약 7.2배, evidence). DEC-104 '면적이 R에 단조 증가'는 한 종류 안에서만 맞다. front·PM 영향 미측정, 합격은 oracle.
+
 ## v6.38.19 (2026-11-05, 위임 O-226 A-97)
 
 SF-1 범위 9 재판정 Major 1(M-A)과 추가 단순화. 독립 판정 전. M-A: v6.38.18의 배열 여유 m은 음수라 양 사이 식의 음수 예외와 `p + m > 0` 특수 검사를 낳았다. m = a − p로 단위 변 a를 쓰면 세 수가 모두 양수이고 값은 같다(p 1.84 µm, a 1.28 µm, 1 pF = 1187.75 µm², C_max(1.5e-8 m²) 12.34 pF, `wt/_drafts/evidence/2026-11-05/sf1r9_sg_pdk_cases.md` 1절). 저항 후보 칸 시트 저항·최소 폭 → Ω당 면적 하나(엔진의 W²/R□ 식 삭제). 측정 부하 행(None, None), `PassiveAreaDecl.excluded` 삭제. `selected_as` 삭제, 고정 이름 `resistor_*`. `bridge_status`는 소비자가 있는 OP-5 커밋으로(이 계획 N6.20·N6.1의 A-23 문언은 `bridge_status`를 적지 않아 고칠 것 없음; design 41 4.9-3과 card만). oracle 계획 OP-3 행 '필드(C_par·l' → '필드(C_par)'.
