@@ -28,6 +28,9 @@
 * `path_values`(봉인 1 입력): 노드에 닿는 관계마다 그 관계가 함의하는 노드 전압(MOS = 좌표에서 VGS 역산, 저항 = 강하, W4·고정 = 값).
 * `dc_sat_v` = `sat_threshold(memo, kind, DeviceOp.w_key, L, vgs, vds, vsb)`(선언 없음·`triode`, 비전도 포함), `off` 선언 소자 = `SatBound(None, None, "off_declared")`.
 * 커널 창 `node.dc_window` = W4 뿌리마다 KVL 순서 창 하나(상태·`tol_v` 없음); 입력 창 측정은 `icm_config` 한 자리.
+* READS 중 `graph.views`·`node.port_role`·`graph.dc_current_basis` 는 실현 평가 servo 풀이(`_servo_solve`)가 읽는다: 기본 포트 뷰(`default_port_views` -- `graph.views`, 없으면 `node.port_role`·`port_direction` 에서
+  같은 규칙)의 여기 가중·감지 부호(`sense_signs`, `node.port_role`), 전류 기저 끝점(`graph.dc_current_basis.ends`, 감지 합·KCL 행의 흐름 넷). 설계 40 §3.7-A 1 READS 문언에 없던 항목이다(문언 누락 -- 읽는 한 선언해야
+  입력 버전이 바뀔 때 재계산된다). `pivot_config(ref)` 의 `graph.icm_config` 는 이 블록 자기 스냅샷이 아니라 입력 `search_ref` 스냅샷에서 읽는다.
 """
 import dataclasses
 import math
@@ -560,7 +563,9 @@ def _solve(c):
                                key=lambda m: (c.device_colour.get(m, 0), m)))              # 구조 색 순서 -- 이름이 처음 실패할 소자를 정하지 않게
         devices = writers or tuple(m for m in entry_devices if c.has_channel_values(m, values))
         if not writers:
-            c.r_dep.update(devices)                        # Rʳ -- 수렴 허용오차 셀을 종속 소자가 내는 SCC
+            # Rʳ -- 수렴 허용오차 셀을 종속 소자가 내는 SCC. 다른 노드의 writer 인 소자는 키가 쓰기 소자 선택(상수 W)으로 정해져 있고
+            # 그 키가 자기 노드 writer 식에 들므로 되풀이로 바꾸지 않는다(종속 소자만 Rʳ).
+            c.r_dep.update(m for m in devices if c.coord[m].role != COORD_WRITER)
 
         def tolerance(v, devs=devices):
             return c.tolerance(devs, v)

@@ -8,6 +8,7 @@
 
 * `pdk` = 처음 후보(`LayoutPdk.slice_width_keys` -- kind 별 폭 키), `row_groups` = 레이아웃 입력의 행 그룹(`ly_row_groups`), `excluded` = 지금까지 뺀 ((rid, (폭 키, ...)), ...).
 * 반환 `((rid, 키), new_excluded)` -- `new_excluded` 는 `excluded` 에 그 키를 더한 것(정렬 tuple), 입력은 바꾸지 않는다. 그 행 그룹에 남는 후보가 없으면 `((rid, 키), None)` -- 더 시도할 폭이 없다.
+가장 어긋난 소자가 어느 행 그룹에도 속하지 않으면 `((None, 키), None)`(뺄 후보 없음 -> 호출부가 `STATUS_INFEASIBLE`, 새 사유 없음).
 키를 하나 빼므로 반복은 (행 그룹 수 x PDK 폭 키 수) 이하에서 끝난다(단조 감소; 루프의 수렴 판정·상한은 바꾸지 않는다).
 """
 import math
@@ -15,7 +16,9 @@ import math
 
 def key_exclusion(pdk, row_groups, placements, sized_w, excluded, colour):
     worst = min(placements, key=lambda p: (-abs(math.log(p.W_m / sized_w[p.name])), colour.get(p.name, 0), p.name))
-    group = next(rg for rg in row_groups if worst.name in rg.members)
+    group = next((rg for rg in row_groups if worst.name in rg.members), None)
+    if group is None:                       # 어느 행 그룹에도 없는 소자 = 뺄 후보가 없다 -> 더 시도할 폭이 없음(fail-closed, StopIteration 누출 금지)
+        return (None, worst.key), None
     dropped = dict(excluded)
     now = tuple(sorted(set(dropped.get(group.rid, ())) | {worst.key}))
     if not [k for k in dict(pdk.slice_width_keys)[group.kind] if k not in now]:
