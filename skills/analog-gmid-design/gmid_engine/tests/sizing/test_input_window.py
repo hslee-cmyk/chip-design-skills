@@ -24,7 +24,7 @@ from gmid_engine.core import SealViolationError
 from gmid_engine.sizing import DC_KEY, size_and_seal
 from gmid_engine.sizing.input_window import saturation_window
 
-from .conftest import (R4_L, build_ctx, detail, free_currents, mos, node_voltages, r4_ln_idu, r4_tol_vdsat,
+from .conftest import (R4_L, build_ctx, detail, free_currents, mos, node_voltages, r4_ln_idu,
                        r4_vdsat_at, r4_vgs_of, seal_item, topo, two)
 from types import SimpleNamespace
 
@@ -189,9 +189,6 @@ def test_gradient_outside_domain_is_none():
 # 커널 통합: 순환 follower toy (입력 DC 대기)
 # ===========================================================================
 
-TOL = r4_tol_vdsat("nmos")
-
-
 def _doc():
     net = [mos("MA", "nmos", "y", "x", "gnd", "gnd"), mos("MB", "nmos", "x", "in", "y", "y")]
     src = [two("IX", "current_source", "vdd", "x"), two("IY", "current_source", "vdd", "y")]
@@ -324,11 +321,11 @@ _OFF_MID = {"below": (0.6, 0.3, 0.67), "above": (1.1, 0.3, 1.08)}
 
 
 def _oracle_slacks(ev):
-    """봉인 7 의 포화 여유 VDS − VDSAT − tol_VDsat 을 엔진이 낸 노드전압에서 독립으로 잰다(MA: VDS = V(y), VGS = V(x);
+    """O-204 정의 포화 여유 VDS − VDSAT (문턱 없음)을 엔진이 낸 노드전압에서 독립으로 잰다(MA: VDS = V(y), VGS = V(x);
     MB: VDS = V(x) − V(y), VGS = V(in) − V(y), VSB 0). VDSAT·tol = conftest npz 열 직접."""
     V = node_voltages(ev.snapshot)
-    sa = V["y"] - r4_vdsat_at("nmos", R4_L[0], V["x"], 0.0) - TOL
-    sb = (V["x"] - V["y"]) - r4_vdsat_at("nmos", R4_L[0], V["in"] - V["y"], 0.0) - TOL
+    sa = V["y"] - r4_vdsat_at("nmos", R4_L[0], V["x"], 0.0)
+    sb = (V["x"] - V["y"]) - r4_vdsat_at("nmos", R4_L[0], V["in"] - V["y"], 0.0)
     return sa, sb
 
 
@@ -382,12 +379,7 @@ def test_off_mid_window_maps_y_and_ends_saturated(pend, off_mid_windows, key, y)
     oracle = min(_oracle_slacks(SimpleNamespace(snapshot=snap)))
     if sealed:
         assert seal_item(snap, 7).status == "pass"
-        if end:
-            # [EO-1 범위 4, A-88] 새 판정(VDS >= VDSAT, 문턱 없음)에서 창 끝점(판정 여유 0)은 봉인된다. 독립 oracle 여유는 LUT 보간 대 독립 해석의 차
-            # (tol_V 규모)라 O-103 꼴 |여유| <= tol_v 로 본다(엔진 slack_v 도 같은 허용; 허용을 넓히지 않는다).
-            assert abs(oracle) <= tv and abs(dict(seal_item(snap, 7).detail)["slack_v"]) <= tv, (oracle, tv)
-        else:
-            assert oracle >= -1e-12, oracle
+        assert oracle >= -1e-12, oracle          # [A-91 복원] 봉인 끝점도 O-204 정의 여유(VDS - VDSAT) >= 0
     else:
         assert abs(slack_v) <= tv and abs(oracle) <= tv, (slack_v, oracle, tv)
 
@@ -402,8 +394,7 @@ def test_mid_window_ends_have_nonnegative_saturation_slack(pend, y):
     tv = _tol_v(SimpleNamespace(snapshot=snap)) if sealed else _tol_of_window(snap)
     if sealed:
         assert seal_item(snap, 7).status == "pass"
-        # [EO-1 범위 4, A-88] 창 끝은 새 판정에서 봉인되고, 독립 oracle 여유는 O-103 꼴 |여유| <= tol_v (위 test 와 같은 허용).
-        assert abs(min(sa, sb)) <= tv and abs(dict(seal_item(snap, 7).detail)["slack_v"]) <= tv, (sa, sb, tv)
+        assert min(sa, sb) >= -1e-12           # [A-91 복원] O-204 정의 여유(VDS - VDSAT) >= 0
     else:
         assert abs(slack_v) <= tv and abs(min(sa, sb)) <= tv, (slack_v, sa, sb, tv)
     lo_e, hi_e = Follower(0.9, 0.3).window(0.9)

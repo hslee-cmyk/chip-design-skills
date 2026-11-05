@@ -1,0 +1,50 @@
+{
+ "id": "20261104-eo1r4-sf1l",
+ "order": "순서 3 freeze",
+ "isolation": "C:/Users/HSLEE/AppData/Local/Temp/la1s_eo1r4_audit/v2/iso (clone --no-hardlinks --no-local, origin 제거), 뮤턴트 v2/mut, base 판 v2/base",
+ "freeze": {
+  "test_end_commit_T": "90ef9e5f6ff04a631e170dca60d1a73dece11b04",
+  "test_commits": [
+   "068bcd82",
+   "405b144f",
+   "b6405320",
+   "90ef9e5f"
+  ],
+  "code_commits": [
+   "a15f95b6",
+   "7f663bbe",
+   "eec0cb6f"
+  ],
+  "note": "T 는 code 뒤다: dispute A-88. 그중 test_input_window 변경은 기준 약화로 판정(V5)"
+ },
+ "base_commit": "58c9045a8257573ad84344044fb32cf0127a954b",
+ "red": {
+  "collected_rows": 108,
+  "red": 65,
+  "pass_at_base": 43,
+  "by_type": {
+   "COLLECT": 8,
+   "builtins.AssertionError": 21,
+   "builtins.KeyError": 2,
+   "builtins.ImportError": 1,
+   "gmid_engine.core.failure_errors.SchemaRejectedError": 27,
+   "builtins.AttributeError": 5,
+   "builtins.TypeError": 1
+  },
+  "note": "merge_gate 플러그인 대신 판정자 플러그인(DEC-86). 신규 함수 ImportError 는 N3.12.3 순서 3 허용"
+ },
+ "muts": {
+  "M1": "1 failed, 14 passed in 3.28s",
+  "M2": "3 failed, 3 passed in 1.15s",
+  "M3": "118 passed, 1 warning in 25.69s",
+  "M4": "5 failed, 56 passed, 1 warning in 17.46s",
+  "M5": "7 failed, 28 passed in 4.60s",
+  "M6": "8 failed, 72 passed in 7.25s",
+  "M7": "1 failed, 87 passed in 3.83s",
+  "M8": "3 failed, 13 passed in 2.71s",
+  "M9": "2 failed, 18 passed in 0.59s",
+  "M10": "4 failed, 11 passed in 2.96s",
+  "M11": "76 passed, 1 warning in 22.44s",
+  "M12": "76 passed, 1 warning in 21.52s"
+ }
+}
