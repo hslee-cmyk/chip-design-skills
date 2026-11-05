@@ -8,7 +8,7 @@
 * **미지수 집합 U_b** = (블록 노드 ∪ 블록 소자(`block.members`)·`extra` 소자의 d·s·저항 단자 ∪ 저항 폐포 ∪ 용량 전용 넷) − F. 폐포: U_b 에 단자가 닿는 저항(`exclude` 제외)을
   스탬프하고 다른 단자가 F 밖이면 U_b 에 넣는다(되풀이). 비멤버 MOS 는 U_b 를 넓히지 않는다.
 * **스탬프 소자**: d 또는 s 가 U_b 에 닿는 MOS(멤버든 비멤버든 -- 다른 단자는 고정 전압, 분기 없는 단자 스탬프), U_b 에 닿는 저항, `extra` 소자. `exclude`(S1v 가 주경로에서 뺀 feedforward
-  묶음 소자)는 스탬프하지 않고 `extra`(merge 블록의 FF 묶음)가 우선한다. 막다른 가지(U_b 안, 출력 아님, 저항 단자 정확히 하나, 스탬프 MOS 의 d·s·g·b 가 안 닿는 넷, 용량으로 전하 넷과 이어진 넷 아님)는 그 넷과 저항을 뺀다(되풀이).
+  묶음 소자)는 스탬프하지 않고 `extra`(merge 블록의 FF 묶음)가 우선한다. 막다른 가지(U_b 안, 출력 아님, 저항 단자 정확히 하나, 스탬프 MOS 의 d·s·g·b 가 안 닿는 넷, 용량(소자 용량·MOS 단자 용량)으로 전하 넷과 이어진 넷 아님)는 그 넷과 저항을 뺀다(되풀이).
 * **용량 전용 넷**: 전회로에 d·s·저항 단자가 없고 F 밖이며 스탬프 MOS 의 g·b 가 읽는 넷, 그 넷과 용량으로 이어진 같은 종류의 넷. 이 넷은 0 V 로 채우지 않고 전하 보존 행(전회로 C)으로 푼다
   (`_helpers_nodal.nodal_factor`). 전하 넷이 있을 때만 전회로 C 를 조립한다. 전하 넷이 있는데 값 없는 수동소자(`ss.missing`)가 있으면 C 가 불완전해 `singular_dc`.
 * **산출**: `gain` = V(out)/V(in)(입력 둘이면 차, 출력 둘이면 차 -- 차동은 ±½ 이라 입력 1 V), `zout_ohm` = 입력 접지·출력 단위 전류(출력 둘이면 +1/−1)의 출력 전압(차),
@@ -88,6 +88,7 @@ def _structure(ss, block, drive, others, exclude, extra, ground):
     conducting = {t for m in mos.values() for t in (m.d, m.s)} | {t for r in res.values() for t in (r.a, r.b)}
     cap_only = set(range(len(ss.nodes))) - conducting - fixed
     capacitors = [(k.a, k.b) for k in ss.circuit.capacitors if k.a in cap_only and k.b in cap_only]
+    c_pairs = capacitance_matrix(ss.circuit, len(ss.nodes)) != 0.0               # 전하 행이 읽는 C 와 같은 조립(소자 용량 + MOS 다섯 용량)
     dropped = set()
     while True:
         stamped_mos = {l for l, m in mos.items() if l not in barred and (m.d in unknown or m.s in unknown)} | (set(extra) & set(mos))
@@ -102,7 +103,7 @@ def _structure(ss, block, drive, others, exclude, extra, ground):
                 if (a in charge) != (b in charge):
                     charge |= {a, b}
                     grown = True
-        read = {t for k in ss.circuit.capacitors for t, o in ((k.a, k.b), (k.b, k.a)) if o in charge}   # 블록 안 C 독자: 전하 넷과 용량으로 이어진 넷
+        read = {int(t) for o in charge for t in numpy.flatnonzero(c_pairs[o]) if t != o}   # 블록 안 C 독자: 전하 넷과 (소자 용량·MOS 단자 용량으로) 이어진 넷
         dead = {n for n in unknown if n not in outputs and n not in touched and n not in read and count[n] == 1}
         if not dead:
             break

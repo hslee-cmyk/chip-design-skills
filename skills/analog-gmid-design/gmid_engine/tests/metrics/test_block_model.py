@@ -355,3 +355,46 @@ def test_ub1_dead_end_resistor_net_read_by_capacitor_to_charge_net():
     assert dict(got.node_v)["mz"] == pytest.approx(-18.75, rel=1e-9)
     assert dict(got.node_v)["n"] == pytest.approx(-4.6875, rel=1e-9)
     assert got.gain == pytest.approx(117.1875, rel=1e-9)
+
+
+def test_ub1_dead_end_resistor_net_read_by_mos_terminal_capacitor_to_charge_net():
+    """[A-107 M-1b] oracle (a) 구성 정답 + 손 KCL. 위 test 와 같은 회로, 다만 Cc 대신 스탬프되지 않는 MOS M3
+    (d vdd, s gnd, g n, b mz, cgb 1e-12) -- mz 와 n 사이 용량이 MOS 단자 용량(cgb)으로만 있다.
+    Rz 의 DC 전류 0 -> V(mz) = V(out) = −gm1/(gds1 + 1/R1) = −1e-3/(2e-5 + 1/3e4) = −18.75,
+    전하 넷 n: V(n) = cgb/(cgb + C2)·V(mz) = 1/(1+3)·(−18.75) = −4.6875,
+    gain = −gm2/(gds2 + 1/R2)·V(n) = −2e-3/(3e-5 + 1/2e4)·(−4.6875) = 117.1875.
+    MOS 단자 용량 독자를 놓치면 mz 를 막다른 가지로 빼서 gain −0.0."""
+    nets = ("gnd", "vdd", "in", "out", "mz", "n", "o2")
+    i = {n: k for k, n in enumerate(nets)}
+    gm1, gds1, r1, gm2, gds2, r2, cgb, c2z, rz = 1e-3, 2e-5, 3e4, 2e-3, 3e-5, 2e4, 1e-12, 3e-12, 1e3
+    mos = (MosSmallSignal(i["out"], i["in"], i["gnd"], i["gnd"], gm1, 0.0, gds1, label="M1"),
+           MosSmallSignal(i["o2"], i["n"], i["gnd"], i["gnd"], gm2, 0.0, gds2, label="M2"),
+           MosSmallSignal(i["vdd"], i["n"], i["gnd"], i["mz"], 1e-4, 0.0, 1e-5, cgb=cgb, label="M3"))
+    res = (Resistor(i["vdd"], i["out"], r1, label="R1"), Resistor(i["vdd"], i["o2"], r2, label="R2"),
+           Resistor(i["out"], i["mz"], rz, label="Rz"))
+    caps = (Capacitor(i["n"], i["gnd"], c2z, label="C2"),)
+    ss = SsCircuit(nets, SmallSignalCircuit(mos=mos, resistors=res, capacitors=caps), tuple(r.label for r in res),
+                   tuple(c.label for c in caps), ("gnd", "vdd"), ("in",))
+    b = H.block(("o2",), ("in",), ("o2",), ("in", "out", "mz", "n", "o2"), members=("M1", "M2", "R1", "R2", "Rz", "C2"))
+    got = block_local_gain(ss, b)
+    assert got.undefined == ()
+    assert dict(got.node_v)["mz"] == pytest.approx(-18.75, rel=1e-9)
+    assert dict(got.node_v)["n"] == pytest.approx(-4.6875, rel=1e-9)
+    assert got.gain == pytest.approx(117.1875, rel=1e-9)
+
+
+def test_ub1_dead_end_resistor_to_unread_capacitor_island_stays_dead_end():
+    """[A-107 case 5 과잉 제외 방지] oracle (a) 구성 정답. out -Rz- mz -Cc- k -C2- gnd, M1 만 out 구동 (R1: vdd–out).
+    k 는 용량으로만 이어진 섬이지만 어떤 MOS·전하 넷 독자도 읽지 않는다(전하 넷과 무관) -> Rz 는 그대로 막다른 가지(members 밖).
+    Rz 전류 0 이므로 gain = −gm1/(gds1 + 1/R1) = −1e-3/(2e-5 + 1/3e4) = −18.75."""
+    nets = ("gnd", "vdd", "in", "out", "mz", "k")
+    i = {n: k for k, n in enumerate(nets)}
+    mos = (MosSmallSignal(i["out"], i["in"], i["gnd"], i["gnd"], 1e-3, 0.0, 2e-5, label="M1"),)
+    res = (Resistor(i["vdd"], i["out"], 3e4, label="R1"), Resistor(i["out"], i["mz"], 1e3, label="Rz"))
+    caps = (Capacitor(i["mz"], i["k"], 1e-12, label="Cc"), Capacitor(i["k"], i["gnd"], 3e-12, label="C2"))
+    ss = SsCircuit(nets, SmallSignalCircuit(mos=mos, resistors=res, capacitors=caps), tuple(r.label for r in res),
+                   tuple(c.label for c in caps), ("gnd", "vdd"), ("in",))
+    got = block_local_gain(ss, H.block(("out",), ("in",), ("out",), ("in", "out"), members=("M1", "R1", "Rz")))
+    assert got.undefined == ()
+    assert got.gain == pytest.approx(-18.75, rel=1e-9)
+    assert "Rz" not in got.members
