@@ -3,8 +3,8 @@
  "spec_card": "docs/02-design/specs/20261104-eo1r4-sf1l.spec.md",
  "evidence_type": "red-green",
  "base_commit": "58c9045a8257573ad84344044fb32cf0127a954b",
- "test_commit": "90ef9e5f6ff04a631e170dca60d1a73dece11b04",
- "code_commit": "eec0cb6f30baeacceec3986a78f9255ee1295b63",
+ "test_commit": "9dfd19e099a30fc3f153ff333fac639a4e48247e",
+ "code_commit": "23b563d39e4c4588756f2174799a81bce38f14c4",
  "red": {
   "test_ids": [
    "skills/analog-gmid-design/gmid_engine/tests/sizing/test_region_judge.py",
@@ -144,23 +144,23 @@
  "checks": {
   "V1": {
    "verdict": "N/A",
-   "basis": "전체 test 안 돌림, 임시 규칙 O-229. 잰 범위(격리 복제본 90ef9e5f): card·변경 test 28파일 871 통과 실패 0, tests/structure 171 통과(1 deselected, 폐기 이름 0, 래칫 new 0·stale 0), search/test_canonical_order.py 12 통과, 2회로 연기(folded_cascode·ngcc_3stage_ff, --run-slow -k, stage_b·s0·g10 7파일) 23 통과 190 deselected. 안 돌린 것을 통과로 세지 않는다. ngspice 0."
+   "basis": "전체 test 안 돌림, 임시 규칙 O-229. A-91 재판정 범위(격리 복제본 367664ab, Major 항목만): 수정 test 3파일 104 통과, tests/structure 171 통과(1 deselected, 래칫 stale 0), canonical_order 12 통과, 2회로 연기 23 통과 190 deselected, 봉인 6 무관 측정 없음. 첫 판정의 card 28파일 871 통과는 90ef9e5f 값이고 재측정 안 함(통과로 세지 않음)."
   },
   "V2": {
    "verdict": "PASS",
-   "basis": "red-green. base 58c9045a 엔진 + head test 13파일: 65 실패·수집 오류(COLLECT 8, AssertionError 21, AttributeError 5, ImportError 1, KeyError 2, TypeError 1, SchemaRejectedError 27), 통과 43. 같은 13파일 head 250 통과. T-S8 red 사유 확인: 순방향 tol/2 AssertionError('pass' == 'fail'), indistinct KeyError. 수집 오류 8은 신규 이름 ImportError(N3.12.3 순서 3 허용). 커밋 트레일러 Role test/code 분리 확인: 90ef9e5f·b6405320 test, a15f95b6·7f663bbe·eec0cb6f code. T(90ef9e5f)가 code 뒤인 것은 dispute A-88 경로이고 그 약화 여부는 V5에 적었다."
+   "basis": "red-green. base 58c9045a 엔진 + head test 13파일: 65 실패·수집 오류(COLLECT 8, AssertionError 21, AttributeError 5, ImportError 1, KeyError 2, TypeError 1, SchemaRejectedError 27), 통과 43. 같은 13파일 head 250 통과. T-S8 red 사유 확인: 순방향 tol/2 AssertionError('pass' == 'fail'), indistinct KeyError. 수집 오류 8은 신규 이름 ImportError(N3.12.3 순서 3 허용). 커밋 트레일러 Role test/code 분리 확인: 90ef9e5f·b6405320 test, a15f95b6·7f663bbe·eec0cb6f code. T(90ef9e5f)가 code 뒤인 것은 dispute A-88 경로이고 그 약화 여부는 V5에 적었다. [A-91 재판정] red 목록은 첫 판정(90ef9e5f) 값 그대로이고 새 test(test_off_only_node_*)의 red 는 다시 재지 않았다. 9dfd19e0 test, 23b563d3 code 트레일러 확인."
   },
   "V3": {
    "verdict": "PASS",
-   "basis": "손 뮤턴트 12: 9 kill(M1 관문 건너뜀, M2 주입 부호, M4 off gds 0, M5 drain 접합 항 삭제, M6 VDS=VDSAT 등호, M7 off_only 삭제, M8 vgs 음수 삭제, M9 O-h kind, M10 VDSAT′ 항 삭제). 생존 3 = 비동치: M3 off cgd 0, M11 off gmb 0, M12 off gm 0. 즉 interface T-O5 'off 소자 gm·gds·C가 든다' 중 C·gm·gmb를 test가 못 잡는다 -- test 공백, minor(LA-1 입력). 그 세 칸의 값은 판정자가 직접 재서 맞음을 V9에 적었고, test 통과로 세지 않는다."
+   "basis": "손 뮤턴트 12: 9 kill(M1 관문 건너뜀, M2 주입 부호, M4 off gds 0, M5 drain 접합 항 삭제, M6 VDS=VDSAT 등호, M7 off_only 삭제, M8 vgs 음수 삭제, M9 O-h kind, M10 VDSAT′ 항 삭제). 생존 3 = 비동치: M3 off cgd 0, M11 off gmb 0, M12 off gm 0. 즉 interface T-O5 'off 소자 gm·gds·C가 든다' 중 C·gm·gmb를 test가 못 잡는다 -- test 공백, minor(LA-1 입력). 그 세 칸의 값은 판정자가 직접 재서 맞음을 V9에 적었고, test 통과로 세지 않는다. [A-91 재판정] 추가 뮤턴트: 포화 판정에 1 mV 문턱(vds >= vdsat - 1e-3) -> test_input_window 2 실패로 kill, 복원 단언이 실제로 거부한다. 앞 뮤턴트 12는 다시 재지 않았다."
   },
   "V4": {
    "verdict": "PASS",
    "basis": "oracle 대조: 합성 LUT 해석식·손 G 2x2로 판정자가 따로 유도. ΔV: 엔진 대 손 상대차 ≤ 1e-14 (w_m 1e-8~1e-3 11점), 저항-레일 노드 dv = −ΔI/(1/R+gds) 전 자리 일치. s′: 손(독립 VDSAT 보간) 대 관문 detail 차 ≤ 5e-16, 거부·통과 부호 5점 일치(w_m 1e-6 통과 s′=+0.0610, 1e-5 거부 s′=−0.0157, 3e-5 −0.1111, 1e-4 −0.2240, 1e-3 OUT_OF_DOMAIN s′=None 거부). UNJUDGED: 13회로 값·SPICE 대조는 oracle 호출 0 card라 판정 안 함. test_input_window 의 oracle 칸 대조 결과 = V5(옛 정의 잔존)."
   },
   "V5": {
-   "verdict": "FAIL",
-   "basis": "Major-2 기준 약화. test_input_window.py 4 assert(test_off_mid_window_maps_y_and_ends_saturated, test_mid_window_ends_have_nonnegative_saturation_slack)가 봉인 끝점 독립 oracle을 `oracle >= -1e-12`에서 `abs(oracle) <= tv`(tv 측정 7.8125 mV)로 넓혔다. 손계산 오차가 아니다: 헬퍼 _oracle_slacks 가 옛 정의 VDS − VDSAT − TOL(TOL 0.9765625 mV)을 그대로 가져 '약 −0.97 mV'는 삭제된 +tol 문턱 자체다. O-204 정의(VDS − VDSAT, TOL 뺌)로 재면 봉인된 끝점 4건 여유 = +3.39e-6, +7.18e-7, +1.51e-6, +1.80e-6 V로 모두 ≥ 0, 비봉인 2건 = −1.78e-6, −1.77e-6 V. 엔진 slack_v 와 자리까지 같다. 그러므로 헬퍼를 O-204 정의로 고치면 옛 단언 >= −1e-12 를 약화 없이 유지할 수 있다. dispute 7의 'LUT 보간 대 독립 oracle 차, tol_V 규모'와 test 주석, A-88 'O-103 꼴'은 사실과 다르다. 지금 test 는 봉인 끝점의 포화 위반 7.8 mV를 통과시킨다. 엔진 판정 자체는 맞다(결함은 test 기준). 다른 test 변경 전부 대조(test_seal·test_seal_bulk_reverse·test_scc_newton·test_icm_config·test_kernel_run·test_size_and_seal·test_s2_values·test_dc_inputs·test_block_columns·test_writer_plan·test_search_domain·test_ss_linearize): 계약 변경에 맞춘 이동·강화이고 약화 없음(봉인 6은 강화). 봉인 7 margin None 단언은 interface §2대로."
+   "verdict": "PASS",
+   "basis": "Major-2 해소. test_input_window: `- TOL` 삭제, 봉인 끝점 단언 oracle >= -1e-12, min(sa, sb) >= -1e-12 복원(base 58c9045a 판과 같은 단언, 정의만 O-204). 내부 점도 같은 단언. 봉인 7 거부 끝점 분기는 base 그대로(|slack_v|, |oracle| <= tv, O-103)이고 넓히지 않았다. 실측 O-204 여유: 봉인 끝점 +3.389e-6, +7.181e-7, +1.513e-6, +1.800e-6 V, 거부 끝점 -1.777e-6, -1.768e-6 V(엔진 slack_v 와 차 ≤ 6e-17), 내부 y=0.125~0.875 최소 +0.0169 V. 1 mV 문턱 뮤턴트 kill. test_seal_region 변경은 import 인자 한 줄이고 단언 수 불변, test_region_decl 은 추가만. 약화 없음. 첫 판정의 나머지 test 대조는 유효."
   },
   "V6": {
    "verdict": "PASS",
@@ -168,7 +168,7 @@
   },
   "V7": {
    "verdict": "FAIL",
-   "basis": "Major-3 범위 위반: core/compute_block.py 한 줄 `self.__module__ = fn.__module__`. card 재작성 범위 밖이고 엔진 소비자 0. 그 줄을 지운 뮤턴트 = 1 실패 1251 통과, 실패는 test_region_judge_called_once_per_device_in_seal 의 importlib.import_module(dc_seal_region.__module__) 하나뿐. test가 모듈 이름을 직접 쓰면 뺄 수 있다. 나머지 graph 정본 통과: 새 필드 3(device.region_decl, device.off_op, graph.ss_off_delta) + writer 바뀐 2(graph.dc_seal_7·9), 필드마다 writer 하나. 소비자 region_decl = dc_seal_region·writer_plan·current_basis·lengths·columns·icm_config·metrics_aux·ss_off_op·ss_off_delta·ss_dev·관문·ss_evaluate·search_context, off_op = ss_dev·ss_off_delta, ss_off_delta = 관문 + sources 출력 전용, dc_seal_7·9 = seal_report. 필드 수 5 / 소비자 0 인 필드 0 / 정본 우회 의심 0 / KVL·KCL 관계 미적용 1(off_only_node, V9) / graph 밖 저장 자리 0 (dc_seal_region 의 bounds = 블록 안 지역 dict, O-15 (E) 승인 예외, 새 cache·sctx·값 칸 0). READS 실측: judged_by 만 바꾸면(대칭 표시 불변) dc_region_decl·dc_writer_plan·dc_current_basis·dc_lengths·dc_columns·dc_seal_region·icm_config·ss_off_op·ss_dev·ss_off_delta 판이 바뀐다 -- extras 제거 뒤 입력 버전에 잡힘. G-10: 같은 θ 재평가 ss_off_op·ss_off_delta·ss_dev·ss_nodal grafts 1 computes 1 recomputes_same_input 0. 판정식 둘째 구현 0: `vds >= vdsat` 자리는 region_judge 하나, 봉인 7 행 판정은 region_mismatch. reverse_vds 칸은 current>0·vds<0 조건을 다시 쓰지만 출력 전용. SS_OFF_WRITES 분리: 소비자는 S2_WRITERS 합성 한 곳, 문제 없음. off_current 호출 두 자리(ss_dev gm, ss_off_delta ΔI): 같은 식 함수 하나, op_point 는 LUT memo 예외, 저장 칸 없음. 블록 순서상 ss_dev 가 ss_off_delta 앞이라 READS 불가 -- 허용, 다만 ΔI 곱셈이 두 번이라 LA-1 입력(minor). dc_lengths 가 region_decl 로 자기 거르기를 둔다(design 4.8-4 '네 자리만 뺀다'와 다름, dc_coord READS로 대체 가능, 낡은 docstring 'off_devices' extras) minor."
+   "basis": "Major-5 graph 정본 위반(새 발견). _off_undetermined_nets 가 DC 전도 엣지를 pins·kind 로 다시 만든다(MOS d-s, passive != capacitor, source != current_source). 정본은 device.dc_nets(authoring dc_edges_unpruned, 그 머리 문서 '엔진에서 이 정의를 두는 유일한 곳, 두 번째 정의를 만들지 않는다')이고 dc_current_basis 가 이미 READS 한다. 실측: library 10회로(나머지 3은 측정 스크립트 레일 입력에서 S1 정지) 321 원소에서 helper 엣지 == dc_nets - current_source, 불일치 0 -- 정의가 같다. 정본은 허용 목록 DC_CONDUCTING_PASSIVE_KINDS 인데 helper 는 금지 목록이라 새 수동 kind 가 생기면 갈라진다. 수정 = READS device.dc_nets 에서 off·current_source 만 뺀다. Major-3 해소: self.__module__ 줄 삭제, core 파일 base 58c9045a 와 동일(diff 0). 나머지 통과: 새 필드 0, cache·슬롯 0, 값 저장 0(지역 인접 dict 는 호출 안 버림), element_class·kind·pins 는 이미 READS. 기록 수치: 새 필드 0 / 소비자 0 필드 0 / 정본 우회 1(dc_nets) / KVL·KCL 관계 미적용 1(V9 게이트 넷) / graph 밖 저장 0. 앞 판정의 나머지 graph 항목은 유효."
   },
   "V8": {
    "verdict": "PASS",
@@ -176,7 +176,7 @@
   },
   "V9": {
    "verdict": "FAIL",
-   "basis": "Major-1 물리 정합·fail-open. A-88 (a) off_only_node 판정이 '닿는 소자 전부 off'만 봐서 DC 전도 경로 없는 노드를 놓친다. 측정: x = off drain + 커패시터 -> x 가 W4 free_window, θ 에 (y, x) 가 남고 y=0.25·0.75 모두 봉인 sealed, ss 통과, vx = 0.45·1.35 V, ΔV_x = −10.00 V(레일 밖), metric 불변(gain 21.98 dB). 섬 x -R- z, z -C-: 같은 결과. A-88 이 막겠다고 한 '전도 경로 없이 θ 변수가 됨'이 그대로 산다. 빠짐 없는 경우: off 만 닿는 x(소자 하나 + 고정 넷, 직렬 중간 노드) 정지, R 로 레일에 닿으면 통과(x=vdd, dv 손 일치), bias 넷 선언 있으면 W3 통과·없으면 정지(과거부 아님, 게이트 전압 미정이라 맞음). off drain + 켜진 소자 gate: W2 vgs_gate 로 봉인되고 관문이 off_gate(s′=None)로 거부 -- 수치로 잡힌 것이고 구조 정지 아님(minor). 그 밖 물리 통과: (1) 표 10행 코드·13 입력 일치, 0 V 양쪽 문턱 없음. −1e-16 은 거부된다(사실): off_vgs_negative, off_bulk_forward, 켜진 소자 봉인 6 모두. (2) junction_forward 식 일치, 호출 = 봉인 6·ss_off_op 둘(코드 grep). (3) off 스탬프: 같은 점·같은 W 인 켜진 소자와 gm·gmb·gds·cgg·cgs·cgd·cgb·cdb·csb 상대차 ≤ 5.1e-15, C 4열은 판정자 다중선형 값과 1e-9 안(축마다 변하는 cap 표로 교체), MosSmallSignal 칸 일치. AC: UGF 엔진 69.81290646 MHz = 손 전달함수(off C 포함) 69.81290646 MHz, off C 빼면 524.7 MHz. ΔI_off 부호·KCL: 1차 ΔV 대 정풀이 비 1.0008, 봉인 KCL 잔차 0. 전도 바닥 폐기 근거 있음: 계획 N3.6 표 9행·정본 (1)·(7), O-205 (1), spec 계약 3. VGS=0 누설은 (i) ID>0 판정 (ii) LUT 정의역 E-0·domain_edge (iii) oracle 최종(정본 (6))로 넘어갔고 VGS≈3 mV 점은 ID>0이라 통과, 봉인 7 미정. 소수: vds=0·off_cols=1 ΔI_off = 1.72e-15 A 로 0이 아니다(interface T-O3b '정지 안 하면 0'과 다름, minor)."
+   "basis": "Major-1 일부 해소, 게이트 넷으로 잔존. 해소: off drain + C, 섬(x-R-z-C), off drain + 켜진 gate, 직렬 중간 모두 off_only_node 정지(devices = off 소자). R 로 레일에 닿으면 통과, dv = -1.1972e-6 V. off 없으면 빈 결과(early return), 연기 무동작. 잔존(재현): Moff gate x + Cx(x, gnd), d·s 고정: who = {Moff, Cx} 라 `who <= off` 를 피하고 d·s 집합 밖이다. x 가 W4 free_window, θ (y, x), y=0.25 봉인 sealed·ss 통과, vgs = 0.45 V, ΔI_off = 39.4 nA, ΔV_out = -3.26 mV -- off 전류가 물리 결정자 없는 θ 값으로 자릿수가 움직인다. y=0.75 는 off_gate(s′ None)로 수치 거부일 뿐이다. 게이트 전용 넷은 topology gate_only_undeclared, 게이트 + 섬은 hidden_rail 이 먼저 거부하므로 남은 구멍은 게이트 + C 류다. 규칙 판단: 게이트 넷 정지는 물리에 맞다(게이트는 DC 전위를 정하지 않으므로 off 전류 결정자가 미정). 두 규칙은 지금 꼴로 하나로 줄지 않는다: 게이트에 d·s 규칙을 그대로 쓰면 켜진 게이트 W2·bias 공유 넷을 과거부한다. 한 규칙 꼴 = off 소자 d·g·s 넷 중 도달 안 되고 g 인 경우 켜진 소자 gate 도 닿지 않는 넷. 전압 결정 요소 읽기: 물리 맞음(R·L·V·켜진 채널, C·전류원·gate 제외), fail-open 방향 측정 = 전압원은 S1 정지 실측(source_kind_unsupported), 인덕터는 SUPPORTED_PASSIVE_KINDS 밖이라 S1 정지(코드 대조만, 측정 스크립트 spec 입력에서 막혀 실측 못 함) -- 지금 도달 0, 다만 금지 목록 표현은 V7. devices 를 off 로 좁힌 것 = 문제 없음, 정지 넷이 off 소자에 닿는 것은 구성상 성립. minor: 입력 포트(입력 DC 미선언)에 off drain 은 정지한다(drain_on_input) -- 이상 입력원이 정하는 넷이라 과거부, fail-closed. 벌크 전용 넷 θ 는 선행 동작(앞 판정). 앞 판정의 나머지 물리 항목은 유효."
   },
   "V10": {
    "verdict": "N/A",
@@ -263,18 +263,54 @@
    "name": "넓힌 허용 tv V",
    "value": 0.0078125,
    "command": "test_zz_iw.py"
+  },
+  {
+   "name": "A-91 수정 test 3파일 수",
+   "value": 104,
+   "command": "v3/run_req.py card"
+  },
+  {
+   "name": "A-91 tests/structure 수",
+   "value": 171,
+   "command": "v3/run_req.py structure"
+  },
+  {
+   "name": "A-91 canonical_order 수",
+   "value": 12,
+   "command": "v3/run_req.py canon"
+  },
+  {
+   "name": "봉인 끝점 O-204 최소 여유 V(A-91)",
+   "value": 7.181342902007337e-07,
+   "command": "v3 test_zz_iw.py"
+  },
+  {
+   "name": "거부 끝점 여유 V(A-91)",
+   "value": -1.7765607315811671e-06,
+   "command": "v3 test_zz_iw.py"
+  },
+  {
+   "name": "helper 엣지 대 dc_nets 불일치 수(321 원소)",
+   "value": 0,
+   "command": "v3 test_zz_r.py test_helper_edges_vs_dc_nets"
+  },
+  {
+   "name": "게이트 + C 잔존 사례 ΔI_off A",
+   "value": 3.9441943819803043e-08,
+   "command": "v3 test_zz_r.py test_cases[0.25-gate_cap]"
   }
  ],
  "approvals": [],
  "auditor_run": {
-  "time": "2026-11-05T01:38:09Z",
+  "time": "2026-11-05T02:02:35Z",
   "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-eo1r4-audit",
   "commands": [
    "V1: 전체 실행 안 함(임시 규칙 O-229), 범위 실행 = python run_req.py (card·structure·canon·smoke)",
    "git clone --no-hardlinks --no-local <worktree> la1s_eo1r4_audit/v2/iso; git -C v2/iso remote remove origin",
    "python driver2.py red module mut seal6 (base 58c9045a 엔진 + head test, core 한 줄 제거, 손 뮤턴트 12, 봉인 6 관찰 연기)",
    "pytest test_zz_audit.py test_zz_v2.py test_zz_v3.py test_zz_v4.py test_zz_iw.py (복제본 전용, 커밋 안 함)",
-   "python tools/audit/scan_shared_calls.py --engine E --out res/scan --touching <엔진 변경 파일>"
+   "python tools/audit/scan_shared_calls.py --engine E --out res/scan --touching <엔진 변경 파일>",
+   "A-91 재판정: git clone --no-hardlinks --no-local <worktree> la1s_eo1r4_audit/v3/iso; git -C v3/iso remote remove origin; python v3/run_req.py; pytest test_zz_r.py test_zz_iw.py(복제본 전용); 뮤턴트 v3/mut"
   ]
  }
 }
