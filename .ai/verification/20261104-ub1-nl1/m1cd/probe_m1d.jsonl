@@ -1,0 +1,12 @@
+{"sites": {}, "case": "1a_nodal_of_no_charge"}
+{"sites": {"view_factor": 2}, "case": "1b_view_factor_base_other_none_no_charge"}
+{"sites": {}, "case": "1c_block_local_gain_no_charge"}
+{"sites": {}, "case": "1d_block_residual_no_charge"}
+{"sites": {"_structure": 1}, "gain": -7.5, "hand": -7.5, "case": "2a_block_local_gain_charge"}
+{"sites": {"nodal_of": 1}, "charge": ["n"], "case": "2b_nodal_of_charge"}
+{"sites": {}, "case": "2c_view_factor_base_hit_charge"}
+{"sites": {"view_factor": 1}, "case": "2d_view_factor_other_fixed_charge"}
+{"sites": {"_structure": 1}, "case": "2e_block_residual_with_field_charge"}
+{"n": 800, "seeded": 405, "same": 800, "seeded_false_but_row_zero": 0, "case": "3_seed_substitution_bit_same"}
+{"gain": null, "undefined": ["singular_dc"], "case": "4_isolated_island"}
+{"case": "1e_view_factor_other_fixed_no_seed", "sites": {}, "charge": [], "floating": []}

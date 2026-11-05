@@ -1,0 +1,52 @@
+[
+{
+"name": "대조",
+"rc": 0,
+"last": "108 passed in 20.62s",
+"failed": []
+},
+{
+"name": "확장을 소자 capacitors 만으로",
+"rc": 1,
+"last": "1 failed, 107 passed in 19.06s",
+"failed": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_ub1_charge_net_extends_through_mos_terminal_capacitor"
+]
+},
+{
+"name": "_structure C 조건 없이 조립",
+"rc": 1,
+"last": "1 failed, 107 passed in 18.50s",
+"failed": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_ub1_c_matrix_assembled_only_for_charge_nets_and_once"
+]
+},
+{
+"name": "block_local_gain C 다시 조립",
+"rc": 1,
+"last": "1 failed, 107 passed in 20.35s",
+"failed": [
+"FAILED gmid_engine/tests/metrics/test_block_model.py::test_ub1_c_matrix_assembled_only_for_charge_nets_and_once"
+]
+},
+{
+"name": "charge_seeded 늘 참(nodal_of·view_factor C 조립)",
+"rc": 0,
+"last": "108 passed in 17.08s",
+"failed": []
+},
+{
+"name": "charge_seeded 늘 거짓(물리)",
+"rc": 1,
+"last": "1 failed, 107 passed in 17.52s",
+"failed": [
+"FAILED gmid_engine/tests/metrics/test_icm_config.py::test_it2c_capacitive_only_node_is_icm_capacitive_only_node"
+]
+},
+{
+"name": "charge_seeded 가 고정 행도 봄",
+"rc": 0,
+"last": "108 passed in 23.26s",
+"failed": []
+}
+]
