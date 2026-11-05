@@ -516,18 +516,59 @@ def test_gate_entry_budget_donors_bound_opened_and_closed(tmp_path, lut_sealed, 
 
 # ---------------------------------------------------------------- C-T13 무동작 (green 유지)
 
+@pytest.mark.slow
 def test_gate_entry_budget_same_input_same_trajectory_and_no_shortfall_escape(tmp_path, lut_sealed, monkeypatch):
-    """C-T13 무동작(해석 -- 보고 참조): 이 toy 는 ε 격자가 선언 예산에 비례해 늘어 어떤 E_B 로도 예산을 다 쓰므로 "예산이 안 닿는 실행"을 못 만든다.
-    그래서 같은 입력 두 번의 궤적(front 서명 = θ·seq, 커널 수, 요청 수, notes)이 같고, 새 예외(FdBudgetShortfall)가 실행 밖으로 나오지 않고, 게이트가
-    돌았음(감싼 run_sensitivity_gate 호출 1)을 본다. 합성 구성이라 피검 출력으로 기대값을 만들지 않는다(두 실행끼리의 비교 -- oracle (c) 꼴)."""
+    """C-T13 무동작(interface C-T13, green 유지): E_B 를 넉넉히 선언한 합성 실행 -- `eval_budget` 정지 사유 0, shortfall 0, 궤적(θ·seq) 동일 쌍 비교.
+    oracle (c)꼴 구성: 이 toy 가 예산 없이 스스로 끝나는 kernel_calls(감사 실측 7892)보다 훨씬 큰 두 E_B(20000, 100000)는 둘 다 안 닿는다.
+    예산이 안 닿는 실행은 E_B 값과 무관해야 하므로 두 실행의 궤적(front 서명 = θ·목적, 커널 수, 요청 수, notes)이 같아야 한다.
+    각 실행: perf.stops_eval_budget 0(= 반복 중·첫 스텝 FdBudgetShortfall 어느 것도 정지 사유 eval_budget 으로 안 닿음), stops_wall_budget 0,
+    kernel_calls < E_B(예산을 다 쓰지 않음), notes 에 eval_budget 사유 0, 게이트는 1회 돈다. (느림: 실행 하나 약 5분 -> --run-slow 표지.)"""
     ff_mod = importlib.import_module("gmid_engine.search.find_front")
     real, calls = ff_mod.run_sensitivity_gate, []
     monkeypatch.setattr(ff_mod, "run_sensitivity_gate", lambda *a, **k: (calls.append(1), real(*a, **k))[1])
     sigs = []
-    for name in ("a", "b"):
+    for name, e_b in (("a", 20000), ("b", 100000)):
         del calls[:]
-        _, fr = _run(tmp_path / name, lut_sealed, constraints=SS, eval_budget=30)
+        _, fr = _run(tmp_path / name, lut_sealed, constraints=SS, eval_budget=e_b)
         perf = dict(fr.perf)
         assert len(calls) == 1
-        sigs.append((front_signature(fr), perf["kernel_calls"], perf["requests"], json.dumps(_notes(fr), sort_keys=True, default=str)))
+        assert len(fr.front) >= 1
+        assert perf["stops_eval_budget"] == 0 and perf["stops_wall_budget"] == 0
+        assert perf["kernel_calls"] < e_b                                       # 예산을 다 쓰지 않았다
+        notes = json.dumps(_notes(fr), sort_keys=True, default=str)
+        assert "eval_budget" not in notes
+        sigs.append((front_signature(fr), perf["kernel_calls"], perf["requests"], notes))
     assert sigs[0] == sigs[1]
+
+
+def test_gate_entry_derives_budget_when_evaluations_at_most_n_theta(tmp_path, lut_sealed, monkeypatch):
+    # [XRUN-F1 card C 판정 Major-2] interface C-T11 '평가 n_θ 이하 실행의 게이트 전 유도' (C8: sweep_front 뒤 게이트 전에 search_ceiling(final=True)).
+    # oracle (구성): eval_budget None 실행에서 sweep_front 가 끝난 직후 평가 시간 기록을 평가 1개(= 0.5^12 s, 이진 정확값, n_θ + 1 미만)로
+    # 되돌리고 eval_budget 을 None 으로 되돌린다. 손: D = ⌊B / 중앙값⌋ = ⌊2.0 / 2^-12⌋ = 8192. 게이트 진입 때 sctx.eval_budget == 8192 이고
+    # 출처가 유도 표지여야 한다(final=True 호출이 없으면 None 으로 남는다).
+    ff_mod = importlib.import_module("gmid_engine.search.find_front")
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=None, budget_s=2.0, constraints=SS)
+    s = case.sctx
+    n = len(s.domain.variables)
+    src0 = s.eval_budget_source
+    real_sweep, real_gate, seen = ff_mod.sweep_front, ff_mod.run_sensitivity_gate, []
+
+    def sweep(*a, **k):
+        out = real_sweep(*a, **k)
+        s.eval_budget = None                                                    # 구성: 아직 유도 전 상태
+        s.eval_budget_source = src0
+        del s.eval_times[:]
+        s.eval_times.append(2.0 ** -12)                                         # 평가 1개 <= n_θ
+        return out
+
+    def gate(sctx, *a, **k):
+        seen.append((sctx.eval_budget, sctx.eval_budget_source))
+        return real_gate(sctx, *a, **k)
+    monkeypatch.setattr(ff_mod, "sweep_front", sweep)
+    monkeypatch.setattr(ff_mod, "run_sensitivity_gate", gate)
+    assert 1 <= n                                                               # 전제: 평가 1개 <= n_θ
+    fr = find_front(s, [theta_r4c()])
+    assert len(seen) == 1, seen
+    assert seen[0][0] == 8192, seen
+    assert re.fullmatch(r"derived_once:floor\(B/median_t_eval\)@n_evals=\d+", str(seen[0][1])), seen
+    assert dict(fr.perf)["eval_budget"] == 8192

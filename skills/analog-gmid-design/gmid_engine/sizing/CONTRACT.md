@@ -307,7 +307,7 @@ device.dc_colour.
 
 ## 3. 쓰기 계획 `dc_writer_plan(snapshot, target_nets, input_dc_declared)` (θ 무관)
 
-reads: device.{element_class, is_diode, kind, pins, dc_colour}, node.{is_rail, port_direction, dc_colour}.
+reads: device.{element_class, is_diode, kind, pins, dc_colour, dc_nets, region_decl}, node.{is_rail, port_direction, dc_colour, ac_ground_class}. (`off_only_node` 관문: 전도 엣지 = `dc_nets` 에서 off 소자·전류원을 뺀 것, 전압 결정 넷(레일·고정 넷·입력 포트·켜진 소자 gate 가 닿는 선언 bias = `ac_ground_class` gate_only_undriven)에 안 닿는 넷에 off d·g·s 가 닿으면 정지. 게이트 예외 없음, off 선언 없으면 무동작)
 writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 키 = (구조 색, 이름) -- 이름은 같은 색 안에서만.
 
 1. 고정 노드 F 와 writer: 레일 -> (W0, rail), `target_nets` -> (W3, declared_target), `input_dc_declared` 면 입력 포트

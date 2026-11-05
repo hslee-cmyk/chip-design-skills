@@ -1,0 +1,388 @@
+{
+ "id": "20261104-eo1r4-sf1l",
+ "spec_card": "docs/02-design/specs/20261104-eo1r4-sf1l.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "58c9045a8257573ad84344044fb32cf0127a954b",
+ "test_commit": "dcb58bf67ef4ff4b3c061794bad1e386df241c93",
+ "code_commit": "27c6877320b48cf1a881d19bc6d1d8a9077667d1",
+ "red": {
+  "test_ids": [
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_region_judge.py",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_region_mismatch.py",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_region.py",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_junction_forward.py",
+   "skills/analog-gmid-design/gmid_engine/tests/lut/test_axis_bounds.py",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_region_decl.py",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_gate.py",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_off_judged.py",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_bulk_reverse.py::test_small_forward_below_tol_now_fails",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_bulk_reverse.py::test_region_bulk_forward_half_tol_now_fails",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_bulk_reverse.py::test_region_bulk_forward_smallest_positive_fails_and_zero_passes",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_bulk_reverse.py::test_region_bulk_reverse_half_tol_passes_with_indistinct",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_bulk_reverse.py::test_region_bulk_boundary_zero_is_pass_and_in_band",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_bulk_reverse.py::test_region_bulk_tol_none_keeps_judgment_and_marks_band_undefined",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_bulk_reverse.py::test_region_bulk_tol_none_does_not_hide_forward",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_vocab_constants",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_accepted_into_tuple_fields",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_empty_judged_by_loads[missing]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_empty_judged_by_loads[judged1]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_and_triode_mix_sorted_by_device",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_needs_positive_w_and_l[no_w]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_needs_positive_w_and_l[no_l]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_needs_positive_w_and_l[w_zero]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_needs_positive_w_and_l[w_neg]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_needs_positive_w_and_l[l_zero]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_needs_positive_w_and_l[l_neg]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_non_off_device_rejects_off_only_fields[w_m]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_non_off_device_rejects_off_only_fields[l_m]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_non_off_device_rejects_off_only_fields[judged_by]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_judged_by_must_be_list_of_str[str]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_judged_by_must_be_list_of_str[int]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_judged_by_must_be_list_of_str[dict]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_judged_by_must_be_list_of_str[int_item]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_judged_by_must_be_list_of_str[none_item]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_judged_by_must_be_list_of_str[mixed]",
+   "skills/analog-gmid-design/gmid_engine/tests/authoring/test_spec_regions.py::test_region_off_w_m_change_changes_operating_fp",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_dc_inputs.py::test_triode_devices_from_intended_region_sorted",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_dc_inputs.py::test_region_dc_inputs_field_regions_replaces_linear_devices",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_dc_inputs.py::test_region_dc_inputs_projects_all_declared_regions_sorted",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_dc_inputs.py::test_region_dc_inputs_pending_or_empty_is_empty_tuple",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_dc_inputs.py::test_spec_path_triode_populates_regions",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_dc_inputs.py::test_spec_path_empty_declaration",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_dc_inputs.py::test_regions_pending_region_is_empty",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_delta.py::test_off_delta_single_node_equals_hand_solution",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_delta.py::test_off_delta_off_op_point_and_key",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_delta.py::test_off_delta_scales_with_w_over_l[2.0]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_delta.py::test_off_delta_scales_with_w_over_l[0.5]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_delta.py::test_off_delta_two_nodes_matches_2x2_inverse[nmos]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_delta.py::test_off_delta_two_nodes_matches_2x2_inverse[pmos]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_vgs_negative_records_all_devices_and_computes_no_delta",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_pmos_vgs_negative",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_vgs_exactly_zero_is_not_negative",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_vgs_negative_outranks_bulk_forward",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_bulk_forward_outranks_outside_lut_and_costs_no_lookup",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_bulk_forward_both_polarities[nmos_i]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_bulk_forward_both_polarities[nmos_ii]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_bulk_forward_both_polarities[pmos_i]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_bulk_forward_both_polarities[pmos_ii]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_bulk_boundary_zero_volt_is_not_a_stop[nmos-pin0-rails0]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_bulk_boundary_zero_volt_is_not_a_stop[pmos-pin1-rails1]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_outside_lut_vds_negative_with_nonnegative_vdb[nmos]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_outside_lut_vds_negative_with_nonnegative_vdb[pmos]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_outside_lut_axis_end",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_sign_formulas_and_delta_current[nmos]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_off_op.py::test_off_op_sign_formulas_and_delta_current[pmos]"
+  ],
+  "failure_hashes": [
+   "f183ea69766994e95a1e550de7da6cf617e620f932a2f8a90ad1845ace733902",
+   "5d42bd764d6ced6bb5392c72c70bd0306925944ccd9075dd53de0c1b252b1ec0",
+   "62cc19879a5cf6ac6cf7d949256477f93a8bfeb4754c90166c74a891fa627f51",
+   "6654b67b22930f526f6d39f0f08f4c758daaffeae5290fde90e95e03560053fd",
+   "c92bbb9df0ed25a6d8489ee6c6a790f1218a99eb18e880331132da73affaeeb8",
+   "2c266a5ac8fdafc6a3504159666532dfee6dbe671e18d31028673d33aa185249",
+   "3c1ee9f4dd109bf818eb3e4ff7e7d41c11819c290c9462a9245c7a39c741a0b0",
+   "9866b583dc797058ed5811837527cf5eab3ce54e922bb7d5fa3f7ae4c206b7e7",
+   "f1a2fd4441e739174db089ed0d902b27f1655977793ba5ff20a235396e1df79b",
+   "4d4294e40480bce8204fc4d901f03f36c5fd0f73be51dbb1157e172eeb67d120",
+   "2dc0d308a38d43bf9fee5734234c05e590f4bfce0de9653c968db75e58d2cf12",
+   "28fc7385c8147b81f587d617a256f104aeb4c6295741dbfdc6b9772b4ace8aa9",
+   "6fb7a0d6bdb2cd0e518d5494526157f5b31cd1a0929876eca0a30ba46720d823",
+   "9526da490b9e9ea78878203b1122db54e92cdd28547f597d3b1a30f6862ed234",
+   "bd6a80a22794ce08462c061e45f177df24d62c1a5a277fc6e1c23fecdd502c20",
+   "c93cafcdbb7a70aa0ef5ba24d64d5ba4113f109dde6396f0e8be95c8c846d753",
+   "b2f87ecd3a0f5a8c3c0cfaa79d49bfae66c95344f0add95afb136f515b81b9f2",
+   "1c444658acd8a2b54290d65d4802d1cc21dc0f81c1e3bb242a2687ab2c71dfcf",
+   "c9a52aecd1ac897a0f74a3a2be3e8de53bb1493b99401b41d22621ec01b86222",
+   "259d6c75f102bd113871edb0d5a9c055677e5f80cb404d1b5675bdc2e861f49e",
+   "15e70ee165d9942d8df140ff019d367540eb0b57b8523b1f5d4929bf29a55c78",
+   "069cf7b7b3bc83294803b98233e837461b398ae9ae47c9704e09f8c8caab8653",
+   "fbd919f88ce1802820a9078d882ff62312180fc3bca2a69ec1bbacef1b709414",
+   "947655ca09d0b54c1e9fdf2c0ca9a0c8cd3bcb2f1579007bc9f2ed565a5ed47e",
+   "129a9f0419b3e8c7686596687bc5e16b9fa4557376b2e251088fa7d494bd40b8",
+   "650406392b208e18f1efada4fcdda76cef4ce7875adbe436d804d4e8e5bb83c7",
+   "157afa34cc0c26455b9ce369b041c844fc3b9c53bbfa786f36e51f3429dd8553",
+   "5eac84f60b9d6fff71019515fc019fcab75effa4866aff4903af32a97a73a220",
+   "44a7778572f9146c116394fd86d9993d92f42111a45c13bfab7883448960707b",
+   "a19f345bdb1b2052640d226388cb71a93fe04686acb1387feee1b4a6ce05ad16",
+   "59e5ce87951e974ba6a483b166facff4df789aab05d75c91f4ea92db1a7bbf8c",
+   "956eda39370b09352f76bcf406f00c5ebd2644d5913bb70ffad0125a5f09d924",
+   "d5832407a30c6a78d5a7bb3d93d5e093d0a48c9818bf593a324968563c22ac48",
+   "a41a8f2de4f5aa6aa96beb6fe655354df1c5a376e2b9c5ed6a64c34ed17db249",
+   "8f986353c064e2ada763598225e3d077888e238f6681ced24a20d6872b41d11f",
+   "8f61d079ff6d1dbba63dc713518f9440cd93c3565f3d3567024ff7294e0c638a",
+   "7acbd9e2237dd73b152983447c8565790c71f624e1d3eca5e45e8d6b57af9766",
+   "e44729fe1a6fd2fbab73911ec1e6b88c436b09c94a9125819084b1daeb55b3f8",
+   "a55975ded5863c6e8696d19ee04428e13413fd011f9f49a435678580c50cfded",
+   "3a61a3f0d61c1473fd423dc85afbdbc9a452c866ad281ebc954d2929d22e9636",
+   "dbc741a8780e22abb2a6783c7f9253a7733175f23373d6eedf2745de5b66021b",
+   "417dea71da439d57c98a6dfdd01284d78379144ddf700fc3ce507d801dbf6233",
+   "e0e0450ba6fcbd6dbe98a8da527b5d9b032712f91d08dd932b967a6b20a18e8e",
+   "90c472da86259ead640b5361dfd1b5717a8c9ffdb89702cf33ab43d281165904",
+   "39566e06b4859663df7e9ec0957669b48300022cff1f8a215e0d94ee06478c8f",
+   "911aa5496e90a431a2b80f44ef972804aa0b42c62163d4342fd5146177a7d7fe",
+   "4b6dbf4540343ae174f28ba838da01a48991bb09877da03f122b8e905d65601a",
+   "2f73a276116ba8bdb4eb802d9d17d22757f6a84e832b4d42e495d7d21e56e623",
+   "338a55e759ef5cfc454a46f109ec53bccad4790ef4efc69f62bafd31f29c5460",
+   "c21b6e93a9e78a39fd9ec911ddb835935e34a46aafee0dfbffe40937d6541fb4",
+   "055d7fe8374fadee7237a8e2c9a7491a5be1ea0a1fc90a11d90d9f504dac9c86",
+   "43e0bada1f221789c98ad037e458fec100089fed87ac7196903334ce113e33b6",
+   "f24deb99b9ee35cb8d5c48bd2e98328362b7432706ab71f479f7c696b6cb6dbb",
+   "5589f79d2346ae0560a38efdf63f53afd03e31a00085252941fc8fed31660413",
+   "da6a4788fcb53792e67c1445195b596f895046c608b155c430b44c148352566b",
+   "6a5c382ebac2bd4203a47ff4db80ce0f66296f15dd68b8be48547cb01dd3ce47",
+   "2eb56ce6bc714cdbe4b8a549f94ba4aae104122518cc86007feaf78eb4c5285c",
+   "dddab5e9b3a2ab21a55a954bc8db6ac41f3e0cd4ed23a2007aad9c7e9d1f9920",
+   "fb69b644912e92d213e92c1ba88de2ef3a4a3bb461602c94cb178979e3c15fe6",
+   "e52e5a8d4ecae2c88a6286d7d73b08b3270caab53f2d957f98b3a9189fbc2cd0",
+   "6d187c4b445dbfa2ffdeff130f9cc36cbf0cfa458a5600b0d859dd9e705bca8c",
+   "9bce48a9606ec1c7f22b8d200e4c7ce475483d9fce32839e00dd5ef9dcaa4a1e",
+   "07e859c051da3e67417cd27132a16843746b44b839ad49da2319e9e9ed68cff2",
+   "0bb3bf784a2aa03bf4a97466272e477f46dc307bef512754970f779d5fd3653b",
+   "31f278ea178a569fff08372b526914427f3204ff118ef4752552ad5114a1c1c7"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "N/A",
+   "basis": "전체 test 안 돌림, 임시 규칙 O-229. A-93 재판정 범위(격리 복제본 4766fb52, 남은 Major 항목만): 수정 test 3파일 111 통과, tests/structure 171 통과(1 deselected), canonical_order 12 통과, 2회로 연기 23 통과 190 deselected. 연기 중 메모리 여유 최저 1.89 GB로 2 GB 규칙 아래를 한 번 지났고 감시가 기록만 해서 멈추지 않았다, 실행은 끝까지 정상 종료. 첫 판정의 card 28파일 871 통과는 90ef9e5f 값이고 재측정 안 함(통과로 세지 않음)."
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "red-green. base 58c9045a 엔진 + head test 13파일: 65 실패·수집 오류(COLLECT 8, AssertionError 21, AttributeError 5, ImportError 1, KeyError 2, TypeError 1, SchemaRejectedError 27), 통과 43. 같은 13파일 head 250 통과. T-S8 red 사유 확인: 순방향 tol/2 AssertionError('pass' == 'fail'), indistinct KeyError. 수집 오류 8은 신규 이름 ImportError(N3.12.3 순서 3 허용). 커밋 트레일러 Role test/code 분리 확인: 90ef9e5f·b6405320 test, a15f95b6·7f663bbe·eec0cb6f code. T(90ef9e5f)가 code 뒤인 것은 dispute A-88 경로이고 그 약화 여부는 V5에 적었다. [A-91 재판정] red 목록은 첫 판정(90ef9e5f) 값 그대로이고 새 test(test_off_only_node_*)의 red 는 다시 재지 않았다. 9dfd19e0 test, 23b563d3 code 트레일러 확인. [A-92 재판정] 새 test red 를 23b563d3 엔진 + 머리 test 로 재측정: test_off_only_node_off_gate_with_capacitor_only_stops(DID NOT RAISE), test_dc_writer_plan_reads_device_dc_nets(AssertionError) red 2, test_off_gate_shared_with_on_device_gate_does_not_stop_as_off_only_node 는 base 도 통과(회귀 방지 test, red 아님). test_region_decl 2 실패 19 통과. 3a7b1c78 test, bbde5a11 code 트레일러 확인. [A-93 재판정] 새 test red(bbde5a11 엔진 + 머리 test): (j) test_off_gate_shared_with_on_device_gate_and_capacitor_stops_as_off_only_node(DID NOT RAISE), (l) test_off_only_node_passes_when_off_drain_on_input_port(off_only_node 정지) red 2, 2 실패 23 통과. (k)(m)(n)은 bbde5a11 에서도 통과하는 회귀 방지 test. dcb58bf6 test, 27c68773 code."
+  },
+  "V3": {
+   "verdict": "PASS",
+   "basis": "손 뮤턴트 12: 9 kill(M1 관문 건너뜀, M2 주입 부호, M4 off gds 0, M5 drain 접합 항 삭제, M6 VDS=VDSAT 등호, M7 off_only 삭제, M8 vgs 음수 삭제, M9 O-h kind, M10 VDSAT′ 항 삭제). 생존 3 = 비동치: M3 off cgd 0, M11 off gmb 0, M12 off gm 0. 즉 interface T-O5 'off 소자 gm·gds·C가 든다' 중 C·gm·gmb를 test가 못 잡는다 -- test 공백, minor(LA-1 입력). 그 세 칸의 값은 판정자가 직접 재서 맞음을 V9에 적었고, test 통과로 세지 않는다. [A-91 재판정] 추가 뮤턴트: 포화 판정에 1 mV 문턱(vds >= vdsat - 1e-3) -> test_input_window 2 실패로 kill, 복원 단언이 실제로 거부한다. 앞 뮤턴트 12는 다시 재지 않았다."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: 합성 LUT 해석식·손 G 2x2로 판정자가 따로 유도. ΔV: 엔진 대 손 상대차 ≤ 1e-14 (w_m 1e-8~1e-3 11점), 저항-레일 노드 dv = −ΔI/(1/R+gds) 전 자리 일치. s′: 손(독립 VDSAT 보간) 대 관문 detail 차 ≤ 5e-16, 거부·통과 부호 5점 일치(w_m 1e-6 통과 s′=+0.0610, 1e-5 거부 s′=−0.0157, 3e-5 −0.1111, 1e-4 −0.2240, 1e-3 OUT_OF_DOMAIN s′=None 거부). UNJUDGED: 13회로 값·SPICE 대조는 oracle 호출 0 card라 판정 안 함. test_input_window 의 oracle 칸 대조 결과 = V5(옛 정의 잔존)."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "Major-2 해소. test_input_window: `- TOL` 삭제, 봉인 끝점 단언 oracle >= -1e-12, min(sa, sb) >= -1e-12 복원(base 58c9045a 판과 같은 단언, 정의만 O-204). 내부 점도 같은 단언. 봉인 7 거부 끝점 분기는 base 그대로(|slack_v|, |oracle| <= tv, O-103)이고 넓히지 않았다. 실측 O-204 여유: 봉인 끝점 +3.389e-6, +7.181e-7, +1.513e-6, +1.800e-6 V, 거부 끝점 -1.777e-6, -1.768e-6 V(엔진 slack_v 와 차 ≤ 6e-17), 내부 y=0.125~0.875 최소 +0.0169 V. 1 mV 문턱 뮤턴트 kill. test_seal_region 변경은 import 인자 한 줄이고 단언 수 불변, test_region_decl 은 추가만. 약화 없음. 첫 판정의 나머지 test 대조는 유효. [A-92 재판정] test_input_window.py·test_seal_region.py 는 057678a2 뒤 변경 0(diff). M-2 해소 유지. test_region_decl 은 추가만. 다만 test (j)는 'off_only_node 사유가 아니면 정지·통과 모두 허용'이라 공유 넷 결과를 단언하지 않는다(minor). [A-93 재판정] test_input_window.py·test_seal_region.py·core 는 70cbccae 뒤 변경 0(diff). (j)는 A-92 판의 약한 단언을 _stops 로 강화. M-2 해소 유지."
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "tests/structure 171 통과, 규칙 A~M 위반 0, 래칫 new 0·stale 0. 폐기 이름: 엔진 소스 0(test_removed_names). interface §2 'tests 포함 grep 0'은 미충족 -- test 주석·음성 단언 포함 21회, 8파일(minor). scan_shared_calls: judge_region 자리 2 = 클래스 D(입력 다름), 새 B 0. E/graph 변경 0, structure.json 변경 0. 로더 커밋 a15f95b6 표지 1, 로더 파일 5개 밖 변경 0."
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "Major-5 해소. 전도 엣지 = READS device.dc_nets 하나(writer_plan READS 에 있음, CONTRACT 3 반영). pins·kind 로 엣지를 만드는 코드 0: pins 는 off 소자 d·g·s 와 켜진 gate 넷 읽기에만, kind 는 current_source 제외에만 쓴다. current_source 제외는 정본 필드 위 거르기이고 정의 재구성이 아니다(정의 축이 'DC 전도'와 '전압 결정'으로 다름, CONTRACT 에 적음). 실측: helper 직접 호출에서 dc_nets 만 바꾸면 결과가 갈린다(R 엣지 있음 [] / None ['x']), pins 는 그대로. 입력 버전: dc_nets 값 변경 시 dc_writer_plan 입력 버전 변경, 같은 값 다시 쓰면 동일. CAPACITOR·ELEMENT_SOURCE import 삭제. Major-3 해소 유지: core 는 base 58c9045a 와 diff 0. 새 필드 0, cache·슬롯 0, 값 저장 0. 기록 수치: 새 필드 0 / 소비자 0 필드 0 / 정본 우회 0 / KVL·KCL 관계 미적용 1(V9) / graph 밖 저장 0. 앞 판정의 나머지 graph 항목은 유효. [A-93 재판정] 전압 결정 시드에 READS node.ac_ground_class 추가: 정본 읽기(writer s1_structure, 이미 쓰는 소비자 있음), 값 변경 시 dc_writer_plan 입력 버전 변경·같은 값이면 그대로(실측). 켜진 gate 집합은 그 호출 안 지역 값이고 저장 0. 새 필드·cache·슬롯 0, dc_nets 읽기 그대로(M-5 해소 유지). 정본 우회 0 / KVL·KCL 관계 미적용 0 / graph 밖 저장 0."
+  },
+  "V8": {
+   "verdict": "PASS",
+   "basis": "폴백·fail-open 0 확인. seal_region: 열 없음 None(행 6, 미정), 축·L 밖 OUT_OF_DOMAIN(5 사유 모두 lut 소스에 실재), 그 밖 LUT 실패는 소자 이름 붙여 재발생. _band 의 except 는 띠 기록 미정만 만들고 판정 불변. 관문 _lookup 은 그 밖 사유도 OUT_OF_DOMAIN(거부 쪽). metrics_aux off 건너뜀: σ 행이 빠지면 offset_analysis·mirror_ratio 가 sigma_missing 으로 정의 불가(코드 대조, 값 없음) -- fail-closed, 다만 off 소자가 있으면 offset 판정이 언제나 정의 불가(LA-1 입력). 잡음: 직접 호출 noise_device_missing(Moff) 정의 불가, fail-closed. iv_context.start_view 의 `n in coord` = 쓰기 계획 READS, 필요(없으면 KeyError), 둘째 판정 아님. 주의(직접 호출 안 된 경로): ls_fields._cell_current 의 ops[label] 은 off 소자가 슬루 셀에 들면 KeyError(사유 없는 예외, fail-closed)일 수 있다 -- 측정 못 함, T-O6 공백. off_only_node 빠짐은 V9."
+  },
+  "V9": {
+   "verdict": "PASS",
+   "basis": "Major-1 해소. 정지(off_only_node): 켜진 gate + off gate + C(share_on_gate_cap, vgs2 0.50·0.75 sweep 모두), off gate + C, off drain + C, 섬, off drain + 켜진 gate, 직렬 중간. 통과 유지: R 로 레일(dv -1.197e-6 V), 게이트 R 로 레일, 게이트가 켜진 채널 넷(out), 입력 공유. off 없으면 빈 결과, 연기 통과. 시드 bias 판단: 맞음. 이 엔진에서 선언 bias 넷 값은 켜진 소자 VGS 의 W2 vgs_gate 또는 W3 목표에서만 나온다. off gate 만 닿고 목표 없음 = 값의 결정자 없음 -> 정지(b3, b7), 목표 선언 = W3 통과(pb 0 V, b4) 라 외부 구동 넷을 값 선언으로 받을 길이 있어 잘못 거부 아님. 켜진 gate 공유 bias = W2 vgs_gate 통과(b1, vgg 0.6 V, ΔI_off 421.9 nA, ΔV_out -34.7 mV), 외부 구동이라 물리 맞음. 구멍 확인: bias + C(b2), bias 에 off drain(b5) 모두 스키마 bias_input_not_gate_only 로 거부, gate + C 미선언(b6) 정지. 입력 포트 시드: 어긋남 원인 = 구성 차이. 앞 lone_input 은 M1 gate 가 bias 이고 입력 포트에 off gate 만, (k)는 M1 gate 가 입력 포트(켜진 gate 공유)라 bbde5a11 의 게이트 예외로 통과했다. fail-open 아님: 입력 포트는 이상 입력이 구동한다. 값 경로 실측: (k)(l) in = W2 vgs_gate 0.6 V, ΔV 는 in 에 없음(입력 고정, 주입을 입력원이 흡수). lone_input in = W4 free_window, y 키 in, 창 0~1.8 V constraints 0: y=0.25 vin 0.45 V vgs 0.45 V, ΔI_off 39.4 nA, ΔV_out -3.26 mV 봉인 통과, y=0.75 off_gate 거부. lone_drain y=0.25·0.75 vin 0.45·1.35 V 봉인 통과, ΔV_out 0. y 는 입력 DC 미선언 때 설계 변수라 결정자 없는 넷과 다르다. minor: (l) 구성 Moff(in, vdd, gnd)는 VGS 1.8 V, ΔI_off = 107.7 mA 를 입력원이 흡수하고 관문·전력 어디에도 안 잡혀 봉인 통과 -- O-202 '꺼짐 판정은 judged_by·oracle'과 design 4.8-5 '이상 전원 흡수'대로라 규칙 위반 아님, 레일 사이 off 도 같음, LA-1 입력. 차동 입력 한 포트 off drain 은 재지 않음. off 없는 켜진 gate + C 는 여전히 봉인 통과(noff_on_gate_cap)이나 A-93 으로 card 밖. 인덕터 minor 유지. 앞 판정의 나머지 물리 항목은 유효."
+  },
+  "V10": {
+   "verdict": "N/A",
+   "basis": "spec '재현할 수치' = 계수·test 수뿐, reproduced_numbers 에 적음. 미완료(보류 다리: 13회로 변화표·봉인 6 새 거부 수는 LA-1 측정 시점, SPICE 는 OP-5·CL-1, 통과로 세지 않음). 연기 시험 봉인 6 관찰: junction_forward 호출 819, 순방향 > 0 = 0 (M-6 멈춤 사유 없음). off 발동 library 0/13 grep. 결정성 비트 비교 안 함."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "card·변경 test 수",
+   "value": 871,
+   "command": "run_req.py card"
+  },
+  {
+   "name": "card test 실패 수",
+   "value": 0,
+   "command": "run_req.py card"
+  },
+  {
+   "name": "tests/structure 수",
+   "value": 171,
+   "command": "run_req.py structure"
+  },
+  {
+   "name": "ratchet new 수",
+   "value": 0,
+   "command": "test_rule_g8_baseline_ratchet"
+  },
+  {
+   "name": "canonical_order 수",
+   "value": 12,
+   "command": "run_req.py canon"
+  },
+  {
+   "name": "2회로 연기 수",
+   "value": 23,
+   "command": "run_req.py smoke"
+  },
+  {
+   "name": "red 수",
+   "value": 65,
+   "command": "driver2.py red"
+  },
+  {
+   "name": "red 13파일 head 통과 수",
+   "value": 250,
+   "command": "driver2.py red"
+  },
+  {
+   "name": "뮤턴트 kill 수",
+   "value": 9,
+   "command": "driver2.py mut"
+  },
+  {
+   "name": "뮤턴트 생존 수",
+   "value": 3,
+   "command": "driver2.py mut"
+  },
+  {
+   "name": "봉인 6 호출 수(연기)",
+   "value": 819,
+   "command": "driver2.py seal6"
+  },
+  {
+   "name": "봉인 6 순방향 수(연기)",
+   "value": 0,
+   "command": "driver2.py seal6"
+  },
+  {
+   "name": "library off·triode 선언 회로 수",
+   "value": 0,
+   "command": "grep assets/library/*.sizing_spec.json"
+  },
+  {
+   "name": "off_only_node 빠짐 측정 사례 수(커패시터·섬)",
+   "value": 2,
+   "command": "test_zz_v2.py test_c_cap_node, test_zz_v4.py test_island"
+  },
+  {
+   "name": "봉인 끝점 O-204 정의 최소 여유 V",
+   "value": 7.18e-07,
+   "command": "test_zz_iw.py"
+  },
+  {
+   "name": "넓힌 허용 tv V",
+   "value": 0.0078125,
+   "command": "test_zz_iw.py"
+  },
+  {
+   "name": "A-91 수정 test 3파일 수",
+   "value": 104,
+   "command": "v3/run_req.py card"
+  },
+  {
+   "name": "A-91 tests/structure 수",
+   "value": 171,
+   "command": "v3/run_req.py structure"
+  },
+  {
+   "name": "A-91 canonical_order 수",
+   "value": 12,
+   "command": "v3/run_req.py canon"
+  },
+  {
+   "name": "봉인 끝점 O-204 최소 여유 V(A-91)",
+   "value": 7.181342902007337e-07,
+   "command": "v3 test_zz_iw.py"
+  },
+  {
+   "name": "거부 끝점 여유 V(A-91)",
+   "value": -1.7765607315811671e-06,
+   "command": "v3 test_zz_iw.py"
+  },
+  {
+   "name": "helper 엣지 대 dc_nets 불일치 수(321 원소)",
+   "value": 0,
+   "command": "v3 test_zz_r.py test_helper_edges_vs_dc_nets"
+  },
+  {
+   "name": "게이트 + C 잔존 사례 ΔI_off A",
+   "value": 3.9441943819803043e-08,
+   "command": "v3 test_zz_r.py test_cases[0.25-gate_cap]"
+  },
+  {
+   "name": "A-92 수정 test 3파일 수",
+   "value": 107,
+   "command": "v4/run_req.py card"
+  },
+  {
+   "name": "A-92 tests/structure 수",
+   "value": 171,
+   "command": "v4/run_req.py structure"
+  },
+  {
+   "name": "A-92 canonical_order 수",
+   "value": 12,
+   "command": "v4/run_req.py canon"
+  },
+  {
+   "name": "A-92 2회로 연기 수",
+   "value": 23,
+   "command": "v4/run_req.py smoke"
+  },
+  {
+   "name": "새 test red 수(23b563d3)",
+   "value": 2,
+   "command": "v4/red pytest test_region_decl.py"
+  },
+  {
+   "name": "공유 넷 ΔI_off A (vgg 0.50)",
+   "value": 8.866186052257983e-08,
+   "command": "v4 test_zz_r.py test_share_theta_sweep"
+  },
+  {
+   "name": "공유 넷 ΔI_off A (vgg 0.75)",
+   "value": 3.7699982415587463e-06,
+   "command": "v4 test_zz_r.py test_share_theta_sweep"
+  },
+  {
+   "name": "A-93 수정 test 3파일 수",
+   "value": 111,
+   "command": "v5/run_req.py card"
+  },
+  {
+   "name": "A-93 tests/structure 수",
+   "value": 171,
+   "command": "v5/run_req.py structure"
+  },
+  {
+   "name": "A-93 canonical_order 수",
+   "value": 12,
+   "command": "v5/run_req.py canon"
+  },
+  {
+   "name": "A-93 2회로 연기 수",
+   "value": 23,
+   "command": "v5/run_req.py smoke"
+  },
+  {
+   "name": "새 test red 수(bbde5a11)",
+   "value": 2,
+   "command": "v5/red pytest test_region_decl.py"
+  },
+  {
+   "name": "lone_input ΔI_off A (y 0.25)",
+   "value": 3.9441943819803043e-08,
+   "command": "v5 test_zz_r3.py test_lone_input"
+  },
+  {
+   "name": "(l) 구성 ΔI_off A",
+   "value": 0.10769673371157634,
+   "command": "v5 test_zz_r3.py test_k_l"
+  }
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-11-05T02:54:49Z",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-eo1r4-audit",
+  "commands": [
+   "V1: 전체 실행 안 함(임시 규칙 O-229), 범위 실행 = python run_req.py (card·structure·canon·smoke)",
+   "git clone --no-hardlinks --no-local <worktree> la1s_eo1r4_audit/v2/iso; git -C v2/iso remote remove origin",
+   "python driver2.py red module mut seal6 (base 58c9045a 엔진 + head test, core 한 줄 제거, 손 뮤턴트 12, 봉인 6 관찰 연기)",
+   "pytest test_zz_audit.py test_zz_v2.py test_zz_v3.py test_zz_v4.py test_zz_iw.py (복제본 전용, 커밋 안 함)",
+   "python tools/audit/scan_shared_calls.py --engine E --out res/scan --touching <엔진 변경 파일>",
+   "A-91 재판정: git clone --no-hardlinks --no-local <worktree> la1s_eo1r4_audit/v3/iso; git -C v3/iso remote remove origin; python v3/run_req.py; pytest test_zz_r.py test_zz_iw.py(복제본 전용); 뮤턴트 v3/mut",
+   "A-92 재판정: git clone --no-hardlinks --no-local <worktree> la1s_eo1r4_audit/v4/iso; git -C v4/iso remote remove origin; python v4/run_req.py; pytest test_zz_r.py test_zz_r2.py(복제본 전용); v4/red = 23b563d3 엔진 + 머리 test. library 넷 판별 = test_zz_r2.py test_library, 포트·레일 대조는 load_topology",
+   "A-93 재판정: git clone --no-hardlinks --no-local <worktree> la1s_eo1r4_audit/v5/iso; git -C v5/iso remote remove origin; python v5/run_req.py; pytest test_zz_r.py test_zz_r2.py test_zz_r3.py(복제본 전용); v5/red = bbde5a11 엔진 + 머리 test"
+  ]
+ }
+}
