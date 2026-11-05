@@ -841,7 +841,9 @@ def test_it2c_l8e_exact_zero_pivot_pipeline_toy(tmp_path):
                     ports={"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),
                            "t": ("output", "single_ended_output")}, rails=("vdd", "gnd"), bias=["vb"])
     th = {("L", "M1"): L0, ("L", "M2"): L0, ("L", "M3"): L0, ("current", "M1"): 1e-5, ("current", "M2"): 1e-5,
-          ("ln_idu", "M1"): lut_ln_idu("nmos", 0.6, 1.2, 0.6), ("ln_idu", "M3"): lut_ln_idu("nmos", 0.6, 0.6, 0.0)}
+          ("ln_idu", "M2"): lut_ln_idu("nmos", 0.6, 1.2, 0.6), ("ln_idu", "M3"): lut_ln_idu("nmos", 0.6, 0.6, 0.0)}
+    # A-99 θ 키 갱신(card 20261104-tb1-theta-class): S1v 없는 경로라 전부 B, 고리 {M1, M2} 에서 궤도 대표 M1 이 종속 -> 독립 ln_idu 는 M2.
+    # 값은 그대로(M1·M2 는 같은 점 -- 아래 gm 비트 동일 전제 단언이 확인한다).
     snap, _ = _evaluate(tmp_path, topo, (("CL", "capacitor", 1e-12),), th, PWR, input_dc_v=1.2)
     assert snap.value("device", "M1", "ss_dev").gm == snap.value("device", "M2", "ss_dev").gm       # 전제: gm 비트 동일
     cfg = _icm(snap)
