@@ -154,6 +154,7 @@ READS = {
                        ("device", "dc_colour"), ("node", "is_rail"), ("node", "port_direction"),
                        ("node", "dc_colour"), ("node", "port_role"), ("graph", "gvgs_summary"),
                        ("device", "bulk"), ("device", "region_decl"),
+                       ("device", "dc_nets"), ("node", "ac_ground_class"),  # [EO-1 A-92·A-93] off_only_node 전도 엣지·선언 bias 시작점
                        ("device", "theta_class"), ("graph", "orbits"), ("graph", "views"), ("graph", "dependent_facts")},   # [TB-1 interface §2 입력: 분류·궤도 대표·stage 순위용 뷰·ratify 사실]
                                                                              # [EO-1 범위 4, A-88] region_decl READS; [U17 ①-b] dc_self_referential(§2.4.8) = 쓰는 노드가 자기 d·s·bulk 중 하나 -- bulk 를 읽는다
     "dc_scc_order": {("node", "dc_writer"), ("device", "pins"), ("device", "bulk"), ("device", "element_class"),
