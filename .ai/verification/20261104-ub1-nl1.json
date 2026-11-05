@@ -3,8 +3,8 @@
  "spec_card": "docs/02-design/specs/20261104-ub1-nl1.spec.md",
  "evidence_type": "red-green",
  "base_commit": "2f60222a20704cafca856d183ab09fd436c10327",
- "test_commit": "0497a94c8ece7dba195ea8da9d69bebe06609a2e",
- "code_commit": "35fbb514b784acbaece11680bf346b8b20f63e22",
+ "test_commit": "292c7172d3d8a83edbf654c4519c7fa7cd922c7d",
+ "code_commit": "1090e177ff60884efa493e25b6d7289a426af57a",
  "red": {
   "test_ids": [
    "skills/analog-gmid-design/::gmid_engine.tests.metrics.test__helpers_nodal",
@@ -92,7 +92,7 @@
  "checks": {
   "V1": {
    "verdict": "N/A",
-   "basis": "전체 test 안 돌림(임시 규칙 O-229, interface A-3 포함). 돌린 범위 = 격리 복제본 iso3 머리 90d4814c: card test 16파일 + test_s2_values + search/test_canonical_order 315 통과 1 deselected / 소비자 metrics 9파일(pencil·stamp·mna·dc_limit·offset·off_delta·view) 99 통과 / tests/structure 171 통과 1 deselected / 2회로 연기 g10 2 통과, stage_b 10 통과, s0 8 통과 3 실패(V2 M-2). 안 돌린 것(다른 11회로, 전체 test, SPICE, 13회로 변화표)은 통과로 세지 않는다. [A-107 재판정, 새 복제본 iso4, 머리 cdc2be54] card test + test_s2_values + test_canonical_order 321 통과 1 deselected / tests/structure 171 통과 1 deselected / 연기 g10 2, stage_b 10, s0 11 통과. 머리에서 다시 돈 것은 이것뿐이다. 소비자 9파일 99 통과와 뮤턴트 37 은 90d4814c 값이고 재실행 안 함(그 사이 skills 변경 = block_model.py, sensitivity_gate.py, test 2파일, s0 fixture)."
+   "basis": "전체 test 안 돌림(임시 규칙 O-229, interface A-3 포함). 돌린 범위 = 격리 복제본 iso3 머리 90d4814c: card test 16파일 + test_s2_values + search/test_canonical_order 315 통과 1 deselected / 소비자 metrics 9파일(pencil·stamp·mna·dc_limit·offset·off_delta·view) 99 통과 / tests/structure 171 통과 1 deselected / 2회로 연기 g10 2 통과, stage_b 10 통과, s0 8 통과 3 실패(V2 M-2). 안 돌린 것(다른 11회로, 전체 test, SPICE, 13회로 변화표)은 통과로 세지 않는다. [A-107 재판정, 새 복제본 iso4, 머리 cdc2be54] card test + test_s2_values + test_canonical_order 321 통과 1 deselected / tests/structure 171 통과 1 deselected / 연기 g10 2, stage_b 10, s0 11 통과. 머리에서 다시 돈 것은 이것뿐이다. 소비자 9파일 99 통과와 뮤턴트 37 은 90d4814c 값이고 재실행 안 함(그 사이 skills 변경 = block_model.py, sensitivity_gate.py, test 2파일, s0 fixture). [M-1b 재판정, 새 복제본 iso5, 머리 abd06526] card test + test_s2_values + test_canonical_order 323 통과 1 deselected / tests/structure 171 통과 1 deselected / 연기 g10 2, stage_b 10, s0 11 통과. 머리에서 다시 돈 것은 이것뿐이다."
   },
   "V2": {
    "verdict": "PASS",
@@ -100,7 +100,7 @@
   },
   "V3": {
    "verdict": "PASS",
-   "basis": "복사본 뮤턴트 37 (mutate_changed.py 는 gmid_engine/tests 미지원, 손 뮤턴트 mutants_ub1.py). 죽음 31, 생존 6 (minor): block_local_gain C 늘 조립(A-4); 용량 폐포 없앰; 행 모드 others F 에서 뺌; off_delta 전하 노드 허용; ss_nodal missing·전하 거부 없앰; view_factor C 영행렬. 대조: 변경 없는 복사본 68 통과(assets 포함 뒤 재측정, assets 없는 첫 회의 거짓 죽음 6건 재실행). T-10a: 대조 통과, _structure 가 members 안 읽음 사망, block_residual 이 members 비움 사망(t10a.json). 생존 11·16·19·33·34·35 는 test 빈칸이고 동작은 판정자 probe 로 직접 잼(V9). [A-107] 추가 뮤턴트 3: 죽음 2(용량 독자 뺌, _finite None 만), 생존 1(용량 독자를 모든 C 넷으로 넓힘, 과잉 제외를 test 가 안 잡음 -- 동작은 a107/probe_a107.jsonl case 3·4·5 로 직접 잼). 생존 = minor."
+   "basis": "복사본 뮤턴트 37 (mutate_changed.py 는 gmid_engine/tests 미지원, 손 뮤턴트 mutants_ub1.py). 죽음 31, 생존 6 (minor): block_local_gain C 늘 조립(A-4); 용량 폐포 없앰; 행 모드 others F 에서 뺌; off_delta 전하 노드 허용; ss_nodal missing·전하 거부 없앰; view_factor C 영행렬. 대조: 변경 없는 복사본 68 통과(assets 포함 뒤 재측정, assets 없는 첫 회의 거짓 죽음 6건 재실행). T-10a: 대조 통과, _structure 가 members 안 읽음 사망, block_residual 이 members 비움 사망(t10a.json). 생존 11·16·19·33·34·35 는 test 빈칸이고 동작은 판정자 probe 로 직접 잼(V9). [A-107] 추가 뮤턴트 3: 죽음 2(용량 독자 뺌, _finite None 만), 생존 1(용량 독자를 모든 C 넷으로 넓힘, 과잉 제외를 test 가 안 잡음 -- 동작은 a107/probe_a107.jsonl case 3·4·5 로 직접 잼). 생존 = minor. [M-1b] 과잉 제외 뮤턴트(read 를 모든 C 넷으로): rc 1, 1 failed, 21 passed in 0.51s."
   },
   "V4": {
    "verdict": "PASS",
@@ -112,11 +112,11 @@
   },
   "V6": {
    "verdict": "PASS",
-   "basis": "tests/structure 171 통과 1 deselected, G-8 래칫 new 0, stale 2(g8_memo_lookup_form block_columns._vds_floor, vt_assign s2_values.NO_ORDER_HINTS, master 와 같음). 잠금 grep (a) block_model·ff_gm_ratio·block_residual 의 conductance_matrix·mos_stamps·two_terminal_stamps 0 (b) 전하 행 교체 대입 _helpers_dc.limit_matrix 한 자리 (c) block_model·block_gain_model·ff_gm_ratio 의 _select 0 (e) attach.get(n, math.inf) 0. A-5: 변경 파일에 gmid_engine/graph·규칙 파일 0(rule_hash 무변경). 회로 이름·PDK 값·새 상수 diff grep 0. [A-107, 머리 cdc2be54] 171 통과 1 deselected, new 0, stale 같은 2."
+   "basis": "tests/structure 171 통과 1 deselected, G-8 래칫 new 0, stale 2(g8_memo_lookup_form block_columns._vds_floor, vt_assign s2_values.NO_ORDER_HINTS, master 와 같음). 잠금 grep (a) block_model·ff_gm_ratio·block_residual 의 conductance_matrix·mos_stamps·two_terminal_stamps 0 (b) 전하 행 교체 대입 _helpers_dc.limit_matrix 한 자리 (c) block_model·block_gain_model·ff_gm_ratio 의 _select 0 (e) attach.get(n, math.inf) 0. A-5: 변경 파일에 gmid_engine/graph·규칙 파일 0(rule_hash 무변경). 회로 이름·PDK 값·새 상수 diff grep 0. [A-107, 머리 cdc2be54] 171 통과 1 deselected, new 0, stale 같은 2. [M-1b, 머리 abd06526] 171 통과 1 deselected, new 0, stale 같은 2."
   },
   "V7": {
-   "verdict": "PASS",
-   "basis": "새 칸 9 / 소비자 0 인 칸 0(members·ac_ground·others·omitted_load·decomposed_only 엔진 소비, load_note·verdict·reason·unmeasured 출력 전용 선언) / 정본 우회 의심 1(C 행렬: nodal_of 와 view_factor 다른 고정 집합 갈래가 같은 ss.circuit 에서 각각 조립. 필드가 아니라 writer 둘은 아니고 공식도 capacitance_matrix 하나, interface 소비자 표에 있음. 발동 측정 folded 평가에서 base_hit 2 other_fixed 0. minor) / KVL·KCL 관계 미적용 1(V9 M-1) / graph 밖 저장 자리 0(새 cache·memo·sctx·값 칸 grep 0, lookup_at_l 은 U-87 LUT memo 만). G-10: 2회로 test 통과, 블록 계수 folded computes 33 recompute 0, ngcc 26 / 0, master 와 같음. A-4: folded capacitance_matrix@block_local_gain 0, @nodal_of 1, 같은 입력 추가 호출 0. A-105: conductance_matrix·_gamma AST 같음, 200/200 비트 동일, 조립 자리 ss_nodal.nodal_of 하나. pencil 교체 200/200 비트 동일. [A-107] 새 칸·필드·cache 0, capacitance_matrix 새 호출 0(read 는 ss.circuit.capacitors 순회뿐). KVL·KCL 관계 미적용: V9 잔여 1."
+   "verdict": "FAIL",
+   "basis": "새 칸 9 / 소비자 0 인 칸 0(members·ac_ground·others·omitted_load·decomposed_only 엔진 소비, load_note·verdict·reason·unmeasured 출력 전용 선언) / 정본 우회 의심 1(C 행렬: nodal_of 와 view_factor 다른 고정 집합 갈래가 같은 ss.circuit 에서 각각 조립. 필드가 아니라 writer 둘은 아니고 공식도 capacitance_matrix 하나, interface 소비자 표에 있음. 발동 측정 folded 평가에서 base_hit 2 other_fixed 0. minor) / KVL·KCL 관계 미적용 1(V9 M-1) / graph 밖 저장 자리 0(새 cache·memo·sctx·값 칸 grep 0, lookup_at_l 은 U-87 LUT memo 만). G-10: 2회로 test 통과, 블록 계수 folded computes 33 recompute 0, ngcc 26 / 0, master 와 같음. A-4: folded capacitance_matrix@block_local_gain 0, @nodal_of 1, 같은 입력 추가 호출 0. A-105: conductance_matrix·_gamma AST 같음, 200/200 비트 동일, 조립 자리 ss_nodal.nodal_of 하나. pencil 교체 200/200 비트 동일. [A-107] 새 칸·필드·cache 0, capacitance_matrix 새 호출 0(read 는 ss.circuit.capacitors 순회뿐). KVL·KCL 관계 미적용: V9 잔여 1. [M-1b] M-1d 같은 입력 재계산·A-4 위반: _structure 가 capacitance_matrix 를 조건 없이 조립한다(c_pairs). 전하 넷 0 회로에서 호출 수 folded block_residual 1, two_stage_ota 2, ngcc_3stage_ff 12(library_case 합성 값, 전하 넷 0), 전하 넷 있는 block_local_gain 1회에 _structure 1 + block_local_gain 1 = 같은 입력 2번(m1b/probe_m1b.jsonl). 앞 판정 측정은 @block_local_gain 0 이었다. 새 필드·cache 0, graph 밖 저장 0. read 는 capacitance_matrix 를 읽어 둘째 공식은 없지만 확장 루프는 소자 capacitors 만 읽어 '용량으로 이어짐' 의 정의가 함수 안에 둘이다(V9 M-1c)."
   },
   "V8": {
    "verdict": "PASS",
@@ -124,7 +124,7 @@
   },
   "V9": {
    "verdict": "FAIL",
-   "basis": "M-1 부분 해소, 잔여 Major 1. 해소: 재현 case 2 블록 gain 117.1875, V(mz) -18.75, V(n) -4.6875 = 전회로·손 일치(rel 1e-14 수준). 저항 두 단 사슬 일치. 과잉 제외 없음: Rz-Cc 가 전도 넷으로 가는 옛 경우 Rz 제외 gain 468.75 = 손, 전하 넷이 있어도 무관한 Rd 제외, 읽히지 않는 용량 섬 쪽 Rz 제외 gain -18.75 = 손. 잔여(M-1b): block_model._structure read 가 ss.circuit.capacitors 만 보고 MOS 단자 용량을 안 본다. 회로 = case 2 에서 Cc 대신 M3(d vdd, s gnd, g n, b mz, cgb 1e-12), 스탬프 안 되는 소자. 손·전회로 117.1875, 블록 -0.0, undefined 없음(a107/probe_a107.jsonl case 6). interface 문언 '용량으로 전하 넷과 이어진 넷' 과 다르고 전하 행은 MOS 용량을 읽으므로 같은 결함이다. 발동 조건은 좁다: d·s 가 U_b 밖인 MOS 의 g·b 쌍이 전하 넷과 막다른 넷을 잇는 경우뿐. library 전하 넷 0/9. 행 모드: n 이 노드 밖 (None, charge_node_row_mode), n 이 노드 안 model + 행 NaN -> unknown/axis_range_empty, 값 누출 0(fail-closed, 사유는 앞 m5). m2 해소: NaN·inf 8 입력 전부 ok False(섭동 perturbation_unmeasured, 기준 base_undefined, 오류 동시 error), 깨끗한 입력 ok 유지."
+   "basis": "M-1b case 6 해소: 블록 gain 117.1875 = 손·전회로. 앞 재현 유지: case 2·두 단 사슬·옛 막다른 경우 468.75·무관한 Rd 제외·용량 섬 -18.75·전하 섬 손 일치, 행 모드 fail-closed(charge_node_row_mode, n 이 노드 안이면 unknown/axis_range_empty), gate 비유한 입력 ok 0. 구조 측정 9/13 앞 판정과 행별 차이 0. M-1c 물리 정합 위반: 전하 넷 확장 루프가 소자 capacitors 만 봐서 MOS 단자 용량으로 이어진 전하 넷을 놓친다. 회로 in -C1 2p- n1 -C2 3p- gnd, M1(d out, g n1), RL, M3(d vdd, s gnd, g n1, b n2, cgb 1p, 스탬프 안 됨). n2 -C3 4p- gnd 일 때 손·전회로 gain -6.46551724, 블록 -6.25(3.3 %), C3 없을 때 손·전회로 -7.5, 블록 -6.25(16.7 %), g·b 를 바꿔도 -6.25 대 -6.46551724. undefined 없음. n2 를 0 V 로 고정한 결과이고 옛 0 V 처리와 같은 부류다(m1b/probe_m1b.jsonl case a·b·c). library 전하 넷 0/9 라 발동 없음."
   },
   "V10": {
    "verdict": "N/A",
@@ -251,17 +251,68 @@
    "name": "A-107 M-1b 전회로 gain",
    "value": 117.1875,
    "command": "a107/probe_a107.jsonl case 6"
+  },
+  {
+   "name": "M-1b card test 통과",
+   "value": 323,
+   "command": "m1b/scripts/runpt.sh card1"
+  },
+  {
+   "name": "M-1b structure 통과",
+   "value": 171,
+   "command": "structure"
+  },
+  {
+   "name": "M-1b 연기 g10 통과",
+   "value": 2,
+   "command": "smoke_g10"
+  },
+  {
+   "name": "M-1b 연기 stage_b 통과",
+   "value": 10,
+   "command": "smoke_stageb"
+  },
+  {
+   "name": "M-1b 연기 s0 통과",
+   "value": 11,
+   "command": "smoke_s0"
+  },
+  {
+   "name": "case 6 블록 gain",
+   "value": 117.1875,
+   "command": "m1b/probe_a107.jsonl"
+  },
+  {
+   "name": "M-1c 블록 gain(C3 있음)",
+   "value": -6.25,
+   "command": "m1b/probe_m1b.jsonl a"
+  },
+  {
+   "name": "M-1c 손 gain(C3 있음)",
+   "value": -6.46551724137931,
+   "command": "m1b/probe_m1b.jsonl a"
+  },
+  {
+   "name": "M-1c 손 gain(C3 없음)",
+   "value": -7.5,
+   "command": "m1b/probe_m1b.jsonl b"
+  },
+  {
+   "name": "M-1d ngcc block_residual 1회 C 조립(전하 넷 0)",
+   "value": 12,
+   "command": "m1b/probe_m1b.jsonl"
   }
  ],
  "approvals": [],
  "auditor_run": {
-  "time": "2026-11-05T18:42:19+09:00",
+  "time": "2026-11-05T19:03:02+09:00",
   "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-ub1-nl1-audit",
   "commands": [
    "V1: 전체 test 안 돌림(O-229), 범위 = runpt.sh 파일별 실행, 결과 out/*.meta",
    "격리: git clone --no-hardlinks --no-local <audit worktree> iso3, remote remove origin, 머리 90d4814c",
    "격리: git archive 2f60222a -> base3, basered(+ head tests) red; git archive HEAD -> mut 뮤턴트",
-   "격리: git clone --no-hardlinks --no-local <audit worktree> iso4, remote remove origin, 머리 cdc2be54 (A-107 재판정); git archive HEAD -> mut4"
+   "격리: git clone --no-hardlinks --no-local <audit worktree> iso4, remote remove origin, 머리 cdc2be54 (A-107 재판정); git archive HEAD -> mut4",
+   "격리: git clone --no-hardlinks --no-local <audit worktree> iso5, remote remove origin, 머리 abd06526 (M-1b 재판정); mut4 에 block_model·test_block_model 덮어 뮤턴트"
   ]
  }
 }
