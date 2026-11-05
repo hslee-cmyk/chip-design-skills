@@ -773,7 +773,7 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | 슬라이스 조회 불능 사유 판정 [DC 블록] | `lut/slice_gap.py` `is_slice_gap`·`SLICE_GAP_REASONS` | 소비자: `block_dc.pick_dependent`, `block_param_tables.ParamTables._envelope`, `derived_fns._param_row` |
 | 슬라이스별 tol 표 구성 [DC 블록] | `lut/slice_tables.py` `build_slice_tables(memo)` | 호출 자리: `build_kernel_context`, `search_context._wire_sweep_memo`(memo 교체 직후) |
 | DC 블록 [DC 블록] | `sizing/block_dc.py` `dc_solve`(writer `dc_solve`) | 옛 `dc_columns`·`dc_widths`·`pre_layout_lut_access`·`dc_drop_current`·`w_key_of`·`LutAccess.w_keys` 삭제. `device.dc_finger`(`FingerGeom`) 새 필드, writer `dc_solve` 하나 |
-| W 가 없는 단계 포락 표 [DC 블록] | `metrics/block_param_tables.py` `ParamTables(memo, grids, side, z_side)` | 블록 값 = `achievability._bound` 가 표 넷으로 `block_gain_bound` 를 부른다(`found_db` = lower 두 표의 작은 쪽, A_max = upper 두 표의 큰 쪽) |
+| W 가 없는 단계 포락 표 [DC 블록] | `metrics/block_param_tables.py` `ParamTables(memo, grids, side, z_side)`, 표 넷 = `ParamTables.family(memo, grids)`(포락 배열·적재 표시를 하나로 공유 -- 칸당 슬라이스 순회 1회) | 블록 값 = `achievability._bound` 가 표 넷으로 `block_gain_bound` 를 부른다(`found_db` = lower 두 표의 작은 쪽, A_max = upper 두 표의 큰 쪽) |
 | `off` 소자 슬라이스 [DC 블록] | `metrics/ss_off_op.py` (`slice_of_finger`, `lut_axis_bounds`) | 선언 폭이 슬라이스 폭이 아니면 `slice_missing`(순서: vgs < 0, 벌크 접합, 슬라이스, 축 밖) |
 | tol_V 지표 [M-TH1c] | `lut/tolerance.py` `TOL_V_METRICS = ("id_equivalent",)` | `gm_id_inverse` 지표·`branch_targets`·`MidpointRow.gm_id_inverse_v` 삭제. `strong_inversion_root` 정의는 `lut/vgs_root.py` 로 옮김 |
 | 풀이 정지 사유 집계 [범위 3a-0] | `search/find_front.py` `_stop_counts` -> `perf.solver_stops`(출력 전용) | 소비자: 3a 변화표 측정·CPG-1 기록 |

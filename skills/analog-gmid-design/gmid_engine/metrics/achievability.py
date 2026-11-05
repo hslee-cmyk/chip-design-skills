@@ -63,7 +63,7 @@ from .achievability_types import (
 from .area_lower_bound import area_lower_bound
 from .block_gain_bound import block_gain_bound
 from .block_gain_model import block_gain_model_of
-from .block_param_tables import SIDES, Z_SIDES, ParamTables
+from .block_param_tables import Z_SIDES, ParamTables
 from .curve_checks import curve_checks
 from .dof_report import STATUS_OVERCONSTRAINED, dof_report
 from .headroom_bound import headroom_bound
@@ -368,7 +368,7 @@ def achievability(projection):
     target = _gain_target(spec)
     gain = None
     if view is not None and view.blocks:
-        tables = {(s, z): ParamTables(lut.memo, local.grids, s, z) for s in SIDES for z in Z_SIDES}
+        tables = ParamTables.family(lut.memo, local.grids)
         gain = _gain(view, view.blocks, local, tables, spec, count_budget, target)
     area = _area(p, spec, local, lut, passive_area, domain.area_resolution_m2)
     head = _headroom(p, spec, view, local, lut)
