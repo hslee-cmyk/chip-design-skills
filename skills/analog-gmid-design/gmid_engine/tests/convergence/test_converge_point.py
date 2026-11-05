@@ -149,8 +149,9 @@ def test_fixed_point_converges_after_one_reevaluation(run):
     # evaluate 는 출발 점의 θ·L 칸으로, parent = 현재 점(처음엔 출발 점)
     assert loop.eval_args[0].theta == start.theta and loop.eval_args[0].cells == start.key.cells
     assert loop.eval_args[0].parent is start
-    # 두 번째 레이아웃은 재평가 점의 스냅샷으로, 커널 키 = 재평가 기하의 키. 새 설계점이라 previous 없이(§2.4.7: 레이아웃 필드는 그 설계점 스냅샷 위)
-    assert loop.place_args[1].snapshot is cp.result.evaluation.snapshot
+    # [기준점 개정 2026-11-06 A-124, interface §8·R-14] 두 번째 레이아웃을 놓는 설계점 스냅샷 = 루프에 들어온 front 점 스냅샷(재평가 점 스냅샷 아님). 새 설계점이라 previous 없이
+    assert loop.place_args[1].snapshot is start.evaluation.snapshot
+    assert loop.place_args[1].snapshot is not cp.result.evaluation.snapshot
     assert loop.place_args[0].previous is None and loop.place_args[1].previous is None
     assert cp.layout is loop.placed[-1].layout                                    # ConvergedPoint.layout = 마지막 LayoutResult
     assert loop.place_args[0].excluded == () and loop.place_args[1].excluded == ()          # [WB-1] 키 제외 입력 없음(kind 키 운반 삭제)
@@ -176,6 +177,47 @@ def test_diffusion_only_change_is_reevaluated_not_a_cycle(run):
     assert [i.status for i in cp.iterations] == ["sealed", "sealed"]
     assert cp.kernel_calls == 2 == sctx.counters["kernel_calls"]
     assert dict(cp.geometry.layout_ref)["M1"].ad_m2 == 2e-13
+
+
+# ---------------------------------------------------------------- R-14 기준점 (새 2026-11-06, A-124, interface §6 R-14·§8 '기준점')
+def test_next_layout_is_placed_on_the_front_point_snapshot_not_the_reevaluation_snapshot(tmp_path, monkeypatch):
+    """R-13 (a) 꼴 점 하나(R-2 회로, 사이징 점 r = 0, 레이아웃 M1 = (nf 3, finger_w 1e-6))로 루프. 레이아웃은 스크립트 가짜(`Loop.place_layout` -- 놓는 설계점 스냅샷을 기록),
+    evaluate 는 **실** 평가(레이아웃 뒤 재풀이 + 재봉인). 첫 재평가가 통과한 뒤 둘째 `place_layout` 의 설계점 스냅샷 `is` 루프에 들어온 front 점 스냅샷이다
+    (재평가 스냅샷이면 red). oracle (d) interface §8 기준점 규칙. 양성 대조: 재평가가 실제로 통과했고(iterations sealed) 재평가 스냅샷은 front 점 스냅샷과 다른 객체다."""
+    from search.wb1_flow import R2_CELLS, R2_ELEMENTS, bins_case, circuit_r2, r2_theta, sorted_theta
+    from gmid_engine.search import evaluate
+    case = bins_case(tmp_path, circuit_r2(), elements=R2_ELEMENTS)
+    start = evaluate(case.sctx, sorted_theta(r2_theta(case.dc)), R2_CELLS)
+    fing = {m: f for m, f in dict(start.evaluation.snapshot.column("device", "dc_finger")).items()}
+    nfs = {m: (round(f.w_f_m / GRID), f.m) for m, f in fing.items()}
+    nfs["M1"] = (100, 3)                                                  # 레이아웃 M1 = (nf 3, finger_w 1e-6), 나머지는 사이징 점 손가락 그대로
+    groups = (RowGroup("R1", "nmos", "gnd", ("M1", "M2")), RowGroup("R2", "pmos", "vdd", ("M3", "M4")))
+    placed_snaps = []
+
+    def place_layout(memo, snapshot, pdk_, passives, rejected, relaxed, first_seen, previous, kinds, excluded=(), *, donors, counters):
+        placed_snaps.append(snapshot)                                      # 레이아웃을 놓는 설계점 스냅샷 기록
+        if len(placed_snaps) > 6:                                          # 같은 레이아웃이라 둘째 호출에서 고정점이다 -- 끝나지 않는 루프는 실패로 끊는다
+            pytest.fail("converge_point 루프가 6회 레이아웃 호출 뒤에도 끝나지 않았다; 재평가 결과 = %r" % ([(r.status, r.failure) for r in evals],), pytrace=False)
+        pl = tuple(placement(m, key, nf, key * GRID * nf) for m, (key, nf) in sorted(nfs.items()))
+        diff = tuple(ddiff(m, key * GRID, nf, 3e-13, 3e-13, 4e-6, 4e-6) for m, (key, nf) in sorted(nfs.items()))
+        lay_ = layout(diffusion=diff, plan=floorplan(1e-5, 1e-5, area=1e-10), row_groups=groups)
+        return PlacedLayout(lay_, (), pl, (), pdk_, frozenset(relaxed), dict(first_seen), 1)
+    pdk_ = pdk((( "nmos", (100, 200)), ("pmos", (100, 200))))
+    mod = module("converge_point")
+    evals, real_eval = [], mod.evaluate
+
+    def recording_evaluate(*a, **k):                                      # 진짜 평가를 부르고 결과만 기록한다
+        r = real_eval(*a, **k)
+        evals.append(r)
+        return r
+    monkeypatch.setattr(mod, "place_layout", place_layout)
+    monkeypatch.setattr(mod, "evaluate", recording_evaluate)
+    cp = converge_point(case.sctx, pdk_, FrontPoint("p0", start, ()))
+    assert [i.status for i in cp.iterations] == ["sealed"], (cp.status, cp.failure, cp.iterations)       # 첫 재평가 통과 (옛 '봉인만'이면 봉인 3 실패 -> red)
+    assert len(placed_snaps) >= 2                                         # 다음 레이아웃 호출이 있다 (공허 방지)
+    assert cp.result.evaluation.snapshot is not start.evaluation.snapshot
+    assert placed_snaps[1] is start.evaluation.snapshot                   # 기준점 = front 점 스냅샷 (재평가 스냅샷 아님)
+    assert placed_snaps[1] is not cp.result.evaluation.snapshot
 
 
 # ---------------------------------------------------------------- K_max (불변식 5)
@@ -424,11 +466,13 @@ def test_passives_read_from_evaluation_snapshot_field(monkeypatch):
     start = eval_result(s0, power=2e-3, area=7e-11, constraints=rows(3.0), tag="start")
     cp = converge_point(sctx, loop.pdk, FrontPoint("p0", start, ()))
     assert cp.status == STATUS_CONVERGED and len(loop.place_args) == 2
-    # passives_from_decl 은 (sctx 선언, 그 레이아웃을 놓는 설계점 스냅샷의 passive_value 열) 로 불린다 -- 출발 점, 그다음 재평가 점
+    # passives_from_decl 은 (sctx 선언, 그 레이아웃을 놓는 설계점 스냅샷의 passive_value 열) 로 불린다 -- [기준점 개정 2026-11-06 A-124, interface §8] 설계점 = 루프에 들어온
+    # front 점이라 두 번 다 출발 점 값이다 (재평가 스냅샷의 PV_EVAL 은 읽지 않는다)
     assert [d for d, _ in seen] == [decl, decl]
-    assert [v for _, v in seen] == [PV_START, PV_EVAL]
-    # place_layout 이 받는 면적(손): Cc 2e-12 x 2e-3 = 4e-15; Rz 2500 x 1e-15 + 1e-12 = 3.5e-12 -> 재평가 점 3000 x 1e-15 + 1e-12 = 4e-12; CL 제외
-    want = [(("Cc", 4e-15), ("Rz", 3.5e-12)), (("Cc", 4e-15), ("Rz", 4e-12))]
+    assert [v for _, v in seen] == [PV_START, PV_START]
+    assert PV_START != PV_EVAL                                         # 공허 방지: 재평가 스냅샷을 읽으면 둘째가 달라진다
+    # place_layout 이 받는 면적(손): Cc 2e-12 x 2e-3 = 4e-15; Rz 2500 x 1e-15 + 1e-12 = 3.5e-12 (두 번 다 출발 점 값); CL 제외
+    want = [(("Cc", 4e-15), ("Rz", 3.5e-12)), (("Cc", 4e-15), ("Rz", 3.5e-12))]
     for got, exp in zip(loop.passives, want):
         assert [x.name for x in got] == [n for n, _ in exp]
         assert all(x.area_m2 == pytest.approx(a, rel=1e-12) for x, (_, a) in zip(got, exp))

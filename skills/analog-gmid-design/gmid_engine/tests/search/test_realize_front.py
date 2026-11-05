@@ -2,9 +2,17 @@
 
 oracle 종류와 출처
 - R-1 (a/d): 탐색 W = I·L/exp(ln IDu), 실현 W = m·w_s, 실현 전류밀도 = I'·L/W' -- dc_op 의 current·L·ln_idu·W 사이 항등식(값은 스냅샷 입력 열).
-- R-2 (식): r4 닫힌 식 ln IDu = const + B·V - C·V²/2 (B = 20, C = 8, sizing conftest r4 toy 상수), 입력 차 이동 Δ = [-g + √(g² + 2C·ln(1 + r))]/C,
-  g = B - C·VGS0, r = W'/W - 1. 곧 I_u(VGS0 - Δ) = I_u(VGS0)/(1 + r) (같은 L·VDS). ln(1 + r)/g 근사는 쓰지 않는다. 단언 = ||V_id(실현) - V_id(탐색)| - Δ| <= tol_V
-  와 |V_id 이동| >= Δ/2 (공허 방지). VGS0 는 탐색 스냅샷 dc_op 값(입력).
+- R-2 (식, [개정 2026-11-06 판정 MJ-1] VGS2 고정점으로 정밀화): r4 닫힌 식 ln IDu = const + B·V - C·V²/2 + LAM·VDS (B = 20, C = 8, LAM = 0.1, sizing conftest r4 toy 상수).
+  입력 차 이동 Δ = [-g2 + √(g2² + 2C·ln(1 + r))]/C, g2 = B - C·VGS2, r = W'/W - 1 (VGS2 = 실현 점 M2 VGS). M2 전류 불변에서
+  f(VGS2) - f(VGS0) + LAM·(VGS2 - VGS0 - Δ/2) = 0 (ΔV(inn) = Δ/2, 공통모드 고정 반대칭 가중). 두 식의 고정점은 `wb1_hand.diff_pair_input_shift`(이분법, 피검 함수 아님).
+  ln(1 + r)/g 근사는 쓰지 않는다. 단언 = ||V_id(실현) - V_id(탐색)| - Δ| <= tol_V(봉인 tol 최솟값, 바꾸지 않음) 와 |V_id 이동| >= Δ/2 (공허 방지).
+  VGS0 는 선언 상수(wb1_flow.VGS0 = θ 입력)이고 탐색 스냅샷 dc_op 값과 같음을 전제 단언한다. 판정 mi-10: 측정과 손 값의 차(약 4.5 mV, 원인 미상)는 tol 을 바꾸지 않고
+  단언 메시지·보고에 두 값을 남긴다.
+- R-6 ([기대 변경 2026-11-06 O-237]): 입력 고정 갈래 = KCL 재풀이 + 재봉인. ΔV(out) = -a·[(1 + r)·e^{LAM·ΔV} - 1] 의 근(`wb1_hand.single_input_out_shift`, 이분법)과 같음.
+  a = V_dd - V(out)_탐색, r = W'/W - 1. 옛 '재풀이 0, 봉인만' 단언은 폐기. R-6c: 레일 안 근 없음(F(V_gnd) < 0) -> lost, fail-closed. R-15 (동작 대체, mi-7):
+  입력 고정 경로에서 실현 뒤 출력 넷 KCL 이 성립(저항 전류 = M1 채널 전류 I')하고 출력이 움직임 -- 재풀이 없는 경로는 KCL 이 깨져 봉인 3 이 실패한다.
+- R-16 ([새 2026-11-06 A-123 (4)]): KCL 항등식 V_dd·V(s)_실현/R (MOS 채널 전류 = I' = 저항 전류), 비교 허용 = V_dd·tol_V/R (카드의 tol_V 계열). 공허 방지 = θ 전류 셈과의
+  차 > `power_resolution_w`. 이상 전류원 항: P = V_dd·(V(s)/R + I_b), I_b = 선언 입력 값.
 - R-3~R-8, R-12 (d): interface 표의 사유 어휘·r = 0 이면 입력 값 유지·`finger_slice` 호출 0(관찰 지점 §9) -- 같은 test 에서 탐색 평가의 호출 >= 1 을 먼저 단언.
 - R-5 (구성): 탐색에서 비지배인 두 점(전력 낮음·면적 큼 / 전력 높음·면적 작음), 한 점 M1 을 큰 W' 로 tamper -> 실현 면적이 커져 다른 점이 지배.
 - R-9: `find_front` 모듈 전역 `sweep_front`·`realize_front` (관찰 지점 §9).
@@ -19,10 +27,12 @@ from pathlib import Path
 
 import pytest
 
-from sizing.conftest import B, C, column_dict
+from sizing.conftest import B, C, LAM, column_dict, seal_item
+from wb1_hand import diff_pair_input_shift, out_kcl_at_gnd, single_input_out_shift
 
 from .conftest import CELLS_C, circuit_c, theta_r4c
-from .wb1_flow import R2_CELLS, R2_ELEMENTS, bins_case, circuit_r2, r2_theta, sorted_theta
+from .wb1_flow import (R2_CELLS, R2_ELEMENTS, R6_ELEMENTS, R6_RBOUNDS, VDD, VGS0, bins_case, circuit_r16, circuit_r2, circuit_r6, r2_theta,
+                       single_mos_resistor_theta, sorted_theta)
 
 GRID = 1e-8
 
@@ -123,12 +133,15 @@ def test_realize_r2_input_difference_shift_matches_closed_form(r2):
     assert len(out.points) == 1 and out.lost == ()
     rsnap = out.points[0].result.evaluation.snapshot
     assert dict(rsnap.column("device", "dc_op"))["M1"].W == pytest.approx(3e-6, rel=1e-12)
-    g = B - C * op1.vgs
-    delta = (-g + math.sqrt(g * g + 2.0 * C * math.log(1.0 + r))) / C
+    assert op1.vgs == pytest.approx(VGS0, abs=1e-6)                 # 전제: 탐색 VGS0 = 선언 θ 입력 0.6 V
+    # [정밀화 2026-11-06, 판정 MJ-1] 기대 = VGS2 고정점 식 (M2 전류 불변 + M1·M2 전류비 1 + r). 공통모드 고정(반대칭 입력 가중) 전제는 측정 입력 두 값의 합으로 확인
+    v0, v1 = dict(snap.column("node", "dc_v")), dict(rsnap.column("node", "dc_v"))
+    assert (v1["inp"] + v1["inn"]) == pytest.approx(v0["inp"] + v0["inn"], abs=1e-9)
+    delta, _x = diff_pair_input_shift(r, VGS0, B, C, LAM)
     shift = abs(vid(rsnap) - vid(snap))
     tol = min(v for _, v in rsnap.column("device", "dc_tol_v") if v is not None)
-    assert shift >= delta / 2.0                                     # 공허 방지
-    assert abs(shift - delta) <= tol
+    assert shift >= delta / 2.0, (shift, delta)                     # 공허 방지
+    assert abs(shift - delta) <= tol, ("measured_shift_V", shift, "hand_delta_V", delta, "diff_V", shift - delta, "tol_V", tol)
 
 
 # ---------------------------------------------------------------- R-3
@@ -219,6 +232,146 @@ def test_realize_r6_unresolved_servo_pivot_keeps_input_value(tmp_path):
     rsnap = out.points[0].result.evaluation.snapshot
     assert dict(rsnap.column("node", "dc_v"))["in"] == dict(snap.column("node", "dc_v"))["in"]   # 입력 = 봉인점 값
     assert dict(rsnap.column("device", "dc_op"))["M1"].W == pytest.approx(m * 1e-6, rel=1e-12)
+
+
+# ---------------------------------------------------------------- R-6 (기대 변경 2026-11-06, A-123 (3)·O-237) / R-6c / R-15
+# 옛 R-6 의 '재풀이 0, 봉인만' 기대는 효력 없음 -- 위 test 는 입력 값 유지·W' 이행만 단언하므로(재풀이 여부 불문) 그대로 둔다.
+# 새 기대(oracle (a), 합성 R-6 회로): 입력 고정 갈래는 KCL 재풀이 + 재봉인. 손 값 = wb1_hand.single_input_out_shift (독립 이분법).
+R6_I, R6_R, R6_FINGER_W = 1e-5, 9e4, 2e-6                    # θ 입력 (M1 전류, 저항, 손가락 폭). V(out)_탐색 = V_dd − I·R = 0.9 V, M1 포화(손: VDSAT_n(0.6) = 0.3025 V)
+
+
+@pytest.fixture(scope="module")
+def r6(tmp_path_factory):
+    from gmid_engine.search import evaluate
+    case = bins_case(tmp_path_factory.mktemp("wb1_r6"), circuit_r6(), elements=R6_ELEMENTS, rbounds=R6_RBOUNDS)
+    th = single_mos_resistor_theta(case.dc, R6_I, R6_R, VDD - R6_I * R6_R)
+    ev = evaluate(case.sctx, sorted_theta(th), (0,))
+    snap = ev.evaluation.snapshot
+    v = dict(snap.column("node", "dc_v"))
+    assert v["out"] == pytest.approx(VDD - R6_I * R6_R, abs=1e-9)                        # 전제 (손): 탐색 KCL R·I = a
+    cfg = next(iter(dict(snap.column("graph", "icm_config")).values()))
+    assert cfg.config in (None, "as_is_single_input")                                    # 전제 (미측정, base 재확인): 입력 고정 갈래
+    assert dict(snap.column("device", "dc_op"))["M1"].W > 0.0
+    return case, th, ev
+
+
+def r6_point(ev, m, icm_none=False):
+    """search_ref M1 을 (m, R6_FINGER_W) 로 tamper (+ 선택: icm_config.config = None). -> (점, r, a)."""
+    from gmid_engine.sizing import FingerGeom, ICM_CONFIG_WRITER
+    from sizing.conftest import tamper
+    snap = ev.evaluation.snapshot
+    w = dict(snap.column("device", "dc_op"))["M1"].W
+    r = m * R6_FINGER_W / w - 1.0
+    a = VDD - dict(snap.column("node", "dc_v"))["out"]
+    tam = with_fingers(ev, {"M1": FingerGeom(m, R6_FINGER_W, 0.0)})
+    if icm_none:
+        key, cfg = next(iter(dict(snap.column("graph", "icm_config")).items()))
+        tsnap = tamper(tam.evaluation.snapshot, ICM_CONFIG_WRITER, "graph", "icm_config", {key: dataclasses.replace(cfg, config=None)})
+        tam = replace_snap(tam, tsnap)
+    return tam, r, a
+
+
+@pytest.mark.parametrize("icm_none", [False, True], ids=["natural_as_is_single_input", "icm_config_none"])
+def test_realize_r6_input_fixed_branch_resolves_kcl_and_reseals(r6, icm_none):
+    case, th, ev = r6
+    tam, r, a = r6_point(ev, 18, icm_none)                         # m = 18 (손): W' = 36 µm, r ≈ 0.52 -> 손 근 V(out) ≈ 0.49 V (레일 안, M1 포화)
+    assert 0.4 <= r <= 0.6                                          # 전제: 손으로 고른 r
+    hand = single_input_out_shift(a, r, LAM)                        # ΔV(out) (음수)
+    assert VDD - a + hand > 0.3025                                  # 전제 (손): 재풀이 점에서도 M1 포화(VDS >= VDSAT_n(0.6))
+    _, out = realize(case, tam)
+    assert len(out.points) == 1 and out.lost == (), out.lost        # 옛 기대(봉인만)이면 out 넷 봉인 3 실패 -> lost (red)
+    snap, rsnap = ev.evaluation.snapshot, out.points[0].result.evaluation.snapshot
+    v0, v1 = dict(snap.column("node", "dc_v")), dict(rsnap.column("node", "dc_v"))
+    assert v1["in"] == pytest.approx(v0["in"], rel=1e-12)           # 입력 고정
+    dv = v1["out"] - v0["out"]
+    tol = min(x for _, x in rsnap.column("device", "dc_tol_v") if x is not None)
+    assert abs(dv) >= abs(hand) / 2.0, (dv, hand)                   # 공허 방지
+    assert abs(dv - hand) <= tol, ("measured_dV_V", dv, "hand_dV_V", hand, "tol_V", tol)
+    assert seal_item(rsnap, 3).status == "pass" and seal_item(rsnap, 7).status == "pass"
+    assert dict(rsnap.column("device", "dc_op"))["M1"].W == pytest.approx(18 * R6_FINGER_W, rel=1e-12)
+
+
+def test_realize_r6c_no_root_inside_rails_is_lost_fail_closed(r6):
+    case, th, ev = r6
+    snap = ev.evaluation.snapshot
+    v_out0 = dict(snap.column("node", "dc_v"))["out"]
+    ok_point, r_ok, _a = r6_point(ev, 18)
+    assert out_kcl_at_gnd(VDD, 0.0, R6_R, R6_I, v_out0, r_ok, LAM) > 0.0          # 전제 (손): 통제 점은 근이 레일 안에 있다
+    bad_point, r_bad, _ = r6_point(ev, 36)                          # m = 36 (손): W' = 72 µm
+    f_gnd = out_kcl_at_gnd(VDD, 0.0, R6_R, R6_I, v_out0, r_bad, LAM)
+    assert f_gnd < 0.0, f_gnd                                       # 전제 (손, 판정 MJ-1): F(V_gnd) < 0 = 레일 안에 근이 없음
+    _, out = realize(case, ok_point, bad_point, ids=["ok", "bad"])
+    assert [p.point_id for p in out.points] == ["ok"]               # 통제 점은 front 에 남고(base 에서는 red), 근 없는 점은 front 에 없다
+    lost = lost_of(out)
+    assert set(lost) == {"bad"} and isinstance(lost["bad"][0], str) and lost["bad"][0]      # 사유 이름은 base 에서 재확인 -- 비어 있지 않음만 단언
+
+
+def test_realize_r15_input_fixed_realized_point_satisfies_output_kcl(r6):
+    """R-15 동작 대체 (interface 가 grep 대상을 정의하지 않음, 판정 mi-7): 재풀이 없는 '입력 고정' 경로가 있으면 출력 넷 KCL 이 깨진다.
+    oracle (a) KCL 항등식: 저항 전류 (V_dd − V(out)_실현)/R = M1 채널 전류 I' (= dc_op.current), 허용 = tol_V/R."""
+    case, th, ev = r6
+    tam, r, a = r6_point(ev, 18)
+    _, out = realize(case, tam)
+    assert len(out.points) == 1 and out.lost == ()
+    rsnap = out.points[0].result.evaluation.snapshot
+    v1 = dict(rsnap.column("node", "dc_v"))
+    v0 = dict(ev.evaluation.snapshot.column("node", "dc_v"))
+    assert abs(v1["out"] - v0["out"]) > 0.1                          # 공허 방지: 출력이 실제로 움직였다 (재풀이 호출)
+    tol = min(x for _, x in rsnap.column("device", "dc_tol_v") if x is not None)
+    i_r = (VDD - v1["out"]) / R6_R
+    i_m1 = dict(rsnap.column("device", "dc_op"))["M1"].current
+    assert abs(i_r - i_m1) <= tol / R6_R, ("R_current_A", i_r, "M1_current_A", i_m1)
+
+
+# ---------------------------------------------------------------- R-16 (새 2026-11-06, A-123 (4)): 전력 축 = 실현 전류
+R16_I, R16_R = 1e-5, 2.5e4                                           # θ 입력. V(s)_탐색 = I·R = 0.25 V, VGS = 0.6 -> V(in) = 0.85 V
+
+
+def r16_case(tmp, with_source):
+    from gmid_engine.search import evaluate
+    els = R6_ELEMENTS + ((("I2", "current_source", R16_IB),) if with_source else ())
+    case = bins_case(tmp, circuit_r16(with_source), elements=els, rbounds=R6_RBOUNDS)
+    th = single_mos_resistor_theta(case.dc, R16_I, R16_R, VDD - R16_I * R16_R)
+    ev = evaluate(case.sctx, sorted_theta(th), (0,))
+    return case, th, ev
+
+
+R16_IB = 2e-6                                                        # 선언 이상 전류원 값 (입력)
+
+
+@pytest.mark.parametrize("with_source", [False, True], ids=["mos_channel_only", "with_ideal_current_source"])
+def test_realize_r16_power_is_rail_current_of_realized_channel_current(tmp_path, with_source):
+    """oracle (a) KCL 항등식: vdd 레일 전류 = M1 채널 전류 I' = 저항 전류 V(s)_실현/R (+ 이상 전류원 선언 값 I_b). 기대 = V_dd·(V(s)_실현/R + I_b).
+    비교 허용 = V_dd·tol_V/R (수치 자기 정합 tol, 카드의 tol_V 계열 -- 숫자 발명 없음). 공허 방지 = θ 전류로 셈한 값과의 차 > power_resolution_w."""
+    case, th, ev = r16_case(tmp_path, with_source)
+    ib = R16_IB if with_source else 0.0
+    snap = ev.evaluation.snapshot
+    v0 = dict(snap.column("node", "dc_v"))
+    assert v0["s"] == pytest.approx(R16_I * R16_R, abs=1e-9)         # 전제 (손): 탐색 V(s) = I·R
+    cfg = next(iter(dict(snap.column("graph", "icm_config")).values()))
+    assert cfg.config in (None, "as_is_single_input")                # 전제 (base 재확인): 입력 고정 갈래
+    assert ev.objectives.power_w == pytest.approx(VDD * (R16_I + ib), rel=1e-12)      # 같은 θ 탐색 평가: V_dd·I (불변)
+    w = dict(snap.column("device", "dc_op"))["M1"].W
+    m = 44                                                           # 손: W' = 44·2 µm, r = 3 근방
+    r = m * 2e-6 / w - 1.0
+    assert 2.5 <= r <= 5.0                                           # 전제: 손으로 고른 r (≠ 0)
+    from gmid_engine.sizing import FingerGeom
+    tam = with_fingers(ev, {"M1": FingerGeom(m, 2e-6, 0.0)})
+    _, out = realize(case, tam)
+    assert len(out.points) == 1 and out.lost == (), out.lost
+    res = out.points[0].result
+    rsnap = res.evaluation.snapshot
+    v1 = dict(rsnap.column("node", "dc_v"))
+    tol = min(x for _, x in rsnap.column("device", "dc_tol_v") if x is not None)
+    hand = VDD * (v1["s"] / R16_R + ib)                              # KCL 항등식 (MOS 전류 = I' = V(s)/R)
+    got = res.objectives.power_w
+    assert abs(got - hand) <= VDD * tol / R16_R, ("measured_power_W", got, "hand_power_W", hand, "tol_W", VDD * tol / R16_R)
+    theta_current_power = VDD * (R16_I + ib)
+    assert abs(got - theta_current_power) > res.objectives.power_resolution_w, (got, theta_current_power)      # 공허 방지 (θ 전류를 읽으면 red)
+    i_m1 = dict(rsnap.column("device", "dc_op"))["M1"].current
+    assert abs(i_m1 - v1["s"] / R16_R) <= tol / R16_R                # 채널 전류 = 저항 전류
+    if with_source:
+        assert dict(rsnap.column("device", "dc_current"))["I2"] == pytest.approx(R16_IB, rel=1e-12)       # 이상 전류원 항의 출처(선언 입력)
 
 
 # ---------------------------------------------------------------- R-7

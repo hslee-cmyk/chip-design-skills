@@ -24,7 +24,7 @@ CONS = (("gain_ss_db", ">=", 10.0, None),)
 
 
 def bins_case(tmp, doc, constraints=CONS, elements=(), eval_budget=40, widths=(1e-6, 2e-6), archive_root=None, budget_s=600.0,
-               idu_factor=None):
+               idu_factor=None, rbounds=None):
     tmp = Path(tmp)
     lut, _, _ = write_r4_bins_lut(tmp / "lut", widths=widths, idu_factor=idu_factor)
     acc = access_of(lut)
@@ -33,7 +33,7 @@ def bins_case(tmp, doc, constraints=CONS, elements=(), eval_budget=40, widths=(1
     run = fresh_run()
     dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, acc, **run)
     pdk, rule = write_decls(tmp / "pdk")
-    settings = SearchSettings(budget_s, eval_budget, None, tuple(SRC), None)
+    settings = SearchSettings(budget_s, eval_budget, rbounds, tuple(SRC), None)
     sctx = build_search_context(dc, spec, settings, archive_root, pdk, rule, code_fp=CODE_FP)
     return SimpleNamespace(td=td, spec=spec, dc=dc, acc=acc, lut=lut, sctx=sctx)
 
@@ -75,3 +75,34 @@ def r2_theta(dc, l=1e-6, scale=1.0, y_inp=Y_INP, rounds=30):
 
 def sorted_theta(th):
     return tuple(sorted(th.items()))
+
+
+# ---------------------------------------------------------------- R-6 / R-16 회로 (interface §6, 회로 이름 0)
+R6_RBOUNDS = (1e3, 1e6)                      # θ 저항 상자(탐색 정의역 입력, 값은 손 선택 R 을 품는다)
+R6_ELEMENTS = (("R1", "resistor", None),)
+
+
+def circuit_r6():
+    """R-6 회로: M1 nmos (out, in, gnd, bulk = gnd), 저항 R vdd -> out. 포트 in 단일 입력(MOS gate 에만 닿음), out 단일 출력."""
+    return topo("wb1_r6", [mos("M1", "nmos", "out", "in", "gnd", "gnd")],
+                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
+                passives=[two("R1", "resistor", "vdd", "out")])
+
+
+def circuit_r16(with_source=False):
+    """R-16 회로: M1 nmos (vdd, in, s, bulk = s), 저항 R s -> gnd. 포트 in 단일 입력(gate 만), s 단일 출력. with_source: 이상 전류원 I2 vdd -> gnd 하나 더."""
+    return topo("wb1_r16", [mos("M1", "nmos", "vdd", "in", "s", "s")],
+                {"in": ("input", "single_ended_input"), "s": ("output", "single_ended_output")},
+                passives=[two("R1", "resistor", "s", "gnd")],
+                sources=[two("I2", "current_source", "vdd", "gnd")] if with_source else ())
+
+
+def single_mos_resistor_theta(dc, i, r, v_ds, l=1e-6, vgs=VGS0):
+    """한 MOS + θ 저항 회로의 θ: ln IDu 는 VGS = vgs, VDS = v_ds, VSB = 0 의 r4 식(입력), 전류 성분 키는 스키마에서 읽는다."""
+    from .conftest import schema_of
+    th = {("L", "M1"): l, ("ln_idu", "M1"): r4_ln_idu("nmos", vgs, v_ds, 0.0), ("resistance", "R1"): r}
+    for k in schema_of(dc).components:
+        if k[0] == "current":
+            th[k] = i
+    assert set(th) == set(schema_of(dc).components), (sorted(th), schema_of(dc).components)
+    return th
