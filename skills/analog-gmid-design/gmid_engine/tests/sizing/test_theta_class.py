@@ -25,13 +25,13 @@ def _classes(ctx):
     return {m: _kind(v) for m, v in ctx.base.column("device", "theta_class")}
 
 
-def _ctx(tmp_path, access, doc, gbw=False, rout=False, settle=False, with_s1v=True):
+def _ctx(tmp_path, access, doc, gbw=False, rout=False, settle=False, with_s1v=True, input_dc_v=None):
     """S1 -> (S1v) -> 커널 컨텍스트. 실행 하나 = 이 호출 하나. bool 셋은 DcInputs 칸."""
     donors, counters = open_run()
     run = dict(donors=donors, counters=counters)
     s1 = build_s1(load_doc(tmp_path, doc), dict(SUPPLIES), **run)
     graph = build_s1v(s1, None, count_budget=10 ** 6, stop_on_unsupported=False, **run) if with_s1v else s1
-    inputs = DcInputs(tuple(sorted(SUPPLIES.items())), has_gbw_target=gbw, has_rout_limit=rout, has_settling=settle)
+    inputs = DcInputs(tuple(sorted(SUPPLIES.items())), input_dc_v=input_dc_v, has_gbw_target=gbw, has_rout_limit=rout, has_settling=settle)
     return build_kernel_context(graph, inputs, access, **run)
 
 
@@ -110,3 +110,47 @@ def test_theta_class_runs_before_writer_plan_and_same_input_is_reused(tmp_path, 
     before = block_row(ctx.counters, theta_class.name)
     assert theta_class(base, True, False, False, **run_of(ctx)) is base
     assert row_delta(block_row(ctx.counters, theta_class.name), before) == (1, 1, 0, 0, 0, 0)
+
+
+def _two_in(ia, ib, name):
+    """A-99 비자기동형 합성: 입력 넷 둘(ia, ib)이 서로 다른 전달 뷰를 만든다. M1(out, ia, gnd), M2(out, ib, x) -- M2 에만 source 쪽 소자 M3(x, nb, gnd),
+    바이어스 diode M6(nb, nb, gnd)(I1: vdd -> nb), pmos 부하 M4(out, pb, vdd)·diode M7(pb, pb, vdd)(I2: pb -> gnd). 출력 out."""
+    return topo(name,
+                [mos("M1", "nmos", "out", ia, "gnd"), mos("M2", "nmos", "out", ib, "x"), mos("M3", "nmos", "x", "nb", "gnd"),
+                 mos("M6", "nmos", "nb", "nb", "gnd"), mos("M4", "pmos", "out", "pb", "vdd"), mos("M7", "pmos", "pb", "pb", "vdd")],
+                {ia: ("input", "single_ended_input"), ib: ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
+                sources=[two("I1", "current_source", "vdd", "nb"), two("I2", "current_source", "pb", "gnd")])
+
+
+def test_theta_class_input_net_name_bijection_same_class_per_device(tmp_path, toy_access):
+    """oracle (비교 + 손): 입력 넷 이름만 ia,ib -> zz,aa 로 바꾼 전단사 쌍(비자기동형)에서 분류가 소자별로 같다(interface §2 '이름은 어느 키에도 없다', 원칙 12).
+    손 기대: 두 입력 모두 각자 전달 뷰의 gain 블록 input 이므로 M1·M2 = S(gain 뷰 전부를 본다), 부하·꼬리·바이어스 = B. 첫 뷰만 보면 이름 순서에 따라 한쪽이 F 로 갈린다."""
+    for sub in ("a", "b"):
+        (tmp_path / sub).mkdir()
+    a = _classes(_ctx(tmp_path / "a", toy_access, _two_in("ia", "ib", "tc_bij_a"), gbw=True, input_dc_v=0.6))
+    b = _classes(_ctx(tmp_path / "b", toy_access, _two_in("zz", "aa", "tc_bij_b"), gbw=True, input_dc_v=0.6))
+    want = {"M1": "S", "M2": "S", "M3": "B", "M4": "B", "M6": "B", "M7": "B"}
+    assert a == want
+    assert b == want
+    assert a == b
+
+
+def _two_in_par(ia, ib, name):
+    """A-99 합침 규칙 toy: 뷰 0(ia 가진) gain 블록 {B4, M1}, 뷰 1(ib 가진) gain 블록 {B3, M1b}. 같은 소자가 한 뷰에서는 입력, 다른 뷰에서는 블록 밖이다.
+    M1(o1, ia, gnd)·M1b(o2, ib, gnd), pmos B1(o1, pb, vdd)·B2(o2, pb, vdd) 부하, B3(o2, ib, vdd)·B4(o1, ia, vdd), diode M7(pb, pb, vdd)(I2: pb -> gnd)."""
+    return topo(name,
+                [mos("M1", "nmos", "o1", ia, "gnd"), mos("M1b", "nmos", "o2", ib, "gnd"),
+                 mos("B1", "pmos", "o1", "pb", "vdd"), mos("B2", "pmos", "o2", "pb", "vdd"), mos("B3", "pmos", "o2", ib, "vdd"),
+                 mos("B4", "pmos", "o1", ia, "vdd"), mos("M7", "pmos", "pb", "pb", "vdd")],
+                {ia: ("input", "single_ended_input"), ib: ("input", "single_ended_input"),
+                 "o1": ("output", "single_ended_output"), "o2": ("output", "single_ended_output")},
+                sources=[two("I2", "current_source", "pb", "gnd")])
+
+
+def test_theta_class_merge_input_in_any_gain_view_is_s_otherwise_not(tmp_path, toy_access):
+    """oracle (식 + 손): interface §1 합침 -- 어느 gain 전달 뷰에서든 AC 역할 input 이면 S. 어느 gain 뷰에서도 input 이 아닌 소자(B1·B2 부하, M7 diode)는 S 가 아니다(B).
+    넷 이름 두 벌(ia,ib / zz,aa) 모두 같은 기대."""
+    want = {"M1": "S", "M1b": "S", "B3": "S", "B4": "S", "B1": "B", "B2": "B", "M7": "B"}
+    for sub, (ia, ib) in (("a", ("ia", "ib")), ("b", ("zz", "aa"))):
+        (tmp_path / sub).mkdir()
+        assert _classes(_ctx(tmp_path / sub, toy_access, _two_in_par(ia, ib, "tc_merge_" + sub), gbw=True, input_dc_v=0.6)) == want
