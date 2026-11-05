@@ -838,3 +838,18 @@ def test_layer0_budget_one_evaluates_at_most_one(tmp_path, lut4, roots):
     case, r, _ = run_l0(tmp_path, circuit_c(), lut4, roots(), eval_budget=1)
     assert dict(case.sctx.counters)["kernel_calls"] <= 1
     assert r.stop == "eval_budget"
+
+
+def test_layer0_ladder_rung_at_budget_not_evaluated_start_status_eval_budget(tmp_path, lut4, roots):
+    # [XRUN-F1 card C 판정 Major-2] interface C5 / C-T6 '사다리 칸 예산 도달 평가 0·start_status'.
+    # oracle (구성): 선언 E_B 40 으로 만든 뒤 탐색 예산을 현재 kernel_calls 로 낮춘다 = 첫 평가부터 예산 도달(손: kernel_calls = 탐색 예산이면 평가 안 함).
+    # 기대: 이 호출이 늘린 kernel_calls 0, 출발 사다리 칸의 start_status == "eval_budget"(interface 가 정한 값), 정지 사유 eval_budget.
+    case = build_case(tmp_path, circuit_c(), lut4, eval_budget=40, archive_root=roots())
+    s = case.sctx
+    k0 = dict(s.counters)["kernel_calls"]
+    s.eval_budget = k0
+    r = layer0_start(s)
+    assert dict(s.counters)["kernel_calls"] == k0                           # 평가 0
+    assert r.kernel_calls == 0
+    assert r.start_status == "eval_budget"                                  # 사다리 칸이 예산에 닿았다는 값
+    assert "eval_budget" in str(r.stop)
