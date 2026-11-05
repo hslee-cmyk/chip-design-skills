@@ -349,14 +349,15 @@ def real_lut_v2():
     grid = float(m.group(1)) * 1e-6
     man = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
     dk = dict(REAL_DEVICE_KINDS)
-    files, mins = {}, {}
+    from pdk_min_w import min_finger_w_m
+    mins = min_finger_w_m(kind for _, kind in REAL_DEVICE_KINDS)      # PDK 선언 양(card 20261104-wb1)
+    files = {}
     for s in man["slices"]:
         p = Path(loc.manifest_path).parent / s["file"]
         with np.load(p) as z:
             W = float(z["W"])
         kind = dk[s["device"]]
         files[(kind, int(round(W / grid)))] = p
-        mins[kind] = min(W, mins.get(kind, W))
     spec = LutSpec(grid, tuple(sorted(mins.items())), REAL_DEVICE_KINDS, REAL_CAP_SUFFIX)
     lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
                        verify_midpoints=loc.midpoints_path, bin_rule=loc.bin_rule_path)

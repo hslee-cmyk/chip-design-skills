@@ -542,13 +542,9 @@ def _grid(tlef):
 def _real_spec(manifest, grid):
     from gmid_engine.lut import LutSpec
     base = Path(manifest).parent
-    mins = {}
+    from pdk_min_w import min_finger_w_m
     kinds = {"nfet_01v8": "nmos", "pfet_01v8": "pmos"}
-    for s in json.loads(Path(manifest).read_text(encoding="utf-8"))["slices"]:
-        with np.load(base / s["file"]) as z:
-            W = float(z["W"])
-        k = kinds[s["device"]]
-        mins[k] = min(W, mins.get(k, W))
+    mins = min_finger_w_m(kinds.values())      # PDK 선언 양(card 20261104-wb1)
     return LutSpec(grid, tuple(sorted(mins.items())), tuple(sorted(kinds.items())), (("nmos", "_n"), ("pmos", "_p")))
 
 

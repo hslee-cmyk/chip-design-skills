@@ -215,10 +215,8 @@ def real_lut():
     loc = resolve_lut_location(str(skill / "assets" / "lut_v2_location.json"), os.environ)
     manifest = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
     kinds = {"nfet_01v8": "nmos", "pfet_01v8": "pmos"}
-    mins = {}
-    for entry in manifest["slices"]:
-        kind = kinds[entry["device"]]
-        mins[kind] = min(entry["w_um"] * 1e-6, mins.get(kind, float("inf")))
+    from pdk_min_w import min_finger_w_m
+    mins = min_finger_w_m(kinds.values())      # PDK 선언 양(card 20261104-wb1)
     spec = LutSpec(float(manifest.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), tuple(kinds.items()),
                    (("nmos", "_n"), ("pmos", "_p")))
     return load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path, bin_rule=loc.bin_rule_path)

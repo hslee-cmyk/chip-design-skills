@@ -1284,11 +1284,10 @@ def real_slice_files(real_paths, real_manifest):
 
 @pytest.fixture(scope="session")
 def real_spec(real_paths, real_slice_files):
-    """grid = tlef MANUFACTURINGGRID, min_finger_w_m = kind 별 슬라이스 최소 W(데이터에서 유도)."""
+    """grid = tlef MANUFACTURINGGRID, min_finger_w_m = PDK 선언 양(card 20261104-wb1; manifest 최소 폭에서 유도하지 않는다)."""
+    from pdk_min_w import min_finger_w_m
     grid = manufacturing_grid_m(real_paths["tlef"])
-    mins = {}
-    for kind, _, W, _, _ in real_slice_files:
-        mins[kind] = min(W, mins.get(kind, W))
+    mins = min_finger_w_m(kind for _, kind in REAL_DEVICE_KINDS)
     return LutSpec(grid, tuple(sorted(mins.items())), REAL_DEVICE_KINDS, REAL_CAP_SUFFIX)
 
 

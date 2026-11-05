@@ -42,9 +42,8 @@ def _env():
     loc = resolve_lut_location(str(SKILL / "assets" / "lut_v2_location.json"), os.environ)
     man = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
     kinds = dict(DEVICE_KINDS)
-    mins = {}
-    for e in man["slices"]:
-        mins[kinds[e["device"]]] = min(e["w_um"] * 1e-6, mins.get(kinds[e["device"]], float("inf")))
+    from pdk_min_w import min_finger_w_m
+    mins = min_finger_w_m(kinds.values())      # PDK 선언 양(card 20261104-wb1)
     dm = BoundedLRU(16)
     pdk = read_pdk_decl(str(SKILL / "assets" / "sky130_pdk_decl.json"), dm)
     q = dict(pdk.quantities)

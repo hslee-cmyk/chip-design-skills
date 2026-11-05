@@ -46,10 +46,8 @@ lib = skill / "assets" / "library"
 loc = resolve_lut_location(str(skill / "assets" / "lut_v2_location.json"), os.environ)
 man = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
 kinds_map = {"nfet_01v8": "nmos", "pfet_01v8": "pmos"}
-mins = {}
-for e in man["slices"]:
-    k = kinds_map[e["device"]]
-    mins[k] = min(e["w_um"] * 1e-6, mins.get(k, float("inf")))
+from pdk_min_w import min_finger_w_m
+mins = min_finger_w_m(kinds_map.values())      # PDK 선언 양(card 20261104-wb1)
 dm = BoundedLRU(16)
 pdk = read_pdk_decl(str(skill / "assets" / "sky130_pdk_decl.json"), dm)
 rule = read_pdk_decl(str(skill / "assets" / "sky130_lut_rule_decl.json"), dm)
