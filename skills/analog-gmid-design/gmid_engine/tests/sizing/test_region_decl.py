@@ -214,14 +214,49 @@ def test_off_only_node_off_gate_with_capacitor_only_stops(tmp_path_factory, r4_a
     _stops(tmp_path_factory.mktemp("oo_i"), _off_gate_doc("oo_i"), r4_access)
 
 
-def test_off_gate_shared_with_on_device_gate_does_not_stop_as_off_only_node(tmp_path_factory, r4_access):
-    """(j) gg 가 켜진 소자 M2 의 gate 도 된다 -> off_only_node 사유로는 정지하지 않는다(다른 사유 정지·통과는 허용, 사유는 보고)."""
+# [A-93] 규칙 하나: 전도 엣지(device.dc_nets - off - current_source)로 전압 결정 넷(레일·고정 넷, 선언 bias, 입력 포트)에서 닿지 않는 넷 중
+# off 소자 d·g·s 가 닿는 넷은 구조 정지. 게이트 예외 없음.
+# oracle (a)/(d): 물리 불변식 -- 켜진 gate + off gate + C 만 닿는 넷은 DC 전위 결정자가 없다(KCL 만으론 자유, off 전류도 미정).
+# 통과 사례는 같은 넷에 전위 결정자(입력 포트·선언 bias·R 로 레일)가 있는 구성.
+def _passes(tmp, doc, access):
+    ctx = build_ctx(tmp, doc, access, regions=(OFF_X,))[2]
+    assert ctx.base.field("device", "M1", "dc_coord") is not None      # 다른 사유 없이 쓰기 계획이 나왔다
+    assert ctx.base.field("device", "Moff", "dc_coord") is None        # off 소자는 계획 밖
+
+
+def test_off_gate_shared_with_on_device_gate_and_capacitor_stops_as_off_only_node(tmp_path_factory, r4_access):
+    """(j) 켜진 M2 gate + off gate + C 가 gg 를 공유, gg 는 DC 구동·선언 없음 -> off_only_node 구조 정지."""
     doc = _off_gate_doc("oo_j", extra_mos=[mos("M2", "nmos", "out", "gg", "gnd")])
-    try:
-        build_ctx(tmp_path_factory.mktemp("oo_j"), doc, r4_access, regions=(OFF_X,))
-    except StructureUnresolvedError as e:
-        d = detail(e)
-        assert d.get("rule_branch") != "off_only_node", d
+    _stops(tmp_path_factory.mktemp("oo_j"), doc, r4_access)
+
+
+def test_off_only_node_passes_when_off_gate_on_input_port(tmp_path_factory, r4_access):
+    """(k) off gate 가 입력 포트 in 에 닿는다(입력 포트는 전압 결정 넷)."""
+    doc = topo("oo_k", [mos("M1", "nmos", "out", "in", "gnd"), mos("Moff", "nmos", "vdd", "in", "gnd")], _PORTS,
+               passives=[two("R1", "resistor", "vdd", "out")])
+    _passes(tmp_path_factory.mktemp("oo_k"), doc, r4_access)
+
+
+def test_off_only_node_passes_when_off_drain_on_input_port(tmp_path_factory, r4_access):
+    """(l) off drain 이 입력 포트 in 에 닿는다."""
+    doc = topo("oo_l", [mos("M1", "nmos", "out", "in", "gnd"), mos("Moff", "nmos", "in", "vdd", "gnd")], _PORTS,
+               passives=[two("R1", "resistor", "vdd", "out")])
+    _passes(tmp_path_factory.mktemp("oo_l"), doc, r4_access)
+
+
+def test_off_only_node_passes_when_shared_gate_net_is_declared_bias(tmp_path_factory, r4_access):
+    """(m) off gate + 켜진 gate 가 선언 bias 넷 gg 를 공유."""
+    net = [mos("M1", "nmos", "out", "in", "gnd"), mos("Moff", "nmos", "vdd", "gg", "gnd"), mos("M2", "nmos", "out", "gg", "gnd")]
+    doc = topo("oo_m", net, _PORTS, passives=[two("R1", "resistor", "vdd", "out")], bias=["gg"])   # bias 넷은 gate 전용(C 없음)
+    _passes(tmp_path_factory.mktemp("oo_m"), doc, r4_access)
+
+
+def test_off_only_node_passes_when_shared_gate_net_tied_to_rail_by_resistor(tmp_path_factory, r4_access):
+    """(n) off gate + 켜진 gate 공유 넷 gg 가 R 로 레일에 닿는다(KVL 이 전위를 정한다)."""
+    net = [mos("M1", "nmos", "out", "in", "gnd"), mos("Moff", "nmos", "vdd", "gg", "gnd"), mos("M2", "nmos", "out", "gg", "gnd")]
+    doc = topo("oo_n", net, _PORTS, passives=[two("R1", "resistor", "vdd", "out"), two("Rg", "resistor", "vdd", "gg"),
+                                              two("C1", "capacitor", "gg", "gnd")])
+    _passes(tmp_path_factory.mktemp("oo_n"), doc, r4_access)
 
 
 def test_dc_writer_plan_reads_device_dc_nets():
