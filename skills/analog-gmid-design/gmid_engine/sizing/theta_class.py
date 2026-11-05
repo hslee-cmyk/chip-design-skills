@@ -7,7 +7,7 @@
   `device.dc_coord`·topology 태그는 읽지 않는다.
 * 분류(41 §5.3.3 표):
   - 매크로 활성 = GBW 목표 선언, 또는 정착 선언 있음 + GBW 미선언 (= 둘 중 하나라도 선언).
-  - **S** = 매크로 활성 회로에서 gain 제약 전달 뷰(첫 전달 뷰) 이득·복합 블록의 AC 역할 `input`, 그리고 출력 저항(rout)이 선언된 회로에서 전달 뷰 버퍼 블록의
+  - **S** = 매크로 활성 회로에서 gain 제약 전달 뷰 전부(없으면 전달 뷰 전부; 정의는 `l_classes.gain_transfer_views` 와 공용, 합집합)의 이득·복합 블록의 AC 역할 `input`, 그리고 출력 저항(rout)이 선언된 회로에서 전달 뷰 버퍼 블록의
     출력 노드에 source 가 닿는 follower.
   - **F** = AC 역할 `cascode`·`pass`·`follower`, 그리고 S 가 아닌 `input`(매크로 비활성 회로의 입력).
   - **B** = 그 밖 전부(`load`·`mirror`·`diode_load`·`tail_source`, 어느 블록에도 들지 않는 MOS, feedforward 묶음 셀). S1v 가 없는 S1(블록 없음)이면 전부 B.
@@ -15,7 +15,7 @@
 """
 from gmid_engine.core import compute_block
 from gmid_engine.graph import (BLOCK_BUFFER, BLOCK_COMPOSITE, BLOCK_GAIN, ELEMENT_MOS, ROLE_CASCODE, ROLE_FOLLOWER, ROLE_INPUT, ROLE_PASS,
-                               S1V_KEY, VIEW_TRANSFER)
+                               S1V_KEY, VIEW_TRANSFER, gain_transfer_views)
 
 from .s2_values import THETA_CLASS_B, THETA_CLASS_F, THETA_CLASS_S, THETA_CLASS_WRITER, ThetaClass
 
@@ -32,8 +32,10 @@ def theta_class(projection):
     pins = {name: dict(p) for name, p in projection.column("device", "pins")}
     views = tuple(v for v in dict(projection.column("graph", "views")).get(S1V_KEY, ()) if v.kind == VIEW_TRANSFER)
     macro = has_gbw_target or has_settling
-    gain_view = views[:1] if macro else ()                                  # gain 제약 전달 뷰 = 첫 전달 뷰(L 동치류 주인 규칙 `main_path_signal` 의 대용과 같다)
-    strong = {name for v in gain_view for block in v.blocks if block.kind in _GAIN_BLOCKS for name, role in block.roles if role == ROLE_INPUT}
+    # gain 제약 전달 뷰 전부(`l_classes.gain_transfer_views`, 합집합), 없으면 전달 뷰 전부 -- 첫 뷰 하나로 줄이지 않는다.
+    # 입력 `DcInputs` 는 유무 bool 뿐이라 gain 제약 뷰 id 집합이 이 블록에 없다 -> 빈 집합을 넘기고 전달 뷰 전부로 떨어진다(보고: 뷰 id 정본 필드 없음).
+    gain_views = (gain_transfer_views(views, ()) or views) if macro else ()
+    strong = {name for v in gain_views for block in v.blocks if block.kind in _GAIN_BLOCKS for name, role in block.roles if role == ROLE_INPUT}
     if has_rout_limit:
         strong |= {name for v in views for block in v.blocks if block.kind == BLOCK_BUFFER for name, role in block.roles
                    if role == ROLE_FOLLOWER and pins[name]["s"] in block.outputs}
