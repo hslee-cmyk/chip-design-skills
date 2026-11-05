@@ -4,4 +4,4 @@ def probe(snapshot):
 
 def _report(snapshot):
     op = snapshot.value("device", "m1", "dc_op")
-    return snapshot.write("rep", "iv", {("graph", "rep"): {"i": op.current}})
+    return {"i": op.current}

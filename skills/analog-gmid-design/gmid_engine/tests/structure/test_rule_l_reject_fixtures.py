@@ -9,6 +9,7 @@ oracle (a): 픽스처(`fixtures/rule_l/<id>/gmid_engine/`)는 구성으로 정�
 """
 from __future__ import annotations
 
+import shutil
 import sys
 from pathlib import Path
 
@@ -156,8 +157,10 @@ ADD = [
      [(("L-5", "op_copy", "graph/op_user.py", "lay"), OPC)]),
     # 출력 함수 면제가 실제로 일한다(Op-output-exempt): 목록에 있으면 clean, 없으면 같은 코드가 위반
     ("L5h-on", "L5h-exempt", params(l5_concepts=OP_COPY, output_functions=("graph/op_user.py:_report",)), []),
+    # (O-241 재판정 M-5) 출력 함수 면제는 (iii) 결과 JSON·보고 객체 자리뿐이다: `_report` 는 보고 객체를 돌려줄 뿐 graph 쓰기는 호출자가 한다.
+    # 면제 목록에 없으면 호출자가 사본을 graph 에 쓰니 사본을 만든 `_report` 와 쓴 `run_stage_a` 가 둘 다 위반이다(L5b-1 의 `_row`·`place` 와 같은 꼴).
     ("L5h-off", "L5h-exempt", params(l5_concepts=OP_COPY),
-     [(("L-5", "op_copy", "graph/op_user.py", "_report"), OPC)]),
+     [(("L-5", "op_copy", "graph/op_user.py", "_report"), OPC), (("L-5", "op_copy", "pipeline/stage_a.py", "run_stage_a"), OPC)]),
     # writer 파일 면제(Op-writer-exempt), 도달 조건(N3.1-5): 진입점에서 도달하지 않는 함수는 대상 밖, 같은 함수가 도달하면 위반
     ("L5i-writer", "L5i-writer", params(l5_concepts=OP_COPY), []),
     ("L5j-reach", "L5j-reach", params(l5_concepts=OP_COPY), []),
@@ -254,7 +257,8 @@ def test_rule_l_fixture_exact_violation_set(fid):
 
 def test_rule_l_fixture_count_covers_card_table():
     """card 픽스처 표의 트리 입력형 id가 모두 디스크에 있다(빠뜨린 픽스처를 막는다)."""
-    need = set(EXACT) | {"L9c", "LT", "L5a-11", "L3x", "L10b", "LW2", "L5p-path-field", "L5p-path-two"} | {c[1] for c in ADD}
+    need = set(EXACT) | {"L9c", "LT", "L5a-11", "L3x", "L10b", "LW2", "L5p-path-field", "L5p-path-two", "L5q-two-forms",
+                        "L5q-whole-copy"} | {c[1] for c in ADD}
     have = {p.name for p in FIX.iterdir() if p.is_dir()}
     assert need == have
 
@@ -390,10 +394,14 @@ def test_rule_l_fingerprint_newline_normalized(tmp_path):
     assert fingerprint(PARAMS, c1, t1) == fingerprint(PARAMS, c2, t2)
 
 
-# ---------------------------------------------------------------- O-241: 칸 경로 출력, 손 분류 표(op_copy_cleared), 고정점 fail-closed
+# ---------------------------------------------------------------- O-241: 칸 경로·sink 꼴 출력, 손 분류 표(op_copy_cleared), 고정점 fail-closed
 
 PLACE = ("L-5", "op_copy", "graph/op_user.py", "place")
 OPC_PARAMS = dict(l5_concepts=OP_COPY)
+# sink 꼴 = 영속 자리 종류 + 대상 식 문자열. 호출 sink 는 호출 식 전체(공백 정규화), 대입 sink 는 대상 식. 픽스처 소스를 읽고 손으로 적었다.
+F_POINT = "write:snapshot.write('lay', 'iv', {('graph', 'ly_point'): {'m1': row}})"
+F_I2 = "write:snapshot.write('lay', 'i2', {('graph', 'ly_i'): {'m1': op.current}})"
+F_SAVED = "attr:snapshot.ctx.saved"
 
 
 def _op(fid, **kw):
@@ -401,53 +409,93 @@ def _op(fid, **kw):
 
 
 def test_rule_l_op_copy_reports_caught_field_paths():
-    """칸 경로 출력: 객체의 `current` 칸이 닿으면 ('current',), 정본 값 전체가 닿으면 ()이다. 위반 키는 interface 키 꼴 그대로.
-    oracle (a): L5p-path-field 는 Row(current=동작점 값, n=상수)를 묶음째 쓴다 -> 오염된 칸은 current 하나. L5p-path-two 는 더해서 값 자체를 쓴다."""
+    """(칸 경로, sink 꼴) 쌍 출력: 객체의 `current` 칸이 닿으면 ('current',), 정본 값 전체가 닿으면 ()이다. 위반 키는 interface 키 꼴 그대로.
+    oracle (a): L5p-path-field 는 Row(current=동작점 값, n=상수)를 묶음째 쓴다 -> 오염된 칸은 current 하나, 자리는 그 write 호출.
+    L5p-path-two 는 더해서 값 자체를 다른 write 로 쓴다 -> 쌍이 둘."""
     one = _op("L5p-path-field")
-    assert [(v.key, v.paths) for v in one] == [(PLACE, (("current",),))]
+    assert [(v.key, v.paths, v.sinks) for v in one] == [(PLACE, (("current",),), ((("current",), F_POINT),))]
     two = _op("L5p-path-two")
-    assert [(v.key, v.paths) for v in two] == [(PLACE, ((), ("current",)))]
+    assert [(v.key, v.paths, v.sinks) for v in two] == [(PLACE, ((), ("current",)), (((), F_I2), (("current",), F_POINT)))]
 
 
-def test_rule_l_op_copy_reports_callee_made_copy_path():
-    """사본을 만든 피호출(`_row`)의 칸 경로는 피호출이 돌려준 칸이다. oracle (a): L5b-1 의 `_row` 는 Row(current=...)를 돌려준다."""
-    got = {v.key: v.paths for v in _op("L5b-1", output_functions=())}
-    assert got[("L-5", "op_copy", "graph/op_user.py", "_row")] == (("current",),)
-    assert got[PLACE] == ((),)
+def test_rule_l_op_copy_reports_callee_made_copy_path_and_caller_sink_form():
+    """사본을 만든 피호출(`_row`)의 칸 경로는 피호출이 돌려준 칸이고, 지역 sink 가 없는 키의 sink 꼴은 호출자의 것이다.
+    oracle (a): L5b-1 의 `_row` 는 Row(current=...)를 돌려주기만 하고(저장 없음) `place` 가 write 로 쓴다."""
+    got = {v.key: (v.paths, v.sinks) for v in _op("L5b-1", output_functions=())}
+    assert got[("L-5", "op_copy", "graph/op_user.py", "_row")] == ((("current",),), ((("current",), F_POINT),))
+    assert got[PLACE] == (((),), (((), F_POINT),))
 
 
-def _row(path, key=PLACE, ref="graph/op_user.py:12"):
-    return (key, path, ref)
+def _row(path, form, key=PLACE, ref="graph/op_user.py:12"):
+    return (key, path, form, ref)
 
 
-def test_rule_l_op_copy_cleared_row_hides_only_listed_path():
-    """표 행이 (키, 칸 경로)를 가린다. 구성: path-field 는 ('current',) 하나만 잡힌다 -> 그 행이면 위반 0."""
-    assert _op("L5p-path-field", op_copy_cleared=(_row(("current",)),)) == ()
+def test_rule_l_op_copy_cleared_row_hides_only_listed_pair():
+    """표 행이 (키, 칸 경로, sink 꼴)을 가린다. 구성: path-field 는 (('current',), F_POINT) 하나만 잡힌다 -> 그 행이면 위반 0."""
+    assert _op("L5p-path-field", op_copy_cleared=(_row(("current",), F_POINT),)) == ()
+
+
+def test_rule_l_op_copy_cleared_source_whitespace_is_normalized():
+    """행의 sink 꼴은 소스 공백을 정규화해 비교한다. 구성: 같은 꼴에 공백을 늘려 적어도 가려진다."""
+    spaced = "write:snapshot.write('lay',   'iv',   {('graph', 'ly_point'):  {'m1': row}})"
+    assert _op("L5p-path-field", op_copy_cleared=(_row(("current",), spaced),)) == ()
 
 
 def test_rule_l_op_copy_cleared_new_path_still_violation():
-    """새 칸 경로 = 위반. 구성: path-two 는 () 와 ('current',) 둘이 잡힌다. ('current',) 행만 있으면 () 는 위반으로 남고 남은 경로만 낸다."""
-    got = _op("L5p-path-two", op_copy_cleared=(_row(("current",)),))
-    assert [(v.key, v.code, v.paths) for v in got] == [(PLACE, "op_copy", ((),))]
+    """새 칸 경로 = 위반. 구성: path-two 는 ((), F_I2) 와 (('current',), F_POINT) 둘이 잡힌다. 둘째 행만 있으면 첫째 쌍이 남는다."""
+    got = _op("L5p-path-two", op_copy_cleared=(_row(("current",), F_POINT),))
+    assert [(v.key, v.code, v.paths, v.sinks) for v in got] == [(PLACE, "op_copy", ((),), (((), F_I2),))]
+
+
+def test_rule_l_op_copy_cleared_new_sink_form_same_path_still_violation():
+    """새 sink 꼴 = 위반(칸 경로가 같아도). 구성: L5q-two-forms 는 같은 Row 를 write 에도 쓰고 `snapshot.ctx.saved` 속성에도 담는다 ->
+    쌍 둘 (('current',), F_POINT), (('current',), F_SAVED). write 행만 적으면 속성 쌍이 위반으로 남는다."""
+    both = _op("L5q-two-forms")
+    assert [(v.key, v.sinks) for v in both] == [(PLACE, ((("current",), F_SAVED), (("current",), F_POINT)))]
+    got = _op("L5q-two-forms", op_copy_cleared=(_row(("current",), F_POINT),))
+    assert [(v.key, v.code, v.sinks) for v in got] == [(PLACE, "op_copy", ((("current",), F_SAVED),))]
+
+
+def test_rule_l_op_copy_cleared_whole_copy_new_sink_not_hidden_by_empty_path_row():
+    """같은 함수에 진짜 새 사본을 통째(경로 ()) 저장하면 새 sink 꼴이라 잡힌다. 구성: L5q-whole-copy 는 `op.current` 를 write(경로 ())하고
+    `snapshot.ctx.saved = op` 로 객체 전체를 담는다(경로 ()). 표가 첫째 쌍만 적었으면 둘째가 남는다 -- 경로 ()가 키 전체를 덮지 않는다."""
+    got = _op("L5q-whole-copy", op_copy_cleared=(_row((), F_I2),))
+    assert [(v.key, v.code, v.sinks) for v in got] == [(PLACE, "op_copy", (((), F_SAVED),))]
+    assert _op("L5q-whole-copy", op_copy_cleared=(_row((), F_I2), _row((), F_SAVED))) == ()
+
+
+def test_rule_l_op_copy_cleared_callee_made_copy_is_compared_by_caller_sink_form():
+    """지역 sink 가 없는 키는 호출자 sink 꼴로 비교한다. 구성: L5b-1 의 `_row`(저장 없음)는 호출자 `place` 의 write 꼴로만 가려진다."""
+    row_key = ("L-5", "op_copy", "graph/op_user.py", "_row")
+    rows = (_row(("current",), F_POINT, key=row_key), _row((), F_POINT))
+    assert _op("L5b-1", output_functions=(), op_copy_cleared=rows) == ()
+    wrong = (_row(("current",), "write:snapshot.write('other')", key=row_key), _row((), F_POINT))
+    got = _op("L5b-1", output_functions=(), op_copy_cleared=wrong)
+    assert sorted((v.key, v.code) for v in got) == sorted([(("L-5", "op_copy_cleared", "graph/op_user.py", "_row"), "op_copy_cleared_stale"),
+                                                           (row_key, "op_copy")])
 
 
 def test_rule_l_op_copy_cleared_row_for_other_key_hides_nothing():
     """행의 키가 다르면 가리지 않는다. 구성: 키의 함수 이름만 다른 행(`other`)은 place 를 가리지 못하고, 자기는 낡은 항목이다."""
     other = ("L-5", "op_copy", "graph/op_user.py", "other")
-    got = _op("L5p-path-field", op_copy_cleared=(_row(("current",), key=other),))
+    got = _op("L5p-path-field", op_copy_cleared=(_row(("current",), F_POINT, key=other),))
     assert sorted((v.key, v.code) for v in got) == sorted([(("L-5", "op_copy_cleared", "graph/op_user.py", "other"), "op_copy_cleared_stale"),
                                                            (PLACE, "op_copy")])
 
 
 def test_rule_l_op_copy_cleared_stale_row_is_violation():
-    """잡히지 않는 행 = 위반(op_copy_cleared_stale). 구성: ('current',) 는 잡히지만 ('n',) 은 잡히지 않는다 -> 낡은 행 하나만 위반이고 키는 op_copy 와 다르다."""
-    got = _op("L5p-path-field", op_copy_cleared=(_row(("current",)), _row(("n",))))
-    assert [(v.key, v.code, v.paths) for v in got] == [(("L-5", "op_copy_cleared", "graph/op_user.py", "place"), "op_copy_cleared_stale", (("n",),))]
+    """잡히지 않는 행 = 위반(op_copy_cleared_stale). 구성: (('current',), F_POINT) 는 잡히지만 칸 경로가 다른 행과 sink 꼴이 다른 행은 잡히지 않는다
+    -> 낡은 행 둘이 한 위반(키는 op_copy 와 다르다)으로 나온다."""
+    rows = (_row(("current",), F_POINT), _row(("n",), F_POINT), _row(("current",), "attr:snapshot.ctx.gone"))
+    got = _op("L5p-path-field", op_copy_cleared=rows)
+    assert [(v.key, v.code, v.paths, v.sinks) for v in got] == [
+        (("L-5", "op_copy_cleared", "graph/op_user.py", "place"), "op_copy_cleared_stale", (("current",), ("n",)),
+         ((("current",), "attr:snapshot.ctx.gone"), (("n",), F_POINT)))]
 
 
 def test_rule_l_op_copy_cleared_stale_when_nothing_caught():
     """깨끗한 트리에 행이 있으면 모두 낡은 항목이다. 구성: L5g-clean 은 위반 0 이므로 어떤 행도 가릴 것이 없다."""
-    row = _row((), key=("L-5", "op_copy", "graph/op_user.py", "lay"))
+    row = _row((), "attr:x", key=("L-5", "op_copy", "graph/op_user.py", "lay"))
     got = _op("L5g-clean", op_copy_cleared=(row,))
     assert [(v.key, v.code) for v in got] == [(("L-5", "op_copy_cleared", "graph/op_user.py", "lay"), "op_copy_cleared_stale")]
 
@@ -458,14 +506,26 @@ def test_rule_l_op_copy_cleared_default_empty_changes_nothing():
     assert len(_op("L5p-path-field")) == 1
 
 
+@pytest.mark.parametrize("row", [
+    (PLACE, ("current",), "ref"),                                  # sink 꼴 칸이 없는 옛 3칸 행
+    (PLACE, ("current",), F_POINT, "ref", "extra"),
+])
+def test_rule_l_op_copy_cleared_malformed_row_is_rejected(row):
+    """행 모양이 (키, 칸 경로, sink 꼴, 근거) 넷이 아니면 조용히 넘기지 않고 거부한다. 구성: 칸 수가 모자라거나 넘치는 행."""
+    with pytest.raises(ValueError):
+        _op("L5p-path-field", op_copy_cleared=(row,))
+
+
 def test_rule_l_fingerprint_includes_op_copy_cleared(tmp_path):
-    """표는 지문 대상이다: 행 하나가 늘면 지문이 바뀐다(N3.1-6 (d)). 구성: 같은 입력에서 행만 다르다."""
+    """표는 지문 대상이다: 행 하나가 늘면 지문이 바뀌고 sink 꼴만 달라도 바뀐다(N3.1-6 (d)). 구성: 같은 입력에서 행만 다르다."""
     c, t = _fp_inputs(tmp_path)
     base = fingerprint(PARAMS, c, t)
-    changed = fingerprint(PARAMS._replace(op_copy_cleared=((PLACE, ("current",), "graph/op_user.py:12"),)), c, t)
+    changed = fingerprint(PARAMS._replace(op_copy_cleared=((PLACE, ("current",), F_POINT, "graph/op_user.py:12"),)), c, t)
     assert changed != base
-    other_path = fingerprint(PARAMS._replace(op_copy_cleared=((PLACE, ("n",), "graph/op_user.py:12"),)), c, t)
+    other_path = fingerprint(PARAMS._replace(op_copy_cleared=((PLACE, ("n",), F_POINT, "graph/op_user.py:12"),)), c, t)
     assert other_path != changed
+    other_form = fingerprint(PARAMS._replace(op_copy_cleared=((PLACE, ("current",), F_I2, "graph/op_user.py:12"),)), c, t)
+    assert other_form != changed
 
 
 def test_rule_l_op_copy_fixed_point_overflow_is_violation(monkeypatch):
@@ -480,11 +540,212 @@ def test_rule_l_op_copy_fixed_point_overflow_is_violation(monkeypatch):
 
 
 def test_rule_l_op_copy_has_no_name_allowlists():
-    """허용 목록 금지(O-241): 이름으로 면제·직렬화를 가르던 상수와 외부 수신자 면제가 도구에 없다. 예외는 닫힌 내장 목록 하나뿐.
-    구성: rule_l_checks 의 최상위 이름과 클래스 메서드 이름을 AST 로 본다."""
+    """허용 목록 금지(O-241): 이름으로 면제·직렬화를 가르던 상수와 외부 수신자 면제가 도구에 없고, 닫힌 목록은 내용 자체가 고정돼 있다.
+    oracle (d): 목록 내용은 사용자가 선언한 '값을 보관하지 않음이 언어 정의로 확정된 내장' 한정(N3.1-5)이라 손으로 적었다. 목록에 이름 하나를 더하면(print·setattr 등)
+    이 test 가 실패한다 -- 목록 변경은 기준 변경(N3.1-6 (e))이다.
+    구성: rule_l_checks 의 최상위 이름과 클래스 메서드 이름을 AST 로 보고, 닫힌 목록 상수를 리터럴과 비교한다."""
     import ast
-    import rule_l_checks
-    tree = ast.parse(Path(rule_l_checks.__file__).read_text(encoding="utf-8"))
+    import rule_l_checks as m
+    tree = ast.parse(Path(m.__file__).read_text(encoding="utf-8"))
     names = {t.id for n in ast.walk(tree) if isinstance(n, ast.Assign) for t in n.targets if isinstance(t, ast.Name)}
     names |= {n.name for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
     assert not names & {"BENIGN_METHODS", "SERIALIZERS", "_ext_receiver"}
+    assert m.BUILTIN_PURE_FUNCS == frozenset({"abs", "all", "any", "bin", "callable", "chr", "divmod", "hasattr", "hash", "hex", "id", "isinstance",
+                                              "issubclass", "len", "oct", "ord", "pow", "range", "round", "sum"})
+    assert m.BUILTIN_FLOW_FUNCS == frozenset({"float", "int", "str", "bool", "dict", "tuple", "list", "set", "frozenset", "sorted", "reversed",
+                                              "getattr", "min", "max", "zip", "enumerate", "iter", "next", "filter", "map"})
+    assert m.BUILTIN_TYPE_METHODS == {
+        "str": frozenset({"capitalize", "casefold", "center", "count", "encode", "endswith", "expandtabs", "find", "format", "format_map", "index",
+                          "isalnum", "isalpha", "isascii", "isdecimal", "isdigit", "isidentifier", "islower", "isnumeric", "isprintable",
+                          "isspace", "istitle", "isupper", "join", "ljust", "lower", "lstrip", "partition", "removeprefix", "removesuffix",
+                          "replace", "rfind", "rindex", "rjust", "rpartition", "rsplit", "rstrip", "split", "splitlines", "startswith", "strip",
+                          "swapcase", "title", "translate", "upper", "zfill"}),
+        "list": frozenset({"clear", "copy", "count", "index", "pop", "remove", "reverse", "sort"}),
+        "dict": frozenset({"clear", "copy", "get", "items", "keys", "pop", "popitem", "values"}),
+        "set": frozenset({"clear", "copy", "difference", "discard", "intersection", "isdisjoint", "issubset", "issuperset", "pop", "remove",
+                          "symmetric_difference", "union"}),
+        "tuple": frozenset({"count", "index"}),
+    }
+    assert m.BUILTIN_TYPE_ADD == {"list": frozenset({"append", "extend", "insert"}), "dict": frozenset({"setdefault", "update"}),
+                                  "set": frozenset({"add", "update"})}
+    assert m._NONFLOW_METHODS == frozenset({"count", "endswith", "find", "index", "isalnum", "isalpha", "isascii", "isdecimal", "isdigit",
+                                            "isidentifier", "islower", "isnumeric", "isprintable", "isspace", "istitle", "isupper", "isdisjoint",
+                                            "issubset", "issuperset", "rfind", "rindex", "startswith"})
+    assert m._SAFE_DECORATORS == frozenset({"staticmethod", "classmethod", "property", "abstractmethod", "setter", "getter", "deleter"})
+    assert m._DATACLASS_DECORATORS == frozenset({"dataclass"})
+    assert m.SRC_BASES == frozenset({"S", "SP", "SD"})
+
+
+# ---------------------------------------------------------------- O-241 재판정 M-5: 모델 밖 구문은 기본이 위반(fail-closed 뿌리)
+# 소스를 test 안에서 짠다(기본 트리 = L5b-1: op_block 이 device.dc_op 를 쓰는 블록, stage_a 가 place(snapshot) 를 부른다).
+# 기대 = 사본 자리 함수 한정 이름 목록. 출처 값이 변형 없이 영속 자리에 닿거나 추적이 끊기면 그 함수가 위반이고, 산술로 끊기거나 지역 임시 묶음이면 위반 0이다.
+# 기대는 N3.1-5 '사본의 정의'·'fail-closed'에서 손으로 적었다(도구 출력을 옮긴 것이 아니다). oracle (a).
+BASE_TREE = FIX / "L5b-1" / "gmid_engine"
+OPV = 'op = snapshot.value("device", "m1", "dc_op")\n'
+COL = 'ops = dict(snapshot.column("device", "dc_op"))\n'
+WRT = 'return snapshot.write("lay", "iv", {("graph", "ly_point"): {"m1": v}})\n'
+GLB = "STORE = []\n\n\n"
+BLOCK_KEEP = ('from gmid_engine.core.compute_block import compute_block\n\n\n@compute_block("keep", reads=(), writes=(("graph", "k"),))\n'
+              'def keep_block(projection):\n    (v,) = projection.extras\n    return {("graph", "k"): {"g": v}}\n\n\n')
+
+
+ASYNC_HEAD = ("async def f(x):\n    return x\n\n\nasync def g(snapshot):\n    " + OPV + "    v = await f(op.current)\n    " + WRT + "\n\n")
+
+# (id, 함수 앞 정의, place 본문(줄마다 함수 본문 기준 상대 들여쓰기), 기대 사본 자리 함수들)
+SHAPES = [
+    # BUILTIN_FLOW_FUNCS: 전 인자 라벨을 합쳐 넘긴다
+    ("flow_max", "", [OPV, "v = max(op.current, 0.0)\n", WRT], ["place"]),
+    ("flow_min_one", "", [COL, "v = min(ops.values(), key=id).current\n", WRT], ["place"]),
+    ("flow_next_iter", "", [COL, "v = next(iter(ops.values())).current\n", WRT], ["place"]),
+    ("flow_enumerate", "", [COL, "for _i, o in enumerate(ops.values()):\n    v = o.current\n", WRT], ["place"]),
+    ("flow_zip", "", [COL, 'for o, _n in zip(ops.values(), ("a",)):\n    v = o.current\n', WRT], ["place"]),
+    ("flow_zip_write", "", [COL, "v = dict(zip(ops, ops.values()))\n", WRT], ["place"]),
+    ("flow_filter", "", [COL, "v = tuple(filter(None, ops.values()))\n", WRT], ["place"]),
+    # 콜백 인자: 따라갈 수 없으면 sink
+    ("flow_map_engine", GLB + "def _keep(o):\n    STORE.append(o.current)\n\n\n", [COL, "v = list(map(_keep, ops.values()))\n", WRT], ["place"]),
+    ("flow_map_ext", "", [COL, "v = list(map(snapshot.ctx.rows.append, ops.values()))\n", WRT], ["place"]),
+    ("flow_sorted_key_cb", "", [COL, "v = sorted(ops.values(), key=snapshot.ctx.rows.append)\n", WRT], ["place"]),
+    ("flow_iter_store", "", [COL, "snapshot.ctx.it = iter(ops.values())\nv = 1.0\n", WRT], ["place"]),
+    ("min_key_engine", GLB + "def _keep(o):\n    STORE.append(o)\n    return 0\n\n\n", [OPV, "min([op], key=_keep)\nv = 1.0\n", WRT], ["place"]),
+    ("lambda_param_map", "", [COL, "v = list(map(lambda o: o.current, ops.values()))\n", WRT], ["place"]),
+    # 값 열을 이름에 담아 도는 루프·컴프리헨션, 두 칸 풀기의 왼쪽
+    ("loop_list_values", "", [COL, "for o in list(ops.values()):\n    snapshot.ctx.rows.append(o.current)\nv = 1.0\n", WRT], ["place"]),
+    ("loop_named_values", "", [COL, "vals = tuple(ops.values())\nfor o in vals:\n    snapshot.ctx.rows.append(o.current)\nv = 1.0\n", WRT], ["place"]),
+    ("comp_named_values", "", [COL, "vals = tuple(ops.values())\nv = tuple(o.current for o in vals)\n", WRT], ["place"]),
+    ("loop_pair_left", "", [OPV, 'for o, _n in [(op, "m1")]:\n    v = o.current\n', WRT], ["place"]),
+    # 클로저·람다: 바깥 함수 변수 조회
+    ("closure_read", "", [OPV, "def g():\n    return op.current\nv = g()\n", WRT], ["place", "place.g"]),
+    ("closure_store", "", [OPV, "def g():\n    snapshot.ctx.rows.append(op.current)\ng()\nv = 1.0\n", WRT], ["place.g"]),
+    ("lambda_immediate", "", [OPV, "v = (lambda: op.current)()\n", WRT], ["place"]),
+    ("lambda_store", "", [OPV, "f = lambda: snapshot.ctx.rows.append(op.current)\nf()\nv = 1.0\n", WRT], ["place"]),
+    ("once_cache", "", [OPV, 'cache = {}\ndef once(k, make):\n    cache[k] = make()\n    return cache[k]\nv = once("a", lambda: op.current)\n', WRT],
+     ["place", "place.once"]),
+    # with as, 워러스, match, raise
+    ("with_as", "import contextlib\n@contextlib.contextmanager\ndef hold(x):\n    yield x\n\n\n",
+     [OPV, "with hold(op) as h:\n    v = h.current\n", WRT], ["place"]),
+    ("walrus", "", [OPV, "if (v := op.current) > 0:\n    pass\n", WRT], ["place"]),
+    ("walrus_store", "", ['if (op := snapshot.value("device", "m1", "dc_op")) is not None:\n    v = op.current\n', WRT], ["place"]),
+    ("match_case", "", [OPV, "match op:\n    case x:\n        v = x.current\n", WRT], ["place"]),
+    ("except_as_none", "", [OPV, "v = op.current if op else None\n", WRT], ["place"]),
+    ("exc_detail", "class Bad(Exception):\n    pass\n\n\n", [OPV, "raise Bad(op.current)\n"], ["place"]),
+    ("exc_kw_helper", "def fail(**detail):\n    return ValueError(detail)\n\n\n", [OPV, "raise fail(value=float(op.vds))\n"], ["place"]),
+    # *args·**kwargs, 생성자 본문, 장식된 함수, 블록 extras
+    ("star_args", GLB + "def keep(*a):\n    STORE.append(a)\n\n\n", [OPV, "keep(op.current)\nv = 1.0\n", WRT], ["place"]),
+    ("star_kwargs", GLB + "def keep(**k):\n    STORE.append(k)\n\n\n", [OPV, "keep(i=op.current)\nv = 1.0\n", WRT], ["place"]),
+    ("star_args_ret", "def keep(*a):\n    return a\n\n\n", [OPV, "v = keep(op.current)\n", WRT], ["place"]),
+    ("default_kw_ret", 'def keep(x=None, **k):\n    return k["i"]\n\n\n', [OPV, "v = keep(i=op.current)\n", WRT], ["place"]),
+    ("init_stores_global", GLB + "class K:\n    def __init__(self, x):\n        STORE.append(x)\n\n\n", [OPV, "K(op.current)\nv = 1.0\n", WRT], ["K.__init__"]),
+    ("post_init_store", "import dataclasses\n" + GLB + "@dataclasses.dataclass\nclass K:\n    x: float\n    def __post_init__(self):\n        STORE.append(self.x)\n\n\n",
+     [OPV, "K(op.current)\nv = 1.0\n", WRT], ["place"]),
+    ("ctor_no_args_via_star", "class R:\n    def __init__(self, *a):\n        self.a = a\n\n\n", [OPV, "v = R(op.current)\n", WRT], ["place"]),
+    ("lru_decorator", "import functools\n@functools.lru_cache(maxsize=None)\ndef f(x):\n    return 1.0\n\n\n", [OPV, "f(op.current)\nv = 1.0\n", WRT], ["place"]),
+    ("block_extra", BLOCK_KEEP, [OPV, "return keep_block(snapshot, op.current)\n"], ["place"]),
+    ("param_dict_called", 'def keep(cache, op):\n    cache["m1"] = op.current\n\n\n', [OPV, "keep(snapshot.ctx, op)\nv = 1.0\n", WRT], ["keep"]),
+    # 값을 보관하거나 문자열로 옮기는 내장·서식은 목록에 없다
+    ("type_3arg", "", [OPV, 'v = type("T", (), {"i": op.current})\n', WRT], ["place"]),
+    ("str_flow", "", [OPV, "v = str(op.current)\n", WRT], ["place"]),
+    ("repr_form", "", [OPV, "v = repr(op.current)\n", WRT], ["place"]),
+    ("format_form", "", [OPV, "v = format(op.current)\n", WRT], ["place"]),
+    ("ascii_form", "", [OPV, "v = ascii(op.current)\n", WRT], ["place"]),
+    ("fstring_form", "", [OPV, 'v = f"{op.current}"\n', WRT], ["place"]),
+    ("str_format_method", "", [OPV, 'v = "{}".format(op.current)\n', WRT], ["place"]),
+    ("str_join_method", "", [OPV, 'v = ",".join([op.current])\n', WRT], ["place"]),
+    ("dict_key", "", [OPV, "v = {op.current: 1}\n", WRT], ["place"]),
+    ("dict_key_comp", "", [COL, "v = {o.current: 1 for o in ops.values()}\n", WRT], ["place"]),
+    ("dict_kw_ctor", "", [OPV, "v = dict(i=op.current)\n", WRT], ["place"]),
+    ("dict_merge_kw", "", [OPV, "v = dict({}, i=op.current)\n", WRT], ["place"]),
+    ("set_value", "", [OPV, "v = {op.current}\n", WRT], ["place"]),
+    ("print_file", "", [OPV, "print(op.current, file=snapshot.fh)\nv = 1.0\n", WRT], ["place"]),
+    ("print_plain", "", [OPV, "print(op.current)\nv = 1.0\n", WRT], ["place"]),
+    ("setattr_ctx", "", [OPV, 'setattr(snapshot.ctx, "x", op.current)\nv = 1.0\n', WRT], ["place"]),
+    ("vars_op", "", [OPV, "v = vars(op)\n", WRT], ["place"]),
+    ("slice_list", "", [COL, "v = list(ops.values())[0:1]\n", WRT], ["place"]),
+    ("shadow_list_name", "class list:\n    def __init__(self, x):\n        STORE.append(x)\n\n\n" + GLB, [OPV, "list(op.current)\nv = 1.0\n", WRT],
+     ["list.__init__"]),
+    ("local_alias_add", "", [OPV, "rows = []\nother = rows\nother.append(op.current)\nsnapshot.ctx.k = rows\nv = 1.0\n", WRT], ["place"]),
+    ("local_then_escape", "", [OPV, "rows = []\nsnapshot.ctx.k = rows\nrows.append(op.current)\nv = 1.0\n", WRT], ["place"]),
+    ("nested_fresh", "", [OPV, 'rows = {"a": []}\nrows["a"].append(op.current)\nsnapshot.ctx.k = rows\nv = 1.0\n', WRT], ["place"]),
+    ("param_append", "def keep(rows, op):\n    rows.append(op.current)\n\n\n", [OPV, "keep(snapshot.ctx.rows, op)\nv = 1.0\n", WRT], ["keep"]),
+    # 매개변수는 형이 확정되지 않는다: 안에서 새 list 로 다시 묶는 갈래가 있어도 넘겨받은 컨테이너일 수 있다(Param-typed)
+    ("param_append_reassigned", "def keep(rows, op):\n    if not rows:\n        rows = []\n    rows.append(op.current)\n\n\n",
+     [OPV, "keep(snapshot.ctx.rows, op)\nv = 1.0\n", WRT], ["keep"]),
+    # 출처를 알아보지 못하던 접근 꼴: 키워드 인자, 메서드 별칭, getattr, partial
+    ("src_kw_field", "", ['op = snapshot.value("device", "m1", field="dc_op")\nv = op.current\n', WRT], ["place"]),
+    ("src_kw_all", "", ['ops = snapshot.column(kind="device", field="dc_op")\nv = ops\n', WRT], ["place"]),
+    ("src_alias_method", "", ['col = snapshot.column\nv = col("device", "dc_op")\n', WRT], ["place"]),
+    ("src_getattr_method", "", ['v = getattr(snapshot, "column")("device", "dc_op")\n', WRT], ["place"]),
+    ("src_partial", "import functools\n", ['col = functools.partial(snapshot.column, "device")\nv = col("dc_op")\n', WRT], ["place"]),
+    # 새 구문도 기본이 위반: await 를 모델에 넣지 않았다
+    ("await_expr", ASYNC_HEAD, ["g(snapshot)\nv = 1.0\n", WRT], ["g"]),
+    # 대조: 산술·내장 산술·지역 임시 묶음·다른 칸·키 이름만은 위반이 아니다
+    ("clean_arith", "", [OPV, "v = op.current * 2.0\n", WRT], []),
+    ("clean_unary_compare", "", [OPV, "v = (-op.current, op.current > 0.0)\n", WRT], []),
+    ("clean_temp_abs", "", [OPV, "v = abs(op.current)\n", WRT], []),
+    ("clean_local_sum", "", [COL, "rows = []\nfor o in ops.values():\n    rows.append(o.current)\nv = sum(rows)\n", WRT], []),
+    ("clean_ctor_other_slot", "class Row:\n    def __init__(self, i, n):\n        self.i = i\n        self.n = n\n\n\n", [OPV, "v = Row(op.current, 1.0).n\n", WRT], []),
+    ("clean_names_only", "", [COL, "v = tuple(sorted(ops))\n", WRT], []),
+    ("clean_pair_key_side", "", [COL, "v = [m for m, _o in sorted(ops.items())]\n", WRT], []),
+    ("clean_key_callback_lambda", "", [COL, "v = len(sorted(ops.values(), key=lambda o: o.current))\n", WRT], []),
+]
+
+
+def _shape_src(head, lines):
+    body = "".join("    " + ln for ln in "".join(lines).splitlines(keepends=True))
+    return head + "def place(snapshot):\n" + body
+
+
+def _run_tree(tmp_path, op_user, p, extra=None):
+    d = tmp_path / "gmid_engine"
+    shutil.copytree(BASE_TREE, d, ignore=shutil.ignore_patterns("__pycache__"))
+    (d / "graph" / "op_user.py").write_text(op_user, encoding="utf-8")
+    for rel, text in (extra or {}).items():
+        (d / rel).write_text(text, encoding="utf-8")
+    return sorted((v.key[2], v.key[3]) for v in check_rule_l(d, p) if v.key[0] == "L-5")
+
+
+@pytest.mark.parametrize("name", [s[0] for s in SHAPES])
+def test_rule_l_op_copy_model_outside_shapes_are_violations(name, tmp_path):
+    """주입 꼴 하나씩: 출처 값이 영속 자리에 닿거나 추적이 끊기는 꼴은 사본 자리 함수가 위반이고, 대조 꼴(산술·지역 임시 묶음·키 이름만)은 위반 0이다.
+    oracle (a): 기대는 소스를 읽고 손으로 적었다(SHAPES 주석 참고)."""
+    _, head, lines, want = next(s for s in SHAPES if s[0] == name)
+    got = _run_tree(tmp_path, _shape_src(head, lines), params(**OPC_PARAMS))
+    assert got == sorted(("graph/op_user.py", w) for w in want)
+
+
+def test_rule_l_op_copy_output_function_graph_write_is_still_violation(tmp_path):
+    """출력 함수 면제는 N3.1-5 (iii) 결과 JSON·보고 객체 자리뿐이다. 구성: 면제 목록에 있는 함수가 동작점 값을 graph 필드로 쓰면((i) 자리) 위반이다."""
+    src = _shape_src("", [OPV, "v = op.current\n", WRT])
+    p = params(**OPC_PARAMS, output_functions=("graph/op_user.py:place",))
+    assert _run_tree(tmp_path, src, p) == [("graph/op_user.py", "place")]
+
+
+def test_rule_l_op_copy_value_passed_to_output_function_that_stores_is_violation(tmp_path):
+    """구성: 면제 목록에 있는 함수 `rep` 가 넘겨받은 동작점 값을 전역 목록에 저장한다((iv) 자리). 면제는 반환 객체뿐이라 저장하는 `rep` 가 위반이다."""
+    head = GLB + "def rep(x):\n    STORE.append(x)\n\n\n"
+    src = _shape_src(head, [OPV, "rep(op.current)\nv = 1.0\n", WRT])
+    p = params(**OPC_PARAMS, output_functions=("graph/op_user.py:rep",))
+    assert _run_tree(tmp_path, src, p) == [("graph/op_user.py", "rep")]
+
+
+OP_BLOCK_WITH_HELPER = '''from ..core.compute_block import compute_block
+
+
+@compute_block("op_block", reads=[], writes=[("device", "dc_op")])
+def op_block(projection):
+    return {("device", "dc_op"): {"m1": 1.0}}
+
+
+STORE = []
+
+
+def stash(snapshot):
+    STORE.append(snapshot.value("device", "m1", "dc_op"))
+'''
+
+
+def test_rule_l_op_copy_writer_exemption_is_the_writing_block_only(tmp_path):
+    """정본 쓰기 면제는 `device.dc_op` 를 쓰는 블록 자신이다(writer 파일 전체가 아니다). 구성: 같은 파일의 블록 아닌 함수 `stash` 가 dc_op 를 읽어
+    전역에 저장하면 위반이다. 블록 자신의 같은 읽기·저장은 L5i-writer 가 clean 으로 둔다."""
+    src = "from .op_block import stash\n\n\ndef place(snapshot):\n    stash(snapshot)\n    v = 1.0\n    " + WRT
+    got = _run_tree(tmp_path, src, params(**OPC_PARAMS), extra={"graph/op_block.py": OP_BLOCK_WITH_HELPER})
+    assert got == [("graph/op_block.py", "stash")]

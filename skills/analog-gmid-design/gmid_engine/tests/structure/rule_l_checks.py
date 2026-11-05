@@ -10,6 +10,7 @@ READS 열을 따라가지 못하면 `reads_unverifiable`, 동작점 사본 추�
 from __future__ import annotations
 
 import ast
+import builtins
 import hashlib
 import json
 from pathlib import Path
@@ -29,10 +30,11 @@ OP_COPY_ROUNDS = 24                  # 동작점 사본 고정점 상한. 다 �
 # 동작점 사본의 예외 -- 값을 보관하지 않음이 언어 정의로 확정된 내장의 닫힌 목록 하나(N3.1-5, 지문 대상). 이름 허용 목록은 이것뿐이다.
 #  * 내장 함수: 이름이 지역·엔진·import 어디에도 가려지지 않은 경우에 한한다(새 값·불리언·개수를 돌려주며 인자를 쥐지 않음).
 #  * 내장 형 메서드: 수신자가 그 형으로 확정된 경우에 한한다(수신자 형을 못 정하면 예외 아님).
-BUILTIN_PURE_FUNCS = frozenset({"abs", "all", "any", "ascii", "bin", "callable", "chr", "divmod", "format", "hasattr", "hash", "hex", "id",
-                                "isinstance", "issubclass", "len", "oct", "ord", "pow", "range", "repr", "round", "sum", "type"})
+#  * 값을 보관하거나 문자열로 옮기는 내장(type·repr·format·ascii 등)은 보관하지 않음이 확정되지 않으니 이 목록에 없다(풀리지 않는 호출 = sink).
+BUILTIN_PURE_FUNCS = frozenset({"abs", "all", "any", "bin", "callable", "chr", "divmod", "hasattr", "hash", "hex", "id",
+                                "isinstance", "issubclass", "len", "oct", "ord", "pow", "range", "round", "sum"})
 BUILTIN_FLOW_FUNCS = frozenset({"float", "int", "str", "bool", "dict", "tuple", "list", "set", "frozenset", "sorted", "reversed", "getattr",
-                                "min", "max", "zip", "enumerate", "iter", "next", "filter", "map"})   # 인자의 칸 값을 그대로 담아 돌려준다(라벨 흐름)
+                                "min", "max", "zip", "enumerate", "iter", "next", "filter", "map"})   # 전 인자(키워드 포함)의 라벨을 합쳐 돌려준다(라벨 흐름). 콜백 인자는 따라갈 수 없으면 sink
 _STR_METHODS = frozenset({"capitalize", "casefold", "center", "count", "encode", "endswith", "expandtabs", "find", "format", "format_map", "index",
                           "isalnum", "isalpha", "isascii", "isdecimal", "isdigit", "isidentifier", "islower", "isnumeric", "isprintable",
                           "isspace", "istitle", "isupper", "join", "ljust", "lower", "lstrip", "partition", "removeprefix", "removesuffix",
@@ -46,11 +48,26 @@ BUILTIN_TYPE_METHODS = {
                       "symmetric_difference", "union"}),
     "tuple": frozenset({"count", "index"}),
 }
+_NONFLOW_METHODS = frozenset({"count", "endswith", "find", "index", "isalnum", "isalpha", "isascii", "isdecimal", "isdigit", "isidentifier",
+                              "islower", "isnumeric", "isprintable", "isspace", "istitle", "isupper", "isdisjoint", "issubset", "issuperset",
+                              "rfind", "rindex", "startswith"})       # 불리언·개수·위치만 돌려주는 내장 형 메서드: 라벨을 끊는다(나머지 내장 형 메서드는 수신자·인자 라벨을 합쳐 돌려준다)
 BUILTIN_TYPE_ADD = {                 # 수신자(지역에서 새로 만든 내장 컨테이너) 자신에 값을 담는 메서드 -- 수신자 변수에 라벨이 옮겨 붙는다
     "list": frozenset({"append", "extend", "insert"}),
     "dict": frozenset({"setdefault", "update"}),
     "set": frozenset({"add", "update"}),
 }
+SRC_BASES = frozenset({"S", "SP", "SD"})        # 출처 라벨 꼴: S 값(들), SP (이름, 값) 쌍 열(column), SD 이름 -> 값 사전
+_COLUMN_ACCESSORS = frozenset({"column", "column_fields"})
+_ITER_WRAPS = frozenset({"list", "tuple", "sorted", "reversed", "iter", "set", "frozenset"})
+_SAFE_DECORATORS = frozenset({"staticmethod", "classmethod", "property", "abstractmethod", "setter", "getter", "deleter"})
+_DATACLASS_DECORATORS = frozenset({"dataclass"})
+# 라벨 계산이 흐름을 구현한 식·문 꼴. 여기에 없는 꼴에 출처 라벨이 닿으면 추적 실패(sink)다.
+_MODELED_EXPR = (ast.Constant, ast.Name, ast.Attribute, ast.Subscript, ast.Starred, ast.Tuple, ast.List, ast.Set, ast.Dict, ast.IfExp, ast.BoolOp,
+                 ast.ListComp, ast.GeneratorExp, ast.SetComp, ast.DictComp, ast.Call, ast.Lambda, ast.BinOp, ast.UnaryOp, ast.Compare,
+                 ast.Yield, ast.YieldFrom, ast.Slice)
+_MODELED_STMT = (ast.Assign, ast.AnnAssign, ast.AugAssign, ast.For, ast.Return, ast.Expr, ast.If, ast.While, ast.Break, ast.Continue, ast.Pass,
+                 ast.Try, ast.Global, ast.Nonlocal, ast.Import, ast.ImportFrom, ast.Delete, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef,
+                 ast.Assert)
 _FRESH_TYPES = {ast.List: "list", ast.ListComp: "list", ast.Dict: "dict", ast.DictComp: "dict", ast.Set: "set", ast.SetComp: "set",
                 ast.Tuple: "tuple", ast.JoinedStr: "str"}
 _FRESH_CALLS = {"list": "list", "dict": "dict", "set": "set", "tuple": "tuple", "str": "str", "frozenset": "frozenset", "sorted": "list"}
@@ -61,6 +78,7 @@ class Violation(NamedTuple):
     code: str
     detail: str
     paths: tuple = ()            # op_copy: 잡힌 칸 경로(튜플의 튜플). 판정용 정보이고 위반 키에는 들어가지 않는다
+    sinks: tuple = ()            # op_copy: 잡힌 (칸 경로, sink 꼴) 쌍. 표 행 op_copy_cleared 가 가리는 단위
 
 
 class DebtReport(NamedTuple):
@@ -922,30 +940,93 @@ def _predicate_sites(scope):
     return diode, same
 
 
-class _OpCopy:
-    """동작점 사본 추적(N3.1-5). 출처 = 정본 필드 읽기('S'). 흐름은 변수·루프·튜플 풀기·float/int·함수 인자·반환·객체 생성자.
-    산술은 끊는다. 함수마다 '매개변수 라벨'(P:이름)로 값이 어느 매개변수에서 왔는지를 따라가, 호출 맥락 없이 반환·영속 자리를
-    풀지 않고 호출 자리에서 맞춘다. 영속 자리(.write, 블록 출력, 비 self 속성 대입)나 추적 불능 호출에 'S'가 닿는 함수가 사본 자리이고,
-    칸 값을 그대로 담아 반환해 그 자리에 닿게 하는 함수도 사본 자리다. 반환·인자 전달만 하는 운반 함수는 아니다."""
+def _split_lab(lab):
+    """라벨 = [@칸|]* 기본라벨. (접두, 기본)."""
+    pre, sep, base = lab.rpartition("|")
+    return pre + sep, base
 
-    def __init__(self, eng, reach, source, exempt_sids, writer_file):
+
+def _lab_map(labels, fn):
+    """기본라벨마다 fn(기본) -> 새 기본(None이면 버림). 칸 접두는 그대로 둔다."""
+    out = set()
+    for lab in labels:
+        pre, base = _split_lab(lab)
+        new = fn(base)
+        if new is not None:
+            out.add(pre + new)
+    return out
+
+
+def _elems(labels):
+    """컨테이너를 돌 때 나오는 원소의 라벨: 쌍 열(SP)의 원소는 쌍(값을 담음), 사전(SD)은 이름(키)이라 없음."""
+    return _lab_map(labels, lambda b: None if b == "SD" else ("S" if b in SRC_BASES else b))
+
+
+def _as_value(labels):
+    """컨테이너가 아니라 값 하나로 본 것(첨자·get·표시식 원소): 출처 꼴은 모두 S."""
+    return _lab_map(labels, lambda b: "S" if b in SRC_BASES else b)
+
+
+def _as_dict(labels):
+    """값을 담은 사전(키는 이름): 출처 꼴은 SD."""
+    return _lab_map(labels, lambda b: "SD" if b in SRC_BASES else b)
+
+
+def _container(labels):
+    """list·sorted 등으로 원소를 모은 컨테이너: 사전은 키만 남아 없음, 쌍 열은 쌍 열."""
+    return _lab_map(labels, lambda b: None if b == "SD" else b)
+
+
+def _pair_split(labels):
+    """두 칸으로 푸는 원소의 (앞, 뒤) 라벨: 쌍 열은 뒤만(앞은 이름), 사전은 없음, 나머지는 둘 다."""
+    first, second = set(), set()
+    for lab in labels:
+        pre, base = _split_lab(lab)
+        if base == "SP":
+            second.add(pre + "S")
+        elif base != "SD":
+            first.add(lab)
+            second.add(lab)
+    return first, second
+
+
+def _norm(text):
+    return " ".join(text.split())
+
+
+class _OpCopy:
+    """동작점 사본 추적(N3.1-5). 출처 = 정본 필드 읽기. 출처 라벨 꼴: S(값), SP((이름, 값) 쌍 열), SD(이름 -> 값 사전).
+    흐름은 변수·루프·튜플 풀기·내장 흐름 함수·함수 인자·반환·객체 생성자·클로저(바깥 함수 변수 조회). 끊는 것은 산술(이항·단항·비교)뿐이다.
+    라벨 계산이 모르는 식·문 꼴에 출처 라벨이 닿으면 추적 실패로 sink를 낸다(기본값이 위반이다).
+    함수마다 '매개변수 라벨'(P:이름)로 값이 어느 매개변수에서 왔는지를 따라가, 호출 맥락 없이 반환·영속 자리를 풀지 않고 호출 자리에서 맞춘다.
+    영속 자리(.write, 블록 출력, 비 self 속성 대입, 새로 만들지 않은 컨테이너의 첨자·키, 전역, 풀리지 않는 호출, 모델 밖 구문)에 출처가 닿는 함수가
+    사본 자리이고, 칸 값을 그대로 담아 반환해 그 자리에 닿게 하는 함수도 사본 자리다. 반환·인자 전달만 하는 운반 함수는 아니다.
+    위반은 (칸 경로, sink 꼴) 쌍으로 낸다. sink 꼴 = 영속 자리 종류 + 대상 식 문자열(줄 번호 아님, 공백 정규화)."""
+
+    def __init__(self, eng, reach, source, output_sids, exempt_sids):
         self.eng, self.source = eng, source
+        self.output_sids = output_sids
         self.cands = [sid for sid in sorted(eng.scopes) if not sid.endswith(":<module>") and sid in reach          # 도달 조건(N3.1-5)
-                      and eng.modules[eng.scopes[sid].module] != writer_file and not _under(sid, exempt_sids)]
+                      and not _under(sid, exempt_sids)]                                                           # 정본 쓰기 블록 자신만 대상 밖
         self.cset = set(self.cands)
         self.types = {}
         self.nonconverged = False
-        self.read_ids = {sid: {id(r[4]) for r in eng.scopes[sid].reads} for sid in self.cands}      # 정본 읽기 호출(인자는 키 문자열)
-        self.src_ids = {sid: {id(r[4]) for r in eng.scopes[sid].reads if (r[0], r[1]) == source} for sid in self.cands}
-        self.params = {sid: self._params_of(eng.scopes[sid]) for sid in self.cands}
-        self.T = {sid: {p: {"P:" + p} for p in self.params[sid]} for sid in self.cands}      # 이름 -> 라벨
-        self.D = self.T                                                                      # 한 표: 칸 값·객체를 변형 없이 담은 값만 라벨을 갖는다
-        self.ret, self.retd, self.sink = {}, {}, {}
+        self._txt = {}
+        scopes = [eng.scopes[sid] for sid in self.cands]
+        self.nodes = {sc.sid: [n for root in sc.body_nodes for n in ast.walk(root)] for sc in scopes}
+        self.read_ids = {sc.sid: {id(r[4]) for r in sc.reads} for sc in scopes}                                  # 정본 읽기 호출(인자는 키 문자열)
+        self.src_ids = {sc.sid: {id(r[4]): r[3] for r in sc.reads if (r[0], r[1]) == source} for sc in scopes}
+        self.extra_src = {}
+        for sc in scopes:
+            self.extra_src[sc.sid] = self._scan_sources(sc)
+        self.params = {sc.sid: self._params_of(sc) for sc in scopes}
+        self.T = {sid: {p: {"P:" + p} for p in self.params[sid]} for sid in self.cands}      # 이름 -> 라벨 (한 표)
+        self.ret, self.sink, self.sink_rec = {}, {}, {}
         self.recv = {sid: set() for sid in self.cands}                                       # 'S'가 닿는 매개변수
         self.block = {sid: self._in_block(eng.scopes[sid]) for sid in self.cands}
-        self.sink_local = {sid: set() for sid in self.cands}
+        self.globals_ = {sc.sid: {n for g in self.nodes[sc.sid] if isinstance(g, (ast.Global, ast.Nonlocal)) for n in g.names} for sc in scopes}
         for sid in self.cands:
-            self.ret[sid], self.retd[sid], self.sink[sid] = set(), set(), set()
+            self.ret[sid], self.sink[sid], self.sink_rec[sid] = set(), set(), set()
 
     # ---- 구조 ----
     @staticmethod
@@ -963,11 +1044,38 @@ class _OpCopy:
             cur = cur.parent
         return False
 
+    def _text(self, node):
+        txt = self._txt.get(id(node))
+        if txt is None:
+            txt = self._txt[id(node)] = _norm(ast.unparse(node))
+        return txt
+
+    def _scan_sources(self, scope):
+        """정본 읽기를 상수 인자 꼴(`value(kind, key, field)` 등)로 못 알아본 접근도 출처로 본다(fail-closed): 정본 필드 이름 문자열을 인자(키워드 포함)로 받는
+        호출은 무엇을 부르든(접근자 키워드 호출·메서드 별칭·getattr·partial·kind 가 상수가 아닌 읽기) 그 필드를 읽는 것으로 본다."""
+        eng, field = self.eng, self.source[1]
+        extra = {}
+        read_ids = {id(r[4]) for r in scope.reads}
+        for root in scope.body_nodes:
+            for node in ast.walk(root):
+                if not isinstance(node, ast.Call) or id(node) in read_ids:
+                    continue
+                vals = [eng.resolve_const(scope, a) for a in node.args if not isinstance(a, ast.Starred)] + \
+                       [eng.resolve_const(scope, k.value) for k in node.keywords]
+                if field in vals:
+                    fn = node.func
+                    extra[id(node)] = "SP" if isinstance(fn, ast.Attribute) and fn.attr in _COLUMN_ACCESSORS else "S"
+        return extra
+
     # ---- 내장 형 확정(예외 목록의 조건) ----
     def _shadowed(self, scope, name):
-        """name 이 내장 이름이 아니게 가려졌는가(지역 이름·엔진 정의·import)."""
-        return name in scope.local_names or name in scope.locals or self.eng.resolve_symbol(scope.module, name) is not None \
-            or self.eng._enclosing_nested(scope, name) is not None
+        """name 이 내장 이름이 아니게 가려졌는가(이 함수·바깥 함수의 지역 이름, 엔진 정의, import)."""
+        cur = scope
+        while cur is not None:
+            if name in cur.local_names or name in cur.locals:
+                return True
+            cur = cur.parent
+        return self.eng.resolve_symbol(scope.module, name) is not None or self.eng._enclosing_nested(scope, name) is not None
 
     def _expr_type(self, scope, expr):
         """식이 내장 형(str·list·dict·set·tuple·frozenset)의 새 값이면 그 형, 아니면 None."""
@@ -987,22 +1095,20 @@ class _OpCopy:
         scope = self.eng.scopes[sid]
         seen, bad = {}, set(scope.locals)
         direct = set()
-        for root in scope.body_nodes:
-            for node in ast.walk(root):
-                if isinstance(node, (ast.Global, ast.Nonlocal)):
-                    bad |= set(node.names)
-                elif isinstance(node, ast.Assign):
-                    for tgt in node.targets:
-                        if isinstance(tgt, ast.Name):
-                            direct.add(id(tgt))
-                            seen.setdefault(tgt.id, set()).add(self._expr_type(scope, node.value))
-                elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.value is not None:
-                    direct.add(id(node.target))
-                    seen.setdefault(node.target.id, set()).add(self._expr_type(scope, node.value))
-        for root in scope.body_nodes:
-            for node in ast.walk(root):
-                if isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)) and id(node) not in direct:
-                    bad.add(node.id)
+        for node in self.nodes[sid]:
+            if isinstance(node, (ast.Global, ast.Nonlocal)):
+                bad |= set(node.names)
+            elif isinstance(node, ast.Assign):
+                for tgt in node.targets:
+                    if isinstance(tgt, ast.Name):
+                        direct.add(id(tgt))
+                        seen.setdefault(tgt.id, set()).add(self._expr_type(scope, node.value))
+            elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.value is not None:
+                direct.add(id(node.target))
+                seen.setdefault(node.target.id, set()).add(self._expr_type(scope, node.value))
+        for node in self.nodes[sid]:
+            if isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)) and id(node) not in direct:
+                bad.add(node.id)
         out = {}
         for name, kinds in seen.items():
             if name not in bad and len(kinds) == 1 and None not in kinds:
@@ -1022,6 +1128,10 @@ class _OpCopy:
         while isinstance(expr, ast.Subscript):
             expr = expr.value
         return isinstance(expr, ast.Name) and self._name_types(sid).get(expr.id) in ("list", "dict", "set")
+
+    def _builtin(self, sid, fn, names):
+        """호출 대상이 가려지지 않은 내장 이름이고 names 에 있는가."""
+        return isinstance(fn, ast.Name) and fn.id in names and not self._shadowed(self.eng.scopes[sid], fn.id)
 
     def _resolved_call(self, sid, node):
         """호출이 풀리는가: 엔진 안 정확한 대상, 이름이 안 가려진 내장 함수, 내장 형으로 확정된 수신자의 그 형 메서드. 나머지는 추적 불능."""
@@ -1043,6 +1153,9 @@ class _OpCopy:
     def _precise(scope, fn):
         return scope.site_map.get(id(fn), set()) if id(fn) in scope.precise else set()
 
+    def _is_output(self, sid):
+        return _under(sid, self.output_sids)
+
     @staticmethod
     def _store_names(target):
         """대입·루프 대상에서 값이 담기는 이름: 이름 자신, 튜플 풀기의 각 이름, 첨자·속성이면 그 바탕 이름(첨자 안의 키 이름은 아니다)."""
@@ -1060,68 +1173,122 @@ class _OpCopy:
         return {target.id} if isinstance(target, ast.Name) else set()
 
     @staticmethod
-    def _iter_bind(target, iter_expr, got):
-        """for 대상 이름에 어떤 라벨이 담기는가. (키, 값) 쌍을 풀면 값 쪽만, .keys() 는 없음, 이름 하나로 도는 'S' 는 키로 본다."""
-        if not got:
-            return {}
-        view = iter_expr.func.attr if isinstance(iter_expr, ast.Call) and isinstance(iter_expr.func, ast.Attribute) else None
-        if view == "keys":
-            return {}
-        names = _OpCopy._store_names
-        if isinstance(target, (ast.Tuple, ast.List)) and len(target.elts) == 2:
-            return {n: set(got) for n in names(target.elts[1])}
-        if isinstance(target, ast.Name) and view != "values":
-            kept = {lab for lab in got if lab != "S"}
-            return {target.id: kept} if kept else {}
-        return {n: set(got) for n in names(target)}
-
-    def _actuals(self, callee, call):
-        """호출의 실인자를 callee 매개변수 이름에 맞춘다: [(이름, 식)]."""
-        params = [a.arg for a in self.eng.scopes[callee].node.args.posonlyargs + self.eng.scopes[callee].node.args.args]
-        if params and params[0] in ("self", "cls") and isinstance(call.func, ast.Attribute):
-            params = params[1:]
-        return list(zip(params, call.args)) + [(k.arg, k.value) for k in call.keywords if k.arg]
-
-    @staticmethod
-    def _split(lab):
-        """라벨 = [@칸|]* 기본라벨. (접두, 기본)."""
-        pre, sep, base = lab.rpartition("|")
-        return pre + sep, base
-
-    @staticmethod
-    def _cap(lab):
-        """칸 접두는 두 겹까지만 구분한다(고정점이 끝나도록). 더 깊으면 '어느 칸이든'(@?)으로 합친다."""
-        if lab.count("@") <= 2:
-            return lab
-        return "@?|" + lab.rpartition("|")[2]
-
-    @staticmethod
-    def _remap(labels, fn):
-        out = set()
-        for lab in labels:
-            pre, base = _OpCopy._split(lab)
-            out.add(pre + fn(base))
+    def _top_exprs(node):
+        """node 바로 아래(문·식을 넘지 않고 withitem·match_case 같은 껍데기는 지나) 식들. 저장 자리 이름은 뺀다."""
+        out, stack = [], list(ast.iter_child_nodes(node))
+        while stack:
+            child = stack.pop()
+            if isinstance(child, ast.expr):
+                if not (isinstance(child, (ast.Name, ast.Attribute, ast.Subscript, ast.Tuple, ast.List, ast.Starred))
+                        and isinstance(getattr(child, "ctx", None), ast.Store)):
+                    out.append(child)
+            elif not isinstance(child, ast.stmt):
+                stack.extend(ast.iter_child_nodes(child))
         return out
 
-    def _s_tainted(self, sid, labels):
-        for lab in labels:
-            b = self._split(lab)[1]
-            if b == "S" or b[:2] == "R:" or (b[:2] in ("P:", "X:", "Y:", "Z:") and b[2:] in self.recv[sid]):
-                return True
-        return False
+    def _bind_iter(self, sid, target, iter_expr, extra):
+        """for·컴프리헨션 대상 이름에 담기는 라벨 {이름: 라벨}. 쌍 열을 두 칸으로 풀면 뒤만, 사전을 돌면 키(없음), zip·enumerate 는 칸별로,
+        그 밖의 두 칸 풀기와 이름 하나는 원소 라벨 모두(왼쪽도 값일 수 있다)."""
+        scope = self.eng.scopes[sid]
+        got = self.labels(sid, iter_expr, extra)
+        out = {}
 
-    def _extracted(self, sid, labels):
-        """칸을 꺼냈거나 객체에 담은 값('S' 또는 X:)이 닿는가. 매개변수를 그대로 돌려주는 운반(P:)은 아니다."""
-        for lab in labels:
-            b = self._split(lab)[1]
-            if b == "S" or (b.startswith("X:") and b[2:] in self.recv[sid]):
-                return True
-        return False
+        def add(names, labs):
+            if labs:
+                for n in names:
+                    out.setdefault(n, set()).update(labs)
+
+        leaves = list(target.elts) if isinstance(target, (ast.Tuple, ast.List)) else None
+        core = iter_expr
+        while (isinstance(core, ast.Call) and isinstance(core.func, ast.Name) and core.func.id in _ITER_WRAPS and core.args
+               and not self._shadowed(scope, core.func.id)):
+            core = core.args[0]
+        plain = leaves is not None and not any(isinstance(x, ast.Starred) for x in leaves)
+        if plain and isinstance(core, ast.Call) and self._builtin(sid, core.func, ("zip", "enumerate")):
+            args = list(core.args)
+            if core.func.id == "zip" and len(args) == len(leaves) and not any(isinstance(a, ast.Starred) for a in args):
+                for leaf, a in zip(leaves, args):
+                    add(self._store_names(leaf), _elems(self.labels(sid, a, extra)))
+                return out
+            if core.func.id == "enumerate" and len(leaves) == 2 and args and not isinstance(args[0], ast.Starred):
+                add(self._store_names(leaves[1]), _elems(self.labels(sid, args[0], extra)))
+                return out
+        if leaves is None:
+            add(self._store_names(target), _elems(got))
+        elif plain and len(leaves) == 2:
+            first, second = _pair_split(got)
+            add(self._store_names(leaves[0]), first)
+            add(self._store_names(leaves[1]), second)
+        else:
+            first, second = _pair_split(got)
+            add(self._store_names(target), first | second)
+        return out
+
+    def _actuals(self, callee, call, ctor=False, mod=None):
+        """호출의 실인자를 callee 매개변수 이름에 맞춘다: ([(이름, 식)], [맞출 수 없는 실인자 식]). 위치 초과·모르는 키워드·`*`·`**` 실인자는 맞출 수 없다."""
+        a = self.eng.scopes[callee].node.args
+        pos = [x.arg for x in a.posonlyargs + a.args]
+        kwonly = {x.arg for x in a.kwonlyargs}
+        if pos and pos[0] in ("self", "cls") and (ctor or self._binds_first(callee, call, mod)):
+            pos = pos[1:]
+        mapped, unmapped, starred = [], [], False
+        for i, arg in enumerate(call.args):
+            if isinstance(arg, ast.Starred):
+                unmapped.append(arg.value)
+                starred = True
+            elif starred or i >= len(pos):
+                unmapped.append(arg)
+            else:
+                mapped.append((pos[i], arg))
+        for kw in call.keywords:
+            if kw.arg is not None and (kw.arg in pos or kw.arg in kwonly):
+                mapped.append((kw.arg, kw.value))
+            else:
+                unmapped.append(kw.value)
+        return mapped, unmapped
+
+    def _binds_first(self, callee, call, mod=None):
+        """속성 호출이 callee 의 첫 매개변수(self·cls)를 묶는가: 클래스 이름으로 부른 메서드는 classmethod 만, 그 밖은 staticmethod 가 아니면 묶는다."""
+        fn = call.func
+        if not isinstance(fn, ast.Attribute):
+            return False
+        decs = {self._dec_name(d) for d in self.eng.scopes[callee].node.decorator_list}
+        if "staticmethod" in decs:
+            return False
+        res = self.eng.resolve_symbol(mod or self.eng.scopes[callee].module, fn.value.id) if isinstance(fn.value, ast.Name) else None
+        return "classmethod" in decs if res is not None and res[0] == "cls" else True
 
     @staticmethod
-    def _carried(labels, callee):
-        """피호출이 칸을 꺼내 돌려준 값: 호출한 쪽에서는 운반(Y:)이고, 출처 자체는 피호출이 만든 사본 후보(R:)다."""
-        return _OpCopy._remap(labels, lambda b: "R:" + callee if b == "S" else ("Y:" + b[2:] if b[:2] in ("P:", "X:", "Z:") else b))
+    def _dec_name(dec):
+        node = dec.func if isinstance(dec, ast.Call) else dec
+        return node.attr if isinstance(node, ast.Attribute) else node.id if isinstance(node, ast.Name) else ast.dump(node)
+
+    def _plain_function(self, scope):
+        """장식이 언어 정의로 인자를 보관하지 않는 것(staticmethod·classmethod·property·abstractmethod·setter 류)뿐인 함수인가."""
+        return all(self._dec_name(d) in _SAFE_DECORATORS for d in scope.node.decorator_list)
+
+    def _class_init(self, cid, depth=0):
+        """(__init__ 함수 sid 또는 None, 불투명 여부). 불투명 = __post_init__·__new__ 가 있거나, dataclass 아닌 장식·메타클래스·풀리지 않는
+        바탕 클래스가 있어 생성이 인자를 어디에 두는지 정적으로 풀리지 않는 클래스."""
+        node = self.eng.classes.get(cid)
+        if node is None or depth > 6:
+            return None, True
+        mod = cid.split(":")[0]
+        if cid + ".__post_init__" in self.eng.scopes or cid + ".__new__" in self.eng.scopes:
+            return None, True
+        if node.keywords or any(self._dec_name(d) not in _DATACLASS_DECORATORS for d in node.decorator_list):
+            return None, True
+        if cid + ".__init__" in self.eng.scopes:
+            return cid + ".__init__", False
+        init, opaque = None, False
+        for base in node.bases:
+            res = self.eng.resolve_symbol(mod, base.id) if isinstance(base, ast.Name) else None
+            if res is not None and res[0] == "cls":
+                sub, op = self._class_init(res[1], depth + 1)
+                init, opaque = init or sub, opaque or op
+            elif not (isinstance(base, ast.Name) and hasattr(builtins, base.id) and res is None):
+                opaque = True
+        return init, opaque
 
     @staticmethod
     def _attr_labels(labels, attr):
@@ -1131,10 +1298,44 @@ class _OpCopy:
             if lab.startswith("@"):
                 head, _, rest = lab.partition("|")
                 if head[1:] in (attr, "?"):
-                    out |= _OpCopy._remap({rest}, lambda b: "X:" + b[2:] if b[:2] == "P:" else b)
+                    out |= _lab_map({rest}, lambda b: "X:" + b[2:] if b[:2] == "P:" else b)
             else:
-                out |= _OpCopy._remap({lab}, lambda b: "X:" + b[2:] if b[:2] == "P:" else b)
+                out |= _lab_map({lab}, lambda b: "X:" + b[2:] if b[:2] == "P:" else b)
         return out
+
+    @staticmethod
+    def _cap(lab):
+        """칸 접두는 두 겹까지만 구분한다(고정점이 끝나도록). 더 깊으면 '어느 칸이든'(@?)으로 합친다."""
+        if lab.count("@") <= 2:
+            return lab
+        return "@?|" + lab.rpartition("|")[2]
+
+    def _s_tainted(self, sid, labels):
+        scope = self.eng.scopes[sid]
+        for lab in labels:
+            b = _split_lab(lab)[1]
+            if b in SRC_BASES or b[:2] == "R:":
+                return True
+            if b[:2] in ("P:", "X:", "Y:", "Z:"):
+                cur = scope
+                while cur is not None:                      # 바깥 함수의 매개변수에서 온 값도 같다(클로저)
+                    if cur.sid in self.recv and b[2:] in self.recv[cur.sid]:
+                        return True
+                    cur = cur.parent
+        return False
+
+    def _extracted(self, sid, labels):
+        """칸을 꺼냈거나 객체에 담은 값(출처 꼴 또는 X:)이 닿는가. 매개변수를 그대로 돌려주는 운반(P:)은 아니다."""
+        for lab in labels:
+            b = _split_lab(lab)[1]
+            if b in SRC_BASES or (b.startswith("X:") and b[2:] in self.recv[sid]):
+                return True
+        return False
+
+    @staticmethod
+    def _carried(labels, callee):
+        """피호출이 칸을 꺼내 돌려준 값: 호출한 쪽에서는 운반(Y:)이고, 출처 자체는 피호출이 만든 사본 후보(R:)다."""
+        return _lab_map(labels, lambda b: "R:" + callee if b in SRC_BASES else ("Y:" + b[2:] if b[:2] in ("P:", "X:", "Z:") else b))
 
     def _init_attrs(self, init, param):
         """__init__ 안에서 param 이 담기는 인스턴스 속성 이름들. param 을 다른 데 쓰면(속성 대입 밖) '?'(어느 속성이든)을 더한다."""
@@ -1192,79 +1393,187 @@ class _OpCopy:
     def _ctor_labels(self, sid, expr, cid, extra):
         info = self._ctor_info(cid)
         out = set()
-        contain = lambda b: "Z:" + b[2:] if b[:2] == "P:" else b       # noqa: E731
+        contain = lambda b: "Z:" + b[2:] if b[:2] == "P:" else ("S" if b in SRC_BASES else b)       # noqa: E731
         for i, a in enumerate(expr.args):
             wild = info is None or isinstance(a, ast.Starred) or i >= len(info[0])
             heads = ["?"] if wild else info[1].get(info[0][i], [])
-            labs = self._remap(self.labels(sid, a, False, extra), contain)
+            labs = _lab_map(self.labels(sid, a, extra), contain)
             out |= {self._cap("@" + f + "|" + lab) for f in heads for lab in labs}
         for k in expr.keywords:
             heads = ["?"] if (info is None or k.arg is None or k.arg not in info[1]) else info[1][k.arg]
-            labs = self._remap(self.labels(sid, k.value, False, extra), contain)
+            labs = _lab_map(self.labels(sid, k.value, extra), contain)
             out |= {self._cap("@" + f + "|" + lab) for f in heads for lab in labs}
         return out
 
     # ---- 라벨 ----
-    def labels(self, sid, expr, direct, extra=None):
-        env = self.T[sid]
+    def _lookup(self, sid, name):
+        """이름의 라벨: 이 함수 표, 이 함수의 지역이 아니면 바깥 함수 표(클로저)."""
+        scope = self.eng.scopes[sid]
+        while scope is not None:
+            env = self.T.get(scope.sid)
+            if env is not None and name in env:
+                return env[name]
+            if name in scope.local_names or name in scope.locals:
+                return set()
+            scope = scope.parent
+        return set()
+
+    def labels(self, sid, expr, extra=None):
+        """식이 담을 수 있는 출처 라벨. 전파를 끊는 것은 산술(BinOp·UnaryOp·Compare)뿐이고, 구현하지 않은 꼴은 자식 식의 라벨을 합쳐 낸다
+        (그 자리의 sink 는 `_step` 이 낸다) -- 기본값이 빈 집합이 아니다."""
         extra = extra or {}
         lab = self.labels
+        if isinstance(expr, (ast.Constant, ast.BinOp, ast.UnaryOp, ast.Compare, ast.Slice)):
+            return set()
         if isinstance(expr, ast.Name):
-            return extra.get(expr.id) or env.get(expr.id, set())
+            return extra.get(expr.id) or self._lookup(sid, expr.id)
         if isinstance(expr, ast.Attribute):
-            return self._attr_labels(lab(sid, expr.value, direct, extra), expr.attr)
-        if isinstance(expr, (ast.Subscript, ast.Starred)):
-            return lab(sid, expr.value, direct, extra)
+            return self._attr_labels(lab(sid, expr.value, extra), expr.attr)
+        if isinstance(expr, ast.Subscript):
+            base = lab(sid, expr.value, extra)
+            return set(base) if isinstance(expr.slice, ast.Slice) else _as_value(base)
+        if isinstance(expr, ast.Starred):
+            return _elems(lab(sid, expr.value, extra))
         if isinstance(expr, (ast.Tuple, ast.List, ast.Set)):
-            return set().union(*(lab(sid, e, direct, extra) for e in expr.elts)) if expr.elts else set()
+            return _as_value(set().union(*(lab(sid, e, extra) for e in expr.elts))) if expr.elts else set()
         if isinstance(expr, ast.Dict):
-            return set().union(*(lab(sid, v, direct, extra) for v in expr.values if v is not None)) if expr.values else set()
+            out = set()
+            for k, v in zip(expr.keys, expr.values):
+                if k is None:
+                    out |= lab(sid, v, extra)
+                else:
+                    out |= _as_value(lab(sid, k, extra)) | _as_dict(lab(sid, v, extra))
+            return out
         if isinstance(expr, ast.IfExp):
-            return lab(sid, expr.body, direct, extra) | lab(sid, expr.orelse, direct, extra)
+            return lab(sid, expr.body, extra) | lab(sid, expr.orelse, extra)
         if isinstance(expr, ast.BoolOp):
-            return set().union(*(lab(sid, v, direct, extra) for v in expr.values))
+            return set().union(*(lab(sid, v, extra) for v in expr.values))
         if isinstance(expr, (ast.ListComp, ast.GeneratorExp, ast.SetComp, ast.DictComp)):
             more = dict(extra)
             for gen in expr.generators:
-                got = lab(sid, gen.iter, direct, more)
-                for n, labs_ in self._iter_bind(gen.target, gen.iter, got).items():
+                for n, labs_ in self._bind_iter(sid, gen.target, gen.iter, more).items():
                     more[n] = labs_
-            return lab(sid, expr.value if isinstance(expr, ast.DictComp) else expr.elt, direct, more)
+            if isinstance(expr, ast.DictComp):
+                return _as_value(lab(sid, expr.key, more)) | _as_dict(lab(sid, expr.value, more))
+            return _as_value(lab(sid, expr.elt, more))
         if isinstance(expr, ast.Call):
-            return self._call_labels(sid, expr, direct, extra)
+            return self._call_labels(sid, expr, extra)
+        if isinstance(expr, ast.Lambda):
+            return lab(sid, expr.body, extra)
+        if isinstance(expr, ast.NamedExpr):
+            return lab(sid, expr.value, extra)
+        if isinstance(expr, (ast.Yield, ast.YieldFrom)):
+            return lab(sid, expr.value, extra) if expr.value is not None else set()
+        out = set()                                   # 모델 밖 꼴(f-string·await 등): 자식 식의 라벨을 합친다
+        for child in self._top_exprs(expr):
+            out |= lab(sid, child, extra)
+        return out
+
+    def _view_labels(self, sid, expr, recv, attr, extra):
+        """수신자가 칸 값을 돌려주는 메서드(items·values·keys·get·copy·pop·popitem·setdefault)의 라벨."""
+        if attr == "keys":
+            return set()
+        if attr == "copy":
+            return set(recv)
+        if attr == "items":
+            return _lab_map(recv, lambda b: "SP" if b in SRC_BASES else b)
+        out = _as_value(recv)                         # values·get·pop·popitem·setdefault
+        if attr != "values":
+            for a in list(expr.args[1:]) + [k.value for k in expr.keywords]:
+                out |= self.labels(sid, a, extra)
+        return out
+
+    def _flow_labels(self, sid, expr, extra):
+        """닫힌 목록 BUILTIN_FLOW_FUNCS 호출의 라벨: 전 인자(키워드 포함)의 라벨을 합쳐 호출 의미대로 넘긴다."""
+        name = expr.func.id
+        lab = self.labels
+        args = [a.value if isinstance(a, ast.Starred) else a for a in expr.args]
+        pos = [lab(sid, a, extra) for a in expr.args]
+        kws = [(k.arg, lab(sid, k.value, extra)) for k in expr.keywords]
+        kwall = set().union(*(v for _a, v in kws)) if kws else set()
+        if name in ("float", "int", "bool", "str"):
+            return _as_value(set().union(*pos, kwall) if pos or kws else set())
+        if name == "dict":
+            out = set()
+            for p in pos:
+                out |= _as_dict(p)
+            return out | _as_dict(kwall)
+        if name in _ITER_WRAPS:
+            return _container(pos[0]) if pos else set()
+        if name == "getattr":
+            if len(args) >= 2 and isinstance(args[1], ast.Constant) and isinstance(args[1].value, str):
+                base = self._attr_labels(pos[0], args[1].value)
+            else:
+                base = set(pos[0]) if pos else set()
+            return base | (pos[2] if len(pos) > 2 else set()) | kwall
+        if name in ("min", "max"):
+            cb = {a for a, _v in kws if a == "key"}
+            rest = set().union(*(v for a, v in kws if a not in cb)) if kws else set()
+            if len(pos) == 1:
+                return _elems(pos[0]) | rest
+            return _as_value(set().union(*pos)) | rest if pos else rest
+        if name == "next":
+            return (_elems(pos[0]) if pos else set()) | (set().union(*pos[1:]) if len(pos) > 1 else set())
+        if name == "zip":
+            return _as_value(set().union(*(_elems(p) for p in pos))) if pos else set()
+        if name == "enumerate":
+            return _as_value(_elems(pos[0])) if pos else set()
+        if name == "filter":
+            return _container(pos[1]) if len(pos) > 1 else set()
+        if name == "map":
+            cb = args[0] if args else None
+            if isinstance(cb, ast.Lambda):
+                return lab(sid, cb.body, extra)
+            if self._builtin(sid, cb, BUILTIN_PURE_FUNCS):
+                return set()
+            return _as_value(set().union(*(_elems(p) for p in pos[1:]))) if len(pos) > 1 else set()
         return set()
 
-    def _call_labels(self, sid, expr, direct, extra):
+    def _call_labels(self, sid, expr, extra):
         eng, scope, lab = self.eng, self.eng.scopes[sid], self.labels
         if id(expr) in self.src_ids[sid]:
-            return {"S"}
+            return {"SP"} if self.src_ids[sid][id(expr)] in _COLUMN_ACCESSORS else {"S"}
+        if id(expr) in self.extra_src[sid]:
+            return {self.extra_src[sid][id(expr)]}
         fn = expr.func
-        args = list(expr.args) + [k.value for k in expr.keywords]
-        if isinstance(fn, ast.Name) and fn.id in ("float", "int", "str", "bool", "dict", "tuple", "list", "set", "frozenset", "sorted", "reversed", "getattr") and expr.args:
-            return lab(sid, expr.args[0], direct, extra)
+        if self._builtin(sid, fn, BUILTIN_FLOW_FUNCS):
+            return self._flow_labels(sid, expr, extra)
+        if self._builtin(sid, fn, BUILTIN_PURE_FUNCS):
+            if fn.id == "sum" and (len(expr.args) > 1 or expr.keywords):      # sum(열, 시작값): 컨테이너를 이어 붙이는 꼴은 값을 보관한다
+                return _as_value(set().union(*(lab(sid, a, extra) for a in list(expr.args) + [k.value for k in expr.keywords])))
+            return set()
         targets = self._precise(scope, fn)
-        if isinstance(fn, ast.Attribute) and fn.attr in VALUE_VIEWS and not any(tg in eng.scopes for tg in targets):
-            return lab(sid, fn.value, direct, extra)
         clss = [tg for tg in targets if tg in eng.classes]
         if clss:
-            return self._ctor_labels(sid, expr, clss[0], extra) if args else set()
+            return self._ctor_labels(sid, expr, clss[0], extra) if (expr.args or expr.keywords) else set()
         out = set()
+        if isinstance(fn, ast.Attribute) and not any(tg in eng.scopes for tg in targets):
+            recv = lab(sid, fn.value, extra)
+            if fn.attr in VALUE_VIEWS:
+                return self._view_labels(sid, expr, recv, fn.attr, extra)
+            kind = self._btype(sid, fn.value)
+            if kind is not None and (fn.attr in BUILTIN_TYPE_METHODS.get(kind, ()) or fn.attr in BUILTIN_TYPE_ADD.get(kind, ())):
+                if fn.attr in _NONFLOW_METHODS:
+                    return set()
+                return recv | set().union(*(lab(sid, a, extra) for a in list(expr.args) + [k.value for k in expr.keywords]))
+        elif isinstance(fn, (ast.Name, ast.Lambda)) and not targets:
+            out |= lab(sid, fn, extra)                # 지역 변수·람다가 담은 호출 대상: 그 안의 값이 결과로 나올 수 있다
         for tg in targets:
-            if tg not in self.cset or self._is_block(eng.scopes[tg]):
+            if tg not in self.cset or self._is_block(eng.scopes[tg]) or self._is_output(tg):         # 출력 함수의 반환은 보고 객체(iii)라 사본을 옮기지 않는다
                 continue
             retl = self.ret[tg]
-            out |= {lab_ for lab_ in retl if self._split(lab_)[1][:2] == "R:"}
+            out |= {lab_ for lab_ in retl if _split_lab(lab_)[1][:2] == "R:"}
             if self._extracted(tg, retl):
                 out.add("R:" + tg)
-            for pname, aexpr in self._actuals(tg, expr):
+            for pname, aexpr in self._actuals(tg, expr, False, scope.module)[0]:
                 al = None
                 for lab_ in retl:
-                    pre, b = self._split(lab_)
+                    pre, b = _split_lab(lab_)
                     if b == "P:" + pname:
-                        al = lab(sid, aexpr, False, extra) if al is None else al
+                        al = lab(sid, aexpr, extra) if al is None else al
                         out |= {self._cap(pre + a) for a in al}
                     elif b in ("X:" + pname, "Y:" + pname, "Z:" + pname):
-                        al = lab(sid, aexpr, False, extra) if al is None else al
+                        al = lab(sid, aexpr, extra) if al is None else al
                         out |= {self._cap(pre + c) for c in self._carried(al, tg)}
         return out
 
@@ -1280,95 +1589,170 @@ class _OpCopy:
     def _step(self, sid):
         eng = self.eng
         scope = eng.scopes[sid]
-        grew = False
-        T, D = self.T[sid], self.D[sid]
-        globals_ = {n for root in scope.body_nodes for g in ast.walk(root) if isinstance(g, (ast.Global, ast.Nonlocal)) for n in g.names}
+        T, globals_ = self.T[sid], self.globals_[sid]
+        flag = [False]
+        lab = lambda e: self.labels(sid, e)             # noqa: E731
 
-        def put(table, names, labs):
-            nonlocal grew
+        def put(names, labs):
             if not labs:
                 return
             for n in names:
-                cur = table.setdefault(n, set())
+                cur = T.setdefault(n, set())
                 if not labs <= cur:
                     cur |= labs
-                    grew = True
+                    flag[0] = True
 
-        def sink(labs, local=True):
-            nonlocal grew
-            if labs and not labs <= self.sink[sid]:
-                self.sink[sid] |= labs
-                grew = True
-            if local and labs and not labs <= self.sink_local[sid]:
-                self.sink_local[sid] |= labs
-                grew = True
+        def sink(labs, kind, node, local=True):
+            if not labs:
+                return
+            form = kind + ":" + (node if isinstance(node, str) else self._text(node))
+            rec = self.sink_rec[sid]
+            for item in labs:
+                key = (item, form, local)
+                if key not in rec:
+                    rec.add(key)
+                    flag[0] = True
+            self.sink[sid] |= labs
 
-        for root in scope.body_nodes:
-            for node in ast.walk(root):
-                if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)) and getattr(node, "value", None) is not None:
-                    t, d = self.labels(sid, node.value, False), self.labels(sid, node.value, True)
-                    targets = node.targets if isinstance(node, ast.Assign) else [node.target]
-                    for target in targets:
-                        names = self._store_names(target)
-                        put(T, names, set(t))
-                        put(D, names, set(d))
-                        if not t:
-                            continue
-                        for leaf in self._leaf_targets(target):
-                            if isinstance(leaf, ast.Name):
-                                if leaf.id in globals_:
-                                    sink(set(t))                          # 전역·바깥 함수 변수에 담는다
-                            elif isinstance(leaf, ast.Attribute):
-                                sink(set(t))                              # 속성: 객체(self·넘겨받은 것·전역)가 호출보다 오래 사는지 풀리지 않는다
-                            elif isinstance(leaf, ast.Subscript) and not self._local_container(sid, leaf):
-                                sink(set(t))                              # 첨자: 이 함수에서 새로 만든 컨테이너가 아니면 오래 사는지 풀리지 않는다
-                elif isinstance(node, (ast.For, ast.comprehension)):
-                    got = self.labels(sid, node.iter, False)
-                    for n, labs_ in self._iter_bind(node.target, node.iter, got).items():
-                        put(T, {n}, labs_)
-                elif isinstance(node, (ast.Return, ast.Yield, ast.YieldFrom)) and node.value is not None:
-                    t, d = self.labels(sid, node.value, False), self.labels(sid, node.value, True)
-                    if self._is_block(scope) and isinstance(node, ast.Return):
-                        sink(set(t))
-                    else:
-                        if not t <= self.ret[sid]:
-                            self.ret[sid] |= t
-                            grew = True
-                        if not d <= self.retd[sid]:
-                            self.retd[sid] |= d
-                            grew = True
-                elif isinstance(node, ast.Call):
-                    fn = node.func
-                    args = list(node.args) + [k.value for k in node.keywords]
-                    arg_labs = set().union(*(self.labels(sid, a, False) for a in args)) if args else set()
-                    arg_dlabs = set().union(*(self.labels(sid, a, True) for a in args)) if args else set()
-                    if isinstance(fn, ast.Attribute) and fn.attr in CONTAINER_ADD:
-                        base = fn.value
-                        while isinstance(base, (ast.Attribute, ast.Subscript)):
-                            base = base.value
-                        if isinstance(base, ast.Name):
-                            put(T, {base.id}, arg_labs)                   # 흐름 추적(수신자 변수에 라벨이 옮겨 붙는다)
-                            put(D, {base.id}, arg_dlabs)
-                    if isinstance(fn, ast.Attribute) and fn.attr == "write":
-                        sink(arg_labs)                                    # 정본 쓰기·파일 쓰기: 정의된 영속 자리
-                    elif id(node) not in self.read_ids[sid] and not self._resolved_call(sid, node):
-                        recv_labs = self.labels(sid, fn.value, False) if isinstance(fn, ast.Attribute) else set()
-                        sink(arg_labs | recv_labs)                        # 추적 불능 호출(엔진 안 정의로 안 풀림): 넘긴 값 모두 영속으로 본다
-                    for callee in self._precise(scope, fn):
-                        if callee not in self.cset or callee in eng.classes:
-                            continue
-                        for pname, aexpr in self._actuals(callee, node):
-                            lab_a = self.labels(sid, aexpr, False)
-                            if not lab_a:
-                                continue
-                            if self._is_block(eng.scopes[callee]):
-                                continue                    # 블록 함수의 인자는 스냅샷·투영이지 칸 값이 아니다
-                            if self._s_tainted(sid, lab_a) and pname not in self.recv[callee]:
-                                self.recv[callee].add(pname)
-                                grew = True
-                            if any(self._split(l)[1] in (k + pname for k in ("P:", "X:", "Y:", "Z:")) for l in self.sink[callee]):
-                                sink(set(lab_a), local=False)
-        return grew
+        in_init = scope.node.name in ("__init__", "__post_init__") if isinstance(scope.node, (ast.FunctionDef, ast.AsyncFunctionDef)) else False
+        for node in self.nodes[sid]:
+            if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+                if getattr(node, "value", None) is None:
+                    continue
+                t = lab(node.value)
+                for target in (node.targets if isinstance(node, ast.Assign) else [node.target]):
+                    put(self._store_names(target), t)
+                    for leaf in self._leaf_targets(target):
+                        if isinstance(leaf, ast.Name):
+                            if leaf.id in globals_:
+                                sink(t, "global", leaf)                   # 전역·바깥 함수 변수에 담는다
+                        elif isinstance(leaf, ast.Attribute):
+                            if not (in_init and isinstance(leaf.value, ast.Name) and leaf.value.id == "self"):   # 생성 중인 객체(흐름은 생성자 라벨이 따른다)
+                                sink(t, "attr", leaf)                     # 속성: 객체가 호출보다 오래 사는지 풀리지 않는다
+                        elif isinstance(leaf, ast.Subscript):
+                            klabs = set() if isinstance(leaf.slice, ast.Slice) else lab(leaf.slice)
+                            if self._local_container(sid, leaf):
+                                put(self._store_names(leaf), _as_value(klabs))             # 지역 컨테이너의 키도 담긴 값이다
+                            else:
+                                sink(t, "subscript", leaf)                # 첨자: 이 함수에서 새로 만든 컨테이너가 아니면 오래 사는지 풀리지 않는다
+                                sink(klabs, "key", leaf)                  # 사전 키로 담기
+            elif isinstance(node, ast.For):
+                for n, labs_ in self._bind_iter(sid, node.target, node.iter, None).items():
+                    put({n}, labs_)
+            elif isinstance(node, ast.comprehension):
+                for n, labs_ in self._bind_iter(sid, node.target, node.iter, None).items():
+                    put({n}, labs_)
+            elif isinstance(node, (ast.Return, ast.Yield, ast.YieldFrom)) and node.value is not None:
+                t = lab(node.value)
+                if self._is_block(scope) and isinstance(node, ast.Return):
+                    sink(t, "block-return", node.value)
+                elif not self._is_output(sid) and not t <= self.ret[sid]:                  # 출력 함수의 반환은 보고 객체(iii)
+                    self.ret[sid] |= t
+                    flag[0] = True
+            elif isinstance(node, ast.Assert):
+                if node.msg is not None:
+                    sink(lab(node.msg), "assert-msg", node.msg)
+            elif isinstance(node, ast.Call):
+                self._step_call(sid, node, put, sink, flag)
+            if isinstance(node, ast.expr) and not isinstance(node, _MODELED_EXPR):
+                if not (isinstance(getattr(node, "parent", None), ast.expr) and not isinstance(node.parent, _MODELED_EXPR)):
+                    if isinstance(node, ast.NamedExpr):
+                        put({node.target.id}, lab(node.value))
+                    sink(self._union(sid, self._top_exprs(node)), "untraced:" + type(node).__name__, node)
+            elif isinstance(node, ast.stmt) and not isinstance(node, _MODELED_STMT):
+                if isinstance(node, (ast.With, ast.AsyncWith)):
+                    for item in node.items:
+                        if item.optional_vars is not None:
+                            put(self._store_names(item.optional_vars), lab(item.context_expr))
+                head = "; ".join(self._text(e) for e in sorted(self._top_exprs(node), key=lambda e: (e.lineno, e.col_offset)))
+                sink(self._union(sid, self._top_exprs(node)), "untraced:" + type(node).__name__, head)
+        return flag[0]
+
+    def _union(self, sid, exprs):
+        out = set()
+        for e in exprs:
+            out |= self.labels(sid, e)
+        return out
+
+    def _step_call(self, sid, node, put, sink, flag):
+        eng = self.eng
+        scope = eng.scopes[sid]
+        fn = node.func
+        if id(node) in self.read_ids[sid]:
+            return
+        lab = lambda e: self.labels(sid, e)             # noqa: E731
+        exprs = [a.value if isinstance(a, ast.Starred) else a for a in node.args] + [k.value for k in node.keywords]
+        arg_labs = self._union(sid, exprs)
+        if isinstance(fn, ast.Attribute) and fn.attr in CONTAINER_ADD:
+            base = fn.value
+            while isinstance(base, (ast.Attribute, ast.Subscript)):
+                base = base.value
+            if isinstance(base, ast.Name):
+                put({base.id}, arg_labs)                      # 흐름 추적(수신자 변수에 라벨이 옮겨 붙는다)
+        if isinstance(fn, ast.Attribute) and fn.attr == "write":
+            sink(arg_labs, "write", node)                     # 정본 쓰기·파일 쓰기: 정의된 영속 자리
+        elif not self._resolved_call(sid, node):
+            sink(arg_labs | lab(fn.value if isinstance(fn, ast.Attribute) else fn), "call", node)   # 추적 불능 호출: 넘긴 값 모두 영속으로 본다
+        self._step_callbacks(sid, node, put, sink)
+        for callee in self._precise(scope, fn):
+            self._link(sid, node, callee, arg_labs, sink, flag)
+
+    def _step_callbacks(self, sid, node, put, sink):
+        """map·filter 의 함수 인자, sorted·min·max·list.sort 의 key= 콜백. 람다는 매개변수에 원소 라벨을 묶어 본문을 따라가고(본문은 이 함수 안),
+        내장 함수 이름은 그대로 두고, 나머지는 따라갈 수 없으니 원소를 sink 로 본다."""
+        fn = node.func
+        jobs = []                                                # (콜백 식, 원소를 내는 식들)
+        if self._builtin(sid, fn, ("map", "filter")) and node.args:
+            jobs.append((node.args[0], list(node.args[1:])))
+        elif self._builtin(sid, fn, ("sorted", "min", "max")):
+            data = list(node.args[:1]) if len(node.args) == 1 or fn.id == "sorted" else list(node.args)
+            jobs += [(k.value, data) for k in node.keywords if k.arg == "key"]
+        elif isinstance(fn, ast.Attribute) and fn.attr == "sort" and self._btype(sid, fn.value) == "list":
+            jobs += [(k.value, [fn.value]) for k in node.keywords if k.arg == "key"]
+        for cb, data in jobs:
+            per = [_elems(self.labels(sid, d)) if len(data) == 1 or self._builtin(sid, fn, ("map", "filter", "sorted")) else _as_value(self.labels(sid, d))
+                   for d in data]
+            allv = set().union(*per) if per else set()
+            if isinstance(cb, ast.Lambda):
+                a = cb.args
+                names = [x.arg for x in a.posonlyargs + a.args + a.kwonlyargs] + [x.arg for x in (a.vararg, a.kwarg) if x]
+                for i, n in enumerate(names):
+                    put({n}, per[i] if len(per) == len(names) and len(per) > 1 else allv)
+            elif not (isinstance(cb, ast.Constant) and cb.value is None) and not self._builtin(sid, cb, BUILTIN_PURE_FUNCS | BUILTIN_FLOW_FUNCS):
+                sink(allv, "callback", cb)
+
+    def _link(self, sid, node, callee, arg_labs, sink, flag):
+        """호출 자리의 실인자 라벨을 피호출(생성자면 __init__)의 매개변수와 맞춘다. 맞출 수 없는 실인자·풀리지 않는 피호출은 sink."""
+        eng = self.eng
+        ctor = callee in eng.classes
+        if ctor:
+            target, opaque = self._class_init(callee)
+            if opaque:
+                sink(arg_labs, "ctor-opaque", node)
+                return
+            if target is None:
+                return                                           # 칸 선언만 있는 값 형식: 흐름은 생성자 라벨이 따른다
+        else:
+            target = callee
+        tscope = eng.scopes[target]
+        if self._is_block(tscope) or not self._plain_function(tscope) or target not in self.cset:
+            sink(arg_labs, "call", node)                    # 블록 extras·장식된 함수(인자를 보관할 수 있다)·분석하지 못한 피호출
+            return
+        mapped, unmapped = self._actuals(target, node, ctor, eng.scopes[sid].module)
+        for expr in unmapped:
+            sink(self.labels(sid, expr), "call", node)      # *args·**kwargs·위치 초과: 매개변수에 맞출 수 없다
+        for pname, aexpr in mapped:
+            lab_a = self.labels(sid, aexpr)
+            if not lab_a:
+                continue
+            if pname in ("self", "cls"):
+                sink(lab_a, "call", node)
+                continue
+            if self._s_tainted(sid, lab_a) and pname not in self.recv[target]:
+                self.recv[target].add(pname)
+                flag[0] = True
+            if any(_split_lab(l)[1] in (k + pname for k in ("P:", "X:", "Y:", "Z:")) for l in self.sink[target]):
+                sink(set(lab_a), "arg", "%s(%s)" % (self._text(node.func), pname), local=False)
 
     def run(self):
         for _ in range(OP_COPY_ROUNDS):
@@ -1382,24 +1766,22 @@ class _OpCopy:
     @staticmethod
     def _path(lab):
         """라벨의 칸 경로: 바깥 칸부터 안쪽 칸 순서의 이름 tuple (칸 접두가 없으면 빈 tuple)."""
-        pre = _OpCopy._split(lab)[0]
+        pre = _split_lab(lab)[0]
         return tuple(h[1:] for h in pre.split("|") if h.startswith("@"))
 
     def copies(self):
-        """{사본 자리 함수 sid: {칸 경로, ...}}."""
+        """{사본 자리 함수 sid: {(칸 경로, sink 꼴), ...}}."""
         self.run()
         found = {}
         for sid in self.cands:
-            for lab in self.sink_local[sid]:
-                if self._s_tainted(sid, [lab]):
-                    found.setdefault(sid, set()).add(self._path(lab))
-        for sid in self.cands:
-            for lab in self.sink[sid]:
-                base = self._split(lab)[1]
+            for lab, form, local in sorted(self.sink_rec[sid]):
+                base = _split_lab(lab)[1]
+                if local and self._s_tainted(sid, [lab]):
+                    found.setdefault(sid, set()).add((self._path(lab), form))
                 if base[:2] == "R:" and base[2:] in self.cset:
-                    callee = base[2:]       # 사본을 만든 피호출: 칸 경로 = 받은 쪽에서 담은 칸 + 피호출이 돌려준 칸
-                    inner = {self._path(r) for r in self.ret[callee] if self._split(r)[1] == "S"} or {()}
-                    found.setdefault(callee, set()).update(self._path(lab) + path for path in inner)
+                    callee = base[2:]       # 사본을 만든 피호출: 칸 경로 = 받은 쪽에서 담은 칸 + 피호출이 돌려준 칸, sink 꼴 = 받은 쪽(호출자)의 것
+                    inner = {self._path(r) for r in self.ret[callee] if _split_lab(r)[1] in SRC_BASES} or {()}
+                    found.setdefault(callee, set()).update((self._path(lab) + path, form) for path in inner)
         return found
 
 
@@ -1407,9 +1789,20 @@ def _fmt_path(path):
     return ".".join(path) if path else "<칸 전체>"
 
 
-def _rule_l5(eng, reach, params, out):
+def _cleared_rows(rows):
+    """op_copy_cleared 행 = (위반 키, 칸 경로 tuple, sink 꼴 문자열, 근거) -> {(키, 칸 경로, 공백 정규화한 sink 꼴)}. 모양이 다르면 거부(fail-closed)."""
+    out = set()
+    for row in rows:
+        if len(row) != 4:
+            raise ValueError("op_copy_cleared 행은 (위반 키, 칸 경로, sink 꼴, 근거) 넷이다: %r" % (row,))
+        out.add((tuple(row[0]), tuple(row[1]), _norm(str(row[2]))))
+    return out
+
+
+def _rule_l5(eng, reach, params, out, blocks):
     output_sids = {_spec_sid(s) for s in params.output_functions}
     cleared = tuple(getattr(params, "op_copy_cleared", ()))
+    cleared_set = _cleared_rows(cleared)
     op_found = {}
     for concept, (canon, writer_file) in sorted(params.l5_concepts.items()):
         if concept not in ("diode", "same_vgs", "op_copy"):
@@ -1419,7 +1812,9 @@ def _rule_l5(eng, reach, params, out):
             continue
         if concept == "op_copy":
             kind, _, field = canon.partition(".")
-            op = _OpCopy(eng, reach, (kind, field), output_sids, writer_file)
+            label = blocks.table.get((kind, field))                      # 정본 쓰기 면제 = 그 필드를 쓰는 블록 자신(N3.1-5), 파일 전체가 아니다
+            exempt = {blocks.block_sid[label]} if label in blocks.block_sid else set()
+            op = _OpCopy(eng, reach, (kind, field), output_sids, exempt)
             found = op.copies()
             if op.nonconverged:
                 out.append(Violation(("L-5", "op_copy", writer_file, "<fixed_point>"), "op_copy",
@@ -1428,10 +1823,11 @@ def _rule_l5(eng, reach, params, out):
                 scope = eng.scopes[sid]
                 key = ("L-5", "op_copy", eng.modules[scope.module], _qual(sid))
                 op_found[key] = found[sid]
-                left = tuple(sorted(pa for pa in found[sid] if (key, pa) not in {(r[0], tuple(r[1])) for r in cleared}))
+                left = tuple(sorted(pair for pair in found[sid] if (key, pair[0], pair[1]) not in cleared_set))
                 if left:
-                    out.append(Violation(key, "op_copy", "정본 %s 의 칸 값을 영속 자리에 그대로 담거나 추적이 끊긴다; 칸 경로: %s"
-                                         % (canon, ", ".join(_fmt_path(pa) for pa in left)), left))
+                    paths = tuple(sorted({pa for pa, _form in left}))
+                    out.append(Violation(key, "op_copy", "정본 %s 의 칸 값을 영속 자리에 그대로 담거나 추적이 끊긴다; 칸 경로·sink 꼴: %s"
+                                         % (canon, "; ".join("%s @ %s" % (_fmt_path(pa), form) for pa, form in left)), paths, left))
             continue
         for sid in sorted(eng.scopes):
             scope = eng.scopes[sid]
@@ -1441,14 +1837,14 @@ def _rule_l5(eng, reach, params, out):
             if (concept == "diode" and diode) or (concept == "same_vgs" and same):
                 out.append(Violation(("L-5", concept, eng.modules[scope.module], _qual(sid)), "predicate_recomputed", "정본 %s 를 다시 계산한다" % canon))
     stale = {}
-    for row in cleared:
-        key, path = tuple(row[0]), tuple(row[1])
-        if path not in op_found.get(key, ()):
+    for key, path, form in sorted(cleared_set):
+        if (path, form) not in op_found.get(key, ()):
             where = key[2:4] if len(key) >= 4 else ("<행>", str(key))
-            stale.setdefault(("L-5", "op_copy_cleared") + tuple(where), []).append(path)
-    for key, paths in sorted(stale.items()):
-        out.append(Violation(key, "op_copy_cleared_stale", "표 행이 지금 잡히지 않는다(낡은 항목): " + ", ".join(_fmt_path(pa) for pa in sorted(paths)),
-                             tuple(sorted(paths))))
+            stale.setdefault(("L-5", "op_copy_cleared") + tuple(where), []).append((path, form))
+    for key, pairs in sorted(stale.items()):
+        out.append(Violation(key, "op_copy_cleared_stale",
+                             "표 행이 지금 잡히지 않는다(낡은 항목): " + "; ".join("%s @ %s" % (_fmt_path(pa), form) for pa, form in sorted(pairs)),
+                             tuple(sorted({pa for pa, _f in pairs})), tuple(sorted(pairs))))
 
 
 # ------------------------------------------------------------------ L-1x
@@ -1493,7 +1889,7 @@ def check_rule_l(engine_root: Path, params) -> tuple:
     _rule_dynamic(eng, params, out)
     _rule_l3(eng, blocks, out)
     _rule_l4(eng, params, out)
-    _rule_l5(eng, reach, params, out)
+    _rule_l5(eng, reach, params, out, blocks)
     _rule_l1x(eng, entry_sids, out)
     first = {}
     for v in out:

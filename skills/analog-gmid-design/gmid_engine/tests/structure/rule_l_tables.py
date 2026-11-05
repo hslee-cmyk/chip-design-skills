@@ -18,7 +18,8 @@ class RuleLParams(NamedTuple):
     output_only_fields: tuple
     output_only_slots: tuple
     fingerprint_only_slots: tuple
-    # O-241 손 분류 표: 행 = (위반 키, 칸 경로 tuple, 사본이 아닌 근거 `파일:행`). 검증자가 쓴다(도구 작성자는 채우지 않는다).
+    # O-241 손 분류 표: 행 = (위반 키, 칸 경로 tuple, sink 꼴 문자열, 사본이 아닌 근거 `파일:행`). sink 꼴 = 영속 자리 종류 + 대상 식 문자열(줄 번호 아님, 소스 공백 정규화).
+    # 표가 가리는 것은 그 키의 적힌 (칸 경로, sink 꼴) 쌍뿐이다. 검증자가 쓴다(도구 작성자는 채우지 않는다).
     op_copy_cleared: tuple = ()
 
 
