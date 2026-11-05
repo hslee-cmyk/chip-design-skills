@@ -7,7 +7,33 @@ op_copy 개념의 writer 파일은 `sizing/block_widths.py`, output_only_slots 4
 """
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import NamedTuple
+
+# O-241 손 분류 표의 데이터 파일(이 폴더, 빈 목록으로 시작). 행이 만 단위가 될 수 있어 소스에 두지 않는다. 바이트가 `fingerprint` 대상이다.
+CLEARED_FILE = "rule_l_op_copy_cleared.json"
+
+
+def load_op_copy_cleared(path=None) -> tuple:
+    """`rule_l_op_copy_cleared.json` 을 읽어 행 tuple 로 돌려준다. 파일이 없거나(FileNotFoundError) JSON 이 아니거나 모양이 다르면 거부한다(ValueError):
+    최상위는 목록이고 행마다 [위반 키(문자열 목록), 칸 경로(문자열 목록), sink 꼴 문자열, 근거 문자열] 넷이다. 행 값 의미(낡음·가림)는 check_rule_l 이 판정한다."""
+    path = Path(path) if path is not None else Path(__file__).with_name(CLEARED_FILE)
+    try:
+        data = json.loads(path.read_bytes().decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("%s 를 읽을 수 없다: %s" % (path.name, exc)) from exc
+    if not isinstance(data, list):
+        raise ValueError("%s 최상위는 행 목록이어야 한다" % path.name)
+    rows = []
+    for i, row in enumerate(data):
+        ok = (isinstance(row, list) and len(row) == 4
+              and all(isinstance(r, list) and all(isinstance(x, str) for x in r) for r in row[:2])
+              and isinstance(row[2], str) and isinstance(row[3], str))
+        if not ok:
+            raise ValueError("%s %d번째 행은 [위반 키(문자열 목록), 칸 경로(문자열 목록), sink 꼴, 근거] 넷이어야 한다: %r" % (path.name, i, row))
+        rows.append((tuple(row[0]), tuple(row[1]), row[2], row[3]))
+    return tuple(rows)
 
 
 class RuleLParams(NamedTuple):
@@ -19,7 +45,7 @@ class RuleLParams(NamedTuple):
     output_only_slots: tuple
     fingerprint_only_slots: tuple
     # O-241 손 분류 표: 행 = (위반 키, 칸 경로 tuple, sink 꼴 문자열, 사본이 아닌 근거 `파일:행`). sink 꼴 = 영속 자리 종류 + 대상 식 문자열(줄 번호 아님, 소스 공백 정규화).
-    # 표가 가리는 것은 그 키의 적힌 (칸 경로, sink 꼴) 쌍뿐이다. 검증자가 쓴다(도구 작성자는 채우지 않는다).
+    # 표가 가리는 것은 그 키의 적힌 (칸 경로, sink 꼴) 쌍뿐이다. 검증자가 `rule_l_op_copy_cleared.json` 에 쓴다(도구 작성자는 채우지 않는다). PARAMS 는 그 파일에서 읽는다.
     op_copy_cleared: tuple = ()
 
 
@@ -75,7 +101,7 @@ PARAMS = RuleLParams(
         "SealItem.magnitude",
     ),
     fingerprint_only_slots=(),
-    op_copy_cleared=(),
+    op_copy_cleared=load_op_copy_cleared(),
 )
 
 BASELINE = (

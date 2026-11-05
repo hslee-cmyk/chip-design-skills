@@ -21,9 +21,10 @@ if str(HERE) not in sys.path:
 
 from rule_l_checks import DebtReport, Violation, check_debt, check_rule_l, fingerprint  # noqa: E402
 from rule_l_debt import DebtItem  # noqa: E402
-from rule_l_tables import PARAMS, RuleLParams  # noqa: E402
+from rule_l_tables import CLEARED_FILE, PARAMS, RuleLParams, load_op_copy_cleared  # noqa: E402
 
 FIX = HERE / "fixtures" / "rule_l"
+CLEARED_NAME = "rule_l_op_copy_cleared.json"      # 손 분류 표 데이터 파일 이름(interface: 같은 폴더). 상수가 바뀌면 test_..._file_name_is_fixed 가 실패한다
 ENTRY = "pipeline/stage_a.py:run_stage_a"
 
 
@@ -355,10 +356,11 @@ def test_rule_l_debt_six_vocabulary_words_all_accepted():
 
 # ---------------------------------------------------------------- 지문 (L10)
 
-def _fp_inputs(tmp_path, checks=b"a = 1\n", tables=b"b = 2\n"):
+def _fp_inputs(tmp_path, checks=b"a = 1\n", tables=b"b = 2\n", cleared=b"[]\n"):
     c, t = tmp_path / "rule_l_checks.py", tmp_path / "rule_l_tables.py"
     c.write_bytes(checks)
     t.write_bytes(tables)
+    (tmp_path / CLEARED_NAME).write_bytes(cleared)          # 표 데이터 파일: tables 와 같은 폴더(지문 함수의 기본 자리)
     return c, t
 
 
@@ -528,6 +530,114 @@ def test_rule_l_fingerprint_includes_op_copy_cleared(tmp_path):
     assert other_form != changed
 
 
+# ---------------------------------------------------------------- GC-1 f3: 손 분류 표를 데이터 파일로(rule_l_op_copy_cleared.json)
+
+GOOD_ROW_JSON = b'[[["L-5","op_copy","graph/op_user.py","place"],["current"],"%s","graph/op_user.py:12"]]\n'
+
+
+def test_rule_l_op_copy_cleared_file_name_is_fixed_and_params_read_it():
+    """표 데이터 파일은 tables 와 같은 폴더의 `rule_l_op_copy_cleared.json` 이고(두 모듈의 상수가 같다), PARAMS.op_copy_cleared 는 그 파일을 읽은 것이다.
+    구성: 이름은 interface 가 정한 리터럴로 손으로 적었고, 파일 내용 비교는 loader 를 같은 파일에 다시 부른 값과 한다(행 내용은 검증자 몫이라 비어 있다고 단언하지 않는다)."""
+    import rule_l_checks
+    import rule_l_tables
+    assert CLEARED_FILE == CLEARED_NAME == rule_l_checks.CLEARED_FILE
+    path = Path(rule_l_tables.__file__).with_name(CLEARED_NAME)
+    assert path.is_file()
+    assert load_op_copy_cleared(path) == PARAMS.op_copy_cleared
+    assert isinstance(PARAMS.op_copy_cleared, tuple)
+
+
+def test_rule_l_op_copy_cleared_loader_returns_tuple_rows_that_hide_the_pair(tmp_path):
+    """파일 행(목록)이 tuple 행이 되어 표와 같이 가린다. 구성: path-field 는 (('current',), F_POINT) 하나만 잡히므로 그 행을 파일에서 읽으면 위반 0이고,
+    같은 행의 sink 꼴을 다르게 쓴 파일이면 가려지지 않아 위반 하나와 낡은 행 하나가 나온다."""
+    f = tmp_path / CLEARED_NAME
+    f.write_bytes(GOOD_ROW_JSON % F_POINT.encode("utf-8"))        # F_POINT 에 큰따옴표가 없어 JSON 문자열로 그대로 들어간다
+    rows = load_op_copy_cleared(f)
+    assert rows == ((PLACE, ("current",), F_POINT, "graph/op_user.py:12"),)
+    assert _op("L5p-path-field", op_copy_cleared=rows) == ()
+    f.write_bytes(GOOD_ROW_JSON % b"write:snapshot.write('other')")
+    other = _op("L5p-path-field", op_copy_cleared=load_op_copy_cleared(f))
+    assert sorted((v.key, v.code) for v in other) == sorted([(PLACE, "op_copy"), (("L-5", "op_copy_cleared", "graph/op_user.py", "place"),
+                                                                                   "op_copy_cleared_stale")])
+
+
+def test_rule_l_op_copy_cleared_empty_file_is_accepted(tmp_path):
+    """빈 목록(시작 상태)은 받아들여 빈 tuple 이 된다. 구성: `[]` 만 있는 파일."""
+    f = tmp_path / CLEARED_NAME
+    f.write_bytes(b"[]\n")
+    assert load_op_copy_cleared(f) == ()
+
+
+def test_rule_l_op_copy_cleared_missing_file_is_rejected(tmp_path):
+    """파일이 없으면 빈 표로 넘어가지 않고 거부한다(fail-closed). 구성: 존재하지 않는 경로."""
+    with pytest.raises(FileNotFoundError):
+        load_op_copy_cleared(tmp_path / CLEARED_NAME)
+
+
+@pytest.mark.parametrize("raw", [
+    b"",                                                               # 빈 파일
+    b"not json",                                                       # JSON 아님
+    b'{"rows": []}',                                                   # 최상위가 목록이 아님
+    b'\xff\xfe\x00',                                                   # UTF-8 아님
+    b'[[["L-5","op_copy","a.py","f"],["current"],"form"]]',            # 3칸 행
+    b'[[["L-5","op_copy","a.py","f"],["current"],"form","ref","x"]]',  # 5칸 행
+    b'[["L-5 op_copy",["current"],"form","ref"]]',                     # 위반 키가 목록이 아니라 문자열
+    b'[[["L-5","op_copy","a.py","f"],"current","form","ref"]]',        # 칸 경로가 목록이 아님
+    b'[[["L-5","op_copy","a.py","f"],["current",1],"form","ref"]]',    # 칸 경로 원소가 문자열이 아님
+    b'[[["L-5",7,"a.py","f"],["current"],"form","ref"]]',              # 키 원소가 문자열이 아님
+    b'[[["L-5","op_copy","a.py","f"],["current"],["form"],"ref"]]',    # sink 꼴이 문자열이 아님
+    b'[[["L-5","op_copy","a.py","f"],["current"],"form",null]]',       # 근거가 문자열이 아님
+    b'[null]',                                                         # 행이 목록이 아님
+])
+def test_rule_l_op_copy_cleared_malformed_file_is_rejected(tmp_path, raw):
+    """모양이 틀린 파일은 조용히 넘기지 않고 ValueError 로 거부한다. 구성: 최상위·행 칸 수·칸 자료형을 하나씩 어긴 입력."""
+    f = tmp_path / CLEARED_NAME
+    f.write_bytes(raw)
+    with pytest.raises(ValueError):
+        load_op_copy_cleared(f)
+
+
+def test_rule_l_fingerprint_includes_op_copy_cleared_file_bytes(tmp_path):
+    """표 데이터 파일의 바이트는 지문 대상이다. 구성: 행으로 읽으면 같은 두 파일(`[]` 대 `[ ]`)도 지문이 다르다(파싱 값이 아니라 바이트),
+    줄바꿈 CRLF 대 LF는 같다. 파일 한 글자 변경, 같은 폴더 기본 위치 대 명시 경로가 같은 값을 낸다."""
+    a = tmp_path / "a"
+    b = tmp_path / "b"
+    c_ = tmp_path / "c"
+    for d in (a, b, c_):
+        d.mkdir()
+    ca, ta = _fp_inputs(a, cleared=b"[]\n")
+    cb, tb = _fp_inputs(b, cleared=b"[ ]\n")
+    cc, tc = _fp_inputs(c_, cleared=b"[]\r\n")
+    base = fingerprint(PARAMS, ca, ta)
+    assert fingerprint(PARAMS, cb, tb) != base
+    assert fingerprint(PARAMS, cc, tc) == base
+    assert fingerprint(PARAMS, ca, ta, a / CLEARED_NAME) == base
+    assert fingerprint(PARAMS, ca, ta, b / CLEARED_NAME) == fingerprint(PARAMS, cb, tb)
+
+
+def test_rule_l_fingerprint_missing_op_copy_cleared_file_is_rejected(tmp_path):
+    """표 데이터 파일이 없으면 지문을 만들지 않고 거부한다(빈 표로 넘어가면 같은 지문이 나올 수 있다). 구성: 파일을 지운다."""
+    c, t = _fp_inputs(tmp_path)
+    (tmp_path / CLEARED_NAME).unlink()
+    with pytest.raises(FileNotFoundError):
+        fingerprint(PARAMS, c, t)
+
+
+def test_rule_l_fingerprint_covers_every_listed_input(tmp_path):
+    """지문 대상 목록을 고정한다: checks 바이트, tables 바이트, 표 데이터 파일 바이트, PARAMS(표 행 포함) 각각이 하나라도 바뀌면 지문이 바뀐다.
+    구성: 서로 다른 입력 5개의 지문이 모두 다르다."""
+    dirs = [tmp_path / n for n in "pqrs"]
+    for d in dirs:
+        d.mkdir()
+    c0, t0 = _fp_inputs(dirs[0])
+    c1, t1 = _fp_inputs(dirs[1], checks=b"a = 2\n")
+    c2, t2 = _fp_inputs(dirs[2], tables=b"b = 3\n")
+    c3, t3 = _fp_inputs(dirs[3], cleared=b"[ ]\n")
+    fps = {fingerprint(PARAMS, c0, t0), fingerprint(PARAMS, c1, t1), fingerprint(PARAMS, c2, t2), fingerprint(PARAMS, c3, t3),
+           fingerprint(PARAMS._replace(op_copy_cleared=((PLACE, ("n",), F_POINT, "r"),)), c0, t0)}
+    assert len(fps) == 5
+
+
 def test_rule_l_op_copy_fixed_point_overflow_is_violation(monkeypatch):
     """고정점 상한을 넘으면 조용히 멈추지 않고 추적 실패(op_copy)로 낸다. 구성: 상한 1회로 낮추면 L5b-1(라벨이 두 함수를 거쳐 퍼짐)은 첫 회에 더 자란다.
     기본 상한에서는 같은 트리에 추적 실패 키가 없다."""
@@ -686,6 +796,43 @@ SHAPES = [
     ("clean_names_only", "", [COL, "v = tuple(sorted(ops))\n", WRT], []),
     ("clean_pair_key_side", "", [COL, "v = [m for m, _o in sorted(ops.items())]\n", WRT], []),
     ("clean_key_callback_lambda", "", [COL, "v = len(sorted(ops.values(), key=lambda o: o.current))\n", WRT], []),
+    # ---- GC-1 f3: 사본이 풀리지 않는 호출로 새는 꼴(두 층 점검의 주입 U1·U4·L2·X1). 호출 자체가 sink 이므로 한 층에서 잡힌다 ----
+    # 기대는 소스를 읽고 손으로: 받는 함수가 넘겨받은 동작점 값을 풀리지 않는 호출(수신자 형 모름·외부 모듈)에 넘기므로 그 함수가 사본 자리다(호출자는 아니다).
+    ("leak_sctx_slot_append", "def _stash(sctx, op_):\n    sctx.memo_slot.append(op_)\n\n\n", [OPV, "_stash(snapshot.ctx, op)\nv = 1.0\n", WRT], ["_stash"]),
+    ("leak_s3_append_eval", 'def _rec(sctx, op_):\n    sctx.archive.append_eval({"vgs": op_.vgs})\n\n\n', [OPV, "_rec(snapshot.ctx, op)\nv = 1.0\n", WRT], ["_rec"]),
+    ("leak_subscript_after_copy", "import copy\n\n\ndef _keep(x, k, op_):\n    x[k] = copy.copy(op_)\n\n\n",
+     [OPV, '_keep(snapshot.ctx.cache, "m1", op)\nv = 1.0\n', WRT], ["_keep"]),
+    ("leak_raise_detail_kw", "class Rejected(Exception):\n    pass\n\n\n", [OPV, 'raise Rejected(detail={"vgs": op.vgs})\n'], ["place"]),
+    ("leak_raise_detail_via_param", "class Rejected(Exception):\n    pass\n\n\ndef _fail(detail):\n    raise Rejected(detail=detail)\n\n\n",
+     [OPV, '_fail({"vgs": op.vgs})\n'], ["_fail"]),
+    # ---- GC-1 f3: 튜플 풀기. 왼쪽 이름별로 자기 오른쪽 식의 라벨만 받는다(칸 수가 같고 `*` 없음). 기대는 대입의 의미(a, b = x, y 는 a = x; b = y)에서 손으로 ----
+    # 거부: 오염된 칸을 받은 이름이 영속 자리에 닿는다(맨 앞, 맨 뒤, 중첩, 리스트 대상, 이름 하나에 여럿 풀기)
+    ("unpack_first_name_leaks", "", [OPV, "a, b = op.current, 1.0\nsnapshot.ctx.k = a\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_second_name_leaks", "", [OPV, "a, b = 1.0, op.current\nsnapshot.ctx.k = b\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_nested_leaks", "", [OPV, "(a, b), c = (op.current, 1.0), 2.0\nsnapshot.ctx.k = a\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_nested_second_leaks", "", [OPV, "(a, b), c = (1.0, op.current), 2.0\nsnapshot.ctx.k = b\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_list_target_leaks", "", [OPV, "[a, b] = op.current, 1.0\nsnapshot.ctx.k = a\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_attr_leaf_leaks", "", [OPV, "snapshot.ctx.k, b = op.current, 1.0\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_subscript_leaf_leaks", "", [OPV, "snapshot.ctx.k[0], b = op.current, 1.0\nv = 1.0\n", WRT], ["place"]),
+    # 거부: 오른쪽이 이름·호출·`*` 포함이면 짝지을 수 없으니 모든 이름이 오염을 받는다(모르는 꼴은 위반이라는 기본값)
+    ("unpack_name_rhs_all_leak", "", [OPV, "pair = (op.current, 1.0)\na, b = pair\nsnapshot.ctx.k = b\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_call_rhs_all_leak", "def _two(x):\n    return x, 1.0\n\n\n", [OPV, "a, b = _two(op.current)\nsnapshot.ctx.k = b\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_starred_rhs_all_leak", "", [OPV, "a, b = (op.current, 1.0, 2.0)[:2]\nsnapshot.ctx.k = b\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_starred_target_all_leak", "", [OPV, "a, *b = op.current, 1.0, 2.0\nsnapshot.ctx.k = b\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_starred_value_all_leak", "", [OPV, "rest = (1.0, 2.0)\na, b, c = op.current, *rest\nsnapshot.ctx.k = c\nv = 1.0\n", WRT], ["place"]),
+    # 거부: 풀기로 만든 지역 컨테이너도 호출·대입으로 빠져나가면 위반이고, 짝이 안 맞는 이름·다시 묶인 이름은 형이 확정되지 않는다
+    ("unpack_local_container_escapes", "", [OPV, "rows, seen = [], {}\nrows.append(op.current)\nsnapshot.ctx.k = rows\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_untyped_partner_append", "", [OPV, "rows, other = [], snapshot.ctx.rows\nother.append(op.current)\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_unmatched_rhs_not_typed", "", [OPV, "rows, other = snapshot.ctx.pair\nrows.append(op.current)\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_rebound_not_typed", "", [OPV, "rows, other = [], []\nrows, other = snapshot.ctx.pair\nrows.append(op.current)\nv = 1.0\n", WRT], ["place"]),
+    ("unpack_typed_then_loop_rebound", "", [OPV, "rows, other = [], []\nfor rows in snapshot.ctx.groups:\n    rows.append(op.current)\nv = 1.0\n", WRT], ["place"]),
+    # 허용: 상수를 받은 이름은 깨끗하다(옛 합집합 라벨에서는 위반이었던 자리), 풀기로 만든 지역 컨테이너에만 담기, 산술로 끊김
+    ("unpack_const_name_clean", "", [OPV, "a, b = op.current, 1.0\nsnapshot.ctx.k = b\nv = 1.0\n", WRT], []),
+    ("unpack_const_first_clean", "", [OPV, "a, b = 1.0, op.current\nsnapshot.ctx.k = a\nv = 1.0\n", WRT], []),
+    ("unpack_nested_other_clean", "", [OPV, "(a, b), c = (op.current, 1.0), 2.0\nsnapshot.ctx.k = (b, c)\nv = 1.0\n", WRT], []),
+    ("unpack_arith_clean", "", [OPV, "a, b = op.current * 2.0, 1.0\nsnapshot.ctx.k = a\nv = 1.0\n", WRT], []),
+    ("unpack_local_containers_clean", "", [OPV, "rows, seen = [], {}\nrows.append(op.current)\nseen[1] = op.current\nv = len(rows) + len(seen)\n", WRT], []),
+    ("unpack_attr_leaf_other_clean", "", [OPV, "snapshot.ctx.k, b = 1.0, op.current\nv = 1.0\n", WRT], []),
 ]
 
 

@@ -1100,9 +1100,10 @@ class _OpCopy:
                 bad |= set(node.names)
             elif isinstance(node, ast.Assign):
                 for tgt in node.targets:
-                    if isinstance(tgt, ast.Name):
-                        direct.add(id(tgt))
-                        seen.setdefault(tgt.id, set()).add(self._expr_type(scope, node.value))
+                    for leaf, val, exact in self._unpack(tgt, node.value):
+                        if isinstance(leaf, ast.Name) and exact:      # 풀기에서 왼쪽 이름과 오른쪽 식이 하나씩 짝이 맞는 이름만 형을 정한다(나머지는 확정 아님)
+                            direct.add(id(leaf))
+                            seen.setdefault(leaf.id, set()).add(self._expr_type(scope, val))
             elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.value is not None:
                 direct.add(id(node.target))
                 seen.setdefault(node.target.id, set()).add(self._expr_type(scope, node.value))
@@ -1171,6 +1172,18 @@ class _OpCopy:
         while isinstance(target, (ast.Attribute, ast.Subscript)):
             target = target.value
         return {target.id} if isinstance(target, ast.Name) else set()
+
+    @staticmethod
+    def _unpack(target, value):
+        """대입 대상을 오른쪽 식과 짝짓는다: [(잎 대상, 그 잎에 담기는 식, 짝이 맞는가)]. 왼쪽 튜플·리스트와 오른쪽 튜플·리스트의 칸 수가 같고
+        어느 쪽에도 `*`가 없으면 칸마다 재귀해 한 칸씩 짝짓는다(짝이 맞음). 그 밖의 풀기(오른쪽이 이름·호출·다른 길이·`*` 포함)는 잎 모두에
+        그 층의 오른쪽 식 전체를 준다(짝이 안 맞음 -- 라벨은 합쳐 주고 형은 확정하지 않는다)."""
+        if isinstance(target, (ast.Tuple, ast.List)):
+            if (isinstance(value, (ast.Tuple, ast.List)) and len(target.elts) == len(value.elts)
+                    and not any(isinstance(x, ast.Starred) for x in list(target.elts) + list(value.elts))):
+                return [item for t, v in zip(target.elts, value.elts) for item in _OpCopy._unpack(t, v)]
+            return [(leaf, value, False) for leaf in _OpCopy._leaf_targets(target)]
+        return [(target, value, True)]
 
     @staticmethod
     def _top_exprs(node):
@@ -1619,10 +1632,10 @@ class _OpCopy:
             if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
                 if getattr(node, "value", None) is None:
                     continue
-                t = lab(node.value)
                 for target in (node.targets if isinstance(node, ast.Assign) else [node.target]):
-                    put(self._store_names(target), t)
-                    for leaf in self._leaf_targets(target):
+                    for leaf, val, _exact in self._unpack(target, node.value):       # 짝이 맞는 풀기는 왼쪽 이름별로 자기 오른쪽 식의 라벨만 받는다
+                        t = lab(val)
+                        put(self._store_names(leaf), t)
                         if isinstance(leaf, ast.Name):
                             if leaf.id in globals_:
                                 sink(t, "global", leaf)                   # 전역·바깥 함수 변수에 담는다
@@ -1915,14 +1928,20 @@ def _normalized(path: Path) -> str:
     return path.read_bytes().replace(b"\r\n", b"\n").decode("utf-8")
 
 
-def fingerprint(params, checks_path: Path, tables_path: Path) -> str:
+CLEARED_FILE = "rule_l_op_copy_cleared.json"      # rule_l_tables.CLEARED_FILE 과 같은 이름(이 파일은 tables 를 import 하지 않는다)
+
+
+def fingerprint(params, checks_path: Path, tables_path: Path, cleared_path: Path | None = None) -> str:
     """판정을 바꿀 수 있는 입력의 지문: 정렬 JSON(UTF-8, 고정 구분자)의 sha256 16진.
-    대상 = 규칙 매개변수 전부(진입점·출력 함수·동적 접근 허용 파일·L-5 등록표·출력 전용/지문 전용 목록)
-    + rule_l_checks.py·rule_l_tables.py 바이트(줄바꿈 정규화)."""
+    대상 = 규칙 매개변수 전부(진입점·출력 함수·동적 접근 허용 파일·L-5 등록표·출력 전용/지문 전용 목록·손 분류 표 행)
+    + rule_l_checks.py·rule_l_tables.py·손 분류 표 데이터 파일(`rule_l_op_copy_cleared.json`) 바이트(줄바꿈 정규화).
+    표 파일은 cleared_path 를 주지 않으면 tables_path 와 같은 폴더의 같은 이름 파일이다. 파일이 없으면 FileNotFoundError(조용히 건너뛰지 않는다)."""
+    cleared = Path(cleared_path) if cleared_path is not None else Path(tables_path).with_name(CLEARED_FILE)
     payload = {
         "params": dict(params._asdict()),
         "checks": _normalized(Path(checks_path)),
         "tables": _normalized(Path(tables_path)),
+        "op_copy_cleared_file": _normalized(cleared),
     }
     text = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=list)
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
