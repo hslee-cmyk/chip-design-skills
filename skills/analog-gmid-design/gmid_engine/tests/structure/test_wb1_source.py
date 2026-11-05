@@ -136,3 +136,65 @@ def test_wb1_realize_front_module_has_evaluate_not_finger_slice():
 def test_wb1_tol_v_metrics_is_id_equivalent_only():
     from gmid_engine.lut import TOL_V_METRICS
     assert tuple(TOL_V_METRICS) == ("id_equivalent",)
+
+
+# ---------------------------------------------------------------- G-2 (재작성 범위 옛 이름 0, spec card '재작성 범위' 표)
+REWRITE_DELETED = ("sizing/block_columns.py", "sizing/block_widths.py", "sizing/pre_layout_widths.py", "convergence/kernel_keys.py")
+REWRITE_NEW = ("sizing/block_dc.py", "lut/finger_slice.py", "lut/slice_of_finger.py", "lut/slice_gap.py", "lut/slice_tables.py",
+               "search/realize_front.py", "core/file_sha256.py")
+
+
+def test_wb1_rewrite_range_deleted_files_gone_and_new_files_present():
+    # 커밋 4: 네 파일 삭제 (block_dc.py 로 흡수), 새 파일 + core/file_sha256.py (양성 대조: 새 파일이 있어야 삭제가 의미 있다)
+    assert all((ENGINE / r).is_file() for r in REWRITE_NEW), [r for r in REWRITE_NEW if not (ENGINE / r).is_file()]
+    assert not [r for r in REWRITE_DELETED if (ENGINE / r).exists()]
+
+
+def test_wb1_no_import_of_deleted_modules():
+    mods = {"block_" + "columns", "block_" + "widths", "pre_layout_" + "widths", "kernel_" + "keys"}
+    seen = 0
+    bad = []
+    for p in _py():
+        for node in ast.walk(ast.parse(_text(p))):
+            names = []
+            if isinstance(node, ast.ImportFrom):
+                seen += 1
+                names = (node.module or "").split(".") + [a.name for a in node.names]
+            elif isinstance(node, ast.Import):
+                seen += 1
+                names = [part for a in node.names for part in a.name.split(".")]
+            if mods & set(names):
+                bad.append((str(p.relative_to(ENGINE)), node.lineno))
+    assert seen > 100 and bad == []
+
+
+def test_wb1_w_keys_absent_in_rewritten_value_modules_and_graph():
+    # 칸·인자 삭제: LutAccess·LocalInputs·ParamTables 의 w_keys, A-34 의 E/graph grep 0
+    files = [ENGINE / r for r in ("metrics/block_param_tables.py", "metrics/achievability.py", "metrics/achievability_types.py",
+                                  "search/iv_context.py", "search/constraints.py", "sizing/s2_values.py", "sizing/kernel_context.py",
+                                  "sizing/_helpers_lut.py")] + sorted((ENGINE / "graph").glob("*.py"))
+    assert len(files) > 10 and all(f.is_file() for f in files)
+    names = ["w_" + "keys", "w_key_" + "of"]
+    bad = {f.name: n for f in files for n in names if re.search(r"(?<![A-Za-z0-9_])" + n + r"(?![A-Za-z0-9_])", _text(f))}
+    assert bad == {}
+
+
+def test_wb1_ulp_anchor_condition_names_absent():
+    # B-7: ulp 조건 비교 grep 0
+    assert len(_py()) > 50
+    assert _words(["_on_or_" + "inside"], False) == {}
+
+
+def test_wb1_curve_checks_and_w_tolerance_docs_have_no_retired_names():
+    # M-4: metrics/curve_checks.py 에 vgs_for_gm_id 0, layout/w_tolerance.py 에 gm_id_inverse 0
+    cc, wt = ENGINE / "metrics" / "curve_checks.py", ENGINE / "layout" / "w_tolerance.py"
+    assert cc.is_file() and wt.is_file() and len(_text(cc)) > 100 and len(_text(wt)) > 100
+    assert "vgs_for_gm_" + "id" not in _text(cc)
+    assert "gm_id_" + "inverse" not in _text(wt)
+
+
+def test_wb1_param_tables_signature_is_memo_grids_side_z_side():
+    # 포락 표는 W 가 없는 단계: 소자 키·기준 폭 키 인자를 받지 않는다 (side·z_side 만)
+    import inspect
+    from gmid_engine.metrics import ParamTables
+    assert list(inspect.signature(ParamTables).parameters) == ["memo", "grids", "side", "z_side"]
