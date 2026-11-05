@@ -1,0 +1,21 @@
+"""도구 사본에 로그만 넣어 recv 가 처음 더해지는 순서를 본다(6키의 오염 씨앗 찾기). 피검 파일 무변경."""
+import importlib.util, pathlib, sys
+E = pathlib.Path(sys.argv[1]); WORK = pathlib.Path(sys.argv[2]); OUT = pathlib.Path(sys.argv[3])
+S = E / "tests" / "structure"
+sys.path.insert(0, str(S))
+from rule_l_tables import PARAMS
+src = (S / "rule_l_checks.py").read_text(encoding="utf-8")
+a = "                                self.recv[callee].add(pname)\n"
+assert src.count(a) == 1
+b = a + "                                _LOG.append((sid, node.lineno, callee, pname, sorted(lab_a)[:5]))\n"
+marker = "class Violation(NamedTuple):"
+assert src.count(marker) == 1
+p = WORK / "trace_mut.py"
+p.write_text(src.replace(a, b).replace(marker, "_LOG = []\n\n\n" + marker), encoding="utf-8")
+spec = importlib.util.spec_from_file_location("trace_mut", p)
+m = importlib.util.module_from_spec(spec); sys.modules["trace_mut"] = m; spec.loader.exec_module(m)
+m.check_rule_l(E, PARAMS)
+with open(OUT, "w", encoding="utf-8") as fh:
+    for i, r in enumerate(m._LOG):
+        fh.write("%d %s:%d -> %s(%s) %s\n" % (i, r[0], r[1], r[2], r[3], r[4]))
+print(len(m._LOG))

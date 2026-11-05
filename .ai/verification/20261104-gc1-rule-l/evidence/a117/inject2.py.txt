@@ -1,0 +1,51 @@
+"""A-117 재판정 주입: 앞 5꼴 재실행은 inject.py, 여기는 새 목록·칸 추적의 구멍 후보. 기대는 N3.1-5에서 손으로 적었다."""
+import json, pathlib, shutil, sys
+E = pathlib.Path(sys.argv[1]); WORK = pathlib.Path(sys.argv[2]); OUT = pathlib.Path(sys.argv[3])
+S = E / "tests" / "structure"
+sys.path.insert(0, str(S))
+from rule_l_checks import check_rule_l
+from rule_l_tables import RuleLParams
+BASE = S / "fixtures" / "rule_l" / "L5b-1" / "gmid_engine"
+OP = {"op_copy": ("device.dc_op", "graph/op_block.py")}
+P = RuleLParams(("pipeline/stage_a.py:run_stage_a",), (), (), OP, (), (), ())
+O = '    op = snapshot.value("device", "m1", "dc_op")\n'
+W = '    return snapshot.write("lay", "iv", {("graph", "ly_point"): {"m1": v}})\n'
+ARC = 'class Arc:\n    def append_eval(self, rec):\n        with open("x", "a") as fh:\n            fh.write(repr(rec))\n'
+V = [
+ # (iv) 실행 컨텍스트
+ ("ctx_subscript", "", O + '    snapshot.ctx.cache["m1"] = op.current\n', "", "catch", "(iv) 컨텍스트 객체 첨자"),
+ ("ctx_append", "", O + '    snapshot.ctx.rows.append(op.current)\n', "", "catch", "(iv) 컨텍스트 컨테이너 append"),
+ ("ctx_update", "", O + '    snapshot.ctx.rows.update({"m1": op.current})\n', "", "catch", "(iv) 컨텍스트 컨테이너 update"),
+ ("param_dict", "", '    return None\n', 'def keep(cache, snapshot):\n' + O + '    cache["m1"] = op.current\n', "catch", "(iv) 호출자가 넘긴 dict 에 담기"),
+ ("self_attr", "", '    return _K().keep(snapshot)\n', 'class _K:\n    def keep(self, snapshot):\n        op = snapshot.value("device", "m1", "dc_op")\n        self.v = op.current\n', "catch", "(iv) 인스턴스 속성"),
+ # (ii) S3 기록: 엔진 안에 같은 이름 메서드가 있는 호출
+ ("s3_append_eval", ARC, O + '    snapshot.arc.append_eval({"i": op.current})\n', "", "catch", "(ii) S3 기록(이름이 엔진에 정의된 메서드)"),
+ # (iii) 직렬화 목록 밖
+ ("from_json_dumps", "from json import dumps\n", O + '    return dumps({"i": op.current})\n', "", "catch", "(iii) 이름 import"),
+ ("yaml_safe_dump", "import yaml\n", O + '    return yaml.safe_dump({"i": op.current})\n', "", "catch", "(iii) SERIALIZERS 밖 외부 모듈"),
+ ("numpy_save", "import numpy as np\n", O + '    np.save("x.npy", op.current)\n', "", "catch", "(iii) SERIALIZERS 밖 외부 모듈"),
+ ("pickle_dump", "import pickle\n", O + '    pickle.dump(op.current, snapshot.fh)\n', "", "catch", "(iii) 목록 안"),
+ ("writelines", "", O + '    snapshot.fh.writelines([str(op.current)])\n', "", "catch", "(iii) 목록 안"),
+ # 흐름 끊김
+ ("dc_replace", "import dataclasses\n", O + '    v = dataclasses.replace(snapshot.row, i=op.current)\n' + W, "", "catch", "객체 칸: replace"),
+ ("copy_copy", "import copy\n", O + '    v = copy.copy(op)\n' + W, "", "catch", "객체 자체 복사"),
+ ("ctor_rename", "class Row:\n    def __init__(self, i):\n        self.current = i\n\n\n", O + '    v = Row(op.current).current\n' + W, "", "catch", "칸 이름 ≠ 인자 이름"),
+ ("ctor_base_field", "import dataclasses\n@dataclasses.dataclass(frozen=True)\nclass B:\n    a: float\n\n\n@dataclasses.dataclass(frozen=True)\nclass Row(B):\n    b: float\n\n\n", O + '    v = Row(op.current, 1.0).a\n' + W, "", "catch", "상속 칸"),
+ ("pop_bag", "", O + '    bag = {"i": op.current}\n    v = bag.pop("i")\n' + W, "", "catch", "dict.pop"),
+ ("method_getter", "class Row:\n    def __init__(self, i):\n        self.i = i\n\n    def cur(self):\n        return self.i\n\n\n", O + '    v = Row(op.current).cur()\n' + W, "", "catch", "메서드 반환"),
+ ("three_layers", "class A:\n    def __init__(self, x):\n        self.x = x\n\n\n", O + '    v = A(A(A(A(op.current)))).x.x.x.x\n' + W, "", "catch", "두 겹 칸 접두 넘김(@?)"),
+ ("three_layers_stored", "class A:\n    def __init__(self, x):\n        self.x = x\n\n\n", O + '    v = A(A(A(A(op.current))))\n' + W, "", "catch", "깊은 묶음을 통째 저장"),
+ ("field_other_clean", "class Row:\n    def __init__(self, i, n):\n        self.i = i\n        self.n = n\n\n\n", O + '    v = Row(op.current, 1.0).n\n' + W, "", "clean", "다른 칸"),
+ ("ext_math_clean", "import math\n", O + '    v = math.log(op.current)\n' + W, "", "clean", "산술"),
+]
+res = []
+for name, head, body, extra, want, why in V:
+    d = WORK / name
+    if d.exists():
+        shutil.rmtree(d)
+    shutil.copytree(BASE, d)
+    (d / "graph" / "op_user.py").write_text(head + extra + ("\n\n" if extra else "") + "def place(snapshot):\n" + body, encoding="utf-8")
+    got = [v.key for v in check_rule_l(d, P) if v.key[0] == "L-5"]
+    res.append({"name": name, "want": want, "why": why, "got": got, "ok": bool(got) == (want == "catch")})
+    print(("OK  " if res[-1]["ok"] else "DIFF"), name, want, "got", [k[3] for k in got], "|", why)
+OUT.write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")

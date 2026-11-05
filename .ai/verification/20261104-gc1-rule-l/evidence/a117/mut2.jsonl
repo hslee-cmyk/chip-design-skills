@@ -1,0 +1,20 @@
+{"name": "Op-float-cuts", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5e-float]"], "tail": "1 failed, 81 passed in 1.66s"}
+{"name": "Op-output-exempt-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5h-on]"], "tail": "1 failed, 81 passed in 1.22s"}
+{"name": "Op-writer-exempt-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5i-writer]"], "tail": "1 failed, 81 passed in 1.23s"}
+{"name": "Op-reach-restored", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5j-reach]"], "tail": "1 failed, 81 passed in 1.21s"}
+{"name": "L4-exempt-off", "killed": true, "n_fail": 2, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L4d-output]", "test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L4d-fingerprint]"], "tail": "2 failed, 80 passed in 1.19s"}
+{"name": "L3-unresolved-reads-ok", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_l3x_unresolvable_reads_not_silent"], "tail": "1 failed, 81 passed in 1.20s"}
+{"name": "Table-wt-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_writer_table_unresolved_row"], "tail": "1 failed, 81 passed in 1.44s"}
+{"name": "Entry-missing-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_missing_entry_point_not_silent"], "tail": "1 failed, 81 passed in 1.22s"}
+{"name": "Graph-shadow-ignored", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L11]"], "tail": "1 failed, 81 passed in 1.51s"}
+{"name": "Read-kindfilter-off", "killed": false, "n_fail": 0, "fails": [], "tail": "82 passed in 1.16s"}
+{"name": "L3-alias-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L3h]"], "tail": "1 failed, 81 passed in 1.17s"}
+{"name": "Field-prefix-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5g-clean]"], "tail": "1 failed, 81 passed in 1.14s"}
+{"name": "Cap-drop-deep", "killed": false, "n_fail": 0, "fails": [], "tail": "82 passed in 1.31s"}
+{"name": "Global-sink-off", "killed": true, "n_fail": 2, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5e-gsub]", "test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5e-global]"], "tail": "2 failed, 80 passed in 1.90s"}
+{"name": "Gupd-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5e-gupd]"], "tail": "1 failed, 81 passed in 1.41s"}
+{"name": "Serial-off", "killed": true, "n_fail": 1, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5e-json]"], "tail": "1 failed, 81 passed in 1.19s"}
+{"name": "Unknown-meth-off", "killed": true, "n_fail": 3, "fails": ["test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5e-meth]", "test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5f-carry]", "test_rule_l_reject_fixtures.py::test_rule_l_fixture_a117_added_violation_set[L5j-reach]"], "tail": "3 failed, 79 passed in 1.18s"}
+{"name": "Pin-unwrap-off", "killed": false, "n_fail": 0, "fails": [], "tail": "82 passed in 1.26s"}
+{"name": "Pin-builtin-unwrap", "killed": false, "n_fail": 0, "fails": [], "tail": "82 passed in 1.21s"}
+{"name": "Pin-diode-unwrap", "killed": false, "n_fail": 0, "fails": [], "tail": "82 passed in 1.38s"}

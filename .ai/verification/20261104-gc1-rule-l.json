@@ -3,8 +3,8 @@
  "spec_card": "docs/02-design/specs/20261104-gc1-rule-l.spec.md",
  "evidence_type": "red-green",
  "base_commit": "2ee99d5d85652942313f9e2c72fc29fe4f8a66f5",
- "test_commit": "7e905bc71089a9d1f25235c0158bc1540d7ca880",
- "code_commit": "04a88caecdbf269ca2543ed299dd1c5d68ff83f2",
+ "test_commit": "9af5d86749ef4c7b614852da8ca29f6fc4a76e89",
+ "code_commit": "bf35e30a943b4522aa69b26c60caec3ea6633277",
  "red": {
   "test_ids": [
    "skills/analog-gmid-design/gmid_engine/tests/structure/test_rule_l.py",
@@ -18,31 +18,31 @@
  "checks": {
   "V1": {
    "verdict": "N/A",
-   "basis": "전체 test 안 돌림(임시 규칙 O-229). 돌린 범위 = 격리 복제본 머리 04a88cae: test_rule_l + test_rule_l_reject_fixtures 57 통과 1 실패, tests/structure 나머지 171 통과 1 deselected, test_s2_values + search/test_canonical_order 62 통과. 엔진 diff 0이라 2회로 연기 생략(브리핑). ngspice 없음. 안 돌린 것을 통과로 세지 않는다."
+   "basis": "A-117 재판정, 전체 test 안 돌림(O-229). 격리 복제본 iso2 머리 f201b2ab: GC-1 test + test_s2_values + test_canonical_order 147 통과 2 실패, tests/structure 나머지 171 통과 1 deselected. 엔진 diff 0, 2회로 연기 생략. ngspice 없음. 실패 2 = test_rule_l 1·3이고 BASELINE·DEBT 미갱신이 원인(표지)이나 test 1은 표를 넣어도 M-2 6키 때문에 통과 못 한다."
   },
   "V2": {
    "verdict": "FAIL",
-   "basis": "red 확인: 7e905bc7에서 두 test 파일 모두 ModuleNotFoundError rule_l_checks(인정 범위). green 실패: test_rule_l_current_engine_no_violation_beyond_debt가 missing 45, stale 6. 이 중 기준선 drift는 25키 추가(L-3 20, L-4 4, same_vgs 1)와 6키 감소뿐이다. op_copy 20은 drift가 아니다: 같은 도구를 7620f5ee 소스에 돌리면 410키이고 BASELINE 390과의 차이가 정확히 같은 op_copy 20이다(out/old_base.txt). dispute의 '옛 master 판이라서 생긴 차이'는 이 20개에 대해 틀렸다."
+   "basis": "Major M-2 잔여. red 는 앞 기록 그대로. 도구 382 대 target 376, 차이 정확히 6키(_margin, converge_point.done, place_layout, realized_geometry, relaxation_records, _base). 코드를 읽은 결과 6개 모두 dc_op 칸 사본 아님(baseline_proposal.json 칸별 근거). 부채 불가: 엔진 코드를 고쳐서 사라지는 위반이 아니라 N3.1-6 (e) 위반. 작성자 주장('빼면 _input_columns 가 빠진다')의 뿌리는 recv 가 매개변수 이름 단위라 함수 경계에서 칸 단위가 끊기는 것이다. 칸 단위 추적은 함수 안에서만 구현됐다(N3.1-5 (c) 일부). 내 사본 시험 3종(setdefault 키 제외, R: 칸 접두 유지, kind 칸 끊기 조합) 결과 14 -> 14, 14, 13이고 픽스처 82 통과: 작은 수정으로는 6키가 안 빠져 작성자 충돌 주장을 반증하지 못했다."
   },
   "V3": {
    "verdict": "FAIL",
-   "basis": "Major M-1·M-3. 사본 뮤턴트 70: 픽스처 53 test가 54 잡음(#56은 1 error로 끝나 판별 불명), 살아남은 16 중 실제 엔진 집합을 바꾸는 것 6(엔진 test가 잡음), 어디서도 안 잡히는 것 10(Op-float-cuts, Op-output-exempt, Op-writer-exempt, Op-reach, L4-exempt, L3-unresolved-reads, Table-wt-off, Entry-missing, Graph-shadow, Read-kindfilter). 주입 시험(out/inject.json) 21꼴: 전역 dict 첨자 대입, global 대입, 전역 dict.update, 알 수 없는 메서드 호출 snapshot.ctx.save(op.current), json.dumps({i: op.current}) 5꼴을 op_copy가 못 잡음(fail-open, 계약 7·N3.1-5 (iii)(iv)·fail-closed 위반). len(g)==len(d), isinstance(g,str)==isinstance(d,str)는 diode로 잘못 잡음. 별칭 시험: p = projection 뒤 helper(p)로 읽는 L3c 변형에서 reads_not_read 거짓 보고."
+   "basis": "Major M-3 잔여. 앞 5꼴은 모두 잡음(evidence/a117/inject.txt). 그러나 새 주입 21꼴 중 catch 기대 19에서 15꼴 미탐(evidence/a117/inject2.txt): (iv) 컨텍스트 첨자·append·update, 넘겨받은 dict 첨자, 인스턴스 속성 / (ii) S3 append_eval(엔진에 같은 이름 메서드가 있으면 site_map 이 추적도 sink 도 안 함) / (iii) from json import dumps, yaml.safe_dump, np.save / 흐름 dataclasses.replace, copy.copy, 칸 이름 다른 생성자, 상속 칸 생성자, dict.pop, 메서드 반환. BENIGN_METHODS(CONTAINER_ADD 포함)·외부 수신자 면제·SERIALIZERS 이름 목록이 새 구멍이다. 계약 7 '추적 실패는 위반'과 반대 방향의 허용 목록이다. 엔진 dc_op 읽기 손 스캔 범위에서 이 꼴로 새는 실제 자리는 찾지 못했다(도구 공백). 두 겹 칸 접두는 fail-open 아님: 네 겹 생성자·통째 저장 모두 잡음, 고정점 15회(상한 24), 피크 0.121 GB, 28 s. range(24) 초과 시 조용히 멈추는 것은 minor. 뮤턴트: 앞 생존 10 중 9 잡힘, Read-kindfilter 생존. 수정 자리 10 중 Cap-drop-deep·Pin-unwrap-off·Pin-builtin-unwrap·Pin-diode-unwrap 생존, 뒤 둘은 단독으로 동작 차이가 없는 뮤턴트로 본다. L5k-canon 은 canon((g,s)) 꼴이라 _edges 꼴 canon(g), canon(s)를 시험하지 않는다(minor)."
   },
   "V4": {
-   "verdict": "FAIL",
-   "basis": "Major M-4. oracle 대조: 픽스처 기대는 손으로 적은 값이다(피검 호출·복사 없음, test 파일 직접 읽음). L5c-3은 면제를 꺼도 통과해 공허하다. BASELINE oracle(c)는 독립이 아니다: rule_l_checks.py와 measure_rule_l.py 정규화 줄 1132 중 373 동일, 기반 함수 유사도 0.6~0.88, Scope docstring 글자까지 동일. 복사 방향은 증명 못 함. 두 코드가 같은 결함을 공유한다: L-3 not_read 99는 양쪽 일치했으나 별칭 전파만 넣으면 5로 줄어든다. N3.1-6 (c)의 '따로 쓴 독립 스크립트'를 만족하지 않는다. 내 토큰 독립 측정(도구 코드 안 씀): L-4 2118칸 일치, 토큰 0 189 중 167이 도구 키이고 22는 S-7 값 선언 모듈 밖, 도구 키 나머지 41은 함수 안 문자열뿐이고 속성 읽기 0. L-1x 11은 이름 사용 0 또는 import·docstring·다른 객체 뿐, 사용 0 정의 4개 전부 도구 키에 있음. L-1 32는 문자열 자리 표본이 writer·권한표·동적 자리뿐. L-1·L-1x·L-4 키 자체는 표본에서 맞다."
+   "verdict": "PASS",
+   "basis": "M-4 해소(절차). measure_rule_l.py 를 기준선 증거로 쓰지 않는다. 유사도 재측정: rule_l_checks 1225줄 중 388 동일, 옛 측정 스크립트와의 관계는 그대로라 그 스크립트는 증거에서 뺀다. 독립 증거 = evidence 측정 사본: 토큰 측정(L-4 칸 2118 일치, 도구 204 = 토큰 0 164 + 함수 안 문자열뿐 40, L-1x 사용 0 정의 전부 도구 키), l3_hand(not_read 5 중 같은 파일 읽기 0), 코드 읽기 op_copy 8. 한계: L-1d·L-3 unverifiable 은 표본과 도구 값이다. A-117 픽스처 기대는 손으로 적힌 값이다. 단 L5j-reach 는 도달 밖 함수를 위반으로 기대해 N3.1-5 '도달 조건'과 반대다. 엔진 키 영향 0, 더 엄격한 쪽이라 약화 아님(minor, 도구 수정 때 되돌림)."
   },
   "V5": {
    "verdict": "PASS",
-   "basis": "기준 약화 0. 작성자는 BASELINE·DEBT 값을 고치지 않았고 test 기대도 넓히지 않았다. 다만 test 파일 머리 docstring의 LOOSE_* 언급은 코드에 없다(minor). 제안의 output_only_slots 3행과 PARAMS writer 파일 변경은 첫 지문 기록 전 값이라 약화가 아니지만 interface card '빈 tuple' 문언과 달라 S-8 근거 행을 판정 기록에 적는다(baseline_proposal.json)."
+   "basis": "기준 약화 0. BASELINE·DEBT 는 판정 뒤 몫이라 미변경, F_G13 은 코드 줄 333 근거로 _edges 교체(판정 지시). output_only_slots 4행은 첫 지문 전 값이다. 'Class.slot' 접미 일치라 다른 모듈 같은 이름 클래스도 면제되고 (출력 함수, 근거) 칸이 없다(minor). magnitude 는 EO-1 문서에 출력 전용 행이 없다(minor, LA-1 재점검 입력)."
   },
   "V6": {
    "verdict": "PASS",
-   "basis": "tests/structure 나머지 171 통과 1 deselected, rule_l_checks.py에 structure_checks import 0(test 5 통과). 범위: diff 2ee99d5d..HEAD는 tests/structure 아래와 dispute 문서뿐, 엔진 운영 코드 0. 규칙 코드·표·픽스처에 대표 회로 이름 grep 0(folded_cascode, two_stage, ngcc, telescopic, miller, 전수 아님). 판정 시간: check_rule_l 16.87 s, setup 4.15 s, GC-1 test 22.34 s, structure 나머지 19.25 + 93.92 s. 합 약 135 s이고 그중 rule_m 하나가 53.64 s라 비용은 허용 범위다."
+   "basis": "tests/structure 나머지 171 통과 1 deselected. diff 04a88cae..f201b2ab 는 tests/structure 와 .ai/verification 뿐, 엔진 운영 코드 0. check_rule_l 29.79 s(앞 16.87 s), structure 나머지 117.30 s, 허용 범위."
   },
   "V7": {
    "verdict": "PASS",
-   "basis": "배선: check_rule_l·check_debt·fingerprint 소비자 = test_rule_l, 기본 structure 실행에 들어감. graph 수치: 필드 수 0 / 소비자 0 칸 0 / 정본 우회 의심 0 / KVL·KCL 관계 미적용 해당 없음(계산 없음) / graph 밖 저장 자리 0(도구는 test 트리, _const_memo는 _Engine 인스턴스 지역). 이 card가 새로 낸 graph 위반 0. 기존 위반 표본: ss_off_delta READS의 graph.ss_circuit은 소스에 READS·docstring뿐이라 진짜 거짓 READS(EO-1 계열). s1_dc_conduction·s1_gvgs device.kind, ly_rows, ly_pattern_select 1열씩 not_read 유지. 둘째 생산자 표본은 L-5 diode 10·same_vgs 3 키이며 부채 계약 안이고 이 card가 낸 것 아님."
+   "basis": "배선 그대로. graph 수치: 필드 0 / 소비자 0 칸 0 / 정본 우회 의심 0 / KVL·KCL 해당 없음 / graph 밖 저장 0. 이 card가 낸 graph 위반 0. M-1 해소: L-3 129 -> 96, not_read 99 -> 5(ly_pattern_select, ly_rows, s1_dc_conduction, s1_gvgs, ss_off_delta), unverifiable 61 전환이 내 alias 측정과 일치."
   },
   "V8": {
    "verdict": "N/A",
@@ -54,36 +54,84 @@
   },
   "V10": {
    "verdict": "FAIL",
-   "basis": "spec '재현할 수치' 불일치: 7620f5ee에서 도구 키 410, spec 합계 390(op_copy 20 초과, 나머지 규칙은 BASELINE을 전부 포함). 2ee99d5d 도구 429 = 규칙별 L-4 208, L-3 129, L-5 37, L-1 32, L-1x 11, L-1d 9, L-2 3. 현재 지문(rule_l_checks·tables·PARAMS, 줄바꿈 정규화 정렬 JSON sha256) e1504e3f489f0e7ae7d2f37b916dba3c85f5858ad23206d5932062fb724c0f79 은 도구 수정 뒤 다시 잰다. 도구 수정 뒤 기대 집합 target 376, sha cdf3752d4c4f5bcfc8ec7dc088daa4ac6cb1a7e5b3f2809fd06133cdfb7467b5 (.ai/verification/20261104-gc1-rule-l/baseline_proposal.json)."
+   "basis": "도구 2ee99d5d 382, target 376 불일치(M-2 6키). 현재 지문 af737da440f0cb88016b33faa72a3b377a079d3734d9142c7e62b0781866d0ad 는 수정 뒤 다시 잰다. target sha cdf3752d4c4f5bcfc8ec7dc088daa4ac6cb1a7e5b3f2809fd06133cdfb7467b5 (baseline_proposal.json 최종판)."
   }
  },
  "reproduced_numbers": [
-  {"name": "2ee99d5d 도구 위반 키", "value": 429, "command": "scripts/dump_gc1.py, out/dump.txt"},
-  {"name": "늘어난 키", "value": 45, "command": "out/dump.txt"},
-  {"name": "줄어든 키", "value": 6, "command": "out/dump.txt"},
-  {"name": "7620f5ee 도구 위반 키", "value": 410, "command": "scripts/old_base.py, out/old_base.txt"},
-  {"name": "op_copy 과잉(손 분류)", "value": 16, "command": "out/opdump.txt + 코드 읽기"},
-  {"name": "op_copy 실제 추가 자리", "value": 4, "command": "out/opdump.txt + 코드 읽기"},
-  {"name": "L-3 not_read 도구", "value": 99, "command": "out/measure.txt, out/violations.json"},
-  {"name": "L-3 not_read 별칭 전파 뒤", "value": 5, "command": "scripts/alias.py, out/alias.txt"},
-  {"name": "L-3 별칭으로 사라지는 거짓 위반", "value": 33, "command": "out/alias.txt"},
-  {"name": "뮤턴트 전체", "value": 70, "command": "scripts/mutate.py, out/mut.jsonl"},
-  {"name": "어디서도 안 잡힌 뮤턴트", "value": 10, "command": "out/mut.jsonl, out/mut_real.jsonl"},
-  {"name": "op_copy 미탐 주입 꼴", "value": 5, "command": "scripts/inject.py, out/inject.json"},
-  {"name": "제안 target 키", "value": 376, "command": "scripts/proposal.py, baseline_proposal.json"},
-  {"name": "GC-1 test 통과", "value": 57, "command": "out/gc1_tests.txt"},
-  {"name": "structure 나머지 통과", "value": 171, "command": "out/t_struct_a.txt, out/t_struct_b.txt"},
-  {"name": "s2_values + canonical_order 통과", "value": 62, "command": "out/t_s2_canon.txt"}
+  {
+   "name": "A-117 도구 위반 키",
+   "value": 382,
+   "command": "evidence/a117/dump.txt"
+  },
+  {
+   "name": "target 키",
+   "value": 376,
+   "command": "baseline_proposal.json"
+  },
+  {
+   "name": "L-3 not_read",
+   "value": 5,
+   "command": "evidence/a117/l3_hand.txt"
+  },
+  {
+   "name": "L-3 unverifiable 전환",
+   "value": 61,
+   "command": "out/alias.txt, evidence/a117/dump.txt"
+  },
+  {
+   "name": "실제 사본 아닌 op_copy",
+   "value": 6,
+   "command": "evidence/a117/opdump2.txt + 코드 읽기"
+  },
+  {
+   "name": "op_copy 실제 키",
+   "value": 8,
+   "command": "코드 읽기"
+  },
+  {
+   "name": "앞 주입 5꼴 잡음",
+   "value": 5,
+   "command": "evidence/a117/inject.txt"
+  },
+  {
+   "name": "새 주입 미탐 꼴",
+   "value": 15,
+   "command": "evidence/a117/inject2.txt"
+  },
+  {
+   "name": "앞 생존 뮤턴트 중 잡힘",
+   "value": 9,
+   "command": "evidence/a117/mut2.jsonl"
+  },
+  {
+   "name": "고정점 반복",
+   "value": 15,
+   "command": "evidence/a117/opdump2.txt"
+  },
+  {
+   "name": "check_rule_l 피크 GB",
+   "value": 0.121,
+   "command": "evidence/a117/final.txt"
+  },
+  {
+   "name": "GC-1·s2·canonical 통과",
+   "value": 147,
+   "command": "evidence/a117/t_gc1.txt"
+  },
+  {
+   "name": "structure 나머지 통과",
+   "value": 171,
+   "command": "evidence/a117/t_struct.txt"
+  }
  ],
  "approvals": [],
  "auditor_run": {
-  "time": "2026-11-05T21:06:59+09:00",
+  "time": "2026-11-05T22:25:01+09:00",
   "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261105-gc1-audit",
   "commands": [
-   "V1: N/A(O-229), 범위 = python -m pytest gmid_engine/tests/structure/<파일> gmid_engine/tests/sizing/test_s2_values.py gmid_engine/tests/search/test_canonical_order.py (skills/analog-gmid-design에서, -k·--deselect·-x 없음)",
-   "격리: git clone --no-hardlinks --no-local <audit worktree> C:/Users/HSLEE/AppData/Local/Temp/la1s_gc1_audit/iso && git -C iso remote remove origin, 머리 04a88cae",
-   "격리: git -C iso archive 7620f5ee -> old, git -C iso archive 7e905bc7 -> red",
-   "증거 사본: .ai/verification/20261104-gc1-rule-l/evidence/"
+   "V1: N/A(O-229), 범위 = python -m pytest gmid_engine/tests/structure, gmid_engine/tests/sizing/test_s2_values.py, gmid_engine/tests/search/test_canonical_order.py (skills/analog-gmid-design에서, -k·-x 없음)",
+   "격리: git clone --no-hardlinks --no-local <audit worktree> C:/Users/HSLEE/AppData/Local/Temp/la1s_gc1_audit/iso2 && git -C iso2 remote remove origin, 머리 f201b2ab",
+   "증거 사본: .ai/verification/20261104-gc1-rule-l/evidence/a117/"
   ]
  }
 }

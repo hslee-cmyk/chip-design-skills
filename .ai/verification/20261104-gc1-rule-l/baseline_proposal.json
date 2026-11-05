@@ -1,5 +1,5 @@
 {
- "status": "도구 수정 전제 제안. 지금 BASELINE 에 적용하지 않는다. 수정본에서 다시 재어 이 target_sha256 과 대조한다",
+ "status": "A-117 재판정 최종판(2026-11-05, 머리 f201b2ab). 표 값은 target_keys 그대로 넣는다. 지금 도구는 target + 아래 not_debt_op_copy_false_positive_a117 6키를 내므로, 도구·판정 처리가 끝나기 전에는 test 1이 통과하지 않는다. 6키를 부채로 넣지 않는다(N3.1-6 (e)).",
  "base_master": "2ee99d5d",
  "counts": {
   "current_tool": 429,
@@ -40,7 +40,8 @@
     "search/archive.py:S3Archive.write_snapshot",
     "IT-2c spec:72 '출력 전용 -- 결과 JSON', 경로 = S3 스냅샷 전체 덤프"
    ]
-  ]
+  ],
+  "applied_in_f201b2ab": "l5_concepts.op_copy = sizing/block_widths.py 반영 확인. output_only_slots 는 'Class.slot' 4행으로 반영(load_note, pivot_a_e, pivot_resolution, magnitude)"
  },
  "test_change": {
   "test_rule_l.F_G13": "('L-5','same_vgs','sizing/writer_plan.py','dc_writer_plan') -> ('L-5','same_vgs','sizing/writer_plan.py','_edges') 코드 줄 333에서 손으로 정함"
@@ -1209,7 +1210,7 @@
   ]
  ],
  "not_debt_back_to_card": {
-  "sizing.s2_values.SealItem.magnitude": "유일한 reader를 EO-1 7f663bbe가 지움. 출력 전용 행이 어느 card에도 없어 S-8대로 EO-1로 되돌림: 출력 전용 행(S3 덤프)을 그 card 문서에 적거나 칸 삭제"
+  "sizing.s2_values.SealItem.magnitude": "부채 아님. f201b2ab 가 output_only_slots 에 넣었다. 출력 경로 = S3 스냅샷 덤프(값 확인). 출력 전용 행이 EO-1 문서에 없어 그 행을 적는 일이 남음(minor)"
  },
  "target_keys": [
   [
@@ -2758,5 +2759,61 @@
    "sizing/writer_plan.py",
    "_edges"
   ]
+ ],
+ "not_debt_op_copy_false_positive_a117": [
+  {
+   "key": [
+    "L-5",
+    "op_copy",
+    "convergence/converge_point.py",
+    "_margin"
+   ],
+   "why": "result.failure.margin 또는 행 c 의 min 을 돌려줌: dc_op 칸 아님"
+  },
+  {
+   "key": [
+    "L-5",
+    "op_copy",
+    "convergence/converge_point.py",
+    "converge_point.done"
+   ],
+   "why": "ConvergedPoint 에 평가 결과·레이아웃 객체 참조와 면적·전력을 담음: dc_op 칸 사본 아님"
+  },
+  {
+   "key": [
+    "L-5",
+    "op_copy",
+    "convergence/place_layout.py",
+    "place_layout"
+   ],
+   "why": "layout_input_of 결과를 run_layout 에 넘기는 운반 함수, 칸을 꺼내거나 쓰지 않음"
+  },
+  {
+   "key": [
+    "L-5",
+    "op_copy",
+    "convergence/realized_geometry.py",
+    "realized_geometry"
+   ],
+   "why": "배치 결과 W_m·키·확산 기하: 레이아웃이 낸 값, dc_op 읽기 아님"
+  },
+  {
+   "key": [
+    "L-5",
+    "op_copy",
+    "convergence/relaxation_records.py",
+    "relaxation_records"
+   ],
+   "why": "매칭 그룹 완화 기록: dc_op 무관"
+  },
+  {
+   "key": [
+    "L-5",
+    "op_copy",
+    "layout/run.py",
+    "_base"
+   ],
+   "why": "설계점 또는 앞 레이아웃의 GraphSnapshot 참조를 돌려줌(graph 규칙 4 참조 전달)"
+  }
  ]
 }

@@ -1,0 +1,177 @@
+[
+ {
+  "name": "ctx_subscript",
+  "want": "catch",
+  "why": "(iv) 컨텍스트 객체 첨자",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "ctx_append",
+  "want": "catch",
+  "why": "(iv) 컨텍스트 컨테이너 append",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "ctx_update",
+  "want": "catch",
+  "why": "(iv) 컨텍스트 컨테이너 update",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "param_dict",
+  "want": "catch",
+  "why": "(iv) 호출자가 넘긴 dict 에 담기",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "self_attr",
+  "want": "catch",
+  "why": "(iv) 인스턴스 속성",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "s3_append_eval",
+  "want": "catch",
+  "why": "(ii) S3 기록(이름이 엔진에 정의된 메서드)",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "from_json_dumps",
+  "want": "catch",
+  "why": "(iii) 이름 import",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "yaml_safe_dump",
+  "want": "catch",
+  "why": "(iii) SERIALIZERS 밖 외부 모듈",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "numpy_save",
+  "want": "catch",
+  "why": "(iii) SERIALIZERS 밖 외부 모듈",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "pickle_dump",
+  "want": "catch",
+  "why": "(iii) 목록 안",
+  "got": [
+   [
+    "L-5",
+    "op_copy",
+    "graph/op_user.py",
+    "place"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "writelines",
+  "want": "catch",
+  "why": "(iii) 목록 안",
+  "got": [
+   [
+    "L-5",
+    "op_copy",
+    "graph/op_user.py",
+    "place"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "dc_replace",
+  "want": "catch",
+  "why": "객체 칸: replace",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "copy_copy",
+  "want": "catch",
+  "why": "객체 자체 복사",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "ctor_rename",
+  "want": "catch",
+  "why": "칸 이름 ≠ 인자 이름",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "ctor_base_field",
+  "want": "catch",
+  "why": "상속 칸",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "pop_bag",
+  "want": "catch",
+  "why": "dict.pop",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "method_getter",
+  "want": "catch",
+  "why": "메서드 반환",
+  "got": [],
+  "ok": false
+ },
+ {
+  "name": "three_layers",
+  "want": "catch",
+  "why": "두 겹 칸 접두 넘김(@?)",
+  "got": [
+   [
+    "L-5",
+    "op_copy",
+    "graph/op_user.py",
+    "place"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "three_layers_stored",
+  "want": "catch",
+  "why": "깊은 묶음을 통째 저장",
+  "got": [
+   [
+    "L-5",
+    "op_copy",
+    "graph/op_user.py",
+    "place"
+   ]
+  ],
+  "ok": true
+ },
+ {
+  "name": "field_other_clean",
+  "want": "clean",
+  "why": "다른 칸",
+  "got": [],
+  "ok": true
+ },
+ {
+  "name": "ext_math_clean",
+  "want": "clean",
+  "why": "산술",
+  "got": [],
+  "ok": true
+ }
+]

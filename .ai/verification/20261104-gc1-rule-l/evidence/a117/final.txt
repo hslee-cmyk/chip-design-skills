@@ -1,0 +1,4 @@
+elapsed 28.0 peak_wset_GB 0.121 keys 382
+fingerprint af737da440f0cb88016b33faa72a3b377a079d3734d9142c7e62b0781866d0ad
+six ['_margin', 'converge_point.done', 'place_layout', 'realized_geometry', 'relaxation_records', '_base']
+{"current_tool": 429, "baseline_old": 390, "target": 376, "remove": 39, "add": 25, "change_how": 61} cdf3752d4c4f5bcfc8ec7dc088daa4ac6cb1a7e5b3f2809fd06133cdfb7467b5

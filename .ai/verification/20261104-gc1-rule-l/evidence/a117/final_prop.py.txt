@@ -1,0 +1,31 @@
+"""A-117 재판정: 도구 피크 메모리·시간을 재고 baseline_proposal.json 최종판을 쓴다."""
+import json, pathlib, sys, time, hashlib, psutil
+E = pathlib.Path(sys.argv[1]); VIOL = pathlib.Path(sys.argv[2]); PROP = pathlib.Path(sys.argv[3])
+sys.path.insert(0, str(E / "tests" / "structure"))
+import rule_l_checks as c
+from rule_l_tables import PARAMS
+t0 = time.time()
+got = {v.key: v.code for v in c.check_rule_l(E, PARAMS)}
+print("elapsed", round(time.time() - t0, 1), "peak_wset_GB", round(psutil.Process().memory_info().peak_wset / 2**30, 3), "keys", len(got))
+print("fingerprint", c.fingerprint(PARAMS, E / "tests/structure/rule_l_checks.py", E / "tests/structure/rule_l_tables.py"))
+P = json.loads(PROP.read_text(encoding="utf-8"))
+target = {tuple(k) for k in P["target_keys"]}
+six = sorted(set(got) - target)
+assert len(six) == 6 and not (target - set(got)), (six, target - set(got))
+assert hashlib.sha256(json.dumps(sorted(list(k) for k in target), ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest() == P["target_sha256"]
+WHY = {
+    "_margin": "result.failure.margin 또는 행 c 의 min 을 돌려줌: dc_op 칸 아님",
+    "converge_point.done": "ConvergedPoint 에 평가 결과·레이아웃 객체 참조와 면적·전력을 담음: dc_op 칸 사본 아님",
+    "place_layout": "layout_input_of 결과를 run_layout 에 넘기는 운반 함수, 칸을 꺼내거나 쓰지 않음",
+    "realized_geometry": "배치 결과 W_m·키·확산 기하: 레이아웃이 낸 값, dc_op 읽기 아님",
+    "relaxation_records": "매칭 그룹 완화 기록: dc_op 무관",
+    "_base": "설계점 또는 앞 레이아웃의 GraphSnapshot 참조를 돌려줌(graph 규칙 4 참조 전달)",
+}
+P["status"] = "A-117 재판정 최종판(2026-11-05, 머리 f201b2ab). 표 값은 target_keys 그대로 넣는다. 지금 도구는 target + 아래 not_debt_op_copy_false_positive_a117 6키를 내므로, 도구·판정 처리가 끝나기 전에는 test 1이 통과하지 않는다. 6키를 부채로 넣지 않는다(N3.1-6 (e))."
+P["base_master"] = "2ee99d5d"
+P["params_change"]["applied_in_f201b2ab"] = "l5_concepts.op_copy = sizing/block_widths.py 반영 확인. output_only_slots 는 'Class.slot' 4행으로 반영(load_note, pivot_a_e, pivot_resolution, magnitude)"
+P["not_debt_op_copy_false_positive_a117"] = [{"key": list(k), "why": WHY[k[3]]} for k in six]
+P["not_debt_back_to_card"] = {"sizing.s2_values.SealItem.magnitude": "부채 아님. f201b2ab 가 output_only_slots 에 넣었다. 출력 경로 = S3 스냅샷 덤프(값 확인). 출력 전용 행이 EO-1 문서에 없어 그 행을 적는 일이 남음(minor)"}
+PROP.write_text(json.dumps(P, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+print("six", [k[3] for k in six])
+print(json.dumps(P["counts"], ensure_ascii=False), P["target_sha256"])

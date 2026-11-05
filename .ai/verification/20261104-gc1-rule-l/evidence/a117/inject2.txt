@@ -1,0 +1,21 @@
+DIFF ctx_subscript catch got [] | (iv) 컨텍스트 객체 첨자
+DIFF ctx_append catch got [] | (iv) 컨텍스트 컨테이너 append
+DIFF ctx_update catch got [] | (iv) 컨텍스트 컨테이너 update
+DIFF param_dict catch got [] | (iv) 호출자가 넘긴 dict 에 담기
+DIFF self_attr catch got [] | (iv) 인스턴스 속성
+DIFF s3_append_eval catch got [] | (ii) S3 기록(이름이 엔진에 정의된 메서드)
+DIFF from_json_dumps catch got [] | (iii) 이름 import
+DIFF yaml_safe_dump catch got [] | (iii) SERIALIZERS 밖 외부 모듈
+DIFF numpy_save catch got [] | (iii) SERIALIZERS 밖 외부 모듈
+OK   pickle_dump catch got ['place'] | (iii) 목록 안
+OK   writelines catch got ['place'] | (iii) 목록 안
+DIFF dc_replace catch got [] | 객체 칸: replace
+DIFF copy_copy catch got [] | 객체 자체 복사
+DIFF ctor_rename catch got [] | 칸 이름 ≠ 인자 이름
+DIFF ctor_base_field catch got [] | 상속 칸
+DIFF pop_bag catch got [] | dict.pop
+DIFF method_getter catch got [] | 메서드 반환
+OK   three_layers catch got ['place'] | 두 겹 칸 접두 넘김(@?)
+OK   three_layers_stored catch got ['place'] | 깊은 묶음을 통째 저장
+OK   field_other_clean clean got [] | 다른 칸
+OK   ext_math_clean clean got [] | 산술

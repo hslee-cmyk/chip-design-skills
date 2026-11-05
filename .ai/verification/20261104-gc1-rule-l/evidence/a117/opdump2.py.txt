@@ -1,0 +1,40 @@
+"""A-117 판 op_copy: 14키 각각의 sink 라벨, R: 경로, 고정점 반복 수, 시간. 피검 코드는 바꾸지 않고 내부 표만 읽는다."""
+import ast, sys, pathlib, json, time
+E = pathlib.Path(sys.argv[1]); OUT = pathlib.Path(sys.argv[2])
+sys.path.insert(0, str(E / "tests" / "structure"))
+import rule_l_checks as c
+from rule_l_tables import PARAMS
+t0 = time.time()
+eng = c._Engine(E); blocks = c._Blocks(eng); kinds = {k for k, _ in blocks.table}
+c._analyse_reads(eng, kinds)
+entry = {c._spec_sid(s) for s in PARAMS.entry_points}
+reach = c._reachable(eng, entry)
+out_sids = {c._spec_sid(s) for s in PARAMS.output_functions}
+op = c._OpCopy(eng, reach, ("device", "dc_op"), out_sids, PARAMS.l5_concepts["op_copy"][1])
+iters = 0
+for iters in range(1, 200):
+    grew = False
+    for sid in op.cands:
+        grew = op._step(sid) or grew
+    if not grew:
+        break
+print("fixed point iterations", iters, "elapsed", round(time.time() - t0, 1), "cands", len(op.cands), "reach", len(reach))
+labs = sum(len(v) for s in op.T.values() for v in s.values())
+print("label count", labs, "max label len", max((len(l) for s in op.T.values() for v in s.values() for l in v), default=0))
+flagged = op.copies()
+print("flagged", len(flagged), "unreach flagged", sorted(s for s in flagged if s not in reach))
+rows = []
+for sid in sorted(flagged):
+    sc = eng.scopes[sid]
+    by = sorted(s for s in op.cands if any(op._split(l)[1] == "R:" + sid for l in op.sink[s]))
+    r = {"sid": sid, "local": op._s_tainted(sid, op.sink_local[sid]), "src": len(op.src_ids[sid]), "recv": sorted(op.recv[sid]), "ret": sorted(op.ret[sid])[:14],
+         "by_R": by, "sink_local": sorted(op.sink_local[sid])[:14]}
+    rows.append(r)
+    print(sid, "| local", r["local"], "| src", r["src"], "| recv", r["recv"][:10])
+    print("    ret", r["ret"][:10])
+    print("    by_R", by[:6])
+    print("    sink_local", r["sink_local"][:6])
+# 누가 R:<6개>를 sink 하는가 -- 그 함수의 sink 줄
+for who in ("convergence.converge:converge", "convergence.converge_point:converge_point"):
+    print(who, "sink_local", sorted(op.sink_local.get(who, ()))[:20], "\n  sink", sorted(op.sink.get(who, ()))[:30])
+OUT.write_text(json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")

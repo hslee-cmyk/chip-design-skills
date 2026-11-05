@@ -1,0 +1,36 @@
+"""실현 가능성 시험(피검 파일 무변경): `R:` 라벨이 반환의 칸 접두를 잃는 자리만 고치면 6키가 사라지고 8키·픽스처가 유지되는가.
+도구 작성자의 '빼면 _input_columns 가 빠진다'를 반증하거나 확인한다."""
+import importlib.util, json, os, pathlib, re, shutil, subprocess, sys
+E = pathlib.Path(sys.argv[1]); WORK = pathlib.Path(sys.argv[2]); OUT = pathlib.Path(sys.argv[3])
+S = E / "tests" / "structure"
+sys.path.insert(0, str(S))
+from rule_l_tables import PARAMS
+src = (S / "rule_l_checks.py").read_text(encoding="utf-8")
+a = """            if self._extracted(tg, retl):
+                out.add("R:" + tg)
+"""
+assert src.count(a) == 1
+b = """            for _lab in retl:
+                _pre, _b = self._split(_lab)
+                if _b == "S" or (_b.startswith("X:") and _b[2:] in self.recv[tg]):
+                    out.add(_pre + "R:" + tg)
+"""
+d = WORK / "rfield"
+if d.exists():
+    shutil.rmtree(d)
+d.mkdir(parents=True)
+for f in ("rule_l_tables.py", "rule_l_debt.py", "test_rule_l_reject_fixtures.py"):
+    shutil.copy(S / f, d / f)
+shutil.copytree(S / "fixtures" / "rule_l", d / "fixtures" / "rule_l")
+(d / "rule_l_checks.py").write_text(src.replace(a, b), encoding="utf-8")
+spec = importlib.util.spec_from_file_location("rf_mut", d / "rule_l_checks.py")
+m = importlib.util.module_from_spec(spec); sys.modules["rf_mut"] = m; spec.loader.exec_module(m)
+keys = sorted(v.key[2:] for v in m.check_rule_l(E, PARAMS) if v.key[0] == "L-5" and v.key[1] == "op_copy")
+print("op_copy", len(keys))
+for k in keys:
+    print(" ", k)
+env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", PYTHONIOENCODING="utf-8")
+r = subprocess.run([sys.executable, "-B", "-m", "pytest", "test_rule_l_reject_fixtures.py", "-q", "--tb=no", "-p", "no:cacheprovider", "--rootdir", str(d), "-c", os.devnull], cwd=d, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace")
+print(r.stdout.strip().splitlines()[-1])
+print(re.findall(r"^FAILED \S*::(\S+)", r.stdout, re.M))
+OUT.write_text(json.dumps(keys, ensure_ascii=False), encoding="utf-8")

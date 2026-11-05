@@ -1,0 +1,25 @@
+F.F..................................................................... [ 48%]
+........................................................................ [ 96%]
+.....                                                                    [100%]
+================================== FAILURES ===================================
+E   AssertionError: assert (Violation(ke...하지 못했다'), ...) == ()
+      
+      Left contains 31 more items, first extra item: Violation(key=('L-3', 'dc_columns.device.bulk'), code='reads_unverifiable', detail='READS 열의 실제 읽기를 확인하지 못했다')
+      Use -v to get more diff
+C:\Users\HSLEE\AppData\Local\Temp\la1s_gc1_audit\iso2\skills\analog-gmid-design\gmid_engine\tests\structure\test_rule_l.py:45: AssertionError: assert (Violation(ke...하지 못했다'), ...) == ()
+E   AssertionError: assert [('L-5', 'sam...y', '_edges')] == []
+      
+      Left contains one more item: ('L-5', 'same_vgs', 'sizing/writer_plan.py', '_edges')
+      Use -v to get more diff
+C:\Users\HSLEE\AppData\Local\Temp\la1s_gc1_audit\iso2\skills\analog-gmid-design\gmid_engine\tests\structure\test_rule_l.py:62: AssertionError: assert [('L-5', 'sam...y', '_edges')] == []
+======================== gmid_engine 구조 규칙 -- 검사 대상 수 =========================
+엔진 루트: C:\Users\HSLEE\AppData\Local\Temp\la1s_gc1_audit\iso2\skills\analog-gmid-design\gmid_engine
+test_rule_l_current_engine_no_violation_beyond_debt 대상 382개, 위반 70건
+============================= slowest 3 durations =============================
+29.79s call     gmid_engine/tests/structure/test_rule_l.py::test_rule_l_current_engine_no_violation_beyond_debt
+0.27s call     gmid_engine/tests/search/test_canonical_order.py::test_renaming_keeps_kind_key_dim_sequence[3]
+0.26s call     gmid_engine/tests/search/test_canonical_order.py::test_renaming_keeps_kind_key_dim_sequence[2]
+=========================== short test summary info ===========================
+FAILED gmid_engine/tests/structure/test_rule_l.py::test_rule_l_current_engine_no_violation_beyond_debt
+FAILED gmid_engine/tests/structure/test_rule_l.py::test_rule_l_baseline_has_fg13_eight_sites
+2 failed, 147 passed in 33.70s
