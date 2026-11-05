@@ -1,0 +1,14 @@
+"""check_rule_l 을 7620f5ee 엔진 소스에 돌려, 작성자 BASELINE(그 시점 390)을 재현하는지 본다. 인자: 옛 gmid_engine, 새 gmid_engine(도구 위치), 결과 json"""
+import json, pathlib, sys, collections
+OLD = pathlib.Path(sys.argv[1]); NEW = pathlib.Path(sys.argv[2]); OUT = pathlib.Path(sys.argv[3])
+sys.path.insert(0, str(NEW / "tests" / "structure"))
+from rule_l_checks import check_rule_l
+from rule_l_tables import PARAMS, BASELINE
+keys = {v.key for v in check_rule_l(OLD, PARAMS)}
+base = set(BASELINE)
+print("old-tree keys", len(keys), "baseline", len(base))
+print("only tool", len(keys - base), collections.Counter((k[0], k[1] if k[0] == "L-5" else "") for k in keys - base))
+print("only baseline", len(base - keys), sorted(base - keys)[:20])
+for k in sorted(keys - base):
+    print(" +", k)
+OUT.write_text(json.dumps({"only_tool": sorted(keys - base), "only_base": sorted(base - keys)}, ensure_ascii=False, indent=0), encoding="utf-8")

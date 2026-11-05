@@ -1,0 +1,42 @@
+"""L-3 reads_not_read 항목을 도구 코드 없이 잰다: 블록 모듈(블록 이름을 쓰는 def의 파일)에서 정규식으로 그 필드 읽기 문장을 찾는다.
+블록 파일 찾기: `@compute_block(` 줄 다음 def 이름과 파일을 텍스트로 모은다. 상수 이름 표기(F_*)도 모듈 상수 값으로 한 단계 푼다."""
+import json, pathlib, re, sys, collections
+E = pathlib.Path(sys.argv[1]); V = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8")); OUT = pathlib.Path(sys.argv[3])
+# 블록 이름 상수 -> 값
+const = {}
+files = [p for p in E.rglob("*.py") if "tests" not in p.relative_to(E).parts]
+for p in files:
+    for m in re.finditer(r'^([A-Z][A-Z0-9_]*)\s*=\s*"([^"]+)"', p.read_text(encoding="utf-8"), re.M):
+        const.setdefault(m.group(1), m.group(2))
+block_file = collections.defaultdict(list)
+for p in files:
+    t = p.read_text(encoding="utf-8")
+    for m in re.finditer(r'@compute_block\(\s*("([^"]+)"|([A-Z][A-Z0-9_]*))', t):
+        name = m.group(2) or const.get(m.group(3))
+        if name:
+            block_file[name].append(p)
+rows = []
+for v in V:
+    if v["key"][0] != "L-3":
+        continue
+    block, kind, field = v["key"][1].split(".", 2)
+    fs = block_file.get(block, [])
+    hits = []
+    for p in fs:
+        t = p.read_text(encoding="utf-8")
+        local = {k: val for k, val in re.findall(r'^([A-Z][A-Z0-9_]*)\s*=\s*"([^"]+)"', t, re.M)}
+        names = ['"%s"' % field] + [k for k, val in local.items() if val == field] + [k for k, val in const.items() if val == field and k in t]
+        for i, line in enumerate(t.splitlines(), 1):
+            if re.search(r'\.(column|value|field|column_fields)\(', line) and any(n in line for n in names) and ('"%s"' % kind in line or kind.upper() in line):
+                hits.append(p.relative_to(E).as_posix() + ":" + str(i))
+    rows.append({"key": v["key"][1], "code": v["code"], "files": [p.relative_to(E).as_posix() for p in fs], "hits_same_file": hits[:5], "n": len(hits)})
+OUT.write_text(json.dumps(rows, ensure_ascii=False, indent=0), encoding="utf-8")
+c = collections.Counter()
+for r in rows:
+    c[(r["key"].split(".")[0], r["code"][6:9], r["n"] > 0)] += 1
+for k in sorted(c):
+    print(k, c[k])
+print("not_read but read in the same file:")
+for r in rows:
+    if r["code"] == "reads_not_read" and r["n"]:
+        print(" ", r["key"], r["hits_same_file"][:2])

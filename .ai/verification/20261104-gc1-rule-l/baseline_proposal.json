@@ -1,0 +1,2762 @@
+{
+ "status": "도구 수정 전제 제안. 지금 BASELINE 에 적용하지 않는다. 수정본에서 다시 재어 이 target_sha256 과 대조한다",
+ "base_master": "2ee99d5d",
+ "counts": {
+  "current_tool": 429,
+  "baseline_old": 390,
+  "target": 376,
+  "remove": 39,
+  "add": 25,
+  "change_how": 61
+ },
+ "target_by_rule": {
+  "L-5": 21,
+  "L-3": 96,
+  "L-4": 204,
+  "L-1": 32,
+  "L-2": 3,
+  "L-1x": 11,
+  "L-1d": 9
+ },
+ "target_sha256": "cdf3752d4c4f5bcfc8ec7dc088daa4ac6cb1a7e5b3f2809fd06133cdfb7467b5",
+ "params_change": {
+  "l5_concepts.op_copy": [
+   "device.dc_op",
+   "sizing/block_widths.py"
+  ],
+  "output_only_slots": [
+   [
+    "metrics.achievability_types.BlockBound.load_note",
+    "pipeline/stage_b.py:_markdown",
+    "UB-1 spec 소비자 표 '출력 전용 -- stage_b 표·md 사유 칸'"
+   ],
+   [
+    "metrics.aux_types.IcmConfig.pivot_a_e",
+    "search/archive.py:S3Archive.write_snapshot",
+    "IT-2c spec:72 '출력 전용 -- 결과 JSON', 경로 = S3 스냅샷 전체 덤프"
+   ],
+   [
+    "metrics.aux_types.IcmConfig.pivot_resolution",
+    "search/archive.py:S3Archive.write_snapshot",
+    "IT-2c spec:72 '출력 전용 -- 결과 JSON', 경로 = S3 스냅샷 전체 덤프"
+   ]
+  ]
+ },
+ "test_change": {
+  "test_rule_l.F_G13": "('L-5','same_vgs','sizing/writer_plan.py','dc_writer_plan') -> ('L-5','same_vgs','sizing/writer_plan.py','_edges') 코드 줄 333에서 손으로 정함"
+ },
+ "remove": [
+  {
+   "key": [
+    "L-1",
+    "device.dc_conduction_floor"
+   ],
+   "why": "EO-1 필드 삭제"
+  },
+  {
+   "key": [
+    "L-1",
+    "device.dc_off_current"
+   ],
+   "why": "EO-1 필드 삭제"
+  },
+  {
+   "key": [
+    "L-1",
+    "graph.constraint_classes"
+   ],
+   "why": "search_context.py:181 상수 읽기 생김"
+  },
+  {
+   "key": [
+    "L-1",
+    "graph.gvgs_summary"
+   ],
+   "why": "writer_plan.py:192 읽기 생김(O-210 RR-6)"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.device.bulk"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.device.dc_colour"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.device.element_class"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.device.kind"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.device.pins"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.graph.dc_current_basis"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.graph.fixed_values"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.graph.l_classes"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.graph.l_ties"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.graph.orbits"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.node.dc_colour"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.node.dc_writer"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.node.is_rail"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.node.port_direction"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "achievability.node.port_role"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.dc_role"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.matching_groups"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.orbits"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.rel_l_class"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.dc_role"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.element_class"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.kind"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.pins"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.branches"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.columns"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.rel_equal_vgs"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.node.ac_ground_class"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.node.is_rail"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.node.port_direction"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.node.port_role"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "search_domain.device.dc_colour"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "search_domain.graph.current_symmetry"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-3",
+    "search_domain.graph.dc_current_basis"
+   ],
+   "why": "search_domain.py:100 읽기 생김"
+  },
+  {
+   "key": [
+    "L-3",
+    "search_domain.node.dc_colour"
+   ],
+   "why": "도구 별칭 결함이 낸 거짓 위반: 실제로 읽음"
+  },
+  {
+   "key": [
+    "L-5",
+    "same_vgs",
+    "sizing/writer_plan.py",
+    "dc_writer_plan"
+   ],
+   "why": "같은 위반이 _edges 로 이동(writer_plan.py:333)"
+  }
+ ],
+ "add": [
+  {
+   "key": [
+    "L-3",
+    "dc_columns.device.bulk"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 공용 Circuit 상속 __init__ 이 읽음(9336193f), 도구가 못 따라감"
+  },
+  {
+   "key": [
+    "L-3",
+    "dc_columns.device.dc_L"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 공용 Circuit 상속 __init__ 이 읽음(9336193f), 도구가 못 따라감"
+  },
+  {
+   "key": [
+    "L-3",
+    "dc_columns.device.dc_colour"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 공용 Circuit 상속 __init__ 이 읽음(9336193f), 도구가 못 따라감"
+  },
+  {
+   "key": [
+    "L-3",
+    "dc_columns.device.dc_coord"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 공용 Circuit 상속 __init__ 이 읽음(9336193f), 도구가 못 따라감"
+  },
+  {
+   "key": [
+    "L-3",
+    "dc_columns.device.kind"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 공용 Circuit 상속 __init__ 이 읽음(9336193f), 도구가 못 따라감"
+  },
+  {
+   "key": [
+    "L-3",
+    "dc_columns.device.pins"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 공용 Circuit 상속 __init__ 이 읽음(9336193f), 도구가 못 따라감"
+  },
+  {
+   "key": [
+    "L-3",
+    "dc_columns.node.dc_rail_v"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 공용 Circuit 상속 __init__ 이 읽음(9336193f), 도구가 못 따라감"
+  },
+  {
+   "key": [
+    "L-3",
+    "dc_columns.node.dc_writer"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 공용 Circuit 상속 __init__ 이 읽음(9336193f), 도구가 못 따라감"
+  },
+  {
+   "key": [
+    "L-3",
+    "icm_config.device.bulk"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 블록, Circuit 경유 읽기(3e6bffbe)"
+  },
+  {
+   "key": [
+    "L-3",
+    "icm_config.device.dc_L"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 블록, Circuit 경유 읽기(3e6bffbe)"
+  },
+  {
+   "key": [
+    "L-3",
+    "icm_config.device.dc_colour"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 블록, Circuit 경유 읽기(3e6bffbe)"
+  },
+  {
+   "key": [
+    "L-3",
+    "icm_config.device.kind"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 블록, Circuit 경유 읽기(3e6bffbe)"
+  },
+  {
+   "key": [
+    "L-3",
+    "icm_config.device.pins"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 블록, Circuit 경유 읽기(3e6bffbe)"
+  },
+  {
+   "key": [
+    "L-3",
+    "icm_config.graph.views"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 블록, Circuit 경유 읽기(3e6bffbe)"
+  },
+  {
+   "key": [
+    "L-3",
+    "icm_config.node.dc_writer"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "IT-2c 블록, Circuit 경유 읽기(3e6bffbe)"
+  },
+  {
+   "key": [
+    "L-3",
+    "metrics_aux.device.dc_sat_v"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "한 단계 밖 helper 읽기"
+  },
+  {
+   "key": [
+    "L-3",
+    "metrics_aux.device.kind"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "한 단계 밖 helper 읽기"
+  },
+  {
+   "key": [
+    "L-3",
+    "metrics_aux.node.dc_colour"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "한 단계 밖 helper 읽기"
+  },
+  {
+   "key": [
+    "L-3",
+    "metrics_aux.node.dc_window_cfg"
+   ],
+   "how": "정적 해석 형태로 바꾸기",
+   "card": "GC-7",
+   "why": "한 단계 밖 helper 읽기"
+  },
+  {
+   "key": [
+    "L-3",
+    "ss_off_delta.graph.ss_circuit"
+   ],
+   "how": "삭제 승인 대기",
+   "card": "GC-7",
+   "why": "EO-1 블록 READS 거짓: ss_circuit 읽기 0(소스 grep 확인)"
+  },
+  {
+   "key": [
+    "L-5",
+    "op_copy",
+    "layout/run.py",
+    "run_layout"
+   ],
+   "how": "정본 읽기로 교체",
+   "card": "LI-1",
+   "why": "ly_point 영속 자리(snapshot.write), layout_input_of·_input_columns 경로. 코드 직접 확인"
+  },
+  {
+   "key": [
+    "L-5",
+    "op_copy",
+    "metrics/ls_fields.py",
+    "ls_fields"
+   ],
+   "how": "정본 읽기로 교체",
+   "card": "GC-7",
+   "why": "S-4 경로: _cell_current 값을 LsNode.sources 행에 담음"
+  },
+  {
+   "key": [
+    "L-5",
+    "op_copy",
+    "metrics/metrics_aux.py",
+    "_ls_report"
+   ],
+   "how": "정본 읽기로 교체",
+   "card": "GC-7",
+   "why": "S-4 경로: n.sources 를 보고 tuple 에 담음"
+  },
+  {
+   "key": [
+    "L-5",
+    "op_copy",
+    "metrics/metrics_aux.py",
+    "metrics_aux"
+   ],
+   "how": "정본 읽기로 교체",
+   "card": "GC-7",
+   "why": "S-4 경로 영속 자리: graph.metrics_aux 블록 출력"
+  },
+  {
+   "key": [
+    "L-5",
+    "same_vgs",
+    "sizing/writer_plan.py",
+    "_edges"
+   ],
+   "how": "정본 읽기로 교체",
+   "card": "GC-2",
+   "why": "F-G13 변수 경유 꼴, dc_writer_plan 에서 이동. canon 으로 입력 점 포트를 합치므로 graph.gs_groups 와 정의 축이 다른지 GC-2가 정한다"
+  }
+ ],
+ "change_how": [
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.bulk"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.bulk_declared"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.dc_colour"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.dc_nets"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.element_class"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.is_diode"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.kind"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.pins"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.unsupported"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.value"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.device.value_key"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.branches"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.column_orphans"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.column_pairs"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.columns"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.current_symmetry"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.dc_pruned"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.dc_segments"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.gs_groups"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.gvgs_summary"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.matching_dispositions"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.rel_equal_vgs"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.rel_kcl_group"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.rel_kvl_branch"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.rel_matching_offset"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.rel_matching_ratio"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.graph.rel_vds_eq_vgs"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.node.ac_ground_class"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.node.dc_branch_node"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.node.dc_colour"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.node.is_rail"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.node.port_direction"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.node.port_role"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "build_s1v.node.terminals"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.bulk"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.bulk_declared"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.dc_colour"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.dc_nets"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.is_diode"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.unsupported"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.value"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.device.value_key"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.column_orphans"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.column_pairs"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.current_symmetry"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.dc_pruned"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.dc_segments"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.gs_groups"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.gvgs_summary"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.matching_dispositions"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.matching_groups"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.orbits"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.rel_kcl_group"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.rel_kvl_branch"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.rel_l_class"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.rel_matching_offset"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.rel_matching_ratio"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.graph.rel_vds_eq_vgs"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.node.dc_branch_node"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.node.dc_colour"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  },
+  {
+   "key": [
+    "L-3",
+    "coupling_vars.node.terminals"
+   ],
+   "from": "삭제 승인 대기",
+   "to": "정적 해석 형태로 바꾸기",
+   "why": "별칭 s1 = projection 경유 읽기를 도구가 놓쳐 not_read 로 분류됨"
+  }
+ ],
+ "not_debt_op_copy_false_positive": [
+  [
+   "L-5",
+   "op_copy",
+   "convergence/converge_point.py",
+   "_margin"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "convergence/converge_point.py",
+   "converge_point.done"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "convergence/place_layout.py",
+   "place_layout"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "convergence/realized_geometry.py",
+   "realized_geometry"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "convergence/relaxation_records.py",
+   "relaxation_records"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "core/failure_partial.py",
+   "attach_partial"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "layout/run.py",
+   "_base"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "metrics/ss_evaluate.py",
+   "ss_evaluate"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "search/eps_sweep.py",
+   "_filter"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "search/eps_sweep.py",
+   "_warm"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "search/eps_sweep.py",
+   "sweep_front"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "search/layer0_center.py",
+   "_maxmin"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "search/layer0_center.py",
+   "_repair"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "search/layer0_center.py",
+   "_repairable"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "search/slsqp_outer.py",
+   "_layout"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "search/ss_constraints.py",
+   "ss_constraint_rows"
+  ]
+ ],
+ "not_debt_back_to_card": {
+  "sizing.s2_values.SealItem.magnitude": "유일한 reader를 EO-1 7f663bbe가 지움. 출력 전용 행이 어느 card에도 없어 S-8대로 EO-1로 되돌림: 출력 전용 행(S3 덤프)을 그 card 문서에 적거나 칸 삭제"
+ },
+ "target_keys": [
+  [
+   "L-1",
+   "device.start.point"
+  ],
+  [
+   "L-1",
+   "device.start.row"
+  ],
+  [
+   "L-1",
+   "device.value"
+  ],
+  [
+   "L-1",
+   "device.value_key"
+  ],
+  [
+   "L-1",
+   "graph.area_est_m2"
+  ],
+  [
+   "L-1",
+   "graph.area_fraction"
+  ],
+  [
+   "L-1",
+   "graph.column_orphans"
+  ],
+  [
+   "L-1",
+   "graph.column_pairs"
+  ],
+  [
+   "L-1",
+   "graph.conflicts"
+  ],
+  [
+   "L-1",
+   "graph.dc_scc_log"
+  ],
+  [
+   "L-1",
+   "graph.dc_tie_breaks"
+  ],
+  [
+   "L-1",
+   "graph.declared"
+  ],
+  [
+   "L-1",
+   "graph.dof_numeric"
+  ],
+  [
+   "L-1",
+   "graph.inactive"
+  ],
+  [
+   "L-1",
+   "graph.junction_source"
+  ],
+  [
+   "L-1",
+   "graph.ly_canon"
+  ],
+  [
+   "L-1",
+   "graph.ly_canon_rows"
+  ],
+  [
+   "L-1",
+   "graph.ly_dispositions"
+  ],
+  [
+   "L-1",
+   "graph.ly_rows"
+  ],
+  [
+   "L-1",
+   "graph.macro"
+  ],
+  [
+   "L-1",
+   "graph.metric_structure"
+  ],
+  [
+   "L-1",
+   "graph.mismatch_source"
+  ],
+  [
+   "L-1",
+   "graph.model_error"
+  ],
+  [
+   "L-1",
+   "graph.noise_input_cells"
+  ],
+  [
+   "L-1",
+   "graph.records"
+  ],
+  [
+   "L-1",
+   "graph.rel_kcl_group"
+  ],
+  [
+   "L-1",
+   "graph.rel_matching_offset"
+  ],
+  [
+   "L-1",
+   "graph.rel_matching_ratio"
+  ],
+  [
+   "L-1",
+   "graph.rel_vds_eq_vgs"
+  ],
+  [
+   "L-1",
+   "graph.residual_probe"
+  ],
+  [
+   "L-1",
+   "graph.uncovered"
+  ],
+  [
+   "L-1",
+   "node.dc_branch_node"
+  ],
+  [
+   "L-1d",
+   "graph.s1_model.S1Graph.column"
+  ],
+  [
+   "L-1d",
+   "graph.s1_model.S1Graph.value"
+  ],
+  [
+   "L-1d",
+   "graph.structure_tables.structure_tables"
+  ],
+  [
+   "L-1d",
+   "layout._helpers_alias.AliasView.column"
+  ],
+  [
+   "L-1d",
+   "layout._helpers_alias.AliasView.value"
+  ],
+  [
+   "L-1d",
+   "layout.canon_block.canon_tables"
+  ],
+  [
+   "L-1d",
+   "layout.canonical_naming.canonical_names.decorate.run"
+  ],
+  [
+   "L-1d",
+   "metrics.dc_metrics._canonical"
+  ],
+  [
+   "L-1d",
+   "search.search_context.SearchContext._field"
+  ],
+  [
+   "L-1x",
+   "core.canon_pointer.CanonPointer"
+  ],
+  [
+   "L-1x",
+   "core.writer_table.WriterTable.fields_of"
+  ],
+  [
+   "L-1x",
+   "layout.floorplan_pack.pack_floorplan_grouped"
+  ],
+  [
+   "L-1x",
+   "layout.outputs.layout_outputs"
+  ],
+  [
+   "L-1x",
+   "lut.curve_check.curve_report"
+  ],
+  [
+   "L-1x",
+   "lut.id_inverse.gm_id_for_target"
+  ],
+  [
+   "L-1x",
+   "metrics.model_error.model_error_pairs"
+  ],
+  [
+   "L-1x",
+   "search.eval_budget.EvalBudget.remaining"
+  ],
+  [
+   "L-1x",
+   "search.macro_poles._signed"
+  ],
+  [
+   "L-1x",
+   "search.residual_probe.residual_probe"
+  ],
+  [
+   "L-1x",
+   "sizing.size_and_seal_local.size_and_seal_local"
+  ],
+  [
+   "L-2",
+   "graph.bias_columns"
+  ],
+  [
+   "L-2",
+   "graph.column_block_map"
+  ],
+  [
+   "L-2",
+   "graph.vars"
+  ],
+  [
+   "L-3",
+   "build_s1v.device.bulk"
+  ],
+  [
+   "L-3",
+   "build_s1v.device.bulk_declared"
+  ],
+  [
+   "L-3",
+   "build_s1v.device.dc_colour"
+  ],
+  [
+   "L-3",
+   "build_s1v.device.dc_nets"
+  ],
+  [
+   "L-3",
+   "build_s1v.device.element_class"
+  ],
+  [
+   "L-3",
+   "build_s1v.device.is_diode"
+  ],
+  [
+   "L-3",
+   "build_s1v.device.kind"
+  ],
+  [
+   "L-3",
+   "build_s1v.device.pins"
+  ],
+  [
+   "L-3",
+   "build_s1v.device.unsupported"
+  ],
+  [
+   "L-3",
+   "build_s1v.device.value"
+  ],
+  [
+   "L-3",
+   "build_s1v.device.value_key"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.branches"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.column_orphans"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.column_pairs"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.columns"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.current_symmetry"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.dc_pruned"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.dc_segments"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.gs_groups"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.gvgs_summary"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.matching_dispositions"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.rel_equal_vgs"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.rel_kcl_group"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.rel_kvl_branch"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.rel_matching_offset"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.rel_matching_ratio"
+  ],
+  [
+   "L-3",
+   "build_s1v.graph.rel_vds_eq_vgs"
+  ],
+  [
+   "L-3",
+   "build_s1v.node.ac_ground_class"
+  ],
+  [
+   "L-3",
+   "build_s1v.node.dc_branch_node"
+  ],
+  [
+   "L-3",
+   "build_s1v.node.dc_colour"
+  ],
+  [
+   "L-3",
+   "build_s1v.node.is_rail"
+  ],
+  [
+   "L-3",
+   "build_s1v.node.port_direction"
+  ],
+  [
+   "L-3",
+   "build_s1v.node.port_role"
+  ],
+  [
+   "L-3",
+   "build_s1v.node.terminals"
+  ],
+  [
+   "L-3",
+   "coupling_vars.device.bulk"
+  ],
+  [
+   "L-3",
+   "coupling_vars.device.bulk_declared"
+  ],
+  [
+   "L-3",
+   "coupling_vars.device.dc_colour"
+  ],
+  [
+   "L-3",
+   "coupling_vars.device.dc_nets"
+  ],
+  [
+   "L-3",
+   "coupling_vars.device.is_diode"
+  ],
+  [
+   "L-3",
+   "coupling_vars.device.unsupported"
+  ],
+  [
+   "L-3",
+   "coupling_vars.device.value"
+  ],
+  [
+   "L-3",
+   "coupling_vars.device.value_key"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.column_orphans"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.column_pairs"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.current_symmetry"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.dc_pruned"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.dc_segments"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.gs_groups"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.gvgs_summary"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.matching_dispositions"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.matching_groups"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.orbits"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.rel_kcl_group"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.rel_kvl_branch"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.rel_l_class"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.rel_matching_offset"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.rel_matching_ratio"
+  ],
+  [
+   "L-3",
+   "coupling_vars.graph.rel_vds_eq_vgs"
+  ],
+  [
+   "L-3",
+   "coupling_vars.node.dc_branch_node"
+  ],
+  [
+   "L-3",
+   "coupling_vars.node.dc_colour"
+  ],
+  [
+   "L-3",
+   "coupling_vars.node.terminals"
+  ],
+  [
+   "L-3",
+   "dc_columns.device.bulk"
+  ],
+  [
+   "L-3",
+   "dc_columns.device.dc_L"
+  ],
+  [
+   "L-3",
+   "dc_columns.device.dc_colour"
+  ],
+  [
+   "L-3",
+   "dc_columns.device.dc_coord"
+  ],
+  [
+   "L-3",
+   "dc_columns.device.kind"
+  ],
+  [
+   "L-3",
+   "dc_columns.device.pins"
+  ],
+  [
+   "L-3",
+   "dc_columns.node.dc_rail_v"
+  ],
+  [
+   "L-3",
+   "dc_columns.node.dc_writer"
+  ],
+  [
+   "L-3",
+   "icm_config.device.bulk"
+  ],
+  [
+   "L-3",
+   "icm_config.device.dc_L"
+  ],
+  [
+   "L-3",
+   "icm_config.device.dc_colour"
+  ],
+  [
+   "L-3",
+   "icm_config.device.kind"
+  ],
+  [
+   "L-3",
+   "icm_config.device.pins"
+  ],
+  [
+   "L-3",
+   "icm_config.graph.views"
+  ],
+  [
+   "L-3",
+   "icm_config.node.dc_writer"
+  ],
+  [
+   "L-3",
+   "ly_canonical_naming.graph.ly_groups_in"
+  ],
+  [
+   "L-3",
+   "ly_canonical_naming.graph.ly_passives"
+  ],
+  [
+   "L-3",
+   "ly_canonical_naming.graph.ly_row_groups"
+  ],
+  [
+   "L-3",
+   "ly_pattern_select.graph.ly_canon"
+  ],
+  [
+   "L-3",
+   "ly_rows.graph.ly_canon_rows"
+  ],
+  [
+   "L-3",
+   "metrics_aux.device.dc_sat_v"
+  ],
+  [
+   "L-3",
+   "metrics_aux.device.kind"
+  ],
+  [
+   "L-3",
+   "metrics_aux.node.dc_colour"
+  ],
+  [
+   "L-3",
+   "metrics_aux.node.dc_window_cfg"
+  ],
+  [
+   "L-3",
+   "metrics_dc.device.dc_colour"
+  ],
+  [
+   "L-3",
+   "metrics_dc.node.dc_colour"
+  ],
+  [
+   "L-3",
+   "s1_dc_conduction.device.kind"
+  ],
+  [
+   "L-3",
+   "s1_gvgs.device.kind"
+  ],
+  [
+   "L-3",
+   "s1_symmetry.device.bulk"
+  ],
+  [
+   "L-3",
+   "s1_symmetry.device.is_diode"
+  ],
+  [
+   "L-3",
+   "s1_symmetry.device.kind"
+  ],
+  [
+   "L-3",
+   "s1_symmetry.node.is_rail"
+  ],
+  [
+   "L-3",
+   "ss_off_delta.graph.ss_circuit"
+  ],
+  [
+   "L-3",
+   "start_intervals.graph.gain_checks"
+  ],
+  [
+   "L-3",
+   "start_intervals.graph.local_inputs"
+  ],
+  [
+   "L-4",
+   "_module_map.ModuleEntry.entry_point"
+  ],
+  [
+   "L-4",
+   "_module_map.ModuleEntry.plan_ids"
+  ],
+  [
+   "L-4",
+   "_module_map.ModuleEntry.responsibility"
+  ],
+  [
+   "L-4",
+   "authoring.spec_model.SettlingDecl.linear_s"
+  ],
+  [
+   "L-4",
+   "authoring.spec_model.SettlingDecl.total_s"
+  ],
+  [
+   "L-4",
+   "authoring.spec_model.SizingSpecDoc.file_sha256"
+  ],
+  [
+   "L-4",
+   "authoring.spec_model.SizingSpecDoc.section_fps"
+  ],
+  [
+   "L-4",
+   "authoring.spec_model.SizingSpecDoc.spec_fp"
+  ],
+  [
+   "L-4",
+   "authoring.topology_model.DcEdge.element_kind"
+  ],
+  [
+   "L-4",
+   "authoring.topology_model.TopologyDoc.file_sha256"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedFront.admitted"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedFront.dropped"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedFront.k_alt"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedFront.nonconverged"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedFront.perf"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedFront.rounds"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedPoint.geometry"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedPoint.iterations"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedPoint.rejected"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedPoint.relaxations"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedPoint.search_area_m2"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedPoint.search_point"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.ConvergedPoint.unmatched"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.DroppedPoint.by"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.Iteration.geometry_devices"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.Iteration.max_dlnw"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.Iteration.rejected"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.Iteration.requested"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.JunctionChange.cdb_after"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.JunctionChange.cdb_before"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.JunctionChange.csb_after"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.JunctionChange.csb_before"
+  ],
+  [
+   "L-4",
+   "convergence.convergence_values.Relaxation.outcome"
+  ],
+  [
+   "L-4",
+   "core.graph_snapshot.GraphSnapshot._column_cache"
+  ],
+  [
+   "L-4",
+   "core.graph_snapshot.GraphSnapshot._order_cache"
+  ],
+  [
+   "L-4",
+   "core.metric_signature.MetricSignature.unit"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockRow.calls"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockRow.computes"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockRow.grafts"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockRow.part"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockRow.recomputes_same_input"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockRow.replays"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockRow.reuses"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockTotals.calls"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockTotals.computes"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockTotals.grafts"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockTotals.recomputes_same_input"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockTotals.replays"
+  ],
+  [
+   "L-4",
+   "core.run_counters.BlockTotals.reuses"
+  ],
+  [
+   "L-4",
+   "core.writer_table.WriterTable._index"
+  ],
+  [
+   "L-4",
+   "graph.s1_values.Column.parallel_expansion"
+  ],
+  [
+   "L-4",
+   "graph.s1_values.ColumnOrphan.branch"
+  ],
+  [
+   "L-4",
+   "graph.s1_values.GvgsSummary.cyclomatic"
+  ],
+  [
+   "L-4",
+   "graph.s1_values.GvgsSummary.v1"
+  ],
+  [
+   "L-4",
+   "graph.s1_values.GvgsSummary.v2_port0"
+  ],
+  [
+   "L-4",
+   "graph.s1_values.GvgsSummary.v2_port1"
+  ],
+  [
+   "L-4",
+   "graph.s1_values.RelEdge.type"
+  ],
+  [
+   "L-4",
+   "graph.s1_values.S1Key.facts_fp"
+  ],
+  [
+   "L-4",
+   "graph.s1_values.S1Key.marks_fp"
+  ],
+  [
+   "L-4",
+   "graph.s1_values.S1Key.rule_fp"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.CellInfo.degeneration"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.CompositeBlock.chain"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.CompositeBlock.merge_nodes"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.CompositeBlock.paths"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.Loop.cm_pair"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.ViewS1v.ac_ground_exceptions"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.ViewS1v.bias_moving"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.ViewS1v.cm_pair"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.ViewS1v.compensation_candidates"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.ViewS1v.forward_nets"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.ViewS1v.pass_bundles"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.ViewS1v.stage_starts"
+  ],
+  [
+   "L-4",
+   "graph.s1v_values.ViewS1v.unreduced_diff"
+  ],
+  [
+   "L-4",
+   "layout._helpers_alias.Canon.orders"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.BoxVerdict.elongation"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.BoxVerdict.folds"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.BoxVerdict.narrowest_row"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.BoxVerdict.total_height_m"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.BoxVerdict.total_width_m"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.BoxVerdict.widest_row"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.BoxVerdict.width_ratio"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.DeviceLayout.W_err_rel"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.DeviceLayout.W_tol_effective"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.DeviceLayout.W_tol_lower"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.DeviceLayout.W_tol_upper"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.DeviceLayout.excluded_slices"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.FloorplanSummary.aspect_ratio"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.FloorplanSummary.packing_density"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.FloorplanSummary.passive_area_m2"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.FoldAttempt.action"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.FoldAttempt.adopted"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.FoldAttempt.n_rows"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.GroupLayout.isolated_pairs"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.GroupLayout.provisional"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.GroupLayout.residual"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.GroupRebuild.n_rows"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.LayoutOutputs.coverage_missing"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.LayoutOutputs.coverage_ok"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.LayoutOutputs.revalidation"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.LayoutOutputs.w_invariant_ok"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.MatchingDisposition.disposition"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.MergeDecision.area_after_m2"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.MergeDecision.area_before_m2"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.MergeDecision.merged"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.RealizedDevice.recalibrate_id"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.RealizedDevice.recompute_node_voltages"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.Revalidation.consumer"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.Revalidation.required"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.Revalidation.seals"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.RowLayout.n_components"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.RowsLayout.fold_attempts"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.RowsLayout.merge_decisions"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.SliceDensity.J_A_per_m"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.SliceDensity.vgs_V"
+  ],
+  [
+   "L-4",
+   "layout.contract_output.WRequest.W_old_m"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.CapTable.sign_convention"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.Caps.css"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.ColumnSource.table_w_m"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.Curve.cell_class"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.CurveRow.gm_gds_max"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.CurveRow.gm_id_max"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.CurveRow.max_branch_rise"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.CurveRow.n_branch_nonmonotonic"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.CurveRow.n_curves"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.CurveRow.n_hermite_nonmonotone"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.CurveRow.n_skipped"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.DcSlice.floors"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.DcSlice.hermite_fc"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.GmIdAxisCurve.monotone"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.LBinMap.model_files"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.LBinMap.w_bin"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.LutLocation.cap_npz_path"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.LutLocation.config_path"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.LutLocation.manifest_path"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.LutProvenance.manifest_path"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.MidpointRow.n_inverse_failed"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.MidpointRow.n_targets"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.MismatchTable.sigma_unit"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.NoisePlanes.tol_point"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.OpPoint.fallbacks"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.OpPoint.vth"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.TargetSolution.gm_s"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.TargetSolution.id_a"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.TolVCell.gm_id_inverse_loo_v"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.TolVCell.id_equivalent_loo_v"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.TolVCell.n_inverse_failed"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.TolVCell.n_targets"
+  ],
+  [
+   "L-4",
+   "lut.lut_types.TolVdsatCell.vdsat_loo_v"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.AreaBound.not_certified"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.BlockBound.n_rows"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.BlockBound.row_condition"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.DofReport.free_variables"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.DofReport.n_equations"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.DofReport.n_variables"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.DofReport.numeric_ranks"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.DofReport.structural_rank"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.GainCheck.found_sum_db"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.GainCheck.n_unknown"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.HeadroomRow.binding_devices"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.HeadroomRow.derivation"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.SliceCurveCheck.n_cells"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.SliceCurveCheck.n_hermite"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.SliceCurveCheck.n_slope_undefined"
+  ],
+  [
+   "L-4",
+   "metrics.achievability_types.SliceCurveCheck.n_violation"
+  ],
+  [
+   "L-4",
+   "metrics.aux_types.BlockGain.contributions"
+  ],
+  [
+   "L-4",
+   "metrics.aux_types.CoupledResidual.median_db"
+  ],
+  [
+   "L-4",
+   "metrics.aux_types.CoupledResidual.spread_db"
+  ],
+  [
+   "L-4",
+   "metrics.aux_types.FfContribution.g_ff"
+  ],
+  [
+   "L-4",
+   "metrics.aux_types.OffsetSystematic.output_error_v"
+  ],
+  [
+   "L-4",
+   "metrics.junction_source.JunctionSource.lut_rule_decl"
+  ],
+  [
+   "L-4",
+   "metrics.junction_source.JunctionSource.pdk_decl_sha256"
+  ],
+  [
+   "L-4",
+   "metrics.mna_types.AreaSearch.passive_area_m2"
+  ],
+  [
+   "L-4",
+   "metrics.mna_types.Crossing.steps"
+  ],
+  [
+   "L-4",
+   "metrics.mna_types.LoopAnalysis.dc_value"
+  ],
+  [
+   "L-4",
+   "metrics.mna_types.ParameterSet.rel_tol"
+  ],
+  [
+   "L-4",
+   "metrics.mna_types.SupplyCurrents.counted_rails"
+  ],
+  [
+   "L-4",
+   "search.search_values.FrontPoint.dominated_by"
+  ],
+  [
+   "L-4",
+   "search.search_values.Objectives.kcl_residual_a"
+  ],
+  [
+   "L-4",
+   "search.search_values.SearchFront.failed_eps"
+  ],
+  [
+   "L-4",
+   "search.search_values.SearchFront.perf"
+  ],
+  [
+   "L-4",
+   "search.search_values.SearchFront.run_id"
+  ],
+  [
+   "L-4",
+   "search.search_values.SolveResult.iterations"
+  ],
+  [
+   "L-4",
+   "search.search_values.SolveResult.restarts"
+  ],
+  [
+   "L-4",
+   "search.start_values.MacroResult.poles_hz"
+  ],
+  [
+   "L-4",
+   "search.start_values.MacroResult.sweeps"
+  ],
+  [
+   "L-4",
+   "search.start_values.StartConflict.gap"
+  ],
+  [
+   "L-4",
+   "search.start_values.StartRow.bin"
+  ],
+  [
+   "L-4",
+   "search.start_values.StartRow.gm_id_chosen"
+  ],
+  [
+   "L-4",
+   "search.start_values.StartRow.gm_id_hi"
+  ],
+  [
+   "L-4",
+   "search.start_values.StartRow.gm_id_lo"
+  ],
+  [
+   "L-4",
+   "search.start_values.StartRow.i_start"
+  ],
+  [
+   "L-4",
+   "search.start_values.StartRow.inactive_reasons"
+  ],
+  [
+   "L-4",
+   "search.start_values.StartRow.l_chosen"
+  ],
+  [
+   "L-4",
+   "search.start_values.StartRow.l_hi"
+  ],
+  [
+   "L-4",
+   "search.start_values.StartRow.l_lo"
+  ],
+  [
+   "L-4",
+   "search.theta_coords.ThetaCoords.raw"
+  ],
+  [
+   "L-4",
+   "sizing.local_values.LocalSeal.failures"
+  ],
+  [
+   "L-4",
+   "sizing.local_values.LocalSeal.snapshot_fragment"
+  ],
+  [
+   "L-4",
+   "sizing.s2_values.SccLog.deltas"
+  ],
+  [
+   "L-4",
+   "sizing.s2_values.SccLog.fallback"
+  ],
+  [
+   "L-4",
+   "sizing.s2_values.SccLog.iterations"
+  ],
+  [
+   "L-4",
+   "sizing.s2_values.TieBreak.chosen"
+  ],
+  [
+   "L-4",
+   "sizing.s2_values.ZeroCancel.end_net"
+  ],
+  [
+   "L-4",
+   "sizing.s2_values.ZeroCancel.far_nets"
+  ],
+  [
+   "L-5",
+   "diode",
+   "graph/cells.py",
+   "_pass_groups"
+  ],
+  [
+   "L-5",
+   "diode",
+   "graph/cells.py",
+   "_signal_cells"
+  ],
+  [
+   "L-5",
+   "diode",
+   "graph/cells.py",
+   "classify_cells"
+  ],
+  [
+   "L-5",
+   "diode",
+   "graph/loops.py",
+   "_graph_edges"
+  ],
+  [
+   "L-5",
+   "diode",
+   "graph/net_model.py",
+   "net_model"
+  ],
+  [
+   "L-5",
+   "diode",
+   "graph/node_impedance.py",
+   "node_impedance"
+  ],
+  [
+   "L-5",
+   "diode",
+   "graph/output_direction.py",
+   "output_directions"
+  ],
+  [
+   "L-5",
+   "diode",
+   "metrics/block_gain_model.py",
+   "block_gain_model_of"
+  ],
+  [
+   "L-5",
+   "diode",
+   "metrics/ls_swing.py",
+   "_constraints"
+  ],
+  [
+   "L-5",
+   "diode",
+   "search/iv_speed.py",
+   "_providers"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "convergence/layout_input.py",
+   "layout_input_of"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "layout/run.py",
+   "_input_columns"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "layout/run.py",
+   "run_layout"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "metrics/ls_fields.py",
+   "_cell_current"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "metrics/ls_fields.py",
+   "_signal_current"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "metrics/ls_fields.py",
+   "ls_fields"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "metrics/metrics_aux.py",
+   "_ls_report"
+  ],
+  [
+   "L-5",
+   "op_copy",
+   "metrics/metrics_aux.py",
+   "metrics_aux"
+  ],
+  [
+   "L-5",
+   "same_vgs",
+   "graph/gvgs_cycles.py",
+   "s1_gvgs"
+  ],
+  [
+   "L-5",
+   "same_vgs",
+   "metrics/block_gain_model.py",
+   "block_gain_model_of"
+  ],
+  [
+   "L-5",
+   "same_vgs",
+   "sizing/writer_plan.py",
+   "_edges"
+  ]
+ ]
+}

@@ -1,0 +1,103 @@
+"""rule_l_checks.py 뮤턴트: 규칙 하나씩 꺼서 거부 픽스처 test가 실패하는지, 살아남으면 실제 엔진 위반 집합이 달라지는지 본다.
+사용: mutate.py <gmid_engine> <작업폴더> <결과 jsonl> [시작 번호]  케이스마다 파일에 쓴다."""
+import json, pathlib, shutil, subprocess, sys, os, re
+E = pathlib.Path(sys.argv[1]); WORK = pathlib.Path(sys.argv[2]); OUT = pathlib.Path(sys.argv[3])
+S = E / "tests" / "structure"
+SRC = (S / "rule_l_checks.py").read_text(encoding="utf-8")
+M = [
+ ("L1-off", 'if not outside:\n            out.append(Violation(("L-1", name), "no_reader"', 'if False:\n            out.append(Violation(("L-1", name), "no_reader"'),
+ ("L1-writer-self-counts", "if sid not in own and sid in reach]", "if sid in reach]"),
+ ("L1-reach-off", "if sid not in own and sid in reach]", "if sid not in own]"),
+ ("L2-undeclared-off", 'elif all(_under(sid, output_sids) for sid in outside) and name not in declared:', 'elif False:'),
+ ("L2-unreach-off", 'if _spec_sid(func) not in reach:', 'if False:'),
+ ("L1d-off", 'if scope.dynamic and eng.modules[scope.module] not in allowed and not sid.endswith(":<module>"):', 'if False:'),
+ ("L1d-allow-all", 'allowed = set(params.dynamic_allowed_files)', 'allowed = set(eng.modules.values())'),
+ ("L1d-allowfile-ignored", 'allowed = set(params.dynamic_allowed_files)', 'allowed = set()'),
+ ("L3-off", 'if (kind, field) in found:\n                continue', 'if True:\n                continue'),
+ ("L3-unverif-as-notread", 'code = "reads_unverifiable" if passes_on else "reads_not_read"', 'code = "reads_not_read"'),
+ ("L3-notread-as-unverif", 'code = "reads_unverifiable" if passes_on else "reads_not_read"', 'code = "reads_unverifiable"'),
+ ("L3-helper-reads-off", 'for kind, field, _l, _h, _n in sc.reads:\n                    found.add((kind, field))\n                if sc.dynamic', 'for kind, field, _l, _h, _n in ():\n                    found.add((kind, field))\n                if sc.dynamic'),
+ ("L3-otherpkg-ok", 'if not same:\n                                passes_on.append((sc.sid, t))\n                            elif', 'if False:\n                                pass\n                            elif'),
+ ("L3-helper-pass-off", 'passes_on.append((sc.sid, "helper_passes:" + ast.unparse(node.func)[:40]))', 'pass'),
+ ("L3-unresolved-reads-ok", 'out.append(Violation(("L-3", label + ".<reads>"), "reads_unverifiable", "reads= 를 상수로 풀지 못했다"))', 'pass'),
+ ("L4-off", 'if slot in loads or slot in strings or key in exempt:', 'if True:'),
+ ("L4-self-counts", 'if not (isinstance(node.value, ast.Name) and node.value.id == "self"):\n                    loads.add(node.attr)', 'if True:\n                    loads.add(node.attr)'),
+ ("L4-getattr-off", 'if isinstance(node.args[1], ast.Constant):\n                    loads.add(node.args[1].value)', 'pass'),
+ ("L4-strings-off", 'if slot in loads or slot in strings or key in exempt:', 'if slot in loads or key in exempt:'),
+ ("L4-exempt-off", 'if slot in loads or slot in strings or key in exempt:', 'if slot in loads or slot in strings:'),
+ ("L4-any-class", 'if not (isinstance(stmt, ast.ClassDef) and _is_frozen_dc(stmt)):', 'if not isinstance(stmt, ast.ClassDef):'),
+ ("L4-any-module", 'if not (public and all(isinstance(s, ast.ClassDef) for s in public)):', 'if False:'),
+ ("Diode-off", 'if {_pin_token(node.left), _pin_token(node.comparators[0])} == {"g", "d"}:\n                    diode = True', 'if False:\n                    diode = True'),
+ ("Diode-noteq-off", 'isinstance(node.ops[0], (ast.Eq, ast.NotEq)):', 'isinstance(node.ops[0], ast.Eq):'),
+ ("Pin-unwrap-off", 'if isinstance(expr, ast.Call) and expr.args and not expr.keywords:\n        return _pin_token(expr.args[0])', 'if False:\n        return _pin_token(expr.args[0])'),
+ ("Pin-subscript-off", 'elif isinstance(expr, ast.Subscript):\n        key = expr.slice', 'elif False:\n        key = expr.slice'),
+ ("Pin-attr-off", 'if isinstance(expr, ast.Attribute):\n        name = expr.attr', 'if False:\n        name = expr.attr'),
+ ("Gs-off", 'if toks[-2:] == ["g", "s"] and _is_key_position(node):', 'if False:'),
+ ("Gs-any-position", 'if toks[-2:] == ["g", "s"] and _is_key_position(node):', 'if toks[-2:] == ["g", "s"]:'),
+ ("Gs-kinddict-off", 'if "kind" in ast.unparse(node.key.elts[0]):\n                    same = True', 'if False:\n                    same = True'),
+ ("Key-lambda-off", 'if isinstance(par, ast.Lambda) and par.body is cur:', 'if False:'),
+ ("Key-in-off", 'if isinstance(par, ast.Compare) and len(par.ops) == 1 and isinstance(par.ops[0], (ast.In, ast.NotIn)) and par.left is cur:', 'if False:'),
+ ("Key-wrapper-off", 'while isinstance(cur.parent, ast.Call) and isinstance(cur.parent.func, ast.Name) and cur.parent.func.id in KEY_WRAPPERS', 'while False and isinstance(cur.parent, ast.Call) and isinstance(cur.parent.func, ast.Name) and cur.parent.func.id in KEY_WRAPPERS'),
+ ("Writerfile-exempt-off", 'if eng.modules[scope.module] == writer_file:\n                continue', 'if False:\n                continue'),
+ ("Writerfile-missing-off", 'if writer_file not in eng.modules.values():', 'if False:'),
+ ("Op-off", 'for sid in sorted(op.copies()):', 'for sid in ():'),
+ ("Op-return-off", 'if lab[:2] == "R:" and lab[2:] in self.cset:\n                    flagged.add(lab[2:])', 'if False:\n                    pass'),
+ ("Op-local-off", 'flagged = {sid for sid in self.cands if self._s_tainted(sid, self.sink_local[sid])}', 'flagged = set()'),
+ ("Op-write-off", 'if isinstance(fn, ast.Attribute) and fn.attr == "write":\n                        sink(', 'if False:\n                        sink('),
+ ("Op-blockret-off", 'if self._is_block(scope):\n                        sink(set(t))', 'if False:\n                        sink(set(t))'),
+ ("Op-untracked-off", 'sink({lab_ for lab_ in got if lab_ == "S" or lab_[:2] == "R:"})', 'pass'),
+ ("Op-attr-sink-off", 'if not (isinstance(base, ast.Name) and base.id == "self"):\n                                sink(set(t))', 'if False:\n                                sink(set(t))'),
+ ("Op-arith-flows", 'if isinstance(expr, ast.Call):\n            return self._call_labels(sid, expr, direct, extra)\n        return set()', 'if isinstance(expr, ast.Call):\n            return self._call_labels(sid, expr, direct, extra)\n        if isinstance(expr, ast.BinOp):\n            return lab(sid, expr.left, direct, extra) | lab(sid, expr.right, direct, extra)\n        return set()'),
+ ("Op-output-exempt-off", 'op = _OpCopy(eng, reach, (kind, field), output_sids, writer_file)', 'op = _OpCopy(eng, reach, (kind, field), set(), writer_file)'),
+ ("Op-writer-exempt-off", 'and eng.modules[eng.scopes[sid].module] != writer_file and not _under(sid, exempt_sids)]', 'and not _under(sid, exempt_sids)]'),
+ ("Op-reach-off", 'self.cands = [sid for sid in sorted(reach) if sid in eng.scopes', 'self.cands = [sid for sid in sorted(eng.scopes) if sid in eng.scopes'),
+ ("Op-float-cuts", 'if isinstance(fn, ast.Name) and fn.id in ("float", "int", "str", "bool", "dict", "tuple", "list", "set", "frozenset", "sorted", "reversed", "getattr") and expr.args:', 'if isinstance(fn, ast.Name) and fn.id in ("str", "bool", "dict", "tuple", "list", "set", "frozenset", "sorted", "reversed", "getattr") and expr.args:'),
+ ("L1x-off", 'if not callers.get(sid):\n            out.append(Violation(("L-1x", _fn_key(sid)), "no_caller"', 'if False:\n            out.append(Violation(("L-1x", _fn_key(sid)), "no_caller"'),
+ ("L1x-class-off", 'if not callers.get(cid):', 'if False:'),
+ ("L1x-entry-not-exempt", 'if sid.endswith(":<module>") or sid in entry_sids:', 'if sid.endswith(":<module>"):'),
+ ("Graph-reexport-sub-first", 'first = self.resolve_symbol(base, attr, seen)\n            if first is not None:\n                return first\n            sub = (base + "." + attr) if base else attr\n            return ("mod", sub) if sub in self.modules else None', 'sub = (base + "." + attr) if base else attr\n            if sub in self.modules:\n                return ("mod", sub)\n            return self.resolve_symbol(base, attr, seen)'),
+ ("Graph-toplevel-not-root", 'stack = [sid for sid in entry_sids if sid in eng.scopes] + [m + ":<module>" for m in closure if m + ":<module>" in eng.scopes]', 'stack = [sid for sid in entry_sids if sid in eng.scopes]'),
+ ("Graph-shadow-ignored", 'elif node.id not in loc:\n                            targets = self._targets_of', 'elif True:\n                            targets = self._targets_of'),
+ ("Const-add-off", 'if isinstance(expr, ast.BinOp) and isinstance(expr.op, ast.Add):\n            a, b = self.resolve_const(scope, expr.left, depth + 1), self.resolve_const(scope, expr.right, depth + 1)', 'if False:\n            a, b = self.resolve_const(scope, expr.left, depth + 1), self.resolve_const(scope, expr.right, depth + 1)'),
+ ("Const-loop-off", 'val = self.module_tuple(scope, it)\n                if val is None:\n                    continue', 'val = None\n                if val is None:\n                    continue'),
+ ("Read-kindfilter-off", 'if kind_vals is not None and not set(kind_vals) <= kinds:\n                    continue', 'if False:\n                    continue'),
+ ("Table-writes-unresolved-off", 'self.unresolved.append((("L-1", label, eng.modules[scope.module]), "writer_table_unresolved", "writes= 상수 해석 실패: %s" % exc))', 'pass'),
+ ("Table-wt-off", 'self.unresolved.append((("L-1", name, eng.modules[mod]), "writer_table_unresolved", "WriterTable 상수 해석 실패: %s" % exc))', 'pass'),
+ ("Table-wt-rows-off", 'for (kind, field), writer in table.entries:\n                        self.table.setdefault((kind, field), writer)', 'pass'),
+ ("Entry-missing-off", 'out.append(Violation(("L-1", "<entry>", spec), "entry_point_missing", "진입점 함수가 엔진에 없다"))', 'pass'),
+ ("Debt-missing-off", 'missing = tuple(current[k] for k in sorted(keys - set(debt)))', 'missing = ()'),
+ ("Debt-stale-off", 'stale = tuple(sorted(set(debt) - keys))', 'stale = ()'),
+ ("Debt-outside-off", 'outside = tuple(sorted(set(debt) - base))', 'outside = ()'),
+ ("Debt-bad-vocab-off", 'if item.how not in VOCABULARY or not str(item.card).strip()', 'if not str(item.card).strip()'),
+ ("Debt-bad-card-off", 'if item.how not in VOCABULARY or not str(item.card).strip()', 'if item.how not in VOCABULARY'),
+ ("Fp-params-off", '"params": dict(params._asdict()),', '"params": {},'),
+ ("Fp-checks-off", '"checks": _normalized(Path(checks_path)),', '"checks": "",'),
+ ("Fp-tables-off", '"tables": _normalized(Path(tables_path)),', '"tables": "",'),
+ ("Fp-newline-off", 'return path.read_bytes().replace(b"\\r\\n", b"\\n").decode("utf-8")', 'return path.read_bytes().decode("utf-8")'),
+ ("Sort-off", 'return tuple(sorted(first.values(), key=lambda v: (v.key, v.code)))', 'return tuple(first.values())'),
+]
+start = int(sys.argv[4]) if len(sys.argv) > 4 else 0
+stop = int(sys.argv[5]) if len(sys.argv) > 5 else len(M)
+d = WORK / "m"
+if d.exists():
+    shutil.rmtree(d)
+d.mkdir(parents=True)
+for f in ("rule_l_tables.py", "rule_l_debt.py", "test_rule_l_reject_fixtures.py"):
+    shutil.copy(S / f, d / f)
+shutil.copytree(S / "fixtures" / "rule_l", d / "fixtures" / "rule_l")
+env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", PYTHONIOENCODING="utf-8", OPENBLAS_NUM_THREADS="1")
+with open(OUT, "a", encoding="utf-8") as fh:
+    for i, (name, a, b) in enumerate(M):
+        if i < start or i >= stop:
+            continue
+        n = SRC.count(a)
+        if n != 1:
+            fh.write(json.dumps({"i": i, "name": name, "error": "occurrences=%d" % n}, ensure_ascii=False) + "\n"); fh.flush()
+            continue
+        (d / "rule_l_checks.py").write_text(SRC.replace(a, b), encoding="utf-8")
+        r = subprocess.run([sys.executable, "-B", "-m", "pytest", "test_rule_l_reject_fixtures.py", "-q", "--tb=no", "-p", "no:cacheprovider", "--rootdir", str(d), "-c", os.devnull],
+                           cwd=d, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        fails = re.findall(r"^FAILED \S*::(\S+)", r.stdout, re.M)
+        last = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr[-200:]
+        fh.write(json.dumps({"i": i, "name": name, "killed": bool(fails) or r.returncode not in (0,), "n_fail": len(fails), "fails": fails[:6], "tail": last[:120]}, ensure_ascii=False) + "\n"); fh.flush()
+print("done", len(M))

@@ -1,0 +1,45 @@
+convergence.converge_point:_margin | local False | srcreads 0 | recv ['result'] | by_R ['convergence.converge:converge']
+convergence.converge_point:converge_point.done | local False | srcreads 0 | recv ['current', 'failure', 'first_seen', 'geometry', 'iterations', 'layouts', 'notes', 'placed', 'relaxed'] | by_R ['convergence.converge:converge']
+convergence.layout_input:layout_input_of | local False | srcreads 1 | recv ['pdk', 'relaxed', 'snapshot'] | by_R ['convergence.converge:converge', 'convergence.converge_point:converge_point', 'convergence.place_layout:place_layout']
+convergence.place_layout:place_layout | local False | srcreads 0 | recv ['current_keys', 'first_seen', 'kinds', 'pdk', 'previous', 'relaxed', 'snapshot'] | by_R ['convergence.converge:converge', 'convergence.converge_point:converge_point']
+     ('callee_sink', 40, ['R:convergence.layout_input:layout_input_of', 'Y:passives', 'Y:pdk', 'Y:rejected'], 'layout.run:run_layout(layout_input)')
+     ('callee_sink', 53, ['R:convergence.layout_input:layout_input_of', 'Y:passives', 'Y:rejected'], 'layout.run:run_layout(layout_input)')
+convergence.realized_geometry:realized_geometry | local False | srcreads 0 | recv ['keys', 'placements', 'snapshot'] | by_R ['convergence.converge:converge', 'convergence.converge_point:converge_point']
+convergence.relaxation_records:relaxation_records | local False | srcreads 0 | recv ['final_layout', 'first_seen', 'relaxed'] | by_R ['convergence.converge:converge']
+core.failure_partial:attach_partial | local True | srcreads 0 | recv ['snapshot'] | by_R []
+     ('attr', 20, ['P:snapshot'], 'exc.partial = snapshot')
+layout.run:_base | local False | srcreads 0 | recv ['design_point', 'previous'] | by_R ['convergence.converge:converge', 'convergence.converge_point:converge_point', 'layout.run:run_layout']
+layout.run:_input_columns | local False | srcreads 0 | recv ['layout_input'] | by_R ['layout.run:run_layout']
+layout.run:run_layout | local True | srcreads 0 | recv ['design_point', 'layout_input', 'previous'] | by_R []
+     ('write', 115, ['R:layout.run:_input_columns', 'Y:layout_input'], 'snapshot.write(WRITER_INPUT, fp_of(layout_input), _input_columns(layout_input))')
+     ('untracked', 118, ['R:layout.run:_base'], 'block(snapshot, donors=donors, counters=counters)')
+metrics.ls_fields:_cell_current | local False | srcreads 0 | recv ['cls', 'label', 'ops'] | by_R ['metrics.metrics_aux:metrics_aux']
+metrics.ls_fields:_signal_current | local False | srcreads 0 | recv ['label', 'ops'] | by_R ['metrics.metrics_aux:metrics_aux']
+metrics.ls_fields:ls_fields | local False | srcreads 0 | recv ['ops'] | by_R ['metrics.metrics_aux:metrics_aux']
+metrics.metrics_aux:_ls_report | local False | srcreads 0 | recv ['fields'] | by_R ['metrics.metrics_aux:metrics_aux']
+metrics.metrics_aux:metrics_aux | local True | srcreads 1 | recv [] | by_R []
+     ('blockret', 246, ['R:metrics.ls_fields:_cell_current', 'R:metrics.ls_fields:_signal_current', 'R:metrics.ls_fields:ls_fields', 'R:metrics.metrics_aux:_ls_report', 'X:projection', 'Y:projection'], "return {('graph', 'metrics_aux'): {METRICS_KEY: bundle}}")
+metrics.ss_evaluate:ss_evaluate | local False | srcreads 0 | recv ['area_decl', 'constraints', 'ctx', 'diffusion', 'driving', 'junction', 'mismatch', 'noise_decl', 'sealed', 'structure', 'theta'] | by_R ['convergence.converge:converge', 'search.eps_sweep:sweep_front', 'search.find_front:find_front', 'search.kernel:evaluate', 'search.l_bin_search:polish_l_cells', 'search.layer0_center:_halton_probe', 'search.layer0_center:_repair', 'search.layer0_center:layer0_start']
+     ('callee_sink', 131, ['X:sealed'], 'core.failure_partial:attach_partial(snapshot)')
+search.eps_sweep:_filter | local False | srcreads 0 | recv ['entries'] | by_R ['search.find_front:find_front']
+search.eps_sweep:_warm | local False | srcreads 0 | recv ['solve'] | by_R ['search.eps_sweep:sweep_front', 'search.find_front:find_front']
+search.eps_sweep:sweep_front | local False | srcreads 0 | recv ['starts'] | by_R ['search.find_front:find_front']
+     ('callee_sink', 77, ['P:sctx'], 'search.slsqp_outer:solve_eps(sctx)')
+     ('callee_sink', 77, ['P:starts'], 'search.slsqp_outer:solve_eps(start)')
+     ('callee_sink', 110, ['P:sctx'], 'search.slsqp_outer:solve_eps(sctx)')
+     ('callee_sink', 110, ['R:metrics.ss_evaluate:ss_evaluate', 'R:search.eps_sweep:_warm', 'R:search.slsqp_outer:_layout', 'R:search.ss_constraints:ss_constraint_rows', 'Y:sctx', 'Y:starts'], 'search.slsqp_outer:solve_eps(start)')
+     ('callee_sink', 124, ['P:sctx'], 'search.l_bin_search:polish_l_cells(sctx)')
+     ('callee_sink', 124, ['R:metrics.ss_evaluate:ss_evaluate', 'R:search.eps_sweep:_warm', 'R:search.slsqp_outer:_layout', 'R:search.ss_constraints:ss_constraint_rows', 'Y:sctx', 'Y:starts'], 'search.l_bin_search:polish_l_cells(solved)')
+search.layer0_center:_maxmin | local False | srcreads 0 | recv ['cells', 'first', 'theta0', 'variables'] | by_R ['search.layer0_center:layer0_start']
+     ('callee_sink', 368, ['P:sctx'], 'search.fd_jacobian:fd_jacobian(sctx)')
+     ('callee_sink', 368, ['P:cells'], 'search.fd_jacobian:fd_jacobian(cells)')
+search.layer0_center:_repair | local False | srcreads 0 | recv ['cells', 'res', 'variables'] | by_R ['search.layer0_center:layer0_start']
+     ('callee_sink', 521, ['P:sctx'], 'search.kernel:evaluate(sctx)')
+     ('callee_sink', 521, ['R:metrics.ss_evaluate:ss_evaluate', 'R:search.layer0_center:_repairable', 'R:search.ss_constraints:ss_constraint_rows', 'X:res', 'X:sctx', 'X:variables', 'Y:cells', 'Y:res', 'Y:sctx', 'Y:variables'], 'search.kernel:evaluate(theta)')
+     ('callee_sink', 521, ['P:cells'], 'search.kernel:evaluate(cells)')
+     ('callee_sink', 507, ['P:sctx'], 'search.kernel:evaluate(sctx)')
+     ('callee_sink', 507, ['R:metrics.ss_evaluate:ss_evaluate', 'R:search.layer0_center:_repairable', 'R:search.ss_constraints:ss_constraint_rows', 'X:res', 'X:sctx', 'X:variables', 'Y:cells', 'Y:res', 'Y:sctx', 'Y:variables'], 'search.kernel:evaluate(theta)')
+     ('callee_sink', 507, ['P:cells'], 'search.kernel:evaluate(cells)')
+search.layer0_center:_repairable | local False | srcreads 0 | recv ['res'] | by_R ['search.layer0_center:_halton_probe', 'search.layer0_center:_repair', 'search.layer0_center:layer0_start']
+search.slsqp_outer:_layout | local False | srcreads 0 | recv ['start'] | by_R ['search.eps_sweep:sweep_front', 'search.find_front:find_front', 'search.l_bin_search:polish_l_cells']
+search.ss_constraints:ss_constraint_rows | local False | srcreads 0 | recv ['bundle', 'declared', 'model_error'] | by_R ['convergence.converge:converge', 'search.eps_sweep:sweep_front', 'search.find_front:find_front', 'search.kernel:evaluate', 'search.l_bin_search:polish_l_cells', 'search.layer0_center:_halton_probe', 'search.layer0_center:_repair', 'search.layer0_center:layer0_start']

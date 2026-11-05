@@ -1,0 +1,21 @@
+OK   float_write catch got 1 | N3.1-5 float()
+OK   int_write catch got 1 | N3.1-5 int()
+OK   column_loop_write catch got 1 | 루프·튜플 풀기
+OK   whole_object_write catch got 1 | DeviceOp 객체 자체
+OK   attr_ctx catch got 1 | (iv) 실행 컨텍스트 속성
+DIFF module_dict catch got 0 | (iv) 모듈 전역
+DIFF module_global catch got 0 | (iv) 모듈 전역
+DIFF module_update catch got 0 | (iv) 모듈 전역
+DIFF method_call_unknown catch got 0 | 계약 7 '추적 실패는 위반'
+DIFF json_dump catch got 0 | (iii) 결과 JSON, 출력 함수 아님
+OK   arith_clean clean got 0 | 산술로 끊김
+OK   temp_clean clean got 0 | 계산 입력
+OK   snapshot_carry_clean clean got 0 | 스냅샷 참조 -- dc_op 칸 사본이 아님(graph 규칙 4 참조 전달)
+OK   kind_only_key_clean clean got 0 | 반환 뒤 산술
+OK   diode_wrapped catch got 1 | F-G13 일반
+OK   diode_var catch got 1 | 이름 꼴
+OK   same_vgs_wrap catch got 1 | _edges 꼴
+OK   nonpin_g_s_wrap catch got 1 | 이름만으로 잡음(도구 한계 표지)
+DIFF len_wrap_fp clean got 1 | 핀 비교 아님 -- len(g)==len(d) 과잉 여부
+DIFF isinstance_wrap_fp clean got 1 | 핀 비교 아님 -- 임의 호출 첫 인자 풀기 과잉 여부
+OK   get_wrap catch got 1 | 전압 값 비교는 핀 비교와 다름 -- 표지

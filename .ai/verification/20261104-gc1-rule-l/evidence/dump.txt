@@ -1,0 +1,57 @@
+total 429 baseline 390 debt 390
+Counter({'L-4': 208, 'L-3': 129, 'L-5': 37, 'L-1': 32, 'L-1x': 11, 'L-1d': 9, 'L-2': 3})
+L-5 Counter({'op_copy': 24, 'diode': 10, 'same_vgs': 3})
+added 45 Counter({('L-3', ''): 20, ('L-5', 'op_copy'): 20, ('L-4', ''): 4, ('L-5', 'same_vgs'): 1})
+gone 6
+ - ('L-1', 'device.dc_conduction_floor')
+ - ('L-1', 'device.dc_off_current')
+ - ('L-1', 'graph.constraint_classes')
+ - ('L-1', 'graph.gvgs_summary')
+ - ('L-3', 'search_domain.graph.dc_current_basis')
+ - ('L-5', 'same_vgs', 'sizing/writer_plan.py', 'dc_writer_plan')
+ + ('L-3', 'dc_columns.device.bulk') reads_unverifiable
+ + ('L-3', 'dc_columns.device.dc_L') reads_unverifiable
+ + ('L-3', 'dc_columns.device.dc_colour') reads_unverifiable
+ + ('L-3', 'dc_columns.device.dc_coord') reads_unverifiable
+ + ('L-3', 'dc_columns.device.kind') reads_unverifiable
+ + ('L-3', 'dc_columns.device.pins') reads_unverifiable
+ + ('L-3', 'dc_columns.node.dc_rail_v') reads_unverifiable
+ + ('L-3', 'dc_columns.node.dc_writer') reads_unverifiable
+ + ('L-3', 'icm_config.device.bulk') reads_unverifiable
+ + ('L-3', 'icm_config.device.dc_L') reads_unverifiable
+ + ('L-3', 'icm_config.device.dc_colour') reads_unverifiable
+ + ('L-3', 'icm_config.device.kind') reads_unverifiable
+ + ('L-3', 'icm_config.device.pins') reads_unverifiable
+ + ('L-3', 'icm_config.graph.views') reads_unverifiable
+ + ('L-3', 'icm_config.node.dc_writer') reads_unverifiable
+ + ('L-3', 'metrics_aux.device.dc_sat_v') reads_unverifiable
+ + ('L-3', 'metrics_aux.device.kind') reads_unverifiable
+ + ('L-3', 'metrics_aux.node.dc_colour') reads_unverifiable
+ + ('L-3', 'metrics_aux.node.dc_window_cfg') reads_unverifiable
+ + ('L-3', 'ss_off_delta.graph.ss_circuit') reads_not_read
+ + ('L-4', 'metrics.achievability_types.BlockBound.load_note') slot_no_reader
+ + ('L-4', 'metrics.aux_types.IcmConfig.pivot_a_e') slot_no_reader
+ + ('L-4', 'metrics.aux_types.IcmConfig.pivot_resolution') slot_no_reader
+ + ('L-4', 'sizing.s2_values.SealItem.magnitude') slot_no_reader
+ + ('L-5', 'op_copy', 'convergence/converge_point.py', '_margin') op_copy
+ + ('L-5', 'op_copy', 'convergence/converge_point.py', 'converge_point.done') op_copy
+ + ('L-5', 'op_copy', 'convergence/place_layout.py', 'place_layout') op_copy
+ + ('L-5', 'op_copy', 'convergence/realized_geometry.py', 'realized_geometry') op_copy
+ + ('L-5', 'op_copy', 'convergence/relaxation_records.py', 'relaxation_records') op_copy
+ + ('L-5', 'op_copy', 'core/failure_partial.py', 'attach_partial') op_copy
+ + ('L-5', 'op_copy', 'layout/run.py', '_base') op_copy
+ + ('L-5', 'op_copy', 'layout/run.py', 'run_layout') op_copy
+ + ('L-5', 'op_copy', 'metrics/ls_fields.py', 'ls_fields') op_copy
+ + ('L-5', 'op_copy', 'metrics/metrics_aux.py', '_ls_report') op_copy
+ + ('L-5', 'op_copy', 'metrics/metrics_aux.py', 'metrics_aux') op_copy
+ + ('L-5', 'op_copy', 'metrics/ss_evaluate.py', 'ss_evaluate') op_copy
+ + ('L-5', 'op_copy', 'search/eps_sweep.py', '_filter') op_copy
+ + ('L-5', 'op_copy', 'search/eps_sweep.py', '_warm') op_copy
+ + ('L-5', 'op_copy', 'search/eps_sweep.py', 'sweep_front') op_copy
+ + ('L-5', 'op_copy', 'search/layer0_center.py', '_maxmin') op_copy
+ + ('L-5', 'op_copy', 'search/layer0_center.py', '_repair') op_copy
+ + ('L-5', 'op_copy', 'search/layer0_center.py', '_repairable') op_copy
+ + ('L-5', 'op_copy', 'search/slsqp_outer.py', '_layout') op_copy
+ + ('L-5', 'op_copy', 'search/ss_constraints.py', 'ss_constraint_rows') op_copy
+ + ('L-5', 'same_vgs', 'sizing/writer_plan.py', '_edges') predicate_recomputed
+fingerprint e1504e3f489f0e7ae7d2f37b916dba3c85f5858ad23206d5932062fb724c0f79

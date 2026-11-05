@@ -1,0 +1,6 @@
+{
+ "test_end_commit": "7e905bc7",
+ "base_commit": "2ee99d5d",
+ "evidence_type": "red-green",
+ "red": "7e905bc7 archive에서 test_rule_l.py, test_rule_l_reject_fixtures.py 수집 오류 2건, 둘 다 ModuleNotFoundError: rule_l_checks (out/red.txt). 해시 = sha256('<test 파일>|ModuleNotFoundError')"
+}

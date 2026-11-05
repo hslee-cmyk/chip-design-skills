@@ -1,0 +1,85 @@
+"""코드 비의존 독립 측정(M-a 대응). rule_l_checks·measure_rule_l 를 import·참고하지 않는다. 호출 그래프·상수 해석 없이 토큰(tokenize)만 쓴다.
+비교 입력 = out/violations.json (대상 키 목록만).
+I1 L-4: frozen dataclass 칸 이름 -- 토큰열 `. 이름` 중 앞이 self 아닌 것, 또는 문자열 토큰 그 이름 -- 등장 0 이면 후보.
+I2 L-1x: def/class 이름 -- 정의 밖 NAME 토큰 등장 0(문자열·주석 제외) 이면 호출자 0 후보.
+I3 L-1: 권한표 필드 이름 -- 문자열 토큰 등장 자리를 모듈별로 센다.
+"""
+import io, json, keyword, pathlib, re, sys, tokenize, collections
+E = pathlib.Path(sys.argv[1]); V = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8")); OUT = pathlib.Path(sys.argv[3])
+files = [p for p in sorted(E.rglob("*.py")) if p.relative_to(E).parts[0] != "tests" and "__pycache__" not in p.parts]
+toks = {}
+for p in files:
+    toks[p] = [t for t in tokenize.generate_tokens(io.StringIO(p.read_text(encoding="utf-8")).readline)
+               if t.type in (tokenize.NAME, tokenize.OP, tokenize.STRING)]
+attr_load, name_cnt, str_cnt, def_cnt = collections.Counter(), collections.Counter(), collections.Counter(), collections.Counter()
+str_where = collections.defaultdict(list)
+for p, ts in toks.items():
+    rel = p.relative_to(E).as_posix()
+    for i, t in enumerate(ts):
+        if t.type == tokenize.STRING:
+            s = t.string.strip("rbfuRBFU").strip("'\"")
+            if len(t.string) < 120:
+                str_cnt[s] += 1
+                str_where[s].append(rel + ":" + str(t.start[0]))
+        elif t.type == tokenize.NAME and not keyword.iskeyword(t.string):
+            prev = ts[i - 1].string if i else ""
+            if prev in ("def", "class"):
+                def_cnt[t.string] += 1
+            else:
+                name_cnt[t.string] += 1
+            if prev == ".":
+                before = ts[i - 2].string if i >= 2 else ""
+                nxt = ts[i + 1].string if i + 1 < len(ts) else ""
+                if before != "self" and nxt != "=":
+                    attr_load[t.string] += 1
+want = collections.defaultdict(set)
+for v in V:
+    want[v["key"][0]].add(tuple(v["key"]))
+res = {}
+# I1: 칸 후보를 소스 텍스트 줄 패턴으로 모은다(AST 없이): @dataclass(frozen=True) 뒤 class 본문의 `이름: 타입` 줄
+slot_re = re.compile(r"^    ([A-Za-z_]\w*)\s*:\s*[^=]")
+cands = {}
+for p in files:
+    mod = ".".join(p.relative_to(E).with_suffix("").parts)
+    lines = p.read_text(encoding="utf-8").splitlines()
+    i = 0
+    while i < len(lines):
+        if re.match(r"@(dataclasses\.)?dataclass\(.*frozen=True", lines[i]):
+            j = i + 1
+            while not lines[j].startswith("class "):
+                j += 1
+            cname = re.match(r"class (\w+)", lines[j]).group(1)
+            k = j + 1
+            while k < len(lines) and (lines[k].startswith(" ") or not lines[k].strip()):
+                m = slot_re.match(lines[k])
+                if m:
+                    cands[mod + "." + cname + "." + m.group(1)] = m.group(1)
+                k += 1
+            i = k
+        else:
+            i += 1
+zero = {k for k, s in cands.items() if attr_load[s] == 0 and str_cnt[s] == 0}
+tool_l4 = {k[1] for k in want["L-4"]}
+res["L4_candidates_all_frozen"] = len(cands)
+res["L4_zero_by_tokens"] = len(zero)
+res["L4_tool"] = len(tool_l4)
+res["L4_tool_not_zero_by_tokens"] = sorted(tool_l4 - zero)
+res["L4_zero_not_tool"] = sorted(zero - tool_l4)
+# I2
+tool_x = {k[1] for k in want["L-1x"]}
+res["L1x_tool_with_name_uses"] = {k: name_cnt[k.rsplit(".", 1)[-1]] for k in sorted(tool_x)}
+priv = []
+for n, c in def_cnt.items():
+    if name_cnt[n] == 0 and not (n.startswith("__") and n.endswith("__")):
+        priv.append(n)
+res["defs_with_zero_name_use"] = sorted(priv)
+res["defs_zero_not_in_tool"] = sorted(n for n in priv if not any(k.rsplit(".", 1)[-1] == n for k in tool_x))
+# I3
+res["L1_string_sites"] = {k[1]: str_where.get(k[1].split(".", 1)[1], [])[:8] for k in sorted(want["L-1"])}
+OUT.write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+for k in ("L4_candidates_all_frozen", "L4_zero_by_tokens", "L4_tool"):
+    print(k, res[k])
+print("L4 tool-not-zero", len(res["L4_tool_not_zero_by_tokens"]), res["L4_tool_not_zero_by_tokens"][:25])
+print("L4 zero-not-tool", len(res["L4_zero_not_tool"]), res["L4_zero_not_tool"][:40])
+print("L1x tool uses", res["L1x_tool_with_name_uses"])
+print("defs zero use", len(priv), "not in tool", res["defs_zero_not_in_tool"][:60])

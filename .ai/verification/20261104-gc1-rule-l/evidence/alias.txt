@@ -1,0 +1,6 @@
+alias fixture (기대 위반 0, L3c와 같은 뜻): [(('L-3', 'blk.graph.beta'), 'reads_not_read')]
+alias fixture patched: []
+L-3 old 129 new 96 gone 33 code changed 61
+gone by block Counter({'achievability': 15, 'coupling_vars': 11, 'build_s1v': 4, 'search_domain': 3})
+changed by block Counter({'build_s1v': 34, 'coupling_vars': 27}) Counter({'reads_unverifiable': 61})
+not_read remain Counter({'ly_pattern_select': 1, 'ly_rows': 1, 's1_dc_conduction': 1, 's1_gvgs': 1, 'ss_off_delta': 1})

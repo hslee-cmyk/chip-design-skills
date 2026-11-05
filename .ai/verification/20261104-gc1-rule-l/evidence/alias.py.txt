@@ -1,0 +1,47 @@
+"""L-3 별칭 시험: (1) `p = projection` 픽스처 변형 (2) 도구 사본에 별칭 전파만 더해 실제 엔진 L-3 차이를 잰다. 피검 파일은 바꾸지 않는다."""
+import importlib.util, json, pathlib, shutil, sys, collections
+E = pathlib.Path(sys.argv[1]); WORK = pathlib.Path(sys.argv[2]); OUT = pathlib.Path(sys.argv[3])
+S = E / "tests" / "structure"
+sys.path.insert(0, str(S))
+from rule_l_tables import PARAMS, RuleLParams
+import rule_l_checks as c
+base = S / "fixtures" / "rule_l" / "L3c" / "gmid_engine"
+d = WORK / "alias_fix"
+if d.exists():
+    shutil.rmtree(d)
+shutil.copytree(base, d)
+(d / "graph" / "blk.py").write_text('''from ..core.compute_block import compute_block
+from .helper import beta_len
+
+
+@compute_block("blk", reads=[("graph", "alpha"), ("graph", "beta")], writes=[("graph", "gamma")])
+def blk(projection):
+    p = projection
+    return {("graph", "gamma"): {"g": len(p.column("graph", "alpha")) + beta_len(p)}}
+''', encoding="utf-8")
+pp = RuleLParams(("pipeline/stage_a.py:run_stage_a",), (), (), {}, (), (), ())
+fx = [(v.key, v.code) for v in c.check_rule_l(d, pp)]
+print("alias fixture (기대 위반 0, L3c와 같은 뜻):", fx)
+src = (S / "rule_l_checks.py").read_text(encoding="utf-8")
+a = "        tainted = {param}\n"
+b = a + """        for _sc in _descendants(scope):
+            for _root in _sc.body_nodes:
+                for _n in ast.walk(_root):
+                    if isinstance(_n, ast.Assign) and isinstance(_n.value, ast.Name) and _n.value.id in tainted and len(_n.targets) == 1 and isinstance(_n.targets[0], ast.Name):
+                        tainted.add(_n.targets[0].id)
+"""
+assert src.count(a) == 1
+p = WORK / "alias_mut.py"
+p.write_text(src.replace(a, b), encoding="utf-8")
+spec = importlib.util.spec_from_file_location("alias_mut", p)
+m = importlib.util.module_from_spec(spec); sys.modules["alias_mut"] = m; spec.loader.exec_module(m)
+print("alias fixture patched:", [(v.key, v.code) for v in m.check_rule_l(d, pp)])
+old = {v.key: v.code for v in c.check_rule_l(E, PARAMS) if v.key[0] == "L-3"}
+new = {v.key: v.code for v in m.check_rule_l(E, PARAMS) if v.key[0] == "L-3"}
+gone = sorted(set(old) - set(new))
+chg = sorted(k for k in old if k in new and old[k] != new[k])
+print("L-3 old", len(old), "new", len(new), "gone", len(gone), "code changed", len(chg))
+print("gone by block", collections.Counter(k[1].split(".")[0] for k in gone))
+print("changed by block", collections.Counter(k[1].split(".")[0] for k in chg), collections.Counter(new[k] for k in chg))
+print("not_read remain", collections.Counter(k[1].split(".")[0] for k, v in new.items() if v == "reads_not_read"))
+OUT.write_text(json.dumps({"fixture": repr(fx), "gone": gone, "changed": [[k, old[k], new[k]] for k in chg], "new": [[k, v] for k, v in sorted(new.items())]}, ensure_ascii=False, indent=0), encoding="utf-8")

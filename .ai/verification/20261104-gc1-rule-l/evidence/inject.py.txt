@@ -1,0 +1,68 @@
+"""판별력 추가 시험: 픽스처에 없는 꼴을 임시 트리에 넣어 도구가 잡는지 본다. 기대는 계획 N3.1-5·spec 계약 7에서 손으로 적었다."""
+import json, pathlib, shutil, sys
+E = pathlib.Path(sys.argv[1]); WORK = pathlib.Path(sys.argv[2]); OUT = pathlib.Path(sys.argv[3])
+S = E / "tests" / "structure"
+sys.path.insert(0, str(S))
+from rule_l_checks import check_rule_l
+from rule_l_tables import RuleLParams
+BASE = S / "fixtures" / "rule_l" / "L5b-1" / "gmid_engine"
+ENTRY = "pipeline/stage_a.py:run_stage_a"
+OP = {"op_copy": ("device.dc_op", "graph/op_block.py")}
+PRE = {"diode": ("device.is_diode", "graph/s1_structure.py"), "same_vgs": ("graph.gs_groups", "graph/gs_groups.py")}
+def p(**k):
+    d = dict(entry_points=(ENTRY,), output_functions=(), dynamic_allowed_files=(), l5_concepts=OP, output_only_fields=(), output_only_slots=(), fingerprint_only_slots=())
+    d.update(k); return RuleLParams(**d)
+PLACE = '''def place(snapshot):
+{body}
+'''
+OPV = 'op = snapshot.value("device", "m1", "dc_op")'
+V = [
+ # (이름, 본문, 기대: 'catch' = op_copy 위반 있어야 함 / 'clean' = 없어야 함, 근거)
+ ("float_write", '    op = snapshot.value("device", "m1", "dc_op")\n    return snapshot.write("lay", "iv", {("graph", "ly_point"): {"m1": float(op.current)}})', "catch", "N3.1-5 float()"),
+ ("int_write", '    op = snapshot.value("device", "m1", "dc_op")\n    return snapshot.write("lay", "iv", {("graph", "ly_point"): {"m1": int(op.current)}})', "catch", "N3.1-5 int()"),
+ ("column_loop_write", '    out = {}\n    for m, op in snapshot.column("device", "dc_op"):\n        out[m] = op.current\n    return snapshot.write("lay", "iv", {("graph", "ly_point"): out})', "catch", "루프·튜플 풀기"),
+ ("whole_object_write", '    op = snapshot.value("device", "m1", "dc_op")\n    return snapshot.write("lay", "iv", {("graph", "ly_point"): {"m1": op}})', "catch", "DeviceOp 객체 자체"),
+ ("attr_ctx", '    op = snapshot.value("device", "m1", "dc_op")\n    snapshot.ctx.kept = op.current', "catch", "(iv) 실행 컨텍스트 속성"),
+ ("module_dict", '    op = snapshot.value("device", "m1", "dc_op")\n    _CACHE["m1"] = op.current', "catch", "(iv) 모듈 전역"),
+ ("module_global", '    global _KEEP\n    op = snapshot.value("device", "m1", "dc_op")\n    _KEEP = op.current', "catch", "(iv) 모듈 전역"),
+ ("module_update", '    op = snapshot.value("device", "m1", "dc_op")\n    _CACHE.update({"m1": op.current})', "catch", "(iv) 모듈 전역"),
+ ("method_call_unknown", '    op = snapshot.value("device", "m1", "dc_op")\n    snapshot.ctx.save(op.current)', "catch", "계약 7 '추적 실패는 위반'"),
+ ("json_dump", '    import json\n    op = snapshot.value("device", "m1", "dc_op")\n    return json.dumps({"i": op.current})', "catch", "(iii) 결과 JSON, 출력 함수 아님"),
+ ("arith_clean", '    op = snapshot.value("device", "m1", "dc_op")\n    return snapshot.write("lay", "iv", {("graph", "ly_point"): {"m1": op.current * 2.0}})', "clean", "산술로 끊김"),
+ ("temp_clean", '    op = snapshot.value("device", "m1", "dc_op")\n    return float(op.current) + 1.0', "clean", "계산 입력"),
+ ("snapshot_carry_clean", '    snapshot.ctx.partial = snapshot', "clean", "스냅샷 참조 -- dc_op 칸 사본이 아님(graph 규칙 4 참조 전달)"),
+ ("kind_only_key_clean", '    op = snapshot.value("device", "m1", "dc_op")\n    x = op.current\n    return x + 1.0', "clean", "반환 뒤 산술"),
+]
+results = []
+for name, body, want, why in V:
+    d = WORK / name
+    if d.exists():
+        shutil.rmtree(d)
+    shutil.copytree(BASE, d)
+    head = "_CACHE = {}\n_KEEP = None\n\n"
+    (d / "graph" / "op_user.py").write_text(head + PLACE.format(body=body), encoding="utf-8")
+    got = [v.key for v in check_rule_l(d, p()) if v.key[0] == "L-5"]
+    ok = bool(got) == (want == "catch")
+    results.append({"name": name, "want": want, "why": why, "got": got, "ok": ok})
+# 술어 변형
+PV = [
+ ("diode_wrapped", 'def check(m, canon):\n    return canon(m.g) == canon(m.d)\n', "diode", "catch", "F-G13 일반"),
+ ("diode_var", 'def check(gate, drain):\n    return gate == drain\n', "diode", "catch", "이름 꼴"),
+ ("same_vgs_wrap", 'def check(ms, canon):\n    out = {}\n    for g, s in ms:\n        out.setdefault((canon(g), canon(s)), []).append(1)\n    return out\n', "same_vgs", "catch", "_edges 꼴"),
+ ("nonpin_g_s_wrap", 'def check(items, f):\n    out = {}\n    for g, s in items:\n        out[(f(g), f(s))] = 1\n    return out\n', "same_vgs", "catch", "이름만으로 잡음(도구 한계 표지)"),
+ ("len_wrap_fp", 'def check(a, g, d):\n    return len(g) == len(d)\n', "diode", "clean", "핀 비교 아님 -- len(g)==len(d) 과잉 여부"),
+ ("isinstance_wrap_fp", 'def check(g, d):\n    return isinstance(g, str) == isinstance(d, str)\n', "diode", "clean", "핀 비교 아님 -- 임의 호출 첫 인자 풀기 과잉 여부"),
+ ("get_wrap", 'def check(v, m):\n    return v.get(m.g) == v.get(m.d)\n', "diode", "catch", "전압 값 비교는 핀 비교와 다름 -- 표지"),
+]
+BASE2 = S / "fixtures" / "rule_l" / "L5a-1" / "gmid_engine"
+for name, src, concept, want, why in PV:
+    d = WORK / name
+    if d.exists():
+        shutil.rmtree(d)
+    shutil.copytree(BASE2, d)
+    (d / "graph" / "user.py").write_text(src, encoding="utf-8")
+    got = [v.key for v in check_rule_l(d, p(l5_concepts=PRE)) if v.key[0] == "L-5" and v.key[1] == concept]
+    results.append({"name": name, "want": want, "why": why, "got": got, "ok": bool(got) == (want == "catch")})
+OUT.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
+for r in results:
+    print(("OK  " if r["ok"] else "DIFF"), r["name"], r["want"], "got", len(r["got"]), "|", r["why"])
