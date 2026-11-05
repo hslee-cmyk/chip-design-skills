@@ -44,7 +44,9 @@ def _setup(monkeypatch, residuals, statuses=None, budget=None):
 
     monkeypatch.setattr(RP, "evaluate", evaluate)
     monkeypatch.setattr(RP, "centre_start", lambda sctx: (VARS, dict(START), ("cells",), None))
-    return types.SimpleNamespace(eval_budget=budget, counters={"kernel_calls": 0}), calls
+    # [XRUN-F1 card C] 정지는 search_stop 기준 -> 가짜 sctx 는 interface 1절의 칸을 모두 갖는다(선언 실행, 시계 없음)
+    return types.SimpleNamespace(eval_budget=budget, eval_budget_source="declared", eval_times=[], deadline=None,
+                                 domain=types.SimpleNamespace(variables=VARS), counters={"kernel_calls": 0}), calls
 
 
 def test_halton_points_and_summary(monkeypatch):
@@ -69,3 +71,12 @@ def test_eval_budget_stop(monkeypatch):
     sctx, _calls = _setup(monkeypatch, [0.1] * 10, statuses=["failed"] * 10, budget=4)
     got = RP.residual_probe(sctx, 3)
     assert got.stop == "eval_budget" and got.evaluated == 4 and got.summary.count == 0 and got.summary.median_db is None
+
+
+# [XRUN-F1 card C] interface card xrunf1c C6 (C-T8) -- residual_probe 의 정지는 search_stop 기준(탐색 예산).
+# oracle: (손) 유도 실행(전이 뒤): D = 4 + R, R = 2 × 3(VARS 3개) = 6 -> 탐색 예산 = D − R = 4 -> 위 test_eval_budget_stop 과 같은 기대(평가 4).
+def test_eval_budget_stop_derived_run_uses_d_minus_reserve(monkeypatch):
+    sctx, _calls = _setup(monkeypatch, [0.1] * 10, statuses=["failed"] * 10, budget=4 + 2 * len(VARS))
+    sctx.eval_budget_source = "derived_once:floor(B/median_t_eval)@n_evals=4"
+    got = RP.residual_probe(sctx, 3)
+    assert got.stop == "eval_budget" and got.evaluated == 4 and got.summary.count == 0

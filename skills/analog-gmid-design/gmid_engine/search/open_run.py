@@ -6,7 +6,8 @@
   `S3Index(`·`RunCounters(` 를 이 파일과 정의 모듈 밖에서 부르지 않고(구조 규칙 M (M-b)), `run_stage_a` 호출마다 같은 함수 안에서
   1:1 로 짝지어 부르며(M-c), 결과를 모듈·클래스·fixture 에 보관하지 않고(M-d), 디스크에 쓰지 않는다(M-f).
 * 엔진 소스에서 이 이름을 참조하는 곳은 이 파일과 `search/__init__.py` 뿐이다(M-a, card B 의 허용 목록은 비어 있다).
-* card C·OS-5 가 `S3Index` 생성자에 필수 인자를 더하면 이 함수가 같은 필수 인자를 받아 넘긴다(기본값 없음).
+* 서명 불변(인자 없음): 색인 항목 수 상한은 생성자 인자가 아니라 `find_front` 가 `donors.open_bound(total_of)` 로 열고 `close_bound()` 로 닫는다(card C, DF-1). 열기 밖(단계 A·B, MOD8)
+  등록은 검사하지 않는다.
 """
 from ..core import RunCounters
 from .s3_index import S3Index

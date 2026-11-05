@@ -32,7 +32,7 @@ DC 경로(가지치기 안 된) engine 저항은 지금처럼 `resistance` 다(�
 `fixed` = 행이 읽는 값 선언 이상원 값.
 """
 from gmid_engine.core import compute_block
-from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE
+from gmid_engine.graph import ELEMENT_PASSIVE
 
 from .s2_values import (
     CAPACITOR,
@@ -40,6 +40,7 @@ from .s2_values import (
     DC_KEY,
     DC_THETA_SCHEMA_WRITER,
     KERNEL_KEY,
+    REL_INPUT_POINT,
     REL_WINDOW,
     RESISTOR,
     THETA_CAPACITANCE,
@@ -107,7 +108,7 @@ def _zero_cancel(resistor, projection, classes, kinds, pins, internal):
         return ZeroCancel(resistor, end, far, (), ZC_RESISTOR_END)
     grounded = {n for n, c in projection.column("node", "ac_ground_class") if c is not None}
     cells, sides = [], set()
-    for name in sorted(n for n, c in classes.items() if c == ELEMENT_MOS):
+    for name in sorted(n for n, _coord in projection.column("device", "dc_coord")):
         p = pins[name]
         if p["s"] not in grounded:
             continue
@@ -138,9 +139,9 @@ def dc_theta_schema(projection):
         if coord.role == COORD_WRITER:
             components.add((THETA_LN_IDU, name))
     tied = {member for member, _owner in l_ties}
-    components.update((THETA_L, name) for name, cls in classes.items() if cls == ELEMENT_MOS and name not in tied)
+    components.update((THETA_L, name) for name, _coord in projection.column("device", "dc_coord") if name not in tied)      # 쓰기 계획이 연 MOS(`off` 소자는 계획에 없다)
     components.update((THETA_Y, w.y_key) for _net, w in projection.column("node", "dc_writer")
-                      if w.relation == REL_WINDOW)
+                      if w.relation in (REL_WINDOW, REL_INPUT_POINT) and w.y_key is not None)    # 입력 점은 두 포트가 같은 y 키 하나
     components.update((THETA_CURRENT, name) for name in basis.free)
     components.update((THETA_RESISTANCE, name) for name, _a, _b in basis.ends
                       if classes[name] == ELEMENT_PASSIVE and kinds[name] == RESISTOR and name not in declared_resistors)

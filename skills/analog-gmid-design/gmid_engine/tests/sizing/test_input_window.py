@@ -14,21 +14,27 @@ oracle:
 """
 import math
 import random
+import sys
 import time
 
 import numpy as np
 import pytest
 
 from gmid_engine.core import SealViolationError
-from gmid_engine.sizing import DC_KEY, INPUT_GROUP_KEY, size_and_seal
+from gmid_engine.sizing import DC_KEY, size_and_seal
 from gmid_engine.sizing.input_window import saturation_window
 
-from .conftest import (R4_L, build_ctx, detail, free_currents, mos, node_voltages, r4_ln_idu, r4_tol_vdsat,
+from .conftest import (R4_L, build_ctx, detail, free_currents, mos, node_voltages, r4_ln_idu,
                        r4_vdsat_at, r4_vgs_of, seal_item, topo, two)
+from types import SimpleNamespace
+
+from .conftest import run_blocks
 from .conftest import kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 # ===========================================================================
-# 단위: saturation_window(unknown, root, values, gradient, rows) -> (lo, hi) | None
+# 단위: saturation_window(unknown, root, values, gradient, rows, *, slope=None) -> (dlo, dhi, slope) | None
+# [IT-2b 갱신] 반환 창은 x0 = 0 기준 **이동량** [dlo, dhi](옛 절대 창 x0 + 이동량), `root` 는 x 로 움직이는 넷 하나(쌍·묶음 없음, [IT-2c 갱신] interface 20261104-it2c-icm-config 'saturation_window 계약'),
+# 행은 5원소 (a, b, sign, slack, kind) -- 창 끝 정의(행마다 slack + sign·(s_a − s_b)·Δ ≥ 0 의 교집합)는 kind 를 쓰지 않는다. (design 41 4.7-3 2·4.7-7)
 # ===========================================================================
 
 
@@ -46,16 +52,84 @@ def test_hand_linear_system():
     grad = _linear_gradient({"a": {"x": 0.5, "b": 0.25}, "b": {"a": 0.5}}, {"a": 0.0, "b": 0.0})
     vals = {"x": 1.0, "a": 4 / 7, "b": 2 / 7, "gnd": 0.0, "vdd": 1.8}
     unk = ("a", "b", "x")
-    assert saturation_window(unk, "x", vals, grad, ()) == (-math.inf, math.inf)
-    lo, hi = saturation_window(unk, "x", vals, grad, (("a", "gnd", 1.0, 0.2), ("vdd", "a", 1.0, 0.3),
-                                                      ("vdd", "gnd", 1.0, 0.1)))
-    assert abs(lo - 0.65) <= 1e-12 and abs(hi - 1.525) <= 1e-12
-    # 부호 −1 (pmos 방향): VDS = −(V(a) − V(gnd)) 율 −4/7 -> 위쪽 경계 x ≤ 1 + 0.2·7/4
-    lo, hi = saturation_window(unk, "x", vals, grad, (("a", "gnd", -1.0, 0.2),))
-    assert lo == -math.inf and abs(hi - 1.35) <= 1e-12
-    # 이미 위반인 행(slack < 0): 경계가 x0 를 넘어간다(x0 가 창 밖)
-    lo, _ = saturation_window(unk, "x", vals, grad, (("a", "gnd", 1.0, -0.1),))
-    assert abs(lo - (1.0 + 0.1 * 7 / 4)) <= 1e-12
+    assert saturation_window(unk, "x", vals, grad, ())[:2] == (-math.inf, math.inf)
+    dlo, dhi, slope = saturation_window(unk, "x", vals, grad, (("a", "gnd", 1.0, 0.2, "sat"), ("vdd", "a", 1.0, 0.3, "sat"),
+                                                                   ("vdd", "gnd", 1.0, 0.1, "sat")))
+    assert abs(dlo - (-0.35)) <= 1e-12 and abs(dhi - 0.525) <= 1e-12                 # 옛 절대 창 [0.65, 1.525] − x0(1.0)
+    # 반환 slope = {넷: dV/dx}: 손계산 s_a = 4/7, s_b = 2/7, 뿌리 s_x = 1 (oracle 대조: (손) 위 연립)
+    assert abs(slope["a"] - 4 / 7) <= 1e-12 and abs(slope["b"] - 2 / 7) <= 1e-12 and slope["x"] == 1.0
+    # 부호 −1 (pmos 방향): VDS = −(V(a) − V(gnd)) 율 −4/7 -> 위쪽 경계 Δ ≤ 0.2·7/4
+    dlo, dhi, _ = saturation_window(unk, "x", vals, grad, (("a", "gnd", -1.0, 0.2, "sat"),))
+    assert dlo == -math.inf and abs(dhi - 0.35) <= 1e-12
+    # 이미 위반인 행(slack < 0): 경계가 0 을 넘어간다(출발점이 창 밖)
+    dlo, _, _ = saturation_window(unk, "x", vals, grad, (("a", "gnd", 1.0, -0.1, "sat"),))
+    assert abs(dlo - (0.1 * 7 / 4)) <= 1e-12
+
+
+def test_it2b_sw_kind_is_not_used_for_window_end():
+    """oracle 대조: (식) design 41 4.7-7 -- `saturation_window` 는 행의 kind(5번째 원소)를 창 계산에 쓰지 않는다: 같은 (a, b, sign, slack) 에
+    kind 만 "sat"/"triode" 로 바꿔도 반환(dlo, dhi, slope)이 같다. 같은 연립은 test_hand_linear_system 의 손계산(s_a = 4/7)."""
+    grad = _linear_gradient({"a": {"x": 0.5, "b": 0.25}, "b": {"a": 0.5}}, {"a": 0.0, "b": 0.0})
+    vals = {"x": 1.0, "a": 4 / 7, "b": 2 / 7, "gnd": 0.0, "vdd": 1.8}
+    unk = ("a", "b", "x")
+    sat = saturation_window(unk, "x", vals, grad, (("a", "gnd", 1.0, 0.2, "sat"), ("vdd", "a", 1.0, 0.3, "sat")))
+    tri = saturation_window(unk, "x", vals, grad, (("a", "gnd", 1.0, 0.2, "triode"), ("vdd", "a", 1.0, 0.3, "triode")))
+    assert sat is not None and tri == sat
+    assert abs(sat[0] - (-0.35)) <= 1e-12 and abs(sat[1] - 0.525) <= 1e-12
+
+
+def test_it2b_sw_given_slope_skips_the_sensitivity_system():
+    """oracle 대조: (식) `slope` 를 주면 안의 감도 연립을 풀지 않고 그 감도로 끝만 낸다(KVL 고정 구조). 반환 slope = 받은 값, `gradient` 는 불리지 않는다
+    (부르면 AssertionError). 손계산: 행 (a, gnd, +1, 0.2) 율 0.5 - 0 = 0.5 -> Δ ≥ −0.4, 행 (vdd, a, +1, 0.3) 율 −0.5 -> Δ ≤ 0.6."""
+    def never(net, V):
+        raise AssertionError("slope 를 줬는데 gradient 가 불렸다")
+    given = {"x": 1.0, "a": 0.5, "gnd": 0.0, "vdd": 0.0}
+    vals = {"x": 1.0, "a": 0.5, "gnd": 0.0, "vdd": 1.8}
+    rows = (("a", "gnd", 1.0, 0.2, "sat"), ("vdd", "a", 1.0, 0.3, "sat"))
+    dlo, dhi, slope = saturation_window(("a", "x"), "x", vals, never, rows, slope=given)
+    assert abs(dlo - (-0.4)) <= 1e-12 and abs(dhi - 0.6) <= 1e-12
+    assert slope == given
+
+
+def test_it2c_sw_root_is_a_single_net():
+    """oracle 대조: (손) [IT-2c T-P] `root` 는 넷 하나. g_a = 0.5·V(x) + 0.25·V(b), g_b = 0.5·V(a) -> s_a = 4/7, s_b = 2/7(위 test_hand_linear_system
+    의 연립), 반환 slope[root] = 1. 행 (a, gnd, +1, 0.2): Δ ≥ −0.35, 행 (vdd, a, +1, 0.3): Δ ≤ 0.525 (손: 0.2·7/4, 0.3·7/4)."""
+    grad = _linear_gradient({"a": {"x": 0.5, "b": 0.25}, "b": {"a": 0.5}}, {"a": 0.0, "b": 0.0})
+    vals = {"x": 1.0, "a": 4 / 7, "b": 2 / 7, "gnd": 0.0, "vdd": 1.8}
+    dlo, dhi, slope = saturation_window(("a", "b", "x"), "x", vals, grad,
+                                        (("a", "gnd", 1.0, 0.2, "sat"), ("vdd", "a", 1.0, 0.3, "sat")))
+    assert abs(dlo + 0.35) <= 1e-12 and abs(dhi - 0.525) <= 1e-12 and slope["x"] == 1.0
+
+
+def test_it2c_sw_pair_root_is_not_accepted():
+    """oracle 대조: (식) [IT-2c T-P] interface 'root = 넷 하나(쌍·묶음 없음)': 쌍 root 는 넷 이름이 아니므로 받지 않는다(예외 종류는 계약이 정하지 않아
+    TypeError·ValueError·KeyError 허용). 옛 쌍 호출 형식이 그대로 창을 돌려주면 red."""
+    grad = _linear_gradient({"a": {"b": 0.5, "r": 0.25}, "b": {"a": 0.5}, "r": {"a": 0.3}}, {"a": 0.0, "b": 0.0, "r": 0.0})
+    vals = {"a": 1.0, "b": 0.5, "r": 3.0, "gnd": 0.0, "vdd": 1.8}
+    with pytest.raises((TypeError, ValueError, KeyError)):
+        saturation_window(("a", "b", "r"), (("r", "a"),), vals, grad, (("a", "gnd", 1.0, 0.2, "sat"),))
+
+
+def _never(net, V):
+    raise AssertionError("slope 를 줬는데 gradient 가 불렸다")
+
+
+@pytest.mark.parametrize("tiny", [0.0, 1.0e-17, -1.0e-17, 2.0e-16])
+def test_it2c_sw_rows_with_slope_at_or_below_float_eps_are_skipped(tiny):
+    """oracle 대조: (식) [IT-2c T-P] interface: 행 기울기 |sign·(s_a − s_b)| 가 sys.float_info.epsilon(2.220446049250313e-16) 이하이면 행을 건너뛴다(V/V 행
+    분해능). 주어진 감도 s_a = tiny(|tiny| <= eps), 나머지 0 -> 행 (a, gnd, +1, 0.2) 의 기울기 = tiny -> 제약 아님 -> (−inf, +inf)."""
+    vals = {"x": 1.0, "a": 0.5, "gnd": 0.0, "vdd": 1.8}
+    given = {"x": 1.0, "a": tiny, "gnd": 0.0, "vdd": 0.0}
+    dlo, dhi, slope = saturation_window(("a", "x"), "x", vals, _never, (("a", "gnd", 1.0, 0.2, "sat"),), slope=given)
+    assert (dlo, dhi) == (-math.inf, math.inf) and slope == given
+
+
+def test_it2c_sw_row_just_above_float_eps_is_kept():
+    """oracle 대조: (식) 위 test 의 대조 -- 기울기 4.5e-16(> eps 2.22e-16) 행은 선다: slack + 4.5e-16·Δ ≥ 0 -> dlo = −0.2/4.5e-16 (손)."""
+    vals = {"x": 1.0, "a": 0.5, "gnd": 0.0, "vdd": 1.8}
+    given = {"x": 1.0, "a": 4.5e-16, "gnd": 0.0, "vdd": 0.0}
+    dlo, dhi, _ = saturation_window(("a", "x"), "x", vals, _never, (("a", "gnd", 1.0, 0.2, "sat"),), slope=given)
+    assert dhi == math.inf and abs(dlo - (-0.2 / 4.5e-16)) <= 1e-9 * abs(0.2 / 4.5e-16)
 
 
 @pytest.mark.parametrize("seed", range(6))
@@ -80,17 +154,19 @@ def test_random_linear_systems_against_numpy(seed):
     rows = []
     for _ in range(rng.randint(1, 6)):
         d, src = rng.sample(nodes + ["gnd", "x"], 2)
-        rows.append((d, src, rng.choice((1.0, -1.0)), rng.uniform(0.0, 0.3)))
+        rows.append((d, src, rng.choice((1.0, -1.0)), rng.uniform(0.0, 0.3), "sat"))
     lo_e, hi_e = -math.inf, math.inf
-    for d, src, sg, slack in rows:
+    for d, src, sg, slack, _kind in rows:
         a = sg * (s[d] - s[src])
-        if abs(a) <= 1e-12:
+        if abs(a) <= sys.float_info.epsilon:
             continue
         if a > 0:
-            lo_e = max(lo_e, x0 - slack / a)
+            lo_e = max(lo_e, -slack / a)                 # [IT-2b 갱신] 이동량 창: 옛 절대 창에서 x0 를 뺀 값
         else:
-            hi_e = min(hi_e, x0 + slack / -a)
-    lo, hi = saturation_window(tuple(sorted(nodes + ["x"])), "x", vals, _linear_gradient(coef, const), tuple(rows))
+            hi_e = min(hi_e, slack / -a)
+    lo, hi, slope = saturation_window(tuple(sorted(nodes + ["x"])), "x", vals, _linear_gradient(coef, const), tuple(rows))
+    for n in nodes:
+        assert abs(slope[n] - s[n]) <= 1e-9 * max(1.0, abs(s[n])), (n, slope[n], s[n])      # 반환 slope = numpy 해
     for got, exp in ((lo, lo_e), (hi, hi_e)):
         assert (math.isinf(got) and got == exp) or abs(got - exp) <= 1e-9 * max(1.0, abs(exp)), (got, exp)
 
@@ -99,22 +175,19 @@ def test_singular_system_is_none():
     """V(a) = V(b), V(b) = V(a) -> (I − G) 특이 -> None(CONTRACT 14.6 '(1)이 풀리지 않으면 종래 사상')."""
     grad = _linear_gradient({"a": {"b": 1.0}, "b": {"a": 1.0}}, {"a": 0.0, "b": 0.0})
     vals = {"x": 1.0, "a": 0.5, "b": 0.5, "gnd": 0.0}
-    assert saturation_window(("a", "b", "x"), "x", vals, grad, (("a", "gnd", 1.0, 0.2),)) is None
+    assert saturation_window(("a", "b", "x"), "x", vals, grad, (("a", "gnd", 1.0, 0.2, "sat"),)) is None
 
 
 def test_gradient_outside_domain_is_none():
     def grad(net, V):
         raise SealViolationError(devices=(), margin=None, detail={"reason": "lut_query_failed"})
     vals = {"x": 1.0, "a": 0.5, "gnd": 0.0}
-    assert saturation_window(("a", "x"), "x", vals, grad, (("a", "gnd", 1.0, 0.2),)) is None
+    assert saturation_window(("a", "x"), "x", vals, grad, (("a", "gnd", 1.0, 0.2, "sat"),)) is None
 
 
 # ===========================================================================
 # 커널 통합: 순환 follower toy (입력 DC 대기)
 # ===========================================================================
-
-TOL = r4_tol_vdsat("nmos")
-
 
 def _doc():
     net = [mos("MA", "nmos", "y", "x", "gnd", "gnd"), mos("MB", "nmos", "x", "in", "y", "y")]
@@ -126,7 +199,7 @@ def _doc():
 def pend(tmp_path_factory, r4_access):
     ctx = build_ctx(tmp_path_factory.mktemp("icm_pend"), _doc(), r4_access)[2]
     w = dict(ctx.base.column("node", "dc_writer"))["in"]
-    assert w.relation == "free_window" and w.y_key == INPUT_GROUP_KEY            # 전제: in = 입력 묶음 W4 뿌리
+    assert w.relation == "free_window" and w.y_key == "in"            # 전제: in = 입력 포트 W4 뿌리 (y 키 = 그 넷, IT-1)
     return ctx
 
 
@@ -134,7 +207,7 @@ def _theta(ctx, vgs_a, vgs_b, y=None):
     th = {("L", "MA"): 1e-6, ("L", "MB"): 1e-6, ("ln_idu", "MA"): r4_ln_idu("nmos", vgs_a, 0.3, 0.0),
           ("ln_idu", "MB"): r4_ln_idu("nmos", vgs_b, 0.3, 0.0)}
     if y is not None:
-        th[("y", INPUT_GROUP_KEY)] = y
+        th[("y", "in")] = y
     th.update(free_currents(ctx, {"MA": 1e-5, "MB": 1e-5, "IX": 1e-5, "IY": 1e-5}))
     assert set(th) == set(kschema(ctx).components)
     return th
@@ -167,8 +240,9 @@ class Follower:
         y = _bisect(g, 1e-9, 1.2)
         x = r4_vgs_of("nmos", self.ta, y, 0.0)
         vgb = r4_vgs_of("nmos", self.tb, x - y, 0.0)
-        slack_a = y - r4_vdsat_at("nmos", R4_L[0], x, 0.0) - TOL
-        slack_b = (x - y) - r4_vdsat_at("nmos", R4_L[0], vgb, 0.0) - TOL
+        # [IT-2c 갱신, 승인 동작 변경 O-204] 창 끝 행의 판정 여유 0: slack = VDS - VDSAT (tol_VDsat 항 없음). 봉인 7 쪽 oracle 은 +tol 그대로.
+        slack_a = y - r4_vdsat_at("nmos", R4_L[0], x, 0.0)
+        slack_b = (x - y) - r4_vdsat_at("nmos", R4_L[0], vgb, 0.0)
         return x, y, slack_a, slack_b
 
     def window(self, guess):
@@ -214,12 +288,18 @@ def test_interior_y_maps_into_saturation_window(pend, y):
 @pytest.mark.parametrize("y", [0.0, 1.0])
 def test_window_ends_are_saturated(pend, y):
     """설계 41 §4.6: y_icm 범위 = 입력 창이고 '경계는 봉인 시점 값이며 tol 을 포함한다' -> θ 정의역의 끝 y = 0·1 도 창 안이라
-    포화 여유 ≥ 0(봉인 7 pass). 정확한 창 끝에서의 독립 풀이 여유는 0(전제)."""
+    포화 여유 ≥ 0(봉인 7 pass). 정확한 창 끝에서의 독립 풀이 여유는 0(전제).
+    [IT-2c 갱신 -- A-83, O-103 꼴] 창 행이 판정 여유 0(VDS − VDSAT)이 되고 봉인 7 은 EO-1 까지 +tol_VDsat 라 더 엄격하다(card '원래 취지와 다름' 넷째 줄,
+    fail-open 아님) -> 정확한 끝 점은 '봉인'이거나 '봉인 7 거부이면서 |slack_v| ≤ tol_v'(`test_mid_window_ends_have_nonnegative_saturation_slack` 와 같은 허용,
+    넓히지 않음). 다른 거부 사유는 실패. EO-1 뒤 경계가 통일되면 이 단언을 다시 조인다(봉인만 허용). oracle: (a) 물리 불변식(포화 여유) + (b) Follower 독립 풀이."""
     f = Follower(0.9, 0.3)
     lo_e, hi_e = f.window(0.9)
     assert abs(f.solve(lo_e)[2]) <= 1e-9 and abs(f.solve(hi_e)[3]) <= 1e-9            # 전제
-    ev = size_and_seal(pend, _theta(pend, 0.9, 0.3, y))
-    assert ev.sealed is not None
+    snap, sealed, slack_v = _evaluate_point(pend, _theta(pend, 0.9, 0.3, y), True)     # 봉인 7 외 거부 사유는 _evaluate_point 가 실패시킨다
+    if sealed:
+        assert seal_item(snap, 7).status == "pass"
+    else:
+        assert abs(slack_v) <= _tol_of_window(snap), slack_v
 
 
 def test_window_found_when_rail_midpoint_is_outside(pend):
@@ -241,11 +321,11 @@ _OFF_MID = {"below": (0.6, 0.3, 0.67), "above": (1.1, 0.3, 1.08)}
 
 
 def _oracle_slacks(ev):
-    """봉인 7 의 포화 여유 VDS − VDSAT − tol_VDsat 을 엔진이 낸 노드전압에서 독립으로 잰다(MA: VDS = V(y), VGS = V(x);
+    """O-204 정의 포화 여유 VDS − VDSAT (문턱 없음)을 엔진이 낸 노드전압에서 독립으로 잰다(MA: VDS = V(y), VGS = V(x);
     MB: VDS = V(x) − V(y), VGS = V(in) − V(y), VSB 0). VDSAT·tol = conftest npz 열 직접."""
     V = node_voltages(ev.snapshot)
-    sa = V["y"] - r4_vdsat_at("nmos", R4_L[0], V["x"], 0.0) - TOL
-    sb = (V["x"] - V["y"]) - r4_vdsat_at("nmos", R4_L[0], V["in"] - V["y"], 0.0) - TOL
+    sa = V["y"] - r4_vdsat_at("nmos", R4_L[0], V["x"], 0.0)
+    sb = (V["x"] - V["y"]) - r4_vdsat_at("nmos", R4_L[0], V["in"] - V["y"], 0.0)
     return sa, sb
 
 
@@ -259,36 +339,67 @@ def off_mid_windows():
     return out
 
 
+def _evaluate_point(pend, theta, end):
+    """(스냅샷, 봉인 여부, 엔진 봉인 7 `slack_v`). 끝점(end)이면 봉인 7 거부(SealViolationError, 항목 7)도 허용한다 -- 그때 노드전압·창은 같은 θ 의
+    커널 열 평가(`run_blocks(upto="columns")`)에서 읽고 `slack_v` 는 거부 detail 의 `item_detail` 에서 읽는다. 내부 점은 봉인되어야 한다(거부는 그대로 실패)."""
+    try:
+        ev = size_and_seal(pend, theta)
+        return ev.snapshot, True, None
+    except SealViolationError as exc:
+        if not end:
+            raise
+        d = detail(exc)
+        assert d["item"] == 7, d
+        return run_blocks(pend, theta, upto="columns"), False, dict(d["item_detail"])["slack_v"]
+
+
+def _tol_of_window(snap):
+    """끝점 판정 허용오차 = `node.dc_window` 입력 항목의 `tol_v`. None 이면 그 사례는 무효 -- 통과로 세지 않고 실패시킨다(사용자 결정 O-103)."""
+    tv = dict(snap.column("node", "dc_window"))["in"].tol_v
+    assert tv is not None, "tol_v 미정 -- 끝점 판정 무효(통과로 세지 않는다)"
+    return tv
+
+
 @pytest.mark.parametrize("key", sorted(_OFF_MID))
 @pytest.mark.parametrize("y", [0.0, 0.125, 0.25, 0.5, 0.75, 0.875, 1.0])
 def test_off_mid_window_maps_y_and_ends_saturated(pend, off_mid_windows, key, y):
-    """레일 중앙이 창 밖인 두 구성(아래·위): 모든 y ∈ [0, 1] 이 봉인되고(봉인 7 pass), V(in) = lo + y·(hi − lo)(기록된 창), 기록된 창
-    끝은 정확한 창 끝과 tol_V 안, 엔진 노드전압에서 독립으로 잰 두 소자 포화 여유 ≥ 0(창 끝 y = 0·1 포함)."""
+    """레일 중앙이 창 밖인 두 구성(아래·위): 내부 y 는 봉인되고(봉인 7 pass) 독립 여유 ≥ −1e-12, V(in) = lo + y·(hi − lo)(기록된 창), 기록된 창 끝은 정확한
+    창 끝과 tol_V 안. [IT-2b 갱신 -- 사용자 결정 O-103 동작 변경] 끝점 y = 0·1 은 '봉인되거나, 봉인 7 거부이면서 엔진 `slack_v` 와 독립 oracle 여유가 모두
+    |·| ≤ `node.dc_window.tol_v`'이다(옛 단언: 끝점도 봉인 + 여유 ≥ −1e-12). tol_v 가 None 이면 그 사례는 무효로 실패."""
     va, vb, _ = _OFF_MID[key]
     lo_e, hi_e = off_mid_windows[key]
-    ev = size_and_seal(pend, _theta(pend, va, vb, y))
-    assert ev.sealed is not None
-    assert seal_item(ev.snapshot, 7).status == "pass"
-    w = _window(ev)
-    vin = node_voltages(ev.snapshot)["in"]
+    end = y in (0.0, 1.0)
+    snap, sealed, slack_v = _evaluate_point(pend, _theta(pend, va, vb, y), end)
+    w = dict(snap.column("node", "dc_window"))["in"]
+    vin = node_voltages(snap)["in"]
     assert abs(vin - (w.lo + y * (w.hi - w.lo))) <= 1e-12
-    tv = _tol_v(ev)
+    tv = _tol_v(SimpleNamespace(snapshot=snap)) if sealed else _tol_of_window(snap)
     assert abs(w.lo - lo_e) <= tv and abs(w.hi - hi_e) <= tv
     assert lo_e - tv <= vin <= hi_e + tv
-    assert min(_oracle_slacks(ev)) >= -1e-12, _oracle_slacks(ev)
+    oracle = min(_oracle_slacks(SimpleNamespace(snapshot=snap)))
+    if sealed:
+        assert seal_item(snap, 7).status == "pass"
+        assert oracle >= -1e-12, oracle          # [A-91 복원] 봉인 끝점도 O-204 정의 여유(VDS - VDSAT) >= 0
+    else:
+        assert abs(slack_v) <= tv and abs(oracle) <= tv, (slack_v, oracle, tv)
 
 
 @pytest.mark.parametrize("y", [0.0, 1.0])
 def test_mid_window_ends_have_nonnegative_saturation_slack(pend, y):
-    """레일 중앙이 창 안인 구성(VGS 0.9/0.3)의 창 끝 y = 0·1: 봉인 7 pass 이고 엔진 노드전압에서 독립으로 잰 포화 여유 ≥ 0, 끝 쪽
-    소자의 여유는 tol_V 규모(끝이 정확한 창 끝 근처 -- 다듬기가 창을 안쪽으로 크게 줄이지 않았다)."""
-    ev = size_and_seal(pend, _theta(pend, 0.9, 0.3, y))
-    assert ev.sealed is not None and seal_item(ev.snapshot, 7).status == "pass"
-    sa, sb = _oracle_slacks(ev)
-    assert min(sa, sb) >= -1e-12
+    """레일 중앙이 창 안인 구성(VGS 0.9/0.3)의 창 끝 y = 0·1. [IT-2b 갱신 -- 사용자 결정 O-103] 끝점은 '봉인(독립 여유 ≥ −1e-12)'이거나 '봉인 7 거부이면서
+    엔진 `slack_v` 와 독립 oracle 여유가 모두 |·| ≤ `node.dc_window.tol_v`'. 두 경우 모두 끝 쪽 V(in) 은 정확한 창 끝에서 tol_V 안(끝이 정확한 창 끝 근처).
+    tol_v 가 None 이면 그 사례는 무효로 실패."""
+    snap, sealed, slack_v = _evaluate_point(pend, _theta(pend, 0.9, 0.3, y), True)
+    sa, sb = _oracle_slacks(SimpleNamespace(snapshot=snap))
+    tv = _tol_v(SimpleNamespace(snapshot=snap)) if sealed else _tol_of_window(snap)
+    if sealed:
+        assert seal_item(snap, 7).status == "pass"
+        assert min(sa, sb) >= -1e-12           # [A-91 복원] O-204 정의 여유(VDS - VDSAT) >= 0
+    else:
+        assert abs(slack_v) <= tv and abs(min(sa, sb)) <= tv, (slack_v, sa, sb, tv)
     lo_e, hi_e = Follower(0.9, 0.3).window(0.9)
-    vin = node_voltages(ev.snapshot)["in"]
-    assert abs(vin - (lo_e if y == 0.0 else hi_e)) <= _tol_v(ev)
+    vin = node_voltages(snap)["in"]
+    assert abs(vin - (lo_e if y == 0.0 else hi_e)) <= tv
 
 
 def test_declared_input_dc_same_theta_seals(tmp_path, r4_access):
@@ -297,7 +408,11 @@ def test_declared_input_dc_same_theta_seals(tmp_path, r4_access):
     assert dict(ctx.base.column("node", "dc_writer"))["in"].relation == "input_dc"
     ev = size_and_seal(ctx, _theta(ctx, 0.6, 0.3))
     assert ev.sealed is not None and node_voltages(ev.snapshot)["in"] == 0.67
-    assert "in" not in dict(ev.snapshot.column("node", "dc_window"))           # 선언 입력 DC 는 창 사상이 없다
+    # [IT-2b 갱신 -- 승인된 동작 변경 design 41 4.7-3 3·4.7-8 (1): 입력 DC 선언 포트도 창 항목을 갖는다] 옛 단언 `"in" not in dc_window`
+    # ('선언 입력 DC 는 창 사상이 없다')을 새 계약으로 바꾼다: 항목이 있고 측정된 창(input_status "measured", lo ≤ 0.67 ≤ hi)이다.
+    # [IT-2c 갱신 -- A-83] 커널 `node.dc_window` 는 W4 뿌리 넷만 갖는다(interface 'node.dc_window(바뀜)') -> 선언 포트 `dc_window["in"]` 단언은 지운다.
+    # cfg 로 옮기지 않는 사유: `node.dc_window_cfg` 의 writer 는 metrics 블록 `icm_config`(ss_evaluate 단계)라 `size_and_seal` 스냅샷에는 항목이 없고(KeyError 실측),
+    # sizing 층 test 에서 metrics 층을 부르는 근거가 interface 에 없다. 선언 입력 DC 포트의 cfg `measured` 창 단언은 tests/metrics/test_icm_config*.py 가 맡는다.
 
 
 def test_empty_window_rejected(pend):

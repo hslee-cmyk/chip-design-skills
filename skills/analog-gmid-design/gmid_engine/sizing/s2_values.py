@@ -9,7 +9,6 @@ S2 `dc` 는 S1 과 **같은** core `GraphSnapshot` 위에 산다: 권한표 `S2_
 """
 import dataclasses
 
-from gmid_engine.authoring import REGION_TRIODE
 from gmid_engine.core import WriterTable
 from gmid_engine.graph import S1_WRITERS
 
@@ -20,7 +19,6 @@ KERNEL_KEY = "kernel"                                  # S0 수준 graph/kernel 
 RESISTOR = "resistor"
 CAPACITOR = "capacitor"
 CURRENT_SOURCE = "current_source"
-LINEAR_REGION = REGION_TRIODE                          # [r9] spec intended_region 의 선형 영역 낱말 = authoring 정본 "triode"(봉인 7 제외 대상)
 
 # ---- 노드 writer 티어(계획 N3.4) 와 쓰는 관계
 TIER_W0 = "W0"
@@ -34,14 +32,12 @@ REL_INPUT_DC = "input_dc"                              # W2 (d): spec input_dc �
 REL_VGS_GATE = "vgs_gate"                              # 쓰기 소자가 source 에서 gate 를 쓴다(diode 면 W1)
 REL_VGS_SOURCE = "vgs_source"                          # 쓰기 소자가 gate 에서 source 를 쓴다(소스 추종, W2)
 REL_RESISTOR = "resistor_drop"                         # V(far) = V(near) -/+ I*R (W2 (b))
-REL_TIE = "input_tie"                                  # 입력 DC 동일 가정(DEC-64 v1): 입력 포트끼리 같은 전압
 REL_WINDOW = "free_window"                             # W4: θ 의 y 성분 -> 창 안 위치
-INPUT_GROUP_KEY = "input_common_mode"                  # 입력 DC 미선언 입력 포트 묶음의 y 키(U2 기본안 (a))
+REL_INPUT_POINT = "input_point"                        # 입력 DC 미선언 차동 입력쌍의 두 포트가 묶인 입력 점(DEC-106): W4 뿌리 하나, F 에 닿으면 KVL 종속
 
 # ---- path_values 관계 종류(봉인 1 입력의 relation[0])
 PATH_MOS = "vgs"                                       # MOS 좌표에서 VGS 역산으로 함의한 gate·source 전압
 PATH_RESISTOR = "resistor"
-PATH_TIE = "tie"
 PATH_Y = "y"
 PATH_FIXED = "fixed"
 
@@ -94,7 +90,11 @@ REPORT_UNDEFINED = "undefined"
 
 # ---- 실패 사유(detail reason) -- 정지(StructureUnresolvedError)는 graph 와 같은 reason 키 + rule_branch
 BRANCH_RESISTOR_CYCLE = "dc_resistor_cycle"
+BRANCH_INPUT_CM_UNDEFINED = "input_cm_undefined"       # 입력 DC 미선언 + 입력 포트가 차동쌍 하나가 아님(DEC-106): 탐색 전 정지
+BRANCH_INPUT_TARGET_ONE_PORT = "input_target_one_port"   # 입력 DC 미선언 + 차동 입력 두 포트 중 한 포트만 node_voltage_targets_v 선언: 입력 점이 안 묶여 ΔV 가 θ 함수(DEC-106): 탐색 전 정지
+BRANCH_DC_COLOUR_NOT_UNIQUE = "dc_colour_not_unique"   # W4 뿌리 후보의 구조 색이 같다(대칭 블록이 정점마다 유일하게 정하는 정준 위치가 깨졌다, TB-1): 이름으로 깨지 않고 정지
 BRANCH_MOS_ZERO_CURRENT = "mos_zero_current_structural"
+BRANCH_OFF_ONLY_NODE = "off_only_node"                   # `off` 소자 d·s 가 닿는 비고정 넷 중 off 채널 밖 전압 결정 DC 요소(켜진 채널·R·L·전압원)로 고정 넷에 닿지 않는 넷: 전도 경로 없이 θ 변수가 되는 것을 막는다(EO-1 범위 4)
 BRANCH_ORIENTATION = "mos_orientation_unsupported"
 REASON_DECLARED_KCL = "declared_source_kcl_conflict"
 REASON_EMPTY_WINDOW = "empty_window"
@@ -113,12 +113,15 @@ SCC_BISECTION = "bisection"
 SCC_DIRECT = "direct"
 
 # ---- 남은 동률(구조 색이 같은 후보)을 이름 순서로 깬 결정의 종류(`TieBreak.decision`)
-TIE_KRUSKAL = "writer_edge"                            # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
-TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 뿌리 후보가 같은 구조 색
-TIE_INPUT_ORDER = "input_tie_order"                    # 같은 DC 엣지를 잇는 입력 포트 순서(같은 구조 색)
+INPUT_STATUS_MEASURED = "measured"                     # `Window.input_status`(설계 41 4.7-2): 입력 포화 창을 재고 되풀이가 tol 안에서 수렴 / cfg: 선형 감도 끝을 쟀다
+INPUT_STATUS_UNSETTLED = "unsettled"                   # 창은 잰 해에서 쟀으나 되풀이가 k_max 안에 수렴하지 않았거나 tol 미정 (커널 창 전용 -- card WB-1 이 지운다)
+INPUT_STATUS_UNMEASURED = "unmeasured"                 # 창을 잴 수 없다(커널 뿌리 항목 / cfg 자기 측정 실패)
+TIE_KRUSKAL = "writer_edge"                           # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
 TIE_CURRENT_PIVOT = "current_pivot"                    # 같은 구조 색 원소 열이 θ 전류 기저/종속으로 갈림
 
 # ---- 필드 writer(= 계산 블록 이름)
+DC_REGION_DECL_WRITER = "dc_region_decl"                # S0: device.region_decl (의도 영역 선언 술어 필드, 쓰기 계획 앞)
+THETA_CLASS_WRITER = "theta_class"                      # S0: device.theta_class (θ 분류 S·B·F, 쓰기 계획 앞)
 DC_RAILS_WRITER = "dc_rails"
 DC_CURRENT_BASIS_WRITER = "dc_current_basis"
 DC_WRITER_PLAN_WRITER = "dc_writer_plan"
@@ -134,13 +137,14 @@ DC_SEAL_NODE_CONFLICT_WRITER = "dc_seal_node_conflict"
 DC_SEAL_VGS_MATCH_WRITER = "dc_seal_vgs_match"
 DC_SEAL_KCL_WRITER = "dc_seal_kcl"
 DC_SEAL_BULK_WRITER = "dc_seal_bulk_reverse"
-DC_SEAL_SATURATION_WRITER = "dc_seal_saturation"
+DC_SEAL_REGION_WRITER = "dc_seal_region"                # 봉인 7·9: 소자마다 공용 영역 판정 한 번 (EO-1 범위 4)
 DC_SEAL_KVL_WRITER = "dc_seal_kvl_branch"
-DC_SEAL_CONDUCTION_WRITER = "dc_seal_conduction"
 DC_SEAL_REPORT_WRITER = "dc_seal_report"
 
 # ---- 블록별 writes (reads 는 각 블록 파일에 둔다)
 DC_WRITES = (
+    (DC_REGION_DECL_WRITER, (("device", "region_decl"),)),
+    (THETA_CLASS_WRITER, (("device", "theta_class"),)),
     (DC_RAILS_WRITER, (("node", "dc_rail_v"),)),
     (DC_CURRENT_BASIS_WRITER, (("graph", "dc_current_basis"),)),
     (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))),
@@ -151,15 +155,14 @@ DC_WRITES = (
     (DC_LENGTHS_WRITER, (("device", "dc_L"),)),
     (DC_COLUMNS_WRITER, (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"),
                          ("device", "dc_ln_idu"), ("graph", "dc_scc_log"))),
-    (DC_WIDTHS_WRITER, (("device", "dc_op"),)),
+    (DC_WIDTHS_WRITER, (("device", "dc_op"), ("device", "dc_sat_v"))),
     (DC_TOLERANCES_WRITER, (("device", "dc_tol_v"), ("device", "dc_gm"))),
     (DC_SEAL_NODE_CONFLICT_WRITER, (("graph", "dc_seal_1"),)),
     (DC_SEAL_VGS_MATCH_WRITER, (("graph", "dc_seal_2"),)),
     (DC_SEAL_KCL_WRITER, (("graph", "dc_seal_3"),)),
     (DC_SEAL_BULK_WRITER, (("graph", "dc_seal_6"),)),
-    (DC_SEAL_SATURATION_WRITER, (("graph", "dc_seal_7"),)),
+    (DC_SEAL_REGION_WRITER, (("graph", "dc_seal_7"), ("graph", "dc_seal_9"))),
     (DC_SEAL_KVL_WRITER, (("graph", "dc_seal_8"),)),
-    (DC_SEAL_CONDUCTION_WRITER, (("graph", "dc_seal_9"), ("device", "dc_off_current"), ("device", "dc_conduction_floor"))),
     (DC_SEAL_REPORT_WRITER, (("graph", "dc_seal_report"),)),
 )
 # ---- S2 ss·metric 필드(writer = MOD5 계산 블록, metrics CONTRACT 7절). 권한표가 S2 한 곳이라 여기서 선언한다
@@ -170,49 +173,63 @@ METRICS_SS_WRITER = "metrics_ss"                       # graph.metrics_ss: 뷰 �
 METRICS_DC_WRITER = "metrics_dc"                       # graph.metrics_dc: 레일 전류·전력·탐색 축 면적 묶음 + graph.gate_area_m2·power_resolution_w(설계 40 §2.4.8)
 PASSIVE_VALUES_WRITER = "passive_values"               # device.passive_value: GB5 수동소자 값(spec ∪ θ ∪ 영점 상쇄 R = 1/Σdc_gm, 설계 40 §2.4.8)
 METRICS_AUX_WRITER = "metrics_aux"                     # graph.metrics_aux: offset·미러비·스윙·ICMR·FF 비 metric 묶음 + 블록 잔차 보고 (U7)
+SS_CIRCUIT_WRITER = "ss_circuit"                       # graph.ss_circuit: S2 열 -> 정수 인덱스 소신호 회로(`SsCircuit`) -- 조립 자리 하나 (card IT-2c)
+SS_NODAL_WRITER = "ss_nodal"                           # graph.ss_nodal: 봉인점 소신호 DC 극한 노달 계(`NodalSystem`: G·g_bound·인수분해) (card IT-2c)
+SS_OFF_OP_WRITER = "ss_off_op"                       # device.off_op: `off` 선언 소자의 동작점 (EO-1 범위 4)
+SS_OFF_DELTA_WRITER = "ss_off_delta"                   # graph.ss_off_delta: off 소자 전류 효과의 1차 ΔV (EO-1 범위 4)
+ICM_CONFIG_WRITER = "icm_config"                       # node.dc_window_cfg + graph.icm_config: ICMR 측정 구성·창·V_cm 칸 (card IT-2c)
 SS_WRITES = (
     (SS_DEV_WRITER, (("device", "ss_dev"),)),
     (METRICS_SS_WRITER, (("graph", "metrics_ss"),)),
     (METRICS_DC_WRITER, (("graph", "metrics_dc"), ("graph", "gate_area_m2"), ("graph", "power_resolution_w"))),
     (PASSIVE_VALUES_WRITER, (("device", "passive_value"),)),
     (METRICS_AUX_WRITER, (("graph", "metrics_aux"),)),
+    (SS_CIRCUIT_WRITER, (("graph", "ss_circuit"),)),
+    (SS_NODAL_WRITER, (("graph", "ss_nodal"),)),
+    (ICM_CONFIG_WRITER, (("node", "dc_window_cfg"), ("graph", "icm_config"))),
+)
+# EO-1 범위 4: `off` 선언 소자 층의 필드 -- ss 층(위 SS_WRITES)과 별도 묶음(off 선언이 있을 때만 쓰인다)
+SS_OFF_WRITES = (
+    (SS_OFF_OP_WRITER, (("device", "off_op"),)),
+    (SS_OFF_DELTA_WRITER, (("graph", "ss_off_delta"),)),
 )
 S2_WRITERS = WriterTable(
     tuple((kind, field, writer) for (kind, field), writer in S1_WRITERS.entries)
-    + tuple((kind, field, writer) for writer, writes in DC_WRITES + SS_WRITES for kind, field in writes)
+    + tuple((kind, field, writer) for writer, writes in DC_WRITES + SS_WRITES + SS_OFF_WRITES for kind, field in writes)
 )
 
 
 @dataclasses.dataclass(frozen=True)
 class DcInputs:
     """GB7 이 읽는 사람 선언(spec)의 투영. `supplies_v` = ((레일, V), ...) 이름순, `input_dc_v` = 입력 포트 공통 DC(V) 또는
-    None(미선언·engine·결정 대기 -> U2 기본안 (a) W4), `node_targets` = ((넷, V), ...) W3, `element_values` =
-    ((원소, 값 또는 None), ...) 저항(Ω)·이상 전류원(A), `linear_devices` = 선형 영역 선언 소자(봉인 7 제외),
+    None(미선언·engine·결정 대기 -> W4, 입력 포트인 뿌리의 y 키 = 그 뿌리 넷), `node_targets` = ((넷, V), ...) W3, `element_values` =
+    ((원소, 값 또는 None), ...) 저항(Ω)·이상 전류원(A), `regions` = 의도 영역 선언 `RegionDecl` tuple(이름순, triode·off),
     `pending` = 결정 대기로 '미선언' 취급한 칸 ((경로, 결정 ID), ...), `engine_elements` = spec 값 mode 가 `engine` 인 원소
-    이름(정렬) -- 그중 수동소자가 DEC-92 θ 연속 성분·구조 규칙 대상이다(결정 대기 원소는 들지 않는다)."""
+    이름(정렬) -- 그중 수동소자가 DEC-92 θ 연속 성분·구조 규칙 대상이다(결정 대기 원소는 들지 않는다),
+    `has_gbw_target`·`has_rout_limit`·`has_settling` = spec 에 GBW 목표·출력 저항 제약·정착 목표가 선언됐는가(유무만, 값은 읽지 않는다 -- `theta_class` 입력, TB-1 J-T1)."""
 
     supplies_v: tuple
     input_dc_v: object = None
     node_targets: tuple = ()
     element_values: tuple = ()
-    linear_devices: tuple = ()
+    regions: tuple = ()
     pending: tuple = ()
     engine_elements: tuple = ()
+    has_gbw_target: bool = False
+    has_rout_limit: bool = False
+    has_settling: bool = False
+
+
+# ---- θ 분류 어휘(`ThetaClass.kind`): S = 이득·출력 임피던스를 정하는 소자, F = 신호 경로 보조(cascode·pass·follower·매크로 비활성 입력), B = 바이어스·부하·블록 밖
+THETA_CLASS_B, THETA_CLASS_F, THETA_CLASS_S = "BFS"      # 한 글자 값 셋(문자열 한 덩이에서 풀어 쓴다 -- 한 글자 리터럴은 library 넷 이름과 겹쳐 규칙 E 가 오탐한다)
+THETA_CLASS_KINDS = (THETA_CLASS_B, THETA_CLASS_F, THETA_CLASS_S)
 
 
 @dataclasses.dataclass(frozen=True)
-class OrderHints:
-    """DEC-95 (3) 종속 소자 선택 앞 단계 입력 (설계 40 §3.7-4) -- 구조 색·이름보다 먼저 쓰이는 순서 정보.
-    `independent` = ratified 선택(`structure.json`)이 독립(트리)으로 정한 MOS 이름, `gm_required` = GB5 가 gm 을 요구하는 MOS 이름,
-    `stage` = ((MOS, S1v stage 번호), ...) -- 번호가 큰(뒤 stage) 소자가 독립으로 남는다. 셋 다 이름은 소자 식별일 뿐 순서는 값이
-    정한다. 출처는 U1 의 S1v·ratified 로더이고 비어 있으면(`NO_ORDER_HINTS`) 구조 색·이름 순서 그대로다."""
+class ThetaClass:
+    """`device.theta_class` 값(R13): MOS 하나의 θ 분류. `kind` ∈ `THETA_CLASS_KINDS`. 쓰기 계획이 종속 멤버를 고르는 순위에만 쓴다(값 선언은 읽지 않는다)."""
 
-    independent: tuple = ()
-    gm_required: tuple = ()
-    stage: tuple = ()
-
-
-NO_ORDER_HINTS = OrderHints()
+    kind: str
 
 
 @dataclasses.dataclass(frozen=True)
@@ -354,11 +371,16 @@ class PathValue:
 
 @dataclasses.dataclass(frozen=True)
 class Window:
-    """W4 노드 창 [lo, hi](V). `constraints` = 창을 만든 인접 전도 MOS 순서 제약 수(0 이면 레일 전압 범위)."""
+    """노드 창 [lo, hi](V) -- 커널 `node.dc_window`(W4 뿌리 항목, 설계 41 4.7-2)와 측정 구성 `node.dc_window_cfg`(입력 포트 항목, `constraints` 0)의 값 꼴.
+    `constraints` = 창을 만든 인접 전도 MOS 순서 제약 수(0 이면 레일 전압 범위). `input_status` = None(입력 포트가 아닌 W4 뿌리) 또는 `INPUT_STATUS_*` 중 하나
+    (cfg 는 measured·unmeasured 뿐), `tol_v` = 그 창을 잰 해의 tolerance(cfg: 봉인점 `device.dc_tol_v` 최솟값, 미정이면 None).
+    (`op_mismatch`·`status_detail` 은 EO-1 묶음 몫 -- 사용자 결정 O-98.)"""
 
     lo: float
     hi: float
     constraints: int
+    input_status: object = None
+    tol_v: object = None
 
 
 @dataclasses.dataclass(frozen=True)

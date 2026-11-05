@@ -5,8 +5,9 @@
 
 * `ctx` = `build_kernel_context` 결과(S0 당 1회). `theta` = `check_theta` 가 받는 {(kind, key): 값} 또는 `Theta`.
 * `parent` = 같은 ctx 에서 나온 이전 `DcEvaluation`(FD 스텝의 기준점·SLSQP 직전 반복 등) 또는 None(ctx.base 에서 시작).
-  블록은 입력 버전이 같으면 계산하지 않고 parent 스냅샷의 필드를 그대로 쓴다(필드가 곧 캐시, 구조 공유).
-  계획 블록 버전이 ctx 와 다른 parent 는 `ValueError`(다른 S0 의 스냅샷을 섞지 않는다).
+  블록은 입력 버전이 같으면 계산하지 않고 parent 스냅샷에서 `derive_child(base writer ∪ 커널 블록 ∪ 봉인 항목 블록 여덟)` 로 남긴 필드를 그대로 쓴다(필드가 곧 재사용, 구조 공유;
+  `dc_seal_report` 는 keep 밖이라 같은 입력이면 S3 graft).
+  base writer(`ctx.base.block_versions`)의 block_version 이 ctx 와 다른 parent 는 `ValueError`(다른 S0 의 스냅샷을 섞지 않는다).
 * 블록 순서와 추가 인자(블록이 실제로 읽는 θ 성분만 -- 한 성분을 움직이면 그 성분을 읽는 블록과 하류만 다시 계산):
   `dc_currents`(θ current) -> `dc_lengths`(θ L) -> `dc_columns`(θ ln_idu·y·resistance, 고정 노드값, 선언 저항, LUT) ->
   `dc_widths`(LUT) -> `seal_dc`.

@@ -1,0 +1,34 @@
+{
+ "slice_vs_measure": {
+  "slice_cells": 576,
+  "match_default": 576,
+  "match_cwd": 20,
+  "tie_cells": 556,
+  "tie_match_default": 556,
+  "tie_match_cwd": 0,
+  "tie_differs_modes": 556,
+  "missing": 0
+ },
+ "combined": {
+  "sky130_nfet_pfet_lut_v2_r2": {
+   "cells": 36,
+   "match_default": 36,
+   "match_cwd": 0,
+   "tie": 36,
+   "tie_default": 36,
+   "tie_cwd": 0
+  },
+  "sky130_nfet_pfet_lut_v2_verify_midpoints_r2": {
+   "cells": 8,
+   "match_default": 8,
+   "match_cwd": 0,
+   "tie": 8,
+   "tie_default": 8,
+   "tie_cwd": 0
+  }
+ },
+ "cap_bind": {
+  "noise": true,
+  "mismatch": true
+ }
+}

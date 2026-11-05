@@ -83,7 +83,7 @@ def start_view(projection, spec, inputs, pdk_decl, lut):
 
     devices = tuple(DeviceInfo(name, kinds[name], w_keys[kinds[name]], pins[name]["d"], pins[name]["g"], pins[name]["s"], bulk.get(name),
                                owner.get(name, name), colour[name], group_root(name))
-                    for name in sorted((n for n, c in classes.items() if c == ELEMENT_MOS), key=lambda n: (colour[n], n)))
+                    for name in sorted((n for n, c in classes.items() if c == ELEMENT_MOS and n in coord), key=lambda n: (colour[n], n)))      # 쓰기 계획이 연 MOS(`off` 선언 소자는 계획에 없다)
     rails = frozenset(net for net, flag in p.column("node", "is_rail") if flag)
     supplies = dict(spec.supplies_v)
     constraints = tuple((c.metric, c.op, float(c.value)) for c in spec.judged_constraints if c.metric is not None and c.value is not None)

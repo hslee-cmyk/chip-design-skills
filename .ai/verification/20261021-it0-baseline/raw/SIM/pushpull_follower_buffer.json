@@ -1,0 +1,488 @@
+{
+ "circuit": "pushpull_follower_buffer",
+ "drive_pair_nets": {
+  "failing_views": 0,
+  "n_views": 0,
+  "views": []
+ },
+ "feedback_slot": {
+  "kind": "empty_tuple",
+  "noise_decl_feedback": [],
+  "spec_feedback": []
+ },
+ "front_empty": {
+  "after_refilter": 0,
+  "aux_after": 0,
+  "aux_unmeasured_excluded": [],
+  "empty": false,
+  "excluded": [],
+  "front_was_empty_before": true,
+  "icmr_constraints": [],
+  "n_front": 0,
+  "undefined_for_report": []
+ },
+ "kernel_window_status": {
+  "counts": {
+   "no_root": 34
+  },
+  "defined": false,
+  "n_evals": 34,
+  "reason": "정의 안 됨(as-built 창 없음 -- 입력 DC 선언, O-72 (3))"
+ },
+ "loop_cut": {
+  "input_terminal_nets_calls": {
+   "after_stage_a": 0,
+   "stage_a": 0
+  },
+  "interval": "build_kernel_context..find_front..재평가 전 구간(dc_writer_plan·run_kernel·seal_dc 구간을 포함하는 상위 구간)",
+  "wrapped": true
+ },
+ "m_i1": {
+  "coords": [
+   [
+    "M1",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M2",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M3",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M4",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M5",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M6",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ]
+  ],
+  "dependent": [
+   [
+    "M2",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ]
+  ],
+  "fields_fp": {
+   "dc_coord": "b5d573cb57a911bd208dffd1d50d924aa6a507f060b18dd5b1c8f62f20b00ac9",
+   "dc_tie_breaks": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
+   "dc_writer": "13455b82e4eecfa094472d61306a719d1dda90add949fcda9597fba8e355e7de"
+  },
+  "input_port_writer": {
+   "vin": [
+    "W2",
+    "input_dc",
+    null,
+    null,
+    null
+   ]
+  },
+  "tie_breaks": [],
+  "w4": [],
+  "writers": [
+   [
+    "A",
+    {
+     "element": "M3",
+     "known": "vin",
+     "order": 5,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "B",
+    {
+     "element": "M4",
+     "known": "vin",
+     "order": 4,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "VNB1",
+    {
+     "element": "M6",
+     "known": "vss",
+     "order": 6,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "VPB1",
+    {
+     "element": "M5",
+     "known": "vdd",
+     "order": 7,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "agnd",
+    {
+     "element": null,
+     "known": null,
+     "order": 2,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ],
+   [
+    "vdd",
+    {
+     "element": null,
+     "known": null,
+     "order": 3,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ],
+   [
+    "vin",
+    {
+     "element": null,
+     "known": null,
+     "order": 0,
+     "relation": "input_dc",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "vout",
+    {
+     "element": "M1",
+     "known": "A",
+     "order": 8,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "vss",
+    {
+     "element": null,
+     "known": null,
+     "order": 1,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ]
+  ]
+ },
+ "m_i1_r": {
+  "f_component_undeclared": [],
+  "input_w4_roots": [],
+  "isolated_input": [],
+  "multi_root": false,
+  "n_input_w4_roots": 0
+ },
+ "m_i2": {
+  "hard_ok": true,
+  "kernel_calls": 15,
+  "origin_point": "centre",
+  "probes": 0,
+  "start": {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "theta": [
+    [
+     [
+      "L",
+      "M1"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "L",
+      "M2"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "L",
+      "M3"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "L",
+      "M4"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "L",
+      "M5"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "L",
+      "M6"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "current",
+      "M2"
+     ],
+     1.5164589244707395e-10
+    ],
+    [
+     [
+      "current",
+      "M4"
+     ],
+     3.608965534645948e-10
+    ],
+    [
+     [
+      "current",
+      "M5"
+     ],
+     1.516158508786127e-10
+    ],
+    [
+     [
+      "ln_idu",
+      "M1"
+     ],
+     -23.639092399986104
+    ],
+    [
+     [
+      "ln_idu",
+      "M3"
+     ],
+     -24.50613734543826
+    ],
+    [
+     [
+      "ln_idu",
+      "M4"
+     ],
+     -23.639092399986104
+    ],
+    [
+     [
+      "ln_idu",
+      "M5"
+     ],
+     -24.50613734543826
+    ],
+    [
+     [
+      "ln_idu",
+      "M6"
+     ],
+     -23.639092399986104
+    ]
+   ]
+  },
+  "start_failure": null,
+  "start_status": "sealed",
+  "stop": "converged",
+  "t": 0.911804837517224
+ },
+ "m_i3": {
+  "domain_tied_y": [],
+  "failed_eps": 2,
+  "front_fp": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+  "fronts": {
+   "front": [],
+   "pending": [],
+   "unmeasured": []
+  },
+  "n_front": 0,
+  "n_pending": 0,
+  "n_theta_y": 0,
+  "n_unmeasured": 0,
+  "perf": {
+   "block_index_bound": 2736,
+   "block_index_entries": 619,
+   "eval_budget": 40,
+   "eval_budget_source": "declared",
+   "eval_time_median_s": 0.020198300015181303,
+   "fail_hits": 0,
+   "frozen_columns": 0,
+   "hits": 44,
+   "kernel_calls": 40,
+   "lut_memo_bound": "fixed",
+   "lut_memo_evictions": 107,
+   "n_solves": 2,
+   "n_starts": 1,
+   "outside_domain": 0,
+   "recompute_same_key": 0,
+   "requests": 84,
+   "stops_eval_budget": 1,
+   "stops_wall_budget": 0,
+   "unique_keys": 40
+  },
+  "result_y_keys": [],
+  "theta_y_components": []
+ },
+ "m_i4": {
+  "exceed_points": [],
+  "has_diff": false,
+  "pairs": {
+   "theta0_layer0": []
+  },
+  "points": 1
+ },
+ "m_i5": {
+  "dof": {
+   "competing_pairs": [],
+   "free_variables": [
+    "I:M2",
+    "I:M4",
+    "I:M5",
+    "V:A",
+    "V:B",
+    "V:VNB1",
+    "V:VPB1",
+    "V:vout",
+    "u:M1",
+    "u:M2",
+    "u:M3",
+    "u:M4",
+    "u:M5",
+    "u:M6"
+   ],
+   "n_equations": 7,
+   "n_variables": 21,
+   "numeric_ranks": [],
+   "status": "free_dof",
+   "structural_rank": 7,
+   "unmatched_equations": []
+  },
+  "tie_equations": 0
+ },
+ "m_i6": {
+  "E": 6,
+  "V": 6,
+  "components": 1,
+  "cycles": 1,
+  "dependent": 1,
+  "equal": true,
+  "tie_edges": 0
+ },
+ "output_structure": {
+  "input_dc_declared": true,
+  "n_outputs": 1,
+  "plan_stop": null,
+  "rows": [
+   {
+    "class": "kvl_fixed",
+    "component_size": 4,
+    "engine_path": "plan_ok",
+    "fprime_hit": [
+     "vin"
+    ],
+    "output": "vout",
+    "s_os1": null,
+    "w3": false,
+    "writer_chain": []
+   }
+  ],
+  "s_os2_empty": false,
+  "s_os2_tuple": false,
+  "spec_feedback_kind": "empty_tuple",
+  "w3_declared": [],
+  "w3_outputs_on_hard_path": 0
+ },
+ "reeval": {
+  "front": [],
+  "theta0": [
+   {
+    "kw": [
+     "no_root"
+    ],
+    "label": "theta0_layer0",
+    "port_pairs": [],
+    "s_p": [],
+    "status": "sealed",
+    "tol_source": "no_rows_attr:SealItem"
+   }
+  ]
+ },
+ "repo": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922/scratchpad/it0/it0-sim",
+ "s_p_sign": {
+  "negative": [],
+  "o49_p2_fires": false,
+  "rows": {
+   "theta0_layer0": []
+  }
+ },
+ "set": "library",
+ "side": "SIM",
+ "stage_a": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "stage_b": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "tag": "",
+ "wall_s": 7.218602600041777,
+ "wrapped": true
+}

@@ -15,6 +15,10 @@ import pytest
 import s1v_hand as H
 
 D1_FIELDS = ("views", "l_classes", "findings", "declared", "applied_facts")
+# [IT-1 A-76 M-3] net_model 파생 술어 네 필드는 graph 필드로 만들지 않는다(소비자 0 -- 삭제). 권한표 행은 다섯뿐이다.
+REMOVED_FIELDS = ("diode_nodes", "composite_mos", "composite_bundles", "composite_internal")
+# [TB-1 spec J-T2] S1v 필드 하나 추가: dependent_facts(ratify 사실 concept `dependent_member` 의 적용 결과, 쓰기 계획 블록이 읽는다). 표 전체는 여섯.
+ALL_FIELDS = D1_FIELDS + ("dependent_facts",)
 
 
 def _run(s1, *, declared=(), cuts=(), budget=H.BIG_BUDGET, run=None):
@@ -25,14 +29,14 @@ def _run(s1, *, declared=(), cuts=(), budget=H.BIG_BUDGET, run=None):
 
 def test_block_name_and_writes_are_design_fields():
     assert s1v_fields.name == "build_s1v"
-    assert set(s1v_fields.writes) == {("graph", f) for f in D1_FIELDS}
+    assert set(s1v_fields.writes) == {("graph", f) for f in ALL_FIELDS}
 
 
 def test_writes_exactly_d1_fields_no_copies(tmp_path):
     s1, _ = H.build(tmp_path, H.MILLER)
     snap = _run(s1)
     fields = {name for name, _fv in snap.record("graph", "s1v").fields}
-    assert fields == set(D1_FIELDS)
+    assert fields == set(ALL_FIELDS)
     assert not fields & {"blocks", "composite_blocks", "pole_nodes", "loops", "cuts", "coverage"}
 
 
@@ -77,3 +81,24 @@ def test_same_input_reuses_and_changed_extra_recomputes(tmp_path):
     other = s1v_fields(first, (), H.BIG_BUDGET + 1, (), (), (), (), **run)
     assert row()[2] == 1
     assert other.block_version("build_s1v") != first.block_version("build_s1v")
+
+
+# ---------------------------------------------------------------- [IT-1 A-76 M-3] 파생 술어 네 필드 부재
+# oracle (독립): 필드 이름은 A-76 삭제 목록, 권한표·기록은 어휘 대조.
+import gmid_engine.graph as _G                                                                  # noqa: E402
+
+
+def test_it1_s1v_write_rows_exclude_removed_fields():
+    """A-76 M-3 (독립): S1V_WRITES 에 네 필드 행이 없고 옛 다섯 행만 있다."""
+    rows = set(_G.S1V_WRITES)
+    for f in REMOVED_FIELDS:
+        assert ("graph", f) not in rows, f
+    for f in D1_FIELDS:
+        assert ("graph", f) in rows, f
+
+
+def test_it1_removed_fields_not_in_s1v_record(tmp_path):
+    """A-76 M-3 (독립): 손 회로의 s1v 기록에 네 필드가 없다."""
+    s1, _ = H.build(tmp_path, H.CS)
+    snap = _run(s1)
+    assert not {name for name, _fv in snap.record("graph", "s1v").fields} & set(REMOVED_FIELDS)

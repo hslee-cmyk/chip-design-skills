@@ -43,8 +43,9 @@ class SearchSettings:
     """탐색 실행 선언(기본값 없음 -- 모두 부르는 쪽이 출처와 함께 넘긴다, WP-03).
 
     `front_budget_s`: front 전체 벽시계 예산 B(s) -- spec `search.front_budget_s`(PA-2·U-47 결정 대기). 벽시계는 바깥 정지
-    (기록)로만 쓴다. `eval_budget`: 커널 평가 수 예산 E_B(정수) 또는 None -- None 이면 E_B = ⌊B / t_ref⌋(t_ref = 시작점 확인
-    평가 시간 중앙값, 한 번 재서 기록)로 정한다. 탐색 안 모든 한도는 평가 수로 센다 -- 같은 E_B 면 결과가 결정론적이다.
+    (기록)로만 쓴다. `eval_budget`: 커널 평가 수 예산 E_B(정수, 탐색 예산) 또는 None -- None 이면 D = ⌊B / t_ref⌋(t_ref = 첫 n_θ + 1 개 평가 시간
+    중앙값)를 `search_ceiling` 이 한 번 정해 기록하고 탐색 예산 = D − R(R = 2 n_θ, 감도 게이트 예약)이다. 선언이면 E_total = E_B + R, 유도면 E_total = D.
+    탐색 안 모든 한도는 평가 수로 센다 -- 같은 E_B 면 결과가 결정론적이다.
     `resistance_bounds_ohm`: θ 저항(`resistance`·`ss_resistance`) 상자 (lo, hi) Ω 또는 None. `sources`: ((필드, 출처 문자열), ...).
     [r6] `capacitance_bounds_f`: θ `capacitance`(DEC-92 engine 커패시터) 상자 (lo, hi) F 또는 None.
     [r10] 두 상자는 **run 단위 명시 재정의**다 -- None 이 아니면 그 종류 모든 원소에 쓴다. None 이면 spec

@@ -33,7 +33,12 @@ from .conftest import block_row, fresh_run, row_delta
 
 def _mss(snapshot, *extras, run=None):
     """블록 `metrics_ss(snapshot, *extras, donors=, counters=)` 호출(XRUN-F1 card B C4). run = 실행 두 객체 키워드(dict), 없으면 새 실행 하나."""
-    return metrics_ss(snapshot, *extras, **(run if run is not None else fresh_run()))
+    run = run if run is not None else fresh_run()
+    # [IT-2c 갱신] 호출 순서 ss_dev -> ss_circuit -> metrics_ss (interface 20261104-it2c-icm-config '부르는 순서'): `metrics_ss` 는 `graph.ss_circuit` 를
+    # 읽으므로 블록 `ss_circuit` 를 먼저 부른다(같은 입력 버전이면 graph reuse -- 이미 쓰인 스냅샷에서는 계산 0).
+    from gmid_engine.metrics.ss_circuit import ss_circuit_field
+    snapshot = ss_circuit_field(snapshot, **run)
+    return metrics_ss(snapshot, *extras, **run)
 
 
 def _mss_row(run):
@@ -89,12 +94,9 @@ def test_block_declaration():
     writer = 권한표 writer_of."""
     assert metrics_ss.name == METRICS_SS_WRITER == S2_WRITERS.writer_of("graph", "metrics_ss") == "metrics_ss"
     assert METRICS_KEY == "metrics"
-    assert set(metrics_ss.reads) == {("device", "ss_dev"), ("device", "element_class"), ("device", "kind"),
-                                     ("device", "pins"), ("device", "bulk"), ("node", "ac_ground_class"),
-                                     ("node", "port_direction"), ("node", "port_role"),
-                                     ("node", "is_rail"),   # [CM] 7.4 reads + port_role, [6a6e4c7] S-32 is_rail
-                                     ("device", "dc_colour"), ("node", "dc_colour"),    # [r12] 선형계 행·스탬프 순서 = dc_colour(CONTRACT r12)
-                                     ("device", "passive_value")}                       # [U17 ①] 수동소자 값 필드(§2.4.8)
+    # [IT-2c 갱신, 승인 동작 변경] interface 'READS': metrics_ss ⊇ {graph.ss_circuit, device.ss_dev}. 회로 조립 입력(소자·핀·bulk·ac 접지·passive_value)은 블록
+    # `ss_circuit` 로 옮겨가 정확 집합은 code 가 정하므로 필수 원소 포함으로 단언한다(옛 정확 집합 단언은 interface 가 ⊇ 로 바꾼 것 -- 약화 아님).
+    assert {("graph", "ss_circuit"), ("device", "ss_dev")} <= set(metrics_ss.reads)
     assert tuple(metrics_ss.writes) == (("graph", "metrics_ss"),)
 
 

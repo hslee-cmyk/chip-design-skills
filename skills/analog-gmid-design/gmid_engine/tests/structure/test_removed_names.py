@@ -30,6 +30,10 @@ REMOVED_SCOPES = (("dc_gm_bound", None), ("previous_gm_id", None), ("inherited_g
                   # [U17 ①-b] §2.4.6 끝·§2.4.7 SearchContext 칸 배정 `cell_floors`: 1변수 writer 집합(`cell_floor.py` 의 `_ONE_VAR_KEY` 칸)은
                   # S0 수준 필드 `device: dc_self_referential`(§2.4.8) -- search 쪽 사본 키를 지운다.
                   ("_ONE_VAR_KEY", "search/"),
+                  # [EO-1 범위 4, interface card 20261104-eo1r4-sf1l §2 '없어지는 것'] 봉인 7·9 가 영역 판정 블록 하나로 바뀐다 -- 옛 블록 둘, 옛 필드 둘,
+                  # DcInputs 칸 linear_devices(-> regions). 범위 = 엔진 소스 전체(이 검사의 대상은 tests/ 밖 소스).
+                  ("dc_seal_saturation", None), ("dc_seal_conduction", None), ("dc_off_current", None),
+                  ("dc_conduction_floor", None), ("linear_devices", None),
                   # [v1.11.2 O-39 (1)] 설계 40 §2.4.14 (4) 행 '`F_DEVICE`, `ly_device`' 범위 = 엔진 전체(소스·CONTRACT·tests), 같은 행
                   # '`(DEVICE, F_DEVICE)` READS·`projection.column(DEVICE, F_DEVICE)`'도 함께 0. 이 검사는 그중 엔진 소스 코드 범위다.
                   ("F_DEVICE", None), ("ly_device", None))
@@ -143,3 +147,23 @@ def test_local_inputs_not_rebuilt_in_search(checks, engine_root, report):
                                     ("x = s.value('graph', 'ach', 'local_inputs')\n", 0)])
 def test_local_inputs_scanner(src, n):
     assert len(local_inputs_rebuild_hits(ast.parse(src))) == n
+
+
+# ---------------------------------------------------------------- [IT-1 T-G] 옛 정지 사유 이름 잔재 0 (DEC-106·O-210 RR-6)
+# oracle (독립): 비test 엔진 소스(`*.py`)와 CONTRACT 문서 글자 그대로 0 -- 이름이 지워졌는지 문자열로 본다(주석·docstring 포함: A4 잔재 grep 과 같은 뜻).
+IT1_REMOVED_TEXT = ("input_port_multiple_roots", "BRANCH_INPUT_MULTIPLE_ROOTS", "gvgs_self_edge", "BRANCH_GVGS_SELF_EDGE",
+                    "off_device_on_signal_path")
+
+
+def test_it1_removed_stop_names_absent_from_engine_and_contracts(checks, engine_root, report):
+    files = list(checks.engine_files(engine_root))
+    docs = sorted(p for p in engine_root.rglob("CONTRACT*.md") if "tests" not in p.relative_to(engine_root).parts)
+    assert docs                                                                                  # 전제: 계약 문서가 있다(공허한 검사 아님)
+    hits = []
+    for p in list(files) + docs:
+        text = p.read_text(encoding="utf-8")
+        for name in IT1_REMOVED_TEXT:
+            if name in text:
+                hits.append("%s %s" % (p.relative_to(engine_root).as_posix(), name))
+    report(len(files) + len(docs), len(hits))
+    assert hits == []

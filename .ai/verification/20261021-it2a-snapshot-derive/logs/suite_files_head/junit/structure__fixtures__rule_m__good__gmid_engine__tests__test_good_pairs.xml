@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="9" skipped="0" tests="9" time="1.001" timestamp="2026-10-22T08:33:38.186729+09:00" hostname="DESKTOP-6MBVVGJ"><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.good.gmid_engine.tests.test_good_pairs" name="test_one_to_one" time="0.093"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\good\gmid_engine\tests\test_good_pairs.py:18: in test_one_to_one
+    res = run_stage_a("a", "s", None, output_dir="o", donors=donors, counters=counters)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.good.gmid_engine.tests.test_good_pairs" name="test_loop_inside" time="0.089"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\good\gmid_engine\tests\test_good_pairs.py:29: in test_loop_inside
+    out.append(run_stage_a(name, "s", None, output_dir="o", donors=d, counters=c))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.good.gmid_engine.tests.test_good_pairs" name="test_unit_one_pair_many_wrapper_calls" time="0.000"><failure message="TypeError: build_s1: doc 는 authoring.load_topology 가 만든 TopologyDoc 이어야 한다">gmid_engine\tests\structure\fixtures\rule_m\good\gmid_engine\tests\test_good_pairs.py:35: in test_unit_one_pair_many_wrapper_calls
+    s1 = build_s1("doc", donors=donors, counters=counters)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\graph\s1_build.py:62: in build_s1
+    raise TypeError("build_s1: doc 는 authoring.load_topology 가 만든 TopologyDoc 이어야 한다")
+E   TypeError: build_s1: doc 는 authoring.load_topology 가 만든 TopologyDoc 이어야 한다</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.good.gmid_engine.tests.test_good_pairs" name="test_missing_keyword_type_error" time="0.000"><failure message="TypeError: run_stage_a() missing 1 required keyword-only argument: 'counters'">gmid_engine\tests\structure\fixtures\rule_m\good\gmid_engine\tests\test_good_pairs.py:43: in test_missing_keyword_type_error
+    run_stage_a("a", "s", None, output_dir="o", donors=donors)
+E   TypeError: run_stage_a() missing 1 required keyword-only argument: 'counters'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.good.gmid_engine.tests.test_good_pairs" name="test_report_counters_snapshot" time="0.114"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\good\gmid_engine\tests\test_good_pairs.py:49: in test_report_counters_snapshot
+    res = run_stage_a("a", "s", None, output_dir="o", donors=donors, counters=counters)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.good.gmid_engine.tests.test_good_pairs" name="test_helper_run" time="0.085"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\good\gmid_engine\tests\test_good_pairs.py:56: in test_helper_run
+    assert run_one("a") is not run_one("b")
+           ^^^^^^^^^^^^
+gmid_engine\tests\structure\fixtures\rule_m\good\gmid_engine\tests\test_good_pairs.py:13: in run_one
+    return run_stage_a(name, "s", None, output_dir="o", donors=donors, counters=counters)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.good.gmid_engine.tests.test_good_pairs" name="test_snapshot_cache_is_not_a_run" time="0.089"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\good\gmid_engine\tests\test_good_pairs.py:64: in test_snapshot_cache_is_not_a_run
+    res = run_stage_a("a", "s", None, output_dir="o", donors=donors, counters=counters)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.good.gmid_engine.tests.test_good_pairs" name="test_same_name_reassigned_per_call" time="0.089"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\good\gmid_engine\tests\test_good_pairs.py:71: in test_same_name_reassigned_per_call
+    first = run_stage_a("a", "s", None, output_dir="o", donors=donors, counters=counters)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.good.gmid_engine.tests.test_good_pairs" name="test_alias_one_to_one" time="0.089"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\good\gmid_engine\tests\test_good_pairs.py:80: in test_alias_one_to_one
+    return rsa("a", "s", None, output_dir="o", donors=d, counters=c)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase></testsuite></testsuites>

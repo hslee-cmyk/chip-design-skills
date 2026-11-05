@@ -77,7 +77,7 @@ from .spec_views import (
 from .spec_noise_testbench import noise_testbench_declaration
 from .spec_node_targets import node_target_declaration
 from .spec_refs import resolve_spec_references
-from .spec_regions import REGION_TRIODE, intended_region_declaration
+from .spec_regions import REGION_OFF, REGION_TRIODE, REGIONS, intended_region_declaration
 from .spec_schema import SPEC_SCHEMA_VERSION, check_spec_schema
 from .spec_settings import THETA_BOUNDS, UNTIE_ORBITS, settings_declaration
 from .spec_theta_bounds import theta_bound_declaration
@@ -124,6 +124,8 @@ __all__ = (
     "PassiveDecl",
     "PendingMark",
     "PortDecl",
+    "REGIONS",
+    "REGION_OFF",
     "REGION_TRIODE",
     "RailDeclaration",
     "RegionDecl",

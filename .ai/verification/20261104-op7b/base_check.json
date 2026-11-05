@@ -1,0 +1,23 @@
+{
+ "id": "20261104-op7b",
+ "order": "순서 3 freeze",
+ "isolation": "C:/Users/HSLEE/AppData/Local/Temp/la1s_op7b_audit/iso (clone --no-hardlinks --no-local, origin 제거), 뮤턴트 C:/Users/HSLEE/AppData/Local/Temp/la1s_op7b_audit/iso_m, test 사본 C:/Users/HSLEE/AppData/Local/Temp/la1s_op7b_audit/iso_t",
+ "freeze": {
+  "test_end_commit_T": "73699801cf25f4353da629ae12261d35db7062f8",
+  "test_commits": [
+   "32362b67",
+   "73699801"
+  ],
+  "code_commits": [
+   "29505b7a"
+  ],
+  "note": "T 는 code 뒤다: dispute 2건(compat_sha256 기대값 전환 = spec 소비자 표대로, T7-10e 입력 교체 = 기대 코드 유지). 기준 약화 아님"
+ },
+ "base_commit": "377e2c58257f72436bd8081a1ed15320c3f60718",
+ "red": {
+  "collected": 11,
+  "counted": 10,
+  "note": "base 코드 + T 판 새 test 세 파일. OracleError 1건은 허용 타입 밖이라 세지 않음. merge_gate 플러그인은 interface 에 '## 신규 시그니처' 절이 없어 판정자 플러그인 사용"
+ },
+ "equivalence": "해당 없음"
+}

@@ -38,7 +38,7 @@ def test_steps_and_results(tmp_path, lut_sealed):
     case, s, base, vs, x, f = _setup(tmp_path, lut_sealed, th)
     exp = expected_fd_steps(s, base)
     k0 = dict(s.counters)["kernel_calls"]
-    out = fd_jacobian(s, vs, x, base, CELLS_C, f, ())
+    out = fd_jacobian(s, vs, x, base, CELLS_C, f, (), ceiling=None)
     assert len(out) == len(vs)
     for v, (res, h), he in zip(vs, out, exp):
         assert res is not None and res.status in ACCEPTED_STATUSES, v
@@ -60,7 +60,7 @@ def test_positive_direction_first_when_inside(tmp_path, lut_sealed):
     case, s, base, vs, x, f = _setup(tmp_path, lut_sealed, th)
     i = [v.component for v in vs].index(("y", "out"))
     skip = frozenset(j for j in range(len(vs)) if j != i)
-    out = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip)
+    out = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip, ceiling=None)
     assert out[i][1] > 0
 
 
@@ -72,7 +72,7 @@ def test_sign_flips_at_upper_bound(tmp_path, lut_sealed):
     i = [v.component for v in vs].index(("y", "out"))
     he = expected_fd_steps(s, base)[i]
     skip = frozenset(j for j in range(len(vs)) if j != i)
-    res, h = fd_jacobian(s, vs, x, base, (0, 0), f, (), skip=skip)[i]
+    res, h = fd_jacobian(s, vs, x, base, (0, 0), f, (), skip=skip, ceiling=None)[i]
     assert res is not None
     assert h == pytest.approx(-he, rel=1e-12)
 
@@ -81,7 +81,7 @@ def test_skip_returns_base_without_evaluation(tmp_path, lut_sealed):
     th = theta_r4c(y=0.3)
     case, s, base, vs, x, f = _setup(tmp_path, lut_sealed, th)
     before = dict(s.counters)
-    out = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=frozenset(range(len(vs))))
+    out = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=frozenset(range(len(vs))), ceiling=None)
     assert all(r is base and h == 0.0 for r, h in out)
     assert dict(s.counters) == before
 
@@ -94,7 +94,7 @@ def test_current_column_reuses_columns_block(tmp_path, lut_sealed):
     skip = frozenset(j for j in range(len(vs)) if j != i)
     # [XRUN-F1 card B C1·C6] 계수 = 그 탐색 컨텍스트 실행(sctx.dc.counters)의 행 computes(인덱스 4)
     c0, u0 = block_row(s.dc.counters, dc_columns.name)[4], block_row(s.dc.counters, dc_currents.name)[4]
-    res, h = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip)[i]
+    res, h = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip, ceiling=None)[i]
     assert res is not None and h != 0.0
     assert block_row(s.dc.counters, dc_columns.name)[4] == c0
     assert block_row(s.dc.counters, dc_currents.name)[4] == u0 + 1
@@ -115,7 +115,7 @@ def test_both_directions_out_of_bounds_gives_none(tmp_path, lut_sealed):
     assert he > 2 * (math.log(rb[1]) - math.log(rb[0]))           # 손 확인: 스텝이 상자보다 크다
     skip = frozenset(j for j in range(len(vs)) if j != i)
     before = dict(s.counters)["requests"]
-    res, h = fd_jacobian(s, vs, x_of(vs, th), base, CELLS_P, to_theta_fn(vs, fixed_l(th)), (), skip=skip)[i]
+    res, h = fd_jacobian(s, vs, x_of(vs, th), base, CELLS_P, to_theta_fn(vs, fixed_l(th)), (), skip=skip, ceiling=None)[i]
     assert res is None
     assert abs(h) == pytest.approx(he, rel=1e-12)
     assert dict(s.counters)["requests"] == before
@@ -139,7 +139,7 @@ def test_l_step_is_one_manufacturing_grid(tmp_path, lut_sealed, grid_um, grid_m)
     fixed = {k: v for k, v in th.items() if k != ("L", "M1")}
     f = to_theta_fn(lv, fixed)
     for x0, sign in ((1e-6, 1.0), (2e-6, -1.0)):
-        res, h = fd_jacobian(s, lv, (x0,), base, CELLS_C, f, ())[0]
+        res, h = fd_jacobian(s, lv, (x0,), base, CELLS_C, f, (), ceiling=None)[0]
         assert h == pytest.approx(sign * grid_m, rel=1e-6), (x0, h)
         if res is not None:
             assert dict(res.theta)[("L", "M1")] == pytest.approx(x0 + h, rel=1e-15)
@@ -163,9 +163,110 @@ def test_passive_theta_step_is_min_tol_gm_id(tmp_path, lut_sealed):
     for comp in (("capacitance", "Cz"), ("ss_resistance", "Rz")):
         i = [v.component for v in vs].index(comp)
         skip = frozenset(j for j in range(len(vs)) if j != i)
-        res, h = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip)[i]
+        res, h = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip, ceiling=None)[i]
         assert res is not None and res.status in ACCEPTED_STATUSES
         assert abs(h) == pytest.approx(hand, rel=1e-12)
         xi = list(x)
         xi[i] = x[i] + h
         assert dict(res.theta)[comp] == pytest.approx(f(xi)[comp], rel=1e-14)
+
+
+def test_it2b_y_step_is_the_w4_root_window_width_only(tmp_path, lut_sealed):
+    """[card IT-2b T-FD, design 41 4.7-6] `node.dc_window` 에 입력 포트 항목이 늘어도 y 스텝 색인·크기는 W4 뿌리 창 폭만으로 정해진다.
+    oracle 대조: (식) 3.11 스텝 식 d/(hi − lo) (d = r4 VDS 격자 최소 간격 0.25 V, 손으로 읽은 LUT 격자) 에 회로 C 의 손계산 창을 넣는다:
+    W4 뿌리 out 의 창 = 레일 [0, 1.8](폭 1.8). 입력 포트 in 은 M1 gate, source = gnd 라 F 성분 미선언 포트 -- IT-2b 뒤에는 그 항목이 `node.dc_window` 에
+    들어오지만(lo·hi None) y 변수는 out 하나뿐이고 스텝은 0.25/1.8 그대로여야 한다. base·head 모두 통과(green 유지)."""
+    th = theta_r4c(y=0.3)
+    case, s, base, vs, x, f = _setup(tmp_path, lut_sealed, th)
+    y_vars = [v.component for v in vs if v.component[0] == "y"]
+    assert y_vars == [("y", "out")]                                       # 입력 포트 항목은 y 키를 만들지 않는다
+    i = [v.component for v in vs].index(("y", "out"))
+    skip = frozenset(j for j in range(len(vs)) if j != i)
+    res, h = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip, ceiling=None)[i]
+    assert res is not None and res.status in ACCEPTED_STATUSES
+    assert abs(h) == pytest.approx(0.25 / 1.8, rel=1e-12)
+
+
+# =====================================================================================================================
+# [XRUN-F1 card C] interface card xrunf1c C4 (C-T5) -- 필수 키워드 `ceiling`, 상계 = 평가할 열 수 × 2, 남은 한도 = ceiling − kernel_calls.
+# oracle: (손) 구성 -- 평가할 열 수 m = len(vs) − len(skip) (이 입력에서 스텝 0·None 열이 없음을 위 test_steps_and_results 가 보인다: 열마다 결과 1개,
+# 커널 +1). 상계 = 2m. ceiling 은 kernel_calls + 상계(= 남은 한도 = 상계: 평상 실행)·그보다 1 작게(= 상계 − 1: 평가 0, needed = 상계,
+# remaining = 상계 − 1)로 정한다. 피검 식을 다시 쓰지 않는다.
+# =====================================================================================================================
+
+import importlib  # noqa: E402
+from gmid_engine.core import InfeasibleSizingError  # noqa: E402
+
+_FD_MOD = importlib.import_module("gmid_engine.search.fd_jacobian")
+
+
+def _fd_case(tmp_path, lut_sealed):
+    th = theta_r4c(y=0.3)
+    return _setup(tmp_path, lut_sealed, th)
+
+
+def test_fd_shortfall_remaining_equals_bound_runs_normally(tmp_path, lut_sealed):
+    case, s, base, vs, x, f = _fd_case(tmp_path, lut_sealed)
+    k0 = dict(s.counters)["kernel_calls"]
+    out = fd_jacobian(s, vs, x, base, CELLS_C, f, (), ceiling=k0 + 2 * len(vs))      # 남은 한도 = 상계
+    assert len(out) == len(vs)
+    assert all(res is not None for res, _h in out)
+    assert dict(s.counters)["kernel_calls"] == k0 + len(vs)
+
+
+def test_fd_shortfall_remaining_one_below_bound_no_evaluation(tmp_path, lut_sealed):
+    case, s, base, vs, x, f = _fd_case(tmp_path, lut_sealed)
+    k0 = dict(s.counters)["kernel_calls"]
+    bound = 2 * len(vs)
+    with pytest.raises(_FD_MOD.FdBudgetShortfall) as ei:
+        fd_jacobian(s, vs, x, base, CELLS_C, f, (), ceiling=k0 + bound - 1)          # 남은 한도 = 상계 − 1
+    assert ei.value.needed == bound and ei.value.remaining == bound - 1
+    assert dict(s.counters)["kernel_calls"] == k0                                    # 평가 호출 0
+    assert not isinstance(ei.value, InfeasibleSizingError)
+
+
+def test_fd_shortfall_remaining_uses_current_kernel_calls(tmp_path, lut_sealed):
+    # oracle (손): 남은 한도 = ceiling − kernel_calls -- kernel_calls 를 5 올려도 ceiling 이 같이 5 오르면 같은 판정.
+    case, s, base, vs, x, f = _fd_case(tmp_path, lut_sealed)
+    s.counters["kernel_calls"] += 5
+    k0 = dict(s.counters)["kernel_calls"]
+    bound = 2 * len(vs)
+    with pytest.raises(_FD_MOD.FdBudgetShortfall) as ei:
+        fd_jacobian(s, vs, x, base, CELLS_C, f, (), ceiling=k0 + bound - 1)
+    assert (ei.value.needed, ei.value.remaining) == (bound, bound - 1)
+
+
+def test_fd_shortfall_skipped_columns_leave_the_bound(tmp_path, lut_sealed):
+    case, s, base, vs, x, f = _fd_case(tmp_path, lut_sealed)
+    skip = frozenset({0, 2})
+    k0 = dict(s.counters)["kernel_calls"]
+    bound = 2 * (len(vs) - len(skip))                                                # 평가할 열에서 skip 을 뺀다
+    with pytest.raises(_FD_MOD.FdBudgetShortfall) as ei:
+        fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip, ceiling=k0 + bound - 1)
+    assert (ei.value.needed, ei.value.remaining) == (bound, bound - 1)
+    assert dict(s.counters)["kernel_calls"] == k0
+    out = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip, ceiling=k0 + bound)  # 남은 한도 = 상계: 통과
+    assert len(out) == len(vs) and dict(s.counters)["kernel_calls"] == k0 + len(vs) - len(skip)
+
+
+def test_fd_shortfall_all_columns_skipped_needs_nothing(tmp_path, lut_sealed):
+    # oracle (손): 평가할 열 0 -> 상계 0 -> 남은 한도 0 이면 평상 실행(평가 0).
+    case, s, base, vs, x, f = _fd_case(tmp_path, lut_sealed)
+    k0 = dict(s.counters)["kernel_calls"]
+    out = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=frozenset(range(len(vs))), ceiling=k0)
+    assert len(out) == len(vs) and dict(s.counters)["kernel_calls"] == k0
+
+
+def test_fd_shortfall_ceiling_none_means_no_check(tmp_path, lut_sealed):
+    case, s, base, vs, x, f = _fd_case(tmp_path, lut_sealed)
+    k0 = dict(s.counters)["kernel_calls"]
+    out = fd_jacobian(s, vs, x, base, CELLS_C, f, (), ceiling=None)
+    assert len(out) == len(vs) and dict(s.counters)["kernel_calls"] == k0 + len(vs)
+
+
+def test_fd_shortfall_ceiling_is_required(tmp_path, lut_sealed):
+    case, s, base, vs, x, f = _fd_case(tmp_path, lut_sealed)
+    with pytest.raises(TypeError):
+        fd_jacobian(s, vs, x, base, CELLS_C, f, ())
+    with pytest.raises(TypeError):
+        fd_jacobian(s, vs, x, base, CELLS_C, f, (), frozenset())                     # 위치로는 받지 않는다(키워드 전용)

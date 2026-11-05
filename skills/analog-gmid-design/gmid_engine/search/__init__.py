@@ -33,6 +33,7 @@ from .open_run import open_run
 from .noise_decl import noise_decl
 from .orbit_ties import orbit_ties
 from .pareto import nondominated
+from .off_judged import check_off_judged_by
 from .seal7_pending import seal_status
 from .s0_fields import (
     CONSTRAINT_CLASSES_WRITER,
@@ -87,6 +88,8 @@ from .search_values import (
     StartPoint,
     Variable,
 )
+from .search_ceiling import search_ceiling
+from .search_stop import search_stop
 from .slsqp_outer import solve_eps
 from .ss_constraints import ss_constraint_rows
 from .start_intervals import start_intervals
@@ -170,6 +173,7 @@ __all__ = (
     "expand_ties",
     "orbit_ties",
     "passive_area_decl",
+    "check_off_judged_by",
     "constraint_classes",
     "constraint_rows",
     "noise_decl",
@@ -189,7 +193,9 @@ __all__ = (
     "objective_values",
     "open_run",
     "polish_l_cells",
+    "search_ceiling",
     "search_domain",
+    "search_stop",
     "seal_status",
     "solve_eps",
     "ss_constraint_rows",

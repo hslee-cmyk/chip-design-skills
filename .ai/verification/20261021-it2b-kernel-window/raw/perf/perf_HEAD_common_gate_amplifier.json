@@ -1,0 +1,247 @@
+{
+ "calls": {
+  "Circuit.input_windows": {
+   "calls": 3,
+   "distinct": 3,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "Circuit.region_rows": {
+   "calls": 3,
+   "distinct": 3,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "Circuit.tolerance": {
+   "calls": 15,
+   "distinct": 13,
+   "repeat_calls": 2,
+   "repeated": [
+    {
+     "fp": "0137615406c02b83",
+     "n": 2,
+     "sites": {
+      "block_columns.py:614": 18
+     }
+    },
+    {
+     "fp": "17701b0664245f80",
+     "n": 2,
+     "sites": {
+      "block_columns.py:614": 18
+     }
+    }
+   ]
+  },
+  "_measure": {
+   "calls": 3,
+   "distinct": 3,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "_solve": {
+   "calls": 4,
+   "distinct": 4,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "_tolerance": {
+   "calls": 3,
+   "distinct": 3,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "lut.op_point": {
+   "calls": 18,
+   "distinct": 9,
+   "repeat_calls": 9,
+   "repeated": [
+    {
+     "fp": "d1c3e7845db28cd7",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "a3b4269042d24221",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "e0d5f011559706d5",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "172306d5bd34f3df",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "c26faf5fea446923",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "b71daedbc546fdad",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "a9ffcb9a5c960d86",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "aa903a8e4aa9a2d9",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "282f5ac017e433dd",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    }
+   ]
+  },
+  "lut.vdsat": {
+   "calls": 9,
+   "distinct": 9,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "tol_v_cell": {
+   "calls": 28,
+   "distinct": 28,
+   "repeat_calls": 0,
+   "repeated": []
+  }
+ },
+ "circuit": "common_gate_amplifier",
+ "cprofile": {
+  "_helpers_lut.py:49:tol_v_cell": {
+   "cumtime": 0.4052577,
+   "ncalls": 31,
+   "tottime": 0.0001039
+  },
+  "block_columns.py:247:region_rows": {
+   "cumtime": 0.0194268,
+   "ncalls": 3,
+   "tottime": 9.190000000000001e-05
+  },
+  "block_columns.py:270:input_windows": {
+   "cumtime": 0.023091,
+   "ncalls": 3,
+   "tottime": 3.15e-05
+  },
+  "block_columns.py:559:tolerance": {
+   "cumtime": 0.40390180000000003,
+   "ncalls": 15,
+   "tottime": 9.94e-05
+  },
+  "block_columns.py:584:_solve": {
+   "cumtime": 0.4201519,
+   "ncalls": 4,
+   "tottime": 0.0001665
+  },
+  "block_columns.py:613:tolerance": {
+   "cumtime": 0.4045164,
+   "ncalls": 12,
+   "tottime": 1e-05
+  },
+  "block_columns.py:685:_measure": {
+   "cumtime": 0.023288000000000003,
+   "ncalls": 3,
+   "tottime": 1.7e-05
+  },
+  "block_columns.py:695:_tolerance": {
+   "cumtime": 0.0002032,
+   "ncalls": 3,
+   "tottime": 6.7e-06
+  },
+  "block_columns.py:727:_solve_input_window": {
+   "cumtime": 0.4445526,
+   "ncalls": 1,
+   "tottime": 5.11e-05
+  },
+  "block_columns.py:783:_windows": {
+   "cumtime": 3.37e-05,
+   "ncalls": 1,
+   "tottime": 1.0500000000000001e-05
+  },
+  "block_columns.py:814:dc_columns": {
+   "cumtime": 0.4449253,
+   "ncalls": 1,
+   "tottime": 6.55e-05
+  },
+  "kernel.py:94:evaluate": {
+   "cumtime": 1.3681117,
+   "ncalls": 1,
+   "tottime": 0.0001563
+  },
+  "noise_analysis.py:59:_solve": {
+   "cumtime": 0.0025435,
+   "ncalls": 8,
+   "tottime": 6.900000000000001e-05
+  },
+  "noise_sources.py:28:_tolerance": {
+   "cumtime": 2.2e-06,
+   "ncalls": 6,
+   "tottime": 2.2e-06
+  },
+  "point_query.py:22:op_point": {
+   "cumtime": 0.0023849,
+   "ncalls": 30,
+   "tottime": 9.06e-05
+  },
+  "size_and_seal.py:27:size_and_seal": {
+   "cumtime": 0.46668170000000003,
+   "ncalls": 1,
+   "tottime": 1.7100000000000002e-05
+  },
+  "vdsat_query.py:20:vdsat": {
+   "cumtime": 0.0009171,
+   "ncalls": 12,
+   "tottime": 7.510000000000001e-05
+  }
+ },
+ "dc_columns_calls": 1,
+ "eval_s": [
+  1.5297571999253705,
+  1.3748194999061525,
+  1.362820400041528,
+  1.3618103000335395,
+  1.3021038000006229,
+  1.276177900028415,
+  1.300851900014095
+ ],
+ "eval_s_median": 1.3618103000335395,
+ "side": "HEAD",
+ "status": "sealed"
+}

@@ -4,7 +4,7 @@
 진입점: `achievability`(`@compute_block`, writer `achievability`) -- `achievability(snapshot, spec, element_values, lut, count_budget)`.
 
 * 스냅샷 = S0 수준 스냅샷(S1 + S1v 필드 + 커널 컨텍스트 블록 + `graph/kernel: search_domain·passive_area_decl`). 블록이 읽는 필드(`READS`): S1 소자·노드 열,
-  graph 대칭 블록 `orbits`·`dc_colour`, 쓰기 계획 `dc_current_basis`·`dc_writer`, 커널 구조 파생 `fixed_values`·`l_ties`, S1v `views`·`l_classes`,
+  graph 대칭 블록 `orbits`·`dc_colour`, 쓰기 계획 `dc_current_basis`, 커널 구조 파생 `fixed_values`·`l_ties`, S1v `views`·`l_classes`,
   탐색 정의역 `search_domain`(θ 전류 상자·자기동형 묶음·b_A -- `cur_rep`·`current_box`·`area_resolution_m2` 는 여기서 유도), 수동소자 면적 선언 `passive_area_decl`.
   extras: `spec` = `SizingSpecDoc`, `element_values` = ((원소, 선언값 | None), ...)(spec 파싱 `DcInputs.element_values`), `lut` = sizing `LutAccess`(LUT 손잡이),
   `count_budget` = 계수 예산 N_S(`search.count_budget`; metrics 가 search 보다 아래 층이라 파이프라인이 값을 만들어 넘긴다).
@@ -19,7 +19,7 @@
 4. `area_lower_bound` -- 인증된 면적 하한 A_lb > 예산 + b_A 이면 정지(`area_budget_below_lower_bound`, 41 §4.4).
 5. `headroom_bound` -- 출력·입력·버퍼 창 상한(41 §4.6): 선언 제약의 대상 창이 인증되었고 상한 + 분해능 < 목표면 정지(`headroom_unattainable`); 선언 제약이 없는 창·입력 DC 대기는 보고만,
    버퍼 창은 `buffer_window_report`, 입력 창이 최단 L bin 에서만 열리면 경고 `icmr_window_short_l_bin`. 엣지 비용은 LUT 파생 `lut.derived(memo, "edge_costs", ...)`(LUT memo, 40 §2.4.6).
-6. `dof_report` -- 구조 DOF(변수 = 비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ DC 저항, 등식 = MOS 소자 식·저항 강하·선언 노드 목표·입력 동일 DC): 매칭 안 되는 등식이 있으면 정지(`overconstrained`).
+6. `dof_report` -- 구조 DOF(변수 = 비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ DC 저항, 등식 = MOS 소자 식·저항 강하·선언 노드 목표): 매칭 안 되는 등식이 있으면 정지(`overconstrained`).
 인증되지 않은 값(미상)은 정지 근거로 쓰지 않고 `status`·`reason` 으로 남긴다 -- 조용히 통과하는 것이 아니라 '판정 안 함'이 보고에 드러난다.
 
 한계(보고서 기록): 블록 gain 상한은 격자 곱 Π 가 N_S 를 넘으면 미상이다. 9회로 실측에서 Π 는 N_S(1.4e7)를 크게 넘어 거의 모든 블록이 미상이므로 `found_db`(좌표 상승 하한 추정)를 보고만 한다.
@@ -36,7 +36,7 @@ from gmid_engine.authoring import (
 from gmid_engine.core import AMPLITUDE_DB_PER_DECADE, compute_block
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, GRAPH_KEY, S1V_KEY, STATUS_DERIVED, STATUS_RATIFIED
 from gmid_engine.lut import derived
-from gmid_engine.sizing import DC_KEY, KERNEL_KEY, REL_TIE, THETA_CURRENT
+from gmid_engine.sizing import DC_KEY, KERNEL_KEY, REL_INPUT_POINT, THETA_CURRENT
 
 from .achievability_types import (
     REASON_AREA,
@@ -150,11 +150,16 @@ def _gain_target(spec):
     return max(values) if values else None
 
 
+def _others(view, nodes):
+    """같은 뷰 남의 블록 노드 넷(자기 `nodes` 제외) 정렬 tuple -- 미지수 집합 U_b 의 고정 집합 F(설계 41 §2.5-1)."""
+    return tuple(sorted({n for b in view.blocks for n in b.nodes} - set(nodes)))
+
+
 def _block_spec(view, block, local):
     members = tuple(sorted(n for n, _role in block.roles if local.cls.get(n) == ELEMENT_MOS))
     passives = tuple(sorted(n for n, _role in block.roles if local.cls.get(n) == ELEMENT_PASSIVE))
     return BlockSpec(block.key, ROLE_MAIN, members, passives, tuple(block.inputs), tuple(block.outputs), frozenset(view.ac_ground),
-                     tuple(view.excite), tuple(block.nodes))
+                     tuple(view.excite), tuple(block.nodes), others=_others(view, block.nodes))
 
 
 def _bound(local, tables, spec, budget, role=None):
@@ -209,10 +214,11 @@ def _gain(view, s1v_blocks, local, tables, spec, budget, target):
             members |= {n for n, _r in merge_block.roles if local.cls.get(n) == ELEMENT_MOS}
             passives |= {n for n, _r in merge_block.roles if local.cls.get(n) == ELEMENT_PASSIVE}
         mos_members = tuple(sorted(n for n in members if local.cls.get(n) == ELEMENT_MOS))
-        nodes = set(merge_block.nodes if merge_block is not None else ()) | {f.tap, f.merge}
+        nodes = (set(merge_block.nodes) - set(merge_block.inputs) if merge_block is not None else set()) | {f.tap, f.merge}      # merge 블록 입력 넷은 이 경로에서 구동되지 않는 남의 블록 넷(others)
         nodes |= {local.pins[n][t] for n in mos_members for t in ("d", "s")}
         ff_spec = BlockSpec((f.id,), ROLE_FF, mos_members, tuple(sorted(passives)), (f.tap,), (f.merge,), frozenset(view.ac_ground),
-                            ((f.tap, 1),), tuple(sorted(nodes)), drive=(f.tap,))
+                            ((f.tap, 1),), tuple(sorted(nodes)), drive=(f.tap,),
+                            others=_others(view, nodes))
         ff_specs.append(ff_spec)
         ff_bounds.append(_bound(local, tables, ff_spec, budget))
     chain_pure = _chain(view, s1v_blocks, bounds, local.node_colour)
@@ -290,10 +296,14 @@ def _dof(p, local, element_values):
     nets = [n for n, _flag in p.column("node", "is_rail") if n not in rails]
     owner = dict(p.value("graph", KERNEL_KEY, "l_ties"))
 
+    # 입력 점(DEC-106): 짝 포트는 뿌리와 한 변수다(KVL ΔV = 0) -- 쓰기 계획 필드 `node.dc_writer` 의 input_point known 을 읽는다
+    same_point = {n: w.known for n, w in p.column("node", "dc_writer") if w.relation == REL_INPUT_POINT and w.known is not None}
+
     def v(net):
+        net = same_point.get(net, net)
         return () if net in rails else ("V:" + net,)
 
-    variables = ["V:" + n for n in nets]
+    variables = ["V:" + n for n in nets if n not in same_point]
     equations = {}
     free = set(basis.free)
     for name in sorted(n for n, c in local.cls.items() if c == ELEMENT_MOS):
@@ -312,9 +322,6 @@ def _dof(p, local, element_values):
         equations["res:" + name] = v(pins["t0"]) + v(pins["t1"]) + currents + theta_r
     for net, _volts in p.value("graph", KERNEL_KEY, "fixed_values"):
         equations["fix:" + net] = v(net)
-    for net, write in p.column("node", "dc_writer"):
-        if write.relation == REL_TIE and write.known is not None:
-            equations["tie:" + net] = v(net) + v(write.known)
     return dof_report(variables, equations)
 
 

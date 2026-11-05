@@ -1,0 +1,107 @@
+{
+ "assert_compare": {
+  "test_stage_b_library.py": {
+   "n_test_funcs": [
+    7,
+    7
+   ],
+   "changed": {
+    "test_block_grid_products_and_budget_gate": {
+     "asserts": [
+      5,
+      5
+     ],
+     "lost": [],
+     "gained": [],
+     "new_cond": [
+      "blk['pi'] == math.prod((size for _, size in blk['axes']))"
+     ]
+    }
+   }
+  },
+  "test_g10_no_recompute_9circuits.py": {
+   "n_test_funcs": [
+    1,
+    1
+   ],
+   "changed": {}
+  },
+  "test_layer0_boundary_rows.py": {
+   "n_test_funcs": [
+    2,
+    2
+   ],
+   "changed": {}
+  },
+  "test_s0_layer_9circuits.py": {
+   "n_test_funcs": [
+    10,
+    10
+   ],
+   "changed": {}
+  }
+ },
+ "names_in_code": {
+  "test_stage_b_library.py": {
+   "r2r_opamp": [
+    232,
+    150
+   ],
+   "cnr_ota": [
+    149
+   ],
+   "erfc_ota": [
+    149
+   ]
+  },
+  "test_g10_no_recompute_9circuits.py": {
+   "cnr_ota": [
+    44
+   ],
+   "erfc_ota": [
+    44
+   ],
+   "r2r_opamp": [
+    44
+   ],
+   "rfc_ota": [
+    44
+   ]
+  },
+  "test_layer0_boundary_rows.py": {},
+  "test_s0_layer_9circuits.py": {},
+  "o227_stop_pin.py": {
+   "cnr_ota": [
+    24
+   ],
+   "erfc_ota": [
+    25
+   ],
+   "r2r_opamp": [
+    29
+   ]
+  }
+ },
+ "references": [
+  "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py:30:import o227_stop_pin      # 정지 사유 고정 헬퍼·표(O-227 임시) -- tests/integration/o227_stop_pin.py",
+  "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py:31:from test_s0_layer_9circuits import DEVICE_START, GRAPH_ROWS, _baseline  # noqa: E402  S0 수준 블록 ",
+  "skills/analog-gmid-design/gmid_engine/tests/integration/test_layer0_boundary_rows.py:24:import o227_stop_pin      # 정지 사유 고정 헬퍼·표(O-227 임시) -- tests/integration/o227_stop_pin.py",
+  "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py:48:import o227_stop_pin      # 정지 사유 고정 헬퍼·표(O-227 임시) -- tests/integration/o227_stop_pin.py",
+  "skills/analog-gmid-design/gmid_engine/tests/integration/test_stage_b_library.py:27:import o227_stop_pin as pin       # 정지 사유 고정 헬퍼·표(O-227 임시) -- tests/integration/o227_stop_pin.py"
+ ],
+ "changed_paths": [
+  "skills/analog-gmid-design/gmid_engine/tests/integration/o227_stop_pin.py",
+  "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py",
+  "skills/analog-gmid-design/gmid_engine/tests/integration/test_layer0_boundary_rows.py",
+  "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py",
+  "skills/analog-gmid-design/gmid_engine/tests/integration/test_stage_b_library.py"
+ ],
+ "engine_diff": [],
+ "fixture_diff_since_b8c4c189": "",
+ "helper_globals": [
+  "BASELINE_PATH",
+  "STOP",
+  "BLOCK"
+ ],
+ "helper_try_except": 0
+}

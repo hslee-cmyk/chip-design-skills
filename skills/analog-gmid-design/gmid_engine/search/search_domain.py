@@ -11,6 +11,7 @@ extras: `lut` = sizing `LutAccess`, `resistance_bounds_ohm`·`capacitance_bounds
   최댓값(설계 4.2 'VGS 축 끝 ln IDu 의 포락선'), 하한 = (L, VDS, VS) 곡선마다 gm/ID 정점의 ln IDu 중 최솟값 -- 그 아래 r 은
   어느 동작점에서도 정점 아래라 강반전 분지 근이 없다. 조회점별 실제 하한은 부등식 제약(constraints `inversion_floor`)이다.
 * `y`: [0, 1](G7 3.4).
+* kind 상자(`current_box`)는 전류 기저의 MOS(`graph.dc_current_basis.mos`) 의 kind 마다 -- `off` 선언 소자는 기저에 없어 `off` 소자만 가진 kind 는 상자가 없다(EO-1 범위 4).
 * `current`(ln 좌표): 기저 원소가 MOS 면 그 kind 의 `current_box`(I_off, I_max). MOS 가 아닌 기저 원소(값 미선언 이상 전류원 등)는
   그 원소를 항으로 갖는 MOS 행들의 kind 상자 합집합(최소 I_off, 최대 I_max) -- 그 전류는 그 MOS 들을 지나간다.
 * `resistance`(ln 좌표): PDK 선언(`core.pdk_decl`)에 수동소자 범위가 없으므로 `settings.resistance_bounds_ohm` 이 정본이다. θ 저항이
@@ -30,7 +31,7 @@ import numpy as np
 
 from gmid_engine.core import PdkDecl, SchemaRejectedError, compute_block
 from gmid_engine.graph import ELEMENT_MOS, GRAPH_KEY
-from gmid_engine.sizing import (KERNEL_KEY, THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE,
+from gmid_engine.sizing import (DC_KEY, KERNEL_KEY, THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE,
                                 THETA_SS_RESISTANCE, THETA_Y)
 
 from .current_box import current_box
@@ -96,7 +97,7 @@ def search_domain(projection):
     declared = {b.element: (b.lo, b.hi) for b in spec_bounds}          # authoring ThetaBound(kind 단위 Ω·F)
     kinds = dict(base.column("device", "kind"))
     classes = dict(base.column("device", "element_class"))
-    mos_kinds = sorted({kinds[m] for m, c in classes.items() if c == ELEMENT_MOS})
+    mos_kinds = sorted({kinds[m] for m in base.value("graph", DC_KEY, "dc_current_basis").mos})      # 쓰기 계획이 연 MOS 의 kind -- `off` 소자만 가진 kind 는 상자가 없다
     boxes = {k: current_box(lut, k) for k in mos_kinds}
     if area_budget_m2 is not None:
         boxes = {k: (lo, _budget_i_max(lut, k, l_cells(lut, k)[0][0], area_budget_m2))

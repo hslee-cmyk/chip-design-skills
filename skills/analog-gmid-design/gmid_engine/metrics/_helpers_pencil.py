@@ -16,6 +16,8 @@
 import numpy
 import scipy.linalg
 
+from ._helpers_dc import limit_matrix
+
 
 def _balance(a, e):
     """Ward 균형(LAPACK ggbal 의 배율 방법): a·e 의 0 아닌 원소 전부에 대해 Σ(log2|x_ij| + r_i + c_j)² 를 최소로 하는 행·열
@@ -85,8 +87,7 @@ def probe_pencil(system, pairs, weights):
     a0[n:, :n] = probe.T
     # 용량 전용 노드 행(G 행 0)은 s·(C_F·v + P_F·j') = s·(우변) 이라 s 로 나눈다(`solve_dc_limit` 의 전하 보존 식과 같은 변환,
     # 해 불변). 나누지 않으면 원점 근이 겹친 결함 고유값이 되어 QZ 가 eps^(1/m) 규모로 흩뜨린다(허위 근).
-    a0[charge, :] = e0[charge, :]
-    e0[charge, :] = 0.0
+    a0, e0 = limit_matrix(a0, e0, charge), limit_matrix(e0, numpy.zeros_like(e0), charge)          # 전하 행 교체의 유일한 자리 `_helpers_dc.limit_matrix`
     bg = numpy.zeros(2 * size)
     bc = numpy.zeros(2 * size)
     c = numpy.zeros(2 * size)

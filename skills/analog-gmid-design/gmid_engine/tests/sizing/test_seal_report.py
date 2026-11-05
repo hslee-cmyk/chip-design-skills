@@ -17,7 +17,7 @@ def _run():
     return dict(donors=donors, counters=counters)
 
 GRAPH_ITEMS = {1: "dc_seal_node_conflict", 2: "dc_seal_vgs_match", 3: "dc_seal_kcl", 6: "dc_seal_bulk_reverse",
-               7: "dc_seal_saturation", 8: "dc_seal_kvl_branch", 9: "dc_seal_conduction"}
+               7: "dc_seal_region", 8: "dc_seal_kvl_branch", 9: "dc_seal_region"}   # [EO-1 범위 4] 7·9 는 writer 하나
 ITEMS = list(range(1, 10))                      # [r8] 9개
 
 

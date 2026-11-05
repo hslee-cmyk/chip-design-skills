@@ -1,0 +1,42 @@
+{
+ "R1.free.main": {
+  "n": 10,
+  "covers": true,
+  "injective_casefold": true
+ },
+ "R2.free.main": {
+  "n": 10,
+  "covers": true,
+  "injective_casefold": true
+ },
+ "R2.free.loop": {
+  "n": 10,
+  "covers": true,
+  "injective_casefold": true
+ },
+ "R3.free.main": {
+  "n": 12,
+  "covers": true,
+  "injective_casefold": true
+ },
+ "R3.forced.main": {
+  "n": 16,
+  "covers": true,
+  "injective_casefold": true
+ },
+ "R4.free.main": {
+  "n": 8,
+  "covers": true,
+  "injective_casefold": true
+ },
+ "R4.forced.main": {
+  "n": 10,
+  "covers": true,
+  "injective_casefold": true
+ },
+ "R5.iso.main": {
+  "n": 8,
+  "covers": true,
+  "injective_casefold": true
+ }
+}

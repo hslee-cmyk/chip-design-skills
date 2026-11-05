@@ -1,0 +1,137 @@
+{
+"n_tokens": 12,
+"base_hits_by_token": {
+"D10": 83,
+"D1": 36,
+"D5": 89,
+"D7": 12,
+"D6": 10,
+"D9": 22,
+"SIM": 22,
+"D3": 5,
+"D8": 1
+},
+"core_hits": [
+[
+"build_benches.py",
+60,
+"D10",
+"lbx_"
+],
+[
+"build_circuit.py",
+273,
+"D10",
+"lbx_"
+],
+[
+"build_circuit.py",
+176,
+"D10",
+"x"
+],
+[
+"build_circuit.py",
+176,
+"D10",
+"x"
+],
+[
+"build_circuit.py",
+178,
+"D10",
+"x"
+],
+[
+"build_circuit.py",
+178,
+"D10",
+"x"
+],
+[
+"build_circuit.py",
+310,
+"D10",
+"lbx_"
+],
+[
+"build_circuit.py",
+310,
+"D10",
+"lbx_"
+],
+[
+"build_circuit.py",
+368,
+"D10",
+"fbs_"
+],
+[
+"build_circuit.py",
+369,
+"D10",
+"fbs_"
+],
+[
+"build_circuit.py",
+369,
+"D10",
+"fbd_"
+],
+[
+"build_circuit.py",
+370,
+"D10",
+"fbd_"
+],
+[
+"build_circuit.py",
+386,
+"D10",
+"lbx_"
+],
+[
+"build_circuit.py",
+396,
+"D10",
+"lbx_"
+],
+[
+"build_circuit.py",
+423,
+"D10",
+"hs_"
+],
+[
+"build_circuit.py",
+424,
+"D10",
+"hs_"
+],
+[
+"build_circuit.py",
+378,
+"D10",
+"fbs_"
+],
+[
+"build_circuit.py",
+379,
+"D10",
+"fbs_"
+],
+[
+"build_circuit.py",
+379,
+"D10",
+"fbd_"
+],
+[
+"build_circuit.py",
+380,
+"D10",
+"fbd_"
+]
+]
+}
+tests/core hits 17 [('test_bundle_roles.py', 27, 'D10', 'x'), ('test_bundle_roles.py', 30, 'D1', '.subckt mod a b'), ('test_bundle_roles.py', 57, 'D10', 'x'), ('test_bundle_roles.py', 68, 'D10', 'x'), ('test_cache_key.py', 18, 'D8', '-b'), ('test_cache_key.py', 34, 'D8', '-b'), ('test_descriptor.py', 102, 'D10', 'x'), ('test_descriptor.py', 152, 'D10', 'x')]

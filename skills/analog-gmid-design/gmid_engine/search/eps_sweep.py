@@ -6,7 +6,7 @@
 2. ε 격자: 면적 방향 = A(E_A) < ε_A < A(E_P) 를 b_A 간격으로 E_P 쪽부터(전력 최소화, 직전 해 warm start), 전력 방향 =
    P(E_P) < ε_P < P(E_A) 를 b_P 간격으로 E_A 쪽부터(면적 최소화). 격자의 b_P = max(b_P(E_P), b_P(E_A)). 두 방향을 모두 돈다.
 3. 예산 게이트(DEC-80, **평가 수로 센다 -- 결정론**): ε 점 총수 > N_ε = ⌊(E_B − E_fixed)/e_ε⌋ 이면 간격을 2배씩 넓히고 배수를
-   기록('해상도 굵음'). E_B = `sctx.eval_budget`, E_fixed = 끝점까지의 kernel_calls, e_ε = 끝점 풀이 하나의 kernel_calls 중앙값.
+   기록('해상도 굵음'). E_B = 탐색 예산(`search_ceiling` -- 선언 실행은 E_B, 유도 실행은 D − R), E_fixed = 끝점까지의 kernel_calls, e_ε = 끝점 풀이 하나의 kernel_calls 중앙값.
    판정 축 재필터 몫(T_refilter)은 MOD8 미구현이라 0(기록).
 4. 비지배 필터(`nondominated`): 축 (power_dc_w, area_search_m2), 동률 폭 = (두 점 b_P 중 큰 값, b_A), slack = 활성 제약 c 합.
    **봉인된 점(`STATUS_SEALED`)만 최종 front** 로, 봉인 7 대기 점(`STATUS_PENDING_SEAL7`)은 따로 `pending_front` 로 거른다
@@ -18,6 +18,7 @@ import statistics
 
 from .l_bin_search import polish_l_cells
 from .pareto import nondominated
+from .search_ceiling import search_ceiling
 from .search_values import AXIS_AREA, AXIS_POWER, STATUS_PENDING_SEAL7, STATUS_SEALED, FrontPoint, StartPoint
 from .slsqp_outer import solve_eps
 
@@ -80,9 +81,10 @@ def sweep_front(sctx, starts):
                 failed.append({"eps": None, "minimize": axis, "start": start.start_id, "stop": solve.stop,
                                "aborts": list(solve.aborts), "accepted": len(solve.history)})
     solved = [s for _p, s in entries if s.best is not None]
+    ceiling = search_ceiling(sctx)        # 탐색 예산 E_B -- 이 스윕의 숫자 한 자리(기록 칸 `E_B` 와 N_ε 가 같은 값)
     resolution = {"b_A_m2": sctx.domain.area_resolution_m2, "b_P_rule": "sum_rails_abs_V_times_tol_I",
                   "estimated": True, "coarse_factor": 1, "E_refilter": 0, "refilter": "mod8_not_implemented",
-                  "E_B": sctx.eval_budget}
+                  "E_B": ceiling}
     e_p = min((s for s in solved if s.minimize == AXIS_POWER), key=lambda s: (_value(s.best, AXIS_POWER), s.best.seq),
               default=None)
     e_a = min((s for s in solved if s.minimize == AXIS_AREA), key=lambda s: (_value(s.best, AXIS_AREA), s.best.seq),
@@ -90,8 +92,8 @@ def sweep_front(sctx, starts):
     if e_p is not None and e_a is not None:
         e_eps = statistics.median(costs)
         e_fixed = sctx.counters["kernel_calls"]
-        n_eps = int(math.floor((sctx.eval_budget - e_fixed) / e_eps)) if e_eps > 0 and sctx.eval_budget else 0
-        resolution.update(E_B=sctx.eval_budget)
+        n_eps = int(math.floor((ceiling - e_fixed) / e_eps)) if e_eps > 0 and ceiling else 0
+        resolution.update(E_B=ceiling)
         b_p = max(e_p.best.objectives.power_resolution_w, e_a.best.objectives.power_resolution_w)
         span_a = (_value(e_a.best, AXIS_AREA), _value(e_p.best, AXIS_AREA), sctx.domain.area_resolution_m2)
         span_p = (_value(e_p.best, AXIS_POWER), _value(e_a.best, AXIS_POWER), b_p)

@@ -253,7 +253,7 @@ class Pipe:
 
 
 def map_theta(theta, case):
-    """θ {(종류, 이름): 값} 의 이름을 case 의 표로 옮긴다(y 키 `input_common_mode` 는 이름이 아니라 표 밖 -- 그대로)."""
+    """θ {(종류, 이름): 값} 의 이름을 case 의 표로 옮긴다(y 키는 W4 노드의 넷 이름이라 mapping 으로 옮겨진다 -- IT-1 K-3, 옛 `input_common_mode` 묶음 키 없음)."""
     return {(k, case.nm(n)): v for (k, n), v in theta.items()}
 
 

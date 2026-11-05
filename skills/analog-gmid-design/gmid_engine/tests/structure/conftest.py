@@ -14,7 +14,7 @@ import pytest
 
 HERE = Path(__file__).resolve().parent
 ENGINE_ROOT = HERE.parents[1]                                   # .../gmid_engine
-LIBRARY_DIR = ENGINE_ROOT.parent / "assets" / "library"         # 9회로 topology
+LIBRARY_DIR = ENGINE_ROOT.parent / "assets" / "library"         # library 13회로 topology
 FIXTURES = HERE / "fixtures"
 MAPPING_MARKER = "structure_test_mapping"
 

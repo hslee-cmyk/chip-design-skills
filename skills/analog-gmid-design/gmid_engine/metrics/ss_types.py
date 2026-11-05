@@ -4,8 +4,10 @@
 
 * `SsDevice`: MOS 하나의 봉인 op 소신호 선형화(소자 총 폭 W 기준 절댓값) -- `device.ss_dev` 값.
   `cap_model` = lut `Caps.model`, `gmb_model`·`junction_model` = 근사·미정 표시(값 자리에 0 을 둔 항목은 반드시 여기 적힌다).
-* `SsCircuit`: S2 열에서 만든 정수 인덱스 소신호 회로(`ss_circuit`) -- 노드 이름 표·원소 이름 표·고정 넷 분류.
-  graph 필드가 아니다(`metrics_ss` 블록 안에서만 쓴다).
+* `OffOp`: `off` 선언 소자 하나의 동작점 (vgs, vds, vsb) 크기(LUT 부호 규약)와 LUT 폭 슬라이스 키 -- `device.off_op` 값. kind·W·L 칸은 없다(`device.kind`·`device.region_decl` 이 정본).
+* `OffDelta`: 1차 ΔV -- `node_dv` = ((넷, ΔV), ...) 풀린 노드(넷 이름순), `sources` = ((소자, ΔI_off), ...) 소자 이름순 -- `graph.ss_off_delta` 값.
+* `SsCircuit`: S2 열에서 만든 정수 인덱스 소신호 회로 -- 노드 이름 표·원소 이름 표·고정 넷 분류. 필드 `graph.ss_circuit` 의 값이다(writer = 블록 `ss_circuit`,
+  조립 자리 하나 -- `metrics_ss`·`ss_nodal`·`metrics_aux` 가 READS 로 읽는다).
 * `MetricRequest`: 평가할 (metric 이름, 뷰) 하나 -- spec 제약에서 뽑은 판정 대상(값·op 는 들지 않는다: 제약 임계를
   바꿔도 metric 블록 입력 버전이 바뀌지 않게).
 * `MetricBundle`: 한 블록이 낸 metric 결과 묶음 -- `entries` = ((MetricRequest, MetricResult), ...) 요청 순서,
@@ -35,6 +37,24 @@ class SsDevice:
     gmb_model: str
     junction_model: str
     lut_rel_tol: object = None
+
+
+@dataclasses.dataclass(frozen=True)
+class OffOp:
+    """`off` 선언 소자의 동작점: vgs·vds·vsb(V, LUT 부호 규약 크기), `w_key`(LUT 폭 슬라이스 키)."""
+
+    vgs: float
+    vds: float
+    vsb: float
+    w_key: int
+
+
+@dataclasses.dataclass(frozen=True)
+class OffDelta:
+    """off 소자 전류 효과의 1차 노드 전압 변화 ΔV = −G⁻¹·ΔI_off. `node_dv` = ((넷, ΔV), ...) 넷 이름순(풀린 노드), `sources` = ((소자, ΔI_off), ...) 소자 이름순."""
+
+    node_dv: tuple
+    sources: tuple
 
 
 @dataclasses.dataclass(frozen=True)

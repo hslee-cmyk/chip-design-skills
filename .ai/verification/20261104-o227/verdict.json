@@ -1,0 +1,712 @@
+{
+ "id": "20261104-o227",
+ "round_3": {
+  "target": "7c21fc75 (role/test/20261104-o227c) 병합, 머지 커밋 ff7fad2d. 이번 수정 범위만 재고 앞 판정 측정은 재사용",
+  "user_decision": "O-228 원문 확인(wt/_drafts/user_decisions.md 1209행, 사용자 '나'): cnr·erfc 8건 xfail 고정, 통과로 세지 않음, 달라지거나 기준선이 생기면 실패, 해제는 LA-1 재점검. round_2 user_decision_item은 닫힌다.",
+  "majors": [],
+  "closed": {
+   "M3": "g10 고정이 not-searched 분기 _check_rows 단언 뒤로 갔고, 등록·계수 단언이 cnr·erfc 각각에서 실제로 돈다"
+  },
+  "minors": [
+   {
+    "id": "m8",
+    "title": "o227_stop_pin docstring의 'KeyError' 문언이 사실과 다르다",
+    "fact": "대상 목록에만 있고 표에 없는 회로는 KeyError가 아니다. pin_stop·pin_blocks는 표에 없으면 아무것도 안 하고 기존 단언으로 내려간다. 실측: block_grid·gain·area TypeError, diagnostic·r2r block_grid AssertionError, g10 _baseline AssertionError. 실패한다는 결론(fail-closed)은 맞고 예외 이름만 틀렸다. 표에만 있는 방향의 문장은 맞다.",
+    "also": "'판정 측정'이라는 인용: round_2의 m7 fail-closed 문장은 내가 코드를 읽고 쓴 것이고 측정이 아니었다. 이번 round에서 처음 쟀다.",
+    "fix": "문언을 '기존 단언이 실패한다(TypeError 또는 AssertionError)'로 고친다. 동작 변경 없음."
+   },
+   {
+    "id": "m9",
+    "title": "이번 수정으로 생긴 빈틈: 고정 회로가 탐색 경로로 가면 g10이 고정에 닿지 않고 passed",
+    "fact": "pin_stop은 not-searched 분기 안에만 있고 pinned면 _baseline도 건너뛴다. 그래서 STOP에 있으면서 [ok, ok]이고 NOT_SEARCHED에서 빠진 회로는 기준선 유무와 무관하게 g10이 passed다.",
+    "measured": "common_gate_amplifier를 STOP에 넣어 잼: 기준선 있음 PASS, 기준선 없음 PASS, NOT_SEARCHED에 남겨 두면 전제 단언 AssertionError.",
+    "reach": "엔진이 고쳐져 [ok, ok]가 되고 NOT_SEARCHED까지 손으로 뺐을 때만 닿는다. 이때 탐색 G-10은 실제로 돌고, 그 회로의 다른 고정 test는 정지 안 함·기준선 있음으로 실패하므로(round_2 측정) suite 전체로는 fail-closed다. 그래서 Minor.",
+    "fix_option": "탐색 분기 들머리에 pinned면 실패시키는 단언 한 줄. 또는 그대로 두고 LA-1 재점검 해제 때 STOP과 함께 지운다."
+   }
+  ],
+  "checks": {
+   "not_searched_and_counts_before_pin": "cnr·erfc 각각: 등록 제거, recomputes 주입, calls 항등 위반 주입, S0 writer 누락 주입, writers 빈 목록, s1 None -> 모두 AssertionError (xfail 아님). 종단: 등록 제거 2/2 failed, 계수 위반 2/2 failed, 수정 전(round_2)에는 xfail이던 경로",
+   "new_gap_review": {
+    "baseline_appears_not_searched": "cnr·erfc FAILED(기준선 메시지). 사유 빈 목록 동반도 FAILED",
+    "baseline_and_count_violation": "AssertionError(어느 쪽이든 실패)",
+    "achievability_present": "cnr·erfc FAILED(정지 안 함)",
+    "b_status_ok_only": "a.status가 stopped라 not-searched 유지, XFAIL(정상)",
+    "searched_path": "m9"
+   },
+   "reason_devices_g10": "하네스: class·분지·소자 추가/제거·중복·빈 목록 FAILED, JSON 아님 예외. 종단: 사유 표 변경 2/2, 소자 표 변경 2/2 failed",
+   "r2r_rfc_and_unpinned": "r2r·rfc·ngcc real PASS, 등록 제거·계수 주입 모두 AssertionError, common_gate 표 밖 real PASS. g10 diff는 pin 호출 이동뿐이고 추가 2줄이 if pinned 아래",
+   "harness": {
+    "cases": 51,
+    "unexpected": 0,
+    "gap_cases_expected_pass": 2
+   },
+   "docstring": {
+    "list_only_stop/block_grid": "EXC:TypeError",
+    "table_only_stop/block_grid": "EXC:TypeError",
+    "list_only_stop/gain": "EXC:TypeError",
+    "table_only_stop/gain": "EXC:TypeError",
+    "list_only_stop/area": "EXC:TypeError",
+    "table_only_stop/area": "EXC:TypeError",
+    "list_only_stop/diag": "ASSERT:",
+    "table_only_stop/diag": "ASSERT:",
+    "list_only_block/block_grid": "ASSERT:",
+    "table_only_block/block_grid": "ASSERT:",
+    "list_only_stop/g10": "ASSERT:기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'cnr_ota' 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정"
+   },
+   "graph_canonical": "엔진 diff 0, fixture diff 0, 새 cache·필드 0"
+  },
+  "files": [
+   {
+    "file": "test_g10_no_recompute_9circuits.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 13,
+    "passed": 11,
+    "xfailed": 2,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 192,
+    "min_free_mb": 3073,
+    "failed_ids": []
+   },
+   {
+    "file": "test_layer0_boundary_rows.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 14,
+    "passed": 12,
+    "xfailed": 2,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 168,
+    "min_free_mb": 3070,
+    "failed_ids": []
+   },
+   {
+    "file": "test_s0_layer_9circuits.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 83,
+    "passed": 79,
+    "xfailed": 4,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 292,
+    "min_free_mb": 3414,
+    "failed_ids": []
+   },
+   {
+    "file": "test_stage_b_library.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 68,
+    "passed": 59,
+    "xfailed": 9,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 112,
+    "min_free_mb": 3520,
+    "failed_ids": []
+   },
+   {
+    "file": "test_removed_names.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 16,
+    "passed": 16,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 4,
+    "min_free_mb": 5086,
+    "failed_ids": []
+   },
+   {
+    "file": "test_structure_rules.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 14,
+    "passed": 14,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 52,
+    "min_free_mb": 4983,
+    "failed_ids": []
+   },
+   {
+    "file": "test_structure_rules_reject_fixtures.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 41,
+    "passed": 41,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 2,
+    "min_free_mb": 5108,
+    "failed_ids": []
+   },
+   {
+    "file": "test_structure_test_mapping.py",
+    "status": "done",
+    "rc": 5,
+    "tests": 0,
+    "passed": 0,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 2,
+    "min_free_mb": 5100,
+    "failed_ids": []
+   }
+  ],
+  "total": {
+   "tests": 249,
+   "passed": 232,
+   "xfailed": 17,
+   "skipped_other": 0,
+   "failed": 0,
+   "errors": 0
+  },
+  "xfail_ids": [
+   "test_g10_no_recompute_9circuits.py::test_no_same_input_recompute_in_one_run[cnr_ota]",
+   "test_g10_no_recompute_9circuits.py::test_no_same_input_recompute_in_one_run[erfc_ota]",
+   "test_layer0_boundary_rows.py::test_layer0_baseline_present_for_every_library_circuit[cnr_ota]",
+   "test_layer0_boundary_rows.py::test_layer0_baseline_present_for_every_library_circuit[erfc_ota]",
+   "test_s0_layer_9circuits.py::test_baseline_present_for_every_library_circuit[cnr_ota]",
+   "test_s0_layer_9circuits.py::test_baseline_present_for_every_library_circuit[erfc_ota]",
+   "test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[cnr_ota]",
+   "test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[erfc_ota]",
+   "test_stage_b_library.py::test_area_lower_bound_from_declared_values[cnr_ota]",
+   "test_stage_b_library.py::test_area_lower_bound_from_declared_values[erfc_ota]",
+   "test_stage_b_library.py::test_block_grid_products_and_budget_gate[cnr_ota]",
+   "test_stage_b_library.py::test_block_grid_products_and_budget_gate[erfc_ota]",
+   "test_stage_b_library.py::test_block_grid_products_and_budget_gate[r2r_opamp]",
+   "test_stage_b_library.py::test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota]",
+   "test_stage_b_library.py::test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota]",
+   "test_stage_b_library.py::test_gain_target_and_verdict[cnr_ota]",
+   "test_stage_b_library.py::test_gain_target_and_verdict[erfc_ota]"
+  ],
+  "structure_note": "test_structure_test_mapping.py rc 5, 0 tests(규칙 H 마커로 deselected), round_2와 같게 판정 안 함",
+  "experiments": {
+   "devices": {
+    "rc": 1,
+    "min_free_mb": 3498,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[cnr_ota]": "failed",
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "failed"
+    }
+   },
+   "g10_counts_bad": {
+    "rc": 1,
+    "min_free_mb": 3493,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[cnr_ota]": "failed",
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "failed"
+    }
+   },
+   "head": {
+    "rc": 0,
+    "min_free_mb": 3397,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[cnr_ota]": "xfailed",
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "xfailed"
+    }
+   },
+   "ns_drop_cnr_erfc": {
+    "rc": 1,
+    "min_free_mb": 3434,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[cnr_ota]": "failed",
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "failed"
+    }
+   },
+   "ns_drop_r2r_rfc": {
+    "rc": 1,
+    "min_free_mb": 3262,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "xfailed",
+     "test_no_same_input_recompute_in_one_run[r2r_opamp]": "failed",
+     "test_no_same_input_recompute_in_one_run[rfc_ota]": "failed"
+    }
+   },
+   "reason": {
+    "rc": 1,
+    "min_free_mb": 3381,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[cnr_ota]": "failed",
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "failed"
+    }
+   }
+  },
+  "min_free_mb_watched": 3070,
+  "external_kills": 0,
+  "not_run": "전체 test는 지시대로 돌리지 않았다. reject_c.py는 메모리 감시 없이 돌렸다.",
+  "evidence": [
+   "round3/results.jsonl",
+   "round3/reject_c.json",
+   "round3/reject_c.py"
+  ]
+ },
+ "round_2": {
+  "target": "869e614b (role/test/20261104-o227b) 병합, 머지 커밋 e88651f4",
+  "decision": "A-71 (오케스트레이터 결정, wt/_drafts/la1_auto_decisions.md)",
+  "majors": [
+   {
+    "id": "M3",
+    "title": "g10 cnr·erfc: 고정이 NOT_SEARCHED 검사와 단계 A·B 계수보다 앞에 있어 A-71의 '단계 A·B 계수만 본다'가 돌지 않는다",
+    "fact": "test_no_same_input_recompute_in_one_run에서 pin_stop은 run_stage_b 바로 뒤에 있고 항상 xfail 또는 실패로 끝난다. 그래서 cnr·erfc는 assert searched == ... 와 _check_rows에 닿지 않는다. NOT_SEARCHED 주석 '이 회로들의 G-10 은 ... 단계 A·B 계수만 본다'는 r2r·rfc에만 맞다.",
+    "measured": {
+     "ns_drop_cnr_erfc": "NOT_SEARCHED에서 cnr·erfc를 빼도 2건 xfail 그대로 -- 두 등록은 관측되지 않는다",
+     "g10_pin_off": "g10 고정만 끄면 cnr·erfc 2건 passed -- 단계 A·B 계수는 지금 잴 수 있고 성립한다",
+     "ns_drop_r2r_rfc": "r2r·rfc를 빼면 2건 failed -- 이 둘의 등록은 실재한다",
+     "g10_counts_bad": "r2r·rfc 위반 주입 시 2건 failed -- 이 둘의 계수 단언은 실제로 돈다"
+    },
+    "fix_needed": "test 작성자 몫: 고정을 not searched 분기의 _check_rows 단언 뒤(return 앞)로 옮긴다. m1·m2와 같은 처리다. 통과로 세지 않는 것은 그대로다.",
+    "note": "고정 전에도 이 단언에 닿지 못했으므로 기존 대비 약화는 아니다. Major로 둔 근거는 결정 문언과 구현이 다르고 주석이 사실과 다르다는 것이다."
+   }
+  ],
+  "minors": [
+   {
+    "id": "m7",
+    "fact": "회로 이름 위치: cnr·erfc는 o227_stop_pin.STOP과 test_stage_b_library._STOP_PINNED 두 자리, r2r는 BLOCK과 _BLOCK_PINNED 두 자리다. 헬퍼 docstring '표는 이 파일 한 자리다(회로 이름은 표 안에만)'와 다르다. s0·layer0·g10은 is_stop_pinned를 쓴다. 표가 어긋나면 기존 단언이 실패하므로 fail-closed. g10 NOT_SEARCHED는 고정이 아니라 탐색 구분이다. 엔진 diff 0."
+   },
+   {
+    "id": "m5_tool_gap",
+    "fact": "weakening_diff.py는 assets/tests/만 보고 gmid_engine/tests를 못 본다. 도구 공백으로 기록만 한다. 고치지 않았다."
+   },
+   {
+    "id": "m6_kept",
+    "fact": "layer0 존재 test[r2r·rfc]의 passed는 항목 존재 뜻뿐이다(변함없음)."
+   }
+  ],
+  "user_decision_item": "cnr·erfc의 s0 존재·s0 보고서·layer0 존재·g10 8건은 O-227 (2) '기준선을 재서 채운다'와 달리 xfail로 바뀌었다. 8건이 red에서 xfail로 바뀌는 것은 기준 약화 성격이다. 판정자가 확인한 근거는 A-71 행뿐이고 사용자 승인 기록은 확인하지 못했다. A-71 행에 사용자 보고 표지가 있다.",
+  "checks": {
+   "merge": "충돌 0, b8c4c189 위 --no-ff",
+   "assert_compare_ast": "test 함수 수 동일, 단언 수·문장 동일(변경 4함수 파일 기준 잃은 단언 0). 조건 아래로 간 단언은 pi == prod 하나이고 고정한 불량 블록 객체일 때만 건너뛴다. 상세 static_b.json",
+   "stage_b_minus_34": "표·_settle·헬퍼 본문이 o227_stop_pin.py로 이동. 그 밖의 변경: pi 단언 조건, finish_blocks 추가, diagnostic의 exit code 단언을 고정 앞으로 이동(단언 유지).",
+   "pinned_17": "junit type pytest.xfail 17건 = stage_b 9, s0 4, layer0 2, g10 2. 지시한 조합과 같다.",
+   "reject_harness": {
+    "cases": 179,
+    "outcomes": {
+     "XFAIL": 21,
+     "PASS": 3,
+     "FAILED": 113,
+     "EXC": 32,
+     "ASSERT": 10
+    },
+    "unexpected": 0,
+    "covers": "실제 test 함수 + 실제 보고서 변형: 사유·class·분지·소자(추가/제거/개명/빈)·넷·둘째 사유·중복·빈 목록·JSON 아님·키 없음 × 4 test × 2회로, 정지 안 함, 가짜 기준선(빈 dict·status만·빈 사유 동반), 둘째 불량 블록(같은 사유/다른 사유)·같은 key 중복·다른 블록 불량·key/사유 변경·불량 해소"
+   },
+   "end_to_end_mutations": {
+    "real_cnr_entry_as_baseline": "cnr 8/8 failed, erfc 8/8 xfailed (네 파일, 정지 상태 기준선 (다)도 거부됨)",
+    "stop_reason_table_changed": "s0·layer0·g10 8/8 failed",
+    "device_set_table_changed": "s0·layer0·g10 8/8 failed"
+   },
+   "m1_runs": "cnr·erfc b.exit_code를 바꾸면 AssertionError (xfail 아님). 실측 2건",
+   "m2_runs": "r2r 다른 블록과 고정 블록의 단언 위반 7종 모두 AssertionError (축 크기, 예산 초과 사유·status·a_max, 고정 블록 축 크기·certified, 추가 블록 certified)",
+   "unpinned_paths": "표 밖 회로: rfc에 pi 0을 넣으면 AssertionError로 흡수되지 않음. rfc·r2r diagnostic 실제 passed. s0·layer0·stage_b의 passed 수 유지(79·12·59), g10은 9 -> 11(r2r·rfc)",
+   "helper": {
+    "collected": false,
+    "evidence": "integration --collect-only 598 tests에 o227_stop_pin 없음",
+    "globals": [
+     "BASELINE_PATH",
+     "STOP",
+     "BLOCK"
+    ],
+    "try_except": 0,
+    "value_copies": "엔진 값·fixture 사본 없음. 표는 사유 코드·소자·넷 oracle (c) 관측값이고 fixture는 호출 때 읽어 항목 유무만 본다",
+    "other_importers": "테스트 네 파일뿐. nfr4_run_dump 등은 주석 언급만"
+   },
+   "baseline": "r2r·rfc 유지, fixture diff 0 (b8c4c189 이후)",
+   "graph_canonical": "엔진 diff 0, 새 cache·필드 0"
+  },
+  "files": [
+   {
+    "file": "test_g10_no_recompute_9circuits.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 13,
+    "passed": 11,
+    "xfailed": 2,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 194,
+    "min_free_mb": 3502,
+    "failed_ids": []
+   },
+   {
+    "file": "test_layer0_boundary_rows.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 14,
+    "passed": 12,
+    "xfailed": 2,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 172,
+    "min_free_mb": 3460,
+    "failed_ids": []
+   },
+   {
+    "file": "test_s0_layer_9circuits.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 83,
+    "passed": 79,
+    "xfailed": 4,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 314,
+    "min_free_mb": 3547,
+    "failed_ids": []
+   },
+   {
+    "file": "test_stage_b_library.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 68,
+    "passed": 59,
+    "xfailed": 9,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 122,
+    "min_free_mb": 3843,
+    "failed_ids": []
+   },
+   {
+    "file": "test_removed_names.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 16,
+    "passed": 16,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 4,
+    "min_free_mb": 5424,
+    "failed_ids": []
+   },
+   {
+    "file": "test_structure_rules.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 14,
+    "passed": 14,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 50,
+    "min_free_mb": 5391,
+    "failed_ids": []
+   },
+   {
+    "file": "test_structure_rules_reject_fixtures.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 41,
+    "passed": 41,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 2,
+    "min_free_mb": 5475,
+    "failed_ids": []
+   },
+   {
+    "file": "test_structure_test_mapping.py",
+    "status": "done",
+    "rc": 5,
+    "tests": 0,
+    "passed": 0,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 2,
+    "min_free_mb": 5467,
+    "failed_ids": []
+   }
+  ],
+  "total": {
+   "tests": 249,
+   "passed": 232,
+   "xfailed": 17,
+   "skipped_other": 0,
+   "failed": 0,
+   "errors": 0
+  },
+  "structure_note": "test_structure_test_mapping.py는 rc 5, 0 tests: 규칙 H 마커로 기본 실행에서 deselected(1건). 판정 안 함.",
+  "min_free_mb_watched": 3460,
+  "external_kills": 0,
+  "not_run": "전체 test는 지시대로 돌리지 않았다. reject_b.py 자체는 메모리 감시 없이 돌렸다(앞뒤 여유 4 GB 이상).",
+  "evidence": [
+   "round2/results.jsonl",
+   "round2/byfile_summary.json",
+   "round2/exp_summary.json",
+   "round2/reject_b.json",
+   "round2/static_b.json",
+   "round2/reject_b.py",
+   "round2/mut2.py"
+  ]
+ },
+ "round_1": {
+  "id": "20261104-o227",
+  "decision": "O-227 (2): g10·layer0·s0 16건은 판정자가 기준선을 재서 채우고, stage_b 9건은 정지 사유를 test에 고정하며 통과로 세지 않는다",
+  "base": {
+   "merged": "5671a6c7",
+   "test_commit": "ede4f440",
+   "engine_diff_files": 0
+  },
+  "scope_note": "카드 단위 V1~V10 판정 기록(.ai/verification/<id>.json)이 아니다. 전체 test는 지시대로 돌리지 않았다. 측정은 임시 복제본(iso)에서, 네 파일 실행은 지시대로 audit worktree에서.",
+  "summary": {
+   "target_16": {
+    "resolved": 6,
+    "held_stop_state": 6,
+    "blocked_by_test_code": 4
+   },
+   "four_files": {
+    "tests": 178,
+    "passed": 159,
+    "xfailed": 9,
+    "failed": 10,
+    "errors": 0
+   },
+   "failed_0_reached": false
+  },
+  "majors": [
+   {
+    "id": "M1",
+    "title": "g10 4건은 기준선만으로 풀리지 않는다 -- test 코드의 NOT_SEARCHED 등록표가 막는다",
+    "tests": [
+     "test_no_same_input_recompute_in_one_run[cnr_ota]",
+     "[erfc_ota]",
+     "[r2r_opamp]",
+     "[rfc_ota]"
+    ],
+    "fact": "기준선을 넣은 r2r·rfc도 test_g10_no_recompute_9circuits.py:106 assert searched == (circuit not in NOT_SEARCHED)에서 실패한다. 네 회로 모두 status가 [ok, ok]가 아닌데 NOT_SEARCHED = {ngcc_3stage_ff}뿐이다.",
+    "needed": "test 작성자가 NOT_SEARCHED를 고친다. 판정자 위임 밖이라 고치지 않았다. 이 등록표에 넣으면 그 회로의 탐색 G-10이 빠지고 단계 A·B 계수만 본다 -- 이 점의 승인 여부는 오케스트레이터 몫.",
+    "measured": "버린 복제본에서 NOT_SEARCHED에 네 회로를 넣고 기준선 네 항목을 넣으면 4/4 passed(44 s). 근거 exp_summary.json g10_ext."
+   },
+   {
+    "id": "M2",
+    "title": "cnr_ota·erfc_ota 기준선은 정지 상태를 값으로 박으므로 커밋하지 않았다(s0 2·layer0 존재 1 × 2회로 = 6건)",
+    "tests": [
+     "test_baseline_present_for_every_library_circuit[cnr_ota]",
+     "[erfc_ota]",
+     "test_layer0_baseline_present_for_every_library_circuit[cnr_ota]",
+     "[erfc_ota]",
+     "test_stage_reports_unchanged_from_base[cnr_ota]",
+     "[erfc_ota]"
+    ],
+    "fact": "두 회로 단계 B의 achievability는 null이고 achievability_sha는 빈 표다. 단계 B 내용은 정지 사유뿐이다. 이 정지는 stage_b에서 xfail(통과로 세지 않음)인데, 기준선을 넣으면 같은 정지가 s0·layer0에서 passed로 세어진다.",
+    "measured": "gain_ss_db 목표를 +1 바꾸는 섭동: cnr·erfc 기준선 키 변화 0개, r2r·rfc는 achievability.gain 변화(sensitivity.json). 단계 A의 tables·views는 값이 있으므로 완전히 공허하지는 않다(섭동 한 종류의 결과).",
+    "options_for_decider": [
+     "(가) 6건을 실패로 두고 DR-1(계획 N6.36, 발동 회로 cnr_ota·erfc_ota) 뒤 잰다",
+     "(나) stage_b처럼 정지 사유를 고정해 xfail로 둔다 -- test 수정 필요",
+     "(다) 정지 상태 기준선을 승인한다 -- 값은 measure_iso.jsonl에 있다. 통과로 세는 것이므로 사용자 결정"
+    ]
+   }
+  ],
+  "minors": [
+   {
+    "id": "m1",
+    "fact": "test_diagnostic_mode_keeps_stage_a_exit_code[cnr·erfc]: 고정 지점이 test 이름의 단언 b.exit_code == a.exit_code 앞에 있어 이 단언을 건너뛴다. 실측 (2, 2)로 성립하고 정지와 무관하게 잴 수 있다. 고정 전에도 앞 단언에서 실패해 닿지 못했으므로 약화는 아니다."
+   },
+   {
+    "id": "m2",
+    "fact": "r2r block_grid: 고정이 블록 루프 앞에서 test를 끝내 다른 블록 Vo(M25·M26)의 단언 4개도 사라진다. 실측으로 4개 모두 성립한다. 고정 블록 자체의 나머지 3개도 성립한다. 고정 전에도 첫 블록 실패로 닿지 못했다."
+   },
+   {
+    "id": "m3",
+    "fact": "고정이 못 잡는 변화: 같은 사유의 둘째 불량 블록(two_same_reason = XFAIL), 정지 소자 집합 변화(devices 미대조, erfc M19~M21이 바뀌어도 XFAIL), 같은 사유 중복(duplicate_same = XFAIL)."
+   },
+   {
+    "id": "m4",
+    "fact": "test 주석 '엔진이 사유를 내고 정지해 기존 단언에 닿지 못한다'는 r2r에 맞지 않는다. 아래 stop_facts.r2r_opamp 참고."
+   },
+   {
+    "id": "m5",
+    "fact": "weakening_diff.py를 5671a6c7..ede4f440에 돌리면 PASS지만 diff_paths가 비었다. TEST_PREFIX가 assets/tests/라 gmid_engine/tests의 pytest.xfail 추가를 보지 않는다. 이 PASS는 증거가 아니다."
+   },
+   {
+    "id": "m6",
+    "fact": "layer0 존재 test[r2r·rfc]의 passed는 항목이 있다는 뜻뿐이다. 두 회로는 status가 [ok, ok]가 아니라 층 0 경계 test 대상이 아니다(SEARCHED 8 유지, ngcc와 같은 처리)."
+   }
+  ],
+  "stage_b_pin": {
+   "numstat": "45 추가, 0 삭제 (git diff --numstat 5671a6c7 ede4f440, 파일 1개)",
+   "pinned": {
+    "count": 9,
+    "stop": "area_lower_bound·block_grid·diagnostic_mode·gain_target × cnr_ota·erfc_ota",
+    "block": "block_grid × r2r_opamp"
+   },
+   "base_failures_on_same_selection": "9 failed, 6 passed (exp_summary.json base). cnr·erfc 8건은 TypeError 또는 s1 ach 단언, r2r는 assert 0 == 1",
+   "head_on_same_selection": "9 xfailed, 6 passed, junit type pytest.xfail (head)",
+   "mutations_end_to_end": {
+    "reason_differs": "9/9 failed (reason)",
+    "unreadable": "cnr·erfc 8/8 failed, JSONDecodeError (unreadable). r2r는 json을 읽지 않아 해당 없음",
+    "not_stopping": "상태 정상 회로 common_gate 4건 + two_stage_ota block_grid 1건을 표에 넣으면 5/5 failed (notstop)"
+   },
+   "helper_direct": "unit_pin.json: 사유 다름·사유 추가·빈 목록·실패 아님 = Failed, JSON 아님·키 없음·칸 없음 = 예외, 표 밖 조합 = 동작 없음",
+   "observed_reasons_match_author": true,
+   "stop_facts": {
+    "cnr_ota": "status [stopped, stopped], exit (2, 2), achievability null, stop_reasons 1건 STRUCTURE_UNRESOLVED / unsupported_rule_branch / dc_resistor_cycle, devices x40, nets VCR·VDD_1V8. 구조화된 정지이고 예외가 아니다. 계획 N6.36 DR-1의 범위.",
+    "erfc_ota": "status [stopped, stopped], exit (2, 2), achievability null, stop_reasons 1건 STRUCTURE_UNRESOLVED / unsupported_rule_branch / mos_zero_current_structural, devices M19·M20·M21. A-22 측정(wt/_drafts/evidence/2026-11-03/oracle_m8_bridge.jsonl kcl_zero)의 집합과 같다. 물리 판정은 하지 않았다.",
+    "r2r_opamp": "정지가 아니다. 단계 B stop_reasons 0건, achievability.verdict ok, gain.verdict undetermined. 블록 (n_gn, n_gp, 소자 22개)이 unknown / block_input_pattern_unsupported이고 pi 0·axes 빈 목록이라 기존 단언 pi == prod(axes)에 닿아서 0 == 1로 실패한다. 엔진 표기와 test oracle 중 어느 쪽을 고칠지는 정하지 않았다. 별도로 status stopped는 단계 A stop_reasons 3건(loop_record_only, global_feedback_or_cross_coupled)에서 온다."
+   }
+  },
+  "baseline": {
+   "fixture": "skills/analog-gmid-design/gmid_engine/tests/integration/fixtures/u17_1b_s0_baseline.json",
+   "numstat": "83 추가, 0 삭제. 기존 항목 파싱 값 동일 + 기존 줄 전부 순서대로 유지(도구 assert)",
+   "committed_keys": [
+    "r2r_opamp",
+    "rfc_ota",
+    "_source_o227"
+   ],
+   "form": "ngcc_3stage_ff와 같은 꼴: status, stage_a_sha 13키, stage_b_sha 6키, achievability_sha 10키. start·kernel 없음. 기존 재측정 도구는 저장소·wt에 없어(_scratch 폴더 없음) measure_baseline.py를 새로 썼다.",
+   "tool_control": "같은 도구로 ngcc_3stage_ff·common_gate_amplifier·two_stage_ota 재측정 = 기존 값과 29키 모두 일치. 나머지 6개는 test_stage_reports_unchanged_from_base passed로 확인",
+   "determinism": "회로마다 사슬 두 번 보고서 바이트 동일. 다른 경로(iso → audit worktree) test passed",
+   "table": [
+    {
+     "circuit": "rfc_ota",
+     "status": [
+      "review_needed",
+      "review_needed"
+     ],
+     "stage_a_value_keys": 10,
+     "stage_b_stop_reasons": 0,
+     "ach_value_keys": 7,
+     "content": "값(ngcc와 같은 모양). gain undetermined, 블록 1개 grid_product_over_budget",
+     "committed": true,
+     "s0_present": "passed",
+     "s0_reports": "passed",
+     "layer0_present": "passed",
+     "g10": "failed(M1)"
+    },
+    {
+     "circuit": "r2r_opamp",
+     "status": [
+      "stopped",
+      "stopped"
+     ],
+     "stage_a_value_keys": 11,
+     "stage_b_stop_reasons": 0,
+     "ach_value_keys": 7,
+     "content": "혼합: 단계 A 정지 표지 3건 + achievability 값. gain undetermined(pi 0 블록 포함)",
+     "committed": true,
+     "s0_present": "passed",
+     "s0_reports": "passed",
+     "layer0_present": "passed",
+     "g10": "failed(M1)"
+    },
+    {
+     "circuit": "cnr_ota",
+     "status": [
+      "stopped",
+      "stopped"
+     ],
+     "stage_a_value_keys": 10,
+     "stage_b_stop_reasons": 1,
+     "ach_value_keys": 0,
+     "content": "단계 A 값(coupling null) + 단계 B 정지 상태",
+     "committed": false,
+     "s0_present": "failed(M2)",
+     "s0_reports": "failed(M2)",
+     "layer0_present": "failed(M2)",
+     "g10": "failed(M1)"
+    },
+    {
+     "circuit": "erfc_ota",
+     "status": [
+      "stopped",
+      "stopped"
+     ],
+     "stage_a_value_keys": 10,
+     "stage_b_stop_reasons": 1,
+     "ach_value_keys": 0,
+     "content": "단계 A 값(coupling null) + 단계 B 정지 상태",
+     "committed": false,
+     "s0_present": "failed(M2)",
+     "s0_reports": "failed(M2)",
+     "layer0_present": "failed(M2)",
+     "g10": "failed(M1)"
+    }
+   ],
+   "r2r_decision_needs_review": "r2r status stopped가 기준선에 박혔고 s0·layer0에서 passed로 세어진다. 넣은 근거: 값 키가 있고 gain 섭동을 감지하며, O-227이 r2r는 block_grid 1건만 고정했다. 정지 표지가 있는 회로를 통과로 세지 않는 쪽으로 본다면 이 항목을 빼야 하고, 그러면 failed가 3건 늘어 13건이 된다.",
+   "graph_canonical": "기준선은 test 픽스처의 sha이고 엔진 값 사본이 아니다. 엔진 diff 0, 새 cache·필드 0."
+  },
+  "four_files": [
+   {
+    "file": "test_stage_b_library.py",
+    "tests": 68,
+    "passed": 59,
+    "xfailed": 9,
+    "failed": 0,
+    "sec": 150,
+    "min_free_mb": 2749
+   },
+   {
+    "file": "test_g10_no_recompute_9circuits.py",
+    "tests": 13,
+    "passed": 9,
+    "xfailed": 0,
+    "failed": 4,
+    "sec": 276,
+    "min_free_mb": 2833
+   },
+   {
+    "file": "test_layer0_boundary_rows.py",
+    "tests": 14,
+    "passed": 12,
+    "xfailed": 0,
+    "failed": 2,
+    "sec": 178,
+    "min_free_mb": 2665
+   },
+   {
+    "file": "test_s0_layer_9circuits.py",
+    "tests": 83,
+    "passed": 79,
+    "xfailed": 0,
+    "failed": 4,
+    "sec": 384,
+    "min_free_mb": 2712
+   }
+  ],
+  "min_free_mb_watched": 2520,
+  "external_kills": 0,
+  "evidence": [
+   "results.jsonl",
+   "measure_iso.jsonl",
+   "sensitivity.json",
+   "unit_pin.json",
+   "exp_summary.json",
+   "measure_baseline.py",
+   "add_entries.py"
+  ]
+ },
+ "open_majors": [],
+ "closed_majors": {
+  "M1": "r2r·rfc 등록 실재, cnr·erfc는 M3로 이어짐",
+  "M2": "A-71: 기준선 없이 고정, 가짜·실제 기준선 모두 거부 확인",
+  "M3": "g10 고정이 not-searched 분기 _check_rows 단언 뒤로 갔고, 등록·계수 단언이 cnr·erfc 각각에서 실제로 돈다"
+ },
+ "verdict_line": "verdict: Major 0"
+}

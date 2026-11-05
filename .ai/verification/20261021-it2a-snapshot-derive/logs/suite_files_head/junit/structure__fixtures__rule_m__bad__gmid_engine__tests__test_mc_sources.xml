@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="5" time="0.750" timestamp="2026-10-22T08:33:32.249184+09:00" hostname="DESKTOP-6MBVVGJ"><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.bad.gmid_engine.tests.test_mc_sources" name="test_result_fields" time="0.090"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 't'">gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_sources.py:15: in test_result_fields
+    a = run_stage_a("t", "s", None, output_dir="o", donors=d, counters=c)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 't'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.bad.gmid_engine.tests.test_mc_sources" name="test_other_call" time="0.088"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 't'">gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_sources.py:22: in test_other_call
+    run_stage_a("t", "s", None, output_dir="o", donors=d, counters=c)
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 't'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.bad.gmid_engine.tests.test_mc_sources" name="test_swapped" time="0.085"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 't'">gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_sources.py:27: in test_swapped
+    run_stage_a("t", "s", None, output_dir="o", donors=d, counters=c)
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 't'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.bad.gmid_engine.tests.test_mc_sources" name="test_rebound" time="0.093"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 't'">gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_sources.py:33: in test_rebound
+    run_stage_a("t", "s", None, output_dir="o", donors=d, counters=c)
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 't'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.bad.gmid_engine.tests.test_mc_sources" name="test_two_runs" time="0.088"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 't'">gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_sources.py:39: in test_two_runs
+    run_stage_a("t", "s", None, output_dir="o", donors=d1, counters=c2)
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 't'</failure></testcase></testsuite></testsuites>

@@ -26,21 +26,7 @@ def deps_of(snap):
     writers = dict(snap.column("node", "dc_writer"))
     pins = _pins(snap)
     fixed = {n for n, w in writers.items() if w.relation in FIXED_RELS}
-    # 입력 묶음(input_tie 로 이어진 노드) -- free_window 뿌리면 묶음 전원
-    tie = {}
-    for n, w in writers.items():
-        if w.relation == "input_tie":
-            tie.setdefault(w.known, set()).add(n)
-            tie.setdefault(n, set()).add(w.known)
-
-    def group(n):
-        seen, stack = {n}, [n]
-        while stack:
-            for m in tie.get(stack.pop(), ()):
-                if m not in seen:
-                    seen.add(m)
-                    stack.append(m)
-        return seen
+    # [IT-1 규칙 변경 K-3] 입력 묶음(input_tie)은 없다 -- free_window 의 의존은 그 노드 자신의 드레인·소스 이웃뿐
 
     deps = {}
     for n, w in writers.items():
@@ -52,16 +38,26 @@ def deps_of(snap):
         elif w.relation == "vgs_source":
             p = pins[w.element]
             d = {w.known, p["d"], p["b"], n}
-        elif w.relation in ("resistor_drop", "input_tie"):
+        elif w.relation == "resistor_drop":
             d = {w.known}
         elif w.relation == "free_window":
             d = set()
-            members = group(n)
             for p in pins.values():
-                if p["d"] in members:
+                if p["d"] == n:
                     d.add(p["s"])
-                if p["s"] in members:
+                if p["s"] == n:
                     d.add(p["d"])
+        elif w.relation == "input_point" and w.known is not None:
+            d = {w.known}                                             # 짝 포트 = 같은 전압(KVL)
+        elif w.relation == "input_point":
+            point = {n} | {x for x, o in writers.items() if o.relation == "input_point" and o.known == n}
+            d = set()                                                 # 뿌리: 한 점의 두 넷에 채널이 닿는 소자의 건너편(4.7-3 순서 창)
+            for p in pins.values():
+                if p["d"] in point:
+                    d.add(p["s"])
+                if p["s"] in point:
+                    d.add(p["d"])
+            d -= point
         else:
             raise AssertionError("unknown relation %r" % (w.relation,))
         deps[n] = {x for x in d if x not in fixed}

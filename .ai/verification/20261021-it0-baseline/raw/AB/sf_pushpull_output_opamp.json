@@ -1,0 +1,832 @@
+{
+ "circuit": "sf_pushpull_output_opamp",
+ "drive_pair_nets": {
+  "failing_views": 0,
+  "n_views": 2,
+  "views": [
+   {
+    "mode": "port",
+    "outside": [],
+    "pair_nets": [
+     "vin_n",
+     "vin_p"
+    ],
+    "view": "ViewDecl(mode='port', transfer=None, num=None, den=None, decision=None, beta=None, cuts=(), weights=(('vin_n', -0.5), ('vin_p', 0.5)), sense=SenseDecl(sense_p='vout', sense_n=None, sense_mode='single_"
+   },
+   {
+    "mode": "loop",
+    "outside": [],
+    "pair_nets": [
+     "vin_n",
+     "vin_p"
+    ],
+    "view": "ViewDecl(mode='loop', transfer=None, num=None, den=None, decision=None, beta='unity', cuts=(), weights=(('vin_n', -0.5), ('vin_p', 0.5)), sense=SenseDecl(sense_p='vout', sense_n=None, sense_mode='sing"
+   }
+  ]
+ },
+ "feedback_slot": {
+  "kind": "empty_tuple",
+  "noise_decl_feedback": [],
+  "spec_feedback": []
+ },
+ "front_empty": {
+  "after_refilter": 0,
+  "aux_after": 0,
+  "aux_unmeasured_excluded": [],
+  "empty": false,
+  "excluded": [],
+  "front_was_empty_before": true,
+  "icmr_constraints": [
+   "icm_margin_v"
+  ],
+  "n_front": 0,
+  "undefined_for_report": []
+ },
+ "kernel_window_status": {
+  "counts": {},
+  "defined": false,
+  "n_evals": 0,
+  "reason": "정의 안 됨(as-built 창 없음 -- 입력 DC 선언, O-72 (3))"
+ },
+ "loop_cut": {
+  "input_terminal_nets_calls": {
+   "after_stage_a": 0,
+   "stage_a": 0
+  },
+  "interval": "build_kernel_context..find_front..재평가 전 구간(dc_writer_plan·run_kernel·seal_dc 구간을 포함하는 상위 구간)",
+  "wrapped": true
+ },
+ "m_i1": {
+  "coords": [
+   [
+    "M1",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M10",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M11",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M12",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M13",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M14",
+    {
+     "partner": "M16",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M15",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M16",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M17",
+    {
+     "partner": "M9",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M18",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M19",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M2",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M20",
+    {
+     "partner": "M16",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M21",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M22",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M3",
+    {
+     "partner": "M4",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M4",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M5",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M6",
+    {
+     "partner": "M9",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M7",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M8",
+    {
+     "partner": "M11",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M9",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ]
+  ],
+  "dependent": [
+   [
+    "M14",
+    {
+     "partner": "M16",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M17",
+    {
+     "partner": "M9",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M2",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M20",
+    {
+     "partner": "M16",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M21",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M3",
+    {
+     "partner": "M4",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M6",
+    {
+     "partner": "M9",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M8",
+    {
+     "partner": "M11",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ]
+  ],
+  "fields_fp": {
+   "dc_coord": "114c62a91b66167e4622145038ec46eb5b5f5daafcf29330c4f09f8a3d71f96e",
+   "dc_tie_breaks": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
+   "dc_writer": "daa93d1e2dbb52ba6defc33ab2704620b5543c98d211fb01961bc092fa3fb4e1"
+  },
+  "input_port_writer": {
+   "vin_n": [
+    "W2",
+    "input_dc",
+    null,
+    null,
+    null
+   ],
+   "vin_p": [
+    "W2",
+    "input_dc",
+    null,
+    null,
+    null
+   ]
+  },
+  "tie_breaks": [],
+  "w4": [
+   [
+    "N20",
+    "N20"
+   ]
+  ],
+  "writers": [
+   [
+    "N1",
+    {
+     "element": "R1a",
+     "known": "N5",
+     "order": 11,
+     "relation": "resistor_drop",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N1112",
+    {
+     "element": "M12",
+     "known": "N2",
+     "order": 17,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N12",
+    {
+     "element": "R1c",
+     "known": "N13",
+     "order": 10,
+     "relation": "resistor_drop",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N13",
+    {
+     "element": "M16",
+     "known": "vss",
+     "order": 7,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N1314",
+    {
+     "element": "M13",
+     "known": "N12",
+     "order": 14,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N1516",
+    {
+     "element": "M15",
+     "known": "N12",
+     "order": 13,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N17",
+    {
+     "element": "M18",
+     "known": "Y",
+     "order": 21,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N2",
+    {
+     "element": "R1b",
+     "known": "N7",
+     "order": 12,
+     "relation": "resistor_drop",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N20",
+    {
+     "element": null,
+     "known": null,
+     "order": 19,
+     "relation": "free_window",
+     "tier": "W4",
+     "y_key": "N20"
+    }
+   ],
+   [
+    "N5",
+    {
+     "element": "M9",
+     "known": "vdd",
+     "order": 8,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N56",
+    {
+     "element": "M5",
+     "known": "N1",
+     "order": 16,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N7",
+    {
+     "element": "M11",
+     "known": "vdd",
+     "order": 9,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N78",
+    {
+     "element": "M7",
+     "known": "N2",
+     "order": 18,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N910",
+    {
+     "element": "M10",
+     "known": "N1",
+     "order": 15,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "NB",
+    {
+     "element": "M4",
+     "known": "vss",
+     "order": 6,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "TAIL",
+    {
+     "element": "M1",
+     "known": "vin_p",
+     "order": 5,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Y",
+    {
+     "element": "M19",
+     "known": "N20",
+     "order": 20,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "agnd",
+    {
+     "element": null,
+     "known": null,
+     "order": 3,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ],
+   [
+    "vdd",
+    {
+     "element": null,
+     "known": null,
+     "order": 4,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ],
+   [
+    "vin_n",
+    {
+     "element": null,
+     "known": null,
+     "order": 1,
+     "relation": "input_dc",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "vin_p",
+    {
+     "element": null,
+     "known": null,
+     "order": 0,
+     "relation": "input_dc",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "vout",
+    {
+     "element": "M22",
+     "known": "N17",
+     "order": 22,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "vss",
+    {
+     "element": null,
+     "known": null,
+     "order": 2,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ]
+  ]
+ },
+ "m_i1_r": {
+  "f_component_undeclared": [],
+  "input_w4_roots": [],
+  "isolated_input": [],
+  "multi_root": false,
+  "n_input_w4_roots": 0
+ },
+ "m_i2": {
+  "hard_ok": false,
+  "kernel_calls": 40,
+  "origin_point": null,
+  "probes": 33,
+  "start": null,
+  "start_failure": {
+   "detail": [
+    [
+     "axis",
+     "VDS"
+    ],
+    [
+     "device_query",
+     "tol_v_cell"
+    ],
+    [
+     "hi",
+     1.8
+    ],
+    [
+     "kind",
+     "pmos"
+    ],
+    [
+     "lo",
+     0.0
+    ],
+    [
+     "lut_reason",
+     "lut_axis_out_of_range"
+    ],
+    [
+     "reason",
+     "lut_query_failed"
+    ],
+    [
+     "table",
+     "tol_v"
+    ],
+    [
+     "value",
+     -0.32937189124267485
+    ],
+    [
+     "w_key",
+     1000
+    ]
+   ],
+   "devices": [
+    "M10"
+   ],
+   "failure_class": "SEAL_VIOLATION",
+   "margin": null
+  },
+  "start_status": "failed",
+  "stop": "start_lut_query_failed+probe_eval_budget",
+  "t": null
+ },
+ "m_i3": {
+  "domain_tied_y": [],
+  "failed_eps": 0,
+  "front_fp": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+  "fronts": {
+   "front": [],
+   "pending": [],
+   "unmeasured": []
+  },
+  "n_front": 0,
+  "n_pending": 0,
+  "n_theta_y": 1,
+  "n_unmeasured": 0,
+  "perf": {
+   "block_index_bound": 3162,
+   "block_index_entries": 145,
+   "eval_budget": 40,
+   "eval_budget_source": "declared",
+   "eval_time_median_s": 0.018450849980581552,
+   "fail_hits": 0,
+   "frozen_columns": 0,
+   "hits": 0,
+   "kernel_calls": 40,
+   "lut_memo_bound": "fixed",
+   "lut_memo_evictions": 709,
+   "n_solves": 0,
+   "n_starts": 0,
+   "outside_domain": 0,
+   "recompute_same_key": 0,
+   "requests": 40,
+   "stops_eval_budget": 0,
+   "stops_wall_budget": 0,
+   "unique_keys": 40
+  },
+  "result_y_keys": [],
+  "theta_y_components": [
+   [
+    "y",
+    "N20"
+   ]
+  ]
+ },
+ "m_i4": {
+  "exceed_points": [],
+  "has_diff": false,
+  "pairs": {},
+  "points": 0
+ },
+ "m_i5": {
+  "dof": {
+   "competing_pairs": [],
+   "free_variables": [
+    "I:M17",
+    "I:M19",
+    "I:M21",
+    "I:M9",
+    "R:R1a",
+    "R:R1b",
+    "R:R1c",
+    "V:N1",
+    "V:N12",
+    "V:N1516",
+    "V:N2",
+    "V:N20",
+    "V:N56",
+    "V:N7",
+    "V:N78",
+    "V:N910",
+    "V:TAIL",
+    "V:Y",
+    "V:vout",
+    "u:M1",
+    "u:M10",
+    "u:M11",
+    "u:M12",
+    "u:M13",
+    "u:M14",
+    "u:M15",
+    "u:M16",
+    "u:M17",
+    "u:M18",
+    "u:M19",
+    "u:M2",
+    "u:M20",
+    "u:M21",
+    "u:M22",
+    "u:M3",
+    "u:M4",
+    "u:M5",
+    "u:M6",
+    "u:M7",
+    "u:M8",
+    "u:M9"
+   ],
+   "n_equations": 27,
+   "n_variables": 68,
+   "numeric_ranks": [],
+   "status": "free_dof",
+   "structural_rank": 27,
+   "unmatched_equations": []
+  },
+  "tie_equations": 0
+ },
+ "m_i6": {
+  "E": 25,
+  "V": 19,
+  "components": 2,
+  "cycles": 8,
+  "dependent": 8,
+  "equal": true,
+  "tie_edges": 0
+ },
+ "output_structure": {
+  "input_dc_declared": true,
+  "n_outputs": 1,
+  "plan_stop": null,
+  "rows": [
+   {
+    "class": "high_impedance",
+    "component_size": 4,
+    "engine_path": "plan_ok",
+    "fprime_hit": [],
+    "output": "vout",
+    "s_os1": false,
+    "w3": false,
+    "writer_chain": [
+     [
+      "vout",
+      "W2",
+      "vgs_source"
+     ],
+     [
+      "N17",
+      "W2",
+      "vgs_source"
+     ],
+     [
+      "Y",
+      "W2",
+      "vgs_gate"
+     ],
+     [
+      "N20",
+      "W4",
+      "free_window"
+     ]
+    ]
+   }
+  ],
+  "s_os2_empty": false,
+  "s_os2_tuple": false,
+  "spec_feedback_kind": "empty_tuple",
+  "w3_declared": [],
+  "w3_outputs_on_hard_path": 0
+ },
+ "reeval": {
+  "front": [],
+  "theta0": []
+ },
+ "repo": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922/scratchpad/it0/it0-iso",
+ "s_p_sign": {
+  "negative": [],
+  "o49_p2_fires": false,
+  "rows": {}
+ },
+ "set": "library",
+ "side": "AB",
+ "stage_a": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "stage_b": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "tag": "",
+ "wall_s": 12.844835299998522,
+ "wrapped": true
+}

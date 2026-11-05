@@ -1,0 +1,15 @@
+{"m": "m0_control", "rc": 1, "summary": "1 failed, 110 passed in 24.93s", "failed": ["FAILED gmid_engine/tests/sizing/test_seal_region.py::test_region_oracle_tool_has_no_lut_interpolation_or_engine_import"], "sec": 36}
+{"m": "m1_rows_tol", "rc": 0, "summary": "155 passed in 36.57s", "failed": [], "sec": 39}
+{"m": "m2_sat_v_tol", "rc": 0, "summary": "72 passed in 11.78s", "failed": [], "sec": 14}
+{"m": "m3_domain_tol", "rc": 0, "summary": "11 passed in 15.43s", "failed": [], "sec": 18}
+{"m": "m4_headroom_tol", "rc": 1, "summary": "2 failed, 7 passed in 4.90s", "failed": ["FAILED gmid_engine/tests/search/test_iv_headroom.py::test_headroom_lower_bound_is_the_vdsat_curve_crossing_without_tol_terms[1.2]", "FAILED gmid_engine/tests/search/test_iv_headroom.py::test_headroom_lower_bound_is_the_vdsat_curve_crossing_without_tol_terms[1.35]"], "sec": 8}
+{"m": "m5_edge_strict", "rc": 0, "summary": "31 passed in 33.71s", "failed": [], "sec": 36}
+{"m": "m6_seal_tol", "rc": 1, "summary": "8 failed, 39 passed in 5.21s", "failed": ["FAILED gmid_engine/tests/sizing/test_seal_region.py::test_region_seal_triode_saturated_or_equal_rejected[0.25]", "FAILED gmid_engine/tests/sizing/test_seal_region.py::test_region_seal_below_vdsat_by_half_tol_fails_and_is_indistinct", "FAILED gmid_engine/tests/sizing/test_seal_region.py::test_region_seal_above_vdsat_by_half_tol_passes_and_is_indistinct", "FAILED gmid_engine/tests/sizing/test_seal_region.py::test_region_seal_exactly_at_vdsat_passes_and_one_ulp_below_fails", "FAILED gmid_engine/tests/sizing/test_seal_region.py::test_region_seal_tol_apart_is_outside_indistinct_band[1]", "FAILED gmid_engine/tests/sizing/test_seal_region.py::test_region_oracle_tool_has_no_lut_interpolation_or_engine_import"], "sec": 9}
+{"m": "m7_reverse_le", "rc": 1, "summary": "2 failed, 31 passed in 6.80s", "failed": ["FAILED gmid_engine/tests/lut/test_sat_threshold.py::test_sat_threshold_vds_zero_is_not_reverse[nmos]", "FAILED gmid_engine/tests/lut/test_sat_threshold.py::test_sat_threshold_vds_zero_is_not_reverse[pmos]"], "sec": 8}
+{"m": "m8_grid_no_check", "rc": 0, "summary": "8 passed in 1.58s", "failed": [], "sec": 3}
+{"m": "m9_off_entry_gone", "rc": 1, "summary": "1 failed, 7 passed in 0.47s", "failed": ["FAILED gmid_engine/tests/sizing/test_block_widths.py::test_dc_sat_v_off_declared_has_reason_and_triode_has_the_lut_value"], "sec": 3}
+{"m": "m10_ref_vds_no_idu", "rc": 1, "summary": "1 failed, 39 passed in 43.19s", "failed": ["FAILED gmid_engine/tests/search/test_iv_headroom.py::test_headroom_without_vdsat_column_is_an_inactive_row_not_a_substitute_bound"], "sec": 46}
+{"m": "m11_rows_ignore_field", "rc": 0, "summary": "69 passed in 21.58s", "failed": [], "sec": 25}
+{"m": "m12_tol_string_restored", "rc": 0, "summary": "110 passed in 63.38s (0:01:03)", "failed": [], "sec": 65}
+{"m": "m13_tol_call_probe", "rc": 1, "summary": "1 failed, 32 passed in 6.01s", "failed": ["FAILED gmid_engine/tests/lut/test_sat_threshold.py::test_sat_threshold_tol_vdsat_is_never_called_in_engine_sources"], "sec": 8}
+{"m":"END"}

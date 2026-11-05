@@ -1,6 +1,6 @@
 """분해 합성 gain·MNA 잔차·FF 경로 기여·rout 잔차 (설계 41 §2.2, §1.12.2-4, 체크리스트 D-BM·D-J2).
 
-진입점: `block_residual(ss, view, vstruct) -> BlockResidual`.
+진입점: `block_residual(ss, view, vstruct, nodal=None) -> BlockResidual`. `nodal` = 필드 `graph.ss_nodal` 값(생략하면 같은 조립 함수).
 
 한 전달 뷰의 주경로 블록 사슬(stage 순)을 **앞 블록의 국소 해 전압을 다음 블록 입력으로** 이어 풀고(`block_local_gain` 을 블록마다 한 번, 입력 구동 = 사슬 전압),
 감지 노드의 값을 분해 합성값으로 읽는다. 부호·차동 방향이 사슬 안에서 자동으로 일치하므로 블록 gain 의 곱 Π A_i 와 같다(단일 블록 사슬이면 정확히 같은 양).
@@ -18,8 +18,8 @@ import math
 
 from gmid_engine.core import AMPLITUDE_DB_PER_DECADE
 
-from ._helpers_nodal import conductance_matrix, nodal_factor, nodal_solve
-from ._helpers_view import view_system
+from ._helpers_nodal import nodal_solve
+from ._helpers_view import view_factor, view_system
 from .aux_types import BlockResidual, FfContribution
 from .block_model import block_local_gain
 from .mna_types import Undefined
@@ -56,13 +56,13 @@ def _cascade(ss, vstruct, pairs, sense_nets, active, excluded):
             else:
                 reached = False
         found = block_local_gain(ss, block, drive, others=every - set(block.nodes), exclude=excluded,
-                                 extra=tuple(m for f in stamped for m in f.members))
+                                 extra=tuple(m for f in stamped for m in f.members), ground=vstruct.ac_ground)
         volts.update(dict(found.node_v))
         results.append(found)
     return _sense_value(volts, *sense_nets), tuple(results), reached
 
 
-def block_residual(ss, view, vstruct):
+def block_residual(ss, view, vstruct, nodal=None):
     system = view_system(ss, view)
     if system is None:
         return _bare(vstruct.id, "unsupported_view", (("mode", getattr(view, "mode", None)),))
@@ -70,7 +70,7 @@ def block_residual(ss, view, vstruct):
         return _bare(vstruct.id, "no_blocks")
     fixed, drive_idx, sense, pairs, sense_nets = system
     size = len(ss.nodes)
-    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+    factor = view_factor(ss, nodal, fixed)
     volt, residual = nodal_solve(factor, size, drive_idx)
     if volt is None:
         return _bare(vstruct.id, "singular_dc")

@@ -1,0 +1,304 @@
+{
+ "cases": {
+  "R1": {
+   "sub_rc": {
+    "free": {
+     "/ngspice_rc": 0,
+     "/ac/stability/pz/ngspice_rc": 0,
+     "/ac/stability/transient/op_pass/ngspice_rc": 0,
+     "/ac/stability/transient/ngspice_rc": 0
+    }
+   },
+   "log_errors": {
+    "free": {}
+   },
+   "logs_without_version": [],
+   "diff_vs_op1": {
+    "free": "op1 파일 없음"
+   },
+   "skipped": {
+    "free": null
+   },
+   "netlist_diff": {}
+  },
+  "R2": {
+   "sub_rc": {
+    "free": {
+     "/ngspice_rc": 0,
+     "/ac/stability/pz/ngspice_rc": 0,
+     "/ac/stability/transient/op_pass/ngspice_rc": 0,
+     "/ac/stability/transient/ngspice_rc": 0,
+     "/loop/ngspice_rc": 0
+    }
+   },
+   "log_errors": {
+    "free": {}
+   },
+   "logs_without_version": [],
+   "diff_vs_op1": {
+    "free": [
+     "/ac_file"
+    ]
+   },
+   "skipped": {
+    "free": null
+   },
+   "netlist_diff": {
+    "tfb_cs_rfeedback.free.cir": [],
+    "tfb_cs_rfeedback.free.loop.cir": [],
+    "tfb_cs_rfeedback.free.pz.cir": [],
+    "tfb_cs_rfeedback.free.stab.cir": [],
+    "tfb_cs_rfeedback.free.stabop.cir": []
+   }
+  },
+  "R3": {
+   "sub_rc": {
+    "free": {
+     "/ngspice_rc": 0,
+     "/ac/stability/pz/ngspice_rc": 0,
+     "/ac/stability/transient/op_pass/ngspice_rc": 0,
+     "/ac/stability/transient/ngspice_rc": 0
+    },
+    "forced": {
+     "/ngspice_rc": 0,
+     "/ac/stability/pz/ngspice_rc": 0,
+     "/ac/stability/transient/op_pass/ngspice_rc": 0,
+     "/ac/stability/transient/ngspice_rc": 0
+    }
+   },
+   "log_errors": {
+    "free": {},
+    "forced": {}
+   },
+   "logs_without_version": [],
+   "diff_vs_op1": {
+    "free": [
+     "/ac_file"
+    ],
+    "forced": [
+     "/ac_file"
+    ]
+   },
+   "skipped": {
+    "free": null,
+    "forced": null
+   },
+   "netlist_diff": {
+    "tcs_nmos_rload.forced.cir": [],
+    "tcs_nmos_rload.forced.pz.cir": [],
+    "tcs_nmos_rload.forced.stab.cir": [],
+    "tcs_nmos_rload.forced.stabop.cir": [],
+    "tcs_nmos_rload.free.cir": [],
+    "tcs_nmos_rload.free.pz.cir": [],
+    "tcs_nmos_rload.free.stab.cir": [],
+    "tcs_nmos_rload.free.stabop.cir": []
+   }
+  },
+  "R4": {
+   "sub_rc": {
+    "free": {
+     "/ngspice_rc": 0
+    },
+    "forced": {
+     "/ngspice_rc": 0
+    }
+   },
+   "log_errors": {
+    "free": {},
+    "forced": {}
+   },
+   "logs_without_version": [],
+   "diff_vs_op1": {
+    "free": [
+     "/ac_file"
+    ],
+    "forced": [
+     "/ac_file"
+    ]
+   },
+   "skipped": {
+    "free": null,
+    "forced": null
+   },
+   "netlist_diff": {
+    "tsf_rout.forced.cir": [],
+    "tsf_rout.free.cir": []
+   }
+  },
+  "R5": {
+   "sub_rc": {
+    "iso": {
+     "/ngspice_rc": 0
+    }
+   },
+   "log_errors": {
+    "iso": {}
+   },
+   "logs_without_version": [],
+   "diff_vs_op1": {
+    "iso": []
+   },
+   "skipped": {
+    "iso": null
+   },
+   "netlist_diff": {
+    "tcs_nmos_rload.iso.cir": []
+   }
+  },
+  "R6": {
+   "sub_rc": {
+    "free": {
+     "/ngspice_rc": 0,
+     "/ac/stability/pz/ngspice_rc": 0,
+     "/ac/stability/transient/op_pass/ngspice_rc": 0,
+     "/ac/stability/transient/ngspice_rc": 0
+    }
+   },
+   "log_errors": {
+    "free": {}
+   },
+   "logs_without_version": [],
+   "diff_vs_op1": {
+    "free": [
+     "/ac_file"
+    ]
+   },
+   "skipped": {
+    "free": null
+   },
+   "netlist_diff": {
+    "t3stage.free.cir": [],
+    "t3stage.free.pz.cir": [],
+    "t3stage.free.stab.cir": [],
+    "t3stage.free.stabop.cir": []
+   }
+  },
+  "R7": {
+   "sub_rc": {
+    "free": {
+     "/ngspice_rc": 0,
+     "/ac/stability/pz/ngspice_rc": 0,
+     "/ac/stability/transient/op_pass/ngspice_rc": 0,
+     "/ac/stability/transient/ngspice_rc": 0
+    },
+    "forced": {
+     "/ngspice_rc": 0,
+     "/ac/stability/pz/ngspice_rc": 0,
+     "/ac/stability/transient/op_pass/ngspice_rc": 0,
+     "/ac/stability/transient/ngspice_rc": 0
+    }
+   },
+   "log_errors": {
+    "free": {},
+    "forced": {}
+   },
+   "logs_without_version": [],
+   "diff_vs_op1": {
+    "free": [
+     "/ac_file"
+    ],
+    "forced": [
+     "/ac_file"
+    ]
+   },
+   "skipped": {
+    "free": null,
+    "forced": null
+   },
+   "netlist_diff": {
+    "trhp_posfb.forced.cir": [],
+    "trhp_posfb.forced.pz.cir": [],
+    "trhp_posfb.forced.stab.cir": [],
+    "trhp_posfb.forced.stabop.cir": [],
+    "trhp_posfb.free.cir": [],
+    "trhp_posfb.free.pz.cir": [],
+    "trhp_posfb.free.stab.cir": [],
+    "trhp_posfb.free.stabop.cir": []
+   }
+  },
+  "R8": {
+   "sub_rc": {
+    "free": {
+     "/ngspice_rc": 0,
+     "/ac/stability/pz/ngspice_rc": 0,
+     "/ac/stability/transient/op_pass/ngspice_rc": 0,
+     "/ac/stability/transient/ngspice_rc": 0
+    }
+   },
+   "log_errors": {
+    "free": {}
+   },
+   "logs_without_version": [],
+   "diff_vs_op1": {
+    "free": [
+     "/ac_file"
+    ]
+   },
+   "skipped": {
+    "free": null
+   },
+   "netlist_diff": {
+    "trhp_posfb.free.cir": [],
+    "trhp_posfb.free.pz.cir": [],
+    "trhp_posfb.free.stab.cir": [],
+    "trhp_posfb.free.stabop.cir": []
+   }
+  },
+  "R9": {
+   "sub_rc": {
+    "free": {
+     "/ngspice_rc": 0,
+     "/noise/open_loop/ngspice_rc": 0
+    }
+   },
+   "log_errors": {
+    "free": {}
+   },
+   "logs_without_version": [],
+   "diff_vs_op1": {
+    "free": [
+     "/ac_file"
+    ]
+   },
+   "skipped": {
+    "free": null
+   },
+   "netlist_diff": {
+    "trc_lowpass_div.free.cir": [],
+    "trc_lowpass_div.free.noise.cir": []
+   }
+  },
+  "R10": {
+   "sub_rc": {
+    "free": {
+     "/ngspice_rc": 0,
+     "/ac/stability/pz/ngspice_rc": 0,
+     "/ac/stability/transient/op_pass/ngspice_rc": 0,
+     "/ac/stability/transient/ngspice_rc": 0,
+     "/offset_mc/ngspice_rc": 0
+    }
+   },
+   "log_errors": {
+    "free": {}
+   },
+   "logs_without_version": [],
+   "diff_vs_op1": {
+    "free": [
+     "/ac_file"
+    ]
+   },
+   "skipped": {
+    "free": null
+   },
+   "netlist_diff": {
+    "t5ota.free.cir": [],
+    "t5ota.free.mc.cir": [],
+    "t5ota.free.pz.cir": [],
+    "t5ota.free.stab.cir": [],
+    "t5ota.free.stabop.cir": []
+   }
+  }
+ },
+ "isolated_env_equal": true,
+ "old_tree": "git archive 5fea301e, oracle_*.py 7개 blob 동일"
+}

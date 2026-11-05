@@ -81,3 +81,46 @@ def test_unequal_sub_columns_split_remaining_margin_equally(swing):
         assert rows[dev].gm_id_lo >= max(got) * (1 - 1e-12)
     for half_split in (2 / half, 2 / (half - VDSAT_MIN)):
         assert not (lo_want <= half_split <= hi_want)                 # 대조 값이 구간 밖임을 확인(입력 검사)
+
+
+# ===============================================================================================================
+# [card 20261104-hcs] S9 -- VDS 엣지 하한 gm/ID = hull(VDSAT 곡선, budget) 교점, level = budget 그대로(tol 항 없음); 열 없음 -> inactive 행
+# oracle (손): toy VDSAT(g) = 2/g 의 VGS 격자 마디 값 사이 선형 보간(u13_hand: 열은 마디 값, VGS 선형 보간, gm/ID = 20 − 8·VGS 가 VGS 선형이라 g 에도 선형)
+#   -> budget b 와의 교점 g* 는 마디 (g_i, 2/g_i) 를 잇는 꺾은선과 b 의 교점(아래 `_polyline_crossing`). 참 곡선 2/b 는 꺾은선(볼록 함수의 현) 아래라 g* >= 2/b,
+#   한 마디 간격 0.8 안. b = V_part − VDSAT_M2,min = (1.8 − s)/2 − 0.1. 옛 값(tol 을 b 에서 뺌)은 b 가 1~2 mV 이상 작아 g 가 0.1 이상 크다.
+# ===============================================================================================================
+from gmid_engine.search.start_values import SRC_HEADROOM_VDSAT  # noqa: E402
+
+from .u13_hand import B, C, VGS_GRID, build, gm_id_for_vdsat, toy_env, vdsat_of  # noqa: E402
+
+
+def _polyline_crossing(budget):
+    pts = [(B - C * v, vdsat_of(B - C * v)) for v in VGS_GRID]            # VGS 증가 -> g 감소, VDSAT 증가
+    for (g0, v0), (g1, v1) in zip(pts, pts[1:]):
+        if v0 <= budget <= v1:
+            return g0 + (budget - v0) / (v1 - v0) * (g1 - g0)
+    raise AssertionError("budget %r 이 곡선 범위 밖" % budget)
+
+
+@pytest.mark.parametrize("swing", [1.2, 1.35])
+def test_headroom_lower_bound_is_the_vdsat_curve_crossing_without_tol_terms(swing):
+    st, rows = _rows((("swing_out_v", ">=", swing),))
+    budget = (RAIL - swing) / 2 - VDSAT_MIN
+    g_true, g_poly = gm_id_for_vdsat(budget), _polyline_crossing(budget)
+    assert g_true <= g_poly <= g_true + 0.8 + 1e-9                           # 입력 검사
+    for dev in ("M1", "M3"):
+        got = bound_values(rows[dev], SRC_VDSAT, "gm_id", "lo")
+        assert got, (dev, rows[dev].sources)
+        assert g_true * (1 - 1e-9) <= max(got) <= g_poly * (1 + 1e-9), (dev, got, g_true, g_poly)
+        assert max(got) < gm_id_for_vdsat(budget - 1e-3)                      # tol(1 mV 이상)을 뺀 옛 값보다 작다
+
+
+def test_headroom_without_vdsat_column_is_an_inactive_row_not_a_substitute_bound(tmp_path):
+    from metrics.gb4_hand import write_lut
+    lut = write_lut(tmp_path / "lut")                                         # VDSAT 열 없는 같은 해석식 toy
+    case = build(tmp_path / "case", lut, toy_env().decls, cascode_cs(pmos_cascode=True), elements=ELS,
+                 constraints=(("swing_out_v", ">=", 1.2),))
+    rows = rows_by_name(case.start)
+    assert (SRC_HEADROOM_VDSAT, "vdsat_column_unavailable") in all_inactive(case.start)
+    for r in rows.values():
+        assert bound_values(r, SRC_VDSAT, "gm_id", "lo") == []                # 대체값 없음

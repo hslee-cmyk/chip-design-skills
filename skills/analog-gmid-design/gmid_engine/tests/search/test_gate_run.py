@@ -48,13 +48,14 @@ TERM = lambda src: types.SimpleNamespace(source=src)  # noqa: E731
 _SCHEMA = types.SimpleNamespace(current_cone=(("M1", (TERM("I1"),)), ("M3", (TERM("I1"), TERM("I2"))), ("M2", (TERM("I0"),))))
 # [U17 ①-b] θ 스키마는 커널 컨텍스트 칸이 아니라 S0 수준 필드 `graph/kernel: theta_schema`(설계 40 v1.9.1 §2.4.7·§2.4.8 D8) -- 손 컨텍스트의 `dc.base` 가 그 필드를 돌려준다.
 _BASE = types.SimpleNamespace(value=lambda kind, key, field: {("graph", "kernel", "theta_schema"): _SCHEMA}[(kind, key, field)])
-SCTX = types.SimpleNamespace(domain=types.SimpleNamespace(variables=VARS), dc=types.SimpleNamespace(base=_BASE))
+SCTX = types.SimpleNamespace(domain=types.SimpleNamespace(variables=VARS), dc=types.SimpleNamespace(base=_BASE),
+                             eval_budget=None, eval_budget_source=None)   # [XRUN-F1 card C] e_total 이 읽는 칸 -- None 이면 ceiling=None
 
 
 def test_perturbs_only_unread_directions_and_flags_error(monkeypatch):
     seen = {}
 
-    def fake(sctx, variables, x, base, cells, to_theta, origin, skip):
+    def fake(sctx, variables, x, base, cells, to_theta, origin, skip, **kw):  # [XRUN-F1 card C] 게이트가 ceiling 키워드를 넘긴다
         seen["skip"] = set(skip)
         seen["x"] = list(x)
         out = []
@@ -112,7 +113,7 @@ def test_ub1_unmeasured_perturbations_are_rows_not_skips(monkeypatch):
     no_eval = types.SimpleNamespace(evaluation=None, theta=THETA, key=types.SimpleNamespace(cells=("c",)))
 
     def make(second):
-        def fake(sctx, variables, x, base, cells, to_theta, origin, skip):
+        def fake(sctx, variables, x, base, cells, to_theta, origin, skip, ceiling=None):
             out = []
             for i, v in enumerate(variables):
                 if i in skip:
@@ -126,7 +127,8 @@ def test_ub1_unmeasured_perturbations_are_rows_not_skips(monkeypatch):
 
     for second, unmeasured in ((lambda b: _result(60.0, 60.0), ("current:I2",)),
                                (lambda b: no_report, ("current:I2", "ln_idu:M9")),
-                               (lambda b: no_eval, ("current:I2", "ln_idu:M9"))):
+                               (lambda b: no_eval, ("current:I2", "ln_idu:M9")),
+                               (lambda b: None, ("current:I2", "ln_idu:M9"))):                 # 평가 실패 res is None
         monkeypatch.setattr(GR, "fd_jacobian", make(second))
         got = run_sensitivity_gate(SCTX, _result(60.0, 60.0))
         assert got.ok is False and got.verdict == "undeterminable" and got.reason == "perturbation_unmeasured"
@@ -146,12 +148,13 @@ def test_ub1_unmeasured_perturbations_are_rows_not_skips(monkeypatch):
 VARS_RT = tuple(types.SimpleNamespace(component=c, log=lg, lo=lo, hi=hi) for c, lg, lo, hi in (
     (("L", "M1"), False, 0.0, 10.0), ((THETA_CURRENT, "I1"), True, 0.0, 10.0), ((THETA_CURRENT, "I2"), True, -20.0, -5.0),
     (("ln_idu", "M9"), False, -10.0, 0.0), ((THETA_Y, "vcm"), False, 0.0, 1.0)))
-SCTX_RT = types.SimpleNamespace(domain=types.SimpleNamespace(variables=VARS_RT), dc=types.SimpleNamespace(base=_BASE))
+SCTX_RT = types.SimpleNamespace(domain=types.SimpleNamespace(variables=VARS_RT), dc=types.SimpleNamespace(base=_BASE),
+                                eval_budget=None, eval_budget_source=None)   # [XRUN-F1 card C] e_total 이 읽는 칸 -- None 이면 ceiling=None
 
 
 def _record_gate_fd(monkeypatch, store):
     """gate_run.fd_jacobian 을 기록하는 손 결과 함수로 바꾼다(위 test 의 fake 와 같은 결과 모양)."""
-    def fake(sctx, variables, x, base, cells, to_theta, origin, skip):
+    def fake(sctx, variables, x, base, cells, to_theta, origin, skip, **kw):  # [XRUN-F1 card C] 게이트가 ceiling 키워드를 넘긴다
         store.append((tuple(variables), list(x), to_theta))
         return [(base, 0.0) if i in skip else (_result(60.0, 60.0), 0.01) for i in range(len(variables))]
     monkeypatch.setattr(GR, "fd_jacobian", fake)
@@ -199,3 +202,72 @@ def test_theta_coords_used_by_gate(monkeypatch):
     for xx in (x, moved):
         a, b = to_theta(xx), coords.to_theta(xx)
         assert {k: float(v).hex() for k, v in a.items()} == {k: float(v).hex() for k, v in b.items()}
+
+
+# =====================================================================================================================
+# [XRUN-F1 card C] interface card xrunf1c C7 (C-T10) -- 묶음 `ceiling` = e_total(sctx), FdBudgetShortfall 을 잡지 않음,
+# 게이트 시작 뒤 search_ceiling·search_stop 호출 0. 관찰 지점 = 모듈 속성 `gate_run.fd_jacobian`(위 test 와 같은 교체 선례).
+# oracle: (손) 가짜 sctx = interface 1절의 칸만(domain.variables 5개 -> R = 10, 선언 E_B = 40 -> E_total = 40 + 10 = 50, 손 계산).
+# =====================================================================================================================
+
+import importlib  # noqa: E402
+
+_FD_MOD = importlib.import_module("gmid_engine.search.fd_jacobian")
+E_B_GATE = 40
+E_TOTAL_GATE = E_B_GATE + 2 * len(VARS)          # 40 + 2 × 5 = 50 (손)
+SCTX_C = types.SimpleNamespace(domain=types.SimpleNamespace(variables=VARS), dc=types.SimpleNamespace(base=_BASE),
+                               eval_budget=E_B_GATE, eval_budget_source="declared", eval_times=[],
+                               counters={"kernel_calls": 7}, deadline=None)
+
+
+def _count_calls(monkeypatch, names):
+    """gmid_engine.search 의 이름(패키지 속성, 같은 이름의 모듈 속성, gate_run 속성)을 호출 수를 세는 감싸개로 바꾼다. -> 호출 기록 list."""
+    import gmid_engine.search as pkg
+    calls = []
+    for name in names:
+        targets = [pkg, GR]
+        sub = sys.modules.get("gmid_engine.search." + name)
+        if sub is not None:
+            targets.append(sub)
+        for mod in targets:
+            orig = getattr(mod, name, None)
+            if not callable(orig):
+                continue
+
+            def wrapper(*a, _orig=orig, _name=name, **k):
+                calls.append(_name)
+                return _orig(*a, **k)
+            monkeypatch.setattr(mod, name, wrapper)
+    return calls
+
+
+def test_gate_entry_budget_ceiling_is_e_total(monkeypatch):
+    seen = []
+
+    def fake(sctx, variables, x, base, cells, to_theta, origin, skip, **kw):
+        seen.append(dict(kw))
+        return [(base, 0.0) if i in skip else (_result(60.0, 60.0), 0.01) for i in range(len(variables))]
+
+    monkeypatch.setattr(GR, "fd_jacobian", fake)
+    run_sensitivity_gate(SCTX_C, _result(60.0, 60.0))
+    assert len(seen) == 1 and seen[0] == {"ceiling": E_TOTAL_GATE}               # 인자 관찰: ceiling = E_B + 2 n_θ = 50
+
+
+def test_gate_entry_budget_shortfall_propagates(monkeypatch):
+    def fake(sctx, variables, x, base, cells, to_theta, origin, skip, **kw):
+        raise _FD_MOD.FdBudgetShortfall(10, 9)                                 # 주입 -- 게이트는 잡지 않는다(C7)
+
+    monkeypatch.setattr(GR, "fd_jacobian", fake)
+    with pytest.raises(_FD_MOD.FdBudgetShortfall):
+        run_sensitivity_gate(SCTX_C, _result(60.0, 60.0))
+
+
+def test_gate_entry_budget_no_search_ceiling_or_stop_calls(monkeypatch):
+    def fake(sctx, variables, x, base, cells, to_theta, origin, skip, **kw):
+        return [(base, 0.0) if i in skip else (_result(60.0, 60.0), 0.01) for i in range(len(variables))]
+
+    monkeypatch.setattr(GR, "fd_jacobian", fake)
+    calls = _count_calls(monkeypatch, ("search_ceiling", "search_stop"))
+    got = run_sensitivity_gate(SCTX_C, _result(60.0, 60.0))
+    assert got is not None                                                       # 게이트가 실제로 돌았다 (공허 방지)
+    assert calls == []

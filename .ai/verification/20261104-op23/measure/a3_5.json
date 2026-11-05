@@ -1,0 +1,198 @@
+{
+ "normalization_rules": [
+  "N1 머리 주석 줄 제거",
+  "N2 줄 순서 무시(집합)",
+  "N3 공백 하나로",
+  "N4 숫자 토큰 .10g 재표기",
+  ".control = 분석 순서 상태 기계(op 인쇄 집합 포함 관계, ac 인자·acmag 상태·출력식 같음)"
+ ],
+ "form_choice_from_adapter": "전역 지시를 넷리스트 직접 줄로 씀(include 아님)",
+ "pairs": {
+  "R1/tfb_cs_rfeedback.free": {
+   "only_old": [],
+   "only_new": [],
+   "control_diffs": [],
+   "n_old": 15,
+   "n_new": 15,
+   "analyses": 2,
+   "extra_prints": [
+    "@m.xm1.msky130_fd_pr__nfet_01v8[ad]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[l]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[m]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[pd]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[w]"
+   ]
+  },
+  "R2/tfb_cs_rfeedback.free": {
+   "only_old": [],
+   "only_new": [],
+   "control_diffs": [],
+   "n_old": 15,
+   "n_new": 15,
+   "analyses": 2,
+   "extra_prints": [
+    "@m.xm1.msky130_fd_pr__nfet_01v8[ad]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[l]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[m]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[pd]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[w]"
+   ]
+  },
+  "R2/tfb_cs_rfeedback.free.loop": {
+   "only_old": [],
+   "only_new": [],
+   "control_diffs": [
+    {
+     "i": 0,
+     "old": [
+      "ac dec 40 0.01 1e+10",
+      {
+       "vlb_nin": 1.0
+      },
+      []
+     ],
+     "new": [
+      "ac dec 40 0.01 1e+10",
+      {
+       "vlb_nin": 1.0
+      },
+      [
+       "v(lbx_nin)",
+       "v(nin)"
+      ]
+     ]
+    },
+    {
+     "i": 1,
+     "old": [
+      "ac dec 40 0.01 1e+10",
+      {
+       "ilb_nin": 1.0
+      },
+      []
+     ],
+     "new": [
+      "ac dec 40 0.01 1e+10",
+      {
+       "ilb_nin": 1.0
+      },
+      [
+       "i(vlb_nin)",
+       "v(nin)"
+      ]
+     ]
+    }
+   ],
+   "n_old": 15,
+   "n_new": 15,
+   "analyses": 2,
+   "extra_prints": []
+  },
+  "R3/tcs_nmos_rload.forced": {
+   "only_old": [
+    "Lhold_nout hs_nout nout 1e+12",
+    "Lhold_pout hs_pout pout 1e+12",
+    "Vhold_nout hs_nout 0 DC 0.9275921",
+    "Vhold_pout hs_pout 0 DC 0.1647339"
+   ],
+   "only_new": [
+    "Lhold_nout hs_nout 0 1e+12",
+    "Lhold_pout hs_pout 0 1e+12",
+    "Vhold_nout nout hs_nout DC 0.9275921",
+    "Vhold_pout pout hs_pout DC 0.1647339"
+   ],
+   "control_diffs": [],
+   "n_old": 24,
+   "n_new": 24,
+   "analyses": 12,
+   "extra_prints": [
+    "@m.xm1.msky130_fd_pr__nfet_01v8[ad]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[l]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[m]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[pd]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[w]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[ad]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[l]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[m]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[pd]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[w]"
+   ]
+  },
+  "R3/tcs_nmos_rload.free": {
+   "only_old": [],
+   "only_new": [],
+   "control_diffs": [],
+   "n_old": 20,
+   "n_new": 20,
+   "analyses": 12,
+   "extra_prints": [
+    "@m.xm1.msky130_fd_pr__nfet_01v8[ad]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[l]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[m]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[pd]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[w]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[ad]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[l]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[m]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[pd]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[w]"
+   ]
+  },
+  "R4/tsf_rout.forced": {
+   "only_old": [
+    "Lhold_nout hs_nout nout 1e+12",
+    "Vhold_nout hs_nout 0 DC 0.3328003"
+   ],
+   "only_new": [
+    "Lhold_nout hs_nout 0 1e+12",
+    "Vhold_nout nout hs_nout DC 0.3328003"
+   ],
+   "control_diffs": [],
+   "n_old": 15,
+   "n_new": 15,
+   "analyses": 3,
+   "extra_prints": [
+    "@m.xm1.msky130_fd_pr__nfet_01v8[ad]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[l]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[m]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[pd]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[w]"
+   ]
+  },
+  "R4/tsf_rout.free": {
+   "only_old": [],
+   "only_new": [],
+   "control_diffs": [],
+   "n_old": 13,
+   "n_new": 13,
+   "analyses": 3,
+   "extra_prints": [
+    "@m.xm1.msky130_fd_pr__nfet_01v8[ad]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[l]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[m]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[pd]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[w]"
+   ]
+  },
+  "R5/tcs_nmos_rload.iso": {
+   "only_old": [],
+   "only_new": [],
+   "control_diffs": [],
+   "n_old": 16,
+   "n_new": 16,
+   "analyses": 1,
+   "extra_prints": [
+    "@m.xm1.msky130_fd_pr__nfet_01v8[ad]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[l]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[m]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[pd]",
+    "@m.xm1.msky130_fd_pr__nfet_01v8[w]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[ad]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[l]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[m]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[pd]",
+    "@m.xmp1.msky130_fd_pr__pfet_01v8[w]"
+   ]
+  }
+ }
+}

@@ -21,7 +21,7 @@ def _hits(devs, pas, srcs):
 
 
 def test_unique_passes():
-    assert _hits([D("Q1"), D("Q2")], [P("Ca")], [S("Ib")]) == ()
+    assert _hits([D("Mfx1"), D("Mfx2")], [P("Ca")], [S("Ib")]) == ()
 
 
 def test_empty_passes():
@@ -30,22 +30,22 @@ def test_empty_passes():
 
 def test_duplicate_in_every_pairing():
     cases = [
-        ([D("Q1"), D("Q1")], [], []),
-        ([D("Q1")], [P("Q1")], []),
-        ([D("Q1")], [], [S("Q1")]),
-        ([], [P("Q1"), P("Q1")], []),
-        ([], [P("Q1")], [S("Q1")]),
-        ([], [], [S("Q1"), S("Q1")]),
+        ([D("Mfx1"), D("Mfx1")], [], []),
+        ([D("Mfx1")], [P("Mfx1")], []),
+        ([D("Mfx1")], [], [S("Mfx1")]),
+        ([], [P("Mfx1"), P("Mfx1")], []),
+        ([], [P("Mfx1")], [S("Mfx1")]),
+        ([], [], [S("Mfx1"), S("Mfx1")]),
     ]
     for devs, pas, srcs in cases:
         hits = _hits(devs, pas, srcs)
         assert [h.rule for h in hits] == ["name_duplicate"], (devs, pas, srcs)
-        assert hits[0].elements == ("Q1",)
+        assert hits[0].elements == ("Mfx1",)
 
 
 def test_duplicate_once_per_name():
-    hits = _hits([D("Q1"), D("Q1"), D("Q2")], [P("Q1"), P("Q2")], [S("Q1")])
-    assert sorted((h.rule, h.elements) for h in hits) == [("name_duplicate", ("Q1",)), ("name_duplicate", ("Q2",))]
+    hits = _hits([D("Mfx1"), D("Mfx1"), D("Mfx2")], [P("Mfx1"), P("Mfx2")], [S("Mfx1")])
+    assert sorted((h.rule, h.elements) for h in hits) == [("name_duplicate", ("Mfx1",)), ("name_duplicate", ("Mfx2",))]
 
 
 def test_case_collision_group():
@@ -68,14 +68,14 @@ def test_casefold_not_lower():
 
 
 def test_exact_duplicate_is_not_case_collision():
-    hits = _hits([D("Q1"), D("Q1")], [], [])
+    hits = _hits([D("Mfx1"), D("Mfx1")], [], [])
     assert [h.rule for h in hits] == ["name_duplicate"]
 
 
 def test_fixture_load(ah):
     from gmid_engine.authoring import load_topology
     exc, detail = ah.rejected(load_topology, str(ah.path("name_uniqueness__name_duplicate")))
-    assert [(h.rule, h.elements) for h in detail["hits"]] == [("name_duplicate", ("Q4",))]
+    assert [(h.rule, h.elements) for h in detail["hits"]] == [("name_duplicate", ("Mfx4",))]
     exc, detail = ah.rejected(load_topology, str(ah.path("name_uniqueness__name_case_collision")))
     assert [(h.rule, h.elements) for h in detail["hits"]] == [("name_case_collision", ("Rf", "rf"))]
 
@@ -102,24 +102,24 @@ def _one_net_hit(hits, names):
 
 
 def test_net_terminal_vs_terminal():
-    devs = [DeviceDecl("Q1", "nmos", "n_x", "n_g", "n_s"), DeviceDecl("Q2", "nmos", "N_X", "n_g", "n_s")]
+    devs = [DeviceDecl("Mfx1", "nmos", "n_x", "n_g", "n_s"), DeviceDecl("Mfx2", "nmos", "N_X", "n_g", "n_s")]
     _one_net_hit(_net(devs), ("N_X", "n_x"))
 
 
 def test_net_mos_vs_two_terminal_and_bulk():
-    devs = [DeviceDecl("Q1", "nmos", "n_d", "n_g", "n_s", "n_bulk")]
+    devs = [DeviceDecl("Mfx1", "nmos", "n_d", "n_g", "n_s", "n_bulk")]
     _one_net_hit(_net(devs, [PassiveDecl("C1", "capacitor", ("N_BULK", "n_d"))]), ("N_BULK", "n_bulk"))
     _one_net_hit(_net(devs, (), [SourceDecl("I1", "current_source", ("n_D", "n_s"))]), ("n_D", "n_d"))
 
 
 def test_net_terminal_vs_rail():
-    devs = [DeviceDecl("Q1", "nmos", "n_d", "n_g", "rail_lo")]
+    devs = [DeviceDecl("Mfx1", "nmos", "n_d", "n_g", "rail_lo")]
     _one_net_hit(_net(devs, supply=("rail_lo", "RAIL_LO")), ("RAIL_LO", "rail_lo"))
     _one_net_hit(_net(devs, supply=("Rail_Lo",)), ("Rail_Lo", "rail_lo"))
 
 
 def test_net_terminal_vs_port():
-    devs = [DeviceDecl("Q1", "nmos", "n_out", "n_in", "n_s")]
+    devs = [DeviceDecl("Mfx1", "nmos", "n_out", "n_in", "n_s")]
     _one_net_hit(_net(devs, ports=("N_IN", "n_out")), ("N_IN", "n_in"))
 
 
@@ -128,38 +128,38 @@ def test_net_rail_vs_port():
 
 
 def test_net_one_hit_per_group():
-    devs = [DeviceDecl("Q1", "nmos", "n_a", "N_A", "N_a"), DeviceDecl("Q2", "nmos", "n_b", "N_B", "n_s")]
+    devs = [DeviceDecl("Mfx1", "nmos", "n_a", "N_A", "N_a"), DeviceDecl("Mfx2", "nmos", "n_b", "N_B", "n_s")]
     hits = _net(devs)
     assert sorted((h.rule, h.elements) for h in hits) == [
         ("net_case_collision", ("N_A", "N_a", "n_a")), ("net_case_collision", ("N_B", "n_b"))]
 
 
 def test_net_casefold_not_lower():
-    devs = [DeviceDecl("Q1", "nmos", "n_ß", "n_ss", "n_s")]
+    devs = [DeviceDecl("Mfx1", "nmos", "n_ß", "n_ss", "n_s")]
     _one_net_hit(_net(devs), ("n_ss", "n_ß"))
 
 
 def test_same_spelling_across_sources_is_not_collision():
     """같은 글자가 단자·레일·포트에 나오는 것은 정상(같은 넷)."""
-    devs = [DeviceDecl("Q1", "nmos", "n_out", "n_in", "rail_lo")]
+    devs = [DeviceDecl("Mfx1", "nmos", "n_out", "n_in", "rail_lo")]
     assert _net(devs, [PassiveDecl("C1", "capacitor", ("n_out", "rail_lo"))], supply=("rail_lo",),
                 ports=("n_in", "n_out")) == ()
 
 
 def test_element_name_and_net_name_are_separate_spaces():
     """원소 이름과 넷 이름은 비교하지 않는다: casefold 같거나 글자까지 같아도 통과."""
-    devs = [DeviceDecl("Q1", "nmos", "q1", "n_g", "n_s"), DeviceDecl("Nx", "nmos", "Nx", "NX2", "n_s")]
+    devs = [DeviceDecl("Mfx1", "nmos", "mfx1", "n_g", "n_s"), DeviceDecl("Nx", "nmos", "Nx", "NX2", "n_s")]
     pas = [PassiveDecl("Rload", "resistor", ("RLOAD", "n_s"))]
-    assert _net(devs, pas, supply=("q1x",), ports=("rload_port",)) == ()
+    assert _net(devs, pas, supply=("mfx1x",), ports=("rload_port",)) == ()
 
 
 def test_three_arg_call_still_works_and_checks_terminal_nets():
     """7절: 추가 인자 기본값 () -- 기존 3인자 호출은 원소 이름 검사 + 단자 넷 검사."""
-    assert check_name_uniqueness((D("Q1"),), (P("C1"),), (S("I1"),)) == ()
-    hits = check_name_uniqueness((DeviceDecl("Q1", "nmos", "n_x", "n_g", "n_s"),),
+    assert check_name_uniqueness((D("Mfx1"),), (P("C1"),), (S("I1"),)) == ()
+    hits = check_name_uniqueness((DeviceDecl("Mfx1", "nmos", "n_x", "n_g", "n_s"),),
                                  (PassiveDecl("C1", "capacitor", ("N_X", "n_s")),), ())
     _one_net_hit(hits, ("N_X", "n_x"))
-    hits = check_name_uniqueness((D("Q1"), D("Q1")), (), ())
+    hits = check_name_uniqueness((D("Mfx1"), D("Mfx1")), (), ())
     assert [h.rule for h in hits] == ["name_duplicate"]
 
 
@@ -181,7 +181,7 @@ def _net_hit(detail):
 
 def test_load_terminal_collision_single_hit(ah, tmp_path):
     d = ah.base()
-    ah.dev(d, "Q1")["drain"] = "N_MID"     # 다른 소자의 n_mid 와 casefold 같음
+    ah.dev(d, "Mfx1")["drain"] = "N_MID"     # 다른 소자의 n_mid 와 casefold 같음
     detail = _load_rejected(ah, tmp_path, d)
     assert [(h.rule, h.elements) for h in detail["hits"]] == [("net_case_collision", ("N_MID", "n_mid"))]
     assert detail["rejected_gates"] == ("name_uniqueness",)
@@ -199,7 +199,7 @@ def test_load_rail_variant_also_rail_not_connected(ah, tmp_path):
 
 def test_load_port_variant_also_port_net_unknown(ah, tmp_path):
     d = ah.base()
-    ah.dev(d, "Q1")["gate"] = "N_INP"        # 포트 키 n_inp 는 그대로
+    ah.dev(d, "Mfx1")["gate"] = "N_INP"        # 포트 키 n_inp 는 그대로
     d["ports"]["n_mid"] = {"direction": "input", "role": "aux_input"}   # 위반 없는 input 을 남겨 no_input_port 배제
     detail = _load_rejected(ah, tmp_path, d)
     assert sorted(h.rule for h in detail["hits"]) == ["net_case_collision", "port_net_unknown"]
@@ -232,15 +232,15 @@ def test_load_net_check_runs_when_ports_rejected(ah, tmp_path):
 def test_load_net_check_skipped_when_element_rejected(ah, tmp_path):
     """원소 선언 하나라도 거부되면 name_uniqueness 전체(넷 검사 포함)가 not_evaluated."""
     d = ah.base()
-    ah.dev(d, "Q1")["drain"] = "N_MID"
-    ah.dev(d, "Q2")["w"] = 1.0                       # devices 거부
+    ah.dev(d, "Mfx1")["drain"] = "N_MID"
+    ah.dev(d, "Mfx2")["w"] = 1.0                       # devices 거부
     detail = _load_rejected(ah, tmp_path, d)
     assert "net_case_collision" not in [h.rule for h in detail["hits"]]
     assert set(detail["not_evaluated"]) == NE_ELEMENTS
 
 
 def test_load_element_name_equal_to_net_name_passes(ah, tmp_path):
-    """넷 n_outp 를 원소 이름 Q3 과 casefold 같은 'q3' 로 바꿔도(단자·포트 전부) 통과 -- 다른 이름 공간."""
-    d = json.loads(json.dumps(ah.base()).replace('"n_outp"', '"q3"'))
-    assert "q3" in d["ports"]
+    """넷 n_outp 를 원소 이름 Mfx3 과 casefold 같은 'mfx3' 로 바꿔도(단자·포트 전부) 통과 -- 다른 이름 공간."""
+    d = json.loads(json.dumps(ah.base()).replace('"n_outp"', '"mfx3"'))
+    assert "mfx3" in d["ports"]
     load_topology(ah.write(tmp_path, d))

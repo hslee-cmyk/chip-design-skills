@@ -7,7 +7,7 @@
 
   ln IDu ∈ [ max_VDS ln IDu(정점), min_VDS ln IDu(단조 끝) ]
 
-VDS 탐침 = 그 gm/ID 마디의 포화 경계 VDS(VDSAT + tol_vdsat 을 격자 위로 올림 -- 포화에 머물 수 있는 가장 낮은 VDS)와 헤드룸 VDS 예산(`headroom_bounds` 의 `budgets[(소자, vds)]` 를 레일 범위로
+VDS 탐침 = 그 gm/ID 마디의 포화 경계 VDS(VDSAT 을 격자 위로 올림 -- 포화에 머물 수 있는 가장 낮은 VDS, tol 항 없음 O-204)와 헤드룸 VDS 예산(`headroom_bounds` 의 `budgets[(소자, vds)]` 를 레일 범위로
 자른 값의 격자점) -- 소자가 놓일 수 있는 VDS 범위의 양 끝이다. 기준 점 곡선의 gm/ID 마디마다 그 마디의 ln IDu 가 두 탐침의 창 안이면 쓸 수 있는 마디이고, 쓸 수 있는 마디의 [최소 gm/ID, 최대 gm/ID] 가
 `DomainBounds.bounds` 다. 출발 점이 정점 근처의 약반전 극단이나 VGS 격자 끝의
 강반전 극단에 놓여 커널의 DC 풀이가 첫 평가에서 `lut_query_failed` 로 죽는 것을 막는 구조적 구간이다(경험 상수가 아니다 -- 같은 LUT 역산이 정의역을 정한다).
@@ -21,7 +21,7 @@ import numpy as np
 from gmid_engine.core import SchemaRejectedError, SealViolationError
 from gmid_engine.lut import idu_curve
 
-from ._helpers_curves import QUANTITY_IDU, QUANTITY_VDSAT, curve_bundle_of, snap_vds, tol_vdsat, slice_of
+from ._helpers_curves import QUANTITY_IDU, QUANTITY_VDSAT, curve_bundle_of, snap_vds, slice_of
 from .start_values import QUANTITY_GM_ID, SIDE_HI, SIDE_LO, SRC_LUT_DOMAIN, Bound, StartConflict
 
 
@@ -82,12 +82,14 @@ def domain_bounds(ctx, lengths, vds_budget):
         ref = curve_bundle_of(ctx, d.name, d.kind, L)
         if ref is None:
             continue
+        if QUANTITY_VDSAT not in ref:                      # VDSAT 열 없음: 그 소자의 곡선 경계 비활성(정의 불능을 0 으로 바꾸지 않는다)
+            continue
         curve, vdsat = ref[QUANTITY_IDU], ref[QUANTITY_VDSAT]
         top = snap_vds(ctx, d.kind, min(vds_budget[d.name], max(_vds_grid(ctx, d.kind)))) if vds_budget.get(d.name) is not None else None
         usable = []
         for j in range(len(curve.gm_id)):
-            # 그 gm/ID 의 포화 경계 VDS(VDSAT + tol_vdsat, 격자 위로 올림) -- 그보다 낮은 VDS 에서는 소자가 포화에 있지 않으므로 탐침이 아니다
-            lowest = _snap_up_vds(ctx, d.kind, float(vdsat.values[j]) + tol_vdsat(ctx, d.kind, L, vdsat.vds))
+            # 그 gm/ID 의 포화 경계 VDS(VDSAT, 격자 위로 올림) -- 그보다 낮은 VDS 에서는 소자가 포화에 있지 않으므로 탐침이 아니다
+            lowest = _snap_up_vds(ctx, d.kind, float(vdsat.values[j]))
             probes = {lowest} | ({top} if top is not None and top >= lowest else set())
             windows = [_window(ctx, cache, d.kind, L, v) for v in sorted(probes)]
             if any(w is None for w in windows):

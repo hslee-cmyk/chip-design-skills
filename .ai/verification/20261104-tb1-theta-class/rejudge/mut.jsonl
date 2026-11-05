@@ -1,0 +1,14 @@
+{"m": "m0_control", "killed": false, "out": ["101 passed in 4.50s"]}
+{"m": "m1_first_view", "killed": true, "out": ["FAILED gmid_engine/tests/sizing/test_theta_class.py::test_theta_class_input_net_name_bijection_same_class_per_device", "1 failed, 9 passed in 0.44s"]}
+{"m": "m2_no_w4_stop", "killed": false, "out": ["101 passed in 3.85s"]}
+{"m": "m3_no_root_stop", "killed": true, "out": ["FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_w4_root_tie_stops_with_dc_colour_not_unique", "1 failed, 96 passed in 4.10s"]}
+{"m": "m4_B_rank_off", "killed": true, "out": ["FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_in_loop_b_diode_first", "1 failed, 75 passed in 3.21s"]}
+{"m": "m5_downstream_off", "killed": false, "out": ["101 passed in 3.88s"]}
+{"m": "m6_orbit_rep_off", "killed": false, "out": ["101 passed in 3.70s"]}
+{"m": "m7_diode_rank_off", "killed": true, "out": ["FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_in_loop_b_diode_first", "1 failed, 75 passed in 3.06s"]}
+{"m": "m8_strong_off", "killed": false, "out": ["101 passed in 4.27s"]}
+{"m": "m9_confirm_off", "killed": true, "out": ["FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_ratify_agreeing_fact_is_noop_and_disagreeing_stops", "1 failed, 91 passed in 3.88s"]}
+{"m": "m10_orphan_off", "killed": true, "out": ["FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_dependent_member_ratify_orphan_when_no_such_relation", "1 failed, 95 passed in 3.78s"]}
+{"m": "m11_macro_on", "killed": true, "out": ["FAILED gmid_engine/tests/sizing/test_theta_class.py::test_theta_class_macro_activation_four_combinations[none]", "1 failed, 3 passed in 0.30s"]}
+{"m": "m12_rout_on", "killed": true, "out": ["FAILED gmid_engine/tests/sizing/test_theta_class.py::test_theta_class_rout_declared_follower_is_s", "1 failed, 5 passed in 0.37s"]}
+{"m": "m13_ff_not_B", "killed": false, "out": ["101 passed in 3.90s"]}

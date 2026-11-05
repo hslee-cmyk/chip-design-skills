@@ -1,0 +1,55 @@
+FFF.F..FF.FFFF                                                           [100%]
+================================== FAILURES ===================================
+E   assert False
+     +  where False = all(<generator object _it1_check_diff_undeclared.<locals>.<genexpr> at 0x000001CB7B979B10>)
+C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\63c6146a-ab1d-4035-a169-bae810986922\scratchpad\it1-audit\it1-base\skills\analog-gmid-design\gmid_engine\tests\sizing\test_writer_plan.py:375: assert False
+E   assert False
+     +  where False = all(<generator object test_it1_ring_cycle_vgs_after_port_delta_elimination.<locals>.<genexpr> at 0x000001CB7B979A40>)
+C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\63c6146a-ab1d-4035-a169-bae810986922\scratchpad\it1-audit\it1-base\skills\analog-gmid-design\gmid_engine\tests\sizing\test_writer_plan.py:402: assert False
+E   assert 2 == 1
+     +  where 2 = sum(<generator object test_it1_dependent_count_equals_cycle_rank.<locals>.<genexpr> at 0x000001CB7B978EE0>)
+C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\63c6146a-ab1d-4035-a169-bae810986922\scratchpad\it1-audit\it1-base\skills\analog-gmid-design\gmid_engine\tests\sizing\test_writer_plan.py:423: assert 2 == 1
+E   assert 6 == 5
+     +  where 6 = sum(<generator object test_it1_dependent_count_equals_cycle_rank.<locals>.<genexpr> at 0x000001CB7B8AB100>)
+C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\63c6146a-ab1d-4035-a169-bae810986922\scratchpad\it1-audit\it1-base\skills\analog-gmid-design\gmid_engine\tests\sizing\test_writer_plan.py:423: assert 6 == 5
+E   Failed: DID NOT RAISE <class 'gmid_engine.core.failure_errors.StructureUnresolvedError'>
+C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\63c6146a-ab1d-4035-a169-bae810986922\scratchpad\it1-audit\it1-base\skills\analog-gmid-design\gmid_engine\tests\sizing\test_writer_plan.py:469: Failed: DID NOT RAISE <class 'gmid_engine.core.failure_errors.StructureUnresolvedError'>
+E   Failed: DID NOT RAISE <class 'gmid_engine.core.failure_errors.StructureUnresolvedError'>
+C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\63c6146a-ab1d-4035-a169-bae810986922\scratchpad\it1-audit\it1-base\skills\analog-gmid-design\gmid_engine\tests\sizing\test_writer_plan.py:469: Failed: DID NOT RAISE <class 'gmid_engine.core.failure_errors.StructureUnresolvedError'>
+E   AssertionError: REL_TIE
+    assert not True
+     +  where True = hasattr(_SZ, 'REL_TIE')
+C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\63c6146a-ab1d-4035-a169-bae810986922\scratchpad\it1-audit\it1-base\skills\analog-gmid-design\gmid_engine\tests\sizing\test_writer_plan.py:487: AssertionError: REL_TIE
+E   assert False
+     +  where False = all(<generator object _it1_check_diff_undeclared.<locals>.<genexpr> at 0x000001CB7DB9C930>)
+C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\63c6146a-ab1d-4035-a169-bae810986922\scratchpad\it1-audit\it1-base\skills\analog-gmid-design\gmid_engine\tests\sizing\test_writer_plan.py:375: assert False
+E   AssertionError: assert {'input_commo...', 'o1', 'o2'} == {'inp', 'o1', 'o2'}
+      
+      Extra items in the left set:
+      'input_common_mode'
+      Extra items in the right set:
+      'inp'
+      Use -v to get more diff
+C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\63c6146a-ab1d-4035-a169-bae810986922\scratchpad\it1-audit\it1-base\skills\analog-gmid-design\gmid_engine\tests\sizing\test_writer_plan.py:513: AssertionError: assert {'input_commo...', 'o1', 'o2'} == {'inp', 'o1', 'o2'}
+E   AssertionError: assert ('node', 'port_direction') in {('device', 'bulk'), ('device', 'dc_L'), ('device', 'dc_colour'), ('device', 'dc_coord'), ('device', 'dc_drop_current'), ('device', 'dc_self_referential'), ...}
+     +  where {('device', 'bulk'), ('device', 'dc_L'), ('device', 'dc_colour'), ('device', 'dc_coord'), ('device', 'dc_drop_current'), ('device', 'dc_self_referential'), ...} = set((('node', 'dc_writer'), ('node', 'dc_rail_v'), ('node', 'dc_column_nbrs'), ('device', 'dc_drop_current'), ('node', 'dc_colour'), ('device', 'dc_colour'), ...))
+     +    where (('node', 'dc_writer'), ('node', 'dc_rail_v'), ('node', 'dc_column_nbrs'), ('device', 'dc_drop_current'), ('node', 'dc_colour'), ('device', 'dc_colour'), ...) = <gmid_engine.core.compute_block.ComputeBlock object at 0x000001CB7BDC6ED0>.reads
+C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\63c6146a-ab1d-4035-a169-bae810986922\scratchpad\it1-audit\it1-base\skills\analog-gmid-design\gmid_engine\tests\sizing\test_writer_plan.py:522: AssertionError: assert ('node', 'port_direction') in {('device', 'bulk'), ('device', 'dc_L'), ('device', 'dc_colour'), ('device', 'dc_coord'), ('device', 'dc_drop_current'), ('device', 'dc_self_referential'), ...}
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_dependent_count_equals_cycle_rank[diff_declared]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_dependent_count_equals_cycle_rank[ring_declared]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_declared_input_plan_unchanged
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_isolated_single_root_builds
+FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_undeclared_diffpair_no_input_tie
+FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_ring_cycle_vgs_after_port_delta_elimination
+FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_dependent_count_equals_cycle_rank[diff_undeclared]
+FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_dependent_count_equals_cycle_rank[ring_undeclared]
+FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_multiple_input_roots_stop[two_components]
+FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_multiple_input_roots_stop[isolated_plus_component]
+FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_vocabulary_removed
+FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_renamed_diffpair_same_structure
+FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_theta_schema_y_components_follow_writers
+FAILED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_writer_block_owns_plan_fields
+10 failed, 4 passed, 53 deselected in 1.85s
+exit=1

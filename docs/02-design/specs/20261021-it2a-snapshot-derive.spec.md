@@ -3,7 +3,7 @@ id: 20261021-it2a-snapshot-derive
 phase: 해당 없음 (DEC-86 -- merge_gate 미사용, N6.3 절차)
 evidence_type: red-green
 gate_change: no
-approval: 20261021-it2-o67-scope
+approval: 20261021-it2-o67-scope, 20261022-it2a-seal-signature-ext, 20261022-it2a-o94-ext
 ---
 
 > **[상태 표지 2026-10-29] 완료 이력** -- IT-2a 판정 PASS(`integ/it12:.ai/verification/20261021-it2a-snapshot-derive.json`, code `bddef887`), master 미병합. 이 master 사본은 판정 전 동결본이다 -- 판정한 판(approval `20261022-it2a-seal-signature-ext`·`20261022-it2a-o94-ext`, keep = base writer ∪ 봉인 4 호출 목록)은 `integ/it12`에 있고 통합 병합 때 그 판으로 바뀐다. 후속 = card IT-2e(계획 v6.38.4 N6.6 범위 5 -- 같은 집합식을 함수 하나로, spec card 미작성). 본문은 기록이며 덧대지 않는다(O-169).
@@ -20,11 +20,12 @@ card IT-2a -- 스냅샷 파생 규칙. 범위: design 41 4.7-3c(41:750-756) -- �
 
 ## 관찰 가능한 계약
 
-- `run_kernel` parent 분기 = `parent.snapshot.derive_child(keep)`, keep = base writer(`ctx.base.block_versions` 키 -- 그 매핑에서 읽음, 사본 목록 금지) ∪ 그 평가 커널 호출 블록 이름(`steps`·`later` 목록에서 읽음). `_CONTEXT_WRITERS`(`E/search/search_context.py:44`)는 옮기지도 읽지도 않는다(O-61 P1).
+- `run_kernel` parent 분기 = `parent.snapshot.derive_child(keep)`, keep = base writer(`ctx.base.block_versions` 키 -- 그 매핑에서 읽음, 사본 목록 금지) ∪ **봉인 4가 받는 호출 목록의 블록 이름** = 커널 블록(`steps`·`later` 목록에서 읽음) ∪ 봉인 항목 블록 여덟(`E/sizing/seal.py` 모듈 상수 하나 -- 블록 객체 tuple, `seal_dc` 호출 순서와 keep이 모두 그 상수를 읽음, 이름 사본 금지; extras는 `seal_dc` 안 블록 객체 키 지역 매핑, 키 누락·초과는 예외)(design 41 v1.12.8 753, 계획 v6.31 N3.3, 사용자 결정 O-94 (2)·O-95). `dc_seal_report`는 keep 밖 → 같은 입력이면 S3 graft(원래 취지와 다름(작음), 승인 O-94 (2)). 실패 경로 부분 스냅샷의 parent keep 필드는 이 card에서 바꾸지 않음(백로그 B69). `_CONTEXT_WRITERS`(`E/search/search_context.py:44`)는 옮기지도 읽지도 않는다(O-61 P1).
 - `GraphSnapshot.derive_child(keep_writers)`: writer ∈ keep인 필드와 그 writer의 `block_version`만 남긴 새 스냅샷(권한표·구조 공유, eager -- '없음'이 '낡은 값'보다 안전).
 - parent 일치 검사(`kernel_run.py:73`)를 base writer 전부로 넓힘, 어긋나면 `ValueError`.
-- `seal_versions(snapshot, calls, base)` 끝에 (3) coverage(모든 필드 writer ∈ base writer ∪ calls, 위반 detail `("foreign_writers", 정렬 tuple)`) (4) 서로소(base writer ∩ calls = ∅, 위반 detail `("base_call_overlap", 정렬 tuple)`) -- 어느 하나 위반이면 `SEAL_FAIL`. 기존 (1)(2) 그대로. `seal_dc`는 `run_kernel`에서 `ctx.base`를 넘겨받는다.
-- 판정 단언 L11 (a)(b)(c)(41:812).
+- `seal_versions(snapshot, calls, base)` 끝에 (3) coverage(모든 필드 writer ∈ base writer ∪ calls, 위반 detail `("foreign_writers", 정렬 tuple)`) (4) 서로소(base writer ∩ calls = ∅, 위반 detail `("base_call_overlap", 정렬 tuple)`) -- 어느 하나 위반이면 `SEAL_FAIL`. 기존 (1)(2) 그대로. `seal_dc`는 `run_kernel`에서 `ctx.base`를 넘겨받는다 -- `seal_dc`의 `base`는 기본값 없는 필수 키워드, `seal_versions`·`seal_dc`에 base None이면 `TypeError`, `if base is not None` 건너뛰기 분기 없음(design 41 v1.12.8 756, O-94 (3)).
+- `E/sizing/CONTRACT.md` 서명 문구(재검증 참고 `:119·554·558`)에 base 필수 반영.
+- 판정 단언 L11 (a)(b)(c)(d)(design 41 v1.12.8 L11).
 
 graph 단일 정본 검사(이 card 범위): G2(새 cache·사본 목록 0 -- keep은 `ctx.base.block_versions`·호출 목록에서 읽음, `git grep` 상수 writer 목록 0), G5(스냅샷 파생 -- L11), G7(같은 θ ss 재평가 graft·`computes` 증분 0 -- L11 (c)). 새 graph 필드 없음(G1·G3·G4·G6 해당 없음 -- 감사가 '해당 없음'을 확인).
 
@@ -56,7 +57,7 @@ red-green. 새 이름은 존재 부재 red(`ImportError`·`AttributeError` -- 00
 
 ## 무동작 판정 입력(무발동 값)
 
-parent 없는 평가(스냅샷 = `ctx.base`)는 봉인 4를 통과한다(keep을 옛 `_CONTEXT_WRITERS`로 구현하면 red). 커널 블록 값·front 결과는 바뀌지 않는다 -- 9회로 결과 비트 동일(제외: ss 블록 outcome `reuse` → `graft`, 블록 계수 칸).
+parent 없는 평가(스냅샷 = `ctx.base`)는 봉인 4를 통과한다(keep을 옛 `_CONTEXT_WRITERS`로 구현하면 red). 커널 블록 값·front 결과는 바뀌지 않는다 -- 9회로 결과 비트 동일(제외: ss 블록 outcome `reuse` → `graft`, `dc_seal_report` outcome `reuse` → `graft`, 블록 계수 칸; 봉인 항목 블록 여덟은 `reuse` 그대로).
 
 ## 재현할 수치
 
@@ -75,6 +76,7 @@ parent 없는 평가(스냅샷 = `ctx.base`)는 봉인 4를 통과한다(keep을
 ## test 작성 주체 몫(code 주체는 고치지 않는다)
 
 - 41:756 (i)의 ss 블록 `reuse` 계수 단언 search test → `graft` 기대(변화표에 적음, 약화 아님).
+- 승인 기록 `20261022-it2a-o94-ext` 범위 1~3: `test_empty_calls_pass` 픽스처 base = 그 스냅샷, `test_size_and_seal.py` 4항목 DC 열세 블록 기대 = computes 0·reuse 12(커널 4·봉인 항목 8)·graft 1(`dc_seal_report`), 단위 test `seal_dc` 호출 7곳 `base=ctx.base`.
 - 새 test: `tests/core/test_graph_snapshot.py`(있으면 그 파일)에 `derive_child`, `tests/sizing/test_kernel_run.py`·seal test 파일에 L11.
 
 ## 작성 전 실측

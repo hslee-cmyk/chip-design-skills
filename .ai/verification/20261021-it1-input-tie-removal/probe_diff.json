@@ -1,0 +1,1255 @@
+{
+ "common_gate_amplifier": {
+  "ach_dof": [
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M3",
+     "V:VNBias1",
+     "V:VNBias2",
+     "V:VPBias1",
+     "V:vin",
+     "V:vout",
+     "u:M1",
+     "u:M2",
+     "u:M3"
+    ],
+    "n_equations": 3,
+    "n_variables": 12,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 3,
+    "unmatched_equations": []
+   },
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M3",
+     "V:VNBias1",
+     "V:VNBias2",
+     "V:VPBias1",
+     "V:vin",
+     "V:vout",
+     "u:M1",
+     "u:M2",
+     "u:M3"
+    ],
+    "n_equations": 3,
+    "n_variables": 12,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 3,
+    "unmatched_equations": []
+   }
+  ],
+  "coord_changed": {},
+  "domain_ties_added": [],
+  "domain_ties_count": [
+   0,
+   0
+  ],
+  "domain_ties_removed": [],
+  "domain_vars_added": [],
+  "domain_vars_count": [
+   6,
+   6
+  ],
+  "domain_vars_removed": [],
+  "input_tie_nets_base": [],
+  "start_rungs_equal_after_rename": true,
+  "start_uncovered_equal_after_rename": true,
+  "status": [
+   [
+    "ok",
+    "ok"
+   ],
+   [
+    "ok",
+    "ok"
+   ]
+  ],
+  "theta_schema_equal_after_rename": true,
+  "writer_nets_changed": [
+   "vin"
+  ],
+  "y_root": "vin"
+ },
+ "current_reuse_telescopic_ota": {
+  "ach_dof": [
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M10",
+     "I:M11a",
+     "I:M13",
+     "I:M15",
+     "I:M17",
+     "I:M18a",
+     "I:M19",
+     "I:M1a",
+     "I:M1b",
+     "I:M20a",
+     "I:M22",
+     "I:M25",
+     "I:M36a",
+     "I:M36b",
+     "I:M39",
+     "I:M57",
+     "I:M6",
+     "I:M60",
+     "I:M61",
+     "I:M8",
+     "I:M9a",
+     "R:R2",
+     "V:N11a11b",
+     "V:N14a_14b",
+     "V:N1a2a",
+     "V:N1b2b",
+     "V:N20a20b",
+     "V:N23a24b",
+     "V:N36b",
+     "V:N3a4a",
+     "V:N3b4b",
+     "V:N58_57",
+     "V:N64_63",
+     "V:N_cc_rz1",
+     "V:N_cc_rz2",
+     "V:Vbias3",
+     "V:Vg15",
+     "V:Vip",
+     "V:Voc",
+     "V:Voc_des",
+     "V:Vom",
+     "V:Vop",
+     "u:M10",
+     "u:M11a",
+     "u:M11b",
+     "u:M12",
+     "u:M13",
+     "u:M14a",
+     "u:M14b",
+     "u:M15",
+     "u:M16",
+     "u:M17",
+     "u:M18a",
+     "u:M18b",
+     "u:M19",
+     "u:M1a",
+     "u:M1b",
+     "u:M20a",
+     "u:M20b",
+     "u:M21",
+     "u:M22",
+     "u:M23a",
+     "u:M24b",
+     "u:M25",
+     "u:M26",
+     "u:M2a",
+     "u:M2b",
+     "u:M36a",
+     "u:M36b",
+     "u:M37a",
+     "u:M37b",
+     "u:M38",
+     "u:M39",
+     "u:M3a",
+     "u:M3b",
+     "u:M40",
+     "u:M4a",
+     "u:M4b",
+     "u:M5",
+     "u:M57",
+     "u:M58",
+     "u:M6",
+     "u:M60",
+     "u:M61",
+     "u:M63",
+     "u:M64",
+     "u:M66",
+     "u:M68",
+     "u:M7",
+     "u:M8",
+     "u:M9a",
+     "u:M9b"
+    ],
+    "n_equations": 54,
+    "n_variables": 146,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 54,
+    "unmatched_equations": []
+   },
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M10",
+     "I:M11a",
+     "I:M13",
+     "I:M15",
+     "I:M17",
+     "I:M18a",
+     "I:M19",
+     "I:M1a",
+     "I:M1b",
+     "I:M20a",
+     "I:M22",
+     "I:M25",
+     "I:M36a",
+     "I:M36b",
+     "I:M39",
+     "I:M57",
+     "I:M6",
+     "I:M60",
+     "I:M61",
+     "I:M8",
+     "I:M9a",
+     "R:R2",
+     "V:N11a11b",
+     "V:N14a_14b",
+     "V:N1a2a",
+     "V:N1b2b",
+     "V:N20a20b",
+     "V:N23a24b",
+     "V:N36b",
+     "V:N3a4a",
+     "V:N3b4b",
+     "V:N58_57",
+     "V:N64_63",
+     "V:N_cc_rz1",
+     "V:N_cc_rz2",
+     "V:Vbias3",
+     "V:Vg15",
+     "V:Vim",
+     "V:Vip",
+     "V:Voc",
+     "V:Voc_des",
+     "V:Vom",
+     "V:Vop",
+     "u:M10",
+     "u:M11a",
+     "u:M11b",
+     "u:M12",
+     "u:M13",
+     "u:M14a",
+     "u:M14b",
+     "u:M15",
+     "u:M16",
+     "u:M17",
+     "u:M18a",
+     "u:M18b",
+     "u:M19",
+     "u:M1a",
+     "u:M1b",
+     "u:M20a",
+     "u:M20b",
+     "u:M21",
+     "u:M22",
+     "u:M23a",
+     "u:M24b",
+     "u:M25",
+     "u:M26",
+     "u:M2a",
+     "u:M2b",
+     "u:M36a",
+     "u:M36b",
+     "u:M37a",
+     "u:M37b",
+     "u:M38",
+     "u:M39",
+     "u:M3a",
+     "u:M3b",
+     "u:M40",
+     "u:M4a",
+     "u:M4b",
+     "u:M5",
+     "u:M57",
+     "u:M58",
+     "u:M6",
+     "u:M60",
+     "u:M61",
+     "u:M63",
+     "u:M64",
+     "u:M66",
+     "u:M68",
+     "u:M7",
+     "u:M8",
+     "u:M9a",
+     "u:M9b"
+    ],
+    "n_equations": 53,
+    "n_variables": 146,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 53,
+    "unmatched_equations": []
+   }
+  ],
+  "coord_changed": {
+   "M4b": [
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    },
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ]
+  },
+  "domain_ties_added": [
+   "[[\"ln_idu\", \"M4a\"], [[\"ln_idu\", \"M4b\"]]]"
+  ],
+  "domain_ties_count": [
+   29,
+   30
+  ],
+  "domain_ties_removed": [],
+  "domain_vars_added": [],
+  "domain_vars_count": [
+   38,
+   38
+  ],
+  "domain_vars_removed": [],
+  "input_tie_nets_base": [
+   "Vim"
+  ],
+  "start_rungs_equal_after_rename": true,
+  "start_uncovered_equal_after_rename": true,
+  "status": [
+   [
+    "ok",
+    "ok"
+   ],
+   [
+    "ok",
+    "ok"
+   ]
+  ],
+  "theta_schema_equal_after_rename": false,
+  "theta_schema_len": [
+   5338,
+   5357
+  ],
+  "theta_schema_mentions_new_writers": {
+   "M4b": true
+  },
+  "writer_nets_changed": [
+   "Vbias3",
+   "Vim",
+   "Vip",
+   "Vx",
+   "Vy"
+  ],
+  "y_root": "Vip"
+ },
+ "folded_cascode": {
+  "ach_dof": [
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M3",
+     "I:M4",
+     "I:M5",
+     "I:M6",
+     "I:MP",
+     "V:Vg7",
+     "V:Vg9",
+     "V:bias3",
+     "V:out",
+     "V:vb1",
+     "V:vb2",
+     "V:vin_p",
+     "u:M1",
+     "u:M10",
+     "u:M11",
+     "u:M2",
+     "u:M3",
+     "u:M4",
+     "u:M5",
+     "u:M6",
+     "u:M7",
+     "u:M8",
+     "u:M9",
+     "u:MN",
+     "u:MP"
+    ],
+    "n_equations": 14,
+    "n_variables": 39,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 14,
+    "unmatched_equations": []
+   },
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M3",
+     "I:M4",
+     "I:M5",
+     "I:M6",
+     "I:MP",
+     "V:Vg7",
+     "V:Vg9",
+     "V:bias3",
+     "V:out",
+     "V:vb1",
+     "V:vb2",
+     "V:vin_n",
+     "V:vin_p",
+     "u:M1",
+     "u:M10",
+     "u:M11",
+     "u:M2",
+     "u:M3",
+     "u:M4",
+     "u:M5",
+     "u:M6",
+     "u:M7",
+     "u:M8",
+     "u:M9",
+     "u:MN",
+     "u:MP"
+    ],
+    "n_equations": 13,
+    "n_variables": 39,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 13,
+    "unmatched_equations": []
+   }
+  ],
+  "coord_changed": {
+   "M1": [
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    },
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ]
+  },
+  "domain_ties_added": [],
+  "domain_ties_count": [
+   0,
+   0
+  ],
+  "domain_ties_removed": [],
+  "domain_vars_added": [
+   "{\"component\": [\"ln_idu\", \"M1\"], \"hi\": -8.712914851552746, \"lo\": -43.76873011339433, \"log\": false}"
+  ],
+  "domain_vars_count": [
+   16,
+   17
+  ],
+  "domain_vars_removed": [],
+  "input_tie_nets_base": [
+   "vin_n"
+  ],
+  "start_rungs_equal_after_rename": false,
+  "start_rungs_len": [
+   7747,
+   8031
+  ],
+  "start_rungs_mentions_new_writers": {
+   "M1": true
+  },
+  "start_uncovered_equal_after_rename": false,
+  "start_uncovered_len": [
+   137,
+   137
+  ],
+  "start_uncovered_mentions_new_writers": {
+   "M1": false
+  },
+  "status": [
+   [
+    "ok",
+    "ok"
+   ],
+   [
+    "ok",
+    "ok"
+   ]
+  ],
+  "theta_schema_equal_after_rename": false,
+  "theta_schema_len": [
+   1285,
+   1303
+  ],
+  "theta_schema_mentions_new_writers": {
+   "M1": true
+  },
+  "writer_nets_changed": [
+   "tail",
+   "vin_n",
+   "vin_p"
+  ],
+  "y_root": "vin_p"
+ },
+ "ngcc_3stage_ff": {
+  "ach_dof": [
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M0",
+     "I:M1",
+     "I:M10",
+     "I:M12",
+     "I:M13",
+     "I:M14",
+     "I:M5",
+     "I:M6A",
+     "I:M9",
+     "V:V1",
+     "V:V2",
+     "V:VBN",
+     "V:Vinp",
+     "V:Vout",
+     "u:M0",
+     "u:M1",
+     "u:M10",
+     "u:M11",
+     "u:M12",
+     "u:M13",
+     "u:M14",
+     "u:M2",
+     "u:M4",
+     "u:M5",
+     "u:M6A",
+     "u:M6B",
+     "u:M7",
+     "u:M8",
+     "u:M9"
+    ],
+    "n_equations": 17,
+    "n_variables": 46,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 17,
+    "unmatched_equations": []
+   },
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M0",
+     "I:M1",
+     "I:M10",
+     "I:M12",
+     "I:M13",
+     "I:M14",
+     "I:M5",
+     "I:M6A",
+     "I:M9",
+     "V:V1",
+     "V:V2",
+     "V:VBN",
+     "V:Vinn",
+     "V:Vinp",
+     "V:Vout",
+     "u:M0",
+     "u:M1",
+     "u:M10",
+     "u:M11",
+     "u:M12",
+     "u:M13",
+     "u:M14",
+     "u:M2",
+     "u:M4",
+     "u:M5",
+     "u:M6A",
+     "u:M6B",
+     "u:M7",
+     "u:M8",
+     "u:M9"
+    ],
+    "n_equations": 16,
+    "n_variables": 46,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 16,
+    "unmatched_equations": []
+   }
+  ],
+  "coord_changed": {
+   "M1": [
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    },
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ]
+  },
+  "domain_ties_added": [],
+  "domain_ties_count": [
+   0,
+   0
+  ],
+  "domain_ties_removed": [],
+  "domain_vars_added": [
+   "{\"component\": [\"ln_idu\", \"M1\"], \"hi\": -10.384576984176295, \"lo\": -57.511904420114035, \"log\": false}"
+  ],
+  "domain_vars_count": [
+   21,
+   22
+  ],
+  "domain_vars_removed": [],
+  "input_tie_nets_base": [
+   "Vinn"
+  ],
+  "start_rungs_equal_after_rename": true,
+  "start_uncovered_equal_after_rename": true,
+  "status": [
+   [
+    "review_needed",
+    "review_needed"
+   ],
+   [
+    "review_needed",
+    "review_needed"
+   ]
+  ],
+  "theta_schema_equal_after_rename": true,
+  "writer_nets_changed": [
+   "TAIL",
+   "Vinn",
+   "Vinp"
+  ],
+  "y_root": "Vinp"
+ },
+ "nmcnr_amplifier": {
+  "ach_dof": [
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M101",
+     "I:M102",
+     "I:M108",
+     "I:M109",
+     "I:M201",
+     "I:M202",
+     "I:M302",
+     "V:NodeCM",
+     "V:NodeF2",
+     "V:NodeM2",
+     "V:NodeS2",
+     "V:NodeTail",
+     "V:VB1",
+     "V:VB2",
+     "V:VB3",
+     "V:VB4",
+     "V:VB5",
+     "V:Vin_p",
+     "V:Vout",
+     "u:M101",
+     "u:M102",
+     "u:M103",
+     "u:M104",
+     "u:M105",
+     "u:M106",
+     "u:M107",
+     "u:M108",
+     "u:M109",
+     "u:M201",
+     "u:M202",
+     "u:M203",
+     "u:M204",
+     "u:M301",
+     "u:M302"
+    ],
+    "n_equations": 17,
+    "n_variables": 51,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 17,
+    "unmatched_equations": []
+   },
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M101",
+     "I:M102",
+     "I:M108",
+     "I:M109",
+     "I:M201",
+     "I:M202",
+     "I:M302",
+     "V:NodeCM",
+     "V:NodeF2",
+     "V:NodeM2",
+     "V:NodeS2",
+     "V:NodeTail",
+     "V:VB1",
+     "V:VB2",
+     "V:VB3",
+     "V:VB4",
+     "V:VB5",
+     "V:Vin_n",
+     "V:Vin_p",
+     "V:Vout",
+     "u:M101",
+     "u:M102",
+     "u:M103",
+     "u:M104",
+     "u:M105",
+     "u:M106",
+     "u:M107",
+     "u:M108",
+     "u:M109",
+     "u:M201",
+     "u:M202",
+     "u:M203",
+     "u:M204",
+     "u:M301",
+     "u:M302"
+    ],
+    "n_equations": 16,
+    "n_variables": 51,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 16,
+    "unmatched_equations": []
+   }
+  ],
+  "coord_changed": {
+   "M102": [
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    },
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ]
+  },
+  "domain_ties_added": [],
+  "domain_ties_count": [
+   0,
+   0
+  ],
+  "domain_ties_removed": [],
+  "domain_vars_added": [
+   "{\"component\": [\"ln_idu\", \"M102\"], \"hi\": -10.384576984176295, \"lo\": -57.511904420114035, \"log\": false}"
+  ],
+  "domain_vars_count": [
+   23,
+   24
+  ],
+  "domain_vars_removed": [],
+  "input_tie_nets_base": [
+   "Vin_n"
+  ],
+  "start_rungs_equal_after_rename": false,
+  "start_rungs_len": [
+   10854,
+   11155
+  ],
+  "start_rungs_mentions_new_writers": {
+   "M102": true
+  },
+  "start_uncovered_equal_after_rename": true,
+  "status": [
+   [
+    "ok",
+    "ok"
+   ],
+   [
+    "ok",
+    "ok"
+   ]
+  ],
+  "theta_schema_equal_after_rename": false,
+  "theta_schema_len": [
+   1800,
+   1820
+  ],
+  "theta_schema_mentions_new_writers": {
+   "M102": true
+  },
+  "writer_nets_changed": [
+   "NodeTail",
+   "Vin_n",
+   "Vin_p"
+  ],
+  "y_root": "Vin_p"
+ },
+ "pushpull_follower_buffer": {
+  "ach_dof": [
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M2",
+     "I:M4",
+     "I:M5",
+     "V:A",
+     "V:B",
+     "V:VNB1",
+     "V:VPB1",
+     "V:vout",
+     "u:M1",
+     "u:M2",
+     "u:M3",
+     "u:M4",
+     "u:M5",
+     "u:M6"
+    ],
+    "n_equations": 7,
+    "n_variables": 21,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 7,
+    "unmatched_equations": []
+   },
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M2",
+     "I:M4",
+     "I:M5",
+     "V:A",
+     "V:B",
+     "V:VNB1",
+     "V:VPB1",
+     "V:vout",
+     "u:M1",
+     "u:M2",
+     "u:M3",
+     "u:M4",
+     "u:M5",
+     "u:M6"
+    ],
+    "n_equations": 7,
+    "n_variables": 21,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 7,
+    "unmatched_equations": []
+   }
+  ],
+  "coord_changed": {},
+  "domain_ties_added": [],
+  "domain_ties_count": [
+   0,
+   0
+  ],
+  "domain_ties_removed": [],
+  "domain_vars_added": [],
+  "domain_vars_count": [
+   8,
+   8
+  ],
+  "domain_vars_removed": [],
+  "input_tie_nets_base": [],
+  "start_rungs_equal_after_rename": true,
+  "start_uncovered_equal_after_rename": true,
+  "status": [
+   [
+    "ok",
+    "ok"
+   ],
+   [
+    "ok",
+    "ok"
+   ]
+  ],
+  "theta_schema_equal_after_rename": true,
+  "writer_nets_changed": [],
+  "y_root": null
+ },
+ "sf_pushpull_output_opamp": {
+  "ach_dof": [
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M17",
+     "I:M19",
+     "I:M21",
+     "I:M9",
+     "R:R1a",
+     "R:R1b",
+     "R:R1c",
+     "V:N1",
+     "V:N12",
+     "V:N1516",
+     "V:N2",
+     "V:N20",
+     "V:N56",
+     "V:N7",
+     "V:N78",
+     "V:N910",
+     "V:TAIL",
+     "V:Y",
+     "V:vout",
+     "u:M1",
+     "u:M10",
+     "u:M11",
+     "u:M12",
+     "u:M13",
+     "u:M14",
+     "u:M15",
+     "u:M16",
+     "u:M17",
+     "u:M18",
+     "u:M19",
+     "u:M2",
+     "u:M20",
+     "u:M21",
+     "u:M22",
+     "u:M3",
+     "u:M4",
+     "u:M5",
+     "u:M6",
+     "u:M7",
+     "u:M8",
+     "u:M9"
+    ],
+    "n_equations": 27,
+    "n_variables": 68,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 27,
+    "unmatched_equations": []
+   },
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M17",
+     "I:M19",
+     "I:M21",
+     "I:M9",
+     "R:R1a",
+     "R:R1b",
+     "R:R1c",
+     "V:N1",
+     "V:N12",
+     "V:N1516",
+     "V:N2",
+     "V:N20",
+     "V:N56",
+     "V:N7",
+     "V:N78",
+     "V:N910",
+     "V:TAIL",
+     "V:Y",
+     "V:vout",
+     "u:M1",
+     "u:M10",
+     "u:M11",
+     "u:M12",
+     "u:M13",
+     "u:M14",
+     "u:M15",
+     "u:M16",
+     "u:M17",
+     "u:M18",
+     "u:M19",
+     "u:M2",
+     "u:M20",
+     "u:M21",
+     "u:M22",
+     "u:M3",
+     "u:M4",
+     "u:M5",
+     "u:M6",
+     "u:M7",
+     "u:M8",
+     "u:M9"
+    ],
+    "n_equations": 27,
+    "n_variables": 68,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 27,
+    "unmatched_equations": []
+   }
+  ],
+  "coord_changed": {},
+  "domain_ties_added": [],
+  "domain_ties_count": [
+   0,
+   0
+  ],
+  "domain_ties_removed": [],
+  "domain_vars_added": [],
+  "domain_vars_count": [
+   26,
+   26
+  ],
+  "domain_vars_removed": [],
+  "input_tie_nets_base": [],
+  "start_rungs_equal_after_rename": true,
+  "start_uncovered_equal_after_rename": true,
+  "status": [
+   [
+    "ok",
+    "ok"
+   ],
+   [
+    "ok",
+    "ok"
+   ]
+  ],
+  "theta_schema_equal_after_rename": true,
+  "writer_nets_changed": [],
+  "y_root": null
+ },
+ "two_stage_ota": {
+  "ach_dof": [
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M3",
+     "I:M4",
+     "I:M6",
+     "V:N_cc_rz",
+     "V:O1",
+     "V:OUT",
+     "V:bias",
+     "V:vin_p",
+     "u:M1",
+     "u:M2",
+     "u:M3",
+     "u:M4",
+     "u:M5",
+     "u:M6",
+     "u:M7"
+    ],
+    "n_equations": 8,
+    "n_variables": 23,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 8,
+    "unmatched_equations": []
+   },
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M3",
+     "I:M4",
+     "I:M6",
+     "V:N_cc_rz",
+     "V:O1",
+     "V:OUT",
+     "V:bias",
+     "V:vin_n",
+     "V:vin_p",
+     "u:M1",
+     "u:M2",
+     "u:M3",
+     "u:M4",
+     "u:M5",
+     "u:M6",
+     "u:M7"
+    ],
+    "n_equations": 7,
+    "n_variables": 23,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 7,
+    "unmatched_equations": []
+   }
+  ],
+  "coord_changed": {
+   "M1": [
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    },
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ]
+  },
+  "domain_ties_added": [],
+  "domain_ties_count": [
+   0,
+   0
+  ],
+  "domain_ties_removed": [],
+  "domain_vars_added": [
+   "{\"component\": [\"ln_idu\", \"M1\"], \"hi\": -8.712914851552746, \"lo\": -43.76873011339433, \"log\": false}"
+  ],
+  "domain_vars_count": [
+   10,
+   11
+  ],
+  "domain_vars_removed": [],
+  "input_tie_nets_base": [
+   "vin_n"
+  ],
+  "start_rungs_equal_after_rename": false,
+  "start_rungs_len": [
+   3486,
+   3731
+  ],
+  "start_rungs_mentions_new_writers": {
+   "M1": true
+  },
+  "start_uncovered_equal_after_rename": true,
+  "status": [
+   [
+    "ok",
+    "ok"
+   ],
+   [
+    "ok",
+    "ok"
+   ]
+  ],
+  "theta_schema_equal_after_rename": false,
+  "theta_schema_len": [
+   776,
+   794
+  ],
+  "theta_schema_mentions_new_writers": {
+   "M1": true
+  },
+  "writer_nets_changed": [
+   "CS",
+   "vin_n",
+   "vin_p"
+  ],
+  "y_root": "vin_p"
+ },
+ "two_stage_ota_sf": {
+  "ach_dof": [
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M3",
+     "I:M4",
+     "I:M6",
+     "I:M8",
+     "V:O1",
+     "V:bias",
+     "V:vin_p",
+     "V:vout",
+     "u:M1",
+     "u:M2",
+     "u:M3",
+     "u:M4",
+     "u:M5",
+     "u:M6",
+     "u:M7",
+     "u:M8",
+     "u:M9"
+    ],
+    "n_equations": 10,
+    "n_variables": 27,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 10,
+    "unmatched_equations": []
+   },
+   {
+    "competing_pairs": [],
+    "free_variables": [
+     "I:M3",
+     "I:M4",
+     "I:M6",
+     "I:M8",
+     "V:O1",
+     "V:bias",
+     "V:vin_n",
+     "V:vin_p",
+     "V:vout",
+     "u:M1",
+     "u:M2",
+     "u:M3",
+     "u:M4",
+     "u:M5",
+     "u:M6",
+     "u:M7",
+     "u:M8",
+     "u:M9"
+    ],
+    "n_equations": 9,
+    "n_variables": 27,
+    "numeric_ranks": [],
+    "status": "free_dof",
+    "structural_rank": 9,
+    "unmatched_equations": []
+   }
+  ],
+  "coord_changed": {
+   "M1": [
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    },
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ]
+  },
+  "domain_ties_added": [],
+  "domain_ties_count": [
+   0,
+   0
+  ],
+  "domain_ties_removed": [],
+  "domain_vars_added": [
+   "{\"component\": [\"ln_idu\", \"M1\"], \"hi\": -8.712914851552746, \"lo\": -43.76873011339433, \"log\": false}"
+  ],
+  "domain_vars_count": [
+   12,
+   13
+  ],
+  "domain_vars_removed": [],
+  "input_tie_nets_base": [
+   "vin_n"
+  ],
+  "start_rungs_equal_after_rename": false,
+  "start_rungs_len": [
+   4907,
+   5191
+  ],
+  "start_rungs_mentions_new_writers": {
+   "M1": true
+  },
+  "start_uncovered_equal_after_rename": true,
+  "status": [
+   [
+    "ok",
+    "ok"
+   ],
+   [
+    "ok",
+    "ok"
+   ]
+  ],
+  "theta_schema_equal_after_rename": false,
+  "theta_schema_len": [
+   833,
+   851
+  ],
+  "theta_schema_mentions_new_writers": {
+   "M1": true
+  },
+  "writer_nets_changed": [
+   "CS",
+   "vin_n",
+   "vin_p"
+  ],
+  "y_root": "vin_p"
+ }
+}

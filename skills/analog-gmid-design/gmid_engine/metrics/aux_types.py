@@ -15,8 +15,11 @@
 * `FfRatio` -- `ratio`.
 * 보고 전용: `BlockGain`·`BlockResidual`·`FfContribution`·`NqsRatio`·`LsNode`·`LsFields`·`GateResult`·`CoupledResidual`.
 * `MismatchSource` -- offset·미러비 σ 의 PDK mismatch 모델 입력, `SatDevice` -- 스윙·ICMR 경로 합의 MOS 하나.
+* `NodalSystem` -- 필드 `graph.ss_nodal` 값(봉인점 노달 계: G·g_bound·인수분해), `IcmConfig` -- 필드 `graph.icm_config` 값(ICMR 측정 구성).
 """
 import dataclasses
+
+import numpy
 
 
 @dataclasses.dataclass(frozen=True)
@@ -38,8 +41,8 @@ class MismatchSource:
 @dataclasses.dataclass(frozen=True)
 class BlockStruct:
     """블록 하나의 구조 사실. `key` = 출력노드 정렬 tuple, `kind` ∈ {gain, buffer, composite}, `stage` = 정수, `inputs`·`outputs` = 넷 이름 tuple,
-    `nodes` = 블록 노드 집합(입력 넷 포함, 교류접지 제외), `input_cells` = 역할이 input 인 MOS 이름 tuple. 블록 국소 모델의 스탬프 소자는 이 노드 집합에 단자가
-    닿는 소자로 정한다(S1v `roles` 가 아니라 netlist 인접 -- 버퍼 블록도 같은 규칙)."""
+    `nodes` = 블록 노드 집합(입력 넷 포함, 교류접지 제외), `input_cells` = 역할이 input 인 MOS 이름 tuple, `members` = S1v 블록 소자 이름(MOS·수동소자) 정렬 tuple
+    (S1v `roles` 의 이름 -- 설계 41 §2.5 미지수 집합 U_b 의 블록 소자, 스탬프에는 저항만 쓰인다. S1v 값의 투영이다)."""
 
     key: tuple
     kind: str
@@ -48,6 +51,7 @@ class BlockStruct:
     outputs: tuple
     nodes: tuple
     input_cells: tuple = ()
+    members: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -68,7 +72,8 @@ class FfStruct:
 class ViewStruct:
     """전달 뷰 하나의 구조 사실. `excite` = ((넷, 가중), ...), `sense` = 감지 넷 정렬 tuple, `blocks` = 주경로 블록(stage 순, 같은 stage 는 키순),
     `ff` = FfStruct tuple, `input_cells` = 첫 이득 블록(최소 stage)의 input 셀, `signal_devices` = 순방향 신호 셀 MOS 이름 정렬 tuple (nqs_ratio 입력),
-    `pole_nets` = 극점 노드 넷 정렬 tuple, `directions` = ((넷, topology, charge ((소자, β|σ|κ), ...), discharge (...)), ...) -- ls_fields 입력(DEC-65)."""
+    `pole_nets` = 극점 노드 넷 정렬 tuple, `directions` = ((넷, topology, charge ((소자, β|σ|κ), ...), discharge (...)), ...) -- ls_fields 입력(DEC-65),
+    `ac_ground` = 그 뷰 교류접지 넷 정렬 tuple(S1v 뷰 값의 투영 -- 블록 국소 풀이의 고정 집합 F)."""
 
     id: str
     excite: tuple
@@ -79,6 +84,7 @@ class ViewStruct:
     signal_devices: tuple = ()
     pole_nets: tuple = ()
     directions: tuple = ()
+    ac_ground: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -91,7 +97,7 @@ class MetricStructure:
 @dataclasses.dataclass(frozen=True)
 class SatDevice:
     """포화 경로 합의 MOS 하나(`ls_swing` 입력). `polarity` = +1(NMOS)/−1(PMOS), `d`·`g`·`s` = 넷, `vgs_v` = |VGS|(봉인 op, VSB 포함),
-    `sat_v` = VDSAT + tol_vdsat(None 이면 LUT 열이 없거나 tol 미정), `sat_tol_v`·`vgs_tol_v` = 각 엣지 값의 허용오차(분해능 전파 -- 없으면 None),
+    `sat_v` = VDSAT(`device.dc_sat_v.vdsat_v`, tol 을 더하지 않는다; None 이면 값이 없는 사유 -- LUT 열 없음·정의역 밖·역방향 VDS), `sat_tol_v`·`vgs_tol_v` = 각 엣지 값의 허용오차(분해능 전파 -- 없으면 None),
     `linear` = 선형 영역 선언 소자(포화 판정 제외)."""
 
     label: str
@@ -161,7 +167,9 @@ class SwingIcmr:
 
     `out_ranges` = ((출력 넷, V_lo, V_hi, V_dc), ...), `window` = (Vin,min, Vin,max)(레일로 자른 입력 창), `v_icm` = 판정에 쓴 입력 DC(선언값 또는 해의 y_icm),
     `required_input_cm_v` = (value, lo, hi) 또는 None(입력 DC 대기 SP-2 회로에서 보고), `input_dc` = 'declared' | 'pending'(대기 -- 해의 y_icm 으로 계산),
-    `bounds` = ((넷, lo, hi), ...) 모든 넷의 경로 합 구간(`ls_fields` 의 신호 셀 VGS_max 입력)."""
+    `bounds` = ((넷, lo, hi), ...) 모든 넷의 경로 합 구간(`ls_fields` 의 신호 셀 VGS_max 입력).
+    입력 쪽 칸(`icmr_v`·`icm_margin_v`·`window`·`v_icm`·`required_input_cm_v`·`input_dc`·`icmr_resolution`·`margin_resolution`)은 `ls_swing` 이 아니라
+    `icm_window_metrics`(`IcmWindow`, `graph.icm_config` V_cm 칸)가 채운다 -- `ls_swing` 출력에서는 기본값이다 (card IT-2d)."""
 
     swing_out_v: object
     icmr_v: object
@@ -175,6 +183,35 @@ class SwingIcmr:
     icmr_resolution: object = None
     margin_resolution: object = None
     bounds: tuple = ()
+    undefined: tuple = ()
+
+
+@dataclasses.dataclass(frozen=True)
+class IcmPort:
+    """입력 포트 하나의 `icm_window_metrics` 입력. `v` = 봉인점 포트 전압, `lo`·`hi` = 그 포트 창(`node.dc_window_cfg`, **보고 열 전용** -- metric 산술에 쓰지 않는다),
+    `tol_v` = 창을 잰 해의 tolerance, `missing` = 측정되지 않은 사유 tuple(빈 tuple = 측정됨)."""
+
+    net: str
+    v: object
+    lo: object
+    hi: object
+    tol_v: object
+    missing: tuple = ()
+
+
+@dataclasses.dataclass(frozen=True)
+class IcmWindow:
+    """`icm_window_metrics` 결과 -- 세 metric(`icmr_v`·`icm_margin_v`·`required_input_cm_v`)을 `graph.icm_config` V_cm 칸에서 낸 값 묶음(`SwingIcmr` 로 합쳐진다, 필드 아님).
+    `window` = (vcm_lo, vcm_hi), `v_icm` = vcm0, `input_dc` = 'declared' | 'pending', `*_resolution` = 첫 포트 `tol_v`(margin)·2·`tol_v`(icmr), `undefined` = `Undefined` tuple."""
+
+    icmr_v: object
+    icm_margin_v: object
+    required_input_cm_v: object = None
+    window: tuple = ()
+    v_icm: object = None
+    input_dc: str = ""
+    icmr_resolution: object = None
+    margin_resolution: object = None
     undefined: tuple = ()
 
 
@@ -272,14 +309,32 @@ class LsFields:
     undefined: tuple = ()
 
 
+# ---- 감도 게이트 판정(`GateResult.verdict`)과 사유(`GateResult.reason`) -- 못 잰 것을 통과로 읽지 않는다(설계 40 §3.11-6 E-01)
+GATE_OK = "ok"
+GATE_ERROR = "error"
+GATE_UNDETERMINABLE = "undeterminable"
+GATE_EMPTY = "gate_empty"
+GATE_REASON_BASE_UNDEFINED = "base_undefined"
+GATE_REASON_PERTURBATION_UNMEASURED = "perturbation_unmeasured"
+GATE_REASON_NO_PERTURBATION = "no_perturbation"
+GATE_REASON_NO_BLOCK_REPORT = "no_block_report"
+GATE_REASON_NO_UNREAD_DIRECTION = "no_unread_direction"
+GATE_REASON_FRONT_EMPTY = "front_empty"
+
+
 @dataclasses.dataclass(frozen=True)
 class GateResult:
-    """감도 게이트 결과(40 §3.8-2). `ok` = 오류 없음, `checks` = ((섭동 이름, 분해 변화, MNA 변화, ε, 오류 여부), ...), `errors` = 오류 섭동 이름 tuple."""
+    """감도 게이트 결과(40 §3.8-2). `ok` = (`verdict == "ok"`), `checks` = ((섭동 이름, 분해 변화, MNA 변화, ε, 오류 여부), ...), `errors` = 오류 섭동 이름 tuple,
+    `verdict` ∈ {ok, error, undeterminable, gate_empty}, `reason` = verdict 가 undeterminable·gate_empty 일 때의 사유 문자열(그 밖은 None),
+    `unmeasured` = 못 잰 섭동 이름 tuple(전 이름 = 기준이 정의되지 않음)."""
 
     ok: bool
     checks: tuple = ()
     errors: tuple = ()
     epsilon: object = None
+    verdict: str = "ok"
+    reason: object = None
+    unmeasured: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -289,3 +344,41 @@ class CoupledResidual:
     median_db: object
     spread_db: object
     count: int
+
+
+@dataclasses.dataclass(frozen=True, eq=False)       # ndarray 칸이라 값 비교(==)는 `fp_of`(내용 지문)로 한다 -- 필드 단위 == 는 모호한 진리값 오류
+class NodalSystem:
+    """봉인점 소신호 DC 극한(용량 개방)의 노달 계 -- 필드 `graph.ss_nodal` 값(writer `ss_nodal`, 계획 N3.8 '봉인점 DC 야코비안').
+    `nodes` = 노드 이름 tuple(인덱스 = 위치, `ss_circuit.nodes`), `fixed` = 고정 노드 색인 frozenset(교류접지 ∪ 입력 넷), `g` = 컨덕턴스 행렬 G(S),
+    `g_bound` = G 조립 오차의 항목별 상계 E(S, `conductance_matrix(bound=True)`), `factor` = `nodal_factor(g, fixed)` 튜플.
+    ndarray 는 모두 읽기 전용(`writeable=False`)이다 -- 생성할 때 건 배열을 잠근다(소유권을 이 값에 넘긴다). 지문(`__canonical__`)은 (nodes, fixed, g, g_bound) 바이트 --
+    `factor` 는 (g, fixed) 의 결정적 파생이라 따로 싣지 않는다."""
+
+    nodes: tuple
+    fixed: frozenset
+    g: object
+    g_bound: object
+    factor: tuple
+
+    def __post_init__(self):
+        for array in (self.g, self.g_bound) + tuple(part for part in self.factor if isinstance(part, numpy.ndarray)):
+            array.flags.writeable = False
+
+    def __canonical__(self):
+        return (self.nodes, tuple(sorted(self.fixed)), self.g.shape, self.g.tobytes(), self.g_bound.shape, self.g_bound.tobytes())
+
+
+@dataclasses.dataclass(frozen=True)
+class IcmConfig:
+    """ICMR 측정 구성 결과 -- 필드 `graph.icm_config` 값(writer `icm_config`, 계획 N3.8 'ICMR 측정 구성').
+    `config` ∈ {"servo", "as_is_single_input"} 또는 None(정의 불능). `pivot_a_e` = 여기 방향 → 감지의 봉인점 DC 극한 전달(V/V), `pivot_resolution` = 그 판정 분해능
+    δA_num(V/V) -- 두 칸은 출력 전용(결과 JSON). `vcm0`·`vcm_lo`·`vcm_hi` = V_cm 칸(입력 포트 전압 평균의 봉인점·두 끝 상태 값, V; 한 포트라도 측정 실패면 끝은 None).
+    `undefined` = `Undefined` tuple(구성이 None 이면 원소 하나, quantity `"icm_config"`)."""
+
+    config: object
+    pivot_a_e: object
+    pivot_resolution: object
+    vcm0: object
+    vcm_lo: object
+    vcm_hi: object
+    undefined: tuple = ()

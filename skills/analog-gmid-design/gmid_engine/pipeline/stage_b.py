@@ -79,7 +79,8 @@ def _markdown(report):
         lines += ["- 상한 합 " + _fmt(gain["sum_db"]) + " dB (+b " + _fmt(gain["b_db"]) + "), 하한 추정 합(found) " + _fmt(gain["found_sum_db"]) + " dB, 미상 " + str(gain["n_unknown"])]
         for b in gain["blocks"] + gain["ff"]:
             lines.append("  - " + b["role"] + " " + str(b["key"]) + ": " + b["status"] + " A_max=" + _fmt(b["a_max_db"]) + " dB, b=" + _fmt(b["b_db"])
-                         + ", found=" + _fmt(b["found_db"]) + " dB, Π=" + str(b["pi"]) + ", 사유=" + str(b["reason"]))
+                         + ", found=" + _fmt(b["found_db"]) + " dB, Π=" + str(b["pi"]) + ", 사유=" + str(b["reason"])
+                         + ("" if b.get("load_note") is None else ", 부하 메모=" + json.dumps(b["load_note"], ensure_ascii=False)))
     area = res["area"]
     lines += ["", "## 면적", "- A_lb=" + _fmt(area["a_lb_m2"]) + " m², 예산=" + _fmt(area["budget_m2"]) + " m², b_A=" + _fmt(area["b_a_m2"]) + " m², 판정 " + area["verdict"]]
     lines += ["", "## 헤드룸 창"]

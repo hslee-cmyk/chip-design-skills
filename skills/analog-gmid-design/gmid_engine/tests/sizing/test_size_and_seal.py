@@ -1,6 +1,6 @@
 """`size_and_seal(ctx, theta, parent=None) -> DcEvaluation` -- CONTRACT 7절(API·재사용 계약), 8절(실패 규약), 9절(결정론).
 
-재사용은 실행 계수(XRUN-F1 card B C1 `RunCounters`, ctx 의 실행)로 잰다. 기대값은 계약 7절 문장(같은 θ·parent -> computes 0·reuses 13, 한 성분 섭동 ->
+재사용은 실행 계수(XRUN-F1 card B C1 `RunCounters`, ctx 의 실행)로 잰다. 기대값은 계약 7절 문장(같은 θ·parent -> computes 0·reuse 12·dc_seal_report graft 1, 한 성분 섭동 ->
 지정 블록만 다시)이다. 9회로 §10 숫자는 쓰지 않는다.
 """
 import json
@@ -24,15 +24,30 @@ from .conftest import (HERE, Oracle, SKILL_DIR, build_ctx, circuit_cs_res, circu
 from .conftest import COUNT_FIELDS, block_row, row_delta  # [XRUN-F1 card B C1] 실행 계수 행
 from .conftest import kschema, kties  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
-EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
-          S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
-          S.dc_seal_conduction, S.dc_seal_report)       # [r8] 4 평가 + 8 봉인(tol·1·2·3·6·7·8·9) + report = 13
+EVAL12 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
+          S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_region, S.dc_seal_kvl_branch,
+          S.dc_seal_report)       # [EO-1 범위 4] 4 평가 + 7 봉인(tol·1·2·3·6·7/9 영역 판정 하나·8) + report = 12 (옛 13 에서 봉인 7·9 블록이 하나로)
+# 해석: dc_seal_region 의 자리는 옛 봉인 7 자리(6 다음, 8 앞) -- interface 는 순서를 적지 않았다.
 PLAN5 = (S.dc_rails, s1_symmetry, S.dc_current_basis, S.dc_writer_plan, S.dc_scc_order, S.dc_theta_schema)
+
+
+def _assert_dc_outcomes(st):
+    """[IT-2a T-L11d, 승인 20261022-it2a-o94-ext 범위 2; oracle (d) 사용자 선언 design 41 v1.12.8 L11 (d)] 같은 입력 재평가의 DC 열세 블록:
+    computes 0, 커널 4 + 봉인 항목 7 = 블록마다 outcome reuse 1회(합 11), dc_seal_report = outcome graft 1회(keep 밖 -> S3 graft)."""
+    kernel4 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths)
+    items7 = EVAL12[4:11]
+    assert len(kernel4) + len(items7) == 11 and EVAL12[11] is S.dc_seal_report
+    for b in kernel4 + items7:
+        r = st[b.name]
+        assert (r.reuses, r.grafts, r.replays, r.computes) == (1, 0, 0, 0), (b.name, r)
+    rep = st[S.dc_seal_report.name]
+    assert (rep.reuses, rep.grafts, rep.replays, rep.computes) == (0, 1, 0, 0), rep
+    assert sum(st[b.name].reuses for b in EVAL12) == 11 and sum(st[b.name].grafts for b in EVAL12) == 1
 
 
 def stats(ctx):
     """[XRUN-F1 card B C1·C4] ctx 실행 계수의 블록 행(옛 블록 객체 stats 대체 -- 블록은 상태가 없다)."""
-    return {b.name: block_row(ctx.counters, b.name) for b in EVAL13 + PLAN5}
+    return {b.name: block_row(ctx.counters, b.name) for b in EVAL12 + PLAN5}
 
 
 def stats_since(ctx, before):
@@ -92,8 +107,8 @@ def test_same_theta_with_parent_zero_compute(ctx_c):
     before = stats(ctx)
     ev2 = size_and_seal(ctx, theta_c(y=0.45), parent=ev1)
     st = stats_since(ctx, before)
-    assert all(st[b.name].computes == 0 for b in EVAL13)
-    assert sum(st[b.name].reuses for b in EVAL13) == 13
+    assert all(st[b.name].computes == 0 for b in EVAL12)
+    _assert_dc_outcomes(st)
     assert all(st[b.name].calls == 0 for b in PLAN5)          # 계획 블록은 평가에서 부르지 않는다
     assert ev2.snapshot.fp == ev1.snapshot.fp
     assert ev2.report == ev1.report
@@ -114,7 +129,7 @@ def test_current_perturbation_skips_columns(ctx_c):
     c, _, _ = _perturb(ctx_c[2], theta_c(), ("current", "M2"), 2e-5)
     assert c["dc_currents"] == 1 and c["dc_widths"] == 1 and c["dc_tolerances"] == 1
     assert c["dc_lengths"] == 0 and c["dc_columns"] == 0 and c["dc_seal_node_conflict"] == 0
-    assert c["dc_seal_conduction"] == 1          # [r8] dc_op(W·current) 가 바뀌어 하류 봉인 9 도 다시
+    assert c["dc_seal_region"] == 1          # [EO-1 범위 4] dc_op(W·current) 가 바뀌어 하류 영역 판정(봉인 7·9)도 다시
 
 
 @pytest.mark.parametrize("key,val", [(("ln_idu", "M1"), Oracle.ln_idu("nmos", 0.62, 0.9, 0.0)),
@@ -163,7 +178,7 @@ def test_passive_theta_components_present(ctx_passive):
 
 @pytest.mark.parametrize("key,val", [(("capacitance", "Cz"), 1.1e-12), (("ss_resistance", "Rz"), 1.1e4), ("both", None)])
 def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
-    """[r5] 7절: capacitance·ss_resistance 성분만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0(reuses 13), 계획 블록
+    """[r5] 7절: capacitance·ss_resistance 성분만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0(reuse 12 + dc_seal_report graft 1), 계획 블록
     호출 0, 결과는 parent 와 같은 봉인 상태(스냅샷 지문·report 같음)."""
     ctx = ctx_passive
     ev1 = size_and_seal(ctx, theta_passive())
@@ -171,8 +186,8 @@ def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
     before = stats(ctx)
     ev2 = size_and_seal(ctx, th, parent=ev1)
     st = stats_since(ctx, before)
-    assert all(st[b.name].computes == 0 for b in EVAL13), {b.name: st[b.name].computes for b in EVAL13}
-    assert sum(st[b.name].reuses for b in EVAL13) == 13
+    assert all(st[b.name].computes == 0 for b in EVAL12), {b.name: st[b.name].computes for b in EVAL12}
+    _assert_dc_outcomes(st)
     assert all(st[b.name].calls == 0 for b in PLAN5)
     assert ev2.snapshot.fp == ev1.snapshot.fp and ev2.report == ev1.report
 
@@ -386,7 +401,6 @@ def test_determinism_hashseed_and_netlist_order(tmp_path):
 
 import math as _math                                                                       # noqa: E402
 
-from gmid_engine.sizing import OrderHints                                                  # noqa: E402
 
 from .conftest import (B as _B, C as _C, LClassStub, build_ctx_u4, circuit_mirror, mirror_w_request, mos_table,  # noqa: E402
                        node_voltages, r4_ln_idu, rel_close, terminal_mag, theta_mirror, theta_r4c, with_hand_ss)
@@ -428,13 +442,15 @@ def test_owner_l_perturbation_moves_member(mir_tied):
 # ===========================================================================
 # [U4] IC1 -- 모든 소자 VGS 정합 (설계 40 §10.3 IC1, 계획 N3.6 봉인 2·'tol_V 를 IC1 test 의 허용오차로')
 # ===========================================================================
-# 9회로 봉인 해는 탐색(U15/U16)이 만든다 -- 이 단위의 IC1 은 U4 경로(L 동치류·W_request·S2p·입력 창·OrderHints)로 봉인된 toy
+# 9회로 봉인 해는 탐색(U15/U16)이 만든다 -- 이 단위의 IC1 은 U4 경로(L 동치류·W_request·S2p·입력 창)로 봉인된 toy
 # 점 전부에 같은 단언을 건다. oracle (a): 노드전압에서 다시 만든 VGS·VDS·VSB 로 r4 닫힌 식 ln IDu 를 계산하고, 쓰기 소자의 좌표
 # (θ ln_idu, W 요청이 있으면 ln(ID·L/W_req) -- CONTRACT 14.3)와의 차를 gm/ID = B − C·VGS 로 나눈 값이 tol_V(그 소자 dc_tol_v) 이하.
 # 종속 소자는 DeviceOp.ln_idu 가 같은 닫힌 식의 순방향 값과 tol_V 안에서 같다.
 
 
-def _ic1_points(ctx_r4c, mir_tied, mir_plain, mir_hint):
+# [TB-1 retired/broken] 옛 mir_hint 점(순서 힌트 independent=M2 로 M2 를 writer 로 만든 점)은 지웠다: 힌트가 없어졌고 평행 관계의 독립 유지는
+# diode(M1)라 그 점은 mir_plain 과 같아진다 -- 이유 O-187·O-189·O-194. 거울 점은 5개에서 4개(tied 1 + plain 의 W 요청 3)가 된다.
+def _ic1_points(ctx_r4c, mir_tied, mir_plain):
     pts = []
     e0 = size_and_seal(ctx_r4c, theta_r4c())
     pts.append((ctx_r4c, theta_r4c(), {}, e0))
@@ -447,9 +463,6 @@ def _ic1_points(ctx_r4c, mir_tied, mir_plain, mir_hint):
     # 자기 동작점 gm 의 tol_I(설계 40 §3.7-3)에서 봉인 3 위반이라 봉인 점이 아니다(판정 변화).
     for wr in ({"M3": 1e-5}, {"M1": 2e-5}, {"M2": mirror_w_request()}):
         pts.append((mir_plain, th, wr, size_and_seal(mir_plain, th, w_request=wr)))
-    th = theta_mirror()
-    th[("ln_idu", "M2")] = th.pop(("ln_idu", "M1"))
-    pts.append((mir_hint, th, {}, size_and_seal(mir_hint, th)))
     return pts
 
 
@@ -458,15 +471,9 @@ def mir_plain(tmp_path_factory, r4_access):
     return build_ctx_u4(tmp_path_factory.mktemp("ss_plain"), circuit_mirror(), r4_access, element_values=(("I1", 1e-5),))[1]
 
 
-@pytest.fixture
-def mir_hint(tmp_path_factory, r4_access):
-    return build_ctx_u4(tmp_path_factory.mktemp("ss_hint"), circuit_mirror(), r4_access,
-                        order_hints=OrderHints(independent=("M2",)), element_values=(("I1", 1e-5),))[1]
-
-
-def test_ic1_vgs_consistency_all_devices(ctx_r4c, mir_tied, mir_plain, mir_hint):
+def test_ic1_vgs_consistency_all_devices(ctx_r4c, mir_tied, mir_plain):
     n = 0
-    for ctx, th, wr, ev in _ic1_points(ctx_r4c, mir_tied, mir_plain, mir_hint):
+    for ctx, th, wr, ev in _ic1_points(ctx_r4c, mir_tied, mir_plain):
         assert ev.sealed is not None
         snap = ev.snapshot
         V = node_voltages(snap)
@@ -482,7 +489,7 @@ def test_ic1_vgs_consistency_all_devices(ctx_r4c, mir_tied, mir_plain, mir_hint)
                 coord = ops[m].ln_idu
             assert abs(fwd - coord) / (_B - _C * vgs) <= tolv[m], (m, role, fwd, coord)
             n += 1
-    assert n == 2 * 2 + 5 * 3                                          # 회로 C 점 2개 × 2 + 거울 점 5개 × 3
+    assert n == 2 * 2 + 4 * 3                                          # 회로 C 점 2개 × 2 + 거울 점 4개 × 3 (mir_hint 점 폐기, 위 주석)
 
 
 # ===========================================================================
@@ -490,7 +497,7 @@ def test_ic1_vgs_consistency_all_devices(ctx_r4c, mir_tied, mir_plain, mir_hint)
 # ===========================================================================
 
 def test_ic2_order_shuffle_invariance(tmp_path, r4_access):
-    """netlist 순서·L 동치류 목록/멤버 순서·OrderHints tuple 순서·W_request 순서를 섞은 두 입력 -> 계획·평가 스냅샷 지문 같음
+    """netlist 순서·L 동치류 목록/멤버 순서·순서 힌트 tuple 순서·W_request 순서를 섞은 두 입력 -> 계획·평가 스냅샷 지문 같음
     (이산 필드 동일, 연속 필드 비트 동일)."""
     import random as _random
     doc_a = circuit_mirror()
@@ -499,15 +506,90 @@ def test_ic2_order_shuffle_invariance(tmp_path, r4_access):
     assert [e["name"] for e in doc_b["netlist"]] != [e["name"] for e in doc_a["netlist"]]
     lc_a = (LClassStub("M1", ("M1", "M2")), LClassStub("M3", ("M3",)))
     # [U17 ①-b] L 동치류 목록 순서는 이제 S0 수준 필드 graph/s1v: l_classes(writer build_s1v)의 값이다(설계 40 v1.9.1 §2.4.8 D1) -- 그 정준 순서는
-    # build_s1v 몫이라 이 test 의 입력 주입(inject_l_classes)은 같은 정준 순서로 준다. 나머지 섞기(netlist·OrderHints·W_request)는 그대로.
+    # build_s1v 몫이라 이 test 의 입력 주입(inject_l_classes)은 같은 정준 순서로 준다. 나머지 섞기(netlist·순서 힌트·W_request)는 그대로.
     lc_b = (LClassStub("M1", ("M1", "M2")), LClassStub("M3", ("M3",)))
-    h_a = OrderHints(gm_required=("M2", "M3"), stage=(("M1", 1), ("M2", 2)))
-    h_b = OrderHints(gm_required=("M3", "M2"), stage=(("M2", 2), ("M1", 1)))
-    _, a = build_ctx_u4(tmp_path / "a", doc_a, r4_access, l_classes=lc_a, order_hints=h_a, element_values=(("I1", 1e-5),))
-    _, b = build_ctx_u4(tmp_path / "b", doc_b, r4_access, l_classes=lc_b, order_hints=h_b, element_values=(("I1", 1e-5),))
+    _, a = build_ctx_u4(tmp_path / "a", doc_a, r4_access, l_classes=lc_a, element_values=(("I1", 1e-5),))     # [TB-1] 순서 힌트 입력 폐기(O-187·O-189·O-194)
+    _, b = build_ctx_u4(tmp_path / "b", doc_b, r4_access, l_classes=lc_b, element_values=(("I1", 1e-5),))
     assert a.base.fp == b.base.fp and kschema(a) == kschema(b) and kties(a) == kties(b)
     th = _tied_theta(2e-6)
     w2 = mirror_w_request(l=2e-6)                             # [U17 ①] 종속 소자 M2 요청 = 봉인 3 허용오차 안(L = 주인 2e-6; 옛 3e-5 는 위반)
     ea = size_and_seal(a, th, w_request={"M3": 1e-5, "M2": w2})
     eb = size_and_seal(b, th, w_request=(("M2", w2), ("M3", 1e-5)))
     assert ea.snapshot.fp == eb.snapshot.fp and ea.report == eb.report
+
+
+# =====================================================================================================================
+# [IT-2e 20261104-it2e-partial-snapshot, T-E2·T-E3·T-E4·T-E7] 실패 평가의 부분 스냅샷 -- 봉인 항목 블록, parent 유무 대조, 봉인 위반 경로.
+# oracle (변성): 부분 스냅샷은 (평가 키, 실패 지점)만으로 정해진다 -- parent 가 있든 없든 같은 θ·같은 주입이면 지문이 같다.
+# 기대 집합·주입·유효 조건 (가)(나)는 test_kernel_run 의 IT-2e 절과 같은 helper 를 쓴다(피검 함수로 기대값을 만들지 않는다).
+# =====================================================================================================================
+
+from .test_kernel_run import (IT2E_KERNEL, IT2E_SEAL, it2e_assert_parent_had_k_fields, it2e_assert_rule,  # noqa: E402
+                              it2e_record, it2e_run)
+
+
+@pytest.mark.parametrize("k", IT2E_SEAL)
+def test_it2e_seal_item_block_failure_with_parent_partial_rule(tmp_path_factory, toy_access, monkeypatch, k):
+    """T-E2: 봉인 항목 블록 k(봉인 7 항목 + dc_seal_report) 후보 실패 + parent -> 키 = base writer ∪ k 앞 블록, k 이후 없음."""
+    rec = it2e_record(tmp_path_factory, toy_access)
+    r = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, True, rec)
+    it2e_assert_parent_had_k_fields(r, k)
+    it2e_assert_rule(r, k)
+
+
+@pytest.mark.parametrize("k", IT2E_KERNEL + IT2E_SEAL)
+def test_it2e_partial_fingerprint_parent_independent(tmp_path_factory, toy_access, monkeypatch, k):
+    """T-E3: 같은 θ·같은 주입을 parent 없이(다른 컨텍스트, 평가 키 캐시를 거치지 않음) 부른 대조의 부분 스냅샷 지문 = parent 경로 지문.
+    대조도 규칙을 충족한다. (나) 두 결과는 같은 객체가 아니다. 지문 절대값은 단언하지 않는다(같음만)."""
+    rec = it2e_record(tmp_path_factory, toy_access)
+    rp = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, True, rec)
+    rc = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, False, rec)
+    assert rc.parent is None and rp.parent is not None
+    assert rp.ctx is not rc.ctx and rp.exc is not rc.exc and rp.exc.partial is not rc.exc.partial     # 사례 유효 (나)
+    it2e_assert_rule(rc, k)
+    assert set(rp.exc.partial.block_versions) == set(rc.exc.partial.block_versions)
+    assert rp.exc.partial.fp == rc.exc.partial.fp
+
+
+@pytest.mark.parametrize("k", [IT2E_KERNEL[0], IT2E_KERNEL[3], IT2E_SEAL[0], IT2E_SEAL[-1]])
+def test_it2e_parentless_partial_unchanged(tmp_path_factory, toy_access, monkeypatch, k):
+    """T-E7 (동작 보존): parent 없는 평가의 부분 스냅샷은 종래와 같다 -- 기존 규칙(키 = base writer ∪ k 앞 블록, k 이후 없음)이 그대로이고
+    같은 입력의 두 독립 실행이 같은 지문을 낸다(결정성). 지문 절대 기준선은 두지 않는다(interface '단언 금지')."""
+    rec = it2e_record(tmp_path_factory, toy_access)
+    a = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, False, rec)
+    b = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, False, rec)
+    assert a.ctx is not b.ctx and a.exc.partial is not b.exc.partial
+    it2e_assert_rule(a, k)
+    assert a.exc.partial.fp == b.exc.partial.fp
+
+
+def test_it2e_seal_violation_with_parent_keeps_report_fields(tmp_path_factory, r4_access):
+    """T-E4: 봉인 위반 경로 + parent -- 부분 스냅샷에 dc_seal_report 필드까지 남고(지우면 red) 커널 밖 writer(ss_dev) 필드는 없다.
+    키 = base writer ∪ 평가 12 블록, 지문 = parent 없는 대조 평가와 같다. 위반 θ = test_candidate_failure_recorded_and_cached 와 같은 구성
+    (y = 0.1, VGS1 = 1.5 -> 봉인 위반), parent = 봉인된 평가에 손 ss 를 실은 것(커널 밖 writer 필드가 실려 있음)."""
+    from .conftest import circuit_cs_pmos_load, theta_r4c, with_hand_ss
+
+    def mk(tag):
+        return build_ctx(tmp_path_factory.mktemp(tag), circuit_cs_pmos_load(), r4_access)[2]
+
+    bad = theta_r4c(y=0.1, v1=1.5)
+    ctx = mk("it2e_v_p")
+    e0 = size_and_seal(ctx, theta_r4c())
+    assert e0.sealed is not None                                                          # 전제
+    parent = with_hand_ss(e0)
+    assert parent.snapshot.column("device", "ss_dev") != ()                               # 전제: 지워질 낡은 필드가 실려 있다
+    with pytest.raises(SealViolationError) as ei:
+        size_and_seal(ctx, bad, parent=parent)
+    assert "items" in detail(ei.value)                                                    # 전제: 봉인 보고 위반 경로
+    ctx2 = mk("it2e_v_c")
+    with pytest.raises(SealViolationError) as ec:
+        size_and_seal(ctx2, bad)
+    assert "items" in detail(ec.value)
+    p, c = ei.value.partial, ec.value.partial
+    assert p is not None and c is not None and p is not c and ctx is not ctx2             # (나)
+    exp = set(ctx.base.block_versions) | {b.name for b in EVAL12}
+    assert set(p.block_versions) == exp and "ss_dev" not in p.block_versions
+    rep = [kf for kf, w in p.writers.entries if w == S.dc_seal_report.name]
+    assert rep and any(p.column(*kf) != () for kf in rep)                                 # 봉인 보고 필드가 남아 있다
+    assert p.column("device", "ss_dev") == ()
+    assert p.fp == c.fp

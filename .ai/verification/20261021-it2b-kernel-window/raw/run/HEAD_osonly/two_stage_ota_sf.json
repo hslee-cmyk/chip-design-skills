@@ -1,0 +1,37 @@
+{
+ "circuit": "two_stage_ota_sf",
+ "os": {
+  "engine": {
+   "vout": "high_impedance"
+  },
+  "engine_keys_not_outputs": [],
+  "input_dc_declared": false,
+  "input_dc_v": null,
+  "inputs": [
+   "vin_n",
+   "vin_p"
+  ],
+  "out_in_fprime": [],
+  "outputs": [
+   "vout"
+  ],
+  "rails": [
+   "gnd",
+   "vdd"
+  ],
+  "stop": null,
+  "w3": []
+ },
+ "repo": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_it2b_audit/h",
+ "set": "library",
+ "side": "HEAD_osonly",
+ "stage_a": {
+  "exit_code": 0,
+  "status": "ok",
+  "stop_reasons": []
+ },
+ "stage_b": {
+  "status": "ok"
+ },
+ "wall_s": 77.35196170001291
+}

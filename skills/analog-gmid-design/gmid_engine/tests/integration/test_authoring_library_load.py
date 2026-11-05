@@ -1,4 +1,4 @@
-"""9회로 교차 -- `load_topology` 를 assets/library 원본에 실제로 건다 (authoring CONTRACT 4절).
+"""13회로 교차(O-181: 9 -> 13) -- `load_topology` 를 assets/library 원본에 실제로 건다 (authoring CONTRACT 4절).
 
 기대값은 topology JSON 직접 집계(test 쪽 json)와 계약 4절 표 숫자에서 만든다. 피검 함수로 기대값을 만들지 않는다.
 folded_cascode·nmcnr_amplifier·two_stage_ota 는 2026-10-07 topology 정정(b9c7042)으로 passive_elements 를 선언해
@@ -32,6 +32,12 @@ PASS_TABLE = {
     "folded_cascode": (13, 1, 1, None, None, None),
     "nmcnr_amplifier": (15, 5, 0, None, None, None),
     "two_stage_ota": (7, 3, 0, None, None, None),
+    # O-181 library 이관 4회로(2026-10-31): topology JSON 직접 집계(netlist/passive_elements/ideal_sources/
+    # supply_nets/ports 입출력 수). 엔진 호출 없이 json 으로 센 값.
+    "cnr_ota": (72, 10, 1, 2, 2, 2),
+    "erfc_ota": (29, 6, 4, 4, 2, 1),
+    "r2r_opamp": (31, 4, 5, 2, 2, 1),
+    "rfc_ota": (35, 2, 0, 2, 2, 1),
 }
 FORMER_CI12 = ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")
 TAGS = ("device_roles", "symmetry", "sizing_roles", "compensation")
@@ -63,7 +69,7 @@ def _value(e, fields):
     return vk, (e[vk] if vk else None)
 
 
-def test_library_has_exactly_nine_circuits():
+def test_library_has_exactly_thirteen_circuits():
     names = sorted(p.name[: -len(".topology.json")] for p in LIBRARY.glob("*.topology.json") if not p.name.startswith("_"))
     assert names == sorted(PASS_TABLE)
 

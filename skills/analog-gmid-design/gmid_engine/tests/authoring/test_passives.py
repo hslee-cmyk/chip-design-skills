@@ -66,7 +66,7 @@ def test_type(ah, val):
 
 def test_allowed_unread_keys_and_any_kind(ah):
     d = ah.base()
-    ah.pas(d, "Rf")["nulling_reference_device"] = "Q3"
+    ah.pas(d, "Rf")["nulling_reference_device"] = "Mfx3"
     ah.pas(d, "Cload")["value_from_spec"] = "C_spec"
     ah.pas(d, "Cf")["kind"] = "inductor"
     got = {p.name: p for p in passive_declaration(d)}

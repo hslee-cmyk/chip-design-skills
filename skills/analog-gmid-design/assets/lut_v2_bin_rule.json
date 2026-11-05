@@ -1,0 +1,4750 @@
+{
+ "compat": {
+  "mode": "default",
+  "spiceinit_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "spiceinit_text": ""
+ },
+ "evidence": {
+  "date": "2026-11-04",
+  "measured_by": "verifier",
+  "mode": "default",
+  "points": [
+   {
+    "L": 1.5e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.179"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.170"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.161"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.152"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.143"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.134"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.125"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.116"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.107"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.98"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.89"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.80"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.71"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.62"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.53"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.44"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.35"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.26"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.17"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.26"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.179"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.170"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.161"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.152"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.143"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.134"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.125"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.116"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.107"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.98"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.89"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.80"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.71"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.62"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.53"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.44"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.35"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.26"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.17"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.26"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 3.6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.179"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.179"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.170"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.161"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.152"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.143"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.134"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.125"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.116"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.107"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.98"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.89"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.80"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.71"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.62"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.53"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.44"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.35"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.26"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.17"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.26"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.178"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.169"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.160"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.151"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.142"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.133"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.124"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.115"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.106"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.97"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.88"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.79"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.70"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.61"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.52"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.43"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.34"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.25"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.16"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.25"
+   },
+   {
+    "L": 2e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.178"
+   },
+   {
+    "L": 2e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.169"
+   },
+   {
+    "L": 2e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.160"
+   },
+   {
+    "L": 2e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.151"
+   },
+   {
+    "L": 2e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.142"
+   },
+   {
+    "L": 2e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.133"
+   },
+   {
+    "L": 2e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.124"
+   },
+   {
+    "L": 2e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.115"
+   },
+   {
+    "L": 2e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.106"
+   },
+   {
+    "L": 2e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.97"
+   },
+   {
+    "L": 2e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.88"
+   },
+   {
+    "L": 2e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.79"
+   },
+   {
+    "L": 2e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.70"
+   },
+   {
+    "L": 2e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.61"
+   },
+   {
+    "L": 2e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.52"
+   },
+   {
+    "L": 2e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.43"
+   },
+   {
+    "L": 2e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.34"
+   },
+   {
+    "L": 2e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.25"
+   },
+   {
+    "L": 2e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.16"
+   },
+   {
+    "L": 2e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.25"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 3.6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.178"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.178"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.169"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.160"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.151"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.142"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.133"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.124"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.115"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.106"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.97"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.88"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.79"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.70"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.61"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.52"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.43"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.34"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.25"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.16"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.25"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.177"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.168"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.159"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.150"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.141"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.132"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.123"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.114"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.105"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.96"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.87"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.78"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.69"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.60"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.51"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.42"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.33"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.24"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.15"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.24"
+   },
+   {
+    "L": 3e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.177"
+   },
+   {
+    "L": 3e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.168"
+   },
+   {
+    "L": 3e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.159"
+   },
+   {
+    "L": 3e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.150"
+   },
+   {
+    "L": 3e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.141"
+   },
+   {
+    "L": 3e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.132"
+   },
+   {
+    "L": 3e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.123"
+   },
+   {
+    "L": 3e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.114"
+   },
+   {
+    "L": 3e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.105"
+   },
+   {
+    "L": 3e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.96"
+   },
+   {
+    "L": 3e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.87"
+   },
+   {
+    "L": 3e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.78"
+   },
+   {
+    "L": 3e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.69"
+   },
+   {
+    "L": 3e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.60"
+   },
+   {
+    "L": 3e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.51"
+   },
+   {
+    "L": 3e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.42"
+   },
+   {
+    "L": 3e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.33"
+   },
+   {
+    "L": 3e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.24"
+   },
+   {
+    "L": 3e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.15"
+   },
+   {
+    "L": 3e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.24"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.177"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.168"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.159"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.150"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.141"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.132"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.123"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.114"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.105"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.96"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.87"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.78"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.69"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.60"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.51"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.42"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.33"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.24"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.15"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.24"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.177"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.168"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.159"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.150"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.141"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.132"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.123"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.114"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.105"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.96"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.87"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.78"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.69"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.60"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.51"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.42"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.33"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.24"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.15"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.24"
+   },
+   {
+    "L": 5e-07,
+    "W": 3.6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.177"
+   },
+   {
+    "L": 5e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.177"
+   },
+   {
+    "L": 5e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.168"
+   },
+   {
+    "L": 5e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.159"
+   },
+   {
+    "L": 5e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.150"
+   },
+   {
+    "L": 5e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.141"
+   },
+   {
+    "L": 5e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.132"
+   },
+   {
+    "L": 5e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.123"
+   },
+   {
+    "L": 5e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.114"
+   },
+   {
+    "L": 5e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.105"
+   },
+   {
+    "L": 5e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.96"
+   },
+   {
+    "L": 5e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.87"
+   },
+   {
+    "L": 5e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.78"
+   },
+   {
+    "L": 5e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.69"
+   },
+   {
+    "L": 5e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.60"
+   },
+   {
+    "L": 5e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.51"
+   },
+   {
+    "L": 5e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.42"
+   },
+   {
+    "L": 5e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.33"
+   },
+   {
+    "L": 5e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.24"
+   },
+   {
+    "L": 5e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.15"
+   },
+   {
+    "L": 5e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.24"
+   },
+   {
+    "L": 7e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.176"
+   },
+   {
+    "L": 7e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.167"
+   },
+   {
+    "L": 7e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.158"
+   },
+   {
+    "L": 7e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.149"
+   },
+   {
+    "L": 7e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.140"
+   },
+   {
+    "L": 7e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.131"
+   },
+   {
+    "L": 7e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.122"
+   },
+   {
+    "L": 7e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.113"
+   },
+   {
+    "L": 7e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.104"
+   },
+   {
+    "L": 7e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.95"
+   },
+   {
+    "L": 7e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.86"
+   },
+   {
+    "L": 7e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.77"
+   },
+   {
+    "L": 7e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.68"
+   },
+   {
+    "L": 7e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.59"
+   },
+   {
+    "L": 7e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.50"
+   },
+   {
+    "L": 7e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.41"
+   },
+   {
+    "L": 7e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.32"
+   },
+   {
+    "L": 7e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.23"
+   },
+   {
+    "L": 7e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.14"
+   },
+   {
+    "L": 7e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.23"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.176"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.167"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.158"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.149"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.140"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.131"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.122"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.113"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.104"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.95"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.86"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.77"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.68"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.59"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.50"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.41"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.32"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.23"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.14"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.23"
+   },
+   {
+    "L": 1e-06,
+    "W": 3.6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.176"
+   },
+   {
+    "L": 1e-06,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.176"
+   },
+   {
+    "L": 1e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.167"
+   },
+   {
+    "L": 1e-06,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.158"
+   },
+   {
+    "L": 1e-06,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.149"
+   },
+   {
+    "L": 1e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.140"
+   },
+   {
+    "L": 1e-06,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.131"
+   },
+   {
+    "L": 1e-06,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.122"
+   },
+   {
+    "L": 1e-06,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.113"
+   },
+   {
+    "L": 1e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.104"
+   },
+   {
+    "L": 1e-06,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.95"
+   },
+   {
+    "L": 1e-06,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.86"
+   },
+   {
+    "L": 1e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.77"
+   },
+   {
+    "L": 1e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.68"
+   },
+   {
+    "L": 1e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.59"
+   },
+   {
+    "L": 1e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.50"
+   },
+   {
+    "L": 1e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.41"
+   },
+   {
+    "L": 1e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.32"
+   },
+   {
+    "L": 1e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.23"
+   },
+   {
+    "L": 1e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.14"
+   },
+   {
+    "L": 1e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.23"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.175"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.166"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.157"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.148"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.139"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.130"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.121"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.112"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.103"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.94"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.85"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.76"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.67"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.58"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.49"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.40"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.31"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.22"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.13"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.22"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.175"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.166"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.157"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.148"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.139"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.130"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.121"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.112"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.103"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.94"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.85"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.76"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.67"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.58"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.49"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.40"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.31"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.22"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.13"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.22"
+   },
+   {
+    "L": 2e-06,
+    "W": 3.6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.175"
+   },
+   {
+    "L": 2e-06,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.175"
+   },
+   {
+    "L": 2e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.166"
+   },
+   {
+    "L": 2e-06,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.157"
+   },
+   {
+    "L": 2e-06,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.148"
+   },
+   {
+    "L": 2e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.139"
+   },
+   {
+    "L": 2e-06,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.130"
+   },
+   {
+    "L": 2e-06,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.121"
+   },
+   {
+    "L": 2e-06,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.112"
+   },
+   {
+    "L": 2e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.103"
+   },
+   {
+    "L": 2e-06,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.94"
+   },
+   {
+    "L": 2e-06,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.85"
+   },
+   {
+    "L": 2e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.76"
+   },
+   {
+    "L": 2e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.67"
+   },
+   {
+    "L": 2e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.58"
+   },
+   {
+    "L": 2e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.49"
+   },
+   {
+    "L": 2e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.40"
+   },
+   {
+    "L": 2e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.31"
+   },
+   {
+    "L": 2e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.22"
+   },
+   {
+    "L": 2e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.13"
+   },
+   {
+    "L": 2e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.22"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.174"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.165"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.156"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.147"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.138"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.129"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.120"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.111"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.102"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.93"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.84"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.75"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.66"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.57"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.48"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.39"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.30"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.21"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.12"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.21"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.174"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.165"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.156"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.147"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.138"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.129"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.120"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.111"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.102"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.93"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.84"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.75"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.66"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.57"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.48"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.39"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.30"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.21"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.12"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.21"
+   },
+   {
+    "L": 4e-06,
+    "W": 3.6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.174"
+   },
+   {
+    "L": 4e-06,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.174"
+   },
+   {
+    "L": 4e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.165"
+   },
+   {
+    "L": 4e-06,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.156"
+   },
+   {
+    "L": 4e-06,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.147"
+   },
+   {
+    "L": 4e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.138"
+   },
+   {
+    "L": 4e-06,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.129"
+   },
+   {
+    "L": 4e-06,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.120"
+   },
+   {
+    "L": 4e-06,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.111"
+   },
+   {
+    "L": 4e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.102"
+   },
+   {
+    "L": 4e-06,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.93"
+   },
+   {
+    "L": 4e-06,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.84"
+   },
+   {
+    "L": 4e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.75"
+   },
+   {
+    "L": 4e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.66"
+   },
+   {
+    "L": 4e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.57"
+   },
+   {
+    "L": 4e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.48"
+   },
+   {
+    "L": 4e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.39"
+   },
+   {
+    "L": 4e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.30"
+   },
+   {
+    "L": 4e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.21"
+   },
+   {
+    "L": 4e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.12"
+   },
+   {
+    "L": 4e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.21"
+   },
+   {
+    "L": 8e-06,
+    "W": 3.6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.173"
+   },
+   {
+    "L": 8e-06,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.173"
+   },
+   {
+    "L": 8e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.164"
+   },
+   {
+    "L": 8e-06,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.155"
+   },
+   {
+    "L": 8e-06,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.146"
+   },
+   {
+    "L": 8e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.137"
+   },
+   {
+    "L": 8e-06,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.128"
+   },
+   {
+    "L": 8e-06,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.119"
+   },
+   {
+    "L": 8e-06,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.110"
+   },
+   {
+    "L": 8e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.101"
+   },
+   {
+    "L": 8e-06,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.92"
+   },
+   {
+    "L": 8e-06,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.83"
+   },
+   {
+    "L": 8e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.74"
+   },
+   {
+    "L": 8e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.65"
+   },
+   {
+    "L": 8e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.56"
+   },
+   {
+    "L": 8e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.47"
+   },
+   {
+    "L": 8e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.38"
+   },
+   {
+    "L": 8e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.29"
+   },
+   {
+    "L": 8e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.20"
+   },
+   {
+    "L": 8e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.11"
+   },
+   {
+    "L": 8e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.20"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 3.6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.172"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 3.8999999999999997e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.172"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.163"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.154"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.145"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.136"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.127"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.118"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.109"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.100"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.91"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.82"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.73"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.64"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.55"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.46"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.37"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.28"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.19"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.10"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.19"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 3.9e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.179"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 3.9e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.178"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 3.9e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.177"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 3.9e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.176"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 3.9e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.175"
+   },
+   {
+    "L": 3e-06,
+    "W": 3.9e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.174"
+   },
+   {
+    "L": 6e-06,
+    "W": 3.9e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.173"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 3.9e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.172"
+   },
+   {
+    "L": 6e-05,
+    "W": 3.9e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.171"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 4.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.170"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 4.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.169"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 4.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.168"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 4.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.167"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 4.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.166"
+   },
+   {
+    "L": 3e-06,
+    "W": 4.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.165"
+   },
+   {
+    "L": 6e-06,
+    "W": 4.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.164"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 4.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.163"
+   },
+   {
+    "L": 6e-05,
+    "W": 4.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.162"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.160"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.159"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.158"
+   },
+   {
+    "L": 3e-06,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.156"
+   },
+   {
+    "L": 6e-06,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.155"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.154"
+   },
+   {
+    "L": 6e-05,
+    "W": 5.2e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.153"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.151"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.150"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.149"
+   },
+   {
+    "L": 3e-06,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.147"
+   },
+   {
+    "L": 6e-06,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.146"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.145"
+   },
+   {
+    "L": 6e-05,
+    "W": 5.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.144"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.142"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.141"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.140"
+   },
+   {
+    "L": 3e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.138"
+   },
+   {
+    "L": 6e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.137"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.136"
+   },
+   {
+    "L": 6e-05,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.135"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.133"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.132"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.131"
+   },
+   {
+    "L": 3e-06,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.129"
+   },
+   {
+    "L": 6e-06,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.128"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.127"
+   },
+   {
+    "L": 6e-05,
+    "W": 5.8e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.126"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.124"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.123"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.122"
+   },
+   {
+    "L": 3e-06,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.120"
+   },
+   {
+    "L": 6e-06,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.119"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.118"
+   },
+   {
+    "L": 6e-05,
+    "W": 6e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.117"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.115"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.114"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.113"
+   },
+   {
+    "L": 3e-06,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.111"
+   },
+   {
+    "L": 6e-06,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.110"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.109"
+   },
+   {
+    "L": 6e-05,
+    "W": 6.1e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.108"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.106"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.105"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.104"
+   },
+   {
+    "L": 3e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.102"
+   },
+   {
+    "L": 6e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.101"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.100"
+   },
+   {
+    "L": 6e-05,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.99"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.97"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.96"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.95"
+   },
+   {
+    "L": 3e-06,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.93"
+   },
+   {
+    "L": 6e-06,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.92"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.91"
+   },
+   {
+    "L": 6e-05,
+    "W": 6.5e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.90"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.88"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.87"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.86"
+   },
+   {
+    "L": 3e-06,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.84"
+   },
+   {
+    "L": 6e-06,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.83"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.82"
+   },
+   {
+    "L": 6e-05,
+    "W": 7.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.81"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.80"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.79"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.78"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.77"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.76"
+   },
+   {
+    "L": 3e-06,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.75"
+   },
+   {
+    "L": 6e-06,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.74"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.73"
+   },
+   {
+    "L": 6e-05,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.72"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.70"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.69"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.68"
+   },
+   {
+    "L": 3e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.66"
+   },
+   {
+    "L": 6e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.65"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.64"
+   },
+   {
+    "L": 6e-05,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.63"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.61"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.60"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.59"
+   },
+   {
+    "L": 3e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.57"
+   },
+   {
+    "L": 6e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.56"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.55"
+   },
+   {
+    "L": 6e-05,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.54"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.53"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.52"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.51"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.50"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.49"
+   },
+   {
+    "L": 3e-06,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.48"
+   },
+   {
+    "L": 6e-06,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.47"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.46"
+   },
+   {
+    "L": 6e-05,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.45"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.43"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.42"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.41"
+   },
+   {
+    "L": 3e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.39"
+   },
+   {
+    "L": 6e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.38"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.37"
+   },
+   {
+    "L": 6e-05,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.36"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.34"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.33"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.32"
+   },
+   {
+    "L": 3e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.30"
+   },
+   {
+    "L": 6e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.29"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.28"
+   },
+   {
+    "L": 6e-05,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.27"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.25"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.24"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.23"
+   },
+   {
+    "L": 3e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.21"
+   },
+   {
+    "L": 6e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.20"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.19"
+   },
+   {
+    "L": 6e-05,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.18"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.16"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.15"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.14"
+   },
+   {
+    "L": 3e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.12"
+   },
+   {
+    "L": 6e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.11"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.10"
+   },
+   {
+    "L": 6e-05,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__nfet_01v8__model.9"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.107"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.98"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.89"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.80"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.71"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.62"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.53"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.44"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.35"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.26"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.17"
+   },
+   {
+    "L": 1.5e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.26"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.107"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.98"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.89"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.80"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.71"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.62"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.53"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.44"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.35"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.26"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.17"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.26"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.107"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.107"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.98"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.89"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.80"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.71"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.62"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.53"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.44"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.35"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.26"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.17"
+   },
+   {
+    "L": 1.8e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.26"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.106"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.97"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.88"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.79"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.70"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.61"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.52"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.43"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.34"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.25"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.16"
+   },
+   {
+    "L": 1.85e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.25"
+   },
+   {
+    "L": 2e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.106"
+   },
+   {
+    "L": 2e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.97"
+   },
+   {
+    "L": 2e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.88"
+   },
+   {
+    "L": 2e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.79"
+   },
+   {
+    "L": 2e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.70"
+   },
+   {
+    "L": 2e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.61"
+   },
+   {
+    "L": 2e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.52"
+   },
+   {
+    "L": 2e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.43"
+   },
+   {
+    "L": 2e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.34"
+   },
+   {
+    "L": 2e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.25"
+   },
+   {
+    "L": 2e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.16"
+   },
+   {
+    "L": 2e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.25"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.106"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.106"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.97"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.88"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.79"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.70"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.61"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.52"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.43"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.34"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.25"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.16"
+   },
+   {
+    "L": 2.5e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.25"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.105"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.96"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.87"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.78"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.69"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.60"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.51"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.42"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.33"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.24"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.15"
+   },
+   {
+    "L": 2.55e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.24"
+   },
+   {
+    "L": 3e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.105"
+   },
+   {
+    "L": 3e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.96"
+   },
+   {
+    "L": 3e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.87"
+   },
+   {
+    "L": 3e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.78"
+   },
+   {
+    "L": 3e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.69"
+   },
+   {
+    "L": 3e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.60"
+   },
+   {
+    "L": 3e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.51"
+   },
+   {
+    "L": 3e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.42"
+   },
+   {
+    "L": 3e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.33"
+   },
+   {
+    "L": 3e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.24"
+   },
+   {
+    "L": 3e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.15"
+   },
+   {
+    "L": 3e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.24"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.105"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.96"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.87"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.78"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.69"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.60"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.51"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.42"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.33"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.24"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.15"
+   },
+   {
+    "L": 3.5e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.24"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.105"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.96"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.87"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.78"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.69"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.60"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.51"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.42"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.33"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.24"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.15"
+   },
+   {
+    "L": 4.2499999999999995e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.24"
+   },
+   {
+    "L": 5e-07,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.105"
+   },
+   {
+    "L": 5e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.105"
+   },
+   {
+    "L": 5e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.96"
+   },
+   {
+    "L": 5e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.87"
+   },
+   {
+    "L": 5e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.78"
+   },
+   {
+    "L": 5e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.69"
+   },
+   {
+    "L": 5e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.60"
+   },
+   {
+    "L": 5e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.51"
+   },
+   {
+    "L": 5e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.42"
+   },
+   {
+    "L": 5e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.33"
+   },
+   {
+    "L": 5e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.24"
+   },
+   {
+    "L": 5e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.15"
+   },
+   {
+    "L": 5e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.24"
+   },
+   {
+    "L": 7e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.104"
+   },
+   {
+    "L": 7e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.95"
+   },
+   {
+    "L": 7e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.86"
+   },
+   {
+    "L": 7e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.77"
+   },
+   {
+    "L": 7e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.68"
+   },
+   {
+    "L": 7e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.59"
+   },
+   {
+    "L": 7e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.50"
+   },
+   {
+    "L": 7e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.41"
+   },
+   {
+    "L": 7e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.32"
+   },
+   {
+    "L": 7e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.23"
+   },
+   {
+    "L": 7e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.14"
+   },
+   {
+    "L": 7e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.23"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.104"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.95"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.86"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.77"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.68"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.59"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.50"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.41"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.32"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.23"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.14"
+   },
+   {
+    "L": 8.499999999999999e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.23"
+   },
+   {
+    "L": 1e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.104"
+   },
+   {
+    "L": 1e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.104"
+   },
+   {
+    "L": 1e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.95"
+   },
+   {
+    "L": 1e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.86"
+   },
+   {
+    "L": 1e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.77"
+   },
+   {
+    "L": 1e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.68"
+   },
+   {
+    "L": 1e-06,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.59"
+   },
+   {
+    "L": 1e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.50"
+   },
+   {
+    "L": 1e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.41"
+   },
+   {
+    "L": 1e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.32"
+   },
+   {
+    "L": 1e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.23"
+   },
+   {
+    "L": 1e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.14"
+   },
+   {
+    "L": 1e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.23"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.103"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.94"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.85"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.76"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.67"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.58"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.49"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.40"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.31"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.22"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.13"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.22"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.103"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.94"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.85"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.76"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.67"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.58"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.49"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.40"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.31"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.22"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.13"
+   },
+   {
+    "L": 1.75e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.22"
+   },
+   {
+    "L": 2e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.103"
+   },
+   {
+    "L": 2e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.103"
+   },
+   {
+    "L": 2e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.94"
+   },
+   {
+    "L": 2e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.85"
+   },
+   {
+    "L": 2e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.76"
+   },
+   {
+    "L": 2e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.67"
+   },
+   {
+    "L": 2e-06,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.58"
+   },
+   {
+    "L": 2e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.49"
+   },
+   {
+    "L": 2e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.40"
+   },
+   {
+    "L": 2e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.31"
+   },
+   {
+    "L": 2e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.22"
+   },
+   {
+    "L": 2e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.13"
+   },
+   {
+    "L": 2e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.22"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.102"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.93"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.84"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.75"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.66"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.57"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.48"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.39"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.30"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.21"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.12"
+   },
+   {
+    "L": 2.4999999999999998e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.21"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.102"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.93"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.84"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.75"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.66"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.57"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.48"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.39"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.30"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.21"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.12"
+   },
+   {
+    "L": 3.25e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.21"
+   },
+   {
+    "L": 4e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.102"
+   },
+   {
+    "L": 4e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.102"
+   },
+   {
+    "L": 4e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.93"
+   },
+   {
+    "L": 4e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.84"
+   },
+   {
+    "L": 4e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.75"
+   },
+   {
+    "L": 4e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.66"
+   },
+   {
+    "L": 4e-06,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.57"
+   },
+   {
+    "L": 4e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.48"
+   },
+   {
+    "L": 4e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.39"
+   },
+   {
+    "L": 4e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.30"
+   },
+   {
+    "L": 4e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.21"
+   },
+   {
+    "L": 4e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.12"
+   },
+   {
+    "L": 4e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.21"
+   },
+   {
+    "L": 8e-06,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.101"
+   },
+   {
+    "L": 8e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.101"
+   },
+   {
+    "L": 8e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.92"
+   },
+   {
+    "L": 8e-06,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.83"
+   },
+   {
+    "L": 8e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.74"
+   },
+   {
+    "L": 8e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.65"
+   },
+   {
+    "L": 8e-06,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.56"
+   },
+   {
+    "L": 8e-06,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.47"
+   },
+   {
+    "L": 8e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.38"
+   },
+   {
+    "L": 8e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.29"
+   },
+   {
+    "L": 8e-06,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.20"
+   },
+   {
+    "L": 8e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.11"
+   },
+   {
+    "L": 8e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.20"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 4.1999999999999995e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.100"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.100"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.91"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 8.399999999999999e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.82"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.73"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.64"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 1.6499999999999999e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.55"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 1.6799999999999998e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.46"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.37"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.28"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 4.9999999999999996e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.19"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.10"
+   },
+   {
+    "L": 1.9999999999999998e-05,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.19"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.106"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.105"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.104"
+   },
+   {
+    "L": 3e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.102"
+   },
+   {
+    "L": 6e-06,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.101"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.100"
+   },
+   {
+    "L": 6e-05,
+    "W": 5.5e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.99"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.97"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.96"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.95"
+   },
+   {
+    "L": 3e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.93"
+   },
+   {
+    "L": 6e-06,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.92"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.91"
+   },
+   {
+    "L": 6e-05,
+    "W": 6.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.90"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.89"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.88"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.87"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.86"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.85"
+   },
+   {
+    "L": 3e-06,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.84"
+   },
+   {
+    "L": 6e-06,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.83"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.82"
+   },
+   {
+    "L": 6e-05,
+    "W": 8.4e-07,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.81"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.79"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.78"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.77"
+   },
+   {
+    "L": 3e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.75"
+   },
+   {
+    "L": 6e-06,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.74"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.73"
+   },
+   {
+    "L": 6e-05,
+    "W": 1e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.72"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.70"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.69"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.68"
+   },
+   {
+    "L": 3e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.66"
+   },
+   {
+    "L": 6e-06,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.65"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.64"
+   },
+   {
+    "L": 6e-05,
+    "W": 1.26e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.63"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 1.65e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.62"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 1.65e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.61"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 1.65e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.60"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 1.65e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.59"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 1.65e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.58"
+   },
+   {
+    "L": 3e-06,
+    "W": 1.65e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.57"
+   },
+   {
+    "L": 6e-06,
+    "W": 1.65e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.56"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 1.65e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.55"
+   },
+   {
+    "L": 6e-05,
+    "W": 1.65e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.54"
+   },
+   {
+    "L": 1.65e-07,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.53"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.52"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.51"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.50"
+   },
+   {
+    "L": 1.5e-06,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.49"
+   },
+   {
+    "L": 3e-06,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.48"
+   },
+   {
+    "L": 6e-06,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.47"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.46"
+   },
+   {
+    "L": 6e-05,
+    "W": 1.68e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.45"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.43"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.42"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.41"
+   },
+   {
+    "L": 3e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.39"
+   },
+   {
+    "L": 6e-06,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.38"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.37"
+   },
+   {
+    "L": 6e-05,
+    "W": 2e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.36"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.34"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.33"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.32"
+   },
+   {
+    "L": 3e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.30"
+   },
+   {
+    "L": 6e-06,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.29"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.28"
+   },
+   {
+    "L": 6e-05,
+    "W": 3e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.27"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.25"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.24"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.23"
+   },
+   {
+    "L": 3e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.21"
+   },
+   {
+    "L": 6e-06,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.20"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.19"
+   },
+   {
+    "L": 6e-05,
+    "W": 5e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.18"
+   },
+   {
+    "L": 2.15e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.16"
+   },
+   {
+    "L": 3.75e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.15"
+   },
+   {
+    "L": 7.5e-07,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.14"
+   },
+   {
+    "L": 3e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.12"
+   },
+   {
+    "L": 6e-06,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.11"
+   },
+   {
+    "L": 1.4e-05,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.10"
+   },
+   {
+    "L": 6e-05,
+    "W": 7e-06,
+    "chosen_bin": "sky130_fd_pr__pfet_01v8__model.9"
+   }
+  ],
+  "source_basis": "generator_record"
+ },
+ "model_files_sha256": [
+  "24a3b29d7d7f26f99098811c31eb5497950a3aed520ab83768a96f35467fe818",
+  "3c62fe5ffe59ee08890837816b15d91764b7441d9f122054556d2f825ab6f090",
+  "3d706d50cf2e57175aea78bcf27e4ee07d9f750b154a4b06e6090531364a831b",
+  "6200b50c14eebb68d8009ca68e452d4c045e2d25d7438ee417c155883527fd7c",
+  "7001ec520a1244d56c66d89423f0a8a56e3010891283966e3bef4d675b0ac969",
+  "bf40d8c358fc11998f60f3734208dce44c206b0007a51c7bb5680f55d41a5c55",
+  "f4d560668712678ea60641de923fce7691e64acda951949f840986837c31741a"
+ ],
+ "rule": "lower",
+ "schema": "lut_bin_rule/1",
+ "simulator": {
+  "name": "ngspice",
+  "version": "46"
+ }
+}

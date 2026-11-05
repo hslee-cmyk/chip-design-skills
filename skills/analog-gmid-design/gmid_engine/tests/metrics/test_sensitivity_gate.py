@@ -52,6 +52,12 @@ def test_undefined_values_unchecked_not_error():
     assert got.verdict == "undeterminable" and got.reason == "perturbation_unmeasured"
     assert got.unmeasured == ("a",)
     assert [c[4] for c in got.checks] == [None]
+    # 칸 하나만 None 이어도(분해 dB·전회로 dB·잔차 중 어느 하나) None 섭동(C-10 문언)
+    both = sensitivity_gate((40.0, 40.0, 1e-12), (("a", None, 41.0, 1e-12), ("b", 40.0, 41.0, None)))
+    assert both.ok is False and both.verdict == "undeterminable" and both.reason == "perturbation_unmeasured"
+    assert both.unmeasured == ("a", "b") and [c[4] for c in both.checks] == [None, None]
+    only_b = sensitivity_gate((40.0, 40.0, 1e-12), (("b", 40.0, 41.0, None),))
+    assert only_b.verdict == "undeterminable" and only_b.unmeasured == ("b",)
     base_none = sensitivity_gate((None, 40.0, 1e-12), (("a", 40.0, 41.0, 1e-12), ("b", 40.0, 40.0, 1e-12)))
     assert base_none.ok is False and base_none.verdict == "undeterminable" and base_none.reason == "base_undefined"
     assert base_none.unmeasured == ("a", "b")

@@ -1,0 +1,819 @@
+{
+ "n_new_at_base": 99,
+ "n_red": 99,
+ "n_old": 71,
+ "old_changed": [],
+ "old_failed_at_base": [],
+ "causes": {
+  "error|AttributeError:check_g8": 17,
+  "failure|AssertionError:tool_missing": 29,
+  "failure|AttributeError:G8_ALLOWED_MODULES": 1,
+  "failure|AttributeError:check_g8": 14,
+  "failure|AttributeError:check_value_types": 6,
+  "failure|AttributeError:dump_baseline": 5,
+  "failure|AttributeError:load_baseline": 26,
+  "failure|AttributeError:ratchet": 1
+ },
+ "head_counts": {
+  "passed": 170
+ },
+ "head_new_not_passed": [],
+ "test_ids": [
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_groups_by_key_and_sorts",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_ignores_input_order",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[abc]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[gggggggggggggggggggggggggggggggggggggggg]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_empty_record_id",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_row_key_excludes_line",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_dump_baseline_format",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_dump_baseline_keeps_utf8_detail",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_dump_baseline_row_keys_sorted",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_dump_baseline_same_doc_same_bytes",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_missing_file",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[base_commit_empty]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[base_commit_long]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[base_commit_nonhex]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[base_commit_short]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[base_commit_upper]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_bool]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_float]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_negative]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_null]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_string]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_zero]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[duplicate_key]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[empty_text]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[extra_top_key]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[id_empty]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[missing_base_commit]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[missing_id]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[missing_rows]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[not_json]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[row_extra_key]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[row_missing_count]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[row_missing_kind]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[top_list]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[top_null]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[top_string]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_roundtrip",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_count_above_baseline_is_new",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_count_below_baseline_is_stale",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_does_not_raise_on_empty_baseline",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_empty_violations_makes_everything_stale",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_equal_is_clean",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_ignores_line_shift",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_key_absent_from_baseline_is_new_with_current_count",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_key_gone_is_stale_with_baseline_count",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_new_and_stale_together_sorted",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_new_violation_added_to_tree_is_new",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_result_is_immutable",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_rule_g8_baseline_ratchet",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_accepts_good_fixture",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_allowed_modules_emit_nothing",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_allowed_modules_is_the_declared_fourteen",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_deterministic_and_sorted",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_empty_tree",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_registered_copy_is_not_exempt",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_rejects_bad_fixture_exactly",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_same_key_several_sites_reported_separately",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_same_name_other_folder_is_not_allowed",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_skips_tests_pycache_hidden",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_violation_path_is_posix_relative",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_diff_input_is_not_B",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_engine_dir_missing",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_engine_dir_wrong_name",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_no_py_files",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_one_missing_touching_among_valid",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_syntax_error_file",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_touching_path_not_in_targets",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_helper_trace_is_B",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_local_trace_is_B",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_method_calls_are_not_sites",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_one_caller_not_listed",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_out_dir_is_created",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[diff_input]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[helper_trace]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[local_trace]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[method]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[one_caller]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[param_only]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[reexport]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[same_input]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[touching]",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_exist_and_calls_json_keys",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_param_only_is_D",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_reexport_resolves_to_defining_module",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_same_input_is_B",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_tool_does_not_execute_target",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_tool_exists",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_touching_filters_candidates",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_touching_outputs_byte_identical",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_accepts_good_fixture",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_allowed_module_emits_nothing",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_deterministic_and_sorted",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_empty_tree",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_one_finding_when_annotation_and_assign_both_apply",
+  "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_rejects_bad_fixture_exactly"
+ ],
+ "failure_hashes": [
+  "ab7d50b76fc9f5d5d1ad7dc2661feed12bc7f3278ac1d9e43e7aa50887881dc4",
+  "8bd1c0c9111cd0a323ac561bb44745a0e918c85926aeed493ada75aa7d58ca46",
+  "f70bc7bc728abaa5f26ce0a50e8d1a5fa8894a1956b5603f9bd5e37d811defee",
+  "362ac4b359944d790c50684f2d650b326f6d35345d7e12e20ad77d3265864774",
+  "a8dff19ee69c7097e2de8a161bc7ccc27c1e60422d29f4c3f0cd4375b1810528",
+  "40075af542bb7db969b163d176d3a0881a840ef1c58f6b6a2318289a877e2624",
+  "f3984007078e3d815e6cea5b61dcec115f0986d7f1acd9cfc12e40fe556658fc",
+  "9c70adabafec52740687619cc2b6e3d809945ec911f49963254ca5a161bca95e",
+  "ecd82c49bed0ad2e68368939c54c6f2469c22ea20cd4fc88cac2d0309393db02",
+  "77e69c49a97b5c9fd28d91e8778c30b7a676261f8facc5d078888798c27012c0",
+  "1efafe64b3cce9c89528d635690dc56da173cb497bec7b5c9fda6d405b199d3d",
+  "bea07a5ec4792f6f8a09fdde8d622af3ce8cbb67c794745e453bc37a39e67997",
+  "45d01acfd51b4bde5c92050f0b543c09f2d6375f84e45c67804cb0730cdf517a",
+  "3f5d6b2387d69acf7956da29513adaf695008122df654c2233ddf88b50a7b9ef",
+  "bf2573f5299ffa6a29190c3b34f01040c5fa366161a944634f43d668799d825d",
+  "4d8b1f1c161e5966e71dfeed2628c04fa0ddea88ba3c07ab9fa3f31bef0dd310",
+  "5788c74288ef3dca01af191e3c1027ec4905a5a85ae38e3da0f320e39206285d",
+  "01ba704d7d6257a25a711926609ad6bc526e1e0ca34105ae6cb0bee84ccae3c0",
+  "cdc67d7e9f60150d976d9754b26d7c55cdeb5dd552d5f000cd0bd2c17e812de4",
+  "62a20f2e3d77b135b0b0dd8a95d949dd5778b8d4248eff013075ab1583f9b904",
+  "9c5d9f170022504d80f01f145115e02ac1603490a63cb10178d23200888c2443",
+  "ccaa1c727a2a187a32e22f154492185e1ed0865c1a652aeae8163495f871a9de",
+  "c0fc8fd84a5ce2ee554490ef4ac4200710253f0379ac9500347055a99c9d3d73",
+  "9a762145de11c9ab9283e554b0286f60df4ad11e23be25b76d42dced4aca13d0",
+  "ed7a82834d01e981e18a647e1921a7d425717ed12a09adfb1ac9105b523bc034",
+  "6b6e9b9e28db6dc0bd27f9cf19a0dea72e0fc41007499e7180cdd86eddb614bd",
+  "89a9be97fb57808cd2ac9f7c40facc562199ef66d69b020e707ce71af61d0443",
+  "cb2c2d00db2cb9c9d1c2c2573dcfc88a2e0d3e076f4ede08c62eeac04236c132",
+  "4da503e1feaf4525eae55b897fe5c8b080e1a0471d137a0048519b09453ea43a",
+  "e773dd264d8b7f4aa71ada3aec088b8ee9c9e1ed326a0b98897b817404b918db",
+  "1b0b4d08c06072f35dd8feab62b393a31e734291901f27b361ce619c20563975",
+  "bc305631e2b7c0c0dd7c41eeb69d6dbdd6b84c8466badb4ca99f383ce9e68180",
+  "6dac358a6f2175fe0bd58def4a8cc4eb399f3d9ee6ea24f4819e67fbd2e5f085",
+  "a42b75f791a9e31c12ab3d1c11c84897ab7b1652dd7e2f95dc1234300df4d1b8",
+  "aede78b4fbf0342ea660e6fa88bdf3d799267014f4d92f11198deee970091cef",
+  "8169d58f8d2b4c58592b337e64c6bae18d0db4bc150334eceeed859b91b44335",
+  "03bec265f993c0678c19f0bcffbddfa04d36a55e02d0b70520b7e1cc69aa270a",
+  "678edcd86179762d91f2b34574ef4c0cd3bc0b85efaf07c97c716ac80e61f8c2",
+  "96befa815a353ee42a89ddd65bf4d37dde644f1ce473fb195887df645b86e0ae",
+  "be73f9085b83f4e03b66fd340554ab0cc8fb2b752a5c7a2dd3dd13baa84b68c7",
+  "e1fced5d866c97b9413f37888847cebfa3501645c79866d73269443ea7a79f19",
+  "c5a19e3f4a9ee70879236fc54c3ff85f2923002a931c8a845b736ff049e0b682",
+  "a5f2830745bace4ea7c7b6263fb4aefc66c35b4eabc28073d11c72207d5824ed",
+  "012b55140fb25cbac7299093ef2ad8544effee2ca44a629c6f490cab7dbacd58",
+  "4228a61d2e513c3d90d770401cadbd6b211f7df26e47dc4998307fc8615f8bb9",
+  "72de76b560ef7922fe339d837247f88824c212c699997be0f05fb5eb6b468caa",
+  "c98f42735dbfaa4d0dadbacd1f0df199cc6db28e5393393f1e30cd39499286dd",
+  "e36d8822f79b646640b3255b274e86bfb469b54c703a662af17489be9fcbb84d",
+  "d7f62d8927f7eaebff07976eb08676db029b139019ef7db58ebb3b21d979db6d",
+  "beb82fc50c0d8e1ff8e683769d9feef85c9e5db41f0feec69a3e303c40c12e24",
+  "bc6650588be0db7c4062f0189199d6bef74cb7c4c9e40d4b6ecab244855019c6",
+  "ff731ada359b22070dfc159c309a3d1f69ccc6a8d8f5e4c8bec3f93693a3b99c",
+  "03f1f8b49f5380444a6b3545760128b0dc6a2f427b0acfed3460f15b5f7d4f83",
+  "67c5b5d8d89531f7a803820b5730afccb3eacb9e004516382e1f6e66988a2755",
+  "17f4b6bd054808a56396216773c776597a35c38981dc091ca1e9f44e3a4dc0f4",
+  "c2debe71fec78a93aea3886651916a55c90d49ba1db3ee006d9e370f70ea5b7a",
+  "b0663e8c931dc2ae674a06c37bbc9d10ba1edea5ab3a44b5c3d80b1ea918fa65",
+  "6dac57ec1ef3e342a5c6616d38ca596283f322b346ff7a530c6f54c55e5e445b",
+  "038b30a88ffe63543ccedaaeae84ee4b9f647010af473417a743b56751f700e0",
+  "42c572b7d414045628a129bbd1d58e75fac5a89a01096e62bad1885add756399",
+  "0e889fb35adc9e302cc4aef1c1f12903c25923ae83b2b8838bc21ec47e3135ba",
+  "91e13afeb89456a3f03f623e35bd3a882bbb65ca570371ac4220b8044d717a1c",
+  "95aa99369bfb8529a508083850e69085d443de74c3d02457f552ab47f57f6701",
+  "5ad82f53bf4428f1df873e254ff82bf8bab363f5ec8756a7a710ae3933fa77b3",
+  "db8bedba816ac76a14391b83697dca1e6953d864e89b6018bec9f363ddf27427",
+  "b2816c5dc2f62af2e2767837d81e7d1bed740427efe534f4a069db4eaa50db51",
+  "85009b08e9011120db9e989f4e67e2d2d3fd0d91f787609e8003289db56ca8d3",
+  "40bc812238d511daac97c2822ce42896cb858afeee27071039e0e1cd5904aeda",
+  "d52b51935b33862a9878cc58fff0aabd8e344c499c4eb245a1cc97e9367524ca",
+  "bffb1199b88189fffb0bcb4109575c78346f5e56691092d4f906f48313db73d5",
+  "4c85683b653445462730f6f12643cd4b7223fedcedc7c312a4cf6f77ef125a5c",
+  "ddb1d346099c7fe3d904a95c4d461333124ff8409233cf964c142bb0ab96ce2f",
+  "386c76229fd0d7d3dbf9e49d26344fde2e28170c7ae1e7a070f3b28ab5e7b285",
+  "79fee65c4e89d1cc943e7773a318a42767f79678f2e3f2a3fc9c4fc1a21d0d79",
+  "58c8a22a6c9b91589b44af8b54c1fef26c0eb1f853d34d7db286d010060700cc",
+  "5b1d3dfb08308959d674dc81f5c64b090b964c40fef5e092c1a9e44b71500d14",
+  "51128799cc5c9df6857d7aec0c820b596034ab6326522d9b9bd804f793ccf3e8",
+  "b2ba89a01777d9015fd2e2e84f76e6e5bfc124830a4d534b1b9300505f706d20",
+  "6028d9566fd81556ff8582cedf6578d4d64392d3684fec56fbed239e97bb9e2c",
+  "806dc040c76172e6abfb89e9c38fdbcf155e2c57f41d281e28f786e1f08992c7",
+  "041bcbfa1947abcf12a550dde804b10d070f80f425fdb5ba40a0663c9486e2c2",
+  "2ec2407e104d1c987e7f24f8e35e633b97186f557ac840c92cc2822afe93a0f7",
+  "258a7623d8ad550bba0b15dff5d87498be2002d19bf099a04f5854cfb07f4f43",
+  "c8d5381da2b218e90cd12d22ac92ece439c2d1fa446ff954899267066fc0314f",
+  "afa9e7f10468986a9f78ea3aef0c26604d6882f60e2e0f7a34227d49c4398255",
+  "4a35f47b0f96b3e665bd88ac45c5fc6fdf76b61c7ebd35698e89a31bf714c07e",
+  "e2d8d1051a678250dabe06cd246f552115ceaa8df31ae3f5c28e75a2a71abde8",
+  "b6ccd57080c1bcc0b910443c3028a04c53e8261a0f98c7d1ca275611a2a53be4",
+  "0e3f94a06ba206bd1e7b89152ef35ca8eae7b8094adeb4980c3b2d6adc99b63f",
+  "e1cbec21c0d0029b9ef06af095e06a7edecd13511901fc3be4f88a88f19cfb6d",
+  "279d0fd1423751899d443f91dd319b75977e711316a43ca7e4ba747ca7e67fe7",
+  "c5796ec9af37234eb73239f1e477692d408cbd7c97ade85e031e7ee0884c0409",
+  "364a184a88bb372c723fab77f2df479df95c83404277e2c902bca07397421dc3",
+  "8a8b5ca846475f6b01fbc513c07c285b4b81c1303b75315138fdd882e6849978",
+  "7b079b1dc85221e73182445aef6da608a89bc17cc7a3f0383d1d29d6adf3c8da",
+  "078589133b46a8148cbfe28b0594d648cb780f634ca434e35385f8a1010334e4",
+  "0994e6acb19ef450c09cdf7fb22532d53354c9a0e7e28cd7e2e7cc3999c8d0cf",
+  "613e9803564f38bae632853cd5d2d609bdc9296a61273a9545518ae006871ac0",
+  "2a3e6cc1eee9682c8ce69d92e4ecb461e91b33452e3429d4327be00e3106f358"
+ ],
+ "rows": [
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_groups_by_key_and_sorts",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_ignores_input_order",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA]",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[]",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[abc]",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_bad_base_commit[gggggggggggggggggggggggggggggggggggggggg]",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_rejects_empty_record_id",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_baseline_doc_row_key_excludes_line",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_dump_baseline_format",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_dump_baseline_keeps_utf8_detail",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_dump_baseline_row_keys_sorted",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_dump_baseline_same_doc_same_bytes",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_missing_file",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[base_commit_empty]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[base_commit_long]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[base_commit_nonhex]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[base_commit_short]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[base_commit_upper]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_bool]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_float]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_negative]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_null]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_string]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[count_zero]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[duplicate_key]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[empty_text]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[extra_top_key]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[id_empty]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[missing_base_commit]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[missing_id]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[missing_rows]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[not_json]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[row_extra_key]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[row_missing_count]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[row_missing_kind]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[top_list]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[top_null]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_rejects_malformed[top_string]",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_load_baseline_roundtrip",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_count_above_baseline_is_new",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_count_below_baseline_is_stale",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_does_not_raise_on_empty_baseline",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_empty_violations_makes_everything_stale",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_equal_is_clean",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_ignores_line_shift",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_key_absent_from_baseline_is_new_with_current_count",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_key_gone_is_stale_with_baseline_count",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_new_and_stale_together_sorted",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_new_violation_added_to_tree_is_new",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_ratchet_result_is_immutable",
+   "state_base": "error",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_baseline.py::test_rule_g8_baseline_ratchet",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_accepts_good_fixture",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_allowed_modules_emit_nothing",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_allowed_modules_is_the_declared_fourteen",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_deterministic_and_sorted",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_empty_tree",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_registered_copy_is_not_exempt",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_rejects_bad_fixture_exactly",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_same_key_several_sites_reported_separately",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_same_name_other_folder_is_not_allowed",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_skips_tests_pycache_hidden",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_g8_lint.py::test_g8_violation_path_is_posix_relative",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_diff_input_is_not_B",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_engine_dir_missing",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_engine_dir_wrong_name",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_no_py_files",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_one_missing_touching_among_valid",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_syntax_error_file",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_exit2_touching_path_not_in_targets",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_helper_trace_is_B",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_local_trace_is_B",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_method_calls_are_not_sites",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_one_caller_not_listed",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_out_dir_is_created",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[diff_input]",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[helper_trace]",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[local_trace]",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[method]",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[one_caller]",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[param_only]",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[reexport]",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[same_input]",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_byte_identical_across_hashseed_and_out[touching]",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_outputs_exist_and_calls_json_keys",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_param_only_is_D",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_reexport_resolves_to_defining_module",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_same_input_is_B",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_tool_does_not_execute_target",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_tool_exists",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_touching_filters_candidates",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_scan_shared_calls_tool.py::test_touching_outputs_byte_identical",
+   "state_base": "failure",
+   "exc": "builtins.AssertionError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_accepts_good_fixture",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_allowed_module_emits_nothing",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_deterministic_and_sorted",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_empty_tree",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_one_finding_when_annotation_and_assign_both_apply",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  },
+  {
+   "id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_value_types_lint.py::test_value_types_rejects_bad_fixture_exactly",
+   "state_base": "failure",
+   "exc": "builtins.AttributeError",
+   "state_head": "passed"
+  }
+ ]
+}

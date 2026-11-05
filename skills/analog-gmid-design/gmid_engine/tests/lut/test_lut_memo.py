@@ -25,8 +25,9 @@ def test_constants():
     #      §6.4-2b 'tol_mismatch ... 디스크 캐시 대상'(파생 표라 derived 영역)
     # [U17 ①-b 기준 변경, 설계 40 v1.9.1 §2.4.6 'memo로 옮기는 것' edge_costs(lut, kind, w_key) 행 + §2.4.8 (a) 행 D10, lut CONTRACT 머리
     #  'DERIVED_TABLES 에 edge_costs 추가'] edge_costs 는 슬라이스(kind, w_key)마다 하나인 LUT 파생 표 -> derived 영역 8개(이름순)
+    # [card 20261104-hcs 계약 변경 -- interface §1 'DERIVED_TABLES에 vds_floor가 든다(기존 항목 뒤)'] 기존 8개 그대로 + 맨 뒤 vds_floor -> 9개
     assert DERIVED_TABLES == ("curve_report", "edge_costs", "midpoint_l_bin_checks", "noise_planes", "tol_mismatch_table",
-                              "tol_noise_table", "tol_v_table", "tol_vdsat_table")
+                              "tol_noise_table", "tol_v_table", "tol_vdsat_table", "vds_floor")
 
 
 def test_capacities(toy):
@@ -35,7 +36,8 @@ def test_capacities(toy):
     assert (st["point"].capacity, st["curve"].capacity, st["root"].capacity) == (3, 5, 7)
     # [r6] derived 상한 = 슬라이스 수 × 4 (toy 슬라이스 2장 -> 8; r5 는 × 2 = 4) -- [r7] × 7 -> 14
     # [U17 ①-b, 40 v1.9.1 D10] 상한 식(슬라이스 수 × 표 종류)은 그대로, 표 종류 8(edge_costs) -> 2 × 8
-    assert st["derived"].capacity == len(toy.slice_map) * len(DERIVED_TABLES) == 2 * 8
+    # [card 20261104-hcs] 표 종류 8 -> 9 (vds_floor)
+    assert st["derived"].capacity == len(toy.slice_map) * len(DERIVED_TABLES) == 2 * 9
 
 
 @pytest.mark.parametrize("bad", [0, -1, 1.5, True, None, "3"])
@@ -145,7 +147,11 @@ def test_r6_derived_capacity_holds_all_tables(mid_toy_build):
         derived(m, "edge_costs", "nmos", wk)     # [U17 ①-b D10] edge_costs 도 derived 영역 슬라이스당 1개
     st = _stats(m)["derived"]
     # curve_report 는 LUT 전체 1개 + 폭 2 × 표 4(midpoint·tol_v·tol_vdsat·edge_costs) = 9; [U17 ①-b D10] 상한 2 × 8 = 16 -- 퇴출 0
-    assert st.capacity == 16 and st.evictions == 0 and st.size == 9
+    assert st.capacity == 18 and st.evictions == 0 and st.size == 9               # [card 20261104-hcs] 상한만 2 × 9 = 18 (표 종류 9)
+    for wk in (100, 200):                                                         # vds_floor 도 슬라이스당 1개, 퇴출 0
+        derived(m, "vds_floor", "nmos", wk)
+    st = _stats(m)["derived"]
+    assert st.capacity == 18 and st.evictions == 0 and st.size == 11
 
 
 def test_distinct_fp_luts_do_not_share(toy_build):

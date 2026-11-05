@@ -16,7 +16,7 @@ from .s0_fields import METRIC_STRUCTURE_WRITER, METRIC_STRUCTURE_WRITES
 
 def _block(b):
     return BlockStruct(b.key, b.kind, b.stage, b.inputs, b.outputs, b.nodes,
-                       tuple(sorted(name for name, role in b.roles if role == ROLE_INPUT)))
+                       tuple(sorted(name for name, role in b.roles if role == ROLE_INPUT)), tuple(sorted(name for name, _role in b.roles)))
 
 
 def _ff(f, blocks):
@@ -43,5 +43,6 @@ def metric_structure(projection):
                                 first.input_cells if first else (),
                                 tuple(sorted(c.dev for c in v.cells if c.forward and c.kind != CELL_OFF)),
                                 tuple(sorted(p.net for p in v.pole_nodes)),
-                                tuple((d.net, d.topology, tuple(d.charge), tuple(d.discharge)) for d in v.output_direction)))
+                                tuple((d.net, d.topology, tuple(d.charge), tuple(d.discharge)) for d in v.output_direction),
+                                tuple(sorted(v.ac_ground))))
     return {("graph", "metric_structure"): {S1V_KEY: MetricStructure(tuple(views))}}

@@ -1,0 +1,3 @@
+    neg = [[r["label"], s] for r in re_front + re_l0 for s in r["s_p"] if s.get("sign") == -1]
+                                                              ~^^^^^^^
+KeyError: 's_p'

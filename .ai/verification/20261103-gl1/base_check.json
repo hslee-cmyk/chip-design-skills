@@ -1,0 +1,167 @@
+{
+ "id": "20261103-gl1",
+ "step": "N3.12.3 순서 3 (freeze)",
+ "committed": false,
+ "commit_at": "순서 6 (오케스트레이터 지시)",
+ "evidence_type": "red-green",
+ "freeze": {
+  "test_branch": "role/test/20261103-gl1",
+  "T": "0a33d0b649ee09494cf6900f0516ba310a311715",
+  "T_measured_by": "git rev-parse (격리 복제본, audit worktree 머리와 같음)",
+  "base_commit": "0d99a81327ffae4043e9d603298d1fe4760e7ac8",
+  "base_is_ancestor_of_master": true,
+  "master_at_measure": "e33100cc4c4ebf2fa7dc6bb787f2680a35958eef",
+  "base_to_master_engine_diff": 0,
+  "test_tree_T": "88853e032288c5686e2889b32caaa8b4fee9ab21",
+  "base_to_T_diff_sha256": "a0d57dce26275b8e87679bdc2e3cada6cccde42860fe2b71ec45d1fdd21c813d"
+ },
+ "isolation": {
+  "clone": "git clone --no-hardlinks --no-local <audit worktree> C:/Users/HSLEE/AppData/Local/Temp/la1s_gl1_audit/iso; git -C iso remote remove origin",
+  "base_tree": "git -C iso worktree add --detach la1s_gl1_audit/iso_base 0d99a813",
+  "master_tree": "git -C iso worktree add --detach la1s_gl1_audit/iso_master e33100cc",
+  "fix_tree": "git -C iso worktree add --detach la1s_gl1_audit/iso_fix d9509421",
+  "python": "C:/Python314/python.exe 3.14.2, pytest 9.0.2",
+  "scope": "구조 test만. LUT 실행 0"
+ },
+ "commands": [
+  "T: cd iso && PYTHONPYCACHEPREFIX=<빈 디렉터리> $PY -P -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -q -p no:cacheprovider --junitxml=out/T_structure.xml --tb=line",
+  "base: cd iso_base && 같은 명령, --junitxml=out/B_structure.xml --tb=short",
+  "표 생성: $PY -I scripts/compare_junit.py out/B_structure.xml out/T_structure.xml out/red_table.json",
+  "기대값 대조: $PY -I scripts/expected_vs_fixture.py iso/<S> out/expected_vs_fixture",
+  "등록부 유효성: $PY -I scripts/copy_manifest_probe.py iso/<S>"
+ ],
+ "gate_note": "spec card phase = 해당 없음(DEC-86, merge_gate 미사용). GMID_RED_CAPTURE 경로를 쓰지 않고 junit으로 (test id, 원인)을 수집했다",
+ "red": {
+  "verdict": "PASS",
+  "n_new_tests": 99,
+  "n_new_passed_on_base_tree": 0,
+  "n_new_skipped": 0,
+  "by_file": {"test_g8_baseline": 53, "test_g8_lint": 11, "test_scan_shared_calls_tool": 29, "test_value_types_lint": 6},
+  "cause_counts": {
+   "error|AttributeError:check_g8 (fixture sub_violations)": 17,
+   "failure|AttributeError:check_g8": 14,
+   "failure|AttributeError:check_value_types": 6,
+   "failure|AttributeError:G8_ALLOWED_MODULES": 1,
+   "failure|AttributeError:dump_baseline": 5,
+   "failure|AttributeError:load_baseline": 26,
+   "failure|AttributeError:ratchet": 1,
+   "failure|AssertionError:tool_missing": 29
+  },
+  "n_other_cause": 0,
+  "red_table": "C:/Users/HSLEE/AppData/Local/Temp/la1s_gl1_audit/out/red_table.json",
+  "red_table_sha256": "8fbe14eab5298231c9da8fcb3f28c13e2f2ff006266fa95e603a2d6bb78734bc",
+  "reading": "실패 원인 전부가 새 함수·도구 부재다. 도구 쪽은 파일 없음 단언 또는 종료 코드 ≠ 0 단언이다(spec card '판정 유형 근거'가 허용). 인터프리터 종료 코드 2를 입력 오류로 오인하는 거짓 green은 _expect_input_error가 막는다"
+ },
+ "existing_tests": {
+  "verdict": "PASS",
+  "changed_files_not_added": ["skills/analog-gmid-design/gmid_engine/tests/structure/README.md"],
+  "name_status_counts": {"A": 80, "M": 1},
+  "readme_diff": "표 행 추가뿐",
+  "n_old_tests": 67,
+  "old_removed": 0,
+  "old_status_changed": 0,
+  "structure_checks_py_diff": 0,
+  "tools_diff": 0,
+  "engine_outside_tests_diff": 0,
+  "g8_baseline_json_in_T": 0
+ },
+ "base_failure_rule_e": {
+  "test": "test_structure_rules::test_rule_e_no_circuit_name_literals",
+  "verdict": "기존 실패. GL-1과 무관",
+  "base": "FAIL, name_literal 35건",
+  "master_e33100cc": "FAIL, name_literal 35건, base와 목록 바이트 동일",
+  "T": "FAIL (상태 불변)",
+  "files": {"_module_map.py": 20, "lut/tolerance.py": 5, "lut/lut_set.py": 3, "그 밖 7파일": 7},
+  "cause_reading": "회로 이름 집합에 회로 소자·net 이름(Q4, Q8, Q9, VS, Z)이 들어와 엔진 어휘와 겹친다",
+  "fix_o181_tests_d9509421": "해당 브랜치 단독 PASS(위반 0). master 트리에 그 브랜치의 structure_checks.py, test_structure_rules.py, conftest.py만 덮어써도 PASS(위반 0) -- fix/o181-tests 처리 대상 맞음",
+  "fix_merged": false,
+  "effect_on_gl1": "이 test는 코드 단계 기대 red 목록에 없다. spec card '기대 red = test_rule_g8_baseline_ratchet 하나'는 이 실패를 제외한 문장으로 읽어야 한다. fix 병합 전에 GL-1 판정을 하면 전체 test FAIL 1건을 기존 실패로 표지해야 한다"
+ },
+ "oracle_independence": {
+  "verdict": "PASS",
+  "implementation_at_T": "없음(structure_checks.py diff 0, tools/audit 없음)이라 피검 출력 복사가 불가능하다",
+  "real_tree_numbers_in_tests": 0,
+  "expected_vs_fixture": "EXPECTED_G8_BAD 56행, EXPECTED_VT_BAD 31행 전부 기대 kind·path·line·detail을 픽스처 원문 줄과 손으로 대조, 불일치 0",
+  "expected_vs_fixture_file": "C:/Users/HSLEE/AppData/Local/Temp/la1s_gl1_audit/out/expected_vs_fixture.tsv",
+  "not_expected_lines_read": "기대 목록 밖 줄(경계·허용 모듈·frozen 본문)도 읽어 interface 표상 안 걸림 확인, 불일치 0",
+  "mechanical": {"rule_g8_py_files": 27, "test_n": 27, "rule_vt_py_files": 7, "test_n_vt": 7, "allowed_modules_present": 14, "id_calls_ast": 6, "id_calls_expected_match": true},
+  "hand_docs": "HAND_ROWS(edges 2, idcall 1·1·1)와 줄 이동 [1,2,3,7,10] -> [3,4,5,9,12] 손 계산 일치",
+  "shared_calls": "9 case 픽스처 전부 읽음. 기대 줄·arg_keys·쌍 수·class·method 4건 일치",
+  "copy_manifest_fixture_valid": "check_copy_manifest (1, []), check_copy_source (1, []) -- 유효한 등록부 맞음",
+  "self_comparison_tests": "입력 순서·같은 doc·결정성 test만 피검 출력끼리 비교한다. 정답값을 피검 출력으로 만들지 않는다"
+ },
+ "interface_ambiguities": [
+  {
+   "item": "callee_mod 문자열 형식",
+   "test_forces_wrong": false,
+   "test_form": "endswith('defs'), 'defs' in mod, not endswith('pkg'), 파일 간 같음",
+   "fix": "§4 해석 문단에 추가: `callee_mod`, `caller_mod`, `caller_mods`의 원소 = `--engine` 폴더 이름을 접두로 한 점 표기 모듈 이름(`gmid_engine.pkg.defs`). `__init__.py`는 패키지 이름. `.py` 없음. `caller_mods` 구분자 = 쉼표, 정렬."
+  },
+  {
+   "item": "--touching 기준 경로",
+   "test_forces_wrong": false,
+   "test_form": "엔진 루트 기준 a.py. CLI 입력에 저장소 루트가 없어 이 기준만 성립하고 §0 Violation.path와도 같다",
+   "fix": "§4 CLI: `--touching <--engine 폴더 기준 posix 상대 경로>`. 저장소 기준 경로는 대상 파일에 없으므로 종료 코드 2. design 40 §10.4 행도 고침: `--touching <card 커밋들이 바꾼 엔진 파일의 엔진 루트 기준 경로>`(git diff --name-only 출력은 접두를 뗀다). 오케스트레이터가 이후 audit 브리핑에 넣는 명령도 같음"
+  },
+  {
+   "item": "method_calls_unresolved",
+   "test_forces_wrong": false,
+   "test_form": "obj.f(1..4) 넷, 인자 리터럴. .column 호출이 없어 세는지 여부를 정하지 않는다. interface 표의 꼴 obj.f(p.column(...))과 다르다",
+   "fix": "§4 해석 문단: `method_calls_unresolved` = 호출 식이 `ast.Attribute`이고 정의 모듈로 해석되지 않았으며 뿌리가 import 이름이 아닌 호출 수. 필드 잎으로 인식된 `.column`, `.value` 호출은 세지 않는다. 표 `method` 행의 '호출 수' = `obj.f` 호출 수."
+  },
+  {
+   "item": "sites_with_param_leaf",
+   "test_forces_wrong": false,
+   "test_form": "same_input 0, param_only 2. 전체 자리 대 공유 자리는 정하지 않는다",
+   "fix": "§4 limits 행: `sites_with_param_leaf` = `calls.json` 자리 중 `leaves`에 `P[..]`가 하나 이상인 자리 수. `.column`, `.value`의 받는 쪽 식은 잎이 아니다."
+  },
+  {
+   "item": "caller_fn, leaves",
+   "test_forces_wrong": false,
+   "test_form": "최상위 함수 이름만 비교, leaves는 str(x) 포함만 비교, arg_keys는 문자열 list",
+   "fix": "§4 calls.json 행: `caller_fn` = §1 qualname(모듈 수준 `<module>`). `arg_keys` = 인자 순서의 문자열 list. `leaves` = 쓰인 잎 문자열의 중복 없는 정렬 list."
+  },
+  {
+   "item": "§2 '그 하나' 범위",
+   "test_forces_wrong": false,
+   "test_form": "tuple/frozenset/list(제너레이터)만. D40 '컨테이너에는 tuple(...) 등 생성자로 감싼 형태도 포함'과 맞다",
+   "fix": "§2 vt_assign 행 '그 하나를 인자로 받은' -> '이 칸의 앞 형태(T(...), 리터럴, 컴프리헨션, 제너레이터) 또는 이 칸의 생성자 호출을 첫 위치 인자로 받은'."
+  },
+  {
+   "item": "x.id(1)",
+   "test_forces_wrong": false,
+   "test_form": "good/clean.py에서 안 걸림. 규칙 대상은 이름 호출 id(...)이고 obj.cache(...) 처리와도 같다",
+   "fix": "§1.1 '걸리지 않는 것'에 `x.id(1)`(받는 쪽이 있는 속성 호출)을 추가."
+  },
+  {
+   "item": "Violation 생성자",
+   "test_forces_wrong": false,
+   "test_form": "새 test 넷 어디에도 Violation( 호출이 없다. 검사기 출력의 속성만 읽는다. 기존 정의 = kind, path, line, detail 순서",
+   "fix": "§0 Violation 줄에 추가: 생성은 검사기 몫이고 test는 직접 만들지 않는다. `baseline_doc`, `ratchet`은 `kind`, `path`, `detail` 속성을 가진 원소의 iterable을 받는다."
+  }
+ ],
+ "extra_ambiguity_found_by_auditor": [
+  {
+   "item": "같은 모듈 호출자가 여럿일 때 매개변수 치환",
+   "test_forces_wrong": false,
+   "reason": "helper_trace는 호출자 하나뿐이다. 호출자 여럿의 인자가 서로 다른데 하나로 치환하면 거짓 B가 나온다",
+   "fix": "§4 잎 표 매개변수 행: '같은 모듈 호출자가 정확히 하나이고 위치 인자를 넘기면 그 식으로 치환. 호출자가 없거나 둘 이상이면 잎'(D로 떨어져 손 분류). 권고이며 원칙 10 fail-closed 근거"
+  }
+ ],
+ "coverage_gaps_not_blocking_freeze": {
+  "note": "test가 틀린 것은 아니고 interface가 적은 동작을 잡지 않는 자리다. V3 뮤테이션에서 생존 후보. T를 바꿀지는 오케스트레이터 결정",
+  "scan_tool": [
+   "`.value(\"종류\", <키>, \"필드\")` 필드 잎: 픽스처 0건. 엔진 T 트리 `.value(\"` 123줄, `.column(\"` 287줄이라 실제 비중이 크다",
+   "`import .. as` 해석 toy 0건(엔진 사용 1줄)",
+   "`for`, 컴프리헨션 지역 추적, 리터럴 잎, 전역 `G[..]` 잎 toy 0건",
+   "`--touching`일 때 `calls.json`, `shared.tsv`, `n_sites` 불변 단언 0건. test_touching_filters_candidates의 'shared.tsv는 touching으로 줄지 않는다' 주석은 touching 없는 실행만 단언한다"
+  ],
+  "value_types": ["`set(...)`, `dict(...)`, `MappingProxyType(...)` 감쌈 toy 0건"],
+  "recommendation": "`.value` 잎 toy 하나는 코드 착수 전 test 역할 추가 커밋 권고. 나머지는 V3 결과로 판단"
+ },
+ "not_measured": [
+  "V1~V10 전부(순서 7 몫)",
+  "엔진 전체 test(structure 밖). 메모리 지시로 구조 test만 돌렸다",
+  "test_lint.py 도구 실행(V4 몫). 이번에는 손 대조만"
+ ]
+}

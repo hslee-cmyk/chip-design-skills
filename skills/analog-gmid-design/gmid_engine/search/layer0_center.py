@@ -40,7 +40,6 @@
 import dataclasses
 import math
 import sys
-import time
 
 import numpy as np
 from scipy.optimize import minimize as scipy_minimize
@@ -52,8 +51,10 @@ from .canonical_order import canonical_order
 from .canonical_rows import canonical_row_key
 from .cell_floor import ln_idu_floors
 from .cone_rows import cone_rows
-from .fd_jacobian import fd_jacobian
+from .fd_jacobian import FdBudgetShortfall, fd_jacobian
 from .kernel import evaluate
+from .search_ceiling import search_ceiling
+from .search_stop import search_stop
 from .tie_expand import expand_ties
 from .search_values import (
     ACCEPTED_STATUSES,
@@ -278,14 +279,6 @@ def _hard(res, row_key):
     return tuple(sorted(rows, key=lambda row: row_key(row[0])))        # [r12] 정준 행 순서
 
 
-def _budget_stop(sctx):
-    if sctx.eval_budget is not None and sctx.counters["kernel_calls"] >= sctx.eval_budget:
-        return "eval_budget"
-    if sctx.deadline is not None and time.perf_counter() > sctx.deadline:
-        return "wall_budget"
-    return None
-
-
 def _maxmin(sctx, variables, theta0, cells, first, tag):
     row_key = canonical_row_key(sctx)
     variables = list(variables)
@@ -318,7 +311,7 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
         if hit is not None:
             return hit
         if res is None:
-            stop = _budget_stop(sctx)
+            stop = search_stop(sctx)
             if stop is not None:
                 raise _Abort(stop, x)
             res = evaluate(sctx, theta_of(x), cells, parent=state["parent"], origin=tag)
@@ -335,7 +328,10 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
         entry = point(x)
         skip = frozenset(state["frozen"])
         if entry["jac"] is None or entry["jac"][2] != skip:
-            cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], cells, theta_of, tag, skip)
+            try:
+                cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], cells, theta_of, tag, skip, ceiling=search_ceiling(sctx))
+            except FdBudgetShortfall:
+                raise _Abort("eval_budget", entry["x"]) from None          # 묶음이 못 시작 -- 평가 0개로 예산 정지(반쪽 야코비안 없음)
             gs = np.zeros((len(t_names), n))
             gc = np.zeros((len(h_names), n))
             for i, (col, step) in enumerate(cols):
@@ -368,7 +364,11 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
 
     start = point(np.asarray([min(max(c, v.lo), v.hi) for v, c in zip(variables, coords.x0)], dtype=float), first)       # 상자 자르기(X-14): clip(x0ᵢ)
     accept(start["x"])
-    steps0 = fd_jacobian(sctx, variables, start["x"], first, cells, theta_of, tag, frozenset())
+    try:
+        steps0 = fd_jacobian(sctx, variables, start["x"], first, cells, theta_of, tag, frozenset(), ceiling=search_ceiling(sctx))
+    except FdBudgetShortfall:
+        # 첫 스텝 야코비안이 못 시작 -- 반복 0, 재시작 0, 정지 사유 eval_budget. 수락 목록은 시작점 하나(아래 끝 선택 규칙과 같다)
+        return state["accepted"][0], "eval_budget", 0, 0, ("eval_budget",), (), t_names
     h = np.asarray([abs(step) for _col, step in steps0], dtype=float)
     resolved = [int(math.ceil(math.log2((hi[i] - lo[i]) / h[i]))) for i in range(n) if h[i] > 0]
     maxiter = max(1, sum(max(r, 1) for r in resolved))
@@ -500,7 +500,7 @@ def _repair(sctx, variables, res, cells, tag, gmid_max):
                 continue
             var = variables[i]
             for bound in (floors.get(i, var.lo), var.hi):
-                if _budget_stop(sctx) is not None:
+                if search_stop(sctx) is not None:
                     return None, tuple(done)
                 th = dict(base)
                 th[var.component] = bound
@@ -524,7 +524,7 @@ def _repair(sctx, variables, res, cells, tag, gmid_max):
         steps = max(1, int(math.ceil(math.log2(abs(end - x) / res_ln)))) if abs(end - x) > res_ln else 0
         lo_x, hi_x, hi_res = x, end, end_res
         for _k in range(steps):
-            if _budget_stop(sctx) is not None:
+            if search_stop(sctx) is not None:
                 break
             mid = (lo_x + hi_x) / 2
             r = run(mid)
@@ -548,7 +548,7 @@ def _gmid_max(sctx):
 def _halton_probe(sctx, variables, theta0, cells, tag):
     """S-4b: 상자 중심이 받아들일 상태가 아니면 Halton 열(소수 기저, 스크램블 없음, index 1 부터)의 k 번째 점을 변수 자연 좌표
     (bounds 위 선형 = ln 변수는 ln 좌표)에 놓아 순서대로 평가하고, 처음 받아들일 상태인 점에서 멈춘다. 한도 = 평가 예산 규칙
-    (`_budget_stop`: kernel_calls ≥ E_B 또는 벽시계). 벽시계(deadline)가 없을 때만 시험 점 수 ≤ E_B 를 더한다 -- 원뿔 밖 점은
+    (`search_stop`: kernel_calls ≥ 탐색 예산 또는 벽시계). 벽시계(deadline)가 없을 때만 시험 점 수 ≤ 탐색 예산(`search_ceiling`)을 더한다 -- 원뿔 밖 점은
     커널 0 이라 커널 수만으로는 끝나지 않는다. 둘 다 없으면 시험하지 않는다(`probe_budget_undeclared`).
 
     θ 전류(원뿔이 있을 때): 상자에서 독립으로 뽑지 않고 **상자 ∩ 원뿔 다면체 안 hit-and-run**(선형 전류 좌표)으로 옮긴다
@@ -596,13 +596,14 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
             best = None
             if fixed_res is not None:
                 return fixed_res, tried, "repair", tuple(repaired)
-        stop = _budget_stop(sctx)
+        stop = search_stop(sctx)
         if stop is not None:
             return None, tried, "probe_" + stop, tuple(repaired)
         if sctx.deadline is None:
-            if sctx.eval_budget is None:
+            ceiling = search_ceiling(sctx)
+            if ceiling is None:
                 return None, tried, "probe_budget_undeclared", tuple(repaired)
-            if tried >= sctx.eval_budget:
+            if tried >= ceiling:
                 return None, tried, "probe_eval_budget", tuple(repaired)
         tried += 1
         phi_dim = [_radical_inverse(tried, b) for b in bases]
@@ -662,6 +663,9 @@ def layer0_start(sctx, origin=()):
         if any(r.c <= 0 for r in cone_rows(_schema(sctx), tuple(sorted(_expanded(sctx, theta).items())))):
             start_status = "centre_outside_cone"
             continue
+        if search_stop(sctx) is not None:
+            start_status = "eval_budget"          # 사다리 칸도 단일 평가다 -- 예산(또는 벽시계)에 닿았으면 평가하지 않고 사다리를 멈춘다
+            break
         first = evaluate(sctx, theta, cells, origin=tag)
         start_status, failure = first.status, first.failure
         if first.status in ACCEPTED_STATUSES:
@@ -671,7 +675,7 @@ def layer0_start(sctx, origin=()):
         if info is not None and (best is None or info[1] < best[0]):
             best = (info[1], first, variables, theta, cells, centre_u, k)       # 위반 크기가 가장 작은 칸 -- 아래 1단계 보정의 출발점
         first = None
-    if first is None and best is not None and _budget_stop(sctx) is None:
+    if first is None and best is not None and search_stop(sctx) is None:
         # 사다리 어느 칸도 받아들일 상태가 아니면 위반 크기가 가장 작은 칸(1변수 노드 근이 창 밖)에 S-4b 1단계(`_repair`: writer ln IDu 한 좌표 bisection)를 적용한다 --
         # Halton 시험 점에 쓰는 것과 같은 보정이다.
         _margin, res, variables, theta, cells, centre_u, k = best

@@ -30,7 +30,7 @@ def sym_doc(name="hand_sym_canon", caps=True):
                 [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "o2", "inn", "t"),
                  mos("M5", "nmos", "t", "vb", "gnd"), mos("M3", "pmos", "o1", "pb", "vdd"),
                  mos("M4", "pmos", "o2", "pb", "vdd")],
-                {"inp": ("input", "differential_input"), "inn": ("input", "differential_input"),
+                {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"),          # [IT-1 DEC-106] 입력 점 규칙의 차동쌍 role
                  "o1": ("output", "differential_output"), "o2": ("output", "differential_output")},
                 passives=pas, bias=["pb", "vb"])
 
@@ -111,7 +111,7 @@ def colour_maps(dc):
 
 
 def tau(dc):
-    """θ 키 (종류, 이름) -> (종류, 정점 대응 키). 원소 = ("d", dc_colour), 넷 = ("n", dc_colour), 그 밖(입력 묶음 y 키) = 이름 그대로."""
+    """θ 키 (종류, 이름) -> (종류, 정점 대응 키). 원소 = ("d", dc_colour), 넷 = ("n", dc_colour), 그 밖(표 밖 키) = 이름 그대로 [IT-1 K-3: 입력 포트 뿌리 y 키는 넷 이름이라 위 "n" 으로 간다]."""
     dv, nv = colour_maps(dc)
 
     def f(key):

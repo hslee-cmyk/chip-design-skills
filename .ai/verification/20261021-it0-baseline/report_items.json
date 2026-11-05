@@ -1,0 +1,248 @@
+{
+ "10a_dynamic": {
+  "report": false,
+  "value": []
+ },
+ "C-2_failure": {
+  "report": false,
+  "value": []
+ },
+ "C-3_feedback_None": {
+  "report": false,
+  "value": []
+ },
+ "M-I4_IT-Q2": {
+  "circuits_with_diff": [
+   "folded_cascode",
+   "nmcnr_amplifier",
+   "two_stage_ota",
+   "two_stage_ota_sf"
+  ],
+  "report": false,
+  "verdict": "(다)"
+ },
+ "O-66_mismatch": {
+  "report": false,
+  "value": []
+ },
+ "S-OS1": {
+  "report": false,
+  "value": []
+ },
+ "S-OS2": {
+  "empty_tuple": [
+   "cnr_ota"
+  ],
+  "report": true,
+  "tuple_nonempty": [
+   "current_reuse_telescopic_ota"
+  ]
+ },
+ "f_component_or_isolated_input": {
+  "report": true,
+  "value": [
+   [
+    "current_reuse_telescopic_ota",
+    "SIM",
+    [
+     "Vim"
+    ],
+    []
+   ],
+   [
+    "folded_cascode",
+    "SIM",
+    [
+     "vin_n"
+    ],
+    []
+   ],
+   [
+    "nmcnr_amplifier",
+    "SIM",
+    [
+     "Vin_n"
+    ],
+    []
+   ],
+   [
+    "two_stage_ota",
+    "SIM",
+    [
+     "vin_n"
+    ],
+    []
+   ],
+   [
+    "two_stage_ota_sf",
+    "SIM",
+    [
+     "vin_n"
+    ],
+    []
+   ]
+  ]
+ },
+ "front_empty": {
+  "report": false,
+  "value": []
+ },
+ "kernel_status_unclassified": {
+  "report": false,
+  "value": []
+ },
+ "missing": [
+  [
+   "m_i1",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i1",
+   "ngcc_3stage_ff",
+   "SIM",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_SIM_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i1_r",
+   "ngcc_3stage_ff",
+   "SIM",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_SIM_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i1_r",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i2",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i2",
+   "ngcc_3stage_ff",
+   "SIM",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_SIM_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i3",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i3",
+   "ngcc_3stage_ff",
+   "SIM",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_SIM_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i4",
+   "ngcc_3stage_ff",
+   "SIM",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_SIM_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i4",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i5",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i5",
+   "ngcc_3stage_ff",
+   "SIM",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_SIM_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i6",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "m_i6",
+   "ngcc_3stage_ff",
+   "SIM",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_SIM_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "s_p_sign",
+   "ngcc_3stage_ff",
+   "SIM",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_SIM_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "s_p_sign",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "kernel_window_status",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "kernel_window_status",
+   "ngcc_3stage_ff",
+   "SIM",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_SIM_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "front_empty",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "front_empty",
+   "ngcc_3stage_ff",
+   "SIM",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_SIM_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "drive_pair_nets",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "feedback_slot",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "loop_cut",
+   "ngcc_3stage_ff",
+   "AB",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_AB_ngcc_3stage_ff.txt)"
+  ],
+  [
+   "loop_cut",
+   "ngcc_3stage_ff",
+   "SIM",
+   "미측정: 칸 없음(실행 중단 -- 로그 log_SIM_ngcc_3stage_ff.txt)"
+  ]
+ ],
+ "multi_input_root_library": {
+  "report": false,
+  "value": []
+ },
+ "remeasure_failed": {
+  "report": false,
+  "value": []
+ }
+}

@@ -7,7 +7,7 @@
   (강제 종료 뒤에도 마지막 줄까지 남는다). 이 기록은 **출력**이다: 엔진은 실행 사이에 읽지 않는다(NFR-2·U-89) --
   쓰기 메서드(`append_eval`·`append_run`·`write_snapshot`)와 위치 `dir` 만 있다. 다른 실행의 front 조회는 `front_entries.read_front_entries`
   (출력 조회 전용, 구조 규칙 K).
-* 값 직렬화: frozen dataclass -> {"__type__": 클래스 이름, 필드...}, tuple -> list, 비유한 float -> 문자열(repr).
+* 값 직렬화: frozen dataclass -> {"__type__": 클래스 이름, 필드...}, tuple -> list, numpy 배열 -> 중첩 list, 비유한 float -> 문자열(repr).
 """
 import dataclasses
 import gzip
@@ -31,8 +31,8 @@ def _plain(value):
         return value
     if isinstance(value, float):
         return value if math.isfinite(value) else repr(value)
-    if hasattr(value, "item"):
-        return _plain(value.item())
+    if hasattr(value, "tolist"):                 # numpy 스칼라(-> 파이썬 스칼라)와 배열(-> 중첩 list, 예: graph.ss_nodal 의 G)
+        return _plain(value.tolist())
     return repr(value)
 
 
