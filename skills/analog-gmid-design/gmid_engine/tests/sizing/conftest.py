@@ -81,13 +81,18 @@ def _sha(path):
 
 def _stamp(a, tb, kind):
     """[WB-1 §4] 합성 모델 기록(meta)을 배열 dict 에 적는다."""
-    a["meta_json"] = np.str_(json.dumps(tb.meta(kind)))
+    a["meta_json"] = np.str_(json.dumps(tb.meta(kind, root=False)))     # pdk_root 는 적재 인자(폴더 무관 내용)
     return a
 
 
 def bin_rule_of(manifest):
     """합성 LUT 폴더의 bin 선언 경로(`write_toy_bins` 가 manifest 와 같은 폴더에 쓴다)."""
     return str(Path(manifest).parent / "bin_rule.json")
+
+
+def pdk_of(manifest):
+    """합성 LUT 폴더의 모델 루트(`write_toy_bins` 가 manifest 와 같은 폴더 아래 pdk 에 쓴다)."""
+    return str(Path(manifest).parent / "pdk")
 
 
 def write_toy_lut(root: Path, w_ref_m=W_M, extra_width=None):
@@ -111,7 +116,7 @@ def write_toy_lut(root: Path, w_ref_m=W_M, extra_width=None):
     shp = (len(TOY_L), len(TOY_VGS), len(TOY_VDS), len(TOY_VS))
     cap = {"L": np.asarray(TOY_L), "VGS": np.asarray(TOY_VGS), "VDS": np.asarray(TOY_VDS), "VS": np.asarray(TOY_VS),
            "w_ref_m": np.float64(w_ref_m), "corner": np.str_("tt"), "temp_c": np.float64(27.0),
-           "meta_json": np.str_(json.dumps(tb.cap_meta()))}
+           "meta_json": np.str_(json.dumps(tb.cap_meta(root=False)))}
     for kind in ("nmos", "pmos"):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
@@ -205,14 +210,15 @@ def write_r4_lut(root: Path, vdsat=("nmos", "pmos"), off_cols=None, off_points=N
     shp = (len(gL), len(gG), len(gD), len(gS))
     cap = {"L": gL, "VGS": gG, "VDS": gD, "VS": gS,
            "w_ref_m": np.float64(W_M), "corner": np.str_("tt"), "temp_c": np.float64(27.0),
-           "meta_json": np.str_(json.dumps(tb.cap_meta()))}
+           "meta_json": np.str_(json.dumps(tb.cap_meta(root=False)))}
     for kind in ("nmos", "pmos"):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
     for kind in cap_vdsat:
         cap["VDSAT" + SUFFIX[kind]] = r4_arrays(kind, True, 0, (), grids)["VDSAT"]
     np.savez(root / "cap.npz", **cap)
-    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC, bin_rule=tb.bin_rule)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC, bin_rule=tb.bin_rule,
+                         pdk_root=tb.pdk_root)
 
 
 def r4_vs_term(vsb):
@@ -366,7 +372,7 @@ def toy_lut_paths(tmp_path_factory):
 @pytest.fixture(scope="session")
 def toy_lut(toy_lut_paths):
     m, c = toy_lut_paths
-    return load_lut_set(str(m), str(c), TOY_SPEC, bin_rule=bin_rule_of(m))
+    return load_lut_set(str(m), str(c), TOY_SPEC, bin_rule=bin_rule_of(m), pdk_root=pdk_of(m))
 
 
 def new_access(lut, n=4096):

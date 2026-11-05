@@ -333,7 +333,7 @@ def toy_access_lib(tmp_path_factory):
     from sizing.conftest import TOY_SPEC, new_access, write_toy_lut
     m, c = write_toy_lut(tmp_path_factory.mktemp("lib_toy_lut"))
     from sizing.conftest import bin_rule_of
-    return new_access(load_lut_set(str(m), str(c), TOY_SPEC, bin_rule=bin_rule_of(m)))
+    return new_access(load_lut_set(str(m), str(c), TOY_SPEC, bin_rule=bin_rule_of(m), pdk_root=str(Path(m).parent / "pdk")))
 
 
 @pytest.mark.parametrize("name", sorted(TABLE))

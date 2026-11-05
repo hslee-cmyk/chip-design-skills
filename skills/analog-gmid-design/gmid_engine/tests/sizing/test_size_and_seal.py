@@ -363,7 +363,7 @@ from gmid_engine.lut import load_lut_set
 from gmid_engine.sizing import size_and_seal
 tmp = Path(tempfile.mkdtemp())
 m, c = C.write_toy_lut(tmp / "lut")
-acc = C.new_access(load_lut_set(str(m), str(c), C.TOY_SPEC, bin_rule=C.bin_rule_of(m)))
+acc = C.new_access(load_lut_set(str(m), str(c), C.TOY_SPEC, bin_rule=C.bin_rule_of(m), pdk_root=C.pdk_of(m)))
 out = {}
 for tag, doc, th in (("C", C.circuit_cs_pmos_load(), C.theta_c()), ("A", C.circuit_cs_res(), C.theta_a())):
     for k, seed in enumerate((None, 1, 2)):

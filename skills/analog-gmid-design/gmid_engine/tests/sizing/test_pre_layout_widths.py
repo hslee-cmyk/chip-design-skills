@@ -12,7 +12,8 @@ from .conftest import GRID_M, TOY_SPEC, bin_rule_of, build_ctx, circuit_cs_pmos_
 
 def _memo(root, **kw):
     m, c = write_toy_lut(root, **kw)
-    return LutMemo(load_lut_set(str(m), str(c), TOY_SPEC, bin_rule=bin_rule_of(m)), point=64, curve=64, root=64)
+    return LutMemo(load_lut_set(str(m), str(c), TOY_SPEC, bin_rule=bin_rule_of(m),
+                                  pdk_root=str(m.parent / "pdk")), point=64, curve=64, root=64)
 
 
 def test_toy_w_ref_gives_w_key_100(tmp_path):
