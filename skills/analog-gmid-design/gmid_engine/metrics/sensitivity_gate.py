@@ -30,6 +30,10 @@ from .aux_types import (
 )
 
 
+def _finite(value):
+    return value is not None and math.isfinite(value)                  # None·NaN·inf = 측정 불능
+
+
 def sensitivity_gate(base, runs):
     dec0, full0, res0 = base
     if not runs:
@@ -40,7 +44,7 @@ def sensitivity_gate(base, runs):
     unmeasured = []
     widest = None
     for label, dec, full, res in runs:
-        if None in (dec, full, dec0, full0, res, res0):
+        if not all(_finite(v) for v in (dec, full, dec0, full0, res, res0)):
             checks.append((label, None, None, None, None))
             unmeasured.append(label)
             continue
@@ -51,7 +55,7 @@ def sensitivity_gate(base, runs):
         if bad:
             errors.append(label)
         widest = eps if widest is None else max(widest, eps)
-    if None in base:
+    if not all(_finite(v) for v in base):
         return GateResult(False, tuple(checks), (), widest, GATE_UNDETERMINABLE, GATE_REASON_BASE_UNDEFINED, tuple(label for label, *_ in runs))
     if errors:
         return GateResult(False, tuple(checks), tuple(errors), widest, GATE_ERROR, None, tuple(unmeasured))
