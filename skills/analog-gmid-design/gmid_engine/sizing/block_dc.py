@@ -33,10 +33,11 @@
 * 커널 창 `node.dc_window` = W4 뿌리마다 KVL 순서 창 하나(상태·`tol_v` 없음); 입력 창 측정은 `icm_config` 한 자리.
 * READS 중 `graph.views`·`node.port_role`·`graph.dc_current_basis` 는 재풀이(`_kcl_solve`, views·port_role 은 servo 갈래만)가 읽는다: 기본 포트 뷰(`default_port_views` -- `graph.views`, 없으면 `node.port_role`·`port_direction` 에서
   같은 규칙)의 여기 가중·감지 부호(`sense_signs`, `node.port_role`), 전류 기저 끝점(`graph.dc_current_basis.ends`, 감지 합·KCL 행의 흐름 넷). 설계 40 §3.7-A 1 READS 문언에 없던 항목이다(문언 누락 -- 읽는 한 선언해야
-  입력 버전이 바뀔 때 재계산된다). `pivot_config(ref)` 의 `graph.icm_config` 는 이 블록 자기 스냅샷이 아니라 입력 `search_ref` 스냅샷에서 읽는다.
+  입력 버전이 바뀔 때 재계산된다). `is_servo_branch(ref)` 의 `graph.icm_config` 는 이 블록 자기 스냅샷이 아니라 입력 `search_ref` 스냅샷에서 읽는다.
 """
 import dataclasses
 import math
+import types
 
 from gmid_engine.authoring import INPUT_DIRECTION, REGION_OFF, REGION_TRIODE
 from gmid_engine.core import NonconvergentError, SealViolationError, compute_block
@@ -44,7 +45,7 @@ from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, MOS_TERMINAL_NAMES
 from gmid_engine.lut import (AXES, tol_v_table, REASON_OFF_DECLARED, FingerSlice, SatBound, derived, finger_slice, gmb, is_slice_gap, op_point,
                              sat_threshold, slice_of_finger, vgs_for_current_density)
 
-from ._helpers_dc_solve import Circuit, default_port_views, pivot_config, sense_signs
+from ._helpers_dc_solve import Circuit, default_port_views, is_servo_branch, sense_signs
 from ._helpers_lut import with_device
 from .bracket_root import bracket_root
 from .fixed_point import gauss_seidel
@@ -54,7 +55,6 @@ from .s2_values import (
     COORD_WRITER,
     DC_KEY,
     DC_SOLVE_WRITER,
-    ICM_CONFIG_SERVO,
     PATH_FIXED,
     PATH_MOS,
     PATH_RESISTOR,
@@ -147,8 +147,7 @@ class _Circuit(Circuit):
         self.classes = dict(projection.column("device", "element_class"))
         self.current = dict(projection.column("device", "dc_current"))
         self.geometry, self.realized = geometry, realized
-        self.keys = {}                             # 소자 -> 지금 쓰는 슬라이스 키(블록 안 값: 쓰기 소자 = 선택 결과, 종속 소자 = 기준 슬라이스에서 시작해 Rʳ 되풀이로 바뀐다)
-        self.r_dep = set()                         # Rʳ: writer 없는 순환 SCC 의 수렴 허용오차 셀을 내는 종속 MOS(`_solve` 가 채운다)
+        self.keys = types.MappingProxyType({})     # 소자 -> 지금 쓰는 슬라이스 키(블록 안 값: 쓰기 소자 = 선택 결과, 종속 소자 = 기준 슬라이스에서 시작해 Rʳ 되풀이로 바뀐다). 읽기 전용, `set_keys` 만 통째로 바꾼다
         self.net_colour = dict(projection.column("node", "dc_colour"))
         self.self_ref = frozenset(m for m, flag in projection.column("device", "dc_self_referential") if flag)   # 쓰기 계획 파생 S0 필드(1변수 writer)
         self.order = projection.value("graph", DC_KEY, "dc_scc_order")
@@ -162,6 +161,10 @@ class _Circuit(Circuit):
             self.order_terms.setdefault(source_side, []).append((True, sink_side))
             self.order_terms.setdefault(sink_side, []).append((False, source_side))
         self.tol_cells = {}                        # (소자, VDS) -> tol_V 또는 None -- `tolerance` 의 한 평가 안 재사용
+
+    def set_keys(self, updates):
+        """슬라이스 키 사상을 갱신분 `updates` 를 겹친 새 읽기 전용 사상으로 통째로 바꾼다(제자리 변경 없음)."""
+        self.keys = types.MappingProxyType({**self.keys, **updates})
 
     def kvl_window(self, net, values):
         """W4 순서 창: x 에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이 되는 쪽 -- x 가 전류가 나가는 단자면
@@ -523,8 +526,10 @@ def _strict_recheck(c, entry, values, tol):
 
 
 def _solve(c):
-    """쓰기 계획 위상 순서로 SCC 를 풀어 (노드전압, SccLog 열)을 낸다 -- 현재 `c.theta` 한 벌에 대한 풀이 한 번."""
+    """쓰기 계획 위상 순서로 SCC 를 풀어 (노드전압, SccLog 열, Rʳ 소자 집합)을 낸다 -- 현재 `c.theta` 한 벌에 대한 풀이 한 번.
+    Rʳ 소자 = writer 없는 순환 SCC 의 수렴 허용오차 셀을 내는 종속 MOS(이 풀이의 지역 값)."""
     values = dict(c.rail_v)
+    r_dep = set()
     for net, w in c.writers.items():
         if w.relation in (REL_TARGET, REL_INPUT_DC):
             values[net] = float(c.fixed[net])
@@ -553,7 +558,7 @@ def _solve(c):
         if not writers:
             # Rʳ -- 수렴 허용오차 셀을 종속 소자가 내는 SCC. 다른 노드의 writer 인 소자는 키가 쓰기 소자 선택(상수 W)으로 정해져 있고
             # 그 키가 자기 노드 writer 식에 들므로 되풀이로 바꾸지 않는다(종속 소자만 Rʳ).
-            c.r_dep.update(m for m in devices if c.coord[m].role != COORD_WRITER)
+            r_dep.update(m for m in devices if c.coord[m].role != COORD_WRITER)
 
         def tolerance(v, devs=devices):
             return c.tolerance(devs, v)
@@ -591,7 +596,7 @@ def _solve(c):
             _strict_recheck(c, entry, solved, tol)
         values = solved
         logs.append(SccLog(entry.index, entry.nodes, k, deltas, tol, limit, method, fallback))
-    return values, tuple(logs)
+    return values, tuple(logs), r_dep
 
 
 def _windows(c, values):
@@ -609,9 +614,9 @@ def _rounds(c):
     seen = []
     rounds = 0
     while True:
-        values, logs = _solve(c)
+        values, logs, r_dep = _solve(c)
         rounds += 1
-        devices = sorted(c.r_dep)
+        devices = sorted(r_dep)
         if not devices:
             return values, logs, rounds, {}
         now = tuple((m, c.keys[m]) for m in devices)
@@ -622,7 +627,7 @@ def _rounds(c):
         seen.append(now)
         if after in seen:
             raise SealViolationError(devices=tuple(devices), detail={"reason": REASON_SLICE_CYCLE, "cycle": tuple(seen) + (after,)})
-        c.keys.update({m: picks[m].w_key for m in devices})
+        c.set_keys({m: picks[m].w_key for m in devices})
 
 
 def _slice_pick(c, m, count, finger_w):
@@ -779,7 +784,7 @@ def _kcl_solve(c, projection, ref, widths):
     ref_v = dict(ref.column("node", "dc_v"))
     directions = dict(projection.column("node", "port_direction"))
     inputs = tuple(sorted(n for n, d in directions.items() if d == INPUT_DIRECTION))
-    servo = pivot_config(ref) == ICM_CONFIG_SERVO
+    servo = is_servo_branch(ref)
     sense, excite = (), {}
     if servo:
         views = default_port_views(projection, directions)
@@ -820,7 +825,7 @@ def _resolved(c, projection):
     풀이는 W'·바이어스 고정 KCL(`_kcl_solve`) 하나이고 노드 재풀이 없는 갈래는 없다."""
     ref = c.realized.search_ref
     picks, widths = (_realized_picks if c.geometry is None else _layout_picks)(c, ref)
-    c.keys.update({m: p.w_key for m, p in picks.items()})
+    c.set_keys({m: p.w_key for m, p in picks.items()})
     values, log = _kcl_solve(c, projection, ref, widths)
     return values, (log,), 1, picks, widths
 
@@ -894,13 +899,13 @@ def dc_solve(projection):
     for m, coord in sorted(c.coord.items()):
         if coord.role == COORD_WRITER:
             picks[m] = c.pick_writer(m)
-            c.keys[m] = picks[m].w_key
+            c.set_keys({m: picks[m].w_key})
         else:
-            c.keys[m] = c.reference_key(m)
+            c.set_keys({m: c.reference_key(m)})
     values, logs, rounds, rpicks = _rounds(c)
     picks.update(rpicks)
     for m, coord in sorted(c.coord.items()):
         if coord.role != COORD_WRITER and m not in picks:
             picks[m] = c.pick_dependent(m, values)
-        c.keys[m] = picks[m].w_key
+        c.set_keys({m: picks[m].w_key})
     return _outputs(c, projection, values, logs, rounds, picks)

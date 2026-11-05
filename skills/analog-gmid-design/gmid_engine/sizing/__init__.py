@@ -5,7 +5,7 @@ design_gb7_dc_canonical; 7·9 = 영역 판정 `dc_seal_region`). 계약: `CONTRA
 `dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, LutAccess(memo))` (S0 당 1회) ->
 `size_and_seal(ctx, theta, parent=None)` (θ 마다).
 """
-from ._helpers_dc_solve import Circuit, default_port_views, pivot_config, sense_signs
+from ._helpers_dc_solve import Circuit, default_port_views, is_servo_branch, sense_signs
 from .bracket_root import bracket_root
 from .block_dc import dc_solve
 from .block_currents import dc_currents
@@ -189,7 +189,7 @@ __all__ = (
     "CURRENT_SOURCE",
     "Circuit",
     "default_port_views",
-    "pivot_config",
+    "is_servo_branch",
     "sense_signs",
     "ColumnNeighbor",
     "CurrentBasis",

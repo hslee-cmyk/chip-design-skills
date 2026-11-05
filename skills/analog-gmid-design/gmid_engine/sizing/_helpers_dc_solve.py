@@ -24,6 +24,7 @@ from gmid_engine.authoring import INPUT_DIRECTION, ROLE_DIFFERENTIAL_OUTPUT_N, R
 from gmid_engine.graph import MOS_TERMINAL_NAMES, S1V_KEY, VIEW_TRANSFER, default_port_seeds
 
 from ._helpers_lut import terminal_voltages
+from .s2_values import ICM_CONFIG_SERVO
 
 _ROW_SAT = "sat"                                      # `region_rows` 행 종류: 선언 없음(포화)
 _ROW_TRIODE = "triode"                                # `intended_region: triode` 선언 소자
@@ -40,10 +41,11 @@ def default_port_views(projection, directions):
     return tuple(default_port_seeds(inputs, outputs))
 
 
-def pivot_config(snapshot):
-    """스냅샷의 servo 피벗 판정 `graph.icm_config.config`(IT-2c; 필드가 없으면 None) -- 실현 평가 갈래(`dc_solve`)와 갈래 대조(`realize_front`)가 같은 읽기 한 곳을 쓴다."""
+def is_servo_branch(snapshot):
+    """스냅샷의 풀이 갈래 -- `graph.icm_config.config`(IT-2c; 필드가 없으면 None) 가 servo 이면 True, 입력 고정(판정 불능 None·`as_is_single_input`)이면 False.
+    갈래 정의 한 곳(실현 평가 `dc_solve` 와 갈래 대조 `realize_front` 가 같이 쓴다)."""
     found = [cfg.config for _key, cfg in snapshot.column("graph", "icm_config")]
-    return found[0] if found else None
+    return bool(found) and found[0] == ICM_CONFIG_SERVO
 
 
 def sense_signs(view, roles):

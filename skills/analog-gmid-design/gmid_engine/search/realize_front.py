@@ -14,7 +14,7 @@
 import dataclasses
 
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, fp_of
-from gmid_engine.sizing import REASON_SERVO_BRANCH_MISMATCH, RealizedFinger, pivot_config
+from gmid_engine.sizing import REASON_SERVO_BRANCH_MISMATCH, RealizedFinger, is_servo_branch
 
 from .kernel import evaluate
 from .pareto import nondominated_results
@@ -54,10 +54,10 @@ def _judge(point, result):
         if result.failure is not None:
             return _reason(result.failure), result.failure.to_json()
         return REASON_NOT_SEALED, {"status": result.status}
-    search_config = pivot_config(point.result.evaluation.snapshot)
-    realized_config = pivot_config(result.evaluation.snapshot)
-    if search_config != realized_config:
-        return REASON_SERVO_BRANCH_MISMATCH, {"search": search_config, "realized": realized_config}
+    search_servo = is_servo_branch(point.result.evaluation.snapshot)
+    realized_servo = is_servo_branch(result.evaluation.snapshot)
+    if search_servo != realized_servo:          # 비교는 갈래(servo / 입력 고정)이지 config 원값이 아니다
+        return REASON_SERVO_BRANCH_MISMATCH, {"search_servo": search_servo, "realized_servo": realized_servo}
     if result.unmeasured:
         return REASON_SPEC_UNMEASURED, {"constraints": [list(u) for u in result.unmeasured]}
     violated = [row.name for row in result.constraints if row.name.startswith(_SPEC_ROWS) and row.c < 0]
