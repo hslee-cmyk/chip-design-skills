@@ -34,14 +34,16 @@ from collections import deque
 
 from gmid_engine.authoring import REGION_OFF, INPUT_DIRECTION, ROLE_DIFFERENTIAL_INPUT_N, ROLE_DIFFERENTIAL_INPUT_P
 from gmid_engine.core import StructureUnresolvedError, compute_block
-from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, GRAPH_KEY, MOS_TERMINAL_NAMES, UNSUPPORTED_RULE_BRANCH
+from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, ELEMENT_SOURCE, GRAPH_KEY, MOS_TERMINAL_NAMES, UNSUPPORTED_RULE_BRANCH
 
 from .s2_values import (
     BRANCH_INPUT_CM_UNDEFINED,
     BRANCH_INPUT_TARGET_ONE_PORT,
     BRANCH_OFF_ONLY_NODE,
     BRANCH_RESISTOR_CYCLE,
+    CAPACITOR,
     COORD_DEPENDENT,
+    CURRENT_SOURCE,
     COORD_WRITER,
     DC_KEY,
     DC_WRITER_PLAN_WRITER,
@@ -122,6 +124,44 @@ def _edges(classes, kinds, pins, diode, colour, hints):
     return sorted(edges)
 
 
+def _off_undetermined_nets(off, kinds, pins, all_classes, fixed):
+    """`off` 선언 소자 d·s 가 닿는 비고정 넷 중 DC 전위를 정할 경로가 없는 넷(정렬). 전압 결정 DC 요소 = 켜진 소자 채널(d-s)·R·L·전압원 -- 넷 연결 그래프에서
+    고정 넷으로 도달하면 정해진 것이다. off 채널·게이트·C·전류원은 전압을 정하지 못한다. `off` 선언이 없으면 빈 결과."""
+    if not off:
+        return []
+    cls = dict(all_classes)
+    adj = {}
+    for name, terminals in pins.items():
+        if name in off:
+            continue
+        p = dict(terminals)
+        if cls[name] == ELEMENT_MOS:
+            ends = (p[MOS_TERMINAL_NAMES[0]], p[MOS_TERMINAL_NAMES[2]])
+        elif (cls[name] == ELEMENT_PASSIVE and kinds[name] != CAPACITOR) or (cls[name] == ELEMENT_SOURCE and kinds[name] != CURRENT_SOURCE):
+            ends = tuple(net for _t, net in sorted(p.items()))
+        else:
+            continue
+        adj.setdefault(ends[0], set()).add(ends[1])
+        adj.setdefault(ends[1], set()).add(ends[0])
+    reached = set(fixed)
+    queue = deque(reached)
+    while queue:
+        for nxt in adj.get(queue.popleft(), ()):
+            if nxt not in reached:
+                reached.add(nxt)
+                queue.append(nxt)
+    d_s = set()
+    touched = {}
+    for name in off:
+        p = dict(pins[name])
+        d_s.update((p[MOS_TERMINAL_NAMES[0]], p[MOS_TERMINAL_NAMES[2]]))
+    for name, terminals in pins.items():      # 닿는 소자가 모두 off 인 넷(off 소자의 게이트만 정하는 넷 포함)도 정해 주는 요소가 없다
+        for _t, net in dict(terminals).items():
+            touched.setdefault(net, set()).add(name)
+    d_s.update(net for net, who in touched.items() if who <= off)
+    return sorted(net for net in d_s if net not in reached)
+
+
 @compute_block(DC_WRITER_PLAN_WRITER, reads=READS, writes=WRITES)
 def dc_writer_plan(projection):
     target_nets, input_dc_declared, *rest = projection.extras
@@ -150,13 +190,9 @@ def dc_writer_plan(projection):
     if input_dc_declared:
         for net in inputs:
             fixed.setdefault(net, (TIER_W2, REL_INPUT_DC))
-    touching = {}
-    for name, terminals in pins.items():
-        for _t, net in terminals.items() if isinstance(terminals, dict) else terminals:
-            touching.setdefault(net, set()).add(name)
-    only_off = sorted(net for net, who in touching.items() if net not in fixed and who <= off)
-    if only_off:      # 닿는 소자가 모두 off 선언인 노드는 전도 경로 없이 θ 변수가 된다 -- W4 로 두지 않고 정지(물리 관문)
-        raise StructureUnresolvedError(devices=tuple(sorted({d for net in only_off for d in touching[net]})),
+    only_off = _off_undetermined_nets(off, kinds, pins, projection.column("device", "element_class"), fixed)
+    if only_off:      # off 소자 d·s 가 닿는 넷이 off 채널 밖 전압 결정 DC 요소로 고정 넷에 닿지 않으면 전도 경로 없이 θ 변수가 된다 -- W4 로 두지 않고 정지(물리 관문)
+        raise StructureUnresolvedError(devices=tuple(sorted(m for m in off if set(dict(pins[m]).values()) & set(only_off))),
                                        detail={"reason": UNSUPPORTED_RULE_BRANCH, "rule_branch": BRANCH_OFF_ONLY_NODE, "nets": tuple(only_off)})
     for net in sorted(fixed, key=node_key):
         plan.put(net, *fixed[net])
