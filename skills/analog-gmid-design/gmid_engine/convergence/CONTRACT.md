@@ -68,7 +68,7 @@
 
 ## 3. (삭제) kind 키 좁히기 점수 `layout_score`
 
-* [WB-1 반영] 평가 커널 폭 슬라이스는 kind 마다 하나가 아니다 -- 실현 기하 입력은 레이아웃 lineage의 S2 `layout` 필드 열을 가리키는 지문 달린 참조 `RealizedGeometry(layout_ref, w_request)`(값 칸 `finger`·`diffusion`·`w_keys` 없음 -- graph 규칙 4)이고 슬라이스는 DC 블록이 참조로 읽은 finger_w로 `lut.slice_of_finger`가 정한다. kind 키 운반(`kernel_keys`)과 `place_layout` kind 키 좁히기는 삭제됐고, `key_exclusion`은 레이아웃 행 그룹 단위다(7절). 이 루프의 수렴 판정·상한은 바꾸지 않는다(계획 WB-1 범위 5).
+* [WB-1 반영] 평가 커널 폭 슬라이스는 kind 마다 하나가 아니다 -- 실현 기하 입력은 레이아웃 lineage의 S2 `layout` 필드 열을 가리키는 지문 달린 참조 `RealizedGeometry(layout_ref, w_request)`(값 칸 `finger`·`diffusion`·`w_keys` 없음 -- graph 규칙 4)이고 슬라이스는 DC 블록이 참조로 읽은 finger_w로 `lut.slice_of_finger`가 정한다. kind 키 운반(`kernel_keys`)과 `place_layout` kind 키 좁히기는 삭제됐고, `key_exclusion`은 레이아웃 행 그룹 단위다(7절). 이 루프의 수렴 판정·상한은 바꾸지 않는다(계획 WB-1 범위 5). **[A-124, v6.38.21] 레이아웃 입력 기준점 = 루프에 들어온 front 점 스냅샷** -- `converge_point` 는 늘 front 점 스냅샷(과 그 passive_value)으로 다음 레이아웃을 놓고 재평가를 `parent=front 점`(기준 스냅샷)으로 부른다. 재평가를 통과한 점의 스냅샷은 다음 레이아웃의 보존량 입력이 아니다(판정·고정점 비교에만 쓴다).
 * `layout_score`(좁히기 후보 비교 점수)는 호출처가 없어져 같은 변경에서 삭제했다(`layout_score.py`, `convergence.__all__`, `_module_map`). 이 절 번호는 다른 절 인용을 위해 남긴다.
 
 ## 4. `realized_geometry(snapshot, placements) -> sizing.RealizedGeometry(layout_ref, w_request)` · `junction_change(before, after)`
@@ -157,7 +157,7 @@ loop:
 | 위치 | 변경 |
 |---|---|
 | `sizing.RealizedGeometry(layout_ref, w_request)` | 새 데이터 타입(`sizing/s2_values.py`, `sizing.__all__`) -- 참조 + 값(`w_keys`·`diffusion` 칸 없음) |
-| `search.evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None)` | `geometry` 가 있으면 `size_and_seal(w_request=geometry.w_request, geometry=geometry)`·`ss_evaluate(diffusion=geometry.layout_ref)` 로 평가하고 평가 키의 기하 칸은 `layout_ref` 지문과 `w_request`. 없으면 종전과 같다 |
+| `search.evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None)` | `geometry` 가 있으면(기준 스냅샷 `parent` = 사이징 점 필수, 없으면 `ValueError`) `size_and_seal(realized=RealizedFinger(기준 스냅샷), layout=geometry)`·`ss_evaluate(diffusion=geometry.layout_ref)` 로 평가한다 -- 실현 평가와 같은 W'·바이어스 고정 KCL 재풀이 + 봉인 전 항목(v6.38.21). 평가 키의 기하 칸은 기하 지문. 없으면 종전과 같다 |
 | `metrics.ss_evaluate(..., diffusion=())` · `metrics.ss_dev(snapshot, lut, junction, diffusion)` | 있는 소자의 cdb·csb 를 실현 확산 기하로(`junction_model` = `JUNCTION_LAYOUT_DIFFUSION`), 없는 소자는 LUT 생성 규칙. 빈 `diffusion` 은 입력 버전이 종전과 같다 |
 | `metrics.passive_values(snapshot, ctx, theta)` | `ss_evaluate._passive_values` 를 새 파일로 옮겨 공개(수동소자 값 정본 -- 판정 축 면적 입력과 공유) |
 | `layout.__all__` | `area_tie_m2`·`passives_from_decl`·role·패턴 이름 상수 추가 |

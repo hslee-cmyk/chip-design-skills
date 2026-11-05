@@ -65,13 +65,17 @@ def _call_block(ctx, block, snapshot, extras, before):
         raise
 
 
-def run_kernel(ctx, theta, parent, w_request, raise_on_violation, realized=None):
+def run_kernel(ctx, theta, parent, w_request, raise_on_violation, realized=None, layout=None):
     """평가 커널 본체 -- `size_and_seal`(위반이면 예외)과 `size_and_seal_local`(위반 보고서를 그대로 읽는다)이 같은 계산을 쓴다.
-    `realized` = `RealizedFinger`(실현 평가: DC 블록이 W' 고정으로 다시 푼다) 또는 None. W_request 와 함께 줄 수 없다(`ValueError`)."""
+    `realized` = `RealizedFinger`(실현 평가: DC 블록이 W' 고정으로 다시 푼다) 또는 None. W_request 와 함께 줄 수 없다(`ValueError`).
+    `layout` = `RealizedGeometry`(레이아웃 뒤 평가: 실현 평가와 같은 W'·바이어스 고정 KCL 재풀이이고 W' 만 레이아웃 기하에서 온다) 또는 None. 기준 스냅샷을 나르는
+    `realized` 와 함께만 주고 W_request 와는 함께 줄 수 없다(`ValueError`)."""
     if not isinstance(ctx, KernelContext):
         raise TypeError("size_and_seal: ctx 는 build_kernel_context 결과여야 한다")
     if realized is not None and (not isinstance(realized, RealizedFinger) or w_request):
         raise ValueError("size_and_seal: realized 는 RealizedFinger 여야 하고 w_request 와 함께 줄 수 없다")
+    if layout is not None and (not isinstance(layout, RealizedGeometry) or realized is None or w_request):
+        raise ValueError("size_and_seal: layout 은 RealizedGeometry 여야 하고 기준 스냅샷 realized 가 필요하며 w_request 와 함께 줄 수 없다")
     base = ctx.base
     snapshot = base
     theta = check_theta(base.value("graph", KERNEL_KEY, "theta_schema"), theta.values if isinstance(theta, Theta) else theta)
@@ -104,6 +108,8 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation, realized=None)
     columns_extras = (column_items, base.value("graph", KERNEL_KEY, "fixed_values"), resistor_values, ctx.lut)
     if requested:
         columns_extras += (RealizedGeometry(None, requested),)
+    elif layout is not None:
+        columns_extras += (layout, realized)
     elif realized is not None:
         columns_extras += (None, realized)
     later = list(zip(later_blocks, (columns_extras,)))

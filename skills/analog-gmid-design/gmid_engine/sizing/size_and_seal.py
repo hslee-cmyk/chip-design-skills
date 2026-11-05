@@ -20,11 +20,13 @@
   ln IDu 는 무시되고 ln(ID·L/W) 로 대체되며(ID·L 은 ②③ 이 정한 값), 종속 소자는 요청 W 로 `dc_solve` 가 쓰고 봉인 3 이 어긋남을 판정한다.
 * **실현 평가**(설계 40 §3.7-A 2-5 (ii)): `realized` = `RealizedFinger`(탐색 스냅샷 참조 + (MOS, m, w_s) 지문) -- `dc_solve` 가 그 (m, w_s) 로 W' 고정 KCL 을 다시 푼다. `parent`
   는 쓰지 않는다(`ctx.base` 에서 따로 시작). `w_request` 와 함께 줄 수 없다(`ValueError`).
+* **레이아웃 뒤 평가**(설계 40 §3.7-A 6 '재평가 꼴', 계획 N6.32 범위 5): `layout` = `RealizedGeometry` 와 기준 스냅샷을 나르는 `realized` 를 함께 준다 -- 실현 평가와 같은 `dc_solve` 재풀이이고
+  W' 만 레이아웃 기하(배치 nf·finger_w, 요청 W)에서 온다. `parent` 는 graph 재사용에만 쓴다.
 * 실패: 후보 실패 = `SealViolationError`·`NonconvergentError`(core `CANDIDATE_FAILURE_CLASSES`) -- 탐색 층이 이름으로 잡아 S3
   실패 레코드로 남긴다. 그 밖(ValueError·TypeError = 호출 계약 위반)은 잡지 않는다.
 """
 from .kernel_run import run_kernel
 
 
-def size_and_seal(ctx, theta, parent=None, w_request=(), realized=None):
-    return run_kernel(ctx, theta, parent, w_request, True, realized)
+def size_and_seal(ctx, theta, parent=None, w_request=(), realized=None, layout=None):
+    return run_kernel(ctx, theta, parent, w_request, True, realized, layout)

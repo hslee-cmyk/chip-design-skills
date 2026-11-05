@@ -8,9 +8,11 @@
 * `theta` = {(kind, key): 값} 또는 쌍 iterable(스키마 전 성분), `cells` = L 칸 index 벡터(MOS 이름순), `parent` = 같은
   컨텍스트의 이전 EvalResult(그 `evaluation` 스냅샷을 sizing 이 재사용 -- 바뀐 성분을 읽는 블록만 다시 계산, 필드가 곧 캐시),
   `origin` = S3 기록용 ((키, 값), ...)(단계·ε·시작점 -- 키 밖).
-* [U14] `geometry` = `sizing.RealizedGeometry`(MOD8 재검증, LY7·LY8) -- 레이아웃 뒤 실현 기하로 평가한다: 고정 W(`w_request`)·배치 소자의 슬라이스(`layout_ref` 의 finger 폭 -> `dc_solve` 가
-  `slice_of_finger`)·실현 확산 기하(`layout_ref`, 접합 용량)를 쓴다. 키의 `w_fixed_fp` = 기하 지문(없으면 None), 나머지 흐름은 같다 -- 같은 (θ, 기하)는
-  캐시 적중이고 기하가 다르면 다른 점이다. 슬라이스를 바꿔도 base writer(`ctx.base.block_versions`)의 block_version 은 그대로라 `parent` 를 쓸 수 있다.
+* [U14] `geometry` = `sizing.RealizedGeometry`(MOD8 재검증, LY7·LY8) -- 레이아웃 뒤 실현 기하로 평가한다: 실현 평가와 같은 W'·바이어스 고정 KCL 재풀이 + 봉인 전 항목이다(설계 40 §3.7-A 6 '재평가 꼴').
+  W' = 배치 소자 nf·finger_w(`layout_ref` 의 finger 폭 -> `dc_solve` 가 `slice_of_finger`)·요청 W(`w_request`)·대기 소자의 기준 스냅샷 `dc_finger`, 실현 확산 기하(`layout_ref`)는 접합 용량이 읽는다.
+  **`parent` = 기준 스냅샷**(레이아웃 입력 기준점 = 사이징 점, 필수 -- 없으면 `ValueError`): 측정 구성·피벗 갈래·입력 값·대기 소자 손가락을 그 스냅샷 `evaluation.snapshot` 에서 참조로 읽는다
+  (사본 0, 실현 평가의 `RealizedFinger.search_ref` 와 같은 자리). 키의 `w_fixed_fp` = 기하 지문(없으면 None) -- 기준 스냅샷은 같은 (θ, 칸)에서 정해지는 점이라 키 성분이 아니다. 같은 (θ, 기하)는
+  캐시 적중이고 기하가 다르면 다른 점이다.
 * 순서: 요청 계수 -> 키(`eval_key`) -> 메모리 캐시(그 실행에서 평가한 성공·실패) 적중이면 그대로(커널 0) -> 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 `STATUS_OUTSIDE_DOMAIN`(커널 0, 정의역 밖) -> `size_and_seal`.
 * 후보 실패는 `CANDIDATE_FAILURE_CLASSES` 만 이름으로 잡아 `STATUS_FAILED` + FailureRecord(N3.14) + 부분 스냅샷(`EvalResult.partial` = 예외의 `partial`, 실패 직전까지
   쓴 스냅샷 -- S3 evals 실패 줄 `snapshot_fp` = `partial.fp`). ValueError·TypeError 등은 호출 계약 위반이라 잡지 않는다(넓은 except 없음).
@@ -25,7 +27,7 @@ from collections.abc import Mapping
 
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, fp_of
 from gmid_engine.metrics import REPORT_BLOCK_RESIDUAL, metrics_dc, passive_values, ss_evaluate, theta_passive_pairs
-from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, DcEvaluation, size_and_seal
+from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, DcEvaluation, RealizedFinger, size_and_seal
 
 from .cone_rows import cone_rows
 from .constraints import constraint_rows
@@ -94,6 +96,8 @@ def _record(sctx, result, origin):
 def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None, realized=None):
     if geometry is not None and realized is not None:
         raise ValueError("evaluate: geometry(레이아웃 뒤)와 realized(실현 평가)는 동시에 줄 수 없다")
+    if geometry is not None and (parent is None or parent.evaluation is None):
+        raise ValueError("evaluate: geometry(레이아웃 뒤) 평가는 기준 스냅샷인 parent(봉인된 사이징 점)가 필요하다")
     sctx.counters["requests"] += 1
     dc = sctx.dc
     theta = expand_ties(sctx.domain.ties, theta if isinstance(theta, Mapping) else dict(theta),
@@ -126,7 +130,11 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None, realized
     base = None if parent is None else parent.evaluation
     evaluation, failure, partial, objectives, rows, status = None, None, None, None, (), STATUS_FAILED
     try:
-        evaluation = size_and_seal(dc, dict(pairs), parent=base, w_request=() if geometry is None else geometry.w_request, realized=realized)
+        if geometry is None:
+            evaluation = size_and_seal(dc, dict(pairs), parent=base, realized=realized)
+        else:
+            reference = RealizedFinger(base.snapshot, base.snapshot.fp)         # 기준 스냅샷 참조 + 그 지문(블록 입력 버전 성분)
+            evaluation = size_and_seal(dc, dict(pairs), parent=base, realized=reference, layout=geometry)
     except CANDIDATE_FAILURE_CLASSES as exc:
         failure, partial = exc.record, exc.partial
     unmeasured, bundle = (), None

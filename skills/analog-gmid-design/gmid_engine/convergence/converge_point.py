@@ -6,11 +6,13 @@
 `run_layout` 의 유일한 프로덕션 호출처(`place_layout` 이 부른다)이자 `evaluate(geometry=)` 의 유일한 호출처다.
 
 루프(점마다, 평가 커널 호출은 모두 `evaluate` 한 곳):
-1. 현재 점(처음엔 front 점)의 봉인 스냅샷으로 `LayoutInput` 을 만들어 레이아웃을 놓는다(`place_layout` -- 폭 키 좁히기·완화 판정 포함, 커널 0). 레이아웃 필드는
-   그 설계점 스냅샷의 S2 `layout` 필드다(설계 40 v1.6 §2.4.7): 같은 현재 점에서의 재시도(거부·키 제외)는 앞 레이아웃 스냅샷 위에, 새 현재 점은 그 설계점 스냅샷 위에 쓴다.
+1. 루프에 들어온 front 점(= 사이징 점)의 봉인 스냅샷으로 `LayoutInput` 을 만들어 레이아웃을 놓는다(`place_layout` -- 폭 키 좁히기·완화 판정 포함, 커널 0). **레이아웃 입력 기준점은 늘 front 점
+   스냅샷이다**(설계 40 §3.7-A 6, 계획 LY1·N6.32 범위 5 v6.38.21): 재평가를 통과한 점의 스냅샷은 다음 레이아웃의 보존량 입력이 아니다(판정·고정점 비교에만 쓴다). 레이아웃 필드는
+   그 설계점 스냅샷의 S2 `layout` 필드다(설계 40 v1.6 §2.4.7): 같은 현재 점에서의 재시도(거부·키 제외)는 앞 레이아웃 스냅샷 위에, 새 현재 점은 front 점 스냅샷 위에 쓴다.
 2. 실효 배치에서 `RealizedGeometry`(실현 W 고정 입력 + 실현 폭 슬라이스 + 실현 확산 기하)를 만든다. **이 기하가 직전에 평가한 기하와 같으면 고정점이다**
    (그 평가 점으로 놓은 레이아웃이 같은 기하를 낳음) -> 수렴.
-3. 아니면 같은 θ·L 칸으로 그 기하를 고정해 평가 커널 1회 + 봉인 1~8(+ spec 제약 행)을 다시 돈다(LY7 -- W_request 유무와 관계없이 레이아웃 결과마다 1회). 통과하면 그 점이
+3. 아니면 같은 θ·L 칸으로 그 기하를 고정해 평가 커널 1회 + 봉인 1~8(+ spec 제약 행)을 다시 돈다(LY7 -- W_request 유무와 관계없이 레이아웃 결과마다 1회). 그 평가는 실현 평가와 같은
+   W'·바이어스 고정 KCL 재풀이이고 기준 스냅샷(`parent`)은 front 점이다. 통과하면 그 점이
    새 현재 점이다. 위반하면 W_request 응답 대기 그룹(cc_nf)의 요청을 **거부**(`rejected_requests`)하고 같은 현재 점에서 1 로 돌아간다 -- 레이아웃이 그 그룹을 W_request 로 못 내므로
    LY5 완화 판정(`relaxation_decision`)으로 간다. 거부할 요청이 없으면 사이징 W 어긋남이 가장 큰 kind 의 지금 폭 키를 레이아웃 후보에서 빼고(`key_exclusion`, 단조 감소)
    같은 현재 점에서 1 로 돌아간다. 뺄 키가 남지 않으면 `STATUS_INFEASIBLE`.
@@ -96,7 +98,7 @@ def converge_point(sctx, pdk, point):
     rejected, relaxed, first_seen, previous_geometry, previous_layout = frozenset(), frozenset(), {}, None, None
     iterations, k_bound, layouts, visited = [], None, 0, []
     while True:
-        placed = place_layout(memo, current.evaluation.snapshot, pdk_now, _passives(sctx, current), rejected, relaxed, first_seen,
+        placed = place_layout(memo, start.evaluation.snapshot, pdk_now, _passives(sctx, start), rejected, relaxed, first_seen,
                               previous_layout, kinds, excluded_groups, donors=sctx.dc.donors, counters=sctx.dc.counters)
         layouts += placed.layout_calls
         pdk_now, relaxed, first_seen, previous_layout = placed.pdk, placed.relaxed, placed.first_seen, placed.layout
@@ -119,7 +121,7 @@ def converge_point(sctx, pdk, point):
             return done(STATUS_NONCONVERGENT, current, placed, geometry, iterations, k_bound, failure, rejected, relaxed,
                         first_seen, layouts)
         calls0 = sctx.counters["kernel_calls"]
-        result = evaluate(sctx, start.theta, start.key.cells, parent=current, origin=_ORIGIN + (("iter", len(iterations) + 1),),
+        result = evaluate(sctx, start.theta, start.key.cells, parent=start, origin=_ORIGIN + (("iter", len(iterations) + 1),),
                           geometry=geometry)
         pending = tuple(sorted(p.name for p in placed.placements if p.pending))
         accepted = _accepted(result, start)

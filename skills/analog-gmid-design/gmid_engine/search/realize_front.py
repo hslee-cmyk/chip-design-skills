@@ -4,7 +4,8 @@
 
 * `points` = `FrontPoint` tuple. 점마다 `search_ref` = `point.result.evaluation.snapshot`(탐색 스냅샷 참조), 입력 = `RealizedFinger(search_ref, fp)`,
   fp = (MOS, m, w_s) 열의 지문(평가 키 성분, 값 사본이 아니라 참조 + 지문). 평가 = `evaluate(sctx, θ, cells, origin, realized=)` -- 같은 θ 를 `ctx.base` 에서 따로 시작한다
-  (`dc_solve` 가 W' 고정 KCL 을 servo 갈래면 입력 차 미지수로 다시 풀고, 뒤에 봉인 전 항목을 적용한다). 선택 함수는 부르지 않는다(실현 평가는 탐색 `dc_finger` 값이 입력).
+  (`dc_solve` 가 W' 고정 KCL 을 servo 갈래면 입력 차 미지수로, 입력 고정 갈래면 입력 값 고정으로 다시 풀고 -- 노드 재풀이 없는 갈래는 없다 -- 뒤에 봉인 전 항목을 적용한다. 비수렴·레일 안 근 없음은
+  후보 실패 클래스로 `lost`). 선택 함수는 부르지 않는다(실현 평가는 탐색 `dc_finger` 값이 입력).
 * 잃는 점(`lost` = ((point_id, 사유, 상세), ...)): 평가가 후보 실패 클래스를 낸 점(봉인 실패·`slice_missing`·`realized_finger_missing` 등), 봉인 아닌 상태, 실현 스냅샷의 피벗 판정이
   탐색 스냅샷과 다른 점(`realized_servo_branch_mismatch`), spec 제약(`spec:`·`ss:`·`ls:` 행)을 못 재거나 c < 0 인 점. `inversion_floor` 행은 읽지 않는다(card 원래 취지와 다름 9).
 * 남은 점을 실현 값(전력·면적)으로 비지배 재필터한다(`pareto.nondominated_results`, 탐색 front 와 같은 함수). 지배당한 점은 잃은 점이 아니라 `removed` 다.

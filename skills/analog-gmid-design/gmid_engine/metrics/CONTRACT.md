@@ -621,7 +621,7 @@ writes 에 `graph.gate_area_m2`(= 면적 항의 Σ W·L 그대로)와 `graph.pow
 search 의 옛 재계산(`objectives._power_resolution`, gate 합)은 지웠다.
 reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v, dc_rail_v, dc_colour}`, `graph.dc_current_basis`. **[r12, 2026-10-08]** 노드 인덱스·채널·게이트·수동소자 합산 순서 = (`dc_colour` -- 정점마다 유일, 이름은 색 없는 이름만)(레일 전류·전력·면적의 부동소수 합이 이름 치환에 불변). 따라서 `per_rail_amp` 의 레일 나열 순서도 (`dc_colour`, 이름) 순이다(종래 이름순).
 - 노드 인덱스 = (dc_rail_v ∪ dc_v 넷) 이름순. `DcOperatingPoint`: rails = `RailBias(레일, dc_rail_v)`; `basis.ends` 의 (원소, from, to)
-  마다 MOS -> `ChannelCurrent(d, s, +dc_current if d == from else −dc_current)`, `basis.resistors` -> `Resistor(from, to,
+  마다 MOS -> `ChannelCurrent(d, s, +dc_op.current if d == from else −dc_op.current)`(전력 축: 동작점 전류 `DeviceOp.current` -- 탐색 평가 = θ 전류와 같은 값, 실현·레이아웃 뒤 평가 = I'; `dc_current` 는 이상 전류원만, v6.38.21), `basis.resistors` -> `Resistor(from, to,
   device.passive_value[원소])`, 그 밖 비수동 DC 원소(이상 전류원) -> `CurrentSource(from, to, dc_current)`; node_v = 그 저항 끝 중 dc_v 넷.
 - **`power_dc_w` = 선언된 모든 공급 레일(spec `supplies_v` 의 레일 전부)의 Σ V_k·I_k**(오케스트레이터 결정 2026-10-08 Q4 -- 합산 선언과
   무관).

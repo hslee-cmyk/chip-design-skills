@@ -1048,5 +1048,9 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 
 옛 `dc_columns`·`dc_widths`·`pre_layout_lut_access`·`kernel_keys`·`dc_drop_current` 를 대체한다. `LutAccess(memo)` 는 slice 키 칸이 없다. 순서: 쓰기 소자 `finger_slice`(상수 W) -> 노드 풀이 -> 종속 소자 선택(`W(s) = ID·L/IDu_s`)
 -> Rʳ(writer 없는 순환 SCC 의 허용오차 셀을 내는 종속 소자)이 있고 키 벡터가 바뀌었으면 다시 풀이, 이전 벡터로 돌아가면 `slice_cycle`. `DeviceOp.w_key`·`gm_id`·`idu_forward`·`dc_finger` 가 같은 슬라이스를 가리킨다.
-`device.dc_finger` = `FingerGeom(m, w_f_m, residual)`(탐색 평가), 레이아웃 뒤(`RealizedGeometry(layout_ref, w_request)`)는 빈 열. `SccLog.slice_rounds` = 그 평가 노드 풀이 수.
+`device.dc_finger` = `FingerGeom(m, w_f_m, residual)`(탐색 평가), 레이아웃 뒤(`RealizedGeometry(layout_ref, w_request)`)는 빈 열.
+**[A-123·A-124, 2026-11-06] 레이아웃 뒤 평가 = 실현 평가와 같은 재풀이**: `size_and_seal(..., realized=RealizedFinger(기준 스냅샷), layout=RealizedGeometry)` -- `dc_solve` 가 W'·바이어스 고정 KCL 을 `_kcl_solve` 하나로 다시 풀고
+(servo 갈래 = 입력 차 미지수 + 출력 묶음 행, 입력 고정 갈래(판정 불능 None·`as_is_single_input`) = 입력을 기준 값에 고정하고 출력·나머지 KCL 노드 재풀이) 봉인 전 항목을 적용한다. W': 배치 소자 `layout_ref` 의 (nf = `m`, `finger_w_m`),
+`w_request` 소자 = 요청 W, 둘 다 아닌 소자 = 기준 스냅샷 `dc_finger` 참조(행 없음 = `realized_finger_missing`). 비수렴 = `NonconvergentError`, 푼 노드가 레일 밖 = `no_root_in_window`(item 7, bounds = rail). 노드 재풀이 없는 갈래는 없다.
+`layout` 없이 `w_request` 만 주는 호출(기존 sizing 계약)은 재풀이 없는 θ 프레임 W_request 평가로 남는다(탐색 `evaluate` 는 부르지 않는다). `SccLog.slice_rounds` = 그 평가 노드 풀이 수.
 미구현: 실현 평가(`RealizedFinger`, W′·바이어스 고정 재풀이) -- `realize_front` 와 함께.

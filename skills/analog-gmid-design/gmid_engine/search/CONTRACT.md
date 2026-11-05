@@ -450,10 +450,11 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   계수 memo 를 넣기 전에 잰다. 이 호출 안의 커널 평가는 **0**이다(`kernel.size_and_seal` 호출 0, 임시 컨텍스트·버리는 평가 없음; 반환 직후 `kernel_calls == 0`, `seq == 0`, `cache` 비어 있음). 호출자 memo(`dc_ctx` 의 것)는 바꾸지 않는다.
 
 ### 3.10 `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None) -> EvalResult`
-[U14] `geometry` = `RealizedGeometry(w_request, w_keys, diffusion=())`(search_values, `search.__all__`; MOD8 `convergence` 의 재검증 입력, LY7·LY8): 있으면 1 의 키 `w_fixed_fp = fp_of(geometry)`,
-5 의 커널은 `LutAccess(memo, geometry.w_keys)` 로 `size_and_seal(dc, θ, parent=parent.evaluation, w_request=geometry.w_request)`, 6 의 `ss_evaluate`·`constraint_rows` 도 같은 `dc`
-(`ss_evaluate(diffusion=geometry.diffusion)` -- 접합 용량이 실현 확산 기하). 없으면(None) 아래가 종전과 같다. 같은 (θ, cells, geometry) 는 캐시 적중, base writer(`ctx.base.block_versions`)의 block_version 은 슬라이스와 무관해
-`parent` 를 그대로 쓴다. S3 evals 줄의 `w_fixed_fp` 도 이 값이다.
+[U14] `geometry` = `sizing.RealizedGeometry(layout_ref, w_request)`(MOD8 `convergence` 의 재검증 입력, LY7·LY8): 있으면 1 의 키 `w_fixed_fp = fp_of(geometry)`,
+5 의 커널은 `size_and_seal(dc, θ, parent=parent.evaluation, realized=RealizedFinger(parent.evaluation.snapshot, 그 스냅샷 지문), layout=geometry)` 로 **실현 평가와 같은 W'·바이어스 고정 KCL 재풀이 + 봉인 전 항목**
+(v6.38.21, 설계 40 §3.7-A 6 '재평가 꼴'), 6 의 `ss_evaluate`·`constraint_rows` 도 같은 `dc`(`ss_evaluate(diffusion=geometry.layout_ref)` -- 접합 용량이 실현 확산 기하).
+**`parent` = 기준 스냅샷(사이징 점) 필수** -- 없거나 `evaluation` 이 없으면 `ValueError`(호출 계약). 측정 구성·입력 값·대기 소자 손가락을 거기서 참조로 읽는다(사본 0). 평가 키는 기준 스냅샷을 담지 않는다(같은 (θ, cells)의 사이징 점이 정한다).
+없으면(None) 아래가 종전과 같다. 같은 (θ, cells, geometry) 는 캐시 적중. S3 evals 줄의 `w_fixed_fp` 도 이 값이다.
 순서와 계수(정확히 이 순서):
 1. requests +1. 키 = `eval_key(..., 키 정렬 θ, cells, None)`.
 2. 메모리 캐시 적중 -> hits +1(실패면 fail_hits 도 +1), 같은 객체(`is`) 반환. 커널 0.
