@@ -5,7 +5,10 @@ oracle (a) 구성으로 정답이 정해진 합성 입력: 손으로 만든 레�
 """
 from __future__ import annotations
 
+import dataclasses
+
 from gmid_engine.convergence import Placement, effective_placement
+from gmid_engine.layout.contract_output import WRequest
 
 from .conftest import GRID, attempt, dlay, dunplaced, glay, layout
 
@@ -42,6 +45,21 @@ def test_pending_group_members_use_requested_key_and_nf_from_last_attempt():
     assert by["Q"] == Placement("Q", 123, fw, 3, 3 * fw, True, 0.04)
     assert by["R"].pending is False and by["R"].key == 100
     assert unplaced == ()
+
+
+def test_pending_placement_carries_the_request_record_nf_and_finger_w():
+    # [dispute 8.4, 계획 LY3] 요청 레코드 WRequest(device, W_old, W_new, nf, finger_w_m, reason, group)의 (nf, finger_w_m) = 배치의 (n_fingers, key x 격자), W_new = nf x finger_w_m.
+    # 손: P 요청 (nf 2, 1.23e-6), Q 요청 (nf 3, 1.23e-6) -- 레이아웃 잠정 배치(9.9e-7, nf 4)와 다르다(공허 방지).
+    fw = 123 * GRID
+    reqs = (WRequest("P", 1e-6, 2 * fw, 2, fw, "cc_nf", "g"), WRequest("Q", 1e-6, 3 * fw, 3, fw, "cc_nf", "g"))
+    group = dataclasses.replace(glay("g", "diff_pair", ("P", "Q"), pending=True, attempts=(attempt(fw, (2, 3)),)), w_requests=reqs)
+    lay = layout(devices=(dlay("P", 9.9e-7, 4, 3.96e-6), dlay("Q", 9.9e-7, 4, 3.96e-6)), groups=(group,))
+    placements, _ = effective_placement(lay.snapshot, GRID)
+    by = {p.name: p for p in placements}
+    for r in reqs:
+        p = by[r.device]
+        assert p.pending is True and (p.n_fingers, p.finger_w_m) == (r.nf, r.finger_w_m) and p.W_m == r.W_new_m
+        assert (p.n_fingers, p.finger_w_m) != (4, 9.9e-7)
 
 
 def test_non_pending_group_does_not_override_layout_values():

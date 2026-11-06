@@ -521,11 +521,13 @@ def test_gate_entry_budget_kernel_calls_within_search_budget(tmp_path, lut_seale
 
 def test_gate_entry_budget_end_check_violation_runtime_error(tmp_path, lut_sealed, monkeypatch):
     # 주입: 게이트가 끝난 직후 kernel_calls 를 E_total + 1 이상으로 올린다 -> 끝 확인(kernel_calls > E_total)이 RuntimeError.
+    # [dispute 8.2, card 범위 7 (b)·R-18] 게이트 대상 = 실현 front 첫 점이므로 입력 회로는 실현 front 가 비지 않는 회로 P(resistive=True)다 (회로 C 의 탐색 front 점은
+    # 실현 관문에서 lost 라 게이트 호출 0). 공허하지 않음 = 게이트가 실제로 불렸다(seen == 1, 끝 확인 전 단언).
     e_b = 24
-    case, s, seen = _gated_run(tmp_path, lut_sealed, monkeypatch, e_b, inject=10 ** 6)
+    case, s, seen = _gated_run(tmp_path, lut_sealed, monkeypatch, e_b, inject=10 ** 6, resistive=True)
     with pytest.raises(RuntimeError):
-        find_front(s, [theta_r4c()])
-    assert len(seen) == 1
+        find_front(s, [theta_p(case.dc)])
+    assert len(seen) == 1                                                       # 게이트가 불렸다 (불리지 않았다면 RuntimeError 는 다른 원인)
 
 
 def test_gate_entry_budget_perf_declared_and_block_index_bound(tmp_path, lut_sealed, short_root):

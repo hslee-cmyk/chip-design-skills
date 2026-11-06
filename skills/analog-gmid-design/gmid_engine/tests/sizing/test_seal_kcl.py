@@ -75,8 +75,9 @@ def rows_of(snap, resistances):
             continue
         a = acc[net]
         if a["mos"]:
-            d = [tolv[m] * gmb[m] for m in a["mos"] if tolv[m] is not None]
-            tol = max(d) if d else None
+            # 집계 규칙(계획 N3.6 표 10행, A-139): 노드 행 max, 항에 None 이 하나라도 있으면 집계 = None
+            d = [None if tolv[m] is None else tolv[m] * gmb[m] for m in a["mos"]]
+            tol = None if any(x is None for x in d) else max(d)
         else:
             tol = len(a["abs"]) * EPS * sum(a["abs"])
         rows.append((net, abs(a["sum_from"] - a["sum_to"]), tol, tuple(sorted(set(a["mos"]))), (net,)))
@@ -140,13 +141,18 @@ def test_undefined_when_all_mos_tol_none(ctx_c):
     assert_item(run(s2), exp, 3)
 
 
-def test_one_mos_tol_none_uses_other(ctx_c, toy_lut_paths):
+def test_one_mos_tol_none_aggregates_to_none(ctx_c):
+    """oracle (d, 계획 N3.6 표 10행 집계 규칙, A-139): 넷 행 tol = 닿는 MOS 항의 max, 항에 None 이 하나라도 있으면 집계 None -> 상태 undefined
+    (옛 'None 제외 후 max' 기대 폐기). 전제: M1·M2 둘 다 out 에 채널이 닿고 M2 의 tol 은 정의돼 있다(공허 방지)."""
     snap, _ = with_tol(ctx_c[2], theta_c())
+    tolv = dict(snap.column("device", "dc_tol_v"))
+    assert tolv["M2"] is not None and tolv["M1"] is not None
     s2 = tamper(snap, "dc_tolerances", "device", "dc_tol_v", {"M1": None})
+    exp = judge_expect(rows_of(s2, ()))
+    assert exp["status"] == "undefined" and exp["nodes"] == ("out",)
     item = run(s2)
-    assert item.status == "pass"
-    gm2 = hand_dc_gm(lambda kind: toy_npz(toy_lut_paths[0], kind), dict(snap.column("device", "dc_op"))["M2"])
-    assert rel_close(item.tol, dict(s2.column("device", "dc_tol_v"))["M2"] * gm2, 1e-9)
+    assert item.status == "undefined"
+    assert_item(item, exp, 3)
 
 
 def test_ideal_source_term(tmp_path, toy_access):

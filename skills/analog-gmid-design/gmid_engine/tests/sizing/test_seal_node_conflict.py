@@ -22,8 +22,9 @@ def rows_of(snap):
         vals = [V[n]] + [p.value for p in pv.get(n, ())]
         mos = sorted({p.relation[1] for p in pv.get(n, ()) if p.relation[0] == "vgs"})
         if mos:
-            defined = [tolv[m] for m in mos if tolv[m] is not None]
-            tol = max(defined) if defined else None
+            # 집계 규칙(계획 N3.6 표 10행, A-139): 항에 None 이 하나라도 있으면 집계 = None
+            terms = [tolv[m] for m in mos]
+            tol = None if any(t is None for t in terms) else max(terms)
         else:
             tol = len(vals) * EPS * max(abs(v) for v in vals)
         rows.append((n, max(vals) - min(vals), tol, tuple(mos), (n,)))

@@ -26,6 +26,7 @@ from gmid_engine.convergence import (
     converge_point,
 )
 from gmid_engine.core import fp_of
+from gmid_engine.metrics import DiffusionGeometry
 from gmid_engine.layout import F_DIFFUSION, F_FLOORPLAN, F_POINT, LAYOUT_KEY, RowGroup, layout_outputs
 from gmid_engine.layout import _ly_fields as lf
 from gmid_engine.search import FrontPoint
@@ -81,7 +82,8 @@ class Loop:
         else:
             W, key, nf, pending, tol, ad, area = spec
             pl = (placement("M1", key, nf, W, pending=pending, tol=tol),)
-            diff = () if ad is None else (ddiff("M1", key * GRID, nf, ad, ad, 1e-6, 1e-6),)
+            # [개정 여섯째 A-139, interface §3] 배치 소자의 입력 손가락은 `layout_ref`(= `ly_diffusion` 의 비대기 소자 행)에서 온다 -- 확산 행을 항상 둔다
+            diff = (ddiff("M1", key * GRID, nf, ad_of(W) if ad is None else ad, ad_of(W) if ad is None else ad, 1e-6, 1e-6),)
             lay = layout(diffusion=diff, plan=floorplan(1e-5, 1e-5, area=area), row_groups=ROW_GROUPS)
             out = PlacedLayout(lay, (("gx", "members_span_row_groups"),), pl, (), pdk_, frozenset(relaxed),
                                dict(first_seen), 1)
@@ -97,7 +99,9 @@ class Loop:
         sctx.counters["kernel_calls"] += 1
         self.kernel_n += 1
         kind = self.verdict(geometry, self.kernel_n)
-        W = dict(geometry.w_request)["M1"]
+        # [개정 여섯째 A-139, interface §3·dispute 8.3] 그 평가가 쓴 M1 입력 손가락: 배치 소자 = layout_ref (finger_w, m), 요청 대기 소자 = w_request (소자, (nf, finger_w))
+        ref, req = dict(geometry.layout_ref), dict(geometry.w_request)
+        W = ref["M1"].m * ref["M1"].finger_w_m if "M1" in ref else req["M1"][0] * req["M1"][1]
         s = snap(W=W, cdb=1e-15 * self.kernel_n, csb=3e-15 * self.kernel_n)
         if kind == "ok":
             r = eval_result(s, power=1e-3 + self.kernel_n * 1e-6, constraints=rows(2.0, 0.5), tag="eval%d" % self.kernel_n)
@@ -130,8 +134,14 @@ def run(monkeypatch):
     return go
 
 
-def lay(W, key=10, nf=2, pending=False, tol=0.01, ad=None, area=1e-10):
-    return (W, key, nf, pending, tol, ad, area)
+def ad_of(W):
+    """합성 확산 면적 기본값: 폭에 비례하는 손 값(W x 0.1 um) -- 폭이 다른 두 배치가 다른 입력 손가락 기하가 되게 한다(스크립트 입력, 판정 아님)."""
+    return W * 1e-7
+
+
+def lay(W, key=10, nf=None, pending=False, tol=0.01, ad=None, area=1e-10):
+    """스크립트 배치 한 개: 입력 손가락 = (폭 키 key, 손가락 수 nf), nf 기본값 = W/(key x 격자) 반올림(= 요청 W 를 손가락으로 나눈 손 값)."""
+    return (W, key, max(1, round(W / (key * GRID))) if nf is None else nf, pending, tol, ad, area)
 
 
 # ---------------------------------------------------------------- 고정점·재평가 계수 (불변식 3·4)
@@ -145,7 +155,9 @@ def test_fixed_point_converges_after_one_reevaluation(run):
     assert [(i.index, i.status, i.kernel_calls) for i in cp.iterations] == [(1, "sealed", 1)]
     assert cp.result.tag == "eval1"
     assert cp.geometry == loop.eval_args[-1].geometry                    # 불변식 4: 마지막 기하 == 마지막 통과 재평가의 기하
-    assert cp.geometry.w_request == (("M1", 2e-6),)
+    # [개정 여섯째 A-139, interface §3] M1 은 배치 소자라 layout_ref 에 입력 손가락(finger_w, m = nf), 요청 대기 소자만 w_request 에 든다 -> w_request 비어 있음
+    assert cp.geometry.w_request == ()
+    assert cp.geometry.layout_ref == (("M1", DiffusionGeometry(10 * GRID, ad_of(2e-6), ad_of(2e-6), 1e-6, 1e-6, 20.0)),)
     # evaluate 는 출발 점의 θ·L 칸으로, parent = 현재 점(처음엔 출발 점)
     assert loop.eval_args[0].theta == start.theta and loop.eval_args[0].cells == start.key.cells
     assert loop.eval_args[0].parent is start
@@ -235,7 +247,9 @@ def test_k_max_reached_is_nonconvergent(run):
     # margin = 그때 배치의 max|ln(W/W_사이징)| / tol = ln 1.025 / 0.01
     assert cp.failure.margin == pytest.approx(math.log(1.025) / 0.01, rel=1e-12)
     assert cp.result.tag == "eval2"                                   # 마지막 통과 재검증 점
-    assert cp.geometry.w_request == (("M1", 1.025e-6),)              # 마지막 레이아웃 기하(평가 안 함)
+    # 마지막 레이아웃 기하(평가 안 함): 셋째 배치(W 1.025e-6) -- 입력 손가락 기하(layout_ref)가 그 배치의 것이다 (w_request 는 대기 소자만이라 비어 있음)
+    assert cp.geometry.w_request == ()
+    assert cp.geometry.layout_ref == (("M1", DiffusionGeometry(10 * GRID, ad_of(1.025e-6), ad_of(1.025e-6), 1e-6, 1e-6, 10.0)),)
 
 
 def test_exact_cycle_is_detected_before_k_max(run):
@@ -256,6 +270,8 @@ def test_pending_request_rejected_then_converges(run):
     loop = Loop([lay(2e-6, pending=True), lay(1.5e-6), lay(1.5e-6)], verdict=lambda g, n: "fail" if n == 1 else "ok")
     cp, _sctx, start = run(loop)
     assert cp.status == STATUS_CONVERGED
+    # [개정 여섯째 A-139] 첫 평가 기하: 요청 대기 소자 M1 = w_request (소자, (nf, finger_w)), 배치 소자가 없어 layout_ref 비어 있음(양성 대조 -- 대기 경로가 실제로 쓰였다)
+    assert loop.eval_args[0].geometry.w_request == (("M1", (20, 10 * GRID)),) and loop.eval_args[0].geometry.layout_ref == ()
     assert [(i.status, i.requested, i.rejected) for i in cp.iterations] == [("rejected", ("M1",), ("M1",)), ("sealed", (), ())]
     assert cp.iterations[0].margin == -0.25                           # 실패 margin = 가장 작은 c
     assert loop.place_args[1].rejected == frozenset({"M1"})
@@ -344,12 +360,20 @@ def test_real_kernel_counts_and_fixed_point(real, name):
     assert cp.result.key.cells == r.start.key.cells and cp.result.theta == r.start.theta
     # 불변식 5: 제외 아닌 반복 수 <= K_max
     assert sum(1 for i in cp.iterations if i.status != "excluded") <= cp.k_max
-    # 재평가 점은 고정 W 를 그대로 이행한다(구성: w_request 가 dc_op.W)
+    # 재평가 점은 입력 손가락을 그대로 이행한다 [개정 여섯째 A-139, dispute 8.3]: 배치 소자 = layout_ref (finger_w, m), 요청 대기 소자 = w_request (소자, (nf, finger_w)),
+    # 소자 전부가 둘 중 하나에 들고(겹침 없음), dc_op.W = nf x finger_w
     ops = dict(cp.result.evaluation.snapshot.column("device", "dc_op"))
-    assert {m: ops[m].W for m in ops} == dict(cp.geometry.w_request)
-    # 실현 W = nf x finger_w (레이아웃 소자 기록 = 필드 파생 출력에서 손으로)
+    ref, req = dict(cp.geometry.layout_ref), dict(cp.geometry.w_request)
+    assert ref and set(ref) | set(req) == set(ops) and not (set(ref) & set(req))
+    for m, g in ref.items():
+        assert ops[m].W == pytest.approx(g.m * g.finger_w_m, rel=1e-12)
+    for m, (nf, fw) in req.items():
+        assert ops[m].W == pytest.approx(nf * fw, rel=1e-12)
+    # 실현 W = nf x finger_w (레이아웃 소자 기록 = 필드 파생 출력에서 손으로), 배치 소자 입력 손가락 = 그 레이아웃 소자 기록
     for d in layout_outputs(cp.layout.snapshot).devices:
-        assert dict(cp.geometry.w_request)[d.name] == pytest.approx(d.n_fingers * d.finger_w_m, rel=1e-15)
+        assert ops[d.name].W == pytest.approx(d.n_fingers * d.finger_w_m, rel=1e-12)
+        if d.name in ref:
+            assert (ref[d.name].m, ref[d.name].finger_w_m) == (float(d.n_fingers), d.finger_w_m)
     # 판정 축 값의 출처
     assert cp.layout_area_m2 == cp.layout.snapshot.value("graph", LAYOUT_KEY, F_FLOORPLAN).outline_area_m2
     assert cp.search_area_m2 == r.start.objectives.area_m2

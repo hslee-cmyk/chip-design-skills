@@ -27,6 +27,8 @@ def test_all_placed_devices_fixed_and_pending_diffusion_dropped():
     # [개정 여섯째 A-139, interface §3] w_request = 요청 대기 소자(배치 아님 + 요청 행 있음)마다 요청 손가락 행 참조 -- 배치 소자는 w_request 에 두지 않는다 (옛 '배치 소자 전부의 W').
     # 요청 행의 값 모양((nf, finger_w) 참조)은 interface 가 칸 형태를 정하지 않아 이름만 단언한다.
     assert tuple(n for n, _ in g.w_request) == ("B",)
+    # [dispute 8.4, 위임 A-141] 요청 행 값 = (nf, finger_w): 요청 대기 배치 B(폭 키 50, nf 2)의 손가락 -- 레이아웃 요청 레코드(Placement)에서 온다 (W 1e-6 에서 다시 고르지 않음)
+    assert g.w_request == (("B", (2, 50 * GRID)),)
     assert g.layout_ref == (("A", DiffusionGeometry(1e-6, 3e-13, 4e-13, 2.0e-6, 3.0e-6, 3.0)),
                             ("C", DiffusionGeometry(7e-7, 1e-13, 2e-13, 1.5e-6, 2.5e-6, 1.0)))     # B(대기) 는 탐색 규칙·LUT 규칙 기하로 둔다
     assert all(isinstance(d.m, float) for _n, d in g.layout_ref)
