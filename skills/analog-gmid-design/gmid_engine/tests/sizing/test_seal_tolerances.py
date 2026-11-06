@@ -108,12 +108,26 @@ def _nets_with_m3_on_path(snap):
     return n3
 
 
+def _m3_kcl_row_nets(snap):
+    """K3 = 봉인 3 이 보는 넷 중 M3 가 닿는 것 = M3 채널 끝 넷(스냅샷 `dc_current_basis.ends` 의 M3 항목 드레인·소스) ∖ 봉인 3 제외 넷.
+    제외 넷 = 레일(`node.is_rail`) ∪ 입력 포트(`node.port_direction == "input"`) ∪ `bias_inputs`(gate 전용이라 채널 끝에 들지 않음) -- 이상 전압원 넷이라
+    KCL 잔차 미정의(계획 봉인 3 정의). 넷 이름을 박지 않고 toy 연결에서 유도(A-163). K3 가 비면 전제 실패."""
+    from gmid_engine.sizing import DC_KEY
+    basis = snap.value("graph", DC_KEY, "dc_current_basis")
+    excluded = ({n for n, r in snap.column("node", "is_rail") if r} | {n for n, d in snap.column("node", "port_direction") if d == "input"})
+    k3 = sorted({net for name, f, t in basis.ends if name == "M3" for net in (f, t)} - excluded)
+    if not k3:
+        pytest.fail("전제 실패(멈추고 보고): M3 채널 끝 넷 ∖ 제외 넷(K3)이 비어 있다")
+    return k3
+
+
 def test_cell_combine_j_a0_premise_no_failing_rows(tmp_path):
     """전제 J-a0(안 서면 J-a 의 기대가 이 입력으로 성립하지 않는다 -- `judge` 는 실패를 먼저 본다): M3 가 닿는 봉인 행(봉인 2 의 M3 행,
     N3 = M3 가 `dc_path_values` 경로 소자인 넷의 봉인 1·3 행)에 실패 행이 없다. 결합 규칙과 무관하게 서는 전제다(실패 판정은 정의된 행만 본다)."""
     from gmid_engine.sizing import SEAL_FAIL
     ctx, _th, _changed, snap = ja_state(tmp_path)
-    _nets_with_m3_on_path(snap)                                         # N3 비어 있지 않음
+    _nets_with_m3_on_path(snap)                                         # N3 비어 있지 않음 (봉인 1 행)
+    _m3_kcl_row_nets(snap)                                              # K3 비어 있지 않음 (봉인 3 행)
     _s, items = _ja_items(ctx, snap)
     for n, it in items.items():
         assert it.status != SEAL_FAIL, (n, it.status, it.devices, it.nodes)
@@ -131,13 +145,8 @@ def test_cell_combine_j_a_none_cell_cascades_to_seals_and_report(tmp_path):
     assert all(it.status != "fail" for it in items.values())            # J-a0 전제
     assert items[2].status == SEAL_UNDEFINED and "M3" in items[2].devices
     n3 = _nets_with_m3_on_path(snap)                                    # N3: 유도(넷 이름을 박지 않음)
-    # 봉인 3 은 KCL 행: 채널 전류가 만나는 넷에만 행이 있다(게이트 넷은 DC 전류 0 -> 행 없음, 물리). 그 넷 = 스냅샷 dc_current_basis.ends 의 채널 끝 넷.
-    basis = snap.value("graph", DC_KEY, "dc_current_basis")
-    kcl_nets = {net for _name, f, t in basis.ends for net in (f, t)}
-    n3_kcl = [net for net in n3 if net in kcl_nets]
-    if not n3_kcl:
-        pytest.fail("전제 실패(멈추고 보고): N3 ∩ 봉인 3 KCL 행 넷이 비어 있다 (N3=%s, KCL 넷=%s)" % (n3, sorted(kcl_nets)))
-    want = {1: n3, 3: n3_kcl}                                           # 봉인 1 = N3 각 넷, 봉인 3 = N3 ∩ KCL 행 넷
+    k3 = _m3_kcl_row_nets(snap)                                         # K3: 봉인 3 이 보는 M3 채널 끝 넷(유도)
+    want = {1: n3, 3: k3}                                               # 봉인 1 = N3 각 넷, 봉인 3 = K3 각 넷 [A-163]
     for n in (1, 3):
         assert items[n].status == SEAL_UNDEFINED, n
         for net in want[n]:                                             # 그 넷의 행 tol = None -> 그 item undefined
