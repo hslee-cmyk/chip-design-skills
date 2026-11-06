@@ -781,8 +781,8 @@
  },
  "checks": {
   "V1": {
-   "verdict": "N/A",
-   "basis": "병합본 8a2a0c7e. 카드 범위: lut 1251·metrics 1433·search+layout 57·structure 189·sizing 140 passed(재판정). 2회로 연기(O-250 하한 1 GB, 회로·파일 하나씩 순차, C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runsmoke2.sh·smoke2_log2.txt): folded_cascode s0 7 passed 2 failed(test_stage_reports_unchanged_from_base·test_s0_field_values_unchanged_from_base), g10 1 passed; ngcc_3stage_ff stage_b 5 passed, s0 1 passed 1 failed(test_stage_reports_unchanged_from_base), g10 1 passed. 실패 3건은 base 56d88fe7 에서도 같은 메시지로 실패한다(runbase.sh: ngcc 보고서 키 stage_b.achievability.curves·gain, folded 같은 두 test, 6줄 diff 없음) = LM-1e 가 만든 것이 아닌 낡은 기준선 fixture(u17_1b_s0_baseline.json) 문제. folded_cascode stage_b 는 두 번 시도 모두 여유 936 MB·1004 MB 로 1 GB 하한에서 멈춰 미실행. 미실행이 있어 N/A(통과로 세지 않음). [재판정 3] folded_cascode stage_b 5개 id 를 별도 프로세스로 하나씩 돌려도 5/5 가 단독으로 여유 1 GB 아래(969~1021 MB)까지 내려가 정지 -> 메모리 최고치는 프로세스 누적이 아니라 test 하나(세션 fixture 적재)의 몫. 미실행 유지, V1 N/A."
+   "verdict": "PASS",
+   "basis": "O-229 범위(전체 test 아님), 병합본 8a2a0c7e(code 04e53dfd + test 8c54bb2e). 카드 범위: lut 1251·metrics 1433·search+layout 57·structure 189(1 deselected)·sizing 140 passed. 2회로 연기(O-250 하한 1 GB, 회로·파일 하나씩): folded_cascode stage_b 5 passed(최저 여유 1577 MB, 시작 5484 MB), s0 7 passed 2 failed, g10 1 passed; ngcc_3stage_ff stage_b 5 passed, s0 1 passed 1 failed, g10 1 passed. 실패 3건(test_stage_reports_unchanged_from_base 둘, test_s0_field_values_unchanged_from_base[folded_cascode])은 base 56d88fe7 에서도 같은 메시지로 실패(runbase.sh, diff 0) = LM-1e 귀속 아님, 오케스트레이터가 LA-1 재점검 입력으로 수용(낡은 u17_1b_s0_baseline.json). -k·--deselect·-x 없음(-k 는 연기 규칙의 회로 선택뿐). 안 돌린 것: integration base red 196건, 나머지 9회로, ngspice."
   },
   "V2": {
    "verdict": "PASS",
@@ -931,6 +931,16 @@
    "name": "folded stage_b id별 최저 여유 MB (최소)",
    "value": 969,
    "command": "C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/sb3_log.txt"
+  },
+  {
+   "name": "연기 folded stage_b passed",
+   "value": 5,
+   "command": "C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/sb4_log.txt"
+  },
+  {
+   "name": "연기 folded stage_b 최저 여유 MB",
+   "value": 1577,
+   "command": "C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/sb4_log.txt"
   }
  ],
  "approvals": [],
@@ -946,7 +956,8 @@
    "재판정: git -C iso fetch role/test/20261106-lm1e; checkout -B remerge 04e53dfd; merge --no-ff role/test -> 8a2a0c7e; pytest sizing/test_seal_tolerances.py sizing/test_block_dc.py sizing/test_s2_values.py --run-slow -> 140 passed",
    "재판정 연기: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runsmoke.sh test_s0_layer_9circuits folded_cascode -> 2 GB 하한으로 중단",
    "연기 재판정: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runsmoke2.sh (folded s0·g10, ngcc stage_b·s0·g10), runsb.sh(folded stage_b 재시도), runbase.sh(base 귀속)",
-   "재판정 3: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runsb3.sh iso sb3 (folded_cascode stage_b 5 id 를 별도 pytest 프로세스로 하나씩, 전부 1 GB 하한 정지)"
+   "재판정 3: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runsb3.sh iso sb3 (folded_cascode stage_b 5 id 를 별도 pytest 프로세스로 하나씩, 전부 1 GB 하한 정지)",
+   "재판정 4: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runsb4.sh (folded_cascode stage_b 단일 프로세스, 시작 여유 5484 MB) -> 5 passed"
   ]
  }
 }
