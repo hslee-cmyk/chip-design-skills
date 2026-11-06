@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 from gmid_engine.core import SealViolationError
+from gmid_engine.lut import widths as lut_widths
 from gmid_engine.lut import (TOL_VDSAT_METRICS, LBinMap, TolVdsatCell, TolVdsatTable, midpoint_l_bin_checks,
                              tol_vdsat_table)
 
@@ -259,11 +260,11 @@ def _real_ref(real_lut, raw_slice, raw_mid, kind, suf, wk, with_ext=True):
 
 
 @pytest.mark.lut_realdata
-@pytest.mark.parametrize("kind,suf,wk", [("nmos", "_n", 1000), ("pmos", "_p", 1000), ("pmos", "_p", 84)])
+@pytest.mark.parametrize("kind,suf,wk", [("nmos", "_n", 1000), ("pmos", "_p", 1000), ("nmos", "_n", 72), ("pmos", "_p", 84)])
 def test_real_cells_match_independent(real_lut, raw_slice, raw_mid, kind, suf, wk):
     """전 셀 = 독립 구현(npz 직접; L 방향은 엔진 bin 지도 -- 지도 자체는 test__helpers_bins 가 ngspice 로 확인) + 중점 외부 값(5.1 독립).
     [LM-1e A-159 (2)] 중점 대상 = `widths()` 폭만: pmos 84(0.42 µm)는 widths 안이라 자기 중점 파일을 가진다 -> 앵커 2개 bin 마다 외부 값이 들고
-    missing_external 은 없다(D7). nmos 72(0.36 µm < nmos W_min 0.42 µm)는 widths 밖이라 중점이 없어 이 기대의 대상이 아니다(case 삭제 -- 철회).
+    missing_external 은 없다(D7). nmos 72(0.36 µm < nmos W_min 0.42 µm)는 widths 밖이라 중점이 없다 -> 옛 기대 그대로(외부 값 없음, 앵커 2개 bin 은 missing_external; A-160).
     [2026-10-08 중점 변경, CONTRACT 8절] w_key 1000: 중점 0.165·0.85·1.75·3.25 µm -> 앵커 2개 bin 4개(.26 (0, 1)·.23 (10, 11)·
     .22 (12, 13)·.21 (14, 15)) 모두 external."""
     t = tol_vdsat_table(new_memo(real_lut), kind, wk)
@@ -275,6 +276,8 @@ def test_real_cells_match_independent(real_lut, raw_slice, raw_mid, kind, suf, w
         assert sorted(ext) == [0, 1, 10, 11, 12, 13, 14, 15]
         assert sts == ["external", "computed", "computed", "external", "external", "external",
                        "single_point", "single_point"]
+    elif wk not in lut_widths(real_lut, kind):
+        assert "external" not in sts and sts.count("missing_external") >= 1      # widths 밖: 옛 기대 유지(D7 대상 밖, 거부 아님)
     else:
         # D7: 앵커 2개 bin 마다 두 앵커 사이 중점이 있어 적재됐다 -> 외부 값이 든 bin 만 있고 missing_external 은 없다
         assert sts.count("external") >= 1 and "missing_external" not in sts
@@ -310,13 +313,14 @@ CONTRACT_8_VDSAT_MAX = {"nmos": "6.39", "pmos": "32.5"}
 @pytest.mark.lut_realdata
 @pytest.mark.parametrize("kind,suf,wk,p50,p90,mx", [("nmos", "_n", 1000, None, None, CONTRACT_8_VDSAT_MAX["nmos"]),
                                                      ("pmos", "_p", 1000, None, None, CONTRACT_8_VDSAT_MAX["pmos"]),
+                                                     ("nmos", "_n", 72, "0.97", "1.31", "1.39"),
                                                      ("pmos", "_p", 84, None, None, None)])
 def test_real_contract_measured(real_lut, raw_slice, raw_mid, kind, suf, wk, p50, p90, mx):
     """계약 5.2 실측(셀 vdsat_v p50/p90/max, mV 표기 자릿수 안). 분위수 정의 = numpy 기본(선형).
     [2026-10-08 중점 변경] w_key 1000 은 앵커 2개 bin 4개 모두 외부 값을 받아 5.2 의 옛 실측(0.93/1.88/2.49, 1.08/10.2/32.5 mV)이
     더는 계약 값이 아니다(5.2 문장은 갱신되지 않았다 -- 보고). 그래서 w_key 1000 의 p50·p90 은 (b) 독립 셀 값(`_ref_cell_values`)의
     분위수와 셀 상한 안에서 같고(분위수는 원소별 섭동에 1-Lipschitz), max 는 (d) CONTRACT 8절 표 vdsat 열 최대(외부 값 > LOO/4 셀 값).
-    pmos 84 는 widths 안 폭이라 독립 셀 값으로 대조한다(nmos 72 는 widths 밖 -- 중점 없음, A-159 (2)로 case 삭제)."""
+    pmos 84 는 widths 안 폭이라 독립 셀 값으로 대조한다nmos 72 는 widths 밖 -- 중점 없음이라 5.2 옛 실측(0.97/1.31/1.39 mV) 그대로(A-160)."""
     t = tol_vdsat_table(new_memo(real_lut), kind, wk)
     vals = np.asarray([c.vdsat_v for row in t.cells for c in row if c.vdsat_v is not None])
     if p50 is None:

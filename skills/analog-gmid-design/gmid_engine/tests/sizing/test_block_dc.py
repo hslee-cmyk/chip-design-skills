@@ -1087,6 +1087,7 @@ def test_cyclic_strict_recheck_below_floor_fails(tmp_path, acc_f, vin, ok):
         V = node_voltages(run_blocks(ctx, th, upto="columns"))
         assert V["y"] >= _floor("nmos", "F") and abs(V["y"] - y) <= 0.01 and abs(V["x"] - 0.6) <= 0.01
     else:
+        assert y < _floor("nmos", "F")                       # 전제(손 계산, detail 비의존): 수렴점 VDS = y 가 하한 아래
         with pytest.raises(SealViolationError) as ei:
             run_blocks(ctx, th, upto="columns")
         d = detail(ei.value)
