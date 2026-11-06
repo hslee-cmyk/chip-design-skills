@@ -201,6 +201,8 @@ def test_checks_actually_reject(tmp_path):
     declared = _declared_names()
     for old in ("sky130_nfet_pfet_lut_sample.npz", "sky130_nfet_pfet_lut_v2.npz"):
         assert NAME_RE.search("x = '%s'" % old).group(0) not in declared
-    for ok in declared:
-        if ok.endswith(".npz"):
-            assert NAME_RE.search(ok).group(0) in declared
+    # [LM-1e A-161 (1)] 중점 출처 파일 이름에는 'lut' 이 없어 NAME_RE 에 걸리지 않는다 -> 거부 확인 대상 = 선언 원소 가운데 NAME_RE 에 걸리는 이름
+    checkable = [ok for ok in declared if ok.endswith(".npz") and NAME_RE.search(ok)]
+    assert checkable, "NAME_RE 에 걸리는 선언 이름이 없다(검사가 비어 있음)"
+    for ok in checkable:
+        assert NAME_RE.search(ok).group(0) in declared
