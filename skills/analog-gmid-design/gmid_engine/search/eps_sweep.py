@@ -40,9 +40,17 @@ _CLASSES = (
 )
 
 
-def _filter(sctx, entries, status, measured):
-    pool = [(pid, s) for pid, s in entries if s.best is not None and s.best.status == status
-            and (measured is None or (not s.best.unmeasured) == measured)]
+def classify(result):
+    """평가 결과 -> 집합 이름(`front`·`unmeasured_front`·`pending_front`) 또는 None -- S-1 분류 하나(위 `_CLASSES`). 탐색 점의 집합 소속과 실현 평가 값의 재분류
+    (`realize_front`)가 같은 이 함수를 부른다(둘째 분류식 0)."""
+    for name, status, measured in _CLASSES:
+        if result.status == status and (measured is None or (not result.unmeasured) == measured):
+            return name
+    return None
+
+
+def _filter(sctx, entries, name):
+    pool = [(pid, s) for pid, s in entries if s.best is not None and classify(s.best) == name]
     res = nondominated_results(tuple((pid, s.best) for pid, s in pool), sctx.domain.area_resolution_m2)
     by = {i: pool[k][0] for i, k in res.dominated}
     kept = tuple(FrontPoint(pool[i][0], pool[i][1].best, (("minimize", pool[i][1].minimize), ("eps", pool[i][1].eps)))
@@ -113,8 +121,8 @@ def sweep_front(sctx, starts):
                     previous = solve
     out = {"failed_eps": tuple(failed), "resolution": tuple(sorted(resolution.items()))}
     lb_stops = []
-    for name, status, measured in _CLASSES:
-        kept, removed, folded = _filter(sctx, entries, status, measured)
+    for name, _status, _measured in _CLASSES:
+        kept, removed, folded = _filter(sctx, entries, name)
         solves = dict(entries)
         extra = []
         for point in kept:
@@ -124,9 +132,9 @@ def sweep_front(sctx, starts):
                 extra.append(("L:" + point.point_id + ":" + str(n + 1), new))
         if extra:
             entries.extend(extra)
-            kept, removed, folded = _filter(sctx, entries, status, measured)
-    for name, status, measured in _CLASSES:          # L-b 새 점이 다른 묶음에 들 수 있어 마지막 entries 로 한 번 더 거른다
-        kept, removed, folded = _filter(sctx, entries, status, measured)
+            kept, removed, folded = _filter(sctx, entries, name)
+    for name, _status, _measured in _CLASSES:          # L-b 새 점이 다른 묶음에 들 수 있어 마지막 entries 로 한 번 더 거른다
+        kept, removed, folded = _filter(sctx, entries, name)
         out[name] = kept
         out[name + "_removed"] = removed
         out[name + "_folded"] = folded

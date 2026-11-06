@@ -17,8 +17,11 @@
   평가 시간 중앙값, LUT memo 퇴출 수, 블록 계수(`blocks` = 실행 하나가 단계 A 부터 부른 모든 (블록, 분할)의 행 -- `sctx.dc.counters.snapshot()`,
   `block_totals` = 여섯 계수 칸의 합), 블록 결과 색인 크기(`block_index_entries` = `entry_count()`, `block_index_bound` = `donors.index_bound(E_total)` 또는 null,
   E_total 은 `_helpers_ceiling.e_total`). `eval_budget` 칸의 뜻은 선언 실행 = E_B, 유도 실행 = D 로 갈린다(`eval_budget_source` 가 구분, 결과 JSON 칸 이름은 그대로).
-* [XRUN-F1 card C] 예산: 진입에서 `donors.open_bound(E_total)`(색인 항목 수 상한 검사 열기), `sweep_front` 뒤 감도 게이트 전에 `search_ceiling(sctx, final=True)` 한 번(평가가 적어
-  유도 전이가 없었던 실행의 D 를 정한다), 게이트 뒤 끝 확인(`kernel_calls` > E_total 또는 색인 항목 수 > 상한이면 `RuntimeError`)과 `close_bound()`. 게이트는 탐색 예산을 다 써도 front 점이 있으면 언제나 돈다.
+* [WB-1 범위 7 (b)] 실현 관문: `sweep_front` 뒤 front ∪ unmeasured_front 의 점을 `realize_front` 로 실현 평가하고, 결과를 실현 평가의 측정 상태로 S-1 분류(`eps_sweep.classify`)해
+  front·unmeasured_front 둘로 나눈다(집합 이동은 `realize.moved` 기록). 감도 게이트 대상 = 실현 front 첫 점이고 실현 front 가 비면 '대상 없음'(`gate_empty`) 기록·호출 0이다.
+* [XRUN-F1 card C] 예산: 진입에서 `donors.open_bound(E_total)`(색인 항목 수 상한 검사 열기), `sweep_front` 뒤 `search_ceiling(sctx, final=True)` 한 번(평가가 적어
+  유도 전이가 없었던 실행의 D 를 정한다). 실현 관문의 평가 수 n_real 은 E_total(탐색 + 게이트) 밖이라 관문 앞에서 `close_bound()` 하고(삽입 검사 끔), 게이트 뒤 끝 확인(`kernel_calls − n_real` >
+  E_total 또는 색인 항목 수 > 상한(E_total + n_real)이면 `RuntimeError`)이 대신 한다. 게이트는 탐색 예산을 다 써도 실현 front 점이 있으면 언제나 돈다.
   합격 기준(NFR-2): kernel_calls == 고유 키 수, recompute_same_key == 0, 모든 행 recomputes_same_input == 0, LUT memo 퇴출 0.
 """
 import dataclasses
@@ -29,7 +32,7 @@ from gmid_engine.core import blas_environment, fp_of
 from gmid_engine.lut import widths
 from gmid_engine.metrics import GATE_EMPTY, GATE_REASON_FRONT_EMPTY, GateResult, verified_by
 
-from .eps_sweep import sweep_front
+from .eps_sweep import classify, sweep_front
 from .gate_run import run_sensitivity_gate
 from ._helpers_ceiling import e_total, gate_reserve
 from .layer0_center import layer0_start
@@ -102,20 +105,23 @@ def find_front(sctx, given_starts):
     out = sweep_front(sctx, starts)
     search_ceiling(sctx, final=True)      # 게이트 전: 평가가 n_θ + 1 개 미만이라 유도 전이가 없었다면 지금 D 를 정한다(D − R 보다 탐색이 더 썼으면 ValueError)
     notes = [dict(n) for n in sctx.constraint_notes]
+    sctx.dc.donors.close_bound()      # 실현 관문의 평가는 E_total(탐색 + 게이트) 밖이다 -- 색인 항목 수 삽입 검사는 이 뒤로 끄고, 아래 끝 확인이 그 수(n_real)를 뺀 값으로 대신 한다
+    k_real = sctx.counters["kernel_calls"]
+    realized = realize_front(sctx, tuple(out["front"]) + tuple(out["unmeasured_front"]))      # front 출력 전 관문(WB-1): 실현 평가를 거친 점만 front·선택·oracle 입력이 된다
+    n_real = sctx.counters["kernel_calls"] - k_real
+    realized_sets = {name: tuple(p for p in realized.points if classify(p.result) == name) for name in ("front", "unmeasured_front")}      # 실현 값의 S-1 분류(탐색과 같은 함수)
+    front, unmeasured_front = realized_sets["front"], realized_sets["unmeasured_front"]
+    residual = dict(realized.finger_residual)
     k_gate = sctx.counters["kernel_calls"]
-    gate = (run_sensitivity_gate(sctx, out["front"][0].result) if out["front"]       # [U7] 최종 해의 감도 게이트(40 §3.8-2), 탐색 예산을 다 써도 돈다 -- 언제나 한 행(E-01)
+    gate = (run_sensitivity_gate(sctx, front[0].result) if front       # [U7] 감도 게이트(40 §3.8-2) 대상 = 실현 front 첫 점, 탐색 예산을 다 써도 돈다 -- 언제나 한 행(E-01); 비면 '대상 없음' 기록, 호출 0
             else GateResult(False, (), (), None, GATE_EMPTY, GATE_REASON_FRONT_EMPTY, ()))
     if sctx.counters["kernel_calls"] - k_gate > gate_reserve(sctx):
         raise RuntimeError("find_front: 감도 게이트가 예약 R=" + str(gate_reserve(sctx)) + " 보다 많은 커널 평가를 썼다: " + str(sctx.counters["kernel_calls"] - k_gate))
     total = e_total(sctx)
-    if total is not None and sctx.counters["kernel_calls"] > total:
-        raise RuntimeError("find_front: kernel_calls=" + str(sctx.counters["kernel_calls"]) + " 가 E_total=" + str(total) + " 를 넘었다")
-    if total is not None and sctx.dc.donors.entry_count() > sctx.dc.donors.index_bound(total):
-        raise RuntimeError("find_front: 블록 결과 색인 항목 수 " + str(sctx.dc.donors.entry_count()) + " 가 상한 " + str(sctx.dc.donors.index_bound(total)) + " 를 넘었다")
-    sctx.dc.donors.close_bound()
-    realized = realize_front(sctx, tuple(out["front"]))      # front 출력 전 관문(WB-1): 실현 평가를 거친 점만 front·선택·oracle 입력이 된다
-    front = realized.points
-    residual = dict(realized.finger_residual)
+    if total is not None and sctx.counters["kernel_calls"] - n_real > total:
+        raise RuntimeError("find_front: kernel_calls=" + str(sctx.counters["kernel_calls"] - n_real) + " 가 E_total=" + str(total) + " 를 넘었다")
+    if total is not None and sctx.dc.donors.entry_count() > sctx.dc.donors.index_bound(total + n_real):
+        raise RuntimeError("find_front: 블록 결과 색인 항목 수 " + str(sctx.dc.donors.entry_count()) + " 가 상한 " + str(sctx.dc.donors.index_bound(total + n_real)) + " 를 넘었다")
     notes.append({"verdict": gate.verdict, "reason": gate.reason, "rule": "sensitivity_gate", "errors": list(gate.errors),
                   "checks": len(gate.checks), "unchecked": sum(1 for c in gate.checks if c[4] is None), "unmeasured": list(gate.unmeasured),
                   "epsilon_db": gate.epsilon})
@@ -183,14 +189,14 @@ def find_front(sctx, given_starts):
             "starts": list(start_log), "resolution": dict(out["resolution"]),
             "front": [_point_record(sctx, p, residual[p.point_id]) for p in front],
             "pending_front": [_point_record(sctx, p) for p in out["pending_front"]],
-            "unmeasured_front": [_point_record(sctx, p) for p in out["unmeasured_front"]],
+            "unmeasured_front": [_point_record(sctx, p, residual[p.point_id]) for p in unmeasured_front],
             "removed": [{"point_id": a, "reason": "dominated", "by": b}
                         for a, b in out["front_removed"] + out["pending_front_removed"]
                         + out["unmeasured_front_removed"]]
                        + [{"point_id": a, "reason": "dominated_realized", "by": b} for a, b in realized.removed],
             "realize": {"lost": [{"point_id": pid, "reason": reason, "detail": detail} for pid, reason, detail in realized.lost],
-                        "n_lost": len(realized.lost)},
+                        "n_lost": len(realized.lost), "moved": [list(m) for m in realized.moved]},      # moved = (점, 탐색 집합, 실현 집합) -- 출력 전용 기록
             "failed_eps": list(out["failed_eps"]), "notes": notes, "perf": perf, "env_fp": env_fp})
     pending = tuple(p for p in out["pending_front"] if p.result.status == STATUS_PENDING_SEAL7)
     return SearchFront(run_id, front, pending, out["failed_eps"], out["resolution"],
-                       tuple(sorted(perf.items())), tuple(notes), out["unmeasured_front"])
+                       tuple(sorted(perf.items())), tuple(notes), unmeasured_front)
