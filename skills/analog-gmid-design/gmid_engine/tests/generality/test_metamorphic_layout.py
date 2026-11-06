@@ -89,7 +89,9 @@ def _pdk(pipe):
     입력. 슬라이스마다 tol_V 표 1회 비용(실 LUT ~10 s)이 32장 전부면 test 가 수십 분이 된다(작성자 실측 첫 호출 448~1377 s).
     변형 전후 같은 PDK 입력이면 충분하다."""
     full = LayoutPdk.from_decl(pipe.env.lut, pipe.env.pdk)
-    pre = dict(pipe.env.access.w_keys)
+    # [card 20261104-wb1] 옛 `LutAccess.w_keys`(레이아웃 전 폭 규칙 = kind 별 기준 폭 키, sizing CONTRACT 1.3 r2)는 삭제됐다. 같은 양의
+    # 정본은 기준 폭 표 키 `lut.cap_map[kind].w_key`(lut CONTRACT 1.4)다 -- 읽는 API만 옮기고 줄임 규칙·단언은 그대로.
+    pre = {kind: pipe.env.lut.cap_map[kind].w_key for kind in pipe.env.lut.cap_map}
     keys = []
     for kind, ks in full.slice_width_keys:
         keep = sorted({ks[0], ks[len(ks) // 2], pre[kind]} & set(ks))

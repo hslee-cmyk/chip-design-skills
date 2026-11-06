@@ -157,3 +157,23 @@ def test_all_hits_collected_doc_order(ah):
     d["ports"]["n_ghost"] = {"direction": "output", "role": "x"}
     hits = _reject(ah, d)["hits"]
     assert ah.rules(hits) == ["port_direction", "port_role", "port_net_unknown"]
+
+
+# ---------------------------------------------------------------- S3-1 (card 20261104-wb1 §3 '봉인 3 입력 포트', 사용자 결정 O-244)
+# oracle (식): interface 표 -- 값 = 방향이 INPUT_DIRECTION("input")인 넷의 frozenset. 입력은 S1 node.port_direction 열 그대로 ((넷, 방향), ...).
+def test_input_port_nets_is_frozenset_of_input_direction_nets():
+    from gmid_engine.authoring import INPUT_DIRECTION, input_port_nets
+    assert INPUT_DIRECTION == "input"
+    directions = (("a", "input"), ("b", "output"), ("c", None), ("d", "input"))
+    got = input_port_nets(directions)
+    assert isinstance(got, frozenset)
+    assert got == frozenset({"a", "d"})
+    # 순수 함수: 입력 순서와 무관, 같은 입력은 같은 값, 입력 tuple 은 바뀌지 않는다
+    assert input_port_nets(tuple(reversed(directions))) == got
+    assert input_port_nets(directions) == got and directions[0] == ("a", "input")
+
+
+def test_input_port_nets_empty_when_no_input():
+    from gmid_engine.authoring import input_port_nets
+    assert input_port_nets(()) == frozenset()
+    assert input_port_nets((("b", "output"), ("c", None))) == frozenset()
