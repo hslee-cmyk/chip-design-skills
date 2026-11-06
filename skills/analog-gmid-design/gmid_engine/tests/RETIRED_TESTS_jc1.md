@@ -30,3 +30,23 @@
 | `tests/metrics/conftest.py` `LUT_P` | 8열(계약 문자열의 test 쪽 사본). `LUT_P_OLD`(6열) 추가: R-b 항 없는 경로 | 같은 행 |
 | `tests/metrics/conftest.py` `write_lut_v2`·`lut_cap_cols`·`lut_cap_closed` | 기준 LUT 에 CDD·CSS 열(합성 닫힌 식)을 더한다; `oracle_junction` = 정의 문장 손 식(옛 BSIM4 `ref_caps`·`TOY_JUNCTION` 삭제); `toy_junction(root, lut, rule_line=)` = `from_decls(규칙 선언, LUT)` | interface §8 `metrics/conftest.py` 행 |
 | `tests/sizing/wb1_toy.py::write_r4_bins_lut(jc1_cols=)` | 기준 폭 표 CGS·CDD·CSS 열(상수)을 더하는 선택 인자(기본 False = 기존 호출 불변); `off_cases.py`·`test_ss_off_op_slices.py` 가 True 로 부른다 | 접합 입력 열 필요 |
+
+
+## 삭제 (호출처 0 -- 죽은 사본 금지)
+
+| 대상 | 사유 |
+|---|---|
+| `tests/convergence/conftest.py::bsim4_junction`(BSIM4 접합 용량 폐형식 helper) 와 `test_converge_point.py` 의 import | 호출처가 `test_real_junction_caps_from_realized_diffusion` 하나였고 그 test 가 정의 손 식(LUT npz 원 파일 numpy 직접 읽기)으로 바뀌어 호출처 0. 엔진이 BSIM4 접합 식을 쓰지 않는다 |
+
+## toy LUT 생성기 보강 (ss_dev 가 기준 폭 표 CGS·CDD·CSS 열을 요구한다)
+
+값은 손 식: CGS = CGG − CGD = 8e-16(CGB 열 없음 -> 용량 모형은 그대로 `cgg_minus_cgd_at_gs`), CSS − CGS = 5e-16(CSS = 1.3e-15), CDD − CGD = 3e-16(CDD = 5e-16). 기존 `cdd` 플래그 생성기의 CDD(2e-16 = CGD)는 E-18 닫힌 식이 그대로이도록 값을 유지한다(접합 항 cdb = 0 허용: 수동성 관문은 `>= 0`).
+
+| 생성기 | 처리 | 남긴 플래그 |
+|---|---|---|
+| `sizing/conftest.py` 첫 생성기(r4 기본 toy) | CGS·CSS·CDD 추가 | 없음 |
+| `sizing/conftest.py::write_r4_lut` | CGS·CSS 추가, `cdd` 기본값 False -> True | `cdd=False` 로 열 없는 표(E-18 거부 입력) |
+| `metrics/gb4_hand.py` | CGS·CSS 추가, `cdd` 기본값 False -> True | `cdd=False` |
+| `metrics/wb1_gb4.py`, `search/test_cell_floor.py`, `search/test_current_box.py`, `search/test_kernel.py`, `search/test_search_domain.py`, `sizing/test_block_dc.py` | CGS·CSS·CDD 추가 | 없음(E-18 거부 test 를 쓰는 생성기가 아님) |
+| `search/u13_hand.py` | CGS·CSS 추가(cap_scale 비례); CDD 는 기존 `cdd=True` 기본 | `cdd=False` -- E-18 거부 test(`test_iv_currents`, `test_macro_poles`)가 그대로 쓴다 |
+| `sizing/wb1_toy.py` | 앞 커밋: `jc1_cols`(기본 False; ss 경로 호출자 `off_cases`·`test_ss_off_op_slices`·`search/wb1_flow` 가 True) | `jc1_cols=False` |
