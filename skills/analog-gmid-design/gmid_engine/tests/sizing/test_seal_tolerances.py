@@ -97,11 +97,23 @@ def _ja_items(ctx, snap):
     return s, {n: seal_item(s, n) for n in (1, 2, 3)}
 
 
+def _nets_with_m3_on_path(snap):
+    """N3 = M3 가 스냅샷 `node.dc_path_values` 경로 소자(PathValue.relation = (관계 종류, 원소))인 넷. 봉인 1·3 행의 tol 은 이 경로 소자의
+    tol 에서 온다(interface §5 J-a, 위임 A-159 (3)(c)). 넷 이름을 test 가 박지 않고 스냅샷 열에서 유도한다(oracle (a): 구성으로 정해진 집합).
+    N3 가 비면 전제 실패(멈추고 보고)."""
+    pv = dict(snap.column("node", "dc_path_values"))
+    n3 = sorted(net for net, vals in pv.items() if any(len(p.relation) > 1 and p.relation[1] == "M3" for p in vals))
+    if not n3:
+        pytest.fail("전제 실패(멈추고 보고): M3 가 dc_path_values 경로 소자인 넷이 없다 -- N3 비어 있음")
+    return n3
+
+
 def test_cell_combine_j_a0_premise_no_failing_rows(tmp_path):
     """전제 J-a0(안 서면 J-a 의 기대가 이 입력으로 성립하지 않는다 -- `judge` 는 실패를 먼저 본다): M3 가 닿는 봉인 행(봉인 2 의 M3 행,
-    M3 채널이 닿는 레일 아닌 넷 vout 의 봉인 1·3 행)에 실패 행이 없다. 결합 규칙과 무관하게 서는 전제다(실패 판정은 정의된 행만 본다)."""
+    N3 = M3 가 `dc_path_values` 경로 소자인 넷의 봉인 1·3 행)에 실패 행이 없다. 결합 규칙과 무관하게 서는 전제다(실패 판정은 정의된 행만 본다)."""
     from gmid_engine.sizing import SEAL_FAIL
     ctx, _th, _changed, snap = ja_state(tmp_path)
+    _nets_with_m3_on_path(snap)                                         # N3 비어 있지 않음
     _s, items = _ja_items(ctx, snap)
     for n, it in items.items():
         assert it.status != SEAL_FAIL, (n, it.status, it.devices, it.nodes)
@@ -118,9 +130,11 @@ def test_cell_combine_j_a_none_cell_cascades_to_seals_and_report(tmp_path):
     s, items = _ja_items(ctx, snap)
     assert all(it.status != "fail" for it in items.values())            # J-a0 전제
     assert items[2].status == SEAL_UNDEFINED and "M3" in items[2].devices
-    for n in (1, 3):                                                    # M3 가 닿는 레일 아닌 넷 vout 의 행
+    n3 = _nets_with_m3_on_path(snap)                                    # N3: 유도(넷 이름을 박지 않음)
+    for n in (1, 3):
         assert items[n].status == SEAL_UNDEFINED, n
-        assert "vout" in items[n].nodes, (n, items[n].nodes)
+        for net in n3:                                                  # N3 의 각 넷의 행 tol = None -> 그 item undefined
+            assert net in items[n].nodes, (n, net, items[n].nodes)
     # 나머지 항목(4~9)은 이 test 의 대상이 아니다 -- pass 로 두고 보고서 상태 규칙만 본다(fail 있으면 violated, undefined 있으면 undefined).
     for n, w in SEAL_WRITERS_PASS.items():
         s = s.write(w, "t-%d-pass" % n, {("graph", "dc_seal_%d" % n): {DC_KEY: SealItem(n, SEAL_PASS)}})

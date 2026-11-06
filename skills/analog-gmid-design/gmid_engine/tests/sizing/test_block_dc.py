@@ -1076,7 +1076,9 @@ def test_cyclic_transient_below_floor_tolerated(tmp_path, acc_f):
 @pytest.mark.parametrize("vin,ok", [(0.7, False), (0.75, False), (0.9, True)])
 def test_cyclic_strict_recheck_below_floor_fails(tmp_path, acc_f, vin, ok):
     """MA nmos(하한 0.25)의 수렴점 VDS = V(y) = vin − 0.6 이 하한 아래(0.1·0.15)면 반복 중 일시 이탈이어도 수렴 뒤 strict 검증에서
-    lut_curve_undefined 실패(투영이 최종값에 남지 않는다). 0.9 -> y = 0.3 ≥ 0.25 이면 풀린다."""
+    거부(투영이 최종값에 남지 않는다). 0.9 -> y = 0.3 ≥ 0.25 이면 풀린다.
+    [LM-1e A-159] 기대 사유: lut_query_failed(lut_curve_undefined) -> tol_v_undefined. 하한 아래 VDS 소자의 첫 칸 셀 None 이 셀 결합 규칙('하나라도
+    None 이면 None', interface §5)으로 tol None 이 되고, SCC 소자 tol 조회 뒤 거부가 사유를 앞당긴다. 거부 자체는 유지(oracle (d) interface §8)."""
     ctx = _cycle_ctx(tmp_path, acc_f, "nmos", vin)
     y = vin - 0.6
     th = _cycle_theta("nmos", vin, 0.6, y)
@@ -1088,9 +1090,8 @@ def test_cyclic_strict_recheck_below_floor_fails(tmp_path, acc_f, vin, ok):
         with pytest.raises(SealViolationError) as ei:
             run_blocks(ctx, th, upto="columns")
         d = detail(ei.value)
-        assert d["reason"] == "lut_query_failed" and d["lut_reason"] == "lut_curve_undefined"
+        assert d["reason"] == "tol_v_undefined"
         assert ei.value.record.devices == ("MA",)
-        assert d["vds"] < _floor("nmos", "F")
 
 
 def test_gs_nonstrict_rootless_window_keeps_current_iterate_and_final_is_rejected(tmp_path, acc_f, monkeypatch):
