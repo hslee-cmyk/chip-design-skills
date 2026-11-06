@@ -4,7 +4,7 @@
   "attempt": 1,
   "evidence_type": "red-green",
   "freeze": {
-    "T": "f7025592" ,
+    "T": "f7025592",
     "T_full": "f702559212bfc6ba7a1b47550e949476007f8e87",
     "T_parent": "fcf7c300445b5ef91fbaa7c0074968a99024905e",
     "T_tree": "ea0df93cfc0c8722f8ef20b1d6d63ec186e12187",
@@ -14,7 +14,11 @@
     "base_to_T_commits": 2,
     "base_to_T_numstat_total": "+1444 -361, 41 파일(A 1 = RETIRED_TESTS_lm1e.md, M 40)",
     "base_to_T_paths_outside_tests": 0,
-    "freeze_verdict": "수정 필요 -- F-4 (기준 약화·interface 이탈, Major) 1건 + RETIRED_TESTS covered_by 이름 오기 1건(minor). 나머지 (1)(2)(3)(5)(6)(7)(8) 동결 가능(기록 사항 있음). 상세 = wt/_drafts/evidence/2026-11-06/lm1e_freeze.md"
+    "freeze_verdict_first_pass": "수정 필요 -- F-4 (기준 약화·interface 이탈, Major) 1건 + RETIRED_TESTS covered_by 이름 오기 1건(minor). 나머지 (1)(2)(3)(5)(6)(7)(8) 동결 가능(기록 사항 있음). 상세 = wt/_drafts/evidence/2026-11-06/lm1e_freeze.md",
+    "recheck": {
+      "T": "cf72a2789a3328fe9cbac3b46167ffc8e3fd5b31",
+      "freeze_verdict": "동결 가능 -- F-4 가 interface 4 표 1~7(+8)로 core.fp_of 직접 대조(lut_fingerprint 기대 0, None/() 상수 항목 거름), covered_by 이름 정정. 재실행: lut/test_fingerprint.py 4 failed(F-1~F-4 TypeError 서명 이유) 7 passed 2 errors, tests/structure 189 passed. 상세 = wt/_drafts/evidence/2026-11-06/lm1e_freeze.md '## 재확인'"
+    }
   },
   "isolation": {
     "clone": "C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a3/iso",
