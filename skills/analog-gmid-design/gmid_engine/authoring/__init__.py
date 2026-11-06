@@ -20,6 +20,7 @@ from .ports import (
     ROLE_DIFFERENTIAL_OUTPUT_N,
     ROLE_DIFFERENTIAL_OUTPUT_P,
     ROLE_SINGLE_ENDED_INPUT,
+    input_port_nets,
     port_declaration,
 )
 from .rails import rail_declaration
@@ -118,6 +119,7 @@ __all__ = (
     "noise_testbench_declaration",
     "IGNORED_TAG_KEYS",
     "INPUT_DIRECTION",
+    "input_port_nets",
     "InputDc",
     "OUTPUT_DIRECTION",
     "ObjectiveBudget",
