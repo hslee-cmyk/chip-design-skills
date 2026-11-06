@@ -8,6 +8,8 @@
   `flicker` 를 쓴다(같은 표 값, 순환 없음). 앵커 2개 bin 의 외부 L 값(검증 중점)은 잡음에 없다 -- 그 bin 은 L 방향 오차가 비어 있다(`l_loo` 상태 기록).
 * 디스크 캐시 대상(derived).
 """
+from operator import attrgetter
+
 import numpy as np
 
 from ._helpers_loo import l_interior, l_loo_report, linear_loo_cells, opt, table_at
@@ -31,12 +33,12 @@ class TolNoiseTable:
         self.l_loo_bins = l_loo_bins
 
     def at(self, L, vds, metric):
-        """조회점 (L, vds) 의 상대 허용오차(`TolVTable.at` 와 같은 행·칸 규칙), 정의된 값이 없으면 None.
+        """조회점 (L, vds) 의 상대 허용오차(`TolVTable.at` 와 같은 행·칸·셀 결합 규칙 `table_at` -- 결합 셀 가운데 None 이 하나라도 있으면 None).
         실패: `metric` 이 `TOL_NOISE_METRICS` 밖 -> `ValueError`, L 위치·VDS 축 -> `SealViolationError`(table "tol_noise")."""
         if metric not in TOL_NOISE_METRICS:
             raise ValueError("TolNoiseTable.at: metric 은 %s 중 하나" % (TOL_NOISE_METRICS,))
         context = (("kind", self.kind), ("table", "tol_noise"), ("w_key", self.w_key))
-        return table_at(self, metric, L, vds, context)
+        return table_at(self, attrgetter(metric), L, vds, context)
 
 
 def tol_noise_table(memo, kind):

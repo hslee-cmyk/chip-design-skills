@@ -12,22 +12,17 @@ lut_regen_plan.md 2절 K2', 계획 N3.6).
   - `id_equivalent_v` = max |lnID_a0 + t·(lnID_a1 − lnID_a0) − ln ID_m| / (GM/ID)_m, 점 = 중점 on(ID > 0, GM > 0)이고 두 앵커 on_mask.
   - `vdsat_v` = max |VDSAT_a0 + t·(VDSAT_a1 − VDSAT_a0) − VDSAT_m|, VDSAT 열 출처(`column_source`)와 중점 파일에 열이 있고 두 표의
     VGS·VDS·VS 축이 같을 때(점 = 중점 on 이고 출처 표 두 앵커 on), 아니면 None.
-* 쓰지 않는 중점은 이유와 함께 `skipped` 에 남긴다(조용히 버리지 않음): "width_differs"(중점 파일 폭 키 ≠ w_key -- 다른 폭으로
-  옮기지 않는다), "bins_unavailable", "is_anchor", "outside_model_bins", "single_point"(그 bin 의 앵커 1개 -- 조회 자체가
-  `lut_l_bin_unbracketed`), "bin_has_interior_anchors"(앵커 3개 이상 -- L 방향 LOO 가 있다), "not_bracketed"(bin 안이지만
-  두 앵커 바깥 -- 조회가 거부되는 L).
+* [LM-1e] 중점 표는 (kind, w_key) 마다 하나(그 슬라이스 자기 폭의 중점 -- 다른 폭 값을 옮겨 쓰지 않는다).
+* 쓰지 않는 중점은 이유와 함께 `skipped` 에 남긴다(조용히 버리지 않음; 사유 판정 = `_helpers_bins.midpoint_bracket` 하나): "bins_unavailable",
+  "is_anchor", "outside_model_bins", "single_point"(그 bin 의 앵커 1개 -- 조회 자체가 `lut_l_bin_unbracketed`),
+  "bin_has_interior_anchors"(앵커 3개 이상 -- L 방향 LOO 가 있다), "not_bracketed"(bin 안이지만 두 앵커 바깥 -- 조회가 거부되는 L).
 """
-
-import math
 
 import numpy as np
 
-from ._helpers_bins import bin_index
+from ._helpers_bins import midpoint_bracket
 from ._helpers_columns import column_source
-from ._helpers_interp import LINEAR_CONDITIONS
 from .lut_types import MidpointChecks, MidpointRow
-
-_PAIR = len(LINEAR_CONDITIONS)   # L 선형 보간의 점 수 = 앵커 2개 bin 의 앵커 수
 
 
 def _vds_max(values, mask):
@@ -60,7 +55,7 @@ def midpoint_l_bin_checks(memo, kind, w_key):
     sl = memo.lut.slice_map[(kind, w_key)]
 
     def compute():
-        mt = memo.lut.midpoints.get(kind)
+        mt = memo.lut.midpoints.get((kind, w_key))
         if mt is None:
             return MidpointChecks(kind, w_key, (), (), None)
         l_grid = sl.grids[0]
@@ -68,29 +63,13 @@ def midpoint_l_bin_checks(memo, kind, w_key):
         grid_m, rule = memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule
         skipped, per_model = [], {}
         for m, L_m in enumerate(mt.L_points):
-            if mt.w_key != w_key:
-                skipped.append((L_m, "width_differs", None))
-                continue
-            if not bins.bins:
-                skipped.append((L_m, "bins_unavailable", None))
-                continue
-            if math.isfinite(L_m) and any(round(L_m / grid_m) == round(a / grid_m) for a in l_grid):
-                skipped.append((L_m, "is_anchor", None))
-                continue
-            b = bin_index(tuple((x.lmin, x.lmax) for x in bins.bins), L_m, grid_m, rule)
-            if b is None:
-                skipped.append((L_m, "outside_model_bins", None))
+            b, reason = midpoint_bracket(l_grid, bins, L_m, grid_m, rule)
+            if reason is not None:
+                skipped.append((L_m, reason, None if b is None else bins.bins[b].model))
                 continue
             model = bins.bins[b].model
-            members = tuple(i for i, a in enumerate(bins.anchor_bin) if a == b)
-            if len(members) != _PAIR:
-                skipped.append((L_m, "single_point" if len(members) < _PAIR else "bin_has_interior_anchors", model))
-                continue
-            i0, i1 = members
-            if not l_grid[i0] < L_m < l_grid[i1]:
-                skipped.append((L_m, "not_bracketed", model))
-                continue
-            t = (L_m - l_grid[i0]) / (l_grid[i1] - l_grid[i0])
+            i0, i1 = (i for i, a in enumerate(bins.anchor_bin) if a == b)
+            t =(L_m - l_grid[i0]) / (l_grid[i1] - l_grid[i0])
             lid = sl.log_ID[i0] + t * (sl.log_ID[i1] - sl.log_ID[i0])
             on = mt.on_mask[m] & sl.on_mask[i0] & sl.on_mask[i1]
             with np.errstate(invalid="ignore"):

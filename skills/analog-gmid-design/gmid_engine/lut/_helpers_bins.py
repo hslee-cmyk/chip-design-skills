@@ -10,6 +10,7 @@ bin 규칙(WB-1 범위 0, DEC-105 (2), lut/CONTRACT.md 4.0.1): 구간 끝과 x �
 import math
 
 RULES = ("lower", "upper")
+_PAIR = 2   # 구간의 양 끝 앵커 수 -- 앵커 2개 bin 은 두 앵커 사이 L 선형 보간(`_helpers_interp.LINEAR_CONDITIONS` 의 점 수와 같은 구조 사실)
 
 
 def bin_index(intervals, x, grid_m, rule):
@@ -26,3 +27,27 @@ def bin_index(intervals, x, grid_m, rule):
     if not hits:
         return None
     return hits[0] if rule == "lower" else hits[-1]
+
+
+def midpoint_bracket(l_grid, l_bins, L_m, grid_m, rule):
+    """중점 L 하나 `L_m` 이 앵커 2개 bin 의 두 앵커 사이인지의 판별 `(bin index | None, 사유 | None)` -- 정의 1곳(LM-1e, D40 (v)):
+    `midpoint_l_bin_checks` 의 skipped 사유와 `load_lut_set` 의 D7 적재 거부(`bin_missing_external`)가 둘 다 이 함수를 부른다. 순수 함수(memo 없음).
+
+    `l_grid` = 슬라이스 L 앵커 tuple, `l_bins` = 그 `LBinMap`. 위에서 아래로 첫 맞는 행: bin 지도 비어 있음 `(None, "bins_unavailable")`,
+    앵커와 같은 격자 정수 `(None, "is_anchor")`, 어느 bin 에도 없음 `(None, "outside_model_bins")`, 그 bin 앵커 1개 `(b, "single_point")`,
+    3개 이상 `(b, "bin_has_interior_anchors")`, 앵커 2개지만 두 앵커 사이 아님 `(b, "not_bracketed")`, 두 앵커 사이 `(b, None)`.
+    """
+    if not l_bins.bins:
+        return None, "bins_unavailable"
+    if math.isfinite(L_m) and any(round(L_m / grid_m) == round(a / grid_m) for a in l_grid):
+        return None, "is_anchor"
+    b = bin_index(tuple((x.lmin, x.lmax) for x in l_bins.bins), L_m, grid_m, rule)
+    if b is None:
+        return None, "outside_model_bins"
+    members = tuple(i for i, a in enumerate(l_bins.anchor_bin) if a == b)
+    if len(members) != _PAIR:
+        return b, "single_point" if len(members) < _PAIR else "bin_has_interior_anchors"
+    i0, i1 = members
+    if not l_grid[i0] < L_m < l_grid[i1]:
+        return b, "not_bracketed"
+    return b, None

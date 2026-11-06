@@ -12,6 +12,8 @@ L 앵커, VDS))별 (lut/CONTRACT.md 5.2, r6; sizing 계약 12절 O1 (b) `tol_VDs
   (`midpoint_l_bin_checks` 의 `vdsat_v`), `()` = 없음 -- 받지 못한 bin 은 "missing_external" 로 남긴다.
 * 열 출처는 `column_source`(슬라이스 열 또는 같은 폭 키의 기준 LUT 열, 없으면 `lut_column_unavailable`).
 """
+from operator import attrgetter
+
 import numpy as np
 
 from ._helpers_columns import column_source
@@ -58,14 +60,14 @@ class TolVdsatTable:
         self.l_bin_checks = l_bin_checks
 
     def at(self, L, vds, metric="vdsat"):
-        """조회점 (L, vds) 의 tol_VDsat(V) -- `TolVTable.at` 와 같은 행·칸 규칙(`table_at`), 정의된 값이 없으면 None.
+        """조회점 (L, vds) 의 tol_VDsat(V) -- `TolVTable.at` 와 같은 행·칸·셀 결합 규칙(`table_at` -- 결합 셀 가운데 None 이 하나라도 있으면 None).
 
         실패: `metric` 이 `TOL_VDSAT_METRICS` 밖 -> `ValueError`, L 위치·VDS 축 -> `SealViolationError`(table "tol_vdsat").
         """
         if metric not in TOL_VDSAT_METRICS:
             raise ValueError("TolVdsatTable.at: metric 은 %s 중 하나" % (TOL_VDSAT_METRICS,))
         context = (("kind", self.kind), ("table", "tol_vdsat"), ("w_key", self.w_key))
-        return table_at(self, metric + "_v", L, vds, context)
+        return table_at(self, attrgetter(metric + "_v"), L, vds, context)
 
 
 def _loo_cells(values, on_mask, grids, interior):
