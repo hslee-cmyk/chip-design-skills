@@ -131,9 +131,16 @@ def test_cell_combine_j_a_none_cell_cascades_to_seals_and_report(tmp_path):
     assert all(it.status != "fail" for it in items.values())            # J-a0 전제
     assert items[2].status == SEAL_UNDEFINED and "M3" in items[2].devices
     n3 = _nets_with_m3_on_path(snap)                                    # N3: 유도(넷 이름을 박지 않음)
+    # 봉인 3 은 KCL 행: 채널 전류가 만나는 넷에만 행이 있다(게이트 넷은 DC 전류 0 -> 행 없음, 물리). 그 넷 = 스냅샷 dc_current_basis.ends 의 채널 끝 넷.
+    basis = snap.value("graph", DC_KEY, "dc_current_basis")
+    kcl_nets = {net for _name, f, t in basis.ends for net in (f, t)}
+    n3_kcl = [net for net in n3 if net in kcl_nets]
+    if not n3_kcl:
+        pytest.fail("전제 실패(멈추고 보고): N3 ∩ 봉인 3 KCL 행 넷이 비어 있다 (N3=%s, KCL 넷=%s)" % (n3, sorted(kcl_nets)))
+    want = {1: n3, 3: n3_kcl}                                           # 봉인 1 = N3 각 넷, 봉인 3 = N3 ∩ KCL 행 넷
     for n in (1, 3):
         assert items[n].status == SEAL_UNDEFINED, n
-        for net in n3:                                                  # N3 의 각 넷의 행 tol = None -> 그 item undefined
+        for net in want[n]:                                             # 그 넷의 행 tol = None -> 그 item undefined
             assert net in items[n].nodes, (n, net, items[n].nodes)
     # 나머지 항목(4~9)은 이 test 의 대상이 아니다 -- pass 로 두고 보고서 상태 규칙만 본다(fail 있으면 violated, undefined 있으면 undefined).
     for n, w in SEAL_WRITERS_PASS.items():

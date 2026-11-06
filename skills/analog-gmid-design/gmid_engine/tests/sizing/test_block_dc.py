@@ -1927,9 +1927,16 @@ def test_cell_combine_j_b_partly_undefined_tol_propagates_before_convergence(tmp
     (entry,) = [e for e in ctx.base.value("graph", DC_KEY, "dc_scc_order") if e.cyclic]
     assert set(entry.nodes) == {"vin", "vout"}
     for call in (lambda: run_blocks(ctx, th, upto="columns"), lambda: size_and_seal(ctx, th)):
+        log.clear()
         with pytest.raises(SealViolationError) as ei:
             call()
         e = ei.value
         assert dict(e.record.detail)["reason"] == REASON_TOL_UNDEFINED == "tol_v_undefined"
-        assert e.record.devices == entry.devices and e.record.margin is None
+        # [LM-1e A-161 (2)] devices = tol 이 None 인 원인 소자의 정렬 tuple(호출 인자 소자 전체가 아님). 원인 = spy 기록에서 결과 None 을 낸
+        # 호출의 kind 와 VDS(< 0.25, 첫 칸): 이 손 회로(_scc_s_doc)에서 그 kind(nmos) 소자 중 VDS 가 그 노드 전압 하나인(소스 = gnd) 것은 M1 뿐이다
+        # (M2 소스 = vin 이라 VDS = vout − vin ≈ 1.07 V 로 정의 칸; M3 는 pmos). oracle (a)+(d): spy 기록 + 손 연결.
+        none_calls = [(k, v) for k, v, r in log if r is None]
+        assert none_calls and all(k == "nmos" and v < 0.25 for k, v in none_calls), log
+        assert e.record.devices == ("M1",)
+        assert set(e.record.devices) < set(entry.devices) and e.record.margin is None
         assert not isinstance(e.__cause__, NonconvergentError)          # Newton 으로 넘기지 않았다
