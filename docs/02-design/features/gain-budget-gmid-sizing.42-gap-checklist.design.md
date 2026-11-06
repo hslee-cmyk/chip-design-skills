@@ -1,12 +1,13 @@
 ---
 template: design
-version: 1.16.24
+version: 1.16.25
 plan_version: 6.38.27
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
 
 > **Summary**: `bkit:gap-detector`가 설계 문서(40·41)와 구현을 대조할 때 쓰는 표다.
+> - **design v1.16.25 -- JC-1 design: '91 접합 용량' 행 대조 기준을 40 §3.8 10 'JC-1 구현 design'(함수·이름·삭제 자리·완료 조건 test 꼴)으로 갱신(계획 v6.38.27 N6.42), 독립 판정 전.**
 > - **design v1.16.24 -- D-LM1d·D-LM1e 행 추가(계획 v6.38.27 N6.40, 위임 A-144), 독립 판정 전.**
 > - **design v1.16.23 -- '91 접합 용량' 행 기준을 계획 v6.38.26 DEC-91 (2)(3)(사용자 결정 O-248, card JC-1)으로 갱신, 독립 판정 전.**
 > - **design v1.16.12 -- D-TH1·D-WB3에 M-TH1c 배정 반영, 계획 v6.38.14(위임 A-66). 둘째 커밋 = O-207 묶음 LA-1(위임 A-67). 셋째 커밋 = GB4 포락 정본 40 §3.7-A 8(위임 A-68).** **design v1.16.11 -- 묶음 ③ WB-1 독립 판정 V1~V8·후보 D1~D6 반영(위임 A-62), 둘째 커밋 재판정 R1~R3·r1~r8(위임 A-63), 셋째 커밋 최종 재판정 V-F1·f1~f6(위임 A-64), 계획 v6.38.13.** 대조 자리 = D-WB1·D-WB2·D-EO1, 독립 판정 전.
@@ -136,7 +137,7 @@ plan_version: 6.38.27
 | 88 ln IDu 좌표 | 40 §3.6, §8 R25 | DEV | `rg "def vgs_for_current_density"` 0. bounds를 조인다(`E/search/CONTRACT.md:573`) |
 | 89 레이아웃 뒤 재검증 | 40 §3.9 | PART | `E/layout/run.py:151`(`pending_wiring`) |
 | 90 SPICE 합격 정의 | 40 §4 | PART | `rg "spice_unverifiable"` 0 |
-| 91 접합 용량 | 40 §3.8 10·§3.9 | PART | **v1.16.23(계획 v6.38.26 DEC-91 (2)(3), 사용자 결정 O-248 -- card JC-1)**: 기준 = 접합 값 출처 LUT off 점 × 확산 면적 비, BSIM4 접합 식·엔진 PDK 접합 키 0 -- as-built는 BSIM4 식(`E/metrics/junction_cap.py`)이라 **DEV**(재작성 범위 = card JC-1 범위 5 분류 표). `ly.diffusion` 상태는 WB-1 병합 뒤 다시 잼(옛 증거 `E/layout/_ly_fields.py:22-40` MISS) |
+| 91 접합 용량 | 40 §3.8 10·§3.9 | PART | **v1.16.23(계획 v6.38.26 DEC-91 (2)(3), 사용자 결정 O-248 -- card JC-1)**: 기준 = 접합 값 출처 LUT off 점 × 확산 면적 비, BSIM4 접합 식·엔진 PDK 접합 키 0 -- as-built는 BSIM4 식(`E/metrics/junction_cap.py`)이라 **DEV**(재작성 범위 = card JC-1 범위 5 분류 표). `ly.diffusion` 상태는 WB-1 병합 뒤 다시 잼(옛 증거 `E/layout/_ly_fields.py:22-40` MISS). **v1.16.25(JC-1 design -- 대조 기준 = 40 §3.8 10 'JC-1 구현 design' (i)~(viii))**: OK 판정 조건 = (1) `E/metrics/junction_cap.py` 진입점 `junction_at_vgs_min` 하나가 cdb·csb 식의 유일한 자리이고 `ss_dev`가 그것을 부름 (2) `JunctionSource` 칸 = (`lut_rule_decl`, `reference`, `temp_c`), `junction_field` extras에 `pdk_decl` 없음 (3) `junction_model` 값 = `lut_vgs_min_rule_area`·`lut_vgs_min_layout_area` (4) (iv) 삭제 자리 grep 0·PDK 선언 `junction_` 키 = tnom 두 키 (5) 완료 조건 (1)~(8) test 꼴 통과. base `f1dd8f52`: `ly.diffusion` = `E/layout/diffusion.py`·`contract_output.py`, 엔진 소비 = `E/convergence/realized_geometry.py:21`(있음 -- 옛 MISS 증거는 낡음); 접합 값 = BSIM4 식이라 **DEV** 그대로 |
 | 92 GB5 방법 | 40 §3.5 | PART | `gm_req`·gap MISS |
 | 93 matching 분류 | 40 §3.2 | PART | `E/graph/matching_groups.py:78`. 신호 gate 2개 조건이 빠졌다(`E/graph/CONTRACT.md:538`) |
 | 94 MOD2 입력 게이트 | 40 §3.1 | DEV | `E/authoring/bias_inputs.py:20`(최상위 키, 사용자 승인. 계획 문구 갱신 필요) |
