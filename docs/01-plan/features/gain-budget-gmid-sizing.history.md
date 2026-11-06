@@ -8181,6 +8181,30 @@ card `20261104-op7a` 멈춤 항목 S-2·S-3 답. oracle-portability OP-7 행(v0.
 
 oracle-portability v0.6.29 전파. 측정 게이트 표 OP-7 행(P:1393)의 출처 식별 문언만 바꾼다. 경위·측정 = oracle-portability history 0.6.29 행. 독립 판정 전. **원래 취지와 다름**: 독립 재측정 → 생성기 자기 기록(oracle X-38). 옛 문언: «LUT 생성 모드 출처 식별(경계 L마다 LUT `ID` 한 칸 대조, 한 프로세스 순차)과 선언 칸». front matter `version`이 6.38.13에 머물러 있어 이 판으로 맞췄다.
 
+## v6.38.22 (2026-11-06, 사용자 결정 O-242)
+
+비기준 폭 슬라이스 tol_V의 bin L 방향 항. 독립 판정 전. 코드 변경 0. 근거 = 질문 `wt/_drafts/evidence/2026-11-06/wb1_qa_question.md`, 검증 `wb1_qa_question_validation.md`(Major 0, minor m1~m9), 결정 간 모순 점검 `wb1_qa_qb_contradiction_check.md`(재점검 v2), 권고 `wb1_qa_qb_recommendation.md`(v2).
+- **경위**: master는 모든 소자를 기준 폭 키로 판정해, 검증 중점이 kind마다 기준 폭 하나뿐인 공백이 드러나지 않았다. WB-1이 소자별 슬라이스로 바꾸자 비기준 슬라이스의 앵커 2개 bin 셀이 L 항 없이 값을 냈다(as-built: `lut/midpoint_checks.py` `width_differs`, `with_external(value, None)` = 값 그대로). 측정(two_stage_ota 손 봉인 점, 같은 θ): `dc_tol_v` M6 4.49e-3 → 4.25e-6 V(1/1056; 분석 agent 측정 `C:/Users/HSLEE/AppData/Local/Temp/la1s_wb1_ana11/out_master.txt:8`·`out_wb1c.txt:8` -- 질문 문서의 덤프 출처는 틀림, 검증 m1), `power_resolution_w` 7.13e-6 → 6.69e-9 W(덤프 `la1s_wb1_diag9/dump_132501bd.txt:45`·`dump_7c038c89.txt:45`), gbw 행 c +0.0555 → −330. 위임 A-63 Q-DC3 (나) '판정 불변'이 틀렸다. 물리 측정(권고 agent): 폭을 바꿔도 L 보간 오차는 같은 자릿수(ngspice 중점 비 0.95~1.44·0.98~1.09, LUT LOO 폭별 비 0.58~2.25).
+- **O-242**: A(슬라이스별 중점 생성 + 빈 칸 fail-closed) 채택. B(기준 폭 차용 -- 상한 아님, 최대 2.25배 과소)·C(빈 칸 거부만 -- 출발 점 층 0 55/60 소자·손 봉인 점 7/7 E-0 실패, 탐색 불능)·D(현행 -- 정의 위반) 기각.
+- **바뀐 자리**: Status; N3.6 봉인 10행 '판정 자리 = 이 행 하나'에 범위 문언(옛 문언: «(사용자 결정 O-210 RR-7 조건 -- 판정 자리 = 이 행 하나;»); N3.6 tol_V 정의에 슬라이스별 중점·정의 불능 한 문장(셀 정의 불변); N5.3 Q-T0 행 상호작용 문장(옛 끝: «그때까지 현행 tol_V 셀 유지 |»); N6.1 card 순서 표 LM-1d·LM-1e 행과 WB-1 행·LA-1 행 선행, 코드 card 진행 순서 표 LM-1d·LM-1e 행과 WB-1 행; N6.32 '순서' 병합 선행; 새 절 N6.40.
+- **검증 minor 대응**: m1(출처) = 위 경위에서 정정. m2('같은 test' 미확인) = 계획에 test 대조 문장을 두지 않음(근거는 gbw 행 c). m3((가) 서술) = design 41 Q-DC3 행과 N6.40 근거에 '(가) tol 표 구성 비용·순수성 유지, 기각했던 중점 생성안 되살림'. m4(판정 갈래·소비자) = N6.40 LM-1e 3 (b)(c)·4. m5(tol_VDsat) = LM-1e 3 (d). m6(비용) = LM-1d 2('약 90분'은 환산 추정), 조합 = W_min 정정 뒤 집합(권고 v2: 112). m7(P:663 한 줄) = 봉인 10행 범위 문언. m8(W_min 캐시 키 자리) = N6.40 'WB-1 병합 전 항목' 1. m9(Q-T0 상호작용) = LM-1e 5·N5.3 Q-T0 행.
+- **원래 취지와 다름**: 위임 A-63 Q-DC3 (나) 철회, Q-DC3가 기각한 중점 생성안 되살림, card +2(LM-1d·LM-1e), LM-1d ngspice 1회(O-229 2·O-232 허용 목록 밖 -- O-242가 허용).
+- 하지 않은 것: `la1_auto_decisions.md` A-110 낡은 구절 무효 표지(오케스트레이터 몫), LM-1d·LM-1e spec/interface card(계획·design 승인 뒤).
+
+## v6.38.22 둘째 커밋 (2026-11-06, 사용자 결정 O-242, 독립 판정 반영)
+
+독립 판정 `wt/_drafts/evidence/2026-11-06/lm1_plan_verdict.md`(Major 2 -- 둘 다 오케스트레이터 결정 (가) 실행 조건, minor 11) 반영. 오케스트레이터 위임 결정(O-229 7): (가) LM-1e base = WB-1 브랜치 머리, WB-1 + LM-1e 통합 병합(O-183 머리 규칙, 표 #17 꼴) (나) QB(C1) 답 전 WB-1 병합 보류. 재판정 전. 코드 변경 0.
+- **M-1**: 첫 커밋은 LM-1e를 'WB-1 병합 선행'(먼저 master 병합)으로 적고 'base가 master면 WB-1 rebase 때 지운다'를 열어 두었다. LM-1e가 고칠 `lut/slice_tables.py`·`find_front` notes·그 test가 WB-1 브랜치에만 있어 생산 WB-1과 첫 고침 LM-1e가 다른 병합에 걸쳤다. 병합 순서 규칙 표 #24 신설, N6.40 LM-1e 4·'순서', N6.32 '순서', N6.1 card 순서 표 LM-1d·LM-1e·WB-1·LA-1 행, 코드 card 진행 순서 표 LM-1e·WB-1 행, WB-1 spec 머리·:41·:75·:255·:278, interface :311을 '통합 병합'으로 고쳤다. 개정 승인 전 LM-1e 착수 금지 문언. 옛 문언(N6.32): «**병합 선행 = card LM-1e**(사용자 결정 O-242 -- 순서 … → LM-1e → 이 card 병합: …»; (N6.40 LM-1e 4 괄호): «둘은 WB-1 브랜치에만 있으므로 LM-1e base가 master면 WB-1 rebase 때 지운다».
+- **M-2**: 첫 커밋 LM-1d 3은 LM-1d가 위치 선언을 고친다고 적었다. 지금 로더(`data_location.py` 모르는 `files` 항목 무시, `lut_set.py` 중점 파일 하나에 `w_ref_m` 하나)는 그 선언을 소비하지 못해 생산·소비가 다른 병합이 된다. LM-1d = git 밖 데이터 + 출처 기록(`Role: doc`), 위치 선언 커밋 = 통합 병합 안으로 바꿨다. 옛 문언: «3. **위치 선언**: 중점 파일은 기존 LUT 위치 선언 하나에 같은 묶음으로 더한다(O-180 -- 둘째 위치 금지). 지문의 중점 sha256이 바뀐다.»
+- **minor**: m1 봉인 10행 SCC 갈래 '모두 정의 불능일 때'(옛: «SCC 순환 수렴 tol이 쓰는 셀의 정의 불능은 순환 수렴 자리(사용자 결정 O-240)가 DC 블록 실패로 판정한다»). m2 WB-1에만 있는 것 = 셋(`slice_tables` 포함). m3 기준 폭 슬라이스 중점도 같은 생성기로 재생성(옛 기준 폭 중점은 기준 생성기 산출, 슬라이스 앵커는 DC 슬라이스 생성기 산출, 두 생성기 값 일치 기록은 W = 5 µm뿐 -- `lut_data/sky130_lut_v2/verification/midpoints_regen_check.json`·`slice_w5_vs_base.json`), 옛 문언 «중점이 이미 있는 슬라이스는 다시 만들지 않는다» 삭제, 완료 조건에 대조 기록(차 > 그 셀 tol_V면 멈춤). m4 슬라이스 중점 sha256 전부가 지문·U-87 키에(LM-1e 6 (6)). m5 비용 측정은 여기로 옮김: DC 슬라이스 생성기 실측 조합당 0.4~0.5 s(권고 agent, `la1s_wb1_rec13/out/qa_ngspice_mid.txt`); 기준 생성기 '약 90분(직렬)'은 옛 기록 '재생성 약 6분'(8조합)을 조합 수로 환산한 추정이고 실측 아님, 옛 기록의 병렬 여부 미상. m6 QB 답 전 병합 보류·선택식 바뀌면 WB-1에서 반영 뒤 병합·기준선 한 번. m7 LM-1d 출처 기록 트레일러 `Role: doc`, D41:17 Status v1.16.19. m8 spec 머리 줄 참조 갱신. m9 함수 레지스트리 `_bin_rule_note` 행을 LM-1e 4에. m10 오케스트레이터 전제 'master는 기준 폭 키만'은 부정확(master `layout/slice_density.py`가 비기준 슬라이스 tol을 읽음) -- 결론 불변, LM-1e 6 (3) 문언을 'LM-1d 데이터 적재 뒤 모든 슬라이스 None 0'으로 바꿈(옛: «기준 폭 키만 쓰는 경로에서 None 셀 0»). m11 다음 단계 표지(LM-1e design에 갈래·고칠 자리 직접, design 42 gap 행).
+- **원래 취지와 다름**: O-242 문언 'LM-1e → WB-1 병합'을 'LM-1e 완료 → WB-1 + LM-1e 통합 병합'으로 읽음(취지 = WB-1이 L 항 없이 master에 들어가지 않음 -- 유지).
+## v6.38.22 셋째 커밋 (2026-11-06, 사용자 결정 O-242, 재판정 반영)
+
+재판정 `wt/_drafts/evidence/2026-11-06/lm1_plan_verdict.md` '재판정' 절(Major 0, minor r1~r4) 반영. 코드 변경 0.
+- **r1**: LM-1d 완료 조건 (2) 대조량이 정의되지 않아 중점 배열(ID·GM, A·S) 차로 읽혔다 -- tol_V와 같은 지표(`id_equivalent`, V)의 bin L 방향 값 차로 정의했다. 이 쓰임이 N3.6 tol_V '용도' 목록(O-240 남은 자리)에 없어 'LM-1d 데이터 대조 문턱(1회)'을 더했다(O-240 금지인 손계산 대 SPICE 오차 범위가 아님 -- 같은 시뮬레이터·모델의 생성기 사이 수치 차). 옛 문언: «(2) 기준 폭 슬라이스 대조 기록 -- 옛 기준 폭 중점 파일(다른 생성기 산출) 값과 새 값의 차를 셀마다 기록하고, …», «봉인 1·2·3·8, K_max, 순환 수렴, forced 모드 경고에 쓰고».
+- **r2**: 표 #24 근거 -- WB-1은 `slice_tables`를 스스로 소비하므로 머리 규칙만으로는 순서 고정까지만 나온다. 통합 병합의 근거를 'O-242 순서 취지 + 위치 선언 몫은 머리 규칙 O-183, 위임 A-131'로 고쳤다. 옛 문언: «머리 규칙 O-183 -- #17 HC-1 + GC-8과 같은 꼴, 오케스트레이터 위임 결정 2026-11-06(O-229 7)».
+- **r3**: #24와 표 끝 요약 '순환 0 …'이 붙어 있던 것을 '#24 끝'·'표 전체 요약' 표지로 나눴다.
+- **r4**: LM-1d 출처 기록 커밋 경로는 LM-1d spec card가 정한다(옛 «(evidence, 트레일러 `Role: doc`)»).
 ## v6.38.21 (2026-11-06, 위임 O-226 A-123·A-124, 사용자 결정 O-237·O-238)
 
 WB-1 계획 문언 개정. 독립 판정 전. 근거 실측 = `wt/_drafts/evidence/2026-11-06/wb1_resolve_check.md`, `wb1_questions_check.md`, `wb1_three_questions.md`(점검자 ≠ 권고 작성자). 코드 변경 0.
