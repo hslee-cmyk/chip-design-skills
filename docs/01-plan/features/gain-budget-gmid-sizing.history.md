@@ -8425,6 +8425,18 @@ card `20261105-sf1r9` 작성자가 표지한 공백 SG-1~8을 계획 몫부터 �
 - **원래 취지와 다름**: (1) 용어 교체(계획 표 9행·oracle 정본·O-210 RR-2 원문 '꺼짐') (2) A-144 전도 하한 몫 철회 (3) graph-consumption O-15 (A)·U-G4 `conduction_mask` 정본 신설 철회·GC-7 범위 축소 (4) A-139 (4) 집계 규칙의 과도기 예외(LM-1e 병합 ~ LA-1 병합) (5) `current_box` `lut_vgs_zero_missing` 거부 삭제의 선행 조건(값 동일 실측).
 - **고치지 않은 낡은 의심 문언**(LA-1 재점검 입력 후보, 결정 문언이 아니라 손대지 않음): DEC-105·U-134 '꺼진 영역 모서리'·'VGS = 0 누설, 셀 꺼짐'·'꺼진 소자 gm의 포락'(O-249 원리상 깊은 약반전 전도 -- 서술 용어), N6.14 LA-1 계산 표 ln IDu·ID 행의 '반전 하한'(O-207 잔재), N7.2 oracle 범위 판정 [정정됨] 행의 '전도 하한'(기록).
 
+## v6.38.28 둘째 커밋 (2026-11-06, 독립 판정 Major 3 반영 -- 위임 A-146, 재판정 필요)
+
+판정 `wt/_drafts/evidence/2026-11-06/v63828_plan_verdict.md`(Major 3, minor 12), 위임 A-146(`wt/_drafts/la1_auto_decisions.md` A-146 행). 코드 변경 0, test·ngspice 0.
+- **M1**(graph 규칙 3): N6.40 LM-1e 3b (i) 옛 «같은 규칙으로 바꾸고, 가능하면 `table_at`을 재사용해 둘째 결합 구현을 지운다(셀 값 칸 접근 꼴은 card).», 완료 (1) 옛 «`table_at`을 재사용했으면 둘째 결합 구현 정의 `git grep` 0;» → 조건 없이(`TolMismatchTable.at` 안 셀 결합 구현 0). N3.6 표 10행 (i) mismatch 괄호에 '둘째 구현 삭제 -- 재작성 = card LM-1e 3b' 추가(A-145 (3)·design 40 :1259·card `ddd73c62`와 같게).
+- **M2**(원칙 19): N6.14 LA-1 계산 단계표 ln IDu·ID 행 물리 정합 장치 칸 옛 «LUT on_mask 정의역·단조 검사(DEC-87 FC·단조 검사, N3.7 LUT 곡선 검사)·반전 하한» → '반전 하한' 삭제, '바닥 = LUT 정의역 -- 정본 (10), 반전 하한 없음 -- O-207·DEC-107'. 'v6.38.28' 절 '고치지 않은 낡은 의심 문언'의 이 항목은 이 커밋에서 고침으로 옮긴다(다른 항목은 그대로 LA-1 재점검 입력).
+- **M3**(A-145 (1) m4 전제 정정, 위임 A-146): N3.6 표 9행 (ii) 첫 커밋 괄호 «DC 전류 0인 `triode` 스위치(예: 게이트만 구동하는 경로의 pass 소자)는 아래 KCL 항등 0 전류 MOS 예외가 받으므로 '0 전류라 거부'가 아니다, 지금 발동 0(library `triode` 선언 0/13)» → 예외의 적용 범위는 (i)과 oracle 판정뿐이라 (ii)는 지금 규칙으로 선언 오류 거부(거짓 거부 쪽, fail-closed), 발동 0, LA-1 재점검; 예외 범위 확장(기준 변경 -- 위임 밖)은 택하지 않음. **실측 서술 이동**(판정 minor 10): 발동 0 = library `triode` 선언 0/13(감사 `off_rules_audit.md` 인용, CI-18 -- 선언 전).
+- **이름 교체 셋**(판정 minor 1·2·3): DEC-90 (1) 옛 «(O-50 G3 'ID ≤ 0 = 꺼짐' 유지)», N6.14 design 정정 표 oracle-portability design 행 옛 «oracle 포화 (ii)·꺼짐 판정에서», graph-consumption N3.2 `dc_off_current` 행 옛 «oracle 꺼짐 = 채널 op ID ≤ 0»(graph-consumption 판 번호는 v0.14.11 그대로 -- 같은 판의 정정, 그 history 0.14.11 둘째 커밋 행).
+- **LA-1 차단 근거**(판정 minor 6): N6.40 3b LA-1 차단 판정 옛 «mismatch tol 표 조회는 (i)에 든다(같은 셀 결합, 위임 A-145).» → 잡음 tol·mismatch tol의 차단 근거 = 판정 제약 분해능 입력(`device_sigma` → offset 판정 분해능, `noise_integral` resolution → `ss_constraints` 판정 행; 정의된-셀-만 결합 = fail-open 쪽, None = `extra = None`·`unmeasured` fail-closed).
+- **과도기 예외 기록 근거**: 표 10행 (ii)·3b (ii) '과도기 예외'에 '기록 A-146' 인용 추가(판정 minor 9 -- `la1_auto_decisions.md` 기록은 A-146 행).
+- **Status**(판정 minor 8): '원래 취지와 다름'에 `current_box` 거부 삭제의 선행 조건 추가.
+- **손대지 않음**(LA-1 재점검 입력, A-146): P:1370 GC-2 'g = s 꺼짐 분류' 낡은 문언(판정 minor 4), 선언 없는 약반전 소자를 '꺼진'으로 부르는 서술(DEC-105, U-134, design 40 :913, design 41 :902·:915 -- 판정 minor 5), P:2027 [정정됨] 행 `conduction_mask` 문구(판정 minor 11), triode 스위치 DC 0 전류 거짓 거부(M3). 판정 minor 7(DEC-107·정본 (0) 중복)은 위반 아님 판정이라 변경 0, minor 12(card 개정)는 card 몫.
+
 ## v6.38.16 (2026-11-04, 위임 O-226 A-84)
 
 oracle-portability v0.6.31 전파. N6.1 oracle 병렬 줄에 OP-4 표지 한 문장만 더한다. 경위·측정 = oracle-portability history 0.6.31 행. 독립 판정 전. **원래 취지와 다름**: 옛 oracle OP-5 행 선행 'OP-4' 해제(oracle X-40), LA-1까지 card 목록에 없던 OP-4가 LA-1 측정 전 필요 항목으로 드러남(위임 A-84 사용자 보고 항목).
