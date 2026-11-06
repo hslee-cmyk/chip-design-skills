@@ -56,13 +56,15 @@ def _canonical(projection, kind):
 
 def _power_resolution(projection, basis, node_key, device_key):
     """b_P = Σ_레일 |V_k|·max_{m: 채널이 레일 k 에 닿음} dc_tol_v[m]·dc_gm[m]. 합산 순서는 정준(구조 색) 순서.
-    항(채널이 레일에 닿는 소자의 tol)에 None 이 하나라도 있으면 b_P = None(정의 항이 빠진 값을 내지 않는다 -- 계획 N3.6 표 10행 집계 규칙, LM-1e 3b)."""
+    |V_k| ≠ 0 레일 항(채널이 레일에 닿는 소자의 tol)에 None 이 하나라도 있으면 b_P = None(|V_k| = 0 레일 항은 정의상 0이라 None 항이 아니다;정의 항이 빠진 값을 내지 않는다 -- 계획 N3.6 표 10행 집계 규칙, LM-1e 3b)."""
     tols = dict(projection.column("device", "dc_tol_v"))
     gm = dict(projection.column("device", "dc_gm"))
     channel = {e: (a, b) for e, a, b in basis.ends}
     devices = sorted(gm, key=device_key)
     total, defined = 0.0, False
     for rail, volt in sorted(projection.column("node", "dc_rail_v"), key=lambda r: node_key(r[0])):
+        if float(volt) == 0:
+            continue
         touching = [m for m in devices if rail in channel.get(m, ())]
         if any(tols.get(m) is None for m in touching):
             return None
