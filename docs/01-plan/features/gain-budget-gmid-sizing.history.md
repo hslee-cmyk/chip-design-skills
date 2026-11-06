@@ -8181,6 +8181,16 @@ card `20261104-op7a` 멈춤 항목 S-2·S-3 답. oracle-portability OP-7 행(v0.
 
 oracle-portability v0.6.29 전파. 측정 게이트 표 OP-7 행(P:1393)의 출처 식별 문언만 바꾼다. 경위·측정 = oracle-portability history 0.6.29 행. 독립 판정 전. **원래 취지와 다름**: 독립 재측정 → 생성기 자기 기록(oracle X-38). 옛 문언: «LUT 생성 모드 출처 식별(경계 L마다 LUT `ID` 한 칸 대조, 한 프로세스 순차)과 선언 칸». front matter `version`이 6.38.13에 머물러 있어 이 판으로 맞췄다.
 
+## v6.38.22 (2026-11-06, 사용자 결정 O-242)
+
+비기준 폭 슬라이스 tol_V의 bin L 방향 항. 독립 판정 전. 코드 변경 0. 근거 = 질문 `wt/_drafts/evidence/2026-11-06/wb1_qa_question.md`, 검증 `wb1_qa_question_validation.md`(Major 0, minor m1~m9), 결정 간 모순 점검 `wb1_qa_qb_contradiction_check.md`(재점검 v2), 권고 `wb1_qa_qb_recommendation.md`(v2).
+- **경위**: master는 모든 소자를 기준 폭 키로 판정해, 검증 중점이 kind마다 기준 폭 하나뿐인 공백이 드러나지 않았다. WB-1이 소자별 슬라이스로 바꾸자 비기준 슬라이스의 앵커 2개 bin 셀이 L 항 없이 값을 냈다(as-built: `lut/midpoint_checks.py` `width_differs`, `with_external(value, None)` = 값 그대로). 측정(two_stage_ota 손 봉인 점, 같은 θ): `dc_tol_v` M6 4.49e-3 → 4.25e-6 V(1/1056; 분석 agent 측정 `C:/Users/HSLEE/AppData/Local/Temp/la1s_wb1_ana11/out_master.txt:8`·`out_wb1c.txt:8` -- 질문 문서의 덤프 출처는 틀림, 검증 m1), `power_resolution_w` 7.13e-6 → 6.69e-9 W(덤프 `la1s_wb1_diag9/dump_132501bd.txt:45`·`dump_7c038c89.txt:45`), gbw 행 c +0.0555 → −330. 위임 A-63 Q-DC3 (나) '판정 불변'이 틀렸다. 물리 측정(권고 agent): 폭을 바꿔도 L 보간 오차는 같은 자릿수(ngspice 중점 비 0.95~1.44·0.98~1.09, LUT LOO 폭별 비 0.58~2.25).
+- **O-242**: A(슬라이스별 중점 생성 + 빈 칸 fail-closed) 채택. B(기준 폭 차용 -- 상한 아님, 최대 2.25배 과소)·C(빈 칸 거부만 -- 출발 점 층 0 55/60 소자·손 봉인 점 7/7 E-0 실패, 탐색 불능)·D(현행 -- 정의 위반) 기각.
+- **바뀐 자리**: Status; N3.6 봉인 10행 '판정 자리 = 이 행 하나'에 범위 문언(옛 문언: «(사용자 결정 O-210 RR-7 조건 -- 판정 자리 = 이 행 하나;»); N3.6 tol_V 정의에 슬라이스별 중점·정의 불능 한 문장(셀 정의 불변); N5.3 Q-T0 행 상호작용 문장(옛 끝: «그때까지 현행 tol_V 셀 유지 |»); N6.1 card 순서 표 LM-1d·LM-1e 행과 WB-1 행·LA-1 행 선행, 코드 card 진행 순서 표 LM-1d·LM-1e 행과 WB-1 행; N6.32 '순서' 병합 선행; 새 절 N6.40.
+- **검증 minor 대응**: m1(출처) = 위 경위에서 정정. m2('같은 test' 미확인) = 계획에 test 대조 문장을 두지 않음(근거는 gbw 행 c). m3((가) 서술) = design 41 Q-DC3 행과 N6.40 근거에 '(가) tol 표 구성 비용·순수성 유지, 기각했던 중점 생성안 되살림'. m4(판정 갈래·소비자) = N6.40 LM-1e 3 (b)(c)·4. m5(tol_VDsat) = LM-1e 3 (d). m6(비용) = LM-1d 2('약 90분'은 환산 추정), 조합 = W_min 정정 뒤 집합(권고 v2: 112). m7(P:663 한 줄) = 봉인 10행 범위 문언. m8(W_min 캐시 키 자리) = N6.40 'WB-1 병합 전 항목' 1. m9(Q-T0 상호작용) = LM-1e 5·N5.3 Q-T0 행.
+- **원래 취지와 다름**: 위임 A-63 Q-DC3 (나) 철회, Q-DC3가 기각한 중점 생성안 되살림, card +2(LM-1d·LM-1e), LM-1d ngspice 1회(O-229 2·O-232 허용 목록 밖 -- O-242가 허용).
+- 하지 않은 것: `la1_auto_decisions.md` A-110 낡은 구절 무효 표지(오케스트레이터 몫), LM-1d·LM-1e spec/interface card(계획·design 승인 뒤).
+
 ## v6.38.21 (2026-11-06, 위임 O-226 A-123·A-124, 사용자 결정 O-237·O-238)
 
 WB-1 계획 문언 개정. 독립 판정 전. 근거 실측 = `wt/_drafts/evidence/2026-11-06/wb1_resolve_check.md`, `wb1_questions_check.md`, `wb1_three_questions.md`(점검자 ≠ 권고 작성자). 코드 변경 0.

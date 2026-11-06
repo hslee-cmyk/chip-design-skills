@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.16.18
-plan_version: 6.38.21
+version: 1.16.19
+plan_version: 6.38.22
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
