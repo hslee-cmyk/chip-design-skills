@@ -27,7 +27,15 @@ def _tracked():
 
 def _declared_names():
     cfg = json.loads(LOCATION_CONFIG.read_text(encoding="utf-8"))
-    return {ent["path"] for ent in cfg["files"].values()}
+    return {ent["path"] for ent in _file_entries(cfg)}
+
+
+def _file_entries(cfg):
+    """interface 1: files 값은 객체 하나 또는(verify_midpoints) 원소가 {path, sha256} 인 배열 -- 원소마다 순회."""
+    out = []
+    for v in cfg["files"].values():
+        out.extend(v if isinstance(v, list) else [v])
+    return out
 
 
 def test_no_tracked_lut_npz_outside_history():
@@ -176,7 +184,8 @@ def test_root_env_still_sha256_checked(tmp_path):
     from gmid_engine.core import SchemaRejectedError
     from gmid_engine.lut import resolve_lut_location
     cfg = json.loads(LOCATION_CONFIG.read_text(encoding="utf-8"))
-    for ent in cfg["files"].values():
+    for ent in _file_entries(cfg):
+        (tmp_path / ent["path"]).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / ent["path"]).write_bytes(b"not the pinned lut")
     env = {cfg["root"]["env"]: str(tmp_path)}
     try:
