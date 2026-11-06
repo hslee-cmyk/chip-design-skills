@@ -618,3 +618,175 @@ def test_gate_entry_derives_budget_when_evaluations_at_most_n_theta(tmp_path, lu
     assert seen[0][0] == 8192, seen
     assert re.fullmatch(r"derived_once:floor\(B/median_t_eval\)@n_evals=\d+", str(seen[0][1])), seen
     assert dict(fr.perf)["eval_budget"] == 8192
+
+
+# =====================================================================================================================
+# [WB-1 개정 셋째·넷째·다섯째] R-17 (unmeasured_front 도 실현 관문 + 실현 뒤 재분류) · R-18 (감도 게이트 대상 ∈ 실현 front). oracle (손) interface §6 '관문'·§10 R-17·R-18.
+# 입력 = R-2 회로 + 출력 용량 CL(`wb1_flow.circuit_r2_cl`): CL 미선언 -> gain_ss_db 행 미측정(unmeasured), 선언 -> 측정. 점 둘 = 층 L 1e-6 / 2e-6 의 θ (R-5 가 둘 다
+# 실현 가능함을 보인 입력). 관찰 지점(§9) = find_front 모듈 전역 `sweep_front`·`realize_front`·`run_sensitivity_gate`, realize_front 모듈 전역 `evaluate`.
+# =====================================================================================================================
+
+def _wb1_points(tmp_path, cl, ids=("u0", "u1"), archive_root=None):
+    from gmid_engine.search import FrontPoint, evaluate
+    from .wb1_flow import R2_CELLS, R2_ELEMENTS, bins_case, circuit_r2_cl, r2_theta, sorted_theta
+    case = bins_case(tmp_path, circuit_r2_cl(), elements=R2_ELEMENTS + (("CL", "capacitor", cl),), eval_budget=60, archive_root=archive_root)
+    ths = (sorted_theta(r2_theta(case.dc)), sorted_theta(r2_theta(case.dc, l=2e-6)))
+    cells = (R2_CELLS, (1, 1, 1, 1))
+    evs = [evaluate(case.sctx, th, c) for th, c in zip(ths, cells)]
+    return case, [FrontPoint(i, e, ()) for i, e in zip(ids, evs)], ths
+
+
+def _stubbed_find_front(case, monkeypatch, front, unmeasured, wrap_evaluate=None, gate_log=None):
+    """sweep_front 를 front / unmeasured_front 가 정해진 stub 로, realize_front·(선택) realize_front.evaluate·run_sensitivity_gate 를 감싸 find_front 를 돈다."""
+    from .wb1_flow import r2_theta
+    ff = sys.modules["gmid_engine.search.find_front"]
+    rf_mod = sys.modules["gmid_engine.search.realize_front"]
+    real_sweep, real_rf, real_gate = ff.sweep_front, ff.realize_front, ff.run_sensitivity_gate
+    rec = []
+
+    def sweep(*a, **k):
+        out = dict(real_sweep(*a, **k))
+        out["front"], out["unmeasured_front"] = tuple(front), tuple(unmeasured)
+        return out
+
+    def rf(sctx, points):
+        o = real_rf(sctx, points)
+        rec.append((tuple(points), o))
+        return o
+
+    def gate(sctx, base, *a, **k):
+        if gate_log is not None:
+            gate_log.append(base)
+        return real_gate(sctx, base, *a, **k)
+    monkeypatch.setattr(ff, "sweep_front", sweep)
+    monkeypatch.setattr(ff, "realize_front", rf)
+    monkeypatch.setattr(ff, "run_sensitivity_gate", gate)
+    if wrap_evaluate is not None:
+        real_eval = rf_mod.evaluate
+        monkeypatch.setattr(rf_mod, "evaluate", lambda *a, **k: wrap_evaluate(real_eval, *a, **k))
+    return find_front(case.sctx, [r2_theta(case.dc)]), rec
+
+
+def _run_line(short_root, case):
+    (run,) = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "runs.jsonl").read_text(encoding="utf-8").splitlines() if x.strip()]
+    return run
+
+
+def _result_of(x):
+    return getattr(x, "result", x)
+
+
+def test_r17_unmeasured_front_points_pass_the_realize_gate_and_failed_one_is_lost(tmp_path, monkeypatch, short_root):
+    """R-17: front 0점·unmeasured_front 2점(둘 다 봉인, 미측정 행 있음; 하나는 실현 봉인 실패로 강제). `realize_front` 호출에 두 점이 전달되고(호출 >= 1),
+    결과 unmeasured_front = 남은 1점의 **실현 값**, 미측정 사유로 빠지지 않으며 실패 점은 `realize.lost`(사유 있음). base = 실현 없이 반환 (red)."""
+    from gmid_engine.core import SealViolationError
+    from gmid_engine.search import STATUS_SEALED
+    case, (u0, u1), ths = _wb1_points(tmp_path / "pts", PENDING, archive_root=short_root)
+    assert u0.result.status == u1.result.status == STATUS_SEALED
+    assert len(tuple(u0.result.unmeasured)) >= 1 and len(tuple(u1.result.unmeasured)) >= 1        # 전제: 미측정 행 있음
+    bad = tuple(u1.result.theta)
+
+    def forced(real, sctx, theta, *a, **k):
+        if tuple(theta) == bad:
+            raise SealViolationError(devices=("M1",), margin=0.5, detail={"item": 7, "reason": "wb1_test_forced_failure"})
+        return real(sctx, theta, *a, **k)
+    fr, rec = _stubbed_find_front(case, monkeypatch, (), (u0, u1), wrap_evaluate=forced)
+    assert len(rec) >= 1                                                                          # 양성 대조: 관문이 불렸다 (호출 0 이면 red)
+    assert {p.point_id for pts, _ in rec for p in pts} == {"u0", "u1"}                          # unmeasured_front 점이 realize_front 로 전달
+    out = rec[0][1]
+    assert tuple(fr.front) == () and [p.point_id for p in fr.unmeasured_front] == ["u0"]
+    assert fr.unmeasured_front[0].result is out.points[0].result and fr.unmeasured_front[0].result is not u0.result      # 실현 값
+    lost = {pid: (reason, detail) for pid, reason, detail in out.lost}
+    assert set(lost) == {"u1"} and lost["u1"][0] and lost["u1"][0] != "realized_spec_unmeasured"  # 미측정 사유로 빠지지 않음
+    run = _run_line(short_root, case)                                                            # 결과 JSON: 집합 둘 = 실현 값, 실패 점은 realize.lost
+    real = dict(run["realize"])
+    assert run["front"] == [] and len(run["unmeasured_front"]) == 1
+    assert real["n_lost"] == 1 and "u1" in json.dumps(real["lost"], default=str) and "realized_spec_unmeasured" not in json.dumps(real, default=str)
+
+
+def test_r17_unmeasured_point_whose_realized_row_is_measured_moves_to_front(tmp_path, monkeypatch, short_root):
+    """R-17 (i) [넷째 R-M2]: 탐색 unmeasured_front 점의 실현 평가에서 미측정 행이 0 (실현 평가 결과의 미측정 칸을 비운 꼴) -> 결과 front 에 들어가고 `realize.moved` =
+    (점, unmeasured_front, front), `realized_spec_unmeasured` 사유 0."""
+    case, pts, _ = _wb1_points(tmp_path / "pts", PENDING, archive_root=short_root)
+    seen = {"n": 0}
+
+    def cleared(real, *a, **k):
+        res = real(*a, **k)
+        seen["n"] += 1
+        return dataclasses.replace(res, unmeasured=())
+    fr, rec = _stubbed_find_front(case, monkeypatch, (), tuple(pts), wrap_evaluate=cleared)
+    assert seen["n"] >= 1 and len(rec) >= 1                                                       # 양성 대조: 감쌈이 실제 realize 평가에 닿았다
+    ids = {p.point_id for p in fr.front}
+    assert ids and ids <= {"u0", "u1"} and tuple(fr.unmeasured_front) == ()                      # front 로 이동 (front 지배 재필터를 거친 부분집합)
+    run = _run_line(short_root, case)
+    real = dict(run["realize"])
+    moved = [list(m) for m in real["moved"]]
+    for pid in ids:
+        assert [pid, "unmeasured_front", "front"] in moved, (pid, moved)
+    assert "realized_spec_unmeasured" not in json.dumps(real, default=str) and rec[0][1].lost == ()
+
+
+def test_r17_front_point_whose_realized_row_is_unmeasured_moves_to_unmeasured_front(tmp_path, monkeypatch, short_root):
+    """R-17 (ii) [넷째 R-M2]: 탐색 front 점의 실현 평가에 미측정 행이 생김(같은 감쌈으로 미측정 하나를 더함) -> 결과 unmeasured_front (lost 아님), `realize.moved` =
+    (점, front, unmeasured_front), `realized_spec_unmeasured` 사유 0. 미측정 행의 모양 = 실제 미측정 결과에서 가져온 한 항목."""
+    case, pts, _t = _wb1_points(tmp_path / "meas", 1e-12, archive_root=short_root)               # CL 선언 -> 측정 점
+    assert all(len(tuple(p.result.unmeasured)) == 0 for p in pts)                               # 전제: 측정
+    _c2, (s0, _s1), _t2 = _wb1_points(tmp_path / "unm", PENDING)
+    row = tuple(s0.result.unmeasured)[0]                                                         # 실제 미측정 항목 하나 (모양 출처)
+    seen = {"n": 0}
+
+    def added(real, *a, **k):
+        res = real(*a, **k)
+        seen["n"] += 1
+        return dataclasses.replace(res, unmeasured=tuple(res.unmeasured) + (row,))
+    fr, rec = _stubbed_find_front(case, monkeypatch, tuple(pts), (), wrap_evaluate=added)
+    assert seen["n"] >= 1 and len(rec) >= 1
+    ids = {p.point_id for p in fr.unmeasured_front}
+    assert ids and ids <= {"u0", "u1"} and tuple(fr.front) == () and rec[0][1].lost == ()
+    moved = [list(m) for m in dict(_run_line(short_root, case)["realize"])["moved"]]
+    for pid in ids:
+        assert [pid, "front", "unmeasured_front"] in moved, (pid, moved)
+    assert "realized_spec_unmeasured" not in json.dumps(dict(_run_line(short_root, case)["realize"]), default=str)
+
+
+def test_r18_sensitivity_gate_target_is_a_realized_front_point(tmp_path, monkeypatch, short_root):
+    """R-18: front 2점, realize_front 가 첫 탐색 점을 lost 로(봉인 실패 꼴) -> 게이트가 본 점 ∈ 실현 front (남은 점의 실현 값 결과, 탐색 첫 점 아님), 게이트 호출 >= 1.
+    base = 탐색 front 첫 점 (red)."""
+    from gmid_engine.core import SealViolationError
+    case, (p0, p1), _t = _wb1_points(tmp_path / "pts", 1e-12, ids=("p0", "p1"))
+    bad = tuple(p0.result.theta)
+
+    def forced(real, sctx, theta, *a, **k):
+        if tuple(theta) == bad:
+            raise SealViolationError(devices=("M1",), margin=0.5, detail={"item": 7, "reason": "wb1_test_forced_failure"})
+        return real(sctx, theta, *a, **k)
+    gate_log = []
+    fr, rec = _stubbed_find_front(case, monkeypatch, (p0, p1), (), wrap_evaluate=forced, gate_log=gate_log)
+    out = rec[0][1]
+    assert [p.point_id for p in out.points] == ["p1"] and [pid for pid, _r, _d in out.lost] == ["p0"]   # 전제: 첫 탐색 점만 lost
+    assert [p.point_id for p in fr.front] == ["p1"]
+    assert len(gate_log) >= 1                                                                    # 양성 대조: 게이트가 돌았다
+    seen = [_result_of(b) for b in gate_log]
+    assert all(s is out.points[0].result for s in seen)                                          # 게이트가 본 점 = 실현 front 의 점 (실현 값 결과)
+    assert all(s is not p0.result and s is not p1.result for s in seen)                          # 탐색 첫 점도, 탐색 값도 아니다
+
+
+def test_r18_empty_realized_front_skips_the_gate_and_records_no_target(tmp_path, monkeypatch, short_root):
+    """R-18 둘째 꼴: 두 점 모두 lost -> 실현 front 가 비어 게이트 호출 0, 게이트 행 = gate_empty / front_empty('대상 없음' 기록; interface C-12)."""
+    from gmid_engine.core import SealViolationError
+    case, (p0, p1), _t = _wb1_points(tmp_path / "pts", 1e-12, ids=("p0", "p1"))
+    bad = {tuple(p0.result.theta), tuple(p1.result.theta)}
+    calls = {"n": 0}
+
+    def forced(real, sctx, theta, *a, **k):
+        calls["n"] += 1
+        if tuple(theta) in bad:
+            raise SealViolationError(devices=("M1",), margin=0.5, detail={"item": 7, "reason": "wb1_test_forced_failure"})
+        return real(sctx, theta, *a, **k)
+    gate_log = []
+    fr, rec = _stubbed_find_front(case, monkeypatch, (p0, p1), (), wrap_evaluate=forced, gate_log=gate_log)
+    assert calls["n"] >= 2 and len(rec) >= 1                                                     # 양성 대조: 두 점 모두 realize 평가를 거쳐 lost
+    assert len(rec[0][1].lost) == 2 and tuple(fr.front) == ()
+    assert gate_log == []                                                                        # 실현 front 가 비면 게이트 호출 0
+    rows = _ub1_gate_rows(fr)
+    assert len(rows) == 1 and rows[0]["verdict"] == "gate_empty" and rows[0]["reason"] == "front_empty"

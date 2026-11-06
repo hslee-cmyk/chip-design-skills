@@ -329,6 +329,58 @@ def test_realize_r15_input_fixed_realized_point_satisfies_output_kcl(r6):
     assert abs(i_r - i_m1) <= tol / R6_R, ("R_current_A", i_r, "M1_current_A", i_m1)
 
 
+# ---------------------------------------------------------------- S3-6 (둘째 커밋, 판정 M-1; 회로만 2026-11-06 오케스트레이터 위임으로 교체)
+# 재풀이 고정 넷 = 레일 ∪ 입력 포트뿐: spec 목표 넷 out 은 실현 평가의 입력 고정 KCL 재풀이에서 미지수다. oracle (a): 회로 `circuit_s36`
+# (M1 pmos 소스 = vdd + M2 nmos 부하, 저항 0)의 손 닫힌 식 `wb1_hand.mos_load_out_shift` (유도는 그 파일). 옛 R-6 회로(목표 넷-레일 저항)는 θ 프레임
+# writer 계획이 `dc_resistor_cycle` 로 거부해 쓸 수 없다.
+S36_VOUT, S36_I, S36_M1 = 0.4, 5e-6, 26     # θ 입력(목표 V(out)_탐색, M1 전류), 손으로 고른 M1 손가락 수(finger_w 1e-6): r1 ≈ 0.15
+
+
+def test_realize_s3_6_target_net_is_unknown_in_resolve_and_its_row_is_judged(tmp_path):
+    from gmid_engine.search import STATUS_SEALED, evaluate
+    from gmid_engine.sizing import FingerGeom
+    from sizing.conftest import r4_ln_idu
+    from wb1_hand import mos_load_out_shift
+    from .wb1_flow import circuit_s36
+    case = bins_case(tmp_path, circuit_s36(), node_targets=(("out", S36_VOUT),))
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("current", "M1"): S36_I,
+          ("ln_idu", "M1"): r4_ln_idu("pmos", VGS0, VDD - S36_VOUT, 0.0), ("ln_idu", "M2"): r4_ln_idu("nmos", VGS0, S36_VOUT, 0.0)}
+    ev = evaluate(case.sctx, sorted_theta(th), (0,))
+    snap = ev.evaluation.snapshot
+    v0 = dict(snap.column("node", "dc_v"))
+    assert ev.status == STATUS_SEALED and v0["out"] == pytest.approx(S36_VOUT, abs=1e-9)        # 전제: 목표 넷 선언이 탐색 점에서 지켜짐
+    cfg = next(iter(dict(snap.column("graph", "icm_config")).values()))
+    assert cfg.config in (None, "as_is_single_input")                                          # 전제 (base 재확인): 입력 고정 갈래
+    ops = dict(snap.column("device", "dc_op"))
+    tam = with_fingers(ev, {"M1": FingerGeom(S36_M1, 1e-6, 0.0)})
+    fing = dict(tam.evaluation.snapshot.column("device", "dc_finger"))
+    r = {m: fing[m].m * fing[m].w_f_m / ops[m].W - 1.0 for m in ("M1", "M2")}                     # r = W'/W − 1 (입력 열의 곱)
+    tol_i = seal_item(snap, 3).tol
+    assert abs(S36_I * (r["M1"] - r["M2"])) > tol_i, (r, tol_i)                                  # 전제 (손): 목표 넷을 고정하면 out 행 잔차 > tol_I
+    hand = mos_load_out_shift(r["M1"], r["M2"], LAM)
+    assert VDD - (S36_VOUT + hand) > 0.455, hand                                                # 전제 (손): 재풀이 점에서도 M1 포화 (VSD >= VDSAT_p(0.6) = 0.455 V)
+    assert S36_VOUT + hand > 0.3025, hand                                                       # 전제 (손): M2 포화 (VDS >= VDSAT_n(0.6) = 0.3025 V)
+    _, out = realize(case, tam)
+    assert len(out.points) == 1 and out.lost == (), out.lost       # 옛 기대(out 고정)이면 out 행 잔차 > tol_I 로 봉인 3 실패 -> lost (red)
+    rsnap = out.points[0].result.evaluation.snapshot
+    v1 = dict(rsnap.column("node", "dc_v"))
+    assert v1["in"] == pytest.approx(v0["in"], rel=1e-12) and v1["vb"] == pytest.approx(v0["vb"], abs=1e-9)    # 입력·바이어스 불변
+    dv = v1["out"] - v0["out"]
+    tol = min(x for _, x in rsnap.column("device", "dc_tol_v") if x is not None)
+    assert abs(dv) >= abs(hand) / 2.0, (dv, hand)                  # 공허 방지
+    assert abs(dv - hand) <= tol, ("measured_dV_V", dv, "hand_dV_V", hand, "tol_V", tol)
+    item = seal_item(rsnap, 3)
+    assert item.status == "pass" and dict(item.detail)["worst"] == "out" and dict(item.detail)["n_checked"] == 1     # out 행이 판정에 있고 통과
+    assert seal_item(rsnap, 7).status == "pass"
+
+
+def test_realize_s3_6_resolve_has_no_held_target_set():
+    import re
+    text = (Path(__file__).resolve().parents[2] / "sizing" / "block_dc.py").read_text(encoding="utf-8")
+    assert "def " in text                                           # 양성 대조: 대상 파일을 실제로 읽었다
+    assert re.search(r"\bheld\b", text) is None                     # 목표 넷 고정 집합 `held` 삭제 (계획 N6.32 범위 6 (e))
+
+
 # ---------------------------------------------------------------- R-16 (새 2026-11-06, A-123 (4)): 전력 축 = 실현 전류
 R16_I, R16_R = 1e-5, 2.5e4                                           # θ 입력. V(s)_탐색 = I·R = 0.25 V, VGS = 0.6 -> V(in) = 0.85 V
 

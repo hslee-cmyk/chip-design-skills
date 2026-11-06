@@ -76,6 +76,15 @@ def source_load_out_shift(a, r, lam):
     return None if shift is None else -shift
 
 
+# ---- S3-6 회로 (2026-11-06, 오케스트레이터 위임 결정): M1 pmos (out, in, vdd, bulk = vdd) + M2 nmos (out, vb, gnd, bulk = gnd), 목표 넷 out = 저항 없는 MOS-MOS 꼴 ----
+# 유도(r4 식 ID ∝ (W/L)·exp(B·VGS − C·VGS²/2 + LAM·VDS − A·VS²), 두 소자 source = bulk 라 VS 항 0; 입력 in·바이어스 vb 불변이라 VSG1, VGS2 불변):
+# M1 VSD = V_dd − V(out): I1′ = (1 + r1)·I·e^{−LAM·ΔV}, M2 VDS = V(out): I2′ = (1 + r2)·I·e^{+LAM·ΔV} (탐색 KCL 이 I1 = I2 = I). 출력 KCL I1′ = I2′ ->
+# (1 + r1)·e^{−LAM·ΔV} = (1 + r2)·e^{LAM·ΔV} -> ΔV = ln[(1 + r1)/(1 + r2)]/(2·LAM). 닫힌 꼴(한 변수, 근 하나).
+def mos_load_out_shift(r_source, r_sink, lam):
+    """S3-6 회로의 ΔV(out) = ln[(1 + r_source)/(1 + r_sink)]/(2·lam). r = W'/W − 1 (r_source = M1 pmos, r_sink = M2 nmos)."""
+    return math.log((1.0 + r_source) / (1.0 + r_sink)) / (2.0 * lam)
+
+
 def source_load_kcl_at_vdd(vdd, res, i, v_out0, r, lam):
     """레일 소스 꼴의 R-6c 조건: F(V) = V/R − (1 + r)·I·e^{−lam·(V − V_out0)} 은 V 에 대해 증가하고 F(V_gnd) < 0 이므로 근이 [V_gnd, V_dd] 에 있을 조건은
     F(V_dd) >= 0 이다. 반환 F(V_dd) (음수면 레일 안에 근이 없다). 거울 u = V_dd − V 로 `out_kcl_at_gnd` 와 같은 식(독립 한 줄 식)."""
