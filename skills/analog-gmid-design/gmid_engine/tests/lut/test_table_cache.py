@@ -34,7 +34,7 @@ import pytest
 import gmid_engine.lut as lut_pkg
 from gmid_engine.lut import (LutMemo, curve_report, tol_v_table, tol_vdsat_table, widths)
 
-from .conftest import (MID_L_SOURCE, REALDATA_MARKER, copy_tree, mid_point_arrays, standard_toy_slices)
+from .conftest import (REALDATA_MARKER, T_MID_L, T_WIDTHS, build_t, copy_tree, mid_file, standard_toy_slices, t_spec)
 
 ENV = "GMID_LUT_TABLE_CACHE_DIR"                      # (d) CONTRACT 2.1 위치: 설정 table_cache.env 이름
 MAGIC = b"GMIDTBL1\n"                                  # (d) CONTRACT 2.1 파일 머리
@@ -492,7 +492,7 @@ def _tables(memo, lut, kw_pairs):
 
 
 def _mid_lut(mid_toy_build):
-    return mid_toy_build("bit", mid=mid_point_arrays((3.5e-6,), l_source=MID_L_SOURCE)).load()
+    return mid_toy_build("bit", mid={0: (3.5e-6,)}).load()
 
 
 def test_bit_identity_toy_all_slices(TC, mid_toy_build, tmp_path, sd):
@@ -708,12 +708,90 @@ def test_data_id_follows_file_contents_not_folder(TC, toy_build, mid_toy_build, 
     other_cap = toy_build("cap", cap=cap).load()
     ids = {a, TC.data_id(other_manifest.provenance), TC.data_id(other_cap.provenance)}
     assert len(ids) == 3
-    mt1 = mid_toy_build("m1", mid=mid_point_arrays((3.5e-6,), l_source=MID_L_SOURCE))
-    mt2 = mid_toy_build("m2", mid=mid_point_arrays((3.5e-6,), scale=1.5, l_source=MID_L_SOURCE))
+    mt1 = mid_toy_build("m1", mid={0: (3.5e-6,)})
+    mt2 = mid_toy_build("m2", mid={0: mid_file(1e-6, 1.5, (3.5e-6,))})            # 다른 중점 내용(배율 1.5)
     with_mid = TC.data_id(mt1.load().provenance)
     without_mid = TC.data_id(mt1.load(verify_midpoints=None).provenance)
     other_mid = TC.data_id(mt2.load().provenance)
     assert len({with_mid, without_mid, other_mid}) == 3
+
+
+# ---------------------------------------------------------------------------
+# [LM-1e §3·§4] 중점 파일 전부가 자료 id·지문에 든다: `TableCache.data_id(prov)` = fp_of((manifest_sha256, cap_sha256, prov.midpoints_sha256)).
+# oracle (d): interface §4 / CONTRACT 2.1 -- 자료 id 의 정의식을 core.fp_of 와 파일 sha 로 직접 만든다(F-5·F-6),
+# (a) 구성으로 정해진 답(내용이 같으면 적중, 한 파일이라도 다르면 미스: K-1~K-5).
+# ---------------------------------------------------------------------------
+
+def _t1_lut(mid_toy_build, sub, mids=None):
+    return build_t(mid_toy_build, sub, {0: T_MID_L, 1: T_MID_L} if mids is None else mids).load(t_spec(0.6e-6))
+
+
+def _tol_memo(lut, cache):
+    return LutMemo(lut, point=256, curve=256, root=256, table_cache=cache)
+
+
+def test_lm1e_k1_k5_cache_keyed_by_all_midpoint_files(TC, mid_toy_build, sd):
+    """K-1 miss / K-2 같은 LUT 새 memo(같은 폴더) hit·같은 값 / K-3 키 80 중점 파일 하나만 값을 바꾼 LUT B -> 키 80 miss·행 3·4 달라짐 /
+    K-4 LUT B 의 키 60 -> miss(지문이 모든 중점 sha 를 묶음)·값은 A 와 같음 / K-5 fp·data_id A ≠ B."""
+    d = sd / "k"
+    lut_a = _t1_lut(mid_toy_build, "ka")
+    arrays = mid_file(T_WIDTHS[1][0], T_WIDTHS[1][1], T_MID_L)
+    arrays["ID"] = arrays["ID"] * np.exp(0.01)                                    # 키 80 의 중점 파일 하나만 값을 바꾼다
+    lut_b = _t1_lut(mid_toy_build, "kb", {0: T_MID_L, 1: arrays})
+    c1 = TC(str(d))
+    a80 = tol_v_table(_tol_memo(lut_a, c1), "nmos", 80)
+    assert ("miss", "tol_v_table") in c1.events                                   # K-1
+    c2 = TC(str(d))
+    a80_again = tol_v_table(_tol_memo(lut_a, c2), "nmos", 80)
+    assert ("hit", "tol_v_table") in c2.events and ("miss", "tol_v_table") not in c2.events   # K-2
+    assert_bit_identical(a80, a80_again)
+    c3 = TC(str(d))
+    b80 = tol_v_table(_tol_memo(lut_b, c3), "nmos", 80)
+    assert ("miss", "tol_v_table") in c3.events and ("hit", "tol_v_table") not in c3.events    # K-3
+    assert any(a80.cells[i][k].id_equivalent_v != b80.cells[i][k].id_equivalent_v for i in (3, 4) for k in range(2))
+    c4 = TC(str(d))
+    b60 = tol_v_table(_tol_memo(lut_b, c4), "nmos", 60)
+    assert ("miss", "tol_v_table") in c4.events and ("hit", "tol_v_table") not in c4.events    # K-4
+    a60 = tol_v_table(_tol_memo(lut_a, TC(None)), "nmos", 60)                      # 캐시 끔 -- 기대값은 캐시 없는 계산
+    assert_bit_identical(a60, b60)
+    assert lut_a.fp != lut_b.fp and TC.data_id(lut_a.provenance) != TC.data_id(lut_b.provenance)   # K-5
+
+
+def _cfg_for(tmp_path, name, lut, mid_entry):
+    """설정 JSON 의 files 를 실제 파일 sha 로 쓴다(manifest·cap_npz + verify_midpoints 항목은 mid_entry 그대로)."""
+    p = lut.provenance
+    files = {"manifest": {"path": "manifest.json", "sha256": p.manifest_sha256},
+             "cap_npz": {"path": "cap_ref.npz", "sha256": p.cap_sha256}}
+    if mid_entry is not None:
+        files["verify_midpoints"] = mid_entry
+    return _cfg(tmp_path / name / "cfg.json", files=files)
+
+
+def _config_data_id():
+    import gmid_engine.lut.table_cache  # noqa: F401  (모듈 적재)
+    return sys.modules["gmid_engine.lut.table_cache"]._config_data_id
+
+
+def test_lm1e_f5_config_array_data_id_equals_provenance_data_id(TC, mid_toy_build, tmp_path):
+    """F-5: 배열 꼴 설정의 자료 id(보존 집합 계산) = 그 적재의 data_id(prov). 배열 안 순서는 무관(정렬)."""
+    lut = _t1_lut(mid_toy_build, "f5")
+    entries = [{"path": "mid_%d.npz" % i, "sha256": s.sha256} for i, s in enumerate(lut.provenance.midpoint_sources)]
+    want = TC.data_id(lut.provenance)
+    assert _config_data_id()(_cfg_for(tmp_path, "arr", lut, entries)) == want
+    assert _config_data_id()(_cfg_for(tmp_path, "rev", lut, list(reversed(entries)))) == want
+
+
+def test_lm1e_f6_config_old_single_object_data_id(TC, mid_toy_build, tmp_path):
+    """F-6: 옛 단일 객체 설정(다른 worktree 의 설정) -> 자료 id = fp_of((manifest sha, cap sha, "<그 sha 문자열>")). 중점 항목 없음 -> None 자리.
+    oracle (d): interface §4 -- 정의식을 core.fp_of 로 직접 만든다."""
+    from gmid_engine.core import fp_of
+    lut = _t1_lut(mid_toy_build, "f6")
+    p = lut.provenance
+    old_sha = "a" * 64
+    got = _config_data_id()(_cfg_for(tmp_path, "old", lut, {"path": "mid.npz", "sha256": old_sha}))
+    assert got == fp_of((p.manifest_sha256, p.cap_sha256, old_sha))
+    none = _config_data_id()(_cfg_for(tmp_path, "none", lut, None))
+    assert none == fp_of((p.manifest_sha256, p.cap_sha256, None))
 
 
 # ---------------------------------------------------------------------------

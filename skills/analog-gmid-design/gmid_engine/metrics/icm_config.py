@@ -178,10 +178,11 @@ def _end_state(circuit, rows, slope, inputs, volts):
 
 
 def _tol_v(projection):
-    """cfg `tol_v`: 봉인점 `device.dc_tol_v` 가운데 `device.dc_coord` MOS 의 None 아닌 값의 최솟값, 모두 None 이면 None."""
+    """cfg `tol_v`: 봉인점 `device.dc_tol_v` 가운데 `device.dc_coord` MOS 값의 최솟값. 항에 None 이 하나라도 있으면 None(정의 항이 빠진 값을 내지 않는다 --
+    계획 N3.6 표 10행 집계 규칙, LM-1e 3b), `dc_coord` MOS 가 없어도 None."""
     tols = dict(projection.column("device", "dc_tol_v"))
-    found = [tols[m] for m, _coord in projection.column("device", "dc_coord") if tols.get(m) is not None]
-    return min(found) if found else None
+    found = [tols.get(m) for m, _coord in projection.column("device", "dc_coord")]
+    return None if not found or any(v is None for v in found) else min(found)
 
 
 def _vcm(inputs, slope, volts, ends):

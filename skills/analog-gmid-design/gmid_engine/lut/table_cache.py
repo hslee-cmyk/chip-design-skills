@@ -9,7 +9,7 @@
 * 파일 위치 = 설정 파일(`assets/lut_v2_location.json` 의 `table_cache` = {"env", "default"})의 폴더. 환경 변수가 비어 있지 않으면 그 값.
   폴더가 없으면 만든다(못 만들면 캐시 끔 -- 계산은 그대로 된다). 데이터 폴더(lut_data)·저장소 밖의 전용 폴더다.
 * 칸(slot) 파일 이름 = `<함수 이름>-<LUT 자료 id>-<(LUT 묶음 지문, 함수 이름, 호출 인자)의 지문>.tbl`. LUT 자료 id = fp_of((manifest·기준 LUT·
-  검증 중점 파일 sha256)) -- 설정 파일의 `files` 가 고정하는 값이라 표를 열지 않고도 설정에서 같은 값을 만들 수 있다. 같은 칸은 새 키로
+  검증 중점 파일들의 sha256 정렬 tuple)) -- 설정 파일의 `files` 가 고정하는 값이라 표를 열지 않고도 설정에서 같은 값을 만들 수 있다. 같은 칸은 새 키로
   덮어써서 코드·설정이 바뀌어도 폴더가 불지 않는다.
 * 정리(cleanup): 이 `TableCache` 객체의 **첫 쓰기 때만** 한 번(읽기에선 안 함). 남기는 집합 = 저장소 본 작업 폴더와 `git worktree list --porcelain`
   이 말하는 모든 worktree 의 같은 상대 경로 설정 파일(+ 이 캐시를 만든 설정)이 가리키는 LUT 자료 id. 폴더 안 `<함수>-<id>-<지문>.tbl` 형식 파일 중
@@ -47,6 +47,7 @@ _HEADER = len(_MAGIC) + len(_NL) + _HEX + len(_NL) + _HEX + len(_NL)
 _NAME_FIELDS = ("function", "data_id", "key_fp")
 _CONFIG_NAME ="lut_v2_location.json"
 _CONFIG_ENTRY = "table_cache"
+_MIDPOINTS_ITEM = "verify_midpoints"
 _LOAD_ERRORS = (pickle.UnpicklingError, EOFError, AttributeError, ImportError, IndexError, ValueError, TypeError)
 
 
@@ -138,6 +139,17 @@ def _pinned(files, item):
     return entry.get("sha256") if isinstance(entry, dict) else None
 
 
+def _pinned_midpoints(files):
+    """설정 `files.verify_midpoints` 가 고정하는 중점 sha256: 배열(LM-1e) -> `tuple(sorted(sha))`(= `LutProvenance.midpoints_sha256`), 없으면 None.
+    옛 단일 객체 꼴(다른 worktree 의 옛 설정) -> 그 sha 문자열.
+    종료 조건(D40 (vii), 계획 N6.40 LM-1e): WB-1 + LM-1e 통합 병합이 master 에 들어가고 옛 꼴 설정을 가진 worktree 가 0 이 되면 옛 꼴 갈래(dict)를 지운다
+    (LA-1 재점검 입력). 이 읽기는 보존 집합 계산(파일 이름 id)뿐이고 적재 경로가 아니다 -- 적재는 옛 꼴을 `lut_location_config_invalid` 로 거부한다."""
+    entry = files.get(_MIDPOINTS_ITEM)
+    if isinstance(entry, list):
+        return tuple(sorted(e.get("sha256") for e in entry if isinstance(e, dict)))
+    return entry.get("sha256") if isinstance(entry, dict) else None
+
+
 def _config_data_id(path):
     """설정 파일이 가리키는 LUT 자료 id. 파일이 없거나 manifest·cap_npz 항목이 없으면 None(가리키는 자료 없음), 읽을 수 없으면 ValueError."""
     if not os.path.isfile(path):
@@ -146,7 +158,7 @@ def _config_data_id(path):
         files = json.load(fh).get("files")
     if not isinstance(files, dict) or "manifest" not in files or "cap_npz" not in files:
         return None
-    return _data_id(_pinned(files, "manifest"), _pinned(files, "cap_npz"), _pinned(files, "verify_midpoints"))
+    return _data_id(_pinned(files, "manifest"), _pinned(files, "cap_npz"), _pinned_midpoints(files))
 
 
 def _git(directory, *args):
@@ -231,7 +243,7 @@ class TableCache:
 
     @staticmethod
     def data_id(provenance):
-        """LUT 묶음(`LutProvenance`)의 자료 id -- 설정 파일 `files` 가 고정하는 sha256 세 개(manifest·cap_npz·verify_midpoints)로 만든다."""
+        """LUT 묶음(`LutProvenance`)의 자료 id -- 설정 파일 `files` 가 고정하는 sha256(manifest·cap_npz·verify_midpoints 파일 전부의 정렬 tuple)로 만든다."""
         return _data_id(provenance.manifest_sha256, provenance.cap_sha256, provenance.midpoints_sha256)
 
     def key_digest(self, lut_fp, fn_name, key, inputs, settings):

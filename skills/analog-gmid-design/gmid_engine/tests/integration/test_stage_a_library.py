@@ -40,7 +40,7 @@ def real_lut():
     mins = min_finger_w_m(kinds.values())      # PDK 선언 양(card 20261104-wb1)
     grid = float(manifest.get("manufacturing_grid_m", 5e-9))
     spec = LutSpec(grid, tuple(sorted(mins.items())), DEVICE_KINDS, CAP_SUFFIX)
-    return load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path, bin_rule=loc.bin_rule_path)
+    return load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths, bin_rule=loc.bin_rule_path)
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)

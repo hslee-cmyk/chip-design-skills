@@ -1,10 +1,10 @@
 """WB-1 T-2 (interface card 20261104-wb1 §8 표지): 결과 notes 에 {"verdict": "recorded", "rule": "DEC-105 (2)",
-"bin_rule_machine_dependent": [...], "midpoint_unverified_slices": [...]} 한 항목이 있다. 판정은 바뀌지 않는다.
+"bin_rule": ..., "bin_rule_machine_dependent": [...]} 한 항목이 있다(DEC-105 (2) note 키 집합 = 이 넷, [LM-1e U-1] 슬라이스별 중점 적재라
+'중점 미검증 슬라이스' 키는 없다). 판정은 바뀌지 않는다.
 
 oracle (손/식): 합성 LUT 의 모델 파일을 CRLF 바이트로 쓰면 meta 기록 sha X = sha256(CRLF 바이트) 는 선언(LF 값)에 없지만 LF(b) 는 선언에 있다
 -> 통과하고 (세트, 상대 경로)가 machine_dependent 에 든다(interface §1 표). 세트 이름 = 슬라이스는 파일 이름, 나머지 "cap". 정렬된 목록.
 LUT 는 슬라이스 {100, 200} x nmos·pmos 4장 + cap (모델 파일 kind 마다 하나) -> 기대 쌍 6개.
-**미작성(보고)**: `midpoint_unverified_slices` 의 값((nmos, 200) 나열) 단언은 합성 중점 파일 형식(L_source·격자 정합)이 card 에 없어 쓰지 않았다. 키 존재만 단언한다.
 """
 import hashlib
 from pathlib import Path
@@ -32,7 +32,8 @@ def test_find_front_note_records_bin_rule_without_changing_verdict(tmp_path):
     n = note_of(fr)
     assert n["verdict"] == "recorded"
     assert pairs(n["bin_rule_machine_dependent"]) == []              # LF 모델 파일: X ∈ 선언 -> 기계 의존 0
-    assert "midpoint_unverified_slices" in n
+    assert set(n) == {"verdict", "rule", "bin_rule", "bin_rule_machine_dependent"}     # oracle (d): interface §6 U-1
+    assert "midpoint_" + "unverified_slices" not in n                    # 옛 키 없음(이름은 조각으로 -- 옛 이름 grep(G-1)에 걸리지 않게)
     assert len(fr.notes) >= 2                                        # 다른 기록(예산·미측정 항목)은 그대로 있다
 
 

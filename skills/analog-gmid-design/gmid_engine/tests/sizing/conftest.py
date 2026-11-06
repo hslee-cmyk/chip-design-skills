@@ -362,7 +362,7 @@ def real_lut_v2():
         files[(kind, int(round(W / grid)))] = p
     spec = LutSpec(grid, tuple(sorted(mins.items())), REAL_DEVICE_KINDS, REAL_CAP_SUFFIX)
     lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
-                       verify_midpoints=loc.midpoints_path, bin_rule=loc.bin_rule_path)
+                       verify_midpoints=loc.midpoints_paths, bin_rule=loc.bin_rule_path)
     return lut, files
 
 
@@ -1113,3 +1113,42 @@ def mirror_delta_max(snapshot):
     tol = dict(snapshot.column("device", "dc_tol_v"))
     ops = dict(snapshot.column("device", "dc_op"))
     return max(tol[m] * (B - C * ops[m].vgs) for m in ("M2", "M3"))
+
+
+# ---------------------------------------------------------------------------
+# [LM-1e §5] toy R(r4 꼴, pmos 의 VDS index 0 열 꺼짐) + J-a 상태 -- 셀 결합 test(J-a·J-b·J-c·P-1)의 공통 입력.
+# 격자 R4_VDS = 0, 0.25, ...: pmos 슬라이스의 tol 셀 VDS index 0 = None(켜진 격자점 없음 -- 정의상), index 1 이상은 값.
+# ---------------------------------------------------------------------------
+
+def r_off_access(root, kind="pmos"):
+    """toy R LUT(kind 의 VDS index 0 열 꺼짐, 기본 pmos)의 LutAccess."""
+    return new_access(write_r4_lut(Path(root), off_cols={kind: 1}))
+
+
+def ja_theta(ctx, y1, y2):
+    """`_scc_s_doc`(M1 nmos (vin, nb1, gnd), M2 nmos (vout, nb2, vin), M3 pmos (vout, pb, vdd)) 의 θ: 선형 SCC 닫힌 해
+    vout = 1.8·y2 / (1 − y1(1 − y2)), vin = y1·vout 에서 각 소자의 VGS 가 0.6·0.7·0.7 이 되는 ln_idu(r4 닫힌 식)."""
+    vout = 1.8 * y2 / (1.0 - y1 * (1.0 - y2))
+    vin = y1 * vout
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6,
+          ("ln_idu", "M1"): r4_ln_idu("nmos", 0.6, vin, 0.0), ("ln_idu", "M2"): r4_ln_idu("nmos", 0.7, vout - vin, vin),
+          ("ln_idu", "M3"): r4_ln_idu("pmos", 0.7, 1.8 - vout, 0.0), ("y", "vin"): y1, ("y", "vout"): y2}
+    th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5}))
+    assert set(th) == set(kschema(ctx).components)
+    return th, vin, vout
+
+
+def ja_state(tmp_path, y1=0.6, y2=0.4, vds=0.1):
+    """J-a 입력: toy R + `_scc_s_doc` + 손 θ(y1, y2) 를 `run_blocks(upto="columns")` 까지 돌린 스냅샷에서 **`dc_op["M3"]` 의 `vds` 만 vds 로
+    바꾼** 스냅샷(`dataclasses.replace` + `tamper`; `dc_tol_v` 는 주입하지 않는다)에 `dc_tolerances` 를 적용한다.
+    반환 (ctx, th, 바꾼 스냅샷, dc_tolerances 뒤 스냅샷). 기본 (y1, y2) = (0.6, 0.4) -> vout = 1.125 V, 바꾸기 전 M3 의 |VDS| = 0.675 V(켜진 칸)."""
+    from gmid_engine.sizing import dc_tolerances
+    from sizing.test_block_dc import _scc_s_doc
+    root = Path(tmp_path)
+    (root / "ctx").mkdir(parents=True, exist_ok=True)
+    ctx = build_ctx(root / "ctx", _scc_s_doc(), r_off_access(root / "lut"))[2]
+    th, _vin, _vout = ja_theta(ctx, y1, y2)
+    snap = run_blocks(ctx, th, upto="columns")
+    op = dict(snap.column("device", "dc_op"))["M3"]
+    changed = tamper(snap, "dc_solve", "device", "dc_op", {"M3": dataclasses.replace(op, vds=vds)})
+    return ctx, th, changed, dc_tolerances(changed, ctx.lut, **run_of(ctx))

@@ -243,6 +243,11 @@ def test_real_slice_scaled_column_rejected(tmp_path, real_paths, real_manifest, 
 def test_real_two_slice_control_loads(tmp_path, real_paths, real_manifest, real_spec):
     """음성 대조: 같은 두 장을 바꾸지 않고 복사하면 로드된다(위 거부가 복사·manifest 때문이 아님)."""
     man, _ = _real_two_slice_lut(tmp_path / "lut", real_paths, real_manifest)
+    # [LM-1e D7] 두 슬라이스(W 5 µm = 폭 키 1000)는 `widths` 안이라 앵커 2개 bin 마다 중점이 필요하다 -> 위치 선언의 중점 30장 중
+    # W 가 5 µm 인 두 장(LM-1d `W5p0000um`, 파일의 W 를 numpy 로 직접 읽어 고른다)을 넘긴다.
+    mids = [str(p) for p in real_paths["midpoints"] if abs(float(np.load(p)["W"]) - 5e-6) <= 1e-12]
+    assert len(mids) == 2
     lut = load_lut_set(str(man), real_paths["cap"], _real_two_slice_spec(real_spec), pdk_root=real_paths["pdk_root"],
-                       bin_rule=real_paths["bin_rule"])
+                       bin_rule=real_paths["bin_rule"], verify_midpoints=mids)
     assert set(lut.slice_map) == {("nmos", 1000), ("pmos", 1000)}
+    assert set(lut.midpoints) == {("nmos", 1000), ("pmos", 1000)}

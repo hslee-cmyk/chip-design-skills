@@ -22,6 +22,8 @@ VDS))별 (계획 N3.6 사용자 확정 2026-10-07, DEC-87 tol_V 연동, 설계 M
   - `id_equivalent`: 점마다 |ln ID_loo − ln ID| / (gm/ID) / 2^p. 그 점과 축 방향 두 이웃이 모두 on_mask.
 * 셀 값 = 그 (L 앵커 i, VDS_k) 안의 모든 VGS·VS·목표·축 최댓값, 없으면 None.
 """
+from operator import attrgetter
+
 import numpy as np
 
 from ._helpers_interp import VS_SLOPE_COLUMN
@@ -107,15 +109,15 @@ class TolVTable:
 
     def at(self, L, vds, metric):
         """조회점 (L, vds) 의 tol_V(V): L 이 앵커면 그 앵커 행, 같은 bin 안 보간이면 양옆 앵커 두 행(CONTRACT 4.0),
-        VDS 가 든 격자 칸 [k, k+1] (`bisect_right - 1`, 마지막 격자점은 마지막 칸) -- 그 셀들 중 정의된 값의 최댓값.
-        정의된 값이 없으면 None.
+        VDS 가 든 격자 칸 [k, k+1] (`bisect_right - 1`, 마지막 격자점은 마지막 칸) -- 그 셀들(최대 넷)이 모두 정의되면 그 최댓값,
+        하나라도 None 이면 None(셀 결합 규칙 = `_helpers_loo.table_at`).
 
         실패: `metric` 이 `TOL_V_METRICS` 밖 -> `ValueError`, L 이 앵커도 같은 bin 보간도 아님·축 밖 -> `SealViolationError`.
         """
         if metric not in TOL_V_METRICS:
             raise ValueError("TolVTable.at: metric 은 %s 중 하나" % (TOL_V_METRICS,))
         context = (("kind", self.kind), ("table", "tol_v"), ("w_key", self.w_key))
-        return table_at(self, metric + "_v", L, vds, context)
+        return table_at(self, attrgetter(metric + "_v"), L, vds, context)
 
 
 def _checks_of(memo, kind, w_key, l_bin_checks):

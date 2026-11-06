@@ -9,11 +9,11 @@ import numpy as np
 import pytest
 
 from gmid_engine.core import SchemaRejectedError
-from gmid_engine.lut import CapTable, DcSlice, LutSet, LutSpec, MidpointTable
+from gmid_engine.lut import CapTable, DcSlice, LutSet, LutSpec, MidpointTable, widths
 
-from .conftest import (BIN_ANCHOR_BIN_LO, BIN_BLOCKS, BIN_MODEL_REL, MID_L_SOURCE, SKILL_DIR, TOY_L, TOY_SPEC, TOY_VDS, TOY_VGS, TOY_VS,
-                       curve_cap_arrays, curve_slice_arrays, detail_of, mid_point_arrays, sha256_file,
-                       rel_close,
+from .conftest import (BIN_ANCHOR_BIN_LO, BIN_BLOCKS, BIN_MODEL_REL, SKILL_DIR, T_MID_L, TOY_L, TOY_SPEC, TOY_VDS, TOY_VGS, TOY_VS,
+                       build_t, curve_cap_arrays, curve_slice_arrays, detail_of, mid_file, mid_meta, sha256_file,
+                       rel_close, t_spec,
                        standard_toy_slices, toy_cap_arrays, toy_slice_arrays)
 
 
@@ -434,46 +434,54 @@ def test_no_bin_blocks_gives_empty_map(bin_toy_build):
 
 
 # ---------------------------------------------------------------------------
-# [r6] 1.7 검증 중점 파일 로드: MidpointTable 필드, 거부 순서 (1)~(7)
+# [LM-1e §2·§3] 중점 파일(DC 슬라이스 npz 꼴) 적재: MidpointTable 필드, 관문 G5~G7b(`load_lut_set`), D7 적재 거부(`bin_missing_external`)
+# oracle (d): interface §2 관문 표·§3 T 표 (사용자 승인 계획 N6.40 LM-1e). 거부 순서 = 위에서 아래로 첫 맞는 행.
 # ---------------------------------------------------------------------------
 
 MID_LS = (3.25e-6, 3.5e-6, 7.5e-6)
 
 
 def _mid(**kw):
-    kw.setdefault("l_source", MID_L_SOURCE)
-    return mid_point_arrays(MID_LS, **kw)
+    return mid_file(1e-6, 1.0, MID_LS, **kw)
 
 
 def _mid_reject(mid_toy_build, sub, mid, **kw):
-    mt = mid_toy_build(sub, mid=mid, **kw)
+    mt = mid_toy_build(sub, mid={0: mid}, **kw)
     with pytest.raises(SchemaRejectedError) as ei:
         mt.load()
     return detail_of(ei.value), mt
 
 
-def test_midpoint_table_fields(mid_toy_build):
+def test_lm1e_midpoint_table_fields(mid_toy_build):
     m = _mid()
-    m["ID_n"] = m["ID_n"].copy()
-    m["ID_n"][0, 0, 0, 0] = 0.0                                     # ID 0 점 -> log_ID·gm_id NaN, on_mask 거짓
-    mt = mid_toy_build("mf", mid=m)
+    m["ID"] = m["ID"].copy()
+    m["ID"][0, 0, 0, 0] = 0.0                                       # ID 0 점 -> log_ID·gm_id NaN, on_mask 거짓
+    mt = mid_toy_build("mf", mid={0: m})
     lut = mt.load()
-    assert set(lut.midpoints) == {"nmos"}
-    t = lut.midpoints["nmos"]
+    assert set(lut.midpoints) == {("nmos", 100)}                    # 키 = (kind, w_key) -- 폭마다 하나
+    t = lut.midpoints[("nmos", 100)]
     assert isinstance(t, MidpointTable)
-    assert (t.kind, t.sha256, t.w_m, t.w_key) == ("nmos", sha256_file(mt.mid_path), 1e-6, 100)
+    assert (t.kind, t.sha256, t.w_m, t.w_key) == ("nmos", sha256_file(mt.mid_path), 1e-6, 100)     # sha256 = 그 파일 raw
     assert tuple(t.L_points) == MID_LS
     assert tuple(tuple(g) for g in t.grids) == (tuple(m["VGS"]), tuple(m["VDS"]), tuple(m["VS"]))
-    I, G = m["ID_n"], m["GM_n"]
+    I, G = m["ID"], m["GM"]
     pos = I > 0
     lg = np.asarray(t.log_ID)
     assert np.isnan(lg[0, 0, 0, 0]) and np.array_equal(lg[pos], np.log(I[pos]))
     gi = np.asarray(t.gm_id)
     assert np.isnan(gi[0, 0, 0, 0]) and np.array_equal(gi[pos], G[pos] / I[pos])
     assert np.array_equal(np.asarray(t.on_mask), (I > 0) & (G > 0))
-    assert np.array_equal(np.asarray(t.VDSAT), m["VDSAT_n"])
-    t2 = mid_toy_build("mf2", mid=_mid(vdsat=False)).load().midpoints["nmos"]
+    assert np.array_equal(np.asarray(t.VDSAT), m["VDSAT"])
+    t2 = mid_toy_build("mf2", mid={0: mid_file(1e-6, 1.0, MID_LS, vdsat=False)}).load().midpoints[("nmos", 100)]
     assert t2.VDSAT is None
+
+
+def test_lm1e_two_midpoint_files_two_tables(mid_toy_build):
+    mt = mid_toy_build("two", mid={0: MID_LS, 1: MID_LS})
+    lut = mt.load()
+    assert set(lut.midpoints) == {("nmos", 100), ("nmos", 200)}
+    assert [lut.midpoints[k].w_m for k in (("nmos", 100), ("nmos", 200))] == [1e-6, 2e-6]
+    assert lut.provenance.midpoints_sha256 == tuple(sorted(sha256_file(p) for p in mt.mid_paths))
 
 
 def test_contract_toy_r6_table(toy):
@@ -489,34 +497,17 @@ def test_no_midpoints_empty_mapping(mid_toy_build, toy):
     assert dict(mid_toy_build("nm").load().midpoints) == {}
 
 
-@pytest.mark.parametrize("ls", [None, {"kind": "cli"}, {"kind": "cli", "value": "0.165,6.0,14.0"}])
-def test_reject_l_source_unrecorded(mid_toy_build, ls):
-    """(1) meta L_source 에 sha256 없음(없음·`--l-um` cli -- 생성기 sky130_lut_sweep.py read_l_list 의 모양
-    {"kind": "cli", "value": <쉼표 문자열>}) -> lut_midpoints_l_source_unrecorded."""
-    m = mid_point_arrays(MID_LS, l_source=ls)
-    det, _ = _mid_reject(mid_toy_build, "lsu", m)
-    assert det["reason"] == "lut_midpoints_l_source_unrecorded" and "path" in det and "l_source" in det
-
-
-def test_l_source_matching_cap_accepted_mismatch_rejected(mid_toy_build):
-    """(2) 기준 LUT L_source sha256 이 있고 중점 sha256 과 다름 -> lut_midpoints_l_source_mismatch(detail path, kind, cap, midpoints).
-    같으면 로드."""
-    ok = mid_toy_build("lsok", mid=_mid(), cap_meta={"L_source": dict(MID_L_SOURCE)}).load()
-    assert dict(ok.cap_map["nmos"].l_source)["sha256"] == MID_L_SOURCE["sha256"]
-    det, _ = _mid_reject(mid_toy_build, "lsbad", _mid(), cap_meta={"L_source": {"kind": "json", "sha256": "b" * 64}})
-    assert det["reason"] == "lut_midpoints_l_source_mismatch"
-    assert (det["kind"], det["cap"], det["midpoints"]) == ("nmos", "b" * 64, MID_L_SOURCE["sha256"])
-
-
-@pytest.mark.parametrize("field,val", [("corner", "ff"), ("temp_c", 85.0)])
-def test_reject_conditions_mismatch(mid_toy_build, field, val):
-    det, _ = _mid_reject(mid_toy_build, "cond", _mid(**{field: val}))
-    assert det["reason"] == "lut_conditions_mismatch"
-    assert det["key"] == field and det["midpoints"] == val
+@pytest.mark.parametrize("field,val,key", [("corner", np.str_("ff"), "corner"), ("temp_c", np.float64(85.0), "temp_c")])
+def test_lm1e_g5_conditions_mismatch(mid_toy_build, field, val, key):
+    """G5: corner·temp_c ≠ 짝 슬라이스 -> lut_conditions_mismatch, key."""
+    m = _mid()
+    m[field] = val
+    det, _ = _mid_reject(mid_toy_build, "cond", m)
+    assert det["reason"] == "lut_conditions_mismatch" and det["key"] == key
 
 
 @pytest.mark.parametrize("axis", ["VGS", "VDS", "VS"])
-def test_reject_axes_mismatch(mid_toy_build, axis):
+def test_lm1e_g6_axes_mismatch(mid_toy_build, axis):
     m = _mid()
     a = np.asarray(m[axis], dtype=float).copy()
     a[-1] = np.nextafter(a[-1], 10.0)                               # 1 ulp 도 다르면 거부(float 단위 같음)
@@ -525,73 +516,153 @@ def test_reject_axes_mismatch(mid_toy_build, axis):
     assert det["reason"] == "lut_midpoints_axes_mismatch"
 
 
-def test_reject_width_missing_and_off_grid(mid_toy_build):
-    det, _ = _mid_reject(mid_toy_build, "wm", _mid(w_ref_m=None))
-    assert det["reason"] == "lut_midpoints_width_missing"
+@pytest.mark.parametrize("drop", ["ID", "GM"])
+def test_lm1e_g7_column_missing(mid_toy_build, drop):
     m = _mid()
-    m["w_ref_m"] = np.float64(1.005e-6)                             # 100.5 격자 -> 격자 밖
-    det, _ = _mid_reject(mid_toy_build, "wo", m)
-    assert det["reason"] == "lut_width_off_grid"
-
-
-@pytest.mark.parametrize("drop", ["ID_n", "GM_n"])
-def test_reject_column_missing(mid_toy_build, drop):
-    det, _ = _mid_reject(mid_toy_build, "cm", _mid(drop=(drop,)))
+    del m[drop]
+    det, _ = _mid_reject(mid_toy_build, "cm", m)
     assert det["reason"] == "lut_midpoints_column_missing"
-    # [해석] detail column 이 접미사 없는 이름("ID")인지 열 이름("ID_n")인지는 계약에 없다 -- 둘 다 허용
-    assert det["kind"] == "nmos" and det["column"] in (drop.split("_")[0], drop)
+    assert det["kind"] == "nmos" and det["column"] == drop
 
 
-def test_reject_shape_mismatch(mid_toy_build):
+def test_lm1e_g7b_shape_mismatch(mid_toy_build):
     m = _mid()
-    m["GM_n"] = m["GM_n"][:, :, :, :1]
+    m["GM"] = m["GM"][:, :, :, :1]
     det, _ = _mid_reject(mid_toy_build, "sm", m)
-    assert det["reason"] == "lut_midpoints_shape_mismatch"
+    assert det["reason"] == "lut_midpoints_shape_mismatch" and det["column"] == "GM"
+
+
+def test_lm1e_old_l_source_reasons_never_raised(mid_toy_build):
+    """옛 L_source 사유(unrecorded·mismatch)는 없다: meta 에 L_source 가 있어도(기준 LUT 와 다른 sha 라도) 읽지 않고 적재된다."""
+    m = _mid()
+    m["meta_json"] = np.str_(json.dumps(dict(json.loads(str(m["meta_json"])), L_source={"kind": "cli", "sha256": "b" * 64})))
+    lut = mid_toy_build("ls", mid={0: m}, cap_meta={"L_source": {"kind": "json", "sha256": "c" * 64}}).load()
+    assert ("nmos", 100) in lut.midpoints
 
 
 @pytest.mark.parametrize("bad,first", [
-    # (고친 것들, 먼저 나와야 할 사유) -- 1.7 검사 순서 (1) l_source -> (3) 조건 -> (4) 축 -> (5) 폭 -> (7) 열
-    ({"l_source": None, "corner": "ff"}, "lut_midpoints_l_source_unrecorded"),
-    ({"corner": "ff", "axis": "VGS"}, "lut_conditions_mismatch"),
-    ({"axis": "VDS", "w_ref_m": None}, "lut_midpoints_axes_mismatch"),
-    ({"w_ref_m": None, "drop": ("GM_n",)}, "lut_midpoints_width_missing"),
+    # (고친 것들, 먼저 나와야 할 사유) -- 관문 표 위에서 아래로 첫 맞는 행: G1 -> G4 -> G5 -> G6 -> G7 -> G7b
+    ({"drop_w": True, "corner": "ff"}, "lut_midpoints_width_missing"),
+    ({"gen": "1" * 64, "corner": "ff"}, "lut_conditions_mismatch"),       # G4 가 G5 보다 먼저(key 로 구분)
+    ({"corner": "ff", "axis": "VGS"}, "lut_conditions_mismatch"),         # G5 가 G6 보다 먼저
+    ({"axis": "VDS", "drop": "GM"}, "lut_midpoints_axes_mismatch"),       # G6 가 G7 보다 먼저
+    ({"drop": "ID", "shape": "GM"}, "lut_midpoints_column_missing"),      # G7 이 G7b 보다 먼저
 ])
-def test_reject_order(mid_toy_build, bad, first):
+def test_lm1e_gate_order(mid_toy_build, bad, first):
     kw = dict(bad)
-    axis = kw.pop("axis", None)
-    kw.setdefault("l_source", MID_L_SOURCE)
-    m = mid_point_arrays(MID_LS, **kw)
-    if axis:
-        a = np.asarray(m[axis], dtype=float).copy()
+    m = mid_file(1e-6, 1.0, MID_LS, mid_meta(**({"generator_sha256": kw["gen"]} if "gen" in kw else {})))
+    if kw.get("drop_w"):
+        del m["W"]
+    if "corner" in kw:
+        m["corner"] = np.str_(kw["corner"])
+    if "axis" in kw:
+        a = np.asarray(m[kw["axis"]], dtype=float).copy()
         a[0] = a[0] - 1e-3
-        m[axis] = a
+        m[kw["axis"]] = a
+    if "drop" in kw:
+        del m[kw["drop"]]
+    if "shape" in kw:
+        m[kw["shape"]] = m[kw["shape"]][:, :, :, :1]
     det, _ = _mid_reject(mid_toy_build, "ord", m)
     assert det["reason"] == first
+    if "gen" in kw:
+        assert det["key"] == "generator_sha256"
+    elif "corner" in kw and not kw.get("drop_w"):
+        assert det["key"] == "corner"
 
 
 @pytest.mark.lut_realdata
 def test_real_midpoints_loaded(real_lut, raw_mid):
-    """[r6, 2026-10-08 중점 변경] 1.7: L = 승인 L 파일 `verification_midpoints_um` (0.165·0.85·1.75·3.25 µm -- CONTRACT 8절,
-    user_decisions 2026-10-08 '7번'), w_ref_m 5e-06 -> 폭 키 1000, nmos·pmos 표.
-    oracle: (d) 사용자 결정으로 선언된 승인 L 파일 값(파일을 직접 읽음) + 중점 npz 를 numpy 로 직접 읽은 L 축."""
-    assert set(real_lut.midpoints) == {"nmos", "pmos"}
-    declared = json.loads((SKILL_DIR / "assets" / "sky130_lut_L_grid.json").read_text(encoding="utf-8"))
-    declared_um = declared["verification_midpoints_um"]
-    assert declared_um == [0.165, 0.85, 1.75, 3.25]                    # (d) 사용자 결정 2026-10-08 '7번' 의 목록
-    file_L = tuple(float(x) for x in raw_mid["L"])
-    assert len(file_L) == len(declared_um)
-    for got, um_ in zip(file_L, declared_um):                         # µm -> m 곱의 반올림(1 ulp) 안
-        assert abs(got - um_ * 1e-6) <= math.ulp(um_ * 1e-6), (got, um_)
-    for kind, suf in (("nmos", "_n"), ("pmos", "_p")):
-        t = real_lut.midpoints[kind]
-        assert t.w_key == 1000 and t.w_m == float(raw_mid["w_ref_m"]) == 5e-06
-        assert tuple(t.L_points) == file_L
-        assert np.array_equal(np.asarray(t.VDSAT), raw_mid["VDSAT" + suf])
-        I, G = raw_mid["ID" + suf], raw_mid["GM" + suf]
-        assert np.array_equal(np.asarray(t.on_mask), (I > 0) & (G > 0))
+    """[LM-1e] 적재된 중점 표 = (kind, w_key) 마다 하나, 그 값은 중점 npz 를 numpy 로 직접 읽은 L·W·VDSAT·on_mask 와 같다.
+    oracle: (a) 파일 직접 읽기. (어느 (kind, w_key)에 있어야 하는가는 R-1 (i)가 `widths` 로 따로 단언한다.)"""
+    assert real_lut.midpoints
+    for (kind, wk), t in real_lut.midpoints.items():
+        z = raw_mid(kind, wk)
+        assert (t.kind, t.w_key) == (kind, wk) and t.w_m == float(z["W"])
+        assert tuple(t.L_points) == tuple(float(x) for x in z["L"])
+        assert np.array_equal(np.asarray(t.on_mask), (z["ID"] > 0) & (z["GM"] > 0))
+        if "VDSAT" in z:
+            assert np.array_equal(np.asarray(t.VDSAT), z["VDSAT"])
 
 
 # ---------------------------------------------------------------------------
+# [LM-1e §3 toy T] D7 적재 거부: 슬라이스 앵커 2개 bin 마다 그 슬라이스의 중점 L 가운데 두 앵커 사이인 것이 하나 이상
+# (`widths(lut, kind)` 의 키만, 키 오름차순 첫 실패에서 SchemaRejectedError `bin_missing_external`).
+# toy T: nmos 슬라이스 0.6·0.8 µm(키 60·80), 앵커 2개 bin = model.1(앵커 3·4 µm)·model.3(앵커 7·8 µm), 중점 L = 3.5 µm(model.1 안)·
+# 7.5 µm(model.3 안). oracle (d): interface §3 T 표.
+# ---------------------------------------------------------------------------
+
+def _t_reject(mid_toy_build, sub, mids, w_min):
+    mt = build_t(mid_toy_build, sub, mids)
+    with pytest.raises(SchemaRejectedError) as ei:
+        mt.load(t_spec(w_min))
+    return detail_of(ei.value)
+
+
+M1, M3 = "toyn__model.1", "toyn__model.3"
+
+
+def test_bin_missing_t1_loads(mid_toy_build):
+    """T-1 입력은 적재된다(값은 tests/lut/test_tolerance.py)."""
+    lut = build_t(mid_toy_build, "t1", {0: T_MID_L, 1: T_MID_L}).load(t_spec(0.6e-6))
+    assert set(lut.midpoints) == {("nmos", 60), ("nmos", 80)}
+
+
+def test_bin_missing_t2_key80_missing(mid_toy_build):
+    det = _t_reject(mid_toy_build, "t2", {0: T_MID_L}, 0.6e-6)
+    assert det["reason"] == "bin_missing_external"
+    assert (det["kind"], det["w_key"], tuple(det["models"])) == ("nmos", 80, (M1, M3))
+
+
+def test_bin_missing_t3_widths_exclude_key60(mid_toy_build):
+    """W_min 0.7 µm 면 키 60 은 `widths` 밖 -- 그래도 키 80 은 중점이 없어 거부(w_key 80)."""
+    det = _t_reject(mid_toy_build, "t3", {0: T_MID_L}, 0.7e-6)
+    assert det["reason"] == "bin_missing_external" and det["w_key"] == 80
+
+
+def test_bin_missing_t4_key60_outside_widths_passes(mid_toy_build):
+    lut = build_t(mid_toy_build, "t4", {1: T_MID_L}).load(t_spec(0.7e-6))
+    assert set(lut.midpoints) == {("nmos", 80)}
+
+
+def test_bin_missing_t5_partial_key60(mid_toy_build):
+    """키 60 에 3.5 µm 만 있고 키 80 은 둘 다: 키 60 의 model.3 에 두 앵커 사이 중점이 없다 -> w_key 60, models (model.3,)."""
+    det = _t_reject(mid_toy_build, "t5", {0: (3.5e-6,), 1: T_MID_L}, 0.6e-6)
+    assert det["reason"] == "bin_missing_external"
+    assert (det["w_key"], tuple(det["models"])) == (60, (M3,))
+
+
+def test_bin_missing_t6_none(mid_toy_build):
+    det = _t_reject(mid_toy_build, "t6", {}, 0.6e-6)
+    assert det["reason"] == "bin_missing_external"
+    assert (det["w_key"], tuple(det["models"])) == (60, (M1, M3))
+
+
+def test_bin_missing_t7_toy_spec_passes_without_midpoints(mid_toy_build):
+    """T-7: TOY_SPEC(최소 폭 1.5 µm) -- 슬라이스 0.6·0.8 µm 둘 다 `widths` 밖이라 중점 없이 통과."""
+    lut = build_t(mid_toy_build, "t7", {}).load(TOY_SPEC)
+    assert dict(lut.midpoints) == {}
+    assert widths(lut, "nmos") == ()
+
+
+def test_bin_missing_t9_l_off_grid_rejected_at_load(mid_toy_build):
+    """T-9: 키 60 중점 L = (3.505e-6, 7.5e-6) -- 3.505e-6 / 1e-8 = 350.5 비정수 -> G1c lut_midpoints_l_off_grid(detail L_m)."""
+    mt = build_t(mid_toy_build, "t9", {0: (3.505e-6, 7.5e-6), 1: T_MID_L})
+    with pytest.raises(SchemaRejectedError) as ei:
+        mt.load(t_spec(0.6e-6))
+    det = detail_of(ei.value)
+    assert det["reason"] == "lut_midpoints_l_off_grid" and det["L_m"] == 3.505e-6
+
+
+def test_bin_missing_only_widths_keys_are_checked(mid_toy_build):
+    """`widths` 밖 키(여기서 60)는 앵커 2개 bin 이 비어 있어도 거부하지 않는다 -- 표 셀 구성도 안 바뀐다(키 60 의 midpoints 항 없음)."""
+    lut = build_t(mid_toy_build, "t4b", {1: T_MID_L}).load(t_spec(0.7e-6))
+    assert widths(lut, "nmos") == (80,) and ("nmos", 60) not in lut.midpoints
+
+
+# ---------------------------------------------------------------------------
+
+
 # [r7] VS 축 FC 기록·기울기 열 단위 검사 (계획 DEC-87·N3.7, 설계 41 §4.1 '단위 불일치 -> 로드 거부(SchemaRejectedError)')
 # ---------------------------------------------------------------------------
 

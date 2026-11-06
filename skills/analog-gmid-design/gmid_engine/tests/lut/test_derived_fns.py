@@ -140,7 +140,7 @@ def test_real_lut_bins_follow_slice_anchor_bins():
     mins = min_finger_w_m(k for _, k in dk)      # PDK 선언 양(card 20261104-wb1)
     lut = load_lut_set(loc.manifest_path, loc.cap_npz_path,
                        LutSpec(float(man.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), dk, (("nmos", "_n"), ("pmos", "_p"))),
-                       pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path, bin_rule=loc.bin_rule_path)
+                       pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths, bin_rule=loc.bin_rule_path)
     memo = memo_of(lut, 1 << 15)
     for kind in ("nmos", "pmos"):
         w_key = 1000                                                  # 레이아웃 전 폭 = 5 µm (sizing 1.3, lut 1.4 실측)

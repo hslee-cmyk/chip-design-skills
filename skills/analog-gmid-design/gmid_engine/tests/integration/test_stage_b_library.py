@@ -45,7 +45,7 @@ def env():
     mins = min_finger_w_m(names.values())      # PDK 선언 양(card 20261104-wb1)
     grid = float(man.get("manufacturing_grid_m", 5e-9))
     lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, LutSpec(grid, tuple(sorted(mins.items())), DEVICE_KINDS, (("nmos", "_n"), ("pmos", "_p"))),
-                       pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path, bin_rule=loc.bin_rule_path)
+                       pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths, bin_rule=loc.bin_rule_path)
     pdk = read_pdk_decl(str(SKILL / "assets" / "sky130_pdk_decl.json"), BoundedLRU(8))
     # 원시 npz 통계(엔진 미사용)
     root = Path(loc.manifest_path).parent

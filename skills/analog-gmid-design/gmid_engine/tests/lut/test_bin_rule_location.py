@@ -34,7 +34,8 @@ def make(tmp, bin_rule="default", name="cfg"):
            "root": {"default": str(root)}, "pdk_root": {"default": str(pdk)},
            "files": {k: {"path": v, "sha256": hashlib.sha256(b"m").hexdigest()}
                      for k, v in (("manifest", "manifest.json"), ("cap_npz", "cap.npz"),
-                                  ("verify_midpoints", "mid.npz"))}}
+                                  )}}
+    cfg["files"]["verify_midpoints"] = [{"path": "mid.npz", "sha256": hashlib.sha256(b"m").hexdigest()}]   # [LM-1e §1] 배열
     if bin_rule == "default":
         bin_rule = {"path": "rule.json", "sha256": _lf_sha(DECL)}
     if bin_rule is not None:

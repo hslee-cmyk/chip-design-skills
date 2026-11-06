@@ -5,6 +5,7 @@
 - 참값: toy 는 conftest 의 손계산 bin 표, 실데이터는 ngspice-46 `showmod`(시뮬레이터가 실제로 고른 bin)로 엔진과 독립.
 """
 import math
+import sys
 
 import pytest
 
@@ -253,5 +254,51 @@ def test_real_contract_anchor_bin_table(real_lut):
         assert same_bounds(real_lut.slice_map[(kind, 1000)].l_bins.w_bin, (3e-6, 5e-6))
     assert same_bounds(real_lut.slice_map[("pmos", 84)].l_bins.w_bin, (4.2e-7, 5.5e-7))
     assert same_bounds(real_lut.slice_map[("pmos", 110)].l_bins.w_bin, (4.2e-7, 5.5e-7))
+
+
+# ---------------------------------------------------------------------------
+# [LM-1e §3 B-1·B-2] `midpoint_bracket(l_grid, l_bins, L_m, grid_m, rule)` -> (bin_index | None, reason | None)
+# 관찰 지점: sys.modules["gmid_engine.lut._helpers_bins"].midpoint_bracket (순수 함수 -- memo 인자 없음).
+# 기대값 = conftest 머리의 손 bin 표(A [1,2] 앵커 1·1.5·2 / B (2,4] 앵커 3·4 / C (4,5] 앵커 0 / 빈틈 (5,6) / D (6,8] 앵커 7·8 / E (8,10] 앵커 9;
+# bins 정렬 A..E = index 0..4)와 interface §3 표 1~6 -- oracle (d)·(a)(구성으로 정해진 답).
+# ---------------------------------------------------------------------------
+
+def _bracket():
+    import gmid_engine.lut  # noqa: F401  (모듈 적재)
+    return sys.modules["gmid_engine.lut._helpers_bins"].midpoint_bracket
+
+
+@pytest.mark.parametrize("L,expect", [
+    (3e-6, (None, "is_anchor")),                          # 행 2: 앵커와 같은 격자 정수
+    (5.5e-6, (None, "outside_model_bins")),               # 행 3: 빈틈 (5, 6) -- 어느 bin 에도 없음
+    (1.25e-6, (0, "bin_has_interior_anchors")),           # 행 4: bin A 앵커 3개
+    (9.5e-6, (4, "single_point")),                        # 행 4: bin E 앵커 1개
+    (2.5e-6, (1, "not_bracketed")),                       # 행 5: bin B 안, 앵커 3·4 µm 밖
+    (3.5e-6, (1, None)),                                  # 행 6: bin B 안, 앵커 3·4 사이
+    (7.5e-6, (3, None)),                                  # 행 6: bin D 안, 앵커 7·8 사이
+])
+def test_lm1e_midpoint_bracket_rows(bin_toy, L, expect):
+    sl = bin_toy.slice_map[("nmos", 100)]
+    assert _bracket()(sl.grids[0], sl.l_bins, L, 1e-8, bin_toy_rule(bin_toy)) == expect
+
+
+def bin_toy_rule(lut):
+    return lut.bin_rule
+
+
+def test_lm1e_midpoint_bracket_row1_empty_map(toy_empty):
+    """행 1: bin 지도가 비어 있음(빈 모델 블록 toy) -> (None, "bins_unavailable") -- 앵커 위 L 도 먼저 이 사유."""
+    sl = toy_empty.slice_map[("nmos", 100)]
+    for L in (1.5e-6, 2e-6):
+        assert _bracket()(sl.grids[0], sl.l_bins, L, 1e-8, toy_empty.bin_rule) == (None, "bins_unavailable")
+
+
+def test_lm1e_midpoint_bracket_is_pure(bin_toy):
+    """B-2: 같은 입력 두 번 -> 같은 결과(순수 -- memo 인자 없음, 호출 사이에 상태가 없다)."""
+    sl = bin_toy.slice_map[("nmos", 100)]
+    f = _bracket()
+    first = [f(sl.grids[0], sl.l_bins, L, 1e-8, bin_toy.bin_rule) for L in (3e-6, 5.5e-6, 1.25e-6, 9.5e-6, 2.5e-6, 3.5e-6)]
+    second = [f(sl.grids[0], sl.l_bins, L, 1e-8, bin_toy.bin_rule) for L in (3e-6, 5.5e-6, 1.25e-6, 9.5e-6, 2.5e-6, 3.5e-6)]
+    assert first == second
 
 

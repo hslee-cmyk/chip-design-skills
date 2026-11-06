@@ -29,7 +29,6 @@ import statistics
 import time
 
 from gmid_engine.core import blas_environment, fp_of
-from gmid_engine.lut import widths
 from gmid_engine.metrics import GATE_EMPTY, GATE_REASON_FRONT_EMPTY, GateResult, verified_by
 
 from .eps_sweep import classify, sweep_front
@@ -63,13 +62,10 @@ def _stop_counts(stops):
 
 
 def _bin_rule_note(lut):
-    """bin 규칙 적용 기록(WB-1, DEC-105 (2), 판정 불변): 적용한 규칙·줄바꿈 때문에 기록 sha 가 raw 인 (세트, 모델 파일) 쌍(기계 의존)·중점 파일이 검증하지 않은 슬라이스
-    ((kind, 키), ...) -- 기준 폭이 아닌 슬라이스는 L bin 중점 검증이 없다는 표지(결과에 남긴다)."""
-    unverified = [[kind, key] for kind in sorted({k for (k, _w) in lut.slice_map}) for key in widths(lut, kind)
-                  if kind not in lut.midpoints or lut.midpoints[kind].w_key != key]
+    """bin 규칙 적용 기록(WB-1, DEC-105 (2), 판정 불변): 적용한 규칙·줄바꿈 때문에 기록 sha 가 raw 인 (세트, 모델 파일) 쌍(기계 의존).
+    (LM-1e: '중점 미검증 슬라이스' 표지는 삭제 -- `widths` 슬라이스는 중점이 없으면 LUT 적재가 거부된다.)"""
     return {"verdict": "recorded", "rule": "DEC-105 (2)", "bin_rule": lut.bin_rule,
-            "bin_rule_machine_dependent": [list(pair) for pair in lut.provenance.bin_rule_machine_dependent],
-            "midpoint_unverified_slices": unverified}
+            "bin_rule_machine_dependent": [list(pair) for pair in lut.provenance.bin_rule_machine_dependent]}
 
 
 def _slice_rounds(snapshot):

@@ -121,8 +121,7 @@ def test_query_regions_and_repeat_is_free(toy, region, call):
 ])
 def test_r6_query_regions_and_repeat_is_free(mid_toy_build, region, call):
     """[r6] 2절 영역: vdsat = point, midpoint_l_bin_checks·tol_vdsat_table = derived. 반복은 그 영역 hits 만 는다."""
-    from .conftest import MID_L_SOURCE, mid_point_arrays
-    m = new_memo(mid_toy_build("reg", mid=mid_point_arrays((3.5e-6,), l_source=MID_L_SOURCE)).load())
+    m = new_memo(mid_toy_build("reg", mid={0: (3.5e-6,)}).load())
     a = call(m)
     before = _stats(m)
     for _ in range(3):
@@ -136,8 +135,7 @@ def test_r6_query_regions_and_repeat_is_free(mid_toy_build, region, call):
 
 def test_r6_derived_capacity_holds_all_tables(mid_toy_build):
     """[r6] derived 상한 = 슬라이스 수 × 4: 두 폭의 네 표를 모두 만들어도 쫓겨나지 않는다(evictions 0)."""
-    from .conftest import MID_L_SOURCE, mid_point_arrays
-    lut = mid_toy_build("cap", mid=mid_point_arrays((3.5e-6,), l_source=MID_L_SOURCE)).load()
+    lut = mid_toy_build("cap", mid={0: (3.5e-6,)}).load()
     m = new_memo(lut)
     for wk in (100, 200):
         curve_report(m)
@@ -288,8 +286,7 @@ def test_lookup_persistent_errors_and_failed_compute_not_stored(toy, cache_cls, 
 def test_derived_tables_go_through_disk_cache(mid_toy_build, cache_cls, short_dir, fn, call):
     """(d) 2.1 '쓰는 곳': tol_v_table·tol_vdsat_table·curve_report 는 lookup_persistent 로 디스크 캐시를 거친다 -- 첫 memo 는
     그 fn_name 의 칸 파일을 쓰고(miss·write), 새 memo 는 디스크 적중(hit), 값은 같다. midpoint_l_bin_checks 는 대상 아님(파일 없음)."""
-    from .conftest import MID_L_SOURCE, mid_point_arrays
-    lut = mid_toy_build("dc", mid=mid_point_arrays((3.5e-6,), l_source=MID_L_SOURCE)).load()
+    lut = mid_toy_build("dc", mid={0: (3.5e-6,)}).load()
     d = short_dir / "c"
     t1 = cache_cls(str(d))
     a = call(LutMemo(lut, point=64, curve=64, root=64, table_cache=t1))

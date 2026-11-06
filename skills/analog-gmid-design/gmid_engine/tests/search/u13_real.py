@@ -45,7 +45,7 @@ def real_env():
     spec = LutSpec(float(man.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), DEVICE_KINDS, CAP_SUFFIX,
                    noise_ef=(("nmos", q["noise_ef_nmos"].value_m), ("pmos", q["noise_ef_pmos"].value_m)))
     assert loc.noise_path and loc.mismatch_path, "데이터 위치 선언에 noise·mismatch 항목이 있어야 한다(lut CONTRACT 1.8)"
-    lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path,
+    lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths,
                        noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path, bin_rule=loc.bin_rule_path)
     env = SimpleNamespace(lut=lut, memo=LutMemo(lut, point=1 << 16, curve=1 << 14, root=1 << 16), pdk=pdk,
                           rule=read_pdk_decl(str(SKILL / "assets" / "sky130_lut_rule_decl.json"), dm),

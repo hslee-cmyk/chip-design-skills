@@ -13,8 +13,9 @@
   `pdk_root` 가 없거나·파일이 없거나·sha256 이 다르면 거부(같은 파일은 한 호출에서 한 번만 잰다).
 * [r6] `pdk_root` 인자: 주면 meta 의 절대 `pdk_root` 대신 그 폴더 아래에서 모델 파일을 찾는다(데이터·PDK 를 다른 기계·
   폴더로 옮겨도 sha256 대조는 그대로 -- 경로는 지문에 들어가지 않는다). 주지 않으면 meta 값(r5 그대로).
-* [r6] `verify_midpoints` 인자: bin 검증 중점 파일(선택) -- 파일 sha256 과 meta `L_source` 를 출처에 싣는다(내용 검사는
-  `load_lut_set`).
+* [LM-1e] `verify_midpoints` 인자: bin 검증 중점 파일들의 sequence(선택, 파일마다 DC 슬라이스 npz 꼴 -- 폭 `W`·중점 `L`·meta `device`) -- 파일마다
+  짝 슬라이스(meta `device` 와 폭 키가 같은 manifest 슬라이스)를 찾고 관문 G0~G4c(`_midpoint_source`)를 지나면 `SliceSource`(sha256 = 파일 raw 바이트)로 출처에 싣는다
+  (축·조건·열 검사 G5~G7b 는 `load_lut_set`).
 * [r7] `noise_npz`·`mismatch_npz` 인자: 잡음 r1·mismatch 감도 r1 파일(선택) -- 경로와 sha256 을 출처에 싣는다(파일 없음 ->
   `lut_noise_missing`·`lut_mismatch_missing`, 내용 검사는 `load_lut_set`).
 * [WB-1 범위 0] `bin_rule` 인자(필수): bin 규칙 선언 파일(스키마 `lut_bin_rule/1`, DEC-105 (2)). 엔진이 읽는 칸은 `rule`·
@@ -83,14 +84,44 @@ def _model_paths(meta, slice_path, digests, pdk_root):
     return tuple(out)
 
 
-def _midpoints(path):
-    """중점 파일의 (절대 경로, sha256, meta L_source 쌍 tuple, 측정 조건). 파일 없음 -> `lut_midpoints_missing`."""
+def _midpoint_source(path, manifest_generator, grid_m, pairs, seen):
+    """중점 파일 하나의 `SliceSource`(관문 G0~G4c, 위에서 아래로 첫 맞는 행에서 거부 -- detail 에 `path`).
+
+    `pairs` = {(슬라이스 파일 meta `device`, 폭 키): (kind, manifest device, 슬라이스 meta)}, `seen` = 이미 짝이 된 (kind, 폭 키) 집합(호출자가 갱신).
+    G0 파일 없음 `lut_midpoints_missing`, G1 `W` 없음 `lut_midpoints_width_missing`, G1b `W` 제조 격자 밖 `lut_width_off_grid`, G1c `L` 원소가
+    제조 격자 밖(폭 관문과 같은 판정) `lut_midpoints_l_off_grid`, G2 meta `device` 없음·짝 슬라이스 없음 `lut_midpoints_slice_unmatched`, G3 같은
+    (kind, 폭 키) 둘 이상 `lut_slice_duplicate`, G4 생성기 sha256 ≠ manifest 값(manifest 에 없으면 언제나)·G4b 모델 파일 sha256 ≠ 짝 슬라이스·G4c 시뮬레이터 판
+    ≠ 짝 슬라이스 `lut_conditions_mismatch`(detail key). 옛 `L_source` 는 읽지 않는다.
+    """
     if not os.path.isfile(path):
         raise schema_rejected("lut_midpoints_missing", path=str(path))
     with np.load(path) as npz:
+        if "W" not in npz.files:
+            raise schema_rejected("lut_midpoints_width_missing", path=str(path))
+        w_m = float(npz["W"])
+        w_key, on_grid = width_key(w_m, grid_m)
+        if not on_grid:
+            raise schema_rejected("lut_width_off_grid", path=str(path), w_m=w_m, grid_m=grid_m)
+        for l_m in (float(x) for x in np.asarray(npz["L"], dtype=float)) if "L" in npz.files else ():
+            if not width_key(l_m, grid_m)[1]:
+                raise schema_rejected("lut_midpoints_l_off_grid", path=str(path), L_m=l_m, grid_m=grid_m)
         meta = json.loads(str(npz["meta_json"])) if "meta_json" in npz.files else {}
         conditions = _conditions(npz)
-    return os.path.abspath(path), _sha256_of(path), sorted_items(meta.get("L_source") or {}), conditions
+    device = meta.get("device")
+    pair = pairs.get((device, w_key)) if device is not None else None
+    if pair is None:
+        raise schema_rejected("lut_midpoints_slice_unmatched", path=str(path), device=device, w_key=w_key)
+    kind, manifest_device, pair_meta = pair
+    if (kind, w_key) in seen:
+        raise schema_rejected("lut_slice_duplicate", path=str(path), set="midpoints", kind=kind, w_key=w_key)
+    seen.add((kind, w_key))
+    recorded = sorted_items(meta.get("model_files_sha256") or {})
+    for key, got, want in (("generator_sha256", meta.get("generator_sha256"), manifest_generator),
+                           ("model_files_sha256", recorded, sorted_items(pair_meta.get("model_files_sha256") or {})),
+                           ("ngspice", meta.get("ngspice"), pair_meta.get("ngspice"))):
+        if want is None or got != want:
+            raise schema_rejected("lut_conditions_mismatch", path=str(path), key=key, midpoints=got, slice=want)
+    return SliceSource(kind, manifest_device, w_m, w_key, os.path.abspath(path), _sha256_of(path), conditions, recorded, ())
 
 
 def _extra_file(path, reason):
@@ -195,9 +226,13 @@ def lut_provenance(manifest_path, cap_npz_path, spec, *, bin_rule, pdk_root=None
     `round(W / spec.manufacturing_grid_m)` 이고, 파일의 W(m) 와 키·격자 곱의 차가 float 반올림 3회(곱·격자·나눗셈)의
     상계 `2 * ulp(W / grid)` 를 넘으면 거부한다(폭이 제조 격자 위에 있지 않은 파일).
     `bin_rule`(필수): bin 규칙 선언 파일 경로(모듈 docstring, 실패 `bin_tie_undeclared`).
-    `pdk_root`: 모델 파일을 찾을 PDK 루트(None = 슬라이스 meta 값). `verify_midpoints`: 검증 중점 파일 경로(None = 없음).
+    `pdk_root`: 모델 파일을 찾을 PDK 루트(None = 슬라이스 meta 값). `verify_midpoints`: 검증 중점 파일 경로 sequence(None·빈 sequence = 없음,
+    문자열 하나 -> `TypeError`) -- 파일마다 짝 슬라이스 하나(`_midpoint_source`), 결과 `LutProvenance.midpoint_sources`.
     `noise_npz`·`mismatch_npz`: 잡음 r1·mismatch 감도 r1 파일 경로(None = 없음).
     """
+    if isinstance(verify_midpoints, (str, bytes, os.PathLike)):
+        raise TypeError("lut_provenance: verify_midpoints 는 경로 sequence(문자열 하나가 아님)")
+    midpoint_paths = tuple(verify_midpoints or ())
     decl = _read_bin_rule(bin_rule)
     if not os.path.isfile(manifest_path):
         raise schema_rejected("lut_manifest_missing", path=str(manifest_path))
@@ -209,6 +244,7 @@ def lut_provenance(manifest_path, cap_npz_path, spec, *, bin_rule, pdk_root=None
     slices = []
     set_metas = []
     seen = set()
+    pairs = {}
     digests = {}
     for row in manifest.get("slices") or ():
         device = row.get("device")
@@ -231,6 +267,7 @@ def lut_provenance(manifest_path, cap_npz_path, spec, *, bin_rule, pdk_root=None
         if key in seen:
             raise schema_rejected("lut_slice_duplicate", kind=key[0], w_key=w_key)
         seen.add(key)
+        pairs.setdefault((meta.get("device"), w_key), (key[0], device, meta))
         set_metas.append((os.path.basename(path), meta))
         slices.append(SliceSource(
             kinds[device], device, w_m, w_key, path, digest, conditions,
@@ -244,7 +281,9 @@ def lut_provenance(manifest_path, cap_npz_path, spec, *, bin_rule, pdk_root=None
     with np.load(cap_npz_path) as npz:
         cap_conditions = _conditions(npz)
         set_metas.append(("cap", json.loads(str(npz["meta_json"])) if "meta_json" in npz.files else {}))
-    mid = (None, None, (), ()) if verify_midpoints is None else _midpoints(verify_midpoints)
+    paired = set()
+    mid = tuple(sorted((_midpoint_source(p, manifest.get("generator_sha256"), grid_m, pairs, paired) for p in midpoint_paths),
+                       key=lambda s: (s.kind, s.w_key)))
     noise = _extra_file(noise_npz, "lut_noise_missing")
     mismatch = _extra_file(mismatch_npz, "lut_mismatch_missing")
     for set_name, extra_path in (("noise", noise[0]), ("mismatch", mismatch[0])):
@@ -255,7 +294,7 @@ def lut_provenance(manifest_path, cap_npz_path, spec, *, bin_rule, pdk_root=None
     return LutProvenance(
         os.path.abspath(manifest_path), _sha256_of(manifest_path), str(manifest.get("generator_sha256")),
         tuple(sorted(slices, key=lambda s: (s.kind, s.w_key))),
-        os.path.abspath(cap_npz_path), _sha256_of(cap_npz_path), cap_conditions, *mid,
+        os.path.abspath(cap_npz_path), _sha256_of(cap_npz_path), cap_conditions, mid,
         *noise, *mismatch,
         bin_rule=decl[0], bin_rule_sha256=decl[3], bin_rule_machine_dependent=machine,
     )

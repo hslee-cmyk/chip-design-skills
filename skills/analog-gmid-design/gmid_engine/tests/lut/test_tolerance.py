@@ -19,12 +19,15 @@ import numpy as np
 import pytest
 
 from gmid_engine.core import SealViolationError
-from gmid_engine.lut import (TOL_V_METRICS, LBinMap, TolVCell, TolVTable, midpoint_l_bin_checks, op_point,
+from gmid_engine.lut import (TOL_V_METRICS, LBinMap, TolVCell, TolVTable, load_lut_set, midpoint_l_bin_checks, op_point,
                              tol_v_table)
 
-from .conftest import (BIN_ANCHOR_BIN_HI, BIN_ANCHOR_BIN_LO, BIN_L, TOY_L, TOY_VDS, RefSlice, bin_toy_raw, detail_of,
-                       hermite_val, midpoint_ref, new_memo, parse_model_bins, r4_toy_slice_arrays, rel_close, same_bounds,
-                       sha256_file, tol_cell_ref, toy_slice_arrays, um)
+from sizing.conftest import W_KEY, r4_arrays, write_r4_lut
+
+from .conftest import (BIN_ANCHOR_BIN_HI, BIN_ANCHOR_BIN_LO, BIN_L, T_KEYS, T_MID_L, T_WIDTHS, TOY_L, TOY_VDS, RefSlice,
+                       MID_DEVICE, TOY_SPEC, bin_toy_raw, build_t, detail_of, hermite_val, mid_file, mid_toy_arrays, midpoint_ref, new_memo,
+                       parse_model_bins, r4_toy_slice_arrays, rel_close, same_bounds, sha256_file, t_spec, tol_cell_ref,
+                       toy_slice_arrays, um)
 
 # [WB-1 M-TH1c] 지표 gm_id_inverse(역산)와 셀 칸 gm_id_inverse_v·gm_id_inverse_loo_v·n_targets·n_inverse_failed 가 삭제됐다 -> 해당 단언은 폐기
 # (RETIRED_TESTS_wb1.md). 남은 지표 id_equivalent 의 4줄만 본다.
@@ -263,17 +266,18 @@ def real_mid_ext(raw_slice, raw_mid, real_pmos_anchor_bin):
     """[r6] 5.1 의 pmos w_key 1000 외부 값 독립 계산: 중점 0.165 µm 를 감싸는 앵커 2개 bin(showmod 로 정한 bin 표시)의 앵커 쌍.
     반환 {앵커 index: (eq[k], eq_bound[k])} -- 그 bin 두 앵커 행에 들어갈 VDS 별 값."""
     z = raw_slice("pmos", 1000)
+    mid = raw_mid("pmos", 1000)                          # [LM-1e] 그 폭의 중점 파일(접미사 없는 열)
     Lg = [float(x) for x in z["L"]]
     ab = real_pmos_anchor_bin
     out = {}
-    for m, Lm in enumerate(float(x) for x in raw_mid["L"]):
+    for m, Lm in enumerate(float(x) for x in mid["L"]):
         if any(abs(Lm - a) <= math.ulp(a) for a in Lg) or not (Lg[0] < Lm < Lg[-1]):
             continue
         k = bisect.bisect_right(Lg, Lm)
         i0, i1 = k - 1, k
         if ab[i0] != ab[i1] or ab.count(ab[i0]) != 2:
             continue                                     # 감싸는 쌍이 같은 bin 이고 그 bin 의 앵커가 정확히 2개일 때만(5.1 1~6)
-        ref = midpoint_ref(z, raw_mid, "_p", m, i0, i1)
+        ref = midpoint_ref(z, mid, "", m, i0, i1)
         out[i0] = out[i1] = (ref["eq"], ref["eq_bound"])
     return out
 
@@ -390,9 +394,11 @@ def test_real_at_is_max_of_two_cells(real_table):
         kk = min(bisect.bisect_right(Va, vds) - 1, len(Va) - 2)
         for metric, attr in (("id_equivalent", "id_equivalent_v"),):
             vals = [getattr(t.cells[i][b], attr) for b in (kk, kk + 1)]
-            vals = [v for v in vals if v is not None]
-            exp = max(vals) if vals else None
+            # [LM-1e §5 셀 결합] 결합 셀이 모두 정의되면 그 max, 하나라도 None 이면 None
+            # (실 LUT 의 VDS 0 열은 ID = 0 이라 셀 0 = None -> vds 0.01 의 칸 [0, Va[1]) 은 None)
+            exp = None if any(v is None for v in vals) else max(vals)
             assert t.at(L, vds, metric) == exp, (L, vds, metric)
+    assert t.at(La[0], 0.01, "id_equivalent") is None                 # 판별: 옛 규칙은 셀 1 값
 
 
 @pytest.mark.lut_realdata
@@ -442,7 +448,7 @@ def test_real_statuses_match_ngspice_bins(real_table, real_table_noext, real_lut
     외부 값 없는 표는 r5 와 같다(앵커 2개 bin 모두 missing_external)."""
     sl = real_lut.slice_map[("pmos", 1000)]
     Lg = [float(x) for x in sl.grids[0]]
-    mids = [float(x) for x in raw_mid["L"]]
+    mids = [float(x) for x in raw_mid("pmos", 1000)["L"]]
     b = ngspice_bins.query("pfet_01v8", [(um(sl.w_m), um(L)) for L in sl.grids[0]])
     names = parse_model_bins(ngspice_bins.pm3("pfet_01v8"))
     groups = []
@@ -482,7 +488,7 @@ def test_real_at_in_bin_and_cross_bin(real_table):
     L = 0.5 * (La[i0] + La[i0 + 1])                     # 0.3875 µm, 같은 bin 0.35·0.425 ([r6] 앵커 7·8)
     for metric, attr in (("id_equivalent", "id_equivalent_v"),):
         vals = [getattr(t.cells[i][k], attr) for i in (i0, i0 + 1) for k in (24, 25)]
-        vals = [v for v in vals if v is not None]
+        assert all(v is not None for v in vals)                          # 이 칸은 모두 정의 -> max (결합 규칙: 하나라도 None 이면 None)
         assert t.at(L, 0.9, metric) == max(vals)
     with pytest.raises(SealViolationError) as ei:
         t.at(0.6e-6, 0.9, "id_equivalent")                # 0.5(bin .24)·0.7(bin .23) 사이, bin (0.5, 1] 앵커 2개
@@ -587,8 +593,11 @@ def test_external_checks_maxed_into_two_anchor_bins(bin_memo):
 def test_external_checks_none_cells_stay_none(bin_toy_build):
     """셀 값이 None 이면 외부 값이 있어도 None. VGS 2 점(내부점 없음)·VDS·VS 2 점, L 앵커 1·2 µm 가 한 bin(앵커 2개):
     어떤 축에도 LOO 가 없어 모든 셀 None -> 외부 값을 줘도 None, 시도 수 0."""
-    bt = bin_toy_build(blocks=(("toyn__model.0", 1e-6, 2e-6, 0.5e-6, 3e-6),), L=(1e-6, 2e-6), n_vgs=2)
-    m = new_memo(bt.load())
+    bt = bin_toy_build(blocks=(("toyn__model.0", 1e-6, 2e-6, 0.5e-6, 3e-6),), L=(1e-6, 2e-6), n_vgs=2,
+                       device=MID_DEVICE)
+    # [LM-1e D7] 키 200(폭 2 µm ≥ TOY_SPEC 최소 폭 1.5 µm)은 앵커 2개 bin 이라 두 앵커 사이 중점(1.5 µm) 하나가 있어야 적재된다.
+    # 이 test 가 보는 키 100 은 `widths` 밖이라 중점이 없고 상태는 그대로 missing_external 이다.
+    m = new_memo(bt.load_mid(TOY_SPEC, {1: (1.5e-6,)}))
     base = tol_v_table(m, "nmos", 100)
     assert tuple(base.l_loo) == ("bin_missing_external",) * 2
     t = tol_v_table(m, "nmos", 100, (("toyn__model.0", 0.7),))
@@ -629,8 +638,8 @@ def test_at_in_bin_uses_both_rows(bin_memo, L, rows):
     for vds in (0.5, 0.75, 1.0):
         for metric, attr in (("id_equivalent", "id_equivalent_v"),):
             vals = [getattr(t.cells[i][k], attr) for i in rows for k in (0, 1)]
-            vals = [v for v in vals if v is not None]
-            assert t.at(L, vds, metric) == (max(vals) if vals else None), (L, vds, metric)
+            # [LM-1e §5 셀 결합] 모두 정의되면 max, 하나라도 None 이면 None
+            assert t.at(L, vds, metric) == (None if any(v is None for v in vals) else max(vals)), (L, vds, metric)
 
 
 @pytest.mark.parametrize("L,reason", [(2.5e-6, "lut_l_cross_bin"), (6.5e-6, "lut_l_cross_bin"),
@@ -652,6 +661,127 @@ def test_at_empty_map_detail(toy_empty_memo):
         t.at(1.5e-6, 0.75, "id_equivalent")
     det = detail_of(ei.value)
     assert det["reason"] == "lut_l_not_anchor" and det["bins"] == "unavailable"
+
+
+# ---------------------------------------------------------------------------
+# [LM-1e §5] 셀 결합 `at` -- 결합 셀(앵커 행 또는 같은 bin 양옆 두 행 × VDS 칸 두 열, 최대 넷)이 모두 정의되면 그 max,
+# 하나라도 None 이면 None. toy R(sizing r4 꼴, pmos 의 VDS index 0 열이 꺼짐 = 실 LUT 의 VDS 0 열 모양): 격자 R4_VDS = 0, 0.25, ...
+# oracle: (a) 구성으로 정해진 답(꺼진 열의 셀은 정의상 None) + (d) interface 결합 규칙 + (b) conftest `tol_cell_ref`(셀 값 독립 구현).
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def r_off_table(tmp_path):
+    lut = write_r4_lut(tmp_path / "roff", off_cols={"pmos": 1})
+    return tol_v_table(new_memo(lut), "pmos", W_KEY)
+
+
+def test_cell_combine_r0_premise(r_off_table):
+    """전제 R-0(안 서면 A-0·J-a·J-c 가 이 입력으로 성립하지 않는다): 앵커 행 모두에서 셀 VDS index 0 = None, index 1·2 ≠ None."""
+    t = r_off_table
+    assert tuple(t.vds_grid)[:3] == (0.0, 0.25, 0.5)
+    assert len(t.cells) == 2
+    for i in range(len(t.cells)):
+        assert t.cells[i][0].id_equivalent_v is None
+        assert t.cells[i][1].id_equivalent_v is not None and t.cells[i][2].id_equivalent_v is not None
+
+
+@pytest.mark.parametrize("iL", [0, 1])
+def test_cell_combine_a0_none_cell_makes_none(r_off_table, iL):
+    """A-0: vds = 0.1 (칸 [0, 0.25) -- 셀 0 = None 포함) -> None. vds = 0.3 (칸 [0.25, 0.5)) -> max(셀 1, 셀 2).
+    판별: 옛 규칙(정의된 셀만 max)은 0.1 에서 셀 1 값을 낸다. 칸 경계 0.25 는 윗 칸([0.25, 0.5)), 마지막 격자점은 마지막 칸."""
+    t = r_off_table
+    L = t.L_anchors[iL]
+    row = t.cells[iL]
+    z = r4_arrays("pmos", off_cols=1)
+    rs = RefSlice(z)
+    refs = [tol_cell_ref(rs, iL, k, None) for k in range(3)]
+    assert refs[0]["eq"] is None                                      # (b) 독립 구현도 꺼진 열의 셀은 정의 없음
+    for k in (1, 2):                                                  # 셀 값 자체도 독립 구현과 같다(유도 상한 안)
+        assert abs(row[k].id_equivalent_v - refs[k]["eq"]) <= refs[k]["eq_bound"]
+    for vds in (0.0, 0.1, 0.2499):
+        assert t.at(L, vds, "id_equivalent") is None, vds
+    hand = max(row[1].id_equivalent_v, row[2].id_equivalent_v)
+    for vds in (0.25, 0.3, 0.4999):
+        assert t.at(L, vds, "id_equivalent") == hand, vds
+
+
+# ---------------------------------------------------------------------------
+# [LM-1e §3 toy T] 슬라이스별 중점 적재의 tol 표 값 (T-1·T-4): 앵커 2개 bin 행 = max(LOO_ref, EXT_ref), 나머지 행 = LOO_ref.
+# toy T: nmos 슬라이스 0.6·0.8 µm(키 60·80), 중점 L 3.5 µm(model.1 앵커 3·4 → 행 3·4)·7.5 µm(model.3 앵커 7·8 → 행 5·6).
+# oracle (b)·(a): LOO_ref = conftest `tol_cell_ref`(기존 독립 LOO 구현), EXT_ref = conftest `midpoint_ref`(5.1 닫힌 식, 슬라이스·중점 npz 직접).
+# 셀 비교의 허용 차는 두 독립 구현이 유도한 γ_n 반올림 상한(상수 발명 없음).
+# ---------------------------------------------------------------------------
+
+def _t_expected(W, scale, with_ext):
+    """{(i, k): (기대 셀 값 또는 None, 허용 차, 환산 전 값, 그 허용 차)}."""
+    z = mid_toy_arrays(W, scale, {})
+    mid = mid_file(W, scale, T_MID_L)
+    on = (z["ID"] > 0) & (z["GM"] > 0)
+    rs = RefSlice(z)
+    ext = {}
+    if with_ext:
+        for mi, i0, i1 in ((0, 3, 4), (1, 5, 6)):                    # 중점 index, 감싸는 앵커 쌍
+            r = midpoint_ref(z, mid, "", mi, i0, i1, z["VDSAT"], on)
+            ext[i0] = ext[i1] = (r["eq"], r["eq_bound"])
+    out = {}
+    for i in range(len(z["L"])):
+        for k in range(len(z["VDS"])):
+            ref = tol_cell_ref(rs, i, k, BIN_ANCHOR_BIN_LO)
+            v, b = ref["eq"], ref["eq_bound"]
+            if v is not None and i in ext and ext[i][0][k] is not None and ext[i][0][k] > v:
+                v, b = ext[i][0][k], ext[i][1][k] + ref["eq_bound"]
+            out[(i, k)] = (v, b, ref["eq_loo"], ref["eq_loo_bound"])
+    return out
+
+
+def _assert_t_cells(t, exp):
+    for (i, k), (v, b, lv, lb) in exp.items():
+        c = t.cells[i][k]
+        if v is None:
+            assert c.id_equivalent_v is None and c.id_equivalent_loo_v is None, (i, k)
+        else:
+            assert c.id_equivalent_v is not None and abs(c.id_equivalent_v - v) <= b, (i, k, c.id_equivalent_v, v, b)
+            assert abs(c.id_equivalent_loo_v - lv) <= lb, (i, k)       # 외부 값은 환산 전 필드에 들어가지 않는다
+
+
+@pytest.mark.parametrize("idx", [0, 1])
+def test_lm1e_t1_cells_are_max_of_loo_and_ext(mid_toy_build, idx):
+    """T-1: 두 키 모두 행 3·4 = max(LOO_ref, EXT_ref(model.1)), 행 5·6 = max(LOO_ref, EXT_ref(model.3)), 행 0·1·2·7 = LOO_ref."""
+    lut = build_t(mid_toy_build, "t1v", {0: T_MID_L, 1: T_MID_L}).load(t_spec(0.6e-6))
+    t = tol_v_table(new_memo(lut), "nmos", T_KEYS[idx])
+    exp = _t_expected(*T_WIDTHS[idx], True)
+    _assert_t_cells(t, exp)
+    noext = _t_expected(*T_WIDTHS[idx], False)
+    lifted = [(i, k) for (i, k), (v, *_r) in exp.items()
+              if i in (3, 4, 5, 6) and v is not None and noext[(i, k)][0] is not None and v > noext[(i, k)][0] + exp[(i, k)][1]]
+    assert lifted, "판별: 외부 값이 어느 셀도 올리지 못하면 이 test 가 외부 값을 구별하지 못한다"
+    assert tuple(s for _, _, s in t.l_loo_bins) == ("computed", "external", "external", "single_point")
+    assert tuple(t.l_loo) == ("bin_edge", "in_bin_interior", "bin_edge", "bin_external", "bin_external",
+                              "bin_external", "bin_external", "bin_single_point")
+
+
+def test_lm1e_t1_both_keys_same_table(mid_toy_build):
+    """T-1 '두 키 표 같음': 폭이 달라도(배율 0.6 대 0.8) ln ID 차로 정의된 tol 은 같다(두 독립 구현 유도 상한 안)."""
+    m = new_memo(build_t(mid_toy_build, "t1s", {0: T_MID_L, 1: T_MID_L}).load(t_spec(0.6e-6)))
+    a, b = tol_v_table(m, "nmos", 60), tol_v_table(m, "nmos", 80)
+    ea, eb = _t_expected(*T_WIDTHS[0], True), _t_expected(*T_WIDTHS[1], True)
+    for (i, k), (v, bd, *_r) in ea.items():
+        w, bd2 = eb[(i, k)][0], eb[(i, k)][1]
+        if v is None:
+            assert w is None and a.cells[i][k].id_equivalent_v is None and b.cells[i][k].id_equivalent_v is None
+        else:
+            assert abs(a.cells[i][k].id_equivalent_v - b.cells[i][k].id_equivalent_v) <= 2 * (bd + bd2)
+
+
+def test_lm1e_t4_widths_outside_key_has_no_external(mid_toy_build):
+    """T-4: 중점은 키 80 만, W_min 0.7 µm -> 키 60 은 `widths` 밖이라 적재 통과. 키 60 의 행 3~6 = LOO_ref(외부 값 없음,
+    상태 missing_external), 키 80 은 외부 값이 든다."""
+    m = new_memo(build_t(mid_toy_build, "t4v", {1: T_MID_L}).load(t_spec(0.7e-6)))
+    t60, t80 = tol_v_table(m, "nmos", 60), tol_v_table(m, "nmos", 80)
+    _assert_t_cells(t60, _t_expected(*T_WIDTHS[0], False))
+    _assert_t_cells(t80, _t_expected(*T_WIDTHS[1], True))
+    assert tuple(s for _, _, s in t60.l_loo_bins) == ("computed", "missing_external", "missing_external", "single_point")
+    assert tuple(s for _, _, s in t80.l_loo_bins) == ("computed", "external", "external", "single_point")
 
 
 # ---------------------------------------------------------------------------
