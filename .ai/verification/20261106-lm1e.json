@@ -782,7 +782,7 @@
  "checks": {
   "V1": {
    "verdict": "N/A",
-   "basis": "재판정(test 머리 8c54bb2e, 격리 병합본 8a2a0c7e = code 04e53dfd + test): 바뀐 파일은 sizing/test_seal_tolerances.py 하나(+interface 한 줄)라 sizing/test_seal_tolerances.py·test_block_dc.py·test_s2_values.py 140 passed 재실행, 나머지 조각(lut 1251·metrics 1433·search+layout 57·structure 189)은 앞 판정 결과 재사용(엔진·그 test 불변). 2회로 연기(folded_cascode, ngcc_3stage_ff; stage_b·s0·g10)는 세 번째로 못 돌렸다: 프로세스가 여유 5.2 GB 에서 시작해 약 3.3 GB 를 먹고 2 GB 하한 아래로 내려가(s0 folded_cascode 재시도) 규칙대로 멈췄다. 통과로 세지 않는다 = N/A, 오케스트레이터 몫(메모리 큰 환경 재실행)."
+   "basis": "병합본 8a2a0c7e. 카드 범위: lut 1251·metrics 1433·search+layout 57·structure 189·sizing 140 passed(재판정). 2회로 연기(O-250 하한 1 GB, 회로·파일 하나씩 순차, C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runsmoke2.sh·smoke2_log2.txt): folded_cascode s0 7 passed 2 failed(test_stage_reports_unchanged_from_base·test_s0_field_values_unchanged_from_base), g10 1 passed; ngcc_3stage_ff stage_b 5 passed, s0 1 passed 1 failed(test_stage_reports_unchanged_from_base), g10 1 passed. 실패 3건은 base 56d88fe7 에서도 같은 메시지로 실패한다(runbase.sh: ngcc 보고서 키 stage_b.achievability.curves·gain, folded 같은 두 test, 6줄 diff 없음) = LM-1e 가 만든 것이 아닌 낡은 기준선 fixture(u17_1b_s0_baseline.json) 문제. folded_cascode stage_b 는 두 번 시도 모두 여유 936 MB·1004 MB 로 1 GB 하한에서 멈춰 미실행. 미실행이 있어 N/A(통과로 세지 않음)."
   },
   "V2": {
    "verdict": "PASS",
@@ -810,11 +810,11 @@
   },
   "V8": {
    "verdict": "PASS",
-   "basis": "폴백 발동 0: 런타임 None 갈래(`missing_external` None) 없음(적재 거부), 옛 형식 읽기 폴백 없음(적재는 옛 꼴을 lut_location_config_invalid 로 거부). 유일한 옛 꼴 읽기 = table_cache._pinned_midpoints 의 dict 갈래(다른 worktree 옛 설정의 보존 집합 계산 전용, 적재 경로 아님, 종료 조건 D40 (vii) 문서화) -- minor, LA-1 재점검 입력. 단 2회로 연기에서 폴백 발동 수는 못 쟀다(V1)."
+   "basis": "폴백 발동 0: 런타임 None 갈래(`missing_external` None) 없음(적재 거부), 옛 형식 읽기 폴백 없음(적재는 옛 꼴을 lut_location_config_invalid 로 거부). 유일한 옛 꼴 읽기 = table_cache._pinned_midpoints 의 dict 갈래(다른 worktree 옛 설정의 보존 집합 계산 전용, 적재 경로 아님, 종료 조건 D40 (vii) 문서화) -- minor, LA-1 재점검 입력. 2회로 연기: 실행한 s0·g10·ngcc stage_b 에서 통과/실패 외 폴백 발동 지표 별도 측정은 없다(미측정)."
   },
   "V9": {
    "verdict": "PASS",
-   "basis": "측정 가능한 범위: two_stage_ota 손 봉인 점에서 모든 MOS dc_tol_v 정의(None 0), b_P = Σ_레일 |V|·max(tol·gm) 독립 재계산 = 1.8 V × (M6 4.3747e-3 × 8.7509e-4) = 6.8909e-6 W 로 엔진 값과 일치(0 V 레일 gnd 항 0). J-a 상태 probe: 봉인 1 undefined(M3; pb, vdd), 봉인 2 undefined(M3), 봉인 3 undefined(M2, M3; vout) -- 셀 일부 None 이 봉인 행으로 정확히 전염, 값 대신 정의 항이 빠진 값은 안 나온다. KCL·KVL 잔차(봉인)는 structure·metrics·sizing test 가 통과. 2회로 연기의 봉인 잔차·G-10 재계산 계수는 못 돌렸다."
+   "basis": "측정 가능한 범위: two_stage_ota 손 봉인 점에서 모든 MOS dc_tol_v 정의(None 0), b_P = Σ_레일 |V|·max(tol·gm) 독립 재계산 = 1.8 V × (M6 4.3747e-3 × 8.7509e-4) = 6.8909e-6 W 로 엔진 값과 일치(0 V 레일 gnd 항 0). J-a 상태 probe: 봉인 1 undefined(M3; pb, vdd), 봉인 2 undefined(M3), 봉인 3 undefined(M2, M3; vout) -- 셀 일부 None 이 봉인 행으로 정확히 전염, 값 대신 정의 항이 빠진 값은 안 나온다. KCL·KVL 잔차(봉인)는 structure·metrics·sizing test 가 통과. G-10 재계산 계수 불변: test_g10_no_recompute_9circuits folded_cascode·ngcc_3stage_ff 각 1 passed. 연기 회로 봉인 잔차는 stage_b ngcc 5 passed 의 봉인 단언으로만(folded stage_b 미실행)."
   },
   "V10": {
    "verdict": "PASS",
@@ -896,11 +896,41 @@
    "name": "rejudge sizing failed",
    "value": 0,
    "command": "same"
+  },
+  {
+   "name": "연기 folded s0 passed",
+   "value": 7,
+   "command": "C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/smoke2_log2.txt"
+  },
+  {
+   "name": "연기 folded s0 failed(base 도 실패)",
+   "value": 2,
+   "command": "C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/base_log.txt"
+  },
+  {
+   "name": "연기 g10 passed (2회로)",
+   "value": 2,
+   "command": "C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/smoke2_log2.txt"
+  },
+  {
+   "name": "연기 ngcc stage_b passed",
+   "value": 5,
+   "command": "C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/smoke2_log2.txt"
+  },
+  {
+   "name": "연기 ngcc s0 failed(base 도 실패)",
+   "value": 1,
+   "command": "C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/base_log.txt"
+  },
+  {
+   "name": "연기 최저 여유 메모리 MB (완주 실행)",
+   "value": 1264,
+   "command": "C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/base_log.txt"
   }
  ],
  "approvals": [],
  "auditor_run": {
-  "time": "2026-11-06T23:55:00+09:00",
+  "time": "2026-11-07T01:30:00+09:00",
   "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261106-lm1e-audit",
   "commands": [
    "V1: pytest -p no:cacheprovider -q --tb=short --run-slow <파일 조각 6> (cwd 격리 복제본/skills/analog-gmid-design/gmid_engine/tests, OPENBLAS_NUM_THREADS=1) -- C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runchunks.sh",
@@ -909,7 +939,8 @@
    "V4: test_lint.py --root iso --subject ... (게이트 캐시 6df4bd7f)",
    "V10: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/dump_tso.py, check_L.py",
    "재판정: git -C iso fetch role/test/20261106-lm1e; checkout -B remerge 04e53dfd; merge --no-ff role/test -> 8a2a0c7e; pytest sizing/test_seal_tolerances.py sizing/test_block_dc.py sizing/test_s2_values.py --run-slow -> 140 passed",
-   "재판정 연기: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runsmoke.sh test_s0_layer_9circuits folded_cascode -> 2 GB 하한으로 중단"
+   "재판정 연기: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runsmoke.sh test_s0_layer_9circuits folded_cascode -> 2 GB 하한으로 중단",
+   "연기 재판정: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runsmoke2.sh (folded s0·g10, ngcc stage_b·s0·g10), runsb.sh(folded stage_b 재시도), runbase.sh(base 귀속)"
   ]
  }
 }
