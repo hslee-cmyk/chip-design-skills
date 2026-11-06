@@ -3,8 +3,8 @@
  "spec_card": "docs/02-design/specs/20261106-lm1e.spec.md",
  "evidence_type": "red-green",
  "base_commit": "56d88fe7ae85f07376faf6a36bf1a31ca13a03ae",
- "test_commit": "cf1685d59af87d947762e9270ffb2c69e8ebd9b7",
- "code_commit": "955df83e9722c08b1e20719e9392a35192e90261",
+ "test_commit": "8c54bb2e2bb0849a0bfecc80ae119763600a5e56",
+ "code_commit": "8a2a0c7ea5d826210bd690d342b86c88aeb9b967",
  "red": {
   "test_ids": [
    "gmid_engine/tests/integration/test_j_rules_library::test_firing_table_stage_a_without_spec[common_gate_amplifier]",
@@ -781,12 +781,12 @@
  },
  "checks": {
   "V1": {
-   "verdict": "FAIL",
-   "basis": "O-229 범위(전체 test 아님), 병합본 955df83e(code 04e53dfd + test cf1685d5 --no-ff, 격리 복제본) -k·--deselect·-x 없이 --run-slow 파일 단위 6조각(메모리 때문에 나눔): lut 60파일 1251 passed(582+669), metrics 1433 passed, sizing 3파일 139 passed 1 FAILED, search 2+layout/test_run 57 passed, tests/structure 189 passed 1 deselected(프로젝트 표지). FAILED = sizing/test_seal_tolerances.py::test_cell_combine_j_a_none_cell_cascades_to_seals_and_report -- '전제 실패: N3 ∩ 봉인 3 KCL 행 넷이 비어 있다 (N3=[pb, vdd], KCL 넷=[vout])'(작성자 보고의 2 failed 중 이 1건은 cf1685d5 가 고치지 못했다). 엔진 쪽은 맞다: 같은 상태 probe 에서 봉인 3 = undefined, nodes (vout), devices (M2, M3) -- test 의 N3(dc_path_values 에 M3 가 든 넷 = pb, vdd)가 vout 을 못 담아 교집합이 비는 test 유도 결함. 2회로 연기(folded_cascode, ngcc_3stage_ff; stage_b·s0·g10) 는 못 돌렸다: 프로세스가 단독으로 여유 메모리를 5.3 GB -> 2.0 GB 아래로 먹어(folded_cascode stage_b·g10 각 1회) 2 GB 하한 규칙대로 두 번 멈췄다 -- 통과로 세지 않는다. integration 의 base red 196건(이름 맞춤)도 O-229 범위 밖이라 안 돌렸다. 결과 파일 C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/v1_*.txt"
+   "verdict": "N/A",
+   "basis": "재판정(test 머리 8c54bb2e, 격리 병합본 8a2a0c7e = code 04e53dfd + test): 바뀐 파일은 sizing/test_seal_tolerances.py 하나(+interface 한 줄)라 sizing/test_seal_tolerances.py·test_block_dc.py·test_s2_values.py 140 passed 재실행, 나머지 조각(lut 1251·metrics 1433·search+layout 57·structure 189)은 앞 판정 결과 재사용(엔진·그 test 불변). 2회로 연기(folded_cascode, ngcc_3stage_ff; stage_b·s0·g10)는 세 번째로 못 돌렸다: 프로세스가 여유 5.2 GB 에서 시작해 약 3.3 GB 를 먹고 2 GB 하한 아래로 내려가(s0 folded_cascode 재시도) 규칙대로 멈췄다. 통과로 세지 않는다 = N/A, 오케스트레이터 몫(메모리 큰 환경 재실행)."
   },
   "V2": {
-   "verdict": "FAIL",
-   "basis": "red-green. freeze 의 base red 384건(red_base.json) 중 integration 196 은 미측정, 비 integration 188건(lut 177·metrics 6·search 2·sizing 2·layout 1) 중 187 green, 1 건 아직 red = test_cell_combine_j_a_none_cell_cascades_to_seals_and_report (V1). 기준 약화는 없다(V5). 동결 후 test 변경은 4 커밋(00cdfa25, 758d28c2, fffe989f, cf1685d5) 모두 card 개정(A-159~A-162)에 대응."
+   "verdict": "PASS",
+   "basis": "base red 비 integration 188건 모두 green(앞 187 + J-a 이제 통과: K3 = M3 채널 끝 넷 ∖ (레일 ∪ 입력 포트) = {vout}, 봉인 3 undefined nodes (vout) 와 일치). integration red 196건은 O-229 범위 밖 미측정. J-a 변경 diff 판독: 기대 넷 유도가 interface A-163 K3 와 같고(스냅샷 dc_current_basis.ends 의 M3 항목에서 유도, 넷 이름 박지 않음, 비면 전제 실패), 단언 강도(봉인 1·3 undefined + 해당 넷이 item.nodes 에 든다)는 그대로 -> 기준 약화 0."
   },
   "V3": {
    "verdict": "PASS",
@@ -798,7 +798,7 @@
   },
   "V5": {
    "verdict": "PASS",
-   "basis": "weakening_diff.py 는 assets 분류 전용이라 수동: base..test 머리에서 사라진 assert 67 / 새 assert 153. 사라진 것은 옛 형식(midpoints_path·w_ref_m·L_source·width_differs)·옛 결합 규칙('정의된 값 max' oracle) 기대로 새 규칙 기대로 대체됨. A-160 은 nmos 72 case 를 복원했고(약화 되돌림), A-162 는 J-b spy 단언을 첫 호출만으로 하고 둘째 호출은 log == [] + 거부 기록 동일로 바꿨다(graph reuse 재연, 같은 힘). diff 해시 기록 대상 없음. 단 J-a 의 제외 넷 변경(A-162)은 test 를 통과시키지 못했다(V1)."
+   "basis": "weakening_diff.py 는 assets 분류 전용이라 수동: base..test 머리에서 사라진 assert 67 / 새 assert 153. 사라진 것은 옛 형식(midpoints_path·w_ref_m·L_source·width_differs)·옛 결합 규칙('정의된 값 max' oracle) 기대로 새 규칙 기대로 대체됨. A-160 은 nmos 72 case 를 복원했고(약화 되돌림), A-162 는 J-b spy 단언을 첫 호출만으로 하고 둘째 호출은 log == [] + 거부 기록 동일로 바꿨다(graph reuse 재연, 같은 힘). diff 해시 기록 대상 없음. 단 J-a 의 제외 넷 변경(A-162)은 test 를 통과시키지 못했다(V1). [재판정] 8c54bb2e: J-a 의 N3 ∩ KCL 교집합을 K3 로 바꾼 것은 기대 집합을 정의대로 고친 것(비공집합 전제 단언 유지), 약화 0."
   },
   "V6": {
    "verdict": "PASS",
@@ -886,18 +886,30 @@
    "name": "midpoint files with approved L",
    "value": 30,
    "command": "check_L.py"
+  },
+  {
+   "name": "rejudge sizing passed",
+   "value": 140,
+   "command": "pytest sizing/test_seal_tolerances.py sizing/test_block_dc.py sizing/test_s2_values.py"
+  },
+  {
+   "name": "rejudge sizing failed",
+   "value": 0,
+   "command": "same"
   }
  ],
  "approvals": [],
  "auditor_run": {
-  "time": "2026-11-06T23:10:00+09:00",
+  "time": "2026-11-06T23:55:00+09:00",
   "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261106-lm1e-audit",
   "commands": [
    "V1: pytest -p no:cacheprovider -q --tb=short --run-slow <파일 조각 6> (cwd 격리 복제본/skills/analog-gmid-design/gmid_engine/tests, OPENBLAS_NUM_THREADS=1) -- C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runchunks.sh",
    "격리: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261106-lm1e-code C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/iso; git -C iso remote remove origin; git -C iso fetch role/test/20261106-lm1e card/lm1e; git -C iso merge --no-ff role/test/20261106-lm1e -> 955df83e",
    "V3: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/mutants.py, mut2.py, mut3.py (git archive 복사본 mut/)",
    "V4: test_lint.py --root iso --subject ... (게이트 캐시 6df4bd7f)",
-   "V10: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/dump_tso.py, check_L.py"
+   "V10: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/dump_tso.py, check_L.py",
+   "재판정: git -C iso fetch role/test/20261106-lm1e; checkout -B remerge 04e53dfd; merge --no-ff role/test -> 8a2a0c7e; pytest sizing/test_seal_tolerances.py sizing/test_block_dc.py sizing/test_s2_values.py --run-slow -> 140 passed",
+   "재판정 연기: C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a7/runsmoke.sh test_s0_layer_9circuits folded_cascode -> 2 GB 하한으로 중단"
   ]
  }
 }
