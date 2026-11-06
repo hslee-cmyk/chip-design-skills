@@ -1874,10 +1874,11 @@ def test_it1_t1h_input_point_touching_f_ports_share_voltage(tmp_path, toy_access
 # ---------------------------------------------------------------------------
 # [LM-1e §5 J-b] 셀 결합: Gauss-Seidel 반복 중 SCC 소자 하나의 tol 이 결합 셀 일부 None 이면 -- 정의된 셀의 min 으로 값을 내지 않고 --
 # 수렴 전 SealViolationError(tol_v_undefined) 그대로(Newton 인계 없음). 위 test_tol_undefined_before_convergence_propagates 는 모든 셀이 None 인 경우다.
-# 입력: toy R(pmos 의 VDS index 0 열이 꺼짐: pmos 셀 0 = None) + `_scc_s_doc` + 손 θ (y1, y2) = (0.98, 0.3): 선형 SCC 닫힌 해
-# vout = 1.8·y2/(1 − y1(1 − y2)) = 1.72 V, vin = y1·vout 에서 M3(pmos)의 |VDS| = 1.8 − vout = 0.08 V -> 첫 칸 [0, 0.25) 안(셀 0 None 포함 결합),
-# M1·M2(nmos)의 셀은 모두 정의. 확인은 관찰 지점 `block_dc.tol_v_table` 의 통과 spy(원 함수를 그대로 부르고, 돌려받은 표의 `at` 인자·결과를
-# 기록만 한다 -- 값 주입 0).
+# 입력: toy R 의 꺼진 열을 **nmos** 에 둔다(nmos 셀 0 = None; pmos 는 모두 정의) + `_scc_s_doc` + 손 θ (y1, y2) = (0.2, 0.7): 선형 SCC 닫힌 해
+# vout = 1.8·y2/(1 − y1(1 − y2)) = 1.34 V, vin = y1·vout = 0.268 V(M1 의 수렴 VDS), M2 의 VDS = vout − vin = 1.072 V. 수렴 상태는 모든 소자가
+# 정의역(VDS ≥ 0.25) 안이고, Gauss-Seidel 첫 걸음에서 M1 의 VDS 가 0.24 V -> 첫 칸 [0, 0.25) 안(셀 0 None 포함 결합)을 지난다. M2·M3 의 셀은 정의.
+# (꺼진 열을 pmos 에 두면 수렴 상태의 |VDS| 가 0.25 아래여야 첫 칸에 닿는데, 그 점은 정의역 밖이라 `lut_query_failed`(lut_curve_undefined)로 먼저 거부된다 --
+# 격자 (y1, y2) 훑기로 확인.) 확인은 관찰 지점 `block_dc.tol_v_table` 의 통과 spy(원 함수를 그대로 부르고, 돌려받은 표의 `at` 인자·결과를 기록만 한다 -- 값 주입 0).
 # ---------------------------------------------------------------------------
 
 class _AtSpy:
@@ -1902,21 +1903,21 @@ def _jb_inputs(tmp_path, monkeypatch):
     log = []
     monkeypatch.setattr(bd, "tol_v_table", lambda *a, **k: _AtSpy(orig(*a, **k), log))
     (tmp_path / "ctx").mkdir()
-    ctx = build_ctx(tmp_path / "ctx", _scc_s_doc(), r_off_access(tmp_path / "lut"))[2]
-    th, _vin, vout = ja_theta(ctx, 0.98, 0.3)
-    assert 0.0 <= 1.8 - vout < 0.25                                     # 손 계산 전제: M3 의 |VDS| 가 첫 칸 안
+    ctx = build_ctx(tmp_path / "ctx", _scc_s_doc(), r_off_access(tmp_path / "lut", "nmos"))[2]
+    th, vin, vout = ja_theta(ctx, 0.2, 0.7)
+    assert vin >= 0.25 and vout - vin >= 0.25 and 1.8 - vout >= 0.25   # 손 계산 전제: 수렴 상태의 모든 소자 |VDS| 가 정의역(≥ 0.25 V) 안
     return ctx, th, log
 
 
 def test_cell_combine_j_b_premise_spy_sees_first_cell_lookup(tmp_path, monkeypatch):
-    """전제(결합 규칙과 무관): 수렴 tol 조회 중 pmos(M3) 가 첫 VDS 칸 [0, 0.25) 안에서 불렸고, nmos 조회는 값(정의)을 돌려받았다."""
+    """전제(결합 규칙과 무관): 수렴 tol 조회 중 nmos(M1) 가 첫 VDS 칸 [0, 0.25) 안에서 불렸고, 같은 SCC 의 pmos(M3) 조회는 값(정의)을 돌려받았다."""
     ctx, th, log = _jb_inputs(tmp_path, monkeypatch)
     try:
         run_blocks(ctx, th, upto="columns")
     except SealViolationError:
         pass                                                           # 새 규칙에서는 여기서 거부된다(아래 test)
-    assert any(k == "pmos" and 0.0 <= v < 0.25 for k, v, _ in log), log
-    assert any(k == "nmos" and r is not None for k, _, r in log), log
+    assert any(k == "nmos" and 0.0 <= v < 0.25 for k, v, _ in log), log
+    assert any(k == "pmos" and r is not None for k, _, r in log), log
 
 
 def test_cell_combine_j_b_partly_undefined_tol_propagates_before_convergence(tmp_path, monkeypatch):

@@ -1120,9 +1120,9 @@ def mirror_delta_max(snapshot):
 # 격자 R4_VDS = 0, 0.25, ...: pmos 슬라이스의 tol 셀 VDS index 0 = None(켜진 격자점 없음 -- 정의상), index 1 이상은 값.
 # ---------------------------------------------------------------------------
 
-def r_off_access(root):
-    """toy R LUT(pmos VDS index 0 열 꺼짐)의 LutAccess."""
-    return new_access(write_r4_lut(Path(root), off_cols={"pmos": 1}))
+def r_off_access(root, kind="pmos"):
+    """toy R LUT(kind 의 VDS index 0 열 꺼짐, 기본 pmos)의 LutAccess."""
+    return new_access(write_r4_lut(Path(root), off_cols={kind: 1}))
 
 
 def ja_theta(ctx, y1, y2):

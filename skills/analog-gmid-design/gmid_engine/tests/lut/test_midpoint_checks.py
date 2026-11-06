@@ -125,7 +125,7 @@ def test_per_vds_tuples_have_grid_length(mid_toy):
             assert isinstance(getattr(r, f), tuple) and len(getattr(r, f)) == n
 
 
-def test_c2_other_width_has_no_midpoint_table(mid_toy_build):
+def test_midpoint_c2_other_width_has_no_midpoint_table(mid_toy_build):
     """C-2: 중점 표가 없는 (kind, w_key) -> rows (), skipped (), sha None. 옛 `폭 다름` 사유 없음.
     (a) T-4 의 키 60(중점은 키 80 만), (b) MidToy 의 키 200(중점은 키 100 만)."""
     m = new_memo(build_t(mid_toy_build, "c2", {1: T_MID_L}).load(t_spec(0.7e-6)))
@@ -134,7 +134,7 @@ def test_c2_other_width_has_no_midpoint_table(mid_toy_build):
     assert tuple(mc.rows) == () and tuple(mc.skipped) == () and mc.midpoints_sha256 is None
 
 
-def test_c3_bins_unavailable(mid_toy_build):
+def test_midpoint_c3_bins_unavailable(mid_toy_build):
     """bin 블록 없는 모델 파일(빈 지도) -> 모든 중점 "bins_unavailable"."""
     text = bin_model_text(blocks=())
     mt = mid_toy_build("plainmid", model_text=text,
@@ -207,7 +207,7 @@ def test_tol_default_without_midpoints_does_not_query(toy_build):
     assert tuple(t.l_bin_checks) == ()
 
 
-def test_c1_toy_t_rows_are_closed_form_and_equal_for_both_keys(mid_toy_build):
+def test_midpoint_c1_toy_t_rows_are_closed_form_and_equal_for_both_keys(mid_toy_build):
     """C-1: T-1 의 두 키 rows = 5.1 닫힌 식(conftest `midpoint_ref` -- 슬라이스·중점 npz 직접), 폭이 달라도 같은 L 격자·같은 중점 L
     이라 두 키의 L 방향 보간 몫이 같다(배율은 ln ID 의 덧셈 상수)."""
     lut = build_t(mid_toy_build, "c1", {0: T_MID_L, 1: T_MID_L}).load(t_spec(0.6e-6))
@@ -459,7 +459,7 @@ def _scan_roots():
     return (ENGINE_ROOT, SKILL_DIR / "assets")             # E/ (test 폴더 E/tests/ 포함) 와 A/
 
 
-def test_g1_old_midpoint_names_do_not_remain():
+def test_midpoint_g1_old_names_do_not_remain():
     pats = [re.compile(p) for p in _BANNED]
     hits = []
     for root in _scan_roots():
