@@ -399,10 +399,17 @@ def test_junction_source_content_unchanged_from_base(env, circuit):
     assert got is not None
     want = _baseline(circuit)["kernel"]["junction_content"]
     js = got.value
-    assert fp_of(js.params) == want["params_fp"]
+    # [JC-1] 새 칸 기준선 (옛 params 지문·PDK 선언 sha 기준선 교체; 기준 약화 아님 -- 정의 교체): kind 마다 reference 기하 = LUT 생성 규칙 선언 × 그 kind 기준 폭 w_ref
+    # (정의식: finger_w = w_ref, ad = ad_per_w·w_ref, as = as_per_w·w_ref, pd = w_ref + pd_extra, ps = w_ref + ps_extra, m = 1), 온도 = 기록된 측정 온도(base 기준선).
+    from gmid_engine.metrics import DiffusionGeometry
+    rule = env.rule
+    a_ad, a_as = rule.value("lut_diffusion_ad_per_w_m"), rule.value("lut_diffusion_as_per_w_m")
+    x_pd, x_ps = rule.value("lut_diffusion_pd_extra_m"), rule.value("lut_diffusion_ps_extra_m")
+    assert [k for k, _ in js.reference] == sorted(kind for _, kind in DEVICE_KINDS)
+    for kind, geo in js.reference:
+        w_ref = env.lut.cap_map[kind].w_ref_m
+        assert geo == DiffusionGeometry(w_ref, a_ad * w_ref, a_as * w_ref, w_ref + x_pd, w_ref + x_ps, 1.0), kind
     assert float(js.temp_c).hex() == want["temp_c_hex"]
-    pdk_sha = hashlib.sha256((SKILL / "assets" / "sky130_pdk_decl.json").read_bytes()).hexdigest()
-    assert js.pdk_decl_sha256 == pdk_sha == want["pdk_decl_sha256"]
 
 
 @pytest.mark.parametrize("circuit", SEARCHED)

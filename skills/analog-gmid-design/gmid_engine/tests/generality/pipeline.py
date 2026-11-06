@@ -99,7 +99,7 @@ class Env:
         self.memo = LutMemo(self.lut, point=MEMO_POINT, curve=MEMO_CURVE, root=MEMO_ROOT)
         self.access = LutAccess(self.memo)
         self.lut_rule = read_pdk_decl(str(LUT_RULE_DECL), decl_memo)
-        self.junction = JunctionSource.from_decls(self.pdk, self.lut_rule, self.lut)
+        self.junction = JunctionSource.from_decls(self.lut_rule, self.lut)          # [JC-1] 서명 (LUT 규칙 선언, LUT 세트) -- PDK 선언 인자 없음
         cat = dict(metric_catalog())
         for name, sig in CATALOG_GAPS:
             cat.setdefault(name, MetricSignature(*sig))

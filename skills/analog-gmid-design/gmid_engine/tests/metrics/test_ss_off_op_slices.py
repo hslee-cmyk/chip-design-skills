@@ -44,7 +44,7 @@ def build(tmp, pins, rails, w_m, l_m=1e-6, widths=WIDTHS, name="wb1o"):
     spec = load_sizing_spec(str(sp), td, metric_catalog())
     inputs = dc_inputs_from_spec(spec)
     run = fresh_run()
-    lut, _, _ = write_r4_bins_lut(tmp / "lut", widths=widths)
+    lut, _, _ = write_r4_bins_lut(tmp / "lut", widths=widths, jc1_cols=True)       # [JC-1] 접합 항 입력 열(CGS·CDD·CSS)
     ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, access_of(lut), **run)
     theta = theta_a(ctx)
     ev = size_and_seal(ctx, theta)

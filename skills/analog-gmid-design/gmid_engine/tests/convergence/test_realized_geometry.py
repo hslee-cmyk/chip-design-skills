@@ -177,7 +177,8 @@ def _l2_start(tmp_path, monkeypatch):
 
 def test_layout_resolve_l2_waiting_device_row_is_the_request_and_junction_follows_two_places(tmp_path, monkeypatch):
     from gmid_engine.search import evaluate
-    from metrics.conftest import JUNCTION_RTOL, TOY_JUNCTION, oracle_junction, ref_caps
+    from metrics.conftest import JUNCTION_RTOL, toy_rule_values
+    from sizing.wb1_toy import JC1_CDD, JC1_CGD, JC1_CGS, JC1_CSS
     case, ev, counter = _l2_start(tmp_path, monkeypatch)
     snap = ev.evaluation.snapshot
     placed = _fingers(snap, M1=(1e-6, 3))
@@ -189,15 +190,19 @@ def test_layout_resolve_l2_waiting_device_row_is_the_request_and_junction_follow
     _assert_input_rows(rsnap, {**placed, "M2": (1e-6, 2)})                          # 배치 = layout_ref (nf, finger_w, 0.0), 요청 대기 M2 = 요청 행 (2, 1e-6, 0.0)
     ops, ss = dict(rsnap.column("device", "dc_op")), dict(rsnap.column("device", "ss_dev"))
     assert ops["M2"].W == pytest.approx(2e-6, rel=1e-12) and ops["M2"].w_key == 100  # W' = nf·finger_w, 슬라이스 = slice_of_finger(1e-6)
-    temp = case.sctx.junction.temp_c
     tol = JUNCTION_RTOL
-    # 배치 소자 M1 접합 = layout_ref 확산 값 (ad = as = 3e-13, pd = ps = 4e-6, m = nf = 3)
-    cdb1, csb1 = ref_caps(TOY_JUNCTION["nmos"], (1e-6, 3e-13, 3e-13, 4e-6, 4e-6, 3.0), ops["M1"].vds + ops["M1"].vsb, ops["M1"].vsb, temp)
-    assert ss["M1"].junction_model == "pdk_bsim4_layout_diffusion"
+    # [JC-1] 접합 기대값 = 정의 문장: (CDD − CGD)·r_d, (CSS − CGS)·r_s -- 합성 r4 LUT 의 접합 입력 열은 모든 점 같은 상수(JC1_*), r = (면적·m)/(규칙 비율·w_ref·1)
+    rule, w_ref = toy_rule_values(), 1e-6
+    d_cap, s_cap = JC1_CDD - JC1_CGD, JC1_CSS - JC1_CGS
+    # 배치 소자 M1 접합 = layout_ref 확산 값 (ad = as = 3e-13, m = nf = 3)
+    cdb1 = d_cap * ((3e-13 * 3.0) / ((rule["ad_per_w"] * w_ref) * 1.0))
+    csb1 = s_cap * ((3e-13 * 3.0) / ((rule["as_per_w"] * w_ref) * 1.0))
+    assert ss["M1"].junction_model == "lut_vgs_min_layout_area"
     assert ss["M1"].cdb == pytest.approx(cdb1, rel=tol) and ss["M1"].csb == pytest.approx(csb1, rel=tol)
-    # 요청 대기 소자 M2 접합 = 그 평가 dc_finger (2, 1e-6) 의 레이아웃 전 접합 규칙 (toy LUT 규칙 DUT 줄의 비율)
-    cdb2, csb2 = oracle_junction(ops["M2"], temp_c=temp, w_m=1e-6, m=2)
-    assert ss["M2"].junction_model == "pdk_bsim4_lut_rule_diffusion"
+    # 요청 대기 소자 M2 접합 = 그 평가가 쓴 W (2e-6) 의 레이아웃 전 규칙 기하 -- dc_finger (2, 1e-6) 아님(둘째 폭 m·w_s 0)
+    cdb2 = d_cap * ((rule["ad_per_w"] * ops["M2"].W * 1.0) / ((rule["ad_per_w"] * w_ref) * 1.0))
+    csb2 = s_cap * ((rule["as_per_w"] * ops["M2"].W * 1.0) / ((rule["as_per_w"] * w_ref) * 1.0))
+    assert ss["M2"].junction_model == "lut_vgs_min_rule_area"
     assert ss["M2"].cdb == pytest.approx(cdb2, rel=tol) and ss["M2"].csb == pytest.approx(csb2, rel=tol)
     assert cdb1 != cdb2 and csb1 != csb2                                            # 공허 방지: 두 자리의 기대값이 다르다
 

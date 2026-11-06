@@ -405,24 +405,29 @@ def test_real_layout_fields_live_on_design_point_snapshot(real, name):
 
 @pytest.mark.parametrize("name", REAL)
 def test_real_junction_caps_from_realized_diffusion(real, name):
-    """불변식 8 + DEC-91 (2): 재검증 점의 cdb·csb = 실현 확산 기하(ly.diffusion)와 PDK 접합 파라미터로 BSIM4 폐형식을 test 가 직접 푼 값."""
-    from gmid_engine.metrics import JunctionParams
+    """불변식 8 + DEC-91 (2) [JC-1]: 재검증 점의 cdb·csb = 정의 문장 `(CDD − CGD)·r_d`, `(CSS − CGS)·r_s` -- VGS 최소 조회(기준 폭 표 VGS 축 첫 값, 기준 폭 w_ref)의 표 값 ×
+    실현 확산 면적 비 r = (ad_m2·m)/(LUT 생성 규칙 ad_per_w·w_ref·1). 표 값은 LUT 모듈의 점 조회 `caps`(별도 단위 검증된 모듈; 피검 함수 `junction_at_vgs_min` 아님)로 읽고
+    식은 test 가 정의대로 쓴다(옛 BSIM4 폐형식 대조 폐기)."""
+    from gmid_engine.lut import caps
     r = real.run(name)
     cp = r.point
     diffusion = {d.name: d for d in cp.layout.snapshot.value("graph", LAYOUT_KEY, F_DIFFUSION)}
     assert diffusion, "레이아웃이 확산 기하를 내지 않았다"
     ss = dict(cp.result.evaluation.snapshot.column("device", "ss_dev"))
     ops = dict(cp.result.evaluation.snapshot.column("device", "dc_op"))
-    temp = r.sctx.junction.temp_c
+    env = real.env
+    a_ad, a_as = env.lut_rule.value("lut_diffusion_ad_per_w_m"), env.lut_rule.value("lut_diffusion_as_per_w_m")
     for m, d in diffusion.items():
-        assert ss[m].junction_model == "pdk_bsim4_layout_diffusion"
-        params = JunctionParams.from_pdk_decl(real.env.pdk, ops[m].kind)
-        cdb, csb = bsim4_junction(params, d.finger_w_m, d.ad_m2, d.as_m2, d.pd_m, d.ps_m, float(d.n_fingers),
-                                  ops[m].vds + ops[m].vsb, ops[m].vsb, temp)
+        assert ss[m].junction_model == "lut_vgs_min_layout_area"
+        table = env.lut.cap_map[ops[m].kind]
+        w_ref = table.w_ref_m
+        c = caps(env.memo, ops[m].kind, ops[m].L, min(table.grids[1]), ops[m].vds, ops[m].vsb, w_ref)
+        cdb = (c.cdd - c.cgd) * ((d.ad_m2 * float(d.n_fingers)) / (a_ad * w_ref * 1.0))
+        csb = (c.css - c.cgs) * ((d.as_m2 * float(d.n_fingers)) / (a_as * w_ref * 1.0))
         assert isclose(ss[m].cdb, cdb, 1e-12) and isclose(ss[m].csb, csb, 1e-12), (m, ss[m].cdb, cdb, ss[m].csb, csb)
     # 레이아웃 전(출발 점)은 LUT 생성 규칙 기하
     before = dict(r.start.evaluation.snapshot.column("device", "ss_dev"))
-    assert {s.junction_model for s in before.values()} == {"pdk_bsim4_lut_rule_diffusion"}
+    assert {s.junction_model for s in before.values()} == {"lut_vgs_min_rule_area"}
     # junction 기록 = 출발 점 -> 재검증 점
     assert {j.device: (j.cdb_before, j.csb_before, j.cdb_after, j.csb_after) for j in cp.junction} == {
         m: (before[m].cdb, before[m].csb, ss[m].cdb, ss[m].csb) for m in ss}
