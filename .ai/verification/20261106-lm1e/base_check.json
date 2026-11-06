@@ -18,6 +18,10 @@
     "recheck": {
       "T": "cf72a2789a3328fe9cbac3b46167ffc8e3fd5b31",
       "freeze_verdict": "동결 가능 -- F-4 가 interface 4 표 1~7(+8)로 core.fp_of 직접 대조(lut_fingerprint 기대 0, None/() 상수 항목 거름), covered_by 이름 정정. 재실행: lut/test_fingerprint.py 4 failed(F-1~F-4 TypeError 서명 이유) 7 passed 2 errors, tests/structure 189 passed. 상세 = wt/_drafts/evidence/2026-11-06/lm1e_freeze.md '## 재확인'"
+    },
+    "recheck2": {
+      "T": "fffe989f",
+      "freeze_verdict": "수정 필요 -- Major 1: nmos w_key 72 실데이터 case 삭제(widths 밖 폭의 옛 기대는 유효, 복원 필요), minor 1: cyclic 거부 case 물리 전제 단언. J-a N3·widths 18·single_source 동결 가능. base 재현: 선택 subset 9 failed 25 passed 8 errors(실 LUT fixture), structure 189 passed. 상세 = lm1e_freeze.md '## 재확인 2'"
     }
   },
   "isolation": {
