@@ -133,7 +133,10 @@ def test_cell_combine_j_a_none_cell_cascades_to_seals_and_report(tmp_path):
     n3 = _nets_with_m3_on_path(snap)                                    # N3: 유도(넷 이름을 박지 않음)
     # 봉인 3 은 KCL 행: 채널 전류가 만나는 넷에만 행이 있다(게이트 넷은 DC 전류 0 -> 행 없음, 물리). 그 넷 = 스냅샷 dc_current_basis.ends 의 채널 끝 넷.
     basis = snap.value("graph", DC_KEY, "dc_current_basis")
-    kcl_nets = {net for _name, f, t in basis.ends for net in (f, t)}
+    # [A-162] 봉인 3 제외 넷 = 레일 ∪ 입력 포트 ∪ bias_inputs(이상 전압원 넷이라 KCL 잔차 미정의, 계획 봉인 3 정의). bias_inputs 는 gate 전용이라
+    # 채널 끝 넷에 애초에 들지 않는다. 레일 = node.is_rail, 입력 포트 = node.port_direction == "input".
+    excluded = ({n for n, r in snap.column("node", "is_rail") if r} | {n for n, d in snap.column("node", "port_direction") if d == "input"})
+    kcl_nets = {net for _name, f, t in basis.ends for net in (f, t)} - excluded
     n3_kcl = [net for net in n3 if net in kcl_nets]
     if not n3_kcl:
         pytest.fail("전제 실패(멈추고 보고): N3 ∩ 봉인 3 KCL 행 넷이 비어 있다 (N3=%s, KCL 넷=%s)" % (n3, sorted(kcl_nets)))
