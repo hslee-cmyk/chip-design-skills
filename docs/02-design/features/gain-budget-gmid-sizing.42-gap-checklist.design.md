@@ -1,12 +1,13 @@
 ---
 template: design
-version: 1.16.19
-plan_version: 6.38.22
+version: 1.16.23
+plan_version: 6.38.26
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
 
 > **Summary**: `bkit:gap-detector`가 설계 문서(40·41)와 구현을 대조할 때 쓰는 표다.
+> - **design v1.16.23 -- '91 접합 용량' 행 기준을 계획 v6.38.26 DEC-91 (2)(3)(사용자 결정 O-248, card JC-1)으로 갱신, 독립 판정 전.**
 > - **design v1.16.12 -- D-TH1·D-WB3에 M-TH1c 배정 반영, 계획 v6.38.14(위임 A-66). 둘째 커밋 = O-207 묶음 LA-1(위임 A-67). 셋째 커밋 = GB4 포락 정본 40 §3.7-A 8(위임 A-68).** **design v1.16.11 -- 묶음 ③ WB-1 독립 판정 V1~V8·후보 D1~D6 반영(위임 A-62), 둘째 커밋 재판정 R1~R3·r1~r8(위임 A-63), 셋째 커밋 최종 재판정 V-F1·f1~f6(위임 A-64), 계획 v6.38.13.** 대조 자리 = D-WB1·D-WB2·D-EO1, 독립 판정 전.
 > - **design v1.16.10 -- 재판정 R1~R4·r 반영(위임 A-60).** 대조 자리 = `headroom-chain.design.md` v0.1.6, `graph-consumption.design.md` v0.1.3, 재판정 전.
 > - **design v1.16.9 -- 독립 판정 V1~V13 반영(위임 A-59).** 대조 자리 = `headroom-chain.design.md` v0.1.5, `graph-consumption.design.md` v0.1.2, 재판정 전.
@@ -134,7 +135,7 @@ plan_version: 6.38.22
 | 88 ln IDu 좌표 | 40 §3.6, §8 R25 | DEV | `rg "def vgs_for_current_density"` 0. bounds를 조인다(`E/search/CONTRACT.md:573`) |
 | 89 레이아웃 뒤 재검증 | 40 §3.9 | PART | `E/layout/run.py:151`(`pending_wiring`) |
 | 90 SPICE 합격 정의 | 40 §4 | PART | `rg "spice_unverifiable"` 0 |
-| 91 접합 용량 | 40 §3.9 | PART | 엔진 쪽 OK(`E/metrics/junction_cap.py`). `ly.diffusion` MISS(`E/layout/_ly_fields.py:22-40`) |
+| 91 접합 용량 | 40 §3.8 10·§3.9 | PART | **v1.16.23(계획 v6.38.26 DEC-91 (2)(3), 사용자 결정 O-248 -- card JC-1)**: 기준 = 접합 값 출처 LUT off 점 × 확산 면적 비, BSIM4 접합 식·엔진 PDK 접합 키 0 -- as-built는 BSIM4 식(`E/metrics/junction_cap.py`)이라 **DEV**(재작성 범위 = card JC-1 범위 5 분류 표). `ly.diffusion` 상태는 WB-1 병합 뒤 다시 잼(옛 증거 `E/layout/_ly_fields.py:22-40` MISS) |
 | 92 GB5 방법 | 40 §3.5 | PART | `gm_req`·gap MISS |
 | 93 matching 분류 | 40 §3.2 | PART | `E/graph/matching_groups.py:78`. 신호 gate 2개 조건이 빠졌다(`E/graph/CONTRACT.md:538`) |
 | 94 MOD2 입력 게이트 | 40 §3.1 | DEV | `E/authoring/bias_inputs.py:20`(최상위 키, 사용자 승인. 계획 문구 갱신 필요) |
