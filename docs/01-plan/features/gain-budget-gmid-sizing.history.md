@@ -8208,6 +8208,12 @@ oracle-portability v0.6.29 전파. 측정 게이트 표 OP-7 행(P:1393)의 출�
 - **n3**: Rʳ ⚠ 근거 'library 9/9' → '9/13 측정(2026-10-29), 4회로 미측정(LA-1 측정 시점)'(N3.6 표 10행, LM-1e 3 (b), design 40 §3.7-A 2).
 - **n4**: 위 '하지 않은 것' 문언.
 
+## v6.38.24 셋째 커밋 (2026-11-06, 재판정 minor u1·u2 -- 오케스트레이터 위임 결정)
+
+재판정 Major 0(`simplify_plan_verdict.md` 재판정 절). minor 두 건, 재판정 불필요. 코드 변경 0.
+- **u1**: `no_usable_slice` 요청(쓸 수 있는 슬라이스 없음)에는 LY3 새 레코드의 finger_w가 없다 -- LY3에 한 줄: 손가락 칸 = 정의 불능, 그 소자는 배치되지 않아 재평가 전 STATUS_UNPLACEABLE(fail-closed), 재평가 입력에 닿으면 `realized_finger_missing`.
+- **u2**: MOD7 출력 스키마 `WRequest`에 nf·finger_w_m 칸(design 40 `LayoutResult` 행, 계획 P:1119 '스키마 세부는 MOD7 design'), WB-1 spec 재작성 범위 여섯째 행에 생산 셋(`layout/pattern_select.py:229`·`layout/finger_geometry.py:78`·`layout/outputs.py:59`, 칸 = `layout/contract_output.py:110`)·운반(`Placement` → `realized_geometry`)·소비(`converge_point.py` 주기 키·NONCONVERGENT `devices`)를 이름으로.
+
 ## v6.38.23 (2026-11-06, 사용자 결정 O-244)
 
 봉인 3 입력 포트 넷의 KCL 행 -- 측정 구성 원 넷 규칙 하나. 독립 판정 전. 코드 변경 0. 근거 = 질문 `wt/_drafts/evidence/2026-11-06/seal3_question.md`, 검증 `seal3_question_validation.md`(Major 0, minor m1~m8), 결정 간 모순 점검 `seal3_contradiction_check.md`(조건 a~d, 점검자 ≠ 권고 작성자), 재측정 `seal3_input_net_cg_recheck.md`(독립 측정 agent), 사용자 원칙 진술 O-243. 오케스트레이터 지시(2026-11-06 사용자 "원리에 맞으면 현재 코드 구현은 기준이 아니야. 재작성의 대상일 뿐이지."): 규칙은 원리에서 정하고 정본 자리 하나에 두며, 엔진 grep은 규칙을 지키지 않는 자리를 재작성 범위로 적는 데만 쓴다.
