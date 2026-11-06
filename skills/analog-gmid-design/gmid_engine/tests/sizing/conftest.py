@@ -190,7 +190,7 @@ def r4_vds_floor(arrays):
     return float(vds[0])
 
 
-def write_r4_lut(root: Path, vdsat=("nmos", "pmos"), off_cols=None, off_points=None, grids=R4_GRIDS, cap_vdsat=()):
+def write_r4_lut(root: Path, vdsat=("nmos", "pmos"), off_cols=None, off_points=None, grids=R4_GRIDS, cap_vdsat=(), cdd=False):
     """vdsat = VDSAT 슬라이스 열을 가진 kind. off_cols / off_points = {kind: ...}(r4_arrays 인자).
     cap_vdsat = 기준 LUT(cap.npz)에 `VDSAT<접미사>` 열(r4 VDSAT 식)을 더할 kind(기본 () = 더하지 않음 -- 기존 호출 동작 그대로). -> LutSet."""
     root.mkdir(parents=True, exist_ok=True)
@@ -213,6 +213,8 @@ def write_r4_lut(root: Path, vdsat=("nmos", "pmos"), off_cols=None, off_points=N
     for kind in ("nmos", "pmos"):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
+        if cdd:      # [WB-1 E-18] drain 용량은 CDD 열의 양(cgd 대체 없음) -- 구조·매크로 경로를 통과하는 test 용 합성 열(기본 False = 기존 호출 불변)
+            cap["CDD" + SUFFIX[kind]] = np.full(shp, 2e-16)
     for kind in cap_vdsat:
         cap["VDSAT" + SUFFIX[kind]] = r4_arrays(kind, True, 0, (), grids)["VDSAT"]
     np.savez(root / "cap.npz", **cap)

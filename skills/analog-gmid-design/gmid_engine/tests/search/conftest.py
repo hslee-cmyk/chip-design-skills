@@ -167,6 +167,12 @@ def lut_sealed(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def lut_sealed_cdd(tmp_path_factory):
+    """`lut_sealed` + 기준 표 CDD 열 [WB-1 E-18: CDD 없는 표는 거부, cgd 대체 없음]. 블록 구조(S1v)·극점 경로를 통과하는 test 용."""
+    return write_r4_lut(tmp_path_factory.mktemp("s_lut_sealed_cdd"), cdd=True)
+
+
+@pytest.fixture(scope="session")
 def lut_pending(tmp_path_factory):
     """VDSAT 열 없음 -> 봉인 7 undefined(lut_vdsat_column_missing) -> pending_seal_7."""
     return write_r4_lut(tmp_path_factory.mktemp("s_lut_pending"), vdsat=())
