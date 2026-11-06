@@ -9,8 +9,10 @@ bin 규칙(WB-1 범위 0, DEC-105 (2), lut/CONTRACT.md 4.0.1): 구간 끝과 x �
 
 import math
 
+from ._helpers_interp import LINEAR_CONDITIONS
+
 RULES = ("lower", "upper")
-_PAIR = 2   # 구간의 양 끝 앵커 수 -- 앵커 2개 bin 은 두 앵커 사이 L 선형 보간(`_helpers_interp.LINEAR_CONDITIONS` 의 점 수와 같은 구조 사실)
+_PAIR = len(LINEAR_CONDITIONS)   # 앵커 2개 bin = 두 앵커 사이 L 선형 보간의 점 수(선형 보간 조건 정의 1곳에서 유도)
 
 
 def bin_index(intervals, x, grid_m, rule):

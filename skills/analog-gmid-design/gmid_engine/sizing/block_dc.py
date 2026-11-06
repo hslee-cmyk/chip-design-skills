@@ -503,11 +503,8 @@ class _Circuit(Circuit):
             key = (m, keys[m], vds)                   # 한 평가 안에서 같은 (소자, 슬라이스, VDS) 셀 조회는 한 번(L·kind 는 소자마다 고정)
             if key not in self.tol_cells:
                 self.tol_cells[key] = self.tol_cell(keys, m, vds)
-            tol = self.tol_cells[key]
-            if tol is None:                           # 집계 항에 None 이 하나라도 있으면 집계 = None (계획 N3.6 표 10행) -- 정의된 셀만으로 내지 않는다
-                raise SealViolationError(devices=tuple(devices), detail={"reason": REASON_TOL_UNDEFINED})
-            tols.append(tol)
-        if not tols:
+            tols.append(self.tol_cells[key])
+        if not tols or any(t is None for t in tols):  # 집계 항에 None 이 하나라도 있으면 집계 = None (계획 N3.6 표 10행) -- 정의된 셀만으로 내지 않는다
             raise SealViolationError(devices=tuple(devices), detail={"reason": REASON_TOL_UNDEFINED})
         return min(tols)
 
