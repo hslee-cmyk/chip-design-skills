@@ -8199,6 +8199,15 @@ oracle-portability v0.6.29 전파. 측정 게이트 표 OP-7 행(P:1393)의 출�
 - **design**: 40 v1.16.23(§3.8 10 새 항목, §2.4.8 `junction_source` 행, §3.7-A 3 문언, §3.9 LY8 행), 41 v1.16.23(§5.3.6 1, §4.9 `devices[].diffusion` 행), 42 v1.16.23('91 접합 용량' 행). 경위 = design history v1.16.23.
 - **원래 취지와 다름**(모두 승인 O-247·O-248): DEC-91 (2) '엔진·오라클 같은 값'·레이아웃 전 소자별 확산 기하 → 기준 폭 단일 양 비례; DEC-91 (3)·U-27 (d) 접합 정본(PDK 식 → LUT off 점, '대조 test 전용' → 스탬프 입력); O-179 (1) CSS 행 근사; card +1(JC-1).
 
+## v6.38.26 둘째 커밋 (2026-11-06, 독립 판정 minor m1~m5 반영 -- Major 0, 재판정 불필요)
+
+판정 `wt/_drafts/evidence/2026-11-06/o248_plan_verdict.md`(Major 0, minor 5). 규칙 변경 0(표지·기록 항목·문언 정정).
+- (m1) tnom 2키: N6.42 범위 3과 Status에 'O-248 PDK 접합 키 삭제 가운데 `junction_<kind>_tnom` 2키는 oracle 온도 tnom 출처라 oracle-portability 계획 개정 뒤 이름·자리를 옮기고 지운다 -- **원래 취지와 다름(시점)**, 원칙 24'. oracle-portability 계획 v0.6.32 N7.6 표에 JP-1 행(실제 개정 항목)과, 같은 표에 상위 LG-1이 기다리는 개정 행(LG-1)을 올림 -- 지금까지 LG-1의 'oracle-portability 계획 개정이 먼저'에 대응하는 항목이 그 계획에 없었다(grep 0). 질문 불필요(결정 목적 불변, PDK 값 자리는 O-197에 맞음 -- 판정 (4-1)).
+- (m2) design 40 §3.7-A 3 옛 ⚠ 문장 «⚠ 배치 소자 행은 `layout_ref` (nf, finger_w)와 같은 값이다 -- '레이아웃 결정'(S2 `layout`)과 '그 평가가 쓴 기하'(그 평가 스냅샷)는 정의 축이 다른 필드로 본다(실현 평가 '`dc_finger` = 입력 값'과 같은 해석 하나).» → 계획 N6.32 범위 7 (a) '정의 축' 문장(v6.38.24 둘째 커밋 n1)과 같은 문장.
+- (m3) 드레인 노드 용량 두 근사: 옛 N6.42 «같은 양의 다른 근사다», design 40 §3.8 10 «같은 양(드레인 노드 자기 용량)의 다른 근사다» → '정의(측정 구성)가 다른 두 양(graph 규칙 3 -- 같은 정의의 둘째 생산자가 아님)'.
+- (m4) DEC-91 (2)에 이식성 한계: LUT 생성 규칙 면적이 폭에 비례하지 않는 PDK에서는 엔진이 멈추고, 그 PDK를 들이는 card는 이 행 개정이 착수 조건.
+- (m5) N6.42 완료 (7)에 off 점 오염 구간 소자 수 기록 -- 기록 기준은 조회 VDS 또는 VSB가 LUT 그 축의 첫 격자 칸 안(축 데이터, 새 문턱 0, 판정에 쓰지 않음)이고 L을 함께 적음. 판정 문언의 'nmos 긴 L ≥ 1.5 µm'는 실측 서술이라 기록 기준으로 옮기지 않았다(옮기면 새 상수).
+
 ## v6.38.25 (2026-11-06, 사용자 결정 O-246)
 
 사용자 결정 O-246(`wt/_drafts/user_decisions.md` O-246 행 -- "D1 권고, D2 권고, D3 권고, D6 권고, D7 권고"). 재료: gm/ID 원본 판독 `wt/_drafts/evidence/2026-11-06/gmid_book_lut_definitions.md`(Jespers & Murmann 2017 쪽 인용, Jespers 2010 대조), O-245 규칙 감사 `o245_rule_audit.md`(74항목), 정의 설계 `o245_terminal_dc_columns.md`(단자 정의안 -- D1 B로 쓰지 않음), 질문 문서 `cap_questions_question.md`(QC3·QC4), 모순 점검 `cap_questions_contradiction_check.md` 2.3·2.4(고칠 자리). 사용자 지시 '새 집합·갈래를 만들 때 원칙 모순·불필요 복잡도 점검'을 개정 문언에 적용 -- 새 집합·갈래·helper·사유 이름 0(새 것은 정의 자리 행 하나·card LG-1 하나). 코드 변경 0. 독립 판정 전.
