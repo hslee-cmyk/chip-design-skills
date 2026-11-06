@@ -41,3 +41,8 @@ runs/
 # (사용자 2026-10-14). 없으면 skill 폴더에서 `python tools/pdf_to_md.py ensure`.
 skills/analog-gmid-design/assets/*/sources/*/pages/
 skills/analog-gmid-design/assets/*/sources/*/images/
+
+# gm/ID 방법론 원본 서적(사용자 2026-11-06 보관 지시) -- 출판 서적이라 원본 파일은 git 에 넣지 않는다(저장소 밖 배포 방지).
+# 목록·sha256·원래 경로는 references/gmid_sources/README.md(git 추적).
+skills/analog-gmid-design/references/gmid_sources/**/*.pdf
+skills/analog-gmid-design/references/gmid_sources/**/*.zip
