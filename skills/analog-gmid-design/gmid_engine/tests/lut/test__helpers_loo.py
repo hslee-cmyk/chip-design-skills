@@ -11,7 +11,7 @@ import pytest
 
 from gmid_engine.lut import tol_v_table, tol_vdsat_table
 
-from .conftest import BIN_L, MID_L_SOURCE, mid_point_arrays, new_memo
+from .conftest import BIN_L, new_memo
 
 M = "toyn__model."
 
@@ -59,7 +59,7 @@ def test_all_none_values_change_nothing(bin_memo):
 
 def test_status_names_shared_between_tables(mid_toy_build):
     """같은 LUT·같은 외부 bin 집합이면 tol_v_table 과 tol_vdsat_table 의 l_loo·l_loo_bins·l_bins 가 같다(같은 helper)."""
-    lut = mid_toy_build("shared", mid=mid_point_arrays((3.5e-6, 7.5e-6), l_source=MID_L_SOURCE)).load()
+    lut = mid_toy_build("shared", mid={0: (3.5e-6, 7.5e-6)}).load()
     m = new_memo(lut)
     tv, td = tol_v_table(m, "nmos", 100), tol_vdsat_table(m, "nmos", 100)
     assert tuple(tv.l_loo) == tuple(td.l_loo) and tuple(tv.l_loo_bins) == tuple(td.l_loo_bins)

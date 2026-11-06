@@ -54,7 +54,7 @@ rule = read_pdk_decl(str(skill / "assets" / "sky130_lut_rule_decl.json"), dm)
 q = dict(pdk.quantities)
 spec = LutSpec(float(man.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), (("nfet_01v8", "nmos"), ("pfet_01v8", "pmos")),
                (("nmos", "_n"), ("pmos", "_p")), noise_ef=(("nmos", q["noise_ef_nmos"].value_m), ("pmos", q["noise_ef_pmos"].value_m)))
-lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path,
+lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths,
                    noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path, bin_rule=loc.bin_rule_path)
 settings = SearchSettings(600.0, 20, (1e2, 1e5), (("front_budget_s", "xrun XR-2 fixture"),), (1e-13, 1e-10))
 donors, counters = open_run()   # [XRUN-F1 card B C6] 하위 프로세스 사슬 = 실행 하나

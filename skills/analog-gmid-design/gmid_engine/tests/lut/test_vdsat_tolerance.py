@@ -19,8 +19,10 @@ from gmid_engine.core import SealViolationError
 from gmid_engine.lut import (TOL_VDSAT_METRICS, LBinMap, TolVdsatCell, TolVdsatTable, midpoint_l_bin_checks,
                              tol_vdsat_table)
 
-from .conftest import (BIN_L, MID_L_SOURCE, detail_of, gamma_n, mid_point_arrays, mid_toy_arrays, midpoint_ref,
-                       new_memo, r6_toy_cap_arrays, vdsat_loo_cell_ref)
+from sizing.conftest import W_KEY, write_r4_lut
+
+from .conftest import (BIN_ANCHOR_BIN_LO, BIN_L, T_KEYS, T_MID_L, T_WIDTHS, build_t, detail_of, gamma_n, mid_file,
+                       mid_toy_arrays, midpoint_ref, new_memo, r6_toy_cap_arrays, t_spec, vdsat_loo_cell_ref)
 
 M = "toyn__model."
 BIN_AB = (0, 0, 0, 1, 1, 3, 3, 4)                     # conftest 머리 표(폭 1e-6 슬라이스, 손계산)
@@ -134,7 +136,7 @@ def test_point_condition_on_mask(mid_toy_build):
 def test_default_external_from_midpoints_per_vds(mid_toy_build):
     """기본(None) = 중점 rows 의 (model, vdsat_v), VDS 별: bin B·D 중점 3.5·7.5 µm -> 0.05·0.25·(1 + d) = (0.01875, 0.025).
     그 bin 두 앵커 행의 셀 (i, k) 에 k 번째 원소만(정의된 셀 값과의 최댓값). 상태 external."""
-    mt = mid_toy_build("ext", mid=mid_point_arrays(MID_L, l_source=MID_L_SOURCE))
+    mt = mid_toy_build("ext", mid={0: MID_L})
     m = new_memo(mt.load())
     t = tol_vdsat_table(m, "nmos", 100)
     base = tol_vdsat_table(m, "nmos", 100, ())
@@ -208,8 +210,8 @@ def test_at_rows_and_cells(mid_toy_build, L, rows):
     for vds in (0.5, 0.75, 1.0):
         kk = min(bisect.bisect_right(Va, vds) - 1, len(Va) - 2)
         vals = [t.cells[i][b].vdsat_v for i in rows for b in (kk, kk + 1)]
-        vals = [v for v in vals if v is not None]
-        assert t.at(L, vds) == (max(vals) if vals else None)
+        # [LM-1e §5 셀 결합] 모두 정의되면 max, 하나라도 None 이면 None
+        assert t.at(L, vds) == (None if any(v is None for v in vals) else max(vals))
         assert t.at(L, vds, "vdsat") == t.at(L, vds)
 
 
@@ -245,12 +247,13 @@ def _real_ref(real_lut, raw_slice, raw_mid, kind, suf, wk, with_ext=True):
     on = (z["ID"] > 0) & (z["GM"] > 0)
     ref = _ref_table(grids, z["VDSAT"], on, ab)
     ext = {}
-    if with_ext and wk == 1000:
+    if with_ext and (kind, wk) in real_lut.midpoints:                  # [LM-1e] 중점 파일은 폭마다(`widths` 안 슬라이스 전부)
+        mid = raw_mid(kind, wk)
         Lg = list(grids[0])
-        for mi, Lm in enumerate(float(x) for x in raw_mid["L"]):
+        for mi, Lm in enumerate(float(x) for x in mid["L"]):
             k = bisect.bisect_right(Lg, Lm)
             if 0 < k < len(Lg) and ab[k - 1] == ab[k] and ab.count(ab[k]) == 2 and Lg[k - 1] < Lm < Lg[k]:
-                r = midpoint_ref(z, raw_mid, suf, mi, k - 1, k, z["VDSAT"], on)
+                r = midpoint_ref(z, mid, "", mi, k - 1, k, z["VDSAT"], on)
                 ext[k - 1] = ext[k] = tuple(r["vdsat"])
     return ref, ext
 
@@ -259,7 +262,7 @@ def _real_ref(real_lut, raw_slice, raw_mid, kind, suf, wk, with_ext=True):
 @pytest.mark.parametrize("kind,suf,wk", [("nmos", "_n", 1000), ("pmos", "_p", 1000), ("nmos", "_n", 72), ("pmos", "_p", 84)])
 def test_real_cells_match_independent(real_lut, raw_slice, raw_mid, kind, suf, wk):
     """전 셀 = 독립 구현(npz 직접; L 방향은 엔진 bin 지도 -- 지도 자체는 test__helpers_bins 가 ngspice 로 확인) + 중점 외부 값(5.1 독립).
-    다른 폭은 중점 폭이 아니라 외부 값 없음(모든 2-앵커 bin missing_external).
+    [LM-1e] 다른 폭(72·84)도 `widths` 안이라 자기 중점 파일을 가진다: 앵커 2개 bin 마다 외부 값이 들고 missing_external 은 없다(D7).
     [2026-10-08 중점 변경, CONTRACT 8절] w_key 1000: 중점 0.165·0.85·1.75·3.25 µm -> 앵커 2개 bin 4개(.26 (0, 1)·.23 (10, 11)·
     .22 (12, 13)·.21 (14, 15)) 모두 external."""
     t = tol_vdsat_table(new_memo(real_lut), kind, wk)
@@ -272,7 +275,9 @@ def test_real_cells_match_independent(real_lut, raw_slice, raw_mid, kind, suf, w
         assert sts == ["external", "computed", "computed", "external", "external", "external",
                        "single_point", "single_point"]
     else:
-        assert "external" not in sts and sts.count("missing_external") >= 1
+        # D7: 앵커 2개 bin 마다 두 앵커 사이 중점이 있어 적재됐다 -> 외부 값이 든 bin 만 있고 missing_external 은 없다
+        assert sts.count("external") >= 1 and "missing_external" not in sts
+        assert sorted(ext) == sorted(i for _, idx, s in t.l_loo_bins if s == "external" for i in idx)
     vals = sorted(c.vdsat_v for row in t.cells for c in row if c.vdsat_v is not None)
     print("%s %d vdsat_v p50/p90/max = %.3g/%.3g/%.3g mV" % (kind, wk, 1e3 * np.percentile(vals, 50),
                                                              1e3 * np.percentile(vals, 90), 1e3 * vals[-1]))
@@ -304,8 +309,8 @@ CONTRACT_8_VDSAT_MAX = {"nmos": "6.39", "pmos": "32.5"}
 @pytest.mark.lut_realdata
 @pytest.mark.parametrize("kind,suf,wk,p50,p90,mx", [("nmos", "_n", 1000, None, None, CONTRACT_8_VDSAT_MAX["nmos"]),
                                                      ("pmos", "_p", 1000, None, None, CONTRACT_8_VDSAT_MAX["pmos"]),
-                                                     ("nmos", "_n", 72, "0.97", "1.31", "1.39"),
-                                                     ("pmos", "_p", 84, "0.89", "1.36", "8.18")])
+                                                     ("nmos", "_n", 72, None, None, None),
+                                                     ("pmos", "_p", 84, None, None, None)])
 def test_real_contract_measured(real_lut, raw_slice, raw_mid, kind, suf, wk, p50, p90, mx):
     """계약 5.2 실측(셀 vdsat_v p50/p90/max, mV 표기 자릿수 안). 분위수 정의 = numpy 기본(선형).
     [2026-10-08 중점 변경] w_key 1000 은 앵커 2개 bin 4개 모두 외부 값을 받아 5.2 의 옛 실측(0.93/1.88/2.49, 1.08/10.2/32.5 mV)이
@@ -321,7 +326,8 @@ def test_real_contract_measured(real_lut, raw_slice, raw_mid, kind, suf, wk, p50
         assert len(rv) == len(vals)
         for q in (50, 90):
             assert abs(np.percentile(vals, q) - np.percentile(rv, q)) <= rb, (kind, q)
-        assert printed_close(vals.max(), mx, 1e-3), (kind, wk, vals.max(), mx)
+        if mx is not None:                      # (d) CONTRACT 8절 기록값은 w_key 1000 만(다른 폭의 옛 실측은 외부 값 없던 때의 것이라 독립 값(b)으로 대체)
+            assert printed_close(vals.max(), mx, 1e-3), (kind, wk, vals.max(), mx)
         return
     for got, want in ((np.percentile(vals, 50), p50), (np.percentile(vals, 90), p90), (vals.max(), mx)):
         assert printed_close(got, want, 1e-3), (kind, wk, got, want)
@@ -351,3 +357,61 @@ def test_real_contract_at_example(real_lut, raw_slice, raw_mid):
     assert v >= v0                                                   # 5.2: 외부 값은 셀 값과의 최댓값에만 들어간다
 
 
+
+
+# ---------------------------------------------------------------------------
+# [LM-1e §5] 셀 결합 `at` (A-0v) -- toy R(pmos 의 VDS index 0 열이 꺼짐): VDSAT LOO 셀 0 = None(점 조건: 그 점·이웃이 모두 on 인 점이 없다).
+# 결합 셀이 모두 정의되면 max, 하나라도 None 이면 None. oracle: (a) 구성으로 정해진 답 + (d) interface 결합 규칙.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("iL", [0, 1])
+def test_cell_combine_a0v_none_cell_makes_none(tmp_path, iL):
+    t = tol_vdsat_table(new_memo(write_r4_lut(tmp_path / "roff", off_cols={"pmos": 1})), "pmos", W_KEY)
+    L = t.L_anchors[iL]
+    row = t.cells[iL]
+    assert tuple(t.vds_grid)[:3] == (0.0, 0.25, 0.5)
+    # 전제(안 서면 멈춘다): 셀 VDS index 0 = None, index 1·2 ≠ None
+    assert row[0].vdsat_v is None and row[1].vdsat_v is not None and row[2].vdsat_v is not None
+    for vds in (0.0, 0.1, 0.2499):                                    # 칸 [0, 0.25): 셀 0 = None 포함 -> None (옛 규칙은 셀 1 값)
+        assert t.at(L, vds) is None, vds
+    hand = max(row[1].vdsat_v, row[2].vdsat_v)                        # 칸 [0.25, 0.5): 두 셀 모두 정의 -> max
+    for vds in (0.25, 0.3, 0.4999):
+        assert t.at(L, vds) == hand, vds
+
+
+# ---------------------------------------------------------------------------
+# [LM-1e §3 T-8] toy T 의 `tol_vdsat_table`: 행 3~6 = max(5.2 LOO 독립 구현 값, VDSAT 외부 값), 나머지 행 = LOO.
+# 외부 값 = conftest `midpoint_ref` 의 vdsat(중점 VDSAT 와 슬라이스 선형 보간 차의 최댓값, 닫힌 식: 0.05·(Lu_m − Lu0)(Lu1 − Lu_m)·(1 + d)).
+# ---------------------------------------------------------------------------
+
+def _vd_bound(v):
+    return 8 * gamma_n() * v
+
+
+@pytest.mark.parametrize("idx", [0, 1])
+def test_lm1e_t8_vdsat_cells_are_max_of_loo_and_ext(mid_toy_build, idx):
+    W, sc = T_WIDTHS[idx]
+    lut = build_t(mid_toy_build, "t8", {0: T_MID_L, 1: T_MID_L}).load(t_spec(0.6e-6))
+    t = tol_vdsat_table(new_memo(lut), "nmos", T_KEYS[idx])
+    z = mid_toy_arrays(W, sc, {})
+    mid = mid_file(W, sc, T_MID_L)
+    on = (z["ID"] > 0) & (z["GM"] > 0)
+    grids = (BIN_L, tuple(z["VGS"]), tuple(z["VDS"]), tuple(z["VS"]))
+    ref = _ref_table(grids, z["VDSAT"], on, BIN_AB)
+    ext = {}
+    for mi, i0, i1 in ((0, 3, 4), (1, 5, 6)):                          # 3.5 µm -> model.1 앵커 3·4, 7.5 µm -> model.3 앵커 5·6(0 시작 index)
+        r = midpoint_ref(z, mid, "", mi, i0, i1, z["VDSAT"], on)
+        ext[i0] = ext[i1] = tuple(r["vdsat"])
+    lifted = 0
+    for i, row in enumerate(ref):
+        for k, (loo, scaled, bnd) in enumerate(row):
+            c = t.cells[i][k]
+            assert abs(c.vdsat_loo_v - loo) <= bnd, (i, k)             # 외부 값은 환산 전 필드에 들어가지 않는다
+            e = ext.get(i, (None,) * len(row))[k]
+            if e is not None and e > scaled:
+                assert abs(c.vdsat_v - e) <= _vd_bound(8.0) + bnd / 4, (i, k, c.vdsat_v, e)
+                lifted += 1
+            else:
+                assert abs(c.vdsat_v - scaled) <= bnd / 4, (i, k, c.vdsat_v, scaled)
+    assert lifted > 0, "판별: 외부 값이 어느 셀도 올리지 못하면 이 test 가 외부 값을 구별하지 못한다"
+    assert tuple(s for _, _, s in t.l_loo_bins) == ("computed", "external", "external", "single_point")

@@ -97,11 +97,14 @@ def test_curves_are_built_once_per_entry(toy):
 @pytest.fixture(scope="module")
 def bin_env(tmp_path_factory):
     import dataclasses
-    from lut.conftest import TOY_SPEC, BinToy, bin_model_text, new_memo
+    from lut.conftest import MID_DEVICE, TOY_SPEC, BinToy, bin_model_text, new_memo
     # [WB-1 fixture 이행] 포락 표는 도달 가능한 슬라이스(finger >= spec.min_finger_w_m)만 쓴다. 이 toy 의 슬라이스 100(1 µm)은 TOY_SPEC min_finger 1.5 µm 미만이라
     # reachable_slices 가 비어 모든 칸 NaN 이 된다 -> toy 의 스펙 min_finger 를 데이터의 최소 슬라이스 폭(1 µm)으로 둔다(오라클·단언은 그대로).
     spec = dataclasses.replace(TOY_SPEC, min_finger_w_m=(("nmos", 1e-6),))
-    lut = BinToy(tmp_path_factory.mktemp("ub1_bin_tables"), bin_model_text()).load(spec)
+    # [LM-1e D7] 최소 폭을 1 µm 로 둬 키 100 이 `widths` 안이 됐으므로, 키 100 의 앵커 2개 bin(model.1 앵커 3·4 µm, model.3 앵커 7·8 µm)마다
+    # 두 앵커 사이 중점이 하나 있어야 적재된다(3.5 µm·7.5 µm). 오라클·단언은 그대로.
+    lut = BinToy(tmp_path_factory.mktemp("ub1_bin_tables"), bin_model_text(), device=MID_DEVICE).load_mid(
+        spec, {0: (3.5e-6, 7.5e-6)})
     memo = new_memo(lut)
     grids = lut.slice_map[("nmos", 100)].grids
     return memo, ParamTables(memo, grids, side="upper", z_side="max"), grids

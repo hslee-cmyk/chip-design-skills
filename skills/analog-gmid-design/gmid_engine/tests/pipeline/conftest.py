@@ -41,4 +41,4 @@ def real_lut(lut_location, manifest):
     mins = min_finger_w_m(kinds.values())      # PDK 선언 양(card 20261104-wb1)
     spec = LutSpec(float(manifest.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), DEVICE_KINDS, CAP_SUFFIX)
     return load_lut_set(lut_location.manifest_path, lut_location.cap_npz_path, spec, pdk_root=lut_location.pdk_root,
-                        verify_midpoints=lut_location.midpoints_path, bin_rule=lut_location.bin_rule_path)
+                        verify_midpoints=lut_location.midpoints_paths, bin_rule=lut_location.bin_rule_path)

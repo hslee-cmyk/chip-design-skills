@@ -603,8 +603,9 @@ def test_m3a_regression_real_lut():
     grid = _grid(_need(REAL_TLEF, "PDK tlef"))
     loc = _real_loc()
     manifest = _need(loc.manifest_path, "폭 슬라이스 manifest")
+    # [LM-1e D7] 위치 선언의 중점 파일 전부를 넘긴다(`widths` 안 슬라이스의 앵커 2개 bin 마다 중점이 있어야 적재된다)
     lut = load_lut_set(manifest, _need(loc.cap_npz_path, "기준 LUT"), _real_spec(manifest, grid),
-                       bin_rule=loc.bin_rule_path)
+                       bin_rule=loc.bin_rule_path, verify_midpoints=loc.midpoints_paths)
     full = toy_pdk(lut)
     pdk = LayoutPdk(full.manufacturing_grid_m, (("nmos", REAL_KEYS),), 0.0, 0.0, 0.0, 0.0, 0.0, full.rule_ids, lut.fp)
     ds = [dev(n, "s_" + n, "d_" + n, None, ID_A=ID, L=L, gm_id=gm, vds=vds, vsb=vsb, W=W) for n, L, ID, gm, vds, vsb, W in PILOT]

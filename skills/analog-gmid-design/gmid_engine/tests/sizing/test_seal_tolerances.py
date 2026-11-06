@@ -17,8 +17,8 @@ import pytest
 
 from gmid_engine.sizing import S2_WRITERS, dc_tolerances
 
-from .conftest import (A, B, C, TOY_VGS, W_M, Oracle, hand_dc_gm, mos_table, rel_close, run_blocks, run_of, theta_a,
-                       theta_c, toy_npz)
+from .conftest import (A, B, C, TOY_VGS, W_M, Oracle, hand_dc_gm, ja_state, mos_table, rel_close, run_blocks, run_of,
+                       theta_a, theta_c, toy_npz)
 
 
 def test_oracle_tol_hand_value():
@@ -74,3 +74,65 @@ def test_l_not_anchor_fails_before_tolerance(ctx_c):
     from gmid_engine.core import SealViolationError
     with pytest.raises(SealViolationError):
         run_blocks(ctx_c[2], theta_c(l1=1.7e-6))
+
+
+# ---------------------------------------------------------------------------
+# [LM-1e §5 J-a] 셀 결합: 결합 셀 하나가 None 이면 dc_tol_v 가 None -> 봉인 1·2·3 의 그 행이 undefined -> 보고 undefined
+# 입력 = toy R(pmos 의 VDS index 0 열이 꺼져 tol 셀 0 = None) + `_scc_s_doc`(M1 nmos (vin, nb1, gnd), M2 nmos (vout, nb2, vin),
+# M3 pmos (vout, pb, vdd)) + 손 θ. 스냅샷에서 `dc_op["M3"]` 의 `vds` 만 0.1 로 바꾼다(`dataclasses.replace` + conftest `tamper`;
+# `dc_tol_v` 는 주입하지 않는다 -- None 은 `dc_tolerances` 가 `table_at` 으로 낸다): VDS 0.1 은 칸 [0, 0.25) = 셀 0(None)·셀 1(값) 결합.
+# oracle: (a) 구성(꺼진 열의 셀은 정의상 None) + (d) 결합 규칙('하나라도 None 이면 None', 계획 표 10행·A-139 집계: 항에 None 이 하나라도 있으면 None).
+# ---------------------------------------------------------------------------
+
+SEAL_WRITERS_PASS = {6: "dc_seal_bulk_reverse", 7: "dc_seal_region", 8: "dc_seal_kvl_branch", 9: "dc_seal_region"}
+
+
+def _ja_items(ctx, snap):
+    """봉인 1·2·3 블록을 차례로 돌린다(블록 함수 그대로). 반환 (스냅샷, {번호: SealItem})."""
+    from gmid_engine.sizing import dc_seal_kcl, dc_seal_node_conflict, dc_seal_vgs_match
+    from .conftest import seal_item
+    s = dc_seal_node_conflict(snap, **run_of(ctx))
+    s = dc_seal_vgs_match(s, **run_of(ctx))
+    s = dc_seal_kcl(s, (), **run_of(ctx))
+    return s, {n: seal_item(s, n) for n in (1, 2, 3)}
+
+
+def test_cell_combine_j_a0_premise_no_failing_rows(tmp_path):
+    """전제 J-a0(안 서면 J-a 의 기대가 이 입력으로 성립하지 않는다 -- `judge` 는 실패를 먼저 본다): M3 가 닿는 봉인 행(봉인 2 의 M3 행,
+    M3 채널이 닿는 레일 아닌 넷 vout 의 봉인 1·3 행)에 실패 행이 없다. 결합 규칙과 무관하게 서는 전제다(실패 판정은 정의된 행만 본다)."""
+    from gmid_engine.sizing import SEAL_FAIL
+    ctx, _th, _changed, snap = ja_state(tmp_path)
+    _s, items = _ja_items(ctx, snap)
+    for n, it in items.items():
+        assert it.status != SEAL_FAIL, (n, it.status, it.devices, it.nodes)
+
+
+def test_cell_combine_j_a_none_cell_cascades_to_seals_and_report(tmp_path):
+    from gmid_engine.sizing import (DC_KEY, REPORT_UNDEFINED, SEAL_PASS, SEAL_UNDEFINED, DcEvaluation, SealItem, dc_seal_report)
+    from gmid_engine.search import STATUS_UNDEFINED, seal_status
+    ctx, _th, changed, snap = ja_state(tmp_path)
+    tolv = dict(snap.column("device", "dc_tol_v"))
+    assert dict(changed.column("device", "dc_op"))["M3"].vds == 0.1
+    assert tolv["M3"] is None                                           # table_at 경유: 칸 [0, 0.25) 의 셀 0 이 None
+    assert tolv["M1"] is not None and tolv["M2"] is not None            # 다른 소자(nmos)의 셀은 정의
+    s, items = _ja_items(ctx, snap)
+    assert all(it.status != "fail" for it in items.values())            # J-a0 전제
+    assert items[2].status == SEAL_UNDEFINED and "M3" in items[2].devices
+    for n in (1, 3):                                                    # M3 가 닿는 레일 아닌 넷 vout 의 행
+        assert items[n].status == SEAL_UNDEFINED, n
+        assert "vout" in items[n].nodes, (n, items[n].nodes)
+    # 나머지 항목(4~9)은 이 test 의 대상이 아니다 -- pass 로 두고 보고서 상태 규칙만 본다(fail 있으면 violated, undefined 있으면 undefined).
+    for n, w in SEAL_WRITERS_PASS.items():
+        s = s.write(w, "t-%d-pass" % n, {("graph", "dc_seal_%d" % n): {DC_KEY: SealItem(n, SEAL_PASS)}})
+    rep = dc_seal_report(s, SealItem(4, SEAL_PASS), SealItem(5, SEAL_PASS), **run_of(ctx)).value("graph", DC_KEY, "dc_seal_report")
+    assert rep.status == REPORT_UNDEFINED
+    assert seal_status(DcEvaluation(None, rep, None)) == STATUS_UNDEFINED == "seal_undefined"
+
+
+def test_cell_combine_j_a_control_defined_cells_stay_values(tmp_path):
+    """대조(판별): M3 의 vds 만 0.5 (칸 [0.5, 0.75) -- 켜진 칸)로 바꾸면 tol 이 모두 정의라 봉인 1·2·3 이 pass(undefined 아님)."""
+    from gmid_engine.sizing import SEAL_PASS
+    ctx, _th, _changed, snap = ja_state(tmp_path, vds=0.5)
+    assert all(v is not None for v in dict(snap.column("device", "dc_tol_v")).values())
+    _s, items = _ja_items(ctx, snap)
+    assert {n: it.status for n, it in items.items()} == {1: SEAL_PASS, 2: SEAL_PASS, 3: SEAL_PASS}

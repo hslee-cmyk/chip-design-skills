@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import ast
 import bisect
+import dataclasses
 import functools
 import hashlib
 import json
@@ -1233,12 +1234,12 @@ def real_location():
 def real_paths(real_location):
     """[r6] LUT v2(위치 선언 파일) 하나. 다른 LUT 로 덮어쓰는 환경변수는 없다(O-180)."""
     loc = real_location
-    if not loc.midpoints_path:
+    if not loc.midpoints_paths:
         pytest.fail("설정에 verify_midpoints 가 없다: %s" % LOCATION_CONFIG, pytrace=False)
     return {
         "manifest": _need(None, loc.manifest_path, "폭 슬라이스 manifest.json"),
         "cap": _need(None, loc.cap_npz_path, "기준 LUT npz"),
-        "midpoints": loc.midpoints_path,
+        "midpoints": tuple(loc.midpoints_paths),          # [LM-1e §1] 절대 경로 tuple(path 오름차순)
         "pdk_root": loc.pdk_root,
         "bin_rule": loc.bin_rule_path,
         "tlef": _need("GMID_PDK_TLEF", _DEFAULT_TLEF, "PDK tech LEF"),
@@ -1341,9 +1342,21 @@ def raw_cap(real_paths):
 
 
 @pytest.fixture(scope="session")
-def raw_mid(real_paths):
-    """[r6] 검증 중점 파일 배열(직접 읽음)."""
-    return _load_raw(real_paths["midpoints"])
+def raw_mid(real_paths, real_slice_files):
+    """[LM-1e §2] raw_mid(kind, w_key) -> 그 짝 슬라이스의 중점 파일 배열 dict(직접 읽음). 짝 = 중점 meta device = 슬라이스 파일
+    meta device 이고 폭 키(`round(W / grid)`)가 같다 -- 슬라이스 파일을 numpy 로 직접 열어 대응표를 만든다."""
+    grid = manufacturing_grid_m(real_paths["tlef"])
+    dev_kind = {}
+    for kind, _dev, _W, wk, path in real_slice_files:
+        dev_kind[(json.loads(str(_load_raw(path)["meta_json"]))["device"], wk)] = kind
+    table = {}
+    for p in real_paths["midpoints"]:
+        z = _load_raw(p)
+        key = (dev_kind[(json.loads(str(z["meta_json"]))["device"], int(round(float(z["W"]) / grid)))],
+               int(round(float(z["W"]) / grid)))
+        assert key not in table, key
+        table[key] = z
+    return lambda kind, w_key: table[(kind, w_key)]
 
 
 def copy_tree(src_dir, dst_dir):
@@ -1467,7 +1480,9 @@ class BinToy:
     meta_fn(meta) -> meta: 기록을 바꿔 거부 경로를 만든다. model_text=None 이면 모델 파일을 쓰지 않는다."""
 
     def __init__(self, root, model_text, meta_fn=None, L=BIN_L, widths=((1e-6, 1.0), (2e-6, 2.0)), n_vgs=3,
-                 consistent=False):
+                 consistent=False, device=None):
+        self.widths = tuple(widths)
+        self.n_vgs = n_vgs
         self.root = Path(root)
         self.pdk = self.root / "pdk"
         self.model_path = self.pdk / BIN_MODEL_REL
@@ -1482,14 +1497,34 @@ class BinToy:
         if meta_fn is not None:
             meta = meta_fn(meta)
         self.meta = meta
-        slices = [("bin_w%d.npz" % i, "toyn", bin_slice_arrays(W, sc, meta, L, n_vgs, consistent))
+        # [LM-1e §2] device 를 주면 슬라이스 파일 meta 에 `device` 가 적혀 중점 파일과 짝이 맞는다(기준 LUT meta 에는 넣지 않는다)
+        slice_meta = meta if device is None else dict(meta, device=device)
+        slices = [("bin_w%d.npz" % i, "toyn", bin_slice_arrays(W, sc, slice_meta, L, n_vgs, consistent))
                   for i, (W, sc) in enumerate(widths)]
         self.build = ToyBuild(self.root / "lut", slices, bin_cap_arrays(L, n_vgs),
                               bins=SimpleNamespace(bin_rule=self.bin_rule), cap_meta=meta)
         self.slice_paths = [self.build.root / s[0] for s in slices]
+        self.device = device
 
     def load(self, spec=TOY_SPEC):
         return self.build.load(spec)
+
+    def write_mid(self, mid):
+        """[LM-1e] mid: {슬라이스 index(widths 순서): 중점 L tuple} -> 중점 파일들을 쓰고 경로 list 를 돌려준다(device 필요)."""
+        assert self.device is not None, "중점 파일은 슬라이스 meta device 와 짝이 맞아야 한다 -- BinToy(device=...)"
+        out = []
+        for idx, Ls in sorted(mid.items()):
+            W, sc = self.widths[idx]
+            meta = {"device": self.device, "generator_sha256": "0" * 64,
+                    "model_files_sha256": self.meta["model_files_sha256"], "ngspice": self.meta["ngspice"]}
+            p = self.build.root / ("bin_mid_w%d.npz" % idx)
+            np.savez(p, **mid_toy_arrays(W, sc, meta, L=tuple(Ls), cols=("VDSAT",), n_vgs=self.n_vgs))
+            out.append(str(p))
+        return out
+
+    def load_mid(self, spec=TOY_SPEC, mid=None):
+        """[LM-1e] 중점 파일(write_mid)과 함께 적재한다."""
+        return self.build.load(spec, verify_midpoints=self.write_mid(mid or {}))
 
 
 @pytest.fixture
@@ -1720,46 +1755,48 @@ def mid_gmbs_per_id(nL, n_vgs=3):
     return np.broadcast_to(r[None], (nL, n_vgs, len(d), len(s))).copy()
 
 
-def mid_point_arrays(L_points, w_ref_m=1e-6, scale=1.0, kinds=(("nmos", "_n"),), l_source=None, vdsat=True,
-                     drop=(), corner="tt", temp_c=27.0, axes=None):
-    """CONTRACT 1.7 검증 중점 파일 형식: L(중점)·VGS·VDS·VS, kind 마다 ID<접미사>·GM<접미사>(·VDSAT<접미사>), w_ref_m,
-    corner·temp_c, meta_json L_source. 값 = 중점 toy 식을 L_points 에서(폭 w_ref_m = scale·1e-6)."""
-    z = mid_toy_arrays(w_ref_m, scale, {}, L=L_points, cols=("VDSAT",) if vdsat else ())
-    out = {"L": np.asarray(L_points, dtype=float), "VGS": z["VGS"], "VDS": z["VDS"], "VS": z["VS"],
-           "corner": np.str_(corner), "temp_c": np.float64(temp_c)}
-    if axes:
-        out.update(axes)
-    if w_ref_m is not None:
-        out["w_ref_m"] = np.float64(w_ref_m)
-    for _, suf in kinds:
-        out["ID" + suf] = z["ID"]
-        out["GM" + suf] = z["GM"]
-        if vdsat:
-            out["VDSAT" + suf] = z["VDSAT"]
-    for k in drop:
-        out.pop(k, None)
-    meta = {"generator": "test"}
-    if l_source is not None:
-        meta["L_source"] = l_source
-    out["meta_json"] = np.str_(json.dumps(meta))
-    return out
+MID_DEVICE = "toyn_meta"          # [LM-1e §2] 슬라이스 파일 meta `device`(manifest device "toyn" 과 다른 이름 -- 짝은 파일 meta 로 맞춘다)
+MID_GEN_SHA = "0" * 64            # ToyBuild 기본 manifest generator_sha256
 
 
-MID_L_SOURCE = {"kind": "json", "path": "approved_L.json", "sha256": "a" * 64, "key": "verification_midpoints_um"}
+def mid_model_sha(model_text=None):
+    """MidToy 가 쓰는 합성 모델 파일(bin_model_text)의 sha256 -- 중점 파일 meta `model_files_sha256` 에 적는 값(짝 슬라이스와 같다)."""
+    return hashlib.sha256((bin_model_text() if model_text is None else model_text).encode("utf-8")).hexdigest()
+
+
+def mid_meta(model_text=None, **over):
+    """[LM-1e §3 toy T] meta_mid = {device, generator_sha256(manifest 값), model_files_sha256·ngspice(짝 슬라이스 값)}."""
+    m = {"device": MID_DEVICE, "generator_sha256": MID_GEN_SHA,
+         "model_files_sha256": {BIN_MODEL_REL: mid_model_sha(model_text)}, "ngspice": "ngspice-46"}
+    m.update(over)
+    return m
+
+
+def mid_file(W, scale, L_points, meta=None, vdsat=True, **kw):
+    """[LM-1e §2] 중점 파일 배열(DC 슬라이스 npz 꼴: W 스칼라, L(중점들), VGS·VDS·VS, ID·GM(·VDSAT), corner·temp_c, meta_json)
+    -- 값 = 중점 toy 식 `mid_toy_arrays` 를 L_points 에서(폭 W, 배율 scale)."""
+    return mid_toy_arrays(W, scale, mid_meta() if meta is None else meta, L=tuple(L_points),
+                          cols=("VDSAT",) if vdsat else (), **kw)
 
 
 class MidToy:
-    """중점 toy: bin toy 모델 파일(BIN_BLOCKS) + 중점 toy 슬라이스(폭 1e-6·2e-6) + 기준 LUT(bin_cap_arrays + 선택 열)
-    + 검증 중점 파일. slice_cols: 슬라이스 선택 열, cap_extra: 기준 LUT 에 더할 배열 dict, cap_meta: 기준 LUT meta_json."""
+    """중점 toy: bin toy 모델 파일(BIN_BLOCKS) + 중점 toy 슬라이스(widths 마다 1장) + 기준 LUT(bin_cap_arrays + 선택 열) +
+    검증 중점 파일들. slice_cols: 슬라이스 선택 열, cap_extra: 기준 LUT 에 더할 배열 dict, cap_meta: 기준 LUT meta_json.
+    mid: {슬라이스 index: 중점 L tuple 또는 완성된 배열 dict} -- L tuple 이면 그 슬라이스의 (W, scale) 로 `mid_file` 을 만든다.
+    [LM-1e §2] 슬라이스 meta 에 `device`(MID_DEVICE) 를 넣는다. 기본 widths = (1e-6, 2e-6) -> 폭 키 100·200."""
 
     def __init__(self, root, slice_cols=("GMBS", "VDSAT"), cap_extra=None, cap_meta=None, mid=None,
-                 widths=((1e-6, 1.0), (2e-6, 2.0)), model_text=None, slice_mod=None):
+                 widths=((1e-6, 1.0), (2e-6, 2.0)), model_text=None, slice_mod=None, slice_meta=None):
         self.root = Path(root)
         self.pdk = self.root / "pdk"
         mp = self.pdk / BIN_MODEL_REL
         mp.parent.mkdir(parents=True, exist_ok=True)
         mp.write_bytes((bin_model_text() if model_text is None else model_text).encode("utf-8"))
-        meta = {"pdk_root": str(self.pdk), "model_files_sha256": {BIN_MODEL_REL: sha256_file(mp)}, "ngspice": "ngspice-46"}
+        cap_m = {"pdk_root": str(self.pdk), "model_files_sha256": {BIN_MODEL_REL: sha256_file(mp)}, "ngspice": "ngspice-46"}
+        meta = dict(cap_m, device=MID_DEVICE)
+        if slice_meta is not None:
+            meta = slice_meta(meta)
+        self.slice_meta = meta
         self.bin_rule = _write_decl(self.root / "bin_rule.json", [sha256_file(mp)])
         slices = [("mid_w%d.npz" % i, "toyn", mid_toy_arrays(W, sc, meta, cols=slice_cols))
                   for i, (W, sc) in enumerate(widths)]
@@ -1772,15 +1809,23 @@ class MidToy:
         if cap_meta is not None:
             cap["meta_json"] = np.str_(json.dumps(cap_meta))
         self.build = ToyBuild(self.root / "lut", slices, cap, bins=SimpleNamespace(bin_rule=self.bin_rule),
-                              cap_meta=meta)
-        self.mid_path = None
-        if mid is not None:
-            self.mid_path = self.root / "lut" / "midpoints.npz"
-            np.savez(self.mid_path, **mid)
+                              cap_meta=cap_m)
+        self.mid_paths = []
+        for idx, spec in sorted((mid or {}).items()):
+            arrays = spec if isinstance(spec, dict) else mid_file(widths[idx][0], widths[idx][1], spec, mid_meta(model_text))
+            p = self.root / "lut" / ("midpoints_w%d.npz" % idx)
+            np.savez(p, **arrays)
+            self.mid_paths.append(p)
+
+    @property
+    def mid_path(self):
+        """중점 파일이 하나인 toy 의 그 경로(둘 이상이면 오류)."""
+        assert len(self.mid_paths) == 1, self.mid_paths
+        return self.mid_paths[0]
 
     def load(self, spec=TOY_SPEC, **kw):
-        if self.mid_path is not None and "verify_midpoints" not in kw:
-            kw["verify_midpoints"] = str(self.mid_path)
+        if self.mid_paths and "verify_midpoints" not in kw:
+            kw["verify_midpoints"] = [str(p) for p in self.mid_paths]
         kw.setdefault("bin_rule", self.bin_rule)
         return load_lut_set(str(self.build.manifest), str(self.build.cap), spec, **kw)
 
@@ -1790,6 +1835,23 @@ def mid_toy_build(tmp_path):
     def make(sub="mt", **kw):
         return MidToy(tmp_path / sub, **kw)
     return make
+
+
+# [LM-1e §3 toy T] nmos 슬라이스 폭 0.6·0.8 µm(키 60·80, 배율 0.6·0.8 -- 둘 다 BIN_W_LO 행), 중점 L = (3.5, 7.5) µm.
+# 중점 파일은 슬라이스 index(0 = 키 60, 1 = 키 80)로 지정한다 -- 값 L tuple 이면 `mid_file`, dict 이면 그대로.
+T_WIDTHS = ((0.6e-6, 0.6), (0.8e-6, 0.8))
+T_MID_L = (3.5e-6, 7.5e-6)
+T_KEYS = (60, 80)
+
+
+def t_spec(w_min):
+    return dataclasses.replace(TOY_SPEC, min_finger_w_m=(("nmos", w_min),))
+
+
+def build_t(mid_toy_build, sub, mids, **kw):
+    """toy T 를 쓴다(기준 LUT w_ref_m = 첫 슬라이스 폭 -- 폭이 모호하지 않게). mids: {슬라이스 index: L tuple 또는 배열 dict}."""
+    kw.setdefault("cap_extra", {"w_ref_m": np.float64(T_WIDTHS[0][0])})
+    return mid_toy_build(sub, widths=T_WIDTHS, mid=mids, **kw)
 
 
 # --- 독립 구현: 4.0.1 bin 소속, 5.1 중점 외부 값, 5.2 VDSAT LOO -----------------------------------------------
