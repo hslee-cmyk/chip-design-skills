@@ -174,6 +174,7 @@ def test_hand_oracle_composite(result):
     assert len(reqs) == 1 and isinstance(reqs[0], WRequest)
     assert (reqs[0].reason, reqs[0].group) == ("finger_quantization", None)
     assert reqs[0].W_old_m == pytest.approx(0.75e-6, rel=1e-9) and reqs[0].W_new_m == pytest.approx(1e-6)
+    assert reqs[0].nf == 1 and reqs[0].finger_w_m == pytest.approx(1e-6, rel=1e-12)       # [dispute 8.4] 요청 손가락, W_new = nf x finger_w_m
     assert (by["C"].finger_w_m, by["C"].n_fingers) == (pytest.approx(1e-6), 1)
     # bias_distribution 멤버 C·D 는 일반 행 소자(그룹 행 아님)
     for n in ("C", "D"):

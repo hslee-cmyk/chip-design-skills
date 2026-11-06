@@ -305,7 +305,8 @@ def test_sealed_point_with_passive_theta_has_ss_row(tmp_path, lut_sealed):
 # metrics CONTRACT 10.7('kernel.evaluate 가 S3 evals 줄에 block_residual 을 쓴다', [U17 ①-b] S1v 필드가 있는 커널 컨텍스트). (a) 회로 C 는 단일 이득 블록
 # (CS + PMOS 전류원 부하) -> 분해 = 전회로, 잔차 0, 전회로 이득 = 같은 점의 gain_ss_db 값.
 
-def test_u7_structure_writes_block_residual_to_evals(tmp_path, lut_sealed, short_root):
+def test_u7_structure_writes_block_residual_to_evals(tmp_path, lut_sealed_cdd, short_root):
+    lut_sealed = lut_sealed_cdd      # [WB-1 E-18] 구조 경로의 drain 용량은 CDD 열 -- CDD 열이 있는 같은 r4 toy
     from gmid_engine.graph import build_s1, build_s1v
     from gmid_engine.search import build_search_context
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec

@@ -17,7 +17,8 @@
   기준 LUT 열). 용량은 LUT v2 의 CGS·CGB 열(모형 `lut_cgs_cgb`, 부호 보존 값 그대로).
 * 접합 용량 cdb·csb(DEC-91): PDK 접합 파라미터(`junction.params_of(kind)`) + 봉인점 역바이어스(v_db = VDS + VSB, v_sb = VSB)
   + 확산 기하로 `junction_caps`(metrics CONTRACT 8절). S2 에는 아직 레이아웃 기하(MOD7 `ly.diffusion`)가 없으므로 기하는 레이아웃 전
-  첫 사이징점 규칙 = LUT 생성 규칙(finger_w = 폭 슬라이스 w_m, m = W / w_m) -- `junction_model` = `JUNCTION_LUT_RULE`(metric 묶음의
+  첫 사이징점 규칙 = LUT 생성 규칙(finger_w = 그 평가 `dc_finger` 행의 손가락 폭, m = 손가락 수; 행이 없으면 `realized_finger_missing`) -- 접합 기하 자리는 둘이다: 배치 소자 = `layout_ref` 확산
+  (extra `diffusion`), 나머지 = 그 평가 `dc_finger`(요청 대기 소자는 요청 손가락 행). `junction_model` = `JUNCTION_LUT_RULE`(metric 묶음의
   `approximations` 로 매 결과에 실린다). [U14] 레이아웃 뒤(MOD8 재검증)에는 추가 extra `diffusion` = ((MOS, `DiffusionGeometry`), ...)(MOD7
   `ly.diffusion` 실현 기하: finger_w·ad·as·pd·ps·m = n_fingers)가 그 소자의 규칙 기하를 대체하고 `junction_model` = `JUNCTION_LAYOUT_DIFFUSION`.
   extra 가 없거나 비면 입력 버전이 종래와 같다.
@@ -32,7 +33,7 @@ import types
 
 from gmid_engine.core import SealViolationError, compute_block
 from gmid_engine.lut import caps, gmb, op_point
-from gmid_engine.sizing import REASON_LUT_QUERY, SS_DEV_WRITER
+from gmid_engine.sizing import REASON_LUT_QUERY, REASON_REALIZED_FINGER_MISSING, SS_DEV_WRITER
 
 from .junction_cap import junction_caps
 from .ss_types import SsDevice
@@ -88,15 +89,23 @@ def _linearize(lut, junction, device, op, gm, rel_tol, realized, finger):
     )
 
 
+def _finger_row(fingers, device):
+    """소자 `device` 의 그 평가 `dc_finger` 행 -> (손가락 폭, 손가락 수). 행이 없으면 `realized_finger_missing`(분류된 후보 실패 -- 다른 자리로 넘어가지 않는다)."""
+    row = fingers.get(device)
+    if row is None:
+        raise SealViolationError(devices=(device,), detail={"reason": REASON_REALIZED_FINGER_MISSING})
+    return row.w_f_m, row.m
+
+
 @compute_block(SS_DEV_WRITER, reads=READS, writes=WRITES)
 def ss_dev(projection):
     lut, junction, *rest = projection.extras
     tols = dict(projection.column("device", "dc_tol_v"))
     gm = dict(projection.column("device", "dc_gm"))
     realized = dict(rest[0]) if rest else {}                 # [U14] 실현 확산 기하 ((MOS, DiffusionGeometry), ...) -- 없으면 LUT 생성 규칙 기하
-    fingers = dict(projection.column("device", "dc_finger"))            # 빈 열(레이아웃 뒤 평가)을 실현 확산 기하 없이 읽으면 행 없음 오류(KeyError) -- 대체하지 않는다
+    fingers = dict(projection.column("device", "dc_finger"))            # 그 평가가 쓴 손가락 -- 모든 평가가 소자 전부의 행을 쓴다(A-139). 실현 확산 기하가 없는 소자의 접합 기하 입력
     out = {m: _linearize(lut, junction, m, op, gm[m], None if tols.get(m) is None else op.gm_id * tols[m], realized.get(m),
-                         lambda m=m: (fingers[m].w_f_m, fingers[m].m))
+                         lambda m=m: _finger_row(fingers, m))
            for m, op in projection.column("device", "dc_op")}
     kinds = dict(projection.column("device", "kind"))
     decl_of = dict(projection.column("device", "region_decl"))

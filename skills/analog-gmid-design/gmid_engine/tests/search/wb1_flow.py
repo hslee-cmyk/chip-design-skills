@@ -24,11 +24,11 @@ CONS = (("gain_ss_db", ">=", 10.0, None),)
 
 
 def bins_case(tmp, doc, constraints=CONS, elements=(), eval_budget=40, widths=(1e-6, 2e-6), archive_root=None, budget_s=600.0,
-               idu_factor=None, rbounds=None):
+               idu_factor=None, rbounds=None, node_targets=()):
     tmp = Path(tmp)
     lut, _, _ = write_r4_bins_lut(tmp / "lut", widths=widths, idu_factor=idu_factor)
     acc = access_of(lut)
-    td, spec = load_spec(tmp / "case", doc, elements=elements, constraints=constraints)
+    td, spec = load_spec(tmp / "case", doc, elements=elements, constraints=constraints, node_targets=node_targets)
     inputs = dc_inputs_from_spec(spec)
     run = fresh_run()
     dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, acc, **run)
@@ -93,6 +93,22 @@ def circuit_r6():
 
 # R-6·R-6c·R-13(b)·R-15 공용 θ 입력 (dispute 7.1). 손 선택: V(out)_탐색 = I·R = 0.75 V, VSD(M1) = 1.05 V >= VDSAT_p(0.6) = 0.125 + 0.25·0.6 + 0.5·0.36 = 0.455 V.
 R6_I, R6_R, R6_FINGER_W = 5e-6, 1.5e5, 2e-6
+
+
+def circuit_r2_cl():
+    """R-2 회로 + 출력 부하 용량 CL (out -> gnd). CL 값이 미선언(PENDING)이면 gain_ss_db 행이 미측정, 선언이면 측정 (R-17·R-18 입력)."""
+    return topo("wb1_r2cl", [mos("M1", "nmos", "x", "inp", "t", "t"), mos("M2", "nmos", "out", "inn", "t", "t"),
+                             mos("M3", "pmos", "x", "x", "vdd", "vdd"), mos("M4", "pmos", "out", "x", "vdd", "vdd")],
+                {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"),
+                 "out": ("output", "single_ended_output")},
+                sources=[two("I0", "current_source", "t", "gnd")], passives=[two("CL", "capacitor", "out", "gnd")])
+
+
+def circuit_s36():
+    """S3-6 회로 (2026-11-06 오케스트레이터 위임 결정 -- 목표 넷이 저항으로 레일에 직접 묶이지 않는 꼴): M1 pmos (out, in, vdd, bulk = vdd), M2 nmos (out, vb, gnd,
+    bulk = gnd) 부하. 포트 in 단일 입력(M1 gate 에만 닿음), out 단일 출력. vb = 바이어스 넷(M2 gate). 저항 0 (R-6 의 저항 out -> gnd 를 MOS 로 바꾼 꼴)."""
+    return topo("wb1_s36", [mos("M1", "pmos", "out", "in", "vdd", "vdd"), mos("M2", "nmos", "out", "vb", "gnd", "gnd")],
+                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")}, bias=["vb"])
 
 
 def circuit_r16(with_source=False):

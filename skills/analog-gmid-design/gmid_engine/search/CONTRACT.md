@@ -105,7 +105,11 @@
   기존대로 unmeasured. 차동 `pm_ss_deg` 의미는 그대로(`dc_not_above_level` 이면 unmeasured). 위반 행은 T_cm(0) 이 오를수록 증가(c 가 0 으로)해
   SLSQP 가 쓸 신호가 된다.
 - 3.15·3.16: 비지배 묶음 셋 -- `front`(봉인·미측정 없음), `unmeasured_front`(봉인·미측정 있음), `pending_front`(봉인 7 대기). L-b 뒤
-  마지막 entries 로 셋 다 다시 거른다. `SearchFront.unmeasured_front`(기본 ()), runs 에 `unmeasured_front` 목록.
+  마지막 entries 로 셋 다 다시 거른다. `SearchFront.unmeasured_front`(기본 ()), runs 에 `unmeasured_front` 목록. 분류 함수 하나 = `eps_sweep.classify(result)`.
+- **[WB-1 범위 7 (b)] 실현 관문**: `find_front` 는 `front ∪ unmeasured_front` 를 `realize_front(sctx, points)` 로 실현 평가한다. 실현 평가의 측정 상태로 `classify` 해 두 집합으로 다시 나누고 집합마다
+  실현 값으로 비지배 재필터한다(`RealizeOutcome.points` = front 집합 점 먼저). 탐색 집합 ≠ 실현 집합 = `RealizeOutcome.moved` = ((point_id, 탐색 집합, 실현 집합), ...) -- runs `realize.moved`(출력 전용, 손실 아님).
+  미측정 행이 있다는 것은 손실 사유가 아니다(`realized_spec_unmeasured` 삭제). 결과 `front`·`unmeasured_front` 와 runs 의 두 목록 = 실현 값. 감도 게이트 대상 = 실현 front 첫 점, 실현 front 가 비면
+  `gate_empty`/`front_empty` 한 행(호출 0). 실현 관문의 커널 평가 수는 E_total 밖이다(색인 상한 = E_total + 그 수).
 - 9절 추가: **S-19** ss metric 의 NFR-5 '격자 분해능' 정의 없음 -> 정규화 = |목표|(조건수용), 활성 판정 보류. **S-20** engine 값
   보상 수동소자(Cc·Rz·Cm, DEC-92)의 θ 성분이 sizing 스키마에 아직 없어 그 회로의 ss 제약은 전부 `passive_value_undeclared` --
   최종 front 에 들 수 없다(`unmeasured_front` 로만).

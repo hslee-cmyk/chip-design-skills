@@ -4,7 +4,7 @@
 
 노드마다 {노드 값} ∪ {닿는 관계가 함의하는 값(`dc_path_values`)}의 최대 − 최소 ≤ 허용오차. 허용오차 = 그 노드에 닿는 MOS
 관계 소자들의 tol_V(`dc_tol_v`) 최댓값. MOS 관계가 없는 노드(저항 강하·고정값만)는 LUT 오차원이 없어 부동소수
-한계 n·eps·max|V|(n = 값 수)를 쓴다. MOS 관계는 있는데 tol_V 가 모두 미정이면 그 노드는 undefined. LUT 를 부르지 않는다
+한계 n·eps·max|V|(n = 값 수)를 쓴다. MOS 관계는 있는데 그 tol_V 가운데 미정이 하나라도 있으면 허용오차는 미정(집계 규칙 하나, 계획 N3.6 표 10행)이라 그 노드는 undefined. LUT 를 부르지 않는다
 (값은 `dc_solve` 가 역산으로 만든 것을 읽기만 한다 -- 쓰는 쪽 = 역산, 재는 쪽 = 비교).
 """
 import sys
@@ -28,8 +28,8 @@ def dc_seal_node_conflict(projection):
         spread = max(implied) - min(implied)
         devices = tuple(sorted({p.relation[1] for p in paths if p.relation[0] == PATH_MOS}))
         if devices:
-            defined = [tol_v[m] for m in devices if tol_v[m] is not None]
-            tol = max(defined) if defined else None
+            terms = [tol_v[m] for m in devices]
+            tol = None if None in terms else max(terms)           # 집계 항에 None 이 있으면 집계 = None (계획 N3.6 표 10행)
         else:
             tol = len(implied) * sys.float_info.epsilon * max(abs(v) for v in implied)
         rows.append((net, spread, tol, devices, (net,)))

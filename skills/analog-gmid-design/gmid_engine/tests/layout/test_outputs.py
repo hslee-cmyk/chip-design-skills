@@ -96,9 +96,10 @@ def snapshot(devices, slices, fingers, groups, rows_, diffusions):
 # 손 시나리오: 차동쌍 g1(A·B, 배치됨, B 는 diode), branch_symmetric g2(E·F, pattern None, 조정 불가 -> review, 재구성 기록이 dx·dy 를 덮는다),
 # diff_pair g3(P·Q, W_request 응답 대기 -> review 아님, 그룹 요청 둘), mirror g4(I·J, pattern None -- CC 요구 role 아님 -> review 아님),
 # C(finger_quantization 요청: W_need 0.75e-6, 실현 1e-6, err 1/3 > 실효 0.005), Z(사용 가능 슬라이스 없음 -> ly_finger 없음).
-C_REQ = WRequest("C", 0.75e-6, 1e-6, "finger_quantization", None)
-P_REQ = WRequest("P", 1e-6, 2e-6, "cc_nf", "g3")
-Q_REQ = WRequest("Q", 1e-6, 2e-6, "cc_nf", "g3")
+# WRequest(device, W_old_m, W_new_m, nf, finger_w_m, reason, group) -- W_new = nf x finger_w_m (계획 LY3·MOD7 스키마 v6.38.24, dispute 8.4)
+C_REQ = WRequest("C", 0.75e-6, 1e-6, 1, 1e-6, "finger_quantization", None)
+P_REQ = WRequest("P", 1e-6, 2e-6, 2, 1e-6, "cc_nf", "g3")
+Q_REQ = WRequest("Q", 1e-6, 2e-6, 2, 1e-6, "cc_nf", "g3")
 
 
 def scenario(with_z=True, c_request=True, rows_ok=True):
@@ -176,7 +177,7 @@ def test_w_requests_group_finger_and_no_usable_slice_sorted():
     # 4.12 5: 그룹 요청(ly_groups) + finger_quantization(ly_finger.w_request) + ly_finger 없는 소자마다 (이름, W_m, W_m, no_usable_slice, None),
     # (device, reason) 순.
     _devs, snap = scenario()
-    assert layout_outputs(snap).w_requests == (C_REQ, P_REQ, Q_REQ, WRequest("Z", 3e-6, 3e-6, "no_usable_slice", None))
+    assert layout_outputs(snap).w_requests == (C_REQ, P_REQ, Q_REQ, WRequest("Z", 3e-6, 3e-6, None, None, "no_usable_slice", None))   # no_usable_slice = 요청 손가락 없음
 
 
 def test_coverage_missing_device_not_in_any_row():

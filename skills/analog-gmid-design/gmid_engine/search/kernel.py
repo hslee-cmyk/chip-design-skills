@@ -9,8 +9,8 @@
   컨텍스트의 이전 EvalResult(그 `evaluation` 스냅샷을 sizing 이 재사용 -- 바뀐 성분을 읽는 블록만 다시 계산, 필드가 곧 캐시),
   `origin` = S3 기록용 ((키, 값), ...)(단계·ε·시작점 -- 키 밖).
 * [U14] `geometry` = `sizing.RealizedGeometry`(MOD8 재검증, LY7·LY8) -- 레이아웃 뒤 실현 기하로 평가한다: 실현 평가와 같은 W'·바이어스 고정 KCL 재풀이 + 봉인 전 항목이다(설계 40 §3.7-A 6 '재평가 꼴').
-  W' = 배치 소자 nf·finger_w(`layout_ref` 의 finger 폭 -> `dc_solve` 가 `slice_of_finger`)·요청 W(`w_request`)·대기 소자의 기준 스냅샷 `dc_finger`, 실현 확산 기하(`layout_ref`)는 접합 용량이 읽는다.
-  **`parent` = 기준 스냅샷**(레이아웃 입력 기준점 = 사이징 점, 필수 -- 없으면 `ValueError`): 측정 구성·피벗 갈래·입력 값·대기 소자 손가락을 그 스냅샷 `evaluation.snapshot` 에서 참조로 읽는다
+  W' = nf·finger_w, 입력 손가락 = 배치 소자 `layout_ref` (nf, finger_w)·요청 대기 소자 `w_request` 요청 손가락 행(`dc_solve` 가 `slice_of_finger`, 선택 함수 호출 0, 행 없음 = `realized_finger_missing`), 실현 확산 기하(`layout_ref`)는 접합 용량이 읽는다.
+  **`parent` = 기준 스냅샷**(레이아웃 입력 기준점 = 사이징 점, 필수 -- 없으면 `ValueError`): 측정 구성·피벗 갈래·입력 값을 그 스냅샷 `evaluation.snapshot` 에서 참조로 읽는다
   (사본 0, 실현 평가의 `RealizedFinger.search_ref` 와 같은 자리). 키의 `w_fixed_fp` = 기하 지문(없으면 None) -- 기준 스냅샷은 같은 (θ, 칸)에서 정해지는 점이라 키 성분이 아니다. 같은 (θ, 기하)는
   캐시 적중이고 기하가 다르면 다른 점이다.
 * 순서: 요청 계수 -> 키(`eval_key`) -> 메모리 캐시(그 실행에서 평가한 성공·실패) 적중이면 그대로(커널 0) -> 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 `STATUS_OUTSIDE_DOMAIN`(커널 0, 정의역 밖) -> `size_and_seal`.

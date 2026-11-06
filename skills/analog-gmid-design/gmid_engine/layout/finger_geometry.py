@@ -75,7 +75,7 @@ def finger_geometry(projection):
         fingers, unresolved = _row_group_fingers([n for n in rg.members if n not in out], fw_cand)
         for name, finger in fingers.items():
             if name in unresolved and name not in requested:
-                request = WRequest(name, finger.W_need_m, finger.W_realized_m, "finger_quantization", None)
+                request = WRequest(name, finger.W_need_m, finger.W_realized_m, finger.n_fingers, finger.finger_w_m, "finger_quantization", None)
                 finger = _finger(name, next(c for c in fw_cand[name] if c.finger_w_key == finger.finger_w_key
                                             and c.n_fingers == finger.n_fingers), "row", None, request)
             out[name] = finger

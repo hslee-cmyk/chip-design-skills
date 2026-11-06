@@ -73,9 +73,10 @@
 
 ## 4. `realized_geometry(snapshot, placements) -> sizing.RealizedGeometry(layout_ref, w_request)` · `junction_change(before, after)`
 
-* `w_request` = ((소자, `Placement.W_m`), ...) 이름순 -- 배치된 **모든** 소자(LY7: W_request 유무와 관계없이 실현 기하로 재평가).
+* `w_request` = ((소자, (nf, finger_w)), ...) 이름순 -- **요청 대기(`pending`) 소자만**(WB-1 A-139): 레이아웃 요청이 정한 손가락 행 참조(`Placement.n_fingers`·`finger_w_m`). 배치 소자는 두지 않는다
+  (입력 손가락의 출처는 `layout_ref`; LY7: W_request 유무와 관계없이 실현 기하로 재평가). 그 평가의 소자별 입력 손가락 정의는 `RealizedGeometry.input_fingers`(property) 하나다.
 * `layout_ref` = ((소자, `metrics.DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, float(n_fingers))`), ...) 이름순 -- `ly_diffusion` 필드
-  (= `RealizedDevice.diffusion`, LY8) 중 **`pending` 이 아닌** 소자. pending 소자는 레이아웃의 잠정 기하가 요청한 (키, nf) 와 달라 LUT 생성 규칙 기하와 탐색 규칙 슬라이스를 쓴다. 폭 키(`w_keys`) 칸은 없다 -- 슬라이스는 `dc_solve` 가 `slice_of_finger` 로 정한다.
+  (= `RealizedDevice.diffusion`, LY8) 중 **`pending` 이 아닌** 소자. pending 소자는 레이아웃의 잠정 기하가 요청한 (키, nf) 와 달라 접합 기하를 그 평가 `dc_finger`(요청 손가락 행)의 LUT 생성 규칙으로 읽는다. 폭 키(`w_keys`) 칸은 없다 -- 슬라이스는 `dc_solve` 가 입력 손가락 폭의 `slice_of_finger` 로 정한다.
 * `junction_change(before, after)` = `ss_dev` 가 든 두 스냅샷의 소자(이름순, 둘에 모두 있는 것)마다 `JunctionChange(device, cdb_before, csb_before, cdb_after, csb_after)`.
 
 ## 5. `w_loop_bound(placements, sized_w) -> (k_max, max_dlnw, tol)`
@@ -110,7 +111,7 @@ loop:
   geometry = realized_geometry(placed...)
   geometry == previous_geometry          -> STATUS_CONVERGED      # 고정점: 마지막 재평가 점으로 놓은 레이아웃이 같은 기하를 낳는다
   K = w_loop_bound(첫 레이아웃에서 한 번)
-  w_request 가 같은 상태(PDK 후보·거부·완화)에서 직전보다 앞서 이미 평가한 것 -> STATUS_NONCONVERGENT (주기; detail cycle=True) -- 다음 레이아웃은 평가 점의 DC 상태만 읽는 결정론적 사상이라 K 까지 돌아도 벗어나지 못한다(확산 기하는 출력이라 키에 넣지 않는다; 직전과 DC 상태가 같고 확산만 다르면 주기가 아니라 확산 재평가)
+  그 평가의 입력 손가락(`RealizedGeometry.input_fingers`)이 같은 상태(PDK 후보·거부·완화)에서 직전보다 앞서 이미 평가한 것 -> STATUS_NONCONVERGENT (주기; detail cycle=True) -- 다음 레이아웃은 평가 점의 DC 상태만 읽는 결정론적 사상이라 K 까지 돌아도 벗어나지 못한다(확산 기하는 출력이라 키에 넣지 않는다; 직전과 DC 상태가 같고 확산만 다르면 주기가 아니라 확산 재평가)
   재평가 횟수(제외 재시도 제외) >= K     -> STATUS_NONCONVERGENT (FailureRecord NONCONVERGENT, margin = max_dlnw / tol)
   result = search.evaluate(sctx, θ, cells, parent=current, geometry=geometry)   # 커널 1회 + 봉인 1~8 + spec 제약 행 (LY7)
   accepted(status SEALED, 제약 행 c >= 0 전부, 출발 점이 재던 (metric, 연산) 을 잃지 않음) -> current = result ; previous_geometry = geometry ; previous_layout = None (새 설계점 -- 레이아웃은 그 스냅샷 위에 다시 쓴다)

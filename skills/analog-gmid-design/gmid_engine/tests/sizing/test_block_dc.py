@@ -89,13 +89,69 @@ def test_dc_solve_same_theta_bit_identical_and_parent_independent(tmp_path, two_
 
 
 # ---------------------------------------------------------------- D-5
-def test_dc_solve_w_request_has_no_dc_finger_rows(tmp_path, two_slice_access):
-    ctx, th = mirror_setup(tmp_path, two_slice_access)
+def layout_geometry(placed, requested):
+    """레이아웃 뒤 입력 `RealizedGeometry` -- 공개 `realized_geometry(snapshot, placements)` 로 만든다(값 칸 모양에 기대지 않는다).
+    placed = {소자: (nf, finger_w)} (배치), requested = {소자: (nf, finger_w)} (요청 대기: 배치 아님 + 요청 행). 접합 ad/as/pd/ps 는 DC 와 무관한 손 값."""
+    from convergence.conftest import ddiff, layout, placement
+    from gmid_engine.convergence import realized_geometry
+    pl = [placement(m, round(fw / GRID), nf, nf * fw) for m, (nf, fw) in sorted(placed.items())]
+    pl += [placement(m, round(fw / GRID), nf, nf * fw, pending=True) for m, (nf, fw) in sorted(requested.items())]
+    diff = tuple(ddiff(m, fw, nf, 3e-13, 3e-13, 4e-6, 4e-6) for m, (nf, fw) in sorted(placed.items()))
+    return realized_geometry(layout(diffusion=diff).snapshot, tuple(pl))
+
+
+class CountFingerSlice:
+    """`block_dc.finger_slice` 호출 수 (관찰 지점 §9)."""
+
+    def __init__(self, monkeypatch):
+        import sys
+        self.mod = sys.modules["gmid_engine.sizing.block_dc"]
+        self.orig, self.n = self.mod.finger_slice, 0
+        monkeypatch.setattr(self.mod, "finger_slice", self)
+
+    def __call__(self, *a, **k):
+        self.n += 1
+        return self.orig(*a, **k)
+
+
+def resealed(ctx, th, free, geom):
+    from gmid_engine.sizing import RealizedFinger
+    return size_and_seal(ctx, th, parent=free, realized=RealizedFinger(free.snapshot, "hand-fp"), layout=geom)
+
+
+def test_dc_solve_layout_reseal_writes_input_finger_rows_without_selection(tmp_path, two_slice_access, monkeypatch):
+    """D-5 [기대 변경 -- 개정 여섯째 A-139], oracle (식) interface §3 'geometry 있음': 배치 소자 dc_finger 행 = layout_ref (nf, finger_w, 0.0), 요청 대기 소자 행 = 요청 손가락
+    행 (nf, finger_w, 0.0) (요청 (2, 1e-6) -- 요청 W 2e-6 의 finger_slice 답은 (1, 2e-6) 이라 다르다), 그 평가 finger_slice 호출 0. 옛 기대 '재봉인 dc_finger 빈 열' 폐기."""
+    counter = CountFingerSlice(monkeypatch)
+    ctx, th = mirror_setup(tmp_path, two_slice_access, w_m1=1.2e-6, w_m2=2e-6)
     free = size_and_seal(ctx, th)
-    assert len(free.snapshot.column("device", "dc_finger")) >= 1                     # 탐색 평가에는 행이 있다
-    req = size_and_seal(ctx, th, w_request={"M2": 1.05 * mirror_w_nat_of(ctx, th)})
-    assert len(req.snapshot.column("device", "dc_finger")) == 0                      # 재봉인(geometry): 빈 열
-    assert ops(req)["M2"].W == pytest.approx(1.05 * mirror_w_nat_of(ctx, th), rel=1e-12)
+    assert counter.n >= 1                                                           # 양성 대조: 탐색 평가는 선택 함수를 부른다
+    ff = fingers(free)
+    assert (ff["M2"].m, round(ff["M2"].w_f_m / GRID)) == (1, 200)                   # 전제 (손): 요청 W 2e-6 의 자연 선택 = (1, 2e-6)
+    counter.n = 0
+    placed = {m: (ff[m].m, ff[m].w_f_m) for m in ("M1", "M3")}                      # 배치: 사이징 점 손가락 그대로
+    req = resealed(ctx, th, free, layout_geometry(placed, {"M2": (2, 1e-6)}))      # M2 = 요청 대기 (nf 2, finger_w 1e-6)
+    assert counter.n == 0                                                           # 입력 손가락이면 선택 함수 호출 0
+    f, o = fingers(req), ops(req)
+    assert set(f) == {"M1", "M2", "M3"}                                             # 소자 전부의 행
+    for m, (nf, fw) in {**placed, "M2": (2, 1e-6)}.items():
+        assert f[m].m == nf and f[m].w_f_m == pytest.approx(fw, rel=1e-12) and f[m].residual == 0.0, (m, f[m])
+        assert o[m].w_key == round(fw / GRID) and o[m].W == pytest.approx(nf * fw, rel=1e-12)    # DeviceOp.w_key = slice_of_finger(finger_w), W = nf·finger_w
+
+
+def test_dc_solve_layout_reseal_row_missing_is_classified(tmp_path, two_slice_access):
+    """D-5 후반: 입력 손가락 행 없는 소자(배치도 요청도 아님) -> `realized_finger_missing` (분류된 실패, KeyError 0, 사이징 점 행을 읽지 않음 --
+    사이징 점 스냅샷에는 M3 행이 있는데도 거부된다)."""
+    ctx, th = mirror_setup(tmp_path, two_slice_access, w_m1=1.2e-6, w_m2=2e-6)
+    free = size_and_seal(ctx, th)
+    ff = fingers(free)
+    assert "M3" in ff                                                               # 전제: 읽을 수 있는 사이징 점 행이 있다 (읽으면 통과해 red)
+    geom = layout_geometry({"M1": (ff["M1"].m, ff["M1"].w_f_m)}, {"M2": (2, 1e-6)})   # M3 는 배치도 요청도 아님
+    with pytest.raises(SealViolationError) as ei:
+        resealed(ctx, th, free, geom)
+    rec = ei.value.record
+    assert "realized_finger_missing" in (rec.failure_class, dict(rec.detail).get("reason"))
+    assert "M3" in rec.devices
 
 
 def mirror_w_nat_of(ctx, th):

@@ -50,7 +50,7 @@ from sizing.conftest import (  # noqa: F401  (다른 test 파일이 여기서 �
 )
 from sizing.conftest import I0, LAM, r4_vs_term  # noqa: E402
 from sizing.conftest import COUNT_FIELDS, block_row, row_delta  # noqa: E402,F401  [XRUN-F1 card B C1] 실행 계수 행
-from metrics.conftest import spec_json, toy_junction_decls  # noqa: E402
+from metrics.conftest import SS_SRC, spec_json, toy_junction_decls  # noqa: E402
 from metrics.conftest import fresh_run  # noqa: E402,F401  [XRUN-F1 card B C0] 새 실행 하나의 두 객체
 
 HERE = Path(__file__).resolve().parent
@@ -164,6 +164,12 @@ def write_decls_mim(root, camimc=TOY_CAMIMC_F_PER_UM2, **kw):
 def lut_sealed(tmp_path_factory):
     """VDSAT 열(nmos·pmos) -> 봉인 7 판정."""
     return write_r4_lut(tmp_path_factory.mktemp("s_lut_sealed"))
+
+
+@pytest.fixture(scope="session")
+def lut_sealed_cdd(tmp_path_factory):
+    """`lut_sealed` + 기준 표 CDD 열 [WB-1 E-18: CDD 없는 표는 거부, cgd 대체 없음]. 블록 구조(S1v)·극점 경로를 통과하는 test 용."""
+    return write_r4_lut(tmp_path_factory.mktemp("s_lut_sealed_cdd"), cdd=True)
 
 
 @pytest.fixture(scope="session")
@@ -389,7 +395,7 @@ def circuit_diode():
 PENDING = "pending"     # elements 값 자리 표지: spec 에 {"pending": "SP-1"} (값 없음·engine 아님 -> 수동소자 값 미선언)
 
 
-def load_spec(tmp, topo_doc, elements=(), constraints=(), measurement_loads=()):
+def load_spec(tmp, topo_doc, elements=(), constraints=(), measurement_loads=(), node_targets=()):
     """metrics conftest `spec_json` 으로 spec 을 만들고 PENDING 원소만 결정 대기 표지로 바꿔 authoring 로더로 읽는다.
     [결정 11] measurement_loads = 그 원소 항목에 `"measurement_load": true` 를 적는다(SPEC_CONTRACT 측정 부하 표지)."""
     from gmid_engine.authoring import load_sizing_spec, load_topology
@@ -406,6 +412,8 @@ def load_spec(tmp, topo_doc, elements=(), constraints=(), measurement_loads=()):
             doc["human"]["element_values"][n] = {"pending": "SP-1"}
     for n in measurement_loads:
         doc["human"]["element_values"][n]["measurement_load"] = True
+    for n, v in node_targets:                      # 노드전압 목표 (SPEC_CONTRACT 2절 node_target_net, 사용자 선언 값)
+        doc["human"]["node_voltage_targets_v"][n] = {"value_v": v, "source": SS_SRC}
     sp = tmp / (topo_doc["topology_name"] + ".sizing_spec.json")
     sp.write_text(json.dumps(doc, indent=1), encoding="utf-8")
     return td, load_sizing_spec(str(sp), td, metric_catalog())
