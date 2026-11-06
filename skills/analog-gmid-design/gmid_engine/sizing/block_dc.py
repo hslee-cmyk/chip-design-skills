@@ -504,8 +504,9 @@ class _Circuit(Circuit):
             if key not in self.tol_cells:
                 self.tol_cells[key] = self.tol_cell(keys, m, vds)
             tols.append(self.tol_cells[key])
-        if not tols or any(t is None for t in tols):  # 집계 항에 None 이 하나라도 있으면 집계 = None (계획 N3.6 표 10행) -- 정의된 셀만으로 내지 않는다
-            raise SealViolationError(devices=tuple(devices), detail={"reason": REASON_TOL_UNDEFINED})
+        undefined = tuple(sorted(m for m, t in zip(devices, tols) if t is None))
+        if not tols or undefined:                     # 집계 항에 None 이 하나라도 있으면 집계 = None (계획 N3.6 표 10행) -- 정의된 셀만으로 내지 않는다
+            raise SealViolationError(devices=undefined, detail={"reason": REASON_TOL_UNDEFINED})   # 기록 devices = tol 이 None 인 원인 소자(소자 없음이면 빈 tuple)
         return min(tols)
 
 
