@@ -19,7 +19,7 @@ import dataclasses
 import types
 
 AXES = ("L", "VGS", "VDS", "VS")
-TOL_V_METRICS = ("gm_id_inverse", "id_equivalent")
+TOL_V_METRICS = ("id_equivalent",)
 TOL_VDSAT_METRICS = ("vdsat",)
 # 기준 LUT 선택 열(LUT v2 생성기 meta `units` 의 키) -- 있으면 읽고, 없으면 그 열을 쓰는 조회가 `lut_column_unavailable`.
 CAP_TABLE_COLUMNS = ("CDD", "CSS", "GDS", "GM", "GMBS", "ID", "SVG2_1HZ", "SVG2_HF", "VDSAT", "VTH")
@@ -100,9 +100,11 @@ class LBinMap:
 class LutProvenance:
     """LUT 묶음의 출처: manifest·슬라이스·기준 LUT 파일 sha256, 측정 조건(corner·temp_c·recorded).
 
-    [r6] `midpoints_*`: bin 검증 중점 파일(선택, `load_lut_set(verify_midpoints=)`)의 경로·sha256·meta `L_source`
-    (키 정렬 쌍 tuple)·측정 조건(`cap_conditions` 와 같은 형식). 없으면 None·None·()·().
+    [LM-1e] `midpoint_sources`: bin 검증 중점 파일(선택, `load_lut_set(verify_midpoints=)`, 파일마다 짝 슬라이스 하나)의 출처 `SliceSource`
+    tuple((kind, w_key) 오름차순; `sha256` = 파일 raw 바이트). 없으면 (). `midpoints_sha256` = 그 sha256 의 정렬 tuple(property -- 사본 칸 아님, 없으면 None).
     [r7] `noise_*`·`mismatch_*`: 잡음 r1 파일·mismatch 감도 r1 파일(선택)의 경로와 sha256(없으면 None).
+    [WB-1 범위 0] `bin_rule`·`bin_rule_sha256`: 적용한 bin 규칙 선언의 `rule`("lower"·"upper")과 LF 환산 sha256(필수, 키워드 전용).
+    `bin_rule_machine_dependent`: 줄바꿈 때문에 기록 sha256 이 raw 바이트 값인 ((세트, 모델 파일 상대 경로), ...) 정렬 tuple(지문에 넣지 않는다).
     """
 
     manifest_path: str
@@ -112,14 +114,19 @@ class LutProvenance:
     cap_path: str
     cap_sha256: str
     cap_conditions: tuple
-    midpoints_path: object = None
-    midpoints_sha256: object = None
-    midpoints_l_source: tuple = ()
-    midpoints_conditions: tuple = ()
+    midpoint_sources: tuple = ()
     noise_path: object = None
     noise_sha256: object = None
     mismatch_path: object = None
     mismatch_sha256: object = None
+    bin_rule: str = dataclasses.field(kw_only=True)
+    bin_rule_sha256: str = dataclasses.field(kw_only=True)
+    bin_rule_machine_dependent: tuple = dataclasses.field(kw_only=True)
+
+    @property
+    def midpoints_sha256(self):
+        """중점 파일 raw sha256 의 정렬 tuple, 중점 파일이 없으면 None(지문·자료 id 가 읽는다)."""
+        return tuple(sorted(s.sha256 for s in self.midpoint_sources)) if self.midpoint_sources else None
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -207,8 +214,9 @@ class CapTable:
 
 @dataclasses.dataclass(frozen=True, eq=False)
 class MidpointTable:
-    """[r6] bin 검증 중점 파일의 한 kind(lut/CONTRACT.md 1.7). LUT 축이 아닌 L 점 `L_points`(m, 오름차순)에서 같은
-    (VGS, VDS, VS) 축(`grids` 세 개 -- 슬라이스 축과 float 단위로 같음)으로 잰 값. 폭 = `w_m`(파일 `w_ref_m`), 폭 키 `w_key`.
+    """[LM-1e] bin 검증 중점 파일 하나 = 짝 슬라이스 (kind, w_key) 하나의 중점 표(lut/CONTRACT.md 1.7). LUT 축이 아닌 L 점 `L_points`(m, 파일 `L`
+    순서)에서 같은 (VGS, VDS, VS) 축(`grids` 세 개 -- 슬라이스 축과 float 단위로 같음)으로 잰 값. 폭 = `w_m`(파일 `W`), 폭 키 `w_key`.
+    `sha256` = 그 파일 raw 바이트의 sha256.
 
     `log_ID` = ln ID(ID > 0 인 점, 아니면 NaN), `gm_id` = GM/ID(같은 점, 아니면 NaN), `on_mask` = (ID > 0) & (GM > 0),
     `VDSAT` = 열이 있으면 읽기 전용 배열(없으면 None). 배열 모양 [len(L_points), VGS, VDS, VS].
@@ -234,7 +242,7 @@ class LutSet:
     """불변 LUT 묶음. `slice_map`: {(kind, w_key): DcSlice}, `cap_map`: {kind: CapTable} (읽기 전용 매핑).
 
     `fp` = `lut_fingerprint(provenance, cap 채택 근거)` -- memo 키와 S0 입력에 쓴다.
-    [r6] `midpoints`: {kind: MidpointTable}(검증 중점 파일을 주지 않았으면 빈 매핑).
+    [LM-1e] `midpoints`: {(kind, w_key): MidpointTable}(검증 중점 파일을 주지 않았으면 빈 매핑).
     [r7] `noise`: {kind: NoiseTable}(잡음 r1 파일), `mismatch`: {kind: MismatchTable}(mismatch 감도 r1 파일) -- 파일을 주지 않았으면 빈 매핑.
     """
 
@@ -249,6 +257,11 @@ class LutSet:
 
     def __canonical__(self):
         return self.fp
+
+    @property
+    def bin_rule(self):
+        """적용한 bin 규칙("lower"·"upper") -- `provenance.bin_rule` 을 읽는다(사본 칸 아님)."""
+        return self.provenance.bin_rule
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -338,16 +351,10 @@ class TolVCell:
     """tol_V 표 한 칸((kind, w_key, L 앵커, VDS)). 값은 보간 축 leave-one-out(운영 보간과 같은 방법)의 오차를 축마다
     Richardson 환산(÷ 2^p, p = 그 축·지표의 보간 차수, lut/CONTRACT.md 5절)한 셀 안 최댓값(V), 정의 안 되면 None.
 
-    `gm_id_inverse_v`: |LOO 곡선에서 gm/ID 역산한 VGS - 참 VGS| / 2^p. `id_equivalent_v`: |ln ID_loo - ln ID| / (gm/ID) / 2^p.
-    `n_targets`: gm/ID 역산 시도 수((목표, 축) 쌍), `n_inverse_failed`: 그중 LOO 곡선에 강반전 해가 없던 수(값에 넣지 않음).
-    `gm_id_inverse_loo_v`·`id_equivalent_loo_v`: 환산 전 LOO 값(간격 2배 격자의 오차)의 셀 안 최댓값(진단·환산 검증용).
+    `id_equivalent_v`: |ln ID_loo - ln ID| / (gm/ID) / 2^p. `id_equivalent_loo_v`: 환산 전 LOO 값(간격 2배 격자의 오차)의 셀 안 최댓값(진단·환산 검증용).
     """
 
-    gm_id_inverse_v: object
     id_equivalent_v: object
-    n_targets: int
-    n_inverse_failed: int
-    gm_id_inverse_loo_v: object = None
     id_equivalent_loo_v: object = None
 
 
@@ -366,15 +373,12 @@ class MidpointRow:
     """[r6] 검증 중점이 잰 앵커 2개 bin 하나의 L 보간 오차(V, lut/CONTRACT.md 5.1). `model` = 그 bin `.model` 이름,
     `L_points` = 그 bin 에 든 중점들(m, 오름차순), 세 값 = VDS 격자점마다의 tuple(길이 = VDS 격자 수) -- 그 VDS 의 점·목표와
     그 중점들 전체의 최댓값(정의된 점이 없으면 그 원소 None).
-    `n_targets`·`n_inverse_failed` = gm/ID 역산 시도·해 없음 수(중점 합)."""
+    """
 
     model: str
     L_points: tuple
-    gm_id_inverse_v: object
     id_equivalent_v: object
     vdsat_v: object
-    n_targets: int
-    n_inverse_failed: int
 
 
 @dataclasses.dataclass(frozen=True)
@@ -392,18 +396,20 @@ class MidpointChecks:
 @dataclasses.dataclass(frozen=True)
 class LutLocation:
     """[r6] 설정 파일로 정한 LUT 데이터 위치(lut/CONTRACT.md 1.8). 경로는 절대 경로, 파일 sha256 은 설정 기록과 대조됨.
-    `midpoints_path`·`pdk_root` 는 설정에 없으면 None. `sources` = ((항목, "env:<이름>" 또는 "config_default"), ...).
-    [r7] `noise_path`·`mismatch_path`: 잡음 r1·mismatch 감도 r1 파일(설정 `files.noise`·`files.mismatch`, 없으면 None)."""
+    [LM-1e] `midpoints_paths`: 설정 `files.verify_midpoints`(`{path, sha256}` 배열)의 절대 경로 tuple(`path` 오름차순), 없으면 (). `pdk_root` 는 설정에 없으면 None. `sources` = ((항목, "env:<이름>" 또는 "config_default"), ...).
+    [r7] `noise_path`·`mismatch_path`: 잡음 r1·mismatch 감도 r1 파일(설정 `files.noise`·`files.mismatch`, 없으면 None).
+    [WB-1 범위 0] `bin_rule_path`: bin 규칙 선언 파일의 절대 경로(설정 최상위 `bin_rule`, LF 환산 sha256 대조 통과; 끝 칸 기본 None)."""
 
     config_path: str
     root: str
     manifest_path: str
     cap_npz_path: str
-    midpoints_path: object
+    midpoints_paths: tuple
     pdk_root: object
     sources: tuple
     noise_path: object = None
     mismatch_path: object = None
+    bin_rule_path: object = None
 
 
 @dataclasses.dataclass(frozen=True)

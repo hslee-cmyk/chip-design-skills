@@ -1,0 +1,70 @@
+{
+  "id": "20261106-lm1e",
+  "stage": "순서 3 (freeze·base 확인) -- 판정 기록 본체(.ai/verification/20261106-lm1e.json)는 code 커밋이 생긴 뒤 순서 7에서 쓴다(red-green은 code_commit sha1 필수라 지금은 스키마를 채울 수 없다)",
+  "attempt": 1,
+  "evidence_type": "red-green",
+  "freeze": {
+    "T": "f7025592",
+    "T_full": "f702559212bfc6ba7a1b47550e949476007f8e87",
+    "T_parent": "fcf7c300445b5ef91fbaa7c0074968a99024905e",
+    "T_tree": "ea0df93cfc0c8722f8ef20b1d6d63ec186e12187",
+    "T_trailers": "Role: test, Change-Id: 20261106-lm1e (두 커밋 모두)",
+    "base": "56d88fe7ae85f07376faf6a36bf1a31ca13a03ae",
+    "code_commit": null,
+    "base_to_T_commits": 2,
+    "base_to_T_numstat_total": "+1444 -361, 41 파일(A 1 = RETIRED_TESTS_lm1e.md, M 40)",
+    "base_to_T_paths_outside_tests": 0,
+    "freeze_verdict_first_pass": "수정 필요 -- F-4 (기준 약화·interface 이탈, Major) 1건 + RETIRED_TESTS covered_by 이름 오기 1건(minor). 나머지 (1)(2)(3)(5)(6)(7)(8) 동결 가능(기록 사항 있음). 상세 = wt/_drafts/evidence/2026-11-06/lm1e_freeze.md",
+    "recheck": {
+      "T": "cf72a2789a3328fe9cbac3b46167ffc8e3fd5b31",
+      "freeze_verdict": "동결 가능 -- F-4 가 interface 4 표 1~7(+8)로 core.fp_of 직접 대조(lut_fingerprint 기대 0, None/() 상수 항목 거름), covered_by 이름 정정. 재실행: lut/test_fingerprint.py 4 failed(F-1~F-4 TypeError 서명 이유) 7 passed 2 errors, tests/structure 189 passed. 상세 = wt/_drafts/evidence/2026-11-06/lm1e_freeze.md '## 재확인'"
+    },
+    "recheck2": {
+      "T": "fffe989f",
+      "freeze_verdict": "수정 필요 -- Major 1: nmos w_key 72 실데이터 case 삭제(widths 밖 폭의 옛 기대는 유효, 복원 필요), minor 1: cyclic 거부 case 물리 전제 단언. J-a N3·widths 18·single_source 동결 가능. base 재현: 선택 subset 9 failed 25 passed 8 errors(실 LUT fixture), structure 189 passed. 상세 = lm1e_freeze.md '## 재확인 2'"
+    }
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a3/iso",
+    "commands": [
+      "git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261106-lm1e-audit C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a3/iso",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/la1s_lm1e_a3/iso remote remove origin",
+      "(cwd = iso/skills/analog-gmid-design/gmid_engine/tests; OPENBLAS_NUM_THREADS=1 PYTHONIOENCODING=utf-8) C:/Python314/python.exe -m pytest -p no:cacheprovider -q --tb=line --junitxml=base_cardfiles.xml <변경된 test 파일 34개, files.txt>",
+      "(같은 cwd) C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --tb=line structure search/test_canonical_order.py sizing/test_s2_values.py"
+    ],
+    "engine_state": "작업 트리 = base 엔진(56d88fe7)에 test f7025592를 얹은 상태 -- 엔진 소스 diff 0 (경로 밖 변경 0으로 확인)"
+  },
+  "red_run": {
+    "scope": "base_to_T 사이 바뀐 test 파일 34개 전체(integration 9·layout 1·lut 16·metrics 4·search 2·sizing 2). ngspice 0, --run-slow 없음(13 deselected, 실데이터·slow 표지 test는 안 돌았다 = 통과로 세지 않음)",
+    "result": "134 failed, 616 passed, 13 deselected, 250 errors (181 s)",
+    "red_total": 384,
+    "red_by_reason": "AttributeError(LutLocation.midpoints_paths / LutProvenance.midpoint_sources / midpoint_bracket 부재) error 247 + failure 17, TypeError(verify_midpoints 가 sequence라서 base가 _path_isfile(list)) failure 77 + error 3, SchemaRejectedError 16(설정 verify_midpoints 배열 거부), AssertionError/DID NOT RAISE/is None 값 이유 약 26",
+    "value_reason_reds": [
+      "lut/test_tolerance::test_cell_combine_a0_none_cell_makes_none[0,1] (A-0)",
+      "lut/test_vdsat_tolerance::test_cell_combine_a0v_none_cell_makes_none[0,1] (A-0v)",
+      "lut/test_mismatch_tolerance::test_cell_combine_m1_none_cell_makes_none (M-1)",
+      "lut/test_sat_threshold::test_cell_combine_j_c_... (J-c)",
+      "sizing/test_seal_tolerances::test_cell_combine_j_a_none_cell_cascades_to_seals_and_report (J-a)",
+      "sizing/test_block_dc::test_cell_combine_j_b_partly_undefined_tol_propagates_before_convergence (J-b)",
+      "metrics/test_dc_metrics::test_lm1e_p1_... (P-1)",
+      "metrics/test_icm_config::test_lm1e_p2_... (P-2)",
+      "search/test_find_front_notes_bins (U-1)",
+      "lut/test_lut_set::test_bin_missing_t6_none (T-6: base에는 D7 거부가 없다)",
+      "lut/test_midpoint_checks::test_midpoint_g1_old_names_do_not_remain (G-1: 옛 이름이 engine 5파일에만 있고 tests에는 0 -- 스캔 재현)",
+      "lut/test_data_location::test_lm1e_midpoints_old_single_object_rejected, test_repo_config_resolves_and_pins_sha (설정 배열화 전)"
+    ],
+    "signature_only_reds_note": "T-1·T-2·T-3·T-4·T-5·T-9, F-1~F-6, K-1~K-5, C-1~C-3, G0~G7b, L-1 거의 전부, B-1·B-2, 이름 맞춤 25파일(integration 193개)은 base가 새 서명·새 형식 파일을 받지 못해서 red다(import/서명 이유). interface 표의 base 열도 '새 형식 거부'로 적혀 있어 계약대로다. 이 test들의 값 이유(D7 거부 논리, 셀 값, 지문 항목)는 code 뒤에야 확인된다.",
+    "green_at_base_new_named": "13개 -- 전제 test 5(R-0, J-a0, J-a control, J-b premise, M-0), T-7(base 거동 불변이 기대), 설정 배열 원소 거부 7(empty_array 1 + bad_entries 6). 마지막 7개는 base가 배열 자체를 config_invalid로 거부해서 틀린 이유로 통과 -> code 뒤 V3 뮤테이션으로 변별력을 확인해야 한다(interface L-1은 red라 적었다)."
+  },
+  "structure_run": {
+    "scope": "tests/structure + search/test_canonical_order.py + sizing/test_s2_values.py (2회로 연기는 base에서 AttributeError뿐이라 생략 -- 통과로 세지 않는다)",
+    "result": "249 passed, 1 deselected (160 s), failed 0",
+    "note": "작성자 보고의 'test_rule_h_tests_mirror_sources 1 failed'는 재현되지 않았다(내 실행에서는 1 deselected -- 어느 test인지 -k/표지로 제외된 것이며 통과로 세지 않음)"
+  },
+  "red_list_file": ".ai/verification/20261106-lm1e/red_base.json (384개: id, kind, 예외 타입, 해시=sha256(id+LF+예외 타입), 서명 이유 표지). 해시는 auditor가 계산한 값이고 gate 플러그인 red_failure_hash가 아니다(gate 캐시는 assets/tests 경로 전제, 이 card는 gmid_engine/tests라 플러그인 미사용)",
+  "scratch": {
+    "parse_script": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922/scratchpad/parse_red.py",
+    "g1_scan_script": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922/scratchpad/g1_scan.py",
+    "g1_scan_result": "금지어 hit = gmid_engine/lut/data_location.py·lut_set.py·lut_types.py·midpoint_checks.py·search/find_front.py (5개 engine 파일), tests hit 0"
+  }
+}

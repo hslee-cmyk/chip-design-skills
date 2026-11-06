@@ -24,30 +24,30 @@ from .conftest import (HERE, Oracle, SKILL_DIR, build_ctx, circuit_cs_res, circu
 from .conftest import COUNT_FIELDS, block_row, row_delta  # [XRUN-F1 card B C1] 실행 계수 행
 from .conftest import kschema, kties  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
-EVAL12 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
+EVAL11 = (S.dc_currents, S.dc_lengths, S.dc_solve, S.dc_tolerances, S.dc_seal_node_conflict,
           S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_region, S.dc_seal_kvl_branch,
-          S.dc_seal_report)       # [EO-1 범위 4] 4 평가 + 7 봉인(tol·1·2·3·6·7/9 영역 판정 하나·8) + report = 12 (옛 13 에서 봉인 7·9 블록이 하나로)
+          S.dc_seal_report)       # [EO-1 범위 4] 3 평가(WB-1: dc_solve 하나) + 7 봉인(tol·1·2·3·6·7/9 영역 판정 하나·8) + report = 11
 # 해석: dc_seal_region 의 자리는 옛 봉인 7 자리(6 다음, 8 앞) -- interface 는 순서를 적지 않았다.
 PLAN5 = (S.dc_rails, s1_symmetry, S.dc_current_basis, S.dc_writer_plan, S.dc_scc_order, S.dc_theta_schema)
 
 
 def _assert_dc_outcomes(st):
     """[IT-2a T-L11d, 승인 20261022-it2a-o94-ext 범위 2; oracle (d) 사용자 선언 design 41 v1.12.8 L11 (d)] 같은 입력 재평가의 DC 열세 블록:
-    computes 0, 커널 4 + 봉인 항목 7 = 블록마다 outcome reuse 1회(합 11), dc_seal_report = outcome graft 1회(keep 밖 -> S3 graft)."""
-    kernel4 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths)
-    items7 = EVAL12[4:11]
-    assert len(kernel4) + len(items7) == 11 and EVAL12[11] is S.dc_seal_report
-    for b in kernel4 + items7:
+    computes 0, 커널 3 + 봉인 항목 7 = 블록마다 outcome reuse 1회(합 10), dc_seal_report = outcome graft 1회(keep 밖 -> S3 graft)."""
+    kernel3 = (S.dc_currents, S.dc_lengths, S.dc_solve)
+    items7 = EVAL11[3:10]
+    assert len(kernel3) + len(items7) == 10 and EVAL11[10] is S.dc_seal_report
+    for b in kernel3 + items7:
         r = st[b.name]
         assert (r.reuses, r.grafts, r.replays, r.computes) == (1, 0, 0, 0), (b.name, r)
     rep = st[S.dc_seal_report.name]
     assert (rep.reuses, rep.grafts, rep.replays, rep.computes) == (0, 1, 0, 0), rep
-    assert sum(st[b.name].reuses for b in EVAL12) == 11 and sum(st[b.name].grafts for b in EVAL12) == 1
+    assert sum(st[b.name].reuses for b in EVAL11) == 10 and sum(st[b.name].grafts for b in EVAL11) == 1
 
 
 def stats(ctx):
     """[XRUN-F1 card B C1·C4] ctx 실행 계수의 블록 행(옛 블록 객체 stats 대체 -- 블록은 상태가 없다)."""
-    return {b.name: block_row(ctx.counters, b.name) for b in EVAL12 + PLAN5}
+    return {b.name: block_row(ctx.counters, b.name) for b in EVAL11 + PLAN5}
 
 
 def stats_since(ctx, before):
@@ -107,7 +107,7 @@ def test_same_theta_with_parent_zero_compute(ctx_c):
     before = stats(ctx)
     ev2 = size_and_seal(ctx, theta_c(y=0.45), parent=ev1)
     st = stats_since(ctx, before)
-    assert all(st[b.name].computes == 0 for b in EVAL12)
+    assert all(st[b.name].computes == 0 for b in EVAL11)
     _assert_dc_outcomes(st)
     assert all(st[b.name].calls == 0 for b in PLAN5)          # 계획 블록은 평가에서 부르지 않는다
     assert ev2.snapshot.fp == ev1.snapshot.fp
@@ -125,10 +125,11 @@ def _perturb(ctx, base_th, key, value):
     return {n: s.computes for n, s in st.items()}, ev1, ev2
 
 
-def test_current_perturbation_skips_columns(ctx_c):
+def test_current_perturbation_recomputes_dc_solve_not_lengths(ctx_c):
+    # [WB-1] 옛 노드 풀이 블록 건너뛰기 단언은 소멸: dc_solve 가 노드 풀이와 W 를 한 블록으로 합쳤고 dc_current 를 읽는다
     c, _, _ = _perturb(ctx_c[2], theta_c(), ("current", "M2"), 2e-5)
-    assert c["dc_currents"] == 1 and c["dc_widths"] == 1 and c["dc_tolerances"] == 1
-    assert c["dc_lengths"] == 0 and c["dc_columns"] == 0 and c["dc_seal_node_conflict"] == 0
+    assert c["dc_currents"] == 1 and c["dc_solve"] == 1 and c["dc_tolerances"] == 1
+    assert c["dc_lengths"] == 0 and c["dc_seal_node_conflict"] == 0
     assert c["dc_seal_region"] == 1          # [EO-1 범위 4] dc_op(W·current) 가 바뀌어 하류 영역 판정(봉인 7·9)도 다시
 
 
@@ -137,18 +138,18 @@ def test_current_perturbation_skips_columns(ctx_c):
                                      (("y", "out"), 0.55)])
 def test_coordinate_perturbation_recomputes_columns_only_downstream(ctx_c, key, val):
     c, _, _ = _perturb(ctx_c[2], theta_c(), key, val)
-    assert c["dc_columns"] == 1
+    assert c["dc_solve"] == 1
     assert c["dc_currents"] == 0 and c["dc_lengths"] == 0
 
 
 def test_resistance_perturbation(ctx_a):
     c, _, _ = _perturb(ctx_a[2], theta_a(), ("resistance", "R1"), 8e4)
-    assert c["dc_columns"] == 1 and c["dc_currents"] == 0 and c["dc_lengths"] == 0
+    assert c["dc_solve"] == 1 and c["dc_currents"] == 0 and c["dc_lengths"] == 0
 
 
 def test_current_through_resistor_recomputes_columns(ctx_a):
     c, _, _ = _perturb(ctx_a[2], theta_a(), ("current", "R1"), 1.1e-5)
-    assert c["dc_currents"] == 1 and c["dc_columns"] == 1 and c["dc_lengths"] == 0
+    assert c["dc_currents"] == 1 and c["dc_solve"] == 1 and c["dc_lengths"] == 0
 
 
 # [XRUN-F1 card B 규칙 M M-d] KernelContext(실행 두 객체를 칸으로 쥠)는 function 범위
@@ -178,7 +179,7 @@ def test_passive_theta_components_present(ctx_passive):
 
 @pytest.mark.parametrize("key,val", [(("capacitance", "Cz"), 1.1e-12), (("ss_resistance", "Rz"), 1.1e4), ("both", None)])
 def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
-    """[r5] 7절: capacitance·ss_resistance 성분만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0(reuse 12 + dc_seal_report graft 1), 계획 블록
+    """[r5] 7절: capacitance·ss_resistance 성분만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0(reuse 10 + dc_seal_report graft 1), 계획 블록
     호출 0, 결과는 parent 와 같은 봉인 상태(스냅샷 지문·report 같음)."""
     ctx = ctx_passive
     ev1 = size_and_seal(ctx, theta_passive())
@@ -186,7 +187,7 @@ def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
     before = stats(ctx)
     ev2 = size_and_seal(ctx, th, parent=ev1)
     st = stats_since(ctx, before)
-    assert all(st[b.name].computes == 0 for b in EVAL12), {b.name: st[b.name].computes for b in EVAL12}
+    assert all(st[b.name].computes == 0 for b in EVAL11), {b.name: st[b.name].computes for b in EVAL11}
     _assert_dc_outcomes(st)
     assert all(st[b.name].calls == 0 for b in PLAN5)
     assert ev2.snapshot.fp == ev1.snapshot.fp and ev2.report == ev1.report
@@ -296,7 +297,7 @@ def test_failure_empty_window(tmp_path, toy_access):
     assert ei.value.record.devices == () and ei.value.record.margin is None
 
 
-@pytest.mark.parametrize("which,lut_reason", [("target", "lut_target_out_of_range"), ("anchor", "lut_l_not_anchor"),
+@pytest.mark.parametrize("which,lut_reason", [("target", "lut_target_out_of_range"), ("anchor", "lut_l_bin_unbracketed"),
                                               ("axis", "lut_axis_out_of_range")])
 def test_failure_lut(ctx_c, tmp_path, toy_access, which, lut_reason):
     if which == "target":
@@ -330,7 +331,7 @@ def test_failure_seal_violation(tmp_path, toy_access):
 
 def test_diode_mirror_full_evaluation(tmp_path, toy_access):
     """1변수 노드(diode) 가 있는 회로도 봉인 1·2·3·4·5·6·8·[r8] 9 pass, 7 undefined -> sealed None."""
-    from .test_block_columns import _mirror_ctx, _mirror_theta
+    from .test_block_dc import _mirror_ctx, _mirror_theta
     ctx = _mirror_ctx(tmp_path, toy_access)
     ev = size_and_seal(ctx, _mirror_theta(ctx, 0.6))
     assert ev.sealed is None and ev.report.status == "undefined"
@@ -338,7 +339,7 @@ def test_diode_mirror_full_evaluation(tmp_path, toy_access):
 
 
 def test_failure_no_root_in_window(tmp_path, toy_access):
-    from .test_block_columns import _mirror_ctx, _mirror_theta
+    from .test_block_dc import _mirror_ctx, _mirror_theta
     ctx = _mirror_ctx(tmp_path, toy_access)
     with pytest.raises(SealViolationError) as ei:
         size_and_seal(ctx, _mirror_theta(ctx, 2.0))
@@ -357,13 +358,13 @@ def test_candidate_failure_classes_exact():
 _SCRIPT = r'''
 import json, random, sys, tempfile
 from pathlib import Path
-sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
+sys.path.insert(0, sys.argv[3]); sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
 import conftest as C
 from gmid_engine.lut import load_lut_set
 from gmid_engine.sizing import size_and_seal
 tmp = Path(tempfile.mkdtemp())
 m, c = C.write_toy_lut(tmp / "lut")
-acc = C.new_access(load_lut_set(str(m), str(c), C.TOY_SPEC))
+acc = C.new_access(load_lut_set(str(m), str(c), C.TOY_SPEC, bin_rule=C.bin_rule_of(m), pdk_root=C.pdk_of(m)))
 out = {}
 for tag, doc, th in (("C", C.circuit_cs_pmos_load(), C.theta_c()), ("A", C.circuit_cs_res(), C.theta_a())):
     for k, seed in enumerate((None, 1, 2)):
@@ -385,7 +386,7 @@ def test_determinism_hashseed_and_netlist_order(tmp_path):
     results = []
     for seed in ("0", "1", "4242"):
         env = dict(os.environ, PYTHONHASHSEED=seed)
-        r = subprocess.run([sys.executable, str(script), str(SKILL_DIR), str(HERE)], capture_output=True, text=True,
+        r = subprocess.run([sys.executable, str(script), str(SKILL_DIR), str(HERE), str(HERE.parent)], capture_output=True, text=True,
                            env=env, timeout=300)
         assert r.returncode == 0, r.stderr[-2000:]
         results.append(json.loads(r.stdout.strip().splitlines()[-1]))
@@ -587,7 +588,7 @@ def test_it2e_seal_violation_with_parent_keeps_report_fields(tmp_path_factory, r
     assert "items" in detail(ec.value)
     p, c = ei.value.partial, ec.value.partial
     assert p is not None and c is not None and p is not c and ctx is not ctx2             # (나)
-    exp = set(ctx.base.block_versions) | {b.name for b in EVAL12}
+    exp = set(ctx.base.block_versions) | {b.name for b in EVAL11}
     assert set(p.block_versions) == exp and "ss_dev" not in p.block_versions
     rep = [kf for kf, w in p.writers.entries if w == S.dc_seal_report.name]
     assert rep and any(p.column(*kf) != () for kf in rep)                                 # 봉인 보고 필드가 남아 있다

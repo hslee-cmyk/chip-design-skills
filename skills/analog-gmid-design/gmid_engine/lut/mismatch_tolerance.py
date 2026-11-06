@@ -7,18 +7,14 @@
   DVGS 가 NaN 인 점과 그 이웃은 빠진다. 값의 단위가 V 라 오차도 V 다. 앵커 2개 bin 의 외부 L 값은 없다(`l_loo` 상태에 남는다).
 * 디스크 캐시 대상(derived).
 """
-import numpy as np
-
-from ._helpers_anchor import l_position
-from ._helpers_loo import l_interior, l_loo_report, linear_loo_cells, opt
-from .axis_guard import check_axes
+from ._helpers_loo import l_interior, l_loo_report, linear_loo_cells, opt, table_at
 from .lut_types import AXES, TolMismatchCell
 
 
 class TolMismatchTable:
     """(kind) mismatch 허용오차 표. `cells[i_L][i_vds]` = TolMismatchCell, 축은 `L_anchors`·`vds_grid`. `l_bins`·`l_loo`·`l_loo_bins`: tol_V 표와 같은 뜻."""
 
-    def __init__(self, kind, w_key, params, L_anchors, vds_grid, cells, l_bins, l_loo, l_loo_bins):
+    def __init__(self, kind, w_key, params, L_anchors, vds_grid, cells, l_bins, grid_m, rule, l_loo, l_loo_bins):
         self.kind = kind
         self.w_key = w_key
         self.params = params
@@ -26,23 +22,20 @@ class TolMismatchTable:
         self.vds_grid = vds_grid
         self.cells = cells
         self.l_bins = l_bins
+        self.grid_m = grid_m
+        self.rule = rule
         self.l_loo = l_loo
         self.l_loo_bins = l_loo_bins
 
     def at(self, L, vds, param):
-        """조회점 (L, vds) 의 변수 `param` 의 tol(V): L 위치(앵커 행 또는 같은 bin 보간 양옆 앵커 두 행)·VDS 칸의 정의된 셀 값 최댓값, 없으면 None.
+        """조회점 (L, vds) 의 변수 `param` 의 tol(V): L 위치(앵커 행 또는 같은 bin 보간 양옆 앵커 두 행)·VDS 칸의 결합 셀이 모두 정의되면 그 값의 최댓값,
+        하나라도 None 이면 None(셀 결합 규칙 = `_helpers_loo.table_at` 하나 -- tol_V·tol_VDsat·잡음 tol 표와 같다).
         실패: `param` 이 `params` 밖 -> `ValueError`, L 위치·VDS 축 -> `SealViolationError`(table "tol_mismatch")."""
         if param not in self.params:
             raise ValueError("TolMismatchTable.at: param 은 %s 중 하나" % (self.params,))
         context = (("kind", self.kind), ("table", "tol_mismatch"), ("w_key", self.w_key))
-        lo, hi, _ = l_position(self.L_anchors, self.l_bins, L, context)
-        vds = float(vds)
-        check_axes((self.vds_grid,), (AXES[2],), (vds,), context)
-        k = min(int(np.searchsorted(self.vds_grid, vds, side="right")) - 1, len(self.vds_grid) - 2)
         j = self.params.index(param)
-        vals = [self.cells[i][b].params[j][1] for i in sorted({lo, hi}) for b in (k, k + 1)]
-        vals = [v for v in vals if v is not None]
-        return max(vals) if vals else None
+        return table_at(self, lambda cell: cell.params[j][1], L, vds, context)
 
 
 def tol_mismatch_table(memo, kind):
@@ -58,6 +51,6 @@ def tol_mismatch_table(memo, kind):
                   for k in range(len(table.grids[2])))
             for i in range(len(table.grids[0])))
         return TolMismatchTable(kind, table.w_key, table.params, table.grids[0], table.grids[2], cells, table.l_bins,
-                                l_loo, l_loo_bins)
+                                memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, l_loo, l_loo_bins)
 
     return memo.lookup_persistent("derived", "tol_mismatch_table", (kind,), compute, table, (AXES,))

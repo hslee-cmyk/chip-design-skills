@@ -25,7 +25,7 @@ def vdsat(memo, kind, w_key, L, vgs, vds, vsb):
     """
     src = column_source(memo.lut, kind, w_key, "VDSAT")
     context = (("kind", kind), ("table", src.origin), ("w_key", w_key))
-    lo, hi, l_val = l_position(src.grids[0], src.l_bins, L, context)
+    lo, hi, l_val = l_position(src.grids[0], src.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, context)
     rest = (float(vgs), float(vds), float(vsb))
     check_axes(src.grids[1:], AXES[1:], rest, context)
 

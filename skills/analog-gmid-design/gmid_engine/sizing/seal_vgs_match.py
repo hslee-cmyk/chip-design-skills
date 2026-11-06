@@ -2,7 +2,7 @@
 
 진입점: `dc_seal_vgs_match`(`@compute_block`) -- `dc_seal_vgs_match(snapshot)`.
 
-모든 MOS(diode 포함): 노드 VGS·VDS·VSB 의 **순방향** LUT ln IDu(`dc_op.idu_forward` -- `dc_widths` 가 최종 노드값에서 순방향으로
+모든 MOS(diode 포함): 노드 VGS·VDS·VSB 의 **순방향** LUT ln IDu(`dc_op.idu_forward` -- `dc_solve` 가 최종 노드값에서 순방향으로
 한 번 조회한 값)와 소자 좌표 ln IDu(`dc_op.ln_idu` -- 쓰기 소자는 θ, 종속 소자는 순방향 값)의 차를 VGS 로 환산
 |Δ ln IDu| / (gm/ID) ≤ tol_V(`dc_tol_v`, id_equivalent). 역산 함수를 쓰지 않는다(쓰는 쪽 = 역산, 재는 쪽 = 순방향).
 """

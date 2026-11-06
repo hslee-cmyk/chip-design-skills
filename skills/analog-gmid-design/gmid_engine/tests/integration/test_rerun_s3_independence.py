@@ -46,16 +46,15 @@ def env():
     loc = resolve_lut_location(str(SKILL / "assets" / "lut_v2_location.json"), os.environ)
     man = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
     kinds = dict(DEVICE_KINDS)
-    mins = {}
-    for e in man["slices"]:
-        mins[kinds[e["device"]]] = min(e["w_um"] * 1e-6, mins.get(kinds[e["device"]], float("inf")))
+    from pdk_min_w import min_finger_w_m
+    mins = min_finger_w_m(kinds.values())      # PDK 선언 양(card 20261104-wb1)
     dm = BoundedLRU(16)
     pdk = read_pdk_decl(str(SKILL / "assets" / "sky130_pdk_decl.json"), dm)
     q = dict(pdk.quantities)
     spec = LutSpec(float(man.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), DEVICE_KINDS, CAP_SUFFIX,
                    noise_ef=(("nmos", q["noise_ef_nmos"].value_m), ("pmos", q["noise_ef_pmos"].value_m)))
-    lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path,
-                       noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path)
+    lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths,
+                       noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path, bin_rule=loc.bin_rule_path)
     return SimpleNamespace(lut=lut, pdk=pdk, rule=read_pdk_decl(str(SKILL / "assets" / "sky130_lut_rule_decl.json"), dm))
 
 
@@ -85,7 +84,7 @@ def _points(seq):
 def _chain(env, out, archive_root):
     """단계 A -> B -> 커널 컨텍스트 -> 탐색 컨텍스트(archive_root) -> find_front(given 없음). -> C3 출력 묶음."""
     from gmid_engine.search import build_search_context, find_front, open_run
-    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, LutAccess
     # [XRUN-F1 card B C1·C6] 실행 경계 = 새 open_run 쌍(옛 블록 객체 reset_stats 는 없어졌다 -- 계수는 실행마다 RunCounters)
     donors, counters = open_run()
     a = run_stage_a(LIBRARY / (CIRCUIT + ".topology.json"), LIBRARY / (CIRCUIT + ".sizing_spec.json"), env.lut, output_dir=out,
@@ -93,7 +92,7 @@ def _chain(env, out, archive_root):
     memo = LutMemo(env.lut, point=1 << 16, curve=1 << 14, root=1 << 16)
     b = run_stage_b(a, memo, env.pdk, output_dir=out, diagnostic=True, settings=_settings())
     assert (a.status, b.status) == ("ok", "ok"), (a.status, b.status)
-    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo), donors=a.donors, counters=a.counters)
+    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), LutAccess(memo), donors=a.donors, counters=a.counters)
     sctx = build_search_context(kctx, a.spec, _settings(), str(archive_root), env.pdk, env.rule, code_fp=a.code_fp)
     d = Path(archive_root) / sctx.context_fp
     n_evals, n_runs = len(_jsonl(d / "evals.jsonl")), len(_jsonl(d / "runs.jsonl"))

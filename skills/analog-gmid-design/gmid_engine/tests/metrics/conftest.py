@@ -571,10 +571,18 @@ def with_ss(snap, ss_map, version="hand_ss"):
     return snap.write(w, version, {("device", "ss_dev"): dict(ss_map)})
 
 
-def hand_write(snap, kind, field, col, version="hand"):
-    """손 S2 열 쓰기 -- writer = 권한표 writer_of(kind, field)."""
-    from gmid_engine.sizing import S2_WRITERS
-    return snap.write(S2_WRITERS.writer_of(kind, field), version, {(kind, field): dict(col)})
+def hand_write(snap, kind, field, col, version="hand", finger=None):
+    """손 S2 열 쓰기 -- writer = 권한표 writer_of(kind, field).
+    [WB-1] `device.dc_op` 을 쓸 때 같은 블록(dc_solve)이 쓰는 `device.dc_finger` 도 함께 쓴다: `finger` = {MOS: FingerGeom} 을 주지 않으면 소자마다
+    FingerGeom(m, LUT_WM, m·LUT_WM/op.W - 1), m = max(1, round(op.W / LUT_WM))(손가락 폭 = 슬라이스 폭, 정수 손가락 수 -- C-2: 접합 기하는 `dc_finger` 의 (w_f, m) 이고
+    W/w_m 비정수는 없다)이다. 손가락 기하를 시험하는 test 는 `finger=` 로 직접 준다."""
+    from gmid_engine.sizing import S2_WRITERS, FingerGeom
+    s = snap.write(S2_WRITERS.writer_of(kind, field), version, {(kind, field): dict(col)})
+    if (kind, field) == ("device", "dc_op"):
+        fing = dict(finger) if finger is not None else {
+            m: FingerGeom(max(1, round(o.W / LUT_WM)), LUT_WM, max(1, round(o.W / LUT_WM)) * LUT_WM / o.W - 1.0) for m, o in dict(col).items()}
+        s = s.write(S2_WRITERS.writer_of("device", "dc_finger"), version, {("device", "dc_finger"): fing})
+    return s
 
 
 def requests_of(spec, metrics=None):
@@ -661,7 +669,6 @@ LUT_KSCALE = {"nmos": 1.0, "pmos": 1.5}         # 용량 kind 배율(두 kind �
 GMBS_COEF = {"slice": (0.0, 2.0 * 2.0), "cap": (0.3, -0.04)}
 LUT_SPEC_ARGS = (LUT_GRID, (("nmos", 1e-6), ("pmos", 1e-6)), (("toyn", "nmos"), ("toyp", "pmos")),
                  (("nmos", "_n"), ("pmos", "_p")))
-LUT_WKEYS = (("nmos", LUT_WKEY), ("pmos", LUT_WKEY))
 
 
 def _mesh(L, VGS, VDS, VS):
@@ -698,7 +705,7 @@ def _sha_of(path):
     return _hashlib.sha256(_Path(path).read_bytes()).hexdigest()
 
 
-def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs=LUT_VS, temp_c=27.0):
+def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs=LUT_VS, temp_c=27.0, empty_bins=False):
     """toy LUT(npz 직접 작성). slice_gmbs: 슬라이스 GMBS 열. cap_cgs_cgb: 기준 LUT CGS·CGB 열. cap_gmbs: 기준 LUT GMBS·ID 열.
     cap_vs: 기준 LUT VS 축(슬라이스와 달라도 됨, lut 1.4). temp_c: 측정 온도(슬라이스·기준 LUT 같은 값, None 이면 기록 안 함)."""
     root = _Path(root)
@@ -738,19 +745,22 @@ def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs
             cap["ID" + suf] = idc
             cap["GMBS" + suf] = idc * (c0 + c1 * np.asarray(cap_vs)[None, None, None, :])
     np.savez(root / "cap.npz", **cap)
+    from toy_bins import retrofit_bins
+    retrofit_bins(root, empty=empty_bins)    # 합성 모델 파일·bin 선언(`root/bin_rule.json`)·meta 기록 (WB-1 §4)
     return root / "manifest.json", root / "cap.npz"
 
 
 def load_lut_v2(root, **kw):
     from gmid_engine.lut import LutSpec, load_lut_set
     m, c = write_lut_v2(root, **kw)
-    return load_lut_set(str(m), str(c), LutSpec(*LUT_SPEC_ARGS))
+    return load_lut_set(str(m), str(c), LutSpec(*LUT_SPEC_ARGS), bin_rule=str(_Path(m).parent / "bin_rule.json"),
+                        pdk_root=str(_Path(m).parent / "pdk"))
 
 
 def lut_access(lut, n=4096):
     from gmid_engine.lut import LutMemo
     from gmid_engine.sizing import LutAccess
-    return LutAccess(LutMemo(lut, point=n, curve=n, root=n), LUT_WKEYS)
+    return LutAccess(LutMemo(lut, point=n, curve=n, root=n))
 
 
 def _cell(grid, x):
@@ -944,11 +954,11 @@ def toy_junction(root, lut, **kw):
     return JunctionSource.from_decls(*read_decls(*toy_junction_decls(root, **kw)), lut)
 
 
-def oracle_junction(op, params=None, temp_c=27.0, rule=None, w_m=LUT_WM):
-    """7.2 접합 항의 독립 계산: 기하 = LUT 규칙(finger_w = w_m, m = W / w_m), v_db = vds + vsb, v_sb = vsb."""
+def oracle_junction(op, params=None, temp_c=27.0, rule=None, w_m=LUT_WM, m=None):
+    """7.2 접합 항의 독립 계산: 기하 = LUT 규칙(finger_w = w_m, m = 손가락 수 = max(1, round(W / w_m)) -- 손 `dc_finger` 행의 규칙, C-2), v_db = vds + vsb, v_sb = vsb."""
     p = (TOY_JUNCTION if params is None else params)[op.kind]
     r = toy_rule_values() if rule is None else rule
-    geo = (w_m, r["ad_per_w"] * w_m, r["as_per_w"] * w_m, w_m + r["pd_extra"], w_m + r["ps_extra"], op.W / w_m)
+    geo = (w_m, r["ad_per_w"] * w_m, r["as_per_w"] * w_m, w_m + r["pd_extra"], w_m + r["ps_extra"], float(max(1, round(op.W / w_m)) if m is None else m))
     return ref_caps(p, geo, op.vds + op.vsb, op.vsb, temp_c)
 
 

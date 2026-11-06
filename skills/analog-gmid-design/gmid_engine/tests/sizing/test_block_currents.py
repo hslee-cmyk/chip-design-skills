@@ -2,7 +2,7 @@
 
 - 키 집합 ≠ free -> ValueError. 원소 전류 = Σ (num/den)·전류(원천)(유리수 합 뒤 float).
 - [r2] MOS 전류 ≤ 0 -> ValueError(정의역 밖 θ 로 블록을 직접 부른 호출 계약 위반). 옛 SealViolationError 는 없다.
-- writes dc_current(+ 가지치기 저항 0.0), dc_drop_current(= dc_current 중 resistors ∪ pruned).
+- writes dc_current(+ 가지치기 저항 0.0). [WB-1] 저항 강하 전류용 둘째 필드는 삭제 -- 저항 항은 이 필드의 저항·가지치기 행이다.
 θ 성분은 손으로 정한 원소 전류 전체(KCL 만족)에서 기저 free 만 골라 넘기고(conftest free_currents), 결과가 그 전체와 같은지 본다.
 """
 from fractions import Fraction
@@ -46,7 +46,7 @@ def test_currents_from_basis(ctx2):
     assert set(cur) == set(tg)
     for k, v in tg.items():
         assert cur[k] == float(Fraction(v)) or abs(cur[k] - v) <= 1e-20
-    assert dict(out.column("device", "dc_drop_current")) == {}          # 저항 없음
+    assert not [k for k in cur if k.startswith("R")]                # 저항 없음 -> 저항 행 없음
 
 
 def test_rational_sum_then_float(ctx2):
@@ -88,7 +88,7 @@ def test_resistor_and_pruned_drop_currents(tmp_path, toy_access):
     ctx = build_ctx(tmp_path, doc, toy_access)[2]
     out = dc_currents(ctx.base, theta_for(ctx, {"M1": 2e-5, "R1": 2e-5}), **run_of(ctx))
     assert dict(out.column("device", "dc_current")) == {"M1": 2e-5, "R1": 2e-5, "R2": 0.0}
-    assert dict(out.column("device", "dc_drop_current")) == {"R1": 2e-5, "R2": 0.0}
+    assert {k: v for k, v in out.column("device", "dc_current") if k in ("R1", "R2")} == {"R1": 2e-5, "R2": 0.0}      # 저항 항(가지치기 포함)
     for name in ("M1", "R1", "R2"):
         assert out.field("device", name, "dc_current").writer == "dc_currents"
 

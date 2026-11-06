@@ -18,7 +18,7 @@ from gmid_engine.lut import tol_vdsat_table, vdsat
 from sizing.call_sites import calls_of, engine_sources
 from sizing.conftest import R4_L, W_KEY, r4_tol_vdsat, r4_vdsat_at, r4_vdsat_grid, write_r4_lut
 
-from .conftest import BIN_L, MID_L_SOURCE, mid_point_arrays, new_memo
+from .conftest import BIN_L, new_memo
 from .hcs_cases import lookups, memo_of
 
 REVERSE = "reverse_vds"
@@ -127,7 +127,7 @@ def test_sat_threshold_tol_is_the_anchor_bin_cell_not_wrapped_maximum(mid_toy_bu
     """중점 toy: L 앵커 BIN_L[1](1.5 µm, bin A 내부) 의 셀은 L 방향 LOO 가 크고, 앵커 BIN_L[2](2 µm, bin A 끝) 의 셀은 0 수준
     (lut conftest·test_vdsat_tolerance 의 손계산: 0.0125·(1 + d)/4 대 ~0). 2 µm 에서 tol_v 는 그 앵커 셀 값이다 --
     감싼 두 앵커(1.5, 2 µm) 최댓값이면 앞 셀 값이 된다(옛 tol_vdsat_max 꼴)."""
-    mt = mid_toy_build("hcs_s2", mid=mid_point_arrays((3.5e-6, 7.5e-6), l_source=MID_L_SOURCE))
+    mt = mid_toy_build("hcs_s2", mid={0: (3.5e-6, 7.5e-6)})
     m = new_memo(mt.load())
     z = mt.slice_arrays[0]
     t = tol_vdsat_table(m, "nmos", 100)
@@ -178,3 +178,23 @@ def test_sat_threshold_no_direct_vdsat_lookup_in_metrics_or_seal_region():
                 bad.add((name, rel, fn))
     assert bad == set()
 
+
+
+# ---------------------------------------------------------------------------
+# [LM-1e §5 J-c] 셀 결합과 sat_threshold: tol 조회가 None(결합 셀 일부 None)이어도 vdsat 이 값이면 reason 은 None, tol_v 만 None.
+# toy R(pmos 의 VDS index 0 열이 꺼짐): VDS 0.1 은 첫 칸 [0, 0.25) 안 -> tol_vdsat 셀 0(꺼진 열의 점은 on 이 아니라 LOO 조건 불성립 = None)과 셀 1(값) 결합.
+# 전제: 그 점에서 vdsat_v 가 값이다(VDSAT 열은 VDS 무관이라 값) -- 아니면 행 3 lut_domain 이라 이 갈래에 닿지 않는다.
+# oracle: (a) 구성 + (d) 결합 규칙. 옛 규칙(정의된 셀 max)은 tol_v = 셀 1 값.
+# ---------------------------------------------------------------------------
+
+def test_cell_combine_j_c_sat_threshold_tol_none_with_value_vdsat(tmp_path):
+    from sizing.conftest import W_KEY, write_r4_lut
+    m = new_memo(write_r4_lut(tmp_path / "jc", off_cols={"pmos": 1}))
+    vgs, vsb = 0.7, 0.0
+    b = lutmod.sat_threshold(m, "pmos", W_KEY, 1e-6, vgs, 0.1, vsb)
+    assert b.vdsat_v is not None and b.reason is None                  # 전제: vdsat 이 값 (아니면 멈추고 보고)
+    assert b.tol_v is None                                             # 결합 셀 [0, 0.25) 에 None(셀 0) -> None
+    assert b.vdsat_v == vdsat(m, "pmos", W_KEY, 1e-6, vgs, 0.1, vsb)   # vdsat 값은 그대로(같은 점의 vdsat 조회)
+    # 대조(판별): 켜진 칸 [0.25, 0.5) 의 점은 결합 셀이 모두 정의 -> tol_v 가 값
+    c = lutmod.sat_threshold(m, "pmos", W_KEY, 1e-6, vgs, 0.3, vsb)
+    assert c.reason is None and c.vdsat_v is not None and c.tol_v is not None and c.tol_v > 0.0

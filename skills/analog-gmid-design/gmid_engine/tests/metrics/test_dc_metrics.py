@@ -57,7 +57,9 @@ def snap(tmp_path_factory):
     s = ctx.base
     s = hand_write(s, "device", "dc_current", CUR)
     s = hand_write(s, "node", "dc_v", VOLT)
-    ops = {m: device_op("pmos" if m == "M2" else "nmos", l, 0.7, 0.9, 0.0, w) for m, (w, l) in WL.items()}
+    # [dispute 7.4, 계약 23] MOS 채널 레일 전류의 전력 축 = `DeviceOp.current` 이므로 손 dc_op 전류를 같은 소자의 손 dc_current(CUR, 위 기대 주석의 출처)와 같게 둔다
+    # (device_op 기본 10 µA 면 gnd 레일이 -30 µA 가 되어 기대 -17 µA 와 어긋난다). 기대값(EXP_RAIL)은 그대로.
+    ops = {m: device_op("pmos" if m == "M2" else "nmos", l, 0.7, 0.9, 0.0, w, current=CUR[m]) for m, (w, l) in WL.items()}
     return hand_write(s, "device", "dc_op", ops)
 
 
@@ -308,3 +310,25 @@ def test_area_decl_is_block_input(snap):
     s3, _ = _bundle_decl(s2, PassiveAreaDecl(unit_area=(("CL", U_C),)), run=run)
     assert s3 is s2
     assert block_row(run["counters"], metrics_dc.name) == (3, 1, 0, 0, 2, 0)
+
+
+# ---------------------------------------------------------------- [LM-1e §5 P-1] 전력 분해능: 레일 항에 None 이 있으면 None
+# 계획 N3.6 표 10행·interface §5: power_resolution_w = Σ_레일 |V_k|·tol_I,k 의 레일 항 중 하나라도 None 이면 None(정의된 항만 합하지 않는다).
+# 입력 = J-a 스냅샷(toy R + `_scc_s_doc`, M3 의 dc_op.vds = 0.1 -> `dc_tolerances` 가 `table_at` 으로 dc_tol_v["M3"] = None; 주입 없음).
+# M3 는 pmos (vout, pb, vdd) 라 채널이 vdd 레일에 닿는다 -> 그 레일 항이 None. oracle (d)(식) + 대조(바꾸기 전과 같은 회로, vds 0.5 -> 값).
+
+def test_lm1e_p1_power_resolution_none_when_rail_term_is_none(tmp_path):
+    from gmid_engine.sizing import DC_KEY
+    from sizing.conftest import ja_state, run_of
+    ctx, _th, _changed, snap = ja_state(tmp_path / "none")
+    tolv = dict(snap.column("device", "dc_tol_v"))
+    assert tolv["M3"] is None and tolv["M1"] is not None and tolv["M2"] is not None          # 전제 (J-a)
+    basis = snap.value("graph", DC_KEY, "dc_current_basis")
+    assert any(name == "M3" and "vdd" in (f, t) for name, f, t in basis.ends)                # M3 채널이 vdd 레일에 닿는다
+    out = metrics_dc(snap, (), **run_of(ctx))
+    assert out.value("graph", METRICS_KEY, "power_resolution_w") is None
+    # 대조: M3 의 vds 만 0.5 (칸 [0.5, 0.75) -- 켜진 칸)로 바꾸면 모든 레일 항이 정의 -> 값(전제: tol 모두 정의)
+    ctx2, _th2, _c2, snap2 = ja_state(tmp_path / "defined", vds=0.5)
+    assert all(v is not None for v in dict(snap2.column("device", "dc_tol_v")).values())
+    val = metrics_dc(snap2, (), **run_of(ctx2)).value("graph", METRICS_KEY, "power_resolution_w")
+    assert val is not None and val > 0.0

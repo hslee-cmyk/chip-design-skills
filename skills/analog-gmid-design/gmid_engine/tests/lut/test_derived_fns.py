@@ -33,7 +33,7 @@ H = VGS_GRID[1] - VGS_GRID[0]
 
 @pytest.fixture(scope="module")
 def plain(tmp_path_factory):
-    return memo_of(write_lut(tmp_path_factory.mktemp("df_plain")))
+    return memo_of(write_lut(tmp_path_factory.mktemp("df_plain"), empty_bins=True))     # [WB-1 §4] bin 지도 없는 toy(한 bin 가정 test)
 
 
 @pytest.fixture(scope="module")
@@ -136,13 +136,11 @@ def test_real_lut_bins_follow_slice_anchor_bins():
     loc = resolve_lut_location(str(skill / "assets" / "lut_v2_location.json"), os.environ)
     man = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
     dk = (("nfet_01v8", "nmos"), ("pfet_01v8", "pmos"))
-    mins = {}
-    for en in man["slices"]:
-        k = dict(dk)[en["device"]]
-        mins[k] = min(en["w_um"] * 1e-6, mins.get(k, float("inf")))
+    from pdk_min_w import min_finger_w_m
+    mins = min_finger_w_m(k for _, k in dk)      # PDK 선언 양(card 20261104-wb1)
     lut = load_lut_set(loc.manifest_path, loc.cap_npz_path,
                        LutSpec(float(man.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), dk, (("nmos", "_n"), ("pmos", "_p"))),
-                       pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path)
+                       pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths, bin_rule=loc.bin_rule_path)
     memo = memo_of(lut, 1 << 15)
     for kind in ("nmos", "pmos"):
         w_key = 1000                                                  # 레이아웃 전 폭 = 5 µm (sizing 1.3, lut 1.4 실측)

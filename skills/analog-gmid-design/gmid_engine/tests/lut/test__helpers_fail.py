@@ -8,12 +8,14 @@ import pytest
 from gmid_engine.core import InfeasibleSizingError, SchemaRejectedError, SealViolationError
 from gmid_engine.lut import load_lut_set, op_point, vgs_for_gm_id
 
+from toy_bins import write_decl
+
 from .conftest import TOY_SPEC, detail_of
 
 
 def test_schema_rejected_record_shape(tmp_path):
     with pytest.raises(SchemaRejectedError) as ei:
-        load_lut_set(str(tmp_path / "nope.json"), str(tmp_path / "nope.npz"), TOY_SPEC)
+        load_lut_set(str(tmp_path / "nope.json"), str(tmp_path / "nope.npz"), TOY_SPEC, bin_rule=write_decl(tmp_path / "rule.json", ["0" * 64]))
     exc = ei.value
     assert exc.record.failure_class == "SCHEMA_REJECTED"
     det = detail_of(exc)

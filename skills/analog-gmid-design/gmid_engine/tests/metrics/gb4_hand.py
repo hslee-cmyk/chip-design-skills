@@ -75,7 +75,8 @@ def slice_arrays(kind, grids=GRIDS, w=W_M, density=1.0, f=f_default, fp=fp_defau
     return out
 
 
-def write_lut(root, grids=GRIDS, slices=None, f=f_default, fp=fp_default, gmbs=True, vdsat=None, gm_scale_at=None):
+def write_lut(root, grids=GRIDS, slices=None, f=f_default, fp=fp_default, gmbs=True, vdsat=None, gm_scale_at=None,
+              empty_bins=False, cdd=False):
     """toy LUT 를 쓰고 엔진 로더로 읽는다(입력 생성). slices = ((kind, 폭, 밀도 배율), ...) 기본 kind 마다 (폭 1e-6, 1).
     gm_scale_at = {kind: ((iL, iG, iD, iS, 배율), ...)}. -> LutSet."""
     from gmid_engine.lut import LutSpec, load_lut_set
@@ -99,10 +100,14 @@ def write_lut(root, grids=GRIDS, slices=None, f=f_default, fp=fp_default, gmbs=T
     for kind in KINDS:
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
+        if cdd:      # [WB-1 E-18] drain 용량은 CDD 열의 양(cgd 대체 없음) -- 매크로·시작 경로를 통과하는 test 는 CDD 열을 가진 toy 를 쓴다(합성 값, 기본 False = 기존 호출 불변)
+            cap["CDD" + SUFFIX[kind]] = np.full(shp, 2e-16)
     np.savez(root / "cap.npz", **cap)
     spec = LutSpec(GRID_M, (("nmos", W_M), ("pmos", W_M)), (("toyn", "nmos"), ("toyp", "pmos")),
                    (("nmos", "_n"), ("pmos", "_p")))
-    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), spec)
+    from toy_bins import retrofit_bins as _retro
+    _tb = _retro(root, empty=empty_bins)       # empty_bins: bin 블록 없는 합성 모델 파일(빈 지도, 앵커 전용)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), spec, bin_rule=_tb.bin_rule, pdk_root=_tb.pdk_root)
 
 
 def memo_of(lut, n=8192):
@@ -168,7 +173,7 @@ def local_inputs(devs, *, rails=("gnd", "vdd"), grids=GRIDS, passives=(), orbit=
         cur_rep=tup(dict(cur_rep) if cur_rep is not None else {e: (e, 1) for e in free}),
         current_box=tup(dict(current_box) if current_box is not None else {e: (1e-6, 1e-4) for e in free}),
         element_value=tup(dict(element_value or {})), resistor_box=tup(dict(resistor_box or {})),
-        w_keys=tup({"nmos": W_KEY, "pmos": W_KEY}), grids=tuple(tuple(float(x) for x in g) for g in grids),
+        grids=tuple(tuple(float(x) for x in g) for g in grids),
         node_colour=(), device_colour=(), attach=())
     return stored.view
 

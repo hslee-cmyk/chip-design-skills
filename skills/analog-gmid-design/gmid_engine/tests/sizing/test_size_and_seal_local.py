@@ -157,10 +157,20 @@ def test_whole_circuit_candidate_failure(tmp_path, r4_access):
     from .conftest import free_currents
     th.update(free_currents(ctx, {"MA": ID, "MB": ID, "IX": ID, "IY": ID}))
     assert set(th) == set(kschema(ctx).components)
-    for c in s1.value("graph", GRAPH_KEY, "columns"):
-        res = size_and_seal_local(ctx, *as_block(th), frozenset({str(c.id)}))
-        assert res.ok is False and len(res.failures) == 1
-        assert dict(res.failures[0].detail)["reason"] == "empty_window"
+    # [WB-1 E-13 이행] 옛 기대 '어느 기둥을 골라도 ok = False, 사유 empty_window'는 전제가 사라졌다: 커널이 포화 창을 좁혀 비면 거부하던 일(전 회로 공통 사유)이
+    # 없어지고, 순서 창은 포화 여유를 쓰지 않는다. 포화 위반은 봉인 7 이 그 기둥의 소자에서 낸다 -> 위반 소자가 있는 기둥만 ok = False.
+    # 물리 oracle (b): Follower 독립 풀이로 V(in) = 0.9 V(y = 0.5, 레일 0..1.8 사상)에서 MB 가 포화 밖(여유 < 0), MA 는 포화(여유 > 0). 어느 기둥에
+    # 어느 소자가 드는지는 기둥 구조의 몫이라 단언하지 않고, '실패한 기둥은 모두 봉인 7, slack_v 가 독립 MB 여유 이하'와 '실패한 기둥이 있다'만 단언한다.
+    from .test_input_window import Follower
+    _, _, sa, sb = Follower(0.5, 0.6).solve(0.9)
+    assert sb < 0 < sa                                                                 # 전제
+    results = [size_and_seal_local(ctx, *as_block(th), frozenset({str(c.id)})) for c in s1.value("graph", GRAPH_KEY, "columns")]
+    failed = [r for r in results if r.ok is False]
+    assert failed
+    for res in failed:
+        assert len(res.failures) == 1
+        d = dict(res.failures[0].detail)
+        assert d["item"] == 7 and dict(d["item_detail"])["slack_v"] <= sb + 1e-9
         assert res.snapshot_fragment == SnapshotFragment() and res.power_w is None and res.area_m2 is None
 
 

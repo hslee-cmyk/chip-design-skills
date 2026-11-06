@@ -27,7 +27,7 @@ from gmid_engine.convergence import (
     converge,
 )
 
-from gmid_engine.layout import F_FLOORPLAN, LAYOUT_KEY
+from gmid_engine.layout import F_DIFFUSION, F_FLOORPLAN, LAYOUT_KEY
 
 from .conftest import candidate, converged, module, pdk, rows
 
@@ -196,8 +196,9 @@ def _summary(r, nm=lambda x: x):
         "k_max": cp.k_max,
         "layout_area": cp.layout_area_m2.hex(),
         "w_request": sorted((nm(m), w.hex()) for m, w in cp.geometry.w_request),
-        "w_keys": list(cp.geometry.w_keys),
-        "diffusion": sorted((nm(m), d.ad_m2.hex(), d.as_m2.hex(), d.pd_m.hex(), d.ps_m.hex(), d.m.hex()) for m, d in cp.geometry.diffusion),
+        # [WB-1] RealizedGeometry 는 (layout_ref, w_request) -- 확산 기하는 레이아웃 스냅샷 ly_diffusion 필드(거기서 읽는다); 옛 w_keys 칸(kind 폭 키)은 삭제
+        "diffusion": sorted((nm(d.name), d.ad_m2.hex(), d.as_m2.hex(), d.pd_m.hex(), d.ps_m.hex(), float(d.n_fingers).hex())
+                            for d in cp.layout.snapshot.value("graph", LAYOUT_KEY, F_DIFFUSION)),
         "junction": sorted((nm(j.device), j.cdb_after.hex(), j.csb_after.hex()) for j in cp.junction),
         "rejected": [nm(x) for x in cp.rejected], "narrowed": list(cp.narrowed),
     }

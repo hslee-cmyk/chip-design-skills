@@ -61,3 +61,11 @@ def nondominated(points, ties):
         kept = survivors + [i]
     kept.sort(key=lambda i: (points[i][1][0], -points[i][2], points[i][0]))
     return ParetoResult(tuple(kept), tuple(sorted(folded)), tuple(sorted(dominated)))
+
+
+def nondominated_results(pool, area_resolution_m2):
+    """탐색 축 (power_dc_w, area_search_m2) 비지배 필터 -- `pool` = ((point_id, EvalResult), ...). 동률 폭 = (두 점 b_P 중 큰 값, b_A), slack = 활성 제약 c 합.
+    탐색 front(`eps_sweep`)와 실현 평가 재필터(`realize_front`)가 같은 이 함수를 쓴다(정의 한 곳). 반환 `ParetoResult`(index 는 `pool` 순서)."""
+    points = tuple((pid, (r.objectives.power_w, r.objectives.area_m2), sum(c.c for c in r.constraints if c.active)) for pid, r in pool)
+    b_p = {pid: r.objectives.power_resolution_w for pid, r in pool}
+    return nondominated(points, (lambda p, q: max(b_p[p], b_p[q]), area_resolution_m2))

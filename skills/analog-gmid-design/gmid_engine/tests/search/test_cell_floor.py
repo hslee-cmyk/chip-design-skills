@@ -93,7 +93,9 @@ def _write_lut(root, arrays_of):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
     np.savez(root / "cap.npz", **cap)
-    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC)
+    from toy_bins import retrofit_bins as _retro
+    _tb = _retro(root)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC, bin_rule=_tb.bin_rule, pdk_root=_tb.pdk_root)
 
 
 @pytest.fixture(scope="module")
@@ -103,7 +105,7 @@ def floor_lut(tmp_path_factory):
 
 def _tols(lut, case):
     """kind -> tol_at(L, VDS) (lut 공개 API 입력, conftest `tol_v_at`)."""
-    wk = dict(case.acc.w_keys)
+    wk = {k: lut.cap_map[k].w_key for k in ("nmos", "pmos")}      # 기준 폭 키(WB-1: LutAccess 에 키 칸 없음, 기준 = 기준 LUT 의 w_key)
     return {k: tol_v_at(lut, k, wk[k]) for k in ("nmos", "pmos")}
 
 
@@ -330,7 +332,7 @@ def test_real_lut_v2_multi_anchor_cells(tmp_path, real_lut_v2):
     case = build_case(tmp_path, circuit_diode(), lut, pdk=pdk, rule=rule)
     s = case.sctx
     V = s.domain.variables
-    wk = dict(case.acc.w_keys)
+    wk = {k: lut.cap_map[k].w_key for k in ("nmos", "pmos")}
     tols = _tols(lut, case)
     arrs = {}
     for kind in ("nmos", "pmos"):

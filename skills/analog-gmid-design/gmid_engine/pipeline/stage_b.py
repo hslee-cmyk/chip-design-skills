@@ -26,7 +26,7 @@ from gmid_engine.search import S0_WRITERS, SearchSettings, count_budget, passive
 from gmid_engine.sizing import (
     build_kernel_context,
     dc_inputs_from_spec,
-    pre_layout_lut_access,
+    LutAccess,
 )
 from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
 
@@ -150,7 +150,7 @@ def run_stage_b(stage_a, memo, pdk_decl, *, output_dir, settings, diagnostic=Fal
         return _finish(circuit, status, code, diagnostic, graph, computed, reasons, budget_value, output_dir)
     try:
         inputs = dc_inputs_from_spec(spec)
-        kctx = build_kernel_context(s1, inputs, pre_layout_lut_access(memo), donors=stage_a.donors, counters=stage_a.counters)
+        kctx = build_kernel_context(s1, inputs, LutAccess(memo), donors=stage_a.donors, counters=stage_a.counters)
         budgets = [float(d.value) for d in spec.judged_constraints if d.metric == "area_search_m2" and d.op == "<=" and d.value is not None]
         search = spec.search if isinstance(spec.search, tuple) else ()
         spec_bounds = next((s.value for s in search if s.field == THETA_BOUNDS and s.value), ())

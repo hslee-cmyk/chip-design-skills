@@ -31,7 +31,7 @@ from gmid_engine.graph import build_s1
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.metrics import JunctionSource, metric_catalog
 from gmid_engine.search import SearchSettings, build_search_context, layer0_start, open_run
-from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, LutAccess
 
 from .topogen import add_tag_noise, flip_polarity, random_renaming, rename, rename_spec, shuffle_order, synthetic_spec
 from .topogen import synthetic_topologies
@@ -77,16 +77,11 @@ class Env:
         m = re.search(r"^\s*MANUFACTURINGGRID\s+([0-9.eE+-]+)\s*;",
                       Path(tlef).read_text(encoding="utf-8", errors="replace"), re.M)
         grid = float(m.group(1)) * 1e-6
-        man = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
-        dk = dict(REAL_DEVICE_KINDS)
-        mins = {}
-        for s in man["slices"]:
-            with np.load(Path(loc.manifest_path).parent / s["file"]) as z:
-                w = float(z["W"])
-            kind = dk[s["device"]]
-            mins[kind] = min(w, mins.get(kind, w))
         decl_memo = BoundedLRU(16)
         self.pdk = read_pdk_decl(str(PDK_DECL), decl_memo)
+        # [card 20261104-wb1] min_finger_w_m = PDK 선언 양(역할 이름) -- manifest 슬라이스 최소 폭에서 유도하지 않는다(lut CONTRACT, O-197)
+        w_min = self.pdk.value("min_finger_w_m")
+        mins = {kind: w_min for _, kind in REAL_DEVICE_KINDS}
         # [U8 2026-10-09] search CONTRACT 11절: 값 있는 잡음 제약이 있으면 시작 때 noise_lut_missing 거부 -- 잡음 r1(설정 files.noise)과
         # LutSpec.noise_ef(PDK 선언 noise_ef_<kind>, lut CONTRACT 9 '부르는 쪽이 PDK 선언에서 채운다')를 싣는다
         if not loc.noise_path:
@@ -99,10 +94,10 @@ class Env:
         noise_ef = tuple(sorted((kind, q["noise_ef_%s" % kind].value_m) for kind in mins))
         spec = LutSpec(grid, tuple(sorted(mins.items())), REAL_DEVICE_KINDS, REAL_CAP_SUFFIX, noise_ef=noise_ef)
         self.lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
-                                verify_midpoints=loc.midpoints_path, noise_npz=loc.noise_path,
-                                mismatch_npz=loc.mismatch_path)
+                                verify_midpoints=loc.midpoints_paths, noise_npz=loc.noise_path,
+                                mismatch_npz=loc.mismatch_path, bin_rule=loc.bin_rule_path)
         self.memo = LutMemo(self.lut, point=MEMO_POINT, curve=MEMO_CURVE, root=MEMO_ROOT)
-        self.access = pre_layout_lut_access(self.memo)
+        self.access = LutAccess(self.memo)
         self.lut_rule = read_pdk_decl(str(LUT_RULE_DECL), decl_memo)
         self.junction = JunctionSource.from_decls(self.pdk, self.lut_rule, self.lut)
         cat = dict(metric_catalog())

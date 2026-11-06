@@ -28,11 +28,11 @@ def test_pass_and_independent_version_formula(ctx_c):
 
 
 def test_input_changed_after_compute_is_violation(ctx_c):
-    """dc_L 를 dc_lengths 자기 버전 그대로 바꿔 넣으면 dc_L 을 읽는 하류(dc_columns·dc_widths)의 투영이 달라진다."""
+    """dc_L 를 dc_lengths 자기 버전 그대로 바꿔 넣으면 dc_L 을 읽는 하류(dc_solve)의 투영이 달라진다."""
     snap, calls = eval_calls(ctx_c[2], theta_c())
     bad = tamper(snap, "dc_lengths", "device", "dc_L", {"M1": 2e-6}, version=snap.block_version("dc_lengths"))
     exp = sorted(b.name for b, ex in calls if bad.block_version(b.name) != expected_version(bad, b, ex))
-    assert {"dc_columns", "dc_widths"} <= set(exp)
+    assert {"dc_solve"} <= set(exp)
     assert "dc_currents" not in exp
     item = seal_versions(bad, calls, ctx_c[2].base)
     assert item.status == "fail"
@@ -41,12 +41,12 @@ def test_input_changed_after_compute_is_violation(ctx_c):
 
 
 def test_output_written_with_other_version_is_violation(ctx_c):
-    """dc_op 를 다른 input_version 으로 다시 쓰면 block_version(dc_widths) 이 계산 버전과 다르다."""
+    """dc_op 를 다른 input_version 으로 다시 쓰면 block_version(dc_solve) 이 계산 버전과 다르다."""
     snap, calls = eval_calls(ctx_c[2], theta_c())
-    bad = tamper(snap, "dc_widths", "device", "dc_op", {}, version="tampered")
+    bad = tamper(snap, "dc_solve", "device", "dc_op", {}, version="tampered")
     item = seal_versions(bad, calls, ctx_c[2].base)
     assert item.status == "fail"
-    assert dict(item.detail)["blocks"] == ("dc_widths",)
+    assert dict(item.detail)["blocks"] == ("dc_solve",)
     assert item.magnitude == 1
 
 
@@ -105,25 +105,25 @@ def test_it2a_seal_4_rejects_field_of_writer_outside_base_and_calls(ctx_c):
 
 def test_it2a_seal_4_rejects_base_writer_that_is_also_a_call(ctx_c):
     """(4) 서로소 위반: base 스냅샷의 writer 가 호출 블록과 겹친다 -> 'fail', detail base_call_overlap = 겹치는 이름의 정렬 tuple.
-    base = 4 호출 뒤 스냅샷 자체 -> base writer ⊇ 호출 블록 넷 -> 겹침 = 호출 블록 넷 전부(손 읽기)."""
+    base = 3 호출 뒤 스냅샷 자체 -> base writer ⊇ 호출 블록 셋 -> 겹침 = 호출 블록 셋 전부(손 읽기; WB-1: 노드 풀이·W 블록이 dc_solve 하나)."""
     ctx = ctx_c[2]
     snap, calls = eval_calls(ctx, theta_c())
     assert seal_versions(snap, calls, ctx.base).status == "pass"            # 대조
     item = seal_versions(snap, calls, snap)
     assert item.status == "fail"
-    assert _it2a_extra(item, "base_call_overlap") == ("dc_columns", "dc_currents", "dc_lengths", "dc_widths")
+    assert _it2a_extra(item, "base_call_overlap") == ("dc_currents", "dc_lengths", "dc_solve")
     assert _it2a_extra(item, "foreign_writers") == ()
     assert dict(item.detail)["blocks"] == ()
 
 
 def test_it2a_seal_4_existing_checks_still_reject_with_base_argument(ctx_c):
-    """기존 (1)(2) 는 그대로 -- dc_op 를 다른 input_version 으로 다시 쓰면 base 인자가 있어도 blocks = ('dc_widths',) 로 fail."""
+    """기존 (1)(2) 는 그대로 -- dc_op 를 다른 input_version 으로 다시 쓰면 base 인자가 있어도 blocks = ('dc_solve',) 로 fail."""
     ctx = ctx_c[2]
     snap, calls = eval_calls(ctx, theta_c())
-    bad = tamper(snap, "dc_widths", "device", "dc_op", {}, version="tampered")
+    bad = tamper(snap, "dc_solve", "device", "dc_op", {}, version="tampered")
     item = seal_versions(bad, calls, ctx.base)
     assert item.status == "fail"
-    assert dict(item.detail)["blocks"] == ("dc_widths",)
+    assert dict(item.detail)["blocks"] == ("dc_solve",)
 
 
 # =====================================================================================================================
@@ -141,7 +141,7 @@ import pytest  # noqa: E402
 
 from .conftest import SKILL_DIR  # noqa: E402
 
-IT2E_CALL_NAMES = ("dc_columns", "dc_currents", "dc_lengths", "dc_widths")
+IT2E_CALL_NAMES = ("dc_currents", "dc_lengths", "dc_solve")
 
 
 def test_it2e_writers_in_scope_value(ctx_c):

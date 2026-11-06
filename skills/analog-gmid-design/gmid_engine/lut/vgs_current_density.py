@@ -32,7 +32,7 @@ def vgs_for_current_density(memo, kind, w_key, ln_idu, L, vds, vsb):
     ln_idu, L, vds, vsb = float(ln_idu), float(L), float(vds), float(vsb)
     curve = gm_id_curve(memo, kind, w_key, L, vds, vsb)
     sl = memo.lut.slice_map[(kind, w_key)]
-    l_val = l_position(sl.grids[0], sl.l_bins, L, (("kind", kind), ("w_key", w_key)))[2]
+    l_val = l_position(sl.grids[0], sl.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, (("kind", kind), ("w_key", w_key)))[2]
 
     def compute():
         detail = dict(kind=kind, w_key=w_key, quantity=QUANTITY, target=ln_idu, L=L, vds=vds, vsb=vsb)

@@ -254,7 +254,7 @@ def test_same_kind_single_term_cone_centre_is_box_centre(tmp_path, lut4, roots):
 def cell_floor_of(case, lut, kind, cell):
     """[r9] 층 0 시험·수리의 ln_idu 하한(모든 쓰기 소자, start 없음) = max(칸 전도 하한, 칸 정점 하한) -- 3.21 3(r8 `ln_idu_floors`
     위임) + 3.22 r9. 둘 다 없으면 None. tol 입력 = lut 공개 `tol_v_table`(conftest `tol_v_at`)."""
-    tol_at = tol_v_at(lut, kind, dict(case.acc.w_keys)[kind])
+    tol_at = tol_v_at(lut, kind, lut.cap_map[kind].w_key)
     return expected_floor(conduction_floor(arrays(kind), cell[0], cell[1], tol_at), peak_floor(arrays(kind), *cell))
 
 

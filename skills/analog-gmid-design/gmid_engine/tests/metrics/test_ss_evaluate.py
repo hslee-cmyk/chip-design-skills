@@ -179,10 +179,11 @@ def test_s11_junction_caps_and_approximation(base):
     _, _, _, _, res, js = base
     op = res.snapshot.value("device", "M1", "dc_op")
     ss = res.snapshot.value("device", "M1", "ss_dev")
-    jc = junction_caps(js.params_of(op.kind), js.pre_layout_geometry(LUT_WM, op.W / LUT_WM), op.vds + op.vsb, op.vsb,
+    fg = res.snapshot.value("device", "M1", "dc_finger")                      # C-2: 접합 인자 = 소자 손가락 기하 (w_f, m)
+    jc = junction_caps(js.params_of(op.kind), js.pre_layout_geometry(fg.w_f_m, fg.m), op.vds + op.vsb, op.vsb,
                        js.temp_c)
     assert (ss.cdb, ss.csb) == (jc.cdb, jc.csb)
-    cdb, csb = oracle_junction(op)
+    cdb, csb = oracle_junction(op, w_m=fg.w_f_m, m=fg.m)
     assert rel_close(ss.cdb, cdb, JUNCTION_RTOL) and rel_close(ss.csb, csb, JUNCTION_RTOL)
     assert ss.cdb > 0.0 and ss.csb > 0.0
     assert ss.junction_model == JUNCTION_LUT_RULE == "pdk_bsim4_lut_rule_diffusion"
@@ -462,18 +463,24 @@ def test_sky130_decls_ss_dev_junction_matches_reference(base):
     ss = r.snapshot.value("device", "M1", "ss_dev")
     # 규칙 기하: core 9.4 표 lut_diffusion_* (ad/w = 2.5e-12/5e-6, pd − w = 7e-6 − 5e-6) 를 같은 식으로 따로 계산
     ad_w, pd_x = 2.5e-12 / 5e-6, 7e-6 - 5e-6
-    geo = (LUT_WM, ad_w * LUT_WM, ad_w * LUT_WM, LUT_WM + pd_x, LUT_WM + pd_x, op.W / LUT_WM)
+    fg = r.snapshot.value("device", "M1", "dc_finger")                          # C-2: 접합 인자 = dc_finger (w_f, m)
+    geo = (fg.w_f_m, ad_w * fg.w_f_m, ad_w * fg.w_f_m, fg.w_f_m + pd_x, fg.w_f_m + pd_x, float(fg.m))
     cdb, csb = ref_caps(tj.sky_ref_params("nmos"), geo, op.vds + op.vsb, op.vsb, 27.0)
     assert rel_close(ss.cdb, cdb, JUNCTION_RTOL) and rel_close(ss.csb, csb, JUNCTION_RTOL), (ss.cdb, cdb, ss.csb, csb)
     # 7.2 예의 전제(같은 픽스처 점) -- 같으면 작성자 실측 숫자와도 대조
     assert (op.W, op.vds, op.vsb) == (2.3700841597752005e-05, 0.9, 0.0)
-    assert rel_close(ss.cdb, 1.6192271478167327e-14, JUNCTION_RTOL)
-    assert rel_close(ss.csb, 2.3226455532310698e-14, JUNCTION_RTOL)
+    # [WB-1 C-2 이행] 옛 작성자 실측(cdb 1.6192271478167327e-14, csb 2.3226455532310698e-14, 37 °C cdb 1.6234719737286454e-14)은 비정수 m = W/w_m 기하라 폐기.
+    # 새 값은 dc_finger 정수 (m = 24, w_f = 1 µm: 총 W 24 µm) 로 conftest `ref_caps`(8.2 독립 기준 식, 피검 함수 아님)에서 얻었다: 27 °C cdb 1.6396654687269645e-14,
+    # csb 2.351962610594928e-14, 37 °C cdb 1.6439638739741253e-14. 손 대조: 접합 용량은 면적·둘레 ∝ 총 W 라 옛 값 x (24 / 23.7008) = x 1.01262 -> cdb 1.6397e-14, csb 2.3520e-14
+    # (둘레 항 m·pd_x 의 차이로 1e-4 안 어긋남) 로 일치. oracle (b) 독립 구현.
+    assert (fg.m, fg.w_f_m) == (24, 1e-6)
+    assert rel_close(ss.cdb, 1.6396654687269645e-14, JUNCTION_RTOL)
+    assert rel_close(ss.csb, 2.351962610594928e-14, JUNCTION_RTOL)
     r_t = ss_evaluate(res.lineage.sealed, ctx, theta(), spec.constraints, ("vdd",),
                       junction=dataclasses.replace(js, temp_c=js.temp_c + 10.0))
     cdb_t, _ = ref_caps(tj.sky_ref_params("nmos"), geo, op.vds + op.vsb, op.vsb, 37.0)
     got_t = r_t.snapshot.value("device", "M1", "ss_dev").cdb
-    assert rel_close(got_t, cdb_t, JUNCTION_RTOL) and rel_close(got_t, 1.6234719737286454e-14, JUNCTION_RTOL)
+    assert rel_close(got_t, cdb_t, JUNCTION_RTOL) and rel_close(got_t, 1.6439638739741253e-14, JUNCTION_RTOL)
 
 
 # ---------------------------------------------------------------------------
@@ -626,7 +633,7 @@ def test_s15_rule_equals_spec_declared_value(zc_cell, tmp_path):
 
 def _dc_blocks():
     from gmid_engine import sizing as S
-    return (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
+    return (S.dc_currents, S.dc_lengths, S.dc_solve, S.dc_solve, S.dc_tolerances, S.dc_seal_node_conflict,
             S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_region, S.dc_seal_kvl_branch,
             S.dc_seal_report)
 

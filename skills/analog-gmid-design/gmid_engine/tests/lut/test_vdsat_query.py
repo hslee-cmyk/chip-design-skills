@@ -99,7 +99,7 @@ def test_axis_out_of_range_context(toy_build):
     det = detail_of(ei.value)
     assert (det["reason"], det["axis"], det["lo"], det["hi"]) == ("lut_axis_out_of_range", "VS", 0.0, 0.5)
     assert det["table"] == "slice" and det["kind"] == "nmos" and det["w_key"] == 100
-    m2 = new_memo(toy_build("ax2", cap=r6_toy_cap_arrays()).load())
+    m2 = new_memo(toy_build("ax2", cap=r6_toy_cap_arrays(), empty_bins=True).load())
     with pytest.raises(SealViolationError) as ei:
         vdsat(m2, "nmos", 100, 1e-6, 1.2, 0.5, 0.0)
     det = detail_of(ei.value)
@@ -151,6 +151,9 @@ def test_real_offgrid_matches_independent_linear(real_memo, real_lut, raw_slice)
         while n < 20:
             i = int(rng.integers(0, len(Lg) - 1))
             L = float(Lg[i] + rng.uniform(0.1, 0.9) * (Lg[i + 1] - Lg[i]))
+            g = real_lut.spec.manufacturing_grid_m
+            if round(L / g) in (round(Lg[i] / g), round(Lg[i + 1] / g)):
+                continue            # [WB-1 §1] 격자 정수 비교: 이웃 앵커로 반올림되는 L 은 앵커(비앵커 표본 아님)
             pos = l_weights(Lg, ab, L)
             vgs, vds, vsb = (float(rng.uniform(0.0, 1.8)) for _ in range(3))
             if pos is None:

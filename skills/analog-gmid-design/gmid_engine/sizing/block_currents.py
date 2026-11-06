@@ -4,9 +4,7 @@
 
 * reads `graph.dc_current_basis` 만(노드전압을 읽지 않는다 -- gm/ID 매개화에서 VGS 가 ID 를 포함하지 않는다, DEC-70).
 * extras `theta_currents` = ((원소, A), ...) θ 전류 성분(기저 `free` 와 같은 키, 아니면 `ValueError`).
-* writes `device.dc_current` = 모든 DC 원소 전류(전도 방향 양수) + 잎 가지치기 저항 0.0, `device.dc_drop_current` = 그중
-  저항(가지치기 포함)만 -- 노드전압 블록(`dc_columns`)은 저항 강하에 쓰는 이 필드만 읽는다(MOS·이상원 전류만 바뀐 θ 에서
-  노드전압 블록과 그 하류가 다시 돌지 않게).
+* writes `device.dc_current` = 모든 DC 원소 전류(전도 방향 양수, 저항 포함) + 잎 가지치기 저항 0.0 (WB-1: 저항 강하 전류는 따로 필드를 두지 않고 이 필드를 읽는다).
 * 전도 MOS 전류 ≤ 0(유리수로 정확히 잼)은 θ 정의역(`ThetaSchema.current_cone`) 밖이라 `check_theta` 가 먼저 거부한다.
   이 블록을 정의역 밖 θ 로 직접 부르면 `ValueError`(호출 계약 위반, 후보 실패가 아니다).
 """
@@ -17,7 +15,7 @@ from gmid_engine.core import compute_block
 from .s2_values import DC_CURRENTS_WRITER, DC_KEY
 
 READS = (("graph", "dc_current_basis"),)
-WRITES = (("device", "dc_current"), ("device", "dc_drop_current"))
+WRITES = (("device", "dc_current"),)
 
 
 @compute_block(DC_CURRENTS_WRITER, reads=READS, writes=WRITES)
@@ -34,5 +32,4 @@ def dc_currents(projection):
         raise ValueError("dc_currents: θ 전류가 정의역(전도 MOS 전류 > 0) 밖이다 " + repr(bad))
     currents = {name: float(value) for name, value in exact.items()}
     currents.update({name: 0.0 for name in basis.pruned})
-    drops = {name: currents[name] for name in basis.resistors + basis.pruned}
-    return {("device", "dc_current"): currents, ("device", "dc_drop_current"): drops}
+    return {("device", "dc_current"): currents}

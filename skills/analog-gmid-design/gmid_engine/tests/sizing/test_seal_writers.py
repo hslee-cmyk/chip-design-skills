@@ -19,7 +19,7 @@ def test_pass(ev_c):
 
 def test_rail_with_dc_v(ctx_c):
     snap, _ = eval_calls(ctx_c[2], theta_c())
-    bad = tamper(snap, "dc_columns", "node", "dc_v", {"vdd": 1.8})
+    bad = tamper(snap, "dc_solve", "node", "dc_v", {"vdd": 1.8})
     item = seal_writers(bad)
     assert item.status == "fail"
     assert "vdd" in item.nodes and set(item.nodes) == {"vdd"}
@@ -36,7 +36,7 @@ def test_node_without_value(ctx_c):
     snap, _ = eval_calls(ctx_c[2], theta_c())
     col = column_dict(snap, "node", "dc_v")
     del col["pb"]
-    bad = snap.write("dc_columns", "tampered", {("node", "dc_v"): col})
+    bad = snap.write("dc_solve", "tampered", {("node", "dc_v"): col})
     item = seal_writers(bad)
     assert item.status == "fail" and set(item.nodes) == {"pb"}
 

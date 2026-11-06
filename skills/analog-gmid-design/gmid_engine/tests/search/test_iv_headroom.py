@@ -117,7 +117,7 @@ def test_headroom_lower_bound_is_the_vdsat_curve_crossing_without_tol_terms(swin
 
 def test_headroom_without_vdsat_column_is_an_inactive_row_not_a_substitute_bound(tmp_path):
     from metrics.gb4_hand import write_lut
-    lut = write_lut(tmp_path / "lut")                                         # VDSAT 열 없는 같은 해석식 toy
+    lut = write_lut(tmp_path / "lut", cdd=True)                               # VDSAT 열 없는 같은 해석식 toy (+ [WB-1 E-18] CDD 열: 없으면 시작 경로가 CDD 로 거부)
     case = build(tmp_path / "case", lut, toy_env().decls, cascode_cs(pmos_cascode=True), elements=ELS,
                  constraints=(("swing_out_v", ">=", 1.2),))
     rows = rows_by_name(case.start)

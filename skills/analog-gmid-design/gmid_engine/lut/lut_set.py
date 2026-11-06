@@ -29,11 +29,12 @@
   `lut_column_unavailable` 로 실패한다, 조용히 대체하지 않는다). 기준 LUT meta 의 부호 규약 문장과 `L_source` 를 표에 싣는다
   (용량 열은 부호 보존 값 그대로 -- 로그·절댓값을 쓰지 않는다). 기준 LUT 폭 키(`CapTable.w_key`)는 슬라이스와 같은 폭 키
   규칙(`_helpers_width`)으로 정하고, bin 지도·열 출처 판정은 float 폭이 아니라 이 키로 같은 폭을 찾는다.
-* [r6] 검증 중점 파일(`verify_midpoints`, 선택): 슬라이스와 같은 VGS·VDS·VS 축, 같은 측정 조건, meta `L_source` 에 sha256
-  (승인 L 파일), 기준 LUT meta 에 `L_source` sha256 이 있으면 같은 값 -- 아니면 거부. kind 마다 `MidpointTable`.
+* [LM-1e] 검증 중점 파일(`verify_midpoints`, 파일 sequence, 선택): 파일마다 짝 슬라이스 하나(`lut_provenance` 관문 G0~G4c), 여기서 G5~G7b -- 짝 슬라이스와
+  같은 측정 조건(corner·temp_c)·VGS·VDS·VS 축(float 그대로), 필수 열 `ID`·`GM`(선택 `VDSAT`)이 `[len(L), VGS, VDS, VS]` 모양. (kind, w_key) 마다
+  `MidpointTable`. 적재 거부(D7, 계획 N6.40 LM-1e 2): `widths(lut, kind)` 슬라이스마다 앵커 2개 bin 에 그 슬라이스 중점 L 이 두 앵커 사이인 것이 없으면
+  `bin_missing_external`(판별 = `_helpers_bins.midpoint_bracket`, 상태 이름 = `_helpers_loo.l_loo_report`).
 """
 import json
-import math
 import re
 import types
 
@@ -41,10 +42,11 @@ import numpy as np
 
 from gmid_engine.core import sorted_items
 
-from ._helpers_bins import bin_index
+from ._helpers_bins import bin_index, midpoint_bracket
 from ._helpers_fail import schema_rejected
 from ._helpers_grids import npz_grids
 from ._helpers_interp import HERMITE_DEGREE, VS_SLOPE_COLUMN
+from ._helpers_loo import MISSING_EXTERNAL, MISSING_EXTERNAL_BIN, l_interior, l_loo_report
 from ._helpers_width import width_key
 from .fingerprint import lut_fingerprint
 from .lut_types import (
@@ -61,6 +63,7 @@ from .lut_types import (
 from .mismatch_set import load_mismatch_tables
 from .noise_set import load_noise_tables
 from .provenance import lut_provenance
+from .widths import widths
 
 BIN_KEYS = ("lmin", "lmax", "wmin", "wmax")
 NO_BINS = LBinMap((), None, (), ())
@@ -84,7 +87,7 @@ def _bin_blocks(path):
     return tuple(out)
 
 
-def _l_bin_map(src, l_grid, parsed):
+def _l_bin_map(src, l_grid, parsed, grid_m, rule):
     """슬라이스 `src` 의 `LBinMap`. `parsed` = 이 로드의 {모델 경로: bin 블록} (같은 파일 1회 파싱)."""
     blocks = []
     for _, path in src.model_paths:
@@ -94,15 +97,15 @@ def _l_bin_map(src, l_grid, parsed):
     if not blocks:
         return NO_BINS
     w_rows = sorted({(b[3], b[4]) for b in blocks})
-    j = bin_index(w_rows, src.w_m)
+    j = bin_index(w_rows, src.w_m, grid_m, rule)
     if j is None:
         raise schema_rejected("lut_model_bins_no_width", path=src.path, w_m=src.w_m)
     row = sorted((b[1], b[2], b[0]) for b in blocks if (b[3], b[4]) == w_rows[j])
     for (_, hi_a, name_a), (lo_b, _, name_b) in zip(row, row[1:]):
-        if lo_b < hi_a and abs(hi_a - lo_b) > math.ulp(lo_b):
+        if round(lo_b / grid_m) < round(hi_a / grid_m):
             raise schema_rejected("lut_model_bins_overlap", path=src.path, w_m=src.w_m, models=(name_a, name_b))
     intervals = tuple((lo, hi) for lo, hi, _ in row)
-    anchor_bin = tuple(bin_index(intervals, L) for L in l_grid)
+    anchor_bin = tuple(bin_index(intervals, L, grid_m, rule) for L in l_grid)
     if None in anchor_bin:
         raise schema_rejected("lut_l_anchor_outside_model_bins", path=src.path, w_m=src.w_m,
                               L=float(l_grid[anchor_bin.index(None)]))
@@ -179,7 +182,7 @@ def _check_units(path, grids, log_id, pairs):
             raise schema_rejected("lut_unit_mismatch", path=path, column=name, cells_outside=n_out, cells=n_use)
 
 
-def _build_slice(src, grids, parsed):
+def _build_slice(src, grids, parsed, grid_m, rule):
     with np.load(src.path) as npz:
         if npz_grids(npz) != grids:
             raise schema_rejected("lut_slice_axes_mismatch", path=src.path)
@@ -216,7 +219,7 @@ def _build_slice(src, grids, parsed):
         _readonly(raw_id), _readonly(vth), on_mask, log_id, log_gm, log_gds,
         (("GDS", floor_gds), ("GM", floor_gm), ("ID", floor_id)),
         (("GDS", np_gds), ("GM", np_gm), ("ID", np_id)),
-        _l_bin_map(src, grids[0], parsed),
+        _l_bin_map(src, grids[0], parsed, grid_m, rule),
         vds_slope_ok, fc_vgs, fc_vds, (("VDS", n_vds, bad_vds), ("VGS", n_vgs, bad_vgs), ("VS", n_vs, bad_vs)),
         columns, vs_slope_ok, fc_vs,
     )
@@ -322,72 +325,83 @@ def _build_caps(spec, cap_path, cap_sha256, grids, slices_by_kind):
     return caps
 
 
-def _midpoint_tables(spec, prov, grids, slice_conditions, caps):
-    """검증 중점 파일 -> {kind: MidpointTable}(lut/CONTRACT.md 1.7). 축·조건·L 출처·폭·열 검사(거부 = SchemaRejectedError)."""
-    path = prov.midpoints_path
-    l_source = dict(prov.midpoints_l_source)
-    if not l_source.get("sha256"):
-        raise schema_rejected("lut_midpoints_l_source_unrecorded", path=path, l_source=prov.midpoints_l_source)
-    for kind, cap in sorted(caps.items()):
-        cap_sha = dict(cap.l_source).get("sha256")
-        if cap_sha and cap_sha != l_source["sha256"]:
-            raise schema_rejected("lut_midpoints_l_source_mismatch", path=path, kind=kind, cap=cap_sha,
-                                  midpoints=l_source["sha256"])
-    mid_cond = dict(prov.midpoints_conditions)
-    if mid_cond.get("recorded"):
-        for key in ("corner", "temp_c"):
-            if key in mid_cond and mid_cond.get(key) != slice_conditions.get(key):
-                raise schema_rejected("lut_conditions_mismatch", key=key, midpoints=mid_cond.get(key),
-                                      slices=slice_conditions.get(key))
-    suffix = dict(spec.cap_column_suffix)
+_MID_REQUIRED = ("ID", "GM")
+_MID_OPTIONAL = ("VDSAT",)
+_CONDITION_KEYS = ("corner", "temp_c")
+
+
+def _midpoint_tables(prov, grids):
+    """검증 중점 파일 -> {(kind, w_key): MidpointTable}(lut/CONTRACT.md 1.7). 관문 G5~G7b(G0~G4c = `lut_provenance`): G5 corner·temp_c ≠ 짝 슬라이스
+    `lut_conditions_mismatch`(detail key), G6 축 ≠ 슬라이스 축 `lut_midpoints_axes_mismatch`, G7 필수 열 없음 `lut_midpoints_column_missing`,
+    G7b 열 모양 `lut_midpoints_shape_mismatch`(위에서 아래로 첫 맞는 행, 거부 = SchemaRejectedError)."""
+    slice_cond = {(s.kind, s.w_key): dict(s.conditions) for s in prov.slices}
     out = {}
-    with np.load(path) as npz:
-        mid_grids = npz_grids(npz)
-        if mid_grids[1:] != grids[1:]:
-            raise schema_rejected("lut_midpoints_axes_mismatch", path=path)
-        if "w_ref_m" not in npz.files:
-            raise schema_rejected("lut_midpoints_width_missing", path=path)
-        w_m = float(npz["w_ref_m"])
-        w_key, on_grid = width_key(w_m, spec.manufacturing_grid_m)
-        if not on_grid:
-            raise schema_rejected("lut_width_off_grid", path=path, w_m=w_m, grid_m=spec.manufacturing_grid_m)
-        shape = tuple(len(g) for g in mid_grids)
-        for kind in sorted(caps):
-            arrays = {}
-            for name in ("ID", "GM", "VDSAT"):
-                key = name + suffix[kind]
-                if key not in npz.files:
-                    if name == "VDSAT":
-                        continue
-                    raise schema_rejected("lut_midpoints_column_missing", path=path, kind=kind, column=key)
-                arrays[name] = np.asarray(npz[key], dtype=float)
-                if arrays[name].shape != shape:
-                    raise schema_rejected("lut_midpoints_shape_mismatch", path=path, column=key)
-            on = (arrays["ID"] > 0) & (arrays["GM"] > 0)
-            on.setflags(write=False)
-            positive = arrays["ID"] > 0
-            safe_id = np.where(positive, arrays["ID"], 1.0)
-            log_id = _readonly(np.where(positive, np.log(safe_id), np.nan))
-            gm_id = _readonly(np.where(positive, arrays["GM"] / safe_id, np.nan))
-            vdsat = _readonly(arrays["VDSAT"]) if "VDSAT" in arrays else None
-            out[kind] = MidpointTable(kind, prov.midpoints_sha256, w_m, w_key, mid_grids[0], mid_grids[1:],
-                                      log_id, gm_id, on, vdsat)
+    for src in prov.midpoint_sources:
+        slices = slice_cond[(src.kind, src.w_key)]
+        mid = dict(src.conditions)
+        for key in _CONDITION_KEYS:
+            if mid.get(key) != slices.get(key):
+                raise schema_rejected("lut_conditions_mismatch", path=src.path, key=key, midpoints=mid.get(key), slices=slices.get(key))
+        with np.load(src.path) as npz:
+            if not all(axis in npz.files for axis in AXES) or npz_grids(npz)[1:] != grids[1:]:
+                raise schema_rejected("lut_midpoints_axes_mismatch", path=src.path)
+            mid_grids = npz_grids(npz)
+            for name in _MID_REQUIRED:
+                if name not in npz.files:
+                    raise schema_rejected("lut_midpoints_column_missing", path=src.path, kind=src.kind, column=name)
+            shape = tuple(len(g) for g in mid_grids)
+            arrays = {name: np.asarray(npz[name], dtype=float) for name in _MID_REQUIRED + _MID_OPTIONAL if name in npz.files}
+        for name, arr in arrays.items():
+            if arr.shape != shape:
+                raise schema_rejected("lut_midpoints_shape_mismatch", path=src.path, column=name)
+        on = (arrays["ID"] > 0) & (arrays["GM"] > 0)
+        on.setflags(write=False)
+        positive = arrays["ID"] > 0
+        safe_id = np.where(positive, arrays["ID"], 1.0)
+        log_id = _readonly(np.where(positive, np.log(safe_id), np.nan))
+        gm_id = _readonly(np.where(positive, arrays["GM"] / safe_id, np.nan))
+        vdsat = _readonly(arrays["VDSAT"]) if "VDSAT" in arrays else None
+        out[(src.kind, src.w_key)] = MidpointTable(src.kind, src.sha256, src.w_m, src.w_key, mid_grids[0], mid_grids[1:],
+                                                   log_id, gm_id, on, vdsat)
     return types.MappingProxyType(out)
 
 
-def load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None, noise_npz=None,
+def _require_midpoints(lut):
+    """D7 적재 거부(계획 N6.40 LM-1e 2, 사용자 결정 O-246 D7): `widths(lut, kind)` 슬라이스마다 앵커 2개 bin 에 그 슬라이스 자기 중점 L 이 두 앵커 사이인 것이
+    하나 이상이어야 한다 -- 없으면 `SchemaRejectedError` `bin_missing_external`(detail kind, w_key, models = 없는 bin `.model` 이름 정렬). (kind, w_key) 오름차순 첫
+    실패에서 낸다. `widths` 밖 폭은 보지 않는다. 판별 = `midpoint_bracket`, 앵커 2개 bin 의 외부 값 유무 상태 = `l_loo_report`(둘째 정의 0)."""
+    grid_m, rule = lut.spec.manufacturing_grid_m, lut.bin_rule
+    for kind in sorted({k for (k, _w) in lut.slice_map}):
+        for w_key in widths(lut, kind):
+            sl = lut.slice_map[(kind, w_key)]
+            mt = lut.midpoints.get((kind, w_key))
+            external = {}
+            for L_m in () if mt is None else mt.L_points:
+                b, reason = midpoint_bracket(sl.grids[0], sl.l_bins, L_m, grid_m, rule)
+                if reason is None:
+                    external[sl.l_bins.bins[b].model] = None
+            _anchors, per_bin, _rows = l_loo_report(sl.l_bins, l_interior(sl.l_bins, len(sl.grids[0])), external, "load_lut_set")
+            missing = tuple(sorted(model for model, _members, status in per_bin if status == MISSING_EXTERNAL_BIN))
+            if missing:
+                raise schema_rejected(MISSING_EXTERNAL, kind=kind, w_key=w_key, models=missing)
+
+
+def load_lut_set(manifest_path, cap_npz_path, spec, *, bin_rule, pdk_root=None, verify_midpoints=None, noise_npz=None,
                  mismatch_npz=None):
     """manifest(슬라이스 목록)·기준 LUT 경로와 `LutSpec` 으로 불변 `LutSet` 을 만든다.
 
-    `pdk_root`: 모델 파일을 찾을 PDK 루트(None = 슬라이스 meta 의 절대 경로). `verify_midpoints`: bin 검증 중점 npz(선택 --
-    주면 tol 표의 앵커 2개 bin 외부 값 원천, lut/CONTRACT.md 5.1). [r7] `noise_npz`·`mismatch_npz`: 잡음 r1·mismatch 감도 r1 npz(선택,
+    `bin_rule`(필수 키워드): bin 규칙 선언 파일 경로(`LutLocation.bin_rule_path`, 스키마 `lut_bin_rule/1`, 기본값 없음 --
+    `bin_rule=None`·파일 없음은 거부). 세트(슬라이스·cap·noise·mismatch)의 모델 파일·시뮬레이터 판 기록이 선언 안이어야 하고 어긋나면
+    `bin_tie_undeclared`(`provenance.py`). 선언의 `rule` 이 bin 경계 소속(`bin_index`)을 정한다.
+    `pdk_root`: 모델 파일을 찾을 PDK 루트(None = 슬라이스 meta 의 절대 경로). `verify_midpoints`: bin 검증 중점 npz 경로 sequence(선택,
+    문자열 하나 -> `TypeError` -- 주면 tol 표의 앵커 2개 bin 외부 값 원천, lut/CONTRACT.md 5.1; `widths` 슬라이스에 중점이 없으면 `bin_missing_external`). [r7] `noise_npz`·`mismatch_npz`: 잡음 r1·mismatch 감도 r1 npz(선택,
     기준 LUT 에 묶임 -- 9.1·10.1; `LutSet.noise`·`LutSet.mismatch`).
     실패(전부 `SchemaRejectedError`, detail.reason 은 CONTRACT.md 1.3·1.4·1.7): manifest·파일 없음, sha256 불일치,
     선언 밖 소자, 폭이 제조 격자 밖, (kind, 폭 키) 중복, 축·형상 불일치, 측정 조건 불일치, 양수 원소 없는 배열,
     용량 열·kind 접미사 없음, 용량 기준 폭 미확정, 모델 파일(bin 지도 원천) 없음·불일치·bin 블록 결함, 중점 파일 결함.
     """
-    prov = lut_provenance(manifest_path, cap_npz_path, spec, pdk_root=pdk_root, verify_midpoints=verify_midpoints,
-                          noise_npz=noise_npz, mismatch_npz=mismatch_npz)
+    prov = lut_provenance(manifest_path, cap_npz_path, spec, bin_rule=bin_rule, pdk_root=pdk_root,
+                          verify_midpoints=verify_midpoints, noise_npz=noise_npz, mismatch_npz=mismatch_npz)
     conditions = {s.conditions for s in prov.slices}
     if len(conditions) != 1:
         raise schema_rejected("lut_conditions_mismatch", conditions=tuple(sorted(conditions)))
@@ -401,18 +415,17 @@ def load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_mid
     with np.load(prov.slices[0].path) as npz:
         grids = npz_grids(npz)
     parsed = {}
-    slices = [_build_slice(src, grids, parsed) for src in prov.slices]
+    slices = [_build_slice(src, grids, parsed, spec.manufacturing_grid_m, prov.bin_rule) for src in prov.slices]
     by_kind = {}
     for s in slices:
         by_kind.setdefault(s.kind, []).append(s)
     caps = _build_caps(spec, prov.cap_path, prov.cap_sha256, grids, by_kind)
     cap_basis = tuple((kind, caps[kind].w_ref_m, caps[kind].basis) for kind in sorted(caps))
     fp = lut_fingerprint(prov, cap_basis)
-    midpoints = (types.MappingProxyType({}) if prov.midpoints_path is None
-                 else _midpoint_tables(spec, prov, grids, slice_cond, caps))
+    midpoints = _midpoint_tables(prov, grids)
     noise = types.MappingProxyType({}) if prov.noise_path is None else load_noise_tables(spec, prov, caps)
     mismatch = types.MappingProxyType({}) if prov.mismatch_path is None else load_mismatch_tables(spec, prov, caps)
-    return LutSet(
+    lut = LutSet(
         spec, prov,
         types.MappingProxyType({(s.kind, s.w_key): s for s in slices}),
         types.MappingProxyType(caps),
@@ -421,3 +434,5 @@ def load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_mid
         noise,
         mismatch,
     )
+    _require_midpoints(lut)
+    return lut

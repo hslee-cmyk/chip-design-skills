@@ -167,8 +167,9 @@ def metrics_aux(projection):
             if mismatch is None:
                 cache["sigma"] = None
             else:
-                rows = tuple((m.label, ops[m.label].kind, ops[m.label].w_key, ops[m.label].L, ops[m.label].W, ops[m.label].vgs,
-                              ops[m.label].vds, ops[m.label].vsb) for m in mos if m.label in ops)      # `off` 선언 소자는 dc_op 가 없다 -- σ 행이 없어 offset 계열은 `sigma_missing` 정의 불가
+                rows = tuple((m.label, ops[m.label].kind, lut.memo.lut.cap_map[ops[m.label].kind].w_key, ops[m.label].L, ops[m.label].W, ops[m.label].vgs,
+                              ops[m.label].vds, ops[m.label].vsb, lut.memo.lut.slice_map[(ops[m.label].kind, ops[m.label].w_key)].w_m)
+                             for m in mos if m.label in ops)      # `off` 선언 소자는 dc_op 가 없다 -- σ 행이 없어 offset 계열은 `sigma_missing` 정의 불가. w_f = 소자 슬라이스 폭(= dc_finger.w_f_m, 레이아웃 뒤 평가도 같다)
                 cache["sigma"] = device_sigmas(lut, mismatch, rows)
         return cache["sigma"]
 

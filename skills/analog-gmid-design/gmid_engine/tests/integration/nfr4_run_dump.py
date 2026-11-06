@@ -332,22 +332,21 @@ def main(argv=None):
     from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
     from gmid_engine.pipeline import run_stage_a, run_stage_b
     from gmid_engine.search import SearchSettings, build_search_context, find_front, open_run
-    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, LutAccess
 
     loc = resolve_lut_location(str(SKILL / "assets" / "lut_v2_location.json"), os.environ)
     man = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
     kinds = dict(DEVICE_KINDS)
-    mins = {}
-    for e in man["slices"]:
-        mins[kinds[e["device"]]] = min(e["w_um"] * 1e-6, mins.get(kinds[e["device"]], float("inf")))
+    from pdk_min_w import min_finger_w_m
+    mins = min_finger_w_m(kinds.values())      # PDK 선언 양(card 20261104-wb1)
     dm = BoundedLRU(16)
     pdk = read_pdk_decl(str(SKILL / "assets" / "sky130_pdk_decl.json"), dm)
     q = dict(pdk.quantities)
     grid = float(man.get("manufacturing_grid_m", 5e-9))
     spec = LutSpec(grid, tuple(sorted(mins.items())), DEVICE_KINDS, CAP_SUFFIX,
                    noise_ef=(("nmos", q["noise_ef_nmos"].value_m), ("pmos", q["noise_ef_pmos"].value_m)))
-    lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path,
-                       noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path)
+    lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths,
+                       noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path, bin_rule=loc.bin_rule_path)
     rule = read_pdk_decl(str(SKILL / "assets" / "sky130_lut_rule_decl.json"), dm)
     settings = SearchSettings(a_.front_budget_s, a_.eval_budget, (1e2, 1e5), (("front_budget_s", "nfr4 run harness"),), (1e-13, 1e-10))
     note("lut loaded")
@@ -397,7 +396,7 @@ def main(argv=None):
     snapshot = None
     if (a.status, b.status) == ("ok", "ok"):
         record["searched"] = True
-        kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo), donors=a.donors, counters=a.counters)
+        kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), LutAccess(memo), donors=a.donors, counters=a.counters)
         s3 = work / "s3"
         s3.mkdir(exist_ok=True)
         sctx = build_search_context(kctx, a.spec, settings, str(s3), pdk, rule, code_fp=a.code_fp)

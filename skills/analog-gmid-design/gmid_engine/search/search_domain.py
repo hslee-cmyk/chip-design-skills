@@ -45,7 +45,7 @@ _PDK_QUANTITIES = ("manufacturing_grid_m", "min_finger_w_m")   # PDK 선언 이�
 
 
 def _ln_idu_envelope(lut_access, kind):
-    w_key = dict(lut_access.w_keys)[kind]
+    w_key = lut_access.memo.lut.cap_map[kind].w_key
     sl = lut_access.memo.lut.slice_map[(kind, w_key)]
     ln_l = np.log(np.asarray(sl.grids[0], dtype=float))[:, None, None, None]
     ln_idu = np.asarray(sl.log_ID) + ln_l - math.log(sl.w_m)

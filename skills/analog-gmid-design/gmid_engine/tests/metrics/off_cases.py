@@ -21,7 +21,8 @@ from gmid_engine.graph import build_s1
 from gmid_engine.metrics import metric_catalog, ss_evaluate
 from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, size_and_seal
 
-from sizing.conftest import I0, LAM, W_M, kschema, r4_arrays, r4_ln_idu, write_r4_lut
+from sizing.conftest import I0, LAM, W_M, kschema, r4_arrays, r4_ln_idu
+from sizing.wb1_toy import write_r4_bins_lut
 
 from .conftest import fresh_run, lut_access, multilinear, spec_json, toy_junction, topo_doc
 
@@ -126,7 +127,8 @@ def build_case(tmp, topo, regions, theta_fn, rails=None, elements=None, constrai
     spec = load_sizing_spec(str(sp), td, metric_catalog())
     inputs = dc_inputs_from_spec(spec)
     run = fresh_run()
-    lut = write_r4_lut(tmp / "lut")
+    # [WB-1 §7] off 소자의 w_m 은 LUT 슬라이스 폭이어야 한다(아니면 slice_missing). 슬라이스 {1 µm, 2 µm}(같은 IDu·gm/ID 열, 폭 비례 ID·GM·GDS)로 모든 off toy 의 w_m 을 덮는다.
+    lut = write_r4_bins_lut(tmp / "lut", widths=(W_M, 2 * W_M))[0]
     ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, lut_access(lut), **run)
     theta = theta_fn(ctx)
     ev = size_and_seal(ctx, theta)

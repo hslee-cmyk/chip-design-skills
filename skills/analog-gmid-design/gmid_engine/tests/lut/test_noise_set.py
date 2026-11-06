@@ -53,7 +53,8 @@ def test_provenance_and_fingerprint(tmp_path):
     """CONTRACT 1.3·1.5 [r7]: 잡음 파일 경로·sha256 이 provenance 에 실리고 지문이 바뀐다. 같은 파일을 다른 폴더로 옮기면 같은 지문."""
     t = _toy(tmp_path)
     lut = t.load()
-    lut0 = load_lut_set(str(t.build.manifest), str(t.build.cap), TOY_NOISE_SPEC)
+    lut0 = load_lut_set(str(t.build.manifest), str(t.build.cap), TOY_NOISE_SPEC, bin_rule=t.build.bin_rule,
+                        pdk_root=t.build.tb.pdk_root)
     assert lut.provenance.noise_sha256 == sha256_file(t.path)
     assert lut0.provenance.noise_sha256 is None and lut0.provenance.noise_path is None
     assert lut0.noise == {} or len(lut0.noise) == 0
@@ -61,7 +62,8 @@ def test_provenance_and_fingerprint(tmp_path):
     moved = tmp_path / "moved"
     shutil.copytree(t.root, moved)
     lut2 = load_lut_set(str(moved / "manifest.json"), str(moved / "cap_ref.npz"), TOY_NOISE_SPEC,
-                        noise_npz=str(moved / "noise_r1.npz"))
+                        noise_npz=str(moved / "noise_r1.npz"), bin_rule=str(moved / "bin_rule.json"),
+                        pdk_root=str(moved / "pdk"))
     assert lut2.fp == lut.fp
 
 

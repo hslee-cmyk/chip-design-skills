@@ -53,7 +53,7 @@ def _gain_inputs(p, views, lut, constraints):
     total = float(sum(b.a_max_db for b in gain.blocks))
     goal = max(float(v) for m, op, v in constraints if m == _METRIC_GAIN and op == ">=")
     blocks = tuple((block_spec(view, block, local), goal * bound.a_max_db / total) for block, bound in zip(view.blocks, gain.blocks))
-    return GainInputs(local, ParamTables(lut.memo, local.w_keys, local.grids), blocks), ()
+    return GainInputs(local, ParamTables(lut.memo, local.grids, "upper", "max"), blocks), ()
 
 
 def start_view(projection, spec, inputs, pdk_decl, lut):
@@ -71,7 +71,6 @@ def start_view(projection, spec, inputs, pdk_decl, lut):
     for name in classes:
         component = (THETA_L, class_owner.get(name, name))
         owner[name] = rep_of.get(component, component)[1]
-    w_keys = dict(lut.w_keys)
     coord = dict(p.column("device", "dc_coord"))
 
     def group_root(name):
@@ -81,7 +80,7 @@ def start_view(projection, spec, inputs, pdk_decl, lut):
             name = coord[name].partner
         return name
 
-    devices = tuple(DeviceInfo(name, kinds[name], w_keys[kinds[name]], pins[name]["d"], pins[name]["g"], pins[name]["s"], bulk.get(name),
+    devices = tuple(DeviceInfo(name, kinds[name], lut.memo.lut.cap_map[kinds[name]].w_key, pins[name]["d"], pins[name]["g"], pins[name]["s"], bulk.get(name),
                                owner.get(name, name), colour[name], group_root(name))
                     for name in sorted((n for n, c in classes.items() if c == ELEMENT_MOS and n in coord), key=lambda n: (colour[n], n)))      # 쓰기 계획이 연 MOS(`off` 선언 소자는 계획에 없다)
     rails = frozenset(net for net, flag in p.column("node", "is_rail") if flag)
@@ -104,4 +103,4 @@ def start_view(projection, spec, inputs, pdk_decl, lut):
         {n: d for n, d in p.column("node", "port_direction") if d is not None},
         {n: r for n, r in p.column("node", "port_role") if r is not None},
         {v.component: ((math.exp(v.lo), math.exp(v.hi)) if v.log else (v.lo, v.hi)) for v in domain.variables},
-        {k: current_box(lut, k) for k in sorted({d.kind for d in devices})}, domain.w_min_m, pdk_decl, lut.memo, w_keys, *gain_inputs, {})
+        {k: current_box(lut, k) for k in sorted({d.kind for d in devices})}, domain.w_min_m, pdk_decl, lut.memo, *gain_inputs, {})

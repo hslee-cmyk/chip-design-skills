@@ -40,12 +40,14 @@ def test_toy_loads(tmp_path):
 def test_fingerprint_includes_mismatch_and_is_path_free(tmp_path):
     t = MismatchToy(tmp_path / "m", _dv())
     lut = t.load()
-    lut0 = load_lut_set(str(t.build.manifest), str(t.build.cap), TOY_SPEC)
+    lut0 = load_lut_set(str(t.build.manifest), str(t.build.cap), TOY_SPEC, bin_rule=t.build.bin_rule,
+                        pdk_root=t.build.tb.pdk_root)
     assert lut.fp != lut0.fp
     moved = tmp_path / "moved"
     shutil.copytree(t.root, moved)
     lut2 = load_lut_set(str(moved / "manifest.json"), str(moved / "cap_ref.npz"), TOY_SPEC,
-                        mismatch_npz=str(moved / "mismatch_r1.npz"))
+                        mismatch_npz=str(moved / "mismatch_r1.npz"), bin_rule=str(moved / "bin_rule.json"),
+                        pdk_root=str(moved / "pdk"))
     assert lut2.fp == lut.fp
 
 

@@ -25,17 +25,17 @@ from gmid_engine.convergence import (
     Relaxation,
 )
 
-ENTRY_POINTS = ("layout_input_of", "effective_placement", "kernel_keys", "key_exclusion", "layout_score", "realized_geometry",
+ENTRY_POINTS = ("layout_input_of", "effective_placement", "key_exclusion", "realized_geometry",
                 "w_loop_bound", "junction_change", "relaxation_decision", "relaxation_records", "refilter", "admit_candidates",
-                "alternation_bound", "place_layout", "converge_point", "converge")          # CONTRACT 0절 표 진입점 16개
+                "alternation_bound", "place_layout", "converge_point", "converge")          # CONTRACT 0절 표 진입점 14개 (WB-1: kind 키 운반 `kernel_` + `keys` 삭제, `layout_score` 삭제로 16 -> 14)
 
 
 def fields(cls):
     return [f.name for f in dataclasses.fields(cls)]
 
 
-def test_public_api_has_16_entry_points_and_records():
-    assert len(ENTRY_POINTS) == 16
+def test_public_api_has_14_entry_points_and_records():
+    assert len(ENTRY_POINTS) == 14
     for name in ENTRY_POINTS:
         assert name in conv.__all__ and callable(getattr(conv, name))
     for name in ("ConvergedFront", "ConvergedPoint", "DroppedPoint", "Iteration", "JunctionChange", "Placement", "PlacedLayout",
@@ -61,8 +61,8 @@ def test_record_fields_follow_contract():
     assert fields(Relaxation) == ["gid", "role", "members", "reason", "attempts", "outcome", "pattern", "dx", "dy", "ok"]
     # CONTRACT 9절 DroppedPoint(id, 사유, by)
     assert fields(DroppedPoint) == ["point_id", "reason", "by"]
-    # CONTRACT 7절 PlacedLayout 의 layout_calls·narrowed, 9절 ConvergedFront 결과 필드
-    assert {"layout_calls", "narrowed", "relaxed", "first_seen", "placements", "unplaced", "keys", "pdk"} <= set(fields(PlacedLayout))
+    # CONTRACT 7절 PlacedLayout (WB-1: 좁히기 칸 narrowed·kind 키 칸 keys 삭제), 9절 ConvergedFront 결과 필드
+    assert fields(PlacedLayout) == ["layout", "undelivered", "placements", "unplaced", "pdk", "relaxed", "first_seen", "layout_calls"]
     assert {"front", "dropped", "nonconverged", "points", "rounds", "k_alt", "admitted", "perf", "notes"} == set(fields(ConvergedFront))
     # CONTRACT 7절 ConvergedPoint 결과 필드
     assert {"result", "layout", "geometry", "layout_area_m2", "search_area_m2", "power_w", "power_resolution_w", "iterations",

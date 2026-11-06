@@ -40,11 +40,13 @@ def _ctx_ok(name, det):
 @pytest.mark.parametrize("name", sorted(CALLS))
 @pytest.mark.parametrize("L,below,above", [
     (1.5e-6, 1e-6, 2e-6),                     # 계약 7절
-    (1e-6 + 2 * ULP, 1e-6, 2e-6),             # 계약 7절: 2 ulp 는 실패
+    (1e-6 + 1e-8, 1e-6, 2e-6),                # [WB-1] 옛 '2 ulp' 행: 한 격자 간격 위(정수 101 != 앵커 100)는 앵커 아님
     (2.9e-6, 2e-6, 3e-6),
-    (math.nextafter(3e-6, 0.0) - 2 * math.ulp(3e-6), 2e-6, 3e-6),
+    (3e-6 - 1e-8, 2e-6, 3e-6),                # [WB-1] 옛 '2 ulp 아래' 행: 한 격자 간격 아래(정수 299 != 300)
 ])
-def test_non_anchor_rejected(toy_memo, name, L, below, above):
+def test_non_anchor_rejected(toy_empty_memo, name, L, below, above):
+    # [WB-1 §4] 앵커 전용(빈 지도) toy = bin 블록 없는 합성 모델 파일(`toy_empty_memo`)
+    toy_memo = toy_empty_memo
     with pytest.raises(SealViolationError) as ei:
         CALLS[name](toy_memo, L)
     det = detail_of(ei.value)
@@ -123,7 +125,13 @@ def test_real_non_anchor_midpoints(real_lut, raw_slice, ngspice_bins, kind, devi
     q = ngspice_bins.query(device, [(W, um(a)) for a in L] + [(W, um(m)) for m in mids])
     ga, gm = q[:len(L)], q[len(L):]
     seen = set()
+    g = real_lut.spec.manufacturing_grid_m
     for i, mid in enumerate(mids):
+        if round(mid / g) in (round(L[i] / g), round(L[i + 1] / g)):
+            # [WB-1 §1] 격자 정수 비교: 이웃 앵커가 한 격자 간격이면 중점이 앵커로 반올림된다 -> 두 앵커 중 하나의 값
+            got = op_point(memo, kind, 1000, mid, 0.9, 0.9, 0.0)
+            assert got in (op_point(memo, kind, 1000, L[i], 0.9, 0.9, 0.0), op_point(memo, kind, 1000, L[i + 1], 0.9, 0.9, 0.0))
+            continue
         if same_bounds(ga[i], ga[i + 1]):
             op = op_point(memo, kind, 1000, mid, 0.9, 0.9, 0.0)
             exp = expected_op(z, mid, 0.9, 0.9, 0.0)
@@ -173,7 +181,8 @@ def test_edge_anchor_one_ulp_outside_accepted(toy_memo, name, edge, a, sign):
 @pytest.mark.parametrize("name", sorted(CALLS))
 @pytest.mark.parametrize("edge,a,sign", EDGES)
 def test_edge_two_ulp_outside_rejected(toy_memo, name, edge, a, sign):
-    L = a + sign * 2 * math.ulp(a)
+    # [WB-1 §1 격자 정수 비교] 옛 '2 ulp 밖' -> 한 격자 간격 밖(round(L/g) != 양끝 앵커 정수 -> 축 밖). 2 ulp 는 앵커로 받아들인다(위 test)
+    L = a + sign * 1e-8
     with pytest.raises(SealViolationError) as ei:
         CALLS[name](toy_memo, L)
     det = detail_of(ei.value)
@@ -201,10 +210,10 @@ def test_edge_one_ulp_shares_memo_key(toy, edge, a, sign):
 def test_edge_tol_v_at(toy_memo, edge, a, sign):
     from gmid_engine.lut import tol_v_table
     t = tol_v_table(toy_memo, "nmos", 100)
-    for metric in ("gm_id_inverse", "id_equivalent"):
+    for metric in ("id_equivalent",):
         assert t.at(a + sign * math.ulp(a), 0.75, metric) == t.at(a, 0.75, metric)
     with pytest.raises(SealViolationError) as ei:
-        t.at(a + sign * 2 * math.ulp(a), 0.75, "gm_id_inverse")
+        t.at(a + sign * 1e-8, 0.75, "id_equivalent")                      # [WB-1] 옛 2 ulp -> 한 격자 간격(격자 정수 비교)
     det = detail_of(ei.value)
     assert det["reason"] == "lut_axis_out_of_range" and det["axis"] == "L" and det["table"] == "tol_v"
 
@@ -217,7 +226,7 @@ def test_real_edge_anchors(real_memo, raw_slice):
         exact = op_point(real_memo, "pmos", 1000, a, 0.9, 0.9, 0.2)
         assert op_point(real_memo, "pmos", 1000, a + sign * math.ulp(a), 0.9, 0.9, 0.2) is exact
         with pytest.raises(SealViolationError) as ei:
-            op_point(real_memo, "pmos", 1000, a + sign * 2 * math.ulp(a), 0.9, 0.9, 0.2)
+            op_point(real_memo, "pmos", 1000, a + sign * 5e-9, 0.9, 0.9, 0.2)      # [WB-1] 옛 2 ulp -> 실 LUT 격자 5 nm 한 칸
         assert detail_of(ei.value)["reason"] == "lut_axis_out_of_range"
 
 
@@ -451,7 +460,7 @@ REAL_CALLS = {
     # [r6] LUT v2 앵커 18개(CONTRACT 5절 r6 실측 bin 상태: .26 = 0.15·0.18, .25 = 0.185·0.2·0.25, .24 = 0.255~0.5,
     # .23 = 0.7·1, .22 = 1.5·2, .21 = 2.5·4, .20 = 8, .19 = 20). 옛 12-L 의 0.17 µm(unbracketed)는 v2 에서 .26 안 보간,
     # 1.2 µm 는 .22 에 앵커 2개(1.5·2)가 생겨 cross_bin. 앵커 1개 bin 사이는 5 µm(.20)·12 µm(.19).
-    (0.6e-6, "lut_l_cross_bin"), (1.2e-6, "lut_l_cross_bin"), (0.182e-6, "lut_l_cross_bin"),
+    (0.6e-6, "lut_l_cross_bin"), (1.2e-6, "lut_l_cross_bin"),     # [WB-1] 0.182 µm 행 삭제: 격자 5 nm 에서 0.18·0.185 사이 점은 둘 중 앵커로 반올림된다(사이 격자점 없음)
     (5e-6, "lut_l_bin_unbracketed"), (12e-6, "lut_l_bin_unbracketed")])
 def test_real_cross_bin_rejected_every_entry(real_memo, name, L, reason):
     with pytest.raises(SealViolationError) as ei:

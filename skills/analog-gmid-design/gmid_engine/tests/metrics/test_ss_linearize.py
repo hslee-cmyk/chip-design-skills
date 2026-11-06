@@ -1,6 +1,6 @@
 """`ss_dev` 계산 블록(봉인 op -> MOS 소신호) -- metrics CONTRACT 7.2 (+ 7.7 S-6·S-7·S-11·S-12, lut CONTRACT r6 4.1·4.3·4.4).
 
-입력: 손 S2 스냅샷(S1 -> lift_s1 -> 권한표 writer `dc_widths` 로 `device.dc_op` 열을, [U17 ①] writer `dc_tolerances` 로 `device.dc_gm`
+입력: 손 S2 스냅샷(S1 -> lift_s1 -> 권한표 writer `dc_solve` 로 `device.dc_op` 열을, [U17 ①] writer `dc_tolerances` 로 `device.dc_gm`
 열(= 손 dc_op 의 gm_id × current, 설계 40 v1.6 §3.7-3 정의)을 손으로 쓴다) + toy LUT r6 + toy 접합 선언
 (conftest `toy_junction_decls` -- core 9.1 형식 PDK 선언·LUT 규칙 선언, 8.5 소비자 호출 `JunctionSource.from_decls`).
 기대값: conftest `oracle_ss` -- toy LUT npz 의 해석식과 numpy 다중선형 보간으로 7.2 식을 따로 계산(피검 함수·lut 조회 함수 미사용).
@@ -115,8 +115,8 @@ def _js(decl_paths, lut):
 
 def _bit_junction(op, js):
     """S-11: 계약 문장 그대로 -- 같은 dc_op·JunctionSource 로 공개 junction_caps 를 부른 값(w_m = 슬라이스 폭)."""
-    jc = junction_caps(js.params_of(op.kind), js.pre_layout_geometry(LUT_WM, op.W / LUT_WM), op.vds + op.vsb, op.vsb,
-                       js.temp_c)
+    jc = junction_caps(js.params_of(op.kind), js.pre_layout_geometry(LUT_WM, max(1, round(op.W / LUT_WM))), op.vds + op.vsb, op.vsb,
+                       js.temp_c)       # 손 dc_finger 행(conftest hand_write): 손가락 폭 = 슬라이스 폭, 손가락 수 = round(W/w_m)
     return jc.cdb, jc.csb
 
 
@@ -137,8 +137,9 @@ def _check(ss, exp, op, js, rtol=1e-12, temp_c=27.0, params=None, rule=None):
 def test_block_declaration():
     """reads device.dc_op·[9절] device.dc_tol_v·[U17 ①, 설계 40 §3.7-3] device.dc_gm·[EO-1 범위 4, A-88] device.off_op·device.region_decl·device.kind, writes device.ss_dev, writer = 권한표 writer_of."""
     assert ss_dev.name == SS_DEV_WRITER == S2_WRITERS.writer_of("device", "ss_dev") == "ss_dev"
+    # [WB-1 C-2] 접합 인자(ad/as/pd/ps)는 소자 손가락 기하 `device.dc_finger` 를 읽는다(총 폭 W 가 아니다)
     assert set(ss_dev.reads) == {("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm"), ("device", "off_op"),
-                                    ("device", "region_decl"), ("device", "kind")}
+                                    ("device", "region_decl"), ("device", "kind"), ("device", "dc_finger")}
     assert tuple(ss_dev.writes) == (("device", "ss_dev"),)
 
 
@@ -201,7 +202,7 @@ def test_junction_bias_and_side_mapping(tmp_path, lut_a, decl_paths):
     for alt in (swapped_bias, other_kind):
         assert not rel_close(ss.cdb, alt[0], 1e-6), alt
     assert not rel_close(ss.csb, other_kind[1], 1e-6)
-    assert rel_close(ss.cdb, m_one[0] * op.W / LUT_WM, JUNCTION_RTOL)      # 소자 전체 = m 배
+    assert rel_close(ss.cdb, m_one[0] * max(1, round(op.W / LUT_WM)), JUNCTION_RTOL)      # 소자 전체 = 손가락 수 m 배 (dc_finger)
     assert ss.cdb != ss.csb
 
 
@@ -248,7 +249,7 @@ def test_lut_failure_is_seal_violation(tmp_path, tmp_path_factory, decl_paths, c
         ops = {"M1": ("nmos", 1e-6, 0.63, 2.0, 0.2, 3.7e-6), "M2": OPS["M2"]}
         want = ("op_point", "lut_axis_out_of_range")
     else:
-        lut = load_lut_v2(tmp_path_factory.mktemp("lut_l"))
+        lut = load_lut_v2(tmp_path_factory.mktemp("lut_l"), empty_bins=True)       # [WB-1 §4] 앵커 전용(빈 지도) 합성 LUT
         ops = {"M1": ("nmos", 1.5e-6, 0.63, 0.85, 0.2, 3.7e-6), "M2": OPS["M2"]}
         want = ("op_point", "lut_l_not_anchor")          # 모델 bin 지도 없음 -> 앵커 아닌 L 거부(lut 4.0)
     snap, _ = _snap(tmp_path, ops)

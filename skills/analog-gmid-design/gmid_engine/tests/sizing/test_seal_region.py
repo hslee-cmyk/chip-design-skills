@@ -50,7 +50,7 @@ def state(ctx, m1=None, m2=None, tol_defined=True, column=True):
     ops = dict(snap.column("device", "dc_op"))
     upd = {"M1": dataclasses.replace(ops["M1"], **{**M1_OK, **(m1 or {})}),
            "M2": dataclasses.replace(ops["M2"], **{**M2_OK, **(m2 or {})})}
-    snap = tamper(snap, "dc_widths", "device", "dc_op", upd, version=snap.block_version("dc_widths"))
+    snap = tamper(snap, "dc_solve", "device", "dc_op", upd, version=snap.block_version("dc_solve"))
     return _inject_closed_form(snap, upd, tol_defined, column)
 
 
@@ -70,7 +70,7 @@ def _inject_closed_form(snap, ops, tol_defined, column):
         else:
             out[name] = SatBound(r4_vdsat_at(op.kind, op.L, op.vgs, op.vsb),
                                  r4_tol_vdsat(op.kind) if tol_defined else None, None)
-    return tamper(snap, "dc_widths", "device", "dc_sat_v", out, version=snap.block_version("dc_widths"))
+    return tamper(snap, "dc_solve", "device", "dc_sat_v", out, version=snap.block_version("dc_solve"))
 
 
 def run(snap, lut):
@@ -392,7 +392,7 @@ def test_region_word_input_window_mismatch_absent_from_engine_sources():
 # [card 20261104-hcs] S3·S4 -- 봉인 7·9 의 vdsat·tol 입력은 `device.dc_sat_v` 필드(LUT 조회 0)
 # oracle (식) card §2 소비자 표 + EO-1 표: 수 -> 그 수 / reverse_vds -> VDS < 0 행 / lut_domain -> OUT_OF_DOMAIN(9 undefined) /
 # vdsat_column_unavailable -> 7 undefined / tol None -> indistinct_undefined. 필드는 LUT 와 **다른 값**을 주입해 필드에서 읽었음을 판별한다.
-# 값은 2진 분수(정확). 주입 = conftest `tamper` 꼴(writer dc_widths).
+# 값은 2진 분수(정확). 주입 = conftest `tamper` 꼴(writer dc_solve).
 # ===============================================================================================================
 from lut.hcs_cases import LutCalls  # noqa: E402
 
@@ -406,7 +406,7 @@ def _sat(*args):
 
 
 def _inject(snap, **sat):
-    return tamper(snap, "dc_widths", "device", "dc_sat_v", sat, version=snap.block_version("dc_widths"))
+    return tamper(snap, "dc_solve", "device", "dc_sat_v", sat, version=snap.block_version("dc_solve"))
 
 
 def _lut_lookups(ctx):

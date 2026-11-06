@@ -65,11 +65,11 @@ def test_violation_reports_worst_item(ctx_c):
     snap, calls = eval_calls(ctx, th)
     v_in = node_voltages(snap)["in"]
     ops = dict(snap.column("device", "dc_op"))
-    bad = tamper(snap, "dc_columns", "node", "dc_path_values", {"in": (PathValue(("vgs", "M1"), v_in + 0.5),)},
-                 version=snap.block_version("dc_columns"))
-    bad = tamper(bad, "dc_widths", "device", "dc_op",
+    bad = tamper(snap, "dc_solve", "node", "dc_path_values", {"in": (PathValue(("vgs", "M1"), v_in + 0.5),)},
+                 version=snap.block_version("dc_solve"))
+    bad = tamper(bad, "dc_solve", "device", "dc_op",
                  {"M1": dataclasses.replace(ops["M1"], idu_forward=ops["M1"].idu_forward * 2.0)},
-                 version=snap.block_version("dc_widths"))
+                 version=snap.block_version("dc_solve"))
     with pytest.raises(SealViolationError) as ei:
         _seal(ctx, bad, calls, th)
     rec = ei.value.record

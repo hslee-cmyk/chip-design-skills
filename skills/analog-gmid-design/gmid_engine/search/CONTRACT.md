@@ -105,7 +105,11 @@
   기존대로 unmeasured. 차동 `pm_ss_deg` 의미는 그대로(`dc_not_above_level` 이면 unmeasured). 위반 행은 T_cm(0) 이 오를수록 증가(c 가 0 으로)해
   SLSQP 가 쓸 신호가 된다.
 - 3.15·3.16: 비지배 묶음 셋 -- `front`(봉인·미측정 없음), `unmeasured_front`(봉인·미측정 있음), `pending_front`(봉인 7 대기). L-b 뒤
-  마지막 entries 로 셋 다 다시 거른다. `SearchFront.unmeasured_front`(기본 ()), runs 에 `unmeasured_front` 목록.
+  마지막 entries 로 셋 다 다시 거른다. `SearchFront.unmeasured_front`(기본 ()), runs 에 `unmeasured_front` 목록. 분류 함수 하나 = `eps_sweep.classify(result)`.
+- **[WB-1 범위 7 (b)] 실현 관문**: `find_front` 는 `front ∪ unmeasured_front` 를 `realize_front(sctx, points)` 로 실현 평가한다. 실현 평가의 측정 상태로 `classify` 해 두 집합으로 다시 나누고 집합마다
+  실현 값으로 비지배 재필터한다(`RealizeOutcome.points` = front 집합 점 먼저). 탐색 집합 ≠ 실현 집합 = `RealizeOutcome.moved` = ((point_id, 탐색 집합, 실현 집합), ...) -- runs `realize.moved`(출력 전용, 손실 아님).
+  미측정 행이 있다는 것은 손실 사유가 아니다(`realized_spec_unmeasured` 삭제). 결과 `front`·`unmeasured_front` 와 runs 의 두 목록 = 실현 값. 감도 게이트 대상 = 실현 front 첫 점, 실현 front 가 비면
+  `gate_empty`/`front_empty` 한 행(호출 0). 실현 관문의 커널 평가 수는 E_total 밖이다(색인 상한 = E_total + 그 수).
 - 9절 추가: **S-19** ss metric 의 NFR-5 '격자 분해능' 정의 없음 -> 정규화 = |목표|(조건수용), 활성 판정 보류. **S-20** engine 값
   보상 수동소자(Cc·Rz·Cm, DEC-92)의 θ 성분이 sizing 스키마에 아직 없어 그 회로의 ss 제약은 전부 `passive_value_undeclared` --
   최종 front 에 들 수 없다(`unmeasured_front` 로만).
@@ -450,10 +454,11 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   계수 memo 를 넣기 전에 잰다. 이 호출 안의 커널 평가는 **0**이다(`kernel.size_and_seal` 호출 0, 임시 컨텍스트·버리는 평가 없음; 반환 직후 `kernel_calls == 0`, `seq == 0`, `cache` 비어 있음). 호출자 memo(`dc_ctx` 의 것)는 바꾸지 않는다.
 
 ### 3.10 `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None) -> EvalResult`
-[U14] `geometry` = `RealizedGeometry(w_request, w_keys, diffusion=())`(search_values, `search.__all__`; MOD8 `convergence` 의 재검증 입력, LY7·LY8): 있으면 1 의 키 `w_fixed_fp = fp_of(geometry)`,
-5 의 커널은 `LutAccess(memo, geometry.w_keys)` 로 `size_and_seal(dc, θ, parent=parent.evaluation, w_request=geometry.w_request)`, 6 의 `ss_evaluate`·`constraint_rows` 도 같은 `dc`
-(`ss_evaluate(diffusion=geometry.diffusion)` -- 접합 용량이 실현 확산 기하). 없으면(None) 아래가 종전과 같다. 같은 (θ, cells, geometry) 는 캐시 적중, base writer(`ctx.base.block_versions`)의 block_version 은 슬라이스와 무관해
-`parent` 를 그대로 쓴다. S3 evals 줄의 `w_fixed_fp` 도 이 값이다.
+[U14] `geometry` = `sizing.RealizedGeometry(layout_ref, w_request)`(MOD8 `convergence` 의 재검증 입력, LY7·LY8): 있으면 1 의 키 `w_fixed_fp = fp_of(geometry)`,
+5 의 커널은 `size_and_seal(dc, θ, parent=parent.evaluation, realized=RealizedFinger(parent.evaluation.snapshot, 그 스냅샷 지문), layout=geometry)` 로 **실현 평가와 같은 W'·바이어스 고정 KCL 재풀이 + 봉인 전 항목**
+(v6.38.21, 설계 40 §3.7-A 6 '재평가 꼴'), 6 의 `ss_evaluate`·`constraint_rows` 도 같은 `dc`(`ss_evaluate(diffusion=geometry.layout_ref)` -- 접합 용량이 실현 확산 기하).
+**`parent` = 기준 스냅샷(사이징 점) 필수** -- 없거나 `evaluation` 이 없으면 `ValueError`(호출 계약). 측정 구성·입력 값·대기 소자 손가락을 거기서 참조로 읽는다(사본 0). 평가 키는 기준 스냅샷을 담지 않는다(같은 (θ, cells)의 사이징 점이 정한다).
+없으면(None) 아래가 종전과 같다. 같은 (θ, cells, geometry) 는 캐시 적중. S3 evals 줄의 `w_fixed_fp` 도 이 값이다.
 순서와 계수(정확히 이 순서):
 1. requests +1. 키 = `eval_key(..., 키 정렬 θ, cells, None)`.
 2. 메모리 캐시 적중 -> hits +1(실패면 fail_hits 도 +1), 같은 객체(`is`) 반환. 커널 0.

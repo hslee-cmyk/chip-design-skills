@@ -21,14 +21,13 @@ from gmid_engine.metrics import BlockBound, ParamTables, ResLocal, block_gain_bo
 
 from .gb4_hand import GRIDS, L_GRID, VDS_GRID, VGS_GRID, W_KEY, axis, cs_model, db, follower_model, memo_of, model, mosl, write_lut
 
-W_KEYS = {"nmos": W_KEY, "pmos": W_KEY}
 FOL_AMAX = 5.6 / 3.9
 FOL_B = db(FOL_AMAX / (5.6 / 5.7))
 
 
 @pytest.fixture(scope="module")
 def tables(tmp_path_factory):
-    return ParamTables(memo_of(write_lut(tmp_path_factory.mktemp("bound_toy"))), W_KEYS, GRIDS)
+    return ParamTables(memo_of(write_lut(tmp_path_factory.mktemp("bound_toy"))), GRIDS, side="upper", z_side="max")
 
 
 def _cond(bb):
@@ -235,9 +234,12 @@ def test_ub1_e16_real_tables_operating_path(tmp_path):
     이 toy 는 그 구간이 단조라 a_max = 최대 앵커 행의 db(x/y) (x, y = 격자 마디 값 `derived(param_row)` -- 입력, 피검 아님).
     실제 `same_l_bin` 이 늘 거짓이면 호출 수 0 이라 red."""
     from gmid_engine.lut import derived
+    import dataclasses
     from lut.conftest import TOY_SPEC, BinToy, bin_model_text, new_memo
     L3 = (1e-6, 1.5e-6, 2e-6)
-    lut = BinToy(tmp_path, bin_model_text(), L=L3).load(TOY_SPEC)
+    # [WB-1 fixture 이행] 슬라이스 100(1 µm) < TOY_SPEC min_finger 1.5 µm 이라 reachable_slices 가 비었다 -> toy 스펙 min_finger 를 최소 슬라이스 폭 1 µm 으로 둔다.
+    spec = dataclasses.replace(TOY_SPEC, min_finger_w_m=(("nmos", 1e-6),))
+    lut = BinToy(tmp_path, bin_model_text(), L=L3).load(spec)
     memo = new_memo(lut)
     grids = lut.slice_map[("nmos", 100)].grids
 
@@ -250,7 +252,7 @@ def test_ub1_e16_real_tables_operating_path(tmp_path):
             self.at_l.append(np.asarray(l_m, dtype=float).copy())
             return super().lookup_at_l(kind, l_m, i_d, i_s, i_v)
 
-    tb = CountTables(memo, {"nmos": 100}, grids)
+    tb = CountTables(memo, grids, side="upper", z_side="max")
     axes = (axis("vgs", ("M1",), grids[1]), axis("L", ("M1",), grids[0]), axis("vds", ("M1",), grids[2]))
     m = model(("out",), ("out",), ("in",), ((("in", 1.0),),), (("out", 1),),
               (mosl("M1", "nmos", "out", "in", "gnd", "gnd", 0, 1, 2, -1),), axes, normalized=("I0",))

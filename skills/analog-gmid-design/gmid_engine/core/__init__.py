@@ -7,6 +7,7 @@ from .compute_block import ComputeBlock, compute_block
 from .determinism import sorted_items
 from .donors import Donors
 from .engine_code_fp import engine_code_fp
+from .file_sha256 import file_sha256
 from .failure_partial import attach_partial
 from .failure_record import FailureRecord
 from .exit_code import exit_code_for
@@ -82,6 +83,7 @@ __all__ = (
     "compute_block",
     "engine_code_fp",
     "exit_code_for",
+    "file_sha256",
     "canonical_key",
     "fp_of",
     "graft",

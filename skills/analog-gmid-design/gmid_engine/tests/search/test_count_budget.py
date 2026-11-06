@@ -67,15 +67,15 @@ def test_real_lut_matches_npz_axis_lengths():
     dk = (("nfet_01v8", "nmos"), ("pfet_01v8", "pmos"))
     names = dict(dk)
     direct = {"nmos": 0, "pmos": 0}
-    mins = {}
+    from pdk_min_w import min_finger_w_m
+    mins = min_finger_w_m(names.values())      # PDK 선언 양(card 20261104-wb1)
     root = Path(loc.manifest_path).parent
     for e in man["slices"]:
         with np.load(root / e["file"]) as z:
             direct[names[e["device"]]] += len(z["L"]) * len(z["VGS"]) * len(z["VDS"]) * len(z["VS"])
-        mins[names[e["device"]]] = min(e["w_um"] * 1e-6, mins.get(names[e["device"]], float("inf")))
     lut = load_lut_set(loc.manifest_path, loc.cap_npz_path,
                        LutSpec(float(man.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), dk, (("nmos", "_n"), ("pmos", "_p"))),
-                       pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path)
+                       pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths, bin_rule=loc.bin_rule_path)
     assert count_budget(lut, ("nmos",)) == direct["nmos"]
     assert count_budget(lut, ("pmos",)) == direct["pmos"]
     assert count_budget(lut, ("nmos", "pmos")) == direct["nmos"] + direct["pmos"]

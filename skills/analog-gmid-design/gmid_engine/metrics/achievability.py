@@ -24,6 +24,7 @@
 
 한계(보고서 기록): 블록 gain 상한은 격자 곱 Π 가 N_S 를 넘으면 미상이다. 9회로 실측에서 Π 는 N_S(1.4e7)를 크게 넘어 거의 모든 블록이 미상이므로 `found_db`(좌표 상승 하한 추정)를 보고만 한다.
 """
+import dataclasses
 import math
 
 from gmid_engine.authoring import (
@@ -62,7 +63,7 @@ from .achievability_types import (
 from .area_lower_bound import area_lower_bound
 from .block_gain_bound import block_gain_bound
 from .block_gain_model import block_gain_model_of
-from .block_param_tables import ParamTables
+from .block_param_tables import Z_SIDES, ParamTables
 from .curve_checks import curve_checks
 from .dof_report import STATUS_OVERCONSTRAINED, dof_report
 from .headroom_bound import headroom_bound
@@ -140,7 +141,7 @@ def _local_inputs(p, spec, element_values, lut, domain):
     cur_rep, current_box = _theta_currents(domain)
     return LocalInputs(_items(kind), tuple(p.column("device", "pins")), _items(cls), _items(bulk), rails, orbit_key,
                        _items(l_label), rows, tuple(basis.free), _items(dict(basis.fixed)), _items(cur_rep), _items(current_box),
-                       _items(dict(element_values)), _items(resistor_box), tuple(sorted(lut.w_keys)),
+                       _items(dict(element_values)), _items(resistor_box),
                        tuple(tuple(float(x) for x in g) for g in slice_.grids), tuple(p.column("node", "dc_colour")),
                        tuple(p.column("device", "dc_colour")), _items(attach))
 
@@ -167,7 +168,15 @@ def _bound(local, tables, spec, budget, role=None):
     if model is None:
         return BlockBound(spec.key, spec.role if role is None else role, STATUS_UNKNOWN, None, None, 0, (), (), reason, None,
                           spec.members, 0)
-    return block_gain_bound(model, tables, budget, spec.members)
+    bounds = {side: block_gain_bound(model, table, budget, spec.members) for side, table in tables.items()}
+    upper = [bounds[("upper", z)] for z in Z_SIDES]
+    found = [bounds[("lower", z)].found_db for z in Z_SIDES]
+    top = max(upper, key=lambda b: float("-inf") if b.a_max_db is None else b.a_max_db)
+    if any(b.status != STATUS_CERTIFIED for b in upper):                    # 인증은 upper 두 표가 모두 certified 일 때만
+        bad = next(b for b in upper if b.status != STATUS_CERTIFIED)
+        return dataclasses.replace(bad, status=STATUS_UNKNOWN, a_max_db=None, b_db=None,
+                                   found_db=None if any(f is None for f in found) else min(found))
+    return dataclasses.replace(top, found_db=None if any(f is None for f in found) else min(found))
 
 
 def _chain(view, blocks, bounds, colour):
@@ -268,7 +277,7 @@ def _area(p, spec, local, lut, passive_area, area_resolution_m2):
 
 def _headroom(p, spec, view, local, lut):
     mos_kinds = sorted({k for n, k in local.kind.items() if local.cls.get(n) == ELEMENT_MOS})
-    edges = {k: derived(lut.memo, "edge_costs", k, local.w_keys[k]) for k in mos_kinds}
+    edges = {k: derived(lut.memo, "edge_costs", k, lut.memo.lut.cap_map[k].w_key) for k in mos_kinds}
     supplies = dict(spec.supplies_v)
     rail_v = {r: supplies[r] for r in sorted(local.rails) if r in supplies}
     direction = dict(p.column("node", "port_direction"))
@@ -359,7 +368,7 @@ def achievability(projection):
     target = _gain_target(spec)
     gain = None
     if view is not None and view.blocks:
-        tables = ParamTables(lut.memo, local.w_keys, local.grids)
+        tables = ParamTables.family(lut.memo, local.grids)
         gain = _gain(view, view.blocks, local, tables, spec, count_budget, target)
     area = _area(p, spec, local, lut, passive_area, domain.area_resolution_m2)
     head = _headroom(p, spec, view, local, lut)

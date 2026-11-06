@@ -26,7 +26,7 @@ from .vdsat_tolerance import tol_vdsat_table
 REASON_REVERSE_VDS = "reverse_vds"
 REASON_VDSAT_COLUMN_UNAVAILABLE = "vdsat_column_unavailable"
 REASON_LUT_DOMAIN = "lut_domain"
-REASON_OFF_DECLARED = "off_declared"                      # 필드 쪽에서만(`dc_widths`)
+REASON_OFF_DECLARED = "off_declared"                      # 필드 쪽에서만(`dc_solve`)
 
 _COLUMN_UNAVAILABLE = "lut_column_unavailable"             # lut CONTRACT 4.3 열 출처 규칙 3
 _DOMAIN_REASONS = ("lut_axis_out_of_range", "lut_l_not_anchor", "lut_l_outside_model_bins", "lut_l_bin_unbracketed", "lut_l_cross_bin")   # lut CONTRACT 4.0 축·L 위치 밖

@@ -31,10 +31,8 @@ from .converge import converge
 from .converge_point import converge_point
 from .effective_placement import effective_placement
 from .junction_change import junction_change
-from .kernel_keys import kernel_keys
 from .key_exclusion import key_exclusion
 from .layout_input import layout_input_of
-from .layout_score import layout_score
 from .place_layout import place_layout
 from .realized_geometry import realized_geometry
 from .refilter import refilter
@@ -68,10 +66,8 @@ __all__ = (
     "converge_point",
     "effective_placement",
     "junction_change",
-    "kernel_keys",
     "key_exclusion",
     "layout_input_of",
-    "layout_score",
     "place_layout",
     "realized_geometry",
     "refilter",

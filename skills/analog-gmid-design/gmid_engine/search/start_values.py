@@ -153,7 +153,7 @@ class StartView:
     `passive_area` = `PassiveAreaDecl`, `theta_bounds` = {수동소자: (하한, 상한)}, `l_cells` = {L 주인 소자: L 칸 ((lo, hi), ...)},
     `port_direction`·`port_role` = {포트 넷: 방향·역할}, `box` = {θ 성분 (kind, key): (하한, 상한) 자연 좌표 값}(`SearchDomain.variables` 의 ln 좌표는 exp 로 되돌린다),
     `current_box` = {kind: (I_off, I_max) A}(`search.current_box` -- LUT 가 특성화한 단일 finger 범위. 면적 예산이 닫은 `SearchDomain.current_box` 상한은 W 상한이 없어 매크로 근 범위로 너무 넓다),
-    `w_min_m` = PDK 최소 finger 폭(`SearchDomain.w_min_m`, W 하한 제약 S-18), `pdk` = core `PdkDecl`(mismatch 모델 bin 지도), `memo`·`w_keys` = LUT 손잡이,
+    `w_min_m` = PDK 최소 finger 폭(`SearchDomain.w_min_m`, W 하한 제약 S-18), `pdk` = core `PdkDecl`(mismatch 모델 bin 지도), `memo` = LUT 손잡이(기준 폭 슬라이스 키는 `memo.lut.cap_map[kind].w_key` 에서 읽는다 -- 사본 칸 없음),
     `gain` = `GainInputs`(이득 L 하한 입력; 비활성이면 None)·`gain_inactive` = 그 비활성 사유, `points` = {소자: (VDS, VSB)} 곡선을 읽는 소자 동작점(블록이 정한 뒤
     `dataclasses.replace` 로 채운다 -- 결과는 필드 `device: start.point`)."""
 
@@ -186,7 +186,6 @@ class StartView:
     w_min_m: float
     pdk: object
     memo: object
-    w_keys: object
     gain: object = None
     gain_inactive: tuple = ()
     points: object = None

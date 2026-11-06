@@ -25,7 +25,7 @@ from .point_query import op_point
 def _from_column(memo, kind, w_key, L, rest, ratio_src, id_point):
     """GMBS 열 정의: ID(점) × (GMBS/ID 선형 보간), 비가 정의 안 되면 GMBS 값 공간 선형."""
     context = (("kind", kind), ("table", ratio_src.origin), ("w_key", w_key))
-    lo, hi, l_val = l_position(ratio_src.grids[0], ratio_src.l_bins, L, context)
+    lo, hi, l_val = l_position(ratio_src.grids[0], ratio_src.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, context)
     check_axes(ratio_src.grids[1:], AXES[1:], rest, context)
     part = slice(lo, hi + 1)
     grids = (ratio_src.grids[0][part],) + tuple(ratio_src.grids[1:])
@@ -44,7 +44,7 @@ def gmb(memo, kind, w_key, L, vgs, vds, vsb):
     """
     sl = memo.lut.slice_map[(kind, w_key)]
     context = (("kind", kind), ("w_key", w_key))
-    lo, hi, l_val = l_position(sl.grids[0], sl.l_bins, L, context)
+    lo, hi, l_val = l_position(sl.grids[0], sl.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, context)
     rest = (float(vgs), float(vds), float(vsb))
     check_axes(sl.grids[1:], AXES[1:], rest, context)
     ratio_src = column_source(memo.lut, kind, w_key, "GMBS_PER_ID", required=False)

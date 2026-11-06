@@ -137,9 +137,10 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 ### 1.3 `lut_provenance(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None, noise_npz=None, mismatch_npz=None) -> LutProvenance`
 - [r6] `pdk_root`: None 이 아니면 모델 파일 경로 = `os.path.join(pdk_root, 상대 경로)`(meta `pdk_root` 대신, `lut_model_root_missing`
   판정도 이 값으로). sha256 대조는 그대로라 같은 모델 파일이면 어느 폴더든 같은 결과·같은 지문.
-- [r6] `verify_midpoints`: None 이 아니면 그 파일 `(절대 경로, sha256, meta L_source 키 정렬 쌍, 측정 조건)` 을
-  `LutProvenance.midpoints_path·midpoints_sha256·midpoints_l_source·midpoints_conditions` 에 싣는다(파일 없음 → `lut_midpoints_missing`
-  detail `path`). 주지 않으면 None·None·()·().
+- [LM-1e] `verify_midpoints`: 경로 **sequence**(None·빈 sequence = 없음, 문자열 하나 → `TypeError`). 파일마다 짝 슬라이스 하나(1.7)를 찾고 관문 G0~G4c를 지나면
+  `SliceSource(kind, device=<짝 manifest device>, w_m, w_key, path, sha256=<파일 raw 바이트>, conditions, model_files_sha256, model_paths=())` 를 만들어
+  `LutProvenance.midpoint_sources`((kind, w_key) 오름차순 tuple)에 싣는다. `midpoints_sha256` = 그 sha256 의 정렬 tuple(property, 없으면 None).
+  옛 칸 `midpoints_path`·`midpoints_l_source`·`midpoints_conditions` 는 없다.
 - [r6] 폭 키 규칙은 `_helpers_width.width_key` 한 곳(아래 문장과 같은 규칙).
 - 슬라이스마다 파일 sha256 을 다시 재서 manifest 값과 대조. 폭 키 `w_key = round(W / grid)`(int).
   [r3] 폭 키 허용도 대칭이다: |W/grid − w_key| ≤ `2·ulp(W/grid)` 이면 위·아래 어느 쪽으로 벗어나도 그 키(`abs` 판정). W 에는 격자 범위
@@ -157,7 +158,10 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 
 ### 1.4 `load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None, noise_npz=None, mismatch_npz=None) -> LutSet`
 - `LutSet(spec, provenance, slice_map, cap_map, fp, midpoints)`: `slice_map` = 읽기 전용 매핑 {(kind, w_key): DcSlice}, `cap_map` = {kind: CapTable},
-  [r6] `midpoints` = {kind: MidpointTable}(1.7, 중점 파일을 주지 않으면 빈 매핑). `pdk_root`·`verify_midpoints` 는 1.3 으로 넘긴다.
+  [LM-1e] `midpoints` = {(kind, w_key): MidpointTable}(1.7, 중점 파일을 주지 않으면 빈 매핑). `pdk_root`·`verify_midpoints` 는 1.3 으로 넘긴다.
+  **D7 적재 거부**: 구성(슬라이스·중점 표·기존 거부) 뒤 `widths(lut, kind)` 슬라이스마다 앵커 2개 bin 에 그 슬라이스 자기 중점 L 이 두 앵커 사이(`_helpers_bins.
+  midpoint_bracket` 결과 `(그 bin, None)`)인 것이 하나 이상이어야 한다 -- 없으면 `bin_missing_external`(detail `kind, w_key, models` = 없는 bin `.model` 정렬
+  tuple), (kind, w_key) 오름차순 첫 실패. `widths` 밖 폭은 대상 밖이고 표 구성은 바뀌지 않는다. 이 원인의 런타임 None 갈래는 없다.
 - [r6] `CapTable` 추가 필드: `w_key`(= `width_key(w_ref_m, grid)` 의 키, 격자 밖이면 None), `columns`(1.2 선택 열 + 파생 열, 읽기 전용
   매핑), `on_mask`, `sign_convention`(meta 문자열 또는 None), `l_source`(meta `L_source` 키 정렬 쌍 또는 ()). `DcSlice.columns` 도 같은 뜻.
 - [r6 결함 수정] **`CapTable.l_bins` = 그 kind 슬라이스 중 `w_key == CapTable.w_key` 인 것의 지도**(r4·r5 는 `w_m == w_ref_m` float 비교 --
@@ -185,7 +189,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   3. W bin: 블록들의 서로 다른 `(wmin, wmax)` 쌍을 오름차순으로 놓고 4.0.1 규칙(`bin_index`)으로 슬라이스 W(`w_m`)의 쌍을 고른다
      → `w_bin`. 없으면 `lut_model_bins_no_width`(detail `path, w_m`).
   4. `bins` = 그 `w_bin` 과 같은 `(wmin, wmax)` 블록의 `LBin(model, lmin, lmax)`, (lmin, lmax, model) 오름차순. 이웃 두 bin 이
-     `lo_b < hi_a` 이고 `|hi_a − lo_b| > ulp(lo_b)` 이면(겹침) `lut_model_bins_overlap`(detail `path, w_m, models`).
+     격자 정수로 `round(lo_b/grid) < round(hi_a/grid)` 이면(겹침, WB-1 범위 0) `lut_model_bins_overlap`(detail `path, w_m, models`).
   5. `anchor_bin[i]` = L 축 앵커 i 의 `bins` index(4.0.1 규칙). 어느 앵커라도 bin 이 없으면 `lut_l_anchor_outside_model_bins`(detail `path, w_m, L`).
   `model_files` = 읽은 상대 경로 tuple. **`CapTable.l_bins`** = 그 kind 슬라이스 중 `w_m == w_ref_m` 인 것의 지도(없으면 빈 지도 --
   기준 LUT 는 모델 파일 기록이 없으므로 채택 폭 슬라이스의 지도를 빌린다).
@@ -232,8 +236,9 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - 64자 hex = `core.fp_of` of (manifest sha256, 생성기 sha256, 슬라이스별 (kind, w_key, 파일 sha256, 조건, 모델 파일 sha256),
   기준 LUT sha256·조건, cap_basis). 파일 경로는 들어가지 않는다(같은 파일을 다른 폴더로 옮겨도 같은 지문), 어느 sha256 이든
   바뀌면 다른 지문.
-- [r6] `provenance.midpoints_sha256` 이 None 이 아니면 7번째 항목 `("midpoints_sha256", 값)` 을 더한다(중점 값이 tol 표 외부 값으로
-  들어가므로). None 이면 r5 와 **같은 지문**(항목 6개 그대로).
+- [LM-1e] 항목 tuple 은 `manifest_sha256`, `generator_sha256`, `slices`, `cap_sha256`, `cap_conditions`, `cap_basis`, `bin_rule_sha256` 7항목 뒤에, `provenance.midpoint_sources`
+  가 비어 있지 않으면 `("midpoints_sha256", tuple(sorted(각 파일 raw sha256)))` 를 더한다(중점 값이 tol 표 외부 값으로 들어가므로; 경로·sequence 순서 무관, 파일 하나라도
+  다르면 다른 지문). 중점이 없으면 이 항목 자체가 없다(None·() 항목 0). 뒤이어 [r7] 항목이 온다.
 - [r7] `noise_sha256`·`mismatch_sha256` 이 None 이 아니면 그 순서로 `("noise_sha256", 값)`·`("mismatch_sha256", 값)` 을 더한다(없으면 r6 와 같은 지문). 표 디스크 캐시의 자료 id
   (`TableCache.data_id`)는 바뀌지 않는다(manifest·cap_npz·중점 파일만) -- 잡음·mismatch 파생 표는 함수 이름(`noise_planes` 등)과 입력 내용 지문으로 구분된다.
 
@@ -241,25 +246,27 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - `kind` 슬라이스 폭 키 중 `w_key · grid ≥ min_finger_w_m[kind]` 인 것의 오름차순. 근접 폭 대체·보간 없음.
 - 실패: `min_finger_w_m` 에 kind 없음 → `KeyError`. 그 kind 슬라이스가 없으면 `()`.
 
-### 1.7 [r6] 검증 중점 파일 (`load_lut_set(..., verify_midpoints=경로)`)
-- 형식 = 기준 LUT 생성기 산출 npz(`sky130_lut_sweep.py sweep --l-json <승인 L 파일> --l-json-key verification_midpoints_um`): `L`(LUT 축이
-  아닌 중점, m)·`VGS`·`VDS`·`VS`, kind 마다 `ID<접미사>`·`GM<접미사>`(필수)·`VDSAT<접미사>`(선택), `w_ref_m`(필수), `corner`·`temp_c`,
-  `meta_json` 의 `L_source`.
-- 검사 순서와 거부(`SchemaRejectedError` reason): (1) meta `L_source` 에 `sha256` 없음 → `lut_midpoints_l_source_unrecorded`(detail `path,
-  l_source`) -- `--l-um` 으로 만든 파일(`{"kind": "cli"}`)은 거부 (2) 어느 kind 의 `CapTable.l_source` 에 sha256 이 있고 중점 sha256 과
-  다름 → `lut_midpoints_l_source_mismatch`(detail `path, kind, cap, midpoints`) (3) 중점 조건이 기록돼 있고 corner·temp_c 가 슬라이스와 다름 →
-  `lut_conditions_mismatch`(detail `key, midpoints, slices`) (4) `VGS`·`VDS`·`VS` 가 슬라이스 축과 float 단위로 다름 → `lut_midpoints_axes_mismatch`
-  (5) `w_ref_m` 없음 → `lut_midpoints_width_missing` (6) `w_ref_m` 이 제조 격자 밖 → `lut_width_off_grid` (7) kind(= `cap_map` 키) 마다 ID·GM
-  열 없음 → `lut_midpoints_column_missing`(detail `path, kind, column`), 열 모양 ≠ 파일 축 모양 → `lut_midpoints_shape_mismatch`.
-- `MidpointTable(kind, sha256, w_m, w_key, L_points, grids, log_ID, gm_id, on_mask, VDSAT)`: `L_points` = 파일 L 축, `grids` = (VGS, VDS, VS),
-  `log_ID` = ln ID(ID > 0, 아니면 NaN), `gm_id` = GM/ID(같은 점, 아니면 NaN), `on_mask` = (ID > 0) & (GM > 0), `VDSAT` = 열 또는 None.
-- [실측 2026-10-08] `lut_v2/sky130_nfet_pfet_lut_v2_verify_midpoints.npz` sha256 `d243f380…990f`(재생성 -- 배열은 옛 `--l-um` 파일과
-  비트 동일, meta 만 `L_source = {kind json, sha256 0147c262…, key verification_midpoints_um}`·생성기 sha 바뀜), L = 0.165·6.0·14.0 µm,
-  `w_ref_m` 5e-06 → 폭 키 1000.
+### 1.7 [LM-1e] 검증 중점 파일 (`load_lut_set(..., verify_midpoints=경로 sequence)`)
+- 형식 = **그 슬라이스 DC 슬라이스 파일과 같은 꼴**(같은 생성기 산출 -- 계획 N3.6 '그 슬라이스 앵커와 같은 생성기'): 폭 `W`(스칼라, 필수), 중점 `L`(1개 이상, m),
+  `VGS`·`VDS`·`VS` 축, 필수 열 `ID`·`GM`, 선택 `VDSAT`, `corner`·`temp_c`, `meta_json`(`device`, `generator_sha256`, `model_files_sha256`, `ngspice`).
+  모양 `[len(L), VGS, VDS, VS]`. 옛 기준 폭 형식(열 접미사·`w_ref_m`·meta `L_source`)은 읽지 않는다(옛 형식 파일 → G1).
+- **짝 슬라이스** = 중점 meta `device` = manifest 슬라이스 **파일** meta `device` 이고 폭 키(`round(W / grid)`)가 같은 슬라이스. kind = 짝 kind.
+- 관문(파일마다 위에서 아래로 첫 맞는 행, detail 에 `path`; G0~G4c = `lut_provenance`, G5~G7b = `load_lut_set`): G0 파일 없음 `lut_midpoints_missing`; G1 `W` 없음
+  `lut_midpoints_width_missing`; G1b `W` 제조 격자 밖 `lut_width_off_grid`(`w_m, grid_m`); G1c `L` 원소 하나라도 제조 격자 밖(폭 관문과 같은 판정)
+  `lut_midpoints_l_off_grid`(`L_m, grid_m`); G2 meta `device` 없음·짝 슬라이스 없음 `lut_midpoints_slice_unmatched`(`device, w_key`); G3 같은 (kind, w_key) 둘 이상
+  `lut_slice_duplicate`(`set` = "midpoints"); G4 meta `generator_sha256` ≠ manifest 값(manifest 에 없으면 언제나)·G4b `model_files_sha256` ≠ 짝 슬라이스·G4c `ngspice` ≠ 짝 슬라이스
+  `lut_conditions_mismatch`(`key`); G5 corner·temp_c ≠ 짝 슬라이스 `lut_conditions_mismatch`(`key`); G6 축 ≠ 짝 슬라이스 축(float 그대로) `lut_midpoints_axes_mismatch`;
+  G7 `ID`·`GM` 없음 `lut_midpoints_column_missing`(`kind, column`); G7b 열 모양 불일치 `lut_midpoints_shape_mismatch`(`column`).
+  옛 `L_source` 대조(`lut_midpoints_l_source_*`)는 없다 -- 대체 = 생성기 sha256 직접 대조 + 모델·시뮬레이터·조건 짝 대조 + 위치 선언 raw sha256 + 중점 L 제조 격자 관문(G1c).
+- `MidpointTable(kind, sha256, w_m, w_key, L_points, grids, log_ID, gm_id, on_mask, VDSAT)`: (kind, w_key)마다 하나(`LutSet.midpoints[(kind, w_key)]`), `sha256` = 그 파일 raw 바이트,
+  `L_points` = 파일 L 축, `grids` = (VGS, VDS, VS), `log_ID` = ln ID(ID > 0, 아니면 NaN), `gm_id` = GM/ID(같은 점, 아니면 NaN), `on_mask` = (ID > 0) & (GM > 0),
+  `VDSAT` = 열 또는 None.
+- 실 데이터: LM-1d 산출 `verify_midpoints_w/` 30개 파일(출처 기록 `assets/lut_v2_midpoints_w.provenance.json` `files[]`), 위치 선언 배열이 그 30행을 고정한다.
 
 ### 1.8 [r6] 데이터 위치 `resolve_lut_location(config_path, env) -> LutLocation`
 - 설정 JSON: `{"root": {"env": 이름, "default": 폴더}, "pdk_root": {"env", "default"}(선택), "files": {"manifest": {"path", "sha256"},
-  "cap_npz": {...}, "verify_midpoints": {...}(선택)}}`. 다른 키는 무시. `env` = 매핑(부르는 쪽이 `os.environ` 를 넘긴다 -- 모듈은 환경을
+  "cap_npz": {...}, "verify_midpoints": [{"path", "sha256"}, ...](선택, [LM-1e] 폭별 중점 파일 배열 -- 옛 단일 객체·빈 배열·같은 `path` 둘·원소 형식 오류는
+  `lut_location_config_invalid` item `verify_midpoints`; 파일 없음 `lut_location_file_missing`, raw sha256 불일치 `lut_location_sha256_mismatch`; 원소의 다른 키는 읽지 않음)}}`. 다른 키는 무시. `env` = 매핑(부르는 쪽이 `os.environ` 를 넘긴다 -- 모듈은 환경을
   직접 읽지 않는다).
 - root·pdk_root = `env[이름]` 이 비어 있지 않으면 그 값(`sources` 에 `"env:<이름>"`), 아니면 `default`(`"config_default"`), 둘 다 없으면
   `lut_location_config_invalid`. 경로는 `os.path.abspath`.
@@ -268,14 +275,15 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   manifest·cap_npz 항목이 없으면 `lut_location_config_invalid`. 설정 파일 없음 → `lut_location_config_missing`, root 폴더 없음 →
   `lut_location_root_missing`, `root`·`files` 가 객체가 아님 → `lut_location_config_invalid`. 슬라이스는 여기서 재지 않는다(manifest 가
   고정하고 `load_lut_set` 이 대조).
-- `LutLocation(config_path, root, manifest_path, cap_npz_path, midpoints_path, pdk_root, sources)`, `sources` = ((항목, 출처), ...) 항목 정렬.
+- `LutLocation(config_path, root, manifest_path, cap_npz_path, midpoints_paths, pdk_root, sources, noise_path, mismatch_path, bin_rule_path)`, `midpoints_paths` =
+  절대 경로 tuple(`path` 오름차순, 없으면 `()`), `sources` = ((항목, 출처), ...) 항목 정렬.
 - [r7] 선택 항목 `files.noise`·`files.mismatch`(같은 `path`·`sha256` 형식, root 기준 상대 경로): `LutLocation.noise_path`·`mismatch_path`(없으면 None). 호출:
-  `load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path, noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path)`.
+  `load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths, noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path)`.
   새 파일은 공유 데이터 폴더의 **새 버전 파일**이다(기존 r2 파일은 고치지 않는다) -- 이 브랜치의 설정만 가리킨다.
 - 저장소 설정: `skills/analog-gmid-design/assets/lut_v2_location.json` -- root 기본 `C:/Users/HSLEE/Documents/Todoc/fpga/lut_data/sky130_lut_v2`
   (git 밖, `GMID_LUT_V2_ROOT` 로 덮어씀), pdk_root 기본 `C:/pdk/sky130_fd_pr`(`GMID_PDK_ROOT`), 세 파일 sha256 고정. 쓰는 법:
   `loc = resolve_lut_location(<설정>, os.environ)` → `load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
-  verify_midpoints=loc.midpoints_path)`.
+  verify_midpoints=loc.midpoints_paths)`.
 - **test 기본 경로 전환(O-180 으로 완료)**: test 는 LUT 를 위 설정의 `resolve_lut_location` 결과로만 읽고 `load_lut_set` 에 `pdk_root`·
   `verify_midpoints` 를 넘긴다. LUT 를 가리키는 환경 덮어쓰기(`GMID_LUT_MANIFEST`·`GMID_LUT_CAP_NPZ` 등)는 없다 -- 허용 env 는
   설정 파일이 선언한 것(데이터 루트·캐시 폴더)뿐이고 루트 env 로 다른 폴더를 줘도 sha256 이 같은 파일만 받는다
@@ -339,7 +347,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   = `inputs` 의 배열(dtype·shape·바이트)·dataclass 필드·tuple·Mapping 내용, 설정 지문 = `fp_of((lut.fp, fn_name, key, settings))`
   (`settings` = 결과에 영향을 주는 상수: tol_V `(LOO_ORDERS, TOL_V_METRICS, AXES)`, tol_VDsat `(LOO_ORDERS, TOL_VDSAT_METRICS, AXES)`).
   구성요소 하나라도 다르면 적중하지 않고 다시 계산해 **같은 칸**을 덮어쓴다. 칸 파일 이름 = `<fn_name>-<자료 id>-<fp_of((lut.fp, fn_name, key))>.tbl`
-  (자료 id·지문은 64자 소문자 hex). **자료 id** = `fp_of((manifest sha256, cap_npz sha256, verify_midpoints sha256 또는 None))` -- 설정 파일
+  (자료 id·지문은 64자 소문자 hex). **자료 id** = `fp_of((manifest sha256, cap_npz sha256, verify_midpoints raw sha256 의 정렬 tuple 또는 None))` -- 설정 파일
   `files` 가 고정하는 값이라 `TableCache.data_id(lut.provenance)` 와 설정 파일만으로 같은 값이 나온다(표를 열지 않음). `fetch(lut_fp, data_id, fn_name,
   key, inputs, settings, compute)`.
 - **정리(cleanup, 2026-10-08 사용자 허용 "캐시 정리 삭제 코드 넣는 것을 허용해")**: `TableCache.from_config`(설정 경로를 아는 객체)만, 그 객체의 **첫 쓰기
@@ -410,10 +418,10 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 
 ### 4.0 [r4 전면 교체] L = 앵커 또는 같은 모델 bin 안 보간 (사용자 결정 2026-10-07)
 적용 경로: op_point·gm_id_curve·vgs_for_gm_id·gm_id_for_target·gmb·caps·TolVTable.at(모두 같은 판정 `l_position`). 판정 순서:
-1. **앵커**(r2/r3 그대로): 조회 L 이 L 축 앵커 a 와 `|L − a| ≤ math.ulp(a)` 이면 그 앵커. 이 검사가 범위 검사보다 **먼저**다(대칭 --
-   격자 양끝 앵커도 바깥쪽 1 ulp 까지 받는다. 예 `L_max + ulp(L_max)` → 마지막 앵커). L 값으로 앵커 값 a 를 쓰고(`IDu = ID·a/w_m`,
+1. **앵커**(r2/r3 그대로): 조회 L 의 제조 격자 정수 `round(L/grid)` 가 L 축 앵커 a 의 `round(a/grid)` 와 같으면 그 앵커(WB-1 범위 0: `l_position(l_grid, l_bins, L, grid_m, rule, context)`, float 근접 허용폭 없음). 이 검사가 범위 검사보다 **먼저**다(대칭 --
+   격자 양끝 앵커도 바깥쪽 같은 격자 정수까지 받는다). L 값으로 앵커 값 a 를 쓰고(`IDu = ID·a/w_m`,
    `id_a = IDu·W/a`), 결과는 r2 앵커 조회와 **비트 단위로 같다**(L 격자 = (a,) 한 장, L 가중치 (1, 0)).
-2. 범위: 1 ulp 를 넘어 L 격자 밖(NaN 포함) → `lut_axis_out_of_range`(axis "L", 4.1).
+2. 범위: 앵커의 격자 정수 밖으로 L 격자 밖(NaN 포함) → `lut_axis_out_of_range`(axis "L", 4.1).
 3. 양옆 앵커 below = L[k−1] < L < above = L[k] (k = `bisect_right(L 격자, L)`). 표의 bin 지도(`DcSlice.l_bins`, 용량은 `CapTable.l_bins`,
    tol_V 는 `TolVTable.l_bins`)가
    - **빈 지도** → `lut_l_not_anchor`(r2 사유 키 유지, detail 에 `bins: "unavailable"` 추가).
@@ -435,10 +443,11 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   6.7234·6.5923 사이.
 
 #### 4.0.1 [r4] bin 소속 규칙 (`_helpers_bins.bin_index`, 로드 배정과 조회가 같은 함수)
+- **현행(WB-1 범위 0, DEC-105 (2))**: 구간 끝과 x 를 제조 격자 정수 `round(값/grid_m)` 로 바꿔 정수끼리 닫힌 구간으로 비교한다(`bin_index(intervals, x, grid_m, rule)`, float 근접 허용폭 없음). 두 구간이 품으면 LUT 세트의 bin 선언(`LutSet.bin_rule`, 위치 설정 `bin_rule` 키 -> `LutLocation.bin_rule_path` -> `load_lut_set(..., bin_rule=)` 필수)의 `rule` 이 고른다: `"lower"` = 앞(lo 가 작은) 구간, `"upper"` = 뒤 구간. 세트(슬라이스·cap·noise·mismatch)의 모델 파일 sha256 묶음·시뮬레이터 판이 선언 밖이면 `bin_tie_undeclared`(detail `set`, `why`), `lut_fingerprint` 에 `bin_rule_sha256`(선언 LF 환산 sha256)이 들어간다. 아래 "아래 구간 우선" 문단은 선언 `rule = lower` 일 때의 규칙이고 실측은 그 선언의 출처 사례다.
 - **예정(2026-10-16, oracle-portability 계획 D-4 승인)**: 경계 규칙의 정본은 card OP-7에서 'LUT 생성 실행에 묶은 bin 규칙 선언(모델 파일 sha256 묶음 + 생성 시뮬레이터 판)'으로 옮긴다(design oracle-portability §16). 그때까지 아래 규칙과 실측 문단이 현행이다. 아래 실측은 그 선언의 출처 사례로 남는다.
 - 값 x 는 `lo ≤ x ≤ hi` 인 구간에 든다(**양끝 닫힘**). 경계를 공유한 두 구간이 다 품으면 **lo 가 작은(아래) 구간**이 이긴다.
   그래서 경계값 L = b 는 `lmax = b` 인 아래 bin 이다 -- 사실상 `lmin < L ≤ lmax`(맨 아래 bin 만 `lmin` 포함). W 도 같다(W = wmax 인 아래 W bin).
-  경계 비교는 그 경계값의 1 ulp 이내를 같은 값으로 본다(LUT L 은 `µm × 1e-6` 곱이라 경계와 1 ulp 어긋날 수 있다. 예: 슬라이스 W
+  경계 비교는 격자 정수 비교다(LUT L 은 `µm × 1e-6` 곱이라 경계와 1 ulp 어긋날 수 있으나 같은 정수다. 예: 슬라이스 W
   4.9999999999999996e-06 은 경계 5e-06 위로 보아 W bin (3e-6, 5e-6)).
 - 근거(ngspice-46 실측, sky130 tt, `showmod` 의 lmin·lmax·wmin·wmax): (1) 생성 슬라이스 32개 × L 앵커 12개 = 384점 전부를 이 규칙의 예측과
   대조해 **384/384 일치**(code author 실측 2026-10-07, 스크립트 `scratchpad/bin_verify.py`·결과 `bin_verify.out`) (2) W = 5 µm 에서 L = 0.5 µm →
@@ -635,7 +644,9 @@ memo 에 저장 안 됨)·4.0·4.1 사유.
   `n_inverse_failed` = 그중 해 없음 수.
 - `TolVTable.at(L, vds, metric)`: [r4] L 위치는 4.0 판정(`TolVTable.l_bins`) -- 앵커면 행 {i}, 같은 bin 보간이면 행 {below, above};
   거부 사유는 4.0 그대로(context kind·table "tol_v"·w_key). VDS 칸 k = `min(bisect_right(vds_grid, vds) − 1, n − 2)`,
-  그 행들 × 칸 (k, k+1) 셀의 그 지표 값 중 정의된 것의 최댓값(없으면 None). `metric` 이 TOL_V_METRICS 밖 → `ValueError`,
+  그 행들 × 칸 (k, k+1) 결합 셀(최대 넷)의 그 지표 값이 **모두 정의되면 그 최댓값, 하나라도 None 이면 None**([LM-1e] 셀 결합 규칙 = `_helpers_loo.table_at` 한 곳:
+  tol_V·tol_VDsat·잡음 tol·mismatch tol 표 조회가 모두 이 함수를 부른다 -- 정의 항이 빠진 값을 내지 않는다, 계획 N3.6 표 10행. None 원인 = 켜진 격자점이 없는 셀,
+  실 LUT 에서는 VDS = 0 열). `table_at(table, value_of, L, vds, context)` 의 `value_of` = 셀 → 값 또는 None 함수(셀을 읽는 방법). `metric` 이 TOL_V_METRICS 밖 → `ValueError`,
   VDS·L 범위 밖 → `SealViolationError`(`lut_axis_out_of_range`, table "tol_v").
 - `TolVTable` 속성: `kind, w_key, L_anchors, vds_grid, cells`, [r4] `l_bins, l_loo, l_loo_bins`.
 - `TolVTable` [r5] 속성 `loo_orders`(위 환산 표 그대로). [r6] 속성 `l_bin_checks`(위).
@@ -677,11 +688,12 @@ memo 에 저장 안 됨)·4.0·4.1 사유.
 
 ### 5.1 [r6] 앵커 2개 bin 의 외부 값 `midpoint_l_bin_checks(memo, kind, w_key) -> MidpointChecks`
 - memo derived, 키 `(kind, w_key)`. `MidpointChecks(kind, w_key, rows, skipped, midpoints_sha256)`.
-- `lut.midpoints` 에 kind 가 없으면 `MidpointChecks(kind, w_key, (), (), None)`.
-- 중점 m(L_m, `L_points` 순서)마다 아래 순서로 판정, 쓰지 않으면 `skipped` 에 `(L_m, 사유, model 또는 None)`:
-  1. 중점 표 `w_key` ≠ 조회 w_key → `"width_differs"`(다른 폭으로 옮기지 않는다) 2. 슬라이스 bin 지도 없음 → `"bins_unavailable"`
-  3. L 앵커와 1 ulp 이내 → `"is_anchor"` 4. `bin_index`(4.0.1)로 bin 없음 → `"outside_model_bins"` 5. 그 bin 의 앵커 수 < 2 → `"single_point"`(model 있음),
-  > 2 → `"bin_has_interior_anchors"` 6. 두 앵커 a0 < L_m < a1 가 아님 → `"not_bracketed"`.
+- `lut.midpoints` 에 `(kind, w_key)` 가 없으면 `MidpointChecks(kind, w_key, (), (), None)`(중점 표는 슬라이스마다 자기 폭 하나 -- 다른 폭 값을 옮겨 쓰지 않는다).
+- 중점 m(L_m, `L_points` 순서)마다 **`_helpers_bins.midpoint_bracket(l_grid, l_bins, L_m, grid_m, rule) -> (bin index | None, 사유 | None)` 하나**가 아래 순서로 판정
+  (D7 적재 거부도 같은 함수), 쓰지 않으면 `skipped` 에 `(L_m, 사유, model 또는 None)`:
+  1. 슬라이스 bin 지도 없음 → `"bins_unavailable"`
+  2. L 앵커와 같은 격자 정수 → `"is_anchor"` 3. `bin_index`(4.0.1)로 bin 없음 → `"outside_model_bins"` 4. 그 bin 의 앵커 수 < 2 → `"single_point"`(model 있음),
+  > 2 → `"bin_has_interior_anchors"` 5. 두 앵커 a0 < L_m < a1 가 아님 → `"not_bracketed"`.
 - 남은 중점: t = (L_m − a0)/(a1 − a0), 슬라이스 앵커 행 i0·i1. [r6 결정 A] **세 값은 VDS 격자점 k 마다의 tuple**(길이 = 슬라이스 VDS
   격자 수, 그 k 에 점·목표가 없으면 원소 None) -- 아래 max 는 그 VDS_k 의 (VGS, VS) 점·목표에 대해.
   - `id_equivalent_v[k]` = max over (VGS, VS) 격자점 [중점 on_mask ∧ 슬라이스 on_mask(i0) ∧ on_mask(i1)] (VDS = VDS_k) of
@@ -699,7 +711,7 @@ memo 에 저장 안 됨)·4.0·4.1 사유.
 - [실측 2026-10-08, LUT v2 + 중점 파일, w_key 1000] nmos: rows = (.26, (1.65e-7,), 23,520 목표, 실패 0) 하나, VDS 별 값 p50/p90/max:
   gm_id_inverse 505/518/518 mV, id_equivalent 10.7/17.1/18.9 mV, vdsat 2.04/2.40/2.49 mV(k = 0 은 ID = 0 이라 None).
   skipped = ((6e-6, "single_point", model.20), (1.4e-5, "single_point", model.19)). pmos: (.26, 19,671, 1,569), gm_id_inverse 279/313/316 mV,
-  id_equivalent 16.3/21.2/22.7 mV, vdsat 19.6/29.8/32.5 mV, 같은 skipped. nmos w_key 84 → 세 중점 모두 "width_differs".
+  id_equivalent 16.3/21.2/22.7 mV, vdsat 19.6/29.8/32.5 mV, 같은 skipped. (옛 단일 기준 폭 중점 파일 시절 실측 -- LM-1e 이후 중점은 슬라이스마다 자기 폭 파일이다.)
   중점 0.165 µm 점별 분포(독립 numpy 재계산): id_equivalent p50/p90/p99/max nmos 6.0/12.1/16.8/18.9 mV, pmos 6.6/14.1/20.4/22.7 mV;
   gm_id_inverse nmos 10.5/206/440/518 mV(최악 목표 gm/ID 24.7 -- 정점 근처 평탄 목표), 목표 gm/ID ≤ 15 만 보면 8.9/20/26/29 mV,
   pmos 6.4/100/286/316 mV(≤ 15: 3.9/8.8/57/111 mV).
@@ -722,7 +734,7 @@ memo 에 저장 안 됨)·4.0·4.1 사유.
   2.04 mV·pmos 19.6 mV), 환산 전 nmos 3.3/4.4/8.5 mV, pmos 4.1/9.8/22.2 mV. bin 상태는 5절 실측과 같다. 예: `vdsat(nmos, 1000, 1 µm, 0.9, 0.9, 0)`
   = 0.2557 V, L 0.85 µm·vsb 0.3 = 0.2107 V, `tol_vdsat_table(nmos, 1000).at(1e-6, 0.9)` = 0.93 mV. 다른 폭: nmos w_key 72 origin "slice",
   `vdsat(1 µm, 0.9, 0.9, 0.3)` = 0.2576 V, 셀 p50/p90/max 0.97/1.31/1.39 mV; pmos w_key 84 0.0586 V, 0.89/1.36/8.18 mV -- 2-앵커 bin 은 모두
-  missing_external(중점 파일은 w_key 1000 만, `width_differs`). 옛 슬라이스와 쓰면 w_key 1000 만 "cap_table"(값 차 ≤ 5e-7 상대).
+  missing_external(옛 단일 기준 폭 중점 파일 시절 -- LM-1e 이후 `widths` 슬라이스는 자기 중점이 없으면 적재 거부). 옛 슬라이스와 쓰면 w_key 1000 만 "cap_table"(값 차 ≤ 5e-7 상대).
 
 ---
 
@@ -865,7 +877,7 @@ b1² = 65.5 > b0·b2 = 50 → 위반, VGS 칸 1(기울기 10·4)은 b1 = −0.09
   정점 근처 평탄 목표(gm/ID ≈ 24.7)가 있어서다(5.1 분포: 점별 p50 10.5 mV, 목표 gm/ID ≤ 15 만이면 max 29 mV). 목표 gm/ID 범위 제한은 소비자
   tol 의미를 바꾸는 계약 변경 -- 결정 대상.
 - [r6] **외부 값이 없는 앵커 2개 bin(명시 상태 `missing_external`)**: .23 (0.7·1 µm), .22 (1.5·2 µm), .21 (2.5·4 µm) -- nmos·pmos 모두, w_key 1000.
-  다른 폭은 중점 파일 폭이 아니라 모든 2-앵커 bin 이 missing_external(`width_differs`). 승인 L 파일은 바꾸지 않는다(사용자 확인 대기).
+  (옛 단일 기준 폭 중점 파일 시절: 다른 폭은 모든 2-앵커 bin 이 missing_external. LM-1e 이후 `widths` 슬라이스는 자기 폭 중점이 없으면 `bin_missing_external` 적재 거부 -- `widths` 밖 슬라이스의 2-앵커 bin 만 상태 `missing_external` 로 남는다.)
 - [r6] SVG2_1HZ·SVG2_HF·VTH(기준 LUT)·CDD·CSS 외 열: 로드만 하고(`CapTable.columns`) 조회 함수는 없다(잡음 소비처 미정).
 - E3 디스크 캐시(tol_V 표·곡선 보고 지문 키): 이 단계 밖. 현재 derived memo(실행 내)만.
 - toy LUT 픽스처(`tests/fixtures/toy_lut.py`, 옛 `_invq_newton`·`build_toy_lut` 복사)는 test 작성자 몫.
@@ -925,7 +937,7 @@ b1² = 65.5 > b0·b2 = 50 → 위반, VGS 칸 1(기울기 10·4)은 b1 = −0.09
 
 ### 9.4 허용오차 `tol_noise_table(memo, kind) -> TolNoiseTable` (`noise_tolerance.py`; memo 영역 derived, 디스크 캐시 대상)
 - 셀 (kind, L 앵커, VDS) × 지표 `TOL_NOISE_METRICS` = ("flicker", "thermal"): `flicker` = ln S_vg(f_lo) 면의 LOO 선형 상대오차 ÷ 2^2 의 셀 안 최댓값(= 위 `tol_a`), `thermal` = ln B 면(B known 인 점끼리)의 같은 값.
-  값이 로그라 상대오차(무차원)다. `.at(L, vds, metric)` = `TolVTable.at` 와 같은 행·칸 규칙, 정의 안 되면 None. 앵커 2개 bin 의 외부 L 값(검증 중점)은 잡음에 없다 -- `l_loo` 상태에 남는다.
+  값이 로그라 상대오차(무차원)다. `.at(L, vds, metric)` = `TolVTable.at` 와 같은 행·칸·셀 결합 규칙(`table_at`: 결합 셀에 None 이 하나라도 있으면 None). 앵커 2개 bin 의 외부 L 값(검증 중점)은 잡음에 없다 -- `l_loo` 상태에 남는다.
 - [실측 2026-10-08] flicker 중앙/최대 nmos 1.35e-01/3.95e+00·pmos 2.97e-01/4.17e+00, thermal 중앙/최대 nmos 1.67e-01/1.03e+00·pmos 1.72e-01/1.29e+00 (상대). 계산 0.3 s/0.4 s. 셀 최댓값은 소수의 병적 점이 정한다 -- 점별(on 점) ln B LOO 오차 p50/p90/p99: nmos L 축 0.4/1.6/4.4 %·VGS 0.13/1.4/11.5 %·VDS 0.002/0.44/7.1 %·VS 0.13/0.94/12 %, pmos L 0.8/4.4/22 %·VGS 0.38/1.1/13 %·VDS 0.002/0.41/7.0 %·VS 0.17/0.75/14 %.
 
 ### 9.5 데이터 필수 검사 `require_lut_data(lut, kinds, *, noise=False, mismatch=False)` (`lut_requirements.py`)
@@ -964,7 +976,8 @@ b1² = 65.5 > b0·b2 = 50 → 위반, VGS 칸 1(기울기 10·4)은 b1 = −0.09
   L·축 -> 4.0·4.1 사유(context `table` = "mismatch"). 호출 비용 약 102 µs / 275 µs (nmos/pmos, memo 미적중 1회).
 
 ### 10.3 허용오차 `tol_mismatch_table(memo, kind) -> TolMismatchTable` (`mismatch_tolerance.py`; memo 영역 derived, 디스크 캐시 대상)
-- 셀 (kind, L 앵커, VDS) × 변수: DVGS_k 면의 LOO 선형 오차 ÷ 2^2 의 셀 안 최댓값(V). `.at(L, vds, param)` = `TolVTable.at` 규칙, 정의 안 되면 None. 변수가 `params` 밖이면 `ValueError`.
+- 셀 (kind, L 앵커, VDS) × 변수: DVGS_k 면의 LOO 선형 오차 ÷ 2^2 의 셀 안 최댓값(V). `.at(L, vds, param)` = `TolVTable.at` 규칙 -- 셀 결합은 `_helpers_loo.table_at` 하나를 부른다(둘째 구현 없음, `value_of` = 그 변수의 `params` 위치 값): 결합 셀이 모두 정의되면 그 최댓값, 하나라도 None 이면 None
+  ([LM-1e] M-3; 소비자 `metrics/device_sigma.py` 는 None 이면 `extra = None` → 기존 fail-closed 갈래). 변수가 `params` 밖이면 `ValueError`.
 - [실측 2026-10-08] 변수별 셀 최댓값 [V] nmos {'toxe': '3.00e-05', 'voff': '1.14e-04', 'vth0': '2.50e-05'}, pmos {'nfactor': '1.57e-04', 'toxe': '4.31e-05', 'voff': '2.22e-16', 'vth0': '4.82e-05'}. 계산 0.9 s/1.5 s.
 
 ### 10.4 소자 σ `mismatch_sigma_vgs(memo, model, kind, w_key, L, vgs, vds, vsb, W) -> MismatchSigma(sigma_v, parts, model)` (`mismatch_sigma.py`; memo 영역 point)
@@ -985,3 +998,14 @@ b1² = 65.5 > b0·b2 = 50 → 위반, VGS 칸 1(기울기 10·4)은 b1 = −0.09
 쌍 A_VT = √2·`vth0_slope`, A_β = √2·`toxe_slope`(%·µm, toxe 는 상대값): nfet 4.75 mV·µm / 0.487 %·µm; pfet L ≥ 0.5 µm 8.28 / 0.628; pfet L < 0.5 µm 10.40 / 0.911 (`vth0_slope1` 7.356e-3, `toxe_slope1` 6.443e-3).
 ngspice 쌍 MC(`assets/sky130_pair_mc.py`) 확인: 표본 1000/사례(seed 20261008), nfet W5 L0.5: A_VT mc 4.75(기대 4.75, 비 1.001), native/meter 1.0000, A_eff mc 6.12, all/rss 1.025, A_β mc 0.452(기대 0.487); nfet W5 L1: A_VT mc 4.76(기대 4.75, 비 1.002), native/meter 1.0000, A_eff mc 6.49, all/rss 1.033, A_β mc 0.470(기대 0.487); nfet W5 L0.18: A_VT mc 4.56(기대 4.75, 비 0.961), native/meter 1.0000, A_eff mc 8.05, all/rss 0.962, A_β mc 0.370(기대 0.487); nfet W2 L1: A_VT mc 4.84(기대 4.75, 비 1.020), native/meter 1.0000, A_eff mc 5.94, all/rss 1.012, A_β mc 0.434(기대 0.487); pfet W5 L0.5: A_VT mc 10.14(기대 10.40, 비 0.974), native/meter 1.0000, A_eff mc 11.00, all/rss 0.975, A_β mc 0.843(기대 0.911); pfet W5 L1: A_VT mc 8.62(기대 8.28, 비 1.041), native/meter 1.0000, A_eff mc 9.31, all/rss 1.030, A_β mc 0.553(기대 0.628); pfet W5 L0.18: A_VT mc 9.16(기대 10.40, 비 0.881), native/meter 1.0000, A_eff mc 11.46, all/rss 1.000, A_β mc 0.892(기대 0.911); pfet W2 L1: A_VT mc 8.09(기대 8.28, 비 0.977), native/meter 1.0000, A_eff mc 8.64, all/rss 0.971, A_β mc 0.601(기대 0.628). A_β 는 toxe 만 흔든 σ(ΔVGS) = a + b/(gm/ID) 회귀(gm/ID 5·7·10·12)의 b·√(W·L)이라 근사다(제안서 §0.3 의 같은 회귀 결과 n 0.45–0.52·p 0.56–0.59(L ≥ 1)·0.88–1.16(L ≤ 0.5)과 같은 범위). LUT 감도 열로 합성한 A_eff 와 같은 점(다이오드 접속 VDS = VGS, 같은 전류밀도)의 쌍 MC 비교: nmos W5 L0.5: LUT 6.04 / MC 6.12 (비 1.014, 모델 블록 model.24); nmos W5 L1: LUT 6.33 / MC 6.49 (비 1.025, 모델 블록 model.23); nmos W5 L0.18: LUT 8.59 / MC 8.05 (비 0.938, 모델 블록 model.26); nmos W2 L1: LUT 6.35 / MC 5.94 (비 0.935, 모델 블록 model.41); pmos W5 L0.5: LUT 11.37 / MC 11.00 (비 0.967, 모델 블록 model.24); pmos W5 L1: LUT 9.06 / MC 9.31 (비 1.028, 모델 블록 model.23); pmos W5 L0.18: LUT 12.02 / MC 11.46 (비 0.953, 모델 블록 model.26); pmos W2 L1: LUT 9.05 / MC 8.64 (비 0.955, 모델 블록 model.41). 전체 표·재현 명령·sha256 = `docs/03-analysis/gain-budget-gmid-sizing.u3-lut-pdk-record.md`.
 LUT 감도 열의 vth0 성분은 이 값과 같아야 한다(U3 test (c)): nmos W5 L0.5: 4.74; nmos W5 L1: 4.753; nmos W5 L0.18: 4.815; nmos W2 L1: 4.752; pmos W5 L0.5: 10.409; pmos W5 L1: 8.366; pmos W5 L0.18: 9.712; pmos W2 L1: 8.365 mV·µm (기대 = √2·vth0_slope: nfet 4.746, pfet L ≥ 0.5 µm 8.282, L < 0.5 µm 10.403 -- 짧은 채널(L 0.18 µm)에서는 같은 ID 의 ΔVGS 가 ΔVT 와 한 자릿수 % 다르다(pfet 9.71 대 10.40)). 같은 점의 쌍 MC 와 A_eff 비 MC/LUT = 1.014, 1.025, 0.938, 0.935, 0.967, 1.028, 0.953, 0.955
+
+## 15. [WB-1 DC 블록] 소자 폭 슬라이스 선택 (설계 40 §3.7-A, interface card 20261104-wb1 §2)
+
+- `finger_slice(lut, kind, L, w_of) -> FingerSlice(m, w_f_m, w_key)`: 도달 가능한 슬라이스(`reachable_slices`: 기준 폭 슬라이스의 W bin 위 끝 `w_bin[1]` 이하, W_min 이상, L 을 품는 bin 이 있을 때)마다 `w_of(키)` = 그 슬라이스에서의 총 폭을
+  받아 x = W/(키·g), k = floor(x), k = 0 이면 m = 1 아니면 x − k ≤ k + 1 − x 일 때 m = k 아니면 k + 1, 잔차 |(m·키)·g/W − 1| 최소(동률은 큰 키)로 고른다. `w_of` 가 None·비유한·≤ 0 이면 그 키를 뺀다.
+  후보 없음 `slice_missing`(`why` = `no_w_hi`·`no_candidate`, `excluded`). 저장 0, graph 읽지 않음.
+- `slice_of_finger(lut, kind, L, w_f_m) -> 키`: 격자 정수 키가 `widths(lut, kind)` 에 있을 때만, 아니면 `slice_missing`(LUT 값 조회 0).
+- `is_slice_gap(exc)`·`SLICE_GAP_REASONS`: 조회 불능 사유 다섯(`lut_axis_out_of_range`, `lut_l_not_anchor`, `lut_l_outside_model_bins`, `lut_l_bin_unbracketed`, `lut_l_cross_bin`).
+- `build_slice_tables(memo) -> int`: `widths` 키마다 tol_V 표·(VDSAT 열이 있으면) tol_VDsat 표 구성.
+- [M-TH1c] tol_V 지표는 `id_equivalent` 하나(`TOL_V_METRICS`): `TolVCell(id_equivalent_v, id_equivalent_loo_v)`, `MidpointRow(model, L_points, id_equivalent_v, vdsat_v)`.
+  `strong_inversion_root` 정의는 `vgs_root.py`, `branch_targets` 삭제.

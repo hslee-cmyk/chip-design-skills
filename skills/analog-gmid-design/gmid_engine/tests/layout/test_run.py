@@ -174,6 +174,7 @@ def test_hand_oracle_composite(result):
     assert len(reqs) == 1 and isinstance(reqs[0], WRequest)
     assert (reqs[0].reason, reqs[0].group) == ("finger_quantization", None)
     assert reqs[0].W_old_m == pytest.approx(0.75e-6, rel=1e-9) and reqs[0].W_new_m == pytest.approx(1e-6)
+    assert reqs[0].nf == 1 and reqs[0].finger_w_m == pytest.approx(1e-6, rel=1e-12)       # [dispute 8.4] 요청 손가락, W_new = nf x finger_w_m
     assert (by["C"].finger_w_m, by["C"].n_fingers) == (pytest.approx(1e-6), 1)
     # bias_distribution 멤버 C·D 는 일반 행 소자(그룹 행 아님)
     for n in ("C", "D"):
@@ -542,13 +543,9 @@ def _grid(tlef):
 def _real_spec(manifest, grid):
     from gmid_engine.lut import LutSpec
     base = Path(manifest).parent
-    mins = {}
+    from pdk_min_w import min_finger_w_m
     kinds = {"nfet_01v8": "nmos", "pfet_01v8": "pmos"}
-    for s in json.loads(Path(manifest).read_text(encoding="utf-8"))["slices"]:
-        with np.load(base / s["file"]) as z:
-            W = float(z["W"])
-        k = kinds[s["device"]]
-        mins[k] = min(W, mins.get(k, W))
+    mins = min_finger_w_m(kinds.values())      # PDK 선언 양(card 20261104-wb1)
     return LutSpec(grid, tuple(sorted(mins.items())), tuple(sorted(kinds.items())), (("nmos", "_n"), ("pmos", "_p")))
 
 
@@ -606,7 +603,9 @@ def test_m3a_regression_real_lut():
     grid = _grid(_need(REAL_TLEF, "PDK tlef"))
     loc = _real_loc()
     manifest = _need(loc.manifest_path, "폭 슬라이스 manifest")
-    lut = load_lut_set(manifest, _need(loc.cap_npz_path, "기준 LUT"), _real_spec(manifest, grid))
+    # [LM-1e D7] 위치 선언의 중점 파일 전부를 넘긴다(`widths` 안 슬라이스의 앵커 2개 bin 마다 중점이 있어야 적재된다)
+    lut = load_lut_set(manifest, _need(loc.cap_npz_path, "기준 LUT"), _real_spec(manifest, grid),
+                       bin_rule=loc.bin_rule_path, verify_midpoints=loc.midpoints_paths)
     full = toy_pdk(lut)
     pdk = LayoutPdk(full.manufacturing_grid_m, (("nmos", REAL_KEYS),), 0.0, 0.0, 0.0, 0.0, 0.0, full.rule_ids, lut.fp)
     ds = [dev(n, "s_" + n, "d_" + n, None, ID_A=ID, L=L, gm_id=gm, vds=vds, vsb=vsb, W=W) for n, L, ID, gm, vds, vsb, W in PILOT]

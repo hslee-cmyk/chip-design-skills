@@ -1,5 +1,6 @@
 """`resolve_lut_location` -- CONTRACT 1.8 [r6]: 설정 JSON(root·pdk_root 의 env/default, files 의 상대 path·sha256)을 풀어
-`LutLocation(config_path, root, manifest_path, cap_npz_path, midpoints_path, pdk_root, sources)` 로.
+`LutLocation(config_path, root, manifest_path, cap_npz_path, midpoints_paths, pdk_root, sources, noise_path, mismatch_path,
+bin_rule_path)` 로. [LM-1e §1] `files.verify_midpoints` = 배열(원소 {path, sha256}), `midpoints_paths` = 절대 경로 tuple(`path` 오름차순).
 
 - root·pdk_root = env[이름] 이 비어 있지 않으면 그 값(sources "env:<이름>"), 아니면 default("config_default"), 둘 다 없으면 거부.
   env 는 부르는 쪽이 넘긴 매핑만 본다(모듈은 os.environ 를 직접 읽지 않는다). 경로는 os.path.abspath.
@@ -7,6 +8,7 @@
   sha256 다름 -> lut_location_sha256_mismatch. 설정 없음 -> lut_location_config_missing, root 폴더 없음 -> lut_location_root_missing.
 - 기대값: 이 파일이 hashlib 으로 직접 잰 sha256 과 os.path.abspath(설정 값).
 """
+import dataclasses
 import hashlib
 import json
 import os
@@ -32,15 +34,25 @@ class Cfg:
         self.tmp = Path(tmp)
         self.root = self.tmp / ("data_" + name)
         (self.root / "sub").mkdir(parents=True, exist_ok=True)
-        self.files = {"manifest": "manifest.json", "cap_npz": "sub/cap.npz", "verify_midpoints": "mid.npz"}
+        self.files = {"manifest": "manifest.json", "cap_npz": "sub/cap.npz"}
+        # [LM-1e §1] 중점 파일 둘(하위 폴더 허용). 설정 안 배열 순서는 일부러 path 오름차순의 반대다.
+        self.mids = ("sub/mid_b.npz", "mid_a.npz")
         for i, (item, rel) in enumerate(sorted(self.files.items())):
             (self.root / rel).write_bytes(("%s-%d" % (item, i)).encode())
+        for i, rel in enumerate(self.mids):
+            (self.root / rel).write_bytes(("mid-%d" % i).encode())
         self.pdk = self.tmp / ("pdk_" + name)
         self.pdk.mkdir(exist_ok=True)
         self.cfg = {"schema": "x", "ignored": 1,
                     "root": {"env": "T_LUT_ROOT", "default": str(self.root)},
                     "pdk_root": {"env": "T_PDK_ROOT", "default": str(self.pdk)},
                     "files": {item: {"path": rel, "sha256": _sha(self.root / rel)} for item, rel in self.files.items()}}
+        self.cfg["files"]["verify_midpoints"] = [{"path": rel, "sha256": _sha(self.root / rel), "note": "읽지 않음"}
+                                                 for rel in self.mids]
+        # [WB-1 §1 위치 선언] 최상위 키 bin_rule (files 밖, path 는 설정 파일 폴더 기준, sha256 = LF 값)
+        decl = b"{}\n"
+        (self.tmp / ("rule_" + name + ".json")).write_bytes(decl)
+        self.cfg["bin_rule"] = {"path": "rule_" + name + ".json", "sha256": hashlib.sha256(decl).hexdigest()}
         self.path = self.tmp / (name + ".json")
 
     def write(self, cfg=None):
@@ -61,7 +73,9 @@ def test_defaults_resolved(tmp_path):
     assert loc.root == os.path.abspath(str(c.root))
     assert loc.manifest_path == os.path.abspath(os.path.join(str(c.root), "manifest.json"))
     assert loc.cap_npz_path == os.path.abspath(os.path.join(str(c.root), "sub/cap.npz"))
-    assert loc.midpoints_path == os.path.abspath(os.path.join(str(c.root), "mid.npz"))
+    # oracle (d) interface §1: 절대 경로 tuple, `path` 오름차순("mid_a.npz" < "sub/mid_b.npz") -- 설정 안 순서와 무관
+    assert loc.midpoints_paths == (os.path.abspath(os.path.join(str(c.root), "mid_a.npz")),
+                                   os.path.abspath(os.path.join(str(c.root), "sub/mid_b.npz")))
     assert loc.pdk_root == os.path.abspath(str(c.pdk))
     src = tuple(loc.sources)
     assert [k for k, _ in src] == sorted(k for k, _ in src)               # 항목 정렬
@@ -142,8 +156,81 @@ def test_verify_midpoints_optional(tmp_path):
     cfg = json.loads(json.dumps(c.cfg))
     del cfg["files"]["verify_midpoints"]
     loc = resolve_lut_location(c.write(cfg), {})
-    assert loc.midpoints_path is None
+    assert loc.midpoints_paths == ()                       # interface §1 표: 항목 없음 -> ()
     assert loc.manifest_path == os.path.abspath(os.path.join(str(c.root), "manifest.json"))
+
+
+def test_lm1e_location_fields_and_order():
+    """interface §1: 칸 순서 고정, 옛 단수 칸 없음(복수 `midpoints_paths` 만)."""
+    assert tuple(f.name for f in dataclasses.fields(LutLocation)) == (
+        "config_path", "root", "manifest_path", "cap_npz_path", "midpoints_paths", "pdk_root", "sources", "noise_path",
+        "mismatch_path", "bin_rule_path")
+
+
+def test_lm1e_midpoints_order_independent_of_config_order(tmp_path):
+    """interface §1 표: 같은 두 원소 역순 -> 같은 midpoints_paths(정렬)."""
+    c = Cfg(tmp_path)
+    cfg = json.loads(json.dumps(c.cfg))
+    a = resolve_lut_location(c.write(cfg), {}).midpoints_paths
+    cfg["files"]["verify_midpoints"].reverse()
+    b = resolve_lut_location(c.write(cfg), {}).midpoints_paths
+    assert len(a) == 2 and a == b and list(a) == sorted(a)
+
+
+def _mid_cfg(c, entries):
+    cfg = json.loads(json.dumps(c.cfg))
+    cfg["files"]["verify_midpoints"] = entries
+    return c.write(cfg)
+
+
+def test_lm1e_midpoints_old_single_object_rejected(tmp_path):
+    """interface §1 표: 옛 꼴 단일 객체 -> lut_location_config_invalid, item verify_midpoints."""
+    c = Cfg(tmp_path)
+    det = _reject(_mid_cfg(c, {"path": "mid_a.npz", "sha256": _sha(c.root / "mid_a.npz")}))
+    assert det["reason"] == "lut_location_config_invalid" and det["item"] == "verify_midpoints"
+
+
+def test_lm1e_midpoints_empty_array_rejected(tmp_path):
+    c = Cfg(tmp_path)
+    det = _reject(_mid_cfg(c, []))
+    assert det["reason"] == "lut_location_config_invalid" and det["item"] == "verify_midpoints"
+
+
+@pytest.mark.parametrize("why", ["not_object", "no_path", "no_sha", "absolute", "dotdot", "duplicate"])
+def test_lm1e_midpoints_bad_entries_rejected(tmp_path, why):
+    """interface §1 표: 원소가 객체 아님·path/sha256 없음·절대 경로·`..`·같은 path 둘 -> lut_location_config_invalid.
+    절대 경로·`..` 은 실제로 있는 같은 파일을 가리켜도 거부(파일 유무 검사가 아님)."""
+    c = Cfg(tmp_path)
+    good = {"path": "mid_a.npz", "sha256": _sha(c.root / "mid_a.npz")}
+    other = {"path": "sub/mid_b.npz", "sha256": _sha(c.root / "sub/mid_b.npz")}
+    bad = {"not_object": "mid_a.npz",
+           "no_path": {"sha256": good["sha256"]},
+           "no_sha": {"path": "mid_a.npz"},
+           "absolute": {"path": str((c.root / "mid_a.npz").resolve()), "sha256": good["sha256"]},
+           "dotdot": {"path": "sub/../mid_a.npz", "sha256": good["sha256"]},
+           "duplicate": dict(good)}[why]
+    entries = [good, bad] if why == "duplicate" else [other, bad]
+    det = _reject(_mid_cfg(c, entries))
+    assert det["reason"] == "lut_location_config_invalid" and det["item"] == "verify_midpoints"
+
+
+def test_lm1e_midpoints_file_missing(tmp_path):
+    c = Cfg(tmp_path)
+    p = c.write()
+    (c.root / "sub/mid_b.npz").unlink()
+    det = _reject(p)
+    assert det["reason"] == "lut_location_file_missing" and det["item"] == "verify_midpoints"
+    assert os.path.abspath(det["path"]) == os.path.abspath(str(c.root / "sub/mid_b.npz"))
+
+
+def test_lm1e_midpoints_sha256_mismatch(tmp_path):
+    c = Cfg(tmp_path)
+    p = c.write()
+    f = c.root / "mid_a.npz"
+    f.write_bytes(f.read_bytes() + b"!")
+    det = _reject(p)
+    assert det["reason"] == "lut_location_sha256_mismatch" and det["item"] == "verify_midpoints"
+    assert det["recorded"] == hashlib.sha256(b"mid-1").hexdigest() and det["actual"] == _sha(f)   # mid_a = Cfg 의 둘째 파일
 
 
 def test_config_missing(tmp_path):
@@ -178,7 +265,7 @@ def test_required_file_items(tmp_path, item):
     assert det["reason"] == "lut_location_config_invalid"
 
 
-@pytest.mark.parametrize("item", ["manifest", "cap_npz", "verify_midpoints"])
+@pytest.mark.parametrize("item", ["manifest", "cap_npz"])
 @pytest.mark.parametrize("why", ["absolute", "dotdot", "empty", "no_sha"])
 def test_bad_file_entries(tmp_path, item, why):
     """절대 경로·`..` 조각은 실제로 있는 같은 파일을 가리켜도 거부(거부가 파일 유무 검사가 아님을 보인다)."""
@@ -198,7 +285,7 @@ def test_bad_file_entries(tmp_path, item, why):
     assert det["item"] == item and "why" in det
 
 
-@pytest.mark.parametrize("item", ["manifest", "cap_npz", "verify_midpoints"])
+@pytest.mark.parametrize("item", ["manifest", "cap_npz"])
 def test_file_missing(tmp_path, item):
     c = Cfg(tmp_path)
     p = c.write()
@@ -208,7 +295,7 @@ def test_file_missing(tmp_path, item):
     assert os.path.abspath(det["path"]) == os.path.abspath(str(c.root / c.files[item]))
 
 
-@pytest.mark.parametrize("item", ["manifest", "cap_npz", "verify_midpoints"])
+@pytest.mark.parametrize("item", ["manifest", "cap_npz"])
 def test_sha256_mismatch(tmp_path, item):
     c = Cfg(tmp_path)
     p = c.write()
@@ -229,10 +316,14 @@ def test_repo_config_resolves_and_pins_sha(real_location):
     loc = real_location
     env_root = os.environ.get(cfg["root"]["env"]) or None
     assert loc.root == os.path.abspath(env_root or cfg["root"]["default"])
-    for item, attr in (("manifest", "manifest_path"), ("cap_npz", "cap_npz_path"), ("verify_midpoints", "midpoints_path")):
+    for item, attr in (("manifest", "manifest_path"), ("cap_npz", "cap_npz_path")):
         p = getattr(loc, attr)
         assert p == os.path.abspath(os.path.join(loc.root, cfg["files"][item]["path"]))
         assert _sha(p) == cfg["files"][item]["sha256"]                  # 설정이 고정한 내용
+    # [LM-1e §1] verify_midpoints = 배열: midpoints_paths = 각 원소의 (path, sha256) -- path 오름차순, 내용 sha 고정
+    ents = sorted(cfg["files"]["verify_midpoints"], key=lambda e: e["path"])
+    assert loc.midpoints_paths == tuple(os.path.abspath(os.path.join(loc.root, e["path"])) for e in ents)
+    assert [_sha(p) for p in loc.midpoints_paths] == [e["sha256"] for e in ents]
     env_pdk = os.environ.get(cfg["pdk_root"]["env"]) or None
     assert loc.pdk_root == os.path.abspath(env_pdk or cfg["pdk_root"]["default"])
 
@@ -261,8 +352,7 @@ def test_repo_config_feeds_load(real_location, real_lut):
     p = real_lut.provenance
     assert p.manifest_sha256 == cfg["files"]["manifest"]["sha256"]
     assert p.cap_sha256 == cfg["files"]["cap_npz"]["sha256"]
-    assert p.midpoints_sha256 == cfg["files"]["verify_midpoints"]["sha256"]
-    assert os.path.normcase(os.path.abspath(p.midpoints_path)) == os.path.normcase(real_location.midpoints_path)
+    assert p.midpoints_sha256 == tuple(sorted(e["sha256"] for e in cfg["files"]["verify_midpoints"]))   # interface §2 결과
 
 
 # ---------------------------------------------------------------------------
@@ -271,7 +361,7 @@ def test_repo_config_feeds_load(real_location, real_lut):
 
 L_GRID_FILE = LOCATION_CONFIG.parent / "sky130_lut_L_grid.json"
 # CONTRACT 8절: r2 파일 이름 (O-180: r1 원본 LUT 는 지웠다 -- 옛 대 새 비트 동일 대조 test 도 지웠다)
-R2_NAMES = {"cap_npz": "sky130_nfet_pfet_lut_v2_r2.npz", "verify_midpoints": "sky130_nfet_pfet_lut_v2_verify_midpoints_r2.npz"}
+R2_NAMES = {"cap_npz": "sky130_nfet_pfet_lut_v2_r2.npz"}      # [LM-1e] verify_midpoints 는 r2 단일 파일이 아니라 폭별 파일 배열
 
 
 def _cfg_root(cfg):

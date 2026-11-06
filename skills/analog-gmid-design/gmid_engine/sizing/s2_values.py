@@ -54,7 +54,7 @@ THETA_LN_IDU = "ln_idu"
 THETA_L = "L"
 THETA_Y = "y"
 THETA_CURRENT = "current"
-THETA_RESISTANCE = "resistance"                        # DC 경로 저항(값 미선언) -- dc_columns 가 읽는다
+THETA_RESISTANCE = "resistance"                        # DC 경로 저항(값 미선언) -- dc_solve 가 읽는다
 THETA_CAPACITANCE = "capacitance"                      # [DEC-92] engine 커패시터 -- DC 블록이 읽지 않는다
 THETA_SS_RESISTANCE = "ss_resistance"                  # [DEC-92 (3)(b)] DC 전류 0(잎 가지치기) engine 저항 중 구조 규칙 밖
 THETA_KINDS = (THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE, THETA_SS_RESISTANCE, THETA_Y)
@@ -103,6 +103,9 @@ REASON_VDSAT_MISSING = "lut_vdsat_column_missing"
 REASON_LUT_QUERY = "lut_query_failed"
 REASON_NO_ROOT = "no_root_in_window"
 REASON_STRICT_RECHECK = "strict_recheck_residual"     # 다변수 SCC 수렴 뒤 strict 검증 바퀴 잔차 > tol
+REASON_REALIZED_FINGER_MISSING = "realized_finger_missing"       # 실현 평가 입력 `search_ref` 에 그 소자 `dc_finger` 행이 없다(J-9)
+REASON_SERVO_VIEW_UNRESOLVED = "realized_servo_view_unresolved"     # servo 갈래인데 기본 포트 뷰·감지 부호를 정할 수 없다(측정 구성이 servo 로 판정한 뒤라 정상 경로에서는 없다)
+REASON_SERVO_BRANCH_MISMATCH = "realized_servo_branch_mismatch"   # 실현 스냅샷 피벗 판정이 풀이가 탄 갈래(탐색 스냅샷 판정)와 다르다
 REASON_NEWTON_START = "newton_start_outside_domain"    # 감쇠 Newton 시작점이 정의역 밖(LUT 조회 실패·빈 창)
 REASON_NEWTON_SINGULAR = "newton_singular"             # 야코비안 LU 영 피벗
 REASON_NEWTON_LINE_SEARCH = "newton_line_search"       # 역추적 선 탐색이 잔차를 줄이는 α 를 못 찾음
@@ -113,9 +116,8 @@ SCC_BISECTION = "bisection"
 SCC_DIRECT = "direct"
 
 # ---- 남은 동률(구조 색이 같은 후보)을 이름 순서로 깬 결정의 종류(`TieBreak.decision`)
-INPUT_STATUS_MEASURED = "measured"                     # `Window.input_status`(설계 41 4.7-2): 입력 포화 창을 재고 되풀이가 tol 안에서 수렴 / cfg: 선형 감도 끝을 쟀다
-INPUT_STATUS_UNSETTLED = "unsettled"                   # 창은 잰 해에서 쟀으나 되풀이가 k_max 안에 수렴하지 않았거나 tol 미정 (커널 창 전용 -- card WB-1 이 지운다)
-INPUT_STATUS_UNMEASURED = "unmeasured"                 # 창을 잴 수 없다(커널 뿌리 항목 / cfg 자기 측정 실패)
+INPUT_STATUS_MEASURED = "measured"                     # `Window.input_status`(cfg 창 전용, 설계 41 4.7-2): 선형 감도 끝을 쟀다
+INPUT_STATUS_UNMEASURED = "unmeasured"                 # 창을 잴 수 없다(cfg 자기 측정 실패)
 TIE_KRUSKAL = "writer_edge"                           # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
 TIE_CURRENT_PIVOT = "current_pivot"                    # 같은 구조 색 원소 열이 θ 전류 기저/종속으로 갈림
 
@@ -130,8 +132,7 @@ DC_THETA_SCHEMA_WRITER = "dc_theta_schema"
 KERNEL_CONTEXT_WRITER = "kernel_context"               # graph/kernel: fixed_values·resistor_values·l_ties (`build_kernel_context` 의 계산 블록)
 DC_CURRENTS_WRITER = "dc_currents"
 DC_LENGTHS_WRITER = "dc_lengths"
-DC_COLUMNS_WRITER = "dc_columns"
-DC_WIDTHS_WRITER = "dc_widths"
+DC_SOLVE_WRITER = "dc_solve"                           # 노드 풀이 + 슬라이스 선택 + 소자 동작점 (WB-1, 노드 풀이와 W 계산을 합친 블록)
 DC_TOLERANCES_WRITER = "dc_tolerances"
 DC_SEAL_NODE_CONFLICT_WRITER = "dc_seal_node_conflict"
 DC_SEAL_VGS_MATCH_WRITER = "dc_seal_vgs_match"
@@ -151,11 +152,10 @@ DC_WRITES = (
     (KERNEL_CONTEXT_WRITER, (("graph", "fixed_values"), ("graph", "resistor_values"), ("graph", "l_ties"))),
     (DC_SCC_ORDER_WRITER, (("graph", "dc_scc_order"), ("node", "dc_column_nbrs"))),
     (DC_THETA_SCHEMA_WRITER, (("graph", "theta_schema"),)),          # graph/kernel: theta_schema (옛 graph/dc: dc_theta_schema 를 옮김, v1.9.1 D8)
-    (DC_CURRENTS_WRITER, (("device", "dc_current"), ("device", "dc_drop_current"))),
+    (DC_CURRENTS_WRITER, (("device", "dc_current"),)),
     (DC_LENGTHS_WRITER, (("device", "dc_L"),)),
-    (DC_COLUMNS_WRITER, (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"),
-                         ("device", "dc_ln_idu"), ("graph", "dc_scc_log"))),
-    (DC_WIDTHS_WRITER, (("device", "dc_op"), ("device", "dc_sat_v"))),
+    (DC_SOLVE_WRITER, (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"), ("device", "dc_ln_idu"),
+                       ("device", "dc_op"), ("device", "dc_sat_v"), ("device", "dc_finger"), ("graph", "dc_scc_log"))),
     (DC_TOLERANCES_WRITER, (("device", "dc_tol_v"), ("device", "dc_gm"))),
     (DC_SEAL_NODE_CONFLICT_WRITER, (("graph", "dc_seal_1"),)),
     (DC_SEAL_VGS_MATCH_WRITER, (("graph", "dc_seal_2"),)),
@@ -178,6 +178,7 @@ SS_NODAL_WRITER = "ss_nodal"                           # graph.ss_nodal: 봉인�
 SS_OFF_OP_WRITER = "ss_off_op"                       # device.off_op: `off` 선언 소자의 동작점 (EO-1 범위 4)
 SS_OFF_DELTA_WRITER = "ss_off_delta"                   # graph.ss_off_delta: off 소자 전류 효과의 1차 ΔV (EO-1 범위 4)
 ICM_CONFIG_WRITER = "icm_config"                       # node.dc_window_cfg + graph.icm_config: ICMR 측정 구성·창·V_cm 칸 (card IT-2c)
+ICM_CONFIG_SERVO = "servo"                             # `IcmConfig.config` 어휘: 입력 둘 servo 갈래 (측정 구성 `icm_config` 와 실현 평가 `dc_solve` 가 같은 이름을 읽는다)
 SS_WRITES = (
     (SS_DEV_WRITER, (("device", "ss_dev"),)),
     (METRICS_SS_WRITER, (("graph", "metrics_ss"),)),
@@ -234,15 +235,49 @@ class ThetaClass:
 
 @dataclasses.dataclass(frozen=True)
 class LutAccess:
-    """계산 블록 추가 인자로 넘기는 LUT 손잡이. `memo` = lut.LutMemo(graph 밖 유일 memo), `w_keys` = ((kind, w_key), ...)
-    -- 레이아웃 전 사이징이 쓰는 폭 슬라이스. 지문(`__canonical__`)은 (LUT 내용 지문, w_keys) 라서 같은 LUT·같은 슬라이스면
-    블록 입력 버전이 같고, memo 상태(캐시)는 결과에 영향이 없어 지문에 들지 않는다."""
+    """계산 블록 추가 인자로 넘기는 LUT 손잡이. `memo` = lut.LutMemo(graph 밖 유일 memo). 지문(`__canonical__`)은 LUT 내용 지문이라 같은 LUT 면 블록 입력 버전이
+    같고, memo 상태(캐시)는 결과에 영향이 없어 지문에 들지 않는다. 소자별 폭 슬라이스는 블록 안 값(`finger_slice` 선택)이라 이 손잡이에 칸이 없다(WB-1)."""
 
     memo: object
-    w_keys: tuple
 
     def __canonical__(self):
-        return (self.memo.lut.fp, self.w_keys)
+        return self.memo.lut.fp
+
+
+@dataclasses.dataclass(frozen=True)
+class FingerGeom:
+    """`device.dc_finger` 한 소자: 손가락 수 `m`, 슬라이스 폭 `w_f_m`(m), 잔차 `residual` = m·w_f/W − 1 (탐색 평가는 선택 잔차, 실현 평가는 0.0)."""
+
+    m: int
+    w_f_m: float
+    residual: float
+
+
+@dataclasses.dataclass(frozen=True)
+class RealizedFinger:
+    """실현 평가 입력: `search_ref` = 탐색 평가 스냅샷 참조(`device.dc_finger` 를 읽는다), `fp` = (MOS, m, w_s) 열 지문 -- 평가 키 성분(참조 + 지문, 값 사본 아님)."""
+
+    search_ref: object
+    fp: str
+
+    def __canonical__(self):
+        return ("realized_finger", self.fp)         # 참조의 지문 -- 스냅샷 값을 입력 버전에 옮겨 담지 않는다
+
+
+@dataclasses.dataclass(frozen=True)
+class RealizedGeometry:
+    """레이아웃 뒤 평가 입력: `layout_ref` = ((배치 MOS, `DiffusionGeometry`(finger_w, ..., m = nf)), ...) 레이아웃 실현 기하 참조, `w_request` = 요청 대기(배치 아님) 소자의 요청 손가락 행 참조
+    ((MOS, (nf, finger_w)), ...) 이름순(WB-1 A-139 -- 배치 소자는 두지 않는다). 사이징 호출 계약 `size_and_seal(w_request=)` 는 `layout_ref` = None 이고 값이 요청 총 폭 W(m)이다.
+    `input_fingers` = 이 입력이 정하는 소자별 입력 손가락 (nf, finger_w) -- DC 블록(`dc_solve`)과 레이아웃 수렴 주기 키(`converge_point`)가 읽는 정의 하나."""
+
+    layout_ref: object
+    w_request: tuple
+
+    @property
+    def input_fingers(self):
+        """{소자: (nf, finger_w)} -- 배치 소자 = `layout_ref` (round(m), finger_w), 요청 대기 소자 = `w_request` 의 요청 손가락 행. 둘 다 아닌 소자는 없다."""
+        placed = {} if self.layout_ref is None else {m: (round(g.m), g.finger_w_m) for m, g in self.layout_ref}
+        return {**placed, **dict(self.w_request)}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -397,6 +432,7 @@ class SccLog:
     k_max: object
     method: str = SCC_DIRECT
     fallback: object = None
+    slice_rounds: int = 1
 
 
 @dataclasses.dataclass(frozen=True)

@@ -1,17 +1,18 @@
-"""`midpoint_l_bin_checks` -- CONTRACT 5.1 [r6]: 앵커 2개 bin 의 외부 값(검증 중점 파일, 1.7).
+"""`midpoint_l_bin_checks` -- CONTRACT 5.1 [LM-1e]: 앵커 2개 bin 의 외부 값(검증 중점 파일, DC 슬라이스 npz 꼴 -- interface §2).
 
-- memo derived, 키 (kind, w_key). `MidpointChecks(kind, w_key, rows, skipped, midpoints_sha256)`; 중점 표 없는 kind -> (kind, w_key, (), (), None).
-- 중점마다 순서대로: width_differs -> bins_unavailable -> is_anchor -> outside_model_bins -> single_point(앵커 < 2, model)·
-  bin_has_interior_anchors(> 2) -> not_bracketed. 남은 중점: t = (L_m − a0)/(a1 − a0), 세 값은 **VDS 격자점 k 마다의 tuple**(결정 A):
-  id_equivalent_v[k] = max |lnID(i0) + t·(lnID(i1) − lnID(i0)) − lnID_m| / gm_id_m (중점 on ∧ 슬라이스 on(i0) ∧ on(i1)),
-  gm_id_inverse_v[k] = max |strong_inversion_root(L 선형 보간 곡선, g_j) − VGS_j| (5절 목표 규칙), vdsat_v[k] = max |선형 보간 − VDSAT_m|
-  (출처 4.3, 축 같을 때). Richardson 환산 없음. 같은 bin 의 중점은 한 MidpointRow 로(k 마다 최댓값, 개수 합), rows = model 정렬.
+- memo derived, 키 (kind, w_key). `MidpointChecks(kind, w_key, rows, skipped, midpoints_sha256)`; 그 (kind, w_key)의 중점 표가 없으면
+  (kind, w_key, (), (), None). [LM-1e] 중점 표는 폭마다 하나라 폭이 다른 조회는 표 없음(옛 `폭 다름` 사유 없음).
+- 중점마다 `midpoint_bracket`(interface §3 표 1~6) 순서로 skipped 사유: bins_unavailable -> is_anchor -> outside_model_bins ->
+  single_point(앵커 < 2, model)·bin_has_interior_anchors(> 2) -> not_bracketed. 남은 중점: t = (L_m − a0)/(a1 − a0), 세 값은 **VDS 격자점 k 마다의
+  tuple**: id_equivalent_v[k] = max |lnID(i0) + t·(lnID(i1) − lnID(i0)) − lnID_m| / gm_id_m (중점 on ∧ 슬라이스 on(i0) ∧ on(i1)),
+  vdsat_v[k] = max |선형 보간 − VDSAT_m|(출처 4.3, 축 같을 때). Richardson 환산 없음. 같은 bin 의 중점은 한 MidpointRow 로(k 마다 최댓값), rows = model 정렬.
 - 기대값: conftest `midpoint_ref`(npz 직접 -- 5.1 식의 독립 구현), 중점 toy 의 닫힌 식(VDSAT 오차 = 0.05·(Lu_m − Lu0)(Lu1 − Lu_m)·(1 + d)).
 """
 import hashlib
 import json
 import math
 import os
+import re
 import subprocess
 import sys
 
@@ -19,10 +20,11 @@ import numpy as np
 import pytest
 
 from gmid_engine.lut import (MidpointChecks, MidpointRow, load_lut_set, midpoint_l_bin_checks, tol_v_table,
-                             tol_vdsat_table)
+                             tol_vdsat_table, widths)
 
-from .conftest import (BIN_L, MID_L_SOURCE, REAL_DEVICE_KINDS, SKILL_DIR, TOY_SPEC, gamma_n, manufacturing_grid_m,
-                       mid_point_arrays, mid_toy_arrays, midpoint_ref, new_memo, parse_model_bins, same_bounds, sha256_file, um)
+from .conftest import (BIN_L, ENGINE_ROOT, REAL_DEVICE_KINDS, SKILL_DIR, T_KEYS, T_MID_L, T_WIDTHS, TOY_SPEC, bin_model_text,
+                       build_t, gamma_n, manufacturing_grid_m, mid_file, mid_meta, mid_toy_arrays, midpoint_ref, new_memo,
+                       parse_model_bins, same_bounds, sha256_file, t_spec, um)
 
 M = "toyn__model."
 # 중점(오름차순 = 파일 순서)과 손으로 정한 판정(conftest 머리 bin 표: A [1,2] 앵커 1·1.5·2, B (2,4] 3·4, C (4,5] 없음,
@@ -37,7 +39,7 @@ EXPECT_ROWS = ((M + "1", (3, 4), 3, 4), (M + "3", (7,), 5, 6))
 
 @pytest.fixture
 def mid_toy(mid_toy_build):
-    return mid_toy_build("mt", mid=mid_point_arrays(MID_L, l_source=MID_L_SOURCE))
+    return mid_toy_build("mt", mid={0: MID_L})
 
 
 def _vd_bound(t, V0, V1, Vm):
@@ -47,7 +49,7 @@ def _vd_bound(t, V0, V1, Vm):
 def _expected_rows(slice_z, mid_z, vdsat_src, src_on):
     rows = []
     for model, mids, i0, i1 in EXPECT_ROWS:
-        refs = [midpoint_ref(slice_z, mid_z, "_n", m, i0, i1, vdsat_src, src_on) for m in mids]
+        refs = [midpoint_ref(slice_z, mid_z, "", m, i0, i1, vdsat_src, src_on) for m in mids]
         nV = len(slice_z["VDS"])
 
         def kmax(key):
@@ -87,16 +89,14 @@ def test_rows_and_skipped_match_independent(mid_toy):
     assert mc.midpoints_sha256 == sha256_file(mid_toy.mid_path)
     assert tuple(tuple(s) for s in mc.skipped) == EXPECT_SKIPPED
     z = mid_toy_arrays(1e-6, 1.0, {})
-    mid = mid_point_arrays(MID_L, l_source=MID_L_SOURCE)
+    mid = mid_file(1e-6, 1.0, MID_L)
     on = (z["ID"] > 0) & (z["GM"] > 0)
     exp = _expected_rows(z, mid, z["VDSAT"], on)
     assert [r.model for r in mc.rows] == [e["model"] for e in exp]
     for r, e in zip(mc.rows, exp):
         assert isinstance(r, MidpointRow)
         assert tuple(r.L_points) == e["L"]
-        assert (r.n_targets, r.n_inverse_failed) == (e["n_t"], e["n_f"])
         _assert_tuple_close(r.id_equivalent_v, e["eq"], e["eq_b"], (e["model"], "eq"))
-        _assert_tuple_close(r.gm_id_inverse_v, e["inv"], e["inv_b"], (e["model"], "inv"))
         # vdsat: 선형 보간·뺄셈 두 경로 반올림 -- 값 크기 상한 Vmax = 그 VDS 의 중점 toy VDSAT 최댓값(앵커 i1 쪽)
         Lu1 = BIN_L[e["i1"]] / 1e-6
         vmax = [0.1 + 0.2 + 0.05 * Lu1 ** 2 * (1 + d) for d in z["VDS"]]
@@ -106,15 +106,12 @@ def test_rows_and_skipped_match_independent(mid_toy):
 
 def test_hand_values_vdsat_and_targets(mid_toy):
     """닫힌 식: bin B 의 중점 3.25·3.5 µm -> VDSAT 오차 0.05·(Lu_m − 3)(4 − Lu_m)·(1 + d) 의 max = 3.5 µm 의 0.0125·(1 + d)
-    -> (0.01875, 0.025). 판별: id_equivalent·gm_id_inverse 도 0 이 아니다(c(L) 이 L 에 2차). 목표 수 = 중점 2 × VS 2 × 목표 3."""
+    -> (0.01875, 0.025). 판별: id_equivalent 도 0 이 아니다(c(L) 이 L 에 2차)."""
     mc = midpoint_l_bin_checks(new_memo(mid_toy.load()), "nmos", 100)
     row = {r.model: r for r in mc.rows}[M + "1"]
     for k, hand in enumerate((0.0125 * 1.5, 0.0125 * 2.0)):
         assert abs(row.vdsat_v[k] - hand) <= 8 * gamma_n() * 1.0, (k, row.vdsat_v[k], hand)
     assert all(v is not None and v > 0 for v in row.id_equivalent_v)
-    assert any(v is not None and v > 0 for v in row.gm_id_inverse_v)
-    # 중점 곡선 g = c(L_m)·(20 − 12v) 는 감소 -> VGS 3 점 모두 목표(5절 규칙): 중점 2 × VDS 2 × VS 2 × 목표 3 = 24
-    assert row.n_targets == 24
     # 행은 L_points 두 개(3.25·3.5 µm)를 합쳤다
     assert tuple(row.L_points) == (3.25e-6, 3.5e-6)
 
@@ -124,26 +121,25 @@ def test_per_vds_tuples_have_grid_length(mid_toy):
     mc = midpoint_l_bin_checks(new_memo(lut), "nmos", 100)
     n = len(lut.slice_map[("nmos", 100)].grids[2])
     for r in mc.rows:
-        for f in ("gm_id_inverse_v", "id_equivalent_v", "vdsat_v"):
+        for f in ("id_equivalent_v", "vdsat_v"):
             assert isinstance(getattr(r, f), tuple) and len(getattr(r, f)) == n
 
 
-def test_width_differs_for_other_width(mid_toy):
-    """중점 표 폭 키 100 ≠ 조회 w_key 200 -> 모든 중점 "width_differs"(다른 폭으로 옮기지 않는다), rows ()."""
-    mc = midpoint_l_bin_checks(new_memo(mid_toy.load()), "nmos", 200)
-    assert mc.rows == () or tuple(mc.rows) == ()
-    assert [s[1] for s in mc.skipped] == ["width_differs"] * len(MID_L)
-    assert [s[0] for s in mc.skipped] == list(MID_L)
-    assert all(s[2] is None for s in mc.skipped)
+def test_midpoint_c2_other_width_has_no_midpoint_table(mid_toy_build):
+    """C-2: 중점 표가 없는 (kind, w_key) -> rows (), skipped (), sha None. 옛 `폭 다름` 사유 없음.
+    (a) T-4 의 키 60(중점은 키 80 만), (b) MidToy 의 키 200(중점은 키 100 만)."""
+    m = new_memo(build_t(mid_toy_build, "c2", {1: T_MID_L}).load(t_spec(0.7e-6)))
+    assert midpoint_l_bin_checks(m, "nmos", T_KEYS[0]) == MidpointChecks("nmos", 60, (), (), None)
+    mc = midpoint_l_bin_checks(new_memo(mid_toy_build("c2b", mid={0: MID_L}).load()), "nmos", 200)
+    assert tuple(mc.rows) == () and tuple(mc.skipped) == () and mc.midpoints_sha256 is None
 
 
-def test_bins_unavailable(toy_build, tmp_path):
-    """bin 지도 없는 슬라이스(r5 toy) -> 모든 중점 "bins_unavailable". (중점 파일 축 = toy 축)"""
-    b = toy_build("plainmid")
-    p = tmp_path / "plain_mid.npz"
-    np.savez(p, **mid_point_arrays((1.5e-6, 2.5e-6), l_source=MID_L_SOURCE))
-    lut = load_lut_set(str(b.manifest), str(b.cap), TOY_SPEC, verify_midpoints=str(p))
-    mc = midpoint_l_bin_checks(new_memo(lut), "nmos", 100)
+def test_midpoint_c3_bins_unavailable(mid_toy_build):
+    """bin 블록 없는 모델 파일(빈 지도) -> 모든 중점 "bins_unavailable"."""
+    text = bin_model_text(blocks=())
+    mt = mid_toy_build("plainmid", model_text=text,
+                       mid={0: mid_file(1e-6, 1.0, (1.5e-6, 2.5e-6), mid_meta(text))})
+    mc = midpoint_l_bin_checks(new_memo(mt.load()), "nmos", 100)
     assert tuple(mc.rows) == ()
     assert [s[1] for s in mc.skipped] == ["bins_unavailable", "bins_unavailable"]
 
@@ -154,8 +150,8 @@ def test_no_midpoints_contract_toy(toy_memo):
 
 
 def test_vdsat_none_without_midpoint_column(mid_toy_build):
-    """중점 VDSAT 열 없음 -> vdsat_v 모두 None(다른 두 값은 그대로)."""
-    mt = mid_toy_build("novd", mid=mid_point_arrays(MID_L, l_source=MID_L_SOURCE, vdsat=False))
+    """중점 VDSAT 열 없음 -> vdsat_v 모두 None(다른 값은 그대로)."""
+    mt = mid_toy_build("novd", mid={0: mid_file(1e-6, 1.0, MID_L, vdsat=False)})
     mc = midpoint_l_bin_checks(new_memo(mt.load()), "nmos", 100)
     for r in mc.rows:
         assert all(v is None for v in r.vdsat_v)
@@ -164,7 +160,7 @@ def test_vdsat_none_without_midpoint_column(mid_toy_build):
 
 def test_vdsat_none_without_source_column(mid_toy_build):
     """출처 열 없음(슬라이스·기준 LUT 모두 VDSAT 없음 -- column_source required=False 가 None) -> vdsat_v 모두 None."""
-    mt = mid_toy_build("nosrc", slice_cols=(), mid=mid_point_arrays(MID_L, l_source=MID_L_SOURCE))
+    mt = mid_toy_build("nosrc", slice_cols=(), mid={0: MID_L})
     mc = midpoint_l_bin_checks(new_memo(mt.load()), "nmos", 100)
     assert mc.rows and all(all(v is None for v in r.vdsat_v) for r in mc.rows)
 
@@ -173,12 +169,11 @@ def test_vdsat_from_cap_table_source(mid_toy_build):
     """슬라이스에 VDSAT 없고 기준 LUT(폭 키 100)에 있으면 출처 "cap_table" 의 값으로 vdsat_v(4.3 규칙). 기준 LUT VDSAT = 슬라이스 식의
     2 배로 두어 출처를 값으로 가린다."""
     cap_v = 2.0 * mid_toy_arrays(1e-6, 1.0, {})["VDSAT"]
-    mt = mid_toy_build("capsrc", slice_cols=("GMBS",), cap_extra={"VDSAT_n": cap_v},
-                       mid=mid_point_arrays(MID_L, l_source=MID_L_SOURCE))
+    mt = mid_toy_build("capsrc", slice_cols=("GMBS",), cap_extra={"VDSAT_n": cap_v}, mid={0: MID_L})
     mc = midpoint_l_bin_checks(new_memo(mt.load()), "nmos", 100)
     z = mid_toy_arrays(1e-6, 1.0, {})
-    mid = mid_point_arrays(MID_L, l_source=MID_L_SOURCE)
-    ref = midpoint_ref(z, mid, "_n", 4, 3, 4, cap_v, None)            # 기준 LUT on_mask 없음(ID·GM 열 없음) -> 생략
+    mid = mid_file(1e-6, 1.0, MID_L)
+    ref = midpoint_ref(z, mid, "", 4, 3, 4, cap_v, None)            # 기준 LUT on_mask 없음(ID·GM 열 없음) -> 생략
     row = {r.model: r for r in mc.rows}[M + "1"]
     for k in range(2):
         assert abs(row.vdsat_v[k] - ref["vdsat"][k]) <= 8 * gamma_n() * 2.0
@@ -193,7 +188,7 @@ def test_memo_derived_and_tol_default(mid_toy):
     assert st.misses == 2
     mc = midpoint_l_bin_checks(m, "nmos", 100)
     assert midpoint_l_bin_checks(m, "nmos", 100) is mc
-    explicit = tuple((r.model, r.gm_id_inverse_v, r.id_equivalent_v) for r in mc.rows)
+    explicit = tuple((r.model, r.id_equivalent_v) for r in mc.rows)
     assert tol_v_table(m, "nmos", 100, explicit) is t
     st2 = dict(m.stats())["derived"]
     assert st2.misses == 2 and st2.hits >= 2
@@ -212,9 +207,56 @@ def test_tol_default_without_midpoints_does_not_query(toy_build):
     assert tuple(t.l_bin_checks) == ()
 
 
+def test_midpoint_c1_toy_t_rows_are_closed_form_and_equal_for_both_keys(mid_toy_build):
+    """C-1: T-1 의 두 키 rows = 5.1 닫힌 식(conftest `midpoint_ref` -- 슬라이스·중점 npz 직접), 폭이 달라도 같은 L 격자·같은 중점 L
+    이라 두 키의 L 방향 보간 몫이 같다(배율은 ln ID 의 덧셈 상수)."""
+    lut = build_t(mid_toy_build, "c1", {0: T_MID_L, 1: T_MID_L}).load(t_spec(0.6e-6))
+    m = new_memo(lut)
+    got = {}
+    for (W, sc), wk in zip(T_WIDTHS, T_KEYS):
+        z = mid_toy_arrays(W, sc, {})
+        mid = mid_file(W, sc, T_MID_L)
+        on = (z["ID"] > 0) & (z["GM"] > 0)
+        mc = midpoint_l_bin_checks(m, "nmos", wk)
+        bnds = []
+        assert tuple(mc.skipped) == ()
+        assert [r.model for r in mc.rows] == [M + "1", M + "3"]
+        for r, (mi, i0, i1) in zip(mc.rows, ((0, 3, 4), (1, 5, 6))):
+            ref = midpoint_ref(z, mid, "", mi, i0, i1, z["VDSAT"], on)
+            _assert_tuple_close(r.id_equivalent_v, tuple(ref["eq"]), tuple(ref["eq_bound"]), (wk, r.model, "eq"))
+            bnds.append(tuple(ref["eq_bound"]))
+            assert tuple(r.L_points) == (T_MID_L[mi],)
+        got[wk] = [(r.id_equivalent_v, ref_b) for r, ref_b in zip(mc.rows, bnds)]
+    for (a, ba), (b, bb) in zip(got[60], got[80]):                      # 같은 5.1 식 -> 두 키가 같다(두 구현 유도 반올림 상한 안)
+        for x, y, u, v in zip(a, b, ba, bb):
+            assert abs(x - y) <= u + v
+
+
 # ---------------------------------------------------------------------------
-# 실데이터 (LUT v2 r2 + 중점 파일 r2): 계약 5.1·8절(2026-10-08 중점 변경)과 독립 numpy 재계산
+# 실데이터 (LUT v2 + 폭별 중점 파일 30장, interface §7): 계약 5.1 과 독립 numpy 재계산
 # ---------------------------------------------------------------------------
+
+PROVENANCE_RECORD = SKILL_DIR / "assets" / "lut_v2_midpoints_w.provenance.json"
+
+
+@pytest.mark.lut_realdata
+def test_lm1e_r1_real_load_midpoints_cover_widths(real_lut, real_location):
+    """R-1: 저장소 위치 선언 + PDK W_min spec 으로 적재 통과(D7 거부 0 -- real_lut 이 적재됐다는 것 자체).
+    (i) set(lut.midpoints) = {(k, w): w ∈ widths(lut, k)} -- 오라클 (d): 계획 N6.40 LM-1e 1(`widths` 마다 중점 한 장).
+    (ii) 위치 선언 (path, sha256) 집합 = 출처 기록 `files[]` (`path_rel_root`, `sha256`) 집합 -- 두 JSON 을 직접 읽어 대조."""
+    kinds = sorted({k for k, _ in real_lut.slice_map})
+    assert kinds == ["nmos", "pmos"]
+    expected = {(k, w) for k in kinds for w in widths(real_lut, k)}
+    assert expected and set(real_lut.midpoints) == expected
+    cfg = json.loads((SKILL_DIR / "assets" / "lut_v2_location.json").read_text(encoding="utf-8"))
+    rec = json.loads(PROVENANCE_RECORD.read_text(encoding="utf-8"))
+    declared = {(e["path"], e["sha256"]) for e in cfg["files"]["verify_midpoints"]}
+    recorded = {(f["path_rel_root"], f["sha256"]) for f in rec["files"]}
+    assert declared == recorded
+    assert len(declared) == len(cfg["files"]["verify_midpoints"]) == len(real_lut.midpoints)
+    # 적재된 중점 표의 sha256 = 선언 sha256 (파일 raw)
+    assert sorted(t.sha256 for t in real_lut.midpoints.values()) == sorted(s for _, s in declared)
+
 
 def _showmod_expected(ngspice_bins, kind, z, mids_m):
     """oracle (a): ngspice showmod 가 실제로 고른 bin 으로 5.1 판정 3~6 을 독립으로 다시 한다(엔진 bin 지도 미사용).
@@ -253,78 +295,67 @@ def _showmod_expected(ngspice_bins, kind, z, mids_m):
 
 
 @pytest.mark.lut_realdata
-@pytest.mark.parametrize("kind,suf", [("nmos", "_n"), ("pmos", "_p")])
-def test_real_rows_match_independent(real_lut, raw_slice, raw_mid, ngspice_bins, kind, suf):
-    """[2026-10-08 중점 변경] 중점 0.165·0.85·1.75·3.25 µm 가 모두 앵커 2개 bin(.26·.23·.22·.21)의 행이 된다(skipped = ()).
-    oracle: 행 구성 = (a) showmod 소속(`_showmod_expected`), 값 = (b) conftest `midpoint_ref`(npz 직접, 5.1 식 독립 구현) --
-    허용 차는 그 구현의 유도 반올림 상한. skipped = () 은 (d) CONTRACT 8절 실측 문장('4 중점 모두 사용(skipped = ())')과도 대조."""
-    m = new_memo(real_lut)
-    mc = midpoint_l_bin_checks(m, kind, 1000)
-    assert mc.midpoints_sha256 == real_lut.provenance.midpoints_sha256
-    z = raw_slice(kind, 1000)
-    mids_m = [float(x) for x in raw_mid["L"]]
-    exp_rows, exp_skipped = _showmod_expected(ngspice_bins, kind, z, mids_m)
-    assert [tuple(s) for s in mc.skipped] == exp_skipped
-    assert tuple(mc.skipped) == ()                                   # (d) CONTRACT 8절
-    assert [e[0].rsplit(".", 1)[1] for e in exp_rows] == ["21", "22", "23", "26"]   # (d) 8절 표의 bin 4개 = (a) showmod 결과
-    assert [r.model for r in mc.rows] == [e[0] for e in exp_rows]
-    on = (z["ID"] > 0) & (z["GM"] > 0)
-    nV = len(z["VDS"])
-    for row, (model, mis, i0, i1) in zip(mc.rows, exp_rows):
-        refs = [midpoint_ref(z, raw_mid, suf, mi, i0, i1, z["VDSAT"], on) for mi in mis]
+def test_real_rows_match_independent(real_lut, raw_slice, raw_mid, ngspice_bins):
+    """적재된 모든 중점 표 (kind, w_key)에서: 행 구성 = (a) showmod 소속(`_showmod_expected`), 값 = (b) conftest `midpoint_ref`
+    (npz 직접, 5.1 식 독립 구현) -- 허용 차는 그 구현의 유도 반올림 상한."""
+    for kind, wk in sorted(real_lut.midpoints):
+        m = new_memo(real_lut)
+        mc = midpoint_l_bin_checks(m, kind, wk)
+        assert mc.midpoints_sha256 == real_lut.midpoints[(kind, wk)].sha256
+        z = raw_slice(kind, wk)
+        mid = raw_mid(kind, wk)
+        mids_m = [float(x) for x in mid["L"]]
+        exp_rows, exp_skipped = _showmod_expected(ngspice_bins, kind, z, mids_m)
+        assert [tuple(s) for s in mc.skipped] == exp_skipped, (kind, wk)
+        assert [r.model for r in mc.rows] == [e[0] for e in exp_rows], (kind, wk)
+        on = (z["ID"] > 0) & (z["GM"] > 0)
+        vd_src = z["VDSAT"] if "VDSAT" in z else None
+        nV = len(z["VDS"])
+        for row, (model, mis, i0, i1) in zip(mc.rows, exp_rows):
+            refs = [midpoint_ref(z, mid, "", mi, i0, i1, vd_src, on) for mi in mis]
 
-        def kmax(key):
-            return [max((r[key][k] for r in refs if r[key][k] is not None), default=None) for k in range(nV)]
-        assert tuple(row.L_points) == tuple(mids_m[mi] for mi in mis)
-        assert (row.n_targets, row.n_inverse_failed) == (sum(r["n_t"] for r in refs), sum(r["n_f"] for r in refs)), model
-        _assert_tuple_close(row.id_equivalent_v, kmax("eq"), kmax("eq_bound"), (model, "eq"))
-        _assert_tuple_close(row.gm_id_inverse_v, kmax("inv"), kmax("inv_bound"), (model, "inv"))
-        vd = kmax("vdsat")
-        _assert_tuple_close(row.vdsat_v, vd, [0 if v is None else 8 * gamma_n() * 2.0 for v in vd], (model, "vdsat"))
-        assert row.vdsat_v[0] is None                                # k = 0 은 ID = 0 (VDS = 0 열)
+            def kmax(key):
+                return [max((r[key][k] for r in refs if r[key][k] is not None), default=None) for k in range(nV)]
+            assert tuple(row.L_points) == tuple(mids_m[mi] for mi in mis)
+            _assert_tuple_close(row.id_equivalent_v, kmax("eq"), kmax("eq_bound"), (kind, wk, model, "eq"))
+            vd = kmax("vdsat")
+            _assert_tuple_close(row.vdsat_v, vd, [0 if v is None else 8 * gamma_n() * 2.0 for v in vd], (kind, wk, model, "vdsat"))
+        if wk == 1000:                                              # 기준 폭 5 µm: 중점 4개가 모두 앵커 2개 bin(.26·.23·.22·.21)의 행
+            assert tuple(mc.skipped) == ()                           # (d) CONTRACT 8절
+            assert [e[0].rsplit(".", 1)[1] for e in exp_rows] == ["21", "22", "23", "26"]   # (d) 8절 표의 bin 4개 = (a) showmod 결과
 
 
-# CONTRACT 8절 표(2026-10-08 실측, w_key 1000): (kind, model 접미) -> ((n_targets, 실패), inv mV, eq mV, vdsat mV)
+# CONTRACT 8절 표(2026-10-08 실측, w_key 1000): (kind, model 접미) -> (eq mV, vdsat mV)  [WB-1: n_targets·실패·inv 열 폐기]
 # oracle (d): 계약에 기록된 값(code author 측정 문장). 독립 재계산 대조는 위 test_real_rows_match_independent 가 한다.
 CONTRACT_8_TABLE = {
-    ("nmos", "26"): ((23520, 0), "518", "18.9", "2.49"), ("pmos", "26"): ((19671, 1569), "316", "22.7", "32.5"),
-    ("nmos", "23"): ((23520, 3598), "289", "26.5", "2.87"), ("pmos", "23"): ((22992, 0), "635", "12.8", "1.33"),
-    ("nmos", "22"): ((23520, 39), "364", "16.0", "3.28"), ("pmos", "22"): ((22207, 6341), "252", "8.43", "0.79"),
-    ("nmos", "21"): ((23520, 3691), "155", "44.6", "6.39"), ("pmos", "21"): ((21850, 0), "648", "21.4", "0.77"),
+    ("nmos", "26"): ("18.9", "2.49"), ("pmos", "26"): ("22.7", "32.5"),
+    ("nmos", "23"): ("26.5", "2.87"), ("pmos", "23"): ("12.8", "1.33"),
+    ("nmos", "22"): ("16.0", "3.28"), ("pmos", "22"): ("8.43", "0.79"),
+    ("nmos", "21"): ("44.6", "6.39"), ("pmos", "21"): ("21.4", "0.77"),
 }
 
 
 @pytest.mark.lut_realdata
 def test_real_contract_measured_summary(real_lut):
-    """CONTRACT 8절 표(2026-10-08) 대조: bin 별 목표·실패 수 정확히, VDS 별 max(mV) 는 표기 마지막 자리 반 단위 안."""
+    """CONTRACT 8절 표(2026-10-08) 대조: VDS 별 max(mV) 는 표기 마지막 자리 반 단위 안."""
     m = new_memo(real_lut)
     seen = set()
     for kind in ("nmos", "pmos"):
         for row in midpoint_l_bin_checks(m, kind, 1000).rows:
             key = (kind, row.model.rsplit(".", 1)[1])
-            cnt, inv, eq, vd = CONTRACT_8_TABLE[key]
+            eq, vd = CONTRACT_8_TABLE[key]
             seen.add(key)
-            assert (row.n_targets, row.n_inverse_failed) == cnt, key
-            for got, want in ((max(x for x in row.gm_id_inverse_v if x is not None), inv),
-                              (max(x for x in row.id_equivalent_v if x is not None), eq),
+            for got, want in ((max(x for x in row.id_equivalent_v if x is not None), eq),
                               (max(x for x in row.vdsat_v if x is not None), vd)):
                 dec = len(want.split(".")[1]) if "." in want else 0
                 assert abs(got / 1e-3 - float(want)) <= 0.5 * 10 ** (-dec), (key, got, want)   # mV 표기 마지막 자리 반 단위
     assert seen == set(CONTRACT_8_TABLE)
 
 
-@pytest.mark.lut_realdata
-def test_real_other_width_width_differs(real_lut, raw_mid):
-    """5.1 판정 1: 중점 표 폭 키(1000) ≠ 조회 폭 -> 모든 중점 width_differs. 중점 수 = 중점 파일 L 축 길이(npz 직접, 4)."""
-    mc = midpoint_l_bin_checks(new_memo(real_lut), "nmos", 84 if ("nmos", 84) in real_lut.slice_map else 72)
-    assert tuple(mc.rows) == ()
-    assert len(raw_mid["L"]) == 4
-    assert [s[1] for s in mc.skipped] == ["width_differs"] * len(raw_mid["L"])
-
-
 # ---------------------------------------------------------------------------
 # [2026-10-08] 중점 유도 규칙 (CONTRACT 8절, user_decisions 2026-10-08 '7번'): 승인 L 격자의 앵커가 showmod 소속으로 정확히 2개인 bin 마다
-# 두 앵커의 중점을 제조 격자로 반올림. 선언(`verification_midpoints_um`)은 이 규칙의 결과여야 한다.
+# 두 앵커의 중점을 제조 격자로 반올림. 선언(`verification_midpoints_um`)은 이 규칙의 결과여야 한다. (L 격자 파일·생성기 `candidates` 의 계약 --
+# 중점 파일 형식과 무관하므로 그대로 두고, 기준 폭만 기준 LUT 파일의 `w_ref_m` 에서 읽는다.)
 # ---------------------------------------------------------------------------
 
 L_GRID_FILE = SKILL_DIR / "assets" / "sky130_lut_L_grid.json"
@@ -364,11 +395,11 @@ def _derive_midpoints_um(ngspice_bins, tlef, w_ref_m):
 
 
 @pytest.mark.lut_realdata
-def test_real_declared_midpoints_follow_derivation_rule(ngspice_bins, real_paths, raw_mid):
+def test_real_declared_midpoints_follow_derivation_rule(ngspice_bins, real_paths, raw_cap):
     """선언 `verification_midpoints_um` = 유도 규칙의 결과 [0.165, 0.85, 1.75, 3.25] (두 소자 모두 같은 bin 4개 .26·.23·.22·.21).
     판별: 옛 선언 (0.165, 6.0, 14.0) 의 6.0·14.0 은 showmod 로 앵커 1개 bin(.20 의 8 µm, .19 의 20 µm) 안이라 규칙이 내지 않는다
-    -- 경계 L(4·8 µm)을 위 bin 으로 센 옛 규칙의 값(8절 원인 문장)."""
-    per_dev, mids = _derive_midpoints_um(ngspice_bins, real_paths["tlef"], float(raw_mid["w_ref_m"]))
+    -- 경계 L(4·8 µm)을 위 bin 으로 센 옛 규칙의 값(8절 원인 문장). 기준 폭 = 기준 LUT 파일의 w_ref_m(직접 읽음)."""
+    per_dev, mids = _derive_midpoints_um(ngspice_bins, real_paths["tlef"], float(raw_cap["w_ref_m"]))
     declared = _declared_l_grid()["verification_midpoints_um"]
     assert mids == declared == [0.165, 0.85, 1.75, 3.25]               # (a) 유도 = (d) 사용자 결정 2026-10-08 '7번' 목록
     for device, rows in per_dev.items():
@@ -377,7 +408,7 @@ def test_real_declared_midpoints_follow_derivation_rule(ngspice_bins, real_paths
     # 옛 중점 6.0·14.0 은 그 bin 의 앵커가 하나뿐(8 µm·20 µm) -- 규칙 밖
     for device, _ in REAL_DEVICE_KINDS:
         L_um = _declared_l_grid()["L_um"]
-        w = um(float(raw_mid["w_ref_m"]))
+        w = um(float(raw_cap["w_ref_m"]))
         b_old = ngspice_bins.query(device, [(w, 6.0), (w, 14.0)])
         b_anc = ngspice_bins.query(device, [(w, round(x, 6)) for x in L_um])
         assert [sum(same_bounds(a, b) for a in b_anc) for b in b_old] == [1, 1], device
@@ -387,13 +418,13 @@ SWEEP_SCRIPT = SKILL_DIR / "assets" / "sky130_lut_sweep.py"
 
 
 @pytest.mark.lut_realdata
-def test_real_sweep_candidates_emits_derived_midpoints(ngspice_bins, real_paths, raw_mid, tmp_path):
+def test_real_sweep_candidates_emits_derived_midpoints(ngspice_bins, real_paths, raw_cap, tmp_path):
     """생성기 공개 진입점 `sky130_lut_sweep.py candidates`(승인 L 파일 provenance 의 명령 그대로: --l-max-um 20 --discontinuous-um
     0.18,0.25)를 실제로 돌려, 산출 JSON 의 2점 bin 중점 = 위 독립 유도(showmod 소속 + 모델 파일 경계 + tlef 격자) = 선언 목록,
     후보 L = 승인 18점 격자, 소속 model = showmod 독립 조회와 같다.
     oracle: (a) `_derive_midpoints_um`(생성기 코드 미사용) + (d) 승인 L 파일. 실행 시간 실측 2026-10-08: CLI 단독 1092 s, 이 test 651 s --
     ngspice 경계 탐침 sweep 이 대부분이다(보고 대상)."""
-    per_dev, mids = _derive_midpoints_um(ngspice_bins, real_paths["tlef"], float(raw_mid["w_ref_m"]))
+    per_dev, mids = _derive_midpoints_um(ngspice_bins, real_paths["tlef"], float(raw_cap["w_ref_m"]))
     declared = _declared_l_grid()
     exe = os.environ.get("GMID_NGSPICE", r"C:\ngspice\Spice64\bin\ngspice_con.exe")
     env = dict(os.environ)
@@ -413,3 +444,33 @@ def test_real_sweep_candidates_emits_derived_midpoints(ngspice_bins, real_paths,
         for model, xs, _ in rows:
             for x in xs:
                 assert got["bins_at_w_ref"][device]["%g" % x]["model"] == model, (device, x)
+
+
+# ---------------------------------------------------------------------------
+# G-1: 옛 중점 계약 이름이 소스·test 어디에도 남지 않는다 (`legacy`·`.md` 제외). 금지어는 이 파일이 grep 대상이기도 하므로
+# 조각으로 조립한다(리터럴로 쓰면 이 test 자신이 걸린다).
+# ---------------------------------------------------------------------------
+
+_BANNED = (r"width" + r"_differs", r"midpoint" + r"_unverified", r"lut_midpoints_l" + r"_source", r"midpoints_l" + r"_source",
+           r"midpoints_" + r"conditions", r"\bmidpoints_" + r"path\b")
+
+
+def _scan_roots():
+    return (ENGINE_ROOT, SKILL_DIR / "assets")             # E/ (test 폴더 E/tests/ 포함) 와 A/
+
+
+def test_midpoint_g1_old_names_do_not_remain():
+    pats = [re.compile(p) for p in _BANNED]
+    hits = []
+    for root in _scan_roots():
+        for dirpath, dirnames, filenames in os.walk(str(root)):
+            dirnames[:] = [d for d in dirnames if d not in ("legacy", "__pycache__", ".bkit", ".pytest_cache")]
+            for fn in filenames:
+                if os.path.splitext(fn)[1] not in (".py", ".json"):
+                    continue
+                p = os.path.join(dirpath, fn)
+                text = open(p, encoding="utf-8", errors="replace").read()
+                for pat in pats:
+                    if pat.search(text):
+                        hits.append((os.path.relpath(p, str(SKILL_DIR)), pat.pattern))
+    assert hits == []

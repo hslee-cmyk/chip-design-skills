@@ -260,11 +260,13 @@ def _lut_with_vdsat(root):
         np.savez(p, **d)
         e["sha256"] = hashlib.sha256(p.read_bytes()).hexdigest()
     manifest.write_text(json.dumps(mj), encoding="utf-8")
-    return load_lut_set(str(manifest), str(cap), LutSpec(*LUT_SPEC_ARGS))
+    return load_lut_set(str(manifest), str(cap), LutSpec(*LUT_SPEC_ARGS),
+                        bin_rule=str(manifest.parent / "bin_rule.json"), pdk_root=str(manifest.parent / "pdk"))
 
 
-def _evaluate(tmp, topo, els, theta, constraints, *, input_dc_v=None, with_vdsat=True, feedback=()):
-    """spec 로더 -> build_s1 -> 커널 -> size_and_seal -> ss_evaluate. 반환 (snapshot, ctx)."""
+def _evaluate(tmp, topo, els, theta, constraints, *, input_dc_v=None, with_vdsat=True, feedback=(), tol_none=()):
+    """spec 로더 -> build_s1 -> 커널 -> size_and_seal -> ss_evaluate. 반환 (snapshot, ctx).
+    tol_none: 봉인 뒤 `device.dc_tol_v` 의 그 소자 셀을 None 으로 바꿔 ss_evaluate 에 넘긴다([LM-1e P-2] 일부 소자의 tol 이 정의 없을 때의 소비자 동작)."""
     from gmid_engine.graph import build_s1
     td, spec = load_case(tmp / "case", topo, SUP, els, feedback, constraints, input_dc_v=input_dc_v)
     inputs = dc_inputs_from_spec(spec)
@@ -276,8 +278,12 @@ def _evaluate(tmp, topo, els, theta, constraints, *, input_dc_v=None, with_vdsat
     run = fresh_run()
     ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, lut_access(lut), **run)
     ev = size_and_seal(ctx, theta)
+    snap = ev.snapshot
+    if tol_none:
+        from sizing.conftest import tamper
+        snap = tamper(snap, "dc_tolerances", "device", "dc_tol_v", {m: None for m in tol_none})
     js = toy_junction(tmp / "junction", ctx.lut.memo.lut)
-    res = ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, theta, spec.constraints, ("vdd",), junction=js)
+    res = ss_evaluate(SealedSnapshot(snap, ev.report), ctx, theta, spec.constraints, ("vdd",), junction=js)
     return res.snapshot, ctx
 
 
@@ -288,10 +294,11 @@ def _icm(snap):
 
 
 def _tol_v(snap):
-    """interface cfg 항목: 봉인점 dc_tol_v 가운데 dc_coord MOS 의 None 아닌 값의 최솟값, 모두 None 이면 None."""
+    """interface cfg 항목: 봉인점 dc_tol_v 가운데 dc_coord MOS 의 값의 최솟값. [LM-1e §5 · 계획 표 10행] 하나라도 None 이면 None
+    (정의된 항만 모아 값을 내지 않는다), dc_coord MOS 가 없으면 None."""
     coord = dict(snap.column("device", "dc_coord"))
-    vals = [v for k, v in snap.column("device", "dc_tol_v") if coord.get(k) is not None and v is not None]
-    return min(vals) if vals else None
+    vals = [v for k, v in snap.column("device", "dc_tol_v") if coord.get(k) is not None]
+    return None if (not vals or any(v is None for v in vals)) else min(vals)
 
 
 def _close(a, b, rtol=1e-9):
@@ -369,7 +376,7 @@ def test_it2c_vdsat_column_missing_gives_unmeasured(tmp_path):
 
 # ---------------------------------------------------------------- 입력 둘 servo (차동 출력 toy 둘)
 
-def _two_stage(tmp, i1, r1, i2, r2, *, outputs_swapped=False, input_dc_v=VGS0):
+def _two_stage(tmp, i1, r1, i2, r2, *, outputs_swapped=False, input_dc_v=VGS0, tol_none=()):
     """독립한 공통 소스 단 둘: M1 (o1, ip, gnd) + R1, M2 (o2, im, gnd) + R2. 입력 ip/im = differential_input_p/n, 출력 o1/o2 = differential_output_p/n
     (outputs_swapped 이면 o1 이 n, o2 가 p). 회로·소자 이름은 규칙이 아니라 이 toy 의 선언이다."""
     outp, outn = ("op", "on") if not outputs_swapped else ("on", "op")
@@ -389,7 +396,7 @@ def _two_stage(tmp, i1, r1, i2, r2, *, outputs_swapped=False, input_dc_v=VGS0):
     if input_dc_v is None:                                                  # 입력 DC 미선언 -> ln_idu 가 θ 성분
         # [A-83] IT-1 입력 점 규칙: 차동 입력쌍 두 포트는 한 점으로 묶여 M2 는 parallel_vgs 종속 -> M1 만 θ 성분(M2 의 ln_idu 는 스키마 밖).
         th[("ln_idu", "M1")] = lut_ln_idu("nmos", VGS0, 1.8 - i1 * r1, 0.0)
-    return _evaluate(tmp, topo, els, th, (("power_dc_w", "<=", 1e-3, None),), input_dc_v=input_dc_v)
+    return _evaluate(tmp, topo, els, th, (("power_dc_w", "<=", 1e-3, None),), input_dc_v=input_dc_v, tol_none=tol_none)
 
 
 def _servo_hand(snap, p_out="op", n_out="on"):
@@ -949,11 +956,12 @@ def test_it2c_region_rows_hand_values(tmp_path):
     snap, ctx = _cs(tmp_path, i=1e-5, r=9e4)
     values = dict(snap.column("node", "dc_v"))
     vdsat = _vdsat(0.6)
-    rows = Circuit(snap, lut=ctx.lut, linear=frozenset()).region_rows(values)
+    sat = dict(snap.column("device", "dc_sat_v"))                                   # [HC-S] 정의역 판정 경계(SatBound)는 dc_solve 가 쓰는 열을 입력으로 받는다
+    rows = Circuit(snap, lut=ctx.lut, linear=frozenset()).region_rows(values, sat)
     assert rows is not None and len(rows) == 1
     a, b, sign, slack, kind = rows[0]
     assert (a, b, sign, kind) == ("out", "gnd", 1, "sat") and abs(slack - (0.9 - vdsat)) <= 1e-9
-    rows = Circuit(snap, lut=ctx.lut, linear=frozenset({"M1"})).region_rows(values)
+    rows = Circuit(snap, lut=ctx.lut, linear=frozenset({"M1"})).region_rows(values, sat)
     a, b, sign, slack, kind = rows[0]
     assert (a, b, sign, kind) == ("out", "gnd", -1, "triode") and abs(slack - (vdsat - 0.9)) <= 1e-9
 
@@ -970,3 +978,28 @@ def test_it2c_nodal_system_arrays_immutable_and_fp_sees_g_bound(tmp_path):
             arr[0, 0] = 1.0
     other = dataclasses.replace(sysm, g_bound=sysm.g_bound * 2.0)
     assert fp_of(other) != fp_of(sysm)
+
+
+# ---------------------------------------------------------------- [LM-1e §5 P-2] 측정 구성 tol_v: 일부 소자 tol 이 None 이면 None
+# 계획 N3.6 표 10행·interface §5: dc_coord MOS 의 dc_tol_v 가운데 하나라도 None 이면 측정 구성의 tol_v 도 None(정의된 소자의 최솟값으로 값을 내지 않는다).
+# oracle (d): 위 규칙 + (a) 구성: 두 단 toy 에서 M1 의 tol 셀을 None 으로 바꾸고 M2 는 그대로 둔다(M2 의 tol 은 양수) -- 옛 규칙은 M2 값(min of defined).
+# 입력 주의: None 은 `tamper`(dc_tolerances 열 교체)로 넣었다 -- 봉인점이 되는(포화) 소자의 VDS 가 첫 VDS 칸에 드는 합성 사례를 만들 수 없어서이며,
+# table_at 경유의 None 이 봉인 스냅샷에서 흘러오는 경로는 sizing/test_seal_tolerances.py(J-a)와 test_dc_metrics.py(P-1)가 본다.
+
+def test_lm1e_p2_config_tol_v_is_none_when_any_coord_mos_tol_is_none(tmp_path):
+    (tmp_path / "base").mkdir()
+    (tmp_path / "none").mkdir()
+    snap0, _ = _two_stage(tmp_path / "base", 1e-5, 9e4, 1e-5, 5e4)
+    coord0 = dict(snap0.column("device", "dc_coord"))
+    tol0 = dict(snap0.column("device", "dc_tol_v"))
+    # 전제(어기면 이 사례 무효): M1·M2 가 모두 dc_coord MOS 이고 두 tol 이 정의되어 양수다
+    assert coord0["M1"] is not None and coord0["M2"] is not None
+    assert tol0["M1"] is not None and tol0["M2"] is not None and tol0["M2"] > 0.0
+    w0 = snap0.value("node", "ip", "dc_window_cfg")
+    assert w0.tol_v is not None and w0.tol_v == _tol_v(snap0) == min(tol0["M1"], tol0["M2"])
+    snap1, _ = _two_stage(tmp_path / "none", 1e-5, 9e4, 1e-5, 5e4, tol_none=("M1",))
+    assert dict(snap1.column("device", "dc_tol_v"))["M1"] is None and dict(snap1.column("device", "dc_tol_v"))["M2"] is not None
+    for port in ("ip", "im"):
+        w = snap1.value("node", port, "dc_window_cfg")
+        assert w.tol_v is None, (port, w)                      # 옛 규칙: 정의된 M2 값
+    assert _tol_v(snap1) is None

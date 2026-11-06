@@ -57,7 +57,7 @@ def _snap_up_vds(ctx, kind, target):
 def _idu_curve(ctx, kind, L, vds):
     """(kind, L, VDS, 첫 VS 격자점)의 IDu 곡선(`lut.idu_curve`), 정의되지 않으면 None."""
     try:
-        return idu_curve(ctx.memo, kind, ctx.w_keys[kind], float(L), float(vds), float(slice_of(ctx, kind).grids[3][0]))
+        return idu_curve(ctx.memo, kind, slice_of(ctx, kind).w_key, float(L), float(vds), float(slice_of(ctx, kind).grids[3][0]))
     except _UNDEFINED:
         return None
 

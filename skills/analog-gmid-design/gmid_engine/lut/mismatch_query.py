@@ -29,7 +29,7 @@ def mismatch_dvgs(memo, kind, w_key, L, vgs, vds, vsb):
     if table.w_key != w_key:
         raise seal_violation("lut_column_unavailable", column="DVGS", kind=kind, w_key=w_key, cap_w_key=table.w_key)
     context = (("kind", kind), ("table", "mismatch"), ("w_key", w_key))
-    lo, hi, l_val = l_position(table.grids[0], table.l_bins, L, context)
+    lo, hi, l_val = l_position(table.grids[0], table.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, context)
     rest = (float(vgs), float(vds), float(vsb))
     check_axes(table.grids[1:], AXES[1:], rest, context)
 

@@ -34,11 +34,11 @@ writes `node.dc_window_cfg`(입력 포트마다 `Window`, 구성이 None 이면 
 """
 import numpy
 
-from gmid_engine.authoring import INPUT_DIRECTION, REGION_TRIODE, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P
+from gmid_engine.authoring import INPUT_DIRECTION, REGION_TRIODE
 from gmid_engine.core import compute_block
-from gmid_engine.graph import F_VIEW_REQUIRED, S1V_KEY, VIEW_TRANSFER, default_port_seeds
-from gmid_engine.sizing import (ICM_CONFIG_WRITER, INPUT_STATUS_MEASURED, INPUT_STATUS_UNMEASURED, METRICS_KEY, Circuit, Window,
-                                saturation_window)
+from gmid_engine.graph import F_VIEW_REQUIRED
+from gmid_engine.sizing import (ICM_CONFIG_SERVO, ICM_CONFIG_WRITER, INPUT_STATUS_MEASURED, INPUT_STATUS_UNMEASURED, METRICS_KEY, Circuit, Window,
+                                default_port_views, saturation_window, sense_signs)
 
 from ._helpers_nodal import nodal_adjoint, nodal_solve
 from .aux_types import IcmConfig
@@ -53,7 +53,7 @@ READS = (
 WRITES = (("node", "dc_window_cfg"), ("graph", "icm_config"))
 QUANTITY = "icm_config"
 CATEGORY = "definitional"
-CONFIG_SERVO = "servo"
+CONFIG_SERVO = ICM_CONFIG_SERVO
 CONFIG_AS_IS = "as_is_single_input"
 CONFIGS = (CONFIG_AS_IS, CONFIG_SERVO)                  # 입력 포트 수 − 1 이 색인: 입력 하나 = 회로 그대로, 입력 둘 = servo (셋 이상은 지원 밖)
 CODE_INPUTS_UNSUPPORTED = "icm_inputs_unsupported"
@@ -110,40 +110,17 @@ def _transfer_resolution(system, volt, sense):
     return float(numpy.abs(z[unknown]) @ (numpy.abs(residual) + rounding))
 
 
-def _default_port_views(projection, directions):
-    """기본 포트 전달 뷰 목록 -- S1v `graph.views` 가 있으면 그 `default_port` 뷰, 없으면 같은 규칙을 포트 사실에서(모듈 머리말)."""
-    found = dict(projection.column("graph", "views"))
-    if S1V_KEY in found:
-        return tuple(view for view in found[S1V_KEY] if view.kind == VIEW_TRANSFER and view.default_port)
-    roles = dict(projection.column("node", "port_role"))
-    inputs = tuple((net, roles[net]) for net, d in sorted(directions.items()) if d == INPUT_DIRECTION)
-    outputs = tuple((net, roles[net]) for net, d in sorted(directions.items()) if d is not None and d != INPUT_DIRECTION)
-    return tuple(default_port_seeds(inputs, outputs))
-
-
-def _sense_signs(view, roles):
-    """뷰 감지 넷 -> ((넷, 부호), ...): 출력 하나 = +1, 차동 출력쌍 = (p +1, n −1), 그 밖은 None."""
-    sense = tuple(view.sense)
-    if len(sense) == 1:
-        return ((sense[0], 1.0),)
-    plus = tuple(net for net in sense if roles.get(net) == ROLE_DIFFERENTIAL_OUTPUT_P)
-    minus = tuple(net for net in sense if roles.get(net) == ROLE_DIFFERENTIAL_OUTPUT_N)
-    if len(sense) == len(plus) + len(minus) and len(plus) == 1 and len(minus) == 1:
-        return ((plus[0], 1.0), (minus[0], -1.0))
-    return None
-
-
 def _select(projection, nodal, inputs, directions):
     """갈래 1~5 -> `Undefined`, 아니면 (구성 이름, 여기 ((넷, e), ...), 감지 ((넷, 부호), ...))."""
     if isinstance(nodal, Undefined):
         return Undefined(QUANTITY, nodal.code, nodal.category, nodal.detail)
     if len(inputs) > len(CONFIGS):
         return _undefined(CODE_INPUTS_UNSUPPORTED, (("inputs", inputs),))
-    views = _default_port_views(projection, directions)
+    views = default_port_views(projection, directions)
     if not inputs or len(views) != 1:                        # 입력 0(갈래 3)과 뷰가 하나로 정해지지 않음(갈래 4)이 같은 code
         return _undefined(F_VIEW_REQUIRED, (("default_views", len(views)),))
     (view,) = views
-    sense = _sense_signs(view, dict(projection.column("node", "port_role")))
+    sense = sense_signs(view, dict(projection.column("node", "port_role")))
     if sense is None:
         return _undefined(F_VIEW_REQUIRED, (("sense", tuple(view.sense)),))
     floating = tuple(sorted(nodal.nodes[i] for i in tuple(nodal.factor[4]) + tuple(nodal.factor[5])))      # DC 전도 경로 없는 용량 전용 노드 = floating ∪ charge(NL-1 이 둘로 가른다)
@@ -201,10 +178,11 @@ def _end_state(circuit, rows, slope, inputs, volts):
 
 
 def _tol_v(projection):
-    """cfg `tol_v`: 봉인점 `device.dc_tol_v` 가운데 `device.dc_coord` MOS 의 None 아닌 값의 최솟값, 모두 None 이면 None."""
+    """cfg `tol_v`: 봉인점 `device.dc_tol_v` 가운데 `device.dc_coord` MOS 값의 최솟값. 항에 None 이 하나라도 있으면 None(정의 항이 빠진 값을 내지 않는다 --
+    계획 N3.6 표 10행 집계 규칙, LM-1e 3b), `dc_coord` MOS 가 없어도 None."""
     tols = dict(projection.column("device", "dc_tol_v"))
-    found = [tols[m] for m, _coord in projection.column("device", "dc_coord") if tols.get(m) is not None]
-    return min(found) if found else None
+    found = [tols.get(m) for m, _coord in projection.column("device", "dc_coord")]
+    return None if not found or any(v is None for v in found) else min(found)
 
 
 def _vcm(inputs, slope, volts, ends):

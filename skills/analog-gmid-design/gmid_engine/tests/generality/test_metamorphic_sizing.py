@@ -148,7 +148,7 @@ def test_dc_solution_follows_renaming(pipe, name, seed):
         else:
             assert vb[b.nm(n)] == v, (n, v, vb[b.nm(n)])
     assert dict(sb.column("node", "dc_rail_v")) == {b.nm(n): v for n, v in sa.column("node", "dc_rail_v")}
-    for f in ("dc_current", "dc_drop_current", "dc_L"):
+    for f in ("dc_current", "dc_current", "dc_L"):
         assert dict(sb.column("device", f)) == {b.nm(k): v for k, v in sa.column("device", f)}, f
     # 소자 op(ID·gm/ID·W·L·VGS·VDS·VSB): 반복 SCC 노드에 닿지 않는 소자는 비트 동일
     pins = {k: dict(v) for k, v in sa.column("device", "pins")}

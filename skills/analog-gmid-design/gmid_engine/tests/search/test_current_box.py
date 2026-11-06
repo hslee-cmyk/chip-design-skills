@@ -55,7 +55,9 @@ def write_lut(root, grids=R4_GRIDS, extra_nmos_w=None, off_vgs0=False):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
     np.savez(root / "cap.npz", **cap)
-    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC), arrays
+    from toy_bins import retrofit_bins as _retro
+    _tb = _retro(root)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC, bin_rule=_tb.bin_rule, pdk_root=_tb.pdk_root), arrays
 
 
 @pytest.mark.parametrize("kind", ["nmos", "pmos"])
@@ -106,7 +108,7 @@ def test_real_lut_v2(real_lut_v2, kind):
     """실 LUT v2: npz 를 직접 읽어 같은 정의로 계산(데이터 없으면 fixture 가 FAIL)."""
     lut, files = real_lut_v2
     acc = new_access(lut)
-    wk = dict(acc.w_keys)[kind]
+    wk = lut.cap_map[kind].w_key                     # 기준 폭 키 (WB-1: LutAccess 에 키 칸 없음)
     arrs = {}
     for (k, w), p in files.items():
         if k == kind:

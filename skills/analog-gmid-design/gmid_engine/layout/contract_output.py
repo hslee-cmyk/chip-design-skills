@@ -108,11 +108,14 @@ class FingerCandidate:
 
 @dataclasses.dataclass(frozen=True)
 class WRequest:
-    """MOD8 에 돌려주는 W 변경 요청(LY3). 레이아웃은 W 를 적용하지 않는다. `W_old_m` = 그 폭 슬라이스의 W_need(`no_usable_slice` 요청은 참고 W, `outputs.py` 참고)."""
+    """MOD8 에 돌려주는 W 변경 요청(LY3). 레이아웃은 W 를 적용하지 않는다. `W_old_m` = 그 폭 슬라이스의 W_need(`no_usable_slice` 요청은 참고 W, `outputs.py` 참고).
+    `nf`·`finger_w_m` = 요청 손가락(W_new = nf x finger_w_m, 계획 LY3·MOD7 스키마) -- `effective_placement` 가 요청 대기 소자의 배치로 운반한다. `no_usable_slice` 요청은 손가락 칸 None."""
 
     device: str
     W_old_m: float
     W_new_m: float
+    nf: object
+    finger_w_m: object
     reason: str
     group: object = None
 

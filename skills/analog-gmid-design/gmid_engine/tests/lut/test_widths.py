@@ -12,8 +12,10 @@ def test_contract_toy(toy):
     assert widths(toy, "nmos") == (200,)
 
 
-@pytest.mark.parametrize("min_w,expect", [(1e-6, (100, 200)), (0.5e-6, (100, 200)), (1.0000001e-6, (200,)),
-                                          (2e-6, (200,)), (2.0000001e-6, ())])
+# [WB-1 §1 widths] w_key >= round(w_min / grid) 정수 비교(oracle (식)): 1.0000001e-6 / 1e-8 = 100.00001 -> 100 -> 키 100 포함,
+# 2.0000001e-6 / 1e-8 = 200.00001 -> 200 -> 키 200 포함. (옛 float 비교 기대 (200,)·() 는 반올림 규칙과 충돌 -- 격자 밖 1e-13 m 은 격자 정수를 못 바꾼다)
+@pytest.mark.parametrize("min_w,expect", [(1e-6, (100, 200)), (0.5e-6, (100, 200)), (1.0000001e-6, (100, 200)),
+                                          (2e-6, (200,)), (2.0000001e-6, (200,))])
 def test_threshold_inclusive(toy_build, min_w, expect):
     spec = LutSpec(1e-8, (("nmos", min_w),), (("toyn", "nmos"),), (("nmos", "_n"),))
     assert widths(toy_build().load(spec), "nmos") == expect
@@ -44,7 +46,7 @@ def test_real_widths(real_lut, real_slice_files, real_spec, real_paths):
     for kind in ("nmos", "pmos"):
         exp = tuple(sorted(wk for k, _, _, wk, _ in real_slice_files if k == kind and wk * grid >= mins[kind]))
         assert widths(real_lut, kind) == exp
-        assert len(exp) == {"nmos": 20, "pmos": 12}[kind]     # LUT v2 도 같은 폭 집합(슬라이스 32개)
+        assert len(exp) == {"nmos": 18, "pmos": 12}[kind]     # [LM-1e A-159] 실 LUT 사실: widths nmos 18·pmos 12 (oracle (d), interface §8 영향 test)
     # 하한을 0.6 µm 로 올리면 그 미만 폭이 빠진다(대체 없음)
     spec = LutSpec(grid, (("nmos", 0.6e-6), ("pmos", 0.6e-6)), real_spec.device_kinds, real_spec.cap_column_suffix)
     from .conftest import load_real

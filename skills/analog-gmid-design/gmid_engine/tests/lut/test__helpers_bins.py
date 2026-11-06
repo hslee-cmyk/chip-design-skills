@@ -5,6 +5,7 @@
 - 참값: toy 는 conftest 의 손계산 bin 표, 실데이터는 ngspice-46 `showmod`(시뮬레이터가 실제로 고른 bin)로 엔진과 독립.
 """
 import math
+import sys
 
 import pytest
 
@@ -49,10 +50,12 @@ def test_toy_bin_map_structure(bin_toy):
     assert bin_toy.cap_map["nmos"].l_bins == lo              # 용량 표 = w_ref_m(1e-6) 폭 슬라이스의 지도
 
 
-def test_toy_empty_map_without_model_record(toy):
+def test_toy_empty_map_without_model_record(toy_empty):
+    # [WB-1 §4] 빈 지도는 bin 블록 없는 모델 파일(`toy_empty`)로 만든다(기록 없는 toy 는 이제 거부)
+    toy = toy_empty
     for sl in toy.slice_map.values():
-        assert sl.l_bins == LBinMap((), None, (), ())
-    assert toy.cap_map["nmos"].l_bins == LBinMap((), None, (), ())
+        assert sl.l_bins.bins == () and sl.l_bins.w_bin is None and sl.l_bins.anchor_bin == ()
+    assert toy.cap_map["nmos"].l_bins.bins == ()
 
 
 def test_toy_bin_order_independent_of_file_order(bin_toy_build):
@@ -62,7 +65,8 @@ def test_toy_bin_order_independent_of_file_order(bin_toy_build):
     assert lo.anchor_bin == BIN_ANCHOR_BIN_LO
 
 
-@pytest.mark.parametrize("steps,expect_lower", [(1, True), (2, False)])
+# [WB-1 §1 격자 정수 비교] 2 ulp 도 round(x/g) 가 같은 격자 정수라 1 ulp 와 같은 소속이다(oracle (손): round(x/1e-8) 가 둘 다 경계의 정수).
+@pytest.mark.parametrize("steps,expect_lower", [(1, True), (2, True)])
 def test_toy_shared_l_boundary_one_ulp(bin_toy_build, steps, expect_lower):
     """경계 b = 2e-6 − n·ulp(A 의 lmax = B 의 lmin): 앵커 2e-6 은 b 의 1 ulp 이내면 경계로 보아 아래 bin(A), 2 ulp 면 위 bin(B)."""
     b = 2e-6 - steps * math.ulp(2e-6)
@@ -73,7 +77,8 @@ def test_toy_shared_l_boundary_one_ulp(bin_toy_build, steps, expect_lower):
     assert ab[:2] == (0, 0) and ab[3:] == BIN_ANCHOR_BIN_LO[3:]
 
 
-@pytest.mark.parametrize("steps,ok", [(1, True), (2, False)])
+# [WB-1 §1 격자 정수 비교] 2 ulp 도 round(x/g) 가 같은 격자 정수라 1 ulp 와 같은 소속이다(oracle (손): round(x/1e-8) 가 둘 다 경계의 정수).
+@pytest.mark.parametrize("steps,ok", [(1, True), (2, True)])
 def test_toy_bottom_lmin_one_ulp(bin_toy_build, steps, ok):
     """맨 아래 bin lmin = 1e-6 + n·ulp: 앵커 1e-6 은 1 ulp 면 그 bin, 2 ulp 면 어느 bin 에도 없음(로드 거부)."""
     lmin = 1e-6 + steps * math.ulp(1e-6)
@@ -88,7 +93,8 @@ def test_toy_bottom_lmin_one_ulp(bin_toy_build, steps, ok):
     assert det["L"] == 1e-6 and det["w_m"] == 1e-6
 
 
-@pytest.mark.parametrize("steps,ok", [(1, True), (2, False)])
+# [WB-1 §1 격자 정수 비교] 2 ulp 도 round(x/g) 가 같은 격자 정수라 1 ulp 와 같은 소속이다(oracle (손): round(x/1e-8) 가 둘 다 경계의 정수).
+@pytest.mark.parametrize("steps,ok", [(1, True), (2, True)])
 def test_toy_top_lmax_one_ulp(bin_toy_build, steps, ok):
     lmax = 9e-6 - steps * math.ulp(9e-6)
     bt = bin_toy_build(blocks=blocks_with({"toyn__model.4": {"lmax": lmax}}))
@@ -101,7 +107,8 @@ def test_toy_top_lmax_one_ulp(bin_toy_build, steps, ok):
     assert det["reason"] == "lut_l_anchor_outside_model_bins" and det["L"] == 9e-6
 
 
-@pytest.mark.parametrize("steps,expect_lower", [(1, True), (2, False)])
+# [WB-1 §1 격자 정수 비교] 2 ulp 도 round(x/g) 가 같은 격자 정수라 1 ulp 와 같은 소속이다(oracle (손): round(x/1e-8) 가 둘 다 경계의 정수).
+@pytest.mark.parametrize("steps,expect_lower", [(1, True), (2, True)])
 def test_toy_shared_w_boundary_one_ulp(bin_toy_build, steps, expect_lower):
     """W 경계 wb = 1e-6 − n·ulp(아래 범위 wmax = 위 범위 wmin): 슬라이스 W 1e-6 은 1 ulp 면 아래 범위, 2 ulp 면 위 범위."""
     wb = 1e-6 - steps * math.ulp(1e-6)
@@ -118,11 +125,11 @@ def test_toy_shared_w_boundary_one_ulp(bin_toy_build, steps, expect_lower):
 @pytest.mark.parametrize("L,reason,bin_name", [
     (5e-6, "lut_l_bin_unbracketed", "toyn__model.2"),                         # C 의 lmax 그 자체(닫힘), C 앵커 0개
     (5e-6 + math.ulp(5e-6), "lut_l_bin_unbracketed", "toyn__model.2"),        # 1 ulp 위 = 경계
-    (5e-6 + 2 * math.ulp(5e-6), "lut_l_outside_model_bins", None),           # 2 ulp 위 = 빈틈
+    (5e-6 + 2 * math.ulp(5e-6), "lut_l_bin_unbracketed", "toyn__model.2"),    # [WB-1] 2 ulp 위도 같은 격자 정수 = 경계(빈틈 아님)
     (5.5e-6, "lut_l_outside_model_bins", None),
     (6e-6, "lut_l_cross_bin", "toyn__model.3"),                               # D 의 lmin(공유 안 한 경계 -- 닫힘)
     (6e-6 - math.ulp(6e-6), "lut_l_cross_bin", "toyn__model.3"),
-    (6e-6 - 2 * math.ulp(6e-6), "lut_l_outside_model_bins", None),
+    (6e-6 - 2 * math.ulp(6e-6), "lut_l_cross_bin", "toyn__model.3"),          # [WB-1] 2 ulp 아래도 같은 격자 정수 = 경계
 ])
 def test_toy_query_bin_membership(bin_memo, L, reason, bin_name):
     with pytest.raises(SealViolationError) as ei:
@@ -203,7 +210,8 @@ def test_real_anchor_bins_match_ngspice(real_lut, ngspice_bins, kind, device):
 # 경계 바로 위 -- 비앵커 조회의 b(거부 detail 의 bin 경계·bin 앵커)가 showmod 의 bin 과 같다.
 # [r6] LUT v2 는 경계값 0.18·0.25·0.5·1·2·4·8 µm 가 모두 앵커라(옛 12-L 의 0.18·0.185·0.255·2.0 은 v2 앵커) 경계 위 값만 쓴다
 # (0.1825·0.2525 는 제조 격자 반 칸 -- ngspice 는 1 nm 넘게 위라 위 bin, 4.0.1).
-BOUNDARY_L_UM = (0.1825, 0.2525, 0.505, 1.005, 2.005, 4.005, 8.005)
+# [WB-1 §1] 0.1825·0.2525 행 삭제: 격자 5 nm 의 반 칸 점은 round 로 앵커 0.18·0.25 가 된다(비앵커 아님).
+BOUNDARY_L_UM = (0.505, 1.005, 2.005, 4.005, 8.005)
 
 
 @pytest.mark.lut_realdata
@@ -246,5 +254,51 @@ def test_real_contract_anchor_bin_table(real_lut):
         assert same_bounds(real_lut.slice_map[(kind, 1000)].l_bins.w_bin, (3e-6, 5e-6))
     assert same_bounds(real_lut.slice_map[("pmos", 84)].l_bins.w_bin, (4.2e-7, 5.5e-7))
     assert same_bounds(real_lut.slice_map[("pmos", 110)].l_bins.w_bin, (4.2e-7, 5.5e-7))
+
+
+# ---------------------------------------------------------------------------
+# [LM-1e §3 B-1·B-2] `midpoint_bracket(l_grid, l_bins, L_m, grid_m, rule)` -> (bin_index | None, reason | None)
+# 관찰 지점: sys.modules["gmid_engine.lut._helpers_bins"].midpoint_bracket (순수 함수 -- memo 인자 없음).
+# 기대값 = conftest 머리의 손 bin 표(A [1,2] 앵커 1·1.5·2 / B (2,4] 앵커 3·4 / C (4,5] 앵커 0 / 빈틈 (5,6) / D (6,8] 앵커 7·8 / E (8,10] 앵커 9;
+# bins 정렬 A..E = index 0..4)와 interface §3 표 1~6 -- oracle (d)·(a)(구성으로 정해진 답).
+# ---------------------------------------------------------------------------
+
+def _bracket():
+    import gmid_engine.lut  # noqa: F401  (모듈 적재)
+    return sys.modules["gmid_engine.lut._helpers_bins"].midpoint_bracket
+
+
+@pytest.mark.parametrize("L,expect", [
+    (3e-6, (None, "is_anchor")),                          # 행 2: 앵커와 같은 격자 정수
+    (5.5e-6, (None, "outside_model_bins")),               # 행 3: 빈틈 (5, 6) -- 어느 bin 에도 없음
+    (1.25e-6, (0, "bin_has_interior_anchors")),           # 행 4: bin A 앵커 3개
+    (9.5e-6, (4, "single_point")),                        # 행 4: bin E 앵커 1개
+    (2.5e-6, (1, "not_bracketed")),                       # 행 5: bin B 안, 앵커 3·4 µm 밖
+    (3.5e-6, (1, None)),                                  # 행 6: bin B 안, 앵커 3·4 사이
+    (7.5e-6, (3, None)),                                  # 행 6: bin D 안, 앵커 7·8 사이
+])
+def test_lm1e_midpoint_bracket_rows(bin_toy, L, expect):
+    sl = bin_toy.slice_map[("nmos", 100)]
+    assert _bracket()(sl.grids[0], sl.l_bins, L, 1e-8, bin_toy_rule(bin_toy)) == expect
+
+
+def bin_toy_rule(lut):
+    return lut.bin_rule
+
+
+def test_lm1e_midpoint_bracket_row1_empty_map(toy_empty):
+    """행 1: bin 지도가 비어 있음(빈 모델 블록 toy) -> (None, "bins_unavailable") -- 앵커 위 L 도 먼저 이 사유."""
+    sl = toy_empty.slice_map[("nmos", 100)]
+    for L in (1.5e-6, 2e-6):
+        assert _bracket()(sl.grids[0], sl.l_bins, L, 1e-8, toy_empty.bin_rule) == (None, "bins_unavailable")
+
+
+def test_lm1e_midpoint_bracket_is_pure(bin_toy):
+    """B-2: 같은 입력 두 번 -> 같은 결과(순수 -- memo 인자 없음, 호출 사이에 상태가 없다)."""
+    sl = bin_toy.slice_map[("nmos", 100)]
+    f = _bracket()
+    first = [f(sl.grids[0], sl.l_bins, L, 1e-8, bin_toy.bin_rule) for L in (3e-6, 5.5e-6, 1.25e-6, 9.5e-6, 2.5e-6, 3.5e-6)]
+    second = [f(sl.grids[0], sl.l_bins, L, 1e-8, bin_toy.bin_rule) for L in (3e-6, 5.5e-6, 1.25e-6, 9.5e-6, 2.5e-6, 3.5e-6)]
+    assert first == second
 
 

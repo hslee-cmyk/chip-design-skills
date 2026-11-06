@@ -19,6 +19,9 @@ from .lut_types import AXES
 LINEAR_ORDER = len(LINEAR_CONDITIONS)
 HERMITE_ORDER = len(HERMITE_CONDITIONS)
 HERMITE_SLOPE_ORDER = HERMITE_ORDER - 1
+# 앵커 2개 bin 의 외부 값 없음 상태 이름 표(정의 1곳): bin 상태·앵커 상태이자 `load_lut_set` D7 적재 거부 사유(LM-1e)
+MISSING_EXTERNAL_BIN = "missing_external"
+MISSING_EXTERNAL = "bin_missing_external"
 
 
 def l_interior(l_bins, n):
@@ -79,14 +82,14 @@ def l_loo_report(l_bins, interior, external, table_name):
             status[b] = "external"
             ext_rows.update({i: external[model] for i in members})
         else:
-            status[b] = "missing_external"
+            status[b] = MISSING_EXTERNAL_BIN
         per_bin.append((model, members, status[b]))
     allowed = {model for model, _, st in per_bin if st == "external"}
     unused = sorted(set(external) - allowed)
     if unused:
         raise ValueError("%s: l_bin_checks 는 앵커 2개 bin 에만 준다 -- 해당 없는 bin: %r" % (table_name, unused))
     anchor_status = {"computed": "bin_edge", "single_point": "bin_single_point", "external": "bin_external",
-                     "missing_external": "bin_missing_external"}
+                     MISSING_EXTERNAL_BIN: MISSING_EXTERNAL}
     per_anchor = tuple("in_bin_interior" if inner else anchor_status[status[b]] for b, inner in zip(ab, interior))
     return per_anchor, tuple(per_bin), ext_rows
 
@@ -128,16 +131,6 @@ def cell_max(per_point):
     return out
 
 
-def branch_targets(g, on_curve):
-    """(곡선 index, VGS index) 목표 쌍: 정점 이후이고 오른쪽 모든 점보다 gm/ID 가 큰 점(그 VGS 가 그 곡선의 강반전 분지 해).
-    `g` 모양 (곡선, VGS), `on_curve` 모양 (곡선,)."""
-    right = np.full(g.shape, -np.inf)
-    right[:, :-1] = np.maximum.accumulate(g[:, :0:-1], axis=1)[:, ::-1]
-    cols = np.arange(g.shape[1])
-    mask = (g > right) & (cols[None, :] >= np.argmax(g, axis=1)[:, None]) & on_curve[:, None]
-    return np.nonzero(mask)
-
-
 def with_external(value, ext):
     """셀 값과 외부 bin 값의 최댓값. 셀 값이 None(그 셀에 켜진 격자점 없음)이면 None 그대로."""
     if value is None or ext is None:
@@ -150,17 +143,17 @@ def opt(x):
     return None if x is None or np.isnan(x) else float(x)
 
 
-def table_at(table, field, L, vds, context):
-    """표 `table`(속성 L_anchors·l_bins·vds_grid·cells)의 조회점 (L, vds) 값: L 이 앵커면 그 행, 같은 bin 보간이면 양옆
-    앵커 두 행(CONTRACT 4.0), VDS 칸 [k, k+1] (`bisect_right − 1`, 마지막 격자점은 마지막 칸) -- 그 셀들의 `field` 중 정의된
-    값의 최댓값(없으면 None). 실패: L 위치·VDS 축 -> `SealViolationError`(context 를 detail 에)."""
-    lo, hi, _ = l_position(table.L_anchors, table.l_bins, L, context)
+def table_at(table, value_of, L, vds, context):
+    """표 `table`(속성 L_anchors·l_bins·vds_grid·cells)의 조회점 (L, vds) 값 -- tol_V·tol_VDsat·잡음 tol·mismatch tol 표 조회의 셀 결합 규칙 정의 1곳:
+    L 이 앵커면 그 행, 같은 bin 보간이면 양옆 앵커 두 행(CONTRACT 4.0), VDS 칸 [k, k+1] (`bisect_right − 1`, 마지막 격자점은 마지막 칸)의
+    결합 셀(최대 넷)에 `value_of`(셀 -> 값 또는 None, 셀을 읽는 방법일 뿐 값 사본이 아니다)를 적용해 **모두 정의되면 그 최댓값, 하나라도 None 이면 None**
+    (정의 항이 빠진 값을 내지 않는다 -- 계획 N3.6 표 10행 집계 규칙). 실패: L 위치·VDS 축 -> `SealViolationError`(context 를 detail 에)."""
+    lo, hi, _ = l_position(table.L_anchors, table.l_bins, L, table.grid_m, table.rule, context)
     vds = float(vds)
     check_axes((table.vds_grid,), (AXES[2],), (vds,), context)
     k = min(bisect.bisect_right(table.vds_grid, vds) - 1, len(table.vds_grid) - 2)
-    vals = [getattr(table.cells[i][b], field) for i in sorted({lo, hi}) for b in (k, k + 1)]
-    vals = [v for v in vals if v is not None]
-    return max(vals) if vals else None
+    vals = [value_of(table.cells[i][b]) for i in sorted({lo, hi}) for b in (k, k + 1)]
+    return None if any(v is None for v in vals) else max(vals)
 
 
 def linear_loo_cells(values, grids, interior, per_point=False):

@@ -104,7 +104,7 @@
 | 1 | `seal_report.py` | `dc_seal_report` | `dc_seal_report` |
 | 3 | `seal_region.py` [r10] | `dc_seal_region` | `dc_seal_region` |
 | 2 | `_helpers_dc_solve.py` [IT-2c] | helper: `Circuit`(읽기 전용 열·`region_rows`·`port_window`·`kind_sign`) | -- |
-| 3 | `block_columns.py` [IT-2c: `_Circuit` 은 `Circuit` 을 잇고 θ·`override` 만 더한다, 커널 창 = W4 뿌리 항목만] | `dc_columns` | `dc_columns` |
+| 3 | `block_columns.py` [WB-1 범위 3a: `_Circuit` 은 `Circuit` 을 잇고 θ 만 더한다, 커널 창 = W4 뿌리 KVL 순서 창] | `dc_columns` | `dc_columns` |
 | 3 | `block_widths.py` | `dc_widths` | `dc_widths` |
 | 3 | `kernel_context.py` | `build_kernel_context` | -- |
 | 3 | `seal_tolerances.py` | `dc_tolerances` | `dc_tolerances` |
@@ -204,7 +204,7 @@ graph 레코드 key: `DC_KEY`(`"dc"`). 값은 모두 불변(frozen dataclass·tu
 | device.dc_L | dc_lengths | 모든 MOS | float m |
 | node.dc_v | dc_columns | 레일 아닌 모든 노드 | float V |
 | node.dc_path_values | dc_columns | 모든 노드 | tuple[`PathValue`] relation 순 |
-| node.dc_window | dc_columns | W4 뿌리 노드(입력 포트인 뿌리 포함) [IT-2c: 뿌리 아닌 입력 포트·선언 포트 항목 없음 -- 측정 구성 `node.dc_window_cfg` 가 받는다] | `Window`(칸 `input_status`·`tol_v`) |
+| node.dc_window | dc_columns | W4 뿌리 노드(입력 포트인 뿌리 포함) [IT-2c: 뿌리 아닌 입력 포트·선언 포트 항목 없음 -- 측정 구성 `node.dc_window_cfg` 가 받는다] | `Window`(칸 `input_status`·`tol_v` 는 None -- 순서 창) |
 | device.dc_ln_idu | dc_columns | 모든 MOS | float |
 | graph.dc_scc_log | dc_columns | DC_KEY | tuple[`SccLog`] |
 | device.dc_op | dc_widths | 모든 MOS | `DeviceOp` |
@@ -582,7 +582,7 @@ None 을 주지만 봉인에서는 '허용오차 0 을 넘은 위반' = 무한 �
 | tol | `dc_tolerances` | dc_tol_v = lut `tol_v_table(kind, w_key).at(L, vds, "id_equivalent")`(None 가능), dc_gm = dc_op.gm_id × dc_op.current(자기 동작점 gm, 봉인 3 tol_I·`ss_dev`·b_P·영점 상쇄 R 공용, 설계 40 §3.7-3 v1.6) |
 | 1 | `dc_seal_node_conflict` | 노드마다 spread = max − min of {노드 값} ∪ path_values; tol = 닿는 PATH_MOS 소자 tol_v 최댓값(정의된 것), 없으면 None; MOS 관계가 없는 노드는 n·eps·max|V|(n = 값 수) |
 | 2 | `dc_seal_vgs_match` | MOS 마다 |ln idu_forward − ln_idu| / gm_id ≤ tol_v |
-| 3 | `dc_seal_kcl` | [r3] 행 = DC 원소(`basis.ends` -- MOS·DC 저항·이상원, 가지치기 저항 제외)의 from·to 로 한 번이라도 나오는 레일 아닌 넷마다(DC 원소가 닿지 않는 넷 -- gate 전용 넷·커패시터만 닿는 넷 -- 은 행이 없고 n_checked 에 들지 않는다) |Σ from − Σ to|, MOS = idu_forward·W/L, 저항 = (V(from) − V(to))/R, 이상원 = dc_current; tol = tol_I = 채널이 닿는 MOS 의 tol_V·dc_gm 최댓값(설계 40 §3.7-3 v1.6 -- `dc_gm` = 자기 동작점 gm, `dc_tolerances` 필드; 정의된 것; MOS 는 있는데 모두 None 이면 None), MOS 없는 넷은 n·eps·Σ|I| |
+| 3 | `dc_seal_kcl` | [r3] 행 = DC 원소(`basis.ends` -- MOS·DC 저항·이상원, 가지치기 저항 제외)의 from·to 로 한 번이라도 나오는 레일도 입력 포트(`input_port_nets` -- 측정 구성 원이 구동하는 넷, O-244)도 아닌 넷마다(DC 원소가 닿지 않는 넷 -- gate 전용 넷·커패시터만 닿는 넷 -- 은 행이 없고 n_checked 에 들지 않는다; 입력 포트 넷은 판정하지 않고 원 DC 전류 Σ 를 detail `input_source_current` = ((넷, Σ), ...) 에 출력 전용으로 기록, 없으면 ()) |Σ from − Σ to|, MOS = idu_forward·W/L, 저항 = (V(from) − V(to))/R, 이상원 = dc_current; tol = tol_I = 채널이 닿는 MOS 의 tol_V·dc_gm 최댓값(설계 40 §3.7-3 v1.6 -- `dc_gm` = 자기 동작점 gm, `dc_tolerances` 필드; MOS 는 있는데 그 tol_V 가운데 None 이 하나라도 있으면 None -- 집계 규칙 하나, 계획 N3.6 표 10행), MOS 없는 넷은 n·eps·Σ|I| |
 | 4 | `seal_versions` | calls 의 블록마다 fp_of((이름, code_hash, Projection.from_snapshot(snapshot, reads, extras).fp)) == block_version 이고 그 블록 writes 필드의 input_version == block_version. 위반 블록 = detail `blocks`. 추가 단언 [IT-2a] (3) coverage: 스냅샷 모든 필드의 writer ∈ base writer(`base.block_versions` 키) ∪ calls 블록 이름, 위반 = detail `foreign_writers`(정렬 tuple); (4) 서로소: base writer ∩ calls 블록 이름 = ∅, 위반 = detail `base_call_overlap`(정렬 tuple). 두 키는 위반일 때만(해당 tuple 이 비어 있지 않을 때만) detail 에 더한다 -- 평소 detail 은 `blocks`·`n_checked` 둘. magnitude = 위반 이름 수 합, tol 0 |
 | 5 | `seal_writers` | 모든 필드 writer == 권한표 writer; 노드마다 dc_writer 있음, (tier == W0) == is_rail, dc_rail_v·dc_v 중 정확히 하나, dc_rail_v 있음 == is_rail. 위반 노드 = nodes, 위반 필드 = detail `fields` |
 | 6 | `dc_seal_bulk_reverse` | [r10] MOS 마다 `junction_forward(vds, vsb)` = max(0, −vsb, −(vds + vsb)) **> 0 이면 fail**(크기 무관 -- 경계 0 V, 문턱 없음), 0 이면 pass. `tol_V`(`dc_tol_v`)는 판정에 쓰지 않고 띠 기록만: detail `indistinct` = 순방향 0 이고 min(vsb, vds + vsb) < tol_V 인 ((소자, 값), ...), `band_undefined` = tol_V 미정 소자(항목을 미정으로 만들지 않는다). magnitude·tol·margin·worst·n_checked 는 `judge` 보고 형식 그대로(크기/tol_V -- 판정에 쓰지 않는다) |
@@ -1030,19 +1030,12 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 * 판정 대상 = 봉인 1·2·3(KCL)·6·7·8(KVL) 중 위반 소자·넷이 덮는 집합과 겹치는 것. 4·5·9 는 국소 판정이 아니다. ②~⑤ 중 후보 실패 예외는 `ok = False` 와 그 FailureRecord 1건.
 * **스텁**: `gain_db` 는 항상 None (`metrics.block_local_gain`, U7). 전회로를 푸는 커널이라 계산이 블록 크기에 비례하지 않는다 -- 결과 캐시는 U15(N_T,i 상한) 몫.
 
-### 14.6 y_icm = 입력 포화 창 (J-E SP-2 (c), D-J5 U4 몫)
-* 입력 DC 미선언이라 입력 포트인 W4 뿌리(최대 하나, y 키 = 그 넷)가 있으면 `dc_columns` 가 풀이를 되풀이한다: (1) y = 1/2 로 푼 해에서 (2) `input_window.saturation_window` 로
-  입력 공통모드 x 의 포화 창(x 를 따라 움직이는 노드의 VDS 변화율 = 노드 writer 식 야코비안 연립의 해, 소자별 포화 여유 VDS − VDsat 의 1차 외삽 -- [IT-2c] 판정 여유 0, tol 항 없음)을 재고
-  (3) 순서 창과 교집합을 y_icm 범위로 삼아 요청 y 로 다시 풀며 (4) 경계가 tol_V 안에서 변하지 않을 때까지 되풀이(상한 `k_max(레일 폭, tol_V)`). `node.dc_window` 는 마지막 범위를 낸다.
-* (1)이 풀리지 않거나 VDSAT 열 없음·tol 미정이면 종래 사상(순서 창 = 레일 범위). `dc_columns(...)` 5번째 extras 는 `triode` 선언 소자 이름 tuple(필드 `device.region_decl` 에서)이고 비어 있지 않을 때만 준다.
-* 효과(toy 차동쌍): 종래 y ∈ [0.05, 0.95] 무작위 60점 중 봉인 19, 이후 60. 평가 시간 약 3배(IT-2b 전 측정, `_refine_ends` 경로).
-* (1)이 y = 1/2 에서 풀리지 않으면 순서 창 안을 1/4, 3/4, 1/8, 3/8, ... 순으로 훑어(시도 수 ≤ k_max(레일 폭, 레일 폭 절반 VDS 셀의 최소 tol_V)) 풀리고 창을 잴 수 있는 첫 점의 해로 (2)를 시작한다. 어디서도 안 풀릴 때만 종래 사상이다.
-* (5) [IT-2b 개정, 설계 41 4.7-3 1] 커널은 창 끝을 다듬지 않는다(`_refine_ends` 를 부르지 않음 -- 끝 x 고정 풀이는 다듬은 창 블록 몫). 커널 `node.dc_window` 뿌리 항목 = 순서 창 ∩ 마지막 `override`(선형 감도 끝),
-  `input_status` = 수렴 `measured` / 미수렴·tol 미정 `unsettled`(y 범위로는 그대로 쓴다) / 창을 못 잼 `unmeasured`(순서 창). 따라서 y = 0·1 끝 점의 봉인 7 여유는 1차 외삽 오차만큼 음수일 수 있다.
-* (6) [IT-2c, 설계 41 4.7-W W1·4.7-3 2·3] `node.dc_window` 의 항목은 **W4 뿌리뿐**이다(입력 점 뿌리 포함). 뿌리 아닌 입력 포트·입력 DC 선언 포트·F 성분 미선언 포트의 창은 이 필드가 아니라 측정 구성
-  블록 `icm_config`(metrics)의 `node.dc_window_cfg` 가 받는다(모든 입력 포트를 함께 구동한 봉인점 KCL 선형 감도 끝). 창 경계 행은 공용 `Circuit.region_rows`(`sat`·`triode`, 여유 0)이고 끝 식은
-  `saturation_window(unknown, root, ...)` 하나다(`root` = 넷 하나, 쌍·묶음 없음). 동작점 불일치(`op_mismatch`)는 이 card 밖(EO-1 묶음, 사용자 결정 O-98).
-  커널 입력 창 측정(`_measure`·`_interior_solution`·`_dyadic_ys`·`INPUT_STATUS_UNSETTLED`)은 card WB-1 범위 3a 가 재작성한다.
+### 14.6 θ y 범위 = KVL 순서 창 하나 (WB-1 범위 3a, 계획 N6.35 E-13, 설계 40 3.11-1)
+* `node.dc_window` 의 항목은 W4 뿌리마다 **KVL 순서 창 하나**다(뿌리 넷에 채널이 닿는 전도 MOS 마다 채널 전도 방향 전압 ≥ 0 인 y 구간의 교집합, 제약 없는 쪽은 레일 끝; VDSAT·tol 읽기 0).
+  입력 점 뿌리 포함. `Window.input_status`·`tol_v` 는 이 필드에서 쓰지 않는다(None). 입력 창(ICMR) 측정은 측정 구성 블록 `icm_config`(metrics)의 `node.dc_window_cfg` 한 자리다
+  (모든 입력 포트를 함께 구동한 봉인점 KCL 선형 감도 끝, 창 경계 행 = 공용 `Circuit.region_rows`, 끝 식 `saturation_window`).
+* `dc_columns` 는 풀이를 되풀이하지 않는다(입력 뿌리 창 되풀이·커널 쪽 상태 쓰기 삭제). 입력 포화 밖 점은 봉인 7 이 거부한다.
+* `dc_columns(...)` 5번째 extras 는 `triode` 선언 소자 이름 tuple(필드 `device.region_decl` 에서)이고 비어 있지 않을 때만 준다.
 
 ## 15. 구현하지 않은 것 (정지 후 보고)
 
@@ -1050,3 +1043,16 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   (1) θ 전류 정의역 원뿔이 θ 에 비선형(곱)이 되며 (2) `search_domain`(상자: 멤버·기준 전류 상자에서 도출 가능)·`fd_jacobian`·`orbit_ties`·`current_symmetry`·
   `layer0_center`·`start_points`·`cone_rows` 가 모두 새 종류를 알아야 한다 -- 소유가 다른 단위(U11 search 정비·U15)의 파일이라 이 단위에서 쓰면 쓰이지 않는 코드가 되거나 search 를 깨뜨린다.
   대칭 묶음의 비율 1 은 이미 search `orbit_ties` 가 같은 궤도 전류 성분을 한 변수로 묶어 준다(U2).
+
+## 15. [WB-1 DC 블록] `dc_solve` (writer `dc_solve`)
+
+옛 `dc_columns`·`dc_widths`·`pre_layout_lut_access`·`kernel_keys`·`dc_drop_current` 를 대체한다. `LutAccess(memo)` 는 slice 키 칸이 없다. 순서: 쓰기 소자 `finger_slice`(상수 W) -> 노드 풀이 -> 종속 소자 선택(`W(s) = ID·L/IDu_s`)
+-> Rʳ(writer 없는 순환 SCC 의 허용오차 셀을 내는 종속 소자)이 있고 키 벡터가 바뀌었으면 다시 풀이, 이전 벡터로 돌아가면 `slice_cycle`. `DeviceOp.w_key`·`gm_id`·`idu_forward`·`dc_finger` 가 같은 슬라이스를 가리킨다.
+`device.dc_finger` = `FingerGeom(m, w_f_m, residual)` = **그 평가가 쓴 손가락**(모든 평가, 소자 전부의 행; A-139): 탐색 평가 = 선택 함수 결과(residual), 실현 평가 = 입력 손가락 (residual 0.0), 레이아웃 뒤 = 입력 손가락
+(배치 = `layout_ref` (nf, finger_w), 요청 대기 = `w_request` 요청 손가락 행; residual 0.0). 입력 손가락이면 `finger_slice` 를 부르지 않는다.
+**[A-123·A-124, 2026-11-06] 레이아웃 뒤 평가 = 실현 평가와 같은 재풀이**: `size_and_seal(..., realized=RealizedFinger(기준 스냅샷), layout=RealizedGeometry)` -- `dc_solve` 가 W'·바이어스 고정 KCL 을 `_kcl_solve` 하나로 다시 풀고
+(servo 갈래 = 입력 차 미지수 + 출력 묶음 행, 입력 고정 갈래(판정 불능 None·`as_is_single_input`) = 입력을 기준 값에 고정하고 출력·나머지 KCL 노드 재풀이) 봉인 전 항목을 적용한다. W': 배치 소자 `layout_ref` 의 (nf = `m`, `finger_w_m`),
+요청 대기 소자 = `w_request` 의 요청 (nf, finger_w) (W' = nf·finger_w), 입력 손가락 행이 없는 소자(배치도 요청도 아님) = `realized_finger_missing`(사이징 점 행을 읽지 않는다). 고정 넷 = 레일 ∪ 입력 포트
+(`input_port_nets`)뿐이고 spec 목표 넷은 미지수(O-244). 비수렴 = `NonconvergentError`, 푼 노드가 레일 밖 = `no_root_in_window`(item 7, bounds = rail). 노드 재풀이 없는 갈래는 없다.
+`layout` 없이 `w_request` 만 주는 호출(기존 sizing 계약)은 재풀이 없는 θ 프레임 W_request 평가로 남는다(탐색 `evaluate` 는 부르지 않는다). `SccLog.slice_rounds` = 그 평가 노드 풀이 수.
+미구현: 실현 평가(`RealizedFinger`, W′·바이어스 고정 재풀이) -- `realize_front` 와 함께.

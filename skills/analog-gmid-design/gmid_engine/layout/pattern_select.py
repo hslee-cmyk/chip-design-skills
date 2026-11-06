@@ -226,7 +226,7 @@ def _w_requests(group, fw_cand, pdk):
     if not keys:
         return ()
     key = min(keys, key=lambda k: (abs(k * grid - max(need[k].values()) / n), k))
-    return tuple(WRequest(m, need[key][m], n * key * grid, "cc_nf", group.gid) for m in group.members)
+    return tuple(WRequest(m, need[key][m], n * key * grid, n, key * grid, "cc_nf", group.gid) for m in group.members)
 
 
 def _why(chosen, ev, ok_reason):

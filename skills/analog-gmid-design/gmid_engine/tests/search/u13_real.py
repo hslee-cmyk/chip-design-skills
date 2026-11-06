@@ -37,18 +37,16 @@ def real_env():
     loc = resolve_lut_location(str(SKILL / "assets" / "lut_v2_location.json"), os.environ)
     man = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
     kinds = dict(DEVICE_KINDS)
-    mins = {}
-    for e in man["slices"]:
-        k = kinds[e["device"]]
-        mins[k] = min(e["w_um"] * 1e-6, mins.get(k, float("inf")))
+    from pdk_min_w import min_finger_w_m
+    mins = min_finger_w_m(kinds.values())      # PDK 선언 양(card 20261104-wb1)
     dm = BoundedLRU(16)
     pdk = read_pdk_decl(str(SKILL / "assets" / "sky130_pdk_decl.json"), dm)
     q = dict(pdk.quantities)          # EF = PDK 선언 noise_ef_* (lut CONTRACT 9 '부르는 쪽이 PDK 선언에서 채운다')
     spec = LutSpec(float(man.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), DEVICE_KINDS, CAP_SUFFIX,
                    noise_ef=(("nmos", q["noise_ef_nmos"].value_m), ("pmos", q["noise_ef_pmos"].value_m)))
     assert loc.noise_path and loc.mismatch_path, "데이터 위치 선언에 noise·mismatch 항목이 있어야 한다(lut CONTRACT 1.8)"
-    lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path,
-                       noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path)
+    lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths,
+                       noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path, bin_rule=loc.bin_rule_path)
     env = SimpleNamespace(lut=lut, memo=LutMemo(lut, point=1 << 16, curve=1 << 14, root=1 << 16), pdk=pdk,
                           rule=read_pdk_decl(str(SKILL / "assets" / "sky130_lut_rule_decl.json"), dm),
                           root=Path(tempfile.mkdtemp(prefix="u13r", dir=os.environ.get("TEMP") or None)))
@@ -112,13 +110,13 @@ def _recipe(a, b, topology, settings):
 def _contexts(recipe, kernel):
     """recipe -> 커널·탐색 컨텍스트 묶음. kernel = 실행 두 객체 키워드(dict), None 이면 새 실행 하나(새 open_run() 쌍 -- card B C0)."""
     from gmid_engine.search import build_search_context, open_run
-    from gmid_engine.sizing import build_kernel_context, pre_layout_lut_access
+    from gmid_engine.sizing import build_kernel_context, LutAccess
     from .u13_hand import read_s1v, start_of
     env = real_env()
     if kernel is None:
         donors, counters = open_run()
         kernel = dict(donors=donors, counters=counters)
-    kctx = build_kernel_context(recipe.s0, recipe.inputs, pre_layout_lut_access(env.memo), **kernel)
+    kctx = build_kernel_context(recipe.s0, recipe.inputs, LutAccess(env.memo), **kernel)
     sctx = build_search_context(kctx, recipe.spec, recipe.settings, None, env.pdk, env.rule, code_fp=recipe.code_fp)
     return SimpleNamespace(s1v=read_s1v(recipe.s0), ach=recipe.s0, spec=recipe.spec, kctx=kctx, sctx=sctx, start=start_of(sctx),
                            topology=recipe.topology, settings=recipe.settings, pdk=env.pdk, rule=env.rule)

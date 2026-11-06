@@ -1,5 +1,7 @@
 """`mismatch_sigma_vgs` -- CONTRACT 10.4 [r7], 설계 41 §6.4-2 'mismatch 모델(옛 식 대체)':
 σ_VGS(W, L, 점) = √(Σ_k (DVGS_k · slope_k(bin(W, L)) / slope_k(bin_ref))²) · √(W_ref·L)/√(W·L).
+[WB-1 D-3] 서명 `mismatch_sigma_vgs(memo, model, kind, w_key, L, vgs, vds, vsb, w_bin_m, w_area_m)`: slope bin 은 손가락 폭 `w_bin_m`(= w_f), 면적 항은 총 폭 `w_area_m`(= DeviceOp.W)로 센다.
+아래 옛 호출은 두 폭이 같은 소자(손가락 하나)라 `X, X` 로 옮겼다(기대값 불변).
 
 oracle:
 - (a) 손계산(설계 식에 합성 값을 넣은 산수 -- 계약 10.4 손계산 행 그대로): DVGS = (1, 2, 2) mV.
@@ -40,7 +42,7 @@ def mm_lut(tmp_path):
 
 
 def test_hand_calc_reference_width(mm_lut):
-    r = mismatch_sigma_vgs(new_memo(mm_lut), _model(_block()), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6)
+    r = mismatch_sigma_vgs(new_memo(mm_lut), _model(_block()), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6, 1e-6)
     assert isinstance(r, MismatchSigma)
     assert math.isclose(r.sigma_v, 3e-3, rel_tol=1e-12)             # √(1 + 4 + 4) mV
     assert dict(r.parts) == pytest.approx(DV, rel=1e-12)
@@ -48,17 +50,17 @@ def test_hand_calc_reference_width(mm_lut):
 
 
 def test_hand_calc_four_times_width(mm_lut):
-    r = mismatch_sigma_vgs(new_memo(mm_lut), _model(_block()), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 4e-6)
+    r = mismatch_sigma_vgs(new_memo(mm_lut), _model(_block()), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 4e-6, 4e-6)
     assert math.isclose(r.sigma_v, 1.5e-3, rel_tol=1e-12)           # √(W_ref/W) = 1/2
 
 
 def test_hand_calc_device_bin_slope_twice(mm_lut):
-    r = mismatch_sigma_vgs(new_memo(mm_lut), _model(_block(toxe=4e-3)), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6)
+    r = mismatch_sigma_vgs(new_memo(mm_lut), _model(_block(toxe=4e-3)), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6, 1e-6)
     assert math.isclose(r.sigma_v, math.sqrt(1 + 16 + 4) * 1e-3, rel_tol=1e-12)
 
 
 def test_hand_calc_variable_unused_in_device_bin(mm_lut):
-    r = mismatch_sigma_vgs(new_memo(mm_lut), _model(_block(voff=None)), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6)
+    r = mismatch_sigma_vgs(new_memo(mm_lut), _model(_block(voff=None)), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6, 1e-6)
     assert math.isclose(r.sigma_v, math.sqrt(5) * 1e-3, rel_tol=1e-12)
 
 
@@ -67,15 +69,15 @@ def test_memo_key_distinguishes_pdk_model(mm_lut):
     model 인자에서 온다). memo 키가 model 을 빼면 두 번째 호출이 첫 호출 값을 돌려준다 -- 같은 LUT 로 다른 PDK 선언(slope 정정)을
     쓰면 조용히 옛 값이 나온다."""
     m = new_memo(mm_lut)
-    a = mismatch_sigma_vgs(m, _model(_block()), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6)
-    b = mismatch_sigma_vgs(m, _model(_block(toxe=4e-3)), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6)
+    a = mismatch_sigma_vgs(m, _model(_block()), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6, 1e-6)
+    b = mismatch_sigma_vgs(m, _model(_block(toxe=4e-3)), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6, 1e-6)
     assert math.isclose(a.sigma_v, 3e-3, rel_tol=1e-12)
     assert math.isclose(b.sigma_v, math.sqrt(21) * 1e-3, rel_tol=1e-12)
 
 
 def test_no_block_rejected(mm_lut):
     with pytest.raises(SealViolationError) as ei:
-        mismatch_sigma_vgs(new_memo(mm_lut), _model(_block(lmin=2e-6)), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6)
+        mismatch_sigma_vgs(new_memo(mm_lut), _model(_block(lmin=2e-6)), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6, 1e-6)
     assert detail_of(ei.value)["reason"] == "lut_mismatch_no_block"
 
 
@@ -83,21 +85,21 @@ def test_unscalable_slope_rejected(tmp_path):
     """기준 bin 이 voff 를 안 쓰는데(slope_ref 0) 소자 bin 은 쓰면 비율이 정의되지 않는다 -> `lut_mismatch_slope_unscalable`."""
     t = MismatchToy(tmp_path / "u", {p: np.full(TOY_SHAPE, v) for p, v in DV.items()}, slope_ref=dict(REF, voff=None))
     with pytest.raises(SealViolationError) as ei:
-        mismatch_sigma_vgs(new_memo(t.load()), _model(_block()), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6)
+        mismatch_sigma_vgs(new_memo(t.load()), _model(_block()), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6, 1e-6)
     assert detail_of(ei.value)["reason"] == "lut_mismatch_slope_unscalable"
 
 
 @pytest.mark.parametrize("W", [0.0, -1e-6])
 def test_nonpositive_width(mm_lut, W):
     with pytest.raises(ValueError):
-        mismatch_sigma_vgs(new_memo(mm_lut), _model(_block()), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, W)
+        mismatch_sigma_vgs(new_memo(mm_lut), _model(_block()), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, W, W)
 
 
 def test_bin_boundary_belongs_to_lower_block(mm_lut):
     """bin 규칙(CONTRACT 4.0.1): L 이 두 블록이 공유한 경계값이면 아래 블록. 아래 블록 toxe slope 2배 -> √21 mV."""
     lo = _block("low", lmin=0.5e-6, lmax=1e-6, toxe=4e-3)
     hi = _block("high", lmin=1e-6, lmax=5e-6)
-    r = mismatch_sigma_vgs(new_memo(mm_lut), _model(lo, hi), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6)
+    r = mismatch_sigma_vgs(new_memo(mm_lut), _model(lo, hi), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6, 1e-6)
     assert r.model == "low" and math.isclose(r.sigma_v, math.sqrt(21) * 1e-3, rel_tol=1e-12)
 
 
@@ -165,7 +167,7 @@ def test_real_narrow_width_bin_scales_by_slope_ratio(real_nm_memo, real_pdk_decl
     g = int(np.argmin(np.abs(raw_cap["VGS"] - 0.9)))
     k = int(np.argmin(np.abs(raw_cap["VDS"] - 0.9)))
     r = mismatch_sigma_vgs(real_nm_memo, real_pdk_decl.mismatch_model("nmos"), "nmos", 1000, float(raw_cap["L"][i]),
-                           float(raw_cap["VGS"][g]), float(raw_cap["VDS"][k]), 0.0, W)
+                           float(raw_cap["VGS"][g]), float(raw_cap["VDS"][k]), 0.0, W, W)
     assert r.model.lower() == b_dev[0].lower()
     parts = dict(r.parts)
     for p in ("vth0", "toxe", "voff"):
@@ -245,7 +247,7 @@ def test_real_vth0_component_equals_sqrt2_slope(real_nm_memo, real_pdk_decl, rea
                 continue
             try:
                 r = mismatch_sigma_vgs(real_nm_memo, model, kind, 1000, float(L), float(raw_cap["VGS"][g]),
-                                       float(raw_cap["VDS"][k]), 0.0, 5e-6)
+                                       float(raw_cap["VDS"][k]), 0.0, 5e-6, 5e-6)
             except SealViolationError:
                 continue
             a_vt = math.sqrt(2) * dict(r.parts)["vth0"] * math.sqrt(5.0 * float(L) * 1e6)    # V·µm
@@ -258,3 +260,29 @@ def test_real_vth0_component_equals_sqrt2_slope(real_nm_memo, real_pdk_decl, rea
     assert bound < min(abs(7.356 / 5.856 - 1.0), abs(5.856 / 7.356 - 1.0))
     for ratio, L, gmid in ratios:
         assert abs(ratio - 1.0) <= bound, (kind, L, gmid, ratio, bound)
+
+
+def test_wb1_d3_slope_bin_by_finger_width_and_area_by_total_width(mm_lut):
+    """[D-3] oracle (a) 손: W bin (1e-6, 3e-6) slope 1배, (3e-6, 7e-6) slope 2배, W_ref = 1e-6, DVGS = (1, 2, 2) mV.
+    w_f = 2e-6, W = 8e-6: 기여 x (slope 1 / slope_ref)·√(1/8) -> σ = 3 mV/√8. w_f = 5e-6 (둘째 bin): 6 mV/√8. 총 폭 8e-6 로 bin 을 고르면 어느 bin 에도 없다(lut_mismatch_no_block)."""
+    lo = _block("toy.1", wmin=1e-6, wmax=3e-6)
+    hi = _block("toy.2", wmin=3e-6, wmax=7e-6, **{p: 2 * v for p, v in REF.items()})
+    memo = new_memo(mm_lut)
+    a = mismatch_sigma_vgs(memo, _model(lo, hi), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 2e-6, 8e-6)
+    b = mismatch_sigma_vgs(memo, _model(lo, hi), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 5e-6, 8e-6)
+    assert math.isclose(a.sigma_v, 3e-3 / math.sqrt(8.0), rel_tol=1e-12) and a.model == "toy.1"
+    assert math.isclose(b.sigma_v, 6e-3 / math.sqrt(8.0), rel_tol=1e-12) and b.model == "toy.2"
+    with pytest.raises(SealViolationError) as ei:
+        mismatch_sigma_vgs(memo, _model(lo, hi), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 8e-6, 8e-6)
+    assert detail_of(ei.value)["reason"] == "lut_mismatch_no_block"
+
+
+@pytest.mark.parametrize("factor", [1 + 32 * 2.0 ** -52, 1 - 32 * 2.0 ** -52])
+def test_wb1_b7_wmin_roundtrip_point_belongs_to_the_block(mm_lut, factor):
+    """[B-7] oracle (a) 손: 격자 1e-8 에서 round(w / g) 정수 비교 -- 블록 W 하한 1e-6(= 정수 100)을 왕복 오차(+-32 eps) 점이 벗어나지 않는다.
+    같은 입력의 원값(1e-6)과 같은 소속·같은 값이다."""
+    memo = new_memo(mm_lut)
+    ref = mismatch_sigma_vgs(memo, _model(_block(wmin=1e-6)), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6, 1e-6)
+    got = mismatch_sigma_vgs(memo, _model(_block(wmin=1e-6)), "nmos", 100, 1e-6, 0.5, 0.5, 0.0, 1e-6 * factor, 1e-6)
+    assert got.model == ref.model and math.isclose(got.sigma_v, ref.sigma_v, rel_tol=1e-12)
+

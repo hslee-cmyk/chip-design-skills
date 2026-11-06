@@ -26,7 +26,8 @@ from gmid_engine.convergence import (
     converge_point,
 )
 from gmid_engine.core import fp_of
-from gmid_engine.layout import F_DIFFUSION, F_FLOORPLAN, F_POINT, LAYOUT_KEY, layout_outputs
+from gmid_engine.metrics import DiffusionGeometry
+from gmid_engine.layout import F_DIFFUSION, F_FLOORPLAN, F_POINT, LAYOUT_KEY, RowGroup, layout_outputs
 from gmid_engine.layout import _ly_fields as lf
 from gmid_engine.search import FrontPoint
 
@@ -51,7 +52,11 @@ SIZED_W = 1e-6
 
 
 def snap(W=SIZED_W, current=1e-6, cdb=1e-15, csb=2e-15):
-    return FakeSnapshot({("device", "dc_op"): {"M1": op(W=W, current=current)}, ("device", "ss_dev"): {"M1": ssdev(cdb, csb)}})
+    return FakeSnapshot({("device", "dc_op"): {"M1": op(W=W, current=current)}, ("device", "ss_dev"): {"M1": ssdev(cdb, csb)},
+                         ("device", "dc_colour"): {"M1": 0}})      # [WB-1] key_exclusion 의 동률 순서 입력(구조 색)
+
+
+ROW_GROUPS = (RowGroup("R1", "nmos", "gnd", ("M1",)),)
 
 
 class Loop:
@@ -64,23 +69,24 @@ class Loop:
         self.pdk = pdk(pdk_keys)
 
     # -- 가짜 place_layout (CONTRACT 7절 시그니처 + [XRUN-F1 card B C6] 필수 키워드 donors·counters)
-    def place_layout(self, memo, snapshot, pdk_, passives, rejected, relaxed, first_seen, previous, kinds, current_keys, *,
+    def place_layout(self, memo, snapshot, pdk_, passives, rejected, relaxed, first_seen, previous, kinds, excluded=(), *,
                      donors, counters):
         n = len(self.place_args)
         self.place_args.append(SimpleNamespace(memo=memo, snapshot=snapshot, pdk=pdk_, rejected=rejected, relaxed=relaxed,
-                                               previous=previous, kinds=kinds, current_keys=current_keys, sctx_kernel=None,
+                                               previous=previous, kinds=kinds, excluded=excluded, sctx_kernel=None,
                                                donors=donors, counters=counters))
         spec = self.layouts[min(n, len(self.layouts) - 1)]
         if spec == "unplaced":
-            lay = layout()
-            out = PlacedLayout(lay, (), (), ("M1",), (), pdk_, frozenset(relaxed), dict(first_seen), 1, ())
+            lay = layout(row_groups=ROW_GROUPS)
+            out = PlacedLayout(lay, (), (), ("M1",), pdk_, frozenset(relaxed), dict(first_seen), 1)
         else:
             W, key, nf, pending, tol, ad, area = spec
             pl = (placement("M1", key, nf, W, pending=pending, tol=tol),)
-            diff = () if ad is None else (ddiff("M1", key * GRID, nf, ad, ad, 1e-6, 1e-6),)
-            lay = layout(diffusion=diff, plan=floorplan(1e-5, 1e-5, area=area))
-            out = PlacedLayout(lay, (("gx", "members_span_row_groups"),), pl, (), (("nmos", key),), pdk_, frozenset(relaxed),
-                               dict(first_seen), 1, ())
+            # [개정 여섯째 A-139, interface §3] 배치 소자의 입력 손가락은 `layout_ref`(= `ly_diffusion` 의 비대기 소자 행)에서 온다 -- 확산 행을 항상 둔다
+            diff = (ddiff("M1", key * GRID, nf, ad_of(W) if ad is None else ad, ad_of(W) if ad is None else ad, 1e-6, 1e-6),)
+            lay = layout(diffusion=diff, plan=floorplan(1e-5, 1e-5, area=area), row_groups=ROW_GROUPS)
+            out = PlacedLayout(lay, (("gx", "members_span_row_groups"),), pl, (), pdk_, frozenset(relaxed),
+                               dict(first_seen), 1)
         self.placed.append(out)
         return out
 
@@ -93,7 +99,9 @@ class Loop:
         sctx.counters["kernel_calls"] += 1
         self.kernel_n += 1
         kind = self.verdict(geometry, self.kernel_n)
-        W = dict(geometry.w_request)["M1"]
+        # [개정 여섯째 A-139, interface §3·dispute 8.3] 그 평가가 쓴 M1 입력 손가락: 배치 소자 = layout_ref (finger_w, m), 요청 대기 소자 = w_request (소자, (nf, finger_w))
+        ref, req = dict(geometry.layout_ref), dict(geometry.w_request)
+        W = ref["M1"].m * ref["M1"].finger_w_m if "M1" in ref else req["M1"][0] * req["M1"][1]
         s = snap(W=W, cdb=1e-15 * self.kernel_n, csb=3e-15 * self.kernel_n)
         if kind == "ok":
             r = eval_result(s, power=1e-3 + self.kernel_n * 1e-6, constraints=rows(2.0, 0.5), tag="eval%d" % self.kernel_n)
@@ -118,7 +126,7 @@ def run(monkeypatch):
         from gmid_engine.search import open_run
         donors, counters = open_run()          # [XRUN-F1 card B C6] 커널 컨텍스트 대역 sctx.dc 의 실행 두 객체
         sctx = SimpleNamespace(counters={"kernel_calls": 0}, area_decl=None,
-                               dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO", w_keys=(("nmos", 30),)),
+                               dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO"),
                                                   donors=donors, counters=counters))
         start = start or eval_result(snap(), power=2e-3, area=7e-11, constraints=rows(3.0), tag="start")
         point = FrontPoint("p0", start, ())
@@ -126,8 +134,14 @@ def run(monkeypatch):
     return go
 
 
-def lay(W, key=10, nf=2, pending=False, tol=0.01, ad=None, area=1e-10):
-    return (W, key, nf, pending, tol, ad, area)
+def ad_of(W):
+    """합성 확산 면적 기본값: 폭에 비례하는 손 값(W x 0.1 um) -- 폭이 다른 두 배치가 다른 입력 손가락 기하가 되게 한다(스크립트 입력, 판정 아님)."""
+    return W * 1e-7
+
+
+def lay(W, key=10, nf=None, pending=False, tol=0.01, ad=None, area=1e-10):
+    """스크립트 배치 한 개: 입력 손가락 = (폭 키 key, 손가락 수 nf), nf 기본값 = W/(key x 격자) 반올림(= 요청 W 를 손가락으로 나눈 손 값)."""
+    return (W, key, max(1, round(W / (key * GRID))) if nf is None else nf, pending, tol, ad, area)
 
 
 # ---------------------------------------------------------------- 고정점·재평가 계수 (불변식 3·4)
@@ -141,15 +155,18 @@ def test_fixed_point_converges_after_one_reevaluation(run):
     assert [(i.index, i.status, i.kernel_calls) for i in cp.iterations] == [(1, "sealed", 1)]
     assert cp.result.tag == "eval1"
     assert cp.geometry == loop.eval_args[-1].geometry                    # 불변식 4: 마지막 기하 == 마지막 통과 재평가의 기하
-    assert cp.geometry.w_request == (("M1", 2e-6),) and cp.geometry.w_keys == (("nmos", 10),)
+    # [개정 여섯째 A-139, interface §3] M1 은 배치 소자라 layout_ref 에 입력 손가락(finger_w, m = nf), 요청 대기 소자만 w_request 에 든다 -> w_request 비어 있음
+    assert cp.geometry.w_request == ()
+    assert cp.geometry.layout_ref == (("M1", DiffusionGeometry(10 * GRID, ad_of(2e-6), ad_of(2e-6), 1e-6, 1e-6, 20.0)),)
     # evaluate 는 출발 점의 θ·L 칸으로, parent = 현재 점(처음엔 출발 점)
     assert loop.eval_args[0].theta == start.theta and loop.eval_args[0].cells == start.key.cells
     assert loop.eval_args[0].parent is start
-    # 두 번째 레이아웃은 재평가 점의 스냅샷으로, 커널 키 = 재평가 기하의 키. 새 설계점이라 previous 없이(§2.4.7: 레이아웃 필드는 그 설계점 스냅샷 위)
-    assert loop.place_args[1].snapshot is cp.result.evaluation.snapshot
+    # [기준점 개정 2026-11-06 A-124, interface §8·R-14] 두 번째 레이아웃을 놓는 설계점 스냅샷 = 루프에 들어온 front 점 스냅샷(재평가 점 스냅샷 아님). 새 설계점이라 previous 없이
+    assert loop.place_args[1].snapshot is start.evaluation.snapshot
+    assert loop.place_args[1].snapshot is not cp.result.evaluation.snapshot
     assert loop.place_args[0].previous is None and loop.place_args[1].previous is None
     assert cp.layout is loop.placed[-1].layout                                    # ConvergedPoint.layout = 마지막 LayoutResult
-    assert loop.place_args[0].current_keys == (("nmos", 30),) and loop.place_args[1].current_keys == (("nmos", 10),)
+    assert loop.place_args[0].excluded == () and loop.place_args[1].excluded == ()          # [WB-1] 키 제외 입력 없음(kind 키 운반 삭제)
     # [XRUN-F1 card B C6] converge_point 는 서명 그대로이고 place_layout 에 sctx.dc 의 두 객체를 그대로(is) 넘긴다
     for a in loop.place_args:
         assert a.donors is sctx.dc.donors and a.counters is sctx.dc.counters
@@ -171,7 +188,48 @@ def test_diffusion_only_change_is_reevaluated_not_a_cycle(run):
     assert cp.status == STATUS_CONVERGED
     assert [i.status for i in cp.iterations] == ["sealed", "sealed"]
     assert cp.kernel_calls == 2 == sctx.counters["kernel_calls"]
-    assert dict(cp.geometry.diffusion)["M1"].ad_m2 == 2e-13
+    assert dict(cp.geometry.layout_ref)["M1"].ad_m2 == 2e-13
+
+
+# ---------------------------------------------------------------- R-14 기준점 (새 2026-11-06, A-124, interface §6 R-14·§8 '기준점')
+def test_next_layout_is_placed_on_the_front_point_snapshot_not_the_reevaluation_snapshot(tmp_path, monkeypatch):
+    """R-13 (a) 꼴 점 하나(R-2 회로, 사이징 점 r = 0, 레이아웃 M1 = (nf 3, finger_w 1e-6))로 루프. 레이아웃은 스크립트 가짜(`Loop.place_layout` -- 놓는 설계점 스냅샷을 기록),
+    evaluate 는 **실** 평가(레이아웃 뒤 재풀이 + 재봉인). 첫 재평가가 통과한 뒤 둘째 `place_layout` 의 설계점 스냅샷 `is` 루프에 들어온 front 점 스냅샷이다
+    (재평가 스냅샷이면 red). oracle (d) interface §8 기준점 규칙. 양성 대조: 재평가가 실제로 통과했고(iterations sealed) 재평가 스냅샷은 front 점 스냅샷과 다른 객체다."""
+    from search.wb1_flow import R2_CELLS, R2_ELEMENTS, bins_case, circuit_r2, r2_theta, sorted_theta
+    from gmid_engine.search import evaluate
+    case = bins_case(tmp_path, circuit_r2(), elements=R2_ELEMENTS)
+    start = evaluate(case.sctx, sorted_theta(r2_theta(case.dc)), R2_CELLS)
+    fing = {m: f for m, f in dict(start.evaluation.snapshot.column("device", "dc_finger")).items()}
+    nfs = {m: (round(f.w_f_m / GRID), f.m) for m, f in fing.items()}
+    nfs["M1"] = (100, 3)                                                  # 레이아웃 M1 = (nf 3, finger_w 1e-6), 나머지는 사이징 점 손가락 그대로
+    groups = (RowGroup("R1", "nmos", "gnd", ("M1", "M2")), RowGroup("R2", "pmos", "vdd", ("M3", "M4")))
+    placed_snaps = []
+
+    def place_layout(memo, snapshot, pdk_, passives, rejected, relaxed, first_seen, previous, kinds, excluded=(), *, donors, counters):
+        placed_snaps.append(snapshot)                                      # 레이아웃을 놓는 설계점 스냅샷 기록
+        if len(placed_snaps) > 6:                                          # 같은 레이아웃이라 둘째 호출에서 고정점이다 -- 끝나지 않는 루프는 실패로 끊는다
+            pytest.fail("converge_point 루프가 6회 레이아웃 호출 뒤에도 끝나지 않았다; 재평가 결과 = %r" % ([(r.status, r.failure) for r in evals],), pytrace=False)
+        pl = tuple(placement(m, key, nf, key * GRID * nf) for m, (key, nf) in sorted(nfs.items()))
+        diff = tuple(ddiff(m, key * GRID, nf, 3e-13, 3e-13, 4e-6, 4e-6) for m, (key, nf) in sorted(nfs.items()))
+        lay_ = layout(diffusion=diff, plan=floorplan(1e-5, 1e-5, area=1e-10), row_groups=groups)
+        return PlacedLayout(lay_, (), pl, (), pdk_, frozenset(relaxed), dict(first_seen), 1)
+    pdk_ = pdk((( "nmos", (100, 200)), ("pmos", (100, 200))))
+    mod = module("converge_point")
+    evals, real_eval = [], mod.evaluate
+
+    def recording_evaluate(*a, **k):                                      # 진짜 평가를 부르고 결과만 기록한다
+        r = real_eval(*a, **k)
+        evals.append(r)
+        return r
+    monkeypatch.setattr(mod, "place_layout", place_layout)
+    monkeypatch.setattr(mod, "evaluate", recording_evaluate)
+    cp = converge_point(case.sctx, pdk_, FrontPoint("p0", start, ()))
+    assert [i.status for i in cp.iterations] == ["sealed"], (cp.status, cp.failure, cp.iterations)       # 첫 재평가 통과 (옛 '봉인만'이면 봉인 3 실패 -> red)
+    assert len(placed_snaps) >= 2                                         # 다음 레이아웃 호출이 있다 (공허 방지)
+    assert cp.result.evaluation.snapshot is not start.evaluation.snapshot
+    assert placed_snaps[1] is start.evaluation.snapshot                   # 기준점 = front 점 스냅샷 (재평가 스냅샷 아님)
+    assert placed_snaps[1] is not cp.result.evaluation.snapshot
 
 
 # ---------------------------------------------------------------- K_max (불변식 5)
@@ -189,7 +247,9 @@ def test_k_max_reached_is_nonconvergent(run):
     # margin = 그때 배치의 max|ln(W/W_사이징)| / tol = ln 1.025 / 0.01
     assert cp.failure.margin == pytest.approx(math.log(1.025) / 0.01, rel=1e-12)
     assert cp.result.tag == "eval2"                                   # 마지막 통과 재검증 점
-    assert cp.geometry.w_request == (("M1", 1.025e-6),)              # 마지막 레이아웃 기하(평가 안 함)
+    # 마지막 레이아웃 기하(평가 안 함): 셋째 배치(W 1.025e-6) -- 입력 손가락 기하(layout_ref)가 그 배치의 것이다 (w_request 는 대기 소자만이라 비어 있음)
+    assert cp.geometry.w_request == ()
+    assert cp.geometry.layout_ref == (("M1", DiffusionGeometry(10 * GRID, ad_of(1.025e-6), ad_of(1.025e-6), 1e-6, 1e-6, 10.0)),)
 
 
 def test_exact_cycle_is_detected_before_k_max(run):
@@ -210,6 +270,8 @@ def test_pending_request_rejected_then_converges(run):
     loop = Loop([lay(2e-6, pending=True), lay(1.5e-6), lay(1.5e-6)], verdict=lambda g, n: "fail" if n == 1 else "ok")
     cp, _sctx, start = run(loop)
     assert cp.status == STATUS_CONVERGED
+    # [개정 여섯째 A-139] 첫 평가 기하: 요청 대기 소자 M1 = w_request (소자, (nf, finger_w)), 배치 소자가 없어 layout_ref 비어 있음(양성 대조 -- 대기 경로가 실제로 쓰였다)
+    assert loop.eval_args[0].geometry.w_request == (("M1", (20, 10 * GRID)),) and loop.eval_args[0].geometry.layout_ref == ()
     assert [(i.status, i.requested, i.rejected) for i in cp.iterations] == [("rejected", ("M1",), ("M1",)), ("sealed", (), ())]
     assert cp.iterations[0].margin == -0.25                           # 실패 margin = 가장 작은 c
     assert loop.place_args[1].rejected == frozenset({"M1"})
@@ -223,9 +285,9 @@ def test_key_exclusion_then_infeasible_when_no_key_left(run):
     loop = Loop([lay(2e-6, key=20), lay(1.5e-6, key=10)], verdict=lambda g, n: "fail", pdk_keys=(("nmos", (10, 20)),))
     cp, sctx, start = run(loop)
     assert cp.status == STATUS_INFEASIBLE
-    assert [(i.status, i.excluded) for i in cp.iterations] == [("excluded", (("nmos", 20),)), ("failed", ())]
-    assert cp.excluded == (("nmos", 20),)
-    assert loop.place_args[1].pdk.slice_width_keys == (("nmos", (10,)),)      # 뺀 키 없이 다시 놓는다
+    assert [(i.status, i.excluded) for i in cp.iterations] == [("excluded", (("R1", 20),)), ("failed", ())]      # [WB-1] 행 그룹 R1 의 후보 20 을 뺀다
+    assert cp.excluded == (("R1", 20),)
+    assert loop.place_args[1].excluded == (("R1", (20,)),)      # 뺀 후보 없이 다시 놓는다(PDK 후보는 그대로, 제외는 행 그룹별 입력)
     assert loop.place_args[1].previous is loop.placed[0].layout                # 같은 current 재시도 = 같은 설계점 lineage 의 앞 결과
     assert cp.result is None                                                  # 통과한 재검증 없음
     notes = dict(cp.notes)
@@ -298,12 +360,20 @@ def test_real_kernel_counts_and_fixed_point(real, name):
     assert cp.result.key.cells == r.start.key.cells and cp.result.theta == r.start.theta
     # 불변식 5: 제외 아닌 반복 수 <= K_max
     assert sum(1 for i in cp.iterations if i.status != "excluded") <= cp.k_max
-    # 재평가 점은 고정 W 를 그대로 이행한다(구성: w_request 가 dc_op.W)
+    # 재평가 점은 입력 손가락을 그대로 이행한다 [개정 여섯째 A-139, dispute 8.3]: 배치 소자 = layout_ref (finger_w, m), 요청 대기 소자 = w_request (소자, (nf, finger_w)),
+    # 소자 전부가 둘 중 하나에 들고(겹침 없음), dc_op.W = nf x finger_w
     ops = dict(cp.result.evaluation.snapshot.column("device", "dc_op"))
-    assert {m: ops[m].W for m in ops} == dict(cp.geometry.w_request)
-    # 실현 W = nf x finger_w (레이아웃 소자 기록 = 필드 파생 출력에서 손으로)
+    ref, req = dict(cp.geometry.layout_ref), dict(cp.geometry.w_request)
+    assert ref and set(ref) | set(req) == set(ops) and not (set(ref) & set(req))
+    for m, g in ref.items():
+        assert ops[m].W == pytest.approx(g.m * g.finger_w_m, rel=1e-12)
+    for m, (nf, fw) in req.items():
+        assert ops[m].W == pytest.approx(nf * fw, rel=1e-12)
+    # 실현 W = nf x finger_w (레이아웃 소자 기록 = 필드 파생 출력에서 손으로), 배치 소자 입력 손가락 = 그 레이아웃 소자 기록
     for d in layout_outputs(cp.layout.snapshot).devices:
-        assert dict(cp.geometry.w_request)[d.name] == pytest.approx(d.n_fingers * d.finger_w_m, rel=1e-15)
+        assert ops[d.name].W == pytest.approx(d.n_fingers * d.finger_w_m, rel=1e-12)
+        if d.name in ref:
+            assert (ref[d.name].m, ref[d.name].finger_w_m) == (float(d.n_fingers), d.finger_w_m)
     # 판정 축 값의 출처
     assert cp.layout_area_m2 == cp.layout.snapshot.value("graph", LAYOUT_KEY, F_FLOORPLAN).outline_area_m2
     assert cp.search_area_m2 == r.start.objectives.area_m2
@@ -312,11 +382,12 @@ def test_real_kernel_counts_and_fixed_point(real, name):
 
 @pytest.mark.parametrize("name", REAL)
 def test_real_layout_fields_live_on_design_point_snapshot(real, name):
-    """[U17 1-e] design 40 v1.6 §2.4.7·§2.4.8: 수렴 레이아웃의 `ly_*` 필드는 재검증 점(설계점) 스냅샷의 S2 필드다 -- 별도 lineage 없음.
-    설계점 writer 의 block_version·소자 `dc_op` 레코드가 그대로이고 레이아웃 writer 가 더해졌다(writer = MOD7 블록, `_ly_fields.LY_WRITERS`)."""
+    """[U17 1-e, 개정 2026-11-06 A-124 / dispute 7.3] design 40 v1.6 §2.4.7·§2.4.8 + card §8 기준점 규칙: 수렴 레이아웃의 `ly_*` 필드는 **루프에 들어온 front 점 스냅샷**
+    (`start.evaluation.snapshot`)의 S2 필드다 -- 재검증(재평가) 점이 아니다(재평가는 `dc_solve` 를 다시 돌려 block_version·dc_op 가 front 점과 다르고, 다음 레이아웃의 입력도 아니다).
+    front 점 writer 의 block_version·소자 `dc_op` 레코드가 그대로이고 레이아웃 writer 가 더해졌다(writer = MOD7 블록, `_ly_fields.LY_WRITERS`)."""
     r = real.run(name)
     cp = r.point
-    dp = cp.result.evaluation.snapshot
+    dp = r.start.evaluation.snapshot                                  # 기준점 = front 점 (R-14 로 바꾼 두 단언과 같은 규칙)
     snap = cp.layout.snapshot
     ly_writers = {w for _f, w in lf.LY_WRITERS.entries}
     for writer, version in dp.block_versions.items():
@@ -413,18 +484,20 @@ def test_passives_read_from_evaluation_snapshot_field(monkeypatch):
     from gmid_engine.search import open_run
     donors, counters = open_run()          # [XRUN-F1 card B C6] 커널 컨텍스트 대역 sctx.dc 의 실행 두 객체
     sctx = SimpleNamespace(counters={"kernel_calls": 0}, area_decl=decl,
-                           dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO", w_keys=(("nmos", 30),)),
+                           dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO"),
                                               donors=donors, counters=counters))
     s0 = snap()
     s0.fields[("device", "passive_value")] = dict(PV_START)
     start = eval_result(s0, power=2e-3, area=7e-11, constraints=rows(3.0), tag="start")
     cp = converge_point(sctx, loop.pdk, FrontPoint("p0", start, ()))
     assert cp.status == STATUS_CONVERGED and len(loop.place_args) == 2
-    # passives_from_decl 은 (sctx 선언, 그 레이아웃을 놓는 설계점 스냅샷의 passive_value 열) 로 불린다 -- 출발 점, 그다음 재평가 점
+    # passives_from_decl 은 (sctx 선언, 그 레이아웃을 놓는 설계점 스냅샷의 passive_value 열) 로 불린다 -- [기준점 개정 2026-11-06 A-124, interface §8] 설계점 = 루프에 들어온
+    # front 점이라 두 번 다 출발 점 값이다 (재평가 스냅샷의 PV_EVAL 은 읽지 않는다)
     assert [d for d, _ in seen] == [decl, decl]
-    assert [v for _, v in seen] == [PV_START, PV_EVAL]
-    # place_layout 이 받는 면적(손): Cc 2e-12 x 2e-3 = 4e-15; Rz 2500 x 1e-15 + 1e-12 = 3.5e-12 -> 재평가 점 3000 x 1e-15 + 1e-12 = 4e-12; CL 제외
-    want = [(("Cc", 4e-15), ("Rz", 3.5e-12)), (("Cc", 4e-15), ("Rz", 4e-12))]
+    assert [v for _, v in seen] == [PV_START, PV_START]
+    assert PV_START != PV_EVAL                                         # 공허 방지: 재평가 스냅샷을 읽으면 둘째가 달라진다
+    # place_layout 이 받는 면적(손): Cc 2e-12 x 2e-3 = 4e-15; Rz 2500 x 1e-15 + 1e-12 = 3.5e-12 (두 번 다 출발 점 값); CL 제외
+    want = [(("Cc", 4e-15), ("Rz", 3.5e-12)), (("Cc", 4e-15), ("Rz", 3.5e-12))]
     for got, exp in zip(loop.passives, want):
         assert [x.name for x in got] == [n for n, _ in exp]
         assert all(x.area_m2 == pytest.approx(a, rel=1e-12) for x, (_, a) in zip(got, exp))

@@ -9,6 +9,7 @@ from .cap_query import caps
 from .curve_check import curve_report
 from .data_location import resolve_lut_location
 from .derived_fns import DERIVED_FUNCTIONS, derived
+from .finger_slice import FingerSlice, finger_slice, reachable_slices
 from .fingerprint import lut_fingerprint
 from .ft_curve import ft_curve
 from .gm_id_curve import gm_id_curve
@@ -88,6 +89,9 @@ from .vdsat_query import vdsat
 from .vdsat_tolerance import TolVdsatTable, tol_vdsat_table
 from .vgs_current_density import vgs_for_current_density
 from .vgs_root import vgs_for_gm_id
+from .slice_gap import SLICE_GAP_REASONS, is_slice_gap
+from .slice_of_finger import slice_of_finger
+from .slice_tables import build_slice_tables
 from .widths import widths
 
 __all__ = (
@@ -110,7 +114,14 @@ __all__ = (
     "derived",
     "GmIdAxisCurve",
     "LBin",
+    "FingerSlice",
     "LBinMap",
+    "SLICE_GAP_REASONS",
+    "build_slice_tables",
+    "finger_slice",
+    "is_slice_gap",
+    "reachable_slices",
+    "slice_of_finger",
     "LutLocation",
     "LutMemo",
     "LutProvenance",

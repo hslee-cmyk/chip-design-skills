@@ -88,10 +88,14 @@ def test_axis_out_of_range(lin_toy, args, axis):
     assert d["reason"] == "lut_axis_out_of_range" and d["axis"] == axis
 
 
-def test_non_anchor_L_on_empty_bin_map(lin_toy):
-    """toy 는 bin 지도가 비어 L 보간 없음(4.0) -> 비앵커 L 은 `lut_l_not_anchor`."""
+def test_non_anchor_L_on_empty_bin_map(tmp_path):
+    """빈 bin 지도(bin 블록 없는 합성 모델 파일, [WB-1 §4]) 는 L 보간 없음(4.0) -> 비앵커 L 은 `lut_l_not_anchor`."""
+    L, v, d, s = toy_grid_mesh()
+    t = NoiseToy(tmp_path / "lin_empty", np.exp(_lin(A_LN, v, d, s)), np.exp(_lin(B_LN, v, d, s)), cgd=0.0, empty_bins=True)
+    lin_empty = new_memo(t.load())
+    noise_params(lin_empty, "nmos", 100, 1e-6, 0.5, 0.5, 0.0)                    # 호출 >= 1: 앵커는 된다
     with pytest.raises(SealViolationError) as ei:
-        noise_params(lin_toy, "nmos", 100, 1.5e-6, 0.5, 0.5, 0.0)
+        noise_params(lin_empty, "nmos", 100, 1.5e-6, 0.5, 0.5, 0.0)
     assert detail_of(ei.value)["reason"] == "lut_l_not_anchor"
 
 

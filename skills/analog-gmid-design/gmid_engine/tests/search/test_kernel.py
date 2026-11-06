@@ -238,16 +238,16 @@ def test_evals_record_fields(case_c):
 
 
 def test_parent_reuses_lineage(case_c):
-    """parent = 앞 결과 -> sizing 은 그 lineage 에서 이어 계산(current 성분만 다르면 dc_columns 재계산 0, I-4 와 같은 근거)."""
-    from gmid_engine.sizing import dc_columns, dc_currents
+    """parent = 앞 결과 -> sizing 은 그 lineage 에서 이어 계산(current 성분만 다르면 dc_currents·dc_solve 각 1회 -- [WB-1] 노드 풀이 블록이 W 블록과 합쳐졌다, I-4 와 같은 근거)."""
+    from gmid_engine.sizing import dc_solve, dc_currents
     case, _ = case_c
     s = case.sctx
     base = evaluate(s, th_sorted(theta_r4c()), CELLS_C)
     # [XRUN-F1 card B C1·C6] 계수 = 그 탐색 컨텍스트 실행(sctx.dc.counters)의 행 computes(인덱스 4)
-    c0, u0 = block_row(s.dc.counters, dc_columns.name)[4], block_row(s.dc.counters, dc_currents.name)[4]
+    c0, u0 = block_row(s.dc.counters, dc_solve.name)[4], block_row(s.dc.counters, dc_currents.name)[4]
     r = evaluate(s, th_sorted(theta_r4c(i2=1.1e-5)), CELLS_C, parent=base)
     assert r.status == STATUS_SEALED
-    assert block_row(s.dc.counters, dc_columns.name)[4] == c0
+    assert block_row(s.dc.counters, dc_solve.name)[4] == c0 + 1
     assert block_row(s.dc.counters, dc_currents.name)[4] == u0 + 1
 
 
@@ -305,7 +305,8 @@ def test_sealed_point_with_passive_theta_has_ss_row(tmp_path, lut_sealed):
 # metrics CONTRACT 10.7('kernel.evaluate 가 S3 evals 줄에 block_residual 을 쓴다', [U17 ①-b] S1v 필드가 있는 커널 컨텍스트). (a) 회로 C 는 단일 이득 블록
 # (CS + PMOS 전류원 부하) -> 분해 = 전회로, 잔차 0, 전회로 이득 = 같은 점의 gain_ss_db 값.
 
-def test_u7_structure_writes_block_residual_to_evals(tmp_path, lut_sealed, short_root):
+def test_u7_structure_writes_block_residual_to_evals(tmp_path, lut_sealed_cdd, short_root):
+    lut_sealed = lut_sealed_cdd      # [WB-1 E-18] 구조 경로의 drain 용량은 CDD 열 -- CDD 열이 있는 같은 r4 toy
     from gmid_engine.graph import build_s1, build_s1v
     from gmid_engine.search import build_search_context
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
@@ -360,7 +361,7 @@ def test_pending_point_passive_values_reused_on_mos_theta_only_change(tmp_path, 
     pv0 = dict(r0.evaluation.snapshot.column("device", "passive_value"))
     assert pv0 == {"Cz": th0[("capacitance", "Cz")], "Rz": th0[("ss_resistance", "Rz")]}
     fixed = r0.evaluation
-    monkeypatch.setattr(kernel, "size_and_seal", lambda dc, theta, parent=None, w_request=(): fixed)
+    monkeypatch.setattr(kernel, "size_and_seal", lambda dc, theta, parent=None, w_request=(), realized=None: fixed)
 
     th_mos = dict(th0)
     th_mos[("ln_idu", "M1")] = th0[("ln_idu", "M1")] + 0.01
@@ -392,7 +393,7 @@ def test_pending_point_passive_values_reused_on_mos_theta_only_change(tmp_path, 
 # 각 경우 전제(status == failed, 실패 분류·detail 원인)를 먼저 단언한다.
 # =====================================================================================================================
 
-DC_ORDER = ("dc_currents", "dc_lengths", "dc_columns", "dc_widths")          # sizing CONTRACT 7절 평가 블록 4개 호출 순서
+DC_ORDER = ("dc_currents", "dc_lengths", "dc_solve", "dc_solve")          # sizing CONTRACT 7절 평가 블록 4개 호출 순서
 
 
 def _rows_now(s):
@@ -442,7 +443,7 @@ def _failed_line_and_result(case, root):
 
 
 def test_partial_snapshot_dc_block_failure(tmp_path, lut_sealed, short_root):
-    """B-T19 (1) C7: DC 블록 단계(전류·길이·기둥·폭) 실패 -- partial.block_versions 에 앞 블록은 있고 실패한 블록(여기서는 기둥 dc_columns,
+    """B-T19 (1) C7: DC 블록 단계(전류·길이·기둥·폭) 실패 -- partial.block_versions 에 앞 블록은 있고 실패한 블록(여기서는 기둥 dc_solve,
     빈 창)은 없다, 봉인 보고 없음. 실패 줄 snapshot_fp == partial.fp, evaluation 은 None."""
     from gmid_engine.core import GraphSnapshot
     case = _empty_window_case(tmp_path, lut_sealed, short_root)
@@ -453,7 +454,7 @@ def test_partial_snapshot_dc_block_failure(tmp_path, lut_sealed, short_root):
     assert isinstance(r.partial, GraphSnapshot)
     bv = r.partial.block_versions
     assert "dc_currents" in bv and "dc_lengths" in bv                                   # 앞 블록
-    assert "dc_columns" not in bv and "dc_widths" not in bv                             # 실패한 블록과 그 뒤
+    assert "dc_solve" not in bv and "dc_solve" not in bv                             # 실패한 블록과 그 뒤
     assert "dc_seal_report" not in bv
     assert line["ok"] is False and "fail" in line
     assert line["snapshot_fp"] == r.partial.fp                                          # C7 S3 evals 실패 줄
@@ -498,7 +499,9 @@ def _write_r4_lut_narrow_cap(root):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
     np.savez(root / "cap.npz", **cap)
-    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC)
+    from toy_bins import retrofit_bins as _retro
+    _tb = _retro(root)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC, bin_rule=_tb.bin_rule, pdk_root=_tb.pdk_root)
 
 
 def test_partial_snapshot_ss_stage_failure(tmp_path, short_root):

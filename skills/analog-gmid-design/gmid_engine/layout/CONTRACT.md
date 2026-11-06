@@ -322,7 +322,7 @@ reads device `ly_point`(`kind`·`L_m`)·`ly_pins`·`ly_w_adjustable`·`ly_fw_can
 6. diff_pair·branch_symmetric(LY5, Q8 (ii)): (i) common-centroid 만으로 5의 최선을 찾고 centred 이면 채택, `reason="cc_same_W"`.
    (ii) 아니면 멤버 모두 `W_adjustable` 이고 `rejected_requests` 에 없을 때: 멤버 모두에게 사용 가능한(후보가 있는) 폭 키 중
    |키 x 격자 − max(멤버 W_need(키))/n| 최소(동률은 작은 키) 키*, `W_new = n x 키* x 격자`(n = 멤버 수), 멤버마다
-   `WRequest(이름, W_need(키*), W_new, "cc_nf", gid)`, `pending=True`, `provisional=True`, `reason="w_request_pending"`,
+   `WRequest(이름, W_need(키*), W_new, nf, 키* x 격자, "cc_nf", gid)`(W_new = nf x finger_w_m), `pending=True`, `provisional=True`, `reason="w_request_pending"`,
    배치 = (i) 의 최선(없으면 pattern None), attempts 끝에 step `"w_request"`(finger_w = W_new/n, nf = n씩, reason `"cc_nf"`).
    (iii) 그 밖: attempts 끝에 step `"w_request"`(reason `"w_request_rejected"`(멤버 중 거부 있음) / `"w_not_adjustable"` /
    `"no_usable_slice"`(조정 가능하지만 공통 사용 가능 폭 키 없음)). **즉시 완화하지 않는다**(U12, LY5 마지막 문장 -- 옛 interdigitation
@@ -355,7 +355,7 @@ reads device `ly_fw_cand`, graph `ly_groups`·`ly_row_groups`.
   (그 키에서 err 최소 nf) 합 최소 -> 동률이면 큰 키. 그 키가 ok 인 소자 모두에 그 키의 (err, nf) 최소 후보를 주고 남은 소자로 반복.
   다른 행 그룹의 폭은 보지 않는다(단위셀 폴백·seed 전파 없음).
 - 어떤 키도 ok 가 아닌 소자: 전체 후보 중 (err, nf, −키) 최소를 잠정으로 쓰고 `w_request = WRequest(이름, 그 후보 W_need, 그 후보 실현 W,
-  "finger_quantization", None)`. 단 그 소자가 어떤 그룹의 `w_requests` 에 이미 있으면 `w_request=None`. 그 밖은 `w_request=None`.
+  그 후보 nf, 그 후보 finger_w, "finger_quantization", None)`. 단 그 소자가 어떤 그룹의 `w_requests` 에 이미 있으면 `w_request=None`. 그 밖은 `w_request=None`.
 - 후보가 하나도 없는 소자(모든 슬라이스 제외)는 `ly_finger` 에 값이 없다(4.12 가 `no_usable_slice` 로 기록).
 - `DeviceFinger(name, 키, fw, nf, W_need, 실현 W, err, lower, upper, effective, grid_dominated, ok, origin, group, w_request)`.
 
@@ -475,7 +475,7 @@ coverage_missing, w_requests, w_invariant_ok, revalidation)` 이다(필드에서
 5. `devices` = 소자 이름순(`ly_point` key 순) `DeviceLayout(이름, finger_w, nf, ((행 id, nf), ...) 행 id 순, W_m(참고), W_need, 실현 W, err, lower, upper, effective,
    grid_dominated, origin, excluded_slices = ((키, 사유), ...) 제외된 슬라이스)`. `ly_finger` 값이 없는 소자는 finger_w·nf·W_need 이후
    숫자 필드가 None, rows `()`.
-   `w_requests` = 그룹 요청 + 소자 finger_quantization 요청 + `ly_finger` 없는 소자마다 `WRequest(이름, W_m, W_m, "no_usable_slice", None)`,
+   `w_requests` = 그룹 요청 + 소자 finger_quantization 요청 + `ly_finger` 없는 소자마다 `WRequest(이름, W_m, W_m, None, None, "no_usable_slice", None)`(요청 손가락 없음),
    (device, reason) 정렬. `coverage_ok`·`coverage_missing`(정렬) = `check_stick_diagram_coverage(입력 이름, {행 id: 행 소자 이름})`.
    `w_invariant_ok` = 모든 소자가 `ly_finger` 를 갖고 (행별 nf 합 == nf) 이고 (err <= effective 또는 그 소자 이름의 W_request 있음).
 6. `review_needed`(결과 첫 필드, Q8 (iv)) = `groups` 순으로 role ∈ `CC_REQUIRED_ROLES` 이고 pattern None 이고 pending 아닌

@@ -6,22 +6,24 @@
 `run_layout` 의 유일한 프로덕션 호출처(`place_layout` 이 부른다)이자 `evaluate(geometry=)` 의 유일한 호출처다.
 
 루프(점마다, 평가 커널 호출은 모두 `evaluate` 한 곳):
-1. 현재 점(처음엔 front 점)의 봉인 스냅샷으로 `LayoutInput` 을 만들어 레이아웃을 놓는다(`place_layout` -- 폭 키 좁히기·완화 판정 포함, 커널 0). 레이아웃 필드는
-   그 설계점 스냅샷의 S2 `layout` 필드다(설계 40 v1.6 §2.4.7): 같은 현재 점에서의 재시도(거부·키 제외)는 앞 레이아웃 스냅샷 위에, 새 현재 점은 그 설계점 스냅샷 위에 쓴다.
+1. 루프에 들어온 front 점(= 사이징 점)의 봉인 스냅샷으로 `LayoutInput` 을 만들어 레이아웃을 놓는다(`place_layout` -- 폭 키 좁히기·완화 판정 포함, 커널 0). **레이아웃 입력 기준점은 늘 front 점
+   스냅샷이다**(설계 40 §3.7-A 6, 계획 LY1·N6.32 범위 5 v6.38.21): 재평가를 통과한 점의 스냅샷은 다음 레이아웃의 보존량 입력이 아니다(판정·고정점 비교에만 쓴다). 레이아웃 필드는
+   그 설계점 스냅샷의 S2 `layout` 필드다(설계 40 v1.6 §2.4.7): 같은 현재 점에서의 재시도(거부·키 제외)는 앞 레이아웃 스냅샷 위에, 새 현재 점은 front 점 스냅샷 위에 쓴다.
 2. 실효 배치에서 `RealizedGeometry`(실현 W 고정 입력 + 실현 폭 슬라이스 + 실현 확산 기하)를 만든다. **이 기하가 직전에 평가한 기하와 같으면 고정점이다**
    (그 평가 점으로 놓은 레이아웃이 같은 기하를 낳음) -> 수렴.
-3. 아니면 같은 θ·L 칸으로 그 기하를 고정해 평가 커널 1회 + 봉인 1~8(+ spec 제약 행)을 다시 돈다(LY7 -- W_request 유무와 관계없이 레이아웃 결과마다 1회). 통과하면 그 점이
+3. 아니면 같은 θ·L 칸으로 그 기하를 고정해 평가 커널 1회 + 봉인 1~8(+ spec 제약 행)을 다시 돈다(LY7 -- W_request 유무와 관계없이 레이아웃 결과마다 1회). 그 평가는 실현 평가와 같은
+   W'·바이어스 고정 KCL 재풀이이고 기준 스냅샷(`parent`)은 front 점이다. 통과하면 그 점이
    새 현재 점이다. 위반하면 W_request 응답 대기 그룹(cc_nf)의 요청을 **거부**(`rejected_requests`)하고 같은 현재 점에서 1 로 돌아간다 -- 레이아웃이 그 그룹을 W_request 로 못 내므로
    LY5 완화 판정(`relaxation_decision`)으로 간다. 거부할 요청이 없으면 사이징 W 어긋남이 가장 큰 kind 의 지금 폭 키를 레이아웃 후보에서 빼고(`key_exclusion`, 단조 감소)
    같은 현재 점에서 1 로 돌아간다. 뺄 키가 남지 않으면 `STATUS_INFEASIBLE`.
-같은 상태에서 이미 평가한 DC 상태(고정 W·폭 슬라이스; 직전 것은 확산 기하만 바뀌는 재평가라 제외)로 돌아오면(주기) 바로 NONCONVERGENT 다(결정론적 사상이라 K_max 까지 돌아도 벗어나지 못한다).
+같은 상태에서 이미 평가한 DC 상태(그 평가의 입력 손가락 (nf, finger_w); 직전 것은 확산 기하만 바뀌는 재평가라 제외)로 돌아오면(주기) 바로 NONCONVERGENT 다(결정론적 사상이라 K_max 까지 돌아도 벗어나지 못한다).
 반복 상한 `K_max` = `w_loop_bound`(첫 레이아웃에서 한 번, 키 제외 재시도는 세지 않는다 -- 그것은 PDK 폭 키 수로 끝난다): 재평가가 K_max 번째까지 가고도 고정점이 아니면 `STATUS_NONCONVERGENT`(FailureRecord NONCONVERGENT).
 레이아웃 안 재시도(폭 키 좁히기·완화)는 평가 커널을 부르지 않는다. 결과의 `kernel_calls` 는 이 점이 새로 부른 커널 호출 수(캐시 적중은 세지 않는다).
 """
 import dataclasses
 
 from gmid_engine.core import NonconvergentError
-from gmid_engine.layout import F_FLOORPLAN, F_GROUPS, LAYOUT_KEY, passives_from_decl
+from gmid_engine.layout import F_FLOORPLAN, F_GROUPS, F_ROW_GROUPS, LAYOUT_KEY, passives_from_decl
 from gmid_engine.metrics import PassiveAreaDecl
 from gmid_engine.search import STATUS_SEALED, evaluate
 
@@ -91,36 +93,35 @@ def converge_point(sctx, pdk, point):
     if nonpositive:
         return done(STATUS_UNPLACEABLE, start, None, None, (), None, None, (), frozenset(), {}, 0,
                     (("nonpositive_current", nonpositive),))
-    current, pdk_now, pdk_candidates = start, pdk, pdk
+    current, pdk_now = start, pdk
+    excluded_groups = ()                                  # ((행 그룹 rid, (뺀 폭 키, ...)), ...) -- 키 제외는 행 그룹 단위(설계 40 §3.7-A 6)
     rejected, relaxed, first_seen, previous_geometry, previous_layout = frozenset(), frozenset(), {}, None, None
-    keys_now = tuple(sorted(sctx.dc.lut.w_keys))
     iterations, k_bound, layouts, visited = [], None, 0, []
     while True:
-        placed = place_layout(memo, current.evaluation.snapshot, pdk_now, _passives(sctx, current), rejected, relaxed, first_seen,
-                              previous_layout, kinds, keys_now, donors=sctx.dc.donors, counters=sctx.dc.counters)
+        placed = place_layout(memo, start.evaluation.snapshot, pdk_now, _passives(sctx, start), rejected, relaxed, first_seen,
+                              previous_layout, kinds, excluded_groups, donors=sctx.dc.donors, counters=sctx.dc.counters)
         layouts += placed.layout_calls
         pdk_now, relaxed, first_seen, previous_layout = placed.pdk, placed.relaxed, placed.first_seen, placed.layout
-        narrowed.update(placed.narrowed)
         if placed.unplaced:
             return done(STATUS_UNPLACEABLE, current, placed, None, iterations, k_bound, None, rejected, relaxed, first_seen,
                         layouts, (("unplaced_devices", placed.unplaced),))
-        geometry = realized_geometry(placed.layout.snapshot, placed.placements, placed.keys)
+        geometry = realized_geometry(placed.layout.snapshot, placed.placements)
         if geometry == previous_geometry:
             return done(STATUS_CONVERGED, current, placed, geometry, iterations, k_bound, None, rejected, relaxed, first_seen, layouts)
         bound, dlnw, tol = w_loop_bound(placed.placements, sized_w)
         if k_bound is None:
             k_bound = bound
-        dc_state = (geometry.w_request, geometry.w_keys)        # 다음 레이아웃은 평가 점의 DC 상태(고정 W·슬라이스)만 읽는다 -- 확산 기하는 출력이다
+        dc_state = tuple(sorted(geometry.input_fingers.items()))        # 다음 레이아웃은 평가 점의 DC 상태 = 그 평가의 입력 손가락 (nf, finger_w)만 읽는다 -- 확산 기하는 출력이다
         cycle = dc_state in visited[:-1]
         if cycle or sum(1 for i in iterations if i.status != "excluded") >= k_bound:
-            # 같은 상태(PDK 후보·거부·완화)에서 이미 평가한 DC 상태(고정 W·폭 슬라이스)로 돌아왔다 = 주기 -- 결정론적 반복이라 K_max 까지 돌아도 벗어나지 못한다
+            # 같은 상태(PDK 후보·거부·완화)에서 이미 평가한 DC 상태(입력 손가락)로 돌아왔다 = 주기 -- 결정론적 반복이라 K_max 까지 돌아도 벗어나지 못한다
             failure = NonconvergentError(devices=tuple(sorted(m for m, _w in geometry.w_request)), margin=dlnw / tol if tol > 0 else None,
                                          detail=(("cycle", cycle), ("k_max", k_bound), ("iterations", len(iterations)), ("width", dlnw),
                                                  ("tol", tol))).record
             return done(STATUS_NONCONVERGENT, current, placed, geometry, iterations, k_bound, failure, rejected, relaxed,
                         first_seen, layouts)
         calls0 = sctx.counters["kernel_calls"]
-        result = evaluate(sctx, start.theta, start.key.cells, parent=current, origin=_ORIGIN + (("iter", len(iterations) + 1),),
+        result = evaluate(sctx, start.theta, start.key.cells, parent=start, origin=_ORIGIN + (("iter", len(iterations) + 1),),
                           geometry=geometry)
         pending = tuple(sorted(p.name for p in placed.placements if p.pending))
         accepted = _accepted(result, start)
@@ -132,7 +133,6 @@ def converge_point(sctx, pdk, point):
         if accepted:
             current, previous_geometry = result, geometry
             previous_layout = None                               # 새 설계점: 레이아웃은 그 설계점 스냅샷 위에 다시 쓴다(설계 40 v1.6 §2.4.7, 별도 lineage 없음)
-            keys_now = tuple(sorted(geometry.w_keys))
             if not visited or visited[-1] != dc_state:
                 visited.append(dc_state)
             continue
@@ -140,11 +140,12 @@ def converge_point(sctx, pdk, point):
         if reject:
             rejected = rejected | frozenset(reject)
             continue
-        gone, narrower = key_exclusion(pdk_candidates, placed.placements, kinds, sized_w, placed.keys)
+        gone, narrower = key_exclusion(pdk, placed.layout.snapshot.value("graph", LAYOUT_KEY, F_ROW_GROUPS), placed.placements, sized_w,
+                                       excluded_groups, dict(current.evaluation.snapshot.column("device", "dc_colour")))
         if narrower is not None:
             excluded.append(gone)
             iterations[-1] = dataclasses.replace(iterations[-1], status="excluded", excluded=(gone,))
-            pdk_candidates = pdk_now = narrower              # 좁히기는 후보에서 다시 시작한다(제외는 후보 집합을 줄인다)
+            excluded_groups = narrower                       # 그 행 그룹의 후보만 줄인다(다른 행 그룹은 그대로) -- 같은 현재 점에서 다시 놓는다
             continue
         violated = tuple(sorted((row.c, row.name) for row in result.constraints if row.c < 0))
         return done(STATUS_INFEASIBLE, current, placed, geometry, iterations, k_bound, result.failure, rejected, relaxed, first_seen,

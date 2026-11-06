@@ -28,7 +28,7 @@ def _reason(exc):
 
 def _device(memo, name, op):
     try:
-        params = noise_params(memo, op.kind, op.w_key, op.L, op.vgs, op.vds, op.vsb)
+        params = noise_params(memo, op.kind, memo.lut.cap_map[op.kind].w_key, op.L, op.vgs, op.vds, op.vsb)
         table = tol_noise_table(memo, op.kind)
         tol_thermal = table.at(op.L, op.vds, TOL_THERMAL)
         tol_flicker = table.at(op.L, op.vds, TOL_FLICKER)

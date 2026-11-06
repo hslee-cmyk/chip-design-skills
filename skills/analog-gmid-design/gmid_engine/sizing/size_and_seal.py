@@ -9,20 +9,24 @@
   `dc_seal_report` 는 keep 밖이라 같은 입력이면 S3 graft).
   base writer(`ctx.base.block_versions`)의 block_version 이 ctx 와 다른 parent 는 `ValueError`(다른 S0 의 스냅샷을 섞지 않는다).
 * 블록 순서와 추가 인자(블록이 실제로 읽는 θ 성분만 -- 한 성분을 움직이면 그 성분을 읽는 블록과 하류만 다시 계산):
-  `dc_currents`(θ current) -> `dc_lengths`(θ L) -> `dc_columns`(θ ln_idu·y·resistance, 고정 노드값, 선언 저항, LUT) ->
-  `dc_widths`(LUT) -> `seal_dc`.
+  `dc_currents`(θ current) -> `dc_lengths`(θ L) -> `dc_solve`(θ ln_idu·y·resistance, 고정 노드값, 선언 저항, LUT, 레이아웃 뒤면 기하) ->
+  `seal_dc`.
   [DEC-92] θ `capacitance`·`ss_resistance`(DC 전류가 흐르지 않는 수동소자)는 어느 DC 블록에도 넘기지 않는다 -- 그 성분만
   바꾼 θ 는 parent 에서 DC·봉인 블록 계산 0(소신호 값은 metrics `ss_evaluate` 가 θ 에서 읽는다).
 * **L 동치류**(설계 40 §3.2-1): θ 의 L 성분은 동치류당 주인 하나이고(`graph/kernel: theta_schema`), `graph/kernel: l_ties` = ((멤버, 주인), ...) 의 멤버 L = 주인 θ L.
 * **tol_I**(설계 40 §3.7-3, 계획 N3.6 v6.4): 봉인 3 의 gm 은 후보 자기 동작점의 `device.dc_gm`(`dc_tolerances` 가 쓴 ID × LUT gm/ID) 하나다.
   parent 에 의존하지 않으므로 같은 θ 는 parent 와 무관하게 같은 봉인 결과를 낸다. 수동소자 θ 만 바뀐 자식의 DC 재사용은 입력 버전 일치로 성립한다.
 * **W_request**(설계 40 §3.7, 계획 N3.17 LY3): `w_request` = {MOS: W(m)} 또는 ((MOS, W), ...) -- 그 소자의 W 는 고정 입력이다. 쓰기 소자의 θ
-  ln IDu 는 무시되고 ln(ID·L/W) 로 대체되며(ID·L 은 ②③ 이 정한 값), 종속 소자는 요청 W 로 `dc_widths` 가 쓰고 봉인 3 이 어긋남을 판정한다.
+  ln IDu 는 무시되고 ln(ID·L/W) 로 대체되며(ID·L 은 ②③ 이 정한 값), 종속 소자는 요청 W 로 `dc_solve` 가 쓰고 봉인 3 이 어긋남을 판정한다.
+* **실현 평가**(설계 40 §3.7-A 2-5 (ii)): `realized` = `RealizedFinger`(탐색 스냅샷 참조 + (MOS, m, w_s) 지문) -- `dc_solve` 가 그 (m, w_s) 로 W' 고정 KCL 을 다시 푼다. `parent`
+  는 쓰지 않는다(`ctx.base` 에서 따로 시작). `w_request` 와 함께 줄 수 없다(`ValueError`).
+* **레이아웃 뒤 평가**(설계 40 §3.7-A 6 '재평가 꼴', 계획 N6.32 범위 5): `layout` = `RealizedGeometry` 와 기준 스냅샷을 나르는 `realized` 를 함께 준다 -- 실현 평가와 같은 `dc_solve` 재풀이이고
+  W' 만 레이아웃 기하(배치 nf·finger_w, 요청 W)에서 온다. `parent` 는 graph 재사용에만 쓴다.
 * 실패: 후보 실패 = `SealViolationError`·`NonconvergentError`(core `CANDIDATE_FAILURE_CLASSES`) -- 탐색 층이 이름으로 잡아 S3
   실패 레코드로 남긴다. 그 밖(ValueError·TypeError = 호출 계약 위반)은 잡지 않는다.
 """
 from .kernel_run import run_kernel
 
 
-def size_and_seal(ctx, theta, parent=None, w_request=()):
-    return run_kernel(ctx, theta, parent, w_request, True)
+def size_and_seal(ctx, theta, parent=None, w_request=(), realized=None, layout=None):
+    return run_kernel(ctx, theta, parent, w_request, True, realized, layout)

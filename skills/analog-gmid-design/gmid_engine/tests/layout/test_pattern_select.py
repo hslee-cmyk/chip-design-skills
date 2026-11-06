@@ -71,6 +71,9 @@ def test_diff_pair_w_request_pending(toy_lut):
         assert (w.device, w.reason, w.group) == (name, "cc_nf", "g1")
         assert w.W_old_m == pytest.approx(1e-6, rel=1e-9)        # W_need(키*)
         assert w.W_new_m == pytest.approx(2e-6, rel=1e-12)       # n x 키* x 격자 = 2 x 100 x 1e-8
+        # [dispute 8.4] 요청 손가락 (nf, finger_w_m) = 마지막 시도의 (n, 키* x 격자), W_new = nf x finger_w_m
+        assert w.nf == 2 and w.finger_w_m == pytest.approx(1e-6, rel=1e-12)
+        assert w.W_new_m == pytest.approx(w.nf * w.finger_w_m, rel=1e-12)
     last = g.attempts[-1]
     assert last.step == "w_request" and last.reason == "cc_nf"
     assert last.finger_w_m == pytest.approx(1e-6) and last.n_fingers == (2, 2)

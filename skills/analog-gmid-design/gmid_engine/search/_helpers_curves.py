@@ -1,7 +1,7 @@
 """출발 구간 공용 곡선 helper -- U3 gm/ID 축 곡선(`ft_curve`·`intrinsic_gain_curve`·`vdsat_curve`·`idu_curve`)을 읽고 보간한다 (설계 41 §6, `iv_*` 가 함께 쓴다;
 40 §2.4.7 `CurveBook` 행 v1.9.1 D10 -- 옛 `CurveBook` 객체를 없애고 LUT 파생은 LUT memo 함수 `lut.derived`, 소자 동작점은 S0 수준 필드 `device: start.point`).
 
-곡선 읽기 함수는 출발 구간 블록의 작업 값 `v`(`StartView` -- `memo`·`w_keys`·`points` 칸)를 첫 인자로 받는다. 상태를 담지 않는다: 곡선은 `LutMemo` curve 영역이,
+곡선 읽기 함수는 출발 구간 블록의 작업 값 `v`(`StartView` -- `memo`·`points` 칸; 기준 폭 슬라이스는 `slice_of` 가 LUT 선언 `cap_map` 에서 읽는다)를 첫 인자로 받는다. 상태를 담지 않는다: 곡선은 `LutMemo` curve 영역이,
 기준 VDS·엣지 비용은 LUT 파생(`lut.derived`)이 memo 한다.
 
 * `_curve_of(v, quantity, kind, L, vds=None, vsb=None)` -> `GmIdAxisCurve` | None: vds 를 안 주면 VDS 격자 중 엣지 비용 VDS 이상에서 처음 정의된 곡선, vsb 를 안 주면 첫 VS 격자점.
@@ -64,7 +64,8 @@ def hull(gm_id, values, level, below=True):
 
 # ---------------------------------------------------------------- LUT 격자
 def slice_of(v, kind):
-    return v.memo.lut.slice_map[(kind, v.w_keys[kind])]
+    """출발 구간 읽기의 기준 폭 슬라이스 = LUT 선언 `cap_map[kind].w_key` 의 슬라이스(키 사본 칸 없음; 키는 `.w_key`)."""
+    return v.memo.lut.slice_map[(kind, v.memo.lut.cap_map[kind].w_key)]
 
 
 def l_anchors(v, kind):
@@ -80,7 +81,7 @@ def _vsb_ref(v, kind):
 
 
 def edge_cost(v, kind):
-    return derived(v.memo, "edge_costs", kind, v.w_keys[kind])
+    return derived(v.memo, "edge_costs", kind, slice_of(v, kind).w_key)
 
 
 def snap_vds(v, kind, target):
@@ -91,13 +92,13 @@ def snap_vds(v, kind, target):
 
 def _has_vdsat_column(v, kind):
     """그 kind 슬라이스에 VDSAT 격자 입구가 있는가(열 없음 = False). VDSAT 곡선·경계의 존재 조건이다 -- 없으면 그 경계는 비활성이고 대체값을 만들지 않는다."""
-    return sat_threshold_grid(v.memo, kind, v.w_keys[kind]) is not None
+    return sat_threshold_grid(v.memo, kind, slice_of(v, kind).w_key) is not None
 
 
 # ---------------------------------------------------------------- 곡선
 def _try(v, fn, kind, L, vds, vsb):
     try:
-        return fn(v.memo, kind, v.w_keys[kind], float(L), float(vds), float(vsb))
+        return fn(v.memo, kind, slice_of(v, kind).w_key, float(L), float(vds), float(vsb))
     except _UNDEFINED:
         return None
 
@@ -120,7 +121,7 @@ def _curve_of(v, quantity, kind, L, vds=None, vsb=None):
 
 def _ref_vds(v, kind, L):
     """(kind, L) 의 기준 VDS: vdsat 곡선이 처음 정의된 포화 경계 이상 격자점. 없으면 None."""
-    return derived(v.memo, "reference_vds", kind, v.w_keys[kind], float(L))
+    return derived(v.memo, "reference_vds", kind, slice_of(v, kind).w_key, float(L))
 
 
 def curve_bundle(v, kind, L, vds=None, vsb=None):

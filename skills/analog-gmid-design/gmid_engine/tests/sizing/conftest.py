@@ -30,6 +30,7 @@ from gmid_engine.graph import build_s1
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set
 from gmid_engine.search import open_run
 from gmid_engine.sizing import KERNEL_KEY, PLAN_WRITERS, DcInputs, LutAccess, build_kernel_context
+from toy_bins import write_toy_bins
 
 HERE = Path(__file__).resolve().parent
 SKILL_DIR = HERE.parents[2]
@@ -54,7 +55,6 @@ DEVICE_OF = {"nmos": "toyn", "pmos": "toyp"}
 SUFFIX = {"nmos": "_n", "pmos": "_p"}
 TOY_SPEC = LutSpec(GRID_M, (("nmos", 1e-6), ("pmos", 1e-6)), (("toyn", "nmos"), ("toyp", "pmos")),
                    (("nmos", "_n"), ("pmos", "_p")))
-W_KEYS = (("nmos", W_KEY), ("pmos", W_KEY))
 EPS = np.finfo(float).eps
 
 
@@ -78,15 +78,33 @@ def _sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def _stamp(a, tb, kind):
+    """[WB-1 §4] 합성 모델 기록(meta)을 배열 dict 에 적는다."""
+    a["meta_json"] = np.str_(json.dumps(tb.meta(kind, root=False)))     # pdk_root 는 적재 인자(폴더 무관 내용)
+    return a
+
+
+def bin_rule_of(manifest):
+    """합성 LUT 폴더의 bin 선언 경로(`write_toy_bins` 가 manifest 와 같은 폴더에 쓴다)."""
+    return str(Path(manifest).parent / "bin_rule.json")
+
+
+def pdk_of(manifest):
+    """합성 LUT 폴더의 모델 루트(`write_toy_bins` 가 manifest 와 같은 폴더 아래 pdk 에 쓴다)."""
+    return str(Path(manifest).parent / "pdk")
+
+
 def write_toy_lut(root: Path, w_ref_m=W_M, extra_width=None):
     root.mkdir(parents=True, exist_ok=True)
+    tb = write_toy_bins(root, ("nmos", "pmos"), TOY_L, (W_M,) if extra_width is None else (W_M, extra_width),
+                        grid_m=GRID_M)
     entries = []
     for kind in ("nmos", "pmos"):
         p = root / ("toy_%s.npz" % kind)
-        np.savez(p, **toy_arrays(kind))
+        np.savez(p, **_stamp(toy_arrays(kind), tb, kind))
         entries.append({"device": DEVICE_OF[kind], "file": p.name, "sha256": _sha(p)})
         if extra_width is not None:                      # 같은 식, 폭만 다른 슬라이스(ID·GM·GDS × 폭 비)
-            a = toy_arrays(kind)
+            a = _stamp(toy_arrays(kind), tb, kind)
             k = extra_width / W_M
             a.update(W=np.float64(extra_width), ID=a["ID"] * k, GM=a["GM"] * k, GDS=a["GDS"] * k)
             p2 = root / ("toy_%s_w2.npz" % kind)
@@ -96,7 +114,8 @@ def write_toy_lut(root: Path, w_ref_m=W_M, extra_width=None):
                                         encoding="utf-8")
     shp = (len(TOY_L), len(TOY_VGS), len(TOY_VDS), len(TOY_VS))
     cap = {"L": np.asarray(TOY_L), "VGS": np.asarray(TOY_VGS), "VDS": np.asarray(TOY_VDS), "VS": np.asarray(TOY_VS),
-           "w_ref_m": np.float64(w_ref_m), "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+           "w_ref_m": np.float64(w_ref_m), "corner": np.str_("tt"), "temp_c": np.float64(27.0),
+           "meta_json": np.str_(json.dumps(tb.cap_meta(root=False)))}
     for kind in ("nmos", "pmos"):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
@@ -171,30 +190,36 @@ def r4_vds_floor(arrays):
     return float(vds[0])
 
 
-def write_r4_lut(root: Path, vdsat=("nmos", "pmos"), off_cols=None, off_points=None, grids=R4_GRIDS, cap_vdsat=()):
+def write_r4_lut(root: Path, vdsat=("nmos", "pmos"), off_cols=None, off_points=None, grids=R4_GRIDS, cap_vdsat=(), cdd=False):
     """vdsat = VDSAT 슬라이스 열을 가진 kind. off_cols / off_points = {kind: ...}(r4_arrays 인자).
     cap_vdsat = 기준 LUT(cap.npz)에 `VDSAT<접미사>` 열(r4 VDSAT 식)을 더할 kind(기본 () = 더하지 않음 -- 기존 호출 동작 그대로). -> LutSet."""
     root.mkdir(parents=True, exist_ok=True)
     off_cols = dict(off_cols or {})
     off_points = dict(off_points or {})
+    tb = write_toy_bins(root, ("nmos", "pmos"), tuple(grids[0]), (W_M,), grid_m=GRID_M)
     entries = []
     for kind in ("nmos", "pmos"):
         p = root / ("r4_%s.npz" % kind)
-        np.savez(p, **r4_arrays(kind, kind in vdsat, off_cols.get(kind, 0), off_points.get(kind, ()), grids))
+        np.savez(p, **_stamp(r4_arrays(kind, kind in vdsat, off_cols.get(kind, 0), off_points.get(kind, ()), grids),
+                             tb, kind))
         entries.append({"device": DEVICE_OF[kind], "file": p.name, "sha256": _sha(p)})
     (root / "manifest.json").write_text(json.dumps({"generator_sha256": "0" * 64, "slices": entries}),
                                         encoding="utf-8")
     gL, gG, gD, gS = (np.asarray(g, dtype=float) for g in grids)
     shp = (len(gL), len(gG), len(gD), len(gS))
     cap = {"L": gL, "VGS": gG, "VDS": gD, "VS": gS,
-           "w_ref_m": np.float64(W_M), "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+           "w_ref_m": np.float64(W_M), "corner": np.str_("tt"), "temp_c": np.float64(27.0),
+           "meta_json": np.str_(json.dumps(tb.cap_meta(root=False)))}
     for kind in ("nmos", "pmos"):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
+        if cdd:      # [WB-1 E-18] drain 용량은 CDD 열의 양(cgd 대체 없음) -- 구조·매크로 경로를 통과하는 test 용 합성 열(기본 False = 기존 호출 불변)
+            cap["CDD" + SUFFIX[kind]] = np.full(shp, 2e-16)
     for kind in cap_vdsat:
         cap["VDSAT" + SUFFIX[kind]] = r4_arrays(kind, True, 0, (), grids)["VDSAT"]
     np.savez(root / "cap.npz", **cap)
-    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC, bin_rule=tb.bin_rule,
+                         pdk_root=tb.pdk_root)
 
 
 def r4_vs_term(vsb):
@@ -326,17 +351,18 @@ def real_lut_v2():
     grid = float(m.group(1)) * 1e-6
     man = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
     dk = dict(REAL_DEVICE_KINDS)
-    files, mins = {}, {}
+    from pdk_min_w import min_finger_w_m
+    mins = min_finger_w_m(kind for _, kind in REAL_DEVICE_KINDS)      # PDK 선언 양(card 20261104-wb1)
+    files = {}
     for s in man["slices"]:
         p = Path(loc.manifest_path).parent / s["file"]
         with np.load(p) as z:
             W = float(z["W"])
         kind = dk[s["device"]]
         files[(kind, int(round(W / grid)))] = p
-        mins[kind] = min(W, mins.get(kind, W))
     spec = LutSpec(grid, tuple(sorted(mins.items())), REAL_DEVICE_KINDS, REAL_CAP_SUFFIX)
     lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
-                       verify_midpoints=loc.midpoints_path)
+                       verify_midpoints=loc.midpoints_paths, bin_rule=loc.bin_rule_path)
     return lut, files
 
 
@@ -348,11 +374,11 @@ def toy_lut_paths(tmp_path_factory):
 @pytest.fixture(scope="session")
 def toy_lut(toy_lut_paths):
     m, c = toy_lut_paths
-    return load_lut_set(str(m), str(c), TOY_SPEC)
+    return load_lut_set(str(m), str(c), TOY_SPEC, bin_rule=bin_rule_of(m), pdk_root=pdk_of(m))
 
 
 def new_access(lut, n=4096):
-    return LutAccess(LutMemo(lut, point=n, curve=n, root=n), W_KEYS)
+    return LutAccess(LutMemo(lut, point=n, curve=n, root=n))
 
 
 @pytest.fixture(scope="session")
@@ -676,8 +702,8 @@ def terminal_mag(kind, V, d, g, s, b):
 
 
 def expected_columns(snap, theta, fixed_values=(), resistor_values=()):
-    """순환 SCC 가 없는 회로의 dc_columns 독립 계산(CONTRACT 5.4 writer 식 + 창). 스냅샷에서는 계획 결과
-    (dc_writer·dc_scc_order·dc_drop_current·dc_L·dc_rail_v)와 S1 필드만 입력으로 읽는다.
+    """순환 SCC 가 없는 회로의 dc_solve 노드 풀이 독립 계산(CONTRACT 5.4 writer 식 + 창). 스냅샷에서는 계획 결과
+    (dc_writer·dc_scc_order·dc_current(저항 강하 전류 포함, WB-1)·dc_L·dc_rail_v)와 S1 필드만 입력으로 읽는다.
     반환: (V, windows, ln_idu)."""
     from gmid_engine.sizing import DC_KEY
     th = dict(theta)
@@ -689,7 +715,7 @@ def expected_columns(snap, theta, fixed_values=(), resistor_values=()):
             V[n] = fixed[n]
     mt = mos_table(snap)
     L = dict(snap.column("device", "dc_L"))
-    drop = dict(snap.column("device", "dc_drop_current"))
+    drop = dict(snap.column("device", "dc_current"))                # WB-1: 저항 강하 전류는 dc_current 가 담는다(전도 방향 양수)
     rvals = dict(resistor_values)
     rails = [v for _, v in snap.column("node", "dc_rail_v")]
     windows = {}
@@ -739,8 +765,10 @@ def expected_columns(snap, theta, fixed_values=(), resistor_values=()):
 
 
 def run_blocks(ctx, theta, upto="widths"):
-    """size_and_seal 의 평가 블록 4개를 계약 7절 호출 순서대로 직접 부른다(봉인 전 스냅샷)."""
-    from gmid_engine.sizing import dc_columns, dc_currents, dc_lengths, dc_widths
+    """size_and_seal 의 평가 블록 셋(dc_currents -> dc_lengths -> dc_solve, WB-1 §3)을 호출 순서대로 직접 부른다(봉인 전 스냅샷).
+    `dc_solve` 가 옛 `dc_solve`(노드 풀이)와 `dc_solve`(W)를 합친 블록이라 `upto` 의 "columns"·"widths" 는 같은 스냅샷을 낸다.
+    `geometry`·`realized` 는 dc_solve 의 두 선택 인자(기본 None = 탐색 평가)."""
+    from gmid_engine.sizing import dc_currents, dc_lengths, dc_solve
     run = dict(donors=ctx.donors, counters=ctx.counters)          # [card B C6] ctx 의 실행(두 객체) 그대로
     th = dict(theta)
     snap = dc_currents(ctx.base, tuple(sorted((k, v) for (t, k), v in th.items() if t == "current")), **run)
@@ -748,22 +776,19 @@ def run_blocks(ctx, theta, upto="widths"):
     if upto == "lengths":
         return snap
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
-    snap = dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run)
-    if upto == "columns":
-        return snap
-    return dc_widths(snap, ctx.lut, **run)
+    return dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run)
 
 
 def eval_calls(ctx, theta):
-    """평가 블록 4개 호출 목록 ((block, extras), ...) 과 그 결과 스냅샷(봉인 전).
+    """평가 블록 셋(dc_currents, dc_lengths, dc_solve) 호출 목록 ((block, extras), ...) 과 그 결과 스냅샷(봉인 전).
     `calls` 형식은 계약에 적혀 있지 않아 공개 함수 `seal_versions` 가 받는 형식((블록, extras tuple), ...)을 쓴다."""
-    from gmid_engine.sizing import dc_columns, dc_currents, dc_lengths, dc_widths
+    from gmid_engine.sizing import dc_currents, dc_lengths, dc_solve
     th = dict(theta)
     cur = tuple(sorted((k, v) for (t, k), v in th.items() if t == "current"))
     ls = tuple(sorted((k, v) for (t, k), v in th.items() if t == "L"))
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     calls = ((dc_currents, (cur,)), (dc_lengths, (ls,)),
-             (dc_columns, (items, kfixed(ctx), kres(ctx), ctx.lut)), (dc_widths, (ctx.lut,)))
+             (dc_solve, (items, kfixed(ctx), kres(ctx), ctx.lut)))
     snap = ctx.base
     for blk, ex in calls:
         snap = blk(snap, *ex, donors=ctx.donors, counters=ctx.counters)
@@ -1088,3 +1113,42 @@ def mirror_delta_max(snapshot):
     tol = dict(snapshot.column("device", "dc_tol_v"))
     ops = dict(snapshot.column("device", "dc_op"))
     return max(tol[m] * (B - C * ops[m].vgs) for m in ("M2", "M3"))
+
+
+# ---------------------------------------------------------------------------
+# [LM-1e §5] toy R(r4 꼴, pmos 의 VDS index 0 열 꺼짐) + J-a 상태 -- 셀 결합 test(J-a·J-b·J-c·P-1)의 공통 입력.
+# 격자 R4_VDS = 0, 0.25, ...: pmos 슬라이스의 tol 셀 VDS index 0 = None(켜진 격자점 없음 -- 정의상), index 1 이상은 값.
+# ---------------------------------------------------------------------------
+
+def r_off_access(root, kind="pmos"):
+    """toy R LUT(kind 의 VDS index 0 열 꺼짐, 기본 pmos)의 LutAccess."""
+    return new_access(write_r4_lut(Path(root), off_cols={kind: 1}))
+
+
+def ja_theta(ctx, y1, y2):
+    """`_scc_s_doc`(M1 nmos (vin, nb1, gnd), M2 nmos (vout, nb2, vin), M3 pmos (vout, pb, vdd)) 의 θ: 선형 SCC 닫힌 해
+    vout = 1.8·y2 / (1 − y1(1 − y2)), vin = y1·vout 에서 각 소자의 VGS 가 0.6·0.7·0.7 이 되는 ln_idu(r4 닫힌 식)."""
+    vout = 1.8 * y2 / (1.0 - y1 * (1.0 - y2))
+    vin = y1 * vout
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6,
+          ("ln_idu", "M1"): r4_ln_idu("nmos", 0.6, vin, 0.0), ("ln_idu", "M2"): r4_ln_idu("nmos", 0.7, vout - vin, vin),
+          ("ln_idu", "M3"): r4_ln_idu("pmos", 0.7, 1.8 - vout, 0.0), ("y", "vin"): y1, ("y", "vout"): y2}
+    th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5}))
+    assert set(th) == set(kschema(ctx).components)
+    return th, vin, vout
+
+
+def ja_state(tmp_path, y1=0.6, y2=0.4, vds=0.1):
+    """J-a 입력: toy R + `_scc_s_doc` + 손 θ(y1, y2) 를 `run_blocks(upto="columns")` 까지 돌린 스냅샷에서 **`dc_op["M3"]` 의 `vds` 만 vds 로
+    바꾼** 스냅샷(`dataclasses.replace` + `tamper`; `dc_tol_v` 는 주입하지 않는다)에 `dc_tolerances` 를 적용한다.
+    반환 (ctx, th, 바꾼 스냅샷, dc_tolerances 뒤 스냅샷). 기본 (y1, y2) = (0.6, 0.4) -> vout = 1.125 V, 바꾸기 전 M3 의 |VDS| = 0.675 V(켜진 칸)."""
+    from gmid_engine.sizing import dc_tolerances
+    from sizing.test_block_dc import _scc_s_doc
+    root = Path(tmp_path)
+    (root / "ctx").mkdir(parents=True, exist_ok=True)
+    ctx = build_ctx(root / "ctx", _scc_s_doc(), r_off_access(root / "lut"))[2]
+    th, _vin, _vout = ja_theta(ctx, y1, y2)
+    snap = run_blocks(ctx, th, upto="columns")
+    op = dict(snap.column("device", "dc_op"))["M3"]
+    changed = tamper(snap, "dc_solve", "device", "dc_op", {"M3": dataclasses.replace(op, vds=vds)})
+    return ctx, th, changed, dc_tolerances(changed, ctx.lut, **run_of(ctx))

@@ -32,7 +32,8 @@ def test_layout_outputs_review_needed_first():
 @pytest.mark.parametrize("cls, fields", [
     ("SliceDensity", None),
     ("WTolerance", ["lower", "upper", "effective", "grid_dominated"]),
-    ("WRequest", None),
+    # oracle (d) 계획 LY3·design 40 MOD7 스키마(v6.38.24): WRequest(device, W_old_m, W_new_m, nf, finger_w_m, reason, group) -- 요청 손가락 (nf, finger_w) 운반 (dispute 8.4)
+    ("WRequest", ["device", "W_old_m", "W_new_m", "nf", "finger_w_m", "reason", "group"]),
     ("ReviewItem", ["gid", "role", "reason", "dx", "dy"]),
     ("MatchingDisposition", ["gid", "role", "members", "disposition", "reason"]),
     ("GroupAttempt", ["step", "pattern", "finger_w_m", "n_fingers", "W_realized_m", "method", "dx", "dy", "ok", "reason"]),
@@ -63,7 +64,7 @@ def test_declared_fields(cls, fields):
     if fields is not None:
         assert names(c) == fields
     # 계약이 위치로 적은 클래스는 개수만 확인
-    expected_len = {"SliceDensity": 7, "WRequest": 5, "FoldAttempt": 8, "MergeDecision": 7}
+    expected_len = {"SliceDensity": 7, "WRequest": 7, "FoldAttempt": 8, "MergeDecision": 7}
     if cls in expected_len:
         assert len(names(c)) == expected_len[cls]
 

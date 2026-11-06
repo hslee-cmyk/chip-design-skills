@@ -30,6 +30,9 @@ def test_hand_oracle_C_finger_quantization(toy_lut):
     assert isinstance(w, WRequest)
     assert (w.device, w.reason, w.group) == ("C", "finger_quantization", None)
     assert w.W_old_m == pytest.approx(0.75e-6, rel=1e-9) and w.W_new_m == pytest.approx(1e-6, rel=1e-12)
+    # [dispute 8.4, 계획 LY3·MOD7 스키마] 요청 손가락 (nf, finger_w_m): 잠정 배치의 손가락(키 100 x 격자 1e-8 = 1e-6, nf 1)이고 W_new = nf x finger_w_m
+    assert w.nf == 1 == c.n_fingers and w.finger_w_m == pytest.approx(1e-6, rel=1e-12)
+    assert w.W_new_m == pytest.approx(w.nf * w.finger_w_m, rel=1e-12)
     # 잠정 후보 = 전체 후보 중 (err, nf, −키) 최소
     best = min(cand["C"], key=lambda x: (x.err_rel, x.n_fingers, -x.finger_w_key))
     assert (c.finger_w_key, c.n_fingers) == (best.finger_w_key, best.n_fingers)

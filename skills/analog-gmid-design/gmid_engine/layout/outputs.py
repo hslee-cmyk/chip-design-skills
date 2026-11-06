@@ -56,7 +56,7 @@ def layout_outputs(snapshot):
 
     requests = [r for g in groups for r in g.w_requests]
     requests += [f.w_request for _, f in sorted(fingers.items()) if f.w_request is not None]
-    requests += [WRequest(name, attrs[name].W_m, attrs[name].W_m, _NO_SLICE, None) for name, _point in devices_in if name not in fingers]
+    requests += [WRequest(name, attrs[name].W_m, attrs[name].W_m, None, None, _NO_SLICE, None) for name, _point in devices_in if name not in fingers]
     requests = tuple(sorted(requests, key=lambda r: (r.device, r.reason)))
     requested = {r.device for r in requests}
 

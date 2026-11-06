@@ -4,7 +4,7 @@
 
 **망**(전달 뷰): 노드 = 이득 블록의 출력 넷 + 그 넷에서 수동소자(커패시터·저항)만 거쳐 닿는 내부 넷. 블록 i 는 VCCS `s_i·gm_i`(입력 넷 -> 출력 넷, 입력 넷이 없으면 포트 여기 1 V)와 출력
 컨덕턴스 `G_i = gm_i / A_i`(A_i = 블록 입력 소자의 LUT 진성 이득 gm/gds -- 41 §6.5 마지막 규칙, 캐스코드를 가정하지 않아 보수적)를 가진다. 노드 용량 = (노드에 gate 가 닿는 MOS 의 cgg +
-drain 이 닿는 MOS 의 cdd(없으면 cgd)) + 수동소자. 앞의 둘은 소자 전류에 비례하므로 `current_model` 의 아핀 전류로 gm_i 에 선형이다. feedforward 묶음은 탭 -> 합류 VCCS `s_ff·G_ff`
+drain 이 닿는 MOS 의 cdd -- CDD 열이 없으면 `current_model` 이 `lut_column_unavailable`) + 수동소자. 앞의 둘은 소자 전류에 비례하므로 `current_model` 의 아핀 전류로 gm_i 에 선형이다. feedforward 묶음은 탭 -> 합류 VCCS `s_ff·G_ff`
 (G_ff = r_ff·gm_in(B_b), r_ff = 1)를 더한다. 수동소자 값: spec 선언값, engine 저항 중 영점 상쇄 구조 규칙(`ZeroCancel`)이 정한 것은 R = 1/Σ_c gm_c(gm_c = I_c·(gm/ID)_c),
 그 밖 engine 저항은 θ 상자의 기하 중점(고정), engine 커패시터는 아래 풀이 변수.
 

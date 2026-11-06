@@ -12,7 +12,8 @@
     (봉인 3 KCL 허용오차와 같은 식·같은 gm 필드, 설계 40 §3.7-3). 정의된 행이 있는 레일이 없거나 합이 0 이면 None.
 * DC 점 레코드(`DcOperatingPoint`, 노드 인덱스 = 레일 ∪ 노드전압 넷 이름 정렬 위치):
   - MOS 채널: `basis.ends` 의 (from, to) 가 양의 전류 방향이므로 drain = from 이면 drain→source 전류 = +ID, 아니면 −ID
-    (극성 표를 따로 두지 않는다).
+    (극성 표를 따로 두지 않는다). **ID = 그 평가의 `DeviceOp.current`**(동작점 전류: 탐색 평가 = θ 설계 전류와 같은 값, 실현·레이아웃 뒤 평가 = I' = IDu·W'/L -- 설계 40 §3.7-A 2-5 '전력 축',
+    계획 DEC-78·DEC-105 (2)). `device.dc_current` 는 이상 전류원 원소에만 읽는다(정의 축: θ 설계 전류 대 노드 해의 동작점 전류, graph 규칙 3).
   - DC 저항(`basis.resistors`, 잎 가지치기 제외 -- 가지치기 저항은 전류 0): 값은 `device.passive_value`.
   - 이상 전류원(ends 의 나머지 DC 원소): (from, to, `dc_current`) -- 선언값 또는 θ 전류.
 * `counted_rails` = 합산 레일의 **넷 이름** tuple(노드 인덱스 아님). 레일(`dc_rail_v` 넷) 밖 이름(회로에 없는 넷 포함)·중복 ->
@@ -54,14 +55,20 @@ def _canonical(projection, kind):
 
 
 def _power_resolution(projection, basis, node_key, device_key):
-    """b_P = Σ_레일 |V_k|·max_{m: 채널이 레일 k 에 닿음, tol 정의} dc_tol_v[m]·dc_gm[m]. 합산 순서는 정준(구조 색) 순서."""
+    """b_P = Σ_레일 |V_k|·max_{m: 채널이 레일 k 에 닿음} dc_tol_v[m]·dc_gm[m]. 합산 순서는 정준(구조 색) 순서.
+    |V_k| ≠ 0 레일 항(채널이 레일에 닿는 소자의 tol)에 None 이 하나라도 있으면 b_P = None(|V_k| = 0 레일 항은 정의상 0이라 None 항이 아니다;정의 항이 빠진 값을 내지 않는다 -- 계획 N3.6 표 10행 집계 규칙, LM-1e 3b)."""
     tols = dict(projection.column("device", "dc_tol_v"))
     gm = dict(projection.column("device", "dc_gm"))
     channel = {e: (a, b) for e, a, b in basis.ends}
     devices = sorted(gm, key=device_key)
     total, defined = 0.0, False
     for rail, volt in sorted(projection.column("node", "dc_rail_v"), key=lambda r: node_key(r[0])):
-        rows = [tols[m] * gm[m] for m in devices if tols.get(m) is not None and rail in channel.get(m, ())]
+        if float(volt) == 0:
+            continue
+        touching = [m for m in devices if rail in channel.get(m, ())]
+        if any(tols.get(m) is None for m in touching):
+            return None
+        rows = [tols[m] * gm[m] for m in touching]
         if rows:
             defined = True
             total += abs(float(volt)) * max(rows)
@@ -73,13 +80,14 @@ def _operating_point(projection, index, values, basis):
     pins = dict(projection.column("device", "pins"))
     classes = dict(projection.column("device", "element_class"))
     currents = dict(projection.column("device", "dc_current"))
+    ops = dict(projection.column("device", "dc_op"))
     rails = tuple(RailBias(index[n], v) for n, v in projection.column("node", "dc_rail_v"))
     resistors = frozenset(basis.resistors)
     channels, res, sources, touched = [], [], [], set()
     for name, a, b in sorted(basis.ends, key=lambda e: device_key(e[0])):
         if classes[name] == ELEMENT_MOS:
             d, _g, s = (dict(pins[name])[t] for t in MOS_TERMINAL_NAMES)
-            channels.append(ChannelCurrent(index[d], index[s], currents[name] if d == a else -currents[name]))
+            channels.append(ChannelCurrent(index[d], index[s], ops[name].current if d == a else -ops[name].current))
         elif name in resistors:
             res.append(Resistor(index[a], index[b], values[name], label=name))
             touched.update((a, b))

@@ -29,11 +29,13 @@ from .intrinsic_gain_curve import intrinsic_gain_curve
 from .lut_types import AXES, EdgeCost
 from .point_query import op_point
 from .sat_threshold_grid import sat_threshold_grid
+from .slice_gap import is_slice_gap
 from .tolerance import tol_v_table
 from .vdsat_curve import vdsat_curve
 
 _UNDEFINED = (SealViolationError, SchemaRejectedError, KeyError, ValueError)
 _VDS_AXIS = AXES.index("VDS")
+_CURVE_UNDEFINED = "lut_curve_undefined"
 
 
 def _conduction_ok(sl, tol):
@@ -119,8 +121,10 @@ def _param_row(memo, kind, w_key, L, vds, vsb):
         curve = intrinsic_gain_curve(memo, kind, w_key, L, vds, vsb)
         ids = [op_point(memo, kind, w_key, L, float(v), vds, vsb).IDu * w_m / L for v in curve.vgs]
         body = [gmb(memo, kind, w_key, L, float(v), vds, vsb) for v in curve.vgs]
-    except SealViolationError:
-        return None
+    except SealViolationError as exc:
+        if is_slice_gap(exc) or dict(exc.record.detail).get("reason") == _CURVE_UNDEFINED:     # 곡선을 만들 수 없는 사유만 None -- 열 없음 등은 그대로 던진다(조용히 빠지지 않음)
+            return None
+        raise
     x = np.asarray(curve.gm_id, dtype=float)
     y = x / np.asarray(curve.values, dtype=float)
     z = np.asarray(body, dtype=float) / np.asarray(ids, dtype=float)

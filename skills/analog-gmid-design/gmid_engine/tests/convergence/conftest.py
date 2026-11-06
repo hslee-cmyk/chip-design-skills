@@ -21,7 +21,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from gmid_engine.layout import F_DIFFUSION, F_FINGER, F_FLOORPLAN, F_GROUPS, F_GROUPS_IN, F_POINT, LAYOUT_KEY, LayoutPdk
+from gmid_engine.layout import (F_DIFFUSION, F_FINGER, F_FLOORPLAN, F_GROUPS, F_GROUPS_IN, F_POINT, F_ROW_GROUPS, LAYOUT_KEY,
+                                  LayoutPdk)
 from gmid_engine.layout.contract_input import PDK_RULE_QUANTITIES
 from gmid_engine.layout.contract_output import (
     DeviceDiffusion,
@@ -68,7 +69,7 @@ def ddiff(name, fw, nf, ad, as_, pd, ps):
     return DeviceDiffusion(name, fw, nf, ad, as_, pd, ps)
 
 
-def layout(devices=(), groups=(), diffusion=(), plan=None, groups_in=()):
+def layout(devices=(), groups=(), diffusion=(), plan=None, groups_in=(), row_groups=()):
     """손 레이아웃 결과: 레이아웃 필드(`ly_point`·`ly_finger`·`ly_groups`·`ly_groups_in`·`ly_floorplan`·`ly_diffusion`)를 든 FakeSnapshot 의
     `LayoutResult(snapshot)`(O-17 (3) 뒤 칸은 스냅샷 하나). `devices` = `dlay`/`dunplaced` 항목, `groups_in` = 입력 그룹(gid·hub_net).
     [v1.11.2 O-39 (1)] design 40 §2.4.8: 소자 이름 목록(열 key)은 `ly_point`(공개 export `F_POINT`)에서 읽는다 -- effective_placement 는 이름만
@@ -80,6 +81,7 @@ def layout(devices=(), groups=(), diffusion=(), plan=None, groups_in=()):
         ("graph", F_GROUPS_IN): {LAYOUT_KEY: tuple(groups_in)},
         ("graph", F_FLOORPLAN): {LAYOUT_KEY: plan if plan is not None else floorplan(1e-5, 1e-5)},
         ("graph", F_DIFFUSION): {LAYOUT_KEY: tuple(diffusion)},
+        ("graph", F_ROW_GROUPS): {LAYOUT_KEY: tuple(row_groups)},      # [WB-1] 키 제외의 단위 = 레이아웃 행 그룹(`ly_row_groups`)
     }
     return LayoutResult(FakeSnapshot(fields))
 
@@ -254,7 +256,7 @@ class RealPath:
             before = sctx.counters["kernel_calls"]
             placed = real_place(*a, **k)
             spy.place.append((before, sctx.counters["kernel_calls"], placed,
-                              None if placed.unplaced else realized_geometry(placed.layout.snapshot, placed.placements, placed.keys)))
+                              None if placed.unplaced else realized_geometry(placed.layout.snapshot, placed.placements)))
             return placed
 
         def eval_spy(*a, **k):

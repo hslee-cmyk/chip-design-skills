@@ -22,8 +22,9 @@ def rows_of(snap):
         vals = [V[n]] + [p.value for p in pv.get(n, ())]
         mos = sorted({p.relation[1] for p in pv.get(n, ()) if p.relation[0] == "vgs"})
         if mos:
-            defined = [tolv[m] for m in mos if tolv[m] is not None]
-            tol = max(defined) if defined else None
+            # 집계 규칙(계획 N3.6 표 10행, A-139): 항에 None 이 하나라도 있으면 집계 = None
+            terms = [tolv[m] for m in mos]
+            tol = None if any(t is None for t in terms) else max(terms)
         else:
             tol = len(vals) * EPS * max(abs(v) for v in vals)
         rows.append((n, max(vals) - min(vals), tol, tuple(mos), (n,)))
@@ -48,7 +49,7 @@ def test_pass(ctx_c, ctx_a, which):
 def test_fail_on_mos_node(ctx_c):
     snap, _ = with_tol(ctx_c[2], theta_c())
     v_in = node_voltages(snap)["in"]
-    bad = tamper(snap, "dc_columns", "node", "dc_path_values", {"in": (PathValue(("vgs", "M1"), v_in + 0.1),)})
+    bad = tamper(snap, "dc_solve", "node", "dc_path_values", {"in": (PathValue(("vgs", "M1"), v_in + 0.1),)})
     exp = judge_expect(rows_of(bad))
     assert exp["status"] == "fail" and exp["nodes"] == ("in",)
     item = run(bad)
@@ -69,14 +70,14 @@ def test_eps_tolerance_on_node_without_mos_relation(ctx_c):
             x = float(np.nextafter(x, 2.0))
         return x
     v5 = up(v, 5)                                  # 5 ulp > 3.6 ulp -> fail
-    bad = tamper(snap, "dc_columns", "node", "dc_path_values", {"out": (PathValue(("y", "out"), v5),)})
+    bad = tamper(snap, "dc_solve", "node", "dc_path_values", {"out": (PathValue(("y", "out"), v5),)})
     exp = judge_expect(rows_of(bad))
     assert exp["status"] == "fail" and exp["nodes"] == ("out",)
     item = run(bad)
     assert_item(item, exp, 1, check_devices=False)
     assert rel_close(item.tol, 2 * EPS * v5, 1e-12)
     v3 = up(v, 3)                                  # 3 ulp < 3.6 ulp -> pass
-    ok = tamper(snap, "dc_columns", "node", "dc_path_values", {"out": (PathValue(("y", "out"), v3),)})
+    ok = tamper(snap, "dc_solve", "node", "dc_path_values", {"out": (PathValue(("y", "out"), v3),)})
     assert run(ok).status == "pass"
 
 
@@ -92,7 +93,7 @@ def test_fail_wins_over_undefined(ctx_c):
     snap, _ = with_tol(ctx_c[2], theta_c())
     s2 = tamper(snap, "dc_tolerances", "device", "dc_tol_v", {"M1": None})
     v_pb = node_voltages(snap)["pb"]
-    s3 = tamper(s2, "dc_columns", "node", "dc_path_values", {"pb": (PathValue(("vgs", "M2"), v_pb - 0.2),)})
+    s3 = tamper(s2, "dc_solve", "node", "dc_path_values", {"pb": (PathValue(("vgs", "M2"), v_pb - 0.2),)})
     exp = judge_expect(rows_of(s3))
     assert exp["status"] == "fail" and exp["nodes"] == ("pb",)
     assert_item(run(s3), exp, 1, check_devices=False)

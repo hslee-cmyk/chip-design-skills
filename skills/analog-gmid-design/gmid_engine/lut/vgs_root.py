@@ -10,8 +10,37 @@
 import numpy as np
 
 from ._helpers_fail import seal_violation
-from ._helpers_root import peak_index, strong_inversion_root
+from ._helpers_interp import hermite_root
+from ._helpers_root import peak_index
 from .gm_id_curve import gm_id_curve
+
+
+def strong_inversion_root(v, y, m, targets):
+    """곡선 묶음(행마다 독립)의 강반전 분지 근 `(vgs, cell)`.
+
+    `v`·`y`·`m`: 모양 (R, n) -- 행마다 VGS 마디, 마디 ln ID, 마디 gm/ID. `targets`: 모양 (R,) 목표 gm/ID.
+    반환: vgs (R,) (해 없음 = NaN), cell (R,) (고른 칸 index, 해 없음 = −1). 같은 칸 안 근은 Hermite 미분 = 목표.
+    """
+    v = np.asarray(v, dtype=float)
+    y = np.asarray(y, dtype=float)
+    m = np.asarray(m, dtype=float)
+    targets = np.asarray(targets, dtype=float)
+    d = m - targets[:, None]
+    cross = d[:, :-1] * d[:, 1:] <= 0.0
+    cols = np.arange(cross.shape[1])
+    cross &= cols[None, :] >= np.argmax(m, axis=1)[:, None]
+    has = cross.any(axis=1)
+    last = cross.shape[1] - 1 - np.argmax(cross[:, ::-1], axis=1)
+    rows = np.flatnonzero(has)
+    i = last[rows]
+    vgs = np.full(len(targets), np.nan)
+    ends = (v[rows, i], v[rows, i + 1], y[rows, i], y[rows, i + 1], m[rows, i], m[rows, i + 1])
+    tgt = targets[rows]
+    if len(rows) == 1:                       # 1행 = 스칼라 경로(같은 산술, hermite_root docstring)
+        ends = tuple(x.item() for x in ends)
+        tgt = tgt.item()
+    vgs[rows] = hermite_root(*ends, lambda value, slope: slope - tgt)
+    return vgs, np.where(has, last, -1)
 
 
 def vgs_for_gm_id(memo, kind, w_key, gm_id, L, vds, vsb):

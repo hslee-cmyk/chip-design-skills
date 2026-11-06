@@ -142,12 +142,6 @@
     },
     {
       "count": 1,
-      "detail": "ParamTables._w_keys",
-      "kind": "g8_attr_container",
-      "path": "metrics/block_param_tables.py"
-    },
-    {
-      "count": 1,
       "detail": "_Ledger.index",
       "kind": "g8_attr_container",
       "path": "metrics/ss_metrics.py"
@@ -234,67 +228,61 @@
       "count": 1,
       "detail": "_Circuit.classes",
       "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
+      "path": "sizing/block_dc.py"
     },
     {
       "count": 1,
       "detail": "_Circuit.current",
       "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
+      "path": "sizing/block_dc.py"
     },
     {
       "count": 1,
       "detail": "_Circuit.fixed",
       "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
+      "path": "sizing/block_dc.py"
     },
     {
       "count": 1,
       "detail": "_Circuit.ln_idu",
       "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
+      "path": "sizing/block_dc.py"
     },
     {
       "count": 1,
       "detail": "_Circuit.nbrs",
       "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
+      "path": "sizing/block_dc.py"
     },
     {
       "count": 1,
       "detail": "_Circuit.net_colour",
       "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
+      "path": "sizing/block_dc.py"
     },
     {
       "count": 1,
       "detail": "_Circuit.order_terms",
       "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
-    },
-    {
-      "count": 1,
-      "detail": "_Circuit.override",
-      "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
+      "path": "sizing/block_dc.py"
     },
     {
       "count": 1,
       "detail": "_Circuit.resistance",
       "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
+      "path": "sizing/block_dc.py"
     },
     {
       "count": 1,
       "detail": "_Circuit.theta",
       "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
+      "path": "sizing/block_dc.py"
     },
     {
       "count": 1,
       "detail": "_Circuit.tol_cells",
       "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
+      "path": "sizing/block_dc.py"
     },
     {
       "count": 1,
@@ -486,13 +474,7 @@
       "count": 1,
       "detail": "_Circuit.solve_self",
       "kind": "g8_memo_lookup_form",
-      "path": "sizing/block_columns.py"
-    },
-    {
-      "count": 1,
-      "detail": "_vds_floor",
-      "kind": "g8_memo_lookup_form",
-      "path": "sizing/block_columns.py"
+      "path": "sizing/block_dc.py"
     },
     {
       "count": 1,
@@ -541,12 +523,6 @@
       "detail": "SEARCH_S0_WRITERS:WriterTable",
       "kind": "vt_assign",
       "path": "search/s0_fields.py"
-    },
-    {
-      "count": 1,
-      "detail": "NO_ORDER_HINTS:OrderHints",
-      "kind": "vt_assign",
-      "path": "sizing/s2_values.py"
     },
     {
       "count": 1,

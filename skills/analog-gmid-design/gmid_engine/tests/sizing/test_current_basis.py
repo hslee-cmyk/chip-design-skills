@@ -329,7 +329,7 @@ def _measured_domain(name, lut, tmp_path):
     from gmid_engine.lut import LutMemo
     from gmid_engine.pipeline import run_stage_a
     from gmid_engine.search import S0_WRITERS, open_run, search_domain
-    from gmid_engine.sizing import KERNEL_KEY, build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from gmid_engine.sizing import KERNEL_KEY, LutAccess, build_kernel_context, dc_inputs_from_spec
     from .conftest import LIBRARY
     skill = LIBRARY.parents[1]
     pdk = read_pdk_decl(str(skill / "assets" / "sky130_pdk_decl.json"), BoundedLRU(8))
@@ -339,7 +339,7 @@ def _measured_domain(name, lut, tmp_path):
     r = run_stage_a(LIBRARY / (name + ".topology.json"), LIBRARY / (name + ".sizing_spec.json"), lut, output_dir=tmp_path,
                     donors=donors, counters=counters)
     spec = r.spec
-    k = build_kernel_context(r.s1, dc_inputs_from_spec(spec), pre_layout_lut_access(LutMemo(lut, point=4096, curve=4096, root=4096)),
+    k = build_kernel_context(r.s1, dc_inputs_from_spec(spec), LutAccess(LutMemo(lut, point=4096, curve=4096, root=4096)),
                              donors=r.donors, counters=r.counters)
     search = spec.search if isinstance(spec.search, tuple) else ()
     sb = next((s.value for s in search if s.field == THETA_BOUNDS and s.value), ())

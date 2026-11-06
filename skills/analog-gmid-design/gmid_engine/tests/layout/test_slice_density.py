@@ -60,7 +60,7 @@ def test_keys_order_kept(toy_memo):
 
 @pytest.mark.parametrize("kw, reason", [
     ({"gm_id": 25.0}, "lut_no_strong_inversion_root"),     # 계약 손계산: 정점 20 위
-    ({"L": 1.5e-6}, "lut_l_not_anchor"),                   # 앵커 1e-6·2e-6 사이
+    ({"L": 1.5e-6}, "lut_l_bin_unbracketed"),               # 앵커 1e-6·2e-6 사이 -- [WB-1 §4] 합성 bin 지도: 앵커 1개 bin 안 비앵커 점 (card 목록 lut_l_not_anchor -> lut_l_bin_unbracketed)
     ({"L": 4e-6}, "lut_axis_out_of_range"),
     ({"vsb": 0.6}, "lut_axis_out_of_range"),
 ])

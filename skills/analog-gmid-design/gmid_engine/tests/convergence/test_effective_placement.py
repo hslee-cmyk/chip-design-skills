@@ -5,7 +5,10 @@ oracle (a) 구성으로 정답이 정해진 합성 입력: 손으로 만든 레�
 """
 from __future__ import annotations
 
+import dataclasses
+
 from gmid_engine.convergence import Placement, effective_placement
+from gmid_engine.layout.contract_output import WRequest
 
 from .conftest import GRID, attempt, dlay, dunplaced, glay, layout
 
@@ -27,17 +30,18 @@ def test_unplaced_devices_are_reported_sorted_and_not_placed():
     assert [p.name for p in placements] == ["M1"]
 
 
-def test_pending_group_members_use_requested_key_and_nf_from_last_attempt():
-    # 그룹 (P, Q) 이 W_request 응답 대기: 레이아웃은 잠정 배치(finger 9.9e-7)만 했다(LY3) -- MOD8 은 마지막 시도의 요청 (키, nf) 로 평가한다.
-    # 마지막 시도 finger 1.234e-6 -> 키 round(123.4) = 123, finger 123 x 1e-8 = 1.23e-6, nf (2, 3) -> W = 2 x 1.23e-6, 3 x 1.23e-6
-    first = attempt(2.0e-6, (1, 1))
-    last = attempt(1.234e-6, (2, 3))
-    group = glay("g", "diff_pair", ("P", "Q"), pending=True, attempts=(first, last))
+def test_pending_group_members_use_requested_key_and_nf_from_request_record():
+    # [dispute 8.4, 위임 A-141, interface §3 개정] 그룹 (P, Q) 이 W_request 응답 대기: 레이아웃은 잠정 배치(finger 9.9e-7)만 했다(LY3) -- MOD8 은 요청 레코드
+    # WRequest(device, W_old, W_new, nf, finger_w_m, reason, group)의 (nf, finger_w_m)로 평가한다(옛 마지막 GroupAttempt 경로 폐기). 요청 finger 1.23e-6 =
+    # 키 123 x 1e-8, P nf 2, Q nf 3 -> W = 2 x 1.23e-6, 3 x 1.23e-6. 시도 기록(attempts)은 이 값과 다른 것을 두어 시도에서 읽으면 red.
+    fw = 123 * GRID
+    reqs = (WRequest("P", 1e-6, 2 * fw, 2, fw, "cc_nf", "g"), WRequest("Q", 1e-6, 3 * fw, 3, fw, "cc_nf", "g"))
+    group = dataclasses.replace(glay("g", "diff_pair", ("P", "Q"), pending=True, attempts=(attempt(2.0e-6, (1, 1)), attempt(5e-6, (7, 7)))),
+                                w_requests=reqs)
     lay = layout(devices=(dlay("P", 9.9e-7, 4, 3.96e-6, tol=0.03), dlay("Q", 9.9e-7, 4, 3.96e-6, tol=0.04), dlay("R", 1e-6, 2, 2e-6)),
                  groups=(group,))
     placements, unplaced = effective_placement(lay.snapshot, GRID)
     by = {p.name: p for p in placements}
-    fw = 123 * GRID
     assert by["P"] == Placement("P", 123, fw, 2, 2 * fw, True, 0.03)
     assert by["Q"] == Placement("Q", 123, fw, 3, 3 * fw, True, 0.04)
     assert by["R"].pending is False and by["R"].key == 100

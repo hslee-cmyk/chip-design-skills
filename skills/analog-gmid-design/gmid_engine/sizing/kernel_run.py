@@ -15,10 +15,9 @@ import math
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, attach_partial
 from gmid_engine.graph import ELEMENT_MOS
 
-from .block_columns import dc_columns
 from .block_currents import dc_currents
+from .block_dc import dc_solve
 from .block_lengths import dc_lengths
-from .block_widths import dc_widths
 from .s2_values import (
     COORD_WRITER,
     KERNEL_KEY,
@@ -29,6 +28,8 @@ from .s2_values import (
     THETA_Y,
     DcEvaluation,
     KernelContext,
+    RealizedFinger,
+    RealizedGeometry,
     Theta,
 )
 from .seal import SEAL_ITEM_BLOCKS, seal_dc
@@ -64,10 +65,17 @@ def _call_block(ctx, block, snapshot, extras, before):
         raise
 
 
-def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
-    """평가 커널 본체 -- `size_and_seal`(위반이면 예외)과 `size_and_seal_local`(위반 보고서를 그대로 읽는다)이 같은 계산을 쓴다."""
+def run_kernel(ctx, theta, parent, w_request, raise_on_violation, realized=None, layout=None):
+    """평가 커널 본체 -- `size_and_seal`(위반이면 예외)과 `size_and_seal_local`(위반 보고서를 그대로 읽는다)이 같은 계산을 쓴다.
+    `realized` = `RealizedFinger`(실현 평가: DC 블록이 W' 고정으로 다시 푼다) 또는 None. W_request 와 함께 줄 수 없다(`ValueError`).
+    `layout` = `RealizedGeometry`(레이아웃 뒤 평가: 실현 평가와 같은 W'·바이어스 고정 KCL 재풀이이고 W' 만 레이아웃 기하에서 온다) 또는 None. 기준 스냅샷을 나르는
+    `realized` 와 함께만 주고 W_request 와는 함께 줄 수 없다(`ValueError`)."""
     if not isinstance(ctx, KernelContext):
         raise TypeError("size_and_seal: ctx 는 build_kernel_context 결과여야 한다")
+    if realized is not None and (not isinstance(realized, RealizedFinger) or w_request):
+        raise ValueError("size_and_seal: realized 는 RealizedFinger 여야 하고 w_request 와 함께 줄 수 없다")
+    if layout is not None and (not isinstance(layout, RealizedGeometry) or realized is None or w_request):
+        raise ValueError("size_and_seal: layout 은 RealizedGeometry 여야 하고 기준 스냅샷 realized 가 필요하며 w_request 와 함께 줄 수 없다")
     base = ctx.base
     snapshot = base
     theta = check_theta(base.value("graph", KERNEL_KEY, "theta_schema"), theta.values if isinstance(theta, Theta) else theta)
@@ -83,7 +91,7 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     column_items = tuple(((kind, key), v) for (kind, key), v in items if kind in _COLUMN_KINDS)
     requested = normalize_w_request(ctx, w_request)
     steps = [(dc_currents, (currents,)), (dc_lengths, (lengths,))]
-    later_blocks = (dc_columns, dc_widths)      # steps 뒤에 부르는 블록의 구성원 정의(extras 는 아래에서 붙인다)
+    later_blocks = (dc_solve,)      # steps 뒤에 부르는 블록의 구성원 정의(extras 는 아래에서 붙인다)
     if parent is not None:      # 스냅샷 파생: keep = base writer ∪ 커널 블록(steps·later_blocks) ∪ 봉인 항목 블록 여덟(seal.py 상수) -- 봉인 4 의 호출 목록과 같은 집합(계획 N3.3, 설계 41 4.7-3c)
         snapshot = parent.snapshot.derive_child(writers_in_scope(base, later_blocks + tuple(b for b, _ in steps) + SEAL_ITEM_BLOCKS))
     done = []       # 이 평가에서 이미 부른 블록 -- 실패 부분 스냅샷의 범위(`writers_in_scope`)
@@ -98,8 +106,13 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
         column_items = tuple((key, override.get(key, v)) for key, v in column_items)
     resistor_values = base.value("graph", KERNEL_KEY, "resistor_values")
     columns_extras = (column_items, base.value("graph", KERNEL_KEY, "fixed_values"), resistor_values, ctx.lut)
-    later = list(zip(later_blocks, (columns_extras,
-                                    (ctx.lut, requested) if requested else (ctx.lut,))))
+    if requested:
+        columns_extras += (RealizedGeometry(None, requested),)
+    elif layout is not None:
+        columns_extras += (layout, realized)
+    elif realized is not None:
+        columns_extras += (None, realized)
+    later = list(zip(later_blocks, (columns_extras,)))
     for block, extras in later:
         snapshot = _call_block(ctx, block, snapshot, extras, done)
         done.append(block)

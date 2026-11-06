@@ -4,7 +4,7 @@
 
 `device.dc_op` 의 MOS 마다 `judge_region(device, declared, current, vds, vdsat)` 을 **한 번** 부르고(선언 = `device.region_decl` 의 region, 없으면 None) 그 결과 하나에서
 두 항목의 status 를 정한다. 수치 문턱이 없다 -- 전도 = ID > 0, 포화 = VDS ≥ VDSAT(경계 0 V·등호).
-* vdsat 입력 = 필드 `device.dc_sat_v`(`lut.SatBound`, writer `dc_widths`)에서 읽는다 -- **LUT VDSAT·tol 조회 0**(둘째 생산자 없음): 수 -> 그 수, 사유 `reverse_vds`·`vdsat_column_unavailable`·
+* vdsat 입력 = 필드 `device.dc_sat_v`(`lut.SatBound`, writer `dc_solve`)에서 읽는다 -- **LUT VDSAT·tol 조회 0**(둘째 생산자 없음): 수 -> 그 수, 사유 `reverse_vds`·`vdsat_column_unavailable`·
   `off_declared` -> `None`(표 행 3·4 는 vdsat 값을 안 보고 `reverse_vds` 는 VDS < 0 행이며, 열 없음 = 행 6 `unresolved`), 사유 `lut_domain` -> `OUT_OF_DOMAIN`.
 * 봉인 9: `cutoff` ≥ 1 이면 fail(devices = 그 소자), 아니고 `out_of_domain` ≥ 1 이면 undefined(devices = 그 소자, reason `out_of_domain`), 아니면 pass.
 * 봉인 7: 표 행 3·8·10(거부 판정 `region_mismatch` 중 triode/saturation 쪽) ≥ 1 이면 fail, 아니고 행 6(`unresolved`, VDSAT 열 없음) ≥ 1 이면 undefined(reason

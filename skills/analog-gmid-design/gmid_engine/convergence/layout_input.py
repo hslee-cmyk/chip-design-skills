@@ -13,7 +13,8 @@
   hub 없는 그룹은 바꾸지 않는다(호출부가 걸러 `not_relaxable` 로 기록).
 * 행 그룹 = (kind, body 넷) 마다 하나(`LayoutInput` 불변식 '소자 (kind, body) == 행 그룹'). 한 그룹의 멤버가 둘 이상의 행 그룹에 걸치면 그 그룹은 넘기지 않고
   `undelivered` 에 ((gid, 사유), ...) 로 돌려준다(조용히 버리지 않는다).
-* `passives` = `layout.passives_from_decl` 결과(호출부), `rejected` = 거부한 W_request 소자 이름.
+* `passives` = `layout.passives_from_decl` 결과(호출부), `rejected` = 거부한 W_request 소자 이름, `excluded` = ((행 그룹 rid, (뺀 폭 키, ...)), ...) -- `key_exclusion` 이 행 그룹 단위로 뺀 폭 후보
+  (그 행 그룹 `RowGroup.excluded_keys` 로 넘긴다; 다른 행 그룹의 후보는 그대로).
 """
 from gmid_engine.graph import (
     DISPOSITION_BIAS_DISTRIBUTION,
@@ -58,7 +59,7 @@ def _gid(tag, members):
     return tag + "|" + "+".join(sorted(members))
 
 
-def layout_input_of(snapshot, pdk, passives, rejected=(), relaxed=()):
+def layout_input_of(snapshot, pdk, passives, rejected=(), relaxed=(), excluded=()):
     ops = dict(snapshot.column("device", "dc_op"))
     diode = dict(snapshot.column("device", "is_diode"))
     coords = dict(snapshot.column("device", "dc_coord"))
@@ -74,7 +75,8 @@ def layout_input_of(snapshot, pdk, passives, rejected=(), relaxed=()):
     row_members = {}
     for name, key in body_of.items():
         row_members.setdefault(key, []).append(name)
-    row_groups = tuple(RowGroup(key[0] + "|" + key[1], key[0], key[1], tuple(sorted(members)))
+    dropped = dict(excluded)
+    row_groups = tuple(RowGroup(key[0] + "|" + key[1], key[0], key[1], tuple(sorted(members)), tuple(sorted(dropped.get(key[0] + "|" + key[1], ()))))
                        for key, members in sorted(row_members.items()))
     relaxed = frozenset(relaxed)
     groups, undelivered = [], []

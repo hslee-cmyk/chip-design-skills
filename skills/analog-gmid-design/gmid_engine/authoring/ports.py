@@ -31,6 +31,12 @@ ROLE_DIFFERENTIAL_OUTPUT_P = "differential_output_p"
 ROLE_DIFFERENTIAL_OUTPUT_N = "differential_output_n"
 
 
+def input_port_nets(directions):
+    """측정 구성 입력 포트 넷 집합(frozenset) -- `directions` = S1 `node.port_direction` 열 ((넷, 방향 또는 None), ...). 방향이 `INPUT_DIRECTION`인 넷뿐이다.
+    DC 블록 재풀이(고정 넷)와 봉인 3(원이 구동하는 넷의 KCL은 원 전류가 닫아 방정식이 아니다, 계획 N3.6 '측정 구성 원 넷')이 부르는 판별 하나."""
+    return frozenset(net for net, direction in directions if direction == INPUT_DIRECTION)
+
+
 def port_declaration(doc, rails, known_nets):
     require_object("ports", doc)
     if PORTS_KEY not in doc:
@@ -68,9 +74,10 @@ def port_declaration(doc, rails, known_nets):
                                   (net,)))
         if len(hits) == before:
             ports.append(PortDecl(net, entry["direction"], entry["role"]))
-    for direction, rule in ((INPUT_DIRECTION, "no_input_port"), (OUTPUT_DIRECTION, "no_output_port")):
-        if not any(p.direction == direction for p in ports):
-            hits.append(SchemaHit(rule, PORTS_KEY, "유효한 " + direction + " 포트가 하나도 없다(기본 전달 뷰에 필요)"))
+    if not input_port_nets((p.net, p.direction) for p in ports):
+        hits.append(SchemaHit("no_input_port", PORTS_KEY, "유효한 " + INPUT_DIRECTION + " 포트가 하나도 없다(기본 전달 뷰에 필요)"))
+    if not any(p.direction == OUTPUT_DIRECTION for p in ports):
+        hits.append(SchemaHit("no_output_port", PORTS_KEY, "유효한 " + OUTPUT_DIRECTION + " 포트가 하나도 없다(기본 전달 뷰에 필요)"))
     if hits:
         reject("ports", PORTS_KEY, hits)
     return tuple(sorted(ports, key=lambda p: p.net))
