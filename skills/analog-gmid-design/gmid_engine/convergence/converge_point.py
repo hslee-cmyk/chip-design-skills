@@ -16,7 +16,7 @@
    새 현재 점이다. 위반하면 W_request 응답 대기 그룹(cc_nf)의 요청을 **거부**(`rejected_requests`)하고 같은 현재 점에서 1 로 돌아간다 -- 레이아웃이 그 그룹을 W_request 로 못 내므로
    LY5 완화 판정(`relaxation_decision`)으로 간다. 거부할 요청이 없으면 사이징 W 어긋남이 가장 큰 kind 의 지금 폭 키를 레이아웃 후보에서 빼고(`key_exclusion`, 단조 감소)
    같은 현재 점에서 1 로 돌아간다. 뺄 키가 남지 않으면 `STATUS_INFEASIBLE`.
-같은 상태에서 이미 평가한 DC 상태(고정 W·폭 슬라이스; 직전 것은 확산 기하만 바뀌는 재평가라 제외)로 돌아오면(주기) 바로 NONCONVERGENT 다(결정론적 사상이라 K_max 까지 돌아도 벗어나지 못한다).
+같은 상태에서 이미 평가한 DC 상태(그 평가의 입력 손가락 (nf, finger_w); 직전 것은 확산 기하만 바뀌는 재평가라 제외)로 돌아오면(주기) 바로 NONCONVERGENT 다(결정론적 사상이라 K_max 까지 돌아도 벗어나지 못한다).
 반복 상한 `K_max` = `w_loop_bound`(첫 레이아웃에서 한 번, 키 제외 재시도는 세지 않는다 -- 그것은 PDK 폭 키 수로 끝난다): 재평가가 K_max 번째까지 가고도 고정점이 아니면 `STATUS_NONCONVERGENT`(FailureRecord NONCONVERGENT).
 레이아웃 안 재시도(폭 키 좁히기·완화)는 평가 커널을 부르지 않는다. 결과의 `kernel_calls` 는 이 점이 새로 부른 커널 호출 수(캐시 적중은 세지 않는다).
 """
@@ -111,10 +111,10 @@ def converge_point(sctx, pdk, point):
         bound, dlnw, tol = w_loop_bound(placed.placements, sized_w)
         if k_bound is None:
             k_bound = bound
-        dc_state = geometry.w_request        # 다음 레이아웃은 평가 점의 DC 상태(고정 W)만 읽는다 -- 확산 기하는 출력이다
+        dc_state = tuple(sorted(geometry.input_fingers.items()))        # 다음 레이아웃은 평가 점의 DC 상태 = 그 평가의 입력 손가락 (nf, finger_w)만 읽는다 -- 확산 기하는 출력이다
         cycle = dc_state in visited[:-1]
         if cycle or sum(1 for i in iterations if i.status != "excluded") >= k_bound:
-            # 같은 상태(PDK 후보·거부·완화)에서 이미 평가한 DC 상태(고정 W·폭 슬라이스)로 돌아왔다 = 주기 -- 결정론적 반복이라 K_max 까지 돌아도 벗어나지 못한다
+            # 같은 상태(PDK 후보·거부·완화)에서 이미 평가한 DC 상태(입력 손가락)로 돌아왔다 = 주기 -- 결정론적 반복이라 K_max 까지 돌아도 벗어나지 못한다
             failure = NonconvergentError(devices=tuple(sorted(m for m, _w in geometry.w_request)), margin=dlnw / tol if tol > 0 else None,
                                          detail=(("cycle", cycle), ("k_max", k_bound), ("iterations", len(iterations)), ("width", dlnw),
                                                  ("tol", tol))).record

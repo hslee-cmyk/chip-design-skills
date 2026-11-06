@@ -266,10 +266,18 @@ class RealizedFinger:
 
 @dataclasses.dataclass(frozen=True)
 class RealizedGeometry:
-    """레이아웃 뒤 평가 입력: `layout_ref` = 레이아웃 결과 스냅샷 참조(소자별 배치 손가락·확산 기하는 거기서 읽는다), `w_request` = ((MOS, W(m)), ...) 소자 이름순 -- 요청 총 폭 고정 입력."""
+    """레이아웃 뒤 평가 입력: `layout_ref` = ((배치 MOS, `DiffusionGeometry`(finger_w, ..., m = nf)), ...) 레이아웃 실현 기하 참조, `w_request` = 요청 대기(배치 아님) 소자의 요청 손가락 행 참조
+    ((MOS, (nf, finger_w)), ...) 이름순(WB-1 A-139 -- 배치 소자는 두지 않는다). 사이징 호출 계약 `size_and_seal(w_request=)` 는 `layout_ref` = None 이고 값이 요청 총 폭 W(m)이다.
+    `input_fingers` = 이 입력이 정하는 소자별 입력 손가락 (nf, finger_w) -- DC 블록(`dc_solve`)과 레이아웃 수렴 주기 키(`converge_point`)가 읽는 정의 하나."""
 
     layout_ref: object
     w_request: tuple
+
+    @property
+    def input_fingers(self):
+        """{소자: (nf, finger_w)} -- 배치 소자 = `layout_ref` (round(m), finger_w), 요청 대기 소자 = `w_request` 의 요청 손가락 행. 둘 다 아닌 소자는 없다."""
+        placed = {} if self.layout_ref is None else {m: (round(g.m), g.finger_w_m) for m, g in self.layout_ref}
+        return {**placed, **dict(self.w_request)}
 
 
 @dataclasses.dataclass(frozen=True)

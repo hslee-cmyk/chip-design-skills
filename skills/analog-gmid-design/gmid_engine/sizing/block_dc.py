@@ -12,14 +12,16 @@
   벡터로 돌아가면 `SealViolationError`(reason `slice_cycle`, devices = Rʳ, detail `cycle`). Rʳ = writer 없는 순환 SCC 에서 수렴 허용오차 셀을 내는 종속 MOS(그 슬라이스 tol 표가 노드 풀이의
   tol 이 된다). Rʳ = ∅ 이면 노드 풀이는 한 번이다. (5) `DeviceOp.w_key`·`gm_id`·`idu_forward`·`dc_finger` 가 같은 슬라이스를 가리킨다.
 * 평가는 θ 의 순수 함수다. `slice_missing` 이 나면 `devices = (소자,)` 를 채워 다시 던진다(reason 은 그대로).
-* **레이아웃 뒤(`geometry` + 기준 스냅샷 `realized`)**: 실현 평가와 같은 W'·바이어스 고정 KCL 재풀이(`_kcl_solve`)이고 W' 만 레이아웃 기하에서 온다(`_layout_picks`). `layout_ref`(= 배치 소자의 실현 확산 기하
-  ((소자, 기하), ...))에 있는 소자는 (nf = `m`, finger 폭 `finger_w_m`) 의 `slice_of_finger` 가 슬라이스이고, `w_request` 소자의 총 폭은 요청값(`DeviceOp.W`, 요청 대기 소자의 슬라이스 = 요청 W 상수의
-  `finger_slice`), 둘 다 아닌 소자는 기준 스냅샷 `dc_finger` 의 (m, w_s) 참조다. `dc_finger` 행은 다시 쓰지 않는다(빈 열 -- 사본 0). 기준 스냅샷 = 사이징 점이고 거기서 측정 구성·입력 값을 읽는다.
-  `geometry` 만 있고 `realized` 가 없으면(sizing 호출 계약 `w_request`) 노드 재풀이 없는 W_request 평가(쓰기 소자 좌표 재기록, 종속 소자 어긋남은 봉인 3)이고 탐색 평가 전용이다.
+* **손가락 기하 원리 하나(A-139)**: 모든 평가의 `device.dc_finger` = 그 평가가 쓴 손가락(소자 전부의 행)이다. 입력 손가락이면 `finger_slice` 를 부르지 않는다(키만 `slice_of_finger`).
+* **레이아웃 뒤(`geometry` + 기준 스냅샷 `realized`)**: 실현 평가와 같은 W'·바이어스 고정 KCL 재풀이(`_kcl_solve`)이고 입력 손가락만 레이아웃에서 온다(`_layout_picks`):
+  `RealizedGeometry.input_fingers` -- 배치 소자 = `layout_ref` (nf, finger_w), 요청 대기 소자 = `w_request` 의 요청 손가락 행 (nf, finger_w). 행 = (nf, finger_w, 0.0), W' = nf·finger_w.
+  입력 손가락 행이 없는 소자(배치도 요청도 아님) = `realized_finger_missing`(사이징 점 행을 읽지 않는다). 기준 스냅샷 = 사이징 점이고 거기서 측정 구성·입력 값·피벗 판정만 읽는다.
+  `geometry` 만 있고 `realized` 가 없으면(sizing 호출 계약 `w_request` = 요청 총 폭 W) 노드 재풀이 없는 W_request 평가(쓰기 소자 좌표 재기록, 종속 소자 어긋남은 봉인 3)이고 탐색 평가 전용이다.
 * **실현 평가(`realized`, 설계 40 §3.7-A 2-5 (ii))**: 소자마다 탐색 스냅샷 `device.dc_finger` 의 (m, w_s) 가 입력이다(선택 함수 호출 0, 키 = `slice_of_finger`, 행이 없으면 `realized_finger_missing`).
   `DeviceOp.W` = W' = m·w_s, 전류 I' = 순방향 IDu·W'/L, 전류밀도 = I'·L/W', `dc_finger` = (m, w_s, 0.0). 탐색 스냅샷의 servo 피벗 판정(`graph.icm_config.config`)이 servo 면 W'·바이어스(고정 노드)·
   입력 공통모드 고정으로 KCL 을 출력 묶음 행(감지 합 = 탐색 점 값) + 입력 차 미지수로 감쇠 Newton(`newton_solve`)으로 다시 푼다. 판정 불능·입력 하나면 입력을 봉인점 값에 고정하고 출력·나머지 KCL 노드를
-  같은 Newton 으로 다시 푼다(출력 묶음 행·입력 차 미지수만 없음). 비수렴 = `NonconvergentError`, 푼 노드가 레일 밖(레일 안 근 없음) = `no_root_in_window`(bounds = rail) -- 둘 다 fail-closed.
+  같은 Newton 으로 다시 푼다(출력 묶음 행·입력 차 미지수만 없음). 고정 넷 = 레일 ∪ 입력 포트(`input_port_nets`)뿐이고 spec 목표 넷(W3)은 미지수다(O-244). 비수렴 = `NonconvergentError`,
+  푼 노드가 레일 밖(레일 안 근 없음) = `no_root_in_window`(bounds = rail) -- 둘 다 fail-closed.
 * 노드 x 의 writer 식(소자 m, kind 부호 s = +1 nmos / −1 pmos, VDS·VSB 는 노드전압 차의 크기):
   `vgs_gate`: V(g) = V(s) + s·VGS(ln IDu_m, L_m, VDS, VSB) / `vgs_source`: V(s) = V(g) − s·VGS(...) / `resistor_drop`: V(t1) = V(t0) − I·R(또는 반대쪽) /
   `free_window`(W4): V = lo + y·(hi − lo), [lo, hi] = x 에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이 되는 쪽의 교집합(KVL 순서 창, VDSAT 항 없음), 제약 없는 쪽은 레일 전압 범위 끝.
@@ -38,7 +40,7 @@
 import dataclasses
 import math
 
-from gmid_engine.authoring import INPUT_DIRECTION, REGION_OFF, REGION_TRIODE
+from gmid_engine.authoring import REGION_OFF, REGION_TRIODE, input_port_nets
 from gmid_engine.core import NonconvergentError, SealViolationError, compute_block
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, MOS_TERMINAL_NAMES
 from gmid_engine.lut import (AXES, tol_v_table, REASON_OFF_DECLARED, FingerSlice, SatBound, derived, finger_slice, gmb, is_slice_gap, op_point,
@@ -502,8 +504,9 @@ class _Circuit(Circuit):
             if key not in self.tol_cells:
                 self.tol_cells[key] = self.tol_cell(keys, m, vds)
             tol = self.tol_cells[key]
-            if tol is not None:
-                tols.append(tol)
+            if tol is None:                           # 집계 항에 None 이 하나라도 있으면 집계 = None (계획 N3.6 표 10행) -- 정의된 셀만으로 내지 않는다
+                raise SealViolationError(devices=tuple(devices), detail={"reason": REASON_TOL_UNDEFINED})
+            tols.append(tol)
         if not tols:
             raise SealViolationError(devices=tuple(devices), detail={"reason": REASON_TOL_UNDEFINED})
         return min(tols)
@@ -648,30 +651,18 @@ def _realized_picks(c, ref):
     return picks, {m: p.m * p.w_f_m for m, p in picks.items()}
 
 
-def _layout_picks(c, ref):
-    """레이아웃 뒤 평가 입력: 소자마다 (`FingerSlice`, W') -- `geometry.layout_ref` 에 있는 배치 소자는 (nf, finger_w) 의 `slice_of_finger`, `w_request` 소자는 총 폭 = 요청 W
-    (배치 소자도 요청 W 가 총 폭이다 -- 같은 레이아웃 값), 요청 대기(배치 아님) 소자의 슬라이스는 요청 W 를 상수로 한 `finger_slice`, 둘 다 아닌 대기 소자는 기준 스냅샷
-    `device.dc_finger` 의 (m, w_s) 참조(행이 없으면 `realized_finger_missing`)."""
-    placed = {} if c.geometry.layout_ref is None else dict(c.geometry.layout_ref)
-    requested = dict(c.geometry.w_request)
-    fingers = dict(ref.column("device", "dc_finger"))
-    picks, widths = {}, {}
+def _layout_picks(c):
+    """레이아웃 뒤 평가 입력: 소자마다 (`FingerSlice`, W') -- 입력 손가락(`RealizedGeometry.input_fingers`: 배치 소자 = `layout_ref` (nf, finger_w), 요청 대기 소자 = `w_request` 의 요청
+    손가락 행)을 그대로 쓴다(선택 함수 호출 0, 요청 W 로 다시 고르지 않음 -- A-62 D5; 키만 `slice_of_finger`). W' = nf·finger_w. 입력 손가락 행이 없는 소자(배치도 요청도 아님)는
+    `realized_finger_missing`(사이징 점 행을 읽지 않는다)."""
+    given = c.geometry.input_fingers
+    picks = {}
     for m in sorted(c.coord):
-        geom = placed.get(m)
-        if geom is not None:
-            picks[m] = _slice_pick(c, m, round(geom.m), geom.finger_w_m)
-            widths[m] = requested.get(m, picks[m].m * picks[m].w_f_m)
-        elif m in requested:
-            width = requested[m]
-            try:
-                picks[m] = finger_slice(c.lut.memo.lut, c.kinds[m], c.L[m], lambda _key, w=width: w)
-            except SealViolationError as exc:
-                raise with_device(exc, m, "finger_slice") from exc
-            widths[m] = width
-        else:
-            picks[m] = _reference_pick(c, m, fingers)
-            widths[m] = picks[m].m * picks[m].w_f_m
-    return picks, widths
+        row = given.get(m)
+        if row is None:
+            raise SealViolationError(devices=(m,), detail={"reason": REASON_REALIZED_FINGER_MISSING})
+        picks[m] = _slice_pick(c, m, *row)
+    return picks, {m: p.m * p.w_f_m for m, p in picks.items()}
 
 
 def _mos_flow(c, keys, m, v, width):
@@ -777,7 +768,7 @@ def _kcl_solve(c, keys, projection, ref, widths):
     푼 노드 전압이 레일 범위 밖이면 레일 안 근이 없는 점이라 `no_root_in_window`(item 7, bounds = rail)."""
     ref_v = dict(ref.column("node", "dc_v"))
     directions = dict(projection.column("node", "port_direction"))
-    inputs = tuple(sorted(n for n, d in directions.items() if d == INPUT_DIRECTION))
+    inputs = tuple(sorted(input_port_nets(directions.items())))
     servo = is_servo_branch(ref)
     sense, excite = (), {}
     if servo:
@@ -788,8 +779,7 @@ def _kcl_solve(c, keys, projection, ref, widths):
         sense, excite = tuple(found), dict(views[0].excite)
     basis = projection.value("graph", DC_KEY, "dc_current_basis")
     flow_nets = {net for _name, a, b in basis.ends for net in (a, b)}
-    held = frozenset(n for n, w in c.writers.items() if w.relation in (REL_TARGET, REL_INPUT_DC))
-    free = sorted((n for n in flow_nets if n not in c.rail_v and n not in inputs and n not in held),
+    free = sorted((n for n in flow_nets if n not in c.rail_v and n not in inputs),         # 고정 넷 = 레일 ∪ 입력 포트뿐 -- spec 목표 넷(W3)은 KCL 미지수
                   key=lambda n: (c.net_colour.get(n, 0), n))
     full, system = _kcl_system(c, keys, tuple(basis.ends), widths, free, inputs, excite, sense, ref_v)
     nodes = tuple(free) + ((_VID,) if servo else ())
@@ -818,7 +808,7 @@ def _resolved(c, projection):
     입력 손가락만 다르다 -- 실현 평가는 기준 스냅샷 `dc_finger` 의 (m, w_s), 레이아웃 뒤는 배치 (nf, finger_w)·요청 W·대기 소자의 기준 스냅샷 `dc_finger`.
     풀이는 W'·바이어스 고정 KCL(`_kcl_solve`) 하나이고 노드 재풀이 없는 갈래는 없다."""
     ref = c.realized.search_ref
-    picks, widths = (_realized_picks if c.geometry is None else _layout_picks)(c, ref)
+    picks, widths = _realized_picks(c, ref) if c.geometry is None else _layout_picks(c)
     keys = {m: p.w_key for m, p in picks.items()}
     values, log = _kcl_solve(c, keys, projection, ref, widths)
     return values, (log,), 1, picks, widths
@@ -827,26 +817,24 @@ def _resolved(c, projection):
 def _outputs(c, projection, values, logs, rounds, picks, widths=None):
     """노드 풀이 결과 `values` 와 소자 선택 `picks` 로 필드를 낸다 -- 탐색 평가와 재풀이 평가(실현 평가·레이아웃 뒤 평가, `widths` = {소자: W'})의 조립이다."""
     realized = c.realized is not None
-    requested = {} if c.geometry is None else dict(c.geometry.w_request)
+    requested = {} if c.geometry is None or realized else dict(c.geometry.w_request)      # 사이징 호출 계약 w_request(요청 총 폭 W) 뿐 -- 레이아웃 뒤는 widths 가 W'
     ln_idu, ops, sat, fingers = {}, {}, {}, {}
     for m, coord in c.coord.items():
         kind, key = c.kinds[m], picks[m].w_key
         vgs, vds, vsb = c.mos_point(m, values)
         point = forward_point(c.lut, m, kind, key, c.L[m], vgs, vds, vsb)
         pick = picks[m]
-        if realized:                                   # W' 고정 재풀이: 전류 I' = IDu·W'/L (전류밀도 = I'·L/W' = 순방향 IDu), 잔차 0. 레이아웃 뒤 평가는 dc_finger 행을 다시 쓰지 않는다(빈 열)
+        if realized:                                   # W' 고정 재풀이: 전류 I' = IDu·W'/L (전류밀도 = I'·L/W' = 순방향 IDu), 잔차 0
             ln_idu[m] = math.log(point.IDu)
             width = widths[m]
             ops[m] = DeviceOp(kind, point.IDu * width / c.L[m], ln_idu[m], point.gm_over_id, c.L[m], width, vgs, vds, vsb, key, point.IDu)
-            if c.geometry is None:
-                fingers[m] = FingerGeom(pick.m, pick.w_f_m, 0.0)
+            fingers[m] = FingerGeom(pick.m, pick.w_f_m, 0.0)          # 그 평가가 쓴 입력 손가락(실현 평가 = 탐색 행, 레이아웃 뒤 = 배치·요청 행)
         else:
             ln_idu[m] = c.ln_idu[m] if coord.role == COORD_WRITER else math.log(point.IDu)
             free_width = c.current[m] * c.L[m] / math.exp(ln_idu[m])
             width = requested[m] if m in requested else free_width
             ops[m] = DeviceOp(kind, c.current[m], ln_idu[m], point.gm_over_id, c.L[m], width, vgs, vds, vsb, key, point.IDu)
-            if c.geometry is None:
-                fingers[m] = FingerGeom(pick.m, pick.w_f_m, pick.m * pick.w_f_m / free_width - 1.0)
+            fingers[m] = FingerGeom(pick.m, pick.w_f_m, pick.m * pick.w_f_m / free_width - 1.0)
         try:
             sat[m] = sat_threshold(c.lut.memo, kind, key, c.L[m], vgs, vds, vsb)
         except SealViolationError as exc:                # 값 없음 사유가 아닌 LUT 실패는 소자 이름을 붙여 낸다(fail-closed)
