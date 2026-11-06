@@ -8209,6 +8209,14 @@ oracle-portability v0.6.29 전파. 측정 게이트 표 OP-7 행(P:1393)의 출�
 - **원래 취지와 다름**: (1) N3.6 표 3행·E-30 '모든 넷 KCL 검사 하나' 번복(승인 O-244) (2) card WB-1 범위 확장(봉인 3 넷 집합 개정이 W-bin 슬라이스 card 안으로, LM-1e 통합 병합 안) (3) 측정 구성 전제 명문화(새 문언) (4) 입력원 DC 전류는 판정하지 않고 기록만 (5) A-124 조건 철회.
 - 하지 않은 것: `la1_auto_decisions.md` A-124 행의 조건 철회 표지(오케스트레이터 몫), 다른 입력 판별 자리의 helper 전환(LA-1 재점검 입력), 9회로 재측정(LA-1 측정 시점).
 
+## v6.38.23 셋째 커밋 (2026-11-06, 오케스트레이터 위임 결정 -- WB-1 진단 정정 두 건)
+
+WB-1 코드 브랜치 진단(진단 agent; 스크립트·출력 `C:/Users/HSLEE/AppData/Local/Temp/la1s_wb1_diag19_keep/` -- `d1.txt`·`d1b.txt`·`d1_master.txt`·`d3_master.txt`·`d3_wb1.txt`, agent 측정이며 이 작성자는 출력 파일을 읽어 대조만 함). 재판정 전. 코드 변경 0. 바뀐 자리 = N6.32 범위 7·완료 (10), DEC-105 (2) 'front 처리' 괄호, N6.1 표 두 행, Status.
+- **(a) 레이아웃 뒤 접합 기하**: 레이아웃이 한 소자 이상을 W_request 응답 대기(배치 아님)로 남긴 레이아웃 뒤 재평가에서, 그 소자의 접합 기하를 소신호 소자 블록이 `dc_finger`에서 읽는데 레이아웃 뒤 평가는 `dc_finger`를 빈 열로 두어(design 40 §3.7-A 3·6 v1.16.18 '읽는 소비자 없음' 전제) 분류되지 않은 `KeyError`가 수렴 루프 밖으로 나갔다(진단: 측정 회로 하나, 대기 소자 2개; master는 같은 꼴을 `infeasible_after_layout`으로 분류). 전제 '손가락 분할 의존 소비자는 S2 `layout` 실현 필드를 읽음'은 배치되지 않은 소자에 확산 기하가 없어 성립하지 않는다 -- card 정의 문제. 정본 자리를 물리(접합 = 그 평가의 실현 손가락 기하)로 정했다: 배치 = 레이아웃 확산, 배치 아닌 `w_request` = 그 평가 pick 행(DC 블록이 씀), 그 밖 = 기준 스냅샷 참조. 기각 = W′/w_s 재계산(G-10·m 비정수), 사이징 점 행 읽기(W′ ≠ 사이징 W). 재작성 범위 확인('그 밖' 갈래, 원칙 8 -- 근거 아님): DC 블록 `_layout_picks`는 그 소자의 손가락을 기준 스냅샷 `dc_finger`에서 고르지만(`sizing/block_dc.py:650-673`) 레이아웃 뒤 평가는 `dc_finger`를 쓰지 않고 소신호 소자 블록은 지금 평가 스냅샷의 `dc_finger`만 읽어(`metrics/ss_linearize.py:97-99`) 같은 `KeyError`가 난다; 레이아웃 기하 생산자는 모든 배치 소자를 `w_request`에 넣으므로(`convergence/realized_geometry.py:7·:24`) 수렴 경로에서 이 갈래에 닿는 소자는 계획 작성 때 읽은 코드로는 없다(미측정).
+- **(b) `unmeasured_front`**: front 출력 전 실현 관문이 `front`만 받고 `unmeasured_front`는 실현 없이 반환됐다(`search/find_front.py:116`·`:186`). DEC-105 (2) 'front 처리'('실현 평가를 거치지 않은 점은 front 출력·선택·oracle 입력이 될 수 없다')와 DEC-98 (6)(미측정 사유가 모두 oracle 전용인 `unmeasured_front` 점 = oracle 입력)이 함께 실현을 요구한다. 결정 간 대조(작성자 대조 -- 독립 점검 아님): O-173 E-1(최종 합격 = oracle, oracle 입력 = 실현 값)과 정합; 탐색 분류(front = 봉인 + 모두 측정, `unmeasured_front` = 봉인 + 미측정 있음 -- `search/eps_sweep.py` 분류 표)와 정합(집합 정의를 바꾸지 않고 각 집합의 점이 실현 뒤 그 정의를 다시 만족해야 남음 -- `unmeasured_front`의 정의는 '미측정 있음'이라 미측정 사유로 빼지 않음); interface R-4(실현 봉인 실패 점은 빠짐)와 같은 판정. 모순을 찾지 못했다.
+- **(3) 기록만**(계획에 넣지 않음 -- 오케스트레이터 몫): 진단의 한 회로 `find_front`가 master·WB-1 모두 평가 예산 40·300에서 front 0(`eval_budget`).
+- **원래 취지와 다름**: 레이아웃 뒤 평가가 대기 소자의 `dc_finger` 행을 씀(옛 '빈 열'), `unmeasured_front`도 실현 관문, card WB-1 범위 확장(범위 7).
+
 ## v6.38.23 둘째 커밋 (2026-11-06, 사용자 결정 O-244, 독립 판정 반영)
 
 독립 판정 `wt/_drafts/evidence/2026-11-06/seal3_plan_verdict.md`(Major 1, minor r1~r4) 반영. 재판정 전. 코드 변경 0.
