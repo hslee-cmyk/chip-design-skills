@@ -1,14 +1,17 @@
 """`lut_fingerprint` -- CONTRACT 1.5: 64자 hex, 경로 무관, 어느 sha256·cap_basis 든 바뀌면 다른 지문, 결정론(10)."""
 import dataclasses
+import hashlib
 import os
 import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import numpy as np
 import pytest
 
+from gmid_engine.core import fp_of
 from gmid_engine.lut import load_lut_set, lut_fingerprint
 
 from .conftest import (SKILL_DIR, T_MID_L, T_WIDTHS, TOY_SPEC, build_t, copy_tree, load_real, mid_file, sha256_file,
@@ -107,8 +110,8 @@ def test_real_fp_midpoints_item(real_lut, real_paths, real_spec):
 
 # ---------------------------------------------------------------------------
 # [LM-1e §4] 지문의 중점 항목 (toy T): `("midpoints_sha256", tuple(sorted(sha)))` 항목은 중점이 있을 때만 더해진다 -- 중점 파일 하나라도 내용이
-# 바뀌면 다른 지문, 순서·경로는 무관. oracle (d): interface §4 F-1~F-4 + CONTRACT 1.5(경로 무관·sha256 만). F-4 는 지문 전체를 `core.fp_of` 로
-# 다시 만들지 않는다(항목 구성이 계약 문장뿐) -- '중점이 없으면 항목이 없다'는 항목을 지운 provenance 의 지문 = 중점 없는 로드의 지문으로 본다.
+# 바뀌면 다른 지문, 순서·경로는 무관. oracle (d): interface §4 F-1~F-4 + CONTRACT 1.5(경로 무관·sha256 만). F-4 는 interface §4 항목 표로
+# `core.fp_of` tuple 을 직접 만들어 대조한다(`lut_fingerprint` 로 기대를 만들지 않는다).
 # ---------------------------------------------------------------------------
 
 def _t1(mid_toy_build, sub, **kw):
@@ -150,14 +153,30 @@ def test_lm1e_f3_same_content_other_folder_same_fp(mid_toy_build, tmp_path):
     assert c1.fp == c2.fp
 
 
-def test_lm1e_f4_no_midpoints_no_fp_item(mid_toy_build):
-    """F-4: 중점이 없으면(T-7 꼴) 지문에 중점 항목이 없다: 중점이 있는 LUT 의 provenance 에서 중점만 지우면 중점 없는 로드의 지문과 같다."""
+def _fp_items_1_to_7(lut):
+    """interface §4 `lut.fp` 표 1~7(언제나 있는 항목)을 공개 칸에서 직접 모은다 -- `lut_fingerprint` 는 부르지 않는다."""
+    p = lut.provenance
+    return (("manifest_sha256", p.manifest_sha256), ("generator_sha256", p.generator_sha256),
+            ("slices", tuple((s.kind, s.w_key, s.sha256, s.conditions, s.model_files_sha256) for s in p.slices)),
+            ("cap_sha256", p.cap_sha256), ("cap_conditions", p.cap_conditions),
+            ("cap_basis", tuple((k, lut.cap_map[k].w_ref_m, lut.cap_map[k].basis) for k in sorted(lut.cap_map))),
+            ("bin_rule_sha256", p.bin_rule_sha256))
+
+
+def test_lm1e_f4_fp_item_tuple_contract(mid_toy_build):
+    """F-4 (a): 중점 없음(T-7 꼴, 잡음·mismatch 없음) -> lut.fp == fp_of(표 1~7) 7항목, 상수 None 중점 항목을 늘 더하는 꼴과 다르다.
+    (b): T-1(중점 키 60·80) -> lut.fp == fp_of(1~7 + ("midpoints_sha256", 두 파일 raw sha 정렬 tuple)); sha 는 파일에서 hashlib 으로 직접.
+    oracle (d): interface §4 표. 기대는 표로 test 가 직접 만든다(lut_fingerprint 호출 0)."""
     mt = _t1(mid_toy_build, "f4")
-    with_mid = mt.load(t_spec(0.6e-6))
     plain = mt.load(TOY_SPEC, verify_midpoints=None)                        # T-7: 최소 폭 1.5 µm -> 중점 없이 적재
-    assert dict(plain.midpoints) == {} and plain.provenance.midpoints_sha256 is None
+    assert dict(plain.midpoints) == {} and plain.provenance.noise_sha256 is None and plain.provenance.mismatch_sha256 is None
+    items = _fp_items_1_to_7(plain)
+    assert plain.fp == fp_of(items)
+    assert plain.fp != fp_of(items + (("midpoints_sha256", None),))
+    assert plain.fp != fp_of(items + (("midpoints_sha256", ()),))
+    with_mid = mt.load(t_spec(0.6e-6))
+    assert with_mid.provenance.noise_sha256 is None and with_mid.provenance.mismatch_sha256 is None
+    shas = tuple(sorted(hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in mt.mid_paths))
+    assert len(shas) == 2
+    assert with_mid.fp == fp_of(_fp_items_1_to_7(with_mid) + (("midpoints_sha256", shas),))
     assert with_mid.fp != plain.fp
-    stripped = dataclasses.replace(with_mid.provenance, midpoint_sources=())
-    assert stripped.midpoints_sha256 is None
-    assert lut_fingerprint(stripped, _basis(with_mid)) == plain.fp
-    assert with_mid.fp == lut_fingerprint(with_mid.provenance, _basis(with_mid))
