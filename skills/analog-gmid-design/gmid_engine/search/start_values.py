@@ -40,7 +40,8 @@ SRC_LUT_L = "lut_l_range"                         # LUT L 격자 끝
 SRC_L_CLASS = "l_class_intersection"              # L 동치류 교집합
 SRC_POLE0_VIEW = "pole0_view_inactive"            # 41 §6.3 주극점 노드(전달 뷰 극점 노드 -- 뷰 없으면 비활성, FS-1 (v1), A-205 이름)
 SRC_SPEED_VIEW = "speed_view_inactive"            # 41 §6.4-4·6 속도 행(주극점·극점 노드 -- 뷰 없으면 비활성, FS-1 (v3), A-205 이름)
-SRC_FF_START_VIEW = "ff_start_view_inactive"      # 41 §6.5 FF 셀 출발값(전달 뷰 feedforward 묶음 -- 뷰 없으면 비활성, FS-1 (v6), A-205 이름)
+SRC_OFFSET_L_VIEW = "offset_l_view_inactive"      # 41 §6.4-2 절대 offset L 하한(입력 소자를 전달 뷰에서 정함 -- 뷰 없으면 비활성, A-206 이름)
+SRC_FF_START_VIEW ="ff_start_view_inactive"      # 41 §6.5 FF 셀 출발값(전달 뷰 feedforward 묶음 -- 뷰 없으면 비활성, FS-1 (v6), A-205 이름)
 # ---- 비활성 사유
 WHY_NO_VIEW = "transfer_view_absent"              # 전달 뷰(S1v transfer, 블록 있음)가 없어 정의가 그 뷰를 읽는 출발 항목은 값을 만들지 않는다(대체값 0)
 WHY_NO_TARGET = "constraint_not_declared"

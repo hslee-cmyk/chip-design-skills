@@ -79,6 +79,7 @@ from .start_values import (
     SRC_L_CLASS,
     SRC_LUT_L,
     SRC_LUT_RANGE,
+    SRC_OFFSET_L_VIEW,
     SRC_POLE0_VIEW,
     SRC_SPEED_VIEW,
     SRC_W_MIN,
@@ -93,7 +94,7 @@ from .start_values import (
 
 # 전달 뷰가 없을 때 이 블록이 새로 남기는 비활성 항목(설계 40 §3.7-B 3 (v1)(v3)(v4)(v6), A-205 이름). 기존 이름이 이미 비활성을 내는 (v2) `gain_l_6.4_1`(gain_l_bounds)·(v5) `noise_guard_7.5`(noise_bounds)는
 # 그대로 두고, (v4) 는 기존 이름 `macro_inactive`. 5a 출발 w_f 칸은 뷰와 무관하게 돈다.
-_VIEW_ONLY_ITEMS = (SRC_POLE0_VIEW, SRC_SPEED_VIEW, MACRO_INACTIVE, SRC_FF_START_VIEW)
+_VIEW_ONLY_ITEMS = (SRC_POLE0_VIEW, SRC_SPEED_VIEW, MACRO_INACTIVE, SRC_OFFSET_L_VIEW, SRC_FF_START_VIEW)
 _REL = math.sqrt(sys.float_info.epsilon)      # 상대 비교·여유(부동소수 분해능 √ε): W = W_min 이 정확히 경계라 반올림이 아래로 떨어지지 않게 하는 여유, 같은 값끼리 비교의 허용
 
 
@@ -287,14 +288,8 @@ def _wf_cells(ctx, groups, writers, gm_id, lengths, currents, bundles):
         return True
 
     def l_defined(name, key):
-        """그 멤버의 5의 L 이 슬라이스 `key` 의 L 위치 판정(앵커 또는 같은 bin 안 두 앵커 사이)을 통과하는가 -- 전압을 읽지 않는다. 슬라이스 조회 불능(`is_slice_gap`)만 False, 그 밖 사유는 던진다."""
-        try:
-            slice_l_position(ctx.memo, kinds[name], key, lengths[name])
-        except SealViolationError as exc:
-            if is_slice_gap(exc):
-                return False
-            raise
-        return True
+        """그 멤버의 5의 L 이 슬라이스 `key` 의 L 위치 판정(앵커 또는 같은 bin 안 두 앵커 사이)을 통과하는가 -- 전압을 읽지 않는다. 슬라이스 조회 불능만 False(lut 가 판정), 그 밖 사유는 던진다."""
+        return slice_l_position(ctx.memo, kinds[name], key, lengths[name], strict=False) is not None
 
     candidates = {kind: widths(ctx.memo.lut, kind) for kind in sorted(set(kinds.values()))}
     reference = {kind: ctx.memo.lut.cap_map[kind].w_key for kind in candidates}

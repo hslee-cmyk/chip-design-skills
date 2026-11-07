@@ -13,19 +13,28 @@ L 은 앵커이거나 같은 모델 bin 안 두 앵커 사이만(lut/CONTRACT.md
 """
 import math
 
+from gmid_engine.core import SealViolationError
+
 from ._helpers_anchor import l_position
 from ._helpers_interp import REASON_FC, REASON_SLOPE, cell, hermite, linear_point, node_values
 from .axis_guard import check_axes
 from .lut_types import AXES, OpPoint
+from .slice_gap import is_slice_gap
 
 
-def slice_l_position(memo, kind, w_key, L):
+def slice_l_position(memo, kind, w_key, L, *, strict=True):
     """(kind, w_key) 슬라이스의 L 위치 판정 `(lo, hi, l_value)` -- `op_point` 가 L 단계에서 부르는 판정 그 함수(전압 인자 없음, 조회 0).
 
-    앵커면 `(i, i, 앵커 값)`, 같은 모델 bin 안 두 앵커 사이면 `(k - 1, k, L)`. 실패 = `l_position` 사유(CONTRACT 4.0) -- `is_slice_gap` 이 판정한다. 폭 키 없음 -> `KeyError`.
+    앵커면 `(i, i, 앵커 값)`, 같은 모델 bin 안 두 앵커 사이면 `(k - 1, k, L)`. 실패 = `l_position` 사유(CONTRACT 4.0). `strict=False` 이면 슬라이스 조회 불능(`is_slice_gap`)만 None 으로 돌려주고
+    그 밖 사유는 그대로 던진다(판정만 묻는 호출자용). 폭 키 없음 -> `KeyError`.
     """
     sl = memo.lut.slice_map[(kind, w_key)]
-    return l_position(sl.grids[0], sl.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, (("kind", kind), ("w_key", w_key)))
+    try:
+        return l_position(sl.grids[0], sl.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, (("kind", kind), ("w_key", w_key)))
+    except SealViolationError as exc:
+        if strict or not is_slice_gap(exc):
+            raise
+        return None
 
 
 def op_point(memo, kind, w_key, L, vgs, vds, vsb):
