@@ -1,0 +1,72 @@
+{
+  "id": "20261106-jc1",
+  "stage": "순서 3 (freeze·base 확인) -- 판정 기록 본체(.ai/verification/20261106-jc1.json)는 code 커밋이 생긴 뒤 순서 7에서 쓴다(red-green은 code_commit sha1 필수라 지금은 스키마를 채울 수 없다)",
+  "attempt": 1,
+  "evidence_type": "red-green",
+  "freeze": {
+    "T": "6d1d6fd5",
+    "T_full": "6d1d6fd57a5cbafd267e34c19b7dd8ee63ba17e8",
+    "T_parent": "9c7db95010fe2770f29b6007d16713d181b61e6d",
+    "T_tree": "e23c681a4a4a3ffb04cd6bb208147519696b9c4a",
+    "T_trailers": "Role: test, Change-Id: 20261106-jc1 (두 커밋 모두)",
+    "base": "da4f53665a839ab1bed6895279614140fdc4a9ed",
+    "base_note": "master faf69218 + card/jc1 4b369d4d (병합 da4f5366)",
+    "code_commit": null,
+    "base_to_T_commits": 2,
+    "base_to_T_numstat_total": "+1340 -1162, 33 파일(A 2 = RETIRED_TESTS_jc1.md, metrics/jc1_toy.py, M 31), 모두 gmid_engine/tests/ 아래",
+    "base_to_T_paths_outside_tests": 0,
+    "freeze_verdict_first_pass": "수정 필요 -- Major 3 (M1 낡은 접합 경로 test 미폐기, M2 유지 표기 test의 단언 2개 삭제, M3 D-b 가 card toy C 가 아닌 점 무관 상수 열). 나머지 동결 가능(기록 사항 있음). 상세 = wt/_drafts/evidence/2026-11-07/jc1_freeze.md"
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/jc1_fz/iso (head), C:/Users/HSLEE/AppData/Local/Temp/jc1_fz/base (da4f5366 test, pre-existing red 확인용)",
+    "commands": [
+      "git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261107-jc1-audit C:/Users/HSLEE/AppData/Local/Temp/jc1_fz/iso",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/jc1_fz/iso remote remove origin",
+      "(cwd = iso/skills/analog-gmid-design/gmid_engine/tests; OPENBLAS_NUM_THREADS=1 PYTHONIOENCODING=utf-8 GMID_LUT_TABLE_CACHE_DIR=<전용 폴더>) C:/Python314/python.exe -m pytest -p no:cacheprovider -v -rfE --tb=line --continue-on-collection-errors --junitxml=h_gN.xml <그룹>",
+      "그룹 g1 = metrics; g2 = search sizing; g3 = convergence core generality structure lut/test_lut_set.py; g4 = integration/test_s0_layer_9circuits.py::test_junction_source_content_unchanged_from_base[common_gate_amplifier] (--tb=short, 1건만)",
+      "base 쪽: 같은 cwd 꼴, 복제본 base 는 detach da4f5366 (core/test_blas_env.py + sizing/test_scc_newton.py 의 한 건 + convergence/test_converge_point.py -k real_junction_caps)"
+    ],
+    "engine_state": "작업 트리 = base 엔진(da4f5366)에 test 6d1d6fd5 를 얹은 상태 -- 엔진 소스 diff 0 (경로 밖 변경 0으로 확인)"
+  },
+  "red_run": {
+    "scope": "metrics, search, sizing, convergence, core, generality, structure, lut/test_lut_set.py 전체 + integration/test_s0_layer_9circuits.py 의 junction_source_content 1건. ngspice 0, --run-slow 없음(slow 표지 test 는 안 돌았다 = 통과로 세지 않음). lut 폴더의 test_lut_set.py 밖, integration 나머지, 2회로 연기, layout·pipeline·authoring·graph 폴더는 안 돌렸다 = 통과로 세지 않음. 첫 시도(한 프로세스 전체, 98% 지점에서 integration 9회로 test 가 6 GB 까지 불어 중단)는 폐기하고 그룹별 프로세스로 다시 쟀다.",
+    "result": {
+      "g1_metrics": "148 failed, 1160 passed, 62 errors (collection error 1 = test_junction_cap.py ImportError, 그 파일의 C-0·J-1~J-12 test 는 수집 자체가 안 됨)",
+      "g2_search_sizing": "391 failed, 1294 passed, 68 errors, 1 deselected (my probe)",
+      "g3_convergence_core_generality_structure_lut_set": "37 failed, 2062 passed, 182 errors, 1 deselected (my probe)",
+      "g4_integration_junction_source_content_common_gate_amplifier": "1 failed (AttributeError: 'JunctionSource' object has no attribute 'reference')"
+    },
+    "red_total": 888,
+    "red_by_reason": {
+      "A_engine_reads_deleted_pdk_junction_key": 490,
+      "B_JunctionSource_from_decls_signature_TypeError": 373,
+      "E_axis_key_missing_unclassified_KeyError_or_no_axis_detail (X-1~X-7, first_listed)": 8,
+      "F_LUT_PARAMETERS_6col_vs_8col_and_R_text (R-a R-b R-c, lut_parameters_constant, all_eight, sensitivity r2 x2)": 7,
+      "G_junction_model_identifier_pdk_bsim4_vs_lut_vgs_min (2) + structure N-2 (1)": 3,
+      "C_junction_field_extras_arity_ValueError (S-4 + field)": 2,
+      "D_junction_at_vgs_min_ImportError (collection of test_junction_cap.py)": 1,
+      "H_ss_dev_READS_still_has_dc_finger (G-1)": 1,
+      "I_structure_N-1": 1,
+      "N-3_pdk_decl_54_junction_keys": 1,
+      "pre_existing_red_at_base_master": 1
+    },
+    "pre_existing_red": "sizing/test_scc_newton::test_case_two_seal_violation_kept_with_newton_cause -- base 복제본(da4f5366 test + 엔진)에서도 같은 AssertionError(tol_v_undefined != lut_query_failed). JC-1 무관. 추가: base 복제본에서 convergence/test_converge_point.py::test_real_junction_caps_from_realized_diffusion[two_stage_ota] 도 ValueError(converge: 봉인되고 모든 제약 행이 c>=0 인 점만) 로 red -- 실경로 2회로 전제 문제, code 단계 판정이 다시 쟨다.",
+    "test_defect_reds": 0,
+    "test_defect_reds_note": "red 사유가 엔진 미구현(옛 PDK 접합 키 읽기·서명·이름 없음·BSIM4 이름 잔존·열 목록 6열)이 아닌 것은 위 pre-existing 1건뿐. 단 (a) 낡은 접합 경로 test 1건(convergence/test_realized_geometry::..._waiting_device_row_erased_in_junction_input_is_realized_finger_missing)은 base 엔진에서 같은 A 사유로 red 라 가려져 있고 code 뒤에는 의미가 사라져 red 가 될 test 결함이다(Major M1, 정적 분석).",
+    "new_named_green_at_base": "17 -- 모두 정규식 변별 test(N-1 pattern 9)와 기존 sizing/test_junction_forward 8건(JC-1 새 test 가 아니라 이름 일치). 실질 새 test 는 전부 red."
+  },
+  "structure_run": {
+    "scope": "tests/structure 전체 (g3 안)",
+    "result": "198 passed, 2 failed (test_jc1_n1_no_bsim4_junction_names_in_engine_text, test_jc1_n2_removed_function_and_model_names_absent = 기대 red)",
+    "note": "search/test_canonical_order.py·sizing/test_s2_values.py 는 g2 안에서 돌았고 JC-1 이유 red(A·B)만 있다"
+  },
+  "red_list_file": ".ai/verification/20261106-jc1/red_base.json (888개: id, kind, 예외 타입, 해시=sha256(id+LF+예외 타입), 범주). 해시는 auditor가 계산한 값이고 gate 플러그인 red_failure_hash가 아니다(gate 캐시는 assets/tests 경로 전제, 이 card는 merge_gate 미사용)",
+  "pending_judgment_items": {
+    "real_junction_caps_L_interpolation": "해소: 실경로 소자 L 은 두 회로 전 소자(common_gate_amplifier 3, two_stage_ota 7) 모두 1.75e-6 m (cap npz L 격자에 없음). 격자에서 1.5e-6 과 2.0e-6 사이이고 sky130 nfet·pfet 의 모델 bin L 범위 [1.0e-6, 2.0e-6] 안 -- 두 이웃 격자점이 같은 bin(닫힌 구간) 이라 test 의 L 선형 보간 = bin 안 보간, bin 경계를 넘지 않음. Major 아님.",
+    "dc_finger_l2_stop": "test_layout_resolve_l2_device_without_input_finger_row_is_realized_finger_missing = 유지(정지 자리는 sizing/block_dc 의 실현 입력 손가락 행 관문, ss_dev 접합 경로가 아님; finger_slice 호출 카운터가 0 임을 같이 단언). 같은 파일의 ..._waiting_device_row_erased_in_junction_input_... 는 접합 경로(ss_evaluate 로 넘어가는 스냅샷의 dc_finger 행을 지움)라 code 뒤 의미가 없다 -> 폐기·RETIRED 기록 필요(Major M1)."
+  },
+  "scratch": {
+    "scripts": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922/scratchpad/{classify,cat,mk_red,weak,quant,detail,struct,lut_axes}.py",
+    "junit_logs": "C:/Users/HSLEE/AppData/Local/Temp/jc1_fz/{h_g1,h_g2,h_g3}.{xml,log}, h_g4c.log, h_clar.log, b_clar.log, b_realjc.log, probe_l_*.json, probe_rb.json"
+  }
+}
