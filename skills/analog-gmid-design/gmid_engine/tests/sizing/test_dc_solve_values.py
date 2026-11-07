@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import pytest
 
 from gmid_engine import sizing as S
-from gmid_engine.sizing import size_and_seal
+from fs1_wf import size_and_seal      # [FS-1 A-196 signature-misses] 손 wf 를 끼운 래퍼
 
 from .test_block_dc import mirror_setup, two_slice_access  # noqa: F401  (fixture 재사용)
 

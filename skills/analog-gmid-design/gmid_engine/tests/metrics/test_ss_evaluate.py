@@ -32,8 +32,8 @@ from gmid_engine.sizing import (
     SealedSnapshot,
     build_kernel_context,
     dc_inputs_from_spec,
-    size_and_seal,
 )
+from fs1_wf import size_and_seal      # [FS-1 A-196 signature-misses] 손 wf 를 끼운 래퍼
 
 from .conftest import COUNT_FIELDS, block_row, fresh_run, row_delta
 from .conftest import (

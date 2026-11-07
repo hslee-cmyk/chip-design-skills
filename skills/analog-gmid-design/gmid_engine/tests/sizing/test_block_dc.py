@@ -102,8 +102,12 @@ def test_dc_solve_cell_members_share_slice_and_w_is_closed_form(tmp_path, two_sl
     for m in MIRROR:
         assert o[m].w_key == 200
     assert o["M3"].w_key == 100
-    for m, op in o.items():
-        assert abs(op.W - _w_closed(op)) <= 1e-9 * _w_closed(op), m
+    # [A-196 d2] 쓰기 소자(M1·M3) W 는 θ 좌표 식 I·L/exp(θ ln IDu) (DEC-88, interface §4.2 '기존 식'); 노드 동작점 닫힌 식 비교는 종속 소자(M2)에만 건다
+    # (다이오드 노드 vgs 가 θ 목표보다 5e-8 V 낮은 노드 풀이 허용오차 문제 -- FS-1 과 무관).
+    for m in ("M1", "M3"):
+        want = o[m].current * o[m].L / math.exp(th[("ln_idu", m)])
+        assert o[m].W == pytest.approx(want, rel=1e-12), m
+    assert abs(o["M2"].W - _w_closed(o["M2"])) <= 1e-9 * _w_closed(o["M2"])
 
 
 def test_dc_solve_no_slice_rounds_and_one_node_solve_per_eval(tmp_path, two_slice_access):
@@ -133,7 +137,8 @@ def test_dc_solve_realized_eval_uses_hand_oracle_m(tmp_path, two_slice_access, m
     from .test_realize_fingers import hand_oracle
     calls = _realize_spy(monkeypatch)
     ctx, th = mirror_setup(tmp_path, two_slice_access)
-    wf = hand_wf(ctx, {m: 200 for m in MIRROR}, default=100, join=(MIRROR,))
+    # [A-196 D-5, interface 보정 c12951db] 입력 = 정합 칸 (M1, M2) 키 100, M3 칸 키 200 (판정자 측정: out 0.463 V 봉인 통과; 정합 칸 200 은 out 레일 밖)
+    wf = hand_wf(ctx, {"M3": 200}, default=100, join=(MIRROR,))
     assert len(wf.cells_ref) == 2 and wf.cells_ref[0].members == MIRROR            # 전제: 2멤버 칸 하나 + M3 칸
     ev = size_and_seal(ctx, th, wf)
     assert calls == []                                                              # 탐색 평가 0회
@@ -150,6 +155,9 @@ def test_dc_solve_realized_eval_uses_hand_oracle_m(tmp_path, two_slice_access, m
             assert rf[m].m == want[i] and type(rf[m].m) is int
             assert ro[m].W == want[i] * (cell.w_key * GRID)
             assert rf[m].residual == want[i] * w_f / so[m].W - 1.0
+    # 전제 (손 근, A-193 규칙): 실현 점 out 근이 레일 안 -- r4 toy 는 triode 없음, λ = 0.1 이면 |ln(s3/s2)| <= 1.8 λ (s = 실현 W'/θ W)
+    s2, s3 = ro["M2"].W / so["M2"].W, ro["M3"].W / so["M3"].W
+    assert abs(math.log(s3 / s2)) <= 1.8 * 0.1, (s2, s3)
 
 
 def test_dc_solve_layout_reseal_uses_request_rows_and_base_fingers(tmp_path, two_slice_access, monkeypatch):
@@ -161,13 +169,13 @@ def test_dc_solve_layout_reseal_uses_request_rows_and_base_fingers(tmp_path, two
     free = size_and_seal(ctx, th, wf)
     base = size_and_seal(ctx, th, wf, realized=RealizeInput(free.snapshot))
     calls = _realize_spy(monkeypatch)
-    geom = RealizedGeometry(layout_ref=None, w_request=(("M2", (3, 2e-6)),))
+    geom = RealizedGeometry(layout_ref=None, w_request=(("M2", (2, 2e-6)),))      # [A-196 D-7] (2, 2e-6): W' = 4e-6 = 기준 실현 W' (판정자 측정: 봉인 통과; (3, 2e-6) 은 근이 레일 밖)
     req = size_and_seal(ctx, th, wf, parent=base, realized=RealizeInput(base.snapshot), layout=geom)
     assert calls == []
     bo, bf = ops(base), fingers(base)
     ro, rf = ops(req), fingers(req)
-    assert ro["M2"].w_key == 200 and ro["M2"].W == pytest.approx(3 * 2e-6, rel=1e-12)
-    assert rf["M2"].m == 3
+    assert ro["M2"].w_key == 200 and ro["M2"].W == pytest.approx(2 * 2e-6, rel=1e-12)
+    assert rf["M2"].m == 2
     for m in ("M1", "M3"):
         assert rf[m].m == bf[m].m and ro[m].w_key == bo[m].w_key
         assert ro[m].W == bf[m].m * (bo[m].w_key * GRID)
@@ -186,7 +194,13 @@ def test_dc_solve_cell_member_lookup_failure_is_not_avoided(tmp_path, monkeypatc
     assert size_and_seal(ctx_ok, th_ok, hand_wf(ctx_ok, default=200, join=(MIRROR,))).snapshot is not None     # 양성 대조: 원 LUT 에서는 키 200 통과
     p = root / "r4_nmos_w200.npz"
     z = dict(np.load(p, allow_pickle=False))
-    z["L"] = np.asarray(z["L"], dtype=float) + 3e-6                                                # L 축에서 1e-6 이 빠진다 (3e-6, 4e-6)
+    # [A-196 D-8, interface 보정 c12951db] 축은 같게 두고, 폭 2e-6 슬라이스(nmos)만 동작점 VGS 마디(0.5·0.625 V)에서 GM = 0 (off 마디) -- 적재 관문(lut_slice_axes_mismatch)을 통과하는 입력
+    vgs = np.asarray(z["VGS"], dtype=float)
+    gm = np.array(z["GM"], dtype=float)
+    hit = [i for i, v in enumerate(vgs) if abs(v - 0.5) < 1e-9 or abs(v - 0.625) < 1e-9]
+    assert hit                                                                                     # 전제: 마디가 격자에 있다
+    gm[:, hit, :, :] = 0.0
+    z["GM"] = gm
     np.savez(p, **z)
     man = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     for e in man["slices"]:
@@ -198,7 +212,7 @@ def test_dc_solve_cell_member_lookup_failure_is_not_avoided(tmp_path, monkeypatc
     ctx, th = mirror_setup(tmp_path / "bad", access_of(lut2))
     with pytest.raises(SealViolationError) as ei:
         size_and_seal(ctx, th, hand_wf(ctx, {m: 200 for m in MIRROR}, default=100, join=(MIRROR,)))
-    assert dict(ei.value.record.detail).get("reason")                                              # 기존 LUT 축·L 사유가 기록됨
+    assert dict(ei.value.record.detail).get("reason") == "lut_query_failed"                         # 기존 LUT 조회 불능 사유 기록 (판정자 측정: lut_reason lut_curve_undefined, w_key 200)
     assert calls == []
 
 

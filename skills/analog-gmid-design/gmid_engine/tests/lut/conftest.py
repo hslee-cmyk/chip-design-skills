@@ -81,7 +81,9 @@ TOY_VGS = (0.0, 0.5, 1.0)
 TOY_VDS = (0.5, 1.0)
 TOY_VS = (0.0, 0.5)
 TOY_VS_FACTOR = (1.0, 0.5)
-TOY_SPEC = LutSpec(1e-8, (("nmos", 1.5e-6),), (("toyn", "nmos"),), (("nmos", "_n"),))
+# [FS-1 A-196 toy-spec-empty-widths] 최소 finger 폭을 toy 슬라이스 폭(가장 좁은 1e-6) 이하로 둔다: 옛 1.5e-6 은 일부 fixture 의 슬라이스(모두 < 1.5 µm)에서 후보 0 이 되어
+# 적재가 `wf_candidates_empty` 로 거부된다 (계약대로). 후보 집합이 값에 들지 않는 test 는 기대 그대로.
+TOY_SPEC = LutSpec(1e-8, (("nmos", 1e-6),), (("toyn", "nmos"),), (("nmos", "_n"),))
 
 # [r5] CONTRACT 7.1 r5 toy: ID = (1e-6/L)·1e-7·exp(20v − 6v²)·exp(0.1·VDS)·(1, 0.5)[s], GM = ID·(20 − 12v), GDS = ID·0.1
 R5_A, R5_B, R5_C = 20.0, 6.0, 0.1                  # lnID = ln1e-7 + A·v − B·v² + C·d

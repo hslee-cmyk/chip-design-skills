@@ -291,7 +291,12 @@ def test_m2_evaluation_sigma_rows_use_the_evaluation_cell_key_not_reference_widt
         calls.append(dict(zip(names, vals)))
         return r
     monkeypatch.setattr(ds_mod, "mismatch_sigma_vgs", ds_spy)
-    theta = tuple(sorted(dict(case.start.theta).items()))
+    from sizing.conftest import kschema
+    th_d = dict(case.start.theta)
+    for k in kschema(case.kctx).components:                       # [A-196 m1-pair-sigma] θ 에 그 회로 스키마의 y 성분 전부를 더한다 (없으면 check_theta 가 평가 전에 거부)
+        if k[0] == "y" and k not in th_d:
+            th_d[k] = 0.5
+    theta = tuple(sorted(th_d.items()))
     res = evaluate(case.sctx, theta, tuple(case.start.cells), wf)
     seen = [b for b in calls if b["kind"] == "nmos"]
     assert seen, "관찰 지점 mismatch_sigma_vgs 호출 0 -- 멈추고 보고"

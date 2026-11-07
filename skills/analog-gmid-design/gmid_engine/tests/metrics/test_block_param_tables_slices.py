@@ -190,8 +190,8 @@ def test_slice_block_value_e7_one_upper_unknown_gives_unknown_block(tmp_path, lu
 # ---------------------------------------------------------------- E-4 (GB4 쪽): 빈 bin 지도 -> w_hi 실패 -> 그 행 A_max 미정
 def test_slice_block_value_e4_empty_bin_map_leaves_amax_undetermined(tmp_path_factory):
     lut = write_slice_lut(tmp_path_factory.mktemp("wb1_nobins"), ((1e-6, 0.1, 1.0), (2e-6, 0.1, 1.0)), no_bins=True)
-    from gmid_engine.lut import reachable_slices
-    assert reachable_slices(lut, "nmos", 1e-6) == ()                 # 전제: 빈 지도 -> 도달 슬라이스 없음
+    from gmid_engine.lut import widths
+    assert tuple(widths(lut, "nmos")) != ()                          # [FS-1 A-196] 후보 = widths(lut, kind) (`reachable_slices` 삭제) -- 전제: 후보는 있고(L 무관 정적 집합) bin 지도만 비었다
     blk = block_of(run_follower(tmp_path_factory.mktemp("wb1_nobins_run"), lut))
     assert blk.a_max_db is None and blk.status != "certified"
 
