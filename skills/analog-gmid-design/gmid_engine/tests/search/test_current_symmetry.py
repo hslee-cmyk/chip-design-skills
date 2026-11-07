@@ -20,7 +20,8 @@ from fractions import Fraction
 import pytest
 
 from gmid_engine.core import SchemaRejectedError
-from gmid_engine.search import CurrentSymmetry, current_symmetry, evaluate, expand_ties
+from gmid_engine.search import CurrentSymmetry, current_symmetry, expand_ties
+from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 from gmid_engine.sizing import DC_KEY
 
 from .canon_cases import make_case, mid_theta, tie_groups

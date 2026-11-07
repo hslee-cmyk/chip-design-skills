@@ -6,7 +6,8 @@ import math
 
 import pytest
 
-from gmid_engine.search import ACCEPTED_STATUSES, evaluate, fd_jacobian
+from gmid_engine.search import ACCEPTED_STATUSES, fd_jacobian
+from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 from gmid_engine.sizing import dc_solve, dc_currents
 
 from .conftest import block_row  # [XRUN-F1 card B C1]
@@ -148,7 +149,7 @@ def test_l_step_is_one_manufacturing_grid(tmp_path, lut_sealed, grid_um, grid_m)
 
 def test_passive_theta_step_is_min_tol_gm_id(tmp_path, lut_sealed):
     """r6: DEC-92 θ(capacitance·ss_resistance, ln 좌표) 스텝 = 전 MOS dc_tol_v·gm_id 최솟값."""
-    from gmid_engine.search import evaluate
+    from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
     from .conftest import CELLS_C, Z_ELEMENTS, circuit_z, col, snap_of, theta_z
     case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10))
     s = case.sctx

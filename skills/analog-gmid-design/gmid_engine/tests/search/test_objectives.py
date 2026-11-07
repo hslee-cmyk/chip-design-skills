@@ -141,9 +141,9 @@ def _hand_fields(snap, root):
 def test_metrics_dc_writes_gate_area_and_power_resolution_fields(tmp_path, obj_luts, which):
     """§2.4.8: 설계점 스냅샷에 graph/metrics 필드 gate_area_m2·power_resolution_w 가 있고 writer 는 metrics_dc, 값은 손계산과 같다.
     회로 C 손 확인: 레일 vdd 1.8 V 에 채널이 닿는 MOS 는 M2, gnd 0 V 는 기여 0 -> b_P = 1.8·tol_V(M2)·dc_gm(M2)."""
-    from gmid_engine.search import STATUS_PENDING_SEAL7, STATUS_SEALED, evaluate
+    from gmid_engine.search import STATUS_PENDING_SEAL7, STATUS_SEALED
     from gmid_engine.sizing import S2_WRITERS
-    from .conftest import CELLS_C
+    from .conftest import CELLS_C, evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
     lut, root = obj_luts[which]
     case = build_case(tmp_path, circuit_c(), lut)
     r = evaluate(case.sctx, tuple(sorted(theta_r4c(i2=2e-5, y=0.6).items())), CELLS_C)
@@ -167,8 +167,7 @@ def test_metrics_dc_writes_gate_area_and_power_resolution_fields(tmp_path, obj_l
 def test_objective_values_reads_fields_not_recomputed(tmp_path, obj_luts):
     """§2.4.7 'search 의 재계산(_power_resolution)을 지운다': 권한표 writer(metrics_dc)로 두 필드만 다른 값으로 다시 쓴 스냅샷을
     objective_values 에 주면 다시 쓴 값이 그대로 나온다(dc_op·dc_tol_v·dc_gm 은 그대로이므로 search 가 다시 계산했다면 옛 값이 나온다)."""
-    from gmid_engine.search import evaluate
-    from .conftest import CELLS_C
+    from .conftest import CELLS_C, evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
     lut, _root = obj_luts["sealed"]
     case = build_case(tmp_path, circuit_c(), lut)
     r = evaluate(case.sctx, tuple(sorted(theta_r4c().items())), CELLS_C)

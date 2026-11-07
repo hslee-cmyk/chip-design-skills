@@ -17,7 +17,8 @@ oracle 종류 (a) -- 변형 관계(원래 결과에 치환표를 적용한 것 �
 """
 from __future__ import annotations
 
-from gmid_engine.search import STATUS_SEALED, evaluate, layer0_start
+from gmid_engine.search import STATUS_SEALED, layer0_start
+from search.conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 
 import pytest
 

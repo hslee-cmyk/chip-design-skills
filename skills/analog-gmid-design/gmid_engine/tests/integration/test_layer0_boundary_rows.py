@@ -25,7 +25,8 @@ import o227_stop_pin      # 정지 사유 고정 헬퍼·표(O-227 임시) -- te
 from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.pipeline import run_stage_a, run_stage_b
-from gmid_engine.search import SearchSettings, build_search_context, evaluate, layer0_start, open_run
+from gmid_engine.search import SearchSettings, build_search_context, layer0_start, open_run
+from search.conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, LutAccess
 
 SKILL = Path(__file__).resolve().parents[3]

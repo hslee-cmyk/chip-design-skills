@@ -13,7 +13,8 @@ import pytest
 
 import gmid_engine.sizing as sizing
 from gmid_engine.core import ComputeBlock, SealViolationError
-from gmid_engine.search import STATUS_FAILED, STATUS_SEALED, evaluate
+from gmid_engine.search import STATUS_FAILED, STATUS_SEALED
+from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 
 from .conftest import CELLS_C, build_case, circuit_c, theta_r4c, write_decls
 from .conftest import COUNT_FIELDS, block_row, row_delta

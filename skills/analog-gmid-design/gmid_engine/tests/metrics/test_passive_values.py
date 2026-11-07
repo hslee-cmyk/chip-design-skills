@@ -170,7 +170,7 @@ def _theta_m(dc, cc=CC_F, **kw):
 
 def _eval_m(case, th):
     from search.conftest import CELLS_C
-    from gmid_engine.search import evaluate
+    from search.conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
     return evaluate(case.sctx, th, CELLS_C)
 
 

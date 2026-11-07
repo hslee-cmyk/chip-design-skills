@@ -20,7 +20,8 @@ import math
 
 import pytest
 
-from gmid_engine.search import ACCEPTED_STATUSES, build_search_context, evaluate, layer0_start
+from gmid_engine.search import ACCEPTED_STATUSES, build_search_context, layer0_start
+from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 
 from .conftest import CODE_FP
 from .u13_hand import all_inactive, cs_chain, rows_by_name, toy_case

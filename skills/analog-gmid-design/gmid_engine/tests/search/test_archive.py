@@ -10,7 +10,8 @@ import json
 from pathlib import Path
 
 
-from gmid_engine.search import S3Archive, evaluate, find_front, node_across_front
+from gmid_engine.search import S3Archive, find_front, node_across_front
+from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 
 from .conftest import CELLS_C, build_case, circuit_c, theta_r4c
 

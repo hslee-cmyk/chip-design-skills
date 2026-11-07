@@ -510,7 +510,7 @@ def test_vgs_min_da_search_evaluation_uses_evaluated_width_not_finger_product(tm
     """D-a: 탐색 평가 -- DeviceOp.W = 3e-6, dc_finger 행 (m = 2, w_f = 1.7e-6: m·w_f = 3.4e-6 ≠ W) -> r 의 면적 = a·W (그 평가가 쓴 W 하나).
     cdb = (CDD − CGD)·((a·3e-6·1.0)/(a·1e-6·1.0)) 비트 동일, 그리고 m·w_f 기하로 낸 값과 다르다. junction_model == lut_vgs_min_rule_area. oracle (a)."""
     lut, acc, js, v = toyd
-    fg = {"M1": FingerGeom(2, 1.7e-6, 2 * 1.7e-6 / W_D - 1.0)}
+    fg = {"M1": FingerGeom(2, 2 * 1.7e-6 / W_D - 1.0)}      # [FS-1 서명 맞춤] FingerGeom(m, residual)
     ss = _ss(_snap_d(tmp_path, finger=fg), acc, js).value("device", "M1", "ss_dev")
     l, d, s = NODE
     exp = hand_junction(l, d, s, v["a"] * W_D, v["b"] * W_D, 1.0, v)
@@ -524,9 +524,9 @@ def test_vgs_min_da_search_evaluation_uses_evaluated_width_not_finger_product(tm
 def test_vgs_min_da2_dc_finger_does_not_matter(tmp_path, toyd, variant):
     """D-a2: D-a 에서 dc_finger 행 값만 (m = 5, w_f = 0.9e-6)으로, 또는 dc_finger 열을 쓰지 않은 스냅샷 -> cdb·csb 비트 같음, 정지 없음."""
     lut, acc, js, v = toyd
-    ref = _ss(_snap_d(tmp_path / "a", finger={"M1": FingerGeom(2, 1.7e-6, 2 * 1.7e-6 / W_D - 1.0)}), acc, js).value("device", "M1", "ss_dev")
+    ref = _ss(_snap_d(tmp_path / "a", finger={"M1": FingerGeom(2, 2 * 1.7e-6 / W_D - 1.0)}), acc, js).value("device", "M1", "ss_dev")
     if variant == "other_finger_row":
-        snap = _snap_d(tmp_path / "b", finger={"M1": FingerGeom(5, 0.9e-6, 5 * 0.9e-6 / W_D - 1.0)})
+        snap = _snap_d(tmp_path / "b", finger={"M1": FingerGeom(5, 5 * 0.9e-6 / W_D - 1.0)})
     else:
         snap = _snap_d(tmp_path / "b", with_finger=False)
     got = _ss(snap, acc, js).value("device", "M1", "ss_dev")
@@ -639,8 +639,8 @@ def test_vgs_min_g2_same_kind_point_two_widths_one_lookup(tmp_path, monkeypatch,
 def test_vgs_min_g3_dc_finger_only_difference_reuses(tmp_path, toyd):
     """G-3: D-a2 두 스냅샷(dc_finger 만 다름)에 같은 donors·counters 로 ss_dev -> 둘째 계산 0(재사용) -- READS 에서 dc_finger 가 빠진 효과."""
     lut, acc, js, v = toyd
-    s_a = _snap_d(tmp_path / "a", finger={"M1": FingerGeom(2, 1.7e-6, 2 * 1.7e-6 / W_D - 1.0)})
-    s_b = _snap_d(tmp_path / "b", finger={"M1": FingerGeom(5, 0.9e-6, 5 * 0.9e-6 / W_D - 1.0)})
+    s_a = _snap_d(tmp_path / "a", finger={"M1": FingerGeom(2, 2 * 1.7e-6 / W_D - 1.0)})
+    s_b = _snap_d(tmp_path / "b", finger={"M1": FingerGeom(5, 5 * 0.9e-6 / W_D - 1.0)})
     run = fresh_run()
     out_a = _ss(s_a, acc, js, run)
     out_b = _ss(s_b, acc, js, run)

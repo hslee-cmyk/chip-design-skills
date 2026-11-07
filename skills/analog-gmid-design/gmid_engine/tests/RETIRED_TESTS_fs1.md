@@ -35,3 +35,14 @@
 - 3출력/와이드스윙 꼴: mirror 는 source 가 같은 쌍으로만 섬.
 결론: 정합 묶음이 gate 만 공유하는 종속 멤버로 서지 않는다 -> S-B6 test 없음 (skip 아님).
 덮이는 범위: 짝 없음 -> `no_member_density` -> 칸 None -> 기록은 순수 함수 수준 `test_k2_gate_only_shared_has_no_partner`(K-2)·`test_w2_no_partner_is_no_member_density`(W-2)·`test_s7_s8_member_why_makes_cell_undefined`(S-7)·`test_s6_...`(S-6), `initial_wf` None 은 S-B4, 평가 0 진입은 O-2 가 덮는다. 운영 경로(출발 블록이 실제로 그 기록을 남기는 것)는 덮이지 않는다.
+
+## A-186 추가 삭제 (이름·사유 -- 기준을 약하게 바꾼 단언은 0: 아래는 입력 경로 소멸로 대상이 사라진 test 의 삭제이며 남긴 test 의 단언은 그대로다)
+
+`tests/search/test_realize_front.py` (옛 입력 = 탐색 스냅샷 `dc_finger` (m, w_s) 를 `with_fingers` 로 바꿔치기해 실현 입력으로 쓰는 구성 -- 실현 m 은 이제 실현 DC 블록이 `realize_fingers` 로 정한다, 같은 입력을 만들 수 없음):
+`test_realize_r2_input_difference_shift_matches_closed_form`(R-2 입력 차 이동), `test_realize_r5_search_nondominated_point_dominated_by_realized_values`(R-5), `test_realize_r6_unresolved_servo_pivot_keeps_input_value`(R-6),
+`test_realize_r6_input_fixed_branch_resolves_kcl_and_reseals`(R-6, 2 case)·`test_realize_r6c_no_root_inside_rails_is_lost_fail_closed`·`test_realize_r15_input_fixed_realized_point_satisfies_output_kcl`(R-6c·R-15 입력 고정 갈래),
+`test_realize_s3_6_*`(S3-6 2개), `test_realize_r16_power_is_rail_current_of_realized_channel_current`(R-16, 2 case), `test_realize_r8_missing_search_finger_is_a_reason_not_keyerror`(R-8 -- 실현이 탐색 dc_finger 행을 읽지 않음),
+`test_realize_r12_finger_not_a_slice_is_slice_missing`(R-12 -- `slice_of_finger` C-3 이 덮음), `test_realize_r10_json_finger_residual_is_the_tampered_search_value`(O-1 로 대체).
+남긴 것: R-1(식 갱신), R-4, R-7, R-9, 새 O-1·O-3. **덮이지 않게 된 것(LA-1 재점검 입력)**: 실현 점의 입력 고정 갈래 KCL 재풀이·재봉인 값(R-6/R-15/R-16)과 입력 차 이동(R-2)의 닫힌 식 대조 -- 새 실현 경로에서 같은 구성을 만들 입력(실현 m 이 손 값으로 정해지는 키 선택)을 interface 가 정하지 않았다.
+`tests/convergence/test_realized_geometry.py`: `test_layout_resolve_r13a_servo_branch_follows_the_vgs2_fixed_point`, `test_layout_resolve_r13b_input_fixed_branch_follows_the_output_fixed_point`, `test_layout_resolve_l2_waiting_device_row_is_the_request_and_junction_follows_two_places`,
+`test_layout_resolve_l2_device_without_input_finger_row_is_realized_finger_missing` (+ helper `_fingers`·`_assert_input_rows`·`CountFingerSlice`·`_l2_start`·`_geometry`) -- 레이아웃 입력으로 탐색 `dc_finger` (m, w_f_m) 를 놓고 `finger_slice` 호출 0 을 세는 구성. 대체: D-7(요청 행 -> `slice_of_finger`, 없는 소자 = 기준 스냅샷). 덮이지 않는 것: 레이아웃 뒤 KCL 재풀이 값(R-13)의 닫힌 식 대조 -- LA-1 재점검 입력.

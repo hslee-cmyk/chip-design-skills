@@ -8,7 +8,8 @@ from __future__ import annotations
 import copy
 import math
 
-from gmid_engine.search import evaluate, expand_ties
+from gmid_engine.search import expand_ties
+from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 
 from .conftest import schema_of  # [U17 ①-b] graph/kernel 필드 읽기
 from .canon_cases import C_BOX, SYM_ELEMENTS, make_case, mid_theta, sym_doc

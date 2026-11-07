@@ -198,7 +198,7 @@ class RealPath:
 
     def start(self, name, variant="orig"):
         from generality.pipeline import map_cells, map_theta
-        from gmid_engine.search import evaluate
+        from search.conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
         case = self.pipe.case(name, variant)
         (th, cells), res = self.pipe.theta0(name)
         assert th is not None, (name, res.stop)

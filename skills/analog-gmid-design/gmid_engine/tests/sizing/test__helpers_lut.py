@@ -36,7 +36,7 @@ def test_w_key_and_forward_point_match_lut(ctx_c):
     fing = dict(snap.column("device", "dc_finger"))
     for m, op in dict(snap.column("device", "dc_op")).items():
         # toy LUT 는 슬라이스가 하나(키 100)라 후보가 하나: DeviceOp.w_key 와 dc_finger 가 같은 슬라이스를 가리킨다
-        assert op.w_key == round(fing[m].w_f_m / 1e-8) == W_KEY
+        assert op.w_key == W_KEY and fing[m].m == op.W / (W_KEY * 1e-8) and fing[m].residual == 0.0      # [FS-1 §4.2] 탐색 dc_finger = (W/w_f, 0.0)
         direct = op_point(ctx.lut.memo, op.kind, op.w_key, op.L, op.vgs, op.vds, op.vsb)
         assert op.idu_forward == direct.IDu and op.gm_id == direct.gm_over_id
         assert rel_close(op.idu_forward, math.exp(Oracle.ln_idu(op.kind, op.vgs, op.vds, op.vsb)), 1e-9)

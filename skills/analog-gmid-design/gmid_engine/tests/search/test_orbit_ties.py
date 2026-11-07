@@ -198,7 +198,7 @@ def test_spec_untie_orbits_feeds_search_context(tmp_path, lut_sealed):
 
 def test_untied_members_move_separately(tmp_path, lut_sealed):
     """3.24 7 (d): 푼 궤도의 두 구성원은 따로 값을 받는다 -- 평가 θ 에 서로 다른 값이 그대로 남는다."""
-    from gmid_engine.search import evaluate
+    from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 
     from .canon_cases import mid_theta
     case = _sym(tmp_path, lut_sealed, untie=("M3",))
@@ -268,7 +268,7 @@ def test_b_reversed_resistor_same_ties_as_drawn_alike(tmp_path, lut_sealed):
 def test_b_reversed_resistor_current_tie_sign_minus_one(tmp_path, lut_sealed):
     """(b) '묶음 값은 같고 가지 전류는 부호 −1': 뒤집어 그린 R2 의 θ 전류는 R1 의 θ 전류와 묶이되 평가 θ 에서 −1 배(부호만 다름).
     저항 값(resistance)은 같은 값. 거울 대칭에서 vdd→o1 전류 = −(o2→vdd 전류)(구성)."""
-    from gmid_engine.search import evaluate
+    from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 
     from .canon_cases import mid_theta
     flip = make_case(tmp_path, _rload(True), lut_sealed, elements=R_ELEMENTS, boxes=R_BOXES)

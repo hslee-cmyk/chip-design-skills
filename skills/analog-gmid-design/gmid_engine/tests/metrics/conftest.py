@@ -580,7 +580,7 @@ def hand_write(snap, kind, field, col, version="hand", finger=None):
     s = snap.write(S2_WRITERS.writer_of(kind, field), version, {(kind, field): dict(col)})
     if (kind, field) == ("device", "dc_op"):
         fing = dict(finger) if finger is not None else {
-            m: FingerGeom(max(1, round(o.W / LUT_WM)), LUT_WM, max(1, round(o.W / LUT_WM)) * LUT_WM / o.W - 1.0) for m, o in dict(col).items()}
+            m: FingerGeom(max(1, round(o.W / LUT_WM)), max(1, round(o.W / LUT_WM)) * LUT_WM / o.W - 1.0) for m, o in dict(col).items()}      # [FS-1] FingerGeom(m, residual)
         s = s.write(S2_WRITERS.writer_of("device", "dc_finger"), version, {("device", "dc_finger"): fing})
     return s
 

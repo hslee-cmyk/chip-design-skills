@@ -196,7 +196,7 @@ def test_ub1_gate_note_front_empty(tmp_path, lut_sealed, short_root):
 
 def test_front_points_respect_w_min(tmp_path, lut_sealed):
     """S-18: W_min 을 시작점 W 보다 크게 선언(시작점은 w_min 행 음수) -> front 점은 모두 W ≥ W_min(w_min 행 c ≥ 0)."""
-    from gmid_engine.search import evaluate
+    from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
     pdk = write_pdk(tmp_path / "bigw", minw_um="100")
     case, fr = _run(tmp_path, lut_sealed, eval_budget=40, pdk=pdk)
     w_min = case.sctx.domain.w_min_m
@@ -326,7 +326,8 @@ def test_eval_result_warnings_equal_ss_evaluate_i22(tmp_path, lut_sealed, short_
     """I-22: 봉인 점의 EvalResult.warnings == 같은 점을 ss_evaluate 로 직접 부른 SsEvaluation.warnings(== ss.warnings), 형식
     (("cm_loop_unconstrained", (("dc_db", 값 > 0),)),); 실패 점은 ()."""
     from gmid_engine.metrics import ss_evaluate
-    from gmid_engine.search import STATUS_FAILED, evaluate
+    from gmid_engine.search import STATUS_FAILED
+    from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
     case = _cm_case(tmp_path, lut_sealed, short_root)
     find_front(case.sctx, [])
     lines = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "evals.jsonl").read_text(
@@ -645,7 +646,8 @@ def test_gate_entry_derives_budget_when_evaluations_at_most_n_theta(tmp_path, lu
 # =====================================================================================================================
 
 def _wb1_points(tmp_path, cl, ids=("u0", "u1"), archive_root=None):
-    from gmid_engine.search import FrontPoint, evaluate
+    from gmid_engine.search import FrontPoint
+    from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
     from .wb1_flow import R2_CELLS, R2_ELEMENTS, bins_case, circuit_r2_cl, r2_theta, sorted_theta
     case = bins_case(tmp_path, circuit_r2_cl(), elements=R2_ELEMENTS + (("CL", "capacitor", cl),), eval_budget=60, archive_root=archive_root)
     ths = (sorted_theta(r2_theta(case.dc)), sorted_theta(r2_theta(case.dc, l=2e-6)))

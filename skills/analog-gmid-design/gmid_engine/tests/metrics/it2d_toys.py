@@ -57,7 +57,8 @@ def build(tmp, lut, topo, *, elements=(), constraints=(), input_dc="engine", fee
 def sealed_ss(case, theta, cells, structure=None):
     """봉인 점 하나를 평가해 (EvalResult, SsEvaluation) -- search 의 `evaluate` 와 같은 점을 `ss_evaluate` 로 직접 부른다(test_kernel 방식)."""
     from gmid_engine.metrics import ss_evaluate
-    from gmid_engine.search import STATUS_SEALED, evaluate
+    from gmid_engine.search import STATUS_SEALED
+    from search.conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 
     th = tuple(sorted(dict(theta).items()))
     r = evaluate(case.sctx, th, cells)

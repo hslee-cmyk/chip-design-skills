@@ -196,11 +196,12 @@ def test_next_layout_is_placed_on_the_front_point_snapshot_not_the_reevaluation_
     evaluate 는 **실** 평가(레이아웃 뒤 재풀이 + 재봉인). 첫 재평가가 통과한 뒤 둘째 `place_layout` 의 설계점 스냅샷 `is` 루프에 들어온 front 점 스냅샷이다
     (재평가 스냅샷이면 red). oracle (d) interface §8 기준점 규칙. 양성 대조: 재평가가 실제로 통과했고(iterations sealed) 재평가 스냅샷은 front 점 스냅샷과 다른 객체다."""
     from search.wb1_flow import R2_CELLS, R2_ELEMENTS, bins_case, circuit_r2, r2_theta, sorted_theta
-    from gmid_engine.search import evaluate
+    from search.conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
     case = bins_case(tmp_path, circuit_r2(), elements=R2_ELEMENTS)
     start = evaluate(case.sctx, sorted_theta(r2_theta(case.dc)), R2_CELLS)
     fing = {m: f for m, f in dict(start.evaluation.snapshot.column("device", "dc_finger")).items()}
-    nfs = {m: (round(f.w_f_m / GRID), f.m) for m, f in fing.items()}
+    ops0 = dict(start.evaluation.snapshot.column("device", "dc_op"))
+    nfs = {m: (ops0[m].w_key, max(1, round(f.m))) for m, f in fing.items()}       # [FS-1 서명 맞춤] 손가락 폭 = DeviceOp.w_key × grid, nf = 탐색 m(실수)의 손 반올림
     nfs["M1"] = (100, 3)                                                  # 레이아웃 M1 = (nf 3, finger_w 1e-6), 나머지는 사이징 점 손가락 그대로
     groups = (RowGroup("R1", "nmos", "gnd", ("M1", "M2")), RowGroup("R2", "pmos", "vdd", ("M3", "M4")))
     placed_snaps = []
@@ -445,7 +446,7 @@ def test_real_junction_caps_from_realized_diffusion(real, name):
 @pytest.mark.parametrize("name", REAL)
 def test_real_same_geometry_reevaluation_is_cache_hit(real, name):
     """같은 (θ, 기하)는 커널 0(평가 캐시) -- 불변식 3 '같은 기하 재방문은 커널 0'."""
-    from gmid_engine.search import evaluate
+    from search.conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
     r = real.run(name)
     cp = r.point
     k0 = r.sctx.counters["kernel_calls"]

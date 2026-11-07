@@ -54,7 +54,7 @@ def test_classification_and_initial_state(tmp_path, lut_sealed):
 def test_spec_passive_value_is_s2_field(tmp_path, lut_sealed):
     """[U17 ①] 설계 40 v1.6 §2.4.7 'SearchContext 칸 배정' 표: `element_values`·`spec_passive_values` -> 수동소자 값 필드(S2).
     spec 선언 값 CL = 2e-12 는 SearchContext 의 칸이 아니라 평가 스냅샷의 `device.passive_value` 행이다(§2.4.8, 값 = spec 선언 그대로)."""
-    from gmid_engine.search import evaluate
+    from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
     from .conftest import CELLS_C, theta_r4c
     case = build_case(tmp_path, circuit_c(with_cap=True), lut_sealed, elements=(("CL", "capacitor", 2e-12),))
     assert not hasattr(case.sctx, "spec_passive_values")
@@ -376,7 +376,8 @@ import importlib
 import math
 
 from gmid_engine.lut import LutMemo
-from gmid_engine.search import cone_rows, evaluate, find_front
+from gmid_engine.search import cone_rows, find_front
+from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 from gmid_engine.search.layer0_center import centre_start
 
 from .conftest import front_signature, schema_of, theta_r4c

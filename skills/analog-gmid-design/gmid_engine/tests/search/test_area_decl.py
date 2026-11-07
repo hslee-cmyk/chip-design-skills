@@ -19,7 +19,8 @@ import pytest
 
 from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.metrics import PassiveAreaDecl
-from gmid_engine.search import STATUS_PENDING_SEAL7, STATUS_SEALED, evaluate
+from gmid_engine.search import STATUS_PENDING_SEAL7, STATUS_SEALED
+from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
 
 from .conftest import area_decl_of  # [U17 ①-b] graph/kernel: passive_area_decl 필드 읽기
 from .conftest import (
