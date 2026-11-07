@@ -1,35 +1,39 @@
 {
   "id": "20261107-fs1",
-  "stage": "순서 3 (freeze·base 확인) 재판정 3 -- 판정 기록 본체(.ai/verification/20261107-fs1.json)는 code 커밋 뒤 순서 7에서 쓴다",
-  "attempt": 3,
+  "stage": "순서 3 (freeze·base 확인) 최종 -- 판정 기록 본체(.ai/verification/20261107-fs1.json)는 code 커밋 뒤 순서 7에서 쓴다",
+  "attempt": 4,
   "evidence_type": "red-green",
-  "previous": [{"attempt": 1, "T": "23c81fe1", "audit_commit": "1261e9dd", "verdict": "Major 5"}, {"attempt": 2, "T": "47617174", "audit_commit": "5def8cf4", "verdict": "Major 2"}],
+  "previous": [
+    {"attempt": 1, "T": "23c81fe1", "audit_commit": "1261e9dd", "verdict": "Major 5"},
+    {"attempt": 2, "T": "47617174", "audit_commit": "5def8cf4", "verdict": "Major 2"},
+    {"attempt": 3, "T": "5d1e215d", "audit_commit": "755ec5e4", "verdict": "Major 1 (MR-3)"}
+  ],
   "freeze": {
-    "T": "5d1e215d",
-    "audit_merge": "d59eaedd (git merge --no-ff role/test/20261107-fs1)",
+    "T": "58952cb1",
+    "T_full": "58952cb1751a4816aceb3c12e63179b2de98dd47",
+    "audit_merge": "6f2ae8a7 (git merge --no-ff role/test/20261107-fs1)",
     "base": "2cb26c92085b50c71dcb1090f5e43ed1fe4035be",
     "engine_paths_changed": 0,
     "code_commit": null,
-    "freeze_verdict": "동결 불가 -- Major 1. MR-3: test_passive_theta_circuit_front_measured 의 θ 상자 단언 하한 1e2 가 새 입력 rbounds = P_RBOUNDS (1e3, 1e6) 보다 느슨하다 (ss_resistance 상자 = resistance_bounds_ohm, search_values.py:49) -- 옛 test 는 상자와 단언이 같았다(1e2). 한 줄 수정(P_RBOUNDS 로). MR-1 두 교체 test base PASS, 코드 뒤 예측 PASS (손: x = 47.40 -> FS-1 m = 47, r = -0.00847, F(V_dd) = +1.09e-5 > 0 = 레일 안 근). RETIRED unmeasured test 의 fail-closed 성질은 search/test_eps_sweep.py::test_unmeasured_never_in_final_front(sweep 분류) + search/test_find_front.py R-17 3개(실현 뒤 재분류)가 정적으로 덮는다 -- 이번 실행은 메모리 부족으로 중단돼 base 통과 미측정. MR-2 고쳐짐(정적). n-3·n-5·n-6·n-8 반영. 상세 = wt/_drafts/evidence/2026-11-07/fs1_freeze_r3.md"
+    "freeze_verdict": "동결 -- Major 0. MR-3 닫힘: 58952cb1 한 커밋(test_find_front.py +6 -2)이 Rz 단언을 P_RBOUNDS 참조로, Cz 상자를 PZ_CBOUNDS 상수(입력 cbounds 와 단언이 같이 참조, 값 (1e-14, 1e-10) 옛 값 그대로)로 바꿨다 -- 새 약화 0. 대체 덮는 test: search/test_eps_sweep.py::test_unmeasured_never_in_final_front base PASS, search/test_find_front.py R-17 3개 base = 코드 없음(fs1_wf.hand_wf_default -> gmid_engine.sizing.WfCell 없음), test_passive_theta_circuit_front_measured base PASS. minor 는 LA-1 재점검 입력(fs1_freeze_r2.md n-1·n-2·n-4·n-7·n-9, fs1_freeze_r3.md r3-1·r3-2). 남은 실행 범위 미측정 기록은 attempt 2·3 그대로."
   },
   "isolation": {
-    "clone": "C:/fzf1/iso3 (HEAD d59eaedd, origin 제거)",
+    "clone": "C:/fzf1/iso4 (HEAD 6f2ae8a7, origin 제거)",
     "commands": [
-      "git -c core.longpaths=true clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261107-fs1-audit C:/fzf1/iso3",
-      "git -C C:/fzf1/iso3 remote remove origin",
-      "(cwd = C:/fzf1/iso3/skills/analog-gmid-design/gmid_engine/tests; OPENBLAS_NUM_THREADS=1 PYTHONIOENCODING=utf-8 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=C:/fzf1/pyc3 GMID_LUT_TABLE_CACHE_DIR=C:/fzf1/lutcache) C:/Python314/python.exe -m pytest -p no:cacheprovider <args> -- 래퍼 C:/fzf1/run3.sh"
+      "git -c core.longpaths=true clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261107-fs1-audit C:/fzf1/iso4",
+      "git -C C:/fzf1/iso4 remote remove origin",
+      "(cwd = C:/fzf1/iso4/skills/analog-gmid-design/gmid_engine/tests; OPENBLAS_NUM_THREADS=1 PYTHONIOENCODING=utf-8 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=C:/fzf1/pyc4 GMID_LUT_TABLE_CACHE_DIR=C:/fzf1/lutcache) C:/Python314/python.exe -m pytest -p no:cacheprovider <args> -- 래퍼 C:/fzf1/run4.sh"
     ]
   },
   "runs": [
-    {"name": "structure", "result": "8 failed, 198 passed, 1 deselected (123 s)", "code_absent": 8, "test_defect": 0},
-    {"name": "changed 5 files (test_realized_geometry, test_find_front, test_realize_front, test_search_context, test_start_intervals)", "result": "33 failed, 57 passed, 1 deselected, 4 errors (251 s)", "code_absent": 37, "test_defect": 0, "mr1_tests": "test_passive_theta_circuit_front_measured PASS, test_eval_results_identical_search_memo_vs_caller_memo PASS", "collection_errors_in_these_files": ["search/test_start_intervals.py (initial_wf)"]},
-    {"name": "probe_p (pytest 아님, 코드 뒤 예측)", "script": "C:/fzf1/probe_p.py", "output": "C:/fzf1/out3/probe_p.txt"}
+    {"name": "eps", "args": "-q -rA --tb=short search/test_eps_sweep.py::test_unmeasured_never_in_final_front", "free_mem_gb_before": 5.22, "result": "1 passed (1.3 s)", "class": "PASS"},
+    {"name": "r17", "args": "-q -rA --tb=short search/test_find_front.py -k \"r17 or passive_theta_circuit_front_measured\"", "free_mem_gb_before": 5.28, "result": "3 failed, 1 passed, 33 deselected (4.8 s)", "class": "R-17 3개 = 코드 없음 (AttributeError gmid_engine.sizing.WfCell, fs1_wf.py:20 <- wb1_flow.r2_theta <- _wb1_points), test_passive_theta_circuit_front_measured = PASS"}
   ],
-  "killed": "C:/fzf1/r3.sh 의 3·4번째 실행(cover: test_eps_sweep::test_unmeasured_never_in_final_front + R-17, collect-only)은 하네스가 메모리 부족으로 중단 -- 다시 띄우지 않음 (미측정)",
+  "earlier_runs_ref": "attempt 2 (structure·collect·g1·g2·g3) = 5def8cf4, attempt 3 (structure·고친 5파일·probe_p) = 755ec5e4",
   "not_run": [
-    "덮는 test 3개 base 실행 (위 killed)",
-    "--collect-only 전체 (위 killed; n-6 은 changed 실행에서 test_realize_front 수집 성공으로 확인)",
-    "그 밖 범위 (지시 범위 = 고친 파일 + structure)"
+    "search/test_iv_matching_l.py (M 묶음, 지시로 제외)",
+    "search 디렉터리 전체, generality 3 파일, integration/test_s0_layer_9circuits.py, 2회로 연기 stage_b/s0/g10 --run-slow -k, search/test_canonical_order.py, slow 표지 test",
+    "attempt 3 에서 메모리 부족으로 중단된 --collect-only 전체 (n-6 은 정적 + 고친 파일 수집으로 확인)"
   ],
-  "code_start_allowed": false
+  "code_start_allowed": true
 }
