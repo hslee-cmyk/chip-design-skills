@@ -841,7 +841,8 @@ PDK 모델 카드 접합 식은 엔진에 없다(PDK 이식성, O-197). 오라�
 ### 8.2 식 (이 연산 순서 그대로)
 1. `table = memo.lut.cap_map[kind]`, `vgs = min(table.grids[1])`.
 2. 열 판별 CDD -> CSS -> CGS: 없으면 `SealViolationError`(소자 없음) detail `{reason: "lut_column_unavailable", column, kind}`.
-   CGS 대신 CGG − CGD 를 쓰지 않는다.
+   CGS 대신 CGG − CGD 를 쓰지 않는다. 3의 `caps` 결과 모형이 `lut_cgs_cgb`(측정 CGS 열)가 아니면(CGB 결손 등으로 cgs 가 대체값)
+   같은 `lut_column_unavailable`{column "CGS"} 로 정지한다(A-167).
 3. `c = caps(memo, kind, L, vgs, vds, vsb, reference.finger_w_m)`(배율 1). L·축 실패는 `caps` 의 기존 사유.
 4. `r_d = (geometry.ad_m2·geometry.m) / (reference.ad_m2·reference.m)`, `r_s = (geometry.as_m2·geometry.m) / (reference.as_m2·reference.m)`;
    `cdb = (c.cdd − c.cgd)·r_d`, `csb = (c.css − c.cgs)·r_s`.
