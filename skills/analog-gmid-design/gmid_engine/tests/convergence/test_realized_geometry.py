@@ -163,18 +163,18 @@ def _l2_start(tmp_path):
 
 
 def test_layout_resolve_l2_waiting_device_row_is_the_request_and_junction_follows_two_places(tmp_path):
-    """L-2: M1 = 배치 (nf 3, 1e-6), M2 = 요청 대기 (nf 3, 1e-6) -- 기준 실현 m(2) 과 다른 요청 (W' 3e-6 != 기준 2e-6), M3·M4 = 기준 스냅샷 그대로.
+    """L-2: M1 = 배치 (nf 3, 1e-6), M2 = 요청 대기 (nf 4, 1e-6) -- 기준 실현 m(2) 과 다른 요청 (W' 4e-6 != 기준 2e-6), M3·M4 = 기준 스냅샷 그대로.
     M2 접합 = 그 평가가 쓴 W 의 레이아웃 전 규칙 기하, M1 접합 = 배치 확산 값. oracle (손): 합성 r4 LUT 접합 입력 열 상수(JC1_*)."""
     from metrics.conftest import JUNCTION_RTOL, toy_rule_values
     from sizing.wb1_toy import JC1_CDD, JC1_CGD, JC1_CGS, JC1_CSS
     case, ev, base = _l2_start(tmp_path)
     bops = dict(base.evaluation.snapshot.column("device", "dc_op"))
-    assert bops["M2"].W != 3e-6                                                     # 전제: 요청이 기준과 다르다 (공허 방지)
-    out = _reeval(case, ev, base, _geometry({"M1": (1e-6, 3)}, {"M2": (1e-6, 3)}))
+    assert bops["M2"].W != 4e-6                                                     # 전제: 요청 (nf 4: W' 4e-6) 이 기준 (2e-6) 과 다르다 (공허 방지)
+    out = _reeval(case, ev, base, _geometry({"M1": (1e-6, 3)}, {"M2": (1e-6, 4)}))   # nf 4: csb2 = 4·s_cap != csb1 = 3·s_cap (nf 3 이면 csb 가 두 자리를 못 가른다 -- 판정 MR-2a)
     assert out.failure is None and out.evaluation is not None, out.failure
     rsnap = out.evaluation.snapshot
     ops, ss = dict(rsnap.column("device", "dc_op")), dict(rsnap.column("device", "ss_dev"))
-    assert ops["M2"].W == pytest.approx(3e-6, rel=1e-12) and ops["M2"].w_key == 100       # W' = nf·finger_w, 슬라이스 = slice_of_finger(1e-6)
+    assert ops["M2"].W == pytest.approx(4e-6, rel=1e-12) and ops["M2"].w_key == 100       # W' = nf·finger_w, 슬라이스 = slice_of_finger(1e-6)
     assert ops["M1"].W == pytest.approx(3e-6, rel=1e-12)
     for m in ("M3", "M4"):
         assert ops[m].W == bops[m].W
@@ -189,7 +189,7 @@ def test_layout_resolve_l2_waiting_device_row_is_the_request_and_junction_follow
     csb2 = s_cap * ((rule["as_per_w"] * ops["M2"].W * 1.0) / ((rule["as_per_w"] * w_ref) * 1.0))
     assert ss["M2"].junction_model == "lut_vgs_min_rule_area"
     assert ss["M2"].cdb == pytest.approx(cdb2, rel=tol) and ss["M2"].csb == pytest.approx(csb2, rel=tol)
-    assert cdb1 != cdb2 or csb1 != csb2 or ss["M1"].junction_model != ss["M2"].junction_model      # 공허 방지: 두 자리가 다르게 계산됨
+    assert cdb1 != cdb2 and csb1 != csb2                                            # 공허 방지: 두 자리의 기대값이 다르다 (옛 단언 그대로, AND)
 
 
 def test_layout_resolve_l2_device_without_input_finger_row_is_realized_finger_missing(tmp_path):
