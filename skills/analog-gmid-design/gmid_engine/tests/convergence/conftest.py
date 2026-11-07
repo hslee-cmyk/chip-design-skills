@@ -125,8 +125,9 @@ class FakeSnapshot:
         return self.fields[(table, field)][key]
 
 
-def op(kind="nmos", W=1e-6, current=1e-6, L=1e-6, gm_id=10.0, vds=0.5, vsb=0.0):
-    return SimpleNamespace(kind=kind, W=W, current=current, L=L, gm_id=gm_id, vds=vds, vsb=vsb)
+def op(kind="nmos", W=1e-6, current=1e-6, L=1e-6, gm_id=10.0, vds=0.5, vsb=0.0, w_key=100):
+    # [FS-1 A-196 signature-misses-search] `w_key` = 그 평가가 쓴 슬라이스 키(interface §4.2 `DeviceOp.w_key`) -- 가짜 스냅샷의 `point_wf` 입력 (격자 1e-8 에서 키 100 = 1 µm)
+    return SimpleNamespace(kind=kind, W=W, current=current, L=L, gm_id=gm_id, vds=vds, vsb=vsb, w_key=w_key)
 
 
 def ssdev(cdb, csb, model="m"):
@@ -209,7 +210,12 @@ class RealPath:
             theta[comp] *= factor
         sctx = self.pipe.fresh_sctx(case)
         theta = map_theta(theta, case)
-        result = evaluate(sctx, theta, map_cells(cells, case, sctx.domain))
+        # [FS-1 A-196 판정 #8-10] 손 θ 는 층 0 출발 점(`theta0`)에서 만든 것이라 출발 블록의 w_f 칸(`graph/start: wf_start`)으로 평가해야 같은 입력이다 -- `evaluate` 래퍼의 기본
+        # 손 wf(가장 좁은 후보)는 같은 θ 의 다른 입력이어서 점이 받아들여지지 않았다. 입력 재구성이지 기대 생산이 아니다(`initial_wf` = 출발 블록 값을 읽을 뿐).
+        from gmid_engine.search import initial_wf
+        wf0 = initial_wf(sctx.dc.base)
+        assert wf0 is not None, (name, variant, "출발 w_f 칸 불성립 -- 멈추고 보고")
+        result = evaluate(sctx, theta, map_cells(cells, case, sctx.domain), wf=wf0)
         return case, sctx, result
 
     def run(self, name, variant="orig"):

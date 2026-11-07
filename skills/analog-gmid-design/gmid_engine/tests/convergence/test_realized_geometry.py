@@ -86,9 +86,10 @@ def _realized_base(case, ev):
 
 
 def _reeval(case, ev, base, geometry):
-    from gmid_engine.sizing import RealizeInput
     from search.conftest import evaluate
-    return evaluate(case.sctx, ev.theta, ev.key.cells, parent=base, geometry=geometry, realized=RealizeInput(base.evaluation.snapshot))
+    # [FS-1 A-196 signature-misses-search] 공개 `evaluate` 는 geometry(레이아웃 뒤)와 realized(실현)를 동시에 받지 않는다(ValueError) -- 레이아웃 뒤 평가의 기준(실현) 스냅샷은
+    # `parent` 로 준다 (converge_point 가 부르는 꼴과 같다: `evaluate(.., parent=cp.result, geometry=cp.geometry)`). size_and_seal 수준 D-7 만 realized= 와 layout= 을 함께 쓴다 (interface §4.4).
+    return evaluate(case.sctx, ev.theta, ev.key.cells, parent=base, geometry=geometry)
 
 
 def test_layout_resolve_r13a_servo_branch_follows_the_vgs2_fixed_point(tmp_path):
@@ -194,7 +195,8 @@ def test_layout_resolve_l2_waiting_device_row_is_the_request_and_junction_follow
 
 def test_layout_resolve_l2_device_without_input_finger_row_is_realized_finger_missing(tmp_path):
     """기준(실현) 스냅샷에 dc_finger 행이 없는 소자(M3: 요청도 배치도 아님) -> `realized_finger_missing` (분류된 후보 실패, KeyError 아님). 기준 행을 지운 스냅샷이 입력."""
-    from gmid_engine.sizing import DC_SOLVE_WRITER, RealizeInput
+    import dataclasses
+    from gmid_engine.sizing import DC_SOLVE_WRITER
     from sizing.conftest import column_dict
     from search.conftest import evaluate
     case, ev, base = _l2_start(tmp_path)
@@ -203,6 +205,7 @@ def test_layout_resolve_l2_device_without_input_finger_row_is_realized_finger_mi
     assert "M3" in col                                                              # 전제: 지울 행이 있다
     col.pop("M3")
     broken = bsnap.write(DC_SOLVE_WRITER, "tampered", {("device", "dc_finger"): col})
-    out = evaluate(case.sctx, ev.theta, ev.key.cells, parent=base, geometry=_geometry({"M1": (1e-6, 3)}, {"M2": (1e-6, 3)}), realized=RealizeInput(broken))
+    bad_parent = dataclasses.replace(base, evaluation=dataclasses.replace(base.evaluation, snapshot=broken))      # 기준(실현) 스냅샷 = parent (위 `_reeval` 와 같은 자리)
+    out = evaluate(case.sctx, ev.theta, ev.key.cells, parent=bad_parent, geometry=_geometry({"M1": (1e-6, 3)}, {"M2": (1e-6, 3)}))
     assert out.failure is not None and out.evaluation is None, out
     assert "realized_finger_missing" in {out.failure.failure_class, dict(out.failure.detail).get("reason")}
