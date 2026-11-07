@@ -151,3 +151,17 @@ def test_cdd_without_css(toy_build):
     cap["CDD_n"] = np.full((3, 3, 2, 2), 7e-16)
     c = caps(new_memo(toy_build("cddonly", cap=cap).load()), "nmos", 1e-6, 0.5, 0.5, 0.0, 1e-6)
     assert rel_close(c.cdd, 7e-16, 1e-12) and c.css is None
+
+
+
+# [JC-1 A-169] `Caps.cgs_measured`: 기준 폭 표에 CGS 열이 있으면 그 열 값(W/w_ref 배), 없으면 None. CGB 열 유무와 무관하고 기존 `cgs`·`model` 은 불변.
+# oracle (a): 상수 열 5e-16 (모든 마디 같은 값) -> 마디 조회 값 = 5e-16 × W/w_ref; 기존 값 cgs = cgg − cgd = 8e-16 (CGB 열 없음 -> 대체 모형).
+def test_jc1_caps_cgs_measured_is_column_value_or_none(toy_build):
+    cap = toy_cap_arrays()
+    with_cgs = dict(cap, CGS_n=np.full((3, 3, 2, 2), 5e-16))
+    c = caps(new_memo(toy_build("cgs_col", cap=with_cgs).load()), "nmos", 2e-6, 0.5, 0.5, 0.0, 2e-6)
+    assert c.cgs_measured == 5e-16 * 2.0                                   # 열 값 × W/w_ref (= 2)
+    assert c.model == "cgg_minus_cgd_at_gs" and rel_close(c.cgs, 2.0 * (1e-15 - 2e-16), 1e-12)      # 기존 값 불변 (CGB 열 없음)
+    none = caps(new_memo(toy_build("no_cgs", cap=cap).load()), "nmos", 2e-6, 0.5, 0.5, 0.0, 2e-6)
+    assert none.cgs_measured is None
+    assert none.model == "cgg_minus_cgd_at_gs" and rel_close(none.cgs, c.cgs, 1e-12)

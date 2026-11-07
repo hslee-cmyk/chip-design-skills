@@ -72,3 +72,13 @@
 ## D-b 합성 LUT (동결 판정 M3)
 
 `sizing/wb1_toy.write_r4_bins_lut(jc1_cols="node")`: 접합 입력 열을 점마다 다른 손 식(`jc1_node_cdd`, `jc1_node_css`, 인덱스 (l, g, d, s))으로 쓴다. D-b 는 이 LUT 의 마디 값을 `==` 로 비교한다.
+
+
+## 바뀐 기대 4묶음 (위임 A-167, code dispute `20261106-jc1-stale-tests`)
+
+| # | test | 바뀐 기대 | 근거 |
+|---|---|---|---|
+| 1 | `tests/metrics/test_sensitivity.py::test_r2_miller_sensitivities_not_trivial` | 합계 상수 `10` 삭제 -> 살아 있는 칸 수를 열 목록(conftest `lut_params_of`, 값 ≠ 0 인 `LUT_P` 8열)에서 따로 세어 `n_live` 와 비교(`n_live > 0` 병기). 칸마다의 살아 있음·0 단언은 그대로 | 열 목록 6 -> 8열 갱신을 따르는 기대 갱신(약화 아님) |
+| 2 | `tests/metrics/test_ss_evaluate.py::test_s12_junction_change_recomputes_ss_blocks_only` -> `test_s12_junction_temp_change_recomputes_ss_dev_only` | 블록 계수 `[1, 1, 0]` -> `[1, 0, 0]`; ss_dev 값이 그대로(`==`)임을 덧붙임; 이름·docstring 새 의미 | 접합 값이 온도를 읽지 않는다(card 범위 3, interface §2): 묶음 지문만 `ss_dev` 입력 버전에 들고 값이 같아 `metrics_ss` 는 재사용 |
+| 3 | `tests/metrics/test_ss_linearize.py::test_vgs_min_g3_dc_finger_only_difference_reuses` | 계수 행 `(2,1,0,0,1,0)` 고정 -> `calls == 2`, `computes == 1`, `recomputes_same_input == 0`, `reuses + grafts == 1` | G-3 계약 = 둘째 계산 0. 서로 다른 스냅샷의 재사용 정본 경로는 S3 graft 이므로 경로 하나를 고정하지 않는다 |
+| 4 | `test_ss_linearize.py` lut_b 사용 3개: `test_values_old_lut_secant_and_cap_fallback`, `test_gmb_secant_differs_from_column`, `test_lut_content_changes_input_version` | **A-169 로 정정(A-167 4(b) 철회)**: 접합은 측정 CGS 열이 있으면 그 값을 쓴다(csb = (CSS − 측정 CGS)·r_s) -- CGB 열만 없는 표 `lut_b` 는 정지하지 않는다. 세 test 는 원래 기대 꼴(ss_dev 가 양수 csb 를 측정 CGS 열 기준으로 계산)로 되돌렸고 `lut_d` fixture 는 삭제(불필요). 접합을 거치지 않는 LUT 모듈 단언(`caps` 대체 모형, `gmb` 할선)은 첫 test 에 덧붙여 유지, 측정 CGS 대신 CGG − CGD 를 썼다면 값이 달라짐(공허 방지)도 단언. 정지는 **CGS 열이 없는 표**에서만: 새 test `test_junction_cgs_column_missing_table_stops`(함수 `lut_column_unavailable`{column "CGS", kind}, devices == (); ss_dev `lut_query_failed`{lut_reason, column CGS, device_query junction_at_vgs_min}, devices == ("M1",)); 정지 안 함 대조 `test_junction_cgb_only_missing_table_does_not_stop` | A-169 (a), interface §1 열 판별 2. 새 `Caps` 칸 test 는 칸 이름 미정이라 보류(dispute `20261106-jc1-caps-cgs-field.md`) |

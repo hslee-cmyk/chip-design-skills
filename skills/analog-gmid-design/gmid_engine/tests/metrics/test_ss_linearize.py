@@ -34,11 +34,13 @@ from lut.conftest import R5_A, R5_B, R5_C
 from .conftest import block_row, fresh_run, row_delta
 from .conftest import (
     JUNCTION_RTOL,
+    LUT_VGS,
     LUT_WM,
     device_op,
     hand_write,
     load_lut_v2,
     lut_access,
+    lut_cap_closed,
     oracle_junction,
     oracle_ss,
     read_rule_decl,
@@ -206,14 +208,66 @@ def test_junction_lookup_point_and_kind_and_width_mapping(tmp_path, lut_a, decl_
 
 
 def test_values_old_lut_secant_and_cap_fallback(tmp_path, lut_b, decl_path):
-    """GMBS 열 없는 옛 LUT: gmb = r5 VS 칸 할선, 용량 cgs = cgg − cgd, cgb = 0(CGB 열 없음). 접합 항은 CGS·CDD·CSS 열이 있어 계산된다."""
+    """GMBS 열 없는 옛 LUT: gmb = r5 VS 칸 할선, 용량 cgs = cgg − cgd, cgb = 0(CGB 열 없음). 접합 항은 측정 CGS·CDD·CSS 열이 있어 계산된다:
+    csb = (CSS − 측정 CGS 열)·r_s (대체값 cgg − cgd 아님; [A-169] 원래 기대 꼴). 접합을 거치지 않는 LUT 모듈 단언(`caps` 대체 모형, `gmb` 할선)도 덧붙인다."""
+    from gmid_engine.lut import caps, gmb
     snap, ops = _snap(tmp_path)
     js = _js(decl_path, lut_b)
     col = dict(_ss(snap, lut_access(lut_b), js).column("device", "ss_dev"))
+    memo = lut_access(lut_b).memo
     for m, op in ops.items():
-        _check(col[m], oracle_ss(op, "secant", "cgg_minus_cgd_at_gs"), op)
+        exp = oracle_ss(op, "secant", "cgg_minus_cgd_at_gs")
+        _check(col[m], exp, op)
         assert col[m].gmb_model == GMB_VS_CELL_SECANT == "lut_vs_cell_secant"
         assert col[m].cap_model == "cgg_minus_cgd_at_gs"
+        c = caps(memo, op.kind, op.L, op.vgs, op.vds, op.vsb, op.W)
+        assert c.model == "cgg_minus_cgd_at_gs" and c.cgb == 0.0
+        assert rel_close(c.cgs, exp["cgs"], 1e-12)
+        assert rel_close(gmb(memo, op.kind, op.w_key, op.L, op.vgs, op.vds, op.vsb) * (op.W / LUT_WM), exp["gmb"], 1e-12), m
+        # 접합 csb 는 측정 CGS 열 기준 -- 대체값(cgg − cgd) 기준 값과 다르다(공허 방지)
+        cc = lut_cap_closed(op.kind, op.L, LUT_VGS[0], op.vds, op.vsb)
+        r_s = oracle_junction(op)[1] / (cc["CSS"] - cc["CGS"])
+        alt = (cc["CSS"] - (cc["CGG"] - cc["CGD"])) * r_s
+        assert col[m].csb > 0.0 and not rel_close(col[m].csb, alt, 1e-6)
+
+
+def test_junction_cgs_column_missing_table_stops(tmp_path, decl_path):
+    """[A-169 (a)] 기준 폭 표에 CGS 열이 없으면 접합은 대체값 CGG − CGD 를 쓰지 않고 정지한다(fail-closed): `junction_at_vgs_min` 은 SealViolationError
+    {reason lut_column_unavailable, column "CGS", kind}, devices == (); ss_dev 는 소자를 붙여 lut_query_failed{lut_reason, column CGS,
+    device_query junction_at_vgs_min}, devices == ("M1",). oracle (d): interface §1 열 판별 2."""
+    from gmid_engine.metrics import junction_at_vgs_min
+    lut = load_lut_v2(tmp_path / "nocgs", cap_cgs_cgb=False)
+    memo = lut_access(lut).memo
+    v = rule_values(tmp_path / "v")
+    geo = DiffusionGeometry(3e-6, v["a"] * 3e-6, v["b"] * 3e-6, 3e-6 + v["pd"], 3e-6 + v["ps"], 1.0)
+    ref = DiffusionGeometry(1e-6, v["a"] * 1e-6, v["b"] * 1e-6, 1e-6 + v["pd"], 1e-6 + v["ps"], 1.0)
+    with pytest.raises(SealViolationError) as ei:
+        junction_at_vgs_min(memo, "M1", "nmos", 2e-6, 1.0, 0.5, geo, ref)
+    assert dict(ei.value.record.detail) == {"reason": "lut_column_unavailable", "column": "CGS", "kind": "nmos"}
+    assert ei.value.record.devices == ()
+    snap, _ = _snap(tmp_path)
+    with pytest.raises(SealViolationError) as ei2:
+        _ss(snap, lut_access(lut), _js(decl_path, lut))
+    det = dict(ei2.value.record.detail)
+    assert ei2.value.record.devices == ("M1",)
+    assert det["reason"] == "lut_query_failed" and det["lut_reason"] == "lut_column_unavailable"
+    assert det["column"] == "CGS" and det["device_query"] == "junction_at_vgs_min"
+
+
+def test_junction_cgb_only_missing_table_does_not_stop(tmp_path, lut_b):
+    """[A-169] CGS 열은 있고 CGB 열만 없는 표는 정지하지 않는다: `junction_at_vgs_min` 이 값(cdb·csb > 0)을 낸다 -- csb = (CSS − 측정 CGS 열)·r_s 손 식(비례 상수 약분 전
+    닫힌 식 `oracle_junction`, 격자 밖 점이라 상대 오차)."""
+    from gmid_engine.metrics import junction_at_vgs_min
+    memo = lut_access(lut_b).memo
+    v = rule_values(tmp_path / "v")
+    W = 3e-6
+    geo = DiffusionGeometry(W, v["a"] * W, v["b"] * W, W + v["pd"], W + v["ps"], 1.0)
+    ref = DiffusionGeometry(1e-6, v["a"] * 1e-6, v["b"] * 1e-6, 1e-6 + v["pd"], 1e-6 + v["ps"], 1.0)
+    cdb, csb = junction_at_vgs_min(memo, "M1", "nmos", 2e-6, 1.0, 0.5, geo, ref)
+    op = device_op("nmos", 2e-6, 0.5, 1.0, 0.5, W)
+    exp_cdb, exp_csb = oracle_junction(op)
+    assert rel_close(cdb, exp_cdb, JUNCTION_RTOL) and rel_close(csb, exp_csb, JUNCTION_RTOL)
+    assert cdb > 0.0 and csb > 0.0
 
 
 def test_gmb_column_from_cap_table(tmp_path, lut_c, decl_path):
@@ -590,7 +644,11 @@ def test_vgs_min_g3_dc_finger_only_difference_reuses(tmp_path, toyd):
     run = fresh_run()
     out_a = _ss(s_a, acc, js, run)
     out_b = _ss(s_b, acc, js, run)
-    assert _ss_row(run) == (2, 1, 0, 0, 1, 0)
+    # [A-167] 서로 다른 스냅샷이므로 재사용의 정본 경로는 S3 graft 다(graph reuse 는 같은 객체). 경로 하나를 고정하지 않는다:
+    # 계산 1회(둘째 계산 0), 같은 입력 재계산 0, 재사용 + graft 합 1.
+    calls, reuses, grafts, replays, computes, same = _ss_row(run)
+    assert (calls, computes, same) == (2, 1, 0)
+    assert reuses + grafts == 1
     assert out_b.value("device", "M1", "ss_dev") == out_a.value("device", "M1", "ss_dev")
 
 

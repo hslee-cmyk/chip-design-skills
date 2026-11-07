@@ -420,16 +420,18 @@ def test_s6_lineage_reuse_zero_compute(base):
         assert (st.computes, st.reuses) == (0, 1), name
 
 
-def test_s12_junction_change_recomputes_ss_blocks_only(base):
-    """S-12: temp_c 만 바꾼 묶음 -> ss_dev 재계산 1회(→ metrics_ss 도 1회), metrics_dc 는 ss 를 읽지 않아 재사용(7.10-3),
+def test_s12_junction_temp_change_recomputes_ss_dev_only(base):
+    """S-12 [JC-1, A-167]: temp_c 만 바꾼 묶음 -> 묶음 지문이 ss_dev 입력 버전에 들어 ss_dev 만 재계산 1회. 접합 값은 온도를 읽지 않아(card 범위 3, interface §2)
+    출력 값이 같고, 하류 metrics_ss 입력 버전이 그대로라 재사용(computes 0), metrics_dc 도 재사용. 계수 [1, 0, 0] (옛 BSIM4 온도 보정 시절의 [1, 1, 0] 갱신),
     recomputes_same_input 0. 같은 묶음으로 다시 -> 세 블록 computes 0."""
     spec, ctx, _, _, res, js = base
     js_t = dataclasses.replace(js, temp_c=js.temp_c + 10.0)
     before = _counts(ctx)
     r2 = ss_evaluate(res.lineage.sealed, ctx, theta(), spec.constraints, ("vdd",), junction=js_t)
     st = _since(ctx, before)
-    assert [st[b.name].computes for b in BLOCKS] == [1, 1, 0]
+    assert [st[b.name].computes for b in BLOCKS] == [1, 0, 0]
     assert all(st[b.name].recomputes_same_input == 0 for b in BLOCKS)
+    assert r2.snapshot.value("device", "M1", "ss_dev") == res.snapshot.value("device", "M1", "ss_dev")      # 값 그대로
     op = r2.snapshot.value("device", "M1", "dc_op")
     cdb, csb = oracle_junction(op)               # [JC-1] 접합 값은 온도를 읽지 않아 값 그대로(묶음 지문만 입력 버전에 든다)
     ss = r2.snapshot.value("device", "M1", "ss_dev")
