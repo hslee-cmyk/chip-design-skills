@@ -201,6 +201,8 @@ date: 2026-10-15
 | 0.6.4 (승인) | 2026-11-02 | 상위 gain-budget v6.38.6 승인(사용자 결정 O-216, `wt/_drafts/user_decisions.md` O-216 행) -- 이 판(plan/v6386 HEAD `e71aa597`까지의 커밋)은 상위 승인에 포함; Status 표기만 바꿈(본문 변경 0). 옛 Status 줄 원문: «> **Status**: **v0.6.4 -- 상위 gain-budget v6.38.6 열다섯째 커밋 전파(상위 사용자 결정 O-202·O-205·O-210·O-212 -- off 선언 = 사이징·포화 요구 제외 + 0 모형 + 1차 ΔV·O-h(`judged_by`)·VGS < 0 off 점 E-0 정지, 선언 영역 대조 삭제, 온도 점 전도 판정 = 부호 비교; LUT 확장 = TR card 착수 조건; **원래 취지와 다름(승인 상위 O-202·O-212)**), 검증 대기**(2026-10-31, 브랜치 `plan/v6386`; 경위 history Version History 0.6.4 첫째~넷째 커밋 행 -- 셋째·넷째 = 상위 열일곱째·열여덟째 커밋(계획 검증 51·52)) 이전 판: **v0.6.3 -- 상위 gain-budget v6.38.6 아홉째 커밋 전파(상위 사용자 결정 O-197 PDK 이식성 -- OP-6 능력 기록 표기를 '현재 PDK 기술자' 역할로, 사례 표지; 의미 변경 0), 검증 대기**(2026-10-31, 브랜치 `plan/v6386`; 경위 history Version History 0.6.3 행) 이전 판: **v0.6.2 -- 승인됨(상위 사용자 결정 O-173, 2026-10-29; 넷째~일곱째 커밋(상위 v6.38.5 전파) = 상위 사용자 결정 O-193, 2026-10-31) (v6.38.4 열넷째 커밋 백로그 재감사 반영 -- 삭제 7·배정 4·질문 0, 검증 대기) -- 상위 gain-budget v6.38.3 열두째 커밋(사용자 대원칙 O-169) 판정 W 행·`offset_sys_mv` 행 재작성(상위 N6.35 E-05·U-108: 커널에서도 V_id* 성분 (1)(2)로 판정, front는 판정 W로 성분 (3)을 더해 재판정 -- 옛 '커널에서는 ΔW = 0이라 V_id* = 0' 삭제), **원래 취지와 다름 -- 승인 O-170**(상위 승인 표 #23), 승인됨(상위 사용자 O-170, 2026-10-29)**(승인 커밋 -- 상위 gain-budget v6.38.3 승인 O-170; 경위 history 승인 행)(2026-10-28, 브랜치 `plan/v6383`; 둘째 커밋 -- 상위 열셋째 커밋·상위 독립 검증 11 L-4: 판정 W 행 머리의 낡은 'DEC-74 front 전용 예외'를 상위 DEC-74·U-108(커널 + front 재판정)로; 경위 history 0.6.2 행) 이전 판: **v0.6.1 -- 승인됨(사용자 O-60 "병합 승인", 2026-10-20, `wt/_drafts/user_decisions.md` O-60 행). O-58·O-59 후속 정정**(2026-10-20, 브랜치 `plan/offset-trim-v061`(승인·병합됨 O-60, 최종 머리 `2ca73b7b`), base master `2e707d5d` = v0.6 승인본; 사용자 결정 O-59 (4) DV-13 -- `wt/_drafts/user_decisions.md` O-59 행; 근거 `wt/_drafts/evidence/2026-10-20/o59_plans_revalidation.md` §6 '다른 계획 후속 정정 행'; 상위 정본 gain-budget v6.21 `plan/gb-v621` `54a3a328` DEC-23 '이동의 기준점'(223행) -- 인용은 절 이름, 해시는 병합 뒤 맞춤(승인·병합됨 O-60, 최종 머리 `54a3a328`)). 내용: DEC-23 V_id* 인용 세 자리(N2 O-53 행, `offset_sys_mv` 행, matching 유도 제약 행)에 기준점 V_id,0 인용, 온도 조건 V_id*(T)의 기준점 확인. 경위 history 0.6.1 행. 이전 판: **v0.6 -- 승인됨(사용자 O-57 "병합 승인", 2026-10-20, `wt/_drafts/user_decisions.md` O-57 행; 독립 최종 diff 재확인 '병합 가능'). O-53·정합 감사 반영**(2026-10-20). 근거: 사용자 결정 O-53(2026-10-20 "권고대로 진행해", `wt/_drafts/user_decisions.md` O-53 행 -- A2·A3·B1·B2·B3)과 O-23~O-52(특히 O-34, O-44, O-45 U3, O-46·O-47·O-50 G1), 정합 감사 요약 `wt/_drafts/evidence/2026-10-20/offset_audit_summary.md`(이 계획 몫 A1·A3·A4·A5·B1~B5·C2·D1~D4·E1~E3). 정본 인용(다시 정의하지 않음): gain-budget v6.20(`plan/gb-v620` `f2579b2f` -- DEC-23, DEC-74, DEC-90, N3.8, LR6, N6.1, N6.3, N6.18 VB-1, N6.20 EO-1), oracle-portability v0.6.10(`plan/oracle-v0610` `64687b21` -- G-18, OP-3, OP-5, OP-6, PC-10, N3.9), offset-strategy v0.7(`plan/offset-strategy-v07` `5f99a49a` -- N3.3, matching 합성 제약 판정 위치 O-53 A2의 정본), headroom-chain v0.7.7(`plan/headroom-v077` `64c115ba` -- HC-O intended_region 칸). 전체 정합 검증 4차(`wt/_drafts/evidence/2026-10-20/full_audit4_summary.md`)와 사용자 결정 O-54·O-55를 같은 판에 반영했다. 직전 승인판은 v0.5.5(T-29~T-38)·v0.5.6(T-39)이고, 그 상태 문장은 history H1 '2026-10-20' 절로 옮겼다. 근거는 사용자 결정 T-1~T-39, O-23~O-53, offset-strategy S-1~S-12와 원문 7편(N8)이다.» |
 | 0.6.5 | 2026-11-03 | 상위 gain-budget v6.38.8 전파(상위 사용자 결정 O-222) -- N9 위험 표 G2-a 문구. 옛 문구: «G2-a 관문(보정 포화 여유 < 0 = E-0)» |
 | 0.6.5 (둘째 커밋) | 2026-11-03 | 상위 gain-budget v6.38.8 둘째 커밋(상위 위임 A-1) -- N3.5 off 소자 기하 포인터. 규칙 변경 0 |
+| 0.7.0 | 2026-11-07 | 사용자 결정 O-258((A) MC 시점, (B) trim 구성) 반영 -- 브랜치 `plan/20261107-trim-compose`(base master `faf69218`). 바꾼 절: Summary, Status, N0 값 원칙, N0.1(σ_in·t·N,m 행 갱신, σ_MC·r_σ·trim 사양 기록·trim 파일·합성 회로·소자 출처 칸·코드 입력 선언·코드 상태 선언·trim 부담·부담 예산·국면 행 신설, trim_decl 폐지 표지, intended_region 행), N1.1·N1.2, FR-T1~T6·T9·T12 갱신·FR-T13~T15 신설, NFR-T3·T4, N2(T-2 대체 표지, O-249·O-255/256·O-257·O-258 행), N3.1 재작성, N3.2 한 낱말, N3.3 재작성, N3.4(N·m 출처 표·σ_MC·자기일관·제약·metric), N3.5(코드 상태·영역 선언 생성 주체·off 기하), N3.6 σ_in 행, N3.8.3 환경 항목, N3.9 끝, N3.10~N3.12 신설, N5(공통 조건·LA-1 자리·card 표 -- TR-0 묶음·TR-MC·TR-B 신설·TR-0T 합침, 완료 조건 1 범위·10~14 신설), N5.1 #1, N6, N7.1 머리, N7.2 'v0.7' 표 X-32~X-43, N7.3 G-1·G-2·G-4·G-5·G-7·G-21~G-24, N7.5 끝, N9 넷 행 갱신·넷 행 신설. 옛 문언 원문 = `faf69218:docs/01-plan/features/offset-trim.plan.md`(아래 절 'v0.7.0'의 줄 표). **원래 취지와 다름** = 계획 N7.2 'v0.7' 표. 독립 판정 전 |
+| 0.7.0 (둘째 커밋) | 2026-11-07 | 독립 판정 `wt/_drafts/evidence/2026-11-07/plan_offset_trim_v070_verdict.md`(Major 2·minor 13) 반영. **M1**: NFR-T8·N3.8.7 공통 규칙·완료 조건 7에 같은 실행 안 변형 사이 전달 = (a) Δ_T (b) 부담 변형 C 고정 θ = 변형 O 선택 점 기록 참조 (c) 부담 문턱 = v_O 기록 참조, 그 밖 0을 명시 예외로; 완료 7 단언 대상 재작성; X-44(offset-strategy XS-23과 같은 항목). 옛 문언: NFR-T8 «이전 반복에서 넘어가는 것은 대조를 통과한 Δ_T뿐이다.», N3.8.7 «* 이전 반복에서 넘어가는 것은 대조를 통과한 오라클 측정값 Δ_T뿐이다. / * 구동기는 이전 반복의 front 점을 다음 탐색의 시작점으로 주지 않는다.», 완료 7 «엔진이 이전 결과 JSON·S3·front 점을 읽지 않는다(읽기 경로 0, 시작점 주입 0).». **M2 (가)**: TR-3 선행에 TR-MC, N5 임계 경로 표(국면 2 사슬이 CL-1·OP-6 뒤), X-45. **minor**: m1 TR-MC 승인 단계 대조 함수(σ_MC 채택값 = 기록값 또는 차이 사유 선언, 아니면 거부)·완료 측정; m2 G-24 θ 기저 대응 규칙·N3.11 소속 문단; m3 N3.11 보고·FR-T9 '부담 미판정'; m4 N3.1-7((2′) 불합격 → 사양 재결정 또는 (1)로)·σ_MC 측정점 대 설계점(C′ 표지)·N3.10 (2′) 행; m5 (3) 진입 관문 = TR-7 범위 + 상위 LY-1 진입(GI-12); m6 N7.6 신설(S-1~S-3)·S-3을 TR-3·TR-5 착수 조건; m7 LA-1 자리 인용 문언('근거 (i)~(iii), O-229 취지와 정합'); m8 TR-0 (4) 참조 → history 낡은 자리 목록; m9 D-10·D-13·D-15 대체·소멸 표지; m10 승인 기록 = 승인된 trim 파일 목록(항목마다 sha256·합성 회로 지문), 파일 이름 대안 허용(G-21); m11 폐지 용어 행 한 줄, FR-T2·NFR-T4·N3.3 머리·TR-1·TR-2의 '옛 …' 경위 문구 삭제(옛 문언 = 첫 커밋 `be66cfe7`); m12 N3.3 합성 로더 중복 문장 삭제; m13 TR-5 착수 실측(섞인·대응 없는 θ 성분 n/7)으로 계획에 넣음(이번에 재지 않음 -- O-229 4). 독립 재판정 전 |
 
 
 ## 승인 마무리 (2026-10-16)
@@ -256,3 +258,134 @@ date: 2026-10-15
 * OT-B7 삭제(중복) -- N7.4 후속 4 원문(oracle-portability OP-B13 -- OP-0 design 개정의 N3.5.1 재대조 하나로): «* (v0.6 갱신, 감사 D4) oracle-portability v0.6.10(`plan/oracle-v0610`) N3.5.1 대조표가 이 계획 N3.9-3 확인 항목을 담는지 대조한다. 6번(V_id*(T))은 PC-10 = OP-5 `.dc`(O-53 B3)로 맞춘다. 그 계획 N3.9 `offset_sys_mv` 행의 'PC-10과 같은 기준인지' 미결 문장은 O-53 B3으로 닫혔음을 알린다(옛 문장 'oracle-portability 계획(초안, oport-plan)'은 history).»
 * OT-B8 삭제(a) -- N7.4 후속 5 원문(상위 후속 정정 표가 같은 칸 {triode, off}로 정함): «* (v0.6, O-53 B1) intended_region `off` 칸: 엔진 봉인 9(선언 triode 밖 ID ≤ 0 거부, O-52 확인 2)와 oracle G-18 스키마가 `off` 선언을 같은 칸으로 받는지를 gain-budget(EO-1 범위 4)·oracle-portability(G-18)·headroom-chain(HC-O intended_region 칸, `plan/headroom-v077` `64c115ba`)과 대조한다.»
 * OT-B11 삭제(c) -- T-32 'GBW·PM 등 코너 확장은 나중'은 사용자 범위 결정 기록이고 할 일 문장이 아님을 확인, 계획 문언 변경 없음.
+
+## v0.7.0 -- 사용자 결정 O-258 (2026-11-07)
+
+### 경위
+
+- 원문: `wt/_drafts/user_decisions.md` O-258 행(사용자 "동의해" -- 오케스트레이터 제안 두 건). 사용자 질문 원문: "여기서 trim로직은 몬테카를로를 돌려 오프셋 변화폭을 확인해야 그걸 스펙으로 결정할 수 있잖아. 어느 단계에서 몬테카를로를 돌려 오프셋 실측을 해서 trim로직을 만들어야 할까?" / "3번에서 현재 토팔로지에 가장 적합한 trim방안을 ai가 제안하고 그걸 별도의 토팔로지 화일로 구성하여 원래의 토팔로지에 연결되어 설계가 완성될 수 있도록 하는게 좋겠어. graph정본에 이 trim구조가 로딩되어 구성되고 trim로직인 것을 알 수 있어서 기존 토팔로지 성능에 최소한의 영향만 줄 수 있도록 설계되는 방식이어야 하지 않을까?"
+- 함께 읽은 결정: O-249(off는 선언으로만), O-255·O-256(AI 설계·레이아웃 5단계 -- 상위 gain-budget v6.39.0 DEC-110), O-257(해법 S -- 실현 정수 m·w_f, 상위 DEC-108), O-229(LA-1까지 임시 규칙 -- card 배치 근거).
+- 상위 gain-budget v6.39.0은 이 브랜치 base(`faf69218`) 뒤에 master에 병합됐다(`57a014b2`, 브랜치 `plan/20261107-finger-S` 넷째 커밋 `3f02a69f`). 이 개정은 그 판의 DEC-108·DEC-109·DEC-110·LY13·LY14·N5.3 Q-AF1·DE-Q3·DEC-23을 `git show plan/20261107-finger-S:…`로 읽고 인용했다(gain-budget 계획 파일은 이 브랜치에서 고치지 않음).
+- 작성자 판단 기록(독립 판정 대상, 계획 N7.2 '작성자 유도' 행과 같음):
+  - σ_MC를 spec 선언 칸(사용자 채택값, 출처 = MC 기록 id)으로 받는 안: 엔진이 oracle 기록 파일을 읽지 않게 하려는 것(X-23·S-3). 대안 '`value_from_file`로 MC 기록 참조'는 엔진이 oracle 유래 파일을 읽는 길이라 택하지 않았다.
+  - 랜덤 몫(k·σ_MC)과 계통 몫(합성 회로 엔진 V_id*)을 나눈 것: 끝 코드 V_in(±end)가 이미 V_id*를 품으므로 사양 기록 R(= k·σ_MC + |V_id*|)을 문턱에 그대로 넣으면 두 번 센다(v0.3 C1과 같은 오류 꼴).
+  - N_min = ⌈log2(R/V_res + 1)⌉: I_u 하한 \|t\|(2^N − 1)I_u ≥ R과 상한 \|t\|I_u(1 + kσ_DNL) ≤ V_res에서 σ_DNL ≥ 0으로 나오는 필요조건(\|t\| 약분).
+  - θ_0를 국면 2 실행 안 변형 O에서 다시 얻는 것: 국면 1 결과를 엔진 입력으로 받지 않기 위해(S-3·U-89). 비용 = 원본 탐색 한 번 더.
+  - OS-L 첫 소비자를 TR-B로 옮긴 것, 국면 2 게이트 해제를 TR-B(TR-5와 같은 통합 병합)로 옮긴 것: 부담 변형 C·C′가 실행 중 추가로만 생기기 때문(만들면 배선).
+  - card를 전부 LA-1 뒤에 둔 것: 계획 N5 '(v0.7) LA-1과의 자리' 근거 (i)~(iii).
+
+### 옛 문언 원문 위치(`faf69218:docs/01-plan/features/offset-trim.plan.md`)
+
+| 자리 | 옛 줄 | 요지 |
+|---|---|---|
+| Summary 두 단계 | 8-12 | 엔진이 추천 N·m과 `augment_trim` 파생 topology를 제시, 승인 뒤 파생 topology 사이징 |
+| N0.1 σ_in·t·N,m 끝 문장 | 42, 46, 51 | '2단계에서는 파생 topology에서 계산', 'N·m은 승인 선택값' |
+| N0.1 파생 topology·trim_decl·intended_region 행 | 54-56 | `augment_trim` 산출, `trim_decl` = spec + 승인 선택(D-15), 코드 상태마다 `augment_trim`이 만듦 |
+| N1.2 포함 행 | 86 | '추천 구성, 파생 topology와 connectivity 표 제시, `augment_trim`, 승인 흐름' |
+| FR-T2~T6 | 98-102 | 1단계 후보표(추천 N·m·파생 topology), `augment_trim` 서명, 파생 topology 승인, trim 소자 역할, 2단계 고정 N·m·1단계 재승인 |
+| NFR-T3·T4 | 118-119 | '파생 topology는 S0 입력이고 실행마다 다시 만든다', '`augment_trim`은 … 이름은 정렬된 규칙으로 만들고' |
+| N3.1 | 200-214 | 1단계(후보·추천·파생 topology) → 승인(쌍·극성·N·m) → 2단계(`trim_decl` 합성, `augment_trim` 재생성) → 되돌림 |
+| N3.3 | 227-243 | `augment_trim` 서명·붙이는 것·코드 표현(`trim_decl` DC 값 벡터)·스키마·출처 기록·승인 기록·결속 1~3 |
+| N3.4 1단계 추천 표 | 262-268 | N = I_u 하한 ≤ 상한이 성립하는 최소 정수, m = 창이 열리는 가장 큰 m, 극성 = N3.2 순위 |
+| N3.4 I_u 유도·보정 구간·자기일관 | 274-275, 279 | k·σ_in, '기본안은 하한값(D-16)', '파생 topology의 봉인 점 값' |
+| N3.5 코드 상태·영역 선언 | 296-301 | '`augment_trim`이 평가 코드 상태 넷마다', '`trim_decl`의 스위치 영역 선언 칸', off 소자 기하 `trim_decl` 정리 |
+| N5 card 표 TR-0~TR-7 | 543-550 | TR-1 `trim_decl` 합성, TR-2 1단계 N·m 추천, TR-3 `augment_trim`·파생 topology 출력, TR-5 국면 2 게이트 해제는 offset-strategy 쪽 문언 |
+
+### 낡은 자리 목록(원칙 19 전수 대조 -- 이 커밋에서 고치지 않음)
+
+대조 방법: 바뀐 결정(계획 N7.2 X-32~X-43)의 키워드(`augment_trim`, `trim_decl`, 파생 topology, 1단계 추천·`recommend_trim_config`, `bind_trim`, `compose_trim_decl`, {N, N+1}, 'TR-5 안의 국면 2 게이트', OS-L 'TR-TL과 같은 변경', 표본 수 r)를 이 브랜치 `docs/`·`skills/`·`wt/_drafts`에서 grep(2026-11-07). 엔진 코드(`skills/analog-gmid-design/**/*.py`)에 `augment_trim`·`offset_trim`·`trim_dac`는 0건(재작성 대상 코드 없음 -- 원칙 8). TR spec card·interface card 파일은 0건(`.ai/verification`·`wt/_drafts` 이름 grep) -- 낡은 card 없음.
+
+**design `docs/02-design/features/offset-trim.design.md` v0.3.3(plan_version 0.5.5)** -- card TR-0 범위:
+
+| 자리(줄) | 낡은 내용 | 바뀌는 근거 |
+|---|---|---|
+| 머리·§1.1(10, 30, 51, 77, 85, 90) | `augment_trim`·`trim_decl` 흐름 요약·확정 결정 인용 | X-32·X-33 |
+| §3.1 G-1(137~155) | `augment_trim`이 코드 상태별 영역을 만듦 | X-36 |
+| §3.2 G-2(167~174) | '파생 대 원본' 비교 | X-32(합성 대 원본) |
+| §3.4 G-4(192~207) | 1단계 N 추천 입력점·순서 | X-34(대상 소멸) |
+| §3.5 G-5(210~222) | 1단계 추천 σ_U 기준 | X-34 |
+| §3.7 G-7(225~232) | 코드 DC 값 벡터 해시 | X-36(닫힘) |
+| §4 흐름과 진입점(261~281) | 1단계·2단계, 파생 topology | X-32·X-37 |
+| §5.1 스키마(285~306) | 새 칸 r_σ·σ_MC·부담 예산 없음 | FR-T1 v0.7 |
+| §6 `trim_decl`(337~380) 전체 | 값 형식·선택 출처·`compose_trim_decl` | X-33(삭제) |
+| §7 `augment_trim`(381~423) 전체 | 서명·이름 규칙·소자 생성·코드 상태 벡터 | X-32·X-40(삭제 → trim 파일 스키마·합성 로더) |
+| §8 승인 기록·결속(424~469) | 파생 지문·변환 규칙 해시·`bind_trim` | N3.3 v0.7 결속 |
+| §9.4·§9.5(504~532) | `recommend_trim_config`, 1단계 출력과 파생 topology | X-34(삭제) |
+| §10.1 S0 두 개(535~542) | 원본·파생 S0 | X-37(변형 O·C·C′) |
+| §10.2 θ와 정의역(543~572) | 고정 θ 없음 | X-37·G-24 |
+| §10.6 trim 제약(617~628) | k·σ_in 보정 구간 | X-35 |
+| §10.7 metric(629~644) | 주입 넷 부가 C·G·trim 전력 없음 | N3.4 v0.7 metric |
+| §11 `trim_dac`(658~671) | 출처 기록·승인 기록으로 역할 전달 | FR-T5(출처 칸 READS) |
+| §12.1 소유표(674~693) | 출처 칸·trim 사양 기록·부담 문턱 항목 없음, `trim_decl` 행 | NFR-T3 v0.7 |
+| §13 결과 JSON(721~736) | 부담 표·사양 기록 id 없음 | FR-T9 v0.7 |
+| §14.1·§14.2·§14.4(739~832) | `augment_trim`·`trim_decl` 파일·배선 | X-32·X-33 |
+| §15 card 범위(833~856) | TR-MC·TR-B 없음, TR-0T 별도 | X-42 |
+| §16.1 시험 회로(875~893) | 2단계 입력 = 파생 topology | X-43 |
+| §17 TR-7 샘플 수(894~939) | 사양 MC 표본 수(r_σ) 규칙 없음 | X-41 |
+| §18.1~§18.3(940~1004) | 결정 상태·원래 취지와 다름 표에 O-258 없음 | N7.2 v0.7 |
+| §20.1(1048) G-10 | 표본 수 r = 엔진 분해능(matching -- 유지) 옆에 사양 MC 규칙 없음 | X-41 |
+| §20.7 구동기(1153~1191) | trim 사양 구동기 함수·부담 변형 추가 없음 | TR-MC·TR-B |
+
+**design `docs/02-design/features/offset-strategy.design.md` v0.3.3(plan_version 0.7.3)** -- offset-strategy card OS-0 범위:
+
+| 자리(줄) | 낡은 내용 | 근거 |
+|---|---|---|
+| 32·33 | 토폴로지 변형 = 원본 또는 파생 topology(OT §7), B_S0 국면 2 원본 비교 벌 | offset-strategy XS-21·N0.1 v0.8 |
+| 190·300 | `trim_decl`에서 국면 2 유도 제약, `trim_decl` 인자 | X-33 |
+| 370 | `given_starts`는 원본에만(파생 topology θ 스키마) | 합성 회로·고정 θ(XS-21) |
+| 441 | B_S0 = 변형 수 + 원본 비교 벌 | 국면 2 처음 목록 = 변형 O(원본 포함) |
+| 471 | compare 입력(국면 2 trim 변형) | 부담 변형 C·C′ |
+| 507~517 | 국면 규칙·승인 파일 위치·TR-5b 게이트 | XS-15 v0.8·XS-22 |
+| 656~657 | card 매핑 TR-3·TR-5b 몫 | X-42 |
+| 706·709 | §4 흐름, §8.1 `configurations`(N·N+1) | XS-2 v0.8 |
+
+**다른 계획 문언**(각 계획 개정 입력 -- 이 커밋에서 고치지 않음):
+
+| 파일:줄 | 낡은 내용 | 입력 번호 |
+|---|---|---|
+| `oracle-portability.plan.md:441` | 'offset-trim augment_trim이 코드 상태마다 결정적으로 만드는 값도 같은 칸으로 온다' | OI-1 |
+| `oracle-portability.plan.md:598` | G-18 '… headroom-chain HC-O·offset-trim augment_trim이 인용' | OI-1 |
+| `oracle-portability.design.md:1086` | '`/intended_region` … offset-trim augment_trim이 코드 상태마다 결정적으로 만든 값' | OI-1(그 계획 design 몫) |
+| `headroom-chain.plan.md:374` | '… headroom-chain HC-O·offset-trim augment_trim이 인용' | HI-1 |
+| gain-budget v6.39.0(master `57a014b2`) N6.1 'offset-trim TR-* 전부' 행 | 인용 판 v0.6 `23e6a142`, card 이름 TR-1~TR-7·TR-TL | GI-1 |
+
+### 병합 뒤 gain-budget 개정 입력(gain-budget v6.39.0 = master `57a014b2` 기준)
+
+| ID | 자리 | 입력 |
+|---|---|---|
+| GI-1 | N6.1 'offset-trim TR-* 전부' 행(다른 계획 card) | 인용 판을 offset-trim v0.7.0(이 브랜치 병합 해시)으로, card 이름 = TR-0(묶음)·TR-1·TR-2·TR-MC·TR-3·TR-4·TR-5·TR-B(TR-5와 같은 통합 병합)·TR-6·TR-7·TR-TL, 'TR-* 전부 LA-1 뒤'(offset-trim N5 근거 (i)~(iii)), TR-MC 선행에 card CL-1(닫힌 실현 점 생산자) |
+| GI-2 | N6.1 표 'offset-trim TR-* \| 착수 전' 행 | 'off 선언 = trim 파일 코드 입력·코드 상태 선언(O-249, 합성 로더가 코드 상태별 생성)'을 착수 조건 칸에 더함(LUT 확장 O-212·`judged_by`는 그대로) |
+| GI-3 | N3.6 '전도·포화 경계·`off` 선언 정본' (5)·위임 A-1(off 소자 (W, L) = `off` 항목 `w_m`·`l_m`) | 코드 상태에 따라 on/off가 바뀌는 trim 소자의 off 상태 기하 출처 = 국면 2 θ(단위 셀) 유도값 하나(같은 값을 `w_m`·`l_m`에 다시 적지 않음 -- graph 규칙 3)를 off 항목 정의가 받는지 정한다. 받지 않으면 offset-trim N3.5 그 문장을 다시 고친다(정본 자리 확인 -- 아래 '정본 자리 미정' S-3) |
+| GI-4 | DEC-110 단계 (2)·(3) 문언 | offset 쪽 자리 인용 한 줄: (2) 닫기 뒤 실현 점 oracle MC → trim 사양 기록 → AI trim 파일 → 사용자 승인 → 합성 회로 (1)(2) 재실행, (3) 진입 조건 = trim 포함 확정(승인 기록·잔여 MC·범위 판정 합격) -- 정본 offset-trim N3.10 |
+| GI-5 | DEC-110 (5)·LY14 (나)·N5.3 Q-AF1 | 추출 기하 입력 자리를 정할 때 offset (5) 확인(추출 기하 oracle MC·`.dc` V_id*)도 같은 자리를 쓰도록 범위에 넣음(지금 offset 쪽은 '미정' 표지) |
+| GI-6 | N3.10 모듈 구조·N3.16 명명·design 40 필드 소유표 | 합성 로더 블록(topology 로드 자리, writer 하나)과 소자 출처 칸 필드를 소유표·모듈 지도에 등록, 원본 topology 스키마(F-7) 불변·trim 파일 스키마는 offset-trim 소유 |
+| GI-7 | DEC-23 '미스매치'·DE-Q3 (다) | 정의 변경 없음. 인용 한 줄: trim 사양의 덮을 분포 = σ_MC(같은 정의의 oracle 측정, offset-trim N0.1); 엔진 σ_in = trim 필요 판단 |
+| GI-8 | DEC-96 (3) | 옛 후속(offset-trim X-17, OT-B4) 'offset·trim 잔여는 T-29 범위 판정' 예외 문장 -- 아직 미반영이면 함께 |
+| GI-9 | LY13·DEC-108 (2) | 합성 회로의 trim 소자도 같은 행 구성·정합 묶음 규칙(출처 칸으로 규칙을 가르지 않음)임을 확인하는 문장(새 규칙 아님) |
+| GI-10 | N6.3 E-1·card CL-1·N5.3 Q-W1 'Δ 자리' | TR-MC가 '닫힌 실현 점'을 읽는 자리 -- CL-1 착수 조건이 정해질 때 그 점의 기록 참조(record_id)를 변형 결과로 내는지 확인 |
+| GI-12 | card LY-1(N6.45)·DEC-110 (3) | (둘째 커밋, 판정 m5) trim 선언 회로의 floorplan 확정 진입 관문(승인 기록·잔여 MC 합격·범위 판정 합격 기록)을 LY-1 진입이 읽는 자리로 둠 -- 관문 판정 구현은 offset-trim TR-7 |
+| GI-11 | N6.20 EO-1 생산자 | 합성 회로(출처 칸 무관 IR)와 코드 상태별 intended_region을 oracle 입력으로 내는 몫 확인(G-18 칸 그대로) |
+
+### 병합 뒤 oracle-portability 개정 입력(이 브랜치에서 고치지 않은 이유: master가 base 뒤 v0.6.34(FP-O)로 움직여 Status·N7.6 같은 자리에서 충돌 -- 병합 뒤 그 판 위에서 고침)
+
+| ID | 자리 | 입력 |
+|---|---|---|
+| OI-1 | N3.9 '선언 영역'(441)·G-18(598), design 1086 | 'offset-trim augment_trim' → 'offset-trim 합성 로더(trim 파일 코드 입력·코드 상태 선언)'(칸·의미 불변) |
+| OI-2 | OP-5 `offset_mc` 요청 형식 | 표본 수 입력 r의 출처 칸: matching 범위 판정 = 엔진 분해능(기존), trim 사양 MC = spec r_σ(offset-trim N3.10). 식 n = 1 + ⌈1/(2r²)⌉ 그대로 |
+| OI-3 | 레인 P(offset-trim N6) | 표본별 최적 코드 선택의 코드 공간 = trim 파일 코드 입력 비트 전 조합(EO-1 생산자 IR로 받음), 결정적 탐색 |
+| OI-4 | N3.5.1 offset-trim 요구 대조표 | 사양 MC는 기존 MC 능력(PC-3·PC-5)과 같은 요구 -- 새 PC 항목 없음 확인 행 |
+| OI-5 | 기술자 기하 단위·병렬 배수 전달(G-5) | 실현 점 MC가 정수 m·w_f(상위 DEC-108 (6))를 그대로 싣는지 확인 |
+
+### headroom-chain 개정 입력
+
+| ID | 자리 | 입력 |
+|---|---|---|
+| HI-1 | `headroom-chain.plan.md:374` | 'offset-trim augment_trim이 인용' → 'offset-trim 합성 로더가 인용'(칸 불변) |
+
+### 정본 자리 미정 -- 멈춤·표지(graph 규칙 6) -- 둘째 커밋부터 계획 N7.6이 정본(아래는 첫 커밋 기록)
+
+| ID | 대상 | 처리 |
+|---|---|---|
+| S-1 | 5단계 (5) 확인 루프의 추출 기하 oracle MC 입력 | 상위 N5.3 Q-AF1 미정과 같은 자리. offset (5) 확인의 추출 기하 몫은 '미정' 표지·판정으로 세지 않음(계획 N3.10 표 (5) 행). 상위 개정 GI-5 |
+| S-2 | TR-MC가 읽는 '닫힌 실현 점'의 기록 자리 | 상위 card CL-1(E-1 닫기)·Q-W1 'Δ 자리' 미정. TR-MC 선행에 CL-1을 두고, 그 전에는 '닫기 전 점' 거부로 사양 MC가 돌지 않음(fail-closed). 상위 개정 GI-10 |
+| S-3 | 코드 상태별 off 소자의 기하 출처 | 계획에 규칙(θ 유도값 하나)은 적었으나 상위 off 항목 정의(위임 A-1)가 받는지 미확인 -- 상위 개정 GI-3 결과에 따라 확정 |
