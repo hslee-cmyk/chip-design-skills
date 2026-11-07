@@ -38,7 +38,11 @@ SRC_W_MIN = "w_min_gm_id"                         # W >= W_min(PDK 최소 finger
 SRC_LUT_DOMAIN = "lut_inverse_domain"             # lut/CONTRACT 3.1 vgs_for_current_density 역산이 받는 ln IDu 창 -> gm/ID 하한·상한
 SRC_LUT_L = "lut_l_range"                         # LUT L 격자 끝
 SRC_L_CLASS = "l_class_intersection"              # L 동치류 교집합
+SRC_DOMINANT_NODE = "dominant_node_6.3"           # 41 §6.3 주극점 노드(전달 뷰 극점 노드 -- 뷰 없으면 비활성, FS-1 (v1))
+SRC_MACRO_CALLS = "macro_6.5"                     # 41 §6.5 매크로 호출 전부(1회차·2회차·사다리 '매크로 근 있음' 조건 -- 뷰 없으면 비활성, FS-1 (v4))
+SRC_FEEDFORWARD_START = "feedforward_g_6.5"       # 41 §6.5 FF 셀 출발값(전달 뷰 feedforward 묶음 -- 뷰 없으면 비활성, FS-1 (v6))
 # ---- 비활성 사유
+WHY_NO_VIEW = "transfer_view_absent"              # 전달 뷰(S1v transfer, 블록 있음)가 없어 정의가 그 뷰를 읽는 출발 항목은 값을 만들지 않는다(대체값 0)
 WHY_NO_TARGET = "constraint_not_declared"
 WHY_NO_LUT = "lut_data_unavailable"
 WHY_NO_RAILS = "rail_potentials_undeclared"

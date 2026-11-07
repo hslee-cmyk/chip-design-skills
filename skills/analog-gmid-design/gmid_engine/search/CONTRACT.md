@@ -217,7 +217,7 @@
 | 6 | `slsqp_outer.py` | `solve_eps` |
 | 7 | `l_bin_search.py` | `polish_cells` [FS-1: L 칸 + w_f 칸 공용 바퀴] |
 | 7 | `initial_wf.py`·`point_wf.py` [FS-1] | `initial_wf`(출발 칸 → 첫 평가 입력)·`point_wf`(평가 스냅샷이 쓴 칸 입력) |
-| 6 | `wf_start.py`·`wf_partner.py`·`wf_member_w.py` [FS-1] | `wf_start_value`(칸 폐포·출발 선택 -- 출발 블록만 부른다)·`kvl_partner`·`member_start_w` |
+| 6 | `wf_start.py`·`wf_partner.py`·`wf_member_w.py` [FS-1] | `wf_start_value`(칸 폐포·출발 선택·짝 없는 단일 멤버 칸 기준 폭 출발 -- 출발 블록만 부른다)·`start_partner`(KVL 짝 ∪ 대칭 짝, 회로 MOS 전부)·`member_start_w` |
 | 8 | `eps_sweep.py` | `sweep_front` |
 | 9 | `find_front.py` | `find_front` |
 

@@ -70,7 +70,7 @@ from .mismatch_tolerance import TolMismatchTable, tol_mismatch_table
 from .noise_planes import noise_planes
 from .noise_query import noise_params
 from .noise_tolerance import TolNoiseTable, tol_noise_table
-from .point_query import op_point
+from .point_query import op_point, slice_l_position
 from .provenance import lut_provenance
 from .sat_threshold import (
     REASON_LUT_DOMAIN,
@@ -173,6 +173,7 @@ __all__ = (
     "noise_params",
     "noise_planes",
     "op_point",
+    "slice_l_position",
     "require_lut_data",
     "sat_threshold",
     "sat_threshold_grid",

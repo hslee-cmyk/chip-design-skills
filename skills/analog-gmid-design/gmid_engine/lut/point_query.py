@@ -19,6 +19,15 @@ from .axis_guard import check_axes
 from .lut_types import AXES, OpPoint
 
 
+def slice_l_position(memo, kind, w_key, L):
+    """(kind, w_key) 슬라이스의 L 위치 판정 `(lo, hi, l_value)` -- `op_point` 가 L 단계에서 부르는 판정 그 함수(전압 인자 없음, 조회 0).
+
+    앵커면 `(i, i, 앵커 값)`, 같은 모델 bin 안 두 앵커 사이면 `(k - 1, k, L)`. 실패 = `l_position` 사유(CONTRACT 4.0) -- `is_slice_gap` 이 판정한다. 폭 키 없음 -> `KeyError`.
+    """
+    sl = memo.lut.slice_map[(kind, w_key)]
+    return l_position(sl.grids[0], sl.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, (("kind", kind), ("w_key", w_key)))
+
+
 def op_point(memo, kind, w_key, L, vgs, vds, vsb):
     """(kind, w_key) 슬라이스의 `L`, (vgs, vds, vsb) 동작점 `OpPoint`. memo 영역 point.
 
@@ -27,7 +36,7 @@ def op_point(memo, kind, w_key, L, vgs, vds, vsb):
     """
     sl = memo.lut.slice_map[(kind, w_key)]
     context = (("kind", kind), ("w_key", w_key))
-    lo, hi, l_val = l_position(sl.grids[0], sl.l_bins, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule, context)
+    lo, hi, l_val = slice_l_position(memo, kind, w_key, L)
     rest = (float(vgs), float(vds), float(vsb))
     check_axes(sl.grids[1:], AXES[1:], rest, context)
 

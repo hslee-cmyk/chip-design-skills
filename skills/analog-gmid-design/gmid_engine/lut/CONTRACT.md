@@ -1010,6 +1010,7 @@ LUT 감도 열의 vth0 성분은 이 값과 같아야 한다(U3 test (c)): nmos 
 - **[FS-1] 적재 거부 `wf_candidates_empty`**: `load_lut_set` 은 슬라이스가 있는 kind 마다 `widths(lut, kind)` 가 비면 `SchemaRejectedError`(detail `reason` = `wf_candidates_empty`, `kind`; kind 오름차순 첫 것)로 거부한다 -- 다른 적재 관문 뒤, D7(`bin_missing_external`) 앞.
 - `slice_of_finger(lut, kind, w_f_m) -> 키`(L 인자 삭제 -- 정의에 쓰이지 않음): 격자 정수 키가 `widths(lut, kind)` 에 있을 때만, 아니면 `slice_missing`(detail `kind`, `w_f_m`; LUT 값 조회 0).
 - `is_slice_gap(exc)`·`SLICE_GAP_REASONS`: 조회 불능 사유 다섯(`lut_axis_out_of_range`, `lut_l_not_anchor`, `lut_l_outside_model_bins`, `lut_l_bin_unbracketed`, `lut_l_cross_bin`).
+- [FS-1 v6.39.5] `slice_l_position(memo, kind, w_key, L) -> (lo, hi, l_value)`(`point_query.py`, 공개): `op_point` 가 L 단계에서 부르는 L 위치 판정 그 함수(4.0; 전압 인자·곡선 조회 없음). 실패 사유 = 4.0, 슬라이스 조회 불능 판정은 `is_slice_gap`. 출발 블록의 `l_defined` 가 이 함수 하나만 부른다(둘째 구현 0).
 - `build_slice_tables(memo) -> int`: `widths` 키마다 tol_V 표·(VDSAT 열이 있으면) tol_VDsat 표 구성.
 - [M-TH1c] tol_V 지표는 `id_equivalent` 하나(`TOL_V_METRICS`): `TolVCell(id_equivalent_v, id_equivalent_loo_v)`, `MidpointRow(model, L_points, id_equivalent_v, vdsat_v)`.
   `strong_inversion_root` 정의는 `vgs_root.py`, `branch_targets` 삭제.

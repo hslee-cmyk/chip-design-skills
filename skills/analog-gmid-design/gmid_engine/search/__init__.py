@@ -97,7 +97,7 @@ from .ss_constraints import ss_constraint_rows
 from .start_intervals import start_intervals
 from .start_points import start_points
 from .wf_member_w import member_start_w
-from .wf_partner import kvl_partner
+from .wf_partner import start_partner
 from .wf_start import wf_start_value
 from .start_values import (
     Bound,
@@ -201,7 +201,7 @@ __all__ = (
     "polish_cells",
     "initial_wf",
     "point_wf",
-    "kvl_partner",
+    "start_partner",
     "member_start_w",
     "wf_start_value",
     "search_ceiling",
