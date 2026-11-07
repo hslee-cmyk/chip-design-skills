@@ -260,6 +260,14 @@ READS = (
 _WHY_REFERENCE_UNDEFINED = "reference_slice_undefined"        # 기준 폭 슬라이스에서 출발점 조회가 정의되지 않음(wf_start_undefined 의 why)
 
 
+def _wf_unstarted(ctx, groups):
+    """출발 곡선을 읽을 수 없는 실행(`lut_curve_undefined_for_all_l`)의 칸: 구조는 그대로(같은 `wf_start_value`), 모든 칸 `w_key` None(`reference_slice_undefined`) -- 평가 입력을 만들 수 없는 실행임을 필드가 말한다.
+    (`_wf_cells` 보다 앞에 둔다: 운영 호출인 `_wf_cells` 의 `wf_start_value` 호출이 소스상 마지막이어야 G-9 AST 가 그 `l_defined` 를 읽는다.)"""
+    names = tuple(d.name for d in ctx.devices)
+    return wf_start_value(groups, names, {d.name: d.colour for d in ctx.devices}, {d.name: d.kind for d in ctx.devices},
+                          {n: _WHY_REFERENCE_UNDEFINED for n in names}, {}, lambda name, key: False, {}, lambda name, key: False, grid_m=ctx.memo.lut.spec.manufacturing_grid_m)
+
+
 def _wf_cells(ctx, groups, writers, gm_id, lengths, currents, bundles):
     """5a 출발 w_f 칸 -- (칸 tuple, 기록 tuple). 멤버 출발 W(`member_start_w`)를 낸 뒤 칸 폐포·선택(`wf_start_value`)을 한 번 부른다. 점 = 1회차 gm/ID `gm_id`(= g_lo0)·5의 L `lengths`·
     1회차 전류 `currents`(4단계 `matching_bounds` 에 넘긴 것과 같은 dict), IDu·조회는 기준 폭 슬라이스 곡선(`bundles`: 소자 동작점의 곡선 묶음). 비쓰기 멤버의 짝 = `start_partner`(회로 MOS 전부에서
@@ -294,13 +302,6 @@ def _wf_cells(ctx, groups, writers, gm_id, lengths, currents, bundles):
     candidates = {kind: widths(ctx.memo.lut, kind) for kind in sorted(set(kinds.values()))}
     reference = {kind: ctx.memo.lut.cap_map[kind].w_key for kind in candidates}
     return wf_start_value(groups, names, position, kinds, start_w, candidates, defined, reference, l_defined, grid_m=ctx.memo.lut.spec.manufacturing_grid_m)
-
-
-def _wf_unstarted(ctx, groups):
-    """출발 곡선을 읽을 수 없는 실행(`lut_curve_undefined_for_all_l`)의 칸: 구조는 그대로(같은 `wf_start_value`), 모든 칸 `w_key` None(`reference_slice_undefined`) -- 평가 입력을 만들 수 없는 실행임을 필드가 말한다."""
-    names = tuple(d.name for d in ctx.devices)
-    return wf_start_value(groups, names, {d.name: d.colour for d in ctx.devices}, {d.name: d.kind for d in ctx.devices},
-                          {n: _WHY_REFERENCE_UNDEFINED for n in names}, {}, lambda name, key: False, {}, lambda name, key: False, grid_m=ctx.memo.lut.spec.manufacturing_grid_m)
 
 
 def _fields(rows, points, conflicts, inactive, macro, rungs, records, area, t, uncovered, wf_start=()):
