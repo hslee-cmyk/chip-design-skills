@@ -445,7 +445,9 @@ def build_case(tmp, topo_doc, lut, constraints=(), elements=(), budget_s=600.0, 
     from metrics.gb4_hand import memo_of
     tp = tmp / "case" / (topo_doc["topology_name"] + ".topology.json")
     sp = tmp / "case" / (topo_doc["topology_name"] + ".sizing_spec.json")
-    a = run_stage_a(tp, sp, lut, output_dir=tmp / "out", donors=run["donors"], counters=run["counters"])
+    from gmid_engine.search import open_run
+    donors, counters = open_run()      # [규칙 M] 단계 A·B 의 실행 한 쌍 (S0 수준 S1Graph 는 recipe 로 아래 `run` 의 커널 컨텍스트에 쓰인다 -- u13_hand.contexts_of 와 같은 관례)
+    a = run_stage_a(tp, sp, lut, output_dir=tmp / "out", donors=donors, counters=counters)
     assert a.s1 is not None, ("build_case 단계 A 불통과", a.report.get("stop_reasons"))
     b = run_stage_b(a, memo_of(lut), pdk, output_dir=tmp / "out", settings=settings)
     assert b.s1 is not None and b.s1.snapshot.record("graph", "ach") is not None, ("build_case 단계 B 불통과", b.report.get("stop_reasons"))
