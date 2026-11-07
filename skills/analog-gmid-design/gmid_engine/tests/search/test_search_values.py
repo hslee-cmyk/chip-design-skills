@@ -39,7 +39,7 @@ def test_con_wmin_is_public():
 @pytest.mark.parametrize("cls, args", [
     (S.Variable, (("y", "out"), False, 0.0, 1.0)),
     (S.ConstraintRow, ("x", 1.0, False)),
-    (S.StartPoint, ("s1", (), (), "given")),
+    (S.StartPoint, ("s1", (), (), None, "given")),      # [FS-1 A-196] interface §4.1: StartPoint(start_id, theta, cells, wf, source) -- 불변성 test 라 wf 값은 자리 표지
     (S.NodeRow, ("p", "sealed", 0.5, None, ())),
     (S.ParetoResult, ((), (), ())),
 ])
@@ -65,7 +65,7 @@ def test_defaults():
 
 def test_eval_result_identity_equality():
     """EvalResult 는 eq=False -- 같은 필드여도 다른 객체는 같지 않다(캐시 적중은 `is` 로 판정)."""
-    k = S.EvalKey("c", "s", (0,), None, ("0x1p+0",))
+    k = S.EvalKey("c", "s", (0,), "wf", None, ("0x1p+0",))     # [FS-1 A-196] EvalKey 칸 = (context_fp, schema_fp, cells, wf_fp, w_fixed_fp, theta_hex) (interface §4.1)
     a = S.EvalResult(k, (), "sealed", None, None, (), (), None, 1)
     b = S.EvalResult(k, (), "sealed", None, None, (), (), None, 1)
     assert a.unmeasured == ()

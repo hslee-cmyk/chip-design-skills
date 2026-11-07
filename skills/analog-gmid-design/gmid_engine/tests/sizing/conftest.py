@@ -795,14 +795,16 @@ def eval_calls(ctx, theta, wf=None):
     cur = tuple(sorted((k, v) for (t, k), v in th.items() if t == "current"))
     ls = tuple(sorted((k, v) for (t, k), v in th.items() if t == "L"))
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
-    calls = ((dc_currents, (cur,)), (dc_lengths, (ls,)),
-             (dc_solve, (items, kfixed(ctx), kres(ctx), ctx.lut)))
-    snap = ctx.base
-    from fs1_wf import hand_wf_default      # [FS-1 A-188] dc_solve 의 wf 는 필수 키워드 인자 -- extras tuple 이 아니라 키워드로 준다
+    from fs1_wf import hand_wf_default      # [FS-1 A-188·A-196] dc_solve 의 wf 는 필수 키워드 인자; `calls` 의 dc_solve extras = (위치 extras…, wf) -- wf 는 맨 뒤 (입력 버전 전체, interface §4.1)
     wf = hand_wf_default(ctx) if wf is None else wf
+    calls = ((dc_currents, (cur,)), (dc_lengths, (ls,)),
+             (dc_solve, (items, kfixed(ctx), kres(ctx), ctx.lut, wf)))
+    snap = ctx.base
     for blk, ex in calls:
-        extra_kw = {"wf": wf} if blk is dc_solve else {}
-        snap = blk(snap, *ex, donors=ctx.donors, counters=ctx.counters, **extra_kw)
+        if blk is dc_solve:
+            snap = blk(snap, *ex[:-1], wf=ex[-1], donors=ctx.donors, counters=ctx.counters)
+        else:
+            snap = blk(snap, *ex, donors=ctx.donors, counters=ctx.counters)
     return snap, calls
 
 

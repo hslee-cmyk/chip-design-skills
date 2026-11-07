@@ -164,7 +164,7 @@ def test_no_inner_points_all_none(curve_lut):
 
 def test_vds_linear_fallback_order(toy_build):
     """VDS 축 id_equivalent: 두 이웃 vds_slope_ok 가 아니면 선형 추정, 차수 p 2(환산 1/4). VDS 3점 곡선으로 확인."""
-    from .conftest import CURVE_L, CURVE_VS, curve_cap_arrays
+    from .conftest import CURVE_L, CURVE_SPEC, CURVE_VS, curve_cap_arrays
     vgs = (0.0, 0.5, 1.0)
     VDS3 = (0.5, 1.0, 1.5)
     ID = np.empty((2, 3, 3, 2))
@@ -182,7 +182,7 @@ def test_vds_linear_fallback_order(toy_build):
     cap["VDS"] = np.asarray(VDS3)
     cap["CGG_n"] = np.full((2, 3, 3, 2), 1e-15)
     cap["CGD_n"] = np.full((2, 3, 3, 2), 2e-16)
-    lut = toy_build("vds3", slices=[("v.npz", "toyn", a)], cap=cap).load()
+    lut = toy_build("vds3", slices=[("v.npz", "toyn", a)], cap=cap).load(CURVE_SPEC)             # [A-196] 슬라이스 W 1e-6 하나 -> 최소 폭 = 1e-6 인 spec (후보 1)
     t = tol_v_table(new_memo(lut), "nmos", 100)
     rs = RefSlice(a)
     assert not rs.vds_ok[0, 1, 0, 0]

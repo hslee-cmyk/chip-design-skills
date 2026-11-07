@@ -24,7 +24,10 @@ def sealed(tmp_path_factory):
     y, v1, v2, l1 = 0.55, 0.65, 0.75, 1e-6
     idu1 = math.exp(r4_ln_idu("nmos", v1, y * 1.8, 0.0))
     i2 = 2e-6 * idu1 / l1                                           # W_M1 = I·L/IDu = 2e-6 (닫힌 식)
-    ev = size_and_seal(case.dc, theta_r4c(y=y, v1=v1, v2=v2, l1=l1, i2=i2))
+    from fs1_wf import hand_wf_default
+    # [FS-1 A-196 판정 #8-8] 키는 이제 평가 입력이다(옛 선택 함수의 '곱 동률 -> 큰 키 200' 전제 소멸). 이 test 의 목적(소자 슬라이스 키 200 != 기준 키 100 에서 정점이 ln 2 만큼 갈림)을
+    # 지키려고 M1 칸 키 200 을 입력으로 명시한다(손 wf). 기대값은 그대로.
+    ev = size_and_seal(case.dc, theta_r4c(y=y, v1=v1, v2=v2, l1=l1, i2=i2), wf=hand_wf_default(case.dc, {"M1": 200}))
     return case, ev.snapshot
 
 

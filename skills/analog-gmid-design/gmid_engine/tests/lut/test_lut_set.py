@@ -638,11 +638,17 @@ def test_bin_missing_t6_none(mid_toy_build):
     assert (det["w_key"], tuple(det["models"])) == (60, (M1, M3))
 
 
-def test_bin_missing_t7_toy_spec_passes_without_midpoints(mid_toy_build):
-    """T-7: TOY_SPEC(최소 폭 1.5 µm) -- 슬라이스 0.6·0.8 µm 둘 다 `widths` 밖이라 중점 없이 통과."""
-    lut = build_t(mid_toy_build, "t7", {}).load(TOY_SPEC)
-    assert dict(lut.midpoints) == {}
-    assert widths(lut, "nmos") == ()
+def test_bin_missing_t7b_below_min_slice_partial_midpoints_not_checked(mid_toy_build):
+    """[FS-1 A-196 T-7 대체; 옛 T-7(후보 0 spec 적재 통과)은 DEC-108 (1) '후보 0 = 적재 E-0 정지'로 RETIRED -- RETIRED_TESTS_fs1.md]
+    같은 성질('widths 밖 슬라이스는 D7 중점 검사 대상 아님')을 후보 1개 + 최소 폭 아래 슬라이스 1개로 본다.
+    입력: t5 와 같은 중점(키 60 에 3.5 µm 만, 키 80 은 둘 다)인데 최소 폭만 0.7 µm: 키 60(0.6 µm)은 최소 폭 아래라 후보가 아니다 -> 거부 없이 적재.
+    oracle (d): 위 t5(최소 폭 0.6 µm 이면 같은 중점이 w_key 60 으로 거부 -- 대조)와 t4 의 계약; 후보 = 최소 폭 이상 슬라이스 {80}."""
+    mt = build_t(mid_toy_build, "t7b", {0: (3.5e-6,), 1: T_MID_L})
+    lut = mt.load(t_spec(0.7e-6))
+    assert widths(lut, "nmos") == (80,)
+    assert ("nmos", 80) in lut.midpoints                                                # 후보 80 의 중점은 검사·적재됨
+    det = _t_reject(mid_toy_build, "t7c", {0: (3.5e-6,), 1: T_MID_L}, 0.6e-6)         # 대조: 키 60 이 후보면 같은 중점이 거부된다
+    assert det["reason"] == "bin_missing_external" and det["w_key"] == 60
 
 
 def test_bin_missing_t9_l_off_grid_rejected_at_load(mid_toy_build):

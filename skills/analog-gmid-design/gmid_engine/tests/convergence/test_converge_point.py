@@ -50,9 +50,17 @@ from .conftest import (
 SIZED_W = 1e-6
 
 
+from gmid_engine.sizing import WfCell     # noqa: E402
+
+# [FS-1 A-196 signature-misses-search] 평가 입력 w_f 칸: 가짜 스냅샷은 `graph/start: wf_start`(칸 (M1,) 키 100 -- 손 구성)와 소자 행 `dc_op.w_key` 를 가진다.
+# `point_wf` 는 필드 읽기(wf_start 칸 구조 + 칸 첫 멤버 dc_op.w_key)라 이 두 열이면 충분하다(graph 규칙 4: 값 사본 아닌 필드 참조).
+WF_CELLS = (WfCell(("M1",), 100),)
+
+
 def snap(W=SIZED_W, current=1e-6, cdb=1e-15, csb=2e-15):
     return FakeSnapshot({("device", "dc_op"): {"M1": op(W=W, current=current)}, ("device", "ss_dev"): {"M1": ssdev(cdb, csb)},
-                         ("device", "dc_colour"): {"M1": 0}})      # [WB-1] key_exclusion 의 동률 순서 입력(구조 색)
+                         ("device", "dc_colour"): {"M1": 0},      # [WB-1] key_exclusion 의 동률 순서 입력(구조 색)
+                         ("graph", "wf_start"): {"start": WF_CELLS}})
 
 
 ROW_GROUPS = (RowGroup("R1", "nmos", "gnd", ("M1",)),)
@@ -90,8 +98,8 @@ class Loop:
         return out
 
     # -- 가짜 evaluate (search CONTRACT 10절 시그니처 + geometry=)
-    def evaluate(self, sctx, theta, cells, parent=None, origin=(), geometry=None):
-        self.eval_args.append(SimpleNamespace(theta=theta, cells=cells, parent=parent, geometry=geometry))
+    def evaluate(self, sctx, theta, cells, wf, parent=None, origin=(), geometry=None, realized=None):    # [FS-1 §4.1] wf 필수 위치 인자
+        self.eval_args.append(SimpleNamespace(theta=theta, cells=cells, wf=wf, parent=parent, geometry=geometry))
         key = fp_of(geometry)
         if key in self.cache:
             return self.cache[key]
@@ -160,6 +168,8 @@ def test_fixed_point_converges_after_one_reevaluation(run):
     # evaluate 는 출발 점의 θ·L 칸으로, parent = 현재 점(처음엔 출발 점)
     assert loop.eval_args[0].theta == start.theta and loop.eval_args[0].cells == start.key.cells
     assert loop.eval_args[0].parent is start
+    # [FS-1 A-196 spec W19 'wf = 그 시작점·기준점의 wf 그대로(W-a)'] 재평가 wf = 손 구성: 칸 (M1,) 키 100 (가짜 스냅샷의 wf_start·dc_op.w_key 를 test 가 정했다)
+    assert loop.eval_args[0].wf.keys == (100,) and loop.eval_args[0].wf.cells_ref == WF_CELLS
     # [기준점 개정 2026-11-06 A-124, interface §8·R-14] 두 번째 레이아웃을 놓는 설계점 스냅샷 = 루프에 들어온 front 점 스냅샷(재평가 점 스냅샷 아님). 새 설계점이라 previous 없이
     assert loop.place_args[1].snapshot is start.evaluation.snapshot
     assert loop.place_args[1].snapshot is not cp.result.evaluation.snapshot
@@ -447,10 +457,17 @@ def test_real_junction_caps_from_realized_diffusion(real, name):
 def test_real_same_geometry_reevaluation_is_cache_hit(real, name):
     """같은 (θ, 기하)는 커널 0(평가 캐시) -- 불변식 3 '같은 기하 재방문은 커널 0'."""
     from search.conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
+    from gmid_engine.sizing import WfInput
     r = real.run(name)
     cp = r.point
     k0 = r.sctx.counters["kernel_calls"]
-    again = evaluate(r.sctx, r.start.theta, r.start.key.cells, parent=cp.result, geometry=cp.geometry)
+    # [FS-1 A-196 판정 #8-10] 재평가 wf = 그 점 스냅샷이 쓴 칸 (converge_point 가 쓴 wf 와 같은 입력): `graph/start: wf_start` 칸 구조 + 칸 첫 멤버 `dc_op.w_key` 를 test 가 직접 읽는다
+    # (입력 재구성이지 기대 생산이 아니다). 손 wf 래퍼 기본값(가장 좁은 후보)은 다른 입력이라 캐시 키가 달랐다.
+    ssnap = r.start.evaluation.snapshot
+    cells_ref = ssnap.value("graph", "start", "wf_start")
+    sops = dict(ssnap.column("device", "dc_op"))
+    wf = WfInput(cells_ref, tuple(sops[c.members[0]].w_key for c in cells_ref))
+    again = evaluate(r.sctx, r.start.theta, r.start.key.cells, wf=wf, parent=cp.result, geometry=cp.geometry)
     assert r.sctx.counters["kernel_calls"] == k0
     assert again is cp.result
 

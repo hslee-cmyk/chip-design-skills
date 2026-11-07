@@ -142,8 +142,10 @@ OFF_SRC = {"kind": "user_spec", "record": "off judged path test", "decided": "20
 
 
 def _path_case(tmp_path, lut, judged_by, constraints=(("gain_ss_db", ">=", 20.0, None),)):
-    """회로: nmos M1 (out, in, gnd) + R1 (vdd, out) + pmos Mp (out, vdd, vdd) 를 off 로 선언. 반환 (dc, spec, settings, pdk, rule)."""
-    doc = topo("hand_offpath", [mos("M1", "nmos", "out", "in", "gnd"), mos("Mp", "pmos", "out", "vdd", "vdd")],
+    """회로: nmos M1 (out, in, gnd) + R1 (vdd, out) + nmos Mp (out, gnd, gnd) 를 off 로 선언 (Vgs = 0). 반환 (dc, spec, settings, pdk, rule).
+    [FS-1 A-196 판정 S2·#8-1(b)] 옛 Mp 는 pmos (out, vdd, vdd). 출발 블록이 이제 S1v 뷰 없는 컨텍스트에서도 도는데 off 소자의 kind(pmos)에는 헤드룸 변 비용 `edges['pmos']` 가 없어
+    분류 안 된 KeyError 가 났다(엔진 쪽 minor -- LA-1 입력: LUT·변 표에 없는 kind). 이 test 의 대상은 off 선언 `judged_by` 경로이고 소자 kind 와 무관하므로 nmos 만 쓰는 회로로 바꿨다."""
+    doc = topo("hand_offpath", [mos("M1", "nmos", "out", "in", "gnd"), mos("Mp", "nmos", "out", "gnd", "gnd")],
                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
                passives=[two("R1", "resistor", "vdd", "out")])
     tmp = Path(tmp_path)

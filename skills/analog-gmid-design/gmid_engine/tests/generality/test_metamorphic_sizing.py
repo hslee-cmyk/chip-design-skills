@@ -22,8 +22,8 @@ import collections
 
 import pytest
 
-from gmid_engine.sizing import (COORD_DEPENDENT, COORD_WRITER, DC_KEY, SCC_GAUSS_SEIDEL, SCC_NEWTON, TIER_W4,
-                                size_and_seal)
+from gmid_engine.sizing import (COORD_DEPENDENT, COORD_WRITER, DC_KEY, SCC_GAUSS_SEIDEL, SCC_NEWTON, TIER_W4)
+from fs1_wf import size_and_seal      # [FS-1 A-196 signature-misses] 손 wf 를 끼운 래퍼 (공개 size_and_seal(ctx, theta, wf, ...)); 칸 = 매칭 묶음 폐포, 키 = 그 kind 가장 좁은 후보 (이름 무관 입력)
 from gmid_engine.sizing import KERNEL_KEY   # [U17 ①-b] θ 스키마 = S0 수준 필드 graph/kernel: theta_schema(설계 40 v1.9.1 §2.4.7 KernelContext 행, D8)
 
 from .pipeline import map_theta

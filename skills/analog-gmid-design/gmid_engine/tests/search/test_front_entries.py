@@ -93,10 +93,15 @@ def _file_lines(run_dir):
 def test_engine_written_runs_file_read_back_in_order(tmp_path, lut_sealed, short_root):
     # 엔진이 같은 입력의 새 컨텍스트 두 개로 find_front 를 한 번씩 돌려 같은 S3 실행 폴더에 쓴 runs.jsonl 두 줄을 그대로 읽는다.
     # 기대값 = test 가 같은 파일을 json 으로 직접 읽은 줄(oracle (a)) -- 피검 함수를 부르지 않고 만든다.
-    a = build_case(tmp_path / "a", circuit_c(), lut_sealed, eval_budget=30, archive_root=short_root, constraints=SS_GAIN)
-    fa = find_front(a.sctx, [theta_r4c()])
-    b = build_case(tmp_path / "b", circuit_c(), lut_sealed, eval_budget=30, archive_root=short_root, constraints=SS_GAIN)
-    fb = find_front(b.sctx, [theta_r4c()])
+    # [FS-1 A-196 판정 #8-9, A-193 MR-1·WB-1 선례] 회로 = 저항 부하 P (회로 C 는 실현에서 점을 잃어 front 가 비었다 -- fail-closed가 맞는 거동). 전제 단언: 실현 점 out 손 근이 레일 안.
+    from .conftest import circuit_p, theta_p
+    from .test_find_front import P_ELEMENTS, P_RBOUNDS, assert_realized_roots_inside_rails
+    kw = dict(eval_budget=40, archive_root=short_root, constraints=SS_GAIN, elements=P_ELEMENTS, rbounds=P_RBOUNDS)
+    a = build_case(tmp_path / "a", circuit_p(), lut_sealed, **kw)
+    fa = find_front(a.sctx, [theta_p(a.dc)])
+    assert_realized_roots_inside_rails(fa)
+    b = build_case(tmp_path / "b", circuit_p(), lut_sealed, **kw)
+    fb = find_front(b.sctx, [theta_p(b.dc)])
     assert a.sctx.archive.dir == b.sctx.archive.dir                       # 전제: 같은 context_fp -> 같은 S3 실행 폴더
     lines = _file_lines(a.sctx.archive.dir)
     assert [ln["run_id"] for ln in lines] == [fa.run_id, fb.run_id]

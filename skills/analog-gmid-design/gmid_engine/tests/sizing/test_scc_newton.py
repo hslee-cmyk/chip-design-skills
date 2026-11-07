@@ -21,7 +21,8 @@ from gmid_engine.core import NonconvergentError, SealViolationError
 from gmid_engine.lut import gmb, op_point
 from gmid_engine.sizing import (DC_KEY, REASON_NEWTON_CAP, REASON_NEWTON_LINE_SEARCH, REASON_NEWTON_SINGULAR,
                                 REASON_NEWTON_START, REPORT_UNDEFINED, SCC_BISECTION, SCC_DIRECT, SCC_GAUSS_SEIDEL,
-                                SCC_NEWTON, SccLog, newton_solve, size_and_seal)
+                                SCC_NEWTON, SccLog, newton_solve)
+from fs1_wf import size_and_seal      # [FS-1 A-196 signature-misses] 손 wf 를 끼운 래퍼
 
 from .conftest import (B, C, I0, LAM, TOY_VGS, TOY_VS, W_KEY, W_M, Oracle, build_ctx, detail, free_currents, mos,
                        new_access, node_voltages, r4_arrays, r4_ln_idu, r4_vds_floor, r4_vgs_of, topo, two, write_r4_lut)

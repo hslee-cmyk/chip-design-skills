@@ -76,7 +76,9 @@ def r2_theta(dc, l=1e-6, scale=1.0, y_inp=Y_INP, rounds=30):
     (out 창 하한 = V(t) 라 V(out) = V(t) + y·(1.8 - V(t)); θ 는 입력이고 반복은 sizing 공개 경로로 한다)."""
     idu = math.exp(r4_ln_idu("nmos", VGS0, VX - T0, 0.0))
     ib = 2e-6 * scale * idu / l                         # W = I·L/IDu 의 역
-    th = {("L", m): l for m in ("M1", "M2", "M3", "M4")}
+    # [FS-1 A-196 판정 #8-11] L 성분은 그 컨텍스트 θ 스키마의 L 성분 전부(L 동치류마다 주인 키 하나 -- M3 = M4 이면 ('L','M4') 는 θ 성분이 아니다). 손 키 목록을 박지 않는다.
+    from sizing.conftest import kschema
+    th = {k: l for k in kschema(dc).components if k[0] == "L"}
     th.update({("current", "M3"): ib, ("current", "M4"): ib, ("ln_idu", "M1"): r4_ln_idu("nmos", VGS0, VX - T0, 0.0),
                ("ln_idu", "M3"): r4_ln_idu("pmos", 0.7, 0.7, 0.0), ("y", "inp"): y_inp, ("y", "out"): (VX - T0) / (VDD - T0)})      # y_out 출발값: V(t) = T0 일 때 V(out) = VX
     for _ in range(rounds):

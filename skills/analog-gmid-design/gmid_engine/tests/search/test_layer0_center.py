@@ -32,6 +32,7 @@ from gmid_engine.search import (
     Layer0Result,
     cone_rows,
     evaluate,
+    initial_wf,
     layer0_start,
     start_points,
 )
@@ -181,8 +182,8 @@ def inject_failures(monkeypatch, failures):
     real = layer0_module.evaluate
     hits = []
 
-    def wrapped(sctx, theta, cells, parent=None, origin=(), geometry=None):
-        r = real(sctx, theta, cells, parent=parent, origin=origin, geometry=geometry)
+    def wrapped(sctx, theta, cells, wf, parent=None, origin=(), geometry=None):       # [FS-1 A-196] evaluate(sctx, theta, cells, wf, parent, origin, geometry, realized) -- wf 통과
+        r = real(sctx, theta, cells, wf, parent=parent, origin=origin, geometry=geometry)
         rec = failures.get(theta_key(theta))
         if rec is None:
             return r
@@ -203,6 +204,19 @@ def run_l0(tmp, topo_doc, lut, root, eval_budget=40, constraints=()):
 
 # ---------------------------------------------------------------- 형식
 
+def run_l0_ladder_failed(tmp, topo_doc, lut, root, eval_budget, failures):
+    """[FS-1 A-196 판정 S2] 사다리 칸 전부(칸마다 `centre_start(sctx, 칸)` 이 만드는 θ)를 `failures`(= inject_failures 가 읽는 dict)에 빈 창 실패로 심고 층 0 을 돌린다.
+    실패 심을 θ 만 정하는 용도이며 기대값 생산이 아니다. -> (case, result, 이 실행이 쓴 S3 줄)."""
+    case = build_case(tmp, topo_doc, lut, eval_budget=eval_budget, archive_root=root)
+    rungs = case.sctx.dc.base.value("graph", "start", "rungs")
+    assert rungs                                                                    # 전제: 사다리 칸이 있다
+    for rung in rungs:
+        _v, th_r, _c, _u = layer0_module.centre_start(case.sctx, rung)
+        failures[theta_key(th_r)] = empty_window("out")
+    r = layer0_start(case.sctx)
+    return case, r, lines_of(root, case.sctx.context_fp)
+
+
 def test_result_fields_and_constants(tmp_path, lut4, roots):
     _, r, _ = run_l0(tmp_path, circuit_c(), lut4, roots())
     assert isinstance(r, Layer0Result)
@@ -215,38 +229,35 @@ def test_result_fields_and_constants(tmp_path, lut4, roots):
 
 # ---------------------------------------------------------------- 1·2 상자 중심·전류 중심
 
-def test_centre_point_box_centre_and_current_centre(tmp_path, lut4, roots):
+# [FS-1 A-196 판정 S2·§6] `start_intervals` 가 S1v 뷰 없는 회로에서도 늘 돈다(interface §3.4, 원래 취지와 다름: 층 0 출발점이 상자 중심에서 출발 사다리로 바뀜).
+# 그래서 옛 `test_centre_point_box_centre_and_current_centre`(L 칸 = ln 중점 1.8 µm, ln_idu = 상자 중점, 전류 = 두 I_c 의 ln 중점)와
+# `test_same_kind_single_term_cone_centre_is_box_centre`(θ 전류 = √(I_off·I_max))는 대상(상자 중심 출발)이 소멸 -> RETIRED_TESTS_fs1.md.
+# 대체: 첫 평가 점이 출발 사다리 첫 칸의 (ln_idu, L, L 칸)이고(사다리 우선 규칙 -- layer0 블록의 입력인 `graph/start: rungs` 를 읽음; oracle (d): 판정 S2 결론),
+# 원뿔 행 c > 0(oracle (a): 원뿔 정의 -- 물리 불변식), y 성분 = 0.5.
+
+def test_first_point_is_ladder_rung_one_inputs_without_s1v_view(tmp_path, lut4, roots):
     case, r, lines = run_l0(tmp_path, circuit_c(), lut4, roots())
     s = case.sctx
     c = lines[0]
     assert c["origin"] == {"stage": "layer0"} and c["seq"] == min(x["seq"] for x in lines)
-    th = th_of(c)
-    # L 칸: ln 좌표 중점(2 µm)에 가장 가까운 칸 = 1.8 µm(index 1) -- 선형 중점 2.5 µm 이면 2.6 µm 였다
-    lnmid = 0.5 * (math.log(min(L4)) + math.log(max(L4)))
-    j = min(range(len(L4)), key=lambda i: (abs(math.log(L4[i]) - lnmid), i))
-    assert j == 1
-    assert th[("L", "M1")] == L4[j] and th[("L", "M2")] == L4[j]
-    assert tuple(c["cells"]) == (j, j)
-    for m, kind in (("M1", "nmos"), ("M2", "pmos")):
-        lo, hi = expect_ln_idu_bounds(arrays(kind))
-        assert math.isclose(th[("ln_idu", m)], 0.5 * (lo + hi), rel_tol=1e-12)
-    assert th[("y", "out")] == 0.5
-    # 전류 중심: 행 M1(nmos)·M2(pmos) 모두 I = e^z 단일항 -> z* = 두 I_c 의 ln 중점, u* = |ln I_c,n − ln I_c,p| / 2
-    zn, zp = box_centre_ln("nmos"), box_centre_ln("pmos")
-    z = math.log(th[("current", "M2")])
-    assert abs(z - 0.5 * (zn + zp)) <= 1e-5
-    assert abs(r.centre_u - 0.5 * abs(zn - zp)) <= 1e-5 and r.centre_u > 0.1
-    assert all(row.c > 0 for row in cone_rows(schema_of(s.dc), tuple(sorted(th.items()))))
+    rungs = s.dc.base.value("graph", "start", "rungs")
+    assert rungs, "S1v 뷰 없는 회로에도 출발 사다리가 있어야 한다(S2)"
+    got = th_of(c)
+    assert all(got[k] == v for k, v in rungs[0].theta)
+    assert tuple(c["cells"]) == tuple(j for _m, j in rungs[0].cells)
+    assert got[("y", "out")] == 0.5
+    assert all(row.c > 0 for row in cone_rows(schema_of(s.dc), tuple(sorted(got.items()))))
 
 
-def test_same_kind_single_term_cone_centre_is_box_centre(tmp_path, lut4, roots):
-    """I-14: 원뿔 행이 모두 같은 kind(nmos) 원천의 계수 1 단일항 -> u = 0, θ 전류 = 상자 기하 중심 √(I_off·I_max)."""
+def test_same_kind_single_term_cone_has_zero_centre_u_and_ladder_first_point(tmp_path, lut4, roots):
+    """I-14: 원뿔 행이 모두 같은 kind(nmos) 원천의 계수 1 단일항 -> 전류 중심 u = 0 (닫힌 해 u* = 반폭 = 0). 첫 점은 사다리 첫 칸(S2)."""
     case, r, lines = run_l0(tmp_path, circuit_follower(), lut4, roots())
     cur = [k for k in schema_of(case.dc).components if k[0] == "current"]
     assert len(cur) == 1
-    th = th_of(lines[0])
     assert abs(r.centre_u) <= 1e-9
-    assert math.isclose(math.log(th[cur[0]]), box_centre_ln("nmos"), rel_tol=0, abs_tol=1e-9)
+    rungs = case.sctx.dc.base.value("graph", "start", "rungs")
+    got = th_of(lines[0])
+    assert rungs and all(got[k] == v for k, v in rungs[0].theta)
 
 
 # ---------------------------------------------------------------- 3 Halton·hit-and-run (I-17·I-18)
@@ -360,20 +371,19 @@ def test_single_current_first_probe_direction_zero(tmp_path, lut4, roots, monkey
     """θ 전류 변수 하나(변수 0, 기저 2): k = 1 이면 d = 2·φ_2(1) − 1 = 0 -- 걸음이 없어 시험 1 의 θ 전류 = 전류 중심 그대로이고
     모든 시험 점은 상자 안 유한 값이다(3.21 3 'θ 전류 = p(상자로 자름)', I-18). 중심은 평가 대체 지점에서 빈 창 실패로 바꿔 실패시킨다
     ([xrun J-5] -- 옛 디스크 실패 줄 대신)."""
-    root0 = roots()
-    case0, _, lines0 = run_l0(tmp_path / "a", circuit_c(), lut4, root0)
-    centre = lines0[0]
-    assert centre["origin"] == {"stage": "layer0"}                       # 전제: 첫 줄 = 중심 점
-    hits = inject_failures(monkeypatch, {line_key(centre): empty_window("out")})
-    root = roots()
-    case, r, lines = run_l0(tmp_path / "b", circuit_c(), lut4, root, eval_budget=3)
+    # [FS-1 A-196 판정 S2] 첫 점이 출발 사다리 칸이므로 사다리 칸 전부를 빈 창 실패로 바꿔(`run_l0_ladder_failed`) 시험 점으로 넘어가게 한다.
+    failures = {}
+    hits = inject_failures(monkeypatch, failures)
+    case, r, lines = run_l0_ladder_failed(tmp_path / "b", circuit_c(), lut4, roots(), 8, failures)
     s = case.sctx
-    # [xrun J-5] 옛 단언 '디스크 실패 적중 계수 >= 1'의 대체: 대체 지점이 중심 점에서 실제로 실패를 냈다(주입이 공허하지 않다).
-    assert [h[0] for h in hits] and all(h[0] == line_key(centre) for h in hits)
+    centre = lines[0]
+    assert centre["origin"] == {"stage": "layer0"}                       # 전제: 첫 줄 = 첫 점(사다리 첫 칸)
+    # [xrun J-5] 옛 단언 '디스크 실패 적중 계수 >= 1'의 대체: 대체 지점이 사다리 점에서 실제로 실패를 냈다(주입이 공허하지 않다).
+    assert [h[0] for h in hits] and all(h[0] in failures for h in hits)
     assert r.start_status == STATUS_FAILED
     v = [x for x in s.domain.variables if x.component[0] == "current"][0]
-    # [xrun J-5] 심은 중심도 진짜 evaluate 를 한 번 불러 S3 줄을 남긴다(inject_failures docstring) -- 옛 '첫 줄 = 시험 1' 은
-    # '중심 줄 다음 첫 시험 줄 = 시험 1' 이 된다.
+    # [xrun J-5] 심은 점도 진짜 evaluate 를 한 번 불러 S3 줄을 남긴다(inject_failures docstring) -- 옛 '첫 줄 = 시험 1' 은
+    # '사다리 줄들 다음 첫 시험 줄 = 시험 1' 이 된다.
     assert lines and lines[0]["origin"] == {"stage": "layer0"} and line_key(lines[0]) == line_key(centre)
     probes = [ln for ln in lines if "probe" in ln["origin"]]
     assert probes and probes[0]["origin"] == {"stage": "layer0", "probe": 1}
@@ -474,7 +484,7 @@ def test_maxmin_t_rows_hard_and_monotone(tmp_path, lut4, roots):
     case, r, lines = run_l0(tmp_path, circuit_c(), lut4, roots())
     s = case.sctx
     assert r.start is not None and r.origin_point == "centre" and r.probes == 0
-    ev = evaluate(s, r.start.theta, r.start.cells)
+    ev = evaluate(s, r.start.theta, r.start.cells, r.start.wf)       # [FS-1 A-196] 층 0 점의 wf = r.start.wf (initial_wf(base) -- StartPoint 칸)
     assert ev.status in ACCEPTED_STATUSES
     items = _min_s(ev)
     assert tuple(r.rows) == tuple("%s:%d" % (ROW_SEAL_ITEM, i) for i, _ in items)
@@ -482,7 +492,7 @@ def test_maxmin_t_rows_hard_and_monotone(tmp_path, lut4, roots):
     assert r.hard_ok == all(c.c >= 0 for c in _hard_rows(ev))
     assert r.hard_ok
     # 결과 = 수락 반복 중 (경성 ≥ 0, min s, −seq) 최대 -> 중심(수락 반복)보다 t 가 작지 않다
-    cen = evaluate(s, tuple(sorted(th_of(lines[0]).items())), tuple(lines[0]["cells"]))
+    cen = evaluate(s, tuple(sorted(th_of(lines[0]).items())), tuple(lines[0]["cells"]), r.start.wf)
     assert cen.status in ACCEPTED_STATUSES
     if all(c.c >= 0 for c in _hard_rows(cen)):
         assert r.t >= min(v for _, v in _min_s(cen)) - 1e-12
@@ -703,7 +713,7 @@ def test_layer0_lift_independent_of_solver_noise(tmp_path, lut4, monkeypatch):
         assert pre[m_pre][0] < 1 + SQRT_EPS, pre                                   # 전제: 끌어올림 필요
         got = _q(rows, fixed, th, refs)
         m_min = min(got, key=lambda m: got[m][0])
-        ev = evaluate(s, tuple(sorted(th.items())), cells)
+        ev = evaluate(s, tuple(sorted(th.items())), cells, initial_wf(s.dc.base))   # [FS-1 A-196] wf = 출발 블록 값(입력)
         c = {r.name: r.c for r in ev.constraints}
         outs.append((m_min, c["w_min:%s" % m_min]))
         monkeypatch.undo()
@@ -764,12 +774,12 @@ def _record_fd(monkeypatch, module, store, coords_log=None):
 
 def _layer0_from_probe(tmp_path, lut, roots, monkeypatch, store, coords_log=None):
     """중심 점을 빈 창 실패로 바꾼 층 0 실행(위 test_single_current_first_probe_direction_zero 와 같은 주입). -> (case, result, hits)."""
-    _, _, lines0 = run_l0(tmp_path / "a", circuit_c(), lut, roots(), eval_budget=3)
-    centre = lines0[0]
-    assert centre["origin"] == {"stage": "layer0"}                                  # 전제: 첫 줄 = 중심 점
-    hits = inject_failures(monkeypatch, {line_key(centre): empty_window("out")})
+    # [FS-1 A-196 판정 S2] 첫 평가 점이 상자 중심이 아니라 출발 사다리 칸이다 -> 사다리 칸 전부(칸마다 `centre_start(sctx, 칸)` 이 만드는 θ)를 빈 창 실패로 바꿔
+    # Halton·hit-and-run 시험 점에서 출발하게 한다. 실패 심기 대상 θ 만 정하는 용도(기대값 생산 아님).
+    failures = {}
+    hits = inject_failures(monkeypatch, failures)
     _record_fd(monkeypatch, layer0_module, store, coords_log)
-    case, r, _ = run_l0(tmp_path / "b", circuit_c(), lut, roots(), eval_budget=40)
+    case, r, _ = run_l0_ladder_failed(tmp_path / "b", circuit_c(), lut, roots(), 40, failures)
     return case, r, hits
 
 
@@ -778,7 +788,7 @@ def test_layer0_start_fd_theta_bits_equal_start_theta(tmp_path, lut4, roots, mon
     calls = []
     _, r, hits = _layer0_from_probe(tmp_path, lut4, roots, monkeypatch, calls)
     assert hits                                                                     # 주입 비공허: 중심이 실제로 실패로 바뀌었다
-    assert r.origin_point is not None and r.origin_point.startswith("halton:")      # 전제: 시험 점 출발
+    assert r.origin_point is not None and r.origin_point.startswith("halton:")      # 전제: 시험 점 출발 (사다리 칸을 모두 실패로 심어 만든다)
     assert calls, "층 0 최대-최소가 fd_jacobian 을 부르지 않았다"
     variables, x, base, to_theta, _ = calls[0]
     th = dict(base.theta)

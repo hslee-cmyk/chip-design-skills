@@ -141,12 +141,29 @@ def test_ub1_lookup_at_l_between_anchors_in_same_bin(bin_env):
     assert np.allclose(at[0], b[0], rtol=1e-12, equal_nan=True) and np.allclose(at[1], b[1], rtol=1e-12, equal_nan=True)
 
 
-def test_ub1_lookup_at_l_across_bins_is_nan(bin_env):
-    _memo, t, grids = bin_env
+def test_ub1_lookup_at_l_across_bins_follows_each_slices_own_bin_map(bin_env):
+    # [FS-1 A-196 판정 #8-7, spec W5·interface §2] 포락 후보 = `widths`(L 무관 정정 집합, DEC-108 (1)); 정의 여부는 슬라이스별 `param_row` 가 가른다.
+    # L = 2.5 µm(앵커 2 µm 와 3 µm 사이): 슬라이스 100(폭 1 µm)은 두 앵커가 다른 bin(A|B) -> 정의 안 됨(None); 슬라이스 200(폭 2 µm)은 두 앵커가 같은 bin(BIN_ANCHOR_BIN_HI 0 = 0)
+    # -> 정의됨. 그래서 포락(upper)은 슬라이스 200 의 값 하나다. 기대 = 슬라이스 200 의 표 값을 손으로 낸 포락(oracle (a): 슬라이스 표 + bin 지도 = 구성 입력) --
+    # 옛 단언 'across bins 는 전부 NaN' 은 후보를 `reachable_slices` 로 줄이던 시절의 값.
+    from gmid_engine.lut import derived
+    memo, t, grids = bin_env
     iv = np.arange(len(grids[1]))
     zero = np.zeros_like(iv)
-    for v in t.lookup_at_l("nmos", np.full(iv.shape, 2.5e-6), zero, zero, iv):                # 앵커 2 µm(bin A)과 3 µm(bin B) 사이
-        assert np.isnan(v).all()
+    L = 2.5e-6
+    row100 = derived(memo, "param_row", "nmos", 100, L, grids[2][0], grids[3][0])               # 입력(피검 아님)
+    row200 = derived(memo, "param_row", "nmos", 200, L, grids[2][0], grids[3][0])
+    assert row100 is None                                                                         # 전제 (손): 슬라이스 100 은 bin 경계를 넘는다
+    assert row200 is not None                                                                     # 전제 (손): 슬라이스 200 은 같은 bin
+    vgs, rx, ry, rz = row200
+    got = t.lookup_at_l("nmos", np.full(iv.shape, L), zero, zero, iv)
+    assert any(np.isfinite(v).any() for v in got)
+    for k in range(len(iv)):
+        j = [m for m, v in enumerate(vgs) if v == grids[1][k]]
+        if j:
+            assert (got[0][k], got[1][k], got[2][k]) == pytest.approx((rx[j[0]], ry[j[0]], rz[j[0]]), rel=1e-9, abs=1e-12)
+        else:
+            assert np.isnan(got[0][k])
 
 
 def test_ub1_map_less_table_has_no_same_bin_neighbours(toy):

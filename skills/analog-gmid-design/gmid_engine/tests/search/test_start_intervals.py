@@ -161,8 +161,11 @@ def test_name_bijection_changes_only_row_names():
     assert [x.t for x in orig.ladder] == [x.t for x in ren.ladder]
 
 
-def test_without_s1v_start_is_none_and_layer0_uses_box_centre(tmp_path):
-    # [U17 ①-b] S1v 필드가 없는 S0 수준 스냅샷(build_s1 만) -> 출발 구간 블록을 부르지 않아 graph/start 레코드·사다리가 없다.
+def test_without_s1v_view_wf_start_still_exists_and_initial_wf_is_defined(tmp_path):
+    # [FS-1 A-196 판정 S2·#8-1(a)] 옛 `test_without_s1v_start_is_none_and_layer0_uses_box_centre` 는 RETIRED(대상 소멸: 옛 단언 '뷰 없음 -> graph/start 없음·상자 중심'은
+    # as-built 동작이었고 DEC-108 상 w_f 는 모든 평가의 입력이라 `start_intervals` 가 뷰 유무와 무관하게 늘 돈다 -- interface §3.4, 원래 취지와 다름).
+    # 대체 단언: S1v 뷰 없는 회로에도 `wf_start` 가 있고 `initial_wf` != None, 층 0 출발은 상자 중심 또는 출발 사다리(oracle (d): 판정 S2 결론).
+    # [U17 ①-b] S1v 필드가 없는 S0 수준 스냅샷(build_s1 만).
     from gmid_engine.authoring import load_topology
     from gmid_engine.graph import build_s1
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
@@ -176,10 +179,12 @@ def test_without_s1v_start_is_none_and_layer0_uses_box_centre(tmp_path):
     kctx = build_kernel_context(build_s1(load_topology(str(tp)), dict(inputs.supplies_v), donors=donors, counters=counters), inputs,
                                 c.kctx.lut, donors=donors, counters=counters)
     sctx = build_search_context(kctx, c.spec, c.settings, None, c.pdk, c.rule, code_fp=CODE_FP)
-    assert start_of(sctx) is None and sctx.rungs is None
+    wf = initial_wf(sctx.dc.base)
+    assert wf is not None and wf.cells_ref is sctx.dc.base.value("graph", "start", "wf_start")
+    assert wf.keys == tuple(c.w_key for c in wf.cells_ref)
     res = layer0_start(sctx)
-    assert res.origin_point in (None, "centre") or res.origin_point.startswith(("halton:", "repair:"))
-    assert not str(res.origin_point).startswith("ladder")
+    assert res.start is not None and res.start.wf.keys == wf.keys
+    assert res.origin_point == "centre" or res.origin_point.startswith(("ladder:", "ladder_repair:", "halton:", "repair:"))
 
 
 # =====================================================================================================================
@@ -376,10 +381,9 @@ def test_sb1_wf_start_cells_are_the_matching_closure(fs1_case):
 
 
 def test_sb2_second_start_intervals_computes_nothing(fs1_case, tmp_path):
-    """S-B2: 같은 donors·counters 로 단계 B 를 한 번 더 -> start_intervals 계산 0 (reuse), wf_start 같음."""
-    from gmid_engine.pipeline import run_stage_b
-    from .u13_hand import memo_of, toy_env
-    env = toy_env()
+    """S-B2: 같은 donors·counters 로 컨텍스트를 한 번 더 -> start_intervals 계산 0 (reuse), wf_start 같음.
+    [FS-1 A-196 판정 #8-2] 출발 블록을 부르는 자리는 단계 B(`run_stage_b`)가 아니라 탐색 컨텍스트 생성이다 -> 둘째 `build_search_context`(같은 donors·counters)로 본다."""
+    from .u13_hand import contexts_of, recipe_of
     a, base = fs1_case.a, fs1_case.sctx.dc.base
 
     def row():
@@ -388,10 +392,11 @@ def test_sb2_second_start_intervals_computes_nothing(fs1_case, tmp_path):
         return rows[0]
     r1 = row()
     assert r1.computes >= 1
-    b2 = run_stage_b(a, memo_of(env.lut), env.decls[0], output_dir=tmp_path, settings=fs1_case.settings)
+    case2 = contexts_of(recipe_of(a, fs1_case.b, (fs1_case.pdk, fs1_case.rule), fs1_case.settings, fs1_case.lut),
+                        kernel=dict(donors=a.donors, counters=a.counters))
     r2 = row()
     assert r2.computes == r1.computes and r2.reuses >= r1.reuses                          # 계산 0
-    assert repr(b2.s1.snapshot.value("graph", "start", "wf_start")) == repr(base.value("graph", "start", "wf_start"))
+    assert repr(case2.sctx.dc.base.value("graph", "start", "wf_start")) == repr(base.value("graph", "start", "wf_start"))
 
 
 def test_sb3_initial_wf_reads_the_field_object(fs1_case):
@@ -479,7 +484,10 @@ def test_sb5_dependent_mirror_member_start_w_operational_path(monkeypatch):
     ok = [k for k in cand if k * wargs["grid_m"] <= w_c]
     want = max(ok) if ok else min(cand)
     got = {c.members: c.w_key for c in base.value("graph", "start", "wf_start")}
-    assert got[("MP1", "MP2")] == want
+    # [FS-1 A-196 판정 #8-3, interface §3.2 S-3] 칸 멤버 순서 = 정준 위치(`dc_colour`) 오름차순이지 이름 순이 아니다: 기대 키를 그 스냅샷 colour 로 손 정렬해 만든다.
+    colour = dict(base.column("device", "dc_colour"))
+    assert colour["MP1"] != colour["MP2"]
+    assert got[tuple(sorted(("MP1", "MP2"), key=lambda n: colour[n]))] == want
 
 
 # [FS-1 A-178/A-182 보고] S-B6 (gate만 공유 칸, 운영 경로) 는 쓰지 않았다: 전제 '정합 묶음 멤버 C 가 쓰기 멤버와 gate 만 공유하고 source 가 다른 mirror 묶음'이

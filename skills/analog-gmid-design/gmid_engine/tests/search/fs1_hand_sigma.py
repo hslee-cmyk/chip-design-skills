@@ -219,7 +219,7 @@ def pick_anchor(sig, args_by_L, w_min_finger):
         a = args_by_L[L]
         out, detail = sig.sigma(L, a["vgs"], a["vds"], a["vsb"], w_f, a["W"])
         assert out is not None, ("손값 없음 -- 멈추고 보고", L, detail)
-        return out
+        return math.sqrt(2.0) * out        # 쌍 s(L) = √2·σ (interface §3.4 단계 4, DEC-23 A_eff: DVGS 열은 소자 하나의 1σ 섭동 -- A-196 m1-pair-sigma)
     s_ref = {L: s_of(L, w_ref) for L in Ls}
     for k in range(1, len(Ls)):
         Lk, Lp = Ls[k], Ls[k - 1]

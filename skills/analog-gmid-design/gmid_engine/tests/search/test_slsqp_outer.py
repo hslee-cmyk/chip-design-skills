@@ -12,6 +12,7 @@ import time
 
 import pytest
 
+from gmid_engine.core import fp_of
 from gmid_engine.search import (
     ACCEPTED_STATUSES,
     AXIS_AREA,
@@ -19,6 +20,7 @@ from gmid_engine.search import (
     SolveResult,
     StartPoint,
     evaluate,
+    initial_wf,
     solve_eps,
     start_points,
 )
@@ -47,7 +49,7 @@ def _feasible(r):
 
 def test_start_not_accepted(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
-    bad = StartPoint("sx", tuple(sorted(theta_r4c(y=0.1, v1=1.5).items())), CELLS_C, "given")
+    bad = StartPoint("sx", tuple(sorted(theta_r4c(y=0.1, v1=1.5).items())), CELLS_C, initial_wf(case.sctx.dc.base), "given")   # [FS-1 A-196] StartPoint(start_id, theta, cells, wf, source) -- wf = 출발 블록 값(입력 구성)
     r = solve_eps(case.sctx, bad, AXIS_POWER, None, ("t",))
     assert isinstance(r, SolveResult)
     assert r.best is None and r.iterations == 0 and r.restarts == 0 and tuple(r.history) == ()
@@ -59,7 +61,7 @@ def test_minimize_from_start_bounded_by_limits(tmp_path, lut_sealed, axis):
     case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
     s = case.sctx
     sp = _start(case, theta_r4c())
-    start_res = evaluate(s, sp.theta, sp.cells)
+    start_res = evaluate(s, sp.theta, sp.cells, sp.wf)
     hs = expected_fd_steps(s, start_res)
     r = solve_eps(s, sp, axis, None, ("t",))
     assert r.best is not None and r.best.status in ACCEPTED_STATUSES and _feasible(r.best)
@@ -78,7 +80,7 @@ def test_eps_constraint_respected(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
     s = case.sctx
     sp = _start(case, theta_r4c())
-    a0 = evaluate(s, sp.theta, sp.cells).objectives.area_m2
+    a0 = evaluate(s, sp.theta, sp.cells, sp.wf).objectives.area_m2
     eps = (AXIS_AREA, 0.8 * a0)
     r = solve_eps(s, sp, AXIS_POWER, eps, ("t",))
     assert tuple(r.eps) == eps
@@ -149,7 +151,7 @@ def test_start_theta_reused_no_extra_kernel(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
     s = case.sctx
     sp = _start(case, theta_r4c())
-    start_res = evaluate(s, sp.theta, sp.cells)
+    start_res = evaluate(s, sp.theta, sp.cells, sp.wf)
     r = solve_eps(s, sp, AXIS_POWER, None, ("t",))
     assert r.history and r.history[0] is start_res
     near = [h for h in r.history[1:] if h.key != start_res.key and all(
@@ -166,8 +168,8 @@ def test_history_points_key_matches_their_theta(tmp_path, lut_sealed):
     r = solve_eps(s, sp, AXIS_AREA, None, ("t",))
     assert len(r.history) >= 2
     for h in r.history:
-        assert h.key == eval_key(s.context_fp, s.schema_fp, h.theta, h.key.cells, h.key.w_fixed_fp)
-    assert r.best.key == eval_key(s.context_fp, s.schema_fp, r.best.theta, r.best.key.cells, None)
+        assert h.key == eval_key(s.context_fp, s.schema_fp, h.theta, h.key.cells, fp_of(sp.wf), h.key.w_fixed_fp)     # [FS-1 §4.1] wf_fp = 그 점이 쓴 wf 의 지문(시작 wf 그대로 -- 이 풀이는 w_f 를 옮기지 않는다)
+    assert r.best.key == eval_key(s.context_fp, s.schema_fp, r.best.theta, r.best.key.cells, fp_of(sp.wf), None)
 
 
 def test_stop_vocabulary_complete(tmp_path, lut_sealed):
@@ -195,14 +197,14 @@ def test_large_area_row_best_judged_on_raw_c(tmp_path, lut_sealed, axis):
     s = case.sctx
     b_a = s.domain.area_resolution_m2
     sp = _start(case, theta_r4c())
-    start_res = evaluate(s, sp.theta, sp.cells)
+    start_res = evaluate(s, sp.theta, sp.cells, sp.wf)
     (row0,) = [c for c in start_res.constraints if c.name == "spec:area_search_m2<="]
     assert row0.c > 1e5                                         # 입력 확인: 크기 1e6 급 행
     r = solve_eps(s, sp, axis, None, ("t",))
     assert r.best is not None and r.best.status in ACCEPTED_STATUSES and _feasible(r.best)
     key = "power_w" if axis == AXIS_POWER else "area_m2"
     assert getattr(r.best.objectives, key) <= getattr(start_res.objectives, key)
-    assert evaluate(s, r.best.theta, r.best.key.cells) is r.best              # 캐시 적중 = 같은 평가 결과(값 불변)
+    assert evaluate(s, r.best.theta, r.best.key.cells, sp.wf) is r.best             # 캐시 적중 = 같은 평가 결과(값 불변)
     for h in (r.best,) + tuple(r.history):
         (row,) = [c for c in h.constraints if c.name == "spec:area_search_m2<="]
         assert row.c == pytest.approx((A_BIG - h.objectives.area_m2) / b_a, rel=1e-9)
@@ -258,7 +260,7 @@ def test_outer_start_outside_box_component_is_exp_of_clipped(tmp_path, lut_seale
     rv = 9e4
     case = build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),), rbounds=(1e3, 3e4), eval_budget=200)
     th0 = theta_p(case.dc, r=rv)
-    sp = StartPoint("sx", tuple(sorted(th0.items())), CELLS_P, "given")
+    sp = StartPoint("sx", tuple(sorted(th0.items())), CELLS_P, initial_wf(case.sctx.dc.base), "given")   # [FS-1 A-196] wf = 출발 블록 값(입력 구성)
     calls = []
     _record_outer_fd(monkeypatch, calls)
     solve_eps(case.sctx, sp, AXIS_POWER, None, ("t",))
@@ -313,7 +315,7 @@ def _cut_case(tmp_path, lut_sealed, m):
     case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
     s = case.sctx
     sp = _start(case, theta_r4c())
-    start_res = evaluate(s, sp.theta, sp.cells)
+    start_res = evaluate(s, sp.theta, sp.cells, sp.wf)
     s.eval_budget = dict(s.counters)["kernel_calls"] + m
     return s, sp, start_res
 

@@ -220,6 +220,10 @@ def test_n1_trial_order_l_moves_then_wf_moves(tmp_path, monkeypatch):
 def test_n2_improving_wf_move_is_accepted(tmp_path):
     """N-2: 슬라이스 200 의 IDu 가 2 배(idu_factor)라 W 가 절반 -> 키 100 -> 200 이동이 면적을 줄인다 (전제: 같은 θ 두 키의 면적 차를 먼저 잰다).
     수락 1 이상, 수락 결과 best.key.wf_fp = 이동한 keys 의 지문."""
+    # [FS-1 A-196 판정 #8-5 -- 미해결, 오케스트레이터 보고] 판정 방향(종속 소자 회로 + idu_factor)을 R-2 회로로 측정했다(search/N2 측정 2026-11-08, 격리 복제본):
+    # 모든 칸 키 100 대 거울 칸 (M3,M4) 키 200 면적 5.8394e-12 / 5.8445e-12 (차 −5.1e-15 < 분해능 한 칸 5e-15 의 ±1배), 차동쌍 칸 키 200 은 5.8372e-12.
+    # 원인(손): 거울 칸의 쓰기 소자 M3 는 W = I·L/exp(θ ln IDu) 로 슬라이스 무관이고, 같은 칸 종속 M4 는 같은 VGS 에서 같은 슬라이스를 읽어 IDu 배율이 약분된다
+    # (W4/W3 = I4/I3). 정합 칸 안에서는 키가 면적을 바꾸지 못하므로(DEC-108 설계), 이 N-2 전제는 이 toy 계열로 만들 수 없다 -- 아래는 기존 본문 그대로(red).
     from gmid_engine.sizing import WfCell, WfInput
     from .conftest import evaluate
     lut = _three_slice(tmp_path, idu_factor={2e-6: 2.0})
