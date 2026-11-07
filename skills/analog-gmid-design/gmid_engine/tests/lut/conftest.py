@@ -82,6 +82,9 @@ TOY_VDS = (0.5, 1.0)
 TOY_VS = (0.0, 0.5)
 TOY_VS_FACTOR = (1.0, 0.5)
 TOY_SPEC = LutSpec(1e-8, (("nmos", 1.5e-6),), (("toyn", "nmos"),), (("nmos", "_n"),))
+# [FS-1 A-196 toy-spec-empty-widths] 곡선 fixture(`curve_lut`·`vds3`)의 슬라이스는 W = 1e-6 하나뿐이다: TOY_SPEC 의 최소 finger 폭 1.5e-6 이면 후보 0 -> 적재가
+# `wf_candidates_empty`(DEC-108 (1) 계약) 로 거부된다. 이 fixture 의 spec 만 최소 폭 = 그 슬라이스 폭(1e-6) 으로 둔다 (TOY_SPEC 자체는 후보 집합을 기대값에 쓰는 test 가 있어 그대로).
+CURVE_SPEC = dataclasses.replace(TOY_SPEC, min_finger_w_m=(("nmos", 1e-6),))
 
 # [r5] CONTRACT 7.1 r5 toy: ID = (1e-6/L)·1e-7·exp(20v − 6v²)·exp(0.1·VDS)·(1, 0.5)[s], GM = ID·(20 − 12v), GDS = ID·0.1
 R5_A, R5_B, R5_C = 20.0, 6.0, 0.1                  # lnID = ln1e-7 + A·v − B·v² + C·d
@@ -223,7 +226,7 @@ def curve_lut(toy_build):
         count[0] += 1
         a = curve_slice_arrays(1e-6, vgs, ids, gm_over_id)
         b = toy_build("curve%d" % count[0], slices=[("c.npz", "toyn", a)], cap=curve_cap_arrays(vgs))
-        lut = b.load()
+        lut = b.load(CURVE_SPEC)
         lI, _ = log_floor(a["ID"])
         lG, _ = log_floor(a["GM"])
         g = np.exp(lG[0, :, 0, 0] - lI[0, :, 0, 0])

@@ -168,7 +168,8 @@ def test_lm1e_f4_fp_item_tuple_contract(mid_toy_build):
     (b): T-1(중점 키 60·80) -> lut.fp == fp_of(1~7 + ("midpoints_sha256", 두 파일 raw sha 정렬 tuple)); sha 는 파일에서 hashlib 으로 직접.
     oracle (d): interface §4 표. 기대는 표로 test 가 직접 만든다(lut_fingerprint 호출 0)."""
     mt = _t1(mid_toy_build, "f4")
-    plain = mt.load(TOY_SPEC, verify_midpoints=None)                        # T-7: 최소 폭 1.5 µm -> 중점 없이 적재
+    # [A-196] 옛 입력 TOY_SPEC(최소 폭 1.5 µm -> 후보 0)은 DEC-108 (1) 로 적재 거부 -> 후보 2개(t_spec 0.6 µm) + 중점 검증 끔(verify_midpoints=None)으로 '중점 없음' 꼴을 만든다
+    plain = mt.load(t_spec(0.6e-6), verify_midpoints=None)
     assert dict(plain.midpoints) == {} and plain.provenance.noise_sha256 is None and plain.provenance.mismatch_sha256 is None
     items = _fp_items_1_to_7(plain)
     assert plain.fp == fp_of(items)
