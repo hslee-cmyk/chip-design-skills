@@ -721,3 +721,106 @@ def test_real_vs_hermite_fc_counts_independent(real_lut, real_slice_files, raw_s
         tot[kind] += rs.hermite_fc()[2][2]
         assert int((~rs.fc_vs[1:]).sum()) == 0, (kind, wk)          # L 0.15 µm 외 행은 위반 없음
     assert tot == {"nmos": 353, "pmos": 3934}
+
+
+
+# ---------------------------------------------------------------------------
+# [JC-1 §5] LUT 축 키 관문: 적재가 읽는 npz 에 축 키(L·VGS·VDS·VS)가 없으면 분류된 정지 -- 그 자리 기존 축 사유 + detail {path, axis}.
+# oracle (d): interface card 20261106-jc1 §5 X-0~X-7 (계획 N6.42 완료 (8) '분류된 정지'). 키를 빼는 것 말고 입력은 같다(X-0: 빼지 않으면 적재 통과).
+# **범위 표지(원래 취지와 다름, 위임 A-158 rm2)**: X-7 (중점 파일 `L` 키 결손)은 LM-1e 관문(G1c 'L 제조 격자' 등)이 `L` 을 직접 읽는 자리가 `lut_provenance` 쪽이면 JC-1 이
+# W12 파일 칸(`lut_set.py` 중점 자리) 밖을 고치게 만든다 -- 그 경우 이 test 의 통과 조건이 JC-1 범위 확장이다(판정자 확인 항목).
+# ---------------------------------------------------------------------------
+import os as _os  # noqa: E402
+
+from .conftest import MismatchToy, NoiseToy, TOY_NOISE_SPEC, TOY_SHAPE, mid_file, toy_grid_mesh  # noqa: E402
+
+
+def _same_path(got, want):
+    return _os.path.abspath(str(got)) == _os.path.abspath(str(want))
+
+
+def _axes_reject(build, reason, path, axis, spec=TOY_SPEC):
+    with pytest.raises(SchemaRejectedError) as ei:
+        build.load(spec)
+    det = detail_of(ei.value)
+    assert det["reason"] == reason, det
+    assert _same_path(det["path"], path), (det["path"], path)
+    assert det["axis"] == axis, det
+
+
+def _mm_dv():
+    L, v, d, s = toy_grid_mesh()
+    return {"vth0": np.full(TOY_SHAPE, 1e-3), "toxe": 2e-3 * (1 + v), "voff": 2e-3 + 0 * v}
+
+
+def _noise_ab():
+    L, v, d, s = toy_grid_mesh()
+    return 1e-12 * np.exp(v), 1e-16 * np.exp(0.5 * v)
+
+
+def _x_toy(kind, tmp_path, toy_build, mid_toy_build, drop=None):
+    """자리마다 그 자리 앞 관문을 모두 통과하는 기존 toy 에서 npz 의 `drop` 키 하나를 뺀 입력. 반환 (load 가능한 build, 그 npz 경로)."""
+    if kind == "cap":
+        cap = toy_cap_arrays()
+        if drop:
+            del cap[drop]
+        b = toy_build("x_cap", cap=cap)
+        return b, b.cap
+    if kind in ("slice1", "slice0"):
+        sl = standard_toy_slices()
+        i = 0 if kind == "slice0" else 1
+        if drop:
+            del sl[i][2][drop]
+        b = toy_build("x_" + kind, slices=sl)
+        return b, b.root / sl[i][0]
+    if kind == "mid":
+        m = mid_file(1e-6, 1.0, MID_LS)
+        if drop:
+            del m[drop]
+        mt = mid_toy_build("x_mid", mid={0: m})
+        return mt, mt.mid_path
+    if kind == "mismatch":
+        t = MismatchToy(tmp_path / "x_mm", _mm_dv(), mm_mutate=(lambda a: a.pop(drop)) if drop else None)
+        return t, t.path
+    A, B = _noise_ab()
+    t = NoiseToy(tmp_path / "x_noise", A, B, noise_mutate=(lambda a: a.pop(drop)) if drop else None)
+    return t, t.path
+
+
+X_CASES = [
+    ("X-1", "cap", "lut_cap_axes_mismatch", TOY_SPEC),
+    ("X-2", "slice1", "lut_slice_axes_mismatch", TOY_SPEC),
+    ("X-3", "slice0", "lut_slice_axes_mismatch", TOY_SPEC),
+    ("X-4", "mid", "lut_midpoints_axes_mismatch", TOY_SPEC),
+    ("X-5", "mismatch", "lut_mismatch_axes_mismatch", TOY_SPEC),
+    ("X-6", "noise", "lut_noise_axes_mismatch", TOY_NOISE_SPEC),
+]
+
+
+@pytest.mark.parametrize("label,kind,reason,spec", X_CASES, ids=[c[0] for c in X_CASES])
+def test_axis_key_missing_vgs_is_classified_stop(tmp_path, toy_build, mid_toy_build, label, kind, reason, spec):
+    """X-1~X-6: 자리마다 npz 의 `VGS` 키만 뺀다 -> SchemaRejectedError, reason = 그 자리 기존 축 사유, path = 그 npz, axis "VGS". base 는 분류되지 않은 KeyError.
+    X-0 전제(먼저): 같은 toy 에서 키를 빼지 않으면 적재 통과."""
+    ok, _ = _x_toy(kind, tmp_path / "ok", toy_build, mid_toy_build)
+    ok.load(spec)                                                           # X-0: 앞 관문 통과 입력이다(통과 안 하면 이 test 는 설정 오류)
+    bad, path = _x_toy(kind, tmp_path / "bad", toy_build, mid_toy_build, drop="VGS")
+    _axes_reject(bad, reason, path, "VGS", spec)
+
+
+def test_axis_key_missing_first_listed_axis_wins(tmp_path, toy_build, mid_toy_build):
+    """axis = 없는 키 가운데 L → VGS → VDS → VS 순서 첫 것(결정성): 기준 폭 표에서 VGS 와 VS 를 함께 빼면 "VGS"."""
+    cap = toy_cap_arrays()
+    del cap["VGS"], cap["VS"]
+    b = toy_build("x_two", cap=cap)
+    _axes_reject(b, "lut_cap_axes_mismatch", b.cap, "VGS")
+
+
+def test_axis_key_x7_midpoint_L_missing_uses_axes_gate_first(mid_toy_build):
+    """X-7: 중점 파일의 `L` 키만 뺀다 -> lut_midpoints_axes_mismatch, path = 그 중점 파일, axis "L" (중점 파일 축 키는 `npz_grids` 하나가 처음 읽는다 --
+    LM-1e 관문이 `L` 을 직접 읽는 자리가 있어도 그 앞에서 판정). X-0: L 을 빼지 않으면 적재 통과."""
+    ok = mid_toy_build("x7_ok", mid={0: mid_file(1e-6, 1.0, MID_LS)})
+    ok.load()
+    m = mid_file(1e-6, 1.0, MID_LS)
+    del m["L"]
+    mt = mid_toy_build("x7", mid={0: m})
+    _axes_reject(mt, "lut_midpoints_axes_mismatch", mt.mid_path, "L")

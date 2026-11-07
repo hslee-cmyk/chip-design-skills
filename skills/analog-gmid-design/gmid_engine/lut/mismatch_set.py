@@ -63,7 +63,7 @@ def load_mismatch_tables(spec, prov, caps):
         bad = npz_condition_mismatch(npz, prov.cap_conditions)
         if bad is not None:
             raise schema_rejected("lut_conditions_mismatch", key=bad[0], mismatch=bad[1], cap=bad[2])
-        grids = npz_grids(npz)
+        grids = npz_grids(npz, reason="lut_mismatch_axes_mismatch", path=path)
         shape = tuple(len(g) for g in grids)
         for kind in sorted(caps):
             cap = caps[kind]

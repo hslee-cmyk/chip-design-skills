@@ -167,3 +167,50 @@ def test_it1_removed_stop_names_absent_from_engine_and_contracts(checks, engine_
                 hits.append("%s %s" % (p.relative_to(engine_root).as_posix(), name))
     report(len(files) + len(docs), len(hits))
     assert hits == []
+
+
+
+# ---------------------------------------------------------------- [JC-1 §7 N-1·N-2] O-197·삭제 이름 (완료 (4)) -- 엔진 안 BSIM4 접합 이름·식 0
+# oracle (구조): 비test 엔진 `.py` 글자 그대로(주석·docstring 포함) 정규식 0줄(N-1, interface card 20261106-jc1 §7 / design D40 (viii)(4)) +
+# 삭제 이름의 코드 잔재 0(N-2, AST). PDK 이식성: PDK 접합 키 이름은 PDK 선언 한 곳에만(tnom 두 키는 oracle 소비 -- 엔진 소비자 0).
+import re  # noqa: E402
+
+JC1_N1_PATTERN = re.compile(
+    r"JunctionParams|junction_caps|from_pdk_decl|params_of|pdk_decl_sha256|\b(cj|mj|pb)[sd]\b|\b(cj|mj|pb)sw[sd]\b|\b(cj|mj|pb)swg[sd]\b"
+    r"|\btc?jsw?g?\b|\btpb(sw)?g?\b|\bpermod\b|\bdwj\b|\btnom\b")
+JC1_REMOVED = ("JunctionCaps", "_finger_row", "pdk_bsim4_lut_rule_diffusion", "pdk_bsim4_layout_diffusion")
+
+
+def test_jc1_n1_no_bsim4_junction_names_in_engine_text(checks, engine_root, report):
+    """N-1: 비test 엔진 `.py` 에 BSIM4 접합 파라미터 이름·삭제 함수 이름 정규식 0줄 (O-197)."""
+    files = checks.engine_files(engine_root)
+    hits = []
+    for p in files:
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if JC1_N1_PATTERN.search(line):
+                hits.append("%s:%d %s" % (checks.rel(engine_root, p), i, line.strip()[:90]))
+    report(len(files), len(hits))
+    assert len(files) > 0
+    assert not hits, "엔진에 BSIM4 접합 이름이 남아 있다 %d줄:\n%s" % (len(hits), "\n".join(hits))
+
+
+@pytest.mark.parametrize("line,hit", [
+    ("cj = params.cjs * area", True), ("x = junction_caps(p, g)", True), ("y = self.pdk_decl_sha256", True),
+    ("tnom = 27.0", True), ("pb_swg = p.pbswgd", True), ("permod = 1", True),
+    ("cjs_like_name_inside_other_identifier_xcjsy = 1", False), ("perm = 1", False), ("capacitor", False),
+])
+def test_jc1_n1_pattern_is_not_vacuous(line, hit):
+    """N-1 정규식이 위반 줄을 실제로 잡고(양성), 비슷한 다른 이름은 잡지 않는다(음성)."""
+    assert bool(JC1_N1_PATTERN.search(line)) is hit
+
+
+def test_jc1_n2_removed_function_and_model_names_absent(checks, engine_root, report):
+    """N-2: 삭제 이름 `JunctionCaps`, `_finger_row`, `pdk_bsim4_lut_rule_diffusion`, `pdk_bsim4_layout_diffusion` 가 비test 엔진 코드에 0(AST: 식별자·속성·def/class·인자·import·문자열 상수)."""
+    files = checks.engine_files(engine_root)
+    hits = []
+    for p in files:
+        for line, name, form in removed_name_hits(checks.parse(p), JC1_REMOVED):
+            hits.append("%s:%d %s (%s)" % (checks.rel(engine_root, p), line, name, form))
+    report(len(files), len(hits))
+    assert len(files) > 0
+    assert not hits, "삭제 이름이 엔진 코드에 남아 있다 %d건:\n%s" % (len(hits), "\n".join(hits))

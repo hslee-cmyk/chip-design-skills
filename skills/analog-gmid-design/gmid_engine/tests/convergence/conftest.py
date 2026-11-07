@@ -164,34 +164,7 @@ def candidate(pid, power, search_area, b_p=1e-9, slack_rows=(5.0,)):
     return SimpleNamespace(point_id=pid, result=res, origin=())
 
 
-# ---------------------------------------------------------------- BSIM4 접합 용량 폐형식 (metrics CONTRACT 8.2, ngspice 대조 8.4)
-
-def bsim4_junction(params, fw, ad, as_, pd, ps, m, v_db, v_sb, temp_c):
-    """oracle (b): BSIM4 4.5 접합 용량 폐형식(metrics CONTRACT 8.2 -- ngspice BSIM4v5 와 90점 대조된 식). 엔진 `junction_caps` 를 부르지 않는다.
-    반환 (cdb, csb) 소자 전체 F."""
-    p = params
-    dt = temp_c - p.tnom
-    weff = fw - 2.0 * p.dwj
-
-    def side(cj, cjsw, cjswg, mj, mjsw, mjswg, pb, pbsw, pbswg, area, perim, v):
-        cj_t = cj * max(0.0, 1.0 + p.tcj * dt)
-        cjsw_t = cjsw * max(0.0, 1.0 + p.tcjsw * dt)
-        cjswg_t = cjswg * max(0.0, 1.0 + p.tcjswg * dt)
-        pb_t, pbsw_t, pbswg_t = pb - p.tpb * dt, pbsw - p.tpbsw * dt, pbswg - p.tpbswg * dt
-        p_eff = perim - weff if p.permod == 1.0 else perim
-        total = 0.0
-        for c0, mj_, pb_ in ((cj_t * area, mj, pb_t), (cjsw_t * p_eff, mjsw, pbsw_t), (cjswg_t * weff, mjswg, pbswg_t)):
-            if v > 0:
-                total += c0 * (1.0 + v / pb_) ** (-mj_) if c0 > 0 else 0.0
-            else:
-                total += c0 * (1.0 - mj_ * v / pb_)
-        return total
-
-    cdb = m * side(p.cjd, p.cjswd, p.cjswgd, p.mjd, p.mjswd, p.mjswgd, p.pbd, p.pbswd, p.pbswgd, ad, pd, v_db)
-    csb = m * side(p.cjs, p.cjsws, p.cjswgs, p.mjs, p.mjsws, p.mjswgs, p.pbs, p.pbsws, p.pbswgs, as_, ps, v_sb)
-    return cdb, csb
-
-
+# [JC-1] 옛 BSIM4 접합 용량 폐형식 helper(bsim4_junction)는 삭제됐다 -- 호출처 0, 엔진이 PDK 접합 키를 읽지 않는다 (tests/RETIRED_TESTS_jc1.md).
 # ---------------------------------------------------------------- 실경로 (실 LUT v2 + sky130 + library 회로)
 
 REAL_LN_IDU = -14.0             # 손 봉인 점: 모든 ln_idu 성분(= ln(ID·L/W)) -- 실측(2026-10-09) 두 회로 모두 봉인·제약 행 c >= 0 인 값

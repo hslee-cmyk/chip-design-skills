@@ -72,6 +72,9 @@ def write_toy_lut(root, cap_scale=1.0, grids=GRIDS, cdd=True):
     for kind in KINDS:
         cap["CGG" + SUFFIX[kind]] = np.full(shp, CGG_REF * cap_scale)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, CGD_REF * cap_scale)
+        # [JC-1] 접합 항 입력 열: CGS = CGG − CGD, CSS = CGS + 5e-16 (손 식, cap_scale 비례 -- 닫힌 식에 쓰이지 않는 열)
+        cap["CGS" + SUFFIX[kind]] = np.full(shp, (CGG_REF - CGD_REF) * cap_scale)
+        cap["CSS" + SUFFIX[kind]] = np.full(shp, (CGG_REF - CGD_REF + 5e-16) * cap_scale)
         if cdd:
             cap["CDD" + SUFFIX[kind]] = np.full(shp, CDD_REF * cap_scale)
     np.savez(root / "cap.npz", **cap)

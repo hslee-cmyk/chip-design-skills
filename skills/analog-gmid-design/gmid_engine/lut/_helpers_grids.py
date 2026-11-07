@@ -2,11 +2,18 @@
 (`lut_set`·`noise_set`·`mismatch_set`)."""
 import numpy as np
 
+from ._helpers_fail import schema_rejected
 from .lut_types import AXES
 
 
-def npz_grids(npz):
-    """npz 의 축 `AXES` 마다 float tuple -- ((L...), (VGS...), (VDS...), (VS...))."""
+def npz_grids(npz, *, reason, path):
+    """npz 의 축 `AXES` 마다 float tuple -- ((L...), (VGS...), (VDS...), (VS...)).
+
+    축 키(`AXES` 가운데 하나라도)가 파일에 없으면 부르는 자리가 넘긴 축 사유 `reason` 으로 `SchemaRejectedError`
+    detail `{reason, path, axis}`(axis = 없는 키 가운데 `AXES` 순서 첫 것). 축 키 판정은 이 helper 하나다."""
+    for axis in AXES:
+        if axis not in npz.files:
+            raise schema_rejected(reason, path=path, axis=axis)
     return tuple(tuple(float(x) for x in np.asarray(npz[axis], dtype=float)) for axis in AXES)
 
 

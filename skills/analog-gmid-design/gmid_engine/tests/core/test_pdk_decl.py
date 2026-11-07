@@ -874,48 +874,10 @@ def my_spice_rule_m(decl, name, decl_path, rule_id):
 
 # ---------------------------------------------------------------- sky130 접합 파라미터 (9.4 DEC-91 표)
 
-JUNCTION_FIELDS = ("cjs", "cjd", "cjsws", "cjswd", "cjswgs", "cjswgd", "mjs", "mjd", "mjsws", "mjswd", "mjswgs", "mjswgd",
-                   "pbs", "pbd", "pbsws", "pbswd", "pbswgs", "pbswgd", "tcj", "tcjsw", "tcjswg", "tpb", "tpbsw", "tpbswg",
-                   "tnom", "permod", "dwj")
+# [JC-1] 접합 파라미터 54키(9.4 DEC-91 표) 적재 test 는 `retired_tests`(tests/RETIRED_TESTS_jc1.md, covered_by = N-3) -- 엔진이 PDK 접합 키를 읽지 않는다(O-197).
+# 남은 것: 모델 카드 원본 선언(소스 이름)·bin 블록 수, tnom 두 키(oracle 기술 파일 소비 -- JP-1 뒤 이동·삭제).
 JUNCTION_SOURCE = {"nmos": "nfet_01v8_tt_model_card", "pmos": "pfet_01v8_tt_model_card"}
-# 9.4 표(drain 이름 = source 쪽 값)
-JUNCTION_TABLE = {
-    "nmos": dict(cjs=0.001339749237, cjsws=3.67354204e-11, cjswgs=2.38232788e-10, mjs=0.44, mjsws=0.0009, mjswgs=0.8,
-                 pbs=0.729, pbsws=0.2, pbswgs=0.95578, tcj=0.000792, tcjsw=1e-05, tcjswg=0.0, tpb=0.0012287, tpbsw=0.0,
-                 tpbswg=0.0, tnom=30.0, permod=1.0, dwj=0.0),
-    "pmos": dict(cjs=0.0007380194454, cjsws=9.888892e-11, cjswgs=2.39155046e-10, mjs=0.34629, mjsws=0.29781,
-                 mjswgs=0.9274, pbs=0.6587, pbsws=0.7418, pbswgs=1.4338, tcj=0.0012407, tcjsw=0.00037357, tcjswg=2e-12,
-                 tpb=0.0020386, tpbsw=0.001246, tpbswg=0.0, tnom=30.0, permod=1.0, dwj=0.0),
-}
-JUNCTION_RULE_LINES = {"nmos": {"cjs": 231, "pbs": 230, "tnom": 240, "permod": 47, "dwc": 175, "xw": 216},
-                       "pmos": {"cjs": 277, "tnom": 38, "permod": 69}}
-
-
-def _drain_to_source(field):
-    """9.4: drain 쪽 이름은 source 쪽 규칙(cjd -> cjs, cjswd -> cjsws, ..., pbswgd -> pbswgs)."""
-    drain = ("cjd", "cjswd", "cjswgd", "mjd", "mjswd", "mjswgd", "pbd", "pbswd", "pbswgd")
-    return field[:-1] + "s" if field in drain else field
-
-
-def _junction_expected(kind):
-    src = JUNCTION_SOURCE[kind]
-
-    def rule(r):
-        return my_spice_rule_m(SKY, src, str(SKY130_DECL), r)[0]
-
-    exp = {}
-    for f in JUNCTION_FIELDS:
-        if f == "dwj":
-            exp[f] = rule("dwc") - rule("xw") / 2  # 9.4: dwj 미지정 -> dwc, Weffcj 의 xw 포함
-        else:
-            exp[f] = rule(_drain_to_source(f))
-    return exp
-
-
-def test_drain_to_source_mapping_helper():
-    assert [_drain_to_source(f) for f in ("cjd", "cjswd", "cjswgd", "mjd", "mjswd", "mjswgd", "pbd", "pbswd", "pbswgd")] == \
-        ["cjs", "cjsws", "cjswgs", "mjs", "mjsws", "mjswgs", "pbs", "pbsws", "pbswgs"]
-    assert [_drain_to_source(f) for f in ("tcj", "tpb", "tnom", "permod", "cjs", "dwj")] == ["tcj", "tpb", "tnom", "permod", "cjs", "dwj"]
+JC1_JUNCTION_KEYS = {"junction_nmos_tnom", "junction_pmos_tnom"}
 
 
 @needs_sky130
@@ -928,47 +890,15 @@ def test_sky130_model_cards_have_declared_block_counts():
 
 
 @needs_sky130
-def test_sky130_declares_exactly_54_junction_quantities():
+def test_jc1_n3_sky130_declares_only_the_two_tnom_junction_quantities():
+    """N-3: 저장소 `sky130_pdk_decl.json` 을 `read_pdk_decl` 로 적재 통과, 이름이 `junction_` 으로 시작하는 양 집합 == {junction_nmos_tnom, junction_pmos_tnom}
+    (54 -> 2: 접합 파라미터 52키 삭제, tnom 두 키는 oracle 기술 파일 소비라 JP-1 까지 유지). oracle (d): 계획 N6.42 범위 3·완료 (4)."""
     names = {n for n in SKY["quantities"] if n.startswith("junction_")}
-    assert names == {"junction_%s_%s" % (k, f) for k in ("nmos", "pmos") for f in JUNCTION_FIELDS}
-    assert len(names) == 54
-
-
-@needs_sky130
-@pytest.mark.parametrize("kind", ["nmos", "pmos"])
-def test_sky130_junction_values_recomputed_independently(sky_decl, kind):
-    exp = _junction_expected(kind)
-    for f in JUNCTION_FIELDS:
-        got = sky_decl.value("junction_%s_%s" % (kind, f))
-        assert isinstance(got, float)
-        assert math.isclose(got, exp[f], rel_tol=REL, abs_tol=0.0), (kind, f, got, exp[f])
-        table = JUNCTION_TABLE[kind][_drain_to_source(f)]
-        assert math.isclose(got, table, rel_tol=1e-12, abs_tol=0.0), (kind, f, got, table)
-    # drain = source (BSIM4 기본값)
-    for d in ("cjd", "cjswd", "cjswgd", "mjd", "mjswd", "mjswgd", "pbd", "pbswd", "pbswgd"):
-        assert sky_decl.value("junction_%s_%s" % (kind, d)) == sky_decl.value("junction_%s_%s" % (kind, _drain_to_source(d)))
-
-
-@needs_sky130
-@pytest.mark.parametrize("kind", ["nmos", "pmos"])
-def test_sky130_junction_rules_are_bin_common_with_first_block_line(sky_decl, kind):
-    src_name = JUNCTION_SOURCE[kind]
-    path = _src_path(SKY, src_name)
-    sha = _sha256(path)
-    seen = {}
-    for f in JUNCTION_FIELDS:
-        for r in sky_decl.quantity("junction_%s_%s" % (kind, f)).rules:
-            assert "." not in r.rule_id, r.rule_id  # bin 공통 이름
-            vm, text, unit, line = my_spice_rule_m(SKY, src_name, str(SKY130_DECL), r.rule_id)
-            assert (r.value_text, r.unit_text, r.line, r.source) == (text, unit, line, src_name)
-            assert r.value_m == float(text) * SKY["sources"][src_name]["units_m"][unit]
-            # [U17 ①-b 2차, 결정 7] 경로 대신 내용(원본 이름 + 원본 바이트 sha256)
-            assert r.sha256 == sha == SKY["sources"][src_name]["sha256"]
-            assert_path_free(r, (SKY["pdk_root"], path, SKILL_DIR))
-            seen[r.rule_id] = r.line
-    for rid, ln in JUNCTION_RULE_LINES[kind].items():
-        assert seen[rid] == ln, (kind, rid)
-    assert tuple(r.rule_id for r in sky_decl.quantity("junction_%s_dwj" % kind).rules) == ("dwc", "xw")
+    assert names == JC1_JUNCTION_KEYS
+    d = read_pdk_decl(str(SKY130_DECL), BoundedLRU(4))                    # 적재 통과(선언 일관성 -- 지운 키를 읽는 양이 남아 있지 않다)
+    loaded = {n for n in dict(d.quantities) if n.startswith("junction_")}
+    assert loaded == JC1_JUNCTION_KEYS
+    assert d.value("junction_nmos_tnom") == 30.0 and d.value("junction_pmos_tnom") == 30.0      # oracle (d): 모델 카드 tnom (기존 9.4 표 값 유지)
 
 
 @needs_sky130

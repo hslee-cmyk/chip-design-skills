@@ -271,7 +271,7 @@ def test_r3_doubling_epsilon_doubles_resolution_exactly(case):
 def test_r3_per_mos_share():
     """한 MOS 의 ε 만 바꾸면 그 MOS 몫만 바뀐다: lut(ε1, ε2) = lut(ε1, 0) + lut(0, ε2), lut(ε1, 2ε2) − lut(ε1, ε2) = lut(0, ε2)."""
     ck, a, src = _miller()
-    P = 12
+    P = 15       # [JC-1] 항 수: LUT 열 목록이 6 -> 8열로 늘어난 것을 따르는 갱신(M1 8 + M2 7(csb = 0) = 15) -- 기준 약화 아님(허용오차 (P − 1)·eps 식은 그대로)
 
     def lut(e):
         return {r.quantity: r.lut for r in metric_resolutions(a, src, lut_parameters(ck, e))}
@@ -314,18 +314,17 @@ def _miller_own(mos):
     return _metrics_from_h(h, h(0.0))
 
 
-def _expected_lut(mos, eps, metric_fn, fields):
-    """Σ_p |∂q/∂p|·ε_k·|p| -- ∂q/∂p = 중심 차분(파라미터마다 p(1 ± h) 로 다시 세워 푼다, 한 섭동당 모든 필드를 한 번에)."""
+def _expected_lut(mos, ps, metric_fn, fields):
+    """Σ_p |∂q/∂p|·Δp -- ∂q/∂p = 중심 차분(파라미터마다 p(1 ± h) 로 다시 세워 푼다, 한 섭동당 모든 필드를 한 번에).
+    [JC-1] Δp 는 입력 `ParameterSet.delta` 에서 읽는다(입력 값 -- Δ 꼴 독립: 피검 함수로 기대값을 만드는 것이 아니다, cdb·csb 에 ε·|p| 꼴을 가정하지 않는다).
+    파라미터 목록 = `ps.params` 그대로(열 목록 사본 없음)."""
     out = {q: 0.0 for q in fields}
-    for k, t in enumerate(mos):
-        for name in ("gm", "gmb", "gds", "cgs", "cgd", "cgb"):
-            p = t[MOS_IX[name]]
-            if p == 0.0:
-                continue
-            pp, pm = p * (1.0 + FD_H), p * (1.0 - FD_H)
-            hi, lo = metric_fn(perturbed(mos, k, name, 1.0 + FD_H)), metric_fn(perturbed(mos, k, name, 1.0 - FD_H))
-            for q in fields:
-                out[q] += abs((hi[q] - lo[q]) / (pp - pm)) * eps[k] * abs(p)
+    for i, (k, name) in enumerate(ps.params):
+        p = mos[k][MOS_IX[name]]
+        pp, pm = p * (1.0 + FD_H), p * (1.0 - FD_H)
+        hi, lo = metric_fn(perturbed(mos, k, name, 1.0 + FD_H)), metric_fn(perturbed(mos, k, name, 1.0 - FD_H))
+        for q in fields:
+            out[q] += abs((hi[q] - lo[q]) / (pp - pm)) * float(ps.delta[i])
     return out
 
 
@@ -337,8 +336,9 @@ def test_r2_miller_variant_against_independent_mna():
     own = _miller_own(MILLER_V_MOS)
     for q in LOOP_FIELDS:
         assert abs(getattr(la, q) - own[q]) <= R1_RTOL * abs(own[q]), (q, getattr(la, q), own[q])
-    res = _by_q(metric_resolutions(la, src, lut_parameters(ck, eps)))
-    exp = _expected_lut(MILLER_V_MOS, eps, _miller_own, LOOP_FIELDS)
+    ps = lut_parameters(ck, eps)
+    res = _by_q(metric_resolutions(la, src, ps))
+    exp = _expected_lut(MILLER_V_MOS, ps, _miller_own, LOOP_FIELDS)
     for q in LOOP_FIELDS:
         assert abs(res[q].lut - exp[q]) <= FD_RTOL * exp[q], (q, res[q].lut, exp[q])
         assert res[q].value == res[q].lut and res[q].numeric <= res[q].lut
@@ -388,9 +388,10 @@ def test_r2_beta_loop_variant_against_central_difference():
     own = _loop_own(EX7V_MOS)
     for q in ("ugf_hz", "phase_margin_deg"):
         assert abs(getattr(la, q) - own[q]) <= R1_RTOL * abs(own[q]), (q, getattr(la, q), own[q])
-    res = _by_q(metric_resolutions(la, src, lut_parameters(ck, eps)))
-    exp = _expected_lut(EX7V_MOS, eps, _loop_engine, LOOP_FIELDS)
-    exp_own = _expected_lut(EX7V_MOS, eps, _loop_own, ("ugf_hz", "phase_margin_deg"))
+    ps = lut_parameters(ck, eps)
+    res = _by_q(metric_resolutions(la, src, ps))
+    exp = _expected_lut(EX7V_MOS, ps, _loop_engine, LOOP_FIELDS)
+    exp_own = _expected_lut(EX7V_MOS, ps, _loop_own, ("ugf_hz", "phase_margin_deg"))
     for q in LOOP_FIELDS:
         assert abs(res[q].lut - exp[q]) <= FD_RTOL * exp[q], (q, res[q].lut, exp[q])
         assert res[q].numeric <= res[q].lut
@@ -413,8 +414,9 @@ def test_r2_rout_against_central_difference():
         return {"rout_ohm": ref_system(m, res_, cap, (0,), cols, ((2, None),), 0.0)[0, 1].real}
 
     assert abs(ro.rout_ohm - rout(mos)["rout_ohm"]) <= R1_RTOL * ro.rout_ohm
-    (r,) = metric_resolutions(ro, resp, lut_parameters(ck, (0.03,)))
-    exp = _expected_lut(mos, (0.03,), rout, ("rout_ohm",))["rout_ohm"]
+    ps = lut_parameters(ck, (0.03,))
+    (r,) = metric_resolutions(ro, resp, ps)
+    exp = _expected_lut(mos, ps, rout, ("rout_ohm",))["rout_ohm"]
     assert abs(r.lut - exp) <= FD_RTOL * exp, (r.lut, exp)
 
 

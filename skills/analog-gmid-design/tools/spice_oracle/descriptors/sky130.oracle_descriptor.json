@@ -2,7 +2,7 @@
  "schema": "oracle_pdk_descriptor/1",
  "engine_decl": {
   "path": "../../../assets/sky130_pdk_decl.json",
-  "sha256": "5f32257b419b0a5f33e0766dfb4cc5a84885da03a909060ea6cf9938fc16f7bf"
+  "sha256": "afec6262170ae75b7b2d5bae75f5bdb50f781d0b12e707196ac8353c296d7df6"
  },
  "extra_engine_decls": {
   "lut_rule": {

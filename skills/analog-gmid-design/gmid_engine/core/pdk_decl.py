@@ -7,11 +7,11 @@
   길이마다 규칙 식(`max(poly.2, licon.1 + 2 * licon.11)` 같은 산술식, 이름 = 원본 파일의 규칙 번호)을 정한다.
 * 원본 형식 네 가지(선언의 `format`): `lef_statement`(줄 머리 `KEY 값 ;`, 예 tlef `MANUFACTURINGGRID`),
   `rule_table_csv`(절 머리 행 + 규칙 행 표, 열 번호·절 머리 정규식은 선언이 준다), `spice_model_card`(SPICE `.model`
-  블록의 `키 = 값` -- 블록 이름 정규식은 선언이 준다, bin 공통 키와 bin 별 `모델.키`, DEC-91 접합 파라미터),
+  블록의 `키 = 값` -- 블록 이름 정규식은 선언이 준다, bin 공통 키와 bin 별 `모델.키`),
   `spice_instance_line`(정규식이 고른 SPICE 소자 줄의 `키=값` -- 예 LUT 생성기 DUT 줄의 확산 기하). 규칙 하나가 원본에
   두 번 나오면(모델 카드는 bin 마다 값이 다르면) 모호 -- 식이 그 규칙을 쓸 때만 거부한다.
 * 원본 경로 기준은 `pdk_root`(기본) 또는 선언 파일 폴더(원본의 `base` = `"decl_dir"`, PDK 밖 원본).
-* 양의 값(`value_m`)은 원본 단위 표(`units_m`)로 환산한 SI 값이다(길이면 m, 면적 m², 접합 용량 F/m² 등 -- 이름이 단위를 적는다).
+* 양의 값(`value_m`)은 원본 단위 표(`units_m`)로 환산한 SI 값이다(길이면 m, 면적 m² 등 -- 이름이 단위를 적는다).
 * 원본 파일은 매 호출 sha256 을 다시 재서 선언값과 대조하고(다르면 거부), 파싱 결과는 부르는 쪽 `BoundedLRU` 에
   (형식, sha256, 파싱 인자) 키로 둔다 -- 같은 파일은 sha256 당 한 번만 파싱한다. 모듈 수준 캐시는 없다(규칙 G).
 * 실패는 전부 `SchemaRejectedError(detail={"reason": ...})`(로드 게이트 거부, 사유 키는 core CONTRACT 9절).

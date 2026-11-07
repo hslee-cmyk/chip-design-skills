@@ -55,7 +55,7 @@ def load_noise_tables(spec, prov, caps):
             raise schema_rejected("lut_conditions_mismatch", key=bad[0], noise=bad[1], cap=bad[2])
         if not _ascending_inside(extra, f_lo, f_hi):
             raise schema_rejected("lut_noise_frequency_invalid", path=path, f_lo=f_lo, f_hi=f_hi, extra=extra)
-        grids = npz_grids(npz)
+        grids = npz_grids(npz, reason="lut_noise_axes_mismatch", path=path)
         shape = tuple(len(g) for g in grids)
         for kind in sorted(caps):
             cap = caps[kind]

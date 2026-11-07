@@ -1635,6 +1635,10 @@ def _write_neg_lut(root):
     for kind in ("nmos", "pmos"):
         cap["CGG" + _SUFFIX[kind]] = _np.full(shape, 1e-15)
         cap["CGD" + _SUFFIX[kind]] = _np.full(shape, 2e-16)
+        # [JC-1] 접합 항 입력 열(손 식: CGS = CGG − CGD = 8e-16, CSS − CGS = 5e-16, CDD − CGD = 3e-16 -- 모든 칸 같은 값)
+        cap["CGS" + _SUFFIX[kind]] = _np.full(shape, 8e-16)
+        cap["CSS" + _SUFFIX[kind]] = _np.full(shape, 1.3e-15)
+        cap["CDD" + _SUFFIX[kind]] = _np.full(shape, 5e-16)
     _np.savez(root / "cap.npz", **cap)
     return _load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), _TOY_SPEC, bin_rule=tb.bin_rule)
 

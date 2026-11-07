@@ -21,7 +21,6 @@ from gmid_engine.metrics import (
     JunctionSource,
     MetricBundle,
     SsEvaluation,
-    junction_caps,
     metrics_dc,
     metrics_ss,
     ss_dev,
@@ -48,8 +47,7 @@ from .conftest import (
     lut_ln_idu,
     oracle_junction,
     oracle_ss,
-    read_decls,
-    ref_caps,
+    read_rule_decl,
     rel_close,
     topo_doc,
     toy_junction,
@@ -67,7 +65,7 @@ CONS = (
     ("area_search_m2", "<=", 1e-9, None),
 )
 BLOCKS = (ss_dev, metrics_ss, metrics_dc)
-APPROX = (("cap", "lut_cgs_cgb"), ("gmb", "lut_gmbs_column"), ("junction", "pdk_bsim4_lut_rule_diffusion"))
+APPROX = (("cap", "lut_cgs_cgb"), ("gmb", "lut_gmbs_column"), ("junction", "lut_vgs_min_rule_area"))       # [JC-1] 값 1:1 교체
 
 
 def _counts(ctx, blocks=BLOCKS):
@@ -97,14 +95,14 @@ def theta(i=I0, r=R0, vgs=VGS0, l1=L0, cl=None):
     return th
 
 
-def build(tmp, cl_engine=False, cons=CONS, th=None):
+def build(tmp, cl_engine=False, cons=CONS, th=None, lut_kw=None):
     """(spec, ctx, ev, junction) -- spec 로더 -> dc_inputs_from_spec -> build_s1 -> build_kernel_context -> size_and_seal,
-    접합 묶음은 S0 당 1회 from_decls(toy 선언, ctx.lut.memo.lut)."""
+    접합 묶음은 S0 당 1회 from_decls(toy 규칙 선언, ctx.lut.memo.lut). [JC-1] lut_kw = `load_lut_v2` 추가 인자(접합 열 변형)."""
     from gmid_engine.graph import build_s1
     els = (("R1", "resistor", None), ("CL", "capacitor", None if cl_engine else 1e-12))
     td, spec = load_case(tmp / "case", _topo(cl_engine), SUP, els, (), cons)
     inputs = dc_inputs_from_spec(spec)
-    lut = load_lut_v2(tmp / "lut")
+    lut = load_lut_v2(tmp / "lut", **(lut_kw or {}))
     run = fresh_run()                 # [XRUN-F1 card B C0·C6] 실행 하나 = 이 build 하나
     ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, lut_access(lut), **run)
     ev = size_and_seal(ctx, theta() if th is None else th)
@@ -173,38 +171,82 @@ def test_values_against_closed_form(base):
     assert rel_close(d["area_search_m2"].value, exp["area"], 1e-12)
 
 
-def test_s11_junction_caps_and_approximation(base):
-    """S-11: ss_dev 의 cdb·csb = 같은 dc_op·JunctionSource 로 부른 junction_caps 값(비트) = 독립 8.2 식(상대 오차),
-    junction_model == JUNCTION_LUT_RULE, approximations 에 ("junction", "pdk_bsim4_lut_rule_diffusion")."""
+def test_s11_junction_lut_vgs_min_and_approximation(base):
+    """S-11 [JC-1]: ss_dev 의 cdb·csb = 정의 문장의 손 식(VGS 최소 조회 열 × 면적 비, 레이아웃 전 규칙 면적 -- W = 그 평가가 쓴 W, m = 1; 옛 BSIM4 `junction_caps` 비트 대조는 폐기),
+    junction_model == JUNCTION_LUT_RULE == "lut_vgs_min_rule_area", approximations 에 ("junction", "lut_vgs_min_rule_area")."""
     _, _, _, _, res, js = base
     op = res.snapshot.value("device", "M1", "dc_op")
     ss = res.snapshot.value("device", "M1", "ss_dev")
-    fg = res.snapshot.value("device", "M1", "dc_finger")                      # C-2: 접합 인자 = 소자 손가락 기하 (w_f, m)
-    jc = junction_caps(js.params_of(op.kind), js.pre_layout_geometry(fg.w_f_m, fg.m), op.vds + op.vsb, op.vsb,
-                       js.temp_c)
-    assert (ss.cdb, ss.csb) == (jc.cdb, jc.csb)
-    cdb, csb = oracle_junction(op, w_m=fg.w_f_m, m=fg.m)
+    cdb, csb = oracle_junction(op)
     assert rel_close(ss.cdb, cdb, JUNCTION_RTOL) and rel_close(ss.csb, csb, JUNCTION_RTOL)
     assert ss.cdb > 0.0 and ss.csb > 0.0
-    assert ss.junction_model == JUNCTION_LUT_RULE == "pdk_bsim4_lut_rule_diffusion"
-    assert ("junction", "pdk_bsim4_lut_rule_diffusion") in res.ss.approximations
+    assert ss.junction_model == JUNCTION_LUT_RULE == "lut_vgs_min_rule_area"
+    assert ("junction", "lut_vgs_min_rule_area") in res.ss.approximations
     assert tuple(res.ss.approximations) == APPROX                          # 7.4: 집합 정렬
     assert not any(v == "pending_pdk_junction_params" for _, v in res.ss.approximations)
+    assert not any(v.startswith("pdk_bsim4") for _, v in res.ss.approximations)
+
+
+def _cdd_scaled(cap):
+    for k in [k for k in cap if k.startswith("CDD")]:
+        cap[k] = cap[k] * 20.0                            # 드레인(out 노드) 쪽 접합 항 입력만 크게 (CDD − CGD > 0 유지)
 
 
 def test_junction_enters_frequency_metrics(tmp_path, base):
-    """접합 용량이 실제로 계에 스탬프된다: 접합 파라미터만 바꾼 묶음 -> 주파수 metric(pm_ss_deg)이 바뀌고 DC 이득은 그대로."""
+    """접합 용량이 실제로 계에 스탬프된다: 기준 폭 표 CDD 열만 20 배로 쓴 LUT(다른 열 그대로) -> cdb 가 커지고 주파수 metric(pm_ss_deg)이 바뀌며 DC 이득은 그대로."""
     spec, ctx, _, sealed, res, js = base
-    from .conftest import TOY_JUNCTION
-    params = {k: dict(v) for k, v in TOY_JUNCTION.items()}
-    for f in ("cjd", "cjswd", "cjswgd"):
-        params["nmos"][f] *= 20.0                   # drain 쪽(out 노드) 용량만 크게
-    js2 = toy_junction(tmp_path / "j2", ctx.lut.memo.lut, params=params)
-    r2 = ss_evaluate(res.lineage.sealed, ctx, theta(), spec.constraints, ("vdd",), junction=js2)
+    spec2, ctx2, ev2, js2 = build(tmp_path / "c2", lut_kw={"cap_mutate": _cdd_scaled})
+    r2 = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx2, theta(), spec2.constraints, ("vdd",), junction=js2)
     a, b = bundle_map(res.ss), bundle_map(r2.ss)
     assert a["gain_ss_db"].value == b["gain_ss_db"].value
     assert a["pm_ss_deg"].value != b["pm_ss_deg"].value
     assert r2.snapshot.value("device", "M1", "ss_dev").cdb > res.snapshot.value("device", "M1", "ss_dev").cdb
+
+
+def _spy_counter(monkeypatch):
+    """관찰 지점 §9: `gmid_engine.metrics.ss_evaluate.ss_circuit_field` 통과 spy (MNA 조립 자리 -- D-f 미도달)."""
+    import sys
+    mod = sys.modules["gmid_engine.metrics.ss_evaluate"]
+    orig = mod.ss_circuit_field
+    box = {"n": 0}
+
+    def spy(*a, **k):
+        box["n"] += 1
+        return orig(*a, **k)
+
+    monkeypatch.setattr(mod, "ss_circuit_field", spy)
+    return box
+
+
+def _neg_cdd(cap):
+    for k in [k for k in cap if k.startswith("CDD")]:
+        cap[k] = cap[k] * 0.0 + 1e-17                     # CDD (1e-17) < CGD (2e-16 급) -> cdb = (CDD − CGD)·r < 0 모든 점
+
+
+def _nan_cdd(cap):
+    for k in [k for k in cap if k.startswith("CDD")]:
+        cap[k] = cap[k] * float("nan")
+
+
+@pytest.mark.parametrize("mutate,nan", [(_neg_cdd, False), (_nan_cdd, True)], ids=["D-f", "D-g"])
+def test_jc1_df_dg_negative_or_nan_junction_cap_stops_before_mna(tmp_path, monkeypatch, mutate, nan):
+    """D-f/D-g: 음수(NaN) 접합 용량 표 -> `ss_evaluate` 경유도 SealViolationError junction_cap_negative(`lut_reason` 키 없음 -- 감싸지 않음), devices == ("M1",),
+    terminal "d". 관찰 지점 `ss_circuit_field`(MNA 소신호 회로 조립)가 불리지 않는다(양성 대조: 정상 LUT 에서는 불린다). oracle (d): 수동성 관문 계약."""
+    import math
+    from gmid_engine.core import SealViolationError
+    box = _spy_counter(monkeypatch)
+    spec, ctx, ev, js = build(tmp_path / "ok")
+    ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, theta(), spec.constraints, ("vdd",), junction=js)
+    assert box["n"] >= 1                                                     # 양성 대조: 정상 LUT 는 MNA 에 닿는다
+    box["n"] = 0
+    spec, ctx, ev, js = build(tmp_path / "bad", lut_kw={"cap_mutate": mutate})
+    with pytest.raises(SealViolationError) as ei:
+        ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, theta(), spec.constraints, ("vdd",), junction=js)
+    det = dict(ei.value.record.detail)
+    assert det["reason"] == "junction_cap_negative" and "lut_reason" not in det
+    assert ei.value.record.devices == ("M1",) and det["terminal"] == "d"
+    assert math.isnan(det["value"]) if nan else det["value"] < 0.0
+    assert box["n"] == 0
 
 
 def test_counted_rails_default_undeclared(base):
@@ -243,7 +285,7 @@ def test_s13_junction_keyword_required(base):
         ss_evaluate(sealed, ctx, theta(), spec.constraints)
 
 
-@pytest.mark.parametrize("bad", ["none", "params_tuple", "junction_params", "pdk_decl", "dict", "positional_only"])
+@pytest.mark.parametrize("bad", ["none", "reference_tuple", "reference_geometry", "rule_decl", "dict", "positional_only"])
 def test_s13_junction_must_be_junction_source(base, bad):
     """S-13: JunctionSource 아닌 값(None·묶음의 일부·선언 그대로·dict) -> TypeError. 키워드 전용이라 위치 인자로도 못 준다."""
     spec, ctx, _, sealed, _, js = base
@@ -251,8 +293,8 @@ def test_s13_junction_must_be_junction_source(base, bad):
         with pytest.raises(TypeError):
             ss_evaluate(sealed, ctx, theta(), spec.constraints, ("vdd",), (), js)
         return
-    val = {"none": None, "params_tuple": js.params, "junction_params": js.params_of("nmos"),
-           "pdk_decl": js.lut_rule_decl, "dict": {"temp_c": js.temp_c}}[bad]
+    val = {"none": None, "reference_tuple": js.reference, "reference_geometry": js.reference_of("nmos"),
+           "rule_decl": js.lut_rule_decl, "dict": {"temp_c": js.temp_c}}[bad]
     with pytest.raises(TypeError):
         ss_evaluate(sealed, ctx, theta(), spec.constraints, ("vdd",), junction=val)
 
@@ -378,18 +420,20 @@ def test_s6_lineage_reuse_zero_compute(base):
         assert (st.computes, st.reuses) == (0, 1), name
 
 
-def test_s12_junction_change_recomputes_ss_blocks_only(base):
-    """S-12: temp_c 만 바꾼 묶음 -> ss_dev 재계산 1회(→ metrics_ss 도 1회), metrics_dc 는 ss 를 읽지 않아 재사용(7.10-3),
+def test_s12_junction_temp_change_recomputes_ss_dev_only(base):
+    """S-12 [JC-1, A-167]: temp_c 만 바꾼 묶음 -> 묶음 지문이 ss_dev 입력 버전에 들어 ss_dev 만 재계산 1회. 접합 값은 온도를 읽지 않아(card 범위 3, interface §2)
+    출력 값이 같고, 하류 metrics_ss 입력 버전이 그대로라 재사용(computes 0), metrics_dc 도 재사용. 계수 [1, 0, 0] (옛 BSIM4 온도 보정 시절의 [1, 1, 0] 갱신),
     recomputes_same_input 0. 같은 묶음으로 다시 -> 세 블록 computes 0."""
     spec, ctx, _, _, res, js = base
     js_t = dataclasses.replace(js, temp_c=js.temp_c + 10.0)
     before = _counts(ctx)
     r2 = ss_evaluate(res.lineage.sealed, ctx, theta(), spec.constraints, ("vdd",), junction=js_t)
     st = _since(ctx, before)
-    assert [st[b.name].computes for b in BLOCKS] == [1, 1, 0]
+    assert [st[b.name].computes for b in BLOCKS] == [1, 0, 0]
     assert all(st[b.name].recomputes_same_input == 0 for b in BLOCKS)
+    assert r2.snapshot.value("device", "M1", "ss_dev") == res.snapshot.value("device", "M1", "ss_dev")      # 값 그대로
     op = r2.snapshot.value("device", "M1", "dc_op")
-    cdb, csb = oracle_junction(op, temp_c=37.0)
+    cdb, csb = oracle_junction(op)               # [JC-1] 접합 값은 온도를 읽지 않아 값 그대로(묶음 지문만 입력 버전에 든다)
     ss = r2.snapshot.value("device", "M1", "ss_dev")
     assert rel_close(ss.cdb, cdb, JUNCTION_RTOL) and rel_close(ss.csb, csb, JUNCTION_RTOL)
     before = _counts(ctx)
@@ -441,7 +485,7 @@ def test_determinism(tmp_path, base):
         assert [(q.metric, x.value) for q, x in a.entries] == [(q.metric, x.value) for q, x in b.entries]
 
 
-# ---------------------------------------------------------------- sky130 실선언(원본이 있을 때만) -- 7.2 작성자 실측 예와 대조
+# ---------------------------------------------------------------- sky130 LUT 생성 규칙 선언(원본이 있을 때만)
 
 def _sky():
     from . import test_junction_cap as tj
@@ -450,37 +494,21 @@ def _sky():
     return tj
 
 
-def test_sky130_decls_ss_dev_junction_matches_reference(base):
-    """8.5 호출 그대로 sky130 PDK 선언 + LUT 규칙 선언 -> ss_dev cdb·csb = core 9.4 표 파라미터·규칙 기하의 독립 8.2 식.
-    7.2 예(이 CS 픽스처, W 2.3700841597752005e-05, vds 0.9, vsb 0)의 작성자 실측 숫자와도 같은 허용 오차로 맞는지 본다."""
+def test_junction_sky130_rule_decl_ss_dev_is_width_ratio_of_columns(base):
+    """[JC-1] sky130 LUT 생성 규칙 선언(PDK 선언 인자 없음)으로 `JunctionSource.from_decls(규칙 선언, LUT)` -> ss_dev cdb·csb = VGS 최소 조회 (CDD − CGD)·(CSS − CGS) × 면적 비.
+    면적 비 = (ad_per_w·W)/(ad_per_w·w_ref) 라 비율은 약분되어 W/w_ref -- 규칙 값은 core 가 읽은 값(선언 파일 한 곳). 옛 BSIM4 작성자 실측 숫자(cdb 1.6396654687269645e-14 …)는 폐기(retired)."""
     tj = _sky()
     spec, ctx, _, _, res, _ = base
-    pdk, rule = read_decls(str(tj.PDK_DECL), str(tj.LUT_RULE_DECL))
-    js = JunctionSource.from_decls(pdk, rule, ctx.lut.memo.lut)
-    assert js.pdk_decl_sha256 == pdk.decl_sha256 and js.lut_rule_decl == rule
+    rule = read_rule_decl(str(tj.LUT_RULE_DECL))
+    js = JunctionSource.from_decls(rule, ctx.lut.memo.lut)
+    assert js.lut_rule_decl == rule
     r = ss_evaluate(res.lineage.sealed, ctx, theta(), spec.constraints, ("vdd",), junction=js)
     op = r.snapshot.value("device", "M1", "dc_op")
     ss = r.snapshot.value("device", "M1", "ss_dev")
-    # 규칙 기하: core 9.4 표 lut_diffusion_* (ad/w = 2.5e-12/5e-6, pd − w = 7e-6 − 5e-6) 를 같은 식으로 따로 계산
-    ad_w, pd_x = 2.5e-12 / 5e-6, 7e-6 - 5e-6
-    fg = r.snapshot.value("device", "M1", "dc_finger")                          # C-2: 접합 인자 = dc_finger (w_f, m)
-    geo = (fg.w_f_m, ad_w * fg.w_f_m, ad_w * fg.w_f_m, fg.w_f_m + pd_x, fg.w_f_m + pd_x, float(fg.m))
-    cdb, csb = ref_caps(tj.sky_ref_params("nmos"), geo, op.vds + op.vsb, op.vsb, 27.0)
+    vals = {"ad_per_w": rule.value("lut_diffusion_ad_per_w_m"), "as_per_w": rule.value("lut_diffusion_as_per_w_m")}
+    cdb, csb = oracle_junction(op, rule=vals)
     assert rel_close(ss.cdb, cdb, JUNCTION_RTOL) and rel_close(ss.csb, csb, JUNCTION_RTOL), (ss.cdb, cdb, ss.csb, csb)
-    # 7.2 예의 전제(같은 픽스처 점) -- 같으면 작성자 실측 숫자와도 대조
-    assert (op.W, op.vds, op.vsb) == (2.3700841597752005e-05, 0.9, 0.0)
-    # [WB-1 C-2 이행] 옛 작성자 실측(cdb 1.6192271478167327e-14, csb 2.3226455532310698e-14, 37 °C cdb 1.6234719737286454e-14)은 비정수 m = W/w_m 기하라 폐기.
-    # 새 값은 dc_finger 정수 (m = 24, w_f = 1 µm: 총 W 24 µm) 로 conftest `ref_caps`(8.2 독립 기준 식, 피검 함수 아님)에서 얻었다: 27 °C cdb 1.6396654687269645e-14,
-    # csb 2.351962610594928e-14, 37 °C cdb 1.6439638739741253e-14. 손 대조: 접합 용량은 면적·둘레 ∝ 총 W 라 옛 값 x (24 / 23.7008) = x 1.01262 -> cdb 1.6397e-14, csb 2.3520e-14
-    # (둘레 항 m·pd_x 의 차이로 1e-4 안 어긋남) 로 일치. oracle (b) 독립 구현.
-    assert (fg.m, fg.w_f_m) == (24, 1e-6)
-    assert rel_close(ss.cdb, 1.6396654687269645e-14, JUNCTION_RTOL)
-    assert rel_close(ss.csb, 2.351962610594928e-14, JUNCTION_RTOL)
-    r_t = ss_evaluate(res.lineage.sealed, ctx, theta(), spec.constraints, ("vdd",),
-                      junction=dataclasses.replace(js, temp_c=js.temp_c + 10.0))
-    cdb_t, _ = ref_caps(tj.sky_ref_params("nmos"), geo, op.vds + op.vsb, op.vsb, 37.0)
-    got_t = r_t.snapshot.value("device", "M1", "ss_dev").cdb
-    assert rel_close(got_t, cdb_t, JUNCTION_RTOL) and rel_close(got_t, 1.6439638739741253e-14, JUNCTION_RTOL)
+    assert ss.cdb > 0.0 and ss.csb > 0.0
 
 
 # ---------------------------------------------------------------------------

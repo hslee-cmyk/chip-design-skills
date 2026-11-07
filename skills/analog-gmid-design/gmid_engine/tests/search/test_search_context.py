@@ -165,12 +165,12 @@ def test_theta_capacitance_without_bounds_rejected_before_kernel(tmp_path, lut_s
 
 
 def test_junction_built_once_per_context(tmp_path, lut_sealed):
-    """r6: build_search_context 가 S0 당 1회 JunctionSource.from_decls(pdk, lut_rule, lut) -- 같은 선언이면 같은 묶음."""
+    """r6 [JC-1]: build_search_context 가 S0 당 1회 JunctionSource.from_decls(lut_rule, lut) -- 같은 선언이면 같은 묶음."""
     from gmid_engine.metrics import JunctionSource
     case = build_case(tmp_path, circuit_c(), lut_sealed)
     j = case.sctx.junction
     assert isinstance(j, JunctionSource)
-    assert j == JunctionSource.from_decls(case.pdk, case.rule, case.dc.lut.memo.lut)
+    assert j == JunctionSource.from_decls(case.rule, case.dc.lut.memo.lut)
 
 
 # ---------------------------------------------------------------- [U7+U8 통합 2026-10-09] 계산 대기 표가 빈 표인 문맥

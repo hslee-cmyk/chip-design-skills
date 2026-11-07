@@ -498,6 +498,10 @@ def _write_r4_lut_narrow_cap(root):
     for kind in ("nmos", "pmos"):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
+        # [JC-1] 접합 항 입력 열(손 식: CGS = CGG − CGD = 8e-16, CSS − CGS = 5e-16, CDD − CGD = 3e-16 -- 모든 칸 같은 값)
+        cap["CGS" + SUFFIX[kind]] = np.full(shp, 8e-16)
+        cap["CSS" + SUFFIX[kind]] = np.full(shp, 1.3e-15)
+        cap["CDD" + SUFFIX[kind]] = np.full(shp, 5e-16)
     np.savez(root / "cap.npz", **cap)
     from toy_bins import retrofit_bins as _retro
     _tb = _retro(root)

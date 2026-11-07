@@ -34,7 +34,6 @@ from gmid_engine.search import FrontPoint
 from .conftest import (
     GRID,
     FakeSnapshot,
-    bsim4_junction,
     ddiff,
     eval_result,
     floorplan,
@@ -405,24 +404,39 @@ def test_real_layout_fields_live_on_design_point_snapshot(real, name):
 
 @pytest.mark.parametrize("name", REAL)
 def test_real_junction_caps_from_realized_diffusion(real, name):
-    """불변식 8 + DEC-91 (2): 재검증 점의 cdb·csb = 실현 확산 기하(ly.diffusion)와 PDK 접합 파라미터로 BSIM4 폐형식을 test 가 직접 푼 값."""
-    from gmid_engine.metrics import JunctionParams
+    """불변식 8 + DEC-91 (2) [JC-1]: 재검증 점의 cdb·csb = 정의 문장 `(CDD − CGD)·r_d`, `(CSS − CGS)·r_s` -- VGS 최소 조회(기준 폭 표 VGS 축 첫 값, 기준 폭 w_ref)의 표 값 ×
+    실현 확산 면적 비 r = (ad_m2·m)/(LUT 생성 규칙 ad_per_w·w_ref·1). 표 값은 기준 폭 표 npz 원 파일을 numpy 로 직접 읽어 test 쪽 다중선형 보간(`lut.conftest.interp4`)으로 만든다
+    (LUT 값은 엔진 밖 사실 -- 엔진 reader·`caps`·`junction_at_vgs_min` 으로 기대값을 만들지 않는다). 식은 정의대로(옛 BSIM4 폐형식 대조 폐기).
+    실 LUT 의존(실행은 판정자). 보간은 격자 L 축 선형이다 -- 소자 L 이 bin 경계를 넘는 보간 규칙(L 은 같은 bin 안에서만)과 갈리는 점이 있으면 판정자가 알린다."""
+    import os
+    from pathlib import Path
+    import numpy as np
+    from gmid_engine.lut import resolve_lut_location
+    from lut.conftest import REAL_CAP_SUFFIX, interp4
     r = real.run(name)
     cp = r.point
     diffusion = {d.name: d for d in cp.layout.snapshot.value("graph", LAYOUT_KEY, F_DIFFUSION)}
     assert diffusion, "레이아웃이 확산 기하를 내지 않았다"
     ss = dict(cp.result.evaluation.snapshot.column("device", "ss_dev"))
     ops = dict(cp.result.evaluation.snapshot.column("device", "dc_op"))
-    temp = r.sctx.junction.temp_c
+    env = real.env
+    a_ad, a_as = env.lut_rule.value("lut_diffusion_ad_per_w_m"), env.lut_rule.value("lut_diffusion_as_per_w_m")
+    loc = resolve_lut_location(str(Path(__file__).resolve().parents[3] / "assets" / "lut_v2_location.json"), os.environ)
+    raw = np.load(loc.cap_npz_path)
+    grids = tuple(np.asarray(raw[k], dtype=float) for k in ("L", "VGS", "VDS", "VS"))
+    w_ref = float(raw["w_ref_m"])
+    suffix = dict(REAL_CAP_SUFFIX)
     for m, d in diffusion.items():
-        assert ss[m].junction_model == "pdk_bsim4_layout_diffusion"
-        params = JunctionParams.from_pdk_decl(real.env.pdk, ops[m].kind)
-        cdb, csb = bsim4_junction(params, d.finger_w_m, d.ad_m2, d.as_m2, d.pd_m, d.ps_m, float(d.n_fingers),
-                                  ops[m].vds + ops[m].vsb, ops[m].vsb, temp)
+        assert ss[m].junction_model == "lut_vgs_min_layout_area"
+        s = suffix[ops[m].kind]
+        pt = (ops[m].L, float(grids[1].min()), ops[m].vds, ops[m].vsb)
+        cdd, cgd, css, cgs = (interp4(grids, np.asarray(raw[c + s]), pt) for c in ("CDD", "CGD", "CSS", "CGS"))
+        cdb = (cdd - cgd) * ((d.ad_m2 * float(d.n_fingers)) / (a_ad * w_ref * 1.0))
+        csb = (css - cgs) * ((d.as_m2 * float(d.n_fingers)) / (a_as * w_ref * 1.0))
         assert isclose(ss[m].cdb, cdb, 1e-12) and isclose(ss[m].csb, csb, 1e-12), (m, ss[m].cdb, cdb, ss[m].csb, csb)
     # 레이아웃 전(출발 점)은 LUT 생성 규칙 기하
     before = dict(r.start.evaluation.snapshot.column("device", "ss_dev"))
-    assert {s.junction_model for s in before.values()} == {"pdk_bsim4_lut_rule_diffusion"}
+    assert {s.junction_model for s in before.values()} == {"lut_vgs_min_rule_area"}
     # junction 기록 = 출발 점 -> 재검증 점
     assert {j.device: (j.cdb_before, j.csb_before, j.cdb_after, j.csb_after) for j in cp.junction} == {
         m: (before[m].cdb, before[m].csb, ss[m].cdb, ss[m].csb) for m in ss}

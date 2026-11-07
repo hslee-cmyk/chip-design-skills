@@ -229,6 +229,11 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   `lut_cap_width_unresolved`
   (슬라이스 1개뿐·동률·분리 조건 불충족·VS 값이 슬라이스 축에 없음·`w_ref_m`·`ID` 열 둘 다 없음),
   [r4] `lut_model_bin_incomplete`, `lut_model_bins_no_width`, `lut_model_bins_overlap`, `lut_l_anchor_outside_model_bins`.
+- [JC-1] **축 키 결손**: 적재가 읽는 npz(슬라이스·기준 폭 표·중점·mismatch r1·잡음 r1)에 축 키(`L`·`VGS`·`VDS`·`VS`, L 포함) 가운데 하나라도 없으면
+  그 자리 기존 축 사유(슬라이스 = `lut_slice_axes_mismatch`, 기준 폭 표 = `lut_cap_axes_mismatch`, 중점 = `lut_midpoints_axes_mismatch`,
+  mismatch = `lut_mismatch_axes_mismatch`, 잡음 = `lut_noise_axes_mismatch`) + detail `{path, axis}`(axis = 없는 키 가운데 `L`·`VGS`·`VDS`·`VS`
+  순서 첫 것). 첫 슬라이스(기준 축 자체)의 축 키 결손도 `lut_slice_axes_mismatch`. 축 키 판정은 helper `npz_grids(npz, *, reason, path)` 하나다 --
+  받아들이던 파일(축 키가 다 있는 파일)의 결과는 바뀌지 않는다.
 - [실측 2026-10-07 -- 기록, 그때 쓴 옛 sample LUT 는 O-180 으로 삭제, 생성 완료 슬라이스 32개 + 옛 기준 LUT] 로드 1.5 s, nmos·pmos 모두 w_key 1000
   (5 µm) 채택, d_w ≈ 5.0e-7, 이웃 차 0.88(nmos)·1.25(pmos).
 
@@ -480,7 +485,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 | `tol_vdsat_table(memo, kind, w_key, l_bin_checks=None)` [r6] | `TolVdsatTable` | 5.2 |
 | `midpoint_l_bin_checks(memo, kind, w_key)` [r6] | `MidpointChecks` | 5.1 |
 | `gmb(memo, kind, w_key, L, vgs, vds, vsb)` | float A/V(폭 w_m) | [r6] GMBS 열이 있으면 4.4 의 열 정의(정본). 없으면 아래 r5 정의. [r5] VS 칸 k = `min(bisect_right(VS, vsb) − 1, len(VS) − 2)`(VS 는 선형 축이라 칸 안 ln ID 가 vsb 에 선형), `gmb = −ID(점) · (ln IDu(VS[k+1]) − ln IDu(VS[k])) / (VS[k+1] − VS[k])`, 세 값 모두 같은 (L, vgs, vds) 의 `op_point`(ID(점) = IDu·w_m/L). 소자 폭 W 값 = `× W / w_m`(부르는 쪽) |
-| `caps(memo, kind, L, vgs, vds, vsb, W)` | `Caps(cgg, cgd, cgs, cgb, model)` F | [r4] 4.0 의 L 장(bin 지도 = `CapTable.l_bins`)에서 기준 LUT 열 (L, VGS, VDS, VS) 모든 축 선형 보간([r5] `linear_point`, 4.2 표) × `W / w_ref_m`. CGS·CGB 열이 있으면 `model = "lut_cgs_cgb"`, 없으면 `"cgg_minus_cgd_at_gs"`(cgs = cgg − cgd, cgb = 0.0). 축은 기준 LUT 축(옛 세트 VS 0~0.8 → vsb > 0.8 실패, LUT v2 는 0~1.8). kind 표 없음 → `KeyError`. [r6] `Caps.cdd`·`css` = CDD·CSS 열이 있으면 같은 보간 × W/w_ref_m, 없으면 None. 값은 저장 부호 그대로(음수 가능 -- 로그·절댓값 없음). bin 지도 = `CapTable.l_bins`(1.4 폭 키 수정) |
+| `caps(memo, kind, L, vgs, vds, vsb, W)` | `Caps(cgg, cgd, cgs, cgb, model)` F | [r4] 4.0 의 L 장(bin 지도 = `CapTable.l_bins`)에서 기준 LUT 열 (L, VGS, VDS, VS) 모든 축 선형 보간([r5] `linear_point`, 4.2 표) × `W / w_ref_m`. CGS·CGB 열이 있으면 `model = "lut_cgs_cgb"`, 없으면 `"cgg_minus_cgd_at_gs"`(cgs = cgg − cgd, cgb = 0.0). 축은 기준 LUT 축(옛 세트 VS 0~0.8 → vsb > 0.8 실패, LUT v2 는 0~1.8). kind 표 없음 → `KeyError`. [r6] `Caps.cdd`·`css` = CDD·CSS 열이 있으면 같은 보간 × W/w_ref_m, 없으면 None. [JC-1, A-169] `Caps.cgs_measured` = CGS 열이 있으면 같은 보간 × W/w_ref_m(CGB 열 유무와 무관 -- `model`·`cgs`·`cgb` 값과 갈래는 불변), 없으면 None; 소비자 = metrics `junction_at_vgs_min` 하나. 값은 저장 부호 그대로(음수 가능 -- 로그·절댓값 없음). bin 지도 = `CapTable.l_bins`(1.4 폭 키 수정) |
 | `tol_v_table(memo, kind, w_key, l_bin_checks=None)` | `TolVTable` | 5절([r6] 기본값 None = 중점 파일 값) |
 | `curve_report(memo)` | `CurveReport(lut_fp, rows)` | 슬라이스·L 앵커마다 `CurveRow`(lut_types 문서): 격자점 곡선만. [r2] `n_curves` = **검사한** 곡선 수(건너뛴 곡선 제외), `n_skipped` = ID·GM 에 0 이하 격자점이 있어 뺀 곡선 수,
 `n_curves + n_skipped = len(VDS)·len(VS)`. [r5] `n_hermite_nonmonotone` = 그 L 앵커 i 의 `count(~fc_ok_vgs[i]) + count(~fc_ok_vds[i])` + [r7] `count(~fc_ok_vs[i])`. 행 순서 (kind, w_key) 정렬 후 L 오름차순 |
