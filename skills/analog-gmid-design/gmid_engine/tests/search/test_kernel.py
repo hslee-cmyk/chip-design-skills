@@ -17,10 +17,11 @@ from gmid_engine.search import (
     STATUS_SEALED,
     STATUS_UNDEFINED,
     EvalResult,
-    evaluate,
 )
 
 from .conftest import (
+    evaluate,           # [FS-1 서명 맞춤] 손 wf 를 끼운 공개 evaluate 래퍼 (conftest `evaluate`)
+    hand_wf_of,
     CODE_FP,
     CELLS_C,
     CELLS_P,
@@ -222,8 +223,9 @@ def test_evals_record_fields(case_c):
     r = evaluate(s, th_sorted(th), CELLS_C, origin=(("stage", "start"),))
     (rec,) = read_evals(root, s.context_fp)
     for k in ("seq", "schema_fp", "cells", "w_fixed_fp", "theta_hex", "theta", "status", "ok", "origin", "objectives",
-              "power_resolution_w", "constraints", "unmeasured", "snapshot_fp", "code_fp"):
+              "power_resolution_w", "constraints", "unmeasured", "snapshot_fp", "code_fp", "wf_keys"):
         assert k in rec, k
+    assert rec["wf_keys"] == list(hand_wf_of(s).keys)                                  # [FS-1 E-5] S3 줄 wf_keys == list(wf.keys)
     assert rec["seq"] == r.seq == 1 and rec["ok"] is True and rec["status"] == STATUS_SEALED
     assert rec["schema_fp"] == s.schema_fp and rec["code_fp"] == s.code_fp
     assert rec["theta_hex"] == [float(v).hex() for _, v in th_sorted(th)]
@@ -639,3 +641,56 @@ def test_evaluate_does_not_derive_or_change_eval_budget(tmp_path, lut_sealed):
         assert s.eval_budget is None and s.eval_budget_source == src0, k
     assert len(s.eval_times) == n + 2 == dict(s.counters)["kernel_calls"]        # 평가 시간은 기록한다
     assert all(t >= 0.0 for t in s.eval_times)
+
+
+# =====================================================================================================================
+# [FS-1 §4.5] 평가 키에 w_f 칸 키 -- oracle (식) interface card 20261107-fs1 §4.5: E-2 같은 θ·cells·다른 keys = 캐시 적중 0, E-3 같은 wf 두 번 = 적중,
+# E-4 실현 키 = 실현 표지만(탐색 스냅샷 지문 없음), E-5 S3 줄 wf_keys (위 test_evals_record_fields).
+# =====================================================================================================================
+def _two_slice_case(tmp_path, short_root):
+    from gmid_engine.search import evaluate as raw_evaluate   # noqa: F401
+    from sizing.wb1_toy import write_r4_bins_lut
+    lut, _, _ = write_r4_bins_lut(tmp_path / "lut2", widths=(1e-6, 2e-6))
+    return build_case(tmp_path, circuit_c(), lut, constraints=AXIS_CONS + SS_CONS, archive_root=short_root)
+
+
+def _wf_keys(s, key):
+    from gmid_engine.sizing import WfCell, WfInput
+    base = hand_wf_of(s)
+    return WfInput(tuple(WfCell(c.members, key) for c in base.cells_ref), tuple(key for _ in base.cells_ref))
+
+
+def test_e2_different_wf_keys_are_different_evaluations(tmp_path, short_root):
+    s = _two_slice_case(tmp_path, short_root).sctx
+    th = th_sorted(theta_r4c())
+    k0 = counters(s)["kernel_calls"]
+    ra = evaluate(s, th, CELLS_C, wf=_wf_keys(s, 100))
+    rb = evaluate(s, th, CELLS_C, wf=_wf_keys(s, 200))
+    c = counters(s)
+    assert c["kernel_calls"] - k0 == 2 and c["hits"] == 0                                # 캐시 적중 0, 커널 2회
+    assert ra.key.wf_fp != rb.key.wf_fp and ra.key != rb.key
+
+
+def test_e3_same_wf_twice_hits(tmp_path, short_root):
+    s = _two_slice_case(tmp_path, short_root).sctx
+    th = th_sorted(theta_r4c())
+    wf = _wf_keys(s, 100)
+    r1 = evaluate(s, th, CELLS_C, wf=wf)
+    h0 = counters(s)["hits"]
+    r2 = evaluate(s, th, CELLS_C, wf=wf)
+    assert counters(s)["hits"] == h0 + 1 and r2 is r1
+
+
+def test_e4_realize_key_is_marker_only(tmp_path, short_root):
+    """E-4: 실현 evaluate(..., realized=RealizeInput(s1)) 와 RealizeInput(s2) (같은 θ·cells·wf, 다른 탐색 스냅샷 객체) 는 같은 키(실현 표지만)."""
+    from gmid_engine.sizing import RealizeInput
+    s = _two_slice_case(tmp_path, short_root).sctx
+    th = th_sorted(theta_r4c())
+    wf = _wf_keys(s, 100)
+    s1 = evaluate(s, th, CELLS_C, wf=wf)
+    s2 = evaluate(s, th_sorted(theta_r4c(i2=1.1e-5)), CELLS_C, wf=wf)
+    assert s1.evaluation.snapshot is not s2.evaluation.snapshot                          # 전제: 다른 스냅샷 객체
+    ra = evaluate(s, th, CELLS_C, wf=wf, realized=RealizeInput(s1.evaluation.snapshot))
+    rb = evaluate(s, th, CELLS_C, wf=wf, realized=RealizeInput(s2.evaluation.snapshot))
+    assert ra.key == rb.key and ra.key.w_fixed_fp is not None
+    assert ra.key != s1.key                                                              # 실현 표지가 탐색 키와 갈린다

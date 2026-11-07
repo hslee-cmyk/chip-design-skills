@@ -1159,3 +1159,46 @@ def ja_state(tmp_path, y1=0.6, y2=0.4, vds=0.1):
     op = dict(snap.column("device", "dc_op"))["M3"]
     changed = tamper(snap, "dc_solve", "device", "dc_op", {"M3": dataclasses.replace(op, vds=vds)})
     return ctx, th, changed, dc_tolerances(changed, ctx.lut, **run_of(ctx))
+
+
+# ---------------------------------------------------------------- [FS-1] 손 `WfInput` (interface card 20261107-fs1 §4 toy D)
+def hand_cells(ctx, join=()):
+    """손 폐포(oracle (손), interface §4 toy D): 그 ctx 스냅샷 `graph.matching_groups` 중 role ∈ {mirror, diff_pair, branch_symmetric} 이고
+    status ∈ {derived, ratified} 인 묶음을 소자 공유로 합집합 -> 칸 하나, 묶음에 안 든 MOS 는 칸 하나씩. 멤버·칸 순서는 이름 순(손 입력).
+    join = 손으로 더 묶는 MOS 이름 묶음들(실측: `mirror_setup` toy 는 matching_groups 가 비어 있다 -- 칸 안 같은 슬라이스·칸 단위 정수화를
+    보이려는 손 칸 입력, 평가 입력 `WfInput` 은 호출자가 주는 값이다). -> tuple[tuple[str, ...]]"""
+    from gmid_engine.graph import GRAPH_KEY
+    base = ctx.base
+    mos_names = sorted(n for n, _ in base.column("device", "dc_coord"))
+    parent = {n: n for n in mos_names}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    sets = [tuple(g.members) for g in base.value("graph", GRAPH_KEY, "matching_groups")
+            if g.kind in ("mirror", "diff_pair", "branch_symmetric") and g.status in ("derived", "ratified")]
+    for members in sets + [tuple(j) for j in join]:
+        ms = [m for m in members if m in parent]
+        for m in ms[1:]:
+            parent[find(m)] = find(ms[0])
+    comps = {}
+    for n in mos_names:
+        comps.setdefault(find(n), []).append(n)
+    return tuple(sorted((tuple(sorted(v)) for v in comps.values()), key=lambda c: c[0]))
+
+
+def hand_wf(ctx, keys=None, default=100, join=()):
+    """손 `WfInput`: `hand_cells(ctx, join)` 의 칸마다 키 = keys[칸 멤버] (없으면 default). keys = {MOS 이름: 키} (칸 안 값이 같아야 한다)."""
+    from gmid_engine.sizing import WfCell, WfInput
+    keys = dict(keys or {})
+    cells, ks = [], []
+    for members in hand_cells(ctx, join):
+        vals = {keys.get(m, default) for m in members}
+        assert len(vals) == 1, (members, vals)
+        k = vals.pop()
+        cells.append(WfCell(members, k))
+        ks.append(k)
+    return WfInput(tuple(cells), tuple(ks))

@@ -65,7 +65,7 @@ GRAPH_ROWS = (
     ("coupling", ("vars", "column_block_map", "bias_columns"), "coupling_vars"),                       # D8
     ("ach", ("curve_checks", "gain_checks", "area_bound", "headroom_rows", "buffer_window_report", "warnings", "reasons",
              "verdict", "dof", "count_budget", "local_inputs"), "achievability"),                      # D2·D9
-    ("start", ("rungs", "conflicts", "inactive", "macro", "records", "area_est_m2", "area_fraction", "uncovered"),
+    ("start", ("rungs", "conflicts", "inactive", "macro", "records", "area_est_m2", "area_fraction", "uncovered", "wf_start"),   # [FS-1] wf_start 더함
      "start_intervals"),                                                                               # D3 (noise_inputs·placement·kvl_* 는 ②)
     ("kernel", ("theta_schema",), "dc_theta_schema"),                                                  # D8 writer 유지
     ("kernel", ("fixed_values", "resistor_values", "l_ties"), None),

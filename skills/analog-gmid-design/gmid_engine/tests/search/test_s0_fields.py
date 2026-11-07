@@ -17,7 +17,8 @@ from gmid_engine.search import s0_fields as F
 from gmid_engine.sizing import S2_WRITERS
 
 START_FIELDS = (("device", "start.row"), ("device", "start.point"), ("graph", "conflicts"), ("graph", "inactive"), ("graph", "macro"),
-                ("graph", "rungs"), ("graph", "records"), ("graph", "area_est_m2"), ("graph", "area_fraction"), ("graph", "uncovered"))
+                ("graph", "rungs"), ("graph", "records"), ("graph", "area_est_m2"), ("graph", "area_fraction"), ("graph", "uncovered"),
+                ("graph", "wf_start"))          # [FS-1 §3.4·G-1] 새 필드 wf_start = writer start_intervals 하나
 WRITER_OF = {
     ("graph", "search_domain"): "search_domain",
     ("graph", "constraint_classes"): "constraint_classes",

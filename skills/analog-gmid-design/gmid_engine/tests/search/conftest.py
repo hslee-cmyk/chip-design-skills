@@ -698,3 +698,28 @@ def determinism_probe(tmpdir, eval_budget=40):
     out = front_signature(fr)
     out.update(kernel=perf["kernel_calls"], run_id=fr.run_id, wall=perf["stops_wall_budget"])
     return json.dumps(out, sort_keys=True)
+
+
+# ---------------------------------------------------------------- [FS-1] 손 `WfInput` (interface card 20261107-fs1 §4.1 서명 맞춤)
+def hand_wf_of(sctx, keys=None):
+    """탐색 컨텍스트 `sctx` 의 손 `WfInput`: 칸 = 그 스냅샷 `graph.matching_groups` 폐포(손, `sizing.conftest.hand_cells`)·묶음 밖 소자 하나씩,
+    칸 키 = keys[칸 멤버] 또는 그 kind 후보(`widths`) 가운데 가장 좁은 것(기존 test 의 단일 슬라이스 LUT 에서는 그 슬라이스 하나).
+    평가 입력이지 기대값이 아니다. 피검 `initial_wf` 를 쓰지 않는다 (이 test 의 sctx 는 출발 블록을 돌리지 않은 S1 수준)."""
+    from gmid_engine.lut import widths
+    from gmid_engine.sizing import WfCell, WfInput
+    from sizing.conftest import hand_cells
+    keys = dict(keys or {})
+    kinds = dict(sctx.dc.base.column("device", "kind"))
+    cells, ks = [], []
+    for members in hand_cells(sctx.dc):
+        k = keys.get(members[0], widths(sctx.dc.lut, kinds[members[0]])[0])
+        cells.append(WfCell(members, k))
+        ks.append(k)
+    return WfInput(tuple(cells), tuple(ks))
+
+
+def evaluate(sctx, theta, cells, *args, wf=None, **kw):
+    """[FS-1 서명 맞춤] 공개 `evaluate(sctx, theta, cells, wf, parent=None, origin=(), geometry=None, realized=None)` 에 손 wf(`hand_wf_of`)를 끼운다.
+    기존 호출(`evaluate(s, th, cells, parent=.., origin=..)`)의 나머지 인자는 그대로 전달한다."""
+    from gmid_engine.search import evaluate as _evaluate
+    return _evaluate(sctx, theta, cells, hand_wf_of(sctx) if wf is None else wf, *args, **kw)

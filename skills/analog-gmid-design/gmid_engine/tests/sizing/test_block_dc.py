@@ -16,10 +16,11 @@ from gmid_engine.core import SealViolationError
 from gmid_engine.sizing import DC_KEY, size_and_seal
 
 from .conftest import (R4_L, R4_VDS, R4_VGS, R4_VS, build_ctx, build_ctx_u4, circuit_cs_pmos_load, circuit_mirror, free_currents,
-                       kschema, mos, r4_ln_idu, theta_mirror, theta_r4c, topo, two, with_hand_ss)
+                       hand_cells, hand_wf, kschema, mos, r4_ln_idu, theta_mirror, theta_r4c, topo, two, with_hand_ss)
 from .wb1_toy import access_of, write_r4_bins_lut
 
 GRID = 1e-8
+MIRROR = ("M1", "M2")        # 손 칸 (거울 쌍) -- `mirror_setup` toy 는 graph.matching_groups 가 비어 있어(실측) 칸 입력을 손으로 묶는다
 
 
 def ops(ev):
@@ -52,37 +53,162 @@ def mirror_setup(tmp_path, access, w_m1=1.2e-6, w_m2=4e-6, vgs1=0.6, y=0.5, l=1e
 
 
 # ---------------------------------------------------------------- D-1
-def test_dc_solve_mirror_hand_picks_finger_slice(tmp_path, two_slice_access):
+def _realize_spy(monkeypatch):
+    """관찰 지점 `block_dc.realize_fingers`(§9 통과 spy -- 동작 대체 0): 호출 인자 기록."""
+    import sys
+    mod = sys.modules["gmid_engine.sizing.block_dc"]
+    calls, orig = [], mod.realize_fingers
+
+    def spy(*a, **k):
+        calls.append((a, k))
+        return orig(*a, **k)
+    monkeypatch.setattr(mod, "realize_fingers", spy)
+    return calls
+
+
+def _w_closed(o):
+    """oracle (식) 기존 닫힌 식: W = I·L/IDu (r4 해석식 IDu, 그 소자의 동작점 vgs·vds·vsb)."""
+    return o.current * o.L / math.exp(r4_ln_idu(o.kind, o.vgs, o.vds, o.vsb))
+
+
+def test_dc_solve_wf_premise_mirror_seals(tmp_path, two_slice_access):
+    """D-0 (전제): `mirror_setup` ctx·θ 에 모든 칸 키 100 인 `wf` 로 `size_and_seal` -> 봉인 통과. (안 서면 멈추고 보고)"""
     ctx, th = mirror_setup(tmp_path, two_slice_access)
-    ev = size_and_seal(ctx, th)
+    ev = size_and_seal(ctx, th, hand_wf(ctx, default=100))
+    assert ev.sealed is not None
+
+
+def test_dc_solve_search_eval_keeps_fractional_fingers_all_keys_100(tmp_path, two_slice_access, monkeypatch):
+    """D-1: 모든 칸 키 100 -> 모든 MOS w_key == 100, dc_finger[m].m == DeviceOp.W / (100 * 1e-8) (실수, 정수화 0), residual == 0.0.
+    oracle (식) interface §4.2 `dc_finger[m] = FingerGeom(DeviceOp.W / (key * grid_m), 0.0)`; 전제: W/w_f 가 정수가 아닌 소자가 하나 이상."""
+    calls = _realize_spy(monkeypatch)
+    ctx, th = mirror_setup(tmp_path, two_slice_access)
+    ev = size_and_seal(ctx, th, hand_wf(ctx, default=100))
     o, f = ops(ev), fingers(ev)
-    w2 = o["M2"].W
-    # 전제: W_M2 가 열린 구간 (3.5, 4.5) µm (손 유도의 가정)
-    assert 3.5e-6 < w2 < 4.5e-6
-    # op.W = I·L/IDu (닫힌 식; dc_finger 와 별개)
-    want_w2 = o["M2"].current * o["M2"].L / math.exp(r4_ln_idu("nmos", o["M2"].vgs, o["M2"].vds, o["M2"].vsb))
-    assert abs(w2 - want_w2) <= 1e-9 * want_w2
-    # 손: 동률 -> 큰 키
-    assert o["M2"].w_key == 200
-    assert f["M2"].m == 2 and abs(f["M2"].w_f_m - 2e-6) <= 1e-12
-    assert abs(f["M2"].residual - (4e-6 / w2 - 1.0)) <= 1e-12
-    # M1: 키 100 m = 1
-    w1 = o["M1"].W
-    assert 1e-6 <= w1 < 1.5e-6
-    assert o["M1"].w_key == 100 and f["M1"].m == 1 and abs(f["M1"].w_f_m - 1e-6) <= 1e-12
-    assert abs(f["M1"].residual - (1e-6 / w1 - 1.0)) <= 1e-12
-    # DeviceOp.w_key 와 dc_finger 가 같은 슬라이스를 가리킨다
-    for m, fg in f.items():
-        assert o[m].w_key == round(fg.w_f_m / GRID)
-    assert [e.slice_rounds for e in scc_log(ev)] and all(e.slice_rounds == 1 for e in scc_log(ev))
+    assert set(o) == {"M1", "M2", "M3"}
+    for m in o:
+        assert o[m].w_key == 100
+        assert f[m].m == o[m].W / (100 * GRID) and f[m].residual == 0.0
+    assert any(abs(f[m].m - round(f[m].m)) > 1e-6 for m in f)                      # 전제: 정수가 아닌 소자 존재
+    assert calls == []                                                              # D-6: 탐색 평가는 realize_fingers 호출 0
+
+
+def test_dc_solve_cell_members_share_slice_and_w_is_closed_form(tmp_path, two_slice_access):
+    """D-2: 정합 칸 키 200, 나머지 100 -> 칸 멤버 모두 w_key == 200, DeviceOp.W = I·L/exp(r4 ln IDu) 닫힌 식."""
+    ctx, th = mirror_setup(tmp_path, two_slice_access)
+    assert ("M1", "M2") in hand_cells(ctx, join=(MIRROR,))                          # 손 칸 (이 toy 는 matching_groups 가 비어 있어 손으로 묶는다)
+    ev = size_and_seal(ctx, th, hand_wf(ctx, {m: 200 for m in MIRROR}, default=100, join=(MIRROR,)))
+    o = ops(ev)
+    for m in MIRROR:
+        assert o[m].w_key == 200
+    assert o["M3"].w_key == 100
+    for m, op in o.items():
+        assert abs(op.W - _w_closed(op)) <= 1e-9 * _w_closed(op), m
+
+
+def test_dc_solve_no_slice_rounds_and_one_node_solve_per_eval(tmp_path, two_slice_access):
+    """D-3: D-1·D-2 두 평가의 dc_scc_log 항목에 slice_rounds 속성 없음, 항목 수 = 평가당 SCC 수 (노드 풀이 평가당 1회)."""
+    ctx, th = mirror_setup(tmp_path, two_slice_access)
+    n_scc = len(ctx.base.value("graph", DC_KEY, "dc_scc_order"))
+    evs = [size_and_seal(ctx, th, hand_wf(ctx, default=100)),
+           size_and_seal(ctx, th, hand_wf(ctx, {m: 200 for m in MIRROR}, default=100, join=(MIRROR,)))]
+    for ev in evs:
+        log = scc_log(ev)
+        assert len(log) >= 1 and len(log) == n_scc
+        assert all(not hasattr(e, "slice_rounds") for e in log)
+
+
+def test_dc_solve_wf_required_positional(tmp_path, two_slice_access):
+    """D-4: `wf` 없이 size_and_seal(ctx, th) -> TypeError (필수 위치 인자). 양성 대조: wf 를 주면 통과."""
+    ctx, th = mirror_setup(tmp_path, two_slice_access)
+    assert size_and_seal(ctx, th, hand_wf(ctx)).snapshot is not None
+    with pytest.raises(TypeError):
+        size_and_seal(ctx, th)
+
+
+def test_dc_solve_realized_eval_uses_hand_oracle_m(tmp_path, two_slice_access, monkeypatch):
+    """D-5·D-6: 실현 평가 -- 칸마다 m = interface §1 손 oracle(w_theta = 탐색 스냅샷 칸 멤버 DeviceOp.W, w_f = key × 1e-8),
+    DeviceOp.W == m * (key * 1e-8), residual == m * w_f / W_θ - 1.0; realize_fingers 는 칸당 한 번(ratios = ()), 탐색 평가에서는 0회."""
+    from gmid_engine.sizing import RealizeInput
+    from .test_realize_fingers import hand_oracle
+    calls = _realize_spy(monkeypatch)
+    ctx, th = mirror_setup(tmp_path, two_slice_access)
+    wf = hand_wf(ctx, {m: 200 for m in MIRROR}, default=100, join=(MIRROR,))
+    assert len(wf.cells_ref) == 2 and wf.cells_ref[0].members == MIRROR            # 전제: 2멤버 칸 하나 + M3 칸
+    ev = size_and_seal(ctx, th, wf)
+    assert calls == []                                                              # 탐색 평가 0회
+    so = ops(ev)
+    re = size_and_seal(ctx, th, wf, realized=RealizeInput(ev.snapshot))
+    assert len(calls) == len(wf.cells_ref)                                          # 칸당 1회
+    assert all(k == {} and a[2] == () for a, k in calls)                            # ratios = () (A-178 S-2 과도기)
+    ro, rf = ops(re), fingers(re)
+    for cell in wf.cells_ref:
+        w_f = cell.w_key * GRID
+        w_theta = tuple(so[m].W for m in cell.members)
+        want = hand_oracle(w_theta, w_f, ())[4]
+        for i, m in enumerate(cell.members):
+            assert rf[m].m == want[i] and type(rf[m].m) is int
+            assert ro[m].W == want[i] * (cell.w_key * GRID)
+            assert rf[m].residual == want[i] * w_f / so[m].W - 1.0
+
+
+def test_dc_solve_layout_reseal_uses_request_rows_and_base_fingers(tmp_path, two_slice_access, monkeypatch):
+    """D-7: 레이아웃 뒤 -- 요청 행 소자 M2 = (nf 3, finger_w 2e-6): w_key == 200, W' = 3·2e-6; 요청 없는 소자 = 기준(실현) 스냅샷의
+    dc_finger.m·DeviceOp.w_key 그대로 (W' = m·w_key·1e-8); realize_fingers 호출 0."""
+    from gmid_engine.sizing import RealizeInput, RealizedGeometry
+    ctx, th = mirror_setup(tmp_path, two_slice_access)
+    wf = hand_wf(ctx, default=100)
+    free = size_and_seal(ctx, th, wf)
+    base = size_and_seal(ctx, th, wf, realized=RealizeInput(free.snapshot))
+    calls = _realize_spy(monkeypatch)
+    geom = RealizedGeometry(layout_ref=None, w_request=(("M2", (3, 2e-6)),))
+    req = size_and_seal(ctx, th, wf, parent=base, realized=RealizeInput(base.snapshot), layout=geom)
+    assert calls == []
+    bo, bf = ops(base), fingers(base)
+    ro, rf = ops(req), fingers(req)
+    assert ro["M2"].w_key == 200 and ro["M2"].W == pytest.approx(3 * 2e-6, rel=1e-12)
+    assert rf["M2"].m == 3
+    for m in ("M1", "M3"):
+        assert rf[m].m == bf[m].m and ro[m].w_key == bo[m].w_key
+        assert ro[m].W == bf[m].m * (bo[m].w_key * GRID)
+
+
+def test_dc_solve_cell_member_lookup_failure_is_not_avoided(tmp_path, monkeypatch):
+    """D-8: 칸 멤버 조회 불능 -- 폭 2e-6 슬라이스의 L 축이 소자 L(1e-6)을 품지 않게 한다. 정합 칸 키 200 이면 size_and_seal 은 후보 실패 클래스
+    (SealViolationError)로 실패하고, 칸 멤버를 다른 키(100)로 바꾼 성공 스냅샷은 없다 (realize_fingers 호출 0)."""
+    import json
+    import numpy as np
+    from gmid_engine.lut import load_lut_set
+    from .conftest import TOY_SPEC, _sha
+    lut, root, tb = write_r4_bins_lut(tmp_path / "lut", widths=(1e-6, 2e-6))
+    access_ok = access_of(lut)
+    ctx_ok, th_ok = mirror_setup(tmp_path / "ok", access_ok)
+    assert size_and_seal(ctx_ok, th_ok, hand_wf(ctx_ok, default=200, join=(MIRROR,))).snapshot is not None     # 양성 대조: 원 LUT 에서는 키 200 통과
+    p = root / "r4_nmos_w200.npz"
+    z = dict(np.load(p, allow_pickle=False))
+    z["L"] = np.asarray(z["L"], dtype=float) + 3e-6                                                # L 축에서 1e-6 이 빠진다 (3e-6, 4e-6)
+    np.savez(p, **z)
+    man = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    for e in man["slices"]:
+        if e["file"] == p.name:
+            e["sha256"] = _sha(p)
+    (root / "manifest.json").write_text(json.dumps(man), encoding="utf-8")
+    lut2 = load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC, bin_rule=tb.bin_rule)   # 적재 관문 통과가 전제(아니면 멈추고 보고)
+    calls = _realize_spy(monkeypatch)
+    ctx, th = mirror_setup(tmp_path / "bad", access_of(lut2))
+    with pytest.raises(SealViolationError) as ei:
+        size_and_seal(ctx, th, hand_wf(ctx, {m: 200 for m in MIRROR}, default=100, join=(MIRROR,)))
+    assert dict(ei.value.record.detail).get("reason")                                              # 기존 LUT 축·L 사유가 기록됨
+    assert calls == []
 
 
 def test_dc_solve_same_theta_bit_identical_and_parent_independent(tmp_path, two_slice_access):
     ctx, th = mirror_setup(tmp_path, two_slice_access)
-    a = size_and_seal(ctx, th)
-    b = size_and_seal(ctx, th)
+    wf = hand_wf(ctx)
+    a = size_and_seal(ctx, th, wf)
+    b = size_and_seal(ctx, th, wf)
     assert a.snapshot.fp == b.snapshot.fp
-    c = size_and_seal(ctx, th, parent=with_hand_ss(a))
+    c = size_and_seal(ctx, th, wf, parent=with_hand_ss(a))
     for kind, field in (("device", "dc_finger"), ("device", "dc_op"), ("node", "dc_v")):
         assert a.snapshot.column(kind, field) == c.snapshot.column(kind, field)
     assert len(a.snapshot.column("device", "dc_finger")) >= 1
@@ -98,60 +224,6 @@ def layout_geometry(placed, requested):
     pl += [placement(m, round(fw / GRID), nf, nf * fw, pending=True) for m, (nf, fw) in sorted(requested.items())]
     diff = tuple(ddiff(m, fw, nf, 3e-13, 3e-13, 4e-6, 4e-6) for m, (nf, fw) in sorted(placed.items()))
     return realized_geometry(layout(diffusion=diff).snapshot, tuple(pl))
-
-
-class CountFingerSlice:
-    """`block_dc.finger_slice` 호출 수 (관찰 지점 §9)."""
-
-    def __init__(self, monkeypatch):
-        import sys
-        self.mod = sys.modules["gmid_engine.sizing.block_dc"]
-        self.orig, self.n = self.mod.finger_slice, 0
-        monkeypatch.setattr(self.mod, "finger_slice", self)
-
-    def __call__(self, *a, **k):
-        self.n += 1
-        return self.orig(*a, **k)
-
-
-def resealed(ctx, th, free, geom):
-    from gmid_engine.sizing import RealizedFinger
-    return size_and_seal(ctx, th, parent=free, realized=RealizedFinger(free.snapshot, "hand-fp"), layout=geom)
-
-
-def test_dc_solve_layout_reseal_writes_input_finger_rows_without_selection(tmp_path, two_slice_access, monkeypatch):
-    """D-5 [기대 변경 -- 개정 여섯째 A-139], oracle (식) interface §3 'geometry 있음': 배치 소자 dc_finger 행 = layout_ref (nf, finger_w, 0.0), 요청 대기 소자 행 = 요청 손가락
-    행 (nf, finger_w, 0.0) (요청 (2, 1e-6) -- 요청 W 2e-6 의 finger_slice 답은 (1, 2e-6) 이라 다르다), 그 평가 finger_slice 호출 0. 옛 기대 '재봉인 dc_finger 빈 열' 폐기."""
-    counter = CountFingerSlice(monkeypatch)
-    ctx, th = mirror_setup(tmp_path, two_slice_access, w_m1=1.2e-6, w_m2=2e-6)
-    free = size_and_seal(ctx, th)
-    assert counter.n >= 1                                                           # 양성 대조: 탐색 평가는 선택 함수를 부른다
-    ff = fingers(free)
-    assert (ff["M2"].m, round(ff["M2"].w_f_m / GRID)) == (1, 200)                   # 전제 (손): 요청 W 2e-6 의 자연 선택 = (1, 2e-6)
-    counter.n = 0
-    placed = {m: (ff[m].m, ff[m].w_f_m) for m in ("M1", "M3")}                      # 배치: 사이징 점 손가락 그대로
-    req = resealed(ctx, th, free, layout_geometry(placed, {"M2": (2, 1e-6)}))      # M2 = 요청 대기 (nf 2, finger_w 1e-6)
-    assert counter.n == 0                                                           # 입력 손가락이면 선택 함수 호출 0
-    f, o = fingers(req), ops(req)
-    assert set(f) == {"M1", "M2", "M3"}                                             # 소자 전부의 행
-    for m, (nf, fw) in {**placed, "M2": (2, 1e-6)}.items():
-        assert f[m].m == nf and f[m].w_f_m == pytest.approx(fw, rel=1e-12) and f[m].residual == 0.0, (m, f[m])
-        assert o[m].w_key == round(fw / GRID) and o[m].W == pytest.approx(nf * fw, rel=1e-12)    # DeviceOp.w_key = slice_of_finger(finger_w), W = nf·finger_w
-
-
-def test_dc_solve_layout_reseal_row_missing_is_classified(tmp_path, two_slice_access):
-    """D-5 후반: 입력 손가락 행 없는 소자(배치도 요청도 아님) -> `realized_finger_missing` (분류된 실패, KeyError 0, 사이징 점 행을 읽지 않음 --
-    사이징 점 스냅샷에는 M3 행이 있는데도 거부된다)."""
-    ctx, th = mirror_setup(tmp_path, two_slice_access, w_m1=1.2e-6, w_m2=2e-6)
-    free = size_and_seal(ctx, th)
-    ff = fingers(free)
-    assert "M3" in ff                                                               # 전제: 읽을 수 있는 사이징 점 행이 있다 (읽으면 통과해 red)
-    geom = layout_geometry({"M1": (ff["M1"].m, ff["M1"].w_f_m)}, {"M2": (2, 1e-6)})   # M3 는 배치도 요청도 아님
-    with pytest.raises(SealViolationError) as ei:
-        resealed(ctx, th, free, geom)
-    rec = ei.value.record
-    assert "realized_finger_missing" in (rec.failure_class, dict(rec.detail).get("reason"))
-    assert "M3" in rec.devices
 
 
 def mirror_w_nat_of(ctx, th):
@@ -171,109 +243,8 @@ def mirror_w_nat_of(ctx, th):
     return th[("current", "M3")] * th[("L", "M2")] / math.exp(r4_ln_idu("nmos", vgs1, y * 1.8, 0.0))
 
 
-# ---------------------------------------------------------------- D-4
-def test_dc_solve_dependent_all_candidates_missing(tmp_path):
-    # VDS 축 상한 1.0 인 LUT: 종속 소자 M2 의 VDS = V(out) = 0.9·1.8 = 1.62 가 축 밖 -> 모든 후보가 gap -> slice_missing
-    grids = (R4_L, R4_VGS, R4_VDS[:5], R4_VS)
-    lut, _, _ = write_r4_bins_lut(tmp_path / "lut", widths=(1e-6, 2e-6), grids=grids)
-    access = access_of(lut)
-    ok_ctx, ok_th = mirror_setup(tmp_path / "ok", access, y=0.5)                      # y = 0.5 -> VDS 0.9 축 안: 정상 (양성 대조)
-    assert size_and_seal(ok_ctx, ok_th).snapshot is not None
-    ctx, th = mirror_setup(tmp_path / "bad", access, y=0.9)
-    with pytest.raises(SealViolationError) as ei:
-        size_and_seal(ctx, th)
-    d = dict(ei.value.record.detail)
-    assert d["reason"] == "slice_missing"                                           # lut_query_failed 로 바뀌지 않음
-    assert ei.value.record.devices == ("M2",)
-    assert d["kind"] == "nmos" and d["why"] == "no_candidate"
-    assert tuple(d["excluded"]) == (100, 200)
-
-
-# ---------------------------------------------------------------- D-2 (Rʳ ≠ ∅, 관찰 stub, 미측정)
-def circuit_r_dep():
-    """card §3 D-2 의 전제 '단일 순환 SCC {vin, vout} + Rʳ ≠ ∅' 를 만족하는 손 회로 (dispute 2 재유도).
-    _scc_s_doc 와 같은 M1 nmos (vin, nb1, gnd), M2 nmos (vout, nb2, vin), M3 pmos (vout, pb, vdd). 옛 안은 M1 gate nb1 을 diode M0 + 이상 전류원으로 만들어 nb1 에
-    1변수 순환 SCC 가 하나 더 생겼다(순환 SCC 둘). 여기서는 nb1 을 **선언 목표 전압**(spec 노드 목표 0.6 V, W3 `declared_target`)으로 둔다: nb1 은 순환에 들지 않고(고정 노드),
-    M1 의 VGS 가 선언값으로 고정돼 M1 은 θ ln IDu 가 없는 종속 소자(`fixed_vgs`)이며, 순환 SCC {vin, vout}(writer 없는 W4 뿌리 둘)의 소자라 Rʳ = {M1}."""
-    return topo("wb1_r_dep",
-                [mos("M1", "nmos", "vin", "nb1", "gnd"), mos("M2", "nmos", "vout", "nb2", "vin"), mos("M3", "pmos", "vout", "pb", "vdd")],
-                {"vin": ("input", "single_ended_input"), "vout": ("output", "single_ended_output")},
-                bias=["nb1", "nb2", "pb"])
-
-
-VGS_M1 = 0.6                      # nb1 선언 목표 (입력 선언, 기대값 아님)
-
-
-def r_dep_setup(tmp_path, access):
-    ctx = build_ctx(tmp_path, circuit_r_dep(), access, node_targets=(("nb1", VGS_M1),))[2]
-    entries = [e for e in ctx.base.value("graph", DC_KEY, "dc_scc_order") if e.cyclic]
-    assert len(entries) == 1 and set(entries[0].nodes) == {"vin", "vout"}               # 전제 1 (단일 순환 SCC)
-    for n in ("vin", "vout"):
-        assert ctx.base.value("node", n, "dc_writer").relation not in ("vgs_gate", "vgs_source")   # 전제 2 (writer 없는 SCC)
-    assert ctx.base.value("device", "M1", "dc_coord").role != "writer"                  # 전제 3 (M1 종속 = Rʳ)
-    assert "M1" in entries[0].devices
-    # 손 설계점: V(vin) = 0.5, V(vout) = 1.1 -> 창 위치 y1 = V(vin)/V(vout) (vin 창 [0, V(vout)]), y2 = (V(vout) - V(vin))/(1.8 - V(vin)) (vout 창 [V(vin), 1.8])
-    vin, vout = 0.5, 1.1
-    y1, y2 = vin / vout, (vout - vin) / (1.8 - vin)
-    assert abs(1.8 * y2 / (1.0 - y1 * (1.0 - y2)) - vout) <= 1e-12                      # 창 식 검산 (손)
-    # 봉인 7 손 확인 (r4 VDSAT = c0 + c1·VGS + c2·VGS² + cs·VS + cl·(L 앵커 index), nmos (0.0625, 0.25, 0.25, 0.125, 0.0625), pmos (0.125, 0.25, 0.5, 0.0625, 0.125)):
-    #   M1 (L = 2e-6, index 1): VDSAT = 0.0625 + 0.15 + 0.09 + 0 + 0.0625 = 0.365 < VDS = 0.5
-    #   M2 (L = 1e-6, VGS 0.7, VSB 0.5): 0.0625 + 0.175 + 0.1225 + 0.0625 = 0.4225 < VDS = 0.6
-    #   M3 (L = 1e-6, VSG 0.7): 0.125 + 0.175 + 0.245 = 0.545 < VSD = 0.7
-    th = {("L", "M1"): 2e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6, ("current", "M3"): 1e-5,
-          ("ln_idu", "M2"): r4_ln_idu("nmos", 0.7, vout - vin, vin), ("ln_idu", "M3"): r4_ln_idu("pmos", 0.7, 1.8 - vout, 0.0),
-          ("y", "vin"): y1, ("y", "vout"): y2}
-    assert set(th) == set(kschema(ctx).components)
-    return ctx, th
-
-
-class Scripted:
-    """M1 의 (kind, L) = (nmos, 2e-6) 호출만 스크립트 답(FingerSlice(1, key·g, key))으로 바꾼다. 나머지는 원 함수."""
-
-    def __init__(self, orig, keys):
-        self.orig, self.keys, self.m1_calls, self.other_calls = orig, list(keys), 0, 0
-
-    def __call__(self, lut, kind, L, w_of):
-        from gmid_engine.lut import FingerSlice
-        if kind == "nmos" and L == 2e-6:
-            key = self.keys[min(self.m1_calls, len(self.keys) - 1)]
-            self.m1_calls += 1
-            return FingerSlice(1, key * GRID, key)
-        self.other_calls += 1
-        return self.orig(lut, kind, L, w_of)
-
-
-@pytest.fixture
-def rdep(tmp_path, two_slice_access, monkeypatch):
-    ctx, th = r_dep_setup(tmp_path, two_slice_access)
-    mod = importlib.import_module("gmid_engine.sizing.block_dc")
-    return ctx, th, mod, monkeypatch
-
-
-@pytest.mark.parametrize("keys, rounds, final", [([200], 2, 200), ([100], 1, 100)])
-def test_dc_solve_rdep_converges(rdep, keys, rounds, final):
-    ctx, th, mod, mp = rdep
-    stub = Scripted(mod.finger_slice, keys)
-    mp.setattr(mod, "finger_slice", stub)
-    ev = size_and_seal(ctx, th)
-    assert stub.m1_calls >= 1
-    assert ops(ev)["M1"].w_key == final
-    log = scc_log(ev)
-    assert log and all(e.slice_rounds == rounds for e in log)
-
-
-def test_dc_solve_rdep_cycle_rejected(rdep):
-    ctx, th, mod, mp = rdep
-    stub = Scripted(mod.finger_slice, [200, 100])
-    mp.setattr(mod, "finger_slice", stub)
-    with pytest.raises(SealViolationError) as ei:
-        size_and_seal(ctx, th)
-    d = dict(ei.value.record.detail)
-    assert d["reason"] == "slice_cycle" and "cycle" in d
-    assert "M1" in ei.value.record.devices
-    assert stub.m1_calls == 2
-
-
+# [FS-1] 옛 D-4 `test_dc_solve_dependent_all_candidates_missing`·D-2 Rʳ 묶음(`circuit_r_dep`·`r_dep_setup`·`Scripted`·`rdep`·`test_dc_solve_rdep_*`)은
+# 대상(선택 함수·Rʳ·slice_cycle)이 소멸해 삭제 -- 대응표 tests/RETIRED_TESTS_fs1.md.
 # ---------------------------------------------------------------- T-W1~4 (순서 창)
 def _window(ev, node):
     return dict(ev.snapshot.column("node", "dc_window"))[node]
@@ -302,7 +273,7 @@ def test_window_w1_nmos_only_lower_is_rail(tmp_path, r4_access):
                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
                sources=[two("I1", "current_source", "vdd", "out")])
     ctx = build_ctx(tmp_path, doc, r4_access, element_values=(("I1", 1e-5),))[2]
-    ev = size_and_seal(ctx, _fill_theta(ctx, {"M1": "nmos"}, vout=0.9))
+    ev = size_and_seal(ctx, _fill_theta(ctx, {"M1": "nmos"}, vout=0.9), hand_wf(ctx))     # [FS-1 서명 맞춤] wf 인자
     w = _window(ev, "out")
     assert w.lo == 0.0                                                          # nmos (d = out, s = gnd): V_DS >= 0 -> lo = gnd
 
@@ -312,13 +283,13 @@ def test_window_w2_pmos_only_upper_is_rail(tmp_path, r4_access):
                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
                sources=[two("I1", "current_source", "out", "gnd")])
     ctx = build_ctx(tmp_path, doc, r4_access, element_values=(("I1", 1e-5),))[2]
-    ev = size_and_seal(ctx, _fill_theta(ctx, {"M2": "pmos"}, vout=0.9))
+    ev = size_and_seal(ctx, _fill_theta(ctx, {"M2": "pmos"}, vout=0.9), hand_wf(ctx))     # [FS-1 서명 맞춤] wf 인자
     assert _window(ev, "out").hi == 1.8                                         # pmos (d = out, s = vdd): V_SD >= 0 -> hi = vdd
 
 
 def test_window_w3_both_is_rail_range(tmp_path, r4_access):
     ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), r4_access)[2]
-    ev = size_and_seal(ctx, theta_r4c())
+    ev = size_and_seal(ctx, theta_r4c(), hand_wf(ctx))     # [FS-1 서명 맞춤] wf 인자
     w = _window(ev, "out")
     assert (w.lo, w.hi) == (0.0, 1.8)
 
@@ -340,7 +311,7 @@ def test_window_w4_gate_only_root_is_rail_range_without_constraints(tmp_path, r4
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("y", "in"): 0.5, ("y", "out"): 0.5,
           ("ln_idu", "M1"): r4_ln_idu("nmos", 0.6, 0.75, 0.0), ("ln_idu", "M2"): r4_ln_idu("pmos", 0.7, 0.75, 0.0)}
     assert set(th) == comps
-    ev = size_and_seal(ctx, th)
+    ev = size_and_seal(ctx, th, hand_wf(ctx))     # [FS-1 서명 맞춤] wf 인자
     assert "in" in dict(ev.snapshot.column("node", "dc_window"))
     w = _window(ev, "in")
     assert (w.lo, w.hi) == (0.0, 1.8)
@@ -1415,7 +1386,7 @@ def test_tol_undefined_before_convergence_propagates(tmp_path, acc_two_point, y1
           ("ln_idu", "M3"): r4_ln_idu("pmos", 0.7, 1.8 - vout, 0.0), ("y", "vin"): y1, ("y", "vout"): y2}
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5}))
     assert set(th) == set(kschema(ctx).components)
-    for call in (lambda: run_blocks(ctx, th, upto="columns"), lambda: size_and_seal(ctx, th)):
+    for call in (lambda: run_blocks(ctx, th, upto="columns"), lambda: size_and_seal(ctx, th, hand_wf(ctx))):     # [FS-1 서명 맞춤] wf 인자
         with pytest.raises(SealViolationError) as ei:
             call()
         e = ei.value
@@ -1430,7 +1401,7 @@ def test_non_transient_lut_failure_before_convergence_propagates(tmp_path, toy_l
     lut_reason lut_l_not_anchor, devices (MA,)) 그대로. device_query 는 MA 를 처음 묻는 곳(VGS 역산 또는 허용오차 셀)."""
     memo, ctx = _tolrep_ctx(tmp_path, toy_lut)
     for call in (lambda: run_blocks(ctx, _tolrep_theta(la=1.5e-6), upto="columns"),
-                 lambda: size_and_seal(ctx, _tolrep_theta(la=1.5e-6))):
+                 lambda: size_and_seal(ctx, _tolrep_theta(la=1.5e-6), hand_wf(ctx))):     # [FS-1 서명 맞춤] wf 인자
         with pytest.raises(SealViolationError) as ei:
             call()
         e = ei.value
@@ -1930,7 +1901,7 @@ def test_cell_combine_j_b_partly_undefined_tol_propagates_before_convergence(tmp
     ctx, th, log = _jb_inputs(tmp_path, monkeypatch)
     (entry,) = [e for e in ctx.base.value("graph", DC_KEY, "dc_scc_order") if e.cyclic]
     assert set(entry.nodes) == {"vin", "vout"}
-    for first, call in ((True, lambda: run_blocks(ctx, th, upto="columns")), (False, lambda: size_and_seal(ctx, th))):
+    for first, call in ((True, lambda: run_blocks(ctx, th, upto="columns")), (False, lambda: size_and_seal(ctx, th, hand_wf(ctx)))):     # [FS-1 서명 맞춤] wf 인자
         log.clear()
         with pytest.raises(SealViolationError) as ei:
             call()
