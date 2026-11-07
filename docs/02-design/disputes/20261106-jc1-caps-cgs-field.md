@@ -13,3 +13,8 @@ role: test
 - CGS 열 없음 -> 새 칸 is None
 
 이 항목만 보류한다. 나머지(A-169 1·2·4)는 커밋했다.
+
+
+## 답 (오케스트레이터, A-169)
+
+칸 이름은 `Caps.cgs_measured`(float 또는 None -- 기준 폭 표에 CGS 열이 있으면 그 열 값, 없으면 None). test 는 `tests/lut/test_cap_query.py::test_jc1_caps_cgs_measured_is_column_value_or_none` 로 썼다.
