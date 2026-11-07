@@ -15,7 +15,11 @@
     "base_to_T_commits": 2,
     "base_to_T_numstat_total": "+1340 -1162, 33 파일(A 2 = RETIRED_TESTS_jc1.md, metrics/jc1_toy.py, M 31), 모두 gmid_engine/tests/ 아래",
     "base_to_T_paths_outside_tests": 0,
-    "freeze_verdict_first_pass": "수정 필요 -- Major 3 (M1 낡은 접합 경로 test 미폐기, M2 유지 표기 test의 단언 2개 삭제, M3 D-b 가 card toy C 가 아닌 점 무관 상수 열). 나머지 동결 가능(기록 사항 있음). 상세 = wt/_drafts/evidence/2026-11-07/jc1_freeze.md"
+    "freeze_verdict_first_pass": "수정 필요 -- Major 3 (M1 낡은 접합 경로 test 미폐기, M2 유지 표기 test의 단언 2개 삭제, M3 D-b 가 card toy C 가 아닌 점 무관 상수 열). 나머지 동결 가능(기록 사항 있음). 상세 = wt/_drafts/evidence/2026-11-07/jc1_freeze.md",
+    "recheck": {
+      "T": "e51874f4",
+      "freeze_verdict": "동결 가능 -- Major 0. M1 낡은 접합 경로 test 폐기(RETIRED 기록·짝 유지), M2 sky130 절대값 단언 복원, M3 D-b 를 점마다 다른 열 LUT 의 마디 == 로 교체(단일 조회 오류는 변별, vds<->vsb 맞바꿈만 미변별 = card 고유 d=s). test_realized_geometry 4 red 는 모두 pdk_quantity_undeclared junction_nmos_cjs(엔진이 옛 PDK 키 읽음, setup 단계) -- base master 에서는 9 passed. 재실행: 41 failed 203 passed 9 errors(전부 JC-1 사유), structure 198 passed 2 failed(N-1·N-2). 상세 = wt/_drafts/evidence/2026-11-07/jc1_freeze.md '## 재판정'"
+    }
   },
   "isolation": {
     "clone": "C:/Users/HSLEE/AppData/Local/Temp/jc1_fz/iso (head), C:/Users/HSLEE/AppData/Local/Temp/jc1_fz/base (da4f5366 test, pre-existing red 확인용)",
