@@ -72,3 +72,13 @@
 ## D-b 합성 LUT (동결 판정 M3)
 
 `sizing/wb1_toy.write_r4_bins_lut(jc1_cols="node")`: 접합 입력 열을 점마다 다른 손 식(`jc1_node_cdd`, `jc1_node_css`, 인덱스 (l, g, d, s))으로 쓴다. D-b 는 이 LUT 의 마디 값을 `==` 로 비교한다.
+
+
+## 바뀐 기대 4묶음 (위임 A-167, code dispute `20261106-jc1-stale-tests`)
+
+| # | test | 바뀐 기대 | 근거 |
+|---|---|---|---|
+| 1 | `tests/metrics/test_sensitivity.py::test_r2_miller_sensitivities_not_trivial` | 합계 상수 `10` 삭제 -> 살아 있는 칸 수를 열 목록(conftest `lut_params_of`, 값 ≠ 0 인 `LUT_P` 8열)에서 따로 세어 `n_live` 와 비교(`n_live > 0` 병기). 칸마다의 살아 있음·0 단언은 그대로 | 열 목록 6 -> 8열 갱신을 따르는 기대 갱신(약화 아님) |
+| 2 | `tests/metrics/test_ss_evaluate.py::test_s12_junction_change_recomputes_ss_blocks_only` -> `test_s12_junction_temp_change_recomputes_ss_dev_only` | 블록 계수 `[1, 1, 0]` -> `[1, 0, 0]`; ss_dev 값이 그대로(`==`)임을 덧붙임; 이름·docstring 새 의미 | 접합 값이 온도를 읽지 않는다(card 범위 3, interface §2): 묶음 지문만 `ss_dev` 입력 버전에 들고 값이 같아 `metrics_ss` 는 재사용 |
+| 3 | `tests/metrics/test_ss_linearize.py::test_vgs_min_g3_dc_finger_only_difference_reuses` | 계수 행 `(2,1,0,0,1,0)` 고정 -> `calls == 2`, `computes == 1`, `recomputes_same_input == 0`, `reuses + grafts == 1` | G-3 계약 = 둘째 계산 0. 서로 다른 스냅샷의 재사용 정본 경로는 S3 graft 이므로 경로 하나를 고정하지 않는다 |
+| 4 | `test_ss_linearize.py` lut_b 사용 3개: `test_values_old_lut_secant_and_cap_fallback`, `test_gmb_secant_differs_from_column`, `test_lut_content_changes_input_version` | CGB 열만 없는 표(`lut_b`)에서 `caps` 모형이 `lut_cgs_cgb` 가 아니면 접합은 CGS 대신 CGG − CGD 를 쓰지 않고 `lut_column_unavailable`{column "CGS"} 로 정지(fail-closed). ① 대체 모형·cgs = cgg − cgd·cgb = 0·gmb 할선 단언은 접합을 거치지 않는 LUT 모듈 `caps`·`gmb` 로 유지 ② gmb_model 할선·cap_model 표지·입력 버전 비교는 접합이 계산되는 새 fixture `lut_d`(슬라이스 GMBS 만 없음)로 옮김 ③ 정지 기대 새 test `test_junction_cgb_missing_table_stops_on_cgs_column`(함수: column CGS, devices == (); ss_dev: lut_query_failed{lut_reason, column CGS, device_query junction_at_vgs_min}, devices == ("M1",)) | 판정 (b), interface §1 열 판별 2 ('CGS 대신 CGG − CGD 를 쓰지 않는다'). 원래 단언을 지우지 않고 옮겼다 |

@@ -55,6 +55,7 @@ from .conftest import (
     codes,
     columns_of,
     count_calls,
+    LUT_P,
     lut_params_of,
     miller_v_system,
     mos_t,
@@ -185,7 +186,16 @@ def test_r2_miller_sensitivities_not_trivial():
         live = any(r not in fixed and c not in fixed for r, c, _ in st.g + st.c)
         n_live += live
         assert (np.all(np.abs(d[i]) > 0.0) if live else np.all(d[i] == 0.0)), (k, name)
-    assert n_live == 10
+    # [JC-1, A-167] 합계 상수 10(6열 시절)을 박지 않는다: 살아 있는 칸 수를 열 목록(conftest `lut_params_of` -- 입력 MOS 에서 값 ≠ 0 인 LUT_P 8열)에서 따로 센다.
+    # 열 목록 갱신(cdb·csb 추가)을 따르는 기대 갱신이고 약화가 아니다(살아 있는/없는 칸 단언은 위 루프에서 칸마다 그대로).
+    def _live(k, name):
+        dev = ck.mos[k]
+        kw = {nm: 0.0 for nm in LUT_P}
+        kw[name] = 1.0
+        st = mos_stamps(MosSmallSignal(dev.d, dev.g, dev.s, dev.b, **kw))
+        return any(r not in fixed and c not in fixed for r, c, _ in st.g + st.c)
+    assert n_live == sum(_live(k, name) for k, name in lut_params_of(ref["mos"]))
+    assert n_live > 0
 
 
 @pytest.mark.parametrize("case", ["miller", "ex7v_cut"])
