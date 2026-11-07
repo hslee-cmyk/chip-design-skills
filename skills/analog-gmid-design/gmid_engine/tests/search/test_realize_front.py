@@ -147,30 +147,8 @@ def test_realize_r2_input_difference_shift_matches_closed_form(r2):
 
 
 # ---------------------------------------------------------------- R-3
-@pytest.mark.parametrize("m, w_s_key", [(2, 100), (1, 200)])
-def test_realize_r3_zero_residual_keeps_input_finger_without_reselecting(r2_own, monkeypatch, m, w_s_key):
-    from gmid_engine.search import evaluate
-    from gmid_engine.sizing import FingerGeom
-    case, th = r2_own
-    bd = sys.modules["gmid_engine.sizing.block_dc"]                  # 관찰 지점 §9 (패키지가 재수출하지 않음)
-    c = Count(bd.finger_slice)
-    monkeypatch.setattr(bd, "finger_slice", c)
-    # `r2_theta` 의 고정점 반복이 이미 이 θ 로 `size_and_seal` 을 불러 실행 색인(donors)에 DC 블록 결과가 있다 -> 입력 버전이 다른 θ(전류 1 ulp)로 평가해야
-    # 탐색 경로가 `finger_slice` 를 실제로 부른다(양성 대조). 평가 캐시는 이 경우의 새 sctx 라 경우 사이 공유가 없다.
-    th = dict(th)
-    th[("current", "M3")] = math.nextafter(th[("current", "M3")], 1.0)
-    ev = evaluate(case.sctx, sorted_theta(th), R2_CELLS)
-    assert c.n >= 1
-    c.n = 0
-    op1 = dict(ev.evaluation.snapshot.column("device", "dc_op"))["M1"]
-    assert abs(m * w_s_key * GRID - op1.W) <= 1e-3 * op1.W           # 전제: r = 0 에 가까운 입력(W' = 2e-6 = W)
-    tam = with_fingers(ev, {"M1": FingerGeom(m, w_s_key * GRID, 0.0)})
-    _, out = realize(case, tam)
-    assert len(out.points) == 1
-    got = dict(out.points[0].result.evaluation.snapshot.column("device", "dc_finger"))["M1"]
-    assert (got.m, got.w_f_m, got.residual) == (m, w_s_key * GRID, 0.0)
-    assert c.n == 0                                                  # finger_slice 호출 0
-    assert not hasattr(mod("realize_front"), "finger_slice")
+# [FS-1 §8] 삭제: test_realize_r3_zero_residual_keeps_input_finger_without_reselecting ('재선택 없음' r3 -- 선택 함수가 사라졌다; 대체: tests/sizing/test_block_dc.py D-5·D-6,
+# tests/sizing/test_realize_fingers.py). 대응표 tests/RETIRED_TESTS_fs1.md.
 
 
 # ---------------------------------------------------------------- R-4
@@ -500,25 +478,18 @@ def test_realize_r9_find_front_calls_realize_once_and_front_is_realized(tmp_path
     assert all(a.result is b.result and a.result is not pts_in[0].result for a, b in zip(fr.front, out.points))
 
 
-def test_realize_r10_json_finger_residual_and_selection_residual(tmp_path, short_root):
-    """JSON `front[i].finger_residual` = {MOS: 탐색 residual} (reader 잠금) + 선택 경로 손 값: 슬라이스 {5 µm}, W = 12e-6 -> (2, 5e-6), r = -1/6."""
-    from types import SimpleNamespace
-    from gmid_engine.lut import LBin, LBinMap, finger_slice
+def test_realize_o1_json_finger_residual_is_the_realized_value_and_no_slice_rounds(tmp_path, short_root):
+    """[FS-1 O-1·O-4] JSON `front[i].finger_residual` = {MOS: 실현 스냅샷 dc_finger residual} (탐색 residual 은 0.0 이라 다르다 -- 정수가 아닌 W/w_f 소자가
+    있을 때), front 행에 `slice_rounds` 키 없음. oracle (식) interface §6: finger_residual = 실현 스냅샷 `dc_finger[m].residual`; 손 값 residual = m·w_f/W_θ − 1
+    (실현 스냅샷이 아니라 탐색 DeviceOp.W 와 실현 m·w_f 로 기대값을 만든다)."""
     from gmid_engine.search import find_front
-    g = 1e-8
-    lut = SimpleNamespace(spec=SimpleNamespace(manufacturing_grid_m=g, min_finger_w_m=(("nmos", 1e-6),)),
-                          slice_map={("nmos", 500): SimpleNamespace(l_bins=LBinMap(("m",), (1e-6, 5e-6), (LBin("b", 5e-7, 3e-6),), ()))},
-                          cap_map={"nmos": SimpleNamespace(w_key=500)}, bin_rule="lower")
-    fs = finger_slice(lut, "nmos", 1e-6, lambda key: 12e-6)
-    assert (fs.m, fs.w_f_m, fs.w_key) == (2, 5e-6, 500)
-    assert 2 * 500 * g / 12e-6 - 1.0 == pytest.approx(-1.0 / 6.0, rel=1e-12)       # 손: r = m·w_s/W - 1
     case = bins_case(tmp_path, circuit_c(), archive_root=short_root)
     ff = mod("find_front")
     real_sweep, searched = ff.sweep_front, []
 
     def sweep(*a, **k):
         out = real_sweep(*a, **k)
-        searched.extend(out["front"])                                # 탐색 점(탐색 스냅샷의 dc_finger 가 기대값의 출처)
+        searched.extend(out["front"])                                # 탐색 점(탐색 스냅샷 DeviceOp.W 가 기대값의 입력)
         return out
     ff.sweep_front = sweep
     try:
@@ -529,40 +500,42 @@ def test_realize_r10_json_finger_residual_and_selection_residual(tmp_path, short
     by_id = {p.point_id: p for p in searched}
     (run,) = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "runs.jsonl").read_text(encoding="utf-8").splitlines() if x.strip()]
     assert len(run["front"]) == len(fr.front)
+    nonzero = 0
     for entry, p in zip(run["front"], fr.front):
-        want = {m: f.residual for m, f in dict(by_id[p.point_id].result.evaluation.snapshot.column("device", "dc_finger")).items()}
-        assert dict(entry["finger_residual"]) == want                 # 탐색 residual (실현 후 0.0 이 아님)
-        assert "slice_rounds" in entry
+        s_ops = dict(by_id[p.point_id].result.evaluation.snapshot.column("device", "dc_op"))
+        r_snap = p.result.evaluation.snapshot
+        r_fing, r_ops = dict(r_snap.column("device", "dc_finger")), dict(r_snap.column("device", "dc_op"))
+        got = dict(entry["finger_residual"])
+        assert set(got) == set(r_fing)
+        for m, f in r_fing.items():
+            w_f = r_ops[m].w_key * GRID
+            assert got[m] == f.m * w_f / s_ops[m].W - 1.0           # 손 식: 실현 m·w_f / 탐색 W − 1
+            nonzero += got[m] != 0.0
+        assert "slice_rounds" not in entry                         # O-4
+    assert nonzero >= 1                                            # 전제: 탐색 residual(0.0)과 다른 소자가 있다
     assert {"lost", "n_lost"} <= set(dict(run["realize"]))
 
 
-def test_realize_r10_json_finger_residual_is_the_tampered_search_value(tmp_path, monkeypatch, short_root):
-    """R-10 후반 (interface §6, reader 잠금 S-4): 탐색 점의 `dc_finger` 한 소자를 `FingerGeom(m, w_f, -0.5)` 로 바꾸면(같은 m·w_f 라 실현 평가는 그대로 통과) JSON
-    `front[i].finger_residual[소자]` = -0.5 이다. 단언 = 바꾼 값 그대로(탐색 `FingerGeom.residual` 을 읽는다 -- 실현 평가의 0.0 이 아니다).
-    oracle (d): interface 표 '탐색 FingerGeom.residual'. 선택 경로 손 값(슬라이스 {5 µm}, W = 12e-6 -> (2, 5e-6), r = -1/6)은 위 test 가 본다."""
-    from gmid_engine.sizing import FingerGeom
+def test_realize_o3_lost_entries_carry_small_m_key(tmp_path, monkeypatch, short_root):
+    """[FS-1 O-3] 실현에서 잃는 점(R-4 꼴: realize_front 가 부르는 평가를 SealViolationError 로 바꿈)의 JSON `realize.lost` 항목에 `small_m` 키 --
+    값 = 그 점 (부분) 실현 스냅샷 dc_finger 에서 m ≤ 2 인 MOS 이름 정렬 목록, dc_finger 가 없으면 None. oracle (식) 계획 Q-FS1 (2) '작은 m(1~2)'."""
+    from gmid_engine.core import SealViolationError
     from gmid_engine.search import find_front
     case = bins_case(tmp_path, circuit_c(), archive_root=short_root)
-    ff = mod("find_front")
-    real_sweep = ff.sweep_front
-    seen = []
+    rf = mod("realize_front")
+    real = rf.evaluate
 
-    def sweep(*a, **k):
-        out = dict(real_sweep(*a, **k))
-        pts = []
-        for p in out["front"]:
-            fing = dict(p.result.evaluation.snapshot.column("device", "dc_finger"))
-            m1 = fing["M1"]
-            tam = with_fingers(p.result, {"M1": FingerGeom(m1.m, m1.w_f_m, -0.5)})        # 실현 평가가 쓰는 m·w_f 는 그대로, residual 만 바꾼다
-            pts.append(dataclasses.replace(p, result=tam))
-            seen.append(p.point_id)
-        out["front"] = tuple(pts)
-        return out
-    monkeypatch.setattr(ff, "sweep_front", sweep)
+    def wrapped(sctx, theta, cells, *a, **k):
+        if k.get("realized") is not None:
+            raise SealViolationError(devices=("M1",), margin=0.5, detail={"item": 7, "reason": "fs1_test_forced_failure"})
+        return real(sctx, theta, cells, *a, **k)
+    monkeypatch.setattr(rf, "evaluate", wrapped)
     fr = find_front(case.sctx, [theta_r4c()])
-    assert seen and len(fr.front) >= 1                                    # 양성 대조: 탐색 점을 실제로 바꿨고 실현 뒤 front 가 남았다
     (run,) = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "runs.jsonl").read_text(encoding="utf-8").splitlines() if x.strip()]
-    assert len(run["front"]) == len(fr.front)
-    for entry in run["front"]:
-        assert dict(entry["finger_residual"])["M1"] == -0.5
+    lost = dict(run["realize"])["lost"]
+    assert len(lost) >= 1                                                   # 양성 대조: 잃은 점이 있다
+    for item in lost:
+        assert "small_m" in dict(item)
+        sm = dict(item)["small_m"]
+        assert sm is None or (list(sm) == sorted(sm) and all(isinstance(n, str) for n in sm))
 

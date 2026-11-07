@@ -35,7 +35,8 @@ PERF_KEYS = ("requests", "kernel_calls", "hits", "fail_hits", "outside_domain", 
 PERF_BLOCK_KEYS = ("blocks", "block_totals", "block_index_entries", "block_index_bound")
 OLD_BLOCK_KEYS = ("block_calls", "block_reuses", "block_computes", "block_recomputes_same_input")
 PERF_SOLVER_KEYS = ("solver_stops",)      # [WB-1 범위 3a-0, interface 커밋 2] 계측 `perf.solver_stops`(출력 전용): 풀이 종류 {eps, layer0} 별 정지 사유 집계 -> 23개
-PERF_KEYS_C7 = PERF_KEYS + PERF_BLOCK_KEYS + PERF_SOLVER_KEYS
+PERF_WF_KEYS = ("wf_neighbor_evals", "wf_neighbor_wall_s")     # [FS-1 §5 N-5] 이웃 시험 출력 전용 칸 두 개 -> 25개
+PERF_KEYS_C7 = PERF_KEYS + PERF_BLOCK_KEYS + PERF_SOLVER_KEYS + PERF_WF_KEYS
 BLOCK_ROW_FIELDS = ("calls", "reuses", "grafts", "replays", "computes", "recomputes_same_input")
 
 
@@ -72,7 +73,7 @@ def test_sealed_run_perf_and_invariants(tmp_path, lut_sealed, short_root):
 def test_perf_key_set_exact_in_result_and_runs_line(tmp_path, lut_sealed, short_root):
     """[xrun XR-7] interface card C7(양성 형식): find_front perf 키 집합과 runs.jsonl 줄 perf 키 집합이 정확히 목록과 같다.
     [XRUN-F1 card A] xrunf1a C6: 22개(lut_memo_bound 추가)."""
-    assert len(PERF_KEYS_C7) == len(set(PERF_KEYS_C7)) == 23
+    assert len(PERF_KEYS_C7) == len(set(PERF_KEYS_C7)) == 25
     case, fr = _run(tmp_path, lut_sealed, eval_budget=30, archive_root=short_root)
     assert set(dict(fr.perf)) == set(PERF_KEYS_C7)
     (run,) = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "runs.jsonl").read_text(encoding="utf-8")
@@ -87,7 +88,7 @@ def test_perf_blocks_rows_totals_and_index_bound(tmp_path, lut_sealed, short_roo
     E_total = eval_budget + 2 × 정의역 변수 수(test 가 계산). 같은 입력 재계산 0."""
     case, fr = _run(tmp_path, lut_sealed, constraints=SS, eval_budget=40, archive_root=short_root)
     perf = dict(fr.perf)
-    assert set(perf) == set(PERF_KEYS_C7) and len(perf) == 23
+    assert set(perf) == set(PERF_KEYS_C7) and len(perf) == 25
     assert not set(OLD_BLOCK_KEYS) & set(perf)
     rows = [dict(r) for r in perf["blocks"]]                 # 행 = 칸 이름 -> 값(매핑 또는 (이름, 값) 쌍)
     assert rows, "전제: 블록 행이 있다"
@@ -533,7 +534,7 @@ def test_gate_entry_budget_end_check_violation_runtime_error(tmp_path, lut_seale
 def test_gate_entry_budget_perf_declared_and_block_index_bound(tmp_path, lut_sealed, short_root):
     case, fr = _run(tmp_path, lut_sealed, constraints=SS, eval_budget=12, archive_root=short_root)
     perf = dict(fr.perf)
-    assert set(perf) == set(PERF_KEYS_C7) and len(perf) == 23                   # perf 키 23개 그대로(WB-1 solver_stops 추가)
+    assert set(perf) == set(PERF_KEYS_C7) and len(perf) == 25                   # perf 키 23개 그대로(WB-1 solver_stops 추가)
     assert perf["eval_budget_source"] == "declared" and perf["eval_budget"] == 12
     e_total = 12 + 2 * len(case.sctx.domain.variables)                          # 손: E_B + R
     assert perf["block_index_bound"] == len(perf["blocks"]) * (e_total + 1)
@@ -792,3 +793,46 @@ def test_r18_empty_realized_front_skips_the_gate_and_records_no_target(tmp_path,
     assert gate_log == []                                                                        # 실현 front 가 비면 게이트 호출 0
     rows = _ub1_gate_rows(fr)
     assert len(rows) == 1 and rows[0]["verdict"] == "gate_empty" and rows[0]["reason"] == "front_empty"
+
+
+# =====================================================================================================================
+# [FS-1 O-2·N-5] 출발 불능 진입(초기 wf None) 과 이웃 시험 perf 칸. 회로 = u13 toy (출발 블록을 거친 sctx -- wf_start 가 있다).
+# oracle (식) interface card 20261107-fs1 §6: initial_wf(base) None -> 평가 0회, notes {"verdict": "start_undefined", "rule": "DEC-108 (3)", "records": [...]},
+# front·pending·unmeasured_front 빈 tuple. §5 perf: wf_neighbor_evals = 이웃 시험 중 w_f 이동 평가 수 (spy 로 센 값), wf_neighbor_wall_s >= 0.
+# =====================================================================================================================
+def _u13_toy():
+    from .u13_hand import cs_chain, toy_case
+    return toy_case(cs_chain(2), elements=(("C1", "capacitor", 1e-12), ("C2", "capacitor", 2e-12)),
+                    constraints=(("gbw_ss_hz", ">=", 1e6), ("pm_ss_deg", ">=", 60.0)))
+
+
+def test_o2_start_undefined_means_no_evaluation_and_empty_front(monkeypatch):
+    ff = sys.modules["gmid_engine.search.find_front"]
+    case = _u13_toy()
+    assert ff.initial_wf(case.sctx.dc.base) is not None                               # 양성 대조: 출발이 정의된 toy
+    monkeypatch.setattr(ff, "initial_wf", lambda snapshot: None)                       # wf_start 에 None 칸이 있는 스냅샷의 initial_wf 결과
+    k0 = dict(case.sctx.counters)["kernel_calls"]
+    fr = find_front(case.sctx, [])
+    assert dict(case.sctx.counters)["kernel_calls"] == k0 == 0
+    notes = [dict(n) for n in fr.notes]
+    hit = [n for n in notes if n.get("verdict") == "start_undefined"]
+    assert len(hit) == 1 and hit[0]["rule"] == "DEC-108 (3)" and "records" in hit[0]
+    assert fr.front == () and fr.pending_front == () and fr.unmeasured_front == ()
+
+
+def test_n5_perf_has_wf_neighbor_columns_equal_to_spied_count(monkeypatch):
+    lb = sys.modules["gmid_engine.search.l_bin_search"]
+    orig, seen = lb.evaluate, []
+
+    def spy(sctx, theta, cells, wf, *a, **k):
+        seen.append(tuple(wf.keys))
+        return orig(sctx, theta, cells, wf, *a, **k)
+    monkeypatch.setattr(lb, "evaluate", spy)
+    case = _u13_toy()
+    base = tuple(case.sctx.dc.base.value("graph", "start", "wf_start")[i].w_key for i in range(len(case.sctx.dc.base.value("graph", "start", "wf_start"))))
+    fr = find_front(case.sctx, [])
+    perf = dict(fr.perf)
+    assert "wf_neighbor_evals" in perf and "wf_neighbor_wall_s" in perf
+    # 이 toy LUT 는 kind 당 슬라이스 하나라 w_f 이동 후보가 없다 -> spy 로 센 w_f 이동(= 출발 키와 다른 wf.keys) 평가 0 = perf 값
+    assert perf["wf_neighbor_evals"] == sum(1 for k in seen if k != base)
+    assert isinstance(perf["wf_neighbor_wall_s"], float) and perf["wf_neighbor_wall_s"] >= 0.0

@@ -75,27 +75,18 @@ def test_wb1_constraints_has_no_w_keys_and_con_inversion_kept():
     assert not re.search(r"\bw_keys\b", t)                         # M-6
 
 
-def test_wb1_reachable_slices_calls_have_three_args():
-    # E-5: L 없이 부르는 자리 0 -- 모든 호출이 위치 인자 셋(lut, kind, L)
-    calls = 0
-    for p in _py():
-        for node in ast.walk(ast.parse(_text(p))):
-            if isinstance(node, ast.Call):
-                f = node.func
-                name = f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else None)
-                if name == "reachable_slices":
-                    calls += 1
-                    assert len(node.args) + len(node.keywords) == 3, (str(p), node.lineno)
-    assert calls >= 1
+# [FS-1 G-4 서명 맞춤] 옛 `test_wb1_reachable_slices_calls_have_three_args`(E-5) 삭제 -- `reachable_slices` 가 사라졌다(후보 = `widths(lut, kind)`).
+# 대체: `tests/structure/test_fs1_source.py::test_fs1_removed_names_absent_in_engine_sources`.
 
 
 def test_wb1_slice_functions_defined_once():
+    """[FS-1 서명 맞춤] 슬라이스 좌표 함수는 `slice_of_finger` 하나 (옛 `finger_slice` 정의는 0)."""
     d = {"finger_slice": [], "slice_of_finger": []}
     for p in _py():
         for node in ast.walk(ast.parse(_text(p))):
             if isinstance(node, ast.FunctionDef) and node.name in d:
                 d[node.name].append(str(p))
-    assert all(len(v) == 1 for v in d.values()), d
+    assert d["finger_slice"] == [] and len(d["slice_of_finger"]) == 1, d
 
 
 def test_wb1_residual_read_only_in_realize_front():
@@ -140,7 +131,8 @@ def test_wb1_tol_v_metrics_is_id_equivalent_only():
 
 # ---------------------------------------------------------------- G-2 (재작성 범위 옛 이름 0, spec card '재작성 범위' 표)
 REWRITE_DELETED = ("sizing/block_columns.py", "sizing/block_widths.py", "sizing/pre_layout_widths.py", "convergence/kernel_keys.py")
-REWRITE_NEW = ("sizing/block_dc.py", "lut/finger_slice.py", "lut/slice_of_finger.py", "lut/slice_gap.py", "lut/slice_tables.py",
+REWRITE_NEW = ("sizing/block_dc.py", "lut/slice_of_finger.py",      # [FS-1] lut/finger_slice.py 는 삭제(G-4)
+ "lut/slice_gap.py", "lut/slice_tables.py",
                "search/realize_front.py", "core/file_sha256.py")
 
 
