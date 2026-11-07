@@ -110,3 +110,152 @@ def test_sigma_query_width_is_at_least_w_min(dev):
     assert s[0] == pytest.approx(s[1], rel=1e-12) and s[1] == pytest.approx(s[2], rel=1e-12)
     wider = _sigma_vgs(ctx, dev, g, L, w_min * 4 * idu / L)    # W ≈ 4·W_min (같은 소자 kind 의 모델 bin 안 폭)
     assert wider < s[0]
+
+
+# =====================================================================================================================
+# [FS-1 M-1·M-2] 출발 4단계 matching L 하한 = LUT 선언 기준 폭 슬라이스의 slope bin, 6단계 가드 = 그 소자 칸 키 × 격자 (interface card 20261107-fs1 §3.4).
+# oracle: (b) 엔진 밖 자료로 만든 손 값 -- LUT mismatch npz 원 열 + PDK 모델 카드·mismatch slope 원본 손 식 (`fs1_hand_sigma.py`; 엔진 함수 0),
+# 손 식 입력 = 관찰 지점 `iv_matching_l.mismatch_sigma_vgs` 통과 spy 가 잡은 그 호출 인자. 앵커 고르기·전제 P1~P4: interface M-1 절차 5·6.
+# 전제가 서지 않으면 회로·기대값을 고치지 말고 멈추고 보고한다 (assert 메시지에 '멈추고 보고').
+# =====================================================================================================================
+import inspect  # noqa: E402
+import sys  # noqa: E402
+
+from pdk_min_w import min_finger_w_m  # noqa: E402
+
+from . import fs1_hand_sigma as H  # noqa: E402
+
+M1_CIRCUIT = "two_stage_ota"
+M1_STRICT = (("offset_in_sigma_mv", "<=", 0.001234),)        # 아주 엄격한 값 (실행 A) -- 어느 앵커도 통과하지 못해 모든 앵커를 훑는다
+
+
+def _install_spies(monkeypatch):
+    """관찰 지점 (§9 통과 spy -- 동작 대체 0): start_intervals.matching_bounds (호출 번호), iv_matching_l.mismatch_sigma_vgs (인자 기록)."""
+    mb_mod = sys.modules["gmid_engine.search.start_intervals"]
+    sg_mod = sys.modules["gmid_engine.search.iv_matching_l"]
+    st = {"n": 0, "cur": None, "calls": [], "mb": []}
+    orig_mb, orig_sg = mb_mod.matching_bounds, sg_mod.mismatch_sigma_vgs
+    sig_sg, sig_mb = inspect.signature(orig_sg), inspect.signature(orig_mb)
+
+    def mb(*a, **k):
+        st["n"] += 1
+        st["cur"] = st["n"]
+        st["mb"].append(dict(sig_mb.bind(*a, **k).arguments))
+        try:
+            return orig_mb(*a, **k)
+        finally:
+            st["cur"] = None
+
+    names = ("memo", "model", "kind", "w_key", "L", "vgs", "vds", "vsb", "w_f", "W")      # interface M-1 2: 인자 위치 그대로 (이름은 이 test 가 붙인다)
+
+    def sg(*a, **k):
+        r = orig_sg(*a, **k)                                          # 예외 없이 끝난 호출만 기록
+        vals = tuple(sig_sg.bind(*a, **k).arguments.values())
+        assert len(vals) == len(names), vals
+        st["calls"].append((st["cur"], dict(zip(names, vals))))
+        return r
+    monkeypatch.setattr(mb_mod, "matching_bounds", mb)
+    monkeypatch.setattr(sg_mod, "mismatch_sigma_vgs", sg)
+    return st
+
+
+def _first_stage_args(st, kind="nmos"):
+    """4단계 = 출발 블록의 첫 matching_bounds 호출 안 spy 호출. 앵커 L 마다 예외 없이 끝난 마지막 호출의 인자."""
+    by = {}
+    for cur, b in st["calls"]:
+        if cur == 1 and b["kind"] == kind:
+            by[b["L"]] = b
+    return by
+
+
+@pytest.fixture(scope="module")
+def m1_run_a():
+    mp = pytest.MonkeyPatch()
+    try:
+        st = _install_spies(mp)
+        case = real_case(M1_CIRCUIT, M1_STRICT)
+    finally:
+        mp.undo()
+    return st, case
+
+
+def test_m1_premise_input_devices_are_nmos(m1_run_a):
+    """P0: 입력 소자 kind = nmos (helper input_gate_devices 와 그 소자 kind)."""
+    st, case = m1_run_a
+    inputs = input_gate_devices(case.topology)
+    kinds = {d["name"]: d["kind"] for d in case.topology["netlist"]}
+    assert inputs and {kinds[n] for n in inputs} == {"nmos"}, ("전제 P0 불성립 -- 멈추고 보고", inputs)
+
+
+def test_m1_run_a_every_anchor_swept_and_w_f_is_reference_width(m1_run_a):
+    """실행 A: 충돌 기록(입력 소자 matching L, 출처 matching_l_6.4_2)이 있고(어느 앵커도 통과 못함), 4단계 호출 w_f 가 모두 기준 폭 w_ref_m (P1, (a))."""
+    st, case = m1_run_a
+    sig = H.NfetSigma()
+    allc = list(case.start.conflicts) + [c for r in case.start.rows for c in r.conflicts]
+    conflicts = [c for c in allc if c.quantity == "L" and any(s == SRC_L for s, _ in c.bounds)]       # 출처 = 충돌 bounds 의 경계 출처
+    assert {c.device for c in conflicts} >= input_gate_devices(case.topology), "실행 A 충돌 기록 없음 -- 멈추고 보고"
+    by = _first_stage_args(st)
+    assert len(by) >= 3, "4단계 spy 호출 없음 -- 멈추고 보고"
+    assert any(math.isclose(L, 8e-6, rel_tol=1e-9) for L in by), ("L 앵커 범위가 8 µm 에 닿지 않는다 -- 멈추고 보고", sorted(by))
+    for L, b in by.items():
+        assert math.isclose(b["w_f"], sig.w_ref, rel_tol=1e-12), (L, b["w_f"], sig.w_ref)       # P1: 4단계 slope bin w_f = w_ref_m
+
+
+def _pick(m1_run_a):
+    st, case = m1_run_a
+    sig = H.NfetSigma()
+    H.check_bin_rule_against_evidence(sig)                              # 판정 꼴 먼저 대조 (bin 규칙 선언 evidence.points)
+    by = _first_stage_args(st)
+    args = {L: dict(vgs=b["vgs"], vds=b["vds"], vsb=b["vsb"], W=b["W"]) for L, b in by.items()}
+    pick = H.pick_anchor(sig, args, min_finger_w_m(["nmos"])["nmos"])
+    assert pick is not None, "전제 P2·P3 를 만족하는 앵커 없음 -- 멈추고 보고"
+    return sig, by, pick
+
+
+def test_m1_run_b_lower_bound_is_hand_picked_anchor_and_args_unchanged(m1_run_a, monkeypatch):
+    """M-1: (a) 4단계 spy w_f = 모두 w_ref (b) 입력 소자 L 하한 값 == L_k (앵커 값 그대로) (c) 4단계 spy 인자 (vgs, vds, vsb, W) 가 실행 A 와 같은 L 에서 `==`.
+    전제 P4: w_alt ≠ w_ref 이고 그 소자 wf_start 칸 키 × 격자 ≠ w_ref."""
+    sig, by_a, pick = _pick(m1_run_a)
+    assert not math.isclose(pick["w_alt"], sig.w_ref, rel_tol=1e-12)                                # P4 앞부분
+    value_mv = pick["sigma_share"] * math.sqrt(2.0) / 1e-3
+    st = _install_spies(monkeypatch)
+    case = real_case(M1_CIRCUIT, (("offset_in_sigma_mv", "<=", value_mv),))
+    by_b = _first_stage_args(st)
+    assert by_b, "실행 B 4단계 spy 호출 없음 -- 멈추고 보고"
+    for L, b in by_b.items():
+        assert math.isclose(b["w_f"], sig.w_ref, rel_tol=1e-12), (L, b["w_f"])                      # (a)
+    rows = rows_by_name(case.start)
+    inputs = input_gate_devices(case.topology)
+    assert inputs
+    for dev in sorted(inputs):
+        lo = bound_values(rows[dev], SRC_L, "L", "lo")
+        assert lo and max(lo) == pick["k_L"], (dev, lo, pick["k_L"])                                # (b) 앵커 값 그대로 `==`
+    for L, b in by_b.items():
+        if L in by_a:
+            assert (b["vgs"], b["vds"], b["vsb"], b["W"]) == (by_a[L]["vgs"], by_a[L]["vds"], by_a[L]["vsb"], by_a[L]["W"]), L   # (c)
+    # P4 뒷부분: 그 소자 wf_start 칸 키 × 격자 ≠ w_ref (출발 블록 결과 스냅샷에서 읽음; 칸 키 ≠ 기준 폭 키)
+    base = case.sctx.dc.base
+    cells = base.value("graph", "start", "wf_start")
+    grid = case.kctx.lut.spec.manufacturing_grid_m
+    for dev in sorted(inputs):
+        (cell,) = [c for c in cells if dev in c.members]
+        assert cell.w_key is not None and not math.isclose(cell.w_key * grid, sig.w_ref, rel_tol=1e-12), ("전제 P4 불성립 -- 멈추고 보고", dev, cell)
+
+
+def test_m2_guard_path_slope_bin_is_cell_key_times_grid(monkeypatch):
+    """M-2 (6단계 가드 경로): 출발 블록 전체 한 번 -- 첫 이후의 matching_bounds 호출 안 spy 호출의 slope bin w_f = 그 소자 wf_start 칸 w_key × 격자 (spy 인자).
+    (4단계 호출 = 기준 폭 w_ref 와 칸 키가 다른 회로에서 갈린다 -- 아래 단언은 호출 번호 2 이상만 본다.)"""
+    st = _install_spies(monkeypatch)
+    case = real_case(M1_CIRCUIT, (("offset_in_sigma_mv", "<=", 0.0031415),))
+    sig = H.NfetSigma()
+    base = case.sctx.dc.base
+    cells = base.value("graph", "start", "wf_start")
+    grid = case.kctx.lut.spec.manufacturing_grid_m
+    keys = {m: c.w_key for c in cells for m in c.members}
+    later = [b for cur, b in st["calls"] if cur is not None and cur >= 2 and b["kind"] == "nmos"]
+    assert later, "6단계 가드 spy 호출 없음 -- 멈추고 보고"
+    widths_seen = {round(b["w_f"] / grid) for b in later}
+    inputs = input_gate_devices(case.topology)
+    want = {keys[d] for d in inputs}
+    assert want <= widths_seen, ("6단계 가드 w_f 가 칸 키 × 격자가 아니다", widths_seen, want)
+    assert not all(math.isclose(b["w_f"], sig.w_ref, rel_tol=1e-12) for b in later), "칸 키 ≠ 기준 폭 인 toy 가 아니다 -- 멈추고 보고"
