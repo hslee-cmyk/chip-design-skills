@@ -302,7 +302,7 @@ def test_value_fields_as_contract():
     old_window = S.Window(0.0, 1.8, 2)
     assert (old_window.input_status, old_window.tol_v) == (None, None)
     # [r6] method·fallback 필드 추가(옛 6칸 뒤, 6칸 생성 호환). [r7] 2절: 기본값 method="direct", fallback=None.
-    assert names(S.SccLog) == ("index", "nodes", "iterations", "deltas", "tol", "k_max", "method", "fallback", "slice_rounds")      # [WB-1 §3] slice_rounds 칸 추가
+    assert names(S.SccLog) == ("index", "nodes", "iterations", "deltas", "tol", "k_max", "method", "fallback")      # [FS-1 §4.2 D-3] slice_rounds 칸 삭제 (노드 풀이 평가당 1회)
     old = S.SccLog(0, ("x",), 1, (0.0,), 1e-3, 11)
     assert (old.index, old.nodes, old.iterations, old.deltas, old.tol, old.k_max) == (0, ("x",), 1, (0.0,), 1e-3, 11)
     assert old.method == "direct" == S.SCC_DIRECT and old.fallback is None

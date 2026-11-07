@@ -824,3 +824,33 @@ def test_axis_key_x7_midpoint_L_missing_uses_axes_gate_first(mid_toy_build):
     del m["L"]
     mt = mid_toy_build("x7", mid={0: m})
     _axes_reject(mt, "lut_midpoints_axes_mismatch", mt.mid_path, "L")
+
+
+# ---------------------------------------------------------------------------
+# [FS-1 C-1·C-1'] 후보 0 거부 `wf_candidates_empty` (interface card 20261107-fs1 §2)
+# oracle (손): 합성 슬라이스 폭 {1e-6, 2e-6} (격자 1e-8 -> 키 100·200). `widths` = 키·격자 >= min_finger 인 것 -> 최소 폭이 2e-6 를 넘으면 후보 0.
+# ---------------------------------------------------------------------------
+def _fs1_reload(tmp_path, nmos_min, pmos_min):
+    import dataclasses
+    from gmid_engine.lut import load_lut_set
+    from sizing.conftest import TOY_SPEC as R4_SPEC          # nmos+pmos 두 kind 합성 spec (lut 쪽 TOY_SPEC 은 nmos 하나)
+    from sizing.wb1_toy import write_r4_bins_lut
+    lut, root, tb = write_r4_bins_lut(tmp_path, widths=(1e-6, 2e-6))
+    spec = dataclasses.replace(R4_SPEC,min_finger_w_m=(("nmos", nmos_min), ("pmos", pmos_min)))
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), spec, bin_rule=tb.bin_rule)
+
+
+def test_wf_candidates_empty_c1_prime_loads_with_two_candidates(tmp_path):
+    """C-1' (전제): 최소 폭 1e-6 이면 적재 통과, 후보 (100, 200)."""
+    lut = _fs1_reload(tmp_path, 1e-6, 1e-6)
+    assert widths(lut, "nmos") == (100, 200)
+
+
+@pytest.mark.parametrize("nmos_min,pmos_min,kind", [(3e-6, 1e-6, "nmos"), (1e-6, 3e-6, "pmos"), (3e-6, 3e-6, "nmos")])
+def test_wf_candidates_empty_rejected(tmp_path, nmos_min, pmos_min, kind):
+    """C-1: 최소 finger 폭 > 가장 넓은 슬라이스 -> SchemaRejectedError reason wf_candidates_empty, kind = 그 kind (둘 다면 오름차순 첫 것)."""
+    assert widths(_fs1_reload(tmp_path / "ok", 1e-6, 1e-6), "nmos") == (100, 200)      # 양성 대조
+    with pytest.raises(SchemaRejectedError) as ei:
+        _fs1_reload(tmp_path / "bad", nmos_min, pmos_min)
+    d = detail_of(ei.value)
+    assert d["reason"] == "wf_candidates_empty" and d["kind"] == kind

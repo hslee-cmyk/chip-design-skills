@@ -3,7 +3,7 @@
 oracle (손): 값을 round(값/격자) 정수로 바꿔 비교한다. g = 1e-8 이면 1e-6·(1 ± 32·eps) 는 모두 정수 100.
 - widths: `w_key >= round(w_min/grid)`. W_min = 1e-6·(1 + 32·eps) 이면 round = 100 이라 키 100 이 든다(옛 w_key·grid >= w_min 은 1e-6 < W_min 이라 빠진다 = red).
 - l_position: round(L/g) 가 앵커 정수와 같으면 그 앵커 (i, i, l_grid[i]), 앵커가 아닌 같은 bin 이면 (k−1, k, L).
-`widths` 와 `l_position` 이 읽는 칸만 가진 손 stub 으로 부른다(test_finger_slice 와 같은 방식: 실제 LUT 가 아니라 입력 구성).
+`widths` 와 `l_position` 이 읽는 칸만 가진 손 stub 으로 부른다(test_slice_of_finger 와 같은 방식: 실제 LUT 가 아니라 입력 구성).
 test_midpoint_checks·test_mismatch_sigma 의 W_min 왕복 점 소속은 관찰 경로(공개 함수 + 합성 중점·mismatch 파일 형식)가 card 에 없어 쓰지 않았다(보고).
 `_on_or_inside` ulp 조건 grep 0 은 tests/structure/test_wb1_source.py.
 """
