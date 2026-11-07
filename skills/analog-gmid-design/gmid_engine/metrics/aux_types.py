@@ -25,7 +25,7 @@ import numpy
 @dataclasses.dataclass(frozen=True)
 class MismatchSource:
     """소자 mismatch σ 의 PDK 입력 묶음. `models` = ((kind, core `PdkMismatchModel`), ...) kind 정렬, `sha256` = 그 PDK 선언 파일 sha256(지문용 출처).
-    블록 입력 버전 지문은 (sha256, kind 목록) -- 모델 본문(bin 수백 개)을 매 평가마다 직렬화하지 않는다(`JunctionSource` 와 같은 방식)."""
+    블록 입력 버전 지문은 (sha256, kind 목록) -- 모델 본문(bin 수백 개)을 매 평가마다 직렬화하지 않는다."""
 
     models: tuple
     sha256: str

@@ -10,8 +10,8 @@ finger i 는 영역 i 와 i+1 사이). 영역 길이 D = `pdk.finger_pitch_overh
 * 섬 끝 영역(한쪽만 finger): 그 finger 가 전부. 면적 W·D, 둘레 2D(STI) + 자기 게이트 변 W + 반대쪽 끝 변 W.
   끝 변은 행 끝 dummy(floorplan 이 양끝에 넣는다)·섬 사이 break 의 게이트 변이다. dummy 는 넷리스트에 없으므로 그 변의 접합은
   끝 영역과 함께 finger 에 합산한다(면적을 전부 주는 것과 같은 집계).
-* BSIM4 perMod=1 둘레 규약: PD·PS 는 게이트 쪽 변을 포함한 둘레다(접합 용량이 `PD − Weffcj` 를 STI 측벽으로 쓴다,
-  `metrics.junction_cap`).
+* 둘레 규약(ngspice): PD·PS 는 게이트 쪽 변을 포함한 둘레다. 엔진 접합 용량(`metrics.junction_cap`)은 면적 비만 읽고
+  PD·PS 는 오라클 넷리스트만 읽는다.
 finger 의 어느 쪽이 drain 인지는 그 finger 의 소자 (source, drain) 와 node_sequence 로 정한다(영역 i 의 넷 == source 이면 영역 i 가 source 쪽,
 소자 source == drain 이면 왼쪽을 source 로 센다). 소자 값 = 모든 행·finger 합 / n_fingers(finger 평균 -- `DiffusionGeometry` 와 오라클
 `devices[].diffusion` 이 finger 하나 기준이고 `m` = n_fingers).

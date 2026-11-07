@@ -38,15 +38,17 @@ def caps(memo, kind, L, vgs, vds, vsb, W):
         part = slice(lo, hi + 1)
         full = cap.CGS is not None and cap.CGB is not None
         selfs = tuple(name for name in _SELF_CAPS if name in cap.columns)
-        arrays = ((cap.CGG[part], cap.CGD[part]) + ((cap.CGS[part], cap.CGB[part]) if full else ())
+        has_cgs = cap.CGS is not None
+        arrays = ((cap.CGG[part], cap.CGD[part]) + ((cap.CGS[part],) if has_cgs else ()) + ((cap.CGB[part],) if full else ())
                   + tuple(cap.columns[name][part] for name in selfs))
         vals = linear_point((cap.grids[0][part],) + tuple(cap.grids_list[1:]), arrays, (l_val,) + rest)
         scale = W / cap.w_ref_m
         scaled = [v * scale for v in vals]
         own = dict(zip(selfs, scaled[len(scaled) - len(selfs):]))
         cgg, cgd = scaled[0], scaled[1]
+        measured = scaled[2] if has_cgs else None          # 측정 CGS 열 값(CGB 열 유무와 무관, 없으면 None)
         if full:
-            return Caps(cgg, cgd, scaled[2], scaled[3], "lut_cgs_cgb", own.get("CDD"), own.get("CSS"))
-        return Caps(cgg, cgd, cgg - cgd, 0.0, "cgg_minus_cgd_at_gs", own.get("CDD"), own.get("CSS"))
+            return Caps(cgg, cgd, scaled[2], scaled[3], "lut_cgs_cgb", own.get("CDD"), own.get("CSS"), measured)
+        return Caps(cgg, cgd, cgg - cgd, 0.0, "cgg_minus_cgd_at_gs", own.get("CDD"), own.get("CSS"), measured)
 
     return memo.lookup("point", "caps", (kind, lo, hi, l_val) + rest + (W,), compute)

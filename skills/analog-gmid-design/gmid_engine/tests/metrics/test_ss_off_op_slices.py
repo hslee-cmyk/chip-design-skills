@@ -28,7 +28,7 @@ GRID = 1e-8
 WIDTHS = (1e-6, 2e-6, 5e-6)                     # 기준 폭 1e-6 (cap w_ref_m) 포함, 슬라이스 키 100·200·500
 
 
-def build(tmp, pins, rails, w_m, l_m=1e-6, widths=WIDTHS, name="wb1o"):
+def build(tmp, pins, rails, w_m, l_m=1e-6, widths=WIDTHS, name="wb1o", jc1_cols=True):
     tmp = Path(tmp)
     tmp.mkdir(parents=True, exist_ok=True)
     sup = dict(BASE_RAILS)
@@ -44,7 +44,7 @@ def build(tmp, pins, rails, w_m, l_m=1e-6, widths=WIDTHS, name="wb1o"):
     spec = load_sizing_spec(str(sp), td, metric_catalog())
     inputs = dc_inputs_from_spec(spec)
     run = fresh_run()
-    lut, _, _ = write_r4_bins_lut(tmp / "lut", widths=widths)
+    lut, _, _ = write_r4_bins_lut(tmp / "lut", widths=widths, jc1_cols=jc1_cols)     # [JC-1] 접합 항 입력 열(CGS·CDD·CSS)
     ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, access_of(lut), **run)
     theta = theta_a(ctx)
     ev = size_and_seal(ctx, theta)

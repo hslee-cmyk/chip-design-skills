@@ -184,7 +184,7 @@ def _check_units(path, grids, log_id, pairs):
 
 def _build_slice(src, grids, parsed, grid_m, rule):
     with np.load(src.path) as npz:
-        if npz_grids(npz) != grids:
+        if npz_grids(npz, reason="lut_slice_axes_mismatch", path=src.path) != grids:
             raise schema_rejected("lut_slice_axes_mismatch", path=src.path)
         raw_id = np.asarray(npz["ID"], dtype=float)
         raw_gm = np.asarray(npz["GM"], dtype=float)
@@ -289,7 +289,7 @@ def _build_caps(spec, cap_path, cap_sha256, grids, slices_by_kind):
     suffix = dict(spec.cap_column_suffix)
     caps = {}
     with np.load(cap_path) as npz:
-        cap_grids = npz_grids(npz)
+        cap_grids = npz_grids(npz, reason="lut_cap_axes_mismatch", path=cap_path)
         if cap_grids[:3] != grids[:3]:
             raise schema_rejected("lut_cap_axes_mismatch", path=cap_path)
         files = set(npz.files)
@@ -343,9 +343,9 @@ def _midpoint_tables(prov, grids):
             if mid.get(key) != slices.get(key):
                 raise schema_rejected("lut_conditions_mismatch", path=src.path, key=key, midpoints=mid.get(key), slices=slices.get(key))
         with np.load(src.path) as npz:
-            if not all(axis in npz.files for axis in AXES) or npz_grids(npz)[1:] != grids[1:]:
+            mid_grids = npz_grids(npz, reason="lut_midpoints_axes_mismatch", path=src.path)
+            if mid_grids[1:] != grids[1:]:
                 raise schema_rejected("lut_midpoints_axes_mismatch", path=src.path)
-            mid_grids = npz_grids(npz)
             for name in _MID_REQUIRED:
                 if name not in npz.files:
                     raise schema_rejected("lut_midpoints_column_missing", path=src.path, kind=src.kind, column=name)
@@ -413,7 +413,7 @@ def load_lut_set(manifest_path, cap_npz_path, spec, *, bin_rule, pdk_root=None, 
                 raise schema_rejected("lut_conditions_mismatch", key=key, cap=cap_cond.get(key),
                                       slices=slice_cond.get(key))
     with np.load(prov.slices[0].path) as npz:
-        grids = npz_grids(npz)
+        grids = npz_grids(npz, reason="lut_slice_axes_mismatch", path=prov.slices[0].path)
     parsed = {}
     slices = [_build_slice(src, grids, parsed, spec.manufacturing_grid_m, prov.bin_rule) for src in prov.slices]
     by_kind = {}

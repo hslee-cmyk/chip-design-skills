@@ -70,6 +70,10 @@ def write_slice_lut(root, slices, gmbs=True, no_bins=False, simulator="ngspice-4
     for kind in G.KINDS:
         cap["CGG" + G.SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + G.SUFFIX[kind]] = np.full(shp, 2e-16)
+        # [JC-1] 접합 항 입력 열(손 식: CGS = CGG − CGD = 8e-16, CSS − CGS = 5e-16, CDD − CGD = 3e-16 -- 모든 칸 같은 값)
+        cap["CGS" + G.SUFFIX[kind]] = np.full(shp, 8e-16)
+        cap["CSS" + G.SUFFIX[kind]] = np.full(shp, 1.3e-15)
+        cap["CDD" + G.SUFFIX[kind]] = np.full(shp, 5e-16)
     np.savez(root / "cap.npz", **cap)
     spec = LutSpec(G.GRID_M, (("nmos", G.W_M), ("pmos", G.W_M)), (("toyn", "nmos"), ("toyp", "pmos")),
                    (("nmos", "_n"), ("pmos", "_p")))

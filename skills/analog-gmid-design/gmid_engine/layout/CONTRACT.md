@@ -409,14 +409,14 @@ elongation = max/min(두 값), `folds` 는 tuple 로 옮긴다. **ok 필드·허
 
 ### 4.10a `diffusion_geometry(rows, devices, pdk) -> tuple[DeviceDiffusion]` (LY8, DEC-89 (5)·DEC-91 (2), U12 D-LY3)
 `ly.diffusion[dev]` = 소자별 finger 하나 평균 확산 기하 `DeviceDiffusion(name, finger_w_m, n_fingers, ad_m2, as_m2, pd_m, ps_m)`(소자 이름순).
-엔진 접합 용량 `metrics.DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, m = n_fingers)` 과 오라클 `devices[].diffusion{ad_m2, as_m2,
-pd_m, ps_m}`(C3·C22)이 같은 값을 쓴다(소비자 배선 = MOD8, `RealizedDevice.diffusion` 으로 실어 보낸다).
+엔진 접합 용량 `metrics.DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, m = n_fingers)` 은 확산 면적 비(ad·as)만 읽고, pd·ps 는 오라클
+`devices[].diffusion{ad_m2, as_m2, pd_m, ps_m}`(C3·C22) 넷리스트만 읽는다(소비자 배선 = MOD8, `RealizedDevice.diffusion` 으로 실어 보낸다).
 - 입력: 최종 행(접기·재구성 뒤) 각각의 diffusion 섬(`segments`; 없으면 행 전체가 한 섬) -- 섬 안 finger k 개와 영역 k+1 개
   (영역 j = `node_sequence[j]`, finger i 는 영역 i 와 i+1 사이). 영역 길이 D = `pdk.finger_pitch_overhead_m`(행 폭 식이 finger 마다 접촉 확산 하나를
   세는 그 양), 영역 폭 = 행 finger_w W.
 - finger 마다 두 영역(소자 source 와 같은 넷인 쪽 = source 쪽, 같은 넷이 양쪽이면 왼쪽을 source) 에서: 영역에 닿는 finger 수 q(공유 = 2, 섬 끝 = 1)
-  로 나눠 면적 += W·D/q, 둘레 += W(자기 게이트 쪽 변) + 2D/q(위·아래 STI 변) + (섬 끝이면 W: 반대쪽 끝 변). BSIM4 perMod=1 규약(둘레에 게이트 쪽 변
-  포함, `junction_cap` 이 `PD − Weffcj` 를 STI 측벽으로 씀). 섬 끝 반대쪽 변은 행 끝 dummy·섬 사이 break 의 게이트 변이고 dummy 는 넷리스트에 없으므로
+  로 나눠 면적 += W·D/q, 둘레 += W(자기 게이트 쪽 변) + 2D/q(위·아래 STI 변) + (섬 끝이면 W: 반대쪽 끝 변). ngspice 둘레 규약(둘레에 게이트 쪽 변
+  포함; 엔진 `junction_cap` 은 면적 비만 읽는다). 섬 끝 반대쪽 변은 행 끝 dummy·섬 사이 break 의 게이트 변이고 dummy 는 넷리스트에 없으므로
   그 변과 영역 전체를 finger 에 합산한다(한계: dummy 가 실제 소자로 추출되면 절반씩 나뉜다).
 - 소자 값 = 모든 행·섬·finger 합 / n_fingers. 손계산 예: 한 행 (A, B), 노드 (da, h, db), A.source = h, W = 1 µm, D = 0.28 µm -> A 의 drain 영역 da =
   섬 끝: ad = W·D = 0.28 pm², pd = W + 2D + W = 2.56 µm; source 영역 h = 공유: as = W·D/2 = 0.14 pm², ps = W + D = 1.28 µm.

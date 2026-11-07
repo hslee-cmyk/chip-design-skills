@@ -26,7 +26,7 @@ CONS = (("gain_ss_db", ">=", 10.0, None),)
 def bins_case(tmp, doc, constraints=CONS, elements=(), eval_budget=40, widths=(1e-6, 2e-6), archive_root=None, budget_s=600.0,
                idu_factor=None, rbounds=None, node_targets=()):
     tmp = Path(tmp)
-    lut, _, _ = write_r4_bins_lut(tmp / "lut", widths=widths, idu_factor=idu_factor)
+    lut, _, _ = write_r4_bins_lut(tmp / "lut", widths=widths, idu_factor=idu_factor, jc1_cols=True)       # [JC-1] 접합 항 입력 열(CGS·CDD·CSS)
     acc = access_of(lut)
     td, spec = load_spec(tmp / "case", doc, elements=elements, constraints=constraints, node_targets=node_targets)
     inputs = dc_inputs_from_spec(spec)

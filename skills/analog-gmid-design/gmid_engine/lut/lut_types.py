@@ -344,6 +344,7 @@ class Caps:
     model: str
     cdd: object = None
     css: object = None
+    cgs_measured: object = None     # [JC-1, A-169] 기준 LUT CGS 열 값(CGB 열 유무와 무관, 열이 없으면 None). 소비자 = metrics `junction_at_vgs_min` 하나
 
 
 @dataclasses.dataclass(frozen=True)
