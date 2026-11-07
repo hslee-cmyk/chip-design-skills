@@ -103,9 +103,11 @@ def test_s0_keyword_rejected(tmp_path, lut_sealed):
 def test_theta_resistance_without_bounds_rejected_before_kernel(tmp_path, lut_sealed):
     """I-11: build_case 가 상자 없이 부르면 거부 -- sizing 평가 블록(커널) 호출 0([XRUN-F1 card B C1] 그 실행 계수에 평가 블록 행이 없다)."""
     run = fresh_run()
-    with pytest.raises(SchemaRejectedError) as e:
+    # [FS-1 A-188·A-190 M-2b] 정본 경로(build_case = 단계 A -> 단계 B)에서는 같은 사유(탐색 정의역 게이트 theta_resistance_bounds_undeclared)를 단계 B 가 먼저 낸다:
+    # build_case 가 '단계 B 불통과' 로 멈추고 그 정지 사유에 같은 사유가 들어 있다. 커널 컨텍스트는 만들어지지 않는다(커널 호출 0).
+    with pytest.raises(AssertionError) as e:
         build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),), rbounds=None, run=run)
-    assert dict(e.value.record.detail)["reason"] == "theta_resistance_bounds_undeclared"
+    assert "단계 B 불통과" in str(e.value) and "theta_resistance_bounds_undeclared" in str(e.value)
     assert [block_row(run["counters"], b.name)[0] for b in (dc_currents, dc_solve, dc_solve)] == [0, 0, 0]
 
 
@@ -157,10 +159,9 @@ def test_theta_capacitance_without_bounds_rejected_before_kernel(tmp_path, lut_s
     """r6: θ capacitance 가 있고 capacitance_bounds_f 미선언 -> theta_capacitance_bounds_undeclared, 커널 호출 0."""
     from .conftest import Z_ELEMENTS, circuit_z
     run = fresh_run()
-    with pytest.raises(SchemaRejectedError) as e:
+    with pytest.raises(AssertionError) as e:      # [FS-1 A-190 M-2b] 단계 B 가 같은 사유로 먼저 거부 (위 test 와 같은 설명)
         build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=None, run=run)
-    det = dict(e.value.record.detail)
-    assert det["reason"] == "theta_capacitance_bounds_undeclared" and tuple(det["capacitors"]) == ("Cz",)
+    assert "단계 B 불통과" in str(e.value) and "theta_capacitance_bounds_undeclared" in str(e.value) and "Cz" in str(e.value)
     assert [block_row(run["counters"], b.name)[0] for b in (dc_currents, dc_solve, dc_solve)] == [0, 0, 0]
 
 
@@ -256,24 +257,8 @@ def test_no_noise_constraint_no_noise_lut_needed(tmp_path, lut_sealed):
     assert [c.metric for c in s.ss_constraints] == ["gain_ss_db"]
 
 
-def test_noise_decl_without_s1v(tmp_path, lut_sealed):
-    """search 11절: SearchContext.noise_decl = noise_decl(spec, s1v) -- 6인자 호출(s1v 없음)이면 입력 셀 없음, spec feedback 빈 list -> (),
-    noise_testbench 없음 -> 샘플링 커패시터 (). oracle (d)."""
-    from gmid_engine.metrics import NoiseDecl
-    s = build_case(tmp_path, circuit_c(), lut_sealed).sctx
-    assert s.noise_decl == NoiseDecl(feedback=(), sampling_caps=(), input_cells=())
-
-
-def test_u7_context_inputs_default(tmp_path, lut_sealed):
-    """[U7] CONTRACT 10.7: s1v 를 안 주면 구조 입력 None(구조 의존 값은 정의 불가로 남는다), model_error 기본 (), mismatch 는 PDK 선언에서
-    `MismatchSource.from_decl(pdk_decl)`, driving = spec.driving_spec."""
-    from gmid_engine.metrics import MismatchSource
-    case = build_case(tmp_path, circuit_c(), lut_sealed)
-    s = case.sctx
-    assert s.structure is None
-    assert tuple(s.model_error) == ()
-    assert s.mismatch == MismatchSource.from_decl(case.pdk)
-    assert s.driving is case.spec.driving_spec
+# [FS-1 A-190 M-2d 삭제] test_noise_decl_without_s1v·test_u7_context_inputs_default -- 'S1v 없는 S1 수준 컨텍스트' 전제의 legacy (정본 경로 build_case 는 단계 A·B 를 거쳐
+# S1v 필드가 항상 있다: 실측 input_cells=(('M1',),), structure 있음). tests/RETIRED_TESTS_fs1.md.
 
 
 # ---------------------------------------------------------------- [U13 후속 2026-10-09] offset 제약 -- 시작 때 mismatch LUT 필수 검사(fail-closed)

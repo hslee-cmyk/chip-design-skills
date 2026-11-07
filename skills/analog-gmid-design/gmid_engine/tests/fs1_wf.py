@@ -9,11 +9,14 @@ from gmid_engine.lut import widths
 
 def hand_wf_default(ctx, keys=None):
     from sizing.conftest import hand_cells
+    if not (hasattr(ctx, "base") and hasattr(ctx, "lut")):
+        return None          # KernelContext 가 아닌 입력: wf 를 만들지 않고 공개 함수가 ctx 검사에서 스스로 거부하게 둔다 (test_type_error_ctx)
     keys = dict(keys or {})
     kinds = dict(ctx.base.column("device", "kind"))
+    lut_set = ctx.lut.memo.lut      # 커널 컨텍스트의 lut 는 LutAccess(memo) -- LUT 집합 객체는 memo.lut (M-1)
     cells, ks = [], []
     for members in hand_cells(ctx):
-        k = keys.get(members[0], widths(ctx.lut, kinds[members[0]])[0])
+        k = keys.get(members[0], widths(lut_set, kinds[members[0]])[0])
         cells.append(_sz.WfCell(members, k))
         ks.append(k)
     return _sz.WfInput(tuple(cells), tuple(ks))

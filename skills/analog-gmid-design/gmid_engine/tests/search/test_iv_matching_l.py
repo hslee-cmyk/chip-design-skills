@@ -236,7 +236,7 @@ def test_m1_run_b_lower_bound_is_hand_picked_anchor_and_args_unchanged(m1_run_a,
     # P4 뒷부분: 그 소자 wf_start 칸 키 × 격자 ≠ w_ref (출발 블록 결과 스냅샷에서 읽음; 칸 키 ≠ 기준 폭 키)
     base = case.sctx.dc.base
     cells = base.value("graph", "start", "wf_start")
-    grid = case.kctx.lut.spec.manufacturing_grid_m
+    grid = case.kctx.lut.memo.lut.spec.manufacturing_grid_m      # kctx.lut = LutAccess(memo) -- LUT 집합 객체는 memo.lut (M-1)
     for dev in sorted(inputs):
         (cell,) = [c for c in cells if dev in c.members]
         assert cell.w_key is not None and not math.isclose(cell.w_key * grid, sig.w_ref, rel_tol=1e-12), ("전제 P4 불성립 -- 멈추고 보고", dev, cell)
@@ -250,7 +250,7 @@ def test_m2_guard_path_slope_bin_is_cell_key_times_grid(monkeypatch):
     sig = H.NfetSigma()
     base = case.sctx.dc.base
     cells = base.value("graph", "start", "wf_start")
-    grid = case.kctx.lut.spec.manufacturing_grid_m
+    grid = case.kctx.lut.memo.lut.spec.manufacturing_grid_m      # M-1
     keys = {m: c.w_key for c in cells for m in c.members}
     later = [b for cur, b in st["calls"] if cur is not None and cur >= 2 and b["kind"] == "nmos"]
     assert later, "6단계 가드 spy 호출 없음 -- 멈추고 보고"
@@ -264,23 +264,36 @@ def test_m2_guard_path_slope_bin_is_cell_key_times_grid(monkeypatch):
 def test_m2_evaluation_sigma_rows_use_the_evaluation_cell_key_not_reference_width(monkeypatch):
     """M-2 후반 (결정 A-186): 탐색 전체 대신 평가 한 번. 칸 키 ≠ 기준 폭 키인 손 `WfInput`(칸마다 그 kind 후보 중 가장 좁은 키 -- nmos 는 w_ref 5 µm 가 아닌 슬라이스)으로
     출발점 θ 를 한 번 평가하고, 관찰 지점 `mismatch_sigma_vgs` 통과 spy 가 잡은 σ 호출의 w_f = 그 소자 칸 키 × grid_m (= 그 평가 `DeviceOp.w_key` 슬라이스 폭), 기준 폭이 아님.
-    관찰 지점 호출이 0 이면 멈추고 보고(조용히 통과하지 않는다)."""
+    관찰 지점 호출이 0 이면 멈추고 보고(조용히 통과하지 않는다).
+    [A-190 M-4] 평가 σ 행 경로의 관찰 지점은 interface §9 의 `gmid_engine.metrics.device_sigma.mismatch_sigma_vgs` (iv_matching_l 의 것이 아니다)."""
     from gmid_engine.lut import widths
     from gmid_engine.search import evaluate
     from gmid_engine.sizing import WfCell, WfInput
     case = real_case(M1_CIRCUIT, M1_STRICT)
     sig = H.NfetSigma()
-    lut, grid = case.kctx.lut, case.kctx.lut.spec.manufacturing_grid_m
+    lut = case.kctx.lut.memo.lut                                  # M-1: LUT 집합 객체
+    grid = lut.spec.manufacturing_grid_m
     kinds = {d["name"]: d["kind"] for d in case.topology["netlist"]}
     cells = [WfCell(c.members, widths(lut, kinds[c.members[0]])[0])
              for c in case.sctx.dc.base.value("graph", "start", "wf_start")]
     wf = WfInput(tuple(cells), tuple(c.w_key for c in cells))
     nm_keys = {c.w_key for c in cells if kinds[c.members[0]] == "nmos"}
     assert nm_keys and all(not math.isclose(k * grid, sig.w_ref, rel_tol=1e-12) for k in nm_keys), "전제: 칸 키 ≠ 기준 폭 키 -- 멈추고 보고"
-    st = _install_spies(monkeypatch)
+    ds_mod = sys.modules["gmid_engine.metrics.device_sigma"]
+    orig_ds, sig_ds = ds_mod.mismatch_sigma_vgs, inspect.signature(ds_mod.mismatch_sigma_vgs)
+    names = ("memo", "model", "kind", "w_key", "L", "vgs", "vds", "vsb", "w_f", "W")
+    calls = []
+
+    def ds_spy(*a, **k):
+        r = orig_ds(*a, **k)                                      # 통과 spy: 예외 없이 끝난 호출만 기록
+        vals = tuple(sig_ds.bind(*a, **k).arguments.values())
+        assert len(vals) == len(names), vals
+        calls.append(dict(zip(names, vals)))
+        return r
+    monkeypatch.setattr(ds_mod, "mismatch_sigma_vgs", ds_spy)
     theta = tuple(sorted(dict(case.start.theta).items()))
     res = evaluate(case.sctx, theta, tuple(case.start.cells), wf)
-    seen = [b for _c, b in st["calls"] if b["kind"] == "nmos"]
+    seen = [b for b in calls if b["kind"] == "nmos"]
     assert seen, "관찰 지점 mismatch_sigma_vgs 호출 0 -- 멈추고 보고"
     ops = dict(res.evaluation.snapshot.column("device", "dc_op")) if res.evaluation is not None else {}
     used = {round(b["w_f"] / grid) for b in seen}

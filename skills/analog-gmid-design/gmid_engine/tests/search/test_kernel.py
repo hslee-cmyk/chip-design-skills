@@ -650,7 +650,7 @@ def test_evaluate_does_not_derive_or_change_eval_budget(tmp_path, lut_sealed):
 def _two_slice_case(tmp_path, short_root):
     from gmid_engine.search import evaluate as raw_evaluate   # noqa: F401
     from sizing.wb1_toy import write_r4_bins_lut
-    lut, _, _ = write_r4_bins_lut(tmp_path / "lut2", widths=(1e-6, 2e-6))
+    lut, _, _ = write_r4_bins_lut(tmp_path / "lut2", widths=(1e-6, 2e-6), jc1_cols=True)      # CDD 열 있는 toy (단계 B 요구, A-190 M-2c)
     return build_case(tmp_path, circuit_c(), lut, constraints=AXIS_CONS + SS_CONS, archive_root=short_root)
 
 

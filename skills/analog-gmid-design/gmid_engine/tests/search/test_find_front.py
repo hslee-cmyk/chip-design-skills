@@ -282,70 +282,9 @@ def test_passive_theta_circuit_front_measured(tmp_path, lut_sealed):
 # 기대값은 계약 문장(키·코드 이름)과 같은 점의 ss_evaluate 직접 호출(등식 I-22).
 # =====================================================================================================================
 
-CM_PORTS_D = {"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),
-              "op": ("output", "differential_output_p"), "om": ("output", "differential_output_n")}
-CM_GAIN_VIEW = {"ac_excite": {"ip": 0.5, "im": -0.5}, "sense_p": "op", "sense_n": "om", "sense_mode": "differential"}
-
-
-def circuit_cmfb_diff():
-    from .conftest import mos, topo, two
-    return topo("hand_cmfb_diff", [mos("M1", "nmos", "op", "ip", "gnd"), mos("M2", "nmos", "om", "im", "gnd"),
-                                   mos("M3", "pmos", "op", "c", "vdd"), mos("M4", "pmos", "om", "c", "vdd")],
-                CM_PORTS_D, passives=[two("R1", "resistor", "op", "c"), two("R2", "resistor", "c", "om")])
-
-
-def _cm_case(tmp, lut, archive_root=None):
-    return build_case(tmp, circuit_cmfb_diff(), lut, constraints=(("gain_ss_db", ">=", 0.0, CM_GAIN_VIEW),),
-                      elements=(("R1", "resistor", 1e6), ("R2", "resistor", 1e6)), eval_budget=20, archive_root=archive_root)
-
-
-def test_cm_unconstrained_warning_reaches_run_notes_i22(tmp_path, lut_sealed, short_root):
-    """I-22: CMFB 루프가 있고 선언이 없으면 run notes 에 {verdict: warning, code: cm_loop_unconstrained, points ≥ 1}(코드별 하나),
-    points ≤ 봉인 점 수(경고는 봉인 점의 ss 평가에서만 나온다). 경고는 notes 외 판정에 영향 없음 -- 다른 notes 는 그대로 있다."""
-    case = _cm_case(tmp_path, lut_sealed, short_root)
-    fr = find_front(case.sctx, [])
-    warn = [dict(n) for n in fr.notes if dict(n).get("verdict") == "warning"]
-    assert len(warn) == 1, warn
-    assert warn[0]["code"] == "cm_loop_unconstrained"
-    lines = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "evals.jsonl").read_text(
-        encoding="utf-8").splitlines() if x.strip()]
-    n_sealed = sum(1 for x in lines if x["status"] == STATUS_SEALED)
-    assert 1 <= warn[0]["points"] <= n_sealed
-
-
-def test_cm_constrained_circuit_has_no_warning_note(tmp_path, lut_sealed):
-    """S-27·I-22: 같은 회로에 pm_cm_ss_deg 를 선언하면 경고 note 가 없다(판정은 제약 행이 맡는다)."""
-    case = build_case(tmp_path, circuit_cmfb_diff(), lut_sealed,
-                      constraints=(("gain_ss_db", ">=", 0.0, CM_GAIN_VIEW), ("pm_cm_ss_deg", ">=", 60.0, None)),
-                      elements=(("R1", "resistor", 1e6), ("R2", "resistor", 1e6)), eval_budget=20)
-    fr = find_front(case.sctx, [])
-    assert not [n for n in fr.notes if dict(n).get("verdict") == "warning"]
-
-
-def test_eval_result_warnings_equal_ss_evaluate_i22(tmp_path, lut_sealed, short_root):
-    """I-22: 봉인 점의 EvalResult.warnings == 같은 점을 ss_evaluate 로 직접 부른 SsEvaluation.warnings(== ss.warnings), 형식
-    (("cm_loop_unconstrained", (("dc_db", 값 > 0),)),); 실패 점은 ()."""
-    from gmid_engine.metrics import ss_evaluate
-    from gmid_engine.search import STATUS_FAILED
-    from .conftest import evaluate      # [FS-1 서명 맞춤] 손 wf 를 끼운 evaluate 래퍼
-    case = _cm_case(tmp_path, lut_sealed, short_root)
-    find_front(case.sctx, [])
-    lines = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "evals.jsonl").read_text(
-        encoding="utf-8").splitlines() if x.strip()]
-    sealed = [x for x in lines if x["status"] == STATUS_SEALED]
-    assert sealed
-    th = {tuple(k): v for k, v in sealed[0]["theta"]}
-    r = evaluate(case.sctx, th, tuple(sealed[0]["cells"]))
-    assert r.status == STATUS_SEALED
-    ssv = ss_evaluate(r.evaluation.sealed, case.sctx.dc, th, case.sctx.ss_constraints, junction=case.sctx.junction)
-    assert ssv.warnings == ssv.ss.warnings == r.warnings
-    assert len(r.warnings) == 1
-    code, det = r.warnings[0]
-    assert code == "cm_loop_unconstrained" and [k for k, _ in det] == ["dc_db"] and dict(det)["dc_db"] > 0.0
-    failed = [x for x in lines if x["status"] == STATUS_FAILED]
-    if failed:
-        r2 = evaluate(case.sctx, {tuple(k): v for k, v in failed[0]["theta"]}, tuple(failed[0]["cells"]))
-        assert tuple(r2.warnings) == ()
+# [FS-1 A-190 M-2a 삭제] test_cm_unconstrained_warning_reaches_run_notes_i22·test_cm_constrained_circuit_has_no_warning_note·test_eval_result_warnings_equal_ss_evaluate_i22
+# (+ circuit_cmfb_diff·_cm_case) -- CMFB 루프 toy 는 단계 A 가 `unsupported_rule_branch|loop_record_only|...|global_feedback_or_cross_coupled` 로 정지시킨다 (실측).
+# 루프를 없애면 test 대상(cm_loop_unconstrained 경고)이 사라지므로 toy 를 고칠 수 없다. tests/RETIRED_TESTS_fs1.md.
 
 
 # ---------------------------------------------------------------- [r11, 사용자 결정 11] 면적 예산 선언 spec (S-3b 닫힘, 3.22)
@@ -823,11 +762,18 @@ def _u13_toy():
                     constraints=(("gbw_ss_hz", ">=", 1e6), ("pm_ss_deg", ">=", 60.0)))
 
 
-def test_o2_start_undefined_means_no_evaluation_and_empty_front(monkeypatch):
-    ff = sys.modules["gmid_engine.search.find_front"]
+def test_o2_start_undefined_means_no_evaluation_and_empty_front():
+    """O-2 (A-190 M-3): 동작 대체 stub 없음 -- `graph/start: wf_start` 의 한 칸 w_key 를 None 으로 쓴 손 스냅샷 입력(S-6 꼴 결과 값)으로 만든 sctx."""
+    import dataclasses
+    from gmid_engine.search import initial_wf
+    from sizing.conftest import tamper
     case = _u13_toy()
-    assert ff.initial_wf(case.sctx.dc.base) is not None                               # 양성 대조: 출발이 정의된 toy
-    monkeypatch.setattr(ff, "initial_wf", lambda snapshot: None)                       # wf_start 에 None 칸이 있는 스냅샷의 initial_wf 결과
+    base = case.sctx.dc.base
+    assert initial_wf(base) is not None                                               # 양성 대조: 출발이 정의된 toy
+    cells = base.value("graph", "start", "wf_start")
+    broken = (dataclasses.replace(cells[0], w_key=None),) + tuple(cells[1:])
+    case.sctx.dc = dataclasses.replace(case.sctx.dc, base=tamper(base, "start_intervals", "graph", "wf_start", {"start": broken}))
+    assert initial_wf(case.sctx.dc.base) is None
     k0 = dict(case.sctx.counters)["kernel_calls"]
     fr = find_front(case.sctx, [])
     assert dict(case.sctx.counters)["kernel_calls"] == k0 == 0

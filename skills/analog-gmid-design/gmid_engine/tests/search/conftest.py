@@ -717,18 +717,9 @@ def determinism_probe(tmpdir, eval_budget=40):
 def hand_wf_of(sctx, keys=None):
     """탐색 컨텍스트 `sctx` 의 손 `WfInput`: 칸 = 그 스냅샷 `graph.matching_groups` 폐포(손, `sizing.conftest.hand_cells`)·묶음 밖 소자 하나씩,
     칸 키 = keys[칸 멤버] 또는 그 kind 후보(`widths`) 가운데 가장 좁은 것(기존 test 의 단일 슬라이스 LUT 에서는 그 슬라이스 하나).
-    평가 입력이지 기대값이 아니다. 피검 `initial_wf` 를 쓰지 않는다 (이 test 의 sctx 는 출발 블록을 돌리지 않은 S1 수준)."""
-    from gmid_engine.lut import widths
-    from gmid_engine.sizing import WfCell, WfInput
-    from sizing.conftest import hand_cells
-    keys = dict(keys or {})
-    kinds = dict(sctx.dc.base.column("device", "kind"))
-    cells, ks = [], []
-    for members in hand_cells(sctx.dc):
-        k = keys.get(members[0], widths(sctx.dc.lut, kinds[members[0]])[0])
-        cells.append(WfCell(members, k))
-        ks.append(k)
-    return WfInput(tuple(cells), tuple(ks))
+    평가 입력이지 기대값이 아니다. 피검 `initial_wf` 를 쓰지 않는다. 구현은 `fs1_wf.hand_wf_default` 하나 (LUT 집합 객체 = `ctx.lut.memo.lut`, M-1)."""
+    from fs1_wf import hand_wf_default
+    return hand_wf_default(sctx.dc, keys)
 
 
 def evaluate(sctx, theta, cells, *args, wf=None, **kw):
