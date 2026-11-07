@@ -691,7 +691,40 @@ def test_sb6_multi_member_cell_without_partner_is_undefined_not_reference_start(
     assert fr.front == () and fr.pending_front == () and fr.unmeasured_front == ()
 
 
-# [v6.39.5] S-B7 (짝 없는 단일 멤버 칸, 운영 경로) 는 쓰지 않았다 -- 전제를 만드는 toy 가 서지 않는다(dispute). 근거·실측은 tests/RETIRED_TESTS_fs1.md 'A-204 S-B7'. (skip 아님)
+# ---------------------------------------------------------------- [v6.39.5] S-B7 짝 없는 단일 멤버 칸 (운영 경로, A-205 입력 = library 회로)
+# toy 에는 이 칸이 없다(고리 등식 종속 소자는 library 회로에서만 생긴다 -- 측정 evidence/2026-11-08/fs1_lcond_measure.md: 7/82칸). 입력 = pushpull_follower_buffer(실 LUT 실경로), X = M2(pmos).
+def test_sb7_reference_start_for_single_member_cell_without_partner_operational_path(monkeypatch):
+    """S-B7: (전제, 안 서면 멈춤) X(M2) 칸 멤버 1개·비쓰기·start_partner 답 None·current[X] != None; k_ref = lut.cap_map[kind].w_key ∈ widths(lut, kind);
+    length[X] 가 lut.slice_map[(kind, k_ref)].grids[0](L 축)의 원소(앵커). 기대: member_start_w 출력[X] == "no_partner", wf_start 칸 (X,) w_key == k_ref,
+    graph/start records 에 ("wf_start_reference", (("members", (X,)), ("w_key", k_ref))) 하나, initial_wf 키의 그 칸 값 = k_ref."""
+    from gmid_engine.lut import widths
+    from .u13_real import real_case
+    log = _spy_start_calls(monkeypatch)
+    case = real_case("pushpull_follower_buffer")
+    base = case.sctx.dc.base
+    X, kind = "M2", "pmos"
+    lut = case.kctx.lut.memo.lut
+    assert dict(base.column("device", "kind"))[X] == kind
+    assert log["member_start_w"], "출발 블록이 이 실행에서 계산되지 않았다"
+    args, out = log["member_start_w"][-1]
+    sp = [(a, r) for a, r in log["start_partner"] if a["name"] == X]
+    assert sp, "start_partner 가 X 에 불리지 않았다"
+    sp_args, sp_out = sp[-1]
+    wf = base.value("graph", "start", "wf_start")
+    cell = [c for c in wf if X in c.members]
+    assert len(cell) == 1 and cell[0].members == (X,)                                    # 전제: 칸 멤버 1개
+    assert X not in sp_args["writers"] and sp_out is None                                # 전제: 비쓰기, 짝 없음
+    assert args["current"][X] is not None
+    k_ref = lut.cap_map[kind].w_key
+    assert k_ref in widths(lut, kind)
+    assert any(l == args["length"][X] for l in lut.slice_map[(kind, k_ref)].grids[0])    # 전제: 앵커
+    # 기대
+    assert out[X] == "no_partner"
+    assert cell[0].w_key == k_ref
+    recs = [r for r in case.start.records if r[0] == "wf_start_reference" and dict(r[1])["members"] == (X,)]
+    assert recs == [("wf_start_reference", (("members", (X,)), ("w_key", k_ref)))]
+    got = initial_wf(base)
+    assert got is not None and got.keys[list(wf).index(cell[0])] == k_ref
 
 # ---------------------------------------------------------------- [v6.39.5] S-B8 뷰 없는 회로 (늘 실행)
 # 입력: 선언 이상 전류원 둘(I1, I2)로만 바이어스가 정해지는 toy -- 직렬 가지 M1(drain out)·M2(source gnd)는 I1 하나를 나르고, M3(입력 CS)는 I2 를 나른다.
@@ -713,9 +746,7 @@ def test_sb8_circuit_without_a_transfer_view_still_has_a_wf_start(monkeypatch):
     """S-B8 (d): (전제) transfer 뷰(blocks 비어 있지 않은 것) 0; 모든 MOS 에서 member_start_w spy 의 current[n] == 손 KCL 값(직렬 가지 = 그 이상원 값 그대로, 자리값이 끼면 멈춤).
     기대 (a) start_intervals 블록 계산 1회 (b) wf_start 칸 구조 = 손 폐포, 모든 칸 w_key is not None (c) initial_wf 가 None 아님, keys == tuple(c.w_key ...)
     (d) 그 sctx 의 층 0 출발점 wf.keys = (c) keys, find_front 는 O-2 꼴(평가 0)이 아님 (e) graph/start inactive 에 뷰 의존 비활성 항목 기록, 5a 관련 비활성 0.
-    (e) 대응표(base `inactive` 어휘): (v2) 2 이득 L 하한 -> `gain_l_6.4_1`, (v6) 6 부하·잡음 가드 소자 지정 -> `noise_guard_7.5`, §6.5 매크로 호출 -> `macro_inactive` 기록(records).
-    대응 없는 항목(base 어휘에 없음 -> 멈추고 보고, code 가 기록을 더할 범위 D40 8 (다)): (v1) 0 주극점 노드, (v3·6) 속도, §6.5 FF 출발값.
-    뷰 부재가 만든 비활성은 '선언 부재' 사유(constraint_not_declared) 와 다른 사유로 나와야 한다 -- 사유 이름은 code 가 정하므로 '다른 사유가 하나 이상'으로만 단언한다."""
+    (e) 기록 이름(card A-205 확정): (v1) `pole0_view_inactive`, (v2) `gain_l_6.4_1`, (v3) `speed_view_inactive`, (v4) `macro_inactive`, (v5) `noise_guard_7.5`, (v6) `ff_start_view_inactive`."""
     log = _spy_start_calls(monkeypatch)
     case = toy_case(fs1_no_view_toy(), elements=FS1_NOV_ELS, constraints=TOY_CONS, fresh=True)
     base = case.sctx.dc.base
@@ -745,9 +776,9 @@ def test_sb8_circuit_without_a_transfer_view_still_has_a_wf_start(monkeypatch):
     # (e)
     inactive = case.start.inactive
     names = {n for n, _r in inactive}
-    assert {"gain_l_6.4_1", "noise_guard_7.5"} <= names
-    assert "macro_inactive" in {r[0] for r in case.start.records}
-    assert [r for _n, r in inactive if r != "constraint_not_declared"]
+    # [A-205] card 가 정한 이름 정확 단언: (v1) pole0_view_inactive (v2) gain_l_6.4_1 (v3) speed_view_inactive (v4) macro_inactive (v5) noise_guard_7.5 (v6) ff_start_view_inactive
+    assert {"pole0_view_inactive", "gain_l_6.4_1", "speed_view_inactive", "noise_guard_7.5", "ff_start_view_inactive"} <= names
+    assert "macro_inactive" in names | {r[0] for r in case.start.records}
     assert not [n for n in names if "wf" in str(n)]
 
 

@@ -40,7 +40,10 @@
 - **S-B6 되살림**: 위 'S-B6 쓰지 않음'(A-186)은 옛 전제(gate 만 공유하는 mirror 종속 멤버)에 대한 것이었다. v6.39.5 전제('다멤버 칸 + start_partner 답 None')는 거울 출력에 **선언 bulk 를 별도 레일**로 준 toy
   (`fs1_mirror_bulk`: MP2 bulk = vb2 1.5 V)로 서고, `test_sb6_multi_member_cell_without_partner_is_undefined_not_reference_start` 로 썼다(base 실측: 단계 A·B 통과, mirror (MP1, MP2) derived, MP2 dependent).
   K-3 의 bulk 항이 MP1(실효 bulk vdd)과 MP2(vb2)를 가른다는 전제는 start_partner spy 의 답 None 단언으로 코드 뒤에 확인된다(안 서면 멈춤).
-- **S-B7 쓰지 않음 (dispute `20261107-fs1-sb7-no-nonwriter-single-cell`, skip 아님)**: 전제 = 정합 묶음(role·status 조건)에 들지 않은 비쓰기 MOS X 가 있고 start_partner(X) = None, current[X] ≠ None.
+- **[A-205 결정으로 정정] S-B7·n2 는 쓴다 (RETIRED·dispute 아님)**: 입력 = library 회로 `pushpull_follower_buffer`(실 LUT 실경로, 짝 없는 비쓰기 단일 멤버 칸 M2, 측정 `evidence/2026-11-08/fs1_lcond_measure.md`).
+  `search/test_start_intervals.py::test_sb7_reference_start_for_single_member_cell_without_partner_operational_path`, `search/test_l_bin_search.py::test_n2_improving_wf_move_is_accepted`(입력을 그 칸 키 이동으로 교체, 전제 = 같은 θ 면적 차 >= 분해능).
+  아래 두 항목의 'toy 14종에 칸이 없다' 실측은 사실로 남기되 결론(쓰지 않음)은 이 항목이 대체한다. S-B8 (e) 공백도 card 가 이름을 정해 닫혔다(exact 단언).
+- (옛 기록, 대체됨) S-B7 쓰지 않음 (dispute `20261107-fs1-sb7-no-nonwriter-single-cell`, skip 아님): 전제 = 정합 묶음(role·status 조건)에 들지 않은 비쓰기 MOS X 가 있고 start_partner(X) = None, current[X] ≠ None.
   base 실측(격리 복제본, toy_case 단계 A·B 후 `device.dc_coord`·`graph.matching_groups` 읽기, 2026-11-08): 종속(dependent) MOS 는 시험한 14 toy(ota5·cascmirror·mirror_load·cascode_cs·cs_follower·cs2·ota_diff·ota_diff_nomirror·mirror_bulk·parallel·tail2·stack_diode·diffpair_unbalanced·이상 전류원 직렬 toy)와
   library 2 회로(two_stage_ota: M1·M4·M5 종속, folded_cascode: M1·M3·M4·M10·M11 종속) 전부에서 `derived` mirror/diff_pair 묶음의 멤버다. 캐스코드·bias 게이트 소자는 모두 writer(cascode_cs·cs_follower). 묶음 밖 종속 소자가 0이라
   '단일 멤버 칸 + 비쓰기'가 서지 않는다. 덮이지 않는 것: 출발 블록이 `reference`(= `lut.cap_map[kind].w_key`)와 `l_defined` 를 실제로 배선하는 운영 경로 -- 순수 함수 수준 S-11~S-16 이 덮는다.
