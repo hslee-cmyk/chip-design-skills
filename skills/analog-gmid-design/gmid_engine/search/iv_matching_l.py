@@ -72,8 +72,8 @@ def _slope_width(ctx, name, wf_keys):
     return key * ctx.memo.lut.spec.manufacturing_grid_m
 
 
-def _sigma_vgs(ctx, name, g, L, current, wf_keys):
-    """소자 `name` 의 σ_VGS(V) -- 폭 W = I·L/IDu(gm/ID, L), 기준 (VDS, VSB) 점. slope bin 은 손가락 폭 w_f(`_slope_width`), 면적 항은 총 폭 W."""
+def _sigma_vgs(ctx, name, g, L, current, wf_keys=None):
+    """소자 `name` 의 σ_VGS(V) -- 폭 W = I·L/IDu(gm/ID, L), 기준 (VDS, VSB) 점. slope bin 은 손가락 폭 w_f(`_slope_width` -- `wf_keys` 없음 = 4단계 기준 폭), 면적 항은 총 폭 W."""
     d = ctx.by_name[name]
     bundle = curve_bundle_of(ctx, d.name, d.kind, L)
     w = max(current * L / curve_value(bundle, QUANTITY_IDU, g), ctx.w_min_m)      # 실현 폭은 PDK 최소 finger 폭 W_min 이상(W 하한 제약 S-18): 그 아래 폭은 mismatch 모델 bin 밖이다
@@ -82,7 +82,7 @@ def _sigma_vgs(ctx, name, g, L, current, wf_keys):
     return mismatch_sigma_vgs(ctx.memo, ctx.pdk.mismatch_model(d.kind), d.kind, d.w_key, L, vgs, curve.vds, curve.vsb, _slope_width(ctx, name, wf_keys), w).sigma_v
 
 
-def _sigma_from(ctx, name, g, L, current, wf_keys):
+def _sigma_from(ctx, name, g, L, current, wf_keys=None):
     """σ_VGS 를 gm/ID = g 에서 재되, 감도 열이 정의되지 않는 점(강반전 끝 등 `lut_mismatch_undefined`)이면 곡선 마디를 gm/ID 가 큰 쪽으로 올라가며 처음 정의된 점에서 잰다
     (입력 소자의 gm/ID 는 하한 이상 어디든 가능 -- 하한이 LUT 가 모르는 점이면 그 위 첫 정의 점이 하한의 가장 가까운 실현 가능 값이다). 하나도 정의되지 않으면 처음 예외를 던진다."""
     try:
