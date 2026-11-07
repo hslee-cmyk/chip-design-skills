@@ -67,6 +67,7 @@ from .wf_partner import start_partner
 from .wf_start import wf_start_value
 from .start_values import (
     EDGE_VDS,
+    MACRO_INACTIVE,
     MACRO_NONCONVERGENT,
     MACRO_ROOT_MISSING,
     QUANTITY_AREA,
@@ -74,16 +75,12 @@ from .start_values import (
     QUANTITY_L,
     SIDE_HI,
     SIDE_LO,
-    SRC_DOMINANT_NODE,
-    SRC_FEEDFORWARD_START,
+    SRC_FF_START_VIEW,
     SRC_L_CLASS,
     SRC_LUT_L,
     SRC_LUT_RANGE,
-    SRC_MACRO_CALLS,
-    SRC_NOISE_GUARD,
-    SRC_OFFSET_GUARD,
-    SRC_SPEED_FT,
-    SRC_SPEED_L,
+    SRC_POLE0_VIEW,
+    SRC_SPEED_VIEW,
     SRC_W_MIN,
     WHY_NO_CURRENT,
     WHY_NO_VIEW,
@@ -94,8 +91,9 @@ from .start_values import (
 )
 
 
-# 전달 뷰가 없을 때 비활성인 출발 항목(설계 40 §3.7-B 3 '출발 블록은 늘 실행' (v1)~(v6) 가운데 이득 L 하한 (v2)는 `gain_l_bounds` 가 늘 비활성 사유를 낸다) -- 5a 출발 w_f 칸은 뷰와 무관하게 돈다
-_VIEW_ONLY_ITEMS = (SRC_DOMINANT_NODE, SRC_SPEED_FT, SRC_SPEED_L, SRC_MACRO_CALLS, SRC_OFFSET_GUARD, SRC_NOISE_GUARD, SRC_FEEDFORWARD_START)
+# 전달 뷰가 없을 때 이 블록이 새로 남기는 비활성 항목(설계 40 §3.7-B 3 (v1)(v3)(v4)(v6), A-205 이름). 기존 이름이 이미 비활성을 내는 (v2) `gain_l_6.4_1`(gain_l_bounds)·(v5) `noise_guard_7.5`(noise_bounds)는
+# 그대로 두고, (v4) 는 기존 이름 `macro_inactive`. 5a 출발 w_f 칸은 뷰와 무관하게 돈다.
+_VIEW_ONLY_ITEMS = (SRC_POLE0_VIEW, SRC_SPEED_VIEW, MACRO_INACTIVE, SRC_FF_START_VIEW)
 _REL = math.sqrt(sys.float_info.epsilon)      # 상대 비교·여유(부동소수 분해능 √ε): W = W_min 이 정확히 경계라 반올림이 아래로 떨어지지 않게 하는 여유, 같은 값끼리 비교의 허용
 
 
