@@ -1,45 +1,42 @@
 {
   "id": "20261107-fs1",
-  "stage": "순서 3 (freeze·base 확인) -- 판정 기록 본체(.ai/verification/20261107-fs1.json)는 code 커밋 뒤 순서 7에서 쓴다",
-  "attempt": 1,
+  "stage": "순서 3 (freeze·base 확인) 재판정 -- 판정 기록 본체(.ai/verification/20261107-fs1.json)는 code 커밋 뒤 순서 7에서 쓴다",
+  "attempt": 2,
   "evidence_type": "red-green",
+  "previous": {"attempt": 1, "T": "23c81fe1", "audit_commit": "1261e9dd", "verdict": "Major 5"},
   "freeze": {
-    "T": "23c81fe1",
-    "T_full": "23c81fe13df6ba23aa15c5a03b84c26767a1b973",
-    "T_tree": "7358924e171e119d07aa287fb76e7828d6093e0d",
+    "T": "47617174",
+    "T_full": "47617174c27cc81c6d23d85e727d111ea60bfd51",
+    "audit_merge": "cf609919 (git merge --no-ff role/test/20261107-fs1)",
+    "audit_merge_tree": "67a34d39c8d6ee307531a41eb05915b2871de1a4",
     "base": "2cb26c92085b50c71dcb1090f5e43ed1fe4035be",
-    "base_note": "master 2cb26c92 (JC-1 병합 뒤) + card a7019b22 (병합 cca7cd3f) + interface 보정 a0bf0903 (Role: card, A-188) + test 커밋 13개 (Role: test)",
+    "new_since_attempt1": ["324a1d3d test", "ed2b73f4 test", "3276a0d4 test", "5c5909c6 card (interface 9절 관찰 지점)", "47617174 card (interface 6절 lost 항목 꼴)"],
+    "engine_paths_changed": 0,
     "code_commit": null,
-    "base_to_T_commits": 17,
-    "base_to_T_numstat_total": "+2548 -1262, 67 파일 (tests 63 파일 +1965 -1262, docs/02-design 4 파일)",
-    "base_to_T_engine_paths": 0,
-    "freeze_verdict": "동결 불가 -- Major 5. M1 손 wf helper 가 LutAccess 에 widths/.spec 을 부름 (base test 결함 실패 346건 실측, 코드 뒤에도 실패), M2 build_case/bins_case 단계 A/B 정본 경로 변경의 결과 미측정·미기록 (stage_a_stopped 3, 단계 B 거부 2, CDD 열 부재 E-2/E-3, S1 전제 모순 2, 원인 미확정 3), M3 interface 9절 위반 (O-2 find_front.initial_wf·O-3 realize_front.evaluate 동작 대체), M4 M-2 후반 spy 가 평가 sigma 경로(metrics.device_sigma)를 관찰할 수 없음 (정적), M5 유지되는 실현·레이아웃 재풀이 물리/fail-closed test (R-2/R-5/R-6/R-6c/R-15/R-16/S3-6, R-13a/b, L-2) 삭제 = 기준 약화 의심 (사용자 결정 또는 재작성). minor 10. 상세 = wt/_drafts/evidence/2026-11-07/fs1_freeze.md"
+    "freeze_verdict": "동결 불가 -- Major 2. MR-1 M-2(e) 3건 미해결: 원인 = test 입력 (정본 경로 출발 사다리 -> W = W_min(0.5 um) < 슬라이스 1 um 인 front 점 -> 실현 m = 1 로 r1 = 1.0, r2 = 0.317 -> 입력 고정 고이득 out 노드 손 근 V(out) = -1.19 V (레일 밖) -> 실현에서 잃음, 물리적으로 맞는 fail-closed; FS-1 realize_fingers 도 같은 m 이라 코드 뒤에도 red 예측). MR-2 다시 쓴 test 의 단언 약화 잔여: L-2(1) 공허 방지 AND -> OR (손 계산 csb1 = csb2 = 3 s_cap 이라 csb 가 두 자리를 가르지 못함), R-16 의 dc_current[I2] == 선언값·탐색 전력 = V_dd(I+I_b) 단언 누락. M-1·M-3·M-4 고쳐짐, M-5 는 MR-2 를 빼고 고쳐짐. minor 9. 상세 = wt/_drafts/evidence/2026-11-07/fs1_freeze_r2.md"
   },
   "isolation": {
-    "clone": "C:/fzf1/iso (T 23c81fe1, origin 제거)",
+    "clone": "C:/fzf1/iso2 (HEAD cf609919, origin 제거)",
     "commands": [
-      "git -c core.longpaths=true clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261107-fs1-audit C:/fzf1/iso",
-      "git -C C:/fzf1/iso remote remove origin",
-      "(cwd = C:/fzf1/iso/skills/analog-gmid-design/gmid_engine/tests; APPDATA 지정, OPENBLAS_NUM_THREADS=1 PYTHONIOENCODING=utf-8 PYTHONDONTWRITEBYTECODE=1 GMID_LUT_TABLE_CACHE_DIR=C:/fzf1/lutcache) C:/Python314/python.exe -m pytest -p no:cacheprovider <args> -- 래퍼 C:/fzf1/run.sh"
+      "git -c core.longpaths=true clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261107-fs1-audit C:/fzf1/iso2",
+      "git -C C:/fzf1/iso2 remote remove origin",
+      "(cwd = C:/fzf1/iso2/skills/analog-gmid-design/gmid_engine/tests; OPENBLAS_NUM_THREADS=1 PYTHONIOENCODING=utf-8 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=C:/fzf1/pyc2 GMID_LUT_TABLE_CACHE_DIR=C:/fzf1/lutcache) C:/Python314/python.exe -m pytest -p no:cacheprovider <args> -- 래퍼 C:/fzf1/run2.sh"
     ]
   },
   "runs": [
-    {"name": "structure", "args": "-q -rfE structure", "result": "8 failed, 198 passed, 1 deselected", "code_absent": 8, "test_defect": 0},
-    {"name": "collect", "args": "--collect-only -q", "result": "11270/11299 collected (29 deselected), 3 collection errors", "error_modules": ["search/test_l_bin_search.py (polish_cells)", "search/test_start_intervals.py (initial_wf)", "sizing/test_realize_fingers.py (DeclaredRatio)"], "code_absent": 3},
-    {"name": "lut+sizing changed (18 files)", "result": "322 failed, 264 passed, 3 errors", "test_defect": 289, "code_absent": 36, "test_defect_cause": "'LutAccess' object has no attribute 'spec' (fs1_wf.hand_wf_default -> lut/widths.py:15) 286 + subprocess 2 + fs1_wf wrapper AttributeError: base 1"},
-    {"name": "search changed (19 files, test_iv_matching_l 제외)", "result": "119 failed, 107 passed, 13 errors, 1 deselected", "code_absent": 98, "test_defect": 31, "unexplained": 3},
-    {"name": "metrics+convergence changed (7 files)", "result": "85 failed, 55 passed", "code_absent": 50, "test_defect": 35},
-    {"name": "integration/test_layer0_boundary_rows.py", "result": "1 failed, 11 passed, 2 xfailed", "code_absent": 1}
+    {"name": "structure", "args": "-q -rfE --tb=line structure", "result": "8 failed, 198 passed, 1 deselected (174 s)", "code_absent": 8, "test_defect": 0},
+    {"name": "collect", "args": "--collect-only -q", "result": "11263/11292 collected (29 deselected), 4 collection errors", "error_modules": ["search/test_l_bin_search.py (polish_cells)", "search/test_realize_front.py (209행 sizing.test_realize_fingers import -> DeclaredRatio)", "search/test_start_intervals.py (initial_wf)", "sizing/test_realize_fingers.py (DeclaredRatio)"], "code_absent": 4},
+    {"name": "g1 lut+sizing changed (17 files)", "result": "321 failed, 265 passed, 3 errors", "code_absent": 324, "test_defect": 0, "lutaccess_errors": 0},
+    {"name": "g2 metrics+convergence+integration/test_layer0_boundary_rows (8 files)", "result": "90 failed, 66 passed, 2 xfailed (199 s)", "code_absent": 90, "test_defect": 0},
+    {"name": "g3 search changed (20 files, test_iv_matching_l 제외)", "result": "110 failed, 108 passed, 1 deselected, 11 errors (289 s)", "code_absent": 118, "test_defect_predicted_after_code": 3, "test_defect_ids": ["search/test_find_front.py::test_passive_theta_circuit_front_measured", "search/test_find_front.py::test_unmeasured_points_never_in_final_front", "search/test_search_context.py::test_eval_results_identical_search_memo_vs_caller_memo"]},
+    {"name": "M-2(e) probe (pytest 아님)", "script": "C:/fzf1/probe_m2e.py, C:/fzf1/tab_evals.py", "outputs": ["C:/fzf1/out2/probe_c.txt", "C:/fzf1/out2/probe_z.txt", "C:/fzf1/out2/probe_cp.txt", "C:/fzf1/out2/probe_c_w3.0.txt", "C:/fzf1/out2/probe_c_w1.0.txt", "C:/fzf1/out2/probe_z_w3.txt", "C:/fzf1/out2/probe_c_cap_pending_w3.txt", "C:/fzf1/out2/tab_c.txt"]}
   ],
   "not_run": [
-    "search/test_iv_matching_l.py (M 묶음, 지시로 제외)",
-    "search 디렉터리 전체",
-    "generality 3 파일 (판정자 pytest 가 여유 메모리 1 GB 아래로 내려 PID 정지 2회 -- 결과 없음)",
-    "integration/test_s0_layer_9circuits.py (진행 중 정지 -- 결과 없음)",
+    "search/test_iv_matching_l.py (M 묶음, 지시로 제외 -- M-4 는 정적 판정)",
+    "search 디렉터리 전체 (변경 파일만)",
+    "generality 3 파일, integration/test_s0_layer_9circuits.py (앞 판정에서 메모리 1 GB 아래로 정지 -- 이번에는 돌리지 않음, 미측정)",
     "2회로 연기 stage_b/s0/g10 --run-slow -k, search/test_canonical_order.py, slow 표지 test",
-    "미측정 회로 circuit_zl, circuit_cmfb_diff, tied_cs2 등 build_case 호출 회로",
-    "sizing run_blocks 를 쓰는 비변경 파일 (test_scc_newton, test_seal_tolerances, test_seal_versions, test_seal_writers 등)"
+    "변경 없는 파일 (sizing run_blocks 비변경 파일 등)"
   ],
-  "m1_b_premise": "two_stage_ota 입력 M1/M2 = nmos (gate vin_n/vin_p), mismatch npz L 축 18개에 4e-6·8e-6 포함, w_ref_m = 5e-6 (정적 실측) -- RETIRED '(b) 유지' 기록과 맞음, 실행 단언은 미실행",
   "code_start_allowed": false
 }
