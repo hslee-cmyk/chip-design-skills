@@ -25,7 +25,7 @@ import pytest
 
 from gmid_engine import sizing as S
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, SealViolationError
-from gmid_engine.sizing import size_and_seal
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 from gmid_engine.sizing.kernel_run import normalize_w_request
 
 from .conftest import (B, C, HERE, MIRROR_W_DELTA, SKILL_DIR, build_ctx, build_ctx_u4, circuit_cs_res, circuit_mirror, detail,
@@ -348,7 +348,8 @@ import json, sys, tempfile
 from pathlib import Path
 sys.path.insert(0, sys.argv[3]); sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
 import conftest as C
-from gmid_engine.sizing import size_and_seal, size_and_seal_local, theta_name
+from gmid_engine.sizing import theta_name
+from fs1_wf import size_and_seal, size_and_seal_local      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 tmp = Path(tempfile.mkdtemp())
 acc = C.new_access(C.write_r4_lut(tmp / "lut"))
 lc = (C.LClassStub("M1", ("M2", "M1")),)

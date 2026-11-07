@@ -579,7 +579,7 @@ def ctx_c(tmp_path_factory, toy_access):
 
 @pytest.fixture
 def ev_c(ctx_c):
-    from gmid_engine.sizing import size_and_seal
+    from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
     return size_and_seal(ctx_c[2], theta_c())
 
 

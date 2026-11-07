@@ -10,7 +10,8 @@ import pytest
 
 from gmid_engine.metrics import metrics_dc
 from gmid_engine.search import Objectives, objective_values
-from gmid_engine.sizing import DC_KEY, METRICS_KEY, size_and_seal
+from gmid_engine.sizing import DC_KEY, METRICS_KEY
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from .conftest import (PENDING, build_case, expected_objectives, circuit_c, circuit_n, circuit_p, theta_n, theta_p, theta_r4c,
                        with_passive_value)

@@ -19,7 +19,8 @@ import numpy as np
 from gmid_engine.authoring import load_sizing_spec, load_topology
 from gmid_engine.graph import build_s1
 from gmid_engine.metrics import metric_catalog, ss_evaluate
-from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, size_and_seal
+from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from sizing.conftest import I0, LAM, W_M, kschema, r4_arrays, r4_ln_idu
 from sizing.wb1_toy import write_r4_bins_lut

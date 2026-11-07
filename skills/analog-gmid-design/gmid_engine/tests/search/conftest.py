@@ -723,3 +723,19 @@ def evaluate(sctx, theta, cells, *args, wf=None, **kw):
     기존 호출(`evaluate(s, th, cells, parent=.., origin=..)`)의 나머지 인자는 그대로 전달한다."""
     from gmid_engine.search import evaluate as _evaluate
     return _evaluate(sctx, theta, cells, hand_wf_of(sctx) if wf is None else wf, *args, **kw)
+
+
+def fs1_determinism_probe():
+    """[FS-1 G-7] 새 프로세스에서 u13 toy 를 출발 블록부터 새로 돌려 (wf_start, front 점별 dc_finger·DeviceOp.w_key) 를 비트 문자열(float.hex)로 JSON 출력한다."""
+    from gmid_engine.search import find_front
+    from search.u13_hand import cs_chain, toy_case
+    case = toy_case(cs_chain(2), elements=(("C1", "capacitor", 1e-12), ("C2", "capacitor", 2e-12)),
+                    constraints=(("gbw_ss_hz", ">=", 1e6), ("pm_ss_deg", ">=", 60.0)), fresh=True)
+    wf = [[list(c.members), c.w_key] for c in case.sctx.dc.base.value("graph", "start", "wf_start")]
+    fr = find_front(case.sctx, [])
+    pts = []
+    for p in fr.front:
+        snap = p.result.evaluation.snapshot
+        pts.append({"finger": {m: [float(f.m).hex(), float(f.residual).hex()] for m, f in snap.column("device", "dc_finger")},
+                    "w_key": {m: o.w_key for m, o in snap.column("device", "dc_op")}})
+    return json.dumps({"wf_start": wf, "front": pts}, sort_keys=True)

@@ -17,7 +17,8 @@ import pytest
 
 from gmid_engine.core import FailureRecord
 from gmid_engine.graph import GRAPH_KEY
-from gmid_engine.sizing import LocalSeal, SnapshotFragment, size_and_seal_local, theta_name
+from gmid_engine.sizing import LocalSeal, SnapshotFragment, theta_name
+from fs1_wf import size_and_seal_local      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from .conftest import (R4_L, build_ctx_u4, circuit_mirror, mos, r4_ln_idu, r4_tol_vdsat, r4_vdsat_at, rel_close,
                        theta_mirror, topo, two)

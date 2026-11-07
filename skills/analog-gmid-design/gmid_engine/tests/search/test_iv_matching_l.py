@@ -259,3 +259,32 @@ def test_m2_guard_path_slope_bin_is_cell_key_times_grid(monkeypatch):
     want = {keys[d] for d in inputs}
     assert want <= widths_seen, ("6단계 가드 w_f 가 칸 키 × 격자가 아니다", widths_seen, want)
     assert not all(math.isclose(b["w_f"], sig.w_ref, rel_tol=1e-12) for b in later), "칸 키 ≠ 기준 폭 인 toy 가 아니다 -- 멈추고 보고"
+
+
+def test_m2_evaluation_sigma_rows_use_the_evaluation_cell_key_not_reference_width(monkeypatch):
+    """M-2 후반 (결정 A-186): 탐색 전체 대신 평가 한 번. 칸 키 ≠ 기준 폭 키인 손 `WfInput`(칸마다 그 kind 후보 중 가장 좁은 키 -- nmos 는 w_ref 5 µm 가 아닌 슬라이스)으로
+    출발점 θ 를 한 번 평가하고, 관찰 지점 `mismatch_sigma_vgs` 통과 spy 가 잡은 σ 호출의 w_f = 그 소자 칸 키 × grid_m (= 그 평가 `DeviceOp.w_key` 슬라이스 폭), 기준 폭이 아님.
+    관찰 지점 호출이 0 이면 멈추고 보고(조용히 통과하지 않는다)."""
+    from gmid_engine.lut import widths
+    from gmid_engine.search import evaluate
+    from gmid_engine.sizing import WfCell, WfInput
+    case = real_case(M1_CIRCUIT, M1_STRICT)
+    sig = H.NfetSigma()
+    lut, grid = case.kctx.lut, case.kctx.lut.spec.manufacturing_grid_m
+    kinds = {d["name"]: d["kind"] for d in case.topology["netlist"]}
+    cells = [WfCell(c.members, widths(lut, kinds[c.members[0]])[0])
+             for c in case.sctx.dc.base.value("graph", "start", "wf_start")]
+    wf = WfInput(tuple(cells), tuple(c.w_key for c in cells))
+    nm_keys = {c.w_key for c in cells if kinds[c.members[0]] == "nmos"}
+    assert nm_keys and all(not math.isclose(k * grid, sig.w_ref, rel_tol=1e-12) for k in nm_keys), "전제: 칸 키 ≠ 기준 폭 키 -- 멈추고 보고"
+    st = _install_spies(monkeypatch)
+    theta = tuple(sorted(dict(case.start.theta).items()))
+    res = evaluate(case.sctx, theta, tuple(case.start.cells), wf)
+    seen = [b for _c, b in st["calls"] if b["kind"] == "nmos"]
+    assert seen, "관찰 지점 mismatch_sigma_vgs 호출 0 -- 멈추고 보고"
+    ops = dict(res.evaluation.snapshot.column("device", "dc_op")) if res.evaluation is not None else {}
+    used = {round(b["w_f"] / grid) for b in seen}
+    assert used <= nm_keys, ("σ 호출 w_f 가 칸 키 × grid 가 아니다", used, nm_keys)
+    assert all(not math.isclose(b["w_f"], sig.w_ref, rel_tol=1e-12) for b in seen)
+    if ops:
+        assert {op.w_key for op in ops.values() if op.kind == "nmos"} <= nm_keys              # DeviceOp.w_key = 칸 키

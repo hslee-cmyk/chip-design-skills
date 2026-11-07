@@ -260,7 +260,8 @@ def test_same_inputs_same_base_fp(parts):
 # oracle (a) 구성: circuit_mirror 의 M1·M2 는 같은 gate 넷(nb)·같은 source 넷(gnd)·같은 kind(nmos) -- LR1 규칙의 L 동치류가 되는
 # 쌍이다(동치류 유도는 U1 몫이라 test 가 LClassStub 로 준다). 기대: derived 동치류만 묶이고, θ 의 L 성분은 주인 하나뿐이다.
 
-from gmid_engine.sizing import check_theta, size_and_seal                                      # noqa: E402
+from gmid_engine.sizing import check_theta                                      # noqa: E402
+from fs1_wf import size_and_seal      # noqa: E402  [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from .conftest import LClassStub, build_ctx_u4, circuit_mirror, theta_mirror                    # noqa: E402
 

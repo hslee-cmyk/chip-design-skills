@@ -16,7 +16,8 @@ import pytest
 from gmid_engine.authoring import RegionDecl
 from gmid_engine.core import SealViolationError
 from gmid_engine.search import STATUS_PENDING_SEAL7, open_run, seal_status
-from gmid_engine.sizing import DcInputs, dc_seal_region, size_and_seal
+from gmid_engine.sizing import DcInputs, dc_seal_region
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from .call_sites import ENGINE_ROOT, calls_of, engine_sources, imported_modules, words_in_engine
 from .conftest import (R4_L, SKILL_DIR, build_ctx, circuit_cs_pmos_load, new_access, r4_tol_vdsat, r4_vdsat_at,

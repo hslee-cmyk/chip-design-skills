@@ -25,3 +25,13 @@
 전제 P0(입력 소자 nmos), L 앵커 범위 ⊇ 8 µm: 아래 두 자료에서 확인 -- (b) 는 **유지**(빼지 않음).
 - 입력 소자 kind: `assets/library/<회로>.topology.json` 입력 포트 게이트에 닿는 MOS -- two_stage_ota·two_stage_ota_sf·folded_cascode·sf_pushpull_output_opamp = nmos; cnr_ota = nmos(`x2.M1`·`x22.M1`); 나머지 회로(current_reuse_telescopic_ota 혼합, erfc_ota·ngcc_3stage_ff·nmcnr_amplifier·rfc_ota = pmos, r2r_opamp 혼합, pushpull_follower_buffer 혼합, common_gate_amplifier 입력 MOS 없음)는 (b) 대상 아님.
 - L 앵커: LUT mismatch npz `L` 축 = 1.5e-7 ... 4e-6, 8e-6, 2e-5 (18개) -- 8 µm 앵커 있음. (회로별 탐색 L 상한이 8 µm 에 닿는지는 test 가 실행 A 의 spy 앵커 목록으로 단언한다.)
+
+## S-B6 쓰지 않음 (결정 A-186, interface §3.4 S-B6 '전제 단언 -- 서지 않으면 멈추고 보고')
+
+전제 = 정합 묶음 멤버 C 가 쓰기 멤버와 gate 만 공유하고 source 가 다른 mirror 묶음. 시도한 toy (모두 `search/u13_hand.toy_case` 로 단계 A·B 를 돌린 뒤 `graph.matching_groups`·`device.dc_coord` 를 읽음):
+- 거울 부하(MN1 nmos 입력 + MP1 다이오드 pmos + MP2 pmos 거울 + MN2 싱크): mirror (MP1, MP2) derived, MP2 dependent·partner MP1 -- 같은 gate·source·bulk 라 **S-B5 에 사용**, gate 만 공유가 아님.
+- 소스 퇴화 거울(MP2 소스에 저항): `matching_groups` 비어 있음 -- 묶음이 서지 않음.
+- 캐스코드 거울(MP1·MP2 + MP3·MP4): mirror (MP1, MP2) 와 branch_symmetric (MP3, MP4) -- branch_symmetric 은 gate 만 공유(source 다름)하지만 둘 다 writer 라 '종속 멤버 + 짝 없음' 이 아님.
+- 3출력/와이드스윙 꼴: mirror 는 source 가 같은 쌍으로만 섬.
+결론: 정합 묶음이 gate 만 공유하는 종속 멤버로 서지 않는다 -> S-B6 test 없음 (skip 아님).
+덮이는 범위: 짝 없음 -> `no_member_density` -> 칸 None -> 기록은 순수 함수 수준 `test_k2_gate_only_shared_has_no_partner`(K-2)·`test_w2_no_partner_is_no_member_density`(W-2)·`test_s7_s8_member_why_makes_cell_undefined`(S-7)·`test_s6_...`(S-6), `initial_wf` None 은 S-B4, 평가 0 진입은 O-2 가 덮는다. 운영 경로(출발 블록이 실제로 그 기록을 남기는 것)는 덮이지 않는다.

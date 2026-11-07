@@ -20,7 +20,8 @@ import math
 
 import pytest
 
-from gmid_engine.sizing import METRICS_KEY, size_and_seal
+from gmid_engine.sizing import METRICS_KEY
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 from gmid_engine.metrics import ss_evaluate
 
 from .pipeline import map_theta

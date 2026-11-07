@@ -10,7 +10,8 @@ import pytest
 
 from gmid_engine.authoring import RegionDecl
 from gmid_engine.core import StructureUnresolvedError
-from gmid_engine.sizing import DC_KEY, size_and_seal
+from gmid_engine.sizing import DC_KEY
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from .conftest import build_ctx, circuit_cs_pmos_load, detail, kschema, mos, r4_ln_idu, topo, two
 

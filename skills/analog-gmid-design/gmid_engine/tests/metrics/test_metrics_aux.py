@@ -119,7 +119,8 @@ def test_deterministic(case):
 
 from . import it2d_toys as T
 from .conftest import toy_junction
-from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, size_and_seal
+from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 ICM_CONS = (("icm_margin_v", ">=", 0.0, None), ("icmr_v", ">=", 0.0, None), ("swing_out_v", ">=", 0.0, None))
 GAIN = (("gain_ss_db", ">=", 10.0, None),)

@@ -8,7 +8,8 @@ import dataclasses
 import pytest
 
 from gmid_engine.core import SealViolationError
-from gmid_engine.sizing import dc_seal_bulk_reverse, size_and_seal
+from gmid_engine.sizing import dc_seal_bulk_reverse
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from .conftest import (Oracle, assert_item, build_ctx, circuit_cs_res, judge_expect, rel_close, seal_item, tamper,
                        theta_a, theta_c, with_tol)

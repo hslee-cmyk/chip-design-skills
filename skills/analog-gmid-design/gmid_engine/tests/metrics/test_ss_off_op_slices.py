@@ -17,7 +17,8 @@ from gmid_engine.authoring import load_sizing_spec, load_topology
 from gmid_engine.core import SealViolationError
 from gmid_engine.graph import build_s1
 from gmid_engine.metrics import metric_catalog, ss_evaluate
-from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, size_and_seal
+from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from sizing.wb1_toy import access_of, write_r4_bins_lut
 

@@ -10,7 +10,7 @@ import math
 import pytest
 
 from gmid_engine.search import constraint_rows
-from gmid_engine.sizing import size_and_seal
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from .conftest import GRID, I0, LAM, W_MIN, circuit_c, col, r4_ln_idu, r4_vs_term, theta_r4c
 from .wb1_flow import bins_case

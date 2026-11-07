@@ -34,7 +34,7 @@ from gmid_engine.layout import (F_DIFFUSION, F_FLOORPLAN, F_GROUPS, LAYOUT_KEY, 
                                 RowGroup, layout_outputs, run_layout)
 from gmid_engine.layout._ly_fields import F_ROWS, LY_WRITERS
 from gmid_engine.layout.contract_input import PATTERNS
-from gmid_engine.sizing import size_and_seal
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from .pipeline import map_theta
 

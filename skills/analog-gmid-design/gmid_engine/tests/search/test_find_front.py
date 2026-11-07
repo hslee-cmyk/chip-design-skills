@@ -217,6 +217,21 @@ def test_run_id_deterministic_in_process(tmp_path, lut_sealed):
     assert c.run_id != a.run_id
 
 
+def test_g7_new_process_twice_bit_identical_wf_start_dc_finger_w_key():
+    """[FS-1 G-7] 같은 입력을 새 프로세스에서 두 번(PYTHONHASHSEED 1·2) 돌리면 wf_start·front 점 dc_finger·DeviceOp.w_key 가 비트(float.hex)로 같다.
+    공허 방지: front 점 >= 1, wf_start 칸 >= 1."""
+    outs = []
+    for seed in ("1", "2"):
+        code = ("import sys; sys.path[:0] = [%r, %r]; from search.conftest import fs1_determinism_probe; "
+                "print(fs1_determinism_probe())" % (str(SKILL_DIR), str(TESTS_DIR)))
+        env = dict(os.environ, PYTHONHASHSEED=seed)
+        p = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env, timeout=900)
+        assert p.returncode == 0, p.stderr[-3000:]
+        outs.append(json.loads(p.stdout.strip().splitlines()[-1]))
+    assert outs[0]["wf_start"] and outs[0]["front"]
+    assert outs[0] == outs[1]
+
+
 def test_hashseed_independent_front(tmp_path):
     """I-8: 같은 입력·같은 선언 E_B, stops_wall_budget == 0 이면 PYTHONHASHSEED 무관 같은 front (별도 프로세스)."""
     outs = []

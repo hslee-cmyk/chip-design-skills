@@ -233,7 +233,8 @@ import numpy as np
 
 from gmid_engine.lut import load_lut_set, LutSpec
 from gmid_engine.metrics import ss_evaluate
-from gmid_engine.sizing import SealedSnapshot, build_kernel_context, dc_inputs_from_spec, size_and_seal
+from gmid_engine.sizing import SealedSnapshot, build_kernel_context, dc_inputs_from_spec
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from .conftest import (LUT_SPEC_ARGS, LUT_VGS, fresh_run, load_case, lut_access, lut_ln_idu, toy_junction, topo_doc,
                        write_lut_v2)

@@ -12,7 +12,8 @@ import dataclasses
 import pytest
 
 from gmid_engine.core import SealViolationError
-from gmid_engine.sizing import DC_KEY, DcEvaluation, PathValue, SealReport, SealedSnapshot, seal_dc, size_and_seal
+from gmid_engine.sizing import DC_KEY, DcEvaluation, PathValue, SealReport, SealedSnapshot, seal_dc
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from .conftest import (eval_calls, node_voltages, resistances_of, run_of, tamper, theta_a, theta_c, theta_r4c)
 

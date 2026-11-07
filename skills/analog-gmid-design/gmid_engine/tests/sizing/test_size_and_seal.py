@@ -17,7 +17,8 @@ from gmid_engine.core import (CANDIDATE_FAILURE_CLASSES, InfeasibleTargetError, 
                               SealViolationError, StructureUnresolvedError)
 from gmid_engine import sizing as S
 from gmid_engine.graph import s1_symmetry   # [U17 ①-d] 계획 블록 dc_struct_colour -> graph 대칭 블록(40 §6-8 D-2)
-from gmid_engine.sizing import DcEvaluation, check_theta, size_and_seal
+from gmid_engine.sizing import DcEvaluation, check_theta
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 
 from .conftest import (HERE, Oracle, SKILL_DIR, build_ctx, circuit_cs_res, circuit_empty_window, detail, free_currents, mos,
                        theta_a, theta_c, topo, two)
@@ -361,7 +362,7 @@ from pathlib import Path
 sys.path.insert(0, sys.argv[3]); sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
 import conftest as C
 from gmid_engine.lut import load_lut_set
-from gmid_engine.sizing import size_and_seal
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 tmp = Path(tempfile.mkdtemp())
 m, c = C.write_toy_lut(tmp / "lut")
 acc = C.new_access(load_lut_set(str(m), str(c), C.TOY_SPEC, bin_rule=C.bin_rule_of(m), pdk_root=C.pdk_of(m)))

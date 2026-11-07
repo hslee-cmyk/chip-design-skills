@@ -21,7 +21,8 @@ import numpy as np
 import pytest
 
 from gmid_engine.core import SealViolationError
-from gmid_engine.sizing import DC_KEY, size_and_seal
+from gmid_engine.sizing import DC_KEY
+from fs1_wf import size_and_seal      # [FS-1 서명 맞춤] 손 wf 를 끼운 래퍼
 from gmid_engine.sizing.input_window import saturation_window
 
 from .conftest import (R4_L, build_ctx, detail, free_currents, mos, node_voltages, r4_ln_idu,
