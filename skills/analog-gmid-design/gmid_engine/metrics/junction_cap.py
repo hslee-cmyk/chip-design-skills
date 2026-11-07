@@ -19,7 +19,6 @@ from gmid_engine.lut import caps
 
 REASON_COLUMN_UNAVAILABLE = "lut_column_unavailable"
 REASON_JUNCTION_CAP_NEGATIVE = "junction_cap_negative"
-MEASURED_CGS_MODEL = "lut_cgs_cgb"      # `Caps.model` 가운데 cgs 가 측정 CGS 열인 모형(아니면 cgs = cgg − cgd 대체값)
 _LUT_RULE = ("lut_diffusion_ad_per_w_m", "lut_diffusion_as_per_w_m", "lut_diffusion_pd_extra_m",
              "lut_diffusion_ps_extra_m")
 
@@ -88,12 +87,10 @@ def junction_at_vgs_min(memo, device, kind, L, vds, vsb, geometry, reference):
     vgs = min(table.grids[1])
     _column_gate(table, kind)
     c = caps(memo, kind, L, vgs, vds, vsb, reference.finger_w_m)
-    if c.model != MEASURED_CGS_MODEL:       # CGB 결손 등으로 cgs 가 대체값(CGG − CGD)이면 측정 CGS 가 아니다 -- 쓰지 않고 정지
-        raise SealViolationError(detail={"reason": REASON_COLUMN_UNAVAILABLE, "column": "CGS", "kind": kind})
     r_d = (geometry.ad_m2 * geometry.m) / (reference.ad_m2 * reference.m)
     r_s = (geometry.as_m2 * geometry.m) / (reference.as_m2 * reference.m)
     cdb = (c.cdd - c.cgd) * r_d
-    csb = (c.css - c.cgs) * r_s
+    csb = (c.css - c.cgs_measured) * r_s     # 측정 CGS 열 값(`Caps.cgs_measured`) -- 대체값 CGG − CGD 가 아니다
     _passivity_gate(device, "d", cdb)
     _passivity_gate(device, "s", csb)
     return cdb, csb
