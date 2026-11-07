@@ -25,11 +25,13 @@ from .find_front import find_front
 from .front_entries import read_front_entries
 from .front_query import node_across_front
 from .kernel import evaluate
-from .l_bin_search import polish_l_cells
+from .initial_wf import initial_wf
+from .l_bin_search import polish_cells
 from .layer0_center import ROW_SEAL_ITEM, SOURCE_LAYER0, STAGE_LAYER0, Layer0Result, layer0_start
 from .l_cells import l_cells
 from .objectives import objective_values
 from .open_run import open_run
+from .point_wf import point_wf
 from .noise_decl import noise_decl
 from .orbit_ties import orbit_ties
 from .pareto import nondominated
@@ -94,6 +96,9 @@ from .slsqp_outer import solve_eps
 from .ss_constraints import ss_constraint_rows
 from .start_intervals import start_intervals
 from .start_points import start_points
+from .wf_member_w import member_start_w
+from .wf_partner import kvl_partner
+from .wf_start import wf_start_value
 from .start_values import (
     Bound,
     MacroResult,
@@ -193,7 +198,12 @@ __all__ = (
     "realize_front",
     "objective_values",
     "open_run",
-    "polish_l_cells",
+    "polish_cells",
+    "initial_wf",
+    "point_wf",
+    "kvl_partner",
+    "member_start_w",
+    "wf_start_value",
     "search_ceiling",
     "search_domain",
     "search_stop",

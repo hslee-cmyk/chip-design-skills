@@ -9,7 +9,6 @@ from .cap_query import caps
 from .curve_check import curve_report
 from .data_location import resolve_lut_location
 from .derived_fns import DERIVED_FUNCTIONS, derived
-from .finger_slice import FingerSlice, finger_slice, reachable_slices
 from .fingerprint import lut_fingerprint
 from .ft_curve import ft_curve
 from .gm_id_curve import gm_id_curve
@@ -114,13 +113,10 @@ __all__ = (
     "derived",
     "GmIdAxisCurve",
     "LBin",
-    "FingerSlice",
     "LBinMap",
     "SLICE_GAP_REASONS",
     "build_slice_tables",
-    "finger_slice",
     "is_slice_gap",
-    "reachable_slices",
     "slice_of_finger",
     "LutLocation",
     "LutMemo",

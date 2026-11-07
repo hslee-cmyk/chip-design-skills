@@ -52,6 +52,7 @@ from .canonical_rows import canonical_row_key
 from .cell_floor import ln_idu_floors
 from .cone_rows import cone_rows
 from .fd_jacobian import FdBudgetShortfall, fd_jacobian
+from .initial_wf import initial_wf
 from .kernel import evaluate
 from .search_ceiling import search_ceiling
 from .search_stop import search_stop
@@ -279,7 +280,7 @@ def _hard(res, row_key):
     return tuple(sorted(rows, key=lambda row: row_key(row[0])))        # [r12] 정준 행 순서
 
 
-def _maxmin(sctx, variables, theta0, cells, first, tag):
+def _maxmin(sctx, variables, theta0, cells, wf, first, tag):
     row_key = canonical_row_key(sctx)
     variables = list(variables)
     for i, floor in ln_idu_floors(sctx, variables, cells, one_var_only=True, start=theta0).items():
@@ -314,7 +315,7 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
             stop = search_stop(sctx)
             if stop is not None:
                 raise _Abort(stop, x)
-            res = evaluate(sctx, theta_of(x), cells, parent=state["parent"], origin=tag)
+            res = evaluate(sctx, theta_of(x), cells, wf, parent=state["parent"], origin=tag)
         rows = rows_of(res)
         if rows is None:
             raise _Abort("candidate_failure", x)
@@ -456,7 +457,7 @@ def _repairable(res):
     return f.devices[0], f.margin, min(abs(d["h_lo"]), abs(d["h_hi"])) / f.margin
 
 
-def _repair(sctx, variables, res, cells, tag, gmid_max):
+def _repair(sctx, variables, res, cells, wf, tag, gmid_max):
     """S-4b 1단계(오케스트레이터 결정 2026-10-08): 실패 노드의 writer 소자 m 의 좌표 ln_idu 하나를 움직여 그 노드 근을 창 안으로.
     커널 실패는 SCC 순서의 첫 실패 노드에서 멈춰 한 점이 위반 크기 하나만 주고(합·최대를 쓸 수 없다), FD 기준점(받아들인 스냅샷)도
     없어 SLSQP 대신 좌표 bisection: 상자 양끝(하한은 칸 정점 하한) 중 그 노드가 통과하는 쪽을 찾고(평가 2), 불변식 '현재 쪽 = 같은
@@ -504,7 +505,7 @@ def _repair(sctx, variables, res, cells, tag, gmid_max):
                     return None, tuple(done)
                 th = dict(base)
                 th[var.component] = bound
-                r = evaluate(sctx, th, cells, origin=tag + (("repair", c),))
+                r = evaluate(sctx, th, cells, wf, origin=tag + (("repair", c),))
                 if not same(r):
                     found = (c, var, bound, r)
                     break
@@ -518,7 +519,7 @@ def _repair(sctx, variables, res, cells, tag, gmid_max):
         def run(value, base=base, var=var, c=c):
             th = dict(base)
             th[var.component] = value
-            return evaluate(sctx, th, cells, origin=tag + (("repair", c),))
+            return evaluate(sctx, th, cells, wf, origin=tag + (("repair", c),))
 
         res_ln = tol * gmid_max[kinds[c]]
         steps = max(1, int(math.ceil(math.log2(abs(end - x) / res_ln)))) if abs(end - x) > res_ln else 0
@@ -546,7 +547,7 @@ def _gmid_max(sctx):
     return out
 
 
-def _halton_probe(sctx, variables, theta0, cells, tag):
+def _halton_probe(sctx, variables, theta0, cells, wf, tag):
     """S-4b: 상자 중심이 받아들일 상태가 아니면 Halton 열(소수 기저, 스크램블 없음, index 1 부터)의 k 번째 점을 변수 자연 좌표
     (bounds 위 선형 = ln 변수는 ln 좌표)에 놓아 순서대로 평가하고, 처음 받아들일 상태인 점에서 멈춘다. 한도 = 평가 예산 규칙
     (`search_stop`: kernel_calls ≥ 탐색 예산 또는 벽시계). 벽시계(deadline)가 없을 때만 시험 점 수 ≤ 탐색 예산(`search_ceiling`)을 더한다 -- 원뿔 밖 점은
@@ -592,7 +593,7 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
     tried = 0
     while True:
         if tried and tried % batch == 0 and best is not None:
-            fixed_res, chain = _repair(sctx, variables, best[1], cells, tag, gmid_max)
+            fixed_res, chain = _repair(sctx, variables, best[1], cells, wf, tag, gmid_max)
             repaired.append(chain)
             best = None
             if fixed_res is not None:
@@ -633,7 +634,7 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
                 walk = walk + (t_lo + phi_dim[-1] * (t_hi - t_lo)) * d
             for j, i in enumerate(cur):
                 theta[variables[i].component] = float(min(max(walk[j], box_lo[j]), box_hi[j]))
-        res = evaluate(sctx, theta, cells, origin=tag + (("probe", tried),))
+        res = evaluate(sctx, theta, cells, wf, origin=tag + (("probe", tried),))
         if res.status in ACCEPTED_STATUSES:
             return res, tried, "halton", tuple(repaired)
         info = _repairable(res)
@@ -652,6 +653,9 @@ def centre_start(sctx, rung=None):
 def layer0_start(sctx, origin=()):
     blas_environment()      # [NFR-4 재확인 (d)] 진입에서 BLAS 스레드 1 을 다시 확인(무상태, 값은 기록하지 않는다)
     calls0 = sctx.counters["kernel_calls"]
+    wf = initial_wf(sctx.dc.base)          # 층 0 의 평가 입력 w_f 칸 = 출발값(LR10 (W-a)) -- 층 0 동안 고정
+    if wf is None:
+        raise ValueError("layer0_start: 출발 w_f 칸이 정의되지 않아(wf_start_undefined) 평가 입력을 만들 수 없다")
     tag = origin + (("stage", STAGE_LAYER0),)
     # [U13] 출발 사다리(`graph/start: rungs`: 실행 가능한 최대 gm/ID 위치에서 구간 하한 쪽으로 반씩)를 칸 순서로 커널에 확인해 처음 받아들일 상태인 칸에서 출발한다.
     # 사다리가 없으면(출발 구간 필드가 없거나 칸이 없음) 상자 중심 한 점이다.
@@ -667,7 +671,7 @@ def layer0_start(sctx, origin=()):
         if search_stop(sctx) is not None:
             start_status = "eval_budget"          # 사다리 칸도 단일 평가다 -- 예산(또는 벽시계)에 닿았으면 평가하지 않고 사다리를 멈춘다
             break
-        first = evaluate(sctx, theta, cells, origin=tag)
+        first = evaluate(sctx, theta, cells, wf, origin=tag)
         start_status, failure = first.status, first.failure
         if first.status in ACCEPTED_STATUSES:
             source = "centre" if k == 0 else "ladder:" + str(k)
@@ -680,13 +684,13 @@ def layer0_start(sctx, origin=()):
         # 사다리 어느 칸도 받아들일 상태가 아니면 위반 크기가 가장 작은 칸(1변수 노드 근이 창 밖)에 S-4b 1단계(`_repair`: writer ln IDu 한 좌표 bisection)를 적용한다 --
         # Halton 시험 점에 쓰는 것과 같은 보정이다.
         _margin, res, variables, theta, cells, centre_u, k = best
-        fixed_res, chain = _repair(sctx, variables, res, cells, tag, _gmid_max(sctx))
+        fixed_res, chain = _repair(sctx, variables, res, cells, wf, tag, _gmid_max(sctx))
         repairs = (chain,)
         if fixed_res is not None:
             first, source, theta = fixed_res, "ladder_repair:" + str(k), dict(fixed_res.theta)
     if first is None:
         variables, theta, cells, centre_u = base
-        first, probes, why, repairs = _halton_probe(sctx, variables, theta, cells, tag)
+        first, probes, why, repairs = _halton_probe(sctx, variables, theta, cells, wf, tag)
         if first is None:
             reason = start_status
             if failure is not None:
@@ -695,9 +699,9 @@ def layer0_start(sctx, origin=()):
                                 0, 0, (), (), sctx.counters["kernel_calls"] - calls0, (), probes, None, repairs)
         source = why + ":" + str(probes)          # 시작점 출처: "halton:k"(시험 점) 또는 "repair:k"(k 번째 시험 뒤 1단계)
         theta = dict(first.theta)
-    best, stop, iterations, restarts, aborts, frozen, t_names = _maxmin(sctx, variables, theta, cells, first, tag)
+    best, stop, iterations, restarts, aborts, frozen, t_names = _maxmin(sctx, variables, theta, cells, wf, first, tag)
     res = best["res"]
-    start = StartPoint("layer0", res.theta, cells, SOURCE_LAYER0)
+    start = StartPoint("layer0", res.theta, cells, wf, SOURCE_LAYER0)
     return Layer0Result(start, float(np.min(best["s"])), bool(np.all(best["c"] >= 0)), stop, centre_u, start_status,
                         failure, iterations, restarts, aborts, frozen, sctx.counters["kernel_calls"] - calls0, t_names,
                         probes, source, repairs)

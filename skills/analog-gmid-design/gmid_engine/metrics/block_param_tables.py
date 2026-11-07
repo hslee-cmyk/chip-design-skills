@@ -2,7 +2,7 @@
 
 진입점: `ParamTables(memo, grids, side, z_side)`  (`memo` = `lut.LutMemo`, `grids` = (L, VGS, VDS, VS) LUT 격자, `side` ∈ {"upper", "lower"}, `z_side` ∈ {"min", "max"}).
 
-**W 가 없는 단계의 포락 표**(WB-1, 설계 40 §3.7-A 12): 칸마다 도달 가능한 슬라이스(`reachable_slices(lut, kind, L)`) 전부의 행을 만들어(조회 불능 사유 다섯이면 그 슬라이스는 뺀다) 합친다:
+**W 가 없는 단계의 포락 표**(WB-1, 설계 40 §3.7-A 12): 칸마다 w_f 후보 슬라이스(`widths(lut, kind)` -- L 무관 정적 집합, FS-1) 전부의 행을 만들어(조회 불능 사유 다섯이면 그 슬라이스는 뺀다) 합친다:
 upper = x(gm/ID) 최댓값·y(gds/ID) 최솟값, lower = x 최솟값·y 최댓값, z(gmb/ID) = `z_side` 쪽(`min`/`max`). 행 값이 정의되지 않은 슬라이스는 그 칸 포락에서 빼고 남는 항이 없으면 NaN.
 슬라이스 수는 격자 곱 Π 에 들지 않는다(표 크기는 격자 크기).
 `ParamTables.family(memo, grids)` = 네 표(upper/lower x min/max)를 한 번에 만들어 **포락 배열·적재 표시를 하나로 나눠 쓴다**: 같은 칸 (kind, L, VDS, VS) 을 네 표가 따로 읽으면 슬라이스 수(11~19)
@@ -19,7 +19,7 @@ kind 마다 |L|·|VDS|·|VS|·|VGS|·(포락 열 수) 개 실수 -- LUT 격자�
 """
 import numpy as np
 
-from gmid_engine.lut import derived, is_slice_gap, reachable_slices
+from gmid_engine.lut import derived, is_slice_gap, widths
 from gmid_engine.core import SealViolationError
 
 
@@ -71,7 +71,7 @@ class ParamTables:
         """(VGS 마디 수, 열 수) 포락 표(정의 안 되면 NaN): 도달 가능한 슬라이스 행을 합친다. 한 슬라이스도 행을 못 내면 None."""
         n_v = self.shape[1]
         table, found = np.full((n_v, len(_ENVELOPE)), np.nan), False
-        for key in reachable_slices(self._memo.lut, kind, l_value):
+        for key in widths(self._memo.lut, kind):
             try:
                 row = derived(self._memo, "param_row", kind, key, l_value, vds, vs)
             except SealViolationError as exc:

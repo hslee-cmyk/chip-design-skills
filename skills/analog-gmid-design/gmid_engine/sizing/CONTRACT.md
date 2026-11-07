@@ -148,7 +148,7 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
   (결정 대기 값은 엔진이 고르지 않는다 -- 그런 수동소자는 θ 도 구조 규칙도 아니고 소신호에서 `passive_value_undeclared`).
 
 ### 1.3 `LutAccess(memo, w_keys)` -- frozen, `__canonical__() = (memo.lut.fp, w_keys)`
-> **[개정 예정 -- design 40 v1.15.1 §3.7-A, card WB-1(계획 v6.38.2 DEC-105 (2)); 이 절 아래 문언은 as-built 계약이고 WB-1 병합 때 바뀐다]**: 'kind당 폭 슬라이스 하나' 계약은 폐기된다 -- `LutAccess`는 `memo`만 담고(`w_keys` 칸·`pre_layout_lut_access`·`w_key_of(lut, kind)` 삭제), 소자 슬라이스는 DC 블록 `dc_solve`(노드 풀이 `dc_columns` + W `dc_widths`를 합친 블록) 안에서 손가락 규칙 W-bin 선택 함수 `lut.finger_slice`로 소자마다 정하며 기록은 `DeviceOp.w_key`, 손가락 기하는 새 필드 `device: dc_finger`(m, w_f)다. 4절 S1 MOS kind 마다 `w_keys` 검사, `dc_drop_current` 필드도 같은 변경에서 지운다. 반복 종료·실패 사유·범위 3a 순서 = design 40 v1.15.2 §3.7-A 2·5와 §3.11-1 참조(규칙 본문은 design 한 자리). 지금 계약을 근거로 새 코드를 쓰지 않는다.
+> **[개정 예정 -- design 40 v1.15.1 §3.7-A, card WB-1(계획 v6.38.2 DEC-105 (2)); 이 절 아래 문언은 as-built 계약이고 WB-1 병합 때 바뀐다]**: 'kind당 폭 슬라이스 하나' 계약은 폐기된다 -- `LutAccess`는 `memo`만 담고(`w_keys` 칸·`pre_layout_lut_access`·`w_key_of(lut, kind)` 삭제), 소자 슬라이스는 DC 블록 `dc_solve`(노드 풀이 `dc_columns` + W `dc_widths`를 합친 블록)에서 평가 입력 w_f 칸 키(`WfInput`, FS-1 -- 옛 선택 함수 `finger_slice` 삭제)로 정해지며 기록은 `DeviceOp.w_key`, 손가락 기하는 필드 `device: dc_finger`(`FingerGeom(m, residual)`)다. 4절 S1 MOS kind 마다 `w_keys` 검사, `dc_drop_current` 필드도 같은 변경에서 지운다. 반복 종료·실패 사유·범위 3a 순서 = design 40 v1.15.2 §3.7-A 2·5와 §3.11-1 참조(규칙 본문은 design 한 자리). 지금 계약을 근거로 새 코드를 쓰지 않는다.
 - `memo` = lut `LutMemo`(graph 밖 유일 memo), `w_keys` = ((kind, w_key), ...) 레이아웃 전 사이징이 쓰는 폭 슬라이스.
 - `require_immutable(LutAccess(...))` 통과(`__canonical__` 우선), `fp_of` = LUT 내용 지문 + w_keys 의 함수 -- memo 상태(캐시
   내용·상한)가 달라도 같은 지문. 그래서 블록 extras 로 넘겨도 입력 버전은 LUT 내용·슬라이스만 따른다.
@@ -1044,15 +1044,25 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   `layer0_center`·`start_points`·`cone_rows` 가 모두 새 종류를 알아야 한다 -- 소유가 다른 단위(U11 search 정비·U15)의 파일이라 이 단위에서 쓰면 쓰이지 않는 코드가 되거나 search 를 깨뜨린다.
   대칭 묶음의 비율 1 은 이미 search `orbit_ties` 가 같은 궤도 전류 성분을 한 변수로 묶어 준다(U2).
 
-## 15. [WB-1 DC 블록] `dc_solve` (writer `dc_solve`)
+## 15. [WB-1 DC 블록 -> FS-1] `dc_solve` (writer `dc_solve`)
 
-옛 `dc_columns`·`dc_widths`·`pre_layout_lut_access`·`kernel_keys`·`dc_drop_current` 를 대체한다. `LutAccess(memo)` 는 slice 키 칸이 없다. 순서: 쓰기 소자 `finger_slice`(상수 W) -> 노드 풀이 -> 종속 소자 선택(`W(s) = ID·L/IDu_s`)
--> Rʳ(writer 없는 순환 SCC 의 허용오차 셀을 내는 종속 소자)이 있고 키 벡터가 바뀌었으면 다시 풀이, 이전 벡터로 돌아가면 `slice_cycle`. `DeviceOp.w_key`·`gm_id`·`idu_forward`·`dc_finger` 가 같은 슬라이스를 가리킨다.
-`device.dc_finger` = `FingerGeom(m, w_f_m, residual)` = **그 평가가 쓴 손가락**(모든 평가, 소자 전부의 행; A-139): 탐색 평가 = 선택 함수 결과(residual), 실현 평가 = 입력 손가락 (residual 0.0), 레이아웃 뒤 = 입력 손가락
-(배치 = `layout_ref` (nf, finger_w), 요청 대기 = `w_request` 요청 손가락 행; residual 0.0). 입력 손가락이면 `finger_slice` 를 부르지 않는다.
-**[A-123·A-124, 2026-11-06] 레이아웃 뒤 평가 = 실현 평가와 같은 재풀이**: `size_and_seal(..., realized=RealizedFinger(기준 스냅샷), layout=RealizedGeometry)` -- `dc_solve` 가 W'·바이어스 고정 KCL 을 `_kcl_solve` 하나로 다시 풀고
+옛 `dc_columns`·`dc_widths`·`pre_layout_lut_access`·`kernel_keys`·`dc_drop_current` 를 대체한다. `LutAccess(memo)` 는 slice 키 칸이 없다.
+**[FS-1] 호출 꼴**: `dc_solve(snapshot, theta_items, fixed_values, resistor_values, lut, geometry=None, realized=None, *, wf, donors, counters)` -- `wf` = `WfInput`(평가 입력 w_f 칸) **필수 키워드**(기본값 없음, 빠지면
+`TypeError`; 값은 입력 버전·투영에 든다 -- core `compute_block(keywords=("wf",))`). `size_and_seal(ctx, theta, wf, parent=None, w_request=(), realized=None, layout=None)`·`size_and_seal_local(ctx, theta_block, fixed, columns, wf)`·
+`run_kernel(ctx, theta, wf, parent, w_request, raise_on_violation, realized=None, layout=None)` 도 `wf` 필수 위치 인자다.
+**[FS-1] 슬라이스 = 소자가 든 칸의 `wf.keys` 값**(선택 함수 없음 -- 쓰기·종속 소자 모두): 노드 풀이 평가당 1회(Rʳ·`slice_cycle`·`SccLog.slice_rounds` 삭제). 칸 멤버가 그 슬라이스에서 조회 불능이면 그 평가가 기존 LUT 사유로 실패한다(다른 슬라이스로
+바꾸지 않는다). 탐색 평가: `DeviceOp.W` = I·L/IDu, `dc_finger` = `FingerGeom(W/(키·격자), 0.0)`(m 실수, 정수화 0). 실현 평가(`realized = RealizeInput(search_ref)`): 칸마다 `realize_fingers(칸 멤버 θ W, 키·격자, ())` 한 번 --
+m 을 정하고 W' = m·w_f, `dc_finger` = `FingerGeom(m 정수, m·w_f/W_θ − 1)`(`ratios=()` 는 선언 미러 비 칸(SF-1 범위 10)이 병합되기 전 과도기). `DeviceOp.w_key`·`gm_id`·`idu_forward`·`dc_finger` 가 같은 슬라이스를 가리킨다.
+`device.dc_finger` = `FingerGeom(m, residual)`(w_f 칸 없음 -- 폭은 `DeviceOp.w_key` × 제조 격자) = **그 평가가 쓴 손가락**(모든 평가, 소자 전부의 행; A-139).
+**[A-123·A-124, 2026-11-06] 레이아웃 뒤 평가 = 실현 평가와 같은 재풀이**: `size_and_seal(..., wf, realized=RealizeInput(기준 스냅샷), layout=RealizedGeometry)` -- `dc_solve` 가 W'·바이어스 고정 KCL 을 `_kcl_solve` 하나로 다시 풀고
 (servo 갈래 = 입력 차 미지수 + 출력 묶음 행, 입력 고정 갈래(판정 불능 None·`as_is_single_input`) = 입력을 기준 값에 고정하고 출력·나머지 KCL 노드 재풀이) 봉인 전 항목을 적용한다. W': 배치 소자 `layout_ref` 의 (nf = `m`, `finger_w_m`),
-요청 대기 소자 = `w_request` 의 요청 (nf, finger_w) (W' = nf·finger_w), 입력 손가락 행이 없는 소자(배치도 요청도 아님) = `realized_finger_missing`(사이징 점 행을 읽지 않는다). 고정 넷 = 레일 ∪ 입력 포트
-(`input_port_nets`)뿐이고 spec 목표 넷은 미지수(O-244). 비수렴 = `NonconvergentError`, 푼 노드가 레일 밖 = `no_root_in_window`(item 7, bounds = rail). 노드 재풀이 없는 갈래는 없다.
-`layout` 없이 `w_request` 만 주는 호출(기존 sizing 계약)은 재풀이 없는 θ 프레임 W_request 평가로 남는다(탐색 `evaluate` 는 부르지 않는다). `SccLog.slice_rounds` = 그 평가 노드 풀이 수.
-미구현: 실현 평가(`RealizedFinger`, W′·바이어스 고정 재풀이) -- `realize_front` 와 함께.
+요청 대기 소자 = `w_request` 의 요청 (nf, finger_w) (W' = nf·finger_w, 키 = `slice_of_finger`), 입력 손가락 행이 없는 소자 = 기준 스냅샷의 `dc_finger.m`·`DeviceOp.w_key`(W' = m·키·격자; 기준 행 없음 = `realized_finger_missing`). 정수화 함수를 부르지 않는다.
+고정 넷 = 레일 ∪ 입력 포트(`input_port_nets`)뿐이고 spec 목표 넷은 미지수(O-244). 비수렴 = `NonconvergentError`, 푼 노드가 레일 밖 = `no_root_in_window`(item 7, bounds = rail). 노드 재풀이 없는 갈래는 없다.
+`layout` 없이 `w_request` 만 주는 호출(기존 sizing 계약)은 재풀이 없는 θ 프레임 W_request 평가로 남는다(탐색 `evaluate` 는 부르지 않는다).
+
+### 15.1 [FS-1] 평가 입력·실현 정수화 값 타입과 `realize_fingers`
+
+- `WfCell(members, w_key)`·`WfInput(cells_ref, keys)`·`RealizeInput(search_ref)`·`DeclaredRatio(reference, outputs_with_k)`·`RealizedCell(m, ratio_err, member_err)`(모두 frozen, `s2_values.py`). `WfInput.__canonical__` = `("wf_input", 칸 멤버들, keys)`,
+  `RealizeInput.__canonical__` = `("realize_input",)`.
+- `realize_fingers(w_theta, w_f_m, ratios) -> RealizedCell`(`sizing/realize_fingers.py`, 순수 함수): 키 K = (E1 쌍 비 오차 max(r)/min(r) − 1, E2 max |m−x|/x, E3 Σ(`math.fsum`), E4 Σm, E5 m 벡터 사전식) 최소.
+  호출 계약 위반 `ValueError`(위치 범위 밖·한 멤버 두 묶음·기준이 자기 출력·선언 k 비유한/≤ 0 = `declared_ratio_invalid`), 키를 계산할 수 없으면 `SealViolationError`(`realize_tie_unresolved` -- W_θ·w_f 비유한/≤ 0; 호출자가 칸 멤버를 `devices` 로).

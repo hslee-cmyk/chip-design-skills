@@ -33,6 +33,7 @@ from gmid_engine.sizing import (KERNEL_KEY, REL_INPUT_POINT, REL_WINDOW, THETA_C
                                 THETA_Y)
 
 from .kernel import evaluate
+from .point_wf import point_wf
 from .search_values import ACCEPTED_STATUSES, STAGE_FD
 
 
@@ -105,6 +106,7 @@ def fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozense
         if remaining < needed:
             raise FdBudgetShortfall(needed, remaining)
     columns = []
+    wf = point_wf(base.evaluation.snapshot)         # 기준점이 평가한 w_f 칸 입력 -- FD 스텝은 θ 만 움직인다(LR10 (W-a))
     for i, (var, h) in enumerate(zip(variables, steps)):
         if i in skip:
             columns.append((base, 0.0))       # 고정된 변수(S-16) -- 평가 없음, 부르는 쪽이 bounds 로 묶는다
@@ -124,7 +126,7 @@ def fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozense
             step = value - x[i]
             probe = list(x)
             probe[i] = value
-            res = evaluate(sctx, to_theta(probe), cells, parent=base, origin=origin + (("stage", STAGE_FD),))
+            res = evaluate(sctx, to_theta(probe), cells, wf, parent=base, origin=origin + (("stage", STAGE_FD),))
             if res.status in ACCEPTED_STATUSES:
                 found = (res, step)
                 break

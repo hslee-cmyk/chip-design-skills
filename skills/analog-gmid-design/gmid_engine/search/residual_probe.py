@@ -16,6 +16,7 @@ import math
 from gmid_engine.metrics import REPORT_BLOCK_RESIDUAL, coupled_residual
 from gmid_engine.sizing import METRICS_KEY, THETA_CURRENT
 
+from .initial_wf import initial_wf
 from .kernel import evaluate
 from .layer0_center import centre_start
 from .search_ceiling import search_ceiling
@@ -70,8 +71,12 @@ def residual_probe(sctx, count):
     free = [v for v in variables if v.component[0] != THETA_CURRENT]
     bases = _primes(len(free))
     values, evaluated, stop = [], 0, "enough"
+    wf = initial_wf(sctx.dc.base)         # 평가 입력 w_f 칸 = 출발값(LR10 (W-a)); 출발 불능이면 평가 입력을 만들 수 없다 -- 평가 0, 정지 사유로 남긴다
     k = 0
     while len(values) < count:
+        if wf is None:
+            stop = "start_undefined"
+            break
         why = search_stop(sctx)
         if why is not None:
             stop = why
@@ -84,7 +89,7 @@ def residual_probe(sctx, count):
         for var, base in zip(free, bases):
             value = var.lo + _radical_inverse(k, base) * (var.hi - var.lo)
             point[var.component] = math.exp(value) if var.log else value
-        result = evaluate(sctx, point, cells)
+        result = evaluate(sctx, point, cells, wf)
         evaluated += 1
         if result.status in ACCEPTED_STATUSES and result.evaluation is not None:
             residual = _residual_of(result)

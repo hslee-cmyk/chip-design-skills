@@ -366,6 +366,14 @@ def _midpoint_tables(prov, grids):
     return types.MappingProxyType(out)
 
 
+def _require_wf_candidates(lut):
+    """w_f 후보 0 적재 거부(FS-1, 계획 DEC-108 (1)): 슬라이스가 있는 kind 마다 `widths(lut, kind)` 가 비면 `SchemaRejectedError` `wf_candidates_empty`(detail kind), kind 오름차순 첫 실패.
+    w_f 좌표는 후보 집합 위의 이산 좌표라 후보가 없으면 그 kind 소자의 좌표가 정의되지 않는다. D7(`_require_midpoints`) 앞에서 본다."""
+    for kind in sorted({k for (k, _w) in lut.slice_map}):
+        if not widths(lut, kind):
+            raise schema_rejected("wf_candidates_empty", kind=kind)
+
+
 def _require_midpoints(lut):
     """D7 적재 거부(계획 N6.40 LM-1e 2, 사용자 결정 O-246 D7): `widths(lut, kind)` 슬라이스마다 앵커 2개 bin 에 그 슬라이스 자기 중점 L 이 두 앵커 사이인 것이
     하나 이상이어야 한다 -- 없으면 `SchemaRejectedError` `bin_missing_external`(detail kind, w_key, models = 없는 bin `.model` 이름 정렬). (kind, w_key) 오름차순 첫
@@ -434,5 +442,6 @@ def load_lut_set(manifest_path, cap_npz_path, spec, *, bin_rule, pdk_root=None, 
         noise,
         mismatch,
     )
+    _require_wf_candidates(lut)
     _require_midpoints(lut)
     return lut

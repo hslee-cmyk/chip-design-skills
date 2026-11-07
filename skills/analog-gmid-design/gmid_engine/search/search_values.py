@@ -107,11 +107,12 @@ class ConstraintClasses:
 
 @dataclasses.dataclass(frozen=True)
 class EvalKey:
-    """평가 키(설계 7.1): (S0 지문, 스키마 지문, L 칸 벡터, 고정 W 지문, θ 값 `float.hex`). ε·출처는 넣지 않는다."""
+    """평가 키(설계 7.1): (S0 지문, 스키마 지문, L 칸 벡터, w_f 칸 입력 지문, 고정 W 지문, θ 값 `float.hex`). ε·출처는 넣지 않는다. 같은 θ·다른 w_f 칸 = 다른 키(FS-1)."""
 
     context_fp: str
     schema_fp: str
     cells: tuple
+    wf_fp: str
     w_fixed_fp: object
     theta_hex: tuple
 
@@ -167,11 +168,12 @@ class EvalResult:
 
 @dataclasses.dataclass(frozen=True)
 class StartPoint:
-    """시작점(설계 6.1). `theta` = ((kind, key), 값) 정렬, `cells` = L 칸 index 벡터, `source` ∈ {"given", "s3"}."""
+    """시작점(설계 6.1). `theta` = ((kind, key), 값) 정렬, `cells` = L 칸 index 벡터, `wf` = 평가 입력 w_f 칸 `WfInput`(풀이 동안 고정 -- LR10 (W-a)), `source` ∈ {"given", "s3"}."""
 
     start_id: str
     theta: tuple
     cells: tuple
+    wf: object
     source: str
 
 

@@ -53,7 +53,7 @@ def ss_off_op(projection):
     keys = {}
     for m in sorted(points):        # 3. 선언 폭이 슬라이스 폭이 아니면 slice_missing (LUT 값 조회 없음, 소자 이름을 채운다)
         try:
-            keys[m] = slice_of_finger(lut.memo.lut, kinds[m], decl[m].l_m, decl[m].w_m)
+            keys[m] = slice_of_finger(lut.memo.lut, kinds[m], decl[m].w_m)
         except SealViolationError as exc:
             raise SealViolationError(devices=(m,), margin=exc.record.margin, detail=dict(exc.record.detail)) from exc
     out = {}

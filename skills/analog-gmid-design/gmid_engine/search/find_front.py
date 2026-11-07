@@ -2,6 +2,9 @@
 
 진입점: `find_front(sctx, given_starts) -> SearchFront`.
 
+진입(FS-1): 평가 입력 w_f 칸 출발값 `initial_wf(base)` 가 None(출발 불능 칸 -- `graph/start: wf_start` 에 `w_key` None)이면 평가 0회로 끝낸다: notes 에
+`{"verdict": "start_undefined", "rule": "DEC-108 (3)", "records": [...]}`(`wf_start_undefined` 출발 기록 그대로), front·pending·unmeasured_front 빈 tuple.
+
 순서: 층 0 시작점(`layer0_start`, DEC-71 최소형) -> 시작점(`start_points`: 층 0 점 + `given_starts`,
 평가 1회로 봉인 상태 확인) -> `sweep_front`(끝점·ε 두 방향·
 비지배 필터·L-b) -> S3 기록(front·대기 front 점 스냅샷 파일, runs 한 줄) -> `SearchFront`.
@@ -34,11 +37,14 @@ from gmid_engine.metrics import GATE_EMPTY, GATE_REASON_FRONT_EMPTY, GateResult,
 from .eps_sweep import classify, sweep_front
 from .gate_run import run_sensitivity_gate
 from ._helpers_ceiling import e_total, gate_reserve
+from .initial_wf import initial_wf
 from .layer0_center import layer0_start
 from .realize_front import realize_front
 from .search_ceiling import search_ceiling
+from .s0_fields import START_KEY
 from .search_values import AXIS_AREA, AXIS_POWER, STATUS_PENDING_SEAL7, SearchFront
 from .start_points import start_points
+from .wf_start import RECORD_START_UNDEFINED
 
 # 층 0 = DEC-71 최소형(R D18·U-49): 봉인 여유 최대-최소 중심 시작점 하나(`layer0_start`, 오케스트레이터 결정 2026-10-08).
 # 블록 gain 예산(GB3·GB4)·LR5 knee·GB5 근사식은 최소형 밖의 정밀화라 쓰지 않는다 -- notes 에 그 사실을 남긴다.
@@ -68,19 +74,12 @@ def _bin_rule_note(lut):
             "bin_rule_machine_dependent": [list(pair) for pair in lut.provenance.bin_rule_machine_dependent]}
 
 
-def _slice_rounds(snapshot):
-    """그 평가 노드 풀이 수(`dc_scc_log` 첫 항목 `slice_rounds` -- 모든 항목이 같은 값, J-8). SCC 기록이 없으면 None."""
-    for _key, logs in snapshot.column("graph", "dc_scc_log"):
-        return logs[0].slice_rounds if logs else None
-    return None
-
-
 def _point_record(sctx, point, residual=None):
     res = point.result
     ref = None if sctx.archive is None else sctx.archive.write_snapshot(res.evaluation.snapshot)
-    extra = {"slice_rounds": _slice_rounds(res.evaluation.snapshot)}
+    extra = {}
     if residual is not None:
-        extra["finger_residual"] = {m: r for m, r in residual}      # 탐색 평가 `FingerGeom.residual` (실현 평가 값 0.0 이 아니다)
+        extra["finger_residual"] = {m: r for m, r in residual}      # 실현 평가 `FingerGeom.residual` (= m·w_f/W_θ − 1, 탐색 평가 값 0.0 이 아니다)
     return {**extra, "point_id": point.point_id, "status": res.status, "seq": res.seq,
             "theta_hex": [[list(k), float(v).hex()] for k, v in res.theta], "cells": list(res.key.cells),
             AXIS_POWER: res.objectives.power_w, AXIS_AREA: res.objectives.area_m2,
@@ -91,9 +90,25 @@ def _point_record(sctx, point, residual=None):
             "origin": dict(point.origin), "snapshot_fp": res.evaluation.snapshot.fp, "snapshot_ref": ref}
 
 
+def _start_undefined(sctx, env_fp, t_start):
+    """출발 w_f 칸이 정의되지 않은 실행(`initial_wf` None) -- 평가 0회, notes 에 출발 기록(`wf_start_undefined`)을 그대로 싣고 빈 front 를 낸다(성능 판정 보류, DEC-108 (3))."""
+    records = [[code, dict(detail)] for code, detail in sctx.dc.base.value("graph", START_KEY, "records") if code == RECORD_START_UNDEFINED]
+    notes = [{"verdict": "start_undefined", "rule": "DEC-108 (3)", "records": records}]
+    perf = dict(sctx.counters)
+    perf.update(wall_s=time.perf_counter() - t_start, wf_neighbor_evals=0, wf_neighbor_wall_s=0.0)
+    run_id = fp_of((sctx.context_fp, sctx.code_fp, sctx.settings, sctx.eval_budget, ()))
+    if sctx.archive is not None:
+        sctx.archive.append_run({"run_id": run_id, "s0": sctx.context_fp, "schema_fp": sctx.schema_fp, "settings": sctx.settings, "starts": [], "resolution": {},
+                                 "front": [], "pending_front": [], "unmeasured_front": [], "removed": [],
+                                 "realize": {"lost": [], "n_lost": 0, "moved": []}, "failed_eps": [], "notes": notes, "perf": perf, "env_fp": env_fp})
+    return SearchFront(run_id, (), (), (), {}, tuple(sorted(perf.items())), tuple(notes), ())
+
+
 def find_front(sctx, given_starts):
     env_fp = fp_of(blas_environment())      # [NFR-4 재확인 (c)] 진입에서 한 번 -- 확인 실패는 RuntimeError, 반환값 지문이 runs 줄 `env_fp`
     t_start = time.perf_counter()
+    if initial_wf(sctx.dc.base) is None:
+        return _start_undefined(sctx, env_fp, t_start)
     sctx.deadline = t_start + sctx.settings.front_budget_s
     sctx.dc.donors.open_bound(lambda: e_total(sctx))      # 색인 항목 수 상한 검사 열기 -- E_total 은 참조로 읽는다(값 사본 없음)
     layer0 = layer0_start(sctx)
@@ -173,6 +188,7 @@ def find_front(sctx, given_starts):
                 block_index_entries=sctx.dc.donors.entry_count(),
                 block_index_bound=None if total is None else sctx.dc.donors.index_bound(total), n_starts=len(starts),
                 n_solves=len(out["solves"]), eval_budget=sctx.eval_budget, eval_budget_source=sctx.eval_budget_source,
+                wf_neighbor_evals=out["wf_neighbor"][0], wf_neighbor_wall_s=out["wf_neighbor"][1],      # [FS-1] w_f 이웃 시험 비용(출력 전용)
                 frozen_columns=sum(len(s.frozen) for _p, s in out["solves"]),
                 stops_eval_budget=sum(1 for _p, s in out["solves"] if s.stop == "eval_budget"),
                 stops_wall_budget=sum(1 for _p, s in out["solves"] if s.stop == "wall_budget"),

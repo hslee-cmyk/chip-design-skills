@@ -12,7 +12,7 @@
 > * 새/바뀐 계산 블록: `search_domain`(-> `graph/kernel: search_domain`), `constraint_classes`(-> `graph/kernel: constraint_classes` = `ConstraintClasses(judged, ss = spec judged_constraints 위치, notes = (키, 값) 쌍)`),
 >   `passive_area_decl`(extras (측정 부하 이름, pdk_decl) -> `graph/kernel: passive_area_decl`), `noise_decl`(extras (feedback, sampling_caps) -> `graph/s1v: noise_input_cells` = NoiseDecl 전체),
 >   `start_intervals`(extras (spec, DcInputs, pdk_decl, lut) -> `device: start.row`·`start.point`, `graph/start(START_KEY="start")`: `conflicts`·`inactive`·`macro`·`rungs`·`records`·`area_est_m2`·`area_fraction`·
->   `uncovered`). 묶음 `StartIntervals`·`StartContext`·`CurveBook`(`iv_curves.py`)·`build_start_context` 는 없다: 블록 안 읽기 묶음 = `iv_context.start_view(projection, spec, inputs, pdk_decl, lut) -> StartView`,
+>   `uncovered`·`wf_start`[FS-1: 출발 w_f 칸 `WfCell` tuple -- 칸 폐포·선택은 `wf_start_value` 한 자리]). 묶음 `StartIntervals`·`StartContext`·`CurveBook`(`iv_curves.py`)·`build_start_context` 는 없다: 블록 안 읽기 묶음 = `iv_context.start_view(projection, spec, inputs, pdk_decl, lut) -> StartView`,
 >   곡선 읽기 = `_helpers_curves`(LUT 파생 기준 VDS·tol_vdsat·엣지 비용은 `lut.derived`), 이득 L 하한 입력은 필드 `graph/ach: local_inputs`. `current_symmetry`·`orbit_ties` 는 첫 인자로 필드 질의가 되는
 >   스냅샷(또는 투영)을 받는다. `cell_floor` 의 1변수 writer 집합은 `device.dc_self_referential` 필드다.
 
@@ -215,7 +215,9 @@
 | 5 | `start_points.py` | `start_points` |
 | 6 | `layer0_center.py` [r5] | `layer0_start`(+ 비진입 공개 클래스 `Layer0Result`, 상수 `SOURCE_LAYER0`·`STAGE_LAYER0`·`ROW_SEAL_ITEM`) |
 | 6 | `slsqp_outer.py` | `solve_eps` |
-| 7 | `l_bin_search.py` | `polish_l_cells` |
+| 7 | `l_bin_search.py` | `polish_cells` [FS-1: L 칸 + w_f 칸 공용 바퀴] |
+| 7 | `initial_wf.py`·`point_wf.py` [FS-1] | `initial_wf`(출발 칸 → 첫 평가 입력)·`point_wf`(평가 스냅샷이 쓴 칸 입력) |
+| 6 | `wf_start.py`·`wf_partner.py`·`wf_member_w.py` [FS-1] | `wf_start_value`(칸 폐포·출발 선택 -- 출발 블록만 부른다)·`kvl_partner`·`member_start_w` |
 | 8 | `eps_sweep.py` | `sweep_front` |
 | 9 | `find_front.py` | `find_front` |
 
@@ -453,9 +455,12 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 - [XRUN-F1 A] 탐색 LUT memo = **계수 상태 memo**(`LutMemo.counting(호출자 lut, n_θ, table_cache=호출자 memo 의 것)`, lut CONTRACT 2.2). n_θ = `len(layer0_center.centre_start(sctx)[0])`(상자 중심 변수 = 정의역 변수 + 구간인 L 칸 변수),
   계수 memo 를 넣기 전에 잰다. 이 호출 안의 커널 평가는 **0**이다(`kernel.size_and_seal` 호출 0, 임시 컨텍스트·버리는 평가 없음; 반환 직후 `kernel_calls == 0`, `seq == 0`, `cache` 비어 있음). 호출자 memo(`dc_ctx` 의 것)는 바꾸지 않는다.
 
-### 3.10 `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None) -> EvalResult`
+### 3.10 `evaluate(sctx, theta, cells, wf, parent=None, origin=(), geometry=None, realized=None) -> EvalResult`
+[FS-1] `wf` = `sizing.WfInput`(평가 입력 w_f 칸 -- 필수 인자, 기본값 없음): 키 `EvalKey(context_fp, schema_fp, cells, wf_fp, w_fixed_fp, theta_hex)` 의 `wf_fp = fp_of(wf)`(같은 θ·다른 칸 = 다른 키), S3 줄 `wf_keys = list(wf.keys)`.
+`realized` = `sizing.RealizeInput(search_ref)`(실현 평가): 키의 `w_fixed_fp = fp_of(realized)`(실현 표지만 -- 탐색 스냅샷 지문을 덧대지 않는다), `ctx.base` 에서 따로 시작한다. `eval_key(context_fp, schema_fp, theta, cells, wf_fp, w_fixed_fp)`.
+`StartPoint(start_id, theta, cells, wf, source)`: 시작점의 평가 입력 칸은 풀이 동안 고정(LR10 (W-a)). 첫 시작점 = `initial_wf(base)`, 이어 평가(FD 스텝·ε 점·이웃 시험·실현·레이아웃 뒤)의 칸 = `point_wf(기준 점 스냅샷)`.
 [U14] `geometry` = `sizing.RealizedGeometry(layout_ref, w_request)`(MOD8 `convergence` 의 재검증 입력, LY7·LY8): 있으면 1 의 키 `w_fixed_fp = fp_of(geometry)`,
-5 의 커널은 `size_and_seal(dc, θ, parent=parent.evaluation, realized=RealizedFinger(parent.evaluation.snapshot, 그 스냅샷 지문), layout=geometry)` 로 **실현 평가와 같은 W'·바이어스 고정 KCL 재풀이 + 봉인 전 항목**
+5 의 커널은 `size_and_seal(dc, θ, wf, parent=parent.evaluation, realized=RealizeInput(parent.evaluation.snapshot), layout=geometry)` 로 **실현 평가와 같은 W'·바이어스 고정 KCL 재풀이 + 봉인 전 항목**
 (v6.38.21, 설계 40 §3.7-A 6 '재평가 꼴'), 6 의 `ss_evaluate`·`constraint_rows` 도 같은 `dc`(`ss_evaluate(diffusion=geometry.layout_ref)` -- 접합 용량이 실현 확산 기하).
 **`parent` = 기준 스냅샷(사이징 점) 필수** -- 없거나 `evaluation` 이 없으면 `ValueError`(호출 계약). 측정 구성·입력 값·대기 소자 손가락을 거기서 참조로 읽는다(사본 0). 평가 키는 기준 스냅샷을 담지 않는다(같은 (θ, cells)의 사이징 점이 정한다).
 없으면(None) 아래가 종전과 같다. 같은 (θ, cells, geometry) 는 캐시 적중. S3 evals 줄의 `w_fixed_fp` 도 이 값이다.
@@ -513,7 +518,9 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   포함), `frozen` = 고정한 변수. 정상 끝: SLSQP(ftol 1) success 면 "converged", 아니면 "slsqp_<status>".
 - `best` = 수락 반복 중 모든 c ≥ 0 이고 (목적, seq) 최소. 없으면 None.
 
-### 3.14 [r2] `polish_l_cells(sctx, solved, origin) -> ((SolveResult, ...), str)`
+### 3.14 [r2 -> FS-1] `polish_cells(sctx, solved, origin, wf_cost=None) -> ((SolveResult, ...), str)`
+- [FS-1] 한 바퀴 = L 칸 이동(MOS 이름순 ±1) 다음 w_f 칸 이동(칸 순서, 칸마다 그 kind `widths` 오름차순 목록에서 지금 키의 바로 아래·위; 목록 끝이면 그쪽 건너뜀) -- 수락·종료 규칙은 하나(아래 L-b 와 같다). w_f 이동 = 같은 θ·L 칸으로 `wf'`(keys 한 원소만 이웃 키)를
+  탐색 평가 1회(`origin` 꼬리 `("wf_cell", 칸 index)`, `("move", ±1)`), 수락 점의 재시작 `StartPoint.wf` = `wf'`. `wf_cost`(선택 dict `{"evals", "wall_s"}`) = w_f 이동 시험 평가 수·벽시계 합(출력 전용 -- `perf.wf_neighbor_evals`·`wf_neighbor_wall_s`).
 - 설계 4.3 L-b(본문 docstring). 새 칸의 L = 위로 이동이면 새 칸 lo, 아래로면 hi. 시험 조건: 받아들일 상태 ∧ (목적 감소 ∨ 음의
   제약 합 증가). 수락 = 재시작 해 목적 개선 ≥ 1(정규화 한 칸 -- 전력은 그 바퀴 기준점의 b_P). 한 바퀴 수락 없음 또는 평가 예산·
   벽시계 도달 -> 끝.
@@ -529,6 +536,9 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   총수 > max(N_ε, 0) 이면 간격 배수 ×2 반복. 전력 간격 = max(b_P(E_P), b_P(E_A)). 비지배 필터 전력 동률 폭 = max(b_P(p), b_P(q)).
 
 ### 3.16 [r2] `find_front(sctx, given_starts) -> SearchFront`
+- [FS-1] 진입에서 `initial_wf(base)` 가 None(`graph/start: wf_start` 에 `w_key` None 칸 -- 출발 불능)이면 평가 0회, notes `{verdict "start_undefined", rule "DEC-108 (3)", records [...]}`(`wf_start_undefined` 출발 기록), front·pending·unmeasured_front 빈 tuple.
+  front 점 행: `slice_rounds` 칸 없음, `finger_residual` = **실현** 스냅샷 `dc_finger.residual`. `realize.lost` 항목 상세에 출력 전용 `small_m`(실현 스냅샷(실패면 부분 스냅샷) `dc_finger` 에서 m ≤ 2 인 MOS 이름 정렬 목록, 없으면 None).
+  `perf` 에 `wf_neighbor_evals`·`wf_neighbor_wall_s`(출력 전용) 두 칸 추가(25칸).
 - [NFR-4 재확인 (c)] 진입에서 `blas_environment()` 를 한 번 불러(실패는 `RuntimeError`) 그 값의 core `fp_of` 를 runs 줄 최상위 키 `env_fp` 에 둔다. notes 에는 언제나 정확히 한 줄
   `{verdict "l_search", rule "LR10", stops [...]}`(= `sweep_front` 의 `lb_stops`, L-b 가 돌지 않았으면 빈 목록)가 더해진다 -- runs 줄 notes 와 `SearchFront.notes` 에 함께. NFR-4 card 2 는 `perf` 키를 바꾸지 않았다(card A 가 `lut_memo_bound` 를 더했다, §3.16 아래).
 - [r5] 순서: deadline 설정 -> `layer0_start(sctx)` -> `start_points(sctx, given_starts, (층 0 start,) 또는 ())` -> 스윕. notes 의
@@ -615,7 +625,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 5. `evaluate(sctx, theta, cells, ...)` 는 맨 앞에서 `expand_ties(sctx.domain.ties, theta, sctx.domain.negated, sctx.domain.zeros)` 로 채운다 -- 호출부는 대표 성분만 넘겨도 되고, 구성원 값이 있으면 대표가 이긴다.
    평가 키·`EvalResult.theta`·S3 기록은 확장된 전체 θ 다. 원뿔 행이 묶인 θ 전류를 읽으면 `layer0_center` 는 항을 대표 변수 열에 부호만큼 곱해 합치고, 구조적 0 전류는 상수 0 으로 읽는다
    (`_current_alias`·`_current_fixed`). `_repair` 의 후보 소자가 묶인 구성원이면 대표의 `ln_idu` 좌표를 움직인다.
-6. L: `l_cells` 는 대표 MOS 만 갖는다(`cells` 벡터도 대표만). 구성원은 대표와 같은 칸이다(같은 kind 표, 자기동형). `polish_l_cells` 가 대표 칸을 옮기면 구성원도 함께 옮겨진다(평가 확장이 같은 L 을 준다).
+6. L: `l_cells` 는 대표 MOS 만 갖는다(`cells` 벡터도 대표만). 구성원은 대표와 같은 칸이다(같은 kind 표, 자기동형). `polish_cells` 가 대표 칸을 옮기면 구성원도 함께 옮겨진다(평가 확장이 같은 L 을 준다).
 7. spec 해제: `human.search.untie_orbits = {<원소>: {"source": {...user_spec}}}`(SPEC_CONTRACT). 원소가 속한 궤도를 묶지 않는다: 비전류 성분은 그 궤도의 묶음을 만들지 않고, θ 전류는 (연립을 그대로 풀되) 그 궤도의
    원소가 소거 변수이거나 대표인 관계·구조적 0 을 받지 않는다(다른 원소의 대칭이 KCL 로 만드는 관계도 그 궤도 변수에는 걸지 않는다). 원소가 없으면 `untie_element_unknown`, 궤도가 그 원소 하나뿐이면
    `untie_orbit_trivial`(둘 다 gate `search_domain`, detail `element`).

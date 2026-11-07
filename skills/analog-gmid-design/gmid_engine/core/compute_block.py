@@ -118,13 +118,19 @@ def _kind_fields(what, pairs):
 class ComputeBlock:
     """`compute_block` 이 만드는 호출 가능 객체. 직접 만들지 않는다."""
 
-    def __init__(self, fn, name, reads, writes):
+    def __init__(self, fn, name, reads, writes, keywords=()):
         self.fn = fn
         self.name = name
         self.reads = reads
         self.writes = writes
+        self.keywords = keywords
         self.code_hash = _code_hash(fn)
         self.__doc__ = fn.__doc__
+
+    def split(self, extras):
+        """전체 추가 인자 tuple -> (위치 인자, {필수 키워드 이름: 값}). 필수 키워드 값은 전체 extras 의 맨 뒤에 `keywords` 순서로 들어 있다(투영·입력 버전은 이 전체 extras 를 본다)."""
+        cut = len(extras) - len(self.keywords)
+        return tuple(extras[:cut]), dict(zip(self.keywords, extras[cut:]))
 
     def _prepare(self, snapshot, extras):
         """(투영, 입력 버전) -- 한 번만 만든다. extras 불변 검사(`TypeError`)는 이 투영에서 한 번."""
@@ -132,12 +138,15 @@ class ComputeBlock:
         return projection, fp_of((self.name, self.code_hash, projection.fp))
 
     def input_version(self, snapshot, *extras):
-        """입력 버전 정본 -- 블록 호출과 봉인 4 가 같은 식을 쓴다."""
+        """입력 버전 정본 -- 블록 호출과 봉인 4 가 같은 식을 쓴다. `extras` 는 필수 키워드 값을 맨 뒤에 포함한 전체 추가 인자다."""
         return self._prepare(snapshot, extras)[1]
 
-    def __call__(self, snapshot, *extras, donors, counters):
+    def __call__(self, snapshot, *extras, donors, counters, **named):
         if not isinstance(donors, Donors):
             raise TypeError("compute_block " + repr(self.name) + ": donors 는 Donors 하위여야 한다: " + type(donors).__qualname__)
+        if set(named) != set(self.keywords):      # 필수 키워드(기본값 없음): 빠지거나 모르는 키워드가 있으면 TypeError
+            raise TypeError("compute_block " + repr(self.name) + ": 필수 키워드 인자 " + repr(self.keywords) + " 와 다른 키워드 " + repr(tuple(sorted(named))))
+        extras += tuple(named[k] for k in self.keywords)
         projection, version = self._prepare(snapshot, extras)
         name = self.name
         if snapshot.block_version(name) == version:
@@ -172,10 +181,12 @@ class ComputeBlock:
         return written
 
 
-def compute_block(name, reads=(), writes=()):
+def compute_block(name, reads=(), writes=(), keywords=()):
     """계산 블록 데코레이터. `name`: 비어 있지 않은 문자열(= writer 이름). `reads`·`writes`: (kind, field) 쌍들.
 
     `writes` 는 비어 있으면 안 된다. 선언 형식 위반은 데코레이트할 때 `ValueError`.
+    `keywords`: 기본값 없는 필수 키워드 추가 인자 이름들(호출 `block(snapshot, *extras, 이름=값, donors=, counters=)`, 빠지면 `TypeError`).
+    값은 위치 extras 뒤에 붙어 투영·입력 버전에 든다.
     """
     if not isinstance(name, str) or not name:
         raise ValueError("compute_block: name 은 비어 있지 않은 문자열이어야 한다")
@@ -185,6 +196,6 @@ def compute_block(name, reads=(), writes=()):
         raise ValueError("compute_block: writes 가 비어 있다 -- 결과를 graph 에 쓰지 않는 블록은 계산 블록이 아니다")
 
     def decorate(fn):
-        return ComputeBlock(fn, name, read_pairs, write_pairs)
+        return ComputeBlock(fn, name, read_pairs, write_pairs, tuple(keywords))
 
     return decorate

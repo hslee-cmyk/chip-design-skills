@@ -1,9 +1,10 @@
 """GB7 공개 API -- 후보 θ 하나를 DC 정본(노드전압·가지전류·소자 op)으로 풀고 봉인한다 (설계 3.2·5절 `size_and_seal`,
 계획 N3.5 평가 커널 ②③④⑤ -> 봉인, 요구 3.2).
 
-진입점: `size_and_seal(ctx, theta, parent=None, w_request=()) -> DcEvaluation`.
+진입점: `size_and_seal(ctx, theta, wf, parent=None, w_request=(), realized=None, layout=None) -> DcEvaluation`.
 
-* `ctx` = `build_kernel_context` 결과(S0 당 1회). `theta` = `check_theta` 가 받는 {(kind, key): 값} 또는 `Theta`.
+* `ctx` = `build_kernel_context` 결과(S0 당 1회). `theta` = `check_theta` 가 받는 {(kind, key): 값} 또는 `Theta`. `wf` = `WfInput`(평가 입력 w_f 칸 -- 필수 위치 인자, 기본값 없음;
+  소자의 슬라이스 = 소자가 든 칸의 `wf.keys` 값, FS-1).
 * `parent` = 같은 ctx 에서 나온 이전 `DcEvaluation`(FD 스텝의 기준점·SLSQP 직전 반복 등) 또는 None(ctx.base 에서 시작).
   블록은 입력 버전이 같으면 계산하지 않고 parent 스냅샷에서 `derive_child(base writer ∪ 커널 블록 ∪ 봉인 항목 블록 여덟)` 로 남긴 필드를 그대로 쓴다(필드가 곧 재사용, 구조 공유;
   `dc_seal_report` 는 keep 밖이라 같은 입력이면 S3 graft).
@@ -18,7 +19,7 @@
   parent 에 의존하지 않으므로 같은 θ 는 parent 와 무관하게 같은 봉인 결과를 낸다. 수동소자 θ 만 바뀐 자식의 DC 재사용은 입력 버전 일치로 성립한다.
 * **W_request**(설계 40 §3.7, 계획 N3.17 LY3): `w_request` = {MOS: W(m)} 또는 ((MOS, W), ...) -- 그 소자의 W 는 고정 입력이다. 쓰기 소자의 θ
   ln IDu 는 무시되고 ln(ID·L/W) 로 대체되며(ID·L 은 ②③ 이 정한 값), 종속 소자는 요청 W 로 `dc_solve` 가 쓰고 봉인 3 이 어긋남을 판정한다.
-* **실현 평가**(설계 40 §3.7-A 2-5 (ii)): `realized` = `RealizedFinger`(탐색 스냅샷 참조 + (MOS, m, w_s) 지문) -- `dc_solve` 가 그 (m, w_s) 로 W' 고정 KCL 을 다시 푼다. `parent`
+* **실현 평가**(설계 40 §3.7-B 4 (ii)): `realized` = `RealizeInput`(탐색 스냅샷 참조; 지문 = 실현 표지) -- `dc_solve` 가 칸마다 `realize_fingers` 로 m 을 정해 W' = m·w_f 로 W' 고정 KCL 을 다시 푼다. `parent`
   는 쓰지 않는다(`ctx.base` 에서 따로 시작). `w_request` 와 함께 줄 수 없다(`ValueError`).
 * **레이아웃 뒤 평가**(설계 40 §3.7-A 6 '재평가 꼴', 계획 N6.32 범위 5): `layout` = `RealizedGeometry` 와 기준 스냅샷을 나르는 `realized` 를 함께 준다 -- 실현 평가와 같은 `dc_solve` 재풀이이고
   W' 만 레이아웃 기하(배치 nf·finger_w, 요청 W)에서 온다. `parent` 는 graph 재사용에만 쓴다.
@@ -28,5 +29,5 @@
 from .kernel_run import run_kernel
 
 
-def size_and_seal(ctx, theta, parent=None, w_request=(), realized=None, layout=None):
-    return run_kernel(ctx, theta, parent, w_request, True, realized, layout)
+def size_and_seal(ctx, theta, wf, parent=None, w_request=(), realized=None, layout=None):
+    return run_kernel(ctx, theta, wf, parent, w_request, True, realized, layout)

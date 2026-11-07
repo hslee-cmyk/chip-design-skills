@@ -1,17 +1,19 @@
 """평가 커널 조립 -- θ 하나 -> GB7 DC 정본 + 봉인 + 목적 + 제약, 캐시·S3 (설계 design_mod6_search_front 2.2·2.3·7절).
 
-진입점: `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None, realized=None) -> EvalResult`.
+진입점: `evaluate(sctx, theta, cells, wf, parent=None, origin=(), geometry=None, realized=None) -> EvalResult`.
 
-* [WB-1] `realized` = `sizing.RealizedFinger`(실현 평가: front 점의 θ + 탐색 스냅샷의 (m, w_s)) -- 키의 `w_fixed_fp` = `realized.fp`, `parent` 는 쓰지 않고 `ctx.base` 에서 따로 시작한다
-  (탐색 스냅샷의 child 가 아니다). `geometry` 와 동시에 주면 `ValueError`.
+* [FS-1] `wf` = `sizing.WfInput`(평가 입력 w_f 칸 -- 필수 인자, 기본값 없음): 키의 `wf_fp` = `fp_of(wf)`(같은 θ·다른 칸 = 다른 키), S3 줄 `wf_keys`.
+* [FS-1] `realized` = `sizing.RealizeInput`(실현 평가: front 점의 θ + 탐색 스냅샷 참조 -- 칸마다 DC 블록이 `realize_fingers` 로 m 을 정한다) -- 키의 `w_fixed_fp` = `fp_of(realized)`(실현 표지만; 탐색 스냅샷 지문을
+  덧대지 않는다 -- 탐색 스냅샷은 같은 (θ, 칸, `wf`)의 함수), `parent` 는 쓰지 않고 `ctx.base` 에서 따로 시작한다(탐색 스냅샷의 child 가 아니다). `geometry` 와 동시에 주면 `ValueError`.
 
 * `theta` = {(kind, key): 값} 또는 쌍 iterable(스키마 전 성분), `cells` = L 칸 index 벡터(MOS 이름순), `parent` = 같은
   컨텍스트의 이전 EvalResult(그 `evaluation` 스냅샷을 sizing 이 재사용 -- 바뀐 성분을 읽는 블록만 다시 계산, 필드가 곧 캐시),
   `origin` = S3 기록용 ((키, 값), ...)(단계·ε·시작점 -- 키 밖).
 * [U14] `geometry` = `sizing.RealizedGeometry`(MOD8 재검증, LY7·LY8) -- 레이아웃 뒤 실현 기하로 평가한다: 실현 평가와 같은 W'·바이어스 고정 KCL 재풀이 + 봉인 전 항목이다(설계 40 §3.7-A 6 '재평가 꼴').
-  W' = nf·finger_w, 입력 손가락 = 배치 소자 `layout_ref` (nf, finger_w)·요청 대기 소자 `w_request` 요청 손가락 행(`dc_solve` 가 `slice_of_finger`, 선택 함수 호출 0, 행 없음 = `realized_finger_missing`), 실현 확산 기하(`layout_ref`)는 접합 용량이 읽는다.
+  W' = nf·finger_w, 입력 손가락 = 배치 소자 `layout_ref` (nf, finger_w)·요청 대기 소자 `w_request` 요청 손가락 행(`dc_solve` 가 `slice_of_finger`), 행 없는 소자 = 기준 스냅샷 `dc_finger.m`·`w_key`(정수화 함수 호출 0),
+  실현 확산 기하(`layout_ref`)는 접합 용량이 읽는다.
   **`parent` = 기준 스냅샷**(레이아웃 입력 기준점 = 사이징 점, 필수 -- 없으면 `ValueError`): 측정 구성·피벗 갈래·입력 값을 그 스냅샷 `evaluation.snapshot` 에서 참조로 읽는다
-  (사본 0, 실현 평가의 `RealizedFinger.search_ref` 와 같은 자리). 키의 `w_fixed_fp` = 기하 지문(없으면 None) -- 기준 스냅샷은 같은 (θ, 칸)에서 정해지는 점이라 키 성분이 아니다. 같은 (θ, 기하)는
+  (사본 0, 실현 평가의 `RealizeInput.search_ref` 와 같은 자리). 키의 `w_fixed_fp` = 기하 지문(없으면 None) -- 기준 스냅샷은 같은 (θ, 칸)에서 정해지는 점이라 키 성분이 아니다. 같은 (θ, 기하)는
   캐시 적중이고 기하가 다르면 다른 점이다.
 * 순서: 요청 계수 -> 키(`eval_key`) -> 메모리 캐시(그 실행에서 평가한 성공·실패) 적중이면 그대로(커널 0) -> 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 `STATUS_OUTSIDE_DOMAIN`(커널 0, 정의역 밖) -> `size_and_seal`.
 * 후보 실패는 `CANDIDATE_FAILURE_CLASSES` 만 이름으로 잡아 `STATUS_FAILED` + FailureRecord(N3.14) + 부분 스냅샷(`EvalResult.partial` = 예외의 `partial`, 실패 직전까지
@@ -27,7 +29,7 @@ from collections.abc import Mapping
 
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, fp_of
 from gmid_engine.metrics import REPORT_BLOCK_RESIDUAL, metrics_dc, passive_values, ss_evaluate, theta_passive_pairs
-from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, DcEvaluation, RealizedFinger, size_and_seal
+from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, DcEvaluation, RealizeInput, size_and_seal
 
 from .cone_rows import cone_rows
 from .constraints import constraint_rows
@@ -68,10 +70,10 @@ def _block_residual_rows(snapshot):
     return [[list(kv) for kv in rep] for name, rep in bundle.reports if name == REPORT_BLOCK_RESIDUAL]
 
 
-def _record(sctx, result, origin):
+def _record(sctx, result, origin, wf):
     if sctx.archive is None:
         return
-    rec = {"seq": result.seq, "schema_fp": sctx.schema_fp, "cells": list(result.key.cells),
+    rec = {"seq": result.seq, "schema_fp": sctx.schema_fp, "cells": list(result.key.cells), "wf_keys": list(wf.keys),
            "w_fixed_fp": result.key.w_fixed_fp, "theta_hex": list(result.key.theta_hex),
            "theta": [[list(k), v] for k, v in result.theta], "status": result.status,
            "ok": result.status in ACCEPTED_STATUSES, "origin": dict(origin)}
@@ -93,7 +95,7 @@ def _record(sctx, result, origin):
     sctx.archive.append_eval(rec)
 
 
-def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None, realized=None):
+def evaluate(sctx, theta, cells, wf, parent=None, origin=(), geometry=None, realized=None):
     if geometry is not None and realized is not None:
         raise ValueError("evaluate: geometry(레이아웃 뒤)와 realized(실현 평가)는 동시에 줄 수 없다")
     if geometry is not None and (parent is None or parent.evaluation is None):
@@ -103,8 +105,8 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None, realized
     theta = expand_ties(sctx.domain.ties, theta if isinstance(theta, Mapping) else dict(theta),
                          sctx.domain.negated, sctx.domain.zeros)    # [r12] 묶인 성분은 대표 값
     pairs = tuple(sorted(theta.items()))
-    key = eval_key(sctx.context_fp, sctx.schema_fp, pairs, cells,
-                   fp_of(geometry) if geometry is not None else (None if realized is None else realized.fp))
+    key = eval_key(sctx.context_fp, sctx.schema_fp, pairs, cells, fp_of(wf),
+                   fp_of(geometry) if geometry is not None else (None if realized is None else fp_of(realized)))
     hit = sctx.cache.get(key)
     if hit is not None:
         sctx.counters["hits"] += 1
@@ -131,10 +133,10 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None, realized
     evaluation, failure, partial, objectives, rows, status = None, None, None, None, (), STATUS_FAILED
     try:
         if geometry is None:
-            evaluation = size_and_seal(dc, dict(pairs), parent=base, realized=realized)
+            evaluation = size_and_seal(dc, dict(pairs), wf, parent=base, realized=realized)
         else:
-            reference = RealizedFinger(base.snapshot, base.snapshot.fp)         # 기준 스냅샷 참조 + 그 지문(블록 입력 버전 성분)
-            evaluation = size_and_seal(dc, dict(pairs), parent=base, realized=reference, layout=geometry)
+            reference = RealizeInput(base.snapshot)         # 기준 스냅샷 참조(지문 = 실현 표지 -- 스냅샷 지문을 덧대지 않는다)
+            evaluation = size_and_seal(dc, dict(pairs), wf, parent=base, realized=reference, layout=geometry)
     except CANDIDATE_FAILURE_CLASSES as exc:
         failure, partial = exc.record, exc.partial
     unmeasured, bundle = (), None
@@ -173,5 +175,5 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None, realized
     if memo.bound_state == "window_open":
         memo.fix_bound()         # 결과를 만든 직후(성공·후보 실패 모두) 창 닫기 + 상한 (n_θ + 1)·U_eval 고정
     sctx.cache[key] = result
-    _record(sctx, result, origin)
+    _record(sctx, result, origin, wf)
     return result

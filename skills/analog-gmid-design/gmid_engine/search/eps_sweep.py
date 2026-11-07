@@ -1,8 +1,8 @@
 """탐색 축 front -- 양 끝점 + ε 두 방향 스윕 + 비지배 필터 + L-b (설계 design_mod6_search_front 6.3, DEC-77·80, LR10).
 
-진입점: `sweep_front(sctx, starts) -> dict`(키: solves, front, pending_front, failed_eps, resolution, lb_stops, *_removed, *_folded).
+진입점: `sweep_front(sctx, starts) -> dict`(키: solves, front, pending_front, failed_eps, resolution, lb_stops, wf_neighbor, *_removed, *_folded).
 
-1. 양 끝점: 시작점(분지 = 시작점마다, L-c multi-start)마다 전력 최소·면적 최소를 ε 없이 푼다. 축별 최솟값 해가 E_P·E_A.
+1. 양 끝점: 시작점(분지 = 시작점마다, L-c multi-start -- 시작점의 평가 키가 다르면(L 칸 벡터 또는 w_f 칸 키 벡터가 다르면) 다른 분지, LR10 (W-c))마다 전력 최소·면적 최소를 ε 없이 푼다. 축별 최솟값 해가 E_P·E_A.
 2. ε 격자: 면적 방향 = A(E_A) < ε_A < A(E_P) 를 b_A 간격으로 E_P 쪽부터(전력 최소화, 직전 해 warm start), 전력 방향 =
    P(E_P) < ε_P < P(E_A) 를 b_P 간격으로 E_A 쪽부터(면적 최소화). 격자의 b_P = max(b_P(E_P), b_P(E_A)). 두 방향을 모두 돈다.
 3. 예산 게이트(DEC-80, **평가 수로 센다 -- 결정론**): ε 점 총수 > N_ε = ⌊(E_B − E_fixed)/e_ε⌋ 이면 간격을 2배씩 넓히고 배수를
@@ -11,13 +11,15 @@
 4. 비지배 필터(`nondominated`): 축 (power_dc_w, area_search_m2), 동률 폭 = (두 점 b_P 중 큰 값, b_A), slack = 활성 제약 c 합.
    **봉인된 점(`STATUS_SEALED`)만 최종 front** 로, 봉인 7 대기 점(`STATUS_PENDING_SEAL7`)은 따로 `pending_front` 로 거른다
    (`seal7_pending` 스위치 -- 대기 점은 최종 front 에 들어가지 못한다).
-5. L-b(`polish_l_cells`)는 필터를 통과한 점에만 돌리고 새 점을 4 로 되돌린다(한 번). L-b 실행마다 `{"class", "l_from", "stop", "accepted"}` 를 실행 순서대로 `lb_stops`(tuple) 에 모은다.
+5. 이웃 시험(`polish_cells` -- L 칸 + w_f 칸, L-b/W-b)은 필터를 통과한 점에만 돌리고 새 점을 4 로 되돌린다(한 번). 실행마다 `{"class", "l_from", "stop", "accepted"}` 를 실행 순서대로
+   `lb_stops`(tuple) 에 모으고, w_f 이동 시험의 평가 수와 벽시계 합을 `wf_neighbor` = (evals, wall_s)로 낸다(출력 전용 -- 결과 JSON `perf` 의 이웃 시험 칸).
 """
 import math
 import statistics
 
-from .l_bin_search import polish_l_cells
+from .l_bin_search import polish_cells
 from .pareto import nondominated_results
+from .point_wf import point_wf
 from .search_ceiling import search_ceiling
 from .search_values import AXIS_AREA, AXIS_POWER, STATUS_PENDING_SEAL7, STATUS_SEALED, FrontPoint, StartPoint
 from .slsqp_outer import solve_eps
@@ -29,7 +31,7 @@ def _value(result, axis):
 
 def _warm(solve, tag):
     best = solve.best
-    return StartPoint(tag, best.theta, best.key.cells, "warm")
+    return StartPoint(tag, best.theta, best.key.cells, point_wf(best.evaluation.snapshot), "warm")      # 이어 풀 점의 w_f 칸 = 직전 해가 평가한 입력 칸(LR10 (W-a))
 
 
 _CLASSES = (
@@ -121,12 +123,13 @@ def sweep_front(sctx, starts):
                     previous = solve
     out = {"failed_eps": tuple(failed), "resolution": tuple(sorted(resolution.items()))}
     lb_stops = []
+    wf_cost = {"evals": 0, "wall_s": 0.0}      # w_f 이동 시험 비용 합(출력 전용 -- 호출마다 `polish_cells` 가 더한다)
     for name, _status, _measured in _CLASSES:
         kept, removed, folded = _filter(sctx, entries, name)
         solves = dict(entries)
         extra = []
         for point in kept:
-            accepted, stop = polish_l_cells(sctx, solves[point.point_id], (("l_from", point.point_id),))
+            accepted, stop = polish_cells(sctx, solves[point.point_id], (("l_from", point.point_id),), wf_cost)
             lb_stops.append({"class": name, "l_from": point.point_id, "stop": stop, "accepted": len(accepted)})     # [NFR-4] L-b 실행마다 정지 사유(실행 순서)
             for n, new in enumerate(accepted):
                 extra.append(("L:" + point.point_id + ":" + str(n + 1), new))
@@ -140,4 +143,5 @@ def sweep_front(sctx, starts):
         out[name + "_folded"] = folded
     out["solves"] = tuple(entries)
     out["lb_stops"] = tuple(lb_stops)
+    out["wf_neighbor"] = (wf_cost["evals"], wf_cost["wall_s"])
     return out

@@ -1,6 +1,10 @@
 """matching L 하한(절대 offset 제약)과 offset 가드 부하 gm/ID 상한 (설계 41 §6.4-2·2a, 사용자 결정 2026-10-08 Q3; D-SId, 40 §11 U13 `iv_matching_l`).
 
-진입점: `matching_bounds(ctx, currents, lengths, gm_id_lo) -> MatchingBounds`.
+진입점: `matching_bounds(ctx, currents, lengths, gm_id_lo, gm_id_cap=None, wf_keys=None) -> MatchingBounds`.
+
+* **mismatch slope bin 의 손가락 폭 w_f**(FS-1, 계획 v6.39.3 DEC-108 (3) 끝): `wf_keys`(= {소자: 출발 w_f 칸 키}, 블록 안 값 -- 호출 인자) 가 있는 6단계 가드 경로는 그 소자 칸 키 × 제조 격자,
+  `wf_keys` 가 없는 4단계 L 하한 경로(L 선택 전 -- w_f 칸이 정해지기 전)는 LUT 선언 기준 폭 슬라이스의 폭 `w_ref_m`(`slice_of(ctx, kind).w_m`, 출발 W (가)와 같은 슬라이스). 칸 키가 None 인
+  소자(출발 불능)는 가드를 계산하지 않고 `wf_start_undefined` 로 비활성이다. 면적 항은 총 폭 W.
 
 * **절대 offset 제약이 있는 회로에서만 L 하한이 활성이다**(`offset_in_sigma_mv <= s`). 구조 가드(`offset_excess <= E`)만 있는 회로는 L 하한이 아니라 부하 gm/ID 상한으로 간다.
 * **mismatch 모델**(A_eff): 소자 하나의 게이트 환산 σ_VGS(W, L, 점) 는 U3 `mismatch_sigma_vgs` 가 낸다 -- LUT 감도 열 DVGS_k(변수 `vth0`·`toxe`·`voff`·`nfactor` 등 slope 변수 전수)에
@@ -20,7 +24,7 @@ import math
 import sys
 
 from gmid_engine.core import MILLI, SchemaRejectedError, SealViolationError
-from gmid_engine.lut import finger_slice, mismatch_sigma_vgs
+from gmid_engine.lut import mismatch_sigma_vgs
 from gmid_engine.sizing import bracket_root
 
 from ._helpers_curves import QUANTITY_IDU, QUANTITY_VGS, curve_bundle_of, curve_value, l_anchors, slice_of
@@ -37,6 +41,7 @@ from .start_values import (
     StartConflict,
 )
 
+REASON_WF_START_UNDEFINED = "wf_start_undefined"      # 소자 칸 키가 None(출발 불능) -- 가드 slope bin 폭을 정할 수 없다
 _METRIC_ABSOLUTE = "offset_in_sigma_mv"
 _METRIC_GUARD = "offset_excess"
 _LUT_ERRORS = (SealViolationError, SchemaRejectedError)
@@ -56,27 +61,37 @@ def _reason(exc):
     return dict(exc.record.detail).get("reason", WHY_NO_LUT)
 
 
-def _sigma_vgs(ctx, name, g, L, current):
-    """소자 `name` 의 σ_VGS(V) -- 폭 W = I·L/IDu(gm/ID, L), 기준 (VDS, VSB) 점."""
+def _slope_width(ctx, name, wf_keys):
+    """slope bin 의 손가락 폭 w_f: `wf_keys` 가 있으면 그 소자 칸 키 × 제조 격자(키가 None 이면 출발 불능 -- `wf_start_undefined`), 없으면(4단계, w_f 칸 이전) 기준 폭 슬라이스 폭 `w_ref_m`."""
+    d = ctx.by_name[name]
+    if wf_keys is None:
+        return slice_of(ctx, d.kind).w_m
+    key = wf_keys.get(name)
+    if key is None:
+        raise SealViolationError(devices=(name,), detail={"reason": REASON_WF_START_UNDEFINED})
+    return key * ctx.memo.lut.spec.manufacturing_grid_m
+
+
+def _sigma_vgs(ctx, name, g, L, current, wf_keys):
+    """소자 `name` 의 σ_VGS(V) -- 폭 W = I·L/IDu(gm/ID, L), 기준 (VDS, VSB) 점. slope bin 은 손가락 폭 w_f(`_slope_width`), 면적 항은 총 폭 W."""
     d = ctx.by_name[name]
     bundle = curve_bundle_of(ctx, d.name, d.kind, L)
     w = max(current * L / curve_value(bundle, QUANTITY_IDU, g), ctx.w_min_m)      # 실현 폭은 PDK 최소 finger 폭 W_min 이상(W 하한 제약 S-18): 그 아래 폭은 mismatch 모델 bin 밖이다
     vgs = curve_value(bundle, QUANTITY_VGS, g)
     curve = bundle[QUANTITY_IDU]
-    pick = finger_slice(ctx.memo.lut, d.kind, L, lambda _key: w)         # 출발 단계 선택 함수 한 번(상수 W -- 결과는 이 출발 블록 안 값, 필드 없음): slope bin 은 손가락 폭, 면적은 총 폭
-    return mismatch_sigma_vgs(ctx.memo, ctx.pdk.mismatch_model(d.kind), d.kind, d.w_key, L, vgs, curve.vds, curve.vsb, pick.w_f_m, w).sigma_v
+    return mismatch_sigma_vgs(ctx.memo, ctx.pdk.mismatch_model(d.kind), d.kind, d.w_key, L, vgs, curve.vds, curve.vsb, _slope_width(ctx, name, wf_keys), w).sigma_v
 
 
-def _sigma_from(ctx, name, g, L, current):
+def _sigma_from(ctx, name, g, L, current, wf_keys):
     """σ_VGS 를 gm/ID = g 에서 재되, 감도 열이 정의되지 않는 점(강반전 끝 등 `lut_mismatch_undefined`)이면 곡선 마디를 gm/ID 가 큰 쪽으로 올라가며 처음 정의된 점에서 잰다
     (입력 소자의 gm/ID 는 하한 이상 어디든 가능 -- 하한이 LUT 가 모르는 점이면 그 위 첫 정의 점이 하한의 가장 가까운 실현 가능 값이다). 하나도 정의되지 않으면 처음 예외를 던진다."""
     try:
-        return _sigma_vgs(ctx, name, g, L, current)
+        return _sigma_vgs(ctx, name, g, L, current, wf_keys)
     except _LUT_ERRORS as first:
         d = ctx.by_name[name]
         for node in sorted(float(x) for x in curve_bundle_of(ctx, d.name, d.kind, L)[QUANTITY_IDU].gm_id if x > g):
             try:
-                return _sigma_vgs(ctx, name, node, L, current)
+                return _sigma_vgs(ctx, name, node, L, current, wf_keys)
             except _LUT_ERRORS:
                 continue
         raise first
@@ -87,7 +102,7 @@ def _l_lower(ctx, name, current, g, sigma_share):
     d = ctx.by_name[name]
 
     def slack(L):
-        return sigma_share - _SQRT2 * _sigma_from(ctx, name, g, L, current)
+        return sigma_share - _SQRT2 * _sigma_from(ctx, name, g, L, current, None)      # 4단계(L 선택 전): slope bin 은 기준 폭 슬라이스 -- w_f 칸을 읽지 않는다
 
     anchors = [L for L in l_anchors(ctx, d.kind) if curve_bundle_of(ctx, d.name, d.kind, L) is not None]
     bins = slice_of(ctx, d.kind).l_bins
@@ -104,7 +119,7 @@ def _l_lower(ctx, name, current, g, sigma_share):
     return None
 
 
-def matching_bounds(ctx, currents, lengths, gm_id_lo, gm_id_cap=None):
+def matching_bounds(ctx, currents, lengths, gm_id_lo, gm_id_cap=None, wf_keys=None):
     absolute = [v for m, op, v in ctx.constraints if m == _METRIC_ABSOLUTE and op == "<="]
     guard = [v for m, op, v in ctx.constraints if m == _METRIC_GUARD and op == "<="]
     inputs, loads = guard_devices(ctx)
@@ -135,7 +150,7 @@ def matching_bounds(ctx, currents, lengths, gm_id_lo, gm_id_cap=None):
     try:
         if guard and loads:
             def term(name, g):
-                return (g * currents[name] * _sigma_vgs(ctx, name, g, lengths[name], currents[name])) ** 2
+                return (g * currents[name] * _sigma_vgs(ctx, name, g, lengths[name], currents[name], wf_keys)) ** 2
             term = Tolerant(term)
             found, lost = guard_bounds(ctx, inputs, loads, term, min(guard) ** 2 - 1, lengths, gm_id_lo,
                                        guard_input_gm_id(ctx, term, inputs, lengths, gm_id_lo, gm_id_cap), SRC_OFFSET_GUARD)

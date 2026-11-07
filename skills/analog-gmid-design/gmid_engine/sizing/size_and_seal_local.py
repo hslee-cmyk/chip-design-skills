@@ -1,6 +1,6 @@
 """블록 국소 봉인 -- 덮는 기둥만 판정하는 평가 커널 (설계 41 §5.3 '국소 봉인 인터페이스', 40 §3.7, 확인 행 D-LS).
 
-진입점: `size_and_seal_local(ctx, theta_block, fixed, columns) -> LocalSeal`.
+진입점: `size_and_seal_local(ctx, theta_block, fixed, columns, wf) -> LocalSeal`(`wf` = `WfInput`, 평가 입력 w_f 칸 -- 필수 인자, `run_kernel` 로 그대로 간다).
 
 층 0 블록 국소 후보(41 §5.3)가 부른다 -- 후보 하나의 봉인 판정에 전회로 실패가 섞이지 않게, 판정 대상을 `columns` 가 덮는 소자·노드로
 좁힌 커널 호출이다.
@@ -110,13 +110,13 @@ def _power(snapshot, devices):
     return total
 
 
-def size_and_seal_local(ctx, theta_block, fixed, columns):
+def size_and_seal_local(ctx, theta_block, fixed, columns, wf):
     if not isinstance(ctx, KernelContext):
         raise TypeError("size_and_seal_local: ctx 는 build_kernel_context 결과여야 한다")
     theta = _merge_theta(ctx, theta_block, fixed)
     elements, nets, mos = covered_sets(ctx, columns)
     try:
-        evaluation = run_kernel(ctx, theta, None, (), False)
+        evaluation = run_kernel(ctx, theta, wf, None, (), False)
     except (SealViolationError, NonconvergentError) as exc:
         return LocalSeal(False, (exc.record,), SnapshotFragment())
     failures = _failures(evaluation.report, elements, nets)

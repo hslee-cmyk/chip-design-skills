@@ -3,7 +3,7 @@
 진입점: `start_points(sctx, given, layer0=()) -> (tuple[StartPoint], tuple[dict])`(받아들인 시작점, 시작점마다 확인 기록).
 
 * 출처 순서: ① 층 0 시작점(`layer0` -- `layer0_start` 가 만든 StartPoint, DEC-71 최소형 = 봉인 여유 최대-최소 중심, 그 평가는
-  캐시에 있어 여기서 커널 0) ② 부르는 쪽이 넘긴 θ(`given`, 선언 x0). 이전 실행의 S3 front 점은 시작점으로 쓰지 않는다
+  캐시에 있어 여기서 커널 0; 평가 입력 w_f 칸은 그 시작점의 `wf`) ② 부르는 쪽이 넘긴 θ(`given`, 선언 x0; w_f 칸 = 출발값 `initial_wf(base)`). 이전 실행의 S3 front 점은 시작점으로 쓰지 않는다
   (S3 는 출력이다 -- 실행 사이 재사용 없음, NFR-2·U-89). 같은 평가 키는 한 번만.
 * 칸 벡터 = L 값마다 그 값을 품는 L 칸 index(칸 경계 1 ulp 포함). 품는 칸이 없으면 `ValueError`(정의역 밖 θ).
 * 단일 평가는 평가 전에 탐색 예산을 본다(`search_stop`): 주어진 시작점(`given`)이 예산(또는 벽시계)에 닿으면 그 후보와 그 뒤 후보를 평가하지 않고 기록에 `status` = 정지 사유
@@ -15,6 +15,7 @@ import math
 
 from gmid_engine.sizing import THETA_L
 
+from .initial_wf import initial_wf
 from .kernel import evaluate
 from .search_stop import search_stop
 from .search_values import ACCEPTED_STATUSES, STAGE_START, StartPoint
@@ -33,11 +34,15 @@ def _cells_of(sctx, theta):
 
 
 def start_points(sctx, given, layer0=()):
-    candidates = [(s.source, s.theta) for s in layer0]
-    candidates += [("given", tuple(sorted(dict(t).items()))) for t in given]
+    candidates = [(s.source, s.theta, s.wf) for s in layer0]
+    if given:
+        initial = initial_wf(sctx.dc.base)          # 주어진 θ 의 첫 w_f 칸 = 출발값(LR10 (W-a)); 출발 불능이면 호출 계약 위반(진입 `find_front` 가 먼저 멈춘다)
+        if initial is None:
+            raise ValueError("start_points: 출발 w_f 칸이 정의되지 않아(wf_start_undefined) 주어진 시작점을 평가할 수 없다")
+        candidates += [("given", tuple(sorted(dict(t).items())), initial) for t in given]
     starts, log, seen = [], [], set()
     halted = None          # 주어진 시작점에서 예산에 닿은 사유 -- 이 뒤 후보는 평가하지 않는다
-    for n, (source, theta) in enumerate(candidates):
+    for n, (source, theta, wf) in enumerate(candidates):
         cells = _cells_of(sctx, theta)
         start_id = "s" + str(n + 1)
         if source == "given":
@@ -45,7 +50,7 @@ def start_points(sctx, given, layer0=()):
             if halted is not None:
                 log.append({"id": start_id, "source": source, "status": halted, "seq": None})
                 continue
-        res = evaluate(sctx, theta, cells, origin=(("stage", STAGE_START), ("start", start_id)))
+        res = evaluate(sctx, theta, cells, wf, origin=(("stage", STAGE_START), ("start", start_id)))
         entry = {"id": start_id, "source": source, "status": res.status, "seq": res.seq}
         if res.failure is not None:
             entry["fail"] = res.failure.to_json()
@@ -53,5 +58,5 @@ def start_points(sctx, given, layer0=()):
         if res.key in seen or res.status not in ACCEPTED_STATUSES:
             continue
         seen.add(res.key)
-        starts.append(StartPoint(start_id, res.theta, cells, source))
+        starts.append(StartPoint(start_id, res.theta, cells, wf, source))
     return tuple(starts), tuple(log)

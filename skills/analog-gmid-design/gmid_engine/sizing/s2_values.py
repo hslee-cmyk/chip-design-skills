@@ -236,7 +236,7 @@ class ThetaClass:
 @dataclasses.dataclass(frozen=True)
 class LutAccess:
     """계산 블록 추가 인자로 넘기는 LUT 손잡이. `memo` = lut.LutMemo(graph 밖 유일 memo). 지문(`__canonical__`)은 LUT 내용 지문이라 같은 LUT 면 블록 입력 버전이
-    같고, memo 상태(캐시)는 결과에 영향이 없어 지문에 들지 않는다. 소자별 폭 슬라이스는 블록 안 값(`finger_slice` 선택)이라 이 손잡이에 칸이 없다(WB-1)."""
+    같고, memo 상태(캐시)는 결과에 영향이 없어 지문에 들지 않는다. 소자별 폭 슬라이스는 이 손잡이에 칸이 없다 -- 평가 입력 `WfInput`(w_f 칸 키)이 정한다(FS-1)."""
 
     memo: object
 
@@ -246,22 +246,63 @@ class LutAccess:
 
 @dataclasses.dataclass(frozen=True)
 class FingerGeom:
-    """`device.dc_finger` 한 소자: 손가락 수 `m`, 슬라이스 폭 `w_f_m`(m), 잔차 `residual` = m·w_f/W − 1 (탐색 평가는 선택 잔차, 실현 평가는 0.0)."""
+    """`device.dc_finger` 한 소자: 손가락 수 `m`(탐색 평가 = W/w_f 실수, 실현·레이아웃 뒤 평가 = 정수), 잔차 `residual` = m·w_f/W_θ − 1 (탐색 평가 0.0,
+    실현 평가 = 실현 W 대 θ W 비 오차). 손가락 폭 w_f 는 칸을 두지 않는다 -- 그 평가 `DeviceOp.w_key`(평가 입력 칸 키) × 제조 격자(FS-1, 값 사본 0)."""
 
-    m: int
-    w_f_m: float
+    m: float
     residual: float
 
 
 @dataclasses.dataclass(frozen=True)
-class RealizedFinger:
-    """실현 평가 입력: `search_ref` = 탐색 평가 스냅샷 참조(`device.dc_finger` 를 읽는다), `fp` = (MOS, m, w_s) 열 지문 -- 평가 키 성분(참조 + 지문, 값 사본 아님)."""
+class WfCell:
+    """w_f 칸 하나(FS-1, 계획 DEC-108 (2)): `members` = 정합 묶음 폐포 칸 멤버(정준 위치 순), `w_key` = 칸 슬라이스 키(격자 정수) 또는 None(출발 불능)."""
 
-    search_ref: object
-    fp: str
+    members: tuple
+    w_key: object
+
+
+@dataclasses.dataclass(frozen=True)
+class WfInput:
+    """평가 입력 w_f 칸(FS-1): `cells_ref` = `graph/start: wf_start` 값 객체 그대로(참조 -- 사본 0), `keys` = 칸마다 슬라이스 키(격자 정수). 지문 = 칸 구조 + `keys`
+    (`WfCell.w_key` 출발값은 이 평가의 입력이 아니라 지문에 들지 않는다)."""
+
+    cells_ref: tuple
+    keys: tuple
+
+    def __post_init__(self):
+        if len(self.keys) != len(self.cells_ref) or not all(isinstance(k, int) and not isinstance(k, bool) for k in self.keys):
+            raise ValueError("WfInput: keys 는 cells_ref 와 길이가 같은 정수 tuple 이어야 한다")
 
     def __canonical__(self):
-        return ("realized_finger", self.fp)         # 참조의 지문 -- 스냅샷 값을 입력 버전에 옮겨 담지 않는다
+        return ("wf_input", tuple(c.members for c in self.cells_ref), tuple(self.keys))
+
+
+@dataclasses.dataclass(frozen=True)
+class RealizeInput:
+    """실현 평가 입력(FS-1): `search_ref` = 탐색 평가 스냅샷 참조(`device.dc_op` W 열·`node.dc_v`·피벗 판정을 읽는다). 지문 = 실현 표지뿐 -- 탐색 스냅샷은 같은 평가 입력
+    (θ, L 칸, `WfInput`)의 함수라 입력 버전에 덧대지 않는다(같은 입력 두 표현 0)."""
+
+    search_ref: object
+
+    def __canonical__(self):
+        return ("realize_input",)
+
+
+@dataclasses.dataclass(frozen=True)
+class DeclaredRatio:
+    """칸 안 선언 미러 비 하나(FS-1 `realize_fingers` 입력): `reference` = 기준 멤버 위치(`w_theta` 안 index), `outputs_with_k` = ((출력 멤버 위치, 선언 비 k), ...)."""
+
+    reference: int
+    outputs_with_k: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class RealizedCell:
+    """`realize_fingers` 결과: `m` = 멤버 순서 정수 손가락 수, `ratio_err` = 고른 벡터의 E1(쌍 비 오차), `member_err` = 고른 벡터의 E2(멤버 오차 최댓값)."""
+
+    m: tuple
+    ratio_err: float
+    member_err: float
 
 
 @dataclasses.dataclass(frozen=True)
@@ -432,7 +473,6 @@ class SccLog:
     k_max: object
     method: str = SCC_DIRECT
     fallback: object = None
-    slice_rounds: int = 1
 
 
 @dataclasses.dataclass(frozen=True)

@@ -158,7 +158,7 @@ loop:
 | 위치 | 변경 |
 |---|---|
 | `sizing.RealizedGeometry(layout_ref, w_request)` | 새 데이터 타입(`sizing/s2_values.py`, `sizing.__all__`) -- 참조 + 값(`w_keys`·`diffusion` 칸 없음) |
-| `search.evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None)` | `geometry` 가 있으면(기준 스냅샷 `parent` = 사이징 점 필수, 없으면 `ValueError`) `size_and_seal(realized=RealizedFinger(기준 스냅샷), layout=geometry)`·`ss_evaluate(diffusion=geometry.layout_ref)` 로 평가한다 -- 실현 평가와 같은 W'·바이어스 고정 KCL 재풀이 + 봉인 전 항목(v6.38.21). 평가 키의 기하 칸은 기하 지문. 없으면 종전과 같다 |
+| `search.evaluate(sctx, theta, cells, wf, parent=None, origin=(), geometry=None)` | `wf` = 평가 입력 w_f 칸(`search.point_wf(기준 점 스냅샷)`, FS-1). `geometry` 가 있으면(기준 스냅샷 `parent` = 사이징 점 필수, 없으면 `ValueError`) `size_and_seal(wf, realized=RealizeInput(기준 스냅샷), layout=geometry)`·`ss_evaluate(diffusion=geometry.layout_ref)` 로 평가한다 -- 실현 평가와 같은 W'·바이어스 고정 KCL 재풀이 + 봉인 전 항목(v6.38.21). 입력 손가락 = 요청 행 / 기준 점 `dc_finger.m`·`DeviceOp.w_key`(FS-1). 평가 키의 기하 칸은 기하 지문. 없으면 종전과 같다 |
 | `metrics.ss_evaluate(..., diffusion=())` · `metrics.ss_dev(snapshot, lut, junction, diffusion)` | 있는 소자의 cdb·csb 를 실현 확산 기하로(`junction_model` = `JUNCTION_LAYOUT_DIFFUSION`), 없는 소자는 LUT 생성 규칙. 빈 `diffusion` 은 입력 버전이 종전과 같다 |
 | `metrics.passive_values(snapshot, ctx, theta)` | `ss_evaluate._passive_values` 를 새 파일로 옮겨 공개(수동소자 값 정본 -- 판정 축 면적 입력과 공유) |
 | `layout.__all__` | `area_tie_m2`·`passives_from_decl`·role·패턴 이름 상수 추가 |

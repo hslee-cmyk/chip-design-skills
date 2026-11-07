@@ -109,7 +109,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
         stop = search_stop(sctx)
         if stop is not None:
             raise _Abort(stop, x)
-        res = evaluate(sctx, theta_of(x), start.cells, parent=state["parent"], origin=tag)
+        res = evaluate(sctx, theta_of(x), start.cells, start.wf, parent=state["parent"], origin=tag)
         if res.status not in ACCEPTED_STATUSES:
             raise _Abort("candidate_failure", x)
         if state["scales"] is None:          # 첫 받아들인 점(시작점)의 b_P 로 고정

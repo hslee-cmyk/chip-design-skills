@@ -1,6 +1,6 @@
 """평가 커널 본체 -- θ -> ②③④⑤ 계산 블록 -> 봉인 (설계 3.2·5절, 계획 N3.5 평가 커널).
 
-진입점: `run_kernel(ctx, theta, parent, w_request, raise_on_violation) -> DcEvaluation`.
+진입점: `run_kernel(ctx, theta, wf, parent, w_request, raise_on_violation, realized=None, layout=None) -> DcEvaluation`.
 `size_and_seal`(후보 위반이면 예외)과 `size_and_seal_local`(위반 보고서를 항목별로 읽는다)이 같은 계산을 쓴다. 규칙·순서·캐시는 `size_and_seal.py`
 머리 설명과 같다. 함께 있는 도우미: `normalize_w_request`(W_request 검증·정렬). 봉인 3 tol_I 의 gm 은 `dc_tolerances` 가 쓰는 자기 동작점
 `dc_gm` 이라 parent 에서 넘기는 입력이 없다(설계 40 §3.7-3) -- `parent` 는 같은 lineage 재사용(필드가 곧 캐시)에만 쓴다.
@@ -28,9 +28,10 @@ from .s2_values import (
     THETA_Y,
     DcEvaluation,
     KernelContext,
-    RealizedFinger,
     RealizedGeometry,
+    RealizeInput,
     Theta,
+    WfInput,
 )
 from .seal import SEAL_ITEM_BLOCKS, seal_dc
 from .seal_versions import writers_in_scope
@@ -58,22 +59,26 @@ def normalize_w_request(ctx, w_request):
 def _call_block(ctx, block, snapshot, extras, before):
     """블록 하나를 `ctx` 의 색인·계수로 부른다. 후보 실패면 그 블록에 들어간 `snapshot` 을 base writer ∪ `before`(앞 블록) 로 줄여 부분 스냅샷으로 붙여 다시 낸다
     (parent 의 낡은 필드를 지워 지문이 (평가 키, 실패 지점)만으로 정해진다 -- 계획 N3.3 실패 평가의 부분 스냅샷)."""
+    positional, named = block.split(extras)          # 필수 키워드 인자(dc_solve 의 `wf`)는 extras 맨 뒤 -> 키워드로 부른다
     try:
-        return block(snapshot, *extras, donors=ctx.donors, counters=ctx.counters)
+        return block(snapshot, *positional, donors=ctx.donors, counters=ctx.counters, **named)
     except CANDIDATE_FAILURE_CLASSES as exc:
         attach_partial(exc, snapshot.derive_child(writers_in_scope(ctx.base, before)))
         raise
 
 
-def run_kernel(ctx, theta, parent, w_request, raise_on_violation, realized=None, layout=None):
+def run_kernel(ctx, theta, wf, parent, w_request, raise_on_violation, realized=None, layout=None):
     """평가 커널 본체 -- `size_and_seal`(위반이면 예외)과 `size_and_seal_local`(위반 보고서를 그대로 읽는다)이 같은 계산을 쓴다.
-    `realized` = `RealizedFinger`(실현 평가: DC 블록이 W' 고정으로 다시 푼다) 또는 None. W_request 와 함께 줄 수 없다(`ValueError`).
+    `wf` = `WfInput`(평가 입력 w_f 칸 -- 필수 인자, 기본값 없음; `dc_solve` 의 필수 키워드로 간다).
+    `realized` = `RealizeInput`(실현 평가: DC 블록이 칸마다 `realize_fingers` 로 m 을 정하고 W' 고정으로 다시 푼다) 또는 None. W_request 와 함께 줄 수 없다(`ValueError`).
     `layout` = `RealizedGeometry`(레이아웃 뒤 평가: 실현 평가와 같은 W'·바이어스 고정 KCL 재풀이이고 W' 만 레이아웃 기하에서 온다) 또는 None. 기준 스냅샷을 나르는
     `realized` 와 함께만 주고 W_request 와는 함께 줄 수 없다(`ValueError`)."""
     if not isinstance(ctx, KernelContext):
         raise TypeError("size_and_seal: ctx 는 build_kernel_context 결과여야 한다")
-    if realized is not None and (not isinstance(realized, RealizedFinger) or w_request):
-        raise ValueError("size_and_seal: realized 는 RealizedFinger 여야 하고 w_request 와 함께 줄 수 없다")
+    if not isinstance(wf, WfInput):
+        raise TypeError("size_and_seal: wf 는 WfInput 이어야 한다")
+    if realized is not None and (not isinstance(realized, RealizeInput) or w_request):
+        raise ValueError("size_and_seal: realized 는 RealizeInput 이어야 하고 w_request 와 함께 줄 수 없다")
     if layout is not None and (not isinstance(layout, RealizedGeometry) or realized is None or w_request):
         raise ValueError("size_and_seal: layout 은 RealizedGeometry 여야 하고 기준 스냅샷 realized 가 필요하며 w_request 와 함께 줄 수 없다")
     base = ctx.base
@@ -112,6 +117,7 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation, realized=None,
         columns_extras += (layout, realized)
     elif realized is not None:
         columns_extras += (None, realized)
+    columns_extras += (wf,)         # 필수 키워드 `wf` 는 extras 맨 뒤(`dc_solve.split` 이 키워드로 가른다) -- 봉인 4 도 같은 extras 로 입력 버전을 다시 잰다
     later = list(zip(later_blocks, (columns_extras,)))
     for block, extras in later:
         snapshot = _call_block(ctx, block, snapshot, extras, done)

@@ -9,7 +9,8 @@ extras: `spec`, `inputs`(sizing `DcInputs`), `pdk_decl`(core `PdkDecl`), `lut`(s
 블록 안 읽기 묶음은 `iv_context.start_view`(`StartView`, 호출 안에서 만들고 버린다).
 **출력**(S0 수준 필드, 설계 40 §2.4.8 v1.9.1 D3, 묶음 객체 없음): `device: start.row`(`StartRow`)·`start.point`((VDS, VSB) -- 곡선을 읽은 소자 동작점),
 `graph/start`(key `START_KEY`): `conflicts`, `inactive`, `macro`, `rungs`(출발 사다리 `StartRung` tuple, 칸 0 = 선택점), `records`(매크로 모델 기록), `area_est_m2`, `area_fraction`(t),
-`uncovered`(구간이 정하지 못해 상자 중심으로 남은 θ 성분). 면적 예산은 spec 선언이라 필드로 두지 않는다(소비자가 spec 을 읽는다).
+`uncovered`(구간이 정하지 못해 상자 중심으로 남은 θ 성분), `wf_start`(FS-1: 출발 w_f 칸 `WfCell` tuple -- writer 는 이 블록 하나, 칸 폐포 계산 자리도 여기 하나).
+면적 예산은 spec 선언이라 필드로 두지 않는다(소비자가 spec 을 읽는다).
 
 **계산 순서**(41 §6.1, 순환 없음):
 0. 주극점 노드(`dominant_node`, 구조 판정, 매크로 모델을 쓰지 않는다).
@@ -18,6 +19,9 @@ extras: `spec`, `inputs`(sizing `DcInputs`), `pdk_decl`(core `PdkDecl`), `lut`(s
 3. 속도 L 상한(`speed_bounds`, §6.4-4; gm/ID_lo 사용).
 4. matching·면적 L 경계(`matching_bounds`·`area_bounds`, §6.4-2·5) -- 이 경계에 필요한 전류는 **1회차 매크로 모델**(gm/ID = gm/ID_lo, `current_model` + `macro_solve`)에서 가져온다.
 5. L 선택: L = max(L 하한들). L 동치류·자기동형 묶음은 구간의 교집합이고, LUT L 칸(bin) 안 값으로 맞춘다(LR3: 칸 하한이 L 보다 크면 그 칸의 하한, bin 사이 틈은 다음 칸).
+5a. 출발 w_f 칸(FS-1, 계획 DEC-108 (2)(3), 설계 40 §3.7-B 3): 정합 묶음 폐포 칸(`wf_start_value`)마다 멤버 출발 W(`member_start_w` -- 쓰기 멤버 I·L/IDu, 종속 멤버 I_i·L/IDu_짝: I = 4의 1회차 전류,
+   IDu = 1회차 gm/ID 의 기준 폭 슬라이스 곡선, L = 5의 L)의 최솟값 이하 가장 넓은 정의 후보 슬라이스를 `graph/start: wf_start` 로 한 번 쓴다(8의 전류는 돌아오지 않는다). 4의 L 경계는 w_f 칸을
+   읽지 않는다(slope bin = 기준 폭 슬라이스, A-178 S-1). 6의 가드 slope bin 은 이 칸 키를 읽는다. 출발 불능 칸은 기록 `wf_start_undefined`(대체값 0).
 6. 그 L 에서 gm/ID 하한(헤드룸 §6.2, **LUT 역산 정의역** `domain_bounds`, 최소 폭 W ≥ W_min)·상한(속도 §6.3, offset·열잡음 가드 §6.4-2a·§7.5, 면적 §6.4-5, LUT 역산 정의역)을 다시 낸다.
    같은 VGS 묶음(`parallel_vgs`)은 gm/ID 구간의 교집합 하나를 공유한다. 소자 동작점(곡선을 읽는 VDS·VSB)은 포화 경계와 헤드룸 예산의 중점 VDS, 첫 VS 격자점이다.
 7. gm/ID 선택: 구간의 **최댓값**(t = 1; 약반전일수록 VDSAT 가 작아 포화·헤드룸에 가장 여유가 있다), 단 그 점이 실행 가능하지 않으면 구간 안 위치 t(0 = 하한, 1 = 상한)를 줄여
@@ -37,11 +41,13 @@ import sys
 
 import numpy as np
 
-from gmid_engine.core import compute_block
-from gmid_engine.sizing import KERNEL_KEY, THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, bracket_root
+from gmid_engine.core import SealViolationError, compute_block
+from gmid_engine.graph import GRAPH_KEY, MATCH_BRANCH_SYMMETRIC, MATCH_DIFF_PAIR
+from gmid_engine.lut import is_slice_gap, op_point, widths
+from gmid_engine.sizing import COORD_WRITER, KERNEL_KEY, THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, bracket_root
 
 from ._helpers_area import area_estimate
-from ._helpers_curves import QUANTITY_FT, QUANTITY_IDU, curve_bundle, curve_bundle_of, curve_value, edge_cost, l_anchors, slice_of, snap_vds
+from ._helpers_curves import QUANTITY_FT, QUANTITY_IDU, QUANTITY_VGS, curve_bundle, curve_bundle_of, curve_value, edge_cost, l_anchors, slice_of, snap_vds
 from .dominant_node import RULE_NONE, DominantNode, dominant_node
 from .iv_area import area_bounds
 from .iv_context import start_view
@@ -54,6 +60,9 @@ from .iv_noise import noise_bounds
 from .iv_speed import speed_bounds
 from .macro_poles import macro_solve
 from .s0_fields import START_INTERVALS_WRITER, START_KEY, START_WRITES
+from .wf_member_w import member_start_w
+from .wf_partner import kvl_partner
+from .wf_start import CELL_STATUSES, wf_start_value
 from .start_values import (
     EDGE_VDS,
     MACRO_NONCONVERGENT,
@@ -235,14 +244,64 @@ READS = (
     ("device", "element_class"), ("device", "kind"), ("device", "pins"), ("device", "bulk"), ("device", "dc_colour"), ("device", "dc_coord"),
     ("node", "is_rail"), ("node", "dc_colour"), ("node", "port_direction"), ("node", "port_role"),
     ("graph", "dc_current_basis"), ("graph", "theta_schema"), ("graph", "l_ties"), ("graph", "search_domain"), ("graph", "passive_area_decl"),
-    ("graph", "views"), ("graph", "gain_checks"), ("graph", "local_inputs"),
+    ("graph", "views"), ("graph", "gain_checks"), ("graph", "local_inputs"), ("graph", "matching_groups"),
 )
+_WHY_REFERENCE_UNDEFINED = "reference_slice_undefined"        # 기준 폭 슬라이스에서 출발점 조회가 정의되지 않음(wf_start_undefined 의 why)
 
 
-def _fields(rows, points, conflicts, inactive, macro, rungs, records, area, t, uncovered):
+def _symmetric_partner(name, groups, writers, position):
+    """차동쌍·가지 대칭 묶음의 대칭 짝: `name` 이 든 그 묶음(칸을 만드는 status)의 다른 쓰기 멤버 가운데 정준 위치가 가장 앞선 것(균형 출발점의 같은 밀도). 없으면 None."""
+    found = sorted((m for role, members, status in groups if role in (MATCH_DIFF_PAIR, MATCH_BRANCH_SYMMETRIC) and status in CELL_STATUSES and name in members
+                    for m in members if m != name and m in writers), key=lambda m: position[m])
+    return found[0] if found else None
+
+
+def _wf_cells(ctx, groups, writers, gm_id, lengths, currents, bundles):
+    """5a 출발 w_f 칸 -- (칸 tuple, 기록 tuple). 멤버 출발 W(`member_start_w`)를 낸 뒤 칸 폐포·선택(`wf_start_value`)을 한 번 부른다. 점 = 1회차 gm/ID `gm_id`(= g_lo0)·5의 L `lengths`·
+    1회차 전류 `currents`(4단계 `matching_bounds` 에 넘긴 것과 같은 dict), IDu·조회는 기준 폭 슬라이스 곡선(`bundles`: 소자 동작점의 곡선 묶음). 종속 멤버의 짝 = 같은 VGS 묶음(`DeviceInfo.group`)의 같은
+    gate·source·bulk·kind 쓰기 멤버(`kvl_partner`), 없으면 차동쌍·가지 대칭 상대 쓰기 멤버."""
+    devices = ctx.devices
+    names = tuple(d.name for d in devices)
+    position = {d.name: d.colour for d in devices}
+    kinds = {d.name: d.kind for d in devices}
+    gate, source, bulk = {d.name: d.gate for d in devices}, {d.name: d.source for d in devices}, {d.name: d.bulk for d in devices}
+    vgs_group = {}
+    for d in devices:
+        vgs_group.setdefault(d.group, []).append(d.name)
+    partner = {d.name: kvl_partner(d.name, tuple(vgs_group[d.group]), gate, source, bulk, kinds, writers) or _symmetric_partner(d.name, groups, writers, position)
+               for d in devices if d.name not in writers}
+    ln_idu = {n: _WHY_REFERENCE_UNDEFINED if bundles[n] is None else math.log(curve_value(bundles[n], QUANTITY_IDU, gm_id[n])) for n in names if n in writers}
+    start_w = member_start_w(names, writers, partner, currents, lengths, ln_idu)
+
+    def defined(name, key):
+        """그 멤버의 출발점(1회차 gm/ID 의 VGS, 곡선 동작점의 VDS·VSB, 5의 L)이 슬라이스 `key` 에서 조회 정의되는가 -- 축 밖·L bin 불가(`is_slice_gap`)만 정의 불능이고 그 밖 사유는 그대로 던진다."""
+        bundle = bundles[name]
+        if bundle is None:
+            return False
+        curve = bundle[QUANTITY_IDU]
+        try:
+            op_point(ctx.memo, kinds[name], key, lengths[name], curve_value(bundle, QUANTITY_VGS, gm_id[name]), curve.vds, curve.vsb)
+        except SealViolationError as exc:
+            if is_slice_gap(exc):
+                return False
+            raise
+        return True
+
+    candidates = {kind: widths(ctx.memo.lut, kind) for kind in sorted(set(kinds.values()))}
+    return wf_start_value(groups, names, position, kinds, start_w, candidates, defined, grid_m=ctx.memo.lut.spec.manufacturing_grid_m)
+
+
+def _wf_unstarted(ctx, groups):
+    """출발 곡선을 읽을 수 없는 실행(`lut_curve_undefined_for_all_l`)의 칸: 구조는 그대로(같은 `wf_start_value`), 모든 칸 `w_key` None(`reference_slice_undefined`) -- 평가 입력을 만들 수 없는 실행임을 필드가 말한다."""
+    names = tuple(d.name for d in ctx.devices)
+    return wf_start_value(groups, names, {d.name: d.colour for d in ctx.devices}, {d.name: d.kind for d in ctx.devices},
+                          {n: _WHY_REFERENCE_UNDEFINED for n in names}, {}, lambda name, key: False, grid_m=ctx.memo.lut.spec.manufacturing_grid_m)
+
+
+def _fields(rows, points, conflicts, inactive, macro, rungs, records, area, t, uncovered, wf_start=()):
     """출력 필드 열 -- `START_WRITES` 와 같은 (kind, field)."""
     graph = {"conflicts": tuple(conflicts), "inactive": tuple(inactive), "macro": macro, "rungs": tuple(rungs), "records": tuple(records),
-             "area_est_m2": area, "area_fraction": t, "uncovered": tuple(uncovered)}
+             "area_est_m2": area, "area_fraction": t, "uncovered": tuple(uncovered), "wf_start": tuple(wf_start)}
     out = {("device", "start.row"): {r.device: r for r in rows}, ("device", "start.point"): dict(points)}
     out.update({("graph", name): {START_KEY: value} for name, value in graph.items()})
     return out
@@ -260,8 +319,11 @@ def start_intervals(projection):
     for d in devices:
         cells[d.name] = ctx.l_cells[d.owner]
         first_L[d.name] = _first_defined(ctx, d, cells[d.name])
+    groups = tuple((g.kind, g.members, g.status) for g in projection.value("graph", GRAPH_KEY, "matching_groups"))
     if not devices or any(v is None for v in first_L.values()):
-        return _fields((), {}, (), (("start_intervals", "lut_curve_undefined_for_all_l"),), None, (), (), None, None, ())
+        unstarted, unstarted_records = _wf_unstarted(ctx, groups)
+        return _fields((), {}, (), (("start_intervals", "lut_curve_undefined_for_all_l"),), None, (), tuple((c, tuple(d.items())) for c, d in unstarted_records),
+                       None, None, (), unstarted)
     lut_range = {d.name: _curve_range(curve_bundle(ctx, d.kind, first_L[d.name])) for d in devices}
 
     # ---- 0, 1: 주극점 노드 · gm/ID 하한
@@ -312,8 +374,14 @@ def start_intervals(projection):
         for n in names:
             chosen_L[n], cell_index[n], l_range[n] = pick, j, (lo, hi)
 
-    # ---- 6: 그 L 에서 gm/ID 경계
+    # ---- 5a: 출발 w_f 칸(한 번 -- 8의 전류는 돌아오지 않는다). 6의 가드 slope bin 이 이 칸 키를 읽는다
     bundles = {d.name: curve_bundle_of(ctx, d.name, d.kind, chosen_L[d.name]) for d in devices}
+    writers = frozenset(name for name, coord in projection.column("device", "dc_coord") if coord.role == COORD_WRITER)
+    wf_cells, wf_records = _wf_cells(ctx, groups, writers, g_lo0, chosen_L, currents1, bundles)
+    records.extend((code, tuple(detail.items())) for code, detail in wf_records)      # 필드 값은 불변이어야 한다 -- 기록 상세는 다른 출발 기록처럼 (키, 값) 쌍 tuple
+    wf_keys = {name: cell.w_key for cell in wf_cells for name in cell.members}
+
+    # ---- 6: 그 L 에서 gm/ID 경계
     head2 = headroom_bounds(ctx, chosen_L, head.budgets)
     conflicts.extend(head2.conflicts)
     dom2 = domain_bounds(ctx, chosen_L, vds_budget)
@@ -329,7 +397,7 @@ def start_intervals(projection):
     g_cap = {d.name: min([float(max(bundles[d.name][QUANTITY_FT].gm_id))] + _side(g_items[d.name], QUANTITY_GM_ID, SIDE_HI)
                          + [b.value for part in (speed2, area2) if part is not None for b in part.bounds.get(d.name, ())
                             if b.quantity == QUANTITY_GM_ID and b.side == SIDE_HI]) for d in devices}
-    match2 = matching_bounds(ctx, currents1, chosen_L, g_lo, g_cap)
+    match2 = matching_bounds(ctx, currents1, chosen_L, g_lo, g_cap, wf_keys)
     noise2 = noise_bounds(ctx, currents1, chosen_L, g_lo, g_cap)
     for part in (speed2, match2, noise2, area2):
         if part is None:
@@ -407,7 +475,7 @@ def start_intervals(projection):
         if final.g[d.name] > g_hi[d.name] * (1 + _REL) and d.name == d.group:
             conflicts.append(StartConflict(d.name, QUANTITY_GM_ID, (("w_min_at_fixed_current", final.g[d.name]), ("upper", g_hi[d.name])), final.g[d.name] - g_hi[d.name]))
     return _report(ctx, domain, final, final.g, chosen_L, cell_index, (g_low, g_hi, l_range, lut_range), (g_items, l_items), bundles,
-                   (conflicts, inactive, records), t, tuple(rungs))
+                   (conflicts, inactive, records), t, tuple(rungs), wf_cells)
 
 
 def _rung(ctx, domain, schema, state, g, L, cell_index, bundles, t):
@@ -434,7 +502,7 @@ def _rung(ctx, domain, schema, state, g, L, cell_index, bundles, t):
     return StartRung(t, tuple(theta), tuple(cells_out), refs)
 
 
-def _report(ctx, domain, state, g, L, cell_index, ranges, items, bundles, notes, t, rungs):
+def _report(ctx, domain, state, g, L, cell_index, ranges, items, bundles, notes, t, rungs, wf_cells):
     g_lo, g_hi, l_range, lut_range = ranges
     g_items, l_items = items
     conflicts, inactive, records = notes
@@ -451,4 +519,4 @@ def _report(ctx, domain, state, g, L, cell_index, ranges, items, bundles, notes,
                              lut + tuple(g_items[d.name]) + tuple(l_items[d.name]), tuple(inactive), mine))
     wanted = {v.component for v in domain.variables}
     covered = {c for c, _v in rungs[0].theta}
-    return _fields(rows, ctx.points, conflicts, inactive, state.macro, rungs, records, state.area, t, tuple(sorted(c for c in wanted if c not in covered)))
+    return _fields(rows, ctx.points, conflicts, inactive, state.macro, rungs, records, state.area, t, tuple(sorted(c for c in wanted if c not in covered)), wf_cells)

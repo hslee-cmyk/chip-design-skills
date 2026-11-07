@@ -7,7 +7,7 @@
   넓히고 다음 계산 블록을 차례로 부른다 -- 입력 버전이 같으면 같은 실행 안에서 재사용(단계 A·B 가 이미 부른 블록은 다시 계산하지 않는다; 실행 사이 재사용·디스크 스냅샷은 없다, NFR-2·U-89):
   `search_domain`(θ 상자·L 칸·b_A -- 실행 설정의 수동소자 상자만 extras), `junction_field`(접합 출처), `mismatch_field`(mismatch 출처), `model_error_field`(모델 오차 쌍),
   `constraint_classes`(제약 분류), `passive_area_decl`(면적 선언), `metric_structure`(S1v 가 없으면 None), `noise_decl`(잡음 선언),
-  `start_intervals`(S1v 뷰 필드가 있을 때만 -- 41 §6 출발 구간, 없으면 `graph/start` 필드가 없고 층 0 은 상자 중심으로 간다).
+  `start_intervals`(41 §6 출발 구간 + FS-1 출발 w_f 칸 `wf_start` -- 항상 부른다: S1v 뷰가 없으면 뷰 의존 경계만 비활성이고 `wf_start` 는 그대로 쓴다).
 * `SearchContext` 칸 = **참조**(`dc` = S0 수준 스냅샷 뿌리를 `base` 로 담은 커널 컨텍스트 + LUT memo, `spec`, `settings`, S3 기록기 `archive`, 지문 `context_fp`·`code_fp`) +
   실행 수명 상태(평가 캐시·계수·예산·`cell_floors` -- S3 색인·실행 계수 이동은 U17 ②, LUT memo 함수 이동은 ③). 설계 값은 칸으로 들고 있지 않고 같은 이름의 읽기 속성이
   부를 때마다 S0 수준 필드를 읽는다(사본 없음): `domain`(`graph/kernel: search_domain`), `junction`·`mismatch`·`model_error`·`area_decl`(graph/kernel), `structure`·`noise_decl`
@@ -187,8 +187,7 @@ def _s0_blocks(dc_ctx, spec, settings, pdk_decl, lut_rule_decl, model_error):
     testbench = spec.noise_testbench
     base = noise_decl(base, tuple(spec.feedback) if isinstance(spec.feedback, tuple) else None,
                       () if testbench is None else tuple(c.element for c in testbench.sampling_caps), donors=donors, counters=counters)
-    if base.field("graph", S1V_KEY, "views") is not None:
-        base = start_intervals(base, spec, dc_ctx.inputs, pdk_decl, lut, donors=donors, counters=counters)
+    base = start_intervals(base, spec, dc_ctx.inputs, pdk_decl, lut, donors=donors, counters=counters)      # 항상: 출발 w_f 칸 `wf_start` 가 모든 평가의 입력이다(FS-1) -- S1v 뷰가 없으면 뷰 의존 경계만 비활성
     return base
 
 

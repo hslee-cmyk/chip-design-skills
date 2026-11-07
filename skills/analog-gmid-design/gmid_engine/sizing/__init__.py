@@ -3,7 +3,7 @@ design_gb7_dc_canonical; 7·9 = 영역 판정 `dc_seal_region`). 계약: `CONTRA
 
 다른 패키지와 test 는 이 `__all__` 만 쓴다. 공개 흐름:
 `dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, LutAccess(memo))` (S0 당 1회) ->
-`size_and_seal(ctx, theta, parent=None)` (θ 마다).
+`size_and_seal(ctx, theta, wf, parent=None)` (θ 마다, `wf` = 평가 입력 w_f 칸 `WfInput`).
 """
 from ._helpers_dc_solve import Circuit, default_port_views, is_servo_branch, sense_signs
 from .bracket_root import bracket_root
@@ -138,10 +138,14 @@ from .s2_values import (
     DeviceOp,
     KernelContext,
     DC_SOLVE_WRITER,
+    DeclaredRatio,
     FingerGeom,
     LutAccess,
-    RealizedFinger,
+    RealizedCell,
     RealizedGeometry,
+    RealizeInput,
+    WfCell,
+    WfInput,
     NodeWrite,
     PathValue,
     SccEntry,
@@ -170,6 +174,7 @@ from .seal_versions import seal_versions
 from .seal_vgs_match import dc_seal_vgs_match
 from .seal_writers import seal_writers
 from .local_values import LocalSeal, SnapshotFragment
+from .realize_fingers import realize_fingers
 from .size_and_seal import size_and_seal
 from .size_and_seal_local import size_and_seal_local, theta_name
 from .symmetry_marks import symmetry_marks
@@ -216,8 +221,13 @@ __all__ = (
     "DC_SOLVE_WRITER",
     "FingerGeom",
     "LutAccess",
-    "RealizedFinger",
+    "DeclaredRatio",
+    "RealizedCell",
+    "RealizeInput",
     "RealizedGeometry",
+    "WfCell",
+    "WfInput",
+    "realize_fingers",
     "OUT_OF_DOMAIN",
     "METRICS_AUX_WRITER",
     "METRICS_DC_WRITER",

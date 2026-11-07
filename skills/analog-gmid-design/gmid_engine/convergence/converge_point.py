@@ -25,7 +25,7 @@ import dataclasses
 from gmid_engine.core import NonconvergentError
 from gmid_engine.layout import F_FLOORPLAN, F_GROUPS, F_ROW_GROUPS, LAYOUT_KEY, passives_from_decl
 from gmid_engine.metrics import PassiveAreaDecl
-from gmid_engine.search import STATUS_SEALED, evaluate
+from gmid_engine.search import STATUS_SEALED, evaluate, point_wf
 
 from .convergence_values import (
     STATUS_CONVERGED,
@@ -69,6 +69,7 @@ def converge_point(sctx, pdk, point):
     kinds = {m: op.kind for m, op in ops.items()}
     sized_w = {m: op.W for m, op in ops.items()}
     memo = sctx.dc.lut.memo
+    wf = point_wf(start.evaluation.snapshot)         # 레이아웃 뒤 평가의 평가 입력 w_f 칸 = 기준(실현) 점이 쓴 칸(입력 손가락 행은 DC 블록이 요청 행·기준 점 `dc_finger` 에서 읽는다)
     kernel0 = sctx.counters["kernel_calls"]
 
     narrowed, excluded = {}, []
@@ -121,7 +122,7 @@ def converge_point(sctx, pdk, point):
             return done(STATUS_NONCONVERGENT, current, placed, geometry, iterations, k_bound, failure, rejected, relaxed,
                         first_seen, layouts)
         calls0 = sctx.counters["kernel_calls"]
-        result = evaluate(sctx, start.theta, start.key.cells, parent=start, origin=_ORIGIN + (("iter", len(iterations) + 1),),
+        result = evaluate(sctx, start.theta, start.key.cells, wf, parent=start, origin=_ORIGIN + (("iter", len(iterations) + 1),),
                           geometry=geometry)
         pending = tuple(sorted(p.name for p in placed.placements if p.pending))
         accepted = _accepted(result, start)
