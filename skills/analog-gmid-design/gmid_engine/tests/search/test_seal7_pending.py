@@ -20,8 +20,8 @@ from gmid_engine.sizing import (
     SealItem,
     SealReport,
     SealedSnapshot,
-    size_and_seal,
 )
+from fs1_wf import size_and_seal      # [FS-1 A-196 signature-misses-search] 손 wf 를 끼운 래퍼 (공개 size_and_seal(ctx, theta, wf, ...))
 
 from .conftest import build_case, circuit_c, theta_r4c
 

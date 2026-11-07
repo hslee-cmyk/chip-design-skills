@@ -64,12 +64,19 @@ def test_previous_run_front_points_are_not_start_candidates(tmp_path, lut_sealed
     """[xrun XR-4] interface card C5: 같은 archive_root 로 같은 입력의 find_front 를 두 번 돌리면, 두 번째 실행은 첫 실행의 front 점을
     시작점으로 쓰지 않는다. oracle (a) 구성: 첫 실행은 빈 S3 폴더에서 돈 실행이다 -- 두 번째 실행의 시작점 기록(runs.jsonl 줄 `starts`)은
     출처가 층 0(`SOURCE_LAYER0` = "layer0", test_layer0_center 가 값 고정)과 "given" 뿐이고 시작점 수가 빈 S3 실행과 같다."""
-    a = build_case(tmp_path / "a", circuit_c(), lut_sealed, archive_root=short_root, eval_budget=30)
-    fa = find_front(a.sctx, [theta_r4c()])
+    # [FS-1 A-196 판정 #8-9, A-193 MR-1·WB-1 선례] 회로 = 저항 부하 P: 회로 C 는 실현에서 W' 반올림 뒤 out 손 근이 레일 밖이라 점을 잃어(fail-closed가 맞는 거동) front 가 비었다.
+    # 전제 단언 `assert_realized_roots_inside_rails`(손: front 점마다 실현 잔차로 out KCL 근이 레일 안).
+    from .conftest import circuit_p, theta_p
+    from .test_find_front import P_ELEMENTS, P_RBOUNDS, assert_realized_roots_inside_rails
+    # 회로 P 는 게이트 이득 제약 없이는 front 가 비므로(test_find_front `test_front_points_inside_area_budget` 와 같은 구성 입력) 이득 제약과 예산 40 을 함께 선언한다.
+    kw = dict(archive_root=short_root, eval_budget=40, elements=P_ELEMENTS, rbounds=P_RBOUNDS, constraints=(("gain_ss_db", ">=", 10.0, None),))
+    a = build_case(tmp_path / "a", circuit_p(), lut_sealed, **kw)
+    fa = find_front(a.sctx, [theta_p(a.dc)])
     assert len(fa.front) >= 1                                           # 전제: 첫 실행이 front 점을 S3 에 남겼다
-    b = build_case(tmp_path / "b", circuit_c(), lut_sealed, archive_root=short_root, eval_budget=30)
+    assert_realized_roots_inside_rails(fa)                              # 전제 (손): 실현 점의 out 근이 레일 안
+    b = build_case(tmp_path / "b", circuit_p(), lut_sealed, **kw)
     assert b.sctx.context_fp == a.sctx.context_fp                        # 전제: 같은 S3 실행 폴더(첫 실행 줄이 있다)
-    find_front(b.sctx, [theta_r4c()])
+    find_front(b.sctx, [theta_p(b.dc)])
     first, second = _runs(short_root, a.sctx.context_fp)
     sources = [dict(e)["source"] for e in second["starts"]]
     assert set(sources) <= {"layer0", "given"}, sources

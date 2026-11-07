@@ -334,11 +334,23 @@ def test_u7_structure_writes_block_residual_to_evals(tmp_path, lut_sealed_cdd, s
     assert rows[0]["full_gain_db"] == pytest.approx(g, rel=1e-12)
 
 
-def test_u7_without_structure_no_block_residual_record(case_c):
-    case, root = case_c
-    s = case.sctx
+def test_u7_without_structure_no_block_residual_record(tmp_path, lut_sealed, short_root):
+    # [FS-1 A-196 판정 §6 test_kernel] `case_c` 는 정정 경로 `build_case`(단계 A -> B, A-188)라 구조(S1v)가 생겼다 -> 'without structure' 전제가 test 입력과 어긋났다.
+    # 구조 없는 컨텍스트(S1v 필드 없는 S0 수준 S1Graph 로 커널·탐색 컨텍스트, `test_off_judged._path_case` 와 같은 구성)를 따로 만든다.
+    from gmid_engine.graph import build_s1
+    from gmid_engine.search import SearchSettings, build_search_context, open_run
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
+    from .conftest import SRC, load_spec, new_access, write_decls
+    td, spec = load_spec(tmp_path / "case", circuit_c(), constraints=AXIS_CONS + SS_CONS)
+    inputs = dc_inputs_from_spec(spec)
+    donors, counters_ = open_run()
+    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v), donors=donors, counters=counters_), inputs, new_access(lut_sealed),
+                              donors=donors, counters=counters_)
+    pdk, rule = write_decls(tmp_path / "pdk")
+    s = build_search_context(dc, spec, SearchSettings(600.0, 40, None, SRC, None), short_root, pdk, rule, code_fp=CODE_FP)
+    assert s.dc.base.value("graph", "s1v", "metric_structure") is None, "전제: S1v 측정 구조(metric_structure)가 없다"
     evaluate(s, th_sorted(theta_r4c()), CELLS_C)
-    (rec,) = read_evals(root, s.context_fp)
+    (rec,) = read_evals(short_root, s.context_fp)
     assert "block_residual" not in rec
 
 
@@ -363,7 +375,7 @@ def test_pending_point_passive_values_reused_on_mos_theta_only_change(tmp_path, 
     pv0 = dict(r0.evaluation.snapshot.column("device", "passive_value"))
     assert pv0 == {"Cz": th0[("capacitance", "Cz")], "Rz": th0[("ss_resistance", "Rz")]}
     fixed = r0.evaluation
-    monkeypatch.setattr(kernel, "size_and_seal", lambda dc, theta, parent=None, w_request=(), realized=None: fixed)
+    monkeypatch.setattr(kernel, "size_and_seal", lambda dc, theta, wf, parent=None, w_request=(), realized=None, layout=None: fixed)       # [FS-1 §4.1] wf 필수 위치 인자
 
     th_mos = dict(th0)
     th_mos[("ln_idu", "M1")] = th0[("ln_idu", "M1")] + 0.01
