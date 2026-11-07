@@ -1,0 +1,45 @@
+{
+  "id": "20261107-fs1",
+  "stage": "순서 3 (freeze·base 확인) -- 판정 기록 본체(.ai/verification/20261107-fs1.json)는 code 커밋 뒤 순서 7에서 쓴다",
+  "attempt": 1,
+  "evidence_type": "red-green",
+  "freeze": {
+    "T": "23c81fe1",
+    "T_full": "23c81fe13df6ba23aa15c5a03b84c26767a1b973",
+    "T_tree": "7358924e171e119d07aa287fb76e7828d6093e0d",
+    "base": "2cb26c92085b50c71dcb1090f5e43ed1fe4035be",
+    "base_note": "master 2cb26c92 (JC-1 병합 뒤) + card a7019b22 (병합 cca7cd3f) + interface 보정 a0bf0903 (Role: card, A-188) + test 커밋 13개 (Role: test)",
+    "code_commit": null,
+    "base_to_T_commits": 17,
+    "base_to_T_numstat_total": "+2548 -1262, 67 파일 (tests 63 파일 +1965 -1262, docs/02-design 4 파일)",
+    "base_to_T_engine_paths": 0,
+    "freeze_verdict": "동결 불가 -- Major 5. M1 손 wf helper 가 LutAccess 에 widths/.spec 을 부름 (base test 결함 실패 346건 실측, 코드 뒤에도 실패), M2 build_case/bins_case 단계 A/B 정본 경로 변경의 결과 미측정·미기록 (stage_a_stopped 3, 단계 B 거부 2, CDD 열 부재 E-2/E-3, S1 전제 모순 2, 원인 미확정 3), M3 interface 9절 위반 (O-2 find_front.initial_wf·O-3 realize_front.evaluate 동작 대체), M4 M-2 후반 spy 가 평가 sigma 경로(metrics.device_sigma)를 관찰할 수 없음 (정적), M5 유지되는 실현·레이아웃 재풀이 물리/fail-closed test (R-2/R-5/R-6/R-6c/R-15/R-16/S3-6, R-13a/b, L-2) 삭제 = 기준 약화 의심 (사용자 결정 또는 재작성). minor 10. 상세 = wt/_drafts/evidence/2026-11-07/fs1_freeze.md"
+  },
+  "isolation": {
+    "clone": "C:/fzf1/iso (T 23c81fe1, origin 제거)",
+    "commands": [
+      "git -c core.longpaths=true clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261107-fs1-audit C:/fzf1/iso",
+      "git -C C:/fzf1/iso remote remove origin",
+      "(cwd = C:/fzf1/iso/skills/analog-gmid-design/gmid_engine/tests; APPDATA 지정, OPENBLAS_NUM_THREADS=1 PYTHONIOENCODING=utf-8 PYTHONDONTWRITEBYTECODE=1 GMID_LUT_TABLE_CACHE_DIR=C:/fzf1/lutcache) C:/Python314/python.exe -m pytest -p no:cacheprovider <args> -- 래퍼 C:/fzf1/run.sh"
+    ]
+  },
+  "runs": [
+    {"name": "structure", "args": "-q -rfE structure", "result": "8 failed, 198 passed, 1 deselected", "code_absent": 8, "test_defect": 0},
+    {"name": "collect", "args": "--collect-only -q", "result": "11270/11299 collected (29 deselected), 3 collection errors", "error_modules": ["search/test_l_bin_search.py (polish_cells)", "search/test_start_intervals.py (initial_wf)", "sizing/test_realize_fingers.py (DeclaredRatio)"], "code_absent": 3},
+    {"name": "lut+sizing changed (18 files)", "result": "322 failed, 264 passed, 3 errors", "test_defect": 289, "code_absent": 36, "test_defect_cause": "'LutAccess' object has no attribute 'spec' (fs1_wf.hand_wf_default -> lut/widths.py:15) 286 + subprocess 2 + fs1_wf wrapper AttributeError: base 1"},
+    {"name": "search changed (19 files, test_iv_matching_l 제외)", "result": "119 failed, 107 passed, 13 errors, 1 deselected", "code_absent": 98, "test_defect": 31, "unexplained": 3},
+    {"name": "metrics+convergence changed (7 files)", "result": "85 failed, 55 passed", "code_absent": 50, "test_defect": 35},
+    {"name": "integration/test_layer0_boundary_rows.py", "result": "1 failed, 11 passed, 2 xfailed", "code_absent": 1}
+  ],
+  "not_run": [
+    "search/test_iv_matching_l.py (M 묶음, 지시로 제외)",
+    "search 디렉터리 전체",
+    "generality 3 파일 (판정자 pytest 가 여유 메모리 1 GB 아래로 내려 PID 정지 2회 -- 결과 없음)",
+    "integration/test_s0_layer_9circuits.py (진행 중 정지 -- 결과 없음)",
+    "2회로 연기 stage_b/s0/g10 --run-slow -k, search/test_canonical_order.py, slow 표지 test",
+    "미측정 회로 circuit_zl, circuit_cmfb_diff, tied_cs2 등 build_case 호출 회로",
+    "sizing run_blocks 를 쓰는 비변경 파일 (test_scc_newton, test_seal_tolerances, test_seal_versions, test_seal_writers 등)"
+  ],
+  "m1_b_premise": "two_stage_ota 입력 M1/M2 = nmos (gate vin_n/vin_p), mismatch npz L 축 18개에 4e-6·8e-6 포함, w_ref_m = 5e-6 (정적 실측) -- RETIRED '(b) 유지' 기록과 맞음, 실행 단언은 미실행",
+  "code_start_allowed": false
+}
