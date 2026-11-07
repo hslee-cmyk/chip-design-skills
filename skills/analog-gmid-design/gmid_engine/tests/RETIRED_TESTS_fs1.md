@@ -46,3 +46,9 @@
 남긴 것: R-1(식 갱신), R-4, R-7, R-9, 새 O-1·O-3. **덮이지 않게 된 것(LA-1 재점검 입력)**: 실현 점의 입력 고정 갈래 KCL 재풀이·재봉인 값(R-6/R-15/R-16)과 입력 차 이동(R-2)의 닫힌 식 대조 -- 새 실현 경로에서 같은 구성을 만들 입력(실현 m 이 손 값으로 정해지는 키 선택)을 interface 가 정하지 않았다.
 `tests/convergence/test_realized_geometry.py`: `test_layout_resolve_r13a_servo_branch_follows_the_vgs2_fixed_point`, `test_layout_resolve_r13b_input_fixed_branch_follows_the_output_fixed_point`, `test_layout_resolve_l2_waiting_device_row_is_the_request_and_junction_follows_two_places`,
 `test_layout_resolve_l2_device_without_input_finger_row_is_realized_finger_missing` (+ helper `_fingers`·`_assert_input_rows`·`CountFingerSlice`·`_l2_start`·`_geometry`) -- 레이아웃 입력으로 탐색 `dc_finger` (m, w_f_m) 를 놓고 `finger_slice` 호출 0 을 세는 구성. 대체: D-7(요청 행 -> `slice_of_finger`, 없는 소자 = 기준 스냅샷). 덮이지 않는 것: 레이아웃 뒤 KCL 재풀이 값(R-13)의 닫힌 식 대조 -- LA-1 재점검 입력.
+
+## A-188 (build_case 출발 단계 정본 경로) 삭제
+`build_case`·`bins_case` 가 단계 A -> 단계 B 를 거친다. 통과하지 못한 toy = `circuit_diode` (종단 diode 부하): 단계 A 가 `unsupported_rule_branch|cs_output_low_impedance|transfer:0|out` 로 정지(exit 2). 이 회로를 쓰는 `tests/search/test_cell_floor.py` 6 함수(7 항목)를 삭제:
+`test_one_var_only_selects_diode_writer`, `test_start_coordinate_caps_floor`, `test_cell_floor_cache_is_read`, `test_real_lut_v2_multi_anchor_cells`, `test_solve_eps_respects_one_var_floor`(2 case), `test_layer0_maxmin_respects_one_var_floor`. 삭제 수 7 항목 / `build_case`·`bins_case` 호출 test 약 189 곳 -- 절반 미만. 기준을 약하게 바꾼 단언 0 (남은 test 단언은 그대로).
+**덮이지 않게 된 것(LA-1 재점검 입력)**: 1변수 writer(diode) 정점 하한 `one_var_only`·start 캡·캐시 읽기 단언 -- 단계 A 를 통과하는 diode 부하 회로가 생기면 되살린다.
+통과 확인 회로(`lut_sealed`): circuit_c(3 LUT 변형)·circuit_p·circuit_z·circuit_n·R-2 회로(`bins_case`). 미측정: circuit_zl·circuit_cmfb_diff·tied_cs2 및 그 밖 호출 -- 전체 search 디렉터리 실행은 base 에서 코드 없이 끝까지 못 돌려(실행 중단) 호출별 통과율을 세지 못했다.

@@ -1,5 +1,7 @@
 # dispute 20261107-fs1: `search/conftest.build_case` sctx 에 `wf_start` 가 없다 (test 작성자 -> 오케스트레이터)
 
+**결정: A-188 제안 (a) -- 닫음.** `build_case` 가 기본으로 단계 A -> 단계 B(`run_stage_a`·`run_stage_b`)를 거친 S0 수준 S1Graph 로 커널·탐색 컨텍스트를 만든다 (끄는 인자 없음). 출발 단계를 통과하지 못하는 toy 의 test 는 legacy 삭제 + RETIRED 기록 (삭제 수가 호출 test 의 절반을 넘으면 멈추고 보고).
+
 - 지시 5(A-186): `find_front`·`start_points` 를 S1 수준 sctx(`build_case`: build_s1 -> 커널 컨텍스트 -> 탐색 컨텍스트, 출발 블록 안 거침)로 부르는 기존 test 의 픽스처가 출발 블록(`start_intervals`)을 거치게 고친다.
 - 막힌 점: `build_case(tmp, topo_doc, lut, constraints, elements, budget_s, eval_budget, rbounds, archive_root, pdk, sources, cbounds, rule, measurement_loads, run)` 는 spec 로딩·toy PDK 선언·SearchSettings·archive 를 직접 조립하고 단계 A/B(`run_stage_a`·`run_stage_b`, toy 면 `u13_hand.build`)를 부르지 않는다. 호출 test 약 60곳(`test_find_front`·`test_start_points`·`test_slsqp_outer`·`test_eps_sweep`·`test_layer0_center`·`test_residual_probe`·`test_solver_stops`·`test_front_*`·`test_realize_front` 등)이 `build_case`/`bins_case` 반환 필드(`td, spec, dc, acc, pdk, rule, settings, sctx`)를 직접 읽는다. 단계 B 를 돌리면 (a) 입력 LUT 가 단계 B 의 요구(noise/mismatch 열·CDD 열, E-18)를 만족해야 하고 (b) `dc`·`sctx` 가 `b.s1` 에서 만들어져 반환 필드와 호환성이 깨진다.
 - 제안(code 작성 전 결정 필요): `build_case(..., with_start=True)` 를 기본으로 하고 내부에서 `run_stage_a -> run_stage_b` 로 얻은 S0 수준 S1Graph 로 커널 컨텍스트를 만들거나, `wf_start` 가 필요한 test 만 `u13_hand.toy_case` / `wb1_flow.bins_case` 의 stage-B 판으로 옮긴다. 후자는 test 수정 범위가 크고 LUT 열 요구가 있어 별도 card 규모.

@@ -434,14 +434,25 @@ def build_case(tmp, topo_doc, lut, constraints=(), elements=(), budget_s=600.0, 
     inputs = dc_inputs_from_spec(spec)
     if run is None:
         run = fresh_run()             # [XRUN-F1 card B C0·C6] 이 case 하나 = 실행 하나(S1·커널 컨텍스트·탐색 컨텍스트가 같은 두 객체)
-    s1 = build_s1(td, dict(inputs.supplies_v), **run)
-    dc = build_kernel_context(s1, inputs, acc, **run)
     if pdk is None or rule is None:
         p2, r2 = write_decls(tmp / "pdk")
         pdk = p2 if pdk is None else pdk
         rule = r2 if rule is None else rule
     settings = SearchSettings(budget_s, eval_budget, rbounds, tuple(sources), cbounds)
+    # [FS-1 A-188 (a)] 정본 경로 하나: 단계 A -> 단계 B(출발 블록 `start_intervals` 포함)를 거친 S0 수준 S1Graph 로 커널·탐색 컨텍스트를 만든다 -- `graph/start: wf_start` 가 있다.
+    # 출발 단계를 건너뛰는 인자는 없다. 단계가 통과하지 못하는 toy(LUT 열 부족 등)는 여기서 AssertionError -> 그 test 는 legacy 로 삭제(RETIRED_TESTS_fs1.md).
+    from gmid_engine.pipeline import run_stage_a, run_stage_b
+    from metrics.gb4_hand import memo_of
+    tp = tmp / "case" / (topo_doc["topology_name"] + ".topology.json")
+    sp = tmp / "case" / (topo_doc["topology_name"] + ".sizing_spec.json")
+    a = run_stage_a(tp, sp, lut, output_dir=tmp / "out", donors=run["donors"], counters=run["counters"])
+    assert a.s1 is not None, ("build_case 단계 A 불통과", a.report.get("stop_reasons"))
+    b = run_stage_b(a, memo_of(lut), pdk, output_dir=tmp / "out", settings=settings)
+    assert b.s1 is not None and b.s1.snapshot.record("graph", "ach") is not None, ("build_case 단계 B 불통과", b.report.get("stop_reasons"))
+    s1 = b.s1
+    dc = build_kernel_context(s1, inputs, acc, **run)
     sctx = build_search_context(dc, spec, settings, archive_root, pdk, rule, code_fp=CODE_FP)
+    assert sctx.dc.base.record("graph", "start") is not None, "build_case: 출발 구간 레코드 없음 (S1v 필드가 있어야 출발 블록이 돈다) -- 멈추고 보고"
     return SimpleNamespace(td=td, spec=spec, dc=dc, acc=acc, pdk=pdk, rule=rule, settings=settings, sctx=sctx)
 
 

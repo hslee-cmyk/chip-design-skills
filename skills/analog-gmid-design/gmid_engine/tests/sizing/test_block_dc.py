@@ -391,9 +391,21 @@ def test_reads_no_unknown_fields(ctx_c):
     snap = run_blocks(ctx, th, upto="lengths")
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     before = block_row(ctx.counters, "dc_solve")
-    out = dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run_of(ctx))
-    assert dc_solve(out, items, kfixed(ctx), kres(ctx), ctx.lut, **run_of(ctx)) is out
+    out = dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, wf=hand_wf(ctx), **run_of(ctx))
+    assert dc_solve(out, items, kfixed(ctx), kres(ctx), ctx.lut, wf=hand_wf(ctx), **run_of(ctx)) is out
     assert row_delta(block_row(ctx.counters, "dc_solve"), before) == (2, 1, 0, 0, 1, 0)
+
+
+def test_dc_solve_wf_is_required_keyword(ctx_c):
+    """[FS-1 A-188, interface §4.1] `dc_solve(snapshot, theta_items, fixed_values, resistor_values, lut, *, wf, donors, counters)` -- wf 가 빠지면 TypeError.
+    양성 대조: wf 를 키워드로 주면 통과."""
+    ctx = ctx_c[2]
+    th = theta_c()
+    snap = run_blocks(ctx, th, upto="lengths")
+    items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
+    assert dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, wf=hand_wf(ctx), **run_of(ctx)) is not None
+    with pytest.raises(TypeError):
+        dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run_of(ctx))
 
 
 # ===============================================================================================================
@@ -680,7 +692,7 @@ def test_empty_window(tmp_path, toy_access):
     snap = run_blocks(ctx, th, upto="lengths")
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     with pytest.raises(SealViolationError) as ei:
-        dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run_of(ctx))
+        dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, wf=hand_wf(ctx), **run_of(ctx))
     d = detail(ei.value)
     assert d["reason"] == "empty_window" and d["item"] == 7
     assert d["node"] == "x" and d["lo"] == 1.8 and d["hi"] == 0.0
@@ -692,7 +704,7 @@ def _lut_fail(ctx, th):
     snap = run_blocks(ctx, th, upto="lengths")
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     with pytest.raises(SealViolationError) as ei:
-        dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run_of(ctx))
+        dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, wf=hand_wf(ctx), **run_of(ctx))
     return ei.value
 
 
@@ -802,7 +814,7 @@ def test_no_root_in_window(tmp_path, toy_access, v_star):
     snap = run_blocks(ctx, th, upto="lengths")
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     with pytest.raises(SealViolationError) as ei:
-        dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run_of(ctx))
+        dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, wf=hand_wf(ctx), **run_of(ctx))
     d = detail(ei.value)
     assert d["reason"] == "no_root_in_window"
     assert d["item"] in (6, 7)
@@ -1643,7 +1655,7 @@ def _columns_with_declared(ctx, theta):
     snap = dc_lengths(snap, tuple(sorted((k, v) for (t, k), v in th.items() if t == "L")), **run)
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     # [EO-1 범위 4, A-88] 다섯째 extras 없음 -- triode 선언은 S0 필드 device.region_decl 로 ctx.base 에 실려 있다(dc_solve 가 READS 로 읽음).
-    return dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run)
+    return dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, wf=hand_wf(ctx), **run)
 
 
 # [IT-1 A-39 retired_tests] 폐기: test_it2b_pa_negative_sensitivity_port_window_is_min_max_of_the_two_end_voltages -- 사유 = 뿌리 아닌 포트 창 전제가 DEC-106과 충돌.

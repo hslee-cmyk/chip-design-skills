@@ -771,7 +771,7 @@ def expected_columns(snap, theta, fixed_values=(), resistor_values=()):
     return V, windows, ln
 
 
-def run_blocks(ctx, theta, upto="widths"):
+def run_blocks(ctx, theta, upto="widths", wf=None):
     """size_and_seal 의 평가 블록 셋(dc_currents -> dc_lengths -> dc_solve, WB-1 §3)을 호출 순서대로 직접 부른다(봉인 전 스냅샷).
     `dc_solve` 가 옛 `dc_solve`(노드 풀이)와 `dc_solve`(W)를 합친 블록이라 `upto` 의 "columns"·"widths" 는 같은 스냅샷을 낸다.
     `geometry`·`realized` 는 dc_solve 의 두 선택 인자(기본 None = 탐색 평가)."""
@@ -783,10 +783,11 @@ def run_blocks(ctx, theta, upto="widths"):
     if upto == "lengths":
         return snap
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
-    return dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run)
+    from fs1_wf import hand_wf_default      # [FS-1 A-188] dc_solve(..., lut, *, wf, donors, counters): wf 필수 키워드 (interface §4.1)
+    return dc_solve(snap, items, kfixed(ctx), kres(ctx), ctx.lut, wf=hand_wf_default(ctx) if wf is None else wf, **run)
 
 
-def eval_calls(ctx, theta):
+def eval_calls(ctx, theta, wf=None):
     """평가 블록 셋(dc_currents, dc_lengths, dc_solve) 호출 목록 ((block, extras), ...) 과 그 결과 스냅샷(봉인 전).
     `calls` 형식은 계약에 적혀 있지 않아 공개 함수 `seal_versions` 가 받는 형식((블록, extras tuple), ...)을 쓴다."""
     from gmid_engine.sizing import dc_currents, dc_lengths, dc_solve
@@ -797,8 +798,11 @@ def eval_calls(ctx, theta):
     calls = ((dc_currents, (cur,)), (dc_lengths, (ls,)),
              (dc_solve, (items, kfixed(ctx), kres(ctx), ctx.lut)))
     snap = ctx.base
+    from fs1_wf import hand_wf_default      # [FS-1 A-188] dc_solve 의 wf 는 필수 키워드 인자 -- extras tuple 이 아니라 키워드로 준다
+    wf = hand_wf_default(ctx) if wf is None else wf
     for blk, ex in calls:
-        snap = blk(snap, *ex, donors=ctx.donors, counters=ctx.counters)
+        extra_kw = {"wf": wf} if blk is dc_solve else {}
+        snap = blk(snap, *ex, donors=ctx.donors, counters=ctx.counters, **extra_kw)
     return snap, calls
 
 

@@ -207,26 +207,9 @@ def test_floor_only_strictly_inside_variable_box(tmp_path, floor_lut):
 
 # ---------------------------------------------------------------- 1변수 writer·start 상한
 
-def test_one_var_only_selects_diode_writer(tmp_path, floor_lut):
-    """[r9] one_var_only: 정점 하한은 1변수 writer(M1)만, 전도 하한은 모든 ln_idu 성분(M2 도) -- 3.22 r9."""
-    case = build_case(tmp_path, circuit_diode(), floor_lut)
-    s = case.sctx
-    V = s.domain.variables
-    tols = _tols(floor_lut, case)
-    i2 = _index(V, ("ln_idu", "M2"))
-    for cells in [(0, 0), (1, 1)]:
-        allw = ln_idu_floors(s, V, cells)
-        one = ln_idu_floors(s, V, cells, one_var_only=True)
-        _close(allw, _expected(s, _floor_arrays, V, cells, tols))
-        exp_one = _expected(s, _floor_arrays, V, cells, tols, one_var=DIODE_ONE_VAR)
-        _close(one, exp_one)
-        assert len(allw) == 2
-        # 비공허: M2 는 1변수 writer 가 아니지만 전도 하한이 상자 안이라 one_var_only 결과에도 있다(r8 이면 빠졌다)
-        assert i2 in exp_one
-        cell2 = dict(s.domain.l_cells)["M2"][cells[1]]
-        assert math.isclose(one[i2], _cond(_floor_arrays, tols, "pmos", cell2), rel_tol=1e-12)
-
-
+# [FS-1 A-188 삭제] test_one_var_only_selects_diode_writer·test_start_coordinate_caps_floor·test_cell_floor_cache_is_read·test_real_lut_v2_multi_anchor_cells·
+# test_solve_eps_respects_one_var_floor(2 case)·test_layer0_maxmin_respects_one_var_floor -- `circuit_diode` (종단 diode 부하)는 단계 A 의 이득 블록 규칙이
+# `unsupported_rule_branch|cs_output_low_impedance` 로 정지시켜 출발 단계를 거칠 수 없다 (tests/RETIRED_TESTS_fs1.md). 아래 남은 test 는 회로 C 등 통과하는 회로.
 def test_one_var_only_empty_for_gate_writers(tmp_path, floor_lut):
     """회로 C: M1·M2 는 자기 gate(in·pb)를 쓴다 -- 1변수 아님 -> 정점 하한은 비고(이름의 empty), [r9] one_var_only 결과 = 전도 하한만.
     모든 쓰기 소자 판은 max(전도, 정점)."""
@@ -249,31 +232,6 @@ def test_one_var_only_empty_for_gate_writers(tmp_path, floor_lut):
         assert peak_floor(_floor_arrays(KIND[m]), *cell) > _cond(_floor_arrays, tols, KIND[m], cell)
 
 
-def test_start_coordinate_caps_floor(tmp_path, floor_lut):
-    """start 가 있으면 하한 = min(하한, start[성분]); 그 값이 원래 lo 이하이면 결과에서 빠진다. [r9] start 에 없는 성분은 캡 없음
-    (r8 은 KeyError) -- M2 는 start 에 없을 때 전도 하한 그대로 남는다."""
-    case = build_case(tmp_path, circuit_diode(), floor_lut)
-    s = case.sctx
-    V = s.domain.variables
-    tols = _tols(floor_lut, case)
-    i1 = _index(V, ("ln_idu", "M1"))
-    i2 = _index(V, ("ln_idu", "M2"))
-    v = V[i1]
-    base = _expected(s, _floor_arrays, V, (1, 1), tols, one_var=DIODE_ONE_VAR)
-    f, f2 = base[i1], base[i2]
-    _close(ln_idu_floors(s, V, (1, 1), one_var_only=True), base)
-    below = (v.lo + f) / 2
-    assert ln_idu_floors(s, V, (1, 1), one_var_only=True, start={v.component: below}) == {i1: below, i2: f2}
-    assert ln_idu_floors(s, V, (1, 1), one_var_only=True, start={v.component: f + 1.0}) == {i1: f, i2: f2}
-    assert ln_idu_floors(s, V, (1, 1), one_var_only=True, start={v.component: v.lo}) == {i2: f2}
-    v2 = V[i2]
-    cap2 = (v2.lo + f2) / 2                                    # M2 도 start 에 있으면 캡된다
-    th = {v.component: below, ("ln_idu", "M2"): cap2, ("L", "M1"): R4_L[1]}       # θ Mapping 의 다른 성분은 무관
-    assert ln_idu_floors(s, V, (1, 1), one_var_only=True, start=th) == {i1: below, i2: cap2}
-    th2 = {v.component: below, ("ln_idu", "M2"): v2.lo - 1.0}
-    assert ln_idu_floors(s, V, (1, 1), one_var_only=True, start=th2) == {i1: below}
-
-
 # ---------------------------------------------------------------- 캐시 (sctx.cell_floors, 정점 (kind, w_key, 칸)·전도 ("conduction", kind, w_key, 칸) 1회)
 
 def _cell_of(l_cells, cell):
@@ -294,78 +252,7 @@ def _cond_keys(s, kind, m):
             if isinstance(key, tuple) and len(key) == 4 and key[0] == "conduction" and key[1] == kind and key[2] == 100}
 
 
-def test_cell_floor_cache_is_read(tmp_path, floor_lut):
-    case = build_case(tmp_path, circuit_diode(), floor_lut)
-    s = case.sctx
-    V = s.domain.variables
-    tols = _tols(floor_lut, case)
-    r1 = ln_idu_floors(s, V, (0, 1))
-    n = len(s.cell_floors)
-    assert ln_idu_floors(s, V, (0, 1)) == r1 and len(s.cell_floors) == n          # 같은 칸 -> 새 항목 없음
-    lc = dict(s.domain.l_cells)
-    nk, pk = _floor_keys(s, "nmos", "M1"), _floor_keys(s, "pmos", "M2")
-    nc, pc = _cond_keys(s, "nmos", "M1"), _cond_keys(s, "pmos", "M2")
-    assert set(nk.values()) == set(nc.values()) == {tuple(lc["M1"][0])}
-    assert set(pk.values()) == set(pc.values()) == {tuple(lc["M2"][1])}
-    for key, cell in list(nk.items()) + list(pk.items()):
-        assert math.isclose(s.cell_floors[key], peak_floor(_floor_arrays(key[0]), *cell), rel_tol=1e-12)
-    for key, cell in list(nc.items()) + list(pc.items()):
-        assert math.isclose(s.cell_floors[key], _cond(_floor_arrays, tols, key[1], cell), rel_tol=1e-12)
-    # 캐시 값을 읽는다(다시 계산하지 않는다): 항목을 바꾸면 결과가 따라온다 -- 정점·전도 두 항목 모두
-    i1 = _index(V, ("ln_idu", "M1"))
-    lo = V[i1].lo
-    for key in nk:
-        s.cell_floors[key] = lo + 0.5
-    for key in nc:
-        s.cell_floors[key] = lo + 0.25
-    assert ln_idu_floors(s, V, (0, 1))[i1] == lo + 0.5                              # max(전도, 정점) = 정점 항목
-    for key in nc:
-        s.cell_floors[key] = lo + 0.75
-    assert ln_idu_floors(s, V, (0, 1))[i1] == lo + 0.75                             # 전도 항목이 더 크면 전도 항목
-
-
 # ---------------------------------------------------------------- 실 LUT v2 (칸 = 앵커 여럿)
-
-def test_real_lut_v2_multi_anchor_cells(tmp_path, real_lut_v2):
-    from gmid_engine.core import BoundedLRU, read_pdk_decl
-
-    lut, files = real_lut_v2
-    memo = BoundedLRU(8)
-    pdk = read_pdk_decl(str(SKILL_DIR / "assets" / "sky130_pdk_decl.json"), memo)
-    rule = read_pdk_decl(str(SKILL_DIR / "assets" / "sky130_lut_rule_decl.json"), memo)
-    case = build_case(tmp_path, circuit_diode(), lut, pdk=pdk, rule=rule)
-    s = case.sctx
-    V = s.domain.variables
-    wk = {k: lut.cap_map[k].w_key for k in ("nmos", "pmos")}
-    tols = _tols(lut, case)
-    arrs = {}
-    for kind in ("nmos", "pmos"):
-        with np.load(files[(kind, wk[kind])]) as z:
-            arrs[kind] = {k: np.asarray(z[k]) for k in ("L", "VGS", "VDS", "ID", "GM", "W")}
-    l_cells = dict(s.domain.l_cells)
-    assert any(lo < hi for lo, hi in l_cells["M1"])          # 앵커 여럿을 묶는 칸이 있다
-    n1, n2 = len(l_cells["M1"]), len(l_cells["M2"])
-    checked = cond_wins = 0
-    for c1 in range(n1):
-        cells = (c1, c1 % n2)
-        got = ln_idu_floors(s, V, cells)
-        exp = {}
-        for idx, v in enumerate(V):
-            if v.component[0] != "ln_idu":
-                continue
-            m = v.component[1]
-            lo_c, hi_c = l_cells[m][cells[0] if m == "M1" else cells[1]]
-            peak = peak_floor(arrs[KIND[m]], lo_c, hi_c)
-            cond = conduction_floor(arrs[KIND[m]], lo_c, hi_c, tols[KIND[m]])
-            f = expected_floor(cond, peak)
-            if f is not None and v.lo < f < v.hi:
-                exp[idx] = f
-                cond_wins += cond is not None and cond > peak
-        _close(got, exp)
-        checked += len(exp)
-    assert checked >= n1                                       # 칸마다 적어도 하나는 상자 안 하한
-    assert cond_wins >= 1                                      # 실 LUT 에서 전도 하한이 정점 하한을 이기는 칸이 있다(r9 비공허)
-
 
 # ---------------------------------------------------------------- S-4f 적용: solve_eps·층 0 최대-최소
 
@@ -388,46 +275,6 @@ def _m1_cell(s, cells):
 # (start_points 로 확인한 입력 선택이지 기대값이 아니다; 판정은 아래 test 의 '하한 아래 평가 없음').
 DIODE_START = {("L", "M1"): 2e-6, ("L", "M2"): 2e-6, ("current", "M2"): 1.6e-8, ("ln_idu", "M1"): -13.14,
                ("ln_idu", "M2"): -15.0}
-
-
-@pytest.mark.parametrize("axis", [AXIS_POWER, "area_search_m2"])
-def test_solve_eps_respects_one_var_floor(tmp_path, floor_lut, short_root, axis):
-    """solve_eps 는 1변수 writer(M1)의 ln_idu 를 min(칸 정점 하한, 시작 좌표) 아래에서 평가하지 않는다(S-4f, 3.13).
-    floor LUT 에서 하한(≈ −13.18)은 봉인된 시작 좌표 −13.14 바로 아래 -- 전력·면적 최소화가 내려가려는 방향이다."""
-    from gmid_engine.search import start_points
-
-    case = build_case(tmp_path, circuit_diode(), floor_lut, eval_budget=150, archive_root=short_root)
-    s = case.sctx
-    (sp,), _ = start_points(s, [DIODE_START])
-    assert tuple(sp.cells) == (1, 1)
-    floor = min(peak_floor(_floor_arrays("nmos"), *_m1_cell(s, sp.cells)), DIODE_START[("ln_idu", "M1")])
-    assert DIODE_START[("ln_idu", "M1")] - floor < 0.1                       # 하한이 시작점 바로 아래(비공허)
-    n0 = len(_lines(short_root, s.context_fp))
-    solve_eps(s, sp, axis, None, (("t", "floor"),))
-    new = _lines(short_root, s.context_fp)[n0:]
-    assert new                                                                # 풀이가 새 점을 평가했다
-    for ln in new:
-        assert _th(ln)[("ln_idu", "M1")] >= floor - 1e-12 * abs(floor), ln["origin"]
-    v2 = s.domain.variables[_index(s.domain.variables, ("ln_idu", "M2"))]
-    assert all(_th(ln)[("ln_idu", "M2")] >= v2.lo for ln in new)
-    assert dict(s.counters)["recompute_same_key"] == 0
-
-
-def test_layer0_maxmin_respects_one_var_floor(tmp_path, lut_sealed, short_root):
-    """층 0 최대-최소(3.21 4)도 1변수 writer 하한(출발 좌표는 넘지 않음)을 받는다 -- 시험 점 밖 층 0 평가 전부."""
-    case = build_case(tmp_path, circuit_diode(), lut_sealed, eval_budget=150, archive_root=short_root)
-    s = case.sctx
-    r = layer0_start(s)
-    lines = _lines(short_root, s.context_fp)
-    assert lines and r.start is not None
-    assert lines[0]["origin"] == {"stage": "layer0"}
-    x0 = _th(lines[0])[("ln_idu", "M1")] if r.origin_point == "centre" else dict(r.start.theta)[("ln_idu", "M1")]
-    floor = min(peak_floor(r4_arrays("nmos"), *_m1_cell(s, r.start.cells)), x0)
-    after = [ln for ln in lines[1:] if "probe" not in ln["origin"]]
-    assert after
-    for ln in after:
-        assert _th(ln)[("ln_idu", "M1")] >= floor - 1e-12 * abs(floor), ln["origin"]
-    assert evaluate(s, r.start.theta, r.start.cells).status in ACCEPTED_STATUSES
 
 
 # ---------------------------------------------------------------- L 동치류 멤버 = 주인 L 칸 (설계 40 §3.7 / D-GB7a, fix-cellfloor-lclass)

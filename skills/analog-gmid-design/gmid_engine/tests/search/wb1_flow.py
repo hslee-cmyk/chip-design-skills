@@ -32,10 +32,20 @@ def bins_case(tmp, doc, constraints=CONS, elements=(), eval_budget=40, widths=(1
     td, spec = load_spec(tmp / "case", doc, elements=elements, constraints=constraints, node_targets=node_targets)
     inputs = dc_inputs_from_spec(spec)
     run = fresh_run()
-    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, acc, **run)
     pdk, rule = write_decls(tmp / "pdk")
     settings = SearchSettings(budget_s, eval_budget, rbounds, tuple(SRC), None)
+    # [FS-1 A-188 (a)] 정본 경로 하나: 단계 A -> 단계 B 를 거친 S0 수준 S1Graph 로 커널·탐색 컨텍스트를 만든다 (`graph/start: wf_start` 가 있다). 끄는 인자 없음.
+    from gmid_engine.pipeline import run_stage_a, run_stage_b
+    from metrics.gb4_hand import memo_of
+    tp = tmp / "case" / (doc["topology_name"] + ".topology.json")
+    sp = tmp / "case" / (doc["topology_name"] + ".sizing_spec.json")
+    a = run_stage_a(tp, sp, lut, output_dir=tmp / "out", donors=run["donors"], counters=run["counters"])
+    assert a.s1 is not None, ("bins_case 단계 A 불통과", a.report.get("stop_reasons"))
+    b = run_stage_b(a, memo_of(lut), pdk, output_dir=tmp / "out", settings=settings)
+    assert b.s1 is not None and b.s1.snapshot.record("graph", "ach") is not None, ("bins_case 단계 B 불통과", b.report.get("stop_reasons"))
+    dc = build_kernel_context(b.s1, inputs, acc, **run)
     sctx = build_search_context(dc, spec, settings, archive_root, pdk, rule, code_fp=CODE_FP)
+    assert sctx.dc.base.record("graph", "start") is not None, "bins_case: 출발 구간 레코드 없음 -- 멈추고 보고"
     return SimpleNamespace(td=td, spec=spec, dc=dc, acc=acc, lut=lut, sctx=sctx)
 
 
