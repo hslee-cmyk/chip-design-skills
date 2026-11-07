@@ -215,6 +215,8 @@ def test_from_lut_rule_sky130():
     assert g.as_m2 == rule.value("lut_diffusion_as_per_w_m") * 2e-6
     assert g.pd_m == 2e-6 + rule.value("lut_diffusion_pd_extra_m")
     assert g.ps_m == 2e-6 + rule.value("lut_diffusion_ps_extra_m")
+    assert _rel_close(g.ad_m2, 1e-12, 1e-12) and _rel_close(g.as_m2, 1e-12, 1e-12)
+    assert _rel_close(g.pd_m, 4e-6, 1e-12) and _rel_close(g.ps_m, 4e-6, 1e-12)
     with pytest.raises(SchemaRejectedError) as ei:
         DiffusionGeometry.from_lut_rule(pdk, 2e-6, 3)
     assert dict(ei.value.record.detail)["reason"] == "pdk_quantity_undeclared"

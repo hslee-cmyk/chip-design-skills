@@ -50,3 +50,25 @@
 | `metrics/wb1_gb4.py`, `search/test_cell_floor.py`, `search/test_current_box.py`, `search/test_kernel.py`, `search/test_search_domain.py`, `sizing/test_block_dc.py` | CGS·CSS·CDD 추가 | 없음(E-18 거부 test 를 쓰는 생성기가 아님) |
 | `search/u13_hand.py` | CGS·CSS 추가(cap_scale 비례); CDD 는 기존 `cdd=True` 기본 | `cdd=False` -- E-18 거부 test(`test_iv_currents`, `test_macro_poles`)가 그대로 쓴다 |
 | `sizing/wb1_toy.py` | 앞 커밋: `jc1_cols`(기본 False; ss 경로 호출자 `off_cases`·`test_ss_off_op_slices`·`search/wb1_flow` 가 True) | `jc1_cols=False` |
+
+
+## 폐기 (동결 판정 M1)
+
+| test (옛 파일) | 사유 | covered_by |
+|---|---|---|
+| `tests/convergence/test_realized_geometry.py::test_layout_resolve_l2_waiting_device_row_erased_in_junction_input_is_realized_finger_missing` | `ss_evaluate` 입력에서 대기 소자 `dc_finger` 행을 지워 접합 경로(`ss_linearize._finger_row`)의 `realized_finger_missing` 정지를 기대했다. card 범위: `ss_dev` READS 에서 `dc_finger` 가 빠지고 접합이 `dc_finger` 를 읽지 않아 code 뒤에는 정지 자리가 없다 | 짝 test `test_layout_resolve_l2_device_without_input_finger_row_is_realized_finger_missing` 는 유지(정지 자리 = `block_dc` 실현 입력 손가락 관문). 접합 쪽은 `test_ss_linearize.py::test_vgs_min_da2_dc_finger_does_not_matter`(D-a2: `dc_finger` 행 값·열 유무와 무관, 정지 없음) |
+
+## 교체 행에 덧붙임 (동결 판정 m1: 표에 이름이 빠진 지운 test 둘)
+
+| 옛 이름 | 새 이름 |
+|---|---|
+| `tests/metrics/test_junction_source.py::test_temperature_comes_from_lut_cap_conditions` | `::test_junction_temperature_follows_lut_not_a_constant` |
+| `tests/metrics/test_junction_source.py::test_pre_layout_geometry` | `::test_junction_pre_layout_geometry_is_rule_geometry` |
+
+## 복원 (동결 판정 M2)
+
+`tests/metrics/test_junction_cap.py::test_from_lut_rule_sky130` 의 sky130 규칙 절대값 단언(`ad/as ≈ 1e-12`, `pd/ps ≈ 4e-6`)은 이 card 가 `from_lut_rule` 을 바꾸지 않으므로 원래대로 복원했다.
+
+## D-b 합성 LUT (동결 판정 M3)
+
+`sizing/wb1_toy.write_r4_bins_lut(jc1_cols="node")`: 접합 입력 열을 점마다 다른 손 식(`jc1_node_cdd`, `jc1_node_css`, 인덱스 (l, g, d, s))으로 쓴다. D-b 는 이 LUT 의 마디 값을 `==` 로 비교한다.

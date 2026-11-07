@@ -222,31 +222,8 @@ def test_layout_resolve_l2_device_without_input_finger_row_is_realized_finger_mi
     assert counter.n == 0
 
 
-def test_layout_resolve_l2_waiting_device_row_erased_in_junction_input_is_realized_finger_missing(tmp_path, monkeypatch):
-    """대기 소자 M2 의 그 평가 dc_finger 행을 접합 기하 입력 스냅샷에서 지운 꼴(`kernel.ss_evaluate` 에 넘어가는 봉인 스냅샷을 tamper) -> `realized_finger_missing`
-    (KeyError 0, 다른 자리로 넘어가지 않음)."""
-    import sys
-    from gmid_engine.search import evaluate
-    from gmid_engine.sizing import DC_SOLVE_WRITER
-    from sizing.conftest import column_dict
-    case, ev, counter = _l2_start(tmp_path, monkeypatch)
-    kern = sys.modules["gmid_engine.search.kernel"]
-    real, seen = kern.ss_evaluate, {"n": 0}
-
-    def tampered_ss_evaluate(snapshot, *a, **k):
-        seen["n"] += 1
-        graph = snapshot.snapshot                                                   # SealedSnapshot.snapshot = GraphSnapshot
-        col = column_dict(graph, "device", "dc_finger")
-        col.pop("M2")
-        tam = dataclasses.replace(snapshot, snapshot=graph.write(DC_SOLVE_WRITER, "tampered", {("device", "dc_finger"): col}))
-        return real(tam, *a, **k)
-    monkeypatch.setattr(kern, "ss_evaluate", tampered_ss_evaluate)
-    placed = _fingers(ev.evaluation.snapshot, M1=(1e-6, 3))
-    placed.pop("M2")
-    out = evaluate(case.sctx, ev.theta, ev.key.cells, parent=ev, geometry=_geometry(placed, {"M2": (1e-6, 2)}))
-    assert seen["n"] >= 1                                                           # 양성 대조: tamper 가 실제 입력에 닿았다
-    assert out.failure is not None and out.evaluation is None, out
-    assert "realized_finger_missing" in _reason(out.failure)
+# [JC-1] 접합 입력에서 대기 소자 dc_finger 행을 지운 꼴의 `realized_finger_missing` test 는 폐기됐다 -- card 범위: `ss_dev` 가 `dc_finger` 를 읽지 않는다
+# (tests/RETIRED_TESTS_jc1.md). 짝 test(입력 손가락 행 없는 소자)는 정지 자리가 `block_dc` 실현 입력 손가락 관문이라 유지.
 
 
 def test_geometry_device_class_helper_is_not_defined_anywhere():

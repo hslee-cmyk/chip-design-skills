@@ -528,23 +528,30 @@ def test_vgs_min_df_dg_negative_or_nan_junction_cap_not_wrapped(tmp_path, bad):
 
 
 def test_vgs_min_db_declared_width_device_uses_declared_width_and_declared_point(tmp_path):
-    """D-b: `off` 선언 소자 Mx(nmos, 선언 w_m = 2e-6, l_m = 2e-6, off_op vds = 1.0, vsb = 0.5) -> r = 선언 w_m/w_ref = 2.0 (기준 폭 표 상수 열이라 점 무관),
-    cdb = (CDD − CGD)·((a·2e-6·1.0)/(a·1e-6·1.0)), csb 같은 꼴, junction_model == lut_vgs_min_rule_area. oracle (a): 합성 상수 열 × 손 면적 비.
-    합성 LUT = sizing/wb1_toy r4 bins LUT + 접합 항 입력 열(JC1_CGS·JC1_CDD·JC1_CSS)."""
-    from sizing.conftest import W_M
-    from sizing.wb1_toy import JC1_CDD, JC1_CGD, JC1_CGS, JC1_CSS
+    """D-b (card 문언): `off` 선언 소자 Mx(nmos, 선언 w_m = 2e-6, l_m = 2e-6, off_op vds = 1.0, vsb = 0.5) -> 기준 폭 표 마디 [1,0,1,1] 의 값 × 면적 비, 비트 동일(`==`):
+    cdb = (CDD − CGD)[1,0,1,1]·((a·2e-6·1.0)/(a·1e-6·1.0)), csb = (CSS − CGS)[1,0,1,1]·((b·2e-6·1.0)/(b·1e-6·1.0)), junction_model == lut_vgs_min_rule_area.
+    합성 LUT = sizing/wb1_toy r4 bins LUT + 점마다 값이 다른 접합 입력 열(`jc1_cols="node"`, toy C 꼴 손 식 `jc1_node_cdd`·`jc1_node_css`) -- 엔진이 선언 L 이 아닌
+    L, off_op 가 아닌 (vds, vsb), 또는 VGS 축 첫 값이 아닌 VGS 를 조회하면 값이 달라 실패한다. oracle (a): 인덱스 손 식 × 읽은 선언 값의 면적 비."""
+    from sizing.conftest import R4_GRIDS, W_M
+    from sizing.wb1_toy import JC1_CGD, JC1_CGS, jc1_node_cdd, jc1_node_css
     from .test_ss_off_op_slices import build, evaluate
     pin = ("Mx", "nmos", "vd", "vs", "vs", "gnd")                    # vgs = V(vs) − V(vs) = 0, vds = 1.5 − 0.5 = 1.0, vsb = 0.5 − 0 = 0.5
-    case = build(tmp_path, [pin], {"vd": 1.5, "vs": 0.5}, w_m=2e-6, l_m=2e-6)
+    case = build(tmp_path, [pin], {"vd": 1.5, "vs": 0.5}, w_m=2e-6, l_m=2e-6, jc1_cols="node")
     snap = evaluate(case).snapshot
     o = snap.value("device", "Mx", "off_op")
     assert (o.vds, o.vsb) == (1.0, 0.5)                                # 전제: off_op 점
     ss = snap.value("device", "Mx", "ss_dev")
     v = rule_values(tmp_path / "v")
-    r_d, r_s = (v["a"] * 2e-6 * 1.0) / (v["a"] * W_M * 1.0), (v["b"] * 2e-6 * 1.0) / (v["b"] * W_M * 1.0)
-    assert rel_close(ss.cdb, (JC1_CDD - JC1_CGD) * r_d, 1e-12)
-    assert rel_close(ss.csb, (JC1_CSS - JC1_CGS) * r_s, 1e-12)
+    gL, gG, gD, gS = R4_GRIDS
+    l, d, s = gL.index(2e-6), gD.index(1.0), gS.index(0.5)             # 마디 [l, 0, d, s] = card 의 [1,0,1,1] 에 해당하는 이 LUT 격자 위치
+    assert gG[0] == 0.0 and l == 1                                     # 전제: VGS 축 첫 값 = 인덱스 0
+    r_d = (v["a"] * 2e-6 * 1.0) / (v["a"] * W_M * 1.0)
+    r_s = (v["b"] * 2e-6 * 1.0) / (v["b"] * W_M * 1.0)
+    assert ss.cdb == (jc1_node_cdd(l, 0, d, s) - JC1_CGD) * r_d
+    assert ss.csb == (jc1_node_css(l, 0, d, s) - JC1_CGS) * r_s
     assert ss.junction_model == "lut_vgs_min_rule_area"
+    # 공허 방지: 다른 마디(예 선언이 아닌 L 인덱스)의 값은 다르다
+    assert jc1_node_cdd(0, 0, d, s) - JC1_CGD != jc1_node_cdd(l, 0, d, s) - JC1_CGD
 
 
 # ---------------------------------------------------------------- 4. graph (G-1 은 test_block_declaration)

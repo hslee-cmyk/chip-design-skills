@@ -20,6 +20,16 @@ JC1_CGS, JC1_CDD, JC1_CSS = 8e-16, 5e-16, 1.3e-15
 JC1_CGD = 2e-16            # 이 파일 생성기가 모든 칸에 쓰는 CGD 값(아래 `np.full(shp, 2e-16)`와 같은 수)
 
 
+def jc1_node_cdd(l, g, d, s):
+    """`jc1_cols="node"` 의 CDD 열 손 식: CGD + (7 + l + g + d + s)·1e-16 (인덱스 = 격자 위치, 모든 점 CDD − CGD > 0)."""
+    return JC1_CGD + (7 + l + g + d + s) * 1e-16
+
+
+def jc1_node_css(l, g, d, s):
+    """`jc1_cols="node"` 의 CSS 열 손 식: CGS + (8 + 2l + g + d + 2s)·1e-16 (모든 점 CSS − CGS > 0)."""
+    return JC1_CGS + (8 + 2 * l + g + d + 2 * s) * 1e-16
+
+
 def write_r4_bins_lut(root, widths=(1e-6, 2e-6), rule="lower", grids=R4_GRIDS, vdsat=("nmos", "pmos"), cap_vdsat=(),
                       kinds=("nmos", "pmos"), l_anchors=None, simulator="ngspice-46", idu_factor=None, jc1_cols=False):
     """-> (LutSet, 폴더, write_toy_bins 반환). 기준 폭 = W_M(1e-6, cap 의 w_ref_m). widths 에 W_M 이 있어야 한다.
@@ -51,7 +61,18 @@ def write_r4_bins_lut(root, widths=(1e-6, 2e-6), rule="lower", grids=R4_GRIDS, v
     for kind in kinds:
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
-        if jc1_cols:
+        if jc1_cols == "node":
+            # 점마다 값이 다른 열(toy C 꼴, 인덱스 (l, g, d, s)): 엔진이 다른 (L, VDS, VSB, VGS) 를 조회하면 값이 달라 test 가 실패한다
+            cdd_a, css_a = np.empty(shp), np.empty(shp)
+            for l in range(shp[0]):
+                for g in range(shp[1]):
+                    for d in range(shp[2]):
+                        for s in range(shp[3]):
+                            cdd_a[l, g, d, s], css_a[l, g, d, s] = jc1_node_cdd(l, g, d, s), jc1_node_css(l, g, d, s)
+            cap["CGS" + SUFFIX[kind]] = np.full(shp, JC1_CGS)
+            cap["CDD" + SUFFIX[kind]] = cdd_a
+            cap["CSS" + SUFFIX[kind]] = css_a
+        elif jc1_cols:
             cap["CGS" + SUFFIX[kind]] = np.full(shp, JC1_CGS)
             cap["CDD" + SUFFIX[kind]] = np.full(shp, JC1_CDD)
             cap["CSS" + SUFFIX[kind]] = np.full(shp, JC1_CSS)
