@@ -229,6 +229,11 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   `lut_cap_width_unresolved`
   (슬라이스 1개뿐·동률·분리 조건 불충족·VS 값이 슬라이스 축에 없음·`w_ref_m`·`ID` 열 둘 다 없음),
   [r4] `lut_model_bin_incomplete`, `lut_model_bins_no_width`, `lut_model_bins_overlap`, `lut_l_anchor_outside_model_bins`.
+- [JC-1] **축 키 결손**: 적재가 읽는 npz(슬라이스·기준 폭 표·중점·mismatch r1·잡음 r1)에 축 키(`L`·`VGS`·`VDS`·`VS`, L 포함) 가운데 하나라도 없으면
+  그 자리 기존 축 사유(슬라이스 = `lut_slice_axes_mismatch`, 기준 폭 표 = `lut_cap_axes_mismatch`, 중점 = `lut_midpoints_axes_mismatch`,
+  mismatch = `lut_mismatch_axes_mismatch`, 잡음 = `lut_noise_axes_mismatch`) + detail `{path, axis}`(axis = 없는 키 가운데 `L`·`VGS`·`VDS`·`VS`
+  순서 첫 것). 첫 슬라이스(기준 축 자체)의 축 키 결손도 `lut_slice_axes_mismatch`. 축 키 판정은 helper `npz_grids(npz, *, reason, path)` 하나다 --
+  받아들이던 파일(축 키가 다 있는 파일)의 결과는 바뀌지 않는다.
 - [실측 2026-10-07 -- 기록, 그때 쓴 옛 sample LUT 는 O-180 으로 삭제, 생성 완료 슬라이스 32개 + 옛 기준 LUT] 로드 1.5 s, nmos·pmos 모두 w_key 1000
   (5 µm) 채택, d_w ≈ 5.0e-7, 이웃 차 0.88(nmos)·1.25(pmos).
 

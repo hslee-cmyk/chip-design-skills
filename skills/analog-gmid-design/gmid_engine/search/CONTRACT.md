@@ -123,7 +123,7 @@
   "resolution_undefined", 0 -> 모델 오차 선언(DEC-72)이 있으면 그 값, 없으면 unmeasured "resolution_zero_model_error_undeclared"(0 나누기
   없음), 둘 다 있으면 max. `active` = c ≤ 1. 모델 오차 선언은 아직 없어 kernel 은 () 를 넘긴다. (3.20 의 |목표| 축척 폐기.)
 - **`build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl)`**: `lut_rule_decl` = core
-  `read_pdk_decl(LUT 생성 규칙 선언)` -- 여기서 S0 당 1회 `JunctionSource.from_decls(pdk_decl, lut_rule_decl, lut)`(metrics 7.6 필수
+  `read_pdk_decl(LUT 생성 규칙 선언)` -- 여기서 S0 당 1회 `JunctionSource.from_decls(lut_rule_decl, lut)`(metrics 7.6 필수
   junction). r4/r5 의 `junction=None` 인자는 없어졌다(**독립 test 갱신 필요** -- test 작성자 몫).
 - **DEC-92 θ 종류**: `capacitance` -> 변수 (ln, `settings.capacitance_bounds_f`), 선언 없으면 `SchemaRejectedError`
   (gate `search_domain`, reason `theta_capacitance_bounds_undeclared`, capacitors = θ 순) -- PDK 에서 유도 불가(sizing O13).

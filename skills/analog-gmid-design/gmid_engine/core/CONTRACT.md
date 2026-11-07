@@ -338,9 +338,9 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 ## 9. PDK 선언 `read_pdk_decl(decl_path, memo) -> PdkDecl` (계획 N3.16 'PDK 상수', U-30, WP-03, DEC-80 (i), DEC-91, DEC-93 (5), LY10)
 
 근거: PDK 상수는 한 곳 선언, 값마다 출처 규칙 번호, 코드에 숫자를 박지 않는다. 소비자: MOD7 `LayoutPdk`(layout CONTRACT 4.1·4.10 --
-`manufacturing_grid_m` 과 `PDK_RULE_QUANTITIES` 다섯 길이 + `rule_ids`), metrics 접합 용량(metrics CONTRACT 8절 -- 모델 카드 접합
-파라미터 `junction_<kind>_<BSIM4 이름>` 과 LUT 생성 규칙 확산 기하 `lut_diffusion_*`, DEC-91).
-- 양의 값 `value_m` 은 원본 단위 표(`units_m`)로 환산한 **SI 값**이다(길이 양은 m, 면적 m², 접합 용량 F/m²·F/m, 전위 V, 무차원, `tnom` °C --
+`manufacturing_grid_m` 과 `PDK_RULE_QUANTITIES` 다섯 길이 + `rule_ids`), metrics 접합 용량(metrics CONTRACT 8절 -- LUT 생성 규칙 확산 기하
+`lut_diffusion_*`, DEC-91; 모델 카드 접합 파라미터는 엔진이 읽지 않는다), oracle(`junction_<kind>_tnom` 두 키).
+- 양의 값 `value_m` 은 원본 단위 표(`units_m`)로 환산한 **SI 값**이다(길이 양은 m, 면적 m², 전위 V, 무차원, `tnom` °C --
   단위는 양 이름·`basis` 가 적는다; 필드 이름 `value_m`·`units_m` 은 r1 그대로).
 
 ### 9.1 선언 파일 (JSON, UTF-8) -- PDK 마다 데이터 하나 (sky130 = `skills/analog-gmid-design/assets/sky130_pdk_decl.json`)
@@ -365,7 +365,7 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
     키는 **소문자로** 바꾼다(SPICE 는 대소문자 무관 -- 선언 식도 소문자로 쓴다). 값이 `수(부호·소수·지수 허용) + 영문자*` 꼴이면 값 글자 =
     수 부분, 단위 글자 = 뒤 영문자(소문자로) -- 예 `2.5p` -> ("2.5", "p"), `0.44` -> ("0.44", ""); 그 꼴이 아니면(`{식}`·`'식'`) 값 글자 =
     그대로, 단위 글자 `""`(식이 그 규칙을 쓰면 `pdk_rule_not_numeric`).
-  - `"spice_model_card"`(DEC-91 접합 파라미터): 추가 키 `model_pattern`(정규식 문자열 -- 모델 이름 전체 일치(`fullmatch`, 대소문자 그대로)).
+  - `"spice_model_card"`(모델 카드 원본): 추가 키 `model_pattern`(정규식 문자열 -- 모델 이름 전체 일치(`fullmatch`, 대소문자 그대로)).
     줄 단위로: 빈 줄·`*` 로 시작하는 줄은 건너뛴다; 줄의 `공백 + $` 또는 `공백 + ;` 뒤는 주석으로 버린다; `^\s*\.model\s+<이름>\s+<형>...`
     (대소문자 무관) 줄은 블록 머리 -- 이름이 `model_pattern` 에 맞으면 새 블록(머리 줄 나머지의 `키 = 값` 도 읽는다), 아니면 블록 밖;
     `+` 로 시작하는 줄은 블록 안이면 그 뒤를 읽는다; 그 밖 줄은 블록을 닫는다. 규칙 이름 두 가지:
@@ -445,9 +445,9 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 **[2026-10-08] 사용자 ratify 완료**(출처: 사용자 결정, 오케스트레이터 전달 2026-10-08): 레이아웃 길이 다섯 식 `finger_pitch_overhead_m`·
 `row_gap_m`·`dummy_w_m`·`tap_w_m`·`well_spacing_m` 을 위 표 그대로 승인. 적용 확인(layout 계약 4.10): well 간격은 (kind, body) well 이
 다른 묶음 사이에만 들어간다; `dummy_w_m` 의 `overhead/2` 항은 끝 확산이 nf+1 개라 끝 하나당 반 피치가 맞고 dummy L = poly.1a 는
-periphery.csv `X.1a`(dummy_poly L = 그 소자 최소 L)가 정한다 -- 식 변경 없음. (`min_finger_w_m`·접합 파라미터는 이 ratify 범위 밖.)
+periphery.csv `X.1a`(dummy_poly L = 그 소자 최소 L)가 정한다 -- 식 변경 없음. (`min_finger_w_m` 은 이 ratify 범위 밖.)
 
-**접합 파라미터(DEC-91, 2026-10-08)** -- 같은 선언 파일에 원본 둘 추가: `nfet_01v8_tt_model_card` =
+**모델 카드 원본(DEC-91, 2026-10-08; 접합 파라미터 키는 JC-1 에서 삭제)** -- 같은 선언 파일의 원본 둘: `nfet_01v8_tt_model_card` =
 `C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice`(sha256 `eec2f478...`, `model_pattern`
 `sky130_fd_pr__nfet_01v8__model\.[0-9]+` -> 블록 180개), `pfet_01v8_tt_model_card` = `.../pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice`
 (sha256 `3ecdcb8c...`, 블록 108개) -- 둘 다 LUT v2 meta `model_files_sha256` 과 같은 파일, `units_m` `{"": 1.0}`. 줄 끝(정정
@@ -455,18 +455,9 @@ periphery.csv `X.1a`(dummy_poly L = 그 소자 최소 L)가 정한다 -- 식 변
 (`git ls-files --eol` 실측 `i/lf w/crlf`, 두 파일 모든 줄 CRLF). 선언 sha256 은 작업 사본(CRLF) 바이트 값 = LUT meta 가 기록한 값이라
 `newline` 키를 두지 않는다. LF 로 체크아웃한 다른 설치(또는 LF 사본)에서는 `pdk_source_sha256_mismatch` 로 거부된다 -- 그때는 그 설치의
 바이트로 선언을 다시 고정하거나 `newline: "lf"` + blob sha256 으로 바꾼다(LUT meta sha256 과는 어긋남을 감수). 파서는 줄 끝과 무관하다.
-양 이름 `junction_<kind>_<BSIM4 이름>`(kind = `nmos`·`pmos`, 이름 = metrics `JunctionParams` 필드 27개). 접합 파라미터는 **bin 전부에서
-같은 값**(작성자 전수 확인 2026-10-08)이라 식은 bin 공통 규칙 이름이다. drain 쪽 이름(cjd·cjswd·cjswgd·mjd·mjswd·mjswgd·pbd·pbswd·pbswgd)은
-모델 카드에 없어 식이 source 쪽 규칙(BSIM4 기본값: 미지정 drain = source). `dwj` 식 = `dwc - xw / 2`(dwj 미지정 -> dwc, Weffcj 의 xw 포함).
-
-| kind | cjs | cjsws | cjswgs | mjs | mjsws | mjswgs | pbs | pbsws | pbswgs | tcj | tcjsw | tcjswg | tpb | tpbsw | tpbswg | tnom | permod | dwj |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| nmos | 0.001339749237 | 3.67354204e-11 | 2.38232788e-10 | 0.44 | 0.0009 | 0.8 | 0.729 | 0.2 | 0.95578 | 0.000792 | 1e-05 | 0.0 | 0.0012287 | 0.0 | 0.0 | 30.0 | 1.0 | 0.0 |
-| pmos | 0.0007380194454 | 9.888892e-11 | 2.39155046e-10 | 0.34629 | 0.29781 | 0.9274 | 0.6587 | 0.7418 | 1.4338 | 0.0012407 | 0.00037357 | 2e-12 | 0.0020386 | 0.001246 | 0.0 | 30.0 | 1.0 | 0.0 |
-
-규칙 행(nfet 파일, 첫 블록 `sky130_fd_pr__nfet_01v8__model.0`): cjs 231, pbs 230, tnom 240, permod 47, dwc 175, xw 216(pfet: cjs 277,
-tnom 38, permod 69). 거부 실례: 식 `vth0`(bin 마다 값이 다름) -> `pdk_rule_ambiguous`, `sky130_fd_pr__nfet_01v8__model.26.vth0`(값이
-`{...}` 식) -> `pdk_rule_not_numeric`, `dwj` -> `pdk_rule_missing`, `sky130_fd_pr__nfet_01v8__model.26.cjs` -> 0.001339749237(행 7199).
+PDK 선언의 `junction_` 양은 `junction_nmos_tnom`·`junction_pmos_tnom` 두 개뿐이다(식 `tnom`, 모델 카드 값 그대로; 소비자 = oracle 기술 파일, 엔진 소비자 0 --
+tnom 두 키 이동·삭제는 oracle-portability JP-1). 엔진 접합 용량은 PDK 접합 파라미터를 읽지 않는다(PDK 이식성, O-197): LUT 기준 폭 표 VGS 최소 조회 ×
+LUT 생성 규칙 확산 면적 비(metrics CONTRACT 8절). 옛 접합 파라미터 52키(값 표·규칙 행 포함)는 JC-1 에서 삭제했다.
 
 **LUT 생성 규칙 선언** `skills/analog-gmid-design/assets/sky130_lut_rule_decl.json`(같은 스키마, 2026-10-08): 원본 `lut_generator` =
 `base: "decl_dir"` + `sky130_lut_sweep.py`(LUT 생성기), `newline: "lf"`, sha256 `54e2570b243c...`(git blob -- [U3] 생성기에 `.noise`·mismatch 모드를 더해 바뀜, O-180 앵커 경로 재배선(fix/lut-decl-sha feaf6ba2)으로 다시 바뀜; DUT 줄은 그대로 90행), `spice_instance_line`,
@@ -534,9 +525,8 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
 `PDK_RULE_QUANTITIES` 순서 = `from_lut` 위치 인자 순서(overhead, gap, dummy, tap, well). 격자는 `from_lut` 가 `lut.spec.manufacturing_grid_m`
 에서 읽으므로 LUT 를 만드는 쪽이 `LutSpec(decl.value("manufacturing_grid_m"), ...)` 로 같은 선언값을 쓴다.
 
-접합 용량 소비자(DEC-91): `metrics.JunctionParams.from_pdk_decl(decl, kind)`·`metrics.DiffusionGeometry.from_lut_rule(lut_rule_decl, finger_w, m)`
--> `metrics.junction_caps(...)` (metrics CONTRACT 8.5 -- ss_linearize `ss_dev` 가 부른다). 두 선언을 같은 memo 로 읽으면 원본 5개
-(memo 상한 5 이상이면 두 번째 호출부터 파싱 0).
+접합 용량 소비자(DEC-91, JC-1): `metrics.DiffusionGeometry.from_lut_rule(lut_rule_decl, finger_w, m)` -> `metrics.junction_at_vgs_min(...)`
+(metrics CONTRACT 8.5 -- ss_linearize `ss_dev` 가 부른다). 엔진은 PDK 선언의 접합 파라미터를 읽지 않는다.
 
 ---
 

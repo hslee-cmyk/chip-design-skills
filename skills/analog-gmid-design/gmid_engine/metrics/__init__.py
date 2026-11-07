@@ -92,7 +92,7 @@ from .dc_metrics import metrics_dc
 from .dc_limit import solve_dc_limit
 from .evaluate import metric_value
 from .ff_gm_ratio import ff_gm_ratio
-from .junction_cap import DiffusionGeometry, JunctionCaps, JunctionParams, junction_caps
+from .junction_cap import DiffusionGeometry, junction_at_vgs_min
 from .icm_config import icm_config_window, kvl_sensitivity
 from .icm_window import icm_window_metrics
 from .junction_source import JunctionSource
@@ -254,8 +254,6 @@ __all__ = (
     "HeadroomRow",
     "JUNCTION_LAYOUT_DIFFUSION",
     "JUNCTION_LUT_RULE",
-    "JunctionCaps",
-    "JunctionParams",
     "JunctionSource",
     "LUT_PARAMETERS",
     "LocalInputs",
@@ -337,7 +335,7 @@ __all__ = (
     "ff_gm_ratio",
     "find_crossing",
     "headroom_bound",
-    "junction_caps",
+    "junction_at_vgs_min",
     "ls_fields",
     "ls_swing",
     "lut_parameters",

@@ -76,7 +76,7 @@
 * `w_request` = ((소자, (nf, finger_w)), ...) 이름순 -- **요청 대기(`pending`) 소자만**(WB-1 A-139): 레이아웃 요청이 정한 손가락 행 참조(`Placement.n_fingers`·`finger_w_m`). 배치 소자는 두지 않는다
   (입력 손가락의 출처는 `layout_ref`; LY7: W_request 유무와 관계없이 실현 기하로 재평가). 그 평가의 소자별 입력 손가락 정의는 `RealizedGeometry.input_fingers`(property) 하나다.
 * `layout_ref` = ((소자, `metrics.DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, float(n_fingers))`), ...) 이름순 -- `ly_diffusion` 필드
-  (= `RealizedDevice.diffusion`, LY8) 중 **`pending` 이 아닌** 소자. pending 소자는 레이아웃의 잠정 기하가 요청한 (키, nf) 와 달라 접합 기하를 그 평가 `dc_finger`(요청 손가락 행)의 LUT 생성 규칙으로 읽는다. 폭 키(`w_keys`) 칸은 없다 -- 슬라이스는 `dc_solve` 가 입력 손가락 폭의 `slice_of_finger` 로 정한다.
+  (= `RealizedDevice.diffusion`, LY8) 중 **`pending` 이 아닌** 소자. pending 소자는 레이아웃의 잠정 기하가 요청한 (키, nf) 와 달라 접합 기하를 그 평가가 쓴 W 의 LUT 생성 규칙 기하(요청 대기 소자 포함)로 읽는다. 폭 키(`w_keys`) 칸은 없다 -- 슬라이스는 `dc_solve` 가 입력 손가락 폭의 `slice_of_finger` 로 정한다.
 * `junction_change(before, after)` = `ss_dev` 가 든 두 스냅샷의 소자(이름순, 둘에 모두 있는 것)마다 `JunctionChange(device, cdb_before, csb_before, cdb_after, csb_after)`.
 
 ## 5. `w_loop_bound(placements, sized_w) -> (k_max, max_dlnw, tol)`

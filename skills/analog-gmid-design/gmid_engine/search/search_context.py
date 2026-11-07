@@ -175,7 +175,7 @@ def _s0_blocks(dc_ctx, spec, settings, pdk_decl, lut_rule_decl, model_error):
     base = search_domain(base, lut, settings.resistance_bounds_ohm, settings.capacitance_bounds_f, pdk_decl, spec_bounds,
                          min(budgets) if budgets else None, untie, donors=donors, counters=counters)
     _require_noise_data(dc_ctx, spec)                 # [U8] 잡음 제약이 있으면 LUT 잡음 r1 데이터 필수(설계 41 §7.2)
-    base = junction_field(base, pdk_decl, lut_rule_decl, lut, donors=donors, counters=counters)
+    base = junction_field(base, lut_rule_decl, lut, donors=donors, counters=counters)
     base = mismatch_field(base, pdk_decl, donors=donors, counters=counters)
     base = model_error_field(base, tuple(model_error), donors=donors, counters=counters)
     base = constraint_classes(base, tuple(spec.judged_constraints), donors=donors, counters=counters)

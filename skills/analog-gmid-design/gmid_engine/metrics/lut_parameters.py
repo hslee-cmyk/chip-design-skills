@@ -2,10 +2,10 @@
 
 진입점: `lut_parameters(circuit, rel_tol) -> ParameterSet`.
 
-* LUT 파라미터 = `LUT_PARAMETERS`(gm, gmb, gds, cgs, cgd, cgb) -- `ss_dev` 가 LUT 조회로 만든 값(gm = ID·(gm/ID) 의 gm/ID,
-  gds·gmb 열, `caps` 의 CGS·CGD·CGB). cdb·csb 는 PDK 접합 파라미터 폐형식(DEC-91, ngspice 대조 2.3e-11)이라 LUT 조회 불확실성이
-  없고, 수동소자 값은 선언·θ 값 그대로라 넣지 않는다.
-* Δp = ε_d·|p|: ε_d = MOS d 의 LUT 상대 불확실성(`SsDevice.lut_rel_tol` = (gm/ID)·tol_V(id_equivalent), CONTRACT 9.1).
+* LUT 파라미터 = `LUT_PARAMETERS`(gm, gmb, gds, cgs, cgd, cgb, cdb, csb) -- `ss_dev` 가 LUT 조회로 만든 값(gm = ID·(gm/ID) 의 gm/ID,
+  gds·gmb 열, `caps` 의 CGS·CGD·CGB, cdb·csb = LUT C 열 VGS 최소 조회 -- JC-1). 수동소자 값은 선언·θ 값 그대로라 넣지 않는다.
+  cdb·csb 는 목록 소속만이다 -- Δp 꼴은 DEC-105 (8)·RS-1 이 정하고, 아래 지금 꼴은 과도기 as-built 이다(순회 하나, cdb·csb 전용 갈래 0).
+* Δp = ε_d·|p|(과도기 as-built): ε_d = MOS d 의 LUT 상대 불확실성(`SsDevice.lut_rel_tol` = (gm/ID)·tol_V(id_equivalent), CONTRACT 9.1).
   용량은 부호 있는 값이라 크기 |p| 를 쓴다. 값이 0 인 파라미터는 넣지 않는다(Δp = 0 -- 그 스탬프 노드가 계에 없을 수도 있다).
 * 단위 스탬프: 파라미터 p 하나만 1 로 둔 `MosSmallSignal` 을 `mos_stamps` 에 넣은 항목(스탬프 식의 정본 하나 -- 새로 쓰지 않는다).
   ∂A/∂p = 그 항목(G 항목은 컨덕턴스, C 항목은 용량 -- 계의 ω 가 jω 를 곱한다).
@@ -19,7 +19,7 @@ from .mna_types import ParameterSet
 from .records import MosSmallSignal, SmallSignalCircuit
 from .stamp_mos import mos_stamps
 
-LUT_PARAMETERS = ("gm", "gmb", "gds", "cgs", "cgd", "cgb")
+LUT_PARAMETERS = ("gm", "gmb", "gds", "cgs", "cgd", "cgb", "cdb", "csb")
 _VALUE_FIELDS = ("gm", "gmb", "gds", "cgs", "cgd", "cgb", "cdb", "csb")     # MosSmallSignal 값 필드(단위 스탬프에서 0 으로 둔다)
 
 

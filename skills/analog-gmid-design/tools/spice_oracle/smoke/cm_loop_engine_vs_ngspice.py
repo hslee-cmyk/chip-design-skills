@@ -5,7 +5,7 @@
 하는 일
   1. 오라클 forced 넷리스트의 .op 에서 MOS 마다 소신호 값을 ngspice 에서 직접 뽑는다(gm, gmbs, gds, 단자 용량 행렬, 접합 용량).
      엔진 `SsDevice` 의 정의에 맞춘다: cgs = -∂Qg/∂Vs, cgd = -∂Qg/∂Vd, cgb = -∂Qg/∂Vb (ngspice `[cgs]` 등은 ∂Qg/∂V 라 부호 반전),
-     cdb = capbd, csb = capbs (엔진 접합 용량 정본 = PDK 접합 모형).
+     cdb = capbd, csb = capbs (이 smoke 의 값은 ngspice 그대로; 엔진 접합 용량 = LUT VGS 최소 조회 × 확산 면적 비).
   2. 그 값으로 엔진 계(`ss_circuit` -> `metrics_ss` 와 같은 `_Ledger`/`_plan`/`_analysis` 경로)를 만들어 spec 뷰
      (`default_views`: DM 되먹임 loop, CM loop)의 PM 을 낸다.
   3. 오라클 sim.json 의 `cm_loop`(ngspice Middlebrook) 및 `ac`(DM β 루프) 와 대조한다.

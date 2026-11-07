@@ -318,9 +318,9 @@ class FloorplanSummary:
 @dataclasses.dataclass(frozen=True)
 class DeviceDiffusion:
     """`ly.diffusion[dev]`(LY8, DEC-89 (5)·DEC-91 (2)): 소자 finger 하나 평균 확산 기하와 finger 수. Euler 행의 공유 확산 통계 --
-    엔진 접합 용량(`metrics.DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, m = n_fingers)`)과 오라클 입력
-    (`devices[].diffusion{ad_m2, as_m2, pd_m, ps_m}`)이 같은 값을 쓴다. 길이 m, 면적 m^2. pd·ps 는 BSIM4 perMod=1 둘레
-    (게이트 쪽 변 finger_w 를 포함 -- 접합 용량이 `pd - Weffcj` 를 STI 측벽으로 쓴다)."""
+    엔진 접합 용량(`metrics.DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, m = n_fingers)`)은 확산 면적 비(ad·as)만 읽고,
+    pd·ps 는 오라클 입력(`devices[].diffusion{ad_m2, as_m2, pd_m, ps_m}`) 넷리스트만 읽는다. 길이 m, 면적 m^2. pd·ps 는
+    게이트 쪽 변 finger_w 를 포함한 둘레다(ngspice 접합 둘레 규약)."""
 
     name: str
     finger_w_m: float
