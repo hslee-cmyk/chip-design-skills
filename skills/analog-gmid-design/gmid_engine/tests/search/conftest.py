@@ -729,14 +729,17 @@ def evaluate(sctx, theta, cells, *args, wf=None, **kw):
     return _evaluate(sctx, theta, cells, hand_wf_of(sctx) if wf is None else wf, *args, **kw)
 
 
-def fs1_determinism_probe():
-    """[FS-1 G-7] 새 프로세스에서 u13 toy 를 출발 블록부터 새로 돌려 (wf_start, front 점별 dc_finger·DeviceOp.w_key) 를 비트 문자열(float.hex)로 JSON 출력한다."""
+def fs1_determinism_probe(tmpdir):
+    """[FS-1 G-7] 새 프로세스에서 저항 부하 회로 P(A-193 MR-1·WB-1 선례 -- 실현 조건이 맞는 toy)를 출발 블록(단계 A·B)부터 새로 돌려
+    (wf_start, front 점별 dc_finger·DeviceOp.w_key) 를 비트 문자열(float.hex)로 JSON 출력한다.
+    [A-196 판정 #8-9] 옛 입력(u13 cs_chain(2) toy)은 실현 m = 1 -> 레일 밖 근 -> 점을 잃어 front 가 비었다(fail-closed가 맞는 거동) -- 입력만 회로 P 로 바꿨다."""
     from gmid_engine.search import find_front
-    from search.u13_hand import cs_chain, toy_case
-    case = toy_case(cs_chain(2), elements=(("C1", "capacitor", 1e-12), ("C2", "capacitor", 2e-12)),
-                    constraints=(("gbw_ss_hz", ">=", 1e6), ("pm_ss_deg", ">=", 60.0)), fresh=True)
+    tmp = Path(tmpdir)
+    lut = write_r4_lut(tmp / "lut")
+    case = build_case(tmp, circuit_p(), lut, elements=(("R1", "resistor", None),), rbounds=(1e3, 1e6),
+                      constraints=(("gain_ss_db", ">=", 10.0, None),), eval_budget=40, budget_s=600.0)
     wf = [[list(c.members), c.w_key] for c in case.sctx.dc.base.value("graph", "start", "wf_start")]
-    fr = find_front(case.sctx, [])
+    fr = find_front(case.sctx, [theta_p(case.dc)])
     pts = []
     for p in fr.front:
         snap = p.result.evaluation.snapshot

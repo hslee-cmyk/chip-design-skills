@@ -223,8 +223,8 @@ R16_I, R16_R, R16_IB = 1e-5, 2.5e4, 2e-6
 S36_VOUT, S36_I = 0.4, 5e-6
 
 
-def _ev(case, th, cells=(0,)):
-    return evaluate(case.sctx, sorted_theta(th), cells, wf=hand_wf_of(case.sctx, {"M1": KEY, "M2": KEY}))
+def _ev(case, th, cells=(0,), keys=None):
+    return evaluate(case.sctx, sorted_theta(th), cells, wf=hand_wf_of(case.sctx, keys or {"M1": KEY, "M2": KEY}))
 
 
 def _w_of(ev, m="M1"):
@@ -301,7 +301,9 @@ def test_realize_r6c_no_root_inside_rails_is_lost_fail_closed_and_lost_entry_has
     assert set(lost) == {"bad"} and isinstance(lost["bad"][0], str) and lost["bad"][0]
     detail = lost["bad"][1]
     d = dict(detail) if not isinstance(detail, dict) else detail
-    assert list(d["small_m"]) == ["M1"]                                         # 손 값: 이 회로의 MOS 는 M1 하나이고 실현 m = 1 (<= 2) -- 판정 n-8
+    # [FS-1 A-196 판정 #8-6, interface §6 O-3] 이 실패는 dc_solve 안에서 난다(레일 안 근 없음) -> 그 부분 스냅샷에는 `dc_finger` 가 없고 `small_m` = None
+    # ('dc_finger 가 없으면 None'). (옛 기대 ['M1'] 은 탐색 `dc_finger` 행을 읽던 시절의 값.) 키는 있어야 한다.
+    assert "small_m" in d and d["small_m"] is None
 
 
 def test_realize_r15_input_fixed_realized_point_satisfies_output_kcl(tmp_path):
@@ -375,9 +377,16 @@ def test_realize_s3_6_target_net_is_unknown_in_resolve_and_its_row_is_judged(tmp
     def theta(i):
         return {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("current", "M1"): i,
                 ("ln_idu", "M1"): r4_ln_idu("pmos", VGS0, VDD - S36_VOUT, 0.0), ("ln_idu", "M2"): r4_ln_idu("nmos", VGS0, S36_VOUT, 0.0)}
-    w0 = _w_of(_ev(case, theta(S36_I)))
-    i = S36_I * (WF / 1.15) / w0                                                # M1: W = w_f/1.15 -> m = 1, r1 = 0.15 (손 oracle)
-    ev = _ev(case, theta(i))
+    # [FS-1 A-196 판정 §6 realize_s3_6] 두 소자 모두 칸 키 200(w_f 2 µm)이면 M2 W ≈ W1·IDu_p/IDu_n ≈ 0.48·w_f -> m = 1, r2 ≈ +108 % 라 재풀이 점이 레일 밖이다(손). M2 칸 키를
+    # 100(w_f 1 µm)으로 두면 x2 ≈ 0.96, r2 ≈ +4 %, 손 이동 ≈ ln(1.15/1.04)/(2λ) ≈ +0.5 V -> out ≈ 0.9 V (두 포화 전제 안). 입력 키만 바꿨고 전제 단언·기대 식은 그대로다.
+    keys36 = {"M1": KEY, "M2": 100}
+    wf36 = {"M1": WF, "M2": 100 * GRID}
+    w0 = _w_of(_ev(case, theta(S36_I), keys=keys36))
+    # 손: W2 ≈ 0.552·W1 (같은 θ 전류 비·IDu 비). x1 = W1/w_f1 = 0.7 -> m1 = 1, r1 = 1/0.7 − 1 = 0.4286; x2 = W2/w_f2 = 0.552·2·0.7 = 0.773 -> m2 = 1, r2 = 0.294.
+    # 두 MOS 비 (1 + r1)/(1 + r2) = 1.104 -> 손 이동 ln(1.104)/(2λ) ≈ +0.49 V (out ≈ 0.89 V, 두 포화 안), |r1 − r2| = 0.134 > 0.119 = tol_I/I (아래 전제 단언이 확인).
+    # (옛 x1 = 1/1.15 는 |r1 − r2|·I = 4.22e-8 < tol_I 4.58e-8 라 목표 넷 고정 행 잔차 전제가 서지 않았다 -- 판정 대략값을 측정으로 고친 입력.)
+    i = S36_I * (WF * 0.7) / w0                                                 # M1: W = 0.7·w_f -> m = 1, r1 = 0.4286 (손 oracle)
+    ev = _ev(case, theta(i), keys=keys36)
     snap = ev.evaluation.snapshot
     v0 = dict(snap.column("node", "dc_v"))
     assert ev.status == STATUS_SEALED and v0["out"] == pytest.approx(S36_VOUT, abs=1e-9)
@@ -386,8 +395,8 @@ def test_realize_s3_6_target_net_is_unknown_in_resolve_and_its_row_is_judged(tmp
     ops = dict(snap.column("device", "dc_op"))
     r = {}
     for dev in ("M1", "M2"):
-        mm = hand_oracle((ops[dev].W,), WF, ())[4][0]
-        r[dev] = mm * WF / ops[dev].W - 1.0
+        mm = hand_oracle((ops[dev].W,), wf36[dev], ())[4][0]
+        r[dev] = mm * wf36[dev] / ops[dev].W - 1.0
     tol_i = seal_item(snap, 3).tol
     assert abs(i * (r["M1"] - r["M2"])) > tol_i, (r, tol_i)                      # 전제 (손): 목표 넷을 고정하면 out 행 잔차 > tol_I -- 아니면 멈추고 보고
     hand = mos_load_out_shift(r["M1"], r["M2"], LAM)

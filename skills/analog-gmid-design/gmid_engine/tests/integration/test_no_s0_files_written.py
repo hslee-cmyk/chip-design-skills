@@ -33,8 +33,9 @@ PASS_THROUGH = ("PATH", "SYSTEMROOT", "APPDATA", "GMID_LUT_TABLE_CACHE_DIR", "GM
 _RUNNER = r'''
 import json, os, sys
 from pathlib import Path
-ck, skill, circuit, out_dir, s3_root, out_json = sys.argv[1:7]
+ck, skill, circuit, out_dir, s3_root, out_json, tests_dir = sys.argv[1:8]
 sys.path.insert(0, ck)
+sys.path.append(tests_dir)     # [FS-1 A-196 FS-1 밖 입력 정정] `-P` 로 cwd 가 sys.path 에서 빠져 test 공용 helper `pdk_min_w` 를 못 찾았다 -- test 폴더를 뒤에 붙인다(엔진 복사본 앞서지 않음)
 import gmid_engine
 from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
@@ -101,7 +102,8 @@ def isolated_run(tmp_path_factory):
     env.update(TEMP=str(tmp), TMP=str(tmp), PYTHONDONTWRITEBYTECODE="1", PYTHONIOENCODING="utf-8",   # [NFR-4 card 2] BLAS 고정은 엔진(C1)
                PYTHONUTF8="1")
     assert "GMID_LUT_TABLE_CACHE_DIR" in env                       # conftest 가 고정한 test 표 캐시 폴더(U-87)
-    proc = subprocess.run([sys.executable, "-P", str(runner), str(ck), str(SKILL), CIRCUIT, str(out_dir), str(s3_root), str(out_json)],
+    proc = subprocess.run([sys.executable, "-P", str(runner), str(ck), str(SKILL), CIRCUIT, str(out_dir), str(s3_root), str(out_json),
+                           str(Path(__file__).resolve().parents[1])],
                           env=env, cwd=str(work), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=3000)
     return {"work": work, "ck": ck, "tmp": tmp, "proc": proc, "engine_before": engine_before, "work_before": work_before,
             "out_json": out_json}
