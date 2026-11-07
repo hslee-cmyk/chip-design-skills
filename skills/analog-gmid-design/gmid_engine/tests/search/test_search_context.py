@@ -512,13 +512,16 @@ def test_search_memo_is_not_callers_and_caller_untouched(tmp_path, lut_sealed):
 def test_eval_results_identical_search_memo_vs_caller_memo(tmp_path, lut_sealed):
     """A-T12 (옮겨 온 성질 2): 같은 입력의 탐색을 (A) 탐색 memo(배선 그대로), (B) 호출자 memo(상한 4096 생성자 memo)로 돌린다 ->
     front·모든 평가 결과·run_id 비트 동일."""
-    a = build_case(tmp_path / "a", circuit_c(), lut_sealed, eval_budget=30)
-    b = build_case(tmp_path / "b", circuit_c(), lut_sealed, eval_budget=30)
+    # [FS-1 A-193 MR-1] 회로 = 저항 부하 P (정본 경로에서 실현 조건이 맞는 toy; 회로 C 는 층 0 점이 실현에서 레일 밖 근으로 사라진다)
+    from .conftest import theta_p
+    kw = dict(eval_budget=40, elements=(("R1", "resistor", None),), rbounds=(1e3, 1e6), constraints=(("gain_ss_db", ">=", 10.0, None),))
+    a = build_case(tmp_path / "a", circuit_p(), lut_sealed, **kw)
+    b = build_case(tmp_path / "b", circuit_p(), lut_sealed, **kw)
     assert b.dc.lut.memo is b.acc.memo
     # (B) 탐색이 호출자 memo 를 쓴다. 커널 컨텍스트 `base` 는 S0 수준 스냅샷이라 LUT 손잡이만 호출자 것으로 바꾼다.
     b.sctx.dc = dataclasses.replace(b.sctx.dc, lut=b.dc.lut)
-    fa = find_front(a.sctx, [theta_r4c()])
-    fb = find_front(b.sctx, [theta_r4c()])
+    fa = find_front(a.sctx, [theta_p(a.dc)])
+    fb = find_front(b.sctx, [theta_p(b.dc)])
     assert a.sctx.dc.lut.memo is not a.acc.memo and b.sctx.dc.lut.memo is b.acc.memo
     assert dict(fa.perf)["stops_wall_budget"] == 0 and dict(fb.perf)["stops_wall_budget"] == 0
     assert front_signature(fa) == front_signature(fb)

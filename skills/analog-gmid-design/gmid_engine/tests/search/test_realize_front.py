@@ -206,10 +206,15 @@ def test_realize_o1_json_finger_residual_is_the_realized_value_and_no_slice_roun
 # 기대값(oracle (a)): 옛 test 와 같은 독립 이분법 `wb1_hand` 해 -- r 은 스냅샷의 실현 W / 탐색 W 에서 읽는다 (m·w_f 를 피검 함수 출력으로 만들지 않는다).
 # =====================================================================================================================
 from sizing.conftest import LAM, seal_item                                     # noqa: E402
-from sizing.test_realize_fingers import hand_oracle                            # noqa: E402
 from wb1_hand import mos_load_out_shift, source_load_kcl_at_vdd, source_load_out_shift  # noqa: E402
 from .conftest import hand_wf_of                                               # noqa: E402
 from .wb1_flow import R6_ELEMENTS, R6_I, R6_R, VDD, VGS0, circuit_r16, circuit_s36, circuit_r6, single_mos_resistor_theta  # noqa: E402
+
+def hand_oracle(*a, **k):
+    """interface §1 손 oracle (`sizing/test_realize_fingers`) -- 새 이름 import 가 이 파일 전체의 수집 오류가 되지 않게 호출 때 가져온다 (판정 n-6)."""
+    from sizing.test_realize_fingers import hand_oracle as _hand_oracle
+    return _hand_oracle(*a, **k)
+
 
 KEY = 200
 WF = KEY * GRID                         # 칸 키 200 -> w_f = 2e-6
@@ -296,7 +301,7 @@ def test_realize_r6c_no_root_inside_rails_is_lost_fail_closed_and_lost_entry_has
     assert set(lost) == {"bad"} and isinstance(lost["bad"][0], str) and lost["bad"][0]
     detail = lost["bad"][1]
     d = dict(detail) if not isinstance(detail, dict) else detail
-    assert "small_m" in d and (d["small_m"] is None or list(d["small_m"]) == sorted(d["small_m"]))
+    assert list(d["small_m"]) == ["M1"]                                         # 손 값: 이 회로의 MOS 는 M1 하나이고 실현 m = 1 (<= 2) -- 판정 n-8
 
 
 def test_realize_r15_input_fixed_realized_point_satisfies_output_kcl(tmp_path):
@@ -338,6 +343,11 @@ def test_realize_r16_power_is_rail_current_of_realized_channel_current(tmp_path,
     a = R16_I * R16_R
     ev, i, res = _scaled_single_mos(case, lambda ii, rr: single_mos_resistor_theta(case.dc, ii, rr, VDD - a), R16_I, a, 3.0)
     ib = R16_IB if with_source else 0.0
+    snap = ev.evaluation.snapshot
+    assert dict(snap.column("node", "dc_v"))["s"] == pytest.approx(i * res, abs=1e-9) == pytest.approx(R16_I * R16_R, abs=1e-9)    # 전제 (손): 탐색 V(s) = I·R (= 스케일 전 a)
+    cfg = next(iter(dict(snap.column("graph", "icm_config")).values()))
+    assert cfg.config in (None, "as_is_single_input")                           # 전제: 입력 고정 갈래
+    assert ev.objectives.power_w == pytest.approx(VDD * (i + ib), rel=1e-12)    # 같은 θ 탐색 평가: V_dd·(I + I_b) (불변)
     m, r = _r_from_oracle(ev)
     assert m == 1 and 2.5 <= r <= 5.0                                           # 전제: r ≈ 3 (W < w_f -> m = 1)
     _, out = realize(case, ev)
@@ -352,6 +362,8 @@ def test_realize_r16_power_is_rail_current_of_realized_channel_current(tmp_path,
     assert abs(got - hand) <= p_res
     assert abs(got - VDD * (i + ib)) > p_res                                    # 공허 방지 (θ 전류를 읽으면 red)
     assert abs(dict(rsnap.column("device", "dc_op"))["M1"].current - v1["s"] / res) <= p_res / VDD
+    if with_source:
+        assert dict(rsnap.column("device", "dc_current"))["I2"] == pytest.approx(R16_IB, rel=1e-12)       # 이상 전류원 항의 출처(선언 입력)
 
 
 def test_realize_s3_6_target_net_is_unknown_in_resolve_and_its_row_is_judged(tmp_path):
@@ -369,6 +381,8 @@ def test_realize_s3_6_target_net_is_unknown_in_resolve_and_its_row_is_judged(tmp
     snap = ev.evaluation.snapshot
     v0 = dict(snap.column("node", "dc_v"))
     assert ev.status == STATUS_SEALED and v0["out"] == pytest.approx(S36_VOUT, abs=1e-9)
+    cfg = next(iter(dict(snap.column("graph", "icm_config")).values()))
+    assert cfg.config in (None, "as_is_single_input")                           # 전제: 입력 고정 갈래
     ops = dict(snap.column("device", "dc_op"))
     r = {}
     for dev in ("M1", "M2"):

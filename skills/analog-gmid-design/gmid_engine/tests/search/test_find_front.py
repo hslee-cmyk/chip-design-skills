@@ -149,17 +149,9 @@ def test_pending_points_only_in_pending_front(tmp_path, lut_pending):
     assert "pending" in notes or "seal" in notes                               # 봉인 7 대기 사유 기록
 
 
-def test_unmeasured_points_never_in_final_front(tmp_path, lut_sealed, short_root):
-    case, fr = _run(tmp_path, lut_sealed, constraints=SS, eval_budget=30, archive_root=short_root,
-                    topo=circuit_c(with_cap=True), elements=(("CL", "capacitor", PENDING),))
-    assert tuple(fr.front) == ()
-    assert len(fr.unmeasured_front) >= 1
-    assert all(len(tuple(p.result.unmeasured)) >= 1 for p in fr.unmeasured_front)
-    um = [n for n in _notes(fr) if "unmeasured" in json.dumps(n, default=str)]
-    assert um and "gain_ss_db" in json.dumps(um, default=str)
-    (run,) = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "runs.jsonl")
-              .read_text(encoding="utf-8").splitlines() if x.strip()]
-    assert run["front"] == [] and len(run["unmeasured_front"]) == len(fr.unmeasured_front)
+# [FS-1 A-193 MR-1 삭제] test_unmeasured_points_never_in_final_front (회로 C + 미선언 CL) -- 정본 경로에서 층 0 이 W = 0.5 µm(toy MINW)로 가 실현 m = 1 이 되고 out 손 근이 레일 밖(−1.19 V)이라
+# 그 점을 잃는다 (판정 측정). 저항 부하 회로(P)에 미선언 CL 을 달아 시도했으나(rbounds·θ 4 변형) 단일 sealed 점이 실현에서 item 3 실패로 잃어 unmeasured front 가 비었다 -- 실현 조건이 맞는 toy 를 찾지
+# 못해 RETIRED 에 기록 (tests/RETIRED_TESTS_fs1.md). 덮이지 않는 것: '미측정 점은 최종 front 에 없다' 의 find_front 수준 단언.
 
 
 UB1_GATE_FIELDS = ("verdict", "reason", "errors", "checks", "unchecked", "unmeasured", "epsilon_db")
@@ -259,15 +251,50 @@ def test_eval_budget_derived_and_recorded(tmp_path, lut_sealed):
     assert isinstance(perf["eval_budget"], int) and perf["eval_budget"] > 0
 
 
+def circuit_pz():
+    """저항 부하 P (M1 pmos (out, in, vdd) + R1 (out, gnd)) + 수동소자 θ 회로 Rz (out, x) + Cz (x, gnd)."""
+    from .conftest import mos, topo, two
+    return topo("hand_pz", [mos("M1", "pmos", "out", "in", "vdd")],
+                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
+                passives=[two("R1", "resistor", "out", "gnd"), two("Rz", "resistor", "out", "x"), two("Cz", "capacitor", "x", "gnd")])
+
+
+def theta_pz(dc, cz=1e-12, rz=1e4, i=1e-5, r=9e4, vgs=0.6, l1=1e-6):
+    """회로 PZ 의 θ = 회로 P 의 θ (conftest theta_p 와 같은 손 식) + 수동소자 θ. 성분 키는 스키마(입력)에서 읽는다."""
+    from .conftest import r4_ln_idu, schema_of
+    comps = set(schema_of(dc).components)
+    th = {("L", "M1"): l1, ("ln_idu", "M1"): r4_ln_idu("pmos", vgs, 1.8 - i * r, 0.0), ("resistance", "R1"): r,
+          ("capacitance", "Cz"): cz, ("ss_resistance", "Rz"): rz}
+    for k in comps:
+        if k[0] == "current":
+            th[k] = i
+    assert set(th) == comps, (sorted(th), sorted(comps))
+    return th
+
+
+def assert_realized_roots_inside_rails(fr):
+    """전제 (손, 저항 부하 P): front 점마다 실현 잔차 r(= dc_finger.residual) 로 out KCL 손 근이 레일 안 -- `wb1_hand.source_load_kcl_at_vdd` > 0 (a = I·R)."""
+    from sizing.conftest import LAM
+    from wb1_hand import source_load_kcl_at_vdd
+    assert len(fr.front) >= 1
+    for p in fr.front:
+        th = dict(p.result.theta)
+        res = th[("resistance", "R1")]
+        cur = next(v for k, v in th.items() if k[0] == "current")
+        r = dict(p.result.evaluation.snapshot.column("device", "dc_finger"))["M1"].residual
+        assert source_load_kcl_at_vdd(1.8, res, cur, cur * res, r, LAM) > 0.0, (res, cur, r)
+
+
 def test_passive_theta_circuit_front_measured(tmp_path, lut_sealed):
     """r6 DEC-92: θ capacitance·ss_resistance 회로 -- 최종 front 점은 ss 제약이 측정되고(행 있음·unmeasured 0), I-1 유지."""
-    from .conftest import Z_ELEMENTS, circuit_z, theta_z
-    case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10),
-                      constraints=SS, eval_budget=40)
-    fr = find_front(case.sctx, [theta_z(case.dc)])
+    # [FS-1 A-193 MR-1] 회로 = 저항 부하 P + 수동소자 θ (Rz, Cz): 정본 경로에서 실현 조건이 맞는 toy (회로 C 는 층 0 의 W = MINW 점이 실현에서 레일 밖 근으로 사라진다).
+    case = build_case(tmp_path, circuit_pz(), lut_sealed, elements=P_ELEMENTS + (("Rz", "resistor", None), ("Cz", "capacitor", None)),
+                      rbounds=P_RBOUNDS, cbounds=(1e-14, 1e-10), constraints=SS, eval_budget=40)
+    fr = find_front(case.sctx, [theta_pz(case.dc)])
     perf = dict(fr.perf)
     assert perf["kernel_calls"] == perf["unique_keys"] and perf["recompute_same_key"] == 0
     assert len(fr.front) >= 1
+    assert_realized_roots_inside_rails(fr)                                      # 전제 (손): 실현 점의 out 근이 레일 안
     for p in fr.front:
         assert tuple(p.result.unmeasured) == ()
         assert any(c.name.startswith("ss:") for c in p.result.constraints)

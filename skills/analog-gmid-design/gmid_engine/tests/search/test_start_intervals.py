@@ -426,7 +426,7 @@ def test_initial_wf_missing_field_is_a_lookup_error_fail_closed(fs1_case):
     """필드 부재는 fail-closed: wf_start 가 없는 스냅샷(단계 A 의 S1 수준) 에서 initial_wf 는 None 으로 넘기지 않고 기존 스냅샷 조회 오류(KeyError)다 (판정 minor 7).
     None 은 칸 None(start_undefined, interface §5) 경우만이다."""
     assert initial_wf(fs1_case.sctx.dc.base) is not None                                  # 양성 대조: 출발 단계를 거친 스냅샷
-    with pytest.raises(KeyError):
+    with pytest.raises(LookupError):                                                      # KeyError ⊂ LookupError (판정 n-3)
         initial_wf(fs1_case.a.s1.snapshot)
 
 
