@@ -192,7 +192,7 @@ def test_without_s1v_view_wf_start_still_exists_and_initial_wf_is_defined(tmp_pa
 # oracle: (손) interface card 20261107-fs1 §3.2~§3.4 표의 손 값 (선택 규칙 (i)(ii)(iii) 를 입력 숫자에서 손으로 적용 -- 피검 함수로 기대값을 만들지 않는다).
 # =====================================================================================================================
 from gmid_engine.core import StructureUnresolvedError  # noqa: E402
-from gmid_engine.search import initial_wf, kvl_partner, member_start_w, wf_start_value  # noqa: E402
+from gmid_engine.search import find_front, initial_wf, member_start_w, start_partner, wf_start_value  # noqa: E402
 from gmid_engine.sizing import WfCell  # noqa: E402
 
 _S_GROUPS = (("mirror", ("B", "A"), "derived"), ("mirror", ("B", "C"), "derived"))
@@ -201,11 +201,13 @@ _S_POS = {"A": 0, "B": 1, "C": 2, "D": 3}
 _S_KIND = {n: "nmos" for n in _S_MOS}
 _S_W = {"A": 3.0e-6, "B": 1.5e-6, "C": 2.5e-6, "D": 0.5e-6}
 _S_CAND = {"nmos": (50, 100, 200), "pmos": (50, 100, 200)}
+_S_REF = {"nmos": 100, "pmos": 100}      # [v6.39.5] S-1~S-10 공통 추가 인자: reference = 그 행의 kind 마다 100, l_defined = 늘 True (그 행들에 "no_partner" 없음 -> 기대 불변)
 
 
-def _wsv(groups=_S_GROUPS, pos=None, kinds=None, start_w=None, defined=None):
+def _wsv(groups=_S_GROUPS, pos=None, kinds=None, start_w=None, defined=None, reference=None, l_defined=None):
     return wf_start_value(groups, _S_MOS, dict(pos or _S_POS), dict(kinds or _S_KIND), dict(start_w or _S_W), _S_CAND,
-                          defined or (lambda name, key: True), grid_m=1e-8)
+                          defined or (lambda name, key: True), dict(_S_REF if reference is None else reference),
+                          l_defined or (lambda name, key: True), grid_m=1e-8)
 
 
 def _cells(out):
@@ -273,29 +275,162 @@ def test_s10_deterministic():
     assert _wsv() == _wsv() and _wsv()[1] == ()
 
 
-# ---------------------------------------------------------------- K-1~K-4 kvl_partner
-def _kp(name="B", gate=None, source=None, bulk=None, writers=("A",), kind=None):
-    g = gate or {"A": "g", "B": "g"}
-    s = source or {"A": "s", "B": "s"}
-    b = bulk or {"A": "s0", "B": "s0"}
-    return kvl_partner(name, ("A", "B"), g, s, b, kind or {"A": "nmos", "B": "nmos"}, set(writers))
+# ---------------------------------------------------------------- [v6.39.5] S-11~S-16 짝 없는 단일 멤버 칸 = 기준 폭 슬라이스 출발
+# oracle (식) interface §3.2 선택 1·2·3 + 기록 꼴: 입력 숫자에서 손으로 적용(피검 함수로 기대값을 만들지 않는다). 대조값: S-1 의 D 칸 W 기준 선택은 50(0.5 µm) 이므로
+# 기준 폭(100)과 값이 갈린다 -- '기준 폭을 썼다'를 W 기준 선택과 구별한다.
+_S_NOPARTNER_D = {**_S_W, "D": "no_partner"}
+
+
+def test_s11_single_member_no_partner_cell_starts_at_reference_slice_without_voltage_judgement():
+    """S-11: D(단일 멤버, no_partner) 칸 = reference[nmos] = 100, defined(D, ·) 가 모두 False 여도 기준 폭(전압 판정을 쓰지 않음). A·B·C 칸은 S-1 그대로(100)."""
+    out = _wsv(start_w=_S_NOPARTNER_D, defined=lambda n, k: n != "D", reference={"nmos": 100}, l_defined=lambda n, k: True)
+    assert _cells(out) == ((("A", "B", "C"), 100), (("D",), 100))
+    assert out[1] == (("wf_start_reference", {"members": ("D",), "w_key": 100}),)
+    assert _cells(_wsv())[1] == (("D",), 50)                                              # 대조: D 의 W 기준 선택(S-1)은 50 -- 기준 폭과 다르다
+
+
+def test_s12_reference_outside_candidates_is_undefined():
+    """S-12: reference = {nmos: 150} (candidates (50, 100, 200) 밖) -> D 칸 None, why reference_start_undefined."""
+    out = _wsv(start_w=_S_NOPARTNER_D, reference={"nmos": 150})
+    assert _cells(out) == ((("A", "B", "C"), 100), (("D",), None))
+    assert out[1] == (("wf_start_undefined", {"members": ("D",), "why": "reference_start_undefined"}),)
+
+
+def test_s13_reference_slice_outside_l_axis_is_undefined():
+    """S-13: l_defined(D, 100) = False -> S-12 와 같은 D 칸·기록."""
+    out = _wsv(start_w=_S_NOPARTNER_D, reference={"nmos": 100}, l_defined=lambda n, k: not (n == "D" and k == 100))
+    assert _cells(out) == ((("A", "B", "C"), 100), (("D",), None))
+    assert out[1] == (("wf_start_undefined", {"members": ("D",), "why": "reference_start_undefined"}),)
+
+
+def test_s14_multi_member_cell_without_partner_is_undefined_not_reference():
+    """S-14: 다멤버 칸 (A,B,C) 에서 C 가 no_partner -> 칸 None, why no_member_partner (기준 폭 대체 0: wf_start_reference 기록 0). D 칸 = 50 (S-1 그대로)."""
+    out = _wsv(start_w={**_S_W, "C": "no_partner"}, reference={"nmos": 100}, l_defined=lambda n, k: True)
+    assert _cells(out) == ((("A", "B", "C"), None), (("D",), 50))
+    assert out[1] == (("wf_start_undefined", {"members": ("A", "B", "C"), "why": "no_member_partner"}),)
+    assert not [r for r in out[1] if r[0] == "wf_start_reference"]
+
+
+def test_s15_no_current_is_not_a_reference_start():
+    """S-15: D 의 start_w = no_member_density (전류 없음) -> D 칸 None, why no_member_density -- l_defined 가 True 여도 기준 폭 대체 0."""
+    out = _wsv(start_w={**_S_W, "D": "no_member_density"}, reference={"nmos": 100}, l_defined=lambda n, k: True)
+    assert _cells(out) == ((("A", "B", "C"), 100), (("D",), None))
+    assert out[1] == (("wf_start_undefined", {"members": ("D",), "why": "no_member_density"}),)
+
+
+def test_s16_reference_start_uses_l_defined_once_and_never_defined():
+    """S-16 (구조): S-11 을 호출 기록 spy(test 쪽 함수)로 -> l_defined 호출 = ((D, 100),) 한 번, defined 호출 인자에 이름 D 0 (A·B·C 는 호출됨 -- 양성 대조)."""
+    l_calls, d_calls = [], []
+
+    def l_defined(name, key):
+        l_calls.append((name, key))
+        return True
+
+    def defined(name, key):
+        d_calls.append((name, key))
+        return name != "D"
+    out = _wsv(start_w=_S_NOPARTNER_D, defined=defined, reference={"nmos": 100}, l_defined=l_defined)
+    assert _cells(out) == ((("A", "B", "C"), 100), (("D",), 100))
+    assert l_calls == [("D", 100)]
+    assert d_calls and not [c for c in d_calls if c[0] == "D"] and {c[0] for c in d_calls} == {"A", "B", "C"}
+
+
+# ---------------------------------------------------------------- [v6.39.5] K-1~K-7·Y-1~Y-6 start_partner (KVL 짝 ∪ 대칭 짝)
+# oracle (식) interface §3.3 정의: KVL 후보 = writers 에 들고 gate·source·bulk·kind 가 name 과 모두 같고 length 가 `==` 인 o (position 최소), 없을 때만 대칭 후보
+# (role diff_pair/branch_symmetric ∧ status derived/ratified 인 묶음의 다른 멤버 가운데 writers, position 최소). 입력 숫자에서 손으로 적용한 값.
+_K_POS = {"A": 0, "B": 1, "C": 2, "E": 3, "P": 4, "Q": 5, "R": 6}
+
+
+def _sp(name, mos, *, gate=None, source=None, bulk=None, kind=None, length=None, writers=(), groups=(), position=None):
+    """공통 입력(표기 없으면): position = _K_POS 의 그 행 mos 몫, kind 모두 nmos, bulk 모두 s0, length 모두 1e-6, groups = (). gate·source 는 호출 쪽이 정한다(없으면 모두 g·s)."""
+    mos = tuple(mos)
+    return start_partner(name, mos, dict(position or {n: _K_POS[n] for n in mos}), dict(gate or {n: "g" for n in mos}),
+                         dict(source or {n: "s" for n in mos}), dict(bulk or {n: "s0" for n in mos}), dict(kind or {n: "nmos" for n in mos}),
+                         dict(length or {n: 1e-6 for n in mos}), set(writers), tuple(groups))
 
 
 def test_k1_partner_is_writer_with_same_gate_source_bulk_kind():
-    assert _kp() == "A"
+    assert _sp("B", ("A", "B"), writers={"A"}) == "A"
 
 
 def test_k2_gate_only_shared_has_no_partner():
-    assert _kp() == "A"                                                                  # 양성 대조
-    assert _kp(source={"A": "s", "B": "s2"}) is None
+    assert _sp("B", ("A", "B"), writers={"A"}) == "A"                                    # 양성 대조
+    assert _sp("B", ("A", "B"), writers={"A"}, source={"A": "s", "B": "s2"}) is None
 
 
 def test_k3_declared_bulk_differs_has_no_partner():
-    assert _kp(bulk={"A": "s0", "B": "s1"}) is None
+    assert _sp("B", ("A", "B"), writers={"A"}, bulk={"A": "s0", "B": "s1"}) is None
+
+
+def test_k3b_kind_differs_has_no_partner():
+    """interface §3.3 'gate·source·bulk·kind 가 name 과 모두 같고' 의 kind 항."""
+    assert _sp("B", ("A", "B"), writers={"A"}, kind={"A": "nmos", "B": "pmos"}) is None
 
 
 def test_k4_no_writers_no_partner():
-    assert _kp(writers=()) is None
+    assert _sp("B", ("A", "B"), writers=()) is None
+
+
+def test_k5_length_differs_has_no_partner():
+    """K-5 (c) L 만 다름: length[A] = 2e-6 -> None."""
+    assert _sp("B", ("A", "B"), writers={"A"}) == "A"                                    # 양성 대조
+    assert _sp("B", ("A", "B"), writers={"A"}, length={"A": 2e-6, "B": 1e-6}) is None
+
+
+def test_k5b_length_comparison_has_zero_tolerance():
+    """K-5b (c) 허용오차 0: length[A] = nextafter(1e-6, 1.0) (1 ulp 위) -> None."""
+    assert _sp("B", ("A", "B"), writers={"A"}, length={"A": math.nextafter(1e-6, 1.0), "B": 1e-6}) is None
+
+
+def test_k6_partner_is_not_limited_to_the_cell():
+    """K-6 (c) 칸 무관: A 는 B 가 든 칸 ((B, C) mirror) 밖이어도 KVL 짝이다."""
+    assert _sp("B", ("A", "B", "C"), writers={"A"}, groups=(("mirror", ("B", "C"), "derived"),)) == "A"
+
+
+def test_k7_canonical_order_picks_minimum_position_not_name():
+    """K-7: 후보 A·E 모두 KVL 짝 -> position 최소. position {A: 2, B: 1, E: 0} 이면 E, {A: 0, B: 1, E: 2} 이면 A (이름 무관 -- 위치만)."""
+    assert _sp("B", ("A", "B", "E"), writers={"A", "E"}, position={"A": 2, "B": 1, "E": 0}) == "E"
+    assert _sp("B", ("A", "B", "E"), writers={"A", "E"}, position={"A": 0, "B": 1, "E": 2}) == "A"
+
+
+_Y_GATE = {"P": "g1", "Q": "g2"}
+_Y_SRC = {"P": "s", "Q": "s"}
+
+
+def test_y1_diff_pair_symmetric_partner_when_no_kvl_candidate():
+    """Y-1: 차동쌍 (P, Q) derived, gate 다름(KVL 후보 0), writers {P}, name Q -> P."""
+    assert _sp("Q", ("P", "Q"), gate=_Y_GATE, source=_Y_SRC, writers={"P"}, groups=(("diff_pair", ("P", "Q"), "derived"),)) == "P"
+
+
+def test_y2_branch_symmetric_role_gives_symmetric_partner():
+    assert _sp("Q", ("P", "Q"), gate=_Y_GATE, source=_Y_SRC, writers={"P"}, groups=(("branch_symmetric", ("P", "Q"), "derived"),)) == "P"
+
+
+def test_y2b_ratified_status_gives_symmetric_partner():
+    assert _sp("Q", ("P", "Q"), gate=_Y_GATE, source=_Y_SRC, writers={"P"}, groups=(("diff_pair", ("P", "Q"), "ratified"),)) == "P"
+
+
+def test_y3_review_needed_status_gives_no_symmetric_partner():
+    assert _sp("Q", ("P", "Q"), gate=_Y_GATE, source=_Y_SRC, writers={"P"}, groups=(("diff_pair", ("P", "Q"), "derived"),)) == "P"   # 양성 대조
+    assert _sp("Q", ("P", "Q"), gate=_Y_GATE, source=_Y_SRC, writers={"P"}, groups=(("diff_pair", ("P", "Q"), "review_needed"),)) is None
+
+
+def test_y4_mirror_role_is_not_a_symmetric_partner():
+    assert _sp("Q", ("P", "Q"), gate=_Y_GATE, source=_Y_SRC, writers={"P"}, groups=(("mirror", ("P", "Q"), "derived"),)) is None
+
+
+def test_y5_kvl_partner_wins_over_symmetric_partner():
+    """Y-5: KVL 짝 R (Q 와 gate g2·source s 같음) vs 대칭 짝 P (position 이 앞섬) -> R."""
+    got = _sp("Q", ("P", "Q", "R"), gate={"P": "g1", "Q": "g2", "R": "g2"}, source={"P": "s", "Q": "s", "R": "s"}, writers={"P", "R"},
+              groups=(("diff_pair", ("P", "Q"), "derived"),), position={"P": 0, "Q": 1, "R": 2})
+    assert got == "R"
+
+
+def test_y6_symmetric_candidates_pick_minimum_position():
+    """Y-6: branch_symmetric (Q, P, R) ratified, writers {P, R}, position {P: 5, Q: 0, R: 1} -> 위치 최소 R (멤버 나열 순서·이름 무관)."""
+    got = _sp("Q", ("P", "Q", "R"), gate={"P": "g1", "Q": "g2", "R": "g3"}, source={"P": "s", "Q": "s", "R": "s"}, writers={"P", "R"},
+              groups=(("branch_symmetric", ("Q", "P", "R"), "ratified"),), position={"P": 5, "Q": 0, "R": 1})
+    assert got == "R"
 
 
 # ---------------------------------------------------------------- W-1~W-4 member_start_w
@@ -312,8 +447,15 @@ def test_w1_dependent_member_uses_partner_density():
     assert out["B"] == pytest.approx(5e-13, rel=1e-12)
 
 
-def test_w2_no_partner_is_no_member_density():
+def test_w2_no_partner_is_the_no_partner_marker():
+    """W-2 [v6.39.5 기대 바뀜]: partner = {B: None}(gate만 공유 -- K-2 꼴) -> B = "no_partner"(옛 기대 "no_member_density" 아님), A 값 그대로."""
     out = _msw(partner={"B": None})
+    assert out["B"] == "no_partner" and out["A"] == 1e-6 * 1e-6 / math.exp(math.log(4.0))
+
+
+def test_w5_missing_current_is_checked_before_missing_partner():
+    """W-5: W-2 입력에서 current[B] = None 이기도 하면 -> B = "no_member_density"(전류 없음이 먼저)."""
+    out = _msw(partner={"B": None}, current={"A": 1e-6, "B": None})
     assert out["B"] == "no_member_density" and out["A"] == 1e-6 * 1e-6 / math.exp(math.log(4.0))
 
 
@@ -439,7 +581,7 @@ def _spy_start_calls(monkeypatch):
     import inspect
     import sys
     mod = sys.modules["gmid_engine.search.start_intervals"]
-    log = {"member_start_w": [], "wf_start_value": [], "matching_bounds": []}
+    log = {"member_start_w": [], "wf_start_value": [], "matching_bounds": [], "start_partner": []}      # [v6.39.5] 관찰 지점 `.start_partner` (interface §9)
     for name in log:
         orig = getattr(mod, name)
         sig = inspect.signature(orig)
@@ -476,6 +618,17 @@ def test_sb5_dependent_mirror_member_start_w_operational_path(monkeypatch):
     assert len(log["wf_start_value"]) == 1
     wargs, (wcells, _recs) = log["wf_start_value"][0]
     assert wargs["start_w"] is out                                                       # (c)
+    # [v6.39.5 보강] start_partner 배선: B(MP2) 호출 한 번, mos 인자 = 그 스냅샷 MOS 전부(칸으로 거르지 않음), length 인자 is member_start_w 의 length 인자,
+    # groups 인자 is wf_start_value 의 groups 인자(판정 m-6: 같은 객체), 답 = MP1. 전제 length[MP1] == length[MP2] (안 서면 멈추고 보고).
+    sp = [(a, r) for a, r in log["start_partner"] if a["name"] == "MP2"]
+    assert len(sp) == 1
+    sp_args, sp_out = sp[0]
+    all_mos = [n for n, k in base.column("device", "kind") if k in ("nmos", "pmos")]
+    assert len(all_mos) == 4 and set(sp_args["mos"]) == set(all_mos) and len(sp_args["mos"]) == len(all_mos)
+    assert length["MP1"] == length["MP2"]                                                 # 전제
+    assert sp_out == "MP1" and args["partner"]["MP2"] == sp_out
+    assert sp_args["length"] is args["length"]
+    assert sp_args["groups"] is wargs["groups"]
     # (d) 손 선택: 거울 칸 W_c = min 멤버 출발 W, 가장 큰 key·grid <= W_c (모두 정의 -- 전제)
     cand = wargs["candidates"]["pmos"]
     assert tuple(cand) == tuple(widths(case.kctx.lut.memo.lut, "pmos"))      # M-1
@@ -490,8 +643,182 @@ def test_sb5_dependent_mirror_member_start_w_operational_path(monkeypatch):
     assert got[tuple(sorted(("MP1", "MP2"), key=lambda n: colour[n]))] == want
 
 
-# [FS-1 A-178/A-182 보고] S-B6 (gate만 공유 칸, 운영 경로) 는 쓰지 않았다: 전제 '정합 묶음 멤버 C 가 쓰기 멤버와 gate 만 공유하고 source 가 다른 mirror 묶음'이
-# 손 회로로 서지 않는다(실측 -- 퇴화 거울(source 저항)은 matching_groups 가 비고, 캐스코드 거울의 branch_symmetric 은 둘 다 writer). 보고서 참조(skip 아님).
+# ---------------------------------------------------------------- [v6.39.5] S-B6 짝 없는 다멤버 칸 (운영 경로)
+# 옛 S-B6 (gate만 공유 mirror 멤버) 는 손 회로로 서지 않았다(A-178/A-182). v6.39.5 의 새 전제(interface §3.4 S-B6): '칸 멤버 둘 이상 + start_partner 답 None'.
+# 이 전제를 만드는 입력 = 거울 부하 증폭단 fs1_mirror_load 의 거울 출력 MP2 에 **선언 bulk 를 따로 둔 별도 레일**(vb2 = 1.5 V, 전원 아래)을 준 toy:
+# 단계 A·B 는 base 에서 통과하고 matching_groups = mirror (MP1, MP2) derived·dc_coord MP2 dependent(partner MP1) 로 남는다(base 실측, 격리 복제본 2026-11-08) --
+# 짝 정의(KVL 짝은 실효 bulk 넷이 같아야 함, §3.3 K-3)가 MP1(실효 bulk vdd) 과 MP2(vb2) 를 가른다. 그래도 전제가 서지 않으면 단언이 멈춘다.
+FS1_SUP_BULK = {"vdd": 1.8, "gnd": 0.0, "vb2": 1.5}
+
+
+def fs1_mirror_bulk():
+    from metrics.gb4_hand import mos_e, topology, two_e
+    devs = [mos_e("MN1", "nmos", "a", "in", "gnd"), mos_e("MP1", "pmos", "a", "a", "vdd"),
+            dict(mos_e("MP2", "pmos", "out", "a", "vdd"), bulk="vb2"), mos_e("MN2", "nmos", "out", "nb", "gnd")]
+    return topology("fs1mirb", devs, ports=FS1_PORTS, passives=[two_e("CL", "capacitor", "out", "gnd")], bias=["nb"], rails=("vdd", "gnd", "vb2"))
+
+
+def test_sb6_multi_member_cell_without_partner_is_undefined_not_reference_start(monkeypatch):
+    """S-B6: (전제) C(MP2) 가 든 칸은 멤버 둘 이상, start_partner spy 의 C 호출 답 = None (회로 전체에 같은 gate·source·bulk·kind·L 쓰기 소자 없음, diff_pair·branch_symmetric 에 안 듦).
+    기대: member_start_w 출력[C] == "no_partner", 그 칸 wf_start w_key is None, graph/start records 에 ("wf_start_undefined", (("members", 칸 멤버), ("why", "no_member_partner")))
+    (쌍 튜플 꼴 -- m-2; 다멤버 칸이라 기준 폭 대체 0: wf_start_reference 기록에 그 칸 없음), initial_wf -> None, 그 sctx 로 find_front -> O-2 꼴(평가 0)."""
+    log = _spy_start_calls(monkeypatch)
+    case = toy_case(fs1_mirror_bulk(), elements=FS1_ELS, constraints=TOY_CONS, fresh=True, supplies=FS1_SUP_BULK)
+    base = case.sctx.dc.base
+    # 전제 (안 서면 멈추고 보고)
+    assert len(log["member_start_w"]) == 1
+    args, out = log["member_start_w"][0]
+    sp = [r for a, r in log["start_partner"] if a["name"] == "MP2"]
+    assert sp == [None]                                                                   # start_partner spy 의 C 호출 답 = None
+    sp_args = [a for a, _r in log["start_partner"] if a["name"] == "MP2"][0]
+    assert not [o for o in sp_args["writers"] if o != "MP2" and sp_args["gate"][o] == sp_args["gate"]["MP2"]
+                and sp_args["source"][o] == sp_args["source"]["MP2"] and sp_args["bulk"][o] == sp_args["bulk"]["MP2"]
+                and sp_args["kind"][o] == sp_args["kind"]["MP2"] and sp_args["length"][o] == sp_args["length"]["MP2"]]    # 손: KVL 후보 0
+    assert not [g for g in sp_args["groups"] if g[0] in ("diff_pair", "branch_symmetric") and "MP2" in g[1]]
+    cell = [c for c in base.value("graph", "start", "wf_start") if "MP2" in c.members]
+    assert len(cell) == 1 and len(cell[0].members) >= 2
+    # 기대
+    assert out["MP2"] == "no_partner"
+    assert cell[0].w_key is None
+    records = case.start.records
+    assert ("wf_start_undefined", (("members", cell[0].members), ("why", "no_member_partner"))) in records
+    assert not [r for r in records if r[0] == "wf_start_reference" and "MP2" in dict(r[1])["members"]]
+    assert initial_wf(base) is None
+    k0 = dict(case.sctx.counters)["kernel_calls"]
+    fr = find_front(case.sctx, [])
+    assert dict(case.sctx.counters)["kernel_calls"] == k0 == 0
+    assert [n for n in (dict(x) for x in fr.notes) if n.get("verdict") == "start_undefined"]
+    assert fr.front == () and fr.pending_front == () and fr.unmeasured_front == ()
+
+
+# ---------------------------------------------------------------- [v6.39.5] S-B7 짝 없는 단일 멤버 칸 (운영 경로, A-205 입력 = library 회로)
+# toy 에는 이 칸이 없다(고리 등식 종속 소자는 library 회로에서만 생긴다 -- 측정 evidence/2026-11-08/fs1_lcond_measure.md: 7/82칸). 입력 = pushpull_follower_buffer(실 LUT 실경로), X = M2(pmos).
+def test_sb7_reference_start_for_single_member_cell_without_partner_operational_path(monkeypatch):
+    """S-B7: (전제, 안 서면 멈춤) X(M2) 칸 멤버 1개·비쓰기·start_partner 답 None·current[X] != None; k_ref = lut.cap_map[kind].w_key ∈ widths(lut, kind);
+    length[X] 가 lut.slice_map[(kind, k_ref)].grids[0](L 축)의 원소(앵커). 기대: member_start_w 출력[X] == "no_partner", wf_start 칸 (X,) w_key == k_ref,
+    graph/start records 에 ("wf_start_reference", (("members", (X,)), ("w_key", k_ref))) 하나, initial_wf 키의 그 칸 값 = k_ref."""
+    from gmid_engine.lut import widths
+    from .u13_real import real_case
+    log = _spy_start_calls(monkeypatch)
+    case = real_case("pushpull_follower_buffer")
+    base = case.sctx.dc.base
+    X, kind = "M2", "pmos"
+    lut = case.kctx.lut.memo.lut
+    assert dict(base.column("device", "kind"))[X] == kind
+    assert log["member_start_w"], "출발 블록이 이 실행에서 계산되지 않았다"
+    args, out = log["member_start_w"][-1]
+    sp = [(a, r) for a, r in log["start_partner"] if a["name"] == X]
+    assert sp, "start_partner 가 X 에 불리지 않았다"
+    sp_args, sp_out = sp[-1]
+    wf = base.value("graph", "start", "wf_start")
+    cell = [c for c in wf if X in c.members]
+    assert len(cell) == 1 and cell[0].members == (X,)                                    # 전제: 칸 멤버 1개
+    assert X not in sp_args["writers"] and sp_out is None                                # 전제: 비쓰기, 짝 없음
+    assert args["current"][X] is not None
+    k_ref = lut.cap_map[kind].w_key
+    assert k_ref in widths(lut, kind)
+    assert any(l == args["length"][X] for l in lut.slice_map[(kind, k_ref)].grids[0])    # 전제: 앵커
+    # 기대
+    assert out[X] == "no_partner"
+    assert cell[0].w_key == k_ref
+    recs = [r for r in case.start.records if r[0] == "wf_start_reference" and dict(r[1])["members"] == (X,)]
+    assert recs == [("wf_start_reference", (("members", (X,)), ("w_key", k_ref)))]
+    got = initial_wf(base)
+    assert got is not None and got.keys[list(wf).index(cell[0])] == k_ref
+
+# ---------------------------------------------------------------- [v6.39.5] S-B8 뷰 없는 회로 (늘 실행)
+# 입력: 선언 이상 전류원 둘(I1, I2)로만 바이어스가 정해지는 toy -- 직렬 가지 M1(drain out)·M2(source gnd)는 I1 하나를 나르고, M3(입력 CS)는 I2 를 나른다.
+# 입력 포트 in 은 M3 게이트, 출력 포트 out 은 M1 드레인이라 in -> out 신호 경로가 없다(base 실측: S1v views = transfer:0 한 개, blocks 비어 있음).
+FS1_I1, FS1_I2 = 2e-6, 1e-6
+
+
+def fs1_no_view_toy():
+    from metrics.gb4_hand import mos_e, topology, two_e
+    devs = [mos_e("M1", "nmos", "out", "vb1", "m"), mos_e("M2", "nmos", "m", "vb2", "gnd"), mos_e("M3", "nmos", "d3", "in", "gnd")]
+    srcs = [{"name": "I1", "kind": "current_source", "terminals": ["vdd", "out"]}, {"name": "I2", "kind": "current_source", "terminals": ["vdd", "d3"]}]
+    return topology("fs1nov", devs, ports=FS1_PORTS, passives=[two_e("CL", "capacitor", "out", "gnd")], sources=srcs, bias=["vb1", "vb2"])
+
+
+FS1_NOV_ELS = (("CL", "capacitor", 1e-12), ("I1", "current_source", FS1_I1), ("I2", "current_source", FS1_I2))
+
+
+def test_sb8_circuit_without_a_transfer_view_still_has_a_wf_start(monkeypatch):
+    """S-B8 (d): (전제) transfer 뷰(blocks 비어 있지 않은 것) 0; 모든 MOS 에서 member_start_w spy 의 current[n] == 손 KCL 값(직렬 가지 = 그 이상원 값 그대로, 자리값이 끼면 멈춤).
+    기대 (a) start_intervals 블록 계산 1회 (b) wf_start 칸 구조 = 손 폐포, 모든 칸 w_key is not None (c) initial_wf 가 None 아님, keys == tuple(c.w_key ...)
+    (d) 그 sctx 의 층 0 출발점 wf.keys = (c) keys, find_front 는 O-2 꼴(평가 0)이 아님 (e) graph/start inactive 에 뷰 의존 비활성 항목 기록, 5a 관련 비활성 0.
+    (e) 기록 이름(card A-205 확정): (v1) `pole0_view_inactive`, (v2) `gain_l_6.4_1`, (v3) `speed_view_inactive`, (v4) `macro_inactive`, (v5) `noise_guard_7.5`, (v6) `ff_start_view_inactive`."""
+    log = _spy_start_calls(monkeypatch)
+    case = toy_case(fs1_no_view_toy(), elements=FS1_NOV_ELS, constraints=TOY_CONS, fresh=True)
+    base = case.sctx.dc.base
+    # 전제
+    assert not [v for v in case.s1v.views if v.id.startswith("transfer") and v.blocks]
+    assert len(log["member_start_w"]) == 1
+    cur = log["member_start_w"][0][0]["current"]
+    hand_kcl = {"M1": FS1_I1, "M2": FS1_I1, "M3": FS1_I2}                                  # 손 KCL: 직렬 M1·M2 = I1, M3 = I2 (미러 분기 없음)
+    assert {n: cur[n] for n in hand_kcl} == hand_kcl and set(cur) == set(hand_kcl)
+    # (a) 같은 sctx 조립에서 블록 계산 1회
+    rows = [r for r in case.a.counters.snapshot().blocks if (r.block, r.part) == ("start_intervals", "*")]
+    assert len(rows) == 1 and rows[0].computes == 1
+    # (b)
+    wf = base.value("graph", "start", "wf_start")
+    assert {frozenset(c.members) for c in wf} == _hand_closure(base) and len(wf) == 3
+    assert all(c.w_key is not None for c in wf)
+    # (c)
+    got = initial_wf(base)
+    assert got is not None and got.keys == tuple(c.w_key for c in wf)
+    # (d)
+    from gmid_engine.search import layer0_start
+    res = layer0_start(case.sctx)
+    assert res.start is not None and res.start.wf.keys == got.keys
+    fr = find_front(case.sctx, [])
+    assert dict(case.sctx.counters)["kernel_calls"] > 0
+    assert not [n for n in (dict(x) for x in fr.notes) if n.get("verdict") == "start_undefined"]
+    # (e)
+    inactive = case.start.inactive
+    names = {n for n, _r in inactive}
+    # [A-205] card 가 정한 이름 정확 단언: (v1) pole0_view_inactive (v2) gain_l_6.4_1 (v3) speed_view_inactive (v4) macro_inactive (v5) noise_guard_7.5 (v6) ff_start_view_inactive
+    assert {"pole0_view_inactive", "gain_l_6.4_1", "speed_view_inactive", "noise_guard_7.5", "ff_start_view_inactive"} <= names
+    assert "macro_inactive" in names | {r[0] for r in case.start.records}
+    assert not [n for n in names if "wf" in str(n)]
+
+
+# ---------------------------------------------------------------- [v6.39.5] S-B9 대칭 짝 (운영 경로)
+# 입력: 차동 입력(inp/inn) 5T OTA -- 차동쌍 MN1·MN2 (게이트 다름, 공통 소스 t), 거울 부하 MP1·MP2, 꼬리 MT. base 실측(격리 복제본 2026-11-08): matching_groups =
+# mirror (MP1, MP2) derived + diff_pair (MN1, MN2) derived, dc_coord MN2 dependent(partner MN1), MN1 writer. MN2 와 gate·source 가 같은 쓰기 소자는 회로에 없다
+# (MN1 게이트 inp, MT 소스 gnd) -> KVL 후보 0, 대칭 짝 = MN1.
+def fs1_diff_ota():
+    from metrics.gb4_hand import mos_e, topology, two_e
+    ports = {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"), "out": ("output", "single_ended_output")}
+    devs = [mos_e("MN1", "nmos", "a", "inp", "t"), mos_e("MN2", "nmos", "out", "inn", "t"), mos_e("MP1", "pmos", "a", "a", "vdd"),
+            mos_e("MP2", "pmos", "out", "a", "vdd"), mos_e("MT", "nmos", "t", "nb", "gnd")]
+    return topology("fs1dota", devs, ports=ports, passives=[two_e("CL", "capacitor", "out", "gnd")], bias=["nb"])
+
+
+def test_sb9_symmetric_partner_gives_the_dependent_pair_member_a_start_width(monkeypatch):
+    """S-B9: (전제) diff_pair 묶음의 한 멤버 Q(MN2) 비쓰기·다른 멤버 P(MN1) 쓰기, Q 와 gate·source·bulk·kind·L 이 같은 쓰기 소자 없음.
+    기대: start_partner spy 의 Q 답 = "P", member_start_w 출력[Q] == current[Q]·length[Q]/exp(ln_idu[P]) (잡힌 인자로 ==), 그 칸 w_key is not None (출발 불능 0)."""
+    log = _spy_start_calls(monkeypatch)
+    case = toy_case(fs1_diff_ota(), elements=FS1_ELS, constraints=TOY_CONS, fresh=True)
+    base = case.sctx.dc.base
+    coord = dict(base.column("device", "dc_coord"))
+    assert coord["MN2"].role == "dependent" and coord["MN1"].role == "writer"             # 전제
+    assert len(log["member_start_w"]) == 1
+    args, out = log["member_start_w"][0]
+    sp = [(a, r) for a, r in log["start_partner"] if a["name"] == "MN2"]
+    assert len(sp) == 1
+    sp_args, sp_out = sp[0]
+    assert not [o for o in sp_args["writers"] if o != "MN2" and sp_args["gate"][o] == sp_args["gate"]["MN2"]
+                and sp_args["source"][o] == sp_args["source"]["MN2"] and sp_args["bulk"][o] == sp_args["bulk"]["MN2"]
+                and sp_args["kind"][o] == sp_args["kind"]["MN2"] and sp_args["length"][o] == sp_args["length"]["MN2"]]    # 전제: KVL 후보 0 (손)
+    assert [g for g in sp_args["groups"] if g[0] == "diff_pair" and set(g[1]) == {"MN1", "MN2"}]                          # 전제: 대칭 묶음
+    assert "MN1" in sp_args["writers"] and "MN2" not in sp_args["writers"]
+    # 기대
+    assert sp_out == "MN1" and args["partner"]["MN2"] == "MN1"
+    cur, length, ln = args["current"], args["length"], args["ln_idu"]
+    assert cur["MN2"] is not None and not isinstance(ln["MN1"], str)
+    assert out["MN2"] == cur["MN2"] * length["MN2"] / math.exp(ln["MN1"])
+    cell = [c for c in base.value("graph", "start", "wf_start") if "MN2" in c.members]
+    assert len(cell) == 1 and cell[0].w_key is not None
 
 # [xrun] 옛 '[U17 ①-a 통합] 묶음 필드 값 형식이 타입 등록부에 있다' test 2개(toy·실경로)와 그 helper 를 지웠다 -- 설계 40 v1.10 §2.4.3
 # '타입 등록부' 삭제 행과 test 변경 목록('타입 등록부 이름을 읽는 단언 search/test_start_intervals.py:216-217 ... 그 단언을 지운다'):

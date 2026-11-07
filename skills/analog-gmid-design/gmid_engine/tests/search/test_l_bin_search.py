@@ -217,24 +217,45 @@ def test_n1_trial_order_l_moves_then_wf_moves(tmp_path, monkeypatch):
     assert all(tuple(r.best.key.cells) == (0, 0) for r in out if r.best is not None)
 
 
-def test_n2_improving_wf_move_is_accepted(tmp_path):
-    """N-2: 슬라이스 200 의 IDu 가 2 배(idu_factor)라 W 가 절반 -> 키 100 -> 200 이동이 면적을 줄인다 (전제: 같은 θ 두 키의 면적 차를 먼저 잰다).
-    수락 1 이상, 수락 결과 best.key.wf_fp = 이동한 keys 의 지문."""
-    # [FS-1 A-196 판정 #8-5 -- 미해결, 오케스트레이터 보고] 판정 방향(종속 소자 회로 + idu_factor)을 R-2 회로로 측정했다(search/N2 측정 2026-11-08, 격리 복제본):
-    # 모든 칸 키 100 대 거울 칸 (M3,M4) 키 200 면적 5.8394e-12 / 5.8445e-12 (차 −5.1e-15 < 분해능 한 칸 5e-15 의 ±1배), 차동쌍 칸 키 200 은 5.8372e-12.
-    # 원인(손): 거울 칸의 쓰기 소자 M3 는 W = I·L/exp(θ ln IDu) 로 슬라이스 무관이고, 같은 칸 종속 M4 는 같은 VGS 에서 같은 슬라이스를 읽어 IDu 배율이 약분된다
-    # (W4/W3 = I4/I3). 정합 칸 안에서는 키가 면적을 바꾸지 못하므로(DEC-108 설계), 이 N-2 전제는 이 toy 계열로 만들 수 없다 -- 아래는 기존 본문 그대로(red).
-    from gmid_engine.sizing import WfCell, WfInput
+def test_n2_improving_wf_move_is_accepted():
+    """N-2 (A-205 입력 보정): 입력 = library 회로 pushpull_follower_buffer(실 LUT 실경로)의 짝 없는 비쓰기 단일 멤버 칸 M2 -- 그 소자 W 는 자기 VGS·자기 슬라이스 IDu 로 정해지므로
+    칸 키가 면적을 바꾼다(정합 칸 안 키는 DEC-108 상 면적을 못 바꿔 옛 toy 계열로는 전제가 안 섰다). 전제(안 서면 멈춤): M2 칸 멤버 1개, 같은 θ 에서 그 칸 키를 이웃 후보로 옮긴 평가의
+    면적 차가 분해능(제조 격자 x 최소 finger 폭) 이상. 기대: 수락 1 이상, 수락 결과 best.key.wf_fp = 이동한 keys 의 지문, 면적 감소. oracle (식) interface §5 N-2."""
+    from gmid_engine.lut import widths
+    from gmid_engine.search import layer0_start
+    from gmid_engine.sizing import WfInput
+    from pdk_min_w import min_finger_w_m
     from .conftest import evaluate
-    lut = _three_slice(tmp_path, idu_factor={2e-6: 2.0})
-    case, s, sr = _lowest_l_start(tmp_path, lut, {"M1": 100, "M2": 100})
-    theta = tuple(sorted(theta_r4c(l1=1e-6, l2=1e-6).items()))
-    lo = evaluate(s, theta, (0, 0), wf=hand_wf_of(s, {"M1": 100, "M2": 100}))
-    hi = evaluate(s, theta, (0, 0), wf=hand_wf_of(s, {"M1": 200, "M2": 100}))
-    assert (lo.objectives.area_m2 - hi.objectives.area_m2) / (GRID * W_MIN) >= 1.0       # 전제: 분해능 한 칸 이상 개선
+    from .u13_real import real_case
+    case = real_case("pushpull_follower_buffer")
+    s = case.sctx
+    lut = case.kctx.lut.memo.lut
+    res = layer0_start(s)
+    assert res.start is not None
+    start = res.start
+    ci = [i for i, c in enumerate(start.wf.cells_ref) if c.members == ("M2",)]
+    assert len(ci) == 1                                                                   # 전제: M2 는 단일 멤버 칸
+    ci = ci[0]
+    sr = solve_eps(s, start, AXIS_AREA, None, ("t",))
+    assert sr.best is not None
+    cand = widths(lut, "pmos")
+    k0 = start.wf.keys[ci]
+    assert k0 in cand
+    resol = lut.spec.manufacturing_grid_m * min_finger_w_m(["pmos"])["pmos"]
+    theta, cells = dict(sr.best.theta), tuple(sr.best.key.cells)
+    lo = evaluate(s, theta, cells, wf=start.wf)
+    assert lo.status in ACCEPTED_STATUSES
+    gains = {}
+    for j in (cand.index(k0) - 1, cand.index(k0) + 1):
+        if 0 <= j < len(cand):
+            ks = list(start.wf.keys)
+            ks[ci] = cand[j]
+            e = evaluate(s, theta, cells, wf=WfInput(start.wf.cells_ref, tuple(ks)))
+            if e.status in ACCEPTED_STATUSES:
+                gains[tuple(ks)] = (lo.objectives.area_m2 - e.objectives.area_m2) / resol
+    assert gains and max(gains.values()) >= 1.0                                           # 전제: 같은 θ 에서 키 이동이 면적을 분해능 한 칸 이상 줄인다
     out, why = polish_cells(s, sr, ("L",))
-    base = hand_wf_of(s, {"M1": 100, "M2": 100})
-    moved = {fp_of(WfInput(base.cells_ref, ks)) for ks in ((200, 100), (100, 200), (200, 200))}
+    moved = {fp_of(WfInput(start.wf.cells_ref, ks)) for ks, g in gains.items() if g >= 1.0}
     acc = [r for r in out if r.best is not None and r.best.key.wf_fp in moved]
     assert acc and all(r.best.objectives.area_m2 < sr.best.objectives.area_m2 for r in acc)
 

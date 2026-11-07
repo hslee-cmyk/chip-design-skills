@@ -36,6 +36,22 @@
 결론: 정합 묶음이 gate 만 공유하는 종속 멤버로 서지 않는다 -> S-B6 test 없음 (skip 아님).
 덮이는 범위: 짝 없음 -> `no_member_density` -> 칸 None -> 기록은 순수 함수 수준 `test_k2_gate_only_shared_has_no_partner`(K-2)·`test_w2_no_partner_is_no_member_density`(W-2)·`test_s7_s8_member_why_makes_cell_undefined`(S-7)·`test_s6_...`(S-6), `initial_wf` None 은 S-B4, 평가 0 진입은 O-2 가 덮는다. 운영 경로(출발 블록이 실제로 그 기록을 남기는 것)는 덮이지 않는다.
 
+## A-204 (계획 v6.39.5·design v1.16.31 toy 추가 -- test 묶음 C)
+- **S-B6 되살림**: 위 'S-B6 쓰지 않음'(A-186)은 옛 전제(gate 만 공유하는 mirror 종속 멤버)에 대한 것이었다. v6.39.5 전제('다멤버 칸 + start_partner 답 None')는 거울 출력에 **선언 bulk 를 별도 레일**로 준 toy
+  (`fs1_mirror_bulk`: MP2 bulk = vb2 1.5 V)로 서고, `test_sb6_multi_member_cell_without_partner_is_undefined_not_reference_start` 로 썼다(base 실측: 단계 A·B 통과, mirror (MP1, MP2) derived, MP2 dependent).
+  K-3 의 bulk 항이 MP1(실효 bulk vdd)과 MP2(vb2)를 가른다는 전제는 start_partner spy 의 답 None 단언으로 코드 뒤에 확인된다(안 서면 멈춤).
+- **[A-205 결정으로 정정] S-B7·n2 는 쓴다 (RETIRED·dispute 아님)**: 입력 = library 회로 `pushpull_follower_buffer`(실 LUT 실경로, 짝 없는 비쓰기 단일 멤버 칸 M2, 측정 `evidence/2026-11-08/fs1_lcond_measure.md`).
+  `search/test_start_intervals.py::test_sb7_reference_start_for_single_member_cell_without_partner_operational_path`, `search/test_l_bin_search.py::test_n2_improving_wf_move_is_accepted`(입력을 그 칸 키 이동으로 교체, 전제 = 같은 θ 면적 차 >= 분해능).
+  아래 두 항목의 'toy 14종에 칸이 없다' 실측은 사실로 남기되 결론(쓰지 않음)은 이 항목이 대체한다. S-B8 (e) 공백도 card 가 이름을 정해 닫혔다(exact 단언).
+- (옛 기록, 대체됨) S-B7 쓰지 않음 (dispute `20261107-fs1-sb7-no-nonwriter-single-cell`, skip 아님): 전제 = 정합 묶음(role·status 조건)에 들지 않은 비쓰기 MOS X 가 있고 start_partner(X) = None, current[X] ≠ None.
+  base 실측(격리 복제본, toy_case 단계 A·B 후 `device.dc_coord`·`graph.matching_groups` 읽기, 2026-11-08): 종속(dependent) MOS 는 시험한 14 toy(ota5·cascmirror·mirror_load·cascode_cs·cs_follower·cs2·ota_diff·ota_diff_nomirror·mirror_bulk·parallel·tail2·stack_diode·diffpair_unbalanced·이상 전류원 직렬 toy)와
+  library 2 회로(two_stage_ota: M1·M4·M5 종속, folded_cascode: M1·M3·M4·M10·M11 종속) 전부에서 `derived` mirror/diff_pair 묶음의 멤버다. 캐스코드·bias 게이트 소자는 모두 writer(cascode_cs·cs_follower). 묶음 밖 종속 소자가 0이라
+  '단일 멤버 칸 + 비쓰기'가 서지 않는다. 덮이지 않는 것: 출발 블록이 `reference`(= `lut.cap_map[kind].w_key`)와 `l_defined` 를 실제로 배선하는 운영 경로 -- 순수 함수 수준 S-11~S-16 이 덮는다.
+- **n2 미해결 유지 (dispute `20261107-fs1-n2-no-nonwriter-single-cell`)**: 같은 사실 때문에 '정합 묶음 밖 비쓰기 단일 멤버 칸' toy 를 만들 수 없다. 본문·단언은 바꾸지 않았다(red 유지).
+- **S-B9 되살림 불필요**: 전제가 선다 -- `fs1_diff_ota`(차동 입력 5T OTA): diff_pair (MN1, MN2) derived, MN2 dependent(partner MN1), MN1 writer, MN2 와 gate·source 가 같은 쓰기 소자 없음. `test_sb9_...` 로 썼다(RETIRED 아님).
+- **S-B8 (e) 대응표 공백 (D40 8 (다) -- code 가 기록을 더할 범위, 멈추고 보고 항목)**: base `inactive` 어휘(`gain_l_6.4_1`·`matching_l_6.4_2`·`offset_guard_6.4_2a`·`flicker_l_6.4_3`·`thermal_c_7.5`·`noise_guard_7.5`·`area_l_6.4_5`·`area_gm_id_6.4_5` 와 `macro_inactive` 기록)에 대응이 있는 것 =
+  (v2) 이득 L 하한 -> `gain_l_6.4_1`, (v6) 가드 소자 지정 -> `noise_guard_7.5`, §6.5 매크로 호출 -> `macro_inactive`. 대응이 없는 것 = (v1) 0 주극점 노드, (v3·6) 속도, §6.5 FF 출발값.
+
 ## A-186 추가 삭제 (이름·사유 -- 기준을 약하게 바꾼 단언은 0: 아래는 입력 경로 소멸로 대상이 사라진 test 의 삭제이며 남긴 test 의 단언은 그대로다)
 
 `tests/search/test_realize_front.py` (옛 입력 = 탐색 스냅샷 `dc_finger` (m, w_s) 를 `with_fingers` 로 바꿔치기해 실현 입력으로 쓰는 구성 -- 실현 m 은 이제 실현 DC 블록이 `realize_fingers` 로 정한다, 같은 입력을 만들 수 없음):
