@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from .conftest import circuit_c, evaluate, theta_r4c
+from .conftest import CELLS_C, circuit_c, evaluate, theta_r4c
 from .wb1_flow import R2_CELLS, R2_ELEMENTS, bins_case, circuit_r2, r2_theta, sorted_theta
 
 GRID = 1e-8
@@ -196,24 +196,196 @@ def test_realize_o1_json_finger_residual_is_the_realized_value_and_no_slice_roun
 
 
 # ---------------------------------------------------------------- O-3
-def test_realize_o3_lost_entries_carry_small_m_key(tmp_path, monkeypatch, short_root):
-    """[FS-1 O-3] 실현에서 잃는 점(R-4 꼴: realize_front 가 부르는 평가를 SealViolationError 로 바꿈)의 JSON `realize.lost` 항목에 `small_m` 키 --
-    값 = 그 점 (부분) 실현 스냅샷 dc_finger 에서 m ≤ 2 인 MOS 이름 정렬 목록, dc_finger 가 없으면 None."""
-    from gmid_engine.core import SealViolationError
-    from gmid_engine.search import find_front
-    case = bins_case(tmp_path, circuit_c(), archive_root=short_root)
-    rf = mod("realize_front")
-    real = rf.evaluate
+# O-3 는 아래 R-6c 시나리오(실현에서 실제로 잃는 점: 근 없음 -> fail-closed)에서 본다 -- `test_realize_r6c_..._small_m` (A-190 M-3: 동작 대체 stub 없음).
 
-    def wrapped(sctx, theta, cells, *a, **k):
-        if k.get("realized") is not None:
-            raise SealViolationError(devices=("M1",), margin=0.5, detail={"item": 7, "reason": "fs1_test_forced_failure"})
-        return real(sctx, theta, cells, *a, **k)
-    monkeypatch.setattr(rf, "evaluate", wrapped)
-    fr = find_front(case.sctx, [theta_r4c()])
-    lost = dict(_runs_line(short_root, case.sctx)["realize"])["lost"]
-    assert len(lost) >= 1                                                   # 양성 대조: 잃은 점이 있다
-    for item in lost:
-        assert "small_m" in dict(item)
-        sm = dict(item)["small_m"]
-        assert sm is None or (list(sm) == sorted(sm) and all(isinstance(n, str) for n in sm))
+
+# =====================================================================================================================
+# [FS-1 A-190 M-5] 실현·재풀이 성질 test 를 새 실현 경로로 다시 쓴다 (옛 구성 = 탐색 dc_finger 바꿔치기, 삭제됨).
+# 입력 만들기: 실현 m 은 interface §1 손 oracle (`sizing/test_realize_fingers.hand_oracle`) 로 미리 정한다. 칸 키 200 (w_f = 2e-6) 에서 탐색 W 가 w_f/(1 + r) 가 되도록 θ 전류를
+# 스케일하면 (W ∝ I: IDu 는 (VSD, VSG) 좌표만의 함수) x = W/w_f < 1 -> m = 1 (W < w_f -> 1, interface R-6), 실현 W' = w_f, r = W'/W − 1 = 목표 r.
+# 기대값(oracle (a)): 옛 test 와 같은 독립 이분법 `wb1_hand` 해 -- r 은 스냅샷의 실현 W / 탐색 W 에서 읽는다 (m·w_f 를 피검 함수 출력으로 만들지 않는다).
+# =====================================================================================================================
+from sizing.conftest import LAM, seal_item                                     # noqa: E402
+from sizing.test_realize_fingers import hand_oracle                            # noqa: E402
+from wb1_hand import mos_load_out_shift, source_load_kcl_at_vdd, source_load_out_shift  # noqa: E402
+from .conftest import hand_wf_of                                               # noqa: E402
+from .wb1_flow import R6_ELEMENTS, R6_I, R6_R, VDD, VGS0, circuit_r16, circuit_s36, circuit_r6, single_mos_resistor_theta  # noqa: E402
+
+KEY = 200
+WF = KEY * GRID                         # 칸 키 200 -> w_f = 2e-6
+WIDE_R = (1e3, 1e9)                     # 스케일한 θ 저항을 품는 탐색 정의역 입력
+R16_I, R16_R, R16_IB = 1e-5, 2.5e4, 2e-6
+S36_VOUT, S36_I = 0.4, 5e-6
+
+
+def _ev(case, th, cells=(0,)):
+    return evaluate(case.sctx, sorted_theta(th), cells, wf=hand_wf_of(case.sctx, {"M1": KEY, "M2": KEY}))
+
+
+def _w_of(ev, m="M1"):
+    return dict(ev.evaluation.snapshot.column("device", "dc_op"))[m].W
+
+
+def _scaled_single_mos(case, theta_fn, i0, a, r_target):
+    """탐색 W(M1) = w_f/(1 + r_target) 인 점. theta_fn(i, res) -> θ. a = I·R (고정: V(out) 또는 V(s) 의 손 값). -> (ev, i, res)."""
+    w0 = _w_of(_ev(case, theta_fn(i0, a / i0)))
+    i = i0 * (WF / (1.0 + r_target)) / w0                                       # W ∝ I
+    ev = _ev(case, theta_fn(i, a / i))
+    assert _w_of(ev) == pytest.approx(WF / (1.0 + r_target), rel=1e-6), "스케일 전제 불성립 -- 멈추고 보고"
+    return ev, i, a / i
+
+
+def _r_from_oracle(ev, m="M1"):
+    w = _w_of(ev, m)
+    mm = hand_oracle((w,), WF, ())[4][0]
+    return mm, mm * WF / w - 1.0
+
+
+def _r6_case(tmp_path):
+    return bins_case(tmp_path, circuit_r6(), elements=R6_ELEMENTS, rbounds=WIDE_R)
+
+
+def _r6_point(case, r_target, icm_none=False):
+    a = R6_I * R6_R
+    ev, i, res = _scaled_single_mos(case, lambda ii, rr: single_mos_resistor_theta(case.dc, ii, rr, VDD - a, kind="pmos"), R6_I, a, r_target)
+    m, r = _r_from_oracle(ev)
+    assert m == 1 and r == pytest.approx(r_target, rel=1e-5)                    # 전제: W < w_f -> m = 1 (손 oracle), r = 목표
+    if icm_none:
+        from gmid_engine.sizing import ICM_CONFIG_WRITER
+        from sizing.conftest import tamper
+        snap = ev.evaluation.snapshot
+        key, cfg = next(iter(dict(snap.column("graph", "icm_config")).items()))
+        ev = replace_snap(ev, tamper(snap, ICM_CONFIG_WRITER, "graph", "icm_config", {key: dataclasses.replace(cfg, config=None)}))
+    return ev, r, a, i, res
+
+
+@pytest.mark.parametrize("icm_none", [False, True], ids=["natural_as_is_single_input", "icm_config_none"])
+def test_realize_r6_input_fixed_branch_resolves_kcl_and_reseals(tmp_path, icm_none):
+    case = _r6_case(tmp_path)
+    ev, r, a, i, res = _r6_point(case, 0.5, icm_none)
+    cfg = next(iter(dict(ev.evaluation.snapshot.column("graph", "icm_config")).values()))
+    assert cfg.config in (None, "as_is_single_input")                           # 전제: 입력 고정 갈래
+    hand = source_load_out_shift(a, r, LAM)
+    assert VDD - (a + hand) > 0.455                                             # 전제 (손): 재풀이 점에서도 M1 포화 (VSD >= VDSAT_p(0.6))
+    _, out = realize(case, ev)
+    assert len(out.points) == 1 and out.lost == (), out.lost
+    snap, rsnap = ev.evaluation.snapshot, out.points[0].result.evaluation.snapshot
+    v0, v1 = dict(snap.column("node", "dc_v")), dict(rsnap.column("node", "dc_v"))
+    assert v1["in"] == pytest.approx(v0["in"], rel=1e-12)
+    dv = v1["out"] - v0["out"]
+    tol = min(x for _, x in rsnap.column("device", "dc_tol_v") if x is not None)
+    assert abs(dv) >= abs(hand) / 2.0, (dv, hand)
+    assert abs(dv - hand) <= tol, ("measured_dV_V", dv, "hand_dV_V", hand, "tol_V", tol)
+    assert seal_item(rsnap, 3).status == "pass" and seal_item(rsnap, 7).status == "pass"
+    assert dict(rsnap.column("device", "dc_op"))["M1"].W == pytest.approx(WF, rel=1e-12)       # W' = m·w_f = w_f
+
+
+def test_realize_r6c_no_root_inside_rails_is_lost_fail_closed_and_lost_entry_has_small_m(tmp_path):
+    """R-6c (fail-closed) + O-3: r = 2 (W = w_f/3 -> m = 1, 손 oracle) 이면 F(V_dd) < 0 = 레일 안 근 없음 -> lost. lost 항목은 `small_m` 키를 가진다
+    (실현에서 실제로 잃는 점 -- 동작 대체 stub 없음, A-190 M-3)."""
+    case = _r6_case(tmp_path)
+    ok_ev, r_ok, a, i_ok, res_ok = _r6_point(case, 0.5)
+    v0_ok = dict(ok_ev.evaluation.snapshot.column("node", "dc_v"))["out"]
+    assert source_load_kcl_at_vdd(VDD, res_ok, i_ok, v0_ok, r_ok, LAM) > 0.0    # 전제 (손): 통제 점은 근이 레일 안에 있다
+    bad_ev, r_bad, _, i_bad, res_bad = _r6_point(case, 2.0)
+    v0_bad = dict(bad_ev.evaluation.snapshot.column("node", "dc_v"))["out"]
+    assert source_load_kcl_at_vdd(VDD, res_bad, i_bad, v0_bad, r_bad, LAM) < 0.0    # 전제 (손): 근 없음
+    _, out = realize(case, ok_ev, bad_ev, ids=["ok", "bad"])
+    assert [p.point_id for p in out.points] == ["ok"]
+    lost = lost_of(out)
+    assert set(lost) == {"bad"} and isinstance(lost["bad"][0], str) and lost["bad"][0]
+    detail = lost["bad"][1]
+    d = dict(detail) if not isinstance(detail, dict) else detail
+    assert "small_m" in d and (d["small_m"] is None or list(d["small_m"]) == sorted(d["small_m"]))
+
+
+def test_realize_r15_input_fixed_realized_point_satisfies_output_kcl(tmp_path):
+    """R-15 (식): 저항 전류 V(out)_실현/R = M1 채널 전류 I' (= dc_op.current), 허용 tol_V/R, 출력이 실제로 움직임(재풀이 호출)."""
+    case = _r6_case(tmp_path)
+    ev, r, a, i, res = _r6_point(case, 0.5)
+    _, out = realize(case, ev)
+    assert len(out.points) == 1 and out.lost == ()
+    rsnap = out.points[0].result.evaluation.snapshot
+    v1, v0 = dict(rsnap.column("node", "dc_v")), dict(ev.evaluation.snapshot.column("node", "dc_v"))
+    assert abs(v1["out"] - v0["out"]) > 0.1
+    tol = min(x for _, x in rsnap.column("device", "dc_tol_v") if x is not None)
+    assert abs(v1["out"] / res - dict(rsnap.column("device", "dc_op"))["M1"].current) <= tol / res
+
+
+def test_realize_r6_unresolved_servo_pivot_keeps_input_value(tmp_path):
+    """R-6 (피벗 판정 불능 갈래): 입력 노드 값은 봉인점 값, W' = m·w_f (m 은 손 oracle). 전제 W' ≠ W."""
+    case = bins_case(tmp_path, circuit_c())
+    ev = evaluate(case.sctx, sorted_theta(theta_r4c()), CELLS_C)
+    snap = ev.evaluation.snapshot
+    cfg = next(iter(dict(snap.column("graph", "icm_config")).values()))
+    assert cfg.config in (None, "as_is_single_input")
+    w1 = dict(snap.column("device", "dc_op"))["M1"].W
+    key = dict(snap.column("device", "dc_op"))["M1"].w_key
+    m = hand_oracle((w1,), key * GRID, ())[4][0]
+    assert m * key * GRID != w1                                                 # 전제: W' != W (공허 방지)
+    _, out = realize(case, ev)
+    assert len(out.points) == 1 and out.lost == ()
+    rsnap = out.points[0].result.evaluation.snapshot
+    assert dict(rsnap.column("node", "dc_v"))["in"] == dict(snap.column("node", "dc_v"))["in"]
+    assert dict(rsnap.column("device", "dc_op"))["M1"].W == pytest.approx(m * key * GRID, rel=1e-12)
+
+
+@pytest.mark.parametrize("with_source", [False, True], ids=["mos_channel_only", "with_ideal_current_source"])
+def test_realize_r16_power_is_rail_current_of_realized_channel_current(tmp_path, with_source):
+    """R-16 (식): 전력 = V_dd·(V(s)_실현/R + I_b), 허용 = power_resolution_w; 공허 방지 = θ 전류 전력과의 차 > power_resolution_w."""
+    els = R6_ELEMENTS + ((("I2", "current_source", R16_IB),) if with_source else ())
+    case = bins_case(tmp_path, circuit_r16(with_source), constraints=(), elements=els, rbounds=WIDE_R)
+    a = R16_I * R16_R
+    ev, i, res = _scaled_single_mos(case, lambda ii, rr: single_mos_resistor_theta(case.dc, ii, rr, VDD - a), R16_I, a, 3.0)
+    ib = R16_IB if with_source else 0.0
+    m, r = _r_from_oracle(ev)
+    assert m == 1 and 2.5 <= r <= 5.0                                           # 전제: r ≈ 3 (W < w_f -> m = 1)
+    _, out = realize(case, ev)
+    assert len(out.points) == 1 and out.lost == (), out.lost
+    r_res = out.points[0].result
+    rsnap = r_res.evaluation.snapshot
+    v1 = dict(rsnap.column("node", "dc_v"))
+    p_res = r_res.objectives.power_resolution_w
+    assert p_res is not None and p_res > 0.0
+    hand = VDD * (v1["s"] / res + ib)
+    got = r_res.objectives.power_w
+    assert abs(got - hand) <= p_res
+    assert abs(got - VDD * (i + ib)) > p_res                                    # 공허 방지 (θ 전류를 읽으면 red)
+    assert abs(dict(rsnap.column("device", "dc_op"))["M1"].current - v1["s"] / res) <= p_res / VDD
+
+
+def test_realize_s3_6_target_net_is_unknown_in_resolve_and_its_row_is_judged(tmp_path):
+    """S3-6 (식): 목표 넷 out 은 실현 입력 고정 KCL 재풀이의 미지수 -- 손 닫힌 식 mos_load_out_shift(r1, r2). r1·r2 는 스냅샷 실현 W / 탐색 W 에서 읽는다."""
+    from gmid_engine.search import STATUS_SEALED
+    from sizing.conftest import r4_ln_idu
+    case = bins_case(tmp_path, circuit_s36(), node_targets=(("out", S36_VOUT),))
+
+    def theta(i):
+        return {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("current", "M1"): i,
+                ("ln_idu", "M1"): r4_ln_idu("pmos", VGS0, VDD - S36_VOUT, 0.0), ("ln_idu", "M2"): r4_ln_idu("nmos", VGS0, S36_VOUT, 0.0)}
+    w0 = _w_of(_ev(case, theta(S36_I)))
+    i = S36_I * (WF / 1.15) / w0                                                # M1: W = w_f/1.15 -> m = 1, r1 = 0.15 (손 oracle)
+    ev = _ev(case, theta(i))
+    snap = ev.evaluation.snapshot
+    v0 = dict(snap.column("node", "dc_v"))
+    assert ev.status == STATUS_SEALED and v0["out"] == pytest.approx(S36_VOUT, abs=1e-9)
+    ops = dict(snap.column("device", "dc_op"))
+    r = {}
+    for dev in ("M1", "M2"):
+        mm = hand_oracle((ops[dev].W,), WF, ())[4][0]
+        r[dev] = mm * WF / ops[dev].W - 1.0
+    tol_i = seal_item(snap, 3).tol
+    assert abs(i * (r["M1"] - r["M2"])) > tol_i, (r, tol_i)                      # 전제 (손): 목표 넷을 고정하면 out 행 잔차 > tol_I -- 아니면 멈추고 보고
+    hand = mos_load_out_shift(r["M1"], r["M2"], LAM)
+    assert VDD - (S36_VOUT + hand) > 0.455 and S36_VOUT + hand > 0.3025, hand    # 전제 (손): 재풀이 점에서도 두 MOS 포화
+    _, out = realize(case, ev)
+    assert len(out.points) == 1 and out.lost == (), out.lost
+    rsnap = out.points[0].result.evaluation.snapshot
+    v1 = dict(rsnap.column("node", "dc_v"))
+    assert v1["in"] == pytest.approx(v0["in"], rel=1e-12) and v1["vb"] == pytest.approx(v0["vb"], abs=1e-9)
+    dv = v1["out"] - v0["out"]
+    tol = min(x for _, x in rsnap.column("device", "dc_tol_v") if x is not None)
+    assert abs(dv) >= abs(hand) / 2.0 and abs(dv - hand) <= tol, ("measured_dV_V", dv, "hand_dV_V", hand, "tol_V", tol)
+    item = seal_item(rsnap, 3)
+    assert item.status == "pass" and dict(item.detail)["worst"] == "out" and dict(item.detail)["n_checked"] == 1
+    assert seal_item(rsnap, 7).status == "pass"
