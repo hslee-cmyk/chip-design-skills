@@ -163,13 +163,13 @@ def _fp_items_1_to_7(lut):
             ("bin_rule_sha256", p.bin_rule_sha256))
 
 
-def test_lm1e_f4_fp_item_tuple_contract(mid_toy_build):
+def test_lm1e_f4_fp_item_tuple_contract(mid_toy_build, toy_build):
     """F-4 (a): 중점 없음(T-7 꼴, 잡음·mismatch 없음) -> lut.fp == fp_of(표 1~7) 7항목, 상수 None 중점 항목을 늘 더하는 꼴과 다르다.
     (b): T-1(중점 키 60·80) -> lut.fp == fp_of(1~7 + ("midpoints_sha256", 두 파일 raw sha 정렬 tuple)); sha 는 파일에서 hashlib 으로 직접.
     oracle (d): interface §4 표. 기대는 표로 test 가 직접 만든다(lut_fingerprint 호출 0)."""
     mt = _t1(mid_toy_build, "f4")
-    # [A-196] 옛 입력 TOY_SPEC(최소 폭 1.5 µm -> 후보 0)은 DEC-108 (1) 로 적재 거부 -> 후보 2개(t_spec 0.6 µm) + 중점 검증 끔(verify_midpoints=None)으로 '중점 없음' 꼴을 만든다
-    plain = mt.load(t_spec(0.6e-6), verify_midpoints=None)
+    # [A-196] 옛 입력(T-7 꼴: mid_toy 슬라이스 0.6·0.8 µm + TOY_SPEC 최소 폭 1.5 µm -> 후보 0)은 DEC-108 (1) 로 적재 거부 -> '중점 없음' LUT 는 기본 toy(후보 있음, 중점 파일 없음; 잡음·mismatch 없음)로 만든다
+    plain = toy_build("f4plain").load()
     assert dict(plain.midpoints) == {} and plain.provenance.noise_sha256 is None and plain.provenance.mismatch_sha256 is None
     items = _fp_items_1_to_7(plain)
     assert plain.fp == fp_of(items)

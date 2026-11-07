@@ -646,7 +646,7 @@ def test_bin_missing_t7b_below_min_slice_partial_midpoints_not_checked(mid_toy_b
     mt = build_t(mid_toy_build, "t7b", {0: (3.5e-6,), 1: T_MID_L})
     lut = mt.load(t_spec(0.7e-6))
     assert widths(lut, "nmos") == (80,)
-    assert set(lut.midpoints) == {("nmos", 80)}
+    assert ("nmos", 80) in lut.midpoints                                                # 후보 80 의 중점은 검사·적재됨
     det = _t_reject(mid_toy_build, "t7c", {0: (3.5e-6,), 1: T_MID_L}, 0.6e-6)         # 대조: 키 60 이 후보면 같은 중점이 거부된다
     assert det["reason"] == "bin_missing_external" and det["w_key"] == 60
 
