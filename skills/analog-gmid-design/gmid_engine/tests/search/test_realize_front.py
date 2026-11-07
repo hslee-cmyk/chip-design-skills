@@ -389,3 +389,53 @@ def test_realize_s3_6_target_net_is_unknown_in_resolve_and_its_row_is_judged(tmp
     item = seal_item(rsnap, 3)
     assert item.status == "pass" and dict(item.detail)["worst"] == "out" and dict(item.detail)["n_checked"] == 1
     assert seal_item(rsnap, 7).status == "pass"
+
+
+# ---------------------------------------------------------------- R-2 (A-191: 삭제 유지 + 구조 성질 test)
+# 옛 R-2 의 '입력 차 이동 닫힌 식'은 M1 만 W' 가 달라지는 비대칭 실현을 전제했다. 해법 S(DEC-108)에서 diff_pair 멤버는 한 칸에 들어가 같은 w_f 로 정수화된다 --
+# 같은 전류·L·VGS 면 θ W 도 같아 m 이 같으므로 비대칭 실현은 구조상 일어날 수 없다 (검사 대상 소멸, 기준 약화 아님). 대신 그 성질을 단언한다.
+def test_realize_diff_pair_cell_members_get_same_m_and_realization_makes_no_input_shift(tmp_path):
+    from .wb1_flow import R2_CELLS, R2_ELEMENTS, circuit_r2, r2_theta
+    case = bins_case(tmp_path, circuit_r2(), elements=R2_ELEMENTS)
+    th = r2_theta(case.dc, scale=2.0 / 3.0)                                      # W_M1 = W_M2 = 4/3 µm (칸 키 200: w_f = 2 µm -> x = 2/3 -> m = 1, r = 0.5)
+    wf = hand_wf_of(case.sctx, {m: KEY for m in ("M1", "M2", "M3", "M4")})
+    ev = evaluate(case.sctx, sorted_theta(th), R2_CELLS, wf=wf)
+    snap = ev.evaluation.snapshot
+    ops = dict(snap.column("device", "dc_op"))
+    cell = next(c.members for c in wf.cells_ref if "M1" in c.members)
+    assert set(cell) == {"M1", "M2"}                                              # 전제: diff_pair 칸
+    assert ops["M1"].W == pytest.approx(ops["M2"].W, rel=1e-2)                    # 전제: 같은 전류·L·VGS -> 같은 θ W
+    want = hand_oracle(tuple(ops[m].W for m in cell), WF, ())[4]                  # 손 oracle (interface §1)
+    assert len(set(want)) == 1 and want[0] == 1 and ops["M1"].W < WF / 1.2        # 전제: 공허 방지 -- 두 멤버 같은 m = 1, r >= 0.2
+    _, out = realize(case, ev)
+    assert len(out.points) == 1 and out.lost == (), out.lost
+    rsnap = out.points[0].result.evaluation.snapshot
+    rf = dict(rsnap.column("device", "dc_finger"))
+    assert rf["M1"].m == rf["M2"].m == want[0]
+    rops = dict(rsnap.column("device", "dc_op"))
+    assert rops["M1"].W == rops["M2"].W                                           # 같은 m·w_f -> 같은 W'
+    v0, v1 = dict(snap.column("node", "dc_v")), dict(rsnap.column("node", "dc_v"))
+    tol = min(x for _, x in rsnap.column("device", "dc_tol_v") if x is not None)
+    assert abs((v1["inp"] - v1["inn"]) - (v0["inp"] - v0["inn"])) <= tol           # 실현이 입력 차 이동을 만들지 않는다
+
+
+# ---------------------------------------------------------------- R-5 (A-191 다시 씀): 탐색 비지배 -> 실현 면적 역전 -> 재필터
+# 3 슬라이스 LUT (키 100·200·300). A: L = 2 µm, W = 1 µm (키 100 -> x = 1, m = 1: 실현 불변). B: L = 1 µm, W = 1.8 µm (키 300, w_f = 3 µm -> x = 0.6 -> m = 1, W' = 3 µm):
+# 탐색 면적 B < A, 전력 B > A (비지배) -> 실현 면적 B > A, 전력 B > A 그대로 -> A 가 B 를 지배해 재필터.
+def test_realize_r5_search_nondominated_point_dominated_by_realized_values(tmp_path):
+    from .wb1_flow import R2_CELLS, R2_ELEMENTS, circuit_r2, r2_theta
+    case = bins_case(tmp_path, circuit_r2(), elements=R2_ELEMENTS, widths=(1e-6, 2e-6, 3e-6))
+    keys_a = {m: 100 for m in ("M1", "M2", "M3", "M4")}
+    keys_b = {m: 300 for m in ("M1", "M2", "M3", "M4")}
+    ev_a = evaluate(case.sctx, sorted_theta(r2_theta(case.dc, l=2e-6, scale=0.5)), (1, 1, 1, 1), wf=hand_wf_of(case.sctx, keys_a))
+    ev_b = evaluate(case.sctx, sorted_theta(r2_theta(case.dc, l=1e-6, scale=0.9)), R2_CELLS, wf=hand_wf_of(case.sctx, keys_b))
+    pa, aa = ev_a.objectives.power_w, ev_a.objectives.area_m2
+    pb, ab = ev_b.objectives.power_w, ev_b.objectives.area_m2
+    assert pa < pb and aa > ab                                                   # 전제: 탐색에서 서로 지배하지 않는다
+    for dev in ("M1", "M2", "M3", "M4"):                                         # 전제 (손 oracle): B 모든 소자 m = 1 (W < w_f)
+        assert hand_oracle((_w_of(ev_b, dev),), 300 * GRID, ())[4][0] == 1 and _w_of(ev_b, dev) < 300 * GRID / 1.2
+    _, only_b = realize(case, ev_b)
+    assert len(only_b.points) == 1 and only_b.points[0].result.objectives.area_m2 > aa      # 전제: 실현 면적 B > A (역전)
+    _, out = realize(case, ev_a, ev_b, ids=["pa", "pb"])
+    assert [p.point_id for p in out.points] == ["pa"]                            # 재필터로 B 가 빠진다
+    assert out.lost == ()                                                        # 지배 탈락은 lost 가 아니라 재필터
