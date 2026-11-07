@@ -285,11 +285,14 @@ def assert_realized_roots_inside_rails(fr):
         assert source_load_kcl_at_vdd(1.8, res, cur, cur * res, r, LAM) > 0.0, (res, cur, r)
 
 
+PZ_CBOUNDS = (1e-14, 1e-10)             # 회로 PZ 의 θ 커패시턴스 상자 (탐색 정의역 입력)
+
+
 def test_passive_theta_circuit_front_measured(tmp_path, lut_sealed):
     """r6 DEC-92: θ capacitance·ss_resistance 회로 -- 최종 front 점은 ss 제약이 측정되고(행 있음·unmeasured 0), I-1 유지."""
     # [FS-1 A-193 MR-1] 회로 = 저항 부하 P + 수동소자 θ (Rz, Cz): 정본 경로에서 실현 조건이 맞는 toy (회로 C 는 층 0 의 W = MINW 점이 실현에서 레일 밖 근으로 사라진다).
     case = build_case(tmp_path, circuit_pz(), lut_sealed, elements=P_ELEMENTS + (("Rz", "resistor", None), ("Cz", "capacitor", None)),
-                      rbounds=P_RBOUNDS, cbounds=(1e-14, 1e-10), constraints=SS, eval_budget=40)
+                      rbounds=P_RBOUNDS, cbounds=PZ_CBOUNDS, constraints=SS, eval_budget=40)
     fr = find_front(case.sctx, [theta_pz(case.dc)])
     perf = dict(fr.perf)
     assert perf["kernel_calls"] == perf["unique_keys"] and perf["recompute_same_key"] == 0
@@ -299,7 +302,8 @@ def test_passive_theta_circuit_front_measured(tmp_path, lut_sealed):
         assert tuple(p.result.unmeasured) == ()
         assert any(c.name.startswith("ss:") for c in p.result.constraints)
         th = dict(p.result.theta)
-        assert 1e-14 <= th[("capacitance", "Cz")] <= 1e-10 and 1e2 <= th[("ss_resistance", "Rz")] <= 1e6
+        # 입력 상자 값을 참조한다 (숫자를 따로 적지 않는다 -- 판정 MR-3: 상자가 바뀌어도 단언이 같이 움직인다)
+        assert PZ_CBOUNDS[0] <= th[("capacitance", "Cz")] <= PZ_CBOUNDS[1] and P_RBOUNDS[0] <= th[("ss_resistance", "Rz")] <= P_RBOUNDS[1]
 
 
 # =====================================================================================================================
