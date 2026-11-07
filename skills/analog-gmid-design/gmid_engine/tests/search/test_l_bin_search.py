@@ -190,7 +190,7 @@ def _wf_spy(monkeypatch):
 
 def _three_slice(tmp_path, idu_factor=None):
     from sizing.wb1_toy import write_r4_bins_lut
-    lut, _, _ = write_r4_bins_lut(tmp_path / "lut3", widths=(1e-6, 2e-6, 3e-6), idu_factor=idu_factor)
+    lut, _, _ = write_r4_bins_lut(tmp_path / "lut3", widths=(1e-6, 2e-6, 3e-6), idu_factor=idu_factor, jc1_cols=True)      # CDD 열 있는 toy (단계 B 요구, A-190 M-2c)
     return lut
 
 
@@ -213,6 +213,8 @@ def test_n1_trial_order_l_moves_then_wf_moves(tmp_path, monkeypatch):
     first_wf = next(i for i, k in enumerate(seq) if k != base_keys)
     assert all(k == base_keys for k in seq[:first_wf]) and first_wf >= 1               # L 이동 시험이 먼저 (>= 1)
     assert seq[first_wf:first_wf + 4] == [(100, 200), (300, 200), (200, 100), (200, 300)]
+    # 전제 (판정 minor 8): 첫 바퀴에서 L 이동은 하나도 수락되지 않았다 (최소 L 칸에서 +1 은 면적 증가) -- 수락되면 바퀴 순서 단언이 흔들린다
+    assert all(tuple(r.best.key.cells) == (0, 0) for r in out if r.best is not None)
 
 
 def test_n2_improving_wf_move_is_accepted(tmp_path):

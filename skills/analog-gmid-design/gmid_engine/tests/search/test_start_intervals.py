@@ -372,7 +372,7 @@ def test_sb1_wf_start_cells_are_the_matching_closure(fs1_case):
     assert {frozenset(c.members) for c in wf} == want
     assert len(wf) == len(want)
     for c in wf:
-        assert c.w_key in widths(fs1_case.kctx.lut, kinds[c.members[0]])
+        assert c.w_key in widths(fs1_case.kctx.lut.memo.lut, kinds[c.members[0]])      # kctx.lut = LutAccess(memo) -- LUT 집합은 memo.lut (M-1)
 
 
 def test_sb2_second_start_intervals_computes_nothing(fs1_case, tmp_path):
@@ -422,6 +422,14 @@ def test_sb4_initial_wf_none_when_a_cell_is_undefined(fs1_case):
     assert initial_wf(Stub(base)) is None
 
 
+def test_initial_wf_missing_field_is_a_lookup_error_fail_closed(fs1_case):
+    """필드 부재는 fail-closed: wf_start 가 없는 스냅샷(단계 A 의 S1 수준) 에서 initial_wf 는 None 으로 넘기지 않고 기존 스냅샷 조회 오류(KeyError)다 (판정 minor 7).
+    None 은 칸 None(start_undefined, interface §5) 경우만이다."""
+    assert initial_wf(fs1_case.sctx.dc.base) is not None                                  # 양성 대조: 출발 단계를 거친 스냅샷
+    with pytest.raises(KeyError):
+        initial_wf(fs1_case.a.s1.snapshot)
+
+
 def _spy_start_calls(monkeypatch):
     import inspect
     import sys
@@ -465,7 +473,7 @@ def test_sb5_dependent_mirror_member_start_w_operational_path(monkeypatch):
     assert wargs["start_w"] is out                                                       # (c)
     # (d) 손 선택: 거울 칸 W_c = min 멤버 출발 W, 가장 큰 key·grid <= W_c (모두 정의 -- 전제)
     cand = wargs["candidates"]["pmos"]
-    assert tuple(cand) == tuple(widths(case.kctx.lut, "pmos"))
+    assert tuple(cand) == tuple(widths(case.kctx.lut.memo.lut, "pmos"))      # M-1
     assert all(wargs["defined"](n, k) for n in ("MP1", "MP2") for k in cand)
     w_c = min(out["MP1"], out["MP2"])
     ok = [k for k in cand if k * wargs["grid_m"] <= w_c]

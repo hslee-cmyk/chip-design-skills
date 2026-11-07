@@ -76,7 +76,7 @@ def test_wb1_constraints_has_no_w_keys_and_con_inversion_kept():
 
 
 # [FS-1 G-4 서명 맞춤] 옛 `test_wb1_reachable_slices_calls_have_three_args`(E-5) 삭제 -- `reachable_slices` 가 사라졌다(후보 = `widths(lut, kind)`).
-# 대체: `tests/structure/test_fs1_source.py::test_fs1_removed_names_absent_in_engine_sources`.
+# 대체: `tests/structure/test_fs1_source.py::test_g3_removed_names_zero_in_engine_sources`.
 
 
 def test_wb1_slice_functions_defined_once():
