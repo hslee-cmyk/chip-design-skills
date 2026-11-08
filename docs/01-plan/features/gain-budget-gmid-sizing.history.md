@@ -8771,3 +8771,22 @@ oracle-portability v0.6.31 전파. N6.1 oracle 병렬 줄에 OP-4 표지 한 문
 - **원래 취지와 다름**(점검 §6 목록대로): Q-N4 (가) 추론 번복, 2026-10-12 (나') 조건 (b) 근거 교체(결과 불변), v6.39.5 대칭 짝 경로(O-265로 대체 -- 경로 유지, 정본 필드 Q-FS2), O-170 role 근거 교체(값 불변), N3.2 기본 전달 뷰 대칭 후보 갈래 삭제. P-4는 열린 항목(Q-DI3).
 - **다음 offset-trim 개정 입력**(점검 #20, 착수 조건 아님): 합성 회로(국면 2)에 trim 코드 입력·bias 포트가 입력 방향으로 들어오면 DEC-106 '차동 입력쌍 + 다른 입력 포트 → 정의 불능'이 발동하거나, 보조 입력쌍 주입형 trim의 두 포트가 둘째 차동 입력쌍이 될 수 있다 -- offset-trim 개정 때 '차동 입력쌍 필드 = 원본 회로 구조 사실(O-263 (3))'과 'trim 코드·bias 포트의 측정 구성 지위', '차동 입력쌍 필드(포트 쌍) 대 입력 셀 `input_cells`(소자)의 축'을 적는다.
 
+## v6.39.6 셋째 커밋 (2026-11-08, 독립 판정 `plan_v6396_verdict.md` Major 2·minor 12 -- 위임 A-211)
+
+근거: 판정 `wt/_drafts/evidence/2026-11-08/plan_v6396_verdict.md`(판정자 ≠ 작성자, 대상 `74bd7f47`·`7f46e1ea`), `docs/01-plan/features/graph-consumption.plan.md` U-G3(:758)·N3.2 표(:325·:478·:500), `_drafts/user_decisions.md` O-266. 코드 변경 0, test·ngspice 0. 재판정 전.
+- **M-1**(N3.8 '기본 포트 뷰' 행): 정의 불능 «2입력인데 role이 차동쌍이 아니어서 `_default`가 뷰 둘을 냄» → '2입력인데 차동 입력쌍 필드(DEC-106 (1a))가 서지 않아 기본 뷰가 둘'; «기본 뷰 가중은 role에서 오지만 맞바꿔도 결과 같음»(두 곳) → '차동 집합 D = 필드 READS, p/n 부호만 role 극성 규약'. 계획 전체 grep(`role이 차동`·`role에서 오`·`role에서 유도`·`역할 선언`·`differential`) -- 남은 자리: 306행(옛 근거 서술·원래 취지와 다름 표지), 1084·1056·180·269행(P-4 방향 유도 -- Q-DI3 대기 표지), 2795행(DI-1 toy (b) -- 'role이 차동이라 적혀 있어도 차동 아님' 단언), 1809행(병합된 IT-1 card 기록 toy) -- 쌍 판정 규칙으로 role을 쓰는 자리 0.
+- **M-2**(판정 입력): DEC-106 (1a) «입력 = DEC-93 source 결합 후보 집합 `graph.rel_matching_offset`(status 무관)» → '정본 `graph.matching_groups`의 `diff_pair` 레코드(status 무관) READS + `node.port_direction` + 고정 노드 선언; `rel_matching_offset`은 읽지 않음'(안 (가) -- 판정 대안 (나) `rel_matching_offset` 유지 + graph-consumption U-G3 개정은 삭제 승인 결정을 되돌리고 사본 관계가 남아 기각). 층 순서 한 줄(matching_groups → 차동 입력쌍 필드 → S1v 뷰 → 쓰기 계획)과 무순환 근거(DEC-93 (1) 바이어스 형제 제외의 '교류접지' = S1 `ac_ground_class`, 뷰마다 판정하는 (4) 바이어스 종속 넷은 읽지 않음 -- design 확인 항목), DEC-93 (1) 괄호에 같은 표지. N6.48 (a) 행·완료 (2) READS 단언(`rel_matching_offset` 0). **graph-consumption 계획과의 정합**: U-G3의 `rel_matching_offset` 삭제와 N3.2 표 '차동쌍 후보 소비는 `matching_groups`가 한다'를 그대로 따른다 -- graph-consumption 개정 0.
+- **m-1**: «비레일 source»(DEC-106 (1a)·N6.48·Q-DI2) → '비고정 source(F가 아닌 넷)', 물리 결정자 = KCL 결합, DEC-93 '비레일'보다 좁음(DEC-93 후보 중 source가 F인 것을 뺌); DI-1 toy (c‴) 레일 아닌 고정 source.
+- **m-2**: (1a)에 '한 포트 쌍을 가리키는 결합 쌍 여럿(상보 입력쌍) = 차동 입력쌍 하나', DI-1 toy (c″). 소스 퇴화 쌍·계측 증폭기형 = O-264 문언으로 정의 불능 정지(fail-closed), 물리 결정자보다 좁은 한정(원칙 6) -- 계획에서 넓히지 않고 (1a) '결정 재검토 입력'·N8 위험 행으로(LA-1 재점검·사용자 결정 재검토 입력, 일반형 후보 = 두 source가 수동소자 DC 경로로 같은 비고정 마디에 닿는 결합 쌍).
+- **m-3**: 짝 조건 ① «전압이 다른 고정 노드에 source를 둔» → 'gate 또는 source를 둔'; FS-1 code 재개 착수 조건 (3)(c) 같이.
+- **m-4**: «쓰기 계획 짝은 VGS만 같다(VDS·VSB가 다르면 IDu가 다름)» → 'VGS·VSB·L이 같고 VDS만 다를 수 있다(출발값 전용 1차 근사)'.
+- **m-5**: FS-1 완료 (2)(e) «사이징 변수 공유 없음(θ 성분 둘이 따로 -- 궤도 묶음 0)» → '공유 변수 0, 종속 반쪽 ln IDu = 쓰기 계획 KVL 종속(독립 θ 둘을 단언하지 않음)'.
+- **m-6**: Q-FS2 (가) 궤도안의 조건 -- 칸 w_f 선택·실현 정수화가 자기동형에 대해 등변(O-265 (2) 칸 w_f·m 같음); DEC-108 (3) (ii)에 표지, FS-1 toy (f)에 다른 칸 궤도 멤버 단언.
+- **m-7**: M-2와 함께 층 순서.
+- **m-8**: Q-DI3 대기 표지 -- FR-9(:180)·DEC-69(:269)·N3.16 '포트' 행(:1084)·N3.15 문장(:1056)·DEC-64 (v1) '`ports` role이 입력인 넷'(:264); S1 구조 노드 스키마에 '`node.port_direction` 자리 = Q-DI3 뒤 design 몫'.
+- **m-9**: 쓰기 계획 짝 정본 후보 둘(`device.dc_coord` partner / 같은 DC 마디 정본 필드) -- design이 하나를 고르고 함께 읽지 않음.
+- **m-10**: DI-1 착수 조건 (5)·FS-1 code 재개 착수 조건 (7) = O-266 code 작성 전 사용자 승인(재작성 범위 표·근거 판정 기록 첨부).
+- **m-11**: Status 머리 «결정 간 모순 점검 … 미기입» → 점검 경로.
+- **m-12**: DI-1 (a) 행의 as-built `matching_groups.py` 자리 후보 문언 삭제('자리 = design, as-built 근거 아님'), (d) 행에 `spec_views.py:108-109` 루프 가중 어휘 거부, N6.1 LA-1a + LA-1 선행 '위 전부'와 FS-1·FP-1 행에 DI-1 이름.
+- **원래 취지와 다름**: 새 항목 0(M-2는 graph-consumption U-G3 결정을 따르는 쪽; m-1은 한정을 좁힘 -- 물리 결정자 맞춤, library 영향 0/13).
+
