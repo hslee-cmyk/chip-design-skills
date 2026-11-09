@@ -1,0 +1,6 @@
+pmos w 0.42 L 1.00 vgs 1.353 vds 1.353 vs 0.000 | LUT ID 3.177e-06 gm/ID 4.29 | SPICE ID 3.176e-06 gm/ID 4.29 | ratio 1.000
+pmos w 0.42 L 1.00 vgs 1.318 vds 1.318 vs 0.000 | LUT ID 2.716e-06 gm/ID 4.65 | SPICE ID 2.714e-06 gm/ID 4.65 | ratio 0.999
+pmos w 1.00 L 1.00 vgs 1.318 vds 1.318 vs 0.000 | LUT ID 4.979e-06 gm/ID 5.04 | SPICE ID 4.974e-06 gm/ID 5.05 | ratio 0.999
+pmos w 5.00 L 1.00 vgs 1.318 vds 1.318 vs 0.000 | LUT ID 1.82e-05 gm/ID 5.99 | SPICE ID 1.817e-05 gm/ID 6.00 | ratio 0.998
+nmos w 1.00 L 0.50 vgs 0.650 vds 1.200 vs 0.186 | LUT ID 4.172e-07 gm/ID 20.30 | SPICE ID 3.799e-07 gm/ID 20.82 | ratio 0.911
+pmos w 0.42 L 0.50 vgs 1.100 vds 0.400 vs 0.320 | LUT ID 8.821e-07 gm/ID 9.97 | SPICE ID 8.602e-07 gm/ID 10.21 | ratio 0.975

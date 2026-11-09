@@ -1,0 +1,37 @@
+* Extracted by KLayout with SKY130 LVS runset on : 07/11/2026 11:31
+
+.SUBCKT folded_cascode Vg10 Vg7 Vg9 X Y bias3 gnd out tail vb1 vb2 vdd vin_n
++ vin_p
+M$1 vdd vdd vdd vdd sky130_fd_pr__pfet_01v8 L=2.5 W=3.3 AS=0.66825 AD=0.66825
++ PS=5.76 PD=5.76
+M$2 vdd vb1 X vdd sky130_fd_pr__pfet_01v8 L=2.5 W=13.2 AS=1.848 AD=1.848
++ PS=15.44 PD=15.44
+M$6 vdd vb1 Y vdd sky130_fd_pr__pfet_01v8 L=2.5 W=13.2 AS=1.848 AD=1.848
++ PS=15.44 PD=15.44
+M$10 vdd vb1 vb1 vdd sky130_fd_pr__pfet_01v8 L=2.5 W=6.6 AS=1.13025 AD=1.13025
++ PS=9.62 PD=9.62
+M$12 Vg7 bias3 Y vdd sky130_fd_pr__pfet_01v8 L=0.5 W=13.2 AS=2.2605 AD=2.2605
++ PS=19.24 PD=19.24
+M$20 out bias3 X vdd sky130_fd_pr__pfet_01v8 L=0.5 W=13.2 AS=2.05425 AD=2.05425
++ PS=17.34 PD=17.34
+M$39 gnd gnd tail gnd sky130_fd_pr__nfet_01v8 L=1 W=1.68 AS=0.3402 AD=0.3402
++ PS=3.33 PD=3.33
+M$40 tail vin_n X gnd sky130_fd_pr__nfet_01v8 L=0.5 W=20.16 AS=2.8224 AD=2.8224
++ PS=26.88 PD=26.88
+M$52 tail vin_p Y gnd sky130_fd_pr__nfet_01v8 L=0.5 W=20.16 AS=2.8224 AD=2.8224
++ PS=26.88 PD=26.88
+M$64 tail vb2 gnd gnd sky130_fd_pr__nfet_01v8 L=1 W=5.04 AS=0.7056 AD=0.7056
++ PS=6.72 PD=6.72
+M$67 gnd vb2 vb2 gnd sky130_fd_pr__nfet_01v8 L=1 W=1.68 AS=0.2352 AD=0.2352
++ PS=2.24 PD=2.24
+M$97 gnd gnd Vg7 gnd sky130_fd_pr__nfet_01v8 L=0.5 W=2.52 AS=0.5103 AD=0.5103
++ PS=4.59 PD=4.59
+M$98 Vg7 Vg7 Vg9 gnd sky130_fd_pr__nfet_01v8 L=0.35 W=12.6 AS=1.764 AD=1.764
++ PS=15.4 PD=15.4
+M$103 Vg9 Vg9 gnd gnd sky130_fd_pr__nfet_01v8 L=0.5 W=7.56 AS=1.0584 AD=1.0584
++ PS=9.24 PD=9.24
+M$106 gnd Vg9 Vg10 gnd sky130_fd_pr__nfet_01v8 L=0.5 W=7.56 AS=1.0584 AD=1.0584
++ PS=9.24 PD=9.24
+M$109 Vg10 Vg7 out gnd sky130_fd_pr__nfet_01v8 L=0.35 W=12.6 AS=1.764 AD=1.764
++ PS=15.4 PD=15.4
+.ENDS folded_cascode

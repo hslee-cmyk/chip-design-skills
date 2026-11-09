@@ -1,0 +1,4 @@
+s1 | iref 6.35179e-06 | A0 63.5933 dB GBW 19.0765 MHz PM 78.149 | P 51.99228000000001 uW | out 0.8413 | min margin -0.076 (M4) | oe 1.486 ne 1.526
+s2 | iref 6.3604e-06 | A0 67.587 dB GBW 23.3554 MHz PM 79.658 | P 54.87066 uW | out 0.8404 | min margin 0.003 (M4) | oe 1.416 ne 1.790
+pre_layout | iref 7.26867e-06 | A0 72.0881 dB GBW 30.776 MHz PM 72.337 | P 64.03518 uW | out 1.1436 | min margin 0.066 (M4) | oe 1.238 ne 1.778
+final_pre | iref 8.14386e-06 | A0 63.9449 dB GBW 32.1223 MHz PM 76.66 | P 70.70274 uW | out 1.1730 | min margin 0.009 (M4) | oe 1.193 ne 1.719

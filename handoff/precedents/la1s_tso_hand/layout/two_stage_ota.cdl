@@ -1,0 +1,12 @@
+* two_stage_ota -- hand design (2026-11-07) for LVS. Devices from two_stage_ota_design_for_layout.json:
+* W = m * w_s (fingers merged in parallel by the LVS netlist simplify), body nmos = gnd, pmos = vdd.
+* Cc and Rz are not in this layout pass (see two_stage_ota_gds_drc_lvs.md), so they are not in this netlist.
+.SUBCKT two_stage_ota vdd gnd vin_n vin_p OUT bias
+M1 D3 vin_n CS gnd sky130_fd_pr__nfet_01v8 w=4.64u l=0.5u
+M2 O1 vin_p CS gnd sky130_fd_pr__nfet_01v8 w=4.64u l=0.5u
+M5 CS bias gnd gnd sky130_fd_pr__nfet_01v8 w=1.16u l=0.5u
+M7 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 w=5.8u l=0.5u
+M3 D3 D3 vdd vdd sky130_fd_pr__pfet_01v8 w=5.04u l=0.7u
+M4 O1 D3 vdd vdd sky130_fd_pr__pfet_01v8 w=5.04u l=0.7u
+M6 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 w=22.68u l=0.35u
+.ENDS

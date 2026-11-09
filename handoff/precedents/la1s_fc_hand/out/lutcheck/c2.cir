@@ -1,0 +1,17 @@
+* lutcheck
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+Vs s 0 dc 1.8
+Vg g 0 dc 0.482
+Vd d 0 dc 0.482
+Vb b 0 dc 1.8
+X1 d g s b sky130_fd_pr__pfet_01v8 l=1u w=1u nf=1
+.control
+op
+print @m.x1.msky130_fd_pr__pfet_01v8[id] @m.x1.msky130_fd_pr__pfet_01v8[gm]
+quit
+.endc
+.end

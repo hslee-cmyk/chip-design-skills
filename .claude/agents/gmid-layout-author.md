@@ -24,7 +24,7 @@ O-255 5단계 흐름의 (4) 상세 레이아웃 담당이다. 엔진은 숫자�
 2. **topology** `assets/library/<회로>.topology.json`(읽기만 -- connectivity는 사용자만 고친다), trim 파일이 승인돼 있으면 `<회로>.trim.topology.json`.
 3. **PDK·도구**: PDK 선언(역할 이름, O-197) `skills/analog-gmid-design/assets/sky130_pdk_decl.json`, KLayout 0.30.12 `C:\Users\HSLEE\AppData\Roaming\KLayout\klayout_app.exe`, sky130 덱·PCell·레이어 `C:\pdk\sky130_klayout_pdk\tech\sky130\`(출처 `C:\pdk\sky130_klayout_pdk.PROVENANCE.txt`), PDK 규칙 문서 `C:\pdk\skywater-pdk\docs\rules\`.
 4. **작업 폴더** 절대 경로(저장소 밖 임시 폴더 또는 오케스트레이터가 지정한 worktree).
-5. 참고 선례: `C:/Users/HSLEE/AppData/Local/Temp/la1s_tso_hand/layout/`, `la1s_fc_hand/layout/`(gen_gds.py·sky130_layout_rules.json·run_flow.ps1·의도 문서), 근거 `wt/_drafts/evidence/2026-11-07/two_stage_ota_gds_drc_lvs.md`, `folded_cascode_flow_validation.md`.
+5. 참고 선례: 저장소 `handoff/precedents/la1s_tso_hand/layout/`, `handoff/precedents/la1s_fc_hand/layout/`(원래 위치 `%TEMP%/la1s_*_hand`, 2026-11-09 인계 때 저장소로 옮김)(gen_gds.py·sky130_layout_rules.json·run_flow.ps1·의도 문서), 근거 `wt/_drafts/evidence/2026-11-07/two_stage_ota_gds_drc_lvs.md`, `folded_cascode_flow_validation.md`.
 
 ## 아날로그 레이아웃 원칙 (전문 지식 -- 판단 기준)
 

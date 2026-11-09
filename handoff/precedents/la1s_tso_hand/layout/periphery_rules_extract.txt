@@ -1,0 +1,165 @@
+﻿120:nwell.1,Width of nwell,,0.840,쨉m
+121:nwell.2a,Spacing between two n-wells,,1.270,쨉m
+122:nwell.2b,Manual merge wells if less than minimum,,,
+123:nwell.4,All n-wells will contain metal-contacted tap  (rule checks only for licon on tap) . Rule exempted from high voltage cells inside UHVI,,,
+124:nwell.5,Deep nwell must be enclosed by nwell by atleast... Exempted inside UHVI or :drc_tag:`areaid.lw`,TC,0.400,쨉m
+126:nwell.5a,min enclosure of nwell by dnwell inside UHVI,,N/A,N/A
+127:nwell.5b,nwell inside UHVI must not be on the same net as nwell outside UHVI,,N/A,N/A
+128:nwell.6,Min enclosure of nwell hole by deep nwell outside UHVI,TC,1.030,쨉m
+129:nwell.7,Min spacing between nwell and deep nwell on separate nets,TC,4.500,쨉m
+320:difftap.1,Width of diff or tap,P,0.150,쨉m
+321:difftap.2,"Minimum channel width (Diff And Poly) except for FETs inside :drc_tag:`areaid.sc`: Rule exempted in the SP8* flows only, for the cells listed in rule difftap.2a ",P,0.
+322:difftap.2a,"Minimum channel width (Diff And Poly) for cell names ""s8cell_ee_plus_sseln_a"", ""s8cell_ee_plus_sseln_b"", ""s8cell_ee_plus_sselp_a"", ""s8cell_ee_plus_sselp_b"" , 
+323:difftap.2b,Minimum channel width (Diff And Poly) for FETs inside :drc_tag:`areaid.sc`,P,0.360,쨉m
+324:difftap.3,"Spacing of diff to diff, tap to tap, or non-abutting diff to tap",,0.270,쨉m
+325:difftap.4,Min tap bound by one diffusion,,0.290,
+326:difftap.5,Min tap bound by two diffusions,P,0.400,
+327:difftap.6,Diff and tap are not allowed to extend beyond their abutting edge,,,
+328:difftap.7,Spacing of diff/tap abutting edge to a non-conciding diff or tap edge,NE,0.130,쨉m
+329:difftap.8,Enclosure of (p+) diffusion by N-well. Rule exempted inside UHVI.,"DE, NE, P",0.180,쨉m
+330:difftap.9,Spacing of (n+) diffusion to N-well outside UHVI,"DE, NE, P",0.340,쨉m
+331:difftap.10,Enclosure of (n+)  tap by N-well. Rule exempted inside UHVI.,"NE, P",0.180,쨉m
+332:difftap.11,Spacing of (p+) tap to  N-well. Rule exempted inside UHVI.,,0.130,쨉m
+333:difftap.12,ESD_nwell_tap is considered shorted to the abutting diff,NC,,
+334:difftap.13,Diffusion or the RF FETS in Table H5 is defined by Ldiff and Wdiff.,,,
+400:poly.1a,Width of poly,,0.150,쨉m
+401:poly.1b,Min channel length (poly width) for pfet overlapping lvtn (exempt rule for dummy_poly in cells listed on Table H3),,0.350,쨉m
+402:poly.2,Spacing of poly to poly except for poly.c2 and poly.c3; Exempt cell: sr_bltd_eq where it is same as poly.c2,,0.210,쨉m
+403:poly.3,Min poly resistor width,,0.330,쨉m
+404:poly.4,Spacing of poly on field to diff (parallel edges only),P,0.075,쨉m
+405:poly.5,Spacing of poly on field to tap,P,0.055,쨉m
+406:poly.6,Spacing of poly on diff to abutting tap (min source),P,0.300,쨉m
+407:poly.7,Extension of diff beyond poly (min drain),P,0.250,
+408:poly.8,Extension of poly beyond diffusion (endcap),P,0.130,
+409:poly.9,Poly resistor spacing to poly or spacing (no overlap) to diff/tap,,0.480,쨉m
+410:poly.10,Poly can't overlap inner corners of diff,,,
+411:poly.11,No 90 deg turns of poly on diff,,,
+412:poly.12,"(Poly NOT (nwell NOT hvi)) may not overlap tap; Rule exempted for cell name ""s8fgvr_n_fg2"" and gated_npn and inside UHVI.",P,,
+413:poly.15,Poly must not overlap diff:rs,,,
+414:poly.16,"Inside RF FETs defined in Table H5, poly cannot overlap poly across multiple adjacent instances",,,
+570:npc.1,Min width of NPC,,0.270,쨉m
+571:npc.2,Min spacing of NPC to NPC,,0.270,쨉m
+572:npc.3,Manual merge if less than minimum,,,
+573:npc.4,Spacing (no overlap) of NPC to Gate,,0.090,쨉m
+574:npc.5,Max enclosure of poly overlapping slotted_licon by npcm (merge between adjacent short edges of the slotted_licons if space < min),,0.095,쨉m
+597:npc.1,Width of nsdm(psdm),P,0.380,쨉m
+598:npc.2,Spacing of nsdm(psdm) to nsdm(psdm),P,0.380,쨉m
+599:npc.3,Manual merge if less than minimum,,,
+600:npc.5a,"Enclosure of diff by nsdm(psdm), except for butting edge",,0.125,쨉m
+601:npc.5b,"Enclosure of tap by nsdm(psdm), except for butting edge",P,0.125,쨉m
+602:npc.6,Enclosure of diff/tap butting edge by nsdm (psdm),,0.000,쨉m
+603:npc.7,Spacing of NSDM/PSDM to opposite implant diff or tap (for non-abutting diff/tap edges),,0.130,쨉m
+604:npc.8,Nsdm and psdm cannot overlap diff/tap regions of opposite doping,DE,,
+605:npc.9,"Diff and tap must be enclosed by their corresponding implant layers. Rule exempted for\n- diff inside ""advSeal_6um* OR cuPillarAdvSeal_6um*"" pcell for SKY130P*/SP8P*
+606:npc.10a,Min area of Nsdm ,,0.265,쨉m짼
+607:npc.10b,Min area of Psdm ,,0.255,쨉m짼
+608:npc.11,Min area of n/psdmHoles ,,0.265,쨉m짼
+624:licon.1,Min and max L and W of licon (exempt licons inside prec_resistor),,0.170,쨉m
+625:licon.1b,Min and max width of licon inside prec_resistor,,0.190,쨉m
+626:licon.1c,Min and max length of licon inside prec_resistor,,2.000,쨉m
+627:licon.2,Spacing of licon to licon,P,0.170,쨉m
+628:licon.2b,Min spacing between two slotted_licon (when the both the edges are 0.19um in length),,0.350,쨉m
+629:licon.2c,Min spacing between two slotted_licon (except for rule licon.2b),,0.510,쨉m
+630:licon.2d,Min spacing between a slotted_licon and 0.17um square licon,,0.510,쨉m
+631:licon.3,Only min. square licons are allowed except die seal ring where licons are (licon CD)*L,,0.170 *L,
+632:licon.4,Licon1 must overlap li1 and (poly or diff or tap),,,
+633:licon.5a,Enclosure of licon by diff,P,0.040,쨉m
+634:licon.5b,Min space between tap_licon and diff-abutting tap edge,P,0.060,쨉m
+635:licon.5c,Enclosure of licon by diff on one of two adjacent sides,P,0.060,쨉m
+636:licon.6,Licon cannot straddle tap,P,,
+637:licon.7,Enclosure of licon by one of two adjacent edges of isolated tap,P,0.120,쨉m
+638:licon.8,Enclosure of poly_licon by poly,P,0.050,쨉m
+639:licon.8a,Enclosure of poly_licon by poly on one of two adjacent sides,P,0.080,쨉m
+640:licon.9,"Spacing, no overlap, between poly_licon and psdm; In SKY130DIA/SKY130TMA/SKY130PIR-10 flows, the rule is checked only between (poly_licon outside rpm) and psdm",P,0.11
+641:licon.10,Spacing of licon on (tap AND (nwell NOT hvi)) to Var_channel,P,0.250,쨉m
+642:licon.11,"Spacing of licon on diff or tap to poly on diff (except for all FETs inside :drc_tag:`areaid.sc` and except s8spf-10r flow for 0.5um phv inside cell names ""s8fs_gwdl
+643:licon.11a,Spacing of licon on diff or tap to poly on diff (for all FETs inside :drc_tag:`areaid.sc` except 0.15um phighvt),P,0.050,쨉m
+644:licon.11b,Spacing of licon on diff or tap to poly on diff (for 0.15um phighvt inside :drc_tag:`areaid.sc`),P,0.050,쨉m
+645:licon.11c,"Spacing of licon on diff or tap to poly on diff (for 0.5um phv inside cell names ""s8fs_gwdlvx4"", ""s8fs_gwdlvx8"", ""s8fs_hvrsw_x4"", ""s8fs_hvrsw8"", ""s8fs_hvrsw
+646:licon.11d,"Spacing of licon on diff or tap to poly on diff (for 0.15um nshort inside cell names ""s8fs_rdecdrv"", ""s8fs_rdec8"", ""s8fs_rdec32"", ""s8fs_rdec264"", ""s8fs_rdec
+647:licon.12,Max SD width without licon,NC,5.700,쨉m
+648:licon.13,Spacing (no overlap) of NPC to licon on diff or tap,P,0.090,쨉m
+649:licon.14,Spacing of poly_licon to diff or tap,P,0.190,쨉m
+650:licon.15,poly_licon must be enclosed by npc by??P,0.100,쨉m
+651:licon.16,"Every source_diff and every tap must enclose at least one licon1, including the diff/tap straddling areaid:ce. \nRule exempted inside UHVI.",P,,
+652:licon.17,Licons may not overlap both poly and (diff or tap),,,
+653:licon.18,Npc must enclose poly_licon,,,
+654:licon.19,poly of the HV varactor must not interact with licon,P,,
+702:licon.1,Width of LI (except for li.1a),P,0.170,쨉m
+703:licon.1a,Width of LI inside of cells with name s8rf2_xcmvpp_hd5_*,P,0.140,쨉m
+704:licon.2,Max ratio of length to width of LI without licon or mcon,NC,10.000,쨉m
+705:licon.3,Spacing of LI to LI (except for li.3a),P,0.170,쨉m
+706:licon.3a,Spacing of LI to LI inside cells with names s8rf2_xcmvpp_hd5_*,P,0.140,쨉m
+707:licon.5,Enclosure of licon by one of two adjacent LI sides,P,0.080,쨉m
+708:licon.6,Min area of LI,P,0.0561,쨉m짼
+709:licon.7,"Min LI resistor width (rule exempted within :drc_tag:`areaid.ed`; Inside :drc_tag:`areaid.ed`, min width of the li resistor is determined by rule li.1)",,0.290,쨉m
+725:ct.1,Min and max L and W of mcon,DNF,0.170,쨉m
+726:ct.2,Spacing of mcon to mcon,DNF,0.190,쨉m
+727:ct.3,Only min. square mcons are allowed except die seal ring where mcons are??,0.170*L,
+728:ct.4,Mcon must be enclosed by LI by at least ??P,0.000,쨉m
+829:m1.1,Width of metal1,,0.140,쨉m
+830:m1.2,Spacing of metal1 to metal1,,0.140,쨉m
+831:m1.3a,Min. spacing of features attached to or extending from huge_met1 for a distance of up to  0.280 쨉m to metal1 (rule not checked over non-huge met1 features),,0.280,쨉m
+832:m1.3b,Min. spacing of huge_met1 to metal1 excluding features checked by m1.3a,,0.280,쨉m
+833:m1.4,Mcon must be enclosed by Met1 by at least ??Rule exempted for cell names documented in rule m1.4a),P,0.030,쨉m
+834:m1.4a,"Mcon must be enclosed by Met1 by at least (for cell names ""s8cell_ee_plus_sseln_a"", ""s8cell_ee_plus_sseln_b"", ""s8cell_ee_plus_sselp_a"", ""s8cell_ee_plus_sselp_b
+835:m1.5,Mcon must be enclosed by Met1 on one of two adjacent sides by at least ??"P, Al",0.060,쨉m
+836:m1.6,Min metal 1 area ,,0.083,쨉m짼
+837:m1.7,Min area of metal1 holes ,,0.140,쨉m짼
+841:m1.11,Max width of metal1after slotting,"Cu, NC",4.000,쨉m
+842:m1.12,Add slots and remove vias and contacts if met1 wider than??.,Cu,3.200,
+843:m1.13,Max pattern density (PD) of met1,Cu,0.77,\-
+844:m1.14,Met1 PD window size,Cu,50.000,쨉m
+845:m1.14a,Met1 PD window step,Cu,25.000,쨉m
+846:m1.15,Mcon must be enclosed by met1 on one of two adjacent sides by at least ??Cu,0.030,쨉m
+876:via.1a,Min and max L and W of via outside :drc_tag:`areaid.mt`,Al,0.150,쨉m
+877:via.1b,"Three sizes of square Vias allowed inside areaid:mt: 0.150um, 0.230um and 0.280um",Al,,
+878:via.2,Spacing of via to via,Al,0.170,쨉m
+879:via.3,Only min. square vias are allowed except die seal ring where vias are (Via CD)*L,,0.2*L,
+880:via.4a,0.150 쨉m Via must be enclosed by Met1 by at least ??,0.055,쨉m
+881:via.4b,"Inside :drc_tag:`areaid.mt`, 0.230 쨉m Via must be enclosed by met1 by atleast",Al,0.030,쨉m
+882:via.4c,"Inside :drc_tag:`areaid.mt`, 0.280 쨉m Via must be enclosed by met1 by atleast",Al,0.000,쨉m
+883:via.5a,0.150 쨉m Via must be enclosed by Met1 on one of two adjacent sides by at least ??,0.085,쨉m
+884:via.5b,"Inside :drc_tag:`areaid.mt`, 0.230 쨉m Via must be enclosed by met1 on one of two adjacent sides by at least ??,Al,0.060,쨉m
+885:via.5c,"Inside :drc_tag:`areaid.mt`, 0.280 쨉m Via must be enclosed by met1 on one of two adjacent sides by at least ??,Al,0.000,쨉m
+886:via.11,Min and max L and W of via outside :drc_tag:`areaid.mt`,Cu,0.180,쨉m
+887:via.12,Min spacing between vias,Cu,0.130,쨉m
+888:via.13,Max of 5 vias within ??Cu,0.350,쨉m
+889:via.14,0.180 쨉m Via must be enclosed by parallel edges of Met1 by at least ??Cu,0.040,쨉m
+894:via.14a,0.180 쨉m Via must be enclosed by 45 deg edges of Met1 by at least ??Cu,0.037,deg 쨉m
+913:m2.1,Width of metal 2,,0.140,쨉m
+914:m2.2,Spacing of metal 2 to metal 2,,0.140,쨉m
+915:m2.3a,Min. spacing of features attached to or extending from huge_met2 for a distance of up to  0.280 쨉m to metal2 (rule not checked over non-huge met2 features),,0.280,쨉m
+916:m2.3b,Min. spacing of huge_met2 to metal2 excluding features checked by m2.3a,,0.280,쨉m
+917:m2.3c,"Min spacing between floating_met2 with AR_met2_A >= 0.05 and AR_met2_B =< 0.032, outside areaid:sc must be greater than",RR,0.145,쨉m
+918:m2.4,Via must be enclosed by Met2 by at least ??"P, Al",0.055,쨉m
+919:m2.5,Via must be enclosed by Met2 on one of two adjacent sides by at least ??Al,0.085,쨉m
+920:m2.6,Min metal2 area ,,0.0676,쨉m짼
+921:m2.7,Min area of metal2 holes ,,0.140,쨉m짼
+925:m2.11,Max width of metal2,Cu,4.000,쨉m
+926:m2.12,Add slots and remove vias and contacts if met2 wider than??.,Cu,3.200,
+927:m2.13,Max pattern density (PD) of metal2,Cu,0.77,\-
+928:m2.14,Met2 PD window size,Cu,50.000,쨉m
+929:m2.14a,Met2 PD window step,Cu,25.000,쨉m
+930:m2.15,Via must be enclosed by met2 by at least??Cu,0.040,쨉m
+1243:nwell.8,Min space between HV_nwell  and any nwell on different nets,,2.000,쨉m
+1244:nwell.9,(Nwell overlapping hvi) must be enclosed by hvi,,,
+1245:nwell.10,"LVnwell and HnWell should not be on the same net (for the purposes of this check, short the connectivity through resistors); Exempt HnWell with li nets tagged ""lv_ne
+1246:nwell.11,"Nwell connected to the nets mentioned in the ""Power_Net_Hv"" field of the latcup GUI must be enclosed by hvi (exempt nwell inside :drc_tag:`areaid.hl`). Also for the
+1264:difftap.14,"Min width of diff inside Hvi, except HV Pdiff resistors (difftap.14a)",P,0.290,쨉m
+1265:difftap.14a,"Min width of diff inside Hvi, HV Pdiff resistors only",P,0.150,쨉m
+1266:difftap.15a,Min space of Hdiff to Hdiff,P,0.300,쨉m
+1267:difftap.15b,Min space of n+diff to non-abutting p+tap inside Hvi,P,0.370,쨉m
+1268:difftap.16,Min width tap butting diff on one or two sides inside Hvi (rule exempted inside UHVI),,0.700,쨉m
+1269:difftap.17,P+ Hdiff or Pdiff inside areaid:hvnwell must be enclosed by Hv_nwell by at least ??[Rule exempted inside UHVI],"DE, NE",0.330,쨉m
+1270:difftap.18,Spacing of N+ diff to HV_nwell (rule exempted inside UHVI),"DE, NE",0.430,쨉m
+1271:difftap.19,N+ Htap must be enclosed by Hv_nwell by at least ?쪹ule exempted inside UHVI.,NE,0.330,쨉m
+1272:difftap.20,Spacing of P+ tap to HV_nwell (Exempted for p+tap butting pwell.rs; rule exempted inside UHVI),,0.430,쨉m
+1273:difftap.21,Diff or tap cannot straddle Hvi,P,,
+1274:difftap.22,Min enclosure of Hdiff or Htap by Hvi. Rule exempted inside UHVI.,P,0.180,쨉m
+1275:difftap.23,Space between diff or tap outside Hvi and Hvi,P,0.180,쨉m
+1276:difftap.24,Spacing of nwell to N+ Hdiff (rule exempted inside UHVI),"DE, NE",0.430,쨉m
+1277:difftap.25,Min space of N+ Hdiff inside HVI across non-abutting P+_tap,NC,1.070,쨉m
+1278:difftap.26,Min spacing between pwbm to difftap outside UHVI,,N/A,N/A
+1320:poly.13,Min width of poly over diff inside Hvi,P,0.500,쨉m
+1321:poly.14,(poly and diff) cannot straddle Hvi,,,

@@ -1,0 +1,15 @@
+nmos slices um: [0.36, 0.39, 0.42, 0.52, 0.54, 0.55, 0.58, 0.6, 0.61, 0.64, 0.65, 0.74, 0.84, 1.0, 1.26, 1.68, 2.0, 3.0, 5.0, 7.0]
+nmos L um: [np.float64(0.15), np.float64(0.18), np.float64(0.185), np.float64(0.2), np.float64(0.25), np.float64(0.255), np.float64(0.3), np.float64(0.35), np.float64(0.425), np.float64(0.5), np.float64(0.7), np.float64(1.0), np.float64(1.5), np.float64(2.0), np.float64(2.5), np.float64(4.0), np.float64(8.0), np.float64(20.0)]
+nmos VGS 0.0..1.8 n=49, VDS 0.0..1.8 n=49, VS 0.0..1.8 n=10
+pmos slices um: [0.42, 0.55, 0.64, 0.84, 1.0, 1.26, 1.65, 1.68, 2.0, 3.0, 5.0, 7.0]
+pmos L um: [np.float64(0.15), np.float64(0.18), np.float64(0.185), np.float64(0.2), np.float64(0.25), np.float64(0.255), np.float64(0.3), np.float64(0.35), np.float64(0.425), np.float64(0.5), np.float64(0.7), np.float64(1.0), np.float64(1.5), np.float64(2.0), np.float64(2.5), np.float64(4.0), np.float64(8.0), np.float64(20.0)]
+pmos VGS 0.0..1.8 n=49, VDS 0.0..1.8 n=49, VS 0.0..1.8 n=10
+cap w_ref_m 5e-06, L [np.float64(0.15), np.float64(0.18), np.float64(0.185), np.float64(0.2), np.float64(0.25), np.float64(0.255), np.float64(0.3), np.float64(0.35), np.float64(0.425), np.float64(0.5), np.float64(0.7), np.float64(1.0), np.float64(1.5), np.float64(2.0), np.float64(2.5), np.float64(4.0), np.float64(8.0), np.float64(20.0)]
+min_finger_w_m = 4.2e-07
+manufacturing_grid_m = 5e-09
+finger_pitch_overhead_m = 2.8e-07
+row_gap_m = 4.7e-07
+dummy_w_m = 5.4e-07
+tap_w_m = 6.8e-07
+well_spacing_m = 1.63e-06
+mim_cap_density_f_per_m2 = 0.002

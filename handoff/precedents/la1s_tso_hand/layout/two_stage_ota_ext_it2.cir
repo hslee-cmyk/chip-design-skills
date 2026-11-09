@@ -1,0 +1,18 @@
+* Extracted by KLayout with SKY130 LVS runset on : 07/11/2026 10:06
+
+.SUBCKT two_stage_ota OUT bias gnd vdd vin_n vin_p
+M$1 OUT \$8 vdd vdd sky130_fd_pr__pfet_01v8 L=0.35 W=22.68 AS=3.3327 AD=3.3327
++ PS=29.23 PD=29.23
+M$10 vdd \$9 \$9 vdd sky130_fd_pr__pfet_01v8 L=0.7 W=5.04 AS=0.7056 AD=0.7056
++ PS=6.16 PD=6.16
+M$12 vdd \$9 \$8 vdd sky130_fd_pr__pfet_01v8 L=0.7 W=5.04 AS=0.7056 AD=0.7056
++ PS=6.16 PD=6.16
+M$27 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 L=0.5 W=5.8 AS=0.8845 AD=0.8845
++ PS=9.43 PD=9.43
+M$32 gnd bias \$7 gnd sky130_fd_pr__nfet_01v8 L=0.5 W=1.16 AS=0.1624 AD=0.1624
++ PS=1.72 PD=1.72
+M$33 \$7 vin_n \$9 gnd sky130_fd_pr__nfet_01v8 L=0.5 W=4.64 AS=0.6496 AD=0.6496
++ PS=6.88 PD=6.88
+M$37 \$7 vin_p \$8 gnd sky130_fd_pr__nfet_01v8 L=0.5 W=4.64 AS=0.6496 AD=0.6496
++ PS=6.88 PD=6.88
+.ENDS two_stage_ota

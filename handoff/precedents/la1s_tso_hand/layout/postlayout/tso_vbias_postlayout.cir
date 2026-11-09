@@ -1,0 +1,89 @@
+* two_stage_ota hand design + layout geometry
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+Vdd vdd 0 dc 1.8
+XM3_0 D3 D3 vdd vdd sky130_fd_pr__pfet_01v8 l=0.7u w=1.26u ad=0.1764p as=0.1764p pd=1.54u ps=1.54u nf=1
+XM3_1 D3 D3 vdd vdd sky130_fd_pr__pfet_01v8 l=0.7u w=1.26u ad=0.1764p as=0.1764p pd=1.54u ps=1.54u nf=1
+XM3_2 D3 D3 vdd vdd sky130_fd_pr__pfet_01v8 l=0.7u w=1.26u ad=0.1764p as=0.1764p pd=1.54u ps=1.54u nf=1
+XM3_3 D3 D3 vdd vdd sky130_fd_pr__pfet_01v8 l=0.7u w=1.26u ad=0.1764p as=0.1764p pd=1.54u ps=1.54u nf=1
+XM4_0 O1 D3 vdd vdd sky130_fd_pr__pfet_01v8 l=0.7u w=1.26u ad=0.1764p as=0.1764p pd=1.54u ps=1.54u nf=1
+XM4_1 O1 D3 vdd vdd sky130_fd_pr__pfet_01v8 l=0.7u w=1.26u ad=0.1764p as=0.1764p pd=1.54u ps=1.54u nf=1
+XM4_2 O1 D3 vdd vdd sky130_fd_pr__pfet_01v8 l=0.7u w=1.26u ad=0.1764p as=0.1764p pd=1.54u ps=1.54u nf=1
+XM4_3 O1 D3 vdd vdd sky130_fd_pr__pfet_01v8 l=0.7u w=1.26u ad=0.1764p as=0.1764p pd=1.54u ps=1.54u nf=1
+XM6_0 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_1 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_2 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_3 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_4 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_5 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_6 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_7 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_8 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_9 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_10 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_11 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_12 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_13 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_14 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_15 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_16 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM6_17 OUT O1 vdd vdd sky130_fd_pr__pfet_01v8 l=0.35u w=1.26u ad=0.18515p as=0.18515p pd=1.62389u ps=1.62389u nf=1
+XM1_0 D3 vin_n CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM1_1 D3 vin_n CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM1_2 D3 vin_n CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM1_3 D3 vin_n CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM1_4 D3 vin_n CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM1_5 D3 vin_n CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM1_6 D3 vin_n CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM1_7 D3 vin_n CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM2_0 O1 vin_p CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM2_1 O1 vin_p CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM2_2 O1 vin_p CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM2_3 O1 vin_p CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM2_4 O1 vin_p CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM2_5 O1 vin_p CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM2_6 O1 vin_p CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM2_7 O1 vin_p CS gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM5_0 CS bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM5_1 CS bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.0812p as=0.0812p pd=0.86u ps=0.86u nf=1
+XM7_0 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.08845p as=0.08845p pd=0.943u ps=0.943u nf=1
+XM7_1 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.08845p as=0.08845p pd=0.943u ps=0.943u nf=1
+XM7_2 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.08845p as=0.08845p pd=0.943u ps=0.943u nf=1
+XM7_3 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.08845p as=0.08845p pd=0.943u ps=0.943u nf=1
+XM7_4 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.08845p as=0.08845p pd=0.943u ps=0.943u nf=1
+XM7_5 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.08845p as=0.08845p pd=0.943u ps=0.943u nf=1
+XM7_6 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.08845p as=0.08845p pd=0.943u ps=0.943u nf=1
+XM7_7 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.08845p as=0.08845p pd=0.943u ps=0.943u nf=1
+XM7_8 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.08845p as=0.08845p pd=0.943u ps=0.943u nf=1
+XM7_9 OUT bias gnd gnd sky130_fd_pr__nfet_01v8 l=0.5u w=0.58u ad=0.08845p as=0.08845p pd=0.943u ps=0.943u nf=1
+Vbias bias 0 dc 0.774809
+Rz O1 N_cc_rz 2379.69839
+Cc N_cc_rz OUT 1.348287552e-12
+CL OUT gnd 3e-12
+Vinp vin_p 0 dc 1.14408 ac 1
+Lfb OUT vin_n 1e9
+Cfb vin_n gnd 1
+.control
+op
+print v(D3) v(O1) v(CS) v(OUT) v(bias) i(Vdd)
+print @m.xm3_0.msky130_fd_pr__pfet_01v8[vds] @m.xm3_0.msky130_fd_pr__pfet_01v8[vdsat] @m.xm3_0.msky130_fd_pr__pfet_01v8[id] @m.xm3_0.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm4_0.msky130_fd_pr__pfet_01v8[vds] @m.xm4_0.msky130_fd_pr__pfet_01v8[vdsat] @m.xm4_0.msky130_fd_pr__pfet_01v8[id] @m.xm4_0.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm6_0.msky130_fd_pr__pfet_01v8[vds] @m.xm6_0.msky130_fd_pr__pfet_01v8[vdsat] @m.xm6_0.msky130_fd_pr__pfet_01v8[id] @m.xm6_0.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm1_0.msky130_fd_pr__nfet_01v8[vds] @m.xm1_0.msky130_fd_pr__nfet_01v8[vdsat] @m.xm1_0.msky130_fd_pr__nfet_01v8[id] @m.xm1_0.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm2_0.msky130_fd_pr__nfet_01v8[vds] @m.xm2_0.msky130_fd_pr__nfet_01v8[vdsat] @m.xm2_0.msky130_fd_pr__nfet_01v8[id] @m.xm2_0.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm5_0.msky130_fd_pr__nfet_01v8[vds] @m.xm5_0.msky130_fd_pr__nfet_01v8[vdsat] @m.xm5_0.msky130_fd_pr__nfet_01v8[id] @m.xm5_0.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm7_0.msky130_fd_pr__nfet_01v8[vds] @m.xm7_0.msky130_fd_pr__nfet_01v8[vdsat] @m.xm7_0.msky130_fd_pr__nfet_01v8[id] @m.xm7_0.msky130_fd_pr__nfet_01v8[gm]
+ac dec 100 1 1e10
+let a = v(OUT)/v(vin_p)
+let adb = db(a)
+let ph = 180*cph(a)/pi
+meas ac a0db find adb at=1
+meas ac fu when adb=0 cross=1
+meas ac phu find ph at=fu
+print a0db fu phu
+quit
+.endc
+.end

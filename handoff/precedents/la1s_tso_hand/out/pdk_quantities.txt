@@ -1,0 +1,8 @@
+min_finger_w_m = 4.2e-07
+manufacturing_grid_m = 5e-09
+finger_pitch_overhead_m = 2.8e-07
+row_gap_m = 4.7e-07
+dummy_w_m = 5.4e-07
+tap_w_m = 6.8e-07
+well_spacing_m = 1.63e-06
+mim_cap_density_f_per_m2 = 0.002

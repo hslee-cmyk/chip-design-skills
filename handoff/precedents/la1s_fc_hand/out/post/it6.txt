@@ -1,0 +1,7 @@
+pre      A0 63.945 dB  GBW 32.1223 MHz  PM 76.660  P 70.703 uW  out 1.1730  min margin 0.0091 (M4)
+geom     A0 63.945 dB  GBW 32.0963 MHz  PM 76.500  P 70.703 uW  out 1.1730  min margin 0.0091 (M4)
+geom_c   A0 63.945 dB  GBW 31.2151 MHz  PM 72.329  P 70.703 uW  out 1.1730  min margin 0.0091 (M4)
+geom_r   A0 63.945 dB  GBW 31.9983 MHz  PM 74.973  P 70.703 uW  out 1.1730  min margin 0.0091 (M4)
+geom_rc  A0 63.945 dB  GBW 31.1185 MHz  PM 70.868  P 70.703 uW  out 1.1730  min margin 0.0091 (M4)
+net C (fF): {'gnd': 28.97, 'vin_p': 12.64, 'vin_n': 12.09, 'vb2': 12.06, 'tail': 10.01, 'X': 16.17, 'Y': 15.91, 'Vg7': 14.18, 'Vg9': 7.57, 'Vg10': 1.83, 'out': 8.92, 'bias3': 6.99, 'vb1': 29.1, 'vdd': 25.85}
+gate R (ohm, lumped): {'gnd': 1868.0, 'vin_p': 1384.9, 'vin_n': 1609.8, 'vb2': 1113.6, 'tail': 16.8, 'X': 42.4, 'Y': 42.4, 'Vg7': 1072.1, 'Vg9': 309.6, 'Vg10': 25.3, 'out': 42.4, 'bias3': 1061.0, 'vb1': 1774.9, 'vdd': 1908.2}

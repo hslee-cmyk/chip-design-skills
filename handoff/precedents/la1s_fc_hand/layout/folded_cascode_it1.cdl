@@ -1,0 +1,22 @@
+* folded_cascode hand design for LVS (Ibg = ideal source between pins vb1/vb2, CL = measurement load: not drawn)
+.SUBCKT folded_cascode vdd gnd vin_n vin_p out vb1 vb2 bias3
+MP vb1 vb1 vdd vdd sky130_fd_pr__pfet_01v8 w=6.6u l=2.5u
+M3 X vb1 vdd vdd sky130_fd_pr__pfet_01v8 w=13.2u l=2.5u
+M4 Y vb1 vdd vdd sky130_fd_pr__pfet_01v8 w=13.2u l=2.5u
+M5 Vg7 bias3 Y vdd sky130_fd_pr__pfet_01v8 w=13.2u l=0.5u
+M6 out bias3 X vdd sky130_fd_pr__pfet_01v8 w=13.2u l=0.5u
+M1 X vin_n tail gnd sky130_fd_pr__nfet_01v8 w=21.84u l=0.5u
+M2 Y vin_p tail gnd sky130_fd_pr__nfet_01v8 w=21.84u l=0.5u
+M9 Vg9 Vg9 gnd gnd sky130_fd_pr__nfet_01v8 w=7.56u l=0.5u
+M10 Vg10 Vg9 gnd gnd sky130_fd_pr__nfet_01v8 w=7.56u l=0.5u
+M7 Vg7 Vg7 Vg9 gnd sky130_fd_pr__nfet_01v8 w=11.76u l=0.35u
+M8 out Vg7 Vg10 gnd sky130_fd_pr__nfet_01v8 w=11.76u l=0.35u
+M11 tail vb2 gnd gnd sky130_fd_pr__nfet_01v8 w=5.04u l=1u
+MN vb2 vb2 gnd gnd sky130_fd_pr__nfet_01v8 w=1.68u l=1u
+MDUMNinL X gnd gnd gnd sky130_fd_pr__nfet_01v8 w=0.84u l=1u
+MDUMNinR X gnd gnd gnd sky130_fd_pr__nfet_01v8 w=0.84u l=1u
+MDUMNcmL Vg9 gnd gnd gnd sky130_fd_pr__nfet_01v8 w=0.42u l=0.5u
+MDUMNcmR Vg9 gnd gnd gnd sky130_fd_pr__nfet_01v8 w=0.42u l=0.5u
+MDUMPL vdd vdd vdd vdd sky130_fd_pr__pfet_01v8 w=1.65u l=2.5u
+MDUMPR vdd vdd vdd vdd sky130_fd_pr__pfet_01v8 w=1.65u l=2.5u
+.ENDS
