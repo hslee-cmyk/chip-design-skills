@@ -6,7 +6,8 @@
 - gmid agent 정의(`.claude/agents/gmid-*.md` 5개)도 같은 브랜치에 있다 -- 새 서버의 `chip-design-skills/.claude/agents/`로.
 - **git에 없는 것(직접 옮겨야 함)**: gm/ID·Razavi 원본 서적 PDF(`skills/analog-gmid-design/references/gmid_sources/` -- 출판 서적이라 .gitignore, 원래 경로·sha256은 그 폴더 README), PDK(`C:/pdk/...` -- sky130 + KLayout 덱, `C:\pdk\sky130_klayout_pdk.PROVENANCE.txt`), OSS CAD Suite·ngspice·KLayout 설치, auto-memory(`~/.claude/projects/<proj>/memory/`).
 - 같은 브랜치에 함께 둔 것(2026-11-09 둘째 커밋): `.claude/hooks/`(ask_gate·append_guard·role guard -- 경로를 파일 위치 기준으로 유도하게 고침, selftest 2개 ALL PASS)와 `.claude/settings.json`(hook 명령 = `python "$CLAUDE_PROJECT_DIR/.claude/hooks/..."` -- 새 서버에서 `python`이 PATH에 있어야 함, 아니면 절대경로로 고침), `handoff/fpga_CLAUDE.md`(상위 `fpga/CLAUDE.md` 사본 -- 새 서버의 `fpga/CLAUDE.md`로 복사), `handoff/precedents/la1s_{tso,fc}_hand/`(손 레이아웃 선례 -- layout agent 정의가 이 경로를 가리킴; tso의 5 MB 넘는 fingerplan json 2개는 뺌), `handoff/tools/log_auto.py`(la1_auto_decisions.md 바이너리 append, 경로 유도).
-- 저장소 밖에 남은 것: `fpga/lut_data/sky130_lut_v2/`(987 MB, LUT npz -- 엔진 필수, `GMID_LUT_V2_ROOT`), `fpga/lut_table_cache/`(재생성 가능, `GMID_LUT_TABLE_CACHE_DIR`), `C:/pdk`(`GMID_PDK_ROOT`), 도구 설치.
+- LUT 데이터: 비공개 저장소 `git@github.com:hslee-cmyk/gmid-lut-data.git`(main `c358535`, 2026-11-09) -- 새 서버에서 `fpga/lut_data/`로 clone(엔진 기본 경로, 다르면 `GMID_LUT_V2_ROOT`).
+- 저장소 밖에 남은 것: `fpga/lut_table_cache/`(재생성 가능, `GMID_LUT_TABLE_CACHE_DIR`), `C:/pdk`(`GMID_PDK_ROOT`), 도구 설치.
 - 규칙 정본: `chip-design-skills/CLAUDE.md`(임시 규칙 O-229와 7번 '위임의 한계 = 원칙 19·20', 원칙 1a gm/ID 원본 우선 O-270), 상위 `fpga/CLAUDE.md`(graph 단일 정본).
 
 ## 1. 지금 멈춘 자리 -- 사용자 답을 기다리는 결정
