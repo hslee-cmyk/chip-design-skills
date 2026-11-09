@@ -1,0 +1,10 @@
+copy=base
+pre-check build_stick_diagram(ROW)['seg1'].status = blocked
+max_rounds=1 metrics: reason=max_rounds_exceeded relaxed=[(('Ma', 'Mb'), False)] | audit 3b=[('3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', True)] | rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=1 empty: reason=max_rounds_exceeded relaxed=[(('Ma', 'Mb'), False)] | audit 3b=[('3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', True)] | rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=2 metrics: reason=relaxed_to_layout relaxed=[(('Ma', 'Mb'), False)] | audit 3b=[('3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', True)] | rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=2 empty: reason=relaxed_to_layout relaxed=[(('Ma', 'Mb'), False)] | audit 3b=[('3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', True)] | rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=3 metrics: reason=relaxed_to_layout relaxed=[(('Ma', 'Mb'), False)] | audit 3b=[('3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', True)] | rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=3 empty: reason=relaxed_to_layout relaxed=[(('Ma', 'Mb'), False)] | audit 3b=[('3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', True)] | rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=5 metrics: reason=relaxed_to_layout relaxed=[(('Ma', 'Mb'), False)] | audit 3b=[('3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', True)] | rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=5 empty: reason=relaxed_to_layout relaxed=[(('Ma', 'Mb'), False)] | audit 3b=[('3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', True)] | rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}

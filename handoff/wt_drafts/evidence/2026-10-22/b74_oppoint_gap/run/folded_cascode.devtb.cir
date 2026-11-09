@@ -1,0 +1,1159 @@
+* B74 single-device point compare folded_cascode
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:\pdk\sky130_fd_pr\models\parameters\lod.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+vg_m1 g_m1 0 dc 0.3672530167
+vd_m1 d_m1 0 dc 0.916045347658
+vb_m1 b_m1 0 dc -0.680736485165
+xnet_m1 d_m1 g_m1 0 b_m1 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1.000219836e-06 m=2801 ad=5.001099182e-13 as=5.001099182e-13 pd=3.000219836e-06 ps=3.000219836e-06
+xs1_m1 d_m1 g_m1 0 b_m1 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_m1 d_m1 g_m1 0 b_m1 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_m1 d_m1 g_m1 0 b_m1 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5.002885289e-06 m=560 ad=2.501442644p as=2.501442644p pd=7.002885289u ps=7.002885289u
+xm5_m1 d_m1 g_m1 0 b_m1 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=560.323152347 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_m1 d_m1 g_m1 0 b_m1 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1.000219836e-06 m=2801 ad=0.500109918p as=0.500109918p pd=3.000219836u ps=3.000219836u
+vg_m10 g_m10 0 dc 0.683634534168
+vd_m10 d_m10 0 dc 0.666596682055
+vb_m10 b_m10 0 dc -0
+xnet_m10 d_m10 g_m10 0 b_m10 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.265140687e-07 m=1 ad=2.132570344e-13 as=2.132570344e-13 pd=2.426514069e-06 ps=2.426514069e-06
+xs1_m10 d_m10 g_m10 0 b_m10 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_m10 d_m10 g_m10 0 b_m10 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_m10 d_m10 g_m10 0 b_m10 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.265140687e-07 m=1 ad=0.2132570344p as=0.2132570344p pd=2.426514069u ps=2.426514069u
+xm5_m10 d_m10 g_m10 0 b_m10 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=0.0853028137453 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_m10 d_m10 g_m10 0 b_m10 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.265140687e-07 m=1 ad=0.2132570344p as=0.2132570344p pd=2.426514069u ps=2.426514069u
+xtotal_m10 d_m10 g_m10 0 b_m10 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.265140687e-07 m=1 ad=0.2132570344p as=0.2132570344p pd=2.426514069u ps=2.426514069u
+vg_m11 g_m11 0 dc 0.290885971676
+vd_m11 d_m11 0 dc 0.680736485165
+vb_m11 b_m11 0 dc -0
+xnet_m11 d_m11 g_m11 0 b_m11 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1.000150309e-06 m=2836 ad=5.000751546e-13 as=5.000751546e-13 pd=3.000150309e-06 ps=3.000150309e-06
+xs1_m11 d_m11 g_m11 0 b_m11 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_m11 d_m11 g_m11 0 b_m11 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_m11 d_m11 g_m11 0 b_m11 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5.00251548e-06 m=567 ad=2.50125774p as=2.50125774p pd=7.00251548u ps=7.00251548u
+xm5_m11 d_m11 g_m11 0 b_m11 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=567.285255409 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_m11 d_m11 g_m11 0 b_m11 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1.000150309e-06 m=2836 ad=0.5000751545p as=0.5000751545p pd=3.000150309u ps=3.000150309u
+vg_m2 g_m2 0 dc 0.36537150221
+vd_m2 d_m2 0 dc 0.945973154486
+vb_m2 b_m2 0 dc -0.680736485165
+xnet_m2 d_m2 g_m2 0 b_m2 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1.000219836e-06 m=2801 ad=5.001099182e-13 as=5.001099182e-13 pd=3.000219836e-06 ps=3.000219836e-06
+xs1_m2 d_m2 g_m2 0 b_m2 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_m2 d_m2 g_m2 0 b_m2 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_m2 d_m2 g_m2 0 b_m2 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5.002885289e-06 m=560 ad=2.501442644p as=2.501442644p pd=7.002885289u ps=7.002885289u
+xm5_m2 d_m2 g_m2 0 b_m2 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=560.323152347 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_m2 d_m2 g_m2 0 b_m2 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1.000219836e-06 m=2801 ad=0.500109918p as=0.500109918p pd=3.000219836u ps=3.000219836u
+vg_m3 g_m3 0 dc -0.706763032011
+vd_m3 d_m3 0 dc -0.203218167177
+vb_m3 b_m3 0 dc -0
+xnet_m3 d_m3 g_m3 0 b_m3 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.143890597e-06 m=5 ad=5.719452987e-13 as=5.719452987e-13 pd=3.143890597e-06 ps=3.143890597e-06
+xs1_m3 d_m3 g_m3 0 b_m3 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_m3 d_m3 g_m3 0 b_m3 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_m3 d_m3 g_m3 0 b_m3 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5.719452987e-06 m=1 ad=2.859726494p as=2.859726494p pd=7.719452987u ps=7.719452987u
+xm5_m3 d_m3 g_m3 0 b_m3 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=1.14389059741 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_m3 d_m3 g_m3 0 b_m3 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.143890597e-06 m=5 ad=0.5719452985p as=0.5719452985p pd=3.143890597u ps=3.143890597u
+xtotal_m3 d_m3 g_m3 0 b_m3 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5.719452987e-06 m=1 ad=2.859726494p as=2.859726494p pd=7.719452987u ps=7.719452987u
+vg_m4 g_m4 0 dc -0.706763032011
+vd_m4 d_m4 0 dc -0.173290360349
+vb_m4 b_m4 0 dc -0
+xnet_m4 d_m4 g_m4 0 b_m4 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.014861681e-06 m=6 ad=5.074308407e-13 as=5.074308407e-13 pd=3.014861681e-06 ps=3.014861681e-06
+xs1_m4 d_m4 g_m4 0 b_m4 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_m4 d_m4 g_m4 0 b_m4 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_m4 d_m4 g_m4 0 b_m4 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=6.089170088e-06 m=1 ad=3.044585044p as=3.044585044p pd=8.089170088u ps=8.089170088u
+xm5_m4 d_m4 g_m4 0 b_m4 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=1.2178340176 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_m4 d_m4 g_m4 0 b_m4 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.014861681e-06 m=6 ad=0.5074308405p as=0.5074308405p pd=3.014861681u ps=3.014861681u
+xtotal_m4 d_m4 g_m4 0 b_m4 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=6.089170088e-06 m=1 ad=3.044585044p as=3.044585044p pd=8.089170088u ps=8.089170088u
+vg_m5 g_m5 0 dc -0.240254840396
+vd_m5 d_m5 0 dc -0.173290360349
+vb_m5 b_m5 0 dc 0.173290360349
+xnet_m5 d_m5 g_m5 0 b_m5 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.000033062e-06 m=11894 ad=5.00016531e-13 as=5.00016531e-13 pd=3.000033062e-06 ps=3.000033062e-06
+xs1_m5 d_m5 g_m5 0 b_m5 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_m5 d_m5 g_m5 0 b_m5 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_m5 d_m5 g_m5 0 b_m5 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5.001847451e-06 m=2378 ad=2.500923726p as=2.500923726p pd=7.001847451u ps=7.001847451u
+xm5_m5 d_m5 g_m5 0 b_m5 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=2378.87864773 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_m5 d_m5 g_m5 0 b_m5 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.000033062e-06 m=11894 ad=0.500016531p as=0.500016531p pd=3.000033062u ps=3.000033062u
+vg_m6 g_m6 0 dc -0.210327033568
+vd_m6 d_m6 0 dc -0.465092575384
+vb_m6 b_m6 0 dc 0.203218167177
+xnet_m6 d_m6 g_m6 0 b_m6 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.000033062e-06 m=11894 ad=5.00016531e-13 as=5.00016531e-13 pd=3.000033062e-06 ps=3.000033062e-06
+xs1_m6 d_m6 g_m6 0 b_m6 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_m6 d_m6 g_m6 0 b_m6 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_m6 d_m6 g_m6 0 b_m6 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5.001847451e-06 m=2378 ad=2.500923726p as=2.500923726p pd=7.001847451u ps=7.001847451u
+xm5_m6 d_m6 g_m6 0 b_m6 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=2378.87864773 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_m6 d_m6 g_m6 0 b_m6 sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.000033062e-06 m=11894 ad=0.500016531p as=0.500016531p pd=3.000033062u ps=3.000033062u
+vg_m7 g_m7 0 dc 0.769784745134
+vd_m7 d_m7 0 dc 0.769784745134
+vb_m7 b_m7 0 dc -0.683634534168
+xnet_m7 d_m7 g_m7 0 b_m7 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=2.100000031e-13 as=2.100000031e-13 pd=2.420000006e-06 ps=2.420000006e-06
+xs1_m7 d_m7 g_m7 0 b_m7 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_m7 d_m7 g_m7 0 b_m7 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_m7 d_m7 g_m7 0 b_m7 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=0.2100000031p as=0.2100000031p pd=2.420000006u ps=2.420000006u
+xm5_m7 d_m7 g_m7 0 b_m7 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=0.0840000012517 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_m7 d_m7 g_m7 0 b_m7 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=0.2100000032p as=0.2100000032p pd=2.420000006u ps=2.420000006u
+xtotal_m7 d_m7 g_m7 0 b_m7 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=0.2100000031p as=0.2100000031p pd=2.420000006u ps=2.420000006u
+vg_m8 g_m8 0 dc 0.786822597248
+vd_m8 d_m8 0 dc 0.465092575384
+vb_m8 b_m8 0 dc -0.666596682055
+xnet_m8 d_m8 g_m8 0 b_m8 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=2.100000031e-13 as=2.100000031e-13 pd=2.420000006e-06 ps=2.420000006e-06
+xs1_m8 d_m8 g_m8 0 b_m8 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_m8 d_m8 g_m8 0 b_m8 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_m8 d_m8 g_m8 0 b_m8 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=0.2100000031p as=0.2100000031p pd=2.420000006u ps=2.420000006u
+xm5_m8 d_m8 g_m8 0 b_m8 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=0.0840000012517 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_m8 d_m8 g_m8 0 b_m8 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=0.2100000032p as=0.2100000032p pd=2.420000006u ps=2.420000006u
+xtotal_m8 d_m8 g_m8 0 b_m8 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=0.2100000031p as=0.2100000031p pd=2.420000006u ps=2.420000006u
+vg_m9 g_m9 0 dc 0.683634534168
+vd_m9 d_m9 0 dc 0.683634534168
+vb_m9 b_m9 0 dc -0
+xnet_m9 d_m9 g_m9 0 b_m9 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=2.100000031e-13 as=2.100000031e-13 pd=2.420000006e-06 ps=2.420000006e-06
+xs1_m9 d_m9 g_m9 0 b_m9 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_m9 d_m9 g_m9 0 b_m9 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_m9 d_m9 g_m9 0 b_m9 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=0.2100000031p as=0.2100000031p pd=2.420000006u ps=2.420000006u
+xm5_m9 d_m9 g_m9 0 b_m9 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=0.0840000012517 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_m9 d_m9 g_m9 0 b_m9 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=0.2100000032p as=0.2100000032p pd=2.420000006u ps=2.420000006u
+xtotal_m9 d_m9 g_m9 0 b_m9 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.200000063e-07 m=1 ad=0.2100000031p as=0.2100000031p pd=2.420000006u ps=2.420000006u
+vg_mn g_mn 0 dc 0.290885971676
+vd_mn d_mn 0 dc 0.290885971676
+vb_mn b_mn 0 dc -0
+xnet_mn d_mn g_mn 0 b_mn sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1.00006741e-06 m=5617 ad=5.000337052e-13 as=5.000337052e-13 pd=3.00006741e-06 ps=3.00006741e-06
+xs1_mn d_mn g_mn 0 b_mn sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_mn d_mn g_mn 0 b_mn sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_mn d_mn g_mn 0 b_mn sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5.002118116e-06 m=1123 ad=2.501059058p as=2.501059058p pd=7.002118116u ps=7.002118116u
+xm5_mn d_mn g_mn 0 b_mn sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=1123.47572881 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_mn d_mn g_mn 0 b_mn sky130_fd_pr__nfet_01v8 l=1.5e-07 w=1.00006741e-06 m=5617 ad=0.500033705p as=0.500033705p pd=3.00006741u ps=3.00006741u
+vg_mp g_mp 0 dc -0.706763032011
+vd_mp d_mp 0 dc -0.706763032011
+vb_mp b_mp 0 dc -0
+xnet_mp d_mp g_mp 0 b_mp sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.395556199e-06 m=1 ad=6.977780997e-13 as=6.977780997e-13 pd=3.395556199e-06 ps=3.395556199e-06
+xs1_mp d_mp g_mp 0 b_mp sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1e-06 m=1 ad=0.5p as=0.5p pd=3u ps=3u
+xs5_mp d_mp g_mp 0 b_mp sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=1 ad=2.5p as=2.5p pd=7u ps=7u
+xf5_mp d_mp g_mp 0 b_mp sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.395556199e-06 m=1 ad=0.6977780997p as=0.6977780997p pd=3.395556199u ps=3.395556199u
+xm5_mp d_mp g_mp 0 b_mp sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=0.279111239875 ad=2.5p as=2.5p pd=7u ps=7u
+xnetG_mp d_mp g_mp 0 b_mp sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.395556199e-06 m=1 ad=0.6977780995p as=0.6977780995p pd=3.395556199u ps=3.395556199u
+xtotal_mp d_mp g_mp 0 b_mp sky130_fd_pr__pfet_01v8 l=1.5e-07 w=1.395556199e-06 m=1 ad=0.6977780997p as=0.6977780997p pd=3.395556199u ps=3.395556199u
+.control
+set noaskquit
+option numdgt=10
+op
+echo BEGIN M1 net
+print @m.xnet_m1.msky130_fd_pr__nfet_01v8[id]
+print @m.xnet_m1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnet_m1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnet_m1.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnet_m1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnet_m1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnet_m1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnet_m1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnet_m1.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnet_m1.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M1 s1
+print @m.xs1_m1.msky130_fd_pr__nfet_01v8[id]
+print @m.xs1_m1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs1_m1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs1_m1.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs1_m1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs1_m1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs1_m1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs1_m1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs1_m1.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs1_m1.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M1 s5
+print @m.xs5_m1.msky130_fd_pr__nfet_01v8[id]
+print @m.xs5_m1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs5_m1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs5_m1.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs5_m1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs5_m1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs5_m1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs5_m1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs5_m1.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs5_m1.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M1 f5
+print @m.xf5_m1.msky130_fd_pr__nfet_01v8[id]
+print @m.xf5_m1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xf5_m1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xf5_m1.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xf5_m1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xf5_m1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xf5_m1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xf5_m1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xf5_m1.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xf5_m1.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M1 m5
+print @m.xm5_m1.msky130_fd_pr__nfet_01v8[id]
+print @m.xm5_m1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm5_m1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm5_m1.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xm5_m1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm5_m1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm5_m1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm5_m1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm5_m1.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xm5_m1.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M1 netG
+print @m.xnetG_m1.msky130_fd_pr__nfet_01v8[id]
+print @m.xnetG_m1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnetG_m1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnetG_m1.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnetG_m1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnetG_m1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnetG_m1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnetG_m1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnetG_m1.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnetG_m1.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M10 net
+print @m.xnet_m10.msky130_fd_pr__nfet_01v8[id]
+print @m.xnet_m10.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnet_m10.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnet_m10.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnet_m10.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnet_m10.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnet_m10.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnet_m10.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnet_m10.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnet_m10.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M10 s1
+print @m.xs1_m10.msky130_fd_pr__nfet_01v8[id]
+print @m.xs1_m10.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs1_m10.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs1_m10.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs1_m10.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs1_m10.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs1_m10.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs1_m10.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs1_m10.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs1_m10.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M10 s5
+print @m.xs5_m10.msky130_fd_pr__nfet_01v8[id]
+print @m.xs5_m10.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs5_m10.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs5_m10.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs5_m10.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs5_m10.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs5_m10.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs5_m10.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs5_m10.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs5_m10.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M10 f5
+print @m.xf5_m10.msky130_fd_pr__nfet_01v8[id]
+print @m.xf5_m10.msky130_fd_pr__nfet_01v8[gm]
+print @m.xf5_m10.msky130_fd_pr__nfet_01v8[gds]
+print @m.xf5_m10.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xf5_m10.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xf5_m10.msky130_fd_pr__nfet_01v8[vth]
+print @m.xf5_m10.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xf5_m10.msky130_fd_pr__nfet_01v8[vds]
+print @m.xf5_m10.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xf5_m10.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M10 m5
+print @m.xm5_m10.msky130_fd_pr__nfet_01v8[id]
+print @m.xm5_m10.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm5_m10.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm5_m10.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xm5_m10.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm5_m10.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm5_m10.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm5_m10.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm5_m10.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xm5_m10.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M10 netG
+print @m.xnetG_m10.msky130_fd_pr__nfet_01v8[id]
+print @m.xnetG_m10.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnetG_m10.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnetG_m10.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnetG_m10.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnetG_m10.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnetG_m10.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnetG_m10.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnetG_m10.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnetG_m10.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M10 total
+print @m.xtotal_m10.msky130_fd_pr__nfet_01v8[id]
+print @m.xtotal_m10.msky130_fd_pr__nfet_01v8[gm]
+print @m.xtotal_m10.msky130_fd_pr__nfet_01v8[gds]
+print @m.xtotal_m10.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xtotal_m10.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xtotal_m10.msky130_fd_pr__nfet_01v8[vth]
+print @m.xtotal_m10.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xtotal_m10.msky130_fd_pr__nfet_01v8[vds]
+print @m.xtotal_m10.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xtotal_m10.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M11 net
+print @m.xnet_m11.msky130_fd_pr__nfet_01v8[id]
+print @m.xnet_m11.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnet_m11.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnet_m11.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnet_m11.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnet_m11.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnet_m11.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnet_m11.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnet_m11.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnet_m11.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M11 s1
+print @m.xs1_m11.msky130_fd_pr__nfet_01v8[id]
+print @m.xs1_m11.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs1_m11.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs1_m11.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs1_m11.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs1_m11.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs1_m11.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs1_m11.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs1_m11.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs1_m11.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M11 s5
+print @m.xs5_m11.msky130_fd_pr__nfet_01v8[id]
+print @m.xs5_m11.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs5_m11.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs5_m11.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs5_m11.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs5_m11.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs5_m11.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs5_m11.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs5_m11.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs5_m11.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M11 f5
+print @m.xf5_m11.msky130_fd_pr__nfet_01v8[id]
+print @m.xf5_m11.msky130_fd_pr__nfet_01v8[gm]
+print @m.xf5_m11.msky130_fd_pr__nfet_01v8[gds]
+print @m.xf5_m11.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xf5_m11.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xf5_m11.msky130_fd_pr__nfet_01v8[vth]
+print @m.xf5_m11.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xf5_m11.msky130_fd_pr__nfet_01v8[vds]
+print @m.xf5_m11.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xf5_m11.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M11 m5
+print @m.xm5_m11.msky130_fd_pr__nfet_01v8[id]
+print @m.xm5_m11.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm5_m11.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm5_m11.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xm5_m11.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm5_m11.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm5_m11.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm5_m11.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm5_m11.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xm5_m11.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M11 netG
+print @m.xnetG_m11.msky130_fd_pr__nfet_01v8[id]
+print @m.xnetG_m11.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnetG_m11.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnetG_m11.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnetG_m11.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnetG_m11.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnetG_m11.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnetG_m11.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnetG_m11.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnetG_m11.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M2 net
+print @m.xnet_m2.msky130_fd_pr__nfet_01v8[id]
+print @m.xnet_m2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnet_m2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnet_m2.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnet_m2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnet_m2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnet_m2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnet_m2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnet_m2.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnet_m2.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M2 s1
+print @m.xs1_m2.msky130_fd_pr__nfet_01v8[id]
+print @m.xs1_m2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs1_m2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs1_m2.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs1_m2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs1_m2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs1_m2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs1_m2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs1_m2.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs1_m2.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M2 s5
+print @m.xs5_m2.msky130_fd_pr__nfet_01v8[id]
+print @m.xs5_m2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs5_m2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs5_m2.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs5_m2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs5_m2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs5_m2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs5_m2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs5_m2.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs5_m2.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M2 f5
+print @m.xf5_m2.msky130_fd_pr__nfet_01v8[id]
+print @m.xf5_m2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xf5_m2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xf5_m2.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xf5_m2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xf5_m2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xf5_m2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xf5_m2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xf5_m2.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xf5_m2.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M2 m5
+print @m.xm5_m2.msky130_fd_pr__nfet_01v8[id]
+print @m.xm5_m2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm5_m2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm5_m2.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xm5_m2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm5_m2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm5_m2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm5_m2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm5_m2.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xm5_m2.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M2 netG
+print @m.xnetG_m2.msky130_fd_pr__nfet_01v8[id]
+print @m.xnetG_m2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnetG_m2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnetG_m2.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnetG_m2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnetG_m2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnetG_m2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnetG_m2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnetG_m2.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnetG_m2.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M3 net
+print @m.xnet_m3.msky130_fd_pr__pfet_01v8[id]
+print @m.xnet_m3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xnet_m3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xnet_m3.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xnet_m3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xnet_m3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xnet_m3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xnet_m3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xnet_m3.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xnet_m3.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M3 s1
+print @m.xs1_m3.msky130_fd_pr__pfet_01v8[id]
+print @m.xs1_m3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xs1_m3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xs1_m3.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xs1_m3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xs1_m3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xs1_m3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xs1_m3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xs1_m3.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xs1_m3.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M3 s5
+print @m.xs5_m3.msky130_fd_pr__pfet_01v8[id]
+print @m.xs5_m3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xs5_m3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xs5_m3.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xs5_m3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xs5_m3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xs5_m3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xs5_m3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xs5_m3.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xs5_m3.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M3 f5
+print @m.xf5_m3.msky130_fd_pr__pfet_01v8[id]
+print @m.xf5_m3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xf5_m3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xf5_m3.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xf5_m3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xf5_m3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xf5_m3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xf5_m3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xf5_m3.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xf5_m3.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M3 m5
+print @m.xm5_m3.msky130_fd_pr__pfet_01v8[id]
+print @m.xm5_m3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm5_m3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm5_m3.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xm5_m3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm5_m3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm5_m3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm5_m3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm5_m3.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xm5_m3.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M3 netG
+print @m.xnetG_m3.msky130_fd_pr__pfet_01v8[id]
+print @m.xnetG_m3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xnetG_m3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xnetG_m3.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xnetG_m3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xnetG_m3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xnetG_m3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xnetG_m3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xnetG_m3.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xnetG_m3.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M3 total
+print @m.xtotal_m3.msky130_fd_pr__pfet_01v8[id]
+print @m.xtotal_m3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xtotal_m3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xtotal_m3.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xtotal_m3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xtotal_m3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xtotal_m3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xtotal_m3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xtotal_m3.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xtotal_m3.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M4 net
+print @m.xnet_m4.msky130_fd_pr__pfet_01v8[id]
+print @m.xnet_m4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xnet_m4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xnet_m4.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xnet_m4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xnet_m4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xnet_m4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xnet_m4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xnet_m4.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xnet_m4.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M4 s1
+print @m.xs1_m4.msky130_fd_pr__pfet_01v8[id]
+print @m.xs1_m4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xs1_m4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xs1_m4.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xs1_m4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xs1_m4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xs1_m4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xs1_m4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xs1_m4.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xs1_m4.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M4 s5
+print @m.xs5_m4.msky130_fd_pr__pfet_01v8[id]
+print @m.xs5_m4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xs5_m4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xs5_m4.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xs5_m4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xs5_m4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xs5_m4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xs5_m4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xs5_m4.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xs5_m4.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M4 f5
+print @m.xf5_m4.msky130_fd_pr__pfet_01v8[id]
+print @m.xf5_m4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xf5_m4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xf5_m4.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xf5_m4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xf5_m4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xf5_m4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xf5_m4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xf5_m4.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xf5_m4.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M4 m5
+print @m.xm5_m4.msky130_fd_pr__pfet_01v8[id]
+print @m.xm5_m4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm5_m4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm5_m4.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xm5_m4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm5_m4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm5_m4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm5_m4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm5_m4.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xm5_m4.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M4 netG
+print @m.xnetG_m4.msky130_fd_pr__pfet_01v8[id]
+print @m.xnetG_m4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xnetG_m4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xnetG_m4.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xnetG_m4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xnetG_m4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xnetG_m4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xnetG_m4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xnetG_m4.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xnetG_m4.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M4 total
+print @m.xtotal_m4.msky130_fd_pr__pfet_01v8[id]
+print @m.xtotal_m4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xtotal_m4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xtotal_m4.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xtotal_m4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xtotal_m4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xtotal_m4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xtotal_m4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xtotal_m4.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xtotal_m4.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M5 net
+print @m.xnet_m5.msky130_fd_pr__pfet_01v8[id]
+print @m.xnet_m5.msky130_fd_pr__pfet_01v8[gm]
+print @m.xnet_m5.msky130_fd_pr__pfet_01v8[gds]
+print @m.xnet_m5.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xnet_m5.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xnet_m5.msky130_fd_pr__pfet_01v8[vth]
+print @m.xnet_m5.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xnet_m5.msky130_fd_pr__pfet_01v8[vds]
+print @m.xnet_m5.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xnet_m5.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M5 s1
+print @m.xs1_m5.msky130_fd_pr__pfet_01v8[id]
+print @m.xs1_m5.msky130_fd_pr__pfet_01v8[gm]
+print @m.xs1_m5.msky130_fd_pr__pfet_01v8[gds]
+print @m.xs1_m5.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xs1_m5.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xs1_m5.msky130_fd_pr__pfet_01v8[vth]
+print @m.xs1_m5.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xs1_m5.msky130_fd_pr__pfet_01v8[vds]
+print @m.xs1_m5.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xs1_m5.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M5 s5
+print @m.xs5_m5.msky130_fd_pr__pfet_01v8[id]
+print @m.xs5_m5.msky130_fd_pr__pfet_01v8[gm]
+print @m.xs5_m5.msky130_fd_pr__pfet_01v8[gds]
+print @m.xs5_m5.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xs5_m5.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xs5_m5.msky130_fd_pr__pfet_01v8[vth]
+print @m.xs5_m5.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xs5_m5.msky130_fd_pr__pfet_01v8[vds]
+print @m.xs5_m5.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xs5_m5.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M5 f5
+print @m.xf5_m5.msky130_fd_pr__pfet_01v8[id]
+print @m.xf5_m5.msky130_fd_pr__pfet_01v8[gm]
+print @m.xf5_m5.msky130_fd_pr__pfet_01v8[gds]
+print @m.xf5_m5.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xf5_m5.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xf5_m5.msky130_fd_pr__pfet_01v8[vth]
+print @m.xf5_m5.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xf5_m5.msky130_fd_pr__pfet_01v8[vds]
+print @m.xf5_m5.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xf5_m5.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M5 m5
+print @m.xm5_m5.msky130_fd_pr__pfet_01v8[id]
+print @m.xm5_m5.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm5_m5.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm5_m5.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xm5_m5.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm5_m5.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm5_m5.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm5_m5.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm5_m5.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xm5_m5.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M5 netG
+print @m.xnetG_m5.msky130_fd_pr__pfet_01v8[id]
+print @m.xnetG_m5.msky130_fd_pr__pfet_01v8[gm]
+print @m.xnetG_m5.msky130_fd_pr__pfet_01v8[gds]
+print @m.xnetG_m5.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xnetG_m5.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xnetG_m5.msky130_fd_pr__pfet_01v8[vth]
+print @m.xnetG_m5.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xnetG_m5.msky130_fd_pr__pfet_01v8[vds]
+print @m.xnetG_m5.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xnetG_m5.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M6 net
+print @m.xnet_m6.msky130_fd_pr__pfet_01v8[id]
+print @m.xnet_m6.msky130_fd_pr__pfet_01v8[gm]
+print @m.xnet_m6.msky130_fd_pr__pfet_01v8[gds]
+print @m.xnet_m6.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xnet_m6.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xnet_m6.msky130_fd_pr__pfet_01v8[vth]
+print @m.xnet_m6.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xnet_m6.msky130_fd_pr__pfet_01v8[vds]
+print @m.xnet_m6.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xnet_m6.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M6 s1
+print @m.xs1_m6.msky130_fd_pr__pfet_01v8[id]
+print @m.xs1_m6.msky130_fd_pr__pfet_01v8[gm]
+print @m.xs1_m6.msky130_fd_pr__pfet_01v8[gds]
+print @m.xs1_m6.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xs1_m6.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xs1_m6.msky130_fd_pr__pfet_01v8[vth]
+print @m.xs1_m6.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xs1_m6.msky130_fd_pr__pfet_01v8[vds]
+print @m.xs1_m6.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xs1_m6.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M6 s5
+print @m.xs5_m6.msky130_fd_pr__pfet_01v8[id]
+print @m.xs5_m6.msky130_fd_pr__pfet_01v8[gm]
+print @m.xs5_m6.msky130_fd_pr__pfet_01v8[gds]
+print @m.xs5_m6.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xs5_m6.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xs5_m6.msky130_fd_pr__pfet_01v8[vth]
+print @m.xs5_m6.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xs5_m6.msky130_fd_pr__pfet_01v8[vds]
+print @m.xs5_m6.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xs5_m6.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M6 f5
+print @m.xf5_m6.msky130_fd_pr__pfet_01v8[id]
+print @m.xf5_m6.msky130_fd_pr__pfet_01v8[gm]
+print @m.xf5_m6.msky130_fd_pr__pfet_01v8[gds]
+print @m.xf5_m6.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xf5_m6.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xf5_m6.msky130_fd_pr__pfet_01v8[vth]
+print @m.xf5_m6.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xf5_m6.msky130_fd_pr__pfet_01v8[vds]
+print @m.xf5_m6.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xf5_m6.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M6 m5
+print @m.xm5_m6.msky130_fd_pr__pfet_01v8[id]
+print @m.xm5_m6.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm5_m6.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm5_m6.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xm5_m6.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm5_m6.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm5_m6.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm5_m6.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm5_m6.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xm5_m6.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M6 netG
+print @m.xnetG_m6.msky130_fd_pr__pfet_01v8[id]
+print @m.xnetG_m6.msky130_fd_pr__pfet_01v8[gm]
+print @m.xnetG_m6.msky130_fd_pr__pfet_01v8[gds]
+print @m.xnetG_m6.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xnetG_m6.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xnetG_m6.msky130_fd_pr__pfet_01v8[vth]
+print @m.xnetG_m6.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xnetG_m6.msky130_fd_pr__pfet_01v8[vds]
+print @m.xnetG_m6.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xnetG_m6.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M7 net
+print @m.xnet_m7.msky130_fd_pr__nfet_01v8[id]
+print @m.xnet_m7.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnet_m7.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnet_m7.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnet_m7.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnet_m7.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnet_m7.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnet_m7.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnet_m7.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnet_m7.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M7 s1
+print @m.xs1_m7.msky130_fd_pr__nfet_01v8[id]
+print @m.xs1_m7.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs1_m7.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs1_m7.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs1_m7.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs1_m7.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs1_m7.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs1_m7.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs1_m7.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs1_m7.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M7 s5
+print @m.xs5_m7.msky130_fd_pr__nfet_01v8[id]
+print @m.xs5_m7.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs5_m7.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs5_m7.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs5_m7.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs5_m7.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs5_m7.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs5_m7.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs5_m7.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs5_m7.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M7 f5
+print @m.xf5_m7.msky130_fd_pr__nfet_01v8[id]
+print @m.xf5_m7.msky130_fd_pr__nfet_01v8[gm]
+print @m.xf5_m7.msky130_fd_pr__nfet_01v8[gds]
+print @m.xf5_m7.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xf5_m7.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xf5_m7.msky130_fd_pr__nfet_01v8[vth]
+print @m.xf5_m7.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xf5_m7.msky130_fd_pr__nfet_01v8[vds]
+print @m.xf5_m7.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xf5_m7.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M7 m5
+print @m.xm5_m7.msky130_fd_pr__nfet_01v8[id]
+print @m.xm5_m7.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm5_m7.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm5_m7.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xm5_m7.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm5_m7.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm5_m7.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm5_m7.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm5_m7.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xm5_m7.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M7 netG
+print @m.xnetG_m7.msky130_fd_pr__nfet_01v8[id]
+print @m.xnetG_m7.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnetG_m7.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnetG_m7.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnetG_m7.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnetG_m7.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnetG_m7.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnetG_m7.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnetG_m7.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnetG_m7.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M7 total
+print @m.xtotal_m7.msky130_fd_pr__nfet_01v8[id]
+print @m.xtotal_m7.msky130_fd_pr__nfet_01v8[gm]
+print @m.xtotal_m7.msky130_fd_pr__nfet_01v8[gds]
+print @m.xtotal_m7.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xtotal_m7.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xtotal_m7.msky130_fd_pr__nfet_01v8[vth]
+print @m.xtotal_m7.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xtotal_m7.msky130_fd_pr__nfet_01v8[vds]
+print @m.xtotal_m7.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xtotal_m7.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M8 net
+print @m.xnet_m8.msky130_fd_pr__nfet_01v8[id]
+print @m.xnet_m8.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnet_m8.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnet_m8.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnet_m8.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnet_m8.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnet_m8.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnet_m8.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnet_m8.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnet_m8.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M8 s1
+print @m.xs1_m8.msky130_fd_pr__nfet_01v8[id]
+print @m.xs1_m8.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs1_m8.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs1_m8.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs1_m8.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs1_m8.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs1_m8.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs1_m8.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs1_m8.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs1_m8.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M8 s5
+print @m.xs5_m8.msky130_fd_pr__nfet_01v8[id]
+print @m.xs5_m8.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs5_m8.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs5_m8.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs5_m8.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs5_m8.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs5_m8.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs5_m8.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs5_m8.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs5_m8.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M8 f5
+print @m.xf5_m8.msky130_fd_pr__nfet_01v8[id]
+print @m.xf5_m8.msky130_fd_pr__nfet_01v8[gm]
+print @m.xf5_m8.msky130_fd_pr__nfet_01v8[gds]
+print @m.xf5_m8.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xf5_m8.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xf5_m8.msky130_fd_pr__nfet_01v8[vth]
+print @m.xf5_m8.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xf5_m8.msky130_fd_pr__nfet_01v8[vds]
+print @m.xf5_m8.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xf5_m8.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M8 m5
+print @m.xm5_m8.msky130_fd_pr__nfet_01v8[id]
+print @m.xm5_m8.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm5_m8.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm5_m8.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xm5_m8.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm5_m8.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm5_m8.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm5_m8.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm5_m8.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xm5_m8.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M8 netG
+print @m.xnetG_m8.msky130_fd_pr__nfet_01v8[id]
+print @m.xnetG_m8.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnetG_m8.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnetG_m8.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnetG_m8.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnetG_m8.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnetG_m8.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnetG_m8.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnetG_m8.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnetG_m8.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M8 total
+print @m.xtotal_m8.msky130_fd_pr__nfet_01v8[id]
+print @m.xtotal_m8.msky130_fd_pr__nfet_01v8[gm]
+print @m.xtotal_m8.msky130_fd_pr__nfet_01v8[gds]
+print @m.xtotal_m8.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xtotal_m8.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xtotal_m8.msky130_fd_pr__nfet_01v8[vth]
+print @m.xtotal_m8.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xtotal_m8.msky130_fd_pr__nfet_01v8[vds]
+print @m.xtotal_m8.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xtotal_m8.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M9 net
+print @m.xnet_m9.msky130_fd_pr__nfet_01v8[id]
+print @m.xnet_m9.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnet_m9.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnet_m9.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnet_m9.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnet_m9.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnet_m9.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnet_m9.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnet_m9.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnet_m9.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M9 s1
+print @m.xs1_m9.msky130_fd_pr__nfet_01v8[id]
+print @m.xs1_m9.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs1_m9.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs1_m9.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs1_m9.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs1_m9.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs1_m9.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs1_m9.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs1_m9.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs1_m9.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M9 s5
+print @m.xs5_m9.msky130_fd_pr__nfet_01v8[id]
+print @m.xs5_m9.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs5_m9.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs5_m9.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs5_m9.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs5_m9.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs5_m9.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs5_m9.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs5_m9.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs5_m9.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M9 f5
+print @m.xf5_m9.msky130_fd_pr__nfet_01v8[id]
+print @m.xf5_m9.msky130_fd_pr__nfet_01v8[gm]
+print @m.xf5_m9.msky130_fd_pr__nfet_01v8[gds]
+print @m.xf5_m9.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xf5_m9.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xf5_m9.msky130_fd_pr__nfet_01v8[vth]
+print @m.xf5_m9.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xf5_m9.msky130_fd_pr__nfet_01v8[vds]
+print @m.xf5_m9.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xf5_m9.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M9 m5
+print @m.xm5_m9.msky130_fd_pr__nfet_01v8[id]
+print @m.xm5_m9.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm5_m9.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm5_m9.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xm5_m9.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm5_m9.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm5_m9.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm5_m9.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm5_m9.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xm5_m9.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M9 netG
+print @m.xnetG_m9.msky130_fd_pr__nfet_01v8[id]
+print @m.xnetG_m9.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnetG_m9.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnetG_m9.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnetG_m9.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnetG_m9.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnetG_m9.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnetG_m9.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnetG_m9.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnetG_m9.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN M9 total
+print @m.xtotal_m9.msky130_fd_pr__nfet_01v8[id]
+print @m.xtotal_m9.msky130_fd_pr__nfet_01v8[gm]
+print @m.xtotal_m9.msky130_fd_pr__nfet_01v8[gds]
+print @m.xtotal_m9.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xtotal_m9.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xtotal_m9.msky130_fd_pr__nfet_01v8[vth]
+print @m.xtotal_m9.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xtotal_m9.msky130_fd_pr__nfet_01v8[vds]
+print @m.xtotal_m9.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xtotal_m9.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MN net
+print @m.xnet_mn.msky130_fd_pr__nfet_01v8[id]
+print @m.xnet_mn.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnet_mn.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnet_mn.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnet_mn.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnet_mn.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnet_mn.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnet_mn.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnet_mn.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnet_mn.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MN s1
+print @m.xs1_mn.msky130_fd_pr__nfet_01v8[id]
+print @m.xs1_mn.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs1_mn.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs1_mn.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs1_mn.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs1_mn.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs1_mn.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs1_mn.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs1_mn.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs1_mn.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MN s5
+print @m.xs5_mn.msky130_fd_pr__nfet_01v8[id]
+print @m.xs5_mn.msky130_fd_pr__nfet_01v8[gm]
+print @m.xs5_mn.msky130_fd_pr__nfet_01v8[gds]
+print @m.xs5_mn.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xs5_mn.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xs5_mn.msky130_fd_pr__nfet_01v8[vth]
+print @m.xs5_mn.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xs5_mn.msky130_fd_pr__nfet_01v8[vds]
+print @m.xs5_mn.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xs5_mn.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MN f5
+print @m.xf5_mn.msky130_fd_pr__nfet_01v8[id]
+print @m.xf5_mn.msky130_fd_pr__nfet_01v8[gm]
+print @m.xf5_mn.msky130_fd_pr__nfet_01v8[gds]
+print @m.xf5_mn.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xf5_mn.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xf5_mn.msky130_fd_pr__nfet_01v8[vth]
+print @m.xf5_mn.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xf5_mn.msky130_fd_pr__nfet_01v8[vds]
+print @m.xf5_mn.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xf5_mn.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MN m5
+print @m.xm5_mn.msky130_fd_pr__nfet_01v8[id]
+print @m.xm5_mn.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm5_mn.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm5_mn.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xm5_mn.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm5_mn.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm5_mn.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm5_mn.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm5_mn.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xm5_mn.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MN netG
+print @m.xnetG_mn.msky130_fd_pr__nfet_01v8[id]
+print @m.xnetG_mn.msky130_fd_pr__nfet_01v8[gm]
+print @m.xnetG_mn.msky130_fd_pr__nfet_01v8[gds]
+print @m.xnetG_mn.msky130_fd_pr__nfet_01v8[gmbs]
+print @m.xnetG_mn.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xnetG_mn.msky130_fd_pr__nfet_01v8[vth]
+print @m.xnetG_mn.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xnetG_mn.msky130_fd_pr__nfet_01v8[vds]
+print @m.xnetG_mn.msky130_fd_pr__nfet_01v8[vbs]
+showmod m.xnetG_mn.msky130_fd_pr__nfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MP net
+print @m.xnet_mp.msky130_fd_pr__pfet_01v8[id]
+print @m.xnet_mp.msky130_fd_pr__pfet_01v8[gm]
+print @m.xnet_mp.msky130_fd_pr__pfet_01v8[gds]
+print @m.xnet_mp.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xnet_mp.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xnet_mp.msky130_fd_pr__pfet_01v8[vth]
+print @m.xnet_mp.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xnet_mp.msky130_fd_pr__pfet_01v8[vds]
+print @m.xnet_mp.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xnet_mp.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MP s1
+print @m.xs1_mp.msky130_fd_pr__pfet_01v8[id]
+print @m.xs1_mp.msky130_fd_pr__pfet_01v8[gm]
+print @m.xs1_mp.msky130_fd_pr__pfet_01v8[gds]
+print @m.xs1_mp.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xs1_mp.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xs1_mp.msky130_fd_pr__pfet_01v8[vth]
+print @m.xs1_mp.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xs1_mp.msky130_fd_pr__pfet_01v8[vds]
+print @m.xs1_mp.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xs1_mp.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MP s5
+print @m.xs5_mp.msky130_fd_pr__pfet_01v8[id]
+print @m.xs5_mp.msky130_fd_pr__pfet_01v8[gm]
+print @m.xs5_mp.msky130_fd_pr__pfet_01v8[gds]
+print @m.xs5_mp.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xs5_mp.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xs5_mp.msky130_fd_pr__pfet_01v8[vth]
+print @m.xs5_mp.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xs5_mp.msky130_fd_pr__pfet_01v8[vds]
+print @m.xs5_mp.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xs5_mp.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MP f5
+print @m.xf5_mp.msky130_fd_pr__pfet_01v8[id]
+print @m.xf5_mp.msky130_fd_pr__pfet_01v8[gm]
+print @m.xf5_mp.msky130_fd_pr__pfet_01v8[gds]
+print @m.xf5_mp.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xf5_mp.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xf5_mp.msky130_fd_pr__pfet_01v8[vth]
+print @m.xf5_mp.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xf5_mp.msky130_fd_pr__pfet_01v8[vds]
+print @m.xf5_mp.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xf5_mp.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MP m5
+print @m.xm5_mp.msky130_fd_pr__pfet_01v8[id]
+print @m.xm5_mp.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm5_mp.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm5_mp.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xm5_mp.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm5_mp.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm5_mp.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm5_mp.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm5_mp.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xm5_mp.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MP netG
+print @m.xnetG_mp.msky130_fd_pr__pfet_01v8[id]
+print @m.xnetG_mp.msky130_fd_pr__pfet_01v8[gm]
+print @m.xnetG_mp.msky130_fd_pr__pfet_01v8[gds]
+print @m.xnetG_mp.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xnetG_mp.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xnetG_mp.msky130_fd_pr__pfet_01v8[vth]
+print @m.xnetG_mp.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xnetG_mp.msky130_fd_pr__pfet_01v8[vds]
+print @m.xnetG_mp.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xnetG_mp.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+echo BEGIN MP total
+print @m.xtotal_mp.msky130_fd_pr__pfet_01v8[id]
+print @m.xtotal_mp.msky130_fd_pr__pfet_01v8[gm]
+print @m.xtotal_mp.msky130_fd_pr__pfet_01v8[gds]
+print @m.xtotal_mp.msky130_fd_pr__pfet_01v8[gmbs]
+print @m.xtotal_mp.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xtotal_mp.msky130_fd_pr__pfet_01v8[vth]
+print @m.xtotal_mp.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xtotal_mp.msky130_fd_pr__pfet_01v8[vds]
+print @m.xtotal_mp.msky130_fd_pr__pfet_01v8[vbs]
+showmod m.xtotal_mp.msky130_fd_pr__pfet_01v8 : lmin lmax wmin wmax
+echo END
+quit
+.endc
+.end

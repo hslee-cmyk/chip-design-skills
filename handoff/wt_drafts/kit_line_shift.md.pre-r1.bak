@@ -1,0 +1,67 @@
+# kit_line_shift.py -- 병합 뒤 엔진 줄 인용 이동 제안
+
+card가 병합되어 엔진 파일(SR `sizing_recipe.py`, SD `stick_diagram.py`)의 줄이 밀리면, 옛 rev에서 잰 초안·키트의 줄 인용을
+새 rev 줄로 옮기는 **제안**(patch + 보고서)을 만든다. **초안은 고치지 않는다.** 저장소는 읽기만 한다.
+
+## 실행
+
+```bash
+export TMP=/c/gNNN/tmp TEMP=/c/gNNN/tmp          # 임시 파일(새 rev 엔진 사본)은 TMP 아래, 끝나면 지운다
+python kit_line_shift.py \
+  --repo <저장소> --old <초안이 잰 rev> --new <병합 rev> \
+  --engine SR=skills/analog-gmid-design/assets/sizing_recipe.py \
+  --engine SD=skills/analog-gmid-design/assets/stick_diagram.py \
+  [--base NAME=LABEL:SRC[,LABEL:SRC]] \        # 다른 base. SRC = git rev 또는 로컬 파일. 빠진 LABEL은 --old
+  --drafts-root <초안 루트> --out-dir <출력> \
+  --draft PATH[@BASE][:LINES] ...               # 같은 PATH를 여러 번: 나중 항목이 그 줄의 base를 덮어쓴다
+  [--include-bare] [--include-anchored] [--show-unchanged] [--foreign 낱말 ...]
+```
+
+출력(`--out-dir`): `kit_line_shift.patch`(3줄 문맥 unified diff, `a/<PATH>`; 초안 루트에서 `git apply --check` 뒤 사람이 적용),
+`kit_line_shift.report.md`(file:line·엔진·base·옛 인용·새 인용·신뢰도·패치 여부·근거), `kit_line_shift.json`(덩어리·전 레코드).
+
+## 줄 대응
+
+엔진 파일마다 `git diff -U0 <base> <new> -- <path>`(로컬 파일 base는 `git diff --no-index -U0`)의 덩어리로 old -> new.
+바뀐 덩어리 안의 줄은 `remeasure`(None) -- 손으로 다시 잰다.
+
+## 무엇을 인용으로 보나(보수적)
+
+| 종류 | 예 | 처리 |
+|---|---|---|
+| 표지 + 숫자 목록 | `SR 11800·11879`, `A/sizing_recipe.py:11784~11786`, `stick_diagram.py 1507~1509(…)·1539` | 묶음(marker). 사이에는 구분자·한글 없는 백틱·3자리 이상 숫자 없는 괄호만 허용 |
+| 스크립트 리터럴 | `exp={11800:b'        _backfill_interdig_ok(result)', …}` | base 그 줄 글과 같아야 묶음, new 줄 글도 같으면 high |
+| 스크립트 대입 | `SITE_SD_B1 = [1014, 1571, …]` | 이름 토큰(SD)으로 엔진, 토큰(B1)이 --base 이름이면 그 base |
+| 표지 줄의 끊긴 숫자 | `sizing_recipe.py … 인용 줄(11758~11881, …)` | `untied` -- 그 줄 엔진이 하나면 값만 계산, 패치 밖 |
+| 표지 없는 숫자 | `루프 안(11800)` | `bare` -- 이번 실행의 묶인 인용과 번호가 같을 때만 제안, 패치 밖(--include-bare로 포함) |
+| 다른 base 표지 | `SD 1567(b34 1563)`, `b1 2491` | `other-base` -- 앞 인용의 새 값을 힌트로, 패치 밖 |
+| 커밋·blob 해시가 있는 줄 | `(sizing_recipe.py 9363~9367, a796468)` | `anchored` -- 측정 기록일 수 있다. 해시가 base와 같은 blob인지(≡/≠) 적고 패치 밖(--include-anchored로 포함) |
+| 다른 파일:줄 | `test_selftest_sizing_recipe.py:1480` | 무시 |
+
+신뢰도: **high** = 리터럴 줄 글 일치 / 같은 줄 백틱 코드 조각이 base 그 줄과 일치(따옴표·괄호 무시) / 이름 붙은 def 범위 안,
+**medium** = 이동만(근거 없음), **low** = 표 행의 코드 조각·리터럴이 base 줄과 다름(base가 틀렸을 가능성), **ambiguous**·**anchored**·**remeasure** = 위.
+패치에는 high·medium만 들어간다. 줄에 배정 base 아닌 base 표지(`b34`·`B34 사본`·`모의`, 다른 --base 이름)가 있으면 medium은 ambiguous로 내린다.
+
+## 주의
+
+* **base를 정확히 줘야 한다.** 초안마다 측정 rev가 다르다(예: B26-1 card는 `cd64170` 기준, 사이트 줄은 모의 `b1` 기준). 같은 def 안이면
+  def-ok가 붙어도 base가 틀렸을 수 있다. 초안의 '줄 번호는 <rev>' 문장을 보고 `@BASE`·`:LINES`로 배정한다.
+* 측정 기록(measured rev 앵커, `a..b에서 다시 읽어 확인`) 줄은 바꾸지 않는 것이 기본이다(anchored). 측정 rev를 새로 앵커할 때만 함께 고친다.
+* 스크립트 **동작 조건**(예: `diff --quiet M H -- SR`가 B34 docstring 때문에 멈춤, `ALLOW_SR`)은 줄 번호가 아니라 이 도구 범위 밖이다.
+
+## 실제 사례(B34 병합, 2026-10-06)
+
+```bash
+R=/c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills
+python kit_line_shift.py --repo $R --old 7243f28 --new c851e54 \
+  --engine SR=skills/analog-gmid-design/assets/sizing_recipe.py --engine SD=skills/analog-gmid-design/assets/stick_diagram.py \
+  --base b1=SD:<b1>/skills/analog-gmid-design/assets/stick_diagram.py --base p0=SD:cd64170 \
+  --drafts-root . --out-dir kit_line_shift_b34real/current \
+  --draft draft_b26pre.spec.md --draft b26pre_launch.sh --draft draft_b26_backfill_audit.spec.md --draft b26_backfill_briefs.md \
+  --draft backfill_launch.sh --draft draft_b26_1.spec.md@p0 --draft draft_b26_1.spec.md@b1:16,149 --draft b26_1_launch.sh \
+  --draft b26_scripts/b26v4_head.py@b1 --draft post35_kit/p35_heads.py
+```
+
+`<b1>`(모의 base, SD만 다름) 재생성: `git -C $R archive 2d58fd8 | tar -x -C <G>/g83/b1`, `b26_scripts/{sim_head,v3_scope_classify,mk_b1}.py`를
+`<G>/scripts`에 복사해 `C:/g83`→`<G>/g83`, `…/_drafts/b26_scripts`→`<G>/scripts`로 바꾼 뒤 `python mk_b1.py`(9024→9016줄, 사이트 13줄 `_RAIL_NETS` 확인).
+결과: `kit_line_shift_b34real/validation_snapshot/`(2026-10-06 18:03 오케스트레이터 수정 **전** 초안 사본 기준), `kit_line_shift_b34real/current/`(현재 초안).

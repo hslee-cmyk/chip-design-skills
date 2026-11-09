@@ -1,0 +1,12 @@
+{
+ "same": true,
+ "count_a": {
+  "PASSED": 141
+ },
+ "count_b": {
+  "PASSED": 141
+ },
+ "only_a": [],
+ "only_b": [],
+ "ids_same": true
+}

@@ -1,0 +1,14 @@
+5	card	chk 20260930-v3-exempt-binding
+5	card	chk 20260930-p9-kcl-edges
+5	card	chk 20261001-topology-md-sync
+6	card	chk 20260930-v3-changed-stmt-scope
+7	card	chk 20260930-b34-grammar-explicit
+10	card	git -C "$R" cat-file -e "$H:.ai/approvals/20260930-b26-b40-reason-key.md"
+11	card	git -C "$R" cat-file -e "$H:.ai/approvals/20261001-b26-phase3-cards.md"
+11	card	D2=docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/phase2-dod.md; test "$(git -C "$R" show "$H:$D2" | tr -d '\r' | grep -cx '판정: \(PASS\|FAIL\)')" = 1 && git -C "$R" show "$H:$D2" | tr -d '\r' | grep -qx '판정: PASS'
+1	derived	git -C "$R" cat-file -e "$H:.ai/approvals/20260930-b26-before-phase3.md" && git -C "$R" merge-base --is-ancestor 2d58fd8 "$H"
+2	derived	git -C "$R" merge-base --is-ancestor 8356c1e "$H"
+3	derived	chk 20260930-p9-kcl-edges && git -C "$R" merge-base --is-ancestor 93b18db "$H" && git -C "$R" merge-base --is-ancestor 766b5c2 "$H"
+4	derived	chk 20260930-p10-df23-inventory && chk 20260930-df23-registry-record
+8	derived	chk 20260930-b26-pre-test-strengthen && chk 20261001-b26-backfill-interdig-final-audit && grep -qF "[U3] \"정리 2줄 + 면제 1 (Recommended)\"" "$UDEC"
+9	derived	grep -qF "[U5] \"갱신 승인 (Recommended)\"" "$UDEC" && test -s "$DRAFT_P9APR"

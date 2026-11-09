@@ -1,0 +1,11 @@
+# 검증 44 직접 확인 기록 (읽기 전용, 2026-10-31)
+## O-h 0/13: assets/library/*.sizing_spec.json 13개 모두 /human/intended_region = {"pending": "CI-18"}; assets/heldout spec 0개. 'off' 선언 0/13 -- 선언 자체가 미작성(CI-18 대기)이라 0이다.
+## nmcnr_amplifier·ngcc_3stage_ff spec constraints(human.constraints): gain_ss_db(>=100 / >=111, 소신호 공칭점), gbw_ss_hz, pm_ss_deg, icmr_v(>=0.5 / >=0.6, 창 폭 metric 자체), swing_out_v(nmcnr), offset_excess, noise_excess_th, area_search_m2.
+##   -> ICMR 창 안 각 점에서 이득·gm을 판정하는 spec 없음. 차단의 기능 결과를 담는 spec은 지금 icmr_v 하나뿐이고 그것은 R0가 정하던 창 자체다.
+## o200_q5/q5_spice_band.jsonl band_or_violate 5행:
+##   M109 band slack_eng +3.477 mV tol 10.19 -> slack_spice +3.567 (단일 소자, 엔진 바이어스 그대로: vds_check ~1e-12)
+##   M109 viol -53.08 mV, M106 viol -104.40 / -150.91 mV, M104 viol -0.965 mV (tol 1.895, 음의 띠 안 유일 1점) -> SPICE -1.004 mV
+##   => 음의 띠(-tol < slack < 0) 표본 n = 1. SPICE 값은 같은 VGS·VDS 단일 소자 @m[vdsat] -- 회로 .op 아님(report §한계).
+## o200_q5/q5_engine_agg.txt §3: 합 행 2413, 띠 안 1(nmcnr M109 ev 1), 위반 4 -- v4 인용과 같음.
+## o200_q5/q5_k10_agg.txt / report §1(a): t* 바뀜 0, 단 'S_d 빈 설정 2(F nfet), 면적 실행 가능 t* 잃음 ID 1e-3 full 12·share 4' -- v4 Q-5 ⑤에 없음.
+## m_linear_zero_cross 재실행: v44_lzc_rerun.txt = o200_v4/m_linear_zero_cross.txt (diff 0).

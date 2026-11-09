@@ -1,0 +1,14 @@
+'R(W, L, |VGS|) ≥ R_req' False
+'R_max(|VGS|) ≥ R_req' False
+'C_c ≥ 1/(2π·f_low·R_max' True
+'FD ≥ 0; writer = DC 블록 DR-1' False
+'|VGS|가 반복마다 바뀌므로' False
+'W_min·L_min + f_HP/GBW' True
+'VSG가 바뀐 평가에서' True
+2344 R_max ... , 해가 없으면 그 점은 실현 불능(fail-closed, 사유 기록); 미선언이면 면적 최소 기하 W_min·L_min(격자에서 W·L 최소)이고 f_HP는 결정하지 않는다. **존재 조건 제약 행**(검증 5 MJ5-1 -- 선언 갈래만): 선택에 해가 있을 조건 R_max(|VGS|) ≥ R_req, 곧 C_c ≥ 1/(2π·f_low·R_max(|VGS|))(R_max = 그 평가 |VGS|에서 격자 R의 최대 -- 같은 DR-1 갈래가 쓰는 칸)를 연속 제약 행 하나로 둔다; 제약 행은 R_max·C_c를 READS만 하므
+2344 f_low ... min(같은 R 면적 최소·3 % 안)'과 '(다) W 이득 ≤ 3 %'는 실측과 달라 철회: VSG 0.40 V·R 1e10~1.6e11 Ω에서 다른 W가 MOS 면적 −26~−55 %, R > R(W_min, L_max) = 5.1e11 Ω은 W_min으로 불가, f_low 1·0.1 Hz면 W_min 고정 총면적이 W 자유의 2.2·4.9배; 물리 = 긴 L에서 좁은 폭 Vth 저하가 1/W를 이겨 W_min이 R 최소 쪽이다): (α) 미선언 W_min, 선언 시 W 슬라이스 열거 + L θ -- θ +1(L 동치류마다), 
+2344 |VGS|가 ... 증 5 m5-6), FD 열 0; writer = DC 블록의 DR-1 갈래 하나(노드 풀이 뒤 그 평가의 |VGS| = 게이트·고정 쪽 `node.dc_v`와 C_c 값을 READS -- I = 0이고 bulk = 고정 쪽이라 기하가 DC에 되먹지 않아 순환 없음; |VGS|가 동작점마다 바뀌므로 평가마다 다시 고르고, 입력 버전이 같으면 graph reuse). **효율**(검증 5 m5-6): DC 블록이 C_c(커패시터 θ 값)를 READS하면 C θ FD 열마다 노드 풀이가 다시 돈다 -- 그 READS는 DR-1 발동 회
+2344 f_HP/GBW ... T 총면적); M19·M20 VSG 0.204 V, M21 VSG 0.40 V): (라) W_min·L θ·C_BAT θ, 결정자 = GBW·PM·면적뿐 ⚠ f_HP 결정자 없음 -- 관문이 걸리지 않으면 면적 귀결 = W_min·L_min·0.1 pF(M19·M20 f_HP/GBW 6.6e-3·τ 18 µs, M21 0.14·τ 0.85 µs; MOS 0.063 µm² 대 C_BAT 50 µm²) (사) R 최대 기하(L = LUT 정의역 최대 20 µm, W = 그 L에서 R 최대 슬라이스 7 µm) ⚠ τ = 165 s(M19
+2346 R_max ... 반영됨 -- master `9caee65d`): VDS = 0 묶음 셋이 발동하고 다음 정지 사유까지 진행·기록 (9) 0 전류 MOS 기하 = Q-ZG1 결정대로(권고 (δ) + 존재 조건 제약 행 -- 선언 시 존재 조건 행 toy(C_c < 1/(2π·f_low·R_max) 점에서 위반 행이 생기고 SLSQP 기울기가 C_c를 늘리는 쪽), 결합 C 다른 끝이 0 전류 부유 넷인 사슬 toy → 정지, 격자 선택 toy(R ≥ R_req 가운데 W·L 최소, 동률 규칙, 해 없음 → fail-closed; base는 선택 없음
+2346 f_low ... 기열 #1 반영됨 -- master `9caee65d`): VDS = 0 묶음 셋이 발동하고 다음 정지 사유까지 진행·기록 (9) 0 전류 MOS 기하 = Q-ZG1 결정대로(권고 (δ) + 존재 조건 제약 행 -- 선언 시 존재 조건 행 toy(C_c < 1/(2π·f_low·R_max) 점에서 위반 행이 생기고 SLSQP 기울기가 C_c를 늘리는 쪽), 결합 C 다른 끝이 0 전류 부유 넷인 사슬 toy → 정지, 격자 선택 toy(R ≥ R_req 가운데 W·L 최소, 동률 규칙, 해 없음 → fail-closed; base는
+2346 f_HP/GBW ... 가 C_c를 늘리는 쪽), 결합 C 다른 끝이 0 전류 부유 넷인 사슬 toy → 정지, 격자 선택 toy(R ≥ R_req 가운데 W·L 최소, 동률 규칙, 해 없음 → fail-closed; base는 선택 없음 -- red), 미선언 시 W_min·L_min + f_HP/GBW·τ 기록 toy, VSG가 바뀐 평가에서 선택이 다시 돎), 소신호 스탬프 toy(W 슬라이스 DC 열 VDS = 0 점 gds·기준 폭 표 용량·gm = 0), erfc 전회로 MNA에 R_ds–C_BAT 극·영점이 나타나고 f_HP 손계산과 대조.

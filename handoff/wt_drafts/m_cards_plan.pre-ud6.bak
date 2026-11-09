@@ -1,0 +1,97 @@
+# Phase 3 이동 card M1~M9 계획 (M7 흡수) -- 단위 수·순서·card별 위험·생성기 요구
+
+작성 2026-10-02. 근거 design `30-module-split` v8.5(승인 UD-0) §2.2·§3·§6·§8·§8.1·§10. 기준 gate `master` **`dd60db6`**(작업 시작 판 -- 작업 중 `36e170e`로 나아감: 면제 묶기(34) 병합·design 30 v8.5 커밋·승인 기록. 엔진·레지스트리·`tools/migrate` diff 0, N3.10 표 = 이 모의의 개정 적용본과 같음 -- M1 spec '작성 전 실측' 머리).
+**모두 관찰(모의)이다** -- B34·b26pre·backfill·B26-1·B33·면제 묶기·범위 정책·T0·FU·G1·D0a·D0b가 아직 병합되지 않아 격리 복제본 `C:/g200`에서 대역 사슬로 쟀다
+(`dd60db6` → FU 대역 → UD-0 v8.5 N3.10 개정 → G1 시제품 → D0a 시제품(D-31 규칙·`mod_imports`·`check` 재구현) → D0b 재생성 대역 = M1 base `4b2ab85`).
+각 card의 실제 단위 집합은 **그 card base에서 `plan`이 낸다**(D0b 이관표 -- 손으로 정하지 않는다). 아래 수는 D0b 대역 이관표 기준이고, B26-1·B34 병합 뒤 M2·M3 수가 바뀐다(아래 위험 W-9).
+M1 spec 초안: `_drafts/draft_p3_m1.spec.md`. 측정 스크립트·원자료: `_drafts/p3kit_m1/`(측정 전용 -- 역할 산출물 아님, 작성자≠검증자: test-author·code-author·auditor에게 건네지 않는다).
+
+---
+
+## 1. card 목록·순서·단위 수
+
+순서(design §8.1 ORDER -- 작은 번호부터): `… D0b → M1 → M2 → M3 → M4 → M5 → M6 → M8 → M9 → M10 → T1 → F1 → F2`. M7(`stick_diagram.py` = 레이아웃만 남음)은 이동이 없고 M2·M3·M9에 흡수(design §8 M7 행, 빈 card 금지).
+
+| card | id(slug, 날짜는 커밋 때) | MOD 파일 | 옮기는 단위(출처) | 옮긴 def(G1 `moved_defs`) | G1 없을 때 V3 변이 | `mod_imports` 줄(머리/끝) | 재수출을 받는 split 파일 | 완전 shim이 되는 파일 | IMPORT-ANY 시도 수 |
+|---|---|---|---|---|---|---|---|---|---|
+| M1 | `p3-move-mod1-gmid-lut` | `gmid_lut.py` | **8**(SR 8) | 22 | 590 | 3 / 0 | SR | -- | 6 |
+| M2 | `p3-move-mod2-topology-authoring` | `topology_authoring.py` | **18**(SD 10·SR 7·ACF 1 `_as_set`) | 16 | 315 | 5 / 0 | SD·SR·ACF | -- | 7 |
+| M3 | `p3-move-mod3-circuit-state-graph` | `circuit_state_graph.py` | **82**(SR 43·SD 39) | 100 | 3,052 | 8 / 0 | SD·SR | -- | 8 |
+| M4 | `p3-move-mod4-gmid-sizing-engine` | `gmid_sizing_engine.py` | **102**(SR 95·TL 7) | 126 | 3,999 | 10 / 0 | TL·SR | **TL** | 9 |
+| M5 | `p3-move-mod5-circuit-metrics` | `circuit_metrics.py` | **21**(SR 21) | 23 | 711 | 9 / 0 | SR | -- | 10 |
+| M6 | `p3-move-mod6-theta-search` | `theta_search.py` | **11**(SR 11) | 14 | 333 | 5 / 0 | SR | -- | 11 |
+| (M7) | 흡수 | `stick_diagram.py` | 0 -- SD에 **110단위** 잔류 | -- | -- | -- | -- | -- | -- |
+| M8 | `p3-move-mod8-sizing-layout-convergence` | `sizing_layout_convergence.py` | **32**(SR 32) | 58 | 3,077 | 13 / **1**(SD 14이름) | SR | **SR** | 12 |
+| M9 | `p3-move-mod9-instance-report-builder` | `instance_report_builder.py` | **17**(SD 9·DR 6·ACF 2) | 16 | 307 | 8 / **1**(SD 2이름) | SD(**파일 끝**)·DR·ACF | **DR** | 13 |
+| 합 | 8 card | | **291** | 375 | 12,384 | | | | |
+
+ACF(`audit_current_forced.py`, `--keep`)는 2단위(A-K: `render_report`·`sys.path.insert` 문장)가 남는 도구 파일이다. 이관표 배정 403 = 291 이동 + SD 잔류 110 + ACF 잔류 2(M1 base `plan` `assignment` 그대로).
+
+**모의 결과(card마다, 같은 생성기 `gen_move.py` + 판정)**: 8 card 모두 `plan`(그 card base) 판정 목록 일곱 0, `check` 발견 0(단 생성기가 MOD 파일에 넣은 모듈 docstring 1개가 `changed` 1 -- 위험 W-3; M1은 docstring 없이 재생해 0),
+`moved_units` = 배정 수, G1 시제품 V3 대상 def 0·변이 0·거부 0, IMPORT-ANY 실패 0(M8·M9의 D-22 배치 포함), `import_layering` 발견 0(M1~M8) / **2**(M9: `MOD7 → MOD9` 큰 번호 import + 순환 SD ↔ MOD9 -- design D-22 (4) 예상대로, F2가 없앤다).
+CACHE-ID 발견 0(M4가 `_KNEE_L_CACHE`·`_FEASIBLE_L_WINDOW_CACHE`를 `knee_L_for_kind`·`feasible_L_window`와, M8이 `_ACHIEVABLE_BOUND_CACHE`를 `achievable_metric_bound`와 함께 옮긴다).
+원자료 `p3kit_m1/out/chain.jsonl`(card마다 한 줄), 커밋 `out/chain_commits.txt`.
+**PT3는 M1만 전체 실행**했다(결과 차이 0). M4·M9 상태에서 PT3를 돌린 결과는 위험 W-1·W-8.
+
+## 2. card별 위험
+
+| ID | 걸리는 card | 위험 | 실측(모의) | 처리 기본안 |
+|---|---|---|---|---|
+| **W-1** | **M4·M8·M9** | **완전 shim이 unit selftest의 import를 깬다.** SHIM (b)(design §3, D0a 계약 4)는 완전 shim의 최상위 문장을 docstring·재수출·`__future__`만 허용하는데, V1이 수집하는 `unit/test_selftest_*.py`(T1 대상)가 shim을 거쳐 **엔진 밖 이름**을 import한다: `test_selftest_topology_library.py:24` `from topology_library import (…, math, …)`, `test_selftest_sizing_recipe.py:24` `_dc_replace`·`json`·`math`·`np`·`nmcnr_predict_ac_response`(SR이 TL에서 import한 것), `test_selftest_design_report.py:24` `os` | M4 상태 PT3 `1 error during collection`(`test_selftest_topology_library.py`), M9 상태 3 errors(TL·SR·DR selftest). E3b 식을 SR·TL·DR로 바꾼 사본(B → M9 상태)도 새 FAIL 5·1·1이 같은 줄을 가리킨다 | **M4 착수 전 결정 필요**(오케스트레이터 → 판정 기준이면 사용자). 세 안: (가) 완전 shim이 **base에 있던 import 문장을 그대로 남기는 것**을 SHIM (b)에 허용(새 문장이 아니라 지우지 않는 것 -- shim에 로직은 여전히 0, F2가 파일째 지운다) -- design §3 SHIM·D0a 계약 4 문언 개정 = 판정 기준 변경 → 승인 대상 diff. (나) M4 전에 test-only card(V5 승인)로 세 selftest의 엔진 밖 이름 import를 표준 모듈 직접 import로 바꾼다(T1·F1 일의 일부를 앞당김). (다) T1을 M4 전으로 -- T1은 MOD 파일 전부가 있어야 해서 불가. 권고 (가)(문장 변경 0, 동작 0, 판정 범위는 '로직 없음' 그대로) -- 다만 기준 문언이라 사용자 몫 |
+| W-2 | M2·M9 | **ACF 재수출 줄 위치**: ACF 머리는 `import sys/os/glob` → `sys.path.insert(…)` → `from stick_diagram import load_topology  # noqa: E402`다. design §2.2 "import 머리 바로 뒤"를 '첫 비-import 문장 앞'으로 읽으면 재수출 줄이 `sys.path.insert` **앞**에 들어간다 | 모의 생성기가 그렇게 넣었다(M2 `from topology_authoring import _as_set`, M9 `from instance_report_builder import _theta_evidence_for_pair, audit_topology`). IMPORT-ANY는 cwd = A라 통과 -- **어느 판정도 위치를 보지 않는다**. ACF를 다른 디렉터리에서 import하면(경로 삽입 전 import) 실패할 수 있다 | 기본안: 생성기·M2/M9 card 계약에 "재수출 줄 = 파일 앞머리의 import·경로 설정 문장 묶음(docstring 뒤 연속한 `import`·`from`·`sys.path.*` 식 문장) 중 마지막 import 뒤"로 적는다(ACF에서는 `from stick_diagram import load_topology` 뒤). M2·M9 거부 입력에 '경로 설정 앞 재수출' 행 + auditor 측정(ACF를 A 밖 cwd에서 `importlib.util.spec_from_file_location`으로 로드) |
+| W-3 | 모든 card | **새 MOD 파일의 모듈 docstring**이 D0a 계약 4 `changed`(그리고 DoD E6 `--card ALL`)에 걸린다 | 생성기가 docstring을 넣은 M2~M9 모의 = 모두 `changed` 1, M1 docstring 없는 판 = 0 | M1 spec '결정 필요 항목' M1-1: 기본안 (가) docstring 없음(이동 card = 이동만). 대안 (나) D0a 계약 4가 파일 첫 문자열 `Expr`을 뺌(D0a 미병합이라 초안 개정) |
+| W-4 | M1·M4·M8·M9 | **문장 단위 키**: D0a 계약 2 문언(바인딩 이름을 이은 키)으로 돌리면 D0b 키트 수치(시제품 `<stmt:해시>` 키)와 상수 행 7개의 처리가 달라져 4단위 배정이 바뀐다 -- `_QUERY_CACHE_MAX` MOD1 → MOD4(+ `upward` 1·`cycles` 1 MOD1 ↔ MOD4), `_COMPENSATION_REGISTRY`·`_L_ROLE_TARGETS` MOD8 → MOD4, `INSTANCE_TOP_FIELDS` MOD9 → SD 잔류 | 같은 트리·같은 규칙에서 키 방식만 바꾼 두 `plan`(`out/plan_pre.json` 대 `plan_pre_hash.json`). N3.10 MOD1에 `_QUERY_CACHE_MAX` 토큰 하나를 더한 가지는 `upward` 0, MOD1 = 같은 8단위(`plan_pre_qtok.json`) | D0a·D0b 착수 전에 닫는다(M1 spec M1-2): D0b가 계약 문언 키로 계산해 충돌을 보면 원칙 P2로 MOD1 토큰 diff를 D-11 별도 승인. M4·M8·M9 card는 D0b 판정 기록의 실제 배정을 '작성 전 실측'에서 다시 확인 |
+| W-5 | M8·M9 | **D-22 import 배치·순환**: MOD8은 SD 이름 14개, MOD9는 SD 이름 2개(`AuditResult`·`run_full_circuit_audit`)를 **파일 끝** import로 받는다. SD는 MOD9로 간 9단위의 재수출을 **SD 끝**에 둔다 → SD ↔ MOD9 순환(F2까지) | 모의 M8·M9 IMPORT-ANY 실패 0(모든 N3.10·split 모듈을 새 프로세스에서 먼저 import), `import_time_high` 0. M9 `import_layering` 발견 2(예상) | 생성기가 `mod_imports` 줄을 번호로 머리/끝에 나눈다(MOD 번호 ≥ 8 파일에서 N3.10 번호 ≥ 7 모듈 줄 = 끝). card 계약에 IMPORT-ANY(design §10 그대로)와 'LAYER는 F2 뒤 판정, M9~F1의 발견 2는 예상'을 적는다. 함수 안 지연 import 금지(F3) |
+| W-6 | M2·M9 | **`__future__` 혼합**: ACF(`_as_set` → MOD2, 2단위 → MOD9)·DR(6단위 → MOD9)이 future 없는 파일이면 G1 M-4 거부 | FU 대역(DR·ACF 머리 한 줄)이 있는 사슬에서 `import_conflicts` 0·`future` 0·거부 0. FU 없으면 D0b `import_conflicts` MOD2·MOD9(design 부록 A F5v85) | FU가 D0b 전에 병합(확정 순서). M2·M9 card '작성 전 실측'에 두 파일 future 줄 확인 |
+| W-7 | M4·M8 | **CACHE-ID**: 모듈 캐시 dict(주석 대입 `: dict = {}`)와 그 사용 함수가 같은 MOD여야 한다 | 모의 `check` `cache` 0 -- `_KNEE_L_CACHE`·`_FEASIBLE_L_WINDOW_CACHE` → MOD4, `_ACHIEVABLE_BOUND_CACHE` → MOD8(사용 함수와 같은 card). V6 `unbounded_cache`는 이 셋을 보지 않는다(design §2.2) | `check` `cache`가 판정. 배정이 바뀌면(W-4·W-9) 이 셋의 card를 다시 확인 |
+| W-8 | M2·M3·M4·M9 | **T0 의존(design F6)**: 위치 가정 계약 test가 그 단위를 옮기는 card에서 깨진다 -- `test_ic5.py` `_DOMAIN_TABLE`(키 (파일, 함수) 21개 중 이동하는 12: M2 3·M3 7·M4 1·M9 1), `test_dup_w_calc.py`(`size_transistor` M4), `test_ts6_dead_probes.py`(`audit_vsb_consistency` 운영 호출자 -- 잔류 SR에 호출자가 없어지는 시점, `_L_ROLE_MULTIPLIERS` 바인딩 검사는 **조용히 공허**), B26-1 계수 test(`load_topology` M3 -- T0 계약 10) | T0 없는 모의에서 selftest 셋을 빼고 PT3: M4 상태 FAIL 2(`test_size_transistor_calls_new_function`·`test_gate_docstring_declares_blind_spots`), M9 상태 FAIL 3(+ `test_audit_vsb_consistency_has_operational_caller`). M1 상태는 0 | 설계대로 T0 병합 뒤 M1(착수 조건). M2~M4·M9 card의 '기존 계약 test' 실측에 이 목록을 넣는다 |
+| W-9 | M2·M3(·M8) | **B26-1·B34·backfill 미반영**: B26-1이 SD에 `RailDeclaration`(A-2 → MOD2)·`rail_declaration`(D-19 (가) A-1 → MOD2)을 더하고 SD 18·SR 2 def의 시그니처·본문을 바꾼다; B34는 `_import_analog_grammar`·`find_idiom_matches` 등 4 def | 모의에 없음(병합 전) | M2·M3 단위 수는 D0b 판정 기록 값으로 바꾼다. `_import_analog_grammar`는 `__file__`을 읽지만 같은 디렉터리라 G1 M-4 인정(design §6.4) -- 모의 M2에서 실제로 옮겨졌고 거부 0 |
+| W-10 | 모든 card | **E-INST `engine_origin`**: card마다 로드된 엔진 모듈 목록이 늘어 `engine_origin`이 base와 다르다 | M1: 22키 중 `engine_origin`만 다름(`gmid_lut` 추가), 해시 키 전부 같음 | card 계약 6 (c)처럼 `engine_origin`을 같음 비교에서 빼고 '모든 경로가 `<iso>` 안 + 새 MOD 포함'으로 따로 본다. DoD E5는 P2D 대 마지막 병합본이라 `e_inst_p3.py`의 `engine_origin` 키 하나 차이를 이미 기대한다(design §10 E5) |
+| W-11 | 모든 card | **`check` `future` 발견이 비는 모양**: future 줄을 빠뜨리면 모든 단위가 M-4로 거부되어 `moved_defs` `units`가 비고, D0a 계약 4 `future`(옮긴 단위의 목적 파일만 봄)는 0이 된다 -- 거부는 `move-rejected`가 한다 | M1 거부 입력 R-5: `move-rejected` 8·`future` 0 | 판정상 문제 없음(거부됨). card '거부해야 할 입력' 표에 `future`가 아니라 `move-rejected`를 기대로 적는다. D0a test-author에게 이 모양을 알린다(interface card 문장) |
+| W-12 | M3·M4·M8 | **규모**: M3 82단위·100 def, M4 102단위·126 def, M8 32단위·58 def(`optimize_full_circuit_budget` + Phase 3 위치 MOD6 토큰 4개 -- D-3·문서 개정 (c)(d)) | 모의 card 한 건 판정(plan + 생성 + check + G1 정적 V3 + import) 150~253 s, PT3 약 6분, E-INST 파일럿 약 6분 | G1이 없으면 V3 변이 3,052·3,999·3,077 -- G1 병합이 착수 조건(F5). 바이트 이동이라 card를 나누지 않는다(모듈 하나 = card 하나, N3.12.3 674행) |
+
+## 3. 생성기가 만들어야 할 것 -- 뒤 card를 기계적으로
+
+M1 모의는 `gen_move.py`(이동) + `move_plan_sim.py`(plan·check 재구현) + 판정 묶음 스크립트로 만들었다. 같은 묶음을 card 번호 하나만 바꿔 돌리면 아래가 나오게 한다.
+**위치**: `_drafts/p3kit_m<k>/`(오케스트레이터 작성 전 실측용). 역할 산출물이 아니다 -- code-author는 card base에서 실제 `move_plan plan` 출력(`assignment`·`mod_imports`·`reexports`)을 보고 직접 옮기고,
+판정은 D0a `code_commit` 사본의 `check`와 auditor의 독립 대조가 한다(생성기와 판정기가 같은 결함을 공유하지 않게 -- 작성자≠검증자). 생성기를 `tools/migrate/`에 넣는 것은 D-27 동결(D0b~F2) 때문에 D0b 뒤에는 불가하고,
+D0a에 `apply` 명령으로 넣으면 같은 도구가 이동을 만들고 판정한다 -- 권고하지 않는다(대안으로만: D0a `plan`에 단위 줄 범위 `spans`·재수출 위치 표지를 더하면 code-author 손작업이 줄어든다 -- D0a 초안 개정, 오케스트레이터 판단).
+
+입력: card base 커밋(gate `master`), card MOD 파일 이름, `MPC` 사본(D0a `code_commit`의 `move_plan.py`), design §6.3 `MP_ARGS`.
+
+출력(card마다 한 디렉터리, 케이스마다 파일에 append -- WP-11):
+1. **`plan_base.json`** -- `plan --rev <base>`, 판정 목록 일곱이 비지 않으면 생성기가 멈추고 그 목록을 낸다(D0b 판정 기록과 같아야 한다 -- 다르면 D-27 위반 의심).
+2. **참고 head 커밋(스크래치 복제본에만)** -- 규칙:
+   * MOD 파일 = `mod_imports[<MOD>]` 줄 **그대로**(D-30, 이름마다 import 한 번) -- MOD 번호 ≥ 8이면 N3.10 번호 ≥ 7 모듈을 가리키는 줄은 **파일 끝**(D-22 (2)), 나머지와 `from __future__`는 머리 -- 뒤에 배정 단위의
+     원본 줄 범위(데코레이터 첫 줄 ~ `end_lineno`) 바이트 그대로, 순서 = 원본 파일 초기화 순서(TL → SD → SR → DR → ACF) 다음 원본 줄 순서(`stmt-order`). **모듈 docstring 없음**(W-3 기본안). 단위 사이 빈 줄 둘.
+   * 단위를 내보내는 split 파일 = 그 범위 삭제 + 재수출 한 줄 `from <MOD 줄기> import <바인딩 이름 이름순>`을 **앞머리 import·경로 설정 묶음의 마지막 import 뒤**(W-2)에, SD가 MOD 8·9로 내보내면 **SD 파일 끝**(D-22 (1)).
+     card가 같은 파일에 여러 번 재수출을 더하면 앞 card의 재수출 줄 뒤에 쌓인다(그것도 import라 머리가 늘어난다).
+   * **완전 shim**(N3.10·`--keep` 밖이고 단위가 0개가 되는 파일 -- 모의 M4 TL·M8 SR·M9 DR) = docstring(앞 주석 줄 포함) + `from __future__` + MOD 재수출 줄 전부(앞 card 것 포함). W-1 결정이 (가)면 base에 있던 다른 import 문장도 그대로 둔다.
+   * 그 밖 파일·줄 변경 0. `tools/**` 0.
+3. **판정 묶음 결과**(참고 head에서, 판정 도구는 design 그대로): `check`(11종) · G1 판 V3/V6/V7 JSON 키(`defs`·`mutants`·`moved`·`move_rejected`; 범위 정책 병합 뒤 `not_targeted`·`targets_by_def`) · V4(subject 둘)·V5 ·
+   IMPORT-ANY(§10 함수 그대로) · E3 식(base·head importer 목록 같음) · E3b 식을 '이 card가 단위를 내보내는 split 파일'마다 바꾼 사본(새 FAIL 0, `LIVE m > 0`) · `plan --rev <head>` 멱등(사상 차이 0) ·
+   PT3 base·head id별 대조 · E-LIB 전체 · E-INST(`engine_origin` 제외 대조) · 독립 `ast.dump` 열 비교(옮긴 단위 = 원본, split 파일 = 원본 − 옮긴 단위 + 재수출 줄).
+4. **거부 입력 자기 점검**(M1 R-1~R-7을 card 단위로 바꿔): 몸체 토큰 하나 변경 · 재수출 이름 하나 빼기 · MOD 파일이 잔여 shim import · import 중복 · future 줄 삭제 · 다른 MOD 배정 단위 동반 이동 · 모듈 docstring,
+   그리고 card별 추가 -- M2·M9 '경로 설정 앞 재수출'(W-2), M4·M8·M9 '완전 shim에 로직 문장 하나'(SHIM (b)), M8·M9 'SD import를 머리로'(순환 `ImportError` -- IMPORT-ANY), M4·M8 '캐시만 옮기고 사용 함수 남김'(`cache`).
+   변형마다 `check` 발견 종류·G1 정적 V3·단독 import 결과를 한 줄(JSON)로.
+5. **spec card 초안 매개변수 묶음**(M1 초안 `draft_p3_m1.spec.md`를 틀로 치환):
+   * 머리: `id` = `<날짜>-p3-move-mod<k>-<줄기 하이픈>`, `phase: 3`, `evidence_type: equivalence`, `gate_change: no`, `approval: 20260930-30-module-split-design`.
+   * 치환 값: MOD 번호·파일·책임(N3.10 행 원문), 단위 목록(원본 파일:줄 범위·규칙 ID·def 수), `mod_imports` 머리/끝 줄, split 파일별 재수출 줄과 위치(머리/끝), 완전 shim 여부, IMPORT-ANY 기대 수(`import_layering` `present` ∪ 있는 split 파일),
+     E3b 식 대상 모듈 목록과 base 자기 대조 FAIL 수, V4 subject 둘(그 card A-1 토큰 중 앞 둘), G1 없는 V3 def·변이 수, card가 건드리는 T0 A군·B군 계약 test 목록(W-8 표), `import_layering` 기대 발견 수(M9~F1 = 2).
+   * card별 추가 절: M4·M8·M9 = 완전 shim 계약(SHIM (b) + W-1 결정 문언), M8·M9 = D-22 끝 import·SD 끝 재수출·IMPORT-ANY 강조·LAYER 예상 발견, M2·M9 = ACF 위치(W-2)·`__future__`(W-6), M4·M8 = CACHE-ID 대상 셋(W-7),
+     M3 = B26-1 계수 test(T0 계약 10)·`load_topology` 이동.
+   * '작성 전 실측'은 매 card base에서 1~15를 다시 잰다(M1 초안 순서). 특히 15(앞 card 판정 기록·D-27 동결 확인)와 '재현할 수치'의 단위 목록은 D0b 판정 기록 값으로.
+6. **비용 기록**: card마다 `plan`·`check`·V3/V6/V7·PT3·E-INST 시간(M1 모의: 29 s·58 s·131/104/99 s·약 6분·파일럿 약 6분).
+
+## 4. M1 spec 초안이 남긴 결정(요약)
+
+* M1-1 MOD 파일 모듈 docstring -- 기본안 없음(W-3).
+* M1-2 문장 단위 키와 `_QUERY_CACHE_MAX` -- D0a·D0b 착수 전에 닫음(W-4). M1 단위 집합은 어느 길이든 같은 8단위.
+* M1-3 E3·E3b 식의 card 단위 사용 -- 기본안 계약에 둠(강화, base 자기 대조 기준).
+* (M4 전) W-1 완전 shim과 selftest import -- **사용자 몫 가능성**(SHIM (b) 문언 = 판정 기준). M1~M3에는 영향 없음(완전 shim이 생기지 않는다).
+
+## 5. 재현 방법(스크래치 -- 실행 뒤 삭제했다)
+
+`p3kit_m1/`의 스크립트는 `C:/g200` 경로가 박혀 있다(측정 전용). 사슬 만들기: `apply_amend85.py`(N3.10 8블록) → G1 `install_proto.py` → `move_plan_sim.py`를 `tools/migrate/move_plan.py`로 → `regen_registry.py --write` + `보류(Phase 3)` → `(Phase 4)` →
+`gen_move.py <root> <plan.json> <MOD>` → `move_plan_sim.py check`·`vtools.sh`·`e3_family.sh`·`pt3.sh`·`elib_einst.sh`·`neg_variants.py`, 뒤 card는 `chain_sim.py <MOD 줄기,…>`.
+`move_plan_sim.py`의 문장 키는 기본이 시제품 모양(`<stmt:해시>`, D0b 키트와 같은 수치) -- `MP_STMT_KEY=names`면 D0a 계약 문언 키(W-4).

@@ -1,0 +1,215 @@
+{
+ "root": "C:\\g148\\x1",
+ "has": {
+  "reject_legacy_names": true,
+  "rail_voltages": true,
+  "rail_declaration": true
+ },
+ "specs": {
+  "two_stage_ota": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "supplies_v"
+    ]
+   },
+   "supplies_v": {
+    "vdd": 1.8,
+    "gnd": 0.0
+   },
+   "vdd": null,
+   "rail_voltages": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+   },
+   "reject_missing_rail": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+   },
+   "reject_scalar_vdd": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'vdd', 'supplies_v', 'MG1')]"
+   },
+   "reject_supplies": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'supplies', 'supplies_v', 'MG1')]"
+   },
+   "accept_canonical": {
+    "ok": true,
+    "value": "accepted"
+   }
+  },
+  "current_reuse_telescopic_ota": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "supplies_v"
+    ]
+   },
+   "supplies_v": {
+    "vdd": 1.8,
+    "gnd": 0.0
+   },
+   "vdd": null,
+   "rail_voltages": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+   },
+   "reject_missing_rail": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+   },
+   "reject_scalar_vdd": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'vdd', 'supplies_v', 'MG1')]"
+   },
+   "reject_supplies": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'supplies', 'supplies_v', 'MG1')]"
+   },
+   "accept_canonical": {
+    "ok": true,
+    "value": "accepted"
+   }
+  },
+  "folded_cascode": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "supplies_v"
+    ]
+   },
+   "supplies_v": {
+    "vdd": 1.8,
+    "gnd": 0.0
+   },
+   "vdd": null,
+   "rail_voltages": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+   },
+   "reject_missing_rail": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+   },
+   "reject_scalar_vdd": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'vdd', 'supplies_v', 'MG1')]"
+   },
+   "reject_supplies": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'supplies', 'supplies_v', 'MG1')]"
+   },
+   "accept_canonical": {
+    "ok": true,
+    "value": "accepted"
+   }
+  },
+  "nmcnr_amplifier": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "supplies_v"
+    ]
+   },
+   "supplies_v": {
+    "vdd": 1.8,
+    "vss": 0.0
+   },
+   "vdd": null,
+   "rail_voltages": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+   },
+   "reject_missing_rail": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+   },
+   "reject_scalar_vdd": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'vdd', 'supplies_v', 'MG1')]"
+   },
+   "reject_supplies": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'supplies', 'supplies_v', 'MG1')]"
+   },
+   "accept_canonical": {
+    "ok": true,
+    "value": "accepted"
+   }
+  }
+ },
+ "reject_metric_supply_nets": {
+  "ok": false,
+  "exc": "ValueError",
+  "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+ },
+ "accept_top_supply_nets_and_excite_vdd": {
+  "ok": false,
+  "exc": "ValueError",
+  "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+ },
+ "library": {
+  "common_gate_amplifier": {
+   "ok": false,
+   "exc": "ValueError",
+   "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+  },
+  "current_reuse_telescopic_ota": {
+   "ok": false,
+   "exc": "ValueError",
+   "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+  },
+  "folded_cascode": {
+   "ok": false,
+   "exc": "ValueError",
+   "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+  },
+  "ngcc_3stage_ff": {
+   "ok": false,
+   "exc": "ValueError",
+   "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+  },
+  "nmcnr_amplifier": {
+   "ok": false,
+   "exc": "ValueError",
+   "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+  },
+  "pushpull_follower_buffer": {
+   "ok": false,
+   "exc": "ValueError",
+   "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+  },
+  "sf_pushpull_output_opamp": {
+   "ok": false,
+   "exc": "ValueError",
+   "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+  },
+  "two_stage_ota": {
+   "ok": false,
+   "exc": "ValueError",
+   "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+  },
+  "two_stage_ota_sf": {
+   "ok": false,
+   "exc": "ValueError",
+   "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+  }
+ }
+}

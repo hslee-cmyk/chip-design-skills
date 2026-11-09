@@ -1,0 +1,1023 @@
+{
+ "circuit": "two_stage_ota",
+ "lut_location": {
+  "config_path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_it2c\\src\\skills\\analog-gmid-design\\assets\\lut_v2_location.json",
+  "root": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2",
+  "manifest_path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2\\manifest.json",
+  "cap_npz_path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2\\sky130_nfet_pfet_lut_v2_r2.npz",
+  "midpoints_path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2\\sky130_nfet_pfet_lut_v2_verify_midpoints_r2.npz",
+  "pdk_root": "C:\\pdk\\sky130_fd_pr",
+  "sources": [
+   [
+    "pdk_root",
+    "config_default"
+   ],
+   [
+    "root",
+    "config_default"
+   ]
+  ],
+  "noise_path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2\\sky130_nfet_pfet_lut_v2_noise_r1.npz",
+  "mismatch_path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2\\sky130_nfet_pfet_lut_v2_mismatch_r1.npz"
+ },
+ "theta": {
+  "('L', 'M1')": 1.5e-07,
+  "('L', 'M2')": 1.5e-07,
+  "('L', 'M3')": 1.5e-07,
+  "('L', 'M5')": 1.5e-07,
+  "('L', 'M6')": 1.5e-07,
+  "('capacitance', 'Cc')": 3.8417660008417153e-13,
+  "('current', 'M3')": 9.005108923997329e-07,
+  "('current', 'M4')": 9.005108923997329e-07,
+  "('current', 'M6')": 2.4828960507132635e-05,
+  "('ln_idu', 'M1')": -17.957198447104858,
+  "('ln_idu', 'M2')": -17.957198447104858,
+  "('ln_idu', 'M3')": -15.689556403501749,
+  "('ln_idu', 'M5')": -17.601779767756874,
+  "('ln_idu', 'M6')": -15.935909375379056,
+  "('y', 'OUT')": 0.5,
+  "('y', 'vin_p')": 0.5
+ },
+ "device_cols": {
+  "w": {},
+  "l": {},
+  "nf": {},
+  "kind": {
+   "CL": "capacitor",
+   "Cc": "capacitor",
+   "M1": "nmos",
+   "M2": "nmos",
+   "M3": "pmos",
+   "M4": "pmos",
+   "M5": "nmos",
+   "M6": "pmos",
+   "M7": "nmos",
+   "Rz": "resistor"
+  },
+  "pins": {
+   "CL": [
+    [
+     "t0",
+     "OUT"
+    ],
+    [
+     "t1",
+     "gnd"
+    ]
+   ],
+   "Cc": [
+    [
+     "t0",
+     "N_cc_rz"
+    ],
+    [
+     "t1",
+     "OUT"
+    ]
+   ],
+   "M1": [
+    [
+     "d",
+     "D3"
+    ],
+    [
+     "g",
+     "vin_n"
+    ],
+    [
+     "s",
+     "CS"
+    ]
+   ],
+   "M2": [
+    [
+     "d",
+     "O1"
+    ],
+    [
+     "g",
+     "vin_p"
+    ],
+    [
+     "s",
+     "CS"
+    ]
+   ],
+   "M3": [
+    [
+     "d",
+     "D3"
+    ],
+    [
+     "g",
+     "D3"
+    ],
+    [
+     "s",
+     "vdd"
+    ]
+   ],
+   "M4": [
+    [
+     "d",
+     "O1"
+    ],
+    [
+     "g",
+     "D3"
+    ],
+    [
+     "s",
+     "vdd"
+    ]
+   ],
+   "M5": [
+    [
+     "d",
+     "CS"
+    ],
+    [
+     "g",
+     "bias"
+    ],
+    [
+     "s",
+     "gnd"
+    ]
+   ],
+   "M6": [
+    [
+     "d",
+     "OUT"
+    ],
+    [
+     "g",
+     "O1"
+    ],
+    [
+     "s",
+     "vdd"
+    ]
+   ],
+   "M7": [
+    [
+     "d",
+     "OUT"
+    ],
+    [
+     "g",
+     "bias"
+    ],
+    [
+     "s",
+     "gnd"
+    ]
+   ],
+   "Rz": [
+    [
+     "t0",
+     "O1"
+    ],
+    [
+     "t1",
+     "N_cc_rz"
+    ]
+   ]
+  },
+  "bulk": {
+   "M1": {
+    "net": "gnd",
+    "origin": "default_rule",
+    "reason": null
+   },
+   "M2": {
+    "net": "gnd",
+    "origin": "default_rule",
+    "reason": null
+   },
+   "M3": {
+    "net": "vdd",
+    "origin": "default_rule",
+    "reason": null
+   },
+   "M4": {
+    "net": "vdd",
+    "origin": "default_rule",
+    "reason": null
+   },
+   "M5": {
+    "net": "gnd",
+    "origin": "default_rule",
+    "reason": null
+   },
+   "M6": {
+    "net": "vdd",
+    "origin": "default_rule",
+    "reason": null
+   },
+   "M7": {
+    "net": "gnd",
+    "origin": "default_rule",
+    "reason": null
+   }
+  },
+  "dc_op": {
+   "M1": {
+    "kind": "nmos",
+    "current": 9.005108923997329e-07,
+    "ln_idu": -17.957198447104858,
+    "gm_id": 24.49648477303471,
+    "L": 1.5e-07,
+    "W": 8.497524499803719e-06,
+    "vgs": 0.6208076625333895,
+    "vds": 0.537311800226867,
+    "vsb": 0.5348353109151925,
+    "w_key": 1000,
+    "idu_forward": 1.5895998165475064e-08
+   },
+   "M2": {
+    "kind": "nmos",
+    "current": 9.005108923997329e-07,
+    "ln_idu": -17.957198447104858,
+    "gm_id": 24.48306435618052,
+    "L": 1.5e-07,
+    "W": 8.497524499803719e-06,
+    "vgs": 0.6185086480365091,
+    "vds": 0.5742085372266253,
+    "vsb": 0.5348353109151925,
+    "w_key": 1000,
+    "idu_forward": 1.5889998770248287e-08
+   },
+   "M3": {
+    "kind": "pmos",
+    "current": 9.005108923997329e-07,
+    "ln_idu": -15.689556403501749,
+    "gm_id": 14.46692256270027,
+    "L": 1.5e-07,
+    "W": 8.799702685306263e-07,
+    "vgs": 0.7278528888579405,
+    "vds": 0.7278528888579405,
+    "vsb": -0.0,
+    "w_key": 1000,
+    "idu_forward": 1.540285747036734e-07
+   },
+   "M4": {
+    "kind": "pmos",
+    "current": 9.005108923997329e-07,
+    "ln_idu": -15.74851700930056,
+    "gm_id": 14.567423453722919,
+    "L": 1.5e-07,
+    "W": 9.334139016254308e-07,
+    "vgs": 0.7278528888579405,
+    "vds": 0.6909561518581822,
+    "vsb": -0.0,
+    "w_key": 1000,
+    "idu_forward": 1.447124728105503e-07
+   },
+   "M5": {
+    "kind": "nmos",
+    "current": 1.8010217847994657e-06,
+    "ln_idu": -17.601779767756874,
+    "gm_id": 22.62390633997471,
+    "L": 1.5e-07,
+    "W": 1.1911488886010403e-05,
+    "vgs": 0.5520428315383036,
+    "vds": 0.5348353109151925,
+    "vsb": 0.0,
+    "w_key": 1000,
+    "idu_forward": 2.2680058748760116e-08
+   },
+   "M6": {
+    "kind": "pmos",
+    "current": 2.4828960507132635e-05,
+    "ln_idu": -15.935909375379056,
+    "gm_id": 14.827368927968188,
+    "L": 1.5e-07,
+    "W": 3.1040399532846613e-05,
+    "vgs": 0.6909561518581822,
+    "vds": 0.9,
+    "vsb": -0.0,
+    "w_key": 1000,
+    "idu_forward": 1.1998376735224765e-07
+   },
+   "M7": {
+    "kind": "nmos",
+    "current": 2.4828960507132635e-05,
+    "ln_idu": -17.20292099418632,
+    "gm_id": 22.24749650226245,
+    "L": 1.5e-07,
+    "W": 0.00011020047263432498,
+    "vgs": 0.5520428315383036,
+    "vds": 0.9,
+    "vsb": 0.0,
+    "w_key": 1000,
+    "idu_forward": 3.3796080788403463e-08
+   }
+  },
+  "dc_current": {
+   "M1": 9.005108923997329e-07,
+   "M2": 9.005108923997329e-07,
+   "M3": 9.005108923997329e-07,
+   "M4": 9.005108923997329e-07,
+   "M5": 1.8010217847994657e-06,
+   "M6": 2.4828960507132635e-05,
+   "M7": 2.4828960507132635e-05,
+   "Rz": 0.0
+  },
+  "dc_drop_current": {
+   "Rz": 0.0
+  },
+  "dc_L": {
+   "M1": 1.5e-07,
+   "M2": 1.5e-07,
+   "M3": 1.5e-07,
+   "M4": 1.5e-07,
+   "M5": 1.5e-07,
+   "M6": 1.5e-07,
+   "M7": 1.5e-07
+  },
+  "dc_coord": {
+   "M1": {
+    "role": "writer",
+    "relation": "tree",
+    "partner": null
+   },
+   "M2": {
+    "role": "writer",
+    "relation": "tree",
+    "partner": null
+   },
+   "M3": {
+    "role": "writer",
+    "relation": "tree",
+    "partner": null
+   },
+   "M4": {
+    "role": "dependent",
+    "relation": "parallel_vgs",
+    "partner": "M3"
+   },
+   "M5": {
+    "role": "writer",
+    "relation": "tree",
+    "partner": null
+   },
+   "M6": {
+    "role": "writer",
+    "relation": "tree",
+    "partner": null
+   },
+   "M7": {
+    "role": "dependent",
+    "relation": "parallel_vgs",
+    "partner": "M5"
+   }
+  },
+  "element_class": {
+   "CL": "passive",
+   "Cc": "passive",
+   "M1": "mos",
+   "M2": "mos",
+   "M3": "mos",
+   "M4": "mos",
+   "M5": "mos",
+   "M6": "mos",
+   "M7": "mos",
+   "Rz": "passive"
+  },
+  "passive_value": {
+   "CL": 3e-12,
+   "Cc": 3.8417660008417153e-13,
+   "Rz": 2716.297717445273
+  },
+  "dc_tol_v": {
+   "M1": 0.007438387213308573,
+   "M2": 0.007577008175220135,
+   "M3": 0.01500306828694498,
+   "M4": 0.014712802542457827,
+   "M5": 0.007438387213308573,
+   "M6": 0.01643190129655115,
+   "M7": 0.010183979601343682
+  },
+  "dc_gm": {
+   "M1": 2.2059351363621954e-05,
+   "M2": 2.2047266132064212e-05,
+   "M3": 1.302762134721505e-05,
+   "M4": 1.3118123494276824e-05,
+   "M5": 4.07461481755572e-05,
+   "M6": 0.00036814815753720767,
+   "M7": 0.0005523822120372459
+  },
+  "ss_dev": {
+   "M1": {
+    "gm": 2.2059351363621954e-05,
+    "gmb": 2.772630994602306e-06,
+    "gds": 1.392059023968871e-06,
+    "cgg": 8.398992455340442e-15,
+    "cgs": 4.409952711508775e-15,
+    "cgd": 2.0585667744075505e-15,
+    "cgb": 1.9304728336564617e-15,
+    "cdb": 5.052975886415651e-15,
+    "csb": 6.0052700201059754e-15,
+    "cap_model": "lut_cgs_cgb",
+    "gmb_model": "lut_gmbs_column",
+    "junction_model": "pdk_bsim4_lut_rule_diffusion",
+    "lut_rel_tol": 0.18221433910674956
+   },
+   "M2": {
+    "gm": 2.2047266132064212e-05,
+    "gmb": 2.7603781689591516e-06,
+    "gds": 1.343100912566215e-06,
+    "cgg": 8.381192057391439e-15,
+    "cgs": 4.387509920329868e-15,
+    "cgd": 2.0585041739653315e-15,
+    "cgb": 1.9351766784459707e-15,
+    "cdb": 5.0032329125666955e-15,
+    "csb": 6.0052700201059754e-15,
+    "cap_model": "lut_cgs_cgb",
+    "gmb_model": "lut_gmbs_column",
+    "junction_model": "pdk_bsim4_lut_rule_diffusion",
+    "lut_rel_tol": 0.18550837878122048
+   },
+   "M3": {
+    "gm": 1.302762134721505e-05,
+    "gmb": 2.9550053472507316e-06,
+    "gds": 1.5072616091694571e-06,
+    "cgg": 8.496299408124167e-16,
+    "cgs": 5.237941219916771e-16,
+    "cgd": 2.6395794267238482e-17,
+    "cgb": 2.9943921811611233e-16,
+    "cdb": 4.2262067831488674e-16,
+    "csb": 5.687269979309599e-16,
+    "cap_model": "lut_cgs_cgb",
+    "gmb_model": "lut_gmbs_column",
+    "junction_model": "pdk_bsim4_lut_rule_diffusion",
+    "lut_rel_tol": 0.21704822711013722
+   },
+   "M4": {
+    "gm": 1.3118123494276824e-05,
+    "gmb": 2.978079344473724e-06,
+    "gds": 1.5188332430431565e-06,
+    "cgg": 8.980722237121205e-16,
+    "cgs": 5.51414985727443e-16,
+    "cgd": 2.8608364421518687e-17,
+    "cgb": 3.180490034662387e-16,
+    "cdb": 4.534527087497338e-16,
+    "csb": 6.032677524263193e-16,
+    "cap_model": "lut_cgs_cgb",
+    "gmb_model": "lut_gmbs_column",
+    "junction_model": "pdk_bsim4_lut_rule_diffusion",
+    "lut_rel_tol": 0.21432762482699433
+   },
+   "M5": {
+    "gm": 4.07461481755572e-05,
+    "gmb": 7.995394372315997e-06,
+    "gds": 2.359941205351258e-06,
+    "cgg": 1.2347592320148126e-14,
+    "cgs": 6.424577189944127e-15,
+    "cgd": 2.9150535209507352e-15,
+    "cgb": 3.0079444864344806e-15,
+    "cdb": 8.417946556510203e-15,
+    "csb": 1.0972976860794747e-14,
+    "cap_model": "lut_cgs_cgb",
+    "gmb_model": "lut_gmbs_column",
+    "junction_model": "pdk_bsim4_lut_rule_diffusion",
+    "lut_rel_tol": 0.16828537563435864
+   },
+   "M6": {
+    "gm": 0.00036814815753720767,
+    "gmb": 8.364895908159441e-05,
+    "gds": 4.18627222732786e-05,
+    "cgg": 2.949093682356352e-14,
+    "cgs": 1.7773839734010582e-14,
+    "cgd": 9.327137563404798e-16,
+    "cgb": 1.078438786101617e-14,
+    "cdb": 1.4177876043189475e-14,
+    "csb": 2.0061488293657065e-14,
+    "cap_model": "lut_cgs_cgb",
+    "gmb_model": "lut_gmbs_column",
+    "junction_model": "pdk_bsim4_lut_rule_diffusion",
+    "lut_rel_tol": 0.2436418627119227
+   },
+   "M7": {
+    "gm": 0.0005523822120372459,
+    "gmb": 0.00010519493245423836,
+    "gds": 2.2751602306361422e-05,
+    "cgg": 1.1425844700133629e-13,
+    "cgs": 5.92864280480599e-14,
+    "cgd": 2.695518917525758e-14,
+    "cgb": 2.8016906207775532e-14,
+    "cdb": 6.882120278847794e-14,
+    "csb": 1.0151772358913794e-13,
+    "cap_model": "lut_cgs_cgb",
+    "gmb_model": "lut_gmbs_column",
+    "junction_model": "pdk_bsim4_lut_rule_diffusion",
+    "lut_rel_tol": 0.22656805056000573
+   }
+  }
+ },
+ "node_cols": {
+  "dc_v": {
+   "CS": 0.5348353109151925,
+   "D3": 1.0721471111420595,
+   "N_cc_rz": 1.109043848141818,
+   "O1": 1.109043848141818,
+   "OUT": 0.9,
+   "bias": 0.5520428315383036,
+   "vin_n": 1.155642973448582,
+   "vin_p": 1.1533439589517016
+  },
+  "dc_rail_v": {
+   "gnd": 0.0,
+   "vdd": 1.8
+  },
+  "port_direction": {
+   "CS": null,
+   "D3": null,
+   "N_cc_rz": null,
+   "O1": null,
+   "OUT": "output",
+   "bias": null,
+   "gnd": null,
+   "vdd": null,
+   "vin_n": "input",
+   "vin_p": "input"
+  },
+  "dc_output_structure": {
+   "OUT": "high_impedance"
+  },
+  "dc_writer": {
+   "CS": {
+    "tier": "W2",
+    "relation": "vgs_source",
+    "element": "M2",
+    "known": "vin_p",
+    "y_key": null,
+    "order": 7
+   },
+   "D3": {
+    "tier": "W1",
+    "relation": "vgs_gate",
+    "element": "M3",
+    "known": "vdd",
+    "y_key": null,
+    "order": 3
+   },
+   "N_cc_rz": {
+    "tier": "W2",
+    "relation": "resistor_drop",
+    "element": "Rz",
+    "known": "O1",
+    "y_key": null,
+    "order": 5
+   },
+   "O1": {
+    "tier": "W2",
+    "relation": "vgs_gate",
+    "element": "M6",
+    "known": "vdd",
+    "y_key": null,
+    "order": 4
+   },
+   "OUT": {
+    "tier": "W4",
+    "relation": "free_window",
+    "element": null,
+    "known": null,
+    "y_key": "OUT",
+    "order": 9
+   },
+   "bias": {
+    "tier": "W2",
+    "relation": "vgs_gate",
+    "element": "M5",
+    "known": "gnd",
+    "y_key": null,
+    "order": 2
+   },
+   "gnd": {
+    "tier": "W0",
+    "relation": "rail",
+    "element": null,
+    "known": null,
+    "y_key": null,
+    "order": 0
+   },
+   "vdd": {
+    "tier": "W0",
+    "relation": "rail",
+    "element": null,
+    "known": null,
+    "y_key": null,
+    "order": 1
+   },
+   "vin_n": {
+    "tier": "W2",
+    "relation": "vgs_gate",
+    "element": "M1",
+    "known": "CS",
+    "y_key": null,
+    "order": 8
+   },
+   "vin_p": {
+    "tier": "W4",
+    "relation": "free_window",
+    "element": null,
+    "known": null,
+    "y_key": "vin_p",
+    "order": 6
+   }
+  }
+ },
+ "dc_inputs": {
+  "supplies_v": [
+   [
+    "gnd",
+    0.0
+   ],
+   [
+    "vdd",
+    1.8
+   ]
+  ],
+  "input_dc_v": null,
+  "node_targets": [],
+  "element_values": [
+   [
+    "CL",
+    3e-12
+   ],
+   [
+    "Cc",
+    null
+   ],
+   [
+    "Rz",
+    null
+   ]
+  ],
+  "linear_devices": [],
+  "pending": [
+   [
+    "human.input_dc",
+    "SP-2"
+   ],
+   [
+    "human.intended_region",
+    "CI-18"
+   ],
+   [
+    "human.node_voltage_targets_v",
+    "CI-15"
+   ],
+   [
+    "human.objective.budgets",
+    "PA-1"
+   ],
+   [
+    "human.search.front_budget_s",
+    "PA-2"
+   ],
+   [
+    "human.spice_check.front_points_rule",
+    "AC-3"
+   ]
+  ],
+  "engine_elements": [
+   "Cc",
+   "Rz"
+  ]
+ },
+ "ss_ground": [
+  "bias",
+  "gnd",
+  "vdd"
+ ],
+ "ss_inputs": [
+  "vin_n",
+  "vin_p"
+ ],
+ "outputs": [
+  "OUT"
+ ],
+ "rails": {
+  "gnd": 0.0,
+  "vdd": 1.8
+ },
+ "fixed_values": [],
+ "resistor_values": [],
+ "values": {
+  "gnd": 0.0,
+  "vdd": 1.8,
+  "CS": 0.5348353109151925,
+  "D3": 1.0721471111420595,
+  "N_cc_rz": 1.109043848141818,
+  "O1": 1.109043848141818,
+  "OUT": 0.9,
+  "bias": 0.5520428315383036,
+  "vin_n": 1.155642973448582,
+  "vin_p": 1.1533439589517016
+ },
+ "linear_devices": [],
+ "writers": {
+  "CS": [
+   "vgs_source",
+   "M2",
+   "vin_p"
+  ],
+  "D3": [
+   "vgs_gate",
+   "M3",
+   "vdd"
+  ],
+  "N_cc_rz": [
+   "resistor_drop",
+   "Rz",
+   "O1"
+  ],
+  "O1": [
+   "vgs_gate",
+   "M6",
+   "vdd"
+  ],
+  "OUT": [
+   "free_window",
+   null,
+   null
+  ],
+  "bias": [
+   "vgs_gate",
+   "M5",
+   "gnd"
+  ],
+  "gnd": [
+   "rail",
+   null,
+   null
+  ],
+  "vdd": [
+   "rail",
+   null,
+   null
+  ],
+  "vin_n": [
+   "vgs_gate",
+   "M1",
+   "CS"
+  ],
+  "vin_p": [
+   "free_window",
+   null,
+   null
+  ]
+ },
+ "rows": [
+  {
+   "device": "M2",
+   "kind": "nmos",
+   "pins": {
+    "d": "O1",
+    "g": "vin_p",
+    "s": "CS"
+   },
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "w_key": 1000,
+   "a": "O1",
+   "b": "CS",
+   "sign": 1.0,
+   "slack": 0.5257790589611342,
+   "row_kind": "sat",
+   "vgs": 0.6185086480365091,
+   "vds": 0.5742085372266253,
+   "vsb": 0.5348353109151925,
+   "vdsat": 0.046549524103916044,
+   "tol": 0.0018799541615751036
+  },
+  {
+   "device": "M1",
+   "kind": "nmos",
+   "pins": {
+    "d": "D3",
+    "g": "vin_n",
+    "s": "CS"
+   },
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "w_key": 1000,
+   "a": "D3",
+   "b": "CS",
+   "sign": 1.0,
+   "slack": 0.48886925447852947,
+   "row_kind": "sat",
+   "vgs": 0.6208076625333895,
+   "vds": 0.537311800226867,
+   "vsb": 0.5348353109151925,
+   "vdsat": 0.0465808076148534,
+   "tol": 0.001861738133484142
+  },
+  {
+   "device": "M5",
+   "kind": "nmos",
+   "pins": {
+    "d": "CS",
+    "g": "bias",
+    "s": "gnd"
+   },
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "w_key": 1000,
+   "a": "CS",
+   "b": "gnd",
+   "sign": 1.0,
+   "slack": 0.48885966389399793,
+   "row_kind": "sat",
+   "vgs": 0.5520428315383036,
+   "vds": 0.5348353109151925,
+   "vsb": 0.0,
+   "vdsat": 0.044113908887710475,
+   "tol": 0.001861738133484142
+  },
+  {
+   "device": "M7",
+   "kind": "nmos",
+   "pins": {
+    "d": "OUT",
+    "g": "bias",
+    "s": "gnd"
+   },
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "w_key": 1000,
+   "a": "OUT",
+   "b": "gnd",
+   "sign": 1.0,
+   "slack": 0.8538225058177105,
+   "row_kind": "sat",
+   "vgs": 0.5520428315383036,
+   "vds": 0.9,
+   "vsb": 0.0,
+   "vdsat": 0.04413094144338708,
+   "tol": 0.0020465527389025018
+  },
+  {
+   "device": "M4",
+   "kind": "pmos",
+   "pins": {
+    "d": "O1",
+    "g": "D3",
+    "s": "vdd"
+   },
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "w_key": 1000,
+   "a": "O1",
+   "b": "vdd",
+   "sign": -1.0,
+   "slack": 0.5864813630882495,
+   "row_kind": "sat",
+   "vgs": 0.7278528888579405,
+   "vds": 0.6909561518581822,
+   "vsb": -0.0,
+   "vdsat": 0.08775522273162664,
+   "tol": 0.01671956603830599
+  },
+  {
+   "device": "M6",
+   "kind": "pmos",
+   "pins": {
+    "d": "OUT",
+    "g": "O1",
+    "s": "vdd"
+   },
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "w_key": 1000,
+   "a": "OUT",
+   "b": "vdd",
+   "sign": -1.0,
+   "slack": 0.7975304053589596,
+   "row_kind": "sat",
+   "vgs": 0.6909561518581822,
+   "vds": 0.9,
+   "vsb": -0.0,
+   "vdsat": 0.0826666113134373,
+   "tol": 0.01980298332760315
+  },
+  {
+   "device": "M3",
+   "kind": "pmos",
+   "pins": {
+    "d": "D3",
+    "g": "D3",
+    "s": "vdd"
+   },
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "w_key": 1000,
+   "a": "D3",
+   "b": "vdd",
+   "sign": -1.0,
+   "slack": 0.6210147861313127,
+   "row_kind": "sat",
+   "vgs": 0.7278528888579405,
+   "vds": 0.7278528888579405,
+   "vsb": -0.0,
+   "vdsat": 0.08957228004898804,
+   "tol": 0.017265822677639847
+  }
+ ],
+ "T": {
+  "vin_n": -41.33335042533163,
+  "vin_p": 41.78486427793813
+ },
+ "inv": "vin_n",
+ "non": "vin_p",
+ "out_writer_head": [
+  "OUT",
+  "free_window"
+ ],
+ "theta_follower": {
+  "dlo": -0.5839272151901632,
+  "dhi": 0.5529252427102797,
+  "slope": {
+   "bias": -0.04848865202256084,
+   "D3": 0.0,
+   "O1": -0.11371161695695237,
+   "N_cc_rz": -0.11371161695695237,
+   "vin_p": 1.0,
+   "CS": 0.8371928061869743,
+   "vin_n": 1.0,
+   "OUT": 1.0
+  }
+ },
+ "theta_follower_inv_fixed": {
+  "dlo": -0.5839272151901632,
+  "dhi": 0.5529252427102797,
+  "slope": {
+   "bias": -0.04848865202256084,
+   "D3": 0.0,
+   "O1": -0.11371161695695237,
+   "N_cc_rz": -0.11371161695695237,
+   "vin_p": 1.0,
+   "CS": 0.8371928061869743,
+   "vin_n": 0.9952504238418762,
+   "OUT": 1.0
+  }
+ },
+ "kcl_follower": {
+  "dlo": -0.6150190250239966,
+  "dhi": 0.5431001958000727,
+  "slope": {
+   "CS": 0.7948691731526902,
+   "O1": -0.17323774897164856,
+   "D3": -0.05832006965954434,
+   "bias": 0.0,
+   "N_cc_rz": -0.17323774897165034,
+   "vin_p": 1.0,
+   "vin_n": 0.9870436395446438,
+   "OUT": 0.9870436395446447,
+   "gnd": 0.0,
+   "vdd": 0.0
+  },
+  "u": 0.9870436395446438,
+  "vx": {
+   "CS": 0.23258388648082334,
+   "O1": -7.333734334112561,
+   "D3": 0.3829542087506929,
+   "bias": 0.0,
+   "N_cc_rz": -7.3337343341125605,
+   "vin_p": 1.0,
+   "vin_n": 0.0,
+   "OUT": 41.78486427793813,
+   "gnd": 0.0,
+   "vdd": 0.0
+  },
+  "vu": {
+   "CS": 0.5696660858189289,
+   "O1": 7.254488351137432,
+   "D3": -0.44706663487929654,
+   "bias": 0.0,
+   "N_cc_rz": 7.25448835113743,
+   "vin_p": 0.0,
+   "vin_n": 1.0,
+   "OUT": -41.33335042533163,
+   "gnd": 0.0,
+   "vdd": 0.0
+  }
+ },
+ "writer_grad_non": [
+  0.9,
+  {}
+ ],
+ "theta_s2": {
+  "bias": 0.0003383611720424779,
+  "D3": 0.0,
+  "O1": -0.11371161695695237,
+  "N_cc_rz": -0.11371161695695237,
+  "vin_p": 0.0,
+  "CS": -0.005842058446895036,
+  "vin_n": -0.006945008488382495,
+  "OUT": 1.0
+ }
+}

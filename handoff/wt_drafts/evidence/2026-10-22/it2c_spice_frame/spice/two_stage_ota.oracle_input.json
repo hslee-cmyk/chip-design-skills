@@ -1,0 +1,336 @@
+{
+ "schema": "spice_oracle_input/1",
+ "circuit": "two_stage_ota",
+ "process": {
+  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2\\sky130_nfet_pfet_lut_v2_r2.npz",
+  "ngspice_exe": "C:\\ngspice\\Spice64\\bin\\ngspice_con.exe",
+  "models": {
+   "nmos": {
+    "subckt": "sky130_fd_pr__nfet_01v8",
+    "includes": [
+     "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__{corner}.pm3.spice",
+     "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__nfet_01v8[{param}]",
+    "polarity": "n"
+   },
+   "pmos": {
+    "subckt": "sky130_fd_pr__pfet_01v8",
+    "includes": [
+     "C:\\pdk\\sky130_fd_pr\\models\\parameters\\lod.spice",
+     "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__{corner}.pm3.spice",
+     "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__pfet_01v8[{param}]",
+    "polarity": "p"
+   }
+  },
+  "diffusion": {
+   "ad_per_w_m": 5e-07,
+   "pd_extra_m": 2.0000000000000003e-06
+  },
+  "lut_reference_width_m": 4.9999999999999996e-06,
+  "provenance": "LUT 생성기 assets\\sky130_lut_sweep.py 공개 상수 + DUT/include/probe 줄"
+ },
+ "rails": [
+  {
+   "net": "vdd",
+   "voltage": 1.8
+  },
+  {
+   "net": "gnd",
+   "voltage": 0.0,
+   "reference": true
+  }
+ ],
+ "devices": [
+  {
+   "name": "M3",
+   "kind": "pmos",
+   "drain": "D3",
+   "gate": "D3",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 8.799702685306263e-07,
+   "n_fingers": 1,
+   "W": 8.799702685306263e-07
+  },
+  {
+   "name": "M4",
+   "kind": "pmos",
+   "drain": "O1",
+   "gate": "D3",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 9.334139016254308e-07,
+   "n_fingers": 1,
+   "W": 9.334139016254308e-07
+  },
+  {
+   "name": "M6",
+   "kind": "pmos",
+   "drain": "OUT",
+   "gate": "O1",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 1.0013032107369875e-06,
+   "n_fingers": 31,
+   "W": 3.1040399532846613e-05
+  },
+  {
+   "name": "M1",
+   "kind": "nmos",
+   "drain": "D3",
+   "gate": "vin_n",
+   "source": "CS",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.0621905624754648e-06,
+   "n_fingers": 8,
+   "W": 8.497524499803719e-06
+  },
+  {
+   "name": "M2",
+   "kind": "nmos",
+   "drain": "O1",
+   "gate": "vin_p",
+   "source": "CS",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.0621905624754648e-06,
+   "n_fingers": 8,
+   "W": 8.497524499803719e-06
+  },
+  {
+   "name": "M5",
+   "kind": "nmos",
+   "drain": "CS",
+   "gate": "bias",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.0828626260009457e-06,
+   "n_fingers": 11,
+   "W": 1.1911488886010403e-05
+  },
+  {
+   "name": "M7",
+   "kind": "nmos",
+   "drain": "OUT",
+   "gate": "bias",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.0018224784938635e-06,
+   "n_fingers": 110,
+   "W": 0.00011020047263432498
+  }
+ ],
+ "sources": [],
+ "passives": [
+  {
+   "name": "Rz",
+   "kind": "resistor",
+   "terminals": [
+    "O1",
+    "N_cc_rz"
+   ],
+   "value": 2716.297717445273,
+   "value_basis": "엔진 봉인점 device.passive_value"
+  },
+  {
+   "name": "CL",
+   "kind": "capacitor",
+   "terminals": [
+    "OUT",
+    "gnd"
+   ],
+   "value": 3e-12,
+   "value_basis": "topology value_farad"
+  },
+  {
+   "name": "Cc",
+   "kind": "capacitor",
+   "terminals": [
+    "N_cc_rz",
+    "OUT"
+   ],
+   "value": 3.8417660008417153e-13,
+   "value_basis": "엔진 봉인점 device.passive_value"
+  }
+ ],
+ "bias_voltages": [
+  {
+   "net": "bias",
+   "value": 0.5520428315383036
+  }
+ ],
+ "feedback_passives": [],
+ "feedback_passives_basis": "legacy_c12_input_net_passives",
+ "ports": {
+  "input_p": "vin_p",
+  "input_n": "vin_n",
+  "output": "OUT"
+ },
+ "predictions": {
+  "nodes": {
+   "gnd": 0.0,
+   "vdd": 1.8,
+   "CS": 0.5348353109151925,
+   "D3": 1.0721471111420595,
+   "N_cc_rz": 1.109043848141818,
+   "O1": 1.109043848141818,
+   "OUT": 0.9,
+   "bias": 0.5520428315383036,
+   "vin_n": 1.155642973448582,
+   "vin_p": 1.1533439589517016
+  },
+  "devices": {
+   "M3": {
+    "ID": 9.005108923997329e-07,
+    "VGS": 0.7278528888579405,
+    "VDS": 0.7278528888579405,
+    "VSB": -0.0,
+    "gm": 1.302762134721505e-05,
+    "gds": 1.5072616091694571e-06,
+    "gm_id": 14.46692256270027,
+    "region": "sat"
+   },
+   "M4": {
+    "ID": 9.005108923997329e-07,
+    "VGS": 0.7278528888579405,
+    "VDS": 0.6909561518581822,
+    "VSB": -0.0,
+    "gm": 1.3118123494276824e-05,
+    "gds": 1.5188332430431565e-06,
+    "gm_id": 14.567423453722919,
+    "region": "sat"
+   },
+   "M6": {
+    "ID": 2.4828960507132635e-05,
+    "VGS": 0.6909561518581822,
+    "VDS": 0.9,
+    "VSB": -0.0,
+    "gm": 0.00036814815753720767,
+    "gds": 4.18627222732786e-05,
+    "gm_id": 14.827368927968188,
+    "region": "sat"
+   },
+   "M1": {
+    "ID": 9.005108923997329e-07,
+    "VGS": 0.6208076625333895,
+    "VDS": 0.537311800226867,
+    "VSB": 0.5348353109151925,
+    "gm": 2.2059351363621954e-05,
+    "gds": 1.392059023968871e-06,
+    "gm_id": 24.49648477303471,
+    "region": "sat"
+   },
+   "M2": {
+    "ID": 9.005108923997329e-07,
+    "VGS": 0.6185086480365091,
+    "VDS": 0.5742085372266253,
+    "VSB": 0.5348353109151925,
+    "gm": 2.2047266132064212e-05,
+    "gds": 1.343100912566215e-06,
+    "gm_id": 24.48306435618052,
+    "region": "sat"
+   },
+   "M5": {
+    "ID": 1.8010217847994657e-06,
+    "VGS": 0.5520428315383036,
+    "VDS": 0.5348353109151925,
+    "VSB": 0.0,
+    "gm": 4.07461481755572e-05,
+    "gds": 2.359941205351258e-06,
+    "gm_id": 22.62390633997471,
+    "region": "sat"
+   },
+   "M7": {
+    "ID": 2.4828960507132635e-05,
+    "VGS": 0.5520428315383036,
+    "VDS": 0.9,
+    "VSB": 0.0,
+    "gm": 0.0005523822120372459,
+    "gds": 2.2751602306361422e-05,
+    "gm_id": 22.24749650226245,
+    "region": "sat"
+   }
+  },
+  "metrics": []
+ },
+ "acceptance": {
+  "constraints": [
+   {
+    "name": "gain_db",
+    "measure": "dc_gain_db",
+    "op": ">=",
+    "limit": 57.0,
+    "basis": "topology constraint (user_spec)"
+   }
+  ],
+  "not_measurable": [
+   "mismatch_sigma_mV"
+  ]
+ },
+ "testbench": {
+  "dc_choke_H": 1000000000000.0,
+  "loop_dc_choke_H": 1e+20,
+  "ac_couple_F": 1.0,
+  "nodeset_from_predictions": true,
+  "nodeset_per_line": 8,
+  "options": {
+   "gmin": "1e-15",
+   "reltol": "1e-4",
+   "abstol": "1e-14",
+   "vntol": "1e-7",
+   "itl1": "500",
+   "itl2": "500"
+  },
+  "ac": {
+   "fstart_hz": 0.01,
+   "fstop_hz": 10000000000.0,
+   "points_per_decade": 40,
+   "input_p_ac": 0.5,
+   "input_n_ac": -0.5,
+   "input_ac": 1.0,
+   "diff_feedback_gain": 0.5
+  }
+ },
+ "judge": {},
+ "topology": {
+  "path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_it2c\\src\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota.topology.json",
+  "sha256": "8458c540c98b1e05a5048b06c094d70d48ce1ba9eeca561954de3d8ac9b4e81c"
+ },
+ "provenance": {
+  "adapter": "legacy_adapter.py",
+  "engine": "legacy (skills/analog-gmid-design/legacy)",
+  "w_source": "layout",
+  "isrc": "topology",
+  "topology": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_it2c\\src\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota.topology.json",
+  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2\\sky130_nfet_pfet_lut_v2_r2.npz",
+  "metrics_unmapped": [],
+  "warnings": [],
+  "blockers": [
+   "커패시터 Cc 값 없음"
+  ],
+  "engine_metrics_raw": {},
+  "theta_star": {},
+  "it2c_passive_fix": [
+   [
+    "Rz",
+    1000000000.0,
+    2716.297717445273
+   ],
+   [
+    "Cc",
+    null,
+    3.8417660008417153e-13
+   ]
+  ],
+  "it2c_bulk_mismatch": []
+ }
+}

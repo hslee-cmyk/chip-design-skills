@@ -1,0 +1,20 @@
+.F..                                                                     [100%]
+================================== FAILURES ===================================
+___________________ test_size_transistor_calls_new_function ___________________
+
+    def test_size_transistor_calls_new_function():
+        # oracle (a): 현재 sizing_recipe AST가 입력, 기대값은 'size_transistor 본문에 width_from_id_density 호출 1개 이상'(계약 3).
+        files = defining_files(_CANON_FUNC)
+>       assert len(files) == 1, f"{_CANON_FUNC} 정의 파일이 정확히 하나가 아니다(R-DEF): {[_rel(x) for x in files]}"
+E       AssertionError: size_transistor 정의 파일이 정확히 하나가 아니다(R-DEF): ['skills/analog-gmid-design/assets/sizing_recipe.py', 'skills/analog-gmid-design/assets/zz_loc_free_probe.py']
+E       assert 2 == 1
+E        +  where 2 = len([WindowsPath('C:/g150/s_copy_new/skills/analog-gmid-design/assets/sizing_recipe.py'), WindowsPath('C:/g150/s_copy_new/skills/analog-gmid-design/assets/zz_loc_free_probe.py')])
+
+C:\g150\s_copy_new\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py:444: AssertionError
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g150\s_copy_new\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_gate_docstring_declares_blind_spots
+PASSED ..\..\..\..\..\..\g150\s_copy_new\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_sizing_recipe_source_has_no_l_role_multipliers
+PASSED ..\..\..\..\..\..\g150\s_copy_new\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller
+FAILED ..\..\..\..\..\..\g150\s_copy_new\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_size_transistor_calls_new_function
+1 failed, 3 passed in 10.19s

@@ -1,0 +1,2845 @@
+{
+ "rev": "629b09ae3be3a58240f9951d6f6af462e5dfe00f",
+ "import_bound_counts": {
+  "topology_library": 8,
+  "sizing_recipe": 243,
+  "design_report": 9
+ },
+ "hits": [
+  {
+   "file": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py",
+   "line": 198,
+   "module": "sizing_recipe",
+   "name": "_load_full_topology_cached",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py",
+   "line": 637,
+   "module": "sizing_recipe",
+   "name": "gain_stage_tails",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py",
+   "line": 643,
+   "module": "sizing_recipe",
+   "name": "signal_path_nodes",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py",
+   "line": 29,
+   "module": "sizing_recipe",
+   "name": "_DEFAULT_RAIL_HI",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py",
+   "line": 29,
+   "module": "sizing_recipe",
+   "name": "_DEFAULT_RAIL_LO",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py",
+   "line": 285,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py",
+   "line": 370,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py",
+   "line": 199,
+   "module": "sizing_recipe",
+   "name": "_load_full_topology_cached",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py",
+   "line": 465,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py",
+   "line": 640,
+   "module": "sizing_recipe",
+   "name": "true_current_mirror_groups",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/conftest.py",
+   "line": 160,
+   "module": "sizing_recipe",
+   "name": "build_toy_lut",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probe_physical_consistency.py",
+   "line": 42,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py",
+   "line": 59,
+   "module": "sizing_recipe",
+   "name": "_build_theta_evaluator",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py",
+   "line": 60,
+   "module": "sizing_recipe",
+   "name": "presolve_warm_start",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py",
+   "line": 46,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_allocation_solvers.py",
+   "line": 30,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_allocation_solvers.py",
+   "line": 41,
+   "module": "sizing_recipe",
+   "name": "size_transistor",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py",
+   "line": 84,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py",
+   "line": 60,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py",
+   "line": 85,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py",
+   "line": 99,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py",
+   "line": 95,
+   "module": "sizing_recipe",
+   "name": "diode_vds_window",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py",
+   "line": 104,
+   "module": "sizing_recipe",
+   "name": "diode_vds_window",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py",
+   "line": 56,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py",
+   "line": 116,
+   "module": "sizing_recipe",
+   "name": "diode_vds_window",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py",
+   "line": 130,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py",
+   "line": 107,
+   "module": "sizing_recipe",
+   "name": "_build_theta_evaluator",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py",
+   "line": 67,
+   "module": "sizing_recipe",
+   "name": "_DEFAULT_MIN_VDS_FALLBACK",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py",
+   "line": 80,
+   "module": "sizing_recipe",
+   "name": "_build_theta_evaluator",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py",
+   "line": 87,
+   "module": "sizing_recipe",
+   "name": "InfeasibleSizingError",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py",
+   "line": 52,
+   "module": "sizing_recipe",
+   "name": "_hr_resolve_vertical_group",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py",
+   "line": 63,
+   "module": "sizing_recipe",
+   "name": "_hr_resolve_vertical_group",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py",
+   "line": 44,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py",
+   "line": 66,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py",
+   "line": 81,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py",
+   "line": 46,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py",
+   "line": 34,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py",
+   "line": 40,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py",
+   "line": 75,
+   "module": "sizing_recipe",
+   "name": "DiodeSelfConsistencyError",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py",
+   "line": 46,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py",
+   "line": 74,
+   "module": "sizing_recipe",
+   "name": "solve_diode_connected_vds",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py",
+   "line": 58,
+   "module": "sizing_recipe",
+   "name": "DiodeSelfConsistencyError",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py",
+   "line": 57,
+   "module": "sizing_recipe",
+   "name": "solve_diode_connected_vds",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py",
+   "line": 69,
+   "module": "sizing_recipe",
+   "name": "apply_diode_self_consistent_gm_id",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py",
+   "line": 94,
+   "module": "sizing_recipe",
+   "name": "apply_diode_self_consistent_gm_id",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py",
+   "line": 62,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py",
+   "line": 97,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py",
+   "line": 113,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py",
+   "line": 63,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py",
+   "line": 78,
+   "module": "sizing_recipe",
+   "name": "_AUTHORITATIVE_GM_ID_SOURCES",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py",
+   "line": 44,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py",
+   "line": 50,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py",
+   "line": 74,
+   "module": "sizing_recipe",
+   "name": "DiodeSelfConsistencyError",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py",
+   "line": 69,
+   "module": "sizing_recipe",
+   "name": "solve_diode_connected_vds",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py",
+   "line": 57,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py",
+   "line": 54,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py",
+   "line": 63,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py",
+   "line": 56,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py",
+   "line": 73,
+   "module": "sizing_recipe",
+   "name": "size_transistor",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py",
+   "line": 86,
+   "module": "sizing_recipe",
+   "name": "allocate_stack_headroom",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py",
+   "line": 87,
+   "module": "sizing_recipe",
+   "name": "diode_vds_window",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py",
+   "line": 83,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py",
+   "line": 100,
+   "module": "sizing_recipe",
+   "name": "diode_vds_window",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py",
+   "line": 70,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py",
+   "line": 108,
+   "module": "sizing_recipe",
+   "name": "diode_vds_window",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py",
+   "line": 84,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py",
+   "line": 102,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_full_research.py",
+   "line": 140,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_full_research.py",
+   "line": 142,
+   "module": "sizing_recipe",
+   "name": "audit_vsb_consistency",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_full_research.py",
+   "line": 52,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_full_research.py",
+   "line": 71,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_gmid_gain_landscape.py",
+   "line": 25,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_gmid_gain_landscape.py",
+   "line": 90,
+   "module": "sizing_recipe",
+   "name": "size_transistor",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py",
+   "line": 87,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py",
+   "line": 97,
+   "module": "sizing_recipe",
+   "name": "_multilinear_interp",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py",
+   "line": 98,
+   "module": "sizing_recipe",
+   "name": "_multilinear_interp",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py",
+   "line": 99,
+   "module": "sizing_recipe",
+   "name": "_multilinear_interp",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py",
+   "line": 100,
+   "module": "sizing_recipe",
+   "name": "_multilinear_interp",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py",
+   "line": 188,
+   "module": "sizing_recipe",
+   "name": "_multilinear_interp",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py",
+   "line": 189,
+   "module": "sizing_recipe",
+   "name": "_multilinear_interp",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_l5c_stage2out_L.py",
+   "line": 72,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_l5c_stage2out_L.py",
+   "line": 103,
+   "module": "sizing_recipe",
+   "name": "_build_theta_evaluator",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py",
+   "line": 54,
+   "module": "sizing_recipe",
+   "name": "_build_theta_evaluator",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py",
+   "line": 83,
+   "module": "sizing_recipe",
+   "name": "presolve_warm_start",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py",
+   "line": 65,
+   "module": "sizing_recipe",
+   "name": "_metric_device_footprint",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py",
+   "line": 114,
+   "module": "sizing_recipe",
+   "name": "_optimize_theta_slsqp",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py",
+   "line": 124,
+   "module": "sizing_recipe",
+   "name": "_optimize_theta_slsqp",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py",
+   "line": 126,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py",
+   "line": 99,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py",
+   "line": 74,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py",
+   "line": 100,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py",
+   "line": 59,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py",
+   "line": 101,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py",
+   "line": 114,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py",
+   "line": 30,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py",
+   "line": 34,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py",
+   "line": 43,
+   "module": "sizing_recipe",
+   "name": "SizingContext",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py",
+   "line": 37,
+   "module": "sizing_recipe",
+   "name": "SizingContext",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py",
+   "line": 52,
+   "module": "sizing_recipe",
+   "name": "compute_metric",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py",
+   "line": 56,
+   "module": "sizing_recipe",
+   "name": "compute_metric",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py",
+   "line": 60,
+   "module": "sizing_recipe",
+   "name": "compute_metric",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_common_L.py",
+   "line": 62,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py",
+   "line": 144,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py",
+   "line": 117,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py",
+   "line": 137,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py",
+   "line": 165,
+   "module": "sizing_recipe",
+   "name": "true_current_mirror_groups",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py",
+   "line": 171,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py",
+   "line": 138,
+   "module": "sizing_recipe",
+   "name": "_build_theta_evaluator",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py",
+   "line": 112,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py",
+   "line": 132,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py",
+   "line": 158,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py",
+   "line": 161,
+   "module": "sizing_recipe",
+   "name": "true_current_mirror_groups",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py",
+   "line": 167,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py",
+   "line": 328,
+   "module": "sizing_recipe",
+   "name": "compute_metric",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py",
+   "line": 265,
+   "module": "sizing_recipe",
+   "name": "compute_metric",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_infeasibility.py",
+   "line": 52,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py",
+   "line": 61,
+   "module": "sizing_recipe",
+   "name": "_build_theta_evaluator",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py",
+   "line": 70,
+   "module": "sizing_recipe",
+   "name": "_matching_pairs_cached",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py",
+   "line": 118,
+   "module": "sizing_recipe",
+   "name": "estimate_mismatch_sigma",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_error.py",
+   "line": 84,
+   "module": "sizing_recipe",
+   "name": "estimate_mismatch_sigma",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_error.py",
+   "line": 85,
+   "module": "sizing_recipe",
+   "name": "estimate_mismatch_sigma",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_error.py",
+   "line": 89,
+   "module": "sizing_recipe",
+   "name": "_METRIC_UNITS",
+   "bound_by": "from topology_authoring",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py",
+   "line": 84,
+   "module": "sizing_recipe",
+   "name": "_build_theta_evaluator",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py",
+   "line": 58,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py",
+   "line": 78,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py",
+   "line": 96,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py",
+   "line": 126,
+   "module": "sizing_recipe",
+   "name": "_gm_id_already_authoritative",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py",
+   "line": 99,
+   "module": "sizing_recipe",
+   "name": "true_current_mirror_groups",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py",
+   "line": 105,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py",
+   "line": 107,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py",
+   "line": 110,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py",
+   "line": 112,
+   "module": "sizing_recipe",
+   "name": "true_current_mirror_groups",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py",
+   "line": 94,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py",
+   "line": 145,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py",
+   "line": 46,
+   "module": "sizing_recipe",
+   "name": "_build_theta_evaluator",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py",
+   "line": 54,
+   "module": "sizing_recipe",
+   "name": "presolve_warm_start",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py",
+   "line": 32,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py",
+   "line": 30,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py",
+   "line": 36,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py",
+   "line": 50,
+   "module": "sizing_recipe",
+   "name": "DiodeSelfConsistencyError",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py",
+   "line": 42,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py",
+   "line": 49,
+   "module": "sizing_recipe",
+   "name": "solve_diode_connected_vds",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_stacked_diode_options.py",
+   "line": 66,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py",
+   "line": 44,
+   "module": "sizing_recipe",
+   "name": "_DEFAULT_RAIL_HI",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py",
+   "line": 45,
+   "module": "sizing_recipe",
+   "name": "_DEFAULT_RAIL_LO",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py",
+   "line": 39,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py",
+   "line": 69,
+   "module": "sizing_recipe",
+   "name": "_metric_supply_current",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py",
+   "line": 69,
+   "module": "sizing_recipe",
+   "name": "SizingContext",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 36,
+   "module": "sizing_recipe",
+   "name": "resolve_feed_vds",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 47,
+   "module": "sizing_recipe",
+   "name": "resolve_feed_vds",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 49,
+   "module": "sizing_recipe",
+   "name": "_feed_vds_fallback",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 53,
+   "module": "sizing_recipe",
+   "name": "_feed_vds_fallback",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 55,
+   "module": "sizing_recipe",
+   "name": "allocate_stack_headroom",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 62,
+   "module": "sizing_recipe",
+   "name": "allocate_stack_headroom",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 75,
+   "module": "sizing_recipe",
+   "name": "_hr_resolve_vertical_group",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 79,
+   "module": "sizing_recipe",
+   "name": "_hr_resolve_vertical_group",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 56,
+   "module": "sizing_recipe",
+   "name": "DEFAULT_POLICY",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 73,
+   "module": "sizing_recipe",
+   "name": "_metric_stage_budget_vds_by_device",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 117,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 87,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 102,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 128,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py",
+   "line": 68,
+   "module": "sizing_recipe",
+   "name": "spec_fingerprint",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py",
+   "line": 69,
+   "module": "sizing_recipe",
+   "name": "load_derived_bounds",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py",
+   "line": 112,
+   "module": "sizing_recipe",
+   "name": "derived_bounds_path",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py",
+   "line": 78,
+   "module": "sizing_recipe",
+   "name": "achievable_metric_bound",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/tools/regression_runner.py",
+   "line": 17,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/tools/regression_runner.py",
+   "line": 17,
+   "module": "sizing_recipe",
+   "name": "_COMPENSATION_REGISTRY",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/tools/regression_runner.py",
+   "line": 17,
+   "module": "sizing_recipe",
+   "name": "optimize_multistage",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py",
+   "line": 157,
+   "module": "sizing_recipe",
+   "name": "InfeasibleSizingError",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py",
+   "line": 155,
+   "module": "sizing_recipe",
+   "name": "_build_theta_evaluator",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py",
+   "line": 175,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+   "line": 156,
+   "module": "sizing_recipe",
+   "name": "_load_full_topology_cached",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+   "line": 159,
+   "module": "sizing_recipe",
+   "name": "signal_path_nodes",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+   "line": 134,
+   "module": "sizing_recipe",
+   "name": "_load_full_topology_cached",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+   "line": 181,
+   "module": "sizing_recipe",
+   "name": "_load_full_topology_cached",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+   "line": 231,
+   "module": "sizing_recipe",
+   "name": "_load_full_topology_cached",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+   "line": 138,
+   "module": "sizing_recipe",
+   "name": "signal_path_nodes",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+   "line": 140,
+   "module": "sizing_recipe",
+   "name": "signal_path_nodes",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+   "line": 188,
+   "module": "sizing_recipe",
+   "name": "node_pole_estimate",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+   "line": 235,
+   "module": "sizing_recipe",
+   "name": "signal_path_nodes",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+   "line": 236,
+   "module": "sizing_recipe",
+   "name": "node_pole_estimate",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+   "line": 184,
+   "module": "sizing_recipe",
+   "name": "signal_path_nodes",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py",
+   "line": 83,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py",
+   "line": 84,
+   "module": "sizing_recipe",
+   "name": "is_diode_connected",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 103,
+   "module": "sizing_recipe",
+   "name": "_collect_device_refs",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 118,
+   "module": "sizing_recipe",
+   "name": "size_transistor",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 119,
+   "module": "sizing_recipe",
+   "name": "size_transistor",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 139,
+   "module": "sizing_recipe",
+   "name": "_collect_device_refs",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 142,
+   "module": "sizing_recipe",
+   "name": "_collect_device_refs",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 144,
+   "module": "sizing_recipe",
+   "name": "compute_metric",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 145,
+   "module": "sizing_recipe",
+   "name": "SizingContext",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 147,
+   "module": "sizing_recipe",
+   "name": "compute_metric",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 169,
+   "module": "sizing_recipe",
+   "name": "revalidate_finger_override",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 67,
+   "module": "sizing_recipe",
+   "name": "_collect_device_refs",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 121,
+   "module": "sizing_recipe",
+   "name": "SizingContext",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+   "line": 86,
+   "module": "sizing_recipe",
+   "name": "_collect_device_refs",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py",
+   "line": 79,
+   "module": "sizing_recipe",
+   "name": "_L_ROLE_TARGETS",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py",
+   "line": 96,
+   "module": "sizing_recipe",
+   "name": "_L_ROLE_TARGETS",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py",
+   "line": 24,
+   "module": "design_report",
+   "name": "assemble_report_data",
+   "bound_by": "from instance_report_builder",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py",
+   "line": 24,
+   "module": "design_report",
+   "name": "build_topology_device_table",
+   "bound_by": "from instance_report_builder",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py",
+   "line": 24,
+   "module": "design_report",
+   "name": "render_html_report",
+   "bound_by": "from instance_report_builder",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "SizingContext",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "Transistor",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "_COMPENSATION_REGISTRY",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "_blocked_euler_rows",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "_build_theta_evaluator",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "_full_circuit_response",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "_group_score_interior",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "_group_score_metric",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "_invert_gm_id_for_current",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "_lerp",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "_load_full_topology_cached",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "_nmcnr_stage1_rout",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "allocate_stack_headroom",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "apply_and_revalidate_matching_finger_growth",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "apply_and_revalidate_pair_adjustment",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "apply_theta_feed",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "build_toy_lut",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "check_quasi_static",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "compute_metric",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "derive_class_L",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "derive_role_L",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "diagnose_sizing_roles_gap",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "diode_vds_window",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "estimate_area_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "estimate_mismatch_sigma",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "feasible_L_window",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "find_optimal_sizing",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "knee_L_for_kind",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "optimize_multistage",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "propagate_topology_forced_currents",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "require_declared_spec_source",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "resolve_constraint_references",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "resolve_stack_layout",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "revalidate_finger_override",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "run_matching_safety_with_finger_growth",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "run_topology_pipeline_with_finger_fixup",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "search_gm_id_for_role",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "size_transistor",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "solve_diode_connected_vds",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "solve_diode_stack_current",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "solve_id_for_target_gm",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "suggest_matching_finger_growth",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "suggest_pair_finger_adjustments",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "validate_theta_declaration_order",
+   "bound_by": "from circuit_state_graph",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 35,
+   "module": "topology_library",
+   "name": "nmcnr_predict_ac_response",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M4",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "line": 43,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py",
+   "line": 25,
+   "module": "topology_library",
+   "name": "current_reuse_telescopic_topology",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M4",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py",
+   "line": 25,
+   "module": "topology_library",
+   "name": "miller_ota_topology",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M4",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py",
+   "line": 25,
+   "module": "topology_library",
+   "name": "ngcc_3stage_topology",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M4",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py",
+   "line": 25,
+   "module": "topology_library",
+   "name": "nmcnr_3stage_topology",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M4",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py",
+   "line": 25,
+   "module": "topology_library",
+   "name": "nmcnr_check_dominant_pole_approximation",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M4",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py",
+   "line": 25,
+   "module": "topology_library",
+   "name": "nmcnr_compensation_elements",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M4",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py",
+   "line": 25,
+   "module": "topology_library",
+   "name": "nmcnr_predict_ac_response",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M4",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py",
+   "line": 19,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py",
+   "line": 19,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py",
+   "line": 19,
+   "module": "sizing_recipe",
+   "name": "compute_metric",
+   "bound_by": "from circuit_metrics",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py",
+   "line": 19,
+   "module": "sizing_recipe",
+   "name": "SizingContext",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "repair_matching_safety",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py",
+   "line": 12,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py",
+   "line": 12,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py",
+   "line": 12,
+   "module": "sizing_recipe",
+   "name": "search_gm_id_for_role",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py",
+   "line": 20,
+   "module": "sizing_recipe",
+   "name": "repair_matching_safety",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py",
+   "line": 4,
+   "module": "sizing_recipe",
+   "name": "build_toy_lut",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py",
+   "line": 4,
+   "module": "sizing_recipe",
+   "name": "size_transistor",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py",
+   "line": 4,
+   "module": "sizing_recipe",
+   "name": "SizingContext",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py",
+   "line": 4,
+   "module": "sizing_recipe",
+   "name": "run_topology_pipeline_with_finger_fixup",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py",
+   "line": 4,
+   "module": "sizing_recipe",
+   "name": "_blocked_euler_rows",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/resize.py",
+   "line": 20,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/resize.py",
+   "line": 20,
+   "module": "sizing_recipe",
+   "name": "size_transistor",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/resize.py",
+   "line": 20,
+   "module": "sizing_recipe",
+   "name": "gm_from_fT",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py",
+   "line": 9,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py",
+   "line": 9,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py",
+   "line": 16,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py",
+   "line": 16,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py",
+   "line": 10,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py",
+   "line": 10,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py",
+   "line": 27,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py",
+   "line": 27,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py",
+   "line": 29,
+   "module": "design_report",
+   "name": "assemble_report_data",
+   "bound_by": "from instance_report_builder",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py",
+   "line": 29,
+   "module": "design_report",
+   "name": "save_html_report",
+   "bound_by": "from instance_report_builder",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py",
+   "line": 21,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py",
+   "line": 21,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py",
+   "line": 21,
+   "module": "sizing_recipe",
+   "name": "InfeasibleSizingError",
+   "bound_by": "from gmid_sizing_engine",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/run_harness.py",
+   "line": 40,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/run_harness.py",
+   "line": 40,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/run_harness.py",
+   "line": 40,
+   "module": "sizing_recipe",
+   "name": "dense_candidates",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/run_harness.py",
+   "line": 40,
+   "module": "sizing_recipe",
+   "name": "layout_grid_L_candidates",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/run_harness.py",
+   "line": 40,
+   "module": "sizing_recipe",
+   "name": "diagnose_sizing_roles_gap",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/run_harness.py",
+   "line": 43,
+   "module": "design_report",
+   "name": "assemble_report_data",
+   "bound_by": "from instance_report_builder",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/run_harness.py",
+   "line": 43,
+   "module": "design_report",
+   "name": "save_html_report",
+   "bound_by": "from instance_report_builder",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape.py",
+   "line": 18,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape.py",
+   "line": 18,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape.py",
+   "line": 18,
+   "module": "sizing_recipe",
+   "name": "dense_candidates",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape.py",
+   "line": 18,
+   "module": "sizing_recipe",
+   "name": "layout_grid_L_candidates",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape.py",
+   "line": 20,
+   "module": "design_report",
+   "name": "assemble_report_data",
+   "bound_by": "from instance_report_builder",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape.py",
+   "line": 20,
+   "module": "design_report",
+   "name": "save_html_report",
+   "bound_by": "from instance_report_builder",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py",
+   "line": 16,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py",
+   "line": 16,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py",
+   "line": 16,
+   "module": "sizing_recipe",
+   "name": "dense_candidates",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py",
+   "line": 16,
+   "module": "sizing_recipe",
+   "name": "layout_grid_L_candidates",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py",
+   "line": 18,
+   "module": "design_report",
+   "name": "assemble_report_data",
+   "bound_by": "from instance_report_builder",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py",
+   "line": 18,
+   "module": "design_report",
+   "name": "save_html_report",
+   "bound_by": "from instance_report_builder",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/diagnose_gain_sweep.py",
+   "line": 11,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/diagnose_gain_sweep.py",
+   "line": 11,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/diagnose_gain_sweep.py",
+   "line": 11,
+   "module": "sizing_recipe",
+   "name": "dense_candidates",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/diagnose_gain_sweep.py",
+   "line": 11,
+   "module": "sizing_recipe",
+   "name": "layout_grid_L_candidates",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/diagnose_gain_sweep2.py",
+   "line": 14,
+   "module": "sizing_recipe",
+   "name": "SemiEmpiricalGmIdLUT",
+   "bound_by": "from gmid_lut",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/diagnose_gain_sweep2.py",
+   "line": 14,
+   "module": "sizing_recipe",
+   "name": "optimize_full_circuit_budget",
+   "bound_by": "from sizing_layout_convergence",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/diagnose_gain_sweep2.py",
+   "line": 14,
+   "module": "sizing_recipe",
+   "name": "dense_candidates",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/two-stage-ota-report/diagnose_gain_sweep2.py",
+   "line": 14,
+   "module": "sizing_recipe",
+   "name": "layout_grid_L_candidates",
+   "bound_by": "from theta_search",
+   "card": "M8",
+   "how": "from-import"
+  }
+ ]
+}

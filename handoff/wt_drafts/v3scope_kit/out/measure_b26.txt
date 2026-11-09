@@ -1,0 +1,127 @@
+== b26_v4  base ac70ec9f40 head 7140ada24f  (232 s)
+   changed defs 32 (new 1) | all 2442 | N2b(승인 당시) 235 | N2w(이 card) 301
+   N2b: 하한 19.6 분, 상한 12.42 h
+   N2w: 하한 25.1 분, 상한 15.98 h
+   인벤토리 0 대상(N2w) 6, junit 시간 없는 인벤토리 test 4개(상한에 0초로 셈)
+   stick_diagram.py::propose_device_roles_gap_fill                        all= 330 N2b= 34 N2w= 52 inv=138
+   sizing_recipe.py::run_matching_safety_with_finger_growth               all= 100 N2b= 11 N2w= 19 inv=62
+   stick_diagram.py::refine_differential_and_mirror_relations             all=  86 N2b= 13 N2w= 17 inv=145
+   stick_diagram.py::audit_vertical_stack_id_vs_kcl                       all=  56 N2b= 14 N2w= 16 inv=63
+   stick_diagram.py::load_topology                                        all=  65 N2b= 12 N2w= 16 inv=137
+   stick_diagram.py::_branch_composite_pair                               all= 102 N2b=  3 N2w= 15 inv=70
+   stick_diagram.py::rail_declaration                                     all=  14 N2b= 14 N2w= 14 inv=137 (새 def)
+   stick_diagram.py::find_differential_pair_candidates                    all=  65 N2b= 13 N2w= 13 inv=146
+   sizing_recipe.py::optimize_full_circuit_budget                         all= 230 N2b= 10 N2w= 10 inv=60
+   stick_diagram.py::_composite_collapse_for_crossover                    all=  55 N2b=  5 N2w= 10 inv=65
+   stick_diagram.py::_propose_L_roles                                     all=  30 N2b=  9 N2w= 10 inv=145
+   sizing_recipe.py::resolve_stack_layout                                 all=  26 N2b=  8 N2w=  8 inv=61
+   stick_diagram.py::_propose_gm_id_roles                                 all=  26 N2b=  6 N2w=  8 inv=145
+   stick_diagram.py::repair_matching_safety                               all= 112 N2b=  8 N2w=  8 inv=69
+   sizing_recipe.py::run_topology_pipeline_with_finger_fixup              all=  65 N2b=  5 N2w=  7 inv=61
+   stick_diagram.py::run_full_circuit_audit                               all=  53 N2b=  5 N2w=  7 inv=64
+   sizing_recipe.py::_build_theta_evaluator                               all= 498 N2b=  5 N2w=  6 inv=60
+   sizing_recipe.py::_fixup_euler_blocked_rows                            all=  90 N2b=  5 N2w=  6 inv=62
+   sizing_recipe.py::_metric_kcl_residual                                 all=  57 N2b=  6 N2w=  6 inv=0
+   sizing_recipe.py::l_sharing_classes                                    all=  42 N2b=  6 N2w=  6 inv=60
+   sizing_recipe.py::optimize_full_circuit_budget._evaluate_row_split     all=  62 N2b=  6 N2w=  6 inv=60
+   sizing_recipe.py::true_current_mirror_groups                           all=  17 N2b=  5 N2w=  5 inv=60
+   stick_diagram.py::find_min_crossover_layout_with_branch_composite      all=   5 N2b=  3 N2w=  5 inv=64
+   stick_diagram.py::propose_vertical_stack_id_gap_fill                   all=  48 N2b=  4 N2w=  5 inv=140
+   stick_diagram.py::_diff_pair_layer1_groups                             all=  22 N2b=  4 N2w=  4 inv=146
+   stick_diagram.py::_kcl_and_matching_edges                              all=  30 N2b=  4 N2w=  4 inv=144
+   stick_diagram.py::_kcl_branch_map                                      all=   7 N2b=  3 N2w=  4 inv=70
+   stick_diagram.py::find_matching_candidates                             all=  60 N2b=  4 N2w=  4 inv=146
+   stick_diagram.py::check_symmetry_dispositions                          all=  37 N2b=  3 N2w=  3 inv=140
+   stick_diagram.py::run_full_circuit_audit_from_topology                 all=  23 N2b=  3 N2w=  3 inv=63
+   stick_diagram.py::kcl_series_union                                     all=  23 N2b=  2 N2w=  2 inv=72
+   stick_diagram.py::refine_differential_and_mirror_relations.classify    all=   6 N2b=  2 N2w=  2 inv=145
+== b26_review2  base ac70ec9f40 head 3299f4e082  (213 s)
+   changed defs 32 (new 1) | all 2437 | N2b(승인 당시) 265 | N2w(이 card) 330
+   N2b: 하한 22.1 분, 상한 14.10 h
+   N2w: 하한 27.5 분, 상한 17.61 h
+   인벤토리 0 대상(N2w) 6, junit 시간 없는 인벤토리 test 4개(상한에 0초로 셈)
+   stick_diagram.py::propose_device_roles_gap_fill                        all= 327 N2b= 40 N2w= 58 inv=138
+   stick_diagram.py::refine_differential_and_mirror_relations             all=  84 N2b= 37 N2w= 40 inv=145
+   sizing_recipe.py::run_matching_safety_with_finger_growth               all= 100 N2b= 11 N2w= 19 inv=62
+   stick_diagram.py::audit_vertical_stack_id_vs_kcl                       all=  56 N2b= 14 N2w= 16 inv=63
+   stick_diagram.py::load_topology                                        all=  65 N2b= 12 N2w= 16 inv=137
+   stick_diagram.py::_branch_composite_pair                               all= 102 N2b=  3 N2w= 15 inv=70
+   stick_diagram.py::rail_declaration                                     all=  14 N2b= 14 N2w= 14 inv=137 (새 def)
+   stick_diagram.py::find_differential_pair_candidates                    all=  65 N2b= 13 N2w= 13 inv=146
+   sizing_recipe.py::optimize_full_circuit_budget                         all= 230 N2b= 10 N2w= 10 inv=60
+   stick_diagram.py::_composite_collapse_for_crossover                    all=  55 N2b=  5 N2w= 10 inv=65
+   stick_diagram.py::_propose_L_roles                                     all=  30 N2b=  9 N2w= 10 inv=145
+   sizing_recipe.py::resolve_stack_layout                                 all=  26 N2b=  8 N2w=  8 inv=61
+   stick_diagram.py::_propose_gm_id_roles                                 all=  26 N2b=  6 N2w=  8 inv=145
+   stick_diagram.py::repair_matching_safety                               all= 112 N2b=  8 N2w=  8 inv=69
+   sizing_recipe.py::run_topology_pipeline_with_finger_fixup              all=  65 N2b=  5 N2w=  7 inv=61
+   stick_diagram.py::run_full_circuit_audit                               all=  53 N2b=  5 N2w=  7 inv=64
+   sizing_recipe.py::_build_theta_evaluator                               all= 498 N2b=  5 N2w=  6 inv=60
+   sizing_recipe.py::_fixup_euler_blocked_rows                            all=  90 N2b=  5 N2w=  6 inv=62
+   sizing_recipe.py::_metric_kcl_residual                                 all=  57 N2b=  6 N2w=  6 inv=0
+   sizing_recipe.py::l_sharing_classes                                    all=  42 N2b=  6 N2w=  6 inv=60
+   sizing_recipe.py::optimize_full_circuit_budget._evaluate_row_split     all=  62 N2b=  6 N2w=  6 inv=60
+   sizing_recipe.py::true_current_mirror_groups                           all=  17 N2b=  5 N2w=  5 inv=60
+   stick_diagram.py::find_min_crossover_layout_with_branch_composite      all=   5 N2b=  3 N2w=  5 inv=64
+   stick_diagram.py::propose_vertical_stack_id_gap_fill                   all=  48 N2b=  4 N2w=  5 inv=140
+   stick_diagram.py::_diff_pair_layer1_groups                             all=  22 N2b=  4 N2w=  4 inv=146
+   stick_diagram.py::_kcl_and_matching_edges                              all=  30 N2b=  4 N2w=  4 inv=144
+   stick_diagram.py::_kcl_branch_map                                      all=   7 N2b=  3 N2w=  4 inv=70
+   stick_diagram.py::find_matching_candidates                             all=  60 N2b=  4 N2w=  4 inv=146
+   stick_diagram.py::check_symmetry_dispositions                          all=  37 N2b=  3 N2w=  3 inv=140
+   stick_diagram.py::run_full_circuit_audit_from_topology                 all=  23 N2b=  3 N2w=  3 inv=63
+   stick_diagram.py::kcl_series_union                                     all=  23 N2b=  2 N2w=  2 inv=72
+   stick_diagram.py::refine_differential_and_mirror_relations.classify    all=   6 N2b=  2 N2w=  2 inv=145
+== b26_oldsim  base 7535799302 head 8c188e5316  (199 s)
+   changed defs 31 (new 1) | all 2472 | N2b(승인 당시) 228 | N2w(이 card) 294
+   N2b: 하한 19.0 분, 상한 12.02 h
+   N2w: 하한 24.5 분, 상한 15.58 h
+   인벤토리 0 대상(N2w) 6, junit 시간 없는 인벤토리 test 0개(상한에 0초로 셈)
+   stick_diagram.py::propose_device_roles_gap_fill                        all= 331 N2b= 30 N2w= 48 inv=138
+   sizing_recipe.py::run_matching_safety_with_finger_growth               all= 100 N2b= 11 N2w= 19 inv=62
+   stick_diagram.py::audit_vertical_stack_id_vs_kcl                       all=  56 N2b= 14 N2w= 16 inv=63
+   stick_diagram.py::load_topology                                        all=  65 N2b= 12 N2w= 16 inv=137
+   stick_diagram.py::_branch_composite_pair                               all= 102 N2b=  3 N2w= 15 inv=70
+   stick_diagram.py::rail_declaration                                     all=  14 N2b= 14 N2w= 14 inv=137 (새 def)
+   stick_diagram.py::refine_differential_and_mirror_relations             all=  95 N2b= 10 N2w= 14 inv=145
+   stick_diagram.py::find_differential_pair_candidates                    all=  65 N2b= 13 N2w= 13 inv=146
+   sizing_recipe.py::optimize_full_circuit_budget                         all= 230 N2b= 10 N2w= 10 inv=60
+   stick_diagram.py::_composite_collapse_for_crossover                    all=  55 N2b=  5 N2w= 10 inv=65
+   stick_diagram.py::_propose_L_roles                                     all=  30 N2b=  9 N2w= 10 inv=145
+   sizing_recipe.py::resolve_stack_layout                                 all=  26 N2b=  8 N2w=  8 inv=61
+   stick_diagram.py::_propose_gm_id_roles                                 all=  26 N2b=  6 N2w=  8 inv=145
+   stick_diagram.py::repair_matching_safety                               all= 112 N2b=  8 N2w=  8 inv=69
+   sizing_recipe.py::run_topology_pipeline_with_finger_fixup              all=  65 N2b=  5 N2w=  7 inv=61
+   stick_diagram.py::run_full_circuit_audit                               all=  53 N2b=  5 N2w=  7 inv=64
+   sizing_recipe.py::_build_theta_evaluator                               all= 498 N2b=  5 N2w=  6 inv=60
+   sizing_recipe.py::_fixup_euler_blocked_rows                            all=  90 N2b=  5 N2w=  6 inv=62
+   sizing_recipe.py::_metric_kcl_residual                                 all=  57 N2b=  6 N2w=  6 inv=0
+   sizing_recipe.py::l_sharing_classes                                    all=  42 N2b=  6 N2w=  6 inv=60
+   sizing_recipe.py::optimize_full_circuit_budget._evaluate_row_split     all=  62 N2b=  6 N2w=  6 inv=60
+   sizing_recipe.py::true_current_mirror_groups                           all=  17 N2b=  5 N2w=  5 inv=60
+   stick_diagram.py::find_min_crossover_layout_with_branch_composite      all=   5 N2b=  3 N2w=  5 inv=64
+   stick_diagram.py::propose_vertical_stack_id_gap_fill                   all=  48 N2b=  4 N2w=  5 inv=140
+   stick_diagram.py::_diff_pair_layer1_groups                             all=  22 N2b=  4 N2w=  4 inv=146
+   stick_diagram.py::_kcl_and_matching_edges                              all=  30 N2b=  4 N2w=  4 inv=140
+   stick_diagram.py::_kcl_branch_map                                      all=   7 N2b=  3 N2w=  4 inv=70
+   stick_diagram.py::find_matching_candidates                             all=  60 N2b=  4 N2w=  4 inv=146
+   stick_diagram.py::kcl_series_union                                     all=  49 N2b=  4 N2w=  4 inv=70
+   stick_diagram.py::check_symmetry_dispositions                          all=  37 N2b=  3 N2w=  3 inv=140
+   stick_diagram.py::run_full_circuit_audit_from_topology                 all=  23 N2b=  3 N2w=  3 inv=63
+== p9_real  base 6bf510b6c7 head 93b18dba05  (40 s)
+   changed defs 2 (new 0) | all 28 | N2b(승인 당시) 12 | N2w(이 card) 12
+   N2b: 하한 1.0 분, 상한 0.64 h
+   N2w: 하한 1.0 분, 상한 0.64 h
+   인벤토리 0 대상(N2w) 0, junit 시간 없는 인벤토리 test 2개(상한에 0초로 셈)
+   stick_diagram.py::kcl_series_union                                     all=  23 N2b=  8 N2w=  8 inv=72
+   stick_diagram.py::kcl_series_union.find                                all=   5 N2b=  4 N2w=  4 inv=144
+== b34_narrow  base 0f237862c0 head ac70ec9f40  (42 s)
+   changed defs 4 (new 0) | all 55 | N2b(승인 당시) 10 | N2w(이 card) 10
+   N2b: 하한 0.8 분, 상한 0.27 h
+   N2w: 하한 0.8 분, 상한 0.27 h
+   인벤토리 0 대상(N2w) 0, junit 시간 없는 인벤토리 test 0개(상한에 0초로 셈)
+   stick_diagram.py::_import_analog_grammar                               all=  12 N2b=  3 N2w=  3 inv=159
+   stick_diagram.py::audit_theta_root_direction                           all=  29 N2b=  3 N2w=  3 inv=4
+   stick_diagram.py::find_idiom_matches                                   all=   8 N2b=  2 N2w=  2 inv=15
+   stick_diagram.py::find_stack_edges                                     all=   6 N2b=  2 N2w=  2 inv=66
+done {"b26_v4": {"base": "ac70ec9f407233cefc4afdc25cad5132d2d3832b", "head": "7140ada24f32bb78bd8027c2028253aaf1bd17a0", "all": 2442, "N2b": 235, "N2w": 301}, "b26_review2": {"base": "ac70ec9f407233cefc4afdc25cad5132d2d3832b", "head": "3299f4e08224b6e0efb3b1cebdae8092186e701e", "all": 2437, "N2b": 265, "N2w": 330}, "b26_oldsim": {"base": "7535799302a9ff7cfbfcadb2281d16bf136fadcf", "head": "8c188e5316dde3320f0dbcca94e390c40497da44", "all": 2472, "N2b": 228, "N2w": 294}, "p9_real": {"base": "6bf510b6c7bf427129224338cd64930f0343d5d0", "head": "93b18dba05e304a3ad93a8e34a3492ca8c964eb9", "all": 28, "N2b": 12, "N2w": 12}, "b34_narrow": {"base": "0f237862c007f6a53122f2bdfb3c87e6366ec133", "head": "ac70ec9f407233cefc4afdc25cad5132d2d3832b", "all": 55, "N2b": 10, "N2w": 10}}

@@ -1,0 +1,10 @@
+{"I_RL": 2.653005708771129e-19, "status": "sealed", "Vout": 0.9000000000000067, "rows": {"gain_ss_db>=": -5.189, "gbw_ss_hz>=": 0.094, "pm_ss_deg>=": -1.613, "icmr_v>=": 13.678, "swing_out_v>=": 25.203, "offset_excess<=": -3.438, "noise_excess_th<=": -1.038}, "fail": null}
+{"I_RL": 1e-12, "status": "sealed", "Vout": 0.900000025, "rows": {"gain_ss_db>=": -5.189, "gbw_ss_hz>=": 0.094, "pm_ss_deg>=": -1.613, "icmr_v>=": 13.678, "swing_out_v>=": 25.203, "offset_excess<=": -3.438, "noise_excess_th<=": -1.038}, "fail": null}
+{"I_RL": 1e-09, "status": "sealed", "Vout": 0.9000250000000001, "rows": {"gain_ss_db>=": -5.189, "gbw_ss_hz>=": 0.094, "pm_ss_deg>=": -1.613, "icmr_v>=": 13.678, "swing_out_v>=": 25.202, "offset_excess<=": -3.438, "noise_excess_th<=": -1.038}, "fail": null}
+{"I_RL": 1e-07, "status": "sealed", "Vout": 0.9025, "rows": {"gain_ss_db>=": -5.195, "gbw_ss_hz>=": 0.089, "pm_ss_deg>=": -1.606, "icmr_v>=": 13.678, "swing_out_v>=": 25.074, "offset_excess<=": -3.438, "noise_excess_th<=": -1.038}, "fail": null}
+{"I_RL": 1e-06, "status": "sealed", "Vout": 0.925, "rows": {"gain_ss_db>=": -5.257, "gbw_ss_hz>=": 0.035, "pm_ss_deg>=": -1.537, "icmr_v>=": 13.678, "swing_out_v>=": 23.911, "offset_excess<=": -3.436, "noise_excess_th<=": -1.038}, "fail": null}
+{"I_RL": 4e-06, "status": "failed", "Vout": null, "rows": {}, "fail": "{'L': 1.5e-07, 'W': 2.3137649213952224e-07, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}"}
+{"I_RL": 1e-05, "status": "outside_domain", "Vout": null, "rows": {}, "fail": null}
+{"I_RL": 2e-05, "status": "outside_domain", "Vout": null, "rows": {}, "fail": null}
+{"I_RL": 3e-05, "status": "outside_domain", "Vout": null, "rows": {}, "fail": null}
+{"I_RL": 3.5e-05, "status": "outside_domain", "Vout": null, "rows": {}, "fail": null}

@@ -1,0 +1,57 @@
+## 회로 실행
+cnr_ota: A stopped B None None seal7 평가 0 헤드룸 호출 0 대조 결정성 None err 
+common_gate_amplifier: A ok B ok front_done seal7 평가 41 헤드룸 호출 2 대조 결정성 True err 
+current_reuse_telescopic_ota: A ok B ok front_done seal7 평가 0 헤드룸 호출 2 대조 결정성 True err 
+erfc_ota: A stopped B None None seal7 평가 0 헤드룸 호출 0 대조 결정성 None err 
+folded_cascode: A ok B ok front_done seal7 평가 63 헤드룸 호출 2 대조 결정성 True err 
+ngcc_3stage_ff: A review_needed B None None seal7 평가 0 헤드룸 호출 0 대조 결정성 None err 
+nmcnr_amplifier: A ok B ok front_done seal7 평가 38 헤드룸 호출 2 대조 결정성 True err 
+pushpull_follower_buffer: A ok B ok front_done seal7 평가 38 헤드룸 호출 2 대조 결정성 True err 
+r2r_opamp: A stopped B None None seal7 평가 0 헤드룸 호출 0 대조 결정성 None err 
+rfc_ota: A review_needed B None None seal7 평가 0 헤드룸 호출 0 대조 결정성 None err 
+sf_pushpull_output_opamp: A ok B ok front_done seal7 평가 0 헤드룸 호출 2 대조 결정성 True err 
+two_stage_ota: A ok B ok front_done seal7 평가 46 헤드룸 호출 2 대조 결정성 True err 
+two_stage_ota_sf: A ok B ok front_done seal7 평가 39 헤드룸 호출 2 대조 결정성 True err 
+
+## 1b 헤드룸 행 (start_intervals headroom_bounds, VDS 엣지)
+기록 오류 0
+common_gate_amplifier: 행 6 | Σtol mV med 1.949 max 9.041 | 자기 tol mV med 1.949 max 9.041 | 경로 tol 합 mV max 0.000 | Σtol/예산 med 1.13e-03 max 5.24e-03 | 하한 활성 행(tol 있음/없음) 0/0 | gm/ID 하한 상대차 max 0.00e+00 | tol 때문에 하한 없음 0 | 엣지 tol 최솟값 [('nmos', 0.0), ('pmos', 0.0)]
+current_reuse_telescopic_ota: 행 102 | Σtol mV med 9.041 max 9.041 | 자기 tol mV med 9.041 max 9.041 | 경로 tol 합 mV max 0.000 | Σtol/예산 med 5.14e-03 max 3.00e-02 | 하한 활성 행(tol 있음/없음) 8/8 | gm/ID 하한 상대차 max 4.47e-02 | tol 때문에 하한 없음 0 | 엣지 tol 최솟값 [('nmos', 0.0), ('pmos', 0.0)]
+folded_cascode: 행 26 | Σtol mV med 1.949 max 9.041 | 자기 tol mV med 1.949 max 9.041 | 경로 tol 합 mV max 0.000 | Σtol/예산 med 1.16e-03 max 5.37e-03 | 하한 활성 행(tol 있음/없음) 0/0 | gm/ID 하한 상대차 max 0.00e+00 | tol 때문에 하한 없음 0 | 엣지 tol 최솟값 [('nmos', 0.0), ('pmos', 0.0)]
+nmcnr_amplifier: 행 30 | Σtol mV med 9.041 max 9.041 | 자기 tol mV med 9.041 max 9.041 | 경로 tol 합 mV max 0.000 | Σtol/예산 med 5.13e-03 max 1.39e-02 | 하한 활성 행(tol 있음/없음) 2/2 | gm/ID 하한 상대차 max 3.92e-02 | tol 때문에 하한 없음 0 | 엣지 tol 최솟값 [('nmos', 0.0), ('pmos', 0.0)]
+pushpull_follower_buffer: 행 12 | Σtol mV med 5.495 max 9.041 | 자기 tol mV med 5.495 max 9.041 | 경로 tol 합 mV max 0.000 | Σtol/예산 med 3.12e-03 max 5.14e-03 | 하한 활성 행(tol 있음/없음) 0/0 | gm/ID 하한 상대차 max 0.00e+00 | tol 때문에 하한 없음 0 | 엣지 tol 최솟값 [('nmos', 0.0), ('pmos', 0.0)]
+sf_pushpull_output_opamp: 행 44 | Σtol mV med 5.495 max 9.041 | 자기 tol mV med 5.495 max 9.041 | 경로 tol 합 mV max 0.000 | Σtol/예산 med 3.65e-03 max 5.37e-03 | 하한 활성 행(tol 있음/없음) 0/0 | gm/ID 하한 상대차 max 0.00e+00 | tol 때문에 하한 없음 0 | 엣지 tol 최솟값 [('nmos', 0.0), ('pmos', 0.0)]
+two_stage_ota: 행 14 | Σtol mV med 1.949 max 9.041 | 자기 tol mV med 1.949 max 9.041 | 경로 tol 합 mV max 0.000 | Σtol/예산 med 1.13e-03 max 5.24e-03 | 하한 활성 행(tol 있음/없음) 0/0 | gm/ID 하한 상대차 max 0.00e+00 | tol 때문에 하한 없음 0 | 엣지 tol 최솟값 [('nmos', 0.0), ('pmos', 0.0)]
+two_stage_ota_sf: 행 18 | Σtol mV med 1.949 max 9.041 | 자기 tol mV med 1.949 max 9.041 | 경로 tol 합 mV max 0.000 | Σtol/예산 med 1.13e-03 max 5.24e-03 | 하한 활성 행(tol 있음/없음) 0/0 | gm/ID 하한 상대차 max 0.00e+00 | tol 때문에 하한 없음 0 | 엣지 tol 최솟값 [('nmos', 0.0), ('pmos', 0.0)]
+
+## 1b 출발점 칸 0 theta: tol 있음 대 tol 없음(헤드룸·정의역 행 tol_vdsat = 0)
+common_gate_amplifier: ln_idu 성분 3 중 바뀜 3, |Δln IDu| max 0.0683 (상위 [('M3', 0.0683), ('M1', 0.0), ('M2', 0.0)]) | 그 밖 바뀐 성분 [] | 키 집합 같음 True
+current_reuse_telescopic_ota: ln_idu 성분 21 중 바뀜 9, |Δln IDu| max 0.0057 (상위 [('M36a', -0.0057), ('M36b', -0.0057), ('M40', -0.0057), ('M1a', 0.0)]) | 그 밖 바뀐 성분 [] | 키 집합 같음 True
+folded_cascode: ln_idu 성분 8 중 바뀜 2, |Δln IDu| max 0.0000 (상위 [('MN', 0.0), ('M2', 0.0)]) | 그 밖 바뀐 성분 [] | 키 집합 같음 True
+nmcnr_amplifier: ln_idu 성분 11 중 바뀜 4, |Δln IDu| max 0.0153 (상위 [('M108', -0.0153), ('M302', 0.0), ('M105', 0.0), ('M301', 0.0)]) | 그 밖 바뀐 성분 [('current', 'M101', 0.0), ('current', 'M102', 0.0)] | 키 집합 같음 True
+pushpull_follower_buffer: ln_idu 성분 5 중 바뀜 5, |Δln IDu| max 0.0683 (상위 [('M3', 0.0683), ('M5', 0.0683), ('M1', 0.0), ('M4', 0.0)]) | 그 밖 바뀐 성분 [] | 키 집합 같음 True
+sf_pushpull_output_opamp: ln_idu 성분 14 중 바뀜 14, |Δln IDu| max 0.3913 (상위 [('M16', -0.3913), ('M15', -0.3661), ('M13', -0.3643), ('M19', -0.3643)]) | 그 밖 바뀐 성분 [('current', 'M17', -0.0945), ('current', 'M19', -0.0967), ('current', 'M21', -0.0967), ('current', 'R1a', 0.0121), ('current', 'R1b', 0.0121)] | 키 집합 같음 True
+two_stage_ota: ln_idu 성분 4 중 바뀜 3, |Δln IDu| max 0.0969 (상위 [('M6', 0.0969), ('M3', 0.0501), ('M5', 0.0)]) | 그 밖 바뀐 성분 [('capacitance', 'Cc', -0.0392), ('current', 'M3', -0.0396), ('current', 'M4', -0.0396), ('current', 'M6', 0.0056)] | 키 집합 같음 True
+two_stage_ota_sf: ln_idu 성분 5 중 바뀜 2, |Δln IDu| max 0.0555 (상위 [('M6', -0.0555), ('M5', 0.0)]) | 그 밖 바뀐 성분 [('current', 'M3', 0.0005), ('current', 'M4', 0.0005), ('current', 'M6', -0.0001), ('current', 'M8', 0.0013)] | 키 집합 같음 True
+
+## 3 봉인 7 띠 (find_front 평가 행)
+common_gate_amplifier: 행 123 (평가 41) | 띠 안 0 (평가 0, 소자 []) | 위반 0 (소자 []) | 행 tol mV med 2.103 max 15.174
+folded_cascode: 행 819 (평가 63) | 띠 안 0 (평가 0, 소자 []) | 위반 0 (소자 []) | 행 tol mV med 2.047 max 18.832
+nmcnr_amplifier: 행 570 (평가 38) | 띠 안 1 (평가 1, 소자 ['M109']) | 위반 4 (소자 ['M104', 'M106', 'M109']) | 행 tol mV med 9.786 max 26.204
+    띠: ev 1 M109 pmos L 0.150um VGS 0.9072 VDS 0.1545 VSB -0.0000 ID 1.380e-05 VDsat 0.15099 여유 3.477 mV tol 10.191 mV
+pushpull_follower_buffer: 행 228 (평가 38) | 띠 안 0 (평가 0, 소자 []) | 위반 0 (소자 []) | 행 tol mV med 8.927 max 23.485
+two_stage_ota: 행 322 (평가 46) | 띠 안 0 (평가 0, 소자 []) | 위반 0 (소자 []) | 행 tol mV med 2.065 max 25.700
+two_stage_ota_sf: 행 351 (평가 39) | 띠 안 0 (평가 0, 소자 []) | 위반 0 (소자 []) | 행 tol mV med 2.009 max 22.271
+합계: 행 2413, 띠 안 1, 위반 4
+
+## 2 pmos w_key 1000 꼬리 셀(L 0.15/0.18 um 앵커, 높은 VDS 칸) 도달
+pmos 평가 행 1029, w_key 집합 [1000]
+L 칸이 0.15/0.18 um 앵커에 닿는 pmos 행 1029 (소자 [('common_gate_amplifier', 'M3'), ('folded_cascode', 'M3'), ('folded_cascode', 'M4'), ('folded_cascode', 'M5'), ('folded_cascode', 'M6'), ('folded_cascode', 'MP'), ('nmcnr_amplifier', 'M101'), ('nmcnr_amplifier', 'M102'), ('nmcnr_amplifier', 'M103'), ('nmcnr_amplifier', 'M108'), ('nmcnr_amplifier', 'M109'), ('nmcnr_amplifier', 'M201'), ('nmcnr_amplifier', 'M202'), ('nmcnr_amplifier', 'M302'), ('pushpull_follower_buffer', 'M2'), ('pushpull_follower_buffer', 'M3'), ('pushpull_follower_buffer', 'M5'), ('two_stage_ota', 'M3'), ('two_stage_ota', 'M4'), ('two_stage_ota', 'M6'), ('two_stage_ota_sf', 'M3'), ('two_stage_ota_sf', 'M4'), ('two_stage_ota_sf', 'M6')])
+  그 행 VDS 범위 0.090~1.377 V, tol mV min 9.417 med 16.163 max 26.204
+    nmcnr_amplifier M108 L 0.150 VDS 1.3772 VGS 1.3772 VSB -0.0000 칸 L [0.15] VDS [1.3499999999999999, 1.3875] tol 26.204 mV 여유 855.0 mV
+    nmcnr_amplifier M201 L 0.150 VDS 1.3349 VGS 0.1545 VSB -0.0000 칸 L [0.15] VDS [1.3125, 1.3499999999999999] tol 25.700 mV 여유 1291.7 mV
+    nmcnr_amplifier M201 L 0.150 VDS 1.3147 VGS 0.2072 VSB -0.0000 칸 L [0.15] VDS [1.3125, 1.3499999999999999] tol 25.700 mV 여유 1271.4 mV
+    two_stage_ota M6 L 0.158 VDS 1.3500 VGS 0.4443 VSB -0.0000 칸 L [0.15] VDS [1.3125, 1.3499999999999999] tol 25.700 mV 여유 1303.1 mV
+    two_stage_ota M6 L 0.158 VDS 1.3500 VGS 0.4443 VSB -0.0000 칸 L [0.15] VDS [1.3125, 1.3499999999999999] tol 25.700 mV 여유 1303.1 mV
+    two_stage_ota M6 L 0.158 VDS 1.3500 VGS 0.4443 VSB -0.0000 칸 L [0.15] VDS [1.3125, 1.3499999999999999] tol 25.700 mV 여유 1303.1 mV
+전체 행 tol 상위 5: [(26.204, 'nmcnr_amplifier', 'M108', 'pmos', 0.15, 1.377), (25.7, 'two_stage_ota', 'M6', 'pmos', 0.163, 1.35), (25.7, 'two_stage_ota', 'M6', 'pmos', 0.158, 1.35), (25.7, 'two_stage_ota', 'M6', 'pmos', 0.158, 1.35), (25.7, 'two_stage_ota', 'M6', 'pmos', 0.158, 1.35)]

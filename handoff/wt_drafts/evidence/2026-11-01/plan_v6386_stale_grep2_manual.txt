@@ -1,0 +1,84 @@
+# 엄격 기준 잔재 grep C 목록 수작업 판정 -- 작성자(계획 v6.38.6 열일곱째 커밋), 판정 = 그 문장을 읽어 정함
+# 합계: 결정 기록 1, 결정 기록 행 3, 다른 뜻 18, 원칙 19 정정 표 자리 칸 32, 출처 기록 2, 현행 정본 문언 22; 미판정 0
+# '정본처럼 읽히는 잔재'는 열일곱째 커밋 안에서 고쳤다: headroom-chain M-H1c 행(VDS 대 VDsat + tol -> VDsat, grep 첫 실행 뒤 수정 -- 지금 목록에 없음)
+# N 갈래(부정 낱말 ±90자 인접)도 판정 키워드(2단계·둘째 단계·두 단계·stage2·confirmed_range·sweep_rezoom·PENDING·off_current_A·+tol·선언 영역 대조·꺼짐 판정·off 유지·dc_window_def·전도 여유·R0·전도 행) 적중을 계획 6개 전부 줄마다 읽었다(부정 낱말이 다른 절에 걸려 정본처럼 읽히는 문장을 놓치지 않으려고).
+#   그 재검토에서 정본처럼 읽혀 고친 곳: headroom-chain N0.1 '포화 불가 판정(R-3)' 정의의 'VDS ≥ VDsat + tol'·N3.1-3 '항 평가 동작점'의 '항(VDsat + tol …)', oracle-portability X-R4 'U-6 알림'의 'EO-1 2단계 배선'·OP-5 '온도 점 전도 판정' 절 이름 -- 나머지는 옛 문언을 지운다·대체한다·대상 소멸이라고 적는 자리 또는 결정 기록 행.
+# 열: 파일:줄 / 키워드 / 판정
+gain-budget-gmid-sizing:300	2단계	다른 뜻 -- O-73 '1단계 = DUT 외부 망 표지(SD-1), 2단계 = 응용 topology(AP-1)' 단계 번호
+gain-budget-gmid-sizing:300	2단계	다른 뜻 -- O-73 '1단계 = DUT 외부 망 표지(SD-1), 2단계 = 응용 topology(AP-1)' 단계 번호
+gain-budget-gmid-sizing:300	1단계	다른 뜻 -- O-73 '1단계 = DUT 외부 망 표지(SD-1), 2단계 = 응용 topology(AP-1)' 단계 번호
+gain-budget-gmid-sizing:300	1단계	다른 뜻 -- O-73 '1단계 = DUT 외부 망 표지(SD-1), 2단계 = 응용 topology(AP-1)' 단계 번호
+gain-budget-gmid-sizing:342	전도 행	결정 기록 행 -- O-114·O-115 결정 행의 경위 요약('v6.36 O-118 2번: … 전도 행 과보수 수용'은 그 결정의 당시 내용; 현행 = N3.8 '측정 구성 창 행 = 영역 행만', O-205 (3))
+gain-budget-gmid-sizing:417	2단계	결정 기록 행 -- O-205 결정 행의 '원래 취지와 다름' 목록(옛 결정 이름 나열)
+gain-budget-gmid-sizing:417	\bU-69\b	결정 기록 행 -- O-205 결정 행의 '원래 취지와 다름' 목록(옛 결정 이름 나열)
+gain-budget-gmid-sizing:427	2단계	다른 뜻 -- O-73 '1단계 = DUT 외부 망 표지(SD-1), 2단계 = 응용 topology(AP-1)' 단계 번호
+gain-budget-gmid-sizing:427	1단계	다른 뜻 -- O-73 '1단계 = DUT 외부 망 표지(SD-1), 2단계 = 응용 topology(AP-1)' 단계 번호
+gain-budget-gmid-sizing:428	1단계	다른 뜻 -- O-73 '1단계 = DUT 외부 망 표지(SD-1), 2단계 = 응용 topology(AP-1)' 단계 번호
+gain-budget-gmid-sizing:648	꺼짐 판정	현행 정본 문언 -- 꺼짐 판정 = 선언 방향 채널 op ID ≤ 0(O-205·O-210 RR-2), KCL 항등 0 전류 MOS 예외 정의 자리
+gain-budget-gmid-sizing:660	\bR0\b	현행 정본 문언 -- N3.6 정본 (7) 삭제 필드·소비자 목록(지우는 대상 나열)
+gain-budget-gmid-sizing:660	전도 행	현행 정본 문언 -- N3.6 정본 (7) 삭제 필드·소비자 목록(지우는 대상 나열)
+gain-budget-gmid-sizing:660	off_current_A	현행 정본 문언 -- N3.6 정본 (7) 삭제 필드·소비자 목록(지우는 대상 나열)
+gain-budget-gmid-sizing:728	두 단계	다른 뜻 -- 면적 '두 단계 정의'(탐색 축·판정 축, DEC-79)
+gain-budget-gmid-sizing:729	dc_window_def	현행 정본 문언 -- `dc_window_def_refined`는 '두지 않는다' 목록, V_on = 차동 출력 V_op − V_on(다른 뜻)
+gain-budget-gmid-sizing:729	V_on	현행 정본 문언 -- `dc_window_def_refined`는 '두지 않는다' 목록, V_on = 차동 출력 V_op − V_on(다른 뜻)
+gain-budget-gmid-sizing:730	2단계	현행 정본 문언 -- '같은 덱'으로 oracle 2단계 왕복이 없어진다(삭제 서술)
+gain-budget-gmid-sizing:1219	꺼짐 판정	결정 기록 -- N5.3 Q-S9 결정 행의 권고 (A′) 문언(꺼짐 판정 대상 = 현행과 같음)
+gain-budget-gmid-sizing:1287	1단계	다른 뜻 -- O-73 '1단계 = DUT 외부 망 표지(SD-1), 2단계 = 응용 topology(AP-1)' 단계 번호
+gain-budget-gmid-sizing:1288	2단계	다른 뜻 -- O-73 '1단계 = DUT 외부 망 표지(SD-1), 2단계 = 응용 topology(AP-1)' 단계 번호
+gain-budget-gmid-sizing:1408	꺼짐 판정	현행 정본 문언 -- 꺼짐 판정 = 선언 방향 채널 op ID ≤ 0(O-205·O-210 RR-2), KCL 항등 0 전류 MOS 예외 정의 자리
+gain-budget-gmid-sizing:1711	dc_window_def	현행 정본 문언 -- IT-2 완료 조건의 '다듬은 창 … 정의 0'(삭제 확인 단언)
+gain-budget-gmid-sizing:1717	dc_window_def	현행 정본 문언 -- IT-2 완료 조건의 '다듬은 창 … 정의 0'(삭제 확인 단언)
+gain-budget-gmid-sizing:1808	V_on	다른 뜻 -- V_on = 차동 출력 V_op − V_on
+gain-budget-gmid-sizing:2039	꺼짐 판정	원칙 19 정정 표 자리 칸 -- oracle design 행(KCL 항등 0 MOS 제외 꺼짐 판정 = 현행)
+gain-budget-gmid-sizing:2042	\+ ?tol_VDsat	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2042	\bR0\b	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2042	전도 행	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2043	\+ ?tol_VDsat	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2043	\+ ?tol_VDsat	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2044	\+ ?tol_VDsat	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2044	VDSAT \+ tol	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	2단계	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	2단계	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	2단계	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	2단계	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	두 단계	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	1단계	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	off_current_A	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	PENDING_CONDUCTION	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	confirmed_range	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	confirmed_range	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	sweep_rezoom	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2045	sat_margin_V	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2046	g = s[^|]{0,60}꺼짐	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2046	off_vgs0	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2046	off_device_on_signal_path	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2048	VDSAT \+ tol	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2049	off_current_A	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2049	off_current_A	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2051	conduction_floor	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2051	\bP-7\b	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2053	VDSAT \+ tol	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2053	dc_window_def	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2054	VDSAT \+ tol	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2054	VDSAT \+ tol	원칙 19 정정 표 자리 칸 -- design 후속 정정 표가 낡은 design 문언을 적는 칸(맞출 내용 칸이 현행 정본)
+gain-budget-gmid-sizing:2159	V_on	현행 정본 문언 -- EO-1 범위 4 머리 '옛 범위 4(…) = history'(삭제 서술, 부정 낱말이 ±90자 밖)
+gain-budget-gmid-sizing:2159	off 유지 경계	현행 정본 문언 -- EO-1 범위 4 머리 '옛 범위 4(…) = history'(삭제 서술, 부정 낱말이 ±90자 밖)
+gain-budget-gmid-sizing:2163	− ?tol_VDsat	현행 정본 문언 -- EO-1 완료 포화 띠 toy(VDsat − tol_VDsat < VDS < VDsat → 거부 + '구별 불가' 기록 = O-204 정본 (2))
+gain-budget-gmid-sizing:2169	1단계	다른 뜻 -- O-73 '1단계 = DUT 외부 망 표지(SD-1), 2단계 = 응용 topology(AP-1)' 단계 번호
+gain-budget-gmid-sizing:2255	2단계	다른 뜻 -- O-73 '1단계 = DUT 외부 망 표지(SD-1), 2단계 = 응용 topology(AP-1)' 단계 번호
+gain-budget-gmid-sizing:2445	g = s[^|]{0,60}꺼짐	현행 정본 문언 -- N6.35 E-19 행 test 칸(g = s 정지·꺼짐 분류 0 단언)
+gain-budget-gmid-sizing:2620	꺼짐 판정	현행 정본 문언 -- 꺼짐 판정 = 선언 방향 채널 op ID ≤ 0(O-205·O-210 RR-2), KCL 항등 0 전류 MOS 예외 정의 자리
+gain-budget-gmid-sizing:2646	2단계	현행 정본 문언 -- U-102 행 '슬루 벤치 같은 덱 `.dc`로 oracle 2단계 왕복 제거'(삭제 서술)
+graph-consumption:233	두 단계	다른 뜻 -- 부모 포인터를 '두 단계 이상' 따라가는 경로 재구성
+graph-consumption:352	선언 영역 대조	현행 정본 문언 -- `off` 선언 소자는 '선언 영역 대조는 없다'(O-202)
+graph-consumption:675	두 단계	다른 뜻 -- 부모 포인터를 '두 단계 이상' 따라가는 경로 재구성
+graph-consumption:742	꺼짐 판정	현행 정본 문언 -- 정본 소유 표의 '소자 동작점 전도·꺼짐 판정 = EO-1 공용 전도 판정 함수'
+graph-consumption:784	_peak_floor	현행 정본 문언 -- GC-7 `_peak_floor`(gm/ID 정점 마디 LUT memo 파생 함수 -- 전도 하한 아님), `current_box` I_off = θ 전류 상자 하한(다른 개념; design 41 §4.2 대조는 gain-budget 후속 정정 표 행)
+graph-consumption:784	_peak_floor	현행 정본 문언 -- GC-7 `_peak_floor`(gm/ID 정점 마디 LUT memo 파생 함수 -- 전도 하한 아님), `current_box` I_off = θ 전류 상자 하한(다른 개념; design 41 §4.2 대조는 gain-budget 후속 정정 표 행)
+headroom-chain:60	dc_window_def	출처 기록 -- v0.7.6 때 읽은 상위 계획의 필드 이름(판 인용); 현행 창 필드는 같은 문단 뒤쪽 '현행 창 필드는 상위 N3.8 창 필드' 문장(열일곱째 커밋 m5)
+headroom-chain:60	dc_window_def	출처 기록 -- v0.7.6 때 읽은 상위 계획의 필드 이름(판 인용); 현행 창 필드는 같은 문단 뒤쪽 '현행 창 필드는 상위 N3.8 창 필드' 문장(열일곱째 커밋 m5)
+oracle-portability:429	off_current_A	현행 정본 문언 -- '지금 오라클과 다른 점(OP-5가 고침)': as-built `off_current_A`·`sat_margin_V`를 지운다는 재작성 범위 서술
+oracle-portability:429	sat_margin_V	현행 정본 문언 -- '지금 오라클과 다른 점(OP-5가 고침)': as-built `off_current_A`·`sat_margin_V`를 지운다는 재작성 범위 서술
+oracle-portability:689	2단계	다른 뜻 -- oracle design §7.2 실행 전 검사 '2단계'(절차 단계 번호)
+oracle-portability:717	2단계	다른 뜻 -- oracle design §21.2 '2단계 (a)(c)(e)'(절차 단계 번호, DR 행의 design 자리 인용)
+oracle-portability:718	2단계	다른 뜻 -- oracle design §21.2 '2단계 (a)(c)(e)'(절차 단계 번호, DR 행의 design 자리 인용)

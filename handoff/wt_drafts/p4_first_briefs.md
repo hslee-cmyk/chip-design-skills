@@ -1,0 +1,288 @@
+# Phase 4 card #2 `20261002-d4-delete-unwired` -- 착수 키트(세 역할 브리프 + 착수 확인)
+
+작성 2026-10-06. 입력(읽기 전용): spec 초안 `_drafts/draft_p4_first.spec.md`(r4 + `fd4ef8c` 재측정 19·P3-10), 메모 `_drafts/p4_first_card_notes.md`. 모양 = `b34_briefs.md`·`b41_briefs.md`·`fu_briefs.md`.
+작성 시점 gate `master` = 로컬 HEAD = **`7243f28`**(B34 spec card 커밋). 이 문서는 저장소·다른 `_drafts` 파일을 쓰지 않았고 측정 모의도 돌리지 않았다 -- 아래 수치는 전부 card '작성 전 실측'(`dd60db6`·`36e170e`·`4a286f0`·`fd4ef8c` 판, 격리 복제본 `C:/g204`·`g219`·`g229`·`g235`·`g248`·`g286`)의 인용이고 **착수 때 card base(F2 병합본)에서 다시 잰다**(§0.3).
+착수 스크립트는 만들지 않는다(지시). 아래 명령 블록은 전부 **print-only** -- 이 문서가 실행하는 것이 아니고, 오케스트레이터가 가드 줄의 결과를 보며 한 줄씩 실행한다.
+
+공통 경로(모든 블록 공용, MSYS bash):
+```
+R=/c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills
+W=/c/Users/HSLEE/Documents/Todoc/fpga/wt
+DR=/c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts
+PY=C:/Python314/python.exe
+ID=20261002-d4-delete-unwired
+A=skills/analog-gmid-design/assets
+```
+worktree: `$W/$ID-test`(`role/test/$ID`), `$W/$ID-code`(`role/code/$ID`), `$W/$ID-audit`(`role/audit/$ID`).
+scratch 배정(에이전트마다 고유 -- 공용 루트·`C:/g*` 일괄 삭제 금지): test-author **`C:/g301`**, code-author **`C:/g302`**, auditor 순서 3 **`C:/g303`**, auditor 순서 7 **`C:/g304`**, 오케스트레이터 0단계 재측정 **`C:/g305`**.
+착수 직전 `ls -d /c/g30[1-5] 2>/dev/null` 출력이 비어야 한다(있으면 다음 빈 번호로 바꾸고 이 표를 고친다). TMP·TEMP는 그 scratch 아래(`<scratch>/tmp`)로, `"."`·작업 저장소·worktree 안으로 두지 않는다. 끝나면 **자기 scratch 폴더만** 지운다.
+셸 가드(모든 역할): `set -euo pipefail`, `git -C <절대 경로>`만, `cd`·`(cd … && …)` 금지, 상대 경로 쓰기 금지, 변수가 든 `rm -rf` 금지(절대 경로 리터럴로).
+
+---
+
+## 0. 착수 확인(오케스트레이터)
+
+### 0.1 착수 조건(전부 충족해야 순서 0 커밋을 만든다)
+
+| # | 조건 | 지금(`7243f28`) | 확인 |
+|---|---|---|---|
+| C-1 | **Phase 3 DoD PASS** -- F2 병합(D-27 엔진 동결 끝) 뒤 Phase 3 DoD 판정 기록이 gate `master`에 있다 | 미충족(B34 spec card 단계) | 계획 993행('이전 Phase DoD PASS', `fd4ef8c` 판 번호). card `phase: 4`라 그 전 병합 불가(card 계약 8 '병합 순서') |
+| C-2 | **B41 병합**: `20261002-b41-scope-note-test`(Phase 4 첫 card, test-only) 판정 기록 `.ai/verification/20261002-b41-scope-note-test.json`이 gate `master`에 있다 | 미충족 | design 40 v0.9.10 §3.3 'B41 ─> #2'. B41 병합 뒤 base 전체 suite가 +37 passed(B41 키트 §0.1-3) -- 0.3 P3-11에서 다시 셈 |
+| C-3 | **F1 TS6 (마) 규칙 병합**: F1 card `20261002-p3-callers-update` 판정 기록이 있고, gate `master`의 `$A/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines` 본문에 F1 핀 리터럴 셋이 있다 -- `pin_commit = "9d6800ef74017dd015f4628e840bdc9d965b42ce"`(F2 병합본에서 바뀌었으면 그 값), `pin_edits = ()`, `assert len(pin_edits) == 0` | 미충족(`pin_commit` 0건, `fd4ef8c` 실측 19) | 사용자 결정 D1 = (마)(2026-10-02, `user_decisions.md` 끝 절). 규칙 전환 V5는 F1 몫 -- 이 card V5 목록에서 4가 빠지는 근거 |
+| C-4 | **UD-0 승인 기록**(Phase 4 design `40-defect-fixes`, `target_kind: diff`)이 gate `master`에 있고, 범위 설명에 **이 card id**와 **'U-02 승인표의 D-1~D-4 처리 칸 `보류(Phase 4)` → 삭제'**가 원문으로 있다 | 미충족(`.ai/approvals/`에 Phase 4 기록 0, `fd4ef8c` 53항목) | card 머리 `approval:`의 `20261002-40-defect-fixes-design`은 **후보 id** -- 실제 기록 id(날짜)로 바꿔 card를 커밋한다(P3-9). 질문 문안 보강은 메모 §3-4 |
+| C-5 | **V8 N/A가 게이트를 통과하는가**(새 발견 -- 아래 0.2) | **미확인 -- 지금 gate 코드로는 거부** | 0.2 |
+| C-6 | `role/*` 브랜치 0개, 로컬 `master` = `gate/master` | -- | 0.4 가드 |
+| C-7 | P3-1~P3-11 재측정을 card 문장에 반영(0.3) | 미착수 | 하나라도 card 문장과 어긋나면 card를 고친 뒤 커밋 |
+| C-8 | 게이트 캐시가 card 35 판 `mutate_changed.py`(`not_targeted` 출력) | -- | 0.4 가드 `grep -c not_targeted` ≥ 1 |
+
+### 0.2 V8 N/A와 게이트 rule10 -- 착수 전 결정 필요(새 발견, `7243f28` 실측)
+
+* card '판정 유형 근거'와 design 40 P-38(§10.1-0)은 #13 전 Phase 4 card의 V8 = **'N/A -- 계측 미도입, 폴백 경로 불변'**이다.
+* 그런데 `7243f28` `tools/gates/merge_gate.py` `rule10_phase` 537~545행: N/A면 `if not order.index(spec_phase) < order.index(intro): raise LoaderReject(10, "… N/A인데 Phase … 가 도입 …보다 앞이 아니다")`, 그리고 basis가 `도입 <intro>: ` 형식이어야 한다. 계획 N4.2 V8 도입 = **4**, 이 card `phase: 4` → `4 < 4` 거짓 → **로더 거부**. P-38 문구('N/A -- 계측 미도입 …')도 `도입 4: ` 형식이 아니다.
+* 같은 문제가 **B41(phase 4, V8 N/A -- B41 키트 2.2)에서 먼저** 난다. 그래서 C-2(B41 병합)가 충족됐다면 B41이 이것을 어떻게 통과했는지(게이트 변경 card? V8 PASS + basis?)가 이미 정해진 것이다.
+* **조치**: 착수 때 `git -C $R show gate/master:tools/gates/merge_gate.py | grep -n "order.index(spec_phase) < order.index(intro)"`와 B41 판정 기록의 `checks.V8`을 읽는다. (가) 게이트가 바뀌어 phase = intro의 N/A를 받으면 그 basis 형식을 이 키트 3.2 V8 행에 그대로 쓴다. (나) B41이 V8을 다른 판정(예: PASS + P-38 basis)으로 통과했으면 같은 모양으로 3.2를 고친다. (다) 둘 다 아니면(B41이 아직이거나 정해지지 않음) **멈추고 보고** -- 판정 기준(V8 N/A 허용 범위)을 바꾸는 일이라 오케스트레이터 혼자 정하지 않는다(작성자≠검증자, 게이트 우회 금지).
+
+### 0.3 F2 병합본(card base)에서 다시 잴 것 -- P3-1~P3-10(card) + P3-11(이 키트)
+
+재측정은 격리 복제본 `C:/g305`에서만(`git clone --no-hardlinks --no-local -c core.autocrlf=false -c core.hooksPath= $R /c/g305/repo` → `git -C /c/g305/repo remote remove origin` → `checkout --detach <gate master>`), 게이트 도구 = `git -C $R archive gate/master tools/gates | tar -x -C /c/g305/gate`, TMP/TEMP = `/c/g305/tmp`. 끝나면 `/c/g305`만 삭제, 작업 저장소 `git status --porcelain`·reflog 줄 수 시작·끝 같음.
+
+| P | 다시 잴 것 | 어긋나면 |
+|---|---|---|
+| P3-1 정의 파일 | 6개 정의(`estimate_area_budget`·`solve_diode_stack_current`·`load_derived_bounds`·`derived_bounds_path`·`check_multi_leaf_hub_parity`·`MultiLeafHubParityVerdict`)의 파일을 R-DEF(`A/*.py` 최상위 바인딩 정확히 하나)로. D0b 시제품: `sizing_layout_convergence.py`·`theta_search.py`·`stick_diagram.py`·`solve_diode_stack_current` 미정 | 2.1 쓰기 경로·3.2 V3 `targets` 기대를 그 파일로 |
+| P3-2 IC5 표 키 | `test_ic5.py` `_DOMAIN_TABLE` 키 모양(T0 군 A 뒤)·행 수가 21인지·두 행(`check_multi_leaf_hub_parity`·`audit_vertical_stack_id_euler_feasibility`)의 실제 키 | 계약 6의 `21 → 19`를 실제 수로 |
+| P3-3 import 줄 | F1 뒤 `test_selftest_sizing_recipe.py`·`test_selftest_stick_diagram.py`의 import 문(목적 모듈) -- 계약 7 정리 대상 줄 | 1.1 표의 import 줄 서술 |
+| P3-4 docstring·주석 언급 | `A/*.py`·`workspaces/run_harness.py` 원문의 `\b<6 이름>\b` 전체 목록(감싸는 def 이름이 계약 4 목록과 같은지) | 계약 4 목록 |
+| P3-5 도구·TS6 | F1이 실제 커밋한 도구 import 모양, TS6 test 본문 = card 계약 8 (A1)+(A3) 29줄(앞 공백 제외 diff 0 -- `fd4ef8c` 초안끼리 md5 `2cb24450…`), `pin_commit` blob에 E_#2 ①·② 기준 문자열이 **각각 정확히 1회**, 실제 목적지 모듈이 `load_derived_bounds`·`derived_bounds_path`·`achievable_metric_bound`·`spec_fingerprint`를 최상위에서 묶는지(R-DEF) | 하나라도 다르면 멈춤 -- 계약 8 (B) 재작성 |
+| P3-6 레지스트리 | D0b가 다시 쓴 §7 처리 칸(`보류(Phase 4)` 행)·§3 R0 `derived_bounds_path` 행·§1 D·R0 수·소절 괄호 수·§2 '스택 KVL 합' 행 | 계약 9 문장 |
+| P3-7 V3 | 그때 gate 도구로 모의 head(정의 6개 삭제 + docstring 단어 + 도구 E_#2) → 기대 PASS·`mutants` 0·`not_targeted` 0·`targets_by_def` {}·`exempt_ignored` [](G1 병합 뒤면 `defs` []·`moved` []·`move_rejected` {}) | 대상 def가 0이 아니면 멈춤 |
+| P3-8 E-LIB·E-INST base | Phase 3 DoD 판정 기록 산출물을 base로 재사용할 수 있는지(design 40 §8.3 [미확인]) -- 못 쓰면 auditor가 순서 3에서 base를 직접 잰다(3.1 기본) | 3.1 |
+| P3-9 승인 | UD-0 기록 실제 id·범위 설명 원문(C-4) | card 머리 `approval:` |
+| P3-10 | (a) V3 출력 키까지 기록 (b) V5 8건(te: 계약 7a의 9 포함)은 F1 병합본 위 **실제 #2 T**로만 잰다 -- 순서 3 auditor 몫(3.1) (c) TS6 정의 일치는 F1 실제 test 본문으로(P3-5) | -- |
+| P3-12 D0b 표본(card 계약 7a) | D0b가 실제 커밋한 `test_p3_registry_dest.py` 표본 상수 이름·원소 구조·표본 수(초안 기대 29 -- D0b base = B26-1 병합 판; 지금 gate 관찰 27은 B26-1 둘을 뺀 수. 계약 7a 뒤 26. D0b S-7이 B26-1 표본 '행' 열을 바꿨으면 그 판), 세 원소가 card base에 그대로인지, V5 단위 `<module>`, 그 파일 T-A~T-E가 V4에서 NO-SUBJECT·본문 `assert`인지 | 계약 7a·V5 9의 단위 이름, 1.1 표 7a 행 |
+| P3-11(이 키트) | base 전체 suite 수(B41 +37 포함, 앞 card가 더한 수), interface card 행 수(`fd4ef8c` 22행 -- 모듈이 R-DEF 파일로 바뀜), 계획 줄 번호(`fd4ef8c` 판 605·620·625·626·642·700·921·993), `parse_spec_card(text, "$ID")` 통과 | card '작성 전 실측' 19에 판 갱신 줄 |
+
+### 0.4 순서 0 커밋 명령(print-only -- 0.1·0.2·0.3 통과 뒤, 한 줄씩 결과 확인)
+
+```bash
+set -euo pipefail
+git -C "$R" fetch gate
+test "$(git -C "$R" rev-parse HEAD)" = "$(git -C "$R" rev-parse gate/master)"           # C-6
+test -z "$(git -C "$R" for-each-ref refs/heads/role/)"                                   # C-6
+GM=$(git -C "$R" rev-parse gate/master)
+CACHE=$(git -C "$R" rev-parse --path-format=absolute --git-common-dir)/gmid-gate-cache/$GM
+test -f "$CACHE/interface_card.py"
+test "$(grep -c not_targeted "$CACHE/mutate_changed.py")" -ge 1                           # C-8
+git -C "$R" ls-tree gate/master .ai/verification/20261002-b41-scope-note-test.json | grep -c .   # C-2: 1
+git -C "$R" show gate/master:$A/tests/contracts/test_ts6_probe_relocate.py | grep -n 'pin_commit\|pin_edits'   # C-3: 세 리터럴
+git -C "$R" ls-tree --name-only gate/master .ai/approvals/ | grep 40-defect-fixes-design                           # C-4: 실제 id
+git -C "$R" show gate/master:tools/gates/merge_gate.py | grep -n "order.index(spec_phase) < order.index(intro)"  # C-5 / 0.2
+# spec card(P3 반영본, approval 줄 = 실제 UD-0 id) + interface card
+cp "$DR/draft_p4_first.spec.md" "$R/docs/02-design/specs/$ID.spec.md"
+$PY -B "$CACHE/interface_card.py" "$R/docs/02-design/specs/$ID.spec.md" --root "$R" --out "$R/docs/02-design/specs/$ID.interface.md"
+grep -c '^| `' "$R/docs/02-design/specs/$ID.interface.md"                                  # P3-11 기대 행 수
+git -C "$R" add -- "docs/02-design/specs/$ID.spec.md" "docs/02-design/specs/$ID.interface.md"
+git -C "$R" commit --trailer "Role: doc" --trailer "Change-Id: $ID" -m "docs: spec card $ID(D-1~D-4 미배선 정의 6개 삭제, equivalence, phase 4) + interface card"
+# push -- 단독 호출, 전체 출력 확인(병렬·tail 금지)
+git -C "$R" push gate master:master
+git -C "$R" fetch gate
+test "$(git -C "$R" rev-parse HEAD)" = "$(git -C "$R" rev-parse gate/master)"
+git -C "$R" worktree add "$W/$ID-test" -b "role/test/$ID" gate/master
+```
+card 계약 10 문서 커밋(계획 DF-09·N3.11 TS4 행, design 10 §5.6 두 행·'현존 21개', references 언급 줄)은 오케스트레이터 몫이고 **같은 Change-Id**로 순서 6 병합 전후 중 계약 범위 안에서 만든다(card 계약 10, 계약 머리 '이 card `Change-Id` 커밋들의 diff').
+
+---
+
+## 1. test-author 브리프(gmid-test-author, 순서 2)
+
+```
+역할: gmid-test-author. change id = 20261002-d4-delete-unwired (equivalence, phase 4).
+worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261002-d4-delete-unwired-test (브랜치 role/test/20261002-d4-delete-unwired). 모든 명령은 절대 경로(git -C, cd 금지).
+scratch: C:/g301 하나(TMP·TEMP = C:/g301/tmp, "." 금지). 끝나면 C:/g301만 삭제. set -euo pipefail.
+쓰기 경로: skills/analog-gmid-design/assets/tests/** (tests/tools/** 제외) 중 아래 여섯 파일만:
+  새 파일 tests/contracts/test_d4_delete_unwired.py,
+  tests/contracts/test_ic5.py, tests/contracts/test_ts6_probe_relocate.py,
+  tests/contracts/test_p3_registry_dest.py(계약 7a -- 표본 상수 세 원소 삭제만),
+  tests/unit/test_selftest_sizing_recipe.py, tests/unit/test_selftest_stick_diagram.py.
+입력: spec card docs/02-design/specs/20261002-d4-delete-unwired.spec.md('관찰 가능한 계약' 1~14, 'oracle 종류와 출처', '거부해야 할 입력')
+      + interface card docs/02-design/specs/20261002-d4-delete-unwired.interface.md. 이 둘만이 기대값의 출처다.
+열람 금지: 엔진 소스 skills/analog-gmid-design/assets/*.py, workspaces/run_harness.py, tests/tools/**(운영 도구 -- 계약 8은 git show <sha>:<경로>로 이력 blob만 읽는다),
+      _drafts/**(p4kit_first·시제품·notes -- 기대값의 출처가 될 수 없다). 고칠 기존 test 파일과 다른 기존 test는 읽어도 된다.
+커밋: git -C <worktree> commit --trailer "Role: test" --trailer "Change-Id: 20261002-d4-delete-unwired" -m "test: …" (한 커밋 = T)
+card 문장이 틀렸다고 보면 고치지 말고 dispute(<worktree>/docs/02-design/disputes/20261002-d4-delete-unwired.md)를 같은 트레일러로 커밋하고 멈춘다.
+```
+
+### 1.1 판정할 것(계약 번호 그대로)
+
+| 계약 | 파일 | test가 하는 일 | 기대(oracle) | base(T 트리) |
+|---|---|---|---|---|
+| 2 G-1 | 새 파일 | `A/*.py` 전체에서 문자열 키 딕셔너리(`_METRICS_REGISTRY`·`_CMRR_ESTIMATOR_REGISTRY`·`_PSRR_ESTIMATOR_REGISTRY`·`_COMPENSATION_REGISTRY`·`_THETA_FEED_REGISTRY` 포함 전수)를 AST로 찾아, 6 이름이 값으로 등록돼 있지 않음 | (a) 구성 -- 저장소 딕셔너리 | green |
+| 3 GONE(AST) | 새 파일 | `A/*.py`, `workspaces/run_harness.py`, `A/tests/**`(`tests/tools/**` 포함)에서 6 이름의 정의·`Name`·`Attribute`·`import` 참조 0. (파일, 줄, 이름) 튜플을 정렬해 `== []` | (a) 삭제 이름 문자열 | **red**(정의가 남음) |
+| 4 GONE(본문) | 새 파일 | `A/*.py`·`workspaces/run_harness.py` 원문 텍스트(docstring·주석 포함)에서 `\b<이름>\b` 0 | (a) | **red** |
+| 6 IC5 | `test_ic5.py` | `_DOMAIN_TABLE`에서 `check_multi_leaf_hub_parity` 행과 `audit_vertical_stack_id_euler_feasibility` 행 삭제, `len(_DOMAIN_TABLE) == 21` → `19`(P3-2 실제 수), docstring·주석 '21' → '19'. 표 밖 대상 형식 판정 (2)는 그대로 | (d) design 10 §5.6 | green |
+| 7 기존 test 정리 | `test_selftest_sizing_recipe.py` | `test_s007_solve_diode_stack_current`·`test_s028_estimate_area_budget` 삭제, import에서 `estimate_area_budget`·`solve_diode_stack_current`·`_invert_gm_id_for_current` 세 이름 제거, `test_s006_solve_id_for_target_gm` docstring의 `solve_diode_stack_current()/` 삭제, `mismatch_sigma_mV` 제외 사유 주석 "사이드카에 저장된다(`derived_bounds_path()`)" → "topology 제약의 `_derived`에 기록된다" | -- | green |
+| 7 S058 | `test_selftest_stick_diagram.py` | `test_s058_section`은 **남긴다**. (i) 64조합 판정의 기대 kind = 손 규칙(홀수 finger leaf 수 m: 0 → `circuit`, 1·2 → `path`, ≥3 → `impossible`), 메시지 '`check_multi_leaf_hub_parity()` 공식' → '손 규칙' (ii) `find_hub_merge_candidates` 판정 그대로 (iii) k=8·k=7 블록의 `formula = check_multi_leaf_hub_parity(...)` 호출을 손 규칙으로(k=8 → m=0 가능, k=7 → m=3 불가), 판정 = '실제 그래프 `kind != 'impossible'` == 손 규칙 가능 여부', 메시지에서 `(m=…)` 삭제. import에서 `check_multi_leaf_hub_parity` 제거. 손 규칙 helper `_d4_…`(이 파일 안 함수, 피검 호출 없음)와 그 합성 입력 판정 test `test_d4_…` 하나 | (a) 손 규칙 | green |
+| 7a D0b 표본 | `test_p3_registry_dest.py` | 결정 사실 표본 상수(D0b 계약 11 (f) 모듈 수준 상수 하나 -- 이름은 card base 판, P3-12)에서 `solve_diode_stack_current`·`MultiLeafHubParityVerdict`·`check_multi_leaf_hub_parity` 세 원소**만** 삭제. 다른 원소·기대값·T-A~T-E 판정 코드·`assert` 위치 그대로, **대체 표본 추가 금지**. 지우지 않으면 병합본에서 T-E가 그 셋을 '대상 행 아님'·`plan` `mod` 없음으로 FAIL한다(계약 3 GONE은 AST `Name`·`Attribute`·`import`·def만 세어 이 파일의 문자열 상수를 잡지 않는다 -- 삭제 이유는 T-E다, card 계약 7a) | (d) D0b oracle (d)-1 '표본 수명' | green(남는 표본 그대로) |
+| 8 TS6 핀 | `test_ts6_probe_relocate.py` | **아래 1.2만** -- 함수 이름·다른 test·(A1)·(A3) 판정 코드·거부/수용 표본은 그대로 | (a) | green(test-first) |
+
+* 새 파일의 6 이름은 **문자열 상수로만** 든다(import·호출·딕셔너리 값 금지 -- `test_d_delete_dead`·`test_d_delete_telescopic`·`test_d_move_tests`·`test_ts3_no_print_verdicts`가 Name·Attribute·import·def를 센다). IC 표식 없음.
+* 이름 접두: test `test_d4_…`, helper·fixture `_d4_…`. `snap`·`run`·`check`·`norm` 같은 흔한 이름 금지.
+* 판정 문장: 각 test에 `if`·`try` 밖 `assert` 하나 이상, print·logging 판정 금지, `set`을 `==`로 비교하지 않는다(정렬 목록).
+* **test id 집합(계약 7 끝·14)** = base − {`test_s007_solve_diode_stack_current`, `test_s028_estimate_area_budget`} + {새 GONE·G-1 test, 손 규칙 helper 판정 test}. **계약 8은 id를 더하지도 빼지도 않는다** -- 새 test 함수·parametrize 금지(TS6 파일 수집 id 33개 그대로).
+
+### 1.2 TS6 핀 편집(계약 8 (B) -- T 커밋 안, V5 '리터럴 변경' 1건)
+
+`test_moved_tool_matches_base_except_path_lines` 본문의 핀 리터럴만 바꾼다. 문자열은 card 계약 8 (B) **그대로**(아래는 그 인용 -- 이스케이프 포함 바이트 대조):
+1. `pin_commit`: **그대로**(`"9d6800ef74017dd015f4628e840bdc9d965b42ce"`, 또는 F2 병합본에서 F1 뒤 바뀐 값 그대로 -- 0.3 P3-5).
+2. `pin_edits = ()` → E_#2 두 쌍의 튜플:
+   ① `"    book = sr.load_derived_bounds(topo)\n    book.setdefault(fp, {})\n"` → `"    book = {fp: {}}\n"`
+   ② `"    path = sr.derived_bounds_path(topo)\n    with open(path, \"w\", encoding=\"utf-8\") as fh:\n        json.dump(book, fh, ensure_ascii=False, indent=2)\n    emit(f\"  사이드카 저장: {path}  (지문 {fp})\")\n"` → `""`
+3. **정수 리터럴** `assert len(pin_edits) == 0` → `assert len(pin_edits) == 2`. 이 단언을 빼거나 다른 모양(`len(...) > 0` 등)으로 바꾸지 않는다 -- `weakening_diff`는 상수 **삽입**을 보지 않아 이 교체가 V5 발견의 유일한 근거다(card 계약 8 (A3) 핀 변경 규칙, r3 실측).
+* 기준 문자열은 `pin_commit` blob(`sr.` 별칭의 이동 당시 도구)에 대한 것이다 -- HEAD 도구 모양(F1 별칭)에 맞춰 고치지 않는다.
+
+### 1.3 거부 입력 자기 점검(같은 파일, 같은 판정 함수에 합성 입력 -- '거부해야 할 입력')
+
+* GONE 판정 함수: 6 이름 중 하나만 정의로 남긴 합성 소스 문자열 → 그 이름을 보고. `X.<이름>` Attribute·`from m import <이름>`·`def <이름>` 각각 보고. 문자열 상수로만 든 소스 → 보고 0(새 파일 자신이 걸리지 않음을 보인다).
+* GONE(본문) 함수: docstring·주석 안 단어 → 보고, `<이름>_x` 같은 부분 일치 → 보고 0.
+* G-1 판정 함수: 합성 소스 `_FOO_REGISTRY = {"k": estimate_area_budget}` → 등록 보고, 값이 문자열 `"estimate_area_budget"`이면 → 보고 0.
+* 손 규칙 helper: {1,1,1}(m=3) → `impossible`, m=0(모두 짝수)·m=2 → 가능. 기대값이 비어 공허해지지 않게 조합 수 > 0 단언.
+* TS6: 계약 8 (A1) 거부 표본(`36e170eec5b9e893c03927e5bb45635071de7e69`·`a574f977dd45b1939dd530e94a20b29db550a3f3`)과 (A3) 거부 5종·수용 4종은 F1이 넣은 대로 **이미 함수 안에 있다** -- 지우거나 옮기지 않는다. 핀 편집 기준 문자열이 정확히 1회가 아니면 실패하는 경로가 그대로인지만 확인.
+
+### 1.4 자기 확인(커밋 전, 판정 근거 아님)
+
+```
+TMP=C:/g301/tmp TEMP=C:/g301/tmp PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -B -P -m pytest -c <worktree>/tools/gates/pytest_gate.ini --rootdir=<worktree> --confcutdir=<worktree> -q -p no:cacheprovider --gmid-phase=4 --gmid-strict= <worktree>/skills/analog-gmid-design/assets/tests
+```
+T 트리(엔진 그대로)에서 기대: **실패 = 계약 3·4 GONE test 2개뿐, 원인 `AssertionError`**(다른 예외·수집 오류 0). TS6 파일 **33 passed**(핀 상태 = 편집 전 + 편집 적용본이라 도구 그대로도 green). `test_p3_registry_dest.py` 전부 PASS(T-E는 남는 표본만 대조). 그 밖 전부 PASS. 수집 id 집합이 1.1 끝 문장과 같음.
+기대값은 card 문장과 test가 만든 문자열에서만 -- 피검 함수를 불러 기대값을 만들지 않는다.
+
+---
+
+## 2. code-author 브리프(gmid-code-author, 순서 5)
+
+```
+역할: gmid-code-author. change id = 20261002-d4-delete-unwired (equivalence, phase 4).
+worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261002-d4-delete-unwired-code (브랜치 role/code/20261002-d4-delete-unwired, 부모 = test 커밋 T). 절대 경로만, cd 금지.
+scratch: C:/g302 하나(TMP·TEMP = C:/g302/tmp, "." 금지). 끝나면 C:/g302만 삭제. set -euo pipefail.
+쓰기 경로: 엔진 skills/analog-gmid-design/assets/*.py(6개 정의의 R-DEF 정의 파일 + 계약 4 언급이 있는 파일), 운영 도구 skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py,
+          레지스트리 docs/03-analysis/gain-budget-gmid-sizing.function-registry.md. test(tests/** 중 tools 밖)·references·계획·design 쓰기 금지.
+입력: spec card('의도' 표, 계약 1·4·5·9, 계약 8 (B)의 E_#2), interface card. test가 틀렸다고 보면 고치지 말고 dispute를 같은 트레일러로 커밋하고 멈춘다.
+커밋: git -C <worktree> commit --trailer "Role: code" --trailer "Change-Id: 20261002-d4-delete-unwired" -m "…" (엔진·도구·레지스트리 한 커밋 = K -- 계약 9 '같은 code 커밋')
+```
+
+### 2.1 바꿀 것
+
+1. **계약 1 삭제**: 정의 6개(함수 5 + `@dataclass` 클래스 `MultiLeafHubParityVerdict` -- 바로 위 `@dataclass` 데코레이터 줄까지). 위치는 심볼로 찾는다(0.3 P3-1 파일). **남길 것**: `_invert_gm_id_for_current`, `SemiEmpiricalGmIdLUT.vgs_for_gm_id`, `find_hub_merge_candidates`, `build_graph`, `check_euler_condition`, `assign_finger_geometry`(인자 `area_priors` 시그니처에 남김), `select_layout_tool`(`area_budget` 그대로), `achievable_metric_bound`, `resolve_constraint_references`, `solve_stacked_diode_pair`, `audit_vertical_stack_id_euler_feasibility`(D-5 함수는 #41). DF-09 식은 고치지 않는다(지울 코드를 고치지 않는다).
+2. **계약 4 docstring·주석**: `A/*.py`·`workspaces/run_harness.py` 원문에서 6 이름 단어 일치 0. 지운 함수를 가리키던 문장은 남는 정본(`build_graph()`+`check_euler_condition()`, `solve_stacked_diode_pair`, topology 제약 `_derived`)을 가리키거나 문장을 지운다 -- 사실을 지어내지 않는다. `achievable_metric_bound` docstring "프로세스를 넘는 재사용은 사이드카 파일이 한다" → '선언의 `_derived`(운영 도구가 기록)'. 대상 목록은 card 계약 4(P3-4 재측정판).
+3. **계약 5 도구**(diff는 이 셋뿐):
+   * `book = <별칭>.load_derived_bounds(topo)`·`book.setdefault(fp, {})` 두 문장 → **한 문장 `book = {fp: {}}`**(같은 자리, 이 모양 그대로 -- E_#2 ①과 같은 AST여야 핀을 통과한다).
+   * 쓰기 블록 **세 문장 삭제**: `path = <별칭>.derived_bounds_path(topo)`, 그 `with open(path, "w", …)` 문장, `emit(f"  사이드카 저장: …")`(E_#2 ②).
+   * 도구 docstring·`emit` 문구의 '사이드카' 서술을 같은 사실(topology 제약 `_derived`)로.
+   * 그 밖(경로 줄·계산·탐색 인자·선언 기록 블록·최상위 import 줄)은 바꾸지 않는다. TS6 (마) 핀이 도구 **전체** 정규형을 비교하므로 범위 밖 비경로 문장 변경은 test가 거부한다.
+4. **계약 9 레지스트리**(같은 K): §7 행 5개(`solve_diode_stack_current`·`estimate_area_budget`·`load_derived_bounds`·`MultiLeafHubParityVerdict`·`check_multi_leaf_hub_parity`)와 §3 R0 행 `derived_bounds_path` 삭제, §1 집계 D·R0 값과 §3·§7 소절 제목 괄호 수를 행 수에 맞춤, §2 '스택 KVL 합' 행의 `solve_diode_stack_current` 언급 삭제. 행 위치·파일 칸은 D0b 뒤 표를 따른다.
+
+### 2.2 하지 말 것
+
+* 새 def·새 helper 0(V7 `new_defs` 0). 남는 함수 시그니처 변경 0(V3 changed defs 0 유지 -- docstring은 `def_hash` 밖).
+* 광범위 `except` 추가 금지(V6). test·references·계획·design·`_drafts` 쓰기 금지.
+
+### 2.3 자기 확인(판정 근거 아님)
+
+* 1.4의 명령(TMP·TEMP = `C:/g302/tmp`, `<worktree>` = code worktree) → **전부 PASS**(GONE 2개 green, TS6 33 passed, `test_p3_registry_dest.py` 전부 PASS -- T가 세 표본을 지웠고 K가 레지스트리 §7 행을 지운 뒤에도 `plan` 판정 목록이 빈다, `test_reg_check.py::test_main_on_this_repository_is_clean` 발견 0, `test_ic5` PASS).
+* `git -C <worktree> diff --stat <T>` = 정의 파일(들)·언급 파일·도구·레지스트리뿐.
+
+---
+
+## 3. auditor 브리프(gmid-verification-auditor, 순서 3·7)
+
+```
+역할: gmid-verification-auditor. change id = 20261002-d4-delete-unwired, evidence_type equivalence, 엔진 변경(phase 4).
+audit worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261002-d4-delete-unwired-audit (브랜치 role/audit/20261002-d4-delete-unwired, 시작 = role/test/<id> 끝 = T).
+모든 측정은 격리 복제본에서: git clone --no-hardlinks --no-local -c core.autocrlf=false -c core.hooksPath= <audit worktree> <scratch>/iso → git -C <scratch>/iso remote remove origin.
+scratch: 순서 3 = C:/g303, 순서 7 = C:/g304(각각 하나, TMP·TEMP = <scratch>/tmp, "." 금지). 끝나면 그 폴더만 삭제. set -euo pipefail, git -C <절대 경로>만, (cd … && …) 금지.
+끝나면 실제 저장소 git status --porcelain·reflog 줄 수가 시작과 같은지 확인해 기록.
+게이트 코드 = base 판(순서 0 card 커밋 뒤 gate master)을 git archive로 추출한 사본.
+작성자(test·code) 보고와 오케스트레이터·card 사전 측정('작성 전 실측' 수치, _drafts/p4kit_first/)은 증거로 받지 않는다 -- 다시 잰다. 판정기는 직접 쓴다.
+판정 기록 .ai/verification/20261002-d4-delete-unwired.json + .ai/verification/20261002-d4-delete-unwired/{scripts,out}/, Role: audit 커밋은 순서 7에서만 한 번.
+판정 기록 approvals = [<UD-0 실제 id>, <V5 승인 기록 id>].
+```
+
+### 3.1 순서 3(freeze·base 확인 → `base_check.json`)
+
+* **`base_check.json`(과 scripts·out 산출물)은 audit worktree에 쓰기만 하고 커밋하지 않는다.** 커밋은 순서 7에서 병합 M 위 `Role: audit` 한 커밋으로 판정 기록과 함께 넣는다. 근거: card 35에서 순서 3 커밋(`dcf6269`)이 생겨 버려지고, 판정 커밋 `dafe5cf`가 산출물 29파일을 오케스트레이터 보존본에서 재배치했다(그 판정 기록 `auditor_run` '순서 3 산출물 재배치').
+* 순서 3 끝에 스스로 확인해 `base_check.json`에 적는다: `git -C <audit worktree> status --porcelain`(산출물이 미커밋으로 보임), `git -C <audit worktree> log --oneline role/test/20261002-d4-delete-unwired..HEAD` **빈 출력**. 로그 사본 sha256은 작업 사본(CRLF)·커밋 blob(LF) 두 값.
+* T 해시 고정. `git diff --name-only <base> <T>` = 1절 여섯 파일(새 `test_d4_delete_unwired.py`, `test_ic5.py`, `test_ts6_probe_relocate.py`, `test_p3_registry_dest.py`, `test_selftest_sizing_recipe.py`, `test_selftest_stick_diagram.py`). `test_p3_registry_dest.py` diff는 표본 상수 세 원소 삭제뿐인지(계약 7a -- 대체 표본 추가·판정 코드 변경 0). 트레일러 `Role: test`·`Change-Id` 각 하나.
+* **base suite**: base 트리 전체(base 판 `pytest_gate.ini`, `--gmid-phase=4 --gmid-strict=<base 판 merge_gate.strict_set>`) → 실패 0, junit·(id, 결과) 목록 보관(V1·V2·계약 14 기준).
+* **T 트리 red 모양**: 전체 실행에서 실패 = 계약 3·4 GONE test 2개, 원인 `AssertionError`뿐(다른 예외·수집 오류 0). 그 밖 PASS. 수집 id 집합 = base − 2 + 새 id(1.1 끝 문장). `failure_hashes` = base 판 `merge_gate.red_failure_hash(<test id>, "AssertionError")`.
+* **TS6**: T 트리 TS6 파일 33 passed, 수집 id 해시 두 형식(`pytest --collect-only -q`의 `::` 줄 = 저장소 루트 상대 node id 정렬·줄마다 `\n`·UTF-8 sha256 앞 12자; `tests/contracts/` 뒤 문자열로 같은 방식)이 base와 같음 -- 값은 이 판에서 잰 것을 적는다(`c66e04745a4a`·`251db052c443`은 `4a286f0` 판 참고값).
+  핀 값 읽기: T의 `pin_commit`(40자), `pin_edits` 두 쌍(바이트 그대로), 정수 `2`를 card 계약 8 (B) 원문과 대조, 각 기준 문자열이 `pin_commit` blob에 정확히 1회. 결과를 `base_check.json`에 원문으로(오케스트레이터 V5 승인 기록의 대조 원본).
+* **판별력(작성 test를 쓰지 않고 auditor 판정기로)**: GONE·G-1·손 규칙 판정기가 1.3 합성 입력에서 실제로 거부하는지. TS6 (A1) `36e170e`·`a574f97` 거부, (A3) 거부 5종 ≠·수용 4종 ==를 auditor가 card 정의대로 독립 구현해 재현(T의 test 함수 결과와 같아야 함).
+* **V5 사전 측정(base..T)**: base 판 `weakening_diff.py` 발견을 (파일, 단위)로 기록 -- 기대 8건(3.3 V5 목록). 목록 밖 발견이 있으면 test-author에게 돌려보낸다. diff 해시(base 판 `merge_gate.compute_diff_hash`)를 적는다 -- 오케스트레이터가 V5 승인 기록을 이 해시로 쓴다.
+* **equivalence base 출력**: E-LIB(로드 가능한 library 회로 전부의 `load_topology` meta·`transistors`·`run_topology_pipeline` 반환, 키 정렬 sha256), E-INST(사이징 대상 회로 -- base에서 다시 셈, Phase 3 D-25 M10 진입점 test의 회로 포함 -- `instance.json` 정규화 sha256), NEW-TOPO(새 회로 이름·새 넷 이름·소자 수가 다른 합성 topology). **같은 체크아웃 경로**에서 잰다(순서 7도 그 경로 -- `checkout --detach` + `clean -fdx`). 선례 스크립트 `e_lib.py`·`e_lib_p3.py`·`e_inst_p3.py`(없으면 `e_inst_df36.py`)를 쓰면 blob id와 sha256(LF·CRLF)을 기록. P3-8로 Phase 3 DoD 산출물을 base로 쓸 수 있다고 정해졌으면 그 근거를 적는다.
+* G-1(계약 2)은 base 트리에서 판정(지우기 전에 도달 경로 없음).
+
+### 3.2 순서 6 병합 전 가드(오케스트레이터)
+
+병합 전에 반드시:
+```
+git -C C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261002-d4-delete-unwired-audit log --oneline role/test/20261002-d4-delete-unwired..HEAD
+```
+출력이 **비어야 한다**. 비어 있지 않으면 순서 3 커밋이 섞인 것 -- 병합하지 말고 멈춤(산출물을 보존본으로 옮기고 브랜치를 T로 되돌리는 것은 사용자 확인 뒤).
+같은 때 V5 승인 기록(`target_kind: diff`, 3.1 해시)이 gate `master`에 있는지(사용자 승인 -- 3.3 V5 행의 원문 요구를 기록이 담는지 오케스트레이터가 먼저 대조).
+
+### 3.3 순서 7(병합본 판정)
+
+* 순서 3 산출물(`base_check.json` 등)은 audit worktree에 미커밋으로 있다 -- 이 순서 7의 한 커밋(M 위, `Role: audit`)에 판정 기록과 함께 넣는다.
+
+| V | 판정 | 근거·측정 |
+|---|---|---|
+| V1 | PASS | 병합본 전체 suite(`V1:` 명령 하나, base 판 `pytest_gate.ini`, `-k`·`--deselect`·`-x` 없음, **`--gmid-phase=4 --gmid-strict=<base 판 strict_set>`**) 실패 0. 수집 id = 계약 7 집합, xfail 집합 base와 같음(계약 14). `v1_command_check` 위반 0 |
+| V2 | PASS | equivalence 사슬 base → T(`Role: test`) → K(`Role: code`) → 병합 M. 3.1 red 2개(GONE)가 M에서 green, 나머지 (id, 결과) base와 같음. **`equivalence` 블록**: E-LIB·E-INST·NEW-TOPO 병합본 출력이 base(3.1)와 바이트 같음(`outputs_hash` 양쪽 같음), GONE 계약 3·4를 auditor 판정기로 병합본에서 0 |
+| V3 | PASS | base 판 `mutate_changed.py --root <iso> --base <base> --head <M> --pytest-ini <base 판>/pytest_gate.ini --gmid-phase=4 --gmid-strict=` → `targets` = R-DEF 정의 파일(P3-1), **`mutants` 0·`killed` 0·`not_targeted` 0·`targets_by_def` {}·`exempt_ignored` []**(G1 병합 뒤면 `defs` []·`moved` []·`move_rejected` {}). 도구 파일 `tests/tools/**`는 V3 source 밖 |
+| V4 | PASS | base 판 `test_lint.py --root <iso> --interface-card <M>/docs/02-design/specs/20261002-d4-delete-unwired.interface.md --base <base> --head <M>`. basis `oracle 대조: ` 줄 -- (c) 동작 보존(E-LIB·E-INST·NEW-TOPO·suite), (a) 구성(G-1 딕셔너리, GONE 이름 문자열, 손 규칙 m), (d) design 10 §5.6(IC5 19행), (d) D0b oracle (d)-1 '표본 수명'(계약 7a). 바뀐 test 파일 여섯 **전체**가 lint 대상이다 -- `test_p3_registry_dest.py` T-A~T-E는 NO-SUBJECT·test 본문 `assert`여야 한다(P3-12). FAIL이 있으면 문장마다 읽어 card 'oracle 종류와 출처'와 대조 |
+| V5 | PASS(승인 기록) | base 판 `weakening_diff.py`(base→M) 발견이 아래 **8건 목록 안**에만 있고, `approvals`의 V5 승인 기록(`target_kind: diff`)의 diff 해시가 base..T와 같다. 목록 밖 발견 1건이라도 FAIL |
+| V6 | PASS | base 판 `source_lint.py` `findings` [] -- 삭제·docstring뿐, 새 `except` 0 |
+| V7 | PASS | base 판 `reachability.py` `new_defs` 0·unreached 0 |
+| V8 | **0.2 결정대로** | card·P-38 문구는 'N/A -- 계측 미도입, 폴백 경로 불변'. 그러나 `7243f28` rule10(537~545행)은 phase 4 card의 V8 N/A와 `도입 4: ` 아닌 basis를 거부한다 -- 0.2 (가)/(나)로 정해진 모양만 쓴다. 정해지지 않았으면 판정 기록을 쓰지 말고 멈춤 |
+| V9 | N/A | `도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2 v_intro[V9] = 6b)` |
+| V10 | PASS | '재현할 수치: 없음' → `reproduced_numbers` 빈 배열. 계약 11~13 해시 동일성은 V2 `equivalence` 블록 |
+
+**V5 승인 범위 8건(card '결정 필요 항목' -- 패턴은 '예')**:
+1. `tests/contracts/test_ic5.py`, `test_domain_table_uses_allowed_values`(예: 리터럴 21→19)
+2. `tests/contracts/test_ic5.py`, `<module>`(예: 표 두 행 삭제)
+3. `tests/contracts/test_ic5.py`, `<module>`(예: 모듈 docstring '21행' 문구)
+4. ~~`test_ts6_probe_relocate.py` 비교 완화~~ -- D1 = (마), 규칙 전환은 F1 몫이라 이 card diff에 없음
+5. `tests/contracts/test_ts6_probe_relocate.py`, `test_moved_tool_matches_base_except_path_lines`(리터럴 변경 -- 정수 `0` → `2`와 편집 문자열)
+6. `tests/unit/test_selftest_sizing_recipe.py`, `test_s007_solve_diode_stack_current`(함수 삭제)
+7. `tests/unit/test_selftest_sizing_recipe.py`, `test_s028_estimate_area_budget`(함수 삭제)
+8. `tests/unit/test_selftest_stick_diagram.py`, `test_s058_section`(예: 비교 완화 + 리터럴 변경)
+9. `tests/contracts/test_p3_registry_dest.py`, `<module>`(예: 표본 상수 세 원소 삭제 -- card 계약 7a, 단위는 D0b가 실제 커밋한 판으로 P3-12 확인)
+
+(번호는 card 그대로 -- 4가 빠지고 9가 더해져 8건.) 계약 7 docstring·주석 두 곳과 새 test는 발견 0이어야 한다.
+
+**V5 승인 기록 원문 요구(auditor가 기록 본문과 T diff를 대조 -- 하나라도 없으면 V5 FAIL)**: 승인 기록 범위 설명이 다음을 **원문 그대로** 인용한다 -- V5 출력은 쌍 내용을 앞 일부만 보이고 정직한 편집·변조된 편집 쌍·가짜 핀 커밋의 발견 문구가 같으므로(독립 검증 `review_ts6_ma.md` T3·T4) 이 원문 대조가 실질 방어다.
+* (c-1) **E_#2 두 쌍**의 기준 문자열·바꿀 문자열 전부(1.2 ①·② 바이트 그대로)
+* (c-2) **`pin_commit` 값** 40자 sha 그대로(기본 `9d6800ef74017dd015f4628e840bdc9d965b42ce`, F2 병합본에서 바꿨으면 그 값)
+* (c-3) **정수 `2`**(이 card가 도구 정규형을 바꾸는 범위 = 그 두 쌍뿐)
+* (a) D-5 표 행을 함수보다 먼저 지우므로 남는 `audit_vertical_stack_id_euler_feasibility`의 영역 값 판정이 #41까지 꺼진다(형식 판정만 남음)
+* (d) (계약 7a) D0b 결정 사실 표본에서 A-6 표본 1·A-7 표본 2를 지우고 대체 표본을 더하지 않는다 -- 실제 단위 A-7 표본이 0이 되는 것과 그 이유(A-7은 D0b 재생성 뒤 실제 트리에 이미 0, 규칙 검증은 D0a 합성 단계 `a7-isolated`, A-6은 행 없는 표본 `search_shared_finger_w`가 남음, 잃는 보호는 없어지는 단위의 칸 drift guard뿐 -- card '결정 필요 항목' V5 (d) 원문)
+* (b) D1 = (마)의 '잃는 보호': docstring·주석·출력 호출 인자(문구와 그 안의 식, `def emit` 본문 `print` 포함)·최상위 엔진 import 줄 모양의 내용 고정, 같은 이름을 묶는 다른 엔진 모듈로의 최상위 별칭 바꾸기(경로 문장은 지금 test와 같은 정의로 허용)
+대조 방법: 기록의 (c-1)~(c-3) 문자열을 T의 `test_ts6_probe_relocate.py` 해당 리터럴(AST로 꺼낸 값)과 바이트 비교, 3.1 `base_check.json` 원문과도 같은지. 결과를 `checks.V5.basis`에 적는다.
+
+**K diff 검토(기계가 보지 않는 것 -- card 계약 5 '기계가 보지 않는 것')**: 도구 diff에서 docstring·주석·`emit`/`print` 인자·최상위 엔진 import 줄·경로 문장 변경을 읽어, 계약 5의 셋(사이드카 읽기 제거·쓰기 블록 제거·'사이드카' 서술 수정) 밖이 없는지 `notes`에 적는다.
+
+**계약 9 확인**: 병합본에서 base 판 `reg_check.py --registry docs/03-analysis/gain-budget-gmid-sizing.function-registry.md --root <iso>` 발견 0(base도 0).
+
+**관찰(판정에 걸지 않음)**: 운영 도구 `derive_achievable_bounds.py`를 library에 돌리면 대상 0 출력(무동작 -- `value_from_achievable` 선언 0)을 한 줄로.
+
+---
+
+## 4. 순서 요약(오케스트레이터)
+
+(Phase 3 DoD PASS = C-1) → (B41 병합 = C-2) → (F1 TS6 (마) 규칙 병합 확인 = C-3) → UD-0 승인 기록(card id·U-02 처리 칸 변경 원문, C-4) → **0.2 V8 처리 확정**(C-5) → 0.3 재측정(`C:/g305`, P3-1~P3-11)을 card에 반영 →
+순서 0: 0.4 명령(spec+interface card `Role: doc` 커밋 → push 단독·전체 출력 확인 → `role/test/<id>` worktree) →
+순서 2 test-author(1절, T 한 커밋) → 순서 3 audit worktree(`git -C $R worktree add $W/$ID-audit -b role/audit/$ID role/test/$ID`) + auditor(3.1, **커밋 없음**) →
+오케스트레이터 V5 승인 질문·기록(`target_kind: diff`, 3.1 해시, 3.3 원문 요구 (a)(b)(c-1)(c-2)(c-3) -- 사용자 승인 뒤 커밋) →
+순서 4 code worktree(`git -C $R worktree add $W/$ID-code -b role/code/$ID role/test/$ID`) → code-author(2절, K 한 커밋) →
+순서 6 병합 -- **병합 전 3.2 가드**(`log role/test/<id>..HEAD` 빈 출력) → 계약 10 문서 커밋(같은 Change-Id, `Role: doc`) →
+순서 7 auditor(3.3, M 위 `Role: audit` 한 커밋에 판정 기록 + 순서 3 산출물) → 순서 8 push 단독·전체 출력 확인 → 확인 뒤에만 정리(세 worktree·`role/*` 브랜치, 자기 scratch `C:/g301`~`g305`) →
+다음: #5 `ts4-selfref-oracle`(TS4 대상 = V4 lint 산출 목록, 메모 §5).

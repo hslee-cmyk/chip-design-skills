@@ -1,0 +1,507 @@
+# dl/upenn_lec5.pdf pages=10
+
+=== PDF page 2
+2 
+Ideal Opamp 
+7 
+Penn ESE 568 Fall 2018 - Khanna 
+Steps in Designing a CMOS Opamp 
+!  1) Choosing or creating the basic structure of the 
+opamp 
+"  This step results in a schematic showing the transistors 
+and their interconnections  
+"  This diagram does not change throughout the remainder 
+of the design unless the specifications cannot be met, 
+then a new or modified structure must be developed  
+!  2) Selection of the dc currents and transistor sizes 
+"  a.k.a Biasing and sizing  
+"  Most of the effort of design is in this category 
+"  Simulators are used to aid the designer in this phase 
+8 
+Penn ESE 568 Fall 2018 - Khanna 
+Steps in Designing a CMOS Opamp 
+!  3) Physical implementation of the design 
+"  Layout of the transistors  
+"  Floorplanning the connections, pin-outs, power supply 
+buses and grounds  
+"  Extraction of the physical parasitics and re-simulation  
+"  Verification that the layout is a physical representation of 
+the circuit 
+!  4) Fabrication  
+!  5) Measurement  
+"  Verification of the specifications  
+"  Modification of the design as necessary 
+"  Make sure it’s not necessary! 
+9 
+Penn ESE 568 Fall 2018 - Khanna 
+Design Variables 
+!  Boundary conditions (constraints):  
+"  1. Process specification (VT, μ, Cox, etc.)  
+"  2. Supply voltage and range  
+"  3. Supply current and range  
+"  4. Operating temperature and range  
+10 
+Penn ESE 568 Fall 2018 - Khanna 
+Design Variables 
+!  Specifications:  
+"  1. Open-loop Gain  
+"  2. Gain bandwidth  
+"  3. Settling time  
+"  4. Slew rate  
+"  5. Input common-mode range, ICMR  
+"  6. Common-mode rejection ratio, CMRR  
+"  7. Power-supply rejection ratio, PSRR  
+"  8. Output-voltage swing  
+"  9. Output resistance  
+"  10. Offset  
+"  11. Noise  
+"  12. Layout area 
+11 
+Penn ESE 568 Fall 2018 - Khanna 
+Specifications 
+!  1. Open-loop Gain  
+"  Typically an op-amp may have a maximal open-loop gain 
+of around 105 
+12 
+Penn ESE 568 Fall 2018 - Khanna 
+AOL =
+Vout
+Vin
++ −Vin
+−
+
+
+=== PDF page 3
+3 
+Specifications 
+!  1. Open-loop Gain  
+"  Typically an op-amp may have a maximal open-loop gain 
+of around 105 
+!  2. Gain bandwidth  
+13 
+Penn ESE 568 Fall 2018 - Khanna 
+AOL =
+Vout
+Vin
++ −Vin
+−
+Specifications 
+!  3. Settling time  
+!  4. Slew rate  
+14 
+Penn ESE 568 Fall 2018 - Khanna 
+SR = max dvout(t)
+dt
+!
+"#
+$
+%&
+Specifications 
+!  5. Input common-mode range, ICMR  
+"  The input common-mode range is the range of common-
+mode voltages over which the differential amplifier 
+continues to sense and amplify the difference signal with 
+the same gain.  
+"  Typically, the ICMR is defined by the common-mode 
+voltage range over which all MOSFETs remain in the 
+saturation region. 
+15 
+Penn ESE 568 Fall 2018 - Khanna 
+Specifications 
+!  6. Common-mode rejection ratio, CMRR 
+"  CMRR is a measure of how well the differential amplifier 
+rejects the common-mode input voltage in favor of the 
+differential-input voltage. 
+ 
+ 
+!  7. Power-supply rejection ratio, PSRR  
+16 
+Penn ESE 568 Fall 2018 - Khanna 
+CMRR = avd
+avc
+PSRR+ = avd
+a+
+PSRR−= avd
+a−
+Specifications 
+!  8. Output-voltage swing  
+"  Expected output swing 
+!  9. Output resistance  
+"  Resistance seen into the output 
+!  10. Offset  
+"  Output offset voltage (VOS(out))  
+"  The output offset voltage is the voltage which appears at the 
+output of the differential amplifier when the input terminals are 
+connected together.  
+17 
+Penn ESE 568 Fall 2018 - Khanna 
+Specifications 
+!  8. Output-voltage swing  
+"  Expected output swing 
+!  9. Output resistance  
+"  Resistance seen into the output 
+!  10. Offset  
+"  Output offset voltage (VOS(out))  
+"  The output offset voltage is the voltage which appears at the 
+output of the differential amplifier when the input terminals are 
+connected together.  
+"  Input referred offset voltage (VOS(in) = VOS)  
+"  The input referred offset voltage is equal to the output 
+offset voltage divided by the differential voltage gain.  
+"  VOS = VOS(out)/AVD 
+18 
+Penn ESE 568 Fall 2018 - Khanna 
+
+
+=== PDF page 5
+5 
+Design Variables 
+!  Specifications:  
+"  1. Open-loop Gain  
+"  2. Gain bandwidth  
+"  3. Settling time  
+"  4. Slew rate  
+"  5. Input common-mode range, ICMR  
+"  6. Common-mode rejection ratio, CMRR  
+"  7. Power-supply rejection ratio, PSRR  
+"  8. Output-voltage swing  
+"  9. Output resistance  
+"  10. Offset  
+"  11. Noise  
+"  12. Layout area 
+25 
+Penn ESE 568 Fall 2018 - Khanna 
+Basic 2-stage Opamp 
+2-Stage Opamp 
+27 
+Penn ESE 568 Fall 2018 - Khanna 
+Differential DC Gain 
+!  Inputs are equal in magnitude but opposite in sign 
+to each other 
+!  By linearity and symmetry, is1 must equal -is2  
+"  This implies iR is zero, so that voltage drop across ro4 is zero 
+"  The sources of M1 and M2 are therefore at incremental ground and 
+decoupled from each other!  
+28 
+Penn ESE 568 Fall 2018 - Khanna 
+2-Stage Opamp 
+29 
+Penn ESE 568 Fall 2018 - Khanna 
+!  1. Open-loop Gain  
+2-Stage Opamp 
+30 
+Penn ESE 568 Fall 2018 - Khanna 
+!  2. Frequency Response 
+RC=0 
+
+
+=== PDF page 6
+6 
+2-Stage Opamp 
+31 
+Penn ESE 568 Fall 2018 - Khanna 
+!  2a. Frequency Response – no compensation CC=0 
+"  Two poles:  
+ 
+p1 = −
+1
+Ro1C1
+p2 = −
+1
+Ro2C2
+2-Stage Opamp 
+32 
+Penn ESE 568 Fall 2018 - Khanna 
+!  2a. Frequency Response – no compensation CC=0 
+ 
+p1 = −
+1
+Ro1C1
+p2 = −
+1
+Ro2C2
+A(s) =
+A0
+1−s
+p1
+"
+#$
+%
+&' 1−s
+p2
+"
+#$
+%
+&'
+2-Stage Opamp Transfer Functions 
+33 
+Penn ESE 568 Fall 2018 - Khanna 
+2-Stage Opamp Transfer Functions 
+34 
+Penn ESE 568 Fall 2018 - Khanna 
+Phase Margin 
+35 
+Penn ESE 568 Fall 2018 - Khanna 
+!  Find phase at unity-gain 
+frequency (ω0) 
+!  Add 180o for phase margin 
+!  Red 
+"  Phase at ω0 = -81.3ο
+"  PM=98.7ο 
+!  Blue 
+"  Phase at ω0 = -231ο
+"  PM=-50ο 
+Stability 
+36 
+Penn ESE 568 Fall 2018 - Khanna 
+
+
+=== PDF page 7
+7 
+Stability vs. Phase Margin 
+37 
+Penn ESE 568 Fall 2018 - Khanna 
+Phase Margin 
+38 
+Penn ESE 568 Fall 2018 - Khanna 
+!  Find phase at unity-gain 
+frequency (ω0) 
+!  Add 180o for phase margin 
+!  Want phase margin >45o 
+(~60o) 
+"  Problem: Hard to do 
+with 2-stage opamp with 
+high gain 
+"  Solution: Split the poles 
+ 
+Impact of Pole Splitting with Compensation Cap 
+39 
+Penn ESE 568 Fall 2018 - Khanna 
+!  Pole splitting allows the dominant pole frequency to be 
+dramatically decreased and the main parasitic pole to be 
+dramatically increased 
+"  We can achieve higher unity gain frequency with improved phase margin 
+2-Stage Opamp 
+40 
+Penn ESE 568 Fall 2018 - Khanna 
+!  2b. Frequency Response – with compensation CC>0 
+"  Two poles:  
+ 
+p1 ≈−
+1
+Ro1(gm7Ro2CC)
+p2 ≈−
+gm7CC
+C1C2 +C1CC +CCC2
+≈−gm7
+C2
+2-Stage Opamp 
+41 
+Penn ESE 568 Fall 2018 - Khanna 
+!  2b. Frequency Response – with compensation CC>0 
+ 
+p1 ≈−
+1
+Ro1(gm7Ro2CC)
+p2 ≈−
+gm7CC
+C1C2 +C1CC +CCC2
+≈−gm7
+C2
+A(s) =
+A0 1−s
+z2
+"
+#$
+%
+&'
+1−s
+p1
+"
+#$
+%
+&' 1−s
+p2
+"
+#$
+%
+&'
+z1 = gm7
+CC
+Nulling Resistor 
+42 
+Penn ESE 568 Fall 2018 - Khanna 
+z1 =
+1
+CC
+1
+Gm2
+−RZ
+"
+#
+$
+%
+&
+'
+
+
+=== PDF page 8
+8 
+Transistor for RZ 
+43 
+Penn ESE 568 Fall 2018 - Khanna 
+2-Stage Opamp – Unity Gain Freq 
+44 
+Penn ESE 568 Fall 2018 - Khanna 
+!  Equivalent capacitance at node v1 
+2-Stage Opamp – Unity Gain Freq 
+45 
+Penn ESE 568 Fall 2018 - Khanna 
+Ceq = CC(1+ Av2) ≈CCAv2
+!  Equivalent capacitance at node v1: 
+2-Stage Opamp – Unity Gain Freq 
+46 
+Penn ESE 568 Fall 2018 - Khanna 
+Ceq = CC(1+ Av2) ≈CCAv2
+!  Equivalent capacitance at node v1: 
+Av1 ≅−gm1
+1
+sCeq
+≅−gm1
+1
+sCCAv2
+Av1 = v1
+vin
+= −gm1Zout1 = −gm1 rds2 || rds4 ||
+1
+sCeq
+"
+#
+$$
+%
+&
+''
+Av(s) = vout
+vin
+= Av2Av1 ≅Av2
+−gm1
+sCCAv2
+= −gm1
+sCC
+Av( jω0) =1   for   ω0 = gm1
+CC
+2-Stage Opamp 
+47 
+Penn ESE 568 Fall 2018 - Khanna 
+!  3/4. Settling Time/Slew Rate 
+2-Stage Opamp – Slew Rate 
+48 
+Penn ESE 568 Fall 2018 - Khanna 
+
+
+=== PDF page 9
+9 
+2-Stage Opamp 
+49 
+Penn ESE 568 Fall 2018 - Khanna 
+!  3/4. Settling Time/Slew Rate 
+2-Stage Opamp 
+50 
+Penn ESE 568 Fall 2018 - Khanna 
+!  3/4. Settling Time/Slew Rate 
+SR ≡dvout
+dt
+max
+=
+ICC max
+CC
+= ID5
+CC
+Finite Slew Rate Effect 
+!  Ex. Unity-gain Follower 
+51 
+Penn ESE 568 Fall 2018 - Khanna 
+vI = Asin(ωt)
+dvo
+dt
+MAX
+= Aω
+2-Stage Opamp 
+52 
+Penn ESE 568 Fall 2018 - Khanna 
+!  3/4. Settling Time/Slew Rate 
+SR ≡dvout
+dt
+max
+=
+ICC max
+CC
+= ID5
+CC
+ω0 = gm1
+CC
+Unity Gain Freq and Slew Rate 
+!  Relationship between unity gain frequency and slew 
+rate: 
+!  For 45° phase margin:  
+53 
+Penn ESE 568 Fall 2018 - Khanna 
+ω0 = gm1
+CC
+SR = ID5
+CC
+SR = ID5
+gm1
+ω0
+ωo = p2
+SR = ID5
+gm1
+p2
+Unity Gain Freq and Slew Rate 
+!  Relationship between unity gain frequency and slew 
+rate: 
+!  For 45° phase margin:  
+54 
+Penn ESE 568 Fall 2018 - Khanna 
+ω0 = gm1
+CC
+SR = ID5
+CC
+SR = ID5
+gm1
+ω0
+ω0 = p2
+SR = ID5
+gm1
+p2
+p2 ≈−
+gm7CC
+C1C2 +C1CC +CCC2
+≈−gm7
+C2
+
+
+=== PDF page 10
+10 
+Design Variables 
+!  Specifications:  
+"  1. Open-loop Gain  
+"  2. Gain bandwidth  
+"  3. Settling time  
+"  4. Slew rate  
+"  5. Input common-mode range, ICMR  
+"  6. Common-mode rejection ratio, CMRR  
+"  7. Power-supply rejection ratio, PSRR  
+"  8. Output-voltage swing  
+"  9. Output resistance  
+"  10. Offset  
+"  11. Noise  
+"  12. Layout area 
+55 
+Penn ESE 568 Fall 2018 - Khanna 
+Admin 
+!  HW 2 and 3 due Su 
+"  Want to make sure every has Cadence set up and running 
+56 
+Penn ESE 568 Fall 2018 – Khanna 
+

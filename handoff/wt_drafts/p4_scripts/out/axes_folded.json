@@ -1,0 +1,42 @@
+{
+ "circuit": "folded_cascode",
+ "theta": {
+  "Ibg": 5e-07,
+  "r_split_M1_M2": 0.5,
+  "r_mirror_M3_M4": 1.5,
+  "kcl_fold_M6": 1.0,
+  "kcl_fold_M5": 1.0
+ },
+ "points": 403847,
+ "out_of_axis": {
+  "VS": 436
+ },
+ "values": {
+  "L": [],
+  "VGS": [],
+  "VDS": [],
+  "VS": [
+   -0.65,
+   1.6,
+   1.8
+  ]
+ },
+ "grid_ranges": {
+  "L": [
+   1.5e-07,
+   4e-06
+  ],
+  "VGS": [
+   0.0,
+   1.8
+  ],
+  "VDS": [
+   0.0,
+   1.8
+  ],
+  "VS": [
+   0.0,
+   0.8
+  ]
+ }
+}

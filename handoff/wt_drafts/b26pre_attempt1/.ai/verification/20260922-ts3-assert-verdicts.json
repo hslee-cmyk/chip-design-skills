@@ -1,0 +1,80 @@
+{
+  "id": "20260922-ts3-assert-verdicts",
+  "spec_card": "docs/02-design/specs/20260922-ts3-assert-verdicts.spec.md",
+  "evidence_type": "test-only",
+  "base_commit": "eca77ac859123d6294e167cff5ebbe8b086d9adb",
+  "test_commit": "e4a68eccea6ac5e92d9b82d22300048a13cc8273",
+  "code_commit": null,
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "T e4a68eccea6ac5e92d9b82d22300048a13cc8273(test-only라 병합본 = T) 격리 복제본 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2(origin 없음)에서 V1 명령(-k/--deselect/-x/-m 없음, slow 포함 전체, base 판 캐시 eca77ac 판 pytest_gate.ini -- 복제본 tools/gates/pytest_gate.ini와 blob 5d89b982178b2e0e8d15aefd290cc5e17ab1e9c5로 같음): 48 passed(tests/tooling 34 + tests/contracts/test_ts3_no_print_verdicts.py 10 + tests/legacy/test_legacy_selftests.py 4), 실패·오류·skip·xfail·xpass 0, exit 0, 47.19s, 출력 sha256 fdbc7c9c8541220831f11841fe8f34ca2de4b4f4517f0055b718e46dba1dc590. tests 아래 conftest.py 없음(CC-3 미병합이라 --gmid-phase·--gmid-strict 없음). base eca77ac에서 같은 형태 38 passed(45.20s). 실행 부산물은 무시 대상 .pytest_cache/뿐(추적 파일 변경 0)"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "test-only(계획 N3.12.3, design 10 §6.3 증거). code 커밋 없음: T의 부모 = base eca77ac859123d6294e167cff5ebbe8b086d9adb, base..T 커밋 1개(Role: test, Change-Id 일치), 변경 경로 5개 모두 A/tests 아래(contracts 새 파일 1, legacy 이관본 4), tools/·.githooks/·대상 코드 변경 0. (1) 이관본 4개 PYTHONHASHSEED=1 직접 실행(같은 복제본 경로): base 4/4 exit 0·stderr 0(stdout sizing 40026B·stick 109822B·dr 985B·tl 4577B), T 4/4 exit 0·stderr 0(23778B·66057B·544B·2778B); test_legacy_selftests.py 4케이스 base·T 모두 PASSED. (2) T에서 새 contract test 10개 PASS(test_tree_has_no_print_verdicts 포함). base 트리에 T의 contract 파일(blob 0c1b8d38)만 넣고 red 수집 플러그인으로 실행: test_tree_has_no_print_verdicts FAILED AssertionError 'T=354'(builtins.AssertionError, red_failure_hash e1b0ef0b144a4e520ccb948eb8f605676af23da4c42465fba5793c1e340d871f 재계산 일치), 나머지 9 PASS -- 판정기가 base를 실제로 거부한다. (3) auditor 독립 구현 판정식 T(design §7): base 354(sizing 113·stick 232·design_report 5·topology 4, 대상 50파일), T 0(51파일) -- spec card 계약 2. (4) 변환 수(AST 직접, 계약 4): 새 assert(T assert 다중집합 - base) sizing 1·stick 42·design_report 0·topology 0 = 경우 (i) 변환 print(메시지 AST = 원래 print 첫 인자, 그 print가 T에서 사라짐) sizing 1·stick 42·0·0 -- 파일마다 일치, 대응 없는 새 assert 0, 사라진 base assert 0(base 220/346/13/17개 전부 T에 그대로). (i) 43 = 조건식 34(assert 조건 = 원래 IfExp test, AST 동일) + try 본문 print(\"FAIL: ...\")->assert False 9(sizing 1·stick 8, 승인 ①). 나머지 토큰 print는 (ii) 12(sizing 1, stick 11 -- 같은 조건 assert가 바로 아래 3, check별 기대 미기재 목록 9)·(iii) 274 삭제. (5) 계약 5: base 파일의 대응 print 바로 뒤에 T의 assert 43개를 끼운 계측본을 base에서 실행 -- 4개 모두 exit 0이고 stdout이 base와 바이트 동일, base 출력에 기대 반대 판정 없음. (6) 계약 1(iv): auditor §5.1 구현으로 base 섹션을 다시 뽑아 범주 C·뒤 섹션이 읽는 이름 없음 = stick S1·2·3·4·5·6·9·10·12·15·18·19·20·59·82, topology S1·S3·S9(18, design §6.3 표·U-41과 같음), 18개 모두 T에 남은 줄 0, 그 밖에 통째로 지워진 섹션 0; 이름을 만드는 C 섹션 17(design 17과 같음)은 남은 print 0. (7) 운반 blob 5개 hash = 파일 이름 = T blob. 상세: .ai/verification/20260922-ts3-assert-verdicts/base_check.json"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "변이 대상 def 0개(대상 코드 불변). base 판 mutate_changed.py: targets 빈 목록, mutants 0, killed 0, survivors 빈 목록, exit 0. 근거: base..T diff는 test 분류 파일 5개(A/tests/contracts 1, A/tests/legacy 4)뿐이고 V3 대상은 test 분류 밖 소스 def인데 소스 변경 0. --pytest-ini는 복제본 tools/gates/pytest_gate.ini(blob 5d89b982178b2e0e8d15aefd290cc5e17ab1e9c5, base·T·캐시 같음, base..T에서 tools/·.githooks/ 변경 0)"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: base 판 test_lint.py를 interface card만으로 돌리면 ERROR(피검 심볼 없음 -- card 신규 시그니처 표가 비어 있다, 대상 코드 불변)라 T의 sizing_recipe·stick_diagram·design_report·topology_library 최상위 def·class 370개(200·158·5·7)를 --subject로 주고 --module-dir skills/analog-gmid-design/assets로 실행: PASS, 대상 파일 5개(contracts 1, legacy 4), findings 4건 모두 NO-SUBJECT(contract test 4개 함수 -- 피검 심볼을 부르지 않는 판정기 자기 test), FAIL 0, UNJUDGED 0, exit 0, 출력 sha256 fb619d75977800f4794a00c89457eb6a22fdd24aa0c4adc01f79be4bf98dc44a; 기대값 대조 -- test_tree_has_no_print_verdicts의 total == 0은 spec card 계약 2·design §7 목표값 T = 0(oracle (d))과 일치; test_verdict_counter_rejects_single_token의 1과 rule_cases 7개의 1·2·1·1·0·0·0은 합성 소스에 넣은 토큰 수(oracle (a) 구성 입력, spec card '거부해야 할 입력' 토큰 1개 -> T ≥ 1)이고 auditor 독립 판정기로 8개 모두 같은 값; test_target_set_includes_legacy_scripts는 design §6.3 변환 대상 이관본 4개 포함(oracle (d)); 이관본의 새 assert 43개는 모듈 수준 스크립트라 lint 판정 문장 밖(design §6.3 'V4 대상이 아니다')이어서 auditor가 직접 대조 -- 43개 모두 바로 위 주석이 인용한 섹션 기대 문장이 base 원문에 있고(서식 조각을 뺀 정적 텍스트), assert 방향이 그 문장 쪽(조건식 34개는 OK/PASS 가지 또는 대조군의 '의도대로 FAIL/검출됨' 가지, assert False 9개는 'ValueError가 나야' 기대 = 예외 없이 닿으면 실패), assert 조건은 원래 print 조건식의 test 그대로라 현재 출력에서 가져온 기대값 0(경우 (ii)는 assert를 만들지 않음) -- spec card oracle (d) '섹션이 적은 기대'와 일치"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 weakening_diff.py(base eca77ac859123d6294e167cff5ebbe8b086d9adb, head e4a68eccea6ac5e92d9b82d22300048a13cc8273) 원문 요약: verdict PASS, exit 0, findings 7(selftest_design_report.py 리터럴 변경 1; selftest_sizing_recipe.py 리터럴 변경 1·assert를 조건문·try 아래로 20 -> 21 1; selftest_stick_diagram.py 비교 완화 1·리터럴 변경 1·assert를 조건문·try 아래로 10 -> 18 1; selftest_topology_library.py 리터럴 변경 1, 모두 unit __main__), diff_paths = 이관본 4개, diff_hash f126f863a5477a40418d3807b426a85e1b3d390f9401f06076784c9817ffed31, approved true -- head 트리 .ai/approvals/20260922-ts3-verdict-conversion.md(target_kind diff, target 같은 해시, 1차 시도 기준 diff_base 8b31d38·diff_head e0ba445, 같은 4 경로)가 덮는다. auditor가 00-common §8.2 식(경로·base blob·head blob)으로 해시를 다시 계산해도 같다. 해시가 같은 이유: 네 경로의 T blob 6e989bb5·823626ce·241f85a0·d2e22552가 승인 기록이 적은 blob과 같다(R1, 운반 blob hash 재계산 일치). contract test 새 파일은 발견 아님. '비교 완화' 대조: stick의 base에 없던 새 비교 형태 0, base assert 346개 전부 T에 그대로(사라진 비교는 지운 print·데모 섹션의 것). 출력 sha256 앞 16자리 c32dc947ad7fbacc(전체 값은 base_check.json v5_output_sha256 -- merge gate §9.2-9가 V5 basis의 64자리 16진을 모두 승인 target으로 대조하므로 승인 해시 외에는 두지 않는다)"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 source_lint.py: targets 빈 목록, findings 0, verdict PASS, exit 0. 소스 변경 0"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 reachability.py PASS, new_defs 빈 목록, unreached 빈 목록(대상 코드 불변)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 코드 불변(test 판정 형식 변환)"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). test 판정 형식만 바뀜, 회로 결과 무관"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260922-10-test-separation-design",
+    "20260922-ts3-verdict-conversion"
+  ],
+  "auditor_run": {
+    "time": "2026-09-22T15:10:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts3-assert-verdicts-audit",
+    "commands": [
+      "격리: git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts3-assert-verdicts-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2",
+      "격리: git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 remote remove origin",
+      "격리(T 측정): 복제본 HEAD = e4a68eccea6ac5e92d9b82d22300048a13cc8273 (clone 직후, 뒤에 git -C <iso> checkout -q --detach e4a68eccea6ac5e92d9b82d22300048a13cc8273로 복귀)",
+      "격리(base 측정): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 checkout -q --detach eca77ac859123d6294e167cff5ebbe8b086d9adb",
+      "PY = C:/Python314/python.exe",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-out2/pyc_t_v1 PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/eca77ac859123d6294e167cff5ebbe8b086d9adb $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/eca77ac859123d6294e167cff5ebbe8b086d9adb/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2/skills/analog-gmid-design/assets/tests -rA",
+      "V1 cwd: C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2",
+      "V2 이관본(base·T 각각, cwd <iso>/skills/analog-gmid-design/assets): PYTHONHASHSEED=1 $PY -B <iso>/skills/analog-gmid-design/assets/tests/legacy/selftest_<m>.py <iso>/skills/analog-gmid-design/assets (m = sizing_recipe, stick_diagram, design_report, topology_library; 러너 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-out2/run_legacy.py)",
+      "V2 계약 5(base 체크아웃): 같은 명령을 계측본 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-out2/instr/selftest_<m>.py로(run_legacy.py base_instr <out>/instr)",
+      "V2 base 거부(base 체크아웃 + T contract 파일): GMID_RED_CAPTURE=<out>/red_capture_base.json GMID_INTERFACE_CARD=<iso>/docs/02-design/specs/20260922-ts3-assert-verdicts.interface.md PYTHONPYCACHEPREFIX=<out>/pyc_base_contract PYTHONPATH=<cache> $PY -P -m pytest -c <cache>/pytest_gate.ini --rootdir=<iso> --confcutdir=<iso> -p merge_gate --continue-on-collection-errors <iso>/skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py -rA (실행 뒤 파일 삭제, status 0줄)",
+      "V2 base test 집합: V1과 같은 명령을 base eca77ac checkout에서(PYTHONPYCACHEPREFIX만 다른 빈 디렉터리 pyc_base_v1)",
+      "V2 판정식 T·변환 수·섹션(git 객체만 읽음): $PY -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-out2/analyze.py; oracle 대조: $PY -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-out2/oracle_check.py; 운반 blob: $PY -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-out2/blobcheck.py <iso> e4a68ec",
+      "V3(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/eca77ac859123d6294e167cff5ebbe8b086d9adb/mutate_changed.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 --base eca77ac859123d6294e167cff5ebbe8b086d9adb --head e4a68eccea6ac5e92d9b82d22300048a13cc8273 --pytest-ini C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --out C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-out2/v3/v3.jsonl",
+      "V4(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/eca77ac859123d6294e167cff5ebbe8b086d9adb/test_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 --interface-card C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2/docs/02-design/specs/20260922-ts3-assert-verdicts.interface.md --base eca77ac859123d6294e167cff5ebbe8b086d9adb --head e4a68eccea6ac5e92d9b82d22300048a13cc8273 (ERROR: 피검 심볼 없음)",
+      "V4(cwd iso): 같은 명령에 --module-dir skills/analog-gmid-design/assets --subject <모듈>:<이름> 370개(T sizing_recipe·stick_diagram·design_report·topology_library 최상위 FunctionDef·AsyncFunctionDef·ClassDef, ast로 추출; 러너 <out>/run_v4.py) 추가",
+      "V5(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/eca77ac859123d6294e167cff5ebbe8b086d9adb/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 --base eca77ac859123d6294e167cff5ebbe8b086d9adb --head e4a68eccea6ac5e92d9b82d22300048a13cc8273",
+      "V5 재계산: $PY -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-out2/v5_check.py (00-common §8.2 diff 해시, stick Compare 형태 대조)",
+      "V6(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/eca77ac859123d6294e167cff5ebbe8b086d9adb/source_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 --base eca77ac859123d6294e167cff5ebbe8b086d9adb --head e4a68eccea6ac5e92d9b82d22300048a13cc8273",
+      "V7 참고(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/eca77ac859123d6294e167cff5ebbe8b086d9adb/reachability.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 --base eca77ac859123d6294e167cff5ebbe8b086d9adb --head e4a68eccea6ac5e92d9b82d22300048a13cc8273"
+    ]
+  }
+}

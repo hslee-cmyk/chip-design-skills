@@ -1,0 +1,128 @@
+{
+ "tool": "C:/g17/gate/mutate_changed.py",
+ "base": "bccf5eb07b1faa91c7c31db67129742e62c8a760",
+ "head": "febd4d8d7e89a009307f98f29170bd375503febf",
+ "cmd": "C:\\Python314\\python.exe C:/g17/gate/mutate_changed.py --root C:/g17/probe/c3/root --base bccf5eb07b1faa91c7c31db67129742e62c8a760 --head febd4d8d7e89a009307f98f29170bd375503febf --pytest-ini C:/g17/gate/pytest_gate.ini --out C:/g17/probe/c3/out.jsonl",
+ "exit": 1,
+ "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 15, \"killed\": 3, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[0]\", \"rt_engine:rt_scale:arith:body[0].value\", \"rt_engine:rt_scale:const+:body[0].value.left\", \"rt_engine:rt_scale:const-:body[0].value.left\", \"rt_engine:rt_scale:early_return:body[0]\", \"rt_engine:rt_orphan:stmt_delete:body[0]\", \"rt_engine:rt_orphan:arith:body[0].value\", \"rt_engine:rt_orphan:const+:body[0].value.right\", \"rt_engine:rt_orphan:const-:body[0].value.right\", \"rt_engine:rt_orphan:early_return:body[0]\", \"rt_engine:rt_twice:const+:body[0].value.left\", \"rt_engine:rt_twice:const-:body[0].value.left\"]}\r\n",
+ "stderr_tail": "",
+ "records": [
+  {
+   "id": "rt_engine:rt_scale:stmt_delete:body[0]",
+   "result": "survived",
+   "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+  },
+  {
+   "id": "rt_engine:rt_scale:arith:body[0].value",
+   "result": "survived",
+   "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+  },
+  {
+   "id": "rt_engine:rt_scale:const+:body[0].value.left",
+   "result": "survived",
+   "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+  },
+  {
+   "id": "rt_engine:rt_scale:const-:body[0].value.left",
+   "result": "survived",
+   "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+  },
+  {
+   "id": "rt_engine:rt_scale:early_return:body[0]",
+   "result": "survived",
+   "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+  },
+  {
+   "id": "rt_engine:rt_orphan:stmt_delete:body[0]",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:arith:body[0].value",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:const+:body[0].value.right",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:const-:body[0].value.right",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:early_return:body[0]",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_twice:stmt_delete:body[0]",
+   "result": "killed",
+   "exit": 1
+  },
+  {
+   "id": "rt_engine:rt_twice:arith:body[0].value",
+   "result": "killed",
+   "exit": 1
+  },
+  {
+   "id": "rt_engine:rt_twice:const+:body[0].value.left",
+   "result": "survived",
+   "tests": [
+    "skills/analog-gmid-design/assets/tests/test_rt_twice.py::test_rt_twice_zero"
+   ]
+  },
+  {
+   "id": "rt_engine:rt_twice:const-:body[0].value.left",
+   "result": "survived",
+   "tests": [
+    "skills/analog-gmid-design/assets/tests/test_rt_twice.py::test_rt_twice_zero"
+   ]
+  },
+  {
+   "id": "rt_engine:rt_twice:early_return:body[0]",
+   "result": "killed",
+   "exit": 1
+  }
+ ],
+ "results_by_fn": {
+  "rt_scale": [
+   "survived",
+   "survived",
+   "survived",
+   "survived",
+   "survived"
+  ],
+  "rt_orphan": [
+   "survived",
+   "survived",
+   "survived",
+   "survived",
+   "survived"
+  ],
+  "rt_twice": [
+   "killed",
+   "killed",
+   "survived",
+   "survived",
+   "killed"
+  ]
+ },
+ "stdout_keys": [
+  "killed",
+  "mutants",
+  "survivors",
+  "targets",
+  "tool",
+  "verdict"
+ ],
+ "survivor_fns": [
+  "rt_orphan",
+  "rt_scale",
+  "rt_twice"
+ ],
+ "failing_test_id_in_stdout": false,
+ "tmp_left": []
+}

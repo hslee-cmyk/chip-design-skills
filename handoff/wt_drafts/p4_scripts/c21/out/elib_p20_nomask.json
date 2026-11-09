@@ -1,0 +1,142 @@
+{
+ "circuits": {
+  "common_gate_amplifier": {
+   "exc": {},
+   "masked": {},
+   "n_dev": 3,
+   "ok": {
+    "V1_own_stack": true,
+    "V2_kind_stack": true,
+    "load": true
+   },
+   "per_hash": {
+    "V1_own_stack": "8b2546ef27d705b5aa1dbcc9eedb2e27f4411f43c47e86351d20f89991bc0067",
+    "V2_kind_stack": "0fa49c6fc16b1cf155cf6ee6d3a21af525e9fa3e278e18a8d2fdd2365b3a65cf",
+    "load": "ef42ad718b387ee75c4360deb51f5995f9aaa98e9b9d3cddd7f08994273b76ab"
+   }
+  },
+  "current_reuse_telescopic_ota": {
+   "exc": {},
+   "masked": {},
+   "n_dev": 51,
+   "ok": {
+    "V1_own_stack": true,
+    "V2_kind_stack": true,
+    "load": true
+   },
+   "per_hash": {
+    "V1_own_stack": "76e2f510f6db3603a755d2f99b317afe33a502b8b6a5fd70a9063e04d6a4df93",
+    "V2_kind_stack": "3a895cda847aa893ed5aa6b9253eae34bceb4f3518cb506ed13a012e2521b85a",
+    "load": "d792c5d4d1086978d1c1c355eebd16e983a69dfcd3da8db72ef76d8f199b1b0a"
+   }
+  },
+  "folded_cascode": {
+   "exc": {},
+   "masked": {},
+   "n_dev": 13,
+   "ok": {
+    "V1_own_stack": true,
+    "V2_kind_stack": true,
+    "load": true
+   },
+   "per_hash": {
+    "V1_own_stack": "2c442ffddcd4785e1cb52f07c82669d4ee11e78aae7461bb56e653cb7fcf33d4",
+    "V2_kind_stack": "fe52f43e7a46f0cb5e0b0c62e2e3d4ce6bdc37762f836e38abcfd00cda18a5bb",
+    "load": "816380959e7298a37c94cd53af7b936fed8b18a9ecb4b78864693b220a8a175e"
+   }
+  },
+  "ngcc_3stage_ff": {
+   "exc": {},
+   "masked": {},
+   "n_dev": 16,
+   "ok": {
+    "V1_own_stack": true,
+    "V2_kind_stack": true,
+    "load": true
+   },
+   "per_hash": {
+    "V1_own_stack": "6529982c17c462a7d00c3edd78aafaeae5640df72da32b235efe6a6ff3548329",
+    "V2_kind_stack": "caaacbd27495497ce9c9c14cd4c489194957ee3d96c0cc3e6c97d603958fc94b",
+    "load": "c390ae136090f8ba9eb3cda92866627601f92d9a46bf9c1fc44a4848c34af051"
+   }
+  },
+  "nmcnr_amplifier": {
+   "exc": {},
+   "masked": {},
+   "n_dev": 15,
+   "ok": {
+    "V1_own_stack": true,
+    "V2_kind_stack": true,
+    "load": true
+   },
+   "per_hash": {
+    "V1_own_stack": "e671e19d2c4411e4a40210e8ad1cd4225beabdc0f74e4897401cd92a9283a24e",
+    "V2_kind_stack": "f9ae91f18519974504c82db1be9252dce2c1409d286d9e0e01a09e5db4a1be43",
+    "load": "28f42e3afc69fc9baf051a872b43d2665b960e60c99698478aae5d18550899f2"
+   }
+  },
+  "pushpull_follower_buffer": {
+   "exc": {},
+   "masked": {},
+   "n_dev": 6,
+   "ok": {
+    "V1_own_stack": true,
+    "V2_kind_stack": true,
+    "load": true
+   },
+   "per_hash": {
+    "V1_own_stack": "6d318b20adfcc852742ee5377fd58d8ab42f0b880164758fc4da59d50b431d34",
+    "V2_kind_stack": "ec44e8a9e304831cc9d9ced76945a5aaac77223ccb34476ad5ea20b34a837e66",
+    "load": "441eb9ff8d94f8a8e6aaaeabd4554c70742adc54bf0a84391397a7a0595c2014"
+   }
+  },
+  "sf_pushpull_output_opamp": {
+   "exc": {},
+   "masked": {},
+   "n_dev": 22,
+   "ok": {
+    "V1_own_stack": true,
+    "V2_kind_stack": true,
+    "load": true
+   },
+   "per_hash": {
+    "V1_own_stack": "6ca8f71b41265a530062ecb747254c67d9cb9efba56a9dd43ba41e8ef6e301a5",
+    "V2_kind_stack": "9da7cd291fb62b69620f7bbe9230d00ce4c9055cdfcd4d1c5d7d24549e488287",
+    "load": "d1539dc0828fc84a1f8cf3a5f9825c31dfff7e5ef9c1d98ea2ea3f8fc621d4e2"
+   }
+  },
+  "two_stage_ota": {
+   "exc": {},
+   "masked": {},
+   "n_dev": 7,
+   "ok": {
+    "V1_own_stack": true,
+    "V2_kind_stack": true,
+    "load": true
+   },
+   "per_hash": {
+    "V1_own_stack": "da80d50a0258a61c9e6b9ccc6de4609f2ffc740e9e7e529dabe336b298a32be6",
+    "V2_kind_stack": "d288bf57a22ce80686a83750b670968ec4e7929395117e2651740b5ba280655e",
+    "load": "505f0abf949c978d7fc39417e4984e2598e2b1442c80928441ca92c424ed4bd7"
+   }
+  },
+  "two_stage_ota_sf": {
+   "exc": {},
+   "masked": {},
+   "n_dev": 9,
+   "ok": {
+    "V1_own_stack": true,
+    "V2_kind_stack": true,
+    "load": true
+   },
+   "per_hash": {
+    "V1_own_stack": "d2cd8984352066a1ca0e7382a57de8a587f802ac69061589749ecf6c3358a363",
+    "V2_kind_stack": "dbd269d79a1902c1784ee4737bb3b00d9fff52915d287e39067706e56690cb23",
+    "load": "99c5170f4a1ce4160a08caa48f12c4ef2d0b7ff9f43e1adb12bfa8f8353725f1"
+   }
+  }
+ },
+ "hash": "c121333162fade9e9a1f0b2d81f8ca37c835edf9fc818cd88c0aecefbfcae2e8",
+ "masked_meta_keys": [],
+ "stick_diagram_file": "<ROOT>/skills/analog-gmid-design/assets/stick_diagram.py"
+}

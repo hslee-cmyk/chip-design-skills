@@ -1,0 +1,40 @@
+{
+ "card": "20260930-v3-changed-stmt-scope",
+ "root": "C:\\g114\\sim\\r",
+ "edits": [
+  {
+   "path": "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md",
+   "name": "design05-V3-1-target",
+   "state": "pending"
+  },
+  {
+   "path": "docs/01-plan/features/gain-budget-gmid-sizing.plan.md",
+   "name": "planN42-V3-target",
+   "state": "pending"
+  }
+ ],
+ "files": {
+  "docs/01-plan/features/gain-budget-gmid-sizing.plan.md": {
+   "eol": "crlf",
+   "changed_lines": [
+    839
+   ],
+   "sha256_lf_before": "ed1cac0b82957856d0559b954cae9c64d5e9ec45ba021fbe7f44a47d12e0d042",
+   "sha256_lf_after": "d723985d3ada6c11f2ffb3fb34ea6c28f30f38488268624432424b2768ca14bc"
+  },
+  "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md": {
+   "eol": "crlf",
+   "changed_lines": [
+    317
+   ],
+   "sha256_lf_before": "8097991c936eae41705ba0d1c8d505785d5e23065ed69c08c661b300854cc3cd",
+   "sha256_lf_after": "1b7772532dad856ae6819203836fe3c2b8fe2178ed84ec997c4919b0b6e4018a"
+  }
+ },
+ "plan_tables_hash": {
+  "before": "7167e02839f86c4ecbcd91a63a9833c4d83a8aab8008bfe2d8cfc36206d2596d",
+  "after": "7167e02839f86c4ecbcd91a63a9833c4d83a8aab8008bfe2d8cfc36206d2596d",
+  "unchanged": true
+ },
+ "result": "applied"
+}

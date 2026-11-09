@@ -1,0 +1,1 @@
+{"result": "REFUSED", "errors": ["선행 문구 35-design05-V3: 0개", "선행 문구 B33-design05-V7: 0개", "선행 문구 B33-design05-reject: 0개"]}

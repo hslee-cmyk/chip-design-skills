@@ -1,0 +1,11 @@
+diff --git a/docs/02-design/features/gain-budget-gmid-sizing.20-dead-code-dup.design.md b/docs/02-design/features/gain-budget-gmid-sizing.20-dead-code-dup.design.md
+index 94e5151..027b7af 100644
+--- a/docs/02-design/features/gain-budget-gmid-sizing.20-dead-code-dup.design.md
++++ b/docs/02-design/features/gain-budget-gmid-sizing.20-dead-code-dup.design.md
+@@ -228,5 +228,5 @@ auditor가 Phase 2 마지막 card 병합본의 격리 복제본 `<iso>`에서 
+ 
+ 없다. §9의 세 항목은 U-02 승인으로 닫는다(열린 질문이 아니라 사용자 결정 대기 항목이다). 실측에서 나온 다음 두 가지는 **계획서 개정 요청**으로 올린다.
+ 
+-1. **레일 넷 이름 리터럴은 DF-19·DF-26(`수정 Phase` 4)이 이미 덮는다 -- 목록에서 두 행에 묶는다**(2026-09-30 정정, spec card `20260930-p10-df23-inventory`. 처음 기록 "레일 넷 이름 리터럴 63건에 DF 번호가 없다(`vdd` 49·`gnd` 25·`vss` 4 중) → DF 신설 요청"은 틀렸다 -- DF-19·DF-26 두 행이 이미 레일 이름 집합 하드코딩을 적고 있다). `supply_nets`가 topology.json에 선언돼 있는데 코드가 이름을 직접 쓰고, 같은 레일 집합이 최소 세 곳에 따로 선언돼 있다(`sizing_recipe:3893-3894`, `sizing_recipe:8592`, `stick_diagram:3167`). `_metric_supply_current`는 `'vdd'`만 보는데 세 회로는 `vss`·`agnd`를 쓴다. → 새 DF 없이 DF-19·DF-26 교체(담당 Phase 4, MG1 레일 이름 변경과 같은 자리)에서 다룬다.
++1. **레일 넷 이름 리터럴은 DF-19·DF-26(`수정 Phase` 4)이 이미 덮는다 -- 목록에서 두 행에 묶는다**(2026-09-30 정정, spec card `20260930-p10-df23-inventory`. 처음 기록 "레일 넷 이름 리터럴 63건에 DF 번호가 없다(`vdd` 49·`gnd` 25·`vss` 4 중) → DF 신설 요청"은 틀렸다 -- DF-19·DF-26 두 행이 이미 레일 이름 집합 하드코딩을 적고 있다). `supply_nets`가 topology.json에 선언돼 있는데 코드가 이름을 직접 쓰고, 같은 레일 집합이 최소 세 곳에 따로 선언돼 있다(`sizing_recipe:3893-3894`, `sizing_recipe:8592`, `stick_diagram:3167`). `_metric_supply_current`는 `'vdd'`만 보는데 세 회로는 `vss`·`agnd`를 쓴다. → 새 DF 없이 DF-19·DF-26 교체(`수정 Phase` 4)에서 다룬다. 이 교체는 MG1과 한 자리가 아니다 -- 2026-10-01 계획 정정 A2(v5.20, 승인 기록 `20260930-b26-before-phase3`) 뒤 계획 DF-19 `수정 Phase` 칸: "넷 몫(`supply_nets`)은 B26-1~B26-4로 나누고 Phase 3 착수 전에 해도 된다 -- DF-26과 같은 변경 단위. 전압 몫(`supplies_v`, 스칼라 `vdd` 리터럴)은 MG1과 같은 변경 단위". 위 레일 집합 세 곳과 `_metric_supply_current`의 `'vdd'` 넷 선택은 넷 몫(B26-1~B26-4)이고, 스칼라 `vdd` 전압 리터럴만 MG1 몫이다(처음 기록 'MG1 레일 이름 변경과 같은 자리'는 A2 전 계획 기준이었다).
+ 2. **DF-29·DF-30의 사정권이 기록보다 넓다**. DF-29는 공유 함수 둘(`_telescopic_open_loop_device_names`·`_telescopic_class_ab_open_loop_gains`)과 `_CMRR_REGISTRY`·`_PSRR_REGISTRY` 키까지, DF-30은 `_METRIC_UNITS`와 `if mtype == "folded_cascode_*"` 분기 3곳까지 함께 움직여야 한다. → DF 표 비고 보강 요청.

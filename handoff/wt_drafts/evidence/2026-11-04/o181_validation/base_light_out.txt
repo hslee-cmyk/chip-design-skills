@@ -1,0 +1,6 @@
+erfc connectivity_fp a5710202f8a186ee0c2f99b88398ab95a909cdc3b12f5776de9d9a4b9c24972e
+erfc spec rejected TypeError load_sizing_spec() missing 1 required positional argument: 'metric_catalog'
+test_g10_no_recompute_9circuits rc 2 | no tests collected, 1 error in 3.47s | ["E   KeyError: 'cnr_ota'", '!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!', 'no tests collected, 1 error in 3.47s']
+test_layer0_boundary_rows rc 2 | no tests collected, 1 error in 1.91s | ["E   KeyError: 'cnr_ota'", '!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!', 'no tests collected, 1 error in 1.91s']
+test_s0_layer_9circuits rc 2 | no tests collected, 1 error in 1.41s | ["E   KeyError: 'cnr_ota'", '!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!', 'no tests collected, 1 error in 1.41s']
+test_stage_b_library rc 0 | 68 tests collected in 1.11s | []

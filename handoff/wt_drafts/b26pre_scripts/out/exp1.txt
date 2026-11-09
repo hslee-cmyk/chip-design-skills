@@ -1,0 +1,8 @@
+E1 max_rounds=0 unknown max_rounds_exceeded False [] [('1. euler[seg1_repair0_repair0_repair0]', True), ('2. box-shape', True), ('3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)', True), ('3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', True), ('3c. common-centroid[Ma/Mb]', False)]
+E1b max_rounds=1 None None True [(0, ('Ma', 'Mb'), True)] {'seg1_repair0_repair0_repair0_repair0': [('Ma', 1), ('Mb', 1)], 'seg1_repair0_repair0_repair0_repair1': [('Mb', 1), ('Ma', 1)]}
+E1c default loose None None True [(0, ('Ma', 'Mb'), True)] {'seg1_repair0_repair0_repair0_repair0': [('Ma', 1), ('Mb', 1)], 'seg1_repair0_repair0_repair0_repair1': [('Mb', 1), ('Ma', 1)]} 2.0
+E2 build {'row': 'blocked'}
+E2 growth None only_3b_failures_left True {'row': [('M1', 'row'), ('M2', 'row'), ('M3', 'row')]} [('1. euler[row]', True), ('2. box-shape', True)]
+E2 fixup direct {'row_seg0': [('M2', 'row_seg0')], 'row_seg1': [('M3', 'row_seg1'), ('M1', 'row_seg1')]}
+E2b build {'row': 'blocked'}
+E2b fixup {'row_comp0': [('M1', 'row_comp0')], 'row_comp1': [('M2', 'row_comp1')]}

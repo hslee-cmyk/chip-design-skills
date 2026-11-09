@@ -1,0 +1,31 @@
+kcl_series_union 23
+    stmt_delete body[1]
+    stmt_delete body[4]
+    stmt_delete body[5]
+    stmt_delete body[6]
+    stmt_delete body[7]
+    stmt_delete body[8]
+    stmt_delete body[9]
+    stmt_delete body[10]
+    stmt_delete body[2].body[0]
+    stmt_delete body[2].body[1]
+    stmt_delete body[2].body[0].body[0]
+    cmp_flip body[2].body[0].test.ops[0]
+    stmt_delete body[3].body[0]
+    stmt_delete body[3].body[1]
+    stmt_delete body[3].body[1].body[0]
+    cmp_flip body[3].body[1].test.ops[0]
+    stmt_delete body[4].body[0]
+    stmt_delete body[7].body[0]
+    stmt_delete body[9].body[0]
+    stmt_delete body[9].body[1]
+    const+ body[9].body[1].targets[0].slice.slice
+    const- body[9].body[1].targets[0].slice.slice
+    early_return body[1]
+kcl_series_union.find 5
+    stmt_delete body[0]
+    stmt_delete body[1]
+    stmt_delete body[0].body[0]
+    cmp_flip body[0].test.ops[0]
+    early_return body[0]
+total 28

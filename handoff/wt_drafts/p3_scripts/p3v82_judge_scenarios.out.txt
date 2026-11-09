@@ -1,0 +1,34 @@
+judge sha256: 37fecfeae03308fd
+== scenario p1
+E5 E-INST current_reuse_telescopic_ota 같음
+E5 E-INST folded_cascode 같음
+E5 E-LIB(rails 뺀 해시) 같음 (9 회로)
+E5 E-LIB/E-INST PASS
+rc=0
+== scenario p2
+E5 E-INST current_reuse_telescopic_ota 같음
+E5 E-INST folded_cascode 같음
+E5 E-LIB(rails 뺀 해시) 같음 (9 회로)
+E5 E-LIB rails 계약 FAIL common_gate_amplifier (HEAD {'__dc__': 'RailDeclaration', 'nets': {'__set__': ['vdd']}}, P2D <ABSENT>, 기대 nets ['vdd', 'gnd'])
+E5 E-LIB rails 계약 FAIL current_reuse_telescopic_ota (HEAD {'__dc__': 'RailDeclaration', 'nets': {'__set__': ['vdd']}}, P2D <ABSENT>, 기대 nets ['vdd', 'gnd'])
+E5 E-LIB rails 계약 FAIL folded_cascode (HEAD {'__dc__': 'RailDeclaration', 'nets': {'__set__': ['vdd']}}, P2D <ABSENT>, 기대 nets ['vdd', 'gnd'])
+E5 E-LIB rails 계약 FAIL ngcc_3stage_ff (HEAD {'__dc__': 'RailDeclaration', 'nets': {'__set__': ['vdd']}}, P2D <ABSENT>, 기대 nets ['vdd', 'gnd'])
+E5 E-LIB rails 계약 FAIL nmcnr_amplifier (HEAD {'__dc__': 'RailDeclaration', 'nets': {'__set__': ['vdd']}}, P2D <ABSENT>, 기대 nets ['vdd', 'vss'])
+E5 E-LIB rails 계약 FAIL pushpull_follower_buffer (HEAD {'__dc__': 'RailDeclaration', 'nets': {'__set__': ['vdd', 'vss']}}, P2D <ABSENT>, 기대 nets ['vdd', 'vss', 'agnd'])
+E5 E-LIB rails 계약 FAIL sf_pushpull_output_opamp (HEAD {'__dc__': 'RailDeclaration', 'nets': {'__set__': ['vdd', 'vss']}}, P2D <ABSENT>, 기대 nets ['vdd', 'vss', 'agnd'])
+E5 E-LIB rails 계약 FAIL two_stage_ota (HEAD {'__dc__': 'RailDeclaration', 'nets': {'__set__': ['vdd']}}, P2D <ABSENT>, 기대 nets ['vdd', 'gnd'])
+E5 E-LIB rails 계약 FAIL two_stage_ota_sf (HEAD {'__dc__': 'RailDeclaration', 'nets': {'__set__': ['vdd']}}, P2D <ABSENT>, 기대 nets ['vdd', 'gnd'])
+E5 E-LIB/E-INST FAIL rails:common_gate_amplifier,rails:current_reuse_telescopic_ota,rails:folded_cascode,rails:ngcc_3stage_ff,rails:nmcnr_amplifier,rails:pushpull_follower_buffer,rails:sf_pushpull_output_opamp,rails:two_stage_ota,rails:two_stage_ota_sf
+rc=0
+== scenario p3
+E5 E-INST current_reuse_telescopic_ota 같음
+E5 E-INST folded_cascode 같음
+E5 E-LIB(rails 뺀 해시) 다름/실패 (9 회로)
+E5 E-LIB/E-INST FAIL E-LIB
+rc=0
+== scenario bad_equiv
+E5 E-INST current_reuse_telescopic_ota 같음
+E5 E-INST folded_cascode 같음
+E5 INVALID: e_lib_p3(MASK 없음) ≠ e_lib on P2D
+E5 E-LIB/E-INST FAIL E-LIB-equiv
+rc=0

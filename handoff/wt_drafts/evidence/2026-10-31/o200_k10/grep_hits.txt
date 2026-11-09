@@ -1,0 +1,534 @@
+### gain-budget-gmid-sizing.plan.md:152 ['eps', 'off']
+C-84). 측정 대상 구분은 DEC-47. 지원 범위는 회로 부류가 아니라 규칙 분기의 검증 발동으로 정한다(DEC-59). 탐색은 기본 경로(층 0 손계산 최적 + 봉인 실패 시 수리 단계, 외층 SLSQP + ε-제약 두 방향은 선택 단계 -- DEC-73 v6.19)이고, 정밀 경로(내층 DP·중층 좌표강하)와 DOF 수치 rank는 DEC-76 원칙으로 발동 회로가 생길 때 구현한다. 층 0은 전체판(DEC-71 (1)
+### gain-budget-gmid-sizing.plan.md:174 ['eps', 'dom']
+**출력**한다. 기본 경로는 **층 0 손계산 최적**(DEC-71 기둥 조립 presolve -- 역산 조립·조합 DP)이고 외층 SLSQP는 선택 단계다 -- 전회로 θ(정의역 변수 전체 + 구간 L)에 대한 ε-제약 SLSQP로, 층 0이 블록 국소로 고른 점에서 남은 결합 오차를 전회로 평가로 다듬는다(DEC-73 v6.19, 사용자 결정 O-33 (1)). 결합 블록 내층 DP·중층 좌표강하는 선언으로 켜는 정밀 경로
+### gain-budget-gmid-sizing.plan.md:244 ['eps', 'off', 'dom']
+외층). **기본 경로는 층 0 손계산 최적(조립 front와 `gain_budget_db`, 봉인 실패 시 수리 단계)이고 외층 SLSQP는 선택 단계(전회로 θ -- 정의역 변수 전체 + 구간 L -- 에 대한 ε-제약 SLSQP로, 층 0이 블록 국소로 고른 점에서 남은 결합 오차를 전회로 평가로 다듬는다), 내층·중층은 기본 꺼짐**이다(DEC-73 v6.19). 내층 DP 규칙 자체는 폐기하지 않는다(탐욕 대체는 72 
+### gain-budget-gmid-sizing.plan.md:266 ['tolV', 'eps', 'dom', 'sat']
+g/block_widths.py:10-13` 요청 W 경로 -- `DeviceOp.W` = 요청값)에서는 ΔW를 재지 않는다(재면 ΔW = 0이 구조적으로 재발한다). 이 식은 gm/ID 손계산 형태 **Vos ≈ ε_W / (gm/ID)_입력쌍**(미러 부하 W 불일치 ε_W = ΔW/W)의 일반형이다 -- 미러 부하 ΔW가 만든 전류 오차 ID·ε_W를 입력쌍 gm으로 입력 환산한 것이 같은 결과다. ΔW = 0이면 성분 (
+  ~  -- `DeviceOp.W` = 요청값)에서는 ΔW를 재지 않는다(재면 ΔW = 0이 구조적으로 재발한다). 이 식은 gm/ID 손계산 형태 **Vos ≈ ε_W / (gm/ID)_입력쌍**(미러 부하 W 불일치 ε_W = ΔW/W)의 일반형이다 -- 미러 부하 ΔW가 만든 전류 오차 ID·ε_W를 입력쌍 gm으로 입력 환산한 것이 같은 결과다. ΔW = 0이면 성분 (3)만 0이고 V_id*는 성분 (1)(2)로 남는다(v6
+  ~ = 0이 구조적으로 재발한다). 이 식은 gm/ID 손계산 형태 **Vos ≈ ε_W / (gm/ID)_입력쌍**(미러 부하 W 불일치 ε_W = ΔW/W)의 일반형이다 -- 미러 부하 ΔW가 만든 전류 오차 ID·ε_W를 입력쌍 gm으로 입력 환산한 것이 같은 결과다. ΔW = 0이면 성분 (3)만 0이고 V_id*는 성분 (1)(2)로 남는다(v6.36 O-118 1번 -- 옛 'ΔW = 0이면 offset 0 = 통과' 삭
+### gain-budget-gmid-sizing.plan.md:269 ['tolV', 'dom', 'sat']
+ 평가마다 θ 고정 선형 감도 끝'·사용자 결정 J-E(nmcnr 입력 DC = SP-2 (c) 창 안 자유 변수 -- 그 창 = 입력 포화 창)의 창 정의·사용자 결정 O-58 S-1의 θ 프레임 탐색 창 정의(+tol_VDsat 판정 여유 창 -- 순서 창과 다른 양, N6.35 E-13 판정 근거)를 바꾼다(자유 변수라는 점은 그대로 -- DEC-106 입력 공통모드 변수 하나). **전류 변수 정의**: θ의 전류 변수 = S1
+### gain-budget-gmid-sizing.plan.md:270 ['tolV', 'res', 'dom', 'sat']
+하고(넷째 자리 (d) 층 0 회차 반복은 L-3), 수렴 판정·반복 상한·NONCONVERGENT 판정은 DC 순환 블록(N3.6)과 같은 규칙을 쓰고 새 상수를 두지 않는다. 수렴 지표에 V_R 변화(V, 같은 tol_V)를 더한다(v6.38 P4). 역산이 불가능하거나 LUT 비단조 구간(N3.7 LUT 곡선 검사, 2026-10-12 최종 검증 정정 L-1: 옛 인용 'I-A11' 오기)이면 그 소자만 격자 탐색으로 폴백하고 사
+  ~ 적 bin 수 식은 gain 예산을 받는 블록의 것이다). 이득 블록은 gain bin 수(bin 폭 = **w_g = b_gain** -- b_gain = `MetricResult.resolution`; gain 분해능 정의는 이것 하나다(v6.19 A-F10, design 41 §5.2, card LA-1 범위 1, O-178)) × 면적 bin 수(그 블록의 면적 가능역 ÷ **면적 축 bin 폭**. bin 폭 = max(레
+  ~  하나다(v6.19 A-F10, design 41 §5.2, card LA-1 범위 1, O-178)) × 면적 bin 수(그 블록의 면적 가능역 ÷ **면적 축 bin 폭**. bin 폭 = max(레이아웃 격자 분해능, 면적 축 두 눈금 차(Q-EM1)), DEC-80) 이하이고, 한 (gain bin, 면적 bin) 칸에는 전력이 가장 작은 점 하나만 남긴다. **이 상한이 계수 예산 N_S(`structure_count_bu
+  ~  NFR-4. 사용자 결정 2026-10-12 L-10: 옛 'DEC-34 예산 식에서 계산한 평가 수' 대체). 두 점의 블록 이득 차가 w_g 이하이고 면적 차가 면적 축 bin 폭 이하이며 전력 차가 전력 축 분해능 이하이면 같은 점으로 접어 하나만 남긴다(v6.19, 사용자 결정 O-41 (2): 전력 축 분해능 = 두 점의 `power_resolution_w` 중 큰 값 -- DEC-73 (4) 외층 필요성 판정의 b_P와
+### gain-budget-gmid-sizing.plan.md:272 ['eps', 'res', 'dom']
+성분 -- DEC-70, v6.38 M11; 고리 종속 성분은 점마다 DEC-104 R6 블록이 다시 파생 -- 정의역 변수 전체 + 칸이 구간인 L, `E/search/slsqp_outer.py:5-7`)에 대한 ε-제약 SLSQP -- 층 0이 블록 국소로 고른 점에서 남은 결합 오차를 전회로 평가로 다듬는다. 결합점 변수만으로 줄이지 않는다, N3.7 외층). **스위치**: DEC-75 화이트리스트 항목 '외층 SLSQP
+  ~ 꾸지 않는다). **판정 규칙**(LA-Q3 결정됨, O-36 (4)): 측정한 층 0 활성 회로(DEC-71 (3) 활성 조건) 각각에서 층 0 조립 front와 외층 최적 front의 목적값 차가 축마다 bin 분해능 이하이고 그것이 그 회로 **전부**에서 성립하면 기본에서 끈다(2목적 front를 bin 폭으로 비교, 회로별 스위치 없음). **bin 분해능**: 면적 b_A = DEC-80 (ii) 면적 축 bin 폭 = 
+  ~ 조립 front와 외층 최적 front의 목적값 차가 축마다 bin 분해능 이하이고 그것이 그 회로 **전부**에서 성립하면 기본에서 끈다(2목적 front를 bin 폭으로 비교, 회로별 스위치 없음). **bin 분해능**: 면적 b_A = DEC-80 (ii) 면적 축 bin 폭 = max(레이아웃 격자 분해능, 면적 축 두 눈금 차(Q-EM1)) -- 탐색의 `area_resolution_m2`(= 제조 격자 × 최소 fing
+  ~ 회로 **전부**에서 성립하면 기본에서 끈다(2목적 front를 bin 폭으로 비교, 회로별 스위치 없음). **bin 분해능**: 면적 b_A = DEC-80 (ii) 면적 축 bin 폭 = max(레이아웃 격자 분해능, 면적 축 두 눈금 차(Q-EM1)) -- 탐색의 `area_resolution_m2`(= 제조 격자 × 최소 finger 폭, `E/search/CONTRACT.md:308`)는 DEC-80 (i) 격자 분해능이
+### gain-budget-gmid-sizing.plan.md:287 ['tolV', 'eps', 'inv', 'off', 'sat']
+상태 의존이라 bounds가 아니라 연속 부등식 제약이다. **봉인 9 전도 여유**(사용자 결정 2026-10-12 "GQ2, N1, N3, K2 권고대로" U-69): 전도 MOS는 I_off ≤ (gm/ID)·tol_V·ID(I_off = 그 소자의 LUT VGS = 0 누설 전류)를 만족해야 하고, 위반이면 봉인이 거부한다(ε 크기는 tol_V 셀 구성 실측(N5.3 Q-T0) 때 함께 재측정 대상 -- `wt/_drafts/e
+  ~ "GQ2, N1, N3, K2 권고대로" U-69): 전도 MOS는 I_off ≤ (gm/ID)·tol_V·ID(I_off = 그 소자의 LUT VGS = 0 누설 전류)를 만족해야 하고, 위반이면 봉인이 거부한다(ε 크기는 tol_V 셀 구성 실측(N5.3 Q-T0) 때 함께 재측정 대상 -- `wt/_drafts/evidence/2026-10-29/tolv_family_rereview.md` '봉인 9'). 탐색에서는 같은 
+  ~ N1, N3, K2 권고대로" U-69): 전도 MOS는 I_off ≤ (gm/ID)·tol_V·ID(I_off = 그 소자의 LUT VGS = 0 누설 전류)를 만족해야 하고, 위반이면 봉인이 거부한다(ε 크기는 tol_V 셀 구성 실측(N5.3 Q-T0) 때 함께 재측정 대상 -- `wt/_drafts/evidence/2026-10-29/tolv_family_rereview.md` '봉인 9'). 탐색에서는 같은 조건을 동작점별 연
+  ~ 식 제약 행으로 둔다(bounds로 조이지 않는다, design 40 §3.10.4). 봉인 2 지표는 ID 환산 지표다(N3.6). **봉인 7 포화 기준**(Q3 (ii) (C)): `VDS − VDsat ≥ +tol_VDsat`(엔진이 SPICE 판정 `vds_ge_vdsat`보다 보수적), VDsat = LUT `VDSAT` 열 보간(오라클 `@m[vdsat]`과 같은 양, DF-25를 대체), tol_VDsat = VDSAT 
+### gain-budget-gmid-sizing.plan.md:289 ['tolV', 'eps', 'off']
+ 결정 O-45(2026-10-20 "권고대로", `_drafts/user_decisions.md` O-45 행) U2 -- 같은 개념 한 정의): SPICE 점에서 **ID ≤ 0(선언 방향)이거나 I_off > ε·ID이면 꺼짐**, ε = (gm/ID)·tol_V. **전도 = 선언 방향 ID > 0이고 I_off ≤ ε·ID**(사용자 결정 O-50(2026-10-20 "모두 새 권고대로 진행해", `_drafts/use
+  ~ -10-20 "권고대로", `_drafts/user_decisions.md` O-45 행) U2 -- 같은 개념 한 정의): SPICE 점에서 **ID ≤ 0(선언 방향)이거나 I_off > ε·ID이면 꺼짐**, ε = (gm/ID)·tol_V. **전도 = 선언 방향 ID > 0이고 I_off ≤ ε·ID**(사용자 결정 O-50(2026-10-20 "모두 새 권고대로 진행해", `_drafts/user_decisions.m
+  ~ ", `_drafts/user_decisions.md` O-45 행) U2 -- 같은 개념 한 정의): SPICE 점에서 **ID ≤ 0(선언 방향)이거나 I_off > ε·ID이면 꺼짐**, ε = (gm/ID)·tol_V. **전도 = 선언 방향 ID > 0이고 I_off ≤ ε·ID**(사용자 결정 O-50(2026-10-20 "모두 새 권고대로 진행해", `_drafts/user_decisions.md` O-50 행) G3 --
+  ~ ) U2 -- 같은 개념 한 정의): SPICE 점에서 **ID ≤ 0(선언 방향)이거나 I_off > ε·ID이면 꺼짐**, ε = (gm/ID)·tol_V. **전도 = 선언 방향 ID > 0이고 I_off ≤ ε·ID**(사용자 결정 O-50(2026-10-20 "모두 새 권고대로 진행해", `_drafts/user_decisions.md` O-50 행) G3 -- 옛 문언 'I_off > ε·\|ID\|'의 절댓값을 지운
+### gain-budget-gmid-sizing.plan.md:296 ['tolV', 'inv', 'dom', 'sat']
+
+### gain-budget-gmid-sizing.plan.md:304 ['tolV', 'eps', 'res', 'allow', 'inv', 'off', 'dom', 'sat']
+U-130·O-166의 'w_f = W/m(제조 격자)' 연속 손가락 폭을 슬라이스 폭 집합으로 -- W′ ≠ W; 승인 사용자 결정 O-173). 남는 전류 잔차 r = m·w_s·IDu_s/I − 1은 W 격자 분해능이다. **물리 처리**(→ v6.38.5 Q-W1 승인 시 이 재풀이는 실현 평가(front 점)에서만 -- 아래 '탐색 평가와 실현 평가', 일괄 반영 목록 N5.3 Q-W1 행): DC 블록이 W′·바이어스 고
+  ~ hur 1칸으로는 봉인할 수 없음); N3.8 선형 Schur는 servo 피벗 판정과 뉴턴 출발 걸음으로만 쓴다. **servo 피벗·갈래 판정 자리**(검증 4 MJ4-2): 묶음 정의와 피벗 판정(a_e·판정 분해능 -- N3.8 '판정 분해능의 정의 자리'의 정의 함수 하나)은 card IT-2(IT-2c `icm_config`) 몫이고, 실현 servo는 같은 θ 탐색 평가의 servo 피벗 판정을 기록 참조로 읽는다(gr
+  ~ 없음); N3.8 선형 Schur는 servo 피벗 판정과 뉴턴 출발 걸음으로만 쓴다. **servo 피벗·갈래 판정 자리**(검증 4 MJ4-2): 묶음 정의와 피벗 판정(a_e·판정 분해능 -- N3.8 '판정 분해능의 정의 자리'의 정의 함수 하나)은 card IT-2(IT-2c `icm_config`) 몫이고, 실현 servo는 같은 θ 탐색 평가의 servo 피벗 판정을 기록 참조로 읽는다(graph 규칙 4 -- 새 판정
+  ~  (ii) 종속 소자: 슬라이스가 노드 풀이에 되먹임되는 원천은 정의로 하나다(재판정 P3, design v1.15.2 작성자 정정 후보 (b)·gap: 옛 괄호 '입력 포트 W4 뿌리 회로 … 영역 행 VDSAT·허용오차 셀·입력 창 되풀이가 모든 coord 소자의 슬라이스를 읽음' 정정) -- 노드 풀이가 종속 소자 슬라이스에서 읽는 양 가운데 WB-1 범위 3a(N6.35 E-13) 뒤 남는 것은 writer 없는 순환 SCC의
+### gain-budget-gmid-sizing.plan.md:320 ['tolV', 'off']
+ ΔV_out ÷ DC 극한 전달, '1차', ΔW = 0이면 통과(O-45 U3의 '다시 봉인한 점의 출력 오차' 대체) (2) 합격·범위 판정 입력 = 그 SPICE op 점 값(gm/ID = SPICE op, tol_V·I_off = 그 점 VDS·VSB의 엔진 LUT 값) → v6.36 O-118 1번: (1) 식은 (나′)의 성분 (3)으로 남고 'ΔW = 0이면 통과'는 삭제 | DEC-67 (c), DEC-23, DEC-7
+### gain-budget-gmid-sizing.plan.md:427 ['tolV', 'res', 'sat']
+ = IT-2·EO-1 중 늦게 병합되는 card(O-56 (b) 확장; v6.33 사용자 결정 O-98로 동작점 불일치 묶음까지 넓힘 -- N6.6 범위 1), V_on 역함수 = 공용 전도 판정 함수 곁, 종료 분해능 = 그 점 tol_V 셀 -- N6.6·N6.20; T-1 `triode` 경계 판정 여유 VDsat − VDS − tol_VDsat ≥ 0 -- 정의 자리 N3.8, 봉인 7 대조도 같은 기준(N3.6 표 7행)
+  ~ -1 중 늦게 병합되는 card(O-56 (b) 확장; v6.33 사용자 결정 O-98로 동작점 불일치 묶음까지 넓힘 -- N6.6 범위 1), V_on 역함수 = 공용 전도 판정 함수 곁, 종료 분해능 = 그 점 tol_V 셀 -- N6.6·N6.20; T-1 `triode` 경계 판정 여유 VDsat − VDS − tol_VDsat ≥ 0 -- 정의 자리 N3.8, 봉인 7 대조도 같은 기준(N3.6 표 7행); DV-11 σ 입력
+  ~ 음까지 넓힘 -- N6.6 범위 1), V_on 역함수 = 공용 전도 판정 함수 곁, 종료 분해능 = 그 점 tol_V 셀 -- N6.6·N6.20; T-1 `triode` 경계 판정 여유 VDsat − VDS − tol_VDsat ≥ 0 -- 정의 자리 N3.8, 봉인 7 대조도 같은 기준(N3.6 표 7행); DV-11 σ 입력 환산 = 여기 방향 DC 극한 전달 A_dc -- DEC-23 |
+### gain-budget-gmid-sizing.plan.md:479 ['eps', 'dom']
+EC-77 -- 기본 경로 = 층 0 손계산 최적, DEC-73 v6.19) -> 조립점 커널 판정, 봉인 실패 시 수리 단계 -> 외층 SLSQP(선택 단계 -- 전회로 θ(정의역 변수 전체 + 구간 L)에 대한 ε-제약 SLSQP로, 층 0이 블록 국소로 고른 점에서 남은 결합 오차를 전회로 평가로 다듬는다. 켜지면 front 점마다 돈다, N3.7 외층). 정밀 경로가 선언되면 내층 블록 DP·중층 y 좌표강하를 추가한다.
+### gain-budget-gmid-sizing.plan.md:553 ['tolV', 'allow', 'dom']
+는 판정 기록 참조); (G5) **입력 동일성 = 읽는 graph 필드·선언의 버전**(값의 역할 이름이 아님) -- 반복 풀이 블록이 최종값으로 쓴 필드와 같은 버전을 다른 자리가 다시 조회하면 같은 입력이다; 허용오차 셀 `tol_v_cell`(감사 D)은 WB-1 범위 3이 노드 풀이·허용오차·봉인값을 DC 블록 하나로 합치므로 반복점·봉인값 모두 그 블록 안 값(블록 밖 둘째 생산 0 -- 배정 표 D 행); (G1) **두
+  ~  버전**(값의 역할 이름이 아님) -- 반복 풀이 블록이 최종값으로 쓴 필드와 같은 버전을 다른 자리가 다시 조회하면 같은 입력이다; 허용오차 셀 `tol_v_cell`(감사 D)은 WB-1 범위 3이 노드 풀이·허용오차·봉인값을 DC 블록 하나로 합치므로 반복점·봉인값 모두 그 블록 안 값(블록 밖 둘째 생산 0 -- 배정 표 D 행); (G1) **두 자리 이상이 쓰는 로더 계산값은 S0 필드(writer = S0 블록 하나)이
+### gain-budget-gmid-sizing.plan.md:558 ['tolV', 'sat']
+| B2 | 봉인점 소자 (VDsat, tol_VDsat) | `device.dc_sat_v` 하나(headroom-chain N3.4 정본 필드) -- writer = **DC 블록**(v6.38.4 P9 검증 C1 비교 (나) 권고: 같은 봉인점 LUT 조회 
+### gain-budget-gmid-sizing.plan.md:611 ['tolV', 'sat']
+ 사이에 재사용하지 않는다(사용자 결정 2026-10-15 "나로 해" -- 옛 '실행 간 디스크 캐시는 셋(S0 수준 graph 스냅샷, LUT 파생표, 실패 캐시)'을 대체). 남는 것은 LUT 파생표(곡선 표·tol_V·tol_VDsat 등 최초 구성 비용이 큰 표) 하나이고, 이것은 실행 사이에 유지한다(U-87, 사용자 결정 2026-10-15 "U-87은 LUT는 관리복잡도가 없다는 네 판단근거에 따라 유지. 나머지는 기본안
+  ~ 사용하지 않는다(사용자 결정 2026-10-15 "나로 해" -- 옛 '실행 간 디스크 캐시는 셋(S0 수준 graph 스냅샷, LUT 파생표, 실패 캐시)'을 대체). 남는 것은 LUT 파생표(곡선 표·tol_V·tol_VDsat 등 최초 구성 비용이 큰 표) 하나이고, 이것은 실행 사이에 유지한다(U-87, 사용자 결정 2026-10-15 "U-87은 LUT는 관리복잡도가 없다는 네 판단근거에 따라 유지. 나머지는 기본안대로" --
+  ~  내용 + LUT 코드 버전으로 완결, S0 같은 키 관리 부담 없음. test 쪽 `lut_table_cache_tests` 포함). **LUT 파생표 캐시**(U-87 유지. 2026-10-08 정정, 사용자 "tol_V표를 파일로 캐시해."·"그 방식으로 진행해"·"캐시 정리 삭제 코드 넣는 것을 허용해"): 위치는 LUT 설정 파일(`assets/lut_v2_location.json`의 `table_cache`)이 정하고 환경 
+### gain-budget-gmid-sizing.plan.md:633 ['tolV', 'off', 'sat']
+| 7 | 포화 여유 | ID > 0인 모든 MOS에서(뷰 무관) VDS − VDsat ≥ +tol_VDsat(DEC-88, 2026-10-07 -- 옛 `≥ −tol_V`를 대체: 엔진 통과 해가 SPICE 비포화로 떨어지는 경로를 막는다). VDsat = LUT `VDSAT` 열 보간(오라클 `@m[vdsat]`
+  ~ | 7 | 포화 여유 | ID > 0인 모든 MOS에서(뷰 무관) VDS − VDsat ≥ +tol_VDsat(DEC-88, 2026-10-07 -- 옛 `≥ −tol_V`를 대체: 엔진 통과 해가 SPICE 비포화로 떨어지는 경로를 막는다). VDsat = LUT `VDSAT` 열 보간(오라클 `@m[vdsat]`과 같은 양), tol_VDsat = VDSAT 열 leave-one
+  ~ 88, 2026-10-07 -- 옛 `≥ −tol_V`를 대체: 엔진 통과 해가 SPICE 비포화로 떨어지는 경로를 막는다). VDsat = LUT `VDSAT` 열 보간(오라클 `@m[vdsat]`과 같은 양), tol_VDsat = VDSAT 열 leave-one-out 셀값. 열이 생기기 전에는 이 항목을 '정의 미확정'으로 표시하고 2/(gm/ID)를 대신 쓰지 않는다. 위반이면 거부(margin = (VDS − VDsat − 
+  ~ Dsat = VDSAT 열 leave-one-out 셀값. 열이 생기기 전에는 이 항목을 '정의 미확정'으로 표시하고 2/(gm/ID)를 대신 쓰지 않는다. 위반이면 거부(margin = (VDS − VDsat − tol_VDsat)/tol_VDsat). 선형 영역을 의도한 소자는 spec 선언 `human.intended_region`에서 region `triode`로 선언한 것(사용자 작성, `E/authoring/spec_regi
+### gain-budget-gmid-sizing.plan.md:635 ['tolV', 'eps', 'off']
+| 9 | 전도 여유 | ID > 0인 모든 MOS(뷰 무관, `intended_region` `off` 선언 소자는 아래 선언 영역 대조로)에서 I_off ≤ ε·ID. I_off = 그 소자 `dc_op`의 L·VDS·VSB에서 VGS = 0 누설(LUT `op_point`), ε = (gm/ID)·tol_V(`device.dc_tol_v`). **전도·꺼짐 정의**(사용
+  ~ tended_region` `off` 선언 소자는 아래 선언 영역 대조로)에서 I_off ≤ ε·ID. I_off = 그 소자 `dc_op`의 L·VDS·VSB에서 VGS = 0 누설(LUT `op_point`), ε = (gm/ID)·tol_V(`device.dc_tol_v`). **전도·꺼짐 정의**(사용자 결정 O-50(2026-10-20 "모두 새 권고대로 진행해", `_drafts/user_decisions.md` O-
+  ~ n` `off` 선언 소자는 아래 선언 영역 대조로)에서 I_off ≤ ε·ID. I_off = 그 소자 `dc_op`의 L·VDS·VSB에서 VGS = 0 누설(LUT `op_point`), ε = (gm/ID)·tol_V(`device.dc_tol_v`). **전도·꺼짐 정의**(사용자 결정 O-50(2026-10-20 "모두 새 권고대로 진행해", `_drafts/user_decisions.md` O-50 행) G3): 전도 = 
+  ~ 전도·꺼짐 정의**(사용자 결정 O-50(2026-10-20 "모두 새 권고대로 진행해", `_drafts/user_decisions.md` O-50 행) G3): 전도 = 선언 방향 ID > 0이고 I_off ≤ ε·ID, 선언 방향 ID ≤ 0은 꺼짐(DEC-97 (4)·T4) -- 지금 구현은 ID ≤ 0 MOS를 판정에서 말없이 뺀다(`E/sizing/seal_conduction.py:41` `if not op.curre
+### gain-budget-gmid-sizing.plan.md:641 ['tolV', 'res', 'allow', 'sat']
+* `tol_V` = LUT leave-one-out 보간 오차로 정한 **셀별** 값이다(사용자 확정 2026-10-07). 보간 축 **VGS·VDS·VS**와 **bin 안 L**(LR3, 사용자 확정 2026-10-07)에
+  ~ 그 bin의 L 방향 값으로 쓴다. 셀 = (kind, w_key(PDK 특성화 폭 DC 슬라이스 키, N3.17 LY2), L 점, VDS)이고 셀 값은 그 셀 안의 최댓값이다. L 점 사이(같은 bin) 쿼리의 tol_V는 양옆 L 점 셀 값과 그 bin의 L 방향 값 중 최댓값이다. **용도**: tol_V는 엔진 손계산의 수치 자기 정합 분해능(LUT 보간 해상도)이다. 봉인 1·2·3·8, K_max, 순환 수렴, forced
+  ~ 슬라이스 키, N3.17 LY2), L 점, VDS)이고 셀 값은 그 셀 안의 최댓값이다. L 점 사이(같은 bin) 쿼리의 tol_V는 양옆 L 점 셀 값과 그 bin의 L 방향 값 중 최댓값이다. **용도**: tol_V는 엔진 손계산의 수치 자기 정합 분해능(LUT 보간 해상도)이다. 봉인 1·2·3·8, K_max, 순환 수렴, forced 모드 경고에 쓰고, '손계산 대 SPICE 오차 범위'로 쓰지 않는다(그 범위 = N6.
+  ~  VDS)이고 셀 값은 그 셀 안의 최댓값이다. L 점 사이(같은 bin) 쿼리의 tol_V는 양옆 L 점 셀 값과 그 bin의 L 방향 값 중 최댓값이다. **용도**: tol_V는 엔진 손계산의 수치 자기 정합 분해능(LUT 보간 해상도)이다. 봉인 1·2·3·8, K_max, 순환 수렴, forced 모드 경고에 쓰고, '손계산 대 SPICE 오차 범위'로 쓰지 않는다(그 범위 = N6.3 E-0·E-1·E-2). **셀 구성
+### gain-budget-gmid-sizing.plan.md:644 ['tolV', 'eps', 'res', 'allow', 'off', 'sat']
+* `tol_V`를 IC1 test의 허용오차로 쓴다(레이아웃 W 허용오차 상한은 사용자 결정 O-173 Q-T1로 철회 -- LY1 순위 기준). **SPICE 대조(사용자 확정 2026-10-07)**: 합격 조건은 SPICE
+  ~ * `tol_V`를 IC1 test의 허용오차로 쓴다(레이아웃 W 허용오차 상한은 사용자 결정 O-173 Q-T1로 철회 -- LY1 순위 기준). **SPICE 대조(사용자 확정 2026-10-07)**: 합격 조건은 SPICE free 모드에서 (i) 측정
+  ~ * `tol_V`를 IC1 test의 허용오차로 쓴다(레이아웃 W 허용오차 상한은 사용자 결정 O-173 Q-T1로 철회 -- LY1 순위 기준). **SPICE 대조(사용자 확정 2026-10-07)**: 합격 조건은 SPICE free 모드에서 (i) 측정 회로 성능이 스펙 만족 (i
+  ~  9 행, 사용자 결정 O-182 Q-S9 (A′)). (ii)는 **엔진이 전도로 예측한 MOS가 SPICE에서 꺼지면 FAIL**을 포함한다 -- 꺼짐 = 선언 방향 ID ≤ 0이거나 봉인 9 식 I_off > ε·ID(O-50 G3 -- 옛 문언 'ε·|ID|'의 절댓값 삭제), ε = (gm/ID)·tol_V, I_off·gm/ID·tol_V 모두 그 SPICE op 점의 값(I_off = 그 점 VDS·VSB에서 VGS
+### gain-budget-gmid-sizing.plan.md:674 ['res', 'off']
+ DEC-78, 면적 정의 DEC-79) -- 면적은 '면적 제약이 선언됐을 때만 붙는 bin'이 아니라 **상시 축**이고, 면적 bin 폭 = DEC-80 (ii)의 면적 축 bin 폭(= max(레이아웃 격자 분해능, 면적 축 두 눈금 차(Q-EM1)))이며, DP 상태 수가 DEC-34 예산 식의 상한을 넘으면 bin 폭을 2배씩 넓혀 맞추고 확대 배수와 사유를 기록한다(DEC-80 예산 게이트). 각 상태에서 비지배 해만 
+  ~  게이트). 각 상태에서 비지배 해만 남기고, 한 점으로 좁혀야 할 때의 타이 브레이크는 조립과 같다. gain bin 해상도 = **w_g**(DEC-71 (6)의 정의 하나 -- w_g = b_gain)다(격자 분해능으로 쪼개지 않는 근거는 DEC-71 (6)). 층 0 비지배 점이 있으면 그 (ln IDu, L 앵커) 벡터를 DP 격자의 시작 후보로만 쓰고 격자를 줄이지 않는다(역산은 후보 생성, 격자는 검증·폴백·미세조정, 
+### gain-budget-gmid-sizing.plan.md:675 ['eps', 'res', 'off']
+n 기준(DEC-10. 기본 경로에서는 조립 단계가 봉인 통과 점끼리 같은 기준으로 비교한다). y 좌표 평가 1회 = 평가 커널 1회(봉인 포함). 종료 = 한 바퀴에 y 불변, 또는 목적값 감소 ≤ DP 목적값 분해능(2목적이므로 목적값은 ε-제약으로 고정한 한 축 상한 아래의 다른 축 값이다, DEC-77). 상한 = y 격자 점 수의 합(유한 격자·비증가라 종료 보장) |
+  ~ 경로에서는 조립 단계가 봉인 통과 점끼리 같은 기준으로 비교한다). y 좌표 평가 1회 = 평가 커널 1회(봉인 포함). 종료 = 한 바퀴에 y 불변, 또는 목적값 감소 ≤ DP 목적값 분해능(2목적이므로 목적값은 ε-제약으로 고정한 한 축 상한 아래의 다른 축 값이다, DEC-77). 상한 = y 격자 점 수의 합(유한 격자·비증가라 종료 보장) |
+### gain-budget-gmid-sizing.plan.md:676 ['eps', 'res', 'dom']
+| 외층 미세조정(v6.19: **선택 단계** -- 전회로 θ(정의역 변수 전체 + 칸이 구간인 L, `E/search/slsqp_outer.py:5-7`)에 대한 ε-제약 SLSQP: 층 0이 블록 국소로 고른 점에서 남은 결합 오차를 전회로 평가로 다듬는다(결합점 변수만으로 줄이지 않는다). 기본값은 켬이고 끄는 것은 card LA-2가 판정 기록으로 정한다, DEC-73 (
+  ~ **모든 metric 제약 판정은 평가 커널의 전회로 계산이다**(DEC-74) -- 외층이 꺼지면 조립점의 커널 평가가 그 판정이다. 층 0 조립점이 시작점 목록 맨 앞이다(DEC-54). **2목적의 스칼라화는 ε-제약이다**(가중합을 쓰지 않는다 -- 볼록성 가정이 없다, DEC-77): 조립 front의 각 점에서 그 점의 **면적을 상한으로 고정하고 전력을 최소화**한 뒤 상한을 면적 축 bin 폭(DEC-80 (ii)
+  ~ ontour를 밀어 접점 -> 주어진 전류의 최소 면적, 여러 전류 반복 -> 전력-최소면적 관계"와 같은 절차). **반대 방향도 같은 규칙으로 돈다**: 전력을 상한으로 고정하고 면적을 최소화하며 상한을 목적값 분해능 한 칸씩 민다. 두 방향을 모두 돌아야 front의 양 끝(최소 전력 점·최소 면적 점)이 덮인다. 스윕 범위는 front 격자의 양 끝이고, 어느 ε에서 나온 해든 다른 해에 지배당하면 버린다. 예산이 선언되면 
+  ~  전력을 상한으로 고정하고 면적을 최소화하며 상한을 목적값 분해능 한 칸씩 민다. 두 방향을 모두 돌아야 front의 양 끝(최소 전력 점·최소 면적 점)이 덮인다. 스윕 범위는 front 격자의 양 끝이고, 어느 ε에서 나온 해든 다른 해에 지배당하면 버린다. 예산이 선언되면 그 예산을 ε으로 고정한 한 번의 풀이가 최종 해다 |
+### gain-budget-gmid-sizing.plan.md:702 ['tolV', 'eps', 'res', 'allow', 'inv', 'off', 'dom', 'sat']
+ 하나)를 READS로 읽고 새 상수·새 필드는 없다(W3 목표 출력이면 그 목표값, 고임피던스 출력이면 봉인 풀이가 정한 값). **servo 보정** = 입력을 그 전달 뷰의 여기 방향 e로 움직이는 미지 보정 ε 하나(입력 공통모드 x와 함께) -- 출력을 묶으려면 입력 차 쪽 자유도 하나가 필요하다(물리: DC servo가 입력 차를 조정해 출력을 묶는다); e의 부호는 ε에 흡수되어 반전 입력 포트 식별이 필요 없다. 
+  ~  전달 뷰의 여기 방향 e로 움직이는 미지 보정 ε 하나(입력 공통모드 x와 함께) -- 출력을 묶으려면 입력 차 쪽 자유도 하나가 필요하다(물리: DC servo가 입력 차를 조정해 출력을 묶는다); e의 부호는 ε에 흡수되어 반전 입력 포트 식별이 필요 없다. **입력이 둘인 회로에서는 servo 끝 상태와 포트 전압 metric이 e 선택과 무관하다**(v6.35 둘째 커밋, 검증 S-1 유도: servo 상태 집합 = 입
+  ~  포트 전압 metric이 e 선택과 무관하다**(v6.35 둘째 커밋, 검증 S-1 유도: servo 상태 집합 = 입력 2차원 공간에서 감지 s = s0인 곡선 하나이고, CM 방향과 평행하지 않은 e면 (x, ε)가 그 2차원을 덮어 같은 곡선·같은 끝 상태가 나온다 -- e는 곡선의 매개변수 x만 바꾼다; 선형화에서도 접선 = span{CM, e} ∩ {δs = 0}이라 e와 무관) -- 그래서 metric은 매개변수 x
+  ~ 가중'은 v6.36 기본 포트 뷰만으로 대상 없음). **포트 role**: 기본 뷰 가중은 포트 role(`differential_input_p`/`_n`)에서 오지만, role을 맞바꾸면 e → −e이고 부호가 ε에 흡수되어 끝 상태·metric이 같다(role 이름이 결과를 정하지 않음). **입력 포트가 셋 이상인 회로**: 입력 공간 차원이 2를 넘어 끝 상태가 e에 따라 달라질 수 있다 -- 물리 규칙 **미확인**이
+### gain-budget-gmid-sizing.plan.md:759 ['tolV', 'sat']
+| MOD1 | `lut`(`gmid_lut.py`) | LUT 인터페이스·보간·역산·곡선 검사·보간 오차(tol_V)·gmb(`∂ID/∂VSB`)·VDsat·finger_w DC 슬라이스, 축 밖 거부(LR3) | `GmIdLUT`·`_multilinear_interp*`·`_solve_vgs`·`lut_conditions_fr
+  ~ ger_w DC 슬라이스, 축 밖 거부(LR3) | `GmIdLUT`·`_multilinear_interp*`·`_solve_vgs`·`lut_conditions_from_npz`(복사 + npz 격자점 오라클), tol_V 방법(N3.6) |
+### gain-budget-gmid-sizing.plan.md:1240 ['tolV', 'sat']
+bic-Hermite 보간과 같은 칸 역산·FC 검사(DEC-87), `vgs_for_current_density`(DEC-88), gmb(GMBS 열, 그 전엔 임시), VDsat(VDSAT 열, DEC-88), tol_V(같은 방법 LOO + 2^p 환산 + 칸 중앙 SPICE 표본 test), 곡선 표 선계산과 LUT 조회 memo | N3.6·N3.8·N3.9, DEC-11·87·88 | 0 | 4·6b 몫 |
+### gain-budget-gmid-sizing.plan.md:1343 ['tolV', 'eps', 'off', 'sat']
+것(KCL 항등 0 전류 MOS 제외 -- 정의·oracle 독립 유도 대조(다르면 거부)는 N3.6 봉인 9 행, 사용자 결정 O-182 Q-S9 (A′); 선언 방향 ID ≤ 0이거나 봉인 9 식 I_off > ε·ID, ε = (gm/ID)·tol_V 그 점 값 -- O-45 U2, X-90a, O-50 G3; I_off·tol_V 계산은 엔진 쪽 2단계 판정(EO-1 공용 함수, OP-5 통합 병합 -- O-55 U2) 
+  ~ 항등 0 전류 MOS 제외 -- 정의·oracle 독립 유도 대조(다르면 거부)는 N3.6 봉인 9 행, 사용자 결정 O-182 Q-S9 (A′); 선언 방향 ID ≤ 0이거나 봉인 9 식 I_off > ε·ID, ε = (gm/ID)·tol_V 그 점 값 -- O-45 U2, X-90a, O-50 G3; I_off·tol_V 계산은 엔진 쪽 2단계 판정(EO-1 공용 함수, OP-5 통합 병합 -- O-55 U2) -- O-5
+  ~ 제외 -- 정의·oracle 독립 유도 대조(다르면 거부)는 N3.6 봉인 9 행, 사용자 결정 O-182 Q-S9 (A′); 선언 방향 ID ≤ 0이거나 봉인 9 식 I_off > ε·ID, ε = (gm/ID)·tol_V 그 점 값 -- O-45 U2, X-90a, O-50 G3; I_off·tol_V 계산은 엔진 쪽 2단계 판정(EO-1 공용 함수, OP-5 통합 병합 -- O-55 U2) -- O-50 G5) 0(DEC-90 (
+  ~  사용자 결정 O-182 Q-S9 (A′); 선언 방향 ID ≤ 0이거나 봉인 9 식 I_off > ε·ID, ε = (gm/ID)·tol_V 그 점 값 -- O-45 U2, X-90a, O-50 G3; I_off·tol_V 계산은 엔진 쪽 2단계 판정(EO-1 공용 함수, OP-5 통합 병합 -- O-55 U2) -- O-50 G5) 0(DEC-90 (1)). 넷리스트 기하 = MOD8 수렴 스냅샷 + 접합 용량(LY8, DEC-91
+### gain-budget-gmid-sizing.plan.md:1354 ['tolV', 'off']
+ 값마다 유도 근거, 상수 발명 금지, 엔진 입력으로 쓰지 않음. 손분석 작성 주체 ≠ 엔진 코드 작성 주체(WP-13). (v6.20 O-50 G5 구분) 판정 쪽 LUT 의존 양(SPICE op 점의 I_off·tol_V) 계산은 엔진 쪽 2단계 판정(card EO-1 공용 전도 판정 함수, 호출 자리 = oracle OP-5 통합 병합의 엔진 커밋 -- O-55 U2)가 엔진 정본 LUT 함수로 한다 -- 이것은 판정자 쪽 배선이
+### gain-budget-gmid-sizing.plan.md:1362 ['tolV', 'off']
+-45 U1)로 쓰고, 값은 손분석 문서의 값(W/L/finger, 바이어스, 선언 전도 집합)이다. 엔진 코드(EO-1 생산자 포함)는 쓰지 않는다(독립 대조군 원칙 -- '코드 없음' 해석 그대로). I_off·tol_V 같은 LUT 파생 칸은 '계산 보조 스크립트 허용' 범위에서 LUT를 직접 조회해 채운다(엔진 함수 import 금지). 입력 파일은 A' 문서 옆에 두고 문서에서 경로로 참조한다.
+### gain-budget-gmid-sizing.plan.md:1371 ['tolV', 'res', 'dom']
+잔차 등)은 이 자리를 참조한다): **E-0 물리 관문**(오차 범위가 아니다 -- 크기와 무관하게 fail-closed): 봉인점은 '말이 되는 동작점'이다 -- 노드 KCL·KVL 자기 정합(봉인 1·2·3, tol_V 해상도 -- 셀 구성은 Q-T0), 모든 소자가 SPICE 표본 정의역 위(LUT 정의역, 실현 손가락 폭 = LUT 슬라이스 폭(DEC-105 (2) 슬라이스 고정; 승인 전 유효 규칙: 모든 봉인점에 적용; →
+  ~ ) 정의 동일성 관문: 모든 대응 행(엔진 값과 oracle 값이 모두 있는 판정 행)에서 닫기보다 먼저 엔진·oracle 정의가 같은지 대조한다(위반 = 엔진 결함) (b) 활성 제약의 oracle 여유가 [0, 분해능] 밖인 점은 oracle 닫기(DEC-72 (3), card CL-1)로 다시 풀고, 멈춤 규칙에 걸리면 정지·보고(fail-closed) (c) 엔진·oracle 판정이 갈린 점은 결함이 아니라 대조 기록(DEC
+  ~ il-closed) (c) 엔진·oracle 판정이 갈린 점은 결함이 아니라 대조 기록(DEC-72 (1))이다 -- 엔진 결함 = E-0 위반 ∪ 정의 동일성 위반 ∪ 닫기 비수렴 (d) 목적 축 순위 bin = 분해능(DEC-80 예산 게이트로 넓힘); oracle을 돌리지 못한 metric은 판정 보류(통과로 세지 않음). **E-2 정밀화 받아들임**: 엔진에 SPICE 쪽 정밀화(새 LUT 축·자료, 셀 모형, 추가 풀이,
+  ~ 합의 기본 꼴이고 E-2 대상이 아니다. 넣을 때의 완료 조건 = 같은 점에서 정밀화 전·후의 첫 풀이 oracle 여유·닫힌 \|Δ\|·닫기 실행 수·닫기 비용 실측(사전 정밀도 비교 'SPICE 대비 몇 %'·'tol_V 이하'는 근거가 아님). 새 상수 0(spec 여유·분해능·선언 bin). **검증 기준**: 이 계획·design·구현의 검증에서 'SPICE와 수치가 같은가(수치 동일성)'는 기준이 아니다. 정의 동일성(엔진·
+### gain-budget-gmid-sizing.plan.md:1389 ['eps', 'off']
+.md` O-44 행) (1)): EO-1 전에는 엔진 점을 oracle에 넣을 생산자가 0이라 (i)에 따라 그 다리가 '보류'다. EO-1 뒤라도 oracle OP-5 병합 전에는 합격 판정의 '꺼짐'이 옛 식(ε = 1)이라, 판정 기록에 '꺼짐 정의 판'을 적고 옛 식 판정 다리는 '보류'(채울 card = OP-5)로 둔다(OP-5 뒤 봉인 9 식으로 다시 판정 -- 3차 감사 N5, card EO-1 순서). (XRU
+### gain-budget-gmid-sizing.plan.md:1654 ['tolV', 'eps', 'res', 'off', 'sat']
+는 같은 선형 감도의 VDS 변화율(`saturation_window`의 a = 부호·(s_d − s_s))로, **off 유지 경계는 VGS 감도(s_g − s_s)와 그 점에서 봉인 9 전도 정의(I_off ≤ ε·ID)를 처음 만족하는 VGS(LUT)로** 낸다(사용자 결정 O-55(2026-10-20 "권고대로 해", `_drafts/user_decisions.md` O-55 행) V5 -- off 소자의 켜짐은 VDS가
+  ~ 규칙, N6.20 범위 (4); 지금 spec 어휘는 `triode` 하나 `E/authoring/spec_regions.py:16-17`이라 `off` 어휘 없이 넣는 행은 죽은 코드; V_on 역함수 자리·종료 분해능도 N6.20 범위 (4)). 같은 감도 연립이고 새 기계는 두지 않는다(지금 `saturation_rows`는 선언 소자를 빼기만 한다, `E/sizing/block_columns.py:230-231`). 동작점(
+  ~ 위 `off` 경계 행도 같은 규칙, N6.1 EO-1 행). **(S4-나)에서 IT-2에 남는 것**: `triode` 선언 소자 행(N3.8 `triode` 경계 판정 여유, O-58 T-1 -- 행 여유는 `tol_VDsat` 정본 값과 그 해의 VDS·VDsat만 읽어 판정 함수가 필요 없다)의 영 교차 = 창 끝(훑기 도중 이탈 = 범위 끝, O-54), 경계 행 종류 = {포화, `triode`}, 전도·문턱 계산 0, 불
+  ~ ol -- 커널 ICMR 선언 제약·커널 metric·front 판정·보고; O-58 S-1, v6.34 O-109 C1). 정의(포화 VDS ≥ VDSAT, 전도 끝 = 봉인 9 식, tol 없음)와 판정 여유(+tol_VDsat, `saturation_rows` 현행)는 다른 필드다 -- 정의 창 `node.dc_window_def`(metric 값, card DE-1 (a)가 같은 봉인 뒤 블록에 더함; v6.19 전체 정합 검증
+### gain-budget-gmid-sizing.plan.md:1663 ['res', 'sat']
+ 확인하는 기록이었고, 그 기록은 오라클 실행 입력(`simulator.options` -- 없으면 실행 안 함, oracle T-39)과 오라클 쪽 δV_out(N3.8)·U-103에서 계속 가능하다; 엔진 판정 분해능(선형해 수치 분해능, O-71)은 SPICE 수치 허용치에서 오지 않는다; vntol·reltol은 오라클 쪽 δV_out(N3.8 '판정 분해능의 정의 자리')과 U-103 servo 고정 오차 조건에만 쓰이고 
+  ~ , 그 기록은 오라클 실행 입력(`simulator.options` -- 없으면 실행 안 함, oracle T-39)과 오라클 쪽 δV_out(N3.8)·U-103에서 계속 가능하다; 엔진 판정 분해능(선형해 수치 분해능, O-71)은 SPICE 수치 허용치에서 오지 않는다; vntol·reltol은 오라클 쪽 δV_out(N3.8 '판정 분해능의 정의 자리')과 U-103 servo 고정 오차 조건에만 쓰이고 그 소비자는 orac
+  ~ 쪽 δV_out(N3.8)·U-103에서 계속 가능하다; 엔진 판정 분해능(선형해 수치 분해능, O-71)은 SPICE 수치 허용치에서 오지 않는다; vntol·reltol은 오라클 쪽 δV_out(N3.8 '판정 분해능의 정의 자리')과 U-103 servo 고정 오차 조건에만 쓰이고 그 소비자는 oracle card다 -- history H2 'v6.38.4 스물셋째 커밋' 행), 결과가 이 정의와 어긋나면 멈추고 보고. (d)
+  ~ 착수 전에 차동 출력 회로(library `current_reuse_telescopic_ota`)의 봉인점에서 servo 연립(감지 V_op − V_on, 여기 방향 e 보정)이 특이하지 않고 \|a_e\|가 판정 분해능을 넘는지 재고 기록한다(분석 보고 §8 '차동 출력 회로는 실측 밖'); 특이하거나 판정 불능이면 멈추고 보고한다.
+### gain-budget-gmid-sizing.plan.md:1667 ['tolV', 'eps', 'res', 'inv', 'off', 'sat']
+ow_cfg` 하나(`git grep` -- O-61 P3·O-63 (4)·v6.34 O-108·O-109 C1); `graph.ss_nodal` 새 칸 E(v6.34 O-107)의 소비자 = servo 피벗 판정 분해능 정의 함수 ≥ 1(v6.35 -- 옛 'T_p 판정 분해능'; v6.35 삭제 목록은 (8)(f)); 삭제 확인(v6.34 O-109 D4·검증 N-5) -- 출력 구조 분류 필드(design `node.dc_ou
+  ~ O-63 (4)·v6.34 O-108·O-109 C1); `graph.ss_nodal` 새 칸 E(v6.34 O-107)의 소비자 = servo 피벗 판정 분해능 정의 함수 ≥ 1(v6.35 -- 옛 'T_p 판정 분해능'; v6.35 삭제 목록은 (8)(f)); 삭제 확인(v6.34 O-109 D4·검증 N-5) -- 출력 구조 분류 필드(design `node.dc_output_structure`)·그 writer·S-OS1 c
+  ~ 끝(일반 toy); 'x 구동 몫의 포트 차 = 선언 차'는 입력 공통모드 → 감지 DC 전달이 0인 대칭 toy(전제 단언 둘, 어기면 그 사례는 무효 -- 재검증 N-3: (i) 손계산 \|vx_s\| ≤ 판정 분해능이라 ε ≈ 0이고 포트 끝 차와 선언 차의 비교는 허용치 안 (ii) 같은 toy에서 포트별로 따로 훑은 창의 끝 차가 선언 차와 비교 허용치보다 크게 다름 -- 포트별 훑기 red가 공허하지 않게)에서 graph
+  ~ oy); 'x 구동 몫의 포트 차 = 선언 차'는 입력 공통모드 → 감지 DC 전달이 0인 대칭 toy(전제 단언 둘, 어기면 그 사례는 무효 -- 재검증 N-3: (i) 손계산 \|vx_s\| ≤ 판정 분해능이라 ε ≈ 0이고 포트 끝 차와 선언 차의 비교는 허용치 안 (ii) 같은 toy에서 포트별로 따로 훑은 창의 끝 차가 선언 차와 비교 허용치보다 크게 다름 -- 포트별 훑기 red가 공허하지 않게)에서 graph 출력(
+### gain-budget-gmid-sizing.plan.md:1758 ['tolV', 'eps', 'off', 'sat']
+포트 모두 같은 x), 출력은 봉인점 동작점에 DC로 묶음 -- **측정 구성** = N3.8 'ICMR 측정 구성'(servo: 감지 = 전달 뷰 s를 `node.dc_v` 봉인점 값에, 보정 = 여기 방향 e의 ε 하나, 차동 출력은 V_op − V_on을 묶고 출력 공통모드는 CMFB, 단일 입력 회로는 회로 그대로, 선언 되먹임은 읽지 않음). 정의 창·판정 창 둘 모두 이 구성 하나로 계산하고(IT-2 범위 1과 같은 
+  ~ `node.dc_window_def` = 정의 그대로의 끝(DC 범위 조건 -- 모든 MOS가 선언된 영역에 머무름, O-54: 선언 없음 = 포화 VDS ≥ VDSAT·전도(전도 끝 = 봉인 9 식 I_off ≤ ε·ID, I_off·ε는 그 훑기 점 자신의 값 -- N3.8 '훑기 점의 I_off 평가 점'; 소자가 꺼지는 점도 끝), `triode` 선언 소자가 포화로 가는 점(VDS ≥ VDSAT)도 끝, `off` 선언
+  ~ dow_def` = 정의 그대로의 끝(DC 범위 조건 -- 모든 MOS가 선언된 영역에 머무름, O-54: 선언 없음 = 포화 VDS ≥ VDSAT·전도(전도 끝 = 봉인 9 식 I_off ≤ ε·ID, I_off·ε는 그 훑기 점 자신의 값 -- N3.8 '훑기 점의 I_off 평가 점'; 소자가 꺼지는 점도 끝), `triode` 선언 소자가 포화로 가는 점(VDS ≥ VDSAT)도 끝, `off` 선언 소자가 켜지는 점도 
+  ~ 의는 E-13으로 바뀜 -- 승인 표 #34) (ii′) **측정 구성 판정 창**(N3.8 '창 필드', writer = IT-2 봉인 뒤 블록) = 정의 창에 엔진 판정 여유를 더한 창(VDS − VDSAT − tol_VDsat ≥ 0, `sat_threshold` 정본) -- 커널 ICMR 선언 제약 판정이 읽는다 (iii) **다듬은 정의 창은 두지 않는다**(v6.34 사용자 결정 O-109 C1 -- **원래 취지와 다름, 
+### gain-budget-gmid-sizing.plan.md:1775 ['tolV', 'eps', 'res', 'off', 'sat']
+ tol 제거 -- 정의 창 `node.dc_window_def` 끝에서 끝을 정한 소자의 VDS 여유(VDS − VDSAT)가 0이고, 측정 구성 판정 창 `node.dc_window_cfg` 끝에서는 그 여유가 tol_VDsat이다(두 끝은 그 VDS 여유가 tol_VDsat만큼 다른 점 -- 끝 전압 차는 감도에 따라 다르다; base는 정의 창이 없어 tol 들어간 창을 metric 값으로 냄 -- red) (ii) 전도 끝 -
+  ~ ndow_def` 끝에서 끝을 정한 소자의 VDS 여유(VDS − VDSAT)가 0이고, 측정 구성 판정 창 `node.dc_window_cfg` 끝에서는 그 여유가 tol_VDsat이다(두 끝은 그 VDS 여유가 tol_VDsat만큼 다른 점 -- 끝 전압 차는 감도에 따라 다르다; base는 정의 창이 없어 tol 들어간 창을 metric 값으로 냄 -- red) (ii) 전도 끝 -- 훑기 중 소자가 먼저 꺼지는(I_off > ε
+  ~ VDsat만큼 다른 점 -- 끝 전압 차는 감도에 따라 다르다; base는 정의 창이 없어 tol 들어간 창을 metric 값으로 냄 -- red) (ii) 전도 끝 -- 훑기 중 소자가 먼저 꺼지는(I_off > ε·ID) toy에서 정의 창 끝이 그 점(base는 포화만 봐 꺼짐을 놓침 -- red). **(ii) toy**(v6.34 사용자 결정 O-109 C2의 귀결 -- **작성자 도출**(사용자 결정 문구에는 없음, 
+  ~ 으로 꺼지는 꼴 하나와 누설 증가 꼴 하나를 두고(정확값은 oracle `.dc`), **toy마다 끝을 정하는 행 종류를 전제 단언한다**: 조향 toy = 그 끝을 정한 행이 전도 행(ID 감소로 I_off > ε·ID), 누설 toy = 그 끝을 정한 행이 누설 증가로 닫히는 전도 행 -- 포화 행이 먼저 닫히면 그 사례는 무효(공허 방지) (iii) 옛 다듬은 정의 창 기준 단언은 대상 없음(v6.34 O-109 C1) 
+### gain-budget-gmid-sizing.plan.md:1861 ['tolV', 'off']
+'ICMR 측정 구성'; 옛 '선언 되먹임 구성, 없으면 단위 이득 follower(servo 출력 고정 대체)'). G5: oracle은 SPICE op 값(VDS, VSB, ID, gm/ID)만 내고 I_off·tol_V 계산과 전도 판정은 엔진 쪽 2단계 판정(EO-1 공용 함수, OP-5 통합 병합 -- O-55 U2)(oracle 엔진 import 없음·LUT 사본 없음) |
+### gain-budget-gmid-sizing.plan.md:1901 ['res', 'dom']
+ H-2, **원래 취지와 다름(승인 O-162)**: L-3의 종료 조건을 넓힘). 이 비교의 (전력, 면적)은 범위 3의 커널 값이다(O-37 (A)). **상한** = N3.6 K_max 규칙(구간폭 / 판정 분해능에서 유도, 새 상수 없음). 변화량 지표는 고정 입력 소자의 VGS 변화·|Δln ID|/(gm/ID)·|∂VGS/∂L|·|ΔL|(design 41 §5.3.6과 같은 지표). K_max에 닿거나 q 규칙으로 도달
+### gain-budget-gmid-sizing.plan.md:1915 ['res', 'dom']
+다(계획 개정 -- S-7, O-165 (a)). 각 항목은 card 안 별도 커밋으로 두고 변화표 원인을 커밋 순서로 가른다(완료 조건 5). W-bin 슬라이스(DEC-105 (2))는 선행 card WB-1, 분해능(DEC-105 (8))은 card RS-1이다.
+### gain-budget-gmid-sizing.plan.md:1936 ['eps', 'dom']
+| 외층(선택) | 전회로 θ(정의역 변수 전체 + 구간 L, `slsqp_outer.py:5-7`)에 대한 ε-제약 SLSQP -- 층 0 점에서 남은 결합 오차를 전회로 평가로 다듬음(결합점 변수 한정 아님) | 커널 반복 | 봉인 | DEC-74 판정 위치 하나 |
+### gain-budget-gmid-sizing.plan.md:1941 ['tolV', 'eps', 'inv', 'sat']
+ 봉인 7 꼴 그대로)와 **SPICE 여유 s_sp = VDS_sp − @m[vdsat]**, 차 Δs, gm/ID, 그 소자를 쓰는 이득·rout metric의 엔진 대 SPICE 차를 대조표에 적는다(근본원칙·tol_V 계열 재검토 E; 옛 δ_B·`.dc` 스윕·맞춤 꼴·ε 문턱·ID 차 판정 문언은 history H2, δ_B는 쓰지 않음; 봉인 7의 목적 = SPICE 합격 정의 '전 MOS 포화'(@m[vdsat])를 손계
+  ~ sp − @m[vdsat]**, 차 Δs, gm/ID, 그 소자를 쓰는 이득·rout metric의 엔진 대 SPICE 차를 대조표에 적는다(근본원칙·tol_V 계열 재검토 E; 옛 δ_B·`.dc` 스윕·맞춤 꼴·ε 문턱·ID 차 판정 문언은 history H2, δ_B는 쓰지 않음; 봉인 7의 목적 = SPICE 합격 정의 '전 MOS 포화'(@m[vdsat])를 손계산 단계에서 미리 지킴). LA-0 (5)는 **대조표 기
+### gain-budget-gmid-sizing.plan.md:1954 ['res', 'inv', 'dom']
+-159 E-1). (d) **toy 추가**(재검증 R-4): 창 밖 목표 → 정확 풀이 판정(행이 깨지면 `chain_violation`, 통과면 후보 유지·결함 기록), 창 안 목표 → y가 목표 전압을 재현(분해능 안); 탐색 개방 toy(재검증 5 G-2) -- 표지가 선 toy 후보에서 생성 후보의 L이 역산값과 다르고 LR3 bin 안, R은 spec 상자 안, S 좌표(ln IDu)는 그 L bin LUT 정의역 ∩ 
+### gain-budget-gmid-sizing.plan.md:1977 ['tolV', 'eps', 'off', 'dom']
+y·headroom-chain·graph-consumption(v6.19 2차 전체 정합 검증·O-45) | oracle: 합격 판정 '꺼짐'(op 401행 OP-5 봉인 9 식 대 이 계획 옛 DEC-90 (1) ε = 1), 훑기 점 ε, EO-1 칸 범위, 손분석 입력; headroom-chain: 371행(DEC-90 (1) 인용), 154·155행(층 0 문언 '커널 max-min 수리 단계'), 238·240·257행
+  ~ ain·graph-consumption(v6.19 2차 전체 정합 검증·O-45) | oracle: 합격 판정 '꺼짐'(op 401행 OP-5 봉인 9 식 대 이 계획 옛 DEC-90 (1) ε = 1), 훑기 점 ε, EO-1 칸 범위, 손분석 입력; headroom-chain: 371행(DEC-90 (1) 인용), 154·155행(층 0 문언 '커널 max-min 수리 단계'), 238·240·257행(R-1′ 그 점 값),
+  ~ b); graph-consumption: 판정 다리 어휘·병합 규칙 인용 | oracle: '꺼짐' = 봉인 9 식 하나(이 계획 DEC-90 (1), O-45 U2, X-90a)로 X 행 추가, 훑기 점·판정 점 ε의 gm/ID·tol_V = 그 점 값(이 계획 N3.8·DEC-90 (1) 인용), EO-1은 OP-3 칸까지·확장 칸은 OP-5·HC-O 병합 때 생산자 갱신(O-45 U1, U-6), 손분석 입력은 A' 문서가
+  ~ -consumption: 판정 다리 어휘·병합 규칙 인용 | oracle: '꺼짐' = 봉인 9 식 하나(이 계획 DEC-90 (1), O-45 U2, X-90a)로 X 행 추가, 훑기 점·판정 점 ε의 gm/ID·tol_V = 그 점 값(이 계획 N3.8·DEC-90 (1) 인용), EO-1은 OP-3 칸까지·확장 칸은 OP-5·HC-O 병합 때 생산자 갱신(O-45 U1, U-6), 손분석 입력은 A' 문서가 같은 스키마로 고정(N
+### gain-budget-gmid-sizing.plan.md:1978 ['eps', 'off']
+ 확인) | 동작 변경 card의 SPICE 다리 판정 기록, graph-consumption `device.dc_off_current` 필드 | EO-1 뒤 OP-5 전 기간에는 판정 기록에 '꺼짐 정의 판'(옛 ε = 1 식 / 봉인 9 식)을 적고, 옛 식으로 판정한 다리는 '보류'(채울 card = OP-5)로 두었다가 OP-5 뒤 봉인 9 식으로 다시 판정한다(이 계획 N6.3 (iii)·EO-1 순서 -- 두 계획의 
+### gain-budget-gmid-sizing.plan.md:1980 ['tolV', 'eps', 'off']
+-portability(v6.19 전체 정합 검증) | OQ-6(불일치 σ 입력 환산 이득, 출처 없는 상수 1e-3 -- X-D1), 합격 판정의 '전도' 정의(`oracle_compare.py:27, :278` ε = 1), DE-1 oracle 다리 선행(OP-5·OP-10) | OQ-6 = SPICE `.tf`(DC 소신호 전달함수)로 DC 이득을 직접 재 1e-3 제거(사용자 결정 O-43 D1 (d)); 합격 판정의 
+  ~ 행(OP-5·OP-10) | OQ-6 = SPICE `.tf`(DC 소신호 전달함수)로 DC 이득을 직접 재 1e-3 제거(사용자 결정 O-43 D1 (d)); 합격 판정의 전도 = 엔진 봉인 9 식 I_off ≤ ε·ID, ε = (gm/ID)·tol_V(이 계획 N3.6 표 9행, 같은 정의); 엔진 measure 연결은 이 계획 VB-1·PW-1a, 판정 실행은 EO-1·CL-1(O-178) |
+  ~ ·OP-10) | OQ-6 = SPICE `.tf`(DC 소신호 전달함수)로 DC 이득을 직접 재 1e-3 제거(사용자 결정 O-43 D1 (d)); 합격 판정의 전도 = 엔진 봉인 9 식 I_off ≤ ε·ID, ε = (gm/ID)·tol_V(이 계획 N3.6 표 9행, 같은 정의); 엔진 measure 연결은 이 계획 VB-1·PW-1a, 판정 실행은 EO-1·CL-1(O-178) |
+  ~ -6 = SPICE `.tf`(DC 소신호 전달함수)로 DC 이득을 직접 재 1e-3 제거(사용자 결정 O-43 D1 (d)); 합격 판정의 전도 = 엔진 봉인 9 식 I_off ≤ ε·ID, ε = (gm/ID)·tol_V(이 계획 N3.6 표 9행, 같은 정의); 엔진 measure 연결은 이 계획 VB-1·PW-1a, 판정 실행은 EO-1·CL-1(O-178) |
+### gain-budget-gmid-sizing.plan.md:2096 ['tolV', 'eps', 'res', 'off']
+자 함수 하나** -- 엔진 점(봉인 스냅샷: 시작점 또는 front 점)을 oracle 입력으로 내보낸다. **칸 범위 = oracle OP-3 입력 스키마의 칸까지**다. G-18 확장 칸(선언 triode 칸·tol_V 셀 열·훑기 입력 등)은 그 칸을 쓰는 oracle OP-5·headroom-chain HC-O가 병합될 때 생산자를 갱신해 넣는다(oracle U-6 규칙 -- 이 card 범위 밖; 그래서 EO-1 → HC-O
+  ~  같은 꼴로 그 통합 병합에서 판정한다. **입력 출처**(v6.19 2차 전체 정합 검증 B-H2·A-N4): 봉인 스냅샷 필드·spec 선언·LUT 파생표의 **참조만**(사본 없음) -- 확장 칸이 들어올 때 tol_V 열은 LUT 파생표 `tol_v_table(kind, w_key)`의 L 고정 VDS 열이고(oracle이 그 점 VDS로 읽음), 동작점 스칼라 `device.dc_tol_v`(`E/sizing/seal_tole
+  ~ 정 호출 자리(oracle 판정 결과(첫 단계)의 소자별 SPICE op 값 VDS·VSB·ID·gm/ID -- 합격 실행 점과 `.dc` 훑기 점 -- 를 받아 이 함수로 그 점의 I_off(`op_point`)·tol_V(`tol_v_table`의 그 점 VDS 셀)를 계산하고 DEC-90 (1) 판정을 마무리해 판정 기록에 붙이는 자리)와 **끝 괄호 재요청**(`.dc` 훑기 끝의 괄호가 끝 확정 분해능보다 넓으면 그 구간 훑기
+  ~ `op_point`)·tol_V(`tol_v_table`의 그 점 VDS 셀)를 계산하고 DEC-90 (1) 판정을 마무리해 판정 기록에 붙이는 자리)와 **끝 괄호 재요청**(`.dc` 훑기 끝의 괄호가 끝 확정 분해능보다 넓으면 그 구간 훑기를 오라클에 다시 요청, 반복 상한은 오라클 결과가 싣는 값 -- 엔진에 상수 없음, v6.20 독립 검증 B-2)은 **oracle OP-5 통합 병합의 엔진 쪽 커밋**(U-6 규칙, R
+### gain-budget-gmid-sizing.plan.md:2100 ['tolV', 'eps', 'off', 'sat']
+ 2, O-55 U2, 변경 종류 동작 변경 -- O-34 (1))**: (a) 정의 손계산 오라클 toy(함수 단위) -- 공용 함수에 op 값을 직접 넣어 선언 방향 ID < 0인(역방향) MOS = 꺼짐(옛 'ε·\|ID\|' 식은 역방향 전류를 전도로 셈 -- red), I_off > ε·ID = 꺼짐, 그 밖 = 전도; I_off·tol_V를 넣은 점의 VDS·VSB로 계산함(다른 점 값이면 red); **반환 꼴 to
+  ~  정의 손계산 오라클 toy(함수 단위) -- 공용 함수에 op 값을 직접 넣어 선언 방향 ID < 0인(역방향) MOS = 꺼짐(옛 'ε·\|ID\|' 식은 역방향 전류를 전도로 셈 -- red), I_off > ε·ID = 꺼짐, 그 밖 = 전도; I_off·tol_V를 넣은 점의 VDS·VSB로 계산함(다른 점 값이면 red); **반환 꼴 toy**(O-62 검증 B-4) -- 선언 없는 소자 꺼짐·`off` 선언 소자 
+  ~ 용 함수에 op 값을 직접 넣어 선언 방향 ID < 0인(역방향) MOS = 꺼짐(옛 'ε·\|ID\|' 식은 역방향 전류를 전도로 셈 -- red), I_off > ε·ID = 꺼짐, 그 밖 = 전도; I_off·tol_V를 넣은 점의 VDS·VSB로 계산함(다른 점 값이면 red); **반환 꼴 toy**(O-62 검증 B-4) -- 선언 없는 소자 꺼짐·`off` 선언 소자 전도·`triode` 선언 소자 꺼짐을 섞은 입력에서 반
+  ~ )·`off` 선언인데 전도하는 toy는 거부, `triode` 선언인데 꺼짐 또는 포화인 toy는 거부(base는 triode 선언을 판정에서 빼기만 함 -- red), `triode` 경계 toy(VDsat − tol_VDsat < VDS < VDsat) → 거부(N3.8 `triode` 경계 판정 여유, O-58 T-1 -- 옛 기준이면 통과, red), `intended_region` 값 밖(`linear` 등) 선언은 로드 거
+### gain-budget-gmid-sizing.plan.md:2102 ['eps', 'off']
+VB-1은 다리를 '정의 이름 일치'(대조 연결 test)로 채우므로 '대상 없음'이 아니다(v6.19 3차 감사 N6). **EO-1 뒤 OP-5 전 기간**(3차 감사 N5): 판정 기록에 '꺼짐 정의 판'(옛 ε = 1 식 / 봉인 9 식 -- DEC-90 (1), O-45 U2)을 적는다. 옛 식으로 판정한 시작점 다리는 OP-5 병합 뒤 봉인 9 식으로 다시 판정하고, 그때까지 그 card의 그 다리는 N6.3 (iv)
+### gain-budget-gmid-sizing.plan.md:2254 ['res', 'off']
+- 그 표지도 함께 사라짐) (d) `front_refilter` 섹션 전부 -- `axis_rule`(정본 = DEC-79 (b) 판정 축 = 레이아웃 면적)·`tie_rule`(정본 = DEC-80 (i) 격자 분해능)·`cycle_cap_rule`(정본 = DEC-79 교대 반복 상한 = N3.6 K_max), 각 허용값 하나 -- (c)(d)는 섹션이 비므로 섹션째 지운다. library 13 spec 선언을 같은 data 
+### gain-budget-gmid-sizing.plan.md:2321 ['tolV', 'eps', 'res', 'allow', 'dom', 'sat']
+(m, w_f)·슬라이스 결정을 DC 블록 안에서 한다 -- 쓰기 소자는 θ·전류에서 (m, w_f)·슬라이스를 반복 없이 정하고, 종속 소자는 슬라이스가 노드 풀이에 되먹임되면(writer 없는 순환 SCC 수렴 허용오차 셀 -- 범위 3a 뒤 유일한 원천, DEC-105 (2)(ii) v6.38.4 P3) 블록 안 벡터 반복(블록 안 local 값, O-15 (E))으로 풀며 종료 = 키 벡터 재방문 검사(한 회차 = (θ, 키 
+  ~ 교 전제 = design 40 §2.4.13 NFR-4 '1차 검사의 전제' (가) E_B 선언·(나) 벽시계 정지 없음(같은 실행 기록에서 확인 -- `perf.stops_wall_budget` = 0이고 층 0·ε 풀이·L-b 종료 사유 어디에도 `wall_budget` 없음); 측정 실행은 벽시계 예산을 E_B보다 먼저 닿지 않게 선언하고 그 값을 측정 절차에 기록한다(상수 아님). 전제를 어기거나 확인할 수 없는 회로는 
+  ~ = design). `INPUT_STATUS_F_COMPONENT_UNDECLARED`(`s2_values.py:119`, 커널 `block_columns.py:805`)는 IT-2c D1이 지운다(N3.8 '판정 분해능' 문단) -- 3a가 먼저 병합되면 커널 상태 쓰기 grep 0 때문에 3a가 지운다. 순서: 3a가 IT-2c보다 먼저여도 뒤여도 cfg 이름은 그대로 두고 커널 쪽만 지운다(지웠다 되살리는 변경 0); 3a가 
+### gain-budget-gmid-sizing.plan.md:2325 ['tolV', 'allow', 'dom']
+준 폭 -- red), 용량·잡음 열은 기준 폭 환산 그대로, GB4 상한이 슬라이스 포락의 최댓값(A_max 상계 유지), bin 경계 폭의 소속, 종속 소자 슬라이스 되먹임 toy(writer 없는 순환 SCC 허용오차 꼴 -- 범위 3a 뒤 유일한 원천, v6.38.4 P3로 옛 '입력 포트 W4 뿌리 꼴' 삭제)에서 블록 안 반복이 키 벡터 재방문 검사로 수렴, 인위 순환 toy → 그 평가 fail-closed(사유 기록),
+  ~ 입력쌍 한쪽 소자(W′ = (1 + r)·W)에 두고 입력 차 이동 기대값 = 같은 LUT 손계산 역산 Δ(I_u(VGS0 − Δ) = I_u(VGS0)/(1 + r) -- 같은 L·VDS 조회), tol = 봉인 tol_V(셀 구성은 Q-T0); ln(1 + r)/(gm/ID)는 상수 gm/ID 근사라 기록만(LUT 소자 gm/ID 20~25 점에서 2~7 % 큼 -- 검증 5 m5-3 `wt/_drafts/evidence/2026-
+### gain-budget-gmid-sizing.plan.md:2327 ['eps', 'dom']
+수 전에 한 번; 이 card 범위의 gm/ID 역산 소비자 -- 사용자 결정 O-186, N5.3 착수 실측 정의 표), 착수 실측 = N5.3 Q-T0(13회로 봉인 거부 변화·노드 잔차 대 tol_I·봉인 9 ε)·N5.3 Q-W1 측정 구성(library front 점: 선언 입력 고정 대 servo의 ΔV_out/출력 창·ΔV_id 대 성분 (3) 1차식·front 소속 변화 수)(검증 3 V3-7; U-131은 CPG
+### gain-budget-gmid-sizing.plan.md:2337 ['tolV', 'res', 'inv']
+**완료 조건**(O-34 -- 값은 그대로, 분해능 정의가 바뀌는 기준 변경): (1) 단일 소자 toy -- Δgm = LUT 기울기 × tol_V 닫힌 식, 약반전 점에서 새 Δp < 옛 Δp (2) 13회로 metric별 분해능 표(옛/새)와 판정 분류(통과·
+  ~ **완료 조건**(O-34 -- 값은 그대로, 분해능 정의가 바뀌는 기준 변경): (1) 단일 소자 toy -- Δgm = LUT 기울기 × tol_V 닫힌 식, 약반전 점에서 새 Δp < 옛 Δp (2) 13회로 metric별 분해능 표(옛/새)와 판정 분류(통과·실패·보류) 변화표, 원인 = '분해능 정의' (3) RSS 판단 입력 기록 -- 같은 점의 최악 
+  ~ *(O-34 -- 값은 그대로, 분해능 정의가 바뀌는 기준 변경): (1) 단일 소자 toy -- Δgm = LUT 기울기 × tol_V 닫힌 식, 약반전 점에서 새 Δp < 옛 Δp (2) 13회로 metric별 분해능 표(옛/새)와 판정 분류(통과·실패·보류) 변화표, 원인 = '분해능 정의' (3) RSS 판단 입력 기록 -- 같은 점의 최악 선형 대 RSS 분해능(측정 기록, Q-N11 C 결정은 사용자) (4) N6.3 공
+  ~ 1) 단일 소자 toy -- Δgm = LUT 기울기 × tol_V 닫힌 식, 약반전 점에서 새 Δp < 옛 Δp (2) 13회로 metric별 분해능 표(옛/새)와 판정 분류(통과·실패·보류) 변화표, 원인 = '분해능 정의' (3) RSS 판단 입력 기록 -- 같은 점의 최악 선형 대 RSS 분해능(측정 기록, Q-N11 C 결정은 사용자) (4) N6.3 공통.
+### gain-budget-gmid-sizing.plan.md:2376 ['tolV', 'eps', 'sat']
+'입력 창(J-E·IT-2)의 자리'와 DEC-67 층별 계산법 괄호의 커널 쪽(v6.34 O-109 C1 -- θ 변수 범위 = θ 고정 선형 감도 끝), 사용자 결정 O-58 S-1의 θ 프레임 탐색 창 정의(+tol_VDsat 판정 여유 창 → KVL 순서 창), 사용자 결정 O-61 P5(커널 창 미수렴 표시·card 0 발동률 측정이 IT-2 완료 요건 -- 대상 소멸), O-33 기본안 'W4 창 VDSAT 하한 나중 개선'
+  ~ ing/block_columns.py:208-218` `kvl_window`(integ `d759838a`)); +tol 포화 창 = x 감도가 0이 아닌 모든 `dc_coord` MOS가 VDS − VDSAT − tol_VDsat ≥ 0인 y 구간(해 한 점의 1차 감도 외삽, `region_rows`·`saturation_window`) -- 판정 여유(VDS ≥ 0 대 VDS ≥ VDSAT + tol)와 범위(뿌리 인접 소자 대 
+  ~ 교 전제 = design 40 §2.4.13 NFR-4 '1차 검사의 전제' (가) E_B 선언·(나) 벽시계 정지 없음(같은 실행 기록에서 확인 -- `perf.stops_wall_budget` = 0이고 층 0·ε 풀이·L-b 종료 사유 어디에도 `wall_budget` 없음) -- 검증 18 V18-M1) 지표 셋 -- (i) 커널 평가 수(U-96 정의 -- 집계 = 실행 기록 `perf`의 기존 칸 `kernel_cal
+  ~ _root`를 주고 평가 줄의 `fail.detail.item` = 7(빈 창 `empty_window` 포함)인 줄 수 / 커널 평가 수 -- 측정 절차) (iii) SLSQP 종료 사유 분포(대상 풀이 = 외층 ε 풀이 전부(끝점 풀이 포함)와 층 0 SLSQP 풀이 -- 매크로 `macro_poles` 풀이는 출발 단계 기록(LA-1 (g))이라 대상 밖; 종료 사유별 수; **비정상 종료** = 풀이 자체가 낸 종료 사유
+### gain-budget-gmid-sizing.plan.md:2377 ['tolV', 'res', 'sat']
+| E-14 | §4 #14, E6-11 | `tol_vdsat_max`가 표·칸이 없으면 0.0(`E/lut/derived_fns.py:117-130`) | C △ | tol은 VDSAT 표 분해능에서 오는 양 -- 표·칸이 없으면 정의 불능이고 0은 보수 방향이 아니다: 그 셀 출발 곡선 정의 불능 기록(출발 구간 사유) | LA-1 범위 15 (g)(소비자 = 층 0·출발 곡선 `E/search/_help
+### gain-budget-gmid-sizing.plan.md:2406 ['eps', 'inv', 'off', 'dom']
+R-1 완료 (9)·SF-1 선행 사유 변경). **f_HP 상한 -- 이미 있는 양에서 유도**(상수 0): (U1) 대신호 boost 유지 τ = R_ds·(C_c + C_g) ≥ t_slew/ln(1/(1 − ε_droop)), t_slew = ΔV_step/SR(spec SR·계단 크기 -- oracle `.tran` 판정의 해석 근거, 엔진은 읽지 않음(O-122); erfc 원문 계단 600 mV·SR 19.32 V/
+  ~ SR 19.32 V/µs → t_slew ≈ 31 ns), C_g = 빈 쪽 넷 기생(그 넷 소자 cgg 합); (U2) 소신호 정착 doublet 꼬리 진폭 A_s = k·f_HP/((1 + k)·β·f_u) ≤ ε -- 정착 제약이 선언된 경우만(erfc는 보고만이라 행 없음); (U3) PM·GBW와 (U4) R_ds ≫ R_X 부하 -- R_ds·C_c를 전회로 MNA에 스탬프하면 선언 GBW·PM 제약이 직접 본다(분석
+  ~ 신호 지표는 f_HP → 0에서 모두 같거나 좋아지고(꼬리 진폭 ∝ f_HP), 하한을 거는 물리(시동·사건 뒤 회복 시간, MOS pseudo-R 정류)는 spec 밖 응용 시간이거나 f_HP와 다른 축이다. **ε_droop의 출처**(E-1 틀 판정): 처짐의 물리 결과는 SR 저하다(분석 S3 bench: SR 변화 ≈ 0.5 × 처짐 -- 이 계수는 bench 값이라 규칙에 쓰지 않고, 처짐 1 − e^{−t_slew/
+  ~ (분석 S3 bench: SR 변화 ≈ 0.5 × 처짐 -- 이 계수는 bench 값이라 규칙에 쓰지 않고, 처짐 1 − e^{−t_slew/τ}를 그대로 쓰면 보수 쪽). 그러므로 결정자는 SR 제약의 판정 여유(ε_droop ≤ 1 − SR_spec/SR_ref, SR_ref = 처짐 없는 SR)이고 엔진·oracle 대조(DEC-72)가 아니다 -- 대조 기록은 손계산 대 oracle의 차라 판정 여유와 정의 축이 다르고(
+### gain-budget-gmid-sizing.plan.md:2494 ['res', 'sat']
+ 활성/비활성 구분, 지표에 tail 포화 여유·`parasitic_pm_ss_deg`·미러 전류비 오차 포함. B가 finger 배정에 실패하면 기각. B가 평가 수를 줄이면서 목적값·제약 여유·면적이 A와 격자 분해능(O-178) 안에서 같거나 나으면 B를 제안, 아니면 A 유지. 선측정(블록 국소 모델, tt 한 코너, tail 포화·gmb 미포함): 파일럿 stage1에서 B는 A 대비 면적 +2.8~5.9%이므로 현재 근거
+### gain-budget-gmid-sizing.plan.md:2660 ['tolV', 'sat']
+| `6b-node-voltage-seal` | S2 필드 스키마, SC-a 권한표(필드 × W0~W4), W3 소스 필드, 계산 블록 입출력 선언과 유도 DAG, tol_V·tol_I·반복 상한 구현, 봉인 항목 구현, 버전 카운터, LUT 조회 memo 상한 계산(DEC-83), IC2 섞기 대상, 동등 단언 범위, J8 결론 반영, U-20 반영, I-A6 헤드룸 하한 여부 판정,
+### graph-consumption.plan.md:208 ['eps', 'off']
+ `off_current_A` 스칼라를 쓰지 않게 되므로(I_off = SPICE op 점의 VDS·VSB에서 읽은 엔진 LUT 값), `dc_off_current`의 oracle 소비는 EO-1~OP-5 사이(옛 ε = 1 판정)에만 있다. **(v0.12 -- 계획 항목, 아직 코드 없음)** 다섯째 자리가 생긴다: gain-budget v6.20 card EO-1 범위 4 (b)의 **공용 전도 판정 함수**(전도·꺼짐 판
+### graph-consumption.plan.md:310 ['eps', 'off']
+off_current_A` 스칼라를 쓰지 않는다 -- 그래서 이 필드의 소비자는 **gain-budget card EO-1(엔진 점 → oracle 입력 생산자) 병합부터 oracle OP-5 병합 전까지만**(옛 ε = 1 '꺼짐' 판정 기간) 있고, OP-5 병합 뒤 0이 된다 | EO-1~OP-5 사이는 배선(EO-1이 oracle 입력으로 낸다). **출력 전용 선언 시점 = oracle OP-5 통합 병합의 엔진 커밋*
+### graph-consumption.plan.md:348 ['tolV', 'sat']
+| **측정 구성 판정 창**(v0.13; +tol_VDsat, 측정 구성 ICMR -- 정의 = gain-budget N3.8 '창 필드'·'ICMR 측정 구성'(v6.21 `54a3a328`), 이름은 상위 design; θ 프레임 탐색 창 `node.dc_wind
+### graph-consumption.plan.md:560 ['eps', 'off']
+). 채워진 다리는 상태어 없이 판정 결과(통과·거부)로 적는다. **EO-1 뒤 OP-5 전 기간**(같은 N6.3 1232행, 3차 감사 N5): oracle OP-5 병합 전에는 합격 판정의 '꺼짐'이 옛 식(ε = 1)이라, 판정 기록에 '꺼짐 정의 판'(옛 ε = 1 식 / 봉인 9 식)을 적고, 옛 식으로 판정한 SPICE 다리는 '보류(채울 card = OP-5)'로 둔다 -- OP-5 병합 뒤 봉인 9 식으로 다시
+  ~ )로 적는다. **EO-1 뒤 OP-5 전 기간**(같은 N6.3 1232행, 3차 감사 N5): oracle OP-5 병합 전에는 합격 판정의 '꺼짐'이 옛 식(ε = 1)이라, 판정 기록에 '꺼짐 정의 판'(옛 ε = 1 식 / 봉인 9 식)을 적고, 옛 식으로 판정한 SPICE 다리는 '보류(채울 card = OP-5)'로 둔다 -- OP-5 병합 뒤 봉인 9 식으로 다시 판정한다. 모든 card는 완료 조건에 변경 종류와
+### graph-consumption.plan.md:644 ['res', 'dom']
+로 HC-1(search)이 먼저 쓰므로 headroom-chain HC-S가 한다(F-G38, 오케스트레이터 기본안). 순수 리팩터링 card(N4-0)라 결과는 base와 필드별로 같아야 한다(이산 정확, 연속 분해능 이내) | GC-1, headroom-chain HC-S·HC-1 병합(`start_intervals.py`·`iv_currents.py` 겹침, `_vds_floor` 이동), XRUN-F1 card C와 파일 
+### graph-consumption.plan.md:677 ['eps', 'off']
+ = EO-1)'이고, 병합은 N6.3 (iv) (가)대로 판정 기록에 그 보류가 적혀 있을 때만이며 병합해도 GC-5는 미완료다. EO-1 뒤라도 OP-5 병합 전이면 판정 기록에 '꺼짐 정의 판'을 적고 옛 식(ε = 1) 판정 다리는 '보류(채울 card = OP-5)'다(gain-budget `6ab294c9` N6.3 1232행, 3차 감사 N5). 완료 기록에 변경 종류(동작 변경)와 다리 상태(어휘는 '보류'·'대상
+### graph-consumption.plan.md:757 ['tolV', 'eps', 'off', 'dom']
+n_floor` 삭제 | 의견 **(가)**, 확신도 중간. 단계 순서상 search 상자는 평가 전이고 필드는 평가 뒤 값이다. `dc_off_current`는 EO-1~OP-5 사이만 oracle이 소비하고(옛 ε = 1 판정), OP-5 통합 병합의 엔진 커밋에서 출력 전용 선언(X-G6 (가)의 `dc_conduction_floor`와 같은 처리, O-46 (2) -- v0.11 갱신, 시점은 v0.12 O-55 U2).
+  ~ ask`와 **다른 개념이라 다른 이름**으로 둔다. 근거: (1) 정의역 -- 판정 함수는 소자 하나의 주어진 동작점(엔진 봉인점 또는 SPICE op 점의 ID 부호·gm/ID·그 점 VDS·VSB의 I_off·tol_V)과 그 소자의 `intended_region` 선언을 받아 판정(통과/거부 사유)을 내고, `conduction_mask`는 (kind, w_key) LUT 격자 전체의 칸별 술어(마스크, 곡선별 첫 전도 마디·보
+  ~ nduction_mask`를 부르지 않는다. 두 쪽이 같이 지키는 것은 전도 정의 문장 하나(gain-budget v6.20 N3.6 표 9행·DEC-90 (1): 전도 = 선언 방향 ID > 0이고 I_off ≤ ε·ID, O-50 G3)이며, `conduction_mask`의 격자 술어가 그 문장과 같은 부등식·같은 ID > 0 조건인지는 GD-12 측정에 넣는다(다르면 GC-7 동작 변경 부분의 변화표 원인으로 적고, 정의
+### headroom-chain.plan.md:51 ['tolV', 'sat']
+  * 여유 `tol`은 봉인 7 정의(상위 DEC-88)의 `tol_VDsat`(LUT `VDSAT` 열 leave-one-out 셀값)을 참조한다. 값은 포화 기준 정본 함수 `sat_threshold` 하나에서만 읽는다(N3.4, O-15 (C)). 봉인 `dc_op` 점의 값은 
+### headroom-chain.plan.md:59 ['tolV', 'sat']
+2))은 상위 v6.21(브랜치 `plan/gb-v621`, 승인·병합됨 O-60, 최종 머리 `54a3a328`)의 N3.8 '창 필드'에서 읽었다: 창 필드는 θ 프레임 탐색 창 `node.dc_window`(+tol_VDsat, 측정 구성 없음, 커널 탐색), **측정 구성 판정 창**(+tol_VDsat, 측정 구성 ICMR, writer = IT-2 봉인 뒤 블록 -- 필드 이름은 상위 design), 정의 창 `node.dc
+  ~ , 최종 머리 `54a3a328`)의 N3.8 '창 필드'에서 읽었다: 창 필드는 θ 프레임 탐색 창 `node.dc_window`(+tol_VDsat, 측정 구성 없음, 커널 탐색), **측정 구성 판정 창**(+tol_VDsat, 측정 구성 ICMR, writer = IT-2 봉인 뒤 블록 -- 필드 이름은 상위 design), 정의 창 `node.dc_window_def`, 다듬은 창 `node.dc_window_def_refin
+### headroom-chain.plan.md:83 ['tolV', 'eps', 'off', 'sat']
+ `off`·`triode` 꺼짐 대조). `triode` 대조의 판정 기준 = 상위 N3.8 '스윙·입력 범위'(v6.21 `54a3a328` 566행)의 `triode` 경계 판정 여유 VDsat − VDS − tol_VDsat ≥ 0(사용자 결정 O-58 T-1 -- 한 자리 정의, 봉인 7 `triode` 대조도 같은 기준, tol_VDsat = N3.4 `sat_threshold`)이고 이 계획은 인용한다. **정의 정본**은
+  ~ 21 `54a3a328` 566행)의 `triode` 경계 판정 여유 VDsat − VDS − tol_VDsat ≥ 0(사용자 결정 O-58 T-1 -- 한 자리 정의, 봉인 7 `triode` 대조도 같은 기준, tol_VDsat = N3.4 `sat_threshold`)이고 이 계획은 인용한다. **정의 정본**은 상위 gain-budget N3.8 '소자 조건 = DC 범위 조건'(O-54, v6.21 `54a3a328` 566행
+  ~ ec `intended_region` 선언 없음 = 포화(전도 ... 이고 VDS ≥ VDSAT), `triode` = 전도이고 VDS < VDSAT, `off` = 꺼짐(선언 방향 ID ≤ 0이거나 I_off > ε·ID)"(KCL 항등 0 전류 MOS 제외 -- 정의·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′)). **불일치 원인 구분**(상위 N3.8 같은 문단 '동
+### headroom-chain.plan.md:85 ['eps', 'off']
+rent > 0`(`E/sizing/seal_saturation.py:55-56`). 출발 단계에서는 출발 구간이 정한 전류(자리값 포함)가 양수인 것이다. 오라클 합격 판정의 '꺼짐'은 봉인 9 식(I_off ≤ ε·ID)으로 통일됐고(O-45 U2, oracle OP-5), 이 계획은 따로 바꾸지 않는다.<br>**봉인 9 (i)과 출발 단계 '전도'의 관계**(v0.7.7, 감사 4차): 상위 N3.6 표 9행 (i) "선
+### headroom-chain.plan.md:139 ['tolV', 'dom', 'sat']
+| NFR-H2 | **상수 발명 금지**: tol = 봉인 7 `tol_VDsat`이다. 이것을 정본 함수 `sat_threshold` 하나로 구체화한다(O-15 (C), N3.4). 그 함수는 LUT `table_at` 조회로 (VDsat, tol_VDsat)과 결측 사유 하나를 내고 
+  ~ 명 금지**: tol = 봉인 7 `tol_VDsat`이다. 이것을 정본 함수 `sat_threshold` 하나로 구체화한다(O-15 (C), N3.4). 그 함수는 LUT `table_at` 조회로 (VDsat, tol_VDsat)과 결측 사유 하나를 내고 L bin을 지킨다. 봉인 7·+tol 판정 여유 행(`saturation_rows`)·출발 단계(`iv_domain`·`iv_headroom`)·R-1′ 항·R-3 판정이 모두 
+### headroom-chain.plan.md:171 ['tolV', 'dom', 'sat']
+| DEC-88 · N3.6 봉인 7 | 287행 · 470행 | VDS − VDsat ≥ +tol_VDsat. 선형 영역 의도 소자는 선언으로만 뺀다 | **그대로 둔다**(C-3 (2)·(3)). 선언 triode 소자에 정의역 게이트(C-3 (4))와 지켜지는 소자 검사(기본안(오케스트레이터))를 더한다(FR-
+### headroom-chain.plan.md:207 ['tolV', 'sat']
+| F-22 | **tol_VDsat 정의가 둘이다**(master `f2852c36`에서 읽음, O-15 근거 감사).<br>• `table_at`: L bin을 지키고(같은 bin 안 앵커 두 행), VDS 칸은 `bisect_right −
+### headroom-chain.plan.md:243 ['tolV', 'sat']
+   * **일반 전도 소자**: VDsat + tol_VDsat(DEC-88). 두 값은 정본 함수 `sat_threshold`에서 읽는다(NFR-H2, N3.4). 평가 동작점은 출발 단계면 출발 동작점, 층 0 거르기면 그 점 자신의 (VDS, VSB)다.
+### headroom-chain.plan.md:280 ['tolV', 'sat']
+     * max_{X의 밀도·L ∈ LUT 범위} [VGS(X) − VDsat(X) − tol_VDsat(X)] < VGS(Y). 이때 VDsat(X)·tol_VDsat(X)는 정본 함수 `sat_threshold`에서 읽는다(NFR-H2)
+  ~      * max_{X의 밀도·L ∈ LUT 범위} [VGS(X) − VDsat(X) − tol_VDsat(X)] < VGS(Y). 이때 VDsat(X)·tol_VDsat(X)는 정본 함수 `sat_threshold`에서 읽는다(NFR-H2)
+### headroom-chain.plan.md:330 ['tolV', 'inv', 'off', 'dom', 'sat']
+| **포화 기준 (VDsat, tol_VDsat)**(O-15 (C)) | **정본 함수 하나, 사본 금지**: `sat_threshold`(이름·위치는 HC-D design이 정한다). LUT `vdsat`와 `tol_vdsat_table`의 `tabl
+  ~  상위 N6.35 E-13), 출발 단계 `iv_domain.py:90`·`iv_headroom.py:143`, R-1′ 항(N3.1-2), R-3 판정(N3.2-1), **측정 구성 판정 창**의 포화 경계 행(+tol_VDsat -- 상위 N3.8 '창 필드'(v6.21 `54a3a328`), writer = 상위 IT-2 봉인 뒤 블록, 사용자 결정 O-58 S-1), **`triode` 경계 판정 여유** VDsat − VDS 
+  ~ at -- 상위 N3.8 '창 필드'(v6.21 `54a3a328`), writer = 상위 IT-2 봉인 뒤 블록, 사용자 결정 O-58 S-1), **`triode` 경계 판정 여유** VDsat − VDS − tol_VDsat ≥ 0(상위 N3.8 '스윙·입력 범위' 소자 조건(v6.21 `54a3a328` 566행), 사용자 결정 O-58 T-1 -- tol_VDsat = 이 `sat_threshold`의 같은 값, 훑기 점에서
+  ~ , **`triode` 경계 판정 여유** VDsat − VDS − tol_VDsat ≥ 0(상위 N3.8 '스윙·입력 범위' 소자 조건(v6.21 `54a3a328` 566행), 사용자 결정 O-58 T-1 -- tol_VDsat = 이 `sat_threshold`의 같은 값, 훑기 점에서는 그 점 자신의 VDS·VSB 셀; 봉인 7 `triode` 대조도 같은 기준). 이 두 소비자의 행·필드를 만드는 일은 상위 IT-2·DE-1 
+### headroom-chain.plan.md:372 ['tolV', 'eps', 'off']
+  * 오라클 합격 판정의 '꺼짐'은 봉인 9 식(I_off ≤ ε·ID, ε = (gm/ID)·tol_V)으로 통일됐다(KCL 항등 0 전류 MOS 제외 -- 정의·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′))(사용자 O-
+  ~   * 오라클 합격 판정의 '꺼짐'은 봉인 9 식(I_off ≤ ε·ID, ε = (gm/ID)·tol_V)으로 통일됐다(KCL 항등 0 전류 MOS 제외 -- 정의·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′))(사용자 O-45 U2,
+  ~   * 오라클 합격 판정의 '꺼짐'은 봉인 9 식(I_off ≤ ε·ID, ε = (gm/ID)·tol_V)으로 통일됐다(KCL 항등 0 전류 MOS 제외 -- 정의·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′))(사용자 O-45 U2, oracle OP-5, 상위
+### headroom-chain.plan.md:384 ['tolV', 'dom']
+
+### headroom-chain.plan.md:489 ['tolV', 'dom']
+
+### headroom-chain.plan.md:514 ['tolV', 'dom', 'sat']
+
+### headroom-chain.plan.md:529 ['eps', 'off']
+신한다(O-45 U1). **EO-1 뒤 OP-5 전 기간**(상위 N6.20 EO-1 card의 3차 감사 N5 문장, 6ab294c9 -- HC-S·HC-1 다리에 적용된다): 판정 기록에 '꺼짐 정의 판'(옛 ε = 1 식 / 봉인 9 식 -- 상위 DEC-90 (1), O-45 U2)을 적는다. 옛 식으로 판정한 시작점 다리는 OP-5 병합 뒤 봉인 9 식으로 다시 판정하고, 그때까지 그 다리는 N6.3 (iv) '보류'
+### headroom-chain.plan.md:579 ['tolV', 'sat']
+   * 정본 하나: (VDsat, tol_VDsat)을 계산하는 함수가 `sat_threshold` 하나다. `_tol_vdsat_max`·`_helpers_curves.tol_vdsat` 참조 grep 0. 상위 DC 블록(봉인점 `device.dc_sat
+### headroom-chain.plan.md:581 ['tolV', 'res', 'sat']
+ '창 필드', writer = 상위 IT-2 봉인 뒤 블록, 사용자 결정 O-58 S-1)도 이 card의 동작 보존 대상이 아니다(상위 IT-2가 만드는 필드). 판정은 필드별이다(이산 정확, 연속은 NFR-4 분해능 이내, O-34). `device.dc_sat_v`가 선언 없는 비전도 소자까지 담으므로(`off` 선언 소자는 값 없이 사유만, N3.4 331행 규칙) 성립한다고 보지만, **성립 여부는 검증자가 library
+### headroom-chain.plan.md:626 ['tolV', 'sat']
+| H-3 | tol | 봉인 7 `tol_VDsat`, 정본 함수 `sat_threshold` 하나(O-15 (C)) | 출발이 맞추는 기준이 봉인 7이다 |
+### offset-trim.plan.md:345 ['tolV', 'res', 'off']
+정(gain-budget DEC-90 (1) 봉인 9 식)의 입력 출처는 다음과 같다. gm/ID·I_off = 그 온도의 SPICE 값(I_off는 같은 VDS·VSB·VGS = 0에서 그 소자를 따로 푼 값), tol_V = T_j LUT 셀(판정 분해능이라 온도 무관, 출처 표기). 엔진 탐색이 T_j LUT 한 조건이라는 T-29는 그대로다.
+  ~ (1) 봉인 9 식)의 입력 출처는 다음과 같다. gm/ID·I_off = 그 온도의 SPICE 값(I_off는 같은 VDS·VSB·VGS = 0에서 그 소자를 따로 푼 값), tol_V = T_j LUT 셀(판정 분해능이라 온도 무관, 출처 표기). 엔진 탐색이 T_j LUT 한 조건이라는 T-29는 그대로다.
+### offset-trim.plan.md:720 ['tolV', 'res', 'off']
+| X-31 | **원래 취지와 다름(사용자 승인됨 O-53 B2)**: 합격 판정 입력 출처 규칙(gain-budget DEC-90 (1), O-46 (2)·O-50 G5 -- I_off·tol_V = 그 SPICE op 점의 엔진 LUT 조회)을 T_j 밖 온도 점에서는 바꾼다. gm/ID·I_off = 그 온도의 SPICE(I_off는 소자 개별 VGS = 0 풀이), tol_V = T_j LUT 셀(판정
+  ~ 50 G5 -- I_off·tol_V = 그 SPICE op 점의 엔진 LUT 조회)을 T_j 밖 온도 점에서는 바꾼다. gm/ID·I_off = 그 온도의 SPICE(I_off는 소자 개별 VGS = 0 풀이), tol_V = T_j LUT 셀(판정 분해능, 온도 무관, 출처 표기). LUT가 T_j 한 조건이라서다(T-29 유지) | 승인됨(O-53) |
+  ~ = 그 SPICE op 점의 엔진 LUT 조회)을 T_j 밖 온도 점에서는 바꾼다. gm/ID·I_off = 그 온도의 SPICE(I_off는 소자 개별 VGS = 0 풀이), tol_V = T_j LUT 셀(판정 분해능, 온도 무관, 출처 표기). LUT가 T_j 한 조건이라서다(T-29 유지) | 승인됨(O-53) |
+### oracle-portability.plan.md:140 ['res', 'off']
+진 쪽; **V5** off 소자 LUT·gm/ID 경로 제외 = 사이징·역산 경로 한정, 꺼짐 판정은 같은 함수가 LUT I_off. 감사 항목 V7(포화 확인 대상 = 선언 없는 ID > 0 MOS)·V8(판정 분해능 = gb N3.8 인용)·B-4(낡은 인용 'O-54/O-53 B3로 대체' 표시, '승인 전 문안' 삭제)·B-5(OP-5 통합 병합 목록)·T_j 점 출처 차 = 모델 오차(→ 상위 O-178 뒤 대조 기록).
+### oracle-portability.plan.md:142 ['tolV', 'res', 'off']
+= 회로 그대로가 구성. **O-53 A-1** 반전 입력 포트 = 선언, 없으면 동작점 DC 전달 부호 음수인 입력 포트(오라클 = 자기 `.tf` 독립), 음수 후보 0개(다입력)·2개 이상·전달 크기 ≤ 판정 분해능이면 정의 불능, role 이름 근거 금지; **A-2**(→ 상위 O-115로 소멸 -- servo는 입력 포트를 모두 함께 훑음) P3 함께 훑기는 측정 구성이 묶지 않은 포트에만; **B1** `intended
+  ~  칸을 실음, 선언 영역은 실제와 대조해 다르면 거부(우회 금지); **B2** 온도 점 전도 판정: gm/ID·I_off = 그 온도 SPICE(I_off = 같은 VDS·VSB·VGS = 0 소자 개별 풀이), tol_V = T_j LUT 셀(출처 표기); **B3** offset 기준 정의 자리 = DEC-23 하나(기준 종류 셋 + 차동 기본, 선언 없는 단일 출력 정의 불능), PC-10 = OP-5 `offset_sys_mv
+### oracle-portability.plan.md:144 ['tolV', 'off']
+115(servo)로 대체 -- N3.9 ICMR 행) ICMR 측정 구성 = spec 선언 되먹임 구성, 없으면 β = 1 follower(O-25 (2) 해석 확정, 엔진도 같은 구성); **G5** I_off·tol_V는 사본 없이 엔진 정본 LUT 함수가 SPICE op 점에서 계산 -- 오라클은 SPICE op 값(VDS, VSB, ID, gm/ID)을 내고 전도 판정은 EO-1 배선 쪽 두 단계로 마무리(오라클은 엔진 imp
+### oracle-portability.plan.md:145 ['tolV', 'off']
+, ΔW = 0이면 0, 정확값 oracle `.dc`(O-45 U3 '판정 W로 다시 봉인한 점의 출력 오차' 대체) (2) oracle 합격 판정(및 범위 판정) 입력 출처: gm/ID = SPICE op 값, tol_V·I_off = 그 SPICE op 점의 VDS·VSB에서 읽은 엔진 LUT 값 -- 엔진 점에서 미리 계산한 `off_current_A` 고정 대신, 범위 판정 훑기 점도 같은 규칙. 반영: N3.9 범위 조건·'
+### oracle-portability.plan.md:146 ['tolV', 'off']
+dit2_summary.md`) 결정 중 이 계획 몫: **U1** EO-1 범위 = oracle OP-3 스키마 칸까지(위치 'OP-3 뒤·첫 동작 변경 card 앞' 유지), G-18 확장 칸(선언 triode·tol_V 셀 열·훑기 입력 등)은 OP-5·HC-O 병합 때 생산자 갱신(U-6 규칙) -- EO-1 → HC-O → HC-1 → EO-1 순환 제거 **U2** 오라클 합격 판정의 '꺼짐' 정의를 봉인 9 식으로 통일(g
+### oracle-portability.plan.md:282 ['allow', 'sat']
+| PC-7 | LUT와 같은 모델이다 | 아래 '모델 묶음 비교 규칙'을 통과한다. 공칭 op(VDSAT 포함 -- LUT VDSAT 열은 생성기 시뮬레이터의 vdsat 정의다, F-12)가 LUT 점과 LUT 허용오차 안 | 다른 모델 파일, vdsat 정의가 다른 시뮬레이터 |
+### oracle-portability.plan.md:420 ['tolV', 'off']
+) 이 계획이 절차를 그 판 정의 문장에 맞췄으므로 v6.20 병합 뒤 인용 해시를 맞추고 아래를 대조한다: (a) **전도 판정 2단계 함수**의 소유·위치(EO-1 배선 쪽, 엔진 정본 LUT 함수로 I_off·tol_V 계산, OP-5 통합 병합에 엔진 커밋 -- N3.9 '두 단계') (b) **A' 손분석 설계 입력**(gain-budget N6.2 1218행 '엔진 코드 미사용, LUT 파생 칸은 LUT 직접 조회')이 입력
+### oracle-portability.plan.md:427 ['tolV', 'eps', 'res', 'off', 'sat']
+6행, 절차는 아래 '선언 영역'): **정의 정본 = gain-budget 계획 N3.8**(`plan/gb-v619` `6ab294c9` 556행 '소자 조건'·'훑기 점의 I_off 평가 점'·**'I_off·ε 모두 그 점 값이다'** -- 이 계획은 그 문장을 인용하고 측정 절차만 정한다, v0.6.9 열다섯째 커밋에서 자기 정의 문장을 인용으로 바꿈, 열여덟째 커밋에서 인용 판을 `6ab294c9`로): "**소자 조
+  ~  열다섯째 커밋에서 자기 정의 문장을 인용으로 바꿈, 열여덟째 커밋에서 인용 판을 `6ab294c9`로): "**소자 조건** = spec 선언 triode 밖 모든 MOS가 전도(봉인 9 전도 정의 I_off ≤ ε·ID와 같은 정의, `E/sizing/seal_conduction.py:6`)이고 포화(VDS ≥ VDSAT)다 -- 소자가 꺼지는 점도 범위의 끝이다", "훑기 점마다 그 점 자신의 VDS·VSB에서 VGS = 
+  ~ S ≥ VDSAT)다 -- 소자가 꺼지는 점도 범위의 끝이다", "훑기 점마다 그 점 자신의 VDS·VSB에서 VGS = 0 누설로 I_off를 잰다 -- 동작점(봉인점) 값으로 고정하지 않는다", "**I_off·ε 모두 그 점 값이다** … 범위 판정 훑기 점은 oracle 합격 판정(DEC-90 (1))과 같은 규칙: I_off = 그 훑기 점의 VDS·VSB에서 VGS = 0 누설 LUT 조회, 동작점에서 미리 계산한 값
+  ~ 이다** … 범위 판정 훑기 점은 oracle 합격 판정(DEC-90 (1))과 같은 규칙: I_off = 그 훑기 점의 VDS·VSB에서 VGS = 0 누설 LUT 조회, 동작점에서 미리 계산한 값 고정 아님): ε = (gm/ID)·tol_V에서 gm/ID는 그 훑기 점의 값, tol_V는 그 점 VDS에서 읽은 LUT tol_V 셀(LUT 파생표 `tol_v_table(kind, w_key)`의 L 고정 VDS 열을 그 점
+### oracle-portability.plan.md:429 ['tolV', 'off']
+정 위치 -- 두 단계**(v0.6.10, 사용자 결정 O-50 G5·G3; 원래 취지와 다름 X-34, 승인됨 O-50. 정의는 위 인용 그대로이고 바뀌는 것은 계산 위치뿐이다): LUT에 의존하는 양(I_off·tol_V)은 **사본 없이 엔진 정본 LUT 함수**가 SPICE op 점에서 계산한다 -- 오라클이 엔진 보간 규칙의 사본을 갖는 안(design v0.3.0 DV-6 (가))은 기각(엔진 규칙이 바뀌면 사본이 갈라짐, 
+### oracle-portability.plan.md:430 ['eps', 'off', 'sat']
+S 제외 -- 정의·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′) -- 1단계 꺼짐·포화 판정 밖; 사용자 결정 O-50 G3 -- 봉인 9 식 I_off ≤ ε·ID는 I_off ≥ 0이라 ID ≤ 0에서 참이 될 수 없다, 역방향 전도도 꺼짐; gain-budget DEC-90 (1)의 \|ID\| 문언과 엔진 봉인 9 'ID ≤ 0 판정 제외'를 같은 정의로 맞추는 것
+  ~  정의로 맞추는 것은 gain-budget v6.20·엔진 card 몫), 포화 VDS ≥ VDSAT(범위 정의, 여유 0)와 판정 단계의 포화 여유, 레일 밖 노드·수렴 실패. ID > 0인 소자의 I_off ≤ ε·ID는 1단계에서 '2단계 대기'로 남긴다(통과로 세지 않음).
+### oracle-portability.plan.md:431 ['tolV', 'eps', 'off']
+* **2단계 -- EO-1 배선 쪽**(엔진 정본 LUT 함수): 1단계 결과의 각 점·소자에 대해 I_off(그 점 VDS·VSB의 VGS = 0 누설, 판정 기하의 W)와 tol_V(그 점 VDS의 LUT 셀)를 계산하고 ε = (gm/ID)·tol_V로 I_off ≤ ε·ID를 판정해 전도 판정을 마무리한다. 값이 정의되지 않으면 그 점·소자는 판정 불능(fail-closed). 이 함수는 
+  ~  -- EO-1 배선 쪽**(엔진 정본 LUT 함수): 1단계 결과의 각 점·소자에 대해 I_off(그 점 VDS·VSB의 VGS = 0 누설, 판정 기하의 W)와 tol_V(그 점 VDS의 LUT 셀)를 계산하고 ε = (gm/ID)·tol_V로 I_off ≤ ε·ID를 판정해 전도 판정을 마무리한다. 값이 정의되지 않으면 그 점·소자는 판정 불능(fail-closed). 이 함수는 입력을 낸 쪽과 무관하게 같은 함수다(엔진 
+  ~ 쪽**(엔진 정본 LUT 함수): 1단계 결과의 각 점·소자에 대해 I_off(그 점 VDS·VSB의 VGS = 0 누설, 판정 기하의 W)와 tol_V(그 점 VDS의 LUT 셀)를 계산하고 ε = (gm/ID)·tol_V로 I_off ≤ ε·ID를 판정해 전도 판정을 마무리한다. 값이 정의되지 않으면 그 점·소자는 판정 불능(fail-closed). 이 함수는 입력을 낸 쪽과 무관하게 같은 함수다(엔진 점 = EO-1 생산자, A'
+  ~ 수): 1단계 결과의 각 점·소자에 대해 I_off(그 점 VDS·VSB의 VGS = 0 누설, 판정 기하의 W)와 tol_V(그 점 VDS의 LUT 셀)를 계산하고 ε = (gm/ID)·tol_V로 I_off ≤ ε·ID를 판정해 전도 판정을 마무리한다. 값이 정의되지 않으면 그 점·소자는 판정 불능(fail-closed). 이 함수는 입력을 낸 쪽과 무관하게 같은 함수다(엔진 점 = EO-1 생산자, A' 손분석 설계 입력도
+### oracle-portability.plan.md:433 ['res', 'off', 'sat']
+ 바깥으로 첫 전도 쪽 이탈 점(선언 없음·triode 소자가 꺼짐, off 선언 소자가 전도)을 찾는다 -- 창 끝 = 두 단계 끝 가운데 공칭에 가까운 쪽(2단계 판정은 창을 줄이기만 한다). **끝 확정 규칙(분해능, design의 r 식)은 두 단계 전체에 같게 적용한다**: 전도로 정해진 끝의 괄호(마지막 통과 점, 첫 전도 쪽 이탈 점)가 분해능보다 넓으면 그 끝은 아직 확정이 아니다 -- 그 괄호 구간을 다시 훑는 오라
+  ~ 데 공칭에 가까운 쪽(2단계 판정은 창을 줄이기만 한다). **끝 확정 규칙(분해능, design의 r 식)은 두 단계 전체에 같게 적용한다**: 전도로 정해진 끝의 괄호(마지막 통과 점, 첫 전도 쪽 이탈 점)가 분해능보다 넓으면 그 끝은 아직 확정이 아니다 -- 그 괄호 구간을 다시 훑는 오라클 요청(입력 = 훑기 구간, design G-18)을 2단계가 다시 내고, 반복 상한은 오라클 끝 좁히기와 같은 상수(`ZOOM_ROUN
+  ~ G-18)을 2단계가 다시 내고, 반복 상한은 오라클 끝 좁히기와 같은 상수(`ZOOM_ROUNDS`, `O/oracle_swing.py:44`, NFR-P2 예외 상수 -- 새 상수 없음; OP-5부터 그 상한은 분해능에서 유도한다 -- X-D1, v0.6.22 백로그 재감사 OP-B1)다. **상수 사본 금지**(v0.6.10 셋째 커밋, 독립 검증 B-1): 그 상한의 정본은 오라클 한 곳이다 -- 오라클이 범위 결과에 그 끝
+### oracle-portability.plan.md:434 ['tolV', 'off']
+* **옛 입력 칸**: v0.6.9 G-18의 소자별 tol_V 셀 열·I_off 열 입력 칸은 **만들지 않는다**(삭제, G-18). 옛 동작점 스칼라 `off_current_A`와 `judge.off_current_A`도 OP-5에서 지운다(O-50 O2, X-31).
+### oracle-portability.plan.md:435 ['tolV', 'off']
+O-1 생산자 갱신과 같은 U-6 규칙, 선행 EO-1). (여섯째 커밋, 사용자 결정 O-55 U2) **역할 나눔**: EO-1 = 공용 전도 판정 함수 하나(엔진 봉인 7·9가 바로 부름, LUT로 I_off·tol_V 계산)이고, O-50 G5의 'EO-1 배선 쪽'은 '엔진 쪽'이라는 뜻이다. **OP-5 통합 병합에 들어가는 엔진 커밋 목록**: (i) G-18 확장 칸의 EO-1 생산자 갱신 (ii) 2단계 **호출 자리*
+### oracle-portability.plan.md:438 ['tolV', 'off', 'sat']
+ triode 선언 소자의 영역 대조(이 동작점 대조와 아래 '훑기 중 이탈'의 범위 조건)는 gain-budget N3.8 triode 경계 여유(v6.21 `54a3a328` 566행; VDsat − VDS − tol_VDsat ≥ 0, 엔진 봉인 triode 대조와 같은 기준)를 인용한다 -- 이 계획은 따로 정하지 않는다. 그 식의 LUT 양(tol_VDsat)은 tol_V와 같이 2단계(엔진 정본 LUT 함수)가 쓰고, 오라클
+  ~ 경계 여유(v6.21 `54a3a328` 566행; VDsat − VDS − tol_VDsat ≥ 0, 엔진 봉인 triode 대조와 같은 기준)를 인용한다 -- 이 계획은 따로 정하지 않는다. 그 식의 LUT 양(tol_VDsat)은 tol_V와 같이 2단계(엔진 정본 LUT 함수)가 쓰고, 오라클 1단계는 SPICE op 값(VDS·VDSAT)만 낸다('두 단계', 사본 없음). 선언 없는 소자가 동작점에서 포화가 아니면 지금 규칙
+  ~ `54a3a328` 566행; VDsat − VDS − tol_VDsat ≥ 0, 엔진 봉인 triode 대조와 같은 기준)를 인용한다 -- 이 계획은 따로 정하지 않는다. 그 식의 LUT 양(tol_VDsat)은 tol_V와 같이 2단계(엔진 정본 LUT 함수)가 쓰고, 오라클 1단계는 SPICE op 값(VDS·VDSAT)만 낸다('두 단계', 사본 없음). 선언 없는 소자가 동작점에서 포화가 아니면 지금 규칙 그대로다(합격 판정 
+### oracle-portability.plan.md:442 ['tolV', 'res', 'off']
+값**, **I_off = 그 온도의 SPICE 값**(같은 VDS·VSB, VGS = 0으로 그 소자 하나를 따로 푸는 **소자 개별 풀이 넷리스트** -- 오라클 코어 IR 벤치·해석 요청, 어댑터가 씀), **tol_V = T_j LUT 셀**(LUT 온도의 셀을 그 점 VDS로 -- tol_V는 LUT 전류의 판정 분해능이라 온도 무관, 결과에 출처 'T_j LUT 셀' 표기). 그래서 온도 점에서는 I_off를 오라클이 SPI
+  ~ VGS = 0으로 그 소자 하나를 따로 푸는 **소자 개별 풀이 넷리스트** -- 오라클 코어 IR 벤치·해석 요청, 어댑터가 씀), **tol_V = T_j LUT 셀**(LUT 온도의 셀을 그 점 VDS로 -- tol_V는 LUT 전류의 판정 분해능이라 온도 무관, 결과에 출처 'T_j LUT 셀' 표기). 그래서 온도 점에서는 I_off를 오라클이 SPICE로 내고, 2단계(엔진 정본 LUT 함수)는 tol_V만 계산해 전도 판정
+  ~  따로 푸는 **소자 개별 풀이 넷리스트** -- 오라클 코어 IR 벤치·해석 요청, 어댑터가 씀), **tol_V = T_j LUT 셀**(LUT 온도의 셀을 그 점 VDS로 -- tol_V는 LUT 전류의 판정 분해능이라 온도 무관, 결과에 출처 'T_j LUT 셀' 표기). 그래서 온도 점에서는 I_off를 오라클이 SPICE로 내고, 2단계(엔진 정본 LUT 함수)는 tol_V만 계산해 전도 판정을 마무리한다(LUT에 그 온
+  ~  점 VDS로 -- tol_V는 LUT 전류의 판정 분해능이라 온도 무관, 결과에 출처 'T_j LUT 셀' 표기). 그래서 온도 점에서는 I_off를 오라클이 SPICE로 내고, 2단계(엔진 정본 LUT 함수)는 tol_V만 계산해 전도 판정을 마무리한다(LUT에 그 온도가 없으므로 I_off의 정확값은 SPICE, G5의 '사본 없이'는 그대로). 같은 온도 요청 안의 모든 점(T_j와 같은 온도 점 포함)에 이 규칙 하나를 쓴다(
+### oracle-portability.plan.md:508 ['tolV', 'res', 'off', 'sat']
+그대로(동일성), ICMR·swing·계통 offset·단일 입력 회로 = 정의를 바꾼 칸(동작 변경 기준). (v0.6.9 아홉째 커밋) 같은 card에 더함: 훑기 점별 I_off 산출(O-36 (5))과 점별 tol_V 읽기(**v0.6.10, O-50 G5로 개정** -- 오라클은 점별 SPICE op 값(VDS·VSB·ID·gm/ID)을 내고 1단계(선언 방향 ID ≤ 0 꺼짐 -- G3, 포화 -- 둘 다 KCL 항등 0 전
+  ~ -- G3, 포화 -- 둘 다 KCL 항등 0 전류 MOS 제외 -- 정의·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′), 레일, 수렴)까지 판정, I_off·tol_V 계산과 전도 판정 마무리는 EO-1 쪽 2단계 엔진 정본 LUT 함수, N3.9 '전도 판정 위치 -- 두 단계'; 2단계 함수 엔진 커밋 `Role: code`는 이 card의 같은 통합 병합에), 합격 판정 전
+  ~ 단계'; 2단계 함수 엔진 커밋 `Role: code`는 이 card의 같은 통합 병합에), 합격 판정 전도 기준을 봉인 9 식으로 정정(B-L1·O-45 U2, 정의를 바꾼 칸 -- 그 식의 I_off·gm/ID·tol_V는 판정 점 값; I_off·tol_V는 판정 점 VDS·VSB의 엔진 LUT 조회, 사용자 결정 O-46 (2)로 확정, 열여섯째 커밋), G-18 확장 칸을 내는 EO-1 생산자 갱신 커밋(`Role: code`
+  ~ le: code`는 이 card의 같은 통합 병합에), 합격 판정 전도 기준을 봉인 9 식으로 정정(B-L1·O-45 U2, 정의를 바꾼 칸 -- 그 식의 I_off·gm/ID·tol_V는 판정 점 값; I_off·tol_V는 판정 점 VDS·VSB의 엔진 LUT 조회, 사용자 결정 O-46 (2)로 확정, 열여섯째 커밋), G-18 확장 칸을 내는 EO-1 생산자 갱신 커밋(`Role: code`)을 같은 통합 병합에 포함(선행 EO
+### oracle-portability.plan.md:521 ['tolV', 'off']
+정 O-45 U1): EO-1은 **OP-3 스키마 칸까지**만 낸다(위치 'OP-3 뒤·첫 동작 변경 card 앞' 유지). G-18 확장 칸(선언 triode, 훑기 입력 등 -- v0.6.10 O-50 G5로 tol_V 셀 열·I_off 열은 입력 칸에서 빠짐)은 그 칸을 쓰는 card -- 이 계획 OP-5·OP-10(슬루 칸, v0.6.10 O-50 O3), headroom-chain HC-O -- 가 병합될 때 EO-1 생산
+  ~  HC-O -- 가 병합될 때 EO-1 생산자를 갱신한다(U-6 규칙). (v0.6.10) OP-5 통합 병합에는 생산자 갱신과 함께 **전도 판정 2단계 함수**(EO-1 쪽, 엔진 정본 LUT 함수로 I_off·tol_V 계산, N3.9 '두 단계')의 엔진 커밋도 들어간다. 이로써 EO-1 → HC-O → HC-1 → EO-1 순환이 없어진다. **갱신 경로**(열다섯째 커밋, 3차 정합 감사 N4): 엔진 쪽 생산자 갱신은 OP
+### oracle-portability.plan.md:553 ['tolV', 'eps', 'off', 'sat']
+ 0 전류 MOS 제외 -- 정의·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′); v0.6.10 다섯째 커밋, O-54 -- 선언 없음 = 전도(I_off ≤ ε·ID, ε = (gm/ID)·tol_V -- 엔진 봉인 9 식) + 포화(여유 0), triode = 전도 + VDS < VDSAT, off = 전도 아님), 훑기 중 이탈하는 점이 범위 끝(꺼지는 점, triod
+  ~ MOS 제외 -- 정의·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′); v0.6.10 다섯째 커밋, O-54 -- 선언 없음 = 전도(I_off ≤ ε·ID, ε = (gm/ID)·tol_V -- 엔진 봉인 9 식) + 포화(여유 0), triode = 전도 + VDS < VDSAT, off = 전도 아님), 훑기 중 이탈하는 점이 범위 끝(꺼지는 점, triode 선언 소
+  ~ ·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′); v0.6.10 다섯째 커밋, O-54 -- 선언 없음 = 전도(I_off ≤ ε·ID, ε = (gm/ID)·tol_V -- 엔진 봉인 9 식) + 포화(여유 0), triode = 전도 + VDS < VDSAT, off = 전도 아님), 훑기 중 이탈하는 점이 범위 끝(꺼지는 점, triode 선언 소자가 포화로 가는 점, off
+  ~ 을 쓴 손 회로 test가 있고, 깨진 변형(출력을 봉인점에 묶지 않은 ICMR(출력 자유·follower), 여유를 정의에 넣은 포화 조건, 꺼진 소자를 조건에서 빼 꺼지는 점을 범위 끝으로 보지 않는 경로, **ε가 빠진 전도 판정**(`|ID| > I_off`, ε = 1과 같음), 차동 전제로 단일 입력을 `unavailable`로 내는 경로, 끝 풀이 실패를 외삽으로 넘기는 경로, **수렴하지 않은 점을 '포화 아님'으
+### oracle-portability.plan.md:592 ['tolV', 'res', 'off']
+b-v619` `81fc49a7` N6.20 1851행)의 계약이다. **범위**(열넷째 커밋, O-45 U1): EO-1은 OP-3 스키마 칸까지이고, 이 G-18 확장 칸(선언 triode, 훑기 입력 등 -- tol_V 셀 열은 v0.6.10 O-50 G5로 삭제)은 OP-5·headroom-chain HC-O(그리고 슬루 칸은 OP-10, O-50 O3) 병합 때 EO-1 생산자를 갱신해 낸다(U-6 규칙) -- 엔진 쪽 갱신은
+  ~  `REL_TARGET`, 미선언이면 `reference_undeclared`; 차동 출력 = V(p) − V(n) = 0, 입력 칸 불필요 -- 단일 종류 기준은 아래 B3로 대체), 슬루 측정 노드. **소자별 tol_V 셀 열·I_off 열 입력 칸은 두지 않는다**(v0.6.10, 사용자 결정 O-50 G5 -- v0.6.9 아홉째 커밋 B-L2·열여섯째 커밋 O-46 (2)로 정했던 두 입력 칸을 삭제; I_off·tol_V는
+  ~  tol_V 셀 열·I_off 열 입력 칸은 두지 않는다**(v0.6.10, 사용자 결정 O-50 G5 -- v0.6.9 아홉째 커밋 B-L2·열여섯째 커밋 O-46 (2)로 정했던 두 입력 칸을 삭제; I_off·tol_V는 엔진 정본 LUT 함수가 2단계에서 SPICE op 점으로 계산, N3.9 '전도 판정 위치 -- 두 단계'; design v0.3.0 DV-6 닫힘). 대신 **결과 칸**: 판정 점(합격 판정 free `.o
+  ~ 값을 받는 입력 칸, 칸 꼴은 design DR-26; 되먹임 구성 선언 입력 칸은 슬루 측정 구성만 읽음 -- 옛 O-50 G4 'spec 선언 되먹임 구성, 없으면 β = 1 follower' 대체), 끝 괄호·분해능(옛 V_T 격자·`ZOOM_ROUNDS`는 NFR-P2 예외 상수), 끝 풀이 실패의 오류 코드(G-4). 계통 offset 결과 칸 = 부호 있는 V_id* 한 칸(O-50 G1, 크기 칸 따로 두지 않음). *
+### oracle-portability.plan.md:632 ['tolV', 'eps', 'off']
+ O-45 U2, **승인됨**) **오라클 합격 판정의 '꺼짐' 정의를 봉인 9 식으로 통일**: gain-budget DEC-90 (1)(사용자 결정 Q5 -- `|ID| < off_current_A`면 꺼짐, ε = 1, `81fc49a7` 289행)을 I_off ≤ ε·ID, ε = (gm/ID)·tol_V(gm/ID = SPICE op 값, tol_V = 엔진 LUT 셀)로 바꾼다(N3.9 '합격 판정의 전도 기준', 
+  ~ 꺼짐' 정의를 봉인 9 식으로 통일**: gain-budget DEC-90 (1)(사용자 결정 Q5 -- `|ID| < off_current_A`면 꺼짐, ε = 1, `81fc49a7` 289행)을 I_off ≤ ε·ID, ε = (gm/ID)·tol_V(gm/ID = SPICE op 값, tol_V = 엔진 LUT 셀)로 바꾼다(N3.9 '합격 판정의 전도 기준', card OP-5; gain-budget 쪽 정본 = `f7
+  ~ 를 봉인 9 식으로 통일**: gain-budget DEC-90 (1)(사용자 결정 Q5 -- `|ID| < off_current_A`면 꺼짐, ε = 1, `81fc49a7` 289행)을 I_off ≤ ε·ID, ε = (gm/ID)·tol_V(gm/ID = SPICE op 값, tol_V = 엔진 LUT 셀)로 바꾼다(N3.9 '합격 판정의 전도 기준', card OP-5; gain-budget 쪽 정본 = `f7b2d5b0
+  ~ 일**: gain-budget DEC-90 (1)(사용자 결정 Q5 -- `|ID| < off_current_A`면 꺼짐, ε = 1, `81fc49a7` 289행)을 I_off ≤ ε·ID, ε = (gm/ID)·tol_V(gm/ID = SPICE op 값, tol_V = 엔진 LUT 셀)로 바꾼다(N3.9 '합격 판정의 전도 기준', card OP-5; gain-budget 쪽 정본 = `f7b2d5b0` 289행 DEC-90 (1
+### oracle-portability.plan.md:634 ['tolV', 'eps', 'off']
+ 스크립트의 결과 의미가 바뀐다. (v0.6.9 둘째 판) 같은 처리: `judge.off_current_A`는 정의에서 '`|ID| > off_current_A`인 도통 소자만 조건에 넣는다'를 정하던 칸이었으나(ε = 1과 같은 식), 이제 정의는 '선언 triode 밖 모든 MOS가 I_off ≤ ε·ID, ε = (gm/ID)·tol_V로 전도'(엔진 봉인 9 식; KCL 항등 0 전류 MOS 제외 -- 정의·오라클 독립
+  ~ _current_A`는 정의에서 '`|ID| > off_current_A`인 도통 소자만 조건에 넣는다'를 정하던 칸이었으나(ε = 1과 같은 식), 이제 정의는 '선언 triode 밖 모든 MOS가 I_off ≤ ε·ID, ε = (gm/ID)·tol_V로 전도'(엔진 봉인 9 식; KCL 항등 0 전류 MOS 제외 -- 정의·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′)
+  ~ nt_A`는 정의에서 '`|ID| > off_current_A`인 도통 소자만 조건에 넣는다'를 정하던 칸이었으나(ε = 1과 같은 식), 이제 정의는 '선언 triode 밖 모든 MOS가 I_off ≤ ε·ID, ε = (gm/ID)·tol_V로 전도'(엔진 봉인 9 식; KCL 항등 0 전류 MOS 제외 -- 정의·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′))이고 이 
+  ~ '`|ID| > off_current_A`인 도통 소자만 조건에 넣는다'를 정하던 칸이었으나(ε = 1과 같은 식), 이제 정의는 '선언 triode 밖 모든 MOS가 I_off ≤ ε·ID, ε = (gm/ID)·tol_V로 전도'(엔진 봉인 9 식; KCL 항등 0 전류 MOS 제외 -- 정의·오라클 독립 유도 대조(다르면 거부)는 상위 N3.6 봉인 9 행, 상위 O-182 Q-S9 (A′))이고 이 값은 그 식의 I_off다. 
+### oracle-portability.plan.md:635 ['eps', 'off']
+6.9까지 계획의 취지는 '오라클이 판정을 혼자 끝낸다'(상위 N3.8 오라클 독립 -- 엔진을 import하지 않고, 판정에 필요한 LUT 양은 입력 칸으로 받음, G-18)였다. 이제 전도 판정의 I_off ≤ ε·ID 부분은 **오라클 밖 EO-1 배선 쪽 2단계**(엔진 정본 LUT 함수)에서 끝난다(N3.9 '두 단계'). **판정**: 원래 취지와 **다르다** -- (i) 오라클 결과만으로는 DEC-98 A' 합격 
+### oracle-portability.plan.md:710 ['tolV', 'off']
+ 닫음 표시, §11.6 `conduction_columns`(tol_v·i_off 입력 칸) 삭제와 점별 op 결과 칸·1단계 판정·'2단계 대기'·훑기 구간 입력 칸, §21.1 4단계(I_off 읽기)·3단계(tol_V 읽기) → 2단계 위임, §21.1 2단계 ID 부호 = 선언 방향 ID > 0(결정 대기 표시 해제), §21.2 개루프 훑기 벤치 → 선언 되먹임 구성/β = 1 follower(ICMR 해석 결정 대기 해제)
+### oracle-portability.plan.md:769 ['tolV', 'off']
+| (v0.6.9) 훑기 점별 I_off·tol_V 산출이 구현되기 전 범위 판정이 동작점 값을 쓰면 오라클과 엔진의 범위 끝이 정의 차이로 어긋난다 | 정의 확정(O-36 (5), I_off = 그 점 VDS·VSB의 VGS = 0 누설; tol_V = 그 점 V
+  ~ 별 I_off·tol_V 산출이 구현되기 전 범위 판정이 동작점 값을 쓰면 오라클과 엔진의 범위 끝이 정의 차이로 어긋난다 | 정의 확정(O-36 (5), I_off = 그 점 VDS·VSB의 VGS = 0 누설; tol_V = 그 점 VDS의 LUT 셀). OP-5가 점별 산출을 구현하고, 그 전 판의 범위 결과는 정의 불일치로 표시한다. (v0.6.10, O-50 G5) 점별 I_off·tol_V는 2단계 엔진 정본 LUT 함수가 
+  ~ DS·VSB의 VGS = 0 누설; tol_V = 그 점 VDS의 LUT 셀). OP-5가 점별 산출을 구현하고, 그 전 판의 범위 결과는 정의 불일치로 표시한다. (v0.6.10, O-50 G5) 점별 I_off·tol_V는 2단계 엔진 정본 LUT 함수가 계산하므로 사본으로 인한 정의 차는 없다 |
+### gain-budget-gmid-sizing.40-engine.design.md:151 ['tolV', 'sat']
+| (a) | **LUT memo**(S0당 인스턴스 하나, §2.4.6) | `lut` 패키지의 순수 함수 결과. 디스크 LUT 파생표(tol_V·tol_VDsat·곡선 표 등)와 1변수 근을 포함한다. 디스크 파생표는 실행 사이에 유지한다 -- **유지**(U-87, 사용자 결정 2026-10-15 "U-87은 LUT는 관리복잡도가 없다는 네 판단근거에 따
+  ~ | (a) | **LUT memo**(S0당 인스턴스 하나, §2.4.6) | `lut` 패키지의 순수 함수 결과. 디스크 LUT 파생표(tol_V·tol_VDsat·곡선 표 등)와 1변수 근을 포함한다. 디스크 파생표는 실행 사이에 유지한다 -- **유지**(U-87, 사용자 결정 2026-10-15 "U-87은 LUT는 관리복잡도가 없다는 네 판단근거에 따라 유지. 
+### gain-budget-gmid-sizing.40-engine.design.md:399 ['eps', 'res', 'dom']
+ 키, 색인 항목, 스냅샷). v1.11: 스냅샷은 늘 있다(실행 수명 보존) -- 성공 = 평가 스냅샷, 후보 실패 = 부분 스냅샷(아래 '실패 평가의 부분 스냅샷'), 정의역 밖(커널 0) = 없음. 목적 값과 분해능은 `metrics_dc` 필드에서, 제약 행은 `graph/metrics: constraint_rows`에서 읽는다(옛 문장 '스냅샷을 놓았으면 색인 항목(S3 기록)에서 읽는다'는 v1.11 실행 수명 보존으로 
+  ~ cs_dc` 필드에서, 제약 행은 `graph/metrics: constraint_rows`에서 읽는다(옛 문장 '스냅샷을 놓았으면 색인 항목(S3 기록)에서 읽는다'는 v1.11 실행 수명 보존으로 대상 소멸). ε 행은 풀이 매개변수라 필드가 아니다 |
+### gain-budget-gmid-sizing.40-engine.design.md:464 ['tolV', 'sat']
+4 뿌리 항목만**(계획 v6.34 사용자 결정 O-109 D1 -- IT-2b가 넓힌 뿌리 아닌 입력 포트·선언 포트·F 성분 포트 항목은 IT-2c가 지운다). 입력 포트인 W4 뿌리 항목 = 포화 판정 여유(+tol_VDsat) 창의 **θ 고정 선형 감도 끝**(손계산 '추정', 41 §4.7-3), `input_status` ∈ {`measured`, `unsettled`, `unmeasured`}(어휘·우선순위 정본 = 41
+### gain-budget-gmid-sizing.40-engine.design.md:780 ['eps', 'dom']
+search/layer0_center.py:262-267` `_budget_stop`(층 0 최대-최소·Halton·수리) (b) `E/search/slsqp_outer.py:94-99` `_budget_stop`(ε 풀이) (c) `E/search/layer0_center.py:590-594` Halton 시험 한도(`tried >= sctx.eval_budget` -- 대상 소멸, 계획 v6.38.4 P4) (d) `E/se
+  ~ usted`(L-b `polish_l_cells`, 호출 `E/search/eps_sweep.py:121`, 평가 `l_bin_search.py:57`) (e) `E/search/eps_sweep.py:93-94` ε 점 수 계획 n_ε = ⌊(E_B − E_fixed)/e_ε⌋와 해상도 기록 -- E_B 자리에 `search_ceiling(sctx)` 값을 쓴다. 기록 칸 이름 `E_B`는 그대로 둔다(선언 실행에서는 X-17
+  ~ `polish_l_cells`, 호출 `E/search/eps_sweep.py:121`, 평가 `l_bin_search.py:57`) (e) `E/search/eps_sweep.py:93-94` ε 점 수 계획 n_ε = ⌊(E_B − E_fixed)/e_ε⌋와 해상도 기록 -- E_B 자리에 `search_ceiling(sctx)` 값을 쓴다. 기록 칸 이름 `E_B`는 그대로 둔다(선언 실행에서는 X-17로 E_B = 탐색 
+  ~ /search/eps_sweep.py:121`, 평가 `l_bin_search.py:57`) (e) `E/search/eps_sweep.py:93-94` ε 점 수 계획 n_ε = ⌊(E_B − E_fixed)/e_ε⌋와 해상도 기록 -- E_B 자리에 `search_ceiling(sctx)` 값을 쓴다. 기록 칸 이름 `E_B`는 그대로 둔다(선언 실행에서는 X-17로 E_B = 탐색 예산이라 뜻이 같고, 유도 실행에서는 값이
+### gain-budget-gmid-sizing.40-engine.design.md:1119 ['tolV', 'sat']
+*DEC-12 diode 창**: diode 노드 창은 그 VGS를 공유하는 미러 멤버 전원의 W 한계를 함께 본다. 멤버 VDS가 아직 정해지지 않았으면 그 멤버의 포화 하한 = LUT `VDSAT` 열 보간 + tol_VDsat(DEC-88, 봉인 7과 같은 양)을 바닥으로 쓴다. 멤버의 L이나 ID가 정해지지 않았으면 창을 만들지 않고 `SealViolationError`(사유 `diode_window_member_undefine
+### gain-budget-gmid-sizing.40-engine.design.md:1155 ['tolV', 'res', 'allow', 'sat']
+q1 ①~④, 계획 검증 10 V10-8; 착수 때 재작성 범위로 재확인. 검증 M-4 -- as-built 읽기를 보존 근거로 쓰지 않고 정의로 다시 유도, O-165 (b)·O-169): ① 영역 행 VDSAT·tol_VDSAT → 입력 창 → 입력 창 되풀이 `override`와 ③ `_interior_solution` 시도 상한(`k_max` 시도 수 -- 물리 양이 아닌 풀이 장치)은 범위 3a 커밋(N6.35 E-13 -- 
+  ~ 범위 3a 커밋(N6.35 E-13 -- θ y 범위 = KVL 순서 창 하나, 채널 전도 방향 전압 ≥ 0만 보고 VDSAT·tol을 읽지 않음)이 지우므로 DC 블록에 남지 않는다. 남는 읽기는 ② SCC 수렴 허용오차 하나이고 as-built ④ 'writer 없는 SCC의 허용오차 대체 소자'는 대체가 아니라 같은 정의의 한 경우다 -- **SCC 고정점 수렴 tol_V = 그 SCC 노드 값을 내는 식을 이루는 소자의 tol
+  ~ 서 창 하나, 채널 전도 방향 전압 ≥ 0만 보고 VDSAT·tol을 읽지 않음)이 지우므로 DC 블록에 남지 않는다. 남는 읽기는 ② SCC 수렴 허용오차 하나이고 as-built ④ 'writer 없는 SCC의 허용오차 대체 소자'는 대체가 아니라 같은 정의의 한 경우다 -- **SCC 고정점 수렴 tol_V = 그 SCC 노드 값을 내는 식을 이루는 소자의 tol_V 셀 최솟값**(N3.6 tol_V = LUT 보간 분해능의 전
+  ~ 로 DC 블록에 남지 않는다. 남는 읽기는 ② SCC 수렴 허용오차 하나이고 as-built ④ 'writer 없는 SCC의 허용오차 대체 소자'는 대체가 아니라 같은 정의의 한 경우다 -- **SCC 고정점 수렴 tol_V = 그 SCC 노드 값을 내는 식을 이루는 소자의 tol_V 셀 최솟값**(N3.6 tol_V = LUT 보간 분해능의 전압 환산): 노드 값을 VGS writer 식이 내면 그 writer 소자, writer 식
+### gain-budget-gmid-sizing.40-engine.design.md:1184 ['tolV', 'sat']
+- **슬라이스별 tol 표**: tol_V·tol_VDSAT 표(lut CONTRACT 5절)는 슬라이스 키마다 만든다. **만드는 때·주체** = LUT 적재(`load_lut_set`, 로드 1회)가 도달 가능 슬라이스(W_min 이상 bin의 슬라이스
+  ~ - **슬라이스별 tol 표**: tol_V·tol_VDSAT 표(lut CONTRACT 5절)는 슬라이스 키마다 만든다. **만드는 때·주체** = LUT 적재(`load_lut_set`, 로드 1회)가 도달 가능 슬라이스(W_min 이상 bin의 슬라이스 -- LU
+### gain-budget-gmid-sizing.40-engine.design.md:1246 ['res', 'sat']
+·O-157 S4 J2). writer = DE-1 블록 하나(DE-1 design). **소비자** = DEC-104 R8 판정(범위 끝 I_cap,d ≥ R_ss,d -- θ 제약, DEC-70 자리; 행 이름·분해능은 DE-1 design)과 R10 공급 요구 하한(41 §6.8-1, card SB-1 -- 봉인 DC 해가 있는 스냅샷에서는 이 필드를 READS하고 함수를 다시 부르지 않으며, 봉인 해가 없는 스냅샷(출발 구간
+### gain-budget-gmid-sizing.40-engine.design.md:1268 ['tolV', 'sat']
+i]는 P N3.8 경로 합(VDS 엣지 = 포화 하한, VGS 엣지 = 그 전류의 VSB 포함 VGS)이다. 구간 자체도 레코드로 낸다 | v | dc(IT-2d relabel, O-112) | tol_vdsat·tol_V 합 | 파일럿·nmcnr 제약, 나머지 보고 |
+### gain-budget-gmid-sizing.40-engine.design.md:1362 ['tolV', 'off']
+ 9)도 같은 방식의 제약 행으로 둔다(**결정**(사용자 결정 2026-10-12 "GQ2, N1, N3, K2 권고대로") U-69, 계획 DEC-88에 봉인 9 명시): floor = 그 동작점에서 ln(gm·tol_V/I_off) = 0이 되는 ln IDu.
+### gain-budget-gmid-sizing.40-engine.design.md:1466 ['tolV', 'sat']
+
+### gain-budget-gmid-sizing.40-engine.design.md:1514 ['tolV', 'res', 'sat']
+= 그 셀 출발 곡선 정의 불능 기록 `tol_vdsat_table_missing{cell}`(0.0 대체 삭제 -- `E/lut/derived_fns.py:117-130`); 물리 결정자: tol은 VDSAT 표 분해능에서 오는 양이고 0은 보수 방향이 아님 | 41 §6.2 |
+### gain-budget-gmid-sizing.40-engine.design.md:1967 ['res', 'dom']
+ 확정 = oracle(엔진은 가드 없이 손계산 값으로 판정하고 front·선택 점의 합격은 oracle -- (a) 정의 동일성 관문을 모든 대응 행에서 닫기보다 먼저 (b) 활성 제약 oracle 여유가 [0, 분해능] 밖이면 oracle 닫기(DEC-72 (3), card CL-1 -- (점, metric)별 문턱 이동 Δ secant, 멈춤 = 옮긴 metric의 oracle 진전 ≤ 분해능 / E-0 실현 불가 / 사용자 
+  ~  제약 oracle 여유가 [0, 분해능] 밖이면 oracle 닫기(DEC-72 (3), card CL-1 -- (점, metric)별 문턱 이동 Δ secant, 멈춤 = 옮긴 metric의 oracle 진전 ≤ 분해능 / E-0 실현 불가 / 사용자 선언 반복 상한, 새 상수 0) (c) 엔진·oracle 판정 뒤집힘은 대조 기록 -- 엔진 결함 = E-0 위반 ∪ 정의 동일성 위반 ∪ 닫기 비수렴 (d) oracle을 돌리지 
+### gain-budget-gmid-sizing.40-engine.design.md:1984 ['tolV', 'sat']
+
+### gain-budget-gmid-sizing.40-engine.design.md:2208 ['eps', 'dom']
+, 41 §5.12.7)·Q-P8 결정(충족 -- O-173 슬라이스 고정)·착수 실측 Q-T0(계획 N5.3 -- library 13회로 (O-182 Q-LB1) 봉인 거부 변화·노드 잔차 대 tol_I·봉인 9 ε) |
+### gain-budget-gmid-sizing.41-gain-budget.design.md:587 ['tolV', 'sat']
+**상한 계산(인증)**: 경로 폭 = ΔV_rail − Σ_VGS엣지 |VGS|_min − Σ_VDS엣지 (VDSAT_min + tol_VDsat). |VGS|_min·VDSAT_min은 그 소자 kind의 LUT 격자 전수(gm/ID, L bin, VS 축은 bulk 기본 규칙이 정하는 VSB 범위)에서의 최솟값이다. 서로 다른 소자를 독립으로 최소
+### gain-budget-gmid-sizing.41-gain-budget.design.md:607 ['tolV', 'sat']
+5 범위 2·4; 옛 묶음 키 `input_common_mode`는 없어진다). 범위는 입력 창 [Vin,min, Vin,max] ∩ [rail_lo, rail_hi]이고 경계는 tol을 포함한다(포화 판정 여유 +tol_VDsat). **경계의 층별 정밀도**(사용자 결정 O-33 (3), card IT-2): 평가 커널에서는 그 해에서 잰 선형 감도 끝(손계산, '추정' 표기)이고, 끝 풀이(창 끝 x 고정 Newton)는 어느 층
+### gain-budget-gmid-sizing.41-gain-budget.design.md:630 ['tolV', 'sat']
+
+### gain-budget-gmid-sizing.41-gain-budget.design.md:651 ['tolV', 'sat']
+필드'·'측정 구성 창 = 선형 감도 끝 하나', O-58 S-1·v6.34 O-109 C1): 측정 구성 ICMR(servo -- 단일·차동 출력; 단일 입력 '회로 그대로' -- v1.14.0 O-115)에서 +tol_VDsat로 잰 **KCL 선형 감도 끝**('추정' -- 봉인점 DC 야코비안 `graph.ss_nodal` + servo 행 δs = 0(Schur 1칸), 출력 꼴 무관; 경계 행 = 포화·`triode` 행 +
+### gain-budget-gmid-sizing.41-gain-budget.design.md:675 ['tolV', 'eps', 'off', 'sat']
+s_b)`, `slack + rate·Δ ≥ 0`, `E/sizing/input_window.py:57-65`)가 그대로 맞는 부호): (가) 선언 없음(포화) = **`(d, s, 부호, VDS − VDsat − tol_VDsat, "sat")`**(지금 행 그대로, 부호 = 소자 극성 부호) (나) `triode` 선언 = **`(d, s, −부호, VDsat − VDS − tol_VDsat, "triode")`**(여유가 VDS↑
+  ~ *`(d, s, 부호, VDS − VDsat − tol_VDsat, "sat")`**(지금 행 그대로, 부호 = 소자 극성 부호) (나) `triode` 선언 = **`(d, s, −부호, VDsat − VDS − tol_VDsat, "triode")`**(여유가 VDS↑에 줄어 기울기 부호가 포화 행과 반대; 판정 여유의 정의 자리 = 계획 N3.8 '소자 조건'의 `triode` 경계 판정 여유(사용자 결정 O-58 T-1 -- 인
+  ~ **(여유가 VDS↑에 줄어 기울기 부호가 포화 행과 반대; 판정 여유의 정의 자리 = 계획 N3.8 '소자 조건'의 `triode` 경계 판정 여유(사용자 결정 O-58 T-1 -- 인용만, 정의 사본 없음); `tol_VDsat` = (가) 행과 같은 정본 `sat_threshold` 값(headroom-chain HC-S, 계획 O-33 (8)) -- 훑기 점이면 그 점 자신의 VDS·VSB 셀, 새 상수·둘째 진입점 없음) (다
+  ~ n − VGS, "off")`**(첫 칸 = gate; 여유 V_on − VGS는 VGS↑에 줄어 기울기 = −부호·(s_g − s_s); 판정 여유 없음; V_on = 그 점에서 봉인 9 전도 정의(I_off ≤ ε·ID)를 처음 만족하는 VGS -- 아래 2). 선형화에서 VDsat·V_on은 그 해의 값으로 고정한다(행 기울기에 넣지 않는다 -- 지금 포화 행과 같은 손계산 '추정'). 지금 `saturation_rows`
+### gain-budget-gmid-sizing.41-gain-budget.design.md:677 ['tolV', 'res', 'off']
+·VSB에서 봉인 9 전도 정의를 처음 만족하는 VGS, LUT I_off 열 위 1변수 근 -- 계획 N3.3 (a) LUT memo 대상)를 부르는 자리 하나(`region_rows`)를 더한다; 근 풀이 종료 분해능 = 그 점의 tol_V 셀(계획 N3.8 '훑기 점의 I_off 평가 점' -- `tol_v_table(kind, w_key)`의 그 점 VDS 열, 새 상수 없음). 그 호출 자리 하나가 EO-1 완료 조건 (8
+  ~  전도 정의를 처음 만족하는 VGS, LUT I_off 열 위 1변수 근 -- 계획 N3.3 (a) LUT memo 대상)를 부르는 자리 하나(`region_rows`)를 더한다; 근 풀이 종료 분해능 = 그 점의 tol_V 셀(계획 N3.8 '훑기 점의 I_off 평가 점' -- `tol_v_table(kind, w_key)`의 그 점 VDS 열, 새 상수 없음). 그 호출 자리 하나가 EO-1 완료 조건 (8) (b) '공용 함수 
+### gain-budget-gmid-sizing.41-gain-budget.design.md:682 ['tolV', 'sat']
+유 = 계획 N3.8 '소자 조건'의 `triode` 경계 판정 여유, 사용자 결정 O-58 T-1; 봉인 7 대조도 같은 기준 -- 계획 N3.6 표 7행, 맡는 card EO-1 N6.20 범위 (4) (b); tol_VDsat = `sat_threshold` 값). 이 블록은 행 여유 부호로 따로 판정하지 않는다(정본 하나 -- tol 띠의 소자를 블록과 봉인이 다르게 보는 일이 없게).
+### gain-budget-gmid-sizing.41-gain-budget.design.md:686 ['tolV', 'eps', 'inv', 'off', 'sat']
+한다. 그 행의 영 교차 = 선형 예측 I0 + k·Δ가 하한 I_floor에 닿는 점. **하한 고정 = '추정' 선형화**(계획 v6.36 둘째 커밋, 검증 N-4 인용): I_floor는 봉인점 값(I_off/ε)으로 고정한다 -- 포화 행이 VDsat을 봉인점 값으로 두는 것과 같은 선례; 훑기 점마다 I_off·ε을 재는 규칙(계획 N3.8 '훑기 점의 I_off 평가 점', O-36 (5)·O-46 (2))은 정의 쪽
+  ~ '추정' 선형화**(계획 v6.36 둘째 커밋, 검증 N-4 인용): I_floor는 봉인점 값(I_off/ε)으로 고정한다 -- 포화 행이 VDsat을 봉인점 값으로 두는 것과 같은 선례; 훑기 점마다 I_off·ε을 재는 규칙(계획 N3.8 '훑기 점의 I_off 평가 점', O-36 (5)·O-46 (2))은 정의 쪽(oracle `.dc` 훑기) 규칙이라 충돌하지 않고 정확값은 oracle 전도 점검이 맡는다. I_flo
+  ~ 획 N3.8 '훑기 점의 I_off 평가 점', O-36 (5)·O-46 (2))은 정의 쪽(oracle `.dc` 훑기) 규칙이라 충돌하지 않고 정확값은 oracle 전도 점검이 맡는다. I_floor가 None(tol_V 미정)인 소자는 행이 없다(그 점은 봉인 9 행 undefined로 봉인되지 않아 이 블록이 돌지 않으므로 실제로 생기지 않음 -- `seal_conduction.py`); ID ≤ 0 소자는 두 필드에 없어 행이
+### gain-budget-gmid-sizing.41-gain-budget.design.md:693 ['tolV', 'res', 'sat']
+  - **WRITES** = `("node", "dc_window_cfg")`(**측정 구성 판정 창** -- 입력 포트마다, 값 꼴 = `node.dc_window`와 같은 `Window` 하나, +tol_VDsat, KCL 선형 감도 끝 '추정'; 모든 측정 구성(`"servo"`·`"as_is_single_input"`)에서 쓰고 구성 None이면 쓰지 않음; 상태·`tol_v` = 4.7-2 '값 형식'(이 블록이
+  ~  조건'), 풀이 특이면 None; 옛 포트별 T_p 칸 `transfer` 대체); `pivot_resolution`: float 또는 None(= δA_num = δV_out / 레일 폭(V/V), 아래 '판정 분해능 정의 함수 하나'); **피벗 두 칸은 출력 전용**(엔진 소비자 0 -- 결과 JSON·변화표; card DE-1 (c)가 DEC-23 A_dc와 감지 자리·e 가중이 같으면 이 칸을 정본으로 합친다 -- 계획 
+### gain-budget-gmid-sizing.41-gain-budget.design.md:759 ['tolV', 'off', 'sat']
+는 toy → 그 행의 영 교차 = 창 끝(커널 창·측정 구성 판정 창 모두 -- 측정 구성 판정 창은 IT-2c(KCL 감도), v1.13.0; 손계산 오라클: 행 `(d, s, −부호, VDsat − VDS − tol_VDsat)`의 영 교차; base는 선언 소자를 행에서 빼 놓침 -- red) (b) `region_rows` 행 `kind` 집합 = {`"sat"`, `"triode"`}(v1.14.1: 측정 구성 판정 창의 전
+  ~ 정 구성 판정 창의 전도 행 `"conduction"`은 `region_rows`가 아닌 `icm_config._conduction_rows`가 만든다 -- 4.7-3a 6 '(9)과의 관계') (c) 행 여유는 `tol_VDsat` 정본 값과 그 해의 VDS·VDsat만 읽고(행 기울기는 writer 식 편미분) 경계 행 계산은 전도·문턱 계산을 하지 않음 -- 측정은 **정적 AST만**(docstring·주석 제외): `regio
+  ~ -LB1), 4.7-8 변화표 원인 칸). 이 묶음 단언은 card EO-1 완료 조건 (8)(e)가 진다((S4-나) 확정). (triode 경계 판정 여유는 계획 N3.8 '소자 조건'(O-58 T-1) 인용, tol_VDsat = `sat_threshold` 값 -- 옛 815행, v1.14.0에서 L13 자리를 위해 옮김.)
+### gain-budget-gmid-sizing.41-gain-budget.design.md:760 ['tolV', 'eps', 'res', 'inv', 'sat']
+ (lo, hi)가 **손으로 조립한 KCL servo 끝**과 일치: oracle = test가 소자 스탬프로 봉인점 DC 야코비안을 직접 조립하고 입력 포트를 모두 같은 x로 움직이는 구동과 여기 방향 e 보정 ε을 두어 감지 행 δV_out = 0을 풀어 감도와 끝을 낸다(피검 `conductance_matrix`·`kvl_sensitivity`·`saturation_window`·`region_rows`를 부르지 않음);
+  ~ 는 것** = `device.ss_dev`의 gm·gds·gmb, `node.dc_v`, `device.dc_op`의 VGS·VDS·VSB·L·w_key, `device.dc_tol_v`; **여유 행의 VDsat·tol_VDsat** = test가 LUT 원시 함수 `vdsat(memo, kind, w_key, L, vgs, vds, vsb)`·`tol_vdsat_table(memo, kind, w_key).at(L, vds)`를 그
+  ~  함수 없이)해 차 > 비교 허용; `node.dc_window_cfg` 끝이 follower 또는 θ 손계산 끝과 같으면 red, base(측정 구성 없는 끝)도 red; 감지 노드의 servo 감도 = 0(수치 분해능 안 -- 출력이 묶였음; `kvl_sensitivity` slope의 출력 넷); `graph.icm_config.config == "servo"`; front·보고 `icm_margin_v` = `graph.ic
+### gain-budget-gmid-sizing.41-gain-budget.design.md:780 ['eps', 'res', 'off']
+- DE-1: 정의 창 `node.dc_window_def`(tol 없음·전도 끝 = 봉인 9 식, 훑기 점 I_off·ε)와 그 블록, 선언 제약 행의 다른 이름, ICMR 정의 = 계획 N3.8 'ICMR 측정 구성'(servo -- v6.35 O-115, 옛 O-25 (2) 대체)·일반형 O-33 (7)(전달 뷰 여기 방향 훑기)
+  ~ 계하지 않는다 (7) **대상 없음**(S-OS2 폐지, card RB-1 대상 없음(계획 N3.8 'IT-2 후속'); 차동 출력 스윙은 DE-1 (b)가 같은 연립·servo None으로 잰다) (8) **판정 분해능 정의 함수의 이동**(v1.13.0 E 항): DE-1 (c)가 DEC-23 'A_dc 정의 불능 갈래'(O-63 (1) -- 갈래 먼저)에서 같은 정의를 쓸 때, `icm_config.py`의 비공개 `_tran
+### gain-budget-gmid-sizing.41-gain-budget.design.md:785 ['eps', 'off']
+- **card DE-1 몫(O-50·O-54 관련)**: 정의 창의 tol 없는 경계(포화·triode·전도 끝 -- 같은 KCL 연립, O-109 C2), 훑기 점 I_off·ε, 출력 창 필드(옛 '기준 칸을 `"definition"`으로 바꾸기(O-49 P5)'는 기준 칸이 없어 대상 소멸 -- v1.13.0).
+### gain-budget-gmid-sizing.41-gain-budget.design.md:1447 ['res', 'dom']
+4 | §6.1-9 사다리 | t = S_d 누적 길이 매개화, floor = S_d 안 LUT VGS 칸의 ln IDu 폭 최솟값 | 계획 V9 'LUT VGS 칸의 ln IDu 폭' 정의(그 좌표의 LUT 격자 분해능) -- 새 상수 0 |
+### gain-budget-gmid-sizing.41-gain-budget.design.md:1558 ['res', 'dom']
+floor)⌉(span > 0일 때, 아니면 0). span = max_소자 (S_d 길이 합, ln IDu), floor = 그 소자들 S_d 안 LUT VGS 칸의 ln IDu 폭 최솟값(그 좌표의 LUT 격자 분해능 -- 계획 V9 'LUT VGS 칸의 ln IDu 폭'과 같은 칸 폭 정의; 옛 'LUT 곡선의 gm/ID 최솟값'). 구간 길이를 LUT 칸 폭 단위까지 반으로 가르는 횟수이고, t 탐색 분해능 2^−steps와
+  ~ 표의 LUT 격자 분해능 -- 계획 V9 'LUT VGS 칸의 ln IDu 폭'과 같은 칸 폭 정의; 옛 'LUT 곡선의 gm/ID 최솟값'). 구간 길이를 LUT 칸 폭 단위까지 반으로 가르는 횟수이고, t 탐색 분해능 2^−steps와 같다.
+### gain-budget-gmid-sizing.41-gain-budget.design.md:1583 ['tolV', 'sat']
+VDSAT_k(ln IDu_k) ≤ V_part − Σ_{j≠k}(VDSAT_j,min + tol_VDsat,j)
+### gain-budget-gmid-sizing.41-gain-budget.design.md:1588 ['tolV', 'sat']
+선언되어 있으면 V_hi = V_o + h, V_lo = V_o − h. 선언이 없으면 위·아래 예산 합 = ΔV_rail − 2h로 두고, 둘의 나눔은 위·아래 부분 기둥의 최소 요구(Σ(VDSAT_j,min + tol_VDsat,j))에 대한 남는 여유의 최솟값이 가장 크도록 정한다(계산값, 상수 없음).
+### gain-budget-gmid-sizing.41-gain-budget.design.md:1591 ['tolV', 'sat']
+
+### gain-budget-gmid-sizing.41-gain-budget.design.md:1739 ['tolV', 'sat']
+
+### gain-budget-gmid-sizing.41-gain-budget.design.md:1753 ['tolV', 'sat']
+
+### gain-budget-gmid-sizing.41-gain-budget.design.md:2062 ['tolV', 'res', 'inv']
+| RS-1 (1)~(3)(40 §3.8-9) | (a) 단일 소자 Δgm = LUT 기울기 × tol_V 닫힌 식, 약반전 점 새 Δp < 옛 Δp; (2) library 13회로 (O-182 Q-LB1) 분해능 표·판정 분류 변화표, (3) 최악 선형 대 RSS 기록 = card RS-1 판정 기록 | `tests/
+  ~ | RS-1 (1)~(3)(40 §3.8-9) | (a) 단일 소자 Δgm = LUT 기울기 × tol_V 닫힌 식, 약반전 점 새 Δp < 옛 Δp; (2) library 13회로 (O-182 Q-LB1) 분해능 표·판정 분류 변화표, (3) 최악 선형 대 RSS 기록 = card RS-1 판정 기록 | `tests/metrics/test_lut_parameters.py` | 열마다 Δp, 결합 최악 선형 |
+### gain-budget-gmid-sizing.42-gap-checklist.design.md:222 ['tolV', 'sat']
+
+### offset-trim.design.md:84 ['res', 'sat']
+| 상수 발명 금지(NFR-T2, EP-4) | 모든 문턱은 spec(V_res·k), LUT(VDSAT·tol·축·온도), PDK(W_min), 엔진 분해능에서 유도(§10, §17). 반복 상한(균형 풀이 newton)은 `k_max`(`E/sizing/k_max.py`)로 |
+### offset-trim.design.md:491 ['tolV', 'sat']
+
+### offset-trim.design.md:613 ['tolV', 'sat']
+
+### oracle-portability.design.md:47 ['tolV', 'off']
+`, 훑기 방향 `dc_sweep`, 측정 구성 `measure_feedback`, 끝 재훑기 `sweep_rezoom`, 출력 기준 `output_reference`, 슬루 선언 `slew` -- v0.3.1에서 tol_V 열·I_off 열 입력 칸은 삭제). 더하는 card의 통합 병합에 EO-1 생산자 갱신 커밋(`Role: code`)이 함께 들어간다(계획 U-6) |
+### oracle-portability.design.md:48 ['tolV', 'off', 'sat']
+` 해, 범위 판정이면 그 훑기 점의 해. 그 점의 값 = 그 해에서 읽은 VDS·VSB·VGS·ID·gm/ID·VDSAT(1단계, 오라클)와, 그 점 VDS·VSB에서 엔진 정본 LUT 함수가 계산하는 I_off·tol_V(2단계, 엔진 쪽 -- 계획 N3.9 '전도 판정 위치 -- 두 단계', 사용자 결정 O-46 (2)·O-50 G5) |
+### oracle-portability.design.md:89 ['tolV', 'eps', 'off']
+| O-36 (5)·O-45 U2·O-46 (2) | 범위 판정·합격 판정의 전도 = 봉인 9 식 I_off ≤ ε·ID, ε = (gm/ID)·tol_V. 값은 판정 점 값: gm/ID = SPICE op, tol_V·I_off = 그 점 VDS·VSB의 엔진 LUT 값(동작점 `off_current_A` 고정 아님). 원래 
+  ~ | O-36 (5)·O-45 U2·O-46 (2) | 범위 판정·합격 판정의 전도 = 봉인 9 식 I_off ≤ ε·ID, ε = (gm/ID)·tol_V. 값은 판정 점 값: gm/ID = SPICE op, tol_V·I_off = 그 점 VDS·VSB의 엔진 LUT 값(동작점 `off_current_A` 고정 아님). 원래 취지와 다름
+  ~ | O-36 (5)·O-45 U2·O-46 (2) | 범위 판정·합격 판정의 전도 = 봉인 9 식 I_off ≤ ε·ID, ε = (gm/ID)·tol_V. 값은 판정 점 값: gm/ID = SPICE op, tol_V·I_off = 그 점 VDS·VSB의 엔진 LUT 값(동작점 `off_current_A` 고정 아님). 원래 취지와 다름 X-33 승인 | §11.6
+  ~ | O-36 (5)·O-45 U2·O-46 (2) | 범위 판정·합격 판정의 전도 = 봉인 9 식 I_off ≤ ε·ID, ε = (gm/ID)·tol_V. 값은 판정 점 값: gm/ID = SPICE op, tol_V·I_off = 그 점 VDS·VSB의 엔진 LUT 값(동작점 `off_current_A` 고정 아님). 원래 취지와 다름 X-33 승인 | §11.6, §21.1 |
+### oracle-portability.design.md:93 ['tolV', 'off']
+ **G3** 전도 부호 = 선언 방향 ID > 0; **G4** ICMR 측정 구성 = 선언 되먹임, 없으면 β = 1 follower; **G5** 전도 판정 두 단계(오라클 = SPICE op 값, I_off·tol_V와 마무리 = 엔진 정본 LUT 함수); **O2** `judge.off_current_A` 삭제, 포화 확인 대상 = 선언 없는 ID > 0; **O3** OP-10 선행 EO-1; **O4** X-D7·X-D8 
+### oracle-portability.design.md:196 ['tolV', 'eps', 'off']
+ S-41 | 엔진 쪽 정의(오라클은 import하지 않음, 같은 정의를 맞추는 대상): 봉인 9 I_off = `op_point(memo, kind, w_key, L, 0, vds, vsb).IDu · W/L`, ε = `gm_id · dc_tol_v`(`E/sizing/seal_conduction.py:6-10, :32-37`). tol_V 셀 = `tol_v_table(kind, w_key).at(L, vds, "id_eq
+  ~ oint(memo, kind, w_key, L, 0, vds, vsb).IDu · W/L`, ε = `gm_id · dc_tol_v`(`E/sizing/seal_conduction.py:6-10, :32-37`). tol_V 셀 = `tol_v_table(kind, w_key).at(L, vds, "id_equivalent")`(`E/search/cell_floor.py:19`), 읽기 규칙 `E/lut/_helpers_loo.py:1
+### oracle-portability.design.md:233 ['tolV', 'off']
+    conduction.py          (v0.3.0) 판정 점 전도·포화 판정(봉인 9 식, tol_V·I_off 열 읽기, §21.1) -- OP-5
+### oracle-portability.design.md:473 ['tolV', 'off', 'sat']
+; v0.3.2 정정 -- 열 입력 칸 삭제 반영) 판정 점에서 어떤 소자의 1단계 값(ID·gm·VDS·VSB·VGS·VDSAT) 가운데 하나라도 없음(점 기록 `stage1 = undefined`). I_off·tol_V가 정의되지 않는 경우는 엔진 쪽 2단계의 판정 불능이고 이 코드가 아니다(§21.1). 합격 판정이면 그 소자 전도 확인 = '판정 불능' → `INCOMPLETE`(옛 'off_current_A 없음 → N/A'
+### oracle-portability.design.md:814 ['tolV', 'off']
+* **범위 구분**(사용자 결정 O-45 U1): **OP-3 칸**(§11.1) = EO-1이 내는 칸 전부. **G-18 확장 칸**(§11.6: 선언 triode, 훑기 방향, tol_V·I_off 열, 출력 기준, 슬루 선언) = 그 칸을 쓰는 card(OP-5, headroom-chain HC-O, OP-10)가 더하고, 그 card의 **같은 통합 병합에 EO-1 생산자 갱신 커밋(`Role:
+### oracle-portability.design.md:851 ['eps', 'off']
+ 모두 선택 | 아니오 | 엔진 예측 동작점(크기 규칙). `region = "off"` = 엔진이 꺼짐으로 예측(전도 확인 대상 아님). **`off_current_A`는 OP-3 판 한정**: 소자별 전도 문턱(ε = 1 식, S-40) -- **OP-5 병합 때 스키마에서 지운다**(§11.6, 계획 OP-5 '옛 입력 칸 삭제') | 같음 |
+### oracle-portability.design.md:965 ['eps', 'off']
+  * **K-5 '꺼짐 정의 판'**: EO-1 뒤 OP-5 전 기간에는 오라클 합격 판정의 꺼짐이 옛 ε = 1 식이다. 결과 `summary.conduction_definition`(§11.7)이 그 판을 기계로 읽을 수 있게 적는다 -- gain-budget N6.20 '판정 기록에 꺼짐 정의 판을 적는다'의 소비
+### oracle-portability.design.md:1076 ['tolV', 'eps', 'res', 'off', 'sat']
+5)). `ID`는 선언 단자 방향 부호(`signed_id`), `stage1` ∈ {`off_reverse`(ID ≤ 0 -- 꺼짐 확정, G3), `stage2_pending`(ID > 0 -- I_off ≤ ε·ID는 2단계), `undefined`(값 없음)}. 온도 조건 요청(§21.1 B2)이면 소자에 `i_off_spice_A`(소자 개별 풀이 값)와 `tol_v_source = "T_j_lut_cell"` 표기가
+  ~ int_id`가 가리키는 `conduction.points[]` 점의 `x`·`m`이 정본이고 끝 기록에 사본을 두지 않는다(옛 `x_pass`·`x_fail`·`m_pass`·`m_fail` 칸 삭제); 끝 확정 분해능 r(옛 `resolution_r`)은 저장하지 않고 소비자(2단계·검사 (4))가 두 점의 m으로 §18.3 식(§21.2 '끝 풀이')을 다시 잰다. `departed` = **1단계**가 그 끝에서 판정한 이탈
+### oracle-portability.design.md:1099 ['allow', 'sat']
+| PC-7 | 소자 하나, LUT 격자 점 몇 개 | 모델 묶음 비교 규칙(§12.5) 통과. 공칭 op(VDSAT 포함)가 LUT 점과 LUT 허용오차 안 | 다른 모델 파일, vdsat 정의가 다른 표 |
+### oracle-portability.design.md:1574 ['tolV', 'off']
+-41). 계획은 열의 형식도 오라클 쪽 읽기 규칙도 정하지 않았다. 고르는 안에 따라 '합격·범위 판정의 I_off = 엔진 봉인 9의 I_off와 같은 정의'(계획 N3.9 '한 정의')가 성립하는지가 갈린다. tol_V 열은 읽기 규칙이 '정의된 셀 최댓값'이라 이 문제가 없다(§21.1) | (가) **권고**: 오라클이 엔진 VGS = 0 보간 규칙의 **사본**을 새로 쓴다(선례: §10.2 `lut_record_root` 
+  ~ n I_off 쌍선형 보간 -- 단순하지만 격자 사이에서 엔진 값과 달라져 '한 정의'가 근사가 된다(원래 취지와 다름) (다) 2단계 실행: 오라클이 판정 점 VDS·VSB를 내고 생산자가 엔진 함수로 I_off·tol_V를 계산해 다시 넣음 -- 값은 같지만 오라클 판정이 엔진 실행에 기대게 되어 계획 N3.8 '오라클 독립' 구조와 다르고, 범위 훑기 점마다 왕복이 생긴다. **막는 것**: OP-5의 전도 판정 부분(§21.1 
+### oracle-portability.design.md:1583 ['tolV', 'off']
+| DV-6 I_off 열 형식·읽기 규칙 | O-50 G5: 입력 열을 두지 않음, I_off·tol_V는 엔진 정본 LUT 함수가 2단계로(사본 안 (가) 기각); 온도 점 I_off = SPICE 소자 개별 풀이(O-53 B2) | §11.6 `conduction_columns` 삭제, §11.7 `conducti
+### oracle-portability.design.md:1722 ['eps', 'off']
+| X-33 (계획 인용, DR-15) | 합격 판정 '꺼짐' = 봉인 9 식(사용자 결정 O-45 U2 승인, O-46 (2) 값의 출처). 옛 ε = 1 기준으로 PASS였던 점이 FAIL이 될 수 있다(합격 기준이 엄격해짐). OP-5 전 기간 결과에는 `summary.conduction_definition = "threshold_eps1"`이 적혀 구분된
+### oracle-portability.design.md:1849 ['tolV', 'eps', 'off', 'sat']
+e 밖' 부분은 그것으로 대체, 문구 재대조는 남음): gain-budget N3.8 556행(v6.19) "**소자 조건** = spec 선언 triode 밖 모든 MOS가 전도(봉인 9 전도 정의 I_off ≤ ε·ID와 같은 정의)이고 포화(VDS ≥ VDSAT)다 -- 소자가 꺼지는 점도 범위의 끝이다", "I_off·ε 모두 그 점 값이다"; DEC-90 (1) 289행 "SPICE 점에서 I_off > ε·|ID|이면
+  ~ 소자 조건** = spec 선언 triode 밖 모든 MOS가 전도(봉인 9 전도 정의 I_off ≤ ε·ID와 같은 정의)이고 포화(VDS ≥ VDSAT)다 -- 소자가 꺼지는 점도 범위의 끝이다", "I_off·ε 모두 그 점 값이다"; DEC-90 (1) 289행 "SPICE 점에서 I_off > ε·|ID|이면 꺼짐, ε = (gm/ID)·tol_V. I_off·gm/ID·tol_V는 모두 그 판정 점(SPICE op 점
+  ~ _off ≤ ε·ID와 같은 정의)이고 포화(VDS ≥ VDSAT)다 -- 소자가 꺼지는 점도 범위의 끝이다", "I_off·ε 모두 그 점 값이다"; DEC-90 (1) 289행 "SPICE 점에서 I_off > ε·|ID|이면 꺼짐, ε = (gm/ID)·tol_V. I_off·gm/ID·tol_V는 모두 그 판정 점(SPICE op 점) 자신의 값이다 … gm/ID = SPICE op 값, I_off = 그 SPICE op
+  ~ 같은 정의)이고 포화(VDS ≥ VDSAT)다 -- 소자가 꺼지는 점도 범위의 끝이다", "I_off·ε 모두 그 점 값이다"; DEC-90 (1) 289행 "SPICE 점에서 I_off > ε·|ID|이면 꺼짐, ε = (gm/ID)·tol_V. I_off·gm/ID·tol_V는 모두 그 판정 점(SPICE op 점) 자신의 값이다 … gm/ID = SPICE op 값, I_off = 그 SPICE op 점의 VDS·VSB에서
+### oracle-portability.design.md:1853 ['tolV', 'eps', 'off']
+이고 바뀌는 것은 계산 위치뿐): 오라클(1단계, 엔진 import 없음)은 아래 1·2·6·7단계만 하고 결과 `conduction.points[]`(§11.7)에 점별 SPICE op 값을 낸다. **I_off·tol_V와 I_off ≤ ε·ID 판정(옛 3~5단계)은 오라클이 하지 않는다** -- 엔진 정본 LUT 함수(공용 전도 판정 함수 하나, 엔진 봉인 7·9가 바로 부르는 것)가 2단계로 그 SPICE op 점에서 계산한다
+  ~ 뿐): 오라클(1단계, 엔진 import 없음)은 아래 1·2·6·7단계만 하고 결과 `conduction.points[]`(§11.7)에 점별 SPICE op 값을 낸다. **I_off·tol_V와 I_off ≤ ε·ID 판정(옛 3~5단계)은 오라클이 하지 않는다** -- 엔진 정본 LUT 함수(공용 전도 판정 함수 하나, 엔진 봉인 7·9가 바로 부르는 것)가 2단계로 그 SPICE op 점에서 계산한다(엔진 쪽 OP-5 
+  ~ 자 개별 풀이 벤치(`core/build_benches.ioff_bench`: 그 소자 하나, 같은 VDS·VSB, VGS = 0, 그 온도의 `Op`)를 만들고 어댑터가 쓴다, 결과 `i_off_spice_A`; tol_V = T_j LUT 셀(2단계가 계산, 결과에 출처 `T_j_lut_cell` 표기). 그 요청 안 모든 점에 이 규칙 하나. 공칭 판정(LUT I_off)과 T_j 온도 요청(SPICE I_off)의 I_off 출
+### oracle-portability.design.md:1855 ['tolV', 'eps', 'off']
+결정 O-50 G3)** 전도의 부호 조건 = **선언 단자 방향 ID > 0**. ID ≤ 0이면 꺼짐 확정(`stage1 = off_reverse`, 역방향 전도도 꺼짐 -- I_off ≥ 0이라 I_off ≤ ε·ID가 참이 될 수 없다). ID > 0이면 `stage1 = stage2_pending`(통과로 세지 않음). gain-budget DEC-90 (1)의 \|ID\| 문언과 엔진 봉인 9 'ID ≤ 0 판정 제외
+  ~ in-budget DEC-90 (1)의 \|ID\| 문언과 엔진 봉인 9 'ID ≤ 0 판정 제외'를 같은 정의로 맞추는 것은 gain-budget v6.20·엔진 card 몫이다.3~4. (v0.3.1 삭제 -- tol_V·I_off 계산은 2단계 엔진 정본 LUT 함수로 위임, O-50 G5·DV-6 닫힘; 온도 점은 위 B2의 SPICE 소자 개별 풀이. 옛 열 읽기 규칙은 history H7)
+### oracle-portability.design.md:1856 ['tolV', 'eps', 'off']
+5. **전도**(2단계가 판정, 정의 기록) ⟺ I_off ≤ ε·ID, ε = (gm/ID)·tol_V. 정확 부등식(새 허용 폭 없음). 결과 행 = 엔진 봉인 9 행과 같은 모양(`i_off_A`, `tol_v_V`, `eps`, `conduction_margin` = I_
+  ~ 5. **전도**(2단계가 판정, 정의 기록) ⟺ I_off ≤ ε·ID, ε = (gm/ID)·tol_V. 정확 부등식(새 허용 폭 없음). 결과 행 = 엔진 봉인 9 행과 같은 모양(`i_off_A`, `tol_v_V`, `eps`, `conduction_margin` = I_off/(ε
+  ~ 5. **전도**(2단계가 판정, 정의 기록) ⟺ I_off ≤ ε·ID, ε = (gm/ID)·tol_V. 정확 부등식(새 허용 폭 없음). 결과 행 = 엔진 봉인 9 행과 같은 모양(`i_off_A`, `tol_v_V`, `eps`, `conduction_margin` = I_off/(ε·ID), > 1이면 꺼짐 -
+  ~ ε = (gm/ID)·tol_V. 정확 부등식(새 허용 폭 없음). 결과 행 = 엔진 봉인 9 행과 같은 모양(`i_off_A`, `tol_v_V`, `eps`, `conduction_margin` = I_off/(ε·ID), > 1이면 꺼짐 -- `E/sizing/seal_conduction.py:11`).
+### oracle-portability.design.md:1858 ['tolV', 'eps', 'off', 'sat']
+ ≥ VDSAT(전도는 2단계 대기); triode: ID > 0 ∧ VDS < VDSAT(전도는 2단계 대기; 경계 여유 = gain-budget N3.8 triode 경계 여유 한 정의(VDSAT − VDS − tol_VDsat ≥ 0)를 **2단계가 적용** -- 계획 N3.9 '범위 판정' 417행·'선언 영역', 사용자 결정 O-58 T-1; 오라클은 원값 VDS·VDSAT만 내고 여유·tol_VDsat를 적용하지 않음); o
+  ~ 정의(VDSAT − VDS − tol_VDsat ≥ 0)를 **2단계가 적용** -- 계획 N3.9 '범위 판정' 417행·'선언 영역', 사용자 결정 O-58 T-1; 오라클은 원값 VDS·VDSAT만 내고 여유·tol_VDsat를 적용하지 않음); off: ID ≤ 0이면 off 유지 확정, ID > 0이면 2단계(I_off > ε·ID면 off 유지). 동작점에서 선언 소자가 어긋나면 `intended_region_mismatch
+  ~ 행·'선언 영역', 사용자 결정 O-58 T-1; 오라클은 원값 VDS·VDSAT만 내고 여유·tol_VDsat를 적용하지 않음); off: ID ≤ 0이면 off 유지 확정, ID > 0이면 2단계(I_off > ε·ID면 off 유지). 동작점에서 선언 소자가 어긋나면 `intended_region_mismatch`(판정 불능 집계), 훑기 점에서 어긋나면 그 점이 범위 끝(§21.2). 함수는 판정 종류(`accept` /
+### oracle-portability.design.md:1859 ['tolV', 'eps', 'off']
+**깨진 변형**(완료 조건 10, 먼저 실패를 보임): ε가 빠진 식 `ID > I_off`(ε = 1), 판정 점 대신 동작점(봉인점)의 I_off·tol_V로 판정, 꺼진 소자를 조건에서 빼 꺼지는 점을 범위 끝으로 보지 않음, 여유를 포화 정의에 넣음, tol_V `
+  ~ **깨진 변형**(완료 조건 10, 먼저 실패를 보임): ε가 빠진 식 `ID > I_off`(ε = 1), 판정 점 대신 동작점(봉인점)의 I_off·tol_V로 판정, 꺼진 소자를 조건에서 빼 꺼지는 점을 범위 끝으로 보지 않음, 여유를 포화 정의에 넣음, tol_V `None`을 통과로 셈. (v0.3.1
+  ~ **깨진 변형**(완료 조건 10, 먼저 실패를 보임): ε가 빠진 식 `ID > I_off`(ε = 1), 판정 점 대신 동작점(봉인점)의 I_off·tol_V로 판정, 꺼진 소자를 조건에서 빼 꺼지는 점을 범위 끝으로 보지 않음, 여유를 포화 정의에 넣음, tol_V `None`을 통과로 셈. (v0.3.1 추가) 오라클 결과만으로 PASS(`stage2_pending`
+  ~  보임): ε가 빠진 식 `ID > I_off`(ε = 1), 판정 점 대신 동작점(봉인점)의 I_off·tol_V로 판정, 꺼진 소자를 조건에서 빼 꺼지는 점을 범위 끝으로 보지 않음, 여유를 포화 정의에 넣음, tol_V `None`을 통과로 셈. (v0.3.1 추가) 오라클 결과만으로 PASS(`stage2_pending`을 통과로 셈), \|ID\|로 역방향 전도를 전도로 셈(G3), 오라클 안에 LUT 보간 사본(G5), 동작
+### oracle-portability.design.md:1880 ['eps', 'res', 'off']
+onduction.points[]`에 낸다. 2단계는 그 점들에서 첫 전도 쪽 이탈 점을 찾고, **창 끝 = 두 단계 끝 가운데 공칭에 가까운 쪽**(2단계는 창을 줄이기만 함). 전도로 정해진 끝의 괄호가 아래 분해능 r보다 넓으면 2단계가 `sweep_rezoom`(§11.6) 입력으로 다시 요청하고, 같은 r·같은 `ZOOM_ROUNDS` 상한(오라클 결과 `rounds_left`만 전달)을 적용; 상한 안에 확정 안 되면 
+  ~ - (v0.3.2) 1단계 `off_reverse`(ID ≤ 0)면 오라클이 `sweep_end_unresolved`(`why = nominal_not_conducting`)로 내고, ID > 0에서 I_off > ε·ID로 꺼짐이면 2단계(엔진 쪽)가 정의 불능으로 정한다(계획 N3.9 '범위 판정' 끝 문장, 2단계만 I_off를 가짐). **레일 밖 노드 필터**(v0.3.0 gap 지적으로 고침 -- 정의 밖의 **판정 
+### oracle-portability.design.md:1896 ['eps', 'off']
+nding` 소자가 있으면 `summary.verdict = "PENDING_CONDUCTION"`(§11.7, 오라클은 PASS를 내지 않음). 최종 판정은 엔진 쪽 2단계(공용 전도 판정 함수): I_off > ε·ID → FAIL, 판정 불능 → INCOMPLETE. **원인 구분**(U1): 선언 소자(`intended_region`)의 동작점 불일치 = `intended_region_mismatch` 선언 오류 → **
+### oracle-portability.design.md:1898 ['eps', 'off', 'sat']
+v0.3.0 검증 지적 5; v0.3.1: 오라클 표시는 1단계까지 -- ID ≤ 0이면 `"off"`, ID > 0이면 아래 sat/triode에 2단계 대기 표시 `"pending"`을 덧붙이고, I_off > ε·ID의 `"off"`는 2단계 결과에만 있다): `"off"` = §21.1 전도식이 거짓(ID ≤ 0 또는 I_off > ε·ID), `"undefined"` = `conduction_undefined`, 그 밖
+  ~ sat/triode에 2단계 대기 표시 `"pending"`을 덧붙이고, I_off > ε·ID의 `"off"`는 2단계 결과에만 있다): `"off"` = §21.1 전도식이 거짓(ID ≤ 0 또는 I_off > ε·ID), `"undefined"` = `conduction_undefined`, 그 밖은 옛 그대로 VDS − VDSAT ≥ `sat_margin_V`면 `"sat"`, 아니면 `"triode"`(여유가 없으면 `

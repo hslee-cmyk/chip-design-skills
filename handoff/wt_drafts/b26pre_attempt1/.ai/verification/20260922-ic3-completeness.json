@@ -1,0 +1,90 @@
+{
+  "id": "20260922-ic3-completeness",
+  "spec_card": "docs/02-design/specs/20260922-ic3-completeness.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "58e954c14bce4260125a564c1c210af8c7fca897",
+  "test_commit": "360c434d05e672a2adbce8c124acca6cbe08ffa3",
+  "code_commit": "6a4ded26420a5857f695562cfe5170b1b441f9ed",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::test_coverage_and_field_completeness",
+      "skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::test_linked_topology_files_merge_and_collision",
+      "skills/analog-gmid-design/assets/tests/legacy/test_legacy_selftests.py::test_legacy_selftest_exits_zero[stick_diagram]"
+    ],
+    "failure_hashes": [
+      "aa4cd64f3c66c3676276adb9abfec73a3a4f9e565f515369e6154979a379804c",
+      "60a025ef6c18bfbc0058e0629e8a797f79ef023ab62c79965733728f1444d364",
+      "1fa25bebf2a279fe7d495f6fda86ab73cad956b15b483427fff87f988ef32de3"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "3차 시도 병합본 6fe9cffc9fbbf4f34f95dd1ad766a216f4ae3c82(부모 T 360c434 + code 6a4ded2, 병합 트리 e4fa73b7 = code 커밋 트리) 새 격리 복제본 C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7(origin 없음)에서 V1 명령(-k/--deselect/-x/-m 없음, slow 포함 전체, base 판 캐시 58e954c 판 pytest_gate.ini, --gmid-phase=1 --gmid-strict=IC3:,IC5: -- 엄격 집합 = 같은 Phase 병합된 card IC5: ∪ 이번 card IC3:, 00-common §9.3): 65 passed, 12 xfailed(비엄격 IC 뼈대 12개), 실패·오류·skip·xpass 0, 수집 오류 0, exit 0, 50.84s, 출력 sha256 앞 16자리 3cd188faf957c538. contracts/test_ic3.py 2개와 legacy test_legacy_selftest_exits_zero[stick_diagram] PASSED, IC5 엄격 test 9개 PASSED. base(순서 3 base_v1.txt) 대비 PASSED 집합: base 63개 모두 병합본에서 PASSED, 병합본에만 PASSED = test_ic3.py 2개, XFAIL 12개 집합 동일. base 판 캐시 merge_gate.v1_command_check로 이 V1 명령을 strict_needed = strict_set(old 58e954c 트리, spec card) = {IC3:, IC5:}, phase 1로 확인해 문제 0. 실행 뒤 복제본 추적 파일 변경 0"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red-green. 커밋 사슬: base 58e954c -> T 360c434(Role: test, 부모 base, 변경 = tests/contracts/test_ic3.py·tests/legacy/selftest_stick_diagram.py 2경로) -> code 6a4ded2(Role: code, 부모 T, 변경 = stick_diagram.py·function-registry.md 2경로, tests/ 변경 0) -> 병합 6fe9cff(Role: doc, 트리 = code 트리). test 커밋 불변: 병합본 test_ic3.py blob 94b0525a·selftest_stick_diagram.py blob 562cb34b = T blob, T..병합본 diff에 tests/ 경로 0. red 재측정(새 복제본 iso7r를 T로 checkout, base 판 캐시 -p merge_gate --continue-on-collection-errors --gmid-phase=1 --gmid-strict=IC3:,IC5:, GMID_RED_CAPTURE·GMID_INTERFACE_CARD): 3 failed, 62 passed, 12 xfailed, exit 1, 수집 오류 0; capture 15행, 바이트가 순서 3 red.jsonl과 같다(sha256 앞 16자리 755dfc6177951a85). red 3개와 원인: test_coverage_and_field_completeness builtins.ImportError(INSTANCE_SIZING_FIELDS -- interface card 신규 시그니처 표의 신규 심볼), test_linked_topology_files_merge_and_collision builtins.Failed(DID NOT RAISE ValueError -- 나뉜 연결 파일 이름 충돌 배선 없음), test_legacy_selftest_exits_zero[stick_diagram] builtins.AssertionError(빈 sizing save_instance_json이 ValueError를 내지 않음). 나머지 12행은 비엄격 xfail 뼈대 builtins.Failed(결과 XFAIL -- red 아님). failure_hash는 base 판 merge_gate.red_failure_hash(test_id, exc_type)로 재계산 일치(red.failure_hashes). green: 병합본 V1에서 세 id 모두 PASSED. 계약 직접 확인(병합본): 계약 1 -- 두 상수가 design §5.5 원문 튜플과 같고 모듈에 한 번씩 정의, save_instance_json data 키 순서 = INSTANCE_TOP_FIELDS(test 3-c 단언 PASS); 계약 2·3 -- 두 dataclass 필드와 함수 시그니처가 design §5.5와 같다(코드 읽기); 계약 4 -- save_instance_json은 open() 앞에서 load_topology(topology_json_path) 소자 이름으로 check_instance_completeness를 부르고 ok 거짓이면 모든 누락을 담은 ValueError, load_topology는 연결 파일까지 합친 transistors 이름과 진입 파일 passive_elements 이름으로 check_topology_name_uniqueness를 부르고 ok 거짓이면 ValueError; 계약 5 -- 같은 격리 경로(iso7c)에서 base 58e954c와 병합본 6fe9cff를 차례로 checkout해 (a) library 9회로 원본 load_topology: 병합본 9/9 통과, base는 common_gate_amplifier가 TypeError(_comment 키 -- 기존 결함, 이 code 커밋이 고침)로 8/9, 나머지 8회로의 (transistors, meta) repr sha256이 base(T 복제본)·병합본에서 같다; (b) 하네스(run_harness.py 절대 경로를 복제본 루트로 치환한 스크래치 래퍼, 기존 instance.json을 지운 뒤 실행) current_reuse_telescopic_ota exit 0 키 정렬 직렬화 sha256 ba010aeffbfbbd7e875e289e53a0ad2c8fe0085708d8d3ee78bee2fb46c57ab5 base = 병합본, folded_cascode exit 0 9a0d2d63cde624faec90c7d89f1aeadd2f3aa6f75e50e2c5d2200c95b46ff898 base = 병합본, 두 파일 바이트도 같다(병합본 하네스 실행이 배선된 완전성 검사를 통과, 오거부 0); 계약 6 -- interface card 기존 함수 2개는 test 입력용으로만 쓰임; 계약 7 -- 두 새 함수 docstring에 '검사하지 않는 것:'과 '영역: 없음(스키마)', test_ic5(이름 규칙 check_* 대상) PASSED, 레지스트리에 3행 등록(같은 code 커밋)"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "base 판 mutate_changed.py(base 58e954c, head 6fe9cff, --gmid-phase=1 --gmid-strict=IC3:,IC5:, --pytest-ini 복제본 tools/gates/pytest_gate.ini -- 캐시 판과 내용 같고 base..head tools/·.githooks/ 변경 0): targets = stick_diagram.py, 변이 대상 def 4개(load_topology·save_instance_json·check_instance_completeness·check_topology_name_uniqueness), mutants 120, killed 106(모두 test 실패 exit 1, 기준 실행 통과), 면제 14, survivors 0, verdict PASS, exit 0. 2차 시도 생존 16개 중 새 코드 2개(check_instance_completeness·check_topology_name_uniqueness의 body[1] 삭제)는 이번 병합본에서 body[1] = names = tuple(device_names)로 바뀌어 둘 다 죽었다(killed). 면제 14개 = head 트리 .ai/approvals/20260922-ic3-v3-exempt.md(target_kind decision, 사용자 원문 '코드 수정 + 기존 줄 면제 (Recommended)')의 target 전부. auditor가 따로 대조(v3_exempt_check.py, 캐시 판 mutate_changed.changed_defs·mutants): 면제 id 14개 모두 병합본 AST에서 실제로 생성되는 변이 id이고, 각 id의 AST 경로가 가리키는 소스 조각이 2차 시도 병합본 e70ec89에서 가리키던 조각과 같다 -- load_topology body[11].body[2..6](연결 파일 meta 합치기 5줄), body[26].body[1]·body[1].body[0]·body[2].body[0..2](device_roles 자동 쌍 중복 제거 5개), save_instance_json body[2]·body[2].body[0](scope_note 복사), body[6].body[0].value.keywords[0].value ±1(json.dump indent=2, 등가). 면제는 이 변경이 쓰지 않은 기존 줄과 등가 변이뿐이고 새 두 함수의 변이는 하나도 면제되지 않았다"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: 112·113행 상수 기대값 _EXPECTED_TOP·_EXPECTED_SIZING = design §5.5 원문 튜플(auditor가 design 원문과 대조, 일치, oracle (d)); 117·118·120·121행 커버리지 {A,B,C} 대 행 {r:[A,B]} -> missing {C}, 전부 덮으면 ok = design §6.7-1 문장 그대로(oracle (a) 일치); 127·128·135·136·142·143·150·151·157·158·164·165행 손으로 만든 instance에서 뺀 키·소자·필드·netlist 원소·coverage.missing이 곧 그 필드의 기대값이고 다른 필드는 빈 값 = design §5.5 필드 정의를 손으로 적용한 값(oracle (a) 일치); 169~192행 이름 검사기 기대값(중복 M1, 소자=수동 CL, 대소문자 그룹 {M1,m1}·{cl,CL}, CL과 Cc는 casefold가 달라 그룹 없음)은 입력에 겹치게 넣은 이름 그대로이며 design §5.5 case_only_collisions 정의(글자 그대로 같은 이름은 다른 두 목록 몫)와 일치(oracle (a)); 208·209·219~221행 저장 거부는 뺀 소자·필드 이름이 예외 메시지에 있고 파일 없음 = 계약 4 문장(oracle (a)); 229~235행 저장 파일 키 순서 = design §5.5 원문 순서(oracle (d)), sizing = 입력 그대로, netlist 이름 = library JSON에서 직접 읽은 이름, coverage.missing 빈 목록(oracle (a) -- 피검 출력의 복사가 아니라 입력·JSON 원문에서 온 값); 241행 9 = library 디렉터리 _ 머리 제외 파일 수(auditor 실측 9, spec card '9회로'); 245·247행 원본 JSON 이름 목록과 load 결과 비교 -- 기대값이 JSON 원문(oracle (a)); 258·264행 변형 입력 거부(oracle (a) 구성); 295~306행 연결 파일 픽스처는 원본 netlist를 둘로 나눈 것이라 합친 결과 = 원본 load 결과, _linked_files_loaded [] 대 [part_b.topology.json]는 구성으로 정해진 값(oracle (a) 일치, design §6.7 (5)); 312·319행 나뉜 파일 이름 충돌·연결 파일 소자=수동소자 거부(oracle (a)). 이관본 Test 26(selftest_stick_diagram.py 1537~1552행): (가) 빈 sizing -> ValueError, (나) 소자마다 INSTANCE_SIZING_FIELDS 다섯 키의 합성 sizing(값 1.0, 판정 대상 아닌 구성 입력) = design §6.7 '이관본 Test 26 정정' 문장과 일치. 기대값이 피검 함수 출력의 복사인 곳 없음. 도구: base 판 test_lint.py(--interface-card 이 변경 card, base 58e954c, head 6fe9cff, --module-dir skills/analog-gmid-design/assets): verdict PASS, exit 0, 대상 2파일(contracts/test_ic3.py, legacy/selftest_stick_diagram.py), findings 61개 모두 규칙 (2) -- NO-SUBJECT 14, UNJUDGED 47, FAIL 0, (3)(4)(5) 0. 출력 sha256 앞 16자리 0fce9a5e93193cf1. (2) PASS는 독립의 증거가 아니라 UNJUDGED 47개를 포함해 기대값마다 위(oracle 대조)로 대조했다."
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 weakening_diff.py(base 58e954c, head 6fe9cff): verdict PASS, exit 0, findings 2(contracts/test_ic3.py test_coverage_and_field_completeness '비교 완화', <module> '리터럴 변경' -- 뼈대 pytest.fail()을 실제 IC3 검사로 바꾼 것), diff_paths = skills/analog-gmid-design/assets/tests/contracts/test_ic3.py 1경로, diff_hash 7826a406f8760ea5042f0c1998753794a68cca42a405eecb4e0ee55b5acf9a98, approved true -- head 트리 .ai/approvals/20260922-ic3-test-activation.md(target_kind diff, target = 같은 해시, diff_path 같은 1경로, 사용자 원문 '승인 (Recommended)')가 덮는다. 이관본 selftest_stick_diagram.py Test 26 변경은 도구가 발견으로 잡지 않았다(승인 기록 범위 설명에 포함). code 커밋 소스는 V5 대상이 아니다. 출력 sha256 앞 16자리 a55d43b50c6fe802"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 source_lint.py(base 58e954c, head 6fe9cff): targets = stick_diagram.py, findings 0, verdict PASS, exit 0. 2차 시도의 새 continue는 없어졌다 -- check_instance_completeness는 sizing에 값이 있는 이름을 리스트 컴프리헨션으로 먼저 걸러 순회하고, load_topology의 _ 접두 키 제외도 dict 컴프리헨션이라 조건부 건너뛰기 문장이 없다(코드 읽기로 확인)"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 reachability.py PASS, exit 0, new_defs = check_instance_completeness·check_topology_name_uniqueness, unreached 빈 목록(workspaces/run_harness.py::run -> save_instance_json·load_topology 경로로 도달)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 새 코드는 스키마 검사와 ValueError 거부뿐이고 폴백 경로를 만들지 않았다"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 불변 -- 계약 5 하네스 instance.json 해시가 base와 같다(V2)"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음(해시 동일성은 계약 5의 동작 보존 증거)' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열. 계약 5 해시는 V2에 auditor 실측으로 적었다"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260922-10-test-separation-design",
+    "20260922-ic3-test-activation",
+    "20260922-ic3-v3-exempt"
+  ],
+  "auditor_run": {
+    "time": "2026-09-22T20:08:15+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ic3-completeness-audit",
+    "commands": [
+      "격리: git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ic3-completeness-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7",
+      "격리: git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7 remote remove origin",
+      "격리: git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7 config core.longpaths true",
+      "격리(red·계약 5용 복제본, 같은 세 명령): C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7r(checkout --detach 360c434), C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7c(checkout --detach 58e954c 뒤 6fe9cff)",
+      "PY = C:/Python314/python.exe(3.14.2, pytest 9.0.2), APPDATA=C:\\Users\\HSLEE\\AppData\\Roaming, 출력 디렉터리 C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out7",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out7/pyc_v1 PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/58e954c14bce4260125a564c1c210af8c7fca897 $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/58e954c14bce4260125a564c1c210af8c7fca897/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7 --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7 C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7/skills/analog-gmid-design/assets/tests --gmid-phase=1 --gmid-strict=IC3:,IC5: -rA",
+      "V1 cwd: C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7 (HEAD 6fe9cffc9fbbf4f34f95dd1ad766a216f4ae3c82)",
+      "V2 red 재측정(cwd iso7r, HEAD 360c434): GMID_RED_CAPTURE=C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out7/red_T.jsonl GMID_INTERFACE_CARD=C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7r/docs/02-design/specs/20260922-ic3-completeness.interface.md PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out7/pyc_red + V1 명령(복제본 루트 iso7r)에 -p merge_gate --continue-on-collection-errors",
+      "V2 계약 5(cwd iso7c, base 58e954c에서 한 번, checkout --detach 6fe9cff 뒤 한 번): $PY C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out7/c5_load.py <iso7c> <out>; $PY C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out7/c5_harness.py <iso7c> current_reuse_telescopic_ota <out>; 같은 래퍼로 folded_cascode. 보강: $PY C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out7/c5_loadeq.py를 iso7r(T)·iso7(병합본)에서",
+      "V3(cwd iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/58e954c14bce4260125a564c1c210af8c7fca897/mutate_changed.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7 --base 58e954c14bce4260125a564c1c210af8c7fca897 --head 6fe9cffc9fbbf4f34f95dd1ad766a216f4ae3c82 --pytest-ini C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=1 --gmid-strict=IC3:,IC5: --out C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out7/v3/v3.jsonl",
+      "V3 면제 대조(cwd iso7): PYTHONPATH=<캐시> $PY -P C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out7/v3_exempt_check.py <iso7> 58e954c 6fe9cff C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-isom e70ec89 <out>",
+      "V4(cwd iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/58e954c14bce4260125a564c1c210af8c7fca897/test_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7 --interface-card C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7/docs/02-design/specs/20260922-ic3-completeness.interface.md --base 58e954c14bce4260125a564c1c210af8c7fca897 --head 6fe9cffc9fbbf4f34f95dd1ad766a216f4ae3c82 --module-dir skills/analog-gmid-design/assets",
+      "V5(cwd iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/58e954c14bce4260125a564c1c210af8c7fca897/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7 --base 58e954c14bce4260125a564c1c210af8c7fca897 --head 6fe9cffc9fbbf4f34f95dd1ad766a216f4ae3c82",
+      "V6(cwd iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/58e954c14bce4260125a564c1c210af8c7fca897/source_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7 --base 58e954c14bce4260125a564c1c210af8c7fca897 --head 6fe9cffc9fbbf4f34f95dd1ad766a216f4ae3c82",
+      "V7 참고(cwd iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/58e954c14bce4260125a564c1c210af8c7fca897/reachability.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso7 --base 58e954c14bce4260125a564c1c210af8c7fca897 --head 6fe9cffc9fbbf4f34f95dd1ad766a216f4ae3c82",
+      "기록 확인: $PY -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out7/record_check.py <이 기록> <out> (base 판 로더 규칙 1~10, §9.2 5·7·8·9, v1_command_check, red 해시 재계산, 의존성 판)"
+    ]
+  }
+}

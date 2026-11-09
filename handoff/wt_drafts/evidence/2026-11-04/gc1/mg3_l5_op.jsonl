@@ -1,0 +1,6 @@
+{"file": "convergence/layout_input.py", "fn": "layout_input_of", "line": 72, "reach": true, "sink": "ctor:LayoutDevice", "src": "LayoutDevice(name, op.kind, d, g, s, body, float(op.W), float(op.L), float(op.current), float(op.gm_id), float"}
+{"file": "lut/_helpers_columns.py", "fn": "column_source", "line": 21, "reach": true, "sink": "ctor:ColumnSource", "src": "ColumnSource('slice', column, kind, w_key, sl.w_m, sl.grids, sl.columns[column], sl.l_bins, sl.on_mask)"}
+{"file": "lut/_helpers_columns.py", "fn": "column_source", "line": 24, "reach": true, "sink": "ctor:ColumnSource", "src": "ColumnSource('cap_table', column, kind, w_key, cap.w_ref_m, cap.grids, cap.columns[column], cap.l_bins, cap.on"}
+{"file": "metrics/junction_cap.py", "fn": "_finite", "line": 34, "reach": true, "sink": "return", "src": "return float(value)"}
+{"file": "metrics/ls_fields.py", "fn": "_signal_current", "line": 53, "reach": true, "sink": "return", "src": "return op.current"}
+{"file": "metrics/ls_fields.py", "fn": "_cell_current", "line": 63, "reach": true, "sink": "return", "src": "return ops[label].current"}

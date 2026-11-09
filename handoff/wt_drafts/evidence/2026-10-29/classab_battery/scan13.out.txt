@@ -1,0 +1,17 @@
+library/common_gate_amplifier: floating_pairs=0
+library/current_reuse_telescopic_ota: floating_pairs=2
+   {"pair": ["M9a", "M9b"], "nets": ["Vg15", "Vop1"], "gates": ["N11b", "N14a14b"], "in_gs_loop": {"M9a": true, "M9b": true}, "output_devices": ["M15", "M16"]}
+   {"pair": ["M18a", "M18b"], "nets": ["Vg25", "Vom1"], "gates": ["N20b", "N24b23a"], "in_gs_loop": {"M18a": true, "M18b": true}, "output_devices": ["M25", "M26"]}
+library/folded_cascode: floating_pairs=0
+library/ngcc_3stage_ff: floating_pairs=0
+library/nmcnr_amplifier: floating_pairs=0
+library/pushpull_follower_buffer: floating_pairs=0
+library/sf_pushpull_output_opamp: floating_pairs=0
+library/two_stage_ota: floating_pairs=0
+library/two_stage_ota_sf: floating_pairs=0
+heldout/cnr_ota: floating_pairs=0
+heldout/erfc_ota: floating_pairs=0
+heldout/r2r_opamp: floating_pairs=2
+   {"pair": ["M19", "M20"], "nets": ["n_gn", "n_gp"], "gates": ["n_abn", "n_abp"], "in_gs_loop": {"M19": true, "M20": true}, "output_devices": ["M25", "M26"]}
+   {"pair": ["M27", "M28"], "nets": ["n_mn", "n_mp"], "gates": ["n_abn", "n_abp"], "in_gs_loop": {"M27": true, "M28": true}, "output_devices": ["M11", "M12", "M17", "M18"]}
+heldout/rfc_ota: floating_pairs=0

@@ -1,0 +1,454 @@
+* indep pfet
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+
+vs s 0 1.8
+vg g 0 1.35
+vd d 0 0.9
+
+x0 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.42u
+x1 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.43017u
+x2 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.433u
+x3 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.44084u
+x4 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.446u
+x5 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.45205u
+x6 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.459u
+x7 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.46386u
+x8 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.472u
+x9 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.47629u
+x10 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.485u
+x11 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.48941u
+x12 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.498u
+x13 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.50327u
+x14 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.511u
+x15 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.51794u
+x16 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.524u
+x17 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.53349u
+x18 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.537u
+x19 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.55u
+x20 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.553u
+x21 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.56062u
+x22 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.5617u
+x23 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.56845u
+x24 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.5704u
+x25 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.57651u
+x26 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.5791u
+x27 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.5848u
+x28 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.5878u
+x29 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.59333u
+x30 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.5965u
+x31 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.60211u
+x32 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.6052u
+x33 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.61116u
+x34 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.6139u
+x35 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.62048u
+x36 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.6226u
+x37 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.63009u
+x38 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.6313u
+x39 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.64u
+x40 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.643u
+x41 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.65844u
+x42 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.6627u
+x43 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.67464u
+x44 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.6824u
+x45 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.69166u
+x46 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.7021u
+x47 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.70956u
+x48 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.7218u
+x49 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.72842u
+x50 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.7415u
+x51 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.7483u
+x52 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.7612u
+x53 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.76929u
+x54 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.7809u
+x55 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.7915u
+x56 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.8006u
+x57 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.81503u
+x58 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.8203u
+x59 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.84u
+x60 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.843u
+x61 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.85645u
+x62 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.8587u
+x63 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.87033u
+x64 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.8744u
+x65 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.88467u
+x66 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.8901u
+x67 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.89949u
+x68 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.9058u
+x69 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.91481u
+x70 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.9215u
+x71 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.93067u
+x72 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.9372u
+x73 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.94708u
+x74 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.9529u
+x75 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.96409u
+x76 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.9686u
+x77 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.98172u
+x78 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.9843u
+x79 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.0u
+x80 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.003u
+x81 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.02388u
+x82 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.0287u
+x83 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.04566u
+x84 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.0544u
+x85 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.06837u
+x86 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.0801u
+x87 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.0921u
+x88 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.1058u
+x89 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.11691u
+x90 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.1315u
+x91 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.14286u
+x92 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.1572u
+x93 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.17006u
+x94 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.1829u
+x95 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.19858u
+x96 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.2086u
+x97 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.22852u
+x98 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.2343u
+x99 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.26u
+x100 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.263u
+x101 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.29333u
+x102 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.3017u
+x103 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.32516u
+x104 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.3404u
+x105 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.3586u
+x106 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.3791u
+x107 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.39376u
+x108 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.4178u
+x109 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.43079u
+x110 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.4565u
+x111 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.46985u
+x112 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.4952u
+x113 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.51109u
+x114 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.5339u
+x115 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.55472u
+x116 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.5726u
+x117 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.60094u
+x118 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.6113u
+x119 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.65u
+x120 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.653u
+x121 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.65566u
+x122 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.6557u
+x123 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.65833u
+x124 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.6584u
+x125 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.66101u
+x126 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.6611u
+x127 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.6637u
+x128 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.6638u
+x129 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.66639u
+x130 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.6665u
+x131 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.66909u
+x132 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.6692u
+x133 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.67181u
+x134 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.6719u
+x135 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.67453u
+x136 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.6746u
+x137 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.67726u
+x138 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.6773u
+x139 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.68u
+x140 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.683u
+x141 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.71011u
+x142 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.7147u
+x143 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.7381u
+x144 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.7464u
+x145 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.76702u
+x146 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.7781u
+x147 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.79693u
+x148 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.8098u
+x149 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.82786u
+x150 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.8415u
+x151 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.85987u
+x152 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.8732u
+x153 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.89303u
+x154 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.9049u
+x155 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.92739u
+x156 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.9366u
+x157 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.96303u
+x158 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=1.9683u
+x159 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.0u
+x160 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.003u
+x161 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.07185u
+x162 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.1027u
+x163 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.14561u
+x164 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.2024u
+x165 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.22481u
+x166 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.3021u
+x167 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.31009u
+x168 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.4018u
+x169 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.40216u
+x170 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.5015u
+x171 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.50187u
+x172 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.6012u
+x173 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.61023u
+x174 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.7009u
+x175 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.72839u
+x176 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.8006u
+x177 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.85775u
+x178 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=2.9003u
+x179 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.0u
+x180 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.003u
+x181 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.12793u
+x182 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.2027u
+x183 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.2637u
+x184 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.4024u
+x185 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.4118u
+x186 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.57398u
+x187 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.6021u
+x188 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.75234u
+x189 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.8018u
+x190 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=3.94944u
+x191 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=4.0015u
+x192 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=4.1684u
+x193 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=4.2012u
+x194 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=4.4009u
+x195 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=4.41306u
+x196 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=4.6006u
+x197 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=4.68823u
+x198 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=4.8003u
+x199 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=5.0u
+x200 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=5.003u
+x201 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=5.14992u
+x202 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=5.2027u
+x203 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=5.30573u
+x204 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=5.4024u
+x205 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=5.47126u
+x206 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=5.6021u
+x207 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=5.64746u
+x208 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=5.8018u
+x209 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=5.83537u
+x210 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=6.0015u
+x211 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=6.03623u
+x212 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=6.2012u
+x213 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=6.25141u
+x214 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=6.4009u
+x215 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=6.48249u
+x216 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=6.6006u
+x217 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=6.73131u
+x218 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=6.8003u
+x219 d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=7.0u
+.control
+op
+echo R 0 $&@m.x0.msky130_fd_pr__pfet_01v8[id] $&@m.x0.msky130_fd_pr__pfet_01v8[gm]
+echo R 1 $&@m.x1.msky130_fd_pr__pfet_01v8[id] $&@m.x1.msky130_fd_pr__pfet_01v8[gm]
+echo R 2 $&@m.x2.msky130_fd_pr__pfet_01v8[id] $&@m.x2.msky130_fd_pr__pfet_01v8[gm]
+echo R 3 $&@m.x3.msky130_fd_pr__pfet_01v8[id] $&@m.x3.msky130_fd_pr__pfet_01v8[gm]
+echo R 4 $&@m.x4.msky130_fd_pr__pfet_01v8[id] $&@m.x4.msky130_fd_pr__pfet_01v8[gm]
+echo R 5 $&@m.x5.msky130_fd_pr__pfet_01v8[id] $&@m.x5.msky130_fd_pr__pfet_01v8[gm]
+echo R 6 $&@m.x6.msky130_fd_pr__pfet_01v8[id] $&@m.x6.msky130_fd_pr__pfet_01v8[gm]
+echo R 7 $&@m.x7.msky130_fd_pr__pfet_01v8[id] $&@m.x7.msky130_fd_pr__pfet_01v8[gm]
+echo R 8 $&@m.x8.msky130_fd_pr__pfet_01v8[id] $&@m.x8.msky130_fd_pr__pfet_01v8[gm]
+echo R 9 $&@m.x9.msky130_fd_pr__pfet_01v8[id] $&@m.x9.msky130_fd_pr__pfet_01v8[gm]
+echo R 10 $&@m.x10.msky130_fd_pr__pfet_01v8[id] $&@m.x10.msky130_fd_pr__pfet_01v8[gm]
+echo R 11 $&@m.x11.msky130_fd_pr__pfet_01v8[id] $&@m.x11.msky130_fd_pr__pfet_01v8[gm]
+echo R 12 $&@m.x12.msky130_fd_pr__pfet_01v8[id] $&@m.x12.msky130_fd_pr__pfet_01v8[gm]
+echo R 13 $&@m.x13.msky130_fd_pr__pfet_01v8[id] $&@m.x13.msky130_fd_pr__pfet_01v8[gm]
+echo R 14 $&@m.x14.msky130_fd_pr__pfet_01v8[id] $&@m.x14.msky130_fd_pr__pfet_01v8[gm]
+echo R 15 $&@m.x15.msky130_fd_pr__pfet_01v8[id] $&@m.x15.msky130_fd_pr__pfet_01v8[gm]
+echo R 16 $&@m.x16.msky130_fd_pr__pfet_01v8[id] $&@m.x16.msky130_fd_pr__pfet_01v8[gm]
+echo R 17 $&@m.x17.msky130_fd_pr__pfet_01v8[id] $&@m.x17.msky130_fd_pr__pfet_01v8[gm]
+echo R 18 $&@m.x18.msky130_fd_pr__pfet_01v8[id] $&@m.x18.msky130_fd_pr__pfet_01v8[gm]
+echo R 19 $&@m.x19.msky130_fd_pr__pfet_01v8[id] $&@m.x19.msky130_fd_pr__pfet_01v8[gm]
+echo R 20 $&@m.x20.msky130_fd_pr__pfet_01v8[id] $&@m.x20.msky130_fd_pr__pfet_01v8[gm]
+echo R 21 $&@m.x21.msky130_fd_pr__pfet_01v8[id] $&@m.x21.msky130_fd_pr__pfet_01v8[gm]
+echo R 22 $&@m.x22.msky130_fd_pr__pfet_01v8[id] $&@m.x22.msky130_fd_pr__pfet_01v8[gm]
+echo R 23 $&@m.x23.msky130_fd_pr__pfet_01v8[id] $&@m.x23.msky130_fd_pr__pfet_01v8[gm]
+echo R 24 $&@m.x24.msky130_fd_pr__pfet_01v8[id] $&@m.x24.msky130_fd_pr__pfet_01v8[gm]
+echo R 25 $&@m.x25.msky130_fd_pr__pfet_01v8[id] $&@m.x25.msky130_fd_pr__pfet_01v8[gm]
+echo R 26 $&@m.x26.msky130_fd_pr__pfet_01v8[id] $&@m.x26.msky130_fd_pr__pfet_01v8[gm]
+echo R 27 $&@m.x27.msky130_fd_pr__pfet_01v8[id] $&@m.x27.msky130_fd_pr__pfet_01v8[gm]
+echo R 28 $&@m.x28.msky130_fd_pr__pfet_01v8[id] $&@m.x28.msky130_fd_pr__pfet_01v8[gm]
+echo R 29 $&@m.x29.msky130_fd_pr__pfet_01v8[id] $&@m.x29.msky130_fd_pr__pfet_01v8[gm]
+echo R 30 $&@m.x30.msky130_fd_pr__pfet_01v8[id] $&@m.x30.msky130_fd_pr__pfet_01v8[gm]
+echo R 31 $&@m.x31.msky130_fd_pr__pfet_01v8[id] $&@m.x31.msky130_fd_pr__pfet_01v8[gm]
+echo R 32 $&@m.x32.msky130_fd_pr__pfet_01v8[id] $&@m.x32.msky130_fd_pr__pfet_01v8[gm]
+echo R 33 $&@m.x33.msky130_fd_pr__pfet_01v8[id] $&@m.x33.msky130_fd_pr__pfet_01v8[gm]
+echo R 34 $&@m.x34.msky130_fd_pr__pfet_01v8[id] $&@m.x34.msky130_fd_pr__pfet_01v8[gm]
+echo R 35 $&@m.x35.msky130_fd_pr__pfet_01v8[id] $&@m.x35.msky130_fd_pr__pfet_01v8[gm]
+echo R 36 $&@m.x36.msky130_fd_pr__pfet_01v8[id] $&@m.x36.msky130_fd_pr__pfet_01v8[gm]
+echo R 37 $&@m.x37.msky130_fd_pr__pfet_01v8[id] $&@m.x37.msky130_fd_pr__pfet_01v8[gm]
+echo R 38 $&@m.x38.msky130_fd_pr__pfet_01v8[id] $&@m.x38.msky130_fd_pr__pfet_01v8[gm]
+echo R 39 $&@m.x39.msky130_fd_pr__pfet_01v8[id] $&@m.x39.msky130_fd_pr__pfet_01v8[gm]
+echo R 40 $&@m.x40.msky130_fd_pr__pfet_01v8[id] $&@m.x40.msky130_fd_pr__pfet_01v8[gm]
+echo R 41 $&@m.x41.msky130_fd_pr__pfet_01v8[id] $&@m.x41.msky130_fd_pr__pfet_01v8[gm]
+echo R 42 $&@m.x42.msky130_fd_pr__pfet_01v8[id] $&@m.x42.msky130_fd_pr__pfet_01v8[gm]
+echo R 43 $&@m.x43.msky130_fd_pr__pfet_01v8[id] $&@m.x43.msky130_fd_pr__pfet_01v8[gm]
+echo R 44 $&@m.x44.msky130_fd_pr__pfet_01v8[id] $&@m.x44.msky130_fd_pr__pfet_01v8[gm]
+echo R 45 $&@m.x45.msky130_fd_pr__pfet_01v8[id] $&@m.x45.msky130_fd_pr__pfet_01v8[gm]
+echo R 46 $&@m.x46.msky130_fd_pr__pfet_01v8[id] $&@m.x46.msky130_fd_pr__pfet_01v8[gm]
+echo R 47 $&@m.x47.msky130_fd_pr__pfet_01v8[id] $&@m.x47.msky130_fd_pr__pfet_01v8[gm]
+echo R 48 $&@m.x48.msky130_fd_pr__pfet_01v8[id] $&@m.x48.msky130_fd_pr__pfet_01v8[gm]
+echo R 49 $&@m.x49.msky130_fd_pr__pfet_01v8[id] $&@m.x49.msky130_fd_pr__pfet_01v8[gm]
+echo R 50 $&@m.x50.msky130_fd_pr__pfet_01v8[id] $&@m.x50.msky130_fd_pr__pfet_01v8[gm]
+echo R 51 $&@m.x51.msky130_fd_pr__pfet_01v8[id] $&@m.x51.msky130_fd_pr__pfet_01v8[gm]
+echo R 52 $&@m.x52.msky130_fd_pr__pfet_01v8[id] $&@m.x52.msky130_fd_pr__pfet_01v8[gm]
+echo R 53 $&@m.x53.msky130_fd_pr__pfet_01v8[id] $&@m.x53.msky130_fd_pr__pfet_01v8[gm]
+echo R 54 $&@m.x54.msky130_fd_pr__pfet_01v8[id] $&@m.x54.msky130_fd_pr__pfet_01v8[gm]
+echo R 55 $&@m.x55.msky130_fd_pr__pfet_01v8[id] $&@m.x55.msky130_fd_pr__pfet_01v8[gm]
+echo R 56 $&@m.x56.msky130_fd_pr__pfet_01v8[id] $&@m.x56.msky130_fd_pr__pfet_01v8[gm]
+echo R 57 $&@m.x57.msky130_fd_pr__pfet_01v8[id] $&@m.x57.msky130_fd_pr__pfet_01v8[gm]
+echo R 58 $&@m.x58.msky130_fd_pr__pfet_01v8[id] $&@m.x58.msky130_fd_pr__pfet_01v8[gm]
+echo R 59 $&@m.x59.msky130_fd_pr__pfet_01v8[id] $&@m.x59.msky130_fd_pr__pfet_01v8[gm]
+echo R 60 $&@m.x60.msky130_fd_pr__pfet_01v8[id] $&@m.x60.msky130_fd_pr__pfet_01v8[gm]
+echo R 61 $&@m.x61.msky130_fd_pr__pfet_01v8[id] $&@m.x61.msky130_fd_pr__pfet_01v8[gm]
+echo R 62 $&@m.x62.msky130_fd_pr__pfet_01v8[id] $&@m.x62.msky130_fd_pr__pfet_01v8[gm]
+echo R 63 $&@m.x63.msky130_fd_pr__pfet_01v8[id] $&@m.x63.msky130_fd_pr__pfet_01v8[gm]
+echo R 64 $&@m.x64.msky130_fd_pr__pfet_01v8[id] $&@m.x64.msky130_fd_pr__pfet_01v8[gm]
+echo R 65 $&@m.x65.msky130_fd_pr__pfet_01v8[id] $&@m.x65.msky130_fd_pr__pfet_01v8[gm]
+echo R 66 $&@m.x66.msky130_fd_pr__pfet_01v8[id] $&@m.x66.msky130_fd_pr__pfet_01v8[gm]
+echo R 67 $&@m.x67.msky130_fd_pr__pfet_01v8[id] $&@m.x67.msky130_fd_pr__pfet_01v8[gm]
+echo R 68 $&@m.x68.msky130_fd_pr__pfet_01v8[id] $&@m.x68.msky130_fd_pr__pfet_01v8[gm]
+echo R 69 $&@m.x69.msky130_fd_pr__pfet_01v8[id] $&@m.x69.msky130_fd_pr__pfet_01v8[gm]
+echo R 70 $&@m.x70.msky130_fd_pr__pfet_01v8[id] $&@m.x70.msky130_fd_pr__pfet_01v8[gm]
+echo R 71 $&@m.x71.msky130_fd_pr__pfet_01v8[id] $&@m.x71.msky130_fd_pr__pfet_01v8[gm]
+echo R 72 $&@m.x72.msky130_fd_pr__pfet_01v8[id] $&@m.x72.msky130_fd_pr__pfet_01v8[gm]
+echo R 73 $&@m.x73.msky130_fd_pr__pfet_01v8[id] $&@m.x73.msky130_fd_pr__pfet_01v8[gm]
+echo R 74 $&@m.x74.msky130_fd_pr__pfet_01v8[id] $&@m.x74.msky130_fd_pr__pfet_01v8[gm]
+echo R 75 $&@m.x75.msky130_fd_pr__pfet_01v8[id] $&@m.x75.msky130_fd_pr__pfet_01v8[gm]
+echo R 76 $&@m.x76.msky130_fd_pr__pfet_01v8[id] $&@m.x76.msky130_fd_pr__pfet_01v8[gm]
+echo R 77 $&@m.x77.msky130_fd_pr__pfet_01v8[id] $&@m.x77.msky130_fd_pr__pfet_01v8[gm]
+echo R 78 $&@m.x78.msky130_fd_pr__pfet_01v8[id] $&@m.x78.msky130_fd_pr__pfet_01v8[gm]
+echo R 79 $&@m.x79.msky130_fd_pr__pfet_01v8[id] $&@m.x79.msky130_fd_pr__pfet_01v8[gm]
+echo R 80 $&@m.x80.msky130_fd_pr__pfet_01v8[id] $&@m.x80.msky130_fd_pr__pfet_01v8[gm]
+echo R 81 $&@m.x81.msky130_fd_pr__pfet_01v8[id] $&@m.x81.msky130_fd_pr__pfet_01v8[gm]
+echo R 82 $&@m.x82.msky130_fd_pr__pfet_01v8[id] $&@m.x82.msky130_fd_pr__pfet_01v8[gm]
+echo R 83 $&@m.x83.msky130_fd_pr__pfet_01v8[id] $&@m.x83.msky130_fd_pr__pfet_01v8[gm]
+echo R 84 $&@m.x84.msky130_fd_pr__pfet_01v8[id] $&@m.x84.msky130_fd_pr__pfet_01v8[gm]
+echo R 85 $&@m.x85.msky130_fd_pr__pfet_01v8[id] $&@m.x85.msky130_fd_pr__pfet_01v8[gm]
+echo R 86 $&@m.x86.msky130_fd_pr__pfet_01v8[id] $&@m.x86.msky130_fd_pr__pfet_01v8[gm]
+echo R 87 $&@m.x87.msky130_fd_pr__pfet_01v8[id] $&@m.x87.msky130_fd_pr__pfet_01v8[gm]
+echo R 88 $&@m.x88.msky130_fd_pr__pfet_01v8[id] $&@m.x88.msky130_fd_pr__pfet_01v8[gm]
+echo R 89 $&@m.x89.msky130_fd_pr__pfet_01v8[id] $&@m.x89.msky130_fd_pr__pfet_01v8[gm]
+echo R 90 $&@m.x90.msky130_fd_pr__pfet_01v8[id] $&@m.x90.msky130_fd_pr__pfet_01v8[gm]
+echo R 91 $&@m.x91.msky130_fd_pr__pfet_01v8[id] $&@m.x91.msky130_fd_pr__pfet_01v8[gm]
+echo R 92 $&@m.x92.msky130_fd_pr__pfet_01v8[id] $&@m.x92.msky130_fd_pr__pfet_01v8[gm]
+echo R 93 $&@m.x93.msky130_fd_pr__pfet_01v8[id] $&@m.x93.msky130_fd_pr__pfet_01v8[gm]
+echo R 94 $&@m.x94.msky130_fd_pr__pfet_01v8[id] $&@m.x94.msky130_fd_pr__pfet_01v8[gm]
+echo R 95 $&@m.x95.msky130_fd_pr__pfet_01v8[id] $&@m.x95.msky130_fd_pr__pfet_01v8[gm]
+echo R 96 $&@m.x96.msky130_fd_pr__pfet_01v8[id] $&@m.x96.msky130_fd_pr__pfet_01v8[gm]
+echo R 97 $&@m.x97.msky130_fd_pr__pfet_01v8[id] $&@m.x97.msky130_fd_pr__pfet_01v8[gm]
+echo R 98 $&@m.x98.msky130_fd_pr__pfet_01v8[id] $&@m.x98.msky130_fd_pr__pfet_01v8[gm]
+echo R 99 $&@m.x99.msky130_fd_pr__pfet_01v8[id] $&@m.x99.msky130_fd_pr__pfet_01v8[gm]
+echo R 100 $&@m.x100.msky130_fd_pr__pfet_01v8[id] $&@m.x100.msky130_fd_pr__pfet_01v8[gm]
+echo R 101 $&@m.x101.msky130_fd_pr__pfet_01v8[id] $&@m.x101.msky130_fd_pr__pfet_01v8[gm]
+echo R 102 $&@m.x102.msky130_fd_pr__pfet_01v8[id] $&@m.x102.msky130_fd_pr__pfet_01v8[gm]
+echo R 103 $&@m.x103.msky130_fd_pr__pfet_01v8[id] $&@m.x103.msky130_fd_pr__pfet_01v8[gm]
+echo R 104 $&@m.x104.msky130_fd_pr__pfet_01v8[id] $&@m.x104.msky130_fd_pr__pfet_01v8[gm]
+echo R 105 $&@m.x105.msky130_fd_pr__pfet_01v8[id] $&@m.x105.msky130_fd_pr__pfet_01v8[gm]
+echo R 106 $&@m.x106.msky130_fd_pr__pfet_01v8[id] $&@m.x106.msky130_fd_pr__pfet_01v8[gm]
+echo R 107 $&@m.x107.msky130_fd_pr__pfet_01v8[id] $&@m.x107.msky130_fd_pr__pfet_01v8[gm]
+echo R 108 $&@m.x108.msky130_fd_pr__pfet_01v8[id] $&@m.x108.msky130_fd_pr__pfet_01v8[gm]
+echo R 109 $&@m.x109.msky130_fd_pr__pfet_01v8[id] $&@m.x109.msky130_fd_pr__pfet_01v8[gm]
+echo R 110 $&@m.x110.msky130_fd_pr__pfet_01v8[id] $&@m.x110.msky130_fd_pr__pfet_01v8[gm]
+echo R 111 $&@m.x111.msky130_fd_pr__pfet_01v8[id] $&@m.x111.msky130_fd_pr__pfet_01v8[gm]
+echo R 112 $&@m.x112.msky130_fd_pr__pfet_01v8[id] $&@m.x112.msky130_fd_pr__pfet_01v8[gm]
+echo R 113 $&@m.x113.msky130_fd_pr__pfet_01v8[id] $&@m.x113.msky130_fd_pr__pfet_01v8[gm]
+echo R 114 $&@m.x114.msky130_fd_pr__pfet_01v8[id] $&@m.x114.msky130_fd_pr__pfet_01v8[gm]
+echo R 115 $&@m.x115.msky130_fd_pr__pfet_01v8[id] $&@m.x115.msky130_fd_pr__pfet_01v8[gm]
+echo R 116 $&@m.x116.msky130_fd_pr__pfet_01v8[id] $&@m.x116.msky130_fd_pr__pfet_01v8[gm]
+echo R 117 $&@m.x117.msky130_fd_pr__pfet_01v8[id] $&@m.x117.msky130_fd_pr__pfet_01v8[gm]
+echo R 118 $&@m.x118.msky130_fd_pr__pfet_01v8[id] $&@m.x118.msky130_fd_pr__pfet_01v8[gm]
+echo R 119 $&@m.x119.msky130_fd_pr__pfet_01v8[id] $&@m.x119.msky130_fd_pr__pfet_01v8[gm]
+echo R 120 $&@m.x120.msky130_fd_pr__pfet_01v8[id] $&@m.x120.msky130_fd_pr__pfet_01v8[gm]
+echo R 121 $&@m.x121.msky130_fd_pr__pfet_01v8[id] $&@m.x121.msky130_fd_pr__pfet_01v8[gm]
+echo R 122 $&@m.x122.msky130_fd_pr__pfet_01v8[id] $&@m.x122.msky130_fd_pr__pfet_01v8[gm]
+echo R 123 $&@m.x123.msky130_fd_pr__pfet_01v8[id] $&@m.x123.msky130_fd_pr__pfet_01v8[gm]
+echo R 124 $&@m.x124.msky130_fd_pr__pfet_01v8[id] $&@m.x124.msky130_fd_pr__pfet_01v8[gm]
+echo R 125 $&@m.x125.msky130_fd_pr__pfet_01v8[id] $&@m.x125.msky130_fd_pr__pfet_01v8[gm]
+echo R 126 $&@m.x126.msky130_fd_pr__pfet_01v8[id] $&@m.x126.msky130_fd_pr__pfet_01v8[gm]
+echo R 127 $&@m.x127.msky130_fd_pr__pfet_01v8[id] $&@m.x127.msky130_fd_pr__pfet_01v8[gm]
+echo R 128 $&@m.x128.msky130_fd_pr__pfet_01v8[id] $&@m.x128.msky130_fd_pr__pfet_01v8[gm]
+echo R 129 $&@m.x129.msky130_fd_pr__pfet_01v8[id] $&@m.x129.msky130_fd_pr__pfet_01v8[gm]
+echo R 130 $&@m.x130.msky130_fd_pr__pfet_01v8[id] $&@m.x130.msky130_fd_pr__pfet_01v8[gm]
+echo R 131 $&@m.x131.msky130_fd_pr__pfet_01v8[id] $&@m.x131.msky130_fd_pr__pfet_01v8[gm]
+echo R 132 $&@m.x132.msky130_fd_pr__pfet_01v8[id] $&@m.x132.msky130_fd_pr__pfet_01v8[gm]
+echo R 133 $&@m.x133.msky130_fd_pr__pfet_01v8[id] $&@m.x133.msky130_fd_pr__pfet_01v8[gm]
+echo R 134 $&@m.x134.msky130_fd_pr__pfet_01v8[id] $&@m.x134.msky130_fd_pr__pfet_01v8[gm]
+echo R 135 $&@m.x135.msky130_fd_pr__pfet_01v8[id] $&@m.x135.msky130_fd_pr__pfet_01v8[gm]
+echo R 136 $&@m.x136.msky130_fd_pr__pfet_01v8[id] $&@m.x136.msky130_fd_pr__pfet_01v8[gm]
+echo R 137 $&@m.x137.msky130_fd_pr__pfet_01v8[id] $&@m.x137.msky130_fd_pr__pfet_01v8[gm]
+echo R 138 $&@m.x138.msky130_fd_pr__pfet_01v8[id] $&@m.x138.msky130_fd_pr__pfet_01v8[gm]
+echo R 139 $&@m.x139.msky130_fd_pr__pfet_01v8[id] $&@m.x139.msky130_fd_pr__pfet_01v8[gm]
+echo R 140 $&@m.x140.msky130_fd_pr__pfet_01v8[id] $&@m.x140.msky130_fd_pr__pfet_01v8[gm]
+echo R 141 $&@m.x141.msky130_fd_pr__pfet_01v8[id] $&@m.x141.msky130_fd_pr__pfet_01v8[gm]
+echo R 142 $&@m.x142.msky130_fd_pr__pfet_01v8[id] $&@m.x142.msky130_fd_pr__pfet_01v8[gm]
+echo R 143 $&@m.x143.msky130_fd_pr__pfet_01v8[id] $&@m.x143.msky130_fd_pr__pfet_01v8[gm]
+echo R 144 $&@m.x144.msky130_fd_pr__pfet_01v8[id] $&@m.x144.msky130_fd_pr__pfet_01v8[gm]
+echo R 145 $&@m.x145.msky130_fd_pr__pfet_01v8[id] $&@m.x145.msky130_fd_pr__pfet_01v8[gm]
+echo R 146 $&@m.x146.msky130_fd_pr__pfet_01v8[id] $&@m.x146.msky130_fd_pr__pfet_01v8[gm]
+echo R 147 $&@m.x147.msky130_fd_pr__pfet_01v8[id] $&@m.x147.msky130_fd_pr__pfet_01v8[gm]
+echo R 148 $&@m.x148.msky130_fd_pr__pfet_01v8[id] $&@m.x148.msky130_fd_pr__pfet_01v8[gm]
+echo R 149 $&@m.x149.msky130_fd_pr__pfet_01v8[id] $&@m.x149.msky130_fd_pr__pfet_01v8[gm]
+echo R 150 $&@m.x150.msky130_fd_pr__pfet_01v8[id] $&@m.x150.msky130_fd_pr__pfet_01v8[gm]
+echo R 151 $&@m.x151.msky130_fd_pr__pfet_01v8[id] $&@m.x151.msky130_fd_pr__pfet_01v8[gm]
+echo R 152 $&@m.x152.msky130_fd_pr__pfet_01v8[id] $&@m.x152.msky130_fd_pr__pfet_01v8[gm]
+echo R 153 $&@m.x153.msky130_fd_pr__pfet_01v8[id] $&@m.x153.msky130_fd_pr__pfet_01v8[gm]
+echo R 154 $&@m.x154.msky130_fd_pr__pfet_01v8[id] $&@m.x154.msky130_fd_pr__pfet_01v8[gm]
+echo R 155 $&@m.x155.msky130_fd_pr__pfet_01v8[id] $&@m.x155.msky130_fd_pr__pfet_01v8[gm]
+echo R 156 $&@m.x156.msky130_fd_pr__pfet_01v8[id] $&@m.x156.msky130_fd_pr__pfet_01v8[gm]
+echo R 157 $&@m.x157.msky130_fd_pr__pfet_01v8[id] $&@m.x157.msky130_fd_pr__pfet_01v8[gm]
+echo R 158 $&@m.x158.msky130_fd_pr__pfet_01v8[id] $&@m.x158.msky130_fd_pr__pfet_01v8[gm]
+echo R 159 $&@m.x159.msky130_fd_pr__pfet_01v8[id] $&@m.x159.msky130_fd_pr__pfet_01v8[gm]
+echo R 160 $&@m.x160.msky130_fd_pr__pfet_01v8[id] $&@m.x160.msky130_fd_pr__pfet_01v8[gm]
+echo R 161 $&@m.x161.msky130_fd_pr__pfet_01v8[id] $&@m.x161.msky130_fd_pr__pfet_01v8[gm]
+echo R 162 $&@m.x162.msky130_fd_pr__pfet_01v8[id] $&@m.x162.msky130_fd_pr__pfet_01v8[gm]
+echo R 163 $&@m.x163.msky130_fd_pr__pfet_01v8[id] $&@m.x163.msky130_fd_pr__pfet_01v8[gm]
+echo R 164 $&@m.x164.msky130_fd_pr__pfet_01v8[id] $&@m.x164.msky130_fd_pr__pfet_01v8[gm]
+echo R 165 $&@m.x165.msky130_fd_pr__pfet_01v8[id] $&@m.x165.msky130_fd_pr__pfet_01v8[gm]
+echo R 166 $&@m.x166.msky130_fd_pr__pfet_01v8[id] $&@m.x166.msky130_fd_pr__pfet_01v8[gm]
+echo R 167 $&@m.x167.msky130_fd_pr__pfet_01v8[id] $&@m.x167.msky130_fd_pr__pfet_01v8[gm]
+echo R 168 $&@m.x168.msky130_fd_pr__pfet_01v8[id] $&@m.x168.msky130_fd_pr__pfet_01v8[gm]
+echo R 169 $&@m.x169.msky130_fd_pr__pfet_01v8[id] $&@m.x169.msky130_fd_pr__pfet_01v8[gm]
+echo R 170 $&@m.x170.msky130_fd_pr__pfet_01v8[id] $&@m.x170.msky130_fd_pr__pfet_01v8[gm]
+echo R 171 $&@m.x171.msky130_fd_pr__pfet_01v8[id] $&@m.x171.msky130_fd_pr__pfet_01v8[gm]
+echo R 172 $&@m.x172.msky130_fd_pr__pfet_01v8[id] $&@m.x172.msky130_fd_pr__pfet_01v8[gm]
+echo R 173 $&@m.x173.msky130_fd_pr__pfet_01v8[id] $&@m.x173.msky130_fd_pr__pfet_01v8[gm]
+echo R 174 $&@m.x174.msky130_fd_pr__pfet_01v8[id] $&@m.x174.msky130_fd_pr__pfet_01v8[gm]
+echo R 175 $&@m.x175.msky130_fd_pr__pfet_01v8[id] $&@m.x175.msky130_fd_pr__pfet_01v8[gm]
+echo R 176 $&@m.x176.msky130_fd_pr__pfet_01v8[id] $&@m.x176.msky130_fd_pr__pfet_01v8[gm]
+echo R 177 $&@m.x177.msky130_fd_pr__pfet_01v8[id] $&@m.x177.msky130_fd_pr__pfet_01v8[gm]
+echo R 178 $&@m.x178.msky130_fd_pr__pfet_01v8[id] $&@m.x178.msky130_fd_pr__pfet_01v8[gm]
+echo R 179 $&@m.x179.msky130_fd_pr__pfet_01v8[id] $&@m.x179.msky130_fd_pr__pfet_01v8[gm]
+echo R 180 $&@m.x180.msky130_fd_pr__pfet_01v8[id] $&@m.x180.msky130_fd_pr__pfet_01v8[gm]
+echo R 181 $&@m.x181.msky130_fd_pr__pfet_01v8[id] $&@m.x181.msky130_fd_pr__pfet_01v8[gm]
+echo R 182 $&@m.x182.msky130_fd_pr__pfet_01v8[id] $&@m.x182.msky130_fd_pr__pfet_01v8[gm]
+echo R 183 $&@m.x183.msky130_fd_pr__pfet_01v8[id] $&@m.x183.msky130_fd_pr__pfet_01v8[gm]
+echo R 184 $&@m.x184.msky130_fd_pr__pfet_01v8[id] $&@m.x184.msky130_fd_pr__pfet_01v8[gm]
+echo R 185 $&@m.x185.msky130_fd_pr__pfet_01v8[id] $&@m.x185.msky130_fd_pr__pfet_01v8[gm]
+echo R 186 $&@m.x186.msky130_fd_pr__pfet_01v8[id] $&@m.x186.msky130_fd_pr__pfet_01v8[gm]
+echo R 187 $&@m.x187.msky130_fd_pr__pfet_01v8[id] $&@m.x187.msky130_fd_pr__pfet_01v8[gm]
+echo R 188 $&@m.x188.msky130_fd_pr__pfet_01v8[id] $&@m.x188.msky130_fd_pr__pfet_01v8[gm]
+echo R 189 $&@m.x189.msky130_fd_pr__pfet_01v8[id] $&@m.x189.msky130_fd_pr__pfet_01v8[gm]
+echo R 190 $&@m.x190.msky130_fd_pr__pfet_01v8[id] $&@m.x190.msky130_fd_pr__pfet_01v8[gm]
+echo R 191 $&@m.x191.msky130_fd_pr__pfet_01v8[id] $&@m.x191.msky130_fd_pr__pfet_01v8[gm]
+echo R 192 $&@m.x192.msky130_fd_pr__pfet_01v8[id] $&@m.x192.msky130_fd_pr__pfet_01v8[gm]
+echo R 193 $&@m.x193.msky130_fd_pr__pfet_01v8[id] $&@m.x193.msky130_fd_pr__pfet_01v8[gm]
+echo R 194 $&@m.x194.msky130_fd_pr__pfet_01v8[id] $&@m.x194.msky130_fd_pr__pfet_01v8[gm]
+echo R 195 $&@m.x195.msky130_fd_pr__pfet_01v8[id] $&@m.x195.msky130_fd_pr__pfet_01v8[gm]
+echo R 196 $&@m.x196.msky130_fd_pr__pfet_01v8[id] $&@m.x196.msky130_fd_pr__pfet_01v8[gm]
+echo R 197 $&@m.x197.msky130_fd_pr__pfet_01v8[id] $&@m.x197.msky130_fd_pr__pfet_01v8[gm]
+echo R 198 $&@m.x198.msky130_fd_pr__pfet_01v8[id] $&@m.x198.msky130_fd_pr__pfet_01v8[gm]
+echo R 199 $&@m.x199.msky130_fd_pr__pfet_01v8[id] $&@m.x199.msky130_fd_pr__pfet_01v8[gm]
+echo R 200 $&@m.x200.msky130_fd_pr__pfet_01v8[id] $&@m.x200.msky130_fd_pr__pfet_01v8[gm]
+echo R 201 $&@m.x201.msky130_fd_pr__pfet_01v8[id] $&@m.x201.msky130_fd_pr__pfet_01v8[gm]
+echo R 202 $&@m.x202.msky130_fd_pr__pfet_01v8[id] $&@m.x202.msky130_fd_pr__pfet_01v8[gm]
+echo R 203 $&@m.x203.msky130_fd_pr__pfet_01v8[id] $&@m.x203.msky130_fd_pr__pfet_01v8[gm]
+echo R 204 $&@m.x204.msky130_fd_pr__pfet_01v8[id] $&@m.x204.msky130_fd_pr__pfet_01v8[gm]
+echo R 205 $&@m.x205.msky130_fd_pr__pfet_01v8[id] $&@m.x205.msky130_fd_pr__pfet_01v8[gm]
+echo R 206 $&@m.x206.msky130_fd_pr__pfet_01v8[id] $&@m.x206.msky130_fd_pr__pfet_01v8[gm]
+echo R 207 $&@m.x207.msky130_fd_pr__pfet_01v8[id] $&@m.x207.msky130_fd_pr__pfet_01v8[gm]
+echo R 208 $&@m.x208.msky130_fd_pr__pfet_01v8[id] $&@m.x208.msky130_fd_pr__pfet_01v8[gm]
+echo R 209 $&@m.x209.msky130_fd_pr__pfet_01v8[id] $&@m.x209.msky130_fd_pr__pfet_01v8[gm]
+echo R 210 $&@m.x210.msky130_fd_pr__pfet_01v8[id] $&@m.x210.msky130_fd_pr__pfet_01v8[gm]
+echo R 211 $&@m.x211.msky130_fd_pr__pfet_01v8[id] $&@m.x211.msky130_fd_pr__pfet_01v8[gm]
+echo R 212 $&@m.x212.msky130_fd_pr__pfet_01v8[id] $&@m.x212.msky130_fd_pr__pfet_01v8[gm]
+echo R 213 $&@m.x213.msky130_fd_pr__pfet_01v8[id] $&@m.x213.msky130_fd_pr__pfet_01v8[gm]
+echo R 214 $&@m.x214.msky130_fd_pr__pfet_01v8[id] $&@m.x214.msky130_fd_pr__pfet_01v8[gm]
+echo R 215 $&@m.x215.msky130_fd_pr__pfet_01v8[id] $&@m.x215.msky130_fd_pr__pfet_01v8[gm]
+echo R 216 $&@m.x216.msky130_fd_pr__pfet_01v8[id] $&@m.x216.msky130_fd_pr__pfet_01v8[gm]
+echo R 217 $&@m.x217.msky130_fd_pr__pfet_01v8[id] $&@m.x217.msky130_fd_pr__pfet_01v8[gm]
+echo R 218 $&@m.x218.msky130_fd_pr__pfet_01v8[id] $&@m.x218.msky130_fd_pr__pfet_01v8[gm]
+echo R 219 $&@m.x219.msky130_fd_pr__pfet_01v8[id] $&@m.x219.msky130_fd_pr__pfet_01v8[gm]
+quit
+.endc
+.end

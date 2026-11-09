@@ -1,0 +1,406 @@
+"""F1 작성 전 실측 -- 실행 문자열(내장 스크립트) 전수 스캔(측정 전용, 판정 도구가 아니다: auditor는 계약 문언만 보고 독립으로 쓴다).
+
+review_p3_f1_b34t B1: `test_b34_grammar_explicit.py`의 `_B34_FRESH_SCRIPT`(subprocess `-c`로 실행되는 문자열)가 SD 삭제 집합 이름을 읽는데
+design §10 `E3_AST`·`E3B_AST file_reads`는 문자열 안을 보지 않는다.
+
+    python -B f12_execstr.py <저장소 루트> <rev> <out.json> [--drop <SD 삭제 집합 json 목록 파일>]
+
+규칙(계약 1 (e) 문언과 같은 식 -- b1fix2 2026-10-06, review_p3_f1_b1fix S1·m1 반영):
+ 실행 문자열 = 추적 .py 안 문자열 상수(`ast.Constant` str, docstring 자리 제외) 중 **같은 파일 안에서 실행 자리에 닿는 것**.
+   실행 자리: (s1) 내장 `exec`·`eval`·`compile`(이름 호출 -- `re.compile` 같은 속성 호출 아님)의 첫 인자,
+             (s2) 첫 원소가 **파이썬 인터프리터**(`sys.executable`, 그것·`python*` 상수를 대입받은 이름(고정점, `or` 식 포함),
+                  `from sys import executable`, 마지막 경로 성분이 `python`으로 시작하는 문자열 상수)인 리스트·튜플 표시에서
+                  인터프리터 옵션 구간의 상수 `"-c"` 바로 뒤 원소. 옵션 구간은 상수 `"-m"`·`-`로 시작하지 않는 상수에서 끝난다
+                  (`git clone -c`·`python -m pytest -c`는 아님). `-W`·`-X`는 다음 원소를 값으로 먹는다. 비상수 원소·`*펼침`은 구간을 끝내지 않는다(닫힌 쪽).
+             (s3) `write_text`·`write`의 첫 인자 -- **어느 경로(①~④, ③ 매개변수 경유 포함)로 닿든** 스크립트 모양(파싱되고 import 문이 있음)인 문자열만.
+   닿음: 그 자리의 식(감싼 식은 풀어서)이 ① 문자열 상수 자체, ② 문자열 상수를 대입받은 이름(파일 안 어느 스코프든 -- 닫힌 쪽),
+         ③ 함수 매개변수이고 그 함수가 매개변수를 실행 자리로 넘기면, 그 함수 호출의 같은 위치·같은 이름 인자(고정점 -- 자리 종류·템플릿 여부를 함께 넘김),
+         ④ `+`로 이은 식이면 각 피연산자.
+   감싼 식(w1~w3): w1 `X % …`의 X(템플릿), w2 `X.format(…)`·`X.format_map(…)`의 X(템플릿)와 `X.replace/strip/lstrip/rstrip(…)`의 X,
+         w3 `dedent(X)`·`textwrap.dedent(X)`·`str(X)`의 X. 템플릿으로만 닿은 상수는 자리표시자(format 필드·%-지정자)를 식별자
+         `__f12_fmt_<k>__`로 채워 파싱한다(자리표시자가 import 모듈 자리면 'dynamic_import'로 자리만 적는다).
+   파싱 실패((s1)·(s2)로 닿은 것만 가능 -- (s3)은 정의상 파싱된다) = parse_fail(계약상 FAIL·멈춤).
+   규칙 밖(기록만): (s1)·(s2) 자리 식 중 문자열 상수로 닿지 않는 잎(f-string, 다른 호출 결과, 비상수 대입 이름 등) = unresolved_sink.
+ 보조 검출(내용) = 문자열 상수(docstring 자리 제외)가 `ast.parse`(실패하면 `textwrap.dedent` 뒤)로 파싱되고 그 안에 import 문이 있는 것,
+   그리고 파싱되지 않지만 import 줄 모양(줄 머리 `import X`·`from X import`)이 있는 것(content_only_unparsed).
+   실행 문자열이 아닌 보조 검출은 '실행 아님' 후보로 따로 적는다(판정은 사람 -- auditor 목록).
+각 문자열마다 그 파싱 트리에 design §10 E3_AST 식(SR·TL·DR import 문·import 호출)과 E3B_AST `file_reads`(SD 모듈 식 읽기)를 적용한다.
+"""
+import ast
+import json
+import re
+import string
+import subprocess
+import sys
+import textwrap
+
+MODS = {"sizing_recipe", "topology_library", "design_report"}
+IMPF = ("import_module", "_import", "__import__")
+ATTRF = ("getattr", "hasattr", "setattr", "delattr")
+EXECF = ("exec", "eval", "compile")
+WRITEF = ("write_text", "write")
+G = []
+
+
+def git(*a):
+    r = subprocess.run(G + list(a), capture_output=True)
+    if r.returncode:
+        raise SystemExit("git %s: %s" % (a, r.stderr.decode("utf-8", "replace")))
+    return r.stdout
+
+
+def fname(e):
+    f = e.func
+    return f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+
+
+def e3_hits(tree):   # design §10 E3_AST 식 그대로
+    out = []
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import) and any(a.name.split(".")[0] in MODS for a in n.names):
+            out.append(("stmt", n.lineno))
+        elif isinstance(n, ast.ImportFrom) and n.level == 0 and n.module and n.module.split(".")[0] in MODS:
+            out.append(("stmt", n.lineno))
+        elif isinstance(n, ast.Call) and n.args and isinstance(n.args[0], ast.Constant) and isinstance(n.args[0].value, str):
+            if fname(n) in IMPF and n.args[0].value.split(".")[0] in MODS:
+                out.append(("call", n.lineno))
+    return out
+
+
+def file_reads(tree):   # design §10 E3B_AST file_reads 그대로
+    al, fn_sd = set(), set()
+
+    def is_sd(e):
+        if isinstance(e, ast.Name):
+            return e.id in al
+        if isinstance(e, ast.Call):
+            f = e.func
+            nm = f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+            if nm in IMPF and e.args and isinstance(e.args[0], ast.Constant) and e.args[0].value == "stick_diagram":
+                return True
+            return isinstance(f, ast.Name) and f.id in fn_sd
+        return False
+    ch = True
+    while ch:
+        ch = False
+        for n in ast.walk(tree):
+            new = set()
+            if isinstance(n, ast.Import):
+                new = {a.asname or a.name for a in n.names if a.name == "stick_diagram"}
+            elif isinstance(n, (ast.Assign, ast.AnnAssign, ast.NamedExpr)) and n.value is not None and is_sd(n.value):
+                tg = n.targets if isinstance(n, ast.Assign) else [n.target]
+                new = {t.id for t in tg if isinstance(t, ast.Name)}
+            elif isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name not in fn_sd and any(
+                    isinstance(r, ast.Return) and r.value is not None and is_sd(r.value) for r in ast.walk(n)):
+                fn_sd.add(n.name)
+                ch = True
+            if new - al:
+                al |= new
+                ch = True
+    out = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.ImportFrom) and n.level == 0 and n.module == "stick_diagram":
+            out |= {(n.lineno, a.name) for a in n.names}
+        elif isinstance(n, ast.Attribute) and is_sd(n.value):
+            out.add((n.lineno, n.attr))
+        elif isinstance(n, ast.Call) and n.args and is_sd(n.args[0]) and fname(n) in ATTRF:
+            a = n.args[1] if len(n.args) > 1 else None
+            out.add((n.lineno, a.value if isinstance(a, ast.Constant) and isinstance(a.value, str) else "<동적 이름>"))
+    return out
+
+
+def docstring_ids(tree):
+    ids = set()
+    for n in ast.walk(tree):
+        if isinstance(n, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and n.body:
+            s = n.body[0]
+            if isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant) and isinstance(s.value.value, str):
+                ids.add(id(s.value))
+    return ids
+
+
+def parse_embedded(s):
+    for t in (s, textwrap.dedent(s)):
+        try:
+            return ast.parse(t)
+        except (SyntaxError, ValueError):
+            continue
+    return None
+
+
+STRM = ("format", "format_map", "replace", "strip", "lstrip", "rstrip")   # 감싼 자리: 이 메서드의 수신자(문자열)를 따라간다
+STRF = ("dedent", "str")                                                  # 감싼 자리: 이 함수(이름·속성 호출)의 첫 위치 인자를 따라간다
+PYOPT_ARG = ("-W", "-X")                                                   # 인터프리터 옵션 중 다음 원소를 값으로 먹는 것
+
+
+def _interp_names(tree):
+    """인터프리터를 가리키는 이름(파일 안 어느 스코프든 -- 닫힌 쪽): `sys.executable`·`python*` 상수·그런 이름을 대입받은 이름(고정점),
+    `from sys import executable [as x]`."""
+    names = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.ImportFrom) and n.module == "sys":
+            names |= {a.asname or a.name for a in n.names if a.name == "executable"}
+    grew = True
+    while grew:
+        grew = False
+        for n in ast.walk(tree):
+            if isinstance(n, (ast.Assign, ast.AnnAssign)) and getattr(n, "value", None) is not None and _is_interp(n.value, names):
+                for t in (n.targets if isinstance(n, ast.Assign) else [n.target]):
+                    if isinstance(t, ast.Name) and t.id not in names:
+                        names.add(t.id)
+                        grew = True
+    return names
+
+
+def _is_interp(e, names):
+    if isinstance(e, ast.Attribute) and e.attr == "executable" and isinstance(e.value, ast.Name) and e.value.id == "sys":
+        return True
+    if isinstance(e, ast.Name):
+        return e.id in names
+    if isinstance(e, ast.Constant) and isinstance(e.value, str):
+        return e.value.replace("\\", "/").rsplit("/", 1)[-1].lower().startswith("python")
+    if isinstance(e, ast.BoolOp):   # `sys.executable or "python"`
+        return any(_is_interp(v, names) for v in e.values)
+    return False
+
+
+def _py_c_arg(elts, names):
+    """(s2) 리스트·튜플 표시: 첫 원소가 인터프리터면 인터프리터 옵션 구간의 `"-c"` 바로 뒤 원소. 옵션 구간은 상수 `"-m"`이나
+    `-`로 시작하지 않는 상수(스크립트 경로·`-` 표준 입력)에서 끝난다(그 뒤 `-c`는 모듈·스크립트의 인자 -- `pytest -c` 등).
+    상수가 아닌 원소·`*펼침`은 구간을 끝내지 않는다(닫힌 쪽). `-W`·`-X`는 다음 원소를 값으로 먹는다."""
+    if not elts or not _is_interp(elts[0], names):
+        return None
+    i = 1
+    while i < len(elts):
+        e = elts[i]
+        if isinstance(e, ast.Constant) and isinstance(e.value, str):
+            if e.value == "-c":
+                return elts[i + 1] if i + 1 < len(elts) else None
+            if e.value == "-m" or not e.value.startswith("-") or e.value == "-":
+                return None
+            if e.value in PYOPT_ARG:
+                i += 1
+        i += 1
+    return None
+
+
+def exec_strings_ex(tree):
+    """실행 자리에 닿는 문자열 상수(규칙 s1~s3 · ①~④, 감싼 자리 w1~w3).
+    돌려줌: (hit, meta, unresolved)
+      hit[id(상수)] = 사람이 읽는 경로 문자열(첫 경로)
+      meta[id(상수)] = {"base": {s1|s2|s3}, "tmpl": {None|"format"|"percent"}} -- 모든 경로의 합
+      unresolved = [(줄, 자리 종류, 식 모양)] -- (s1)·(s2) 자리 식 중 문자열 상수로 닿지 않는 잎(f-string·다른 호출·비상수 이름 등; 규칙 밖, 기록용)."""
+    name_consts = {}   # 이름 -> [상수 노드]
+    name_other = set()  # 상수가 아닌 값을 대입받은 이름
+    for n in ast.walk(tree):
+        if isinstance(n, (ast.Assign, ast.AnnAssign)) and getattr(n, "value", None) is not None:
+            for t in (n.targets if isinstance(n, ast.Assign) else [n.target]):
+                if isinstance(t, ast.Name):
+                    if isinstance(n.value, ast.Constant) and isinstance(n.value.value, str):
+                        name_consts.setdefault(t.id, []).append(n.value)
+                    else:
+                        name_other.add(t.id)
+        elif isinstance(n, ast.AugAssign) and isinstance(n.target, ast.Name):
+            name_other.add(n.target.id)
+    inames = _interp_names(tree)
+    funcs = {n.name: n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    sink_params = {}   # 함수 이름 -> {(위치, 이름): {(base, tmpl)}}
+
+    def sink_exprs(scope):
+        """(식, base, tmpl, 경로 이름)"""
+        out = []
+        for n in ast.walk(scope):
+            if isinstance(n, ast.Call) and n.args:
+                fn = fname(n)
+                if isinstance(n.func, ast.Name) and fn in EXECF:   # 내장 exec/eval/compile만(`re.compile` 등 속성 호출은 아니다)
+                    out.append((n.args[0], "s1", None, "exec"))
+                elif fn in WRITEF:
+                    out.append((n.args[0], "s3", None, "write"))
+            if isinstance(n, ast.Call) and fname(n) in sink_params:
+                fn = fname(n)
+                for (pos, nm), kinds in sink_params[fn].items():
+                    args = [a for i, a in enumerate(n.args) if i == pos] + [kw.value for kw in n.keywords if kw.arg == nm]
+                    for a in args:
+                        for base, tm in kinds:
+                            out.append((a, base, tm, "param:" + fn))
+            if isinstance(n, (ast.List, ast.Tuple)):
+                a = _py_c_arg(n.elts, inames)
+                if a is not None:
+                    out.append((a, "s2", None, "-c"))
+        return out
+
+    def leaves(e, tm):
+        """(잎 식, tmpl) -- ④ `+` 양쪽, w1 `%` 왼쪽(tmpl percent), w2 STRM 메서드 수신자(format이면 tmpl format), w3 STRF 첫 인자."""
+        if isinstance(e, ast.BinOp) and isinstance(e.op, ast.Add):
+            return leaves(e.left, tm) + leaves(e.right, tm)
+        if isinstance(e, ast.BinOp) and isinstance(e.op, ast.Mod):
+            return leaves(e.left, tm or "percent")
+        if isinstance(e, ast.Call) and isinstance(e.func, ast.Attribute) and e.func.attr in STRM:
+            return leaves(e.func.value, tm or ("format" if e.func.attr in ("format", "format_map") else None))
+        if isinstance(e, ast.Call) and fname(e) in STRF and e.args:
+            return leaves(e.args[0], tm)
+        return [(e, tm)]
+    grew = True
+    while grew:   # ③: 매개변수를 실행 자리로 넘기는 함수(고정점) -- 자리 종류(base)·템플릿 여부를 함께 넘긴다
+        grew = False
+        for fnm, f in funcs.items():
+            params = [a.arg for a in f.args.posonlyargs + f.args.args]
+            for e, base, tm0, _r in sink_exprs(f):
+                for lf, tm in leaves(e, tm0):
+                    if isinstance(lf, ast.Name) and lf.id in params:
+                        key = (params.index(lf.id), lf.id)
+                        ent = sink_params.setdefault(fnm, {}).setdefault(key, set())
+                        if (base, tm) not in ent:
+                            ent.add((base, tm))
+                            grew = True
+    hit, meta, unresolved = {}, {}, []
+    all_params = {a.arg for f in funcs.values() for a in f.args.posonlyargs + f.args.args + f.args.kwonlyargs}
+    for e, base, tm0, route in sink_exprs(tree):
+        for lf, tm in leaves(e, tm0):
+            if isinstance(lf, ast.Constant) and isinstance(lf.value, str):
+                cs = [lf]
+            elif isinstance(lf, ast.Name) and lf.id in name_consts:
+                cs = name_consts[lf.id]
+            else:
+                cs = []
+                if base != "s3" and not (isinstance(lf, ast.Name) and lf.id in all_params and lf.id not in name_other):
+                    unresolved.append((getattr(lf, "lineno", getattr(e, "lineno", 0)), route, type(lf).__name__ +
+                                       (":" + lf.id if isinstance(lf, ast.Name) else "")))
+            for c in cs:
+                # (s3) 파일 쓰기 자리는 어느 경로(①~④·③ 매개변수 경유 포함)로 닿든 스크립트 모양인 문자열만 -- 출력·기록 문자열 제외
+                if base == "s3" and not script_shaped(c.value, tm):
+                    continue
+                hit.setdefault(id(c), route + ("" if c is lf else " via " + lf.id) + (" tmpl:" + tm if tm else ""))
+                m = meta.setdefault(id(c), {"base": set(), "tmpl": set()})
+                m["base"].add(base)
+                m["tmpl"].add(tm)
+    return hit, meta, unresolved
+
+
+def exec_strings(tree):
+    """실행 자리에 닿는 문자열 상수 노드 id -> 경로(규칙 s1~s3 · ①~④ · w1~w3)."""
+    return exec_strings_ex(tree)[0]
+
+
+_PCT = re.compile(r"%(?:\(([^)]*)\))?[-#0 +]*(?:\*|\d+)?(?:\.(?:\*|\d+))?[hlL]?([diouxXeEfFgGcrsa%])")
+
+
+def fill_template(s, tm):
+    """템플릿 자리표시자를 식별자 `__f12_fmt_<k>__`로 채운다(format: 치환 필드, percent: %-지정자; `{{`·`%%`는 글자 하나로).
+    채울 수 없으면(형식 오류) None."""
+    if tm is None:
+        return s
+    out, k = [], 0
+    try:
+        if tm == "format":
+            for lit, field, _spec, _conv in string.Formatter().parse(s):
+                out.append(lit)
+                if field is not None:
+                    out.append("__f12_fmt_%d__" % k)
+                    k += 1
+            return "".join(out)
+        pos = 0
+        for m in _PCT.finditer(s):
+            out.append(s[pos:m.start()])
+            if m.group(2) == "%":
+                out.append("%")
+            else:
+                out.append("__f12_fmt_%d__" % k)
+                k += 1
+            pos = m.end()
+        out.append(s[pos:])
+        return "".join(out)
+    except ValueError:
+        return None
+
+
+def parse_exec(s, tmpls=(None,)):
+    """실행 문자열 파싱(계약 1 (e)): 템플릿이 아닌 경로가 있으면 원문 그대로, 템플릿으로만 닿으면 자리표시자를 채운 뒤.
+    각각 `ast.parse` 실패 시 `textwrap.dedent` 뒤 한 번 더. 실패면 None."""
+    tm = None if (None in tmpls or not tmpls) else sorted(t for t in tmpls if t)[0]
+    t = fill_template(s, tm)
+    return None if t is None else parse_embedded(t)
+
+
+def script_shaped(s, tm=None):
+    t = parse_exec(s, (tm,))
+    return t is not None and any(isinstance(x, (ast.Import, ast.ImportFrom)) for x in ast.walk(t))
+
+
+def dynamic_import_slots(tree):
+    """템플릿 자리표시자가 import 모듈 자리에 온 곳(동적 모듈 -- 판정 기록에 자리만 적는다)."""
+    out = []
+    for x in ast.walk(tree):
+        if isinstance(x, ast.Import):
+            out += [(x.lineno, a.name) for a in x.names if "__f12_fmt_" in a.name]
+        elif isinstance(x, ast.ImportFrom) and x.module and "__f12_fmt_" in x.module:
+            out.append((x.lineno, x.module))
+    return out
+
+
+IMPORT_LINE = re.compile(r"^\s*(?:import\s+[A-Za-z_{]|from\s+[A-Za-z_.{]+\s+import\b)", re.M)
+
+
+def main():
+    global G
+    ROOT, REV, OUT = sys.argv[1:4]
+    DROP = set(json.load(open(sys.argv[sys.argv.index("--drop") + 1], encoding="utf-8"))) if "--drop" in sys.argv else set()
+    G = ["git", "-c", "core.quotepath=off", "-C", ROOT]
+    res = {"rev": REV, "files_scanned": 0, "exec": [], "content_only": [], "parse_error": [], "parse_fail": [],
+           "unresolved_sink": [], "content_only_unparsed": []}
+    paths = [p for p in git("ls-tree", "-r", "--name-only", "-z", REV).decode("utf-8").split("\0") if p.endswith(".py")]
+    for p in paths:
+        src = git("show", REV + ":" + p)
+        try:
+            tree = ast.parse(src)
+        except SyntaxError:
+            res["parse_error"].append(p)
+            continue
+        res["files_scanned"] += 1
+        docs = docstring_ids(tree)
+        hit, meta, unres = exec_strings_ex(tree)
+        for ln, route, shape in unres:
+            res["unresolved_sink"].append({"path": p, "line": ln, "sink": route, "expr": shape})
+        for n in ast.walk(tree):
+            if not (isinstance(n, ast.Constant) and isinstance(n.value, str)) or id(n) in docs:
+                continue
+            is_exec = id(n) in hit
+            tm = meta[id(n)]["tmpl"] if is_exec else {None}
+            sub = parse_exec(n.value, tm) if (is_exec or "import" in n.value) else None
+            has_imp = sub is not None and any(isinstance(x, (ast.Import, ast.ImportFrom)) for x in ast.walk(sub))
+            if not is_exec and not has_imp:
+                if sub is None and "import" in n.value and IMPORT_LINE.search(n.value):
+                    res["content_only_unparsed"].append({"path": p, "line": n.lineno, "len": len(n.value),
+                                                         "engine": sorted(m for m in MODS | {"stick_diagram", "audit_current_forced"} if m in n.value)})
+                continue
+            ent = {"path": p, "line": n.lineno, "len": len(n.value), "sink": hit.get(id(n)), "parses": sub is not None}
+            if is_exec:
+                ent["base"] = sorted(meta[id(n)]["base"])
+                ent["tmpl"] = sorted(t for t in meta[id(n)]["tmpl"] if t)
+                if sub is None:
+                    res["parse_fail"].append({"path": p, "line": n.lineno, "sink": ent["sink"]})
+            if sub is not None:
+                ent["e3"] = e3_hits(sub)
+                rd = sorted(file_reads(sub))
+                ent["sd_reads"] = len(rd)
+                ent["sd_drop_reads"] = sorted({nm for _l, nm in rd if nm in DROP})
+                ent["imports"] = sorted({(a.name if isinstance(x, ast.Import) else (x.module or ".")) for x in ast.walk(sub)
+                                         if isinstance(x, (ast.Import, ast.ImportFrom)) for a in (x.names if isinstance(x, ast.Import) else [x])})
+                dyn = dynamic_import_slots(sub)
+                if dyn:
+                    ent["dynamic_import"] = dyn
+            (res["exec"] if is_exec else res["content_only"]).append(ent)
+    with open(OUT, "w", encoding="utf-8") as fh:
+        json.dump(res, fh, ensure_ascii=False, indent=1)
+    print(json.dumps({"files": res["files_scanned"], "exec": len(res["exec"]), "content_only": len(res["content_only"]),
+                      "parse_fail": len(res["parse_fail"]), "unresolved_sink": len(res["unresolved_sink"]),
+                      "content_only_unparsed": len(res["content_only_unparsed"]),
+                      "exec_with_e3_or_drop": [(x["path"], x["line"], len(x.get("e3", [])), len(x.get("sd_drop_reads", [])))
+                                               for x in res["exec"] if x.get("e3") or x.get("sd_drop_reads")],
+                      "content_only_engine": [(x["path"], x["line"], x.get("imports")) for x in res["content_only"]
+                                              if set(x.get("imports", [])) & (MODS | {"stick_diagram", "audit_current_forced"})]},
+                     ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()

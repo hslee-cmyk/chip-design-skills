@@ -1,0 +1,56 @@
+{
+ "new_files": [
+  "_selftest_shared.py",
+  "test_mod1_gmid_lut.py",
+  "test_mod3_circuit_state_graph.py",
+  "test_mod4_gmid_sizing_engine.py",
+  "test_mod5_circuit_metrics.py",
+  "test_mod6_theta_search.py",
+  "test_mod7_stick_diagram.py",
+  "test_mod8_sizing_layout_convergence.py",
+  "test_mod9_instance_report_builder.py"
+ ],
+ "defs_placed": 269,
+ "tests_placed": 212,
+ "ast_mismatch": [],
+ "unmatched_new_defs": [],
+ "base_defs_not_placed": [],
+ "same_origin_in_2plus_files": {},
+ "within_file_name_clash": {},
+ "same_name_in_2plus_files_tests": [
+  "test_s014_section",
+  "test_s027_section",
+  "test_s030_section",
+  "test_s031_section",
+  "test_s032_section",
+  "test_s033_section",
+  "test_s039_section",
+  "test_s041_section",
+  "test_s045_section",
+  "test_s049_section",
+  "test_s064_section",
+  "test_s070_section"
+ ],
+ "same_name_in_2plus_files_nontest": {
+  "s063_state": [
+   "test_mod5_circuit_metrics.py",
+   "test_mod7_stick_diagram.py"
+  ],
+  "s040_state": [
+   "test_mod7_stick_diagram.py",
+   "test_mod8_sizing_layout_convergence.py"
+  ],
+  "s051_state": [
+   "test_mod7_stick_diagram.py",
+   "test_mod8_sizing_layout_convergence.py"
+  ]
+ },
+ "wrong_k": [],
+ "renamed_token_users": [
+  [
+   "test_mod3_circuit_state_graph.py",
+   "test_s067_MB",
+   "stick_diagram"
+  ]
+ ]
+}

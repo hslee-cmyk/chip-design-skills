@@ -1,0 +1,21 @@
+repo=C:\g244\iso
+log=C:\g244\iso\tools\gates\redteam\logs\20261002-162833-direct.jsonl
+
+PASS             26-gate-output-utf8                          
+PASS             27f-v6-reconfigure-except                    
+PASS             28-v3-gmid-options                           
+PASS             29-v4-decision-exempt                        
+PASS             31-v3-git-history                            
+PASS             34-v3-exempt-binding                         
+FAIL             35-v3-changed-scope                          
+    - FAIL unchanged-stmt-survivor: exit 1 != 기대 0; 메시지에 '"verdict": "PASS"' 없음; 메시지에 '"survivors": []' 없음; 메시지에 '"not_targeted": 4, "targets_by_def"' 없음; 관찰 {'lines': 10, 'by_result': {}} != 기대 {'lines': 10, 'by_result': {'not_targeted': ['rt_engine:rt_calc:arith:body[0].value.args[0]', 'rt_engine:rt_calc:const+:body[0].value.args[0].right', 'rt_engine:rt_calc:const-:body[0].value.args[0].right', 'rt_engine:rt_calc:stmt_delete:body[0]']}}
+    - FAIL enclosing-guard-survivor: 메시지에 '"survivors": ["rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"]' 없음
+    - FAIL header-default-bool: 메시지에 '"mutants": 2, "killed"' 없음
+    - FAIL decorator-mutant-applied: exit 1 != 기대 0; 메시지에 '"verdict": "PASS"' 없음; 메시지에 '"survivors": []' 없음
+    - FAIL same-block-later-use: 메시지에 '"survivors": ["rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"]' 없음
+    - FAIL cross-block-not-targeted: exit 1 != 기대 0; 메시지에 '"verdict": "PASS"' 없음; 메시지에 '"survivors": []' 없음; 메시지에 '"not_targeted": 7, "targets_by_def"' 없음; 관찰 {'lines': 17, 'by_result': {}} != 기대 {'lines': 17, 'by_result': {'not_targeted': ['rt_engine:rt_k:arith:body[2].value', 'rt_engine:rt_k:const+:body[0].value', 'rt_engine:rt_k:const+:body[2].value.right', 'rt_engine:rt_k:const-:body[0].value', 'rt_engine:rt_k:const-:body[2].value.right', 'rt_engine:rt_k:stmt_delete:body[0]', 'rt_engine:rt_k:stmt_delete:body[2]']}}
+PASS             v3_survivor                                  
+PASS             v7_unwired                                   
+
+케이스: {"PASS": 8, "FAIL": 1}
+단계: {"PASS": 83, "FAIL": 6}

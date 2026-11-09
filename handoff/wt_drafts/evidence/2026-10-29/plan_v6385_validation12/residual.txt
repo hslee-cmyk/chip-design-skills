@@ -1,0 +1,8 @@
+HIST has S0 θ 상자 블록 True
+HIST has 소비자 4곳 True
+HIST has 상자 적용 자리 True
+HIST has iv_context.py:32 True
+HIST has 2533 선례 True
+PLAN 같은 필드의 writer 2348 " 않는 갈래) -- DR-1이 따로 쓰지 않으므로 필드마다 writer 하나 그대로이고, 대안 'DR-1 블록이 쓰고 그 소자를 `dc_lengths`·DC 블록 대상에서 뺌'은 같은 필드의 writer가 소자 집합으로 갈려 소유가 둘이 되므로 기각; C_c READS 없음 -- 노드 풀이 graph reus"
+HIST has 같은 필드의 writer True
+HIST has 범위 9 상자 적용 자리 = S0 θ 상자 블록·소비자 4곳 재배선 False

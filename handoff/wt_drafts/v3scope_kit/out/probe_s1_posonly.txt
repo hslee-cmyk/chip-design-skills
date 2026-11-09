@@ -1,0 +1,95 @@
+== S1 posonly  (변이 14)
+   new  changed_params=['b', 'z'] 대상 5 / 14 | 'b'를 읽는 `if`(body[1]) 몫 대상 4
+      - stmt_delete:body[0]
+      T stmt_delete:body[1]
+      - stmt_delete:body[2]
+      - arith:body[0].value
+      - const+:body[0].value.right
+      - const-:body[0].value.right
+      - stmt_delete:body[1].body[0]
+      T cmp_flip:body[1].test.ops[0]
+      T const+:body[1].test.comparators[0]
+      T const-:body[1].test.comparators[0]
+      - arith:body[1].body[0].value
+      - const+:body[1].body[0].value.right
+      - const-:body[1].body[0].value.right
+      T early_return:body[0]
+   old  changed_params=['z'] 대상 1 / 14 | 'b'를 읽는 `if`(body[1]) 몫 대상 0
+      - stmt_delete:body[0]
+      - stmt_delete:body[1]
+      - stmt_delete:body[2]
+      - arith:body[0].value
+      - const+:body[0].value.right
+      - const-:body[0].value.right
+      - stmt_delete:body[1].body[0]
+      - cmp_flip:body[1].test.ops[0]
+      - const+:body[1].test.comparators[0]
+      - const-:body[1].test.comparators[0]
+      - arith:body[1].body[0].value
+      - const+:body[1].body[0].value.right
+      - const-:body[1].body[0].value.right
+      T early_return:body[0]
+   flat changed_params=['b', 'z'] 대상 5 / 14 | 'b'를 읽는 `if`(body[1]) 몫 대상 4
+      - stmt_delete:body[0]
+      T stmt_delete:body[1]
+      - stmt_delete:body[2]
+      - arith:body[0].value
+      - const+:body[0].value.right
+      - const-:body[0].value.right
+      - stmt_delete:body[1].body[0]
+      T cmp_flip:body[1].test.ops[0]
+      T const+:body[1].test.comparators[0]
+      T const-:body[1].test.comparators[0]
+      - arith:body[1].body[0].value
+      - const+:body[1].body[0].value.right
+      - const-:body[1].body[0].value.right
+      T early_return:body[0]
+== kwonly 앞 일반 추가  (변이 15)
+   new  changed_params=['z'] 대상 5 / 15 | 'k'를 읽는 `if`(body[1]) 몫 대상 0
+      - stmt_delete:body[0]
+      - stmt_delete:body[1]
+      - stmt_delete:body[2]
+      T const+:args.kw_defaults[0]
+      T const-:args.kw_defaults[0]
+      T const+:args.defaults[0]
+      T const-:args.defaults[0]
+      - stmt_delete:body[1].body[0]
+      - cmp_flip:body[1].test.ops[0]
+      - const+:body[1].test.comparators[0]
+      - const-:body[1].test.comparators[0]
+      - arith:body[1].body[0].value
+      - const+:body[1].body[0].value.right
+      - const-:body[1].body[0].value.right
+      T early_return:body[0]
+   old  changed_params=['z'] 대상 5 / 15 | 'k'를 읽는 `if`(body[1]) 몫 대상 0
+      - stmt_delete:body[0]
+      - stmt_delete:body[1]
+      - stmt_delete:body[2]
+      T const+:args.kw_defaults[0]
+      T const-:args.kw_defaults[0]
+      T const+:args.defaults[0]
+      T const-:args.defaults[0]
+      - stmt_delete:body[1].body[0]
+      - cmp_flip:body[1].test.ops[0]
+      - const+:body[1].test.comparators[0]
+      - const-:body[1].test.comparators[0]
+      - arith:body[1].body[0].value
+      - const+:body[1].body[0].value.right
+      - const-:body[1].body[0].value.right
+      T early_return:body[0]
+   flat changed_params=['k', 'z'] 대상 9 / 15 | 'k'를 읽는 `if`(body[1]) 몫 대상 4
+      - stmt_delete:body[0]
+      T stmt_delete:body[1]
+      - stmt_delete:body[2]
+      T const+:args.kw_defaults[0]
+      T const-:args.kw_defaults[0]
+      T const+:args.defaults[0]
+      T const-:args.defaults[0]
+      - stmt_delete:body[1].body[0]
+      T cmp_flip:body[1].test.ops[0]
+      T const+:body[1].test.comparators[0]
+      T const-:body[1].test.comparators[0]
+      - arith:body[1].body[0].value
+      - const+:body[1].body[0].value.right
+      - const-:body[1].body[0].value.right
+      T early_return:body[0]

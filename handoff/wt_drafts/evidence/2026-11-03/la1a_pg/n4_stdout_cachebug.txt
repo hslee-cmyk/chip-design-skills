@@ -1,0 +1,24 @@
+sf_pushpull_output_opamp area_dir sealed {} 0.6242482441650777 {'M10': [-13.69, -13.32], 'M11': [-16.28, -14.16], 'M12': [-13.69, -13.44], 'M13': [-13.05, -12.92], 'M15': [-13.06, -12.93], 'M16': [-20.29, -19.54], 'M4': [-16.49, -12.62], 'M5': [-15.91, -14.03], 'M7': [-15.91, -14.03], 'M9': [-16.32, -14.95]}
+sf_pushpull_output_opamp area_dir_guard sealed {} 0.6242482441650777 {'M10': [-13.69, -13.57], 'M11': [-16.28, -15.66], 'M12': [-13.69, -13.19], 'M13': [-13.05, -12.92], 'M15': [-13.06, -12.93], 'M16': [-20.29, -16.66], 'M4': [-16.49, -12.62], 'M5': [-15.91, -14.03], 'M7': [-15.91, -14.03], 'M9': [-16.32, -16.2]}
+sf_pushpull_output_opamp start F0 sealed {'M9': 5.98e-06, 'R1c': 6.03e-06} {} 0.6242482441650777 None
+sf_pushpull_output_opamp start F1 sealed {'M9': 5.98e-06, 'R1c': 6.03e-06} {} 0.6242482441650777 None
+sf_pushpull_output_opamp start F2 failed {'M9': 2.42e-26, 'R1c': 5.31e-06} {} None {'L': 1.5e-07, 'W': 1.7013341761451744e-27, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+sf_pushpull_output_opamp area_dir_guard F0 sealed {'M9': 5.98e-06, 'R1c': 6.03e-06} {} 0.6242482441650777 None
+sf_pushpull_output_opamp area_dir_guard F1 sealed {'M9': 6.78e-06, 'R1c': 6.84e-06} {'gbw_ss_hz': 44140000.0, 'pm_ss_deg': 82.57618} 0.6271282493837346 None
+sf_pushpull_output_opamp area_dir_guard F2 failed {'M9': 2.42e-26, 'R1c': 5.31e-06} {} None {'L': 1.5e-07, 'W': 1.5014221407094308e-27, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+sf_pushpull_output_opamp area_dir F0 sealed {'M9': 5.98e-06, 'R1c': 6.03e-06} {} 0.6242482441650777 None
+sf_pushpull_output_opamp area_dir F1 sealed {'M9': 6.78e-06, 'R1c': 6.84e-06} {'gbw_ss_hz': 8206000.0, 'pm_ss_deg': 58.47219} 0.6271282493837346 None
+sf_pushpull_output_opamp area_dir F2 failed {'M9': 2.42e-26, 'R1c': 5.31e-06} {} None {'L': 1.5e-07, 'W': 1.5014221407094308e-27, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+done
+nmcnr_amplifier area_dir sealed {} 0.1742568507230395 {'M101': [-23.73, -12.86], 'M105': [-12.57, -12.2], 'M108': [-13.45, -13.2], 'M202': [-23.17, -11.55], 'M203': [-19.73, -11.36], 'M302': [-14.39, -12.77]}
+nmcnr_amplifier area_dir_guard sealed {} 0.1742568507230395 {'M101': [-23.73, -12.86], 'M105': [-12.57, -12.2], 'M108': [-13.45, -13.2], 'M202': [-23.17, -11.55], 'M203': [-19.73, -11.36], 'M302': [-14.39, -12.77]}
+nmcnr_amplifier start F0 sealed {'M108': 9.77e-06, 'M109': 9.77e-06, 'M302': 8.91e-06, 'RL': 2.65e-19} {'gbw_ss_hz': 914400.0, 'pm_ss_deg': -15.95662} 0.1742568507230395 None
+nmcnr_amplifier start F1 sealed {'M108': 9.77e-06, 'M109': 9.77e-06, 'M302': 8.91e-06, 'RL': 2.65e-19} {} 0.1742568507230395 None
+nmcnr_amplifier start F2 sealed {'M108': 9.77e-06, 'M109': 9.77e-06, 'M302': 8.91e-06, 'RL': 2.65e-19} {} 0.1742568507230395 None
+nmcnr_amplifier area_dir_guard F0 sealed {'M108': 9.77e-06, 'M109': 9.77e-06, 'M302': 8.91e-06, 'RL': 2.65e-19} {'gbw_ss_hz': 1750000.0, 'pm_ss_deg': -28.28372} 0.1742568507230395 None
+nmcnr_amplifier area_dir_guard F1 sealed {'M108': 9.77e-06, 'M109': 1.03e-05, 'M302': 8.91e-06, 'RL': 2.65e-19} {'gbw_ss_hz': 1781000.0, 'pm_ss_deg': -28.9128} 0.17519374979879374 None
+nmcnr_amplifier area_dir_guard F2 sealed {'M108': 9.77e-06, 'M109': 9.77e-06, 'M302': 8.91e-06, 'RL': 2.65e-19} {} 0.1742568507230395 None
+nmcnr_amplifier area_dir F0 sealed {'M108': 9.77e-06, 'M109': 9.77e-06, 'M302': 8.91e-06, 'RL': 2.65e-19} {} 0.1742568507230395 None
+nmcnr_amplifier area_dir F1 sealed {'M108': 9.77e-06, 'M109': 1.03e-05, 'M302': 8.91e-06, 'RL': 2.65e-19} {} 0.17519374979879374 None
+nmcnr_amplifier area_dir F2 sealed {'M108': 9.77e-06, 'M109': 9.77e-06, 'M302': 8.91e-06, 'RL': 2.65e-19} {} 0.1742568507230395 None
+done

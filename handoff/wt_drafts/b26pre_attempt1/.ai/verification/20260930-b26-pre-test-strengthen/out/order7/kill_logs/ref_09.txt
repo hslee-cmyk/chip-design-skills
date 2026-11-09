@@ -1,0 +1,77 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+shuffle-seed: none
+real_lut: skills/analog-gmid-design/assets/sky130_nfet_pfet_lut_sample.npz sha256=753d802a860320dd54b53b95920c6f9addcea821c55089358bf4b1f1ebaf177f
+rootdir: C:\g342\kt
+configfile: ..\gmid-gate-cache\6c724debd884dd1d31034f5279ae450f35e67fc4\pytest_gate.ini
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 19 items
+
+..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py . [  5%]
+..............F...                                                       [100%]
+
+================================== FAILURES ===================================
+___________________________ test_b26pre_seed_tap_p ____________________________
+
+tmp_path = WindowsPath('C:/g342/tmp/pytest-of-HSLEE/pytest-29/test_b26pre_seed_tap_p0')
+
+    def test_b26pre_seed_tap_p(tmp_path):
+        """계약 10(a) `TAP_P`: 탭 두 개(Mx1·Mx2)가 `ninp`, 하나(My)가 `ninn`.
+    
+        oracle 대조: (a) 구성 + `find_structural_symmetry_candidates` docstring 규칙 3('정확히 하나면 채택, 0개나 2개
+        이상이면 보류')과 씨앗(차동 gate ninp↔ninn 양방향 + vdd/gnd 자기 자신, L 역할 제안 함수 docstring).
+        1라운드에서 Mx1·Mx2 중 먼저 처리된 쪽만 My를 채택한다 -- 어느 쪽인지는 계약이 아니다('정확히 하나').
+        역할 값 이름 `matching`·`mirror`와 '파트너 없으면 키 없음'은 역할 제안 함수 docstring.
+        """
+>       _b26pre_seed_check(tmp_path, "b26pre_tap_p", "ninp", "ninn")
+
+C:\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py:502: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+tmp_path = WindowsPath('C:/g342/tmp/pytest-of-HSLEE/pytest-29/test_b26pre_seed_tap_p0')
+stem = 'b26pre_tap_p', tap_gate = 'ninp', other_gate = 'ninn'
+
+    def _b26pre_seed_check(tmp_path, stem, tap_gate, other_gate):
+        netlist = _b26pre_seed_common() + [
+            _b26pre_nl("Mx1", "nmos", "gnd", "nx1", tap_gate),
+            _b26pre_nl("Mx2", "nmos", "gnd", "nx2", tap_gate),
+            _b26pre_nl("My", "nmos", "gnd", "ny", other_gate),
+        ]
+        path = _b26pre_write_topology(tmp_path, stem, netlist)
+        _t, meta = stick_diagram.load_topology(path)
+        af = meta["_device_roles_autofilled"]
+    
+        def roles(n):
+            return (af.get(n, {}).get("gm_id_role"), af.get(n, {}).get("L_role"))
+    
+>       assert roles("My") == ("matching", "mirror"), (roles("My"), af.get("My"))
+E       AssertionError: ((None, 'mirror'), {'L_role': 'mirror', 'headroom_role': 'mirror'})
+E       assert (None, 'mirror') == ('matching', 'mirror')
+E         
+E         At index 0 diff: None != 'matching'
+E         Use -v to get more diff
+
+C:\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py:482: AssertionError
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_ofcb_lutless_repair
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_euler_fixup_group_split
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds_euler
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_already_ok
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_pair_not_found
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_only_3b_left
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_all_disposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_mirror_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_diffpair_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_hub_gnd_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_resolve_stack_candidates
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_no_ports
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_ports
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_case_collisions
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_seed_tap_n
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_trace_two_branches
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_trace_three_branches_order
+FAILED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_seed_tap_p
+======================== 1 failed, 18 passed in 6.89s =========================

@@ -1,0 +1,8 @@
+[hist] gain-budget-gmid-sizing: ops=['insert'] n_ops=2 inserted_lines=48 rest==old True CRLF old=4 new=4
+[hist] graph-consumption: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=0 new=0
+[hist] headroom-chain: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=0 new=0
+[hist] offset-strategy: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=0 new=0
+[hist] offset-trim: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=0 new=0
+[hist] oracle-portability: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=2 new=2
+[MISS-LINE] gain-budget-gmid-sizing old 426: | O-214 (v6.38.6) | LA-1a 먼저(2026-11-02, `_drafts/user_decisions.md` O-214 행): "LA-1a를 먼저 하자." -- LA-1의 엔진 결함 부분을 card LA-1a로 떼어 먼저 계획 → design → card → test → code: (i) 층 0 출발점 L 칸을 이득 요구에서 역산(DEC-71 (4)(b)) (ii) 층 0 출발점 KVL 정합(R6 블록, O-127 θ 기저) (iii) 출발 회귀 가드(R-a: 출발 0이면 완료 금지); 열린 결정(#21, icmr4 묶음 A·B, 계획 확인 항목 (1)~(3))은 해당 card 착수 조건으로 두고 계획 승인을 진행하며 LA-1a로 엔진 front 점이 생긴 뒤 실측으로 다시 검증해 묻는다(근거
+segments checked 4, miss 1

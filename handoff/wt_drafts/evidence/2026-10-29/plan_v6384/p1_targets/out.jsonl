@@ -1,0 +1,9 @@
+{"circuit": "common_gate_amplifier", "n_constraints": 2, "source_kinds": {"user_spec": 2}, "pending_spice": 0, "metric_decision_pending": 0, "value_none_reference": []}
+{"circuit": "current_reuse_telescopic_ota", "n_constraints": 13, "source_kinds": {"user_spec": 11, "reference": 2}, "pending_spice": 0, "metric_decision_pending": 0, "value_none_reference": ["offset_sys_mv", "parasitic_pm_ss_deg"]}
+{"circuit": "folded_cascode", "n_constraints": 3, "source_kinds": {"user_spec": 3}, "pending_spice": 0, "metric_decision_pending": 0, "value_none_reference": []}
+{"circuit": "ngcc_3stage_ff", "n_constraints": 7, "source_kinds": {"user_spec": 7}, "pending_spice": 0, "metric_decision_pending": 0, "value_none_reference": []}
+{"circuit": "nmcnr_amplifier", "n_constraints": 8, "source_kinds": {"user_spec": 8}, "pending_spice": 0, "metric_decision_pending": 0, "value_none_reference": []}
+{"circuit": "pushpull_follower_buffer", "n_constraints": 2, "source_kinds": {"user_spec": 2}, "pending_spice": 0, "metric_decision_pending": 0, "value_none_reference": []}
+{"circuit": "sf_pushpull_output_opamp", "n_constraints": 8, "source_kinds": {"user_spec": 8}, "pending_spice": 0, "metric_decision_pending": 0, "value_none_reference": []}
+{"circuit": "two_stage_ota", "n_constraints": 6, "source_kinds": {"user_spec": 6}, "pending_spice": 0, "metric_decision_pending": 0, "value_none_reference": []}
+{"circuit": "two_stage_ota_sf", "n_constraints": 7, "source_kinds": {"reference": 2, "user_spec": 5}, "pending_spice": 0, "metric_decision_pending": 0, "value_none_reference": ["gain_ss_db", "gbw_ss_hz"]}

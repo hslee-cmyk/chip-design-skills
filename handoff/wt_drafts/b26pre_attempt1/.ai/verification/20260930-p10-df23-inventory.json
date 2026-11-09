@@ -1,0 +1,113 @@
+{
+ "id": "20260930-p10-df23-inventory",
+ "spec_card": "docs/02-design/specs/20260930-p10-df23-inventory.spec.md",
+ "evidence_type": "test-only",
+ "base_commit": "2d58fd845002b731cf9223e0990ec048f381e4a9",
+ "test_commit": "56b86c6fce97d7f4f66671cda7a7f9f0f54f1da9",
+ "code_commit": null,
+ "checks": {
+  "V1": {
+   "verdict": "PASS",
+   "basis": "test-only라 code 커밋·병합이 없어 판정 대상 트리는 T 56b86c6fce97d7f4f66671cda7a7f9f0f54f1da9 자신이다(design 05 §9.2-4 test-only 모양: old..new^ = T 하나, Role: test·Change-Id, 부모 = base 2d58fd8 = gate master, T = new^). git clone -c core.longpaths=true --no-hardlinks --no-local --no-checkout -> checkout -> remote remove origin 으로 만든 격리 복제본 C:/g78/iso(HEAD = T, remote 0개, status 0줄)에서 base 판 게이트 코드(git cat-file blob 2d58fd8:tools/gates/<파일>, redteam 밖 22개를 C:/g78/gmid-gate-cache/2d58fd8…/에 풀었다)의 pytest_gate.ini로 slow 포함 전체 실행(-k·--deselect·-x·-m 없음, --gmid-phase=2 --gmid-strict=): 871 passed, 15 xfailed, 실패·오류·skip·xpass 0, exit 0, 249.44s. 엄격 집합은 base 판 merge_gate.strict_set(TreeView(C:/g78/iso, 2d58fd8), base 판 spec card) = 빈 집합(conftest_has_gmid_phase 참, 이 card activated_ic_case 없음). 같은 형태로 base 복제본 C:/g78/base(2d58fd8)를 돌리면 822 passed, 15 xfailed, exit 0, 245.93s. --collect-only 대조: base 837 -> T 886, base에만 있는 id 0, 새 id 49 = test_df23_inventory.py 31 + test_phase2_stale_refs.py 18, 기존 id 중 결과가 바뀐 것 0. base 판 merge_gate.v1_command_check(아래 V1 문자열, python_path C:/Python314/python.exe, old 2d58fd8…, strict 없음, phase 2) 위반 0. 환경: Python 3.14.2, pytest 9.0.2, pluggy 1.6.0. test-author 보고(871 passed·15 xfailed)는 증거로 쓰지 않았고 auditor 측정과 같다"
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "test-only(spec card evidence_type, design 05 §9.2-4 T = new^, code_commit null, red 필드 없음 -- 00-common §8.1). [모양] base 2d58fd8 -> T 56b86c6(Role: test, Change-Id 20260930-p10-df23-inventory, 부모 base). base..T diff = 새 파일 2개(A/tests/contracts/test_df23_inventory.py blob 2fd3145f, test_phase2_stale_refs.py blob 95ef184b), test 경로 밖 diff 0(freeze). [변경 전 test 전부 + 새 test] 기존 837 id가 T에서 모두 같은 결과(822 PASS + 15 xfail), 새 test 49개는 base(문서 커밋 포함) 트리 + 새 파일 = T 트리에서 49/49 PASS(V1). [계약 8 거부 확인 -- auditor 측정] 문서 커밋 D = 0fa6ca2c30760f8d7d7fe995ecbcea5d330ad67e(Role: doc, Change-Id 이 card), git rev-parse 0fa6ca2^ = 766b5c2b486df66e143feb1f9440084a62db0ebc = 목록 measured_at = C. 격리 복제본 C:/g78/cst를 766b5c2로 checkout --detach하고 T의 새 test 2개를 git cat-file blob으로 복사(hash-object가 T blob과 같음)해 base 판 캐시·-p merge_gate --continue-on-collection-errors·GMID_RED_CAPTURE로 실행: 7 failed, 42 passed, 수집 오류 0, 실패 7개 전부 builtins.AssertionError -- test_df23_inventory.py::test_inventory_top_level(최상위 키 measured_at 없음 = 계약 1), ::test_inventory_item_fields(phase 키 없음·빈 function = 계약 1), ::test_inventory_phase_closed_set(phase 없음 590 = 계약 2), ::test_inventory_phase_matches_df_table(DF 항목 phase None = 계약 3), ::test_inventory_rail_literals_on_df19_df26(계약 3), ::test_inventory_totals(by_phase 불일치 = 계약 4), test_phase2_stale_refs.py::test_docs_mark_phase2_removed_names(표시 없는 줄 = 계약 5). 통과한 42개는 합성 입력 자기 점검. C 상태 사실(auditor 스크립트): 옛 목록 590항목·measured_at 없음·phase 없는 항목 590·빈 function 414, 계약 5 표시 없는 줄 19줄(20건) = spec card의 HEAD 실측 19줄 목록과 줄 단위로 같다. [계약 7 -- auditor 자신의 스크립트 C:/g78/scripts/c7.py, 생성기·check_contracts.py 미사용, 소스는 git cat-file blob] (a) 515항목 전부 base 소스의 file:line 줄(앞뒤 공백 제거)이 source_line과 같다 -- 어긋남 0(source_line은 줄을 strip한 형태로 적혀 있어 공백 그대로 비교하면 460개가 들여쓰기만 다르다); (b) 어휘를 spec card 작성 전 실측 1c 정의로 base library 10파일에서 다시 만들어(소자 102·넷 101·회로 10, 목록 vocabulary 수와 같음) scope 8파일의 str Constant 정확 일치를 AST로 전수 스캔 -> 149건(135 (파일,줄,값) 키), 목록에 빠진 것 0(목록 exact-match 159 = 어휘 정확 일치 149 + path 규칙 10); (c) 정확 일치 149건의 role을 method의 AST 부모 규칙(직속 부모가 식 문장·f-string 조각이면 메시지뿐, dict 키·비교·첨자·호출·키워드·컨테이너·대입이면 동작을 정함)으로 다시 분류 -> 불일치 0(관찰: 조상까지 보는 더 엄격한 규칙이면 SR 8242 raise 메시지 f-string 안의 spec['vdd'] 조회 1건이 갈린다 -- 부모가 Subscript라 method 규칙으로는 동작이 맞다); (d) 515항목 function을 계약 1 정의(모듈 최상위 정의 단위·데코레이터 줄 포함·class 직속 메서드는 Class.method·중첩은 올림·밖은 <module>)로 base AST에서 다시 구해 불일치 0, 형식 위반 0, 빈 문자열 0; (e) git diff --name-only 766b5c2 2d58fd8 -- A/*.py workspaces/run_harness.py = 빈 출력, 엔진 8파일 blob이 measured_at·base·T에서 같고 library *.topology.json blob도 같다; (f) 삭제 이름 14 + 메서드 fT·junction_cap의 정의가 A/*.py·run_harness·A/tests/tools/*.py에 0(skills·workspaces 전 .py로 넓혀도 0), SR _CMRR_ESTIMATOR_REGISTRY·_PSRR_ESTIMATOR_REGISTRY 키 = [diff_pair_tail] 하나씩이라 선택 키 둘 없음, 이동 5개 정의가 적힌 tests/tools 모듈(interleave_splits 1, regression_runner 4)에만 있음 -- 분류 불일치 0. [계약 1~6 재대조] measured_at 40자리 소문자 16진 = D의 부모; 항목 필드 누락 0·role/context 밖 0·범위 밖 파일 0; phase 닫힌 집합 밖 0(base phase_order에서 2 뒤 + 해당 없음), phase_reason 누락 0, 메시지뿐인데 해당 없음 아님 0; DF 표(role_paths.read_section_table + plan_phase_tokens 괄호 밖 - {2}) 위반 0, 토큰 DF-19 {4}·DF-23 {4}·DF-26 {4}·DF-29 {7a}·DF-30 {7a}·DF-31 {7b}·DF-32 {6b,6c}·DF-33 {7b}·DF-34 {4,7b} = spec card HEAD 실측; 레일 R = {agnd,gnd,vdd,vss}, 운영 동작 레일 리터럴 62항목 전부 DF-19/26; totals 4개 모두 항목에서 센 값과 같다; 계약 5 T 상태 대상 줄 19, 표시 없는 줄 0. 계약 6: git diff --name-only 766b5c2 T는 이 card 경로(문서 커밋 0fa6ca2·card 커밋 b8d4c4d·T) 밖에 fe638ab(Change-Id 20260930-phase2-e4-phase, docs/02-design 한 파일)와 2d58fd8(Change-Id 없음, .ai/approvals 2개·.ai/context.md)를 포함한다 -- 이 card가 바꾼 경로(Change-Id 20260930-p10-df23-inventory 커밋의 합집합)는 docs/02-design·docs/03-analysis/…-20-dead-code-dup·SKILL.md·references·새 test 2개뿐이고, A/*.py·run_harness·library·레지스트리·기존 test 변경 0(E-LIB·E-INST 입력 blob 동일이라 자명 동일)"
+  },
+  "V3": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 mutate_changed.py --root C:/g78/iso --base 2d58fd8… --head 56b86c6… --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=2 --gmid-strict=: verdict PASS, targets [], mutants 0, killed 0, survivors [], exit 0. 대상 0은 base..T diff가 엔진 def를 건드리지 않기 때문이다(바뀐 경로는 A/tests/contracts/ 새 파일 2개, 엔진 8파일 blob 동일). 새 test의 거부력은 V2 계약 8(measured_at 상태 7 failed)과 합성 입력 자기 점검 42개로 따로 보였다"
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: spec card oracle은 (d) 실측 원자료·계획서와 (a) 구성 입력이다 -- test_df23_inventory.py의 기대값: _P10_SCOPE_FILES(A/*.py 7개 + run_harness) = 계약 1 scope 문장(d), auditor가 base에서 A/*.py 7개를 ls-tree로 확인(일치); _P10_TOP_KEYS·_P10_ITEM_KEYS·40자리 소문자 16진·function 형식 정규식·role 두 값·context 접두 = 계약 1 문장(d)(일치); 닫힌 집합 = read_plan_tables(계획서).phase_order에서 2 뒤 + 해당 없음 = 계약 2(d), auditor 실측 phase_order (0.5,1,2,3,4,5,6a,6b,6c,7a,7b,7c)(일치); DF 표 '### N5.2 '·열 '수정 Phase'·plan_phase_tokens 괄호 밖 - {2} = 계약 3(d), auditor 실측 토큰이 spec card HEAD 실측 행과 같음(일치); 레일 DF-19/DF-26·R = library supply_nets 합집합 = 계약 3 레일 규칙(d), auditor 실측 R = {agnd,gnd,vdd,vss}(일치); totals 같음 = 계약 4 (a) 불변식(일치); test_p10_judge_rejects_item 15개·rejects_measured_at 3개·missing_measured_at·n_items·by_phase·unnamed_phase_column = spec card '거부해야 할 입력' 합성 목록 전부(phase 없음, 2, 8, 빈 값, 해당 없음 사유 없음, DF-30에 4, DF-99, 메시지뿐 4, function 빈 값·a.b.c, 운영 vdd에 DF-23, n_items 불일치, measured_at 비16진, 열 이름 다름)를 포함한 (a)(일치); accepts_valid_synthetic = '통과해야 할 것' 전부(DF-34 4·7b, 신규 3 사유, 메시지뿐 DF-31(…) 해당 없음, <module>·Cls.meth, 픽스처 vdd 신규 3)(a)(일치); rail_set {vdd,gnd}·_TEMPLATE 무시, df 표 토큰 {4}·{4,7b}·{4}는 합성 입력에서 구성으로 정해진 값(a)(일치). test_phase2_stale_refs.py: 이름 집합 N(삭제 14 + 선택 키 2 + 호출형 .fT(·.junction_cap( + 이동 5와 각 tests/tools 모듈)과 표시 문구 'Phase 2에서 삭제'·'Phase 2에서'+경로, 문서 집합 D(references/**/*.md, SKILL.md, skill-validation-prompt.md) = 계약 5 고정 데이터(d), 분류가 base 사실과 같음을 auditor가 계약 7 (f)로 확인(일치); 합성 줄 거부 9·통과 4·대상 아님 3·파일 스캔 기대 ['SKILL.md:2 converge_with_parasitics']는 '거부해야 할 입력' 합성 문서 줄(표시 없는 표 행, import 줄, 새 경로 없는 이동, slew_rate_limit)에서 구성으로 정해진 값(a)(일치). 엔진 함수를 피검으로 부르는 기대값 0개 -- 두 파일 모두 엔진 소스를 import하지 않는다. 도구: interface card 신규 시그니처가 비어 test_lint.py --interface-card 단독은 '피검 심볼이 없다'로 exit 2라, base 판 캐시 test_lint.py --root C:/g78/iso --base 2d58fd8 --head 56b86c6 --module-dir skills/analog-gmid-design/assets에 A/*.py 최상위 def·class 373개 전부를 --subject로 넣어 실행 -> verdict PASS, exit 0, 대상 파일 2, findings 36 전부 규칙 (2) NO-SUBJECT(test_df23_inventory 27·test_phase2_stale_refs 9), UNJUDGED 0, FAIL 0, 규칙 (1)(3)(4)(5) 발견 0. PASS는 독립의 증거가 아니다 -- 독립성은 위 기대값별 oracle 대조와 계약 8 거부 확인에 기댄다"
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 weakening_diff.py --root C:/g78/iso --base 2d58fd8… --head 56b86c6…: verdict PASS, findings [], diff_paths [], diff_hash null, approved false, exit 0. 기존 test·conftest.py·test 분류 비 .py 파일 변경 0(새 파일 2개 추가뿐)이라 약화 대상 diff가 없다. 승인 기록 불필요"
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 source_lint.py --root C:/g78/iso --base 2d58fd8… --head 56b86c6…: verdict PASS, targets [], findings [], exit 0. 엔진 소스·하니스 diff 0(엔진 8파일 blob 동일)"
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "도입 Phase 2라 활성. base 판 캐시 reachability.py --root C:/g78/iso --base 2d58fd8… --head 56b86c6…: verdict PASS, new_defs [], unreached [], unreached_without_approval [], roots 4개(sky130_lut_sweep.py::__main__, topology_to_markdown.py::__main__, run_harness.py::__main__, run_harness.py::run), roots_without_file 1개(gmid_design_pipeline.py::run_gmid_design_pipeline, Phase 3 예정), exit 0. 새 def는 A/tests/contracts/ 아래 test 보조 함수뿐이고 같은 파일의 test가 부른다(V1에서 49개 PASS). 생성기 mk_df23_inventory.py는 문서 커밋의 docs/03-analysis 경로라 엔진 배선 대상이 아니고, 커밋된 목록을 만드는 재현 경로다(spec card 미배선 절)"
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터다(base 판 계획서 v_intro[V8] = 4). 이 card는 Phase 2이고 엔진 소스를 바꾸지 않는다"
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터다(base 판 계획서 v_intro[V9] = 6b). 이 card는 Phase 2이고 엔진·library 불변(blob 동일)"
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "spec card '재현할 수치'를 auditor가 격리 복제본에서 직접 세어 reproduced_numbers에 적었다(목록 작성자·준비 보고의 수를 옮기지 않음): totals.n_items 515, by_role 동작을 정함 213·메시지뿐 302, by_phase 해당 없음 317·4 63·3 61·7b 46·7a 27·6b 1, 동작 항목 plan_mapping DF-29 0·DF-30 27·DF-31 16·DF-32 1·DF-33 12·DF-34 18. DF-29 = 0의 근거: DF-29 위치(함수) 열 이름 _load_telescopic_topology_cached·_telescopic_class_ab_open_loop_response 등은 P5b 6612902에서 삭제됐고 그 판정 기록 .ai/verification/20260923-d-delete-telescopic.json(audit 커밋 d7bce7a, code_commit 6612902)이 삭제를 판정했다 -- auditor 계약 7 (f)로 base 정의 0 재확인. 계약 7 (a) 어긋난 줄 0 (b) 빠진 정확 일치 0 (c) role 불일치 0 (d) function 불일치 0 (e) measured_at..old 엔진 경로 변경 0 (f) 분류 불일치 0, 계약 8 measured_at에서 실패한 새 test id 7, 계약 5 대상 줄 C 상태 19 -> T 표시 없는 줄 0. 비교용 이전 상태: C 상태 옛 목록 590항목(spec card 비교 수와 같음). test-author 보고(base 49개 PASS·871/15·C 상태 7 failed)는 대조용으로만 보았고 auditor 측정과 같다"
+  }
+ },
+ "reproduced_numbers": [
+  {"name": "df23_inventory totals.n_items(항목 수에서 직접 셈)", "value": 515, "command": "PYTHONPATH=<캐시> C:/Python314/python.exe -P C:/g78/scripts/c7.py C:/g78/iso 2d58fd8… 766b5c2… 56b86c6… C:/g78/out/c7.json (n_items)"},
+  {"name": "by_role 동작을 정함", "value": 213, "command": "C:/g78/scripts/c7.py (by_role)"},
+  {"name": "by_role 메시지뿐", "value": 302, "command": "C:/g78/scripts/c7.py (by_role)"},
+  {"name": "by_phase 해당 없음", "value": 317, "command": "C:/g78/scripts/c7.py (by_phase)"},
+  {"name": "by_phase 4", "value": 63, "command": "C:/g78/scripts/c7.py (by_phase)"},
+  {"name": "by_phase 3", "value": 61, "command": "C:/g78/scripts/c7.py (by_phase)"},
+  {"name": "by_phase 7b", "value": 46, "command": "C:/g78/scripts/c7.py (by_phase)"},
+  {"name": "by_phase 7a", "value": 27, "command": "C:/g78/scripts/c7.py (by_phase)"},
+  {"name": "by_phase 6b", "value": 1, "command": "C:/g78/scripts/c7.py (by_phase)"},
+  {"name": "동작 항목 plan_mapping DF-29", "value": 0, "command": "C:/g78/scripts/c7.py (behavior_by_df29_34)"},
+  {"name": "동작 항목 plan_mapping DF-30", "value": 27, "command": "C:/g78/scripts/c7.py (behavior_by_df29_34)"},
+  {"name": "동작 항목 plan_mapping DF-31", "value": 16, "command": "C:/g78/scripts/c7.py (behavior_by_df29_34)"},
+  {"name": "동작 항목 plan_mapping DF-32", "value": 1, "command": "C:/g78/scripts/c7.py (behavior_by_df29_34)"},
+  {"name": "동작 항목 plan_mapping DF-33", "value": 12, "command": "C:/g78/scripts/c7.py (behavior_by_df29_34)"},
+  {"name": "동작 항목 plan_mapping DF-34", "value": 18, "command": "C:/g78/scripts/c7.py (behavior_by_df29_34)"},
+  {"name": "계약 7 (a) source_line과 어긋난 줄", "value": 0, "command": "C:/g78/scripts/c7.py (c7a_mismatch_after_strip)"},
+  {"name": "계약 7 (b) 빠진 정확 일치 항목", "value": 0, "command": "C:/g78/scripts/c7.py (c7b_missing)"},
+  {"name": "계약 7 (b) 어휘 정확 일치 str Constant 건수", "value": 149, "command": "C:/g78/scripts/c7.py (c7b_exact_occurrences)"},
+  {"name": "계약 7 (c) role 불일치", "value": 0, "command": "C:/g78/scripts/c7.py (c7c_role_mismatch)"},
+  {"name": "계약 7 (d) function 불일치", "value": 0, "command": "C:/g78/scripts/c7.py (c7d_function_mismatch)"},
+  {"name": "계약 7 (e) measured_at..old 엔진 경로 변경", "value": 0, "command": "git -C C:/g78/iso diff --name-only 766b5c2 2d58fd8 -- 'skills/analog-gmid-design/assets/*.py' workspaces/run_harness.py"},
+  {"name": "계약 7 (f) 계약 5 분류 불일치", "value": 0, "command": "C:/g78/scripts/c7.py (c7f_mismatch)"},
+  {"name": "어휘 소자 수(1c 정의)", "value": 102, "command": "C:/g78/scripts/c7.py (vocab_counts)"},
+  {"name": "어휘 넷 수(1c 정의)", "value": 101, "command": "C:/g78/scripts/c7.py (vocab_counts)"},
+  {"name": "어휘 회로 수(1c 정의)", "value": 10, "command": "C:/g78/scripts/c7.py (vocab_counts)"},
+  {"name": "계약 8 measured_at 상태에서 실패한 새 test id 수(AssertionError)", "value": 7, "command": "C:/g78/cst(766b5c2 + T 새 test 2개) 에서 base 캐시 pytest -p merge_gate --continue-on-collection-errors GMID_RED_CAPTURE=C:/g78/out/red_cst.json"},
+  {"name": "계약 8 measured_at 상태에서 통과한 새 test 수(합성 자기 점검)", "value": 42, "command": "같은 실행"},
+  {"name": "계약 5 measured_at 상태 표시 없는 문서 줄", "value": 19, "command": "C:/g78/scripts/c7.py (c5_C_lines_unmarked_n)"},
+  {"name": "계약 5 T 상태 표시 없는 문서 줄", "value": 0, "command": "C:/g78/scripts/c7.py (c5_T_unmarked)"},
+  {"name": "V1 T passed", "value": 871, "command": "V1 명령(auditor_run.commands)"},
+  {"name": "V1 T xfailed", "value": 15, "command": "V1 명령(auditor_run.commands)"},
+  {"name": "base 전체 passed", "value": 822, "command": "V1 명령의 루트를 C:/g78/base로"},
+  {"name": "수집 id 수 base", "value": 837, "command": "V1 명령 + --collect-only -q (C:/g78/base)"},
+  {"name": "수집 id 수 T", "value": 886, "command": "V1 명령 + --collect-only -q (C:/g78/iso)"}
+ ],
+ "approvals": [
+  "20260923-20-dead-code-dup-design"
+ ],
+ "auditor_run": {
+  "time": "2026-10-01T13:55:00+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p10-df23-inventory-audit",
+  "commands": [
+   "환경: $PY = C:/Python314/python.exe(3.14.2, pytest 9.0.2, pluggy 1.6.0), bash에서 APPDATA=C:/Users/HSLEE/AppData/Roaming export, 격리 경로는 C:/g78/ 아래만",
+   "게이트 코드 캐시: $PY -B C:/g78/scripts/extract_gate.py -- git -C <audit worktree> ls-tree·cat-file blob 2d58fd845002b731cf9223e0990ec048f381e4a9:tools/gates/<파일>, redteam 밖 22개를 C:/g78/gmid-gate-cache/2d58fd845002b731cf9223e0990ec048f381e4a9/ 에 같은 구조로",
+   "격리(T): git clone -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p10-df23-inventory-audit C:/g78/iso; git -C C:/g78/iso checkout 56b86c6fce97d7f4f66671cda7a7f9f0f54f1da9; git -C C:/g78/iso remote remove origin (remote 0개, status 0줄)",
+   "격리(base·C): 같은 형태로 C:/g78/base(checkout --detach 2d58fd8), C:/g78/cst(checkout --detach 766b5c2 + git -C C:/g78/iso cat-file blob 56b86c6:<새 test 2개> 복사), 각각 origin 제거",
+   "V1: PYTHONPYCACHEPREFIX=C:/g78/pyc/v1_T PYTHONPATH=C:/g78/gmid-gate-cache/2d58fd845002b731cf9223e0990ec048f381e4a9 C:/Python314/python.exe -P -m pytest -c C:/g78/gmid-gate-cache/2d58fd845002b731cf9223e0990ec048f381e4a9/pytest_gate.ini --rootdir=C:/g78/iso --confcutdir=C:/g78/iso C:/g78/iso/skills/analog-gmid-design/assets/tests --gmid-phase=2 --gmid-strict= -rA",
+   "base 전체: 위 V1에서 PYTHONPYCACHEPREFIX·--rootdir·--confcutdir·test 경로를 C:/g78/base로 바꾼 실행(822 passed, 15 xfailed, exit 0)",
+   "수집 대조: 위 두 형태에 --collect-only -q -p no:cacheprovider (base 837, T 886, base에만 0, 새 49)",
+   "엄격 집합·V1 형태 자기 점검: PYTHONPATH=<캐시> $PY -P C:/g78/scripts/strict.py (strict_set = 빈 집합, cc3 참), merge_gate.v1_command_check(V1 문자열) 위반 0",
+   "계약 8: GMID_RED_CAPTURE=C:/g78/out/red_cst.json GMID_INTERFACE_CARD=C:/g78/iso/docs/02-design/specs/20260930-p10-df23-inventory.interface.md PYTHONPATH=<캐시> $PY -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g78/cst --confcutdir=C:/g78/cst -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= -rA C:/g78/cst/skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py C:/g78/cst/skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py (7 failed AssertionError, 42 passed)",
+   "계약 7·계약 1~5 재대조·재현 수치: PYTHONPATH=<캐시> $PY -P C:/g78/scripts/c7.py C:/g78/iso 2d58fd845002b731cf9223e0990ec048f381e4a9 766b5c2b486df66e143feb1f9440084a62db0ebc 56b86c6fce97d7f4f66671cda7a7f9f0f54f1da9 C:/g78/out/c7.json (auditor 작성, 소스는 git cat-file blob만, 생성기·check_contracts.py 미사용)",
+   "체인: git -C C:/g78/iso rev-parse 0fa6ca2^ (= 766b5c2…), git log --format='%h %p' 766b5c2..2d58fd8, interpret-trailers --parse로 각 커밋 Role·Change-Id",
+   "V3: $PY <캐시>/mutate_changed.py --root C:/g78/iso --base 2d58fd845002b731cf9223e0990ec048f381e4a9 --head 56b86c6fce97d7f4f66671cda7a7f9f0f54f1da9 --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=2 --gmid-strict= --out C:/g78/out/v3.jsonl",
+   "V4: $PY -B C:/g78/scripts/v4.py -- <캐시>/test_lint.py --root C:/g78/iso --base 2d58fd8… --head 56b86c6… --module-dir skills/analog-gmid-design/assets --subject <A/*.py 최상위 def·class 373개> (--interface-card 단독은 신규 시그니처가 비어 exit 2)",
+   "V5: $PY <캐시>/weakening_diff.py --root C:/g78/iso --base 2d58fd845002b731cf9223e0990ec048f381e4a9 --head 56b86c6fce97d7f4f66671cda7a7f9f0f54f1da9",
+   "V6: $PY <캐시>/source_lint.py --root C:/g78/iso --base 2d58fd845002b731cf9223e0990ec048f381e4a9 --head 56b86c6fce97d7f4f66671cda7a7f9f0f54f1da9",
+   "V7: $PY <캐시>/reachability.py --root C:/g78/iso --base 2d58fd845002b731cf9223e0990ec048f381e4a9 --head 56b86c6fce97d7f4f66671cda7a7f9f0f54f1da9",
+   "순서 3 기록: freeze(T)·base 대비 확인·계약 8 결과는 .ai/verification/20260930-p10-df23-inventory/base_check.json",
+   "사전 판정: 판정 기록 커밋 뒤 그 커밋을 C:/g78/rcv(origin 없는 복제본)에 받아 PYTHONPATH=<캐시> $PY -P <캐시>/merge_gate.py receive --git-dir C:/g78/rcv/.git --old 2d58fd8… --new <audit 커밋>"
+  ]
+ }
+}

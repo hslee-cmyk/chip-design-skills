@@ -1,0 +1,10 @@
+cnr_ota stopped None None 7.0
+common_gate_amplifier searched 1 33 14.1
+current_reuse_telescopic_ota searched 0 0 28.6
+erfc_ota stopped None None 7.6
+folded_cascode searched 0 54 30.0
+ngcc_3stage_ff searched 0 64 47.8
+nmcnr_amplifier searched 0 37 33.4
+pushpull_follower_buffer searched 0 37 12.0
+r2r_opamp searched 0 63 40.6
+rfc_ota searched 0 0 19.7

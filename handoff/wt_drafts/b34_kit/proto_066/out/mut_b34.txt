@@ -1,0 +1,40 @@
+stick_diagram:_import_analog_grammar:stmt_delete:body[4]
+    proto c8 (fresh process): KILLED  E       AssertionError: Traceback (most recent call last):
+    proto all             : KILLED  E       TypeError: cannot unpack non-iterable NoneType object
+    helper-shape c8       : KILLED  E       TypeError: cannot unpack non-iterable NoneType object
+stick_diagram:_import_analog_grammar:except_body_delete:body[4].handlers[0]
+    proto c8 (fresh process): KILLED  E       TypeError: cannot unpack non-iterable NoneType object
+    proto all             : KILLED  E       TypeError: cannot unpack non-iterable NoneType object
+    helper-shape c8       : KILLED  E       TypeError: cannot unpack non-iterable NoneType object
+stick_diagram:_import_analog_grammar:early_return:body[1]
+    proto c8 (fresh process): KILLED  E       AssertionError: Traceback (most recent call last):
+    proto all             : KILLED  E       TypeError: cannot unpack non-iterable NoneType object
+    helper-shape c8       : KILLED  E       TypeError: cannot unpack non-iterable NoneType object
+stick_diagram:find_idiom_matches:stmt_delete:body[2]
+    proto c8 (fresh process): KILLED  E       AssertionError: Traceback (most recent call last):
+    proto all             : KILLED  E       AssertionError: Traceback (most recent call last):
+    helper-shape c8       : KILLED  E       NameError: name 'devs' is not defined
+stick_diagram:find_idiom_matches:early_return:body[1]
+    proto c8 (fresh process): survived  
+    proto all             : KILLED  E       Failed: DID NOT RAISE <class 'ImportError'>
+    helper-shape c8       : survived  
+stick_diagram:find_stack_edges:stmt_delete:body[2]
+    proto c8 (fresh process): KILLED  E       AssertionError: Traceback (most recent call last):
+    proto all             : KILLED  E       AssertionError: Traceback (most recent call last):
+    helper-shape c8       : KILLED  E       NameError: name 'devs' is not defined
+stick_diagram:find_stack_edges:early_return:body[1]
+    proto c8 (fresh process): survived  
+    proto all             : KILLED  E       Failed: DID NOT RAISE <class 'ImportError'>
+    helper-shape c8       : survived  
+stick_diagram:audit_theta_root_direction:stmt_delete:body[2]
+    proto c8 (fresh process): KILLED  E       AssertionError: Traceback (most recent call last):
+    proto all             : KILLED  E       AssertionError: Traceback (most recent call last):
+    helper-shape c8       : KILLED  E       NameError: name 'devs' is not defined
+stick_diagram:audit_theta_root_direction:stmt_delete:body[5]
+    proto c8 (fresh process): KILLED  E       AssertionError: Traceback (most recent call last):
+    proto all             : KILLED  E       AssertionError: Traceback (most recent call last):
+    helper-shape c8       : KILLED  E       NameError: name 'findings' is not defined
+stick_diagram:audit_theta_root_direction:early_return:body[1]
+    proto c8 (fresh process): survived  
+    proto all             : KILLED  E       Failed: DID NOT RAISE <class 'ImportError'>
+    helper-shape c8       : survived  

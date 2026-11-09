@@ -1,0 +1,80 @@
+"""승인 초안 approval_20261002-p3-f1-workspaces-write-path.md 검사(측정 전용):
+인용 문자열이 세션 jsonl과 바이트 같음, 머리가 gate merge_gate.parse_approval_header로 파싱됨, 해시 재계산.
+
+    python -B verify_approval_f1wp.py <gate tools/gates 경로> <복제본 루트>
+"""
+import json
+import re
+import subprocess
+import sys
+
+GATES, ROOT = sys.argv[1:3]
+sys.path.insert(0, GATES)
+import merge_gate as mg  # noqa: E402
+import role_paths as rp  # noqa: E402
+
+J = r"C:/Users/HSLEE/.claude/projects/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922.jsonl"
+DR = r"C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/approval_20261002-p3-f1-workspaces-write-path.md"
+doc = open(DR, encoding="utf-8").read()
+L = open(J, encoding="utf-8").read().split("\n")
+asks, results, texts = [], {}, {}
+for line in L:
+    if not line:
+        continue
+    o = json.loads(line)
+    m = o.get("message") or {}
+    c = m.get("content")
+    if not isinstance(c, list):
+        continue
+    for b in c:
+        if not isinstance(b, dict):
+            continue
+        if b.get("type") == "tool_use" and b.get("name") == "AskUserQuestion":
+            if any(q.get("header") == "[F1] 쓰기 경로" for q in b["input"]["questions"]):
+                asks.append((o["uuid"], o["timestamp"], b["id"], b["input"]))
+        if b.get("type") == "tool_result":
+            results[b.get("tool_use_id")] = (o["uuid"], o["timestamp"], o.get("toolUseResult"))
+        if b.get("type") == "text" and o.get("type") == "assistant" and not o.get("isSidechain"):
+            texts[o["uuid"]] = (o["timestamp"], b["text"])
+ok = True
+
+
+def chk(label, cond):
+    global ok
+    ok &= bool(cond)
+    print(("OK  " if cond else "BAD ") + label)
+
+
+chk("AskUserQuestion [F1] 쓰기 경로 정확히 1건", len(asks) == 1)
+uuid, ts, tid, inp = asks[0]
+q = inp["questions"][0]
+chk("tool_use id/uuid/ts", (tid, uuid, ts) == ("toolu_01PokFaLT31S8ep6tYfPQJmx", "c5b9d12d-5d65-4d05-a940-466ba20d30e2", "2026-10-02T05:30:10.108Z"))
+chk("질문 원문 인용", '"%s"' % q["question"] in doc)
+for op in q["options"]:
+    chk("선택지 라벨 %s" % op["label"][:6], '"%s"' % op["label"] in doc)
+    chk("선택지 설명 %s" % op["label"][:6], '"%s"' % op["description"] in doc)
+ru, rts, tur = results[tid]
+ans = list(tur["answers"].values())
+chk("tool_result uuid/ts", (ru, rts) == ("fe2c1b04-1a26-4c79-83ee-af5c68933e35", "2026-10-02T05:32:16.443Z"))
+chk("답 1개 = 인용", len(ans) == 1 and ("> %s\n" % ans[0]) in doc and ('답: "%s"' % ans[0]) in doc)
+chk("tool_result 질문 = tool_use 질문", tur["questions"][0]["question"] == q["question"])
+t = texts["b7855051-7ee7-42a9-be08-2aec3e6f2792"]
+line = "- **workspaces 스크립트 16개**: 역할 커밋의 쓰기 경로 밖에 있습니다. 초안의 기본안은 F1 전에 제가 역할 밖 커밋으로 고치는 것입니다."
+chk("04:56 메시지 줄 = jsonl", t[0] == "2026-10-02T04:56:52.742Z" and (line + "\n") in t[1] and ("```text\n" + line + "\n```") in doc)
+prev = [u for u, (tt, _x) in texts.items() if "2026-10-02T05:18:43" <= tt < ts]
+chk("질문 앞 마지막 텍스트 메시지 = f3a5cc43 하나", prev == ["f3a5cc43-a112-4a70-923b-c49c3f095691"])
+# 머리 파싱 + 해시
+m = re.match(r"^---\n(.*?)\n---\n", doc, re.S)
+hdr = mg.parse_approval_header(doc.encode("utf-8"), ".ai/approvals/20261002-p3-f1-workspaces-write-path.md")
+chk("머리 파싱 plan_tables", hdr["target_kind"] == "plan_tables")
+P = "docs/01-plan/features/gain-budget-gmid-sizing.plan.md"
+base = subprocess.run(["git", "-C", ROOT, "show", "4a286f0:" + P], capture_output=True).stdout.decode("utf-8")
+row = "| gmid-code-author | `workspaces/run_harness.py` | -- | 없음 |\n"
+new = "| gmid-code-author | `workspaces/*/**/*.py` | -- | 없음 |\n"
+chk("앵커 행 1개, 602행", base.count(row) == 1 and base.split("\n").index(row.rstrip("\n")) + 1 == 602)
+after = base.replace(row, row + new)
+chk("해시 전 7167e028…", mg.plan_tables_hash(base) == "7167e02839f86c4ecbcd91a63a9833c4d83a8aab8008bfe2d8cfc36206d2596d")
+chk("해시 뒤 = target", mg.plan_tables_hash(after) == hdr["target"])
+chk("read_plan_tables 불변", mg.read_plan_tables_text(after) == mg.read_plan_tables_text(base))
+chk("새 행 원문 인용", ("`` " + new.rstrip("\n") + " ``") in doc)
+print("ALL OK" if ok else "SOME BAD")

@@ -1,0 +1,115 @@
+## cnr_ota  (caps 4)
+- C1: LPCO -- VCOP | value None | engine None | theta_bounds None
+    LPCO: ['x42.M1.g', 'C1', 'C2', 'x37', 'x38']
+    VCOP: ['x33.M1.s', 'x1[3].M1.d', 'x1[2].M1.d', 'x1[1].M1.d', 'x1[0].M1.d', 'C1', 'x37']
+- C2: VCON -- LPCO | value None | engine None | theta_bounds None
+    VCON: ['x35.M1.s', 'x4[3].M1.d', 'x4[2].M1.d', 'x4[1].M1.d', 'x4[0].M1.d', 'C2', 'x38']
+    LPCO: ['x42.M1.g', 'C1', 'C2', 'x37', 'x38']
+- CL1: VOP -- VSS | value 5e-12 | engine None | theta_bounds None
+    VOP: ['x3[1].M1.d', 'x3[0].M1.d', 'x6[1].M1.d', 'x6[0].M1.d', 'x33.M1.g', 'CL1']
+    VSS: ['x1.M1.s', 'x2[1].M1.s', 'x2[0].M1.s', 'x10.M1.s', 'x13[1].M1.s', 'x13[0].M1.s', 'x23[3].M1.s', 'x23[2].M1.s', 'x23[1].M1.s', 'x23[0].M1.s', 'x24.M1.s', 'x25.M1.s', 'x29.M1.s', 'x30.M1.s', 'x36[3].M1.s', 'x36[2].M1.s', 'x36[1].M1.s', 'x36[0].M1.s', 'x1[3].M1.s', 'x1[2].M1.s', 'x1[1].M1.s', 'x1[0].M1.s', 'x4[3].M1.s', 'x4[2].M1.s', 'x4[1].M1.s', 'x4[0].M1.s', 'x45.M1.s', 'x46.M1.s', 'x47.M1.s', 'x48.M1.s', 'x52.M1.s', 'x9', 'x3', 'CL1', 'CL2']
+- CL2: VON -- VSS | value 5e-12 | engine None | theta_bounds None
+    VON: ['x14[1].M1.d', 'x14[0].M1.d', 'x17[1].M1.d', 'x17[0].M1.d', 'x35.M1.g', 'CL2']
+    VSS: ['x1.M1.s', 'x2[1].M1.s', 'x2[0].M1.s', 'x10.M1.s', 'x13[1].M1.s', 'x13[0].M1.s', 'x23[3].M1.s', 'x23[2].M1.s', 'x23[1].M1.s', 'x23[0].M1.s', 'x24.M1.s', 'x25.M1.s', 'x29.M1.s', 'x30.M1.s', 'x36[3].M1.s', 'x36[2].M1.s', 'x36[1].M1.s', 'x36[0].M1.s', 'x1[3].M1.s', 'x1[2].M1.s', 'x1[1].M1.s', 'x1[0].M1.s', 'x4[3].M1.s', 'x4[2].M1.s', 'x4[1].M1.s', 'x4[0].M1.s', 'x45.M1.s', 'x46.M1.s', 'x47.M1.s', 'x48.M1.s', 'x52.M1.s', 'x9', 'x3', 'CL1', 'CL2']
+## erfc_ota  (caps 4)
+- CBAT1_L: n_m5g -- X | value None | engine True | theta_bounds None
+    n_m5g: ['M5.g', 'M19.d', 'CBAT1_L']
+    X: ['M2B.d', 'M3B.g', 'M17B.d', 'M3C.d', 'M18A.g', 'R1', 'CBAT1_L']
+- CBAT1_R: n_m6g -- Y | value None | engine True | theta_bounds None
+    n_m6g: ['M6.g', 'M20.d', 'CBAT1_R']
+    Y: ['M1B.d', 'M4B.g', 'M17A.g', 'M4C.d', 'M18B.d', 'R2', 'CBAT1_R']
+- CBAT2: n_m7d -- n_m8g | value None | engine True | theta_bounds None
+    n_m7d: ['M9.g', 'M10.g', 'M7.d', 'M5.d', 'CBAT2']
+    n_m8g: ['M7.g', 'M8.g', 'M21.d', 'CBAT2']
+- CL: out -- gnd | value 7e-11 | engine None | theta_bounds None
+    out: ['M8.d', 'M6.d', 'CL']
+    gnd: ['M15.d', 'M16.d', 'M3B.s', 'M4B.s', 'M17A.s', 'M3A.s', 'M4A.s', 'M18A.s', 'CL']
+## r2r_opamp  (caps 3)
+- CM1: n_gp -- Vo | value 2e-12 | engine None | theta_bounds None
+    n_gp: ['M14.d', 'M19.d', 'M20.s', 'M25.g', 'CM1']
+    Vo: ['M25.d', 'M26.d', 'CM1', 'CM2', 'CL', 'RL']
+- CM2: n_gn -- Vo | value 2e-12 | engine None | theta_bounds None
+    n_gn: ['M16.d', 'M19.s', 'M20.d', 'M26.g', 'CM2']
+    Vo: ['M25.d', 'M26.d', 'CM1', 'CM2', 'CL', 'RL']
+- CL: Vo -- VSS | value 1e-11 | engine None | theta_bounds None
+    Vo: ['M25.d', 'M26.d', 'CM1', 'CM2', 'CL', 'RL']
+    VSS: ['M9.s', 'M10.s', 'M17.s', 'M18.s', 'M24.s', 'M26.s', 'CL', 'RL']
+## rfc_ota  (caps 1)
+- CL: out -- gnd | value 2.75e-12 | engine None | theta_bounds None
+    out: ['M6.d', 'M8.d', 'CL']
+    gnd: ['M3a.s', 'M3b.s', 'M4b.s', 'M4a.s', 'Q3.s', 'Q5.s', 'Q12.s', 'Q15.s', 'Q16.s', 'Q17.s', 'Q18.g', 'CL', 'RB']
+## common_gate_amplifier  (caps 0)
+## current_reuse_telescopic_ota  (caps 8)
+- Cc1: Vom -- N_cc_rz1 | value None | engine True | theta_bounds (1e-13, 1e-11)
+    Vom: ['M15.d', 'M16.d', 'R1', 'Cc1', 'CL2', 'Cf1']
+    N_cc_rz1: ['Cc1', 'Rz1']
+- Cc2: Vop -- N_cc_rz2 | value None | engine True | theta_bounds (1e-13, 1e-11)
+    Vop: ['M25.d', 'M26.d', 'R2', 'Cc2', 'CL1', 'Cf2']
+    N_cc_rz2: ['Cc2', 'Rz2']
+- CL1: Vop -- gnd | value None | engine None | theta_bounds None
+    Vop: ['M25.d', 'M26.d', 'R2', 'Cc2', 'CL1', 'Cf2']
+    gnd: ['M5.s', 'M12.s', 'M10.s', 'M14b.s', 'M16.s', 'M21.s', 'M19.s', 'M24b.s', 'M26.s', 'M66.s', 'M68.s', 'M38.s', 'M40.g', 'M40.d', 'CL1', 'CL2', 'Cs1', 'Cs2']
+- CL2: Vom -- gnd | value None | engine None | theta_bounds None
+    Vom: ['M15.d', 'M16.d', 'R1', 'Cc1', 'CL2', 'Cf1']
+    gnd: ['M5.s', 'M12.s', 'M10.s', 'M14b.s', 'M16.s', 'M21.s', 'M19.s', 'M24b.s', 'M26.s', 'M66.s', 'M68.s', 'M38.s', 'M40.g', 'M40.d', 'CL1', 'CL2', 'Cs1', 'Cs2']
+- Cf1: Vom -- Vip | value None | engine None | theta_bounds None
+    Vom: ['M15.d', 'M16.d', 'R1', 'Cc1', 'CL2', 'Cf1']
+    Vip: ['M1a.g', 'M4a.g', 'Cf1', 'Cs1']
+- Cf2: Vop -- Vim | value None | engine None | theta_bounds None
+    Vop: ['M25.d', 'M26.d', 'R2', 'Cc2', 'CL1', 'Cf2']
+    Vim: ['M1b.g', 'M4b.g', 'Cf2', 'Cs2']
+- Cs1: Vip -- gnd | value None | engine None | theta_bounds None
+    Vip: ['M1a.g', 'M4a.g', 'Cf1', 'Cs1']
+    gnd: ['M5.s', 'M12.s', 'M10.s', 'M14b.s', 'M16.s', 'M21.s', 'M19.s', 'M24b.s', 'M26.s', 'M66.s', 'M68.s', 'M38.s', 'M40.g', 'M40.d', 'CL1', 'CL2', 'Cs1', 'Cs2']
+- Cs2: Vim -- gnd | value None | engine None | theta_bounds None
+    Vim: ['M1b.g', 'M4b.g', 'Cf2', 'Cs2']
+    gnd: ['M5.s', 'M12.s', 'M10.s', 'M14b.s', 'M16.s', 'M21.s', 'M19.s', 'M24b.s', 'M26.s', 'M66.s', 'M68.s', 'M38.s', 'M40.g', 'M40.d', 'CL1', 'CL2', 'Cs1', 'Cs2']
+## folded_cascode  (caps 1)
+- CL: out -- gnd | value 1e-12 | engine None | theta_bounds None
+    out: ['M6.d', 'M8.d', 'CL']
+    gnd: ['M9.s', 'M10.s', 'M11.s', 'MN.s', 'CL']
+## ngcc_3stage_ff  (caps 3)
+- Cm1: V1 -- Vout | value None | engine True | theta_bounds (1e-13, 1e-11)
+    V1: ['M2.d', 'M4.d', 'M8.g', 'M14.g', 'Cm1']
+    Vout: ['M7.d', 'M12.d', 'M13.d', 'M14.d', 'Cm1', 'Cm2', 'CL']
+- Cm2: V2 -- Vout | value None | engine True | theta_bounds (1e-13, 1e-11)
+    V2: ['M10.d', 'M11.d', 'M13.g', 'Cm2']
+    Vout: ['M7.d', 'M12.d', 'M13.d', 'M14.d', 'Cm1', 'Cm2', 'CL']
+- CL: Vout -- gnd | value None | engine None | theta_bounds None
+    Vout: ['M7.d', 'M12.d', 'M13.d', 'M14.d', 'Cm1', 'Cm2', 'CL']
+    gnd: ['M3.s', 'M4.s', 'M6A.s', 'M6B.s', 'M7.s', 'M8.s', 'M11.s', 'M13.s', 'M14.s', 'CL']
+## nmcnr_amplifier  (caps 3)
+- Cm1: NodeM2 -- NodeCM | value None | engine True | theta_bounds (1e-13, 1e-11)
+    NodeM2: ['M107.d', 'M109.d', 'M201.g', 'Cm1']
+    NodeCM: ['Cm1', 'Cm2', 'Rm']
+- Cm2: NodeS2 -- NodeCM | value None | engine True | theta_bounds (1e-13, 1e-11)
+    NodeS2: ['M202.d', 'M204.d', 'M301.g', 'Cm2']
+    NodeCM: ['Cm1', 'Cm2', 'Rm']
+- CL: Vout -- agnd | value 1e-10 | engine None | theta_bounds None
+    Vout: ['M301.d', 'M302.d', 'Rm', 'CL', 'RL']
+    agnd: ['CL', 'RL']
+## pushpull_follower_buffer  (caps 1)
+- CL: vout -- agnd | value None | engine None | theta_bounds None
+    vout: ['M1.s', 'M2.s', 'CL']
+    agnd: ['CL']
+## sf_pushpull_output_opamp  (caps 2)
+- Cc: Y -- agnd | value None | engine True | theta_bounds (1e-13, 1e-11)
+    Y: ['M10.d', 'M15.d', 'M18.g', 'M19.g', 'Cc']
+    agnd: ['Cc', 'CL']
+- CL: vout -- agnd | value None | engine None | theta_bounds None
+    vout: ['M22.s', 'M21.s', 'CL']
+    agnd: ['Cc', 'CL']
+## two_stage_ota  (caps 2)
+- Cc: N_cc_rz -- OUT | value None | engine True | theta_bounds (1e-13, 1e-11)
+    N_cc_rz: ['Rz', 'Cc']
+    OUT: ['M6.d', 'M7.d', 'Cc', 'CL']
+- CL: OUT -- gnd | value 3e-12 | engine None | theta_bounds None
+    OUT: ['M6.d', 'M7.d', 'Cc', 'CL']
+    gnd: ['M5.s', 'M7.s', 'CL']
+## two_stage_ota_sf  (caps 2)
+- Cc: O1 -- OUT | value None | engine True | theta_bounds (1e-13, 1e-11)
+    O1: ['M2.d', 'M4.d', 'M6.g', 'Cc']
+    OUT: ['M6.d', 'M7.d', 'M8.g', 'Cc']
+- CL: vout -- gnd | value None | engine None | theta_bounds None
+    vout: ['M8.s', 'M9.d', 'CL']
+    gnd: ['M5.s', 'M7.s', 'M9.s', 'CL']

@@ -1,0 +1,374 @@
+"""F1/F2 작성 전 실측(측정 전용 -- F1 구현이 아니다. 작성자 != 검증자: code-author·test-author·auditor에게 건네지 않는다).
+
+격리 복제본 작업 트리(모의 M9 병합본 체크아웃)에 F1 모양의 호출부 갱신을 기계적으로 적용해 E3·E3b·IMPORT-ANY·V 도구를 잴 트리를 만든다.
+
+    python -B f12_f1sim.py <복제본 루트> <M9 rev> <F2 모의 rev> <out.json>
+
+규칙(측정용 근사 -- 실제 F1의 모양을 정하지 않는다):
+ (1) `from X import …`(X = SR·TL·DR, 또는 SD에서 F2 뒤 SD에 남지 않는 이름): 이름마다 정의 출처(G1 시제품 binding_origin, M9 트리)로 묶어
+     `from <정의 모듈> import n [as a]`·`import m [as a]` 줄로 바꾼다(같은 들여쓰기, 줄 끝 주석 유지). SD에 남는 이름은 `from stick_diagram import …` 그대로.
+ (2) 모듈 식(별칭·import 호출·그것을 돌려주는 함수)의 `.N`·`getattr류(식, "N")`: 별칭이고 목적지가 하나면 `import <목적지> as <별칭>`(그 밖 줄 불변),
+     아니면 식 자리를 목적지 모듈 별칭 `_f1_<목적지>`(별칭 import 줄 바로 뒤에 `import <목적지> as _f1_<목적지>`) 또는 `importlib.import_module("<목적지>")`(호출 식)로 바꾼다.
+ (3) import 호출 문자열: 그 호출에서 나온 모듈 식의 읽기가 모두 한 목적지면 문자열만 바꾸고, 동적 이름(`getattr(m, 변수)`)이 있거나 목적지가 둘 이상이면
+     호출 식을 MOD 모듈 전부의 이름 합(`types.SimpleNamespace`)으로 바꾼다.
+ (4) D-17: 엔진 모듈 식 속성 대입 대상을 F2 모의 트리의 호출자 모듈 전부로 사슬 대입(`_f1_A.n = _f1_B.n = 값`). 호출자 0이면 정의 모듈 하나.
+ (5) 이름을 읽지 않는 `import sizing_recipe`(순서용)는 `import <N3.10 마지막 번호 모듈>`로.
+"""
+import ast
+import json
+import os
+import re
+import subprocess
+import sys
+
+ROOT, REV, F2REV, OUT = sys.argv[1:5]
+A = "skills/analog-gmid-design/assets/"
+ENG = {"sizing_recipe", "topology_library", "design_report", "stick_diagram"}
+SHIMS = {"sizing_recipe", "topology_library", "design_report"}
+IMPF = ("import_module", "_import", "__import__")
+ATTRF = ("getattr", "hasattr", "setattr", "delattr")
+EXCL = re.compile(r"^(\.ai/verification/|docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition\.py$)")
+sys.path.insert(0, os.path.join(ROOT, "tools", "gates"))
+import reachability as rch  # noqa: E402
+import import_layering as il  # noqa: E402
+
+
+def git(*a):
+    r = subprocess.run(["git", "-c", "core.quotepath=off", "-C", ROOT] + list(a), capture_output=True)
+    if r.returncode:
+        raise SystemExit("git %s: %s" % (a, r.stderr.decode("utf-8", "replace")))
+    return r.stdout
+
+
+idx = rch.SourceIndex(rch.read_tree(ROOT, REV, rch.SOURCE_GLOBS))
+idx2 = rch.SourceIndex(rch.read_tree(ROOT, F2REV, rch.SOURCE_GLOBS))
+idx0 = rch.SourceIndex(rch.read_tree(ROOT, os.environ.get("F12_B0PRE", "dd60db6"), rch.SOURCE_GLOBS))
+MODT = il.mod_table(git("show", REV + ":docs/01-plan/features/gain-budget-gmid-sizing.plan.md").decode("utf-8"))
+MODS = [m for m, _k in sorted(MODT.items(), key=lambda x: x[1]) if (A + m + ".py") in idx.paths()]
+LASTMOD = MODS[-1]
+SD = A + "stick_diagram.py"
+sd_rex = {}
+for n in idx.tree(SD).body:
+    if isinstance(n, ast.ImportFrom) and n.level == 0 and n.module in MODT and n.module != "stick_diagram":
+        for a in n.names:
+            sd_rex[a.asname or a.name] = n.module
+sd_read = set()
+for gn in idx.global_names(SD).values():
+    sd_read |= set(gn)
+SD_DROP = {nm for nm in sd_rex if nm not in sd_read}
+
+
+def needs(mod, name):
+    return mod in SHIMS or (mod == "stick_diagram" and name in SD_DROP)
+
+
+def origin(mod, name):
+    """(kind, module, import-name) -- kind: from/import."""
+    if mod == "stick_diagram" and name not in SD_DROP:
+        return ("from", "stick_diagram", name)
+    o = idx.binding_origin(A + mod + ".py", name)
+    if o[0] == "def":
+        return ("from", o[1].rsplit("/", 1)[-1][:-3], o[2])
+    if o[0] == "ext":
+        return ("from", o[2], o[3])
+    if o[0] == "ext-module":
+        return ("import", o[-1], None)
+    if o[0] == "module":
+        return ("import", o[1].rsplit("/", 1)[-1][:-3], None)
+    # M9 shim에 그 이름이 없다(완전 shim이 일반 import 줄을 지움 -- SHIM (b)): Phase 3 전 base(B0PRE)의 출처로 다시 푼다
+    ob = idx0.binding_origin(A + mod + ".py", name)
+    if ob[0] == "def" and ob[1].startswith(A):
+        m0 = ob[1][len(A):-3]
+        if m0 in ENG and m0 != mod:
+            return origin(m0, ob[2])
+    if ob[0] == "ext":
+        return ("from", ob[2], ob[3])
+    if ob[0] == "ext-module":
+        return ("import", ob[-1], None)
+    return ("unresolved", mod, name)
+
+
+def callers(mod, name):
+    o = idx.binding_origin(A + mod + ".py", name)
+    if o[0] != "def":
+        return []
+    out = set()
+    for p in idx2.paths():
+        for gn in idx2.global_names(p).values():
+            if name in gn and idx2.binding_origin(p, name) == o:
+                out.add(p.rsplit("/", 1)[-1][:-3])
+                break
+    return sorted(out) or [o[1].rsplit("/", 1)[-1][:-3]]
+
+
+class F:
+    def __init__(self, src):
+        self.src = src
+        self.lines = src.split("\n")
+        self.tree = ast.parse(src)
+        self.repl = []          # (l1, c1, l2, c2, text)
+        self.after = {}         # stmt id -> [lines to insert after stmt]
+        self.stmt_repl = {}     # stmt id -> text (whole lines)
+        self.notes = []
+
+    def seg(self, n):
+        # ast 열 오프셋은 UTF-8 바이트 -- 원래 줄로 문자 오프셋으로 바꾼다(편집은 아래·오른쪽부터라 왼쪽 원문은 그대로다)
+        cc = lambda l, c: len(self.lines[l - 1].encode("utf-8")[:c].decode("utf-8", "ignore"))
+        return (n.lineno, cc(n.lineno, n.col_offset), n.end_lineno, cc(n.end_lineno, n.end_col_offset))
+
+    def apply(self):
+        # 줄 단위 교체·삽입을 열 단위 교체로 바꿔 함께 적용(뒤에서부터)
+        L = self.lines
+        ops = []
+        for (n, text) in self.stmt_repl.values():
+            extra = self.after.get(id(n), (n, []))[1]
+            ind = L[n.lineno - 1][:n.col_offset]
+            ops.append(self.seg(n) + (text + "".join("\n" + ind + e for e in extra if e not in text),))
+        for (n, extra) in self.after.values():
+            if id(n) in self.stmt_repl:
+                continue
+            ind = L[n.lineno - 1][:n.col_offset]
+            ops.append((n.end_lineno, len(L[n.end_lineno - 1]), n.end_lineno, len(L[n.end_lineno - 1]),
+                        "".join("\n" + ind + e for e in extra)))
+        ops += [(a, b, c, d, t) for (a, b, c, d, t) in self.repl]
+        ops.sort(key=lambda x: (x[0], x[1]), reverse=True)
+        last = None
+        for (l1, c1, l2, c2, t) in ops:
+            if last and (l2, c2) > last:
+                self.notes.append("overlap %d:%d" % (l1, c1))
+                continue
+            s = "\n".join(L)
+            # 오프셋 계산
+            off = lambda l, c: sum(len(x) + 1 for x in L[:l - 1]) + c
+            a, b = off(l1, c1), off(l2, c2)
+            s = s[:a] + t + s[b:]
+            L = s.split("\n")
+            last = (l1, c1)
+        return "\n".join(L)
+
+
+def process(p, src):
+    f = F(src)
+    tree = f.tree
+    al, fn_eng, al_node, fn_call = {}, {}, {}, {}
+
+    def call_mod(e):
+        if isinstance(e, ast.Call):
+            fn = e.func
+            nm = fn.id if isinstance(fn, ast.Name) else (fn.attr if isinstance(fn, ast.Attribute) else "")
+            if nm in IMPF and e.args and isinstance(e.args[0], ast.Constant) and isinstance(e.args[0].value, str) \
+                    and e.args[0].value.split(".")[0] in ENG:
+                return e.args[0].value.split(".")[0], e
+        return None
+
+    def mod_of(e):
+        if isinstance(e, ast.Name):
+            return al.get(e.id)
+        c = call_mod(e)
+        if c:
+            return c[0]
+        if isinstance(e, ast.Call) and isinstance(e.func, ast.Name) and e.func.id in fn_eng:
+            return fn_eng[e.func.id]
+        return None
+
+    def root_of(e):
+        """모듈 식 -> 뿌리(('alias', 이름 import 노드) | ('call', import 호출 노드))."""
+        if isinstance(e, ast.Name) and e.id in al_node:
+            return al_node[e.id]
+        c = call_mod(e)
+        if c:
+            return ("call", c[1])
+        if isinstance(e, ast.Call) and isinstance(e.func, ast.Name) and e.func.id in fn_call:
+            return fn_call[e.func.id]
+        return None
+    ch = True
+    while ch:
+        ch = False
+        for n in ast.walk(tree):
+            if isinstance(n, ast.Import):
+                for a in n.names:
+                    if a.name.split(".")[0] in ENG:
+                        k = a.asname or a.name.split(".")[0]
+                        if k not in al:
+                            al[k], al_node[k] = a.name.split(".")[0], ("alias", n, a)
+                            ch = True
+            elif isinstance(n, (ast.Assign, ast.AnnAssign)) and getattr(n, "value", None) is not None and mod_of(n.value):
+                tg = n.targets if isinstance(n, ast.Assign) else [n.target]
+                for t in tg:
+                    if isinstance(t, ast.Name) and t.id not in al:
+                        al[t.id], al_node[t.id] = mod_of(n.value), root_of(n.value)
+                        ch = True
+            elif isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name not in fn_eng:
+                for r in ast.walk(n):
+                    if isinstance(r, ast.Return) and r.value is not None and mod_of(r.value):
+                        fn_eng[n.name], fn_call[n.name] = mod_of(r.value), root_of(r.value)
+                        ch = True
+                        break
+    # 읽기 모으기
+    uses = []   # (root, node(module expr), name or None(dynamic), kind, parent)
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Attribute) and mod_of(n.value):
+            uses.append((root_of(n.value), n.value, n.attr, "attr", n))
+        elif isinstance(n, ast.Call) and n.args:
+            fn = n.func
+            fnm = fn.id if isinstance(fn, ast.Name) else (fn.attr if isinstance(fn, ast.Attribute) else "")
+            if fnm in ATTRF and mod_of(n.args[0]):
+                a = n.args[1] if len(n.args) > 1 else None
+                nm = a.value if isinstance(a, ast.Constant) and isinstance(a.value, str) else None
+                uses.append((root_of(n.args[0]), n.args[0], nm, "getattr", n))
+    store_attr = set()
+    d17 = []
+    for n in ast.walk(tree):
+        if isinstance(n, (ast.Assign, ast.AugAssign, ast.AnnAssign)):
+            for t in (n.targets if isinstance(n, ast.Assign) else [n.target]):
+                if isinstance(t, ast.Attribute) and isinstance(t.ctx, ast.Store) and mod_of(t.value):
+                    store_attr.add(id(t))
+                    d17.append((n, t))
+    changed = False
+    # (1) from-import
+    for n in ast.walk(tree):
+        if isinstance(n, ast.ImportFrom) and n.level == 0 and n.module and n.module.split(".")[0] in ENG:
+            mod = n.module.split(".")[0]
+            if not any(needs(mod, a.name) for a in n.names):
+                continue
+            grp, imps, undef = {}, [], []
+            for a in n.names:
+                k, m, nm = origin(mod, a.name)
+                bound = a.asname or a.name
+                if k == "from":
+                    grp.setdefault(m, []).append(nm + (" as " + bound if bound != nm else ""))
+                elif k == "import":
+                    imps.append("import %s%s" % (m, " as " + bound if bound != m else ""))
+                else:
+                    f.notes.append("unresolved %s.%s" % (mod, a.name))
+                    undef.append(a.name)
+            if undef:
+                # 정의 없는 이름(base에서도 없음 -- 이미 깨진 import): 같은 문장의 정의 모듈 중 N3.10 번호가 가장 큰 것의 import에 둔다(같은 문장 ImportError 보존)
+                hi = max((m for m in grp if m in MODT), key=lambda m: MODT[m], default=LASTMOD)
+                grp.setdefault(hi, []).extend(undef)
+            ind = f.lines[n.lineno - 1][:n.col_offset]
+            body = ["from %s import %s" % (m, ", ".join(v)) for m, v in sorted(grp.items())] + sorted(imps)
+            f.stmt_repl[id(n)] = (n, ("\n" + ind).join(body))
+            changed = True
+    # 뿌리별 목적지
+    byroot = {}
+    for (rt, e, nm, kind, par) in uses:
+        if rt is None:
+            continue
+        mod = mod_of(e)
+        key = id(rt[1]) if rt[0] == "call" else id(rt[2])
+        ent = byroot.setdefault(key, {"root": rt, "mod": mod, "uses": [], "dests": set(), "dynamic": False})
+        if id(par) in store_attr:
+            continue
+        ent["uses"].append((e, nm, kind, par))
+        if nm is None:
+            ent["dynamic"] = True
+        elif needs(mod, nm):
+            k, m, _ = origin(mod, nm)
+            ent["dests"].add(m if k == "from" else "?" + m)
+        else:
+            ent["dests"].add("stick_diagram")
+    for key, ent in byroot.items():
+        rt, mod = ent["root"], ent["mod"]
+        if mod not in SHIMS and not any(nm and needs(mod, nm) for (_e, nm, _k, _p) in ent["uses"]):
+            continue
+        dests = ent["dests"]
+        if rt[0] == "alias":
+            imp, a = rt[1], rt[2]
+            alias = a.asname or a.name
+            if len(dests) == 1 and not ent["dynamic"] and a.asname and not next(iter(dests)).startswith("?"):
+                f.stmt_repl[id(imp)] = (imp, "import %s as %s" % (next(iter(dests)), alias)) if len(imp.names) == 1 else \
+                    (imp, "import " + ", ".join((x.name + (" as " + x.asname if x.asname else "")) if x is not a else
+                                                "%s as %s" % (next(iter(dests)), alias) for x in imp.names))
+                changed = True
+                continue
+            extra = set()
+            for (e, nm, kind, par) in ent["uses"]:
+                if nm is None:
+                    f.notes.append("dynamic getattr via alias %s" % alias)
+                    continue
+                if mod == "stick_diagram" and not needs(mod, nm):
+                    continue
+                k, m, _ = origin(mod, nm)
+                if k != "from":
+                    f.notes.append("non-def attr %s.%s" % (alias, nm))
+                    continue
+                f.repl.append(f.seg(e) + ("_f1_" + m,))
+                extra.add(m)
+            ins = ["import %s as _f1_%s" % (m, m) for m in sorted(extra)]
+            keep_alias = mod == "stick_diagram"
+            if keep_alias:
+                f.after[id(imp)] = (imp, ins)
+            else:
+                rest = [x for x in imp.names if x is not a]
+                lines = (["import " + ", ".join(x.name + (" as " + x.asname if x.asname else "") for x in rest)] if rest else []) + ins
+                ind = f.lines[imp.lineno - 1][:imp.col_offset]
+                f.stmt_repl[id(imp)] = (imp, ("\n" + ind).join(lines) if lines else ("" if imp.col_offset == 0 else "pass"))
+            changed = True
+        else:
+            call = rt[1]
+            arg = call.args[0]
+            if len(dests) == 1 and not ent["dynamic"] and not next(iter(dests)).startswith("?"):
+                f.repl.append(f.seg(arg) + ('"%s"' % next(iter(dests)),))
+            else:
+                ns = '__import__("types").SimpleNamespace(**{_k: _v for _m in (%s) for _k, _v in vars(__import__("importlib").import_module(_m)).items()})' \
+                    % ", ".join('"%s"' % m for m in MODS)
+                f.repl.append(f.seg(call) + (ns,))
+            changed = True
+    # 이름을 읽지 않는 import X (X shim)
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import) and id(n) not in f.stmt_repl:
+            for a in n.names:
+                if a.name.split(".")[0] in SHIMS:
+                    roots = [e for e in byroot.values() if e["root"][0] == "alias" and e["root"][2] is a]
+                    if not roots:
+                        f.stmt_repl[id(n)] = (n, "import %s%s" % (LASTMOD, "  # (F1 모의: 순서용 import)"))
+                        changed = True
+    # (4) D-17
+    d17out = []
+    for (n, t) in d17:
+        mod = mod_of(t.value)
+        cs = callers(mod, t.attr)
+        txt = " = ".join("_f1_%s.%s" % (c, t.attr) for c in cs)
+        f.repl.append(f.seg(t) + (txt,))
+        d17out.append({"line": n.lineno, "name": t.attr, "callers": cs})
+        # 호출자 별칭 import: 파일 머리의 첫 엔진 import 뒤
+        first = next((x for x in tree.body if isinstance(x, (ast.Import, ast.ImportFrom)) and
+                      ((isinstance(x, ast.Import) and any(a.name in ENG for a in x.names)) or
+                       (isinstance(x, ast.ImportFrom) and x.module in ENG))), None)
+        if first is not None:
+            cur = f.after.get(id(first), (first, []))[1]
+            for c in cs:
+                line = "import %s as _f1_%s" % (c, c)
+                if line not in cur:
+                    cur.append(line)
+            f.after[id(first)] = (first, cur)
+        changed = True
+    return (f.apply() if changed else None), f.notes, d17out
+
+
+tracked = [p for p in git("ls-tree", "-r", "--name-only", "-z", REV).decode("utf-8").split("\0") if p.endswith(".py")]
+res = {"changed": {}, "notes": {}, "d17": {}}
+for p in tracked:
+    if EXCL.search(p) or p.startswith(A) and "/" not in p[len(A):]:
+        continue
+    src = git("show", REV + ":" + p).decode("utf-8")
+    if not re.search(r"sizing_recipe|topology_library|design_report|stick_diagram", src):
+        continue
+    new, notes, d17 = process(p, src)
+    if notes:
+        res["notes"][p] = notes
+    if d17:
+        res["d17"][p] = d17
+    if new is not None and new != src:
+        try:
+            ast.parse(new)
+        except SyntaxError as e:
+            res["notes"].setdefault(p, []).append("SYNTAX %s" % e)
+            continue
+        with open(os.path.join(ROOT, p), "w", encoding="utf-8", newline="") as fh:
+            fh.write(new)
+        res["changed"][p] = sum(1 for a, b in zip(src.split("\n"), new.split("\n")) if a != b) + abs(len(src.split("\n")) - len(new.split("\n")))
+with open(OUT, "w", encoding="utf-8") as fh:
+    json.dump(res, fh, ensure_ascii=False, indent=1)
+print("changed", len(res["changed"]), "notes", len(res["notes"]), "d17 files", len(res["d17"]))

@@ -1,0 +1,289 @@
+{
+  "id": "20260921-gate-flow-liveness",
+  "attempt": 1,
+  "evidence_type": "red-green",
+  "freeze": {
+    "T": "5d845847e1800195727efa2503cfb591f1ab90e5",
+    "T_trailers": {
+      "Role": "test",
+      "Change-Id": "20260921-gate-flow-liveness"
+    },
+    "base": "f4b5213e5ff63cf23f730f07852b52f7bd38d214",
+    "T_tree": "2bb91333984457ae599c29f14872f34c4d2f16ae",
+    "test_paths": {
+      "tools/gates/redteam/attacks/27a-el2-foreign-uncommitted": "a1e9b16d8e9a27bcc822d7656b5d8da3ba02bf07",
+      "tools/gates/redteam/attacks/27b-orchestrator-cleanup": "83889ee5a537e8139ab9ad3cab5824f9c31a87e6",
+      "tools/gates/redteam/attacks/27c-el3-integrity-marker": "f4fd928dd26a91f0f13832cad57fe0319ccf608a",
+      "tools/gates/redteam/attacks/27d-assign-subst": "8c64508f1ff1bf2e3bf4948c6ba773b6a983988b",
+      "tools/gates/redteam/attacks/27e-worktree-add-q": "0a077b56b46cb749b141cde9cfa463d3544b43bd",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except": "6215269ed4c1e8dfa877c24b5e55ea18a2609ec7",
+      "tools/gates/redteam/lib/rt.py": "970ad386d1a952e4ae91487c3ba73e2f281230e8"
+    },
+    "base_to_T_changes_outside_redteam": 0
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-iso",
+    "commands": [
+      "git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260921-gate-flow-liveness-audit C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-iso",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-iso remote remove origin"
+    ],
+    "note": "T의 게이트 코드는 base(f4b5213)와 같다(T는 tools/gates/redteam/** 만 더한다, 37 파일 +1026/-0) -- 복제본에서 실행한 게이트 = base 판"
+  },
+  "red_check": {
+    "command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 27 --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-iso",
+    "exit": 1,
+    "log": "C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-iso/tools/gates/redteam/logs/20260921-183929-direct.jsonl",
+    "cases": {
+      "FAIL": 6
+    },
+    "steps": {
+      "FAIL": 30,
+      "PASS": 21,
+      "RECORD": 4
+    },
+    "per_case": {
+      "27a-el2-foreign-uncommitted": {
+        "RECORD": 4,
+        "FAIL": 4,
+        "PASS": 4
+      },
+      "27b-orchestrator-cleanup": {
+        "FAIL": 4,
+        "PASS": 7
+      },
+      "27c-el3-integrity-marker": {
+        "PASS": 3,
+        "FAIL": 3
+      },
+      "27d-assign-subst": {
+        "PASS": 4,
+        "FAIL": 2
+      },
+      "27e-worktree-add-q": {
+        "PASS": 3,
+        "FAIL": 1
+      },
+      "27f-v6-reconfigure-except": {
+        "FAIL": 16
+      }
+    },
+    "harness_status": "6 케이스 모두 status=ok, setup.sh·run.sh exit 0 -- 러너 ERROR 0",
+    "fail_causes": {
+      "27a-el2-foreign-uncommitted": "대조 단계 4 FAIL: base가 다른 역할(audit) worktree의 미커밋 base_check.json을 이유로 code/test 작성자의 PostToolUse·Stop을 거부(exit 2, 기대 0) -- 계약 1(D-7) 위반(과잉 거부). 공격 단계 4(엔진 소스 미커밋)는 base에서도 거부해 PASS",
+      "27b-orchestrator-cleanup": "대조 단계 4 FAIL: base가 §12 정리 형태(audit merge --abort, worktree remove --force <id>-{audit,test}, 판정 기록 뒤 <id>-code)를 EL1에서 거부(exit 2, 기대 0) -- 계약 2(D-3) 위반. 공격 단계 7은 base에서도 거부해 PASS",
+      "27c-el3-integrity-marker": "공격 단계 3 FAIL: integrity-failed 표지가 있어도 EL3(pre-commit·commit-msg·pre-merge-commit)이 exit 0, 메시지에 표지 경로·'--scope session' 없음 -- 계약 3(D-8) 위반(거부 누락). 표지 없는 대조 3 PASS",
+      "27d-assign-subst": "대조 단계 2 FAIL: 변수 대입 명령 치환(캐시·TEMP 스크립트)에서 base 게이트가 내부 AttributeError('NoneType' object has no attribute 'startswith')로 '판정 실패(fail-closed)' -- 계약 4(D-10) 위반(예외 fail-closed는 판정이 아니다). 러너 ERROR 아님(게이트 자체 예외를 관찰한 것). 나머지 4 PASS",
+      "27e-worktree-add-q": "대조 단계 1 FAIL: 메인에서 §12-1 형태에 -q가 붙은 worktree add를 EL1이 거부(exit 2, 기대 0) -- 계약 5(D-6) 위반. -q 없는 대조와 공격 2 PASS",
+      "27f-v6-reconfigure-except": "관찰 단계 16 FAIL: 게이트 파일 16개 각각에 reconfigure를 감싼 광범위 except+pass가 1개(기대 0) -- 계약 6(V6) 위반(ast 관찰값 불일치)"
+    },
+    "base_pass_steps": {
+      "27a-el2-foreign-uncommitted": [
+        "attack-code-post-foreign-engine-src",
+        "attack-code-stop-foreign-engine-src",
+        "attack-test-post-foreign-engine-src",
+        "attack-test-stop-foreign-engine-src"
+      ],
+      "27b-orchestrator-cleanup": [
+        "attack-code-author-merge-abort",
+        "attack-code-author-remove-force-audit",
+        "attack-test-author-remove-force-test",
+        "attack-main-merge-abort-code",
+        "attack-main-remove-force-outside-name",
+        "attack-main-remove-force-outside-dir",
+        "attack-main-remove-force-code-no-record"
+      ],
+      "27c-el3-integrity-marker": [
+        "control-pre-commit-no-marker",
+        "control-commit-msg-no-marker",
+        "control-pre-merge-commit-no-marker"
+      ],
+      "27d-assign-subst": [
+        "control-assign-subst-path",
+        "control-assign-subst-suffix",
+        "attack-assign-subst-push",
+        "attack-echo-subst-push"
+      ],
+      "27e-worktree-add-q": [
+        "control-main-worktree-add",
+        "attack-main-worktree-add-q-outside",
+        "attack-code-author-worktree-add-q"
+      ],
+      "27f-v6-reconfigure-except": []
+    },
+    "result": "red 확인: base에서 FAIL인 30 단계만 red 목록에 넣었다(27a 4, 27b 4, 27c 3, 27d 2, 27e 1, 27f 16). 전부 계약 위반(기대 exit·관찰값·문구 불일치)이고 하네스 ERROR는 없다. base에서 PASS인 21 단계와 RECORD 4 단계는 red에서 뺐다(병합본에서 계속 PASS여야 하는 회귀 대조)",
+    "failure_hash_method": "DESIGN-GAP: redteam 케이스는 pytest red 수집(-p merge_gate) 대상이 아니다. test_id = tools/gates/redteam/attacks/<케이스>::<단계>, failure_hash = merge_gate.red_failure_hash(test_id, \"redteam.FAIL\")",
+    "aggregate_hash": "ee0ab3f976df065ab064b33cf7ca9de26b4cc74a03adee34b041da2cb9d0ed63",
+    "aggregate_hash_method": "sha256(정렬한 failure_hash를 \n으로 이은 UTF-8)",
+    "red": [
+      {
+        "test_id": "tools/gates/redteam/attacks/27a-el2-foreign-uncommitted::control-code-post-foreign-base-check",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "566757aa452656ed78585b96ad050e7cf116d1668b3fe4daf76709a689a8b931"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27a-el2-foreign-uncommitted::control-code-stop-foreign-base-check",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "e306ad51ee920ff4875bd026744561947912f038b4dc1d81b815f5325eb90d1d"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27a-el2-foreign-uncommitted::control-test-post-foreign-base-check",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "cdf603201de8728077bcb4a97ce7445a3007ee9fa1a48a827d6ee224201bce6c"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27a-el2-foreign-uncommitted::control-test-stop-foreign-base-check",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "6d80c4df3055dfe0a582ac5b00843e3f3e760f5d9a6942817eadbfd7c6ac4425"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27b-orchestrator-cleanup::control-main-merge-abort-audit",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "7cbfd68c707857b32851854e2c44501c5bd209bd7e45475b51f1313c85815167"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27b-orchestrator-cleanup::control-main-remove-force-audit",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "7a80dd330eafba3c7019e376b4171b77619e9ecf6243460c32ca7c766fbdf66a"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27b-orchestrator-cleanup::control-main-remove-force-test",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "e55c2f0285fe1099a8c1e9acecb4fe7dd86bdfb08d8e76b4c12a165b246587fb"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27b-orchestrator-cleanup::control-main-remove-force-code-after-record",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "b2e41c931ee3b171799103db41e1989502036158e3e52c192f56b9b41216c183"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27c-el3-integrity-marker::attack-pre-commit-marker",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "06d8cbc13713e2288d8f0c705c14e3d2a18f00c829d18c49faaadc40d3ad80f7"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27c-el3-integrity-marker::attack-commit-msg-marker",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "d45a6e6d103e888ebffa159d77b5545cb5ef3ed0b894c465df477c7f6c2a0d6b"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27c-el3-integrity-marker::attack-pre-merge-commit-marker",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "df680b215714947f2dd98b609779e16aff01d912961a716acbe6effec565a18b"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27d-assign-subst::control-assign-subst-cache-script",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "743fea289dcea2100bafd56b5a66ffdc0dcaf5a6a5df5d069f99b205144bfc4e"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27d-assign-subst::control-assign-subst-temp-script",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "55a2acd1f972810cb7597aec955bcd5b6d2c3f5efb9365a4e8a7f3df7c80e525"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27e-worktree-add-q::control-main-worktree-add-q",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "80820bab89f7fca9b8d51171ae30fda2b6202dc379f384dfae65bf35a7fa420b"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-role-guard",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "e45973f737985e95402b4b940f669332c3647507b75645e9ee7c05507b9ea15e"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-role-diff-guard-bash",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "28f4b403234781ec033917cebd181c55f3f80e8de938ea56a8905c0e0acb6d2c"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-role-diff-guard-stop",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "ff7b34a835763bdcea03a994b634f1d3d8abc9b07b364c139dcd9624273c307f"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-role-session-start",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "2d60996c3fa8c34fd216ae5ec24bb64eb5c6994c7c1ddd20f2824cc4df40ade5"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-gmid-gate",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "49b79f6239e6d3a68090b051689a1f437d7b8edd2eac00c66c0f53ef2b5106eb"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-gate-runner",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "29eabd3185dc757e2ef1150153b52374927873ae6a96313696285e6e32031c4f"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-integrity",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "1318aa235cce0190dc90ae5ef29fb682b9bde18d8a2be8cf1719c5624152e1f1"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-merge-gate",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "c0f34c61d5361a6babf887bb7e67f4cec6c64702e194f59fa5f8ffbff4194e3e"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-role-commit-gate",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "42f6f8b9fbdc618cf0f8bd5f1d0824214999fad010392bc7ae759ab81766cb12"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-interface-card",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "5527ee501c3e14a3ccd98ad88fe4f90a2945c5fff7a5f507e2f76ffb61e6d60b"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-weakening-diff",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "8af4bd1cd1ab6c4eacc56381dc25f372823dc9620637816a57ba6be168d7b6f1"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-test-lint",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "62ca6e03142e22c4ed618117cc23c98dd561cd21d4f5ba5e7e651f56c03780e8"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-source-lint",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "b41a4f92f0766f9d1dd6fedcc97a16af5288efd0cb59096053738989a0253ec1"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-reachability",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "9cc7558db9a48e3d6c4b265f808f8c690312355a525bd9d765ce62c28c06546d"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-mutate-changed",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "e5029c3fbbb5923993e34cc84512aa2dfeed88fce873bb7470aab82c25f8bcd9"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-import-layering",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "7e9b6c55638045ee189d8ffbdae3cca27e0a1345c49b8aa72debdad4d634823a"
+      }
+    ]
+  },
+  "control_check": {
+    "command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 24 --only 25 --only 26 --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-iso",
+    "exit": 0,
+    "log": "C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-iso/tools/gates/redteam/logs/20260921-184113-direct.jsonl",
+    "cases": {
+      "PASS": 3
+    },
+    "steps": {
+      "PASS": 55
+    },
+    "detail": {
+      "24-command-parsing": "PASS",
+      "25-dispute-cleanup": "PASS",
+      "26-gate-output-utf8": "PASS"
+    },
+    "result": "같은 복제본·같은 러너(rt.py T 판)에서 기존 케이스 24·25·26은 PASS -- rt.py 추가 동작이 기존 동작을 바꾸지 않았고, red가 러너·환경 결함이 아니라 base 게이트 동작에서 온다"
+  },
+  "measured_at": "2026-09-21T18:39:29+09:00",
+  "measured_by": "gmid-verification-auditor (격리 복제본, 작성자 보고 미사용)"
+}

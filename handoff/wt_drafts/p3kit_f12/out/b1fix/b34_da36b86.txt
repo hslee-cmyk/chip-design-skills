@@ -1,0 +1,193 @@
+...............................FFFFFFFFF...                              [100%]
+================================== FAILURES ===================================
+___ test_b34_c8_restored_values_equal_fresh_process[common_gate_amplifier] ____
+
+p = 'C:\\g347\\w_da36b86\\skills\\analog-gmid-design\\assets\\library\\common_gate_amplifier.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000026DC5B6A0B0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c8_restored_values_equal_fresh_process(p, monkeypatch):
+        # ① 기대값 (c): 같은 p를 별도 인터프리터에서(부재를 거치지 않음).
+        rc, out, err = _b34_fresh_process(_B34_FRESH_SCRIPT, os.path.dirname(stick_diagram.__file__),
+                                          str(_B34_HERE.parent), p)
+>       assert rc == 0, err
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 12, in <module>
+E             "find_idiom_matches": _b34_normalize(stick_diagram.find_idiom_matches(ts)),
+E                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         AttributeError: module 'stick_diagram' has no attribute 'find_idiom_matches'
+E         
+E       assert 1 == 0
+
+C:\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:305: AssertionError
+_ test_b34_c8_restored_values_equal_fresh_process[current_reuse_telescopic_ota] _
+
+p = 'C:\\g347\\w_da36b86\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000026DC5C8A9E0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c8_restored_values_equal_fresh_process(p, monkeypatch):
+        # ① 기대값 (c): 같은 p를 별도 인터프리터에서(부재를 거치지 않음).
+        rc, out, err = _b34_fresh_process(_B34_FRESH_SCRIPT, os.path.dirname(stick_diagram.__file__),
+                                          str(_B34_HERE.parent), p)
+>       assert rc == 0, err
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 12, in <module>
+E             "find_idiom_matches": _b34_normalize(stick_diagram.find_idiom_matches(ts)),
+E                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         AttributeError: module 'stick_diagram' has no attribute 'find_idiom_matches'
+E         
+E       assert 1 == 0
+
+C:\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:305: AssertionError
+_______ test_b34_c8_restored_values_equal_fresh_process[folded_cascode] _______
+
+p = 'C:\\g347\\w_da36b86\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000026DC5C8ACF0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c8_restored_values_equal_fresh_process(p, monkeypatch):
+        # ① 기대값 (c): 같은 p를 별도 인터프리터에서(부재를 거치지 않음).
+        rc, out, err = _b34_fresh_process(_B34_FRESH_SCRIPT, os.path.dirname(stick_diagram.__file__),
+                                          str(_B34_HERE.parent), p)
+>       assert rc == 0, err
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 12, in <module>
+E             "find_idiom_matches": _b34_normalize(stick_diagram.find_idiom_matches(ts)),
+E                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         AttributeError: module 'stick_diagram' has no attribute 'find_idiom_matches'
+E         
+E       assert 1 == 0
+
+C:\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:305: AssertionError
+_______ test_b34_c8_restored_values_equal_fresh_process[ngcc_3stage_ff] _______
+
+p = 'C:\\g347\\w_da36b86\\skills\\analog-gmid-design\\assets\\library\\ngcc_3stage_ff.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000026DC5B6A970>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c8_restored_values_equal_fresh_process(p, monkeypatch):
+        # ① 기대값 (c): 같은 p를 별도 인터프리터에서(부재를 거치지 않음).
+        rc, out, err = _b34_fresh_process(_B34_FRESH_SCRIPT, os.path.dirname(stick_diagram.__file__),
+                                          str(_B34_HERE.parent), p)
+>       assert rc == 0, err
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 12, in <module>
+E             "find_idiom_matches": _b34_normalize(stick_diagram.find_idiom_matches(ts)),
+E                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         AttributeError: module 'stick_diagram' has no attribute 'find_idiom_matches'
+E         
+E       assert 1 == 0
+
+C:\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:305: AssertionError
+______ test_b34_c8_restored_values_equal_fresh_process[nmcnr_amplifier] _______
+
+p = 'C:\\g347\\w_da36b86\\skills\\analog-gmid-design\\assets\\library\\nmcnr_amplifier.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000026DC5B6A9E0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c8_restored_values_equal_fresh_process(p, monkeypatch):
+        # ① 기대값 (c): 같은 p를 별도 인터프리터에서(부재를 거치지 않음).
+        rc, out, err = _b34_fresh_process(_B34_FRESH_SCRIPT, os.path.dirname(stick_diagram.__file__),
+                                          str(_B34_HERE.parent), p)
+>       assert rc == 0, err
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 12, in <module>
+E             "find_idiom_matches": _b34_normalize(stick_diagram.find_idiom_matches(ts)),
+E                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         AttributeError: module 'stick_diagram' has no attribute 'find_idiom_matches'
+E         
+E       assert 1 == 0
+
+C:\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:305: AssertionError
+__ test_b34_c8_restored_values_equal_fresh_process[pushpull_follower_buffer] __
+
+p = 'C:\\g347\\w_da36b86\\skills\\analog-gmid-design\\assets\\library\\pushpull_follower_buffer.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000026DC5B6AAC0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c8_restored_values_equal_fresh_process(p, monkeypatch):
+        # ① 기대값 (c): 같은 p를 별도 인터프리터에서(부재를 거치지 않음).
+        rc, out, err = _b34_fresh_process(_B34_FRESH_SCRIPT, os.path.dirname(stick_diagram.__file__),
+                                          str(_B34_HERE.parent), p)
+>       assert rc == 0, err
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 12, in <module>
+E             "find_idiom_matches": _b34_normalize(stick_diagram.find_idiom_matches(ts)),
+E                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         AttributeError: module 'stick_diagram' has no attribute 'find_idiom_matches'
+E         
+E       assert 1 == 0
+
+C:\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:305: AssertionError
+__ test_b34_c8_restored_values_equal_fresh_process[sf_pushpull_output_opamp] __
+
+p = 'C:\\g347\\w_da36b86\\skills\\analog-gmid-design\\assets\\library\\sf_pushpull_output_opamp.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000026DC5B6ABA0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c8_restored_values_equal_fresh_process(p, monkeypatch):
+        # ① 기대값 (c): 같은 p를 별도 인터프리터에서(부재를 거치지 않음).
+        rc, out, err = _b34_fresh_process(_B34_FRESH_SCRIPT, os.path.dirname(stick_diagram.__file__),
+                                          str(_B34_HERE.parent), p)
+>       assert rc == 0, err
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 12, in <module>
+E             "find_idiom_matches": _b34_normalize(stick_diagram.find_idiom_matches(ts)),
+E                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         AttributeError: module 'stick_diagram' has no attribute 'find_idiom_matches'
+E         
+E       assert 1 == 0
+
+C:\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:305: AssertionError
+_______ test_b34_c8_restored_values_equal_fresh_process[two_stage_ota] ________
+
+p = 'C:\\g347\\w_da36b86\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000026DC5B6AC80>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c8_restored_values_equal_fresh_process(p, monkeypatch):
+        # ① 기대값 (c): 같은 p를 별도 인터프리터에서(부재를 거치지 않음).
+        rc, out, err = _b34_fresh_process(_B34_FRESH_SCRIPT, os.path.dirname(stick_diagram.__file__),
+                                          str(_B34_HERE.parent), p)
+>       assert rc == 0, err
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 12, in <module>
+E             "find_idiom_matches": _b34_normalize(stick_diagram.find_idiom_matches(ts)),
+E                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         AttributeError: module 'stick_diagram' has no attribute 'find_idiom_matches'
+E         
+E       assert 1 == 0
+
+C:\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:305: AssertionError
+______ test_b34_c8_restored_values_equal_fresh_process[two_stage_ota_sf] ______
+
+p = 'C:\\g347\\w_da36b86\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota_sf.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000026DC5B6ACF0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c8_restored_values_equal_fresh_process(p, monkeypatch):
+        # ① 기대값 (c): 같은 p를 별도 인터프리터에서(부재를 거치지 않음).
+        rc, out, err = _b34_fresh_process(_B34_FRESH_SCRIPT, os.path.dirname(stick_diagram.__file__),
+                                          str(_B34_HERE.parent), p)
+>       assert rc == 0, err
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 12, in <module>
+E             "find_idiom_matches": _b34_normalize(stick_diagram.find_idiom_matches(ts)),
+E                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         AttributeError: module 'stick_diagram' has no attribute 'find_idiom_matches'
+E         
+E       assert 1 == 0
+
+C:\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:305: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\..\..\..\..\..\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[common_gate_amplifier]
+FAILED ..\..\..\..\..\..\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[current_reuse_telescopic_ota]
+FAILED ..\..\..\..\..\..\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[folded_cascode]
+FAILED ..\..\..\..\..\..\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[ngcc_3stage_ff]
+FAILED ..\..\..\..\..\..\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[nmcnr_amplifier]
+FAILED ..\..\..\..\..\..\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[pushpull_follower_buffer]
+FAILED ..\..\..\..\..\..\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[sf_pushpull_output_opamp]
+FAILED ..\..\..\..\..\..\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota]
+FAILED ..\..\..\..\..\..\g347\w_da36b86\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota_sf]
+9 failed, 34 passed in 17.32s

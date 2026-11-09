@@ -1,0 +1,10 @@
+1945: len=744 in_adb=False in_6a31=True in_new=False :: 경향)  **구현 자리·순서**(검증 9 MJ9-2): 구현 card = SF-1 범위 9(θ 상자 적용 -- 결합 C는 공통 상자 대상 밖·회로별 선언 읽기·미
+1948: len=462 in_adb=True in_6a31=False in_new=False :: (2) **상자 writer 하나**: S0 θ 상자 블록 하나가 모든 θ 수동소자 상자를 쓴다(순서 = 회로별 선언 → 결합 C는 선언 필수·미선언 정지 → 그
+1949: len=13 in_adb=True in_6a31=False in_new=False :: 기존 꼴(2533 선례)
+1950: len=21 in_adb=True in_6a31=False in_new=False :: SF-1 범위 9의 S0 θ 상자 블록
+1951: len=274 in_adb=True in_6a31=False in_new=False :: 상자 적용 자리 = 처음부터 S0 θ 상자 블록 하나(모든 θ 수동소자 상자 writer -- 회로별 선언 → 공통 상자; 로더는 선언 구문 검사만), 상자 소비
+1952: len=62 in_adb=True in_6a31=True in_new=False :: 범위 9가 `theta_bounds` 상자 규칙을 바꾸면 같은 필드의 writer 본문이 바뀐다(새 자리 0).
+1953: len=66 in_adb=True in_6a31=False in_new=False :: Q-CB1 (나) 승인 시 상자 적용 자리 = S0 θ 상자 블록(card SF-1 범위 9 -- 로더 → S0 블록)
+1954: len=1469 in_adb=True in_6a31=False in_new=False :: > **Status**: **Plan v6.38.5 -- O-174 구조적 0 전류 규칙(DR-1, 일반형)·WB-1 범위 3 cfg 공유 이름 범위·탐색 평가 
+1955: len=61 in_adb=False in_6a31=True in_new=False :: Q-CB1 (나) 승인 시 결합 C는 공통 상자 대상 밖·회로별 선언·미선언 정지(card SF-1 범위 9)
+1956: len=52 in_adb=False in_6a31=True in_new=False :: 보상 C 하한의 물리 결정자 후보(PDK 최소 MIM·마디 기생 바닥)는 후속 질문(백로그))

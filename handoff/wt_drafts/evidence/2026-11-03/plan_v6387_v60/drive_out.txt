@@ -1,0 +1,12 @@
+common_gate_amplifier rc=0 
+folded_cascode rc=0 
+two_stage_ota rc=0 
+two_stage_ota_sf rc=0 
+cnr_ota rc=0 
+erfc_ota rc=0 
+rfc_ota rc=0 
+r2r_opamp rc=0 
+current_reuse_telescopic_ota rc=0 
+sf_pushpull_output_opamp rc=0 
+two_stage_ota_sf base --front rc=0
+two_stage_ota_sf ga --front rc=0

@@ -1,0 +1,217 @@
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-wired", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-imported", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-modattr", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-orphan", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-dead-reader", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-external-attr", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-attr-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-str-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-name-strings", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-local-shadow", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-other", "exit": 1, "verdict": "FAIL", "why": "메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_other.py::_f_y2\"]' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-x-outside", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-bare-name-other", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-wired", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-raise", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-inherited", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-dataclass-post-init", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-chain", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-in-binding", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-isinstance-only", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-leak", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-limit", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-name", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_engine.py::rt_g\"]' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-string", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "approved-still-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "direct-call-control", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "binding-not-a-def", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/base", "variant": "-", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "v3-registry-inventory", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/base", "variant": "-", "summary": {"summary": true, "mode": "direct", "phase": "0.5", "cases": {"FAIL": 1}, "steps": {"FAIL": 13, "PASS": 17}, "repo": "C:\\g280\\a33\\base", "time": "20261006-150604"}}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-imported", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-modattr", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-reexport", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-orphan", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-dead-reader", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-external-attr", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-attr-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-str-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-name-strings", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-local-shadow", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-reexport-other", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-reexport-x-outside", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "registry-bare-name-other", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "ctor-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "ctor-raise", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "ctor-inherited", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "ctor-dataclass-post-init", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "ctor-super-chain", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "ctor-in-binding", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "ctor-isinstance-only", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "ctor-super-leak", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "ctor-factory-limit", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "ctor-factory-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "leak-test-name", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "leak-test-string", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "approved-still-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "direct-call-control", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "binding-not-a-def", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "case": "33-v7-registry-edges", "case_verdict": "PASS", "step": "v3-registry-inventory", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "fixed", "summary": {"summary": true, "mode": "direct", "phase": "0.5", "cases": {"PASS": 1}, "steps": {"PASS": 30}, "repo": "C:\\g280\\a33\\head", "time": "20261006-151014"}}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-imported", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-modattr", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-orphan", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-dead-reader", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-external-attr", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-attr-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-str-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-name-strings", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-local-shadow", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-other", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-x-outside", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_other.py::_f_q\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-bare-name-other", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-raise", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-inherited", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-dataclass-post-init", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-chain", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-in-binding", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-isinstance-only", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-leak", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-limit", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-name", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-string", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "approved-still-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "direct-call-control", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "binding-not-a-def", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "v3-registry-inventory", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "xout", "summary": {"summary": true, "mode": "direct", "phase": "0.5", "cases": {"FAIL": 1}, "steps": {"PASS": 29, "FAIL": 1}, "repo": "C:\\g280\\a33\\head", "time": "20261006-151532"}}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-imported", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-modattr", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-orphan", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-dead-reader", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-external-attr", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-attr-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-str-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-name-strings", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-local-shadow", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-other", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-x-outside", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-bare-name-other", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_other.py::_f_z\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-raise", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-inherited", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-dataclass-post-init", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-chain", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-in-binding", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-isinstance-only", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-leak", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-limit", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-name", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-string", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "approved-still-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "direct-call-control", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "binding-not-a-def", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "v3-registry-inventory", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "bare", "summary": {"summary": true, "mode": "direct", "phase": "0.5", "cases": {"FAIL": 1}, "steps": {"PASS": 29, "FAIL": 1}, "repo": "C:\\g280\\a33\\head", "time": "20261006-152152"}}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-imported", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-modattr", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-orphan", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-dead-reader", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-external-attr", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_engine.py::_f_p\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-attr-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-str-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-name-strings", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_engine.py::rt_h2\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-local-shadow", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_engine.py::_f_t\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-other", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_other.py::_f_y2\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-x-outside", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_other.py::_f_q\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-bare-name-other", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-raise", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-inherited", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-dataclass-post-init", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-chain", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-in-binding", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-isinstance-only", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-leak", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_engine.py::RtNever.__init__\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-limit", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-name", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-string", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "approved-still-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "direct-call-control", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "binding-not-a-def", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "v3-registry-inventory", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "draft", "summary": {"summary": true, "mode": "direct", "phase": "0.5", "cases": {"FAIL": 1}, "steps": {"PASS": 24, "FAIL": 6}, "repo": "C:\\g280\\a33\\head", "time": "20261006-152837"}}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-imported", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-modattr", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-orphan", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-dead-reader", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-external-attr", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_engine.py::_f_p\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-attr-collision", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_engine.py::_f_a\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-str-collision", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_engine.py::_f_s\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-name-strings", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_engine.py::rt_h2\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-local-shadow", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_engine.py::_f_t\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-other", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_other.py::_f_y2\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-x-outside", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_other.py::_f_q\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-bare-name-other", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_other.py::_f_z\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-raise", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-inherited", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-dataclass-post-init", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-chain", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-in-binding", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-isinstance-only", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-leak", "exit": 0, "verdict": "FAIL", "why": "exit 0 != 기대 1; 메시지에 '\"unreached_without_approval\": [\"skills/analog-gmid-design/assets/rt_engine.py::RtNever.__init__\"]' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-limit", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-name", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-string", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "approved-still-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "direct-call-control", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "binding-not-a-def", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "v3-registry-inventory", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "loose", "summary": {"summary": true, "mode": "direct", "phase": "0.5", "cases": {"FAIL": 1}, "steps": {"PASS": 21, "FAIL": 9}, "repo": "C:\\g280\\a33\\head", "time": "20261006-153548"}}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-imported", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-modattr", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-orphan", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-dead-reader", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-external-attr", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-attr-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-str-collision", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-name-strings", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-local-shadow", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-other", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-reexport-x-outside", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "registry-bare-name-other", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-wired", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-raise", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-inherited", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-dataclass-post-init", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-chain", "exit": 1, "verdict": "FAIL", "why": "exit 1 != 기대 0; 메시지에 '\"verdict\": \"PASS\"' 없음"}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-in-binding", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-isinstance-only", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-super-leak", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-limit", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "ctor-factory-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-name", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "leak-test-string", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "approved-still-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "direct-call-control", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "binding-not-a-def", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "case": "33-v7-registry-edges", "case_verdict": "FAIL", "step": "v3-registry-inventory", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g280/a33/head", "variant": "nosuper", "summary": {"summary": true, "mode": "direct", "phase": "0.5", "cases": {"FAIL": 1}, "steps": {"PASS": 29, "FAIL": 1}, "repo": "C:\\g280\\a33\\head", "time": "20261006-154432"}}

@@ -1,0 +1,640 @@
+{
+ "verdict": "FAIL",
+ "lens": {
+  "upward": 34,
+  "cycles": 1,
+  "unassigned": 6,
+  "conflicts": 0,
+  "reg_mismatch": 36,
+  "import_time_high": 0,
+  "absent_split": 0
+ },
+ "n_assigned": 402,
+ "rules": {
+  "A-K": 2,
+  "A-4": 234,
+  "A-6": 8,
+  "A-5": 64,
+  "A-1": 55,
+  "A-2": 38,
+  "A-3": 1
+ },
+ "per_mod": {
+  "audit_current_forced.py": 2,
+  "circuit_metrics.py": 5,
+  "circuit_state_graph.py": 70,
+  "gmid_lut.py": 7,
+  "gmid_sizing_engine.py": 116,
+  "instance_report_builder.py": 17,
+  "sizing_layout_convergence.py": 17,
+  "stick_diagram.py": 109,
+  "theta_search.py": 25,
+  "topology_authoring.py": 34
+ },
+ "mod7_outside_sd": [],
+ "upward_mod_pairs": {
+  "topology_authoring.py -> circuit_state_graph.py": 15,
+  "gmid_sizing_engine.py -> circuit_metrics.py": 8,
+  "circuit_state_graph.py -> gmid_sizing_engine.py": 3,
+  "theta_search.py -> sizing_layout_convergence.py": 2,
+  "gmid_sizing_engine.py -> instance_report_builder.py": 1,
+  "circuit_metrics.py -> instance_report_builder.py": 1,
+  "gmid_lut.py -> gmid_sizing_engine.py": 1,
+  "topology_authoring.py -> theta_search.py": 1,
+  "topology_authoring.py -> gmid_sizing_engine.py": 1,
+  "topology_authoring.py -> stick_diagram.py": 1
+ },
+ "upward_edges": [
+  {
+   "from": "design_report.py::save_html_report",
+   "from_mod": "gmid_sizing_engine.py",
+   "from_rule": "A-4",
+   "to": "design_report.py::render_html_report",
+   "to_mod": "instance_report_builder.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::<stmt:316ff5f1ff49>",
+   "from_mod": "circuit_metrics.py",
+   "from_rule": "A-1",
+   "to": "sizing_recipe.py::_metric_nulling_resistor_ohm",
+   "to_mod": "instance_report_builder.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "from_mod": "gmid_lut.py",
+   "from_rule": "A-1",
+   "to": "sizing_recipe.py::_multilinear_interp_point_multi",
+   "to_mod": "gmid_sizing_engine.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "sizing_recipe.py::_build_theta_evaluator",
+   "from_mod": "theta_search.py",
+   "from_rule": "A-1",
+   "to": "sizing_recipe.py::resolve_stack_layout",
+   "to_mod": "sizing_layout_convergence.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::_make_shared_current_scorer",
+   "from_mod": "gmid_sizing_engine.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::compute_metric",
+   "to_mod": "circuit_metrics.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::_metric_parasitic_pm_deg",
+   "from_mod": "gmid_sizing_engine.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::build_ac_network",
+   "to_mod": "circuit_metrics.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::_metric_pelgrom_mismatch",
+   "from_mod": "gmid_sizing_engine.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::estimate_mismatch_sigma",
+   "to_mod": "circuit_metrics.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::_metric_smallsignal_gain_db",
+   "from_mod": "gmid_sizing_engine.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::_full_circuit_response",
+   "to_mod": "circuit_metrics.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::_metric_smallsignal_ratio_db",
+   "from_mod": "gmid_sizing_engine.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::_full_circuit_response",
+   "to_mod": "circuit_metrics.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::_refine_shared_current_joint_scan_for_full_circuit_constraints",
+   "from_mod": "gmid_sizing_engine.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::compute_metric",
+   "to_mod": "circuit_metrics.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::achievable_metric_bound",
+   "from_mod": "theta_search.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::optimize_full_circuit_budget",
+   "to_mod": "sizing_layout_convergence.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::diagnose_sizing_roles_gap",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::_build_theta_evaluator",
+   "to_mod": "theta_search.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::full_circuit_response_at_omega",
+   "from_mod": "gmid_sizing_engine.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::build_ac_network",
+   "to_mod": "circuit_metrics.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::make_matching_feasibility_check",
+   "from_mod": "gmid_sizing_engine.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::estimate_mismatch_sigma",
+   "to_mod": "circuit_metrics.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::require_declared_spec_source",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-1",
+   "to": "sizing_recipe.py::spec_fingerprint",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::resolve_constraint_references",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::spec_fingerprint",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::resolve_feed_vds",
+   "from_mod": "circuit_state_graph.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::_feed_vds_fallback",
+   "to_mod": "gmid_sizing_engine.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "sizing_recipe.py::set_device_vds",
+   "from_mod": "circuit_state_graph.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::solve_diode_connected_vds",
+   "to_mod": "gmid_sizing_engine.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "sizing_recipe.py::stack_kvl_vgs_limit",
+   "from_mod": "circuit_state_graph.py",
+   "from_rule": "A-4",
+   "to": "sizing_recipe.py::lut_vdsat_headroom",
+   "to_mod": "gmid_sizing_engine.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "sizing_recipe.py::validate_metric_units",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-1",
+   "to": "sizing_recipe.py::metric_unit_scale",
+   "to_mod": "gmid_sizing_engine.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "stick_diagram.py::_propose_L_roles",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::find_differential_pair_candidates",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "stick_diagram.py::_propose_L_roles",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::find_structural_symmetry_candidates",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "stick_diagram.py::_propose_gm_id_roles",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::find_differential_pair_candidates",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "stick_diagram.py::_propose_gm_id_roles",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::find_structural_symmetry_candidates",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "stick_diagram.py::audit_vertical_stack_id_vs_kcl",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::_kcl_and_matching_edges",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "stick_diagram.py::check_symmetry_dispositions",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::find_hub_merge_candidates",
+   "to_mod": "stick_diagram.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "stick_diagram.py::check_symmetry_dispositions",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::find_matching_candidates",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "stick_diagram.py::propose_device_roles_gap_fill",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::find_matching_candidates",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "stick_diagram.py::propose_device_roles_gap_fill",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::find_structural_symmetry_candidates",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "stick_diagram.py::propose_theta_kcl_gap_fill",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::_kcl_terminal_sign",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "stick_diagram.py::propose_vertical_stack_id_gap_fill",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::_kcl_and_matching_edges",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "stick_diagram.py::refine_differential_and_mirror_relations",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::find_differential_pair_candidates",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-4"
+  },
+  {
+   "from": "stick_diagram.py::suggest_vertical_stack_composites",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::trace_gnd_to_vdd_branches",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-1"
+  },
+  {
+   "from": "stick_diagram.py::suggest_vertical_stack_composites",
+   "from_mod": "topology_authoring.py",
+   "from_rule": "A-4",
+   "to": "stick_diagram.py::trace_vdd_to_gnd_branches",
+   "to_mod": "circuit_state_graph.py",
+   "to_rule": "A-1"
+  }
+ ],
+ "upward_sources": {
+  "stick_diagram.py::_propose_L_roles": 2,
+  "stick_diagram.py::_propose_gm_id_roles": 2,
+  "stick_diagram.py::check_symmetry_dispositions": 2,
+  "stick_diagram.py::propose_device_roles_gap_fill": 2,
+  "stick_diagram.py::suggest_vertical_stack_composites": 2,
+  "design_report.py::save_html_report": 1,
+  "sizing_recipe.py::<stmt:316ff5f1ff49>": 1,
+  "sizing_recipe.py::SemiEmpiricalGmIdLUT": 1,
+  "sizing_recipe.py::_build_theta_evaluator": 1,
+  "sizing_recipe.py::_make_shared_current_scorer": 1,
+  "sizing_recipe.py::_metric_parasitic_pm_deg": 1,
+  "sizing_recipe.py::_metric_pelgrom_mismatch": 1,
+  "sizing_recipe.py::_metric_smallsignal_gain_db": 1,
+  "sizing_recipe.py::_metric_smallsignal_ratio_db": 1,
+  "sizing_recipe.py::_refine_shared_current_joint_scan_for_full_circuit_constraints": 1,
+  "sizing_recipe.py::achievable_metric_bound": 1,
+  "sizing_recipe.py::diagnose_sizing_roles_gap": 1,
+  "sizing_recipe.py::full_circuit_response_at_omega": 1,
+  "sizing_recipe.py::make_matching_feasibility_check": 1,
+  "sizing_recipe.py::require_declared_spec_source": 1,
+  "sizing_recipe.py::resolve_constraint_references": 1,
+  "sizing_recipe.py::resolve_feed_vds": 1,
+  "sizing_recipe.py::set_device_vds": 1,
+  "sizing_recipe.py::stack_kvl_vgs_limit": 1,
+  "sizing_recipe.py::validate_metric_units": 1,
+  "stick_diagram.py::audit_vertical_stack_id_vs_kcl": 1,
+  "stick_diagram.py::propose_theta_kcl_gap_fill": 1,
+  "stick_diagram.py::propose_vertical_stack_id_gap_fill": 1,
+  "stick_diagram.py::refine_differential_and_mirror_relations": 1
+ },
+ "upward_targets": {
+  "stick_diagram.py::find_differential_pair_candidates": 3,
+  "stick_diagram.py::find_structural_symmetry_candidates": 3,
+  "sizing_recipe.py::compute_metric": 2,
+  "sizing_recipe.py::build_ac_network": 2,
+  "sizing_recipe.py::estimate_mismatch_sigma": 2,
+  "sizing_recipe.py::_full_circuit_response": 2,
+  "sizing_recipe.py::spec_fingerprint": 2,
+  "stick_diagram.py::_kcl_and_matching_edges": 2,
+  "stick_diagram.py::find_matching_candidates": 2,
+  "design_report.py::render_html_report": 1,
+  "sizing_recipe.py::_metric_nulling_resistor_ohm": 1,
+  "sizing_recipe.py::_multilinear_interp_point_multi": 1,
+  "sizing_recipe.py::resolve_stack_layout": 1,
+  "sizing_recipe.py::optimize_full_circuit_budget": 1,
+  "sizing_recipe.py::_build_theta_evaluator": 1,
+  "sizing_recipe.py::_feed_vds_fallback": 1,
+  "sizing_recipe.py::solve_diode_connected_vds": 1,
+  "sizing_recipe.py::lut_vdsat_headroom": 1,
+  "sizing_recipe.py::metric_unit_scale": 1,
+  "stick_diagram.py::find_hub_merge_candidates": 1,
+  "stick_diagram.py::_kcl_terminal_sign": 1,
+  "stick_diagram.py::trace_gnd_to_vdd_branches": 1,
+  "stick_diagram.py::trace_vdd_to_gnd_branches": 1
+ },
+ "cycles": [
+  [
+   "circuit_metrics.py",
+   "circuit_state_graph.py",
+   "gmid_lut.py",
+   "gmid_sizing_engine.py",
+   "instance_report_builder.py",
+   "sizing_layout_convergence.py",
+   "stick_diagram.py",
+   "theta_search.py",
+   "topology_authoring.py"
+  ]
+ ],
+ "unassigned": [
+  "design_report.py::<stmt:6cee4508e2d5>",
+  "sizing_recipe.py::<stmt:59585b91aad7>",
+  "sizing_recipe.py::signal_path_nodes",
+  "stick_diagram.py::<stmt:136b3dab6da9>",
+  "stick_diagram.py::MultiLeafHubParityVerdict",
+  "stick_diagram.py::check_multi_leaf_hub_parity"
+ ],
+ "conflicts": [],
+ "import_time_high": [],
+ "reg_mismatch_rules": {
+  "A-1": 28,
+  "A-2": 8
+ },
+ "reg_mismatch": [
+  {
+   "unit": "sizing_recipe.py::GmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::_multilinear_interp",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::estimate_mismatch_sigma",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "circuit_metrics.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::DiodeSelfConsistencyError",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "circuit_state_graph.py",
+   "rule": "A-2"
+  },
+  {
+   "unit": "sizing_recipe.py::compute_metric",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "circuit_metrics.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::_hr_vfind",
+   "registry": "circuit_state_graph.py",
+   "assigned": "gmid_sizing_engine.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::_hr_thin_singleton_ideal_source_check",
+   "registry": "circuit_state_graph.py",
+   "assigned": "gmid_sizing_engine.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::require_declared_spec_source",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "topology_authoring.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "stick_diagram.py::StructuralSymmetryVerdict",
+   "registry": "topology_authoring.py",
+   "assigned": "circuit_state_graph.py",
+   "rule": "A-2"
+  },
+  {
+   "unit": "stick_diagram.py::CompletenessVerdict",
+   "registry": "stick_diagram.py",
+   "assigned": "instance_report_builder.py",
+   "rule": "A-2"
+  },
+  {
+   "unit": "stick_diagram.py::NameCollisionVerdict",
+   "registry": "stick_diagram.py",
+   "assigned": "circuit_state_graph.py",
+   "rule": "A-2"
+  },
+  {
+   "unit": "sizing_recipe.py::build_ac_network",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "circuit_metrics.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::_full_circuit_response",
+   "registry": "gmid_sizing_engine.py",
+   "assigned": "circuit_metrics.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::_HeadroomTopoEnv",
+   "registry": "circuit_state_graph.py",
+   "assigned": "theta_search.py",
+   "rule": "A-2"
+  },
+  {
+   "unit": "sizing_recipe.py::_HeadroomEvalEnv",
+   "registry": "circuit_state_graph.py",
+   "assigned": "theta_search.py",
+   "rule": "A-2"
+  },
+  {
+   "unit": "sizing_recipe.py::_hr_fold_group_check",
+   "registry": "circuit_state_graph.py",
+   "assigned": "gmid_sizing_engine.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "stick_diagram.py::Transistor",
+   "registry": "stick_diagram.py",
+   "assigned": "circuit_state_graph.py",
+   "rule": "A-2"
+  },
+  {
+   "unit": "sizing_recipe.py::solve_stacked_diode_pair",
+   "registry": "circuit_state_graph.py",
+   "assigned": "gmid_sizing_engine.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::_HeadroomDependencyNotReady",
+   "registry": "circuit_state_graph.py",
+   "assigned": "gmid_sizing_engine.py",
+   "rule": "A-2"
+  },
+  {
+   "unit": "sizing_recipe.py::_hr_resolve_vertical_group",
+   "registry": "circuit_state_graph.py",
+   "assigned": "gmid_sizing_engine.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::validate_theta_declaration_order",
+   "registry": "topology_authoring.py",
+   "assigned": "circuit_state_graph.py",
+   "rule": "A-1"
+  },
+  {
+   "unit": "sizing_recipe.py::lut_conditions_from_npz",
+   "registry": "circuit_state_graph.py",
+   "assigned": "gmid_lut.py",
+   "rule": "A-1"
+  }
+ ],
+ "compare": {
+  "only_here": [
+   "<stmt:4a9c44eea01f>",
+   "<stmt:8cc7074c812c>",
+   "SharedFingerWCandidate",
+   "_invq_newton",
+   "build_toy_lut",
+   "find_differential_and_mirror_forks",
+   "folded_cascode_example",
+   "node_pole_estimate",
+   "render_report",
+   "search_shared_finger_w",
+   "solve_diode_stack_current",
+   "two_stage_ota_example"
+  ],
+  "only_there": [],
+  "mod_diff": []
+ }
+}

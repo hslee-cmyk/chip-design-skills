@@ -1,0 +1,12 @@
+== contracts -k legacy
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_target_set_includes_legacy_scripts
+
+[32m[32m1/606 tests collected (605 deselected)[0m[32m in 5.58s[0m[0m
+== tests -k lut_axis
+
+[33m[33mno tests collected (886 deselected)[0m[33m in 14.65s[0m[0m
+== all
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s014_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s015_Cgg2
+
+[32m[32m886 tests collected[0m[32m in 13.63s[0m[0m

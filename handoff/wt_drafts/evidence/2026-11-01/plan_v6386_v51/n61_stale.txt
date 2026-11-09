@@ -1,0 +1,26 @@
+| PD-1(PDK 선언 이식성 -- R8·R9·R10 선언과 읽는 자리 재배선, 사용자 결정 O-213 (s2); **원래 취지와 다름**(card +1, 승인 O-213)) | N6.38 | -- (생산 card -- 소비 card MOD7 단위·offset-trim LUT 확장이 뒤, N6.1 병합 순서 규칙 표 #20; SF-1·레이아웃 card와는 파일 겹침만) | design(S-7 -- design 40 PDK 선언 절·MOD7 행 구성 자리) |
+| DR-1(고정값 저항 망·구조적 0 전류 MOS 노드 writer, v6.38.4 백로그 재감사 -- 옛 N5.3 I-H1 (i); **원래 취지와 다름**(새 card -- 사용자 '새 card 0' 방향과 다름), **승인 O-173 BL-DR1**) | N6.36 | IT-1 + IT-2 통합 병합(`E/sizing/writer_plan.py` 파일 겹침), card EO-1(O-182 Q-S9), card SF-1(O-182 Q-CB1 (Q)); CPG-1과 무관(CPG-1 대상 = 이관 전 9회로 기준선(library 9)) (O-182 Q-CB1: 결합 C 상자 갈래를 이 card가 SF-1 범위 9의 검색 정의역 S0 블록(`search_domain` 자리)에 넣음) | held-out 처리 확정(충족 -- 사용자 결정 O-175·O-181: 4회로 library) → 계획 개정(N3.4 W 티어 행 -- S-7; 충족 v6.38.5 W2 행) → design → design↔계획 gap |
+| offset-strategy OS-* 전부(다른 계획 card -- OS-2·OS-V·OS-5·OS-L 등; offset 정합 감사 D1, v6.20) | offset-strategy 계획 | **선후 정본은 그 계획**(v0.7.1 `9bd5d7e7`의 선행·착수 조건), 이 계획과의 선후는: 동작 변경 card(OS-2)의 완료 판정 SPICE 다리 선행 EO-1(N6.3 (iii)·(iv)), oracle 선행 OP-3·OP-5(`.tf` A_dc·`.dc` V_id*·2단계 전도), `constraint_rows` 필드·writer와 PS-7 S3 색인 열거 API·평가 키 부분(`sctx.cache` 대체)·계수·분할 = LA-1이 만들고 OS-2는 읽기만, 순서 LA-1 → OS-2(N6.1 병합 순서 규칙 표 #8·#9, LA-1 범위 15 (iv) -- 사용자 결정 O-183; 옛 'OS-2가 만듦(OS-B9)'·'먼저 병합되는 card', **원래 취지와 다름**(승인 O-183)); 진입점 종료 코드·θ* 기록과 규칙 F 예외 파일 = OS-2 `run_plan`(옛 DF-18); 옛 'OS-2 착수 선행 U17 ②', **원래 취지와 다름**, 승인 O-173 BL-OS-B9; ; 옛 'U16·U17 ②' 이름은 하위 계획에서 EO-1·LA-1로 정리, U16 다섯 행의 소유 = graph-consumption GC-B9 (나) 확정: layout 두 행·R6 → LI-1 범위 (9), 나머지는 GC-7(도달하면 출력 전용 선언, 아니면 O-153 삭제 -- 판정 = GC-0a 계수)) + design 40 §2.4.12 Q8(card LA-1 design이 닫음 -- 사용자 결정 아님, 원문 '② design 보완 때 정한다') -- 과도기 칸 금지(offset-strategy v0.7.1 `9bd5d7e7` N7.1 'OS-2 착수 조건' 439행, 사용자 결정 O-61 P9); OS-V는 합성 행 결속만 -- `offset_sys_mv` `verified_by`는 VB-1 선행 | 그 계획 정본 |
+| offset-trim TR-* 전부(다른 계획 card -- TR-1~TR-7·TR-TL 등; offset 정합 감사 D1, v6.20) | offset-trim 계획 | **선후 정본은 그 계획**(v0.6 `plan/offset-trim-v06` `23e6a142`의 선행·착수 조건), 이 계획과의 선후는: 동작 변경 card(TR-2~TR-6)의 완료 판정 SPICE 다리 선행 EO-1, oracle 선행 OP-3·OP-5; oracle 입력은 EO-1 생산자 호출(확장 칸 = G-18 + U-6 -- 그 card 통합 병합에 EO-1 생산자 갱신 커밋) | 그 계획 정본 |
+
+**사용자 결정 O-202~O-212 낡은 card 표**(원칙 19 전수 대조 -- v6.38.6 열다섯째 커밋; 쓰인 card = `docs/02-design/specs/` 2026-10-21 판과 재동결 브랜치 `card/it2c`, 진행 중 card = 0(card 구현·test·판정 worktree 0 -- `git worktree list` 실측); 착수 전 card = **착수 조건**, 진행 중 card = 정지·보고, 완료 이력의 남은 코드 = **재작성 범위**):
+
+| card | 상태 | 낡은 자리 | 표지 |
+|---|---|---|---|
+| IT-2c(spec card `20261021-it2c-icm-config` -- master 판 '대체됨·재동결 필요', 재동결본 `card/it2c` `d95c8ff8` 미병합·코드 0) | 착수 전 | R0 전도 행(`_conduction_rows`·floor READS), 측정 구성 판정 창 +tol_VDsat, 정의 창·판정 창 두 필드, `triode` 경계 +tol | **착수 조건** -- 재동결 때 O-204·O-205 (3)·O-206·O-211 반영(영역 행만, 판정 여유 0, `node.dc_window_cfg` 하나, ICMR 기능 기준·조건 넷) |
+| IT-2d(spec card `20261021-it2d-refine-front` -- 대체됨·재동결 필요) | 착수 전 | front·보고가 정의 창 `node.dc_window_def` 읽음 | **착수 조건** -- 같은 필드 하나(O-204 조건) |
+| IT-2 공통 문서(`20261021-it2-common.md`, it2c·it2d 몫) | 착수 전 | 창 규칙의 판정 여유·정의 창 문언 | **착수 조건** -- it2c·it2d 재동결과 함께 |
+| IT-2a·IT-2b(판정 PASS, `integ/it12`, master 미병합) | 완료 이력 | IT-2b 판정본의 `triode`·포화 경계 행 +tol_VDsat 여유(O-58 T-1), 봉인 9 쓰기 필드 writer(IT-2a 봉인 4 keep 목록) | **재작성 범위**(IT-1 + IT-2 통합 병합 전, IT-2c 재동결 변경에 포함 -- as-built는 근거 아님) |
+| IT-1 범위 재작성 + card 0 IT-0b(spec card 재동결 필요) | 착수 전 | 범위 5 g = s '꺼짐' 분류·신호 경로 정지·신호 경로 술어 필드 생산, IT-0b 신호 경로 측정 | **착수 조건** -- O-210 RR-6 반영(술어 필드 생산 = LA-1), IT-0b·IT-1 test 재작성 범위 |
+| EO-1(spec card 미작성) | 착수 전 | 범위 4 전부(봉인 9 식·2단계·`off` 대조·V_on·`stage2_judgment`·E-21 문턱) | **착수 조건** -- 범위 4 개정판 design(O-202·O-204·O-205·O-210·O-212; ΔV writer·`judged_by` 소유 = 작성자 판단 표지) |
+| DE-1 | 착수 전 | 정의 창 필드·전도 끝·조향/누설 toy | **착수 조건** -- 같은 필드 READS, (e) 함수 = ICMR 기능 기준 함수(O-211) |
+| LA-1(card 0 LA-0 포함) | 착수 전 | 9 (c) K3 측정·J1 열린 결정, S_d 행(봉인 9·P-7), 헤드룸 행 tol 경로 합, E-35 판정 자리, LA-0 T4-pre I_off, 신호 경로 술어 필드 생산(새로 맡음) | **착수 조건** |
+| SB-1 | 착수 전 | 신호 경로 술어 필드 READS 출처(IT-1 → LA-1) | **착수 조건** |
+| WB-1 | 착수 전 | Q-T0 착수 실측의 봉인 9 ε·봉인 6 tol_V | **착수 조건** |
+| SF-1 | 착수 전 | ICMR 기능 기준 spec 칸(기준점·허용 저하) 로더, `saturation_rule` 꺼짐 식 | **착수 조건** -- 칸 범위 추가(O-206·O-211; spec 로더 단독 소유 card라는 기존 규칙에서 유도) |
+| DR-1 | 착수 전 | 봉인 9 (i)(iv) 예외 문언 | **착수 조건**(문언 -- (i)만) |
+| headroom-chain HC-S·HC-1·HC-O | 착수 전 | `sat_threshold` tol의 판정 사용(R-1′ 항·출발 단계·R-3·`saturation_rows`), `off` 선언 대조·꺼짐 식 인용 | **착수 조건**(그 계획 0.7.9.7) |
+| graph-consumption GC-2·GC-7 | 착수 전 | GC-2 g = s 꺼짐 분류·정지 이전, GC-7 `dc_conduction_floor` 출력 전용·`conduction_mask` 전도 술어·`_peak_floor`(P-7 정점) | **착수 조건**(그 계획 0.14.6) |
+| oracle-portability OP-5 | 착수 전 | 2단계 판정·`off_current_A`·온도 점 I_off·포화 여유 칸·ICMR 점별 측정 | **착수 조건**(그 계획 0.6.25) |
+| offset-trim TR-* | 착수 전 | `off` 선언 대조·온도 점 전도·VGS < 0 off 스위치(O-212 정지) | **착수 조건** -- LUT 확장 결정(단자 전류 열 + VGS < 0 축, O-212), `judged_by` 선언(그 계획 0.6.4) |
+

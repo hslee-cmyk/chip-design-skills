@@ -1,0 +1,9 @@
+11 whole True lost 0
+12 whole True lost 0
+1323 whole False lost 3
+1329 whole False lost 2
+1347 whole False lost 1
+1704 whole False lost 4
+1717 whole False lost 2
+1808 whole False lost 4
+2159 whole False lost 4

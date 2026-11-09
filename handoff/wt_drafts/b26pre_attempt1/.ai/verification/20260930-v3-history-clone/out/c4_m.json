@@ -1,0 +1,19 @@
+{
+ "tool": "C:/g17/isom/tools/gates/mutate_changed.py",
+ "base": "00fcd9967c0d86dd3631ad0ef5931475516b693e",
+ "head": "96af069d1fcdb60917a3928aa38db13aaf059386",
+ "corrupted_blob": "97bd8ada41303fffb382053841f6bf0c20d2e6e5",
+ "pre": {
+  "diff": 0,
+  "show_engine": 0,
+  "fsck_detects": 3
+ },
+ "cmd": "C:\\Python314\\python.exe C:/g17/isom/tools/gates/mutate_changed.py --root C:/g17/probe/c4/root --base 00fcd9967c0d86dd3631ad0ef5931475516b693e --head 96af069d1fcdb60917a3928aa38db13aaf059386 --pytest-ini C:/g17/gmid-gate-cache/cd6417026696091fd0ce02603a11a3729af3147e/pytest_gate.ini",
+ "exit": 2,
+ "stdout": "{\"tool\": \"V3\", \"verdict\": \"ERROR\", \"error\": \"RuntimeError: git clone 실패(exit 128): remote: error: inflate: data stream error (incorrect header check)        \\nremote: error: unable to unpack 97bd8ada41303fffb382053841f6bf0c20d2e6e5 header        \\nremote: error: inflate: data stream error (incorrect header check)        \\nremote: error: unable to unpack 97bd8ada41303fffb382053841f6bf0c20d2e6e5 header        \\nremote: fatal: loose object 97bd8ada41303fffb382053841f6bf0c20d2e6e5 (stored in ./objects/97/bd8ada41303fffb382053841f6bf0c20d2e6e5) is corrupt        \\nerror: git upload-pack: git-pack-objects died with error.\\nfatal: git upload-pack: aborting due to possible repository corruption on the remote side.\\nremote: aborting due to possible repository corruption on the remote side.\\nfatal: early EOF\\nfatal: fetch-pack: invalid index-pack output\"}\r\n",
+ "stdout_nonempty_lines": 1,
+ "stderr_tail": "",
+ "traceback_in_stderr": false,
+ "tmp_left": [],
+ "root_parent_new_entries": []
+}

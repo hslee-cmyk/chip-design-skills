@@ -1,0 +1,5 @@
+head common_gate_amplifier rc=0
+base common_gate_amplifier rc=0
+head two_stage_ota_sf rc=0
+base two_stage_ota_sf rc=0
+DONE

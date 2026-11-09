@@ -1,0 +1,2 @@
+1	1	docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+4	4	docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md

@@ -1,0 +1,105 @@
+## 10. DoD 측정 명령 (N9.2-6)
+
+auditor가 Phase 3 마지막 card 병합본의 격리 복제본 `<iso>`에서 **bash**로 실행한다. `PT`는 `10-test-separation` §10 정의를 그대로 쓴다.
+**v6(3차 검토 B3)**: 명령은 아래 bash 블록이 정본이다 -- 표 칸 안 명령은 정규식 `|`가 `\|`로 적혀 원문 그대로 실행하면 `git grep -E`에서 문자 `|`가 되어 **아무것도 찾지 못했다**
+(실측 `7535799`: 줄 머리 식 원문 0파일 대 `|` 57파일, 문자열 식 원문 0 대 6파일). 표에는 ID와 통과 기준만 둔다. E3에는 **거부 확인**(같은 식이 Phase 3 전 base에서 빈 결과가 아님)을 둔다.
+
+```bash
+# ---- 공통 (값은 auditor가 판정 기록에서 채운다) ----
+ISO=<iso>; S=<auditor 스크래치>; PY="C:/Python314/python.exe -B"
+GC="$ISO/tools/gates"     # 05 §4.4: 판정은 gate master 판 게이트 코드. M card는 tools/** 변경 0(D-16)이라 마지막 병합본의 tools/gates가 그 판이다
+                          # (05 §4.4 캐시 <git-common-dir>/gmid-gate-cache/<그 커밋>/를 쓰면 GC를 그 안의 tools/gates로)
+MPC=<tools/migrate/move_plan.py를 마지막으로 바꾼 판정 기록의 code_commit>     # 지금은 D0a(2차 검토 m6)
+git -C "$ISO" show "$MPC:tools/migrate/move_plan.py" > "$S/move_plan.py"
+MP_ARGS=(--plan docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+         --registry docs/03-analysis/gain-budget-gmid-sizing.function-registry.md
+         --split sizing_recipe.py stick_diagram.py topology_library.py design_report.py audit_current_forced.py
+         --keep audit_current_forced.py
+         --aliases '{"optimizer": "theta_search.py"}')                         # §6.3 그대로
+B0=<M1 판정 기록 base_commit>                                                   # Phase 3 이동 전 base(D0b 병합 뒤)
+# $S/cards.txt: 한 줄에 "<base_commit> <code_commit> <MOD 파일> <V1의 --gmid-strict= 값>" -- M1~M6·M8·M9 판정 기록에서
+
+# ---- E0·E1 ----
+$PY "$GC/import_layering.py" --root "$ISO" > "$S/layer.json"; echo "E0/E1 exit=$?"
+
+# ---- E2: 이동 card마다 V3 재실행 + check ----
+while read -r b h m strict; do
+  $PY "$GC/mutate_changed.py" --root "$ISO" --base "$b" --head "$h" --pytest-ini "$GC/pytest_gate.ini" \
+      --python C:/Python314/python.exe --gmid-phase=3 --gmid-strict="$strict" > "$S/v3_$m.json"; echo "E2 V3 $m exit=$?"
+  $PY "$S/move_plan.py" check --root "$ISO" --base "$b" --head "$h" --card "$m" "${MP_ARGS[@]}" > "$S/chk_$m.json"; echo "E2 check $m exit=$?"
+done < "$S/cards.txt"
+
+# ---- E3: shim 삭제 ----
+git -C "$ISO" cat-file -e HEAD:skills/analog-gmid-design/assets/sizing_recipe.py 2>/dev/null && echo "E3 FAIL: sizing_recipe.py 있음"
+EXCL='^(\.ai/verification/|docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition\.py$)'   # D-9
+E3_AST=$(cat <<'PYEOF'
+import ast, subprocess, sys
+iso, rev = sys.argv[1], sys.argv[2]
+mods = {"sizing_recipe", "topology_library", "design_report"}
+r = subprocess.run(["git", "-C", iso, "grep", "-l", "-E", "sizing_recipe|topology_library|design_report",
+                    rev, "--", "*.py"], capture_output=True, text=True)
+if r.returncode not in (0, 1):
+    sys.exit("git grep failed: " + r.stderr)
+for line in r.stdout.splitlines():
+    p = line.split(":", 1)[1]
+    src = subprocess.run(["git", "-C", iso, "show", rev + ":" + p], capture_output=True, check=True).stdout
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        print("PARSE-ERROR " + p)
+        continue
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import) and any(a.name.split(".")[0] in mods for a in n.names):
+            print("stmt %s:%d" % (p, n.lineno))
+        elif isinstance(n, ast.ImportFrom) and n.level == 0 and n.module and n.module.split(".")[0] in mods:
+            print("stmt %s:%d" % (p, n.lineno))
+        elif isinstance(n, ast.Call) and n.args and isinstance(n.args[0], ast.Constant) \
+                and isinstance(n.args[0].value, str):
+            f = n.func
+            fn = f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+            if fn in ("import_module", "_import", "__import__") and n.args[0].value.split(".")[0] in mods:
+                print("call %s:%d" % (p, n.lineno))
+PYEOF
+)
+e3_files() { $PY -c "$E3_AST" "$ISO" "$1" | tr -d '\r' | sed 's/^[A-Za-z-]* //; s/:[0-9]*$//' | sort -u; }
+e3_kind()  { $PY -c "$E3_AST" "$ISO" "$1" | tr -d '\r' | grep -c "^$2 "; }
+# 거부 확인(먼저): 같은 식이 Phase 3 전 base에서 import 문장과 import 호출을 둘 다 찾아야 명령이 살아 있다
+[ "$(e3_kind "$B0" stmt)" -gt 0 ] && [ "$(e3_kind "$B0" call)" -gt 0 ] || echo "E3 INVALID: base에서 빈 결과(명령 고장)"
+# 판정: 마지막 병합본에서 제외 집합 밖 파일 0 (PARSE-ERROR 줄도 밖으로 센다 -- fail-closed)
+OUT=$(e3_files HEAD | grep -v -E "$EXCL"); [ -z "$OUT" ] && echo "E3 PASS" || { echo "E3 FAIL:"; echo "$OUT"; }
+
+# ---- E4 ----
+PT "$ISO/skills/analog-gmid-design/assets/tests/contracts/test_p3_registry_dest.py"
+$PY "$S/move_plan.py" plan --root "$ISO" "${MP_ARGS[@]}" > "$S/plan_final.json"; echo "E4 plan exit=$?"
+
+# ---- IMPORT-ANY(E5 앞, M card·F1에서도 같은 함수) ----
+import_any() {   # $1 = 체크아웃된 트리 루트. N3.10 파일과 --split 파일 중 있는 것을 각각 새 프로세스에서 맨 처음 import
+  local A="$1/skills/analog-gmid-design/assets" m
+  local mods=$($PY -c 'import sys; sys.path.insert(0, sys.argv[1]); import import_layering as il; print(" ".join(il.mod_table(open(sys.argv[2], encoding="utf-8").read())))' \
+               "$GC" "$1/docs/01-plan/features/gain-budget-gmid-sizing.plan.md")
+  local split=$(printf '%s\n' "${MP_ARGS[@]}" | sed -n '/^--split$/,/^--keep$/p' | grep '\.py$' | sed 's/\.py$//')
+  for m in $mods $split; do
+    [ -f "$A/$m.py" ] || continue
+    ( cd "$A" && $PY -c "import $m" ) > /dev/null 2>&1 || echo "IMPORT-ANY FAIL: $m"
+  done
+}
+import_any "$ISO"
+
+# ---- E6: 정의 보존(MOVE-TOTAL) ----
+$PY "$S/move_plan.py" check --root "$ISO" --base "$B0" --head HEAD --card ALL "${MP_ARGS[@]}" \
+    --allow-changed workspaces/run_harness.py::run skills/analog-gmid-design/assets/gmid_design_pipeline.py::run_gmid_design_pipeline \
+    > "$S/chk_all.json"; echo "E6 exit=$?"
+```
+
+| ID | N6.2 `3` 조건 | 통과 기준 |
+|---|---|---|
+| E0 | MOD1~MOD10 존재 | `layer.json`의 `present`가 N3.10 표 10행 전부(표는 도구가 계획서에서 읽는다) |
+| E1 | import 계층 위반 0 | 같은 실행 exit 0, `findings` 0(F2가 SD의 MOD9 임시 재수출을 지운 뒤 -- §2.2 D-22) |
+| E2 | 이동 커밋마다 AST 해시 동일 | card마다 ① V3 exit 0, JSON `defs` = `[]`, `mutants` = 0, `move_rejected` = `{}`, `not_targeted` = 0, `targets_by_def` = `{}`(범위 정책 키)(M card 판정에서 card마다 이미 요구한 것의 재확인 -- §8 M행). `exempt_ignored`·`survivor_bindings`(면제 묶기 키)는 기준이 아니다(변이 0이면 비어 있다) ② check exit 0, `findings`의 모든 목록 비어 있음(`move-set`·`move-rejected`·`changed`·`lost`·`rebind`·`future`·`stmt-order`·`order`·`shim`·`cache`) ③ **일관성 점검(증거로 세지 않는다)**: ①의 `moved`(`to`→`from`) = ②의 `moved_defs`, ②의 `moved_units` 목적지 집합 = ②의 `assigned` -- ①과 ②는 같은 `$GC`의 같은 `moved_defs`를 부르므로 동어반복이다(2차 검토 m5). `targets`(파일 목록)는 기준이 아니다(1차 검토 B5). 출력 키가 바뀌면 이 행을 다시 잰다(§5.3-4). `--gmid-phase=3`·`--gmid-strict=`는 `10-test-separation` §6.10(428행 "auditor는 V1 명령과 같은 값을 준다")대로 그 card의 V1 값(3차 검토 m2) |
+| E3 | `sizing_recipe.py` 삭제 | 첫 줄 출력 없음(파일 없음), `E3 INVALID` 출력 없음, `E3 PASS`. **실측(`7535799`를 base 대용으로, `p3_scripts/p3v6_e3_check.out.txt`)**: import 문장 69줄·63파일, import 호출 9줄·5파일(§7.2), 제외 집합 안 1파일(`probe_stage_partition.py`) -- 거부 확인이 성립한다. **AST로 바꾼 이유(D-24)**: 줄 머리 정규식은 `import numpy as np, sizing_recipe as sr` 모양 6파일(`tests/probe_physical_consistency.py`, `tests/probes/probe_L_search_window.py`·`probe_diode_min_vgs.py`·`probe_metric_tiers.py`·`probe_runtime_budget.py`·`probe_stack_headroom_feasibility.py`)을 놓친다(정규식 57 대 AST 63파일) -- 그대로 두면 F1이 그 6파일을 빠뜨려도 E3이 통과하고, probe는 V1이 수집하지 않아 shim 삭제 뒤 조용히 깨진다. 텍스트 일치는 `test_d_move_tests.py:37` docstring을 잡아 거짓 FAIL(3차 검토 S7) |
+| E4 | 레지스트리 목적지 = 실제 위치 | test PASS, 도구 exit 0, `reg_mismatch`·`unassigned`·`upward`·`cycles`·`conflicts` 0, `absent_split` = `[sizing_recipe.py, topology_library.py, design_report.py]`, `stick_diagram.py`·`audit_current_forced.py` 밖 단위의 `rule` 전부 `A-0` |
+| E5 | 동작 보존(N6.3) | `import_any` 출력 없음, `PT` 전체 + E-LIB·E-INST 재측정이 Phase 2 DoD와 같은 해시 |
+| E6 | 정의 보존(MOVE-TOTAL) | exit 0(모든 발견 목록 비어 있음). `shim`: shim 3파일은 F2 뒤 없어 해당 없음, 남는 split 파일(SD·`audit_current_forced.py`)은 (a)와 출처 동일성만(`--card ALL`은 이름 집합 대조 없음 -- §3 SHIM). base를 'Phase 3 첫 card base'가 아니라 **M1 판정 기록 `base_commit`**(D0b 병합 뒤)로 둔다 -- G1·T0·D0a·D0b 뒤라 `check`의 `assigned`가 D0b 레지스트리로 계산된다(2차 검토 m4) |
+
+부록 A M22·M24의 재현 명령도 같은 이유로 `\|`를 `|`로 읽어야 한다(측정 기록이라 판정 영향 없음 -- 표 칸이라 그렇게 적혔다).
+

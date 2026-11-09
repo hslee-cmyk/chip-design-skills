@@ -1,0 +1,41 @@
+---
+id: 20260930-p3-tests-location-free
+date: <DATE>
+target_kind: diff
+target: <TARGET_DIFF_HASH_64>
+diff_base: <DIFF_BASE_40>
+diff_head: <DIFF_HEAD_40>
+diff_path: <DIFF_PATHS>
+scope: T0(spec card 20260930-p3-tests-location-free) 1차 시도 test 커밋의 V5 발견 경로 변경 -- 계약 2~4·10 판정 범위 확대(한 파일 -> 엔진 전체)·유일성 단언(비교 완화)·파일 이름 리터럴 제거·죽은 상수 삭제·계수 래퍼 설치 모듈 확대, 기대값 불변(계약 5). 2차 시도는 같은 blob을 운반해 쓴다(design 05 §12 'V5 승인 운반')
+---
+
+## 사용자 원문
+
+V5 질문(<V5_ASKED_AT>, 세션 jsonl `<V5_JSONL_NAME>` AskUserQuestion `<V5_TOOLU>`) 원문(고치지 않고 그대로):
+
+> <V5_QUESTION>
+
+답:
+
+> <V5_ANSWER>
+
+[W-1](2026-10-02 질문 13:35 KST·답 13:38 KST, 세션 jsonl `63c6146a-ab1d-4035-a169-bae810986922.jsonl` AskUserQuestion `toolu_01GVLKut4JY6FMvvZJEvhKS4`) -- 답의 선택지 설명이 'T0 V5 승인 범위에 import 출처 변경 3줄이 더해진다'이므로 이 기록이 그 범위를 함께 적는다(별도 승인 기록 없음). 질문 원문:
+
+> [W-1] M4·M8·M9에서 topology_library·sizing_recipe·design_report가 재수출만 남은 shim이 되면, 단위 selftest 3개가 이 파일들을 거쳐 import하던 비엔진 이름 7개(math·json·np·os·_dc_replace·nmcnr_predict_ac_response)가 사라져 test 수집이 실패합니다. 어떻게 할까요?
+
+답:
+
+> (가) T0에서 test import 수정 (Recommended)
+
+## 범위 설명
+
+덮는 것: T0 1차 시도 test 커밋(diff_head)의 위 diff_path 경로 base..head blob 변경 전체(해시는 경로마다가 아니라 발견 경로 합집합에 하나 -- 00-common §8.2 blob 식, `weakening_diff.py` diff_paths·diff_hash).
+1차 시도 `weakening_diff.py --base <diff_base> --head <diff_head>` 발견(경로 · 단위 · 패턴):
+
+<FINDINGS_LIST>
+
+사람 판단 근거(spec card '결정 필요 항목'): 판정 범위 확대 + 유일성 검사 추가로 생긴 비교 연산자, 표 값·기대 호출 이름 불변(계약 5), 파일 이름 리터럴 제거(정의 위치는 R-DEF가 정한다), 죽은 상수 삭제(계약 4),
+계수 래퍼 설치 모듈 확대(계약 10 -- B26-1 계약 3의 불변식·입력·기대값 불변, 래퍼를 설치하는 모듈만 넓힘).
+공개하지만 해시 대상이 아닌 것: unit selftest 3파일의 import 출처 변경 3줄(7이름, 계약 11 -- 위 [W-1] 답). 그 3줄은 V5 발견을 내지 않아 diff_path 밖이고(r2t 실측), 확인은 auditor 계약 11 (b) 객체 동일(is)·(c) 잔여 0이다.
+덮지 않는 것: 위 발견 목록 밖의 발견(2차 시도 head에서 다시 낸 diff_hash가 target과 다르면 V5를 통과시키지 않고 멈춘다), 엔진 소스 변경(test-only), V4 규칙 (1) 면제(별도 decision 기록 `20261002-p3-t0-v4-s009-exempt`).
+2차 시도: base = 이 기록과 운반 blob을 담은 `Role: doc` 커밋(gate master), test-author가 `v5-carry/20260930-p3-tests-location-free/paths.tsv`대로 `.blob`을 `cp`해 같은 blob을 만든다 -- `_drafts/t0_carry.sh t2-check`가 2차 test 끝의 바뀐 경로·blob 전부가 1차와 같고 head에서 다시 낸 V5가 이 target으로 approved임을 확인한다.

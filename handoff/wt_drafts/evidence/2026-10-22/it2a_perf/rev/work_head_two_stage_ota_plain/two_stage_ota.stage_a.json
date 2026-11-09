@@ -1,0 +1,861 @@
+{
+ "applied_facts": [],
+ "circuit": "two_stage_ota",
+ "count_budget": 13829760,
+ "coupling": {
+  "bias_columns": [],
+  "column_block_map": [
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "O1"
+     ]
+    ],
+    "column": null,
+    "device": "Rz",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "OUT"
+     ]
+    ],
+    "column": null,
+    "device": "CL",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "OUT"
+     ]
+    ],
+    "column": null,
+    "device": "Cc",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "O1"
+     ]
+    ],
+    "column": 0,
+    "device": "M1",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "O1"
+     ]
+    ],
+    "column": 0,
+    "device": "M3",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "O1"
+     ]
+    ],
+    "column": 0,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "O1"
+     ]
+    ],
+    "column": 1,
+    "device": "M2",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "O1"
+     ]
+    ],
+    "column": 1,
+    "device": "M4",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "O1"
+     ]
+    ],
+    "column": 1,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "OUT"
+     ]
+    ],
+    "column": 2,
+    "device": "M6",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "OUT"
+     ]
+    ],
+    "column": 2,
+    "device": "M7",
+    "shared": false
+   }
+  ],
+  "column_mate_devices": [],
+  "kind_counts": {
+   "K1": 2,
+   "K2": 1
+  },
+  "vars": [
+   {
+    "blocks": [
+     [
+      "transfer:0",
+      [
+       "O1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "OUT"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "class_owner_value",
+    "kind": "K1",
+    "members": [
+     "M5",
+     "M7"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "transfer:0",
+      [
+       "O1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "OUT"
+      ]
+     ]
+    ],
+    "domain": "geom",
+    "init_rule": "class_owner_value",
+    "kind": "K1",
+    "members": [
+     "M5",
+     "M7"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "transfer:0",
+      [
+       "O1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "OUT"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "common_vgs_candidates",
+    "kind": "K2",
+    "members": [
+     "M5",
+     "M7"
+    ],
+    "nets": [
+     "bias",
+     "gnd"
+    ]
+   }
+  ]
+ },
+ "declared_comparison": "not_performed: two_stage_ota.structure.json absent",
+ "env_fp": "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+ "exit_code": 0,
+ "ff_ratio_candidates": [],
+ "orbit_matching_crosstab": {
+  "orbits": [
+   {
+    "members": [
+     "M1"
+    ],
+    "records": [
+     [
+      "diff_pair",
+      [
+       "M1",
+       "M2"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M2"
+    ],
+    "records": [
+     [
+      "diff_pair",
+      [
+       "M1",
+       "M2"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M3"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M3",
+       "M4"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M4"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M3",
+       "M4"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M5"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M5",
+       "M7"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M6"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M7"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M5",
+       "M7"
+      ]
+     ]
+    ]
+   }
+  ],
+  "records": [
+   {
+    "kind": "mirror",
+    "members": [
+     "M5",
+     "M7"
+    ],
+    "orbits": [
+     [
+      "M5"
+     ],
+     [
+      "M7"
+     ]
+    ]
+   },
+   {
+    "kind": "mirror",
+    "members": [
+     "M3",
+     "M4"
+    ],
+    "orbits": [
+     [
+      "M3"
+     ],
+     [
+      "M4"
+     ]
+    ]
+   },
+   {
+    "kind": "diff_pair",
+    "members": [
+     "M1",
+     "M2"
+    ],
+    "orbits": [
+     [
+      "M1"
+     ],
+     [
+      "M2"
+     ]
+    ]
+   }
+  ]
+ },
+ "review_needed": [],
+ "status": "ok",
+ "stop_reasons": [],
+ "tables": {
+  "applied_facts": [],
+  "declared": [],
+  "findings": [],
+  "l_classes": [
+   {
+    "members": [
+     "M3",
+     "M4"
+    ],
+    "owner": "M3",
+    "owner_rule": "current_source_member",
+    "status": "derived"
+   },
+   {
+    "members": [
+     "M5",
+     "M7"
+    ],
+    "owner": "M5",
+    "owner_rule": "tail_owner",
+    "status": "derived"
+   }
+  ],
+  "schema_version": "1",
+  "views": [
+   {
+    "ac_ground": [
+     "bias",
+     "gnd",
+     "vdd"
+    ],
+    "ac_ground_exceptions": [],
+    "bias_dependent": [],
+    "bias_moving": [],
+    "blocks": [
+     {
+      "impedance": [
+       [
+        "O1",
+        "value_dependent"
+       ]
+      ],
+      "inputs": [
+       "vin_n",
+       "vin_p"
+      ],
+      "key": [
+       "O1"
+      ],
+      "kind": "gain",
+      "nodes": [
+       "CS",
+       "D3",
+       "O1",
+       "vin_n",
+       "vin_p"
+      ],
+      "outputs": [
+       "O1"
+      ],
+      "roles": [
+       [
+        "M1",
+        "input"
+       ],
+       [
+        "M2",
+        "input"
+       ],
+       [
+        "M3",
+        "diode_load"
+       ],
+       [
+        "M4",
+        "mirror"
+       ],
+       [
+        "M5",
+        "tail_source"
+       ],
+       [
+        "Rz",
+        "load"
+       ]
+      ],
+      "stage": 1,
+      "status": "derived"
+     },
+     {
+      "impedance": [
+       [
+        "OUT",
+        "high"
+       ]
+      ],
+      "inputs": [
+       "O1"
+      ],
+      "key": [
+       "OUT"
+      ],
+      "kind": "gain",
+      "nodes": [
+       "O1",
+       "OUT"
+      ],
+      "outputs": [
+       "OUT"
+      ],
+      "roles": [
+       [
+        "CL",
+        "load"
+       ],
+       [
+        "Cc",
+        "load"
+       ],
+       [
+        "M6",
+        "input"
+       ],
+       [
+        "M7",
+        "load"
+       ]
+      ],
+      "stage": 2,
+      "status": "derived"
+     }
+    ],
+    "cells": [
+     {
+      "degeneration": true,
+      "dev": "M1",
+      "forward": true,
+      "kind": "cs",
+      "out": "D3"
+     },
+     {
+      "degeneration": true,
+      "dev": "M2",
+      "forward": true,
+      "kind": "cs",
+      "out": "O1"
+     },
+     {
+      "degeneration": false,
+      "dev": "M3",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M4",
+      "forward": true,
+      "kind": "cs",
+      "out": "O1"
+     },
+     {
+      "degeneration": false,
+      "dev": "M5",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M6",
+      "forward": true,
+      "kind": "cs",
+      "out": "OUT"
+     },
+     {
+      "degeneration": false,
+      "dev": "M7",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     }
+    ],
+    "cm_pair": false,
+    "compensation_candidates": [
+     "Cc"
+    ],
+    "composites": [],
+    "cuts": [],
+    "dist": [
+     [
+      "CS",
+      0
+     ],
+     [
+      "D3",
+      1
+     ],
+     [
+      "N_cc_rz",
+      1
+     ],
+     [
+      "O1",
+      1
+     ],
+     [
+      "OUT",
+      1
+     ],
+     [
+      "vin_n",
+      0
+     ],
+     [
+      "vin_p",
+      0
+     ]
+    ],
+    "drive_kind": [
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "CS",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_gate_exit",
+      "kind": "voltage",
+      "net": "D3",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "inherit_passive",
+      "kind": "voltage",
+      "net": "N_cc_rz",
+      "tap": false,
+      "value_dependent": true
+     },
+     {
+      "basis": "drain_entry_gate_exit",
+      "kind": "voltage",
+      "net": "O1",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_no_exit",
+      "kind": "current",
+      "net": "OUT",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "port",
+      "kind": "voltage",
+      "net": "vin_n",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "port",
+      "kind": "voltage",
+      "net": "vin_p",
+      "tap": false,
+      "value_dependent": false
+     }
+    ],
+    "excite": [
+     [
+      "vin_n",
+      -0.5
+     ],
+     [
+      "vin_p",
+      0.5
+     ]
+    ],
+    "feedforward": [],
+    "ff_ratio_candidates": [],
+    "findings": [],
+    "forward_nets": [
+     "CS",
+     "D3",
+     "N_cc_rz",
+     "O1",
+     "OUT",
+     "vin_n",
+     "vin_p"
+    ],
+    "id": "transfer:0",
+    "kind": "transfer",
+    "loop_roles": [],
+    "loops": [
+     {
+      "ac_only": true,
+      "classes": [
+       "miller"
+      ],
+      "cm_pair": false,
+      "cut": [],
+      "devices": [
+       "Rz",
+       "M6",
+       "Cc"
+      ],
+      "nodes": [
+       "N_cc_rz",
+       "O1",
+       "OUT"
+      ],
+      "polarity": 0
+     }
+    ],
+    "main_path": [
+     "M1",
+     "M2",
+     "M4",
+     "M6"
+    ],
+    "mirror_inputs": [
+     "D3"
+    ],
+    "output_direction": [
+     {
+      "charge": [
+       [
+        "M4",
+        "kappa"
+       ]
+      ],
+      "discharge": [
+       [
+        "M2",
+        "sigma"
+       ]
+      ],
+      "net": "O1",
+      "topology": "class_a"
+     },
+     {
+      "charge": [
+       [
+        "M6",
+        "sigma"
+       ]
+      ],
+      "discharge": [
+       [
+        "M7",
+        "beta"
+       ]
+      ],
+      "net": "OUT",
+      "topology": "class_a"
+     }
+    ],
+    "pass_bundles": [],
+    "polarity": 0,
+    "pole_nodes": [
+     {
+      "block": [
+       "O1"
+      ],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "CS"
+     },
+     {
+      "block": [
+       "O1"
+      ],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "D3"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "value_dependent",
+      "net": "N_cc_rz"
+     },
+     {
+      "block": [
+       "O1"
+      ],
+      "drive": "voltage",
+      "impedance": "value_dependent",
+      "net": "O1"
+     },
+     {
+      "block": [
+       "OUT"
+      ],
+      "drive": "current",
+      "impedance": "high",
+      "net": "OUT"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "high",
+      "net": "vin_n"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "high",
+      "net": "vin_p"
+     }
+    ],
+    "sense": [
+     "OUT"
+    ],
+    "signal_nets": [
+     "CS",
+     "D3",
+     "N_cc_rz",
+     "O1",
+     "OUT",
+     "vin_n",
+     "vin_p"
+    ],
+    "stage_dist": [
+     [
+      "CS",
+      0
+     ],
+     [
+      "D3",
+      1
+     ],
+     [
+      "O1",
+      1
+     ],
+     [
+      "OUT",
+      2
+     ],
+     [
+      "vin_n",
+      0
+     ],
+     [
+      "vin_p",
+      0
+     ]
+    ],
+    "stage_starts": [
+     "M1",
+     "M2",
+     "M6"
+    ],
+    "unreduced_diff": [],
+    "virtual_ground": []
+   }
+  ]
+ },
+ "views": [
+  {
+   "blocks": [
+    {
+     "key": [
+      "O1"
+     ],
+     "kind": "gain",
+     "stage": 1
+    },
+    {
+     "key": [
+      "OUT"
+     ],
+     "kind": "gain",
+     "stage": 2
+    }
+   ],
+   "cuts": [],
+   "feedforward": [],
+   "id": "transfer:0",
+   "kind": "transfer",
+   "loop_count": 1,
+   "loop_roles": [],
+   "polarity": 0
+  }
+ ]
+}

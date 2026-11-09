@@ -1,0 +1,152 @@
+{
+  "id": "20260922-ts1-extract-tool",
+  "spec_card": "docs/02-design/specs/20260922-ts1-extract-tool.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d",
+  "test_commit": "0e4141761a6bc3460795923353224c2afe906688",
+  "code_commit": "f93ed4f70aafcde817c2ee6c8e43feaad7d11821",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_exit0_and_writes_file",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_body_is_block_verbatim_with_single_substitution",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_header_fixed_lines_in_order",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_import_line_names",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_encoding_utf8_no_bom_lf",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_deterministic_bytes",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_runs_and_matches_original_stdout",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_input_errors_exit2[no_block]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_input_errors_exit2[syntax_error]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_input_errors_exit2[two_blocks]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_missing_source_exit2",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unresolved_name_exit3",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[dunder_import_call]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[eval_call]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[exec_call]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[file_abspath_only]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[file_dirname_only]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[file_open]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[file_realpath]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[globals_call]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[locals_call]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[uses_assets_dir]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_exit0_and_count",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_kind_and_category",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_start_lines",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_verdict_counts",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_deps_and_provides",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_rejects_missing_source_exit2",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_exit_code[A_section_found]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_exit_code[B_section_found]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_exit_code[cli_and_dc_only]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_exit_code[selftest_only_in_subdir]",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_out_json_lists_top_level_files_only",
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_rejects_missing_root_exit2"
+    ],
+    "failure_hashes": [
+      "36cca0b26d38ef9bfb6a1eda6746fb05be8162599c0b95bef837cbe3c3566bdb",
+      "26c902ffc1462129a627f0de7a4c2f3f6d369b9f53d485c05dc0b41a8e537ee2",
+      "b24822b5e5db2b3bd9b78c72f418cb7cfd7287cca3c73d46920891deab7ea802",
+      "2315e4425d8b1a8a437bfd0eef4b02971df1a283eb5fe03932e358d06c55e915",
+      "0649f28459f3e763800c6f83a49c4d8b30d132fb84a80b5026d9462c6d746fbc",
+      "d6ae5641ec4af6bd46cfa3920c5e6ee74ab36bab145737b9542374f6d9c5a000",
+      "304cf50602dcbe9bace82978eb9b918bf5c0b1a3fc59d1b59741a18ca3b981bb",
+      "9ca5cd7695073149b37972ad5bf7ad380c192a6f0a11a4d316b5949c6350fa3f",
+      "a8547b1712db9fdcbf1212b2a023cea8afc6ae05ebc2431b45d1b07447e69cc1",
+      "b3ad071fce1af798048f692138480dd156b921902dfaf001ee7ed162e7ac02ad",
+      "cd25791f6764bb91247971f839ac4a43d657845bd7388a2a9ff3cb65e342b5c2",
+      "24160f13132eb8ff2e4b32e659997234f5b2bcf8c49d73a3df3740007da834f3",
+      "b9451866d3bc4da3b13fd78f92a4710ae49c3fa8fba2d43adb6f02d062291504",
+      "8075a7b56b5131e17df74cf7ab01c133023e7c4277f5a298b1d22c4cedc7ddc5",
+      "39d40c1cdbdda3b32a6c61b4bbf8fad967966e302debe646b108a647c7cf371f",
+      "67b2032fdf7309d5d85a319be888afa20e033d635aa93c98e90cd36ef614e06d",
+      "d2e6ad3ac6fb9cb6990f35664d371db5d1418afe63401b77445ae6d728b70c20",
+      "ea18612d46c5c73bbc51e9a407805def2c25624e075369d70966fc5e2a52a457",
+      "a57610f82ec848c33e3530c913920db0115cdb378b559124843b75393de22e24",
+      "a3158e7dc36245994abcbb603489449d055fb0f066cb008f3f027254e5d882df",
+      "0c356cf725778b26dbbcdffc390b4bebea7a39bd2e6baec03e64cb00de6a95f8",
+      "2bbe291cc6383f663b712765a95467f9d7993a26644e3a81e76d1757c93ac32c",
+      "ccccc994a619261ec24104328cc6f50079b11f71d11749a16335d99217eda70f",
+      "cfc278bf6c9885ddb14f6116b60104ebbb94f25c0aace6bf29b5fc6a4f414b76",
+      "2a11236282e7dc17e13f326748badb230054e907da1d393562f398f55b69b8a9",
+      "3f3ba6a60899c9f183c584d742e5e181e04a65761c01262887abb38f59f49ff4",
+      "729c5f623d5913dc7389494d2ee1e2906847051cb3e1365ed38294ee156ddf85",
+      "06b21be8aaec6b1858791a5393fe0cd5ac121eb156ecb7e84858c1a4a275960e",
+      "48317da979c5124d61aa95aafb975e82d5c20f061cb8cf51e5394a04d68a71ba",
+      "01e0d5bf468823c1b42420e30d2df19fbc2cf0bf80cb9c9e0fcd5dd16cffe92e",
+      "ca058e0d266a37c66a5c7df76fdf322bb8fccdf535d5a49a9e2f0b12404f3b78",
+      "f844e8be7ea587e6f0efb9e224108f2411fa8d2c85de7c47be9f6c721a28ef83",
+      "034e2634253cb55c85114f49a5f8a5bde0b65728b7f1cb0b3718d9228087a2b6",
+      "c47b11c09e628686ef06a500276dab68d6cb5a69b226ff2d48d563fb9598d898"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "병합본 72925a36f7afdc21c3ad6267d80dcb0cbfccb387 격리 복제본 iso7m에서 V1 명령(-k/--deselect/-x/-m 없음, slow 포함 전체, base 판 캐시 7cf3dea 판 pytest_gate.ini): collected 34, 34 passed, 실패·오류·skip·xfail 0, exit 0. tests 아래 conftest.py 없음(CC-3 미병합이라 --gmid-phase·--gmid-strict 없음, merge gate v1_command_check도 strict_needed=None 경로). 수집 대상 test 모듈은 tests/tooling/test_extract_selftest.py 하나뿐(probe_*.py는 test_*.py 패턴 밖)"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red-green. base 판 T(0e41417, base..T 차이 = test 파일 1개) 격리 복제본 iso7b에서 red 수집 재측정: 34 failed, capture 34행 전부 builtins.AssertionError(34건 모두 test_extract_selftest.py:46 도구 부재 assert), test_ids·failure_hashes가 순서 3 base_check.json과 순서까지 같고 red_failure_hash 재계산 34/34 일치, capture 파일 sha256 0fea25917a358b99dc2f9e142827b8bea24e63e708863e79cbb6ce8ac3f06a31 = base_check 기록값, 정렬 해시 개행 결합 sha256 b549c79ca676e16f8501ab64d942fda531d89babeb55fd0d09e1c9378e741d1e. 병합본 iso7m에서 같은 red 수집 명령: 34 passed, capture 파일 생성 0건(red 0), red.test_ids 34개 전부 PASSED. 주의(순서 3 기록 이어받음): red가 도구 부재 한 곳이라 개별 행동 assertion의 판별력은 red가 증명하지 않는다 -- V3 보조 측정·V4 oracle 대조 참조"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "게이트 규칙상 대상 0개. base 판 mutate_changed.py 실행 결과 targets [], mutants 0, exit 0. 근거: 대상 파일 = base..head diff(AM) 중 reachability._is_source(p) 참인 .py이고 _is_source는 skills/analog-gmid-design/assets/ 바로 아래 .py와 workspaces/run_harness.py만 참 -- tools/migrate/extract_selftest.py는 거짓이라 V3 대상이 아니다(test 파일은 대상 분류 밖). 또 test가 도구를 하위 프로세스로만 불러 정적 호출 그래프 인벤토리가 비므로 대상이었어도 도구는 전부 '인벤토리 없음 생존'으로 냈을 것. DESIGN-GAP: 계획 N4.2 V3 문언 '대상 = diff가 닿은 def'에는 소스 범위 한정이 없는데 도구는 엔진 소스로 한정한다(사람 결정 항목으로 보고). 보조 측정(판정 입력 아님): 캐시 mutate_changed.mutants()로 도구의 def 37개(중첩 포함) 변이 684개를 test 파일 34개 전체로 판정 -- 기준 실행 PASS, killed 488, survived 196(28.7퍼센트, 중첩 def 변이는 바깥 def와 중복 계수). 생존 상위: collect_module_top_level_bindings(및 walk_stmts) 각 29, _match_file_pattern 14, _collect_block_names 14, _collect_names_with_lines 14, _count_reject_try 12, cmd_sections 12, cmd_scan 8 -- 합성 입력에 없는 구성(with·for·함수 인자·import from 등 최상위 묶기 분기, reject_try·title·defs 필드, scan JSON 필드)이 test되지 않음. 결과 jsonl sha256 1fe61f79b915018fc51417f74e5970e34e24b69c14c00e96b2df1c262465b2ef"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: test_lint(base 판 캐시) --interface-card만으로는 ERROR(피검 심볼 없음 -- card 신규 시그니처가 모듈 전체 `*`이고 read_card_symbols가 `*`를 뺀다, DESIGN-GAP)라 --subject tools.migrate.extract_selftest:main/cmd_extract/cmd_sections/cmd_scan, --module-dir . 로 실행: PASS, 판정 문장 66개 전부 NO-SUBJECT(도구를 하위 프로세스로만 부르므로 피검 호출 식이 test에 없다), FAIL·UNJUDGED 0, (3)(4)(5) 발견 0; 기대값마다 spec card 'oracle (a) 합성 입력'과 대조 -- extract exit 0·파일 생성 = design 5.2-6; 본문 = 합성 블록 원문에 5.2-4 유일 치환을 문자열 replace로 적용(도구 출력 아님); 머리글 고정 줄 순서 = 5.2-5 문장, _ASSETS_DIR 줄은 design 문장 그대로, 원본 blob id는 test가 git blob 정의로 원본 바이트에서 독립 계산; import 이름 [Box, OFFSET, SCALE, _os, _z, counter, double, json] = 5.2-3을 합성 모듈에 손으로 적용 -- auditor 재유도 일치(블록 Load 중 블록 미저장 비내장 + 첫 저장 전 읽힌 counter, math 제외, sorted 순서); UTF-8·BOM 없음·LF·결정론 = 5.2-6; 원본 stdout 동등 = 원본 모듈 직접 실행(독립 경로)이 기대값; exit 2 세 경우·없는 파일, exit 3 미해결 이름, exit 4 열 경우 = 5.2-1·2·3·5와 exit code 표; sections 6개·kind·category·start·end·asserts·raise_assertion·verdict_tokens·deps·provides_to = 5.1과 7 판정식 T를 합성 블록에 손으로 적용 -- auditor 재유도 일치(S2 토큰 2 = '[PASS]' 1 + f-string 조각 ' PASS' 1, '[ OK ]'·'[불가]' 표지 아님, S3 D, S4 C, S5 raise로 A, deps S1 data@0, S2 total@1, S4 _j@0·data@0, S5 y@4); scan exit 1/1/0/0과 --out 최상위만 = 5.2 scan 문장. 피검 출력에서 온 기대값 없음. 판정 공백(판별력 한계, V4 위반 아님): reject_try·title·defs 필드와 scan JSON 구조는 단언하지 않는다"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 weakening_diff.py(base 7cf3dea, head 72925a3): findings 0, diff_paths 빈 목록, diff_hash null, exit 0. test 분류 변경은 새 파일 tests/tooling/test_extract_selftest.py 추가뿐(기존 test·기준선·conftest 변경 0, 비 .py test 파일 변경 0), assets 최상위 소스 __main__ 블록 변경 0"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "게이트 규칙상 대상 0개. base 판 source_lint.py: targets 빈 목록, findings 0, exit 0 -- is_source는 assets 바로 아래 .py와 workspaces/run_harness.py만 참이라 tools/migrate/extract_selftest.py는 V6 대상이 아니다. 보조 관찰(판정 입력 아님, 같은 캐시 source_lint.compare를 도구 파일에 직접 적용): find_main_blocks 76행 `except Exception: continue`(광범위 except + skip -- ast.unparse 실패 블록을 조용히 건너뛴다), continue 분기 4곳(189·218·650행 등), has_unsupported_construct의 id() 사용 2곳(136·139행, AST 노드 id 집합이며 캐시 키 아님), 숫자 리터럴 2·3·4(설계 5.2 exit code 표의 값) 11곳 -- 도구가 V6 대상이 되면 판정이 필요한 항목"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 reachability.py PASS, new_defs 빈 목록(도구는 그래프 범위 skills/analog-gmid-design/assets/·workspaces/ 밖)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 무관 명령행 도구"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 무관"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260922-10-test-separation-design"
+  ],
+  "auditor_run": {
+    "time": "2026-09-22T11:24:28+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts1-extract-tool-audit",
+    "commands": [
+      "격리(병합본): git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts1-extract-tool-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m",
+      "격리(병합본): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m remote remove origin",
+      "격리(base 판 T): git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts1-extract-tool-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7b",
+      "격리(base 판 T): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7b remote remove origin",
+      "격리(base 판 T): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7b checkout -q 0e4141761a6bc3460795923353224c2afe906688",
+      "PY = C:/Python314/python.exe",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-pyc7m PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m/skills/analog-gmid-design/assets/tests -rA",
+      "V1 cwd: C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m",
+      "V2 red(base 판 T, cwd iso7b): PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-pyc7b GMID_RED_CAPTURE=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-red7b.jsonl GMID_INTERFACE_CARD=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7b/docs/02-design/specs/20260922-ts1-extract-tool.interface.md PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7b --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7b -p merge_gate --continue-on-collection-errors C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7b/skills/analog-gmid-design/assets/tests -q",
+      "V2 green(병합본, cwd iso7m): PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-pyc7r GMID_RED_CAPTURE=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-red7m.jsonl GMID_INTERFACE_CARD=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m/docs/02-design/specs/20260922-ts1-extract-tool.interface.md PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m -p merge_gate --continue-on-collection-errors C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m/skills/analog-gmid-design/assets/tests -rA",
+      "V3(cwd iso7m): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d/mutate_changed.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m --base 7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d --head 72925a3 --pytest-ini C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --out C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-v3.jsonl",
+      "V3 --pytest-ini 주: EL1이 스크립트 인자로 캐시 경로를 주는 것을 거부해(캐시 예외는 스크립트 경로와 pytest -c 값만, DESIGN-GAP) 복제본의 tools/gates/pytest_gate.ini를 썼다 -- blob 5d89b982178b2e0e8d15aefd290cc5e17ab1e9c5 = 7cf3dea:tools/gates/pytest_gate.ini(base..head에서 tools/gates 변경 0)",
+      "V3 보조(판정 입력 아님): PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d $PY C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-v3sup.py (캐시 mutate_changed.changed_defs·mutants·_replace_def, 작업 복사본 8개에서 test 파일 전체 -x 실행, 결과 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-v3sup/results.jsonl)",
+      "V4(cwd iso7m): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d/test_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m --interface-card C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m/docs/02-design/specs/20260922-ts1-extract-tool.interface.md --subject tools.migrate.extract_selftest:main --subject tools.migrate.extract_selftest:cmd_extract --subject tools.migrate.extract_selftest:cmd_sections --subject tools.migrate.extract_selftest:cmd_scan --module-dir . --base 7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d --head 72925a36f7afdc21c3ad6267d80dcb0cbfccb387",
+      "V5(cwd iso7m): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m --base 7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d --head 72925a36f7afdc21c3ad6267d80dcb0cbfccb387",
+      "V6(cwd iso7m): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d/source_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m --base 7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d --head 72925a36f7afdc21c3ad6267d80dcb0cbfccb387",
+      "V6 보조(판정 입력 아님): PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d $PY C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-v6sup.py (source_lint.compare(tools/migrate/extract_selftest.py, base None, head 72925a3))",
+      "V7 참고(cwd iso7m): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d/reachability.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-extract-tool-iso7m --base 7cf3dea58711b6a0e07b1e0303c9c214c92dbd8d --head 72925a36f7afdc21c3ad6267d80dcb0cbfccb387"
+    ]
+  }
+}

@@ -1,0 +1,105 @@
+== erfc fp
+master==merged topology blob True
+HEAD fp a5710202f8a186ee0c2f99b88398ab95a909cdc3b12f5776de9d9a4b9c24972e
+spec old cc69e381f3b91a18c8dec57dc3c00276d38862284b790e7985b9c07084071c65
+spec new a5710202f8a186ee0c2f99b88398ab95a909cdc3b12f5776de9d9a4b9c24972e
+81dddba5 fp cc69e381f3b91a18c8dec57dc3c00276d38862284b790e7985b9c07084071c65
+6705b911 fp a5710202f8a186ee0c2f99b88398ab95a909cdc3b12f5776de9d9a4b9c24972e
+netlist diff vs 81dddba5 {'M21': {'bulk': ('vdd', 'vcp')}, 'M19': {'bulk': ('vdd', 'vcn')}, 'M20': {'bulk': ('vdd', 'vcn')}} removed set()
+other connectivity keys eq {'passive_elements': True, 'ideal_sources': True, 'supply_nets': True, 'ports': True, 'bias_inputs': True}
+== fp all spec=topology
+cnr_ota True
+common_gate_amplifier True
+current_reuse_telescopic_ota True
+erfc_ota True
+folded_cascode True
+ngcc_3stage_ff True
+nmcnr_amplifier True
+pushpull_follower_buffer True
+r2r_opamp True
+rfc_ota True
+sf_pushpull_output_opamp True
+two_stage_ota True
+two_stage_ota_sf True
+== new 4 counts (JSON)
+cnr_ota 72 10 1 2 2 2 bias [] cons 3
+erfc_ota 29 6 4 4 2 1 bias [] cons 3
+r2r_opamp 31 4 5 2 2 1 bias ['vb1', 'vb3', 'vb4', 'vb5n', 'vb6n'] cons 3
+rfc_ota 35 2 0 2 2 1 bias [] cons 3
+== r2r n_ab nets
+n_abp
+   M20 pmos ['gate'] {'drain': 'n_gn', 'gate': 'n_abp', 'source': 'n_gp'}
+   M22 pmos ['drain', 'gate'] {'drain': 'n_abp', 'gate': 'n_abp', 'source': 'n_m21'}
+   M28 pmos ['gate'] {'drain': 'n_mn', 'gate': 'n_abp', 'source': 'n_mp'}
+   Ib5 current_source ['n_abp', 'VSS']
+n_abn
+   M19 nmos ['gate'] {'drain': 'n_gp', 'gate': 'n_abn', 'source': 'n_gn'}
+   M23 nmos ['drain', 'gate'] {'drain': 'n_abn', 'gate': 'n_abn', 'source': 'n_m24'}
+   M27 nmos ['gate'] {'drain': 'n_mp', 'gate': 'n_abn', 'source': 'n_mn'}
+   Ib2 current_source ['VDD', 'n_abn']
+M21 [{'kind': 'pmos', 'drain': 'n_m21', 'gate': 'n_m21', 'source': 'VDD'}]
+M22 [{'kind': 'pmos', 'drain': 'n_abp', 'gate': 'n_abp', 'source': 'n_m21'}]
+M23 [{'kind': 'nmos', 'drain': 'n_abn', 'gate': 'n_abn', 'source': 'n_m24'}]
+M24 [{'kind': 'nmos', 'drain': 'n_m24', 'gate': 'n_m24', 'source': 'VSS'}]
+Ib1 current_source ['VDD', 'tail_p']
+Ib2 current_source ['VDD', 'n_abn']
+Ib4 current_source ['tail_n', 'VSS']
+Ib5 current_source ['n_abp', 'VSS']
+Ib6 current_source ['n_t29', 'VSS']
+{'Ib1': 4e-06, 'Ib2': 7e-06, 'Ib4': 4e-06, 'Ib5': 7e-06, 'Ib6': 2e-06}
+== supplies old vs new
+cnr_ota ('DIFF', {'vdd': 1.8, 'gnd': 0.0}, {'VDD_1V8': 1.8, 'VSS': 0.0}) default-used rails ['VDD_1V8', 'VSS']
+common_gate_amplifier same declared rails ['vdd', 'gnd']
+current_reuse_telescopic_ota same declared rails ['vdd', 'gnd']
+erfc_ota ('DIFF', {'vdd': 1.8, 'gnd': 0.0}, {'vdd': 1.8, 'gnd': 0.0, 'vcp': 1.1, 'vcn': 0.7}) default-used rails ['vdd', 'gnd', 'vcp', 'vcn']
+folded_cascode same declared rails ['vdd', 'gnd']
+ngcc_3stage_ff same declared rails ['vdd', 'gnd']
+nmcnr_amplifier same declared rails ['vdd', 'vss', 'agnd']
+pushpull_follower_buffer same declared rails ['vdd', 'vss', 'agnd']
+r2r_opamp ('DIFF', {'vdd': 1.8, 'gnd': 0.0}, {'VDD': 1.8, 'VSS': 0.0}) default-used rails ['VDD', 'VSS']
+rfc_ota same default-used rails ['vdd', 'gnd']
+sf_pushpull_output_opamp same declared rails ['vdd', 'vss', 'agnd']
+two_stage_ota same declared rails ['vdd', 'gnd']
+two_stage_ota_sf same declared rails ['vdd', 'gnd']
+== rule E
+circuits 13 names 452 vocab 349 removed ['Q4', 'Q8', 'Q9', 'VS', 'Z']
+full names: n 420 violations 35
+Counter({"'VS'": 14, "'Q8'": 11, "'Q4'": 7, "'Q9'": 2, "'Z'": 1})
+filtered: n 420 violations 0
+   _module_map.py 258 'Q9' = rfc_ota:device
+   _module_map.py 481 'Q8' = rfc_ota:device
+   _module_map.py 982 'Q4' = rfc_ota:device
+   _module_map.py 982 'Q8' = rfc_ota:device
+   _module_map.py 985 'Q4' = rfc_ota:device
+   _module_map.py 985 'Q8' = rfc_ota:device
+   _module_map.py 987 'Q8' = rfc_ota:device
+   _module_map.py 990 'Q4' = rfc_ota:device
+   _module_map.py 992 'Q4' = rfc_ota:device
+   _module_map.py 995 'Q4' = rfc_ota:device
+   _module_map.py 998 'Q8' = rfc_ota:device
+   _module_map.py 1005 'Q9' = rfc_ota:device
+   _module_map.py 1007 'Q8' = rfc_ota:device
+   _module_map.py 1023 'Q8' = rfc_ota:device
+   _module_map.py 1027 'Q8' = rfc_ota:device
+   _module_map.py 1033 'Q8' = rfc_ota:device
+   _module_map.py 1036 'Q4' = rfc_ota:device
+   _module_map.py 1036 'Q8' = rfc_ota:device
+   _module_map.py 1039 'Q4' = rfc_ota:device
+   _module_map.py 1039 'Q8' = rfc_ota:device
+   authoring/_spec_fields.py 52 'Z' = erfc_ota:net
+   lut/_helpers_interp.py 185 'VS' = cnr_ota:net
+   lut/derived_fns.py 95 'VS' = cnr_ota:net
+   lut/gmb.py 57 'VS' = cnr_ota:net
+   lut/lut_set.py 213 'VS' = cnr_ota:net
+   lut/lut_set.py 220 'VS' = cnr_ota:net
+   lut/lut_set.py 210 'VS' = cnr_ota:net
+   lut/lut_types.py 21 'VS' = cnr_ota:net
+   lut/tolerance.py 56 'VS' = cnr_ota:net
+   lut/tolerance.py 60 'VS' = cnr_ota:net
+   lut/tolerance.py 77 'VS' = cnr_ota:net
+   lut/tolerance.py 130 'VS' = cnr_ota:net
+   lut/tolerance.py 171 'VS' = cnr_ota:net
+   metrics/achievability_types.py 49 'VS' = cnr_ota:net
+   sizing/block_columns.py 93 'VS' = cnr_ota:net
+origins {'Q4': ['rfc_ota:device'], 'Q8': ['rfc_ota:device'], 'Q9': ['rfc_ota:device'], 'VS': ['cnr_ota:net'], 'Z': ['erfc_ota:net']}
+Mfx in library []

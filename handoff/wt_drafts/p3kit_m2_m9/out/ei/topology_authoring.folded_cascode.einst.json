@@ -1,0 +1,57 @@
+{
+ "circuit": "folded_cascode",
+ "root": "C:\\g226\\ei",
+ "harness_file": "C:\\g226\\ei\\workspaces\\run_harness.py",
+ "constants_raw": {
+  "ASSETS_DIR": "C:\\g226\\ei\\skills\\analog-gmid-design\\assets",
+  "LIBRARY_DIR": "C:\\g226\\ei\\skills\\analog-gmid-design\\assets\\library",
+  "WORKSPACES_DIR": "C:\\g226\\ei\\workspaces",
+  "LUTFILE": "C:\\g226\\ei\\skills\\analog-gmid-design\\assets\\sky130_nfet_pfet_lut_sample.npz"
+ },
+ "sys_path_added": [
+  "C:\\g226\\ei\\skills\\analog-grammar\\assets",
+  "C:\\g226\\ei\\skills\\analog-gmid-design\\assets"
+ ],
+ "engine_origin": {
+  "design_report": "C:\\g226\\ei\\skills\\analog-gmid-design\\assets\\design_report.py",
+  "gmid_lut": "C:\\g226\\ei\\skills\\analog-gmid-design\\assets\\gmid_lut.py",
+  "sizing_recipe": "C:\\g226\\ei\\skills\\analog-gmid-design\\assets\\sizing_recipe.py",
+  "stick_diagram": "C:\\g226\\ei\\skills\\analog-gmid-design\\assets\\stick_diagram.py",
+  "topology_authoring": "C:\\g226\\ei\\skills\\analog-gmid-design\\assets\\topology_authoring.py",
+  "topology_library": "C:\\g226\\ei\\skills\\analog-gmid-design\\assets\\topology_library.py"
+ },
+ "instance_path": "C:\\g226\\ei\\workspaces\\folded-cascode-report\\folded_cascode.instance.json",
+ "exists": true,
+ "fail_in_stdout": false,
+ "top_keys_in_file_order": [
+  "schema_version",
+  "topology_ref",
+  "sizing",
+  "netlist",
+  "floorplan",
+  "box_shape",
+  "audit_row_split",
+  "coverage"
+ ],
+ "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+ "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+ "field_sha256": {
+  "schema_version": "86169bcf42397928e1828b0a8e09ab69037ac05474b33486513c2fea65908565",
+  "topology_ref": "1e187cfc487cccac201ee6cdf9298fbf270f6dbeed2b76c2f8ba845509399326",
+  "sizing": "9089b6307c6000bb3129419e1906ed1ce0ae1f6ae95e3878687d078e9ae672ae",
+  "netlist": "7211bea02c985976d8c4509b9a220135fbfc5e721ec4924549f861e8be52fb3f",
+  "floorplan": "aea67c40d76c0f1b0f720aaf05887127e8124df1595a457d2437eced5e0cfc9b",
+  "box_shape": "1265d0fae3d8d0b6a8f0618d3670a6e2e16405f79e11c146b0ce2c7348c4a3cd",
+  "audit_row_split": "cccdff7e14d3eac797aa245770ac17197d1a95fa276781f4b1af2bc79d9e1dbf",
+  "coverage": "bbce9d8746554b37d98058c46c1edb34cfe410d7e7168186e2741d35fdf183c2"
+ },
+ "file_bytes_sha256": "8cd006a5094fb6c7e265d67c9aca777fbd71a7fde8aca6dfe7c92b0e56834a08",
+ "mask_form": "ensure_ascii=False",
+ "file_bytes_masked_sha256": "a783cbe5d41e727ee494b1f3c91eb37801bd450de2ea04bd552f142922c690c8",
+ "file_len": 19230,
+ "topology_ref_raw": "skills/analog-gmid-design/assets/library/folded_cascode.topology.json",
+ "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/folded_cascode.topology.json",
+ "topology_ref_equals_expected_contract1": true,
+ "path_string_hits": [],
+ "n_sizing": 13
+}

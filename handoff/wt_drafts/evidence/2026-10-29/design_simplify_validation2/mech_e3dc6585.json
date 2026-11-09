@@ -1,0 +1,2752 @@
+[
+{
+"doc": "40-engine",
+"line": 51,
+"dels": [
+"(v1.15.0)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 100,
+"dels": [
+"(v1.6)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 101,
+"dels": [
+"(v1.6)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 102,
+"dels": [
+"(v1.6)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 113,
+"dels": [
+"(v1.6)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 114,
+"dels": [
+"(v1.6)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 167,
+"dels": [
+" (v1.10)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 268,
+"dels": [
+"(v1.11)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 275,
+"dels": [
+"v1.12 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 281,
+"dels": [
+"v1.11, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 312,
+"dels": [
+"v1.10, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 317,
+"dels": [
+"v1.11, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 321,
+"dels": [
+"v1.10, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 350,
+"dels": [
+"v1.11, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 400,
+"dels": [
+"v1.11, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 404,
+"dels": [
+"v1.12.9, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 405,
+"dels": [
+"(v1.12.9)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 406,
+"dels": [
+"v1.12.9, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 420,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 438,
+"dels": [
+"v1.14.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 449,
+"dels": [
+"v1.15.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 459,
+"dels": [
+"v1.15.2 -- ",
+"v1.13.0, "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 461,
+"dels": [
+"v1.13.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 463,
+"dels": [
+"v1.13.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 465,
+"dels": [
+"v1.14.0 -- ",
+"(v1.14.1) "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 466,
+"dels": [
+"v1.14.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 467,
+"dels": [
+"v1.13.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 471,
+"dels": [
+"v1.11.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 472,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 473,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 474,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 478,
+"dels": [
+"v1.11.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 479,
+"dels": [
+"v1.11.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 480,
+"dels": [
+"v1.11.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 481,
+"dels": [
+"v1.11.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 482,
+"dels": [
+"v1.11.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 483,
+"dels": [
+"v1.11.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 484,
+"dels": [
+"v1.11.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 512,
+"dels": [
+"(v1.11)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 520,
+"dels": [
+"v1.11, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 521,
+"dels": [
+"v1.11, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 522,
+"dels": [
+"v1.11, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 559,
+"dels": [
+"(v1.11)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 565,
+"dels": [
+"v1.11, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 599,
+"dels": [
+"v1.11, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 611,
+"dels": [
+"9.4, v1."
+],
+"ins": [],
+"cls": [
+"other"
+]
+},
+{
+"doc": "40-engine",
+"line": 639,
+"dels": [
+"v1.10, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 714,
+"dels": [
+"v1.10, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 716,
+"dels": [
+" (v1.11)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 747,
+"dels": [
+"v1.12.9, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 748,
+"dels": [
+"v1.12.9, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 795,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 820,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 821,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 824,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 861,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 863,
+"dels": [
+" v1.15.2 --"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 867,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 869,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 871,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1012,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1064,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1080,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1114,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1120,
+"dels": [
+"(v1.15.1)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1121,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1123,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1131,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1204,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1205,
+"dels": [
+"(v1.15.1)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1233,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1238,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1258,
+"dels": [
+"v1.14.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1267,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1299,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1322,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1402,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1446,
+"dels": [
+"v1.10, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1450,
+"dels": [
+" (v1.15.2)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1588,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1592,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1621,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1670,
+"dels": [
+"v1.12.6, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1792,
+"dels": [
+"v1.15.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1935,
+"dels": [
+"v1.14.1 -- ",
+"v1.14.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 1937,
+"dels": [
+"v1.13.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2083,
+"dels": [
+"v1.15.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2094,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2096,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2113,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2125,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2126,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2127,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2171,
+"dels": [
+"v1.15.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2179,
+"dels": [
+"v1.11, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2180,
+"dels": [
+"v1.12, ",
+"(v1.13.0) ",
+" (v1.14.0)",
+" (v1.14.1)",
+"v1.12.9, "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2181,
+"dels": [
+"v1.11, ",
+"v1.10, ",
+"v1.9.4, ",
+"v1.11, "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2182,
+"dels": [
+"(v1.11)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2194,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "40-engine",
+"line": 2201,
+"dels": [
+"(v1.12)",
+"v1.13.0, "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 502,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 664,
+"dels": [
+"v1.14.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 666,
+"dels": [
+"(v1.13.0)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 671,
+"dels": [
+"v1.14.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 672,
+"dels": [
+"v1.13.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 678,
+"dels": [
+"v1.13.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 679,
+"dels": [
+"v1.13.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 680,
+"dels": [
+"v1.14.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 683,
+"dels": [
+"v1.14.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 688,
+"dels": [
+"v1.14.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 691,
+"dels": [
+"v1.12.10 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 699,
+"dels": [
+"v1.14.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 705,
+"dels": [
+"(v1.14.1)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 706,
+"dels": [
+"v1.14.0, ",
+"v1.14.0, "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 707,
+"dels": [
+"v1.14.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 708,
+"dels": [
+" v1.14.1 --",
+"v1.14.0 -- ",
+"v1.14.0 -- ",
+" v1.14.1 --",
+"v1.14.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 710,
+"dels": [
+"(v1.14.0)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 711,
+"dels": [
+"v1.13.0, ",
+"v1.14.1, ",
+"(v1.14.1)"
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 712,
+"dels": [
+"v1.14.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 723,
+"dels": [
+"v1.12.9 -- ",
+" v1.12.9 --"
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 726,
+"dels": [
+"v1.12.8, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 729,
+"dels": [
+"(v1.13.0)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 730,
+"dels": [
+"v1.14.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 742,
+"dels": [
+"v1.14.0, ",
+"v1.14.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 748,
+"dels": [
+" v1.14.1 --"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 749,
+"dels": [
+"v1.13.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 750,
+"dels": [
+"(v1.13.0)",
+" v1.14.0 --"
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 751,
+"dels": [
+"v1.14.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 756,
+"dels": [
+"v1.13.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 757,
+"dels": [
+"v1.13.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 759,
+"dels": [
+"v1.15.2 -- ",
+"1 -- v1.14.",
+"(v1.14.0)",
+" v1.14.1 --"
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 761,
+"dels": [
+"(v1.14.0)",
+"v1.14.1 -- ",
+"v1.13.0, ",
+"v1.14.1, "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 766,
+"dels": [
+"v1.13.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 772,
+"dels": [
+"v1.12.10 셋째 커밋 -- ",
+"v1.13.0, "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 773,
+"dels": [
+"v1.14.1 -- ",
+"v1.14.1, ",
+" (v1.14.1)"
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 774,
+"dels": [
+"v1.14.0 -- ",
+"v1.14.0 -- ",
+"v1.14.0 -- ",
+"v1.13.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 775,
+"dels": [
+"v1.12.8, ",
+"v1.12.9, "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 776,
+"dels": [
+" v1.15.2 --",
+"v1.12.10 -- ",
+"v1.14.1, ",
+"v1.12.10, "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 779,
+"dels": [
+"v1.13.0, ",
+"v1.14.0, ",
+"v1.12.10 둘째 커밋, ",
+"v1.13.0, ",
+"v1.12.9, "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 789,
+"dels": [
+"v1.13.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 790,
+"dels": [
+"v1.14.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 793,
+"dels": [
+"v1.15.0 -- ",
+"v1.12.1, ",
+"v1.14.1 -- ",
+"v1.14.0 -- ",
+"v1.12.4, "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 796,
+"dels": [
+"v1.13.0 -- ",
+"v1.12.9 -- "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 797,
+"dels": [
+"v1.12.10 -- ",
+"(v1.13.0)"
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 836,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 866,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 875,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 885,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 887,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 898,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 899,
+"dels": [
+"v1.15.0, ",
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 917,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 931,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 968,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1047,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1070,
+"dels": [
+"(v1",
+"15.0)."
+],
+"ins": [],
+"cls": [
+"other",
+"other"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1095,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1097,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1154,
+"dels": [
+"(v1.15.2)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1156,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1220,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1222,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1228,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1268,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1423,
+"dels": [
+"(v1.15.1)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1424,
+"dels": [
+"(v1.15.1)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1425,
+"dels": [
+"(v1.15.1)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1533,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1534,
+"dels": [
+" v1.15.1 --"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1549,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1591,
+"dels": [
+"v1.15.2 -- ",
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1626,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1649,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1658,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1659,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1664,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1671,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1672,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1705,
+"dels": [
+"v1.6, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1724,
+"dels": [
+" v1.15.2 --"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1773,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1777,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1778,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1783,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1791,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1936,
+"dels": [
+"v1.6, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 2005,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 2024,
+"dels": [
+"v1.15.1 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 43,
+"dels": [
+"(v1.11)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 104,
+"dels": [
+"v1.15.0 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 193,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 224,
+"dels": [
+" v1.14.1 --"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 234,
+"dels": [
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 235,
+"dels": [
+"v1.14.0, ",
+"v1.14.1, ",
+" (v1.14.1)"
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 278,
+"dels": [
+"v1.10, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 311,
+"dels": [
+"v1.10, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 312,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 313,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 314,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 315,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 316,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 317,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 318,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 319,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 320,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 321,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 322,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 323,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 324,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 325,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 326,
+"dels": [
+" (v1.15.1)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 327,
+"dels": [
+" (v1.15.0)"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 328,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 329,
+"dels": [
+"v1.15.0, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 331,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 332,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 333,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 334,
+"dels": [
+"v1.15.1, ",
+"v1.15.2 -- "
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 335,
+"dels": [
+"v1.15.1, ",
+" v1.15.2 --"
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 336,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 337,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 338,
+"dels": [
+" v1.15.2 --"
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 339,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 340,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 341,
+"dels": [
+"v1.15.1, ",
+" v1.15.2 --"
+],
+"ins": [],
+"cls": [
+"vtag",
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 342,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 343,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 344,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 345,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 346,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 347,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 348,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 349,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 350,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 351,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 352,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 353,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 354,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 355,
+"dels": [
+"v1.15.2, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 356,
+"dels": [
+"v1.15.1, "
+],
+"ins": [],
+"cls": [
+"vtag"
+]
+}
+]

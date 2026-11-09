@@ -1,0 +1,83 @@
+diff --git a/docs/02-design/features/gain-budget-gmid-sizing.40-engine.design.md b/docs/02-design/features/gain-budget-gmid-sizing.40-engine.design.md
+index 10ebd2ed..c6f348de 100644
+--- a/docs/02-design/features/gain-budget-gmid-sizing.40-engine.design.md
++++ b/docs/02-design/features/gain-budget-gmid-sizing.40-engine.design.md
+@@ -1030,7 +1030,7 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력
+
+**판정 대상 술어와 미판정 상태**(**계획 v6.38.4 대기(P1)** -- 판정 대상 여부의 정본 자리(술어 호출 여럿 대 `constraint_classes.judged` 필드 하나, 검증 M-3)는 계획이 정한다; 아래 (ii)의 '같은 함수를 부른다' 배치는 그때까지 확정이 아니다(두 축의 정의·`unjudged` 상태·`ConstraintDecl.judged` 삭제는 계획 v6.38.3 그대로); v1.15.2 -- 계획 N6.35 E-02·E-03·card SF-1 범위 8, 사용자 대원칙 O-169 -- **원래 취지와 다름(계획 표지, 승인 표 #38)**): (i) E-02 = 위 `counted_rails_undeclared` 보류 정지 그대로. (ii) **판정 대상 여부 = 순수 함수 하나** `is_judged(decl, doc) -> bool`(자리 `E/authoring/spec_judged.py` -- 파일당 진입점 하나) = 두 축의 논리곱 -- (가) 출처 축: 출처 kind = `user_spec`(참조 `value_from_*`는 사슬 끝 대상의 출처 kind -- `spec_refs` 해석이 내는 대상 기록 참조로 읽음, 판정 여부 사본 없음; `pending_spice`는 대상 아님) (나) metric 축: metric 결정 대기(`metric_decision`)가 아님(잴 metric이 없음). 두 축은 '판정 대상'이라는 한 양의 조건이라 술어 하나다(graph 규칙 3). 로더 사본 칸 `ConstraintDecl.judged`는 지운다; `SizingSpecDoc.judged_constraints`는 이 함수를 부르는 계산 속성으로 남고(값 사본 아님) S1v 뷰 선택·front 셈·offset-strategy S-10 공존 검사가 같은 함수를 부른다. (iii) **미판정 상태**: 판정 대상이 아닌 제약의 그 점 상태 = `unjudged`(사유 `pending_spice` 또는 `metric_decision`) -- 판정 결과 상태 어휘(판정 대상 여부와 정의 축이 다름)이고 front 보고·card CPG-1 통과 셈에서 '통과'로 세지 않는다(`pending_spice` 항목은 SPICE PASS로만 통과 -- §10.7). 근거 결정 = U-35('그 전까지 판정에 쓰지 않는다'; 엔진 인용 U-17 → U-35 정정). 지우는 곳 = 계획 SF-1 범위 8 '지우면 깨지는 곳' 목록 그대로(착수 때 재조사).
+
+**측정 부하가 중간 rail에 걸린 회로의 DUT 전력** -- **계획 v6.38.4 대기(P7)**: 정의 선택은 계획이 정한다(후보 = 레일 단자 합(기준 0 V) / DUT 소산(모든 단자); 물리 사실·toy 수치 = `wt/_drafts/evidence/2026-10-29/design_v1152/m1_power/README.md`, 옛 상세 = `wt/_drafts/evidence/2026-10-29/design_v1152/simplify/moved_text.md` S3). {+계획 결정 뒤 그 후보의 toy만 card SF-1 완료 조건에 둔다.+} 엔진 `power_dc_w`·oracle OP-11의 [-자리는-]{+자리와 단자 기준은+} 결정 뒤 이 문단에서 [-정한다.-]{+정한다(새 상수·칸 0).+} library 발동 = nmcnr 1.
+
+**선언 미러 비**(v1.15.2 -- 계획 SF-1 범위 10·승인 표 #24(O-170); design 40 §3.7-2·§11 U4b의 'ρ θ 종류' 형태 대체 -- **원래 취지와 다름(계획 표지)**): 선택 섹션 `human.mirror_ratios` = `[{"reference": <소자>, "output": <소자>, "ratio": <양의 유한 수>, "source": {...}}, ...]`(칸 이름 = 이 design). 로더는 키·형식·출처 칸·소자 이름 존재만 검사(거부 `mirror_ratio_device_unknown`·`mirror_ratio_value`). 강제 = 전류 기저 writer `dc_current_basis`가 `graph.rel_matching_ratio`(지금 운영 소비자 0 -- 만들면 배선)와 이 선언을 READS해 강제 행 I_out = ρ·I_ref를 더하고 그 가지를 기저에서 뺀다(새 필드·cache 0); 선언 쌍이 `rel_matching_ratio` 묶음이 아니면 탐색 전 정지 `mirror_ratio_not_mirror`(판정 자리 = `dc_current_basis` -- 묶음은 S1 필드라 로더가 판정하면 둘째 생산자·층 역전), 선언 비 ≠ 1과 대칭 묶음(궤도·`current_symmetry`)이 충돌하면 `mirror_ratio_symmetry_conflict` 정지, 강제 행이 KCL과 모순이면 기존 `declared_source_kcl_conflict`. 선언 없는 미러의 비는 파생값(전류비 = θ 전류 비, W 비는 보고)이고 θ 성분을 더하지 않는다 -- 물리 결정자: 같은 gate·source 묶음은 VGS가 KVL로 같아 전류비 = W·IDu(VGS, L, VDS, VSB) 비(같은 L·VDS·VSB·슬라이스일 때만 W 비; VDS 차는 DEC-105 (4) `mirror_vds`) -- 감사 A12 '맞음'. library 선언 0 -- 변화 0.
+
+@@ -1193,11 +1193,11 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력
+**규칙**은 DEC-92다.
+- 값이 선언되지 않은 보상 수동소자는 θ의 연속 성분이다.
+- GBW·PM은 봉인된 `ss` 스냅샷의 전회로 MNA로 판정한다.
+- 영점 상쇄 저항 R은 θ 연속 성분이다(v1.15.2 -- 계획 DEC-92 (3) v6.38.3·DEC-105 (10) (b); 옛 'R = 1/Σgm(S)로 정한다(J7)'는 구조 규칙 고정값이라 대체). 구조 규칙 R = 1/Σ_{c∈S} gm_c는 층 0·출발 단계의 **출발값**이고(O-33 (10)), 상자는 §3.1-1 (b), S 정의는 아래 'S 셀 [-집합과 일반형 판정'.-]{+집합'.+}
+- `gm_req`는 같은 스냅샷 MNA에서 1-D 근으로 구한다.
+- 근사식은 층 0 출발값에만 쓰고, 근사와 MNA의 차를 `comp_approx_gap`으로 기록한다.
+
+**S 셀 집합**(DEC-92 (3) 그대로 -- 손계산 꼴; v1.15.2 단순화): 보상 R과 보상 C가 이어진 경로(R의 한 끝 넷에 R과 보상 C만 닿는 직렬 가지; T 망이면 C마다 경로 하나)마다 그 경로 두 [-끝에-]{+끝(구동 쪽 끝 A, 출력 쪽 끝 B)에+} gate·drain이 걸린 [-MOS의-]{+MOS(gate = A, drain = B)의+} 합집합이고, 비면 S 미정(fail-closed -- DEC-105 (10) (d)). 출발값 R_S = 1/Σ_{c∈S} gm_c은 교과서·원문의 손계산 꼴(2단 nulling resistor R_z = 1/gm -- 교과서 로컬 PDF 없음·쪽 미확인; nmcnr 원문 Leung 1999 p.2 Structure 4 'R_m = 1/g_m3' -- `assets/library/sources/nmcnr_amplifier__leung_1999/source.pdf`)이다. [-다른 구조(결합 경로·T 망 등)에서-]{+아래 구조 조건 밖(A–G 결합 용량 경로 없음)에서는 R_S가+} 영점을[-정확히-] 지우는 [-R과의 차는 출발점 품질에만 들고,-]{+R_null과 같고(nmcnr T 망의 R_m = 1/g_m3도 R_null),+} R은 θ로 탐색되며 PM·영점은 봉인 `ss` MNA가 판정한다(DEC-74; [-남는 차는 DEC-72 model_error 기록).-]{+출발값과 MNA의 차 = `comp_approx_gap` -- DEC-92 (2), 위 줄).+} 'AC로 같은 출력 노드를 구동하는 소자'(class-AB 부유 전류원 출력단)를 S에 넣는 안은 기각한다(그 안의 R은 우반면 영점을 남김 -- 절점식 근거·실측 `wt/_drafts/evidence/2026-10-29/design_v1152/class_ab_s/`). 구조 조건: A(구동 쪽 끝)와 G(B에 drain이 닿은 S 밖 출력 소자의 gate 넷) 사이에 고주파 결합 용량 경로(선언 커패시터 또는 MOS Cgs·Cgd)가 있으면 연결 정의가 Σgm을 [-과소평가하므로-]{+과소평가해 R_S > R_null이고 R_null이 §3.1-1 (b) 상자 밖일 수 있으므로(상자 안 R로는 유한 좌반면 영점이 남음 -- 차가 출발점만이 아니라 탐색 도달 범위를 바꿈)+} 그 경로의 S는 미정 → fail-closed(DEC-105 (10) (d), 사유 `zero_cancel_s_coupled{element, net}`)로 두는 초안이다(library 해당 0). Cds 결합 꼴(current_reuse M9a·M9b)을 넣을지·최종 문언·계획 '한계' 문언은 **계획 v6.38.4 대기(P2)**. 9회로 S: two_stage {M6}, current_reuse {M16}·{M26}, nmcnr {M301}, 나머지 6회로 R–C 경로 0(판독 `wt/_drafts/evidence/2026-10-28/s_def_connectivity.txt`). 옛 판의 절점식·162점 훑기·적용표·측정 한계 서술 = `wt/_drafts/evidence/2026-10-29/design_v1152/simplify/moved_text.md` S1.
+
+**보상 수동소자 후보 집합**은 S1v 극점 노드 목록의 두 노드 사이에 걸린 수동소자다(41 §1.7). 다음 둘은 후보에서 뺀다.
+- 루프 뷰 (3-b)의 복귀 경로에만 있고 (2) Miller 구간에 없는 수동소자. 예: CM 감지 평균 저항. 이것이 6a 열린 항목 ⑤의 해법이다.
+@@ -1344,7 +1344,7 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력
+
+**5. 선택 함수 -- 순수 함수 하나**(DEC-105 (2) '선택 함수', 감사 R2)
+- `finger_slice(lut, kind, L, W) -> FingerSlice(m, w_f_m, w_key)`와 그 내부 단계 `slice_of_finger(lut, kind, L, w_f_m) -> w_key`, 자리 = `E/lut/finger_slice.py`(LUT 적재 메타 -- W-bin 지도·슬라이스 목록·제조 격자·W_min·bin 경계 선언 -- 만 읽으므로 lut 층; sizing·search·convergence가 모두 부를 수 있다). graph를 읽지 않는 순수 함수이고 결과를 저장하지 않는다.
+- 규칙: w_hi = 그 L에서 kind 기준 폭(`w_ref_m`) 슬라이스가 속한 W-bin의 위 끝(W-bin 지도에서). m = ⌈W/w_hi⌉(W ≤ w_hi이면 m = 1), w_f = W/m을 제조 격자(`manufacturing_grid_m`)로 반올림. w_f가 든 bin에 슬라이스가 없으면 m을 하나씩 늘려 슬라이스가 있는 bin에 드는 가장 작은 m을 쓴다; w_f가 W_min 아래로 내려가도 없으면 fail-closed(`SealViolationError`, 사유 `slice_missing`{소자, kind, L, W}). bin 안에 슬라이스가 둘 이상이면 w_f에 가장 가까운 슬라이스(동률은 작은 폭 -- 계획 v6.38.3 DEC-105 (2) 문언 그대로; 손가락 폭과 다른 폭 슬라이스 값을 쓰는 점의 물리 [-정합(bin 안 전류 밀도 비 0.54~1.74)과-]{+정합(근거 `wt/_drafts/evidence/2026-10-29/handcalc_principle_audit.md`:31·112)과+} 대체 꼴은 **계획 v6.38.4 대기(P8)**) -- 보간 없음. 클램프·이웃 bin 대체·외삽 없음.
+- **bin 소속 판정**(card WB-1 범위 0 -- 결함 D1 정정): W·L·w_f의 bin 소속은 제조 격자 정수 단위로 반올림한 값끼리 비교한다(반올림 뒤 float 비교 금지, 판정 불가는 fail-closed). 경계값의 bin 방향은 코드에 고정하지 않고 **bin 경계 선언**(시뮬레이터 판·호환 모드(.spiceinit 포함)·모델 파일 sha256 -- writer = LUT 생성 기록·oracle OP-7 옆 선언, 기본안 = LUT 생성 모드)에서 읽는다. 이 선언을 읽어 경계 방향을 정하는 엔진 자리는 이 함수가 쓰는 bin 판정 함수 하나다(oracle OP-7은 선언 기록과 oracle 실행 설정만). 선언이 없거나 LUT 지문과 묶이지 않으면 LUT 적재 때 fail-closed.
+- **최소 손가락 폭 조건**(계획 DEC-105 (2) 'w_f ≥ W_min' 그대로 -- 검증 M-1): 격자 반올림한 w_f < W_min(m = 1에서 W < W_min인 경우 포함; W_min = PDK 선언 `min_finger_w_m`, 판정 = 격자 정수 비교)이면 fail-closed(`SealViolationError`, 사유 `finger_below_min`{소자, kind, L, W, w_f, W_min}). 물리 결정자: W_min 아래 손가락은 제조 규칙(difftap.2)이 허용하지 않아 PDK·LUT가 그 소자를 정의하지 않는다 -- 그 아래 bin에 슬라이스가 있어도(nfet 0.36·0.39 µm) 읽지 않는다(계획 '도달하지 않음'). `slice_missing`(제조 가능한 손가락 폭 안에 LUT 슬라이스가 없음)과 정의 축이 달라 사유를 나눈다: m = 1에서 이미 w_f < W_min이면 `finger_below_min`, m을 늘리는 중에 w_f가 W_min 아래로 내려가도 슬라이스를 못 찾으면 `slice_missing`.
+- **W_min 제약 행의 남는 역할**(`E/search/constraints.py` `CON_WMIN`, c = (W − W_min)/g -- `DeviceOp.W` 소비자, 계획 DEC-105 (2) '소비 기준'): 레이아웃 전 봉인점은 w_f ≥ W_min이므로 c ≥ −½(m = 1이면 W와 격자 반올림 w_f의 차 ≤ g/2)라 위반 갈래는 반 칸 띠 밖에서 닿지 않는다. 행은 남긴다 -- 봉인점마다 정의되는 연속 여유이고 소비자 둘이 읽는다: 외층 SLSQP 부등식 행(경계 앞에서 기울기로 W_min 쪽 이동을 막아 봉인 실패 평가를 줄임)과 활성 제약 보고(§3.10.6 P-11, NFR-5). W_min을 넘는 FD 탐침은 봉인 실패 → `fd_jacobian` 반대 방향 규칙(S-16, 둘 다 실패면 그 열 고정)이 처리한다(새 경로 0). 반 칸 띠에서는 행이 봉인보다 반 칸 엄하다(θ 유도 W 기준 -- 계획 '총 폭 비례 양 = `DeviceOp.W`' 그대로).
+@@ -1370,7 +1370,7 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력
+
+**9. design 입력 측정**(계획 card WB-1 범위 3 'design 입력', 손계산 속도 P4 -- 문턱 상수 없음, 판단은 사용자 승인 질문 Q-DC1)
+
+측정 = 엔진 밖 사실 측정(DEC-104 (1′) (b), 판정 기록 아님 -- v1.15.2 단순화: 표·측정 서술은 evidence로): FD 단계 노드 풀이 reuse·벽시계·θ 전류 열 비율·유도 손실 표 = `wt/_drafts/evidence/2026-10-29/design_v1152/dcblock_measure/`(재현 명령·한계 포함), Rʳ·소자 안 고정점 회차 = `wt/_drafts/evidence/2026-10-29/design_v1152/m4_measure/README.md`, 옛 본문 = `wt/_drafts/evidence/2026-10-29/design_v1152/simplify/moved_text.md` S4. 판단에 쓰는 요지(손계산 속도 P4 재료일 뿐 정밀 요구가 아님): (i) 합친 블록의 유도 손실 = 실행 벽시계의 0~4 %(6회로, 상계), 야코비안이 도는 current_reuse는 1회당 약 7 s (ii) Rʳ = ∅ 9/9 -- 노드 풀이는 평가마다 1회 (iii) 소자 안 고정점은 측정된 회로에서 대부분 1~2회차이고, 봉인점에서 `slice_cycle`·`finger_below_min`이 [-생기는 경우의 처리는-]{+생긴다 -- 계획 DEC-105 (2)대로면 지금 봉인되는 그 점이 새 블록에서 봉인 실패가 된다(동작 변경 -- 새로 거부되는 점). 이 design은 계획 규칙(재방문 = fail-closed)을 그대로 두고, 규칙을 바꿀지는+} **계획 v6.38.4 대기(P5·P8)**. 정밀값(슬라이스별 tol 표 첫 구성 비용 -- Q-DC3, Rʳ ≠ ∅ 회로의 노드 재풀이 수 포함)은 card WB-1 완료 조건 (5)가 구현 뒤 다시 잰다.
+
+- 판단(문턱 상수 없음) = 사용자 승인 질문 Q-DC1(41 §5.12.7).
+
+@@ -1830,7 +1830,7 @@ design이 정하면 안 되는 것(범위·회로 해석·판정 기준 변경)
+   - **분해능이 없을 때**: as-built는 s = 1 dB로 대체하는데, 이것은 근거 없는 상수라 지운다(EP-4). 대신 행은 위반으로 유지하고, 풀이 단위 크기만 §7.2 규칙으로 정한다(s_k = max(|c 원값|, ...)). 그리고 front에 '분해능 미측정'을 표시한다.
+   - RHP 극점 행(c = −max Re/|p|)도 같은 방식으로 다룬다.
+5. **스위치드 커패시터 CMFB**는 `unsupported`로 명시 정지한다.
+6. **CM 되먹임 DC 평형**(v1.15.1 -- 계획 v6.38.2 DEC-105 (7), 사용자 결정 2026-10-14 Q-N3 (A) 회로 해석 승인; DEC-104 (0) θ 전류 축 종속; 구현 = card LA-1 범위 15 (f)): 2의 절단 분류가 정한 CM 루프(감지 넷·기준 넷·소비 소자 -- 이름 없음)가 있는 회로에서 DC 평형 등식 둘을 S0 기존 writer에 넣는다 -- (i) **오차 쌍 전류 같음**: gate가 감지 넷·기준 넷인 같은 kind 쌍(공통 source)의 두 전류를 S1 전류 기저 `graph.dc_current_basis`(기존 writer, DEC-70)의 등식 행으로 넣어 θ 전류 축을 하나 줄인다 (ii) **출력 CM 노드 DC = 기준 넷 DC**: 출력 포트쌍 CM 노드(감지 넷)를 쓰기 계획 고정 노드(기존 writer -- W2 고정, 값 = 기준 넷의 DC 전위)로 둔다. **CM 기준의 물리 결정자**(계획 DEC-105 (7)·N6.35 E-11 -- 생략 예외 없음): 기준 넷의 DC를 정하는 원이 회로 안 소자이면(기준 넷이 레일·포트·바이어스 입력이 아니고 쓰기 계획이 그 넷을 소자 식으로 씀 -- 예 current_reuse Voc_des = M39(diode)·M40 스택의 KCL 근, 감사 A6 '맞음') 그 KVL·쓰기 계획이 writer다(기존 writer); 기준 넷이 외부 단자(topology `ports`·`bias_inputs`)이면 그 DC는 측정 구성의 원이 정하므로 spec 선언값이 필수이고, 선언이 없으면 탐색 전 fail-closed 정지(사유 `cm_reference_undeclared{net}`); 선언 자리는 하나다 -- 외부 기준 선언이 있으면 그것이 출력 공통모드 목표의 정본이고 별도 출력 CM 선언(spec `output_range_v`의 `cm` 칸)을 함께 두면 fail-closed(`cm_reference_double_declared` -- 같은 양 두 자리, graph 규칙 3). 평형 검사를 건너뛰는 생략 예외는 없다. 판별 = 기준 넷의 topology 선언(포트·바이어스 입력 = 외부)과 쓰기 계획 writer(소자 식 = 내부) -- 이름 판별 없음; **둘 다 아닌 경우**(기준 넷이 레일이거나 writer가 소자 식이 아닌 넷 -- 물리 결정자가 판별되지 않음)는 탐색 전 fail-closed 정지(사유 `cm_reference_unclassified{net}` -- {+폐지된+} 옛 생략 예외 [-이름과 다름;-]{+`cm_reference_undetermined`와 다른 이름;+} 레일 기준이면 그 값이 레일 선언이라 판별 규칙 확장이 필요하므로 사용자 결정 몫, library 해당 0). **감지 노드 확인**(O-172·감사 A7): 저항 분압 감지 Voc = (R2·Vom + R1·Vop)/(R1 + R2)는 R1 = R2일 때만 출력 중점이다(R1 ≠ R2면 차동 신호가 CM 감지로 새어 DM→CM 변환) -- card LA-1 범위 15 (f)가 R1·R2가 대칭 묶음(`domain.ties`·자기동형 궤도)으로 같은 θ인지 기록하고, 묶이지 않으면 계획부터(완료 조건 10 (f)). 실측(library 9회로): CMFB 보유 1(current_reuse -- 내부 생성 기준), 외부 기준 0. toy 넷 = 계획 LA-1 완료 조건 10 (f)(`cm_reference_undetermined` grep 0이 판정 항목). 새 필드·writer 0. 판정은 그대로 전회로(`pm_cm_ss_deg`·봉인 1~8)다. 단일 출력 회로(CM 루프 없음)는 무동작(card LA-1 toy (f)). current_reuse 봉인 실패의 원인 후보(계획 N5.3 I-H5)라 그 회로 변화표에 원인 항목으로 적는다.
+
+| 항목 | 상태 |
+|---|---|
+diff --git a/docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md b/docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md
+index 89bf231c..792ee902 100644
+--- a/docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md
++++ b/docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md
+@@ -1499,15 +1499,15 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
+
+| ID | 질문 | 기본안과 근거(물리·회로이론) | 판정 | 대안 |
+|---|---|---|---|---|
+| Q-DC1 | DC 블록 하나(40 §3.7-A)의 손계산 속도 손실을 받아들이나 | 받아들임 -- 계획 DEC-105 (2)가 블록 하나를 고정했다(물리 결정자: W = I·L/IDu라 DC 블록이 전류 열을 READS → θ 전류 FD 열마다 노드 풀이 재계산). 판단 재료 요지 = 40 §3.7-A 9(유도 손실 벽시계 0~4 %, Rʳ = ∅ 9/9라 노드 재풀이 0; 측정 원자료 evidence). {+동작 변경: 봉인점의 `slice_cycle`·`finger_below_min` 점은 지금 봉인되지만 새 블록에서 봉인 실패가 된다(새로 거부되는 점 -- 계획 규칙 그대로, 바꿀지는 계획 v6.38.4 대기(P5·P8)).+} 손실이 크다고 판단되면 계획 개정 대상이지 design이 블록을 나누지 않는다 | 판단 재료 충분 -- 사용자 판단 | 계획 개정으로 블록 분할 재검토(R1-b) |
+| Q-DC3 | 슬라이스별 tol 표 첫 구성 비용(LUT 적재 때 도달 가능 슬라이스 30개(nfet 18·pfet 12) × kind당 약 14~19 s CPU ≈ 7~10 분, 첫 실행 한 번 -- U-87 디스크 캐시 뒤 0)과 비기준 슬라이스의 L bin 중점 검증 부재 | 비용: 받아들임 -- 구성 시점을 LUT 적재로 고정해 블록 순수성 유지(40 §3.7-A 7, 검증 M-3 (b); 물리 결정자 = tol은 LUT 보간 분해능이라 LUT 선언만의 함수). 검증 중점: 기준 폭 슬라이스에만 있는 사실을 card WB-1 착수 때 LUT 데이터로 재측정하고 비기준 슬라이스는 '중점 미검증' 표지를 보고에 남김(판정 불변) | 맞음(비용 수용은 사용자 몫) | 처음 쓰일 때 평가 안에서 구성(기각 -- 순수성·예산 얽힘), 비기준 슬라이스 중점 LUT 생성(oracle·LUT card 추가) |
+| Q-PW1 | (계획 승인 질문으로 옮김) DUT 전력 정의 | **계획 v6.38.4 대기(P7)** -- 재료 = 40 §3.1-1 'DUT 전력' 참조 | -- | -- |
+
+**고지(질문 아님)**: (1) W < W_min 점(m = 1에서 격자 반올림 w_f < W_min)은 `finger_below_min` 봉인 실패(40 §3.7-A 5 -- 계획 DEC-105 (2) 'w_f ≥ W_min'): 물리 결정자 = 제조 규칙(difftap.2) 밖 손가락은 PDK·LUT가 정의하지 않음(W_min 제약 행의 쓰임 = 40 §3.7-A 11; 바뀐 점 수는 card WB-1 변화표 원인 항목). (2) class-AB S: 'AC 구동 소자 포함' 안 기각, S = 연결 정의(손계산 꼴) -- 40 §3.5; 결합 용량 경로가 있으면 S 미정 fail-closed `zero_cancel_s_coupled` 초안, Cds 꼴 포함·최종 문언은 **계획 v6.38.4 대기(P2)**.
+
+**옛 판 질문**: Q-DC2 → 고지 (1), Q-DC4·Q-GL1 → 삭제(O-166·O-170 승인으로 해당 없음). **원래 취지와 다름**(이 판이 새로 만든 [-것):-]{+것 -- 계획 승인 표지가 있는 항목은 계획 그대로 옮김이라 세지 않음):+} 없음. v1.15.1 목록·처리 경위 = `wt/_drafts/evidence/2026-10-29/design_v1152/simplify/moved_text.md` S8.
+
+**계획 정정 후보 → 계획 v6.38.4에서 처리 중**(오케스트레이터 재판정 `wt/_drafts/evidence/2026-10-29/design_v1152_rejudge.md` §1 [-P1~P7-]{+P1~P7, 그 뒤 P8+} -- design의 해당 자리는 '계획 v6.38.4 대기' 표지만 두고 내용을 정하지 않음): (a) DEC-92 (3) '한계' 문언(P2) (b) card WB-1 완료 조건 (1) '입력 포트 W4 뿌리 꼴' 되먹임 toy -- 범위 3a(E-13) 뒤 입력 창 되먹임이 없어짐(40 §3.7-A 12) (c) 검증 C-1의 'R⁰ = ∅ 종속 소자 슬라이스 ≠ 기준 폭' toy 추가 (d) 병합 순서 의존 소유 문언('먼저 병합되는 card가 만든다' -- R9 조회 함수·`ORACLE_ONLY` 표·범위 끝 이득 함수, P6) (e) 판정 대상 집합의 저장 자리(술어 호출 여럿 대 `constraint_classes.judged` -- 검증 M-3, P1) (f) LA-1 범위 6 출발점 경로(`_box_centre`·`_current_centre`·`_halton_probe` -- gap 다름 2, P4) (g) design 입력 회차 수 문언(P5 -- 40 §3.7-A 9 측정 반영) (h) DUT 전력 [-정의(P7).-]{+정의(P7) (i) 손가락 슬라이스 선택 문언(DEC-105 (2) 'bin 안 w_f에 가장 가까운 슬라이스' -- 손가락 폭과 다른 폭의 슬라이스 값을 쓰면 bin 안 전류 밀도 비 0.54~1.74로 물리 정합이 깨짐; P8 결정 전까지 40 §3.7-A 5는 이 물리 부정합을 안은 계획 v6.38.3 문언 그대로 -- 출처 `wt/_drafts/evidence/2026-10-29/handcalc_principle_audit.md`:31·112, P8).+}
+
+### 5.13 판정 경계 위에 일부러 놓는 점 (NFR-4 3안, v1.9.4)
+
+diff --git a/docs/02-design/features/gain-budget-gmid-sizing.42-gap-checklist.design.md b/docs/02-design/features/gain-budget-gmid-sizing.42-gap-checklist.design.md
+index 4c2da33e..d7b2f95b 100644
+--- a/docs/02-design/features/gain-budget-gmid-sizing.42-gap-checklist.design.md
++++ b/docs/02-design/features/gain-budget-gmid-sizing.42-gap-checklist.design.md
+@@ -349,10 +349,10 @@ plan_version: 6.38.3
+| D-CML | (v1.15.2, card GV-1 범위 4 -- N6.35 E-33) CM 루프 안정도 제약 미선언 = `undeclared_loop_constraint` 정지, `cm_loop_unconstrained` 경로 삭제 | 40 §5-3, 41 §1.8 | MISS | as-built `E/graph/s1v_fields.py:92`, `E/metrics/ss_metrics.py:76·273` |
+| D-LOWN | (v1.15.2, card GV-1 범위 3 -- N6.35 E-10) L 주인 = S1v 전달 뷰에서, 뷰가 둘 이상·출발점 다름·전달 뷰 없음 = `l_owner_view_ambiguous` 정의 불능, 첫 뷰 대체 삭제 | 40 §3.11-7 | MISS | as-built `l_classes._main_path_starts` 첫 뷰 |
+| D-MRD | (v1.15.2, card SF-1 범위 10 -- ID: 기존 D-MR(`mirror_ratio_sigma_pct`)과 중복 해소) 선언 미러 비 `human.mirror_ratios`만 `dc_current_basis` 강제 행, 정지 `mirror_ratio_not_mirror`·`mirror_ratio_symmetry_conflict`, ρ θ 종류 없음 | 40 §3.1-1·§3.7-2 | MISS | as-built `E/sizing/current_basis.py:12`('강제하지 않는다') |
+| D-PW | (v1.15.2, card SF-1 범위 8 정의 항목 -- O-172 A18) DUT 전력 정의 = **계획 v6.38.4 대기(P7)**(후보: 레일 단자 합·기준 0 V / DUT 소산 모든 단자; [-toy 셋-]{+결정 뒤 그 후보 toy만 SF-1 완료 조건+} -- 40 [-§3.1-1)-]{+§3.1-1, toy 수치 `wt/_drafts/evidence/2026-10-29/design_v1152/m1_power/README.md`)+} | 40 §3.1-1 | MISS | as-built `E/metrics/supply.py`(레일 전체 전류) |
+| D-AREA | (v1.15.2, card SF-1 범위 9 -- N6.35 E-12) 값 미정 수동소자가 있으면 면적 정의 불능 `area_undefined`, head 면적 미선언 0.0 대체 삭제 | 40 §3.11-8 | MISS | as-built `E/metrics/dc_metrics.py:115-118`, `E/layout/passives.py:21` |
+| D-LA1G | (v1.15.2, card LA-1 범위 15 (g) -- N6.35 E-07·E-14·E-15·E-24·E-25·E-26·E-34·E-35) `kcl_row_underdetermined`·`tol_vdsat_table_missing`·`zc_start_undefined` 기록, 0 자리값(`E_refilter`·`reserve_evals`·N_T) 삭제, U-51 폴백 문언 삭제, `constraint_rows` `undefined` 반환 삭제 | 40 §3.11-6·§3.6, 41 §6.5 | MISS | 행별 as-built 자리 = 계획 N6.35 |
+| D-CAB | (v1.15.2, 계획 DEC-92 (3) '한계' design 판정) S[-일반형-] =[-고주파 전달 컨덕턴스 G_m(∞) = 지금-] 연결 정의(규칙 변경 [-0),-]{+0, 출발값 R_S = 1/Σgm),+} 'AC 구동 소자 포함' 안 [-기각(절점식 정확해 R_null-]{+기각(근거+} = [-1/gm16)-]{+evidence 실측), A–G 결합 용량 경로 = S 미정 fail-closed 초안(P2)+} | 40 §3.5 | N/A(규칙 변경 없음 -- 판정 기록) | 실측 `wt/_drafts/evidence/2026-10-29/design_v1152/class_ab_s/` |
+| D-CPG | (v1.15.1, card CPG-1) C′ 경로 완료 판정 bench(10항목, 선언 모드·EO-1 기하, 엔진 `dc_finger` 그대로, 기준선 재측정) | 40 §10.7 | MISS | 선행 = DEC-105 card 전부 병합 |
+
+## 4. 상태 집계

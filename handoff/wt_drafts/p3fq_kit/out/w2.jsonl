@@ -1,0 +1,6 @@
+{"variant": "gen", "reexport_after_line": 41, "case": "script_other_cwd", "rc": 0, "tail": ["ok"]}
+{"variant": "gen", "reexport_after_line": 41, "case": "spec_import_other_cwd", "rc": 1, "tail": ["\u001b[1;35mModuleNotFoundError\u001b[0m: \u001b[35mNo module named 'topology_authoring'\u001b[0m"]}
+{"variant": "gen", "reexport_after_line": 41, "case": "import_any_cwd_assets", "rc": 0, "tail": ["ok True"]}
+{"variant": "design", "reexport_after_line": 44, "case": "script_other_cwd", "rc": 0, "tail": ["ok"]}
+{"variant": "design", "reexport_after_line": 44, "case": "spec_import_other_cwd", "rc": 0, "tail": ["ok True"]}
+{"variant": "design", "reexport_after_line": 44, "case": "import_any_cwd_assets", "rc": 0, "tail": ["ok True"]}

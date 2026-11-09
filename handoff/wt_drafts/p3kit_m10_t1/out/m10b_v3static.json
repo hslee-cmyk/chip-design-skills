@@ -1,0 +1,70 @@
+{
+ "targets": [
+  "skills/analog-gmid-design/assets/gmid_design_pipeline.py",
+  "workspaces/run_harness.py"
+ ],
+ "defs": {
+  "skills/analog-gmid-design/assets/gmid_design_pipeline.py::run_gmid_design_pipeline": {
+   "targeted": 58,
+   "not_targeted": 0,
+   "ops": {
+    "stmt_delete": 48,
+    "cmp_flip": 8,
+    "except_body_delete": 1,
+    "early_return": 1
+   },
+   "new_def": true,
+   "inventory_n": 70,
+   "inventory_files": {
+    "test_extract_selftest.py": 24,
+    "test_selftest_sizing_recipe.py": 22,
+    "test_m10_entry_proto.py": 7,
+    "test_probe_parasitic_pm_all_circuits.py": 5,
+    "test_selftest_design_report.py": 3,
+    "test_b34_grammar_explicit.py": 2,
+    "test_ts6_probe_relocate.py": 2,
+    "test_selftest_stick_diagram.py": 2,
+    "test_reg_check_df23.py": 1,
+    "test_probe_prevention_wiring.py": 1,
+    "test_probe_role_L_derivation.py": 1
+   },
+   "inventory_first": [
+    "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c5_import_without_grammar_succeeds",
+    "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process",
+    "skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_script_ascii_stdout_prints_utf8",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_base_blob_reader_reads_the_base_tree",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines"
+   ]
+  },
+  "workspaces/run_harness.py::run": {
+   "targeted": 4,
+   "not_targeted": 14,
+   "ops": {
+    "stmt_delete": 3,
+    "early_return": 1
+   },
+   "new_def": false,
+   "inventory_n": 70,
+   "inventory_files": {
+    "test_extract_selftest.py": 24,
+    "test_selftest_sizing_recipe.py": 22,
+    "test_m10_entry_proto.py": 7,
+    "test_probe_parasitic_pm_all_circuits.py": 5,
+    "test_selftest_design_report.py": 3,
+    "test_b34_grammar_explicit.py": 2,
+    "test_ts6_probe_relocate.py": 2,
+    "test_selftest_stick_diagram.py": 2,
+    "test_reg_check_df23.py": 1,
+    "test_probe_prevention_wiring.py": 1,
+    "test_probe_role_L_derivation.py": 1
+   },
+   "inventory_first": [
+    "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c5_import_without_grammar_succeeds",
+    "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process",
+    "skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_script_ascii_stdout_prints_utf8",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_base_blob_reader_reads_the_base_tree",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines"
+   ]
+  }
+ }
+}

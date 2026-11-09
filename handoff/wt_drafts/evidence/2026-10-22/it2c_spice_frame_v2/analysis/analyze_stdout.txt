@@ -1,0 +1,51 @@
+===== two_stage_ota x0=1.1533 Vout0=0.9000 Vinv0=1.1556 chk [0.0, 0.0] [0.0, 0.0]
+ cfg B x [0.0003439600000714, 1.79984396] n 3600 x@i0 1.15334396
+  SPICE tol_seal {'lo': 0.51115, 'hi': 1.7039, 'dlo': -0.64219, 'dhi': 0.55056, 'lo_hit_sweep_end': False, 'hi_hit_sweep_end': False, 'bind_lo': 'M5', 'bind_hi': 'M2'}
+  SPICE tol_pt {'lo': 0.5113, 'hi': 1.70381, 'dlo': -0.64205, 'dhi': 0.55047, 'lo_hit_sweep_end': False, 'hi_hit_sweep_end': False, 'bind_lo': 'M5', 'bind_hi': 'M2'}
+  ENG theta dlo -0.5839 dhi +0.5529  err_lo +58.3 mV err_hi +2.4 mV  bind M5/M2
+  ENG kcl   dlo -0.6150 dhi +0.5431  err_lo +27.2 mV err_hi -7.5 mV  bind M5/M2
+  SPICE tangent [-0.6155, 0.5401, 'M5', 'M2'] frozen-vdsat [-0.6154, 0.5428, 'M5', 'M2']
+  hybrid(spice slack, theta rate) [-0.584, 0.553, 'M5', 'M2']
+  hybrid(spice slack, kcl rate) [-0.6151, 0.5431, 'M5', 'M2']
+ cfg A x [0.0003439600000714, 1.79984396] n 3600 x@i0 1.15334396
+  SPICE tol_seal {'lo': 0.51551, 'hi': 1.66332, 'dlo': -0.63783, 'dhi': 0.50998, 'lo_hit_sweep_end': False, 'hi_hit_sweep_end': False, 'bind_lo': 'M5', 'bind_hi': 'M2'}
+  SPICE tol_pt {'lo': 0.51565, 'hi': 1.66324, 'dlo': -0.63769, 'dhi': 0.50989, 'lo_hit_sweep_end': False, 'hi_hit_sweep_end': False, 'bind_lo': 'M5', 'bind_hi': 'M2'}
+  ENG theta dlo -0.5822 dhi +0.5242  err_lo +55.7 mV err_hi +14.2 mV  bind M5/M2
+  ENG kcl   dlo -0.6107 dhi +0.5014  err_lo +27.1 mV err_hi -8.6 mV  bind M5/M2
+  SPICE tangent [-0.6124, 0.5035, 'M5', 'M2'] frozen-vdsat [-0.6123, 0.5061, 'M5', 'M2']
+  hybrid(spice slack, theta rate) [-0.58, 0.5111, 'M5', 'M2']
+  hybrid(spice slack, kcl rate) [-0.6109, 0.5021, 'M5', 'M2']
+===== ngcc_3stage_ff x0=0.5376 Vout0=0.9000 Vinv0=0.5454 chk [0.0, 0.0] [0.0, 0.0]
+ cfg B x [7.090900000373e-05, 1.799570909] n 3600 x@i0 0.537570909
+  SPICE tol_seal {'lo': 7e-05, 'hi': 1.18163, 'dlo': -0.5375, 'dhi': 0.64406, 'lo_hit_sweep_end': True, 'hi_hit_sweep_end': False, 'bind_lo': None, 'bind_hi': 'M0'}
+  SPICE tol_pt {'lo': 7e-05, 'hi': 1.19082, 'dlo': -0.5375, 'dhi': 0.65325, 'lo_hit_sweep_end': True, 'hi_hit_sweep_end': False, 'bind_lo': None, 'bind_hi': 'M0'}
+  ENG theta dlo -0.7915 dhi +0.5376  err_lo -254.0 mV err_hi -106.5 mV  bind M2/M0
+  ENG kcl   dlo -0.8436 dhi +0.6070  err_lo -306.1 mV err_hi -37.1 mV  bind M13/M0
+  SPICE tangent [-0.8108, 0.6078, 'M2', 'M0'] frozen-vdsat [-0.8438, 0.6077, 'M13', 'M0']
+  hybrid(spice slack, theta rate) [-0.7927, 0.5375, 'M2', 'M0']
+  hybrid(spice slack, kcl rate) [-0.844, 0.6068, 'M13', 'M0']
+ cfg A x [7.090900000373e-05, 1.799570909] n 3600 x@i0 0.537570909
+  SPICE tol_seal {'lo': 0.09318, 'hi': 1.17255, 'dlo': -0.44439, 'dhi': 0.63498, 'lo_hit_sweep_end': False, 'hi_hit_sweep_end': False, 'bind_lo': 'M13', 'bind_hi': 'M0'}
+  SPICE tol_pt {'lo': 0.09309, 'hi': 1.1814, 'dlo': -0.44448, 'dhi': 0.64383, 'lo_hit_sweep_end': False, 'hi_hit_sweep_end': False, 'bind_lo': 'M13', 'bind_hi': 'M0'}
+  ENG theta dlo -0.4877 dhi +0.5376  err_lo -43.3 mV err_hi -97.4 mV  bind M13/M0
+  ENG kcl   dlo -0.4941 dhi +0.6051  err_lo -49.7 mV err_hi -29.9 mV  bind M13/M0
+  SPICE tangent [-0.4586, 0.6057, 'M13', 'M0'] frozen-vdsat [-0.4819, 0.6056, 'M13', 'M0']
+  hybrid(spice slack, theta rate) [-0.4864, 0.5359, 'M13', 'M0']
+  hybrid(spice slack, kcl rate) [-0.4826, 0.6051, 'M13', 'M0']
+===== folded_cascode x0=1.0461 Vout0=1.1317 Vinv0=1.0480 chk [0.0, 0.0] [0.0, 0.0]
+ cfg B x [0.0001079900000598, 1.79960799] n 3600 x@i0 1.04610799
+  SPICE tol_seal {'lo': 0.60955, 'hi': 1.49842, 'dlo': -0.43656, 'dhi': 0.45231, 'lo_hit_sweep_end': False, 'hi_hit_sweep_end': False, 'bind_lo': 'M8', 'bind_hi': 'M6'}
+  SPICE tol_pt {'lo': 0.60969, 'hi': 1.50461, 'dlo': -0.43642, 'dhi': 0.4585, 'lo_hit_sweep_end': False, 'hi_hit_sweep_end': False, 'bind_lo': 'M8', 'bind_hi': 'M6'}
+  ENG theta dlo -0.4265 dhi +0.4465  err_lo +10.1 mV err_hi -5.8 mV  bind M8/M6
+  ENG kcl   dlo -0.4280 dhi +0.4527  err_lo +8.5 mV err_hi +0.4 mV  bind M8/M6
+  SPICE tangent [-0.418, 0.4539, 'M8', 'M6'] frozen-vdsat [-0.4282, 0.4537, 'M8', 'M6']
+  hybrid(spice slack, theta rate) [-0.4266, 0.4468, 'M8', 'M6']
+  hybrid(spice slack, kcl rate) [-0.4282, 0.453, 'M8', 'M6']
+ cfg A x [0.0001079900000598, 1.79960799] n 3600 x@i0 1.04610799
+  SPICE tol_seal {'lo': 0.6948, 'hi': 1.57934, 'dlo': -0.3513, 'dhi': 0.53323, 'lo_hit_sweep_end': False, 'hi_hit_sweep_end': False, 'bind_lo': 'M8', 'bind_hi': 'M6'}
+  SPICE tol_pt {'lo': 0.69494, 'hi': 1.5855, 'dlo': -0.35117, 'dhi': 0.53939, 'lo_hit_sweep_end': False, 'hi_hit_sweep_end': False, 'bind_lo': 'M8', 'bind_hi': 'M6'}
+  ENG theta dlo -0.3409 dhi +0.5321  err_lo +10.4 mV err_hi -1.1 mV  bind M8/M6
+  ENG kcl   dlo -0.3461 dhi +0.5350  err_lo +5.2 mV err_hi +1.8 mV  bind M8/M6
+  SPICE tangent [-0.3383, 0.5377, 'M8', 'M6'] frozen-vdsat [-0.3477, 0.5374, 'M8', 'M6']
+  hybrid(spice slack, theta rate) [-0.3436, 0.5279, 'M8', 'M6']
+  hybrid(spice slack, kcl rate) [-0.3448, 0.5352, 'M8', 'M6']

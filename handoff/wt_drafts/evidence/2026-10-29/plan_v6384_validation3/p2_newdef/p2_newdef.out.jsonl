@@ -1,0 +1,9 @@
+{"case": "TS", "R_hi": ["1/gm6"], "R_newdef": "1/gm6", "match": [true], "note": ""}
+{"case": "TS+Cx", "R_hi": ["Cc/(gm6*(Cc + Cx))"], "R_newdef": "Cc/(gm6*(Cc + Cx))", "match": [true], "note": ""}
+{"case": "TS-rev(A-C-X-R-B,+Cx)", "R_hi": ["Cc/(gm6*(Cc + Cx))"], "R_newdef": "Cc/(gm6*(Cc + Cx))", "match": [true], "note": "n=X"}
+{"case": "NM", "R_hi": ["(CG + Cm2)/(Cm2*gm3)"], "R_newdef": "(CG + Cm2)/(Cm2*gm3)", "match": [true], "note": "old_def_match=[True]"}
+{"case": "NM+Cx(CM)", "R_hi": ["(CG + Cm2)/(Cm2*gm3)"], "R_newdef": "(CG + Cm2)/(Cm2*gm3)", "match": [true], "note": "old_def_match=[True]"}
+{"case": "NM+Cx12", "R_hi": ["(CG*Cm1 + Cm1*Cm2 + Cm1*Cx12 + Cm2*Cx12)/(gm3*(Cm1*Cm2 + Cm1*Cx12 + Cm2*Cx12))"], "R_newdef": "(CG*Cm1 + Cm1*Cm2 + Cm1*Cx12 + Cm2*Cx12)/(gm3*(Cm1*Cm2 + Cm1*Cx12 + Cm2*Cx12))", "match": [true], "note": "old_def_match=[False]"}
+{"case": "NM+Cx+Cx12", "R_hi": ["(CG*Cm1 + Cm1*Cm2 + Cm1*Cx12 + Cm2*Cx12)/(gm3*(Cm1*Cm2 + Cm1*Cx12 + Cm2*Cx12 + Cx*Cx12))"], "R_newdef": "(CG*Cm1 + Cm1*Cm2 + Cm1*Cx12 + Cm2*Cx12)/(gm3*(Cm1*Cm2 + Cm1*Cx12 + Cm2*Cx12 + Cx*Cx12))", "match": [true], "note": "old_def_match=[False]"}
+{"case": "CR", "R_hi": ["(Cf + Cg)/(Cf*gm15 + Cf*gm16 + Cg*gm16)"], "R_newdef": "(Cf + Cg)/(Cf*gm15 + gm16*(Cf + Cg))", "match": [true], "note": ""}
+{"case": "CR+Cx", "R_hi": ["Cc*(Cf + Cg)/(Cc*Cf*gm15 + Cc*Cf*gm16 + Cc*Cg*gm16 + Cf*Cx*gm15 + Cf*Cx*gm16 + Cg*Cx*gm16)"], "R_newdef": "Cc*(Cf + Cg)/((Cc + Cx)*(Cf*gm15 + gm16*(Cf + Cg)))", "match": [true], "note": ""}

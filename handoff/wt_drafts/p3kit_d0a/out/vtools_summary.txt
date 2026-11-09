@@ -1,0 +1,5 @@
+weakening_diff exit 0 1s
+source_lint exit 0 27s
+reachability exit 0 81s
+test_lint exit 0 11s
+mutate_changed exit 0 67s

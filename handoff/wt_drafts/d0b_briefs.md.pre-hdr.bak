@@ -1,0 +1,207 @@
+# Phase 3 D0b card `20260930-p3-registry-dest` -- 착수 키트(착수 조건 + test-author·code-author·auditor 브리프 + 오케스트레이터 절차)
+
+작성 2026-10-01, v8.4 개정 2026-10-02(개정 전 사본 `d0b_briefs.pre-v84.md`·`draft_p3_d0b.spec.pre-v84.md`), **v8.5 정렬 2026-10-02**(design 30 v8.5 **승인** -- UD-0 "승인"·D-19 "(가) MOD2"·UD-5 "(가)"·UD-1 "(가)", `_drafts/user_decisions.md` 끝 절;
+문서 개정 §9 (h) MOD9 `_kv_table`로 옛 D0b-8 닫힘, D0b-6·D0b-7 닫힘, 거부 입력 R-A6·R-E1 교체 -- 개정 전 사본 `d0b_briefs.pre-v85.md`·`draft_p3_d0b.spec.pre-v85.md`),
+**r2 2026-10-02**(2차 검토 `review2_d0b.md` 반영 -- S-1 거부 입력 R-B1 교체(A-1 토큰 비표본 단위 `size_transistor` 칸 → T-A `reg_mismatch`·T-B 칸 FAIL, 실측), m1 계약 8 (e)·0.4 MOD7 갈래 문언, m2 R-B2 행, m3 T-C도 `plan` 출력 사용,
+m4 '측정' 열 14행 전부 `plan` + 다섯 test 모사로 채움; 재측정 격리 복제본 `C:/g205`(삭제 대기 -- 안전 검사로 자동 삭제가 막혔다) -- 개정 전 사본 `d0b_briefs.pre-r2.md`·`draft_p3_d0b.spec.pre-r2.md`).
+기준: gate `master` **`dd60db6`**. 저장소 쓰기·상태 변경 git 없음. v8.5 재측정은 격리 복제본 `C:/g189/r`(`git clone --no-local`, origin·gate 제거, 빈 hooksPath, TMP/TEMP도 그 아래, 작업 끝에 `C:/g189` 삭제)에서만.
+B34·b26pre·backfill·B26-1·B33·G1·FU·D0a는 **모두 미병합**이라 FU는 대역 커밋(두 파일 머리 한 줄), G1은 시제품(`_drafts/g1_kit/install_proto.py` `5790433c…` + `g1_core.py` `b3c4e391…`), D0a는 시제품(`_drafts/p3kit_d0a/move_plan_proto.py`
+`d2f3da97…`, `plan`만)에 **D0a 계약 2 문언대로 D-31 규칙을 다시 얹은 스크래치 변형**(spec '작성 전 실측' 머리에 변형 내용)을 썼다. N3.10은 UD-0 문서 개정 v8.5(`p3_doc_amendments.md` §1 (a)(가)~(d)·§9 (e)~(h), 8블록)를 복제본에 적용했다.
+그래서 아래 수치는 전부 **관찰**이다 -- D0b 이관표는 D0b 자신의 base에서 처음 계산한다(design 30 §6.4).
+대상: spec 초안 `_drafts/draft_p3_d0b.spec.md`, 앞 판 키트 `_drafts/p3kit_d0b/`(측정 전용 -- 아래 5절의 경로 가드 주의).
+
+---
+
+## 0. 착수 조건(전부 충족해야 test worktree를 만든다)
+
+| # | 조건 | 지금 | 근거 |
+|---|---|---|---|
+| S-1 | **Phase 3 design 승인**: UD-0(design 30 v8.5 + 문서 개정 §1·§9 -- 3건 + D-19 + A-1 충돌 보정 8건(토큰 11개) + 책임 보정 1건 (h) `_kv_table` -- + D-31 규칙·D-29 FU·D-10 처리 칸 9개 원문) 승인 기록 `20260930-30-module-split-design`과 **D-19 답** | **충족**(2026-10-02 답: UD-0 "승인"·D-19 "(가) MOD2" -- `user_decisions.md` 끝 절). **승인 기록 커밋 대기**: `_drafts/approval_20260930-30-module-split-design.md` 초안 → gate push 뒤 spec card `approval` 줄이 가리키는 기록이 저장소에 생긴다(그 전에는 spec card 커밋 금지) | design §9.2. D-19 (가)로 spec (d)-1 표 `rail_declaration` = `topology_authoring` A-1 고정(옛 D0b-6 닫힘) |
+| S-1b | **(UD-6) [D-11] (가) 승인 + 계획 N3.10 MOD1 토큰 `_QUERY_CACHE_MAX`** -- 승인 기록 `20261002-p3-d11-query-cache-max`(`target_kind: diff`, spec card 머리 `approval` 둘째 줄) | 사용자 답 "(가) 계획 표 MOD1에 추가 (Recommended)"(2026-10-02 13:38 KST). 문서 커밋·승인 기록은 미커밋(초안 `_drafts/approval_20261002-p3-d11-query-cache-max.md`, 절차 `_drafts/p3_ud6_runbook.md`) -- 순서 0 전 필수. `d0b_launch.sh` S-1이 함께 본다(`D11ID`·`D11TOK`) | spec 계약 8 (a)·'결정 필요 항목' UD-6. 조건: D0b base `plan`에서 계약 8 (a)~(e)가 모두 비어야(다른 개정 필요 0) -- 아니면 멈추고 재질문 |
+| S-2 | **D0a 병합**(그 앞의 B34 → b26pre → backfill → B26-1 → B33 → G1 포함, 확정 순서) **+ FU 병합**(B33 뒤 D0b 전 아무 때나) | 미병합 | design §8 D0b 행·§8.1 'B34·b26pre·backfill·B26-1·B33·D0a → D0b', 'FU(v8.4) → D0b'. FU가 없으면 `import_conflicts`가 MOD2·MOD9 두 곳에서 비어 D0b가 멈춘다(v8.5 -- (h)로 MOD4는 빠졌다, spec 실측 3) |
+| S-3 | Phase 2 DoD PASS | **충족** -- 판정 기록 `2eefda1`(H = `5f643a9`, PASS) | D-23 |
+| S-4 | D0a가 v8.4 규칙(모듈 docstring 제외·A-K·승격(MOD7 상한)·A-6·A-7·단조 고정점)과 `mod_imports`·`import_conflicts`를 계약 2대로 갖고 병합됐다 | D0a 초안 v8.4 계약 2에 반영됨 -- 병합 전 | design §6.2·D-31·D-30. 옛 D0b-1·D0b-2는 design v8.4가 닫았다 |
+| S-5 | D0b base에서 `plan`의 판정 목록 중 `reg_mismatch` 밖 여섯(`conflicts`·`upward`·`cycles`·`unassigned`·`import_time_high`·`import_conflicts`)과 MOD7 밖 배정이 **모두 빈 목록** | 미확인(시제품 관찰은 모두 0 -- spec 실측 3) | spec 계약 8. 비면 S-6으로, 아니면 '멈춤 절차'(0.4) |
+| S-6 | `role/*` 브랜치 0개, D-27 동결 대상 card(B26-2~B26-4·B35·B36·B37a 등 엔진·`tools/gates`·`tools/migrate`·레지스트리 목적지 열을 바꾸는 Phase 3 밖 card)가 대기열에서 **F2 뒤로** 옮겨졌다 | -- | **동결은 D0b 병합에서 시작한다**(design D-27) -- 병합 전에 대기열을 정리해야 병합 직후 위반이 없다 |
+| S-7 | spec (d)-1 표의 근거를 D0b base에서 다시 확인(B26-1·B34·해소 문서 커밋이 표본 단위를 옮기거나 레지스트리 칸·호출 관계를 바꿨으면 표를 고친 spec card 커밋이 먼저) | -- | spec oracle (d)-1 -- 기대값이 test 커밋 뒤에 바뀌지 않게. `d0b_launch.sh` S-7은 표본 `mod` 줄기와 함께 `_QUERY_CACHE_MAX`의 배정 규칙 = `A-1`도 본다(승인 `20261002-p3-d11-query-cache-max` '재검토', review_ud6 m4) |
+
+**착수 0단계(읽기 전용, S-2 뒤)**:
+```
+R=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills; B=$(git -C $R rev-parse gate/master)
+git -C $R log --oneline -14 $B                                   # D0a·FU·G1·B33·B26-1·backfill·b26pre·B34 판정 기록이 모두 있는지
+git -C $R diff --stat dd60db6 $B -- docs/01-plan/features/gain-budget-gmid-sizing.plan.md docs/03-analysis/gain-budget-gmid-sizing.function-registry.md tools/gates tools/migrate skills/analog-gmid-design/assets/*.py
+git -C $R grep -n -c "보류(Phase 3)" $B -- docs/03-analysis/gain-budget-gmid-sizing.function-registry.md
+git -C $R grep -n "^from __future__ import annotations" $B -- skills/analog-gmid-design/assets/design_report.py skills/analog-gmid-design/assets/audit_current_forced.py   # FU 두 줄
+```
+그다음 격리 복제본(새 `C:/g<n>`, 그 폴더만 쓰고 끝나면 삭제)에서 §6.3 `MP_ARGS`로 `"$ISO/tools/migrate/move_plan.py" plan --root "$ISO" --rev "$B"`를 돌려 S-5를 판정하고, spec '작성 전 실측' 2~6을
+그 판에서 다시 잰다(실제 도구라 시제품 변형이 필요 없다). 키트 스크립트(`p3kit_d0b/*.sh`)는 `C:/g162/*` 경로 가드와 `C:/g162/tmp/move_plan_proto.py` 기본값이 박혀 있어(D0b 검토 m4) 그대로 쓸 수 없다 --
+스크래치로 복사해 가드·기본값을 새 `C:/g<n>`과 실제 도구 경로로 고쳐 쓴다(`analyze_plan.py`·`regen_registry.py`는 경로를 인자로 받아 그대로 쓴다). 수치가 바뀌면 spec card '작성 전 실측'의 사실 문장만 고친다.
+
+---
+
+## 0.1 지금 실측 요약(오케스트레이터용 -- 근거는 spec '작성 전 실측')
+
+**UD-6(2026-10-02) -- 아래 표의 앞 판 수치는 시제품 문장 키다. 계약 키(바인딩 이름, 레지스트리 이름 칸 첫 토큰) + [D-11] 토큰 판 재측정(gate `4a286f0`, spec '작성 전 실측' UD-6 문단, 키트 `_drafts/p3ud6_kit/`)**:
+토큰 없음 `upward` 1·`cycles` 1(`_QUERY_CACHE_MAX`) → 토큰 적용 `upward`·`cycles`·`unassigned`·`conflicts`·`import_time_high`·`import_conflicts` 0·MOD7 밖 0·`reg_mismatch` **80**·배정 403(A-4 235·A-5 57·A-1 61·A-2 38·A-6 7·A-K 2·A-7 2·A-3 1)·MOD별 `gmid_lut` 8·`gmid_sizing_engine` 104·`stick_diagram` 111·`sizing_layout_convergence` 30·`instance_report_builder` 16 -- **다른 N3.10 개정 필요 0**.
+레지스트리 분류 대상 **354**·중첩 7·비대상 **18**·base 칸 = 줄기 129. 재생성 모의 exit 0·일곱 목록 0·사상 차이 0·규칙 A-4 245·A-5 53·A-1 61·A-2 39·A-6 3·A-K 2·diff 409+/409−. (d)-1 표본 **26**(행 있는 **24** -- `_QUERY_CACHE_MAX` 더함) `mod` 모두 기대, base 칸 = 기대 1/24.
+거부 입력 14개 겨눔 모두 재현(R-A2 대상 행 353만 다름).
+
+| 측정 | 결과 |
+|---|---|
+| `plan`(`dd60db6` + FU 대역 + UD-0 **v8.5** 개정((h) 포함) + G1 시제품 + D-31 변형) | exit 1 · `upward` **0** · `cycles` **0** · `unassigned` **0** · `conflicts` 0 · `import_time_high` [] · `import_conflicts` **0** · MOD7 밖 배정 0 · `reg_mismatch` **79** · 배정 **403**(A-4 229·A-5 64·A-1 60·A-2 38·A-6 7·A-K 2·A-7 2·A-3 1) · `_kv_table` = `instance_report_builder` A-1 -- design 부록 A F5v85와 같다 |
+| 같은 트리에서 (h)만 뺌(v8.4 개정) | `_kv_table` = `gmid_sizing_engine` A-4 하나만 다름(다른 단위 배정 차이 0) · `reg_mismatch` 78 -- v8.4 판 수치 재현 |
+| 같은 트리에서 FU 대역만 뺌 | `import_conflicts` **2**(`topology_authoring`·`instance_report_builder` -- `__future__` 갈림), 나머지 같음 |
+| 레지스트리 행 분류 | 함수 표 15 · 대상 347 · 중첩 7 · 비대상 25(시제품 문장 키 때문에 상수 7행 포함) · 같은 키 갈림 0 · base 칸 = 줄기 128 |
+| 재생성 모의(열 + `근거 규칙` + `보류(Phase 3)` → `(Phase 4)` 9) | `plan` exit 0 · 일곱 목록 빈 목록 · MOD7 밖 0 · `reg_mismatch` 79 → 0 · 사상 차이 0(멱등) · `rule` 분포 A-7 2 → 0·A-6 7 → 3·A-4 229 → 239 · `reg_check` 발견 0 · 소비자 test 3파일 210 passed · diff 409+/409− |
+| (d)-1 표본 25개(B26-1 뒤 둘 제외 -- 앞 판 '24개'는 셈 오류) | base·재생성 `plan` `mod` 모두 기대와 같음, 행 있는 23개 재생성 칸 = 기대, base 칸 = 기대 1/23 |
+| 거부 입력 | **r2**: 14개 전부 `regen85` 사본에 커밋해 `plan` + 다섯 test 모사 -- 모두 겨눈 test의 고유 단언에서 FAIL(spec '거부해야 할 입력' 표 '측정' 열). 새 R-B1(`size_transistor` 칸 `gmid_sizing_engine` → `circuit_metrics`) = exit 1·`reg_mismatch` 1 → T-A `reg_mismatch`·T-B 칸 FAIL, T-E PASS(비표본); 옛 R-B1(`quantize_L` 칸 → `gmid_lut`)은 도구가 칸을 따라가 T-A·T-B 통과·T-E만 FAIL이라 버렸다(2차 검토 S-1 재현). R-B2·R-B3는 T-B와 T-E(표본)가 함께 잡는다. v8.5 판 문장: R-A1~R-A6·R-B2·R-E1 모두 `plan`에서 의도한 결과(R-B2·R-E1은 exit 0). **v8.5 교체**: R-A6 = MOD7 행에 `_as_set` 토큰(MOD7 밖 1), R-E1 = `_theta_evidence_for_pair` 칸 → `theta_search`(exit 0·`reg_mismatch` 0·사상 차이는 그 단위 하나). 옛 R-A6(`_kv_table` MOD7 토큰)은 `conflicts` 1, 옛 R-E1(`_kv_table` 칸)은 `reg_mismatch` 1이 되어 겨눔이 맞지 않는다 |
+| V 도구 모양(앞 판 `5f643a9` 사슬) | V3 `targets []`·V5 `diff_paths []`·V6 `targets []`·V7 `new_defs []` PASS, V4 card만 ERROR → `--module-dir tools/migrate --subject move_plan:main` PASS(NO-SUBJECT) |
+| `parse_spec_card`·`interface_card.py`(gate `dd60db6`, `git archive`) | exit 0·절 11개 / 생성본 '기존 함수 0개'·신규 0행 |
+| `plan` 1회 | 19~33초(test 모듈 캐시로 V1당 1회) |
+
+## 0.2 결정(spec '결정 필요 항목' 요약)
+
+* **닫힘(design v8.4)**: 옛 D0b-1(A-1 충돌 보정 8건 + 승격·MOD7 상한), D0b-2(docstring 제외·A-K·A-6·A-7·단조), D0b-3(비대상 행 불변·`-`), D0b-4((d)-1 실제 단위 표본, 합성은 D0a), D0b-5(`근거 규칙` = 재생성 시점·형식 = D0a 규칙 ID 집합).
+* **닫힘(design v8.5 승인, 2026-10-02)**: 옛 D0b-6(D-19 (가) → (d)-1 `rail_declaration` = `topology_authoring` A-1, spec 표에 고정됨), 옛 D0b-7(승인된 design §8 M7 행 'M2·M3·M9에 흡수(빈 card 금지)' -- MOD7 밖 배정이 생기면 spec 계약 8 (e) = N3.10 개정(D-11, 별도 승인)뿐),
+  옛 D0b-8(문서 개정 §9 (h) MOD9 `_kv_table` 토큰 -- (d)-1 `_kv_table` = `instance_report_builder` A-1).
+* **닫힘(UD-6, 2026-10-02)**: `_QUERY_CACHE_MAX`(M1-2) -- [D-11] (가) N3.10 MOD1 토큰, 승인 기록 `20261002-p3-d11-query-cache-max`, (d)-1 `_QUERY_CACHE_MAX` = `gmid_lut` A-1. 레지스트리 이름 칸 첫 토큰 읽기(D0a 계약 2 명확화).
+* **남은 결정 없음**. D0b base에서 UD-0·[D-11] 밖 N3.10 개정이 필요해지면 0.4 멈춤 절차(D-11 별도 승인 -- [D-11] 답의 조건대로 재질문) -- 결정 항목이 아니라 절차.
+
+## 0.3 앞선 card가 같은 입력을 바꾸는 것 -- 착수 때 다시 잴 것
+
+| card | D0b 관련 | 착수 때 |
+|---|---|---|
+| B34(`20260930-b34-grammar-explicit`) | `_import_analog_grammar`·`find_idiom_matches`·`find_stack_edges`·`audit_theta_root_direction` 본문 -- 참조가 바뀌면 배정·승격이 바뀐다 | `plan` 재실행, (d)-1 근거 재확인 |
+| b26pre(test-only) | 엔진 무변경 | -- |
+| backfill(`20261001-b26-backfill-interdig-final-audit`) | `sizing_recipe.py` 한 def 본문 | `plan` 재실행 |
+| B26-1(`20260930-b26-rail-accessor-set`) | **새 단위 `rail_declaration`·`RailDeclaration`**(레지스트리 함수 행 없음 -- (d)-1은 `plan` `mod`만), SD 18·SR 2 사이트에 `rails: RailDeclaration` 주석, `load_topology` 본문 | (d)-1 표 두 행, `import_time_high`, A-2 `RailDeclaration` → MOD2 |
+| B33·G1(게이트) | `reachability.SourceIndex` 단위 키(문장 키가 바인딩 이름인지 -- 시제품은 `<stmt:해시>`), `moved_defs`, `SourceIndex.tree` | 레지스트리 상수 행 7개가 대상 행으로 바뀌는지(분류 수치) |
+| FU(`p3-future-annotations`, v8.4) | DR·ACF 머리 `from __future__ import annotations` | `import_conflicts` = [] 확인 |
+| D0a | 도구 본체(v8.4 규칙·`mod_imports`·`import_conflicts`) | spec 계약 2·3·6의 CLI·출력 키 이름·규칙 ID 집합 대조 |
+| UD-0 design 커밋(문서 개정 §1·§9 (e)~(h), v8.5) | N3.10 '대표 대상' 토큰 = `plan` A-1 입력((h) `_kv_table` MOD9 포함) | (d)-1 표 A-1 행 근거 재확인, 계획서 529행이 (h) 새 문안인지 |
+
+## 0.4 멈춤 절차(spec 계약 8 -- S-5가 비지 않을 때)
+
+1. D0b base `plan` 출력에서 비지 않은 목록을 그대로 판정 근거로 남긴다(격리 복제본 출력, `_drafts/`에 사본).
+2. 해소안을 원칙으로 만든다(design §8 D0b 행 '멈춤 경로'): `conflicts`·A-1이 원천인 `upward`/`cycles` → N3.10 토큰 이동(D-11), 규칙 공백(`unassigned`, A-1 밖 원천 `upward`) → design §6.2 규칙 개정(D0a 후속 card),
+   `import_time_high` → 배정 변경(N3.10), **`import_conflicts` → `__future__`면 FU 병합 확인, 이름 출처 갈림이면 배정 변경(N3.10 밖이면 D-11)**, MOD7 밖 → N3.10 개정(D-11). design §8 D0b 행 문언은 "N3.10 또는 M7 card"이지만 같은 design M7 행이 'M2·M3·M9에 흡수(빈 card 금지)'라
+   M7 card 갈래는 M7 행을 고치는 design 개정(D-11 별도 승인)이 먼저 있어야 열린다 -- spec 계약 8 (e)의 좁은 읽기(2차 검토 m1).
+3. 사용자 승인(`target_kind: diff`, UD-0 밖 -- 위임 없음, D-11). 질문 문안에 '현재 배정 → 새 배정'과 이유(어느 참조가 위로 가는지, 줄 번호)를 넣는다.
+4. 오케스트레이터 문서 커밋(계획서 `docs/01-plan/**`) + 승인 기록 → push → gate `master`에서 S-5 다시. spec card `approval` 줄에 그 승인 id를 더하고 (d)-1 표를 다시 확인(S-7).
+5. 도구 자체를 고쳐야 하면(규칙 개정) D0a 후속 card(red-green)를 먼저 병합한다 -- M card 판정 사본 출처가 그 card `code_commit`으로 바뀐다(D-16). 규칙 ID 집합이 바뀌면 그 card가 이 test의 집합 상수도 고친다.
+
+---
+
+## 1. gmid-test-author 브리프(순서 2)
+
+```
+역할: gmid-test-author. change id = 20260930-p3-registry-dest (red-green, phase 3, gate_change: no).
+worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-registry-dest-test (브랜치 role/test/20260930-p3-registry-dest). 절대 경로만.
+쓰기 경로: skills/analog-gmid-design/assets/tests/contracts/test_p3_registry_dest.py 하나.
+입력: interface card(기존 함수 0행·신규 심볼 0행 -- 생성본 확인) + spec card '관찰 가능한 계약' 1~12·'oracle 종류와 출처'((d)-1 표 포함)·'거부해야 할 입력'(test별 표)·'무동작 판정 입력'.
+열람 금지: 엔진 소스, tools/migrate/move_plan.py 소스, tools/gates 소스(import해 쓰는 것은 허용 -- mod_table), _drafts/.
+커밋: git -C <worktree> commit --trailer "Role: test" --trailer "Change-Id: 20260930-p3-registry-dest" -m "test: …"
+```
+
+**모양 요구**
+1. **test 함수 다섯, red는 각자의 계약 단언에서**(spec 계약 11 (a) 표): T-A `plan` 판정(도구 출력 단언 → `reg_mismatch` 밖 여섯 목록 `== []` → MOD7 → **`reg_mismatch == []`** → exit 0·`PASS`),
+   T-B 대상 행 칸 = `mod` 줄기(표 수·행 수·같은 키 갈림 단언을 앞에), T-C `근거 규칙` 머리 → 도구 출력 단언(대상 행을 정하려면 `plan` 출력이 필요하다 -- spec 계약 11 (b), T-D만 출력을 쓰지 않는다) → 칸 ∈ 규칙 ID 집합, T-D `보류(Phase 3)` 0, T-E (d)-1 표본(어긋난 표본을 모아 빈 목록 단언 하나 -- 표본마다 test를 나누지 않는다:
+   행 없는 표본의 `plan` `mod` 단언은 base에서 참이다). **모든 test에 같은 머리 단언을 앞세우지 않는다**. base에서 참인 단언을 혼자 test로 두지 않는다.
+2. 도구 호출: `[sys.executable, <root>/tools/migrate/move_plan.py, "plan", "--root", <root>, "--rev", "HEAD", *MP_ARGS]` 인자 목록(셸 없음). `MP_ARGS`는 design §6.3 그대로(`--aliases`는
+   JSON 문자열 하나). 출력 첫 줄 JSON·`"tool": "move_plan"` 단언 뒤 판정. 모듈 범위 캐시(상한 1) -- test 파일당 1회(19~33초).
+3. **레지스트리·계획서는 `git -C <root> show HEAD:<경로>`로 읽는다**(계약 11 (e) -- 도구와 같은 커밋). `<root>` = test 파일 위치에서 계산(`parents[5]`가 저장소 루트 -- contracts/tests/assets/analog-gmid-design/skills 위).
+   MOD 파일 이름 = 계획서 N3.10을 `import_layering.mod_table`로 읽어 번호 → `<줄기>.py`(`tools/gates`를 `sys.path`에 넣어 import -- `test_ic_markers_match_plan.py`가 `merge_gate`를 쓰는 방식).
+4. 규칙 ID 집합은 상수 하나(`_P3RD_RULE_IDS`)로 두고 출처 'D0a 계약 2(design 30 §6.2 D-31)'를 주석으로 적는다(spec 계약 6 (c)).
+5. 레지스트리 표 읽기는 test 안에서(칸 나누기 `\|` 이스케이프 규칙 -- D0a 계약 2와 같게). 중첩 행(`└`)·비대상 행은 판정하지 않는다(계약 6 (d) -- auditor 몫).
+6. (d)-1 표는 spec 표를 그대로 상수로(단위, 기대 줄기, 행 있음 여부). `rail_declaration` = `topology_authoring`(D-19 (가)로 고정), `_kv_table` = `instance_report_builder`(문서 개정 (h)).
+7. 피할 것: 삭제 이름 토큰(T0 card 계약 9 목록), `print`, 회로·넷·소자 이름, `library`·`topology.json` 토큰. if·try 밖 assert ≥ 1.
+
+**자기 실행**: `PT3`로 이 파일만 -- D0b base(열 재생성 전)에서 **다섯 test 모두 FAIL(`AssertionError`)**이고 FAIL 위치가 표의 'base red의 원천' 단언이어야 한다(T-A는 `reg_mismatch` 단언, T-B는 칸 단언 …).
+앞쪽(base에서 참인) 단언에서 FAIL하면 S-5 위반(오케스트레이터에 알림)이거나 test 결함이다.
+**소요 예상**: 작성 40~60분, 자기 실행 40초 안팎(plan 1회 + 표 읽기).
+
+---
+
+## 2. gmid-code-author 브리프(순서 5)
+
+```
+역할: gmid-code-author. change id = 20260930-p3-registry-dest (red-green).
+worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-registry-dest-code (브랜치 role/code/20260930-p3-registry-dest, 부모 = T). 절대 경로만.
+쓰기 경로: docs/03-analysis/gain-budget-gmid-sizing.function-registry.md 하나(계획 N3.12.2 603행). tools/**·엔진·tests/**·계획서는 쓰지 않는다.
+입력: spec card·interface card. test가 틀렸다고 보면 고치지 말고 dispute(<worktree>/docs/02-design/disputes/20260930-p3-registry-dest.md) 커밋 후 멈춘다.
+커밋: git -C <worktree> commit --trailer "Role: code" --trailer "Change-Id: 20260930-p3-registry-dest" -m "…"
+```
+
+**만들 것 / 지킬 것**
+1. **열 = 도구 출력**: worktree에서 `tools/migrate/move_plan.py plan`(§6.3 `MP_ARGS`, `--rev HEAD`)을 돌린 출력으로 대상 행 칸을 쓴다. 손으로 칸을 고르지 않는다 -- test가 대상 행 전부를 정확 일치로 본다.
+   변환 스크립트는 스크래치에서만 쓰고 커밋하지 않는다(새 도구를 `tools/`에 두면 D-16 사본 출처·배선 문제가 생긴다).
+2. 함수 표마다 `이관 목적지` 바로 뒤에 `근거 규칙` 열(머리·구분선·모든 행 칸 수 +1). 대상 행: 목적지 = 배정 `mod` 줄기(`.py` 없이, 다른 글자 없이 -- A-K는 `--keep` 파일 줄기), 근거 = 그 실행의 `rule`.
+   중첩 행(`└`)·비대상 행: 목적지 칸 바이트 그대로, 근거 `-`. 표 밖 문장·다른 열·행 순서는 바꾸지 않는다.
+3. §7 `보류(Phase 3)` 9칸 → `보류(Phase 4)`(D-10). 그 밖의 `처리` 칸 불변.
+4. **재생성은 한 번**: 근거 규칙은 재생성 **전** 레지스트리로 돌린 출력에서 가져온다(재생성 뒤 다시 돌리면 A-7 → A-4 등으로 바뀐다 -- spec 실측 4). 재생성 뒤 한 번 더 돌려 `plan` exit 0·`reg_mismatch` 0·배정 사상 같음을 자기 확인.
+5. `plan`이 exit 1이고 `reg_mismatch` 밖 목록(`import_conflicts` 포함 여섯)이 비지 않으면 **쓰지 말고 멈춘다**(dispute가 아니라 오케스트레이터 보고 -- spec 계약 8, 착수 조건 S-5 위반).
+6. 커밋 전에 작업 트리와 HEAD를 맞춘다(test가 `git show HEAD:`로 읽는다 -- 미커밋 편집은 test에 보이지 않는다).
+7. 줄 끝·인코딩은 원본 그대로(UTF-8, 기존 줄 끝). 레지스트리 머리 문장(기준 커밋 설명)은 고치지 않는다.
+
+**자기 확인(판정 아님)**: `PT3`로 `contracts/test_p3_registry_dest.py`·`test_reg_check.py`·`test_reg_check_df23.py`·`test_df23_inventory.py` PASS, `reg_check.py --registry … --root …` exit 0.
+
+---
+
+## 3. gmid-verification-auditor 브리프(순서 3·7)
+
+```
+역할: gmid-verification-auditor. change id = 20260930-p3-registry-dest, red-green, phase 3.
+audit worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-registry-dest-audit (브랜치 role/audit/20260930-p3-registry-dest).
+격리 복제본에서만, scratch 새 C:/g<n> 하나(끝나면 그 폴더만 삭제), set -euo pipefail, git -C 절대 경로. 실제 저장소 status·reflog 불변 확인.
+게이트 코드 = base 판(gate master) 캐시. 작성자 보고는 증거가 아니다. 판정 기록 .ai/verification/20260930-p3-registry-dest.json + {scripts,out}/, Role: audit 커밋.
+```
+
+### 3.1 순서 3(freeze·base 확인)
+* **커밋하지 않는다**: base_check.json 등 산출물은 audit worktree에 쓰기만 하고 커밋하지 않는다(커밋은 순서 7에서 M 위 한 커밋).
+* T 고정, `git diff --name-only <base> <T>` = `tests/contracts/test_p3_registry_dest.py` 하나.
+* red: base에서 그 파일 `PT3 --gmid-strict=` → **다섯 test 모두 FAIL, 각자 spec 계약 11 (a) 표의 'base red의 원천' 단언에서**(`AssertionError`, 수집 오류 0 -- `GMID_RED_CAPTURE`, `failure_hashes` = base 판 `merge_gate.red_failure_hash`).
+  FAIL 위치가 그 단언이 아니면(예: T-A가 `upward` 단언에서 FAIL) INVALID로 멈추고 오케스트레이터에 알린다(S-5 위반 또는 test 결함).
+* base `plan` 출력 전체를 `out/plan_base.json`으로(재생성 전 이관표 -- 계약 9·10의 비교 기준). 이 출력에서 `conflicts`·`upward`·`cycles`·`unassigned`·`import_time_high`·`import_conflicts`·MOD7 밖이 비지 않으면 **INVALID**로 멈춘다.
+* (d)-1 표본이 spec 표 그대로인지(test 상수와 대조), 규칙 ID 집합 상수가 D0a 계약 2와 같은지.
+
+### 3.2 순서 7(병합본 판정)
+
+* 순서 3 산출물(base_check.json 등)은 이미 audit worktree에 미커밋으로 있다 -- 이 순서 7의 한 커밋(M 위, `Role: audit`)에 판정 기록과 함께 넣는다.
+
+| V | 기대 | 증거 |
+|---|---|---|
+| V1 | PASS. 전체 `PT3 --gmid-strict=`, base 대비 새 test만 늘고 나머지 같음(레지스트리 소비자 test 포함) | base·병합본 전체 실행 대조 |
+| V2 | PASS red-green: red = 새 파일 test 다섯 각자의 단언(3.1), green = 병합본 전부 PASS | 3.1 기록 + 병합본 |
+| V3 | PASS `targets []`(바뀐 소스 def 0 -- 레지스트리·contracts test) | `mutate_changed.py … --gmid-phase=3 --gmid-strict=` |
+| V4 | PASS. interface card 두 표가 비어 `--interface-card`만이면 ERROR('피검 심볼이 없다') -- **interface card 두 표가 빈 card의 DESIGN-GAP 우회**로 `--module-dir tools/migrate --subject move_plan:main`(card가 바꾸지 않는 도구를 subject로 준 선례 `20260922-ts7-ic-xfail` `--module-dir tools/gates --subject merge_gate:…`·`20260923-v4-decision-exempt` `--subject test_lint:main`). findings NO-SUBJECT만. **V4가 실질을 갖는 곳은 basis의 oracle 대조 문장뿐**: (d)-1 표의 각 기대값이 spec '근거' 열 문서(N3.10 개정 판·레지스트리 칸·소스 호출)와 맞는지, 계약 3~7 단언이 spec 문장과 맞는지 | `test_lint.py --root --base --head --module-dir tools/migrate --subject move_plan:main` + basis 문장 |
+| V5 | PASS `diff_paths []`(새 test 파일) | `weakening_diff.py` |
+| V6 | PASS `targets []` | `source_lint.py` |
+| V7 | PASS `new_defs []` | `reachability.py` |
+| V8·V9 | N/A | -- |
+| V10 | PASS. 재현 수치(spec '재현할 수치')와 **계약 확인 측정**(auditor 스크립트, 기대값은 spec 문장): ① 계약 1 범위(`git diff --name-only <base> <merge>` = 레지스트리 + test) ② 계약 6 (c) 대상 행 `근거 규칙` = `out/plan_base.json`의 `rule` ③ 계약 6 (d) 중첩·비대상 행 목적지 칸 base와 바이트 같음, 계약 7 `처리` 칸 변화 = base `보류(Phase 3)` 9칸뿐, 표 밖 줄 변화 0 ④ 계약 9 멱등(base 대 병합본 (키 → `mod`) 사상 차이 0) ⑤ 계약 10 산출물(`out/plan_base.json`·`out/plan_merge.json`·MOD별 단위 목록·`reexports`·`mod_imports`·규칙 분포) ⑥ **test 함수마다 거부 입력 ≥ 1**: spec '거부해야 할 입력' 표의 R-A1~R-A7·R-B1~R-B3·R-C1·R-C2·R-D1·R-E1을 병합본 사본에 하나씩 **커밋**(test가 `git show HEAD:`로 읽는다)해 겨누는 test가 **그 test 고유 단언에서** FAIL함을 확인(FAIL 위치 기록, 기대는 spec 표 '측정' 열의 test별 첫 FAIL -- 칸·문자열 입력도 `plan`을 돌린다; R-B1은 exit 1·`reg_mismatch` 1로 T-A·T-B가, R-B2·R-B3는 exit 0인데 T-B·T-E가, R-E1은 exit 0인데 T-E만 FAIL해야 한다 -- 동어반복 방지 확인; R-A2의 T-E는 D0a 구현 의존이라 판정에 쓰지 않는다) ⑦ `reg_check` exit 0 | auditor 스크립트 |
+
+판정 기록 `approvals` = `["20260930-30-module-split-design", "20261002-p3-d11-query-cache-max"]`(UD-6; + 멈춤 절차를 더 거쳤다면 그 승인 id). 이 기록의 `code_commit`이 **D-27 동결의 시작점**이다(오케스트레이터 4절).
+
+---
+
+## 4. 순서 요약(오케스트레이터)
+
+design 30 승인(UD-0 v8.5 + D-19 (가) -- 2026-10-02 **답 받음**, 승인 기록 `20260930-30-module-split-design` + design 30·문서 개정 커밋·push 대기) → (B34 → b26pre → backfill → B26-1 → B33 → T0·FU·G1 → D0a 병합) → 착수 0단계(S-5 판정, 비면 계속 / 아니면 0.4 멈춤 절차) →
+spec card(rev·사실 문장 갱신, (d)-1 근거 재확인 -- S-7; D-19 칸은 v8.5 정렬에서 고정됨) + interface card(생성본 -- 이 초안으로 잰 생성본은 '기존 함수 0개'·신규 0행. spec oracle 절의 (d)-1 표가 엔진 함수 이름을 백틱으로 적지만 생성기가 잡지 않았다; 착수 때 생성본을 다시 확인) → **S-6 대기열 정리** → 순서 1 test worktree →
+test-author(1절) → 순서 3 auditor(3.1) → 순서 4 code worktree → code-author(2절) → 순서 6 병합(병합 전 `git -C C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-registry-dest-audit log --oneline role/test/20260930-p3-registry-dest..HEAD` 출력이 비어야 한다 -- 비어 있지 않으면 순서 3 커밋이 섞인 것, 병합하지 말고 멈춤) → 순서 7 auditor(3.2) → push 단독·전체 출력 확인 → 정리 →
+**동결 시작 공지(D-27)**: 이 병합부터 F2 병합까지 엔진 파일·`tools/gates/**`·`tools/migrate/**`·레지스트리 '이관 목적지' 열을 바꾸는 Phase 3 밖 card 병합 금지. 어겼다면 그 card 뒤 D0b 재계산 card
+(레지스트리 열 재생성)를 먼저. D0b~M1 base 구간은 DoD가 덮지 않으므로 M1 착수 전 `git diff --stat <D0b code_commit> gate/master -- skills/analog-gmid-design/assets/*.py workspaces/run_harness.py tools`가 빈지 본다.
+→ M1(G1·T0·D0b 뒤).
+
+## 5. 키트 파일(`_drafts/p3kit_d0b/` -- 앞 판 측정 전용, 역할에게 건네지 않는다)
+
+| 파일 | 내용 |
+|---|---|
+| `apply_n310_amend.py` | (앞 판) `p3_doc_amendments.md` §1 (a)~(d)만 블록 순번으로 적용 -- **v8.4 §9 (e)~(g)를 모른다**. v8.4 적용은 '현재 `plan.md:N`' 블록을 줄 번호로 찾아 바꾸는 방식(이번 재측정 방식, spec 실측 머리) |
+| `run_plan.sh` | 복제본 커밋 하나에서 `plan`(§6.3 `MP_ARGS`) → JSON. **`C:/g162/*` 가드·`C:/g162/tmp/move_plan_proto.py` 기본값이 박혀 있다**(m4) -- 복사해 고쳐 쓴다 |
+| `analyze_plan.py` | `plan` JSON 요약: 목록 길이·규칙·MOD별·MOD7 밖·`upward` MOD 쌍/규칙 쌍·두 출력 사상 비교(`import_conflicts`는 세지 않는다 -- 원본 JSON에서 본다) |
+| `mk_variant.py`·`run_variants.sh` | (앞 판) 규칙 후보(A-K·A-6·A-4 승격) 환경 변수 변형. v8.4 D-31 전체(docstring 제외·상한·A-7·단조·`__future__` 갈림)는 없다 -- 이번 재측정 변형 내용은 spec 실측 머리 |
+| `regen_registry.py`·`sim_regen.sh` | 레지스트리 행 분류(대상·중첩·비대상·multi)와 열 재생성 모의(`--write`). `sim_regen.sh`는 `보류` 치환을 하지 않고 가드가 `C:/g162`(m4·m5) -- 이번 재측정은 치환까지 한 트리에서 쟀다 |
+| `test_p3_registry_dest.proto.py`·`run_proto_test.sh` | (앞 판) test 모양 시제품 -- **옛 red 모양(모든 test 머리 단언)이라 v8.4 계약 11 (a)와 다르다**. 비용 확인용으로만 |
+| `sim_chain_vtools.sh` | base(D0a 대역) → test → code 사슬을 만들고 V3·V4·V5·V6·V7 모양 확인(가드 `C:/g162`) |
+| `out/` | 앞 판 측정 출력 사본(`5f643a9`, 규칙 A-0~A-5 -- 관찰). v8.4 재측정 출력은 스크래치(`C:/g179`)와, v8.5 재측정 출력·스크래치 스크립트(`apply85.py` 개정 8블록 정확 일치 적용, `mk85.py` D-31 변형 생성기, 표본·거부 입력 스크립트)는 `C:/g189`와 함께 지웠고 수치는 spec '작성 전 실측' 2~6에 옮겼다 |

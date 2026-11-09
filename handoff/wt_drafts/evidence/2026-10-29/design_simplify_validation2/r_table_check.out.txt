@@ -1,0 +1,2 @@
+33 33 old cols 6 new cols 3
+bad 0

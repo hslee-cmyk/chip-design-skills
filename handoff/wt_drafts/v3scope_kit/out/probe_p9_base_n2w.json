@@ -1,0 +1,39 @@
+{
+ "label": "p9_base_n2w",
+ "tool_exit": 1,
+ "records": 28,
+ "targeted": 28,
+ "not_targeted": 0,
+ "expect_targeted": 12,
+ "missing": [],
+ "extra": [
+  "stick_diagram:kcl_series_union.find:stmt_delete:body[1]",
+  "stick_diagram:kcl_series_union:cmp_flip:body[3].body[1].test.ops[0]",
+  "stick_diagram:kcl_series_union:const+:body[9].body[1].targets[0].slice.slice",
+  "stick_diagram:kcl_series_union:const-:body[9].body[1].targets[0].slice.slice",
+  "stick_diagram:kcl_series_union:stmt_delete:body[10]",
+  "stick_diagram:kcl_series_union:stmt_delete:body[2].body[1]",
+  "stick_diagram:kcl_series_union:stmt_delete:body[3].body[0]",
+  "stick_diagram:kcl_series_union:stmt_delete:body[3].body[1]",
+  "stick_diagram:kcl_series_union:stmt_delete:body[3].body[1].body[0]",
+  "stick_diagram:kcl_series_union:stmt_delete:body[6]",
+  "stick_diagram:kcl_series_union:stmt_delete:body[7]",
+  "stick_diagram:kcl_series_union:stmt_delete:body[7].body[0]",
+  "stick_diagram:kcl_series_union:stmt_delete:body[8]",
+  "stick_diagram:kcl_series_union:stmt_delete:body[9]",
+  "stick_diagram:kcl_series_union:stmt_delete:body[9].body[0]",
+  "stick_diagram:kcl_series_union:stmt_delete:body[9].body[1]"
+ ],
+ "not_targeted_ok": null,
+ "stdout_keys": [
+  "tool",
+  "verdict",
+  "targets",
+  "mutants",
+  "killed",
+  "survivors"
+ ],
+ "stdout_mutants": 28,
+ "stdout_not_targeted": null,
+ "order_ok": false
+}

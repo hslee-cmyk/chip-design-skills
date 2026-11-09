@@ -1,0 +1,268 @@
+{
+ "circuits": {
+  "common_gate_amplifier": {
+   "field_sha256": {
+    "audit_row_split": "52ad7ddaa582410d281a3bfb50d975e96364bb8262c15e16d6cad0ad04edeeea",
+    "box_shape": "5263d5a6979b81d1f4e010387e65c928671cb9554b1dad137d00a49e037a53d3",
+    "coverage": "bbce9d8746554b37d98058c46c1edb34cfe410d7e7168186e2741d35fdf183c2",
+    "floorplan": "b82441f84e2dde70934a5f606e0f693f71b394767fd63fc8177633c5e4e6e379",
+    "netlist": "c328286e166eb2e545750336783c2f3cce3faabd72894004b48171b55a0d1a91",
+    "schema_version": "86169bcf42397928e1828b0a8e09ab69037ac05474b33486513c2fea65908565",
+    "sizing": "dd50663b4cdb2885f0e3fd8fdaa380edcdc10eaef6695541e232c64e6c2c0270",
+    "topology_ref": "e62721c530f8051baee70218359f3140e9ec27ce32024d4b333e89c34c9319e3"
+   },
+   "file_bytes_masked_sha256": "0e26e8713142e4e6e6c6d6601d0085e07d24e9b32c9ea106036ca2de3355f4df",
+   "file_exists": true,
+   "ok": true,
+   "root_string_hits": [],
+   "top_keys_in_file_order": [
+    "schema_version",
+    "topology_ref",
+    "sizing",
+    "netlist",
+    "floorplan",
+    "box_shape",
+    "audit_row_split",
+    "coverage"
+   ],
+   "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/common_gate_amplifier.topology.json",
+   "topology_ref_raw": "skills/analog-gmid-design/assets/library/common_gate_amplifier.topology.json",
+   "without_topology_ref_sha256": "026ac5f9eb6ca2884478d63801690d91f04350f376500a4e492e1ef46683ed66"
+  },
+  "current_reuse_telescopic_ota": {
+   "field_sha256": {
+    "audit_row_split": "d4959b884bf8dcf605c4e10f8e1b5a541cff64150651bb73ab1d29ec79810b7a",
+    "box_shape": "5602d5dac9e99e64e4b3c5dd5e4efb224af0fb8a0c92ef060fb99009608efdeb",
+    "coverage": "bbce9d8746554b37d98058c46c1edb34cfe410d7e7168186e2741d35fdf183c2",
+    "floorplan": "4f729fd4ff369e97ee95b9299be3f2dd198c7864a43fa49098442870b80293bf",
+    "netlist": "4ec83e7b5bee54ec844de2dfba7da87dee8a974906877cfbdee166c4cfd894d2",
+    "schema_version": "86169bcf42397928e1828b0a8e09ab69037ac05474b33486513c2fea65908565",
+    "sizing": "68b6d0cd84540d20a7de252ec48c24ea08fa31c85359a04945419835719a3f8c",
+    "topology_ref": "2333706cb3d8b8d2ab0ce2be64a7499f3bf461dff0fe464ba1c17ad61f894483"
+   },
+   "file_bytes_masked_sha256": "276f62f8a80d45f374d6758e119a7265a2fcb2c57fe7e55b5d2166b4e2b5179e",
+   "file_exists": true,
+   "ok": true,
+   "root_string_hits": [],
+   "top_keys_in_file_order": [
+    "schema_version",
+    "topology_ref",
+    "sizing",
+    "netlist",
+    "floorplan",
+    "box_shape",
+    "audit_row_split",
+    "coverage"
+   ],
+   "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json",
+   "topology_ref_raw": "skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json",
+   "without_topology_ref_sha256": "a8fb688559f8ac5d0fba4c90c8685bf56fa18f3365f050406e527ab8e8e77ae5"
+  },
+  "folded_cascode": {
+   "field_sha256": {
+    "audit_row_split": "86e29e8cb424a1d7f30353e272c48f8fbc0d841c308d24c744e5cf931db464b3",
+    "box_shape": "962796b7ea0ad9ef21da029f33d4ffa65f792c653a87b2e437be073333984052",
+    "coverage": "bbce9d8746554b37d98058c46c1edb34cfe410d7e7168186e2741d35fdf183c2",
+    "floorplan": "e080169c75d330974e5bd66bcf1b2027c70558053555150255bd3e8ae04eda80",
+    "netlist": "941db461b3d77a3d183c6bc9ed52423ffbce14be4b096800a57c2b9a8662b505",
+    "schema_version": "86169bcf42397928e1828b0a8e09ab69037ac05474b33486513c2fea65908565",
+    "sizing": "5359e97b2f4ca9770ff4a0f2bbbd2096f78750a946788f7209dcdfafddc9a9d2",
+    "topology_ref": "1e187cfc487cccac201ee6cdf9298fbf270f6dbeed2b76c2f8ba845509399326"
+   },
+   "file_bytes_masked_sha256": "aad1efd4bce5f7728f8e81a3b2e2872eb002df1b1e8333b0730c47416695934b",
+   "file_exists": true,
+   "ok": true,
+   "root_string_hits": [],
+   "top_keys_in_file_order": [
+    "schema_version",
+    "topology_ref",
+    "sizing",
+    "netlist",
+    "floorplan",
+    "box_shape",
+    "audit_row_split",
+    "coverage"
+   ],
+   "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/folded_cascode.topology.json",
+   "topology_ref_raw": "skills/analog-gmid-design/assets/library/folded_cascode.topology.json",
+   "without_topology_ref_sha256": "2e907ec6ca485dfe8782492eb53f58727ae176f5e6cc70d613a0013b8a806223"
+  },
+  "ngcc_3stage_ff": {
+   "field_sha256": {
+    "audit_row_split": "f88cd6d14c11e87849c9d8652b8ae945dc7fb707c5ab2f77affd5ec520795ac2",
+    "box_shape": "130a791b305200066dad96ddbffc84755d50bf95b4cedf7703fa9a8c67b6e9b4",
+    "coverage": "bbce9d8746554b37d98058c46c1edb34cfe410d7e7168186e2741d35fdf183c2",
+    "floorplan": "a4158817e8c03ad8ef8b57c1c2cb494fe6296bbb6f7810eb8b800a7dc7f2f3a3",
+    "netlist": "d4392a3a5221935d1a0f43183ab7711ccbccc7f578f133b81f71db1e85805d92",
+    "schema_version": "86169bcf42397928e1828b0a8e09ab69037ac05474b33486513c2fea65908565",
+    "sizing": "6bd000e79465dae5eaee4af27338995741b0cd6b506392fffbe6995b60683d02",
+    "topology_ref": "a06dde66316e450ce394e651625e57f83a6bba0112106dbb611a42043663a3f5"
+   },
+   "file_bytes_masked_sha256": "d8b80cce69e404616fac6f120adddff521742389e9cc375eeaadcd267a400093",
+   "file_exists": true,
+   "ok": true,
+   "root_string_hits": [],
+   "top_keys_in_file_order": [
+    "schema_version",
+    "topology_ref",
+    "sizing",
+    "netlist",
+    "floorplan",
+    "box_shape",
+    "audit_row_split",
+    "coverage"
+   ],
+   "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/ngcc_3stage_ff.topology.json",
+   "topology_ref_raw": "skills/analog-gmid-design/assets/library/ngcc_3stage_ff.topology.json",
+   "without_topology_ref_sha256": "00ad41a84749d7429e60ca5407d3e2fac68d8702fc8937a6f4161e251f48fd8f"
+  },
+  "nmcnr_amplifier": {
+   "field_sha256": {
+    "audit_row_split": "a016725e8f0f93aa93ac965ec27dd0384673e7115cf861a05232d08d3f2b4e0a",
+    "box_shape": "e7ab91c8a7b6b15fb58e7de389a6b652febade66684dac6a07a4945c61ca55df",
+    "coverage": "bbce9d8746554b37d98058c46c1edb34cfe410d7e7168186e2741d35fdf183c2",
+    "floorplan": "18b3300ba74397405634bc9c0fd0ccfeb44c8a8b300d092bfa3c19e3a1ffffbd",
+    "netlist": "b3a85251206bbc06bcd165de57fe2ee91852610767ba4024d0b3e8d975add362",
+    "schema_version": "86169bcf42397928e1828b0a8e09ab69037ac05474b33486513c2fea65908565",
+    "sizing": "0c144cdfe9f243b62e27116b69f23531ab61f52cfdd316f736203462e700daf0",
+    "topology_ref": "d4c367f544052aad0b4f087b327bc98ebd634aa1d85ad482e42355950f0c3241"
+   },
+   "file_bytes_masked_sha256": "421249d9c9c7b8696e56474971fd5d7d0ff1331fd6ee48d535c73872ea1a36dc",
+   "file_exists": true,
+   "ok": true,
+   "root_string_hits": [],
+   "top_keys_in_file_order": [
+    "schema_version",
+    "topology_ref",
+    "sizing",
+    "netlist",
+    "floorplan",
+    "box_shape",
+    "audit_row_split",
+    "coverage"
+   ],
+   "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/nmcnr_amplifier.topology.json",
+   "topology_ref_raw": "skills/analog-gmid-design/assets/library/nmcnr_amplifier.topology.json",
+   "without_topology_ref_sha256": "92ca23e65dcd89c237c80531d5188d021637a0ba9959e27e739cac31483f6105"
+  },
+  "pushpull_follower_buffer": {
+   "field_sha256": {
+    "audit_row_split": "d8547b5a94299ecb048befda10486608af00a36dc9c6d41f6b43a3f15517f864",
+    "box_shape": "3d12808c24ba0e1dc56807668b63a513b638b2737f6ef19e406d54f1b9a20d73",
+    "coverage": "bbce9d8746554b37d98058c46c1edb34cfe410d7e7168186e2741d35fdf183c2",
+    "floorplan": "23d7d041c75cb86ce2e01794cb33b7fc4ef87623cb196fa5c00bf5b78911e339",
+    "netlist": "1acc19ea52fad3a8da55b34b025737817a5be57891d9f7bf90997b2a5c518828",
+    "schema_version": "86169bcf42397928e1828b0a8e09ab69037ac05474b33486513c2fea65908565",
+    "sizing": "e07ff9f84865f5cd925cd4000b45c2b7c9843fde5a11efd90e7079c0120b29b3",
+    "topology_ref": "6646739738636330c2161a8cda808ebc1eef199fac944db1eefbed1286b7dd6a"
+   },
+   "file_bytes_masked_sha256": "59c708047b157739d4bd5686473d5986111dbf11c38b43ec921767cf96fbbed0",
+   "file_exists": true,
+   "ok": true,
+   "root_string_hits": [],
+   "top_keys_in_file_order": [
+    "schema_version",
+    "topology_ref",
+    "sizing",
+    "netlist",
+    "floorplan",
+    "box_shape",
+    "audit_row_split",
+    "coverage"
+   ],
+   "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/pushpull_follower_buffer.topology.json",
+   "topology_ref_raw": "skills/analog-gmid-design/assets/library/pushpull_follower_buffer.topology.json",
+   "without_topology_ref_sha256": "a5a28229e363655fb6ab72ee46930cacc6d0f62cd5374eb80375ca9824e4b85a"
+  },
+  "sf_pushpull_output_opamp": {
+   "field_sha256": {
+    "audit_row_split": "442060c4dc7f92bf8c217701185c8dee842d146bed6ffb7a9c73f456934e6f18",
+    "box_shape": "c989a39f2de54c113ce6adbfd14d231d7048bd813dc8b8bc934a2ffb74940f42",
+    "coverage": "bbce9d8746554b37d98058c46c1edb34cfe410d7e7168186e2741d35fdf183c2",
+    "floorplan": "9cc0f5f38c6db9daa0ee870c0cc5ca21166a49d20bd18592e9bf923ea434f60f",
+    "netlist": "e94bd7b3cd95c6b681777c42bab10e3c5276c72cb0e354835a06a5c1815fc0d4",
+    "schema_version": "86169bcf42397928e1828b0a8e09ab69037ac05474b33486513c2fea65908565",
+    "sizing": "7717f21c79651889839c7bb6c35174ad7e25b7b515bd8cb16187eb30f7435453",
+    "topology_ref": "99e3fa5020c8431911a9ff59fac09ba8fc5f497e8f1b8064d09bbe9e595e4008"
+   },
+   "file_bytes_masked_sha256": "3e155a791b89c97c600cc1c8bbc75f46c472f39c14f99173008e066645d3b054",
+   "file_exists": true,
+   "ok": true,
+   "root_string_hits": [],
+   "top_keys_in_file_order": [
+    "schema_version",
+    "topology_ref",
+    "sizing",
+    "netlist",
+    "floorplan",
+    "box_shape",
+    "audit_row_split",
+    "coverage"
+   ],
+   "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/sf_pushpull_output_opamp.topology.json",
+   "topology_ref_raw": "skills/analog-gmid-design/assets/library/sf_pushpull_output_opamp.topology.json",
+   "without_topology_ref_sha256": "3b7c0dacacf15351ff42f5ca475396f8dce4e377c1439ff82560805007585c11"
+  },
+  "two_stage_ota": {
+   "field_sha256": {
+    "audit_row_split": "75987e74fba333d312157c92697a7e63fbcaef8308e9d4f4b4c2f43afab826a9",
+    "box_shape": "cfd7b6c796e8e58a2ea9bc49d9f4d499241d9552f3140008ef90d4795e3385f9",
+    "coverage": "bbce9d8746554b37d98058c46c1edb34cfe410d7e7168186e2741d35fdf183c2",
+    "floorplan": "a613cff72759b4109a666adf4c7a8e84b0c2e696a579a2fdb22f80897aeacbf8",
+    "netlist": "d0292c069bbf7fa1b21f4f0ca4a395d29905c5ce8bd383e8eb1c7ad0577e997a",
+    "schema_version": "86169bcf42397928e1828b0a8e09ab69037ac05474b33486513c2fea65908565",
+    "sizing": "b0091965367fd64c0de7df863db8b44e2f585303a76bd10ff4510658e9594416",
+    "topology_ref": "0968fcbce8a25bf54a2e41ea82cc29da35063800b4f4c3ef703d040c1f17d8f6"
+   },
+   "file_bytes_masked_sha256": "858f66a1b7ead54fb231a6ae4e443da73240a37282cf695d27762984382287bb",
+   "file_exists": true,
+   "ok": true,
+   "root_string_hits": [],
+   "top_keys_in_file_order": [
+    "schema_version",
+    "topology_ref",
+    "sizing",
+    "netlist",
+    "floorplan",
+    "box_shape",
+    "audit_row_split",
+    "coverage"
+   ],
+   "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/two_stage_ota.topology.json",
+   "topology_ref_raw": "skills/analog-gmid-design/assets/library/two_stage_ota.topology.json",
+   "without_topology_ref_sha256": "8e615ca951e15ae23a180e970c9164bf9873b317de68cd8d1458176411698b33"
+  },
+  "two_stage_ota_sf": {
+   "field_sha256": {
+    "audit_row_split": "6fa0c39af9079e67a5d5b3021744460215e477335b439a40f11b0de978a2fac1",
+    "box_shape": "e3109b1cc48ce38701749a0fdade09e64affccbf9db896b628b8957a12962655",
+    "coverage": "bbce9d8746554b37d98058c46c1edb34cfe410d7e7168186e2741d35fdf183c2",
+    "floorplan": "3d60624c8fb3d8d7c858608ec38ca71a202e061eb3fcaf15cfd3e2e19f7fd282",
+    "netlist": "665f6be830a358fcb6d5e9df49f9cb0d0dcab22eb000dcb818500dd4d61b1a8a",
+    "schema_version": "86169bcf42397928e1828b0a8e09ab69037ac05474b33486513c2fea65908565",
+    "sizing": "2ecd381e9014180689909d3d65367ab06c470ad8a42adf0b4ae43b37519a3981",
+    "topology_ref": "b7117043d46d8d6babbc7a6eb723e6035bf9e98b9832ed9e68aa055c2be60781"
+   },
+   "file_bytes_masked_sha256": "6f8ccc37d0e66bf34f51ee1655000fe55a27a8abee265ce358d7476c19af450d",
+   "file_exists": true,
+   "ok": true,
+   "root_string_hits": [],
+   "top_keys_in_file_order": [
+    "schema_version",
+    "topology_ref",
+    "sizing",
+    "netlist",
+    "floorplan",
+    "box_shape",
+    "audit_row_split",
+    "coverage"
+   ],
+   "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/two_stage_ota_sf.topology.json",
+   "topology_ref_raw": "skills/analog-gmid-design/assets/library/two_stage_ota_sf.topology.json",
+   "without_topology_ref_sha256": "6b4f415de05077eb141e62f0f3fa5ac9a912e76a2b6ba46e6435829e220611f8"
+  }
+ },
+ "combined_masked_sha256": "1f0956cb11976b4d2dbb5fb7444831c61b536a614e19a1a1e78903e4edbcc7ca",
+ "combined_without_topology_ref_sha256": "e4762cfff0e0a008147075ace754412a06d25ff6c1cb26a3dc13258d83dc520d",
+ "stick_diagram_file": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets\\stick_diagram.py"
+}

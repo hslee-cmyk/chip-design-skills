@@ -1,0 +1,134 @@
+"""Phase 3 DoD 입력값을 H 트리의 판정 기록에서 뽑는다(design 30 §10 '값은 auditor가 판정 기록에서 채운다').
+
+    python -B inputs_p3.py <iso> <H> <out_dir> <gate_cache_dir>
+
+쓰는 것: <out_dir>/inputs.json, <out_dir>/cards.txt(E2 루프 입력, 한 줄 "<base> <code> <MOD 파일> <V1 --gmid-strict 값>").
+읽기 전용(git show/log/ls-tree/merge-base/diff --name-only). 판정하지 않는다 -- 빠진 입력은 inputs.json "missing"에 적는다.
+"""
+import json
+import os
+import re
+import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import p3_cards  # noqa: E402
+
+P2DOD = "docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/phase2-dod.md"
+PLAN = "docs/01-plan/features/gain-budget-gmid-sizing.plan.md"
+MP = "tools/migrate/move_plan.py"
+
+
+def main(iso, H, out, gc):
+    def git(*a):
+        p = subprocess.run(["git", "-c", "core.quotepath=off", "-C", iso, *a], capture_output=True)
+        return p.returncode, p.stdout.decode("utf-8", "replace")
+
+    anc = lambda c: bool(c) and git("merge-base", "--is-ancestor", c, H)[0] == 0
+    res = {"H": H, "missing": [], "notes": []}
+    # P2D: phase2-dod.md '대상:' 줄의 첫 40자 해시(design 30 §10 E5 'P2D=<phase2-dod.md '대상' 커밋>')
+    rc, txt = git("show", "%s:%s" % (H, P2DOD))
+    m = re.search(r"^대상:.*?`([0-9a-f]{40})`", txt, re.M) if rc == 0 else None
+    res["P2D"] = m.group(1) if m else None
+    res["P2D_verdict_line"] = bool(rc == 0 and re.search(r"^판정: PASS$", txt, re.M))
+    res["P2D_ancestor"] = anc(res["P2D"])
+    if not res["P2D"]:
+        res["missing"].append("P2D(phase2-dod.md 대상 커밋)")
+    # 판정 기록 전부
+    _, ls = git("ls-tree", "--name-only", H, ".ai/verification/")
+    recs = {}
+    for p in ls.split():
+        if p.endswith(".json") and not p.endswith("_schema.json"):
+            d = json.loads(git("show", "%s:%s" % (H, p))[1])
+            recs[d["id"]] = d
+    _, specs = git("ls-tree", "--name-only", H, "docs/02-design/specs/")
+    spec_ids = sorted(re.sub(r"^.*/(.*)\.spec\.md$", r"\1", s) for s in specs.split() if s.endswith(".spec.md"))
+    hit = p3_cards.match(p3_cards.PHASE3, spec_ids)
+    res["cards"] = {}
+    for lab, rx, ev, supplies in p3_cards.PHASE3:
+        ids = hit[lab]
+        rid = ids[0] if len(ids) == 1 else None
+        r = recs.get(rid) if rid else None
+        res["cards"][lab] = {"spec_ids": ids, "record": bool(r), "design_evidence": ev, "supplies": supplies,
+                             "evidence_type": r and r.get("evidence_type"),
+                             "base": r and r.get("base_commit"), "test": r and r.get("test_commit"),
+                             "code": r and r.get("code_commit")}
+        if len(ids) != 1:
+            res["missing"].append("%s spec card %d장" % (lab, len(ids)))
+        elif not r:
+            res["missing"].append("%s 판정 기록(%s)" % (lab, rid))
+    hit05 = p3_cards.match(p3_cards.GATE05, spec_ids)
+    res["gate05"] = {lab: {"spec_ids": hit05[lab], "record": len(hit05[lab]) == 1 and hit05[lab][0] in recs}
+                     for lab, _ in p3_cards.GATE05}
+    for lab, v in res["gate05"].items():
+        if not v["record"]:
+            res["missing"].append("게이트 card %s 판정 기록" % lab)
+    # B0 = M1 판정 기록 base_commit
+    res["B0"] = res["cards"]["M1"]["base"]
+    if not res["B0"]:
+        res["missing"].append("B0(M1 판정 기록 base_commit)")
+    # MPC = tools/migrate/move_plan.py를 마지막으로 바꾼 판정 기록의 code_commit(design §2.4·§10, D-16)
+    order = {c: i for i, c in enumerate(git("rev-list", H)[1].split())}   # 0 = H(가장 새것)
+    cand = []
+    for rid, d in recs.items():
+        b, c = d.get("base_commit"), d.get("code_commit")
+        if b and c and git("diff", "--name-only", b, c, "--", MP)[1].strip():
+            a = git("log", "-1", "--format=%H", H, "--", ".ai/verification/%s.json" % rid)[1].strip()
+            cand.append((order.get(a, 10 ** 9), rid, c))
+    cand.sort()
+    res["MPC_candidates"] = [{"record": r, "code_commit": c} for _, r, c in cand]
+    res["MPC"] = cand[0][2] if cand else None
+    if res["MPC"]:
+        bm = git("rev-parse", "%s:%s" % (res["MPC"], MP))[1].strip()
+        bh = git("rev-parse", "%s:%s" % (H, MP))[1].strip()
+        res["MPC_blob_equals_H"] = bm == bh
+        if bm != bh:
+            res["notes"].append("INVALID 후보: H의 move_plan.py blob %s != MPC 판 %s(판정 기록 밖 변경)" % (bh, bm))
+    else:
+        res["missing"].append("MPC(move_plan.py를 바꾼 판정 기록 code_commit -- D0a)")
+    # cards.txt -- M1~M6·M8·M9
+    sys.path.insert(0, gc)
+    import import_layering as il  # H 판 게이트 코드(캐시)
+    table = il.mod_table(git("show", "%s:%s" % (H, PLAN))[1])
+    by_n = {n: f + ".py" for f, n in table.items()}
+    res["N310"] = {("MOD%d" % n): by_n[n] for n in sorted(by_n)}
+    lines = []
+    for n in (1, 2, 3, 4, 5, 6, 8, 9):
+        lab = "M%d" % n
+        c = res["cards"][lab]
+        rid = c["spec_ids"][0] if len(c["spec_ids"]) == 1 else None
+        d = recs.get(rid) if rid else None
+        if not d:
+            continue
+        v1 = [x for x in d.get("auditor_run", {}).get("commands", []) if x.startswith("V1: ")]
+        st = re.search(r"--gmid-strict=(\S*)", v1[0]) if len(v1) == 1 else None
+        ph = re.search(r"--gmid-phase=(\S+)", v1[0]) if len(v1) == 1 else None
+        c["v1_strict"] = st.group(1).strip("'\"") if st else None
+        c["v1_phase"] = ph.group(1) if ph else None
+        if st is None or not d.get("code_commit"):
+            res["missing"].append("%s V1 --gmid-strict 또는 code_commit" % lab)
+            continue
+        lines.append("%s %s %s %s" % (d["base_commit"], d["code_commit"], by_n[n], c["v1_strict"]))
+    res["cards_txt_lines"] = len(lines)
+    with open(os.path.join(out, "cards.txt"), "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("".join(x + "\n" for x in lines))
+    # 그 밖의 입력 존재
+    for p in ("docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_inst_p3.py",
+              "docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_lib_p3.py",
+              "skills/analog-gmid-design/assets/tests/contracts/test_p3_registry_dest.py",
+              MP, ".ai/approvals/20260930-30-module-split-design.md", ".ai/approvals/20261001-b26-phase3-cards.md"):
+        ok = git("cat-file", "-e", "%s:%s" % (H, p))[0] == 0
+        res.setdefault("files", {})[p] = ok
+        if not ok:
+            res["missing"].append("파일 " + p)
+    if res["P2D"]:
+        for p in (".ai/verification/20260930-df36-instance-relpath/scripts/e_inst_df36.py",
+                  ".ai/verification/20260930-df36-instance-relpath/scripts/e_lib.py"):
+            res.setdefault("files_P2D", {})[p] = git("cat-file", "-e", "%s:%s" % (res["P2D"], p))[0] == 0
+    json.dump(res, open(os.path.join(out, "inputs.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print("P2D", res["P2D"], "| B0", res["B0"], "| MPC", res["MPC"], "| cards.txt", len(lines), "| missing", len(res["missing"]))
+
+
+if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+    main(*sys.argv[1:5])

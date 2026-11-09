@@ -1,0 +1,239 @@
+# Phase 3 D0a card `20260930-p3-move-plan-tool` -- 착수 키트(착수 조건 + test-author·code-author·auditor 브리프 + 오케스트레이터 절차)
+
+작성 2026-10-01(키트 v9, 기준 `19eb475`), **r1 2026-10-02**(독립 검토 `_drafts/review_d0a.md` 반영 -- S2 브리프를 spec card 지금 판(v8.4·v8.5·conf·r1)에 맞춰 다시 씀, S3 '배정 없는 출처', S1 실측 전제, minor m1~m7;
+개정 전 사본 `d0a_briefs.pre-r1.md`·`draft_p3_d0a.spec.pre-r1.md`).
+**det2 2026-10-06**(독립 검토 `_drafts/review_d0a_det.md` 반영 -- 1절 5 `determinism` 색인, 2절 7·9, 3.1 oracle 대조; 개정 전 사본 `d0a_briefs.md.pre-det2.bak`. 필수 단계 수는 20 그대로).
+**det3 2026-10-06**(독립 검토 `_drafts/review_d0a_det2.md` 반영 -- 1절 5 `determinism` 색인((a)~(c) 구성 요구·(iv-e)~(iv-g)·(vi)), 2절 7 (e6)·출처 튜플, 3.1 oracle 대조; 개정 전 사본 `d0a_briefs.md.pre-det3.bak`. 필수 단계 수는 20 그대로).
+기준: gate `master` **`7243f28`**(2026-10-06 = 실제 저장소 HEAD -- review_d0a_d0b_ready D0a m2 반영 r1m. 0.1·0.2의 r1 측정 수치는 그 측정 판 `36e170e` 그대로다).
+`36e170e` 뒤 바뀐 사실: card 35 V3 범위 정책(`20260930-v3-changed-stmt-scope`)이 `a17b8bd`에 병합됐고 판정 기록은 `dafe5cf`다. G1 시제품 `_drafts/g1_kit/install_proto.py`(card 35 병합본 재앵커판, sha256 `218e2162…`)는 `7243f28` 위 복제본에 "installed 4"로 설치된다(0.5-2).
+Phase 3 design은 **커밋된 v8.5 승인본** `docs/02-design/features/gain-budget-gmid-sizing.30-module-split.design.md`(`6c8287f`)이고
+승인 기록 `.ai/approvals/20260930-30-module-split-design.md`(`36e170e`, 109행에 D0a)가 UD-0 "승인"·D-19 "(가) MOD2"·UD-1 "(가)"를 적는다. N3.10 개정(3건 + D-19 + v8.4 A-1 충돌 보정 8건(토큰 11개) + v8.5 (h) MOD9 `_kv_table`)은 `6c8287f`로 계획서에 들어갔다.
+대상: spec 초안 `_drafts/draft_p3_d0a.spec.md`(r1판). 앞 판 키트 `_drafts/p3kit_d0a/`(측정 전용, 역할에게 건네지 않는다). 저장소 쓰기·상태 변경 git 없음.
+**정본은 spec card다** -- 이 브리프는 역할 입력의 길잡이이고, 단계·규칙 목록이 card와 다르면 card가 이긴다(브리프가 목록을 좁히지 않도록 1·2절은 card 절을 그대로 가리킨다).
+
+**착수 조건**(전부 충족해야 test worktree를 만든다):
+
+| # | 조건 | 지금(`7243f28`) | 근거 |
+|---|---|---|---|
+| C-1 | Phase 3 design 승인(UD-0)과 승인 기록 | **충족** -- 승인 기록 `20260930-30-module-split-design` 커밋됨(`36e170e`), spec `approval` 줄이 그것을 가리킨다 | design §9.2 |
+| C-2 | Phase 2 DoD PASS | **충족** -- 판정 기록 `2eefda1`(H = `5f643a9`, PASS) | D-23 |
+| C-3 | 확정 순서의 앞선 card 병합: B34 → b26pre → backfill → B26-1 → B33 → **G1**(V3 면제 묶기 `5a602d4` 병합됨, V3 범위 정책 card 35 `20260930-v3-changed-stmt-scope`도 `a17b8bd` 병합·판정 기록 `dafe5cf`) | 미병합(B34·b26pre·backfill·B26-1·B33·G1 -- B34는 spec card `7243f28`까지) | design §5.5·§8.1, spec 의도 |
+| C-4 | G1 병합본의 `reachability.SourceIndex`에 공개 `tree(path) -> ast.Module | None`이 있다(옛 0.3 결정 -- G1 spec v9 계약 0으로 해소) | G1 병합 전 | spec 계약 5·6, 결정 필요 항목 |
+| C-5 | `role/*` 브랜치 0개 | -- | N3.12.3 |
+| C-6 | interface card 생성본 '기존 함수 0개'(신규 `move_plan.*`·`move_plan.main` 두 행) | r1판 **충족**(`36e170e` 게이트, 아래 0.1) -- 착수 때 G1 병합 base에서 다시 | 0.5-3 |
+
+레지스트리 277행(_QUERY_CACHE_MAX 이름표) 처리 결정은 **D0a 착수 조건이 아니다** -- D0a test는 합성 입력이라 실제 트리 배정에 기대지 않는다(spec '작성 전 실측' r1 주의). 그것은 D0b 착수 전 문제다(0.4).
+
+**착수 0단계(읽기 전용, C-3 뒤)**:
+```
+R=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills; B=$(git -C $R rev-parse gate/master)
+git -C $R diff --stat 36e170e $B -- tools/gates tools/migrate docs/01-plan/features/gain-budget-gmid-sizing.plan.md docs/03-analysis/gain-budget-gmid-sizing.function-registry.md skills/analog-gmid-design/assets/tests/tooling
+git -C $R grep -n -E "def (read_tree|iter_defs|_refs|_is_source|build_graph|def_hash)|^SOURCE_GLOBS|class SourceIndex|def (moved_defs|units|global_names|binding_origin|tree)" $B -- tools/gates/reachability.py
+git -C $R grep -n -E "^def (mod_table|read_section_table|_split_cells|_is_empty_dict)|^GATE_CODE_PREFIX" $B -- tools/gates/import_layering.py tools/gates/role_paths.py tools/gates/source_lint.py
+```
+판단: (가) `SourceIndex.tree`가 공개 이름으로 있다(C-4) (나) 재사용 이름(`mod_table`·`read_section_table`·`read_tree`·`SourceIndex`·`moved_defs`·`_is_empty_dict`)의 시그니처가 card 계약 5와 맞다
+(다) G1 `units`가 내는 문장 단위 키가 무엇인지 기록(계약 2의 단위 키는 card가 정의한다 -- 바인딩 이름 정렬 `,` 연결; G1 시제품은 `<stmt:해시>`였다, 0.4) (라) `tools/migrate`에 `move_plan.py` 없음, `tooling/`에
+`test_move_plan.py` 없음. 맞으면 spec card '작성 전 실측'에 measured 문장(rev)만 더한다(`d0a_launch.sh`가 그 앵커를 찾는다).
+(마) **계약 2 가장자리 (e1)·(e4) AST 스캔**(review_d0a_d0b_ready D0a-S2 -- 도구 없이 잰다): `bash d0a_launch.sh conds`의 **조건 8**. 대상 = design 30 §6.3 `MP_ARGS` `--split` 파일 + A-0 대상(gate 트리에 있고 `--split`에 없는 N3.10 파일),
+단위 = 최상위 def·class·문장(모듈 docstring·import 문·main 블록 제외), 단위 키 = 계약 2(def·class 이름, 문장 = 바인딩 이름 정렬 `,` 연결). (e1) 한 파일 안 같은 키 둘 이상, (e4) 레지스트리 함수 표 행의 함수 칸 첫 백틱 토큰이
+두 파일 이상의 단위 키에 맞음 -- **둘 다 0이어야 한다**(아니면 조건 8 미충족 exit 3으로 `pre`가 멈춘다: 그 트리에서 D0a `plan`은 exit 2라 V10 계약 8 (a)와 D0b S-4가 막힌다). 지금 관찰 0(`4a286f0`·B26-1 대역, 검토 r1 `36e170e`) --
+B34·backfill·B26-1 실제 코드 위에서 다시 본다.
+
+---
+
+## 0. 착수 확인 결과(오케스트레이터용)
+
+### 0.1 spec card 재검증(r1, `36e170e`)
+
+| 확인 | 결과 |
+|---|---|
+| `role_paths.parse_spec_card(<r1 초안>, "20260930-p3-move-plan-tool")`(`36e170e` `tools/gates`를 `git archive`로 꺼낸 사본) | 통과 -- `phase` 3·`evidence_type` red-green·`gate_change` no·`approval` [`20260930-30-module-split-design`]·`activated_ic_case`·`noop_activation_id` []·절 11개(양식 `_TEMPLATE.spec.md`와 같은 순서) |
+| `interface_card.py <r1 초안> --root <36e170e 사본>` | exit 0, **'기존 함수 0개'**, 신규 `move_plan`(`*`)·`main` 두 행 -- r1에서 더한 엔진 이름(SemiEmpiricalGmIdLUT 등)은 백틱 없이 적었다 |
+| 독립 검토 재구현(작성자 시제품 열람 없음, `36e170e` + FU 대역 + G1 시제품 `g1_core.py` `b3c4e391…`) | card 문언(conf 포함) 실행 가능, 합성 단계 21개(이름 기준 `import-time-high` 하위 단계 포함) 모두 card 문장대로. 실제 트리는 아래 0.2 |
+| `tools/migrate`·`tooling/` | `extract_selftest.py` 하나 / `test_extract_selftest.py` 하나, `move_plan` 문서 소비자 0 |
+
+### 0.2 실제 트리 관찰(D0b용 -- 이 card의 기대값 아님)
+
+| 측정 | 결과 |
+|---|---|
+| 독립 재구현, **계약 2 단위 키**(문장 = 바인딩 이름) | exit 1 · 배정 403(A-4 236·A-5 57·A-1 60·A-2 38·A-6 7·A-K 2·A-7 2·A-3 1) · `upward` **1**(SemiEmpiricalGmIdLUT(A-1, gmid_lut) → _QUERY_CACHE_MAX(A-4, gmid_sizing_engine), 레지스트리 277행) · `cycles` **1** · `reg_mismatch` 79 · 그 밖 0 |
+| 같은 재구현, **G1 시제품 문장 키 `<stmt:해시>` 모사** | D0b 실측 3을 그대로 재현 -- `upward` 0·`cycles` 0·A-4 229·A-5 64·`reg_mismatch` 79 |
+| FU 없음 | `import_conflicts` 2(`__future__`, MOD2·MOD9 쪽) |
+| `reg_mismatch`의 두 읽기 | A-4 토큰 규칙(별칭 포함) 79 / 'MOD 파일 이름 글자 하나' 72 -- r1 계약 2가 앞의 것으로 확정 |
+| 가장자리 (e1)~(e4) | 모두 0(키 충돌 0·같은 키 두 파일 0·`--keep` 참조자 A-5 0) -- r1 정의의 exit 2·`unassigned`는 지금 트리에서 발동하지 않는다 |
+| 키트 v9 시제품(`19eb475`, 근사 구현) | exit 1, `import_time_high` [] -- 계약 8 (a) 관찰(exit ≠ 2), 수치는 낡음 |
+
+### 0.3 결정 -- 모두 닫힘
+
+* **G1 AST 접근**(키트 v9 착수 조건): G1 spec v9 계약 0 `SourceIndex.tree(path)`로 해소(design v8.4). D0a는 그것으로만 모듈 AST를 얻는다(내부 속성 `mod`·`_` 접두 금지, 다시 파싱 금지).
+* **D-19**: 2026-10-02 답 (가) MOD2 -- `rail_declaration`은 N3.10 MOD2 토큰(A-1), `RailDeclaration`은 A-2로 MOD2. 도구 규칙은 답과 무관.
+* **UD-0**: 승인(2026-10-02). D-31 규칙(모듈 docstring 제외·A-K·승격(MOD7 상한)·A-6·A-7·단조 고정점)과 D-30(`mod_imports`·`import_conflicts`·`import-dup`)은 승인본 §6.2·§6.3·§9.3에 있다.
+* **conf**(`conflicts` 단위의 배정)·**r1**(배정 없는 출처, 가장자리 (e1)~(e4), `reg_mismatch` 정의)은 card 계약 2가 정한다 -- 결정 항목 아님(fail-closed·결정적 원칙에서 유도).
+* **남은 결정 0.** 레지스트리 277행 처리는 이 card 밖(다른 작업에서 다룬다, 0.4).
+
+### 0.4 D0b에 넘길 기록(이 card는 D0b 파일을 고치지 않는다)
+
+* **S1 / 교차 B**: D0b 실측 2·3·5·6과 design §6.2 '결과' 문장의 실제 트리 수치는 G1 시제품 문장 키로 잰 값이다. 계약 키로는 `upward` 1·`cycles` 1 → D0b 계약 8 (a) 멈춤 조건(원천이 A-1인 `upward`)이
+  D0b base에서 발동한다. 해소안(① N3.10 MOD1 토큰 -- D-11 별도 승인 ② 레지스트리 277행 이름표 정정 -- D0b 범위 밖 문서 수정)의 선택은 별도 결정이고, 그 뒤 계약 키 측정으로 D0b 수치를 다시 잰다.
+* **m6**: D0b 계약 11 (b)의 머리 단언("도구가 없거나 exit 2이면 판정 목록 단언 전에 FAIL")은 D0a 계약 1과 맞지 않는다 -- 오류 출력도 첫 줄 JSON에 `"tool": "move_plan"`이 있어 머리 단언을 통과하고
+  다음 목록 단언에서 `KeyError`(AssertionError 아님)로 끝난다. D0b 머리 단언에 `verdict != "ERROR"`(또는 exit ≠ 2)를 더해야 한다(D0b 소유자 몫).
+* **r1 (e1)·(e4)와 D0b**: D0a가 같은 키 두 파일 레지스트리 이름(e4)·파일 안 키 중복(e1)에서 exit 2를 내므로, D0b T-B의 '같은 키 `mod` 갈림 0' 단언보다 D0a 오류가 먼저 드러난다(둘 다 fail-closed, 지금 0).
+* **S3과 D0b R-A2**: r1 정의대로면 R-A2 사본의 `import_conflicts`는 0(compute_metric 출처가 `conflicts` 단위라 미해결 쌍) -- D0b r3 재구현의 '그 밖 목록 0'과 같다. D0b T-A가 `conflicts`를 먼저 단언하므로 겨눔은 그대로.
+
+### 0.5 착수 직전에 다시 볼 것
+
+0. 착수 0단계 명령. 1. `role/*` 0개, G1 병합 확인(C-3·C-4). 2. G1 병합본으로 계약 8 (a) 관찰을 다시 잴 때 **G1 시제품 키트를 쓰지 않는다**(병합본의 G1 자체로 잰다). G1 병합 전에 시제품으로 재야 하면: 옛 판 `install_proto.py`(`5790433c…`)는 `36e170e`에서 앵커가 맞지 않아 설치가 멈췄지만(검토 m7),
+   지금 판(sha256 `218e2162…`, card 35 병합본 `a17b8bd` 재앵커)은 `7243f28` 위 복제본에 **"installed 4"로 설치된다**(review_d0a_d0b_ready_r1 실측, r1m 모래상자 재확인). `mutate_changed.py`가 다시 바뀌면 앵커부터 다시 본다.
+3. interface card 절대 경로 생성, '기존 함수 0개'인지(spec '관찰 가능한 계약'·'의도'에 엔진 이름을 백틱으로 넣으면 다시 생긴다). 4. EL1: 리다이렉트 변수 경로 금지 -- 스크립트 파일로.
+5. `d0a_launch.sh`는 spec '작성 전 실측'의 measured 앵커와 이 브리프 1·2·3절을 역할에게 넘긴다 -- 브리프를 고치면 런처가 넘기는 절 번호(1·2·3.1·3.2·4)를 유지할 것.
+
+---
+
+## 1. gmid-test-author 브리프(순서 2)
+
+```
+역할: gmid-test-author. change id = 20260930-p3-move-plan-tool (red-green, phase 3, gate_change: no).
+worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-move-plan-tool-test (브랜치 role/test/20260930-p3-move-plan-tool). 절대 경로만.
+쓰기 경로: skills/analog-gmid-design/assets/tests/tooling/test_move_plan.py 하나(계획 N3.11 tooling/).
+입력: interface card(신규 move_plan.* · move_plan.main, 기존 함수 0행) + spec card '관찰 가능한 계약' 1~10 전부·'oracle 종류와 출처' 전부(v6·v7·v8.4·conf·r1 필수 합성 단계)·'거부해야 할 입력'·'무동작 판정 입력'.
+열람 금지: tools/migrate/move_plan.py(아직 없음), tools/gates 소스(G1 SourceIndex 구현 포함), _drafts/.
+커밋: git -C <worktree> commit --trailer "Role: test" --trailer "Change-Id: 20260930-p3-move-plan-tool" -m "test: …"
+```
+
+**모양 요구**
+1. **CLI만**(하위 프로세스, 인자 목록 -- 셸 없음). 모든 test는 먼저 `<저장소>/tools/migrate/move_plan.py` 존재와 출력 첫 줄이 JSON이고 `"tool": "move_plan"`임을 단언(계약 10 -- 도우미 맨 앞에 두면
+   도구 없는 base에서 모든 test가 `AssertionError`로 FAIL, 수집 오류 아님). exit 2를 기대하는 test는 존재 단언 뒤에 `verdict == "ERROR"`도 단언한다(`can't open file`의 exit 2로 공허 PASS 금지 -- 검토가 재현).
+2. **합성 git 저장소**(`tmp_path`): 도구는 게이트 모듈을 **`--root`의 `tools/gates`**에서 import한다(계약 1) -- 합성 저장소에 test가 도는 저장소의 `tools/gates`를 복사해 넣는다(`redteam`·`__pycache__` 제외면 충분).
+   경로 = `skills/analog-gmid-design/assets/<가짜>.py`(G1 `_is_source` 범위), 가짜 계획서·레지스트리는 아무 경로(`--plan`·`--registry`로 넘김). 커밋은 `git -c user.name=… -c user.email=… commit`.
+   파일은 LF로 쓴다. `check`는 커밋 둘 이상(이동 card를 하나씩 적용한 커밋들 + shim 삭제 커밋 -- 계약 8 (b)(c)).
+3. 가짜 N3.10 표: `### N3.10 ` 제목 + `| ID | 파일 | 책임 | 대표 대상 |`(`mod_table`은 `MOD<n>`·`` `<파일>.py` ``만 받는다 -- 다른 모양이면 exit 2). A-1은 **`대표 대상` 열만** 읽는다 -- `책임` 열의 백틱은 토큰이 아니다.
+   대표 대상에 식별자·글롭(`*` 하나)·`<파일>.py`·`<모듈>.<이름>`·무시할 기호(예 `∂X/∂Y`)·산문을 섞는다(oracle (a)). ID가 `MOD7`인 행을 두어야 `lift-cap-mod7`을 만들 수 있다(상한은 N3.10 MOD7 파일 번호로 정해진다 -- 책임 문장 글자가 아니다).
+4. 가짜 레지스트리: `| 함수 | 책임 | 이관 목적지 | 비고 |` 표 + **목적지 열 없는 `| 함수 | 파일 | … |` 표 하나를 미끼로**(미끼 행이 배정·`reg_mismatch`에 영향 0이어야 한다),
+   목적지 셀에 MOD 이름·옛 이름(`--aliases`)·`〃`·두 MOD·빈 셀, 5열 표(`처리` 열)도 하나. 함수 표가 하나도 없으면 exit 2(계약 1).
+5. **필수 합성 단계 -- card 'oracle 종류와 출처' 절의 목록 전부**(20개 이름 -- UD-6 `reg-first-token`·det `determinism` 포함, 하위 갈래 포함. 아래는 색인일 뿐 기대 문장은 card에서 그대로 옮긴다):
+   * v6: `order-split-n310-lower`·`shim-partial-move`·`shim-complete` (i)(ii)·`shim-all-mode`
+   * v7: `import-time-high` (i)~(v)((iii)는 future 유무 둘 -- 배정은 A-1 토큰으로 고정하고 다른 목록이 빈지 함께 단언해야 exit 1이 `import_time_high` 하나 때문임을 보인다)
+   * v8.4(D-30·D-31): `mod-imports-dedup`(그 목록대로 만든 이동 card의 `check` -- `import-dup`·`move-rejected` 0, 원본 줄을 그대로 모으면 `import-dup` 1·`move-rejected` 비지 않음)·`mod-imports-conflict`·`future-mixed`·
+     `doc-excluded`·`keep-residual`·`lift-a4`·`lift-cap-mod7`·`a6-ref-follow`·`a7-isolated`·`monotone-seed`(두 입력 순서로 실행해 `assignment` 같음)
+   * conf: `a1-conflict`(`conflicts` 단위는 `assignment`·`unassigned`·`reg_mismatch` 어디에도 없음, exit 1)
+   * r1: `mod-imports-unresolved`(배정 없는 출처의 이름은 `mod_imports`에 없고 `import_conflicts`도 0 -- `conflicts` 하나로 exit 1)·`edge-fail-closed` (e1)~(e4)
+   * UD-6: `reg-first-token`(레지스트리 함수 칸에 백틱 토큰 둘 -- 첫 토큰만 그 행의 단위 키, 둘째 토큰 단위는 행 없는 단위로 A-5; 첫 구성 `upward` 1·exit 1, 칸을 바꾼 둘째 구성 exit 0)
+   * det(det2 개정): `determinism`(**순서를 단언하는 목록마다 원소 4개 이상·`cycles` 2개 이상**, 토큰·레지스트리 행은 이름 역순; 같은 `plan`·`check` 인자를 환경 `PYTHONHASHSEED` = 0~7 하위 프로세스로 **여덟 번** -- stdout 바이트 모두 같음, 계약 2 '결정성' 순서와 구성이 정한 원소(`upward` 6 = lift-cap 4 + 순환 2) 단언,
+     (iv) (e5)·(e6)는 **C0의 자식 커밋**에서 -- 칸 `m2`·`m5` → exit 2, `m2`·`m2` → `m2.py` A-4, A-3 행이 더해져도 exit 2, `q`가 A-1 토큰이면 `m3.py` A-1, (det3) 참조자 있는 dataclass `Q`의 칸 `m2`·`m5` → exit 2, A-3 행 `m2, m5`·`m3, m6` → exit 2((e6)), `m2, m5`·`m2, m6` → `m2.py` A-3; (v) 시드 증인 -- 시드 0~7에서 집합 반복 순서가 둘 이상 갈림을 test가 스스로 보인다.
+     (det3) C0 구성 요구 **(a)** 참조자가 서로 다른 MOD에 있는 A-5 상수 4개 이상(배정 = 가장 낮은 참조자 MOD 단언), **(b)** 한 MOD의 `mod_imports`에 `from` 줄 4개 이상·`import` 줄 2개 이상(그 목록 **전체** 단언, import 문은 모듈 이름순이 아닌 순서로 적음), **(c)** 순서를 단언하는 목록의 이름에 대문자·`_` 접두·소문자를 섞음(코드 포인트 ≠ 대소문자 무시 ≠ 구두점 무시 순서);
+     **(vi)** `import_conflicts` 4를 만드는 C0의 자식 커밋(`src.py`·`iso.py`가 같은 이름 넷을 `pa`·`pb`로 묶고 같은 MOD) -- 시드 0~7 바이트 같음 + 목록 전체(`origin` 튜플은 정렬 안 함) 단언. `import_time_high`·`absent_split`은 이 단계가 순서를 겨누지 않는다(card 명시).
+     원소 2개·시드 0·1 구성은 `unassigned` 누출 구현을 통과시켰고(`_drafts/review_d0a_det.md` S1), (a)~(c)·(vi)가 없는 구성은 내용 비결정·`from` 줄 순서·대소문자 무시 정렬·`import_conflicts` 순서 누출을 통과시켰다(`_drafts/review_d0a_det2.md` S2), `_drafts/d0a_determinism.md`)
+   **주의(검토 m4)**: `lift-a4` 첫 갈래는 구성상 `reg_mismatch` 1(칸 j ≠ 배정 k)로 **exit 1**이다 -- exit 0을 단언하지 않는다. 각 단계는 **구성으로 기대가 정해진다** -- 도구 출력에서 기대값을 만들지 않는다.
+6. 그 밖의 계약(card 계약 2·3·4): 규칙 ID 집합 {A-0, A-1, A-2, A-3, A-4, A-K, A-5, A-6, A-7}과 우선순위, conf(`conflicts` 단위 무배정), 승격(A-2·A-4·A-5 -- R(u) 최댓값은 N3.10 MOD 번호만)과 MOD7 상한,
+   단조 고정점(A-3·A-4 선착석), 모듈 docstring 제외, 단위 키(함수·클래스 = 이름, 문장 = 바인딩 이름 정렬 `,` 연결, 무바인딩 = `<stmt:해시12>` -- 해시 값을 손으로 만들 수 없으면 접두 `<stmt:` 모양만),
+   `reexports` 모양(`from <줄기> import a, _b` 이름순, `_` 포함), `order`, `absent_split`(shim 지운 커밋에서 exit ≠ 2), `reg_mismatch`(r1 정의 -- 별칭만 있는 칸도 든다), `mod_imports`(이름마다 항목 하나, `__future__` 줄 맨 앞)·
+   `import_conflicts` (i)~(iv), 배정 없는 출처(r1), `upward`·`cycles`·`unassigned`·`conflicts`, `check` 발견 종류 키 11개(`move-set`·`move-rejected`·`changed`·`rebind`·`future`·`import-dup`·`stmt-order`·`lost`·`order`·`shim`·`cache`) 항상 있음,
+   각 발견의 거부 구성(card '거부해야 할 입력')과 **거부하지 않아야 할 것**(v6), exit 2 경우들(오류 JSON `{"tool","verdict":"ERROR","error"}` -- r1 (e1)·(e4) 포함), 무동작(base = head `check`: `move-set` 외 발견 0).
+7. 이름: 가짜 모듈·함수 이름만(회로·넷·소자·실제 엔진 모듈 이름 금지 -- 계약 7 '합성 입력에서 모든 계약 성립'). test 함수마다 **if·try 밖 assert ≥ 1**(V4 (3) 규칙 -- review_d0a_d0b_ready D0a m5: 대역 test에서 `if`/`for` 안에만 assert를 둔 함수가 V4 (3) FAIL이었다.
+   두 구성·두 갈래 단계(`reg-first-token` 등)는 갈래를 `if`로 나누기 쉬우니 함수 본문 최상위(`if`·`for`·`try` 밖)에 assert를 하나 이상 둔다).
+
+**자기 실행**: `PT3`로 이 파일만 -- 도구가 없으니 전부 FAIL이어야 한다(red). 하나라도 PASS면 존재 단언이 빠진 것.
+**소요 예상**: 작성 2~3시간(단계 20개 -- UD-6 `reg-first-token`·det `determinism` 포함; 키트 v9 시제품 6단계 = 90줄), 자기 실행 수십 초.
+
+---
+
+## 2. gmid-code-author 브리프(순서 5)
+
+```
+역할: gmid-code-author. change id = 20260930-p3-move-plan-tool (red-green).
+worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-move-plan-tool-code (브랜치 role/code/20260930-p3-move-plan-tool, 부모 = T). 절대 경로만.
+쓰기 경로: tools/migrate/move_plan.py 하나(계획 N3.12.2 tools/migrate/**). tools/gates/**·tests/**·문서는 쓰지 않는다.
+입력: spec card 전체(특히 계약 1~10)·interface card. test가 틀렸다고 보면 고치지 말고 dispute(<worktree>/docs/02-design/disputes/20260930-p3-move-plan-tool.md) 커밋 후 멈춘다.
+커밋: git -C <worktree> commit --trailer "Role: code" --trailer "Change-Id: 20260930-p3-move-plan-tool" -m "…"
+```
+
+**만들 것 / 지킬 것**(규칙 문언은 card 계약 2가 정본 -- 아래는 빠뜨리기 쉬운 것의 색인)
+1. `main(argv) -> int`(card 시그니처 -- `sys.exit`는 `if __name__ == "__main__":`에서만). 출력은 stdout JSON 한 줄, 첫 키 `tool`·`command`·`verdict`. 오류도 JSON 한 줄 + exit 2(argparse 오류 포함 --
+   기본 argparse는 JSON 없이 exit 2를 낸다).
+2. 게이트 모듈은 `--root`의 `tools/gates`를 `sys.path` 앞에 넣고 import(도구 파일 위치와 무관). 재사용 6개(계약 5) -- `mod_table`·`read_section_table`·`read_tree`·`SourceIndex`·`moved_defs`·
+   `_is_empty_dict`. 같은 개념을 다시 만들지 않는다. 모듈 AST는 **`SourceIndex.tree(path)`로만**(G1 내부 속성·`_` 접두 금지, 다시 파싱 금지 -- 계약 6).
+3. 계약 5·7: `hashlib`·`symtable` import 0, `ast.dump` 호출 0(문장 비교는 `reachability.def_hash`), 파일 텍스트 어디에도(주석·docstring 포함) `library`·`topology.json`·`sizing_recipe`·
+   `stick_diagram`·`topology_library`·`design_report`·`optimizer` 0 -- **`library`는 부분 문자열**이라 `lru_cache` 설명·예시 문장도 조심. 사용 예는 가짜 이름.
+4. 계약 6: 커밋마다 `SourceIndex` 하나(`plan` 1, `check` 2 -- base 색인을 `plan` 계산과 `moved_defs`가 같이 씀), `read_tree` `plan` 1·`check` 2, `moved_defs` `check` 1, 모듈 파싱(`mode="exec"`) ≤ 색인 파일 수.
+   반복 안 질의는 색인 캐시로(바인딩 이름 → 단위 사전, 참조 R(u)·R⁻¹(u)는 한 번 만든다 -- 실제 저장소 `plan` 19~33초 관찰).
+5. 레지스트리 함수 표 = 머리에 `함수`·`이관 목적지`가 둘 다 있는 표 전부, 열 위치는 머리에서, `〃` = 위 행 셀(같은 표 안). 표 읽기는 도구 안(레지스트리 제목이 되풀이되어
+   `read_section_table` 불가). 칸 나누기는 `\|` 이스케이프 규칙(`role_paths._split_cells`와 같게). 행 ↔ 단위 짝 = 함수 이름 칸 = 단위 키(메서드 행 `Class.method`는 클래스 단위).
+6. 규칙(우선순위 순, 계약 2): A-0 현재 위치 → A-1 토큰(`대표 대상` 열만; 두 행 이상 → `conflicts`, **배정하지 않음** -- 뒤 규칙이 고르지 않는다, conf) → A-2 레코드 클래스 → A-3(칸 MOD 둘 이상) → A-4(칸 MOD 하나, 별칭 포함, **승격** + **MOD7 상한**)
+   → A-K(`--keep` 잔여) → A-5(참조자 최저 MOD + 승격) → A-6(참조자 없음 → R(u) 최댓값) → A-7(고립 → N3.10 파일 MOD, 아니면 `unassigned`). 모듈 docstring은 배정 대상 아님. 승격·A-5·A-6의 MOD 번호는
+   **N3.10 MOD 번호만** 센다(`--keep` 도구 번호·배정 없는 단위 제외 -- v8.5 (i)·r1 (e2)(e3)).
+7. 고정점: A-3·A-4 단위를 칸 MOD에 먼저 앉히고 A-2·A-3·A-4·A-5·A-6 반복은 배정을 **올리기만**(상한 안에서), 바뀌지 않을 때까지. 입력 단위 순서와 무관해야 한다(`monotone-seed`). **출력 바이트도 해시 시드·집합 반복 순서와 무관**(계약 2 '결정성' -- 목록 원소 정렬(정수 원소는 수 오름차순)·사전 키 이름순, (e5) exit 2(A-0·A-1이 정하지 않은 단위만 -- A-2로 정해질 레코드 클래스 포함, A-3 행이 있어도 (e5)가 먼저), (det3) (e6) A-3 행 둘 이상의 가장 작은 MOD가 다르면 exit 2(같으면 그 MOD로 A-3), `origin` 출처 튜플은 정렬하지 않음, 단계 `determinism`). 반복 상한을 두면 닿았을 때 조용히 끝내지 말 것.
+   끝까지 정해지지 않으면 `unassigned`(조용한 기본값 금지).
+8. `import_time_high`: s = split이면서 N3.10인 파일 번호의 최솟값. 함수 = 데코레이터·기본값(+ 그 파일에 `from __future__ import annotations`가 없으면 인자·반환 주석), 클래스 = 데코레이터·기반·키워드 +
+   메서드 몸체 밖 클래스 몸체 전부(메서드 머리는 함수 규칙), 문장 = 전체(lambda 몸체 제외, 주석 대입의 주석은 future 없을 때만).
+9. `mod_imports`·`import_conflicts`(D-30): MOD마다 이름 하나에 항목 하나, 줄 순서 = `__future__` 줄 → `from <m> import …` 줄 전부(모듈 이름순, 줄 안 항목 문자열순) → `import <m>` 줄 전부(줄 문자열순)(det2 -- card 계약 2 `mod_imports` 문장 하나가 정의). **배정 없는 출처(r1)**: 출처 단위 w가 배정 대상인데 배정이 없으면(`conflicts`·`unassigned`)
+   그 (k, v) 쌍 전체를 `mod_imports`에서 빼고 `import_conflicts`에도 세지 않는다(`import_time_high`·R(u) 간선에도 들지 않음). `check`의 `import-dup`(MOD 파일에서 이름 하나를 최상위 import 둘 이상이 묶음).
+10. 가장자리(r1, 계약 2 (e1)~(e4)): (e1) 파일 안 단위 키 중복 → exit 2, (e2) N3.10 MOD 배정 참조자가 없으면 A-5·A-6 모두 정하지 않음 → A-7/`unassigned`, (e3) A-6 최댓값에 N3.10 MOD가 없으면 정하지 않음,
+    (e4) 레지스트리 이름이 두 파일 이상의 배정 대상 단위에 맞음 → exit 2. 덮어쓰기·첫 것 고르기 금지.
+11. `reg_mismatch`(r1 정의): `〃` 해소 뒤 A-4 토큰 규칙(별칭 포함)으로 MOD가 정확히 하나인 행 중 짝 단위에 배정이 있고 배정 `mod`가 다른 것.
+12. 광범위 `except` 금지. 새 import는 표준 라이브러리 + 게이트 모듈뿐.
+
+**자기 확인(판정 아님)**: `PT3`로 `tooling/test_move_plan.py` 전부 PASS. 실제 저장소 `MP_ARGS`(design §6.3 bash 배열)로 `plan` exit ≠ 2(card 계약 8 (a) -- 지금 관찰 exit 1).
+
+---
+
+## 3. gmid-verification-auditor 브리프(순서 3·7)
+
+```
+역할: gmid-verification-auditor. change id = 20260930-p3-move-plan-tool, red-green, phase 3.
+audit worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-move-plan-tool-audit (브랜치 role/audit/20260930-p3-move-plan-tool).
+격리 복제본에서만, scratch 새 C:/g<n> 하나(끝나면 그 폴더만 삭제), set -euo pipefail, git -C 절대 경로. 실제 저장소 status·reflog 불변 확인.
+게이트 코드 = base 판(gate master, G1 병합 뒤) 캐시. 작성자 보고는 증거가 아니다. 판정 기록 .ai/verification/20260930-p3-move-plan-tool.json + {scripts,out}/, Role: audit 커밋(판정 순서에서만 한 커밋 -- 순서 3 산출물은 쓰기만).
+```
+
+### 3.1 순서 3(freeze·base 확인)
+* **커밋하지 않는다**: base_check.json 등 산출물은 audit worktree에 쓰기만 하고 커밋하지 않는다(커밋은 순서 7에서 M 위 한 커밋).
+* T 고정, `git diff --name-only <base> <T>` = `tests/tooling/test_move_plan.py` 하나.
+* red: base(도구 없음)에서 그 파일 `PT3 --gmid-strict=` → **모든 test FAIL, 원인 = 도구 존재 단언**(수집 오류 0 -- `-p merge_gate --continue-on-collection-errors`·`GMID_RED_CAPTURE`로 기록,
+  `failure_hashes` = base 판 `merge_gate.red_failure_hash`). exit 2를 기대하는 test가 `can't open file`로 통과하면 test 결함(계약 10).
+* **`check` 구성 대조(무겁다 -- review_d0a_d0b_ready D0a m4)**: 계약 4 `check`의 발견 11종(`move-set`·`move-rejected`·`changed`·`rebind`·`future`·`import-dup`·`stmt-order`·`lost`·`order`·`shim`·`cache`)은 어느 독립 검토도 재구현하지 않았다 -- 첫 실행이 test-author 단계다.
+  그래서 v6 `order-*`·`shim-*` 단계와 v8.4 `import-dup` 구성(test에 있으면)의 기대(발견 종류·개수·exit)를 card 계약 4 문장과 **줄 단위로** 대조해 기록한다(기대가 구성에서 왔는지, 문장에 없는 발견을 단언하지 않는지).
+* oracle 대조 준비: card 'oracle' 절의 필수 단계 **20개 이름**(v6 4·v7 1·v8.4 10·conf 1·r1 2·**UD-6 1 `reg-first-token`**·**det 1 `determinism`**)이 모두 있는지(단계 이름 또는 구성으로), 각 기대가 구성에서 왔는지(`lift-a4`를 exit 0으로 단언하면 card와 어긋남).
+  `determinism`(det2)은 card 문장대로 목록마다 원소 4개 이상(`cycles` 2개 이상)·시드 0~7·(iv) (e5) 네 갈래가 C0의 자식 커밋·(v) 시드 증인이 있는지 본다 -- 원소 2개·시드 둘이면 집합 순서 누출 구현을 놓친다(`_drafts/review_d0a_det.md` S1).
+  (det3) 그리고 C0 구성 요구 (a) 다중 MOD 참조자 A-5 4개 이상과 그 배정 단언, (b) 한 MOD `from` 줄 4개 이상·`import` 줄 2개 이상과 그 `mod_imports` 목록 전체 단언, (c) 대문자·`_`·소문자 혼합 이름(코드 포인트 순서가 대소문자 무시 순서와 실제로 다른지), (iv-e)~(iv-g), (vi) `import_conflicts` 자식 커밋(목록 전체·`origin` 그대로)이 있는지 본다 -- 없으면 card 괄호의 FAIL 주장이 성립하지 않는다(`_drafts/review_d0a_det2.md` S2).
+  `reg-first-token`은 계약 2 '첫 백틱 토큰' 읽기의 오구현(모든 토큰으로 읽기)을 잡는 유일한 합성 단계다 -- 두 구성(첫 구성 `upward` 1·exit 1, 칸을 `mj`로 바꾼 둘째 구성 exit 0)이 모두 있는지 본다(review_d0a_d0b_ready D0a-S1).
+
+### 3.2 순서 7(병합본 판정)
+
+* 순서 3 산출물(base_check.json 등)은 이미 audit worktree에 미커밋으로 있다 -- 이 순서 7의 한 커밋(M 위, `Role: audit`)에 판정 기록과 함께 넣는다.
+
+| V | 기대 | 증거 |
+|---|---|---|
+| V1 | PASS. 전체 `PT3 --gmid-strict=`(card phase 3), base 대비 새 test만 늘고 나머지 같음 | base·병합본 전체 실행 대조(각 6~7분) |
+| V2 | PASS red-green: red 집합 = 새 파일 test 전부(3.1), green = 병합본 전부 PASS | 3.1 기록 + 병합본 실행 |
+| V3 | PASS `targets []` -- `tools/migrate`는 `_is_source` 밖(선례 `20260922-ts1-extract-tool` V3 DESIGN-GAP 문장). 보조 측정(판정 입력 아님): 캐시 `mutate_changed.mutants()`로 도구 def 변이를 새 test로 판정한 생존 수. 출력 키는 V3 면제 묶기 뒤 판(`survivor_bindings`·`exempt_ignored`) | `mutate_changed.py … --gmid-phase=3 --gmid-strict=` |
+| V4 | PASS. `--interface-card`(생성본 -- '기존 함수 0개'인지 먼저 확인) + `--module-dir tools/migrate`. findings NO-SUBJECT만이면 basis는 oracle 대조 문장으로(단계마다 card 문장·구성) | `test_lint.py --root --base --head --interface-card <card> --module-dir tools/migrate` |
+| V5 | PASS `diff_paths []`(새 파일) | `weakening_diff.py` |
+| V6 | PASS. 도구 파일은 V6 대상 밖이면 `targets []` -- 그래도 광범위 except 0을 직접 grep | `source_lint.py` + AST |
+| V7 | PASS `new_defs []`(그래프 밖) -- 배선 관찰은 card 계약 9: D0b test·M card equivalence·DoD E2·E4·E6가 부른다(지금은 D0b 전 -- 계약 9 (i)이 없으면 D0b가 막는다) | `reachability.py` |
+| V8·V9 | N/A(도입 4·6b) | -- |
+| V10 | PASS, 재현 수치 없음. **계약 확인 측정**(probe, 병합본 도구, 기대값은 card 문장): 계약 5(AST: `hashlib`·`symtable` import 0, `ast.dump` 0, `def mod_table`·`def moved_defs`·`def binding_origin` 0, `SourceIndex` 객체에 `tree`·`units`·`global_names`·`binding_origin` 밖 속성 접근 0), 계약 6(`cProfile` 합성 입력 -- `SourceIndex` 생성 `plan` 1·`check` 2, `read_tree` 1·2, `moved_defs` 0·1, 모듈 파싱 `mode="exec"` ≤ 색인 파일 수 -- G1 문자열 주석 eval 파싱 제외), 계약 7(`git grep` 0건), 계약 2 v8.4·conf·r1(합성 입력 probe: 규칙 ID가 집합 안, docstring 단위 없음, `mod_imports` 이름마다 항목 하나, `conflicts` 단위 무배정, 배정 없는 출처 쌍이 `mod_imports`·`import_conflicts`에 없음, (e1)·(e4) exit 2), 계약 8 (a)(실제 저장소 `MP_ARGS` exit ≠ 2 -- 관찰, 사전 측정 exit 1), 레지스트리 미끼 표 무영향 | auditor 스크립트 |
+
+판정 기록 `approvals` = `["20260930-30-module-split-design"]`. M card·DoD가 실행할 사본의 출처 = 이 판정 기록의 `code_commit`(card 계약 1) -- 기록에 그 sha와 파일 sha256을 적는다.
+계약 8 (a) 관찰을 기록할 때 실제 트리 수치(`upward`·`cycles`)는 판정 입력이 아니다 -- 계약 키로 `upward` 1·`cycles` 1이 나올 수 있다(0.2, 레지스트리 277행 결정 전).
+
+---
+
+## 4. 순서 요약(오케스트레이터)
+
+design 30 승인(완료, `36e170e`) → (B34 → b26pre → backfill → B26-1 → B33; V3 범위 정책 card 35는 `a17b8bd` 병합 완료) → **G1 병합(`SourceIndex.tree`)** → 착수 0단계 → spec card(measured rev 갱신) + interface card(절대 경로, 기존 함수 0개 확인) →
+순서 1 test worktree → test-author(1절) → 순서 3 auditor(3.1) → 순서 4 code worktree → code-author(2절) → 순서 6 병합(병합 전 `git -C C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-move-plan-tool-audit log --oneline role/test/20260930-p3-move-plan-tool..HEAD` 출력이 비어야 한다 -- 비어 있지 않으면 순서 3 커밋이 섞인 것, 병합하지 말고 멈춤) → 순서 7 auditor(3.2) → push 단독·전체 출력 확인 → 정리 → (FU 병합) → D0b(0.4 기록 전달).
+
+## 5. 키트 파일(`_drafts/p3kit_d0a/` -- 키트 v9, `19eb475` 기준, 측정 전용)
+
+| 파일 | 내용 |
+|---|---|
+| `move_plan_proto.py` | `plan` 시제품(키트 v9 판 -- v8.4 규칙·conf·r1 미반영, 문장 키 `<stmt:해시>`) -- **역할에게 건네지 않는다** |
+| `gen_ith.py` | v7 `import-time-high` 6단계 합성 저장소 생성·실행 → `out/ith_stages.jsonl` |
+| `test_move_plan.proto.py` | red/green·V4 모양 확인용 시제품 test(6단계) -- **역할에게 건네지 않는다** |
+| `count_calls.py` | 계약 6 관찰(`ast.parse` mode별·`read_tree`·`SourceIndex` 호출 수) → `out/calls_base.json` |
+| `v_tools.sh` | V3·V4(`--interface-card` + `--module-dir tools/migrate`)·V5·V6·V7 → `out/vtools/` |
+| `out/plan_base_19eb475.json` | 실제 저장소 `plan` 시제품 출력(관찰, 낡음) |
+| `out/red_T.txt`, `out/green_K.txt` | 시제품 test red(6 failed)·green(6 passed) |
+| `out/d0a.interface.generated.md`, `out/iface_proto.md` | 키트 v9 초안으로 생성한 interface card(기존 함수 0개), V4 시험용 card |
+
+G1 시제품 설치(`_drafts/g1_kit/install_proto.py`): 옛 판(`5790433c…`)은 `36e170e`에서 앵커 실패, 지금 판(`218e2162…`)은 `7243f28` 위에서 "installed 4"(0.5-2). r1 독립 검토의 재구현 스크립트(`C:/g212/*`)는 검토 끝에 삭제되었다 -- 남은 근거는 `_drafts/review_d0a.md`.

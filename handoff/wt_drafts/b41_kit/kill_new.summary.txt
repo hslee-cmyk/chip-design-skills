@@ -1,0 +1,1 @@
+{"tests": ["skills/analog-gmid-design/assets/tests/contracts/test_instance_scope_note.py"], "results": {"stmt_delete:body[2]": "killed", "stmt_delete:body[2].body[0]": "killed", "const+:body[6].body[0].value.keywords[0].value": "survived", "const-:body[6].body[0].value.keywords[0].value": "survived"}}

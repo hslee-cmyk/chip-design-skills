@@ -1,0 +1,144 @@
+A n all: nonempty 309222 differ 0 (0.0%) left 0 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: -
+     diff(any) drel: -
+     diff(any) dlnidu: -
+A n short: nonempty 85895 differ 0 (0.0%) left 0 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: -
+     diff(any) drel: -
+     diff(any) dlnidu: -
+A n long: nonempty 223327 differ 0 (0.0%) left 0 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: -
+     diff(any) drel: -
+     diff(any) dlnidu: -
+A p all: nonempty 301104 differ 59576 (19.8%) left 59576 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: min 0.0375 / med 0.0375 / p90 0.112 / max 0.225 (n=59576)
+     diff(any) drel: min 3.23e-10 / med 2.47e-07 / p90 6.58e-07 / max 1.32e-06 (n=59576)
+     diff(any) dlnidu: min 1.19 / med 1.27 / p90 3.83 / max 7.66 (n=59576)
+A p short: nonempty 83640 differ 88 (0.1%) left 88 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: min 0.0375 / med 0.0375 / p90 0.0375 / max 0.0375 (n=88)
+     diff(any) drel: min 1.08e-07 / med 1.75e-07 / p90 2.41e-07 / max 2.41e-07 (n=88)
+     diff(any) dlnidu: min 1.26 / med 1.26 / p90 1.26 / max 1.26 (n=88)
+A p long: nonempty 217464 differ 59488 (27.4%) left 59488 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: min 0.0375 / med 0.0375 / p90 0.112 / max 0.225 (n=59488)
+     diff(any) drel: min 3.23e-10 / med 2.47e-07 / p90 6.58e-07 / max 1.32e-06 (n=59488)
+     diff(any) dlnidu: min 1.19 / med 1.27 / p90 3.83 / max 7.66 (n=59488)
+B n all: nonempty 300961 differ 0 (0.0%) left 0 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: -
+     diff(any) drel: -
+     diff(any) dlnidu: -
+B n short: nonempty 85895 differ 0 (0.0%) left 0 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: -
+     diff(any) drel: -
+     diff(any) dlnidu: -
+B n long: nonempty 215066 differ 0 (0.0%) left 0 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: -
+     diff(any) drel: -
+     diff(any) dlnidu: -
+B p all: nonempty 278308 differ 48160 (17.3%) left 13540 mat(>1%) 20044 (7.2%)
+     mat dvgs: min 0.0375 / med 0.225 / p90 0.338 / max 0.412 (n=20044)
+     mat drel: min 0.01 / med 0.0297 / p90 0.0662 / max 0.0803 (n=20044)
+     mat dlnidu: min 0.583 / med 3.92 / p90 5.75 / max 6.83 (n=20044)
+     mat dg: min 0.152 / med 0.492 / p90 1.06 / max 1.2 (n=20044)
+     diff(any) dvgs: min 0.0375 / med 0.075 / p90 0.3 / max 0.413 (n=48160)
+     diff(any) drel: min 3.23e-10 / med 0.00741 / p90 0.0559 / max 0.0803 (n=48160)
+     diff(any) dlnidu: min 0.583 / med 1.28 / p90 5.16 / max 7.66 (n=48160)
+B p short: nonempty 83640 differ 24303 (29.1%) left 20 mat(>1%) 19880 (23.8%)
+     mat dvgs: min 0.0375 / med 0.262 / p90 0.338 / max 0.412 (n=19880)
+     mat drel: min 0.01 / med 0.03 / p90 0.0662 / max 0.0803 (n=19880)
+     mat dlnidu: min 0.583 / med 3.93 / p90 5.75 / max 6.83 (n=19880)
+     mat dg: min 0.152 / med 0.497 / p90 1.06 / max 1.2 (n=19880)
+     diff(any) dvgs: min 0.0375 / med 0.225 / p90 0.338 / max 0.413 (n=24303)
+     diff(any) drel: min 1.08e-07 / med 0.0232 / p90 0.065 / max 0.0803 (n=24303)
+     diff(any) dlnidu: min 0.583 / med 3.8 / p90 5.67 / max 6.83 (n=24303)
+B p long: nonempty 194668 differ 23857 (12.3%) left 13520 mat(>1%) 164 (0.1%)
+     mat dvgs: min 0.075 / med 0.075 / p90 0.075 / max 0.075 (n=164)
+     mat drel: min 0.011 / med 0.0125 / p90 0.0136 / max 0.0138 (n=164)
+     mat dlnidu: min 1.38 / med 1.39 / p90 1.39 / max 1.39 (n=164)
+     mat dg: min 0.203 / med 0.23 / p90 0.25 / max 0.254 (n=164)
+     diff(any) dvgs: min 0.0375 / med 0.0375 / p90 0.112 / max 0.225 (n=23857)
+     diff(any) drel: min 3.23e-10 / med 6.17e-07 / p90 0.00743 / max 0.0138 (n=23857)
+     diff(any) dlnidu: min 0.62 / med 1.25 / p90 3.71 / max 7.66 (n=23857)
+C n all: nonempty 300961 differ 0 (0.0%) left 0 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: -
+     diff(any) drel: -
+     diff(any) dlnidu: -
+C n short: nonempty 85895 differ 0 (0.0%) left 0 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: -
+     diff(any) drel: -
+     diff(any) dlnidu: -
+C n long: nonempty 215066 differ 0 (0.0%) left 0 mat(>1%) 0 (0.0%)
+     mat dvgs: -
+     mat drel: -
+     mat dlnidu: -
+     mat dg: -
+     diff(any) dvgs: -
+     diff(any) drel: -
+     diff(any) dlnidu: -
+C p all: nonempty 278308 differ 34620 (12.4%) left 0 mat(>1%) 20044 (7.2%)
+     mat dvgs: min 0.0375 / med 0.225 / p90 0.338 / max 0.412 (n=20044)
+     mat drel: min 0.01 / med 0.0297 / p90 0.0662 / max 0.0803 (n=20044)
+     mat dlnidu: min 0.583 / med 3.92 / p90 5.75 / max 6.83 (n=20044)
+     mat dg: min 0.152 / med 0.492 / p90 1.06 / max 1.2 (n=20044)
+     diff(any) dvgs: min 0.0375 / med 0.075 / p90 0.337 / max 0.413 (n=34620)
+     diff(any) drel: min 4.88e-06 / med 0.0136 / p90 0.0619 / max 0.0803 (n=34620)
+     diff(any) dlnidu: min 0.583 / med 1.3 / p90 5.38 / max 6.83 (n=34620)
+C p short: nonempty 83640 differ 24283 (29.0%) left 0 mat(>1%) 19880 (23.8%)
+     mat dvgs: min 0.0375 / med 0.262 / p90 0.338 / max 0.412 (n=19880)
+     mat drel: min 0.01 / med 0.03 / p90 0.0662 / max 0.0803 (n=19880)
+     mat dlnidu: min 0.583 / med 3.93 / p90 5.75 / max 6.83 (n=19880)
+     mat dg: min 0.152 / med 0.497 / p90 1.06 / max 1.2 (n=19880)
+     diff(any) dvgs: min 0.0375 / med 0.225 / p90 0.338 / max 0.413 (n=24283)
+     diff(any) drel: min 2.45e-05 / med 0.0232 / p90 0.065 / max 0.0803 (n=24283)
+     diff(any) dlnidu: min 0.583 / med 3.8 / p90 5.67 / max 6.83 (n=24283)
+C p long: nonempty 194668 differ 10337 (5.3%) left 0 mat(>1%) 164 (0.1%)
+     mat dvgs: min 0.075 / med 0.075 / p90 0.075 / max 0.075 (n=164)
+     mat drel: min 0.011 / med 0.0125 / p90 0.0136 / max 0.0138 (n=164)
+     mat dlnidu: min 1.38 / med 1.39 / p90 1.39 / max 1.39 (n=164)
+     mat dg: min 0.203 / med 0.23 / p90 0.25 / max 0.254 (n=164)
+     diff(any) dvgs: min 0.0375 / med 0.0375 / p90 0.075 / max 0.075 (n=10337)
+     diff(any) drel: min 4.88e-06 / med 0.00514 / p90 0.00818 / max 0.0138 (n=10337)
+     diff(any) dlnidu: min 0.62 / med 0.685 / p90 1.37 / max 1.39 (n=10337)

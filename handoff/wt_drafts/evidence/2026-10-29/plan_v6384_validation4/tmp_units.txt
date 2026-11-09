@@ -1,0 +1,15 @@
+1258 ### N6.2 완료 조건
+1271 | 6 | 파일럿 1점 평가가 결과 JSON을 내고 봉인 실패 후보가 margin과 함께 기록되며 탐색이 계속됨, cProfile 기록 파일, WP-23 계수 test 묶음 활성(평가 커널 컨텍스트 S0당 1회, 같은 키 재계산 0), **진입점 exit code·θ* 기록**(v6.38.4 백로그 재감사 -- 옛 DF-18 재발 금지, 원문 history H2; 실측 2026-10-29: 최상위 진입점 `run_gmid_design_pipeline`·`sys.exit` 0건, 단계 A·B 보고서는 `exit_code` 칸만 -- `E/pipeline/stage_a.py:105,251`·`stage_b.py:22`): `run_gmid_design_pipeline`(MOD10)은 N3.14 분류 예외를 `exit_code_for`로 프로세스 종료 코드에 싣고(비0), 탐색 단계까지 간 실행은 결과 JSON에 θ*·실패 레코드를 쓴다 -- 판정: 분류마다 합성 실패 픽스처 → 종료 코드 = N3.14 표 값, 결과 JSON 파일 존재·θ* 칸; 완료 측정 = 그 test green + 구조 규칙 F의 예외 1곳(`pipeline/entry.py`)이 그 진입점; MOD10을 만드는 변경이 card가 되면 N6.3 '결정 뒤 card 행' 규칙으로 card 행을 만든다 |
+1274 | 9 | 레이아웃 계약 스키마 test, 실현 W와 W_need(fw)의 차가 LY1 실효 허용오차 안(아니면 W_request)·'격자 지배' 기록, 차동쌍 완화 시 시도 기록과 맨 앞 `review_needed`, 레이아웃 안 재시도에서 평가 커널 호출 0이고 MOD7 결과마다 실현 기하 재평가 1회(LY7), 행 접기·재구성 뒤 matching 재판정(LY9), 복사한 패턴·Euler 함수의 원본 해시 대조 |
+1275 | 10 | nmcnr ±0.9 V와 0/1.8 V 실행이 원점 이동 동등(IC11, 2레일·3레일), push-pull 등식 잔차 ≤ 멤버 수 × tol_V |
+1258 ### N6.2 완료 조건
+2028 ### N6.20 card EO-1 -- 엔진 점 → oracle 입력 생산자와 판정 배선(U17 ②에서 떼어 앞당김, 사용자 결정 O-44 (1))
+2044 ### N6.21 card SD-1 -- spec/topology data: O-73 1단계 외부 망 표지·O-74 공급 구성(사용자 결정 O-73·O-74, DEC-100·DEC-101)
+2130 ### N6.22 card AP-1 -- 응용 회로 별도 topology(O-73 2단계, **미래 card**)
+2134 ### N6.23 card NU-1 -- spec `feedback.elements = []`이면 `noise_out_int_vrms` 정의 불능(사용자 결정 O-76 (1))
+2138 ### N6.24 card NB-1 -- **삭제**(v6.38.4 백로그 재감사 -- 소비자 0; **원래 취지와 다름**: 사용자 결정 O-76 (1)의 미래 card를 지움; 원문 history H2)
+2142 ### N6.25 card RB-1 -- 규칙 갈래 처리기 이음매 + 첫 처리기 S-OS2 일반형(사용자 결정 O-91 (1), DEC-102) -- **v6.35 대상 소멸**
+2146 ### N6.26 card TN-1 -- 절단 넷 규칙 구현 둘 → 하나(사용자 결정 O-83 R-N1, v6.35 둘째 커밋)
+2160 ### N6.27 card GV-1 -- 판정 gain 전달 뷰 소비 통일(v6.35.1 둘째 커밋, 검증 S-1)
+2176 ### N6.28 card SF-1 -- spec 선언 형식 정리와 library spec data(사용자 결정 O-128 Q5·O-129~O-135·O-139·O-143 (6), backlog B84)
+2198 ### N6.29 card TB-1 -- θ 기저 S0 필드(사용자 결정 O-144 J3)

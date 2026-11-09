@@ -1,0 +1,12 @@
+max_rounds=1 orig      interdig_ok=[False] audit3b=[True] reason=max_rounds_exceeded rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=1 loop_del  interdig_ok=[False] audit3b=[True] reason=max_rounds_exceeded rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=1 after_del interdig_ok=[True] audit3b=[True] reason=max_rounds_exceeded rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=2 orig      interdig_ok=[False] audit3b=[True] reason=relaxed_to_layout rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=2 loop_del  interdig_ok=[True] audit3b=[True] reason=relaxed_to_layout rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=2 after_del interdig_ok=[False] audit3b=[True] reason=relaxed_to_layout rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=3 orig      interdig_ok=[False] audit3b=[True] reason=relaxed_to_layout rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=3 loop_del  interdig_ok=[True] audit3b=[True] reason=relaxed_to_layout rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=3 after_del interdig_ok=[False] audit3b=[True] reason=relaxed_to_layout rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=5 orig      interdig_ok=[False] audit3b=[True] reason=relaxed_to_layout rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=5 loop_del  interdig_ok=[True] audit3b=[True] reason=relaxed_to_layout rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}
+max_rounds=5 after_del interdig_ok=[False] audit3b=[True] reason=relaxed_to_layout rows={'seg1_seg0': ['Mp'], 'seg1_seg1': ['Mb', 'Ma']}

@@ -1,0 +1,45 @@
+source: classab_battery/_stage_a/current_reuse_telescopic_ota.stage_a.json
+== view 0 transfer:0 transfer
+ block ['Vom'] stage 2 kind gain [['M15', 'input'], ['M16', 'input']]
+ block ['Vom1', 'Vop1'] stage 1 kind gain [['M18a', 'pass'], ['M18b', 'pass'], ['M9a', 'pass'], ['M9b', 'pass']]
+ block ['Vop'] stage 2 kind gain [['M25', 'input'], ['M26', 'input']]
+ cell {'degeneration': False, 'dev': 'M11a', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M11b', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M14a', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M14b', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M15', 'forward': True, 'kind': 'cs', 'out': 'Vom'}
+ cell {'degeneration': False, 'dev': 'M16', 'forward': True, 'kind': 'cs', 'out': 'Vom'}
+ cell {'degeneration': False, 'dev': 'M18a', 'forward': True, 'kind': 'pass', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M18b', 'forward': True, 'kind': 'pass', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M20a', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M20b', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M23a', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M24b', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M25', 'forward': True, 'kind': 'cs', 'out': 'Vop'}
+ cell {'degeneration': False, 'dev': 'M26', 'forward': True, 'kind': 'cs', 'out': 'Vop'}
+ cell {'degeneration': False, 'dev': 'M9a', 'forward': True, 'kind': 'pass', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M9b', 'forward': True, 'kind': 'pass', 'out': ''}
+ pass_bundles [{'members': ['M9a', 'M9b'], 'nodes': ['Vg15', 'Vop1']}, {'members': ['M18a', 'M18b'], 'nodes': ['Vg25', 'Vom1']}]
+ main_path∩ ['M15', 'M16', 'M18a', 'M18b', 'M25', 'M26', 'M9a', 'M9b']
+== view 1 loop:M37a:Voc loop
+ block ['Vom'] stage 2 kind gain [['M15', 'input'], ['M16', 'input']]
+ block ['Vop'] stage 2 kind gain [['M25', 'input'], ['M26', 'input']]
+ block ['Vom1', 'Vop1'] stage 1 kind gain [['M18a', 'pass'], ['M18b', 'pass'], ['M9a', 'pass'], ['M9b', 'pass']]
+ cell {'degeneration': False, 'dev': 'M11a', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M11b', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M14a', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M14b', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M15', 'forward': True, 'kind': 'cs', 'out': 'Vom'}
+ cell {'degeneration': False, 'dev': 'M16', 'forward': True, 'kind': 'cs', 'out': 'Vom'}
+ cell {'degeneration': False, 'dev': 'M18a', 'forward': True, 'kind': 'pass', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M18b', 'forward': True, 'kind': 'pass', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M20a', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M20b', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M23a', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M24b', 'forward': False, 'kind': 'diode_load', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M25', 'forward': True, 'kind': 'cs', 'out': 'Vop'}
+ cell {'degeneration': False, 'dev': 'M26', 'forward': True, 'kind': 'cs', 'out': 'Vop'}
+ cell {'degeneration': False, 'dev': 'M9a', 'forward': True, 'kind': 'pass', 'out': ''}
+ cell {'degeneration': False, 'dev': 'M9b', 'forward': True, 'kind': 'pass', 'out': ''}
+ pass_bundles [{'members': ['M9a', 'M9b'], 'nodes': ['Vg15', 'Vop1']}, {'members': ['M18a', 'M18b'], 'nodes': ['Vg25', 'Vom1']}]
+ main_path∩ []

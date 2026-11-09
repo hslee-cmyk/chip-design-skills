@@ -1,0 +1,33 @@
+== library/common_gate_amplifier.topology.json rails=['gnd', 'vdd'] pruned=[]
+   dead MOS (KCL 항등 0) = []
+== library/current_reuse_telescopic_ota.topology.json rails=['gnd', 'vdd'] pruned=['Rz1', 'Rz2']
+   dead MOS (KCL 항등 0) = []
+== library/folded_cascode.topology.json rails=['gnd', 'vdd'] pruned=[]
+   dead MOS (KCL 항등 0) = []
+== library/ngcc_3stage_ff.topology.json rails=['gnd', 'vdd'] pruned=[]
+   dead MOS (KCL 항등 0) = []
+== library/nmcnr_amplifier.topology.json rails=['agnd', 'vdd', 'vss'] pruned=['Rm']
+   dead MOS (KCL 항등 0) = []
+== library/pushpull_follower_buffer.topology.json rails=['agnd', 'vdd', 'vss'] pruned=[]
+   dead MOS (KCL 항등 0) = []
+== library/sf_pushpull_output_opamp.topology.json rails=['agnd', 'vdd', 'vss'] pruned=[]
+   dead MOS (KCL 항등 0) = []
+== library/two_stage_ota.topology.json rails=['gnd', 'vdd'] pruned=['Rz']
+   dead MOS (KCL 항등 0) = []
+== library/two_stage_ota_sf.topology.json rails=['gnd', 'vdd'] pruned=[]
+   dead MOS (KCL 항등 0) = []
+== heldout/cnr_ota.topology.json rails=['VDD_1V8', 'VSS'] pruned=[]
+   dead MOS (KCL 항등 0) = []
+== heldout/erfc_ota.topology.json rails=['gnd', 'vcn', 'vcp', 'vdd'] pruned=[]
+   dead MOS (KCL 항등 0) = ['M19', 'M20', 'M21']
+   성분 nets=['n_m5g', 'n_m6g', 'vcn'] 고정쪽후보=['vcn'](수 1) 빈쪽=['n_m5g', 'n_m6g'] 포트∩빈쪽=[] 사슬길이=2
+     M19: d=n_m5g s=vcn bulk=vdd 고정쪽=vcn bulk==고정쪽=False
+     M20: d=n_m6g s=vcn bulk=vdd 고정쪽=vcn bulk==고정쪽=False
+   성분 nets=['n_m8g', 'vcp'] 고정쪽후보=['vcp'](수 1) 빈쪽=['n_m8g'] 포트∩빈쪽=[] 사슬길이=1
+     M21: d=n_m8g s=vcp bulk=vdd 고정쪽=vcp bulk==고정쪽=False
+== heldout/r2r_opamp.topology.json rails=['VDD', 'VSS'] pruned=[]
+   dead MOS (KCL 항등 0) = []
+== heldout/rfc_ota.topology.json rails=['gnd', 'vdd'] pruned=[]
+   dead MOS (KCL 항등 0) = []
+
+13회로 dead MOS 합계 = 3

@@ -1,0 +1,28 @@
+{
+ "gates": "C:/g184/cache/tools/gates",
+ "real": {
+  "changed_files": [
+   "skills/analog-gmid-design/assets/audit_current_forced.py",
+   "skills/analog-gmid-design/assets/design_report.py"
+  ],
+  "defs": [],
+  "mutants_all": 0,
+  "n2w": 0
+ },
+ "control_annotation_edit": {
+  "changed_files": [
+   "skills/analog-gmid-design/assets/audit_current_forced.py",
+   "skills/analog-gmid-design/assets/design_report.py"
+  ],
+  "defs": [
+   {
+    "path": "skills/analog-gmid-design/assets/design_report.py",
+    "def": "_kv_table",
+    "mutants": 18,
+    "n2w": 1
+   }
+  ],
+  "mutants_all": 18,
+  "n2w": 1
+ }
+}

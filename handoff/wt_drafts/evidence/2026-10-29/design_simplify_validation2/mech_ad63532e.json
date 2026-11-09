@@ -1,0 +1,475 @@
+[
+{
+"doc": "40-engine",
+"line": 247,
+"dels": [
+"(검증 N-2)"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 249,
+"dels": [
+"(검증 N-8)"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 291,
+"dels": [
+"(검증 N-4)"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 309,
+"dels": [
+"검증 N-3 -- "
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 420,
+"dels": [
+", 검증 M-3"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 464,
+"dels": [
+", 검증 S-3"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 753,
+"dels": [
+"(검증 N-4)",
+"(검증 N-3)"
+],
+"ins": [],
+"cls": [
+"vref",
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 764,
+"dels": [
+"(검증 N-4)"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 863,
+"dels": [
+", 검증 M-3"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 1158,
+"dels": [
+" -- 검증 M-1"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 1162,
+"dels": [
+"(검증 M-3 (a))"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 1168,
+"dels": [
+" -- 검증 M-4"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 1173,
+"dels": [
+"(검증 M-3 (b))"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 1178,
+"dels": [
+"(검증 M-3 (c))"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 1204,
+"dels": [
+"(검증 C-1)"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 1208,
+"dels": [
+", 검증 M-4"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 1214,
+"dels": [
+"(검증 M-4)"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 1222,
+"dels": [
+"(검증 M-3 (b))"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "40-engine",
+"line": 1935,
+"dels": [
+", 검증 S-4",
+"(검증 N-3)"
+],
+"ins": [],
+"cls": [
+"vref",
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 651,
+"dels": [
+", 검증 I2"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 664,
+"dels": [
+", 재검증 S-1"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 671,
+"dels": [
+", 재검증 R2·R5",
+"; 검증 G-1·S-5"
+],
+"ins": [],
+"cls": [
+"vref",
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 705,
+"dels": [
+" -- 검증 S-1·N-2·N-3"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 711,
+"dels": [
+", 검증 G-1"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 713,
+"dels": [
+", 검증 S-3"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 723,
+"dels": [
+"검증 S-3, ",
+"검증 S-2 -- "
+],
+"ins": [],
+"cls": [
+"vref",
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 726,
+"dels": [
+", 재검증 G-1",
+" -- 검증 R-2"
+],
+"ins": [],
+"cls": [
+"vref",
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 730,
+"dels": [
+", 검증 S-4",
+", 검증 N-3",
+" -- 재검증 N-3"
+],
+"ins": [],
+"cls": [
+"vref",
+"vref",
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 759,
+"dels": [
+", 검증 N-5"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 761,
+"dels": [
+"(검증 W2)"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 773,
+"dels": [
+"(검증 N-11)"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 774,
+"dels": [
+" -- 검증 N-4",
+", 검증 S-3",
+", 검증 S-3"
+],
+"ins": [],
+"cls": [
+"vref",
+"vref",
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 775,
+"dels": [
+", 재검증 G-1"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 776,
+"dels": [
+", 검증 G-1",
+"재검증 R-2, ",
+", 재검증 N-2"
+],
+"ins": [],
+"cls": [
+"vref",
+"vref",
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 779,
+"dels": [
+", 검증 N-4"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 796,
+"dels": [
+"검증 N-5, "
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1441,
+"dels": [
+", 검증 M-3 (b)"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "41-gain-budget",
+"line": 1448,
+"dels": [
+" -- 검증 M-3, P1"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 10,
+"dels": [
+"(검증 C-1·M-1·M-4)"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 14,
+"dels": [
+"(검증 R7)"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+},
+{
+"doc": "42-gap-checklist",
+"line": 331,
+"dels": [
+" -- 검증 C-1·M-1·M-4"
+],
+"ins": [],
+"cls": [
+"vref"
+]
+}
+]

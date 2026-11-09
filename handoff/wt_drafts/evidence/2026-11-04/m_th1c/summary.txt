@@ -1,0 +1,54 @@
+files=53 rows=310 parse_failed=[]
+convergence/layout_input.py	gm_id_field_text:gm_id=1
+layout/canon_block.py	gm_id_field_text:gm_id=2
+layout/contract_input.py	gm_id_field_text:gm_id=1
+layout/finger_candidates.py	gm_id_field_text:gm_id=2
+layout/outputs.py	gm_id_field_text:gm_id=1
+layout/run.py	gm_id_field_text:gm_id=1
+layout/slice_density.py	call:vgs_for_gm_id=1, gm_id_field_text:gm_id=1, import:vgs_for_gm_id=1
+lut/__init__.py	import:TOL_V_METRICS=1, import:curve_report=1, import:ft_curve=1, import:gm_id_curve=1, import:gm_id_for_target=1, import:idu_curve=1, import:intrinsic_gain_curve=1, import:vdsat_curve=1, import:vgs_for_gm_id=1, str:TOL_V_METRICS=1
+lut/_helpers_gmid_axis.py	call:gm_id_curve=1, def:axis_curve=1, import:gm_id_curve=1
+lut/_helpers_loo.py	def:branch_targets=1
+lut/_helpers_root.py	def:monotone_end=1, def:peak_index=1, def:strong_inversion_root=1
+lut/curve_check.py	call:peak_index=1, def:curve_report=1, import:peak_index=1
+lut/derived_fns.py	call:_conduction_ok=1, call:intrinsic_gain_curve=1, call:vdsat_curve=1, def:_conduction_ok=1, gm_id_field_text:gm_id=2, import:intrinsic_gain_curve=1, import:vdsat_curve=1, peak_text:peak=2
+lut/ft_curve.py	call:axis_curve=1, def:ft_curve=1, import:axis_curve=1
+lut/gm_id_curve.py	def:gm_id_curve=1
+lut/id_inverse.py	call:gm_id_curve=1, call:monotone_end=1, call:peak_index=1, def:gm_id_for_target=1, import:gm_id_curve=1, import:monotone_end=1, import:peak_index=1
+lut/idu_curve.py	call:axis_curve=1, def:idu_curve=1, import:axis_curve=1
+lut/intrinsic_gain_curve.py	call:axis_curve=1, def:intrinsic_gain_curve=1, import:axis_curve=1
+lut/lut_types.py	name:TOL_V_METRICS=1, name:gm_id_inverse_v=2, str:gm_id_inverse=1
+lut/midpoint_checks.py	call:branch_targets=1, call:strong_inversion_root=1, gm_coord_text:gm_id_coord=2, gm_id_field_text:gm_id=2, import:branch_targets=1, import:strong_inversion_root=1
+lut/tolerance.py	attr:gm_id_inverse_v=1, call:branch_targets=1, call:strong_inversion_root=1, gm_coord_text:gm_id_coord=2, import:TOL_V_METRICS=1, import:branch_targets=1, import:strong_inversion_root=1, name:TOL_V_METRICS=3, str:gm_id_inverse=5, str:gm_id_inverse_v=2
+lut/vdsat_curve.py	call:axis_curve=1, def:vdsat_curve=1, import:axis_curve=1
+lut/vgs_current_density.py	call:gm_id_curve=1, call:monotone_end=1, call:peak_index=1, import:gm_id_curve=1, import:monotone_end=1, import:peak_index=1
+lut/vgs_root.py	call:gm_id_curve=1, call:peak_index=1, call:strong_inversion_root=1, def:vgs_for_gm_id=1, import:gm_id_curve=1, import:peak_index=1, import:strong_inversion_root=1
+metrics/achievability_types.py	name:METHOD_INVERSE=1
+metrics/metrics_aux.py	gm_id_field_text:gm_id=1
+metrics/ss_linearize.py	gm_id_field_text:gm_id=2
+search/__init__.py	import:ln_idu_floors=1
+search/_helpers_area.py	call:curve_bundle_of=1, call:curve_value=1, gm_coord_text:gm_id_coord=1, import:curve_bundle_of=1, import:curve_value=1
+search/_helpers_curves.py	call:_at_gm_id=2, call:curve_bundle=2, def:_at_gm_id=1, def:curve_bundle=1, def:curve_bundle_of=1, def:curve_value=1, def:hull=1, gm_id_field_text:gm_id=2, import:ft_curve=1, import:idu_curve=1, import:intrinsic_gain_curve=1, import:vdsat_curve=1, name:ft_curve=1, name:idu_curve=1, name:intrinsic_gain_curve=1, name:vdsat_curve=1
+search/_helpers_guard.py	call:curve_bundle_of=3, call:hull=1, gm_coord_text:gm_id_coord=11, gm_id_field_text:gm_id=3, import:QUANTITY_GM_ID=1, import:curve_bundle_of=1, import:hull=1
+search/cell_floor.py	call:_peak_floor=1, def:_peak_floor=1, def:ln_idu_floors=1, peak_text:peak=4
+search/constraints.py	call:gm_id_curve=1, gm_id_field_text:gm_id=1, import:gm_id_curve=1, peak_text:peak=5
+search/fd_jacobian.py	gm_id_field_text:gm_id=3
+search/front_query.py	gm_id_field_text:gm_id=1
+search/iv_area.py	call:curve_bundle_of=2, call:curve_value=1, call:hull=2, gm_coord_text:gm_id_coord=10, gm_id_field_text:gm_id=1, import:QUANTITY_GM_ID=1, import:curve_bundle_of=1, import:curve_value=1, import:hull=1
+search/iv_currents.py	call:curve_bundle_of=1, call:curve_value=2, gm_coord_text:gm_id_coord=4, import:curve_bundle_of=1, import:curve_value=1
+search/iv_domain.py	call:curve_bundle_of=1, call:idu_curve=1, gm_coord_text:gm_id_coord=1, gm_id_field_text:gm_id=2, import:QUANTITY_GM_ID=1, import:curve_bundle_of=1, import:idu_curve=1
+search/iv_gain_l.py	gm_coord_text:gm_id_coord=3
+search/iv_headroom.py	call:curve_bundle=1, call:hull=1, gm_id_field_text:gm_id=1, import:QUANTITY_GM_ID=1, import:curve_bundle=1, import:hull=1
+search/iv_matching_l.py	call:curve_bundle_of=4, call:curve_value=2, gm_coord_text:gm_id_coord=6, gm_id_field_text:gm_id=1, import:curve_bundle_of=1, import:curve_value=1
+search/iv_noise.py	call:curve_bundle_of=1, call:curve_value=2, gm_coord_text:gm_id_coord=4, import:curve_bundle_of=1, import:curve_value=1
+search/iv_speed.py	call:curve_bundle_of=2, call:curve_value=1, call:hull=1, gm_coord_text:gm_id_coord=3, gm_id_field_text:gm_id=2, import:QUANTITY_GM_ID=1, import:curve_bundle_of=1, import:curve_value=1, import:hull=1
+search/layer0_center.py	call:ln_idu_floors=3, import:ln_idu_floors=1
+search/macro_poles.py	call:curve_bundle_of=1, call:curve_value=1, gm_coord_text:gm_id_coord=4, import:curve_bundle_of=1, import:curve_value=1
+search/search_domain.py	peak_text:peak=4
+search/slsqp_outer.py	call:ln_idu_floors=1, import:ln_idu_floors=1
+search/start_intervals.py	call:curve_bundle=4, call:curve_bundle_of=3, call:curve_value=4, gm_coord_text:gm_id_coord=1, gm_id_field_text:gm_id=6, import:QUANTITY_GM_ID=1, import:curve_bundle=1, import:curve_bundle_of=1, import:curve_value=1, name:QUANTITY_GM_ID=3
+search/start_values.py	gm_coord_text:gm_id_coord=3, gm_id_field_text:gm_id=1, name:QUANTITY_GM_ID=1
+sizing/seal_conduction.py	gm_id_field_text:gm_id=2
+sizing/seal_kvl_branch.py	gm_id_field_text:gm_id=1
+sizing/seal_tolerances.py	gm_id_field_text:gm_id=2
+sizing/seal_vgs_match.py	gm_id_field_text:gm_id=1

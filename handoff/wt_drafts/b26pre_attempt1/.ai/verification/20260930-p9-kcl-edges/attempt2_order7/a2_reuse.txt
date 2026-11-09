@@ -1,0 +1,7 @@
+reuse_ok True diff ['docs/03-analysis/gain-budget-gmid-sizing.function-registry.md'] sd_same True {'skills': True, 'skills/analog-gmid-design/assets/tests': True, 'workspaces': True, 'tools': True, 'skills/analog-gmid-design/assets/library': True}
+s2_kcl_edge 43 refs [] sign True rail True
+s4_metric_kcl_residual 308 refs [] sign True rail True
+s5_trace_vdd 428 refs [] sign True rail True
+s6_kcl_series_union 472 refs [] sign False rail False
+s6_kcl_and_matching_edges 473 refs [] sign False rail False
+s6_kcl_terminal_sign 474 refs [] sign True rail True

@@ -1,0 +1,4 @@
+{"case": "CAG0", "num_degree": 2, "lead_coeff": "-CG*Cc*(R*g16 - 1)", "R_null": ["1/g16"]}
+{"case": "CAG", "num_degree": 2, "lead_coeff": "-Cc*(CAG*R*g15 + CAG*R*g16 - CAG + CG*R*g16 - CG)", "R_null": ["(CAG + CG)/(CAG*g15 + CAG*g16 + CG*g16)"]}
+{"case": "CAG_check_vs_pred", "R_null_minus_pred": ["0"], "limits": {"CAG->0": ["1/g16"], "CG->0": ["CAG/(CAG*g15 + CAG*g16)"]}}
+{"case": "numeric_sweep_CAG0_Cgd0", "R_conn_rhp0": 27, "R_general_rhp_ge1": 27, "n": 27}

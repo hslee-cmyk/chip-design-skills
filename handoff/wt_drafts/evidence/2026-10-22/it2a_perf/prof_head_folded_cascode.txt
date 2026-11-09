@@ -1,0 +1,126 @@
+         28829988 function calls (28466723 primitive calls) in 21.616 seconds
+
+   Ordered by: cumulative time
+   List reduced from 1230 to 70 due to restriction <70>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000   21.874   21.874 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\search\find_front.py:64(find_front)
+      155    0.007    0.000   21.738    0.140 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\search\kernel.py:94(evaluate)
+     1162    0.023    0.000   19.536    0.017 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\compute_block.py:138(__call__)
+       66    0.001    0.000   17.444    0.264 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\evidence\2026-10-22\it2a_perf\perf.py:93(w_size_and_seal)
+       66    0.001    0.000   17.443    0.264 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\size_and_seal.py:27(size_and_seal)
+       66    0.006    0.000   17.442    0.264 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\kernel_run.py:65(run_kernel)
+        5    0.002    0.000   17.071    3.414 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\search\fd_jacobian.py:86(fd_jacobian)
+      263    0.002    0.000   14.651    0.056 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\kernel_run.py:56(_call_block)
+65372/57035    0.085    0.000   13.985    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\evidence\2026-10-22\it2a_perf\perf.py:235(w_lookup)
+65372/57035    0.104    0.000   13.914    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\lut_memo.py:149(lookup)
+       56    0.010    0.000   13.793    0.246 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:727(dc_columns)
+64519/56477    0.242    0.000   13.557    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\bounded_lru.py:47(lookup)
+       56    0.002    0.000   13.389    0.239 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:680(_solve_input_window)
+        1    0.000    0.000   11.829   11.829 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\search\eps_sweep.py:71(sweep_front)
+        2    0.001    0.000   11.828    5.914 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\search\slsqp_outer.py:94(solve_eps)
+        8    0.000    0.000   11.811    1.476 C:\Users/HSLEE/AppData/Roaming/Python/Python314/site-packages\scipy\optimize\_minimize.py:54(minimize)
+        8    0.001    0.000   11.807    1.476 C:\Users/HSLEE/AppData/Roaming/Python/Python314/site-packages\scipy\optimize\_slsqp_py.py:220(_minimize_slsqp)
+        1    0.000    0.000   10.029   10.029 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\search\layer0_center.py:650(layer0_start)
+      339    0.034    0.000    9.836    0.029 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:549(_solve)
+       33    0.000    0.000    9.318    0.282 C:\Users/HSLEE/AppData/Roaming/Python/Python314/site-packages\scipy\optimize\_differentiable_functions.py:371(_update_grad)
+       14    0.000    0.000    9.318    0.666 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\search\slsqp_outer.py:133(jac_of)
+       25    0.000    0.000    9.318    0.373 C:\Users/HSLEE/AppData/Roaming/Python/Python314/site-packages\scipy\optimize\_differentiable_functions.py:35(__call__)
+        7    0.000    0.000    9.318    1.331 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\search\slsqp_outer.py:184(<lambda>)
+       25    0.000    0.000    9.310    0.372 C:\Users/HSLEE/AppData/Roaming/Python/Python314/site-packages\scipy\optimize\_differentiable_functions.py:397(grad)
+39593/31551    0.031    0.000    8.619    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\lut_memo.py:52(lookup)
+     7691    0.041    0.000    7.924    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\vgs_current_density.py:28(vgs_for_current_density)
+        1    0.000    0.000    7.789    7.789 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\search\layer0_center.py:289(_maxmin)
+     6419    0.102    0.000    7.756    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:327(solve_self)
+     8177    0.034    0.000    6.970    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\gm_id_curve.py:20(gm_id_curve)
+     3049    0.282    0.000    6.727    0.002 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\gm_id_curve.py:32(compute)
+     4289    3.075    0.001    6.587    0.002 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_interp.py:133(node_values)
+      665    0.003    0.000    5.987    0.009 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:379(solved)
+      668    0.023    0.000    5.946    0.009 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\bracket_root.py:34(bracket_root)
+     3724    0.006    0.000    5.945    0.002 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:363(h)
+     3724    0.010    0.000    5.939    0.002 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:313(_vgs_signed)
+     7755    0.025    0.000    5.839    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:405(update)
+      676    0.015    0.000    4.729    0.007 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\fixed_point.py:21(gauss_seidel)
+    10895    0.013    0.000    4.450    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\lut_memo.py:153(lookup_persistent)
+       65    0.006    0.000    4.176    0.064 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\metrics\ss_evaluate.py:81(ss_evaluate)
+     5087    0.005    0.000    3.792    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:584(<lambda>)
+150422/65771    1.805    0.000    3.488    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\canonical_key.py:45(canonical_key)
+       55    0.004    0.000    3.484    0.063 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:652(_refine_ends)
+     3203    0.013    0.000    3.321    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\_helpers_lut.py:49(tol_v_cell)
+     3205    0.012    0.000    3.236    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\tolerance.py:248(tol_v_table)
+      274    0.004    0.000    3.063    0.011 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:239(input_windows)
+       65    0.006    0.000    2.689    0.041 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\seal.py:48(seal_dc)
+     8518    0.026    0.000    2.664    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:524(tolerance)
+       44    0.000    0.000    2.465    0.056 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\search\slsqp_outer.py:109(point)
+       31    0.000    0.000    2.465    0.080 C:\Users/HSLEE/AppData/Roaming/Python/Python314/site-packages\scipy\optimize\_differentiable_functions.py:391(fun)
+       39    0.000    0.000    2.464    0.063 C:\Users/HSLEE/AppData/Roaming/Python/Python314/site-packages\scipy\optimize\_differentiable_functions.py:360(_update_fun)
+       31    0.000    0.000    2.464    0.079 C:\Users/HSLEE/AppData/Roaming/Python/Python314/site-packages\scipy\_lib\_util.py:542(__call__)
+     3967    0.008    0.000    2.016    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:133(_vgs_of_coordinate)
+     4407    0.017    0.000    1.970    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\vdsat_tolerance.py:100(tol_vdsat_table)
+   625808    0.692    0.000    1.953    0.000 {built-in method builtins.sum}
+      274    0.037    0.000    1.889    0.007 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:218(saturation_rows)
+73625/71740    0.167    0.000    1.740    0.000 {built-in method builtins.sorted}
+     1689    0.005    0.000    1.510    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:282(start_writer)
+     1040    0.129    0.000    1.457    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\graph_snapshot.py:174(write)
+     2722    0.010    0.000    1.437    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\compute_block.py:129(_prepare)
+     2722    0.025    0.000    1.389    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\projection.py:65(from_snapshot)
+     3205    0.020    0.000    1.308    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\tolerance.py:235(_checks_of)
+       10    0.000    0.000    1.294    0.129 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\lut_memo.py:157(<lambda>)
+       10    0.020    0.002    1.293    0.129 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\table_cache.py:344(fetch)
+       65    0.001    0.000    1.232    0.019 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\metrics\noise_devices.py:47(noise_devices)
+      910    0.001    0.000    1.226    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\metrics\noise_devices.py:51(<genexpr>)
+      845    0.005    0.000    1.225    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\metrics\noise_devices.py:29(_device)
+    43268    0.483    0.000    1.222    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_loo.py:32(per_vds)
+  2274847    0.727    0.000    1.192    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\canonical_key.py:41(_float_key)
+      274    0.006    0.000    1.163    0.004 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\input_window.py:48(saturation_window)
+     3154    0.037    0.000    1.162    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\sizing\block_columns.py:435(writer_grad)
+
+
+         28829988 function calls (28466723 primitive calls) in 21.616 seconds
+
+   Ordered by: internal time
+   List reduced from 1230 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     4289    3.075    0.001    6.587    0.002 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_interp.py:133(node_values)
+150422/65771    1.805    0.000    3.488    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\canonical_key.py:45(canonical_key)
+  2274847    0.727    0.000    1.192    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\canonical_key.py:41(_float_key)
+  3807600    0.707    0.000    0.707    0.000 {method 'append' of 'list' objects}
+   625808    0.692    0.000    1.953    0.000 {built-in method builtins.sum}
+        2    0.542    0.271    0.965    0.483 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\noise_planes.py:37(compute)
+   649110    0.535    0.000    0.535    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_interp.py:52(hermite)
+    43268    0.483    0.000    1.222    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_loo.py:32(per_vds)
+  2163400    0.477    0.000    0.477    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_loo.py:42(<genexpr>)
+253811/16498    0.472    0.000    1.004    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\fingerprint.py:29(_encode)
+  2274847    0.466    0.000    0.466    0.000 {method 'pack' of '_struct.Struct' objects}
+  1042256    0.437    0.000    0.567    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_interp.py:198(<genexpr>)
+    40127    0.364    0.000    0.364    0.000 {method 'tolist' of 'numpy.ndarray' objects}
+   581414    0.319    0.000    0.529    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_interp.py:189(<genexpr>)
+        4    0.287    0.072    0.411    0.103 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_loo.py:166(linear_loo_cells)
+     3049    0.282    0.000    6.727    0.002 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\gm_id_curve.py:32(compute)
+  1493212    0.272    0.000    0.272    0.000 {built-in method math.exp}
+64519/56477    0.242    0.000   13.557    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\bounded_lru.py:47(lookup)
+   892143    0.216    0.000    0.216    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_interp.py:196(<genexpr>)
+    63414    0.215    0.000    0.215    0.000 {built-in method numpy.asarray}
+   791671    0.199    0.000    0.199    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_interp.py:182(<genexpr>)
+   253811    0.195    0.000    0.247    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\fingerprint.py:20(_frame)
+   991748    0.194    0.000    0.247    0.000 {built-in method builtins.isinstance}
+   169073    0.182    0.000    0.369    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\immutability.py:14(_children)
+   871973    0.179    0.000    0.179    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_interp.py:205(<genexpr>)
+73625/71740    0.167    0.000    1.740    0.000 {built-in method builtins.sorted}
+    45960    0.156    0.000    0.233    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_anchor.py:19(l_position)
+   288066    0.151    0.000    0.151    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\graph_record.py:50(get)
+    12755    0.150    0.000    0.239    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\projection.py:24(_column_fp)
+     3038    0.147    0.000    0.147    0.000 {method 'update' of '_hashlib.HASH' objects}
+    12065    0.146    0.000    0.587    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\immutability.py:32(require_immutable)
+   879662    0.142    0.000    0.142    0.000 {built-in method builtins.len}
+   163702    0.141    0.000    0.254    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_interp.py:100(f)
+     1040    0.129    0.000    1.457    0.001 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\graph_snapshot.py:174(write)
+   574611    0.123    0.000    0.154    0.000 {built-in method builtins.getattr}
+        8    0.123    0.015    0.368    0.046 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_root.py:25(strong_inversion_root)
+   521128    0.114    0.000    0.114    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_interp.py:197(<genexpr>)
+     7206    0.113    0.000    0.224    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\core\graph_record.py:27(__post_init__)
+   462704    0.111    0.000    0.111    0.000 {method 'encode' of 'str' objects}
+   457695    0.108    0.000    0.108    0.000 C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_perf\head\skills\analog-gmid-design\gmid_engine\lut\_helpers_interp.py:183(<genexpr>)
+
+

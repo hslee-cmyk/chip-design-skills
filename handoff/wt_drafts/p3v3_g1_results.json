@@ -1,0 +1,1023 @@
+{
+ "head": "cd64170",
+ "counterexamples": {
+  "move-exact": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "moved_defs": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  },
+  "move-edited": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   }
+  },
+  "copy": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-2",
+     "detail": [
+      "원본 자리에 정의가 남음"
+     ]
+    }
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   }
+  },
+  "wrapper": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-2",
+     "detail": [
+      "원본 자리에 정의가 남음"
+     ]
+    }
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/a.py::f",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   }
+  },
+  "ambiguous": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-1",
+     "detail": [
+      "['skills/analog-gmid-design/assets/a.py', 'skills/analog-gmid-design/assets/c.py']"
+     ]
+    }
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   }
+  },
+  "two-targets": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-3",
+     "detail": [
+      "['skills/analog-gmid-design/assets/b.py', 'skills/analog-gmid-design/assets/d.py']"
+     ]
+    },
+    "skills/analog-gmid-design/assets/d.py::f": {
+     "rule": "M-2",
+     "detail": [
+      "f",
+      "('def', 'skills/analog-gmid-design/assets/b.py', 'f')"
+     ]
+    }
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f",
+     "skills/analog-gmid-design/assets/d.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/d.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/d.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f",
+     "skills/analog-gmid-design/assets/d.py::f"
+    ]
+   }
+  },
+  "overwrite": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-0",
+     "detail": [
+      "f",
+      "('def', 'skills/analog-gmid-design/assets/b.py', 'f')"
+     ]
+    }
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 0
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": []
+   }
+  },
+  "overwrite-import": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-0",
+     "detail": [
+      "f",
+      "('def', 'skills/analog-gmid-design/assets/c.py', 'f')"
+     ]
+    }
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   }
+  },
+  "absorb-own-import": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "moved_defs": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  },
+  "swap": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {
+    "skills/analog-gmid-design/assets/a.py::f": {
+     "rule": "M-0",
+     "detail": [
+      "f",
+      "('def', 'skills/analog-gmid-design/assets/a.py', 'f')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-0",
+     "detail": [
+      "f",
+      "('def', 'skills/analog-gmid-design/assets/b.py', 'f')"
+     ]
+    }
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 0
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/a.py::f",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": []
+   }
+  },
+  "rebind": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {
+    "skills/analog-gmid-design/assets/b.py::g": {
+     "rule": "M-4",
+     "detail": [
+      "helper",
+      "('def', 'skills/analog-gmid-design/assets/a.py', 'helper')",
+      "('def', 'skills/analog-gmid-design/assets/c.py', 'helper')"
+     ]
+    }
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ]
+   }
+  },
+  "move-with-helper-import": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "moved_defs": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  },
+  "move-together": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::helper": "skills/analog-gmid-design/assets/a.py::helper",
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "moved_defs": {
+    "skills/analog-gmid-design/assets/b.py::helper": "skills/analog-gmid-design/assets/a.py::helper",
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  },
+  "move-chain": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/m2.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "moved_defs": {
+    "skills/analog-gmid-design/assets/m2.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  },
+  "local-shadow": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "moved_defs": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  },
+  "file-same-dir": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::ff": "skills/analog-gmid-design/assets/a.py::ff"
+   },
+   "moved_defs": {
+    "skills/analog-gmid-design/assets/b.py::ff": "skills/analog-gmid-design/assets/a.py::ff"
+   },
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  },
+  "file-dir-change": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {
+    "workspaces/run_harness.py::ff": {
+     "rule": "M-2",
+     "detail": [
+      "ff",
+      "('ext', 'run_harness', 'ff')"
+     ]
+    }
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_detail": {
+    "v3_targets": [
+     "workspaces/run_harness.py::ff"
+    ],
+    "v6": [
+     {
+      "path": "workspaces/run_harness.py",
+      "unit": "ff",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "workspaces/run_harness.py",
+      "unit": "ff",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "workspaces/run_harness.py::ff"
+    ]
+   }
+  },
+  "file-dir-change-noshim": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {
+    "workspaces/run_harness.py::ff": {
+     "rule": "M-4",
+     "detail": [
+      "__file__",
+      "('file-dir', 'skills/analog-gmid-design/assets')",
+      "('file-dir', 'workspaces')"
+     ]
+    }
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_detail": {
+    "v3_targets": [
+     "workspaces/run_harness.py::ff"
+    ],
+    "v6": [
+     {
+      "path": "workspaces/run_harness.py",
+      "unit": "ff",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "workspaces/run_harness.py",
+      "unit": "ff",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "workspaces/run_harness.py::ff"
+    ]
+   }
+  },
+  "class-exact": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::Base": "skills/analog-gmid-design/assets/a.py::Base",
+    "skills/analog-gmid-design/assets/b.py::Other": "skills/analog-gmid-design/assets/a.py::Other",
+    "skills/analog-gmid-design/assets/b.py::C": "skills/analog-gmid-design/assets/a.py::C"
+   },
+   "moved_defs": {
+    "skills/analog-gmid-design/assets/b.py::C.m": "skills/analog-gmid-design/assets/a.py::C.m"
+   },
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  },
+  "class-header-changed": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::Base": "skills/analog-gmid-design/assets/a.py::Base",
+    "skills/analog-gmid-design/assets/b.py::Other": "skills/analog-gmid-design/assets/a.py::Other"
+   },
+   "moved_defs": {},
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::C.m"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "C.m",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "C.m",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::C.m"
+    ]
+   }
+  },
+  "class-field-changed": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::Base": "skills/analog-gmid-design/assets/a.py::Base",
+    "skills/analog-gmid-design/assets/b.py::Other": "skills/analog-gmid-design/assets/a.py::Other"
+   },
+   "moved_defs": {},
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::C.m"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "C.m",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "C.m",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::C.m"
+    ]
+   }
+  },
+  "record-class-exact": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::Rec": "skills/analog-gmid-design/assets/a.py::Rec"
+   },
+   "moved_defs": {},
+   "rejected": {},
+   "base_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  },
+  "record-class-default-changed": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {},
+   "base_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  },
+  "cache-together": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::<stmt:c0ba5e2f546f>": "skills/analog-gmid-design/assets/a.py::<stmt:c0ba5e2f546f>",
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "moved_defs": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "rejected": {},
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  },
+  "cache-split": {
+   "moved_units": {
+    "skills/analog-gmid-design/assets/b.py::<stmt:c0ba5e2f546f>": "skills/analog-gmid-design/assets/a.py::<stmt:c0ba5e2f546f>"
+   },
+   "moved_defs": {},
+   "rejected": {},
+   "base_exit": {
+    "V3": 0,
+    "V6": 1,
+    "V7": 0
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 1,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "<module>",
+      "check": "unbounded_cache",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": []
+   }
+  },
+  "same-path-rebind(observation)": {
+   "moved_units": {},
+   "moved_defs": {},
+   "rejected": {},
+   "base_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "new_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   }
+  }
+ },
+ "noop": {
+  "df36": {
+   "units": {},
+   "defs": {},
+   "rejected": {}
+  },
+  "dup-w-calc": {
+   "units": {},
+   "defs": {},
+   "rejected": {}
+  }
+ },
+ "real_rename_same_dir": {
+  "sizing_recipe": {
+   "units_total": 218,
+   "units_moved": 218,
+   "defs_total": 272,
+   "defs_moved": 272,
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "moved_defs_seconds": 9.17
+  },
+  "stick_diagram": {
+   "units_total": 169,
+   "units_moved": 169,
+   "defs_total": 181,
+   "defs_moved": 181,
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "moved_defs_seconds": 6.67
+  },
+  "topology_library": {
+   "units_total": 8,
+   "units_moved": 8,
+   "defs_total": 12,
+   "defs_moved": 12,
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "moved_defs_seconds": 5.78
+  },
+  "design_report": {
+   "units_total": 7,
+   "units_moved": 7,
+   "defs_total": 8,
+   "defs_moved": 8,
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "moved_defs_seconds": 5.85
+  }
+ },
+ "classes": {
+  "sizing_recipe": {
+   "classes": 13,
+   "no_methods": 10,
+   "dataclass": 8,
+   "exception_base": 3,
+   "with_class_level_stmts": 8
+  },
+  "stick_diagram": {
+   "classes": 28,
+   "no_methods": 26,
+   "dataclass": 28,
+   "exception_base": 0,
+   "with_class_level_stmts": 28
+  },
+  "topology_library": {
+   "classes": 0,
+   "no_methods": 0,
+   "dataclass": 0,
+   "exception_base": 0,
+   "with_class_level_stmts": 0
+  },
+  "design_report": {
+   "classes": 0,
+   "no_methods": 0,
+   "dataclass": 0,
+   "exception_base": 0,
+   "with_class_level_stmts": 0
+  }
+ },
+ "multi_bound_names": {
+  "sizing_recipe": [],
+  "stick_diagram": [],
+  "topology_library": [],
+  "design_report": []
+ }
+}

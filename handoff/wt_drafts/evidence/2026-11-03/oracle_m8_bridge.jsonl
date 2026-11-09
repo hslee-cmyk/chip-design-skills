@@ -1,0 +1,14 @@
+{"file": "_TEMPLATE.topology.json", "skip": "netlist 원소 dict 아님", "netlist_type": "<class 'list'>"}
+{"file": "cnr_ota.topology.json", "n_edges": 79, "kcl_zero": []}
+{"file": "common_gate_amplifier.topology.json", "n_edges": 3, "kcl_zero": []}
+{"file": "current_reuse_telescopic_ota.topology.json", "n_edges": 56, "kcl_zero": []}
+{"file": "erfc_ota.topology.json", "n_edges": 35, "kcl_zero": ["M21", "M19", "M20"]}
+{"file": "folded_cascode.topology.json", "n_edges": 14, "kcl_zero": []}
+{"file": "ngcc_3stage_ff.topology.json", "n_edges": 16, "kcl_zero": []}
+{"file": "nmcnr_amplifier.topology.json", "n_edges": 17, "kcl_zero": []}
+{"file": "pushpull_follower_buffer.topology.json", "n_edges": 6, "kcl_zero": []}
+{"file": "r2r_opamp.topology.json", "n_edges": 37, "kcl_zero": []}
+{"file": "rfc_ota.topology.json", "n_edges": 36, "kcl_zero": []}
+{"file": "sf_pushpull_output_opamp.topology.json", "n_edges": 26, "kcl_zero": []}
+{"file": "two_stage_ota.topology.json", "n_edges": 8, "kcl_zero": []}
+{"file": "two_stage_ota_sf.topology.json", "n_edges": 9, "kcl_zero": []}

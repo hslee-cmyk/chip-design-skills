@@ -1,0 +1,1 @@
+[EL4 거부] 75b4b227b757: 트레일러 `Role: code|test|audit|doc|user`가 정확히 하나가 아니다([]) -- 주체 미정(트레일러 없음), 판정 행 §8.2-2, 위반 경로(표와 겹침): docs/02-design/specs/20261001-b26-backfill-interdig-final-audit.interface.md

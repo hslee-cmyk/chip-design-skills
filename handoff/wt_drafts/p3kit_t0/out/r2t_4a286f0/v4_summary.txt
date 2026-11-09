@@ -1,0 +1,9 @@
+test_lint(iface, base..T) exit 1
+test_lint(rail): skills/analog-gmid-design/assets/tests/contracts/test_b26_rail_accessor.py 없음(B26-1 전) -- 생략
+v4_iface.json verdict FAIL files 7 
+  FAIL (1) test_selftest_sizing_recipe.py test_s009_revalidate_finger_override 719
+  FAIL (1) test_selftest_sizing_recipe.py test_s009_revalidate_finger_override 744
+counts {('(2)', 'NO-SUBJECT'): 241, ('(1)', 'FAIL'): 2, ('(2)', 'UNJUDGED'): 78} UNJUDGED 78
+UNJUDGED assert 식 = TS2 병합본(caac910) 식: 78 / 78, 다름 []
+FAIL ids ['skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s009_revalidate_finger_override']
+판단: MATCH

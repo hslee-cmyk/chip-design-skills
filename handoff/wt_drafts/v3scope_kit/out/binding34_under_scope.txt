@@ -1,0 +1,15 @@
+(a)(b)(c)(d)(f) head  rt_scale: 변이 6, 대상 6, 대상 밖 []
+    stmt_delete:body[1] -> 대상
+    stmt_delete:body[2] -> 대상
+    arith:body[2].value -> 대상
+    const+:body[2].value.left -> 대상
+    const-:body[2].value.left -> 대상
+    early_return:body[1] -> 대상
+(e) head = Dk + docstring  rt_scale: 변이 7, 대상 7, 대상 밖 []
+    stmt_delete:body[1] -> 대상
+    stmt_delete:body[2] -> 대상
+    stmt_delete:body[3] -> 대상
+    arith:body[3].value -> 대상
+    const+:body[3].value.left -> 대상
+    const-:body[3].value.left -> 대상
+    early_return:body[1] -> 대상

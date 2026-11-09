@@ -1,0 +1,9 @@
+# la1a_merge_cycle -- 판정용 그래프(merge_order_cycle.py B, plan/v6386 65377396 원문 조각 단언 통과) + LA-1a 간선
+기존 그래프 순환: 없음
+더한 간선: cardB → LA-1a, IT-1+IT-2 → LA-1a, WB-1 → LA-1a, UB-1 → LA-1a, HC-S → LA-1a, TB-1 → LA-1a, HC-1 → LA-1a, GC-8 → LA-1a, LA-1a → LA-1, LA-1 → DE-1, DE-1 → SB-1, LA-1 → OS-2, LA-1 → LA-2
+더한 뒤 순환: 없음
+LA-1a 병합 조상 24: EO-1, GC-0a, GC-0b, GC-1, GC-8, GC-D, HC-0, HC-1, HC-D, HC-S, IT-1+IT-2, NL-1, OP-0, OP-1, OP-1a, OP-1b, OP-2, OP-3, OP-7, TB-1, UB-1, WB-1, cardB, cardC
+LA-1 병합 조상 26: EO-1, GC-0a, GC-0b, GC-1, GC-8, GC-D, HC-0, HC-1, HC-D, HC-S, IT-1+IT-2, LA-1a, NL-1, OP-0, OP-1, OP-1a, OP-1b, OP-2, OP-3, OP-7, SF-1, TB-1, UB-1, WB-1, cardB, cardC
+LA-1a가 LA-1의 조상: True; LA-1이 LA-1a의 조상: False
+LA-1a 조상 ⊆ LA-1 조상: True
+OP-5 관계: OP-5가 LA-1a 조상인가 = False (OP-5 ↔ LA-1 미고정 사실 불변)

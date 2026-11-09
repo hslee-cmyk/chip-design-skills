@@ -1,0 +1,76 @@
+gain-budget-gmid-sizing	2단계	R=30	N=20	C=15
+gain-budget-gmid-sizing	I_off >	R=0	N=3	C=0
+gain-budget-gmid-sizing	I_off ≤	R=1	N=3	C=0
+gain-budget-gmid-sizing	VDSAT \+ tol	R=1	N=0	C=1
+gain-budget-gmid-sizing	VDsat \+ tol	R=0	N=1	C=0
+gain-budget-gmid-sizing	V_on	R=1	N=11	C=4
+gain-budget-gmid-sizing	\(gm/ID\)·tol_V	R=1	N=5	C=0
+gain-budget-gmid-sizing	\+ ?tol_VDsat	R=2	N=6	C=6
+gain-budget-gmid-sizing	\[0, I_off\]	R=0	N=3	C=0
+gain-budget-gmid-sizing	\bP-7\b	R=0	N=11	C=2
+gain-budget-gmid-sizing	\bR0\b	R=0	N=16	C=3
+gain-budget-gmid-sizing	\bU-69\b	R=0	N=9	C=1
+gain-budget-gmid-sizing	_peak_floor	R=0	N=0	C=1
+gain-budget-gmid-sizing	dc_conduction_floor	R=0	N=10	C=1
+gain-budget-gmid-sizing	dc_off_current	R=3	N=6	C=0
+gain-budget-gmid-sizing	dc_window_def	R=5	N=8	C=3
+gain-budget-gmid-sizing	floor	R=1	N=20	C=11
+gain-budget-gmid-sizing	g = s[^|]{0,60}꺼짐	R=0	N=4	C=3
+gain-budget-gmid-sizing	gain_ss_db	R=0	N=10	C=25
+gain-budget-gmid-sizing	off 유지 경계	R=1	N=2	C=1
+gain-budget-gmid-sizing	off_current_A	R=0	N=6	C=2
+gain-budget-gmid-sizing	stage2_judgment	R=1	N=2	C=1
+gain-budget-gmid-sizing	ε·ID	R=1	N=5	C=0
+gain-budget-gmid-sizing	− ?tol_VDsat	R=2	N=2	C=1
+gain-budget-gmid-sizing	꺼짐 판정	R=3	N=3	C=5
+gain-budget-gmid-sizing	단조성 구간	R=0	N=1	C=0
+gain-budget-gmid-sizing	둘째 단계	R=1	N=0	C=0
+gain-budget-gmid-sizing	반전 수준 하한	R=1	N=8	C=0
+gain-budget-gmid-sizing	선언 영역 대조	R=1	N=5	C=0
+gain-budget-gmid-sizing	잡음 수준	R=0	N=4	C=0
+gain-budget-gmid-sizing	전도 여유	R=0	N=5	C=1
+gain-budget-gmid-sizing	전도 행	R=0	N=18	C=5
+graph-consumption	2단계	R=9	N=0	C=0
+graph-consumption	I_off ≤	R=1	N=0	C=0
+graph-consumption	\bP-7\b	R=0	N=1	C=0
+graph-consumption	\bR0\b	R=0	N=1	C=0
+graph-consumption	_peak_floor	R=0	N=1	C=2
+graph-consumption	dc_conduction_floor	R=9	N=3	C=0
+graph-consumption	dc_off_current	R=8	N=3	C=1
+graph-consumption	dc_window_def	R=2	N=1	C=0
+graph-consumption	floor	R=19	N=16	C=21
+graph-consumption	g = s[^|]{0,60}꺼짐	R=0	N=4	C=0
+graph-consumption	off 유지 경계	R=1	N=1	C=0
+graph-consumption	off_current_A	R=2	N=1	C=0
+graph-consumption	ε·ID	R=1	N=0	C=0
+graph-consumption	꺼짐 판정	R=3	N=1	C=2
+graph-consumption	둘째 단계	R=6	N=1	C=2
+graph-consumption	반전 수준 하한	R=0	N=1	C=0
+graph-consumption	선언 영역 대조	R=2	N=2	C=1
+graph-consumption	전도 행	R=0	N=1	C=0
+headroom-chain	2단계	R=2	N=1	C=0
+headroom-chain	I_off >	R=0	N=1	C=0
+headroom-chain	I_off ≤	R=0	N=1	C=0
+headroom-chain	VDSAT \+ tol	R=1	N=0	C=0
+headroom-chain	VDsat \+ tol	R=0	N=4	C=5
+headroom-chain	\+ ?tol_VDsat	R=2	N=3	C=0
+headroom-chain	dc_window_def	R=4	N=3	C=0
+headroom-chain	floor	R=0	N=2	C=3
+headroom-chain	ε·ID	R=0	N=2	C=0
+headroom-chain	− ?tol_VDsat	R=0	N=3	C=0
+headroom-chain	꺼짐 판정	R=0	N=2	C=0
+headroom-chain	선언 영역 대조	R=0	N=4	C=0
+offset-trim	2단계	R=0	N=1	C=13
+offset-trim	off 유지 경계	R=0	N=2	C=0
+offset-trim	꺼짐 판정	R=0	N=4	C=0
+offset-trim	둘째 단계	R=0	N=1	C=0
+offset-trim	선언 영역 대조	R=0	N=1	C=0
+oracle-portability	2단계	R=34	N=27	C=19
+oracle-portability	I_off ≤	R=3	N=1	C=0
+oracle-portability	\(gm/ID\)·tol_V	R=2	N=0	C=0
+oracle-portability	\+ ?tol_VDsat	R=0	N=1	C=0
+oracle-portability	dc_off_current	R=0	N=2	C=0
+oracle-portability	off_current_A	R=9	N=8	C=1
+oracle-portability	stage2_judgment	R=4	N=1	C=0
+oracle-portability	ε·ID	R=3	N=1	C=0
+oracle-portability	꺼짐 판정	R=1	N=1	C=0

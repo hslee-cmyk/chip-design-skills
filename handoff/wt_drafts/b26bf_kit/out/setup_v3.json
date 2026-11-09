@@ -1,0 +1,13 @@
+{
+ "P0": "a796468889741bb7eb8da121ffefb0589cb2b769",
+ "GM": "0f237862c007f6a53122f2bdfb3c87e6366ec133",
+ "P0_GM_same_tools_skills_workspaces": true,
+ "B1": "368ec4264b8f81ec8ef0fd56a843d15df2a4e994",
+ "BP": "1b1991d3bbd99f2547168240e5608ebce1b8c7b3",
+ "H": "b7739d2e64a9c507b1bc02dad025a63e7448f0fd",
+ "T": "6f58c6a4997df75bbb162bb9639cbdf3678b5ff0",
+ "deleted_lines_in_BP": [
+  11800,
+  11879
+ ]
+}

@@ -1,0 +1,4 @@
+collect_base exit 0
+collect_iso exit 0
+full_base exit 0 351s
+full_T_red exit 1 373s

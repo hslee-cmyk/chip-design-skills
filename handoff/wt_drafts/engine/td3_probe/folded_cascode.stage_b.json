@@ -1,0 +1,1467 @@
+{
+ "achievability": {
+  "area": {
+   "a_lb_m2": 0.0,
+   "b_a_m2": 2.1e-15,
+   "budget_m2": 1e-08,
+   "not_certified": [
+    [
+     "M1",
+     "current_depends_on_theta"
+    ],
+    [
+     "M10",
+     "current_depends_on_theta"
+    ],
+    [
+     "M11",
+     "current_depends_on_theta"
+    ],
+    [
+     "M2",
+     "current_depends_on_theta"
+    ],
+    [
+     "M3",
+     "current_depends_on_theta"
+    ],
+    [
+     "M4",
+     "current_depends_on_theta"
+    ],
+    [
+     "M5",
+     "current_depends_on_theta"
+    ],
+    [
+     "M6",
+     "current_depends_on_theta"
+    ],
+    [
+     "M7",
+     "current_depends_on_theta"
+    ],
+    [
+     "M8",
+     "current_depends_on_theta"
+    ],
+    [
+     "M9",
+     "current_depends_on_theta"
+    ],
+    [
+     "MN",
+     "current_depends_on_theta"
+    ],
+    [
+     "MP",
+     "current_depends_on_theta"
+    ]
+   ],
+   "terms": [],
+   "verdict": "not_excluded"
+  },
+  "buffer_window_report": [],
+  "count_budget": 13829760,
+  "curves": {
+   "grid_only_by_slice": [
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 243,
+     "reason": "fc_violation",
+     "w_key": 72
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 110,
+     "reason": "fc_violation",
+     "w_key": 78
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 84,
+     "reason": "fc_violation",
+     "w_key": 84
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 470,
+     "reason": "fc_violation",
+     "w_key": 110
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 153,
+     "reason": "fc_violation",
+     "w_key": 128
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 11,
+     "reason": "fc_violation",
+     "w_key": 168
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 485,
+     "reason": "fc_violation",
+     "w_key": 200
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 315,
+     "reason": "fc_violation",
+     "w_key": 252
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 811,
+     "reason": "fc_violation",
+     "w_key": 330
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 248,
+     "reason": "fc_violation",
+     "w_key": 336
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 1009,
+     "reason": "fc_violation",
+     "w_key": 400
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 1,
+     "reason": "fc_violation",
+     "w_key": 600
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 140,
+     "reason": "fc_violation",
+     "w_key": 1000
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 207,
+     "reason": "fc_violation",
+     "w_key": 1400
+    }
+   ],
+   "lut_fp": "91faebc2e2d02ce0829a274c25de99be085c017aee87cdd80fa4d1d17f7c8907",
+   "n_grid_only_cells": 4287,
+   "n_unit_mismatch": 0,
+   "slices": [
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 72
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 72
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 243,
+     "w_key": 72
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 78
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 78
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 110,
+     "w_key": 78
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 84
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 84
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 84
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 104
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 104
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 104
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 108
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 108
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 108
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 110
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 110
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 110
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 116
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 116
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 116
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 120
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 120
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 120
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 122
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 122
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 122
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 128
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 128
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 128
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 130
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 130
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 130
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 148
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 148
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 148
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 168
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 168
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 168
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 200
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 200
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 200
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 252
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 252
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 252
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 336
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 336
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 336
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 400
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 400
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 400
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 600
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 600
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 600
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 1000
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 1000
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 1000
+    },
+    {
+     "axis": "VGS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 1400
+    },
+    {
+     "axis": "VDS",
+     "kind": "nmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 1400
+    },
+    {
+     "axis": "VS",
+     "kind": "nmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 0,
+     "w_key": 1400
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 84
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 84
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 84,
+     "w_key": 84
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 110
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 110
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 470,
+     "w_key": 110
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 128
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 128
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 153,
+     "w_key": 128
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 168
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 168
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 11,
+     "w_key": 168
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 200
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 200
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 485,
+     "w_key": 200
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 252
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 252
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 315,
+     "w_key": 252
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 330
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 330
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 811,
+     "w_key": 330
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 336
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 336
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 248,
+     "w_key": 336
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 400
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 400
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 1009,
+     "w_key": 400
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 600
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 600
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 1,
+     "w_key": 600
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 1000
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 1000
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 140,
+     "w_key": 1000
+    },
+    {
+     "axis": "VGS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414720,
+     "n_slope_undefined": 8640,
+     "n_violation": 0,
+     "w_key": 1400
+    },
+    {
+     "axis": "VDS",
+     "kind": "pmos",
+     "n_cells": 423360,
+     "n_hermite": 414540,
+     "n_slope_undefined": 8820,
+     "n_violation": 0,
+     "w_key": 1400
+    },
+    {
+     "axis": "VS",
+     "kind": "pmos",
+     "n_cells": 388962,
+     "n_hermite": 381024,
+     "n_slope_undefined": 7938,
+     "n_violation": 207,
+     "w_key": 1400
+    }
+   ]
+  },
+  "dof": {
+   "competing_pairs": [],
+   "free_variables": [
+    "I:M3",
+    "I:M4",
+    "I:M5",
+    "I:M6",
+    "I:MP",
+    "V:Vg7",
+    "V:Vg9",
+    "V:bias3",
+    "V:out",
+    "V:vb1",
+    "V:vb2",
+    "V:vin_p",
+    "u:M1",
+    "u:M10",
+    "u:M11",
+    "u:M2",
+    "u:M3",
+    "u:M4",
+    "u:M5",
+    "u:M6",
+    "u:M7",
+    "u:M8",
+    "u:M9",
+    "u:MN",
+    "u:MP"
+   ],
+   "n_equations": 14,
+   "n_variables": 39,
+   "numeric_ranks": [],
+   "status": "free_dof",
+   "structural_rank": 14,
+   "unmatched_equations": []
+  },
+  "gain": {
+   "b_db": null,
+   "blocks": [
+    {
+     "a_max_db": null,
+     "axes": [
+      [
+       "vgs",
+       49
+      ],
+      [
+       "vgs",
+       49
+      ],
+      [
+       "vgs",
+       49
+      ],
+      [
+       "vgs",
+       49
+      ],
+      [
+       "vgs",
+       49
+      ],
+      [
+       "vgs",
+       49
+      ],
+      [
+       "vgs",
+       49
+      ],
+      [
+       "vgs",
+       49
+      ],
+      [
+       "vgs",
+       49
+      ],
+      [
+       "L",
+       18
+      ],
+      [
+       "L",
+       18
+      ],
+      [
+       "L",
+       18
+      ],
+      [
+       "L",
+       18
+      ],
+      [
+       "L",
+       18
+      ],
+      [
+       "L",
+       18
+      ],
+      [
+       "L",
+       18
+      ],
+      [
+       "L",
+       18
+      ],
+      [
+       "L",
+       18
+      ],
+      [
+       "vds",
+       49
+      ],
+      [
+       "vds",
+       49
+      ],
+      [
+       "vds",
+       49
+      ],
+      [
+       "vds",
+       49
+      ],
+      [
+       "vds",
+       49
+      ],
+      [
+       "vds",
+       49
+      ],
+      [
+       "vds",
+       49
+      ],
+      [
+       "vds",
+       49
+      ],
+      [
+       "vds",
+       49
+      ],
+      [
+       "vsb",
+       10
+      ],
+      [
+       "vsb",
+       10
+      ],
+      [
+       "vsb",
+       10
+      ],
+      [
+       "vsb",
+       10
+      ],
+      [
+       "vsb",
+       10
+      ],
+      [
+       "vsb",
+       10
+      ],
+      [
+       "current",
+       49
+      ],
+      [
+       "current",
+       49
+      ],
+      [
+       "current",
+       49
+      ]
+     ],
+     "b_db": null,
+     "found_db": 119.34511854693723,
+     "key": [
+      "out"
+     ],
+     "members": [
+      "M1",
+      "M10",
+      "M11",
+      "M2",
+      "M3",
+      "M4",
+      "M5",
+      "M6",
+      "M7",
+      "M8",
+      "M9"
+     ],
+     "n_rows": 23190,
+     "pi": 61882838559595644226959851330968233907132396032000000,
+     "reason": "grid_product_over_budget",
+     "role": "main",
+     "row_condition": [],
+     "status": "unknown"
+    }
+   ],
+   "ff": [],
+   "found_sum_db": 119.34511854693723,
+   "n_unknown": 1,
+   "sum_db": null,
+   "target_db": null,
+   "verdict": "no_target",
+   "view": "transfer:0"
+  },
+  "headroom": [
+   {
+    "best_row": [
+     [
+      "L",
+      1.5e-07
+     ],
+     [
+      "VDS",
+      1.425
+     ],
+     [
+      "VS",
+      1.2
+     ],
+     [
+      "gm_id",
+      25.55068182595836
+     ]
+    ],
+    "binding_devices": [
+     "M1",
+     "M11"
+    ],
+    "constraint": null,
+    "derivation": [
+     [
+      "M11",
+      "vds",
+      0.03784231796177379,
+      "nmos"
+     ],
+     [
+      "M1",
+      "vgs",
+      0.0,
+      "nmos"
+     ]
+    ],
+    "hi_edge_v": 1.8,
+    "lo_edge_v": 0.03784231796177379,
+    "net": "vin_n",
+    "path": [
+     [
+      "M11",
+      "vds",
+      "gnd",
+      "tail",
+      0.03784231796177379
+     ],
+     [
+      "M1",
+      "vgs",
+      "tail",
+      "vin_n",
+      0.0
+     ]
+    ],
+    "status": "certified",
+    "upper_bound_v": 1.7621576820382263,
+    "verdict": "no_target",
+    "window_kind": "input"
+   },
+   {
+    "best_row": [
+     [
+      "L",
+      1.5e-07
+     ],
+     [
+      "VDS",
+      1.425
+     ],
+     [
+      "VS",
+      1.2
+     ],
+     [
+      "gm_id",
+      25.55068182595836
+     ]
+    ],
+    "binding_devices": [
+     "M11",
+     "M2"
+    ],
+    "constraint": null,
+    "derivation": [
+     [
+      "M11",
+      "vds",
+      0.03784231796177379,
+      "nmos"
+     ],
+     [
+      "M2",
+      "vgs",
+      0.0,
+      "nmos"
+     ]
+    ],
+    "hi_edge_v": 1.8,
+    "lo_edge_v": 0.03784231796177379,
+    "net": "vin_p",
+    "path": [
+     [
+      "M11",
+      "vds",
+      "gnd",
+      "tail",
+      0.03784231796177379
+     ],
+     [
+      "M2",
+      "vgs",
+      "tail",
+      "vin_p",
+      0.0
+     ]
+    ],
+    "status": "certified",
+    "upper_bound_v": 1.7621576820382263,
+    "verdict": "no_target",
+    "window_kind": "input"
+   },
+   {
+    "best_row": [],
+    "binding_devices": [
+     "M10",
+     "M3",
+     "M6",
+     "M8"
+    ],
+    "constraint": null,
+    "derivation": [
+     [
+      "M10",
+      "vds",
+      0.03784231796177379,
+      "nmos"
+     ],
+     [
+      "M8",
+      "vds",
+      0.03784231796177379,
+      "nmos"
+     ],
+     [
+      "M6",
+      "vds",
+      0.039641829028601826,
+      "pmos"
+     ],
+     [
+      "M3",
+      "vds",
+      0.039641829028601826,
+      "pmos"
+     ]
+    ],
+    "hi_edge_v": 1.7207163419427964,
+    "lo_edge_v": 0.07568463592354759,
+    "net": "out",
+    "path": [
+     [
+      "M10",
+      "vds",
+      "gnd",
+      "Vg10",
+      0.03784231796177379
+     ],
+     [
+      "M8",
+      "vds",
+      "Vg10",
+      "out",
+      0.03784231796177379
+     ],
+     [
+      "M6",
+      "vds",
+      "out",
+      "X",
+      0.039641829028601826
+     ],
+     [
+      "M3",
+      "vds",
+      "X",
+      "vdd",
+      0.039641829028601826
+     ]
+    ],
+    "status": "certified",
+    "upper_bound_v": 1.6450317060192488,
+    "verdict": "no_target",
+    "window_kind": "output"
+   }
+  ],
+  "reasons": [],
+  "verdict": "ok",
+  "warnings": []
+ },
+ "circuit": "folded_cascode",
+ "count_budget": 13829760,
+ "diagnostic": true,
+ "exit_code": 0,
+ "status": "ok",
+ "stop_reasons": []
+}

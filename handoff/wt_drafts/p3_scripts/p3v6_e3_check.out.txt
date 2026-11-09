@@ -1,0 +1,16 @@
+== (참고) 줄 머리 import 정규식, 파일 수 at HEAD
+57
+== AST stmt: 줄 69, 파일 63
+== AST call: 줄 9, 파일 5
+call skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py:101
+call skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py:111
+call skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py:75
+call skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py:113
+call skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py:120
+call skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py:127
+call skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py:134
+call skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py:140
+call skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:229
+== PARSE-ERROR: 0
+== 제외 집합 밖 파일 수(판정 대상): 66
+== 제외 집합 안 파일: docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py 

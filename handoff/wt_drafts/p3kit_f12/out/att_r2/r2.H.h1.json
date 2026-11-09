@@ -1,0 +1,31 @@
+{
+ "nameless_dest": "instance_report_builder",
+ "files": {
+  "skills/analog-gmid-design/assets/tests/probes/zz_attack.py": {
+   "escape_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": false,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [
+    "ast_same"
+   ],
+   "verdict": "FAIL"
+  }
+ },
+ "summary": {
+  "files": 1,
+  "pass": 0,
+  "listed": {},
+  "fail": {
+   "skills/analog-gmid-design/assets/tests/probes/zz_attack.py": [
+    "ast_same"
+   ]
+  },
+  "d17_expect_vs_f1sim_diff": []
+ }
+}

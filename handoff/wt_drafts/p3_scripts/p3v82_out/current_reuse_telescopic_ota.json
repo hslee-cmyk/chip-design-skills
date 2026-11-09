@@ -1,0 +1,88 @@
+{
+ "circuit": "current_reuse_telescopic_ota",
+ "calls": [
+  [
+   {
+    "pair": [
+     "M4a",
+     "M4b"
+    ],
+    "interdig_ok": true
+   },
+   {
+    "pair": [
+     "M3a",
+     "M3b"
+    ],
+    "interdig_ok": false
+   }
+  ]
+ ],
+ "save_calls": [
+  {
+   "pipeline_result_has_relaxed_pairs": true,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "M4a",
+      "M4b"
+     ],
+     "interdig_ok": true
+    },
+    {
+     "pair": [
+      "M3a",
+      "M3b"
+     ],
+     "interdig_ok": false
+    }
+   ],
+   "pipeline_result_keys": [
+    "audit_row_split",
+    "box_shape",
+    "coverage",
+    "ctx",
+    "fixup_rounds",
+    "floorplan",
+    "group_splits",
+    "growth_rounds",
+    "layout_retry_rounds",
+    "relaxed_pairs",
+    "repaired_audit",
+    "repaired_rows",
+    "row_split",
+    "sizing_overrides",
+    "transistors",
+    "unresolved_pair",
+    "unresolved_reason",
+    "unresolved_row"
+   ]
+  }
+ ],
+ "exc": null,
+ "instance_json": {
+  "relaxed": 0,
+  "interdig": 48,
+  "bytes": 92573
+ },
+ "report_html": {
+  "relaxed": 0,
+  "interdig": 30,
+  "bytes": 77728
+ },
+ "stdout": {
+  "relaxed": 0,
+  "interdig": 0,
+  "bytes": 7443
+ },
+ "instance_top_keys": [
+  "schema_version",
+  "topology_ref",
+  "sizing",
+  "netlist",
+  "floorplan",
+  "box_shape",
+  "audit_row_split",
+  "coverage"
+ ]
+}

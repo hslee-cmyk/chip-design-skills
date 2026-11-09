@@ -1,0 +1,1 @@
+{"tool": "V3", "verdict": "PASS", "targets": ["skills/analog-gmid-design/assets/audit_current_forced.py", "skills/analog-gmid-design/assets/design_report.py"], "mutants": 0, "killed": 0, "survivors": [], "defs": [], "moved": [], "move_rejected": {}}

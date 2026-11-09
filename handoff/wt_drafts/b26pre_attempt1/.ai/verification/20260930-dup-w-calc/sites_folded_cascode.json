@@ -1,0 +1,23 @@
+{
+ "rc": 0,
+ "counts": {
+  "101 size_transistor": 0,
+  "878 find_optimal_sizing": 0,
+  "1579 feasible_gm_ids": 11096435,
+  "2057 search_gm_id_for_role": 195600,
+  "2575 feasible_L_window": 0,
+  "3456 diode_vds_window": 2361600,
+  "3470 diode_vds_window": 0,
+  "3534 solve_stacked_diode_pair": 0,
+  "3557 solve_stacked_diode_pair": 0,
+  "3684 apply_diode_self_consistent_gm_id": 1600,
+  "5564 _metric_stage_budget_finalize": 0,
+  "5758 _make_shared_current_scorer._score_and_apply": 0,
+  "6770 make_matching_feasibility_check.check": 0,
+  "7149 _hr_resolve_vertical_group": 0,
+  "7346 _hr_resolve_vertical_group": 0,
+  "8700 _build_theta_evaluator._evaluate": 3600,
+  "8765 _build_theta_evaluator._evaluate": 0,
+  "8841 _build_theta_evaluator._evaluate": 0
+ }
+}

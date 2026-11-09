@@ -1,0 +1,10 @@
+C8 body[11].body[2] -> B26-1 head body[14].body[2] | all_matching_pairs.extend(linked_data['symmetry']['matching_pairs']) | {'N2b': False, 'N2a': False, 'D1b': False}
+C8 body[11].body[3] -> B26-1 head body[14].body[3] | all_dispositions.extend(linked_data['symmetry'].get('dispositions', [] | {'N2b': False, 'N2a': False, 'D1b': False}
+C8 body[11].body[4] -> B26-1 head body[14].body[4] | all_device_roles.update(linked_data.get('device_roles') or {}) | {'N2b': False, 'N2a': False, 'D1b': False}
+C8 body[11].body[5] -> B26-1 head body[14].body[5] | all_netlist_sections_structured.update(linked_data.get('_netlist_secti | {'N2b': False, 'N2a': False, 'D1b': False}
+C8 body[11].body[6] -> B26-1 head body[14].body[6] | all_ideal_sources.extend(linked_data.get('ideal_sources') or []) | {'N2b': False, 'N2a': False, 'D1b': False}
+C8 body[26].body[1] -> B26-1 head body[29].body[1] | if _key in _droles_existing_pair_keys: | {'N2b': False, 'N2a': False, 'D1b': False}
+C8 body[26].body[1].body[0] -> B26-1 head body[29].body[1].body[0] | continue | {'N2b': False, 'N2a': False, 'D1b': False}
+C8 body[26].body[2].body[0] -> B26-1 head body[29].body[2].body[0] | all_matching_pairs.append(_p) | {'N2b': False, 'N2a': False, 'D1b': False}
+C8 body[26].body[2].body[1] -> B26-1 head body[29].body[2].body[1] | _droles_existing_pair_keys.add(_key) | {'N2b': False, 'N2a': False, 'D1b': False}
+C8 body[26].body[2].body[2] -> B26-1 head body[29].body[2].body[2] | _droles_new_pairs.append(_p) | {'N2b': False, 'N2a': False, 'D1b': False}

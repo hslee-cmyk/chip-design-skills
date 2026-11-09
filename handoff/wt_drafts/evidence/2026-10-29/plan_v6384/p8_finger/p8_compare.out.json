@@ -1,0 +1,488 @@
+{
+ "per_circuit": {
+  "folded_cascode": {
+   "device_points": 20,
+   "iter_converged": 15,
+   "B_diff": 3,
+   "C_diff": 3,
+   "D_same": 3,
+   "B_same": 12,
+   "C_same": 12,
+   "D_diff": 12,
+   "iter_slice_cycle": 3,
+   "resolved_by_B": 3,
+   "iter_finger_below_min": 2,
+   "enum_no_fit": 2,
+   "rule_none": 2
+  },
+  "two_stage_ota": {
+   "device_points": 10,
+   "iter_finger_below_min": 2,
+   "resolved_by_B": 2,
+   "iter_converged": 8,
+   "B_same": 4,
+   "C_same": 4,
+   "D_same": 2,
+   "D_diff": 2,
+   "rule_none": 4
+  },
+  "two_stage_ota_sf": {
+   "device_points": 15,
+   "iter_finger_below_min": 4,
+   "enum_no_fit": 5,
+   "rule_none": 5,
+   "iter_converged": 10,
+   "B_same": 10,
+   "C_same": 10,
+   "D_same": 6,
+   "D_diff": 4,
+   "iter_slice_cycle": 1
+  },
+  "nmcnr_amplifier": {
+   "device_points": 15,
+   "iter_converged": 15,
+   "rule_none": 15
+  },
+  "pushpull_follower_buffer": {
+   "device_points": 5,
+   "iter_converged": 5,
+   "B_same": 2,
+   "C_diff": 5,
+   "D_diff": 5,
+   "B_diff": 3
+  }
+ },
+ "detail": [
+  [
+   "folded_cascode",
+   "1",
+   "M10",
+   "converged",
+   "iter",
+   [
+    1,
+    0.475,
+    104
+   ],
+   "B",
+   [
+    1,
+    0.685,
+    148,
+    0.6858
+   ]
+  ],
+  [
+   "folded_cascode",
+   "1",
+   "M3",
+   "slice_cycle",
+   "B",
+   [
+    2,
+    2.335,
+    600,
+    4.6691
+   ],
+   "C",
+   [
+    2,
+    2.335,
+    600,
+    4.6691
+   ],
+   "D",
+   [
+    4,
+    0.5,
+    110,
+    1.9987
+   ]
+  ],
+  [
+   "folded_cascode",
+   "17",
+   "M10",
+   "converged",
+   "iter",
+   [
+    1,
+    0.475,
+    104
+   ],
+   "B",
+   [
+    1,
+    0.685,
+    148,
+    0.6851
+   ]
+  ],
+  [
+   "folded_cascode",
+   "30",
+   "M10",
+   "converged",
+   "iter",
+   [
+    1,
+    0.475,
+    104
+   ],
+   "B",
+   [
+    1,
+    0.685,
+    148,
+    0.6858
+   ]
+  ],
+  [
+   "folded_cascode",
+   "30",
+   "M3",
+   "slice_cycle",
+   "B",
+   [
+    2,
+    2.28,
+    600,
+    4.5592
+   ],
+   "C",
+   [
+    2,
+    2.28,
+    600,
+    4.5592
+   ],
+   "D",
+   [
+    3,
+    0.635,
+    128,
+    1.9086
+   ]
+  ],
+  [
+   "folded_cascode",
+   "30",
+   "M4",
+   "slice_cycle",
+   "B",
+   [
+    2,
+    2.425,
+    600,
+    4.8455
+   ],
+   "C",
+   [
+    2,
+    2.425,
+    600,
+    4.8455
+   ],
+   "D",
+   [
+    4,
+    0.495,
+    110,
+    1.9784
+   ]
+  ],
+  [
+   "folded_cascode",
+   "52",
+   "M10",
+   "finger_below_min",
+   "no fit"
+  ],
+  [
+   "folded_cascode",
+   "66",
+   "M10",
+   "finger_below_min",
+   "no fit"
+  ],
+  [
+   "two_stage_ota",
+   "1",
+   "M4",
+   "finger_below_min",
+   "B",
+   [
+    1,
+    0.485,
+    110,
+    0.4849
+   ],
+   "C",
+   [
+    1,
+    0.485,
+    110,
+    0.4849
+   ],
+   "D",
+   [
+    1,
+    0.485,
+    110,
+    0.4849
+   ]
+  ],
+  [
+   "two_stage_ota",
+   "13",
+   "M4",
+   "finger_below_min",
+   "B",
+   [
+    1,
+    0.485,
+    110,
+    0.4849
+   ],
+   "C",
+   [
+    1,
+    0.485,
+    110,
+    0.4849
+   ],
+   "D",
+   [
+    1,
+    0.485,
+    110,
+    0.4849
+   ]
+  ],
+  [
+   "two_stage_ota",
+   "41",
+   "M4",
+   "converged",
+   "no fit"
+  ],
+  [
+   "two_stage_ota",
+   "41",
+   "M7",
+   "converged",
+   "no fit"
+  ],
+  [
+   "two_stage_ota",
+   "53",
+   "M4",
+   "converged",
+   "no fit"
+  ],
+  [
+   "two_stage_ota",
+   "53",
+   "M7",
+   "converged",
+   "no fit"
+  ],
+  [
+   "two_stage_ota_sf",
+   "1",
+   "M4",
+   "finger_below_min",
+   "no fit"
+  ],
+  [
+   "two_stage_ota_sf",
+   "11",
+   "M4",
+   "finger_below_min",
+   "no fit"
+  ],
+  [
+   "two_stage_ota_sf",
+   "28",
+   "M4",
+   "finger_below_min",
+   "no fit"
+  ],
+  [
+   "two_stage_ota_sf",
+   "37",
+   "M4",
+   "finger_below_min",
+   "no fit"
+  ],
+  [
+   "two_stage_ota_sf",
+   "48",
+   "M4",
+   "slice_cycle",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "30",
+   "M104",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "30",
+   "M109",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "30",
+   "M204",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "39",
+   "M104",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "39",
+   "M109",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "39",
+   "M204",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "49",
+   "M104",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "49",
+   "M109",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "49",
+   "M204",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "58",
+   "M104",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "58",
+   "M109",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "58",
+   "M204",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "67",
+   "M104",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "67",
+   "M109",
+   "converged",
+   "no fit"
+  ],
+  [
+   "nmcnr_amplifier",
+   "67",
+   "M204",
+   "converged",
+   "no fit"
+  ],
+  [
+   "pushpull_follower_buffer",
+   "21",
+   "M2",
+   "converged",
+   "iter",
+   [
+    4236,
+    5.0,
+    1000
+   ],
+   "B",
+   [
+    1495,
+    0.64,
+    128,
+    959.8974
+   ]
+  ],
+  [
+   "pushpull_follower_buffer",
+   "31",
+   "M2",
+   "converged",
+   "iter",
+   [
+    1054,
+    5.0,
+    1000
+   ],
+   "B",
+   [
+    419,
+    0.64,
+    128,
+    268.8957
+   ]
+  ],
+  [
+   "pushpull_follower_buffer",
+   "40",
+   "M2",
+   "converged",
+   "iter",
+   [
+    2706,
+    5.0,
+    1000
+   ],
+   "B",
+   [
+    962,
+    0.64,
+    128,
+    617.8558
+   ]
+  ]
+ ]
+}

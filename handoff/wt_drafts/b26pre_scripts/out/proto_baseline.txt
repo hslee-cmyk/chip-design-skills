@@ -1,0 +1,42 @@
+== C:/g87/b1 rc=0 26s
+[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m                                                          [100%][0m
+=================================== PASSES ====================================
+[36m[1m=========================== short test summary info ===========================[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_ofcb_lutless_repair[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_euler_fixup_group_split[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_growth_zero_rounds[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_growth_zero_rounds_euler[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_growth_already_ok[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_growth_pair_not_found[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_growth_only_3b_left[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_full_audit_all_disposed[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_full_audit_mirror_undisposed[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_full_audit_diffpair_undisposed[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_full_audit_hub_undisposed[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_resolve_stack_candidates[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_vsid_gap_fill_no_ports[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_vsid_gap_fill_ports[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_case_collisions[0m
+[32m[32m[1m15 passed[0m[32m in 9.27s[0m[0m
+
+== C:/g87/base rc=0 13s
+[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m                                                          [100%][0m
+=================================== PASSES ====================================
+[36m[1m=========================== short test summary info ===========================[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_ofcb_lutless_repair[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_euler_fixup_group_split[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_growth_zero_rounds[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_growth_zero_rounds_euler[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_growth_already_ok[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_growth_pair_not_found[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_growth_only_3b_left[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_full_audit_all_disposed[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_full_audit_mirror_undisposed[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_full_audit_diffpair_undisposed[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_full_audit_hub_undisposed[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_resolve_stack_candidates[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_vsid_gap_fill_no_ports[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_vsid_gap_fill_ports[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/contracts/test_b26pre_card.py::[1mtest_b26pre_case_collisions[0m
+[32m[32m[1m15 passed[0m[32m in 5.53s[0m[0m
+

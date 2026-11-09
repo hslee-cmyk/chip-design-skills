@@ -1,0 +1,8 @@
+[hist] gain-budget-gmid-sizing: ops=['insert'] n_ops=2 inserted_lines=33 rest==old True CRLF old=4 new=4
+[hist] graph-consumption: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=0 new=0
+[hist] headroom-chain: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=0 new=0
+[hist] offset-strategy: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=0 new=0
+[hist] offset-trim: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=0 new=0
+[hist] oracle-portability: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=2 new=2
+[MISS-LINE] gain-budget-gmid-sizing old 1306: | LA-1(층 0 손계산 조립, v6.19 -- O-33 (1)) | N6.14 | XRUN-F1 card B(병합됨), card WB-1(v6.38.2 -- LA-0 base에 포함), IT-1 + IT-2 통합 병합(IT-2a~IT-2e), UB-1(블록 국소 모델 통합, O-38 (2)) + NL-1(같은 통합 병합), headroom-chain HC-S(`sat_threshold` 정본), card TB-1(θ 기저 S/B/F 분류 필드 -- O-144 J3), headroom-chain HC-1(R-1′ 묶음 -- 병합 순서 규칙 표 #16, 사용자 결정 O-190; graph-consumption GC-8과 같은 통합 병합 -- 표 #17, 사용자 결정 O-191: 커널 순서 창(`order_t
+segments checked 25, miss 1

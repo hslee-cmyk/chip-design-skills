@@ -1,0 +1,37 @@
+{"arity": 3, "ctx": "Call", "file": "authoring/_terminal_nets.py", "fn": "mos_terminal_nets", "line": 11, "reach": true, "src": "nets.update((x.d, x.g, x.s))", "store": false}
+{"arity": 3, "ctx": "Assign", "file": "convergence/layout_input.py", "fn": "layout_input_of", "line": 69, "reach": true, "src": "d, g, s = (pins[t] for t in MOS_TERMINAL_NAMES)", "store": true}
+{"arity": 2, "ctx": "Assign", "file": "graph/dc_roles.py", "fn": "s1_dc_roles", "line": 82, "reach": true, "src": "nets = (pins[name][MOS_GATE], pins[name][MOS_SOURCE])", "store": false}
+{"arity": 2, "ctx": "Assign", "file": "graph/dc_roles.py", "fn": "s1_dc_roles", "line": 86, "reach": true, "src": "nets = (pins[name][MOS_GATE], pins[name][MOS_SOURCE])", "store": false}
+{"arity": 2, "ctx": "Assign", "file": "graph/dc_roles.py", "fn": "s1_dc_roles", "line": 90, "reach": true, "src": "nets = (group.gate, group.source)", "store": false}
+{"arity": 2, "ctx": "Assign", "file": "graph/dc_roles.py", "fn": "s1_dc_roles", "line": 105, "reach": true, "src": "nets = (pins[name][MOS_GATE], pins[name][MOS_SOURCE])", "store": false}
+{"arity": 3, "ctx": "Call", "file": "graph/gs_groups.py", "fn": "s1_gs_groups", "line": 32, "reach": true, "src": "by_key.setdefault((kind[name], net[MOS_GATE], net[MOS_SOURCE]), [])", "store": false}
+{"arity": 3, "ctx": "Tuple", "file": "graph/gs_groups.py", "fn": "s1_gs_groups", "line": 33, "reach": true, "src": "((k, g, s), names)", "store": true}
+{"arity": 2, "ctx": "Assign", "file": "graph/gvgs_cycles.py", "fn": "s1_gvgs", "line": 71, "reach": true, "src": "g, s = (node(pins[name][MOS_GATE]), node(pins[name][MOS_SOURCE]))", "store": true}
+{"arity": 2, "ctx": "Call", "file": "graph/gvgs_cycles.py", "fn": "s1_gvgs", "line": 75, "reach": true, "src": "sorted((g, s))", "store": false}
+{"arity": 2, "ctx": "Tuple", "file": "graph/matching_groups.py", "fn": "_loop_nets", "line": 236, "reach": true, "src": "((p[MOS_GATE], p[MOS_DRAIN]), (p[MOS_GATE], p[MOS_SOURCE]), (p[MOS_SOURCE], p[MOS_DRAIN]))", "store": false}
+{"arity": 2, "ctx": "Assign", "file": "graph/matching_groups.py", "fn": "_classify_mirror", "line": 301, "reach": true, "src": "nets = (g.gate, g.source)", "store": false}
+{"arity": 3, "ctx": "For", "file": "graph/net_model.py", "fn": "net_model", "line": 64, "reach": true, "src": "for net in (m.d, m.g, m.s):\n    touching.setdefault(net, set()).add(m.name)", "store": false}
+{"arity": 2, "ctx": "Call", "file": "graph/rel_matching.py", "fn": "s1_rel_matching", "line": 38, "reach": true, "src": "Evidence(REL_MATCHING_RATIO, (g.gate, g.source))", "store": false}
+{"arity": 2, "ctx": "Call", "file": "graph/rel_matching.py", "fn": "s1_rel_matching", "line": 40, "reach": true, "src": "Evidence(REL_L_CLASS, (g.gate, g.source), (), (J_L_CLASS,))", "store": false}
+{"arity": 2, "ctx": "Call", "file": "graph/rel_vgs.py", "fn": "s1_rel_vgs", "line": 32, "reach": true, "src": "Evidence(REL_EQUAL_VGS, (g.gate, g.source))", "store": false}
+{"arity": 3, "ctx": "Call", "file": "graph/s1_index.py", "fn": "terminal_index", "line": 18, "reach": true, "src": "zip(MOS_TERMINAL_NAMES, (x.d, x.g, x.s))", "store": false}
+{"arity": 3, "ctx": "Call", "file": "graph/s1_structure.py", "fn": "s1_structure", "line": 65, "reach": true, "src": "zip(MOS_TERMINAL_NAMES, (x.d, x.g, x.s))", "store": false}
+{"arity": 3, "ctx": "Assign", "file": "graph/s1_values.py", "fn": "<module>", "line": 40, "reach": true, "src": "MOS_TERMINAL_NAMES = (MOS_DRAIN, MOS_GATE, MOS_SOURCE)", "store": false}
+{"arity": 3, "ctx": "Tuple", "file": "graph/virtual_ground.py", "fn": "_elements", "line": 27, "reach": true, "src": "(m.kind, (m.d, m.g, m.s), False)", "store": false}
+{"arity": 2, "ctx": "Lambda", "file": "metrics/block_gain_model.py", "fn": "block_gain_model_of", "line": 170, "reach": true, "src": "lambda m: (local.pins[m]['g'], local.pins[m]['s'])", "store": false}
+{"arity": 3, "ctx": "Assign", "file": "metrics/ls_fields.py", "fn": "_signal_current", "line": 48, "reach": true, "src": "_drain, gate, source = pins[label]", "store": true}
+{"arity": 3, "ctx": "comprehension", "file": "metrics/ls_swing.py", "fn": "ls_swing", "line": 96, "reach": true, "src": " for n in (m.d, m.g, m.s)", "store": false}
+{"arity": 3, "ctx": "Assign", "file": "metrics/metrics_aux.py", "fn": "_sat_devices", "line": 116, "reach": true, "src": "drain, gate, source = (terminal[t] for t in MOS_TERMINAL_NAMES)", "store": true}
+{"arity": 3, "ctx": "Assign", "file": "metrics/ss_circuit.py", "fn": "ss_circuit", "line": 43, "reach": true, "src": "d, g, s = (index[pin[t]] for t in MOS_TERMINAL_NAMES)", "store": true}
+{"arity": 2, "ctx": "Tuple", "file": "metrics/stamp_mos.py", "fn": "mos_stamps", "line": 26, "reach": true, "src": "((g, s), device.cgs)", "store": false}
+{"arity": 3, "ctx": "Call", "file": "pipeline/stage_a.py", "fn": "_net_names", "line": 191, "reach": true, "src": "nets.update((d.d, d.g, d.s))", "store": false}
+{"arity": 2, "ctx": "Dict", "file": "search/iv_headroom.py", "fn": "_edge_nets", "line": 69, "reach": true, "src": "{EDGE_VDS: (drain, source), EDGE_VGS: (gate, source)}", "store": false}
+{"arity": 3, "ctx": "comprehension", "file": "search/iv_headroom.py", "fn": "_budgets", "line": 107, "reach": true, "src": " for n in (d.drain, d.gate, d.source)", "store": false}
+{"arity": 3, "ctx": "Assign", "file": "sizing/block_columns.py", "fn": "_Circuit.mos_point", "line": 188, "reach": true, "src": "d, g, s = (self.pins[m][t] for t in MOS_TERMINAL_NAMES)", "store": true}
+{"arity": 3, "ctx": "Assign", "file": "sizing/block_columns.py", "fn": "dc_columns", "line": 752, "reach": true, "src": "d, g, s = (c.pins[m][t] for t in MOS_TERMINAL_NAMES)", "store": true}
+{"arity": 3, "ctx": "Assign", "file": "sizing/block_widths.py", "fn": "dc_widths", "line": 43, "reach": true, "src": "d, g, s = (dict(pins[m])[t] for t in MOS_TERMINAL_NAMES)", "store": true}
+{"arity": 3, "ctx": "Assign", "file": "sizing/scc_order.py", "fn": "dc_scc_order", "line": 133, "reach": true, "src": "drain, gate, source = (pins[w.element][t] for t in MOS_TERMINAL_NAMES)", "store": true}
+{"arity": 3, "ctx": "Assign", "file": "sizing/writer_plan.py", "fn": "_edges", "line": 112, "reach": true, "src": "_d, gate, source = (p[t] for t in MOS_TERMINAL_NAMES)", "store": true}
+{"arity": 2, "ctx": "Assign", "file": "sizing/writer_plan.py", "fn": "dc_writer_plan", "line": 190, "reach": true, "src": "gate, source = value", "store": true}
+{"arity": 3, "ctx": "Compare", "file": "sizing/writer_plan.py", "fn": "dc_writer_plan", "line": 193, "reach": true, "src": "(kinds[name], gate, source) in pairs", "store": false}
+{"arity": 3, "ctx": "Subscript", "file": "sizing/writer_plan.py", "fn": "dc_writer_plan", "line": 194, "reach": true, "src": "pairs[kinds[name], gate, source]", "store": false}

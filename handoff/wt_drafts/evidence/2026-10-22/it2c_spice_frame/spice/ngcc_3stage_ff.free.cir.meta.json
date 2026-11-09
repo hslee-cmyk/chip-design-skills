@@ -1,0 +1,525 @@
+{
+ "bias": "free",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0
+ },
+ "geometry": {
+  "M0": {
+   "L": 1.5e-07,
+   "finger_w": 1.0000082992632586e-06,
+   "n_fingers": 68153,
+   "W_from_fingers": 0.06815356561968886,
+   "W_declared": 0.06815356561968886,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.000041496316292e-13,
+    "as": 5.000041496316292e-13,
+    "pd": 3.000008299263259e-06,
+    "ps": 3.000008299263259e-06
+   }
+  },
+  "M1": {
+   "L": 1.5e-07,
+   "finger_w": 1.3323644440664052e-06,
+   "n_fingers": 3,
+   "W_from_fingers": 3.9970933321992156e-06,
+   "W_declared": 3.9970933321992156e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 6.661822220332026e-13,
+    "as": 6.661822220332026e-13,
+    "pd": 3.3323644440664055e-06,
+    "ps": 3.3323644440664055e-06
+   }
+  },
+  "M2": {
+   "L": 1.5e-07,
+   "finger_w": 1.3323644440664052e-06,
+   "n_fingers": 3,
+   "W_from_fingers": 3.9970933321992156e-06,
+   "W_declared": 3.9970933321992156e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 6.661822220332026e-13,
+    "as": 6.661822220332026e-13,
+    "pd": 3.3323644440664055e-06,
+    "ps": 3.3323644440664055e-06
+   }
+  },
+  "M3": {
+   "L": 1.5e-07,
+   "finger_w": 1.007188032529537e-06,
+   "n_fingers": 31,
+   "W_from_fingers": 3.1222829008415646e-05,
+   "W_declared": 3.1222829008415646e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.035940162647684e-13,
+    "as": 5.035940162647684e-13,
+    "pd": 3.0071880325295374e-06,
+    "ps": 3.0071880325295374e-06
+   }
+  },
+  "M4": {
+   "L": 1.5e-07,
+   "finger_w": 1.0241734974592242e-06,
+   "n_fingers": 28,
+   "W_from_fingers": 2.8676857928858277e-05,
+   "W_declared": 2.8676857928858277e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.120867487296121e-13,
+    "as": 5.120867487296121e-13,
+    "pd": 3.0241734974592245e-06,
+    "ps": 3.0241734974592245e-06
+   }
+  },
+  "M5": {
+   "L": 1.5e-07,
+   "finger_w": 1.0000003597663875e-06,
+   "n_fingers": 35185,
+   "W_from_fingers": 0.035185012658380345,
+   "W_declared": 0.035185012658380345,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.000001798831937e-13,
+    "as": 5.000001798831937e-13,
+    "pd": 3.000000359766388e-06,
+    "ps": 3.000000359766388e-06
+   }
+  },
+  "M6A": {
+   "L": 1.5e-07,
+   "finger_w": 1.0087202714992841e-06,
+   "n_fingers": 109,
+   "W_from_fingers": 0.00010995050959342197,
+   "W_declared": 0.00010995050959342197,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.043601357496421e-13,
+    "as": 5.043601357496421e-13,
+    "pd": 3.0087202714992845e-06,
+    "ps": 3.0087202714992845e-06
+   }
+  },
+  "M6B": {
+   "L": 1.5e-07,
+   "finger_w": 1.004166868202766e-06,
+   "n_fingers": 98,
+   "W_from_fingers": 9.840835308387107e-05,
+   "W_declared": 9.840835308387108e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.02083434101383e-13,
+    "as": 5.02083434101383e-13,
+    "pd": 3.0041668682027666e-06,
+    "ps": 3.0041668682027666e-06
+   }
+  },
+  "M7": {
+   "L": 1.5e-07,
+   "finger_w": 1.063524851452072e-06,
+   "n_fingers": 14,
+   "W_from_fingers": 1.4889347920329007e-05,
+   "W_declared": 1.4889347920329007e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.31762425726036e-13,
+    "as": 5.31762425726036e-13,
+    "pd": 3.0635248514520725e-06,
+    "ps": 3.0635248514520725e-06
+   }
+  },
+  "M8": {
+   "L": 1.5e-07,
+   "finger_w": 1.0211008013553236e-06,
+   "n_fingers": 26,
+   "W_from_fingers": 2.6548620835238413e-05,
+   "W_declared": 2.6548620835238417e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.105504006776618e-13,
+    "as": 5.105504006776618e-13,
+    "pd": 3.021100801355324e-06,
+    "ps": 3.021100801355324e-06
+   }
+  },
+  "M9": {
+   "L": 1.5e-07,
+   "finger_w": 1.1478255143694017e-06,
+   "n_fingers": 6,
+   "W_from_fingers": 6.886953086216411e-06,
+   "W_declared": 6.886953086216411e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.739127571847009e-13,
+    "as": 5.739127571847009e-13,
+    "pd": 3.147825514369402e-06,
+    "ps": 3.147825514369402e-06
+   }
+  },
+  "M10": {
+   "L": 1.5e-07,
+   "finger_w": 1.3225639409908565e-06,
+   "n_fingers": 3,
+   "W_from_fingers": 3.9676918229725695e-06,
+   "W_declared": 3.9676918229725695e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 6.612819704954282e-13,
+    "as": 6.612819704954282e-13,
+    "pd": 3.322563940990857e-06,
+    "ps": 3.322563940990857e-06
+   }
+  },
+  "M11": {
+   "L": 1.5e-07,
+   "finger_w": 1.0211008013553236e-06,
+   "n_fingers": 26,
+   "W_from_fingers": 2.6548620835238413e-05,
+   "W_declared": 2.6548620835238417e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.105504006776618e-13,
+    "as": 5.105504006776618e-13,
+    "pd": 3.021100801355324e-06,
+    "ps": 3.021100801355324e-06
+   }
+  },
+  "M12": {
+   "L": 1.5e-07,
+   "finger_w": 1.000003108918542e-06,
+   "n_fingers": 238416,
+   "W_from_fingers": 0.2384167412159231,
+   "W_declared": 0.2384167412159231,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.00001554459271e-13,
+    "as": 5.00001554459271e-13,
+    "pd": 3.0000031089185423e-06,
+    "ps": 3.0000031089185423e-06
+   }
+  },
+  "M13": {
+   "L": 1.5e-07,
+   "finger_w": 1.0061339327153827e-06,
+   "n_fingers": 28,
+   "W_from_fingers": 2.8171750116030717e-05,
+   "W_declared": 2.8171750116030714e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.030669663576913e-13,
+    "as": 5.030669663576913e-13,
+    "pd": 3.006133932715383e-06,
+    "ps": 3.006133932715383e-06
+   }
+  },
+  "M14": {
+   "L": 1.5e-07,
+   "finger_w": 1.0170849785916645e-06,
+   "n_fingers": 29,
+   "W_from_fingers": 2.949546437915827e-05,
+   "W_declared": 2.949546437915827e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 5.085424892958322e-13,
+    "as": 5.085424892958322e-13,
+    "pd": 3.017084978591665e-06,
+    "ps": 3.017084978591665e-06
+   }
+  }
+ },
+ "probes": {
+  "M0": {
+   "id": "@m.xm0.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm0.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm0.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm0.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm0.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm0.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm0.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm0.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M1": {
+   "id": "@m.xm1.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm1.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm1.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm1.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm1.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm1.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm1.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm1.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M2": {
+   "id": "@m.xm2.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm2.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm2.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm2.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm2.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm2.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm2.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm2.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M3": {
+   "id": "@m.xm3.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm3.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm3.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm3.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm3.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm3.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm3.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm3.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M4": {
+   "id": "@m.xm4.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm4.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm4.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm4.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm4.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm4.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm4.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm4.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M5": {
+   "id": "@m.xm5.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm5.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm5.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm5.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm5.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm5.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm5.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm5.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M6A": {
+   "id": "@m.xm6a.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm6a.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm6a.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm6a.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm6a.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm6a.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm6a.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm6a.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M6B": {
+   "id": "@m.xm6b.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm6b.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm6b.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm6b.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm6b.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm6b.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm6b.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm6b.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M7": {
+   "id": "@m.xm7.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm7.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm7.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm7.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm7.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm7.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm7.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm7.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M8": {
+   "id": "@m.xm8.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm8.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm8.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm8.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm8.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm8.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm8.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm8.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M9": {
+   "id": "@m.xm9.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm9.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm9.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm9.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm9.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm9.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm9.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm9.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M10": {
+   "id": "@m.xm10.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm10.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm10.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm10.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm10.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm10.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm10.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm10.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M11": {
+   "id": "@m.xm11.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm11.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm11.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm11.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm11.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm11.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm11.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm11.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M12": {
+   "id": "@m.xm12.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm12.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm12.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm12.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm12.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm12.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm12.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm12.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M13": {
+   "id": "@m.xm13.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm13.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm13.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm13.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm13.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm13.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm13.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm13.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M14": {
+   "id": "@m.xm14.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm14.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm14.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm14.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm14.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm14.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm14.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm14.msky130_fd_pr__nfet_01v8[vbs]"
+  }
+ },
+ "nets": [
+  "TAIL",
+  "VBP",
+  "vdd",
+  "ND",
+  "Vinn",
+  "V1",
+  "Vinp",
+  "NX",
+  "Vout",
+  "NP",
+  "V2",
+  "VBN"
+ ],
+ "spice_node": {
+  "TAIL": "TAIL",
+  "VBP": "VBP",
+  "vdd": "vdd",
+  "ND": "ND",
+  "Vinn": "Vinn",
+  "V1": "V1",
+  "Vinp": "Vinp",
+  "NX": "NX",
+  "Vout": "Vout",
+  "NP": "NP",
+  "V2": "V2",
+  "VBN": "VBN"
+ },
+ "rail_sources": {
+  "vdd": "Vrail_vdd"
+ },
+ "held": [],
+ "unheld": [],
+ "gate_bias": {
+  "VBP": 1.6585987817278278,
+  "VBN": 0.6058952829610508
+ },
+ "inputs": [
+  "Vinp",
+  "Vinn"
+ ],
+ "has_ac": true,
+ "ac_file": "ngcc_3stage_ff.free.ac.txt",
+ "outputs": [
+  "Vout"
+ ],
+ "output_nodes": [
+  "Vout",
+  "0"
+ ],
+ "tb_options": {
+  "gmin": "1e-15",
+  "reltol": "1e-4",
+  "abstol": "1e-14",
+  "vntol": "1e-7",
+  "itl1": "500",
+  "itl2": "500"
+ },
+ "ratio_runs": [],
+ "rout_runs": [],
+ "input_ac_weights": {
+  "Vinp": 0.5,
+  "Vinn": -0.5
+ },
+ "dc_path_isolation": [
+  {
+   "net": "Vinp",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": false
+  },
+  {
+   "net": "Vinn",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": true
+  }
+ ],
+ "notes": [
+  "capacitor LOAD_Vout=1e-11 (spec['CL'])",
+  "capacitor Cm1=6.545500428e-13 (엔진 봉인점 device.passive_value)",
+  "capacitor Cm2=1e-13 (엔진 봉인점 device.passive_value)",
+  "capacitor CL=1e-11 (엔진 봉인점 device.passive_value)",
+  "free: DC 되먹임 Vout -> Vinn (V(Vout)_pred=0.9, V(Vinn)_pred=0.545369)",
+  "게이트 전용 넷 VBP = 1.6586 V (bias_voltages 선언)",
+  "게이트 전용 넷 VBN = 0.605895 V (bias_voltages 선언)",
+  "free: .nodeset 9개 = 예측 노드전압(뉴턴 초기값)"
+ ],
+ "blockers": [],
+ "z1": null,
+ "topology_identity": {
+  "status": "verified",
+  "topology_path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_it2c\\src\\skills\\analog-gmid-design\\assets\\library\\ngcc_3stage_ff.topology.json",
+  "sha256_actual": "7e758a6baeae382a19d5b3d91c17891a2d67d8313a3694152e56b2e60510b429",
+  "sha256_declared": "5753924c049270bab1d16462fab633be0e50ced3ba652250c7268fdb45e9d57b",
+  "diffs": [],
+  "compared": 19,
+  "excluded_testbench": [
+   "Vrail_vdd",
+   "Vdc_Vinp",
+   "Ldc_Vinp",
+   "Cac_Vinp",
+   "Vac_Vinp",
+   "Efb_Vinn",
+   "Vofs_Vinn",
+   "Lfb_Vinn",
+   "Cac_Vinn",
+   "Vac_Vinn",
+   "Vbias_VBP",
+   "Vbias_VBN"
+  ],
+  "declared_not_in_topology": {
+   "LOAD_Vout": "topology 에 출력 부하 C 가 없어 어댑터가 spec['CL'] 로 넣은 부하"
+  },
+  "bulk_compared": [],
+  "notes": [
+   "topology 파일 sha256 이 입력 선언값과 다르다(입력 변환 뒤 파일이 바뀜): 선언 5753924c0492.. 실제 7e758a6baeae.."
+  ],
+  "bias_inputs": [
+   "VBN",
+   "VBP"
+  ],
+  "required": false
+ },
+ "cm_loop": null,
+ "loop": null
+}

@@ -1,0 +1,77 @@
+{
+ "counts": {
+  "folded_cascode|diff": 3,
+  "folded_cascode|same": 12,
+  "two_stage_ota|same": 8,
+  "two_stage_ota_sf|same": 10,
+  "nmcnr_amplifier|same": 14,
+  "nmcnr_amplifier|diff": 1,
+  "pushpull_follower_buffer|same": 5
+ },
+ "detail": [
+  [
+   "folded_cascode",
+   "1",
+   "M10",
+   "iter(m,w_f)",
+   [
+    1,
+    0.475
+   ],
+   "B",
+   [
+    1,
+    0.685,
+    "bin(0.65,0.74]"
+   ]
+  ],
+  [
+   "folded_cascode",
+   "17",
+   "M10",
+   "iter(m,w_f)",
+   [
+    1,
+    0.475
+   ],
+   "B",
+   [
+    1,
+    0.685,
+    "bin(0.65,0.74]"
+   ]
+  ],
+  [
+   "folded_cascode",
+   "30",
+   "M10",
+   "iter(m,w_f)",
+   [
+    1,
+    0.475
+   ],
+   "B",
+   [
+    1,
+    0.685,
+    "bin(0.65,0.74]"
+   ]
+  ],
+  [
+   "nmcnr_amplifier",
+   "67",
+   "M104",
+   "iter(m,w_f)",
+   [
+    373,
+    4.985
+   ],
+   "B",
+   [
+    372,
+    5.0,
+    "bin(3.00,5.00]"
+   ]
+  ]
+ ]
+}

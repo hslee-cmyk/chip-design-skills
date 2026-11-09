@@ -1,0 +1,8 @@
+FR 15 {'MISS': 5, 'PART': 7, 'OK': 2, 'DEV': 1}
+DEC 85 {'MISS': 20, 'PART': 29, 'OK': 24, 'DEV': 6, 'N/A': 6}
+DES 212 {'MISS': 154, 'PART': 17, 'DEV': 30, 'N/A': 5, 'OK': 6}
+dup ids {}
+FR 15 {'MISS': 5, 'PART': 7, 'OK': 2, 'DEV': 1}
+DEC 85 {'MISS': 20, 'PART': 29, 'OK': 24, 'DEV': 6, 'N/A': 6}
+DES 212 {'MISS': 154, 'PART': 17, 'DEV': 30, 'N/A': 5, 'OK': 6}
+dup ids {'D-CM': [200, 338], 'D-MR': [222, 351]}

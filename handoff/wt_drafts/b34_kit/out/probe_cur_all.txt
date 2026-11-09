@@ -1,0 +1,1 @@
+{"label": "cur_all", "tool_exit": 1, "records": 55, "targeted": 55, "not_targeted": 0, "expect_targeted": 55, "missing": [], "extra": [], "not_targeted_ok": null, "stdout_keys": "6°³", "stdout_mutants": 55, "stdout_not_targeted": null, "order_ok": true}

@@ -1,0 +1,72 @@
+== 2026-10-31_QO200A.md sha256 ecf4c76c5fedfd95c49e632ae9948a3f59a01dc927d09df223505f2b949657b2
+  금지어: {'안 함': 0, '미측정': 0, '상정 전': 0, '확인 필요': 0, 'TODO': 0}
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.sizing_spec.json:257 | "metric": "icm_margin_v",
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/assets/library/ngcc_3stage_ff.sizing_spec.json:164 | "intended_region": {
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/assets/library/ngcc_3stage_ff.sizing_spec.json:99 | "metric": "icmr_v",
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/assets/library/nmcnr_amplifier.sizing_spec.json:117 | "metric": "icmr_v",
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/assets/library/nmcnr_amplifier.sizing_spec.json:171 | "pending_constraints": [
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/assets/library/nmcnr_amplifier.sizing_spec.json:199 | "intended_region": {
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/assets/library/sf_pushpull_output_opamp.sizing_spec.json:141 | "metric": "icm_margin_v",
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/assets/technique/sources/offset_trim__bertotti_2012/source.pdf
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/tools/spice_oracle/oracle_compare.py:240 | if pred.get("region") == "off":
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/tools/spice_oracle/oracle_input.schema.json:121 | "region": {"enum": ["sat", "triode", "off"], "description": "엔진이 가정한 영역. judge.sat_margin_
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-31/o200_audit_k10_physical_v5.md
+  MISSING C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-31/o200_validation46_A.md
+  OK  wt/_drafts/evidence/2026-10-31/o200_audit_k10_physical_v4.md
+  OK  wt/_drafts/evidence/2026-10-31/o200_audit_k10_physical_v5.md
+  OK  wt/_drafts/evidence/2026-10-31/o200_k10/m_o200_k10.txt
+  MISSING wt/_drafts/evidence/2026-10-31/o200_k10/m_o200_k10.txt(VGS
+  OK  wt/_drafts/evidence/2026-10-31/o200_v2/agg_seal9.txt
+  OK  wt/_drafts/evidence/2026-10-31/o200_v2/agg_seal9_inplace.txt
+  MISSING wt/_drafts/evidence/2026-10-31/o200_v2/agg_seal9_inplace.txt(엔진
+  OK  wt/_drafts/evidence/2026-10-31/o200_v3/grep_conduction.py
+  OK  wt/_drafts/evidence/2026-10-31/o200_v3/grep_conduction_hits.txt
+  MISSING wt/_drafts/evidence/2026-10-31/o200_v3/grep_conduction_hits.txt(전수
+  OK  wt/_drafts/evidence/2026-10-31/o200_v4/m_linear_zero_cross.txt
+  MISSING wt/_drafts/evidence/2026-10-31/o200_v4/m_linear_zero_cross.txt((가
+  MISSING wt/_drafts/evidence/2026-10-31/o200_v41/v41_lut_repro.txt(R1·R2
+  OK  wt/_drafts/evidence/2026-10-31/o200_v41/v41_p4_vs_p2_meta.json
+  MISSING wt/_drafts/evidence/2026-10-31/o200_v42/v42_tolI_scale.txt(O-c
+  OK  wt/_drafts/evidence/2026-10-31/o200_v43/v43_toy_grep.txt
+  MISSING wt/_drafts/evidence/2026-10-31/o200_v43/v43_toy_grep.txt(toy
+  MISSING wt/_drafts/evidence/2026-10-31/o200_v44/v44_checks.txt(spec
+  OK  wt/_drafts/evidence/2026-10-31/o200_validation44.md
+  OK  wt/_drafts/user_decisions.md
+  OK  wt/plan-v6386/docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+  OK  wt/plan-v6386/docs/01-plan/features/offset-trim.plan.md
+== 2026-10-31_QO200B.md sha256 e5214747b431353c87ba5df40e6aac2a34b0f6cf03e3e270c67bc6e80c91b16d
+  금지어: {'안 함': 0, '미측정': 0, '상정 전': 0, '확인 필요': 0, 'TODO': 0}
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/assets/sky130_lut_sweep.py:35 | BSIM이 직접 내는 op 값이다(VDSAT은 SPICE 오라클 tools/spice_oracle의 `@m[vdsat]`과 같은 정의).
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/skills/analog-gmid-design/tools/spice_oracle/oracle_compare.py:276 | sat_m = None if vds is None or vdsat is None else vds - vdsat
+  OK  C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-31/o200_audit_k10_physical_v5.md
+  MISSING C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-31/o200_validation46_B.md
+  OK  wt/_drafts/evidence/2026-10-31/o200_audit_k10_physical_v3.md
+  OK  wt/_drafts/evidence/2026-10-31/o200_audit_k10_physical_v4.md
+  OK  wt/_drafts/evidence/2026-10-31/o200_audit_k10_physical_v5.md
+  OK  wt/_drafts/evidence/2026-10-31/o200_k10/grep2_hits.txt
+  OK  wt/_drafts/evidence/2026-10-31/o200_k10/m_o200_k10.txt
+  MISSING wt/_drafts/evidence/2026-10-31/o200_k10/m_o200_k10.txt(정점·VGS
+  OK  wt/_drafts/evidence/2026-10-31/o200_q5/q5_engine_agg.txt
+  MISSING wt/_drafts/evidence/2026-10-31/o200_q5/q5_engine_agg.txt(재확인
+  OK  wt/_drafts/evidence/2026-10-31/o200_q5/q5_spice_band.jsonl
+  MISSING wt/_drafts/evidence/2026-10-31/o200_q5/q5_spice_band.jsonl(M109·M104
+  OK  wt/_drafts/evidence/2026-10-31/o200_q5/report.md
+  MISSING wt/_drafts/evidence/2026-10-31/o200_q5/report.md(Q-5
+  OK  wt/_drafts/evidence/2026-10-31/o200_v3/grep_conduction_hits.txt
+  OK  wt/_drafts/evidence/2026-10-31/o200_v3/m6_peak_tie_tolv.txt
+  MISSING wt/_drafts/evidence/2026-10-31/o200_v3/m6_peak_tie_tolv.txt(Q-4
+  OK  wt/_drafts/evidence/2026-10-31/o200_v41/v41_agg.txt
+  MISSING wt/_drafts/evidence/2026-10-31/o200_v41/v41_agg.txt(K10
+  OK  wt/_drafts/evidence/2026-10-31/o200_v41/v41_lut_repro.txt
+  MISSING wt/_drafts/evidence/2026-10-31/o200_v41/v41_lut_repro.txt(R1·R2·R4
+  OK  wt/_drafts/evidence/2026-10-31/o200_v43/v43_m6_rerun.txt
+  MISSING wt/_drafts/evidence/2026-10-31/o200_v43/v43_m6_rerun.txt(m6
+  OK  wt/_drafts/evidence/2026-10-31/o200_v44/v44_checks.txt
+  OK  wt/_drafts/evidence/2026-10-31/o200_v44/v44_checks.txt
+  OK  wt/_drafts/evidence/2026-10-31/o200_validation42.md
+  OK  wt/_drafts/evidence/2026-10-31/o200_validation44.md
+  OK  wt/_drafts/evidence/2026-10-31/plan_v6386_decision_candidates.md
+  OK  wt/_drafts/user_decisions.md
+  OK  wt/design-v115/docs/02-design/features/gain-budget-gmid-sizing.40-engine.design.md
+  OK  wt/design-v115/docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md
+  OK  wt/plan-v6386/docs/01-plan/features/gain-budget-gmid-sizing.plan.md

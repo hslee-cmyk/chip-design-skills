@@ -1,0 +1,15 @@
+{
+ "mode": "einst",
+ "circuit": "folded_cascode",
+ "elapsed_s": 50.0,
+ "instance_exists": true,
+ "instance_sha256": "e690b95d4c9d10075eb9f958b621be737b79f998823c80e293730be80f7e90b5",
+ "instance_has_interdig_ok": false,
+ "calls": 1,
+ "calls_with_relaxed": 0,
+ "relaxed_entries": 0,
+ "mismatch_entries": 0,
+ "interdig_values": [],
+ "core_seq_sha": "4f8e0339c322481c7776c62c6d2a37eeeb2af49c17bb1ed05366df90e5ff5ae4",
+ "relaxed_detail": []
+}

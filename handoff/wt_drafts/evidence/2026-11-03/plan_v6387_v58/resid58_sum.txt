@@ -1,0 +1,128 @@
+CAND gain-budget-gmid-sizing:1298 n=1
+CAND gain-budget-gmid-sizing:1303 n=1
+CAND gain-budget-gmid-sizing:1322 n=1
+CAND gain-budget-gmid-sizing:1861 n=1
+CAND gain-budget-gmid-sizing:1889 n=1
+CAND gain-budget-gmid-sizing:1951 n=1
+CAND gain-budget-gmid-sizing:1958 n=2
+CAND gain-budget-gmid-sizing:2013 n=1
+CAND gain-budget-gmid-sizing:2046 n=1
+CAND gain-budget-gmid-sizing:2323 n=1
+CAND gain-budget-gmid-sizing:2327 n=1
+CAND gain-budget-gmid-sizing:2430 n=1
+CAND gain-budget-gmid-sizing:2474 n=1
+CAND gain-budget-gmid-sizing:2512 n=8
+CAND gain-budget-gmid-sizing:2520 n=5
+CAND gain-budget-gmid-sizing:2524 n=1
+CAND gain-budget-gmid-sizing:2641 n=1
+CAND gain-budget-gmid-sizing:2693 n=1
+CAND gain-budget-gmid-sizing:2709 n=3
+CAND gain-budget-gmid-sizing:304 n=2
+CAND gain-budget-gmid-sizing:305 n=10
+CAND gain-budget-gmid-sizing:579 n=1
+CAND gain-budget-gmid-sizing:588 n=1
+CAND gain-budget-gmid-sizing:769 n=1
+CAND gain-budget-gmid-sizing:771 n=1
+CAND graph-consumption:15 n=6
+CAND graph-consumption:227 n=2
+CAND offset-strategy:443 n=2
+CAND offset-strategy:463 n=2
+MOVED gain-budget-gmid-sizing:11 n=5
+MOVED gain-budget-gmid-sizing:12 n=4
+MOVED gain-budget-gmid-sizing:1311 n=7
+MOVED gain-budget-gmid-sizing:1312 n=2
+MOVED gain-budget-gmid-sizing:1336 n=1
+MOVED gain-budget-gmid-sizing:1337 n=3
+MOVED gain-budget-gmid-sizing:1354 n=3
+MOVED gain-budget-gmid-sizing:1956 n=7
+MOVED gain-budget-gmid-sizing:1958 n=1
+MOVED gain-budget-gmid-sizing:1974 n=5
+MOVED gain-budget-gmid-sizing:2014 n=2
+MOVED gain-budget-gmid-sizing:2029 n=3
+MOVED gain-budget-gmid-sizing:2030 n=15
+MOVED gain-budget-gmid-sizing:2443 n=2
+MOVED gain-budget-gmid-sizing:2506 n=1
+MOVED gain-budget-gmid-sizing:2512 n=12
+MOVED gain-budget-gmid-sizing:2516 n=1
+MOVED gain-budget-gmid-sizing:2521 n=1
+MOVED gain-budget-gmid-sizing:2522 n=1
+MOVED gain-budget-gmid-sizing:2526 n=1
+MOVED gain-budget-gmid-sizing:2709 n=2
+MOVED gain-budget-gmid-sizing:305 n=10
+MOVED graph-consumption:15 n=3
+MOVED graph-consumption:447 n=5
+MOVED graph-consumption:448 n=5
+MOVED graph-consumption:453 n=3
+MOVED graph-consumption:589 n=3
+MOVED graph-consumption:641 n=3
+MOVED graph-consumption:678 n=3
+MOVED graph-consumption:765 n=3
+MOVED graph-consumption:779 n=2
+MOVED offset-strategy:212 n=3
+REC gain-budget-gmid-sizing:380 n=1
+REC gain-budget-gmid-sizing:382 n=2
+REC gain-budget-gmid-sizing:384 n=6
+REC gain-budget-gmid-sizing:385 n=7
+REC gain-budget-gmid-sizing:386 n=3
+REC gain-budget-gmid-sizing:426 n=3
+REC gain-budget-gmid-sizing:429 n=17
+REC gain-budget-gmid-sizing:430 n=5
+
+[CAND] [gain-budget-gmid-sizing:304] <DEC-71 \(4\)\(b\)> ...vidence/2026-10-26/verify_o158_d1_ma.md` §1.2); 그 집합이 비거나 봉인 스냅샷의 DE-1 (e) READS가 이득 행 깨짐을 보이면(재검증 4 F-2) 정의역을 자르지 않고 '이득 행 재개방' 표지를 R6 출력 필드(기존 성분 '(iii) 재개방 표지'의 값 -- 새 필드 0, (3)(c))에 남겨 R·L(S 소자)·S 좌표(ln IDu)를 층 0 탐색에 연다 -- **탐색 개방** = 표지가 선 후보에 한해 L 역산 고정(DEC-71 (4)(b))과 출발 구간 축소를 풀고 spec 상자(R)·LR3 bin(L, S 소자)·S 좌표(ln IDu) 범위(그 L bin LUT 정의역 ∩ 최소 폭 하한(design 41 §6.5, 공정 규칙)) 안에서 층 0 후보를 생성하는 것(출발 구간 축소 = design 41 §6.1 순서 1·6의 헤드룸 gm/ID 하한(§6.2)과 속도 gm/ID 상한(§6.3) -- ln IDu 축 위 순방향 제약 행(DEC-88) -- 으로 좁혀진 출발 구간 -- 재검증 5 G-3...
+
+[CAND] [gain-budget-gmid-sizing:305] <LA-1 범위 15(?! \([b-h]\))> ...3.8' 정정, 검증 10 L-2; v6.38.3 열째 커밋 검증 9 V9-M3)(v6.38.3 여덟째 커밋, 옛 '그 사다리 정의(design 41 §6.5)를 따른다' 대체 -- design 41 §6.5-3a·4(D41 v1.15.1(design/v115 판):1711·1715)의 '추정'·상자 기하 중심 대체는 design 정정 대상, LA-1 착수 조건)(지금 코드 자리는 card LA-1 범위 15 (b)의 재작성 범위로만 인용). 구현 = card LA-1 범위 15. **(4) 체계 오프셋 출발 목표 행 `mirror_vds`**(Q3-1 (A)·Q3-2·Q-N9 (A) -- 원문 형태 유지; 검증 1 D-1~D-3·D-19 반영): 술어 P1s(diode d / 미러 출력 o / n = o.drain에 diode 없음 / n에 gate가 닿는 g가 d와 같은 kind·같은 source)와 P1c(미러 쌍 (r, o)의 drain을 각각 source로 쓰고 kind·gate가 같은 쌍 (a, b))의 인스턴스마다 목표 등...
+
+[CAND] [gain-budget-gmid-sizing:579] <LA-1 범위 15(?! \([b-h]\))> ...| B5 | 블록 이득 모형 생성(`block_spec`·모형 구조) | `graph/ach` 칸(writer `achievability`); 평가 `row_gains`는 함수 공유(G4) | `search/iv_context.py:55-56`·`search/iv_gain_l.py:106`의 재구축 | LA-1 범위 15 |...
+
+[CAND] [gain-budget-gmid-sizing:588] <LA-1 범위 15(?! \([b-h]\))> ...| B14 | 판정 제약 파생값(면적 예산 min·이득 목표 max) | `constraint_classes` 칸(writer 제약 분류 블록 -- 판정 대상 칸과 같은 블록) | `metrics/achievability.py:149·257`·`pipeline/stage_b.py:153`·`search/iv_context.py:39·54·89-90`·`search/search_context.py:168` | SF-1 범위 8(`iv_context.py`는 LA-1 범위 15도 재작성 -- 파일 겹침만, 나중 병합 card가 rebase하며 칸 READS로 맞춤 -- 새 순서 규칙 0, N6.1 관행) |...
+
+[CAND] [gain-budget-gmid-sizing:769] <DEC-71 \(4\)\(b\)> ...다. 불연속 = 경계 전환점의 점프(VGS 환산)가 그 셀 tol_V(N3.6)를 넘는 것이다. 불연속은 위 판정(점프 > tol_V, N3.6)으로만 정한다 -- 옛 기본안 '단채널 경계 0.18·0.25 µm를 불연속으로'는 근거 없는 상수라 v6.18에서 삭제했다(감사 A13, O-33 기본안). 연속 경계의 경계값은 두 bin의 공통 끝점이다. 탐색: 이산 격자(LR5 동치류 격자·내층 DP)의 L 후보는 LUT L 점이다. 외층 SLSQP와 역산 단계(DEC-71 (4)(b))는 bin을 고정한 채 L을 bin 안 연속 변수로 다룬다(bin을 바꾸는 것은 이산 이동이다). spec `L_candidates`는 탐색 격자이며 LUT L 점의 부분집합이어야 한다. L 밖 축(VGS·VDS·VS)도 외삽하지 않는다: 축 밖 입력은 클램프하지 않고 구조화 실패 `lut_axis_out_of_range{소자, 축, 값, 범위}`(SEAL_VIOLATION)로 처리한다(옛 DF-27). 필요한 VS 축 상한은 상수로 두지 않고 library ...
+
+[CAND] [gain-budget-gmid-sizing:771] <DEC-71 \(4\)\(b\)> ...서 **비지배로 개선되는** 점이 생기고 그 개선이 축마다 그 축의 분해능(면적은 DEC-80) 이상이면 그 동치류 격자를 인접 앵커 한 칸씩 넓히고, 개선이 없거나 LR3·LR6 경계에 닿으면 멈춘다. 근거(실측): knee 근방만 쓰면 파일럿 stage1 pmos 입력이 W 한계로 L 0.5 µm를 요구해 50 dB에서 면적 약 3배, 70 dB 초과 불가(원자료 review3_lut_L_vs_VDS.results.md). 층 0의 이득→VA→L 역산 결과(DEC-71 (4)(b), bin 안 연속 L, LR3)는 그 L을 감싸는 같은 bin의 LUT L 점을 이 격자의 시작 후보로만 쓰고, 격자를 대체하거나 줄이지 않는다 |...
+
+[CAND] [gain-budget-gmid-sizing:1298] <LA-1 범위 15(?! \([b-h]\))> ...| TB-1(θ 기저 S0 필드 -- S/B/F 분류 필드(R13), v6.38 -- O-144 J3; R-1′ 제약 그래프 S0 필드는 headroom-chain HC-1(사용자 결정 O-190 -- 원래 취지와 다름 승인, 옛 범위 2); R7 가드 필드 자리·`mirror_vds` 인스턴스 필드는 card LA-1 범위 15 -- v6.38.2 U-132 기본안; 쓰기 계획 종속 멤버 선택 배선(DEC-64 (v2), 사용자 결정 O-187) -- `writer_plan.py`·`kernel_context.py`·`sizing/__init__.py` 범위, 파일 겹침 card IT-1·DR-1(같은 통합 병합 금지, 나중 card가 rebase), card 성격 = 동작 변경(필드 → 쓰기 계획 배선); 삭제 파일 = `s2_values.py`·`sizing/CONTRACT.md:...
+
+[CAND] [gain-budget-gmid-sizing:1303] <LA-1 범위 15(?! \([b-h]\))> ...| CPG-1(C′ 경로 완료 판정, v6.38.2 -- O-164; **게이트**) | N6.34 | C′ 내용 전부 병합(WB-1·RS-1·SF-1 범위 8·9·LA-1 범위 15(가드 필드·`mirror_vds` 인스턴스 필드 포함 -- U-132 닫힘, O-166) -- O-164; LA-1 완료 조건 4 CL-1 대기와 무관 -- SPICE 독립 판정) | 기준선 무결성 확인(sha256) → U-131 사용자 확인(충족 -- O-166) → (기본안이면) 기준선 재측정 기록(독립 판정 agent, C′ 판정 착수 전) → 판정 agent 지정(작성자≠검증자) |...
+
+[CAND] [gain-budget-gmid-sizing:1322] <LA-1 범위 15(?! \([b-h]\))> ... 다리 선행 EO-1(N6.3 (iii)·(iv)), oracle 선행 OP-3·OP-5(`.tf` A_dc·`.dc` V_id*·오라클 한 단계 전도 판정 -- 사용자 결정 O-205 (2)·O-210 RR-2), `constraint_rows` 필드·writer와 PS-7 S3 색인 열거 API·평가 키 부분(`sctx.cache` 대체)·계수·분할 = LA-1이 만들고 OS-2는 읽기만, 순서 LA-1 → OS-2(N6.1 병합 순서 규칙 표 #8·#9, LA-1 범위 15 (iv) -- 사용자 결정 O-183; 옛 'OS-2가 만듦(OS-B9)'·'먼저 병합되는 card', **원래 취지와 다름**(승인 O-183)); 진입점 종료 코드·θ* 기록과 규칙 F 예외 파일 = OS-2 `run_plan`(옛 DF-18); 옛 'OS-2 착수 선행 U17 ②', **원래 취지와 다름**, 승인 O-173 BL-OS-B9; ; 옛 'U16·U17 ②' 이름은 하위 계획에서 EO-1·LA-1로 정리, U16 다섯 행의 소유 = graph...
+
+[CAND] [gain-budget-gmid-sizing:1861] <이득 L 하한> ...b2c72a01`): (B1) `E/search/start_intervals.py:276-282` 소자 동작점(곡선 읽기용)을 VDS = 포화 경계와 헤드룸 예산의 중점 격자점, VSB = 첫 VS 격자점으로 둔다(모듈 머리 `:22`), `E/search/_helpers_curves.py:7, :105-109`는 vds를 안 주면 기준 VDS(`reference_vds`) 곡선. (B2) `E/search/iv_gain_l.py:10-12, :60, :81` 이득 L 하한이 같은 `ctx.points` VDS와 VSB 격자 0을 쓴다. (B3) `E/search/macro_poles.py`·`iv_currents.py`·`iv_speed.py`의 곡선 조회가 같은 동작점을 쓴다(`iv_currents.py:107` 등). 이 점은 DC 해가 아니라 추정 동작점이다....
+
+[CAND] [gain-budget-gmid-sizing:1889] <LA-1 범위 15(?! \([b-h]\))> ...LAN_WRITERS`에서 제거), `s1_bulk`·`s1_symmetry`(S1·커널 문맥 두 호출)의 `supplies` extras(필드 READS로), `DcInputs.supplies_v`(소비자 0이 되면 -- O-169). `E/metrics/achievability.py:266`·`E/search/iv_context.py:88`의 `spec.supplies_v` 재읽기는 필드 READS로 바꾸되, 각 파일을 재작성하는 card(GV-1 범위 1·LA-1 범위 15)와는 파일 겹침만 있다(나중 병합 쪽이 맞춤 -- 새 순서 규칙 0). 로더 `E/authoring/spec_supplies.py`의 넷 소속 검사(`graph/supplies.py`와 같은 계산)를 S1 블록 안 거부로 옮기는 일은 G1 -- spec 로더 단독 소유 card SF-1 범위 6 몫이라 이 범위는 S1 쪽만 맡는다....
+
+[CAND] [gain-budget-gmid-sizing:1951] <DEC-71 \(4\)\(b\)> ... 41 §5.3.6 `macro_solve`, `comp_approx_gap` 기록), W4 자유 노드전압·V_R은 θ 성분이 아니다(고리 종속, DEC-104 R6 블록이 파생 -- O-127·O-157 S8; 외층이 꺼질 때의 자리는 R5′ (2) -- 재검증 3 e-1, 옛 'W4 자유 노드전압·값 미선언 저항 강하 V_R은 VDS·V_R 배분(DEC-71 (4)(c) -- DEC-104 R6 블록이 파생, v6.38)'), bin 안 연속 L은 L 역산(DEC-71 (4)(b)), θ 전류는 DP·조립 -- 모두 층 0 산출이다 | 계획 DEC-71·DEC-92, design 41 §5.3 |...
+
+[CAND] [gain-budget-gmid-sizing:1958] <격자 폴백> ..._threshold` -- headroom-chain HC-S 정본; v6.38 P9) → W = ID / 전류 밀도(파생 -- 커널 W 계산 블록과 같은 함수) → 국소 고정점(부하 C 갱신, DEC-71 (4)(d)). 독립 좌표는 S·F 소자의 (ln IDu, L)(DEC-88)이고 ID는 R4·θ 전류가, W는 파생으로 정한다(B 소자 ln IDu는 DEC-104 R6 블록 값 -- v6.38). L 역산이 불가능하거나 LUT 비단조 구간이면 그 소자만 격자 폴백·사유 기록(DEC-71 (4)); gm/ID 역산·gm/ID 분지 규칙은 두지 않는다(O-186). 산출 = 블록별 {gain bin → (전력, 면적) 비지배 점}, 조합 front, `gain_budget_db`(graph 필드·결과 JSON), 조립점. **커널 W4 입력**(v6.38.1 O-151 M3·O-155 M-3·O-157 S8 -- 재검증 R-4, DEC-71 (4)(c)): 종속 W4는 커널에 노드 전압 목표로 넘기고 y는 커널 (a) `d...
+
+[CAND] [gain-budget-gmid-sizing:2013] <DEC-71 \(4\)\(b\)> ... **toy 추가**(재검증 R-4): 창 밖 목표 → 정확 풀이 판정(행이 깨지면 `chain_violation`, 통과면 후보 유지·결함 기록), 창 안 목표 → y가 목표 전압을 재현(분해능 안); 탐색 개방 toy(재검증 5 G-2) -- 표지가 선 toy 후보에서 생성 후보의 L이 역산값과 다르고 LR3 bin 안, R은 spec 상자 안, S 좌표(ln IDu)는 그 L bin LUT 정의역 ∩ 최소 폭 하한 안(재검증 6 H-1)이며, 생성 후보에 DEC-71 (4)(b) 역산이 다시 걸리지 않음; 회차 toy(재검증 6 H-5 ①) -- 표지 칸이 다음 회차에 미해결 칸으로 다시 풀리고(S3 graft가 옛 결과를 돌려주지 않음) 종료 조건(front 같음 ∧ 표지 미해결 0) 또는 K_max 안에서 끝남; 외층 표지 toy(H-5 ③) -- 외층(SLSQP) 봉인 스냅샷에서 선 표지가 기록만 되고 층 0을 다시 열지 않음(그 표지의 소비자 = LA-1 완료 조건 9 (c) 측정 기록, 출력 전용). (e) **sf 봉인 재현...
+
+[CAND] [gain-budget-gmid-sizing:2046] <이득 L 하한> ... P-2 design 문언 변경 -- 승인 질문 결정 문언 변경 목록)·§3.7 GB7 DC 정본(노드전압 블록·W 블록을 DC 블록 하나로 재작성)·§5(CM 평형)·§10.5 :2033-2041(재측정 항목); D42 D-P2 :292; 엔진 계약 sizing 'kind당 폭 슬라이스 하나'(`kernel_keys.py:5-6`)·lut CONTRACT 1.4 `w_ref_m`·metrics CONTRACT 9.1 | DEC-105 (1)~(10)대로 -- 이득 L 하한 found_db 목표·정의 불능, W-bin 손가락 폭 슬라이스·DC 블록 재작성·선택 함수 하나·읽는 열(잡음·mismatch = 기준 폭 표 키)·포락·격자 bin 경계, 매크로 N9·P = 0, `mirror_vds` 목표 행(U-126), 가드 합 행·절대 제약 회로, 면적 → gm/ID 하한, CM 평형, Δp, `counted_rails`, θ 상자 공통 규칙; D41 '상태 MISS' 문장 정정; 정정 시점 = v6.38.2 승인 뒤 다음 desi...
+
+[CAND] [gain-budget-gmid-sizing:2323] <LA-1 범위 15(?! \([b-h]\))> ... '선언 상자'(spec 추출 입력)이고, '적용 상자'(역할별 상자 규칙(보상 C = PDK 최소 MIM ~ 면적 제약 -- O-182 Q-CB2 (나′))·결합 C 판별·미선언 정지를 적용한 양 -- 정의 축이 다름, graph 규칙 3)는 검색 정의역 S0 블록(`search_domain` 자리)이 이 필드를 READS해 쓴다; 범위 9가 상자 규칙을 바꾸면 그 블록 본문이 바뀐다(새 자리 0 -- 검증 11 MJ11-1). `iv_context.py`는 LA-1 범위 15와 파일 겹침만이고 나중 병합 쪽이 맞춘다(N6.1 관행 -- 새 순서 규칙 0). 새 cache·memo·sctx 슬롯·사본 0. 완료 조건 추가: 파생 호출 자리 = S0 블록 하나(`git grep` `THETA_BOUNDS`·`UNTIE_ORBITS` 엔진 소비 = 그 블록 하나), 순수 리팩터링 필드별 비교(13회로 `search_domain` 결과 같음), N6.3 래칫 B13 해소. 착수 때 base에서 다시 grep한다....
+
+[CAND] [gain-budget-gmid-sizing:2327] <LA-1 범위 15(?! \([b-h]\))> ... 키 / library 선언 0 -- 변화 0 · design 40 새 θ 종류 ρ(옛 기본안, card LA-1) = 같음(좌표 바꾸기) / 같음 / search 7모듈(`search_domain`·`fd_jacobian`·`cone_rows`·`start_points`·`layer0_center`·`orbit_ties`·`current_symmetry`) 수정 + 출력 전류 기저 제거 ⚠ 덧대기 신호(O-165)·θ 변수 중복 위험 / 발동 0 · card LA-1 범위 15에 강제만 = 같음 / 같음 / 선언 자리(spec 로더)가 SF-1 소유라 병합 순서 규칙 SF-1 → LA-1 +1 ⚠ O-165 (a) / 같음 · 축소 유지 = ⚠ 소비자 0 필드 방치·DEC-70 문언 미이행. DEC-70 θ 독립 성분 목록은 바꾸지 않는다(ρ는 θ가 아님). 완료 조건 추가: 선언 비 toy(diode + 출력 하나)에서 θ 전류 성분 −1·출력 전류 = ρ·기준(손계산 -- base는 출력 전류가 독립 성분, red), 선언 없는 ...
+
+[CAND] [gain-budget-gmid-sizing:2430] <이득 L 하한> ...**순서**: 선행 = O-164가 나열한 C′ 내용 전부의 병합 -- card WB-1·RS-1·SF-1 범위 8·9·LA-1(범위 15 -- 이득 L 하한 fail-closed·가드 필드·`mirror_vds` 인스턴스 필드 포함)과 DEC-105의 나머지 card; 하나라도 미병합이면 착수하지 않는다(판정 기록에 각 커밋 해시 -- 검증 1 D-9, 옛 'RS-1·SF-1 범위 8·9 미병합 판정 허용' 철회). 착수 조건 = 계획 v6.38.2 승인, 기준선 무결성 확인, U-131 사용자 확인(충족 -- O-166), (기본안이면) 기준선 재측정 기록(독립 판정 agent -- C′ 판정 착수 전)....
+
+[CAND] [gain-budget-gmid-sizing:2474] <LA-1 범위 15(?! \([b-h]\))> ...면적·손가락 기하) = SF-1 범위 9(E-12)·WB-1; **R14(미러 비 강제 -- 사용자 2026-10-08 '복원' 결정) = card SF-1 범위 10(선언된 미러 비만 KCL 강제 + `rel_matching_ratio` 배선 -- 승인 표 #24 기본안, 실측 `wt/_drafts/evidence/2026-10-28/r14_mirror_facts.md`; **원래 취지와 다름**: design 40 새 θ 종류 ρ 형태를 바꿈; 옛 기본안 'LA-1 범위 15'는 선언 자리가 SF-1 소유라 순서 규칙 +1 ⚠로 대체)**; 그 밖 행(R3·R4·R6·R7·R10·R13·R15·R16·R20·R23·R25·R26)은 남은 일 없음....
+
+[CAND] [gain-budget-gmid-sizing:2512] <g_i\^\(1\)> ...didates.md`·`q8_files/`(agent 인용), ⑩ `q8_consistency.md`): (a) **목표** = DEC-105 (1) 블록 목표 g_i^(1) = found_db 비례 필드 `graph/ach: gain_target_first`(writer 하나 = 이 card; 소비자 = 출발 이득 L 하한·LA-1 층 0 첫 회차·매크로 출발 θ 전류(design 41 §6.5 A_i 순서)) -- DEC-71 (3)으로 출발 시점 목표 = g_i^(1)이라 새 배분 규칙 0(원칙 11) (b) **`gain_l_bounds` 재작성**(DEC-105 (1) -- 함수 전체(목표·닫힘·최선 앵커·사유 분기)는 이 card 하나가 소유, 옛 O-165 (a) 문언 그대로): 'A_max 미상 → 비활성'(as-built 인증 조건 `u9_value_not_certified`) 삭제·평가 앵커 0이면 정의 불능(하한 값 없음, margin `null` -- N3.14)·미달이면 `StartConflict`(하한 값...
+
+[CAND] [gain-budget-gmid-sizing:2520] <g_i\^\(1\)> ...1. **정의 손계산 오라클 toy**(정의 문장에서 손으로 낸 기대값): (a) 이득 L 하한 toy(DEC-105 (1) -- 옛 LA-1 완료 조건 10 (a) 포함) -- 목표 g_i^(1)가 최소 L bin 이득을 넘는 단일 블록·다단 toy에서 출발점 L = 손계산 '오름차순 첫 bin의 gain ≥ g_i^(1) 최소 L'(같은 bin 안; base 최소 L 칸 -- red), A_max 미인증 toy에서도 하한 활성(base `u9_value_not_certified` 비활성 -- red), 평가 앵커 0 toy → 정의 불능(하한 값 없음, margin `null`; base 가장 긴 앵커로 닫음 -- red), 1회차 원소 없음 toy ...
+
+[CAND] [gain-budget-gmid-sizing:2524] <출발점 L 칸> ...5. 결정성(NFR-4), N6.3 공통(graph 정본 -- R6 출력·R7 가드 필드·출발점 L 칸의 writer 하나와 소비자 ≥ 1, 블록 안 재계산 0, 파일 분할, 회로 이름 0), 옛 출발 휴리스틱·`_repair`·`_repairable` 정의 grep 0(범위 2 재작성 범위 -- 진입점 `layer0_start` 자리와 `find_front` 소비는 남음), **비θ 갈래 0**(출발점 조립에 영점 R 전용 갈래 `git grep` 0 -- 범위 2 θ 스키마 일반 읽기, ⑩ C-1 (a))....
+
+[CAND] [gain-budget-gmid-sizing:2641] <이득 L 하한> ...| U-64 | 층 0 정의역 상한 A^L0의 쓰임(design 41 L-14) | **확정(사용자 결정 2026-10-12 "3은 권고대로"·"L14부터 PQ5까지")**: 층 0 전용(첫 배분 제외, bin 위 끝 보조). exit 3(INFEASIBLE_TARGET)과 이득 L 하한(41 §6.4-1)은 축소 전 표 | 닫힘 |...
+
+[CAND] [gain-budget-gmid-sizing:2693] <격자 폴백> ...| U-117 | F 소자 밀도가 둘 이상 든 고리(또는 F가 남는 깨진 행)의 처리 -- F를 R5′ 재개방 좌표에 넣을지(사용자 결정 O-141(2026-10-26 "승인", `_drafts/user_decisions.md` O-141 행) (7); L-11·design 41 F 행은 F = 층 0 격자 폴백 축) | **미결 -- 재측정 뒤 결정**(O-141 (7): current_reuse는 정착 선언의 대역폭 출발 목표(O-139·O-157 S3 -- 옛 '대역폭 하한')로 S 분류가 켜지는지 먼저 확인 -- 시제품 `wt/_drafts/evidence/2026-10-26/r5r6_prototype.md` §수정판 B: S 분류는 켜졌고 남는 고리 꼴은 'S 하나 + F 하나'와 입력 뿌리 W4를 공유하는 반대 방향 고리); 그때까지 F는 재개방 좌표가 아니...
+
+[CAND] [gain-budget-gmid-sizing:2709] <g_i\^\(1\)> ...; 실측 `wt/_drafts/evidence/2026-10-28/o168_input_cm_facts.md` §2 -- 영향 nmcnr·sf_pushpull(SF-1 뒤), 지금은 current_reuse 포함 3) | **닫힘 -- 기본안 (A) 승인(O-170)** -- 그 뷰 출발 단계 이득 L 하한 정의 불능(사유·블록 키·margin null), 층 0 첫 회차는 L-2 보완을 층 0에서(다른 정의 축의 층 0 필드), 뷰 전부 found_db 있으면 g_i^(1) READS. 근거 = 물리(몫은 뷰 전체 추정 비로만 정의)·층 순서·fail-closed·상수 발명 금지. 대안표: (B) 아는 블록만의 Σ로 나눠 아는 블록에 하한 -- ⚠ 원칙 경고(물리 정합): found_db 없는 블록 4개가 모두 이득 블록이라(실측) 그 몫을 아는 블록에 얹어 L 하한을 부풀리고 거짓 `StartConflict`를 만든다; (C) 계획 옛 문언(출발 단계 L-2 보완) -- ⚠ 원칙 경고(층 순서): 층 0 기준점을 출발 단계가 읽...
+
+[CAND] [graph-consumption:15] <범위 15 \(a\)> ...3·O-13 행, N3 '미선언 입력 포트' 행·'tie 변 제외의 근거'·8. v1 포트 차 루프, K-a′ 행에 대체 표지; 둘째 커밋 -- 상위 검증 1 반영: 범위 = 선언된 차동 입력쌍, 구현 = 상위 IT-1 범위 재작성, 병합 때 history 이전 조건; 경위 history 0.14.4 행) 이전 판: **v0.14.3 -- gain-budget v6.38.2 열째 커밋 후속 정정(`gain_l_bounds` 분기 소유 = 상위 card LA-1 범위 15 (a), 상위 사용자 결정 O-165 (a)), 승인됨(상위 사용자 결정 O-166, 2026-10-28)**(2026-10-28; GC-5 범위에서 `gain_l_bounds`를 빼 세 함수·다섯 호출 자리로, 둘째 커밋 = 그 함수의 사유는 자기 판정 '1회차 원소 미정'(상위 검증 10 V10-2·V10-11), 셋째 커밋 = 기록 참조 분기 삭제 -- 원인 추적은 원소 키로만(상위 검증 11 V11-1·V11-5); 경위 history 0.14.3 행·둘째·셋...
+
+[CAND] [graph-consumption:227] <gain_l_bounds> ...)`(`E/search/layer0_center.py:656`)로 빈 사다리를 받아 상자 중심 한 점에서 출발한다(`:654-655` 주석, `_box_centre` `:126-135`).<br>• **1회차 전류의 소비처**: `first = _state(ctx, g_lo0, first_L)`(285행)의 MOS 전류는 None이면 `first.refs` 자리값으로 채워 `currents1`이 된다(286행). 소비처는 **네 함수, 여섯 호출 자리**다: `gain_l_bounds`(292행, `first.elements`), `matching_bounds`(295·332행), `area_bounds`(296·327행), `noise_bounds`(333행)(뒤 셋은 `currents1`). 전류·원소 값이 없을 때 처리는 함수마다 다르고, 비활성 사유로 남는 것은 일부뿐이다.<br>&nbsp;&nbsp;– `gain_l_bounds`: 비활성 경로가 없다. 원소가 `elements`에 없으면 `_row`가 None(`E/search/i...
+
+[CAND] [offset-strategy:443] <LA-1 범위 15(?! \([b-h]\))> ...가 키 부분(design 40 398-402 `S3Index.get·failure·local·solved`; as-built `sctx.cache` -- 지울 슬롯 위에 API를 쌓지 않는다). 그 평가 키 부분·이 읽기 전용 `seq` 열거 API·계수(G-10 원천 -- 고유 키 수 = 정의역 안 평가 항목 수(정의역 밖 seq −1 결과는 담되 세지 않음), 평가 수 = `kernel_calls`, 열거 순서 = (seq, EvalKey 정준) -- 상위 LA-1 범위 15 (iv) (다) 정의, 상위 v6.38.4 열여덟째 커밋 계획 검증 7 m7-1; 같은 키 = 재등록 거부)·분할은 **한 제작 단위로 상위 LA-1이 만든다**(상위 LA-1 범위 15 (iv), 상위 N6.1 병합 순서 규칙 표 #8). OS-2는 읽기만 한다. 하네스 사슬 대체(W-1, O-63 (3) 읽기 길 -- N3.12)는 열린 세션에서 평가 결과 전수(`seq` 순)를 읽어야 한다. 그래서 그 열거 API는 **소비자(하네스)를 대체하는 OS-2...
+
+[CAND] [offset-strategy:463] <LA-1 범위 15(?! \([b-h]\))> ...블록 결과 색인·`RunCounters` 수명을 실행 계획 진입으로(`run_stage_a` 필수 키워드, PD-8), 결과 JSON<br>• 요구 없는 spec 무동작. 진입 흐름을 바꾸는 부분의 옛 코드는 같은 변경에서 지운다<br>• 공통 판정 검사(N3.4)는 이 card에 없다(OS-5, PD-6)<br>• (상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-1) S3 색인 평가 키 부분·읽기 전용 `seq` 열거·계수·분할(한 제작 단위 -- 상위 LA-1 범위 15 (iv)) -- 상위 LA-1이 만들고 이 card는 읽는다(순서 LA-1 → OS-2 -- 상위 N6.1 병합 순서 규칙 표 #8, 상위 사용자 결정 O-183; 옛 'OS-2가 상위 LA-1보다 먼저 병합되면 이 card가 만든다'; 정의 참고: `sctx.cache`·`computed_keys` 삭제; 조회 = 커널 적중, 열거 = `find_front` note·하네스, 계수 = 고유 키 수 = 정의역 안 평가 항목 수(정의역 밖 seq −1 결과는 담...
+

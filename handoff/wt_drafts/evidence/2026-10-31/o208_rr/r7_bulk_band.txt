@@ -1,0 +1,4 @@
+# R7 벌크 순방향 표본 (q5_engine_rows, 2413 소자점, 회로 ['common_gate_amplifier', 'folded_cascode', 'nmcnr_amplifier', 'pushpull_follower_buffer', 'two_stage_ota', 'two_stage_ota_sf'])
+source–bulk 순방향(vsb < 0) 0점, drain–bulk 순방향(vds + vsb < 0) 0점, 그중 띠 (0, tol_V] 안 0점
+vsb 최솟값 0.0 (출력 '-0.000'은 음의 0 표기), 회로별 {}
+한계: 봉인 표본 회로 6/13(나머지 7 = 단계 A stopped·review_needed 또는 봉인 평가 0, q5_engine_circuits.jsonl). bulk가 선언 레일이 아닌 회로(erfc M19·M20·M21, O-174)는 단계 A stopped라 표본 0.

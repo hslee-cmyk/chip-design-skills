@@ -1,0 +1,30 @@
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+base elib exit=0 commit=4b2ab859f02cb51ab4073672321fdb1063129d75
+{"circuit": "current_reuse_telescopic_ota", "exists": true, "fail_in_stdout": false, "raw_sha256": "2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d", "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca", "file_bytes_masked_sha256": "f555c89ce58de5454ae8442470b0bd87c82cbf776f85d6a5c1e544396855f2f5", "topology_ref_raw": "skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json"}
+base einst current_reuse_telescopic_ota exit=0 seconds=369
+{"circuit": "folded_cascode", "exists": true, "fail_in_stdout": false, "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0", "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754", "file_bytes_masked_sha256": "a783cbe5d41e727ee494b1f3c91eb37801bd450de2ea04bd552f142922c690c8", "topology_ref_raw": "skills/analog-gmid-design/assets/library/folded_cascode.topology.json"}
+base einst folded_cascode exit=0 seconds=44
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+head elib exit=0 commit=a206346f559fbd588fd842644c4bb650208ad086
+{"circuit": "current_reuse_telescopic_ota", "exists": true, "fail_in_stdout": false, "raw_sha256": "2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d", "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca", "file_bytes_masked_sha256": "f555c89ce58de5454ae8442470b0bd87c82cbf776f85d6a5c1e544396855f2f5", "topology_ref_raw": "skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json"}
+head einst current_reuse_telescopic_ota exit=0 seconds=333
+{"circuit": "folded_cascode", "exists": true, "fail_in_stdout": false, "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0", "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754", "file_bytes_masked_sha256": "a783cbe5d41e727ee494b1f3c91eb37801bd450de2ea04bd552f142922c690c8", "topology_ref_raw": "skills/analog-gmid-design/assets/library/folded_cascode.topology.json"}
+head einst folded_cascode exit=0 seconds=46

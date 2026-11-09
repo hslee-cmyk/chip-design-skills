@@ -1,0 +1,25 @@
+card 20261104-op23 작성 전 직접 잰 값(base fcbfc6d8, 2026-11-04). 스크립트로 파일을 남기지 않은 인라인 명령의 결과다.
+
+폭 슬라이스 생성기
+  파일 = <LUT root>/verification/slices_vdsat/sky130_dc_width_slices.py (358행, 저장소 밖)
+  sha256sum = 8df35d2ea405a0f53a836f7ce6cccc26e0db82ad2f82838588991afdcfb319df, LF 값 같음(파일에 CR 없음)
+  슬라이스 meta generator_sha256 = 같은 값, 32개(m1.jsonl gens)
+  :73-79 model_files, :175 넷리스트 include, :177-178 소자 줄, :297 기록 생성, :298 include 목록 밖에서 bins.csv 추가
+
+OP-1 입력 593의 LUT 경로
+  process.lut_npz 파일 이름: lut.npz 573, sample 16, 그 밖 4
+  지금 그 경로에 파일이 있는 입력 수 = 0 (옛 폴더 wt/_scratch_op1/baseline, wt/_scratch_op1/src)
+  커밋된 npz = 430개 (git ls-files .ai/verification/20261016-op1-baseline/baseline | grep .npz)
+
+옛 test
+  O/tests/test_*.py 27파일, def test_ 350개, run_oracle 사용 파일 21개
+
+ngspice 매뉴얼
+  C:/ngspice/Spice64/docs/ngspice-46-manual.pdf, 2660636 바이트, sha256 b5bc7c4f3aac00e670b01b1d1ab64ec87055a491014af1de828764bf98faf766
+  pdftotext -layout. PDF 쪽 = 인쇄 쪽(머리글 '318 CHAPTER 11').
+  p.317 ABSTOL 기본 1 pA, p.318 RELTOL 기본 0.001, VNTOL 기본 1 uV, p.320 SCALE 대상(MOSFET W L AS AD PS PD SA SB SC SD, R·C W L), p.322 .ic
+  'Timestep too small' 문장 0건
+
+OP-1b 기준선 verdict(compare.json 직접 읽음)
+  R1 free, R2 free, R3 free·forced, R4 free·forced, R5 iso = 전부 INCOMPLETE, ngspice_rc 0
+  R6 free FAIL, R7 free FAIL·forced INCOMPLETE, R8 free FAIL, R9·R10 free INCOMPLETE

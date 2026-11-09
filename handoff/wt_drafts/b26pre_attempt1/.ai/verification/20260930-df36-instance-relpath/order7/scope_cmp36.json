@@ -1,0 +1,61 @@
+{
+ "n_top_base": 176,
+ "n_top_merged": 177,
+ "n_top_merged_minus_helper": 176,
+ "differing_top_level": [
+  [
+   175,
+   "save_instance_json"
+  ]
+ ],
+ "helper_position": {
+  "index": 175,
+  "next": "save_instance_json",
+  "prev": "_audit_result_json"
+ },
+ "save_instance_json_topology_ref_expr_merged": [
+  "_topology_ref_relpath(topology_json_path)"
+ ],
+ "save_instance_json_equal_after_revert": true,
+ "helper_string_constants": [
+  "instance.json `topology_ref`에 저장할 값 -- 저장소 루트 기준 상대 경로(`/` 구분).\n\n    저장소 루트는 이 모듈 위치(`<루트>/skills/analog-gmid-design/assets/`)에서 유도한다. 입력 표기(절대/cwd 상대/`..`\n    포함)와 무관하게 같은 실제 파일이면 같은 값이다(realpath 뒤 relpath). 저장소 밖이면 ValueError -- 절대 경로로\n    조용히 대체하지 않는다(호출자 `save_instance_json`이 파일을 쓰기 전에 부른다).",
+  "/",
+  "..",
+  "..",
+  "..",
+  "topology_ref 저장 거부: ",
+  "은 저장소 루트(",
+  ") 밖이다"
+ ],
+ "helper_mentions_library_names": [],
+ "helper_mentions_topology_suffix_or_library": [],
+ "helper_names_used": [
+  "ValueError",
+  "__file__",
+  "_rel",
+  "_rel.replace",
+  "_rel.startswith",
+  "_root",
+  "_target",
+  "os",
+  "os.pardir",
+  "os.path",
+  "os.path.abspath",
+  "os.path.dirname",
+  "os.path.isabs",
+  "os.path.join",
+  "os.path.realpath",
+  "os.path.relpath",
+  "os.sep",
+  "str",
+  "topology_json_path"
+ ],
+ "changed_paths_base_to_M": [
+  "skills/analog-gmid-design/assets/stick_diagram.py",
+  "skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py"
+ ],
+ "numstat": "18\t1\tskills/analog-gmid-design/assets/stick_diagram.py",
+ "helper_call_lines": [
+  9001
+ ]
+}

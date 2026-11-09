@@ -1,0 +1,69 @@
+
+# 초안 v5 → v6 개정 기록 (3차 검토 `review3_phase3_v5.md` 대응, 2026-10-01)
+
+대상: `draft_phase3_design_v6.md`(새 파일 -- v5는 그대로 둠), `draft_p3_g1.spec.md`·`draft_p3_t0.spec.md`·`draft_p3_d0a.spec.md`(고치기 전 사본 `*.spec.v5.md`, `cmp` 동일 확인 후 개정),
+이 기록(사본 `phase3_revision_log.v5.md`), 새 문서 `p3_doc_amendments.md`(UD-0 문서 개정 문안)·`phase3_approval_question.md`(승인 질문). 스크립트·결과는 `p3_scripts/`.
+저장소 HEAD `7535799`(변화 없음), 저장소·worktree 쓰기와 상태 변경 git 없음. 측정은 `C:/g73/repo`(`git clone --no-hardlinks`)와 그 아래 모의 트리, 끝나면 `C:/g73` 삭제.
+
+## Blocking
+
+| # | 발견(요지) | 대응 | 위치 | 재실행·실측 |
+|---|---|---|---|---|
+| B1 | D0a `order`가 split이자 MOD7인 `stick_diagram.py` import를 위반으로 잡아 M8·M9 통과 불가 | N3.10 파일은 split이어도 N3.10 번호로 판정, N3.10 밖 split 파일만 금지, 그 밖 트리 파일은 판정 밖. D0a 합성 단계 `order-split-n310-lower` 추가 | design §3 ORDER·§5.2 인정 단계 문장, D0a 계약 4 `order`·oracle·거부 입력·작성 전 실측 8 | `p3v6_order_shim_sim.py`(실제 import `sizing_recipe.py:5302`·`design_report.py:32`를 가진 M1~M9 모의 트리): 옛 문언 M8·M9 발견(`stick_diagram.py`), 새 문언 M1~M9 발견 0 -- 배치·보정 변형 6개 모두 |
+| B2 | D0a `shim`이 잔여 정의 있는 중간 card마다 발견, 최종 shim `__future__`도, 무동작 문장과 모순 | (a) 중간 상태 = base에 없던 최상위 문장은 재수출 줄뿐 (b) 완전 shim(단위 0)만 docstring·재수출·`__future__`·main 블록 (c) 이름 집합·출처(`ALL`은 이름 집합 제외) (d) main 블록. 무동작 문장에 정합 이유 추가. 합성 단계 `shim-partial-move`·`shim-complete`·`shim-all-mode` | design §3 SHIM, D0a 계약 4 `shim`·무동작·oracle | 같은 모의: 옛 문언 M1~M9 모두 발견(SR 214→…→1(`__future__`)·TL·DR), 새 문언 M1~M9 발견 0. 완전 shim TL M4, SR M8/M9, DR M9 |
+| B3 | DoD E3 명령이 표 칸 `\|` 때문에 공허 PASS | E0~E6 명령을 bash 블록 하나로(표는 ID·기준만), E3 거부 확인(B0에서 import 문장·호출 모두 비지 않음), E3를 AST로(D-24), `GC`·`--gmid-phase=3`·`--gmid-strict` 정의(m2), `import_any`(IMPORT-ANY) | design §10 전체, 부록 A F2v6·F3v6 | 원문 `\|` 0파일 대 57, 문자열 0 대 6. **새로 드러남**: 정규식(`|`로 고쳐도)은 `import numpy as np, sizing_recipe as sr` 6파일을 놓친다(57 대 AST 63, 엔진 4모듈 86 대 92) → F1 목록·E3를 AST로. `p3v6_sec10_selftest.sh`가 문서의 E3·`import_any` 블록을 잘라 그대로 실행: HEAD에서 E3 `INVALID` 없음·`FAIL`(거부 동작), `import_any` HEAD 실패 0 |
+| B4 | UD-0 문서 개정 문안 없음, N3.10 개정 시점 모순, `validate_theta_declaration_order` 목적지 미정 | `p3_doc_amendments.md`(계획 N3.10 4행·534·687, `00-common` 103·431, `10` §5.6 250·252 -- 현재 원문·줄 번호 + 새 문안, D-19 두 안). UD-0 = 지금 계산 가능한 3건 + D-19, D0b 추가 개정은 따로 승인(권고 (가), D-11). `validate_theta_declaration_order` → MOD3(두 피호출 함수가 레지스트리 A-4 MOD3) | design §6.2·§8 D0b행·§9.1·§9.2·D-11·§11, D0a 의도·결정 필요 항목, T0 판정 유형 근거·작성 전 실측 5 | `p3v6_amend_check.py`: '현재' 블록 10개 = 실제 줄, 두 안 모두 표 파싱·`mod_table` 10·두 행 걸친 토큰 0·`import_layering` exit 0·10 §5.6 21행. **새로 드러남**: MOD6 행 `` `optimize_full_circuit_budget` 탐색부 ``는 A-1이 함수 전체를 MOD6로 보낸다(모의 근사 배정도 A-1 MOD6) → 백틱을 MOD8 행으로 옮기는 문안. 설명 문장 함수 이름은 백틱 없이(두 행 걸침 방지). `00-common` 103행은 §3.2가 아니라 §3.3 표 |
+
+## Should-fix
+
+| # | 대응 | 위치 |
+|---|---|---|
+| S1 | 번호 33·34·35는 세 초안에 이미 반영(131·144·160 / 82 / 89행)으로 사실 갱신, B33 chase는 34행 최종 문언 인용(R2'·계약 9 개정 반영), 인벤토리 44,493(79,809는 v1). 인계 목록에서 번호 정정 삭제 | design §5.3-5·§5.5.4·§11-8, G1 작성 전 실측 2 |
+| S2 | §9.1 남은 것 = P9·P10·P10b·B34·B26-1 + DoD E0~E5(게이트 card는 G1 선행), D-23(T0·D0a·D0b 병합 = Phase 2 DoD 뒤, 그 전 준비만), §8.1을 필수 순서 표 + 편의 그림으로 | design §8.1·§9.1·D-23, T0 의도, D0a 의도 |
+| S3 | M10 V3 비용: 회로 = E-INST 한 판이 가장 짧은 library 회로(기록 `folded_cascode` 13~19초, telescopic 98~137초, 파일럿 7~8분), `run` 인벤토리 60 id 한 번 실행 **143초 실측**, 추정 30~40분(최악 3.2시간; 파일럿이면 9시간 이상), M10 '작성 전 실측' 3항목, D-25 | design §2.3·§8 M10행·D-25, 부록 A F4v6 |
+| S4 | D-19 근거를 '선언 게이트 + B37a 같은 곳'으로 좁히고 `RailDeclaration` 문장은 근거에서 뺌, 한계(`validate_theta_declaration_order` MOD3) 기록, 두 안 중립 -- 따로 질문 | design §6.4·§9.2·D-19, 질문 D-19 |
+| S5 | G1 31~32행 base 문장 정정, 세 card의 'design v4/v5' 인용 → 'design 30'(G1 14·T0 6·D0a 20곳), '(초안 v5)' → v6 | G1 의도, 세 card 전체 |
+| S6 | 26단계·26/26·51 = 26 + 25(원자료 키 계수 재확인 F5v6) | design 머리·§5.2·§9.2·부록 A G5·G5'·부록 C, G1 작성 전 실측 1·결정 필요 항목 |
+| S7 | 문자열 import = 호출 9곳 + docstring 1(`test_d_move_tests.py:37`), F1 범위 9곳, E3는 AST 호출(D-24)이라 docstring에 걸리지 않음 | design §7.2·§8 F1행·§10 E3 |
+| S8 | UD-1 대안 (나) 추적 추가 후 F1 갱신 (다) 삭제, 두 import(9·10행) 명시 | design §9.2, 질문 UD-1 |
+
+## Minor
+
+| # | 대응 | 위치 |
+|---|---|---|
+| m1 | card 수 16 | design §8 |
+| m2 | `GC` 정의(05 §4.4), V3에 `--python`·`--gmid-phase=3`·`--gmid-strict=`(10 §6.10 428행 V1과 같은 값) | design §10 |
+| m3 | F2는 SD 자신이 읽지 않는 이름의 재수출만 지움 | design §2.2·§8 F2행 |
+| m4 | D0b 계약 test에 'SD 밖 split 단위의 MOD7 배정 0' 단언(모의 근사 배정에서도 0) | design §8 D0b행 |
+| m5 | §8.1 필수/편의 순서 분리(B34와 34·35 사이 자유) | design §8.1 |
+| m6 | B34 초안 212행 "M2" 단정 → 'D0b 이관표가 정한다' 인계 문장(B34 초안은 고치지 않음) | design §6.4·§11-8 |
+
+## 검토 §7 -- 승인 질문
+
+UD-0 질문에 D-9·D-17(기준에 닿는 기본값)과 '추가 표 개정 위임하지 않음'(선택지로 '승인 + 위임'을 중립으로 둠)을 드러냄. D-19 따로, UD-5·UD-1 대안 포함 → `phase3_approval_question.md`.
+
+## 새로 드러난 것(검토 밖, v6에 반영)
+
+* **M9~F1의 순환 import(D-22)**: N3.10이 `save_instance_json` 계열 SD 단위를 MOD9로 보내고 추적 test·하네스가 그 이름을 F1까지 `stick_diagram`에서 읽으므로 SD가 MOD9를 임시 재수출한다
+  → SD(7) → MOD9 위쪽 import, MOD9 → SD·MOD8 → SD와 순환. 모의 `pull_top`(import 줄 모두 머리): M9에서 `instance_report_builder`·`design_report`를 먼저 import하면 `ImportError`(부분 초기화).
+  V1이 SR을 먼저 import하면 숨어 있다가 F1(test가 MOD9를 직접 import)에서 터진다. 규칙: split 재수출은 import 머리 뒤, SD의 MOD 8·9 재수출은 SD 끝, MOD8·MOD9의 번호 7 이상 import는 파일 끝 →
+  `pull_bottom7`에서 M1~M9 모듈별 단독 import 전부 성공(`bottomall`은 MOD9 레지스트리 문장 `NameError` -- 7 미만 import는 머리에 둬야 한다). M card·F1·E5에 IMPORT-ANY(`import_any`) 판정 추가.
+  M9 트리 `import_layering` FAIL(위쪽 import·순환)은 F2가 SD 재수출을 지우면 사라진다 -- LAYER는 F2 뒤 판정으로 명시.
+* 재수출 줄을 split 파일 **끝**에 두면 M8에서 SR 모듈 수준 문장이 옮겨진 이름을 읽어 `NameError`(첫 모의) -- 재수출 위치 규칙(import 머리 뒤)으로 명시.
+* 줄 머리 import 정규식이 `import a, sizing_recipe` 모양을 놓침(6파일, 전부 probe -- V1 미수집이라 조용히 깨질 곳) -- E3·F1 목록을 AST로, 다른 정규식 계수는 백로그 후보(design §11-9).
+* N3.10 MOD6 행의 백틱 `optimize_full_circuit_budget`가 A-1로 함수 전체를 MOD6에 보낸다 -- 개정 문안이 토큰을 MOD8로 옮김(B4).
+* 측정 환경 메모: 이 작업 환경의 하위 bash에서 `APPDATA`가 비어 사용자 site-packages(numpy)가 안 보였다 -- 모의·자가 시험 스크립트에 `PYTHONPATH`를 명시했다(문서 명령의 일부 아님).
+
+## 머리 블록 재검증
+
+`role_paths.parse_spec_card(text, id)`(복제본 `tools/gates`, `$PY` 3.14.2) 세 card 모두 통과: G1 `phase 0.5`·`red-green`·`gate_change yes`·approval 1, T0 `phase 3`·`test-only`·`no`·approval 2,
+D0a `phase 3`·`red-green`·`no`·approval 1, 절 11개씩.
+
+## 산출물·스크립트(`_drafts/`)
+
+* `draft_phase3_design_v6.md`, `draft_p3_{g1,t0,d0a}.spec.md`(사본 `*.spec.v5.md`), `p3_doc_amendments.md`, `phase3_approval_question.md`, 이 기록(사본 `phase3_revision_log.v5.md`).
+* `p3_scripts/p3v6_order_shim_sim.py` → `p3v6_order_shim_sim.{json,top,bottom,bottomall,bottom7,pull_top,pull_bottom7}.json`(+ `.partial.jsonl`): B1·B2·D-22 모의.
+* `p3_scripts/p3v6_e3_check.sh` → `p3v6_e3_check.out.txt`, `p3_scripts/p3v6_sec10_selftest.sh` → `p3v6_sec10_selftest.out.txt`: B3.
+* `p3_scripts/p3v6_m10_inventory_time.py` → `p3v6_m10_inventory_time.json`: S3.
+* `p3_scripts/p3v6_amend_check.py` → `p3v6_amend_check.json`: B4.
+* 편집 보조 `p3_scripts/v6_splice.py`와 조각 `*.md.part`(문서에 그대로 들어간 원문).

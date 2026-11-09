@@ -1,0 +1,29 @@
+## R8 layout/rows.py:95-96
+    def width(self, counts):
+        return sum(nf * (self.devices[name].L_m + self.overhead) for name, nf in counts)
+
+## R8 layout/pattern_select.py:137
+                width = sum(c.n_fingers * (self.devices[n].L_m + self.pdk.finger_pitch_overhead_m)
+
+## R8 layout·core 코드의 L 의존 간격·고정 pitch 규칙 읽기
+0건
+
+## R8 layout을 부르는 convergence 파일 수
+12
+
+## R10 PDK 선언 pdk_root 와 sources 경로 첫 마디
+pdk_root=C:/pdk; 첫 마디=sky130_fd_pr, sky130_fd_sc_hd, skywater-pdk
+
+## R10 LUT 생성 규칙 선언 pdk_root
+C:/pdk/sky130_fd_pr
+
+## R10 LUT 위치 선언 pdk_root
+{"env": "GMID_PDK_ROOT", "default": "C:/pdk/sky130_fd_pr"}
+
+## R10 provenance.py:64·69
+    root = meta.get("pdk_root") if pdk_root is None else pdk_root
+        path = os.path.join(root, rel)
+
+## R10 LUT 생성기 PDK_ROOT 정의
+66: PDK_ROOT = r"C:\pdk\sky130_fd_pr"          # sparse-checkout으로 받은 위치
+

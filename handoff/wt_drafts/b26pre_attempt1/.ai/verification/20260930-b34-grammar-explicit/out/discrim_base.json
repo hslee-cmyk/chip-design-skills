@@ -1,0 +1,155 @@
+{
+ "n_paths": 9,
+ "modes": {
+  "both": {
+   "total": {
+    "DID_NOT_RAISE": 126
+   },
+   "per_entry": {
+    "load_topology": {
+     "DID_NOT_RAISE": 9
+    },
+    "run_topology_pipeline": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_stack_edges": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_idiom_matches": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_differential_and_mirror_forks": {
+     "DID_NOT_RAISE": 9
+    },
+    "suggest_vertical_stack_composites": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_differential_pair_candidates": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_verified_differential_and_mirror_relations": {
+     "DID_NOT_RAISE": 9
+    },
+    "refine_differential_and_mirror_relations": {
+     "DID_NOT_RAISE": 9
+    },
+    "audit_theta_root_direction": {
+     "DID_NOT_RAISE": 9
+    },
+    "propose_theta_kcl_gap_fill": {
+     "DID_NOT_RAISE": 9
+    },
+    "propose_device_roles_gap_fill": {
+     "DID_NOT_RAISE": 9
+    },
+    "geometry_colocation_union": {
+     "DID_NOT_RAISE": 9
+    },
+    "propose_vertical_stack_id_gap_fill": {
+     "DID_NOT_RAISE": 9
+    }
+   },
+   "other": []
+  },
+  "idioms_only": {
+   "total": {
+    "DID_NOT_RAISE": 126
+   },
+   "per_entry": {
+    "load_topology": {
+     "DID_NOT_RAISE": 9
+    },
+    "run_topology_pipeline": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_stack_edges": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_idiom_matches": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_differential_and_mirror_forks": {
+     "DID_NOT_RAISE": 9
+    },
+    "suggest_vertical_stack_composites": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_differential_pair_candidates": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_verified_differential_and_mirror_relations": {
+     "DID_NOT_RAISE": 9
+    },
+    "refine_differential_and_mirror_relations": {
+     "DID_NOT_RAISE": 9
+    },
+    "audit_theta_root_direction": {
+     "DID_NOT_RAISE": 9
+    },
+    "propose_theta_kcl_gap_fill": {
+     "DID_NOT_RAISE": 9
+    },
+    "propose_device_roles_gap_fill": {
+     "DID_NOT_RAISE": 9
+    },
+    "geometry_colocation_union": {
+     "DID_NOT_RAISE": 9
+    },
+    "propose_vertical_stack_id_gap_fill": {
+     "DID_NOT_RAISE": 9
+    }
+   },
+   "other": []
+  },
+  "netclass_only": {
+   "total": {
+    "DID_NOT_RAISE": 126
+   },
+   "per_entry": {
+    "load_topology": {
+     "DID_NOT_RAISE": 9
+    },
+    "run_topology_pipeline": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_stack_edges": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_idiom_matches": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_differential_and_mirror_forks": {
+     "DID_NOT_RAISE": 9
+    },
+    "suggest_vertical_stack_composites": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_differential_pair_candidates": {
+     "DID_NOT_RAISE": 9
+    },
+    "find_verified_differential_and_mirror_relations": {
+     "DID_NOT_RAISE": 9
+    },
+    "refine_differential_and_mirror_relations": {
+     "DID_NOT_RAISE": 9
+    },
+    "audit_theta_root_direction": {
+     "DID_NOT_RAISE": 9
+    },
+    "propose_theta_kcl_gap_fill": {
+     "DID_NOT_RAISE": 9
+    },
+    "propose_device_roles_gap_fill": {
+     "DID_NOT_RAISE": 9
+    },
+    "geometry_colocation_union": {
+     "DID_NOT_RAISE": 9
+    },
+    "propose_vertical_stack_id_gap_fill": {
+     "DID_NOT_RAISE": 9
+    }
+   },
+   "other": []
+  }
+ }
+}

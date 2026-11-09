@@ -1,0 +1,18 @@
+옛 history 줄 삭제·변경 opcodes: 0
+L1832: in_old(9fc13765)=True in_new=False in_634310e0=False len=620 :: | **DR-1 기하와 소신호 문단(첫째·둘째 커밋)** | 원문: «**기하와 소신호**(MJ-2, 사용자 질문 후보 Q-ZG1): 물리 결정자 -- DC에서는
+L1833: in_old(9fc13765)=True in_new=False in_634310e0=True len=179 :: | **DR-1 erfc 대기열 문장** | 원문: «heldout erfc_ota M19·M20 bulk = vcn·M21 bulk = vcp 정정은 topol
+L1834: in_old(9fc13765)=True in_new=False in_634310e0=False len=32 :: | **DR-1 완료 (7) 포트 꼴** | 원문: «빈 쪽 넷이 포트 → 대상 밖(포트 writer 그대로);» | 2026-10-29 v6.38.5 셋째 커밋
+L1835: in_old(9fc13765)=True in_new=False in_634310e0=False len=93 :: | **DR-1 완료 (8)** | 원문: «(8) erfc_ota 단계 A: 대기열 #1 반영 전 = bulk 조건 정지 사유 기록, 반영 뒤 = VDS = 0
+L1836: in_old(9fc13765)=True in_new=False in_634310e0=False len=85 :: | **DR-1 완료 (9)** | 원문: «(9) 0 전류 MOS 기하 = Q-ZG1 결정대로(권고 (가) W_min·L_min), 소신호 스탬프 = LUT V
+L1837: in_old(9fc13765)=True in_new=False in_634310e0=False len=35 :: | **DR-1 순서 소비자 괄호** | 원문: «`erfc_ota`(구조적 0 전류 -- 대기열 #1 반영 뒤)» | 2026-10-29 v6.38.5 셋째 커
+L1838: in_old(9fc13765)=True in_new=False in_634310e0=False len=41 :: | **DEC-105 (2) 실현 평가 문장 끝(측정 구성 없음)** | 원문: «전류밀도 = I′·L/W′. 실현 평가는 탐색 스냅샷의 child가 아니라» |
+L1839: in_old(9fc13765)=True in_new=False in_634310e0=False len=67 :: | **DEC-105 (2) 끊김 크기 문구** | 원문: «끊김 크기 상한 = bin 안 IDu 변화 0.54~1.74배, 검증 1 `p8_bin/wsweep3
+L1840: in_old(9fc13765)=True in_new=False in_634310e0=False len=52 :: | **WB-1 완료 (5) 실현 평가 toy 끝** | 원문: «계통 offset = 실현 평가 성분 (1)(2)만 -- base는 실현 평가 없음, red)»
+L1841: in_old(9fc13765)=True in_new=False in_634310e0=True len=69 :: | **WB-1 범위 2b 첫 문장** | 원문: «같은 card에서 아래를 손가락 필드(실현 총 폭 m·w_f, 손가락 폭 w_f) READS로 바꾸고 옛 규칙
+L1842: in_old(9fc13765)=True in_new=False in_634310e0=False len=426 :: | **N5.3 Q-W1 행(둘째 커밋)** | 원문: «\| Q-W1 \| (v6.38.5) 탐색 평가 대 실현 평가(DEC-105 (2)) -- 권고: `De
+L1843: in_old(9fc13765)=True in_new=False in_634310e0=False len=178 :: | **N5.3 Q-ZG1 행(둘째 커밋)** | 원문: «\| Q-ZG1 \| (v6.38.5) DR-1 구조적 0 전류 MOS 기하 출처 -- 권고 (가) P
+L1844: in_old(9fc13765)=True in_new=False in_634310e0=False len=571 :: | **Status 줄(v6.38.5 둘째 커밋)** | 원문: «> **Status**: **Plan v6.38.5 -- O-174 구조적 0 전류 규칙(DR-
+L1845: in_old(9fc13765)=False in_new=False in_634310e0=True len=80 :: | **WB-1 완료 (5) 소비자 괄호(둘째 커밋 삭제분 -- 검증 2 m2-4 소급)** | 원문: «(탐색 평가 = θ 유도 W, 실현 평가 = W′ -- 
+L1846: in_old(9fc13765)=False in_new=False in_634310e0=True len=36 :: | **DR-1 순서 소비자(둘째 커밋 삭제분 -- 검증 2 m2-4 소급)** | 원문: «U-75 닫힘; 유일 소비자 = heldout `cnr_ota`)» 
+L1847: in_old(9fc13765)=False in_new=False in_634310e0=True len=94 :: | **WB-1 범위 3 본문 상태 삭제 문구(둘째 커밋 삭제분 -- 검증 2 m2-4 소급)** | 원문: «블록 안 입력 창 측정·override 되풀이·`_
+L1848: in_old(9fc13765)=False in_new=False in_634310e0=True len=138 :: | **WB-1 범위 3a 삭제 목록(둘째 커밋 삭제분 -- 검증 2 m2-4 소급)** | 원문: «θ y 범위 = KVL 순서 창 변경(입력 뿌리 `overr

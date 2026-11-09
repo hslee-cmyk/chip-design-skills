@@ -1,0 +1,281 @@
+# master 7620f5ee517d29f00f7481ac3af41adc8a95e996
+# integ/it12 b9351eac1f8bc6a4ae58019351be8a6d133c9519 behind master by 122
+# E/search 변경 c8ecc4e7..master: 0
+# 엔진 전체 변경 c8ecc4e7..master: [' 4 files changed, 4 insertions(+), 1 deletion(-)']
+
+## 1. 예산 자리 전수 (master, tests·md 제외)
+### eval_budget
+   search/__init__.py:20:from .eval_budget import EvalBudget
+   search/eps_sweep.py:9:   기록('해상도 굵음'). E_B = `sctx.eval_budget`, E_fixed = 끝점까지의 kernel_calls, e_ε = 끝점 풀이 하나의 kernel_calls 중앙값.
+   search/eps_sweep.py:85:                  "E_B": sctx.eval_budget}
+   search/eps_sweep.py:93:        n_eps = int(math.floor((sctx.eval_budget - e_fixed) / e_eps)) if e_eps > 0 and sctx.eval_budget else 0
+   search/eps_sweep.py:94:        resolution.update(E_B=sctx.eval_budget)
+   search/eval_budget.py:1:"""평가 예산 N_T (설계 41 §5.8 DEC-34 식, 40 §11 U13 `eval_budget.py`; 41 §8 `class EvalBudget`).
+   search/find_front.py:42:    """card B 의 E_total(설계 40 §2.4.5 '상한', card C 가 계산 자리 하나로 정하며 이 식을 지운다): 예산 선언이면 `eval_budget` + N_T(as-built 0) + R(= 2 × 변수 수),
+   search/find_front.py:43:    한 번 유도했으면 `eval_budget`(= D), 정해지지 않았으면 None."""
+   search/find_front.py:44:    if sctx.eval_budget is None:
+   search/find_front.py:47:        return sctx.eval_budget + 2 * len(sctx.domain.variables)
+   search/find_front.py:48:    return sctx.eval_budget
+   search/find_front.py:127:                n_solves=len(out["solves"]), eval_budget=sctx.eval_budget, eval_budget_source=sctx.eval_budget_source,
+   search/find_front.py:129:                stops_eval_budget=sum(1 for _p, s in out["solves"] if s.stop == "eval_budget"),
+   search/find_front.py:131:    run_id = fp_of((sctx.context_fp, sctx.code_fp, sctx.settings, sctx.eval_budget, tuple(s.theta for s in starts)))
+   search/kernel.py:31:from .eval_budget import EvalBudget
+   search/kernel.py:160:    if sctx.eval_budget is None and len(sctx.eval_times) > len(sctx.domain.variables):
+   search/kernel.py:162:        # 비용이 중앙값을 끌지 않게. 이후 모든 한도는 평가 수(결정론). 값·근거는 기록되고 settings.eval_budget 으로 재현한다.
+   search/kernel.py:163:        sctx.eval_budget = EvalBudget(sctx.settings.front_budget_s, sctx.eval_times).limit()
+   search/kernel.py:164:        if sctx.eval_budget is not None:
+   search/l_bin_search.py:10:* 분해능: 면적 = b_A, 전력 = 기준점(그 바퀴의 base)의 b_P. 평가 예산(`sctx.eval_budget`)·벽시계(`sctx.deadline`)에 닿으면 끝.
+   search/l_bin_search.py:12:* **정지 사유**(설계 40 §2.4.13 (5) 'L-b 정지 사유 기록', NFR-4 card 2): 반환 직전에 예산 확인을 **한 번 더** 한다 -- 커널 호출 수 >= 평가 예산이면 `eval_budget`, 아니고 마감이
+   search/l_bin_search.py:36:    if sctx.eval_budget is not None and sctx.counters["kernel_calls"] >= sctx.eval_budget:
+   search/l_bin_search.py:37:        return "eval_budget"
+   search/layer0_center.py:282:    if sctx.eval_budget is not None and sctx.counters["kernel_calls"] >= sctx.eval_budget:
+   search/layer0_center.py:283:        return "eval_budget"
+   search/layer0_center.py:400:            if exc.reason in ("eval_budget", "wall_budget"):
+   search/layer0_center.py:603:            if sctx.eval_budget is None:
+   search/layer0_center.py:605:            if tried >= sctx.eval_budget:
+   search/residual_probe.py:8:* 정지: 봉인 표본이 `count`개 모이거나, 평가 예산(`sctx.eval_budget` -- 커널 호출 수)에 닿거나, 예산이 선언되지 않았으면 시험 `count`번. 상자 전체 Halton 점은 대부분 봉인되지 않으므로
+   search/residual_probe.py:29:    """`residual_probe` 결과. `summary` = metrics `CoupledResidual`, `evaluated` = 평가한 점 수, `values` = 잰 잔차 dB tuple, `stop` = 정지 사유(`enough`·`e
+   search/residual_probe.py:73:        if sctx.eval_budget is not None and sctx.counters["kernel_calls"] >= sctx.eval_budget:
+   search/residual_probe.py:74:            stop = "eval_budget"
+   search/residual_probe.py:76:        if sctx.eval_budget is None and k >= count:
+   search/search_context.py:21:* 예산: `eval_budget`(커널 평가 수 E_B, 선언 또는 find_front 가 한 번 유도), `deadline`(벽시계 바깥 정지).
+   search/search_context.py:64:        self.eval_budget = settings.eval_budget          # None 이면 evaluate 가 n + 1 평가 뒤 한 번 유도해 기록
+   search/search_context.py:65:        self.eval_budget_source = "declared" if settings.eval_budget is not None else None
+   search/search_values.py:46:    (기록)로만 쓴다. `eval_budget`: 커널 평가 수 예산 E_B(정수) 또는 None -- None 이면 E_B = ⌊B / t_ref⌋(t_ref = 시작점 확인
+   search/search_values.py:57:    eval_budget: object
+   search/slsqp_outer.py:15:  sctx.eval_budget` 이면 끝(`eval_budget`). 벽시계 `sctx.deadline` 은 바깥 정지(`wall_budget`, 기록 -- 이것으로 끝난 실행만
+   search/slsqp_outer.py:87:    if sctx.eval_budget is not None and sctx.counters["kernel_calls"] >= sctx.eval_budget:
+   search/slsqp_outer.py:88:        return "eval_budget"
+   search/slsqp_outer.py:194:            if exc.reason in ("eval_budget", "wall_budget"):
+### _budget_stop
+   search/l_bin_search.py:35:def _budget_stop(sctx):
+   search/l_bin_search.py:47:    while improved and _budget_stop(sctx) is None:
+   search/l_bin_search.py:55:                if not 0 <= j < len(table) or _budget_stop(sctx) is not None:
+   search/l_bin_search.py:79:    return tuple(accepted), _budget_stop(sctx) or "converged"
+   search/layer0_center.py:281:def _budget_stop(sctx):
+   search/layer0_center.py:321:            stop = _budget_stop(sctx)
+   search/layer0_center.py:503:                if _budget_stop(sctx) is not None:
+   search/layer0_center.py:527:            if _budget_stop(sctx) is not None:
+   search/layer0_center.py:551:    (`_budget_stop`: kernel_calls ≥ E_B 또는 벽시계). 벽시계(deadline)가 없을 때만 시험 점 수 ≤ E_B 를 더한다 -- 원뿔 밖 점은
+   search/layer0_center.py:599:        stop = _budget_stop(sctx)
+   search/layer0_center.py:674:    if first is None and best is not None and _budget_stop(sctx) is None:
+   search/slsqp_outer.py:86:def _budget_stop(sctx):
+   search/slsqp_outer.py:115:        stop = _budget_stop(sctx)
+### _e_total
+   search/find_front.py:18:  E_total 은 `_e_total`).
+   search/find_front.py:41:def _e_total(sctx):
+   search/find_front.py:117:    e_total = _e_total(sctx)
+### EvalBudget
+   search/__init__.py:20:from .eval_budget import EvalBudget
+   search/__init__.py:167:    "EvalBudget",
+   search/eval_budget.py:1:"""평가 예산 N_T (설계 41 §5.8 DEC-34 식, 40 §11 U13 `eval_budget.py`; 41 §8 `class EvalBudget`).
+   search/eval_budget.py:3:진입점: `EvalBudget(wall_s, times, reserve_evals=0)`.
+   search/eval_budget.py:17:class EvalBudget:
+   search/eval_budget.py:20:            raise ValueError("EvalBudget: wall_s 는 양수여야 한다: " + repr(wall_s))
+   search/eval_budget.py:22:            raise ValueError("EvalBudget: reserve_evals 는 음수일 수 없다: " + repr(reserve_evals))
+   search/kernel.py:31:from .eval_budget import EvalBudget
+   search/kernel.py:163:        sctx.eval_budget = EvalBudget(sctx.settings.front_budget_s, sctx.eval_times).limit()
+### evaluate(
+   convergence/converge_point.py:6:`run_layout` 의 유일한 프로덕션 호출처(`place_layout` 이 부른다)이자 `evaluate(geometry=)` 의 유일한 호출처다.
+   convergence/converge_point.py:123:        result = evaluate(sctx, start.theta, start.key.cells, parent=current, origin=_ORIGIN + (("iter", len(iterations) + 1),),
+   search/fd_jacobian.py:6:* 열 i 마다 `evaluate(θ(x + hᵢeᵢ), parent=base)` 1회 -- sizing 이 기준점 스냅샷에서 hᵢ 가 읽히는 블록과 하류만 다시
+   search/fd_jacobian.py:107:            res = evaluate(sctx, to_theta(probe), cells, parent=base, origin=origin + (("stage", STAGE_FD),))
+   search/kernel.py:3:진입점: `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None) -> EvalResult`.
+   search/kernel.py:94:def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
+   search/l_bin_search.py:63:                probe = evaluate(sctx, theta, vector, parent=base, origin=tag)
+   search/layer0_center.py:324:            res = evaluate(sctx, theta_of(x), cells, parent=state["parent"], origin=tag)
+   search/layer0_center.py:507:                r = evaluate(sctx, th, cells, origin=tag + (("repair", c),))
+   search/layer0_center.py:521:            return evaluate(sctx, th, cells, origin=tag + (("repair", c),))
+   search/layer0_center.py:634:        res = evaluate(sctx, theta, cells, origin=tag + (("probe", tried),))
+   search/layer0_center.py:665:        first = evaluate(sctx, theta, cells, origin=tag)
+   search/residual_probe.py:84:        result = evaluate(sctx, point, cells)
+   search/search_values.py:120:    """레이아웃 뒤 실현 기하(MOD8 재검증 입력, 계획 N3.17 LY7·LY8, 설계 40 §3.9) -- `evaluate(geometry=)` 가 받는다.
+   search/slsqp_outer.py:118:        res = evaluate(sctx, theta_of(x), start.cells, parent=state["parent"], origin=tag)
+   search/start_points.py:39:        res = evaluate(sctx, theta, cells, origin=(("stage", STAGE_START), ("start", start_id)))
+### fd_jacobian(
+   search/fd_jacobian.py:3:진입점: `fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()) -> tuple[(EvalResult | None, 스텝)]`.
+   search/fd_jacobian.py:86:def fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()):
+   search/gate_run.py:54:    columns = fd_jacobian(sctx, variables, list(coords.x0), base, base.key.cells, coords.to_theta, origin, skip)
+   search/layer0_center.py:338:            cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], cells, theta_of, tag, skip)
+   search/layer0_center.py:371:    steps0 = fd_jacobian(sctx, variables, start["x"], first, cells, theta_of, tag, frozenset())
+   search/slsqp_outer.py:137:            cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], start.cells, theta_of, tag, skip)
+   search/slsqp_outer.py:165:    steps0 = fd_jacobian(sctx, variables, first["x"], first["res"], start.cells, theta_of, tag, frozenset())
+### open_run(
+   pipeline/stage_a.py:5:* `donors`·`counters`: 필수 키워드(기본값 없음, 빠지면 `TypeError`) -- 호출자가 `search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수다. 이 함수는 만들지 않고 받는다
+   pipeline/stage_a.py:7:  `run_stage_a` 호출마다 같은 함수 안 `donors, counters = open_run()` 을 1:1 로 둔다(구조 규칙 M (M-c)).
+   pipeline/stage_a.py:90:    `code_fp`(이 실행의 엔진 코드 지문 -- `build_search_context(code_fp=)` 로 넘긴다), `donors`·`counters`(호출자가 `open_run()` 으로 만들어 넘긴 실행 하나의 블록 결과 색인·계수 --
+   search/open_run.py:3:진입점: `open_run() -> (donors, counters)` = 새 `S3Index` 와 새 `RunCounters` 의 쌍.
+   search/open_run.py:15:def open_run():
+### scipy_minimize
+   search/layer0_center.py:46:from scipy.optimize import minimize as scipy_minimize
+   search/layer0_center.py:240:    out = scipy_minimize(lambda v: v[n], np.asarray(z0 + [u0], dtype=float), jac=lambda v: grad, method="SLSQP",
+   search/layer0_center.py:390:            out = scipy_minimize(lambda v: -v[n], v0, jac=lambda v: grad, method="SLSQP",
+   search/macro_poles.py:28:from scipy.optimize import minimize as scipy_minimize
+   search/macro_poles.py:345:            out = scipy_minimize(lambda w: _power(ctx, net, unpack(w)[0]) / scale, np.asarray(z0, dtype=float), method="SLSQP", bounds=bounds,
+   search/slsqp_outer.py:29:from scipy.optimize import minimize as scipy_minimize
+   search/slsqp_outer.py:184:            out = scipy_minimize(lambda x: point(x)["f"] * f_w, np.array(centre, copy=True), jac=lambda x: jac_of(x)[0] * f_w, method="SLSQP",
+### layer0_start|sweep_front
+   search/eps_sweep.py:3:진입점: `sweep_front(sctx, starts) -> dict`(키: solves, front, pending_front, failed_eps, resolution, lb_stops, *_removed, *_folded).
+   search/eps_sweep.py:71:def sweep_front(sctx, starts):
+   search/find_front.py:68:    layer0 = layer0_start(sctx)
+   search/find_front.py:70:    out = sweep_front(sctx, starts)
+   search/layer0_center.py:4:진입점: `layer0_start(sctx, origin=()) -> Layer0Result`(S0 당 1회, `find_front` 가 부른다 -- 결과 시작점은 `start_points` 의
+   search/layer0_center.py:650:def layer0_start(sctx, origin=()):
+
+## 2. 같은 자리 (integ/it12 -- 줄 어긋남 확인)
+### _budget_stop
+   search/l_bin_search.py:35:def _budget_stop(sctx):
+   search/l_bin_search.py:47:    while improved and _budget_stop(sctx) is None:
+   search/l_bin_search.py:55:                if not 0 <= j < len(table) or _budget_stop(sctx) is not None:
+   search/l_bin_search.py:79:    return tuple(accepted), _budget_stop(sctx) or "converged"
+   search/layer0_center.py:281:def _budget_stop(sctx):
+   search/layer0_center.py:321:            stop = _budget_stop(sctx)
+   search/layer0_center.py:503:                if _budget_stop(sctx) is not None:
+   search/layer0_center.py:527:            if _budget_stop(sctx) is not None:
+   search/layer0_center.py:551:    (`_budget_stop`: kernel_calls ≥ E_B 또는 벽시계). 벽시계(deadline)가 없을 때만 시험 점 수 ≤ E_B 를 더한다 -- 원뿔 밖 점은
+   search/layer0_center.py:599:        stop = _budget_stop(sctx)
+   search/layer0_center.py:674:    if first is None and best is not None and _budget_stop(sctx) is None:
+   search/slsqp_outer.py:86:def _budget_stop(sctx):
+   search/slsqp_outer.py:115:        stop = _budget_stop(sctx)
+### fd_jacobian(
+   search/fd_jacobian.py:3:진입점: `fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()) -> tuple[(EvalResult | None, 스텝)]`.
+   search/fd_jacobian.py:88:def fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()):
+   search/gate_run.py:54:    columns = fd_jacobian(sctx, variables, list(coords.x0), base, base.key.cells, coords.to_theta, origin, skip)
+   search/layer0_center.py:338:            cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], cells, theta_of, tag, skip)
+   search/layer0_center.py:371:    steps0 = fd_jacobian(sctx, variables, start["x"], first, cells, theta_of, tag, frozenset())
+   search/slsqp_outer.py:137:            cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], start.cells, theta_of, tag, skip)
+   search/slsqp_outer.py:165:    steps0 = fd_jacobian(sctx, variables, first["x"], first["res"], start.cells, theta_of, tag, frozenset())
+### evaluate(
+   search/fd_jacobian.py:6:* 열 i 마다 `evaluate(θ(x + hᵢeᵢ), parent=base)` 1회 -- sizing 이 기준점 스냅샷에서 hᵢ 가 읽히는 블록과 하류만 다시
+   search/fd_jacobian.py:109:            res = evaluate(sctx, to_theta(probe), cells, parent=base, origin=origin + (("stage", STAGE_FD),))
+   search/kernel.py:3:진입점: `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None) -> EvalResult`.
+   search/kernel.py:94:def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
+   search/l_bin_search.py:63:                probe = evaluate(sctx, theta, vector, parent=base, origin=tag)
+   search/layer0_center.py:324:            res = evaluate(sctx, theta_of(x), cells, parent=state["parent"], origin=tag)
+   search/layer0_center.py:507:                r = evaluate(sctx, th, cells, origin=tag + (("repair", c),))
+   search/layer0_center.py:521:            return evaluate(sctx, th, cells, origin=tag + (("repair", c),))
+   search/layer0_center.py:634:        res = evaluate(sctx, theta, cells, origin=tag + (("probe", tried),))
+   search/layer0_center.py:665:        first = evaluate(sctx, theta, cells, origin=tag)
+   search/residual_probe.py:84:        result = evaluate(sctx, point, cells)
+   search/search_values.py:120:    """레이아웃 뒤 실현 기하(MOD8 재검증 입력, 계획 N3.17 LY7·LY8, 설계 40 §3.9) -- `evaluate(geometry=)` 가 받는다.
+   search/slsqp_outer.py:118:        res = evaluate(sctx, theta_of(x), start.cells, parent=state["parent"], origin=tag)
+   search/start_points.py:39:        res = evaluate(sctx, theta, cells, origin=(("stage", STAGE_START), ("start", start_id)))
+### integ/it12 겹침(card C 파일)
+   search/fd_jacobian.py ['5', '3']
+   search/kernel.py ['1', '1']
+   search/CONTRACT.md ['1', '1']
+   _module_map.py ['3', '3']
+   search/find_front.py 겹침 0
+   search/layer0_center.py 겹침 0
+   search/slsqp_outer.py 겹침 0
+   search/l_bin_search.py 겹침 0
+   search/eps_sweep.py 겹침 0
+   search/residual_probe.py 겹침 0
+   search/start_points.py 겹침 0
+   search/gate_run.py 겹침 0
+   search/s3_index.py 겹침 0
+   search/open_run.py 겹침 0
+   search/search_values.py 겹침 0
+   search/search_context.py 겹침 0
+   tests/search/test_fd_jacobian.py ['16', '0']
+   tests/integration/test_g10_no_recompute_9circuits.py 겹침 0
+
+## 3. test 호출 계수 (master)
+fd_jacobian 직접 호출 파일 2 합 9
+   tests/search/test_fd_jacobian.py:8
+   tests/search/test_layer0_center.py:1
+open_run 호출 파일 87 합 320
+eval_budget 파일 25 합 146
+E_B 파일 12 합 22
+
+## 4. 새 이름 충돌 (master·integ/it12 엔진·test, md 제외)
+   search_ceiling master 0 | 
+   search_ceiling integ/it12 0 | 
+   search_stop master 0 | 
+   search_stop integ/it12 0 | 
+   FdBudgetShortfall master 0 | 
+   FdBudgetShortfall integ/it12 0 | 
+   _helpers_ceiling master 0 | 
+   _helpers_ceiling integ/it12 0 | 
+   gate_reserve master 0 | 
+   gate_reserve integ/it12 0 | 
+   e_total master 4 | search/find_front.py:117:    e_total = _e_total(sctx) ; search/find_front.py:126:                block_index_bound=None if e_t ; tests/search/test_find_front.py:107:    e_total = perf["eval_budget"] 
+   e_total integ/it12 4 | search/find_front.py:117:    e_total = _e_total(sctx) ; search/find_front.py:126:                block_index_bound=None if e_t ; tests/search/test_find_front.py:107:    e_total = perf["eval_budget"] 
+   open_bound master 0 | 
+   open_bound integ/it12 0 | 
+   close_bound master 0 | 
+   close_bound integ/it12 0 | 
+   index_bound master 0 | 
+   index_bound integ/it12 0 | 
+   time_budget_below_search_reserve master 0 | 
+   time_budget_below_search_reserve integ/it12 0 | 
+   test_search_ceiling master 0 | 
+   test_search_ceiling integ/it12 0 | 
+   test_search_stop master 0 | 
+   test_search_stop integ/it12 0 | 
+   test__helpers_ceiling master 0 | 
+   test__helpers_ceiling integ/it12 0 | 
+### 기존 test 파일 존재(master)
+   test_search_ceiling.py 없음
+   test_search_stop.py 없음
+   test__helpers_ceiling.py 없음
+   test_s3_index.py 있음
+   test_find_front.py 있음
+   test_gate_run.py 있음
+   test_start_points.py 있음
+   test_l_bin_search.py 있음
+   test_eps_sweep.py 있음
+   test_residual_probe.py 있음
+   test_slsqp_outer.py 있음
+   test_layer0_center.py 있음
+   test_kernel.py 있음
+  test_g10: 100644 blob 830c274e8fa3cff729
+### test glob 충돌: search_ 머리 test 이름 / conftest 수집 규칙
+tests/integration/test_g10_no_recompute_9circuits.py:35:LIBRARY = SKILL / "assets" / "library"
+tests/integration/test_g10_no_recompute_9circuits.py:36:CIRCUITS = sorted(p.name.removesuffix(".topology.json") for p in LIBRARY.glob("*.topology.json") if not p.name.startswith("_"))
+tests/integration/test_g10_no_recompute_9circuits.py:40:NOT_SEARCHED = {"ngcc_3stage_ff"}          # card B B-T22: 단계 A·B 까지만인 회로
+tests/integration/test_g10_no_recompute_9circuits.py:96:@pytest.mark.parametrize("circuit", CIRCUITS)
+tests/integration/test_g10_no_recompute_9circuits.py:98:    assert len(CIRCUITS) == 9, CIRCUITS                                   # 전제: library 9회로
+tests/integration/test_g10_no_recompute_9circuits.py:101:    a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env.lut, output_dir=out,
+tests/integration/test_g10_no_recompute_9circuits.py:106
+--- fix/o181-tests
+tests/integration/test_g10_no_recompute_9circuits.py:35:LIBRARY = SKILL / "assets" / "library"
+tests/integration/test_g10_no_recompute_9circuits.py:36:CIRCUITS = sorted(p.name.removesuffix(".topology.json") for p in LIBRARY.glob("*.topology.json") if not p.name.startswith("_"))
+tests/integration/test_g10_no_recompute_9circuits.py:40:NOT_SEARCHED = {"ngcc_3stage_ff"}          # card B B-T22: 단계 A·B 까지만인 회로
+tests/integration/test_g10_no_recompute_9circuits.py:96:@pytest.mark.parametrize("circuit", CIRCUITS)
+tests/integration/test_g10_no_recompute_9circuits.py:98:    _baseline(circuit)                       # 전제: card B 회로 구분(NOT_SEARCHED)은 기준선이 있는 회로에만 정의됨 -- 없으면 이 회로만 실패
+tests/integration/test_g10_no_recompute_9circuits.py:101:    a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env.lut, output_dir=out,
+tests/integration/test_g10_no_recomp
+
+## 5. 선행 card 상태 (판정 기록·브랜치)
+  .ai/verification/gl1.json 없음
+  .ai/verification/it12.json 없음
+  .ai/verification/it1.json 없음
+  .ai/verification/eo1.json 없음
+  .ai/verification/xrunf1b.json 있음
+  .ai/verification/20261103-xrunf1c.json 없음
+  G-8 structure_checks master: 0
+  branches: design/gl1 design/it12-window design/oracle-eo1 fix/o181-tests integ/it12
+  fix/o181-tests ancestor of master: False
+  EO-1 범위 4 새 파일 off_judged master: False
+
+## 6. 계획·design 줄 (master)
+P:2546 | E-26 | §5 E5-06 | `_e_total`의 N_T(as-built 0), 'card C가 정함' 문언 | A | 평가 수 상한은 계산 자리 하나 -- E_total 계산 자리는 card C가 정하고, LA-1 범위 15 (g)는 N_T 항을 층 0 예산으로 더한다(위임 A-9 PF-1) | card C + LA-1 범위 15 (g)(층 0 front 예산, E-25와 같은 자리) | `_e_total`의 N_T 0 고정 grep 0(card C가 먼저 만족) |
+P:1299 | XRUN-F1 card C(평가 예산 상한 -- 위임 A-9, N6.3 '결정 뒤 card 행') | design 40 §2.4.14 (5) | card B(병합됨), IT-1 + IT-2(파일 겹침), 자리 = EO-1 범위 4 뒤·HC-S 앞; 뒤따름 = HC-1; SPICE 다리 EO-1·OP-5·CL-1 | design 정정(`wt/_drafts/evidence/2026-11-03/card_c/spec_card_draft.md` 부록 A DF-1~DF-6) → spec card |
+P:1364 | XRUN-F1 card C | design 40 §2.4.14 | card B, IT-1 + IT-2(파일 겹침), 자리 = EO-1 범위 4 뒤(위임 A-9) | spec card |
+P:1704 * **XRUN-F1 card C와**: 통합 브랜치와 5 파일 겹침(F-IT5)이라 선후 IT-1 + IT-2 → card C(위임 A-9 PF-3). card C 기준선은 그 master 위에서 잰다(시점 = N6.1 측정 게이트 처리 표).
+P:1366 | HC-S | headroom-chain | IT-1 + IT-2, EO-1 범위 4(표 #7), card C | HC-D |
+D40 open_bound [295, 314]
+D40 DF-1 [12, 314, 796, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047]
+D40 DF-2 [796, 1135, 1415, 1444, 2049, 2050, 2051, 2052, 2053, 2054, 2055, 2056]
+D40 DF-3 [773, 796, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066]
+D40 DF-4 [774, 796]
+D40 DF-5 [796]
+D40 DF-6 [12, 295, 796]
+HC card C 인용: [21, 112, 298]
+42:294 | D-XR1 | ln 좌표 원값 보존 정본 `ThetaCoords`(`E/search/theta_coords.py`): 시작 좌표면 시작 θ 원값. 외층 `solve_eps`·층 0 `_maxmin`·감도 게이트가 같은 정본을 쓰고 사본(`_coord`·`to_theta` 세 개·`_layout` 원값 목록)은 지운다(사용자 결정 X-1 (1), XRUN-F1 A) | 40 §2.4.14 (2) | OK | `E/search/theta_coords.py`(Th
+42:295 | D-XR2 | 첫 평가 버림 제거: 탐색 memo는 계수 상태로 시작하고 실행의 첫 커널 평가(실제 평가) 뒤 상한 (n_θ + 1)·U_eval 고정, `build_search_context` 커널 평가 0, `sweep_memo.py`·`from_sweep` 삭제(사용자 결정 X-1 (2), XRUN-F1 A) | 40 §2.4.6 | OK | `E/lut/lut_memo.py`(counting·open_count·fix_bound·bound_state)
+42:296 | D-XR3 | 블록 결과 색인: (블록, 분할, 입력 버전) → 그 값을 담은 스냅샷 참조, 계보 무관, 실행 수명, 상한 = 40 §2.4.9 증거 집합 식(등록 때 fail-closed는 card C 뒤, X-8), 결정적 도메인 실패 기록 등록·재연(X-9), fail-closed 다섯 가지(40 §2.4.5 fail-closed 칸 (1)~(4)·(6) -- (5) 상한 등록 검사는 card C. 옛 문구 '네 가지'는 (6)을 빠뜨린 오기, card
+42:297 | D-XR4 | 실패 평가의 부분 스냅샷: 예외 `partial`·`attach_partial`, `EvalResult.partial`, S3 evals 실패 줄 `snapshot_fp`(사용자 결정 X-3, XRUN-F1 B) | 40 §2.4.7 | DEV | f23aec8 `E/search/kernel.py:119-122·129-135`(실패면 평가 스냅샷 없음), `E/sizing/seal.py:50-58`(보고서 쓴 뒤 예외) |
+42:298 | D-XR5 | perf 재계산 계수 = 실행 전체 모든 (블록, 분할), 결과 JSON `perf.blocks`·`perf.block_totals`, 옛 `block_calls`·`block_reuses`·`block_computes`·`block_recomputes_same_input` 삭제(사용자 결정 X-5, XRUN-F1 B) | 40 §2.4.9 | DEV | f23aec8 `E/search/find_front.py:44-59·131-133`(siz
+42:299 | D-XR6 | 모든 커널 평가를 E_total에 넣음(E_B 선언·유도 모든 실행, X-15): 선언 E_B = 탐색 예산·E_total = E_B + N_T + R·게이트 예약 R = 2 × 정의역 변수 수(X-16·X-17, 게이트는 항상 돎), 유도 실행은 E_total = D·탐색 예산 = D − N_T − R, 묶음은 시작 전 상계 확인·부족이면 `FdBudgetShortfall`, `search_ceiling`·`search_stop` 한 자리(E

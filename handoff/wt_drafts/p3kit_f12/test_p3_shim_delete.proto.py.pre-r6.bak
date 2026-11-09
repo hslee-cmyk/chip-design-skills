@@ -1,0 +1,132 @@
+"""F2 작성 전 실측용 시제품(측정 전용 -- test-author에게 건네지 않는다. 작성자 != 검증자). F2 spec card 계약 6의 red 모양·green을 모의 트리에서 재려는 것.
+
+    P3SD_ROOT=<저장소 루트> python -m pytest test_p3_shim_delete.proto.py
+
+(a) shim 세 파일 부재(red: F2 base에 있다), (b) import_layering --root exit 0(red: F2 base는 SD -> MOD9 위쪽 import로 exit 1),
+(c) D-9 밖 추적 .py가 세 모듈을 import하지 않는다(F1 뒤 base에서도 참 -- (a)와 한 test로 묶는다), (d) D-9 밖 추적 .py가 stick_diagram에서 읽는 이름이 SD 최상위에 바인딩돼 있다(base에서도 참 -- (b)와 묶는다).
+r3(2026-10-06, review_p3_f2_cur C2): (d)의 읽기 정의를 design §10 E3b `file_reads`와 같게 넓혔다(`_file_reads`). r2 판 = `.pre-r3.bak`.
+P3SD_REPORT=<파일>이면 (d)의 미해석 목록을 그 파일에 쓴다(측정용 -- 개수 대조).
+"""
+import ast
+import os
+import pathlib
+import re
+import subprocess
+import symtable
+import sys
+
+ROOT = pathlib.Path(os.environ["P3SD_ROOT"])
+A = ROOT / "skills" / "analog-gmid-design" / "assets"
+SHIMS = ("sizing_recipe", "topology_library", "design_report")
+EXCL = re.compile(r"^(\.ai/verification/|docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition\.py$)")
+IMPF = ("import_module", "_import", "__import__")
+
+
+def _tracked_py():
+    out = subprocess.run(["git", "-c", "core.quotepath=off", "-C", str(ROOT), "ls-files", "-z", "--", "*.py"],
+                         capture_output=True, check=True).stdout.decode("utf-8").split("\0")
+    # 범위 = 판정 트리(skills/analog-gmid-design/**) + 하네스 -- workspaces 하위 진단 스크립트는 DoD E3·E3b가 맡는다(base에서 이미 깨진 것 포함, design §11-10)
+    return [p for p in out if p and not EXCL.search(p)
+            and (p.startswith("skills/analog-gmid-design/") or p == "workspaces/run_harness.py")]
+
+
+def _shim_importers():
+    bad = []
+    for p in _tracked_py():
+        src = (ROOT / p).read_bytes()
+        if not re.search(rb"sizing_recipe|topology_library|design_report", src):
+            continue
+        for n in ast.walk(ast.parse(src)):
+            if isinstance(n, ast.Import) and any(a.name.split(".")[0] in SHIMS for a in n.names):
+                bad.append((p, n.lineno))
+            elif isinstance(n, ast.ImportFrom) and n.level == 0 and n.module and n.module.split(".")[0] in SHIMS:
+                bad.append((p, n.lineno))
+            elif isinstance(n, ast.Call) and n.args and isinstance(n.args[0], ast.Constant) and isinstance(n.args[0].value, str):
+                f = n.func
+                fn = f.id if isinstance(f, ast.Name) else getattr(f, "attr", "")
+                if fn in IMPF and n.args[0].value.split(".")[0] in SHIMS:
+                    bad.append((p, n.lineno))
+    return bad
+
+
+ATTRF = ("getattr", "hasattr", "setattr", "delattr")
+
+
+def _file_reads(tree):
+    """r3(review_p3_f2_cur C2): 읽기 정의 = design 30 §10 E3b `file_reads`와 같다 -- SD 모듈 식(별칭·import 호출 결과·
+    그것을 돌려주는 함수 호출, 예 `_sd()`)에서 읽는 이름 + `from stick_diagram import N` + getattr류의 상수 둘째 인자.
+    r2(`.pre-r3.bak`)는 별칭 `a.N`과 from-import만 봐서 `_sd().N` 꼴(test_dup_kcl_edges.py:274·293)을 놓쳤다."""
+    al, fn_sd = set(), set()
+
+    def is_sd(e):
+        if isinstance(e, ast.Name):
+            return e.id in al
+        if isinstance(e, ast.Call):
+            f = e.func
+            nm = f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+            if nm in IMPF and e.args and isinstance(e.args[0], ast.Constant) and e.args[0].value == "stick_diagram":
+                return True
+            return isinstance(f, ast.Name) and f.id in fn_sd
+        return False
+    ch = True
+    while ch:
+        ch = False
+        for n in ast.walk(tree):
+            new = set()
+            if isinstance(n, ast.Import):
+                new = {a.asname or a.name for a in n.names if a.name == "stick_diagram"}
+            elif isinstance(n, (ast.Assign, ast.AnnAssign, ast.NamedExpr)) and n.value is not None and is_sd(n.value):
+                tg = n.targets if isinstance(n, ast.Assign) else [n.target]
+                new = {t.id for t in tg if isinstance(t, ast.Name)}
+            elif isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name not in fn_sd and any(
+                    isinstance(r, ast.Return) and r.value is not None and is_sd(r.value) for r in ast.walk(n)):
+                fn_sd.add(n.name)
+                ch = True
+            if new - al:
+                al |= new
+                ch = True
+    out = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.ImportFrom) and n.level == 0 and n.module == "stick_diagram":
+            out |= {(n.lineno, a.name) for a in n.names}
+        elif isinstance(n, ast.Attribute) and is_sd(n.value):
+            out.add((n.lineno, n.attr))
+        elif isinstance(n, ast.Call) and n.args and is_sd(n.args[0]) and (
+                (n.func.id if isinstance(n.func, ast.Name) else getattr(n.func, "attr", "")) in ATTRF):
+            a = n.args[1] if len(n.args) > 1 else None
+            out.add((n.lineno, a.value if isinstance(a, ast.Constant) and isinstance(a.value, str) else "<동적 이름>"))
+    return out
+
+
+def _sd_unresolved():
+    sd = A / "stick_diagram.py"
+    top = {s.get_name() for s in symtable.symtable(sd.read_text(encoding="utf-8"), str(sd), "exec").get_symbols()
+           if s.is_imported() or s.is_assigned() or s.is_namespace()}
+    top |= {"__file__", "__name__", "__doc__", "__dict__", "__spec__", "__loader__", "__package__", "__builtins__", "__cached__"}
+    bad = []
+    for p in _tracked_py():
+        if p.endswith("assets/stick_diagram.py"):
+            continue
+        src = (ROOT / p).read_bytes()
+        if b"stick_diagram" not in src:
+            continue
+        bad += [(p, ln, nm) for ln, nm in sorted(_file_reads(ast.parse(src))) if nm not in top]
+    return bad
+
+
+def test_p3sd_shims_gone_and_no_importers():
+    present = [s for s in SHIMS if (A / (s + ".py")).exists()]
+    assert present == [], "shim 파일이 남아 있다: %s" % present
+    assert _shim_importers() == []
+
+
+def test_p3sd_layering_clean_and_sd_names_resolve():
+    r = subprocess.run([sys.executable, "-B", str(ROOT / "tools" / "gates" / "import_layering.py"), "--root", str(ROOT)],
+                       capture_output=True)
+    bad = _sd_unresolved()
+    if os.environ.get("P3SD_REPORT"):
+        with open(os.environ["P3SD_REPORT"], "w", encoding="utf-8") as fh:
+            fh.write("layering_exit=%d unresolved=%d\n" % (r.returncode, len(bad)))
+            fh.writelines("%s:%d %s\n" % b for b in bad)
+    assert r.returncode == 0, r.stdout.decode("utf-8", "replace")[:400]
+    assert bad == []

@@ -1,0 +1,83 @@
+* zg1w
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.option gmin=1e-18
+vs0 s0 0 0.7
+vg0 g0 0 0.3250
+xa0 s0 g0 s0 s0 sky130_fd_pr__pfet_01v8 w=0.42u l=0.15u
+vs1 s1 0 0.7
+vg1 g1 0 0.3250
+xa1 s1 g1 s1 s1 sky130_fd_pr__pfet_01v8 w=0.55u l=0.15u
+vs2 s2 0 0.7
+vg2 g2 0 0.3250
+xa2 s2 g2 s2 s2 sky130_fd_pr__pfet_01v8 w=0.84u l=0.15u
+vs3 s3 0 0.7
+vg3 g3 0 0.3250
+xa3 s3 g3 s3 s3 sky130_fd_pr__pfet_01v8 w=1.0u l=0.15u
+vs4 s4 0 0.7
+vg4 g4 0 0.3250
+xa4 s4 g4 s4 s4 sky130_fd_pr__pfet_01v8 w=3.0u l=0.15u
+vs5 s5 0 0.7
+vg5 g5 0 0.3250
+xa5 s5 g5 s5 s5 sky130_fd_pr__pfet_01v8 w=7.0u l=0.15u
+vs6 s6 0 0.7
+vg6 g6 0 0.3250
+xa6 s6 g6 s6 s6 sky130_fd_pr__pfet_01v8 w=0.42u l=0.5u
+vs7 s7 0 0.7
+vg7 g7 0 0.3250
+xa7 s7 g7 s7 s7 sky130_fd_pr__pfet_01v8 w=0.55u l=0.5u
+vs8 s8 0 0.7
+vg8 g8 0 0.3250
+xa8 s8 g8 s8 s8 sky130_fd_pr__pfet_01v8 w=0.84u l=0.5u
+vs9 s9 0 0.7
+vg9 g9 0 0.3250
+xa9 s9 g9 s9 s9 sky130_fd_pr__pfet_01v8 w=1.0u l=0.5u
+vs10 s10 0 0.7
+vg10 g10 0 0.3250
+xa10 s10 g10 s10 s10 sky130_fd_pr__pfet_01v8 w=3.0u l=0.5u
+vs11 s11 0 0.7
+vg11 g11 0 0.3250
+xa11 s11 g11 s11 s11 sky130_fd_pr__pfet_01v8 w=7.0u l=0.5u
+vs12 s12 0 0.7
+vg12 g12 0 0.3250
+xa12 s12 g12 s12 s12 sky130_fd_pr__pfet_01v8 w=0.42u l=1.0u
+vs13 s13 0 0.7
+vg13 g13 0 0.3250
+xa13 s13 g13 s13 s13 sky130_fd_pr__pfet_01v8 w=0.55u l=1.0u
+vs14 s14 0 0.7
+vg14 g14 0 0.3250
+xa14 s14 g14 s14 s14 sky130_fd_pr__pfet_01v8 w=0.84u l=1.0u
+vs15 s15 0 0.7
+vg15 g15 0 0.3250
+xa15 s15 g15 s15 s15 sky130_fd_pr__pfet_01v8 w=1.0u l=1.0u
+vs16 s16 0 0.7
+vg16 g16 0 0.3250
+xa16 s16 g16 s16 s16 sky130_fd_pr__pfet_01v8 w=3.0u l=1.0u
+vs17 s17 0 0.7
+vg17 g17 0 0.3250
+xa17 s17 g17 s17 s17 sky130_fd_pr__pfet_01v8 w=7.0u l=1.0u
+.control
+op
+print @m.xa0.msky130_fd_pr__pfet_01v8[vth] @m.xa0.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa1.msky130_fd_pr__pfet_01v8[vth] @m.xa1.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa2.msky130_fd_pr__pfet_01v8[vth] @m.xa2.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa3.msky130_fd_pr__pfet_01v8[vth] @m.xa3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa4.msky130_fd_pr__pfet_01v8[vth] @m.xa4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa5.msky130_fd_pr__pfet_01v8[vth] @m.xa5.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa6.msky130_fd_pr__pfet_01v8[vth] @m.xa6.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa7.msky130_fd_pr__pfet_01v8[vth] @m.xa7.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa8.msky130_fd_pr__pfet_01v8[vth] @m.xa8.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa9.msky130_fd_pr__pfet_01v8[vth] @m.xa9.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa10.msky130_fd_pr__pfet_01v8[vth] @m.xa10.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa11.msky130_fd_pr__pfet_01v8[vth] @m.xa11.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa12.msky130_fd_pr__pfet_01v8[vth] @m.xa12.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa13.msky130_fd_pr__pfet_01v8[vth] @m.xa13.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa14.msky130_fd_pr__pfet_01v8[vth] @m.xa14.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa15.msky130_fd_pr__pfet_01v8[vth] @m.xa15.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa16.msky130_fd_pr__pfet_01v8[vth] @m.xa16.msky130_fd_pr__pfet_01v8[gds]
+print @m.xa17.msky130_fd_pr__pfet_01v8[vth] @m.xa17.msky130_fd_pr__pfet_01v8[gds]
+.endc
+.end

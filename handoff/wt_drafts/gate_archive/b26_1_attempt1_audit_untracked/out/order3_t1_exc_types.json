@@ -1,0 +1,906 @@
+[
+ {
+  "test": "test_s106__branch_composite_pair",
+  "phase": "setup",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s107__composite_collapse_for_crossover",
+  "phase": "setup",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s108_section",
+  "phase": "setup",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s109_repair_matching_safety",
+  "phase": "setup",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s116_None",
+  "phase": "setup",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s119_M2",
+  "phase": "setup",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s142_section",
+  "phase": "setup",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s156_section",
+  "phase": "setup",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_returns_declared_nets",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:169",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_frozen_dataclass_with_nets_field_only",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:177",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_empty_list_accepted",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:185",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_undeclared_vdd_is_not_rail",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:193",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_rejects_bad_declaration[missing_key]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:225",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_rejects_bad_declaration[str_not_list]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:225",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_rejects_bad_declaration[tuple_not_list]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:225",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_rejects_bad_declaration[dict_not_list]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:225",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_rejects_bad_declaration[none_value]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:225",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_rejects_bad_declaration[empty_string_element]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:225",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_rejects_bad_declaration[int_element]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:225",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_rejects_bad_declaration[none_element]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:225",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c1_rejects_bad_declaration[duplicate_element]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:225",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c2_meta_rails_is_entry_declaration",
+  "phase": "call",
+  "type": "KeyError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:260",
+  "first_E": "KeyError: 'rails'",
+  "last_E": "KeyError: 'rails'"
+ },
+ {
+  "test": "test_b26_c2_missing_supply_nets_rejected",
+  "phase": "call",
+  "type": "Failed",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:267",
+  "first_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+  "last_E": "Failed: DID NOT RAISE <class 'ValueError'>"
+ },
+ {
+  "test": "test_b26_c2_linked_declaration_format_rejected[str_not_list]",
+  "phase": "call",
+  "type": "Failed",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:293",
+  "first_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+  "last_E": "Failed: DID NOT RAISE <class 'ValueError'>"
+ },
+ {
+  "test": "test_b26_c2_linked_declaration_format_rejected[empty_string_element]",
+  "phase": "call",
+  "type": "Failed",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:293",
+  "first_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+  "last_E": "Failed: DID NOT RAISE <class 'ValueError'>"
+ },
+ {
+  "test": "test_b26_c2_linked_declaration_format_rejected[int_element]",
+  "phase": "call",
+  "type": "Failed",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:293",
+  "first_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+  "last_E": "Failed: DID NOT RAISE <class 'ValueError'>"
+ },
+ {
+  "test": "test_b26_c2_linked_declaration_format_rejected[duplicate_element]",
+  "phase": "call",
+  "type": "Failed",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:293",
+  "first_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+  "last_E": "Failed: DID NOT RAISE <class 'ValueError'>"
+ },
+ {
+  "test": "test_b26_c2_linked_declaration_set_mismatch_rejected[subset]",
+  "phase": "call",
+  "type": "Failed",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:303",
+  "first_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+  "last_E": "Failed: DID NOT RAISE <class 'ValueError'>"
+ },
+ {
+  "test": "test_b26_c2_linked_declaration_set_mismatch_rejected[superset]",
+  "phase": "call",
+  "type": "Failed",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:303",
+  "first_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+  "last_E": "Failed: DID NOT RAISE <class 'ValueError'>"
+ },
+ {
+  "test": "test_b26_c2_linked_same_set_other_order_accepted",
+  "phase": "call",
+  "type": "KeyError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:311",
+  "first_E": "KeyError: 'rails'",
+  "last_E": "KeyError: 'rails'"
+ },
+ {
+  "test": "test_b26_c2_linked_without_declaration_uses_entry",
+  "phase": "call",
+  "type": "KeyError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:318",
+  "first_E": "KeyError: 'rails'",
+  "last_E": "KeyError: 'rails'"
+ },
+ {
+  "test": "test_b26_c3_rail_declaration_call_count",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:327",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c4_rails_keyword_only_without_default",
+  "phase": "call",
+  "type": "KeyError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:398",
+  "first_E": "KeyError: 'rails'",
+  "last_E": "KeyError: 'rails'"
+ },
+ {
+  "test": "test_b26_c5_l_sharing_classes_rejects_meta_without_rails",
+  "phase": "call",
+  "type": "Failed",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:411",
+  "first_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+  "last_E": "Failed: DID NOT RAISE <class 'ValueError'>"
+ },
+ {
+  "test": "test_b26_c6_declared_rail_excluded",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:480",
+  "first_E": "assert 7e-06 == 5e-06 ± 1.0e-12",
+  "last_E": "Expected: 5e-06 ± 1.0e-12"
+ },
+ {
+  "test": "test_b26_c6_undeclared_vdd_counted_as_internal_node",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:487",
+  "first_E": "assert 4.9999999999999996e-06 == 7e-06 ± 1.0e-12",
+  "last_E": "Expected: 7e-06 ± 1.0e-12"
+ },
+ {
+  "test": "test_b26_c6_metric_rail_nets_key_rejected",
+  "phase": "call",
+  "type": "Failed",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:493",
+  "first_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+  "last_E": "Failed: DID NOT RAISE <class 'ValueError'>"
+ },
+ {
+  "test": "test_b26_c7a_rail_shared_pair_not_autofilled",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:505",
+  "first_E": "AssertionError: [['Qa', 'Qb']]",
+  "last_E": "assert ['Qa', 'Qb'] not in [['Qa', 'Qb']]"
+ },
+ {
+  "test": "test_b26_c7a_direct_calls_rail_shared_pair_not_candidate",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:511",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c7a_positive_undeclared_shared_source_is_candidate",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:530",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c7b_rail_does_not_carry_vertical_stack_id",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:548",
+  "first_E": "AssertionError: {'Pa': 'S1', 'Pb': 'S1', 'Qb': 'S1'}",
+  "last_E": "assert 'Qb' not in {'Pa': 'S1', 'Pb': 'S1', 'Qb': 'S1'}"
+ },
+ {
+  "test": "test_b26_c7b_direct_kcl_edges_skip_declared_rails",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:557",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c7c_rail_gate_does_not_form_mirror_class",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:578",
+  "first_E": "AssertionError: [{'Ma', 'Mb'}, {'Pc', 'Pd'}]",
+  "last_E": "+  where True = any(<generator object test_b26_c7c_rail_gate_does_not_form_mirror_class.<locals>.<genexpr> at 0x000001FD43E73780>)"
+ },
+ {
+  "test": "test_b26_c7d_kcl_residual_excludes_declared_rails",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:589",
+  "first_E": "assert 3.5000000000000004e-06 == 5e-07 ± 1.0e-12",
+  "last_E": "Expected: 5e-07 ± 1.0e-12"
+ },
+ {
+  "test": "test_b26_c7e_gap_fill_rail_sites",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:618",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c7_reverse_direct_calls_treat_undeclared_names_as_internal",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:646",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c7_reverse_vertical_stack_id_follows_undeclared_names",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:663",
+  "first_E": "AssertionError: assert None == {'Kb': 'S1', 'Kc': 'S1', 'Kd': 'S1'}",
+  "last_E": "AssertionError: assert None == {'Kb': 'S1', 'Kc': 'S1', 'Kd': 'S1'}"
+ },
+ {
+  "test": "test_b26_c7_reverse_matching_pair_on_undeclared_source",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:673",
+  "first_E": "AssertionError: []",
+  "last_E": "assert ['Qa', 'Qb'] in []"
+ },
+ {
+  "test": "test_b26_c7_reverse_mirror_class_on_undeclared_gate",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:687",
+  "first_E": "AssertionError: [{'Pc', 'Pd'}]",
+  "last_E": "+  where False = any(<generator object test_b26_c7_reverse_mirror_class_on_undeclared_gate.<locals>.<genexpr> at 0x000001FD43DA86C0>)"
+ },
+ {
+  "test": "test_b26_c13_absent_grammar_raises_import_error[common_gate_amplifier]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:138",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c13_absent_grammar_raises_import_error[folded_cascode]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:138",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c13_absent_grammar_raises_import_error[ngcc_3stage_ff]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:138",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c13_absent_grammar_raises_import_error[nmcnr_amplifier]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:138",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c13_absent_grammar_raises_import_error[two_stage_ota]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:138",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c13_absent_grammar_raises_import_error[two_stage_ota_sf]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:138",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_c14_no_gate_input_returns",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:715",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26_oracle_b_setup_invariant_under_rail_rename[two_stage_ota]",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26_rail_accessor.py:743",
+  "first_E": "AssertionError: assert {'M3': ['M3',..., 'M5', 'M7']} == {'M3': ['M3',... ['M6', 'M7']}",
+  "last_E": "Use -v to get more diff"
+ },
+ {
+  "test": "test_b26pre_resolve_stack_candidates",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26pre_existing_paths.py:418",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26pre_vsid_gap_fill_no_ports",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26pre_existing_paths.py:435",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26pre_vsid_gap_fill_ports",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26pre_existing_paths.py:447",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26pre_trace_two_branches",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b26pre_existing_paths.py:575",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b26pre_trace_three_branches_order",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:90",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b34_c1_both_absent_raises_named_import_error[folded_cascode]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:90",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b34_c1_both_absent_raises_named_import_error[ngcc_3stage_ff]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:90",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b34_c1_both_absent_raises_named_import_error[nmcnr_amplifier]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:90",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b34_c1_both_absent_raises_named_import_error[two_stage_ota]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:90",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b34_c1_both_absent_raises_named_import_error[two_stage_ota_sf]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:90",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b34_c5_no_gate_devices_unchanged",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:268",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_b34_c8_restored_values_equal_fresh_process[common_gate_amplifier]",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:312",
+  "first_E": "AssertionError: Traceback (most recent call last):",
+  "last_E": "assert 1 == 0"
+ },
+ {
+  "test": "test_b34_c8_restored_values_equal_fresh_process[folded_cascode]",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:312",
+  "first_E": "AssertionError: Traceback (most recent call last):",
+  "last_E": "assert 1 == 0"
+ },
+ {
+  "test": "test_b34_c8_restored_values_equal_fresh_process[ngcc_3stage_ff]",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:312",
+  "first_E": "AssertionError: Traceback (most recent call last):",
+  "last_E": "assert 1 == 0"
+ },
+ {
+  "test": "test_b34_c8_restored_values_equal_fresh_process[nmcnr_amplifier]",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:312",
+  "first_E": "AssertionError: Traceback (most recent call last):",
+  "last_E": "assert 1 == 0"
+ },
+ {
+  "test": "test_b34_c8_restored_values_equal_fresh_process[two_stage_ota]",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:312",
+  "first_E": "AssertionError: Traceback (most recent call last):",
+  "last_E": "assert 1 == 0"
+ },
+ {
+  "test": "test_b34_c8_restored_values_equal_fresh_process[two_stage_ota_sf]",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_b34_grammar_explicit.py:312",
+  "first_E": "AssertionError: Traceback (most recent call last):",
+  "last_E": "assert 1 == 0"
+ },
+ {
+  "test": "test_kcl_series_union_groups_on_synthetic_netlist[chain_interleaved]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_kcl_edges.py:52",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_kcl_series_union_groups_on_synthetic_netlist[mixed_no_matching]",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_kcl_edges.py:52",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_kcl_series_union_signature_unchanged",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_kcl_edges.py:299",
+  "first_E": "AssertionError: assert ['netlist', 'matching_pairs'] == ['netlist', '...irs', 'rails']",
+  "last_E": "Use -v to get more diff"
+ },
+ {
+  "test": "test_kcl_and_matching_edges_signature_unchanged",
+  "phase": "call",
+  "type": "AssertionError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_kcl_edges.py:316",
+  "first_E": "AssertionError: assert ['transistors...tching_pairs'] == ['transistors...irs', 'rails']",
+  "last_E": "Use -v to get more diff"
+ },
+ {
+  "test": "test_s013_resolve_stack_layout",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_sizing_recipe.py:42",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s060_run_full_circuit_audit",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s067_MB",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s069_section",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s070_section",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s071_section",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:1836",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s103_repair_matching_safety",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s104_repair_matching_safety",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s105_repair_matching_safety",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s117_connectivity",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s118_folded_cascode_example",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s120_section",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s130_find_differential_pair_candidates",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s131_refine_differential_and_mirror_relations",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s133_refine_differential_and_mirror_relations",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s134__propose_vertical_stack_ids",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s135_section",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s136_refine_differential_and_mirror_relations",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s138_refine_differential_and_mirror_relations",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s139_find_verified_differential_and_mirror_relations",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s140_audit_vertical_stack_id_vs_kcl",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s141_merge_layout_groups_by_matching_pairs",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s151_section",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s152_section",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s153_section",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:3724",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s154_load_topology",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s155_propose_device_roles_gap_fill",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s158_propose_device_roles_gap_fill",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s159_apply_device_roles_gap_fill",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:71",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s160_propose_device_roles_gap_fill",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:60",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_s162_section",
+  "phase": "call",
+  "type": "AttributeError",
+  "loc": "C:\\g412\\iso\\skills\\analog-gmid-design\\assets\\tests\\unit\\test_selftest_stick_diagram.py:4095",
+  "first_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+  "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'"
+ },
+ {
+  "test": "test_main_exit_2_on_syntax_error_file",
+  "phase": "call",
+  "type": null,
+  "loc": null,
+  "first_E": null,
+  "last_E": null
+ },
+ {
+  "test": "test_main_exit_2_on_missing_root",
+  "phase": "call",
+  "type": null,
+  "loc": null,
+  "first_E": null,
+  "last_E": null
+ },
+ {
+  "test": "test_main_exit_2_on_missing_registry",
+  "phase": "call",
+  "type": null,
+  "loc": null,
+  "first_E": null,
+  "last_E": null
+ },
+ {
+  "test": "test_main_exit_2_without_section7_title",
+  "phase": "call",
+  "type": null,
+  "loc": null,
+  "first_E": null,
+  "last_E": null
+ }
+]

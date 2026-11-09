@@ -1,0 +1,14 @@
+{
+ "id": "20260930-p3-gate-move-aware",
+ "target": "3adeb714cebc710a7be67b6c69235ad51e9080cbb1e037a89ae370c25367b4cf",
+ "diff_base": "c7dde68e5c6a5f287708f46096b3dcd3bc1f18db",
+ "diff_head": "eeaec120c92a96b95aa9780e1bf903278279b8c5",
+ "diff_path": [
+  "docs/01-plan/features/gain-budget-gmid-sizing.plan.md",
+  "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md",
+  "docs/02-design/specs/20260930-p3-gate-move-aware.interface.md",
+  "docs/02-design/specs/20260930-p3-gate-move-aware.spec.md"
+ ],
+ "dest": "C:\\g143\\sim_launch\\r\\.ai\\approvals\\20260930-p3-gate-move-aware.md",
+ "result": "written"
+}

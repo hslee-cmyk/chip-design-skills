@@ -1,0 +1,42 @@
+
+=================================== ERRORS ====================================
+_ ERROR collecting skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py _
+ImportError while importing test module 'C:\g200\m9\skills\analog-gmid-design\assets\tests\unit\test_selftest_design_report.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\g200\m9\skills\analog-gmid-design\assets\tests\unit\test_selftest_design_report.py:24: in <module>
+    from design_report import (assemble_report_data, build_topology_device_table, os, render_html_report)  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ImportError: cannot import name 'os' from 'design_report' (C:\g200\m9\skills\analog-gmid-design\assets\design_report.py)
+_ ERROR collecting skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py _
+ImportError while importing test module 'C:\g200\m9\skills\analog-gmid-design\assets\tests\unit\test_selftest_sizing_recipe.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\g200\m9\skills\analog-gmid-design\assets\tests\unit\test_selftest_sizing_recipe.py:24: in <module>
+    from sizing_recipe import (SemiEmpiricalGmIdLUT, SizingContext, Transistor, _COMPENSATION_REGISTRY, _blocked_euler_rows, _build_theta_evaluator, _dc_replace, _full_circuit_response, _group_score_interior, _group_score_metric, _invert_gm_id_for_current, _lerp, _load_full_topology_cached, _nmcnr_stage1_rout, allocate_stack_headroom, apply_and_revalidate_matching_finger_growth, apply_and_revalidate_pair_adjustment, apply_theta_feed, build_toy_lut, check_quasi_static, compute_metric, derive_class_L, derive_role_L, diagnose_sizing_roles_gap, diode_vds_window, estimate_area_budget, estimate_mismatch_sigma, feasible_L_window, find_optimal_sizing, json, knee_L_for_kind, load_topology, math, nmcnr_predict_ac_response, np, optimize_full_circuit_budget, optimize_multistage, propagate_topology_forced_currents, require_declared_spec_source, resolve_constraint_references, resolve_stack_layout, revalidate_finger_override, run_matching_safety_with_finger_growth, run_topology_pipeline_with_finger_fixup, search_gm_id_for_role, size_transistor, solve_diode_connected_vds, solve_diode_stack_current, solve_id_for_target_gm, suggest_matching_finger_growth, suggest_pair_finger_adjustments, validate_theta_declaration_order)  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ImportError: cannot import name '_dc_replace' from 'sizing_recipe' (C:\g200\m9\skills\analog-gmid-design\assets\sizing_recipe.py)
+_ ERROR collecting skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py _
+ImportError while importing test module 'C:\g200\m9\skills\analog-gmid-design\assets\tests\unit\test_selftest_topology_library.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\g200\m9\skills\analog-gmid-design\assets\tests\unit\test_selftest_topology_library.py:24: in <module>
+    from topology_library import (current_reuse_telescopic_topology, math, miller_ota_topology, ngcc_3stage_topology, nmcnr_3stage_topology, nmcnr_check_dominant_pole_approximation, nmcnr_compensation_elements, nmcnr_predict_ac_response)  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ImportError: cannot import name 'math' from 'topology_library' (C:\g200\m9\skills\analog-gmid-design\assets\topology_library.py)
+=========================== short test summary info ===========================
+ERROR ..\..\..\..\..\..\g200\m9\skills\analog-gmid-design\assets\tests\unit\test_selftest_design_report.py
+ERROR ..\..\..\..\..\..\g200\m9\skills\analog-gmid-design\assets\tests\unit\test_selftest_sizing_recipe.py
+ERROR ..\..\..\..\..\..\g200\m9\skills\analog-gmid-design\assets\tests\unit\test_selftest_topology_library.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!
+3 errors in 6.69s
+exit=2 seconds=12

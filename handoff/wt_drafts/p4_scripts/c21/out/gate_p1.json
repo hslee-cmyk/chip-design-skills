@@ -1,0 +1,360 @@
+{
+ "root": "C:\\g148\\p1",
+ "has": {
+  "reject_legacy_names": false,
+  "rail_voltages": false,
+  "rail_declaration": true
+ },
+ "specs": {
+  "two_stage_ota": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "vdd"
+    ]
+   },
+   "supplies_v": null,
+   "vdd": 1.8
+  },
+  "current_reuse_telescopic_ota": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "vdd"
+    ]
+   },
+   "supplies_v": null,
+   "vdd": 1.8
+  },
+  "folded_cascode": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "vdd"
+    ]
+   },
+   "supplies_v": null,
+   "vdd": 1.8
+  },
+  "nmcnr_amplifier": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "vdd"
+    ]
+   },
+   "supplies_v": null,
+   "vdd": 1.8
+  }
+ },
+ "library": {
+  "common_gate_amplifier": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  },
+  "current_reuse_telescopic_ota": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  },
+  "folded_cascode": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  },
+  "ngcc_3stage_ff": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  },
+  "nmcnr_amplifier": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets"
+     ],
+     "nets": [
+      "vdd",
+      "vss"
+     ]
+    }
+   }
+  },
+  "pushpull_follower_buffer": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets"
+     ],
+     "nets": [
+      "agnd",
+      "vdd",
+      "vss"
+     ]
+    }
+   }
+  },
+  "sf_pushpull_output_opamp": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets"
+     ],
+     "nets": [
+      "agnd",
+      "vdd",
+      "vss"
+     ]
+    }
+   }
+  },
+  "two_stage_ota": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  },
+  "two_stage_ota_sf": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  }
+ }
+}

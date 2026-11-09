@@ -1,0 +1,5 @@
+unit/test_selftest_sizing_recipe.py import 24 ['estimate_area_budget', 'solve_diode_stack_current']
+unit/test_selftest_sizing_recipe.py test_s007_solve_diode_stack_current 637-656 ['solve_diode_stack_current'] []
+unit/test_selftest_sizing_recipe.py test_s028_estimate_area_budget 1785-1801 ['estimate_area_budget'] []
+unit/test_selftest_stick_diagram.py import 24 ['check_multi_leaf_hub_parity']
+unit/test_selftest_stick_diagram.py test_s058_section 1420-1470 ['check_multi_leaf_hub_parity'] []

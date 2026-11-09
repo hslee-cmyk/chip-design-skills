@@ -1,0 +1,53 @@
+{
+ "card": "20260930-v3-exempt-binding",
+ "root": "C:\\g143\\sim_launch\\r",
+ "edits": [
+  {
+   "path": "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md",
+   "name": "design05-V3-5-exempt",
+   "state": "pending"
+  },
+  {
+   "path": "docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md",
+   "name": "design10-382-C8",
+   "state": "pending"
+  },
+  {
+   "path": "docs/01-plan/features/gain-budget-gmid-sizing.plan.md",
+   "name": "planN42-V3-exempt",
+   "state": "pending"
+  }
+ ],
+ "files": {
+  "docs/01-plan/features/gain-budget-gmid-sizing.plan.md": {
+   "eol": "crlf",
+   "changed_lines": [
+    839
+   ],
+   "sha256_lf_before": "8773163bb29703ea2f620533f2529220a651c6c617069d463a86361fb133751d",
+   "sha256_lf_after": "ed1cac0b82957856d0559b954cae9c64d5e9ec45ba021fbe7f44a47d12e0d042"
+  },
+  "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md": {
+   "eol": "crlf",
+   "changed_lines": [
+    317
+   ],
+   "sha256_lf_before": "bf0e7c9e1844adebff38538878357fa652b5eacc468d7d01d22646a8e6d076f1",
+   "sha256_lf_after": "8097991c936eae41705ba0d1c8d505785d5e23065ed69c08c661b300854cc3cd"
+  },
+  "docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md": {
+   "eol": "crlf",
+   "changed_lines": [
+    382
+   ],
+   "sha256_lf_before": "4350783be7a5e03bc8034a9f5c3b3c4f25e602557760b6d7ee45117ed71a08cc",
+   "sha256_lf_after": "fb0f187002278bc4f0553da90192af7ca67830dc73a4f55fdbf3a209e92ad02e"
+  }
+ },
+ "plan_tables_hash": {
+  "before": "7167e02839f86c4ecbcd91a63a9833c4d83a8aab8008bfe2d8cfc36206d2596d",
+  "after": "7167e02839f86c4ecbcd91a63a9833c4d83a8aab8008bfe2d8cfc36206d2596d",
+  "unchanged": true
+ },
+ "result": "applied"
+}

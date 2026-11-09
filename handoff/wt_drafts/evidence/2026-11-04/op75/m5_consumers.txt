@@ -1,0 +1,87 @@
+== oracle_noise
+gmid_engine/metrics/verified_by.py:1
+tools/spice_oracle/README.md:3
+tools/spice_oracle/oracle_noise.py:2
+tools/spice_oracle/tests/conftest.py:1
+tools/spice_oracle/tests/test_oracle_noise.py:2
+== oracle_offset_mc
+gmid_engine/tests/metrics/test_device_sigma.py:1
+gmid_engine/tests/metrics/test_verified_by.py:1
+tools/spice_oracle/README.md:2
+tools/spice_oracle/oracle_offset_mc.py:2
+tools/spice_oracle/tests/conftest.py:1
+tools/spice_oracle/tests/test_oracle_offset_mc.py:1
+== oracle_swing
+gmid_engine/tests/metrics/test_verified_by.py:1
+tools/spice_oracle/README.md:2
+tools/spice_oracle/oracle_swing.py:2
+== mismatch_vars
+assets/sky130_pair_mc.py:2
+tools/spice_oracle/README.md:1
+tools/spice_oracle/oracle_offset_mc.py:4
+tools/spice_oracle/tests/test_oracle_offset_mc.py:2
+== build_mc_netlist
+tools/spice_oracle/oracle_offset_mc.py:2
+== off_current_A
+gmid_engine/search/CONTRACT.md:1
+gmid_engine/search/current_box.py:1
+gmid_engine/sizing/CONTRACT.md:1
+gmid_engine/sizing/seal_conduction.py:1
+tools/spice_oracle/README.md:14
+tools/spice_oracle/core/compare.py:13
+tools/spice_oracle/oracle_input.schema.json:2
+tools/spice_oracle/oracle_swing.py:2
+tools/spice_oracle/smoke/SMOKE_REPORT.md:1
+tools/spice_oracle/smoke/current_reuse_telescopic_ota.cm_loop.forced.compare.md:2
+tools/spice_oracle/smoke/current_reuse_telescopic_ota.layout.engine.forced.compare.md:2
+tools/spice_oracle/smoke/current_reuse_telescopic_ota.layout.engine.free.compare.md:2
+tools/spice_oracle/smoke/current_reuse_telescopic_ota.layout.topology.forced.compare.md:2
+tools/spice_oracle/smoke/current_reuse_telescopic_ota.layout.topology.free.compare.md:2
+== sat_margin
+tools/spice_oracle/README.md:1
+tools/spice_oracle/core/compare.py:5
+tools/spice_oracle/oracle_swing.py:2
+tools/spice_oracle/smoke/SMOKE_REPORT.md:1
+tools/spice_oracle/tests/conftest.py:3
+tools/spice_oracle/tests/test_legacy_testbench.py:1
+tools/spice_oracle/tests/test_oracle_c10_stability.py:20
+tools/spice_oracle/tests/test_oracle_c27_loop_defs.py:4
+tools/spice_oracle/tests/test_oracle_cm_loop.py:2
+tools/spice_oracle/tests/test_oracle_compare.py:6
+tools/spice_oracle/tests/test_oracle_conduction.py:3
+tools/spice_oracle/tests/test_oracle_diagnosis.py:1
+tools/spice_oracle/tests/test_oracle_junction_cap.py:4
+tools/spice_oracle/tests/test_oracle_loop_singular.py:5
+== ngspice_runs
+tools/spice_oracle/oracle_swing.py:1
+tools/spice_oracle/tests/test_result_contract.py:1
+== ZOOM_POINTS
+tools/spice_oracle/oracle_swing.py:2
+== ZOOM_ROUNDS
+tools/spice_oracle/oracle_swing.py:3
+== NOISE_TOP_K_MAX
+tools/spice_oracle/oracle_noise.py:4
+== INTEGRAL_K_MAX
+tools/spice_oracle/oracle_noise.py:3
+== input_dc_pending
+gmid_engine/authoring/SPEC_CONTRACT.md:1
+gmid_engine/metrics/CONTRACT.md:1
+tools/spice_oracle/README.md:1
+tools/spice_oracle/core/compare.py:2
+tools/spice_oracle/oracle_input.schema.json:2
+tools/spice_oracle/oracle_swing.py:3
+tools/spice_oracle/tests/test_oracle_swing_icmr.py:3
+== input_dc_V
+tools/spice_oracle/README.md:1
+tools/spice_oracle/oracle_input.schema.json:2
+tools/spice_oracle/oracle_swing.py:2
+tools/spice_oracle/tests/test_oracle_swing_icmr.py:3
+== a_dc_signed
+tools/spice_oracle/oracle_offset_mc.py:1
+== threshold_eps1
+tools/spice_oracle/core/compare.py:2
+tools/spice_oracle/tests/test_result_contract.py:1
+== oracle_element_names
+tools/spice_oracle/README.md:1
+tools/spice_oracle/oracle_noise.py:2
+tools/spice_oracle/tests/test_oracle_noise.py:2

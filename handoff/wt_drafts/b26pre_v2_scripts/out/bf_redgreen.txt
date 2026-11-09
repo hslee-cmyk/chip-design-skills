@@ -1,0 +1,12 @@
+BASE seed=0 rc=1 ['FAILED skills/analog-gmid-design/assets/tests/contracts/test_b26bf_proto.py::test_b26bf_interdig_ok_in_loop', 'FAILED skills/analog-gmid-design/assets/tests/contracts/test_b26bf_proto.py::test_b26bf_interdig_ok_after_loop', '2 failed in 4.36s']
+BASE seed=1 rc=1 ['FAILED skills/analog-gmid-design/assets/tests/contracts/test_b26bf_proto.py::test_b26bf_interdig_ok_in_loop', 'FAILED skills/analog-gmid-design/assets/tests/contracts/test_b26bf_proto.py::test_b26bf_interdig_ok_after_loop', '2 failed in 7.58s']
+FIX seed=0 rc=0 ['2 passed in 5.45s']
+FIX seed=1 rc=0 ['2 passed in 5.52s']
+FIX seed=7 rc=0 ['2 passed in 5.19s']
+FIX regression targets: ['skills/analog-gmid-design/assets/tests/contracts/test_b26pre_proto.py', 'skills/analog-gmid-design/assets/tests/contracts/test_b26bf_proto.py', 'skills/analog-gmid-design/assets/tests/contracts/test_b26pre_proto.py', 'skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py', 'skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py']
+FIX test_b26pre_proto.py rc=0 32s ['17 passed in 13.97s']
+FIX test_b26bf_proto.py rc=0 16s ['2 passed in 5.34s']
+FIX test_b26pre_proto.py rc=0 16s ['17 passed in 5.81s']
+FIX test_selftest_sizing_recipe.py rc=0 64s ['66 passed, 2 xfailed in 55.80s']
+FIX test_selftest_stick_diagram.py rc=0 244s ['130 passed, 1 xfailed in 227.28s (0:03:47)']
+restored

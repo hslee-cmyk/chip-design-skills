@@ -1,0 +1,62 @@
+[32m.[0m[31mF[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[31m                                      [100%][0m
+================================== FAILURES ===================================
+[31m[1m____________________ test_mdsync_library_tables_match_json ____________________[0m
+
+    [0m[94mdef[39;49;00m[90m [39;49;00m[92mtest_mdsync_library_tables_match_json[39;49;00m():[90m[39;49;00m
+        fails = _mdsync_judge_dir(_MDSYNC_LIB)[90m[39;49;00m
+>       [94massert[39;49;00m fails == [], _mdsync_message(fails)[90m[39;49;00m
+[1m[31mE       AssertionError: 계약 3 current_reuse_telescopic_ota: passive_elements 표 md만 [] json만 [('CL1', 'capacitor', ('Vop', 'gnd')), ('CL2', 'capacitor', ('Vom', 'gnd')), ('Cf1', 'capacitor', ('Vom', 'Vip')), ('Cf2', 'capacitor', ('Vop', 'Vim')), ('Cs1', 'capacitor', ('Vip', 'gnd')), ('Cs2', 'capacitor', ('Vim', 'gnd'))][0m
+[1m[31mE         계약 4 current_reuse_telescopic_ota: net 'Vim' 단자 md [('M1b', 'gate'), ('M4b', 'gate')] json [('Cf2', 't1'), ('Cs2', 't0'), ('M1b', 'gate'), ('M4b', 'gate')][0m
+[1m[31mE         계약 4 current_reuse_telescopic_ota: net 'Vip' 단자 md [('M1a', 'gate'), ('M4a', 'gate')] json [('Cf1', 't1'), ('Cs1', 't0'), ('M1a', 'gate'), ('M4a', 'gate')][0m
+[1m[31mE         계약 4 current_reuse_telescopic_ota: net 'Vom' 단자 md [('Cc1', 't0'), ('M15', 'drain'), ('M16', 'drain'), ('R1', 't0')] json [('CL2', 't0'), ('Cc1', 't0'), ('Cf1', 't0'), ('M15', 'drain'), ('M16', 'drain'), ('R1', 't0')][0m
+[1m[31mE         계약 4 current_reuse_telescopic_ota: net 'Vop' 단자 md [('Cc2', 't0'), ('M25', 'drain'), ('M26', 'drain'), ('R2', 't1')] json [('CL1', 't0'), ('Cc2', 't0'), ('Cf2', 't0'), ('M25', 'drain'), ('M26', 'drain'), ('R2', 't1')][0m
+[1m[31mE         계약 4 current_reuse_telescopic_ota: net 'gnd' 단자 md [('Iref', 't1'), ('M10', 'source'), ('M12', 'source'), ('M14b', 'source'), ('M16', 'source'), ('M19', 'source'), ('M21', 'source'), ('M24b', 'source'), ('M26', 'source'), ('M38', 'source'), ('M40', 'drain'), ('M40', 'gate'), ('M5', 'source'), ('M66', 'source'), ('M68', 'source')] json [('CL1', 't1'), ('CL2', 't1'), ('Cs1', 't1'), ('Cs2', 't1'), ('Iref', 't1'), ('M10', 'source'), ('M12', 'source'), ('M14b', 'source'), ('M16', 'source'), ('M19', 'source'), ('M21', 'source'), ('M24b', 'source'), ('M26', 'source'), ('M38', 'source'), ('M40', 'drain'), ('M40', 'gate'), ('M5', 'source'), ('M66', 'source'), ('M68', 'source')][0m
+[1m[31mE         계약 5 current_reuse_telescopic_ota: 합계 (51, 6, 1, 37) != json (51, 12, 1, 37)[0m
+[1m[31mE         계약 2 folded_cascode: 소자 표 md만 [('M1', 'pmos', 'tail', 'X', 'vin_p'), ('M2', 'pmos', 'tail', 'Y', 'vin_n')] json만 [('M1', 'pmos', 'tail', 'X', 'vin_n'), ('M2', 'pmos', 'tail', 'Y', 'vin_p')][0m
+[1m[31mE         계약 4 folded_cascode: net 'vin_n' 단자 md [('M2', 'gate')] json [('M1', 'gate')][0m
+[1m[31mE         계약 4 folded_cascode: net 'vin_p' 단자 md [('M1', 'gate')] json [('M2', 'gate')][0m
+[1m[31mE       assert [(3, 'current...rce')]"), ...] == [][0m
+[1m[31mE         [0m
+[1m[31mE         Left contains 10 more items, first extra item: [0m([94m3[39;49;00m, [33m'[39;49;00m[33mcurrent_reuse_telescopic_ota[39;49;00m[33m'[39;49;00m, [33m"[39;49;00m[33mpassive_elements 표 md만 [] json만 [([39;49;00m[33m'[39;49;00m[33mCL1[39;49;00m[33m'[39;49;00m[33m, [39;49;00m[33m'[39;49;00m[33mcapacitor[39;49;00m[33m'[39;49;00m[33m, ([39;49;00m[33m'[39;49;00m[33mVop[39;49;00m[33m'[39;49;00m[33m, [39;49;00m[33m'[39;49;00m[33mgnd[39;49;00m[33m'[39;49;00m[33m)), ([39;49;00m[33m'[39;49;00m[33mCL2[39;49;00m[33m'[39;49;00m[33m, [39;49;00m[33m'[39;49;00m[33...[0m
+[1m[31mE         [0m
+[1m[31mE         ...Full output truncated (2 lines hidden), use '-vv' to show[0m
+
+[1m[31mcst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py[0m:266: AssertionError
+=================================== PASSES ====================================
+[36m[1m=========================== short test summary info ===========================[0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_library_has_md[0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_accepts[base][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_accepts[crlf][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_accepts[source_line_path][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_accepts[net_flag_removed][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_accepts[net_flag_info][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_accepts[flag_prose_changed][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_accepts[rows_shuffled][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_accepts[with_source_base2][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_accepts[with_source_value_cols_changed][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[gate_changed][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[device_repeated_row][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[device_row_missing][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[device_section_missing][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[json_extra_passive][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[passive_section_missing][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[passive_terminals_reversed][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[json_only_source][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[md2_against_base_json][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[source_section_only_added][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[net_terminal_missing][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[net_count_wrong][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[net_extra_row][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[net_repeated_row][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[net_cell_no_backtick][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[net_cell_other_flag][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[total_passive_wrong][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[total_line_missing][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[total_line_wording][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[device_header_changed][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[h1_name_differs][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[file_name_differs][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects[json_missing][0m
+[32mPASSED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_selfcheck_rejects_empty_dir[0m
+[31mFAILED[0m cst\skills\analog-gmid-design\assets\tests\contracts\test_topology_md_sync.py::[1mtest_mdsync_library_tables_match_json[0m - AssertionError: 계약 3 current_reuse_telescopic_ota: passive_elements 표 md...
+[31m[31m[1m1 failed[0m, [32m34 passed[0m[31m in 1.24s[0m[0m

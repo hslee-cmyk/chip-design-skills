@@ -1,0 +1,11 @@
+{
+ "n": 65,
+ "exact_resid_med": 0.00010745825772318085,
+ "exact_resid_p90": 0.1341609921139928,
+ "exact_resid_max": 0.37273075719134563,
+ "n_exact_le_5pct": 53,
+ "n_exact_le_10pct": 58,
+ "ref_only_abs_ln_med": 0.25853953400324037,
+ "ref_only_abs_ln_max": 3.093760540004922,
+ "n_ref": 58
+}

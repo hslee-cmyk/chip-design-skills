@@ -1,0 +1,7 @@
+[hist] gain-budget-gmid-sizing: ops=['insert'] n_ops=2 inserted_lines=10 rest==old True CRLF old=4 new=4
+[hist] graph-consumption: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=0 new=0
+[hist] headroom-chain: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=0 new=0
+[hist] offset-strategy: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=0 new=0
+[hist] offset-trim: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=0 new=0
+[hist] oracle-portability: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=2 new=2
+segments checked 4, miss 0

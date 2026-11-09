@@ -1,0 +1,10 @@
+{"kind": "classA", "delta_V": -0.3, "P_def_uW": 270.0, "P_diss_uW": 277.2, "P_RL_uW": 3.6, "P_def_minus_P_diss_uW": -7.2, "Vout_Iout_uW": -7.2, "P_def_ref_agnd_uW": 280.8}
+{"kind": "classA", "delta_V": -0.1, "P_def_uW": 270.0, "P_diss_uW": 273.2, "P_RL_uW": 0.4, "P_def_minus_P_diss_uW": -3.2, "Vout_Iout_uW": -3.2, "P_def_ref_agnd_uW": 273.6}
+{"kind": "classA", "delta_V": 0.0, "P_def_uW": 270.0, "P_diss_uW": 270.0, "P_RL_uW": 0.0, "P_def_minus_P_diss_uW": 0.0, "Vout_Iout_uW": 0.0, "P_def_ref_agnd_uW": 270.0}
+{"kind": "classA", "delta_V": 0.1, "P_def_uW": 270.0, "P_diss_uW": 266.0, "P_RL_uW": 0.4, "P_def_minus_P_diss_uW": 4.0, "Vout_Iout_uW": 4.0, "P_def_ref_agnd_uW": 266.4}
+{"kind": "classA", "delta_V": 0.3, "P_def_uW": 270.0, "P_diss_uW": 255.6, "P_RL_uW": 3.6, "P_def_minus_P_diss_uW": 14.4, "Vout_Iout_uW": 14.4, "P_def_ref_agnd_uW": 259.2}
+{"kind": "pushpull", "delta_V": -0.3, "P_def_uW": 126.0, "P_diss_uW": 133.2, "P_RL_uW": 3.6, "P_def_minus_P_diss_uW": -7.2, "Vout_Iout_uW": -7.2, "P_def_ref_agnd_uW": 136.8}
+{"kind": "pushpull", "delta_V": -0.1, "P_def_uW": 126.0, "P_diss_uW": 129.2, "P_RL_uW": 0.4, "P_def_minus_P_diss_uW": -3.2, "Vout_Iout_uW": -3.2, "P_def_ref_agnd_uW": 129.6}
+{"kind": "pushpull", "delta_V": 0.0, "P_def_uW": 126.0, "P_diss_uW": 126.0, "P_RL_uW": 0.0, "P_def_minus_P_diss_uW": 0.0, "Vout_Iout_uW": 0.0, "P_def_ref_agnd_uW": 126.0}
+{"kind": "pushpull", "delta_V": 0.1, "P_def_uW": 133.2, "P_diss_uW": 129.2, "P_RL_uW": 0.4, "P_def_minus_P_diss_uW": 4.0, "Vout_Iout_uW": 4.0, "P_def_ref_agnd_uW": 129.6}
+{"kind": "pushpull", "delta_V": 0.3, "P_def_uW": 147.6, "P_diss_uW": 133.2, "P_RL_uW": 3.6, "P_def_minus_P_diss_uW": 14.4, "Vout_Iout_uW": 14.4, "P_def_ref_agnd_uW": 136.8}

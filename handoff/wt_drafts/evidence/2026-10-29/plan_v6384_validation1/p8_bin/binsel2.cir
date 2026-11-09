@@ -1,0 +1,15 @@
+* 검증 1: ngspice bin 선택 규약 -- W가 정확히 wmax = 다음 wmin일 때 어느 모델을 고르나(vth0로 구분)
+vd d 0 1.0
+vg g 0 0.6
+m1 d g 0 0 nb w=0.5u l=0.5u
+m2 d g 0 0 nb w=0.3u l=0.5u
+m3 d g 0 0 nb w=0.5001u l=0.5u
+.model nb.1 nmos level=54 version=4.5 lmin=0.1u lmax=1u wmin=0.1u wmax=0.5u vth0=0.05
+.model nb.2 nmos level=54 version=4.5 lmin=0.1u lmax=1u wmin=0.5u wmax=1u vth0=0.55
+.control
+op
+echo ID1 @m1[id]
+print @m1[id] @m2[id] @m3[id] @m1[vth] @m2[vth] @m3[vth]
+quit
+.endc
+.end

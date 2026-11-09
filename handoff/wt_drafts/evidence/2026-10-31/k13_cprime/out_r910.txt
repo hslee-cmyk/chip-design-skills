@@ -1,0 +1,5 @@
+baseline	9	GL-1 -> IT12 -> EO-1 -> HC-S -> WB-1 -> LA-0 -> LA-1 -> RS-1 -> CPG-1
+(s1) SF-1 안	9	GL-1 -> IT12 -> EO-1 -> HC-S -> WB-1 -> LA-0 -> LA-1 -> RS-1 -> CPG-1
+(s2) 별도 card 독립	9	GL-1 -> IT12 -> EO-1 -> HC-S -> WB-1 -> LA-0 -> LA-1 -> RS-1 -> CPG-1
+(s2) SF-1 선행 최악	9	GL-1 -> IT12 -> EO-1 -> HC-S -> WB-1 -> LA-0 -> LA-1 -> RS-1 -> CPG-1
+(나)+R9·R10 PDK-X 안	9	GL-1 -> IT12 -> EO-1 -> HC-S -> WB-1 -> LA-0 -> LA-1 -> RS-1 -> CPG-1

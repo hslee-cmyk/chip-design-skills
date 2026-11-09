@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+# b26_1_carry.sh check 단계 V3 heredoc(--out vs 판정 JSON 대조) self-test -- review_kits_4a2 §1 m1~m4 반영판.
+#   bash out_check_test.sh
+# * 피검: _drafts/b26_1_carry.sh의 `local v3; v3=$(... <<'EOF'` heredoc(새), 비교: b26_1_carry.sh.pre-m4.bak 같은 heredoc(옛, 정보용).
+# * 사례: fixtures/cases.py(합성 v.json·out.jsonl, 기대값은 card 35 계약 4·5 + m1~m4 문장으로 정함 -- 피검을 불러 만들지 않는다).
+# * 모래상자 기본 /c/g241(OUT_CHECK_SCR로 바꿈 -- /c/g<숫자>[/<이름>]만, TMP·TEMP 그 아래). 이미 있으면 멈춘다. 끝(성공·실패 모두)에 그 모래상자만 지운다.
+# * (u3) heredoc 밖 바이트 동일 단정에서 u3 배선 구간(DRAFT5·FILL5·JSONL5 줄, bytes_ok, stage_records)은 가린다 -- 그 구간은 records_u3_test.sh가 pre-u3.bak와 대조.
+# * (n1, 2026-10-02 review_b26_1_carry_today §5) heredoc 밖 비교에서 범위 밖 변경 두 hunk만 정확히 허용한다(그 밖은 그대로 pre-m4.bak와 바이트 같아야 한다):
+#   s3 = stage_after_push의 '2차 code-author' echo 줄 바로 뒤에 넣은 echo 2줄(동작 영향 없는 안내 -- b26_1_carry.sh.pre-s3.bak 대비 diff 전부),
+#   m1 = stage_commit의 커밋 본문 -m 줄 바로 뒤에 넣은 핀 두 값 -m 1줄(같은 검토 m1). 각 hunk는 아래 ALLOW의 줄 바이트·앞 줄(닻) 그대로, 새 쪽에 정확히 한 번, 옛 쪽에 0번이어야 한다.
+# * 실제 저장소는 읽기만(git -C ... status/reflog/rev-parse) -- 앞뒤 같음을 단정.
+# * 결과는 사례마다 out/out_check_result.tsv에 append(중간에 죽어도 남는다). 새 결과 != 기대 하나라도 있으면 exit 1.
+set -Eeuo pipefail
+shopt -s inherit_errexit
+trap 'echo "[중단] ${BASH_SOURCE[0]}:${LINENO}: ${BASH_COMMAND}" >&2' ERR
+
+PY=/c/Python314/python.exe
+KIT=/c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/b26_1_kit_selftest
+DR=/c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts
+NEW=$DR/b26_1_carry.sh
+OLD=$DR/b26_1_carry.sh.pre-m4.bak
+R=/c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills
+SCR=${OUT_CHECK_SCR:-/c/g241}      # agent별 고유 모래상자(u3: OUT_CHECK_SCR=/c/g252/oct) -- /c/g<숫자>[/<이름>]만 허용
+RES=$KIT/out/out_check_result.tsv
+V3_RE='^stick_diagram:find_differential_pair_candidates:const-:'
+SD=skills/analog-gmid-design/assets/stick_diagram.py
+export PYTHONDONTWRITEBYTECODE=1 PYTHONIOENCODING=utf-8
+
+[[ "$SCR" =~ ^/c/g[0-9]+(/[a-z0-9_]+)?$ ]] || { echo "[중단] 모래상자 경로 $SCR는 /c/g<숫자>[/<이름>]가 아니다" >&2; exit 2; }
+test ! -e "$SCR" || { echo "[중단] 모래상자 $SCR가 이미 있다" >&2; exit 2; }
+cleanup() { if [[ "$SCR" =~ ^/c/g[0-9]+(/[a-z0-9_]+)?$ ]] && [ -d "$SCR" ]; then rm -rf -- "$SCR"; fi; }
+trap cleanup EXIT
+mkdir -p "$SCR/tmp" "$KIT/out"
+export TMP=$SCR/tmp TEMP=$SCR/tmp TMPDIR=$SCR/tmp
+
+# 실제 저장소 상태(읽기 전용) -- 앞
+git -C "$R" status --porcelain > "$SCR/st0.txt"
+git -C "$R" reflog -1 --format=%H > "$SCR/rl0.txt"
+git -C "$R" rev-parse HEAD > "$SCR/hd0.txt"
+
+# (dec, 2026-10-07) 새 carry = pre-dec.bak + fixtures/dec_hunks.py 목록의 hunk뿐([B26-1 V5] 두 경로) -- 아래 기존 잠금은 그 hunk를 되돌린 판에 적용한다(V3 heredoc은 같음을 dec_hunks가 단정)
+"$PY" -B "$KIT/fixtures/dec_hunks.py" "$NEW" "$DR/b26_1_carry.sh.pre-dec.bak" "$SCR/carry_undec.sh"
+# heredoc 추출 + heredoc 밖 바이트 동일 단정
+"$PY" -B - "$SCR/carry_undec.sh" "$OLD" "$SCR/new.py" "$SCR/old.py" <<'EOF'
+import sys
+def split(p):
+    L = open(p, "rb").read().split(b"\n")
+    s = [i for i, l in enumerate(L) if l.startswith(b'  local v3; v3=$("$PY" -B - "$WT_A/$AUD/attempt1_v3.json"')]
+    assert len(s) == 1, (p, s)
+    e = s[0] + 1 + L[s[0] + 1:].index(b"EOF")
+    return L[:s[0] + 1] + L[e:], b"\n".join(L[s[0] + 1:e]) + b"\n"
+def mask_u3(L):
+    # u3 배선(records 기록 5 = 초안+fill_u3, bytes_ok 자리표시 정규식)이 바꾼 곳만 가린다 -- 그 바뀐 곳은 records_u3_test.sh가 pre-u3.bak와 대조한다
+    L = [l for l in L if not (l.startswith((b"DRAFT5=", b"FILL5=", b"U3_DRAFT_SHA256=", b"U3_FILL_SHA256=", b"JSONL5=", b"P9_DRAFT_SHA256=", b"QBIND=", b"QBIND_SHA256=", b"QCHK_SHA256=")) or l.startswith(b"# (u3) "))]   # (pin) 핀 상수 두 줄도 u3 배선 구간, (qbind) 기록 4 핀·인용 묶기 핀 네 줄도(records_u3_test가 대조)
+    for head in (b"bytes_ok() {", b"stage_records() {"):
+        i = L.index(head); j = L.index(b"}", i)
+        L = L[:i] + [b"<<u3 mask " + head + b">>"] + L[j + 1:]
+    return L
+# (n1) 허용 hunk: (이름, 닻 = 바로 앞 줄의 시작 바이트, 넣은 줄들 -- 바이트 그대로)
+ALLOW = [
+    ("s3", '  echo "   2차 code-author: '.encode(), [
+        '  echo "   2차 순서 3 auditor: base_check.json 등 산출물은 audit worktree에 쓰기만 하고 커밋하지 않는다(커밋은 순서 7에서 M 위 한 커밋)."'.encode(),
+        '  echo "   2차 순서 6 병합 전: git -C $W/$ID-audit log --oneline role/test/$ID..HEAD 출력이 비어야 한다(아니면 순서 3 커밋이 섞인 것 -- 병합하지 말고 멈춤). 순서 7 auditor: 순서 3 산출물(미커밋)을 판정 기록과 한 커밋에."'.encode()]),
+    ("m1", "    -m \"B26-1 card '두 번 시도 절차' 2 (a)~(c).".encode(), [
+        '    -m "기록 5 입력 바이트 핀(records 대조값 -- 한쪽만 바뀐 것 탐지용, 무결성 증거 아님): 초안 _drafts/approval_$AID5.md sha256 $U3_DRAFT_SHA256, _drafts/b26_1_kit_selftest/fill_u3.py sha256 $U3_FILL_SHA256." \\'.encode()]),
+]
+def drop_allowed(L, old):
+    for name, anchor, ins in ALLOW:
+        k = len(ins)
+        at = [i for i in range(len(L) - k + 1) if L[i:i + k] == ins]
+        assert len(at) == 1, ("허용 hunk가 새 쪽에 정확히 한 번이 아니다", name, at)
+        assert at[0] > 0 and L[at[0] - 1].startswith(anchor), ("허용 hunk 앞 줄(닻)이 다르다", name)
+        assert not any(old[i:i + k] == ins for i in range(len(old) - k + 1)), ("허용 hunk가 옛 쪽에 이미 있다", name)
+        L = L[:at[0]] + L[at[0] + k:]
+    return L
+(on, bn), (oo, bo) = split(sys.argv[1]), split(sys.argv[2])
+assert mask_u3(drop_allowed(on, oo)) == mask_u3(oo), "heredoc 밖(u3 배선 구간·허용 hunk s3·m1 제외)이 pre-m4.bak와 다르다"
+open(sys.argv[3], "wb").write(bn); open(sys.argv[4], "wb").write(bo)
+print("heredoc 밖 바이트 동일(%d줄), heredoc 새 %d줄 / 옛 %d줄" % (len(on), bn.count(b"\n"), bo.count(b"\n")))
+EOF
+
+"$PY" -B "$KIT/fixtures/cases.py" "$KIT/fixtures/k1_stick_diagram.py" "$SCR/cases"
+
+printf 'case\texpected_new\tnew\told\tmatch\tdesc\tnew_msg\n' > "$RES"
+run1() {   # <heredoc.py> <사례 디렉터리> -> PASS|FAIL, 마지막 오류 줄은 $SCR/last.err
+  if "$PY" -B "$1" "$2/v.json" "$2/out.jsonl" "$KIT/fixtures/k1_stick_diagram.py" "$V3_RE" "$SD" < /dev/null > "$SCR/last.out" 2> "$SCR/last.err"; then
+    echo PASS
+  else
+    echo FAIL
+  fi
+}
+nbad=0; n=0
+while IFS=$'\t' read -r name exp desc; do
+  n=$((n + 1))
+  rn=$(run1 "$SCR/new.py" "$SCR/cases/$name"); msg=$("$PY" -B -c "import sys;L=open(sys.argv[1],encoding='utf-8',errors='replace').read().splitlines();print((L[-1] if L else '').replace('\t',' ')[:160])" "$SCR/last.err" < /dev/null)
+  ro=$(run1 "$SCR/old.py" "$SCR/cases/$name")
+  if [ "$rn" = "$exp" ]; then m=ok; else m=MISMATCH; nbad=$((nbad + 1)); fi
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$name" "$exp" "$rn" "$ro" "$m" "$desc" "$msg" >> "$RES"
+done < "$SCR/cases/cases.tsv"
+
+# ---- (dec, 2026-10-07) check 단계 V5 heredoc 사례: [B26-1 V5] 두 경로(B34 test + P9 test) 수용, 세 번째 경로·한 경로·단위 밖 발견 거부
+#   피검 = 새 carry의 `local out; out=$("$PY" -B - "$WT_A/$AUD/base_check.json"` heredoc(인자 V5P), 옛 = pre-dec.bak 같은 heredoc(인자 P9T 하나 -- 정보용)
+"$PY" -B - "$NEW" "$DR/b26_1_carry.sh.pre-dec.bak" "$SCR/v5new.py" "$SCR/v5old.py" <<'EOF'
+import sys
+for src, dst in ((sys.argv[1], sys.argv[3]), (sys.argv[2], sys.argv[4])):
+    L = open(src, "rb").read().split(b"\n")
+    s = [i for i, l in enumerate(L) if l.startswith(b'  local out; out=$("$PY" -B - "$WT_A/$AUD/base_check.json"')]
+    assert len(s) == 1, (src, s)
+    e = s[0] + 1 + L[s[0] + 1:].index(b"EOF")
+    open(dst, "wb").write(b"\n".join(L[s[0] + 1:e]) + b"\n")
+EOF
+"$PY" -B "$KIT/fixtures/v5_cases.py" "$KIT/fixtures/v5_t1_c247a76.json" "$SCR/v5cases"
+V5A=skills/analog-gmid-design/assets/tests/contracts
+V5P_T="$V5A/test_b34_grammar_explicit.py $V5A/test_dup_kcl_edges.py"
+V5U="test_kcl_series_union_signature_unchanged test_kcl_and_matching_edges_signature_unchanged"
+while IFS=$'\t' read -r name exp why desc; do
+  n=$((n + 1)); d=$SCR/v5cases/$name
+  if "$PY" -B "$SCR/v5new.py" "$d/bc.json" "$d/rr.json" "$(cat "$d/dh.txt")" "$V5P_T" "$V5U" < /dev/null > "$SCR/last.out" 2> "$SCR/last.err"; then rn=PASS; else rn=FAIL; fi
+  if "$PY" -B "$SCR/v5old.py" "$d/bc.json" "$d/rr.json" "$(cat "$d/dh.txt")" "$V5A/test_dup_kcl_edges.py" "$V5U" < /dev/null > /dev/null 2>&1; then ro=PASS; else ro=FAIL; fi
+  msg=$("$PY" -B -c "import sys;L=open(sys.argv[1],encoding='utf-8',errors='replace').read().splitlines();print((L[-1] if L else '').replace('\t',' ')[:160])" "$SCR/last.err" < /dev/null)
+  e2=$exp; if [ "$exp" = STOP ]; then e2=FAIL; fi
+  m=ok
+  if [ "$rn" != "$e2" ]; then m=MISMATCH
+  elif [ "$rn" = PASS ] && [ "$(cat "$SCR/last.out")" != "$(cat "$d/dh.txt")" ]; then m=MISMATCH; msg="PASS 출력 != diff_hash"
+  elif [ "$rn" = FAIL ] && [ "$why" != - ] && ! grep -qF -- "$why" "$SCR/last.err"; then m=MISMATCH; msg="이유 문구 없음[$why] $msg"; fi
+  if [ "$m" != ok ]; then nbad=$((nbad + 1)); fi
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$name" "$e2" "$rn" "$ro" "$m" "$desc" "$msg" >> "$RES"
+  printf '  %-14s 기대 %-4s 새 %-4s 옛 %-4s %s  %s\n' "$name" "$e2" "$rn" "$ro" "$m" "$desc"
+done < "$SCR/v5cases/cases.tsv"
+
+# 실제 저장소 상태 -- 뒤(같아야 한다)
+git -C "$R" status --porcelain > "$SCR/st1.txt"
+git -C "$R" reflog -1 --format=%H > "$SCR/rl1.txt"
+git -C "$R" rev-parse HEAD > "$SCR/hd1.txt"
+cmp "$SCR/st0.txt" "$SCR/st1.txt"; cmp "$SCR/rl0.txt" "$SCR/rl1.txt"; cmp "$SCR/hd0.txt" "$SCR/hd1.txt"
+echo "실제 저장소 status $(wc -l < "$SCR/st1.txt")줄·reflog $(cut -c1-7 "$SCR/rl1.txt")·HEAD $(cut -c1-7 "$SCR/hd1.txt") 앞뒤 같음"
+
+"$PY" -B - "$RES" <<'EOF'
+import sys, collections
+rows = [l.rstrip("\n").split("\t") for l in open(sys.argv[1], encoding="utf-8")][1:]
+c = collections.Counter((r[1], r[2], r[3]) for r in rows)
+print("사례 %d: " % len(rows) + ", ".join("기대 %s/새 %s/옛 %s=%d" % (k + (v,)) for k, v in sorted(c.items())))
+print("새!=옛:", " ".join(r[0] for r in rows if r[2] != r[3]))
+EOF
+echo "결과 $RES -- 사례 $n, 불일치 $nbad"
+test "$nbad" -eq 0

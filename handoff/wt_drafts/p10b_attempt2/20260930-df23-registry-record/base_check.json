@@ -1,0 +1,172 @@
+{
+ "note": "05-role-separation §12 순서 3 (재시도 2차) -- freeze(T), base 대비 red 확인, V5 base->T, V4 사전 실행(code 없이 판정 가능한 (1)(3)(4)(5)), 계약 5 (c) base 재계산, 계약 5 (d) 보충 뮤테이션 재사용 계획. 모든 수치는 auditor가 격리 복제본 C:/g88/iso2(T)·C:/g88/base2(base)에서 직접 쟀다. 스크립트 사본 scripts/, 원자료 raw/. 커밋은 순서 7.",
+ "id": "20260930-df23-registry-record",
+ "attempt": 2,
+ "order": 3,
+ "evidence_type": "red-green",
+ "phase": "2",
+ "approval": ["20260923-20-dead-code-dup-design", "20261001-p10b-v3-equiv"],
+ "measured_at": "2026-10-01T17:58:37+09:00 (순서 3 측정 끝)",
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2)",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming (bash에서 export -- 사용자 site의 pytest)",
+  "clone_T": "git clone --no-hardlinks --no-local <audit worktree> C:/g88/iso2 -> git -C C:/g88/iso2 remote remove origin (HEAD 04e1697, tree b0412202bee3fe38319f7d09cc00b9c9d5d1be27)",
+  "clone_base": "git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout <audit worktree> C:/g88/base2 -> git -C C:/g88/base2 remote remove origin -> git -C C:/g88/base2 checkout -q --detach 0f237862c007f6a53122f2bdfb3c87e6366ec133",
+  "clone_state_after": "두 복제본 remote 0, status --porcelain 0줄"
+ },
+ "freeze": {
+  "base_commit": "0f237862c007f6a53122f2bdfb3c87e6366ec133",
+  "base_is_gate_master": true,
+  "base_is_gate_master_how": "git -C <주 저장소> rev-parse master = 0f237862c007f6a53122f2bdfb3c87e6366ec133 (읽기만)",
+  "base_subject": "docs: P10b spec card 재시도 개정 -- 계약 3 절·소절·행 경계·detail·입력 형 ValueError, 계약 4 발견 0 출력·인자 오류 2·비 UTF-8 출력, test 판정 문장 모양(V4), 등가 9 면제 승인 줄",
+  "base_is_descendant_of_p10_record_62ae24f": "0f23786 -> d6a9778 -> a796468 -> 8356c1e -> 62ae24f (first-parent, 착수 조건 충족)",
+  "test_commit_T": "04e1697f6fa93e1ba1844bf3517852d493808f06",
+  "T_tree": "b0412202bee3fe38319f7d09cc00b9c9d5d1be27",
+  "T_parent": "0f237862c007f6a53122f2bdfb3c87e6366ec133",
+  "T_trailers": ["Role: test", "Change-Id: 20260930-df23-registry-record"],
+  "audit_branch": "role/audit/20260930-df23-registry-record",
+  "audit_branch_head_at_freeze": "04e1697f6fa93e1ba1844bf3517852d493808f06",
+  "worktree_status_at_freeze": "git status --porcelain 0줄",
+  "changed_paths_base_to_T": {
+   "name_status": ["A skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py"],
+   "shortstat": "1 file changed, 794 insertions(+)",
+   "blob_T": "c820d6786a679647a48d3082f2cbd403718ff2a3"
+  },
+  "outside_tests_diff": "git diff --name-only 0f23786 T -- ':(exclude)skills/analog-gmid-design/assets/tests/**' 0줄",
+  "code_commit_K": null,
+  "base_blobs_for_order7": {
+   "registry": "07876aedde4a175355645195fadc7329d061db33",
+   "df23_inventory.json": "e68f4d3c99df4ba8ea25d646fe7ced3496302d24",
+   "tests/tools/reg_check.py": "74c5f919539a6573bec01fb0d923696aa426b0ac",
+   "tests/contracts/test_reg_check.py": "52d63f18560714c1be90416028579068e83bc940",
+   "interface card": "4d48ac47bc71fd9c355d112e4c5a5a112a2ee55d",
+   "assets tree": "ac675a44bc774c4bae43707c6cd15c9c1f4c9824",
+   "workspaces tree": "1d0507d9b7f881bfc5d4512b9ba8b8caad25ca4d",
+   "tools tree": "748ce52cfd0239a0fde8a846a16026a63729051b"
+  },
+  "vs_attempt1_base_a796468": "위 blob·tree 8개 모두 1차 base a796468과 같다. a796468..0f23786 차이는 .ai/approvals/20261001-p10b-v3-equiv.md·spec card 두 파일뿐"
+ },
+ "gate_code": {
+  "cache": "C:/g88/gmid-gate-cache/0f237862c007f6a53122f2bdfb3c87e6366ec133 (이번에 새로 뽑음, __pycache__ 없음)",
+  "how": "C:/Python314/python.exe -B scripts/extract_gate.py <audit worktree> 0f23786 <캐시> (git cat-file blob 0f23786:tools/gates/<파일>, redteam/ 밖 22개)",
+  "file_set_sha256": "705036ea1039e7abb0e449918a8209b229f4a685ab2da9d0e03907bf571d82c4",
+  "reuse_judgement": "tools/gates 트리 id가 a796468·0f23786 둘 다 a8e5a4a837f9d8647b843b17166679491b6ac0d6이고 같은 스크립트로 a796468에서 다시 뽑은 file_set_sha256도 같다(705036ea…). 그래서 1차 캐시 C:/g88/gmid-gate-cache/a796468…와 내용이 같지만, 1차 캐시 디렉터리에 실행 중 생긴 __pycache__가 있어 새 커밋 id로 깨끗한 캐시를 따로 만들어 썼다. 1차 게이트 도구 출력(V3 변이 id 포함)은 같은 게이트 코드로 만든 것이라 비교 가능"
+ },
+ "strict_set": {
+  "command": "PYTHONPATH=<캐시> C:/Python314/python.exe -P scripts/strict_check.py C:/g88/iso2 0f23786… 20260930-df23-registry-record \"<V1 명령, 루트 C:/g88/m2 가정>\"",
+  "card_parse": "base 판 parse_spec_card: phase=2, evidence_type=red-green, gate_change=no, approval=[20260923-20-dead-code-dup-design, 20261001-p10b-v3-equiv], activated_ic_case=[]",
+  "strict_needed": [],
+  "conftest_has_gmid_phase": true,
+  "v1_option": "--gmid-phase=2 --gmid-strict=",
+  "v1_command_check": "실패 0건",
+  "new_symbols_from_interface_card": [["reg_check", "check_df23"]]
+ },
+ "v1_command_template": "PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=C:/g88/gmid-gate-cache/0f237862c007f6a53122f2bdfb3c87e6366ec133 C:/Python314/python.exe -P -m pytest -c C:/g88/gmid-gate-cache/0f237862c007f6a53122f2bdfb3c87e6366ec133/pytest_gate.ini --rootdir=<복제본> --confcutdir=<복제본> --gmid-phase=2 --gmid-strict= <복제본>/skills/analog-gmid-design/assets/tests",
+ "contract_coverage_review": {
+  "how": "auditor가 T의 새 test 파일 전부(794줄, test 함수 50개)를 spec card 계약 1~6·oracle 절·거부해야 할 입력 절과 대조",
+  "contract1_shape": "합성 §8(제목·목록:·measured_at:·사용 규칙 문장·### 8.1/8.2 표 머리)을 계약 1 글자 그대로 구성, LF·CRLF 둘 다(test_p10b_clean_registry_has_no_findings[lf|crlf])",
+  "contract2_e0": "test_p10b_cli_without_option_keeps_old_behavior(인자 없음 + §8 없음 -> exit 0, 마지막 줄 발견 0). 실제 저장소 E0는 기존 test_reg_check.py와 순서 7 auditor 측정",
+  "contract3_rules": "df23-section(title·목록·measured_at·8.1·8.2, 표 머리 다름 3종, 제목 조건 두 쪽), df23-path(값·인자 기준), df23-measured-at(값·목록 기준), df23-total(빠짐 2·남음·0 행·수 차이 2·중복), df23-function(빠짐·메시지뿐 함수 행·모르는 행·항목 수·DF 신규 빠짐·정수 순서·신규 끝·중복 번호·Phase 문자열 순서·Phase 빠짐·중복 행·파일 칸·파일 묶음)",
+  "contract3_boundaries": "§8 뒤 ## 9. 절의 표·줄 무시, 조각이 §8 밖에만 있으면 빠짐, 두 번째 같은 모양 제목 무시(두 방향), 다른 ### 소절 아래 표 무시(두 방향), 칸 모자람(8.1·8.2, 예외 없음 + detail의 ''), 칸 많음 무시",
+  "contract3_detail": "df23-total 2건·df23-function 2건(count·order) + 칸 모자람 2건 -- 손으로 적은 f-문자열 리터럴",
+  "contract3_value_error": "(o) inventory 비 dict 4·items 비 list 4·항목 비 dict 4, (i) 2, (ii) 5, (iii) 2, (iv) 1, (v) 6",
+  "contract3_no_finding": "totals 틀림, §0~§7 안 같은 머리 표, 메시지뿐 항목 mapping 3종, 행 순서",
+  "contract4_cli": "exit 0 + 마지막 줄, exit 1 + 레코드 키 넷, inventory_rel 상대 / 경로, 기존 발견 뒤 합치기 순서(stale -> df23-measured-at), exit 2: 파일 없음·JSON 아님·최상위 list/str/null·ValueError 7종·루트 밖 -- 모두 같은 test 안 정상 입력 exit 0 짝, 알 수 없는 인자 3종 -> 정확히 2(짝 있음), PYTHONIOENCODING=ascii subprocess -> exit 0·UTF-8 마지막 줄",
+  "contract5": "auditor 측정(test 대상 아님, 파일 머리 5행에 명시)",
+  "contract6_scope_T": "T의 변경 = 새 test 파일 하나(이름 test_reg_check_df23.py, 계약 6 그대로)",
+  "card_test_rules": "tools 디렉터리 sys.path 삽입(44-45행) 뒤 모듈 머리 첫 reg_check import = 47행 `from reg_check import check_df23, main`; test 함수 안 import 0; helper 전부 `_p10b_`, test 전부 `test_p10b_`(그 밖 def 0); getattr 0, 피검 직접 호출; 루트 밖 판정 normcase(realpath) + commonpath; `== []` 0회(빈 발견은 전부 `assert len(findings) == 0` / `len(recs) == 0`)",
+  "names_vs_engine_defs": "새 test 문자열 상수 303개와 엔진(_is_source: A/*.py, workspaces/run_harness.py) def·class 이름 495개의 교집합 0 (scripts/lit_vs_defs.py, raw/lit_vs_defs.txt)",
+  "synthetic_registry_vs_base_tool": "새 test의 합성 레지스트리를 base 도구 main(인자 추가 없음)에 넣은 사전 점검(scripts/probe_base_main.py, raw/probe_base_main.txt): §8 없음 rc=0, §8 있음 rc=0, §7 이름 p10b_gone_fn -> stale 1건 rc=1, base 도구에 --df23-inventory -> rc=2. 합성 §1·§7이 기존 규칙에서 발견 0이고 test_p10b_cli_appends_after_existing_findings의 stale 전제가 base 도구에서 성립",
+  "gaps_found": "없음"
+ },
+ "base_run": {
+  "script": "bash scripts/red2.sh (전체 red 수집), bash scripts/pre2.sh (수집 비교·V5·재계산·strict), bash scripts/stub_collect.sh",
+  "collection": {
+   "base_collected": 886, "base_collect_exit": 0,
+   "T_collected": 886, "T_collect_exit": 2,
+   "T_collection_errors": ["skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py -- ImportError: cannot import name 'check_df23' from 'reg_check' (47행 모듈 머리 `from reg_check import check_df23, main`)"],
+   "id_set_base_vs_T": "같다(scripts/cmp_collect.py: only_a 0, only_b 0, 두 쪽 id 집합 sha256 9e6f2745a6808bc14a6286626a34e1477ba99c73339b978ad15a4efdef948d79 -- 1차와 같은 값)",
+   "new_file_ids_expected": "111 -- 새 test 파일만 check_df23·main 스텁 reg_check와 함께 C:/g88/stub2(측정 뒤 삭제)에 두고 --collect-only: 111 tests collected (raw/stub_collect.txt). test 함수 50개, parametrize 전개",
+   "merged_expectation": "병합본 수집 997 = 886 + 111, 전체 실행 982 passed·15 xfailed 예상(기존 id 상태 불변)"
+  },
+  "full_run": {
+   "T_on_base_tool": "871 passed, 15 xfailed, 1 error(수집), exit 1, 345.49s (-p merge_gate --continue-on-collection-errors, C:/g88/out2/full_T_red.txt)",
+   "base_only": "따로 돌리지 않았다 -- T는 base에 새 test 파일 하나를 더한 것뿐이고(outside_tests_diff 0, 수집 id 집합 base = T), T 실행에서 기존 886 id가 871 passed·15 xfailed. 1차 base(assets 트리 같음) 전체 실행 871 passed·15 xfailed와도 같다"
+  },
+  "red_capture": {
+   "command": "GMID_RED_CAPTURE=C:/g88/out2/red_T.jsonl GMID_INTERFACE_CARD=C:/g88/iso2/docs/02-design/specs/20260930-df23-registry-record.interface.md PYTHONPYCACHEPREFIX=C:/g88/pyc2_red PYTHONPATH=C:/g88/gmid-gate-cache/0f237862c007f6a53122f2bdfb3c87e6366ec133 C:/Python314/python.exe -P -m pytest -c C:/g88/gmid-gate-cache/0f237862c007f6a53122f2bdfb3c87e6366ec133/pytest_gate.ini --rootdir=C:/g88/iso2 --confcutdir=C:/g88/iso2 -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g88/iso2/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+   "capture_file_sha256": "9e08e2608262e40982c83abbc5caff021d9670742002886ad9aa0fc21f3684b7",
+   "capture_lines": 13,
+   "builtins_Failed_lines": 12,
+   "builtins_Failed_note": "IC xfail 12줄(xfail 안의 pytest.fail, 전체 실행의 15 xfailed에 든다) -- 1차 캡처의 Failed 12줄과 글자 그대로 같다",
+   "red": [
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py",
+     "exc_type": "builtins.ImportError",
+     "failure_hash": "dd51ea9c19cb4272034ad5dcc0bb900a00b04123ffa83e47abf5b643281e34db",
+     "new_symbol_pair": ["reg_check", "check_df23"]
+    }
+   ],
+   "how_test_ids_are_recorded": "수집 단계 오류라 모듈 node id 하나로 기록된다(00-common §8.1: CollectReport면 test id = 모듈 node id, 예외 타입 = __cause__ 타입). 111개 test 각각의 base 실패는 따로 기록되지 않는다",
+   "allowed_type_judgement": "builtins.ImportError는 _ALWAYS_RED에 없고 _NEW_SYMBOL_TYPES에 있다 -- new_symbol_pair (reg_check, check_df23)이 interface card 신규 시그니처 쌍 {(reg_check, check_df23)}에 있어 허용 red로 기록됐다(card '판정 유형 근거'의 red 모양 그대로)",
+   "hash_recomputed": "13줄 모두 sha256(test_id + 개행 + exc_type)로 다시 계산해 캡처 값과 같다(scripts/rehash.py: 13 13)",
+   "same_as_attempt1": "캡처 파일 sha256이 1차(T=48ab2ae)와 같다 -- test id가 모듈 단위라 같은 줄이 나온다. red 해시는 바뀌지 않는다",
+   "red_count": "1 -- 수집 ImportError 하나, auditor 직접 측정"
+  }
+ },
+ "v4_pre_run_T": {
+  "why": "1차 V4 FAIL(test_lint (2) FAIL 6건 -- `assert findings == []` 꼴, (4) FAIL 1건 -- test_p10b_cli_clean_exit_0 판정이 helper 안 assert에만)이 이 test 커밋에서 해소됐는지 code 없이 볼 수 있는 범위를 미리 잰다",
+  "commands": [
+   "PYTHONPYCACHEPREFIX=C:/g88/pyc2_v4card C:/Python314/python.exe <캐시>/test_lint.py --root C:/g88/iso2 --base 0f23786… --head 04e1697… --module-dir skills/analog-gmid-design/assets/tests/tools --interface-card C:/g88/iso2/docs/02-design/specs/20260930-df23-registry-record.interface.md",
+   "PYTHONPYCACHEPREFIX=C:/g88/pyc2_v4subj C:/Python314/python.exe <캐시>/test_lint.py --root C:/g88/iso2 --base 0f23786… --head 04e1697… --module-dir skills/analog-gmid-design/assets/tests/tools --subject reg_check:check_df23 --subject reg_check:main"
+  ],
+  "exit": [0, 0],
+  "output": "두 형태 모두 verdict PASS, files [test_reg_check_df23.py], 발견 = (2) NO-SUBJECT 67건뿐, (1)(3)(4)(5) 발견 0 (raw/pre_V4card_T.txt = raw/pre_V4subj_T.txt, sha256 50750032…)",
+  "judged_now": "(4)(3)(5)는 test 함수 AST만 보는 규칙이라(test_lint.lint_function 607-617행) code 없이 판정된다 -- (4) FAIL 0: 50개 test 함수 모두 본문에 판정 문장이 있다. 1차 (4) FAIL(test_p10b_cli_clean_exit_0)은 이번 판에서 본문 assert 3개(656-658행)로 바뀌었다. (1)도 0건",
+  "deferred_to_order7": "(2)는 T에서 base 도구에 check_df23이 없어 모든 판정 문장이 NO-SUBJECT(피검 소스 없음)라 지금 판정할 수 없다 -- 병합본에서 다시 돌린다. 1차 (2) FAIL의 모양인 `== []`는 T 파일에 0회(빈 발견 판정 19곳 모두 `len(findings|recs|recs_ok) == 0`)라 같은 원인은 사라졌지만, 다른 리터럴 비교(`== [piece]`, `== [(\"df23-section\", \"title\")]` 등)의 (2) 판정은 병합 뒤 결과로만 말한다",
+  "status": "PASS(사전) -- 순서 7 V4 판정이 아니다"
+ },
+ "v5_base_to_T": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g88/pyc2_v5 C:/Python314/python.exe <캐시>/weakening_diff.py --root C:/g88/iso2 --base 0f237862c007f6a53122f2bdfb3c87e6366ec133 --head 04e1697f6fa93e1ba1844bf3517852d493808f06",
+  "exit": 0,
+  "output": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}",
+  "auditor_judgement": "새 test 파일 추가 하나라 약화할 기존 판정이 없다"
+ },
+ "v3_supplement_plan": {
+  "script": "scripts/mut_df23.py -- 1차 시도 스크립트 그대로(sha256 2f98760d47f99b224eade83809d60866aa56d2acf870f845d08c34caa1dec092, C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p10b_attempt1/20260930-df23-registry-record/scripts/mut_df23.py와 같다). card 계약 5 (d) '변이 대상 def·연산자는 1차와 같게'",
+  "design": "base 판 mutate_changed 모듈의 changed_defs(base 소스, 병합본 소스)·mutants()·_replace_def를 그대로 쓴다. 게이트 코드가 1차와 같은 트리(a8e5a4a)라 연산자·id 규칙이 같다",
+  "order7_command": "PYTHONPATH=C:/g88/gmid-gate-cache/0f237862c007f6a53122f2bdfb3c87e6366ec133 C:/Python314/python.exe -P scripts/mut_df23.py <병합본 격리 복제본> C:/g88/gmid-gate-cache/0f237862c007f6a53122f2bdfb3c87e6366ec133 0f237862c007f6a53122f2bdfb3c87e6366ec133 <out.jsonl>",
+  "equivalence_exemption": "승인 20261001-p10b-v3-equiv의 변이 id 9개만 대상. 순서 7에서 각 id가 2차 병합본에도 같은 (def, 연산자, 위치)로 생기는지, 생기면 같은 입력에 같은 결과·발견·exit인지 소스로 다시 판정한 것만 면제. id가 맞지 않으면 면제 없음. detail만 다른 6개는 면제 없음",
+  "branch_coverage_check_order7": "5규칙, ValueError (o)(i)~(v), CLI --df23-inventory 경로의 exit 2·루트 밖·발견 합치기 분기마다 변이 하나 이상, 모두 죽음"
+ },
+ "auditor_measurement_contract5": {
+  "c_script": "scripts/df23_recount.py (1차와 같은 스크립트, reg_check·code-author 산출을 쓰지 않는다)",
+  "base_measurement": {
+   "command": "C:/Python314/python.exe -P scripts/df23_recount.py C:/g88/base2 C:/g88/out2/recount_base.json",
+   "exit": 1,
+   "verdict": "section8 missing (base 레지스트리에 §8 없음 -- 계약 5 (b)의 거부 대상과 같은 상태)",
+   "n_items": 515,
+   "rows81": 8,
+   "rows82_groups": 52,
+   "same_as_attempt1": "registry·목록 blob이 1차 base와 같고, 1차 recount_base.json과 (경로 칸 빼고) 내용이 같다 -- role 동작을 정함 213·메시지뿐 302, phase 해당 없음 317·4 63·3 61·7b 46·7a 27·6b 1, 빈 function 0, 파일 이름 8개 모두 다름, 비-DF 동작 mapping 76 전부 신규",
+   "raw": "raw/recount_base.json"
+  },
+  "a_b_order7": "scripts/regcheck_df23.sh(1차 사본 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p10b_attempt1/20260930-df23-registry-record/scripts/)로 병합본에서 e0·c5a·c5b"
+ },
+ "outputs_kept": {
+  "raw/red_T.jsonl": "9e08e2608262e40982c83abbc5caff021d9670742002886ad9aa0fc21f3684b7",
+  "raw/cmp_collect.json": "8b2440636c7de431548a3ea01a32e0db31f1f9784f7c0f1e7ce61e39a3957b73",
+  "raw/v5_base_T.txt": "a2e2fe0f2d96c3292853a13755dd1223457711294e7e1ac0e8fa0d0bcae2cf54",
+  "raw/strict_check.txt": "e69cbe189d42d799c15f96d52ba6028be6fd30ef178e56753fa70c65ee973c6a",
+  "raw/recount_base.json": "c047312dc9a8df71e3fa8010f8031cbc2403778da4ef619967185afd2e67836d",
+  "raw/pre_V4card_T.txt": "50750032a39b102d3822796134062fd1fbe315d19ce2e4c3e5cad3a095274b9e",
+  "raw/pre_V4subj_T.txt": "50750032a39b102d3822796134062fd1fbe315d19ce2e4c3e5cad3a095274b9e",
+  "raw/probe_base_main.txt": "04d0894ab0fe0762a10e1989fef086d0fa3f8621f9be273582248f4dede08bde",
+  "raw/lit_vs_defs.txt": "51a483832b85c53e3c5b9f68e8076eeac8a5bec5576ead4815225906bace5169",
+  "raw/stub_collect.txt": "242aff09f443e1cb59d13bf9540fc60d080b95cb0abe9279ba61e2dabab1a785",
+  "C:/g88/out2/full_T_red.txt": "ad265a6cddf445e273a78c3c16da8affff60536776650fc24354e4955cbfe2e8",
+  "C:/g88/out2/collect_base2.txt": "9d7326c077057cac4e9aec3cd5f5beac6fc803180e19761c78de94e8ccbb9640",
+  "C:/g88/out2/collect_iso2.txt": "1d036d385008f7ae258f6b212bac45b90183e3febc5fb798de759750a2e174f0"
+ },
+ "next": "code-author가 K(reg_check.check_df23·--df23-inventory, 레지스트리 §8)를 만들고 병합 뒤 순서 7: V1(수집 997·982 passed·15 xfailed 예상), V2(red 1건 -> 병합본 green, 계약 6 범위, 계약 1 §0~§7 바이트 동일·끝 추가), V3(base mutate_changed targets [] 기대 + scripts/mut_df23.py 생존 0, 등가 면제 id 재판정), V4((2) 병합본 판정 + 기대값마다 oracle 대조), V5~V10, 계약 5 (a)(b)(c)."
+}

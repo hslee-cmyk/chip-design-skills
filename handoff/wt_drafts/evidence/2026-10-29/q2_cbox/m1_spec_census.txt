@@ -1,0 +1,69 @@
+heldout/cnr_ota: area_search_m2=없음  pm_ss_deg=[54.92]  passives=10
+    C1         capacitor 선언값 5.38e-14
+    C2         capacitor 선언값 5.38e-14
+    x37        resistor  선언값 70134.2
+    x38        resistor  선언값 70134.2
+    x39        resistor  선언값 70134.2
+    x40        resistor  선언값 70134.2
+    x9         resistor  선언값 70134.2
+    x3         resistor  선언값 17533.5
+    CL1        capacitor measurement_load(면적 제외)
+    CL2        capacitor measurement_load(면적 제외)
+heldout/erfc_ota: area_search_m2=없음  pm_ss_deg=[67.05]  passives=6
+    R1         resistor  선언값 52000.0
+    R2         resistor  선언값 52000.0
+    CBAT1_L    capacitor θ(engine) box=미선언
+    CBAT1_R    capacitor θ(engine) box=미선언
+    CBAT2      capacitor θ(engine) box=미선언
+    CL         capacitor measurement_load(면적 제외)
+heldout/r2r_opamp: area_search_m2=없음  pm_ss_deg=[66.0]  passives=4
+    CM1        capacitor 선언값 2e-12
+    CM2        capacitor 선언값 2e-12
+    CL         capacitor measurement_load(면적 제외)
+    RL         resistor  measurement_load(면적 제외)
+heldout/rfc_ota: area_search_m2=없음  pm_ss_deg=[62.77]  passives=2
+    CL         capacitor measurement_load(면적 제외)
+    RB         resistor  선언값 1412.0
+library/common_gate_amplifier: area_search_m2=5e-09  pm_ss_deg=없음  passives=0
+library/current_reuse_telescopic_ota: area_search_m2=4e-08  pm_ss_deg=[70]  passives=12
+    R1         resistor  θ(engine) box=[1e+04,1e+07]
+    R2         resistor  θ(engine) box=[1e+04,1e+07]
+    Cc1        capacitor θ(engine) box=[1e-13,1e-11]
+    Rz1        resistor  θ(engine) box=미선언
+    Cc2        capacitor θ(engine) box=[1e-13,1e-11]
+    Rz2        resistor  θ(engine) box=미선언
+    CL1        capacitor measurement_load(면적 제외)
+    CL2        capacitor measurement_load(면적 제외)
+    Cf1        capacitor 선언값 5e-13
+    Cf2        capacitor 선언값 5e-13
+    Cs1        capacitor 선언값 5e-13
+    Cs2        capacitor 선언값 5e-13
+library/folded_cascode: area_search_m2=1e-08  pm_ss_deg=없음  passives=1
+    CL         capacitor measurement_load(면적 제외)
+library/ngcc_3stage_ff: area_search_m2=2.5e-08  pm_ss_deg=[63.4]  passives=3
+    Cm1        capacitor θ(engine) box=[1e-13,1e-11]
+    Cm2        capacitor θ(engine) box=[1e-13,1e-11]
+    CL         capacitor measurement_load(면적 제외)
+library/nmcnr_amplifier: area_search_m2=2.5e-08  pm_ss_deg=[70]  passives=5
+    Cm1        capacitor θ(engine) box=[1e-13,1e-11]
+    Cm2        capacitor θ(engine) box=[1e-13,1e-11]
+    Rm         resistor  θ(engine) box=미선언
+    CL         capacitor measurement_load(면적 제외)
+    RL         resistor  measurement_load(면적 제외)
+library/pushpull_follower_buffer: area_search_m2=5e-09  pm_ss_deg=없음  passives=1
+    CL         capacitor measurement_load(면적 제외)
+library/sf_pushpull_output_opamp: area_search_m2=2e-08  pm_ss_deg=[70]  passives=5
+    R1a        resistor  θ(engine) box=[1e+03,1e+06]
+    R1b        resistor  θ(engine) box=[1e+03,1e+06]
+    R1c        resistor  θ(engine) box=[1e+03,1e+06]
+    Cc         capacitor θ(engine) box=[1e-13,1e-11]
+    CL         capacitor measurement_load(면적 제외)
+library/two_stage_ota: area_search_m2=1.5e-08  pm_ss_deg=[70]  passives=3
+    Rz         resistor  θ(engine) box=미선언
+    Cc         capacitor θ(engine) box=[1e-13,1e-11]
+    CL         capacitor measurement_load(면적 제외)
+library/two_stage_ota_sf: area_search_m2=1.5e-08  pm_ss_deg=[70]  passives=2
+    Cc         capacitor θ(engine) box=[1e-13,1e-11]
+    CL         capacitor measurement_load(면적 제외)
+
+요약: {"n": 13, "area_c": 9, "theta_c": 12, "theta_c_no_box": 3, "undef_passive": 0}

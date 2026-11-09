@@ -1,0 +1,22 @@
+* 검증 1 P8: sky130 pfet_01v8 W bin 경계 소속(0.55 um는 [0.42,0.55) 모델인가 [0.55,0.64) 모델인가) -- 단위 폭 전류 연속성
+.include "C:\pdk\sky130_fd_pr\models\parameters\lod.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+vs s 0 1.8
+vg g 0 1.0
+vd d 0 0.9
+xa d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.5499u
+xb d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.55u
+xc d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.5501u
+xd d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.42u
+xe d g s s sky130_fd_pr__pfet_01v8 l=0.15u w=0.4201u
+.control
+op
+echo IDW a $&@m.xa.msky130_fd_pr__pfet_01v8[id] 0.5499
+echo IDW b $&@m.xb.msky130_fd_pr__pfet_01v8[id] 0.55
+echo IDW c $&@m.xc.msky130_fd_pr__pfet_01v8[id] 0.5501
+echo IDW d $&@m.xd.msky130_fd_pr__pfet_01v8[id] 0.42
+echo IDW e $&@m.xe.msky130_fd_pr__pfet_01v8[id] 0.4201
+quit
+.endc
+.end

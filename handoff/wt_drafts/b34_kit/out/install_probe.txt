@@ -1,0 +1,9 @@
+0f23786    without  ok 9/9  exc []
+0f23786    with     ok 9/9  exc []
+sim-b34    without  ok 0/9  exc ['ImportError']
+sim-b34    with     ok 9/9  exc []
+base with == head with (meta_sha 9/9): True
+base without vs base with meta_sha 같은 회로 수: 0
+base without gap_fill_review: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+base with    gap_fill_review: [0, 28, 4, 5, 12, 1, 1, 9, 2]
+head without 메시지 예: {'ok': False, 'exc': 'ImportError', 'msg': 'analog-grammar skill을 import할 수 없다(탐색 경로 C:\\g123\\inst\\sim-b34_without\\skills\\analog-grammar\\assets)', 'cause': 'ModuleNotFoundError'}

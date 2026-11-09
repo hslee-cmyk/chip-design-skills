@@ -1,0 +1,27 @@
+OK C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-31/plan_v6386_decision_candidates.md
+MISSING C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-31/plan_v6386_validation48_K13.md
+OK wt/_drafts/evidence/2026-10-31/k13_cprime/eff.py
+OK wt/_drafts/evidence/2026-10-31/k13_cprime/eff_out.txt
+OK wt/_drafts/evidence/2026-10-31/k13_cprime/out.txt
+OK wt/_drafts/evidence/2026-10-31/k13_cprime/out_r910.txt
+OK wt/_drafts/evidence/2026-10-31/k13v2/cprime_r8.py
+OK wt/_drafts/evidence/2026-10-31/k13v2/cprime_r8_out.txt
+OK wt/_drafts/evidence/2026-10-31/k13v2/measure.py
+OK wt/_drafts/evidence/2026-10-31/k13v2/out.txt
+OK wt/_drafts/evidence/2026-10-31/k13v2/r8_r10_facts.py
+OK wt/_drafts/evidence/2026-10-31/k13v2/r8_r10_out.txt
+OK wt/_drafts/evidence/2026-10-31/o197_pdk_portability_audit.md
+OK wt/_drafts/evidence/2026-10-31/plan_v6386_validation40_K13.md
+OK wt/plan-v6386
+CAT? | 지적 | 이 판의 반영 | 상태 | -> 상태
+CAT? | B40-M1 (1) 원칙 8 -- as-built 같은 파일 근거 | 배정 근거 = graph 규칙 1·3, 원칙 9·10 -> 해소
+CAT? | B40-M1 (2) '같은 변경' 사실 오류 | '같은 변경' 0. `_quantity` 458~486 대 `_mismat -> 해소
+CAT? | B40-M1 (3) R9·R10 비대칭 | R9·R10 모두 (s2). 같은 꼴인 R8도 (s2)로 맞춤, R7은 소비자  -> 해소
+CAT? | B40-M1 (4) 원칙 24 표지 누락 | (s1)을 고르면 다름 후보로 표지, 권고 (s2)는 SF-1 범위 유지라 새 -> 해소
+CAT? | k13-m1 R10 로더·보유자 귀속 | 읽는 자리 셋(`pdk_decl.py:607`, `lut/data_location -> 해소
+CAT? | k13-m2 (나)(다) 때 R9 자리 | (s2) 행이 (나)이면 새 선행 card 안, (가)(다)이면 새 card - -> 해소
+CAT? | k13-m3 E-12 일반화 읽기 | ①에 'R3·R4 적용은 해석'으로 표지 | 해소 | -> 해소
+CAT? | k13-m4 ⑥ design 범위 줄임 | ⑥에 DEC-79 식 design 자리·단위 크기 규칙·MOD7 행 구성 자리를 -> 해소
+CAT? | c40-1 E-12 줄 기준 | 계획 기준 = a4d87f1a, E-12 = 2375(실측 2b) | 해소 | -> 해소
+CAT? | c40-2 미정 표지 분류 | 미정 표지는 '원래 취지와 다름'에서 빼고 ⑥·조건에 둠 | 해소 | -> 해소
+rows ①②③④⑤⑥⑦⑧⑨

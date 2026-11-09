@@ -1,0 +1,9 @@
+{"circuit": "common_gate_amplifier", "checks": [], "out_decl_or_gate": false, "out_including_cds": false}
+{"circuit": "current_reuse_telescopic_ota", "checks": [{"path": "Rz1", "device": "M15", "G": "Vg15", "declared_cap": [], "mos_gate_coupling": [], "mos_channel_coupling_cds": ["M9a", "M9b"]}, {"path": "Rz2", "device": "M25", "G": "Vg25", "declared_cap": [], "mos_gate_coupling": [], "mos_channel_coupling_cds": ["M18a", "M18b"]}], "out_decl_or_gate": false, "out_including_cds": true}
+{"circuit": "folded_cascode", "checks": [], "out_decl_or_gate": false, "out_including_cds": false}
+{"circuit": "ngcc_3stage_ff", "checks": [], "out_decl_or_gate": false, "out_including_cds": false}
+{"circuit": "nmcnr_amplifier", "checks": [{"path": "Rm", "device": "M302", "G": "VB5", "coupling": "G = 교류 접지(h = 0)"}], "out_decl_or_gate": false, "out_including_cds": false}
+{"circuit": "pushpull_follower_buffer", "checks": [], "out_decl_or_gate": false, "out_including_cds": false}
+{"circuit": "sf_pushpull_output_opamp", "checks": [], "out_decl_or_gate": false, "out_including_cds": false}
+{"circuit": "two_stage_ota", "checks": [{"path": "Rz", "device": "M7", "G": "bias", "coupling": "G = 교류 접지(h = 0)"}], "out_decl_or_gate": false, "out_including_cds": false}
+{"circuit": "two_stage_ota_sf", "checks": [], "out_decl_or_gate": false, "out_including_cds": false}

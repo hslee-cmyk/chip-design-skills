@@ -1,0 +1,20 @@
+
+## 부록 F. 초안 v5 대비 정정(3차 검토 `review3_phase3_v5.md` 반영 -- 대응표는 `phase3_revision_log.md` '초안 v5 → v6' 절)
+
+| # | v5 | v6 |
+|---|---|---|
+| 1 | ORDER = "`--split` 파일이거나 번호가 같거나 큰 MOD"(M8·M9가 `stick_diagram` import로 통과 불가 -- B1) | N3.10 파일은 split이어도 N3.10 번호로 판정(SD = 7), N3.10 밖 split 파일만 금지. 모의 M1~M9 발견 0(F1v6). D0a 합성 단계 추가 |
+| 2 | SHIM = "docstring과 `from <MOD> import` 밖 문장 0"(중간 card마다 발견, `__future__` 줄도 -- B2) | (a) 중간 상태: base에 없던 문장은 재수출 줄뿐 (b) 완전 shim(단위 0개)만 docstring·재수출·`__future__` (c) 이름 집합·출처 동일성(ALL은 이름 집합 빼고). 모의 M1~M9 발견 0. D0a 무동작 문장과 모순 해소 |
+| 3 | §10 명령이 표 칸 안(`\|`로 공허 PASS -- B3) | bash 블록이 정본, E3 거부 확인(base에서 비지 않음), E3 = AST(import 문장 + import 호출) -- 정규식이 놓친 6파일·docstring 거짓 FAIL 해소(D-24), `<캐시>` 정의·`--gmid-phase=3` |
+| 4 | UD-0 문서 개정 문안 없음, N3.10 개정 시점 모순(B4) | 문안 `_drafts/p3_doc_amendments.md`(7문서), UD-0 = 3건 + D-19만, D0b 추가 개정은 따로 승인(D-11), `validate_theta_declaration_order` → MOD3 확정 |
+| 5 | (없음) | **D-22**: M9~F1의 SD ↔ MOD9 순환(모의에서 새로 드러남) -- 재수출·import 줄 위치 규칙, IMPORT-ANY 판정, LAYER는 F2 뒤 |
+| 6 | 옛 문장: 세 card 번호 32·32·33, B33 chase '권고', 인벤토리 79,809, Phase 2 남은 것 "P9, P10, DoD E0~E5", G1 base 문장, 'design v4' 인용(S1·S2·S5) | 33·34·35 이미 반영, B33 34행 최종 문언, 44,493, §8.1 표와 같은 목록, base = 세 게이트 card 병합 뒤, 'design 30' |
+| 7 | phase 3 card(T0·D0a·D0b) 병합 시점 미정(S2) | D-23: Phase 2 DoD PASS 뒤(계획 991행), 그 전은 준비만. §8.1 필수/편의 순서 분리 |
+| 8 | M10 V3 비용·회로 미정(S3) | §2.3: 가장 싼 회로(기록상 `folded_cascode` 13~19초), 인벤토리 143초 실측, 추정 30~40분(최악 3.2시간), D-25, M10 '작성 전 실측' 항목 |
+| 9 | D-19 근거에 무관한 문장(S4) | 근거를 '선언 게이트 + B37a 같은 곳'으로 좁히고 한계 기록, 중립 두 안으로 따로 질문 |
+| 10 | "27단계", "51 = 27 + 24"(S6) | 26단계, 51 = 26 + 25 |
+| 11 | 문자열 import 10곳 "전부 B군"(S7) | 호출 9곳 + docstring 1, F1 범위 = 9 |
+| 12 | UD-1 대안 없음(S8) | (나) 추적 추가 후 F1 갱신 (다) 삭제 |
+| 13 | card 수 15(m1), `<캐시>` 미정의(m2), F2 SD 재수출 규칙 없음(m3), SD 밖 MOD7 배정(m4), §8.1 순서 고정(m5), B34 212행 단정(m6) | 16, `GC`, SD 자신이 읽지 않는 이름만 지움, D0b 단언, 필수/편의 분리, D0b가 정한다는 인계 |
+| 14 | 추적 import 파일 86(정규식) | AST 92(같은 6파일) -- F1 목록은 AST로 |
+| 15 | UD-0 질문에 D-9·D-17·위임 미표시(검토 §7) | 질문 문안 `_drafts/phase3_approval_question.md`에 드러냄 |

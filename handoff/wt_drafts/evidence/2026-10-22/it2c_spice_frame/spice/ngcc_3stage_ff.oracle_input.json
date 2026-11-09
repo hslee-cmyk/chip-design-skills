@@ -1,0 +1,550 @@
+{
+ "schema": "spice_oracle_input/1",
+ "circuit": "ngcc_3stage_ff",
+ "process": {
+  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2\\sky130_nfet_pfet_lut_v2_r2.npz",
+  "ngspice_exe": "C:\\ngspice\\Spice64\\bin\\ngspice_con.exe",
+  "models": {
+   "nmos": {
+    "subckt": "sky130_fd_pr__nfet_01v8",
+    "includes": [
+     "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__{corner}.pm3.spice",
+     "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__nfet_01v8[{param}]",
+    "polarity": "n"
+   },
+   "pmos": {
+    "subckt": "sky130_fd_pr__pfet_01v8",
+    "includes": [
+     "C:\\pdk\\sky130_fd_pr\\models\\parameters\\lod.spice",
+     "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__{corner}.pm3.spice",
+     "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__pfet_01v8[{param}]",
+    "polarity": "p"
+   }
+  },
+  "diffusion": {
+   "ad_per_w_m": 5e-07,
+   "pd_extra_m": 2.0000000000000003e-06
+  },
+  "lut_reference_width_m": 4.9999999999999996e-06,
+  "provenance": "LUT 생성기 assets\\sky130_lut_sweep.py 공개 상수 + DUT/include/probe 줄"
+ },
+ "rails": [
+  {
+   "net": "vdd",
+   "voltage": 1.8
+  },
+  {
+   "net": "gnd",
+   "voltage": 0.0,
+   "reference": true
+  }
+ ],
+ "devices": [
+  {
+   "name": "M0",
+   "kind": "pmos",
+   "drain": "TAIL",
+   "gate": "VBP",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 1.0000082992632586e-06,
+   "n_fingers": 68153,
+   "W": 0.06815356561968886
+  },
+  {
+   "name": "M1",
+   "kind": "pmos",
+   "drain": "ND",
+   "gate": "Vinn",
+   "source": "TAIL",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 1.3323644440664052e-06,
+   "n_fingers": 3,
+   "W": 3.9970933321992156e-06
+  },
+  {
+   "name": "M2",
+   "kind": "pmos",
+   "drain": "V1",
+   "gate": "Vinp",
+   "source": "TAIL",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 1.3323644440664052e-06,
+   "n_fingers": 3,
+   "W": 3.9970933321992156e-06
+  },
+  {
+   "name": "M3",
+   "kind": "nmos",
+   "drain": "ND",
+   "gate": "ND",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.007188032529537e-06,
+   "n_fingers": 31,
+   "W": 3.1222829008415646e-05
+  },
+  {
+   "name": "M4",
+   "kind": "nmos",
+   "drain": "V1",
+   "gate": "ND",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.0241734974592242e-06,
+   "n_fingers": 28,
+   "W": 2.8676857928858277e-05
+  },
+  {
+   "name": "M5",
+   "kind": "pmos",
+   "drain": "NX",
+   "gate": "VBP",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 1.0000003597663875e-06,
+   "n_fingers": 35185,
+   "W": 0.035185012658380345
+  },
+  {
+   "name": "M6A",
+   "kind": "nmos",
+   "drain": "NX",
+   "gate": "NX",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.0087202714992841e-06,
+   "n_fingers": 109,
+   "W": 0.00010995050959342197
+  },
+  {
+   "name": "M6B",
+   "kind": "nmos",
+   "drain": "NX",
+   "gate": "ND",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.004166868202766e-06,
+   "n_fingers": 98,
+   "W": 9.840835308387108e-05
+  },
+  {
+   "name": "M7",
+   "kind": "nmos",
+   "drain": "Vout",
+   "gate": "NX",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.063524851452072e-06,
+   "n_fingers": 14,
+   "W": 1.4889347920329007e-05
+  },
+  {
+   "name": "M8",
+   "kind": "nmos",
+   "drain": "NP",
+   "gate": "V1",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.0211008013553236e-06,
+   "n_fingers": 26,
+   "W": 2.6548620835238417e-05
+  },
+  {
+   "name": "M9",
+   "kind": "pmos",
+   "drain": "NP",
+   "gate": "NP",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 1.1478255143694017e-06,
+   "n_fingers": 6,
+   "W": 6.886953086216411e-06
+  },
+  {
+   "name": "M10",
+   "kind": "pmos",
+   "drain": "V2",
+   "gate": "NP",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 1.3225639409908565e-06,
+   "n_fingers": 3,
+   "W": 3.9676918229725695e-06
+  },
+  {
+   "name": "M11",
+   "kind": "nmos",
+   "drain": "V2",
+   "gate": "VBN",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.0211008013553236e-06,
+   "n_fingers": 26,
+   "W": 2.6548620835238417e-05
+  },
+  {
+   "name": "M12",
+   "kind": "pmos",
+   "drain": "Vout",
+   "gate": "VBP",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 1.000003108918542e-06,
+   "n_fingers": 238416,
+   "W": 0.2384167412159231
+  },
+  {
+   "name": "M13",
+   "kind": "nmos",
+   "drain": "Vout",
+   "gate": "V2",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.0061339327153827e-06,
+   "n_fingers": 28,
+   "W": 2.8171750116030714e-05
+  },
+  {
+   "name": "M14",
+   "kind": "nmos",
+   "drain": "Vout",
+   "gate": "V1",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 1.0170849785916645e-06,
+   "n_fingers": 29,
+   "W": 2.949546437915827e-05
+  }
+ ],
+ "sources": [],
+ "passives": [
+  {
+   "name": "LOAD_Vout",
+   "kind": "capacitor",
+   "terminals": [
+    "Vout",
+    "gnd"
+   ],
+   "value": 1e-11,
+   "value_basis": "spec['CL']",
+   "not_in_topology_reason": "topology 에 출력 부하 C 가 없어 어댑터가 spec['CL'] 로 넣은 부하"
+  },
+  {
+   "name": "Cm1",
+   "kind": "capacitor",
+   "terminals": [
+    "V1",
+    "Vout"
+   ],
+   "value": 6.545500428484641e-13,
+   "value_basis": "엔진 봉인점 device.passive_value"
+  },
+  {
+   "name": "Cm2",
+   "kind": "capacitor",
+   "terminals": [
+    "V2",
+    "Vout"
+   ],
+   "value": 9.999999999999999e-14,
+   "value_basis": "엔진 봉인점 device.passive_value"
+  },
+  {
+   "name": "CL",
+   "kind": "capacitor",
+   "terminals": [
+    "Vout",
+    "gnd"
+   ],
+   "value": 1e-11,
+   "value_basis": "엔진 봉인점 device.passive_value"
+  }
+ ],
+ "bias_voltages": [
+  {
+   "net": "VBP",
+   "value": 1.6585987817278278
+  },
+  {
+   "net": "VBN",
+   "value": 0.6058952829610508
+  }
+ ],
+ "feedback_passives": [],
+ "feedback_passives_basis": "legacy_c12_input_net_passives",
+ "ports": {
+  "input_n": "Vinn",
+  "input_p": "Vinp",
+  "output": "Vout"
+ },
+ "predictions": {
+  "nodes": {
+   "gnd": 0.0,
+   "vdd": 1.8,
+   "ND": 0.5221468800264686,
+   "NP": 1.0251110870213096,
+   "NX": 0.5173132050446542,
+   "TAIL": 1.3138381202256628,
+   "V1": 0.5878923652972166,
+   "V2": 0.6219470461157247,
+   "VBN": 0.6058952829610508,
+   "VBP": 1.6585987817278278,
+   "Vinn": 0.5453687053415175,
+   "Vinp": 0.5375709093366114,
+   "Vout": 0.9
+  },
+  "devices": {
+   "M0": {
+    "ID": 4.684091208778938e-06,
+    "VGS": 0.14140121827217222,
+    "VDS": 0.4861618797743372,
+    "VSB": -0.0,
+    "gm": 0.00010118134892208847,
+    "gds": 1.1972063358979064e-05,
+    "gm_id": 21.601062919623356,
+    "region": "sat"
+   },
+   "M1": {
+    "ID": 2.342045604389469e-06,
+    "VGS": 0.7684694148841453,
+    "VDS": 0.7916912401991942,
+    "VSB": 0.4861618797743372,
+    "gm": 3.766884780841491e-05,
+    "gds": 4.487151447656647e-06,
+    "gm_id": 16.083737967277767,
+    "region": "sat"
+   },
+   "M2": {
+    "ID": 2.342045604389469e-06,
+    "VGS": 0.7762672108890514,
+    "VDS": 0.7259457549284463,
+    "VSB": 0.4861618797743372,
+    "gm": 3.764316695771341e-05,
+    "gds": 4.51511504155179e-06,
+    "gm_id": 16.072772830367807,
+    "region": "sat"
+   },
+   "M3": {
+    "ID": 2.342045604389469e-06,
+    "VGS": 0.5221468800264686,
+    "VDS": 0.5221468800264686,
+    "VSB": 0.0,
+    "gm": 5.435033971370203e-05,
+    "gds": 3.195535641515341e-06,
+    "gm_id": 23.206354142651385,
+    "region": "sat"
+   },
+   "M4": {
+    "ID": 2.342045604389469e-06,
+    "VGS": 0.5221468800264686,
+    "VDS": 0.5878923652972166,
+    "VSB": 0.0,
+    "gm": 5.41890842486748e-05,
+    "gds": 2.9665605087817606e-06,
+    "gm_id": 23.13750174083436,
+    "region": "sat"
+   },
+   "M5": {
+    "ID": 1.464413156807959e-05,
+    "VGS": 0.14140121827217222,
+    "VDS": 1.282686794955346,
+    "VSB": -0.0,
+    "gm": 0.0002566080830193572,
+    "gds": 2.9073886753523418e-05,
+    "gm_id": 17.5229293609118,
+    "region": "sat"
+   },
+   "M6A": {
+    "ID": 7.322066791816526e-06,
+    "VGS": 0.5173132050446542,
+    "VDS": 0.5173132050446542,
+    "VSB": 0.0,
+    "gm": 0.00017053178528044389,
+    "gds": 1.0075755834047249e-05,
+    "gm_id": 23.290116046337893,
+    "region": "sat"
+   },
+   "M6B": {
+    "ID": 7.322064776263063e-06,
+    "VGS": 0.5221468800264686,
+    "VDS": 0.5173132050446542,
+    "VSB": 0.0,
+    "gm": 0.0001699560880529433,
+    "gds": 1.0063866759637035e-05,
+    "gm_id": 23.211497473214543,
+    "region": "sat"
+   },
+   "M7": {
+    "ID": 1.5306125015751673e-06,
+    "VGS": 0.5173132050446542,
+    "VDS": 0.9,
+    "VSB": 0.0,
+    "gm": 3.506020015116118e-05,
+    "gds": 1.4556156847255407e-06,
+    "gm_id": 22.905993590853605,
+    "region": "sat"
+   },
+   "M8": {
+    "ID": 1.4525806117937704e-05,
+    "VGS": 0.5878923652972166,
+    "VDS": 1.0251110870213096,
+    "VSB": 0.0,
+    "gm": 0.0003081593700545478,
+    "gds": 1.1585133686710753e-05,
+    "gm_id": 21.214614015397487,
+    "region": "sat"
+   },
+   "M9": {
+    "ID": 1.4525806117937704e-05,
+    "VGS": 0.7748889129786904,
+    "VDS": 0.7748889129786904,
+    "VSB": -0.0,
+    "gm": 0.00018675607872026105,
+    "gds": 2.1459967515746213e-05,
+    "gm_id": 12.8568478199388,
+    "region": "sat"
+   },
+   "M10": {
+    "ID": 1.4525806117937704e-05,
+    "VGS": 0.7748889129786904,
+    "VDS": 1.1780529538842752,
+    "VSB": -0.0,
+    "gm": 0.00016237722565043224,
+    "gds": 1.804442348336642e-05,
+    "gm_id": 11.178534556503202,
+    "region": "sat"
+   },
+   "M11": {
+    "ID": 1.4525806117937704e-05,
+    "VGS": 0.6058952829610508,
+    "VDS": 0.6219470461157247,
+    "VSB": 0.0,
+    "gm": 0.00030653059019067986,
+    "gds": 1.6327380268829712e-05,
+    "gm_id": 21.102483931143055,
+    "region": "sat"
+   },
+   "M12": {
+    "ID": 4.423412489465317e-05,
+    "VGS": 0.14140121827217222,
+    "VDS": 0.9,
+    "VSB": -0.0,
+    "gm": 0.0008569855992256479,
+    "gds": 9.847733697057994e-05,
+    "gm_id": 19.37385675124403,
+    "region": "sat"
+   },
+   "M13": {
+    "ID": 2.81777062751403e-05,
+    "VGS": 0.6219470461157247,
+    "VDS": 0.9,
+    "VSB": 0.0,
+    "gm": 0.0005702252762010255,
+    "gds": 2.374976442952283e-05,
+    "gm_id": 20.23675279432184,
+    "region": "sat"
+   },
+   "M14": {
+    "ID": 1.4525806117937704e-05,
+    "VGS": 0.5878923652972166,
+    "VDS": 0.9,
+    "VSB": 0.0,
+    "gm": 0.00030992843204052695,
+    "gds": 1.278161230612956e-05,
+    "gm_id": 21.33640154110283,
+    "region": "sat"
+   }
+  },
+  "metrics": []
+ },
+ "acceptance": {
+  "constraints": [],
+  "not_measurable": []
+ },
+ "testbench": {
+  "dc_choke_H": 1000000000000.0,
+  "loop_dc_choke_H": 1e+20,
+  "ac_couple_F": 1.0,
+  "nodeset_from_predictions": true,
+  "nodeset_per_line": 8,
+  "options": {
+   "gmin": "1e-15",
+   "reltol": "1e-4",
+   "abstol": "1e-14",
+   "vntol": "1e-7",
+   "itl1": "500",
+   "itl2": "500"
+  },
+  "ac": {
+   "fstart_hz": 0.01,
+   "fstop_hz": 10000000000.0,
+   "points_per_decade": 40,
+   "input_p_ac": 0.5,
+   "input_n_ac": -0.5,
+   "input_ac": 1.0,
+   "diff_feedback_gain": 0.5
+  }
+ },
+ "judge": {},
+ "topology": {
+  "path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_it2c_spice\\spice\\ngcc_3stage_ff.topology.convert_copy.json",
+  "sha256": "5753924c049270bab1d16462fab633be0e50ced3ba652250c7268fdb45e9d57b"
+ },
+ "provenance": {
+  "adapter": "legacy_adapter.py",
+  "engine": "legacy (skills/analog-gmid-design/legacy)",
+  "w_source": "layout",
+  "isrc": "topology",
+  "topology": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_it2c_spice\\spice\\ngcc_3stage_ff.topology.convert_copy.json",
+  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2\\sky130_nfet_pfet_lut_v2_r2.npz",
+  "metrics_unmapped": [],
+  "warnings": [],
+  "blockers": [
+   "커패시터 Cm1 값 없음",
+   "커패시터 Cm2 값 없음",
+   "커패시터 CL 값 없음"
+  ],
+  "engine_metrics_raw": {},
+  "theta_star": {},
+  "it2c_sizing_roles_null_copy": true,
+  "it2c_passive_fix": [
+   [
+    "Cm1",
+    null,
+    6.545500428484641e-13
+   ],
+   [
+    "Cm2",
+    null,
+    9.999999999999999e-14
+   ],
+   [
+    "CL",
+    null,
+    1e-11
+   ]
+  ],
+  "it2c_bulk_mismatch": []
+ }
+}

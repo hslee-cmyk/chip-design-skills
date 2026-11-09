@@ -1,0 +1,3 @@
+소자 36: 엔진 띠(0<=VDS-VDsat<tol) 0, 엔진 위반(<0) 0, SPICE 소자 s5 비포화 0, m5 비포화 0, 회로 m5 비포화 0
+정의 동일성(소자 m5, 같은 op 점): VDsat_eng − @m[vdsat] mV min -0.0201 med 0.1307 max 0.9659; |차|/tol_VDsat max 0.355 (n 36)
+회로 m5 여유 < 10 mV 또는 엔진 띠·위반 소자:

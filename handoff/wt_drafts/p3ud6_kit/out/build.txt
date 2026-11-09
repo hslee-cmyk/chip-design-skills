@@ -1,0 +1,26 @@
+base 4a286f0fad4f9beafd26647e1f95a89086e07919
+FU design_report.py after line 27
+FU audit_current_forced.py after line 37
+installed 4
+B (pre D-11) ab73be6b44d4c1843f3f001b76b2f1675cd9fd6b
+plan names_base key=names rev=ab73be6b44d4c1843f3f001b76b2f1675cd9fd6b exit=1 23s
+variant qtok applied
+plan names_q key=names rev=835858cd6aaf6316a19bd84490624cdbff0e6a9b exit=1 24s
+plan hash_q key=hash rev=835858cd6aaf6316a19bd84490624cdbff0e6a9b exit=1 26s
+{"tables": 15, "counts": {"one": 354, "multi": 0, "nested": 7, "nounit": 18}, "write": false}
+{"tables": 15, "counts": {"one": 354, "multi": 0, "nested": 7, "nounit": 18}, "write": true}
+hold_swap 9 -> Phase 4; Phase 4 now 23
+409	409	docs/03-analysis/gain-budget-gmid-sizing.function-registry.md
+plan names_rg key=names rev=2db9cd93c432a43cbb33262a40d0f01302d06e02 exit=0 23s
+{"verdict": "FAIL", "lens": {"upward": 1, "cycles": 1, "unassigned": 0, "conflicts": 0, "reg_mismatch": 79, "import_time_high": 0, "absent_split": 0}, "n_assigned": 403, "rules": {"A-K": 2, "A-4": 236, "A-5": 57, "A-1": 60, "A-2": 38, "A-6": 7, "A-7": 2, "A-3": 1}, "per_mod": {"audit_current_forced.py": 2, "circuit_metrics.py": 21, "circuit_state_graph.py": 82, "gmid_lut.py": 7, "gmid_sizing_engine.py": 105, "instance_report_builder.py": 16, "sizing_layout_convergence.py": 30, "stick_diagram.py": 111, "theta_search.py": 11, "topology_authoring.py": 18}, "upward_mod_pairs": {"gmid_lut.py -> gmid_sizing_engine.py": 1}}
+mod7_outside_sd []
+{"verdict": "FAIL", "lens": {"upward": 0, "cycles": 0, "unassigned": 0, "conflicts": 0, "reg_mismatch": 80, "import_time_high": 0, "absent_split": 0}, "n_assigned": 403, "rules": {"A-K": 2, "A-4": 235, "A-5": 57, "A-1": 61, "A-2": 38, "A-6": 7, "A-7": 2, "A-3": 1}, "per_mod": {"audit_current_forced.py": 2, "circuit_metrics.py": 21, "circuit_state_graph.py": 82, "gmid_lut.py": 8, "gmid_sizing_engine.py": 104, "instance_report_builder.py": 16, "sizing_layout_convergence.py": 30, "stick_diagram.py": 111, "theta_search.py": 11, "topology_authoring.py": 18}, "upward_mod_pairs": {}}
+mod7_outside_sd []
+compare {'only_here': 0, 'only_there': 0, 'mod_diff': 1}
+{"verdict": "FAIL", "lens": {"upward": 0, "cycles": 0, "unassigned": 0, "conflicts": 0, "reg_mismatch": 79, "import_time_high": 0, "absent_split": 0}, "n_assigned": 403, "rules": {"A-K": 2, "A-4": 229, "A-5": 63, "A-1": 61, "A-2": 38, "A-6": 7, "A-7": 2, "A-3": 1}, "per_mod": {"audit_current_forced.py": 2, "circuit_metrics.py": 21, "circuit_state_graph.py": 82, "gmid_lut.py": 8, "gmid_sizing_engine.py": 102, "instance_report_builder.py": 17, "sizing_layout_convergence.py": 32, "stick_diagram.py": 110, "theta_search.py": 11, "topology_authoring.py": 18}, "upward_mod_pairs": {}}
+mod7_outside_sd []
+compare {'only_here': 39, 'only_there': 39, 'mod_diff': 0}
+{"verdict": "PASS", "lens": {"upward": 0, "cycles": 0, "unassigned": 0, "conflicts": 0, "reg_mismatch": 0, "import_time_high": 0, "absent_split": 0}, "n_assigned": 403, "rules": {"A-K": 2, "A-4": 245, "A-5": 53, "A-1": 61, "A-2": 39, "A-6": 3}, "per_mod": {"audit_current_forced.py": 2, "circuit_metrics.py": 21, "circuit_state_graph.py": 82, "gmid_lut.py": 8, "gmid_sizing_engine.py": 104, "instance_report_builder.py": 16, "sizing_layout_convergence.py": 30, "stick_diagram.py": 111, "theta_search.py": 11, "topology_authoring.py": 18}, "upward_mod_pairs": {}}
+mod7_outside_sd []
+compare {'only_here': 0, 'only_there': 0, 'mod_diff': 0}
+B=ab73be6b44d4c1843f3f001b76b2f1675cd9fd6b Q=835858cd6aaf6316a19bd84490624cdbff0e6a9b RG=2db9cd93c432a43cbb33262a40d0f01302d06e02

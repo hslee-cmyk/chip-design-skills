@@ -1,0 +1,42 @@
+audit_wt_HEAD c247a7697fad8f4695a89d6c9fd0683b900e86fd
+role_test_tip c247a7697fad8f4695a89d6c9fd0683b900e86fd
+iso_HEAD c247a7697fad8f4695a89d6c9fd0683b900e86fd
+-- log B1..T1 (%H %P)
+c247a7697fad8f4695a89d6c9fd0683b900e86fd 61751ab1756c371953be188ede0fc08e3f02240c
+61751ab1756c371953be188ede0fc08e3f02240c 6df4bd7fd9920e752da4b16bff9b0513caf78362
+-- first-parent chain
+c247a7697fad8f4695a89d6c9fd0683b900e86fd
+61751ab1756c371953be188ede0fc08e3f02240c
+-- merges
+0
+-- is B1 ancestor
+yes
+== trailers 61751ab1756c371953be188ede0fc08e3f02240c
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
+Role: test
+Change-Id: 20260930-b26-rail-accessor-set
+== trailers c247a7697fad8f4695a89d6c9fd0683b900e86fd
+Role: test
+Change-Id: 20260930-b26-rail-accessor-set
+-- diff --name-only B1 T1
+skills/analog-gmid-design/assets/tests/contracts/test_b26_rail_accessor.py
+skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py
+-- diff --raw B1 T1
+:000000 100644 0000000000000000000000000000000000000000 9b540520d9fff6903a5cf21b4ba1da1d9f64581d A	skills/analog-gmid-design/assets/tests/contracts/test_b26_rail_accessor.py
+:100644 100644 f5f40d50a2d11e4de8c1b3363500d24b1cf8b692 d26efc1cabd06c4be36bd5ae650b5a08803a8296 M	skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py
+:100644 100644 ce4f3ad3ddadaa0c89fe29571711eb9c847583a9 0b5e58693314779bb2f868faed11c07494d62cde M	skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py
+:100644 100644 003c0d1d691ba81b6336c579a40441fb61985362 face81c87757150b33d743d7378b85ad77da0040 M	skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py
+:100644 100644 c592a89d7cdb42e8d4041e970571cbb1221866ec 8fc6aa0b65002197ec309e3975036208c325b380 M	skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py
+:100644 100644 28f53e418fc8e8b5ce0abe340f3fd4098c01695c 39bd76a868ec499e3f085137db39d2280cd0efc0 M	skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py
+:100644 100644 7641efdbe8d24b8d5af40a9ca82f502ee4f35823 875ef3abd1e9390bf632f49c7c3e8a8d84d56a79 M	skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py
+:100644 100644 e8a575ea3f4248eda5635944a9ce3e79a688ca81 e611b4855bf058a4fdf7846f64e5e605ca4d163b M	skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py
+:100644 100644 aeddecfbeb1c6bb03c2813842623c86eb5f8f544 5207ca17b869e42e05aa6dac731a2e94f9eac746 M	skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py
+:100644 100644 fe724a8c0e0571016332da41a77ac7286c535d5b ac2333a77d656448ad59b5b00f6ad754617158b0 M	skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py

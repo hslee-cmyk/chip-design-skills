@@ -1,0 +1,88 @@
+{
+  "id": "20260929-probe-engine-dup",
+  "spec_card": "docs/02-design/specs/20260929-probe-engine-dup.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "fb8ee353fd856f12cddaa04991f57813e84eae8c",
+  "test_commit": "bc9c6c2d625698d3f7bb7d0aeeefaecc81551f92",
+  "code_commit": "505b012479db252d27c0eb1e2efeda3d013814c1",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py"
+    ],
+    "failure_hashes": [
+      "d13fe453771d62bb4bf2c96e7c4be819a0c6db30ba34031b578ef8a2dce5f09b"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "병합본 M 427b0c353b6b4edd5acae9240513892aaf85d456(부모 [T bc9c6c2, K 505b012], 트리 fa50e29b = K 트리, Role: doc·Change-Id 일치)의 격리 복제본 C:/g9/r3/m(git clone --no-hardlinks --no-local --no-checkout, origin 제거, checkout --detach + clean -fdxq, remote 0·status 0줄, 실행 뒤 status 0줄)에서 base 판 캐시 fb8ee35의 pytest_gate.ini로 slow 포함 전체 실행(-k·--deselect·-x·-m 없음, --gmid-phase=2 --gmid-strict=, -rA): 512 passed, 15 xfailed, 실패·오류·skip·xpass 0, 수집 527, 수집 오류 0, exit 0, 127.48s, 출력 sha256 b2a54df0f76da61957924a9057958d59bd001f5e0f6db0e3816b9c546454ecef. 수집 대조: base 485(sha256 8c43ab55…, 순서 3) 대비 사라진 id는 test_ts6_probe_relocate.py::test_relocated_probes_match_base_except_path_lines 하나(계약 5·6), 새 id 43개 전부 contracts/test_probe_dup_scan.py; 512 = base 470 passed - 삭제 1 + 새 43, xfail 15 = base 15. 엄격 집합은 base 판 merge_gate.strict_set(TreeView(fb8ee35), parse_spec_card(이 card)) = 빈 집합(conftest_has_gmid_phase 참), merge_gate.v1_command_check(auditor_run의 V1 문자열, python_path C:/Python314/python.exe, old fb8ee35, strict [], phase 2) 실패 0건. 게이트 코드는 오케스트레이터 캐시(role_guard EL1이 저장소 내부 경로 인자를 막음)가 아니라 git cat-file blob fb8ee35:tools/gates/<파일>로 auditor가 redteam 밖 22개를 직접 뽑았다(tools 트리 712beefc = e60f289·7a1e191과 같다). code-author 자체 실행 보고(512 passed)는 증거로 쓰지 않았다"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red-green. 커밋 사슬: base fb8ee35(gate master) -> T bc9c6c2(Role: test, 부모 base) -> K 505b012(Role: code, 부모 T, A/tests/tools/engine_dup_scan.py 추가 1경로 +157) -> M 427b0c3(Role: doc, 부모 [T, K], 트리 = K 트리). test 커밋 불변: git diff T M 은 engine_dup_scan.py 추가 1줄뿐(test·probe 경로 차이 0). red(순서 3, base_check.json): T 복제본 C:/g9/r3/iso에서 base 판 red 수집 플러그인(-p merge_gate --continue-on-collection-errors, GMID_INTERFACE_CARD = 이 변경의 interface card)이 contracts/test_probe_dup_scan.py 모듈 수집 오류를 builtins.ModuleNotFoundError로 기록(interface card 신규 심볼 (engine_dup_scan, *)에 해당 -- base 판 read_new_symbols로 확인), failure_hash = base 판 merge_gate.red_failure_hash(test_id, ModuleNotFoundError)로 다시 계산해 red.failure_hashes와 같다; 나머지는 469 passed + 15 xfailed로 base와 같은 결과 수, FAILED 0. green: 병합본에서 그 파일 43건 전부 PASSED(V1 -rA 목록과 파일 단독 -v 실행 둘 다 43 passed, exit 0). 계약 1 독립 확인(auditor 합성 입력, 작성자 test와 다른 조각, scripts/scan_probe.py): scan_source 30조각 -- 규칙 5종의 발견/비발견을 card 문장대로(lut-private: 임의 객체 ._query·._w_ref_effective 호출은 발견, _log_ID·_grids_list 읽기와 호출 아닌 속성 참조는 아님; diode-inline: 속성·첨자·.get·혼합 접근의 ==·!=는 발견, is·<는 아님; mirror-key: 튜플만, 리스트·gate만은 아님; gate-source-share: and만, or·따로 쓴 두 비교는 아님; rail-set: 집합·리스트·튜플, 대소문자 무시, 원소 하나·레일 아닌 원소·문자열 아닌 원소는 아님; 주석·문자열·다른 이름·정본 호출·정해진 VGS의 W 식·union-find는 발견 0; 여러 줄 튜플의 줄 번호 = 시작 줄) 기대와 전부 일치, 레코드 키 5개·exempt false; main 12건 -- 깨끗 0, 발견 1, 하위 디렉터리 1, probes 밖 무시 0, decision 면제 exit 0·exempt true, target 목록 원소 면제, 다른 규칙·다른 파일·decision 아닌 기록·_ 로 시작하는 기록은 면제 아님 exit 1, 구문 오류 2, 없는 루트 2, path는 / 구분 -- 불일치 0(out7/scan_probe.json). 계약 2: python -P A/tests/tools/engine_dup_scan.py --root C:/g9/r3/m -> exit 0, 출력 1줄 {probe_mirror_gain_ranking.py, 183행, lut-private, exempt true} -- 면제 아닌 발견 0, 면제 1건이 승인 20260929-p4-scan-exempt(target_kind decision)의 target 원소 <그 파일>::lut-private와 같다(183행은 _q의 lut._query, card가 면제로 정한 VGS 기준 gm·gds 조회). 같은 스캐너를 base 트리에 돌리면 exit 1, 발견 18건(면제 2 포함) -- 교체 전 재구현이 실제로 잡히고 병합본에서 사라졌다. 계약 3(F4): 순서 3에서 base 복제본 C:/g9/r3/pb와 T 복제본 C:/g9/r3/pt로 실행 코드가 바뀐 probe 10개를 모두 실행 -- exit 0, stderr 빈 것, 경로·elapsed 정규화 stdout 10/10 같음, result.txt 8/8 같음, 부산물 캐시 3개 바이트 동일; 주석만 바뀐 9개는 AST 동일(base_check.json probe_output_preservation). 병합본의 A/tests/probes/ 트리는 T와 같다(git diff T M -- probes 0줄)라 그 측정이 병합본에 그대로 성립. 계약 4: base에서 H.derived_spec 문장이 있던 probes 파일 14개, 병합본 probes 안 derived_spec 0건. 계약 5: 병합본 test_ts6_probe_relocate.py에 그 test 함수 없음, 남은 헬퍼 _probe_sources·assert_only_path_lines_changed·base_blob_text는 남은 다른 test들이 여전히 부른다(각 3~5곳, grep) -- 그 함수만 쓰던 헬퍼는 없었다. 계약 6: base..M 에서 A/tests/** 밖 변경 0줄, A/tests/unit/**·A/tests/probe_physical_consistency.py 변경 0줄, 수집에서 사라진 id 하나(V1). 계약 7(E-LIB·E-INST): 엔진 불변 근거로 base와 같다 -- base..M 의 A/tests/** 밖 diff 0줄(A/*.py·A/library/**·LUT·workspaces/** 전부 base blob), 트리 id workspaces ac9615a9·A/library 5058ea8e 양쪽 같음; 바뀐 경로(A/tests/contracts·probes·tools)는 E-LIB·E-INST 측정 경로가 import하지 않는다. 관찰(판정 영향 없음, handoff): (1) 면제 단위가 <파일>::<규칙>이라 probe_mirror_gain_ranking.py의 lut-private 발견은 줄과 무관하게 전부 면제된다 -- base에서는 교체 대상이던 IDu private 조회(194행)도 같은 면제에 덮여 2건 모두 exempt였다. 승인 범위 설명은 'IDu 조회는 면제 대상이 아니라 교체한다'인데 스캐너는 그 파일에 IDu private 조회가 다시 들어와도 잡지 못한다(card 계약 1이 정한 단위라 스캐너 결함은 아님). (2) --root가 있는 디렉터리지만 probes/가 없으면 훑을 파일 0으로 exit 0(예: --root C:/g9/r3/m/skills -> exit 0, 출력 0바이트) -- card는 없는 루트만 2로 정했다. 계약 test는 실제 저장소 루트에서 probes/에 .py가 있음을 먼저 단언하므로 배선 경로에서는 공허 통과가 막힌다. (3) base의 probe_ratio_pair_analysis 발견은 표시용 서식 튜플(t.gate, t.source 함께)이 mirror-key에 걸린 것이었고, T는 이름 붙은 dict 서식으로 바꿔 규칙을 피했다(출력 동일, V5 승인 범위 문장에 포함). 실제 미러 판정(게이트·소스 공유 inline)은 규칙 gate-source-share 모양(and 안의 두 비교)이 아니라 len(set)==1 두 변수라 스캐너가 잡지 못했고 교체는 수동으로 됐다"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 mutate_changed.py(--root C:/g9/r3/m --base fb8ee35 --head 427b0c3 --pytest-ini <캐시>/pytest_gate.ini --gmid-phase=2 --gmid-strict=)의 대상은 A 최상위 *.py와 workspaces/run_harness.py이고 A/tests/tools/는 test 노드에서도 제외(TESTS_TOOLS)라 이번 변경의 새 def(engine_dup_scan.py)는 도구 대상 밖이다 -- 엔진 소스 변경 0이라 도구 뮤턴트도 0. 대신한 확인: auditor 자체 변이 24개를 격리 복제본 C:/g9/r3/mut(M checkout, 끝나고 원본 복원, status 0줄)의 engine_dup_scan.py에 하나씩 넣고 V1 형태 명령으로 contracts/test_probe_dup_scan.py를 실행(scripts/mut_scanner.py): 규칙 5종 판정식(_w_ref_effective 제거, != 제거, drain->source, mirror and->or, 튜플->리스트, gate-source and->or, source 비교 생략, rail 원소 1개 허용, all->any, 대소문자 구분, 집합만), 접근 형태(.get->.pop, 첨자 무시), 줄 번호 +1, 면제 읽기(target_kind 무시, _ 파일 읽기, , 분리 안 함, 면제 전부 무시), exit 코드(1->0, 없는 루트 0, 입력 오류 0), path 역슬래시, probes 비재귀, .py 아닌 파일 포함 -- 24/24 죽음(생존 0), 각 1~21건 실패(out7/mut_scanner.jsonl)"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: base 판 캐시 test_lint.py --root C:/g9/r3/m --base fb8ee35 --head 427b0c3 --module-dir skills/analog-gmid-design/assets/tests/tools --subject engine_dup_scan:scan_source --subject engine_dup_scan:main -> verdict PASS, exit 0, 파일 21개(test 2 + probes 19), 발견 114 = 규칙 (2) NO-SUBJECT 105(test_ts6_probe_relocate 72·test_probe_dup_scan 33) + UNJUDGED 7 + PASS 2, FAIL 0 (--interface-card 단독은 기본 module-dir가 A라 engine_dup_scan.py를 찾지 못해 ERROR exit 2 -- 그래서 --subject로 같은 두 심볼을 줬다); card 'oracle 종류와 출처'와 기대값마다 대조: test_rule_finds_synthetic_reimplementation 16건의 (규칙, 줄) 기대는 합성 조각을 쓴 줄 -- (a) 구성, 계약 1 규칙 문장(세 접근 형태 포함)과 일치; test_every_rule_has_a_positive_case의 규칙 5종 집합은 card 계약 1 목록 (a) 일치; test_rule_ignores_non_reimplementation 9건의 '발견 0'은 계약 1 제외 문장(_log_ID·_grids_list 읽기)과 '거부해야 할 입력'의 오탐 없음 목록(주석·문자열·gate_bias·source_file·정해진 VGS의 W 식·union-find, or, 원소 하나) (a) 일치; test_canonical_calls_are_not_findings '발견 0'은 계약 2 정본 목록 (a) 일치; test_finding_record_fields의 UNJUDGED 7건(227 len==1, 229 키 집합, 230 path, 231 line 1, 232 rule diode-inline, 233 concept 비어 있지 않은 문자열, 234 exempt False)은 한 줄 합성 조각 'd = t.gate == t.drain'과 계약 1 레코드 정의({path, line, rule, concept, exempt}, path = 넘긴 값, scan_source는 면제를 읽지 않음)에서 정해진다 -- 피검 출력 복사가 아니라 (a) 구성, 일치(concept 값은 card가 정하지 않아 비어 있지 않음만 본다); test_findings_on_separate_lines_are_all_reported는 (a) 일치; test_main_exit_2_on_syntax_error_file·test_main_exit_2_on_missing_root의 PASS 2건(== 2)은 계약 1 '입력 오류 2' 문장 (a) 일치; test_main_* 합성 루트 11건의 exit 0/1·exempt·path(/ 구분)·줄 기대는 구성한 파일과 승인 기록, 계약 1 면제 문장과 '거부해야 할 입력'(다른 파일·다른 규칙·decision 아님은 면제 아님) (a) 일치; test_main_on_this_repository_is_clean의 '면제 아닌 발견 0, exit 0'은 계약 2 문장, 피검 출력에서 만들지 않음 -- auditor 독립 실행으로 확인(V2); test_ts6_probe_relocate.py는 test 함수 1개와 docstring 한 줄 삭제뿐이고 남은 판정의 기대는 바뀌지 않았다(72건 NO-SUBJECT, V5 발견과 같은 범위); 계약 3의 기대(probe 출력 = base 실행 출력)는 (c) 동작 보존이며 test에 박지 않았고 auditor가 base·T 실행으로 대조했다(V2)"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 weakening_diff.py --root C:/g9/r3/m --base fb8ee35 --head 427b0c3 -> verdict PASS, approved true, exit 0, 발견 9건(test_ts6_probe_relocate.py의 test_relocated_probes_match_base_except_path_lines 'assert 삭제'와 모듈 docstring 리터럴 한 줄; probe_diode_vds_window w_at, probe_mirror_design_space _mirror_groups_from_netlist·<module>, probe_mirror_gain_ranking _mirror_groups, probe_mirror_wiring_readiness mirror_groups, probe_ratio_pair_analysis <module>, probe_supply_current <module>의 인라인 엔진 식 리터럴 제거), diff_paths 7개, diff 해시 d705921ce8e620409e3ab68ec5a0934c8335b7bd03a5caaec3646bdc6ade0c4e = 승인 20260930-p4-relocate-test-retire(target_kind diff)의 target. 출력이 순서 3의 base -> T 출력과 바이트 동일(K는 A/tests/tools/ 추가뿐, 발견 경로 밖). 승인 diff_base 3a82a71과 이번 base fb8ee35 사이에서 그 7경로의 blob이 같고(git diff 3a82a71 fb8ee35 -- skills 0줄), auditor가 경로·base blob·head blob 7행으로 diff 해시를 따로 다시 계산해도 같은 값. 발견 9건은 승인 범위 설명(계약 5 test 삭제와 docstring 한 줄, probe 6개의 인라인 엔진 식 리터럴 -> 정본 호출, ratio_pair 표시 서식 튜플 -> dict)과 맞고, 새 계약 파일 test_probe_dup_scan.py는 추가 파일이라 발견 0"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 source_lint.py --root C:/g9/r3/m --base fb8ee35 --head 427b0c3 -> verdict PASS, targets [], findings [], exit 0 -- 도구 대상은 A 최상위 *.py와 workspaces/run_harness.py이고 이번 변경의 소스는 A/tests/tools/engine_dup_scan.py(대상 밖)와 test·probe뿐이다. 대신한 확인(auditor가 스캐너 157줄을 직접 읽음): except는 main의 except (SyntaxError, UnicodeDecodeError, OSError) 하나 -- 좁은 타입이고 계약 1 '입력 오류 2'로 exit 2를 내며 삼키지 않는다(변이 input_error_0이 test로 죽음); 광범위 except·bare except 0; 엔진 import 없음(표준 라이브러리만); 규칙 이름·레일 이름 후보·private 메서드 이름은 card 계약 1 문장을 옮긴 상수(_RAIL_NAMES = card의 8개 이름); 조용한 통과 가능 경로 하나를 관찰로 적는다 -- probes/ 디렉터리가 없는 루트는 훑을 파일 0으로 exit 0(V2 관찰 (2), card가 정하지 않은 입력이고 배선된 계약 test는 probes/에 .py가 있음을 먼저 단언한다). probe 쪽 변경은 V2 계약 3 실행 대조로 출력 불변"
+    },
+    "V7": {
+      "verdict": "PASS",
+      "basis": "Phase 2부터 활성. base 판 캐시 reachability.py --root C:/g9/r3/m --base fb8ee35 --head 427b0c3 -> verdict PASS, new_defs [], unreached [], unreached_without_approval [], roots 4개(A/sky130_lut_sweep.py::__main__, A/topology_to_markdown.py::__main__, workspaces/run_harness.py::__main__·run), roots_without_file 1개(A/gmid_design_pipeline.py::run_gmid_design_pipeline, base부터 같음), exit 0 -- 도구의 소스 그래프는 A 최상위와 workspaces라 A/tests/tools/의 새 def(scan_source, main, _read_exemptions, _access_name 등)는 도구 대상 밖이다. 대신한 배선 확인: 스캐너는 계약 test contracts/test_probe_dup_scan.py::test_main_on_this_repository_is_clean이 V1(전체 스위트)마다 실제 저장소 루트로 main을 불러 면제 아닌 발견 0과 exit 0을 단언한다 -- probes/에 재구현이 다시 들어오면 병합 판정의 V1에서 red가 된다(원래 문제 경로 = probes 재구현 유입을 막는 자리에 배선됨). 내부 함수 _access_name·_compare_pairs·_is_same_access_compare·_read_exemptions는 scan_source·main에서만 불리고, 변이 24개가 전부 그 test로 죽어 모든 판정 분기가 실행 경로에 있음을 보였다(V3). probe 10개는 엔진 정본(size_transistor, id_density_at_vgs, true_current_mirror_groups, is_diode_connected, _metric_supply_current, _DEFAULT_RAIL_HI·_DEFAULT_RAIL_LO)을 직접 호출하도록 바뀌었고 실행 결과가 base와 같다(V2 계약 3)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2 v_intro[V8] = 4). 이 card는 Phase 2이고 엔진 소스 변경 0이라 fallback_events를 내는 경로를 바꾸지 않는다"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2 v_intro[V9] = 6b). 엔진 불변이라 E-LIB·E-INST는 base와 같다(V2 계약 7)"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치'가 '없음'이라 reproduced_numbers는 빈 배열이다. 이 기록의 수치(수집 485 -> 527, 병합본 512 passed·15 xfailed, base red 1건과 해시, 스캐너 병합본 exit 0·면제 1건, base 발견 18건, V5 발견 9건, probe 출력 10/10 동일, 변이 24/24 죽음)는 전부 auditor가 격리 복제본 C:/g9/r3/*에서 직접 쟀다(순서 3 측정은 .ai/verification/20260929-probe-engine-dup/base_check.json). code-author·test-author·오케스트레이터 보고(512 passed, 2차 시도 스캐너 green 등)는 증거로 쓰지 않았다"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260923-20-dead-code-dup-design",
+    "20260929-p4-scan-exempt",
+    "20260930-p4-relocate-test-retire"
+  ],
+  "auditor_run": {
+    "time": "2026-09-30T11:35:24+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260929-probe-engine-dup-audit",
+    "commands": [
+      "환경: $PY = C:/Python314/python.exe(3.14.2), export APPDATA=C:/Users/HSLEE/AppData/Roaming, 출력은 C:/g9/r3/out(순서 3)·C:/g9/r3/out7(순서 7), 스크립트 C:/g9/r3/scripts/(run.sh·run_probes.py·cmp_probes.py·ast_cmp.py·cmp_collect.py·strict_check.py·run_m.sh·tools_m.sh·v1check.py·scan_probe.py·mut_scanner.py·extract_gate.py)",
+      "게이트 코드: C:/Python314/python.exe C:/g9/r3/scripts/extract_gate.py C:/g9/r3/base fb8ee353fd856f12cddaa04991f57813e84eae8c C:/g9/r3/gmid-gate-cache/fb8ee353fd856f12cddaa04991f57813e84eae8c (git ls-tree + git cat-file blob, tools/gates/ 중 redteam/ 밖 22개)",
+      "격리(병합본): git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260929-probe-engine-dup-audit C:/g9/r3/m; git -C C:/g9/r3/m remote remove origin; git -C C:/g9/r3/m checkout -q --detach 427b0c353b6b4edd5acae9240513892aaf85d456; git -C C:/g9/r3/m clean -fdxq (remote 0, status 0줄). 변이용 C:/g9/r3/mut도 같은 방식(M). 순서 3의 C:/g9/r3/iso(T)·base(fb8ee35)·pb(base)·pt(T)도 같은 방식",
+      "V1: PYTHONPYCACHEPREFIX=C:/g9/r3/pyc_v1m PYTHONPATH=C:/g9/r3/gmid-gate-cache/fb8ee353fd856f12cddaa04991f57813e84eae8c C:/Python314/python.exe -P -m pytest -c C:/g9/r3/gmid-gate-cache/fb8ee353fd856f12cddaa04991f57813e84eae8c/pytest_gate.ini --rootdir=C:/g9/r3/m --confcutdir=C:/g9/r3/m --gmid-phase=2 --gmid-strict= C:/g9/r3/m/skills/analog-gmid-design/assets/tests -rA",
+      "V1 자기 점검: PYTHONPATH=<캐시> C:/Python314/python.exe -P C:/g9/r3/scripts/v1check.py C:/g9/r3/m fb8ee353fd856f12cddaa04991f57813e84eae8c 20260929-probe-engine-dup <V1 문자열> -> strict [], v1_fails []",
+      "수집 대조: V1 형태에 --collect-only -q -p no:cacheprovider 로 C:/g9/r3/base·iso·m 수집 후 C:/Python314/python.exe C:/g9/r3/scripts/cmp_collect.py <base> <m>",
+      "base red(순서 3): GMID_RED_CAPTURE=C:/g9/r3/out/red_T.jsonl GMID_INTERFACE_CARD=C:/g9/r3/iso/docs/02-design/specs/20260929-probe-engine-dup.interface.md PYTHONPYCACHEPREFIX=C:/g9/r3/pyc_full_iso PYTHONPATH=<캐시> C:/Python314/python.exe -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g9/r3/iso --confcutdir=C:/g9/r3/iso -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g9/r3/iso/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider; 해시 재계산 PYTHONPATH=<캐시> $PY -P -c merge_gate.red_failure_hash(test_id, ModuleNotFoundError)",
+      "green: V1 형태로 C:/g9/r3/m/skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py -v -p no:cacheprovider -> 43 passed",
+      "계약 1 독립: C:/Python314/python.exe -P C:/g9/r3/scripts/scan_probe.py C:/g9/r3/m C:/g9/r3/out7/scan_probe.json C:/g9/r3/scan_tmp (실행 뒤 복제본에 생긴 tools/__pycache__는 V1 전에 지웠고 V1은 PYTHONPYCACHEPREFIX 사용)",
+      "계약 2: C:/Python314/python.exe -P C:/g9/r3/m/skills/analog-gmid-design/assets/tests/tools/engine_dup_scan.py --root C:/g9/r3/m (-> exit 0), 같은 스크립트 --root C:/g9/r3/base (-> exit 1, 18건), --root C:/g9/r3/m/skills (-> exit 0, 출력 0)",
+      "계약 3(순서 3): C:/Python314/python.exe C:/g9/r3/scripts/ast_cmp.py C:/g9/r3/iso fb8ee35 bc9c6c2 C:/g9/r3/out/ast_cmp.json; C:/Python314/python.exe C:/g9/r3/scripts/run_probes.py C:/g9/r3/out/probes <코드 바뀐 probe 10개>; C:/Python314/python.exe C:/g9/r3/scripts/cmp_probes.py C:/g9/r3/out/probes C:/g9/r3/out/probe_cmp.json; 병합본 적용: git -C C:/g9/r3/m diff --name-only bc9c6c2 427b0c3 -- skills/analog-gmid-design/assets/tests/probes (0줄)",
+      "계약 4~7: git -C C:/g9/r3/m grep -l derived_spec fb8ee35 -- <A>/tests/probes (14) / 427b0c3 (0); git -C C:/g9/r3/m diff --name-only fb8ee35 427b0c3 -- ':(exclude)skills/analog-gmid-design/assets/tests/**' (0줄); 같은 diff -- <A>/tests/unit <A>/tests/probe_physical_consistency.py (0줄)",
+      "V3: 도구 C:/Python314/python.exe <캐시>/mutate_changed.py 대상 밖(A/tests/tools) -- 대신 C:/Python314/python.exe C:/g9/r3/scripts/mut_scanner.py C:/g9/r3/mut <캐시> C:/g9/r3/out7/mut_scanner.jsonl",
+      "V4: C:/Python314/python.exe <캐시>/test_lint.py --root C:/g9/r3/m --base fb8ee353fd856f12cddaa04991f57813e84eae8c --head 427b0c353b6b4edd5acae9240513892aaf85d456 --module-dir skills/analog-gmid-design/assets/tests/tools --subject engine_dup_scan:scan_source --subject engine_dup_scan:main (--interface-card 단독은 ERROR exit 2)",
+      "V5: C:/Python314/python.exe <캐시>/weakening_diff.py --root C:/g9/r3/m --base fb8ee353fd856f12cddaa04991f57813e84eae8c --head 427b0c353b6b4edd5acae9240513892aaf85d456 (순서 3: --root C:/g9/r3/iso --head bc9c6c2)",
+      "V6: C:/Python314/python.exe <캐시>/source_lint.py --root C:/g9/r3/m --base fb8ee353fd856f12cddaa04991f57813e84eae8c --head 427b0c353b6b4edd5acae9240513892aaf85d456",
+      "V7: C:/Python314/python.exe <캐시>/reachability.py --root C:/g9/r3/m --base fb8ee353fd856f12cddaa04991f57813e84eae8c --head 427b0c353b6b4edd5acae9240513892aaf85d456",
+      "<캐시> = C:/g9/r3/gmid-gate-cache/fb8ee353fd856f12cddaa04991f57813e84eae8c. 순서 3 기록(freeze·blob 대조·base red·수집·V5 base->T·probe 출력 비교·E-LIB/E-INST 판단)은 .ai/verification/20260929-probe-engine-dup/base_check.json"
+    ]
+  }
+}

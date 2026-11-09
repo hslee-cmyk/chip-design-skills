@@ -1,0 +1,15 @@
+P0 = dd60db6515b6fe80ab16349835c19aa75d4f292f
+docstring 언급 수정 위치(B): [('SemiEmpiricalGmIdLUT.vgs_for_gm_id', 627, 'solve_diode_stack_current'), ('_invert_gm_id_for_current', 1475, 'solve_diode_stack_current'), ('achievable_metric_bound', 7659, 'derived_bounds_path'), ('optimize_full_circuit_budget', 9042, 'solve_diode_stack_current'), ('find_hub_merge_candidates', 2657, 'check_multi_leaf_hub_parity'), ('find_hub_merge_candidates', 2659, 'check_multi_leaf_hub_parity'), ('assign_finger_geometry', 6019, 'estimate_area_budget'), ('search_shared_finger_w', 6169, 'check_multi_leaf_hub_parity'), ('select_layout_tool', 6960, 'estimate_area_budget')]
+== A_delete_only base dd60db65 head 9361b06d | V3 source files ['sizing_recipe.py', 'stick_diagram.py']
+   changed defs 0 | all(현 규칙 def 전체) 0 | N2b 0 | N2w(범위 정책 card 규칙) 0
+== B_delete_plus_docstrings base dd60db65 head 9961e960 | V3 source files ['sizing_recipe.py', 'stick_diagram.py']
+   changed defs 0 | all(현 규칙 def 전체) 0 | N2b 0 | N2w(범위 정책 card 규칙) 0
+GONE 잔여 AST 참조(A, assets/** + workspaces/**, 코드 커밋만 적용한 모의 head): 8
+    ('A/tests/unit/test_selftest_sizing_recipe.py', 24, 'import estimate_area_budget')
+    ('A/tests/unit/test_selftest_sizing_recipe.py', 24, 'import solve_diode_stack_current')
+    ('A/tests/unit/test_selftest_sizing_recipe.py', 654, 'solve_diode_stack_current')
+    ('A/tests/unit/test_selftest_sizing_recipe.py', 1791, 'estimate_area_budget')
+    ('A/tests/unit/test_selftest_sizing_recipe.py', 1799, 'estimate_area_budget')
+    ('A/tests/unit/test_selftest_stick_diagram.py', 24, 'import check_multi_leaf_hub_parity')
+    ('A/tests/unit/test_selftest_stick_diagram.py', 1466, 'check_multi_leaf_hub_parity')
+    ('A/tests/unit/test_selftest_stick_diagram.py', 1436, 'check_multi_leaf_hub_parity')

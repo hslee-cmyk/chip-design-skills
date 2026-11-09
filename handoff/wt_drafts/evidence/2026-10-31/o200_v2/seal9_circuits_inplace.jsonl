@@ -1,0 +1,3 @@
+{"circuit": "current_reuse_telescopic_ota", "mode": "inplace", "stageA": "ok", "stageB": "ok", "stage": "front_done", "n_front": 0, "n_pending": 0, "seal9_evals": 0, "seconds": 23.4}
+{"circuit": "nmcnr_amplifier", "mode": "inplace", "stageA": "ok", "stageB": "ok", "stage": "front_done", "n_front": 0, "n_pending": 0, "seal9_evals": 38, "seconds": 25.3}
+{"circuit": "two_stage_ota_sf", "mode": "inplace", "stageA": "ok", "stageB": "ok", "stage": "front_done", "n_front": 0, "n_pending": 0, "seal9_evals": 39, "seconds": 50.8}

@@ -1,0 +1,102 @@
+history 추가 줄 수 = 19
+«원문» 행 수 = 15
+  - **DEC-64 Q-KV1 표지(열째 커밋)**
+  - **DEC-95 (3) ② Q-KV1 표지(열째 커밋)**
+  - **DR-1 철회 목록 옛 (마) 라벨**
+  - **zg1_L 경로 표기**
+  - **N5.3 Q-KV1 행(열째 커밋)**
+  - **Status 줄(열째 커밋)**
+  - **DEC-105 (2) design 멈춤 자리 인용**
+  - **DR-1 착수 조건 N3.4 개정**
+  - **DR-1 정본 자리 기하 writer**
+  - **DR-1 완료 (9) MNA toy**
+  - **history H1 첫째 커밋 행의 design 멈춤 자리 인용(열두째 커밋 정정)**
+  - **DR-1 (b) (i) 권고 표지(열째 커밋)**
+  - **DR-1 (b) (iii) 문장(열째 커밋)**
+  - **N5.3 Q-ZG1 행 (i)~(iii)(열째 커밋)**
+  - **Status 줄(열둘째 커밋)**
+
+=== old line 11 (tag replace)
+line whole in history-added: True
+fragments missing from both new line and history-added: 0
+
+=== old line 263 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 0
+
+=== old line 294 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 0
+
+=== old line 303 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 2
+  MISS: FF, X = 쓰기 계획 종속;
+  MISS: 쓰기 계획 다음 S0 블록;
+
+=== old line 304 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 3
+  MISS: design v1.15.3 40 §3.7-A 5 멈춤 해소;
+  MISS: **실현 총 폭** = 실현 평가의 `DeviceOp.W`
+  MISS: 물리 결정자: 값을 정하는 법칙이 없는 AC 설계 변수;
+
+=== old line 567 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 1
+  MISS: , class-AB 배터리 KVL, 신호 CD 셀의 source 노드
+
+=== old line 1161 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 0
+
+=== old line 1163 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 2
+  MISS: 와 같은 기하, 미만이면 L_min에서 W로 최대 약 4.2배만 낮춤
+  MISS: 약반전 R의 PVT 지수 의존, 시간 영역 양 선언 시만 R_max = t/C.
+
+=== old line 1165 (tag replace)
+line whole in history-added: True
+fragments missing from both new line and history-added: 0
+
+=== old line 1229 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 0
+
+=== old line 1313 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 0
+
+=== old line 2207 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 0
+
+=== old line 2260 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 1
+  MISS: : 같은 card에서 아래를 '총 폭 = 그 평가의 `DeviceOp.W`
+
+=== old line 2265 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 0
+
+=== old line 2346 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 1
+  MISS: 이면 L_min에서 W를 키워 최대 약 4.2배 낮출 수 있고
+
+=== old line 2348 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 1
+  MISS: , erfc 전회로 MNA에 R_ds–C_BAT 극
+
+=== old line 2350 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 1
+  MISS: erfc_ota는 판정 기록만.
+
+=== old line 2530 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 1
+  MISS: 는 `DeviceOp.W`

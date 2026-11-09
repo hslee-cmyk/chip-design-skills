@@ -1,0 +1,8 @@
+cap_npz = C:\Users\HSLEE\Documents\Todoc\fpga\lut_data\sky130_lut_v2\sky130_nfet_pfet_lut_v2_r2.npz
+quantiles [0, .1, .5, .9, 1]
+{"kind": "nmos", "region": "WI vov<-0.1", "nodes": 137415, "dVGS_mV": [31.7811, 32.5139, 35.0963, 39.4879, 49.53], "outside_domain_frac": 0.0621, "ID_at_zero_cross_over_ID": [0.3517, 0.3623, 0.3677, 0.3679, 0.3679]}
+{"kind": "nmos", "region": "MI -0.1..0.1", "nodes": 39257, "dVGS_mV": [36.6939, 40.7951, 48.4296, 65.3229, 101.5962], "outside_domain_frac": 0.0, "ID_at_zero_cross_over_ID": [0.2733, 0.3138, 0.3459, 0.3582, 0.3622]}
+{"kind": "nmos", "region": "SI vov>0.1", "nodes": 184948, "dVGS_mV": [62.4201, 113.9017, 365.5606, 717.7054, 1451.9847], "outside_domain_frac": 0.0, "ID_at_zero_cross_over_ID": [0.0, 0.081, 0.1967, 0.2604, 0.318]}
+{"kind": "pmos", "region": "WI vov<-0.1", "nodes": 204563, "dVGS_mV": [29.0615, 29.8295, 31.9853, 55.9714, 70.5231], "outside_domain_frac": 0.0366, "ID_at_zero_cross_over_ID": [0.3406, 0.3456, 0.3673, 0.3679, 0.3752]}
+{"kind": "pmos", "region": "MI -0.1..0.1", "nodes": 39570, "dVGS_mV": [53.4857, 55.4669, 61.1877, 76.0974, 87.2256], "outside_domain_frac": 0.0, "ID_at_zero_cross_over_ID": [0.3087, 0.3229, 0.3557, 0.3691, 0.3747]}
+{"kind": "pmos", "region": "SI vov>0.1", "nodes": 117487, "dVGS_mV": [78.8174, 104.1584, 227.9303, 456.7332, 1161.8948], "outside_domain_frac": 0.0, "ID_at_zero_cross_over_ID": [0.0013, 0.1662, 0.2394, 0.2882, 0.3215]}

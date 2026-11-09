@@ -1,0 +1,1 @@
+{"tool": "V3", "verdict": "PASS", "targets": ["skills/analog-gmid-design/assets/stick_diagram.py"], "mutants": 26, "killed": 24, "survivors": [], "survivor_bindings": [], "exempt_ignored": [{"id": "stick_diagram:save_instance_json:stmt_delete:body[2]", "reason": "unbound"}, {"id": "stick_diagram:save_instance_json:stmt_delete:body[2].body[0]", "reason": "unbound"}]}

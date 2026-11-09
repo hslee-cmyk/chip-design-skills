@@ -1,0 +1,19 @@
+L304 RESIDUAL del='점이다(v6.38.4' ins='점이다.' | rd='점이다v6384' ri='점이다'
+L304 RESIDUAL del='스무째' ins='(A)' | rd='스무째' ri='A'
+L304 RESIDUAL del='커밋 계획 검증 8 m1). 실측(`wt/_drafts/evidence/2026-10-29/handcalc_principle_audit/p8_exact_slice.summary.json`, 65 소자-점): \\|r\\| 중앙 1.1×10⁻⁴, ≤ 10 % 58/65, 최대 37 %(\\|r\\| > 10 % 7점은 모두 m = 1 좁은 pfet -- two_stage_ota M4 2점·two_stage_ota_sf M4 5점, 2/9 회로). ΔVGS 추정은 r 10 %·gm/ID 15 → 6 mV, r 37 %·gm/ID 10 → 31' ins='잔차' | rd='커밋실측`wt/_drafts/evidence/20261029/handcalc_principle_audit/p8_exact_slicesummaryjson`65소자점\\|r\\|중앙11×10⁻⁴≤10%58/65최대37%\\|' ri='잔차'
+L304 RESIDUAL del='card' ins='N5.3' | rd='card' ri='N53'
+L304 RESIDUAL del='WB-1' ins='Q-P8' | rd='WB1' ri='QP8'
+L304 RESIDUAL del='착수' ins='행과' | rd='착수' ri='행과'
+L304 RESIDUAL del='실측).' ins="history H2 ' 분량 정리' 행." | rd='실측' ri="historyH2'분량정리'행"
+L304 RESIDUAL del='재측정**(n/9' ins='재측정' | rd='재측정n/9' ri='재측정'
+L304 RESIDUAL del='-- `wt/_drafts/evidence/2026-10-29/plan_v6384/p8_finger/`·검증 1 `p8_recount/continuum.out.json`; 지금 LUT 슬라이스 기준, (E) 슬라이스 추가 뒤 다시 잼): 측정 가능 5회로 소자-점 65(current_reuse·sf_pushpull 봉인점 0·ngcc 단계 B 정지·common_gate 종속 소자 0' ins='기록' | rd='`wt/_drafts/evidence/20261029/plan_v6384/p8_finger/`검증1`p8_recount/continuumoutjson`지금LUT슬라이스기준E슬라이스추가뒤다시잼측정가능5회로소자점65cu' ri='기록'
+L304 RESIDUAL del='측정' ins='history' | rd='측정' ri='history'
+L304 RESIDUAL del='불능' ins='H2' | rd='불능' ri='H2'
+L304 RESIDUAL del='4회로),' ins="'" | rd='4회로' ri="'"
+L304 RESIDUAL del='옛' ins='분량' | rd='옛' ri='분량'
+L304 RESIDUAL del='반복' ins="정리'" | rd='반복' ri="정리'"
+L304 RESIDUAL del="= 수렴 53·순환 4·W_min 아래 8; 연속해 판정으로 옛 거부 12점 가운데 9점이 해를 갖고 실현 불능은 3점(folded 52 M10 -- 기준 폭에서 이미 W 0.38 µm < W_min, two_stage_ota_sf 1·11 M4) -- 해당 회로 3/9(folded·two_stage_ota·two_stage_ota_sf); 격자 일치 판정은 보간 변수(w 대 1/w)에 따라 '해 있음'이 61 대 57로 흔들려 쓰지 않는다; 옛 반복이 수렴한 점에서 선택이 다른 점 4/53(folded M10 3점 -- 0.52·" ins='행.' | rd='=수렴53순환4W_min아래8연속해판정으로옛거부12점가운데9점이해를갖고실현불능은3점folded52M10기준폭에서이미W038µm<W_mintwo_stage_ota_sf111M4해당회로3/9foldedtwo_stage_' ri='행'
+L2272 RESIDUAL del='0 -- v6.38.4 스무째 커밋 계획 검증 8 m4) -- 계획 검증 1 m-5·검증 2 m-9).' ins='0)).' | rd='0검증2m9' ri='0'
+edits 128, residual(non-marker) 16
+remaining 'v6\\.38\\.4 (?:첫|둘|셋|넷|다섯|여섯|일곱|여덟|아홉|열|열한|열두|열둘|열셋|열넷|열다섯|열여섯|열일곱|열여덟|열아홉|스무|스물한)째 커밋': total 14, in Status L11: 12
+remaining '계획 검증 \\d+': total 9, in Status L11: 7

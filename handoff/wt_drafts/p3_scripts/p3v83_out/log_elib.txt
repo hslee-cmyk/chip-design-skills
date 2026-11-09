@@ -1,0 +1,144 @@
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=6s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib.py C:/g149/el_base C:/g149/out_e/base_elib.json
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib_p3.py C:/g149/el_base C:/g149/out_e/base_elibp3_nomask.json
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=6s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib_p3.py C:/g149/el_base C:/g149/out_e/base_elibp3.json rails
+E-LIB c121333162fade9e9a1f0b2d81f8ca37c835edf9fc818cd88c0aecefbfcae2e8
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib.py C:/g149/el_p1 C:/g149/out_e/p1_elib.json
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=4s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib_p3.py C:/g149/el_p1 C:/g149/out_e/p1_elibp3.json rails
+E-LIB e01c7b5202f29591631e1a943f135b3caff971603d144abc328f0d6549b6f11c
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib.py C:/g149/el_p2 C:/g149/out_e/p2_elib.json
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=6s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib_p3.py C:/g149/el_p2 C:/g149/out_e/p2_elibp3.json rails
+E-LIB e044f2868727f2ef228ccc93f90ce338afa56148a683b9738af43e32184eee7e
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib.py C:/g149/el_p3 C:/g149/out_e/p3_elib.json
+E-LIB 36d01e94201629727178e4db0d9f606d6013b4f44fcab4d896fc3c31178b499e
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=6s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib_p3.py C:/g149/el_p3 C:/g149/out_e/p3_elibp3.json rails
+E-LIB 1ee707d20a5d9f97a98b6d082fef00ebaf477e426e1458ded09e7cf62a2a7bf2
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib.py C:/g149/el_p4 C:/g149/out_e/p4_elib.json
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=6s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib_p3.py C:/g149/el_p4 C:/g149/out_e/p4_elibp3.json rails
+E-LIB 9812155eb450d73f570a7d39864e9cf12553c5a0c557dfa1032bd9626e295995
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=6s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib.py C:/g149/el_p5 C:/g149/out_e/p5_elib.json
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/g149/work/e_lib_p3.py C:/g149/el_p5 C:/g149/out_e/p5_elibp3.json rails
+DONE

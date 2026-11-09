@@ -1,0 +1,10 @@
+floorplan.aspect_ratio=3.278(<= 1.5 ? False), packing_density=0.989(>= 0.5 ? True) -- 정본 판정=floorplan_ok=False, row_split={}
+OK -- theta_star: {'Ibg': 5e-07, 'r_split_M1_M2': 0.5, 'r_mirror_M3_M4': 1.5, 'kcl_fold_M6': 1.0, 'kcl_fold_M5': 1.0}
+audit_ok: False
+metrics: {'power_uA': 9.5, 'gain_db': 41.05571897348187, 'pm_deg': 87.21814139323817, 'cmrr_db': 23.614168894383155, 'psrr_db': 29.04206290435072}
+[SKIP] run_full_circuit_audit_from_topology() 실패(topology.json에 _netlist_sections_structured가 없는 등 별개 gap일 수 있음): C:\g299\eq\skills\analog-gmid-design\assets\library\folded_cascode.topology.json에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from_topology()는 expected_counts를 자동 도출할 수 없다(prose _netlist_sections를 구조화된 dict로 먼저 변환할 것, 세션20 참고).
+box_shape.ok=False(참고용) rectangular=False width_ratio=2.500 approx=False row_widths={'biasgen_mp': 1.7000000000000002e-06, 'col_m3': 6.800000000000001e-07, 'col_m5': 1.7000000000000002e-06, 'col_m6': 1.7000000000000002e-06, 'col_m10': 1.225e-06, 'col_m7': 1.225e-06, 'col_m8': 9.8e-07, 'biasgen_mn': 9.8e-07, 'col_m1_repair0_repair0_repair0_repair0': 6.800000000000001e-07, 'col_m1_repair0_repair0_repair0_repair1': 6.800000000000001e-07} row_heights={'biasgen_mp': 2.7726288589701956e-05, 'col_m3': 1.0172127731792665e-06, 'col_m5': 3.9009449947758596e-05, 'col_m6': 3.96687998487307e-05, 'col_m10': 3.9009449947758596e-05, 'col_m7': 3.050318791456732e-05, 'col_m8': 1.415509804315073e-05, 'biasgen_mn': 2.7726288589701956e-05, 'col_m1_repair0_repair0_repair0_repair0': 1.704328520953336e-06, 'col_m1_repair0_repair0_repair0_repair1': 1.704328520953336e-06}
+floorplan.aspect_ratio=3.278 packing_density=0.989 (정본 판정=floorplan_ok=False)
+coverage.ok=True missing=set()
+instance.json 저장: C:\g299\eq\workspaces\folded-cascode-report\folded_cascode.instance.json (audit_ok=False -- audit_row_split에 남은 FAIL 항목 그대로 저장됨; floorplan_ok=False -- 자동 재시도로도 못 고침(빈 공간 많거나 종횡비 초과), 그대로 저장됨)
+report.html 생략(full_circuit_audit 실패로 assemble_report_data 입력 불완전)

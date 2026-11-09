@@ -1,0 +1,32 @@
+base g1=None kinds=None best=None
+   L_nm=[('M1', 150), ('M2', 150), ('M3', 150), ('M5', 150), ('M6', 150), ('M8', 150)] conf=[]
+base front=0 sealed=39 {'area_search_m2<=': (38, 7110199.194), 'gain_ss_db>=': (0, -2.251), 'rout_ss_ohm<=': (20, 785.902), 'gbw_ss_hz>=': (19, 0.76), 'offset_excess<=': (5, 1.169), 'noise_excess_th<=': (39, 2.666), 'pm_ss_deg>=': (19, 1.223)} M8_L=[150, 152, 154, 155, 157]
+ga g1=[27.190799161690933, 30.10437702951951, -0.29517619121044225] kinds=None best=None
+   L_nm=[('M1', 232), ('M2', 232), ('M3', 232), ('M5', 258), ('M6', 258), ('M8', 20000)] conf=["StartConflict(device='M8', quantity='L', bounds=(('gain_l_6.4_1', -0.29517619121044225),), gap=1.6173502513807014)", "StartConflict(device='M8', quantity='L', bounds=(('l_class_intersection', 1.9999999999999998e-05), ('l_class_intersection', 8e-06)), gap=1.1999999999999999e-05)"]
+ga front=0 sealed=54 {'area_search_m2<=': (54, 2236636.987), 'gain_ss_db>=': (35, 1.442), 'rout_ss_ohm<=': (51, 41.329), 'gbw_ss_hz>=': (0, -0.83), 'offset_excess<=': (34, 31.834), 'noise_excess_th<=': (54, 3.425), 'pm_ss_deg>=': (54, 24.469)} M8_L=[20000]
+da1 g1=[27.190799161690933, 30.10437702951951, -0.29517619121044225] kinds=['gain', 'gain', 'buffer'] best=None
+   L_nm=[('M1', 232), ('M2', 232), ('M3', 232), ('M5', 258), ('M6', 258), ('M8', 150)] conf=[]
+da1 front=0 sealed=39 {'area_search_m2<=': (39, 7083164.689), 'gain_ss_db>=': (0, -1.676), 'rout_ss_ohm<=': (39, 615.169), 'gbw_ss_hz>=': (1, 0.645), 'offset_excess<=': (4, 3.843), 'noise_excess_th<=': (39, 3.423), 'pm_ss_deg>=': (19, 2.586)} M8_L=[150, 152, 154, 155, 157]
+da1m g1=[27.190799161690933, 30.10437702951951, -0.29517619121044225] kinds=['gain', 'gain', 'buffer'] best=None
+   L_nm=[('M1', 232), ('M2', 232), ('M3', 232), ('M5', 258), ('M6', 258), ('M8', 150)] conf=[]
+da1m front=0 sealed=39 {'area_search_m2<=': (39, 7083164.689), 'gain_ss_db>=': (0, -1.676), 'rout_ss_ohm<=': (39, 615.169), 'gbw_ss_hz>=': (1, 0.645), 'offset_excess<=': (4, 3.843), 'noise_excess_th<=': (39, 3.423), 'pm_ss_deg>=': (19, 2.586)} M8_L=[150, 152, 154, 155, 157]
+da2 g1=[27.190799161690933, 30.10437702951951, -0.29517619121044225] kinds=['gain', 'gain', 'buffer'] best=[{'members': ['M8'], 'best_db': -1.7380007030953997, 'best_L': 5e-07, 'target': -0.29517619121044225}]
+   L_nm=[('M1', 232), ('M2', 232), ('M3', 232), ('M5', 258), ('M6', 258), ('M8', 500)] conf=["StartConflict(device='M8', quantity='L', bounds=(('gain_l_6.4_1', -0.29517619121044225),), gap=1.4428245118849574)"]
+da2 front=0 sealed=39 {'area_search_m2<=': (39, 6989175.096), 'gain_ss_db>=': (0, -2.075), 'rout_ss_ohm<=': (19, 226.702), 'gbw_ss_hz>=': (0, -0.855), 'offset_excess<=': (18, 16.187), 'noise_excess_th<=': (39, 3.607), 'pm_ss_deg>=': (39, 5.505)} M8_L=[255, 491, 495, 496, 500]
+da3 g1=[27.050716225114723, 29.949283774885274, -0.2936554875552736] kinds=['gain', 'gain', 'buffer'] best=None
+   L_nm=[('M1', 231), ('M2', 231), ('M3', 231), ('M5', 255), ('M6', 255), ('M8', 150)] conf=[]
+da3 front=0 sealed=38 {'area_search_m2<=': (38, 7077980.184), 'gain_ss_db>=': (0, -2.258), 'rout_ss_ohm<=': (38, 1.545), 'gbw_ss_hz>=': (0, -0.947), 'offset_excess<=': (2, 0.633), 'noise_excess_th<=': (38, 2.943), 'pm_ss_deg>=': (38, 3.301)} M8_L=[150, 155]
+=== uncovered
+cnr_ota stage_a=stopped stop=['unsupported_rule_branch|cs_output_low_impedance|loop:x47.M1:VCBN2|VCBN2|이득 블록 출력노드의 임피던스 등급이 낮다(CS 버퍼·종단 diode 부하)', 'unsupported_rule_bra
+common_gate_amplifier n_theta=6 n_rungs=7 missing={'current': ['M3'], 'y': ['input_common_mode', 'vout']} r_vars=[] c_vars=[]
+current_reuse_telescopic_ota n_theta=38 n_rungs=7 missing={'capacitance': ['Cc2'], 'current': ['M18a', 'M19', 'M1a', 'M25', 'M36a', 'M36b', 'M39'], 'resistance': ['R2'], 'y': ['input_common_mode']} r_vars=['R2'] c_vars=['Cc2']
+erfc_ota stage_a=stopped stop=['A1_load: {\'class\': \'SCHEMA_REJECTED\', \'devices\': [], \'margin\': None, \'detail\': {\'gate\': \'spec_load\', \'hits\': (SchemaHit(ru
+folded_cascode n_theta=16 n_rungs=7 missing={'current': ['M3', 'M4', 'M5', 'M6', 'MP'], 'y': ['Y', 'input_common_mode', 'out']} r_vars=[] c_vars=[]
+ngcc_3stage_ff n_theta=21 n_rungs=7 missing={'current': ['M5', 'M6A'], 'y': ['Vout', 'input_common_mode']} r_vars=[] c_vars=['Cm1', 'Cm2']
+nmcnr_amplifier n_theta=23 n_rungs=7 missing={'current': ['M108', 'M109', 'M302', 'RL'], 'y': ['NodeF2', 'input_common_mode']} r_vars=[] c_vars=['Cm1', 'Cm2']
+pushpull_follower_buffer n_theta=8 n_rungs=7 missing={'current': ['M2', 'M4', 'M5']} r_vars=[] c_vars=[]
+r2r_opamp stage_a=stopped stop=['unsupported_rule_branch|loop_record_only|transfer:0|n_fn1,n_mn|global_feedback_or_cross_coupled', 'unsupported_rule_branch|loop_record_onl
+rfc_ota stage_a=review_needed stop=[]
+sf_pushpull_output_opamp n_theta=26 n_rungs=7 missing={'current': ['M9', 'R1c'], 'resistance': ['R1a', 'R1b', 'R1c'], 'y': ['N20']} r_vars=['R1a', 'R1b', 'R1c'] c_vars=['Cc']
+two_stage_ota n_theta=10 n_rungs=6 missing={'y': ['OUT', 'input_common_mode']} r_vars=[] c_vars=['Cc']
+two_stage_ota_sf n_theta=12 n_rungs=7 missing={'y': ['OUT', 'input_common_mode']} r_vars=[] c_vars=['Cc']

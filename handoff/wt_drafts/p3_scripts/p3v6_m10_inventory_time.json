@@ -1,0 +1,20 @@
+{
+ "inventory_count": 60,
+ "by_file": {
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py": 2,
+  "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py": 24,
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py": 5,
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py": 1,
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py": 1,
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py": 3,
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": 22,
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": 2
+ },
+ "pytest_exit": 0,
+ "wall_s": 143.4,
+ "tail": [
+  "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33mx\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33mx\u001b[0m\u001b[32m.\u001b[0m\u001b[32m [ 97%]",
+  "\u001b[0m\u001b[33mx\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                       [100%]\u001b[0m",
+  "\u001b[32m\u001b[32m\u001b[1m71 passed\u001b[0m, \u001b[33m3 xfailed\u001b[0m\u001b[32m in 140.80s (0:02:20)\u001b[0m\u001b[0m"
+ ]
+}

@@ -1,0 +1,2 @@
+oracle-portability.plan:512: cols 7 vs header 5: | OP-10 (v0.6.9 신설) | **슬루율 `.tran` 측정 card**(O-33 (6), N3.9). (v0.6.22 백로그 재감사 OP-B4: 정의 = N3.9 슬루 행 인용, 계단 전달 절차 = design DR-27 -- 옛 'ICMR 끝' 계단·확정 
+oracle-portability.plan:593: cols 6 vs header 4: | G-19 | (v0.6.9, N3.9) (v0.6.22 백로그 재감사 OP-B4: 슬루 계단 = N3.9 슬루 행 인용, 전달 절차 = DR-27; 옛 'ICMR 끝' 계단 문언은 history) **정의를 정하지 않는다**(v0.6.9 둘째 판): 슬루 측정 조건

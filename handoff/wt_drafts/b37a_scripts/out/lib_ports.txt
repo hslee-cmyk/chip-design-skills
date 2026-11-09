@@ -1,0 +1,66 @@
+== _TEMPLATE.topology.json
+ supply_nets=None linked=[]
+ ports=null
+ passive keys=[] ideal keys=[]
+== common_gate_amplifier.topology.json
+ supply_nets=['vdd', 'gnd'] linked=[]
+ ports={"_comment": "입력 전압원이 `vin`을 직접 구동한다(그림의 vIN 소스). `VNBias1`/`VNBias2`/`VPBias1`은 gate에만 붙고 구동되지 않는 넷이라 포트가 아니라 교류접지다(N3.2-1 (2)). 단일 입력이라 차동 역할이 아니다.", "vin": {"role": "single_ended_input", "direction": "input"}, "vout": {"role": "single_ended_output", "direction": "output"}}
+ passive keys=[] ideal keys=[]
+   port vin        in_netlist_terminals=True in_supply=False
+   port vout       in_netlist_terminals=True in_supply=False
+== current_reuse_telescopic_ota.topology.json
+ supply_nets=['vdd', 'gnd'] linked=None
+ ports={"_comment": "2026-08-03(사용자 확인) -- 이 회로(opamp)의 최상위 4개 differential I/O 신호 역할 명시. netlist connectivity 자체는 안 바꾸고 순수 문서화 목적(예: 향후 report/testbench 생성 스크립트가 '어느 net이 입력/출력인지'를 topology.json에서 바로 읽을 수 있게).", "Vip": {"role": "differential_input_p", "direction": "input"}, "Vim": {"role": "differential_input_n", "direction": "input"}, "Vop": {"role": "differential_output_p", "direction": "output"}, "Vom": {"role": "differential_output_n", "direction": "output"}}
+ passive keys=['_comment', '_value_from_spec_comment', 'kind', 'name', 'nulling_reference_device', 'terminals', 'value_farad', 'value_from_spec', 'value_ohm'] ideal keys=['_comment', '_value_amp_status', 'implementable', 'kind', 'name', 'terminals', 'value_amp']
+   port Vip        in_netlist_terminals=True in_supply=False
+   port Vim        in_netlist_terminals=True in_supply=False
+   port Vop        in_netlist_terminals=True in_supply=False
+   port Vom        in_netlist_terminals=True in_supply=False
+== folded_cascode.topology.json
+ supply_nets=['vdd', 'gnd'] linked=None
+ ports={"_comment": "2026-09-17 신설(사용자 확정: input = M1.gate / M2.gate, output = M6.drain = M8.drain). N3.2-2 기본 전달 뷰를 만들려면 필요하다(U-08, 6a 착수 조건). 극성 정정 뒤 기준이라 이름과 역할이 일치한다(vin_p -> v(out) 동상). bias3은 gate에만 붙고 구동되지 않는 넷이라 포트가 아니라 교류접지다(N3.2-1 (2)).", "vin_p": {"role": "differential_input_p", "direction": "input"}, "vin_n": {"role": "differential_input_n", "direction": "input"}, "out": {"role": "single_ended_output", "direction": "output"}}
+ passive keys=[] ideal keys=['_comment', 'implementable', 'kind', 'name', 'terminals', 'value_amp']
+   port vin_p      in_netlist_terminals=True in_supply=False
+   port vin_n      in_netlist_terminals=True in_supply=False
+   port out        in_netlist_terminals=True in_supply=False
+== ngcc_3stage_ff.topology.json
+ supply_nets=['vdd', 'gnd'] linked=[]
+ ports={"Vinn": {"role": "differential_input_n", "direction": "input"}, "Vinp": {"role": "differential_input_p", "direction": "input"}, "Vout": {"role": "single_ended_output", "direction": "output"}}
+ passive keys=['_comment', 'kind', 'name', 'terminals', 'value_farad'] ideal keys=[]
+   port Vinn       in_netlist_terminals=True in_supply=False
+   port Vinp       in_netlist_terminals=True in_supply=False
+   port Vout       in_netlist_terminals=True in_supply=False
+== nmcnr_amplifier.topology.json
+ supply_nets=['vdd', 'vss'] linked=[]
+ ports={"_comment": "2026-09-17 신설(사용자 확정: input = M102.gate / M103.gate, output = M301.drain = M302.drain). N3.2-2 기본 전달 뷰를 만들려면 필요하다(U-08, 6a 착수 조건). connectivity는 건드리지 않고 역할만 적는다. 극성은 넷 이름을 믿지 않고 독립 소신호 해석으로 확인했다(2026-09-17 `review9_input_polarity_probe`): Vin_p -> v(Vout) 동상, Vin_n -> 역상이라 이름과 역할이 일치한다. VB1~VB5는 gate에만 붙고 구동되지 않는 넷이라 포트가 아니라 교류접지다(N3.2-1 (2)).", "Vin_p": {"role": "differential_input_p", "direction": "input"}, "Vin_n": {"role": "differential_input_n", "direction": "input"}, "Vout": {"role": "single_ended_output", "direction": "output"}}
+ passive keys=[] ideal keys=[]
+   port Vin_p      in_netlist_terminals=True in_supply=False
+   port Vin_n      in_netlist_terminals=True in_supply=False
+   port Vout       in_netlist_terminals=True in_supply=False
+== pushpull_follower_buffer.topology.json
+ supply_nets=['vdd', 'vss', 'agnd'] linked=[]
+ ports={"vin": {"role": "single_ended_input", "direction": "input"}, "vout": {"role": "single_ended_output", "direction": "output"}}
+ passive keys=['_comment', 'kind', 'name', 'terminals', 'value_farad'] ideal keys=[]
+   port vin        in_netlist_terminals=True in_supply=False
+   port vout       in_netlist_terminals=True in_supply=False
+== sf_pushpull_output_opamp.topology.json
+ supply_nets=['vdd', 'vss', 'agnd'] linked=[]
+ ports={"vin_p": {"role": "differential_input_p", "direction": "input"}, "vin_n": {"role": "differential_input_n", "direction": "input"}, "vout": {"role": "single_ended_output", "direction": "output"}}
+ passive keys=['_comment', 'kind', 'name', 'terminals', 'value_farad', 'value_ohm'] ideal keys=['_comment', 'implementable', 'kind', 'name', 'terminals', 'value_amp']
+   port vin_p      in_netlist_terminals=True in_supply=False
+   port vin_n      in_netlist_terminals=True in_supply=False
+   port vout       in_netlist_terminals=True in_supply=False
+== two_stage_ota.topology.json
+ supply_nets=['vdd', 'gnd'] linked=None
+ ports={"_comment": "2026-09-10 -- 입력환산 오프셋 metric(input_referred_offset)이 '게이트가 **신호 입력**에 물린 매칭 쌍'만 세려면 어느 net이 입력인지 선언이 필요하다(파일럿 실측: offset 쌍 3개 중 하나는 CMFB 오차증폭기라 그 구분이 실제로 결과를 바꾼다). net 이름 자체가 vin_p/vin_n이고 이 회로의 유일한 differential 입력쌍 M1/M2의 게이트다 -- connectivity는 안 건드리고 역할만 적는다. current_reuse_telescopic_ota의 ports 선언과 같은 형식. 2026-09-17 출력 포트 `OUT` 추가(사용자 확정, M6.drain = M7.drain). N3.2-2 기본 전달 뷰에 출력 포트 선언이 필요하다(U-08, 6a 착수 조건). 넷 이름은 `OUT` 그대로 둔다 -- 이름 통일은 Phase 4 이름 마이그레이션 단위이고 지금은 포트 선언만 한다(사용자 결정). 이 회로는 이미 `sizing_roles`의 gain metric이 `sense_p: OUT`으로 이 넷을 출력으로 쓰고 있었고 선언만 빠져 있었다. 극성 독립 확인(2026-09-17 `review9_input_polarity_probe`): vin_p -> v(OUT) 동상, vin_n -> 역상이라 이름과 역할이 일치한다.", "vin_p": {"role": "differential_input_p", "direction": "input"}, "vin_n": {"role": "differential_input_n", "direction": "input"}, "OUT": {"role": "single_ended_output", "direction": "output"}}
+ passive keys=[] ideal keys=[]
+   port vin_p      in_netlist_terminals=True in_supply=False
+   port vin_n      in_netlist_terminals=True in_supply=False
+   port OUT        in_netlist_terminals=True in_supply=False
+== two_stage_ota_sf.topology.json
+ supply_nets=['vdd', 'gnd'] linked=[]
+ ports={"vin_p": {"role": "differential_input_p", "direction": "input"}, "vin_n": {"role": "differential_input_n", "direction": "input"}, "vout": {"role": "single_ended_output", "direction": "output"}}
+ passive keys=['_comment', 'kind', 'name', 'terminals', 'value_farad'] ideal keys=[]
+   port vin_p      in_netlist_terminals=True in_supply=False
+   port vin_n      in_netlist_terminals=True in_supply=False
+   port vout       in_netlist_terminals=True in_supply=False

@@ -1,0 +1,1 @@
+{"rule": "df23-section", "section": "8", "name": "title", "detail": "`## 8.` DF-23 제목 줄이 없다"}

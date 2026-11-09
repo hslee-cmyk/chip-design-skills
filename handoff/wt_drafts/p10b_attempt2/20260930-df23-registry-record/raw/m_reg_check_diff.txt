@@ -1,0 +1,206 @@
+diff --git a/skills/analog-gmid-design/assets/tests/tools/reg_check.py b/skills/analog-gmid-design/assets/tests/tools/reg_check.py
+index 74c5f91..38367fd 100644
+--- a/skills/analog-gmid-design/assets/tests/tools/reg_check.py
++++ b/skills/analog-gmid-design/assets/tests/tools/reg_check.py
+@@ -15,6 +15,7 @@
+ import argparse
+ import ast
+ import json
++import os
+ import pathlib
+ import re
+ import sys
+@@ -156,6 +157,167 @@ def check(registry_text: str, engine_names: set) -> list:
+     return findings
+ 
+ 
++_DF23_BEHAVIOR = "동작을 정함"
++_DF23_NEW = "신규"
++_DF23_DF_RE = re.compile(r"^DF-(\d+)")
++_DF23_PATH_RE = re.compile(r"^목록:\s*`([^`]*)`")
++_DF23_MEASURED_RE = re.compile(r"^measured_at:\s*`([^`]*)`")
++_DF23_HDR_81 = ["축", "값", "항목 수"]
++_DF23_HDR_82 = ["함수", "파일", "항목 수", "DF", "담당 Phase"]
++_DF23_ITEM_KEYS = ("file", "function", "role", "phase", "plan_mapping")
++
++
++def _df23_expected(inventory):
++    """목록 items에서 §8.1·§8.2 기대 값을 계산한다. 입력 오류는 ValueError."""
++    if not isinstance(inventory, dict) or "measured_at" not in inventory or "items" not in inventory:
++        raise ValueError("목록에 measured_at·items가 없다")
++    items = inventory["items"]
++    if not isinstance(items, list):
++        raise ValueError("목록 items가 목록이 아니다")
++    totals = {}
++    groups = {}
++    base_files = {}
++    for idx, it in enumerate(items):
++        if not isinstance(it, dict):
++            raise ValueError(f"항목 {idx}가 dict가 아니다")
++        for k in _DF23_ITEM_KEYS:
++            if k not in it:
++                raise ValueError(f"항목 {idx}에 {k} 필드가 없다")
++        fn, file = it["function"], it["file"]
++        if not isinstance(fn, str) or fn == "":
++            raise ValueError(f"항목 {idx}의 function이 빈 값이다")
++        base = str(file).replace("\\", "/").rsplit("/", 1)[-1]
++        base_files.setdefault(base, set()).add(file)
++        for axis in ("role", "phase"):
++            key = (axis, str(it[axis]))
++            totals[key] = totals.get(key, 0) + 1
++        if it["role"] == _DF23_BEHAVIOR:
++            pm = it["plan_mapping"]
++            m = _DF23_DF_RE.match(pm) if isinstance(pm, str) else None
++            if not m and not (isinstance(pm, str) and pm.startswith(_DF23_NEW)):
++                raise ValueError(f"항목 {idx}의 plan_mapping이 DF 번호도 {_DF23_NEW}도 아니다: {pm!r}")
++            g = groups.setdefault(("`" + fn + "`", base), {"n": 0, "df": set(), "new": False, "ph": set()})
++            g["n"] += 1
++            if m:
++                g["df"].add(int(m.group(1)))
++            else:
++                g["new"] = True
++            g["ph"].add(str(it["phase"]))
++    for base, files in base_files.items():
++        if len(files) > 1:
++            raise ValueError(f"서로 다른 file 값이 같은 파일 이름 {base!r}을 가진다")
++    exp81 = {k: str(v) for k, v in totals.items()}
++    exp82 = {}
++    for key, g in groups.items():
++        dfs = ["DF-%d" % n for n in sorted(g["df"])]
++        if g["new"]:
++            dfs.append(_DF23_NEW)
++        exp82[key] = (str(g["n"]), ", ".join(dfs), ", ".join(sorted(g["ph"])))
++    return exp81, exp82
++
++
++def _df23_rows_under(sec, sub_prefix, header):
++    """절 줄들에서 `### <sub_prefix>` 소절 아래 `header` 머리를 가진 표들의 행. 없으면 None."""
++    start = None
++    for i, ln in enumerate(sec):
++        if ln.startswith("### " + sub_prefix):
++            start = i
++            break
++    if start is None:
++        return None
++    end = len(sec)
++    for j in range(start + 1, len(sec)):
++        if sec[j].startswith("### "):
++            end = j
++            break
++    found = False
++    rows = []
++    for hdr, rws in _tables_in(sec[start + 1:end]):
++        if hdr == header:
++            found = True
++            rows += rws
++    return rows if found else None
++
++
++def check_df23(registry_text: str, inventory: dict, inventory_rel: str) -> list:
++    """레지스트리 §8(DF-23 기록)을 목록 items에서 계산한 값과 대조해 발견 목록을 돌려준다. 입력 오류는 ValueError."""
++    exp81, exp82 = _df23_expected(inventory)
++    lines = registry_text.splitlines()
++    start = None
++    for i, ln in enumerate(lines):
++        if ln.startswith("## 8.") and "DF-23" in ln:
++            start = i
++            break
++    if start is None:
++        return [_finding("df23-section", "8", "title", "`## 8.` DF-23 제목 줄이 없다")]
++    end = len(lines)
++    for j in range(start + 1, len(lines)):
++        if lines[j].startswith("## "):
++            end = j
++            break
++    sec = lines[start + 1:end]
++    findings = []
++
++    path_val = measured_val = None
++    for ln in sec:
++        m = _DF23_PATH_RE.match(ln)
++        if m and path_val is None:
++            path_val = m.group(1)
++        m = _DF23_MEASURED_RE.match(ln)
++        if m and measured_val is None:
++            measured_val = m.group(1)
++    if path_val is None:
++        findings.append(_finding("df23-section", "8", "목록", "`목록:` 줄이 없다"))
++    elif path_val != inventory_rel:
++        findings.append(_finding("df23-path", "8", path_val, f"목록 경로 != {inventory_rel!r}"))
++    if measured_val is None:
++        findings.append(_finding("df23-section", "8", "measured_at", "`measured_at:` 줄이 없다"))
++    elif measured_val != inventory["measured_at"]:
++        findings.append(_finding("df23-measured-at", "8", measured_val, f"measured_at != {inventory['measured_at']!r}"))
++
++    rows81 = _df23_rows_under(sec, "8.1", _DF23_HDR_81)
++    if rows81 is None:
++        findings.append(_finding("df23-section", "8", "8.1", "§8.1 소절 또는 표 머리가 없다"))
++    else:
++        seen = set()
++        for r in rows81:
++            r = r + [""] * (3 - len(r))
++            key = (r[0], r[1])
++            name = f"{r[0]}:{r[1]}"
++            if key in seen:
++                findings.append(_finding("df23-total", "8.1", name, "같은 (축, 값) 행이 두 번 있다"))
++            elif key not in exp81:
++                findings.append(_finding("df23-total", "8.1", name, "목록에 없는 행이다"))
++            elif r[2] != exp81[key]:
++                findings.append(_finding("df23-total", "8.1", name, f"항목 수 {r[2]!r} != {exp81[key]!r}"))
++            seen.add(key)
++        for key in exp81:
++            if key not in seen:
++                findings.append(_finding("df23-total", "8.1", f"{key[0]}:{key[1]}", "행이 빠졌다"))
++
++    rows82 = _df23_rows_under(sec, "8.2", _DF23_HDR_82)
++    if rows82 is None:
++        findings.append(_finding("df23-section", "8", "8.2", "§8.2 소절 또는 표 머리가 없다"))
++    else:
++        seen = set()
++        for r in rows82:
++            r = r + [""] * (5 - len(r))
++            key = (r[0], r[1])
++            name = f"{r[1]}::{r[0].strip('`')}"
++            if key in seen:
++                findings.append(_finding("df23-function", "8.2", name, "같은 (함수, 파일) 행이 두 번 있다"))
++            elif key not in exp82:
++                findings.append(_finding("df23-function", "8.2", name, "목록에 없는 행이다"))
++            elif tuple(r[2:5]) != exp82[key]:
++                findings.append(_finding("df23-function", "8.2", name,
++                                         f"(항목 수, DF, 담당 Phase) {tuple(r[2:5])!r} != {exp82[key]!r}"))
++            seen.add(key)
++        for key in exp82:
++            if key not in seen:
++                findings.append(_finding("df23-function", "8.2", f"{key[1]}::{key[0].strip('`')}", "행이 빠졌다"))
++    return findings
++
++
+ def _defs_of(path):
+     """소스 파일의 최상위 def·class 이름과 클래스 메서드 `Class.method`."""
+     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+@@ -188,6 +350,7 @@ def main(argv: list) -> int:
+     ap = argparse.ArgumentParser(description="함수 재사용 레지스트리 §7 검사")
+     ap.add_argument("--registry", required=True)
+     ap.add_argument("--root", required=True)
++    ap.add_argument("--df23-inventory", default=None)
+     try:
+         args = ap.parse_args(argv)
+     except SystemExit:
+@@ -200,6 +363,17 @@ def main(argv: list) -> int:
+         text = reg.read_text(encoding="utf-8")
+         names = collect_engine_names(root)
+         findings = check(text, names)
++        if args.df23_inventory is not None:
++            inv_real = os.path.realpath(args.df23_inventory)
++            root_real = os.path.realpath(str(root))
++            if os.path.commonpath([os.path.normcase(root_real), os.path.normcase(inv_real)]) != os.path.normcase(root_real):
++                raise ValueError("목록이 저장소 루트 밖이다")
++            inv_rel = "/".join(pathlib.PurePath(os.path.relpath(inv_real, root_real)).parts)
++            with open(inv_real, encoding="utf-8") as fh:
++                inventory = json.load(fh)
++            if not isinstance(inventory, dict):
++                raise ValueError("목록 최상위가 dict가 아니다")
++            findings = findings + check_df23(text, inventory, inv_rel)
+     except (OSError, UnicodeDecodeError, SyntaxError, ValueError) as e:
+         print(f"입력 오류: {e}", file=sys.stderr)
+         return 2

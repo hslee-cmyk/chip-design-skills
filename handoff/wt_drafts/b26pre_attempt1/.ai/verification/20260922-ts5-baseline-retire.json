@@ -1,0 +1,79 @@
+{
+  "id": "20260922-ts5-baseline-retire",
+  "spec_card": "docs/02-design/specs/20260922-ts5-baseline-retire.spec.md",
+  "evidence_type": "test-only",
+  "base_commit": "db3b7b9b2ca4310c2d52dc9f43f50701a761946e",
+  "test_commit": "b50cdaa421c68fa4069a4232a551096160d240e1",
+  "code_commit": null,
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "T b50cdaa421c68fa4069a4232a551096160d240e1(test-only라 병합본 = T) 격리 복제본 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2(origin 없음)에서 V1 명령(-k/--deselect/-x/-m 없음, slow 포함 전체, base 판 캐시 db3b7b9 판 pytest_gate.ini -- 복제본 tools/gates/pytest_gate.ini와 blob 5d89b982178b2e0e8d15aefd290cc5e17ab1e9c5로 base·T 같음): 48 passed(tests/tooling 34 + tests/contracts/test_ts3_no_print_verdicts.py 10 + tests/legacy/test_legacy_selftests.py 4), 실패·오류·skip·xfail·xpass 0, exit 0, 46.34s, 출력 sha256 da9b20ba70f18d4419f56273337b5192cdf7e15193030aa76f27beb6432bbfbc. tests 아래 conftest.py 없음(CC-3 미병합이라 --gmid-phase·--gmid-strict 없음). base db3b7b9에서 같은 형태 48 passed(46.50s). 실행 부산물은 무시 대상 .pytest_cache/뿐(추적 파일 변경 0)"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "test-only(계획 N3.12.3 개정 P5, spec card 판정 유형 근거 '대상 코드 불변, 삭제·문서'). code 커밋 없음: T의 부모 = base db3b7b9b2ca4310c2d52dc9f43f50701a761946e, base..T 커밋 1개(Role: test, Change-Id 일치), 변경 경로 4개 모두 A/tests 아래(추가 tests/README.md 37줄, 삭제 tests/baseline/README.md 160줄·sizing_recipe.selftest.baseline.log 361줄·stick_diagram.selftest.baseline.log 1257줄), .py 변경 0, tools/·.githooks/·대상 코드 변경 0. 계약 1: T 트리에 tests/baseline/ 아래 항목 0, 세 파일 모두 없음. 계약 2: tests/README.md(blob 6af3d27c4b4975f9d144e359952fbac259ee5455 = v5-carry 운반 blob, git 객체 sha1 재계산·바이트 일치)가 design §6.4 세 내용을 담는다 -- (a) 실행법: §6.4 명령에서 ' --gmid-phase=<Phase>'만 뺀 C6 전 명령이 그대로 있고 'C6 뒤: 위 명령 끝에 --gmid-phase=<Phase>를 붙인다' 줄 있음, (b) 판정 규칙: 'assert로만', 'print·logging 출력으로 판정하지 않는다', 'xfail은 test에 직접 쓰지 않는다. conftest가 계획서 N4.1 표로 만든다', (c) 디렉터리: 코드 블록 12줄이 계획서 N3.11 트리와 문자 단위로 같고, 현황 표(있음 legacy·contracts·tooling / 없음 conftest.py·unit·integration·regression·oracles·tools·probes)가 T 트리와 일치; README에 D5 두 문자열 없음. 계약 3: design §10 D5 명령 출력이 T에서 1줄 '.gitignore:19:!skills/analog-gmid-design/assets/tests/baseline/*.log'뿐(base 4줄: .gitignore 1 + 기준선 README 3) -- 남은 한 줄은 design §6.4·§9 C5 행의 사용자 몫(U-43, 병합 뒤 Role: user + staged_diff로 .gitignore 기준선 예외 3줄 삭제)이라 test-author 범위 밖, 오케스트레이터 지시 판정 기준 '그 한 줄뿐' 충족. 계약 4: 전체 test base 48 passed·T 48 passed, (결과, test id) 48쌍 동일; base 트리 A/tests(baseline/ 제외)에 기준선 참조 문자열 0 -- 기준선 파일을 읽는 test 없음. 상세: .ai/verification/20260922-ts5-baseline-retire/base_check.json"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "변이 대상 def 0개(대상 코드 불변). base 판 mutate_changed.py: targets 빈 목록, mutants 0, killed 0, survivors 빈 목록, exit 0. 근거: base..T diff는 A/tests 아래 비-.py 파일 4개(README 추가 1, 기준선 삭제 3)뿐이고 V3 대상은 test 분류 밖 소스 def인데 소스 변경 0. --pytest-ini는 복제본 tools/gates/pytest_gate.ini(blob 5d89b982178b2e0e8d15aefd290cc5e17ab1e9c5, base·T 같음, base..T에서 tools/·.githooks/ 변경 0)"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: base 판 test_lint.py를 interface card만으로 돌리면 ERROR(피검 심볼 없음 -- card 두 표가 비어 있다, 대상 코드 불변)라 T의 sizing_recipe·stick_diagram·design_report·topology_library 최상위 def·class 370개를 --subject로 주고 --module-dir skills/analog-gmid-design/assets로 실행: PASS, 대상 test 파일 0(base..T에 .py 변경 없음), findings 0, UNJUDGED 0, exit 0, 출력 sha256 c5b9ec127d17d768cc621769559b8ca105e559adb68b4ca174dc37333f866c83. 기대값 대조 -- 이 변경에는 새 기대값이 없다(spec card oracle '해당 없음(삭제·문서 -- design §9 C5 행)'과 일치): 추가 파일은 문서 tests/README.md이고 삭제 파일은 stdout 기준선(대조 대상에서 빠진다, TS3 뒤 판정은 assert가 한다). 남은 test 48개의 기대값은 base와 바이트 같은 파일(.py 변경 0)이라 이전 판정 기록의 oracle 대조가 그대로다"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 weakening_diff.py(base db3b7b9b2ca4310c2d52dc9f43f50701a761946e, head b50cdaa421c68fa4069a4232a551096160d240e1) 원문 요약: verdict PASS, exit 0, findings 4(모두 pattern '무조건 승인 필요', detail 'test 분류 비-.py 파일 또는 tests/conftest.py 변경', unit (파일): tests/README.md, tests/baseline/README.md, tests/baseline/sizing_recipe.selftest.baseline.log, tests/baseline/stick_diagram.selftest.baseline.log), diff_paths = 그 4 경로, diff_hash ff0e5addf1d4538f3ddaa513b041b9e9d9eb2756bf2ba61879e48f0b9c8ab047, approved true -- head 트리 .ai/approvals/20260922-ts5-baseline-retire.md(target_kind diff, target 같은 해시, 1차 시도 기준 diff_base 7781bde·diff_head 7a4bab94, 같은 4 경로, 사용자 원문 '승인, 드리프트는 DF 안 함 (Recommended)', 범위에 sizing 기준선 45줄 드리프트 삭제 포함 명시)가 덮는다. auditor가 00-common §8.2 식(경로·base blob·head blob)으로 (db3b7b9, b50cdaa)에서 해시를 다시 계산해도 같다. 해시가 같은 이유: 삭제 3파일 base blob이 7781bde와 db3b7b9에서 같고(a3c48de4·352dce4a·b6fc650b), README T blob 6af3d27c가 승인 범위의 blob과 같다(R1, 운반 blob hash 재계산 일치). 출력 sha256 앞 16자리 0949bee028f36acb(전체 값은 base_check.json v5.output_sha256 -- merge gate §9.2-9가 V5 basis의 64자리 16진을 모두 승인 target으로 대조하므로 승인 해시 외에는 두지 않는다)"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 source_lint.py: targets 빈 목록, findings 0, verdict PASS, exit 0. 소스 변경 0"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 reachability.py PASS, new_defs 빈 목록, unreached 빈 목록(대상 코드 불변)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 코드 불변(기준선 삭제·문서 추가)"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 무관(기준선 삭제·문서 추가)"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260922-10-test-separation-design",
+    "20260922-ts5-baseline-retire"
+  ],
+  "auditor_run": {
+    "time": "2026-09-22T15:40:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts5-baseline-retire-audit",
+    "commands": [
+      "격리: git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts5-baseline-retire-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2",
+      "격리: git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 remote remove origin",
+      "격리(T 측정): 복제본 HEAD = b50cdaa421c68fa4069a4232a551096160d240e1 (clone 직후, base 측정 뒤 git -C <iso> checkout -q --detach b50cdaa421c68fa4069a4232a551096160d240e1로 복귀)",
+      "격리(base 측정): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 checkout -q --detach db3b7b9b2ca4310c2d52dc9f43f50701a761946e",
+      "PY = C:/Python314/python.exe",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-out2/pyc_t_v1 PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/db3b7b9b2ca4310c2d52dc9f43f50701a761946e $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/db3b7b9b2ca4310c2d52dc9f43f50701a761946e/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2/skills/analog-gmid-design/assets/tests -rA",
+      "V1 cwd: C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2",
+      "V2 base test 집합: V1과 같은 명령을 base db3b7b9 checkout에서(PYTHONPYCACHEPREFIX만 다른 빈 디렉터리 pyc_base_v1), -rA 요약 (결과, id) 쌍 sort 뒤 diff",
+      "V2 계약 1: git -C <iso> cat-file -e b50cdaa:skills/analog-gmid-design/assets/tests/baseline/<f> (f = README.md, sizing_recipe.selftest.baseline.log, stick_diagram.selftest.baseline.log), git -C <iso> ls-tree -r HEAD --name-only | grep -c assets/tests/baseline",
+      "V2 계약 2: $PY -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-out2/readme_check.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-out2/readme_check.json",
+      "V2 계약 3(D5, T와 base 각각): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 grep -n -I -e \"tests/baseline\" -e \"selftest.baseline\" [db3b7b9] -- skills workspaces tools .gitignore \":(exclude)tools/gates/redteam\"",
+      "V3(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/db3b7b9b2ca4310c2d52dc9f43f50701a761946e/mutate_changed.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 --base db3b7b9b2ca4310c2d52dc9f43f50701a761946e --head b50cdaa421c68fa4069a4232a551096160d240e1 --pytest-ini C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --out C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-out2/v3/v3.jsonl",
+      "V4(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/db3b7b9b2ca4310c2d52dc9f43f50701a761946e/test_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 --interface-card C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2/docs/02-design/specs/20260922-ts5-baseline-retire.interface.md --base db3b7b9b2ca4310c2d52dc9f43f50701a761946e --head b50cdaa421c68fa4069a4232a551096160d240e1 (ERROR: 피검 심볼 없음)",
+      "V4(cwd iso): 같은 명령에 --module-dir skills/analog-gmid-design/assets --subject <모듈>:<이름> 370개(T sizing_recipe·stick_diagram·design_report·topology_library 최상위 FunctionDef·AsyncFunctionDef·ClassDef, ast로 추출해 outputs_dir/v4_subject_args.txt) 추가",
+      "V5(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/db3b7b9b2ca4310c2d52dc9f43f50701a761946e/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 --base db3b7b9b2ca4310c2d52dc9f43f50701a761946e --head b50cdaa421c68fa4069a4232a551096160d240e1",
+      "V5 재계산: $PY -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-out2/v5_check.py (00-common §8.2 diff 해시, 승인 머리 대조)",
+      "V6(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/db3b7b9b2ca4310c2d52dc9f43f50701a761946e/source_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 --base db3b7b9b2ca4310c2d52dc9f43f50701a761946e --head b50cdaa421c68fa4069a4232a551096160d240e1",
+      "V7 참고(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/db3b7b9b2ca4310c2d52dc9f43f50701a761946e/reachability.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 --base db3b7b9b2ca4310c2d52dc9f43f50701a761946e --head b50cdaa421c68fa4069a4232a551096160d240e1"
+    ]
+  }
+}

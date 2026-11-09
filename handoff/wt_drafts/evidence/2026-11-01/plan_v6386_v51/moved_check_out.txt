@@ -1,0 +1,6 @@
+gain-budget-gmid-sizing: removed spans>=150 = 23, found in history = 23, missing = 0
+graph-consumption: removed spans>=150 = 1, found in history = 1, missing = 0
+headroom-chain: removed spans>=150 = 0, found in history = 0, missing = 0
+offset-trim: removed spans>=150 = 0, found in history = 0, missing = 0
+oracle-portability: removed spans>=150 = 13, found in history = 12, missing = 1
+  old line 427: '꺼진 소자를 빼면 꺼지는 점이 범위 끝이 되지 않고, 또 지금 식 `|ID| > off_current_A`는 위 판정식에서 ε = 1로 둔 것과 같아 엔진 식과 다르다. 바꾼다: 꺼짐(I_off > ε·ID)은 범위 밖이고, 전도 판정은 위 엔진 식(ε = (gm/ID)·tol_V)으로'

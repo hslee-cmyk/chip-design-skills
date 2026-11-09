@@ -1,0 +1,43 @@
+rev cf26d3916c92899b015e0f3bf4944d7e8e0ca7df
+decision 기록 15
+  20260918-u38-jsonschema                       원소   1  V3 모양   0
+  20260921-f4-user-approval-row                 원소   1  V3 모양   0
+  20260921-u01-test16-intent                    원소   1  V3 모양   0
+  20260921-u39-paper-target-spec                원소   1  V3 모양   0
+  20260922-c2-extract-repro-path-line           원소   1  V3 모양   0
+  20260922-c9-ic11-split                        원소   1  V3 모양   0
+  20260922-ic3-v3-exempt                        원소  14  V3 모양  14
+  20260923-c9-v4-exempt                         원소   2  V3 모양   0
+  20260923-u02-d-list                           원소   1  V3 모양   0
+  20260929-p4-scan-exempt                       원소   1  V3 모양   0
+  20260930-b26-before-phase3                    원소   1  V3 모양   0
+  20260930-restore-unwired-until-6a             원소   2  V3 모양   0
+  20261001-b26-backfill-interdig-fix            원소   1  V3 모양   0
+  20261001-b47-md-sync                          원소   1  V3 모양   0
+  20261001-p10b-v3-equiv                        원소   9  V3 모양   9
+원소(자체 합집합) 38  _approved_ids(<rev>) 38  같음 True
+V3 모양 원소 23  그중 @ 접미사 있음 0
+  reg_check:_df23_expected:const+:body[7].body[4].value.value.args[1]  -> skills/analog-gmid-design/assets/tests/tools/reg_check.py[V3대상밖|bind 7e3615bcd78268f8]
+  reg_check:_df23_rows_under:const-:body[8].iter.args[0].slice.lower.right  -> skills/analog-gmid-design/assets/tests/tools/reg_check.py[V3대상밖|bind b3c9b826220d24c6]
+  reg_check:check_df23:arith:body[15].orelse[1].body[0].value.right.right  -> skills/analog-gmid-design/assets/tests/tools/reg_check.py[V3대상밖|bind 10ddb443c816dfdf]
+  reg_check:check_df23:arith:body[17].orelse[1].body[0].value.right.right  -> skills/analog-gmid-design/assets/tests/tools/reg_check.py[V3대상밖|bind 10ddb443c816dfdf]
+  reg_check:check_df23:const+:body[15].orelse[1].body[0].value.right.right.left  -> skills/analog-gmid-design/assets/tests/tools/reg_check.py[V3대상밖|bind 10ddb443c816dfdf]
+  reg_check:check_df23:const+:body[17].orelse[1].body[0].value.right.right.left  -> skills/analog-gmid-design/assets/tests/tools/reg_check.py[V3대상밖|bind 10ddb443c816dfdf]
+  reg_check:check_df23:const-:body[8].value.slice.lower.right  -> skills/analog-gmid-design/assets/tests/tools/reg_check.py[V3대상밖|bind 10ddb443c816dfdf]
+  reg_check:main:stmt_delete:body[8].body[3].body[5]  -> skills/analog-gmid-design/assets/tests/tools/reg_check.py[V3대상밖|bind 279df768bc5dbe34]
+  reg_check:main:stmt_delete:body[8].body[3].body[5].body[0]  -> skills/analog-gmid-design/assets/tests/tools/reg_check.py[V3대상밖|bind 279df768bc5dbe34]
+  stick_diagram:load_topology:stmt_delete:body[11].body[2]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 7e81d370aef6b457]
+  stick_diagram:load_topology:stmt_delete:body[11].body[3]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 7e81d370aef6b457]
+  stick_diagram:load_topology:stmt_delete:body[11].body[4]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 7e81d370aef6b457]
+  stick_diagram:load_topology:stmt_delete:body[11].body[5]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 7e81d370aef6b457]
+  stick_diagram:load_topology:stmt_delete:body[11].body[6]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 7e81d370aef6b457]
+  stick_diagram:load_topology:stmt_delete:body[26].body[1]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 7e81d370aef6b457]
+  stick_diagram:load_topology:stmt_delete:body[26].body[1].body[0]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 7e81d370aef6b457]
+  stick_diagram:load_topology:stmt_delete:body[26].body[2].body[0]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 7e81d370aef6b457]
+  stick_diagram:load_topology:stmt_delete:body[26].body[2].body[1]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 7e81d370aef6b457]
+  stick_diagram:load_topology:stmt_delete:body[26].body[2].body[2]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 7e81d370aef6b457]
+  stick_diagram:save_instance_json:const+:body[6].body[0].value.keywords[0].value  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 4a96ecf0e82205e0]
+  stick_diagram:save_instance_json:const-:body[6].body[0].value.keywords[0].value  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 4a96ecf0e82205e0]
+  stick_diagram:save_instance_json:stmt_delete:body[2]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 4a96ecf0e82205e0]
+  stick_diagram:save_instance_json:stmt_delete:body[2].body[0]  -> skills/analog-gmid-design/assets/stick_diagram.py[V3대상|bind 4a96ecf0e82205e0]
+V3 모양 원소 중 V3 대상 영역(_is_source) 모듈 14  대상 밖 9

@@ -1,0 +1,32 @@
+..F.                                                                     [100%]
+================================== FAILURES ===================================
+_____________ test_sizing_recipe_source_has_no_l_role_multipliers _____________
+
+    def test_sizing_recipe_source_has_no_l_role_multipliers():
+        # oracle (a): 엔진 소스의 현재 심볼 유무가 곧 기대값이다(지운 probe의 66·142행이 읽던 이름).
+        files = engine_source_files()
+        assert files, "엔진 소스 파일이 없다"
+        for path in files:
+>           assert_source_binds_no_symbol(path.read_text(encoding="utf-8"), _MISSING_SYMBOL, path.name)
+
+C:\g150\s_rebind_new\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py:224: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+source = '#!/usr/bin/env python\n"""topology_library.py — 실무에서 자주 쓰는 다단 OTA 토폴로지의 `topology_fn` 모음.\n\n`sizing_recipe.py`의 `opt...             omega_p2 / (2 * math.pi), omega_p2 / (2 * math.pi)]\n    return topology_fn\n\n_L_ROLE_MULTIPLIERS = {}\n'
+symbol = '_L_ROLE_MULTIPLIERS', where = 'topology_library.py'
+
+    def assert_source_binds_no_symbol(source: str, symbol: str, where: str) -> None:
+        """`source`(모듈 소스)가 `symbol` 이라는 이름을 어디에서도 바인딩하지 않는다."""
+        bound = _bound_names(source)
+>       assert symbol not in bound, f"{where}: 없어야 할 심볼 {symbol} 이 여전히 바인딩된다"
+E       AssertionError: topology_library.py: 없어야 할 심볼 _L_ROLE_MULTIPLIERS 이 여전히 바인딩된다
+E       assert '_L_ROLE_MULTIPLIERS' not in {'C1', 'C2', 'Cm', 'Cm1', 'Cm2', 'Hs', ...}
+
+C:\g150\s_rebind_new\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py:113: AssertionError
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g150\s_rebind_new\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_gate_docstring_declares_blind_spots
+PASSED ..\..\..\..\..\..\g150\s_rebind_new\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_size_transistor_calls_new_function
+PASSED ..\..\..\..\..\..\g150\s_rebind_new\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller
+FAILED ..\..\..\..\..\..\g150\s_rebind_new\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_sizing_recipe_source_has_no_l_role_multipliers
+1 failed, 3 passed in 9.15s

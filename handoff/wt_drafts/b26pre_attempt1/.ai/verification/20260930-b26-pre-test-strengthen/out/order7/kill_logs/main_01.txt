@@ -1,0 +1,168 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+shuffle-seed: none
+real_lut: skills/analog-gmid-design/assets/sky130_nfet_pfet_lut_sample.npz sha256=753d802a860320dd54b53b95920c6f9addcea821c55089358bf4b1f1ebaf177f
+rootdir: C:\g342\kt
+configfile: ..\gmid-gate-cache\6c724debd884dd1d31034f5279ae450f35e67fc4\pytest_gate.ini
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 19 items
+
+..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py . [  5%]
+F.................                                                       [100%]
+
+================================== FAILURES ===================================
+_____________________ test_b26pre_euler_fixup_group_split _____________________
+
+tmp_path = WindowsPath('C:/g342/tmp/pytest-of-HSLEE/pytest-1/test_b26pre_euler_fixup_group_0')
+toy_lut = <sizing_recipe.SemiEmpiricalGmIdLUT object at 0x00000286BE60A900>
+
+    def test_b26pre_euler_fixup_group_split(tmp_path, toy_lut):
+        """계약 2: euler-blocked 연결 행의 그룹 분할(E6-b, 공개 진입점 경유).
+    
+        oracle 대조: (a) 구성 -- `STAR`는 홀수 차수 넷 4개라 trail이 최소 2개 필요하고, gm/ID 범위 (11.9, 12.1)이
+        사이징 값 12.0 둘레로 좁아 핑거증가 후보가 검증을 못 통과해 2순위 그룹분할로 간다(정리 함수 docstring).
+        '그룹분할은 순수 재배치라 W/n_fingers 불변'은 docstring·주석 서술. 행 이름 `row_seg<i>` 형식은 (c) 기준선 값.
+        어느 소자가 어느 세그먼트에 가는지는 계약이 아니다.
+        """
+        w0, s = _b26pre_sizing(toy_lut)
+        star = _b26pre_star(w0)
+        path = _b26pre_write_topology(tmp_path, "b26pre_star", [_b26pre_net_entry(t) for t in star])
+        ctx = _b26pre_ctx(["M1", "M2", "M3"], s, path)
+>       res = sizing_recipe.run_matching_safety_with_finger_growth(
+            {"row": star}, [], {}, ctx, {"nmos": toy_lut}, {}, [], gm_id_bounds=(11.9, 12.1))
+
+C:\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\g342\kt\skills\analog-gmid-design\assets\sizing_recipe.py:11799: in run_matching_safety_with_finger_growth
+    current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\g342\kt\skills\analog-gmid-design\assets\sizing_recipe.py:11759: in _finalize
+    fixed_rows, fixed_ctx = _fixup_euler_blocked_rows(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+rows = {'row': [Transistor(name='M1', kind='nmos', source='na', drain='nx', n_fingers=1, finger_w=1.1507625848080339e-05, w=N...s', source='nx', drain='nc', n_fingers=1, finger_w=1.1507625848080339e-05, w=None, l=None, gate='g3', stack_id='row')]}
+matching_pairs = [], pair_sensitivity = {}
+ctx = SizingContext(sized={'M1': {'ID': 1.6666666666666667e-05, 'W': 1.1507625848080339e-05, 'L': 5e-07, 'gm': 0.0002, 'gm_i...26pre_euler_fixup_group_0\\b26pre_star.topology.json', kind_of={}, _nmcnr_predict_cache={}, _nulling_resistor_cache={})
+lut_by_kind = {'nmos': <sizing_recipe.SemiEmpiricalGmIdLUT object at 0x00000286BE60A900>}
+metrics_specs = {}, constraints = [], gm_id_bounds = (11.9, 12.1)
+max_rounds = 5
+
+    def _fixup_euler_blocked_rows(rows: dict, matching_pairs: list, pair_sensitivity: dict, ctx: SizingContext, lut_by_kind: dict, metrics_specs: dict, constraints: list, gm_id_bounds: tuple=(2.0, 30.0), max_rounds: int=5) -> tuple:
+        """`repair_matching_safety()`(3c 수리 -- 일부 소자를 `common_centroid_layout()`으로
+        새 행에 빼냄)가 원래 행에 **남은 나머지 소자들**의 euler 조건(짝수차수 -- 한붓그리기
+        가능 여부)까지 보존한다는 보장은 없다 -- 2026-08-13(세션31 이어) 실측 발견: `two_stage_
+        ota` box-shape 진단 중 `save_instance_json()`이 repair *이전* 스냅샷을 저장하던 버그를
+        고치자(그 자체는 별개 수정), self-test(11소자 M3a 그룹, M4a/M4b+M10/M19를 3c 수리로
+        빼낸 뒤) 남은 행 `m3a_row`가 `status=blocked, odd_nodes=['Vbias3','gnd']`로 방치되는
+        게 처음으로 드러났다(지금까지는 이 저장 버그가 이 사실을 가려왔을 뿐, `repair_matching_
+        safety()`가 새로 만든 버그가 아니다). `run_topology_pipeline_with_finger_fixup()`이
+        euler-fixup에 쓰는 것과 **정확히 같은 전략**(1순위: `apply_and_revalidate_pair_
+        adjustment()`로 매칭쌍 핑거증가, 안 되면 2순위: `find_min_crossover_layout_with_
+        branch_composite()`로 그래프 이론상 항상 성공하는 그룹분할)을 그 함수와 달리
+        `topology_path` 재로드 없이 `rows` 표현에 직접 적용한다 -- 두 저수준 함수
+        (`apply_and_revalidate_pair_adjustment()`/`find_min_crossover_layout_with_branch_
+        composite()`) 다 애초에 `row_transistors`를 직접 받는 API라 재사용 가능하다.
+    
+        이미 euler-clean이면(대다수 회로/대다수 라운드) 즉시 그대로 반환 -- 비용 없음.
+    
+        ⚠️ 2026-08-13(세션31 이어) 실측으로 드러난 두 번째 층위 -- M4a/M4b를 새 행으로 빼내면
+        남은 행(M3a/M3b/M9b/M18b/M5/M64/M63)이 단순 홀짝 불균형이 아니라 **그래프 자체가
+        분리된 두 조각**(M3a/M3b/M9b/M18b 클러스터 vs M5/M63/M64 클러스터, M3a가 M4a와
+        공유하던 내부노드 `N3a4a`가 이제 이 행 안에서 아무와도 안 이어짐)으로 쪼개질 수 있다
+        -- `check_euler_condition()`은 이 경우도 홀수차수 노드가 우연히 정확히 2개일 수 있어
+        (컴포넌트마다 1개씩) `status=blocked`인데도 겉보기엔 "거의 다 됐다"로 보인다.
+        **핑거증가(parity 조정)는 끊어진 컴포넌트를 다시 잇지 못한다** -- 그래서 disconnection
+        이 감지되면 핑거증가/크로스오버 둘 다 시도하지 않고 **각 컴포넌트를 곧바로 별도
+        물리 행으로 분리한다**(항상 안전 -- 컴포넌트 사이엔 애초에 공유 엣지가 없으므로
+        crossover 배선 자체가 무의미, 그냥 두 개의 독립된 행이 되는 게 맞는 답).
+    
+        반환: `(rows, ctx)` -- 갱신된 물리 행 구성과(그룹분할/컴포넌트분리는 순수 재배치라
+        ctx 불변, 핑거증가만 W/gm_id/gm/gds가 바뀌므로 ctx도 갱신) SizingContext."""
+    
+        def _connected_components(transistors: list) -> list:
+            net_to_devs = defaultdict(list)
+            for t in transistors:
+                net_to_devs[t.source].append(t)
+                net_to_devs[t.drain].append(t)
+            visited, components = (set(), [])
+            for t in transistors:
+                if t.name in visited:
+                    continue
+                comp, stack, seen_names = ([], [t], {t.name})
+                while stack:
+                    cur = stack.pop()
+                    comp.append(cur)
+                    for net in (cur.source, cur.drain):
+                        for other in net_to_devs[net]:
+                            if other.name not in seen_names:
+                                seen_names.add(other.name)
+                                stack.append(other)
+                visited |= seen_names
+                components.append(comp)
+            return components
+        current_rows = {k: list(v) for k, v in rows.items()}
+        cur_ctx = ctx
+        for _ in range(max_rounds):
+            blocked_row = None
+            for row_name, devs in current_rows.items():
+                r = build_stick_diagram(devs).get(row_name)
+                if r is None or r.status != 'ok':
+                    blocked_row = row_name
+                    break
+            if blocked_row is None:
+                return (current_rows, cur_ctx)
+            row_transistors = current_rows[blocked_row]
+            components = _connected_components(row_transistors)
+            if len(components) > 1:
+                del current_rows[blocked_row]
+                for comp_idx, comp in enumerate(components):
+                    comp_stack_id = f'{blocked_row}_comp{comp_idx}'
+                    current_rows[comp_stack_id] = [_dc_replace(t, stack_id=comp_stack_id) for t in comp]
+                continue
+            row_names = {t.name for t in row_transistors}
+            row_pairs = [(a, b) for a, b in matching_pairs if a in row_names and b in row_names]
+            fix = apply_and_revalidate_pair_adjustment(row_transistors, row_pairs, cur_ctx, lut_by_kind, metrics_specs, constraints, gm_id_bounds=gm_id_bounds)
+            resolved_by_growth = False
+            if fix['applied']:
+                new_n = {t.name: t.n_fingers for t in fix['transistors']}
+                candidate_devs = [_dc_replace(t, n_fingers=new_n[t.name]) if t.name in new_n else t for t in row_transistors]
+                r2 = build_stick_diagram(candidate_devs).get(blocked_row)
+                if r2 is not None and r2.status == 'ok':
+                    resolved_by_growth = True
+                    current_rows[blocked_row] = candidate_devs
+                    for name, u in fix['revalidation']['device_updates'].items():
+                        cur_ctx = _dc_replace(cur_ctx, sized={**cur_ctx.sized, name: {**cur_ctx.sized[name], 'W': u['new_W'], 'gm_id': u['new_gm_id'], 'gm': u['new_gm'], 'gds': u['new_gds']}})
+            if resolved_by_growth:
+                continue
+            row_pair_sensitivity = {k: v for k, v in pair_sensitivity.items() if set(k) <= row_names}
+            pass
+            by_name = {t.name: t for t in row_transistors}
+            del current_rows[blocked_row]
+>           for seg_idx, seg in enumerate(split['segments']):
+                                          ^^^^^
+E           NameError: name 'split' is not defined
+
+C:\g342\kt\skills\analog-gmid-design\assets\sizing_recipe.py:11672: NameError
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_ofcb_lutless_repair
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds_euler
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_already_ok
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_pair_not_found
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_only_3b_left
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_all_disposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_mirror_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_diffpair_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_hub_gnd_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_resolve_stack_candidates
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_no_ports
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_ports
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_case_collisions
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_seed_tap_p
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_seed_tap_n
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_trace_two_branches
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_trace_three_branches_order
+FAILED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_euler_fixup_group_split
+======================== 1 failed, 18 passed in 8.58s =========================

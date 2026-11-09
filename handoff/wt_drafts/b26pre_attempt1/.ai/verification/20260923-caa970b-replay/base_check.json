@@ -1,0 +1,85 @@
+{
+  "id": "20260923-caa970b-replay",
+  "attempt": 1,
+  "freeze": {
+    "test_commit": "c3b7827f7046cfce63ad2350a819ef303d62a667",
+    "test_branch": "role/audit/20260923-caa970b-replay",
+    "base_commit": "5d70a57a3d9abb1b12f15e889f7e8c71723600b3",
+    "code_commit": null,
+    "note": "evidence_type=test-only(게이트 변경 C10)이라 N3.12.3 순서 4·5(code worktree·code 커밋)가 없다. 병합할 code 커밋이 없어 audit worktree HEAD = T이고 T의 첫 부모가 base다(git rev-list 5d70a57..c3b7827 = 커밋 1개).",
+    "changed_paths": [
+      "tools/gates/redteam/cases/caa970b-stale-expected-value/expect.json (1+/1-)",
+      "tools/gates/redteam/cases/caa970b-stale-expected-value/red.json (142+/0-)",
+      "tools/gates/redteam/cases/caa970b-stale-expected-value/run.sh (8+/0-)",
+      "tools/gates/redteam/lib/rt.py (105+/6-)"
+    ]
+  },
+  "isolation": {
+    "clone": "git -c core.longpaths=true clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-caa970b-replay-audit C:/Users/HSLEE/AppData/Local/Temp/20260923-caa970b-replay-iso",
+    "remote_removed": "git -C C:/Users/HSLEE/AppData/Local/Temp/20260923-caa970b-replay-iso remote remove origin",
+    "iso_root": "C:/Users/HSLEE/AppData/Local/Temp/20260923-caa970b-replay-iso",
+    "iso_base_clone": "C:/Users/HSLEE/AppData/Local/Temp/caa-base-iso (같은 복제본을 한 번 더 복제해 5d70a57로 detach -- base 판 rt.py로 공격 17을 돌려 회귀를 재기 위한 것)",
+    "gate_cache": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/5d70a57a3d9abb1b12f15e889f7e8c71723600b3",
+    "python": "C:/Python314/python.exe (3.14.2), pytest 9.0.2"
+  },
+  "base_check": {
+    "kind": "test-only",
+    "rationale": "N3.12.3 순서 3: red-green이 아니므로 판정 기록의 red 필드가 없고, equivalence도 아니므로 outputs_hash도 없다. 이 card에서 base 대비 확인의 대상은 design 10 §6.9 C10이 정한 것 -- (1) base 판 게이트 코드로 돌린 재생 케이스 두 단계의 실측이 케이스 파일의 기대와 같은가, (2) base 판 rt.py와 T 판 rt.py가 기존 공격 17에서 같은 명령·같은 판정을 내는가(리팩터 회귀 0).",
+    "case_steps_measured_by_auditor": {
+      "method": "rt.py를 쓰지 않고 auditor가 케이스 파일(red.json)의 명세만 읽어 합성 트리를 직접 만들고 05 §12-7 격리 명령을 직접 실행했다(스크립트 C:/Users/HSLEE/AppData/Local/Temp/caa-audit/indep.py, 원시 결과 C:/Users/HSLEE/AppData/Local/Temp/caa-audit/out/indep.json).",
+      "attack": {
+        "pytest_exit": 0,
+        "pytest_summary": "collected 1 item / 1 passed in 0.84s",
+        "red_count": 0,
+        "red_test_ids": [],
+        "red_exc_types": [],
+        "v2_step_exit": 1,
+        "matches_case_expect": true
+      },
+      "control": {
+        "pytest_exit": 1,
+        "pytest_summary": "collected 1 item / 1 failed in 0.90s",
+        "red_count": 1,
+        "red_test_ids": [
+          "skills/analog-gmid-design/assets/tests/test_caa970b_l4.py::test_caa970b_l4"
+        ],
+        "red_exc_types": [
+          "builtins.AssertionError"
+        ],
+        "failure_hash": "6668ac52b3ea703679705c25a9113bac76f90ff228f9ba15107233fb711cca37",
+        "failure_hash_source": "base 판 캐시 merge_gate.red_failure_hash(test_id, exc)와 sha256(UTF-8(test_id + '\\n' + 'builtins.AssertionError'))이 같은 값을 냈다(00-common §8.1). 이 값은 판정 기록의 red 필드가 아니다(evidence_type=test-only라 red는 금지) -- 재생 케이스 control 단계의 재현 값으로만 적는다.",
+        "failing_assert": "assert _l4_pass_result[\"unaffected_metrics_skipped\"] == [] (test_caa970b_l4.py:79) -- AssertionError: assert ['other_current'] == []",
+        "v2_step_exit": 0,
+        "matches_case_expect": true
+      }
+    },
+    "attack17_regression": {
+      "base_run": "$PY -B <caa-base-iso>/tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 17-isolated-run -> 케이스 PASS, 단계 {PASS:1, RECORD:2}",
+      "head_run": "$PY -B <iso>/tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 17-isolated-run -> 케이스 PASS, 단계 {PASS:1, RECORD:2}",
+      "cmd_identical": true,
+      "exit_identical": true,
+      "stdout_stderr_note_identical": "note·stderr·두 RECORD 단계의 stdout까지 전부 같고, 차이는 첫 단계 stdout 끝의 pytest 실행 시간 문자열뿐(0.11s 대 0.13s)",
+      "commands_compared": [
+        "isolated: $PY -P -m pytest -c <WORK>/iso/cache/pytest_gate.ini --rootdir=<WORK>/iso/parent/clone-iso --confcutdir=<WORK>/iso/parent/clone-iso -p merge_gate --continue-on-collection-errors <WORK>/iso/parent/clone-iso/skills/analog-gmid-design/assets/tests",
+        "isolated-record-no-P: $PY -m pytest -c <WORK>/iso/cache/pytest_gate.ini --rootdir=... --confcutdir=... -p merge_gate <tests>",
+        "isolated-record-unconfined: $PY -P -m pytest <tests>"
+      ]
+    },
+    "source_fidelity": {
+      "method": "caa970b blob을 직접 읽어 케이스가 지정한 줄 범위·표지를 auditor가 다시 잘라 원문과 대조(C:/Users/HSLEE/AppData/Local/Temp/caa-audit/accounting.py).",
+      "sections_tool_cross_check": "base 판 tools/migrate/extract_selftest.py sections를 caa970b:sizing_recipe.py에 돌리면 섹션 0 = 범주 P, 2409-2427 / 섹션 1 = 범주 B, 2429-2441, deps가 전부 섹션 0 / 섹션 13 = 범주 A, 2591-2647, title `print(\"  [L4 revalidate_finger_override() ...\")`, deps [{name: lut, section: 1}] -- 케이스 note의 주장과 같다.",
+      "byte_identity": "합성 head 파일에서 caa970b 원문 밖 바이트는 148바이트뿐이다(파일 머리 142바이트 + 조각 사이 개행 '\\n'과 '\\n\\n' 6바이트). 나머지 세 조각(19줄·13줄·55줄)은 공통 들여쓰기 4칸을 벗긴 것 외에는 원문과 바이트로 같고, 되붙이면 원문이 복원된다. 섹션의 assert 6개 전부 원형이고 attack 단계의 replace는 0건, control 단계는 단언 비교식 한 곳(`== [\"other_current\"]` -> `== []`)뿐이다.",
+      "d32811b_cross_check": "d32811b:sizing_recipe.py 9769행 `assert _l4_pass_result[\"unaffected_metrics_skipped\"] == [],` -- control의 비교식이 그 커밋 판과 같다(메시지 문자열은 caa970b 원문 그대로 두었다: spec card 계약 4의 '단언만' 대로)."
+    },
+    "v1_on_T": {
+      "exit_code": 0,
+      "collected": 293,
+      "summary": "278 passed, 15 xfailed in 76.37s",
+      "xpass_failed_error": 0,
+      "output_sha256": "1c9a480e7228680b7af6c6c52ddcbaa2f70aa62309cdccc08465b50123a18c86"
+    },
+    "worktree_clean_after": "git -C <iso> status --porcelain 출력 0줄(run_all.py가 쓰는 tools/gates/redteam/logs/는 무시 대상)"
+  },
+  "red": null,
+  "equivalence": null
+}

@@ -1,0 +1,22 @@
+{
+ "label": "p9_base_all",
+ "tool_exit": 1,
+ "records": 28,
+ "targeted": 28,
+ "not_targeted": 0,
+ "expect_targeted": 28,
+ "missing": [],
+ "extra": [],
+ "not_targeted_ok": null,
+ "stdout_keys": [
+  "tool",
+  "verdict",
+  "targets",
+  "mutants",
+  "killed",
+  "survivors"
+ ],
+ "stdout_mutants": 28,
+ "stdout_not_targeted": null,
+ "order_ok": true
+}

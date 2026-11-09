@@ -1,0 +1,58 @@
+REV 0f23786
+==== 변형 P2
+  P0 0f237862c0, gate C:/g123/gate_P2.git
+  OK  role/* 브랜치 0(복제본)
+  OK  specs·approvals 깨끗
+  OK  승인 기록 20260930-b26-before-phase3 있음
+  참고: gate 판 mutate_changed.py의 not_targeted 개수 = 0 (0 = 범위 card 미병합 -- 착수 조건 미충족 상태의 REV)
+  OK  spec card 아직 없음
+  OK  2d58fd8..HEAD SD·SR·install.py·references 차이 0(card 줄 번호 유효)
+  parse_spec_card: {'phase': '2', 'evidence_type': 'red-green', 'gate_change': 'no', 'approval': ['20260930-b26-before-phase3'], 'activated_ic_case': [], 'n_sections': 12}
+  OK  spec card 머리·절 12개
+  interface_card.py: interface card: C:/g123/seq_P2/docs/02-design/specs/20260930-b34-grammar-explicit.interface.md (기존 함수 14개)
+  interface 표 행 14, stick_diagram 14: ['audit_theta_root_direction', 'find_differential_and_mirror_forks', 'find_differential_pair_candidates', 'find_idiom_matches', 'find_stack_edges', 'find_verified_differential_and_mirror_relations', 'geometry_colocation_union', 'load_topology', 'propose_device_roles_gap_fill', 'propose_theta_kcl_gap_fill', 'propose_vertical_stack_id_gap_fill', 'refine_differential_and_mirror_relations', 'run_topology_pipeline', 'suggest_vertical_stack_composites']
+  OK  interface 기존 함수 14개 전부 stick_diagram, 계약 1 진입점과 같음
+  OK  patch_b34_refs --check: pending 5
+  OK  --check 무쓰기
+  numstat: 17 16 skills/analog-gmid-design/references/analog-grammar-integration.md
+  OK  gate 소자 없음 줄(if not devs) 미변경
+  OK  패치 재실행 멱등: already-applied
+  OK  references blob LF·BOM 없음
+  OK  test_phase2_stale_refs (--gmid-phase=2) exit 0: [32m[32m[1m18 passed[0m[32m in 1.00s[0m[0m
+  OK  가짜 gate push exit 0 To C:/g123/gate_P2.git    0f23786..4a0b720  master -> master
+  OK  accept-log 줄 <P0> <A>
+  OK  gate master == A
+  OK  대조 push 거부 exit 1: ['remote: [EL4 거부] 2e8786880163: 트레일러 `Role: code|test|audit|doc|user`가 정확히 하나가 아니다([]) -- 주체 미정(트레일러 없음), 판정 행 §8.2-2, 위반 경로(표와 겹침): docs/02-design/specs/20260930-b34-grammar-explicit.spec.md        \rremote: \rremote: ', 'remote: [fake gate 거부] merge_gate receive exit 1        \rremote: ']
+  phase 판정 지점(20260930-dup-w-calc 기록): {"rule10_2": "pass", "rule10_3": "pass", "v1_2": [], "v1_3": ["V1 `--gmid-phase=3`가 없다(['2'])"], "strict_3": [], "strict_2": [], "N/A": {"V8": "도입 4: 폴백 발동 ", "V9": "도입 6b: 물리 불변"}}
+  -- 사용자 작업 모의(install.py)
+  OK  install.py SKILLS 끝 앵커 1회
+  OK  대조(승인 기록 없음) push 거부 exit 1: ['remote: [EL4 거부] 9dd6e02236a9: `target_kind: staged_diff` 승인 기록 필요(target = 6ac4317dc07d24267b84efda6448e934ac7ccf18bd5da4a7258827df76519d7d) -- `Role: user` 커밋 -- 주체 사용자, 판정 행 §8.2-5 `Role: user`, 경로 install.py        \rremote: \rremote: ']
+  OK  Role: user install.py 커밋 가짜 gate push exit 0 []
+  OK  gate master == 사용자 커밋
+==== 변형 P3
+  P0 0f237862c0, gate C:/g123/gate_P3.git
+  OK  role/* 브랜치 0(복제본)
+  OK  specs·approvals 깨끗
+  OK  승인 기록 20260930-b26-before-phase3 있음
+  참고: gate 판 mutate_changed.py의 not_targeted 개수 = 0 (0 = 범위 card 미병합 -- 착수 조건 미충족 상태의 REV)
+  OK  spec card 아직 없음
+  OK  2d58fd8..HEAD SD·SR·install.py·references 차이 0(card 줄 번호 유효)
+  parse_approval_header(모의): {"diff_path": [], "id": "20261001-sim-b34-phase", "date": "2026-10-01", "target_kind": "decision", "target": "SIM-B34-PHASE", "scope": "모의 자리표시자 -- B34 card phase 3(Phase 2 DoD 뒤, Phase 3 M card 전) 정정
+  parse_spec_card: {'phase': '3', 'evidence_type': 'red-green', 'gate_change': 'no', 'approval': ['20260930-b26-before-phase3', '20261001-sim-b34-phase'], 'activated_ic_case': [], 'n_sections': 12}
+  OK  spec card 머리·절 12개
+  interface_card.py: interface card: C:/g123/seq_P3/docs/02-design/specs/20260930-b34-grammar-explicit.interface.md (기존 함수 14개)
+  interface 표 행 14, stick_diagram 14: ['audit_theta_root_direction', 'find_differential_and_mirror_forks', 'find_differential_pair_candidates', 'find_idiom_matches', 'find_stack_edges', 'find_verified_differential_and_mirror_relations', 'geometry_colocation_union', 'load_topology', 'propose_device_roles_gap_fill', 'propose_theta_kcl_gap_fill', 'propose_vertical_stack_id_gap_fill', 'refine_differential_and_mirror_relations', 'run_topology_pipeline', 'suggest_vertical_stack_composites']
+  OK  interface 기존 함수 14개 전부 stick_diagram, 계약 1 진입점과 같음
+  OK  patch_b34_refs --check: pending 5
+  OK  --check 무쓰기
+  numstat: 17 16 skills/analog-gmid-design/references/analog-grammar-integration.md
+  OK  gate 소자 없음 줄(if not devs) 미변경
+  OK  패치 재실행 멱등: already-applied
+  OK  references blob LF·BOM 없음
+  OK  test_phase2_stale_refs (--gmid-phase=3) exit 0: [32m[32m[1m18 passed[0m[32m in 1.07s[0m[0m
+  OK  가짜 gate push exit 0 To C:/g123/gate_P3.git    0f23786..61a95b2  master -> master
+  OK  accept-log 줄 <P0> <A>
+  OK  gate master == A
+  OK  대조 push 거부 exit 1: ['remote: [EL4 거부] e9704d3c3b52: 트레일러 `Role: code|test|audit|doc|user`가 정확히 하나가 아니다([]) -- 주체 미정(트레일러 없음), 판정 행 §8.2-2, 위반 경로(표와 겹침): docs/02-design/specs/20260930-b34-grammar-explicit.spec.md        \rremote: \rremote: ', 'remote: [fake gate 거부] merge_gate receive exit 1        \rremote: ']
+  phase 판정 지점(20260930-dup-w-calc 기록): {"rule10_2": "pass", "rule10_3": "pass", "v1_2": [], "v1_3": ["V1 `--gmid-phase=3`가 없다(['2'])"], "strict_3": [], "strict_2": [], "N/A": {"V8": "도입 4: 폴백 발동 ", "V9": "도입 6b: 물리 불변"}}
+== 결과: NG 0 []

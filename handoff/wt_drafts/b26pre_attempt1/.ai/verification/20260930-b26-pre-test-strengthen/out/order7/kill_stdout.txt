@@ -1,0 +1,88 @@
+main 1 stmt_delete 11695 | split = find_min_crossover_layout_with_branch_composite( | 1 True
+main 2 stmt_delete 11697 | by_name = {t.name: t for t in row_transistors} | 1 True
+main 3 stmt_delete 11699 | for seg_idx, seg in enumerate(split["segments"]): | 1 True
+main 4 stmt_delete 9403 | repaired_rows, repaired_audit = repair_matching_safety( | 1 True
+main 5 stmt_delete 9405 | pr = dict(pr, repaired_rows=repaired_rows, repaired_audit=repaired_aud | 1 True
+main 6 stmt_delete 9403 | repaired_rows, repaired_audit = repair_matching_safety( | 1 True
+main 7 stmt_delete 9405 | pr = dict(pr, repaired_rows=repaired_rows, repaired_audit=repaired_aud | 1 True
+main 8 stmt_delete 6572 | if refined is not None and refined.get("vertical_stack_id_candidates") | 1 True
+main 9 stmt_delete 11799 | _backfill_interdig_ok(result) | 2 True
+main 10 stmt_delete 11800 | if result.ok: | 1 True
+main 11 stmt_delete 11876 | current_rows, result = repair_matching_safety( | 2 True
+main 12 stmt_delete 11878 | _backfill_interdig_ok(result) | 2 True
+main 13 stmt_delete 11879 | current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx) | 5 True
+main 14 stmt_delete 11880 | return {"rows": current_rows, "audit": result, "ctx": cur_ctx, "growth | 1 True
+main 15 stmt_delete 4515 | if disp.case_collisions: | 1 True
+main 16 stmt_delete 3275 | if inputs or outputs or feedbacks or biases or clocks: | 1 True
+main 17 stmt_delete 6878 | for (kind, net), group in mc["current_mirror"].items(): | 1 True
+main 18 stmt_delete 6880 | for (kind, net), group in mc["diff_pair"].items(): | 1 True
+main 19 const+ 1562 | for j in range(i + 1, len(chains)): | 1 True
+main 20 arith 1562 | for j in range(i + 1, len(chains)): | 1 True
+ref 1 stmt_delete 11834 | if a not in all_devs or b not in all_devs: |  
+ref 2 stmt_delete 11835 | current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx) |  
+ref 3 stmt_delete 11836 | return {"rows": current_rows, "audit": result, "ctx": cur_ctx, |  
+ref 4 stmt_delete 11801 | current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx) |  
+ref 5 stmt_delete 11802 | return {"rows": current_rows, "audit": result, "ctx": cur_ctx, |  
+ref 6 stmt_delete 11827 | current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx) |  
+ref 7 stmt_delete 2170 | seeds[ga] = gb |  
+ref 8 stmt_delete 2171 | seeds[gb] = ga |  
+ref 9 stmt_delete 2094 | seeds[ga] = gb |  
+ref 10 stmt_delete 2095 | seeds[gb] = ga |  
+ref 11 stmt_delete 3971 | seed_net_pairs[ga] = gb |  
+ref 12 stmt_delete 3972 | seed_net_pairs[gb] = ga |  
+ref 13 stmt_delete 4516 | review_needed.append({"case_collisions": disp.case_collisions}) |  
+ref 14 cmp_flip 3278 | if relations is not None: |  
+ref 15 stmt_delete 3278 | if relations is not None: |  
+ref 16 stmt_delete 3279 | edges.extend(rel["devices"] for rel in relations["differential"]) |  
+baseline 19 passed 0
+main_01 stmt_delete 11695 killed 1 failed, 18 passed ['test_b26pre_euler_fixup_group_split']
+main_02 stmt_delete 11697 killed 1 failed, 18 passed ['test_b26pre_euler_fixup_group_split']
+main_03 stmt_delete 11699 killed 1 failed, 18 passed ['test_b26pre_euler_fixup_group_split']
+main_04 stmt_delete 9403 killed 1 failed, 18 passed ['test_b26pre_ofcb_lutless_repair']
+main_05 stmt_delete 9405 killed 1 failed, 18 passed ['test_b26pre_ofcb_lutless_repair']
+main_06 stmt_delete 9403 killed 1 failed, 18 passed ['test_b26pre_ofcb_lutless_repair']
+main_07 stmt_delete 9405 killed 1 failed, 18 passed ['test_b26pre_ofcb_lutless_repair']
+main_08 stmt_delete 6572 killed 1 failed, 18 passed ['test_b26pre_resolve_stack_candidates']
+main_09 stmt_delete 11799 survived 19 passed []
+main_10 stmt_delete 11800 killed 1 failed, 18 passed ['test_b26pre_growth_already_ok']
+main_11 stmt_delete 11876 killed 1 failed, 18 passed ['test_b26pre_growth_zero_rounds']
+main_12 stmt_delete 11878 survived 19 passed []
+main_13 stmt_delete 11879 killed 1 failed, 18 passed ['test_b26pre_growth_zero_rounds_euler']
+main_14 stmt_delete 11880 killed 2 failed, 17 passed ['test_b26pre_growth_zero_rounds', 'test_b26pre_growth_zero_rounds_euler']
+main_15 stmt_delete 4515 killed 1 failed, 18 passed ['test_b26pre_case_collisions']
+main_16 stmt_delete 3275 killed 1 failed, 18 passed ['test_b26pre_vsid_gap_fill_ports']
+main_17 stmt_delete 6878 killed 1 failed, 18 passed ['test_b26pre_full_audit_mirror_undisposed']
+main_18 stmt_delete 6880 killed 1 failed, 18 passed ['test_b26pre_full_audit_diffpair_undisposed']
+main_19 const+ 1562 killed 2 failed, 17 passed ['test_b26pre_trace_three_branches_order', 'test_b26pre_trace_two_branches']
+main_20 arith 1562 killed 1 failed, 18 passed ['test_b26pre_trace_three_branches_order']
+ref_01 stmt_delete 11834 killed 1 failed, 18 passed ['test_b26pre_growth_pair_not_found']
+ref_02 stmt_delete 11835 killed 1 failed, 18 passed ['test_b26pre_growth_pair_not_found']
+ref_03 stmt_delete 11836 killed 1 failed, 18 passed ['test_b26pre_growth_pair_not_found']
+ref_04 stmt_delete 11801 survived 19 passed []
+ref_05 stmt_delete 11802 killed 1 failed, 18 passed ['test_b26pre_growth_already_ok']
+ref_06 stmt_delete 11827 killed 2 failed, 17 passed ['test_b26pre_euler_fixup_group_split', 'test_b26pre_growth_only_3b_left']
+ref_07 stmt_delete 2170 killed 1 failed, 18 passed ['test_b26pre_seed_tap_p']
+ref_08 stmt_delete 2171 killed 1 failed, 18 passed ['test_b26pre_seed_tap_n']
+ref_09 stmt_delete 2094 killed 1 failed, 18 passed ['test_b26pre_seed_tap_p']
+ref_10 stmt_delete 2095 killed 1 failed, 18 passed ['test_b26pre_seed_tap_n']
+ref_11 stmt_delete 3971 killed 1 failed, 18 passed ['test_b26pre_seed_tap_p']
+ref_12 stmt_delete 3972 killed 1 failed, 18 passed ['test_b26pre_seed_tap_n']
+ref_13 stmt_delete 4516 killed 1 failed, 18 passed ['test_b26pre_case_collisions']
+ref_14 cmp_flip 3278 killed 1 failed, 18 passed ['test_b26pre_vsid_gap_fill_ports']
+ref_15 stmt_delete 3278 killed 1 failed, 18 passed ['test_b26pre_vsid_gap_fill_ports']
+ref_16 stmt_delete 3279 killed 1 failed, 18 passed ['test_b26pre_vsid_gap_fill_ports']
+extra_01 const- None survived 19 passed []
+extra_02 text None survived 19 passed []
+identity_01 identity None survived 19 passed []
+identity_02 identity None survived 19 passed []
+identity_03 identity None survived 19 passed []
+identity_04 identity None survived 19 passed []
+identity_05 identity None survived 19 passed []
+identity_06 identity None survived 19 passed []
+identity_07 identity None survived 19 passed []
+identity_08 identity None survived 19 passed []
+identity_09 identity None survived 19 passed []
+identity_10 identity None survived 19 passed []
+identity_11 identity None survived 19 passed []
+restore 19 passed 0
+exit 0

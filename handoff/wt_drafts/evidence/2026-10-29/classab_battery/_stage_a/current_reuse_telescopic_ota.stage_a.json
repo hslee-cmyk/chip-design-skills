@@ -1,0 +1,10728 @@
+{
+ "applied_facts": [
+  [
+   "ac_ground_exception",
+   "Vbias2"
+  ]
+ ],
+ "circuit": "current_reuse_telescopic_ota",
+ "count_budget": 13829760,
+ "coupling": {
+  "bias_columns": [
+   34,
+   35,
+   36,
+   37,
+   38,
+   39,
+   40
+  ],
+  "column_block_map": [
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom"
+     ]
+    ],
+    "column": null,
+    "device": "CL2",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom"
+     ]
+    ],
+    "column": null,
+    "device": "Cc1",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom"
+     ]
+    ],
+    "column": null,
+    "device": "Cf1",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": null,
+    "device": "Rz1",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": null,
+    "device": "Rz2",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vop"
+     ]
+    ],
+    "column": null,
+    "device": "CL1",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vop"
+     ]
+    ],
+    "column": null,
+    "device": "Cc2",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vop"
+     ]
+    ],
+    "column": null,
+    "device": "Cf2",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom"
+     ]
+    ],
+    "column": null,
+    "device": "CL2",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom"
+     ]
+    ],
+    "column": null,
+    "device": "Cc1",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom"
+     ]
+    ],
+    "column": null,
+    "device": "Cf1",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": null,
+    "device": "Rz1",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": null,
+    "device": "Rz2",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vop"
+     ]
+    ],
+    "column": null,
+    "device": "CL1",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vop"
+     ]
+    ],
+    "column": null,
+    "device": "Cc2",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vop"
+     ]
+    ],
+    "column": null,
+    "device": "Cf2",
+    "shared": false
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 0,
+    "device": "M36b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 0,
+    "device": "M37b",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 0,
+    "device": "M38",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 1,
+    "device": "M36a",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 1,
+    "device": "M37a",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 1,
+    "device": "M38",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 2,
+    "device": "M16",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 2,
+    "device": "R1",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 2,
+    "device": "M25",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 2,
+    "device": "R2",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 2,
+    "device": "M16",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 2,
+    "device": "R1",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 2,
+    "device": "M25",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 2,
+    "device": "R2",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 3,
+    "device": "M15",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 3,
+    "device": "M16",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 3,
+    "device": "M15",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 3,
+    "device": "M16",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M63",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 4,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 5,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 6,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 6,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 6,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 6,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 6,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 6,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 6,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 6,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 6,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 6,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 7,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 8,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 9,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 9,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 9,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 9,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 9,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 9,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 9,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 9,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 9,
+    "device": "M63",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 9,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 10,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 10,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 10,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 10,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 10,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 10,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 10,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 10,
+    "device": "M19",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 11,
+    "device": "M15",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 11,
+    "device": "R1",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 11,
+    "device": "M26",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 11,
+    "device": "R2",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 11,
+    "device": "M15",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom"
+     ]
+    ],
+    "column": 11,
+    "device": "R1",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 11,
+    "device": "M26",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 11,
+    "device": "R2",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 12,
+    "device": "M25",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 12,
+    "device": "M26",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 12,
+    "device": "M25",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vop"
+     ]
+    ],
+    "column": 12,
+    "device": "M26",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M63",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 13,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 14,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 15,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 15,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 15,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 15,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 15,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 15,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 15,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 15,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 15,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 15,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 16,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 17,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 18,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 18,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 18,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 18,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 18,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 18,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 18,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 18,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 18,
+    "device": "M63",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 18,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 19,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 19,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 19,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 19,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 19,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 19,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 19,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 19,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 20,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M63",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 21,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 22,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 23,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M63",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 24,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 25,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 26,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 26,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 26,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 26,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 26,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 26,
+    "device": "M57",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 26,
+    "device": "M58",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 26,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 26,
+    "device": "M68",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 26,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 27,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 28,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 29,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 29,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 29,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 29,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 29,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 29,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 29,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 29,
+    "device": "M3a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 29,
+    "device": "M4a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 29,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M17",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M18a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M18b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M1a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M2a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 30,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M1b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M2b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 31,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 32,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 32,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 32,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "loop:M37a:Voc",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 32,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 32,
+    "device": "M3b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 32,
+    "device": "M4b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 32,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 32,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 32,
+    "device": "M9a",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 32,
+    "device": "M9b",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 33,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 33,
+    "device": "M61",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 33,
+    "device": "M63",
+    "shared": true
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "Vom1",
+      "Vop1"
+     ]
+    ],
+    "column": 33,
+    "device": "M64",
+    "shared": true
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 34,
+    "device": "M11a",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 34,
+    "device": "M11b",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 34,
+    "device": "M12",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 35,
+    "device": "M13",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 35,
+    "device": "M14a",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 35,
+    "device": "M14b",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 36,
+    "device": "M20a",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 36,
+    "device": "M20b",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 36,
+    "device": "M21",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 37,
+    "device": "M22",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 37,
+    "device": "M23a",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 37,
+    "device": "M24b",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 38,
+    "device": "Iref",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 38,
+    "device": "M18_bg",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 39,
+    "device": "M60",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 39,
+    "device": "M66",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 40,
+    "device": "M39",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 40,
+    "device": "M40",
+    "shared": false
+   }
+  ],
+  "column_mate_devices": [
+   "M36b",
+   "M57",
+   "M61",
+   "M64",
+   "M68"
+  ],
+  "kind_counts": {
+   "K1": 4,
+   "K2": 2,
+   "K4": 5,
+   "K7": 21
+  },
+  "vars": [
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:34"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:36"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:39"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:34"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:36"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:39"
+      ]
+     ]
+    ],
+    "domain": "geom",
+    "init_rule": "class_owner_value",
+    "kind": "K1",
+    "members": [
+     "M10",
+     "M12",
+     "M19",
+     "M21",
+     "M38",
+     "M5",
+     "M66",
+     "M68"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:35"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:37"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:38"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:39"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:35"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:37"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:38"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:39"
+      ]
+     ]
+    ],
+    "domain": "geom",
+    "init_rule": "class_owner_value",
+    "kind": "K1",
+    "members": [
+     "M13",
+     "M17",
+     "M18_bg",
+     "M22",
+     "M6",
+     "M60",
+     "M61",
+     "M8"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:38"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:38"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "class_owner_value",
+    "kind": "K1",
+    "members": [
+     "M18_bg",
+     "M6"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:39"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:39"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "class_owner_value",
+    "kind": "K1",
+    "members": [
+     "M38",
+     "M5",
+     "M66"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:34"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:36"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:39"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:34"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:36"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:39"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "common_vgs_candidates",
+    "kind": "K2",
+    "members": [
+     "M10",
+     "M12",
+     "M19",
+     "M21",
+     "M38",
+     "M5",
+     "M66",
+     "M68"
+    ],
+    "nets": [
+     "Vbias4",
+     "gnd"
+    ]
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:35"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:37"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:38"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "bias:39"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:35"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:37"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:38"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "bias:39"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "common_vgs_candidates",
+    "kind": "K2",
+    "members": [
+     "M13",
+     "M17",
+     "M18_bg",
+     "M22",
+     "M6",
+     "M60",
+     "M61",
+     "M8"
+    ],
+    "nets": [
+     "Vbias1",
+     "vdd"
+    ]
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "Vop"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vop"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "shared_node_kvl_kcl",
+    "kind": "K4",
+    "members": [
+     "M15"
+    ],
+    "nets": [
+     "Vom",
+     "vdd"
+    ]
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "Vop"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vop"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "shared_node_kvl_kcl",
+    "kind": "K4",
+    "members": [
+     "M16"
+    ],
+    "nets": [
+     "Vom",
+     "gnd"
+    ]
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "Vop"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vop"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "shared_node_kvl_kcl",
+    "kind": "K4",
+    "members": [
+     "M25"
+    ],
+    "nets": [
+     "Vop",
+     "vdd"
+    ]
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "Vop"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vop"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "shared_node_kvl_kcl",
+    "kind": "K4",
+    "members": [
+     "M26"
+    ],
+    "nets": [
+     "Vop",
+     "gnd"
+    ]
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "loop:M37a:Voc",
+      [
+       "Vop"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vop"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "shared_node_kvl_kcl",
+    "kind": "K4",
+    "members": [
+     "R1",
+     "R2"
+    ],
+    "nets": [
+     "Vom",
+     "Vop"
+    ]
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M10"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M15"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M16"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M17"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M18a"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M18b"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M19"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M1a"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M1b"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vop"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vop"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M25"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vop"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vop"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M26"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M2a"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M2b"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M3a"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M3b"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M58"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M6"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M7"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M8"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M9a"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "loop:M37a:Voc",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "Vom1",
+       "Vop1"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "view_shared_split",
+    "kind": "K7",
+    "members": [
+     "M9b"
+    ],
+    "nets": []
+   }
+  ]
+ },
+ "declared_comparison": "not_performed: current_reuse_telescopic_ota.structure.json has no stage_members facts",
+ "env_fp": "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+ "exit_code": 0,
+ "ff_ratio_candidates": [],
+ "orbit_matching_crosstab": {
+  "orbits": [
+   {
+    "members": [
+     "M10",
+     "M19"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M10",
+       "M19"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M11a",
+     "M20a"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M11b",
+     "M20b"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M12",
+     "M21"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M13",
+     "M22"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M14a",
+     "M23a"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M14b",
+     "M24b"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M15",
+     "M25"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M16",
+     "M26"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M17",
+     "M8"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M17",
+       "M8"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M18_bg"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M18_bg",
+       "M6"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M18a",
+     "M9a"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M18b",
+     "M9b"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M1a",
+     "M1b"
+    ],
+    "records": [
+     [
+      "diff_pair",
+      [
+       "M1a",
+       "M1b"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M2a",
+     "M2b"
+    ],
+    "records": [
+     [
+      "branch_symmetric",
+      [
+       "M2a",
+       "M2b"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M36a"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M36a",
+       "M7"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M36b"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M37a"
+    ],
+    "records": [
+     [
+      "diff_pair",
+      [
+       "M37a",
+       "M37b"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M37b"
+    ],
+    "records": [
+     [
+      "diff_pair",
+      [
+       "M37a",
+       "M37b"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M38"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M38",
+       "M5",
+       "M66"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M39"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M3a",
+     "M3b"
+    ],
+    "records": [
+     [
+      "branch_symmetric",
+      [
+       "M3a",
+       "M3b"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M40"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M4a",
+     "M4b"
+    ],
+    "records": [
+     [
+      "diff_pair",
+      [
+       "M4a",
+       "M4b"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M5"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M38",
+       "M5",
+       "M66"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M57"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M58"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M6"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M18_bg",
+       "M6"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M60"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M61"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M63"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M64"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M66"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M38",
+       "M5",
+       "M66"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M68"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M7"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M36a",
+       "M7"
+      ]
+     ]
+    ]
+   }
+  ],
+  "records": [
+   {
+    "kind": "mirror",
+    "members": [
+     "M10",
+     "M19"
+    ],
+    "orbits": [
+     [
+      "M10",
+      "M19"
+     ]
+    ]
+   },
+   {
+    "kind": "mirror",
+    "members": [
+     "M38",
+     "M5",
+     "M66"
+    ],
+    "orbits": [
+     [
+      "M38"
+     ],
+     [
+      "M5"
+     ],
+     [
+      "M66"
+     ]
+    ]
+   },
+   {
+    "kind": "mirror",
+    "members": [
+     "M17",
+     "M8"
+    ],
+    "orbits": [
+     [
+      "M17",
+      "M8"
+     ]
+    ]
+   },
+   {
+    "kind": "mirror",
+    "members": [
+     "M18_bg",
+     "M6"
+    ],
+    "orbits": [
+     [
+      "M18_bg"
+     ],
+     [
+      "M6"
+     ]
+    ]
+   },
+   {
+    "kind": "mirror",
+    "members": [
+     "M36a",
+     "M7"
+    ],
+    "orbits": [
+     [
+      "M36a"
+     ],
+     [
+      "M7"
+     ]
+    ]
+   },
+   {
+    "kind": "diff_pair",
+    "members": [
+     "M37a",
+     "M37b"
+    ],
+    "orbits": [
+     [
+      "M37a"
+     ],
+     [
+      "M37b"
+     ]
+    ]
+   },
+   {
+    "kind": "diff_pair",
+    "members": [
+     "M4a",
+     "M4b"
+    ],
+    "orbits": [
+     [
+      "M4a",
+      "M4b"
+     ]
+    ]
+   },
+   {
+    "kind": "diff_pair",
+    "members": [
+     "M1a",
+     "M1b"
+    ],
+    "orbits": [
+     [
+      "M1a",
+      "M1b"
+     ]
+    ]
+   },
+   {
+    "kind": "branch_symmetric",
+    "members": [
+     "M3a",
+     "M3b"
+    ],
+    "orbits": [
+     [
+      "M3a",
+      "M3b"
+     ]
+    ]
+   },
+   {
+    "kind": "branch_symmetric",
+    "members": [
+     "M2a",
+     "M2b"
+    ],
+    "orbits": [
+     [
+      "M2a",
+      "M2b"
+     ]
+    ]
+   }
+  ]
+ },
+ "review_needed": [],
+ "status": "ok",
+ "stop_reasons": [],
+ "tables": {
+  "applied_facts": [
+   [
+    "ac_ground_exception",
+    "Vbias2"
+   ]
+  ],
+  "declared": [],
+  "findings": [],
+  "l_classes": [
+   {
+    "members": [
+     "M10",
+     "M12",
+     "M19",
+     "M21",
+     "M38",
+     "M5",
+     "M66",
+     "M68"
+    ],
+    "owner": "M5",
+    "owner_rule": "tail_first_gain_stage",
+    "status": "derived"
+   },
+   {
+    "members": [
+     "M13",
+     "M17",
+     "M18_bg",
+     "M22",
+     "M6",
+     "M60",
+     "M61",
+     "M8"
+    ],
+    "owner": "M6",
+    "owner_rule": "tail_owner",
+    "status": "derived"
+   },
+   {
+    "members": [
+     "M36a",
+     "M7"
+    ],
+    "owner": "M7",
+    "owner_rule": "tail_owner",
+    "status": "derived"
+   }
+  ],
+  "schema_version": "1",
+  "views": [
+   {
+    "ac_ground": [
+     "Vbias2",
+     "Vbias3",
+     "gnd",
+     "vdd"
+    ],
+    "ac_ground_exceptions": [],
+    "bias_dependent": [
+     [
+      "Vbias2",
+      [
+       "N58_57",
+       "Vx"
+      ]
+     ],
+     [
+      "Vbias3",
+      [
+       "N64_63",
+       "Vy"
+      ]
+     ]
+    ],
+    "bias_moving": [],
+    "blocks": [
+     {
+      "impedance": [
+       [
+        "Vom",
+        "value_dependent"
+       ]
+      ],
+      "inputs": [
+       "Vg15",
+       "Vop1"
+      ],
+      "key": [
+       "Vom"
+      ],
+      "kind": "gain",
+      "nodes": [
+       "Vg15",
+       "Vom",
+       "Vop1"
+      ],
+      "outputs": [
+       "Vom"
+      ],
+      "roles": [
+       [
+        "CL2",
+        "load"
+       ],
+       [
+        "Cc1",
+        "load"
+       ],
+       [
+        "Cf1",
+        "load"
+       ],
+       [
+        "M15",
+        "input"
+       ],
+       [
+        "M16",
+        "input"
+       ],
+       [
+        "R1",
+        "load"
+       ]
+      ],
+      "stage": 2,
+      "status": "derived"
+     },
+     {
+      "impedance": [
+       [
+        "Vom1",
+        "value_dependent"
+       ],
+       [
+        "Vop1",
+        "value_dependent"
+       ]
+      ],
+      "inputs": [
+       "Vim",
+       "Vip"
+      ],
+      "key": [
+       "Vom1",
+       "Vop1"
+      ],
+      "kind": "gain",
+      "nodes": [
+       "N1a2a",
+       "N1b2b",
+       "N3a4a",
+       "N3b4b",
+       "Vg15",
+       "Vg25",
+       "Vim",
+       "Vip",
+       "Vom1",
+       "Vop1",
+       "Vx",
+       "Vy"
+      ],
+      "outputs": [
+       "Vom1",
+       "Vop1"
+      ],
+      "roles": [
+       [
+        "M10",
+        "load"
+       ],
+       [
+        "M17",
+        "load"
+       ],
+       [
+        "M18a",
+        "pass"
+       ],
+       [
+        "M18b",
+        "pass"
+       ],
+       [
+        "M19",
+        "load"
+       ],
+       [
+        "M1a",
+        "input"
+       ],
+       [
+        "M1b",
+        "input"
+       ],
+       [
+        "M2a",
+        "cascode"
+       ],
+       [
+        "M2b",
+        "cascode"
+       ],
+       [
+        "M3a",
+        "cascode"
+       ],
+       [
+        "M3b",
+        "cascode"
+       ],
+       [
+        "M4a",
+        "input"
+       ],
+       [
+        "M4b",
+        "input"
+       ],
+       [
+        "M5",
+        "tail_source"
+       ],
+       [
+        "M58",
+        "load"
+       ],
+       [
+        "M6",
+        "tail_source"
+       ],
+       [
+        "M63",
+        "load"
+       ],
+       [
+        "M7",
+        "tail_source"
+       ],
+       [
+        "M8",
+        "load"
+       ],
+       [
+        "M9a",
+        "pass"
+       ],
+       [
+        "M9b",
+        "pass"
+       ],
+       [
+        "Rz1",
+        "load"
+       ],
+       [
+        "Rz2",
+        "load"
+       ]
+      ],
+      "stage": 1,
+      "status": "derived"
+     },
+     {
+      "impedance": [
+       [
+        "Vop",
+        "value_dependent"
+       ]
+      ],
+      "inputs": [
+       "Vg25",
+       "Vom1"
+      ],
+      "key": [
+       "Vop"
+      ],
+      "kind": "gain",
+      "nodes": [
+       "Vg25",
+       "Vom1",
+       "Vop"
+      ],
+      "outputs": [
+       "Vop"
+      ],
+      "roles": [
+       [
+        "CL1",
+        "load"
+       ],
+       [
+        "Cc2",
+        "load"
+       ],
+       [
+        "Cf2",
+        "load"
+       ],
+       [
+        "M25",
+        "input"
+       ],
+       [
+        "M26",
+        "input"
+       ],
+       [
+        "R2",
+        "load"
+       ]
+      ],
+      "stage": 2,
+      "status": "derived"
+     }
+    ],
+    "cells": [
+     {
+      "degeneration": false,
+      "dev": "M10",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M11a",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M11b",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M12",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M13",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M14a",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M14b",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M15",
+      "forward": true,
+      "kind": "cs",
+      "out": "Vom"
+     },
+     {
+      "degeneration": false,
+      "dev": "M16",
+      "forward": true,
+      "kind": "cs",
+      "out": "Vom"
+     },
+     {
+      "degeneration": false,
+      "dev": "M17",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M18_bg",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M18a",
+      "forward": true,
+      "kind": "pass",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M18b",
+      "forward": true,
+      "kind": "pass",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M19",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M1a",
+      "forward": true,
+      "kind": "cs",
+      "out": "N1a2a"
+     },
+     {
+      "degeneration": false,
+      "dev": "M1b",
+      "forward": true,
+      "kind": "cs",
+      "out": "N1b2b"
+     },
+     {
+      "degeneration": false,
+      "dev": "M20a",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M20b",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M21",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M22",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M23a",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M24b",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M25",
+      "forward": true,
+      "kind": "cs",
+      "out": "Vop"
+     },
+     {
+      "degeneration": false,
+      "dev": "M26",
+      "forward": true,
+      "kind": "cs",
+      "out": "Vop"
+     },
+     {
+      "degeneration": false,
+      "dev": "M2a",
+      "forward": true,
+      "kind": "cg",
+      "out": "Vom1"
+     },
+     {
+      "degeneration": false,
+      "dev": "M2b",
+      "forward": true,
+      "kind": "cg",
+      "out": "Vop1"
+     },
+     {
+      "degeneration": false,
+      "dev": "M36a",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M36b",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M37a",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M37b",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M38",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M39",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M3a",
+      "forward": true,
+      "kind": "cg",
+      "out": "Vom1"
+     },
+     {
+      "degeneration": false,
+      "dev": "M3b",
+      "forward": true,
+      "kind": "cg",
+      "out": "Vop1"
+     },
+     {
+      "degeneration": false,
+      "dev": "M40",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M4a",
+      "forward": true,
+      "kind": "cs",
+      "out": "N3a4a"
+     },
+     {
+      "degeneration": false,
+      "dev": "M4b",
+      "forward": true,
+      "kind": "cs",
+      "out": "N3b4b"
+     },
+     {
+      "degeneration": false,
+      "dev": "M5",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M57",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M58",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M6",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M60",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M61",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M63",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M64",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M66",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M68",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M7",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M8",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M9a",
+      "forward": true,
+      "kind": "pass",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M9b",
+      "forward": true,
+      "kind": "pass",
+      "out": ""
+     }
+    ],
+    "cm_pair": false,
+    "compensation_candidates": [
+     "Cc1",
+     "Cc2"
+    ],
+    "composites": [],
+    "cuts": [
+     [
+      "M37a",
+      "Voc"
+     ]
+    ],
+    "dist": [
+     [
+      "N1a2a",
+      1
+     ],
+     [
+      "N1b2b",
+      1
+     ],
+     [
+      "N3a4a",
+      1
+     ],
+     [
+      "N3b4b",
+      1
+     ],
+     [
+      "N_cc_rz1",
+      0
+     ],
+     [
+      "N_cc_rz2",
+      0
+     ],
+     [
+      "Vg15",
+      0
+     ],
+     [
+      "Vg25",
+      0
+     ],
+     [
+      "Vim",
+      0
+     ],
+     [
+      "Vip",
+      0
+     ],
+     [
+      "Vom",
+      0
+     ],
+     [
+      "Vom1",
+      0
+     ],
+     [
+      "Vop",
+      0
+     ],
+     [
+      "Vop1",
+      0
+     ]
+    ],
+    "drive_kind": [
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "N11a11b",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "N14a_14b",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_channel_exit",
+      "kind": "current",
+      "net": "N1a2a",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_channel_exit",
+      "kind": "current",
+      "net": "N1b2b",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "N20a20b",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "N23a24b",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_channel_exit",
+      "kind": "current",
+      "net": "N3a4a",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_channel_exit",
+      "kind": "current",
+      "net": "N3b4b",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "inherit_passive",
+      "kind": "voltage",
+      "net": "N_cc_rz1",
+      "tap": false,
+      "value_dependent": true
+     },
+     {
+      "basis": "inherit_passive",
+      "kind": "voltage",
+      "net": "N_cc_rz2",
+      "tap": false,
+      "value_dependent": true
+     },
+     {
+      "basis": "inherit_pass_bundle",
+      "kind": "voltage",
+      "net": "Vg15",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "inherit_pass_bundle",
+      "kind": "voltage",
+      "net": "Vg25",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "port",
+      "kind": "voltage",
+      "net": "Vim",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "port",
+      "kind": "voltage",
+      "net": "Vip",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_no_exit",
+      "kind": "current",
+      "net": "Vom",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_gate_and_channel_exit",
+      "kind": "voltage",
+      "net": "Vom1",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_no_exit",
+      "kind": "current",
+      "net": "Vop",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_gate_and_channel_exit",
+      "kind": "voltage",
+      "net": "Vop1",
+      "tap": false,
+      "value_dependent": false
+     }
+    ],
+    "excite": [
+     [
+      "Vim",
+      -0.5
+     ],
+     [
+      "Vip",
+      0.5
+     ]
+    ],
+    "feedforward": [],
+    "ff_ratio_candidates": [],
+    "findings": [],
+    "forward_nets": [
+     "N1a2a",
+     "N1b2b",
+     "N3a4a",
+     "N3b4b",
+     "N_cc_rz1",
+     "N_cc_rz2",
+     "Vg15",
+     "Vg25",
+     "Vim",
+     "Vip",
+     "Vom",
+     "Vom1",
+     "Vop",
+     "Vop1"
+    ],
+    "id": "transfer:0",
+    "kind": "transfer",
+    "loop_roles": [
+     {
+      "approval_id": "",
+      "loop_id": "loop:M37a:Voc",
+      "reason": "",
+      "role": "loop_view",
+      "status": "derived",
+      "view": "transfer:0"
+     }
+    ],
+    "loops": [
+     {
+      "ac_only": true,
+      "classes": [
+       "miller",
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2a",
+       "Rz2",
+       "Cc2",
+       "R2",
+       "M37a",
+       "M7",
+       "M1a"
+      ],
+      "nodes": [
+       "N1a2a",
+       "Vom1",
+       "N_cc_rz2",
+       "Vop",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": 0
+     },
+     {
+      "ac_only": false,
+      "classes": [
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2a",
+       [
+        "M18a",
+        "M18b"
+       ],
+       "M25",
+       "R2",
+       "M37a",
+       "M7",
+       "M1a"
+      ],
+      "nodes": [
+       "N1a2a",
+       "Vom1",
+       "Vg25",
+       "Vop",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": -1
+     },
+     {
+      "ac_only": false,
+      "classes": [
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2a",
+       "M26",
+       "R2",
+       "M37a",
+       "M7",
+       "M1a"
+      ],
+      "nodes": [
+       "N1a2a",
+       "Vom1",
+       "Vop",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": -1
+     },
+     {
+      "ac_only": true,
+      "classes": [
+       "miller",
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2b",
+       "Rz1",
+       "Cc1",
+       "R1",
+       "M37a",
+       "M7",
+       "M1b"
+      ],
+      "nodes": [
+       "N1b2b",
+       "Vop1",
+       "N_cc_rz1",
+       "Vom",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": 0
+     },
+     {
+      "ac_only": false,
+      "classes": [
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2b",
+       [
+        "M9a",
+        "M9b"
+       ],
+       "M15",
+       "R1",
+       "M37a",
+       "M7",
+       "M1b"
+      ],
+      "nodes": [
+       "N1b2b",
+       "Vop1",
+       "Vg15",
+       "Vom",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": -1
+     },
+     {
+      "ac_only": false,
+      "classes": [
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2b",
+       "M16",
+       "R1",
+       "M37a",
+       "M7",
+       "M1b"
+      ],
+      "nodes": [
+       "N1b2b",
+       "Vop1",
+       "Vom",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": -1
+     },
+     {
+      "ac_only": true,
+      "classes": [
+       "miller"
+      ],
+      "cm_pair": false,
+      "cut": [],
+      "devices": [
+       "Rz1",
+       [
+        "M9a",
+        "M9b"
+       ],
+       "M15",
+       "Cc1"
+      ],
+      "nodes": [
+       "N_cc_rz1",
+       "Vop1",
+       "Vg15",
+       "Vom"
+      ],
+      "polarity": 0
+     },
+     {
+      "ac_only": true,
+      "classes": [
+       "miller"
+      ],
+      "cm_pair": false,
+      "cut": [],
+      "devices": [
+       "Rz1",
+       "M16",
+       "Cc1"
+      ],
+      "nodes": [
+       "N_cc_rz1",
+       "Vop1",
+       "Vom"
+      ],
+      "polarity": 0
+     },
+     {
+      "ac_only": true,
+      "classes": [
+       "miller"
+      ],
+      "cm_pair": false,
+      "cut": [],
+      "devices": [
+       "Rz2",
+       [
+        "M18a",
+        "M18b"
+       ],
+       "M25",
+       "Cc2"
+      ],
+      "nodes": [
+       "N_cc_rz2",
+       "Vom1",
+       "Vg25",
+       "Vop"
+      ],
+      "polarity": 0
+     },
+     {
+      "ac_only": true,
+      "classes": [
+       "miller"
+      ],
+      "cm_pair": false,
+      "cut": [],
+      "devices": [
+       "Rz2",
+       "M26",
+       "Cc2"
+      ],
+      "nodes": [
+       "N_cc_rz2",
+       "Vom1",
+       "Vop"
+      ],
+      "polarity": 0
+     }
+    ],
+    "main_path": [
+     "M15",
+     "M16",
+     "M18a",
+     "M18b",
+     "M1a",
+     "M1b",
+     "M25",
+     "M26",
+     "M2a",
+     "M2b",
+     "M3a",
+     "M3b",
+     "M4a",
+     "M4b",
+     "M9a",
+     "M9b"
+    ],
+    "mirror_inputs": [],
+    "output_direction": [
+     {
+      "charge": [
+       [
+        "M15",
+        "sigma"
+       ]
+      ],
+      "discharge": [
+       [
+        "M16",
+        "sigma"
+       ]
+      ],
+      "net": "Vom",
+      "topology": "push_pull"
+     },
+     {
+      "charge": [
+       [
+        "M18a",
+        "beta"
+       ],
+       [
+        "M18b",
+        "beta"
+       ],
+       [
+        "M2a",
+        "beta"
+       ]
+      ],
+      "discharge": [
+       [
+        "M19",
+        "beta"
+       ],
+       [
+        "M3a",
+        "beta"
+       ]
+      ],
+      "net": "Vom1",
+      "topology": "none"
+     },
+     {
+      "charge": [
+       [
+        "M25",
+        "sigma"
+       ]
+      ],
+      "discharge": [
+       [
+        "M26",
+        "sigma"
+       ]
+      ],
+      "net": "Vop",
+      "topology": "push_pull"
+     },
+     {
+      "charge": [
+       [
+        "M2b",
+        "beta"
+       ],
+       [
+        "M9a",
+        "beta"
+       ],
+       [
+        "M9b",
+        "beta"
+       ]
+      ],
+      "discharge": [
+       [
+        "M10",
+        "beta"
+       ],
+       [
+        "M3b",
+        "beta"
+       ]
+      ],
+      "net": "Vop1",
+      "topology": "none"
+     }
+    ],
+    "pass_bundles": [
+     {
+      "members": [
+       "M9a",
+       "M9b"
+      ],
+      "nodes": [
+       "Vg15",
+       "Vop1"
+      ]
+     },
+     {
+      "members": [
+       "M18a",
+       "M18b"
+      ],
+      "nodes": [
+       "Vg25",
+       "Vom1"
+      ]
+     }
+    ],
+    "polarity": 0,
+    "pole_nodes": [
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "N11a11b"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N11b"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N14a14b"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "N14a_14b"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "current",
+      "impedance": "low",
+      "net": "N1a2a"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "current",
+      "impedance": "low",
+      "net": "N1b2b"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "N20a20b"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N20b"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "N23a24b"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N24b23a"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N36b"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "current",
+      "impedance": "low",
+      "net": "N3a4a"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "current",
+      "impedance": "low",
+      "net": "N3b4b"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N58_57"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N64_63"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "value_dependent",
+      "net": "N_cc_rz1"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "value_dependent",
+      "net": "N_cc_rz2"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "Ncmfb_tail"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "Vbias1"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "Vbias4"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "Vcmfb"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "voltage",
+      "impedance": "high",
+      "net": "Vg15"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "voltage",
+      "impedance": "high",
+      "net": "Vg25"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "high",
+      "net": "Vim"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "high",
+      "net": "Vip"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "value_dependent",
+      "net": "Voc"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "Voc_des"
+     },
+     {
+      "block": [
+       "Vom"
+      ],
+      "drive": "current",
+      "impedance": "value_dependent",
+      "net": "Vom"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "voltage",
+      "impedance": "value_dependent",
+      "net": "Vom1"
+     },
+     {
+      "block": [
+       "Vop"
+      ],
+      "drive": "current",
+      "impedance": "value_dependent",
+      "net": "Vop"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "voltage",
+      "impedance": "value_dependent",
+      "net": "Vop1"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "",
+      "impedance": "low",
+      "net": "Vx"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "",
+      "impedance": "low",
+      "net": "Vy"
+     }
+    ],
+    "sense": [
+     "Vom",
+     "Vop"
+    ],
+    "signal_nets": [
+     "N1a2a",
+     "N1b2b",
+     "N3a4a",
+     "N3b4b",
+     "N_cc_rz1",
+     "N_cc_rz2",
+     "Vg15",
+     "Vg25",
+     "Vim",
+     "Vip",
+     "Vom",
+     "Vom1",
+     "Vop",
+     "Vop1"
+    ],
+    "stage_dist": [
+     [
+      "N1a2a",
+      1
+     ],
+     [
+      "N1b2b",
+      1
+     ],
+     [
+      "N3a4a",
+      1
+     ],
+     [
+      "N3b4b",
+      1
+     ],
+     [
+      "Vg15",
+      1
+     ],
+     [
+      "Vg25",
+      1
+     ],
+     [
+      "Vim",
+      0
+     ],
+     [
+      "Vip",
+      0
+     ],
+     [
+      "Vom",
+      2
+     ],
+     [
+      "Vom1",
+      1
+     ],
+     [
+      "Vop",
+      2
+     ],
+     [
+      "Vop1",
+      1
+     ]
+    ],
+    "stage_starts": [
+     "M15",
+     "M16",
+     "M1a",
+     "M1b",
+     "M25",
+     "M26",
+     "M4a",
+     "M4b"
+    ],
+    "unreduced_diff": [
+     [
+      "M37a",
+      [
+       "off",
+       false
+      ],
+      [
+       "cs",
+       true
+      ]
+     ],
+     [
+      "M7",
+      [
+       "off",
+       false
+      ],
+      [
+       "cs",
+       true
+      ]
+     ]
+    ],
+    "virtual_ground": [
+     "N36b",
+     "N58_57",
+     "N64_63",
+     "Ncmfb_tail",
+     "Vbias1",
+     "Vbias2",
+     "Vbias3",
+     "Vbias4",
+     "Vcmfb",
+     "Voc",
+     "Voc_des",
+     "Vx",
+     "Vy"
+    ]
+   },
+   {
+    "ac_ground": [
+     "Vbias2",
+     "Vim",
+     "Vip",
+     "gnd",
+     "vdd"
+    ],
+    "ac_ground_exceptions": [
+     "Vbias2"
+    ],
+    "bias_dependent": [],
+    "bias_moving": [],
+    "blocks": [
+     {
+      "impedance": [
+       [
+        "Vom",
+        "value_dependent"
+       ]
+      ],
+      "inputs": [
+       "Vg15",
+       "Vop1"
+      ],
+      "key": [
+       "Vom"
+      ],
+      "kind": "gain",
+      "nodes": [
+       "Vg15",
+       "Vom",
+       "Vop1"
+      ],
+      "outputs": [
+       "Vom"
+      ],
+      "roles": [
+       [
+        "CL2",
+        "load"
+       ],
+       [
+        "Cc1",
+        "load"
+       ],
+       [
+        "Cf1",
+        "load"
+       ],
+       [
+        "M15",
+        "input"
+       ],
+       [
+        "M16",
+        "input"
+       ],
+       [
+        "R1",
+        "load"
+       ]
+      ],
+      "stage": 2,
+      "status": "derived"
+     },
+     {
+      "impedance": [
+       [
+        "Vop",
+        "value_dependent"
+       ]
+      ],
+      "inputs": [
+       "Vg25",
+       "Vom1"
+      ],
+      "key": [
+       "Vop"
+      ],
+      "kind": "gain",
+      "nodes": [
+       "Vg25",
+       "Vom1",
+       "Vop"
+      ],
+      "outputs": [
+       "Vop"
+      ],
+      "roles": [
+       [
+        "CL1",
+        "load"
+       ],
+       [
+        "Cc2",
+        "load"
+       ],
+       [
+        "Cf2",
+        "load"
+       ],
+       [
+        "M25",
+        "input"
+       ],
+       [
+        "M26",
+        "input"
+       ],
+       [
+        "R2",
+        "load"
+       ]
+      ],
+      "stage": 2,
+      "status": "derived"
+     },
+     {
+      "impedance": [
+       [
+        "Vom1",
+        "value_dependent"
+       ],
+       [
+        "Vop1",
+        "value_dependent"
+       ]
+      ],
+      "inputs": [
+       "Voc"
+      ],
+      "key": [
+       "Vom1",
+       "Vop1"
+      ],
+      "kind": "gain",
+      "nodes": [
+       "N1a2a",
+       "N1b2b",
+       "Ncmfb_tail",
+       "Vcmfb",
+       "Vg15",
+       "Vg25",
+       "Voc",
+       "Vom1",
+       "Vop1",
+       "Vx"
+      ],
+      "outputs": [
+       "Vom1",
+       "Vop1"
+      ],
+      "roles": [
+       [
+        "M10",
+        "load"
+       ],
+       [
+        "M17",
+        "load"
+       ],
+       [
+        "M18a",
+        "pass"
+       ],
+       [
+        "M18b",
+        "pass"
+       ],
+       [
+        "M19",
+        "load"
+       ],
+       [
+        "M1a",
+        "cascode"
+       ],
+       [
+        "M1b",
+        "cascode"
+       ],
+       [
+        "M2a",
+        "cascode"
+       ],
+       [
+        "M2b",
+        "cascode"
+       ],
+       [
+        "M36a",
+        "diode_load"
+       ],
+       [
+        "M37a",
+        "input"
+       ],
+       [
+        "M37b",
+        "load"
+       ],
+       [
+        "M38",
+        "load"
+       ],
+       [
+        "M3a",
+        "load"
+       ],
+       [
+        "M3b",
+        "load"
+       ],
+       [
+        "M58",
+        "load"
+       ],
+       [
+        "M6",
+        "tail_source"
+       ],
+       [
+        "M7",
+        "mirror"
+       ],
+       [
+        "M8",
+        "load"
+       ],
+       [
+        "M9a",
+        "pass"
+       ],
+       [
+        "M9b",
+        "pass"
+       ],
+       [
+        "Rz1",
+        "load"
+       ],
+       [
+        "Rz2",
+        "load"
+       ]
+      ],
+      "stage": 1,
+      "status": "derived"
+     }
+    ],
+    "cells": [
+     {
+      "degeneration": false,
+      "dev": "M10",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M11a",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M11b",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M12",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M13",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M14a",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M14b",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M15",
+      "forward": true,
+      "kind": "cs",
+      "out": "Vom"
+     },
+     {
+      "degeneration": false,
+      "dev": "M16",
+      "forward": true,
+      "kind": "cs",
+      "out": "Vom"
+     },
+     {
+      "degeneration": false,
+      "dev": "M17",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M18_bg",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M18a",
+      "forward": true,
+      "kind": "pass",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M18b",
+      "forward": true,
+      "kind": "pass",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M19",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M1a",
+      "forward": true,
+      "kind": "cg",
+      "out": "N1a2a"
+     },
+     {
+      "degeneration": false,
+      "dev": "M1b",
+      "forward": true,
+      "kind": "cg",
+      "out": "N1b2b"
+     },
+     {
+      "degeneration": false,
+      "dev": "M20a",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M20b",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M21",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M22",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M23a",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M24b",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M25",
+      "forward": true,
+      "kind": "cs",
+      "out": "Vop"
+     },
+     {
+      "degeneration": false,
+      "dev": "M26",
+      "forward": true,
+      "kind": "cs",
+      "out": "Vop"
+     },
+     {
+      "degeneration": false,
+      "dev": "M2a",
+      "forward": true,
+      "kind": "cg",
+      "out": "Vom1"
+     },
+     {
+      "degeneration": false,
+      "dev": "M2b",
+      "forward": true,
+      "kind": "cg",
+      "out": "Vop1"
+     },
+     {
+      "degeneration": false,
+      "dev": "M36a",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M36b",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": true,
+      "dev": "M37a",
+      "forward": true,
+      "kind": "cs",
+      "out": "Vcmfb"
+     },
+     {
+      "degeneration": false,
+      "dev": "M37b",
+      "forward": false,
+      "kind": "cg",
+      "out": "N36b"
+     },
+     {
+      "degeneration": false,
+      "dev": "M38",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M39",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M3a",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M3b",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M40",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M4a",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M4b",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M5",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M57",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M58",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M6",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M60",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M61",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M63",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M64",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M66",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M68",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M7",
+      "forward": true,
+      "kind": "cs",
+      "out": "Vx"
+     },
+     {
+      "degeneration": false,
+      "dev": "M8",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M9a",
+      "forward": true,
+      "kind": "pass",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M9b",
+      "forward": true,
+      "kind": "pass",
+      "out": ""
+     }
+    ],
+    "cm_pair": true,
+    "compensation_candidates": [
+     "Cc1",
+     "Cc2"
+    ],
+    "composites": [],
+    "cuts": [
+     [
+      "M37a",
+      "Voc"
+     ]
+    ],
+    "dist": [
+     [
+      "N1a2a",
+      1
+     ],
+     [
+      "N1b2b",
+      1
+     ],
+     [
+      "N36b",
+      1
+     ],
+     [
+      "N_cc_rz1",
+      0
+     ],
+     [
+      "N_cc_rz2",
+      0
+     ],
+     [
+      "Ncmfb_tail",
+      0
+     ],
+     [
+      "Vcmfb",
+      1
+     ],
+     [
+      "Vg15",
+      0
+     ],
+     [
+      "Vg25",
+      0
+     ],
+     [
+      "Voc",
+      0
+     ],
+     [
+      "Vom",
+      0
+     ],
+     [
+      "Vom1",
+      0
+     ],
+     [
+      "Vop",
+      0
+     ],
+     [
+      "Vop1",
+      0
+     ],
+     [
+      "Vx",
+      1
+     ]
+    ],
+    "drive_kind": [
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "N11a11b",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "N14a_14b",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_channel_exit",
+      "kind": "current",
+      "net": "N1a2a",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_channel_exit",
+      "kind": "current",
+      "net": "N1b2b",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "N20a20b",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "N23a24b",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "inherit_passive",
+      "kind": "voltage",
+      "net": "N_cc_rz1",
+      "tap": false,
+      "value_dependent": true
+     },
+     {
+      "basis": "inherit_passive",
+      "kind": "voltage",
+      "net": "N_cc_rz2",
+      "tap": false,
+      "value_dependent": true
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "Ncmfb_tail",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_gate_exit",
+      "kind": "voltage",
+      "net": "Vcmfb",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "inherit_pass_bundle",
+      "kind": "voltage",
+      "net": "Vg15",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "inherit_pass_bundle",
+      "kind": "voltage",
+      "net": "Vg25",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "port",
+      "kind": "voltage",
+      "net": "Voc",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "Voc_des",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_no_exit",
+      "kind": "current",
+      "net": "Vom",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_gate_and_channel_exit",
+      "kind": "voltage",
+      "net": "Vom1",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_no_exit",
+      "kind": "current",
+      "net": "Vop",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_gate_and_channel_exit",
+      "kind": "voltage",
+      "net": "Vop1",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_channel_exit",
+      "kind": "current",
+      "net": "Vx",
+      "tap": false,
+      "value_dependent": false
+     }
+    ],
+    "excite": [
+     [
+      "Voc",
+      1.0
+     ]
+    ],
+    "feedforward": [],
+    "ff_ratio_candidates": [],
+    "findings": [
+     {
+      "basis": [
+       "40 §5",
+       "H5"
+      ],
+      "code": "cm_loop_unconstrained",
+      "detail": "포트쌍 CM 루프 대응(R31): 안정도 metric 은 pm_cm_ss_deg, 제약이 선언되지 않으면 T_cm 만 보고한다",
+      "severity": "info",
+      "subject": [
+       "Voc"
+      ],
+      "view": "loop:M37a:Voc"
+     },
+     {
+      "basis": [
+       "41 §1.12.4"
+      ],
+      "code": "loop_polarity_ac_only",
+      "detail": "커패시터를 지나 DC 극성이 없는 사이클의 수동소자(GB5 보상 후보)",
+      "severity": "info",
+      "subject": [
+       "Cc1",
+       "Cc2"
+      ],
+      "view": "loop:M37a:Voc"
+     }
+    ],
+    "forward_nets": [
+     "N1a2a",
+     "N1b2b",
+     "N_cc_rz1",
+     "N_cc_rz2",
+     "Ncmfb_tail",
+     "Vcmfb",
+     "Vg15",
+     "Vg25",
+     "Voc",
+     "Vom",
+     "Vom1",
+     "Vop",
+     "Vop1",
+     "Vx"
+    ],
+    "id": "loop:M37a:Voc",
+    "kind": "loop",
+    "loop_roles": [],
+    "loops": [
+     {
+      "ac_only": true,
+      "classes": [
+       "miller",
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2a",
+       "Rz2",
+       "Cc2",
+       "R2",
+       "M37a",
+       "M7",
+       "M1a"
+      ],
+      "nodes": [
+       "N1a2a",
+       "Vom1",
+       "N_cc_rz2",
+       "Vop",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": 0
+     },
+     {
+      "ac_only": false,
+      "classes": [
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2a",
+       [
+        "M18a",
+        "M18b"
+       ],
+       "M25",
+       "R2",
+       "M37a",
+       "M7",
+       "M1a"
+      ],
+      "nodes": [
+       "N1a2a",
+       "Vom1",
+       "Vg25",
+       "Vop",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": -1
+     },
+     {
+      "ac_only": false,
+      "classes": [
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2a",
+       "M26",
+       "R2",
+       "M37a",
+       "M7",
+       "M1a"
+      ],
+      "nodes": [
+       "N1a2a",
+       "Vom1",
+       "Vop",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": -1
+     },
+     {
+      "ac_only": true,
+      "classes": [
+       "miller",
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2b",
+       "Rz1",
+       "Cc1",
+       "R1",
+       "M37a",
+       "M7",
+       "M1b"
+      ],
+      "nodes": [
+       "N1b2b",
+       "Vop1",
+       "N_cc_rz1",
+       "Vom",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": 0
+     },
+     {
+      "ac_only": false,
+      "classes": [
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2b",
+       [
+        "M9a",
+        "M9b"
+       ],
+       "M15",
+       "R1",
+       "M37a",
+       "M7",
+       "M1b"
+      ],
+      "nodes": [
+       "N1b2b",
+       "Vop1",
+       "Vg15",
+       "Vom",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": -1
+     },
+     {
+      "ac_only": false,
+      "classes": [
+       "loop_view"
+      ],
+      "cm_pair": false,
+      "cut": [
+       "M37a",
+       "Voc"
+      ],
+      "devices": [
+       "M2b",
+       "M16",
+       "R1",
+       "M37a",
+       "M7",
+       "M1b"
+      ],
+      "nodes": [
+       "N1b2b",
+       "Vop1",
+       "Vom",
+       "Voc",
+       "Vcmfb",
+       "Vx"
+      ],
+      "polarity": -1
+     },
+     {
+      "ac_only": true,
+      "classes": [
+       "miller"
+      ],
+      "cm_pair": false,
+      "cut": [],
+      "devices": [
+       "Rz1",
+       [
+        "M9a",
+        "M9b"
+       ],
+       "M15",
+       "Cc1"
+      ],
+      "nodes": [
+       "N_cc_rz1",
+       "Vop1",
+       "Vg15",
+       "Vom"
+      ],
+      "polarity": 0
+     },
+     {
+      "ac_only": true,
+      "classes": [
+       "miller"
+      ],
+      "cm_pair": false,
+      "cut": [],
+      "devices": [
+       "Rz1",
+       "M16",
+       "Cc1"
+      ],
+      "nodes": [
+       "N_cc_rz1",
+       "Vop1",
+       "Vom"
+      ],
+      "polarity": 0
+     },
+     {
+      "ac_only": true,
+      "classes": [
+       "miller"
+      ],
+      "cm_pair": false,
+      "cut": [],
+      "devices": [
+       "Rz2",
+       [
+        "M18a",
+        "M18b"
+       ],
+       "M25",
+       "Cc2"
+      ],
+      "nodes": [
+       "N_cc_rz2",
+       "Vom1",
+       "Vg25",
+       "Vop"
+      ],
+      "polarity": 0
+     },
+     {
+      "ac_only": true,
+      "classes": [
+       "miller"
+      ],
+      "cm_pair": false,
+      "cut": [],
+      "devices": [
+       "Rz2",
+       "M26",
+       "Cc2"
+      ],
+      "nodes": [
+       "N_cc_rz2",
+       "Vom1",
+       "Vop"
+      ],
+      "polarity": 0
+     }
+    ],
+    "main_path": [],
+    "mirror_inputs": [
+     "Vcmfb"
+    ],
+    "output_direction": [
+     {
+      "charge": [],
+      "discharge": [],
+      "net": "Voc",
+      "topology": "none"
+     },
+     {
+      "charge": [
+       [
+        "M15",
+        "sigma"
+       ]
+      ],
+      "discharge": [
+       [
+        "M16",
+        "sigma"
+       ]
+      ],
+      "net": "Vom",
+      "topology": "push_pull"
+     },
+     {
+      "charge": [
+       [
+        "M18a",
+        "beta"
+       ],
+       [
+        "M18b",
+        "beta"
+       ],
+       [
+        "M2a",
+        "beta"
+       ]
+      ],
+      "discharge": [
+       [
+        "M19",
+        "beta"
+       ],
+       [
+        "M3a",
+        "beta"
+       ]
+      ],
+      "net": "Vom1",
+      "topology": "none"
+     },
+     {
+      "charge": [
+       [
+        "M25",
+        "sigma"
+       ]
+      ],
+      "discharge": [
+       [
+        "M26",
+        "sigma"
+       ]
+      ],
+      "net": "Vop",
+      "topology": "push_pull"
+     },
+     {
+      "charge": [
+       [
+        "M2b",
+        "beta"
+       ],
+       [
+        "M9a",
+        "beta"
+       ],
+       [
+        "M9b",
+        "beta"
+       ]
+      ],
+      "discharge": [
+       [
+        "M10",
+        "beta"
+       ],
+       [
+        "M3b",
+        "beta"
+       ]
+      ],
+      "net": "Vop1",
+      "topology": "none"
+     }
+    ],
+    "pass_bundles": [
+     {
+      "members": [
+       "M9a",
+       "M9b"
+      ],
+      "nodes": [
+       "Vg15",
+       "Vop1"
+      ]
+     },
+     {
+      "members": [
+       "M18a",
+       "M18b"
+      ],
+      "nodes": [
+       "Vg25",
+       "Vom1"
+      ]
+     }
+    ],
+    "polarity": -1,
+    "pole_nodes": [
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "N11a11b"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N11b"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N14a14b"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "N14a_14b"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "current",
+      "impedance": "low",
+      "net": "N1a2a"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "current",
+      "impedance": "low",
+      "net": "N1b2b"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "N20a20b"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N20b"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "N23a24b"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N24b23a"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N36b"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N3a4a"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N3b4b"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N58_57"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "N64_63"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "value_dependent",
+      "net": "N_cc_rz1"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "value_dependent",
+      "net": "N_cc_rz2"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "Ncmfb_tail"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "Vbias1"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "Vbias3"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "Vbias4"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "Vcmfb"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "voltage",
+      "impedance": "high",
+      "net": "Vg15"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "voltage",
+      "impedance": "high",
+      "net": "Vg25"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "value_dependent",
+      "net": "Voc"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "Voc_des"
+     },
+     {
+      "block": [
+       "Vom"
+      ],
+      "drive": "current",
+      "impedance": "value_dependent",
+      "net": "Vom"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "voltage",
+      "impedance": "value_dependent",
+      "net": "Vom1"
+     },
+     {
+      "block": [
+       "Vop"
+      ],
+      "drive": "current",
+      "impedance": "value_dependent",
+      "net": "Vop"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "voltage",
+      "impedance": "value_dependent",
+      "net": "Vop1"
+     },
+     {
+      "block": [
+       "Vom1",
+       "Vop1"
+      ],
+      "drive": "current",
+      "impedance": "low",
+      "net": "Vx"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "Vy"
+     }
+    ],
+    "sense": [
+     "Voc"
+    ],
+    "signal_nets": [
+     "N1a2a",
+     "N1b2b",
+     "N36b",
+     "N58_57",
+     "N_cc_rz1",
+     "N_cc_rz2",
+     "Ncmfb_tail",
+     "Vcmfb",
+     "Vg15",
+     "Vg25",
+     "Voc",
+     "Vom",
+     "Vom1",
+     "Vop",
+     "Vop1",
+     "Vx"
+    ],
+    "stage_dist": [
+     [
+      "N1a2a",
+      1
+     ],
+     [
+      "N1b2b",
+      1
+     ],
+     [
+      "N36b",
+      1
+     ],
+     [
+      "Ncmfb_tail",
+      0
+     ],
+     [
+      "Vcmfb",
+      1
+     ],
+     [
+      "Vg15",
+      1
+     ],
+     [
+      "Vg25",
+      1
+     ],
+     [
+      "Voc",
+      0
+     ],
+     [
+      "Vom",
+      2
+     ],
+     [
+      "Vom1",
+      1
+     ],
+     [
+      "Vop",
+      2
+     ],
+     [
+      "Vop1",
+      1
+     ],
+     [
+      "Vx",
+      1
+     ]
+    ],
+    "stage_starts": [
+     "M15",
+     "M16",
+     "M25",
+     "M26",
+     "M37a"
+    ],
+    "unreduced_diff": [],
+    "virtual_ground": []
+   }
+  ]
+ },
+ "views": [
+  {
+   "blocks": [
+    {
+     "key": [
+      "Vom"
+     ],
+     "kind": "gain",
+     "stage": 2
+    },
+    {
+     "key": [
+      "Vom1",
+      "Vop1"
+     ],
+     "kind": "gain",
+     "stage": 1
+    },
+    {
+     "key": [
+      "Vop"
+     ],
+     "kind": "gain",
+     "stage": 2
+    }
+   ],
+   "cuts": [
+    [
+     "M37a",
+     "Voc"
+    ]
+   ],
+   "feedforward": [],
+   "id": "transfer:0",
+   "kind": "transfer",
+   "loop_count": 10,
+   "loop_roles": [
+    {
+     "approval_id": "",
+     "loop_id": "loop:M37a:Voc",
+     "reason": "",
+     "role": "loop_view",
+     "status": "derived"
+    }
+   ],
+   "polarity": 0
+  },
+  {
+   "blocks": [
+    {
+     "key": [
+      "Vom"
+     ],
+     "kind": "gain",
+     "stage": 2
+    },
+    {
+     "key": [
+      "Vop"
+     ],
+     "kind": "gain",
+     "stage": 2
+    },
+    {
+     "key": [
+      "Vom1",
+      "Vop1"
+     ],
+     "kind": "gain",
+     "stage": 1
+    }
+   ],
+   "cuts": [
+    [
+     "M37a",
+     "Voc"
+    ]
+   ],
+   "feedforward": [],
+   "id": "loop:M37a:Voc",
+   "kind": "loop",
+   "loop_count": 10,
+   "loop_roles": [],
+   "polarity": -1
+  }
+ ]
+}

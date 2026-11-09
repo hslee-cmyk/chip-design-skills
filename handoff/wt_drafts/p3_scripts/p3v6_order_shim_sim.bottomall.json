@@ -1,0 +1,1381 @@
+{
+ "plan": null,
+ "results": [
+  {
+   "card": "M1",
+   "mod_file": "gmid_lut.py",
+   "moved_units": 7,
+   "tree_imports": [],
+   "order_old": [],
+   "order_new": [],
+   "shim": {
+    "sizing_recipe.py": {
+     "old_n": 223,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "stick_diagram.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "topology_library.py": {
+     "old_n": 10,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "design_report.py": {
+     "old_n": 9,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "audit_current_forced.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    }
+   },
+   "complete_shims": [],
+   "import_each_first": {
+    "sizing_recipe": "ok",
+    "stick_diagram": "ok",
+    "topology_library": "ok",
+    "design_report": "ok",
+    "audit_current_forced": "ok",
+    "gmid_lut": "ok"
+   }
+  },
+  {
+   "card": "M2",
+   "mod_file": "topology_authoring.py",
+   "moved_units": 22,
+   "tree_imports": [],
+   "order_old": [],
+   "order_new": [],
+   "shim": {
+    "sizing_recipe.py": {
+     "old_n": 217,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "stick_diagram.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "topology_library.py": {
+     "old_n": 10,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "design_report.py": {
+     "old_n": 9,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "audit_current_forced.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    }
+   },
+   "complete_shims": [],
+   "import_each_first": {
+    "sizing_recipe": "ok",
+    "stick_diagram": "ok",
+    "topology_library": "ok",
+    "design_report": "ok",
+    "audit_current_forced": "ok",
+    "gmid_lut": "ok",
+    "topology_authoring": "ok"
+   }
+  },
+  {
+   "card": "M3",
+   "mod_file": "circuit_state_graph.py",
+   "moved_units": 61,
+   "tree_imports": [
+    "topology_authoring"
+   ],
+   "order_old": [],
+   "order_new": [],
+   "shim": {
+    "sizing_recipe.py": {
+     "old_n": 184,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "stick_diagram.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "topology_library.py": {
+     "old_n": 10,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "design_report.py": {
+     "old_n": 9,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "audit_current_forced.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    }
+   },
+   "complete_shims": [],
+   "import_each_first": {
+    "sizing_recipe": "ok",
+    "stick_diagram": "ok",
+    "topology_library": "ok",
+    "design_report": "ok",
+    "audit_current_forced": "ok",
+    "gmid_lut": "ok",
+    "topology_authoring": "ok",
+    "circuit_state_graph": "ok"
+   }
+  },
+  {
+   "card": "M4",
+   "mod_file": "gmid_sizing_engine.py",
+   "moved_units": 98,
+   "tree_imports": [
+    "circuit_state_graph",
+    "gmid_lut",
+    "topology_authoring"
+   ],
+   "order_old": [],
+   "order_new": [],
+   "shim": {
+    "sizing_recipe.py": {
+     "old_n": 94,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "stick_diagram.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "topology_library.py": {
+     "old_n": 1,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "design_report.py": {
+     "old_n": 8,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "audit_current_forced.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    }
+   },
+   "complete_shims": [
+    "topology_library.py"
+   ],
+   "import_each_first": {
+    "sizing_recipe": "ok",
+    "stick_diagram": "ok",
+    "topology_library": "ok",
+    "design_report": "ok",
+    "audit_current_forced": "ok",
+    "gmid_lut": "ok",
+    "topology_authoring": "ok",
+    "circuit_state_graph": "ok",
+    "gmid_sizing_engine": "ok"
+   }
+  },
+  {
+   "card": "M5",
+   "mod_file": "circuit_metrics.py",
+   "moved_units": 3,
+   "tree_imports": [
+    "circuit_state_graph",
+    "gmid_sizing_engine"
+   ],
+   "order_old": [],
+   "order_new": [],
+   "shim": {
+    "sizing_recipe.py": {
+     "old_n": 91,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "stick_diagram.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "topology_library.py": {
+     "old_n": 1,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "design_report.py": {
+     "old_n": 8,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "audit_current_forced.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    }
+   },
+   "complete_shims": [
+    "topology_library.py"
+   ],
+   "import_each_first": {
+    "sizing_recipe": "ok",
+    "stick_diagram": "ok",
+    "topology_library": "ok",
+    "design_report": "ok",
+    "audit_current_forced": "ok",
+    "gmid_lut": "ok",
+    "topology_authoring": "ok",
+    "circuit_state_graph": "ok",
+    "gmid_sizing_engine": "ok",
+    "circuit_metrics": "ok"
+   }
+  },
+  {
+   "card": "M6",
+   "mod_file": "theta_search.py",
+   "moved_units": 16,
+   "tree_imports": [
+    "gmid_sizing_engine"
+   ],
+   "order_old": [],
+   "order_new": [],
+   "shim": {
+    "sizing_recipe.py": {
+     "old_n": 77,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "stick_diagram.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "topology_library.py": {
+     "old_n": 1,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "design_report.py": {
+     "old_n": 8,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "audit_current_forced.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    }
+   },
+   "complete_shims": [
+    "topology_library.py"
+   ],
+   "import_each_first": {
+    "sizing_recipe": "ok",
+    "stick_diagram": "ok",
+    "topology_library": "ok",
+    "design_report": "ok",
+    "audit_current_forced": "ok",
+    "gmid_lut": "ok",
+    "topology_authoring": "ok",
+    "circuit_state_graph": "ok",
+    "gmid_sizing_engine": "ok",
+    "circuit_metrics": "ok",
+    "theta_search": "ok"
+   }
+  },
+  {
+   "card": "M8",
+   "mod_file": "sizing_layout_convergence.py",
+   "moved_units": 41,
+   "tree_imports": [
+    "circuit_metrics",
+    "circuit_state_graph",
+    "gmid_sizing_engine",
+    "stick_diagram"
+   ],
+   "order_old": [
+    "stick_diagram.py"
+   ],
+   "order_new": [],
+   "shim": {
+    "sizing_recipe.py": {
+     "old_n": 36,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "stick_diagram.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "topology_library.py": {
+     "old_n": 1,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "design_report.py": {
+     "old_n": 8,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "audit_current_forced.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    }
+   },
+   "complete_shims": [
+    "topology_library.py"
+   ],
+   "import_each_first": {
+    "sizing_recipe": "ok",
+    "stick_diagram": "ok",
+    "topology_library": "ok",
+    "design_report": "ok",
+    "audit_current_forced": "ok",
+    "gmid_lut": "ok",
+    "topology_authoring": "ok",
+    "circuit_state_graph": "ok",
+    "gmid_sizing_engine": "ok",
+    "circuit_metrics": "ok",
+    "theta_search": "ok",
+    "sizing_layout_convergence": "ok"
+   }
+  },
+  {
+   "card": "M9",
+   "mod_file": "instance_report_builder.py",
+   "moved_units": 37,
+   "tree_imports": [
+    "circuit_metrics",
+    "circuit_state_graph",
+    "gmid_sizing_engine",
+    "sizing_layout_convergence",
+    "stick_diagram",
+    "theta_search",
+    "topology_authoring"
+   ],
+   "order_old": [
+    "stick_diagram.py"
+   ],
+   "order_new": [],
+   "shim": {
+    "sizing_recipe.py": {
+     "old_n": 1,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "stick_diagram.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "topology_library.py": {
+     "old_n": 1,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "design_report.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    },
+    "audit_current_forced.py": {
+     "old_n": 0,
+     "new_a": [],
+     "new_a_n": 0,
+     "new_b": [],
+     "new_b_n": 0
+    }
+   },
+   "complete_shims": [
+    "design_report.py",
+    "sizing_recipe.py",
+    "topology_library.py"
+   ],
+   "import_each_first": {
+    "sizing_recipe": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+    "stick_diagram": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+    "topology_library": "ok",
+    "design_report": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+    "audit_current_forced": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+    "gmid_lut": "ok",
+    "topology_authoring": "ok",
+    "circuit_state_graph": "ok",
+    "gmid_sizing_engine": "ok",
+    "circuit_metrics": "ok",
+    "theta_search": "ok",
+    "sizing_layout_convergence": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+    "instance_report_builder": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m"
+   }
+  }
+ ],
+ "summary": {
+  "cards": [
+   "M1",
+   "M2",
+   "M3",
+   "M4",
+   "M5",
+   "M6",
+   "M8",
+   "M9"
+  ],
+  "order_old_fail": [
+   "M8",
+   "M9"
+  ],
+  "order_new_fail": [],
+  "shim_old_fail": [
+   "M1",
+   "M2",
+   "M3",
+   "M4",
+   "M5",
+   "M6",
+   "M8",
+   "M9"
+  ],
+  "shim_new_fail": [],
+  "import_fail": {
+   "M1": {},
+   "M2": {},
+   "M3": {},
+   "M4": {},
+   "M5": {},
+   "M6": {},
+   "M8": {},
+   "M9": {
+    "sizing_recipe": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+    "stick_diagram": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+    "design_report": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+    "audit_current_forced": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+    "sizing_layout_convergence": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+    "instance_report_builder": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m"
+   }
+  }
+ },
+ "log": [
+  {
+   "kind": "plan",
+   "data": {
+    "units": 403,
+    "rule_counts": {
+     "A-1": 54,
+     "A-4": 245,
+     "A-2": 37,
+     "A-5": 53,
+     "A-3": 1
+    },
+    "unassigned_n": 13,
+    "upward_n": 49,
+    "interest": {
+     "sizing_recipe.py::_shared_current_groups_from_compensation": {
+      "sigma": 3,
+      "rule": "A-4",
+      "refs_mod": []
+     },
+     "sizing_recipe.py::_build_shared_current_joint_plan": {
+      "sigma": 3,
+      "rule": "A-4",
+      "refs_mod": []
+     },
+     "sizing_recipe.py::validate_theta_declaration_order": {
+      "sigma": 2,
+      "rule": "A-1",
+      "refs_mod": [
+       [
+        3,
+        "sizing_recipe.py::_shared_current_groups_from_compensation"
+       ],
+       [
+        3,
+        "sizing_recipe.py::_build_shared_current_joint_plan"
+       ]
+      ]
+     },
+     "sizing_recipe.py::resolve_stack_layout": {
+      "sigma": 8,
+      "rule": "A-1",
+      "refs_mod": [
+       [
+        7,
+        "stick_diagram.py::derive_horizontal_stack_groups"
+       ],
+       [
+        7,
+        "stick_diagram.py::geometry_colocation_union"
+       ],
+       [
+        2,
+        "stick_diagram.py::refine_differential_and_mirror_relations"
+       ],
+       [
+        2,
+        "stick_diagram.py::audit_vertical_stack_id_vs_kcl"
+       ]
+      ]
+     },
+     "sizing_recipe.py::optimize_full_circuit_budget": {
+      "sigma": 6,
+      "rule": "A-1",
+      "refs_mod": [
+       [
+        8,
+        "sizing_recipe.py::run_topology_pipeline_with_finger_fixup"
+       ],
+       [
+        8,
+        "sizing_recipe.py::_score_floorplan"
+       ],
+       [
+        8,
+        "sizing_recipe.py::run_matching_safety_with_finger_growth"
+       ],
+       [
+        8,
+        "sizing_recipe.py::_pick_split_target"
+       ],
+       [
+        7,
+        "stick_diagram.py::run_topology_pipeline"
+       ],
+       [
+        7,
+        "stick_diagram.py::apply_explicit_row_split"
+       ]
+      ]
+     },
+     "sizing_recipe.py::run_topology_pipeline_with_finger_fixup": {
+      "sigma": 8,
+      "rule": "A-1",
+      "refs_mod": [
+       [
+        8,
+        "sizing_recipe.py::apply_and_revalidate_pair_adjustment"
+       ],
+       [
+        8,
+        "sizing_recipe.py::_blocked_euler_rows"
+       ],
+       [
+        8,
+        "sizing_recipe.py::_sync_finger_fixup"
+       ],
+       [
+        7,
+        "stick_diagram.py::find_min_crossover_layout_with_branch_composite"
+       ],
+       [
+        7,
+        "stick_diagram.py::run_topology_pipeline"
+       ],
+       [
+        3,
+        "sizing_recipe.py::SizingContext"
+       ]
+      ]
+     },
+     "stick_diagram.py::Transistor": {
+      "sigma": 2,
+      "rule": "A-2",
+      "refs_mod": []
+     },
+     "stick_diagram.py::load_topology": {
+      "sigma": 2,
+      "rule": "A-1",
+      "refs_mod": [
+       [
+        7,
+        "stick_diagram.py::check_topology_name_uniqueness"
+       ],
+       [
+        2,
+        "stick_diagram.py::Transistor"
+       ],
+       [
+        2,
+        "stick_diagram.py::propose_vertical_stack_id_gap_fill"
+       ],
+       [
+        2,
+        "stick_diagram.py::propose_device_roles_gap_fill"
+       ],
+       [
+        2,
+        "stick_diagram.py::find_authoritative_sizing_devices"
+       ]
+      ]
+     },
+     "stick_diagram.py::run_full_circuit_audit_from_topology": {
+      "sigma": 9,
+      "rule": "A-4",
+      "refs_mod": [
+       [
+        7,
+        "stick_diagram.py::run_full_circuit_audit"
+       ],
+       [
+        7,
+        "stick_diagram.py::AuditResult"
+       ],
+       [
+        2,
+        "stick_diagram.py::load_topology"
+       ]
+      ]
+     },
+     "stick_diagram.py::_audit_result_json": {
+      "sigma": 9,
+      "rule": "A-4",
+      "refs_mod": []
+     },
+     "stick_diagram.py::save_instance_json": {
+      "sigma": 9,
+      "rule": "A-1",
+      "refs_mod": [
+       [
+        9,
+        "stick_diagram.py::_audit_result_json"
+       ],
+       [
+        9,
+        "stick_diagram.py::_box_shape_json"
+       ],
+       [
+        9,
+        "stick_diagram.py::_topology_ref_relpath"
+       ],
+       [
+        7,
+        "stick_diagram.py::check_instance_completeness"
+       ],
+       [
+        2,
+        "stick_diagram.py::load_topology"
+       ]
+      ]
+     },
+     "audit_current_forced.py::audit_topology": {
+      "sigma": 9,
+      "rule": "A-4",
+      "refs_mod": [
+       [
+        9,
+        "audit_current_forced.py::_theta_evidence_for_pair"
+       ],
+       [
+        2,
+        "stick_diagram.py::load_topology"
+       ]
+      ]
+     },
+     "audit_current_forced.py::render_report": {
+      "sigma": null,
+      "rule": null,
+      "refs_mod": [
+       [
+        9,
+        "audit_current_forced.py::audit_topology"
+       ]
+      ]
+     }
+    },
+    "vtdo_refs": {
+     "sizing_recipe.py::_shared_current_groups_from_compensation": 3,
+     "sizing_recipe.py::_build_shared_current_joint_plan": 3
+    }
+   }
+  },
+  {
+   "kind": "sim_assign",
+   "data": {
+    "changed_from_rules": 89,
+    "upward_after": 0,
+    "upward_sample": [],
+    "per_mod": {
+     "1": 7,
+     "2": 22,
+     "3": 61,
+     "4": 98,
+     "5": 3,
+     "6": 16,
+     "8": 41,
+     "9": 37
+    },
+    "sd_units_to_mod8_9": [
+     "stick_diagram.py::_audit_result_json",
+     "stick_diagram.py::_box_shape_json",
+     "stick_diagram.py::_topology_ref_relpath",
+     "stick_diagram.py::run_full_circuit_audit_from_topology",
+     "stick_diagram.py::save_instance_json"
+    ],
+    "nonsd_rules_to_mod7": []
+   }
+  },
+  {
+   "kind": "card",
+   "data": {
+    "card": "M1",
+    "mod_file": "gmid_lut.py",
+    "moved_units": 7,
+    "tree_imports": [],
+    "order_old": [],
+    "order_new": [],
+    "shim": {
+     "sizing_recipe.py": {
+      "old_n": 223,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "stick_diagram.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "topology_library.py": {
+      "old_n": 10,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "design_report.py": {
+      "old_n": 9,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "audit_current_forced.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     }
+    },
+    "complete_shims": [],
+    "import_each_first": {
+     "sizing_recipe": "ok",
+     "stick_diagram": "ok",
+     "topology_library": "ok",
+     "design_report": "ok",
+     "audit_current_forced": "ok",
+     "gmid_lut": "ok"
+    }
+   }
+  },
+  {
+   "kind": "card",
+   "data": {
+    "card": "M2",
+    "mod_file": "topology_authoring.py",
+    "moved_units": 22,
+    "tree_imports": [],
+    "order_old": [],
+    "order_new": [],
+    "shim": {
+     "sizing_recipe.py": {
+      "old_n": 217,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "stick_diagram.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "topology_library.py": {
+      "old_n": 10,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "design_report.py": {
+      "old_n": 9,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "audit_current_forced.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     }
+    },
+    "complete_shims": [],
+    "import_each_first": {
+     "sizing_recipe": "ok",
+     "stick_diagram": "ok",
+     "topology_library": "ok",
+     "design_report": "ok",
+     "audit_current_forced": "ok",
+     "gmid_lut": "ok",
+     "topology_authoring": "ok"
+    }
+   }
+  },
+  {
+   "kind": "card",
+   "data": {
+    "card": "M3",
+    "mod_file": "circuit_state_graph.py",
+    "moved_units": 61,
+    "tree_imports": [
+     "topology_authoring"
+    ],
+    "order_old": [],
+    "order_new": [],
+    "shim": {
+     "sizing_recipe.py": {
+      "old_n": 184,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "stick_diagram.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "topology_library.py": {
+      "old_n": 10,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "design_report.py": {
+      "old_n": 9,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "audit_current_forced.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     }
+    },
+    "complete_shims": [],
+    "import_each_first": {
+     "sizing_recipe": "ok",
+     "stick_diagram": "ok",
+     "topology_library": "ok",
+     "design_report": "ok",
+     "audit_current_forced": "ok",
+     "gmid_lut": "ok",
+     "topology_authoring": "ok",
+     "circuit_state_graph": "ok"
+    }
+   }
+  },
+  {
+   "kind": "card",
+   "data": {
+    "card": "M4",
+    "mod_file": "gmid_sizing_engine.py",
+    "moved_units": 98,
+    "tree_imports": [
+     "circuit_state_graph",
+     "gmid_lut",
+     "topology_authoring"
+    ],
+    "order_old": [],
+    "order_new": [],
+    "shim": {
+     "sizing_recipe.py": {
+      "old_n": 94,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "stick_diagram.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "topology_library.py": {
+      "old_n": 1,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "design_report.py": {
+      "old_n": 8,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "audit_current_forced.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     }
+    },
+    "complete_shims": [
+     "topology_library.py"
+    ],
+    "import_each_first": {
+     "sizing_recipe": "ok",
+     "stick_diagram": "ok",
+     "topology_library": "ok",
+     "design_report": "ok",
+     "audit_current_forced": "ok",
+     "gmid_lut": "ok",
+     "topology_authoring": "ok",
+     "circuit_state_graph": "ok",
+     "gmid_sizing_engine": "ok"
+    }
+   }
+  },
+  {
+   "kind": "card",
+   "data": {
+    "card": "M5",
+    "mod_file": "circuit_metrics.py",
+    "moved_units": 3,
+    "tree_imports": [
+     "circuit_state_graph",
+     "gmid_sizing_engine"
+    ],
+    "order_old": [],
+    "order_new": [],
+    "shim": {
+     "sizing_recipe.py": {
+      "old_n": 91,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "stick_diagram.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "topology_library.py": {
+      "old_n": 1,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "design_report.py": {
+      "old_n": 8,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "audit_current_forced.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     }
+    },
+    "complete_shims": [
+     "topology_library.py"
+    ],
+    "import_each_first": {
+     "sizing_recipe": "ok",
+     "stick_diagram": "ok",
+     "topology_library": "ok",
+     "design_report": "ok",
+     "audit_current_forced": "ok",
+     "gmid_lut": "ok",
+     "topology_authoring": "ok",
+     "circuit_state_graph": "ok",
+     "gmid_sizing_engine": "ok",
+     "circuit_metrics": "ok"
+    }
+   }
+  },
+  {
+   "kind": "card",
+   "data": {
+    "card": "M6",
+    "mod_file": "theta_search.py",
+    "moved_units": 16,
+    "tree_imports": [
+     "gmid_sizing_engine"
+    ],
+    "order_old": [],
+    "order_new": [],
+    "shim": {
+     "sizing_recipe.py": {
+      "old_n": 77,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "stick_diagram.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "topology_library.py": {
+      "old_n": 1,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "design_report.py": {
+      "old_n": 8,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "audit_current_forced.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     }
+    },
+    "complete_shims": [
+     "topology_library.py"
+    ],
+    "import_each_first": {
+     "sizing_recipe": "ok",
+     "stick_diagram": "ok",
+     "topology_library": "ok",
+     "design_report": "ok",
+     "audit_current_forced": "ok",
+     "gmid_lut": "ok",
+     "topology_authoring": "ok",
+     "circuit_state_graph": "ok",
+     "gmid_sizing_engine": "ok",
+     "circuit_metrics": "ok",
+     "theta_search": "ok"
+    }
+   }
+  },
+  {
+   "kind": "card",
+   "data": {
+    "card": "M8",
+    "mod_file": "sizing_layout_convergence.py",
+    "moved_units": 41,
+    "tree_imports": [
+     "circuit_metrics",
+     "circuit_state_graph",
+     "gmid_sizing_engine",
+     "stick_diagram"
+    ],
+    "order_old": [
+     "stick_diagram.py"
+    ],
+    "order_new": [],
+    "shim": {
+     "sizing_recipe.py": {
+      "old_n": 36,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "stick_diagram.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "topology_library.py": {
+      "old_n": 1,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "design_report.py": {
+      "old_n": 8,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "audit_current_forced.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     }
+    },
+    "complete_shims": [
+     "topology_library.py"
+    ],
+    "import_each_first": {
+     "sizing_recipe": "ok",
+     "stick_diagram": "ok",
+     "topology_library": "ok",
+     "design_report": "ok",
+     "audit_current_forced": "ok",
+     "gmid_lut": "ok",
+     "topology_authoring": "ok",
+     "circuit_state_graph": "ok",
+     "gmid_sizing_engine": "ok",
+     "circuit_metrics": "ok",
+     "theta_search": "ok",
+     "sizing_layout_convergence": "ok"
+    }
+   }
+  },
+  {
+   "kind": "card",
+   "data": {
+    "card": "M9",
+    "mod_file": "instance_report_builder.py",
+    "moved_units": 37,
+    "tree_imports": [
+     "circuit_metrics",
+     "circuit_state_graph",
+     "gmid_sizing_engine",
+     "sizing_layout_convergence",
+     "stick_diagram",
+     "theta_search",
+     "topology_authoring"
+    ],
+    "order_old": [
+     "stick_diagram.py"
+    ],
+    "order_new": [],
+    "shim": {
+     "sizing_recipe.py": {
+      "old_n": 1,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "stick_diagram.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "topology_library.py": {
+      "old_n": 1,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "design_report.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     },
+     "audit_current_forced.py": {
+      "old_n": 0,
+      "new_a": [],
+      "new_a_n": 0,
+      "new_b": [],
+      "new_b_n": 0
+     }
+    },
+    "complete_shims": [
+     "design_report.py",
+     "sizing_recipe.py",
+     "topology_library.py"
+    ],
+    "import_each_first": {
+     "sizing_recipe": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+     "stick_diagram": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+     "topology_library": "ok",
+     "design_report": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+     "audit_current_forced": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+     "gmid_lut": "ok",
+     "topology_authoring": "ok",
+     "circuit_state_graph": "ok",
+     "gmid_sizing_engine": "ok",
+     "circuit_metrics": "ok",
+     "theta_search": "ok",
+     "sizing_layout_convergence": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+     "instance_report_builder": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m"
+    }
+   }
+  },
+  {
+   "kind": "summary",
+   "data": {
+    "cards": [
+     "M1",
+     "M2",
+     "M3",
+     "M4",
+     "M5",
+     "M6",
+     "M8",
+     "M9"
+    ],
+    "order_old_fail": [
+     "M8",
+     "M9"
+    ],
+    "order_new_fail": [],
+    "shim_old_fail": [
+     "M1",
+     "M2",
+     "M3",
+     "M4",
+     "M5",
+     "M6",
+     "M8",
+     "M9"
+    ],
+    "shim_new_fail": [],
+    "import_fail": {
+     "M1": {},
+     "M2": {},
+     "M3": {},
+     "M4": {},
+     "M5": {},
+     "M6": {},
+     "M8": {},
+     "M9": {
+      "sizing_recipe": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+      "stick_diagram": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+      "design_report": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+      "audit_current_forced": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+      "sizing_layout_convergence": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m",
+      "instance_report_builder": "\u001b[1;35mNameError\u001b[0m: \u001b[35mname '_metric_sum_current' is not defined\u001b[0m"
+     }
+    }
+   }
+  }
+ ]
+}

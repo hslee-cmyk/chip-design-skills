@@ -1,0 +1,1 @@
+common_gate_amplifier,current_reuse_telescopic_ota,folded_cascode,ngcc_3stage_ff,nmcnr_amplifier,pushpull_follower_buffer,sf_pushpull_output_opamp,two_stage_ota,two_stage_ota_sf

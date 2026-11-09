@@ -1,0 +1,235 @@
+{
+ "note": "05-role-separation §12 순서 3 -- freeze(T)와 base 대비 확인. 모든 수치는 auditor가 짧은 경로 격리 복제본 C:/g10/*에서 직접 쟀다(test-author·오케스트레이터 보고는 대조용으로만 썼다). P5·P5b 측정 스크립트 원본(C:/g7·C:/g8)이 더 없어 E-LIB·E-INST·수집 비교 스크립트는 이번에 새로 썼다 -- 사본을 이 폴더 scripts/에 두고 순서 7에서 같은 스크립트·같은 경로로 병합본을 잰다. 커밋은 순서 7.",
+ "id": "20260930-d-move-tests",
+ "evidence_type": "red-green",
+ "phase": "2",
+ "approval": "20260923-u02-d-list",
+ "measured_at": "2026-09-30T12:05:27+09:00 (순서 3 측정 끝)",
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2)",
+  "pytest": "9.0.2",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming (bash에서 export)",
+  "note": "복제본은 전부 C:/g10/ 아래. git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout <audit worktree> C:/g10/<이름> -> (별도 명령) git -C <복제본> remote remove origin -> checkout -q --detach <rev>. 복제 직후 remote 0, status 0줄."
+ },
+ "freeze": {
+  "base_commit": "efbf14a4908c27bc1e5481a5cde91b0cca57a693",
+  "base_is_gate_master": true,
+  "base_is_gate_master_how": "git -C <주 저장소> rev-parse master = efbf14a4908c27bc1e5481a5cde91b0cca57a693",
+  "base_subject": "docs: P6 spec card 20260930-d-move-tests(회귀 러너·대칭 분할 tests/tools 이관, red-green)와 interface card",
+  "test_commit_T": "c9565f0a790651399a61dcbd2b8eb9225a488e37",
+  "T_tree": "80d3fbb6369efa5de3f17741861443211a301ce9",
+  "T_parent": "efbf14a4908c27bc1e5481a5cde91b0cca57a693",
+  "T_trailers": ["Role: test", "Change-Id: 20260930-d-move-tests"],
+  "audit_branch": "role/audit/20260930-d-move-tests",
+  "audit_branch_head_at_freeze": "c9565f0a790651399a61dcbd2b8eb9225a488e37",
+  "worktree_status_at_freeze": "git status --porcelain 0줄",
+  "changed_paths_base_to_T": {
+   "shortstat": "3 files changed, 425 insertions(+), 2 deletions(-)",
+   "added": ["skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py"],
+   "modified": [
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py"
+   ],
+   "blobs_base": {
+    "tests/unit/test_selftest_sizing_recipe.py": "a92789b4342e6dcb71f8e86ed1ce099131f16719",
+    "tests/unit/test_selftest_stick_diagram.py": "e1b8c6f1fc7b80c4f28033b09ab571cae1790891"
+   },
+   "blobs_T": {
+    "tests/contracts/test_d_move_tests.py": "6135c4116304b08839c8848cb44c7810d3c4773f",
+    "tests/unit/test_selftest_sizing_recipe.py": "aeddecfbeb1c6bb03c2813842623c86eb5f8f544",
+    "tests/unit/test_selftest_stick_diagram.py": "fe724a8c0e0571016332da41a77ac7286c535d5b"
+   }
+  },
+  "outside_tests_diff": "git diff --name-only efbf14a T -- ':(exclude)skills/analog-gmid-design/assets/tests/**' 0줄. 엔진(A/*.py)·workspaces/**·A/tests/tools/(base: derive_achievable_bounds.py·engine_dup_scan.py 2개)는 T에서 base와 같다.",
+  "unit_diff_is_import_only": {
+   "verdict": "예 -- import 줄과 sys.path 삽입뿐",
+   "method": "C:/Python314/python.exe -P C:/g10/scripts/unit_ast_cmp.py C:/g10/iso efbf14a T C:/g10/out/unit_ast_cmp.json (git show blob을 ast.parse, import 밖 최상위 문장·def/class AST 대조)",
+   "test_selftest_sizing_recipe.py": "24행 `from sizing_recipe import (...)`에서 run_regression_case 1개 제거, 새 6줄 = 주석 2 + `_TESTS_TOOLS = os.path.join(_ASSETS, 'tests', 'tools')` + `if _TESTS_TOOLS not in sys.path: sys.path.insert(0, _TESTS_TOOLS)` + `from regression_runner import run_regression_case`. import 밖 최상위 문장 86 -> 88(더해진 2개가 위 Assign·If), 삭제 0, def/class AST 전부 동일, test 함수 67개 이름 동일.",
+   "test_selftest_stick_diagram.py": "24행 `from stick_diagram import (...)`에서 find_interleaved_symmetric_splits 1개 제거, 43행 뒤 같은 6줄(모듈 interleave_splits). import 밖 최상위 문장 169 -> 171(같은 Assign·If), 삭제 0, def/class AST 전부 동일, test 함수 131개 이름 동일.",
+   "os_binding": "두 파일 모두 `os`가 삽입 줄 앞에서 이미 묶여 있다(sizing: 머리 import os, stick: stick_diagram import 목록의 os)."
+  },
+  "code_commit_K": null
+ },
+ "isolation": {
+  "commands": [
+   "git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-d-move-tests-audit C:/g10/<이름>",
+   "git -C C:/g10/<이름> remote remove origin",
+   "git -C C:/g10/<이름> checkout -q --detach <rev>"
+  ],
+  "clones": {
+   "C:/g10/iso": "T(c9565f0). 수집·red 수집(전체 실행)·V5·unit AST 대조·strict 확인",
+   "C:/g10/base": "base(efbf14a). 수집·전체 실행·게이트 코드 추출·E-AST",
+   "C:/g10/eq": "base(efbf14a). E-LIB·E-INST 같은 경로 비교용(작업 디렉터리 C:/g10/ws_eq). 측정 뒤 git status 0줄. 순서 7에서 병합본으로 checkout --detach + clean -fdxq 해 같은 명령으로 잰다"
+  },
+  "remote_count_after": {"iso": 0, "base": 0, "eq": 0},
+  "gate_code": {
+   "how": "C:/Python314/python.exe -P C:/g10/scripts/extract_gate.py C:/g10/base efbf14a… C:/g10/gmid-gate-cache/efbf14a4908c27bc1e5481a5cde91b0cca57a693 (git ls-tree + cat-file blob, tools/gates/ 중 redteam/ 밖 22개)",
+   "file_set_sha256": "ab7afccd7aa4b4ed6687b2d1acc71a07e82c5a6ceb615fd3b1eb7963a1adb828",
+   "file_set_sha256_def": "sha256(concat(sorted('<tools/gates/ 기준 상대 경로> <파일 sha256>\\n'))) -- 파일 22개",
+   "cross_check": "efbf14a:tools 트리 id 712beefcf6aae57e68ec3314ab3969996fe509ff -- P5·P5b(7a1e191)·P4(fb8ee35) base와 같다. file_set_sha256도 P5·P5b 기록값(같은 정의)과 같다."
+  }
+ },
+ "strict_set": {
+  "card_parse": "base 판 role_paths.parse_spec_card(efbf14a 트리의 spec card): id=20260930-d-move-tests, phase=2, evidence_type=red-green, gate_change=no, approval=[20260923-u02-d-list], activated_ic_case=[]",
+  "conftest_has_gmid_phase": true,
+  "strict_needed": [],
+  "v1_option": "--gmid-phase=2 --gmid-strict=",
+  "new_symbols_from_interface_card": [["interleave_splits", "*"], ["regression_runner", "*"]],
+  "checked_with": "PYTHONPYCACHEPREFIX=C:/g10/pyc_sc PYTHONPATH=<캐시> C:/Python314/python.exe -P C:/g10/scripts/strict_check.py C:/g10/iso efbf14a… 20260930-d-move-tests <V1 문자열(루트 C:/g10/m)> -> strict_set [], v1_command_check 실패 0건 (C:/g10/out/strict_check.txt)"
+ },
+ "v1_command_template": "PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=C:/g10/gmid-gate-cache/efbf14a4908c27bc1e5481a5cde91b0cca57a693 C:/Python314/python.exe -P -m pytest -c C:/g10/gmid-gate-cache/efbf14a4908c27bc1e5481a5cde91b0cca57a693/pytest_gate.ini --rootdir=<복제본> --confcutdir=<복제본> --gmid-phase=2 --gmid-strict= <복제본>/skills/analog-gmid-design/assets/tests",
+ "base_run": {
+  "script": "bash C:/g10/scripts/run.sh (사본 scripts/run.sh)",
+  "collection": {
+   "base_collected": 527,
+   "base_collect_exit": 0,
+   "T_collected": 369,
+   "T_collect_exit": 2,
+   "T_collection_errors": [
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py -- ModuleNotFoundError: No module named 'regression_runner'",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py -- ModuleNotFoundError: No module named 'interleave_splits'"
+   ],
+   "disappeared_by_file": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": 68,
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": 131
+   },
+   "disappeared_note": "두 unit 파일이 T(엔진 = base)에서 수집 오류라 id가 빠졌을 뿐이다 -- test 함수 AST는 base와 같다(freeze.unit_diff_is_import_only). 병합본에서 199 id가 그대로 돌아와야 한다(계약 3·7).",
+   "new_by_file": {"skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py": 41},
+   "base_collect_sha256": "347441e9aaefd0a221cc5d8e0e22d796d314110f0f0f28bd0dcf39e52c9532fa",
+   "T_collect_sha256": "8d0a3dc13771e90d6db91dbd117a71bfeb41264078658b9096f474b5b0c810fc",
+   "sha256_def": "sha256(UTF-8('\\n'.join(sorted(수집 id, 역슬래시->슬래시, 'skills/'부터)))) (scripts/cmp_collect.py, 출력 C:/g10/out/cmp_collect.json)",
+   "merged_expectation": "병합본 수집 = base 527 + 새 41 = 568, base id 전부 포함"
+  },
+  "full_run": {
+   "base": "512 passed, 15 xfailed, exit 0, 156.42s (C:/g10/base, V1 템플릿 + -q -rfE -p no:cacheprovider, 출력 C:/g10/out/full_base.txt)",
+   "T_on_base_engine": "3 failed, 354 passed, 12 xfailed, 2 errors(수집), exit 1, 78.66s (C:/g10/iso, -p merge_gate --continue-on-collection-errors, 출력 C:/g10/out/full_T_red.txt)",
+   "arith": "T 수집 369 = base 527 - unit 199 + 새 41. 결과 3 + 354 + 12 = 369. base의 xfail 15 중 3개(sizing_recipe 2389·2531행, stick_diagram 3791행의 strict xfail)는 수집 오류 난 unit 파일 안이라 T에서 빠져 12. 새 41 = FAILED 3 + PASS 38 -> 나머지 316 passed + 12 xfailed가 base와 같은 결과."
+  },
+  "red_capture": {
+   "command": "GMID_RED_CAPTURE=C:/g10/out/red_T.jsonl GMID_INTERFACE_CARD=C:/g10/iso/docs/02-design/specs/20260930-d-move-tests.interface.md PYTHONPYCACHEPREFIX=C:/g10/pyc_full_iso PYTHONPATH=C:/g10/gmid-gate-cache/efbf14a4908c27bc1e5481a5cde91b0cca57a693 C:/Python314/python.exe -P -m pytest -c C:/g10/gmid-gate-cache/efbf14a4908c27bc1e5481a5cde91b0cca57a693/pytest_gate.ini --rootdir=C:/g10/iso --confcutdir=C:/g10/iso -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g10/iso/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+   "capture_file_sha256": "b82dd6598c445756390fe64cea9d2fb3973e8647c81391272910220db9cd2796",
+   "capture_lines": 17,
+   "builtins_Failed_lines": 12,
+   "builtins_Failed_note": "IC 계약 test의 xfail(pytest Failed)을 플러그인이 기록한 것 -- 실패가 아니다(12 xfailed 쪽, P4·P5·P5b와 같은 12줄 구성).",
+   "red": [
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+     "exc_type": "builtins.ModuleNotFoundError",
+     "failure_hash": "3612e0b9941c9d172a40c9a142f353d4fb06ad7718a27a64fa164606ca482519",
+     "new_symbol_pair": ["regression_runner", "*"],
+     "reason": "수집 ImportError -- A/tests/tools/regression_runner.py가 base에 없다(T가 넣은 `from regression_runner import run_regression_case`)"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+     "exc_type": "builtins.ModuleNotFoundError",
+     "failure_hash": "44a588d3478182da5c52e339c51519ddcd62f5ebea574cc68767dbd47d6df758",
+     "new_symbol_pair": ["interleave_splits", "*"],
+     "reason": "수집 ImportError -- A/tests/tools/interleave_splits.py가 base에 없다"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_moved_names_gone_from_engine",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "1c8b0d0a44aef7120ef8a092d239e683d67a6d627d2758a36059778ed2ef9944",
+     "reason": "GONE(계약 4): sizing_recipe.py 참조 14건 -- def 3(1427 RegressionVerdict, 1434 _run_optimize_multistage_case, 1467 run_regression_case) + name 11(1460·1486·1490 _REGRESSION_ENGINES, 1461 _run_optimize_multistage_case, 1467·1481·1488·1512·1517·1523·1526 RegressionVerdict); stick_diagram.py 259 def find_interleaved_symmetric_splits. auditor git grep -w 결과(코드 줄)와 같다(8257행은 주석이라 AST 밖)"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_new_tool_modules_define_moved_names",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "9bc2048277cb36415c72db7bad60b00012e0b5714bc14b93605001b809f9b5a3",
+     "reason": "계약 1: 이관 위치 파일 2개(tests/tools/regression_runner.py·interleave_splits.py)가 없다"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_new_tool_modules_do_not_copy_engine_definitions",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "a802aa681d5a5718f008e24c779a8813e26544a640750c9324af13d13b2041d4",
+     "reason": "계약 1: 이관 위치 파일이 없다(regression_runner.py에서 먼저 실패)"
+    }
+   ],
+   "red_count": "5 = 수집 ModuleNotFoundError 2 + AssertionError 3. test-author 보고(두 unit 파일 수집 ModuleNotFoundError + 계약 FAILED 3건)와 같은 구성이지만 auditor가 직접 잰 값이다. 보고의 'GONE 계약 3건'은 실제로 GONE 1 + 이관 위치 정의 2다.",
+   "hash_recomputed": "auditor가 sha256(UTF-8(f'{test_id}\\n{exc_type}'))로 5건을 따로 계산해 캡처 값과 모두 같다(00-common §8.1 red_failure_hash).",
+   "red_hash_rule_match": "ModuleNotFoundError 2건의 (name, '*') 쌍 = (regression_runner, *)·(interleave_splits, *)가 interface card 신규 시그니처 표 두 행과 정확히 같다 -- 플러그인이 허용 타입 판정을 통과시켜 기록했다(쌍이 표에 없으면 기록하지 않는다). AssertionError 3건은 항상 허용 타입.",
+   "new_tests_green_at_base": "38건 PASS: 합성 입력 판별력(정의 판정 거부·수용 5, 엔진 복사 판정 1, 엔진 참조 판정 거부 10·수용 5, tests 참조 방향 판정 거부 9·수용 6), 새 파일 이름이 계약 파일 패턴과 겹치지 않음 1, tests 참조가 새 모듈을 가리킴 1(T의 unit import가 이미 새 모듈) -- base에서도 성립하는 사실이라 의도된 무발동"
+  }
+ },
+ "v5_base_to_T": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g10/pyc_v5 C:/Python314/python.exe C:/g10/gmid-gate-cache/efbf14a4908c27bc1e5481a5cde91b0cca57a693/weakening_diff.py --root C:/g10/iso --base efbf14a4908c27bc1e5481a5cde91b0cca57a693 --head c9565f0a790651399a61dcbd2b8eb9225a488e37",
+  "exit": 0,
+  "output": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}",
+  "unit_import_change_detected": false,
+  "why_not_detected": "두 unit 파일의 변경은 최상위('<module>') ImportFrom 이름 하나의 출처 이동과 sys.path 삽입(Assign·If) 2문장이다. weakening_diff의 패턴(assert·raises·approx 삭제, Compare 연산자·approx rel/abs 완화, 숫자·문자열 Constant 변경, skip/xfail 추가, assert의 If/Try 감싸기, test 함수 삭제)은 import 출처를 특징으로 삼지 않으므로 발견 0은 도구 정의대로다(P5 선례와 같다).",
+  "auditor_judgement": "판정 약화가 아니다: test 함수 AST가 base와 전부 같다(unit_ast_cmp). 바뀐 것은 이름을 어디서 가져오는가뿐이다. 새 모듈이 원본과 다른 구현이면 약화가 될 수 있으나 그 위험은 병합본의 E-AST(계약 2, 아래 e_ast_baseline)와 test_new_tool_modules_do_not_copy_engine_definitions가 잡는다 -- 순서 7에서 새 파일 정의의 ast.dump가 base 값과 같은지 대조한다.",
+  "output_file": "C:/g10/out/v5_base_T.txt (sha256 a2e2fe0f2d96c3292853a13755dd1223457711294e7e1ac0e8fa0d0bcae2cf54)",
+  "note_for_order7": "V5는 base -> 병합본으로 다시 잰다. 발견이 없으면 basis에 diff 해시를 적을 일이 없다."
+ },
+ "e_ast_baseline": {
+  "contract": "spec card 계약 2 -- 옮긴 정의마다 docstring 포함 ast.dump(include_attributes=False)가 base(엔진 파일)와 병합본(새 파일)에서 같다",
+  "script": "C:/Python314/python.exe -P C:/g10/scripts/e_ast.py <복제본> <rev> <경로> <out.json> <이름>... (git cat-file blob을 ast.parse, 최상위 바인딩을 이름으로 찾는다: ClassDef/FunctionDef/Assign/AnnAssign)",
+  "commands": [
+   "C:/Python314/python.exe -P C:/g10/scripts/e_ast.py C:/g10/base efbf14a4908c27bc1e5481a5cde91b0cca57a693 skills/analog-gmid-design/assets/sizing_recipe.py C:/g10/out/e_ast_base_sizing_recipe.json RegressionVerdict _run_optimize_multistage_case _REGRESSION_ENGINES run_regression_case",
+   "C:/Python314/python.exe -P C:/g10/scripts/e_ast.py C:/g10/base efbf14a4908c27bc1e5481a5cde91b0cca57a693 skills/analog-gmid-design/assets/stick_diagram.py C:/g10/out/e_ast_base_stick_diagram.json find_interleaved_symmetric_splits"
+  ],
+  "full_dumps": "이 폴더 e_ast_base_sizing_recipe.json(sha256 58d359aa0f694bd67a140406be4d52bbc7de1e922c1d74704079d83105c069c2)·e_ast_base_stick_diagram.json(c984e1269296430caad24b8e70c5acabbaaa3646bb62d17f33ad098979b5de0d)에 ast.dump 원문",
+  "base_blob_sha256": {
+   "sizing_recipe.py": "e_ast_base_sizing_recipe.json의 blob_sha256",
+   "stick_diagram.py": "e_ast_base_stick_diagram.json의 blob_sha256"
+  },
+  "defs": {
+   "RegressionVerdict": {"file": "sizing_recipe.py", "kind": "ClassDef(@dataclass)", "lines": "1426-1431", "n_top_level_bindings": 1, "docstring": false, "ast_dump_sha256": "2d73f7c9a6512d9c90fc24d2421f8a5637e8d37507577a5052a647250bcddd35", "source_lines_sha256_lf": "4e2e7c85f933e93e8de50d8f980c18b81f788c5446817af8d649860f8e073019"},
+   "_run_optimize_multistage_case": {"file": "sizing_recipe.py", "kind": "FunctionDef", "lines": "1434-1457", "n_top_level_bindings": 1, "docstring": true, "ast_dump_sha256": "16fc29ee525a01c6497cf8af6e6a4fabe6dfff23ca601986506072c3c5dba43f", "source_lines_sha256_lf": "a1c61fad3d01d172fc2f077a9c47971629a417a884f25cc28df0b8886fd99e80"},
+   "_REGRESSION_ENGINES": {"file": "sizing_recipe.py", "kind": "Assign", "lines": "1460-1464", "n_top_level_bindings": 1, "docstring": false, "ast_dump_sha256": "61818b47e35c7d0ce853d669fcc84917c24dcf70fc9ef9c322ce6da42d727ad4", "source_lines_sha256_lf": "c38f26dd650b11b5cf9c05b8e2c7f7f41b869ba6fe41258b578b68c125f9ae24"},
+   "run_regression_case": {"file": "sizing_recipe.py", "kind": "FunctionDef", "lines": "1467-1527", "n_top_level_bindings": 1, "docstring": true, "ast_dump_sha256": "9d0aa129bc7350f8d797fc3b0609d0bd60039f71f849c3e6526417f9e4f4993b", "source_lines_sha256_lf": "8751089ef79665921c1fc6726e7fe63cf99214ef4d2a49cccbcde70c1bdf030e"},
+   "find_interleaved_symmetric_splits": {"file": "stick_diagram.py", "kind": "FunctionDef", "lines": "259-290", "n_top_level_bindings": 1, "docstring": true, "ast_dump_sha256": "ca4162af4fe817217790c988756f0297bd8281566ad6302e9f76723f69eccc05", "source_lines_sha256_lf": "53f3d916c426ab45a291863fb417d46713b4b52ea24745f22ae9dfa149d46060"}
+  },
+  "comment_block": {
+   "what": "spec card 표의 '그 위의 설명 주석 블록' -- sizing_recipe.py 1416-1424행('# 6.6) 공정-무관 회귀 검증 러너 ...' 구분선 포함 9줄). 주석은 AST에 없어 E-AST 밖이다(참고 기준값)",
+   "sha256_lf": "0dd44bd81f58870d4fcbff06a27f793c1fc524490bf3809a18ebffc902137370",
+   "bytes": 871
+  },
+  "definitions": "ast_dump_sha256 = sha256(UTF-8(ast.dump(node, include_attributes=False))), 데코레이터·docstring 포함. source_lines_sha256_lf = git blob(LF)에서 데코레이터 줄부터 end_lineno까지 '\\n'.join의 sha256(바이트 이관 참고값 -- 판정은 ast_dump 쪽)",
+  "order7": "병합본 새 파일 A/tests/tools/regression_runner.py(4개)·interleave_splits.py(1개)에 같은 스크립트를 돌려 ast_dump_sha256·n_top_level_bindings=1을 대조한다"
+ },
+ "e_lib_e_inst_baseline": {
+  "contract": "spec card 계약 6 -- library 로드 가능 회로 전부와 파일럿·folded_cascode 결과가 base와 같다",
+  "scripts_note": "P5·P5b 판정 기록의 스크립트(e_lib_p5.py·e_lib_p5b.py·e_inst3.py)는 C:/g7·C:/g8가 지워져 사본이 없다(기록 폴더에도 scripts/ 없음). 기록된 방법 설명대로 auditor가 새로 썼다 -- 해시 정의가 달라 P5·P5b 기준값과 숫자로 대조할 수 없다(base efbf14a는 P4·P5b 병합으로 엔진도 달라졌다). 방법 동일성의 간접 확인: 회로 9개와 소자 수(3·51·13·16·15·6·22·7·9), instance.json 최상위 키 8개와 sizing 수(51·13)가 P5 기록과 같다.",
+  "same_path_clone": "C:/g10/eq(base), 작업 디렉터리 C:/g10/ws_eq. 측정 뒤 C:/g10/eq git status 0줄(엔진이 트리에 쓰지 않음)",
+  "E-LIB": {
+   "script": "C:/g10/scripts/e_lib.py (사본 scripts/e_lib.py, sha256 41b72d7d34491ed98d175941bad1631a9d7b91e7eb9e307c878328217fb68ee9)",
+   "what": "library/*.topology.json(_TEMPLATE 제외) 9회로마다 stick_diagram.load_topology 결과 + run_topology_pipeline(V1: 소자마다 자기 스택 n_fingers=2·finger_w=1.0·w=2.0 = test_ic3.py 3 구성, V2: 극성별 스택 stk_<kind>) 결과를 정규화(dataclass->dict, 키 정렬, set 정렬, float repr, 복제본 루트 -> <ROOT>)해 sha256. 예외는 (타입, 메시지 sha256). stick_diagram이 복제본 밖에서 import되면 중단",
+   "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONHASHSEED=1 C:/Python314/python.exe -P C:/g10/scripts/e_lib.py C:/g10/eq C:/g10/out/elib_<rev>.json (APPDATA export)",
+   "base_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f",
+   "base_output_file_sha256": "e7579d61800e161fc1c8c44163e7dd39c972655a50ee925d04c45235519bbc89 (C:/g10/out/elib_base.json)",
+   "loaded_ok": 9,
+   "pipeline_ok": {"V1_own_stack": 9, "V2_kind_stack": 9},
+   "per_circuit_n_dev": {"common_gate_amplifier": 3, "current_reuse_telescopic_ota": 51, "folded_cascode": 13, "ngcc_3stage_ff": 16, "nmcnr_amplifier": 15, "pushpull_follower_buffer": 6, "sf_pushpull_output_opamp": 22, "two_stage_ota": 7, "two_stage_ota_sf": 9},
+   "stability": "PYTHONHASHSEED=777로 다시 돌린 출력 파일이 바이트 동일(cmp)",
+   "discrimination_note": "회로마다 V1·V2 파이프라인 해시가 서로 다르다(9/9) -- overrides 입력이 결과에 반영된다"
+  },
+  "E-INST": {
+   "script": "C:/g10/scripts/e_inst.py (사본 scripts/e_inst.py, sha256 447cc9ca2d877ff3d6c6bc9d02ac935a7d7a231f12c84495a61156804a5e8114)",
+   "what": "<복제본>/workspaces/run_harness.py 사본에서 절대 경로 리터럴(ASSETS 2곳·WORKSPACES 1곳, 개수 불일치면 중단)을 복제본 assets·작업 디렉터리로 치환해 모듈로 실행(report 폴더를 먼저 만든 뒤 run(<회로>)), instance.json을 키 정렬 compact JSON(ensure_ascii=False) sha256. sizing_recipe·stick_diagram·design_report가 복제본 밖이면 중단, 산출 없음이나 stdout [FAIL]이면 exit 1",
+   "command": "PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g10/scripts/e_inst.py C:/g10/eq <회로> C:/g10/ws_eq C:/g10/out/einst_<rev>/einst_<회로>.json (APPDATA export)",
+   "current_reuse_telescopic_ota": {"base": "ea3311042d13037eee52c2bc71a6bdf2a032210b64d5701f0048d3105ee5f418", "base_repeat_PYTHONHASHSEED_999": "ea3311042d13037eee52c2bc71a6bdf2a032210b64d5701f0048d3105ee5f418", "exit": 0, "n_sizing": 51, "elapsed_s": 121},
+   "folded_cascode": {"base": "67da28c05a540ded4e0b7e0b13848bb88ee96c509b8c7d1b6ff70e02062d875d", "base_repeat_PYTHONHASHSEED_999": "67da28c05a540ded4e0b7e0b13848bb88ee96c509b8c7d1b6ff70e02062d875d", "exit": 0, "n_sizing": 13, "elapsed_s": 27},
+   "top_keys": ["audit_row_split", "box_shape", "coverage", "floorplan", "netlist", "schema_version", "sizing", "topology_ref"],
+   "path_caveat": "instance.json 안에 복제본 경로가 들어가 값이 경로에 기댄다(P1·P2·P5 선례) -- base·병합본을 같은 경로 C:/g10/eq, 같은 작업 디렉터리 C:/g10/ws_eq로 잰다"
+  },
+  "order7": "병합본을 C:/g10/eq로 checkout -q --detach <병합본> + clean -fdxq, C:/g10/ws_eq를 지우고 위 명령 그대로 돌려 E-LIB 1d2e3bf6…, E-INST ea331104…·67da28c0…와 대조한다"
+ },
+ "reference_docs_note": "참고(판정 밖): find_interleaved_symmetric_splits는 references/design-report-spec.md·function-selection-map.md·stick-diagram-euler-layout.md 문서가 이름으로 가리킨다(코드 참조 아님, 계약 4 범위 밖). sizing_recipe.py 8257행 주석도 _REGRESSION_ENGINES를 이름으로 든다. 이관 뒤 문서의 위치 안내가 낡을 수 있다 -- 순서 7 V7·보고에서 다시 본다.",
+ "scripts_preserved": "사본을 이 폴더 scripts/에 두었다(순서 7 커밋에 함께 넣을지는 그때 정한다). sha256: cmp_collect.py 03a0a92e…, e_ast.py 78a27a4e…, e_inst.py 447cc9ca…, e_lib.py 41b72d7d…, extract_gate.py 762c6a1a…, run.sh 36fdc21d…, strict_check.py c6bed5d9…, unit_ast_cmp.py ad80877c…",
+ "outputs_kept": {
+  "C:/g10/out/full_base.txt": "f29b052222341f4e4bed837098bde70642d23d467bac6facda5af781207075b7",
+  "C:/g10/out/full_T_red.txt": "f7a0922bf1686e5d8505b57b14bd7d74cea8c44324d0bf9dd045846745195249",
+  "C:/g10/out/red_T.jsonl": "b82dd6598c445756390fe64cea9d2fb3973e8647c81391272910220db9cd2796",
+  "C:/g10/out/v5_base_T.txt": "a2e2fe0f2d96c3292853a13755dd1223457711294e7e1ac0e8fa0d0bcae2cf54",
+  "C:/g10/out/collect_base.txt": "418ab10f36c9329f4e4464f0aa5f897be38e36536589ea926071a8e58715b409",
+  "C:/g10/out/collect_iso.txt": "39d2704315de95755cc22da85161a76bceaaf92c788e720b30fd176c9c22f75c",
+  "C:/g10/out/cmp_collect.json": "e7fbe31fbcfdf1c121e8d9791f8413e1164eb2b785f4fa1865b9c91e3330bf13",
+  "C:/g10/out/unit_ast_cmp.json": "5962ebd698d57bc2a11660c79de116cf91d3fe110d67d06c92cdbdb3ede1fce9",
+  "C:/g10/out/strict_check.txt": "9595899f9b1f1fbd54af7149cbff8a0a2829f5ec102f9c257c8b4501ed88b877",
+  "C:/g10/out/elib_base.json": "e7579d61800e161fc1c8c44163e7dd39c972655a50ee925d04c45235519bbc89",
+  "C:/g10/out/einst_base/einst_current_reuse_telescopic_ota.json": "91b9e06e84fbf2e4c7e4315500735ab5bedd59be85fd06716aa42cb4a2efaca2",
+  "C:/g10/out/einst_base/einst_folded_cascode.json": "9d9a7ec49ac3d8a13ed84490ce9acab29dd69fe249b37c03976d349ef99454c5"
+ },
+ "next": "code-author가 K(A/tests/tools/regression_runner.py·interleave_splits.py 추가, 엔진에서 5개 정의와 주석 블록 삭제, 레지스트리 §7 갱신)를 만들고 병합 뒤 순서 4~7: 병합본에서 V1(전체, 수집 568 예상), V2(red 5건 -> green, 나머지 base 결과 유지 + E-AST 5개·E-LIB·E-INST 같은 경로 대조), V3~V10. V5는 base -> 병합본으로 다시 잰다."
+}

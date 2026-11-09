@@ -1,0 +1,114 @@
+{
+ "git-history-kill": {
+  "cmd": "C:\\Python314\\python.exe C:/g17/gate/mutate_changed.py --root C:/g17/tmp/gmid-redteam/20260930-195723-direct/31-v3-git-history-tui_wc21/v/git-history-kill --base 93882c5e3331bcb811cccf35a6f69a4dfbaae301 --head 18282e150b640d0cc2e8307013f604aaf9fda589 --pytest-ini C:/g17/gate/pytest_gate.ini --out C:/g17/probe/git-history-kill.out.jsonl",
+  "exit": 1,
+  "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 5, \"killed\": 0, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\", \"rt_engine:rt_scale:arith:body[1].value\", \"rt_engine:rt_scale:const+:body[1].value.left\", \"rt_engine:rt_scale:const-:body[1].value.left\", \"rt_engine:rt_scale:early_return:body[1]\"]}\r\n",
+  "stderr": "",
+  "records": [
+   {
+    "id": "rt_engine:rt_scale:stmt_delete:body[1]",
+    "result": "survived",
+    "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+   },
+   {
+    "id": "rt_engine:rt_scale:arith:body[1].value",
+    "result": "survived",
+    "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+   },
+   {
+    "id": "rt_engine:rt_scale:const+:body[1].value.left",
+    "result": "survived",
+    "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+   },
+   {
+    "id": "rt_engine:rt_scale:const-:body[1].value.left",
+    "result": "survived",
+    "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+   },
+   {
+    "id": "rt_engine:rt_scale:early_return:body[1]",
+    "result": "survived",
+    "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+   }
+  ],
+  "root_log": "18282e150b640d0cc2e8307013f604aaf9fda589 head\n93882c5e3331bcb811cccf35a6f69a4dfbaae301 interface card\n91b2e4c9150441d58f29dd75fef69ce0878b30ae base\n",
+  "root_remote": "",
+  "tmp_left": []
+ },
+ "baseline-fail-error": {
+  "cmd": "C:\\Python314\\python.exe C:/g17/gate/mutate_changed.py --root C:/g17/tmp/gmid-redteam/20260930-195723-direct/31-v3-git-history-tui_wc21/v/baseline-fail-error --base e0d05d3e4c1d96eebe55aa5de3c677eec6aa27b3 --head e6525b5f30da52cb563c14e9b990553525278b06 --pytest-ini C:/g17/gate/pytest_gate.ini --out C:/g17/probe/baseline-fail-error.out.jsonl",
+  "exit": 1,
+  "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 5, \"killed\": 0, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\", \"rt_engine:rt_scale:arith:body[1].value\", \"rt_engine:rt_scale:const+:body[1].value.left\", \"rt_engine:rt_scale:const-:body[1].value.left\", \"rt_engine:rt_scale:early_return:body[1]\"]}\r\n",
+  "stderr": "",
+  "records": [
+   {
+    "id": "rt_engine:rt_scale:stmt_delete:body[1]",
+    "result": "survived",
+    "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+   },
+   {
+    "id": "rt_engine:rt_scale:arith:body[1].value",
+    "result": "survived",
+    "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+   },
+   {
+    "id": "rt_engine:rt_scale:const+:body[1].value.left",
+    "result": "survived",
+    "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+   },
+   {
+    "id": "rt_engine:rt_scale:const-:body[1].value.left",
+    "result": "survived",
+    "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+   },
+   {
+    "id": "rt_engine:rt_scale:early_return:body[1]",
+    "result": "survived",
+    "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+   }
+  ],
+  "root_log": "e6525b5f30da52cb563c14e9b990553525278b06 head\ne0d05d3e4c1d96eebe55aa5de3c677eec6aa27b3 interface card\na7aab96532a6076449c4b5211d8cb316510926e1 base\n",
+  "root_remote": "",
+  "tmp_left": []
+ },
+ "survivor-fail-clean": {
+  "cmd": "C:\\Python314\\python.exe C:/g17/gate/mutate_changed.py --root C:/g17/tmp/gmid-redteam/20260930-195723-direct/31-v3-git-history-tui_wc21/v/survivor-fail-clean --base 51fc28b02f1274e4f005b8e570573074aa64d615 --head a6db4ad6aa1ff5c2111acf7862a69066620736aa --pytest-ini C:/g17/gate/pytest_gate.ini --out C:/g17/probe/survivor-fail-clean.out.jsonl",
+  "exit": 1,
+  "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 5, \"killed\": 3, \"survivors\": [\"rt_engine:rt_scale:const+:body[1].value.left\", \"rt_engine:rt_scale:const-:body[1].value.left\"]}\r\n",
+  "stderr": "",
+  "records": [
+   {
+    "id": "rt_engine:rt_scale:stmt_delete:body[1]",
+    "result": "killed",
+    "exit": 1
+   },
+   {
+    "id": "rt_engine:rt_scale:arith:body[1].value",
+    "result": "killed",
+    "exit": 1
+   },
+   {
+    "id": "rt_engine:rt_scale:const+:body[1].value.left",
+    "result": "survived",
+    "tests": [
+     "skills/analog-gmid-design/assets/tests/test_rt_scale.py::test_rt_scale_zero"
+    ]
+   },
+   {
+    "id": "rt_engine:rt_scale:const-:body[1].value.left",
+    "result": "survived",
+    "tests": [
+     "skills/analog-gmid-design/assets/tests/test_rt_scale.py::test_rt_scale_zero"
+    ]
+   },
+   {
+    "id": "rt_engine:rt_scale:early_return:body[1]",
+    "result": "killed",
+    "exit": 1
+   }
+  ],
+  "root_log": "a6db4ad6aa1ff5c2111acf7862a69066620736aa head\n51fc28b02f1274e4f005b8e570573074aa64d615 interface card\n5db2b19e9d5dde268faef8927bf855bb937e537f base\n",
+  "root_remote": "",
+  "tmp_left": []
+ }
+}

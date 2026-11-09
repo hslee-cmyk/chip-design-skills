@@ -1,0 +1,18 @@
+{
+ "n_base": 1105,
+ "n_head": 1105,
+ "n_moved_ids": 213,
+ "only_base_mapped": [],
+ "only_head": [],
+ "result_diff": [],
+ "base_counts": {
+  "passed": 1087,
+  "failure": 3,
+  "xfailed": 15
+ },
+ "head_counts": {
+  "passed": 1087,
+  "failure": 3,
+  "xfailed": 15
+ }
+}

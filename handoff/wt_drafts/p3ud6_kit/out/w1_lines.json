@@ -1,0 +1,66 @@
+{
+ "rev": "4a286f0",
+ "test_selftest_topology_library.py": {
+  "engine_module": "topology_library",
+  "shim_import": [
+   {
+    "line": 24,
+    "names_total": 8,
+    "w1_names": [
+     "math"
+    ]
+   }
+  ],
+  "other_module_bindings": [],
+  "uses": {
+   "math": 2
+  }
+ },
+ "test_selftest_sizing_recipe.py": {
+  "engine_module": "sizing_recipe",
+  "shim_import": [
+   {
+    "line": 24,
+    "names_total": 52,
+    "w1_names": [
+     "_dc_replace",
+     "json",
+     "math",
+     "nmcnr_predict_ac_response",
+     "np"
+    ]
+   }
+  ],
+  "other_module_bindings": [],
+  "uses": {
+   "nmcnr_predict_ac_response": 1,
+   "_dc_replace": 2,
+   "json": 31,
+   "math": 11,
+   "np": 1
+  }
+ },
+ "test_selftest_design_report.py": {
+  "engine_module": "design_report",
+  "shim_import": [
+   {
+    "line": 24,
+    "names_total": 4,
+    "w1_names": [
+     "os"
+    ]
+   }
+  ],
+  "other_module_bindings": [
+   {
+    "line": 13,
+    "module": null,
+    "name": "os",
+    "asname": null
+   }
+  ],
+  "uses": {
+   "os": 8
+  }
+ }
+}

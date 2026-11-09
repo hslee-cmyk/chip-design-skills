@@ -1,0 +1,351 @@
+gain-budget-gmid-sizing old 11: segs missing 0
+gain-budget-gmid-sizing old 75: segs missing 0
+gain-budget-gmid-sizing old 77: segs missing 0
+gain-budget-gmid-sizing old 164: segs missing 0
+gain-budget-gmid-sizing old 206: segs missing 0
+gain-budget-gmid-sizing old 208: segs missing 1
+   MISS(frag60 in hist=False): 소비). 파일럿 Iref `value_dc_amp = 1.2µA`(현
+gain-budget-gmid-sizing old 211: segs missing 0
+gain-budget-gmid-sizing old 223: segs missing 1
+   MISS(frag60 in hist=False): 정본(I-H2)·`graph.ss_nodal`
+gain-budget-gmid-sizing old 225: segs missing 0
+gain-budget-gmid-sizing old 228: segs missing 0
+gain-budget-gmid-sizing old 232: segs missing 0
+gain-budget-gmid-sizing old 249: segs missing 0
+gain-budget-gmid-sizing old 279: segs missing 0
+gain-budget-gmid-sizing old 284: segs missing 0
+gain-budget-gmid-sizing old 296: segs missing 0
+gain-budget-gmid-sizing old 304: segs missing 0
+gain-budget-gmid-sizing old 345: segs missing 0
+gain-budget-gmid-sizing old 383: segs missing 0
+gain-budget-gmid-sizing old 394: segs missing 0
+gain-budget-gmid-sizing old 399: segs missing 0
+gain-budget-gmid-sizing old 538: segs missing 0
+gain-budget-gmid-sizing old 546: segs missing 0
+gain-budget-gmid-sizing old 547: segs missing 0
+gain-budget-gmid-sizing old 553: VERBATIM(norm)
+gain-budget-gmid-sizing old 555: segs missing 0
+gain-budget-gmid-sizing old 680: segs missing 0
+gain-budget-gmid-sizing old 691: segs missing 0
+gain-budget-gmid-sizing old 717: segs missing 0
+gain-budget-gmid-sizing old 981: segs missing 0
+gain-budget-gmid-sizing old 1143: segs missing 0
+gain-budget-gmid-sizing old 1148: VERBATIM
+gain-budget-gmid-sizing old 1150: segs missing 0
+gain-budget-gmid-sizing old 1151: VERBATIM(norm)
+gain-budget-gmid-sizing old 1152: segs missing 0
+gain-budget-gmid-sizing old 1153: segs missing 0
+gain-budget-gmid-sizing old 1154: segs missing 0
+gain-budget-gmid-sizing old 1155: segs missing 0
+gain-budget-gmid-sizing old 1156: segs missing 0
+gain-budget-gmid-sizing old 1157: segs missing 0
+gain-budget-gmid-sizing old 1158: segs missing 0
+gain-budget-gmid-sizing old 1159: segs missing 0
+gain-budget-gmid-sizing old 1160: segs missing 0
+gain-budget-gmid-sizing old 1161: segs missing 0
+gain-budget-gmid-sizing old 1162: segs missing 0
+gain-budget-gmid-sizing old 1163: segs missing 0
+gain-budget-gmid-sizing old 1164: segs missing 0
+gain-budget-gmid-sizing old 1165: segs missing 0
+gain-budget-gmid-sizing old 1166: segs missing 0
+gain-budget-gmid-sizing old 1167: segs missing 0
+gain-budget-gmid-sizing old 1168: segs missing 0
+gain-budget-gmid-sizing old 1169: segs missing 1
+   MISS(frag60 in hist=False): 0이고 θ*를 출력만 한다 | `workspaces/run_harness.py` | 4(N3.14 exit code, θ*
+gain-budget-gmid-sizing old 1170: segs missing 3
+   MISS(frag60 in hist=True): `_RAIL_NETS`, sizing_recipe `_DEFAULT_RAIL_HI`/`_DEFAULT_RAIL_LO` 레일 판정 | 4(DEC-60 선언으로 교체. 넷 몫(`supply_nets`)은 B26-1~B26-4로 나누고 Phase 3 착수 전에 해도 된다
+   MISS(frag60 in hist=True): 변경 단위. 전압 몫(`supplies_v`, 스칼라 `vdd` 리터럴)은 MG1과 같은 변경 단위, U-26) | **위치 열은 전수여야 한다**: 넷 판정 운영 함수 전수의 정본은
+   MISS(frag60 in hist=True): H4). 이 사이트는 B26-1 범위 밖이고 백로그 B35가 처리한다: analog-grammar 진입 함수에 기본값 없는 레일 인자를 두고 stick_diagram은 B26-1의 `meta["rails"]`를 넘긴다(착수 조건 = B36 게이트 변경 card와 `plan_tables` 승인, B26-2). B26-1에서 빼는 이유는 analog-gramm
+gain-budget-gmid-sizing old 1171: segs missing 1
+   MISS(frag60 in hist=False): | WP-03, DEC-27·DF-25(VDsat 유도로 대체), DF-32 |
+gain-budget-gmid-sizing old 1172: segs missing 0
+gain-budget-gmid-sizing old 1173: segs missing 0
+gain-budget-gmid-sizing old 1174: segs missing 1
+   MISS(frag60 in hist=False): 이름 문자열 리터럴과 topology 파일 경로 리터럴**) | 2(전수 목록·레지스트리 기록), 4(일반 규칙으로 교체) | WP-05, DEC-62, DF-29~DF-34 |
+gain-budget-gmid-sizing old 1175: segs missing 0
+gain-budget-gmid-sizing old 1176: segs missing 0
+gain-budget-gmid-sizing old 1177: segs missing 1
+   MISS(frag60 in hist=False): 상수. 사용처 전수는 DF-19 비고) | 4(DEC-60 넷 몫 구현 = B26-1~B26-4, Phase 3 착수 전에 해도 된다. DF-19와 같은 변경 단위. 전압 몫은 MG1) | DEC-60, DF-19, IC11, U-26 |
+gain-budget-gmid-sizing old 1178: segs missing 0
+gain-budget-gmid-sizing old 1179: segs missing 0
+gain-budget-gmid-sizing old 1180: segs missing 0
+gain-budget-gmid-sizing old 1181: segs missing 1
+   MISS(frag60 in hist=True): 키 4개(`folded_cascode_gain_db`·`folded_cascode_pm_deg`·`nmcnr_gain_db`·`nmcnr_pm_deg`)로 갈리고 그 회로별 metric 함수가 따로 있다(DEC-62 위반 8곳 중 4곳) | `_METRICS_REGISTRY`(sizing_recipe.py 5656~5663행 참고), `_folded_cas
+gain-budget-gmid-sizing old 1182: segs missing 1
+   MISS(frag60 in hist=False): 8곳 중 4곳) | `_COMPENSATION_REGISTRY`(sizing_recipe.py 1464~1471행 참고)와 `topology_library.py`의 회로별 보상 함수 | 7b(GB5 보상 규칙 DEC-70으로 교체
+gain-budget-gmid-sizing old 1183: segs missing 0
+gain-budget-gmid-sizing old 1184: segs missing 1
+   MISS(frag60 in hist=True): 이관에서 `derived` 유도 결과로 바꾸고 손선언은 출처 필수 `_override`로만 남긴다, N3.15·MG3) | DEC-62, DF-23, DF-20 |
+gain-budget-gmid-sizing old 1185: segs missing 0
+gain-budget-gmid-sizing old 1186: segs missing 0
+gain-budget-gmid-sizing old 1187: segs missing 0
+gain-budget-gmid-sizing old 1188: segs missing 1
+   MISS(frag60 in hist=False): 센다) | 4(`00-common` CC-4) | N3.14 클래스와 `SchemaRejectedError`는 다시 raise, 진입점은 `exit_code_for`로 종료 |
+gain-budget-gmid-sizing old 1192: VERBATIM
+gain-budget-gmid-sizing old 1194: segs missing 0
+gain-budget-gmid-sizing old 1196: segs missing 0
+gain-budget-gmid-sizing old 1197: segs missing 0
+gain-budget-gmid-sizing old 1198: segs missing 0
+gain-budget-gmid-sizing old 1199: segs missing 0
+gain-budget-gmid-sizing old 1200: segs missing 0
+gain-budget-gmid-sizing old 1201: segs missing 0
+gain-budget-gmid-sizing old 1202: segs missing 0
+gain-budget-gmid-sizing old 1203: VERBATIM(norm)
+gain-budget-gmid-sizing old 1204: segs missing 0
+gain-budget-gmid-sizing old 1205: segs missing 0
+gain-budget-gmid-sizing old 1206: segs missing 0
+gain-budget-gmid-sizing old 1207: segs missing 0
+gain-budget-gmid-sizing old 1208: segs missing 0
+gain-budget-gmid-sizing old 1209: segs missing 0
+gain-budget-gmid-sizing old 1210: segs missing 0
+gain-budget-gmid-sizing old 1211: segs missing 0
+gain-budget-gmid-sizing old 1212: segs missing 0
+gain-budget-gmid-sizing old 1213: segs missing 0
+gain-budget-gmid-sizing old 1214: segs missing 0
+gain-budget-gmid-sizing old 1215: segs missing 0
+gain-budget-gmid-sizing old 1216: segs missing 0
+gain-budget-gmid-sizing old 1217: segs missing 0
+gain-budget-gmid-sizing old 1218: segs missing 0
+gain-budget-gmid-sizing old 1219: segs missing 0
+gain-budget-gmid-sizing old 1220: segs missing 0
+gain-budget-gmid-sizing old 1221: segs missing 0
+gain-budget-gmid-sizing old 1222: segs missing 1
+   MISS(frag60 in hist=False): 미배정(엔진 정지 규칙 일반화 card를 정할 때 함께 -- 회로 해석은 공동분석) |
+gain-budget-gmid-sizing old 1223: segs missing 0
+gain-budget-gmid-sizing old 1224: segs missing 1
+   MISS(frag60 in hist=True): eps 문턱 = N6.35 E-22(card IT-2 IT-2c 범위 6); 과보수 개선은 미정(수요가 생기면 card) |
+gain-budget-gmid-sizing old 1225: segs missing 1
+   MISS(frag60 in hist=True): 사용자 공동 회로 해석(N7.1 J 절차; 연결·원문 논문만으로 유도 -- topology 태그는 근거 아님), 사실 확정 뒤 `structure.json` 반영(O-164 별도 항목) |
+gain-budget-gmid-sizing old 1226: segs missing 0
+gain-budget-gmid-sizing old 1230: segs missing 0
+gain-budget-gmid-sizing old 1244: segs missing 0
+gain-budget-gmid-sizing old 1267: segs missing 1
+   MISS(frag60 in hist=False): | NB-1(β = 1 폐루프 잡음, O-76 (1), v6.25, **미래 card**) | N6.24 | NU-1, oracle 쪽 Ecl `.noise` card(oracle-portability 계획 몫) | 계획 N3.8·DEC-96 (3) 문언 개정 → design 41 §7.3·§7.6, 착수 실측 NB-M1~NB-M3 |
+gain-budget-gmid-sizing old 1291: segs missing 0
+gain-budget-gmid-sizing old 1315: segs missing 0
+gain-budget-gmid-sizing old 1332: segs missing 0
+gain-budget-gmid-sizing old 1339: VERBATIM
+gain-budget-gmid-sizing old 1380: segs missing 0
+gain-budget-gmid-sizing old 1598: segs missing 0
+gain-budget-gmid-sizing old 1600: segs missing 0
+gain-budget-gmid-sizing old 1601: VERBATIM(norm)
+gain-budget-gmid-sizing old 1602: segs missing 1
+   MISS(frag60 in hist=True): O-13 (1)·(2) 반영. card 이름·red test 위치(448·488·489행)는 이미 IT-1·`test_writer_plan.py`로 고쳐짐(2026-10-19 재측정) | **정정됨(병합 전)**.
+gain-budget-gmid-sizing old 1603: segs missing 2
+   MISS(frag60 in hist=False): 행(확인 항목 표시 교체) | **v1 문언 정정됨(병합 전)**. 2026-10-19 재측정으로 card id 자리는 아직 옛 문구다: F-G19(205행 'card id가 없다'), 상위 개정 항목
+   MISS(frag60 in hist=True): 구현 card id 부여'), 593-595행('card id 미부여', 'card id 부여는 상위 개정 항목'), R-G6 654행 -- card id IT-1·red test 위치(X-IT3)로 맞출 것, 465행은 이 판으로 닫힘 |
+gain-budget-gmid-sizing old 1665: segs missing 0
+gain-budget-gmid-sizing old 1669: segs missing 1
+   MISS(frag60 in hist=False): B77, IT-2d에서 해소(O-111·O-112),
+gain-budget-gmid-sizing old 1671: segs missing 0
+gain-budget-gmid-sizing old 1834: segs missing 0
+gain-budget-gmid-sizing old 1844: segs missing 0
+gain-budget-gmid-sizing old 1846: segs missing 0
+gain-budget-gmid-sizing old 1857: segs missing 1
+   MISS(frag60 in hist=False): 표시, VGS 등식 소속 휴리스틱 공동분석 백로그는 O-23·O-26으로 닫힘(삭제)
+gain-budget-gmid-sizing old 1873: segs missing 0
+gain-budget-gmid-sizing old 1917: segs missing 0
+gain-budget-gmid-sizing old 1924: segs missing 0
+gain-budget-gmid-sizing old 1925: segs missing 0
+gain-budget-gmid-sizing old 1942: segs missing 0
+gain-budget-gmid-sizing old 2058: segs missing 1
+   MISS(frag60 in hist=False): 인용한다 -- `Role: data`는 N3.12.3 역할 표·EL3 트레일러 목록·gate `role_paths.py` `ACTOR_OF_TRAILER`에 정식 등록이 없고, 정식 등록은 백로그 행이다(이번 범위 아님).
+gain-budget-gmid-sizing old 2062: VERBATIM
+gain-budget-gmid-sizing old 2100: segs missing 0
+gain-budget-gmid-sizing old 2192: segs missing 0
+gain-budget-gmid-sizing old 2202: VERBATIM
+gain-budget-gmid-sizing old 2204: VERBATIM
+gain-budget-gmid-sizing old 2228: segs missing 1
+   MISS(frag60 in hist=False): 정정 (4) `l_classes._main_path_starts`(L 주인 할당 휴리스틱 -- 다른 축, N3.8 '같은 판정의 다른 자리' (2))는 범위 밖.
+gain-budget-gmid-sizing old 2251: segs missing 1
+   MISS(frag60 in hist=False): `E/tests/search/test_search_context.py`.
+gain-budget-gmid-sizing old 2253: segs missing 0
+gain-budget-gmid-sizing old 2254: segs missing 0
+gain-budget-gmid-sizing old 2275: segs missing 0
+gain-budget-gmid-sizing old 2322: segs missing 0
+gain-budget-gmid-sizing old 2324: segs missing 0
+gain-budget-gmid-sizing old 2384: segs missing 0
+gain-budget-gmid-sizing old 2385: segs missing 0
+gain-budget-gmid-sizing old 2461: segs missing 0
+gain-budget-gmid-sizing old 2462: segs missing 0
+gain-budget-gmid-sizing old 2467: segs missing 0
+gain-budget-gmid-sizing old 2472: segs missing 0
+gain-budget-gmid-sizing old 2473: segs missing 0
+gain-budget-gmid-sizing old 2474: segs missing 0
+gain-budget-gmid-sizing old 2475: segs missing 0
+gain-budget-gmid-sizing old 2477: segs missing 0
+gain-budget-gmid-sizing old 2478: segs missing 0
+gain-budget-gmid-sizing old 2483: segs missing 0
+gain-budget-gmid-sizing old 2500: segs missing 0
+gain-budget-gmid-sizing old 2501: segs missing 0
+gain-budget-gmid-sizing old 2504: segs missing 0
+gain-budget-gmid-sizing old 2506: segs missing 0
+gain-budget-gmid-sizing old 2511: segs missing 0
+gain-budget-gmid-sizing old 2529: segs missing 0
+gain-budget-gmid-sizing old 2530: segs missing 0
+gain-budget-gmid-sizing old 2559: segs missing 0
+gain-budget-gmid-sizing old 2561: segs missing 0
+gain-budget-gmid-sizing old 2567: segs missing 0
+gain-budget-gmid-sizing old 2572: segs missing 0
+gain-budget-gmid-sizing old 2574: segs missing 0
+gain-budget-gmid-sizing old 2575: segs missing 0
+gain-budget-gmid-sizing old 2576: segs missing 0
+gain-budget-gmid-sizing old 2611: segs missing 0
+oracle-portability old 18: segs missing 0
+oracle-portability old 71: segs missing 0
+oracle-portability old 99: segs missing 0
+oracle-portability old 138: segs missing 0
+oracle-portability old 321: segs missing 0
+oracle-portability old 433: segs missing 0
+oracle-portability old 452: segs missing 0
+oracle-portability old 453: segs missing 0
+oracle-portability old 501: segs missing 0
+oracle-portability old 506: segs missing 0
+oracle-portability old 507: segs missing 0
+oracle-portability old 508: segs missing 0
+oracle-portability old 511: segs missing 0
+oracle-portability old 512: segs missing 0
+oracle-portability old 521: segs missing 0
+oracle-portability old 576: segs missing 0
+oracle-portability old 586: segs missing 0
+oracle-portability old 587: segs missing 0
+oracle-portability old 588: segs missing 0
+oracle-portability old 589: segs missing 0
+oracle-portability old 590: segs missing 0
+oracle-portability old 591: segs missing 0
+oracle-portability old 592: segs missing 0
+oracle-portability old 593: segs missing 0
+oracle-portability old 594: segs missing 0
+oracle-portability old 595: segs missing 0
+oracle-portability old 596: segs missing 0
+oracle-portability old 597: segs missing 0
+oracle-portability old 598: segs missing 0
+oracle-portability old 600: segs missing 0
+oracle-portability old 601: segs missing 0
+oracle-portability old 603: segs missing 1
+   MISS(frag60 in hist=False): | G-17 | (v0.6.3) LUT 기록 파일 역할(모델 파일 / 생성 보조 입력) 선언 형식: 새 LUT meta 칸(OP-8), 기존 LUT 옆 선언 파일(검증자, OP-3 병합 조건 (c))과 그 근거 칸(생성기 원본 코드 위치, include 그래프 밖 측정), 보조 입력 sha256 대조의 PDK 뿌리 출처, 보조 입력 불일치 오류 이름(G-4
+oracle-portability old 605: segs missing 0
+oracle-portability old 615: segs missing 0
+oracle-portability old 625: segs missing 0
+oracle-portability old 626: segs missing 0
+oracle-portability old 634: segs missing 0
+oracle-portability old 683: segs missing 0
+oracle-portability old 773: segs missing 0
+oracle-portability old 776: segs missing 0
+oracle-portability old 782: segs missing 0
+graph-consumption old 12: segs missing 0
+graph-consumption old 15: segs missing 0
+graph-consumption old 72: segs missing 0
+graph-consumption old 87: segs missing 0
+graph-consumption old 88: segs missing 0
+graph-consumption old 91: segs missing 0
+graph-consumption old 92: segs missing 0
+graph-consumption old 113: segs missing 0
+graph-consumption old 120: segs missing 0
+graph-consumption old 143: segs missing 0
+graph-consumption old 180: segs missing 0
+graph-consumption old 217: segs missing 0
+graph-consumption old 306: segs missing 0
+graph-consumption old 308: segs missing 0
+graph-consumption old 415: segs missing 0
+graph-consumption old 422: segs missing 0
+graph-consumption old 429: segs missing 0
+graph-consumption old 455: VERBATIM
+graph-consumption old 503: segs missing 0
+graph-consumption old 504: segs missing 0
+graph-consumption old 520: segs missing 0
+graph-consumption old 525: segs missing 1
+   MISS(frag60 in hist=False): | P-G2 | headroom-chain 완료 조건 문언 | 트리 경로가 쓰기 계획 블록의 필드 하나로만 만들어지고 블록 밖 재구성이 0이라는 확인(이 계획 완료 조건 3, GC-V 검증자 확인 항목)을 headroom-chain HC-1 완료 조건에도 같은 문언으로 둘지 권고만 기록한다(O-14 (1)의 WP-10 계측은 그 계획에 이미 지시됐다). 이
+graph-consumption old 538: segs missing 0
+graph-consumption old 539: segs missing 0
+graph-consumption old 581: segs missing 0
+graph-consumption old 640: segs missing 0
+graph-consumption old 647: segs missing 0
+graph-consumption old 666: segs missing 0
+graph-consumption old 668: segs missing 0
+graph-consumption old 673: segs missing 0
+graph-consumption old 675: segs missing 0
+graph-consumption old 705: segs missing 0
+graph-consumption old 745: segs missing 0
+graph-consumption old 758: segs missing 0
+graph-consumption old 761: segs missing 0
+graph-consumption old 762: segs missing 0
+graph-consumption old 766: segs missing 0
+graph-consumption old 779: segs missing 0
+graph-consumption old 787: segs missing 0
+graph-consumption old 791: segs missing 0
+graph-consumption old 792: segs missing 0
+graph-consumption old 793: segs missing 1
+   MISS(frag60 in hist=False): g = s 허용의 비대칭 일반화 | 물리 근거 없음(K-h) | **닫힘**(0.14.4 넷째 커밋) -- 상위 gain-budget v6.38.3 IT-1 범위 재작성 범위 5(N6.35 E-19)가 일반화, **원래 취지와 다름**(옛 '이
+graph-consumption old 794: segs missing 1
+   MISS(frag60 in hist=False): GC-5는 식을 바꾸지 않는다(동작 보존). 대체는 별도 card·사용자 결정 |
+graph-consumption old 795: segs missing 0
+headroom-chain old 24: segs missing 0
+headroom-chain old 38: VERBATIM
+headroom-chain old 94: segs missing 0
+headroom-chain old 113: segs missing 0
+headroom-chain old 383: segs missing 0
+headroom-chain old 384: segs missing 0
+headroom-chain old 385: segs missing 1
+   MISS(frag60 in hist=False): 상자 하한 규칙의 정의(search CONTRACT 3.7·[r5c])에서 나온다 | 기록만 한다. card 0이 빈도를 센다 |
+headroom-chain old 496: segs missing 0
+headroom-chain old 515: segs missing 0
+headroom-chain old 518: segs missing 0
+headroom-chain old 519: segs missing 1
+   MISS(frag60 in hist=False): | (HC-F, 조건부) | SD-1·SD-2 수정(재계수가 0이 아니고 사용자가 승인한 뒤)
+headroom-chain old 598: segs missing 0
+headroom-chain old 613: segs missing 0
+headroom-chain old 632: segs missing 0
+headroom-chain old 659: segs missing 0
+offset-strategy old 11: segs missing 0
+offset-strategy old 28: segs missing 0
+offset-strategy old 180: VERBATIM
+offset-strategy old 384: segs missing 0
+offset-strategy old 402: segs missing 0
+offset-strategy old 404: VERBATIM
+offset-strategy old 406: VERBATIM
+offset-strategy old 408: VERBATIM
+offset-strategy old 409: VERBATIM
+offset-strategy old 410: VERBATIM
+offset-strategy old 411: VERBATIM
+offset-strategy old 412: VERBATIM
+offset-strategy old 413: VERBATIM
+offset-strategy old 414: VERBATIM
+offset-strategy old 415: VERBATIM
+offset-strategy old 416: segs missing 0
+offset-strategy old 417: VERBATIM
+offset-strategy old 418: VERBATIM
+offset-strategy old 419: VERBATIM
+offset-strategy old 420: VERBATIM
+offset-strategy old 421: VERBATIM
+offset-strategy old 429: segs missing 0
+offset-strategy old 441: segs missing 0
+offset-strategy old 443: VERBATIM(norm)
+offset-strategy old 459: segs missing 0
+offset-strategy old 478: segs missing 0
+offset-strategy old 479: segs missing 0
+offset-strategy old 480: segs missing 0
+offset-strategy old 487: segs missing 0
+offset-strategy old 556: segs missing 0
+offset-strategy old 558: segs missing 0
+offset-strategy old 589: segs missing 0
+offset-strategy old 590: segs missing 0
+offset-strategy old 591: segs missing 0
+offset-strategy old 609: segs missing 1
+   MISS(frag60 in hist=False): | DO-8 | M2 대리 spec 위치 | 저장소 밖 측정 agent 전용 임시 경로. library 무변경 |
+offset-strategy old 633: segs missing 0
+offset-strategy old 634: segs missing 0
+offset-trim old 17: segs missing 0
+offset-trim old 527: segs missing 0
+offset-trim old 549: segs missing 0
+offset-trim old 611: VERBATIM
+offset-trim old 613: VERBATIM
+offset-trim old 635: VERBATIM
+offset-trim old 700: segs missing 0
+offset-trim old 735: segs missing 0
+offset-trim old 736: VERBATIM
+offset-trim old 737: VERBATIM
+offset-trim old 738: VERBATIM
+offset-trim old 740: VERBATIM
+offset-trim old 743: segs missing 0
+{"lines": 322, "verbatim": 36, "segs": 175, "segs_ok": 143}

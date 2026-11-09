@@ -1,0 +1,25 @@
+case	expected	got	match	desc	detail
+good	PASS	PASS	ok	좋은 값(실제 피검, 실제 초안)	기록 5 4342B = pre-u3.bak heredoc 출력
+good_copy	PASS	PASS	ok	좋은 값(피검 사본 + 원본 초안 사본 -- 사본 경로 무해 확인)	기록 5 4342B = pre-u3.bak heredoc 출력
+hash_mismatch	STOP	STOP	ok	V3_ELEM 해시 != 보관 K1_SD.py def 해시	AssertionError: ('묶기 해시 != src def 묶기 해시', '7b8661621c48510d282883d1e5f92ec59e69c308c4b77fdbd1a521cbe93da83a', '6a7550510b3740fc171772
+wrong_def	STOP	STOP	ok	다른 def 변이 id(해시는 그 def와 맞음)	AssertionError: ('변이 id가 U3 대상 모양이 아니다', 'stick_diagram:other:const-:body[0].value.right')
+wrong_path	STOP	STOP	ok	U3 def·해시 맞음, 경로 끝 노드가 상수 1 아님	AssertionError: Call(func=Name(id='len', ctx=Load()), args=[Name(id='xs', ctx=Load())])
+leftover_ph	STOP	STOP	ok	초안에 모르는 자리표시 <LEFTOVER_X>	AssertionError: ['<LEFTOVER_X>']
+tamper_quote	STOP	STOP	ok	기록 질문 원문 변조(jsonl 대조)	AssertionError: ('질문 인용이 그 tool_use의 질문 하나와 전체 일치하지 않는다', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', '[U3] B26-1 V3 �
+tamper_answer	STOP	STOP	ok	기록 사용자 답 변조(jsonl 대조)	AssertionError: ('답 인용 != 사용자가 고른 답(toolUseResult.answers[질문] 전체 일치)', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', '등가 4개 
+tamper_phcount	STOP	STOP	ok	자리표시 개수 변조	AssertionError: ('<K1_40>', 2, 1)
+two_comments	STOP	STOP	ok	주석 블록 둘(채우는 법 주석 밖 주석)	AssertionError: '\n-->\n'
+pin_good	PASS	PASS	ok	핀 keep + 원본 초안·원본 fill_u3 사본	기록 5 4342B = pre-u3.bak heredoc 출력
+pin_prose	STOP	STOP	ok	핀 keep + 인용 밖 산문 변조 초안	[중단] 기록 5 초안 sha256 핀 불일치: C:/g437/rt/kit/approval5.md = 6869c9d18eb896e402537aad42bd5022f9c8f45b83a57f98cd464cf0893db8e7, 핀 U3_
+pin_fill	STOP	STOP	ok	핀 keep + fill_u3.py 바이트 변조	[중단] 기록 5 fill_u3.py sha256 핀 불일치: C:/g437/rt/fill_tamper.py = 15bd928bf1296c45badd815f2668f0359871850851d22e99a96bfdaeba627acf, 핀 U
+rec4_good	PASS	PASS	ok	기록 4 원본 초안 사본, 핀 keep	기록 4 6886B = 실제 피검 기록 4, 인용 OK
+rec4_answer	STOP	STOP	ok	기록 4 답 자리 = 거부 선택지(핀 follow)	AssertionError: ('답 인용 != 사용자가 고른 답(toolUseResult.answers[질문] 전체 일치)', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', 'P9 시그니
+rec4_elsewhere	STOP	STOP	ok	기록 4 답 자리 변조 + 실제 답은 범위 설명에(핀 follow)	AssertionError: ('답 인용 != 사용자가 고른 답(toolUseResult.answers[질문] 전체 일치)', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', 'P9 시그니
+rec4_toolu	STOP	STOP	ok	기록 4 toolu = 다른 AskUserQuestion(핀 follow)	AssertionError: ('AskUserQuestion toolu != 핀', 'toolu_01UZMV9c7hahwakQs6EiNken', 'toolu_01KTtsbRiK7S3cv1coUsAyPw')
+rec4_pin	STOP	STOP	ok	기록 4 인용 밖 산문 변조(핀 keep)	[중단] 기록 4 초안 sha256 핀 불일치: C:/g437/rt/kit/approval4.md = 4d4942b8fed46ae76831bd43156a33f214b9574fc2c881069159dff3448a5da4, 핀 P9_
+qbind_pin	STOP	STOP	ok	QBIND 바이트 변조(핀 keep)	[중단] b26_1_quote_bind.py sha256 핀 불일치: C:/g437/rt/qbind_tamper.py = 891f9fb507fbb77823af4349f4edefd5939bfb23779d91148275b62c1a1d69f5, 핀 
+bytes_ok_clean	PASS	PASS	ok	bytes_ok 단위	옛 bytes_ok(pre-u3.bak) PASS (정보, 기대 PASS)
+bytes_ok_ph1	STOP	STOP	ok	bytes_ok 단위	옛 bytes_ok(pre-u3.bak) PASS (정보, 기대 PASS)
+bytes_ok_ph2	STOP	STOP	ok	bytes_ok 단위	옛 bytes_ok(pre-u3.bak) PASS (정보, 기대 PASS)
+bytes_ok_ph3	STOP	STOP	ok	bytes_ok 단위	옛 bytes_ok(pre-u3.bak) PASS (정보, 기대 PASS)
+bytes_ok_cm	STOP	STOP	ok	bytes_ok 단위	옛 bytes_ok(pre-u3.bak) STOP (정보, 기대 STOP)

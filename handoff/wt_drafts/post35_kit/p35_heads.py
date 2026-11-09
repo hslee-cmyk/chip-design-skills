@@ -1,0 +1,157 @@
+"""post-35 재측정 -- 모의 head 커밋 만들기(격리 복제본 안에서만, 저장소·_drafts 쓰기 없음).
+
+    python -B p35_heads.py setup  <G> <REV>      # <G>/kit/b26 = 측정 스크립트 사본(경로 치환), <G>/b1 = REV archive + B34 SD(mk_b1.py)
+    python -B p35_heads.py build  <G> <REV>      # <G>/r 복제본에 모의 커밋 -> <G>/out/heads.json
+
+재사용(새로 쓰지 않음 -- 이전 측정과 같은 head를 만들기 위해):
+  _drafts/b26_scripts/{sim_head,v3_scope_classify,v3_scope_widen,mk_b1,b26v4_head,b26v4_classify}.py  (setup_g109.py와 같은 경로 치환)
+  _drafts/b26_reconcile/b26v4c.py  (cleanup C1·C2·C4)
+  head 정의 = v3_scope_briefs.md §0.2 끝('36e170e 재측정'):
+    B1  = REV + B34 코드(mk_b1 = v3_scope_classify.build_b34 사이트 1·2·3·11·11b)          -- B34 좁힌 초안 = REV..B1 (대상 10)
+          REV에 실제 B34(code 2eb7e55)가 이미 있으면(gate 2183f2e 이후) 모의 B34를 다시 얹지 않는다: b1 = REV archive 그대로, B1 = REV(P0).
+          두 가지 모두 b26v4_head._pick_sites가 b1 SD 글로 사이트 목록(SITE_SD_B1 실제 B34 / SITE_SD_B1_MOCK mk_b1)을 고른다.
+    H4  = B1 + build_head("v4")                                                         -- B26-1 card v4 = B1..H4 (대상 301)
+    C4B = B1 + cleanup(ONLY={"C4"}, rr="")  (backfill 결함 card 병합 모의 base)
+    HA  = C4B + cleanup(build_head("v4"), ONLY={"C4"})        -- 시나리오 A = C4B..HA (대상 299, 2,440)
+    H5  = C4B + cleanup(build_head("v4"), ONLY={"C1","C2","C4"}) -- B26-1 card v5 = C4B..H5 (대상 299, 2,435)
+  backfill v3count head = backfill_launch.sh stage_v3count와 같은 식(REV SR 수정 후보 두 줄 글 확인 뒤 삭제 -- B34 전 REV 11800·11879, B34 병합본 이후 11799·11878)    -- REV..BF (대상 4)
+"""
+import io
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tarfile
+
+DR = "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts"
+MODE, G, REV = sys.argv[1], sys.argv[2].replace("\\", "/").rstrip("/"), sys.argv[3]
+CL = G + "/r"
+KB = G + "/kit/b26"
+B26_FILES = ("sim_head.py", "v3_scope_classify.py", "v3_scope_widen.py", "mk_b1.py", "b26v4_head.py", "b26v4_classify.py")
+B34_CODE = "2eb7e55"   # 실제 B34 code 커밋(Change-Id 20260930-b34-grammar-explicit) -- REV가 이것을 품으면 모의 B34(mk_b1)를 얹지 않는다
+
+
+def git(*a):
+    r = subprocess.run(["git", "-C", CL] + list(a), capture_output=True)
+    if r.returncode:
+        raise SystemExit("git %s: %s" % (a, r.stderr.decode("utf-8", "replace")))
+    return r.stdout
+
+
+def rev_has_b34(rev):
+    r = subprocess.run(["git", "-C", CL, "merge-base", "--is-ancestor", B34_CODE, rev], capture_output=True)
+    if r.returncode not in (0, 1):
+        raise SystemExit("merge-base %s %s: %s" % (B34_CODE, rev, r.stderr.decode("utf-8", "replace")))
+    return r.returncode == 0
+
+
+def rewrite(t):
+    t = t.replace(DR + "/b26_scripts", KB).replace(DR + "/b26_reconcile/", KB + "/").replace(DR + "/b26_reconcile", KB)
+    for old in ("C:/g83", "C:/g103"):
+        t = t.replace(old, G)
+    assert DR not in t, "치환 뒤에도 _drafts 경로가 남았다"
+    for bad in ('"C:/g6', '"C:/g8', '"C:/g10', '"C:/g1'):
+        assert bad not in t.replace('"' + G, '"<G>'), bad
+    return t
+
+
+if MODE == "setup":
+    assert not os.path.exists(KB), KB
+    os.makedirs(KB)
+    os.makedirs(G + "/b1")
+    os.makedirs(G + "/out", exist_ok=True)
+    for f in B26_FILES:
+        src = open(DR + "/b26_scripts/" + f, encoding="utf-8").read()
+        open(KB + "/" + f, "w", encoding="utf-8", newline="\n").write(rewrite(src))
+    src = open(DR + "/b26_reconcile/b26v4c.py", encoding="utf-8").read()
+    open(KB + "/b26v4c.py", "w", encoding="utf-8", newline="\n").write(rewrite(src))
+    for f in ("executed_lines.json", "junit_base.xml"):
+        shutil.copy(DR + "/v3_scripts/out/" + f, G + "/out/" + f)
+    tarfile.open(fileobj=io.BytesIO(git("archive", REV))).extractall(G + "/b1", filter="data")
+    if rev_has_b34(REV):
+        print("REV %s에 실제 B34(%s)가 있다 -- mk_b1 건너뜀, b1 = REV archive 그대로" % (REV, B34_CODE))
+    else:
+        r = subprocess.run([sys.executable, "-B", KB + "/mk_b1.py"], capture_output=True, text=True, encoding="utf-8")
+        print(r.stdout.strip(), r.stderr.strip()[-400:])
+        if r.returncode:
+            raise SystemExit("mk_b1 실패 exit %d" % r.returncode)
+    print("setup ok", REV)
+    sys.exit(0)
+
+assert MODE == "build", MODE
+sys.path.insert(0, KB)
+import b26v4_head as H      # noqa: E402  (sim_head.BASEF = <G>/b1 = REV + B34 SD)
+import b26v4c as CC         # noqa: E402
+S = H.S
+BASE0 = {p: t for p, t in S.BASEF.items()}
+
+
+def commit(parent, files, ref_files, msg, branch):
+    git("checkout", "--quiet", "-B", branch, parent)
+    n = 0
+    for rel, txt in files.items():
+        if ref_files is not None and txt == ref_files.get(rel):
+            continue
+        p = os.path.join(CL, *rel.split("/"))
+        with open(p, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(txt)
+        git("add", "--", rel)
+        n += 1
+    git("commit", "--quiet", "--allow-empty", "-m", msg)
+    return git("rev-parse", "HEAD").decode().strip(), n
+
+
+P0 = git("rev-parse", REV + "^{commit}").decode().strip()
+# REV 트리의 SD와 b1 사본의 SD(B34 전)가 같은 엔진인지 -- b1은 REV archive + mk_b1이라 SD만 다르다
+heads = {"P0": P0}
+b1_sd = BASE0[S.SD]
+if rev_has_b34(REV):
+    # 실제 B34 병합본 이후 REV: b1 = REV archive 그대로(setup이 mk_b1을 건너뜀) -- B1 = P0
+    assert b1_sd.encode("utf-8") == git("show", "%s:%s" % (P0, S.SD)), "b1 SD가 REV SD와 다르다(setup을 다시)"
+    heads["B1"] = P0
+else:
+    heads["B1"], n = commit(P0, {S.SD: b1_sd}, None, "p35 sim: B34 code (B1)", "p35-b1")
+    assert n == 1
+head4, _ = H.build_head("v4")
+heads["H4"], _ = commit(heads["B1"], head4, BASE0, "p35 sim: B26-1 v4 head", "p35-h4")
+CC.ONLY = {"C4"}
+base_c4 = CC.cleanup(BASE0, rr="")
+heads["C4B"], n = commit(heads["B1"], base_c4, BASE0, "p35 sim: backfill C4 base", "p35-c4b")
+assert n == 1
+CC.ONLY = {"C4"}
+head_a = CC.cleanup(head4)
+heads["HA"], _ = commit(heads["C4B"], head_a, base_c4, "p35 sim: B26-1 v4 head on C4 base (scenario A)", "p35-ha")
+CC.ONLY = {"C1", "C2", "C4"}
+head_5 = CC.cleanup(head4)
+heads["H5"], _ = commit(heads["C4B"], head_5, base_c4, "p35 sim: B26-1 v5 head (C1 C2 on C4 base)", "p35-h5")
+# H5T = H5 + 이름 직접 호출 test 1개(B26-1 card 'V3 계획' 4와 같은 모양 -- _metric_kcl_residual 인벤토리 0 -> 1).
+# carry 전체 heredoc 대조(CARRY-FULL)용: 생존이 U3 하나인 실제 도구 출력을 만들려면 인벤토리 0 생존 6이 없어야 한다.
+T5 = "skills/analog-gmid-design/assets/tests/contracts/test_p35_inventory_probe.py"
+heads["H5T"], _ = commit(heads["H5"], {T5: "import sizing_recipe\n\n\ndef test_p35_metric_kcl_residual_direct():\n"
+                                          "    sizing_recipe._metric_kcl_residual({}, {})\n"}, None,
+                         "p35 sim: direct-call test for _metric_kcl_residual (inventory probe)", "p35-h5t")
+# backfill v3count head(backfill_launch.sh stage_v3count와 같은 식)
+SR = S.SR
+blob = git("show", "%s:%s" % (P0, SR))
+L = blob.split(b"\n")
+# 후보 줄 = backfill_launch.sh :exp와 같은 글. B34 전 REV는 11800·11879, B34 병합본(2183f2e) 이후는 sizing_recipe docstring −1(6510~6512)로 11799·11878
+exp = ({11799: b"        _backfill_interdig_ok(result)", 11878: b"    _backfill_interdig_ok(result)"} if rev_has_b34(REV)
+       else {11800: b"        _backfill_interdig_ok(result)", 11879: b"    _backfill_interdig_ok(result)"})
+bad = {k: L[k - 1][:80].decode("utf-8", "replace") for k, v in exp.items() if L[k - 1] != v}
+if bad:
+    heads["BF_error"] = "REV SR 줄 글이 backfill 후보와 다르다: %r" % bad
+else:
+    for k in sorted(exp, reverse=True):
+        del L[k - 1]
+    git("checkout", "--quiet", "-B", "p35-bf", P0)
+    with open(os.path.join(CL, *SR.split("/")), "wb") as fh:
+        fh.write(b"\n".join(L))
+    num = git("diff", "--numstat", "--", SR).decode().split()
+    assert num[:2] == ["0", "2"], num
+    git("commit", "--quiet", "-m", "p35 sim: backfill candidate (SR %s deleted)" % " ".join(map(str, sorted(exp))), "--", SR)
+    heads["BF"] = git("rev-parse", "HEAD").decode().strip()
+git("checkout", "--quiet", "--detach", P0)
+with open(G + "/out/heads.json", "w", encoding="utf-8") as fh:
+    json.dump(heads, fh, indent=1)
+print(json.dumps(heads))

@@ -1,0 +1,81 @@
+{
+ "head": "cd64170",
+ "G1": {
+  "sizing_recipe": {
+   "defs": 272,
+   "mutants": 8874,
+   "v6_new_items": {
+    "magic_number": 268,
+    "id_call": 6,
+    "continue": 187,
+    "broad_except": 8
+   },
+   "same_path_targets": 0
+  },
+  "stick_diagram": {
+   "defs": 181,
+   "mutants": 5933,
+   "v6_new_items": {
+    "magic_number": 195,
+    "continue": 158
+   },
+   "same_path_targets": 0
+  },
+  "topology_library": {
+   "defs": 12,
+   "mutants": 683,
+   "v6_new_items": {
+    "magic_number": 34
+   },
+   "same_path_targets": 0
+  },
+  "design_report": {
+   "defs": 8,
+   "mutants": 187,
+   "v6_new_items": {
+    "continue": 2,
+    "magic_number": 3
+   },
+   "same_path_targets": 0
+  }
+ },
+ "G2": {
+  "roots": [
+   "skills/analog-gmid-design/assets/sky130_lut_sweep.py::__main__",
+   "skills/analog-gmid-design/assets/topology_to_markdown.py::__main__",
+   "workspaces/run_harness.py::__main__",
+   "workspaces/run_harness.py::run"
+  ],
+  "engine_defs": 473,
+  "unreached": 109,
+  "unreached_unapproved": 108,
+  "sample": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py::InfeasibleSizingError.__init__",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::SemiEmpiricalGmIdLUT.__init__",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::SemiEmpiricalGmIdLUT.noise_1f_density",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_cmrr_diff_pair_tail",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_constraint_tol",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_device_roles_cached",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_feed_diode_stack_target",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_feed_gm_target_convention",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_feed_l_class",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_feed_metric_stage_budget",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_feed_root_const",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_feed_root_ratio",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_feed_root_ratio._ref_id",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_feed_root_signed_sum",
+   "skills/analog-gmid-design/assets/sizing_recipe.py::_feed_root_signed_sum._ref_id"
+  ]
+ },
+ "G3": {
+  "reachability.py": {
+   "exit": 1,
+   "stdout": "{\"tool\": \"V7\", \"verdict\": \"FAIL\", \"roots\": [\"workspaces/run_harness.py::run2\"], \"roots_without_file\": [], \"new_defs\": [\"skills/analog-gmid-design/assets/b.py::f\"], \"unreached\": [\"skills/analog-gmid-design/assets/b.py::f\"], \"unreached_without_approval\": [\"skills/analog-gmid-design/assets/b.py::f\"]}"
+  },
+  "source_lint.py": {
+   "exit": 1,
+   "stdout": "{\"tool\": \"V6\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/a.py\", \"skills/analog-gmid-design/assets/b.py\"], \"findings\": [{\"path\": \"skills/analog-gmid-design/assets/b.py\", \"unit\": \"f\", \"check\": \"broad_except\", \"base\": 0, \"head\": 1, \"where\": [4]}, {\"path\": \"skills/analog-gmid-design/assets/b.py\", \"unit\": \"f\", \"check\": \"magic_number\", \"base\": 0, \"head\": 1, \"where\": [[3, \"3.7\"]]}]}"
+  }
+ },
+ "G3_tmp_removed": true
+}

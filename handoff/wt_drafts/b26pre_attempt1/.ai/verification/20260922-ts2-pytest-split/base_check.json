@@ -1,0 +1,39 @@
+{
+  "id": "20260922-ts2-pytest-split",
+  "attempt": 2,
+  "freeze": {
+    "test_commit": "caac9101b2fb4c36c8bc0e049a661a1731f36ecf",
+    "test_branch": "role/audit/20260922-ts2-pytest-split",
+    "base_commit": "ab05c8cf429723e9497a762c0f25f81d947b09be",
+    "code_commit": null,
+    "note": "evidence_type=test-only이라 N3.12.3 순서 4·5(code worktree·code 커밋)가 없다. audit worktree HEAD = T(병합 커밋 없음)."
+  },
+  "isolation": {
+    "clone": "git -c core.longpaths=true clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts2-pytest-split-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso",
+    "remote_removed": "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso remote remove origin",
+    "iso_root": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso",
+    "gate_cache": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/ab05c8cf429723e9497a762c0f25f81d947b09be",
+    "python": "C:/Python314/python.exe (3.14.2), pytest 9.0.2"
+  },
+  "base_check": {
+    "kind": "test-only",
+    "rationale": "N3.12.3 순서 3: red-green이 아니므로 red 수집이 없고, equivalence도 아니므로 base 통과 확인의 대상은 design 10 §6.8 '증거'가 정한 것 -- base에서 tests/legacy/test_legacy_selftests.py 4케이스 PASS(= 이관본 모든 섹션 통과, 이관본은 첫 실패에서 멈춘다).",
+    "command": "cd <iso> && PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/ts2pyc PYTHONPATH=<cache> C:/Python314/python.exe -P -m pytest -c <cache>/pytest_gate.ini --rootdir=<iso> --confcutdir=<iso> <iso>/skills/analog-gmid-design/assets/tests --gmid-phase=1 --gmid-strict=IC3:,IC5: -rA",
+    "checked_out": "ab05c8cf429723e9497a762c0f25f81d947b09be",
+    "exit_code": 0,
+    "collected": 81,
+    "summary": "69 passed, 12 xfailed in 48.93s",
+    "legacy_wrapper_cases": [
+      "skills/analog-gmid-design/assets/tests/legacy/test_legacy_selftests.py::test_legacy_selftest_exits_zero[sizing_recipe] PASSED",
+      "skills/analog-gmid-design/assets/tests/legacy/test_legacy_selftests.py::test_legacy_selftest_exits_zero[stick_diagram] PASSED",
+      "skills/analog-gmid-design/assets/tests/legacy/test_legacy_selftests.py::test_legacy_selftest_exits_zero[design_report] PASSED",
+      "skills/analog-gmid-design/assets/tests/legacy/test_legacy_selftests.py::test_legacy_selftest_exits_zero[topology_library] PASSED"
+    ],
+    "output_file": "base_full.txt",
+    "output_sha256": "3257d99ed7af26a216d76c138a701790a516a30ae72e099cf3f4bed07a18500f",
+    "output_bytes": 13021,
+    "worktree_clean_after": "git -C <iso> status --porcelain 출력 0줄"
+  },
+  "red": null,
+  "equivalence": null
+}

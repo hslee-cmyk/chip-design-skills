@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+# post-35 재측정 -- card 35(20260930-v3-changed-stmt-scope: V3 대상 = 바뀐 문장, not_targeted·targets_by_def 출력)가 gate master에 병합된 뒤,
+# 하류 키트(B34·b26pre·backfill·B26-1·carry·G1·B33)에 적힌 값을 **병합된 실제 도구**로 다시 잰다. 항목 목록·옛 값·적힌 곳 = _drafts/post35_remeasure.md.
+#
+#   bash remeasure.sh [--scratch /c/g237] [--old-rev 4a286f0] [--sim35] [--skip-slow] <병합된 gate rev>
+#
+#   --scratch   격리 작업 폴더(/c/g<번호>만, 없어야 한다). 기본 /c/g237. 끝나도 지우지 않는다(결과 = <scratch>/results/) -- 다 보면 직접 지운다.
+#   --old-rev   줄 번호·키·앵커·게이트 밖 호출의 '옛 값'을 다시 재는 기준 rev(기본 4a286f0 = 35 문서까지 들어간 판, 코드는 35 전).
+#   --sim35     리허설 전용: 도구에 card 35 모의(p35_sim35.py = v3scope_kit/scope_proto.py를 계약 4·5 자리에 얹음)를 깐다. 실제 병합본에는 쓰지 않는다.
+#   --skip-slow G1 redteam(공격 32 base·시제품, 무동작 미리보기 -- 합계 약 30~45분)을 건너뛴다(항목은 skipped로 기록).
+#
+# 격리 규칙: 실제 저장소·_drafts는 읽기만(git -C, clone --no-local, -c core.autocrlf=false, origin 제거, 빈 hooksPath). TMP·TEMP·TMPDIR·pycache는 scratch 아래.
+#   _drafts 키트 스크립트는 scratch로 복사해서 돌린다(g1_kit/run_*.sh는 결과를 g1_kit/out에 쓰므로 부르지 않고 같은 명령을 여기서 낸다).
+#   끝에 실제 저장소 HEAD·status·reflog·refs가 시작 때와 같은지 단정한다(다르면 exit 1).
+# 결과: <scratch>/results/results.jsonl(항목마다 append -- 중간에 죽어도 앞 항목은 남는다), table.txt(옛 → 새 표), <scratch>/out/(원자료).
+set -Eeuo pipefail
+shopt -s inherit_errexit
+trap 'echo "[중단] ${BASH_SOURCE[0]}:${LINENO}: ${BASH_COMMAND}" >&2' ERR
+
+REPO=/c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills
+DR=/c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts
+K=$DR/post35_kit
+PY=/c/Python314/python.exe
+G=/c/g237; OLD=4a286f0; SIM=0; SLOW=1
+while [ $# -gt 1 ]; do
+  case "$1" in
+    --scratch) G=$2; shift 2 ;;
+    --old-rev) OLD=$2; shift 2 ;;
+    --sim35) SIM=1; shift ;;
+    --skip-slow) SLOW=0; shift ;;
+    *) break ;;
+  esac
+done
+[ $# -eq 1 ] || { echo "사용: $0 [--scratch /c/gNNN] [--old-rev R] [--sim35] [--skip-slow] <병합된 gate rev>  (옵션은 rev 앞에만)" >&2; exit 2; }
+case "$1" in --*) echo "[중단] rev 자리에 옵션: $1" >&2; exit 2 ;; esac
+REV=$1
+printf '%s' "$G" | grep -Eq '^/c/g[0-9]+$' || { echo "[중단] --scratch는 /c/g<번호>만: $G" >&2; exit 2; }
+test ! -e "$G" || { echo "[중단] scratch $G가 이미 있다(다른 agent 경로일 수 있다 -- 새 번호)" >&2; exit 2; }
+
+export HOME=/c/Users/HSLEE
+export APPDATA='C:\Users\HSLEE\AppData\Roaming' LOCALAPPDATA='C:\Users\HSLEE\AppData\Local' USERPROFILE='C:\Users\HSLEE'
+mkdir -p "$G"/{tmp,nohooks,kit/v3scope,kit/g1,out,results,pycache}
+GW=$(cygpath -m "$G")
+export TMP="$GW/tmp" TEMP="$GW/tmp" TMPDIR="$GW/tmp" PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$GW/pycache" PYTHONIOENCODING=utf-8
+touch "$G/start.stamp"
+items() { "$PY" -B "$K/p35_items.py" "$@"; }
+say() { echo "== $*"; }
+
+# ---- 시작 상태(끝에 같아야 한다)
+# refs는 다른 agent(오케스트레이터의 role 브랜치 생성 등)가 동시에 바꿀 수 있어 목록 차이를 보고만 한다(이 스크립트는 실제 저장소에 git 쓰기 명령이 없다).
+st_repo() { echo "HEAD $(git -C "$REPO" rev-parse HEAD)"; echo "status $(git -C "$REPO" status --porcelain | md5sum | cut -c1-32)";
+            echo "reflog $(git -C "$REPO" reflog | wc -l)"; }
+st_repo > "$G/repo_state.before"
+git -C "$REPO" for-each-ref --format='%(refname) %(objectname)' > "$G/repo_refs.before"
+say "실제 저장소 시작 상태: $(tr '\n' ' ' < "$G/repo_state.before")"
+
+# ---- 격리 복제본(작업 트리 저장소에서, autocrlf=false) + gate 원격 추적 참조(병합 rev가 gate/master에만 있을 수 있다)
+say "복제본 $G/r"
+git -c core.autocrlf=false clone -q --no-hardlinks --no-local "$REPO" "$G/r"
+git -C "$G/r" remote remove origin
+test -z "$(git -C "$G/r" remote)"
+git -C "$G/r" config core.autocrlf false
+git -C "$G/r" config core.longpaths true
+git -C "$G/r" config core.hooksPath "$GW/nohooks"
+git -C "$G/r" config user.name p35-sim
+git -C "$G/r" config user.email p35-sim@example.invalid
+git -C "$G/r" fetch -q --no-tags "$REPO" '+refs/remotes/*:refs/remotes/src/*' || true
+NEW=$(git -C "$G/r" rev-parse --verify "$REV^{commit}") || { echo "[중단] rev $REV가 복제본에 없다(실제 저장소에서 git fetch gate 먼저)" >&2; exit 2; }
+OLDF=$(git -C "$G/r" rev-parse --verify "$OLD^{commit}")
+say "NEW $NEW  OLD $OLDF  sim35=$SIM slow=$SLOW"
+echo "{\"rev\": \"$NEW\", \"old\": \"$OLDF\", \"sim35\": $SIM, \"slow\": $SLOW}" > "$G/results/run.json"
+
+# ---- 도구 사본(rev별 tools/gates), 키트 사본
+for x in old new; do mkdir -p "$G/tool_$x"; done
+git -C "$G/r" archive "$OLDF" tools/gates | tar -x -C "$G/tool_old"
+git -C "$G/r" archive "$NEW" tools/gates | tar -x -C "$G/tool_new"
+TO="$GW/tool_old/tools/gates"; TN="$GW/tool_new/tools/gates"
+cp "$DR/v3scope_kit/scope_proto.py" "$G/kit/v3scope/"
+cp "$DR/g1_kit/install_proto.py" "$DR/g1_kit/g1_core.py" "$DR/g1_kit/gen_attack32.py" "$G/kit/g1/"
+if [ "$SIM" = 1 ]; then
+  rc=0; "$PY" -B "$K/p35_sim35.py" "$TN" "$GW/kit/v3scope" || rc=$?
+  [ "$rc" = 0 ] || [ "$rc" = 3 ] || { echo "[중단] sim35 설치 실패 exit $rc" >&2; exit 1; }
+fi
+HAS35=$(grep -c targets_by_def "$TN/mutate_changed.py" || true)
+O35=$(git -C "$G/r" show "$OLDF:tools/gates/mutate_changed.py" | grep -c targets_by_def || true)
+items add "$G" TOOL35-marker "$([ "$HAS35" -ge 1 ] && echo changed || echo needs35)" "$O35 -> $HAS35$([ "$SIM" = 1 ] && echo ' (sim35 모의)')" \
+  "b34_launch.sh:209·b26pre_launch.sh:244·backfill_launch.sh:255·b34_commit_plan.md:74 'grep -c targets_by_def >= 1 = 35 병합'. 기대: 0 -> 1 이상"
+# 모의 head 전제: 엔진 소스가 OLD와 같아야 p35_heads(줄 앵커 빌더)가 이전 측정과 같은 head를 만든다
+if git -C "$G/r" diff --quiet "$OLDF" "$NEW" -- 'skills/analog-gmid-design/assets/*.py'; then
+  items add "$G" SIMHEAD-engine same "엔진 .py 차이 0($OLD..rev)" "p35_heads 모의 head 전제 성립"
+else
+  items add "$G" SIMHEAD-engine changed "엔진 .py 차이 있음: $(git -C "$G/r" diff --name-only "$OLDF" "$NEW" -- 'skills/analog-gmid-design/assets/*.py' | head -5 | tr '\n' ' ')" \
+    "35 뒤 엔진이 바뀌었다 -- 모의 head(B34·B26-1) 빌더의 줄 앵커가 깨지거나 수가 바뀔 수 있다(그 card 키트를 그 rev로 다시 맞춘다)"
+fi
+
+# ---- V3 대상 수(도구 자신 + 가짜 pytest)
+say "모의 head 만들기(p35_heads.py -- b26_scripts·b26_reconcile 재사용)"
+HEADS_OK=1
+"$PY" -B "$K/p35_heads.py" setup "$GW" "$NEW" > "$G/out/heads_setup.log" 2>&1 || HEADS_OK=0
+[ "$HEADS_OK" = 1 ] && { "$PY" -B "$K/p35_heads.py" build "$GW" "$NEW" > "$G/out/heads_build.log" 2>&1 || HEADS_OK=0; }
+items ids "$G"
+hv() { "$PY" -B -c "import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])" "$G/out/heads.json" "$1"; }
+v3run() {   # label base head [추가 인자...]
+  local L=$1 B=$2 H=$3; shift 3
+  if [ "$HAS35" -lt 1 ]; then   # 35 전 도구는 대상 밖 없이 모든 변이를 실행한다(수천 번) -- 잴 값이 없으므로 건너뛰고 표시만
+    items add "$G" "V3-$L" needs35 "도구에 targets_by_def 없음 -- 건너뜀" "35 병합본(또는 리허설 --sim35)에서만 잰다"; return 0
+  fi
+  say "V3 $L  ${B:0:10}..${H:0:10}"
+  "$PY" -B "$K/p35_v3count.py" --tool-dir "$TN" --root "$GW/r" --base "$B" --head "$H" --label "$L" --work "$GW/out" \
+      --proto-dir "$GW/kit/v3scope" --carry "$DR/b26_1_carry.sh" "$@" > "$G/out/v3_$L.log" 2>&1 || true
+  items v3 "$G" "$L"
+}
+v3run p9 "$(git -C "$G/r" rev-parse 6bf510b)" "$(git -C "$G/r" rev-parse 93b18db)"
+if [ "$HEADS_OK" = 1 ]; then
+  if grep -q '"BF"' "$G/out/heads.json"; then
+    v3run bf "$NEW" "$(hv BF)" --def-key skills/analog-gmid-design/assets/sizing_recipe.py::run_matching_safety_with_finger_growth
+  else
+    items add "$G" V3-BF error "$(hv BF_error)" "backfill 후보 줄 글이 rev SR과 다르다(backfill_launch.sh stage_v3count도 같은 자리에서 멈춘다)"
+  fi
+  v3run b34   "$NEW"       "$(hv B1)" --ids "$GW/out/ids_b34.json"
+  v3run b26v4 "$(hv B1)"   "$(hv H4)" --ids "$GW/out/ids_b26v4.json"
+  v3run b26a  "$(hv C4B)"  "$(hv HA)" --ids "$GW/out/ids_b26a.json"
+  v3run b26v5 "$(hv C4B)"  "$(hv H5)" --ids "$GW/out/ids_b26v5.json"
+  # CARRY-FULL(오케스트레이터 추가 항목): b26_1_carry.sh check 단계 V3 heredoc 전체(= b26_1_kit_selftest/out_check_test.sh의 피검)를 실제 도구 출력에.
+  # H5T = H5 + _metric_kcl_residual 직접 호출 test(인벤토리 0 생존 제거), 가짜 pytest = U3 변이 `range(i + 0, len(chains))`만 생존 -> 생존 1 = U3인 판정 JSON·--out
+  v3run b26u3 "$(hv C4B)"  "$(hv H5T)" --survive-re 'range\(i \+ 0, len\(chains\)\)'       --survive-file skills/analog-gmid-design/assets/stick_diagram.py --carry-full "$DR/b26_1_carry.sh"
+else
+  items add "$G" SIMHEADS error "p35_heads.py 실패" "$(tail -3 "$G/out/heads_setup.log" "$G/out/heads_build.log" 2>/dev/null | tr '\n' ' ' | cut -c1-400)"
+fi
+
+# ---- 정적 항목: 줄 번호·출력 키(G1·B33), install_proto 앵커, 게이트 밖 호출
+say "정적 항목"
+"$PY" -B "$K/p35_static.py" lines "$TO" --out "$GW/out/lines_old.json" > /dev/null
+"$PY" -B "$K/p35_static.py" lines "$TN" --out "$GW/out/lines_new.json" > /dev/null
+"$PY" -B "$K/p35_static.py" anchors "$GW/kit/g1/install_proto.py" "$TO" --out "$GW/out/anchors_old.json" > /dev/null
+"$PY" -B "$K/p35_static.py" anchors "$GW/kit/g1/install_proto.py" "$TN" --out "$GW/out/anchors_new.json" > /dev/null
+for x in old new; do
+  cp -r "$G/tool_$x" "$G/inst_$x"
+  "$PY" -B "$GW/kit/g1/install_proto.py" "$GW/inst_$x" > "$G/out/install_$x.txt" 2>&1 || true
+done
+git -C "$G/r" grep -n -E '(mc|mutate_changed)\.(changed_defs|def_hash)\(' "$OLDF" -- . ':!*.jsonl' ':!tools/gates' > "$G/out/oog_old.txt" || true
+git -C "$G/r" grep -n -E '(mc|mutate_changed)\.(changed_defs|def_hash)\(' "$NEW" -- . ':!*.jsonl' ':!tools/gates' > "$G/out/oog_new.txt" || true
+items static "$G"
+
+# ---- 느린 항목: G1 redteam(공격 32 base·시제품, 무동작 미리보기) -- g1_kit/run_attack32.sh·run_noop.sh와 같은 명령, 출력은 scratch
+mkclone() {   # name
+  git clone -c core.autocrlf=false -q --no-hardlinks --no-local "$GW/r" "$G/$1"
+  git -C "$G/$1" remote remove origin
+  git -C "$G/$1" config core.hooksPath "$GW/nohooks"
+  git -C "$G/$1" checkout -q --detach "$NEW"
+  if [ "$SIM" = 1 ]; then "$PY" -B "$K/p35_sim35.py" "$GW/$1/tools/gates" "$GW/kit/v3scope" > /dev/null || [ $? = 3 ]; fi
+}
+lastlog() { ls -t "$G/$1/tools/gates/redteam/logs/"*-direct.jsonl | head -1; }
+if [ "$SLOW" = 1 ]; then
+  say "G1 공격 32 base(약 15분)"
+  mkclone b
+  "$PY" -B "$GW/kit/g1/gen_attack32.py" "$GW/b" > "$G/out/gen32_b.txt" 2>&1
+  "$PY" -B "$GW/b/tools/gates/redteam/run_all.py" --phase 0.5 --mode direct --only 32-moved-defs --repo "$GW/b" > "$G/out/a32b.txt" 2>&1 || true
+  cp "$(lastlog b)" "$G/out/a32b_new.jsonl"; items slow "$G" a32b
+  say "G1 공격 32 시제품(install_proto + gen_attack32 --scope, G1_SCOPE=1)"
+  mkclone p
+  if "$PY" -B "$GW/kit/g1/install_proto.py" "$GW/p" > "$G/out/install_p.txt" 2>&1; then
+    "$PY" -B "$GW/kit/g1/gen_attack32.py" "$GW/p" --scope > "$G/out/gen32_p.txt" 2>&1
+    G1_SCOPE=1 G1_SCOPE_DIR="$GW/kit/v3scope" "$PY" -B "$GW/p/tools/gates/redteam/run_all.py" --phase 0.5 --mode direct --only 32-moved-defs \
+        --repo "$GW/p" > "$G/out/a32p.txt" 2>&1 || true
+    cp "$(lastlog p)" "$G/out/a32p_new.jsonl"; items slow "$G" a32p
+  else
+    items add "$G" G1-A32P changed "install_proto 실패: $(tail -1 "$G/out/install_p.txt")" \
+      "옛 값 93/93 PASS(a32_proto_4a286f0). 35 병합본에 맞춰 install_proto 앵커를 고친 뒤에만 잰다(g1_briefs.md 113~114행) -- 측정 전용 시제품"
+  fi
+  say "G1 무동작 미리보기(기본 11 + 34- + 35-)"
+  ONLY=(v3_survivor v7_unwired 06-v4 07-v4 09-v6 23-v4 26-gate-output 27f-v6 28-v3 29-v4 31-v3 34-)
+  if ls -d "$G/b/tools/gates/redteam/attacks/35-"* > /dev/null 2>&1; then ONLY+=(35-)
+  else items add "$G" G1-NOOP-35 needs35 "attacks/35-* 없음" "35 병합본에서만 --only 35- 미리보기가 뜻이 있다"; fi
+  OA=(); for x in "${ONLY[@]}"; do OA+=(--only "$x"); done
+  "$PY" -B "$GW/b/tools/gates/redteam/run_all.py" --phase 0.5 --mode direct --repo "$GW/b" "${OA[@]}" > "$G/out/noop.txt" 2>&1 || true
+  cp "$(lastlog b)" "$G/out/noop_new.jsonl"; items slow "$G" noop
+else
+  items add "$G" G1-REDTEAM skipped "--skip-slow" "공격 32 base·시제품·무동작 미리보기 안 잼"
+fi
+
+# ---- 표, 실제 저장소 불변 단정
+say "표"
+items table "$G"
+st_repo > "$G/repo_state.after"
+git -C "$REPO" for-each-ref --format='%(refname) %(objectname)' > "$G/repo_refs.after"
+if ! cmp -s "$G/repo_refs.before" "$G/repo_refs.after"; then
+  echo "[참고] 실행 중 실제 저장소 refs가 바뀌었다(이 스크립트는 refs를 쓰지 않는다 -- 다른 agent·오케스트레이터 작업):"
+  diff "$G/repo_refs.before" "$G/repo_refs.after" || true
+fi
+if cmp -s "$G/repo_state.before" "$G/repo_state.after"; then
+  say "실제 저장소 상태 불변(HEAD·status·reflog)"
+else
+  echo "[경고] 실제 저장소 상태가 바뀌었다:"; diff "$G/repo_state.before" "$G/repo_state.after" || true; exit 1
+fi
+NEWER=$(find "$DR" -newer "$G/start.stamp" -type f 2>/dev/null | grep -v '/post35_kit/' | head -5 || true)
+[ -z "$NEWER" ] || echo "[참고] 실행 중 _drafts에 바뀐 파일(다른 agent일 수 있다 -- 이 스크립트는 쓰지 않는다): $NEWER"
+say "끝. 결과 $G/results/{results.jsonl,table.txt}, 원자료 $G/out/. 다 보면: rm -rf $G"

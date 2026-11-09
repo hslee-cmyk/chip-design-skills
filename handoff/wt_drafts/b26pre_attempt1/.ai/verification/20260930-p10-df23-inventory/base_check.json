@@ -1,0 +1,48 @@
+{
+ "id": "20260930-p10-df23-inventory",
+ "order": 3,
+ "evidence_type": "test-only",
+ "base_commit": "2d58fd845002b731cf9223e0990ec048f381e4a9",
+ "freeze": {
+  "T": "56b86c6fce97d7f4f66671cda7a7f9f0f54f1da9",
+  "T_parent": "2d58fd845002b731cf9223e0990ec048f381e4a9",
+  "T_trailers": ["Role: test", "Change-Id: 20260930-p10-df23-inventory"],
+  "base_to_T_diff": ["A skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py", "A skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py"],
+  "diff_outside_test_path": 0,
+  "new_test_blobs": {"test_df23_inventory.py": "2fd3145fc99ce1f7fd326c1a58d1c5af2fe65be0", "test_phase2_stale_refs.py": "95ef184b6599d3c9f0756971439eea90d4b9c5ed"}
+ },
+ "chain": {
+  "measured_at_C": "766b5c2b486df66e143feb1f9440084a62db0ebc",
+  "doc_commit_D": "0fa6ca2c30760f8d7d7fe995ecbcea5d330ad67e",
+  "D_parent": "766b5c2b486df66e143feb1f9440084a62db0ebc",
+  "D_parent_equals_measured_at": true,
+  "first_parent_chain_C_to_base": ["0fa6ca2 (Role: doc, Change-Id p10)", "b8d4c4d (Role: doc, Change-Id p10, spec+interface card)", "fe638ab (Role: doc, Change-Id 20260930-phase2-e4-phase)", "2d58fd8 (Role: doc, Change-Id 없음, 승인 기록 2개+context)"]
+ },
+ "base_vs_T": {
+  "collect_base": 837,
+  "collect_T": 886,
+  "base_only_ids": 0,
+  "new_ids": {"tests/contracts/test_df23_inventory.py": 31, "tests/contracts/test_phase2_stale_refs.py": 18},
+  "base_full_run": "822 passed, 15 xfailed, exit 0, 245.93s",
+  "T_full_run": "871 passed, 15 xfailed, exit 0, 249.44s",
+  "status_changed_existing_ids": 0,
+  "new_tests_at_base_tree": "base 트리 + 새 test 2개 = T 트리(base..T diff가 새 파일 2개뿐) -- 새 test 49개 전부 PASS"
+ },
+ "rejection_at_measured_at_contract8": {
+  "setup": "C:/g78/cst = 766b5c2 checkout --detach + T의 새 test 2개 blob(git cat-file) 복사(hash-object가 T blob과 같음)",
+  "result": "7 failed(전부 builtins.AssertionError, 수집 오류 0), 42 passed(합성 입력 자기 점검)",
+  "failed_ids": [
+   "contracts/test_df23_inventory.py::test_inventory_top_level",
+   "contracts/test_df23_inventory.py::test_inventory_item_fields",
+   "contracts/test_df23_inventory.py::test_inventory_phase_closed_set",
+   "contracts/test_df23_inventory.py::test_inventory_phase_matches_df_table",
+   "contracts/test_df23_inventory.py::test_inventory_rail_literals_on_df19_df26",
+   "contracts/test_df23_inventory.py::test_inventory_totals",
+   "contracts/test_phase2_stale_refs.py::test_docs_mark_phase2_removed_names"
+  ],
+  "C_state_facts": "옛 목록 590항목, measured_at 키 없음, phase 없는 항목 590, 빈 function 414; 표시 없는 문서 줄 19(20건)"
+ },
+ "gate_code": "C:/g78/gmid-gate-cache/2d58fd845002b731cf9223e0990ec048f381e4a9 (git cat-file blob 2d58fd8:tools/gates/<파일>, redteam 밖 22개)",
+ "measured_by": "gmid-verification-auditor, 격리 복제본 C:/g78/iso(T)·C:/g78/base(base)·C:/g78/cst(measured_at), origin 제거",
+ "time": "2026-10-01T13:48:42+09:00"
+}

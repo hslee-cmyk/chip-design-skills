@@ -1,0 +1,5 @@
+O-208	행 있음=True	0
+O-209	행 있음=True	K13
+O-210	행 있음=True	0
+O-211	행 있음=True	0
+O-212	행 있음=True	LUT 확장, card

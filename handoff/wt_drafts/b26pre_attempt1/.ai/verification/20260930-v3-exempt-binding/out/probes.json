@@ -1,0 +1,508 @@
+{
+ "P1_const": {
+  "H_f1": "07c937b470bd1183026194252e37b7a09cbfc4801821bfabeb77db6b3d8fb4af",
+  "H_f5": "01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c",
+  "H_dec2": "0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365",
+  "H_dec2_alt(@deco2(2))": "333e6fa6a198f34631175b81c3ba48f1b8848eb3ddcfca43cadd7f28ffabaa08",
+  "dec_arg_changes_hash": true
+ },
+ "P1_m": {
+  "exit": 1,
+  "stdout_lines": 1,
+  "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/pa.py\", \"skills/analog-gmid-design/assets/pb.py\"], \"mutants\": 39, \"killed\": 23, \"survivors\": [\"pa:f2:stmt_delete:body[1]\", \"pa:f3:stmt_delete:body[1]\", \"pa:f5:stmt_delete:body[1]\", \"pa:f5:stmt_delete:body[2]\", \"pa:f5:stmt_delete:body[3]\", \"pa:dec_fn:stmt_delete:body[1]\", \"pa:dec2_fn:stmt_delete:body[1]\", \"pa:dec2_fn:const+:decorator_list[0].args[0]\", \"pa:dec2_fn:const-:decorator_list[0].args[0]\", \"pa:af:stmt_delete:body[1]\", \"pa:K.meth:stmt_delete:body[1]\", \"pa:outer:stmt_delete:body[1].body[0]\", \"pa:outer.inner:stmt_delete:body[0]\", \"pb:g1:stmt_delete:body[1]\"], \"survivor_bindings\": [\"pa:f2:stmt_delete:body[1]@31b14007a45eb25a0778e3f0b67bc9ac3446ff24fe84e22f00ba7f0162b587f7\", \"pa:f3:stmt_delete:body[1]@3e505c85d0222baa50bd57ad830792fe67dc9dc10fb365d0946b66d35a584afb\", \"pa:f5:stmt_delete:body[1]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c\", \"pa:f5:stmt_delete:body[2]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c\", \"pa:f5:stmt_delete:body[3]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c\", \"pa:dec_fn:stmt_delete:body[1]@4cb52c400fbbe99e446eebf254d9782735f82a88213d2562186eca53712399e3\", \"pa:dec2_fn:stmt_delete:body[1]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365\", \"pa:dec2_fn:const+:decorator_list[0].args[0]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365\", \"pa:dec2_fn:const-:decorator_list[0].args[0]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365\", \"pa:af:stmt_delete:body[1]@b1c4846cd80a6661415c5620f366e2e9dedc930484ce03be6b5ffd4ecff409c7\", \"pa:K.meth:stmt_delete:body[1]@3bc8b3bc2ea887c9c6643ee7dbb5802b3838d5117d9388a976866556eaa32fdb\", \"pa:outer:stmt_delete:body[1].body[0]@172fcde451ba5e71624d975dc05f53ff5e6bcade14d1de4841c136a2c2e02411\", \"pa:outer.inner:stmt_delete:body[0]@2cc3226b14ec4537a929c013616b0ac3d619487c583ebed5262d18a7306e7cfa\", \"pb:g1:stmt_delete:body[1]@ad7b5229c8ec0b9d974d5d8298c89d828734c6b6e4c5a323b7d543d8de85a656\"], \"exempt_ignored\": [{\"id\": \"pa:f2:stmt_delete:body[1]\", \"reason\": \"unbound\"}, {\"id\": \"pa:f2:stmt_delete:body[1]\", \"reason\": \"malformed\", \"element\": \"pa:f2:stmt_delete:body[1]@abc\"}, {\"id\": \"pa:f2:stmt_delete:body[1]\", \"reason\": \"hash_mismatch\", \"approved_hash\": \"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\", \"head_hash\": \"31b14007a45eb25a0778e3f0b67bc9ac3446ff24fe84e22f00ba7f0162b587f7\"}, {\"id\": \"pa:f3:stmt_delete:body[1]\", \"reason\": \"hash_mismatch\", \"approved_hash\": \"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\", \"head_hash\": \"3e505c85d0222baa50bd57ad830792fe67dc9dc10fb365d0946b66d35a584afb\"}, {\"id\": \"pa:f5:stmt_delete:body[1]\", \"reason\": \"malformed\", \"element\": \"pa:f5:stmt_delete:body[1]@a@b\"}, {\"id\": \"pa:f5:stmt_delete:body[2]\", \"reason\": \"malformed\", \"element\": \"pa:f5:stmt_delete:body[2]@01C6523B5122B6E4DAB6C1B1ABD3062058CE0E9FD6D39262E8BB9014FEBF3E4C\"}, {\"id\": \"pa:f5:stmt_delete:body[3]\", \"reason\": \"malformed\", \"element\": \"pa:f5:stmt_delete:body[3]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4\"}, {\"id\": \"pa:dec2_fn:stmt_delete:body[1]\", \"reason\": \"hash_mismatch\", \"approved_hash\": \"333e6fa6a198f34631175b81c3ba48f1b8848eb3ddcfca43cadd7f28ffabaa08\", \"head_hash\": \"0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365\"}, {\"id\": \"pb:g1:stmt_delete:body[1]\", \"reason\": \"unbound\"}]}",
+  "obj": {
+   "tool": "V3",
+   "verdict": "FAIL",
+   "targets": [
+    "skills/analog-gmid-design/assets/pa.py",
+    "skills/analog-gmid-design/assets/pb.py"
+   ],
+   "mutants": 39,
+   "killed": 23,
+   "survivors": [
+    "pa:f2:stmt_delete:body[1]",
+    "pa:f3:stmt_delete:body[1]",
+    "pa:f5:stmt_delete:body[1]",
+    "pa:f5:stmt_delete:body[2]",
+    "pa:f5:stmt_delete:body[3]",
+    "pa:dec_fn:stmt_delete:body[1]",
+    "pa:dec2_fn:stmt_delete:body[1]",
+    "pa:dec2_fn:const+:decorator_list[0].args[0]",
+    "pa:dec2_fn:const-:decorator_list[0].args[0]",
+    "pa:af:stmt_delete:body[1]",
+    "pa:K.meth:stmt_delete:body[1]",
+    "pa:outer:stmt_delete:body[1].body[0]",
+    "pa:outer.inner:stmt_delete:body[0]",
+    "pb:g1:stmt_delete:body[1]"
+   ],
+   "survivor_bindings": [
+    "pa:f2:stmt_delete:body[1]@31b14007a45eb25a0778e3f0b67bc9ac3446ff24fe84e22f00ba7f0162b587f7",
+    "pa:f3:stmt_delete:body[1]@3e505c85d0222baa50bd57ad830792fe67dc9dc10fb365d0946b66d35a584afb",
+    "pa:f5:stmt_delete:body[1]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c",
+    "pa:f5:stmt_delete:body[2]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c",
+    "pa:f5:stmt_delete:body[3]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c",
+    "pa:dec_fn:stmt_delete:body[1]@4cb52c400fbbe99e446eebf254d9782735f82a88213d2562186eca53712399e3",
+    "pa:dec2_fn:stmt_delete:body[1]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365",
+    "pa:dec2_fn:const+:decorator_list[0].args[0]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365",
+    "pa:dec2_fn:const-:decorator_list[0].args[0]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365",
+    "pa:af:stmt_delete:body[1]@b1c4846cd80a6661415c5620f366e2e9dedc930484ce03be6b5ffd4ecff409c7",
+    "pa:K.meth:stmt_delete:body[1]@3bc8b3bc2ea887c9c6643ee7dbb5802b3838d5117d9388a976866556eaa32fdb",
+    "pa:outer:stmt_delete:body[1].body[0]@172fcde451ba5e71624d975dc05f53ff5e6bcade14d1de4841c136a2c2e02411",
+    "pa:outer.inner:stmt_delete:body[0]@2cc3226b14ec4537a929c013616b0ac3d619487c583ebed5262d18a7306e7cfa",
+    "pb:g1:stmt_delete:body[1]@ad7b5229c8ec0b9d974d5d8298c89d828734c6b6e4c5a323b7d543d8de85a656"
+   ],
+   "exempt_ignored": [
+    {
+     "id": "pa:f2:stmt_delete:body[1]",
+     "reason": "unbound"
+    },
+    {
+     "id": "pa:f2:stmt_delete:body[1]",
+     "reason": "malformed",
+     "element": "pa:f2:stmt_delete:body[1]@abc"
+    },
+    {
+     "id": "pa:f2:stmt_delete:body[1]",
+     "reason": "hash_mismatch",
+     "approved_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+     "head_hash": "31b14007a45eb25a0778e3f0b67bc9ac3446ff24fe84e22f00ba7f0162b587f7"
+    },
+    {
+     "id": "pa:f3:stmt_delete:body[1]",
+     "reason": "hash_mismatch",
+     "approved_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+     "head_hash": "3e505c85d0222baa50bd57ad830792fe67dc9dc10fb365d0946b66d35a584afb"
+    },
+    {
+     "id": "pa:f5:stmt_delete:body[1]",
+     "reason": "malformed",
+     "element": "pa:f5:stmt_delete:body[1]@a@b"
+    },
+    {
+     "id": "pa:f5:stmt_delete:body[2]",
+     "reason": "malformed",
+     "element": "pa:f5:stmt_delete:body[2]@01C6523B5122B6E4DAB6C1B1ABD3062058CE0E9FD6D39262E8BB9014FEBF3E4C"
+    },
+    {
+     "id": "pa:f5:stmt_delete:body[3]",
+     "reason": "malformed",
+     "element": "pa:f5:stmt_delete:body[3]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4"
+    },
+    {
+     "id": "pa:dec2_fn:stmt_delete:body[1]",
+     "reason": "hash_mismatch",
+     "approved_hash": "333e6fa6a198f34631175b81c3ba48f1b8848eb3ddcfca43cadd7f28ffabaa08",
+     "head_hash": "0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365"
+    },
+    {
+     "id": "pb:g1:stmt_delete:body[1]",
+     "reason": "unbound"
+    }
+   ]
+  },
+  "stderr_tail": "",
+  "out_raw": [
+   "{\"id\": \"pa:f1:stmt_delete:body[1]\", \"result\": \"exempt\", \"bind_hash\": \"07c937b470bd1183026194252e37b7a09cbfc4801821bfabeb77db6b3d8fb4af\"}",
+   "{\"id\": \"pa:f1:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f1:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f2:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f2:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f2:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f3:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f3:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f3:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f5:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f5:stmt_delete:body[2]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f5:stmt_delete:body[3]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f5:stmt_delete:body[4]\", \"result\": \"exempt\", \"bind_hash\": \"01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c\"}",
+   "{\"id\": \"pa:f5:stmt_delete:body[5]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f5:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec_fn:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec_fn:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec_fn:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec2_fn:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec2_fn:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec2_fn:const+:decorator_list[0].args[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec2_fn:const-:decorator_list[0].args[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec2_fn:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:af:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:af:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:af:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:K.meth:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:K.meth:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:K.meth:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer:stmt_delete:body[1].body[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:outer:stmt_delete:body[1].body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer.inner:stmt_delete:body[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:outer.inner:stmt_delete:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer.inner:early_return:body[0]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pb:g1:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pb.py::test_pb\"]}",
+   "{\"id\": \"pb:g1:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pb:g1:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}"
+  ]
+ },
+ "P8_m": {
+  "exit": 1,
+  "stdout_lines": 1,
+  "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/pa.py\", \"skills/analog-gmid-design/assets/pb.py\"], \"mutants\": 39, \"killed\": 23, \"survivors\": [\"pa:f1:stmt_delete:body[1]\", \"pa:f2:stmt_delete:body[1]\", \"pa:f3:stmt_delete:body[1]\", \"pa:f5:stmt_delete:body[1]\", \"pa:f5:stmt_delete:body[2]\", \"pa:f5:stmt_delete:body[3]\", \"pa:f5:stmt_delete:body[4]\", \"pa:dec_fn:stmt_delete:body[1]\", \"pa:dec2_fn:stmt_delete:body[1]\", \"pa:dec2_fn:const+:decorator_list[0].args[0]\", \"pa:dec2_fn:const-:decorator_list[0].args[0]\", \"pa:af:stmt_delete:body[1]\", \"pa:K.meth:stmt_delete:body[1]\", \"pa:outer:stmt_delete:body[1].body[0]\", \"pa:outer.inner:stmt_delete:body[0]\", \"pb:g1:stmt_delete:body[1]\"], \"survivor_bindings\": [\"pa:f1:stmt_delete:body[1]@07c937b470bd1183026194252e37b7a09cbfc4801821bfabeb77db6b3d8fb4af\", \"pa:f2:stmt_delete:body[1]@31b14007a45eb25a0778e3f0b67bc9ac3446ff24fe84e22f00ba7f0162b587f7\", \"pa:f3:stmt_delete:body[1]@3e505c85d0222baa50bd57ad830792fe67dc9dc10fb365d0946b66d35a584afb\", \"pa:f5:stmt_delete:body[1]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c\", \"pa:f5:stmt_delete:body[2]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c\", \"pa:f5:stmt_delete:body[3]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c\", \"pa:f5:stmt_delete:body[4]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c\", \"pa:dec_fn:stmt_delete:body[1]@4cb52c400fbbe99e446eebf254d9782735f82a88213d2562186eca53712399e3\", \"pa:dec2_fn:stmt_delete:body[1]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365\", \"pa:dec2_fn:const+:decorator_list[0].args[0]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365\", \"pa:dec2_fn:const-:decorator_list[0].args[0]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365\", \"pa:af:stmt_delete:body[1]@b1c4846cd80a6661415c5620f366e2e9dedc930484ce03be6b5ffd4ecff409c7\", \"pa:K.meth:stmt_delete:body[1]@3bc8b3bc2ea887c9c6643ee7dbb5802b3838d5117d9388a976866556eaa32fdb\", \"pa:outer:stmt_delete:body[1].body[0]@172fcde451ba5e71624d975dc05f53ff5e6bcade14d1de4841c136a2c2e02411\", \"pa:outer.inner:stmt_delete:body[0]@2cc3226b14ec4537a929c013616b0ac3d619487c583ebed5262d18a7306e7cfa\", \"pb:g1:stmt_delete:body[1]@ad7b5229c8ec0b9d974d5d8298c89d828734c6b6e4c5a323b7d543d8de85a656\"], \"exempt_ignored\": []}",
+  "obj": {
+   "tool": "V3",
+   "verdict": "FAIL",
+   "targets": [
+    "skills/analog-gmid-design/assets/pa.py",
+    "skills/analog-gmid-design/assets/pb.py"
+   ],
+   "mutants": 39,
+   "killed": 23,
+   "survivors": [
+    "pa:f1:stmt_delete:body[1]",
+    "pa:f2:stmt_delete:body[1]",
+    "pa:f3:stmt_delete:body[1]",
+    "pa:f5:stmt_delete:body[1]",
+    "pa:f5:stmt_delete:body[2]",
+    "pa:f5:stmt_delete:body[3]",
+    "pa:f5:stmt_delete:body[4]",
+    "pa:dec_fn:stmt_delete:body[1]",
+    "pa:dec2_fn:stmt_delete:body[1]",
+    "pa:dec2_fn:const+:decorator_list[0].args[0]",
+    "pa:dec2_fn:const-:decorator_list[0].args[0]",
+    "pa:af:stmt_delete:body[1]",
+    "pa:K.meth:stmt_delete:body[1]",
+    "pa:outer:stmt_delete:body[1].body[0]",
+    "pa:outer.inner:stmt_delete:body[0]",
+    "pb:g1:stmt_delete:body[1]"
+   ],
+   "survivor_bindings": [
+    "pa:f1:stmt_delete:body[1]@07c937b470bd1183026194252e37b7a09cbfc4801821bfabeb77db6b3d8fb4af",
+    "pa:f2:stmt_delete:body[1]@31b14007a45eb25a0778e3f0b67bc9ac3446ff24fe84e22f00ba7f0162b587f7",
+    "pa:f3:stmt_delete:body[1]@3e505c85d0222baa50bd57ad830792fe67dc9dc10fb365d0946b66d35a584afb",
+    "pa:f5:stmt_delete:body[1]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c",
+    "pa:f5:stmt_delete:body[2]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c",
+    "pa:f5:stmt_delete:body[3]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c",
+    "pa:f5:stmt_delete:body[4]@01c6523b5122b6e4dab6c1b1abd3062058ce0e9fd6d39262e8bb9014febf3e4c",
+    "pa:dec_fn:stmt_delete:body[1]@4cb52c400fbbe99e446eebf254d9782735f82a88213d2562186eca53712399e3",
+    "pa:dec2_fn:stmt_delete:body[1]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365",
+    "pa:dec2_fn:const+:decorator_list[0].args[0]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365",
+    "pa:dec2_fn:const-:decorator_list[0].args[0]@0439293c4c159389c64ebf4f62d5e1e119f82294ea7808054cf3ef8cfe286365",
+    "pa:af:stmt_delete:body[1]@b1c4846cd80a6661415c5620f366e2e9dedc930484ce03be6b5ffd4ecff409c7",
+    "pa:K.meth:stmt_delete:body[1]@3bc8b3bc2ea887c9c6643ee7dbb5802b3838d5117d9388a976866556eaa32fdb",
+    "pa:outer:stmt_delete:body[1].body[0]@172fcde451ba5e71624d975dc05f53ff5e6bcade14d1de4841c136a2c2e02411",
+    "pa:outer.inner:stmt_delete:body[0]@2cc3226b14ec4537a929c013616b0ac3d619487c583ebed5262d18a7306e7cfa",
+    "pb:g1:stmt_delete:body[1]@ad7b5229c8ec0b9d974d5d8298c89d828734c6b6e4c5a323b7d543d8de85a656"
+   ],
+   "exempt_ignored": []
+  },
+  "stderr_tail": "",
+  "out_raw": [
+   "{\"id\": \"pa:f1:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f1:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f1:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f2:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f2:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f2:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f3:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f3:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f3:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f5:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f5:stmt_delete:body[2]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f5:stmt_delete:body[3]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f5:stmt_delete:body[4]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f5:stmt_delete:body[5]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f5:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec_fn:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec_fn:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec_fn:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec2_fn:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec2_fn:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec2_fn:const+:decorator_list[0].args[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec2_fn:const-:decorator_list[0].args[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec2_fn:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:af:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:af:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:af:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:K.meth:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:K.meth:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:K.meth:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer:stmt_delete:body[1].body[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:outer:stmt_delete:body[1].body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer.inner:stmt_delete:body[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:outer.inner:stmt_delete:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer.inner:early_return:body[0]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pb:g1:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pb.py::test_pb\"]}",
+   "{\"id\": \"pb:g1:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pb:g1:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}"
+  ]
+ },
+ "P8_b": {
+  "exit": 1,
+  "stdout_lines": 1,
+  "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/pa.py\", \"skills/analog-gmid-design/assets/pb.py\"], \"mutants\": 39, \"killed\": 23, \"survivors\": [\"pa:f1:stmt_delete:body[1]\", \"pa:f2:stmt_delete:body[1]\", \"pa:f3:stmt_delete:body[1]\", \"pa:f5:stmt_delete:body[1]\", \"pa:f5:stmt_delete:body[2]\", \"pa:f5:stmt_delete:body[3]\", \"pa:f5:stmt_delete:body[4]\", \"pa:dec_fn:stmt_delete:body[1]\", \"pa:dec2_fn:stmt_delete:body[1]\", \"pa:dec2_fn:const+:decorator_list[0].args[0]\", \"pa:dec2_fn:const-:decorator_list[0].args[0]\", \"pa:af:stmt_delete:body[1]\", \"pa:K.meth:stmt_delete:body[1]\", \"pa:outer:stmt_delete:body[1].body[0]\", \"pa:outer.inner:stmt_delete:body[0]\", \"pb:g1:stmt_delete:body[1]\"]}",
+  "obj": {
+   "tool": "V3",
+   "verdict": "FAIL",
+   "targets": [
+    "skills/analog-gmid-design/assets/pa.py",
+    "skills/analog-gmid-design/assets/pb.py"
+   ],
+   "mutants": 39,
+   "killed": 23,
+   "survivors": [
+    "pa:f1:stmt_delete:body[1]",
+    "pa:f2:stmt_delete:body[1]",
+    "pa:f3:stmt_delete:body[1]",
+    "pa:f5:stmt_delete:body[1]",
+    "pa:f5:stmt_delete:body[2]",
+    "pa:f5:stmt_delete:body[3]",
+    "pa:f5:stmt_delete:body[4]",
+    "pa:dec_fn:stmt_delete:body[1]",
+    "pa:dec2_fn:stmt_delete:body[1]",
+    "pa:dec2_fn:const+:decorator_list[0].args[0]",
+    "pa:dec2_fn:const-:decorator_list[0].args[0]",
+    "pa:af:stmt_delete:body[1]",
+    "pa:K.meth:stmt_delete:body[1]",
+    "pa:outer:stmt_delete:body[1].body[0]",
+    "pa:outer.inner:stmt_delete:body[0]",
+    "pb:g1:stmt_delete:body[1]"
+   ]
+  },
+  "stderr_tail": "",
+  "out_raw": [
+   "{\"id\": \"pa:f1:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f1:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f1:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f2:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f2:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f2:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f3:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f3:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f3:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f5:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f5:stmt_delete:body[2]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f5:stmt_delete:body[3]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f5:stmt_delete:body[4]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:f5:stmt_delete:body[5]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:f5:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec_fn:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec_fn:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec_fn:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec2_fn:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec2_fn:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:dec2_fn:const+:decorator_list[0].args[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec2_fn:const-:decorator_list[0].args[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:dec2_fn:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:af:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:af:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:af:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:K.meth:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:K.meth:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:K.meth:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer:stmt_delete:body[1].body[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:outer:stmt_delete:body[1].body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer.inner:stmt_delete:body[0]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pa.py::test_pa\"]}",
+   "{\"id\": \"pa:outer.inner:stmt_delete:body[1]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pa:outer.inner:early_return:body[0]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pb:g1:stmt_delete:body[1]\", \"result\": \"survived\", \"tests\": [\"skills/analog-gmid-design/assets/tests/test_pb.py::test_pb\"]}",
+   "{\"id\": \"pb:g1:stmt_delete:body[2]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pb:g1:early_return:body[1]\", \"result\": \"killed\", \"exit\": 1}"
+  ]
+ },
+ "P1_checks": {
+  "exit": [
+   1,
+   1
+  ],
+  "stdout_one_line": true,
+  "key_order": true,
+  "exempt_ignored_eq_expected": true,
+  "no_X1_in_ignored(p1a)": true,
+  "X2_three_sorted(p1b)": true,
+  "X3_once_two_records(p1c)": true,
+  "survivors_eq_expected": true,
+  "survivor_bindings": true,
+  "exempt_records": true,
+  "exempt_record_key_order": true,
+  "mutants_eq_out_lines_incl_exempt": true,
+  "out_order_eq_generation_order": true,
+  "p4_by_survivor": {
+   "pa:f2:stmt_delete:body[1]": {
+    "tool": "31b14007a45eb25a",
+    "auditor": "31b14007a45eb25a",
+    "eq": true
+   },
+   "pa:f3:stmt_delete:body[1]": {
+    "tool": "3e505c85d0222baa",
+    "auditor": "3e505c85d0222baa",
+    "eq": true
+   },
+   "pa:f5:stmt_delete:body[1]": {
+    "tool": "01c6523b5122b6e4",
+    "auditor": "01c6523b5122b6e4",
+    "eq": true
+   },
+   "pa:f5:stmt_delete:body[2]": {
+    "tool": "01c6523b5122b6e4",
+    "auditor": "01c6523b5122b6e4",
+    "eq": true
+   },
+   "pa:f5:stmt_delete:body[3]": {
+    "tool": "01c6523b5122b6e4",
+    "auditor": "01c6523b5122b6e4",
+    "eq": true
+   },
+   "pa:dec_fn:stmt_delete:body[1]": {
+    "tool": "4cb52c400fbbe99e",
+    "auditor": "4cb52c400fbbe99e",
+    "eq": true
+   },
+   "pa:dec2_fn:stmt_delete:body[1]": {
+    "tool": "0439293c4c159389",
+    "auditor": "0439293c4c159389",
+    "eq": true
+   },
+   "pa:dec2_fn:const+:decorator_list[0].args[0]": {
+    "tool": "0439293c4c159389",
+    "auditor": "0439293c4c159389",
+    "eq": true
+   },
+   "pa:dec2_fn:const-:decorator_list[0].args[0]": {
+    "tool": "0439293c4c159389",
+    "auditor": "0439293c4c159389",
+    "eq": true
+   },
+   "pa:af:stmt_delete:body[1]": {
+    "tool": "b1c4846cd80a6661",
+    "auditor": "b1c4846cd80a6661",
+    "eq": true
+   },
+   "pa:K.meth:stmt_delete:body[1]": {
+    "tool": "3bc8b3bc2ea887c9",
+    "auditor": "3bc8b3bc2ea887c9",
+    "eq": true
+   },
+   "pa:outer:stmt_delete:body[1].body[0]": {
+    "tool": "172fcde451ba5e71",
+    "auditor": "172fcde451ba5e71",
+    "eq": true
+   },
+   "pa:outer.inner:stmt_delete:body[0]": {
+    "tool": "2cc3226b14ec4537",
+    "auditor": "2cc3226b14ec4537",
+    "eq": true
+   },
+   "pb:g1:stmt_delete:body[1]": {
+    "tool": "ad7b5229c8ec0b9d",
+    "auditor": "ad7b5229c8ec0b9d",
+    "eq": true
+   }
+  },
+  "p4_kinds_present": {
+   "pa:dec_fn:": true,
+   "pa:af:": true,
+   "pa:K.meth:": true,
+   "pa:outer:stmt_delete:body[1].body[0]": true,
+   "pa:outer.inner:": true
+  },
+  "p4_nested_outer_binding_is_outer": true,
+  "p4_inner_binding_is_inner": true,
+  "p4_decorator_arg_mismatch": true,
+  "p5_malformed": true,
+  "p5_spaces_exempt": true,
+  "p8_exit_same": [
+   1,
+   1
+  ],
+  "p8_equal_without_new_keys": true,
+  "p8_new_keys": {
+   "exempt_ignored": [],
+   "survivor_bindings_match": true
+  },
+  "p8_out_equal": true
+ },
+ "P2_m": {
+  "exit": 0,
+  "stdout_lines": 1,
+  "stdout": "{\"tool\": \"V3\", \"verdict\": \"PASS\", \"targets\": [\"skills/analog-gmid-design/assets/pc.py\"], \"mutants\": 5, \"killed\": 5, \"survivors\": [], \"survivor_bindings\": [], \"exempt_ignored\": [{\"id\": \"pc:h1:arith:body[0].value\", \"reason\": \"unbound\"}]}",
+  "obj": {
+   "tool": "V3",
+   "verdict": "PASS",
+   "targets": [
+    "skills/analog-gmid-design/assets/pc.py"
+   ],
+   "mutants": 5,
+   "killed": 5,
+   "survivors": [],
+   "survivor_bindings": [],
+   "exempt_ignored": [
+    {
+     "id": "pc:h1:arith:body[0].value",
+     "reason": "unbound"
+    }
+   ]
+  },
+  "stderr_tail": "",
+  "out_raw": [
+   "{\"id\": \"pc:h1:stmt_delete:body[0]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pc:h1:arith:body[0].value\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pc:h1:const+:body[0].value.right\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pc:h1:const-:body[0].value.right\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pc:h1:early_return:body[0]\", \"result\": \"killed\", \"exit\": 1}"
+  ]
+ },
+ "P2_b": {
+  "exit": 0,
+  "stdout_lines": 1,
+  "stdout": "{\"tool\": \"V3\", \"verdict\": \"PASS\", \"targets\": [\"skills/analog-gmid-design/assets/pc.py\"], \"mutants\": 5, \"killed\": 4, \"survivors\": []}",
+  "obj": {
+   "tool": "V3",
+   "verdict": "PASS",
+   "targets": [
+    "skills/analog-gmid-design/assets/pc.py"
+   ],
+   "mutants": 5,
+   "killed": 4,
+   "survivors": []
+  },
+  "stderr_tail": "",
+  "out_raw": [
+   "{\"id\": \"pc:h1:stmt_delete:body[0]\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pc:h1:const+:body[0].value.right\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pc:h1:const-:body[0].value.right\", \"result\": \"killed\", \"exit\": 1}",
+   "{\"id\": \"pc:h1:early_return:body[0]\", \"result\": \"killed\", \"exit\": 1}"
+  ]
+ },
+ "P2_checks": {
+  "exit_m": 0,
+  "exit_b": 0,
+  "targets_m": [
+   "skills/analog-gmid-design/assets/pc.py"
+  ],
+  "tests_tools_not_target": true,
+  "exempt_ignored_m": [
+   {
+    "id": "pc:h1:arith:body[0].value",
+    "reason": "unbound"
+   }
+  ],
+  "p2_only_own_id": true,
+  "p6_pass_with_nonempty_ignored": true,
+  "base_obj": {
+   "tool": "V3",
+   "verdict": "PASS",
+   "targets": [
+    "skills/analog-gmid-design/assets/pc.py"
+   ],
+   "mutants": 5,
+   "killed": 4,
+   "survivors": []
+  },
+  "repo": "C:/g186/o7/pw\\P2",
+  "base": "4789c1dc89e41318cbe9e682aef0381292453357",
+  "head": "5a884be2002ed4b76eeae18026aed5e2e49060e3"
+ }
+}

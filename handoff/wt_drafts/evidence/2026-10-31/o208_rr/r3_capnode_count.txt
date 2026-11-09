@@ -1,0 +1,15 @@
+# R3 용량 전용 노드 수 (topology.json 연결 필드)
+cnr_ota.topology.json | 넷 35 | 용량 전용(DC 경로 없음) []
+common_gate_amplifier.topology.json | 넷 7 | 용량 전용(DC 경로 없음) []
+current_reuse_telescopic_ota.topology.json | 넷 37 | 용량 전용(DC 경로 없음) []
+erfc_ota.topology.json | 넷 28 | 용량 전용(DC 경로 없음) []
+folded_cascode.topology.json | 넷 14 | 용량 전용(DC 경로 없음) []
+ngcc_3stage_ff.topology.json | 넷 13 | 용량 전용(DC 경로 없음) []
+nmcnr_amplifier.topology.json | 넷 19 | 용량 전용(DC 경로 없음) []
+pushpull_follower_buffer.topology.json | 넷 9 | 용량 전용(DC 경로 없음) []
+r2r_opamp.topology.json | 넷 28 | 용량 전용(DC 경로 없음) []
+rfc_ota.topology.json | 넷 27 | 용량 전용(DC 경로 없음) []
+sf_pushpull_output_opamp.topology.json | 넷 23 | 용량 전용(DC 경로 없음) []
+two_stage_ota.topology.json | 넷 10 | 용량 전용(DC 경로 없음) []
+two_stage_ota_sf.topology.json | 넷 10 | 용량 전용(DC 경로 없음) []
+용량 전용 노드가 있는 회로 0/13 (gate 전용 넷은 bias_inputs·포트가 아니면 여기에 들어간다 -- 그 넷이 커패시터에만 닿는지는 행에서 읽는다)

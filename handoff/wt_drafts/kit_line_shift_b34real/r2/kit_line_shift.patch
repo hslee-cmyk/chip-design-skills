@@ -1,0 +1,11 @@
+--- a/draft_b26_1.spec.md
++++ b/draft_b26_1.spec.md
+@@ -74,7 +74,7 @@
+   (`propagate_node_voltages`, B26-2)을 지나야 하므로 **B26-2로 옮긴다**(같은 평가 경로의 극성 사이트와 한 card에서 합성 평가 test로 판정). 이것은 **판정할 수 있는 test가 없어서**
+   옮기는 것이지 V3 대상을 줄이려는 것이 아니다 -- `_build_theta_evaluator`는 `kcl_series_union`·`resolve_stack_layout`에 `rails=`를 넘기므로 8003을 옮겨도 본문 전체가 이 card의 V3
+   대상이다('V3 계획' 절, review_b26_1 B1).
+-* SR 3950 `node_pole_estimate`(운영 미도달, 레지스트리 §7 '삭제 후보, 보류(Phase 4)'), SD 3559·3561·3719 `propose_theta_kcl_gap_fill`(운영 호출 0, '배선 승인 필요, 보류(Phase 3)'):
++* SR 3950 `node_pole_estimate`(운영 미도달, 레지스트리 §7 '삭제 후보, 보류(Phase 4)'), SD 3534·3536·3694 `propose_theta_kcl_gap_fill`(운영 호출 0, '배선 승인 필요, 보류(Phase 3)'):
+   운영 경로에서 불리지 않는 함수에 레일 인자를 더하지 않는다(배선 원칙). 삭제·배선 결정과 함께 B26-4 lint가 처리한다.
+ * `skills/analog-grammar/assets/netclass.py`·`idioms.py`의 이름 집합 `RAILS`·`RAILS_POS`·`RAILS_NEG`: SD 운영 함수(직접 import 7, `find_stack_edges` 경유 `geometry_colocation_union`까지 8)가
+   `_import_analog_grammar`로 부른다. **대부분 집합 소속 판정이다**(`RAILS` 소속: netclass 80·82·134·137·140·226·269·270·314·321·342, idioms 264·373·529·572·599·714. 극성은 netclass

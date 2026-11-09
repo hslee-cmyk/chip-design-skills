@@ -1,0 +1,5 @@
+........................................x.................               [ 98%]
+m2\skills\analog-gmid-design\assets\tests\unit\test_selftest_topology_library.py . [ 99%]
+.........                                                                [100%]
+
+================= 982 passed, 15 xfailed in 740.58s (0:12:20) =================

@@ -1,0 +1,72 @@
+OK   사용자 결정 대기, 삭제 권고), Q-ZG1(0 전류 MOS 기하 출처
+OK   f_HP 상한 유도(대신호 처짐·MNA)
+OK   원래 취지와 다름), Q-T0·Q-T3(card WB-1 착수 실측 뒤), Q-C1(사용자 작성 몫), Q-1(LOD 보류
+OK   **층 구분**(v6.38.5 classab 점검 R-B): 위 DEC-95 (3)
+OK   순서는 커널 쓰기 계획(W 고정 순방향 DC 풀이
+OK   실현 dc_op)의 writer 트리에만 쓰고, θ 기저의 고리 종속 멤버는 DEC-104 R6(B 다이오드 멤버 종속
+OK   손계산 순서 P3: 출력 소자 = AC 요구, 배터리 = 극점·분배, 기준 다이오드 = 고리를 닫는 복제)이 정한다;
+OK   같은 고리에서 두 층의 '종속'은 다른 멤버일 수 있고 정의 축이 다르다(목표 θ 대 실현 dc_op
+OK  (still in plan) graph 규칙 3;
+OK   예 current_reuse 고리 {M11a, M11b, M15, M9a}: 쓰기 트리 = M9a 종속, θ 기저 = 다이오드 하나 종속
+OK   둘 다 KVL 정합, 실측 I_Q 오차 −0.014 %, `wt/_drafts/evidence/2026-10-29/classab_battery.md` 결정자 1).
+OK   as-built 커널 쓰기 계획은 OrderHints가 배선되지 않아(`E/sizing/kernel_context.py:53` 기본값 `NO_ORDER_HINTS`, 호출 `E/pipeline/stage_b.py:1
+OK   M15·M16을 종속(cycle_vgs)으로 둔다
+OK   DEC-95 (3)② 배선 = card WB-1 범위 3b(백로그 아님).
+MISS  v6.38.5 classab 점검 R-C)를 뺀 순 전류다;
+OK   권고 (나): f_HP 상한을 기존 양에서 유도
+OK   U1 τ = R_ds·(C_c + C_g)
+OK   ≥ t_slew/ln(1/(1 − ε_droop)), t_slew = ΔV_step/SR(SF-1 `.tran` SR 항목), ε_droop = SR 판정 여유(e_m 아님
+OK   정밀도 축과 다름;
+OK   class-AB는 엔진 SR이 없어 oracle `.tran`이 판정, 13회로 U1 엔진 행 소비자 0 → 만들지 않음);
+OK   U2 doublet 꼬리 = 정착 제약 선언 시만;
+OK   U3 PM·U4 R_ds ≫ R_X = R_ds·C_c MNA 스탬프로 GBW·PM 제약이 봄;
+OK   하한은 spec 양에서 안 나옴 → 상한을 만족하는 면적 최소 기하 = W_min·L_min(엔진 상한 행 없음), C_BAT θ는 MNA 제약으로 움직임;
+OK   f_HP·τ·t_slew/τ·처짐 기록 칸 하나(출력 전용).
+OK   ⚠ 위험 기록(oracle `.tran` 몫): MOS pseudo-R 대신호 정류 표류(C 1 pF 60주기 M5 게이트 0.700 → 0.540 V 진행 중, 선형 R 0, C 0.1 pF 0, 회복 ~290 s
+OK   O-174 VDS = 0 묶음은 정지·소신호에서만 정확), 결합비 α(C 0.1 pF SR 47 → 28 V/µs).
+OK   기록만 ⚠ 상한 넘는 기하 못 막음.
+OK   13회로 해당 = erfc CBAT 셋뿐.
+OK   착수 실측 = erfc S1v 출력 분류(push_pull)
+OK  (still in plan) | card DR-1 design 착수 전 |
+OK   이 계획은 결정하지 않는다 | MOD5 metric 등록 전 |
+OK   **커널 쓰기 계획 고리 종속 멤버 = DEC-95 (3)② 배선**(v6.38.5 classab 점검 R-B
+OK   백로그가 아니라 card 배정, 오케스트레이터 원칙 기본안 '만들면 배선'): 커널 쓰기 계획(`dc_writer_plan`, `E/sizing/writer_plan.py`·`kernel_context.py`)에 O
+OK   지금 생략)
+OK   `kvl_branch` 고리의 writer 트리 종속 멤버를 DEC-95 (3)
+OK   순서로 정한다(DEC-64 (v2)
+OK   '층 구분').
+OK   **배정 확인**: 범위 3 DC 블록 재작성(노드 풀이 `block_columns.py`)은 쓰기 계획 파일을 건드리지 않으므로(as-built 파일 목록 실측)
+OK   이것은 범위 추가다
+OK   이 card에 두는 근거 = 그 writer 트리를 쓰는 W 고정 순방향 풀이(실현 평가 재풀이, Q-W1)가 이 card 범위다;
+OK   파일 겹침 = card IT-1·DR-1(`writer_plan.py`
+OK   같은 통합 병합 금지, 나중 card가 rebase).
+OK   **OrderHints 출처 필드**(GB5 gm 요구 소자·stage 번호)의 정본 자리는 design 착수 전에 확인하고, 없으면 만들지 않고 멈추고 보고한다(S-7).
+MISS (still in plan) N6.3 공통 (8)
+OK   범위 3b toy
+OK   current_reuse 4 고리에서 writer 트리 종속 = 배터리 M9a·M9b와 대칭 쪽 배터리 소자, 출력 M15·M16(대칭 쪽 출력)은 독립(base = M15·M16 종속(cycle_vgs)
+OK   -- red), 같은 W에서 실현 dc_op는 base와 같은 값(KVL 정합
+OK   tol_V 안), OrderHints 생략 경로 0(`git grep`).
+MISS (still in plan) (N6.35)
+MISS  ≥ t_slew/ln(1/(1 − ε_droop)), t_slew = ΔV_step/SR(SF-1 `.tran` SR 항목에서 READS
+OK   자극 크기 포함;
+OK   엔진에 SR_ref가 있는 행은 class-A 노드 행의 평탄 추정(N3.8 U-111 갈래 (i))뿐이고, push_pull 노드 행(class-AB)은 엔진 SR 값이 없어 oracle `.tran`만 판정한다(
+OK   erfc 출력은 class-AB 꼴(원문 p.11-12 식 (21)~(24)
+OK   I_out ∝ V_id⁴)이라 push_pull 갈래로 예상되고(S1v `output_direction` 분류는 card DR-1 착수 실측), 그러면 U1은 엔진 행으로 만들 수 없고 oracle `.tran` S
+MISS  = 맞음(조건: class-AB SR은 oracle만이라는 O-120 유지).
+MISS  엔진 안 상한 행(U1)이 없으면 R_req = 0이라 LUT 격자에서 W·L 최소인 W_min·L_min(PDK W_min·LUT L_min, 그 평가 VSG와 무관)이다.
+MISS  U3·U4는 선택된 기하의 R_ds·C_c 스탬프로 전회로 MNA의 GBW·PM 제약이 판정하고, C_BAT θ(DEC-105 (10)(a))가 그 제약으로 움직인다(면적은 C를 상자 아래로, 관문은 위로).
+OK   U1 행이 정의되는 셀이 생기면 R_req = t_slew/(ln(1/(1 − ε_droop))·(C_c + C_g))로 격자(W 슬라이스 × L 격자점)
+OK   가운데 R ≥ R_req인 W·L 최소를 고르고, 해가 없으면 fail-closed다(그때 계획 개정으로 배선).
+OK   f_HP·τ·t_slew/τ·처짐 칸 하나(출력 전용
+OK   writer = metrics 블록 하나, R_ds(ss)·C_c·C_g·SR 항목 READS;
+MISS  SR 항목이 없으면 t_slew 칸은 '미선언' 표지);
+OK   C 0.1 pF에서 SR 47 → 28 V/µs(α 낮음, 분석 S6).
+OK   면적이 C_BAT을 하한으로 밀면 α가 SR을 깎는 방향이고, 이것도 oracle `.tran` SR이 판정한다.
+OK   판정 = 조건부 맞음(조건: SF-1 `.tran` SR 항목(계단 크기 포함), class-AB SR = oracle만).
+MISS  red), f_HP·τ·t_slew/τ·처짐 기록 칸 toy(SR 항목이 없으면 '미선언' 표지), C_c 다른 끝이 0 전류 부유 넷인 사슬 toy → 기록 칸 '정의 밖';
+OK   승인 시: card SF-1 선행
+OK   `.tran` SR 항목(계단 크기 포함)을 t_slew 기록 칸이 READS, **원래 취지와 다름**(옛 사유 'f_low 선언 자리');
+OK   착수 실측 = erfc S1v 출력 분류(push_pull 확인)
+MISS (still in plan) -- N5.3 Q-ZG1 행).
+MISS  **이 하위 물음은 '같다'로 닫힘**(v6.38.5 classab 점검 R-E: 엔진 v2_rail 4 = translinear 고리 4, 연결 사실·원문 Fig.7(b)
+miss=11

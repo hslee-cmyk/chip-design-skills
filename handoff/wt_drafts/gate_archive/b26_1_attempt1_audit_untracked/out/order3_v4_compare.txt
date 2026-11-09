@@ -1,0 +1,10 @@
+기존 exempt test_selftest_sizing_recipe.py test_s052_compensation 2536 False [{'b1_line': 2502, 'b1_output': 'exempt'}] assert abs(_La_final - _Lb_final) < 1e-15, \
+기존 exempt test_selftest_sizing_recipe.py test_s054_section 2589 False [{'b1_line': 2555, 'b1_output': 'exempt'}] assert _tso_result["sizing"][_n]["W"] == _tso_result2["sizing"][_n]["W"], \
+기존 FAIL test_selftest_stick_diagram.py test_s133_refine_differential_and_mirror_relations 3120 False [{'b1_line': 3090, 'b1_output': 'FAIL'}] assert _t40_cand["M1a"] == _t40_cand["M2a"], \
+기존 FAIL test_selftest_stick_diagram.py test_s133_refine_differential_and_mirror_relations 3122 False [{'b1_line': 3092, 'b1_output': 'FAIL'}] assert _t40_cand["M1b"] == _t40_cand["M2b"], \
+기존 FAIL test_selftest_stick_diagram.py test_s133_refine_differential_and_mirror_relations 3124 False [{'b1_line': 3094, 'b1_output': 'FAIL'}] assert _t40_cand["M3a"] == _t40_cand["M4a"], \
+기존 FAIL test_selftest_stick_diagram.py test_s133_refine_differential_and_mirror_relations 3126 False [{'b1_line': 3096, 'b1_output': 'FAIL'}] assert _t40_cand["M3b"] == _t40_cand["M4b"], \
+기존 FAIL test_selftest_stick_diagram.py test_s134__propose_vertical_stack_ids 3159 False [{'b1_line': 3129, 'b1_output': 'FAIL'}] assert set(_t41_alt["Mup"]) == {_t41_groups["Mlo1"], _t41_groups["Mlo2"]}, \
+기존 FAIL test_selftest_stick_diagram.py test_s135_section 3183 False [{'b1_line': 3153, 'b1_output': 'FAIL'}] assert _t42_vsid["groups"]["Mamb"] == _t42_vsid["groups"]["Mout"], \
+기존 FAIL test_selftest_stick_diagram.py test_s159_apply_device_roles_gap_fill 3956 False [{'b1_line': 3926, 'b1_output': 'FAIL'}] assert sorted(_t55_apply1["applied_matching_pairs"]) == _t55_expected_new, \
+{'PASS': 26, 'UNJUDGED': 385, 'NO-SUBJECT': 402, 'FAIL': 0} b1 verdict FAIL b1 rule1 n 9

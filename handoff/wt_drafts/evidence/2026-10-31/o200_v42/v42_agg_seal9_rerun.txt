@@ -1,0 +1,34 @@
+회로 상태:
+  pushpull_follower_buffer front_done seal9_evals 38 front 0 
+  common_gate_amplifier front_done seal9_evals 41 front 1 
+  two_stage_ota front_done seal9_evals 46 front 0 
+  folded_cascode front_done seal9_evals 63 front 0 
+  sf_pushpull_output_opamp front_done seal9_evals 0 front 0 
+
+판정 비교 (행 = (평가, 전도 MOS)); 옛 = I_off <= eps*ID, P4 = ID > I_off, P5 = ID > 0 (기록 행은 모두 ID > 0)
+
+[common_gate_amplifier] 행 123, 소자 3, 평가 41
+  옛 전도/꺼짐/미정: 123 0 0 | P4 꺼짐: 0 | P5 꺼짐: 0
+  옛 꺼짐 & P4 전도: 0 | 옛 전도 & P4 꺼짐: 0 | 옛 꺼짐 & P5 전도: 0 | P4 '구별 불가' 띠: 0
+  옛 꺼짐 소자: [] | P4 꺼짐 소자: []
+  ln(ID/I_off) 분위[0,.1,.5,.9,1]: [3.915, 5.6092, 6.5486, 12.6025, 13.6366] | VGS: [0.1678, 0.2369, 0.2712, 0.4606, 0.4985] | 옛 꺼짐 행 ln(ID/I_off): None
+
+[folded_cascode] 행 819, 소자 13, 평가 63
+  옛 전도/꺼짐/미정: 819 0 0 | P4 꺼짐: 0 | P5 꺼짐: 0
+  옛 꺼짐 & P4 전도: 0 | 옛 전도 & P4 꺼짐: 0 | 옛 꺼짐 & P5 전도: 0 | P4 '구별 불가' 띠: 0
+  옛 꺼짐 소자: [] | P4 꺼짐 소자: []
+  ln(ID/I_off) 분위[0,.1,.5,.9,1]: [3.9336, 6.0594, 12.2706, 19.5665, 20.817] | VGS: [0.1617, 0.2403, 0.6676, 0.7697, 0.8219] | 옛 꺼짐 행 ln(ID/I_off): None
+
+[pushpull_follower_buffer] 행 228, 소자 6, 평가 38
+  옛 전도/꺼짐/미정: 227 1 0 | P4 꺼짐: 0 | P5 꺼짐: 0
+  옛 꺼짐 & P4 전도: 1 | 옛 전도 & P4 꺼짐: 0 | 옛 꺼짐 & P5 전도: 1 | P4 '구별 불가' 띠: 1
+  옛 꺼짐 소자: ['M2'] | P4 꺼짐 소자: []
+  ln(ID/I_off) 분위[0,.1,.5,.9,1]: [0.109, 3.68, 7.0418, 10.9361, 12.9797] | VGS: [0.0034, 0.1587, 0.2753, 0.4235, 0.5086] | 옛 꺼짐 행 ln(ID/I_off): [0.109, 0.109, 0.109, 0.109, 0.109]
+
+[two_stage_ota] 행 322, 소자 7, 평가 46
+  옛 전도/꺼짐/미정: 322 0 0 | P4 꺼짐: 0 | P5 꺼짐: 0
+  옛 꺼짐 & P4 전도: 0 | 옛 전도 & P4 꺼짐: 0 | 옛 꺼짐 & P5 전도: 0 | P4 '구별 불가' 띠: 0
+  옛 꺼짐 소자: [] | P4 꺼짐 소자: []
+  ln(ID/I_off) 분위[0,.1,.5,.9,1]: [8.2122, 10.5625, 13.4589, 16.1786, 21.5894] | VGS: [0.3518, 0.5403, 0.6153, 0.7279, 1.1309] | 옛 꺼짐 행 ln(ID/I_off): None
+
+합계: {'rows': 1492, 'old_undef': 0, 'old_on': 1491, 'old_off': 1, 'p4_off': 0, 'old_off_p4_on': 1, 'old_on_p4_off': 0, 'old_off_p5_on': 1, 'p4_band': 1}

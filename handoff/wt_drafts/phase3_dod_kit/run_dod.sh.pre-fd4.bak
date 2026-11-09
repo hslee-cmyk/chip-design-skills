@@ -1,0 +1,191 @@
+#!/bin/bash
+# Phase 3 DoD 실행기(초안) -- design 30 §10 bash 블록(정본)을 auditor 격리 복제본에서 돌린다.
+#   bash run_dod.sh <G> <H> <rehearse|official> [단계 ...]
+#   단계(기본 = 전부, 이 순서): guard inputs e01 e2 e3 e3b e4 ia e5pt e5lib e6 n63 watch
+# 규칙(Phase 2 DoD 브리핑 §2와 같다): 메인 저장소는 git -C "$R" 읽기 명령만, 쓰기는 "$G" 아래만(TMP/TEMP도), cwd는 "$G".
+# 판정 코드는 손으로 옮기지 않는다 -- extract_design_blocks.py가 H 판 design 30 §10에서 E3·E3b·E5 판정 python과 import_any를 뽑는다.
+# rehearse: 빠진 입력(card 미병합)은 PENDING으로 적고 계속한다. B0가 없으면 E3 거부 확인·E3b를 B0 대용 = H로 돌려 '명령이 돈다'만 보인다.
+# official: guard가 하나라도 어긋나면 exit 1(측정 시작 안 함).
+# r1(2026-10-02, 독립 검토 review_phase3_dod.md §4·§5 반영): E1 PENDING/거부 확인, E3 rc 0일 때만 판정, 작업 트리를 읽는 단계 머리에
+#   HEAD = H 단정(need_h -- 어긋나면 모드와 무관하게 exit 1), E5 판 전환 실패 = `E5 INVALID` 줄(design 정정 D1과 같은 문구), E6 --head "$H"(D3),
+#   복제 -c core.autocrlf=false.
+set -uo pipefail
+export APPDATA=C:/Users/HSLEE/AppData/Roaming HOME=/c/Users/HSLEE   # 자식 bash 환경 보충(Phase 2 브리핑 v5, design 30 §10 v8 m3)
+G=${1:?G}; HREV=${2:?H}; MODE=${3:?mode}; shift 3
+STAGES="${*:-guard inputs e01 e2 e3 e3b e4 ia e5pt e5lib e6 n63 watch}"
+case "$G" in /c/g[0-9]*|C:/g[0-9]*) ;; *) echo "G는 /c/gNNN 형식만"; exit 2;; esac
+export TMP="$G/tmp" TEMP="$G/tmp" TMPDIR="$G/tmp"
+R=/c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills
+KIT=$(cd "$(dirname "$0")" && pwd)
+ISO="$G/iso"; S="$G/scripts"; O="$G/out"; PYX=C:/Python314/python.exe; PY="$PYX -B"
+mkdir -p "$S" "$O" "$G/tmp" "$G/pyc" "$G/snap" "$G/x"
+cd "$G" || exit 2
+ts(){ date '+%F %T'; }; mark(){ echo "$(ts) $*" >> "$O/timeline.txt"; }
+res(){ printf '%s\t%s\t%s\n' "$1" "$2" "$3" >> "$O/results.tsv"; echo "[$1] $2 $3"; }
+die(){ res GUARD FAIL "$*"; [ "$MODE" = official ] && exit 1; }
+
+if [ ! -d "$ISO/.git" ]; then   # 복제(가드 전 단계 -- 메인은 읽기만)
+  git -C "$R" status --porcelain --ignored > "$G/snap/main_status_before.txt"; git -C "$R" reflog > "$G/snap/main_reflog_before.txt"
+  touch "$G/snap/stamp"
+  git clone -q --no-hardlinks --no-local -c core.longpaths=true -c core.autocrlf=false "$R" "$ISO" && git -C "$ISO" remote remove origin || exit 2
+fi
+H=$(git -C "$ISO" rev-parse "$HREV^{commit}") || exit 2
+GC="$G/cache_$H/tools/gates"     # H 판 게이트 코드. <iso> 밖이라 E5가 <iso>를 P2D로 옮겨도 바뀌지 않는다(design §10 GC 주석의 '캐시' 선택)
+[ -f "$GC/pytest_gate.ini" ] || { mkdir -p "$G/cache_$H" && git -C "$ISO" archive "$H" tools/gates | tar -x -C "$G/cache_$H"; }
+export GC
+to_h(){ git -C "$ISO" checkout -q -- . 2>/dev/null; git -C "$ISO" clean -q -fdx; git -C "$ISO" checkout -q --detach "$1" &&
+        [ "$(git -C "$ISO" rev-parse HEAD)" = "$(git -C "$ISO" rev-parse "$1^{commit}")" ] &&
+        [ -z "$(git -C "$ISO" status --porcelain --ignored)" ]; }   # design E5 fresh()(정정 D1 판)와 같은 효과 + HEAD·status 확인(먼저 지우고 옮긴다)
+need_h(){ [ "$(git -C "$ISO" rev-parse HEAD)" = "$H" ] && [ -z "$(git -C "$ISO" status --porcelain --ignored)" ] && return 0
+          to_h "$H" && return 0; res HEAD FAIL "$st: 복제본을 H로 옮기지 못함"; echo "$st INVALID: 복제본 HEAD != H" >> "$O/judge.txt"; exit 1; }   # r1(review §4 끝)
+fresh_k(){ to_h "$1" && return 0; echo "E5 INVALID: 판 전환 실패 $1" | tee -a "$O/judge.txt"; die "E5 판 전환 실패 $1"; return 1; }   # design 정정 D1·D2
+PT3(){ local t="$ISO/skills/analog-gmid-design/assets/tests"
+  case "${1:-}" in "$ISO"/*) t="$1"; shift;; esac
+  PYTHONPATH="$GC" PYTHONPYCACHEPREFIX="$(mktemp -d -p "$G/pyc")" "$PYX" -P -m pytest -c "$GC/pytest_gate.ini" --rootdir="$ISO" --confcutdir="$ISO" "$t" --gmid-phase=3 "$@"; }
+inp(){ "$PYX" -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); v=d
+for k in sys.argv[2].split("."): v=v.get(k) if isinstance(v,dict) else None
+print("" if v is None else v)' "$O/inputs.json" "$1"; }
+
+for st in $STAGES; do mark "$st start"; case "$st" in
+guard)
+  GM=$(git -C "$R" rev-parse gate/master); LR=$(git -C "$R" ls-remote gate refs/heads/master | cut -f1)
+  echo "H=$H gate/master=$GM ls-remote=$LR" > "$O/guard.txt"
+  [ "$H" = "$GM" ] && [ "$GM" = "$LR" ] && res G1-H PASS "H = gate master = ls-remote" || { [ "$MODE" = official ] && die "H != gate master"; res G1-H INFO "rehearse: H=$H gate=$GM ls-remote=$LR"; }
+  RB=$(git -C "$R" for-each-ref --format='%(refname)' refs/heads/role/)
+  [ -z "$RB" ] && res G2-ROLE PASS "역할 브랜치 0" || { [ "$MODE" = official ] && die "역할 브랜치 남음: $RB"; res G2-ROLE INFO "역할 브랜치: $RB"; }
+  [ "$(git -C "$ISO" rev-parse HEAD)" = "$H" ] || git -C "$ISO" checkout -q --detach "$H"
+  [ -z "$(git -C "$ISO" status --porcelain --ignored)" ] && res G3-ISO PASS "복제본 HEAD=H, status 0줄" || die "복제본 status 0줄 아님"
+  $PY "$KIT/extract_design_blocks.py" "$ISO" "$H" "$S" > "$O/blk.txt" 2>&1 && res G4-BLK PASS "design §10 블록 5개 추출(blk_sha256.txt)" || die "design 블록 추출 실패: $(cat "$O/blk.txt")"
+  ;;
+inputs)
+  $PY "$KIT/inputs_p3.py" "$ISO" "$H" "$O" "$GC" > "$O/inputs.txt" 2>&1; rc=$?; cat "$O/inputs.txt"
+  [ $rc -eq 0 ] || die "inputs_p3 실패"
+  NM=$("$PYX" -c 'import json,sys; print(len(json.load(open(sys.argv[1],encoding="utf-8"))["missing"]))' "$O/inputs.json")
+  [ "$NM" = 0 ] && res G5-INPUT PASS "입력 빠짐 0" || { [ "$MODE" = official ] && die "입력 빠짐 $NM(inputs.json missing)"; res G5-INPUT PENDING "입력 빠짐 $NM(inputs.json missing)"; }
+  ;;
+e01)
+  need_h
+  ( cd "$G" && $PY "$GC/import_layering.py" --root "$ISO" > "$O/layer.json" ); echo $? > "$O/layer.exit"
+  git -C "$ISO" show "$H:docs/01-plan/features/gain-budget-gmid-sizing.plan.md" > "$O/plan_H.md"
+  # E1 거부 확인(r1, review §4-a): F2 판정 기록 base_commit 판(SD → MOD9 임시 재수출이 있는 판)에서 같은 도구가 findings > 0
+  F2B=$(inp cards.F2.base); F2L=-; F2X=-
+  if [ -n "$F2B" ]; then
+    rm -rf "$G/f2base" && mkdir -p "$G/f2base" &&
+      git -C "$ISO" archive "$F2B" skills/analog-gmid-design/assets docs/01-plan/features/gain-budget-gmid-sizing.plan.md | tar -x -C "$G/f2base" &&
+      { ( cd "$G" && $PY "$GC/import_layering.py" --root "$G/f2base" > "$O/layer_f2base.json" ); F2X=$?; F2L="$O/layer_f2base.json"; }
+    echo "E1 거부 확인 판 F2 base = $F2B exit=$F2X" | tee -a "$O/judge.txt"
+  fi
+  $PY "$KIT/judge_p3.py" e01 "$O/layer.json" "$(cat "$O/layer.exit")" "$O/plan_H.md" "$F2L" "$F2X" | tee -a "$O/judge.txt"
+  ;;
+e2)
+  B0=$(inp B0); INV=0
+  if [ -n "$B0" ]; then git -C "$ISO" diff --quiet "$B0" "$H" -- tools/gates tools/migrate || INV=1; fi
+  source "$S/blk_vars.sh"; MPC=$(inp MPC)
+  [ -n "$MPC" ] && git -C "$ISO" show "$MPC:tools/migrate/move_plan.py" > "$S/move_plan.py"
+  while read -r b h m strict; do
+    ( cd "$G" && $PY "$GC/mutate_changed.py" --root "$ISO" --base "$b" --head "$h" --pytest-ini "$GC/pytest_gate.ini" \
+        --python "$PYX" --gmid-phase=3 --gmid-strict="$strict" > "$S/v3_$m.json" ); echo $? > "$S/v3_$m.exit"
+    ( cd "$G" && $PY "$S/move_plan.py" check --root "$ISO" --base "$b" --head "$h" --card "$m" "${MP_ARGS[@]}" > "$S/chk_$m.json" ); echo $? > "$S/chk_$m.exit"
+  done < "$O/cards.txt"
+  $PY "$KIT/judge_p3.py" e2 "$S" "$O/cards.txt" "$INV" | tee -a "$O/judge.txt"
+  if [ "$MODE" = rehearse ] && [ ! -s "$O/cards.txt" ]; then   # 기계 리허설: H^..H(문서 커밋)로 V3를 한 번 돌려 출력 키를 본다
+    ( cd "$G" && $PY "$GC/mutate_changed.py" --root "$ISO" --base "$H^" --head "$H" --pytest-ini "$GC/pytest_gate.ini" \
+        --python "$PYX" --gmid-phase=3 --gmid-strict= > "$O/e2_rehearsal_v3.json" ); echo "rehearsal V3 H^..H exit=$?" | tee -a "$O/judge.txt"
+    "$PYX" -c 'import json,sys; sys.stdout.reconfigure(encoding="utf-8"); d=json.loads(open(sys.argv[1],encoding="utf-8").read().splitlines()[-1]); print("rehearsal V3 keys", sorted(d), "| design E2 ① 키 중 없는 것", [k for k in ("defs","mutants","move_rejected","not_targeted","targets_by_def","moved") if k not in d])' "$O/e2_rehearsal_v3.json" | tee -a "$O/judge.txt"
+  fi
+  ;;
+e3)
+  B0=$(inp B0); B0R="$B0"; [ -z "$B0" ] && { B0R="$H"; echo "E3 거부 확인: B0 없음 -- 리허설 대용 B0 = H" | tee -a "$O/judge.txt"; }
+  for f in sizing_recipe topology_library design_report; do
+    git -C "$ISO" cat-file -e "$H:skills/analog-gmid-design/assets/$f.py" 2>/dev/null && echo "E3 FAIL: $f.py 있음" | tee -a "$O/judge.txt"
+  done
+  source "$S/blk_vars.sh"
+  # design 866~871행 모양(r1, review §4-g): 파이썬이 0이 아니게 끝나면 `E3 FAIL(도구 오류 …)`만 내고 그 판의 판정 줄은 내지 않는다
+  ( cd "$G" && $PY "$S/blk_e3_ast.py" "$ISO" "$B0R" ) | tr -d '\r' > "$O/e3_b0.txt"; rc=${PIPESTATUS[0]}
+  if [ "$rc" -eq 0 ]; then
+    NS=$(grep -c '^stmt ' "$O/e3_b0.txt"); NC=$(grep -c '^call ' "$O/e3_b0.txt")
+    NF=$(sed 's/^[A-Za-z-]* //; s/:[0-9]*$//' "$O/e3_b0.txt" | sort -u | grep -c .)
+    NX=$(sed 's/^[A-Za-z-]* //; s/:[0-9]*$//' "$O/e3_b0.txt" | sort -u | grep -c -E "$EXCL")
+    echo "E3 거부 확인 rc=$rc rev=$B0R stmt=$NS call=$NC 파일=$NF 그중 제외 집합=$NX" | tee -a "$O/judge.txt"
+    [ "$NS" -gt 0 ] && [ "$NC" -gt 0 ] || echo "E3 INVALID: base에서 빈 결과(명령 고장)" | tee -a "$O/judge.txt"
+  else echo "E3 FAIL(도구 오류 rc=$rc rev=$B0R)" | tee -a "$O/judge.txt"; fi
+  ( cd "$G" && $PY "$S/blk_e3_ast.py" "$ISO" "$H" ) | tr -d '\r' > "$O/e3_head.txt"; rc=${PIPESTATUS[0]}
+  if [ "$rc" -eq 0 ]; then
+    OUT=$(sed 's/^[A-Za-z-]* //; s/:[0-9]*$//' "$O/e3_head.txt" | sort -u | grep -v -E "$EXCL")
+    [ -z "$OUT" ] && echo "E3 PASS" | tee -a "$O/judge.txt" || echo "E3 FAIL: 제외 집합 밖 importer $(printf '%s\n' "$OUT" | grep -c .)파일" | tee -a "$O/judge.txt"
+  else echo "E3 FAIL(도구 오류 rc=$rc rev=$H)" | tee -a "$O/judge.txt"; fi
+  ;;
+e3b)
+  B0=$(inp B0); B0R="$B0"; [ -z "$B0" ] && { B0R="$H"; echo "E3b: B0 없음 -- 리허설 대용 B0 = H(기대 INVALID: moved_out=0)" | tee -a "$O/judge.txt"; }
+  need_h
+  source "$S/blk_vars.sh"
+  ( cd "$G" && $PY "$S/blk_e3b_ast.py" "$ISO" "$B0R" HEAD "$EXCL" ) | tr -d '\r' > "$O/e3b.txt"; rc=${PIPESTATUS[0]}
+  { cat "$O/e3b.txt"; [ "$rc" -eq 0 ] || echo "E3b FAIL(도구 오류 rc=$rc)"; } | tee -a "$O/judge.txt"
+  ;;
+e4)
+  need_h
+  T="$ISO/skills/analog-gmid-design/assets/tests/contracts/test_p3_registry_dest.py"
+  if [ -f "$T" ]; then ( cd "$G" && PT3 "$T" -q --color=no > "$O/e4_test.txt" 2>&1 ); echo $? > "$O/e4_test.exit"; else echo 4 > "$O/e4_test.exit"; echo "(test 파일 없음 -- D0b 미병합)" > "$O/e4_test.txt"; fi
+  source "$S/blk_vars.sh"
+  if [ -s "$S/move_plan.py" ] || { MPC=$(inp MPC); [ -n "$MPC" ] && git -C "$ISO" show "$MPC:tools/migrate/move_plan.py" > "$S/move_plan.py"; }; then
+    ( cd "$G" && $PY "$S/move_plan.py" plan --root "$ISO" "${MP_ARGS[@]}" > "$S/plan_final.json" ); echo $? > "$O/e4_plan.exit"
+  else echo "-" > "$O/e4_plan.exit"; fi
+  $PY "$KIT/judge_p3.py" e4 "$S/plan_final.json" "$(cat "$O/e4_plan.exit")" "$(cat "$O/e4_test.exit")" | tee -a "$O/judge.txt"
+  ;;
+ia)
+  need_h
+  source "$S/blk_vars.sh"; source "$S/blk_import_any.sh"
+  import_any "$ISO" > "$O/import_any.txt" 2>&1; echo "IMPORT-ANY 함수 종료 코드=$?" >> "$O/import_any.txt"
+  tee -a "$O/judge.txt" < "$O/import_any.txt"
+  ;;
+e5pt)
+  fresh_k "$H" || exit 1
+  ( cd "$G" && PT3 -q --color=no > "$O/e5_pt3.txt" 2>&1 ); echo "E5 PT3 exit=$?" | tee -a "$O/judge.txt"; tail -1 "$O/e5_pt3.txt" | tee -a "$O/judge.txt"
+  fresh_k "$H" || exit 1
+  ( cd "$G" && PT3 --gmid-dod -q --color=no > "$O/e5_pt3_dod.txt" 2>&1 ); echo "E5 PT3-dod exit=$?" | tee -a "$O/judge.txt"; tail -1 "$O/e5_pt3_dod.txt" | tee -a "$O/judge.txt"
+  ;;
+e5lib)
+  P2D=$(inp P2D); [ -n "$P2D" ] || die "P2D 없음"
+  X="$G/x"; O5="$O/e5"; mkdir -p "$O5"
+  git -C "$ISO" show "$H:docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_inst_p3.py" > "$X/e_inst_p3.py"
+  git -C "$ISO" show "$H:docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_lib_p3.py"  > "$X/e_lib_p3.py"
+  git -C "$ISO" show "$P2D:.ai/verification/20260930-df36-instance-relpath/scripts/e_inst_df36.py"     > "$X/e_inst_df36.py"
+  git -C "$ISO" show "$P2D:.ai/verification/20260930-df36-instance-relpath/scripts/e_lib.py"          > "$X/e_lib.py"
+  sha256sum "$X"/e_inst_p3.py "$X"/e_lib_p3.py "$X"/e_inst_df36.py "$X"/e_lib.py > "$O5/scripts.sha256"
+  for c in current_reuse_telescopic_ota folded_cascode; do
+    fresh_k "$P2D" && ( cd "$G" && $PY -P "$X/e_inst_df36.py" "$ISO" "$c" "$O5/p2d_df36_$c.json" ); echo "E5 p2d df36 $c exit=$?" | tee -a "$O/judge.txt"; mark "e5 p2d df36 $c"
+    fresh_k "$P2D" && ( cd "$G" && $PY -P "$X/e_inst_p3.py"   "$ISO" "$c" "$O5/p2d_p3_$c.json" );   echo "E5 p2d p3 $c exit=$?" | tee -a "$O/judge.txt"; mark "e5 p2d p3 $c"
+    fresh_k "$H"   && ( cd "$G" && $PY -P "$X/e_inst_p3.py"   "$ISO" "$c" "$O5/h_p3_$c.json" );     echo "E5 head p3 $c exit=$?" | tee -a "$O/judge.txt"; mark "e5 head p3 $c"
+  done
+  fresh_k "$P2D" || exit 1   # design 정정 D2(1040행)
+  ( cd "$G" && $PY -P "$X/e_lib.py"    "$ISO" "$O5/p2d_elib.json" );          echo "E5 p2d elib exit=$?" | tee -a "$O/judge.txt"
+  ( cd "$G" && $PY -P "$X/e_lib_p3.py" "$ISO" "$O5/p2d_elibp3_nomask.json" ); echo "E5 p2d elibp3 nomask exit=$?" | tee -a "$O/judge.txt"
+  ( cd "$G" && $PY -P "$X/e_lib_p3.py" "$ISO" "$O5/p2d_elibp3.json" rails );  echo "E5 p2d elibp3 exit=$?" | tee -a "$O/judge.txt"
+  fresh_k "$H" || exit 1     # design 정정 D2(1044행)
+  ( cd "$G" && $PY -P "$X/e_lib_p3.py" "$ISO" "$O5/h_elibp3.json" rails );    echo "E5 head elibp3 exit=$?" | tee -a "$O/judge.txt"
+  ( cd "$G" && $PY "$S/blk_e5_judge.py" "$O5" "$ISO" "$P2D" ) 2>&1 | tr -d '\r' | tee "$O/e5_judge.txt" | tee -a "$O/judge.txt"
+  ;;
+e6)
+  need_h
+  source "$S/blk_vars.sh"; B0=$(inp B0)
+  if [ -s "$S/move_plan.py" ] && [ -n "$B0" ]; then
+    ( cd "$G" && $PY "$S/move_plan.py" check --root "$ISO" --base "$B0" --head "$H" --card ALL "${MP_ARGS[@]}" \
+        --allow-changed workspaces/run_harness.py::run skills/analog-gmid-design/assets/gmid_design_pipeline.py::run_gmid_design_pipeline \
+        > "$S/chk_all.json" ); echo "E6 exit=$?" | tee -a "$O/judge.txt"
+  else echo "E6 PENDING move_plan.py(D0a)·B0(M1) 없음" | tee -a "$O/judge.txt"; fi
+  ;;
+n63)
+  P2D=$(inp P2D)
+  ( cd "$G" && $PY "$KIT/n63_p3.py" "$ISO" "$H" "$P2D" "$O/n63.json" ) | tee -a "$O/judge.txt"
+  ;;
+watch)
+  git -C "$R" status --porcelain --ignored > "$G/snap/main_status_after.txt"; git -C "$R" reflog > "$G/snap/main_reflog_after.txt"
+  cmp -s "$G/snap/main_status_before.txt" "$G/snap/main_status_after.txt" && res W1 PASS "메인 status 전후 같음" || res W1 FAIL "메인 status 다름"
+  cmp -s "$G/snap/main_reflog_before.txt" "$G/snap/main_reflog_after.txt" && res W2 PASS "메인 reflog 전후 같음" || res W2 FAIL "메인 reflog 다름"
+  N1=$(find "$R/workspaces" "$R/skills" "$R/tools" "$R/.ai/verification" -newer "$G/snap/stamp" -type f 2>/dev/null | grep -c .)
+  N2=$(find "$R" -maxdepth 1 -newer "$G/snap/stamp" -type f | grep -c .)
+  [ "$N1" = 0 ] && [ "$N2" = 0 ] && res W3 PASS "stamp 이후 파일 0(지정 경로·루트)" || res W3 FAIL "stamp 이후 파일 지정 $N1·루트 $N2"
+  git -C "$ISO" reflog --format='%h %gs' > "$O/iso_reflog.txt"; git -C "$ISO" status --porcelain > "$O/iso_status.txt"
+  ;;
+*) echo "모르는 단계 $st"; exit 2;;
+esac; mark "$st end"; done

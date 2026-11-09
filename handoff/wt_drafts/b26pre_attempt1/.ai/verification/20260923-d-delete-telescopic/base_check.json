@@ -1,0 +1,219 @@
+{
+ "note": "05-role-separation §12 순서 3 -- freeze(T)와 base 대비 확인, 2차 시도(1차는 V5 FAIL로 멈춤, 사용자 승인 20260929-p5b-chain-tests 뒤 재시도). 모든 수치는 auditor가 짧은 경로 격리 복제본 C:/g8/*에서 직접 쟀다(작성자·오케스트레이터 보고와 1차 base_check 사본은 대조용으로만 썼다). 커밋은 순서 7.",
+ "id": "20260923-d-delete-telescopic",
+ "evidence_type": "equivalence",
+ "phase": "2",
+ "approval": "20260923-u02-d-list",
+ "v5_approval": "20260929-p5b-chain-tests",
+ "attempt": "2차",
+ "measured_at": "2026-09-29 (순서 3 측정)",
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2)",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming (실행 스크립트 안에서 export)",
+  "note": "복제본은 전부 C:/g8/ 아래. git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout -> (별도 명령) git -C <복제본> remote remove origin -> checkout -q --detach <rev>. 전역 core.autocrlf=true라 작업 트리 텍스트는 CRLF(모든 rev 같음). E-INST는 msys env로 감싸지 않고 bash 스크립트에서 python을 직접 불렀다."
+ },
+ "freeze": {
+  "base_commit": "7a1e19156a1233a137bae96d978efd94500b25b1",
+  "base_is_gate_master": true,
+  "base_subject": "docs: P5b V5 승인 기록(20260929-p5b-chain-tests)·R1 운반 blob, spec card 계약 1·7 삭제 범위 +2와 줄 번호 정정(1차 시도 기록)",
+  "test_commit_T": "bd6607264cddf6b95f2291a1a52b096322d4e1b7",
+  "T_tree": "0af48b2ce0e01292d6e1d10ce495761e18e51ad5",
+  "T_parent": "7a1e19156a1233a137bae96d978efd94500b25b1",
+  "T_trailers": [
+   "Role: test",
+   "Change-Id: 20260923-d-delete-telescopic"
+  ],
+  "audit_branch": "role/audit/20260923-d-delete-telescopic",
+  "audit_branch_head_at_freeze": "bd6607264cddf6b95f2291a1a52b096322d4e1b7",
+  "worktree_status_at_freeze": "git status --porcelain 0줄",
+  "changed_paths_base_to_T": {
+   "shortstat": "2 files changed, 546 insertions(+), 217 deletions(-)",
+   "added": [
+    "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py"
+   ],
+   "modified": [
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py"
+   ],
+   "blobs_base": {
+    "tests/unit/test_selftest_sizing_recipe.py": "56514a28df5f9cedd22e2b6c4ba2845b6859350f"
+   },
+   "blobs_T": {
+    "tests/contracts/test_d_delete_telescopic.py": "3a9b11e6f906d354d349f7c8759db1b5cdba931c",
+    "tests/unit/test_selftest_sizing_recipe.py": "a92789b4342e6dcb71f8e86ed1ce099131f16719"
+   },
+   "unit_blob_note": "T의 unit blob a92789b4…는 1차 T(3adc173)와 같고, 승인 운반 blob(7a1e191:docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260923-d-delete-telescopic/a92789b4….blob)의 git blob sha1을 auditor가 다시 계산한 값과도 같다(paths.tsv 1행이 같은 경로·blob).",
+   "contract_test_vs_1st": "1차 T 작업 트리 사본(C:/g8/iso, 3adc173)과 diff: _DELETED_CONSTANTS={_TELESCOPIC_FIXED_BASE}, _DELETED_FIELDS={_open_loop_gains_cache: SizingContext}, _GONE_MODULE_NAMES 추가, ast_references에 소유 클래스 본문 선언(field)·Attribute 규칙 추가, 판별력 입력(참조 있음 10, 참조 아님 5) 추가, docstring 9개->11개. 다른 판정 로직 변경 없음(1차 T 커밋 객체는 audit worktree에 더 없어 파일 diff로 확인)."
+  },
+  "outside_tests_diff": "git diff --name-only 7a1e191 T -- ':(exclude)skills/analog-gmid-design/assets/tests/**' 0줄.",
+  "code_commit_K": null
+ },
+ "isolation": {
+  "commands": [
+   "git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-d-delete-telescopic-audit C:/g8/<이름>",
+   "git -C C:/g8/<이름> remote remove origin",
+   "git -C C:/g8/<이름> checkout -q --detach <rev>"
+  ],
+  "clones": {
+   "C:/g8/iso2": "T(bd66072) 작업 트리. 수집·red 수집(전체 실행)·V5·strict 확인",
+   "C:/g8/base2": "base(7a1e191) 작업 트리. 수집·전체 실행·게이트 코드 추출",
+   "C:/g8/eq": "1차에서 만든 같은 경로 비교용 복제본(remote 0, status 0줄, HEAD 98bd969). 이번에는 checkout 없이 base 기준값 재측정(아래 reuse). 병합본은 순서 7에서 이 경로로 checkout --detach + clean -fdxq 해 잰다"
+  },
+  "remote_count_after": {
+   "iso2": 0,
+   "base2": 0,
+   "eq": 0
+  },
+  "gate_code": {
+   "how": "C:/Python314/python.exe C:/g8/scripts/extract_gate.py C:/g8/base2 7a1e19156a1233a137bae96d978efd94500b25b1 C:/g8/gmid-gate-cache/7a1e19156a1233a137bae96d978efd94500b25b1 (git ls-tree + cat-file blob, tools/gates/ 중 redteam/ 밖 22개)",
+   "file_set_sha256": "ab7afccd7aa4b4ed6687b2d1acc71a07e82c5a6ceb615fd3b1eb7963a1adb828",
+   "cross_check": "1차(base 98bd969) file_set_sha256과 같다. 98bd969:tools 와 7a1e191:tools 트리 id도 같다(712beefc…). 오케스트레이터 캐시(<git-common-dir>/gmid-gate-cache/7a1e191…/)는 role_guard 훅(EL1)이 저장소 내부 경로 인자를 막아 직접 비교하지 못했다 -- 같은 git 객체에서 auditor가 뽑은 사본을 썼다."
+  }
+ },
+ "strict_set": {
+  "card_parse": "base 판 role_paths.parse_spec_card(7a1e191:docs/02-design/specs/20260923-d-delete-telescopic.spec.md): id=20260923-d-delete-telescopic, phase=2, evidence_type=equivalence, gate_change=no, approval=[20260923-u02-d-list], activated_ic_case=[]",
+  "strict_needed": [],
+  "v1_option": "--gmid-phase=2 --gmid-strict=",
+  "checked_with": "C:/Python314/python.exe -P C:/g8/scripts/strict_check.py <캐시> C:/g8/iso2 7a1e191… 20260923-d-delete-telescopic <V1 문자열(루트 C:/g8/m)> -> strict_set [], v1_command_check 실패 0건 (C:/g8/out2/strict_check.txt)"
+ },
+ "v1_command_template": "PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=C:/g8/gmid-gate-cache/7a1e19156a1233a137bae96d978efd94500b25b1 C:/Python314/python.exe -P -m pytest -c C:/g8/gmid-gate-cache/7a1e19156a1233a137bae96d978efd94500b25b1/pytest_gate.ini --rootdir=<복제본> --confcutdir=<복제본> --gmid-phase=2 --gmid-strict= <복제본>/skills/analog-gmid-design/assets/tests",
+ "base_run": {
+  "script": "C:/g8/scripts/run2.sh (사본 scripts/run2.sh)",
+  "collection": {
+   "base_collected": 433,
+   "T_collected": 485,
+   "disappeared": [
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s066_family",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s068_family",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s069_section"
+   ],
+   "new": 55,
+   "new_by_file": {
+    "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py": 55
+   },
+   "base_collect_sha256": "0b7abe8626532341cb80f7efd98ea0771b53af606fd2873ab60bdfa7704e9e36",
+   "T_collect_sha256": "8c43ab55e12fcfa437461722e15107714b67c15a7a9aae49eac3ab23e1d07440",
+   "sha256_def": "sha256(UTF-8('\\n'.join(sorted(수집 id, 역슬래시->슬래시, 'skills/'부터)))) (scripts/cmp_collect.py)",
+   "cross_check": "base 수집 sha256이 1차(98bd969)·P5 판정 기록 값과 같다 -- test 집합 불변. 새 파일 수집 40 -> 55(판별력 매개변수 15 추가)"
+  },
+  "full_run": {
+   "base": "418 passed, 15 xfailed, exit 0, 121.80s (C:/g8/base2, V1 템플릿 + -q -rfE -p no:cacheprovider, 출력 C:/g8/out2/full_base2.txt)",
+   "T_on_base_engine": "8 failed, 462 passed, 15 xfailed, exit 1, 117.97s, 수집 오류 0 (C:/g8/iso2, 출력 C:/g8/out2/full_T2_red.txt)",
+   "arith": "T 485 = 8 + 462 + 15. base 433 - 삭제 3 = 430 = 415 passed + 15 xfailed(base와 같은 결과). 새 55건 = 8 FAIL + 47 PASS. 462 = 415 + 47."
+  },
+  "red_capture": {
+   "command": "GMID_RED_CAPTURE=C:/g8/out2/red_T2.jsonl GMID_INTERFACE_CARD=C:/g8/iso2/docs/02-design/specs/20260923-d-delete-telescopic.spec.md PYTHONPYCACHEPREFIX=C:/g8/pyc_f_iso2 PYTHONPATH=<캐시> C:/Python314/python.exe -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g8/iso2 --confcutdir=C:/g8/iso2 -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g8/iso2/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+   "capture_file_sha256": "922bf2f2a993a6dc28bc8ef6863e43a299508409735412cbfdea4d6dbbf793cd",
+   "capture_lines": 20,
+   "builtins_Failed_lines": 12,
+   "builtins_Failed_note": "IC 계약 test의 xfail(pytest Failed)을 플러그인이 기록한 것 -- 실패가 아니다(15 xfailed 쪽, 1차·P5와 같은 12줄).",
+   "capture_vs_1st": "캡처 파일이 1차와 바이트 동일(같은 sha256). 캡처 형식이 (test_id, exc_type, failure_hash)뿐이고 8건의 test id·예외 타입이 1차와 같기 때문이다. GONE 실패 메시지 자체는 달라졌다(아래 GONE reason) -- failure_hash가 메시지에 기대지 않음을 보여 준다.",
+   "red": [
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_registries_drop_deleted_families[_CMRR_ESTIMATOR_REGISTRY]",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "1a86c2f8182b47b7ee337c1462e2b59bf9f9c4653321ca34477f466b46b37093",
+     "reason": "_CMRR_ESTIMATOR_REGISTRY에 telescopic_class_ab·telescopic_class_ab_cmfb 키가 남아 있다"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_registries_drop_deleted_families[_PSRR_ESTIMATOR_REGISTRY]",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "87e92c3d09bcd594d777133757c4496277bf0499e66e63f511b3ab1fb0aa0f13",
+     "reason": "_PSRR_ESTIMATOR_REGISTRY에 같은 두 키"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_family_is_rejected_on_new_topology[cmrr_estimate-telescopic_class_ab]",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "e3db3685aa2d63df3bae78db1934c8b87acd5a3276640d517926b5fd39065c14",
+     "reason": "전제 단언(family가 레지스트리에 없다)에서 실패"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_family_is_rejected_on_new_topology[cmrr_estimate-telescopic_class_ab_cmfb]",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "e2ab4f8a965bd8fb829b0798b3d9ba0cb99e7a771a32f84324bd9b82c382e754",
+     "reason": "같음"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_family_is_rejected_on_new_topology[psrr_estimate-telescopic_class_ab]",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "198ab95ee97e45669f8f29d06b2451396ec29f499dbd30cf9f256981fd093c09",
+     "reason": "같음"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_family_is_rejected_on_new_topology[psrr_estimate-telescopic_class_ab_cmfb]",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "e41518f3f08ec3ac94ae0a8634cdfd2aef0df3e934aeee30744ac2381e8d4aef",
+     "reason": "같음"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_pilot_topology_path_literal_absent",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "9f3c858b26ccee425c7c507e01e66d1e1e92ac867e74e751409b1a649f7544b9",
+     "reason": "sizing_recipe.py:5003 _load_telescopic_topology_cached 의 파일럿 topology 경로 리터럴"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_names_have_no_ast_references",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "e4083e26a92c5d5f8af8c01a35b4340623454a05dad8bf32788eacd1cd97b15d",
+     "reason": "sizing_recipe.py 참조 31건: 1차의 함수 9개 def·참조 25건 + 추가 6건 -- (2943, field, _open_loop_gains_cache), (5009·5041·5046, name, _TELESCOPIC_FIXED_BASE), (5102·5114, attr, _open_loop_gains_cache). A/tests/**·run_harness 참조 0"
+    }
+   ],
+   "red_count_by_kind": "레지스트리 2 + 삭제 family 거부 4 + 경로 리터럴 1 + GONE 1 = 8 -- test-author 보고(8건)와 같은 구성이지만 auditor가 직접 잰 값이다",
+   "new_tests_green_at_base": "47건 PASS: 합성 레지스트리 거부/통과 판별력, new_topology_future_family 거부, 일반 경로 smallsignal_ratio_db 값(cmrr_like·psrr_like), AST 참조 판별력(참조 있음·아님 입력, 이번에 상수·필드 15건 추가) -- 삭제 전에도 성립하는 사실이라 의도된 무발동",
+   "schema_note": "equivalence는 판정 기록의 red 필드가 스키마상 금지다(00-common §8.1). 이 측정은 여기와 checks.V2.basis에만 쓴다."
+  }
+ },
+ "v5_base_to_T": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g8/pyc_v5b C:/Python314/python.exe C:/g8/gmid-gate-cache/7a1e19156a1233a137bae96d978efd94500b25b1/weakening_diff.py --root C:/g8/iso2 --base 7a1e19156a1233a137bae96d978efd94500b25b1 --head bd6607264cddf6b95f2291a1a52b096322d4e1b7",
+  "exit": 0,
+  "verdict": "PASS",
+  "approved": true,
+  "findings": [
+   {
+    "path": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+    "unit": "test_s066_family",
+    "pattern": "assert 삭제",
+    "detail": "test 함수 삭제"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+    "unit": "test_s068_family",
+    "pattern": "assert 삭제",
+    "detail": "test 함수 삭제"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+    "unit": "test_s069_section",
+    "pattern": "assert 삭제",
+    "detail": "test 함수 삭제"
+   }
+  ],
+  "diff_paths": [
+   "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py"
+  ],
+  "diff_hash": "fe5a50f54e622c51dbb1b02a7e68528d0559c104c94a6c13988712a36c845539",
+  "approval_match": "T 트리(=7a1e191 트리의 .ai/approvals/20260929-p5b-chain-tests.md, target_kind: diff, target: fe5a50f5…)의 target과 diff_hash가 같다. 승인 기록의 diff_base는 98bd969지만 98bd969과 7a1e191의 unit blob이 같아(56514a28) diff_hash 식 sha256('<경로>\\t<base blob>\\t<T blob>\\n')이 같은 값이다(auditor 재계산 일치). 발견 3건은 1차와 같고 승인 범위('test 함수 3개·fixture 2개 삭제, import 이름 2개 제거')와 맞는다. 승인이 덮지 않는 남긴 test_s065_section·test_s067_family는 unit blob이 승인 blob과 같으므로 바뀌지 않았다.",
+  "output_file": "C:/g8/out2/v5_base_T.txt"
+ },
+ "equivalence_baseline_reuse": {
+  "question": "1차 base(98bd969)에서 잰 E-LIB·NEW-TOPO·E-INST 기준값을 새 base 7a1e191의 기준값으로 쓸 수 있는가",
+  "evidence_tree": "98bd969..7a1e191 변경 5개 경로뿐: .ai/approvals/20260929-p5b-chain-tests.md(A), .ai/context.md(M), docs/02-design/specs/20260923-d-delete-telescopic.spec.md(M), docs/03-analysis/.../v5-carry/20260923-d-delete-telescopic/ 의 blob·paths.tsv(A). 트리 id 비교: skills e5443334…, workspaces ac9615a9…, tools 712beefc… 가 두 커밋에서 같다. NEW-TOPO 입력 blob(.ai/verification/20260923-d-delete-dead/newtopo_synthetic.topology.json) 2cba3169…도 같다. 엔진(A/*.py)은 .ai·docs를 주석에서만 가리키고 읽지 않는다(grep).",
+  "evidence_remeasure": "추정에 기대지 않으려고 같은 경로 C:/g8/eq(HEAD 98bd969, skills·workspaces 트리가 7a1e191과 같음)에서 같은 명령(scripts/eq2.sh)으로 다시 쟀다: E-LIB fc5aaca590fa26c40df5c9676c0a6cf22576888fae169126a99b50eee306dceb(9/9 load, V1 9·V2 9), NEW-TOPO 2d31e4e20dbd845097f8cc18d7fa4a372fe887b3b3946cba72472050dceb3a20(load·V1·V2 ok, 7소자), 출력 파일 C:/g8/out2/elib_base2.json이 1차 C:/g8/out/elib_base.json과 바이트 동일(sha256 3ee2e798…); E-INST current_reuse_telescopic_ota a36b6e16be5b502e90c7d5fb75c8f57bd658291769c08258e7aafd46ad0aa55b(exit 0, sizing 51), folded_cascode 24cbd7f5af1b11a377a9eb79b420840761f338907093840104ff475fdea799c2(exit 0, sizing 13) -- 네 값 모두 1차 base 값과 같다.",
+  "scripts_same": "measurement 스크립트 sha256이 1차 기록과 같다: e_lib_p5b.py 34a5a6a2…, e_inst3.py 8053a611…, e_lib3.py b1fb60ff…, 합성 topology 입력 edfec31a…",
+  "conclusion": "재사용 가능 -- 새 base 7a1e191의 기준값 = E-LIB fc5aaca5…, NEW-TOPO 2d31e4e2…, E-INST 파일럿 a36b6e16…·folded 24cbd7f5… (트리 동일 + 같은 경로 재측정 일치, 두 근거)",
+  "commands": {
+   "E-LIB/NEW-TOPO": "PYTHONDONTWRITEBYTECODE=1 PYTHONHASHSEED=1 C:/Python314/python.exe -P C:/g8/scripts/e_lib_p5b.py C:/g8/eq C:/g8/out2/elib_base2.json C:/g8/newtopo/auditor_p5_synthetic_newtopo.topology.json",
+   "E-INST": "PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g8/scripts/e_inst3.py C:/g8/eq <회로> C:/g8/ws_eq C:/g8/out2/einst_base2/einst_<회로>.json"
+  },
+  "merged_next": "순서 7에서 병합본을 C:/g8/eq로 checkout --detach + clean -fdxq 하고 위 두 명령을 같은 작업 디렉터리 C:/g8/ws_eq로 돌려 이 값과 대조한다(E-INST 값은 경로에 기댄다)."
+ },
+ "carried_from_1st_unchanged": "1차 base_check의 deleted_tests_scope(삭제 3 test의 호출 추적)는 skills 트리가 같고 unit blob이 같아 그대로 성립한다. G-3(b) 기록은 다시 쟀다: C:/Python314/python.exe -P C:/g8/scripts/g3b_literals.py C:/g8/base2 C:/g8/out3/g3b_base2.json -> 출력이 1차 C:/g8/out/g3b_base.json과 바이트 동일(경로 리터럴 1건 sizing_recipe.py:5003 _load_telescopic_topology_cached 'current_reuse_telescopic_ota.topology.json'; 넷 이름 Vbias1~4는 5009 _TELESCOPIC_FIXED_BASE, Vip·Vim·Vcmfb는 5041·5047, Vop1·Vom1은 5049 -- 모두 _telescopic_class_ab_open_loop_response). residue 2개(상수·필드)는 이번 T의 GONE이 잡는다(GONE reason의 추가 6건).",
+ "scripts_preserved": "P5 선례대로 스크립트 사본은 커밋하지 않는다(판정 기록 옆에는 base_check.json만). 원본은 C:/g8/scripts/ 에 있고 sha256: cmp_collect.py b7eb75c8…, e_inst3.py 8053a611…(P2·P5와 같다), e_lib_p5b.py 34a5a6a2…, e_lib3.py b1fb60ff…, extract_gate.py 236209f1…, g3b_literals.py 17455737…, strict_check.py f1c0730f…, trace_harness.py 04de50b1…, tracecalls.py 0b25d3b0…(1차 기록과 같은 값), run2.sh 85e6270d…, eq2.sh daf8d1bf…, pure_delete_p5b.py(순서 7에서 새로 씀, 판정 기록 V2 참고)",
+ "outputs_kept": {
+  "C:/g8/out2/full_base2.txt": "5b735405981b765e3c2a6836fa2552aca7409ca10ba81bc65f696dba70d90c28",
+  "C:/g8/out2/full_T2_red.txt": "9c5fb84af04d8b6d29060180461e3f98e14f813b2074bfc70c585dd4c62456fd",
+  "C:/g8/out2/red_T2.jsonl": "922bf2f2a993a6dc28bc8ef6863e43a299508409735412cbfdea4d6dbbf793cd",
+  "C:/g8/out2/v5_base_T.txt": "463599c042fda7f31a1e02f209e8c0adf020d96e6c7e1f3fdc0daeed9744eed6",
+  "C:/g8/out2/elib_base2.json": "3ee2e798b27fdff92187e1a197c9d874ba771ec927bc117fe896aae6f5d89339"
+ },
+ "next": "code-author가 K를 만들고 병합 뒤 순서 4~7: 병합본에서 V1(전체), V2(8 red -> green, base 418 passed 결과 유지, E-LIB·NEW-TOPO·E-INST 같은 경로 대조), V3~V10. V5는 base -> 병합본으로 다시 잰다(code 커밋이 test 경로를 바꾸지 않으면 diff_hash가 같을 것이나 잰다)."
+}

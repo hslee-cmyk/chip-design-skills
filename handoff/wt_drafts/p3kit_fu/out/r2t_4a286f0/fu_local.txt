@@ -1,0 +1,44 @@
+== 대상 저장소 R=/c/g253/sb/repo  상태 파일 /c/g253/sb/fu_state.txt  spec 초안 /c/g253/sb/fu.spec.md  worktree 부모 /c/g253/sb/wt
+== pre: 착수 전 확인(저장소 변경 없음)
+   착수 조건(gate master 5f99634) exit: 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0 9:0 10:0 11:0 12:0 13:0   조건 4 결과 파일 규약 전체(Python)=0
+      1 0    S-1 Phase 3 design 승인 기록 20260930-30-module-split-design
+      2 0    S-1 그 기록 범위 설명에 이 card id 20261002-p3-future-annotations
+      3 0    design 30-module-split 문서 커밋
+      4 0    S-2 Phase 2 DoD PASS(결과 파일 판정 줄)
+      5 0    S-3 B34 20260930-b34-grammar-explicit 병합
+      6 0    S-3 b26pre 20260930-b26-pre-test-strengthen 병합
+      7 0    S-3 backfill 20261001-b26-backfill-interdig-final-audit 병합
+      8 0    S-3 B26-1 20260930-b26-rail-accessor-set 병합
+      9 0    S-3 B33 20260930-v7-registry-edges 병합
+     10 0    S-4 D0b 20260930-p3-registry-dest 미착수(spec·판정 기록 없음 -- D-27 동결 전)
+     11 0    S-5 design_report.py·audit_current_forced.py가 dd60db6과 같다
+     12 0    S-5 최상위 엔진 *.py의 future 줄 = SR·SD·TL 셋뿐(DR·ACF 없음)
+     13 0    이 card spec이 아직 없다(순서 0 전)
+   measured 27e47a3 -> gate 5f99634: DR·ACF·레지스트리 차이 0
+   A2 전제: DR·ACF = dd60db6(조건 11), Python 3.14.2
+   E-INST 정본 e_inst_p3.py gate에 있음(계약 3(c))
+   승인 기록 20260930-30-module-split-design: gate 5f99634에 있음(parse-approval id 일치, target_kind diff)
+== pre OK: gate master 5f99634, _approved_ids 39, plan_tables_hash 7167e02839f86c4e…, cache C:/g253/sb/repo/.git/gmid-gate-cache/5f99634be1afed78344afa573614075be1f7c677
+== card (S): spec card + interface card(게이트 캐시 interface_card.py, 절대 경로) -- Role: doc
+   착수 조건(gate master 5f99634) exit: 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0 9:0 10:0 11:0 12:0 13:0   조건 4 결과 파일 규약 전체(Python)=0
+      1 0    S-1 Phase 3 design 승인 기록 20260930-30-module-split-design
+      2 0    S-1 그 기록 범위 설명에 이 card id 20261002-p3-future-annotations
+      3 0    design 30-module-split 문서 커밋
+      4 0    S-2 Phase 2 DoD PASS(결과 파일 판정 줄)
+      5 0    S-3 B34 20260930-b34-grammar-explicit 병합
+      6 0    S-3 b26pre 20260930-b26-pre-test-strengthen 병합
+      7 0    S-3 backfill 20261001-b26-backfill-interdig-final-audit 병합
+      8 0    S-3 B26-1 20260930-b26-rail-accessor-set 병합
+      9 0    S-3 B33 20260930-v7-registry-edges 병합
+     10 0    S-4 D0b 20260930-p3-registry-dest 미착수(spec·판정 기록 없음 -- D-27 동결 전)
+     11 0    S-5 design_report.py·audit_current_forced.py가 dd60db6과 같다
+     12 0    S-5 최상위 엔진 *.py의 future 줄 = SR·SD·TL 셋뿐(DR·ACF 없음)
+     13 0    이 card spec이 아직 없다(순서 0 전)
+   승인 기록 20260930-30-module-split-design: gate 5f99634에 있음(parse-approval id 일치, target_kind diff)
+   parse_spec_card OK ('3', 'equivalence', 'no', ['20260930-30-module-split-design'], [], 11)
+interface card: C:/g253/sb/repo/docs/02-design/specs/20261002-p3-future-annotations.interface.md (기존 함수 0개)
+   interface card 두 표 빈 행(기존 0, 신규 0)
+== card OK: 0cc4d00 (interface 13줄)
+== final: push 전 종합 확인
+0cc4d00 docs: FU spec card 20261002-p3-future-annotations(design_report·audit_current_forced 머리 from __future__ import annotations 한 줄, 동작 불변, equivalence·test 커밋 0, phase 3, 승인 20260930-30-module-split-design -- design 30 D-29 준비 card) + interface card
+== final OK -- 다음은 push 단독 호출(병렬·tail 금지):  env APPDATA='C:\Users\HSLEE\AppData\Roaming' LOCALAPPDATA='C:\Users\HSLEE\AppData\Local' git -C /c/g253/sb/repo push gate master:master   그 뒤 after-push

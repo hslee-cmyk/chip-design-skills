@@ -1,0 +1,57 @@
+* erfc_ota bench
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.option gmin=1e-15 reltol=1e-5 abstol=1e-15 vntol=1e-8 method=gear
+vvdd vdd 0 1.8
+vvcp vcp 0 0.7
+vvcn vcn 0 0.7
+xm9 n_m9d n_m7d vdd vdd sky130_fd_pr__pfet_01v8 w=48u l=0.3u ad=13.92p as=13.92p pd=96.58u ps=96.58u
+xm10 n_m10d n_m7d vdd vdd sky130_fd_pr__pfet_01v8 w=48u l=0.3u ad=13.92p as=13.92p pd=96.58u ps=96.58u
+xm7 n_m7d n_m8g n_m9d vdd sky130_fd_pr__pfet_01v8 w=24u l=0.3u ad=6.96p as=6.96p pd=48.58u ps=48.58u
+xm8 out n_m8g n_m10d vdd sky130_fd_pr__pfet_01v8 w=24u l=0.3u ad=6.96p as=6.96p pd=48.58u ps=48.58u
+xm21 n_m8g vcn vcp vcp sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+xm13 a n_m13g vdd vdd sky130_fd_pr__pfet_01v8 w=24u l=0.3u ad=6.96p as=6.96p pd=48.58u ps=48.58u
+xm14 b n_m14g vdd vdd sky130_fd_pr__pfet_01v8 w=24u l=0.3u ad=6.96p as=6.96p pd=48.58u ps=48.58u
+xm11 n_m11d vin_p a vdd sky130_fd_pr__pfet_01v8 w=24u l=0.6u ad=6.96p as=6.96p pd=48.58u ps=48.58u
+xm12 n_m12d vin_n b vdd sky130_fd_pr__pfet_01v8 w=24u l=0.6u ad=6.96p as=6.96p pd=48.58u ps=48.58u
+xm15 0 n_m11d n_m13g vdd sky130_fd_pr__pfet_01v8 w=1u l=20u ad=0.29p as=0.29p pd=2.58u ps=2.58u
+xm16 0 n_m12d n_m14g vdd sky130_fd_pr__pfet_01v8 w=1u l=20u ad=0.29p as=0.29p pd=2.58u ps=2.58u
+xm1a n_m5s vin_p b vdd sky130_fd_pr__pfet_01v8 w=24u l=0.6u ad=6.96p as=6.96p pd=48.58u ps=48.58u
+xm1b y vin_p b vdd sky130_fd_pr__pfet_01v8 w=24u l=0.6u ad=6.96p as=6.96p pd=48.58u ps=48.58u
+xm2b x vin_n a vdd sky130_fd_pr__pfet_01v8 w=24u l=0.6u ad=6.96p as=6.96p pd=48.58u ps=48.58u
+xm2a n_m6s vin_n a vdd sky130_fd_pr__pfet_01v8 w=24u l=0.6u ad=6.96p as=6.96p pd=48.58u ps=48.58u
+xm5 n_m7d n_m5g n_m5s 0 sky130_fd_pr__nfet_01v8 w=60u l=0.3u ad=17.4p as=17.4p pd=120.6u ps=120.6u
+xm6 out n_m6g n_m6s 0 sky130_fd_pr__nfet_01v8 w=60u l=0.3u ad=17.4p as=17.4p pd=120.6u ps=120.6u
+xm19 n_m5g z vcn vcn sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+xm20 n_m6g z vcn vcn sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+xm3b n_m5s x 0 0 sky130_fd_pr__nfet_01v8 w=90u l=0.3u ad=26.1p as=26.1p pd=180.6u ps=180.6u
+xm4b n_m6s y 0 0 sky130_fd_pr__nfet_01v8 w=90u l=0.3u ad=26.1p as=26.1p pd=180.6u ps=180.6u
+xm17b x vcn n_m17ad 0 sky130_fd_pr__nfet_01v8 w=30u l=0.3u ad=8.7p as=8.7p pd=60.58u ps=60.58u
+xm17a n_m17ad y 0 0 sky130_fd_pr__nfet_01v8 w=12u l=0.3u ad=3.48p as=3.48p pd=24.58u ps=24.58u
+xm3c x vcn n_m3ad 0 sky130_fd_pr__nfet_01v8 w=30u l=0.3u ad=8.7p as=8.7p pd=60.58u ps=60.58u
+xm3a n_m3ad z 0 0 sky130_fd_pr__nfet_01v8 w=18u l=0.3u ad=5.22p as=5.22p pd=36.58u ps=36.58u
+xm4c y vcn n_m4ad 0 sky130_fd_pr__nfet_01v8 w=30u l=0.3u ad=8.7p as=8.7p pd=60.58u ps=60.58u
+xm4a n_m4ad z 0 0 sky130_fd_pr__nfet_01v8 w=18u l=0.3u ad=5.22p as=5.22p pd=36.58u ps=36.58u
+xm18b y vcn n_m18ad 0 sky130_fd_pr__nfet_01v8 w=30u l=0.3u ad=8.7p as=8.7p pd=60.58u ps=60.58u
+xm18a n_m18ad x 0 0 sky130_fd_pr__nfet_01v8 w=12u l=0.3u ad=3.48p as=3.48p pd=24.58u ps=24.58u
+rr1 x z 52000.0
+rr2 z y 52000.0
+ccbat1_l n_m5g x 1e-11
+ccbat1_r n_m6g y 1e-11
+ccbat2 n_m7d n_m8g 7e-13
+ccl out 0 7e-11
+iic_l vdd n_m13g 2e-07
+iic_r vdd n_m14g 2e-07
+ii05b_l n_m11d 0 1e-06
+ii05b_r n_m12d 0 1e-06
+vinp vin_p 0 0.6
+ein vin_n 0 value={0.5*(v(vsig)+v(out))}
+vsig vsig 0 pulse(0.3 0.8999999999999999 2.5e-06 1n 1n 4.999000000000001e-06 1e-05)
+.control
+tran 1n 1.25e-05 0 2n
+wrdata C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-29/cbox_rereview/c5_c2_7.00e-13.dat v(out)
+.endc
+.end

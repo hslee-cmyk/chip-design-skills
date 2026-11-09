@@ -1,0 +1,48 @@
+== library/common_gate_amplifier.topology.json  rails=['gnd', 'vdd']
+   DC 원소 0인 비레일 넷: ['VNBias1', 'VNBias2', 'VPBias1']  (port∩=[], bias_inputs∩=['VNBias1', 'VNBias2', 'VPBias1'])
+   DR-1 후보 수 = 0
+== library/current_reuse_telescopic_ota.topology.json  rails=['gnd', 'vdd']
+   (참고) DC 원소 하나뿐(MOS 아님): net N_cc_rz1 <- resistor Rz1.t0; port=False
+   (참고) DC 원소 하나뿐(MOS 아님): net N_cc_rz2 <- resistor Rz2.t0; port=False
+   DC 원소 0인 비레일 넷: ['Vim', 'Vip']  (port∩=['Vim', 'Vip'], bias_inputs∩=[])
+   DR-1 후보 수 = 0
+== library/folded_cascode.topology.json  rails=['gnd', 'vdd']
+   DC 원소 0인 비레일 넷: ['bias3', 'vin_n', 'vin_p']  (port∩=['vin_n', 'vin_p'], bias_inputs∩=['bias3'])
+   DR-1 후보 수 = 0
+== library/ngcc_3stage_ff.topology.json  rails=['gnd', 'vdd']
+   DC 원소 0인 비레일 넷: ['VBN', 'VBP', 'Vinn', 'Vinp']  (port∩=['Vinn', 'Vinp'], bias_inputs∩=['VBN', 'VBP'])
+   DR-1 후보 수 = 0
+== library/nmcnr_amplifier.topology.json  rails=['agnd', 'vdd', 'vss']
+   (참고) DC 원소 하나뿐(MOS 아님): net NodeCM <- resistor Rm.t0; port=False
+   DC 원소 0인 비레일 넷: ['VB1', 'VB2', 'VB3', 'VB4', 'VB5', 'Vin_n', 'Vin_p']  (port∩=['Vin_n', 'Vin_p'], bias_inputs∩=['VB1', 'VB2', 'VB3', 'VB4', 'VB5'])
+   DR-1 후보 수 = 0
+== library/pushpull_follower_buffer.topology.json  rails=['agnd', 'vdd', 'vss']
+   DC 원소 0인 비레일 넷: ['VNB1', 'VPB1', 'vin']  (port∩=['vin'], bias_inputs∩=['VNB1', 'VPB1'])
+   DR-1 후보 수 = 0
+== library/sf_pushpull_output_opamp.topology.json  rails=['agnd', 'vdd', 'vss']
+   DC 원소 0인 비레일 넷: ['vin_n', 'vin_p']  (port∩=['vin_n', 'vin_p'], bias_inputs∩=[])
+   DR-1 후보 수 = 0
+== library/two_stage_ota.topology.json  rails=['gnd', 'vdd']
+   (참고) DC 원소 하나뿐(MOS 아님): net N_cc_rz <- resistor Rz.t1; port=False
+   DC 원소 0인 비레일 넷: ['bias', 'vin_n', 'vin_p']  (port∩=['vin_n', 'vin_p'], bias_inputs∩=['bias'])
+   DR-1 후보 수 = 0
+== library/two_stage_ota_sf.topology.json  rails=['gnd', 'vdd']
+   DC 원소 0인 비레일 넷: ['bias', 'vin_n', 'vin_p']  (port∩=['vin_n', 'vin_p'], bias_inputs∩=['bias'])
+   DR-1 후보 수 = 0
+== heldout/cnr_ota.topology.json  rails=['VDD_1V8', 'VSS']
+   DC 원소 0인 비레일 넷: ['VIN', 'VIP']  (port∩=['VIN', 'VIP'], bias_inputs∩=[])
+   DR-1 후보 수 = 0
+== heldout/erfc_ota.topology.json  rails=['gnd', 'vcn', 'vcp', 'vdd']
+   DR-1 후보: net n_m5g <- M19.drain 채널 하나뿐; 반대 단자 넷 = vcn (rail=True); bulk = vdd; bulk==반대단자(source) = False; port=False; bias_input=False
+   DR-1 후보: net n_m6g <- M20.drain 채널 하나뿐; 반대 단자 넷 = vcn (rail=True); bulk = vdd; bulk==반대단자(source) = False; port=False; bias_input=False
+   DR-1 후보: net n_m8g <- M21.drain 채널 하나뿐; 반대 단자 넷 = vcp (rail=True); bulk = vdd; bulk==반대단자(source) = False; port=False; bias_input=False
+   DC 원소 0인 비레일 넷: ['vin_n', 'vin_p']  (port∩=['vin_n', 'vin_p'], bias_inputs∩=[])
+   DR-1 후보 수 = 3
+== heldout/r2r_opamp.topology.json  rails=['VDD', 'VSS']
+   DC 원소 0인 비레일 넷: ['Vinn', 'Vinp', 'vb1', 'vb3', 'vb4', 'vb5n', 'vb6n']  (port∩=['Vinn', 'Vinp'], bias_inputs∩=['vb1', 'vb3', 'vb4', 'vb5n', 'vb6n'])
+   DR-1 후보 수 = 0
+== heldout/rfc_ota.topology.json  rails=['gnd', 'vdd']
+   DC 원소 0인 비레일 넷: ['vin_n', 'vin_p']  (port∩=['vin_n', 'vin_p'], bias_inputs∩=[])
+   DR-1 후보 수 = 0
+
+소자 종류: {('passive', 'resistor'): 20, ('passive', 'capacitor'): 34, ('source', 'current_source'): 13}

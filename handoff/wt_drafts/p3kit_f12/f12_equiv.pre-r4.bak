@@ -1,0 +1,537 @@
+"""F1 작성 전 실측 -- 계약 3 판정기 r1(측정 전용. 판정 도구가 아니다: auditor는 계약 문언만 보고 독립으로 쓴다, 작성자 != 검증자).
+
+review_p3_f12.md S1 반영판. 옛 판(지우는 정규화)은 f12_equiv_v1.py로 남겼다(작성 전 실측 5의 옛 수치 재현용).
+
+    python -B f12_equiv.py <복제본 루트> <base rev> <head rev> <out.json> [--d17 <f1sim.json>] [--approved <목록 파일>] [--only <경로>…]
+
+r3(review_p3_f12_r2 S1·m2·m3): 같은 이름이 엔진 모듈에 두 번 이상 묶이거나 최상위가 아닌 스코프(def·class·lambda·컴프리헨션)에서 묶이면
+그 이름을 읽거나 묶는 단위와, 묶는 자리가 단위 밖(최상위 import 문)이면 그 자리(가짜 단위 `<bind 이름>` = 바인딩 서명)를 목록 단위로 둔다(별칭표가 파일 하나라 스코프를 풀지 않는다 -- T1·T3 공격).
+head에만 그런 이름이 새로 생기면 FAIL `multibind_new`. base·head 한쪽에만 있는 파일은 FAIL `file_set_same`(옛 판 `absent`는 어디에도 세지 않았다).
+'수집 test' = gate `tools/gates/pytest_gate.ini` 규칙(testpaths·norecursedirs = tools·pytest 기본 python_files) -- 옛 판은 `A/tests/tools/test_*.py`도 수집으로 봤다.
+이 시제품은 (바) (i)의 'diff = 승인 diff'와 (ii) 정적 확인을 기계화하지 않는다(승인 목록은 단위 이름뿐 -- auditor 몫).
+
+r2(review_p3_f12_r1 B2·S2): **모듈 객체 탈출 자리**(엔진 모듈 식이 속성 접근(dunder 제외)·getattr류 첫 인자(둘째 인자 문자열 상수)·
+import 호출 결과의 Name 대입(별칭 묶기) 밖에서 쓰이는 자리 -- 인자·다른 이름 대입·`vars()`·반환·동적 이름·dunder, 그리고 첫 인자가 상수가 아닌
+import 호출)를 base에서 찾아 그 자리를 담은 최상위 단위(def·class·문장)와 그 도우미를 부르는 단위를 '목록 단위'로 둔다.
+목록 단위는 (가)~(마)에서 빼고(표지 `<LISTED 단위>`), 파일 판정은 PASS가 아니라 LISTED(계약 3 제외 -- (i) V5 ⑤ 승인 diff 대조
+(ii) 정적 확인 (iii) PT3 test id 결과 같음으로 판정)다. fail-closed: head에서 목록 단위 밖에 탈출 자리가 새로 생기면 FAIL `escape_new`,
+목록 단위가 바뀌었는데 --approved 목록(`경로::단위` 줄, V5 ⑤ 승인 목록 대용)에 없으면 FAIL `listed_unapproved_change`,
+목록 단위가 있는 파일이 PT3 수집 test(`A/tests/**/test_*.py`)가 아니면 FAIL `listed_not_collected`((iii)으로 판정할 수 없다 -- 멈추고 묻는다).
+
+base·head 커밋 쌍의 바뀐 추적 .py(엔진 파일 A/*.py 제외)마다 (가)~(마)를 잰다.
+ (가) 정규화 AST 같음 -- 엔진 import 문(첫 성분이 SR·TL·DR·SD 또는 그 트리의 N3.10 줄기)은 **지우지 않고 그 자리에 표지 문장**으로 바꾼다
+     (같은 문장 목록에서 연속한 엔진 import 묶음 = 표지 하나 -- 1→N 분할·뒤에 붙인 별칭 import 허용. `import a, X as b`처럼 섞이면 비엔진 몫은 남기고 표지를 뒤에).
+     모듈 식(엔진 import가 묶은 별칭 Name, import 호출 `import_module/_import/__import__("X")`)은 `<M>`로.
+     D-17 대입은 **모듈 속성 대상만** 표지 `<D17>` 하나로 바꾸고(첫 모듈 속성 대상 자리) 그 밖의 대상(Name 등)은 남긴다.
+     D-17 호출(`setattr`/`delattr`/`<x>.setattr`(monkeypatch)/`<x>.delattr` -- 첫 인자 모듈 식, 둘째 인자 문자열 상수)을 담은 식 문장은
+     표지 `<D17C kind name value>` 하나로, 연속한 같은 표지는 하나로(같은 값을 여러 모듈에 넣는 1→N 허용).
+ (나) 해석 같음 -- from-import (묶는 이름 → 정의) 정렬 목록이 **같다**(부분집합 아님, m12), 모듈 식 속성·getattr류 상수 이름의 (등장 순서 → 정의) 목록이 같다.
+ (다) 정의 모듈 -- head의 엔진 from-import·모듈 식 읽기마다 그 이름의 정의 파일 모듈을 직접 가리킨다(예외: F2 뒤 SD에 남는 이름).
+ (라) D-17 -- head의 대입·호출 대상 모듈 집합(이름마다) = 기대 집합. 기대 = head 트리 엔진 파일 중 그 이름을 전역으로 읽고 같은 정의로 푸는 모듈 전부
+     (0이면 정의 모듈 하나; 이 판정기가 계산 -- --d17 json이 있으면 그것과도 대조해 차이를 적는다).
+ (마) 이름 없는 엔진 import -- base에서 묶은 이름을 어디서도 읽지 않는 엔진 `import X`(순서 고정용)는 head 같은 표지 묶음에
+     **N3.10 MOD10 진입 모듈**(head 트리에 없으면 -- 모의 -- head에 있는 N3.10 최대 번호 모듈)의 이름 없는 import로 같은 수만큼 있어야 한다.
+"""
+import ast
+import json
+import os
+import subprocess
+import sys
+
+ROOT, BASE, HEAD, OUT = sys.argv[1:5]
+D17IN = json.load(open(sys.argv[sys.argv.index("--d17") + 1], encoding="utf-8"))["d17"] if "--d17" in sys.argv else None
+ONLY = sys.argv[sys.argv.index("--only") + 1:] if "--only" in sys.argv else None
+APPROVED = set()
+if "--approved" in sys.argv:
+    APPROVED = {x.strip() for x in open(sys.argv[sys.argv.index("--approved") + 1], encoding="utf-8") if x.strip() and not x.startswith("#")}
+A = "skills/analog-gmid-design/assets/"
+IMPF = ("import_module", "_import", "__import__")
+SETF = ("setattr", "delattr")
+SHIMS = {"sizing_recipe", "topology_library", "design_report"}
+sys.path.insert(0, os.path.join(ROOT, "tools", "gates"))
+import reachability as rch  # noqa: E402
+import import_layering as il  # noqa: E402
+
+
+def git(*a):
+    r = subprocess.run(["git", "-c", "core.quotepath=off", "-C", ROOT] + list(a), capture_output=True)
+    if r.returncode:
+        raise SystemExit("git %s: %s" % (a, r.stderr.decode("utf-8", "replace")))
+    return r.stdout.decode("utf-8")
+
+
+IB = rch.SourceIndex(rch.read_tree(ROOT, BASE, rch.SOURCE_GLOBS))
+IH = rch.SourceIndex(rch.read_tree(ROOT, HEAD, rch.SOURCE_GLOBS))
+MODT = il.mod_table(git("show", HEAD + ":docs/01-plan/features/gain-budget-gmid-sizing.plan.md"))
+ENG = {"sizing_recipe", "topology_library", "design_report", "stick_diagram"} | set(MODT)
+_present = sorted(((k, m) for m, k in MODT.items() if (A + m + ".py") in IH.paths()), key=lambda x: x[0])
+NAMELESS_DEST = [m for k, m in _present if k == 10] or [_present[-1][1]]
+NAMELESS_DEST = NAMELESS_DEST[0]
+HEAD_ENGINE_FILES = sorted(p for p in IH.paths() if p.startswith(A) and "/" not in p[len(A):] and p.endswith(".py"))
+
+SD_READ = set()   # head SD가 스스로 읽는 이름(F2 뒤에도 SD에 바인딩이 남는다 -- design 30 §7.2)
+for _gn in IH.global_names(A + "stick_diagram.py").values():
+    SD_READ |= set(_gn)
+
+
+def canon(o):
+    if o[0] == "def":
+        return ("def", o[1], o[2])
+    if o[0] == "ext":
+        return ("ext", o[-2], o[-1])
+    if o[0] == "ext-module":
+        return ("ext-module", o[-1])
+    if o[0] == "module":
+        return ("module", o[1])
+    return (o[0],) + tuple(o[1:])
+
+
+def resolve(idx, mod, name):
+    p = A + mod + ".py"
+    if p not in idx.paths():
+        return ("unresolved", mod, name)
+    return canon(idx.binding_origin(p, name))
+
+
+_CALLERS = {}
+
+
+def expected_callers(name, origin):
+    """(라) 기대: head 트리 엔진 파일 중 name을 전역으로 읽고 같은 정의(origin)로 푸는 모듈 전부, 0이면 정의 모듈."""
+    k = (name, origin)
+    if k not in _CALLERS:
+        out = set()
+        if origin[0] == "def":
+            for p in HEAD_ENGINE_FILES:
+                st = p[len(A):-3]
+                if st in SHIMS:
+                    continue
+                if any(name in gn for gn in IH.global_names(p).values()) and canon(IH.binding_origin(p, name)) == origin:
+                    out.add(st)
+            if not out and origin[1].startswith(A):
+                out.add(origin[1][len(A):-3])
+        _CALLERS[k] = sorted(out)
+    return _CALLERS[k]
+
+
+def eng_mod(name):
+    return name.split(".")[0] in ENG
+
+
+def _fname(e):
+    f = e.func
+    return f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+
+
+def call_mod(e):
+    if isinstance(e, ast.Call):
+        if _fname(e) in IMPF and e.args and isinstance(e.args[0], ast.Constant) and isinstance(e.args[0].value, str) \
+                and eng_mod(e.args[0].value):
+            return e.args[0].value.split(".")[0]
+    return None
+
+
+def aliases_and_loads(t):
+    al = {}            # 모듈 별칭 -> 엔진 모듈
+    loads = set()
+    for n in ast.walk(t):
+        if isinstance(n, ast.Import):
+            for a in n.names:
+                if eng_mod(a.name):
+                    al[a.asname or a.name.split(".")[0]] = a.name.split(".")[0]
+        elif isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load):
+            loads.add(n.id)
+    for n in ast.walk(t):   # 별칭 = import 호출 결과를 대입받은 이름
+        if isinstance(n, ast.Assign) and call_mod(n.value):
+            for tg in n.targets:
+                if isinstance(tg, ast.Name):
+                    al[tg.id] = call_mod(n.value)
+    return al, loads
+
+
+def unit_names(t):
+    """최상위 문장마다 단위 이름: def·class는 이름, import 문은 None, 그 밖은 `<종류#순번>`(import·def·class 제외 순번)."""
+    out, k = [], 0
+    for s in t.body:
+        if isinstance(s, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            out.append(s.name)
+        elif isinstance(s, (ast.Import, ast.ImportFrom)):
+            out.append(None)
+        else:
+            out.append("<%s#%d>" % (type(s).__name__, k))
+            k += 1
+    return out
+
+
+GETF = ("getattr", "hasattr", "setattr", "delattr")
+
+
+def scan_escapes(src):
+    """모듈 객체 탈출 자리 [(단위, 종류, 줄)]와 목록 단위 집합(자리를 담은 단위 + 그 도우미 def를 부르는 단위)."""
+    t = ast.parse(src)
+    al, _l = aliases_and_loads(t)
+    names = unit_names(t)
+    sites = []
+    for top, unit in zip(t.body, names):
+        if unit is None:
+            continue
+        par = {}
+        for n in ast.walk(top):
+            for fld, v in ast.iter_fields(n):
+                if isinstance(v, list):
+                    for i, x in enumerate(v):
+                        if isinstance(x, ast.AST):
+                            par[id(x)] = (n, fld, i)
+                elif isinstance(v, ast.AST):
+                    par[id(v)] = (n, fld, None)
+        for n in ast.walk(top):
+            if isinstance(n, ast.Call) and _fname(n) in IMPF and not (
+                    n.args and isinstance(n.args[0], ast.Constant) and isinstance(n.args[0].value, str)):
+                sites.append((unit, "dynamic_import", n.lineno))
+                continue
+            is_mod = (isinstance(n, ast.Name) and n.id in al and isinstance(n.ctx, ast.Load)) or call_mod(n)
+            if not is_mod or id(n) not in par:
+                continue
+            p, fld, i = par[id(n)]
+            if isinstance(p, ast.Attribute) and fld == "value":
+                if p.attr.startswith("__") and p.attr.endswith("__"):
+                    sites.append((unit, "dunder", n.lineno))
+                continue
+            if isinstance(p, ast.Call) and fld == "args" and i == 0 and _fname(p) in GETF:
+                if not (len(p.args) > 1 and isinstance(p.args[1], ast.Constant) and isinstance(p.args[1].value, str)):
+                    sites.append((unit, "dynamic_name", n.lineno))
+                continue
+            if isinstance(p, ast.Assign) and fld == "value" and call_mod(n) and all(isinstance(x, ast.Name) for x in p.targets):
+                continue   # import 호출 결과의 별칭 묶기
+            if isinstance(p, ast.Call):
+                kind = "vars" if _fname(p) in ("vars", "dir") else "arg"
+            elif isinstance(p, ast.keyword):
+                kind = "arg"
+            elif isinstance(p, (ast.Assign, ast.AnnAssign, ast.AugAssign, ast.NamedExpr)):
+                kind = "assign"
+            elif isinstance(p, (ast.Return, ast.Yield, ast.YieldFrom, ast.Lambda)):
+                kind = "return"
+            else:
+                kind = "other:" + type(p).__name__
+            sites.append((unit, kind, n.lineno))
+    listed = {u for u, _k, _n in sites}
+    defs = {s.name for s in t.body if isinstance(s, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    helpers = (listed & defs) - set(IMPF)
+    grew = True
+    while grew:   # 도우미(목록 def)를 부르는 단위도 목록 -- '그 반환 모듈을 쓰는 줄'
+        grew = False
+        for top, unit in zip(t.body, names):
+            if unit is None or unit in listed:
+                continue
+            if any(isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id in helpers for n in ast.walk(top)):
+                listed.add(unit)
+                grew = True
+    # r3 S1: 엔진 모듈에 두 번 이상 / 최상위가 아닌 스코프에서 묶인 이름 -- 그 이름을 쓰는(읽기·묶기) 단위와 묶는 자리(`<bind 이름>`)를 목록 단위로.
+    # (파일 하나짜리 별칭표는 사용 자리의 Python 스코프를 풀지 않으므로 (가)~(마)로 판정하지 않는다 -- fail-closed)
+    mb = multibound(t)
+    for nm, sig in mb.items():
+        if any(u == "<import>" for _m, _top, u in sig):   # 묶는 자리가 단위 밖(최상위 import 문)이면 그 자리를 가짜 단위로 -- 단위 안 자리는 단위 비교가 본다
+            listed.add("<bind %s>" % nm)
+        for top, unit in zip(t.body, names):
+            if unit is not None and any(isinstance(n, ast.Name) and n.id == nm for n in ast.walk(top)):
+                listed.add(unit)
+    return sites, listed
+
+
+_SCOPES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda,
+           ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)
+
+
+def engine_bindings(t):
+    """r3(review_p3_f12_r2 S1): 엔진 모듈을 이름에 묶는 자리 [(이름, 모듈, 최상위 스코프인가, 단위)] -- 소스 순서.
+    묶는 자리 = 엔진 모듈의 `import X [as a]`(asname, 없으면 첫 성분), import 호출(상수 엔진 이름) 결과를 `Name`에 대입(`=`·`:=`·주석 대입).
+    최상위 스코프 = 모듈 스코프(최상위 문장과 그 안의 if/try/with/for/while 블록). def·class·lambda·컴프리헨션 안은 최상위가 아니다."""
+    out = []
+
+    def walk(n, top, unit):
+        if isinstance(n, ast.Import):
+            for a in n.names:
+                if eng_mod(a.name):
+                    out.append((a.asname or a.name.split(".")[0], a.name.split(".")[0], top, unit))
+        elif isinstance(n, (ast.Assign, ast.AnnAssign, ast.NamedExpr)) and getattr(n, "value", None) is not None and call_mod(n.value):
+            tgs = n.targets if isinstance(n, ast.Assign) else [n.target]
+            for tg in tgs:
+                if isinstance(tg, ast.Name):
+                    out.append((tg.id, call_mod(n.value), top, unit))
+        inner = top and not isinstance(n, _SCOPES)
+        for c in ast.iter_child_nodes(n):
+            walk(c, inner, unit)
+
+    for s, u in zip(t.body, unit_names(t)):
+        walk(s, True, u or "<import>")
+    return out
+
+
+def multibound(t):
+    """같은 이름이 엔진 모듈에 두 번 이상 묶이거나 최상위가 아닌 스코프에서 묶이는 이름 -> 묶는 자리 서명(소스 순서)."""
+    by = {}
+    for nm, m, top, u in engine_bindings(t):
+        by.setdefault(nm, []).append((m, top, u))
+    return {nm: v for nm, v in by.items() if len(v) > 1 or not all(top for _m, top, _u in v)}
+
+
+def unit_dumps(src, units):
+    t = ast.parse(src)
+    out = {u: ast.dump(s, include_attributes=False) for s, u in zip(t.body, unit_names(t)) if u in units}
+    mb = multibound(t)
+    for u in units:   # 묶는 자리 가짜 단위 `<bind 이름>` = 그 이름의 엔진 바인딩 서명(모듈·스코프·단위) -- 바인딩이 바뀌면 단위 변경
+        if u.startswith("<bind ") and u.endswith(">"):
+            out[u] = repr(mb.get(u[6:-1]))
+    return out
+
+
+def strip_units(t, units):
+    if units:
+        names = unit_names(t)
+        t.body = [ast.Expr(ast.Constant("<LISTED %s>" % u)) if u in units else s for s, u in zip(t.body, names)]
+    return t
+
+
+def analyze(src, idx, listed=frozenset()):
+    al, loads = aliases_and_loads(ast.parse(src))   # 별칭·읽힌 이름은 파일 전체에서(목록 단위 안에서만 읽는 별칭도 '이름 없는 import'가 아니다)
+    t = strip_units(ast.parse(src), listed)
+
+    def mod_of(e):
+        if isinstance(e, ast.Name) and e.id in al:
+            return al[e.id]
+        return call_mod(e)
+
+    def setcall(e):
+        """D-17 호출: (종류, 모듈, 이름) 또는 None."""
+        if not isinstance(e, ast.Call) or len(e.args) < 2:
+            return None
+        f = e.func
+        nm = f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+        if nm in SETF and mod_of(e.args[0]) and isinstance(e.args[1], ast.Constant) and isinstance(e.args[1].value, str):
+            return (nm, mod_of(e.args[0]), e.args[1].value)
+        return None
+
+    froms, attrs, notdef, d17t, nameless = [], [], [], [], []
+    for n in ast.walk(t):
+        if isinstance(n, ast.ImportFrom) and n.level == 0 and n.module and eng_mod(n.module):
+            for a in n.names:
+                r = resolve(idx, n.module.split(".")[0], a.name)
+                froms.append((a.asname or a.name, r))
+                if r[0] == "def" and r[1] != A + n.module.split(".")[0] + ".py" and not (n.module == "stick_diagram" and a.name in SD_READ):
+                    notdef.append((n.lineno, n.module, a.name, r[1]))
+        elif isinstance(n, ast.Import):
+            for a in n.names:
+                if eng_mod(a.name) and (a.asname or a.name.split(".")[0]) not in loads:
+                    nameless.append(a.name.split(".")[0])
+        elif isinstance(n, ast.Attribute) and mod_of(n.value) and not isinstance(n.ctx, ast.Store) and not isinstance(n.ctx, ast.Del):
+            r = resolve(idx, mod_of(n.value), n.attr)
+            attrs.append(r)
+            if r[0] == "def" and r[1] != A + mod_of(n.value) + ".py" and not (mod_of(n.value) == "stick_diagram" and n.attr in SD_READ):
+                notdef.append((n.lineno, mod_of(n.value), n.attr, r[1]))
+        elif isinstance(n, (ast.Assign, ast.AugAssign, ast.AnnAssign, ast.Delete)):
+            tgs = n.targets if isinstance(n, (ast.Assign, ast.Delete)) else [n.target]
+            tg = [x for x in tgs if isinstance(x, ast.Attribute) and mod_of(x.value)]
+            for x in tg:
+                d17t.append((x.attr, mod_of(x.value)))
+        elif isinstance(n, ast.Call) and setcall(n):
+            k, m, nm = setcall(n)
+            d17t.append((nm, m))
+            attrs.append(("d17call", k) + resolve(idx, m, nm))
+        elif isinstance(n, ast.Call) and n.args and mod_of(n.args[0]) and \
+                (n.func.id if isinstance(n.func, ast.Name) else getattr(n.func, "attr", "")) in ("getattr", "hasattr"):
+            a1 = n.args[1] if len(n.args) > 1 else None
+            attrs.append(resolve(idx, mod_of(n.args[0]), a1.value) if isinstance(a1, ast.Constant) else ("dynamic",))
+
+    def marker(text):
+        return ast.Expr(ast.Constant(text))
+
+    class Norm(ast.NodeTransformer):
+        def _stmts(self, body):
+            out, prev = [], None
+            for s in body:
+                if isinstance(s, ast.Import) and any(eng_mod(a.name) for a in s.names):
+                    rest = [a for a in s.names if not eng_mod(a.name)]
+                    if rest:
+                        s.names = rest
+                        out.append(s)
+                        prev = None
+                    if prev != "<ENGINE-IMPORT>":
+                        out.append(marker("<ENGINE-IMPORT>"))
+                    prev = "<ENGINE-IMPORT>"
+                    continue
+                if isinstance(s, ast.ImportFrom) and s.level == 0 and s.module and eng_mod(s.module):
+                    if prev != "<ENGINE-IMPORT>":
+                        out.append(marker("<ENGINE-IMPORT>"))
+                    prev = "<ENGINE-IMPORT>"
+                    continue
+                if isinstance(s, ast.Expr) and setcall(s.value):
+                    k, _m, nm = setcall(s.value)
+                    v = s.value.args[2] if len(s.value.args) > 2 else None
+                    txt = "<D17C %s %s %s>" % (k, nm, ast.dump(self.visit(v), include_attributes=False) if v is not None else "")
+                    if prev != txt:
+                        out.append(marker(txt))
+                    prev = txt
+                    continue
+                prev = None
+                r = self.visit(s)
+                if r is None:
+                    continue
+                out.extend(r if isinstance(r, list) else [r])
+            return out
+
+        def generic_visit(self, node):
+            for fld in ("body", "orelse", "finalbody"):
+                v = getattr(node, fld, None)
+                if isinstance(v, list) and v and isinstance(v[0], ast.stmt):
+                    setattr(node, fld, self._stmts(v))
+            for fld, v in ast.iter_fields(node):
+                if fld in ("body", "orelse", "finalbody") and isinstance(v, list) and v and isinstance(v[0], ast.stmt):
+                    continue
+                if isinstance(v, list):
+                    nv = []
+                    for x in v:
+                        if isinstance(x, ast.AST):
+                            x = self.visit(x)
+                            if x is None:
+                                continue
+                            if isinstance(x, list):
+                                nv.extend(x)
+                                continue
+                        nv.append(x)
+                    setattr(node, fld, nv)
+                elif isinstance(v, ast.AST):
+                    setattr(node, fld, self.visit(v))
+            return node
+
+        def visit_Assign(self, n):
+            if any(isinstance(x, ast.Attribute) and mod_of(x.value) for x in n.targets):
+                new, done = [], False
+                for x in n.targets:
+                    if isinstance(x, ast.Attribute) and mod_of(x.value):
+                        if not done:
+                            new.append(ast.Name("<D17>", ast.Store()))
+                            done = True
+                        continue
+                    new.append(x)
+                n.targets = new
+            return self.generic_visit(n)
+
+        def visit_Name(self, n):
+            return ast.Name("<M>", n.ctx) if n.id in al and isinstance(n.ctx, ast.Load) else n
+
+        def visit_Call(self, n):
+            if call_mod(n):
+                return ast.Name("<M>", ast.Load())
+            return self.generic_visit(n)
+
+    t2 = Norm().visit(strip_units(ast.parse(src), listed))
+    return ast.dump(t2, include_attributes=False), sorted(froms), attrs, notdef, d17t, nameless
+
+
+changed = [p for p in git("diff", "--name-only", "-z", BASE, HEAD).split("\0")
+           if p.endswith(".py") and not (p.startswith(A) and "/" not in p[len(A):])]
+if ONLY:
+    changed = [p for p in changed if p in ONLY]
+res = {"nameless_dest": NAMELESS_DEST, "files": {}, "summary": {}}
+def _ini_collect_rule():
+    """r3(review_p3_f12_r2 m3): gate `tools/gates/pytest_gate.ini`(head 트리)의 testpaths·norecursedirs, python_files는 pytest 기본값."""
+    import configparser
+    cp = configparser.ConfigParser()
+    cp.read_string(git("show", HEAD + ":tools/gates/pytest_gate.ini"))
+    sec = cp["pytest"]
+    tp = [x.strip().rstrip("/") + "/" for x in sec.get("testpaths", "").split()]
+    nr = sec.get("norecursedirs", "").split()
+    pf = sec.get("python_files", "test_*.py *_test.py").split()
+    return tp, nr, pf
+
+
+TESTPATHS, NORECURSE, PYFILES = _ini_collect_rule()
+
+
+def is_collected(p):
+    """PT3(pytest_gate.ini) 수집 규칙: testpaths 아래, 중간 디렉터리 이름이 norecursedirs 패턴에 걸리지 않고, 파일 이름이 python_files 패턴."""
+    import fnmatch
+    for tp in TESTPATHS:
+        if p.startswith(tp):
+            parts = p[len(tp):].split("/")
+            if any(fnmatch.fnmatch(d, pat) for d in parts[:-1] for pat in NORECURSE):
+                return False
+            return any(fnmatch.fnmatch(parts[-1], pat) for pat in PYFILES)
+    return False
+
+
+for p in changed:
+    side = []
+    for rev, tag in ((BASE, "base"), (HEAD, "head")):
+        try:
+            git("show", rev + ":" + p)
+            side.append(tag)
+        except SystemExit:
+            pass
+    if side != ["base", "head"]:
+        # r3(review_p3_f12_r2 m2): base·head 파일 집합이 같아야 한다 -- 한쪽에만 있는 파일은 FAIL(계약 3 첫 줄, 계약 7)
+        res["files"][p] = {"verdict": "FAIL", "failed": ["file_set_same"], "only_in": side}
+        continue
+    sb, sh = git("show", BASE + ":" + p), git("show", HEAD + ":" + p)
+    sites_b, listed = scan_escapes(sb)
+    sites_h, _lh = scan_escapes(sh)
+    mb_new = sorted(set(multibound(ast.parse(sh))) - set(multibound(ast.parse(sb))))   # r3 S1: base 목록 밖 head 신규 다중·비최상위 바인딩
+    nb, fb, ab, _nd, d17b, nlb = analyze(sb, IB, listed)
+    nh, fh, ah, ndh, d17h, nlh = analyze(sh, IH, listed)
+    # (라) 기대: base D-17 대상 (이름, base 모듈)마다 정의를 base에서 풀고 head 트리의 호출자 전부
+    want = {}
+    for nm, m in d17b:
+        o = resolve(IB, m, nm)
+        want.setdefault(nm, set()).update(expected_callers(nm, o))
+    got = {}
+    for nm, m in d17h:
+        got.setdefault(nm, set()).add(m)
+    want = {k: sorted(v) for k, v in want.items()}
+    got = {k: sorted(v) for k, v in got.items()}
+    # S2 fail-closed: head 탈출 자리는 base 목록 단위 안에만, 목록 단위의 변경은 승인 목록(V5 ⑤)에만, 목록 파일은 PT3 수집 test만
+    new_esc = [x for x in sites_h if x[0] not in listed]
+    ub, uh = unit_dumps(sb, listed), unit_dumps(sh, listed)
+    changed_units = sorted(u for u in listed if ub.get(u) != uh.get(u))
+    unapproved = [u for u in changed_units if "%s::%s" % (p, u) not in APPROVED]
+    collected = is_collected(p)
+    v = {"escape_new_none": not new_esc, "multibind_new_none": not mb_new, "listed_changes_approved": not unapproved,
+         "listed_collected": collected or not listed,
+         "ast_same": nb == nh, "from_same": fb == fh, "attr_same": ab == ah, "def_module": not ndh,
+         "d17_same": want == got,
+         "nameless_ok": len(nlb) == len(nlh) and all(m == NAMELESS_DEST for m in nlh) if nlb else not nlh or nlb == nlh}
+    if D17IN is not None:
+        f1 = {x["name"]: sorted(x["callers"]) for x in D17IN.get(p, [])}
+        if f1 and f1 != want:
+            v["d17_expect_vs_f1sim"] = [want, f1]
+    if ndh:
+        v["not_def_module"] = ndh[:5]
+    if not v["d17_same"]:
+        v["d17_diff"] = {"want": want, "got": got}
+    if not v["from_same"]:
+        v["from_diff"] = [sorted(set(fb) - set(fh))[:5], sorted(set(fh) - set(fb))[:5]]
+    if not v["attr_same"]:
+        v["attr_diff"] = [(i, x, y) for i, (x, y) in enumerate(zip(ab, ah)) if x != y][:5] + ([("len", len(ab), len(ah))] if len(ab) != len(ah) else [])
+    if not v["nameless_ok"]:
+        v["nameless"] = [nlb, nlh]
+    if listed:
+        v["listed_units"] = sorted(listed)
+        v["escape_sites_base"] = sites_b
+        v["listed_changed_units"] = changed_units
+    if new_esc:
+        v["escape_new"] = new_esc
+    if mb_new:
+        v["multibind_new"] = mb_new
+    if unapproved:
+        v["listed_unapproved"] = unapproved
+    KS = ("escape_new_none", "multibind_new_none", "listed_changes_approved", "listed_collected",
+          "ast_same", "from_same", "attr_same", "def_module", "d17_same", "nameless_ok")
+    v["failed"] = [k for k in KS if not v[k]]
+    v["verdict"] = "FAIL" if v["failed"] else ("LISTED" if listed else "PASS")
+    res["files"][p] = v
+res["summary"] = {"files": len(changed), "pass": sum(1 for x in res["files"].values() if x.get("verdict") == "PASS"),
+                  "listed": {p: x["listed_units"] for p, x in sorted(res["files"].items()) if x.get("verdict") == "LISTED"},
+                  "fail": {p: x["failed"] for p, x in sorted(res["files"].items()) if x.get("verdict") == "FAIL"},
+                  "d17_expect_vs_f1sim_diff": sorted(p for p, x in res["files"].items() if "d17_expect_vs_f1sim" in x)}
+with open(OUT, "w", encoding="utf-8") as fh:
+    json.dump(res, fh, ensure_ascii=False, indent=1, default=list)
+print(json.dumps(res["summary"], ensure_ascii=False))

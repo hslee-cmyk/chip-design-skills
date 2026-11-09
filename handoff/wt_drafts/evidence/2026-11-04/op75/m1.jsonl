@@ -1,0 +1,9 @@
+{"case": "none", "rc": 0, "lines": ["Note: No compatibility mode selected!", "v(a) = 1.000000e+00", "NGBEH", "MARK"]}
+{"case": "home_hsa_only", "rc": 0, "lines": ["Note: Compatibility modes selected: hs a", "v(a) = 1.000000e+00", "NGBEH hsa", "MARK from_home"]}
+{"case": "cwd_hsa_only", "rc": 0, "lines": ["Note: Compatibility modes selected: hs a", "v(a) = 1.000000e+00", "NGBEH hsa", "MARK from_cwd"]}
+{"case": "cwd_empty_home_hsa", "rc": 0, "lines": ["Note: No compatibility mode selected!", "v(a) = 1.000000e+00", "NGBEH", "MARK"]}
+{"case": "cwd_hsa_home_other", "rc": 0, "lines": ["Note: Compatibility modes selected: hs a", "v(a) = 1.000000e+00", "NGBEH hsa", "MARK from_cwd"]}
+{"case": "home_hsa_USERPROFILE_only", "rc": 0, "lines": ["Note: Compatibility modes selected: hs a", "v(a) = 1.000000e+00", "NGBEH hsa", "MARK from_home"]}
+{"case": "home_hsa_HOME_only", "rc": 0, "lines": ["Note: Compatibility modes selected: hs a", "v(a) = 1.000000e+00", "NGBEH hsa", "MARK from_home"]}
+{"case": "userinit_dir_only", "rc": 0, "lines": ["Note: Compatibility modes selected: hs a", "NGBEH hsa", "MARK from_userinit_dir"]}
+{"case": "cwd_empty_userinit_dir", "rc": 0, "lines": ["Note: No compatibility mode selected!", "NGBEH", "MARK"]}

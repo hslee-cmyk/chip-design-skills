@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+"""kit_line_shift.py 자기 시험 -- 검토 review_kit_line_shift.md의 최소 재현(S1·S2·S3·m1~m9)을 합성 저장소에서 돌린다.
+
+모래상자 C:/g327(TMP/TEMP도 그 아래). 현재 디렉터리(".")는 쓰지 않는다. 끝나면 모래상자를 지운다.
+결과는 _drafts/kit_line_shift_selftest.out.txt에 케이스마다 덧붙인다. 하나라도 FAIL이면 rc 1.
+실행: python kit_line_shift_selftest.py
+"""
+import importlib.util
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+SB = "C:/g327"
+TMP = SB + "/tmp"
+OUT = os.path.join(HERE, "kit_line_shift_selftest.out.txt")
+GITC = ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "core.autocrlf=false", "-c", "core.safecrlf=false",
+        "-c", "core.hooksPath=" + SB + "/nohooks", "-c", "commit.gpgsign=false"]
+SR, SD = "skills/a/sizing_recipe.py", "skills/a/stick_diagram.py"
+
+spec = importlib.util.spec_from_file_location("kls", os.path.join(HERE, "kit_line_shift.py"))
+kls = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(kls)
+
+RESULTS = []
+
+
+def log(msg):
+    with open(OUT, "a", encoding="utf-8") as fh:
+        fh.write(msg + "\n")
+    print(msg)
+
+
+def check(name, cond, detail=""):
+    RESULTS.append(cond)
+    log("%s %s %s" % ("PASS" if cond else "FAIL", name, detail))
+
+
+def git(repo, *args):
+    p = subprocess.run(["git", *GITC, "-C", repo, *args], capture_output=True)
+    if p.returncode != 0:
+        raise RuntimeError("git %s: %s" % (args, p.stderr.decode("utf-8", "replace")))
+    return p.stdout.decode().strip()
+
+
+def engine_text(prefix, n=3000, nl="\n", common=True, big=False):
+    out = []
+    for i in range(1, n + 1):
+        if common and i == 500:
+            out.append("common = 1")
+        elif big and i == 2500:
+            out.append("def big_func():")
+        elif big and 2501 <= i <= 2600:
+            out.append("    %s_line_%d = %d" % (prefix, i, i))
+        else:
+            out.append("%s_line_%d = %d" % (prefix, i, i))
+    return nl.join(out) + nl
+
+
+def insert_after(text, after, k, nl="\n"):
+    ls = text.split(nl)
+    return nl.join(ls[:after] + ["ins_%d = %d" % (j, j) for j in range(k)] + ls[after:])
+
+
+def write(path, data):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as fh:
+        fh.write(data if isinstance(data, bytes) else data.encode("utf-8"))
+
+
+def make_repo(name, nl="\n", attrs=None, nul=False, rename=False):
+    """old = SR·SD 3000줄, new = 40행 뒤 5줄 삽입. 반환 (repo, old_sha, new_sha)."""
+    repo = SB + "/" + name
+    os.makedirs(repo)
+    git(repo, "init", "-q")
+    sr, sd = engine_text("sr", nl=nl, big=True), engine_text("sd", nl=nl)
+    if nul:
+        sr = sr.replace("sr_line_10 = 10", "sr_line_10 = '\x00'")
+    write(repo + "/" + SR, sr)
+    write(repo + "/" + SD, sd)
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "old")
+    old = git(repo, "rev-parse", "HEAD")
+    write(repo + "/" + SR, insert_after(sr, 40, 5, nl))
+    write(repo + "/" + SD, insert_after(sd, 40, 5, nl))
+    if attrs:
+        write(repo + "/.gitattributes", attrs)
+    if rename:
+        git(repo, "mv", SR, "skills/a/sizing_recipe2.py")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "new")
+    return repo, old, git(repo, "rev-parse", "HEAD")
+
+
+def run(repo, old, new, drafts_root, drafts, out, bases=()):
+    argv = ["--repo", repo, "--old", old, "--new", new, "--engine", "SR=" + SR, "--engine", "SD=" + SD,
+            "--drafts-root", drafts_root, "--out-dir", out]
+    for b in bases:
+        argv += ["--base", b]
+    for d in drafts:
+        argv += ["--draft", d]
+    kls.main(argv)
+    with open(out + "/kit_line_shift.json", encoding="utf-8") as fh:
+        return json.load(fh)["records"]
+
+
+def rmtree(path):
+    """git 객체 파일(읽기 전용)도 지운다."""
+    def onerr(func, p, _exc):
+        os.chmod(p, 0o700)
+        func(p)
+    if os.path.exists(path):
+        shutil.rmtree(path, onexc=onerr)
+
+
+def main():
+    rmtree(SB)
+    os.makedirs(TMP)
+    os.makedirs(SB + "/nohooks")
+    os.environ["TMP"] = os.environ["TEMP"] = TMP
+    tempfile.tempdir = TMP
+    with open(OUT, "w", encoding="utf-8") as fh:
+        fh.write("kit_line_shift selftest\n")
+    try:
+        cases()
+    finally:
+        rmtree(SB)
+        log("sandbox removed: %s" % (not os.path.exists(SB)))
+    n_fail = RESULTS.count(False)
+    log("TOTAL %d, FAIL %d" % (len(RESULTS), n_fail))
+    return 1 if n_fail else 0
+
+
+def cases():
+    repo, old, new = make_repo("r1")
+    # 모의 base b1 = 로컬 파일(old SD 사본)
+    b1f = SB + "/g83/b1/" + SD
+    write(b1f, engine_text("sd"))
+    drafts = SB + "/drafts"
+    # (줄, 기대: {old: new} 패치되는 것, 패치되면 안 되는 수 목록, 신뢰도 점검 {old: conf})
+    L = [
+        ("SR 1200", {1200: 1205}, [], {1200: "medium"}),
+        ("`sr_line_1200 = 1200` sizing_recipe.py:1200", {1200: 1205}, [], {1200: "high"}),
+        ("SR 1200 `sr_line_1200`", {1200: 1205}, [], {1200: "medium"}),                 # 식별자 하나는 high 근거 아님
+        ("SR 2550 big_func", {2550: 2555}, [], {2550: "medium"}),                       # def-ok만으로는 high 아님
+        ("* `sr_line_1200` 근처, sizing_recipe.py:1205", {}, [1205], {1205: "already-new"}),
+        ("* 주석, sizing_recipe.py:1205~1206:", {}, [1205, 1206], {1205: "already-new", 1206: "already-new"}),
+        ("  > `sr_line_1200 = 1200`", {}, [], {}),
+        ("  > `sr_line_1201 = 1201`", {}, [], {}),
+        ("* 주석, sizing_recipe.py:1200~1201:", {1200: 1205, 1201: 1206}, [], {1200: "high", 1201: "high"}),
+        ("  > `sr_line_1200 = 1200`", {}, [], {}),
+        ("  > `sr_line_1201 = 1201`", {}, [], {}),
+        ("exp = {1205: b'sr_line_1200 = 1200'}", {}, [1205], {1205: "already-new"}),
+        ("", {}, [], {}),                                                               # 바로 옆 줄이면 옛·새 쌍으로 본다
+        ("exp = {1200: b'sr_line_1200 = 1200'}", {1200: 1205}, [], {1200: "high"}),
+        ("exp = {500: b'common = 1'}", {}, [500], {500: "ambiguous"}),                 # m2 두 엔진 모두
+        ("SR 130줄을 고쳤다", {}, [130], {}),
+        ("SR 2026년 10월 6일", {}, [2026], {}),
+        ("SR 2026/10/06", {}, [2026], {}),
+        ("SR 2026", {}, [2026], {}),
+        ("SR 1200 2026년", {1200: 1205}, [2026], {}),
+        ("SR 1200 / 2026", {1200: 1205}, [2026], {}),
+        ("SD 512 MB", {}, [512], {}),
+        ("SR 100% 통과", {}, [100], {}),
+        ("SR 300 tests passed", {}, [300], {}),
+        ("SR: 300 passed", {}, [300], {}),
+        ("SR 1200·133개", {1200: 1205}, [133], {}),
+        ("sizing_recipe.py 3000줄 중 1200", {}, [3000, 1200], {}),
+        ("SR 1200 → 1205(이미 옮긴 값)", {}, [1200, 1205], {1200: "ambiguous", 1205: "ambiguous"}),
+        ("SR 1200->1205", {}, [1200, 1205], {}),
+        ("`C:/g83/b1/skills/a/stick_diagram.py:1200`", {}, [1200], {1200: "ambiguous"}),   # m3
+        ("SR 9024→9016줄", {}, [9024, 9016], {}),
+        ("SR 12345", {}, [12345], {}),
+        ("SR 2026-10-06", {}, [2026], {}),
+        ("SR v1.2.300", {}, [300], {}),
+        ("SR 0x1234", {}, [1234], {}),
+        ("SR 3.14159", {}, [14159], {}),
+        ("SR 1,200줄", {}, [200], {}),
+        ("SR 1234567", {}, [], {}),
+        ("SR 래치 1200", {}, [1200], {}),
+        ("SR latch 1200", {}, [1200], {}),
+        ("| SR | 1200 | 1300 |", {}, [1200, 1300], {}),
+        ("PR #1234, SR", {}, [1234], {}),
+        ("SR 1200 (a1b2c3d)", {}, [1200], {}),
+        ("SD 1567(b34 1563)", {}, [1567, 1563], {}),
+        ("SR 1200(B34 사본 1195)", {}, [1200, 1195], {}),
+        ("sizing_recipe.py:1200, test_sizing_recipe.py:1300", {1200: 1205}, [1300], {}),
+        ("SR 1200-1210", {}, [1200, 1210], {1200: "ambiguous", 1210: "ambiguous"}),   # m4 시작 수도 보고
+        ("SR 01200", {}, [1200], {}),                                                   # m8
+        ("SR 3000", {3000: 3005}, [], {}),
+        ("SR 3001", {}, [3001], {3001: "low"}),                                         # m6 길이+1
+        ("SR 1195 이전", {1195: 1200}, [], {}),
+        # 절 표지: new rev 줄 번호라고 적힌 절 -- 아래 인용은 이미 옮긴 것
+        ("## 근거(gate `master` `%s` 줄 번호)" % new[:7], {}, [], {}),
+        ("* SR 1205, SD 1210", {}, [1205, 1210], {1205: "already-new", 1210: "already-new"}),
+        ("SITE_SD = [1014, 1571]", {}, [1014, 1571], {1014: "already-new"}),
+        # 다음 절 표지(old) -- 다시 옮긴다
+        ("## 옛 절(줄 번호는 `%s`)" % old[:7], {}, [], {}),
+        ("* SR 1205", {1205: 1210}, [], {1205: "medium"}),
+        # 줄에 인용 여럿 + 조각이 new 같은 번호 줄과 맞음 -> ambiguous, 범위 짝도 함께 패치 밖
+        ("sizing_recipe.py 1201~1205, `sr_line_1200 = 1200`", {}, [1201, 1205], {1201: "ambiguous", 1205: "ambiguous"}),
+        # 한 줄에 표지 둘: 마지막(measured rev)이 이긴다
+        ("(gate master `%s` 재측정 -- measured rev는 `%s` 그대로)" % (new[:7], old[:7]), {}, [], {}),
+        ("* SR 1200", {1200: 1205}, [], {1200: "medium"}),
+        # 새 값이 곁에 이미 있다: 옛·새 판 리터럴을 나란히 둔 조건식, `SD 1210(b34 1215)`
+        ("exp = ({1205: b'sr_line_1200 = 1200'} if new_rev else", {}, [1205], {1205: "already-new"}),
+        ("       {1200: b'sr_line_1200 = 1200'})", {}, [1200], {1200: "ambiguous"}),
+        ("| x | `sd_line_1210 = 1210` | SD 1210(b34 1215) |", {}, [1210, 1215], {1210: "ambiguous"}),
+    ]
+    text = "\n".join(t for t, *_ in L) + "\n"
+    write(drafts + "/d.md", text)
+    # m5: U+2028 / \x0c 가 있는 초안 -- 줄 번호는 \n 기준
+    write(drafts + "/u.md", "x\u2028y\nSR 1200\n\x0cz\x85w\nSR 1300")
+    recs = run(repo, old, new, drafts, ["d.md", "u.md"], SB + "/out1", bases=["b1=SD:" + b1f])
+    by = {}
+    for r in recs:
+        by.setdefault((r["file"], r["line"]), []).append(r)
+    for i, (t, want_p, not_p, confs) in enumerate(L, 1):
+        rs = by.get(("d.md", i), [])
+        got_p = {r["old"]: r["new"] for r in rs if r.get("patched")}
+        ok = got_p == want_p and not any(n in got_p for n in not_p)
+        for n, c in confs.items():
+            cc = [r["confidence"] for r in rs if r["old"] == n and r["how"] not in ("bare", "untied")]
+            ok = ok and cc and all(x == c for x in cc)
+        check("d.md:%d %r" % (i, t), ok, "patched=%s conf=%s" % (got_p, {r["old"]: r["confidence"] for r in rs}))
+    u = {(r["line"], r["old"]): r for r in recs if r["file"] == "u.md"}
+    check("m5 U+2028/\\x0c 줄 번호", (2, 1200) in u and (4, 1300) in u and u[(2, 1200)].get("patched")
+          and u[(4, 1300)].get("patched"), str(sorted(u)))
+    # patch가 초안에 그대로 적용되는가(m5, CRLF·끝 개행 없음 포함)
+    p = subprocess.run(["git", "-C", drafts, "apply", "--check", "-p1", SB + "/out1/kit_line_shift.patch"], capture_output=True)
+    check("patch git apply --check", p.returncode == 0, p.stderr.decode("utf-8", "replace"))
+
+    # m1: CRLF 엔진에서 리터럴 대조
+    repo2, old2, new2 = make_repo("r2", nl="\r\n")
+    write(SB + "/drafts2/c.py", "exp = {1200: b'sr_line_1200 = 1200'}\n")
+    rs = [r for r in run(repo2, old2, new2, SB + "/drafts2", ["c.py"], SB + "/out2") if r["how"] == "literal"]
+    check("m1 CRLF 엔진 리터럴", len(rs) == 1 and rs[0]["confidence"] == "high" and rs[0]["new"] == 1205 and rs[0]["patched"],
+          str([(r["confidence"], r["new"]) for r in rs]))
+
+    # S3: 바이너리 판정(.gitattributes -diff, NUL 바이트)에도 덩어리를 읽는다
+    write(SB + "/drafts3/s.md", "SR 1200\n")
+    for nm, kw in (("r3", {"attrs": "*.py -diff\n"}), ("r4", {"nul": True})):
+        r, o, n = make_repo(nm, **kw)
+        rs = run(r, o, n, SB + "/drafts3", ["s.md"], SB + "/out_" + nm)
+        check("S3 %s %s" % (nm, kw), len(rs) == 1 and rs[0]["new"] == 1205 and rs[0]["patched"],
+              str([(x["confidence"], x["new"]) for x in rs]))
+    # S3 단언: 덩어리를 빠뜨리면 멈춘다
+    orig = kls.parse_hunks
+    kls.parse_hunks = lambda d: []
+    try:
+        run(repo, old, new, SB + "/drafts3", ["s.md"], SB + "/out5")
+        check("S3 Σ 단언(덩어리 빠짐 -> 멈춤)", False, "멈추지 않음")
+    except SystemExit as e:
+        check("S3 Σ 단언(덩어리 빠짐 -> 멈춤)", "Σ" in str(e), str(e)[:120])
+    finally:
+        kls.parse_hunks = orig
+    # m9: 이름 바뀐 엔진은 지원 밖 -- 조용히 틀리지 않고 멈춘다
+    r6, o6, n6 = make_repo("r6", rename=True)
+    try:
+        run(r6, o6, n6, SB + "/drafts3", ["s.md"], SB + "/out6")
+        check("m9 이름 바뀐 엔진 -> 멈춤", False, "멈추지 않음")
+    except SystemExit as e:
+        check("m9 이름 바뀐 엔진 -> 멈춤", "git show" in str(e), str(e)[:120])
+    # S1 재실행: 패치를 적용한 사본 + 절 표지(new)면 다시 옮기지 않는다
+    shutil.copytree(SB + "/drafts3", SB + "/drafts7")
+    write(SB + "/drafts7/s.md", "줄 번호는 `%s`\nSR 1205\n" % new[:7])
+    rs = run(repo, old, new, SB + "/drafts7", ["s.md"], SB + "/out7")
+    check("S1 재실행 절 표지 -> 이중 이동 0", not any(r.get("patched") for r in rs) and
+          any(r["confidence"] == "already-new" for r in rs), str([(r["old"], r["confidence"]) for r in rs]))
+
+
+if __name__ == "__main__":
+    sys.exit(main())

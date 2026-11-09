@@ -1,0 +1,64 @@
+{
+ "df36": {
+  "units": 0,
+  "defs": 0,
+  "rejected": 0
+ },
+ "dup-w-calc": {
+  "units": 0,
+  "defs": 0,
+  "rejected": 0
+ },
+ "facts": {
+  "sizing_recipe": {
+   "star": false,
+   "global": [],
+   "futures": [
+    "annotations"
+   ],
+   "multi": [],
+   "qual_dups": [],
+   "classes": 13,
+   "classes_no_method": 10,
+   "units": 218,
+   "defs": 272
+  },
+  "stick_diagram": {
+   "star": false,
+   "global": [],
+   "futures": [
+    "annotations"
+   ],
+   "multi": [],
+   "qual_dups": [],
+   "classes": 28,
+   "classes_no_method": 26,
+   "units": 169,
+   "defs": 181
+  },
+  "topology_library": {
+   "star": false,
+   "global": [],
+   "futures": [
+    "annotations"
+   ],
+   "multi": [],
+   "qual_dups": [],
+   "classes": 0,
+   "classes_no_method": 0,
+   "units": 8,
+   "defs": 12
+  },
+  "design_report": {
+   "star": false,
+   "global": [],
+   "futures": [],
+   "multi": [],
+   "qual_dups": [],
+   "classes": 0,
+   "classes_no_method": 0,
+   "units": 7,
+   "defs": 8
+  }
+ }
+}

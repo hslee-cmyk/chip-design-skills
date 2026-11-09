@@ -1,0 +1,695 @@
+........................................................................ [  0%]
+........................................................................ [  1%]
+........................................................................ [  2%]
+........................................................................ [  2%]
+........................................................................ [  3%]
+........................................................................ [  4%]
+........................................................................ [  4%]
+........................................................................ [  5%]
+........................................................................ [  6%]
+........................................................................ [  7%]
+........................................................................ [  7%]
+................................................F....................... [  8%]
+........................................................................ [  9%]
+........................................................................ [  9%]
+........................................................................ [ 10%]
+........................................................................ [ 11%]
+........................................................................ [ 11%]
+........................................................................ [ 12%]
+........................................................................ [ 13%]
+..........................................................F............. [ 14%]
+........................................................................ [ 14%]
+........................................................................ [ 15%]
+........................................................................ [ 16%]
+........................................................................ [ 16%]
+........................................................................ [ 17%]
+........................................................................ [ 18%]
+........................................................................ [ 18%]
+........................................................................ [ 19%]
+........................................................................ [ 20%]
+........................................................................ [ 21%]
+........................................................................ [ 21%]
+........................................................................ [ 22%]
+........................................................................ [ 23%]
+........................................................................ [ 23%]
+........................................................................ [ 24%]
+........................................................................ [ 25%]
+........................................................................ [ 26%]
+........................................................................ [ 26%]
+........................................................................ [ 27%]
+........................................................................ [ 28%]
+........................................................................ [ 28%]
+........................................................................ [ 29%]
+........................................................................ [ 30%]
+........................................................................ [ 30%]
+........................................................................ [ 31%]
+........................................................................ [ 32%]
+........................................................................ [ 33%]
+........................................................................ [ 33%]
+........................................................................ [ 34%]
+........................................................................ [ 35%]
+........................................................................ [ 35%]
+........................................................................ [ 36%]
+........................................................................ [ 37%]
+........................................................................ [ 37%]
+........................................................................ [ 38%]
+........................................................................ [ 39%]
+........................................................................ [ 40%]
+........................................................................ [ 40%]
+........................................................................ [ 41%]
+........................................................................ [ 42%]
+........................................................................ [ 42%]
+........................................................................ [ 43%]
+........................................................................ [ 44%]
+........................................................................ [ 45%]
+........................................................................ [ 45%]
+........................................................................ [ 46%]
+........................................................................ [ 47%]
+........................................................................ [ 47%]
+........................................................................ [ 48%]
+........................................................................ [ 49%]
+........................................................................ [ 49%]
+........................................................................ [ 50%]
+........................................................................ [ 51%]
+........................................................................ [ 52%]
+........................................................................ [ 52%]
+................................................................F....... [ 53%]
+....................F................................................... [ 54%]
+........................................................................ [ 54%]
+.........................................................F.............. [ 55%]
+........................................................................ [ 56%]
+..................................................F..F....F.........F... [ 56%]
+......F..F....F.......F..F.........F..F....F....F..F.................... [ 57%]
+........................................................................ [ 58%]
+........................................................................ [ 59%]
+........................................................................ [ 59%]
+........................................................................ [ 60%]
+......................................................................xx [ 61%]
+........................................................................ [ 61%]
+........................................................................ [ 62%]
+........................................................................ [ 63%]
+........................................................................ [ 64%]
+........................................................................ [ 64%]
+........................................................................ [ 65%]
+........................................................................ [ 66%]
+........................................................................ [ 66%]
+........................................................................ [ 67%]
+........................................................................ [ 68%]
+........................................................................ [ 68%]
+........................................................................ [ 69%]
+........................................................................ [ 70%]
+........................................................................ [ 71%]
+........................................................................ [ 71%]
+.................................EE..................................... [ 72%]
+........................................................................ [ 73%]
+........................................................................ [ 73%]
+........................................................................ [ 74%]
+........................................................................ [ 75%]
+........................................................................ [ 75%]
+........................................................................ [ 76%]
+........................................................................ [ 77%]
+........................................................................ [ 78%]
+........................................................................ [ 78%]
+........................................................................ [ 79%]
+........................................................................ [ 80%]
+........................................................................ [ 80%]
+........................................................................ [ 81%]
+........................................................................ [ 82%]
+........................................................................ [ 83%]
+........................................................................ [ 83%]
+........................................................................ [ 84%]
+........................................................................ [ 85%]
+........................................................................ [ 85%]
+........................................................................ [ 86%]
+........................................................................ [ 87%]
+........................................................................ [ 87%]
+........................................................................ [ 88%]
+........................................................................ [ 89%]
+........................................................................ [ 90%]
+........................................................................ [ 90%]
+........................................................................ [ 91%]
+........................................................................ [ 92%]
+........................................................................ [ 92%]
+........................................................................ [ 93%]
+........................................................................ [ 94%]
+........................................................................ [ 94%]
+........................................................................ [ 95%]
+........................................................................ [ 96%]
+........................................................................ [ 97%]
+........................................................................ [ 97%]
+........................................................................ [ 98%]
+........................................................................ [ 99%]
+................................F....................................... [ 99%]
+.........                                                                [100%]
+=================================== ERRORS ====================================
+_ ERROR collecting gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py _
+gmid_engine\tests\integration\test_g10_no_recompute_9circuits.py:30: in <module>
+    from test_s0_layer_9circuits import DEVICE_START, GRAPH_ROWS  # noqa: E402  S0 수준 블록 정의 한 곳
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\_pytest\assertion\rewrite.py:197: in exec_module
+    exec(co, module.__dict__)
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:184: in <module>
+    SEARCHED = [c for c in CIRCUITS if _searched(c)]
+                                       ^^^^^^^^^^^^
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:181: in _searched
+    return BASELINE[circuit]["status"] == ["ok", "ok"]
+           ^^^^^^^^^^^^^^^^^
+E   KeyError: 'cnr_ota'
+_ ERROR collecting gmid_engine/tests/integration/test_layer0_boundary_rows.py _
+gmid_engine\tests\integration\test_layer0_boundary_rows.py:32: in <module>
+    SEARCHED = [c for c in CIRCUITS if BASELINE[c]["status"] == ["ok", "ok"]]     # 층 0 이 있는 회로(기준선 단계 A·B 상태)
+                                       ^^^^^^^^^^^
+E   KeyError: 'cnr_ota'
+__ ERROR collecting gmid_engine/tests/integration/test_s0_layer_9circuits.py __
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:184: in <module>
+    SEARCHED = [c for c in CIRCUITS if _searched(c)]
+                                       ^^^^^^^^^^^^
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:181: in _searched
+    return BASELINE[circuit]["status"] == ["ok", "ok"]
+           ^^^^^^^^^^^^^^^^^
+E   KeyError: 'cnr_ota'
+____________ ERROR at setup of test_ngspice_grid_rerun_equals_lut _____________
+manifest generator_sha256 8df35d2ea405a0f53a836f7ce6cccc26e0db82ad2f82838588991afdcfb319df 와 같은 슬라이스 생성기 sky130_dc_width_slices.py 를 찾지 못함(후보 [])
+___ ERROR at setup of test_ngspice_cell_midpoint_error_bounded_by_cell_tol ____
+manifest generator_sha256 8df35d2ea405a0f53a836f7ce6cccc26e0db82ad2f82838588991afdcfb319df 와 같은 슬라이스 생성기 sky130_dc_width_slices.py 를 찾지 못함(후보 [])
+================================== FAILURES ===================================
+________________ test_spec_fixture_names_disjoint_from_library ________________
+
+sc = <conftest.SpecCase object at 0x00000292FFACB410>
+
+    def test_spec_fixture_names_disjoint_from_library(sc):
+        """합성 회로 이름(회로·소자·넷·레일·포트)이 library 9회로 이름과 겹치지 않는다(JSON 직접 집계)."""
+        from pathlib import Path
+    
+        def names(t):
+            out = {t["topology_name"]}
+            for e in t["netlist"]:
+                out |= {e[k] for k in ("name", "drain", "gate", "source", "bulk") if k in e}
+            for e in t.get("passive_elements", []) + t.get("ideal_sources", []):
+                out |= {e["name"], *e["terminals"]}
+            return out | set(t["supply_nets"]) | {k for k in t["ports"] if not k.startswith("_")}
+    
+        lib = Path(__file__).resolve().parents[3] / "assets" / "library"
+        lib_names = set()
+        for p in lib.glob("*.topology.json"):
+            if not p.name.startswith("_"):
+                lib_names |= names(json.loads(p.read_text(encoding="utf-8")))
+        assert {"vdd", "gnd", "two_stage_ota"} <= lib_names
+        for circuit in ("fx_spec_amp", "fx_spec_ref"):
+>           assert not (names(sc.read_topo(circuit)) & lib_names), circuit
+E           AssertionError: fx_spec_amp
+E           assert not ({'Cfb', 'Cld', 'Ibs', 'Q1', 'Q2', 'Q3', ...} & {'A', 'B', 'C1', 'C2', 'CBAT1_L', 'CBAT1_R', ...})
+E            +  where {'Cfb', 'Cld', 'Ibs', 'Q1', 'Q2', 'Q3', ...} = <function test_spec_fixture_names_disjoint_from_library.<locals>.names at 0x00000292FF62D380>({'_note': 'Synthetic 5T-style amp for the sizing-spec loader tests. No value fields on passives/sources (values live i...d', 'kind': 'pmos', 'name': 'Q4', ...}, {'drain': 'n_tail', 'gate': 'n_bias', 'kind': 'nmos', 'name': 'Q5', ...}], ...})
+E            +    where {'_note': 'Synthetic 5T-style amp for the sizing-spec loader tests. No value fields on passives/sources (values live i...d', 'kind': 'pmos', 'name': 'Q4', ...}, {'drain': 'n_tail', 'gate': 'n_bias', 'kind': 'nmos', 'name': 'Q5', ...}], ...} = read_topo('fx_spec_amp')
+E            +      where read_topo = <conftest.SpecCase object at 0x00000292FFACB410>.read_topo
+
+gmid_engine\tests\authoring\test_spec_load.py:250: AssertionError
+__________________ test_fixture_names_disjoint_from_library ___________________
+
+ah = <class 'conftest.Helpers'>
+
+    def test_fixture_names_disjoint_from_library(ah):
+        lib = _library_names()
+        assert {"vdd", "gnd", "agnd", "two_stage_ota"} <= lib  # 집계가 실제로 이름을 모았다
+        for p in ah.fixtures.glob("*.topology.json"):
+            doc = json.loads(p.read_text(encoding="utf-8"))
+            if isinstance(doc, list):
+                doc = doc[0]
+>           assert not (_fixture_names(doc) & lib), (p.name, _fixture_names(doc) & lib)
+E           AssertionError: ('base_valid.topology.json', {'Q1', 'Q2', 'Q3', 'Q4'})
+E           assert not ({'Cf', 'Cload', 'Ib', 'Q1', 'Q2', 'Q3', ...} & {'A', 'B', 'C1', 'C2', 'CBAT1_L', 'CBAT1_R', ...})
+E            +  where {'Cf', 'Cload', 'Ib', 'Q1', 'Q2', 'Q3', ...} = _fixture_names({'_note': 'Valid base for the authoring tests. Names are disjoint from assets/library. n_rzn sits only on 2-terminal e...ail_ac only on a capacitor', 'compensation': {'anything': [1, 2, 3]}, 'device_roles': 'tag values are never read', ...})
+
+gmid_engine\tests\authoring\test_topology_load.py:140: AssertionError
+___________________ test_library_has_exactly_nine_circuits ____________________
+
+    def test_library_has_exactly_nine_circuits():
+        names = sorted(p.name[: -len(".topology.json")] for p in LIBRARY.glob("*.topology.json") if not p.name.startswith("_"))
+>       assert names == sorted(PASS_TABLE)
+E       AssertionError: assert ['cnr_ota', '...tage_ff', ...] == ['common_gate..._buffer', ...]
+E         
+E         At index 0 diff: 'cnr_ota' != 'common_gate_amplifier'
+E         Left contains 4 more items, first extra item: 'rfc_ota'
+E         Use -v to get more diff
+
+gmid_engine\tests\integration\test_authoring_library_load.py:68: AssertionError
+__________________________ test_library_set_is_nine ___________________________
+
+    def test_library_set_is_nine():
+        names = sorted(p.name[:-len(".topology.json")] for p in LIBRARY.glob("*.topology.json")
+                       if not p.name.startswith("_"))
+>       assert names == CIRCUITS
+E       AssertionError: assert ['cnr_ota', '...tage_ff', ...] == ['common_gate..._buffer', ...]
+E         
+E         At index 0 diff: 'cnr_ota' != 'common_gate_amplifier'
+E         Left contains 4 more items, first extra item: 'rfc_ota'
+E         Use -v to get more diff
+
+gmid_engine\tests\integration\test_bias_source_manifest_library.py:86: AssertionError
+_________________________ test_library_has_nine_specs _________________________
+
+    def test_library_has_nine_specs():
+        names = sorted(p.name[: -len(".sizing_spec.json")] for p in LIBRARY.glob("*.sizing_spec.json"))
+>       assert names == sorted(TABLE)
+E       AssertionError: assert ['cnr_ota', '...tage_ff', ...] == ['common_gate..._buffer', ...]
+E         
+E         At index 0 diff: 'cnr_ota' != 'common_gate_amplifier'
+E         Left contains 4 more items, first extra item: 'rfc_ota'
+E         Use -v to get more diff
+
+gmid_engine\tests\integration\test_spec_library_load.py:158: AssertionError
+____________________ test_stage_a_library_circuit[cnr_ota] ____________________
+
+circuit = 'cnr_ota'
+real_lut = LutSet(spec=LutSpec(manufacturing_grid_m=5e-09, min_finger_w_m=(('nmos', 3.6e-07), ('pmos', 4.1999999999999995e-07)), ...9 ,
+          0.4377188 , 0.4132031 ]]]], shape=(4, 49, 49, 10)))}), noise=mappingproxy({}), mismatch=mappingproxy({}))
+tmp_path = WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050/test_stage_a_library_circuit_c0')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_stage_a_library_circuit(circuit, real_lut, tmp_path):
+        topology = LIBRARY / (circuit + ".topology.json")
+        d0, c0 = open_run()
+        first = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "a", supplies_v=_supplies(circuit), donors=d0, counters=c0)
+        d1, c1 = open_run()
+        again = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "b", supplies_v=_supplies(circuit), donors=d1, counters=c1)
+        assert first.report["tables"] == again.report["tables"]
+        assert all(Path(p).is_file() for p in first.report_paths)
+        assert json.loads(Path(first.report_paths[0]).read_text(encoding="utf-8"))["circuit"] == circuit
+>       assert first.exit_code == (0 if first.status == "ok" else 2)
+E       AssertionError: assert 7 == 2
+E        +  where 7 = StageAResult(exit_code=7, status='stopped', report={'circuit': 'cnr_ota', 'status': 'stopped', 'exit_code': 7, 'count_...Index object at 0x00000292CB24BE30>, counters=<gmid_engine.core.run_counters.RunCounters object at 0x00000292CB24B290>).exit_code
+
+gmid_engine\tests\integration\test_stage_a_library.py:58: AssertionError
+___________________ test_stage_a_library_circuit[erfc_ota] ____________________
+
+circuit = 'erfc_ota'
+real_lut = LutSet(spec=LutSpec(manufacturing_grid_m=5e-09, min_finger_w_m=(('nmos', 3.6e-07), ('pmos', 4.1999999999999995e-07)), ...9 ,
+          0.4377188 , 0.4132031 ]]]], shape=(4, 49, 49, 10)))}), noise=mappingproxy({}), mismatch=mappingproxy({}))
+tmp_path = WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050/test_stage_a_library_circuit_e0')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_stage_a_library_circuit(circuit, real_lut, tmp_path):
+        topology = LIBRARY / (circuit + ".topology.json")
+        d0, c0 = open_run()
+        first = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "a", supplies_v=_supplies(circuit), donors=d0, counters=c0)
+        d1, c1 = open_run()
+        again = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "b", supplies_v=_supplies(circuit), donors=d1, counters=c1)
+        assert first.report["tables"] == again.report["tables"]
+        assert all(Path(p).is_file() for p in first.report_paths)
+        assert json.loads(Path(first.report_paths[0]).read_text(encoding="utf-8"))["circuit"] == circuit
+>       assert first.exit_code == (0 if first.status == "ok" else 2)
+E       AssertionError: assert 7 == 2
+E        +  where 7 = StageAResult(exit_code=7, status='stopped', report={'circuit': 'erfc_ota', 'status': 'stopped', 'exit_code': 7, 'count...Index object at 0x00000292D44C1BB0>, counters=<gmid_engine.core.run_counters.RunCounters object at 0x00000292D44C2870>).exit_code
+
+gmid_engine\tests\integration\test_stage_a_library.py:58: AssertionError
+___________________ test_stage_a_library_circuit[r2r_opamp] ___________________
+
+circuit = 'r2r_opamp'
+real_lut = LutSet(spec=LutSpec(manufacturing_grid_m=5e-09, min_finger_w_m=(('nmos', 3.6e-07), ('pmos', 4.1999999999999995e-07)), ...9 ,
+          0.4377188 , 0.4132031 ]]]], shape=(4, 49, 49, 10)))}), noise=mappingproxy({}), mismatch=mappingproxy({}))
+tmp_path = WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050/test_stage_a_library_circuit_r0')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_stage_a_library_circuit(circuit, real_lut, tmp_path):
+        topology = LIBRARY / (circuit + ".topology.json")
+        d0, c0 = open_run()
+        first = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "a", supplies_v=_supplies(circuit), donors=d0, counters=c0)
+        d1, c1 = open_run()
+        again = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "b", supplies_v=_supplies(circuit), donors=d1, counters=c1)
+        assert first.report["tables"] == again.report["tables"]
+        assert all(Path(p).is_file() for p in first.report_paths)
+        assert json.loads(Path(first.report_paths[0]).read_text(encoding="utf-8"))["circuit"] == circuit
+>       assert first.exit_code == (0 if first.status == "ok" else 2)
+E       AssertionError: assert 7 == 2
+E        +  where 7 = StageAResult(exit_code=7, status='stopped', report={'circuit': 'r2r_opamp', 'status': 'stopped', 'exit_code': 7, 'coun...Index object at 0x0000029283FD01D0>, counters=<gmid_engine.core.run_counters.RunCounters object at 0x0000029283FD3BF0>).exit_code
+
+gmid_engine\tests\integration\test_stage_a_library.py:58: AssertionError
+__________ test_count_budget_is_lut_grid_sum_of_used_kinds[erfc_ota] __________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'erfc_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000292F770B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_count_budget_is_lut_grid_sum_of_used_kinds(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+        kinds = {e["kind"] for e in _topo(circuit)["netlist"]}
+>       assert b.report["count_budget"] == sum(env["stats"]["count"][k] for k in kinds)
+E       assert 0 == 13829760
+E        +  where 13829760 = sum(<generator object test_count_budget_is_lut_grid_sum_of_used_kinds.<locals>.<genexpr> at 0x00000292FD6F17E0>)
+
+gmid_engine\tests\integration\test_stage_b_library.py:144: AssertionError
+______________ test_block_grid_products_and_budget_gate[cnr_ota] ______________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'cnr_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000292F770B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_block_grid_products_and_budget_gate(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+        nL, nG, nD, nS = env["stats"]["axes"]
+        size_of = {"vgs": nG, "L": nL, "vds": nD, "vsb": nS, "current": nG, "resistor": nG}
+        ns = b.report["count_budget"]
+>       g = b.report["achievability"]["gain"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:153: TypeError
+_____________ test_block_grid_products_and_budget_gate[erfc_ota] ______________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'erfc_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000292F770B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_block_grid_products_and_budget_gate(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+        nL, nG, nD, nS = env["stats"]["axes"]
+        size_of = {"vgs": nG, "L": nL, "vds": nD, "vsb": nS, "current": nG, "resistor": nG}
+        ns = b.report["count_budget"]
+>       g = b.report["achievability"]["gain"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:153: TypeError
+_____________ test_block_grid_products_and_budget_gate[r2r_opamp] _____________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'r2r_opamp'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000292F770B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_block_grid_products_and_budget_gate(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+        nL, nG, nD, nS = env["stats"]["axes"]
+        size_of = {"vgs": nG, "L": nL, "vds": nD, "vsb": nS, "current": nG, "resistor": nG}
+        ns = b.report["count_budget"]
+        g = b.report["achievability"]["gain"]
+        for blk in list(g["blocks"]) + list(g["ff"]):
+            assert all(size == size_of[kind] for kind, size in blk["axes"]), blk["axes"]
+>           assert blk["pi"] == math.prod(size for _, size in blk["axes"])
+E           assert 0 == 1
+E            +  where 1 = <built-in function prod>(<generator object test_block_grid_products_and_budget_gate.<locals>.<genexpr> at 0x00000292FF5967A0>)
+E            +    where <built-in function prod> = math.prod
+
+gmid_engine\tests\integration\test_stage_b_library.py:156: AssertionError
+____________________ test_gain_target_and_verdict[cnr_ota] ____________________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'cnr_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000292F770B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_gain_target_and_verdict(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+>       g = b.report["achievability"]["gain"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:191: TypeError
+___________________ test_gain_target_and_verdict[erfc_ota] ____________________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'erfc_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000292F770B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_gain_target_and_verdict(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+>       g = b.report["achievability"]["gain"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:191: TypeError
+_____________ test_area_lower_bound_from_declared_values[cnr_ota] _____________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'cnr_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000292F770B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_area_lower_bound_from_declared_values(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+>       area = b.report["achievability"]["area"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:208: TypeError
+____________ test_area_lower_bound_from_declared_values[erfc_ota] _____________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'erfc_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000292F770B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_area_lower_bound_from_declared_values(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+>       area = b.report["achievability"]["area"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:208: TypeError
+____________ test_area_lower_bound_from_declared_values[r2r_opamp] ____________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'r2r_opamp'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000292F770B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_area_lower_bound_from_declared_values(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+        area = b.report["achievability"]["area"]
+        spec = _spec(circuit)["human"]
+        ev = spec["element_values"]
+        theta = spec["search"].get("theta_bounds", {})
+        rho = env["pdk"].value("mim_cap_density_f_per_m2")
+        want = {}
+        for e in _topo(circuit).get("passive_elements", []):
+            if e["kind"] != "capacitor":
+                continue
+            decl = ev.get(e["name"], {})
+            if isinstance(decl, dict) and decl.get("measurement_load"):
+                continue
+            if isinstance(decl, dict) and "value_farad" in decl:
+                want[e["name"]] = decl["value_farad"] / rho
+            elif isinstance(theta.get(e["name"]), dict) and "min" in theta[e["name"]]:
+                want[e["name"]] = theta[e["name"]]["min"] / rho
+        st = env["stats"]
+        for mos, (kind, src) in _CURRENT_FED.get(circuit, {}).items():
+            want[mos] = ev[src]["value_dc_amp"] * st["l_min"][kind] ** 2 / st["idu_max"][kind]
+        got = {k: v for k, v in area["terms"]}
+>       assert set(got) == set(want)
+E       AssertionError: assert {'CM1', 'CM2'... 'M23', 'M24'} == {'CM1', 'CM2'}
+E         
+E         Extra items in the left set:
+E         'M24'
+E         'M23'
+E         'M21'
+E         'M22'
+E         Use -v to get more diff
+
+gmid_engine\tests\integration\test_stage_b_library.py:228: AssertionError
+____________ test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota] ____________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'cnr_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000292F770B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_diagnostic_mode_keeps_stage_a_exit_code(env, circuit, tmp_path_factory):
+        a, b = _run(env, circuit, tmp_path_factory)
+        # [U17 ①-b] StageBResult.achievability 묶음 삭제 -> 결과 S0 수준 스냅샷의 graph/ach 레코드(설계 40 v1.9.1 §2.4.7·§2.4.8 GB4 행, D2)
+>       assert b.s1 is not None and b.s1.snapshot.record("graph", "ach") is not None    # 진단 모드: s1v 가 있으면 계산한다
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert (S1Graph(key=S1Key(topology_fp='2456805b2986b5decfcc0e27e9005deab1607d3bd380a78b940110e021755c96', rule_fp='63b76a02c0f...e676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1')) is not None and None is not None)
+E        +  where S1Graph(key=S1Key(topology_fp='2456805b2986b5decfcc0e27e9005deab1607d3bd380a78b940110e021755c96', rule_fp='63b76a02c0f...e676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1')) = namespace(status='stopped', exit_code=2, report={'circuit': 'cnr_ota', 'status': 'stopped', 'exit_code': 2, 'diagnosti...676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1'))).s1
+E        +  and   None = record('graph', 'ach')
+E        +    where record = GraphSnapshot(writers=WriterTable(entries=((('device', 'bulk'), 's1_bulk'), (('device', 'bulk_declared'), 's1_structur...de676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1').record
+E        +      where GraphSnapshot(writers=WriterTable(entries=((('device', 'bulk'), 's1_bulk'), (('device', 'bulk_declared'), 's1_structur...de676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1') = S1Graph(key=S1Key(topology_fp='2456805b2986b5decfcc0e27e9005deab1607d3bd380a78b940110e021755c96', rule_fp='63b76a02c0f...e676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1')).snapshot
+E        +        where S1Graph(key=S1Key(topology_fp='2456805b2986b5decfcc0e27e9005deab1607d3bd380a78b940110e021755c96', rule_fp='63b76a02c0f...e676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1')) = namespace(status='stopped', exit_code=2, report={'circuit': 'cnr_ota', 'status': 'stopped', 'exit_code': 2, 'diagnosti...676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1'))).s1
+
+gmid_engine\tests\integration\test_stage_b_library.py:240: AssertionError
+___________ test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota] ____________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'erfc_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000292F770B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8050'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_diagnostic_mode_keeps_stage_a_exit_code(env, circuit, tmp_path_factory):
+        a, b = _run(env, circuit, tmp_path_factory)
+        # [U17 ①-b] StageBResult.achievability 묶음 삭제 -> 결과 S0 수준 스냅샷의 graph/ach 레코드(설계 40 v1.9.1 §2.4.7·§2.4.8 GB4 행, D2)
+>       assert b.s1 is not None and b.s1.snapshot.record("graph", "ach") is not None    # 진단 모드: s1v 가 있으면 계산한다
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert (None is not None)
+E        +  where None = namespace(status='skipped', exit_code=7, report={'circuit': 'erfc_ota', 'status': 'skipped', 'exit_code': 7, 'diagnostic': False, 'count_budget': 0, 'stop_reasons': ['stage_a_stopped'], 'achievability': None}, s1=None).s1
+
+gmid_engine\tests\integration\test_stage_b_library.py:240: AssertionError
+____________________ test_rule_e_no_circuit_name_literals _____________________
+
+checks = <module 'gmid_structure_checks' from 'C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\fix-lutdecl\\skills\\analog-gmid-design\\gmid_engine\\tests\\structure\\structure_checks.py'>
+engine_root = WindowsPath('C:/Users/HSLEE/Documents/Todoc/fpga/wt/fix-lutdecl/skills/analog-gmid-design/gmid_engine')
+library = (['cnr_ota', 'common_gate_amplifier', 'current_reuse_telescopic_ota', 'erfc_ota', 'folded_cascode', 'ngcc_3stage_ff', ...ta:net', 'pushpull_follower_buffer:net'], 'C1': ['cnr_ota:passive_elements'], 'C2': ['cnr_ota:passive_elements'], ...})
+report = <function report.<locals>.rec at 0x000002932934D850>
+
+    def test_rule_e_no_circuit_name_literals(checks, engine_root, library, report):
+        circuits, names = library
+        # 이름 집합이 비면 이 test 는 공허하다 -- library 9회로(설계 1.4)와 레일 선언이 실제로 모였는지 먼저 본다.
+        assert len(circuits) >= 9, "library topology 회로 %d개(설계 1.4: 9회로)" % len(circuits)
+        assert any(o.endswith(":supply_net") for origins in names.values() for o in origins), "레일 이름 수집 0"
+        n, v = checks.check_e(engine_root, names)
+>       _assert_clean(n, v, report, "E")
+
+gmid_engine\tests\structure\test_structure_rules.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+n_targets = 420
+violations = [Violation(kind='name_literal', path='_module_map.py', line=258, detail="'Q9' = rfc_ota:device"), Violation(kind='name...rfc_ota:device"), Violation(kind='name_literal', path='_module_map.py', line=985, detail="'Q8' = rfc_ota:device"), ...]
+report = <function report.<locals>.rec at 0x000002932934D850>, rule = 'E'
+
+    def _assert_clean(n_targets, violations, report, rule):
+        report(n_targets, len(violations))
+>       assert not violations, "규칙 %s 위반 %d건(대상 %d개):\n%s" % (
+            rule, len(violations), n_targets, "\n".join(str(v) for v in violations))
+E       AssertionError: 규칙 E 위반 35건(대상 420개):
+E         _module_map.py:258 [name_literal] 'Q9' = rfc_ota:device
+E         _module_map.py:481 [name_literal] 'Q8' = rfc_ota:device
+E         _module_map.py:982 [name_literal] 'Q4' = rfc_ota:device
+E         _module_map.py:982 [name_literal] 'Q8' = rfc_ota:device
+E         _module_map.py:985 [name_literal] 'Q4' = rfc_ota:device
+E         _module_map.py:985 [name_literal] 'Q8' = rfc_ota:device
+E         _module_map.py:987 [name_literal] 'Q8' = rfc_ota:device
+E         _module_map.py:990 [name_literal] 'Q4' = rfc_ota:device
+E         _module_map.py:992 [name_literal] 'Q4' = rfc_ota:device
+E         _module_map.py:995 [name_literal] 'Q4' = rfc_ota:device
+E         _module_map.py:998 [name_literal] 'Q8' = rfc_ota:device
+E         _module_map.py:1005 [name_literal] 'Q9' = rfc_ota:device
+E         _module_map.py:1007 [name_literal] 'Q8' = rfc_ota:device
+E         _module_map.py:1023 [name_literal] 'Q8' = rfc_ota:device
+E         _module_map.py:1027 [name_literal] 'Q8' = rfc_ota:device
+E         _module_map.py:1033 [name_literal] 'Q8' = rfc_ota:device
+E         _module_map.py:1036 [name_literal] 'Q4' = rfc_ota:device
+E         _module_map.py:1036 [name_literal] 'Q8' = rfc_ota:device
+E         _module_map.py:1039 [name_literal] 'Q4' = rfc_ota:device
+E         _module_map.py:1039 [name_literal] 'Q8' = rfc_ota:device
+E         authoring/_spec_fields.py:52 [name_literal] 'Z' = erfc_ota:net
+E         lut/_helpers_interp.py:185 [name_literal] 'VS' = cnr_ota:net
+E         lut/derived_fns.py:95 [name_literal] 'VS' = cnr_ota:net
+E         lut/gmb.py:57 [name_literal] 'VS' = cnr_ota:net
+E         lut/lut_set.py:213 [name_literal] 'VS' = cnr_ota:net
+E         lut/lut_set.py:220 [name_literal] 'VS' = cnr_ota:net
+E         lut/lut_set.py:210 [name_literal] 'VS' = cnr_ota:net
+E         lut/lut_types.py:21 [name_literal] 'VS' = cnr_ota:net
+E         lut/tolerance.py:56 [name_literal] 'VS' = cnr_ota:net
+E         lut/tolerance.py:60 [name_literal] 'VS' = cnr_ota:net
+E         lut/tolerance.py:77 [name_literal] 'VS' = cnr_ota:net
+E         lut/tolerance.py:130 [name_literal] 'VS' = cnr_ota:net
+E         lut/tolerance.py:171 [name_literal] 'VS' = cnr_ota:net
+E         metrics/achievability_types.py:49 [name_literal] 'VS' = cnr_ota:net
+E         sizing/block_columns.py:93 [name_literal] 'VS' = cnr_ota:net
+E       assert not [Violation(kind='name_literal', path='_module_map.py', line=258, detail="'Q9' = rfc_ota:device"), Violation(kind='name...rfc_ota:device"), Violation(kind='name_literal', path='_module_map.py', line=985, detail="'Q8' = rfc_ota:device"), ...]
+
+gmid_engine\tests\structure\test_structure_rules.py:13: AssertionError
+============================== warnings summary ===============================
+gmid_engine/tests/lut/test_table_cache.py::test_write_failure_returns_result_no_temp_left
+  C:\Users\HSLEE\Documents\Todoc\fpga\wt\fix-lutdecl\skills\analog-gmid-design\gmid_engine\lut\table_cache.py:285: RuntimeWarning: TableCache: 읽을 수 없다 C:\Users\HSLEE\AppData\Local\Temp\gtcvwqmsapq\c\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl ([Errno 13] Permission denied: '\\\\?\\C:\\Users\\HSLEE\\AppData\\Local\\Temp\\gtcvwqmsapq\\c\\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl')
+    warnings.warn("TableCache: 읽을 수 없다 %s (%s)" % (path, exc), RuntimeWarning)
+
+gmid_engine/tests/lut/test_table_cache.py::test_write_failure_returns_result_no_temp_left
+  C:\Users\HSLEE\Documents\Todoc\fpga\wt\fix-lutdecl\skills\analog-gmid-design\gmid_engine\lut\table_cache.py:335: RuntimeWarning: TableCache: 쓰지 못했다 C:\Users\HSLEE\AppData\Local\Temp\gtcvwqmsapq\c\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl ([WinError 5] 액세스가 거부되었습니다: '\\\\?\\C:\\Users\\HSLEE\\AppData\\Local\\Temp\\gtcvwqmsapq\\c\\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl.9papooz3.tmp' -> '\\\\?\\C:\\Users\\HSLEE\\AppData\\Local\\Temp\\gtcvwqmsapq\\c\\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl') -- 경로 길이 193 자: Windows MAX_PATH 한도 초과가 원인일 수 있다(더 짧은 캐시 폴더를 쓸 것)
+    warnings.warn("TableCache: 쓰지 못했다 %s (%s)%s" % (path, exc, hint), RuntimeWarning)
+
+gmid_engine/tests/lut/test_table_cache.py::test_write_failure_returns_result_no_temp_left
+  C:\Users\HSLEE\Documents\Todoc\fpga\wt\fix-lutdecl\skills\analog-gmid-design\gmid_engine\lut\table_cache.py:335: RuntimeWarning: TableCache: 쓰지 못했다 C:\Users\HSLEE\AppData\Local\Temp\gtcvwqmsapq\c\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl ([WinError 5] 액세스가 거부되었습니다: '\\\\?\\C:\\Users\\HSLEE\\AppData\\Local\\Temp\\gtcvwqmsapq\\c\\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl.p3e5_t__.tmp' -> '\\\\?\\C:\\Users\\HSLEE\\AppData\\Local\\Temp\\gtcvwqmsapq\\c\\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl') -- 경로 길이 193 자: Windows MAX_PATH 한도 초과가 원인일 수 있다(더 짧은 캐시 폴더를 쓸 것)
+    warnings.warn("TableCache: 쓰지 못했다 %s (%s)%s" % (path, exc, hint), RuntimeWarning)
+
+gmid_engine/tests/metrics/test__helpers_nodal.py::test_singular_returns_none
+gmid_engine/tests/metrics/test_block_model.py::test_undefined_codes
+gmid_engine/tests/metrics/test_dc_limit.py::test_singular_dc_limit_all_columns_nan
+gmid_engine/tests/metrics/test_point_solve.py::test_singular_point_nan_no_exception
+gmid_engine/tests/sizing/test_scc_newton.py::test_singular_jacobian[rank_one_2x2]
+gmid_engine/tests/sizing/test_scc_newton.py::test_r7_singular_checked_before_acceptance
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 2 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/metrics/test_offset_analysis.py::test_undefined_codes
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 4 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/metrics/test_probe_loop.py::test_probe_singular_is_value_not_exception
+gmid_engine/tests/metrics/test_probe_loop.py::test_undefined_paths_raise_nothing_i10
+gmid_engine/tests/sizing/test_scc_newton.py::test_singular_jacobian[zero_derivative_1d]
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 1 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/metrics/test_probe_loop.py: 2 warnings
+gmid_engine/tests/metrics/test_ss_metrics.py: 12 warnings
+gmid_engine/tests/search/test_find_front.py: 3 warnings
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 5 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[err_amp]
+gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[cascode_ideal]
+gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[degen]
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 7 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/search/test_iv_matching_l.py::test_absolute_offset_activates_l_lower_bound_on_input_cell_only
+gmid_engine/tests/search/test_iv_matching_l.py::test_tighter_offset_target_gives_larger_l_lower_bound
+gmid_engine/tests/search/test_iv_matching_l.py::test_sigma_query_width_is_at_least_w_min[M1]
+gmid_engine/tests/search/test_iv_matching_l.py::test_sigma_query_width_is_at_least_w_min[M3]
+gmid_engine/tests/search/test_search_context.py::test_offset_constraints_with_mismatch_lut_enter_ss_constraints
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 3 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== gmid_engine 구조 규칙 -- 검사 대상 수 =========================
+엔진 루트: C:\Users\HSLEE\Documents\Todoc\fpga\wt\fix-lutdecl\skills\analog-gmid-design\gmid_engine
+test_removed_names_absent_from_engine    대상 420개, 위반 0건
+test_local_inputs_not_rebuilt_in_search  대상  58개, 위반 0건
+test_rule_a_one_entry_point_per_file     대상 408개, 위반 0건
+test_rule_b_no_private_name_import       대상 420개, 위반 0건
+test_rule_c_layering_public_api_no_cycles 대상 420개, 위반 0건
+test_rule_d_numeric_literals             대상 419개, 위반 0건
+test_rule_e_no_circuit_name_literals     대상 420개, 위반 35건
+test_rule_f_no_broad_except              대상 420개, 위반 0건
+test_rule_g_no_module_level_mutable_cache 대상 420개, 위반 0건
+test_rule_i_no_circuit_specific_behavior 대상 420개, 위반 0건
+test_rule_k_front_query_not_called_in_engine 대상 417개, 위반 0건
+test_rule_m_run_pair_not_shared          대상 911개, 위반 0건
+test_rule_copy_manifest_matches_copies   대상  60개, 위반 0건
+test_rule_copy_manifest_matches_original 대상  60개, 위반 0건
+=========================== short test summary info ===========================
+FAILED gmid_engine/tests/authoring/test_spec_load.py::test_spec_fixture_names_disjoint_from_library
+FAILED gmid_engine/tests/authoring/test_topology_load.py::test_fixture_names_disjoint_from_library
+FAILED gmid_engine/tests/integration/test_authoring_library_load.py::test_library_has_exactly_nine_circuits
+FAILED gmid_engine/tests/integration/test_bias_source_manifest_library.py::test_library_set_is_nine
+FAILED gmid_engine/tests/integration/test_spec_library_load.py::test_library_has_nine_specs
+FAILED gmid_engine/tests/integration/test_stage_a_library.py::test_stage_a_library_circuit[cnr_ota]
+FAILED gmid_engine/tests/integration/test_stage_a_library.py::test_stage_a_library_circuit[erfc_ota]
+FAILED gmid_engine/tests/integration/test_stage_a_library.py::test_stage_a_library_circuit[r2r_opamp]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_count_budget_is_lut_grid_sum_of_used_kinds[erfc_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_block_grid_products_and_budget_gate[cnr_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_block_grid_products_and_budget_gate[erfc_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_block_grid_products_and_budget_gate[r2r_opamp]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_gain_target_and_verdict[cnr_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_gain_target_and_verdict[erfc_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_area_lower_bound_from_declared_values[cnr_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_area_lower_bound_from_declared_values[erfc_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_area_lower_bound_from_declared_values[r2r_opamp]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota]
+FAILED gmid_engine/tests/structure/test_structure_rules.py::test_rule_e_no_circuit_name_literals
+ERROR gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py - KeyE...
+ERROR gmid_engine/tests/integration/test_layer0_boundary_rows.py - KeyError: ...
+ERROR gmid_engine/tests/integration/test_s0_layer_9circuits.py - KeyError: 'c...
+ERROR gmid_engine/tests/lut/test_tolerance.py::test_ngspice_grid_rerun_equals_lut
+ERROR gmid_engine/tests/lut/test_tolerance.py::test_ngspice_cell_midpoint_error_bounded_by_cell_tol
+20 failed, 10209 passed, 15 deselected, 2 xfailed, 38 warnings, 5 errors in 3542.05s (0:59:02)

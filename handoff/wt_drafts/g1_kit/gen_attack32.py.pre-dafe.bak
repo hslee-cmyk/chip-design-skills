@@ -1,0 +1,159 @@
+"""공격 32(측정용 -- test-author 산출물 아님) 생성: spec card 20260930-p3-gate-move-aware 계약 12 표 29단계 x V3·V6·V7 = 87 vcase 단계.
+
+    python -B gen_attack32.py <복제본 루트> [--scope]      # <루트>/tools/gates/redteam/attacks/32-moved-defs/ 를 쓴다
+
+구성은 _drafts/p3v4_g1_measure.py CASES(초안 v4 반례)와 같은 소스, 기대는 card 표(병합본 열)와 관찰 열에서 손으로 옮긴 것이다
+(피검 도구 출력에서 만들지 않는다). --scope: V3 관찰에 not_targeted(= 0, 계약 12 '합성 관찰')를 더한다(G1_SCOPE=1 시제품용).
+"""
+import json
+import os
+import sys
+
+ROOT = sys.argv[1]
+SCOPE = "--scope" in sys.argv
+_args = dict(a.split("=", 1) for a in sys.argv[2:] if "=" in a)
+ONLY = set(_args["--only-stages"].split(",")) if "--only-stages" in _args else None    # 판별력 측정: 변형이 겨냥한 단계만
+D = os.path.join(ROOT, "tools", "gates", "redteam", "attacks", _args.get("--name", "32-moved-defs"))
+AS = "skills/analog-gmid-design/assets/"
+HP = "workspaces/run_harness.py"
+
+
+def A(p):
+    return AS + p
+
+
+HARN = "from a import run\n\ndef run2():\n    return run()\n"
+F1 = "def f(x):\n    try:\n        return x / 3.7\n    except Exception:\n        return None\n"
+F1E = F1.replace("3.7", "3.8")
+F2 = "def f(x):\n    return x\n"
+RUN = "def run():\n    return 1\n"
+SH = "from b import f  # noqa: F401\n\n" + RUN
+G_BASE = RUN + "\ndef helper():\n    return 2\n\ndef g(x):\n    try:\n        return helper() / 3.7\n    except Exception:\n        return x\n"
+FF = "import os\n\n\ndef ff():\n    try:\n        return os.path.dirname(__file__) + '/x' * 3\n    except Exception:\n        return None\n"
+C_BASE = "class Base:\n    pass\n\nclass Other:\n    pass\n\nclass C(Base):\n    k = 3.5\n\n    def m(self, x):\n        try:\n            return x / 3.7\n        except Exception:\n            return None\n"
+CG = "_X_CACHE = {}\n\n\ndef g(k):\n    if len(_X_CACHE) > 3.5:\n        _X_CACHE.clear()\n    return _X_CACHE.setdefault(k, k)\n"
+CR = "FLAG = True\nif FLAG:\n    def f(x):\n        return -x\n"
+PCLS = "class P:\n    @property\n    def x(self):\n        return self._x * 3.7\n\n    @x.setter\n    def x(self, v):\n        self._x = v\n"
+G_NB = "def g(x):\n    return helper() * x\n"
+SETX = "def setx(v):\n    global X\n    X = v\n"
+G_X = "def g(y):\n    try:\n        return X / 3.7\n    except Exception:\n        return y\n"
+FUT = "from __future__ import annotations\n"
+RECB = "@dataclasses.dataclass\nclass Rec:\n    a: float = 2.5\n"
+G_H = "def g(x):\n    try:\n        return h() / 3.7\n    except Exception:\n        return x\n"
+
+ME_B = {A("a.py"): RUN + "\n" + F1, HP: HARN}
+ME_H = {A("a.py"): SH, A("b.py"): F1, HP: HARN}
+CL_B = {A("a.py"): RUN + "\n" + C_BASE, HP: HARN}
+CLH = "from b import C, Base, Other  # noqa: F401\n\n" + RUN
+
+# (이름, base, head, (V3, V6, V7) 병합본 exit, (V3, V6, V7) base exit(card 표 왼쪽), moved, move_rejected, V3 defs)
+S = []
+
+
+def st(name, base, head, new, old, moved, rej, defs):
+    S.append((name, base, head, new, old, sorted(A(x) if not x.startswith("workspaces/") else x for x in moved),
+              {(A(k) if not k.startswith("workspaces/") else k): v for k, v in rej.items()},
+              sorted(A(x) if not x.startswith("workspaces/") else x for x in defs)))
+
+
+R1, R0 = (1, 1, 1), (0, 0, 0)
+st("move-exact", ME_B, ME_H, R0, R1, ["b.py::f"], {}, [])
+st("absorb-own-import", {A("a.py"): RUN + "\n" + F1, A("b.py"): "from a import f  # noqa\n", HP: HARN}, ME_H, R0, R1, ["b.py::f"], {}, [])
+st("move-together", {A("a.py"): G_BASE, HP: HARN},
+   {A("a.py"): "from b import g, helper  # noqa: F401\n\n" + RUN,
+    A("b.py"): "def helper():\n    return 2\n\ndef g(x):\n    try:\n        return helper() / 3.7\n    except Exception:\n        return x\n", HP: HARN},
+   R0, R1, ["b.py::g", "b.py::helper"], {}, [])
+st("move-chain", {A("a.py"): "from m1 import helper  # noqa\n\n" + RUN + "\ndef g(x):\n    try:\n        return helper() / 3.7\n    except Exception:\n        return x\n",
+                  A("m1.py"): "def helper():\n    return 2\n", HP: HARN},
+   {A("a.py"): "from m1 import helper  # noqa\nfrom m2 import g  # noqa\n\n" + RUN, A("m1.py"): "def helper():\n    return 2\n",
+    A("m2.py"): "from m1 import helper\n\n\ndef g(x):\n    try:\n        return helper() / 3.7\n    except Exception:\n        return x\n", HP: HARN},
+   R0, R1, ["m2.py::g"], {}, [])
+st("local-shadow", {A("a.py"): "helper = 7\n\n" + RUN + "\ndef g(x):\n    helper = x\n    try:\n        return helper / 3.7\n    except Exception:\n        return x\n", HP: HARN},
+   {A("a.py"): "from b import g  # noqa: F401\n\nhelper = 7\n\n" + RUN,
+    A("b.py"): "def g(x):\n    helper = x\n    try:\n        return helper / 3.7\n    except Exception:\n        return x\n", HP: HARN},
+   R0, R1, ["b.py::g"], {}, [])
+st("class-exact", CL_B, {A("a.py"): CLH, A("b.py"): C_BASE, HP: HARN}, R0, R1, ["b.py::C.m"], {}, [])
+st("cache-together", {A("a.py"): RUN + "\n" + CG, HP: HARN},
+   {A("a.py"): "from b import g, _X_CACHE  # noqa: F401\n\n" + RUN, A("b.py"): CG, HP: HARN}, R0, R1, ["b.py::g"], {}, [])
+st("move-edited", ME_B, {A("a.py"): SH, A("b.py"): F1E, HP: HARN}, R1, R1, [], {}, ["b.py::f"])
+st("copy", ME_B, {A("a.py"): RUN + "\n" + F1, A("b.py"): F1, HP: HARN}, R1, R1, [], {"b.py::f": "M-2"}, ["b.py::f"])
+st("wrapper", ME_B, {A("a.py"): "from b import f as _bf\n\n" + RUN + "\ndef f(x):\n    return _bf(x)\n", A("b.py"): F1, HP: HARN},
+   R1, R1, [], {"b.py::f": "M-2"}, ["a.py::f", "b.py::f"])
+st("ambiguous", {A("a.py"): RUN + "\n" + F1, A("c.py"): F1, HP: HARN}, {A("a.py"): SH, A("c.py"): F1, A("b.py"): F1, HP: HARN},
+   R1, R1, [], {"b.py::f": "M-1"}, ["b.py::f"])
+st("two-targets", ME_B, {A("a.py"): SH, A("b.py"): F1, A("d.py"): F1, HP: HARN}, R1, R1, [], {"b.py::f": "M-3", "d.py::f": "M-2"},
+   ["b.py::f", "d.py::f"])
+st("overwrite", {A("a.py"): RUN + "\n" + F1, A("b.py"): F2, HP: HARN}, ME_H, (1, 1, 0), (1, 1, 0), [], {"b.py::f": "M-0"}, ["b.py::f"])
+st("overwrite-import", {A("a.py"): RUN + "\n" + F1, A("c.py"): F2, A("b.py"): "from c import f  # noqa\n", HP: HARN},
+   {A("a.py"): SH, A("c.py"): F2, A("b.py"): F1, HP: HARN}, R1, R1, [], {"b.py::f": "M-0"}, ["b.py::f"])
+st("swap", {A("a.py"): RUN + "\n" + F1, A("b.py"): F2, HP: HARN}, {A("a.py"): RUN + "\n" + F2, A("b.py"): F1, HP: HARN},
+   (1, 1, 0), (1, 1, 0), [], {"a.py::f": "M-0", "b.py::f": "M-0"}, ["a.py::f", "b.py::f"])
+st("rebind", {A("a.py"): G_BASE, A("c.py"): "def helper():\n    return 5\n", HP: HARN},
+   {A("a.py"): "from b import g  # noqa: F401\n\n" + RUN + "\ndef helper():\n    return 2\n",
+    A("b.py"): "from c import helper\n\n\ndef g(x):\n    try:\n        return helper() / 3.7\n    except Exception:\n        return x\n",
+    A("c.py"): "def helper():\n    return 5\n", HP: HARN}, R1, R1, [], {"b.py::g": "M-4"}, ["b.py::g"])
+FF2 = "def ff():\n    try:\n        return __file__[:-3] + 'x' * 3\n    except Exception:\n        return None\n"
+# 키트 개정: 옛 구성(FF -- import os)은 `os` 디렉터리 차이로 거부돼 `__file__` 규칙을 고정하지 못했다 -> `__file__`만 읽는 FF2
+st("file-dir-change-noshim", {A("a.py"): RUN + "\n" + FF2, HP: HARN}, {A("a.py"): RUN, HP: HARN + "\n" + FF2}, R1, R1, [], {HP + "::ff": "M-4"}, [HP + "::ff"])
+st("class-header-changed", CL_B, {A("a.py"): CLH, A("b.py"): C_BASE.replace("class C(Base):", "class C(Other):"), HP: HARN},
+   R1, R1, [], {}, ["b.py::C.m"])
+st("class-field-changed", CL_B, {A("a.py"): CLH, A("b.py"): C_BASE.replace("k = 3.5", "k = 4.5"), HP: HARN}, R1, R1, [], {}, ["b.py::C.m"])
+st("class-method-edited", CL_B, {A("a.py"): CLH, A("b.py"): C_BASE.replace("x / 3.7", "x / 3.8"), HP: HARN}, R1, R1, [], {}, ["b.py::C.m"])
+st("cache-split", {A("a.py"): RUN + "\n" + CG, HP: HARN},
+   {A("a.py"): "from b import _X_CACHE\n\n" + RUN + "\n\ndef g(k):\n    if len(_X_CACHE) > 3.5:\n        _X_CACHE.clear()\n    return _X_CACHE.setdefault(k, k)\n",
+    A("b.py"): "_X_CACHE = {}\n", HP: HARN}, (0, 1, 0), (0, 1, 0), [], {}, [])
+st("stmt-literal-moved", {A("a.py"): RUN + "\nK_SCALE = 3.7\n", HP: HARN},
+   {A("a.py"): "from b import K_SCALE  # noqa: F401\n\n" + RUN, A("b.py"): "K_SCALE = 3.7\n", HP: HARN}, R0, (0, 1, 0), [], {}, [])
+st("dest-conditional-redef", ME_B, {A("a.py"): RUN, A("b.py"): F1 + "\n" + CR, HP: HARN}, R1, R1, [], {"b.py::f": "M-0h"}, ["b.py::f", "b.py::f"])
+st("dest-lambda-rebind", ME_B, {A("a.py"): RUN, A("b.py"): F1 + "\nf = (lambda g: (lambda x: -g(x)))(f)\n", HP: HARN}, R1, R1, [],
+   {"b.py::f": "M-0h"}, ["b.py::f"])
+st("augassign-rebind", ME_B, {A("a.py"): SH, A("b.py"): F1 + "\nf += 0\n", HP: HARN}, R1, R1, [], {"b.py::f": "M-0h"}, ["b.py::f"])
+st("except-as-rebind", ME_B, {A("a.py"): SH, A("b.py"): F1 + "\ntry:\n    pass\nexcept Exception as f:\n    pass\n", HP: HARN},
+   R1, R1, [], {"b.py::f": "M-0h"}, ["b.py::f"])
+st("property-getter-changed", {A("a.py"): RUN + "\n" + PCLS, HP: HARN},
+   {A("a.py"): "from b import P  # noqa: F401\n\n" + RUN, A("b.py"): PCLS.replace("3.7", "4.7"), HP: HARN},
+   (1, 0, 1), (1, 0, 1), [], {}, ["b.py::P.x", "b.py::P.x"])
+st("star-shadow", {A("a.py"): RUN + "\ndef helper():\n    return 2\n\n" + G_NB, A("c.py"): "def helper():\n    return 5\n", HP: HARN},
+   {A("a.py"): "from b import g, helper  # noqa: F401\n\n" + RUN,
+    A("b.py"): "def helper():\n    return 2\n\n" + G_NB + "\nfrom c import *  # noqa\n", A("c.py"): "def helper():\n    return 5\n", HP: HARN},
+   R1, R1, [], {"b.py::helper": "M-0h", "b.py::g": "M-0h"}, ["b.py::g", "b.py::helper"])
+st("global-reader", {A("a.py"): RUN + "\n" + SETX + "\n" + G_X, HP: HARN},
+   {A("a.py"): "from b import g  # noqa: F401\n\n" + RUN + "\n" + SETX, A("b.py"): G_X, HP: HARN}, R1, R1, [], {"b.py::g": "M-4"}, ["b.py::g"])
+st("ext-dir-change", {A("a.py"): "from wsutil import h\n\n" + RUN + "\n\n" + G_H, "workspaces/wsutil.py": "def h():\n    return 1\n", HP: HARN},
+   {A("a.py"): RUN, "workspaces/wsutil.py": "def h():\n    return 1\n", HP: HARN + "\nfrom wsutil import h\n\n\n" + G_H},
+   R1, R1, [], {HP + "::g": "M-4"}, [HP + "::g"])
+st("future-dropped", {A("a.py"): FUT + "import dataclasses\n\n" + RUN + "\n\n" + RECB, HP: HARN},
+   {A("a.py"): FUT + "from b import Rec  # noqa: F401\n\n" + RUN, A("b.py"): "import dataclasses\n\n\n" + RECB, HP: HARN},
+   R0, R0, [], {"b.py::Rec": "M-4"}, [])
+assert len(S) == 31, len(S)
+cases = []
+for (name, base, head, new, old, moved, rej, defs) in S:
+    if ONLY is not None and name not in ONLY:
+        continue
+    for i, tool in enumerate(("V3", "V6", "V7")):
+        obs = {"moved": moved, "move_rejected": rej}
+        if tool == "V3":
+            obs["defs"] = defs
+            if SCOPE:
+                obs["not_targeted"] = 0
+        c = {"step": "%s.%s" % (name, tool), "tool": tool, "kind": "attack" if new[i] else "control",
+             "observe": "moved", "base": {p: {"text": s} for p, s in base.items()},
+             "head": {p: ({"text": s} if p in head else None) for p, s in list(head.items()) + [(q, None) for q in base if q not in head]},
+             "expect": {"exit": new[i], "layer": tool, "message_contains": [], "observed_equals": obs,
+                        "basis": "card 20260930-p3-gate-move-aware 계약 12 표 %s 행(base 도구 exit %d)" % (name, old[i])}}
+        if SCOPE and tool == "V3":
+            c["observe_scope"] = True
+        cases.append(c)
+os.makedirs(D, exist_ok=True)
+with open(os.path.join(D, "v.json"), "w", encoding="utf-8", newline="\n") as fh:
+    json.dump({"cases": cases}, fh, ensure_ascii=False, indent=1)
+with open(os.path.join(D, "expect.json"), "w", encoding="utf-8", newline="\n") as fh:
+    json.dump({"layer": "V3", "exit": 0, "message_contains": [], "modes": ["direct"], "phase": "0.5",
+               "basis": "측정용 공격 32(g1_kit) -- card 계약 12", "title": "공격 32(측정용): 옮긴 단위 인식", "steps_from_records": True},
+              fh, ensure_ascii=False, indent=1)
+with open(os.path.join(D, "run.sh"), "w", encoding="utf-8", newline="\n") as fh:
+    fh.write('#!/usr/bin/env bash\nset -e\nrt() { "$PY" -B "$RT" "$@"; }\n\nrt vcase v.json\n')
+# 표(단계, 병합본 기대, card base 열) -- 결과 대조용
+with open(os.path.join(D, "_table.json"), "w", encoding="utf-8") as fh:
+    json.dump({n: {"new": new, "old": old} for (n, b, h, new, old, *_r) in S}, fh, ensure_ascii=False)
+print("wrote", len(cases), "steps to", D)

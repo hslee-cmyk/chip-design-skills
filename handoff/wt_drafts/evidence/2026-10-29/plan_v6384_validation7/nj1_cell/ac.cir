@@ -1,0 +1,15 @@
+* ac small-signal R at dV=0, l for 2 kOhm (ngspice semantics)
+.include "C:/pdk/sky130_fd_pr/models/r+c/res_typical__cap_typical__lin.spice"
+.param sky130_fd_pr__res_high_po__slope_spectre = 0.0 sky130_fd_pr__res_high_po__con_slope_spectre = 0.0
+.param crpf_precision = 1.06e-4 crpfsw_precision_1_1 = 5.04e-11
+.include "C:/pdk/sky130_fd_pr/cells/res_high_po/sky130_fd_pr__res_high_po_0p35.model.spice"
+.option temp=27
+v1 a 0 dc 0 ac 1
+vb b 0 dc 0
+x1 a 0 b sky130_fd_pr__res_high_po_0p35 l=0.851 w=0.35
+.control
+ac lin 1 1 1
+print 1/real(-i(v1))
+quit
+.endc
+.end

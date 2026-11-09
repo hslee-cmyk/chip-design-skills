@@ -1,0 +1,114 @@
+diff --git a/skills/analog-gmid-design/assets/stick_diagram.py b/skills/analog-gmid-design/assets/stick_diagram.py
+index ca46b5c..fd8a1e1 100644
+--- a/skills/analog-gmid-design/assets/stick_diagram.py
++++ b/skills/analog-gmid-design/assets/stick_diagram.py
+@@ -8579,9 +8579,12 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
+     그룹 안의 모든 파일이 서로를 전부 나열해야 한다)."""
+     def _read_one(path):
+         with open(path, "r", encoding="utf-8") as f:
+-            return json.load(f)
++            _d = json.load(f)
++        reject_legacy_names(_d, "topology")
++        return _d
+ 
+     data = _read_one(json_path)
++    _rails = rail_declaration(data)
+     all_netlist = list(data["netlist"])
+     all_matching_pairs = list(data["symmetry"]["matching_pairs"])
+     all_dispositions = list(data["symmetry"].get("dispositions", []))
+@@ -8593,6 +8596,8 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
+     base_dir = os.path.dirname(os.path.abspath(json_path))
+     for rel_path in linked:
+         linked_data = _read_one(os.path.join(base_dir, rel_path))
++        if "supply_nets" in linked_data and rail_declaration(linked_data).nets != _rails.nets:
++            raise ValueError("linked supply_nets mismatch")
+         all_netlist.extend(linked_data["netlist"])
+         all_matching_pairs.extend(linked_data["symmetry"]["matching_pairs"])
+         all_dispositions.extend(linked_data["symmetry"].get("dispositions", []))
+@@ -8700,6 +8705,7 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
+ 
+     meta = {
+         "topology_name": data["topology_name"],
++        "rails": _rails,
+         "schema_version": data["schema_version"],
+         "source": data.get("source"),
+         "symmetry": {"matching_pairs": all_matching_pairs, "dispositions": all_dispositions},
+@@ -9022,3 +9028,78 @@ def save_instance_json(path: str, topology_json_path: str, sizing_results: dict,
+ 
+     with open(path, "w", encoding="utf-8") as f:
+         json.dump(data, f, indent=2, ensure_ascii=False)
++
++
++@dataclass(frozen=True)
++class RailDeclaration:
++    nets: frozenset
++
++
++def rail_declaration(topology: dict) -> RailDeclaration:
++    """B26-1 계약 1 시제품(c21 측정용)."""
++    if "supply_nets" not in topology:
++        raise ValueError("supply_nets 선언 없음(DEC-60)")
++    v = topology["supply_nets"]
++    if not isinstance(v, list):
++        raise ValueError("supply_nets가 list가 아님(DEC-60)")
++    if any((not isinstance(x, str)) or x == "" for x in v):
++        raise ValueError("supply_nets 원소 오류(DEC-60)")
++    if len(set(v)) != len(v):
++        raise ValueError("supply_nets 중복(DEC-60)")
++    return RailDeclaration(nets=frozenset(v))
++
++
++@dataclass(frozen=True)
++class LegacyName:
++    old: str
++    new: str
++    where: str
++    scope: str     # JSON pointer, 세그먼트 "*" = 아무 키. "" = 문서 루트(JSON pointer 정의)
++    match: str     # "key"
++    stage: str
++    reason: str
++    descend: bool = False   # x3 음성 대조 전용: scope 아래 자손 매핑의 키까지 훑는다
++
++
++LEGACY_NAMES = [
++    LegacyName("vs", "vsb", "topology", "/device_roles/*", "key", "MG0", "B9 개명"),
++]
++
++
++def _ln_locate(doc, segs):
++    if not segs:
++        yield doc
++        return
++    if not isinstance(doc, Mapping):
++        return
++    s, rest = segs[0], segs[1:]
++    if s == "*":
++        for v in doc.values():
++            yield from _ln_locate(v, rest)
++    elif s in doc:
++        yield from _ln_locate(doc[s], rest)
++
++
++def _ln_mappings(x, descend):
++    if isinstance(x, Mapping):
++        yield x
++        if descend:
++            for v in x.values():
++                yield from _ln_mappings(v, descend)
++    elif descend and isinstance(x, list):
++        for v in x:
++            yield from _ln_mappings(v, descend)
++
++
++def reject_legacy_names(doc, where: str) -> None:
++    hits = []
++    for row in LEGACY_NAMES:
++        if row.where != where:
++            continue
++        segs = [s for s in row.scope.split("/")[1:]] if row.scope else []
++        for loc in _ln_locate(doc, segs):
++            for m in _ln_mappings(loc, row.descend):
++                if row.old in m:
++                    hits.append((row.scope, row.old, row.new, row.stage))
++    if hits:
++        raise ValueError("SCHEMA_REJECTED legacy_names where=%s hits=%r" % (where, hits))

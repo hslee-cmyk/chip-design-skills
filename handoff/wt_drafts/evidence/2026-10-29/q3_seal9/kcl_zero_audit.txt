@@ -1,0 +1,40 @@
+# KCL 항등 0 MOS 전수 (kcl_zero_audit.py, 엔진 import 0)
+
+## 출력 포트 고정 = False
+| 회로 | MOS 수 | KCL 항등 0 MOS | 근거 |
+|---|---|---|---|
+| library/common_gate_amplifier | 3 | - | - |
+| library/current_reuse_telescopic_ota | 51 | - | - |
+| library/folded_cascode | 13 | - | - |
+| library/ngcc_3stage_ff | 16 | - | - |
+| library/nmcnr_amplifier | 15 | - | - |
+| library/pushpull_follower_buffer | 6 | - | - |
+| library/sf_pushpull_output_opamp | 22 | - | - |
+| library/two_stage_ota | 7 | - | - |
+| library/two_stage_ota_sf | 9 | - | - |
+| heldout/cnr_ota | 72 | - | - |
+| heldout/erfc_ota | 29 | M21, M19, M20 | Z2 섬=drain {n_m8g}; Z2 섬=drain {n_m5g}; Z2 섬=drain {n_m6g} |
+| heldout/r2r_opamp | 31 | - | - |
+| heldout/rfc_ota | 35 | - | - |
+해당 회로 수 = 1/13
+
+## 출력 포트 고정 = True
+| 회로 | MOS 수 | KCL 항등 0 MOS | 근거 |
+|---|---|---|---|
+| library/common_gate_amplifier | 3 | - | - |
+| library/current_reuse_telescopic_ota | 51 | - | - |
+| library/folded_cascode | 13 | - | - |
+| library/ngcc_3stage_ff | 16 | - | - |
+| library/nmcnr_amplifier | 15 | - | - |
+| library/pushpull_follower_buffer | 6 | - | - |
+| library/sf_pushpull_output_opamp | 22 | - | - |
+| library/two_stage_ota | 7 | - | - |
+| library/two_stage_ota_sf | 9 | - | - |
+| heldout/cnr_ota | 72 | - | - |
+| heldout/erfc_ota | 29 | M21, M19, M20 | Z2 섬=drain {n_m8g}; Z2 섬=drain {n_m5g}; Z2 섬=drain {n_m6g} |
+| heldout/r2r_opamp | 31 | - | - |
+| heldout/rfc_ota | 35 | - | - |
+해당 회로 수 = 1/13
+
+## 정의 self-test (합성 toy: MN1 다이오드, MP 드레인 섬 nfl(gate+C), MC d==s, MQ 드레인-R-gnd)
+결과: MP Z2 섬={nfl}, MC Z1 d==s; MN1·MN2·MQ 제외 = 기대와 일치(정의가 실제로 고르고 실제로 거른다)

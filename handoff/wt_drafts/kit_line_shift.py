@@ -1,0 +1,987 @@
+#!/usr/bin/env python3
+"""kit_line_shift -- card 병합 뒤 초안·키트가 인용한 엔진 파일 줄 번호를 old -> new로 옮기는 제안 도구.
+
+초안(spec card·briefs·launch 스크립트·모의 스크립트)은 고치지 않는다. 결과는 --out-dir에
+  kit_line_shift.patch      (unified diff, 경로 a/<초안 상대 경로>; 적용은 사람이 검토 뒤 `git apply`/`patch -p1`)
+  kit_line_shift.report.md  (file:line, 옛 인용, 새 인용, 신뢰도, 근거)
+  kit_line_shift.json       (같은 내용, 기계용)
+만 쓴다. 저장소는 읽기만 한다(git show / diff / rev-parse / cat-file, 그리고 저장소 밖 `git diff --no-index`).
+
+줄 대응: 엔진 파일마다 `git diff --text --no-textconv --no-renames -U0 <base> <new> -- <path>`(base가 로컬 파일이면
+`git diff --no-index` 같은 옵션) 덩어리로 old 줄 -> new 줄. 바뀐 덩어리 안의 old 줄은 None(손으로 다시 잴 것).
+덩어리의 Σ(추가-삭제)가 new 줄 수 - base 줄 수와 다르면(바이너리 판정·textconv 등으로 덩어리가 빠짐) 멈춘다.
+이름이 바뀐 엔진(new 경로가 base에 없음)은 지원하지 않는다 -- git show 실패로 멈춘다.
+
+인용 인식(보수적 -- 엔진 파일과 명시적으로 묶인 숫자만 고친다):
+  * 표지(SR / SD 같은 라벨, 또는 `sizing_recipe.py`·`A/sizing_recipe.py:` 같은 파일 이름) 바로 뒤 숫자 줄(`·` `~` `,` `/` 공백,
+    한글 없는 괄호·백틱 묶음만 사이에 허용). 범위 `a~b`는 끝점마다 따로.
+  * 스크립트 리터럴 `{11800: b'...줄 글...'}`: 줄 글이 base 엔진 파일 그 줄과 같으면 그 엔진에 묶는다(literal-verified).
+  * 스크립트 대입 `SITE_SD_B1 = [...]`: 이름 토큰에 라벨이 있으면 그 엔진, 다른 base 이름 토큰(B1)이 있으면 그 base.
+인용으로 보지 않는 것: 단위가 붙은 수(`130줄`·`133개`·`2026년`·`100%`·`512 MB`·`300 tests` -- `줄`만 보고서에 남긴다),
+  날짜(`2026-10-06`·`2026/10/06`), 앞 0(`01200`), 다른 파일:줄.
+따로 모으는 것(패치에 넣지 않음, 보고서 '모호'·'이미 새 번호' 절):
+  * already-new: **같은 줄** 절 표지(`<rev> 줄 번호`·`줄 번호는 <rev>`·`gate master <rev>`)의 rev 엔진이 new와 같거나,
+    같은 줄·뒤따르는 `>` 인용 줄의 코드 조각·리터럴이 base 그 번호 줄이 아니라 new 그 번호 줄과 맞는다 -- 이미 옮긴 인용.
+    위 줄에서 이어 온 new 표지·엔진 상태가 갈리는 병기 표지(`A와 B`, `줄(A / B)`)는 ambiguous(section-inherited/-mixed, r2 S-B).
+  * anchored(measured): `measured rev/at <rev>` 표지(같은 줄에 '이 card의'가 있으면 문서 전체)의 rev가 base와 같다 --
+    측정 rev를 밝힌 인용이라 옮기지 않는다(r2 S-A).
+  * span-hunk(범위 사이 바뀐 덩어리), two-digit(글 근거 없는 두 자리), multi-engine(`SR·SD n`), line-suspect(같은 줄에 의심 인용) -- r2 m1·m2·m5·m3.
+  * other-base: 숫자 앞에 다른 base 표지(`b34`, `사본`, `모의`, 그 줄에 배정되지 않은 --base 이름)가 있다.
+  * arrow-pair(`a → b`), hyphen-range(`a-b`), year-like(19xx·20xx, 근거 없음), path-mentions-base(경로 조각 `b1/`).
+  * untied: 표지가 있는 줄이지만 표지와 끊긴 숫자.
+  * bare: 표지 없는 줄의 숫자가 같은 파일의 묶인 인용 번호와 같다(--include-bare로 패치에 포함 가능).
+  * anchored: 줄에 커밋/blob 해시가 있다(측정 시점 기록일 수 있다 -- --include-anchored로 포함 가능).
+  * snippet/literal-mismatch: 같은 줄 코드 조각·리터럴 줄 글이 base 그 줄과 다르다(base가 틀렸을 가능성).
+
+신뢰도: high = 리터럴 줄 글 일치·코드 조각(식별자 하나가 아닌 것) 일치·`>` 인용 줄 일치 / medium = 글 근거 없음(이동만,
+def 범위 안이면 근거에 def-ok) / remeasure = 바뀐 덩어리 안 / low·ambiguous·already-new·anchored = 위 모음.
+
+사용법은 kit_line_shift.md.
+"""
+import argparse
+import ast
+import difflib
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+
+HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
+HANGUL_RE = re.compile(r"[가-힣]")
+# 앞 0 없는 2~5자리. 한글 조사(11800만)·sed '11759p;'·문장 끝 마침표(`SR 1300.`) 허용, 소수·`1300.py`는 아님.
+# 두 자리는 표지·리터럴에 묶였을 때만 인용으로 본다(r2 m2).
+NUM_RE = re.compile(r"(?<![A-Za-z0-9_.$])([1-9]\d{1,4})(?!(?!p[;'\"])[A-Za-z0-9_])(?!\.[A-Za-z0-9_])")
+THOUSANDS_RE = re.compile(r"(?<![\d,])\d{1,3}(?:,\d{3})+(?![\d,])")   # 2,136 같은 개수
+DATE_RE = re.compile(r"(?<!\d)(?:19|20)\d{2}[-/.]\d{1,2}(?:[-/.]\d{1,2})?(?!\d)")
+UNIT_RE = re.compile(r"(?:(줄|개|년|건|회|곳|명|번째|배|쌍|자리|바이트|행\s*수(?!정))"
+                     r"|\s*(%|(?:MB|KB|GB|kB|tests?|passed|failed|errors?|lines?|bytes?|files?|cases?|items?|times|ms)(?![A-Za-z])))")
+ARROW = r"(?:→|->|=>|⇒)"
+ARROW_AFTER_RE = re.compile(r"\s*" + ARROW + r"\s*\d")
+ARROW_BEFORE_RE = re.compile(r"\d\s*" + ARROW + r"\s*$")
+HASH_RE = re.compile(r"(?<![\w/.])([0-9a-f]{7,40})(?![\w])")
+SEP_CHARS = set(" \t·~,、/:;-–")
+RANGE_SEP = "~"
+LITERAL_RE = re.compile(r"(?<![\w.])(\d{2,5})\s*:\s*b?(['\"])((?:\\.|(?!\2).)*)\2")
+ASSIGN_RE = re.compile(r"([A-Za-z_]\w*)\s*=\s*([\[\(\{])([^\]\)\}]*)[\]\)\}]")
+OTHER_PY_RE = re.compile(r"[\w./-]*\.py:$")
+PATH_RE = re.compile(r"[\w.~\-]*(?::)?(?:[/\\][\w.\-]+)+")
+IDENT_RE = re.compile(r"[A-Za-z_][\w.]*(?:\(\))?")
+# 절 표지: 이 줄부터 다음 절 표지 전까지의 인용은 이 rev 줄 번호다(줄 번호 표지 "lineno").
+# measured 표지("measured"): 측정 rev 선언 -- 그 rev가 base와 같으면 인용은 측정 기록이라 옮기지 않는다(anchored, r2 S-A).
+# 한 줄에 measured 표지가 있으면 그것이 그 줄의 표지다. 없고 rev가 둘 이상이면(병기) 엔진마다 상태가 하나로 모일 때만 쓴다(r2 S-B).
+SECTION_RES = [
+    (re.compile(r"(?<![\w])`?([0-9a-f]{7,40})`?\s*(?:의\s*)?줄\s*번호"), "lineno"),
+    (re.compile(r"줄(?:\s*번호)?(?:는|은)\s*(?:gate\s*`?master`?\s*)?`?([0-9a-f]{7,40})(?![\w])"), "lineno"),
+    (re.compile(r"gate\s*`?master`?\s*(?:판\s*)?`?([0-9a-f]{7,40})(?![\w])"), "lineno"),
+    (re.compile(r"줄\s*\(\s*`?([0-9a-f]{7,40})`?\s*/"), "lineno"),          # 표 머리 `줄(A / B)`
+    (re.compile(r"measured\s*(?:rev|at)\s*(?:는|은|=|:)?\s*\**\s*`?([0-9a-f]{7,40})(?![\w])"), "measured"),
+]
+# 표지 바로 뒤 병기(`A` / `B`, A·B, A와 B): 같은 표지의 rev로 함께 모은다(r2 S-B)
+SECTION_CONT_RE = re.compile(r"`?\s*(?:/|·|,|와|과|및)\s*`?([0-9a-f]{7,40})(?![\w])")
+# measured 표지와 같은 줄에 있으면 문서 전체(앞 줄 포함)의 측정 rev 선언으로 본다
+CARD_WIDE_RE = re.compile(r"이\s*(?:card|카드|문서)의")
+# 줄에 이 근거가 있으면 다른 인용도 의심한다(r2 m3): 이미 옮긴 인용일 수 있다
+SUSPECT_PREFIXES = ("snippet: new", "snippet: base·new", "quote: ", "literal: base·new", "literal: new", "new-value-present")
+DEFAULT_FOREIGN = ["b34", "B34 사본", "모의"]   # 대소문자 구분(B34 card 이름과 b34 모의 사본을 가른다)
+
+
+# ---------------------------------------------------------------- git helpers (읽기 전용)
+DIFF_OPTS = ["--text", "--no-textconv", "--no-renames", "--no-color", "--no-ext-diff", "-U0"]
+
+
+def git(repo, *args, ok=(0,)):
+    p = subprocess.run(["git", "-C", repo, *args], capture_output=True)
+    if p.returncode not in ok:
+        raise SystemExit("git %s 실패(rc %d): %s" % (" ".join(args), p.returncode, p.stderr.decode("utf-8", "replace")))
+    return p.stdout
+
+
+def git_noindex_diff(a, b):
+    p = subprocess.run(["git", "diff", "--no-index", *DIFF_OPTS, a, b], capture_output=True)
+    if p.returncode not in (0, 1):
+        raise SystemExit("git diff --no-index 실패: %s" % p.stderr.decode("utf-8", "replace"))
+    return p.stdout
+
+
+def is_commit(repo, h):
+    return subprocess.run(["git", "-C", repo, "cat-file", "-e", h + "^{commit}"], capture_output=True).returncode == 0
+
+
+def blob_id(repo, rev, path):
+    p = subprocess.run(["git", "-C", repo, "rev-parse", "%s:%s" % (rev, path)], capture_output=True)
+    return p.stdout.decode().strip() if p.returncode == 0 else None
+
+
+def count_lines(raw):
+    """git이 세는 줄 수(끝 개행 없는 마지막 줄도 1줄)."""
+    return raw.count(b"\n") + (1 if raw and not raw.endswith(b"\n") else 0)
+
+
+def split_keepends(text):
+    """\\n으로만 나눈다(U+2028·\\x0c·\\x85에서 쪼개지 않는다 -- git·편집기 줄 번호와 같게)."""
+    parts = text.split("\n")
+    out = [p + "\n" for p in parts[:-1]]
+    if parts[-1]:
+        out.append(parts[-1])
+    return out
+
+
+# ---------------------------------------------------------------- line mapping
+def parse_hunks(diff_bytes):
+    hunks = []
+    for line in diff_bytes.decode("utf-8", "replace").split("\n"):
+        if line.startswith("Binary files ") or line.startswith("GIT binary patch"):
+            raise SystemExit("git diff가 바이너리로 판정했다(덩어리 없음): %s" % line)
+        m = HUNK_RE.match(line)
+        if m:
+            a, b, c, d = m.group(1), m.group(2), m.group(3), m.group(4)
+            hunks.append((int(a), 1 if b is None else int(b), int(c), 1 if d is None else int(d)))
+    return hunks
+
+
+class LineMap:
+    def __init__(self, hunks):
+        self.hunks = sorted(hunks)
+
+    def map(self, n):
+        delta = 0
+        for a, b, _c, d in self.hunks:
+            if b > 0:
+                if a <= n <= a + b - 1:
+                    return None
+                if a + b - 1 < n:
+                    delta += d - b
+            else:                      # 순수 삽입: old a 줄 뒤
+                if a < n:
+                    delta += d
+        return n + delta
+
+    def spans_change(self, lo, hi):
+        """범위 lo~hi 안쪽(끝점 사이)에 바뀐 덩어리가 있는가(r2 m1)."""
+        for a, b, _c, _d in self.hunks:
+            if b > 0:
+                if a <= hi and a + b - 1 >= lo:
+                    return True
+            elif lo <= a < hi:          # 순수 삽입: old a 줄 뒤
+                return True
+        return False
+
+
+# ---------------------------------------------------------------- engine source facts
+class Source:
+    """한 base(또는 new)의 엔진 파일 한 개: 글·def 범위·blob."""
+
+    def __init__(self, raw, blob):
+        self.text = raw.decode("utf-8", "replace")
+        self.n_lines = count_lines(raw)
+        self.lines = [l[:-1] if l.endswith("\r") else l for l in self.text.split("\n")][:self.n_lines]
+        self.blob = blob
+        self._defs = None
+
+    def line(self, n):
+        return self.lines[n - 1] if 1 <= n <= self.n_lines else None
+
+    def defs(self):
+        if self._defs is None:
+            self._defs = {}
+            try:
+                tree = ast.parse(self.text)
+            except (SyntaxError, ValueError):
+                return self._defs
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                    start = min([node.lineno] + [d.lineno for d in node.decorator_list])
+                    self._defs.setdefault(node.name, []).append((start, node.end_lineno))
+        return self._defs
+
+
+# ---------------------------------------------------------------- citation scan
+def norm(s):
+    return " ".join(s.split())
+
+
+def code_norm(s):
+    """ast.unparse 표기 차이(따옴표·괄호·공백)를 없앤 비교용 글."""
+    return re.sub(r"[\s()'\"]", "", s)
+
+
+def snip_match(sn, line):
+    a, b = code_norm(sn), code_norm(line or "")
+    return bool(a) and bool(b) and (a in b or (len(b) >= 10 and b in a))
+
+
+def is_ident(sn):
+    return IDENT_RE.fullmatch(sn.strip()) is not None
+
+
+def gap_ok(gap):
+    """표지·숫자 사이(또는 숫자 사이) 글이 '같은 목록'으로 볼 수 있는가."""
+    rest, i = [], 0
+    while i < len(gap):
+        ch = gap[i]
+        if ch in "(`":
+            close = ")" if ch == "(" else "`"
+            depth, j = 1, i + 1
+            while j < len(gap) and depth:
+                if ch == "(" and gap[j] == "(":
+                    depth += 1
+                elif gap[j] == close:
+                    depth -= 1
+                j += 1
+            inner = gap[i + 1:j - 1]
+            if depth or re.search(r"\d{3,}", inner) or (ch == "`" and HANGUL_RE.search(inner)):
+                return False
+            i = j
+            continue
+        rest.append(ch)
+        i += 1
+    return all(c in SEP_CHARS for c in rest)
+
+
+class Scanner:
+    def __init__(self, engines, base_names, foreign_words):
+        self.engines = engines            # label -> path
+        self.markers = []                 # (regex, kind, value)
+        self.path_words = [(n, True) for n in base_names] + [(w, False) for w in foreign_words if " " not in w]
+        for label, path in engines.items():
+            base = os.path.basename(path)
+            self.markers.append((re.compile(r"(?<![\w$])%s(?![\w])" % re.escape(label)), "engine", label))
+            self.markers.append((re.compile(r"(?<![\w])(?:[\w.\-]+/)*%s(?![\w])" % re.escape(base)), "engine", label))
+        # base·foreign 표지: 경로 조각(`/b1/`)은 표지가 아니다(path_mentions로 따로 본다)
+        for name in base_names:
+            self.markers.append((re.compile(r"(?<![\w/\\])%s(?![\w/\\])" % re.escape(name), re.I), "base", name))
+        for w in foreign_words:
+            self.markers.append((re.compile(r"(?<![\w/\\])%s(?![\w/\\])" % re.escape(w)), "foreign", w))
+
+    def path_mentions(self, text):
+        """경로 조각으로 나온 base·foreign 이름(예 `C:/g83/b1/skills/...` 의 b1)."""
+        out = set()
+        for m in PATH_RE.finditer(text):
+            segs = re.split(r"[/\\:]", m.group(0))
+            for w, ci in self.path_words:
+                if any((s.lower() == w.lower()) if ci else (s == w) for s in segs):
+                    out.add(w)
+        return out
+
+    def tokens(self, text):
+        toks = []
+        for rx, kind, val in self.markers:
+            for m in rx.finditer(text):
+                toks.append((m.start(), m.end(), kind, val))
+        # 같은 자리 겹침: 긴 것 우선
+        toks.sort(key=lambda t: (t[0], -(t[1] - t[0])))
+        out, last_end = [], -1
+        for t in toks:
+            if t[0] >= last_end:
+                out.append(t)
+                last_end = t[1]
+        skip = [(m.start(), m.end()) for m in THOUSANDS_RE.finditer(text)] + \
+               [(m.start(), m.end()) for m in DATE_RE.finditer(text)]
+        for m in NUM_RE.finditer(text):
+            if any(s <= m.start() < e for s, e in skip):
+                continue
+            if not any(s <= m.start() < e for s, e, _k, _v in out):
+                u = UNIT_RE.match(text, m.end())
+                unit = None if u is None else re.sub(r"\s+", "", u.group(1) or u.group(2))
+                out.append((m.start(), m.end(), "num", (int(m.group(1)), unit)))
+        out.sort(key=lambda t: t[0])
+        return out
+
+    def scan_line(self, text):
+        """반환: [(start, end, num, engine|None, base_tag|None, how, range_role, literal_body)]
+        how: marker / literal / assign / arrow / hyphen / unit:<u> / untied / bare"""
+        hits = []
+        # (1) 리터럴 `N: b'줄 글'` -- 엔진은 나중에 글 대조로 정한다
+        literal_spans = {}
+        for m in LITERAL_RE.finditer(text):
+            body = m.group(3)
+            try:
+                body = ast.literal_eval("b" + m.group(2) + body + m.group(2)).decode("utf-8", "replace")
+            except Exception:
+                pass
+            literal_spans[m.start(1)] = body
+        # (2) 대입 SITE_SD_B1 = [ ... ]
+        assign_spans = []
+        for m in ASSIGN_RE.finditer(text):
+            parts = m.group(1).split("_")
+            eng = next((l for l in self.engines if l in parts), None)
+            if eng is None:
+                continue
+            base = None
+            for _rx, kind, val in self.markers:
+                if kind in ("base", "foreign") and any(p.lower() == val.lower() for p in parts):
+                    base = (kind, val)
+            assign_spans.append((m.start(3), m.end(3), eng, base))
+        toks = self.tokens(text)
+        ctx = None          # (engine, base_tag)
+        ctx_end = None      # 직전 표지/숫자 끝
+        prev_num = None
+        has_marker = any(k == "engine" for _s, _e, k, _v in toks)
+        for s, e, kind, val in toks:
+            if kind == "engine":
+                # `SR·SD 1300`: 숫자 없이 표지가 연달아 오면 어느 엔진인지 모른다(r2 m5)
+                if ctx is not None and ctx[0] is not None and ctx[1] is None and prev_num is None \
+                        and ctx_end is not None and gap_ok(text[ctx_end:s]) and not re.search(r"\d", text[ctx_end:s]):
+                    prev = ctx[0][len("multi:"):].split(",") if ctx[0].startswith("multi:") else [ctx[0]]
+                    if val not in prev:
+                        ctx, ctx_end = ("multi:" + ",".join(prev + [val]), None), e
+                        continue
+                ctx, ctx_end, prev_num = (val, None), e, None
+                continue
+            if kind in ("base", "foreign"):
+                if ctx is not None and gap_ok(text[ctx_end:s]) is False and not text[ctx_end:s].strip().startswith("("):
+                    ctx = None
+                if ctx is not None:
+                    ctx, ctx_end = (ctx[0], (kind, val)), e
+                else:
+                    ctx, ctx_end = (None, (kind, val)), e
+                prev_num = None
+                continue
+            # 숫자
+            n, unit = val
+            before = text[:s]
+            mo = OTHER_PY_RE.search(before)
+            if mo and mo.group(0)[:-1].rsplit("/", 1)[-1] not in {os.path.basename(p) for p in self.engines.values()}:
+                continue                                  # 다른 파일:줄(test_selftest_sizing_recipe.py:1480 등)
+            if s in literal_spans:
+                hits.append((s, e, n, None, None, "literal", None, literal_spans[s]))
+                ctx_end = e
+                continue
+            asg = next((a for a in assign_spans if a[0] <= s < a[1]), None)
+            if asg:
+                hits.append((s, e, n, asg[2], asg[3], "assign", None, None))
+                continue
+            arrow_b = ARROW_BEFORE_RE.search(before) is not None
+            arrow_a = ARROW_AFTER_RE.match(text, e) is not None
+            hyph = (text[e:e + 1] in "-–" and text[e + 1:e + 2].isdigit()) or \
+                   (s >= 2 and text[s - 1] in "-–" and text[s - 2].isdigit())
+            gap = text[ctx_end:s] if ctx_end is not None else None
+            if gap is not None and arrow_b:
+                gap = re.sub(ARROW, " ", gap)
+            tied = ctx is not None and gap is not None and gap_ok(gap)
+            if unit is not None:
+                if tied and n >= 100:                     # 두 자리 + 단위는 개수 -- 보고하지 않는다
+                    ue = None if (ctx[0] or "").startswith("multi:") else ctx[0]
+                    hits.append((s, e, n, ue, ctx[1], "unit:" + unit, None, None))
+                ctx, ctx_end, prev_num = None, None, None     # 단위 붙은 수 뒤로는 목록이 끊긴다
+                continue
+            role = "end" if prev_num is not None and text[prev_num:s].strip() == RANGE_SEP else None
+            if tied:
+                how = "arrow" if (arrow_a or arrow_b) else ("hyphen" if hyph else "marker")
+                if ctx[0] is not None and ctx[0].startswith("multi:"):
+                    hits.append((s, e, n, None, ctx[1], ctx[0], role, None))
+                else:
+                    hits.append((s, e, n, ctx[0], ctx[1], how, role, None))
+                ctx_end, prev_num = e, e
+            else:
+                ctx, ctx_end, prev_num = None, None, None
+                if n >= 100:                              # 두 자리 수는 묶였을 때만 인용(r2 m2)
+                    hits.append((s, e, n, None, None, "untied" if has_marker else "bare", None, None))
+        return hits
+
+
+def find_sections(text):
+    """줄 안 절 표지: [(col, rev, kind)] (kind = lineno | measured)."""
+    # 표지 문맥(줄 번호는·gate master·measured)이 이미 있으므로 숫자만인 짧은 해시(예 `7535799`)도 받는다(r2) --
+    # 커밋인지는 부르는 쪽이 commit_ok로 거른다
+    out = []
+    for rx, kind in SECTION_RES:
+        for m in rx.finditer(text):
+            h = m.group(1)
+            if re.search(r"\d", h):
+                out.append((m.start(), h, kind))
+                pos = m.end(1)
+                while True:                                  # 병기 rev
+                    c = SECTION_CONT_RE.match(text, pos)
+                    if not c or not re.search(r"\d", c.group(1)):
+                        break
+                    out.append((c.start(1), c.group(1), kind))
+                    pos = c.end(1)
+    return sorted(set(out))
+
+
+def quote_snippets(lines, ln):
+    """ln(1부터) 다음에 이어지는 `>` 인용 줄의 코드 조각(줄마다 하나, 순서대로)."""
+    out = []
+    j = ln
+    while j < len(lines):
+        t = lines[j].rstrip("\r\n").lstrip()
+        if not t.startswith(">"):
+            break
+        body = t[1:].strip()
+        bt = re.findall(r"`([^`]+)`", body)
+        out.append(norm(bt[0] if bt else body))
+        j += 1
+    return out
+
+
+# ---------------------------------------------------------------- main
+def parse_args(argv):
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--repo", required=True, help="저장소(읽기 전용)")
+    ap.add_argument("--old", required=True, help="초안이 측정한 rev(기본 base 'old')")
+    ap.add_argument("--new", required=True, help="병합 뒤 rev")
+    ap.add_argument("--engine", action="append", required=True, metavar="LABEL=PATH",
+                    help="엔진 파일, 예 SR=skills/analog-gmid-design/assets/sizing_recipe.py")
+    ap.add_argument("--base", action="append", default=[], metavar="NAME=LABEL:SRC[,LABEL:SRC]",
+                    help="추가 base. SRC = 로컬 파일 경로 또는 git rev. 빠진 LABEL은 --old")
+    ap.add_argument("--draft", action="append", required=True, metavar="PATH[@BASE][:LINES]",
+                    help="초안(--drafts-root 기준). @BASE 기본 old, :LINES 예 16-17,40-52(나중 항목이 우선)")
+    ap.add_argument("--drafts-root", default=".", help="초안 경로 기준 디렉터리(패치 경로도 이 기준)")
+    ap.add_argument("--out-dir", required=True)
+    ap.add_argument("--foreign", action="append", default=None,
+                    help="다른 base 표지 낱말(기본 %s)" % DEFAULT_FOREIGN)
+    ap.add_argument("--include-bare", action="store_true")
+    ap.add_argument("--include-anchored", action="store_true")
+    ap.add_argument("--show-unchanged", action="store_true", help="이동 0 인용도 보고서 표에 싣는다")
+    return ap.parse_args(argv)
+
+
+def parse_linespec(spec):
+    out = set()
+    for part in spec.split(","):
+        if "-" in part:
+            a, b = part.split("-")
+            out.update(range(int(a), int(b) + 1))
+        elif part:
+            out.add(int(part))
+    return out
+
+
+def main(argv=None):
+    a = parse_args(argv)
+    repo = a.repo
+    engines = {}
+    for e in a.engine:
+        k, v = e.split("=", 1)
+        engines[k] = v
+    new_rev = git(repo, "rev-parse", a.new + "^{commit}").decode().strip()
+    old_rev = git(repo, "rev-parse", a.old + "^{commit}").decode().strip()
+
+    # base 정의: name -> {label: ("rev", rev) | ("file", path)}
+    bases = {"old": {l: ("rev", old_rev) for l in engines}}
+    for b in a.base:
+        name, spec = b.split("=", 1)
+        d = {l: ("rev", old_rev) for l in engines}
+        for item in spec.split(","):
+            label, src = item.split(":", 1)
+            if label not in engines:
+                raise SystemExit("--base %s: 모르는 라벨 %s" % (name, label))
+            if os.path.isfile(src):
+                d[label] = ("file", os.path.abspath(src))
+            else:
+                d[label] = ("rev", git(repo, "rev-parse", src + "^{commit}").decode().strip())
+        bases[name] = d
+
+    tmpdir = tempfile.mkdtemp(prefix="kls_")
+    new_src, maps, base_src = {}, {}, {}
+    try:
+        for label, path in engines.items():
+            blob = git(repo, "show", "%s:%s" % (new_rev, path))
+            new_src[label] = Source(blob, blob_id(repo, new_rev, path))
+            newf = os.path.join(tmpdir, "new_" + label)
+            with open(newf, "wb") as fh:
+                fh.write(blob)
+            for bname, d in bases.items():
+                kind, src = d[label]
+                if kind == "rev":
+                    diff = git(repo, "diff", *DIFF_OPTS, src, new_rev, "--", path)
+                    raw = git(repo, "show", "%s:%s" % (src, path))
+                    bid = blob_id(repo, src, path)
+                else:
+                    diff = git_noindex_diff(src, newf)
+                    with open(src, "rb") as fh:
+                        raw = fh.read()
+                    bid = subprocess.run(["git", "hash-object", src], capture_output=True).stdout.decode().strip()
+                hunks = parse_hunks(diff)
+                got = sum(dd - bb for _a, bb, _c, dd in hunks)
+                want = count_lines(blob) - count_lines(raw)
+                if got != want:
+                    raise SystemExit("%s @ base %s: 덩어리 Σ(추가-삭제)=%d != new-base 줄 수 차 %d -- 덩어리를 빠뜨렸다(바이너리·textconv?), 멈춘다"
+                                     % (label, bname, got, want))
+                maps[(bname, label)] = LineMap(hunks)
+                base_src[(bname, label)] = Source(raw, bid)
+    finally:
+        for f in os.listdir(tmpdir):
+            os.remove(os.path.join(tmpdir, f))
+        os.rmdir(tmpdir)
+
+    foreign = DEFAULT_FOREIGN if a.foreign is None else a.foreign
+    scanner = Scanner(engines, [n for n in bases if n != "old"], foreign)
+
+    # 초안별 줄 -> base 배정
+    assign = {}           # path -> (default_base|None, {line: base})
+    order = []
+    for d in a.draft:
+        m = re.match(r"^(.*?)(?:@([A-Za-z][\w.\-]*))?(?::([\d,\-]+))?$", d)
+        path, bname, lines = m.group(1), m.group(2) or "old", m.group(3)
+        if bname not in bases:
+            raise SystemExit("--draft %s: 모르는 base %s" % (d, bname))
+        if path not in assign:
+            assign[path] = [None, {}]
+            order.append(path)
+        if lines:
+            for n in parse_linespec(lines):
+                assign[path][1][n] = bname
+        else:
+            assign[path][0] = bname
+
+    anchor_cache = {}
+    commit_cache = {}
+    section_cache = {}
+
+    def anchor_info(h, label, bname):
+        key = (h, label, bname)
+        if key not in anchor_cache:
+            if is_commit(repo, h):
+                same = blob_id(repo, h, engines[label]) == base_src[(bname, label)].blob
+                anchor_cache[key] = "%s(commit, %s base)" % (h, "≡" if same else "≠")
+            else:
+                anchor_cache[key] = "%s(commit 아님)" % h
+        return anchor_cache[key]
+
+    def commit_ok(h):
+        if h not in commit_cache:
+            commit_cache[h] = is_commit(repo, h)
+        return commit_cache[h]
+
+    def section_state(rev, label, bname):
+        """절 표지 rev의 엔진이 base와 같으면 'base', new와 같으면 'new', 둘 다 아니면 'other'. base==new면 None."""
+        key = (rev, label, bname)
+        if key not in section_cache:
+            bb, nb = base_src[(bname, label)].blob, new_src[label].blob
+            if bb == nb:
+                section_cache[key] = None
+            else:
+                mb = blob_id(repo, rev, engines[label])
+                section_cache[key] = "base" if mb == bb else ("new" if mb == nb else "other")
+        return section_cache[key]
+
+    def desc_state(desc, label, bname):
+        """표지 묘사 {'revs','kind','line'}의 엔진 상태. rev가 여럿이면 상태가 하나로 모일 때만 그 상태, 아니면 'mixed'."""
+        sts = {section_state(r, label, bname) for r in desc["revs"]}
+        if None in sts:
+            return None
+        return sts.pop() if len(sts) == 1 else "mixed"
+
+    def apply_section(rec, file_measured):
+        """절 표지에 맞춰 신뢰도를 고친다.
+        * 같은 줄 표지가 new -> already-new. 위 줄에서 이어 온 표지가 new -> ambiguous(section-inherited):
+          표지가 이 인용을 다스리는지 모른다(병기 문장·출처 설명이 아래 문단으로 번진다, r2 S-B).
+        * measured 표지(이 절 또는 문서 전체 선언)가 base와 같으면 high·medium -> anchored: 측정 rev를 밝힌 인용은
+          옮기지 않는다(--include-anchored로만 패치, r2 S-A). 표시만 해 두고, 다른 강등(line-mentions-base·
+          new-value-present·line-suspect·range-partner)을 다 거친 뒤에도 high·medium이면 마지막에 anchored로 내린다.
+        * rev가 여럿이고 엔진 상태가 갈리면(mixed)·base·new 어느 쪽도 아니면(other) high·medium -> ambiguous."""
+        sec = rec["section"]
+        if rec["engine"] is None or rec["confidence"] == "already-new":
+            return
+        movable = rec["confidence"] in ("high", "medium")
+        st = desc_state(sec, rec["engine"], rec["base"]) if sec else None
+        tag = "/".join(sec["revs"]) if sec else ""
+        if sec is not None and st is None:
+            return                                            # base == new 엔진: 표지가 뜻을 바꾸지 않는다
+        if st == "new":
+            if sec["line"] == rec["line"]:
+                rec["confidence"] = "already-new"
+                rec["evidence"].append("section-rev(%s)=new" % tag)
+            else:
+                if movable:
+                    rec["confidence"] = "ambiguous"
+                rec["evidence"].append("section-inherited(%s @L%d)=new" % (tag, sec["line"]))
+            return
+        if st == "mixed":
+            if movable:
+                rec["confidence"] = "ambiguous"
+            rec["evidence"].append("section-mixed(%s @L%d)" % (tag, sec["line"]))
+            return
+        if st == "other":
+            if movable:
+                rec["confidence"] = "ambiguous"
+            rec["evidence"].append("section-rev(%s)≠base·new" % tag)
+            return
+        # st == base 또는 표지 없음
+        if sec is not None and sec["kind"] == "measured":
+            rec["measured_anchor"] = True
+            rec["evidence"].append("measured-rev(%s @L%d)≡base" % (tag, sec["line"]))
+            return
+        if sec is not None:
+            rec["evidence"].append("section-rev(%s)≡base" % tag)
+        if file_measured is not None and desc_state(file_measured, rec["engine"], rec["base"]) == "base":
+            rec["measured_anchor"] = True
+            rec["evidence"].append("measured-rev(%s @L%d, 문서 전체)≡base" % ("/".join(file_measured["revs"]), file_measured["line"]))
+
+    records = []
+    per_file = {}
+    fm_of = {}            # path -> 문서 전체 measured 선언
+    edits = {}            # path -> {line_no: [(s, e, newnum)]}
+    contents = {}
+    for path in order:
+        full = os.path.join(a.drafts_root, path)
+        with open(full, "rb") as fh:
+            raw = fh.read()
+        text = raw.decode("utf-8")
+        lines = split_keepends(text)
+        contents[path] = (raw, lines)
+        default_base, per_line = assign[path]
+        file_recs = []
+        section = None        # 지금 절 표지 {'revs', 'kind', 'line'}
+        # 문서 전체 measured 선언(measured 표지와 '이 card의'가 같은 줄) -- 앞 줄에도 적용
+        file_measured = None
+        for ln0, line0 in enumerate(lines, 1):
+            b0 = line0.rstrip("\r\n")
+            ms = [h for _c, h, k in find_sections(b0) if k == "measured" and commit_ok(h)]
+            if ms and CARD_WIDE_RE.search(b0):
+                file_measured = {"revs": sorted(set(ms)), "kind": "measured", "line": ln0}
+                break
+        for ln, line in enumerate(lines, 1):
+            body = line.rstrip("\r\n")
+            # 절 표지가 있는 줄: measured 표지가 있으면 그것(예 'gate master X … measured rev는 Y' -> Y),
+            # 없으면 줄의 모든 rev(병기 'A와 … B'는 엔진 상태가 갈리면 mixed)
+            secs = [(c, h, k) for c, h, k in find_sections(body) if commit_ok(h)]
+            if secs:
+                ms = [h for _c, h, k in secs if k == "measured"]
+                if ms:
+                    section = {"revs": sorted(set(ms)), "kind": "measured", "line": ln}
+                else:
+                    section = {"revs": sorted({h for _c, h, _k in secs}), "kind": "lineno", "line": ln}
+            bname = per_line.get(ln, default_base)
+            if bname is None:
+                continue
+            hits = scanner.scan_line(body)
+            if not hits:
+                continue
+            all_snips = [norm(s) for s in re.findall(r"`([^`]+)`", body) if len(norm(s)) >= 10]
+            strong_snips = [s for s in all_snips if not is_ident(s)]
+            quotes = [q for q in quote_snippets(lines, ln)]
+            names = set(re.findall(r"[A-Za-z_]\w{3,}", body))
+            anchors = [h for h in HASH_RE.findall(body) if re.search(r"[a-f]", h) and re.search(r"\d", h)]
+            tied_on_line = [h for h in hits if h[3] is not None]
+            path_ment = scanner.path_mentions(body)
+            # 범위(a~b) 짝: 인용 줄 수가 범위 길이와 같으면 줄마다 맞춰 본다. 짝 끝점 col도 기억(한쪽만 패치 금지)
+            ranges, partner = {}, {}
+            prev_tied = None
+            for h in hits:
+                if h[6] == "end" and prev_tied is not None:
+                    ranges[prev_tied[0]] = ranges[h[0]] = (prev_tied[2], h[2])
+                    partner[prev_tied[0]], partner[h[0]] = h[0], prev_tied[0]
+                prev_tied = h if h[3] is not None else None
+            for (s, e, n, eng, btag, how, role, lit) in hits:
+                sec = section
+                rec = {"file": path, "line": ln, "col": s, "end": e, "old": n, "engine": eng, "base": bname,
+                       "how": how, "range_end": role == "end", "new": None, "delta": None,
+                       "confidence": None, "evidence": [], "context": body.strip()[:160], "section": sec,
+                       "partner_col": partner.get(s),
+                       "line_engines": sorted({v for _s, _e, k, v in scanner.tokens(body) if k == "engine"})}
+                if how == "literal":
+                    hb = [l for l in engines if base_src[(bname, l)].line(n) == lit]
+                    hn = [l for l in engines if new_src[l].line(n) == lit]
+                    if len(hb) > 1:
+                        rec["confidence"] = "ambiguous"
+                        rec["evidence"].append("literal: 여러 엔진 base 줄과 같음(%s)" % ",".join(hb))
+                    elif hb:
+                        eng = rec["engine"] = hb[0]
+                        nl = maps[(bname, eng)].map(n)
+                        rec["new"] = nl
+                        if nl is None:
+                            rec["confidence"] = "remeasure"
+                            rec["evidence"].append("literal-verified(base); 바뀐 덩어리 안")
+                        elif nl != n and eng in hn:
+                            rec["confidence"] = "ambiguous"
+                            rec["evidence"].append("literal: base·new 같은 번호 줄 모두와 같음(이미 옮겼을 수 있다)")
+                        else:
+                            rec["confidence"] = "high"
+                            rec["evidence"].append("literal-verified(base)")
+                    elif len(hn) == 1:
+                        rec["engine"] = hn[0]
+                        rec["confidence"] = "already-new"
+                        rec["evidence"].append("literal: new 같은 번호 줄과 같고 base와 다름")
+                    else:
+                        rec["confidence"] = "low"
+                        rec["evidence"].append("literal-mismatch: 어느 엔진 base 줄 글과도 다름")
+                elif how.startswith("multi:"):
+                    rec["confidence"] = "ambiguous"
+                    labs = how[len("multi:"):].split(",")
+                    rec["evidence"].append("multi-engine(%s)" % ", ".join(
+                        "%s->%s" % (l, maps[(bname, l)].map(n)) for l in labs))
+                elif how in ("untied", "bare"):
+                    rec["confidence"] = "ambiguous"
+                    rec["evidence"].append(how)
+                elif how in ("arrow", "hyphen") or how.startswith("unit:"):
+                    rec["confidence"] = "ambiguous"
+                    rec["evidence"].append({"arrow": "arrow-pair(a → b)", "hyphen": "hyphen-range(a-b)"}.get(how, "unit(%s)" % how[5:]))
+                elif btag is not None and not (btag[0] == "base" and btag[1].lower() == bname.lower()):
+                    rec["confidence"] = "ambiguous"
+                    rec["evidence"].append("other-base(%s)" % btag[1])
+                    prev = [t for t in tied_on_line if t[0] < s and t[4] is None and t[3] == eng]
+                    if prev and eng is not None:
+                        pn = prev[-1][2]
+                        pm = maps[(bname, eng)].map(pn)
+                        rec["evidence"].append("앞 인용 %s %d -> %s" % (eng, pn, pm))
+                if eng is not None and rec["confidence"] in (None, "ambiguous") and how != "literal":
+                    src = base_src[(bname, eng)]
+                    nsrc = new_src[eng]
+                    nl = maps[(bname, eng)].map(n)
+                    rec["new"] = nl
+                    if rec["confidence"] is None:
+                        if n > src.n_lines:
+                            rec["confidence"] = "low"
+                            rec["evidence"].append("base 파일 길이(%d) 밖" % src.n_lines)
+                        elif nl is None:
+                            rec["confidence"] = "remeasure"
+                            rec["evidence"].append("바뀐 덩어리 안")
+                        else:
+                            bl = src.line(n) or ""
+                            nw = nsrc.line(n)
+                            moved = nl != n
+                            # (1) 범위와 줄 수가 같은 `>` 인용 줄: 줄마다 대조
+                            rg = ranges.get(s) or ((n, n) if role is None and len(quotes) == 1 else None)
+                            q_base = q_new = None
+                            if quotes and rg and rg[1] - rg[0] + 1 == len(quotes):
+                                q_base = all(snip_match(q, src.line(rg[0] + i)) for i, q in enumerate(quotes))
+                                q_new = all(snip_match(q, nsrc.line(rg[0] + i)) for i, q in enumerate(quotes))
+                            # 식별자 하나짜리 조각은 글 근거가 아니다 -- 글 조각이 있으면 그것만, 없을 때만 식별자로 본다
+                            snips = (strong_snips or all_snips) + quotes
+                            sb_strong = [sn for sn in strong_snips + quotes if snip_match(sn, bl)]
+                            sb_any = any(snip_match(sn, bl) for sn in snips)
+                            sn_any = any(snip_match(sn, nw) for sn in snips)
+                            single = len(tied_on_line) == 1
+                            dnames = [nm for nm in names if nm in src.defs()]
+                            inside = [nm for nm in dnames if any(s0 <= n <= e0 for s0, e0 in src.defs()[nm])]
+                            if q_base is not None and moved and q_new and not q_base:
+                                rec["confidence"] = "already-new"
+                                rec["evidence"].append("quote: new 같은 번호 줄과 맞고 base와 다름")
+                            elif q_base is not None and q_base and not (moved and q_new):
+                                rec["confidence"] = "high"
+                                rec["evidence"].append("quote-ok")
+                            elif q_base is not None and moved:
+                                rec["confidence"] = "ambiguous"
+                                rec["evidence"].append("quote: base·new 어느 쪽과도 한 가지로 맞지 않음")
+                            elif moved and sn_any and not sb_any and single:
+                                rec["confidence"] = "already-new"
+                                rec["evidence"].append("snippet: new 같은 번호 줄과 맞고 base와 다름")
+                            elif moved and sn_any and not sb_any:
+                                rec["confidence"] = "ambiguous"
+                                rec["evidence"].append("snippet: new 같은 번호 줄과 맞고 base와 다름(줄에 인용 여럿 -- 이미 옮겼거나 조각이 이웃 줄)")
+                            elif moved and sb_any and sn_any:
+                                rec["confidence"] = "ambiguous"
+                                rec["evidence"].append("snippet: base·new 같은 번호 줄 모두와 맞음")
+                            elif sb_strong:
+                                rec["confidence"] = "high"
+                                rec["evidence"].append("snippet-ok")
+                            elif strong_snips and len(tied_on_line) == 1 and body.lstrip().startswith("|"):
+                                rec["confidence"] = "low"
+                                rec["evidence"].append("snippet-mismatch(base 줄: %s)" % norm(bl)[:60])
+                            else:
+                                rec["confidence"] = "medium"
+                                if inside:
+                                    rec["evidence"].append("def-ok(%s)" % inside[0])
+                                elif dnames:
+                                    rec["evidence"].append("def-outside(%s)" % ",".join(sorted(dnames)[:3]))
+                                if how == "assign":
+                                    rec["evidence"].append("assign")
+                                if 1900 <= n <= 2099 and not inside:
+                                    rec["confidence"] = "ambiguous"
+                                    rec["evidence"].append("year-like")
+                    # 범위 a~b 사이에 바뀐 덩어리가 있으면 두 끝만 옮겨서는 같은 범위가 아니다(r2 m1)
+                    rg2 = ranges.get(s)
+                    if rg2 and rec["confidence"] in ("high", "medium") and maps[(bname, eng)].spans_change(*rg2):
+                        rec["confidence"] = "ambiguous"
+                        rec["evidence"].append("span-hunk(%d~%d)" % rg2)
+                    # 두 자리 수는 개수일 수 있다(`SD 18, SR 2`) -- 글 근거(high) 없이는 옮기지 않고 보고만 한다(r2 m2)
+                    if n < 100 and rec["confidence"] == "medium":
+                        rec["confidence"] = "ambiguous"
+                        rec["evidence"].append("two-digit(글 근거 없음)")
+                apply_section(rec, file_measured)
+                if rec["confidence"] == "medium":
+                    mentioned = {(k, v) for _s, _e, k, v in scanner.tokens(body) if k in ("base", "foreign")}
+                    names_own = any(k == "base" and v.lower() == bname.lower() for k, v in mentioned)
+                    others = sorted({v for k, v in mentioned if v.lower() != bname.lower()})
+                    if others and not names_own:
+                        rec["confidence"] = "ambiguous"
+                        rec["evidence"].append("line-mentions-base(%s)" % ",".join(others))
+                if rec["confidence"] in ("high", "medium"):
+                    pm = sorted(w for w in path_ment if w.lower() != bname.lower())
+                    if pm:
+                        rec["confidence"] = "ambiguous"
+                        rec["evidence"].append("path-mentions-base(%s)" % ",".join(pm))
+                if anchors and rec["confidence"] in ("high", "medium"):
+                    rec["evidence"].append("anchored:" + ",".join(anchor_info(h, rec["engine"], bname) for h in anchors))
+                    rec["confidence"] = "anchored"
+                if rec["new"] is not None:
+                    rec["delta"] = rec["new"] - n
+                file_recs.append(rec)
+        per_file[path] = file_recs
+        fm_of[path] = file_measured
+
+    # bare / untied 숫자: 묶인 인용(high·medium·anchored)과 번호가 같으면 그 이동을 제안(같은 파일 우선, 없으면 이번 실행의 다른 초안)
+    def tied_of(recs):
+        m = {}
+        for r in recs:
+            if r["confidence"] in ("high", "medium", "anchored") and r["new"] is not None:
+                m.setdefault((r["base"], r["old"]), set()).add((r["engine"], r["new"]))
+        return m
+    global_tied = tied_of([r for path in order for r in per_file[path]])
+    for path in order:
+        file_recs = per_file[path]
+        tied_map = tied_of(file_recs)
+        for r in file_recs:
+            if r["how"] == "untied" and r["new"] is None and r.get("line_engines") and len(r["line_engines"]) == 1:
+                eng = r["line_engines"][0]
+                nl = maps[(r["base"], eng)].map(r["old"])
+                if r["old"] <= base_src[(r["base"], eng)].n_lines:
+                    r["engine"], r["new"] = eng, nl
+                    r["delta"] = None if nl is None else nl - r["old"]
+                    r["evidence"].append("표지 줄의 유일 엔진 %s로 계산" % eng)
+            if r["how"] in ("bare", "untied") and r["old"] >= 1000 and r["new"] is None:
+                cand, where = tied_map.get((r["base"], r["old"])), "같은 파일"
+                if not cand:
+                    cand, where = global_tied.get((r["base"], r["old"])), "다른 초안"
+                if cand and len(cand) == 1:
+                    eng, nl = next(iter(cand))
+                    r["engine"], r["new"], r["delta"] = eng, nl, nl - r["old"]
+                    r["evidence"].append("%s의 묶인 인용 %s %d와 같은 번호" % (where, eng, r["old"]))
+            if r["how"] in ("bare", "untied"):
+                apply_section(r, fm_of[path])
+        # 새 값이 이미 곁에 있다(같은 줄의 already-new·other-base 인용 -- 예 `SD 1567(b34 1562)`, 또는 바로 옆 줄의
+        # already-new 리터럴 -- 옛·새 판 리터럴을 나란히 둔 `{새} if 새 판 else {옛}`): 옛 값을 옮기면 같은 값이 둘이 된다 -> ambiguous
+        present = {}
+        for r in file_recs:
+            if r["engine"] and (r["confidence"] == "already-new" or any(ev.startswith("other-base") for ev in r["evidence"])):
+                present.setdefault((r["engine"], r["old"]), []).append((r["line"], r["how"]))
+        for r in file_recs:
+            if r["confidence"] in ("high", "medium") and r["new"] is not None and r["delta"]:
+                near = [l for l, hw in present.get((r["engine"], r["new"]), [])
+                        if l == r["line"] or (abs(l - r["line"]) == 1 and hw == "literal" and r["how"] == "literal")]
+                if near:
+                    r["confidence"] = "ambiguous"
+                    r["evidence"].append("new-value-present(%s %d @L%d)" % (r["engine"], r["new"], near[0]))
+        # 줄에 이미 옮긴 것으로 의심되는 인용이 하나라도 있으면 같은 줄의 다른 인용도 패치하지 않고 보고만 한다(r2 m3)
+        suspect_lines = {}
+        for r in file_recs:
+            if r["confidence"] == "already-new" or any(ev.startswith(SUSPECT_PREFIXES) for ev in r["evidence"]):
+                suspect_lines.setdefault(r["line"], r)
+        for r in file_recs:
+            sr = suspect_lines.get(r["line"])
+            if sr is not None and sr is not r and r["confidence"] in ("high", "medium"):
+                r["confidence"] = "ambiguous"
+                r["evidence"].append("line-suspect(%s %d: %s)" % (sr["engine"] or "?", sr["old"], sr["confidence"]))
+        # 범위 a~b는 두 끝점이 함께 패치될 때만 패치한다(한쪽만 옮기면 범위가 깨진다)
+        by_col = {(r["line"], r["col"]): r for r in file_recs}
+        for r in file_recs:
+            pr = by_col.get((r["line"], r["partner_col"])) if r.get("partner_col") is not None else None
+            if pr is not None and r["confidence"] in ("high", "medium") and pr["confidence"] not in ("high", "medium"):
+                r["confidence"] = "ambiguous"
+                r["evidence"].append("range-partner(%d: %s)" % (pr["old"], pr["confidence"]))
+        # measured 표지(S-A): 다른 강등을 다 거친 뒤 남은 high·medium을 anchored로
+        for r in file_recs:
+            if r.get("measured_anchor") and r["confidence"] in ("high", "medium"):
+                r["confidence"] = "anchored"
+        keep = []
+        for r in file_recs:
+            if r["how"] == "bare" and r["new"] is None:
+                continue
+            if r["how"] == "untied" and r["new"] is None and r["delta"] is None and not r["evidence"][1:]:
+                continue                                       # 근거 없는 숫자는 보고하지 않는다
+            keep.append(r)
+            patchable = r["confidence"] in ("high", "medium") or \
+                (r["confidence"] == "ambiguous" and r["how"] == "bare" and a.include_bare) or \
+                (r["confidence"] == "anchored" and a.include_anchored)
+            if patchable and r["new"] is not None and r["delta"]:
+                edits.setdefault(path, {}).setdefault(r["line"], []).append((r["col"], r["end"], r["new"]))
+                r["patched"] = True
+            else:
+                r["patched"] = False
+        records.extend(keep)
+
+    os.makedirs(a.out_dir, exist_ok=True)
+    # 패치
+    patch_parts = []
+    for path in order:
+        if path not in edits:
+            continue
+        raw, lines = contents[path]
+        new_lines = list(lines)
+        for ln, spans in edits[path].items():
+            s_line = new_lines[ln - 1]
+            for s, e, nv in sorted(spans, reverse=True):
+                s_line = s_line[:s] + str(nv) + s_line[e:]
+            new_lines[ln - 1] = s_line
+        p = path.replace("\\", "/")
+        diff = list(difflib.unified_diff(lines, new_lines, "a/" + p, "b/" + p, n=3))
+        for i, dl in enumerate(diff):
+            if not dl.endswith("\n"):
+                diff[i] = dl + "\n\\ No newline at end of file\n"
+        patch_parts.append("".join(diff))
+    with open(os.path.join(a.out_dir, "kit_line_shift.patch"), "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("".join(patch_parts))
+    with open(os.path.join(a.out_dir, "kit_line_shift.json"), "w", encoding="utf-8") as fh:
+        json.dump({"repo": repo, "old": old_rev, "new": new_rev, "engines": engines,
+                   "bases": {k: {l: list(v) for l, v in d.items()} for k, d in bases.items()},
+                   "hunks": {"%s@%s" % (l, b): m.hunks for (b, l), m in maps.items()},
+                   "records": records}, fh, ensure_ascii=False, indent=1)
+    write_report(a, old_rev, new_rev, engines, bases, maps, records)
+    n_p = sum(1 for r in records if r.get("patched"))
+    n_a = sum(1 for r in records if r["confidence"] == "already-new")
+    print("records %d, patched %d, already-new %d, out %s" % (len(records), n_p, n_a, a.out_dir))
+    return 0
+
+
+def write_report(a, old_rev, new_rev, engines, bases, maps, records):
+    out = []
+    w = out.append
+    w("# kit_line_shift 보고 -- old `%s` -> new `%s`\n" % (old_rev[:7], new_rev[:7]))
+    w("초안은 고치지 않았다. 패치 = `kit_line_shift.patch`(high·medium%s%s만).\n" %
+      ("·bare" if a.include_bare else "", "·anchored" if a.include_anchored else ""))
+    w("## 줄 대응(덩어리)\n")
+    for (b, l), m in sorted(maps.items()):
+        src = bases[b][l]
+        w("* %s @ base `%s`(%s %s): %d 덩어리 %s" % (l, b, src[0], os.path.basename(src[1]) if src[0] == "file" else src[1][:7],
+                                                   len(m.hunks), " ".join("-%d,%d+%d,%d" % h for h in m.hunks[:30])))
+    w("")
+    cnt = {}
+    for r in records:
+        if r["delta"] == 0 and r["confidence"] in ("high", "medium"):
+            cnt["unchanged"] = cnt.get("unchanged", 0) + 1
+        cnt[r["confidence"]] = cnt.get(r["confidence"], 0) + 1
+    w("## 개수\n")
+    w("| 신뢰도 | 개수 |\n|---|---|")
+    for k in ("high", "medium", "remeasure", "already-new", "anchored", "low", "ambiguous"):
+        w("| %s | %d |" % (k, cnt.get(k, 0)))
+    w("| (그중 이동 0인 high·medium) | %d |" % cnt.get("unchanged", 0))
+    w("| 패치에 넣은 인용 | %d |\n" % sum(1 for r in records if r.get("patched")))
+
+    def row(r):
+        return "| %s:%d | %s | %s | %s | %s | %s | %s | %s |" % (
+            r["file"], r["line"], r["engine"] or "?", r["base"], r["old"],
+            "-" if r["new"] is None else r["new"], r["confidence"], "Y" if r.get("patched") else "",
+            "; ".join(r["evidence"]).replace("|", "/"))
+    hdr = "| file:line | 엔진 | base | 옛 인용 | 새 인용 | 신뢰도 | 패치 | 근거 |\n|---|---|---|---|---|---|---|---|"
+    w("## 이동하는 인용(high·medium)\n")
+    w(hdr)
+    for r in records:
+        if r["confidence"] in ("high", "medium") and (r["delta"] or a.show_unchanged):
+            w(row(r))
+    w("\n## 다시 잴 것(remeasure -- 바뀐 덩어리 안)\n")
+    w(hdr)
+    for r in records:
+        if r["confidence"] == "remeasure":
+            w(row(r))
+    w("\n## 이미 새 번호(already-new -- 패치 밖. 다시 옮기면 이중 이동)\n")
+    w(hdr)
+    for r in records:
+        if r["confidence"] == "already-new":
+            w(row(r))
+    w("\n## 모호(패치 밖) -- anchored·other-base·arrow·hyphen·unit·year-like·untied·bare·low\n")
+    w(hdr)
+    for r in records:
+        if r["confidence"] in ("anchored", "ambiguous", "low") and (r["delta"] or r["delta"] is None or a.show_unchanged):
+            w(row(r))
+    w("")
+    with open(os.path.join(a.out_dir, "kit_line_shift.report.md"), "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("\n".join(out))
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,26 @@
+# S5 corpus scan (13 topology files)
+| 회로 | 커패시터(단자) | AC 결합/부유 넷 | 그 넷 DC 원소 | 넷의 다른 단자 |
+|---|---|---|---|---|
+| erfc_ota | CBAT1_L(n_m5g-X) | n_m5g | ['M19.drain'] | ['M5.gate', 'CBAT1_L.t0'] |
+| erfc_ota | CBAT1_R(n_m6g-Y) | n_m6g | ['M20.drain'] | ['M6.gate', 'CBAT1_R.t0'] |
+| erfc_ota | CBAT2(n_m7d-n_m8g) | n_m8g | ['M21.drain'] | ['M7.gate', 'M8.gate', 'CBAT2.t1'] |
+| current_reuse_telescopic_ota | Cc1(Vom-N_cc_rz1) | N_cc_rz1 | ['Rz1.t0'] | ['Cc1.t1'] |
+| current_reuse_telescopic_ota | Cc2(Vop-N_cc_rz2) | N_cc_rz2 | ['Rz2.t0'] | ['Cc2.t1'] |
+| nmcnr_amplifier | Cm1(NodeM2-NodeCM) | NodeCM | ['Rm.t0'] | ['Cm1.t1', 'Cm2.t1'] |
+| nmcnr_amplifier | Cm2(NodeS2-NodeCM) | NodeCM | ['Rm.t0'] | ['Cm1.t1', 'Cm2.t1'] |
+| two_stage_ota | Cc(N_cc_rz-OUT) | N_cc_rz | ['Rz.t1'] | ['Cc.t0'] |
+
+## 요약 (회로, 위치, 커패시터 수, AC 결합/부유 넷 수)
+- ('cnr_ota', 'heldout', 4, 0)
+- ('erfc_ota', 'heldout', 4, 3)
+- ('r2r_opamp', 'heldout', 3, 0)
+- ('rfc_ota', 'heldout', 1, 0)
+- ('common_gate_amplifier', 'library', 0, 0)
+- ('current_reuse_telescopic_ota', 'library', 8, 2)
+- ('folded_cascode', 'library', 1, 0)
+- ('ngcc_3stage_ff', 'library', 3, 0)
+- ('nmcnr_amplifier', 'library', 3, 2)
+- ('pushpull_follower_buffer', 'library', 1, 0)
+- ('sf_pushpull_output_opamp', 'library', 2, 0)
+- ('two_stage_ota', 'library', 2, 1)
+- ('two_stage_ota_sf', 'library', 2, 0)

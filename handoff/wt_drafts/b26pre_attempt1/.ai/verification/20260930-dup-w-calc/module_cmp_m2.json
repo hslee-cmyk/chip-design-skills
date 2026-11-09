@@ -1,0 +1,50 @@
+{
+ "new_def_count_top": 1,
+ "new_def_count_any_depth": 1,
+ "new_def_has_docstring": true,
+ "new_def_body_dump": [
+  "Return(value=BinOp(left=BinOp(left=Name(id='L', ctx=Load()), op=Mult(), right=Name(id='ID', ctx=Load())), op=Div(), right=Name(id='IDu', ctx=Load())))"
+ ],
+ "new_def_body_is_exact_return_L_ID_div_IDu": true,
+ "new_def_signature_src": "def width_from_id_density(L: float, ID: float, IDu: float) -> float",
+ "new_def_decorators": [],
+ "new_def_other_args": {
+  "posonly": 0,
+  "vararg": false,
+  "kwonly": 0,
+  "kwarg": false,
+  "defaults": 0
+ },
+ "new_def_position": {
+  "line": 94,
+  "index_in_body": 14,
+  "next_top": "size_transistor",
+  "prev_top": "SizingResult"
+ },
+ "name_rebinds": [],
+ "calls_total": 18,
+ "calls_by_form": {
+  "Name": 18,
+  "Attribute": 0
+ },
+ "calls_all_3_positional_no_kw": true,
+ "name_load_refs": 18,
+ "module_sites_replaced": {
+  "base": 18,
+  "merged": 18
+ },
+ "module_dump_equal_after_replacement": true,
+ "module_dump_sha256": {
+  "base": "f045c8cc815e5ef56b33d144d5127ec121a307299a4918c06122579f74d93e9a",
+  "merged": "f045c8cc815e5ef56b33d144d5127ec121a307299a4918c06122579f74d93e9a"
+ },
+ "module_top_level_count": {
+  "base": 228,
+  "merged_without_new_def": 228
+ },
+ "changed_paths_base_to_head": [
+  "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md",
+  "skills/analog-gmid-design/assets/sizing_recipe.py",
+  "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py"
+ ]
+}

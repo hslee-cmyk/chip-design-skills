@@ -1,0 +1,2 @@
+collect_iso exit 0
+full_iso exit 0 340s

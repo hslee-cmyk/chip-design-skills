@@ -1,0 +1,19 @@
+common_gate_amplifier.topology.json fwd same
+common_gate_amplifier.topology.json rev same
+current_reuse_telescopic_ota.topology.json fwd same
+current_reuse_telescopic_ota.topology.json rev same
+folded_cascode.topology.json fwd same
+folded_cascode.topology.json rev same
+ngcc_3stage_ff.topology.json fwd same
+ngcc_3stage_ff.topology.json rev same
+nmcnr_amplifier.topology.json fwd same
+nmcnr_amplifier.topology.json rev same
+pushpull_follower_buffer.topology.json fwd same
+pushpull_follower_buffer.topology.json rev same
+sf_pushpull_output_opamp.topology.json fwd same
+sf_pushpull_output_opamp.topology.json rev same
+two_stage_ota.topology.json fwd same
+two_stage_ota.topology.json rev same
+two_stage_ota_sf.topology.json fwd same
+two_stage_ota_sf.topology.json rev same
+circuits 9, diffs 0

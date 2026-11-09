@@ -1,0 +1,390 @@
+{"key": ["L-1", "device.dc_conduction_floor"], "how": "삭제 승인 대기", "card": "EO-1", "why": "N3.2 상위 O-205"}
+{"key": ["L-1", "device.dc_off_current"], "how": "삭제 승인 대기", "card": "EO-1", "why": "N3.2 상위 O-205"}
+{"key": ["L-1", "device.start.point"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "device.start.row"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "device.value"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "device.value_key"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.area_est_m2"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.area_fraction"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.column_orphans"], "how": "배선 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.column_pairs"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.conflicts"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.constraint_classes"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 SearchContext._field"}
+{"key": ["L-1", "graph.dc_scc_log"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.dc_tie_breaks"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.declared"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "N3.1-1 structure_tables"}
+{"key": ["L-1", "graph.dof_numeric"], "how": "배선 대기", "card": "LA-1", "why": "N3.2"}
+{"key": ["L-1", "graph.gvgs_summary"], "how": "삭제 승인 대기", "card": "GC-2", "why": "N3.2"}
+{"key": ["L-1", "graph.inactive"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.junction_source"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 SearchContext._field"}
+{"key": ["L-1", "graph.ly_canon"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW canonical_names.decorate.run"}
+{"key": ["L-1", "graph.ly_canon_rows"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW canonical_names.decorate.run"}
+{"key": ["L-1", "graph.ly_dispositions"], "how": "출력 전용 선언 대기", "card": "LI-1", "why": "N3.2"}
+{"key": ["L-1", "graph.ly_rows"], "how": "배선 대기", "card": "LI-1", "why": "N3.2 layout_outputs 미호출"}
+{"key": ["L-1", "graph.macro"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.metric_structure"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 SearchContext._field"}
+{"key": ["L-1", "graph.mismatch_source"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 SearchContext._field"}
+{"key": ["L-1", "graph.model_error"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 SearchContext._field"}
+{"key": ["L-1", "graph.noise_input_cells"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 SearchContext._field"}
+{"key": ["L-1", "graph.records"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.rel_kcl_group"], "how": "삭제 승인 대기", "card": "GC-3", "why": "N3.2"}
+{"key": ["L-1", "graph.rel_matching_offset"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.rel_matching_ratio"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.rel_vds_eq_vgs"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "graph.residual_probe"], "how": "배선 대기", "card": "LA-1", "why": "N3.2"}
+{"key": ["L-1", "graph.uncovered"], "how": "출력 전용 선언 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1", "node.dc_branch_node"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2"}
+{"key": ["L-1d", "graph.s1_model.S1Graph.column"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 밖"}
+{"key": ["L-1d", "graph.s1_model.S1Graph.value"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 밖"}
+{"key": ["L-1d", "graph.structure_tables.structure_tables"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "F-G30"}
+{"key": ["L-1d", "layout._helpers_alias.AliasView.column"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 밖"}
+{"key": ["L-1d", "layout._helpers_alias.AliasView.value"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 밖"}
+{"key": ["L-1d", "layout.canon_block.canon_tables"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "F-G30"}
+{"key": ["L-1d", "layout.canonical_naming.canonical_names.decorate.run"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 밖"}
+{"key": ["L-1d", "metrics.dc_metrics._canonical"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G30 밖"}
+{"key": ["L-1d", "search.search_context.SearchContext._field"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "F-G30"}
+{"key": ["L-1x", "core.canon_pointer.CanonPointer"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW 클래스, test만 호출(M-G9 후보)"}
+{"key": ["L-1x", "core.writer_table.WriterTable.fields_of"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW test만 호출"}
+{"key": ["L-1x", "layout.floorplan_pack.pack_floorplan_grouped"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW test만 호출"}
+{"key": ["L-1x", "layout.outputs.layout_outputs"], "how": "배선 대기", "card": "LI-1", "why": "N3.2 ly_rows 소비자"}
+{"key": ["L-1x", "lut.curve_check.curve_report"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW test만 호출"}
+{"key": ["L-1x", "lut.id_inverse.gm_id_for_target"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW test만 호출, WB-1·LA-1 소비 여부는 그 card 착수 때"}
+{"key": ["L-1x", "metrics.model_error.model_error_pairs"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW test만 호출"}
+{"key": ["L-1x", "search.eval_budget.EvalBudget.remaining"], "how": "삭제 승인 대기", "card": "XRUN-F1 card C", "why": "NEW card C가 EvalBudget을 지움"}
+{"key": ["L-1x", "search.macro_poles._signed"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW 호출 0, test 0"}
+{"key": ["L-1x", "search.residual_probe.residual_probe"], "how": "배선 대기", "card": "LA-1", "why": "N3.2 필드 residual_probe"}
+{"key": ["L-1x", "sizing.size_and_seal_local.size_and_seal_local"], "how": "배선 대기", "card": "LA-1", "why": "N3.2 O-36"}
+{"key": ["L-2", "graph.bias_columns"], "how": "배선 대기", "card": "LA-1", "why": "N3.2 F-G3 문제"}
+{"key": ["L-2", "graph.column_block_map"], "how": "배선 대기", "card": "LA-1", "why": "N3.2 F-G3 문제"}
+{"key": ["L-2", "graph.vars"], "how": "배선 대기", "card": "LA-1", "why": "N3.2 F-G3 문제"}
+{"key": ["L-3", "achievability.device.bulk"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.device.dc_colour"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.device.element_class"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.device.kind"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.device.pins"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.graph.dc_current_basis"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.graph.fixed_values"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.graph.l_classes"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.graph.l_ties"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.graph.orbits"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.node.dc_colour"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.node.dc_writer"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.node.is_rail"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.node.port_direction"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "achievability.node.port_role"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "build_s1v.device.bulk"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.device.bulk_declared"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.device.dc_colour"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.device.dc_nets"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.device.dc_role"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.device.element_class"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.device.is_diode"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.device.kind"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.device.pins"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.device.unsupported"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.device.value"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.device.value_key"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.branches"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.column_orphans"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.column_pairs"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.columns"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.current_symmetry"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.dc_pruned"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.dc_segments"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.gs_groups"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.gvgs_summary"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.matching_dispositions"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.matching_groups"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.orbits"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.rel_equal_vgs"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.rel_kcl_group"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.rel_kvl_branch"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.rel_l_class"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.rel_matching_offset"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.rel_matching_ratio"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.graph.rel_vds_eq_vgs"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.node.ac_ground_class"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.node.dc_branch_node"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.node.dc_colour"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.node.is_rail"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.node.port_direction"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.node.port_role"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "build_s1v.node.terminals"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.bulk"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.bulk_declared"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.dc_colour"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.dc_nets"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.dc_role"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.element_class"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.is_diode"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.kind"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.pins"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.unsupported"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.value"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.device.value_key"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.branches"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.column_orphans"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.column_pairs"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.columns"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.current_symmetry"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.dc_pruned"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.dc_segments"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.gs_groups"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.gvgs_summary"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.matching_dispositions"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.matching_groups"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.orbits"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.rel_equal_vgs"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.rel_kcl_group"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.rel_kvl_branch"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.rel_l_class"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.rel_matching_offset"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.rel_matching_ratio"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.graph.rel_vds_eq_vgs"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.node.ac_ground_class"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.node.dc_branch_node"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.node.dc_colour"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.node.is_rail"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.node.port_direction"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.node.port_role"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "coupling_vars.node.terminals"], "how": "삭제 승인 대기", "card": "GC-7", "why": "F-G15"}
+{"key": ["L-3", "ly_canonical_naming.graph.ly_groups_in"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G15 밖 reads_unverifiable"}
+{"key": ["L-3", "ly_canonical_naming.graph.ly_passives"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G15 밖 reads_unverifiable"}
+{"key": ["L-3", "ly_canonical_naming.graph.ly_row_groups"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G15 밖 reads_unverifiable"}
+{"key": ["L-3", "ly_pattern_select.graph.ly_canon"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "ly_rows.graph.ly_canon_rows"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "metrics_dc.device.dc_colour"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G15 밖 reads_unverifiable"}
+{"key": ["L-3", "metrics_dc.node.dc_colour"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G15 밖 reads_unverifiable"}
+{"key": ["L-3", "s1_dc_conduction.device.kind"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "s1_gvgs.device.kind"], "how": "삭제 승인 대기", "card": "GC-2", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "s1_symmetry.device.bulk"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G15 밖 reads_unverifiable"}
+{"key": ["L-3", "s1_symmetry.device.is_diode"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G15 밖 reads_unverifiable"}
+{"key": ["L-3", "s1_symmetry.device.kind"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G15 밖 reads_unverifiable"}
+{"key": ["L-3", "s1_symmetry.node.is_rail"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G15 밖 reads_unverifiable"}
+{"key": ["L-3", "search_domain.device.dc_colour"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "search_domain.graph.current_symmetry"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "search_domain.graph.dc_current_basis"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "search_domain.node.dc_colour"], "how": "삭제 승인 대기", "card": "GC-7", "why": "NEW F-G15 밖 reads_not_read"}
+{"key": ["L-3", "start_intervals.graph.gain_checks"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G15 밖 reads_unverifiable"}
+{"key": ["L-3", "start_intervals.graph.local_inputs"], "how": "정적 해석 형태로 바꾸기", "card": "GC-7", "why": "NEW F-G15 밖 reads_unverifiable"}
+{"key": ["L-4", "_module_map.ModuleEntry.entry_point"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "_module_map.ModuleEntry.plan_ids"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "_module_map.ModuleEntry.responsibility"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "authoring.spec_model.SettlingDecl.linear_s"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "authoring.spec_model.SettlingDecl.total_s"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "authoring.spec_model.SizingSpecDoc.file_sha256"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "authoring.spec_model.SizingSpecDoc.section_fps"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "authoring.spec_model.SizingSpecDoc.spec_fp"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "authoring.topology_model.DcEdge.element_kind"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "authoring.topology_model.TopologyDoc.file_sha256"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedFront.admitted"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedFront.dropped"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedFront.k_alt"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedFront.nonconverged"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedFront.perf"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedFront.rounds"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedPoint.geometry"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedPoint.iterations"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedPoint.rejected"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedPoint.relaxations"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedPoint.search_area_m2"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedPoint.search_point"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.ConvergedPoint.unmatched"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.DroppedPoint.by"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.Iteration.geometry_devices"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.Iteration.max_dlnw"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.Iteration.rejected"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.Iteration.requested"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.JunctionChange.cdb_after"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.JunctionChange.cdb_before"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.JunctionChange.csb_after"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.JunctionChange.csb_before"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "convergence.convergence_values.Relaxation.outcome"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.graph_snapshot.GraphSnapshot._column_cache"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.graph_snapshot.GraphSnapshot._order_cache"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.metric_signature.MetricSignature.unit"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockRow.calls"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockRow.computes"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockRow.grafts"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockRow.part"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockRow.recomputes_same_input"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockRow.replays"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockRow.reuses"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockTotals.calls"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockTotals.computes"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockTotals.grafts"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockTotals.recomputes_same_input"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockTotals.replays"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.run_counters.BlockTotals.reuses"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "core.writer_table.WriterTable._index"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1_values.Column.parallel_expansion"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1_values.ColumnOrphan.branch"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1_values.GvgsSummary.cyclomatic"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1_values.GvgsSummary.v1"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1_values.GvgsSummary.v2_port0"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1_values.GvgsSummary.v2_port1"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1_values.RelEdge.type"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1_values.S1Key.facts_fp"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1_values.S1Key.marks_fp"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1_values.S1Key.rule_fp"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.CellInfo.degeneration"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.CompositeBlock.chain"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.CompositeBlock.merge_nodes"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.CompositeBlock.paths"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.Loop.cm_pair"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.ViewS1v.ac_ground_exceptions"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.ViewS1v.bias_moving"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.ViewS1v.cm_pair"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.ViewS1v.compensation_candidates"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.ViewS1v.forward_nets"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.ViewS1v.pass_bundles"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.ViewS1v.stage_starts"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "graph.s1v_values.ViewS1v.unreduced_diff"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout._helpers_alias.Canon.orders"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.BoxVerdict.elongation"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.BoxVerdict.folds"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.BoxVerdict.narrowest_row"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.BoxVerdict.total_height_m"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.BoxVerdict.total_width_m"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.BoxVerdict.widest_row"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.BoxVerdict.width_ratio"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.DeviceLayout.W_err_rel"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.DeviceLayout.W_tol_effective"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.DeviceLayout.W_tol_lower"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.DeviceLayout.W_tol_upper"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.DeviceLayout.excluded_slices"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.FloorplanSummary.aspect_ratio"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.FloorplanSummary.packing_density"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.FloorplanSummary.passive_area_m2"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.FoldAttempt.action"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.FoldAttempt.adopted"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.FoldAttempt.n_rows"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.GroupLayout.isolated_pairs"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.GroupLayout.provisional"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.GroupLayout.residual"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.GroupRebuild.n_rows"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.LayoutOutputs.coverage_missing"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.LayoutOutputs.coverage_ok"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.LayoutOutputs.revalidation"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.LayoutOutputs.w_invariant_ok"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.MatchingDisposition.disposition"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.MergeDecision.area_after_m2"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.MergeDecision.area_before_m2"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.MergeDecision.merged"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.RealizedDevice.recalibrate_id"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.RealizedDevice.recompute_node_voltages"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.Revalidation.consumer"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.Revalidation.required"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.Revalidation.seals"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.RowLayout.n_components"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.RowsLayout.fold_attempts"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.RowsLayout.merge_decisions"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.SliceDensity.J_A_per_m"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.SliceDensity.vgs_V"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "layout.contract_output.WRequest.W_old_m"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.CapTable.sign_convention"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.Caps.css"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.ColumnSource.table_w_m"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.Curve.cell_class"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.CurveRow.gm_gds_max"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.CurveRow.gm_id_max"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.CurveRow.max_branch_rise"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.CurveRow.n_branch_nonmonotonic"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.CurveRow.n_curves"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.CurveRow.n_hermite_nonmonotone"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.CurveRow.n_skipped"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.DcSlice.floors"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.DcSlice.hermite_fc"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.GmIdAxisCurve.monotone"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.LBinMap.model_files"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.LBinMap.w_bin"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.LutLocation.cap_npz_path"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.LutLocation.config_path"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.LutLocation.manifest_path"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.LutProvenance.manifest_path"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.MidpointRow.n_inverse_failed"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.MidpointRow.n_targets"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.MismatchTable.sigma_unit"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.NoisePlanes.tol_point"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.OpPoint.fallbacks"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.OpPoint.vth"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.TargetSolution.gm_s"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.TargetSolution.id_a"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.TolVCell.gm_id_inverse_loo_v"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.TolVCell.id_equivalent_loo_v"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.TolVCell.n_inverse_failed"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.TolVCell.n_targets"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "lut.lut_types.TolVdsatCell.vdsat_loo_v"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.AreaBound.not_certified"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.BlockBound.n_rows"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.BlockBound.row_condition"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.DofReport.free_variables"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.DofReport.n_equations"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.DofReport.n_variables"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.DofReport.numeric_ranks"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.DofReport.structural_rank"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.GainCheck.found_sum_db"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.GainCheck.n_unknown"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.HeadroomRow.binding_devices"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.HeadroomRow.derivation"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.SliceCurveCheck.n_cells"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.SliceCurveCheck.n_hermite"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.SliceCurveCheck.n_slope_undefined"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.achievability_types.SliceCurveCheck.n_violation"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.aux_types.BlockGain.contributions"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.aux_types.CoupledResidual.median_db"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.aux_types.CoupledResidual.spread_db"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.aux_types.FfContribution.g_ff"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.aux_types.OffsetSystematic.output_error_v"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.junction_source.JunctionSource.lut_rule_decl"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.junction_source.JunctionSource.pdk_decl_sha256"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.mna_types.AreaSearch.passive_area_m2"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.mna_types.Crossing.steps"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.mna_types.LoopAnalysis.dc_value"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.mna_types.ParameterSet.rel_tol"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "metrics.mna_types.SupplyCurrents.counted_rails"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.search_values.FrontPoint.dominated_by"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.search_values.Objectives.kcl_residual_a"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.search_values.SearchFront.failed_eps"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.search_values.SearchFront.perf"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.search_values.SearchFront.run_id"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.search_values.SolveResult.iterations"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.search_values.SolveResult.restarts"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.MacroResult.poles_hz"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.MacroResult.sweeps"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.StartConflict.gap"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.StartRow.bin"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.StartRow.gm_id_chosen"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.StartRow.gm_id_hi"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.StartRow.gm_id_lo"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.StartRow.i_start"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.StartRow.inactive_reasons"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.StartRow.l_chosen"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.StartRow.l_hi"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.start_values.StartRow.l_lo"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "search.theta_coords.ThetaCoords.raw"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "sizing.local_values.LocalSeal.failures"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "sizing.local_values.LocalSeal.snapshot_fragment"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "sizing.s2_values.SccLog.deltas"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "sizing.s2_values.SccLog.fallback"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "sizing.s2_values.SccLog.iterations"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "sizing.s2_values.TieBreak.chosen"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "sizing.s2_values.ZeroCancel.end_net"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-4", "sizing.s2_values.ZeroCancel.far_nets"], "how": "삭제 승인 대기", "card": "GC-7", "why": "N3.2 하위 칸 -- M-G3c 미룸, GC-7에서 칸별로 출력·지문·삭제 분류"}
+{"key": ["L-5", "diode", "graph/cells.py", "_pass_groups"], "how": "정본 읽기로 교체", "card": "GC-6", "why": "NEW m.g != m.d"}
+{"key": ["L-5", "diode", "graph/cells.py", "_signal_cells"], "how": "정본 읽기로 교체", "card": "GC-6", "why": "F-G13"}
+{"key": ["L-5", "diode", "graph/cells.py", "classify_cells"], "how": "정본 읽기로 교체", "card": "GC-6", "why": "F-G13"}
+{"key": ["L-5", "diode", "graph/loops.py", "_graph_edges"], "how": "정본 읽기로 교체", "card": "GC-6", "why": "NEW m.d != m.g"}
+{"key": ["L-5", "diode", "graph/net_model.py", "net_model"], "how": "정본 읽기로 교체", "card": "GC-6", "why": "F-G13"}
+{"key": ["L-5", "diode", "graph/node_impedance.py", "node_impedance"], "how": "정본 읽기로 교체", "card": "GC-6", "why": "F-G13"}
+{"key": ["L-5", "diode", "graph/output_direction.py", "output_directions"], "how": "정본 읽기로 교체", "card": "GC-6", "why": "NEW m.g != m.d"}
+{"key": ["L-5", "diode", "metrics/block_gain_model.py", "block_gain_model_of"], "how": "정본 읽기로 교체", "card": "GC-6", "why": "F-G13"}
+{"key": ["L-5", "diode", "metrics/ls_swing.py", "_constraints"], "how": "정본 읽기로 교체", "card": "GC-6", "why": "F-G13, DE-1이 먼저면 대상 소멸"}
+{"key": ["L-5", "diode", "search/iv_speed.py", "_providers"], "how": "정본 읽기로 교체", "card": "GC-6", "why": "NEW d.drain == d.gate"}
+{"key": ["L-5", "op_copy", "convergence/layout_input.py", "layout_input_of"], "how": "정본 읽기로 교체", "card": "LI-1", "why": "N3.1-5 O-27"}
+{"key": ["L-5", "op_copy", "layout/run.py", "_input_columns"], "how": "정본 읽기로 교체", "card": "LI-1", "why": "N3.1-5 ly_point"}
+{"key": ["L-5", "op_copy", "metrics/ls_fields.py", "_cell_current"], "how": "정본 읽기로 교체", "card": "GC-7", "why": "NEW 멈춤 S-4 -- N3.1-5 분류에 없는 자리"}
+{"key": ["L-5", "op_copy", "metrics/ls_fields.py", "_signal_current"], "how": "정본 읽기로 교체", "card": "GC-7", "why": "NEW 멈춤 S-4 -- N3.1-5 분류에 없는 자리"}
+{"key": ["L-5", "same_vgs", "graph/gvgs_cycles.py", "s1_gvgs"], "how": "삭제 승인 대기", "card": "GC-2", "why": "NEW (gate, source) 키, 모듈 삭제 대상"}
+{"key": ["L-5", "same_vgs", "metrics/block_gain_model.py", "block_gain_model_of"], "how": "정본 읽기로 교체", "card": "GC-6", "why": "F-G13"}
+{"key": ["L-5", "same_vgs", "sizing/writer_plan.py", "dc_writer_plan"], "how": "정본 읽기로 교체", "card": "GC-2", "why": "F-G13 변수 경유 꼴"}

@@ -1,0 +1,4 @@
+rev=6f58c6a4997df75bbb162bb9639cbdf3678b5ff0 rc=1 elapsed_s=449
+FAILED ..\..\..\..\..\..\g128\fs\t\skills\analog-gmid-design\assets\tests\contracts\test_b26_backfill_interdig.py::test_b26bf_interdig_ok_in_loop
+FAILED ..\..\..\..\..\..\g128\fs\t\skills\analog-gmid-design\assets\tests\contracts\test_b26_backfill_interdig.py::test_b26bf_interdig_ok_after_loop
+2 failed, 888 passed, 15 xfailed in 435.11s (0:07:15)

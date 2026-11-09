@@ -1,0 +1,2 @@
+baseline	9	GL-1 -> IT12 -> EO-1 -> HC-S -> WB-1 -> LA-0 -> LA-1 -> RS-1 -> CPG-1
+(s2)+R8 PD-R -> WB-1·LA-0·SF-1 선행 최악	9	GL-1 -> IT12 -> EO-1 -> HC-S -> WB-1 -> LA-0 -> LA-1 -> RS-1 -> CPG-1

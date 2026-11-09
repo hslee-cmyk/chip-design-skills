@@ -1,0 +1,173 @@
+{
+ "label": "b26v5",
+ "base": "873182e895",
+ "head": "6b7c00329c",
+ "tool_exit": 1,
+ "has35": true,
+ "keys": [
+  "tool",
+  "verdict",
+  "targets",
+  "mutants",
+  "killed",
+  "survivors",
+  "survivor_bindings",
+  "exempt_ignored",
+  "not_targeted",
+  "targets_by_def"
+ ],
+ "mutants": 299,
+ "not_targeted": 2136,
+ "out_records": 2435,
+ "out_targeted": 299,
+ "out_not_targeted": 2136,
+ "targets": [
+  "skills/analog-gmid-design/assets/sizing_recipe.py",
+  "skills/analog-gmid-design/assets/stick_diagram.py"
+ ],
+ "targets_by_def": {
+  "skills/analog-gmid-design/assets/sizing_recipe.py::true_current_mirror_groups": [
+   5,
+   12
+  ],
+  "skills/analog-gmid-design/assets/sizing_recipe.py::l_sharing_classes": [
+   6,
+   36
+  ],
+  "skills/analog-gmid-design/assets/sizing_recipe.py::_metric_kcl_residual": [
+   6,
+   51
+  ],
+  "skills/analog-gmid-design/assets/sizing_recipe.py::resolve_stack_layout": [
+   8,
+   18
+  ],
+  "skills/analog-gmid-design/assets/sizing_recipe.py::_build_theta_evaluator": [
+   6,
+   492
+  ],
+  "skills/analog-gmid-design/assets/sizing_recipe.py::optimize_full_circuit_budget": [
+   10,
+   220
+  ],
+  "skills/analog-gmid-design/assets/sizing_recipe.py::optimize_full_circuit_budget._evaluate_row_split": [
+   6,
+   56
+  ],
+  "skills/analog-gmid-design/assets/sizing_recipe.py::_fixup_euler_blocked_rows": [
+   6,
+   84
+  ],
+  "skills/analog-gmid-design/assets/sizing_recipe.py::run_matching_safety_with_finger_growth": [
+   17,
+   81
+  ],
+  "skills/analog-gmid-design/assets/sizing_recipe.py::run_topology_pipeline_with_finger_fixup": [
+   7,
+   58
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::find_matching_candidates": [
+   4,
+   56
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::find_differential_pair_candidates": [
+   13,
+   52
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::_diff_pair_layer1_groups": [
+   4,
+   18
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::_propose_gm_id_roles": [
+   8,
+   18
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::_propose_L_roles": [
+   9,
+   18
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::refine_differential_and_mirror_relations": [
+   17,
+   69
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::refine_differential_and_mirror_relations.classify": [
+   2,
+   4
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::check_symmetry_dispositions": [
+   3,
+   34
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::kcl_series_union": [
+   2,
+   21
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::_kcl_and_matching_edges": [
+   4,
+   26
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::audit_vertical_stack_id_vs_kcl": [
+   16,
+   40
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::propose_vertical_stack_id_gap_fill": [
+   5,
+   43
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::propose_device_roles_gap_fill": [
+   53,
+   275
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::run_full_circuit_audit": [
+   7,
+   46
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::_kcl_branch_map": [
+   4,
+   3
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::_branch_composite_pair": [
+   15,
+   87
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::_composite_collapse_for_crossover": [
+   10,
+   45
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::find_min_crossover_layout_with_branch_composite": [
+   5,
+   0
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::repair_matching_safety": [
+   8,
+   104
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::load_topology": [
+   16,
+   49
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::run_full_circuit_audit_from_topology": [
+   3,
+   20
+  ],
+  "skills/analog-gmid-design/assets/stick_diagram.py::rail_declaration": [
+   14,
+   0
+  ]
+ },
+ "defs": 32,
+ "proto_all": 2435,
+ "proto_targeted": 299,
+ "proto_not_targeted": 2136,
+ "sym_diff": 0,
+ "sym_diff_ids": [],
+ "order_ok": true,
+ "survivors": [
+  "sizing_recipe:true_current_mirror_groups:stmt_delete:body[2]",
+  "sizing_recipe:true_current_mirror_groups:stmt_delete:body[3]",
+  "sizing_recipe:true_current_mirror_groups:stmt_delete:body[3].body[2]",
+  "sizing_recipe:true_current_mirror_groups:cmp_flip:body[3].body[2].test.ops[0]",
+  "sizing_recipe:true_current_mirror_groups:early_return:body[1]"
+ ],
+ "n_survivors": 299
+}

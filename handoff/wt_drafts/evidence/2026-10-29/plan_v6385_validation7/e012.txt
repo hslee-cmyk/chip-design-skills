@@ -1,0 +1,24 @@
+303 'LUT 조회 2회' 정밀도는 미측정이라 오차는 E-1(ME-1 e_m)로 다룬다 -- 검증 6 m6-2)를 뺀 순 전류다;
+
+304 E-1 판정(s_m(p)·e_m)과 결과 JSON·oracle 입력 값은 실현 평가 값이다;
+
+1235 두 card가 함께 닿는 것은 조립점·수리점 커널 판정 행(`swing_out_v`(v6.38.1 O-154 Q3로 삭제 -- DE-1)·`offset_sys_mv`·피크 부하 전류 행·슬루 행 삭제)의 결과 결합, R6 재개방 여부 판정 입력(DE-1 (e) READS 전환 -- DE-1이 LA-1보다 나중에 병합되면 DE-1이 R6 입력을 READS로 바꾸고 DE-1 변화표에 원인으로 적음(배선 = DE-1), LA-1이 나중이면 LA-1이 처음부터 READS -- 재검증 4 F-1)과 `search/CONTRACT.md`·`_module_map.py` 텍스트뿐이다 (b) **FX-1·GC-9**: 파일 겹침만이다(`layer0_center.py` 사다리·`start_intervals.py`·`fd_jacobian.py`) -- FX-1 고정점과 GC-9의 `current_cone` 소비 자리는 층 0 점 없음 경로(DEC-73 (3)(b))의 출발 경로에 있고 층 0 손계산 경로의 입력 출처가 아니다(층 0 손계산은 `dc_current_basis`를 바로 읽는다) (c) **HC-1**: 옛 근거였던 LA-1 범위 11(R-1′ 관계식 거르기)을 HC-1 범위로 옮겼다(N6.14 범위 11, headroom-chain HC-1 '층 0 거르기').
+
+1313 이 계획에서 오차 크기 판정이 필요한 항목(SF-1 범위 9 저항 모델, U-122 E-1 판정(LA-0 (5) 대조표 입력), WB-1 손가락 잔차 등)은 이 자리를 참조한다): **E-0 물리 관문**(오차 범위가 아니다 -- 크기와 무관하게 fail-closed): 봉인점은 '말이 되는 동작점'이다 -- 노드 KCL·KVL 자기 정합(봉인 1·2·3, tol_V 해상도 -- 셀 구성은 Q-T0), 모든 소자가 SPICE 표본 정의역 위(LUT 정의역, 실현 손가락 폭 = LUT 슬라이스 폭(DEC-105 (2) 슬라이스 고정 -- 실현 평가 봉인점에 적용, 탐색 평가 봉인점은 슬라이스 조각 안 연속 W;
+
+1313 **E-1 오차 합리성 = 결정 불변**: (회로, metric) m의 손계산 오차 e_m은 ME-1이 잰 DEC-72 값이다.
+
+1313 **E-2 정밀화 받아들임**: 엔진에 SPICE 쪽 정밀화(새 LUT 축·자료, 셀 모형, 추가 풀이, 새 판정 정의)를 넣는 조건은 (1) E-0을 깨는 경우 또는 (2) ME-1 실측에서 그 원천이 지배하는 e_m이 E-1 (a)를 어기거나 guard band 비용이 목적 축 bin보다 큰 경우뿐이고, 넣을 때는 그 metric의 e_m 전·후 실측을 완료 조건으로 둔다(사전 정밀도 비교 'SPICE 대비 몇 %'·'tol_V 이하'는 근거가 아님;
+
+1313 기준은 E-0·E-1이고, 정밀화 제안은 E-2 조건을 실측으로 보일 때만 받는다.
+
+1880 **U-122 판정**은 ME-1 뒤로 옮겨, 대상 소자를 쓰는 이득·rout metric의 E-1 판정(N6.3 E-0·E-1·E-2)으로 한다 -- E-1 (a) 위반(|s_m| > e_m인데 엔진·오라클 판정이 다름)이 1건 이상이면 규칙 정정은 `sat_threshold` 정본 card(headroom-chain HC-S) 범위로 보고, 규칙 결함 0건 **그리고 판정 불능 0건**이면 U-122 닫힘(이득·rout spec metric이 없는 소자는 대상 밖 -- 기록만;
+
+2186 **부하 칸 삭제**: `driving_spec`의 `load_dc_amp`(DC 부하 = netlist 전류원 원소)·`load_peak_amp`(O-143 (6)) -- 로더 쪽(키·선언 객체·스키마·출처 표·로더 test)은 이 card(범위 6), 엔진 계산 쪽(피크 여유·피크 행·`_module_map` 제약 행 서술)은 card DE-1 (d) 삭제 목록(N6.8)이다(O-144 J4).
+
+2190 `human.driving_spec` 섹션을 지우고 그 소비자를 새 `constraints[]` `.tran` 항목으로 다시 잇는다 -- (a) 로더·선언 객체: `E/authoring/spec_driving.py`(전체, `:5-6`·`:17` `VALUE_KEYS`·`:36` `driving_spec_empty`), `E/authoring/spec_load.py:35, :119, :152`, `E/authoring/spec_model.py:222-228`(`DrivingDecl`)·`:276, :301, :318`(`driving_fp`), `E/authoring/spec_schema.py:29`(`HUMAN_OPTIONAL`), `E/authoring/spec_sources.py:50`, `E/authoring/__init__.py:29, :48, :112`, `E/authoring/SPEC_CONTRACT.md:61-72, :154, :176, :208, :302`, `E/_module_map.py:80, :436-437` (b) 선언 슬루를 읽는 엔진 자리: `E/search/search_context.py:128-129`(`driving` 속성), `E/search/kernel.py:138, :156`, `E/metrics/ss_evaluate.py:9, :81-110`, `E/metrics/metrics_aux.py:4, :12, :235-239`, `E/search/ls_constraints.py:19, :27`(`_METRIC_SLEW` 선언 슬루 표시 경로 -- DE-1 (d) '남기는 것 
+
+2193 **저항 종류별 실현 범위 R ≥ R_min(종류)**(E-0 물리 관문): R_min(종류) = 그 종류 선언 셀 하나로 만들 수 있는 최소 R이다(정의: min_l R_cell(l), ΔV = 0, typical -- 셀 식은 오라클 시뮬레이터 평가 의미, 판·호환 모드는 OP-7 선언 자리;
+
+2346 그러므로 결정자는 SR 제약의 판정 여유(ε_droop ≤ 1 − SR_spec/SR_ref, SR_ref = 처짐 없는 SR)이고 e_m(ME-1)이 아니다 -- e_m은 손계산 대 oracle의 정밀도 축이라 판정 여유와 정의 축이 다르고(graph 규칙 3), E-1은 엔진 여유 s_m(p)를 e_m과 비교하는 틀이지 물리 손실 허용치를 주지 않는다(e_m을 쓰면 정밀도 예산을 물리 손실 허용으로 바꿔 쓰는 것).
+

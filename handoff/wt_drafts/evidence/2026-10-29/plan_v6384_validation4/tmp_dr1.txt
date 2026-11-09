@@ -1,0 +1,11 @@
+### N6.36 card DR-1 -- 고정값 저항 망 노드 writer(v6.38.4 백로그 재감사 -- 옛 N5.3 I-H1 (i); **원래 취지와 다름**, 승인 대기 BL-DR1)
+
+**근거**: 사용자 지시 2026-10-29 "백로그에 있는 항목을 지금 규칙들과 원칙들로 다시 검증해서 불필요한 것들은 지우고 반드시 필요한 사항들은 바로 카드분배를 통해서 해결해." 재감사 `wt/_drafts/evidence/2026-10-29/backlog_reaudit_parts/B_N53.md` I-H1 행. 옛 N5.3 I-H1(원문 history H2 -- 사용자 결정 O-66 (1) '백로그 확인'). **원래 취지와 다름**: 새 card다(사용자 '새 card 0' 방향과 다름) -- 기존 card 가운데 `writer_plan` W 티어 규칙을 소유하는 card가 없다(LA-1은 범위가 이미 크고 IT-1은 입력 CM 변수 하나); 승인 대기 BL-DR1.
+
+**사실**(엔진 `wt/integ-it12` `b12792ab`, 2026-10-29 -- 착수 때 다시 잰다): heldout `cnr_ota` 저항 x40 VDD_1V8–VCR, x39 VCR–net7, x3 net7–VSS(`assets/heldout/cnr_ota.topology.json` `passive_elements`, 레일 = VDD_1V8·VSS) -- 레일 사이 고정값 저항 분압 사슬이다. 엔진은 S0 쓰기 계획에서 '저항을 종속시키는 규칙이 없음'으로 `StructureUnresolvedError` `dc_resistor_cycle` 정지(`E/sizing/writer_plan.py:29-30`) -- 엔진 규칙 공백(회로 해석 아님). **물리 결정자**: VCR·net7 전압 = Ohm + KCL 선형 해(게이트 부하 DC 전류 0) -- 각 저항 넷이 고정 전압 노드에 저항 경로로 닿으면 해가 하나다.
+
+**범위**(새 cache·memo·sctx 슬롯·사본 0; 필드마다 writer 하나 -- 이름·블록은 design): S0 쓰기 계획에서 비트리 저항 엣지가 값 선언(또는 θ) 저항뿐이고 그 저항 넷들이 고정 전압 노드(레일·W 티어 기록 노드)에 저항 경로로 닿으면, 그 넷 전압을 같은 DC 블록이 노달 선형 해(Ohm + KCL, 게이트 전류 0) 하나로 쓴다(writer 하나 -- `dc_resistor_cycle` 정지 갈래를 대체; 닿지 않는 저항 섬은 정지 유지 -- fail-closed). 저항 전류는 `dc_current_basis`의 저항 열을 이 해로 닫는다(새 필드 0 또는 1, 이름 design). 상수 0(해 = 선형 방정식), 회로 이름 조건 0(구조 조건만). N5.3 Q-4가 승인되면 erfc_ota '`triode` 선언·구조적 0 전류 MOS = VDS 0 연결(노드 묶음)' 규칙을 이 card에 더한다(선언 없는 0 전류 MOS 정지는 유지).
+
+**완료 조건**(검증자 판정 -- 동작 변경, O-34 (1)): (1) 분압 toy(base `dc_resistor_cycle` 정지 -- red) 노드전압 = 손계산 분압, tol_V 안 (2) 저항 섬 toy(고정 전압 노드에 저항 경로가 없는 섬) 정지 유지 (3) cnr_ota 단계 A가 다음 정지 사유까지 진행하고 그 사유를 기록 (4) library 9회로 발동 0·값 불변(필드별 비교, NFR-4) (5) N6.3 공통(graph 정본·G-10 계수·바뀐 필드 소비자 ≥ 1, `dc_resistor_cycle` 정지 갈래는 섬 사유로만 남음).
+
+**순서·착수 조건**: 선행 = IT-1 + IT-2 통합 병합(`E/sizing/writer_plan.py` 파일 겹침). CPG-1과 무관(heldout은 CPG-1 밖). 착수 조건 = 계획 개정(N3.4 W 티어 행에 고정값 저항 망 규칙 -- S-7) → design → design↔계획 gap. SPICE 다리: library 9회로 값 변화 0이라 '대상 없음'(N6.3 (ii)), heldout cnr_ota는 판정 기록만.

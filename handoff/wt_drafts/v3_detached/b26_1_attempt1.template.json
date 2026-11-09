@@ -1,0 +1,33 @@
+{
+ "_note": "B26-1 attempt-1 V3 (brief b26_1_briefs.md 2.2 2). Copy to C:/g412/scripts/attempt1_v3.json, replace <K1_40HEX> and <STRICT_SET> (make_job.py refuses any remaining '<' '>'). Other keys starting with '_' are ignored.",
+ "job_dir": "C:/g412/scripts/v3_job1",
+ "argv": [
+  "C:/Python314/python.exe", "-B",
+  "C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362/mutate_changed.py",
+  "--root", "C:/g412/iso",
+  "--base", "6df4bd7fd9920e752da4b16bff9b0513caf78362",
+  "--head", "<K1_40HEX>",
+  "--pytest-ini", "C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362/pytest_gate.ini",
+  "--python", "C:/Python314/python.exe",
+  "--gmid-phase=3",
+  "--gmid-strict=<STRICT_SET>",
+  "--out", "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-audit/.ai/verification/20260930-b26-rail-accessor-set/attempt1_v3.out.jsonl"
+ ],
+ "stdout": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-audit/.ai/verification/20260930-b26-rail-accessor-set/attempt1_v3.json",
+ "stderr": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-audit/.ai/verification/20260930-b26-rail-accessor-set/out/attempt1_v3.stderr.txt",
+ "rc": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-audit/.ai/verification/20260930-b26-rail-accessor-set/out/attempt1_v3.rc",
+ "pid": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-audit/.ai/verification/20260930-b26-rail-accessor-set/out/attempt1_v3.pid",
+ "delete_first": [
+  "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-audit/.ai/verification/20260930-b26-rail-accessor-set/attempt1_v3.out.jsonl"
+ ],
+ "mkdirs": ["C:/g412/tmp", "C:/g412/tmp/pyc"],
+ "cwd": "C:/g412/scripts/v3_job1",
+ "env": {
+  "TMP": "C:/g412/tmp", "TEMP": "C:/g412/tmp", "TMPDIR": "C:/g412/tmp",
+  "PYTHONPYCACHEPREFIX": "C:/g412/tmp/pyc",
+  "PYTHONPATH": "C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming", "LOCALAPPDATA": "C:/Users/HSLEE/AppData/Local",
+  "HOME": "C:/Users/HSLEE", "PYTHONIOENCODING": "utf-8",
+  "PATH": "C:/Program Files/Git/cmd;C:/Python314;C:/Python314/Scripts;C:/Windows/System32;C:/Windows;C:/Windows/System32/Wbem"
+ }
+}

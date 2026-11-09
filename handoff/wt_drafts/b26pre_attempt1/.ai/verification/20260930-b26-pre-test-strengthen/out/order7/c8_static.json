@@ -1,0 +1,270 @@
+{
+ "diff": [
+  "A\tskills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py"
+ ],
+ "n_tests": 19,
+ "tests": [
+  "test_b26pre_ofcb_lutless_repair",
+  "test_b26pre_euler_fixup_group_split",
+  "test_b26pre_growth_zero_rounds",
+  "test_b26pre_growth_zero_rounds_euler",
+  "test_b26pre_growth_already_ok",
+  "test_b26pre_growth_pair_not_found",
+  "test_b26pre_growth_only_3b_left",
+  "test_b26pre_full_audit_all_disposed",
+  "test_b26pre_full_audit_mirror_undisposed",
+  "test_b26pre_full_audit_diffpair_undisposed",
+  "test_b26pre_full_audit_hub_gnd_undisposed",
+  "test_b26pre_resolve_stack_candidates",
+  "test_b26pre_vsid_gap_fill_no_ports",
+  "test_b26pre_vsid_gap_fill_ports",
+  "test_b26pre_case_collisions",
+  "test_b26pre_seed_tap_p",
+  "test_b26pre_seed_tap_n",
+  "test_b26pre_trace_two_branches",
+  "test_b26pre_trace_three_branches_order"
+ ],
+ "helpers": [
+  "_b26pre_sizing",
+  "_b26pre_t",
+  "_b26pre_star",
+  "_b26pre_pair",
+  "_b26pre_metrics",
+  "_b26pre_loose",
+  "_b26pre_net_entry",
+  "_b26pre_nl",
+  "_b26pre_write_topology",
+  "_b26pre_ctx",
+  "_b26pre_names",
+  "_b26pre_assert_euler_ok",
+  "_b26pre_growth_setup",
+  "_b26pre_full_audit_c3",
+  "_b26pre_cas",
+  "_b26pre_seed_common",
+  "_b26pre_seed_check",
+  "_b26pre_br",
+  "_b26pre_trace"
+ ],
+ "top_assign": [
+  "_B26PRE_ASSETS",
+  "_B26PRE_L",
+  "_B26PRE_GM_ID",
+  "_B26PRE_VDS",
+  "_B26PRE_KEY_HUB_GND",
+  "_B26PRE_KEY_HUB_TAIL",
+  "_B26PRE_KEY_MIRROR",
+  "_B26PRE_KEY_DIFF",
+  "_B26PRE_ALL_KEYS"
+ ],
+ "tests_prefix_ok": true,
+ "helpers_prefix_ok": true,
+ "top_assign_prefix_ok": true,
+ "engine_private_refs": [],
+ "from_imports": [],
+ "imports": [
+  "json",
+  "pathlib",
+  "sizing_recipe",
+  "stick_diagram",
+  "sys"
+ ],
+ "eq_compares": [
+  [
+   164,
+   "len(c3c) == 1"
+  ],
+  [
+   170,
+   "_b26pre_names(rr) == ['Ma', 'Mb']"
+  ],
+  [
+   172,
+   "{t.stack_id for t in pr['transistors']} == set(rr)"
+  ],
+  [
+   192,
+   "set(rows) == {'row_seg0', 'row_seg1'}"
+  ],
+  [
+   196,
+   "len(flat) == len(set(flat))"
+  ],
+  [
+   197,
+   "sorted(flat) == ['M1', 'M2', 'M3']"
+  ],
+  [
+   227,
+   "res['growth_rounds'] == []"
+  ],
+  [
+   228,
+   "res['unresolved_pair'] == 'unknown'"
+  ],
+  [
+   229,
+   "res['unresolved_reason'] == 'max_rounds_exceeded'"
+  ],
+  [
+   235,
+   "_b26pre_names(rows) == ['Ma', 'Mb']"
+  ],
+  [
+   265,
+   "res['growth_rounds'] == []"
+  ],
+  [
+   266,
+   "res['relaxed_pairs'] == []"
+  ],
+  [
+   269,
+   "flat == {'seg1': [('Ma', 1, 'seg1'), ('Mb', 1, 'seg1')]}"
+  ],
+  [
+   283,
+   "res['unresolved_pair'] == ('Ma', 'Mx')"
+  ],
+  [
+   284,
+   "res['unresolved_reason'] == 'pair_not_found'"
+  ],
+  [
+   285,
+   "res['growth_rounds'] == []"
+  ],
+  [
+   286,
+   "res['relaxed_pairs'] == []"
+  ],
+  [
+   302,
+   "res['unresolved_reason'] == 'only_3b_failures_left'"
+  ],
+  [
+   303,
+   "res['growth_rounds'] == []"
+  ],
+  [
+   337,
+   "len(c3) == 1"
+  ],
+  [
+   396,
+   "sorted(members) == sorted(kinds)"
+  ],
+  [
+   397,
+   "len(members) == len(set(members))"
+  ],
+  [
+   413,
+   "out['proposals'] == {'M1c': 'colA', 'M3': 'colA'}"
+  ],
+  [
+   425,
+   "out['proposals'] == {'M1c': 'colA', 'M2': 'colA', 'M2c': 'colA', 'M3': 'colA', 'M4': 'colA'}"
+  ],
+  [
+   426,
+   "out['conflicts'] == {}"
+  ],
+  [
+   428,
+   "comps == [['M1', 'M1c', 'M2', 'M2c', 'M3', 'M4'], ['M5']]"
+  ],
+  [
+   454,
+   "collisions == [{'nq': {'NQ', 'nq'}}]"
+  ],
+  [
+   482,
+   "roles('My') == ('matching', 'mirror')"
+  ],
+  [
+   484,
+   "len(adopted) == 1"
+  ],
+  [
+   540,
+   "_b26pre_trace(r) == [('vdd_to_gnd', 1, ('Mi1', 'Mi2'), 'ntail'), ('gnd_to_vdd', 1, ('Mi1', 'Mi2'), 'ntail')]"
+  ],
+  [
+   556,
+   "_b26pre_trace(r) == expected"
+  ],
+  [
+   399,
+   "len({kinds[n] for n in devs}) == 1"
+  ],
+  [
+   486,
+   "x == 'Mx1'"
+  ],
+  [
+   118,
+   "st.status == 'ok'"
+  ],
+  [
+   200,
+   "t.stack_id == key"
+  ],
+  [
+   201,
+   "t.n_fingers == 1"
+  ],
+  [
+   328,
+   "(t, k, n) != omit"
+  ],
+  [
+   483,
+   "roles(n) == ('matching', 'mirror')"
+  ]
+ ],
+ "library_names": [
+  "_TEMPLATE",
+  "common_gate_amplifier",
+  "current_reuse_telescopic_ota",
+  "folded_cascode",
+  "ngcc_3stage_ff",
+  "nmcnr_amplifier",
+  "pushpull_follower_buffer",
+  "sf_pushpull_output_opamp",
+  "two_stage_ota",
+  "two_stage_ota_sf"
+ ],
+ "library_name_hits": [],
+ "library_word_strings": [
+  "B26-1 선행 test-only card: E6·E7 경로와 차동 후보 trace 루프의 기존 동작 고정(20260930-b26-pre-test-strengthen).\n\nspec card `docs/02-design/specs/20260930-b26-pre-test-strengthen.spec.md` 계약 1~8·10·11을 판정한다.\n계약 9(변이 판정)는 auditor가 자기 스크립트로 잰다 -- 여기서 기대값을 박지 않는다.\n\n입력 규칙(계약 8):\n* 모든 입력은 합성 넷리스트·합성 topology다(소자 `M..`, 내부 넷 `n..`·`g..`·`vtail`). library 회로를 쓰지 않는다.\n* 레일 넷은 `vdd`·`gnd`만 쓰고 topology에 `supply_nets: [\"vdd\", \"gnd\"]`를 선언한다.\n* 엔진 비공개 도우미(밑줄 시작 심볼)는 부르지 않는다. `stack_id`는 생성자 키워드로 준다.\n* `AuditResult`·`Transistor` 객체를 `==`로 비교하지 않는다 -- 필드·이름 튜플로 비교한다.\n\noracle 대조(계획 N3.12.3, spec card 'oracle 종류와 출처'):\n* 계약 2·4·6·10·11 -- (a) 구성 입력. 넷 차수·후보 키·KCL 엣지·대칭 후보 수·같은 서명 branch 쌍이 넷리스트에서\n  손으로 정해진다. 계약 11 (b)의 원소 **순서**만 (c) 기준선 값이다.\n* 계약 1·3·5·7 -- (c) 기존 동작 기준선(착수 gate `master`, B26-1 이전 known-good). auditor가 그 기준선에서 독립으로\n  다시 잰다. docstring에 값 자체가 없는 리터럴(`unresolved_reason` 3개, `unresolved_pair == \"unknown\"`,\n  `_repair<i>`·`_seg<i>` 행 이름 형식, 계약 5의 'M1·M2 한 그룹', 계약 7의 항목 모양)은 test 주석에 '(c) 기준선 값'으로 적었다.\n* 피검 함수를 불러 기대값을 만들지 않는다. 기대값은 전부 spec card 문장에 적힌 값이다.\n"
+ ],
+ "rail_like_strings": [
+  "gnd",
+  "vdd"
+ ],
+ "parametrize_lines": [],
+ "write_topology_has_supply_nets": true,
+ "write_topology_has_schema_2_0": true,
+ "write_topology_call_lines": [
+  134,
+  187,
+  209,
+  330,
+  449,
+  475
+ ],
+ "json_dump_sites": [
+  98
+ ],
+ "layer1_strings": [
+  "`TR(r)`: trace 방향 원소만 순서대로 `(direction, position, tuple(devices), shared_source)`.\n    `layer1_fallback` 원소는 계약이 아니다(spec card 계약 11 '계약이 아닌 것')."
+ ],
+ "v4_finding_lines": {
+  "172": "assert {t.stack_id for t in pr[\"transistors\"]} == set(rr)",
+  "196": "assert len(flat) == len(set(flat)), name_sets",
+  "397": "assert len(members) == len(set(members)), groups",
+  "238": "def test_b26pre_growth_zero_rounds_euler(tmp_path, toy_lut):",
+  "494": "def test_b26pre_seed_tap_p(tmp_path):",
+  "505": "def test_b26pre_seed_tap_n(tmp_path):"
+ }
+}

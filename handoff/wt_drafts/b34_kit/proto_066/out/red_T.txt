@@ -1,0 +1,441 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFF............                                  [100%]
+================================== FAILURES ===================================
+__ test_b34_c1_both_absent_raises_named_import_error[common_gate_amplifier] ___
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\common_gate_amplifier.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B77388180>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c1_both_absent_raises_named_import_error(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        ov = _b34_overrides(ts)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+        monkeypatch.setitem(sys.modules, "idioms", None)
+        errs = []
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:128: Failed
+_ test_b34_c1_both_absent_raises_named_import_error[current_reuse_telescopic_ota] _
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B7714B360>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c1_both_absent_raises_named_import_error(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        ov = _b34_overrides(ts)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+        monkeypatch.setitem(sys.modules, "idioms", None)
+        errs = []
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:128: Failed
+______ test_b34_c1_both_absent_raises_named_import_error[folded_cascode] ______
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B77366C30>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c1_both_absent_raises_named_import_error(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        ov = _b34_overrides(ts)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+        monkeypatch.setitem(sys.modules, "idioms", None)
+        errs = []
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:128: Failed
+______ test_b34_c1_both_absent_raises_named_import_error[ngcc_3stage_ff] ______
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\ngcc_3stage_ff.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B77356470>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c1_both_absent_raises_named_import_error(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        ov = _b34_overrides(ts)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+        monkeypatch.setitem(sys.modules, "idioms", None)
+        errs = []
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:128: Failed
+_____ test_b34_c1_both_absent_raises_named_import_error[nmcnr_amplifier] ______
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\nmcnr_amplifier.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B77355BF0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c1_both_absent_raises_named_import_error(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        ov = _b34_overrides(ts)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+        monkeypatch.setitem(sys.modules, "idioms", None)
+        errs = []
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:128: Failed
+_ test_b34_c1_both_absent_raises_named_import_error[pushpull_follower_buffer] _
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\pushpull_follower_buffer.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B77228B50>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c1_both_absent_raises_named_import_error(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        ov = _b34_overrides(ts)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+        monkeypatch.setitem(sys.modules, "idioms", None)
+        errs = []
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:128: Failed
+_ test_b34_c1_both_absent_raises_named_import_error[sf_pushpull_output_opamp] _
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\sf_pushpull_output_opamp.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B7734B850>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c1_both_absent_raises_named_import_error(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        ov = _b34_overrides(ts)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+        monkeypatch.setitem(sys.modules, "idioms", None)
+        errs = []
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:128: Failed
+______ test_b34_c1_both_absent_raises_named_import_error[two_stage_ota] _______
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B772D0C80>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c1_both_absent_raises_named_import_error(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        ov = _b34_overrides(ts)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+        monkeypatch.setitem(sys.modules, "idioms", None)
+        errs = []
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:128: Failed
+_____ test_b34_c1_both_absent_raises_named_import_error[two_stage_ota_sf] _____
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota_sf.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B772D3980>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c1_both_absent_raises_named_import_error(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        ov = _b34_overrides(ts)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+        monkeypatch.setitem(sys.modules, "idioms", None)
+        errs = []
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:128: Failed
+_ test_b34_c2_idioms_only_absent_load_topology_raises[common_gate_amplifier] __
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\common_gate_amplifier.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B7729E6D0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_idioms_only_absent_load_topology_raises(p, monkeypatch):
+        monkeypatch.setitem(sys.modules, "idioms", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:178: Failed
+_ test_b34_c2_idioms_only_absent_load_topology_raises[current_reuse_telescopic_ota] _
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B7729D2B0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_idioms_only_absent_load_topology_raises(p, monkeypatch):
+        monkeypatch.setitem(sys.modules, "idioms", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:178: Failed
+_____ test_b34_c2_idioms_only_absent_load_topology_raises[folded_cascode] _____
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B771C3A00>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_idioms_only_absent_load_topology_raises(p, monkeypatch):
+        monkeypatch.setitem(sys.modules, "idioms", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:178: Failed
+_____ test_b34_c2_idioms_only_absent_load_topology_raises[ngcc_3stage_ff] _____
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\ngcc_3stage_ff.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B772B81D0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_idioms_only_absent_load_topology_raises(p, monkeypatch):
+        monkeypatch.setitem(sys.modules, "idioms", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:178: Failed
+____ test_b34_c2_idioms_only_absent_load_topology_raises[nmcnr_amplifier] _____
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\nmcnr_amplifier.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B772B8D10>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_idioms_only_absent_load_topology_raises(p, monkeypatch):
+        monkeypatch.setitem(sys.modules, "idioms", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:178: Failed
+_ test_b34_c2_idioms_only_absent_load_topology_raises[pushpull_follower_buffer] _
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\pushpull_follower_buffer.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B7722FE30>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_idioms_only_absent_load_topology_raises(p, monkeypatch):
+        monkeypatch.setitem(sys.modules, "idioms", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:178: Failed
+_ test_b34_c2_idioms_only_absent_load_topology_raises[sf_pushpull_output_opamp] _
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\sf_pushpull_output_opamp.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B7722F750>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_idioms_only_absent_load_topology_raises(p, monkeypatch):
+        monkeypatch.setitem(sys.modules, "idioms", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:178: Failed
+_____ test_b34_c2_idioms_only_absent_load_topology_raises[two_stage_ota] ______
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B772E09B0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_idioms_only_absent_load_topology_raises(p, monkeypatch):
+        monkeypatch.setitem(sys.modules, "idioms", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:178: Failed
+____ test_b34_c2_idioms_only_absent_load_topology_raises[two_stage_ota_sf] ____
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota_sf.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B772E11D0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_idioms_only_absent_load_topology_raises(p, monkeypatch):
+        monkeypatch.setitem(sys.modules, "idioms", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:178: Failed
+_ test_b34_c2_netclass_only_absent_find_stack_edges_raises[common_gate_amplifier] _
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\common_gate_amplifier.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B77176570>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_netclass_only_absent_find_stack_edges_raises(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:187: Failed
+_ test_b34_c2_netclass_only_absent_find_stack_edges_raises[current_reuse_telescopic_ota] _
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B772E97D0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_netclass_only_absent_find_stack_edges_raises(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:187: Failed
+__ test_b34_c2_netclass_only_absent_find_stack_edges_raises[folded_cascode] ___
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B772376D0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_netclass_only_absent_find_stack_edges_raises(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:187: Failed
+__ test_b34_c2_netclass_only_absent_find_stack_edges_raises[ngcc_3stage_ff] ___
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\ngcc_3stage_ff.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B77343540>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_netclass_only_absent_find_stack_edges_raises(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:187: Failed
+__ test_b34_c2_netclass_only_absent_find_stack_edges_raises[nmcnr_amplifier] __
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\nmcnr_amplifier.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B77343850>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_netclass_only_absent_find_stack_edges_raises(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:187: Failed
+_ test_b34_c2_netclass_only_absent_find_stack_edges_raises[pushpull_follower_buffer] _
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\pushpull_follower_buffer.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B77343A10>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_netclass_only_absent_find_stack_edges_raises(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:187: Failed
+_ test_b34_c2_netclass_only_absent_find_stack_edges_raises[sf_pushpull_output_opamp] _
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\sf_pushpull_output_opamp.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B77343BD0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_netclass_only_absent_find_stack_edges_raises(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:187: Failed
+___ test_b34_c2_netclass_only_absent_find_stack_edges_raises[two_stage_ota] ___
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B77343D90>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_netclass_only_absent_find_stack_edges_raises(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:187: Failed
+_ test_b34_c2_netclass_only_absent_find_stack_edges_raises[two_stage_ota_sf] __
+
+p = 'C:\\g136\\repo\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota_sf.topology.json'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019B773410F0>
+
+    @pytest.mark.parametrize("p", _B34_PATHS, ids=_B34_IDS)
+    def test_b34_c2_netclass_only_absent_find_stack_edges_raises(p, monkeypatch):
+        ts, _meta = stick_diagram.load_topology(p)
+        monkeypatch.setitem(sys.modules, "netclass", None)
+>       with pytest.raises(ImportError) as ei:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ImportError'>
+
+repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py:187: Failed
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[common_gate_amplifier]
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[current_reuse_telescopic_ota]
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[folded_cascode]
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[ngcc_3stage_ff]
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[nmcnr_amplifier]
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[pushpull_follower_buffer]
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[sf_pushpull_output_opamp]
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota]
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota_sf]
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_selfcheck_raises_rejects_quiet_fakes
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_selfcheck_exc_problems_rejects_bad_errors
+PASSED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_selfcheck_normalize_equal_and_different
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[common_gate_amplifier]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[current_reuse_telescopic_ota]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[folded_cascode]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[ngcc_3stage_ff]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[nmcnr_amplifier]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[pushpull_follower_buffer]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[sf_pushpull_output_opamp]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[two_stage_ota]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[two_stage_ota_sf]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[common_gate_amplifier]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[current_reuse_telescopic_ota]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[folded_cascode]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[ngcc_3stage_ff]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[nmcnr_amplifier]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[pushpull_follower_buffer]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[sf_pushpull_output_opamp]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[two_stage_ota]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[two_stage_ota_sf]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[common_gate_amplifier]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[current_reuse_telescopic_ota]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[folded_cascode]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[ngcc_3stage_ff]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[nmcnr_amplifier]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[pushpull_follower_buffer]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[sf_pushpull_output_opamp]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[two_stage_ota]
+FAILED repo\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[two_stage_ota_sf]
+27 failed, 12 passed in 16.47s
+rc=1

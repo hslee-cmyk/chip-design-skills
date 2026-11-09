@@ -1,0 +1,391 @@
+diff --git a/skills/analog-gmid-design/assets/sizing_recipe.py b/skills/analog-gmid-design/assets/sizing_recipe.py
+index 97a6c7b..040b5b3 100644
+--- a/skills/analog-gmid-design/assets/sizing_recipe.py
++++ b/skills/analog-gmid-design/assets/sizing_recipe.py
+@@ -1726,7 +1726,7 @@ def stack_kvl_vgs_limit(ctx: "SizingContext", name: str, meta: dict | None = Non
+                  if isinstance(r, dict) and r.get("vds_match_vgs_of") == name]
+     if not consumers:
+         return None
+-    vdd = ctx.spec.get("vdd")
++    vdd = _rv_span_or_none(ctx.spec)
+     if vdd is None:
+         return None
+     alias = vgs_alias_map(meta)
+@@ -3251,7 +3251,7 @@ def _metric_stack_headroom_slack(spec: dict, ctx: SizingContext) -> float:
+     `-inf` 대신 **건너뛰고** 이름을 남기지 않는다(해가 없다는 것 자체는
+     `solve_diode_connected_vds()`가 별도로 알린다). (4) 이 여유가 양수여도 각 소자가 포화에
+     있는지는 보지 않는다."""
+-    vdd = ctx.spec["vdd"]
++    vdd = _rv_of(ctx.spec).span
+     by_name, _passives = _load_full_topology_cached(ctx.topology_path)
+     roles = _device_roles_cached(ctx.topology_path)
+     lut_by_kind = ctx.spec["lut_by_kind"]
+@@ -4623,7 +4623,7 @@ def _metric_rail_referenced_voltage(spec: dict, ctx: SizingContext) -> float:
+     entry = ctx.sized[spec["device"]]
+     lut = ctx.spec["lut_by_kind"][entry["kind"]]
+     vgs = lut.vgs_for_gm_id(entry["gm_id"], entry["L"], entry["vds"], entry.get("vsb", 0.0))
+-    rail_v = ctx.spec["vdd"] if spec["rail"] == "vdd" else 0.0
++    rail_v = _rv_of(ctx.spec).hi if spec["rail"] == "vdd" else _rv_of(ctx.spec).lo
+     return rail_v - vgs if entry["kind"] == "pmos" else rail_v + vgs
+ 
+ 
+@@ -4650,7 +4650,7 @@ def _metric_battery_centering_deviation(spec: dict, ctx: SizingContext) -> float
+         {"device": spec["high_device"], "rail": "vdd"}, ctx)
+     low = _metric_rail_referenced_voltage(
+         {"device": spec["low_device"], "rail": "gnd"}, ctx)
+-    return abs((high + low) - ctx.spec["vdd"])
++    return abs((high + low) - (_rv_of(ctx.spec).hi + _rv_of(ctx.spec).lo))
+ 
+ 
+ def _metric_nulling_resistor_ohm(spec: dict, ctx: SizingContext) -> float:
+@@ -7065,7 +7065,7 @@ def _hr_verify_group_kvl_sum(env, vsid, members):
+         seen_vgrp.add(vgrp)
+     if not seen_vgrp and not refs:
+         return
+-    vdd = spec["vdd"]
++    vdd = _rv_of(spec).span
+     if abs(total - vdd) > 1e-9 * max(vdd, 1.0):
+         # 2026-08-24(세션42) -- 어느 소자가 얼마씩 기여했는지 breakdown을 에러
+         # 메시지에 직접 실어서, 원인 추적에 매번 별도 디버그 스크립트를 새로
+@@ -7219,13 +7219,13 @@ def _hr_resolve_vertical_group(env, vsid):
+     if not unresolved:
+         _verify_group_kvl_sum(vsid, members)
+         return
+-    base_budget = spec["vdd"]
++    base_budget = _rv_of(spec).span
+     refs = group_ref_device.get(vsid, ())
+     ref_dev = refs[0] if refs else None  # vs 기준점 전파용(아래) -- 여러 개면 첫 소자
+     ref_vds = None
+     if refs:
+         ref_vds = _sum_ref_vds(vsid, refs)
+-        base_budget = spec["vdd"] - ref_vds
++        base_budget = _rv_of(spec).span - ref_vds
+     remaining_vdd = base_budget - known_vds_sum
+     # 2026-09-10 -- `_LUT_VDSAT_ROLES`(= floating_current_source)만은 폴백 상수 대신
+     # 포화 하한을 LUT에서 유도한다. 이 role의 소자는 "남는 예산을 받는 멤버"가 아니라
+@@ -7287,13 +7287,13 @@ def _hr_resolve_vertical_group(env, vsid):
+                     # 지금까지 확정된 vds로 노드전압을 복원해 구하고, 아직 모르면
+                     # ctx.sized의 값을 쓰되 그 사실을 남긴다(조용히 넘어가지 않는다).
+                     _uvsb_node = None
+-                    if spec.get("vdd") is not None:
++                    if _rv_span_or_none(spec) is not None:
+                         try:
+                             _uvsb_node = derive_vsb_from_nodes(
+                                 ctx.kind_of[_up["name"]], _usrc,
+                                 propagate_node_voltages(
+-                                    _bn_pair, ctx.sized, spec["vdd"]).nodes,
+-                                spec["vdd"])
++                                    _bn_pair, ctx.sized, _rv_of(spec).span).nodes,
++                                _rv_of(spec).span)
+                         except Exception:
+                             _uvsb_node = None
+                     if _uvsb_node is not None:
+@@ -7442,12 +7442,12 @@ def _hr_resolve_vertical_group(env, vsid):
+             # (파일럿 51소자 중 26개가 그랬다), 미러 멤버의 vsb가 틀리면 전류밀도가
+             # 최대 55배까지 잘못 나와 창이 통째로 비어버린다(§10.3 B23의 M38).
+             _dvsb = None
+-            if spec.get("vdd") is not None:
++            if _rv_span_or_none(spec) is not None:
+                 try:
+                     _dvsb = derive_vsb_from_nodes(
+                         ctx.kind_of[_dep], _bn_pair[_dep].source,
+-                        propagate_node_voltages(_bn_pair, ctx.sized, spec["vdd"]).nodes,
+-                        spec["vdd"])
++                        propagate_node_voltages(_bn_pair, ctx.sized, _rv_of(spec).span).nodes,
++                        _rv_of(spec).span)
+                 except Exception:
+                     _dvsb = None
+             if _dvsb is None:
+@@ -7942,6 +7942,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
+     등으로 채워 넣을 것)."""
+     require_declared_spec_source(topology_path, spec)
+     transistors, meta = load_topology(topology_path)
++    rail_voltages(spec, meta["rails"])  # c21: set(supplies_v) == rails.nets 게이트
+     # 2026-08-14(사용자 지시) -- 실제 sizing 계산(아래 device_roles.gm_id_role/L_role 루프,
+     # _evaluate()가 thetas가 비어도 최소 1회 실행함)에 들어가기 전에, load_topology()가
+     # netlist만으로 자동 제안한(아직 topology.json에 사람이 검토·확정하지 않은) gm_id_role/
+@@ -8230,7 +8231,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
+                             unrole_fallback=_DEFAULT_MIN_VDS_FALLBACK, vfind=_vfind)
+                         if reserved is None:
+                             continue
+-                        member_cap = spec["vdd"] - reserved
++                        member_cap = _rv_of(spec).span - reserved
+                         if cap is None or member_cap < cap:
+                             cap = member_cap
+                     if cap is None:
+@@ -8239,7 +8240,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
+                     if cap <= 0:
+                         raise ValueError(
+                             f"'{grp}' 그룹이 속한 vertical_stack_id의 다른 소자들이 예약한 "
+-                            f"VDS 합이 vdd({spec['vdd']}V)를 넘어 이 스테이지에 남는 여유가 "
++                            f"VDS 합이 vdd({_rv_of(spec).span}V)를 넘어 이 스테이지에 남는 여유가 "
+                             f"없다({cap}V) -- topology.json의 min_vds_by_role/"
+                             f"metric_stage_budget vds 선언을 확인할 것")
+                     filtered = [v for v in spec["VDS_candidates"] if v <= cap]
+@@ -8274,7 +8275,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
+                     gain_min=spec.get("stage_gain_min"), w_max=spec.get("stage_w_max"),
+                     shared_gm_id_groups=comp.get("shared_gm_id_groups"),
+                     stage_extra_feasible=_stage_extra_feasible,
+-                    vds_kvl_groups=comp.get("vds_kvl_groups"), vdd=spec.get("vdd"),
++                    vds_kvl_groups=comp.get("vds_kvl_groups"), vdd=_rv_span_or_none(spec),
+                     power_tolerance=spec.get("stage_power_tolerance"))
+                 # 2026-09-10 -- topology_fn은 prev_cggs(실측 Cgg)에 의존하는 파생값을
+                 # **호출 중에** 노출한다(유도된 Cc). 위 팩토리 직후의 update는 그걸 아직
+@@ -8649,11 +8650,11 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
+         # 2026-09-09(B9 해소, 사용자 승인) -- vds가 전부 확정된 **지금이** vsb를 물리적으로
+         # 유도할 수 있는 첫 시점이다. 적용 조건은 vertical_stack이 실제로 풀린 회로 --
+         # 스택이 있는데 vdd가 없으면 조용히 넘어가지 않고 오류를 낸다(선언 누락이다).
+-        _vsb_vdd = spec.get("vdd")
++        _vsb_vdd = _rv_span_or_none(spec)
+         _vsb_applies = bool(vertical_groups)
+         if _vsb_applies and _vsb_vdd is None:
+             raise ValueError(
+-                "vertical_stack_id 그룹이 선언돼 있는데 spec['vdd']가 없다 -- "
++                "vertical_stack_id 그룹이 선언돼 있는데 spec['supplies_v']가 없다 -- "
+                 "vsb를 노드전압에서 유도하려면(B9) 레일 전압이 필요하다")
+         _vsb_rec = (reconcile_vsb_from_nodes(ctx, by_name, _vsb_vdd)
+                     if _vsb_applies else None)
+@@ -10154,10 +10155,10 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
+ 
+     def _centering_dev(L, high, low, gm_id, vds, vsb):
+         vgs_h = _vgs(high, L, gm_id, vds, vsb)
+-        level_h = (spec["vdd"] - vgs_h) if kind_of[high] == "pmos" else (0.0 + vgs_h)
++        level_h = (_rv_of(spec).hi - vgs_h) if kind_of[high] == "pmos" else (_rv_of(spec).lo + vgs_h)
+         vgs_l = _vgs(low, L, gm_id, vds, vsb)
+-        level_l = (spec["vdd"] - vgs_l) if kind_of[low] == "pmos" else (0.0 + vgs_l)
+-        return abs((level_h + level_l) - spec["vdd"])
++        level_l = (_rv_of(spec).hi - vgs_l) if kind_of[low] == "pmos" else (_rv_of(spec).lo + vgs_l)
++        return abs((level_h + level_l) - (_rv_of(spec).hi + _rv_of(spec).lo))
+ 
+     def _mean_gm_gds_db(L, devices, gm_id, vds, vsb):
+         ratios = [spec["lut_by_kind"][kind_of[d]].gm_gds_ratio(gm_id, L, vds, vsb) for d in devices]
+@@ -12013,3 +12014,44 @@ def run_topology_pipeline_with_finger_fixup(
+             "sizing_overrides": overrides, "ctx": cur_ctx,
+             "unresolved_row": blocked[0] if blocked else None,
+             "unresolved_reason": "max_rounds_exceeded" if blocked else None}
++
++
++@dataclass(frozen=True)
++class RailVoltages:
++    by_net: dict
++    hi: float
++    lo: float
++
++    @property
++    def span(self) -> float:
++        return self.hi - self.lo
++
++
++_RV_CACHE = {}   # id(spec) -> (spec, RailVoltages): spec dict 밖 보관(시제품 -- 실제 card는 ctx)
++_RV_CALLS = {"build": 0, "read": 0}
++
++
++def _rv_build(sv):
++    sv = {k: float(v) for k, v in sv.items()}
++    return RailVoltages(by_net=sv, hi=max(sv.values()), lo=min(sv.values()))
++
++
++def rail_voltages(spec, rails):
++    sv = spec.get("supplies_v")
++    if sv is None or set(sv) != set(rails.nets):
++        raise ValueError("SCHEMA_REJECTED supplies_v %r != supply_nets %r" % (sorted(sv or {}), sorted(rails.nets)))
++    return _rv_of(spec)
++
++
++def _rv_of(spec):
++    _RV_CALLS["read"] += 1
++    ent = _RV_CACHE.get(id(spec))
++    if ent is None or ent[0] is not spec:
++        _RV_CALLS["build"] += 1
++        ent = (spec, _rv_build(spec["supplies_v"]))
++        _RV_CACHE[id(spec)] = ent
++    return ent[1]
++
++
++def _rv_span_or_none(spec):
++    return _rv_of(spec).span if spec.get("supplies_v") is not None else None
+diff --git a/skills/analog-gmid-design/assets/stick_diagram.py b/skills/analog-gmid-design/assets/stick_diagram.py
+index ca46b5c..e8ba2bb 100644
+--- a/skills/analog-gmid-design/assets/stick_diagram.py
++++ b/skills/analog-gmid-design/assets/stick_diagram.py
+@@ -8579,9 +8579,12 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
+     그룹 안의 모든 파일이 서로를 전부 나열해야 한다)."""
+     def _read_one(path):
+         with open(path, "r", encoding="utf-8") as f:
+-            return json.load(f)
++            _d = json.load(f)
++        reject_legacy_names(_d, "topology")
++        return _d
+ 
+     data = _read_one(json_path)
++    _rails = rail_declaration(data)
+     all_netlist = list(data["netlist"])
+     all_matching_pairs = list(data["symmetry"]["matching_pairs"])
+     all_dispositions = list(data["symmetry"].get("dispositions", []))
+@@ -8593,6 +8596,8 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
+     base_dir = os.path.dirname(os.path.abspath(json_path))
+     for rel_path in linked:
+         linked_data = _read_one(os.path.join(base_dir, rel_path))
++        if "supply_nets" in linked_data and rail_declaration(linked_data).nets != _rails.nets:
++            raise ValueError("linked supply_nets mismatch")
+         all_netlist.extend(linked_data["netlist"])
+         all_matching_pairs.extend(linked_data["symmetry"]["matching_pairs"])
+         all_dispositions.extend(linked_data["symmetry"].get("dispositions", []))
+@@ -8700,6 +8705,7 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
+ 
+     meta = {
+         "topology_name": data["topology_name"],
++        "rails": _rails,
+         "schema_version": data["schema_version"],
+         "source": data.get("source"),
+         "symmetry": {"matching_pairs": all_matching_pairs, "dispositions": all_dispositions},
+@@ -9022,3 +9028,81 @@ def save_instance_json(path: str, topology_json_path: str, sizing_results: dict,
+ 
+     with open(path, "w", encoding="utf-8") as f:
+         json.dump(data, f, indent=2, ensure_ascii=False)
++
++
++@dataclass(frozen=True)
++class RailDeclaration:
++    nets: frozenset
++
++
++def rail_declaration(topology: dict) -> RailDeclaration:
++    """B26-1 계약 1 시제품(c21 측정용)."""
++    if "supply_nets" not in topology:
++        raise ValueError("supply_nets 선언 없음(DEC-60)")
++    v = topology["supply_nets"]
++    if not isinstance(v, list):
++        raise ValueError("supply_nets가 list가 아님(DEC-60)")
++    if any((not isinstance(x, str)) or x == "" for x in v):
++        raise ValueError("supply_nets 원소 오류(DEC-60)")
++    if len(set(v)) != len(v):
++        raise ValueError("supply_nets 중복(DEC-60)")
++    return RailDeclaration(nets=frozenset(v))
++
++
++@dataclass(frozen=True)
++class LegacyName:
++    old: str
++    new: str
++    where: str
++    scope: str     # JSON pointer, 세그먼트 "*" = 아무 키. "" = 문서 루트(JSON pointer 정의)
++    match: str     # "key"
++    stage: str
++    reason: str
++    descend: bool = False   # x3 음성 대조 전용: scope 아래 자손 매핑의 키까지 훑는다
++
++
++LEGACY_NAMES = [
++    LegacyName("vs", "vsb", "topology", "/device_roles/*", "key", "MG0", "B9 개명"),
++    LegacyName("supplies", "supplies_v", "harness_spec", "", "key", "MG1", "DEC-60 레일 전압"),
++    LegacyName("vdd", "supplies_v", "harness_spec", "", "key", "MG1", "DEC-60 레일 전압", False),
++    LegacyName("supply_nets", "(삭제 -- 레일별 기록)", "topology", "/sizing_roles/metrics/*", "key", "MG1", "공급 전류 셀 레일"),
++]
++
++
++def _ln_locate(doc, segs):
++    if not segs:
++        yield doc
++        return
++    if not isinstance(doc, Mapping):
++        return
++    s, rest = segs[0], segs[1:]
++    if s == "*":
++        for v in doc.values():
++            yield from _ln_locate(v, rest)
++    elif s in doc:
++        yield from _ln_locate(doc[s], rest)
++
++
++def _ln_mappings(x, descend):
++    if isinstance(x, Mapping):
++        yield x
++        if descend:
++            for v in x.values():
++                yield from _ln_mappings(v, descend)
++    elif descend and isinstance(x, list):
++        for v in x:
++            yield from _ln_mappings(v, descend)
++
++
++def reject_legacy_names(doc, where: str) -> None:
++    hits = []
++    for row in LEGACY_NAMES:
++        if row.where != where:
++            continue
++        segs = [s for s in row.scope.split("/")[1:]] if row.scope else []
++        for loc in _ln_locate(doc, segs):
++            for m in _ln_mappings(loc, row.descend):
++                if row.old in m:
++                    hits.append((row.scope, row.old, row.new, row.stage))
++    if hits:
++        raise ValueError("SCHEMA_REJECTED legacy_names where=%s hits=%r" % (where, hits))
+diff --git a/workspaces/run_harness.py b/workspaces/run_harness.py
+index 614a933..d5e5e0c 100644
+--- a/workspaces/run_harness.py
++++ b/workspaces/run_harness.py
+@@ -39,7 +39,7 @@ sys.path.insert(0, ASSETS_DIR)
+ import numpy as np
+ from sizing_recipe import (SemiEmpiricalGmIdLUT, optimize_full_circuit_budget, dense_candidates,
+                             layout_grid_L_candidates, diagnose_sizing_roles_gap)
+-from stick_diagram import save_instance_json, run_full_circuit_audit_from_topology
++from stick_diagram import save_instance_json, run_full_circuit_audit_from_topology, reject_legacy_names
+ from design_report import assemble_report_data, save_html_report
+ 
+ LIBRARY_DIR = os.path.join(ASSETS_DIR, "library")
+@@ -102,7 +102,7 @@ def _spec_two_stage_ota():
+         "lut_by_kind": {"nmos": _NMOS, "pmos": _PMOS},
+         "lut": _NMOS,
+         # LUT 특성화 범위(VDS 0~1.8V)가 sky130 nominal rail과 일치.
+-        "vdd": 1.8,
++        "supplies_v": {"vdd": 1.8, "gnd": 0.0},
+         "L_candidates": layout_grid_L_candidates(_NMOS, L_GRID_STEP, n=41),
+         "L_grid_step": L_GRID_STEP,
+         "VDS_candidates": dense_candidates(_NMOS.VDS_grid, n=13),
+@@ -139,7 +139,7 @@ def _spec_current_reuse_telescopic_ota():
+         "_spec_source": "run_harness.SPECS",
+         "lut_by_kind": {"nmos": _NMOS, "pmos": _PMOS},
+         "lut": _NMOS,
+-        "vdd": 1.8,
++        "supplies_v": {"vdd": 1.8, "gnd": 0.0},
+         # 2026-08-12(세션30) -- SemiEmpiricalGmIdLUT는 L/VDS 둘 다 이미 다중선형보간하는데
+         # (sizing_recipe.py 클래스 docstring), 이 후보 리스트를 실측 앵커점(L 4개) 그대로
+         # 쓰거나 과도하게 데시메이션(VDS 49점 -> 3점)해서 그 보간 능력을 검색이 안 쓰고
+@@ -231,7 +231,7 @@ def _spec_folded_cascode():
+         "_spec_source": "run_harness.SPECS",
+         "lut_by_kind": {"nmos": _NMOS, "pmos": _PMOS},
+         "lut": _NMOS,
+-        "vdd": 1.8,
++        "supplies_v": {"vdd": 1.8, "gnd": 0.0},
+         "L_candidates": layout_grid_L_candidates(_NMOS, L_GRID_STEP, n=41),
+         "L_grid_step": L_GRID_STEP,
+         "VDS_candidates": dense_candidates(_NMOS.VDS_grid, n=13),
+@@ -285,7 +285,7 @@ def _spec_nmcnr_amplifier():
+         # ±1V를 폭으로 옮긴 미검증 추정이었다. sky130 재설계 전원은 ±0.9V(폭 1.8V, LUT VDS/VGS
+         # 0~1.8V와 일치). 이 spec은 아직 스칼라 vdd만 받아(가장 낮은 레일 = 0V 기준) 폭 1.8을 준다
+         # -- ±0.9V 선언과 원점 이동으로 동등. 분할 레일 선언(supplies_v)은 계획 DEC-60 구현 뒤.
+-        "vdd": 1.8,
++        "supplies_v": {"vdd": 1.8, "vss": 0.0},
+         "GBW": 816000.0, "CL": 1e-10, "kg": 0.5,
+         "PM_target_deg": 70.0,  # 2026-08-19(세션37) 확정 스펙 -- 위 docstring 참고
+         "L_candidates": layout_grid_L_candidates(_NMOS, L_GRID_STEP, n=41),
+@@ -369,7 +369,9 @@ def canonical_spec(circuit_key: str) -> dict:
+     if circuit_key not in SPECS:
+         raise ValueError(f"등록되지 않은 circuit_key={circuit_key!r} -- "
+                          f"SPECS에 있는 것 중 하나를 쓸 것: {sorted(SPECS)}")
+-    return SPECS[circuit_key]["spec_fn"]()
++    _s = SPECS[circuit_key]["spec_fn"]()
++    reject_legacy_names(_s, "harness_spec")
++    return _s
+ 
+ 
+ def derived_spec(circuit_key: str, why: str, **overrides) -> dict:
+@@ -430,6 +432,7 @@ def run(circuit_key: str) -> None:
+     instance_out = os.path.join(report_dir, f"{stem}.instance.json")
+     report_out = os.path.join(report_dir, f"{stem}.report.html")
+     spec = cfg["spec_fn"]()
++    reject_legacy_names(spec, "harness_spec")
+     # 2026-08-14(세션32) -- box-shape/floorplan 자동 재시도는 이제 optimize_full_circuit_
+     # budget() 내부에서 처리한다(모듈 docstring 참고, sizing_recipe.py의 함수 docstring이
+     # 정본) -- floorplan_target만 넘기면 theta 그리드서치는 1번만 돌고 row_split만 자동

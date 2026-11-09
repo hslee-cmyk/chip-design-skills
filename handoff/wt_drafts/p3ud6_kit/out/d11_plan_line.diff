@@ -1,0 +1,7 @@
+diff --git a/docs/01-plan/features/gain-budget-gmid-sizing.plan.md b/docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+index f2f4d2e..8f6e21d 100644
+--- a/docs/01-plan/features/gain-budget-gmid-sizing.plan.md
++++ b/docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+@@ -521 +521 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
+-| MOD1 | `gmid_lut.py` | LUT 인터페이스·보간·역산·곡선 검사·보간 오차 | `GmIdLUT`, `SemiEmpiricalGmIdLUT`, `_multilinear_interp`, `_multilinear_interp_point_multi`, `_solve_vgs`, `lut_conditions_from_npz`, gmb 유도(`∂ID/∂VSB`) |
++| MOD1 | `gmid_lut.py` | LUT 인터페이스·보간·역산·곡선 검사·보간 오차 | `GmIdLUT`, `SemiEmpiricalGmIdLUT`, `_multilinear_interp`, `_multilinear_interp_point_multi`, `_QUERY_CACHE_MAX`, `_solve_vgs`, `lut_conditions_from_npz`, gmb 유도(`∂ID/∂VSB`) |

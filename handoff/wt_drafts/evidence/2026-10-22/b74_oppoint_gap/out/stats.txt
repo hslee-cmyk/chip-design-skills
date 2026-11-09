@@ -1,0 +1,15 @@
+two_stage_ota net ID ratio 0.553..2.448 |dVgs|max 61.9 mV over_tolV ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7'] gm 0.580..1.926 gds 0.528..2.360 dVDsat -1.5..50.0 mV over_tolVDsat ['M3', 'M4', 'M6']
+two_stage_ota s5 ID ratio 1.000..1.003 |dVgs|max 0.2 mV over_tolV [] gm 0.999..1.003 gds 0.998..1.008 dVDsat -0.4..-0.1 mV over_tolVDsat []
+two_stage_ota m5 ID ratio 1.000..1.003 |dVgs|max 0.2 mV over_tolV [] gm 0.999..1.003 gds 0.998..1.008 dVDsat -0.4..-0.1 mV over_tolVDsat []
+two_stage_ota f5 ID ratio 1.004..2.448 |dVgs|max 61.9 mV over_tolV ['M1', 'M2', 'M3', 'M4', 'M5'] gm 1.005..1.926 gds 1.006..2.360 dVDsat -2.2..50.0 mV over_tolVDsat ['M1', 'M2', 'M3', 'M4']
+two_stage_ota tolV range 7.4..16.4 mV, tol_vdsat 1.9..19.8 mV
+ngcc_3stage_ff net ID ratio 0.553..3.177 |dVgs|max 59.9 mV over_tolV ['M0', 'M1', 'M11', 'M12', 'M13', 'M14', 'M2', 'M3', 'M4', 'M5', 'M6A', 'M6B', 'M7', 'M8', 'M9'] gm 0.591..2.819 gds 0.535..3.025 dVDsat -2.0..29.5 mV over_tolVDsat ['M9']
+ngcc_3stage_ff s5 ID ratio 0.999..1.000 |dVgs|max 0.1 mV over_tolV [] gm 0.998..1.000 gds 1.000..1.008 dVDsat -1.0..-0.0 mV over_tolVDsat []
+ngcc_3stage_ff m5 ID ratio 0.999..1.000 |dVgs|max 0.1 mV over_tolV [] gm 0.998..1.000 gds 1.000..1.008 dVDsat -1.0..-0.0 mV over_tolVDsat []
+ngcc_3stage_ff f5 ID ratio 1.000..1.383 |dVgs|max 15.2 mV over_tolV ['M13', 'M14', 'M4', 'M7'] gm 1.000..1.456 gds 1.004..1.356 dVDsat -0.3..7.7 mV over_tolVDsat []
+ngcc_3stage_ff tolV range 7.3..19.1 mV, tol_vdsat 1.8..25.2 mV
+folded_cascode net ID ratio 0.346..2.697 |dVgs|max 50.7 mV over_tolV ['M1', 'M10', 'M11', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'MN', 'MP'] gm 0.370..2.423 gds 0.299..2.592 dVDsat -7.3..21.3 mV over_tolVDsat ['M10', 'M3', 'M4', 'M7', 'M8', 'M9', 'MP']
+folded_cascode s5 ID ratio 0.994..1.001 |dVgs|max 0.3 mV over_tolV [] gm 0.994..1.001 gds 0.990..1.009 dVDsat -0.7..0.0 mV over_tolVDsat []
+folded_cascode m5 ID ratio 0.994..1.001 |dVgs|max 0.3 mV over_tolV [] gm 0.994..1.001 gds 0.990..1.009 dVDsat -0.7..0.0 mV over_tolVDsat []
+folded_cascode f5 ID ratio 0.378..1.524 |dVgs|max 50.7 mV over_tolV ['M10', 'M7', 'M8', 'M9', 'MP'] gm 0.405..1.436 gds 0.385..1.257 dVDsat -7.3..18.1 mV over_tolVDsat ['M10', 'M7', 'M8', 'M9', 'MP']
+folded_cascode tolV range 6.9..14.7 mV, tol_vdsat 1.8..16.7 mV

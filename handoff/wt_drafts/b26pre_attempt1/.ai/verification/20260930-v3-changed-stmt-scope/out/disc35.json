@@ -1,0 +1,2760 @@
+{
+ "steps": {
+  "unchanged-stmt-survivor": {
+   "kind": "control",
+   "base_tool": {
+    "exit": 1,
+    "summary": {
+     "tool": "V3",
+     "verdict": "FAIL",
+     "targets": [
+      "skills/analog-gmid-design/assets/rt_engine.py"
+     ],
+     "mutants": 10,
+     "killed": 6,
+     "survivors": [
+      "rt_engine:rt_calc:stmt_delete:body[0]",
+      "rt_engine:rt_calc:arith:body[0].value.args[0]",
+      "rt_engine:rt_calc:const+:body[0].value.args[0].right",
+      "rt_engine:rt_calc:const-:body[0].value.args[0].right"
+     ],
+     "survivor_bindings": [
+      "rt_engine:rt_calc:stmt_delete:body[0]@4e5a1e1478c4cc5e2123290be7acd9e1f0196a47865c36b355e5d5ad52fb3098",
+      "rt_engine:rt_calc:arith:body[0].value.args[0]@4e5a1e1478c4cc5e2123290be7acd9e1f0196a47865c36b355e5d5ad52fb3098",
+      "rt_engine:rt_calc:const+:body[0].value.args[0].right@4e5a1e1478c4cc5e2123290be7acd9e1f0196a47865c36b355e5d5ad52fb3098",
+      "rt_engine:rt_calc:const-:body[0].value.args[0].right@4e5a1e1478c4cc5e2123290be7acd9e1f0196a47865c36b355e5d5ad52fb3098"
+     ],
+     "exempt_ignored": []
+    },
+    "stderr_tail": ""
+   },
+   "base_out": [
+    [
+     "rt_engine:rt_calc:stmt_delete:body[0]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_calc:stmt_delete:body[1]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_calc:stmt_delete:body[2]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_calc:arith:body[0].value.args[0]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_calc:const+:body[0].value.args[0].right",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_calc:const-:body[0].value.args[0].right",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_calc:arith:body[1].value",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_calc:const+:body[1].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_calc:const-:body[1].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_calc:early_return:body[0]",
+     "killed"
+    ]
+   ],
+   "all_mutants": [
+    "rt_engine:rt_calc:stmt_delete:body[0]",
+    "rt_engine:rt_calc:stmt_delete:body[1]",
+    "rt_engine:rt_calc:stmt_delete:body[2]",
+    "rt_engine:rt_calc:arith:body[0].value.args[0]",
+    "rt_engine:rt_calc:const+:body[0].value.args[0].right",
+    "rt_engine:rt_calc:const-:body[0].value.args[0].right",
+    "rt_engine:rt_calc:arith:body[1].value",
+    "rt_engine:rt_calc:const+:body[1].value.right",
+    "rt_engine:rt_calc:const-:body[1].value.right",
+    "rt_engine:rt_calc:early_return:body[0]"
+   ],
+   "base_out_ids_equal_mutants": true,
+   "decorator_probe": {},
+   "targets_auditor": [
+    "rt_engine:rt_calc:stmt_delete:body[1]",
+    "rt_engine:rt_calc:stmt_delete:body[2]",
+    "rt_engine:rt_calc:arith:body[1].value",
+    "rt_engine:rt_calc:const+:body[1].value.right",
+    "rt_engine:rt_calc:const-:body[1].value.right",
+    "rt_engine:rt_calc:early_return:body[0]"
+   ],
+   "not_targeted_auditor": [
+    "rt_engine:rt_calc:stmt_delete:body[0]",
+    "rt_engine:rt_calc:arith:body[0].value.args[0]",
+    "rt_engine:rt_calc:const+:body[0].value.args[0].right",
+    "rt_engine:rt_calc:const-:body[0].value.args[0].right"
+   ],
+   "predicted_full": {
+    "exit": 0,
+    "verdict": "PASS",
+    "survivors": [],
+    "mutants": 6,
+    "killed": 6,
+    "not_targeted": 4,
+    "observed": {
+     "lines": 10,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_calc:arith:body[0].value.args[0]",
+       "rt_engine:rt_calc:const+:body[0].value.args[0].right",
+       "rt_engine:rt_calc:const-:body[0].value.args[0].right",
+       "rt_engine:rt_calc:stmt_delete:body[0]"
+      ]
+     }
+    }
+   },
+   "expect_holds_full": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": true
+   },
+   "variants": {
+    "ALL": {
+     "targets_n": 10,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_calc:stmt_delete:body[0]",
+      "rt_engine:rt_calc:arith:body[0].value.args[0]",
+      "rt_engine:rt_calc:const+:body[0].value.args[0].right",
+      "rt_engine:rt_calc:const-:body[0].value.args[0].right"
+     ],
+     "step_fails": true
+    },
+    "T1": {
+     "targets_n": 2,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T2": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T3": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T4": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T5": {
+     "targets_n": 5,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T3-T5": {
+     "targets_n": 5,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T6a": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T6b": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T6a-T6b": {
+     "targets_n": 5,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T6b_far": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "LOOP": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "INDENT": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "WIDEN": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "DECO_NOOP": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    }
+   },
+   "aimed": {
+    "ALL": true
+   }
+  },
+  "changed-stmt-survivor": {
+   "kind": "attack",
+   "base_tool": {
+    "exit": 1,
+    "summary": {
+     "tool": "V3",
+     "verdict": "FAIL",
+     "targets": [
+      "skills/analog-gmid-design/assets/rt_engine.py"
+     ],
+     "mutants": 7,
+     "killed": 6,
+     "survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "survivor_bindings": [
+      "rt_engine:rt_b:stmt_delete:body[1]@16ddbbe22489cb27cc7a8925e0c716d1c119d6ce9373da7d61006cc24cac6cd9"
+     ],
+     "exempt_ignored": []
+    },
+    "stderr_tail": ""
+   },
+   "base_out": [
+    [
+     "rt_engine:rt_b:stmt_delete:body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_b:stmt_delete:body[1]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_b:stmt_delete:body[2]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_b:arith:body[0].value",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_b:const+:body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_b:const-:body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_b:early_return:body[0]",
+     "killed"
+    ]
+   ],
+   "all_mutants": [
+    "rt_engine:rt_b:stmt_delete:body[0]",
+    "rt_engine:rt_b:stmt_delete:body[1]",
+    "rt_engine:rt_b:stmt_delete:body[2]",
+    "rt_engine:rt_b:arith:body[0].value",
+    "rt_engine:rt_b:const+:body[0].value.right",
+    "rt_engine:rt_b:const-:body[0].value.right",
+    "rt_engine:rt_b:early_return:body[0]"
+   ],
+   "base_out_ids_equal_mutants": true,
+   "decorator_probe": {},
+   "targets_auditor": [
+    "rt_engine:rt_b:stmt_delete:body[1]",
+    "rt_engine:rt_b:early_return:body[0]"
+   ],
+   "not_targeted_auditor": [
+    "rt_engine:rt_b:stmt_delete:body[0]",
+    "rt_engine:rt_b:stmt_delete:body[2]",
+    "rt_engine:rt_b:arith:body[0].value",
+    "rt_engine:rt_b:const+:body[0].value.right",
+    "rt_engine:rt_b:const-:body[0].value.right"
+   ],
+   "predicted_full": {
+    "exit": 1,
+    "verdict": "FAIL",
+    "survivors": [
+     "rt_engine:rt_b:stmt_delete:body[1]"
+    ],
+    "mutants": 2,
+    "killed": 1,
+    "not_targeted": 5,
+    "observed": {
+     "lines": 7,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_b:arith:body[0].value",
+       "rt_engine:rt_b:const+:body[0].value.right",
+       "rt_engine:rt_b:const-:body[0].value.right",
+       "rt_engine:rt_b:stmt_delete:body[0]",
+       "rt_engine:rt_b:stmt_delete:body[2]"
+      ]
+     }
+    }
+   },
+   "expect_holds_full": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "variants": {
+    "ALL": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T1": {
+     "targets_n": 1,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T2": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T3": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T4": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T5": {
+     "targets_n": 1,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T3-T5": {
+     "targets_n": 1,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T6a": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T6b": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T6a-T6b": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T6b_far": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "LOOP": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "INDENT": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "WIDEN": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "DECO_NOOP": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_b:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    }
+   },
+   "aimed": {
+    "T1": true
+   }
+  },
+  "enclosing-guard-survivor": {
+   "kind": "attack",
+   "base_tool": {
+    "exit": 1,
+    "summary": {
+     "tool": "V3",
+     "verdict": "FAIL",
+     "targets": [
+      "skills/analog-gmid-design/assets/rt_engine.py"
+     ],
+     "mutants": 11,
+     "killed": 7,
+     "survivors": [
+      "rt_engine:rt_c:stmt_delete:body[0]",
+      "rt_engine:rt_c:const+:body[0].value",
+      "rt_engine:rt_c:const-:body[0].value",
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "survivor_bindings": [
+      "rt_engine:rt_c:stmt_delete:body[0]@d29874fb9c55d09ef2d51db06700895220586454c0d50664312ade78ba252d12",
+      "rt_engine:rt_c:const+:body[0].value@d29874fb9c55d09ef2d51db06700895220586454c0d50664312ade78ba252d12",
+      "rt_engine:rt_c:const-:body[0].value@d29874fb9c55d09ef2d51db06700895220586454c0d50664312ade78ba252d12",
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]@d29874fb9c55d09ef2d51db06700895220586454c0d50664312ade78ba252d12"
+     ],
+     "exempt_ignored": []
+    },
+    "stderr_tail": ""
+   },
+   "base_out": [
+    [
+     "rt_engine:rt_c:stmt_delete:body[0]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_c:stmt_delete:body[1]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_c:stmt_delete:body[2]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_c:const+:body[0].value",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_c:const-:body[0].value",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_c:stmt_delete:body[1].body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_c:arith:body[1].body[0].value",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_c:const+:body[1].body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_c:const-:body[1].body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_c:early_return:body[0]",
+     "killed"
+    ]
+   ],
+   "all_mutants": [
+    "rt_engine:rt_c:stmt_delete:body[0]",
+    "rt_engine:rt_c:stmt_delete:body[1]",
+    "rt_engine:rt_c:stmt_delete:body[2]",
+    "rt_engine:rt_c:const+:body[0].value",
+    "rt_engine:rt_c:const-:body[0].value",
+    "rt_engine:rt_c:stmt_delete:body[1].body[0]",
+    "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]",
+    "rt_engine:rt_c:arith:body[1].body[0].value",
+    "rt_engine:rt_c:const+:body[1].body[0].value.right",
+    "rt_engine:rt_c:const-:body[1].body[0].value.right",
+    "rt_engine:rt_c:early_return:body[0]"
+   ],
+   "base_out_ids_equal_mutants": true,
+   "decorator_probe": {},
+   "targets_auditor": [
+    "rt_engine:rt_c:stmt_delete:body[1]",
+    "rt_engine:rt_c:stmt_delete:body[1].body[0]",
+    "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]",
+    "rt_engine:rt_c:arith:body[1].body[0].value",
+    "rt_engine:rt_c:const+:body[1].body[0].value.right",
+    "rt_engine:rt_c:const-:body[1].body[0].value.right",
+    "rt_engine:rt_c:early_return:body[0]"
+   ],
+   "not_targeted_auditor": [
+    "rt_engine:rt_c:stmt_delete:body[0]",
+    "rt_engine:rt_c:stmt_delete:body[2]",
+    "rt_engine:rt_c:const+:body[0].value",
+    "rt_engine:rt_c:const-:body[0].value"
+   ],
+   "predicted_full": {
+    "exit": 1,
+    "verdict": "FAIL",
+    "survivors": [
+     "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+    ],
+    "mutants": 7,
+    "killed": 6,
+    "not_targeted": 4,
+    "observed": {
+     "lines": 11,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_c:const+:body[0].value",
+       "rt_engine:rt_c:const-:body[0].value",
+       "rt_engine:rt_c:stmt_delete:body[0]",
+       "rt_engine:rt_c:stmt_delete:body[2]"
+      ]
+     }
+    }
+   },
+   "expect_holds_full": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "variants": {
+    "ALL": {
+     "targets_n": 11,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:stmt_delete:body[0]",
+      "rt_engine:rt_c:const+:body[0].value",
+      "rt_engine:rt_c:const-:body[0].value",
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": true
+    },
+    "T1": {
+     "targets_n": 3,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T2": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T3": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T4": {
+     "targets_n": 5,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T5": {
+     "targets_n": 6,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T3-T5": {
+     "targets_n": 6,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T6a": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T6b": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T6a-T6b": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T6b_far": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "LOOP": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "INDENT": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "WIDEN": {
+     "targets_n": 8,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    },
+    "DECO_NOOP": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]"
+     ],
+     "step_fails": false
+    }
+   },
+   "aimed": {
+    "T4": true
+   }
+  },
+  "unwrapped-stmt": {
+   "kind": "attack",
+   "base_tool": {
+    "exit": 1,
+    "summary": {
+     "tool": "V3",
+     "verdict": "FAIL",
+     "targets": [
+      "skills/analog-gmid-design/assets/rt_engine.py"
+     ],
+     "mutants": 7,
+     "killed": 6,
+     "survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "survivor_bindings": [
+      "rt_engine:rt_d:stmt_delete:body[1]@78c751e04091772a251cb0ed9d3d0b4d5beff629498481ff1cf3cd922b66db2b"
+     ],
+     "exempt_ignored": []
+    },
+    "stderr_tail": ""
+   },
+   "base_out": [
+    [
+     "rt_engine:rt_d:stmt_delete:body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_d:stmt_delete:body[1]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_d:stmt_delete:body[2]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_d:arith:body[0].value",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_d:const+:body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_d:const-:body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_d:early_return:body[0]",
+     "killed"
+    ]
+   ],
+   "all_mutants": [
+    "rt_engine:rt_d:stmt_delete:body[0]",
+    "rt_engine:rt_d:stmt_delete:body[1]",
+    "rt_engine:rt_d:stmt_delete:body[2]",
+    "rt_engine:rt_d:arith:body[0].value",
+    "rt_engine:rt_d:const+:body[0].value.right",
+    "rt_engine:rt_d:const-:body[0].value.right",
+    "rt_engine:rt_d:early_return:body[0]"
+   ],
+   "base_out_ids_equal_mutants": true,
+   "decorator_probe": {},
+   "targets_auditor": [
+    "rt_engine:rt_d:stmt_delete:body[1]",
+    "rt_engine:rt_d:stmt_delete:body[2]",
+    "rt_engine:rt_d:early_return:body[0]"
+   ],
+   "not_targeted_auditor": [
+    "rt_engine:rt_d:stmt_delete:body[0]",
+    "rt_engine:rt_d:arith:body[0].value",
+    "rt_engine:rt_d:const+:body[0].value.right",
+    "rt_engine:rt_d:const-:body[0].value.right"
+   ],
+   "predicted_full": {
+    "exit": 1,
+    "verdict": "FAIL",
+    "survivors": [
+     "rt_engine:rt_d:stmt_delete:body[1]"
+    ],
+    "mutants": 3,
+    "killed": 2,
+    "not_targeted": 4,
+    "observed": {
+     "lines": 7,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_d:arith:body[0].value",
+       "rt_engine:rt_d:const+:body[0].value.right",
+       "rt_engine:rt_d:const-:body[0].value.right",
+       "rt_engine:rt_d:stmt_delete:body[0]"
+      ]
+     }
+    }
+   },
+   "expect_holds_full": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "variants": {
+    "ALL": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T1": {
+     "targets_n": 2,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T2": {
+     "targets_n": 3,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T3": {
+     "targets_n": 3,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T4": {
+     "targets_n": 3,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T5": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T3-T5": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T6a": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T6b": {
+     "targets_n": 3,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T6a-T6b": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T6b_far": {
+     "targets_n": 3,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "LOOP": {
+     "targets_n": 3,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "INDENT": {
+     "targets_n": 2,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "WIDEN": {
+     "targets_n": 3,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "DECO_NOOP": {
+     "targets_n": 3,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_d:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    }
+   },
+   "aimed": {
+    "INDENT": true
+   }
+  },
+  "header-only-change": {
+   "kind": "attack",
+   "base_tool": {
+    "exit": 1,
+    "summary": {
+     "tool": "V3",
+     "verdict": "FAIL",
+     "targets": [
+      "skills/analog-gmid-design/assets/rt_engine.py"
+     ],
+     "mutants": 11,
+     "killed": 10,
+     "survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "survivor_bindings": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand@1bd4138050f5bf97f5d929610f1ec31ac3fd20c806d25ceb2ca5b1741b0e496a"
+     ],
+     "exempt_ignored": []
+    },
+    "stderr_tail": ""
+   },
+   "base_out": [
+    [
+     "rt_engine:rt_e:stmt_delete:body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_e:stmt_delete:body[1]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_e:stmt_delete:body[2]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_e:stmt_delete:body[1].body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_e:cmp_flip:body[1].iter.generators[0].ifs[0].ops[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_e:const-:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_e:arith:body[1].body[0].value.args[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_e:const+:body[1].body[0].value.args[0].right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_e:const-:body[1].body[0].value.args[0].right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_e:early_return:body[0]",
+     "killed"
+    ]
+   ],
+   "all_mutants": [
+    "rt_engine:rt_e:stmt_delete:body[0]",
+    "rt_engine:rt_e:stmt_delete:body[1]",
+    "rt_engine:rt_e:stmt_delete:body[2]",
+    "rt_engine:rt_e:stmt_delete:body[1].body[0]",
+    "rt_engine:rt_e:cmp_flip:body[1].iter.generators[0].ifs[0].ops[0]",
+    "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+    "rt_engine:rt_e:const-:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+    "rt_engine:rt_e:arith:body[1].body[0].value.args[0]",
+    "rt_engine:rt_e:const+:body[1].body[0].value.args[0].right",
+    "rt_engine:rt_e:const-:body[1].body[0].value.args[0].right",
+    "rt_engine:rt_e:early_return:body[0]"
+   ],
+   "base_out_ids_equal_mutants": true,
+   "decorator_probe": {},
+   "targets_auditor": [
+    "rt_engine:rt_e:stmt_delete:body[1]",
+    "rt_engine:rt_e:cmp_flip:body[1].iter.generators[0].ifs[0].ops[0]",
+    "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+    "rt_engine:rt_e:const-:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+    "rt_engine:rt_e:early_return:body[0]"
+   ],
+   "not_targeted_auditor": [
+    "rt_engine:rt_e:stmt_delete:body[0]",
+    "rt_engine:rt_e:stmt_delete:body[2]",
+    "rt_engine:rt_e:stmt_delete:body[1].body[0]",
+    "rt_engine:rt_e:arith:body[1].body[0].value.args[0]",
+    "rt_engine:rt_e:const+:body[1].body[0].value.args[0].right",
+    "rt_engine:rt_e:const-:body[1].body[0].value.args[0].right"
+   ],
+   "predicted_full": {
+    "exit": 1,
+    "verdict": "FAIL",
+    "survivors": [
+     "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+    ],
+    "mutants": 5,
+    "killed": 4,
+    "not_targeted": 6,
+    "observed": {
+     "lines": 11,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_e:arith:body[1].body[0].value.args[0]",
+       "rt_engine:rt_e:const+:body[1].body[0].value.args[0].right",
+       "rt_engine:rt_e:const-:body[1].body[0].value.args[0].right",
+       "rt_engine:rt_e:stmt_delete:body[0]",
+       "rt_engine:rt_e:stmt_delete:body[1].body[0]",
+       "rt_engine:rt_e:stmt_delete:body[2]"
+      ]
+     }
+    }
+   },
+   "expect_holds_full": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "variants": {
+    "ALL": {
+     "targets_n": 11,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "T1": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "T2": {
+     "targets_n": 1,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T3": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "T4": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "T5": {
+     "targets_n": 4,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "T3-T5": {
+     "targets_n": 4,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "T6a": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "T6b": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "T6a-T6b": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "T6b_far": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "LOOP": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "INDENT": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "WIDEN": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    },
+    "DECO_NOOP": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand"
+     ],
+     "step_fails": false
+    }
+   },
+   "aimed": {
+    "T2": true
+   }
+  },
+  "header-default-bool": {
+   "kind": "attack",
+   "base_tool": {
+    "exit": 1,
+    "summary": {
+     "tool": "V3",
+     "verdict": "FAIL",
+     "targets": [
+      "skills/analog-gmid-design/assets/rt_engine.py"
+     ],
+     "mutants": 4,
+     "killed": 0,
+     "survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:stmt_delete:body[1]",
+      "rt_engine:rt_f:stmt_delete:body[0].body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "survivor_bindings": [
+      "rt_engine:rt_f:stmt_delete:body[0]@74357ee5fe79e933a146cfd013805abc61963b258799ea27c4bdc74895d8421d",
+      "rt_engine:rt_f:stmt_delete:body[1]@74357ee5fe79e933a146cfd013805abc61963b258799ea27c4bdc74895d8421d",
+      "rt_engine:rt_f:stmt_delete:body[0].body[0]@74357ee5fe79e933a146cfd013805abc61963b258799ea27c4bdc74895d8421d",
+      "rt_engine:rt_f:early_return:body[0]@74357ee5fe79e933a146cfd013805abc61963b258799ea27c4bdc74895d8421d"
+     ],
+     "exempt_ignored": []
+    },
+    "stderr_tail": ""
+   },
+   "base_out": [
+    [
+     "rt_engine:rt_f:stmt_delete:body[0]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_f:stmt_delete:body[1]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_f:stmt_delete:body[0].body[0]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_f:early_return:body[0]",
+     "survived"
+    ]
+   ],
+   "all_mutants": [
+    "rt_engine:rt_f:stmt_delete:body[0]",
+    "rt_engine:rt_f:stmt_delete:body[1]",
+    "rt_engine:rt_f:stmt_delete:body[0].body[0]",
+    "rt_engine:rt_f:early_return:body[0]"
+   ],
+   "base_out_ids_equal_mutants": true,
+   "decorator_probe": {},
+   "targets_auditor": [
+    "rt_engine:rt_f:stmt_delete:body[0]",
+    "rt_engine:rt_f:early_return:body[0]"
+   ],
+   "not_targeted_auditor": [
+    "rt_engine:rt_f:stmt_delete:body[1]",
+    "rt_engine:rt_f:stmt_delete:body[0].body[0]"
+   ],
+   "predicted_full": {
+    "exit": 1,
+    "verdict": "FAIL",
+    "survivors": [
+     "rt_engine:rt_f:stmt_delete:body[0]",
+     "rt_engine:rt_f:early_return:body[0]"
+    ],
+    "mutants": 2,
+    "killed": 0,
+    "not_targeted": 2,
+    "observed": {
+     "lines": 4,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_f:stmt_delete:body[0].body[0]",
+       "rt_engine:rt_f:stmt_delete:body[1]"
+      ]
+     }
+    }
+   },
+   "expect_holds_full": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "variants": {
+    "ALL": {
+     "targets_n": 4,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:stmt_delete:body[1]",
+      "rt_engine:rt_f:stmt_delete:body[0].body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": true
+    },
+    "T1": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": false
+    },
+    "T2": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": false
+    },
+    "T3": {
+     "targets_n": 1,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": true
+    },
+    "T4": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": false
+    },
+    "T5": {
+     "targets_n": 1,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]"
+     ],
+     "step_fails": true
+    },
+    "T3-T5": {
+     "targets_n": 0,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T6a": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": false
+    },
+    "T6b": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": false
+    },
+    "T6a-T6b": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": false
+    },
+    "T6b_far": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": false
+    },
+    "LOOP": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": false
+    },
+    "INDENT": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": false
+    },
+    "WIDEN": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": false
+    },
+    "DECO_NOOP": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_f:stmt_delete:body[0]",
+      "rt_engine:rt_f:early_return:body[0]"
+     ],
+     "step_fails": false
+    }
+   },
+   "aimed": {
+    "T3-T5": true,
+    "T3": true,
+    "T5": true
+   }
+  },
+  "delete-then-use": {
+   "kind": "attack",
+   "base_tool": {
+    "exit": 1,
+    "summary": {
+     "tool": "V3",
+     "verdict": "FAIL",
+     "targets": [
+      "skills/analog-gmid-design/assets/rt_engine.py"
+     ],
+     "mutants": 3,
+     "killed": 2,
+     "survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "survivor_bindings": [
+      "rt_engine:rt_g:stmt_delete:body[1]@446bc5f602f9570dc038abc811ff6f68c7d2a0ac2c0a3f1557776f58a53bd217"
+     ],
+     "exempt_ignored": []
+    },
+    "stderr_tail": ""
+   },
+   "base_out": [
+    [
+     "rt_engine:rt_g:stmt_delete:body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_g:stmt_delete:body[1]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_g:early_return:body[0]",
+     "killed"
+    ]
+   ],
+   "all_mutants": [
+    "rt_engine:rt_g:stmt_delete:body[0]",
+    "rt_engine:rt_g:stmt_delete:body[1]",
+    "rt_engine:rt_g:early_return:body[0]"
+   ],
+   "base_out_ids_equal_mutants": true,
+   "decorator_probe": {},
+   "targets_auditor": [
+    "rt_engine:rt_g:stmt_delete:body[1]",
+    "rt_engine:rt_g:early_return:body[0]"
+   ],
+   "not_targeted_auditor": [
+    "rt_engine:rt_g:stmt_delete:body[0]"
+   ],
+   "predicted_full": {
+    "exit": 1,
+    "verdict": "FAIL",
+    "survivors": [
+     "rt_engine:rt_g:stmt_delete:body[1]"
+    ],
+    "mutants": 2,
+    "killed": 1,
+    "not_targeted": 1,
+    "observed": {
+     "lines": 3,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_g:stmt_delete:body[0]"
+      ]
+     }
+    }
+   },
+   "expect_holds_full": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "variants": {
+    "ALL": {
+     "targets_n": 3,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T1": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T2": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T3": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T4": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T5": {
+     "targets_n": 1,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T3-T5": {
+     "targets_n": 1,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T6a": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T6b": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "T6a-T6b": {
+     "targets_n": 1,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T6b_far": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "LOOP": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "INDENT": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "WIDEN": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    },
+    "DECO_NOOP": {
+     "targets_n": 2,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_g:stmt_delete:body[1]"
+     ],
+     "step_fails": false
+    }
+   },
+   "aimed": {
+    "T6a": false,
+    "T6a-T6b": true
+   }
+  },
+  "decorator-mutant-applied": {
+   "kind": "control",
+   "base_tool": {
+    "exit": 1,
+    "summary": {
+     "tool": "V3",
+     "verdict": "FAIL",
+     "targets": [
+      "skills/analog-gmid-design/assets/rt_engine.py"
+     ],
+     "mutants": 7,
+     "killed": 5,
+     "survivors": [
+      "rt_engine:rt_h:const+:decorator_list[0].keywords[0].value",
+      "rt_engine:rt_h:const-:decorator_list[0].keywords[0].value"
+     ],
+     "survivor_bindings": [
+      "rt_engine:rt_h:const+:decorator_list[0].keywords[0].value@72320dd46a55addcf1d120d413d3d884edaa40f15d79647c888e5133f970d966",
+      "rt_engine:rt_h:const-:decorator_list[0].keywords[0].value@72320dd46a55addcf1d120d413d3d884edaa40f15d79647c888e5133f970d966"
+     ],
+     "exempt_ignored": []
+    },
+    "stderr_tail": ""
+   },
+   "base_out": [
+    [
+     "rt_engine:rt_h:stmt_delete:body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_h:arith:body[0].value",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_h:const+:body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_h:const-:body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_h:const+:decorator_list[0].keywords[0].value",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_h:const-:decorator_list[0].keywords[0].value",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_h:early_return:body[0]",
+     "killed"
+    ]
+   ],
+   "all_mutants": [
+    "rt_engine:rt_h:stmt_delete:body[0]",
+    "rt_engine:rt_h:arith:body[0].value",
+    "rt_engine:rt_h:const+:body[0].value.right",
+    "rt_engine:rt_h:const-:body[0].value.right",
+    "rt_engine:rt_h:const+:decorator_list[0].keywords[0].value",
+    "rt_engine:rt_h:const-:decorator_list[0].keywords[0].value",
+    "rt_engine:rt_h:early_return:body[0]"
+   ],
+   "base_out_ids_equal_mutants": true,
+   "decorator_probe": {
+    "rt_engine:rt_h:const+:decorator_list[0].keywords[0].value": {
+     "base_replace_noop": true,
+     "c9_ast_differs": true,
+     "c9_pytest_exit": 1,
+     "c9_result": "killed",
+     "c9_tail": "_h_scope.py\u001b[0m:10: AssertionError\r\n\u001b[36m\u001b[1m=========================== short test summary info ===========================\u001b[0m\r\n\u001b[31mFAILED\u001b[0m skills/analog-gmid-design/assets/tests/test_rt_h_scope.py::\u001b[1mtest_rt_h_scope\u001b[0m - assert 129 == 128\r\n\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m\u001b[31m in 0.24s\u001b[0m\u001b[0m\r\n"
+    },
+    "rt_engine:rt_h:const-:decorator_list[0].keywords[0].value": {
+     "base_replace_noop": true,
+     "c9_ast_differs": true,
+     "c9_pytest_exit": 1,
+     "c9_result": "killed",
+     "c9_tail": "_h_scope.py\u001b[0m:10: AssertionError\r\n\u001b[36m\u001b[1m=========================== short test summary info ===========================\u001b[0m\r\n\u001b[31mFAILED\u001b[0m skills/analog-gmid-design/assets/tests/test_rt_h_scope.py::\u001b[1mtest_rt_h_scope\u001b[0m - assert 127 == 128\r\n\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m\u001b[31m in 0.14s\u001b[0m\u001b[0m\r\n"
+    }
+   },
+   "targets_auditor": [
+    "rt_engine:rt_h:const+:decorator_list[0].keywords[0].value",
+    "rt_engine:rt_h:const-:decorator_list[0].keywords[0].value",
+    "rt_engine:rt_h:early_return:body[0]"
+   ],
+   "not_targeted_auditor": [
+    "rt_engine:rt_h:stmt_delete:body[0]",
+    "rt_engine:rt_h:arith:body[0].value",
+    "rt_engine:rt_h:const+:body[0].value.right",
+    "rt_engine:rt_h:const-:body[0].value.right"
+   ],
+   "predicted_full": {
+    "exit": 0,
+    "verdict": "PASS",
+    "survivors": [],
+    "mutants": 3,
+    "killed": 3,
+    "not_targeted": 4,
+    "observed": {
+     "lines": 7,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_h:arith:body[0].value",
+       "rt_engine:rt_h:const+:body[0].value.right",
+       "rt_engine:rt_h:const-:body[0].value.right",
+       "rt_engine:rt_h:stmt_delete:body[0]"
+      ]
+     }
+    }
+   },
+   "expect_holds_full": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "variants": {
+    "ALL": {
+     "targets_n": 7,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T1": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T2": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T3": {
+     "targets_n": 1,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T4": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T5": {
+     "targets_n": 2,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T3-T5": {
+     "targets_n": 0,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T6a": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T6b": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T6a-T6b": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T6b_far": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "LOOP": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "INDENT": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "WIDEN": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "DECO_NOOP": {
+     "targets_n": 3,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_h:const+:decorator_list[0].keywords[0].value",
+      "rt_engine:rt_h:const-:decorator_list[0].keywords[0].value"
+     ],
+     "step_fails": true
+    }
+   },
+   "aimed": {
+    "DECO_NOOP": true
+   }
+  },
+  "same-block-later-use": {
+   "kind": "attack",
+   "base_tool": {
+    "exit": 1,
+    "summary": {
+     "tool": "V3",
+     "verdict": "FAIL",
+     "targets": [
+      "skills/analog-gmid-design/assets/rt_engine.py"
+     ],
+     "mutants": 20,
+     "killed": 12,
+     "survivors": [
+      "rt_engine:rt_i:stmt_delete:body[2].orelse[0]",
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]",
+      "rt_engine:rt_i:arith:body[2].orelse[0].value",
+      "rt_engine:rt_i:arith:body[2].orelse[0].value.left",
+      "rt_engine:rt_i:const+:body[2].orelse[0].value.left.right",
+      "rt_engine:rt_i:const-:body[2].orelse[0].value.left.right",
+      "rt_engine:rt_i:const+:body[2].orelse[0].value.right",
+      "rt_engine:rt_i:const-:body[2].orelse[0].value.right"
+     ],
+     "survivor_bindings": [
+      "rt_engine:rt_i:stmt_delete:body[2].orelse[0]@96141e33dbe87bf7eb91b23d0aec7015f4ea224468d1654066aedfaa9cb021d3",
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]@96141e33dbe87bf7eb91b23d0aec7015f4ea224468d1654066aedfaa9cb021d3",
+      "rt_engine:rt_i:arith:body[2].orelse[0].value@96141e33dbe87bf7eb91b23d0aec7015f4ea224468d1654066aedfaa9cb021d3",
+      "rt_engine:rt_i:arith:body[2].orelse[0].value.left@96141e33dbe87bf7eb91b23d0aec7015f4ea224468d1654066aedfaa9cb021d3",
+      "rt_engine:rt_i:const+:body[2].orelse[0].value.left.right@96141e33dbe87bf7eb91b23d0aec7015f4ea224468d1654066aedfaa9cb021d3",
+      "rt_engine:rt_i:const-:body[2].orelse[0].value.left.right@96141e33dbe87bf7eb91b23d0aec7015f4ea224468d1654066aedfaa9cb021d3",
+      "rt_engine:rt_i:const+:body[2].orelse[0].value.right@96141e33dbe87bf7eb91b23d0aec7015f4ea224468d1654066aedfaa9cb021d3",
+      "rt_engine:rt_i:const-:body[2].orelse[0].value.right@96141e33dbe87bf7eb91b23d0aec7015f4ea224468d1654066aedfaa9cb021d3"
+     ],
+     "exempt_ignored": []
+    },
+    "stderr_tail": ""
+   },
+   "base_out": [
+    [
+     "rt_engine:rt_i:stmt_delete:body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_i:stmt_delete:body[1]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_i:stmt_delete:body[2]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_i:stmt_delete:body[3]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_i:stmt_delete:body[2].body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_i:stmt_delete:body[2].orelse[0]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_i:arith:body[2].body[0].value",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_i:arith:body[2].body[0].value.left",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_i:const+:body[2].body[0].value.left.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_i:const-:body[2].body[0].value.left.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_i:const+:body[2].body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_i:const-:body[2].body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_i:arith:body[2].orelse[0].value",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_i:arith:body[2].orelse[0].value.left",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_i:const+:body[2].orelse[0].value.left.right",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_i:const-:body[2].orelse[0].value.left.right",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_i:const+:body[2].orelse[0].value.right",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_i:const-:body[2].orelse[0].value.right",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_i:early_return:body[0]",
+     "killed"
+    ]
+   ],
+   "all_mutants": [
+    "rt_engine:rt_i:stmt_delete:body[0]",
+    "rt_engine:rt_i:stmt_delete:body[1]",
+    "rt_engine:rt_i:stmt_delete:body[2]",
+    "rt_engine:rt_i:stmt_delete:body[3]",
+    "rt_engine:rt_i:stmt_delete:body[2].body[0]",
+    "rt_engine:rt_i:stmt_delete:body[2].orelse[0]",
+    "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]",
+    "rt_engine:rt_i:arith:body[2].body[0].value",
+    "rt_engine:rt_i:arith:body[2].body[0].value.left",
+    "rt_engine:rt_i:const+:body[2].body[0].value.left.right",
+    "rt_engine:rt_i:const-:body[2].body[0].value.left.right",
+    "rt_engine:rt_i:const+:body[2].body[0].value.right",
+    "rt_engine:rt_i:const-:body[2].body[0].value.right",
+    "rt_engine:rt_i:arith:body[2].orelse[0].value",
+    "rt_engine:rt_i:arith:body[2].orelse[0].value.left",
+    "rt_engine:rt_i:const+:body[2].orelse[0].value.left.right",
+    "rt_engine:rt_i:const-:body[2].orelse[0].value.left.right",
+    "rt_engine:rt_i:const+:body[2].orelse[0].value.right",
+    "rt_engine:rt_i:const-:body[2].orelse[0].value.right",
+    "rt_engine:rt_i:early_return:body[0]"
+   ],
+   "base_out_ids_equal_mutants": true,
+   "decorator_probe": {},
+   "targets_auditor": [
+    "rt_engine:rt_i:stmt_delete:body[0]",
+    "rt_engine:rt_i:stmt_delete:body[1]",
+    "rt_engine:rt_i:stmt_delete:body[2]",
+    "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]",
+    "rt_engine:rt_i:early_return:body[0]"
+   ],
+   "not_targeted_auditor": [
+    "rt_engine:rt_i:stmt_delete:body[3]",
+    "rt_engine:rt_i:stmt_delete:body[2].body[0]",
+    "rt_engine:rt_i:stmt_delete:body[2].orelse[0]",
+    "rt_engine:rt_i:arith:body[2].body[0].value",
+    "rt_engine:rt_i:arith:body[2].body[0].value.left",
+    "rt_engine:rt_i:const+:body[2].body[0].value.left.right",
+    "rt_engine:rt_i:const-:body[2].body[0].value.left.right",
+    "rt_engine:rt_i:const+:body[2].body[0].value.right",
+    "rt_engine:rt_i:const-:body[2].body[0].value.right",
+    "rt_engine:rt_i:arith:body[2].orelse[0].value",
+    "rt_engine:rt_i:arith:body[2].orelse[0].value.left",
+    "rt_engine:rt_i:const+:body[2].orelse[0].value.left.right",
+    "rt_engine:rt_i:const-:body[2].orelse[0].value.left.right",
+    "rt_engine:rt_i:const+:body[2].orelse[0].value.right",
+    "rt_engine:rt_i:const-:body[2].orelse[0].value.right"
+   ],
+   "predicted_full": {
+    "exit": 1,
+    "verdict": "FAIL",
+    "survivors": [
+     "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+    ],
+    "mutants": 5,
+    "killed": 4,
+    "not_targeted": 15,
+    "observed": {
+     "lines": 20,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_i:arith:body[2].body[0].value",
+       "rt_engine:rt_i:arith:body[2].body[0].value.left",
+       "rt_engine:rt_i:arith:body[2].orelse[0].value",
+       "rt_engine:rt_i:arith:body[2].orelse[0].value.left",
+       "rt_engine:rt_i:const+:body[2].body[0].value.left.right",
+       "rt_engine:rt_i:const+:body[2].body[0].value.right",
+       "rt_engine:rt_i:const+:body[2].orelse[0].value.left.right",
+       "rt_engine:rt_i:const+:body[2].orelse[0].value.right",
+       "rt_engine:rt_i:const-:body[2].body[0].value.left.right",
+       "rt_engine:rt_i:const-:body[2].body[0].value.right",
+       "rt_engine:rt_i:const-:body[2].orelse[0].value.left.right",
+       "rt_engine:rt_i:const-:body[2].orelse[0].value.right",
+       "rt_engine:rt_i:stmt_delete:body[2].body[0]",
+       "rt_engine:rt_i:stmt_delete:body[2].orelse[0]",
+       "rt_engine:rt_i:stmt_delete:body[3]"
+      ]
+     }
+    }
+   },
+   "expect_holds_full": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "variants": {
+    "ALL": {
+     "targets_n": 20,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:stmt_delete:body[2].orelse[0]",
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]",
+      "rt_engine:rt_i:arith:body[2].orelse[0].value",
+      "rt_engine:rt_i:arith:body[2].orelse[0].value.left",
+      "rt_engine:rt_i:const+:body[2].orelse[0].value.left.right",
+      "rt_engine:rt_i:const-:body[2].orelse[0].value.left.right",
+      "rt_engine:rt_i:const+:body[2].orelse[0].value.right",
+      "rt_engine:rt_i:const-:body[2].orelse[0].value.right"
+     ],
+     "step_fails": true
+    },
+    "T1": {
+     "targets_n": 4,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T2": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T3": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T4": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T5": {
+     "targets_n": 4,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T3-T5": {
+     "targets_n": 4,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T6a": {
+     "targets_n": 4,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+     ],
+     "step_fails": false
+    },
+    "T6b": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T6a-T6b": {
+     "targets_n": 2,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T6b_far": {
+     "targets_n": 3,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "LOOP": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+     ],
+     "step_fails": false
+    },
+    "INDENT": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+     ],
+     "step_fails": false
+    },
+    "WIDEN": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+     ],
+     "step_fails": false
+    },
+    "DECO_NOOP": {
+     "targets_n": 5,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]"
+     ],
+     "step_fails": false
+    }
+   },
+   "aimed": {
+    "T6b_far": true
+   }
+  },
+  "loop-carried-use": {
+   "kind": "attack",
+   "base_tool": {
+    "exit": 1,
+    "summary": {
+     "tool": "V3",
+     "verdict": "FAIL",
+     "targets": [
+      "skills/analog-gmid-design/assets/rt_engine.py"
+     ],
+     "mutants": 13,
+     "killed": 12,
+     "survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "survivor_bindings": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]@730c9ccc4869aa284147d9d7b250e790bbb70f27bf3291a79018c14ed2d9610e"
+     ],
+     "exempt_ignored": []
+    },
+    "stderr_tail": ""
+   },
+   "base_out": [
+    [
+     "rt_engine:rt_j:stmt_delete:body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_j:stmt_delete:body[1]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_j:stmt_delete:body[2]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_j:stmt_delete:body[3]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_j:const+:body[1].value",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_j:const-:body[1].value",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_j:stmt_delete:body[2].body[0]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_j:stmt_delete:body[2].body[1]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_j:stmt_delete:body[2].body[2]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_j:arith:body[2].body[2].value",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_j:const+:body[2].body[2].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_j:const-:body[2].body[2].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_j:early_return:body[0]",
+     "killed"
+    ]
+   ],
+   "all_mutants": [
+    "rt_engine:rt_j:stmt_delete:body[0]",
+    "rt_engine:rt_j:stmt_delete:body[1]",
+    "rt_engine:rt_j:stmt_delete:body[2]",
+    "rt_engine:rt_j:stmt_delete:body[3]",
+    "rt_engine:rt_j:const+:body[1].value",
+    "rt_engine:rt_j:const-:body[1].value",
+    "rt_engine:rt_j:stmt_delete:body[2].body[0]",
+    "rt_engine:rt_j:stmt_delete:body[2].body[1]",
+    "rt_engine:rt_j:stmt_delete:body[2].body[2]",
+    "rt_engine:rt_j:arith:body[2].body[2].value",
+    "rt_engine:rt_j:const+:body[2].body[2].value.right",
+    "rt_engine:rt_j:const-:body[2].body[2].value.right",
+    "rt_engine:rt_j:early_return:body[0]"
+   ],
+   "base_out_ids_equal_mutants": true,
+   "decorator_probe": {},
+   "targets_auditor": [
+    "rt_engine:rt_j:stmt_delete:body[2]",
+    "rt_engine:rt_j:stmt_delete:body[2].body[0]",
+    "rt_engine:rt_j:stmt_delete:body[2].body[1]",
+    "rt_engine:rt_j:stmt_delete:body[2].body[2]",
+    "rt_engine:rt_j:arith:body[2].body[2].value",
+    "rt_engine:rt_j:const+:body[2].body[2].value.right",
+    "rt_engine:rt_j:const-:body[2].body[2].value.right",
+    "rt_engine:rt_j:early_return:body[0]"
+   ],
+   "not_targeted_auditor": [
+    "rt_engine:rt_j:stmt_delete:body[0]",
+    "rt_engine:rt_j:stmt_delete:body[1]",
+    "rt_engine:rt_j:stmt_delete:body[3]",
+    "rt_engine:rt_j:const+:body[1].value",
+    "rt_engine:rt_j:const-:body[1].value"
+   ],
+   "predicted_full": {
+    "exit": 1,
+    "verdict": "FAIL",
+    "survivors": [
+     "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+    ],
+    "mutants": 8,
+    "killed": 7,
+    "not_targeted": 5,
+    "observed": {
+     "lines": 13,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_j:const+:body[1].value",
+       "rt_engine:rt_j:const-:body[1].value",
+       "rt_engine:rt_j:stmt_delete:body[0]",
+       "rt_engine:rt_j:stmt_delete:body[1]",
+       "rt_engine:rt_j:stmt_delete:body[3]"
+      ]
+     }
+    }
+   },
+   "expect_holds_full": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "variants": {
+    "ALL": {
+     "targets_n": 13,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    },
+    "T1": {
+     "targets_n": 4,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    },
+    "T2": {
+     "targets_n": 8,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    },
+    "T3": {
+     "targets_n": 8,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    },
+    "T4": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    },
+    "T5": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    },
+    "T3-T5": {
+     "targets_n": 7,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    },
+    "T6a": {
+     "targets_n": 8,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    },
+    "T6b": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T6a-T6b": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T6b_far": {
+     "targets_n": 8,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    },
+    "LOOP": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "INDENT": {
+     "targets_n": 8,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    },
+    "WIDEN": {
+     "targets_n": 8,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    },
+    "DECO_NOOP": {
+     "targets_n": 8,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_j:stmt_delete:body[2].body[0]"
+     ],
+     "step_fails": false
+    }
+   },
+   "aimed": {
+    "LOOP": true
+   }
+  },
+  "cross-block-not-targeted": {
+   "kind": "control",
+   "base_tool": {
+    "exit": 1,
+    "summary": {
+     "tool": "V3",
+     "verdict": "FAIL",
+     "targets": [
+      "skills/analog-gmid-design/assets/rt_engine.py"
+     ],
+     "mutants": 17,
+     "killed": 11,
+     "survivors": [
+      "rt_engine:rt_k:stmt_delete:body[2]",
+      "rt_engine:rt_k:const+:body[0].value",
+      "rt_engine:rt_k:const-:body[0].value",
+      "rt_engine:rt_k:arith:body[2].value",
+      "rt_engine:rt_k:const+:body[2].value.right",
+      "rt_engine:rt_k:const-:body[2].value.right"
+     ],
+     "survivor_bindings": [
+      "rt_engine:rt_k:stmt_delete:body[2]@98bd1a08d545d3c7f075fdb87db567860a0669394e5c585eb1120e8c652c82d8",
+      "rt_engine:rt_k:const+:body[0].value@98bd1a08d545d3c7f075fdb87db567860a0669394e5c585eb1120e8c652c82d8",
+      "rt_engine:rt_k:const-:body[0].value@98bd1a08d545d3c7f075fdb87db567860a0669394e5c585eb1120e8c652c82d8",
+      "rt_engine:rt_k:arith:body[2].value@98bd1a08d545d3c7f075fdb87db567860a0669394e5c585eb1120e8c652c82d8",
+      "rt_engine:rt_k:const+:body[2].value.right@98bd1a08d545d3c7f075fdb87db567860a0669394e5c585eb1120e8c652c82d8",
+      "rt_engine:rt_k:const-:body[2].value.right@98bd1a08d545d3c7f075fdb87db567860a0669394e5c585eb1120e8c652c82d8"
+     ],
+     "exempt_ignored": []
+    },
+    "stderr_tail": ""
+   },
+   "base_out": [
+    [
+     "rt_engine:rt_k:stmt_delete:body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_k:stmt_delete:body[1]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_k:stmt_delete:body[2]",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_k:const+:body[0].value",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_k:const-:body[0].value",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_k:stmt_delete:body[1].body[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_k:stmt_delete:body[1].body[1]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_k:cmp_flip:body[1].test.ops[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_k:const+:body[1].test.comparators[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_k:const-:body[1].test.comparators[0]",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_k:arith:body[1].body[0].value",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_k:const+:body[1].body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_k:const-:body[1].body[0].value.right",
+     "killed"
+    ],
+    [
+     "rt_engine:rt_k:arith:body[2].value",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_k:const+:body[2].value.right",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_k:const-:body[2].value.right",
+     "survived"
+    ],
+    [
+     "rt_engine:rt_k:early_return:body[0]",
+     "killed"
+    ]
+   ],
+   "all_mutants": [
+    "rt_engine:rt_k:stmt_delete:body[0]",
+    "rt_engine:rt_k:stmt_delete:body[1]",
+    "rt_engine:rt_k:stmt_delete:body[2]",
+    "rt_engine:rt_k:const+:body[0].value",
+    "rt_engine:rt_k:const-:body[0].value",
+    "rt_engine:rt_k:stmt_delete:body[1].body[0]",
+    "rt_engine:rt_k:stmt_delete:body[1].body[1]",
+    "rt_engine:rt_k:cmp_flip:body[1].test.ops[0]",
+    "rt_engine:rt_k:const+:body[1].test.comparators[0]",
+    "rt_engine:rt_k:const-:body[1].test.comparators[0]",
+    "rt_engine:rt_k:arith:body[1].body[0].value",
+    "rt_engine:rt_k:const+:body[1].body[0].value.right",
+    "rt_engine:rt_k:const-:body[1].body[0].value.right",
+    "rt_engine:rt_k:arith:body[2].value",
+    "rt_engine:rt_k:const+:body[2].value.right",
+    "rt_engine:rt_k:const-:body[2].value.right",
+    "rt_engine:rt_k:early_return:body[0]"
+   ],
+   "base_out_ids_equal_mutants": true,
+   "decorator_probe": {},
+   "targets_auditor": [
+    "rt_engine:rt_k:stmt_delete:body[1]",
+    "rt_engine:rt_k:stmt_delete:body[1].body[0]",
+    "rt_engine:rt_k:stmt_delete:body[1].body[1]",
+    "rt_engine:rt_k:cmp_flip:body[1].test.ops[0]",
+    "rt_engine:rt_k:const+:body[1].test.comparators[0]",
+    "rt_engine:rt_k:const-:body[1].test.comparators[0]",
+    "rt_engine:rt_k:arith:body[1].body[0].value",
+    "rt_engine:rt_k:const+:body[1].body[0].value.right",
+    "rt_engine:rt_k:const-:body[1].body[0].value.right",
+    "rt_engine:rt_k:early_return:body[0]"
+   ],
+   "not_targeted_auditor": [
+    "rt_engine:rt_k:stmt_delete:body[0]",
+    "rt_engine:rt_k:stmt_delete:body[2]",
+    "rt_engine:rt_k:const+:body[0].value",
+    "rt_engine:rt_k:const-:body[0].value",
+    "rt_engine:rt_k:arith:body[2].value",
+    "rt_engine:rt_k:const+:body[2].value.right",
+    "rt_engine:rt_k:const-:body[2].value.right"
+   ],
+   "predicted_full": {
+    "exit": 0,
+    "verdict": "PASS",
+    "survivors": [],
+    "mutants": 10,
+    "killed": 10,
+    "not_targeted": 7,
+    "observed": {
+     "lines": 17,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_k:arith:body[2].value",
+       "rt_engine:rt_k:const+:body[0].value",
+       "rt_engine:rt_k:const+:body[2].value.right",
+       "rt_engine:rt_k:const-:body[0].value",
+       "rt_engine:rt_k:const-:body[2].value.right",
+       "rt_engine:rt_k:stmt_delete:body[0]",
+       "rt_engine:rt_k:stmt_delete:body[2]"
+      ]
+     }
+    }
+   },
+   "expect_holds_full": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": true
+   },
+   "variants": {
+    "ALL": {
+     "targets_n": 17,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_k:stmt_delete:body[2]",
+      "rt_engine:rt_k:const+:body[0].value",
+      "rt_engine:rt_k:const-:body[0].value",
+      "rt_engine:rt_k:arith:body[2].value",
+      "rt_engine:rt_k:const+:body[2].value.right",
+      "rt_engine:rt_k:const-:body[2].value.right"
+     ],
+     "step_fails": true
+    },
+    "T1": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T2": {
+     "targets_n": 10,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T3": {
+     "targets_n": 10,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T4": {
+     "targets_n": 6,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T5": {
+     "targets_n": 9,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T3-T5": {
+     "targets_n": 9,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T6a": {
+     "targets_n": 10,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T6b": {
+     "targets_n": 10,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "T6a-T6b": {
+     "targets_n": 9,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": true
+    },
+    "T6b_far": {
+     "targets_n": 10,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "LOOP": {
+     "targets_n": 10,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "INDENT": {
+     "targets_n": 10,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    },
+    "WIDEN": {
+     "targets_n": 14,
+     "pred_exit": 1,
+     "pred_survivors": [
+      "rt_engine:rt_k:stmt_delete:body[2]",
+      "rt_engine:rt_k:arith:body[2].value",
+      "rt_engine:rt_k:const+:body[2].value.right",
+      "rt_engine:rt_k:const-:body[2].value.right"
+     ],
+     "step_fails": true
+    },
+    "DECO_NOOP": {
+     "targets_n": 10,
+     "pred_exit": 0,
+     "pred_survivors": [],
+     "step_fails": false
+    }
+   },
+   "aimed": {
+    "WIDEN": true,
+    "ALL": true
+   }
+  }
+ },
+ "variant_caught_by": {
+  "ALL": [
+   "unchanged-stmt-survivor",
+   "enclosing-guard-survivor",
+   "header-default-bool",
+   "same-block-later-use",
+   "cross-block-not-targeted"
+  ],
+  "T1": [
+   "unchanged-stmt-survivor",
+   "changed-stmt-survivor",
+   "unwrapped-stmt",
+   "cross-block-not-targeted"
+  ],
+  "T2": [
+   "header-only-change"
+  ],
+  "T3": [
+   "header-default-bool"
+  ],
+  "T4": [
+   "enclosing-guard-survivor",
+   "cross-block-not-targeted"
+  ],
+  "T5": [
+   "unchanged-stmt-survivor",
+   "header-default-bool",
+   "cross-block-not-targeted"
+  ],
+  "T3-T5": [
+   "unchanged-stmt-survivor",
+   "header-default-bool",
+   "cross-block-not-targeted"
+  ],
+  "T6a": [],
+  "T6b": [
+   "same-block-later-use",
+   "loop-carried-use"
+  ],
+  "T6a-T6b": [
+   "unchanged-stmt-survivor",
+   "delete-then-use",
+   "same-block-later-use",
+   "loop-carried-use",
+   "cross-block-not-targeted"
+  ],
+  "T6b_far": [
+   "same-block-later-use"
+  ],
+  "LOOP": [
+   "loop-carried-use"
+  ],
+  "INDENT": [
+   "unwrapped-stmt"
+  ],
+  "WIDEN": [
+   "cross-block-not-targeted"
+  ],
+  "DECO_NOOP": [
+   "decorator-mutant-applied"
+  ]
+ }
+}

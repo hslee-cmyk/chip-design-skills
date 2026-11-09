@@ -1,0 +1,398 @@
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.history.md insert old 1522-1521 new 1522-1522
+--- line new 1522 (len old 0 new 1628)
+[--]{+| **v6.38.4 열다섯째 커밋** 계획 검증 4 반영(계획 v6.38.4, 검증 대기) | 2026-10-29 | 근거: 독립 계획 검증 4(`wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md`, 75/100 -- Major 5·Minor 10, 잘못 지운 항목 0(표본 25/25)), 오케스트레이터 재판정 전부 수용. (M-1) `sctx.cache`(상한 없는 실행 수명 dict, graph 규칙 2 위반) 무소유 해소: LA-1 범위 15 (iv) S3 색인 평가 키 부분(design 40 398-402) 도입 + `sctx.cache`·`computed_keys` 삭제, 제작 = LA-1·OS-2 가운데 먼저 병합되는 card(N6.1 조건부 제작 꼴, 새 순서 규칙 0), LA-1 완료 11, OS-2 PS-7 대상 고정; `sctx.cell_floors` = graph-consumption GC-7 완료 13 소유(재감사 A 오판 정정). (M-2) 진입점 종료 코드·θ* = card OS-2 `run_plan`(옛 'N6.2 단위 6·MOD10·`pipeline/entry.py`' -- 엔진에 없는 자리), graph-consumption GC-B9 (나) 확정(layout 두 행·R6 → LI-1 범위 (9), 나머지 → GC-7 선언·삭제), IC11 2·3레일 test → card SF-1 완료 (5)(SD-1은 data card) + IC11 범위 = 절대 전위 선언값 전부 같은 Δ(m-3). (M-3) N5.3 Q-2 (b) 저항 분포 기생 C = 넣음 기본안 → SF-1 범위 9(물리 결정자 분포 RC Y 파라미터 → 양 끝 C/2, 값 = 셀 모델 crpf·crpfsw, 정확도 = 분할 사다리 대 RS-1 분해능), Q-A1 = (가) → LA-1 범위 15 (g); 둘 다 질문에서 뺌('원칙으로 정한 기본안'). (M-4) B4 → IT-1 범위 6 (b), B12 → DT-1(순수 리팩터링 -- **원래 취지와 다름**: DT-1 성격 확장), DR-1 근거 문장 정정·착수 조건 Q-C4(U-75). (M-5) oracle-portability OP-11 `supply_current_A` = `counted_rails` Σ I(엔진 `supply_current_dc`와 정의 하나 -- 정의를 바꾼 칸). Minor: m-1 U-23 판정 꼴 (c), m-2 LI-1 완료 (10) 해시 시드·SF-1 범위 6 머리 P9-M1b, m-3 IC11 문언, m-4 LA-0 (5) 판정 정의(약반전 확산식·ε_ID = tol_V 전파), m-5 DR-1 범위 조건(DC 원소 = 값 선언·θ 저항·게이트), m-6 Status 원래 취지와 다름 9건·P9-M1a 표지, m-7 DEC 상태 칸 7곳 사실 정정·낡은 DF·I 인용 '옛' 표지, m-8 DEC-08·DEC-23 옛 칸 원문 H2, m-9 SF-1 (e) 층 진술·WB-1 HC-B2 조건부 toy, m-10 OP-5 꼬리 상계 PSD 가정 = design 질문, m-11 DS-U9 기본안(NFR-4), m-12 OP-B14 소유 = OP-3 착수 조건(앞당김 안 함). 옛 원문 = H2 'v6.38.4 열다섯째 커밋' 행들. |+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.history.md insert old 1686-1685 new 1687-1708
+--- line new 1687 (len old 0 new 208)
+[--]{+| **DEC·본문 209행 DF 인용(계획 N2.1·본문)** | 원문: «구현됨(소자 이름 리터럴 여부 DF-23)» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 같은 자리(v6.38.4 열다섯째 커밋 계획 검증 4 m-7) |+}
+--- line new 1688 (len old 0 new 260)
+[--]{+| **DEC·본문 212행 DF 인용(계획 N2.1·본문)** | 원문: «부분(현 코드는 선언 역할별 `min_vds` 바닥. 6b에서 S1 관계 엣지 기반·DEC-27 VDsat 바닥으로 전환, DF-25)» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 같은 자리(v6.38.4 열다섯째 커밋 계획 검증 4 m-7) |+}
+--- line new 1689 (len old 0 new 200)
+[--]{+| **DEC·본문 213행 DF 인용(계획 N2.1·본문)** | 원문: «\| 부분(DF-01) \|» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 같은 자리(v6.38.4 열다섯째 커밋 계획 검증 4 m-7) |+}
+--- line new 1690 (len old 0 new 218)
+[--]{+| **DEC·본문 215행 DF 인용(계획 N2.1·본문)** | 원문: «(현 구현은 선언 기반, 소자 이름 리터럴 여부 DF-23)» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 같은 자리(v6.38.4 열다섯째 커밋 계획 검증 4 m-7) |+}
+--- line new 1691 (len old 0 new 213)
+[--]{+| **DEC·본문 217행 DF 인용(계획 N2.1·본문)** | 원문: «층0 게이트의 `ValueError`는 DF-03)» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 같은 자리(v6.38.4 열다섯째 커밋 계획 검증 4 m-7) |+}
+--- line new 1692 (len old 0 new 228)
+[--]{+| **DEC·본문 227행 DF 인용(계획 N2.1·본문)** | 원문: «포화 하한은 현 코드가 강반전 근사 `2/(gm/ID)`, DF-25, 6b)» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 같은 자리(v6.38.4 열다섯째 커밋 계획 검증 4 m-7) |+}
+--- line new 1693 (len old 0 new 201)
+[--]{+| **DEC·본문 260행 DF 인용(계획 N2.1·본문)** | 원문: «\| 미구현(DF-24) \|» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 같은 자리(v6.38.4 열다섯째 커밋 계획 검증 4 m-7) |+}
+--- line new 1694 (len old 0 new 197)
+[--]{+| **DEC·본문 391행 DF 인용(계획 N2.1·본문)** | 원문: «·NB-1(N6.24)» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 같은 자리(v6.38.4 열다섯째 커밋 계획 검증 4 m-7) |+}
+--- line new 1695 (len old 0 new 206)
+[--]{+| **DEC·본문 1345행 DF 인용(계획 N2.1·본문)** | 원문: «이 계획 DF-19 행·history» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 같은 자리(v6.38.4 열다섯째 커밋 계획 검증 4 m-7) |+}
+--- line new 1696 (len old 0 new 281)
+[--]{+| **DEC-08 상태 칸(계획 N2.1)** | 원문: «부분(KCL 잔차 metric만 소비). 파일럿 Iref `value_dc_amp = 1.2µA`(현 키 `value_amp`)는 고정 대상(사이징 경로 미배선, I-B14)» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 DEC-08 행(열넷째 커밋에서 '구현됨'으로 바뀜 -- m-8 원문 보존) |+}
+--- line new 1697 (len old 0 new 238)
+[--]{+| **DEC-23 A_dc 출처 인용(계획 N2.1)** | 원문: «… v6.36 O-118 6번; I-H2 정본을 READS) …» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 DEC-23 행 'DE-1 (c) A_dc 정본을 READS'(열넷째 커밋 -- m-8 원문 보존) |+}
+--- line new 1698 (len old 0 new 434)
+[--]{+| **N3.3 '배정할 card가 없던 사안' 기본안(계획 N3.3)** | 원문: «오케스트레이터 기본안 = **B4·B12 → card IT-1 범위 재작성 범위 6**(N6.5 -- **card 성격 변화, 원래 취지와 다름**: 입력 공통모드·쓰기 계획 card를 S1·S1v 소비자 정리까지 넓힘; 근거 = 범위 5가 이미 S1 규칙 파일(`E/graph/gvgs_cycles.py`, `S1_RULE_FILES`)과 S1v 술어 블록을 고쳐 S1 규칙 지문·S1v writer가 이 card에서 바뀜)» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 N3.3 같은 문단(v6.38.4 열다섯째 커밋 계획 검증 4 M-4) |+}
+--- line new 1699 (len old 0 new 624)
+[--]{+| **IT-1 범위 6 머리·(a) B12 자리(계획 N6.5)** | 원문: «6. **S1·S1v 같은 입력 재계산 정리**(N3.3 '같은 입력 재계산 배정' B4·B12 -- v6.38.4 열넷째 커밋 백로그 재감사; **승인 대기 P9-M1a**; **card 성격 확장 -- 원래 취지와 다름**: IT-1은 입력 공통모드·쓰기 계획 card였다 -- 이 범위로 S1·S1v 소비자 정리까지 넓힌다. 근거 = 범위 5가 이미 S1 규칙 파일(`E/graph/gvgs_cycles.py`, `S1_RULE_FILES`)과 S1v 술어 블록을 고쳐 S1 규칙 지문·S1v writer가 이 card에서 바뀜. 커밋 단위로 DEC-106·E-19와 분리한다; ⚠ 대안 = 같은 본문을 card DT-1 범위로(N3.3 문단)): (a) **B12 정규화 레일 전위** -- (본문은 DT-1 범위로 그대로 옮김)» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 N6.11 DT-1 범위 'B12 정규화 레일 전위'(v6.38.4 열다섯째 커밋 계획 검증 4 M-4) |+}
+--- line new 1700 (len old 0 new 555)
+[--]{+| **IT-1 완료 조건 7(계획 N6.5)** | 원문: «7. **범위 6(B4·B12 -- 승인 대기 P9-M1a)**: (i) `supplies_declaration` 정규화 호출 자리 = S1 블록 하나(`git grep`), `dc_rails` grep 0 (ii) `net_model(` 호출 = `s1v_fields` 하나 (iii) 순수 리팩터링 필드별 비교 -- 9회로 `node.dc_rail_v`·`graph/coupling`·`device.bulk` 값 같음(이산 정확, NFR-4); 변화표 원인 칸 'P9 B4·B12'는 DEC-106·E-19와 따로 둔다 (iv) S1 규칙 지문·S0 키 변화 기록(DT-1 완료 (3) 꼴) (v) N6.3 래칫 -- B4·B12 해소, 새 B 0.» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | IT-1 완료 7·DT-1 완료 (8)(v6.38.4 열다섯째 커밋 계획 검증 4 M-4) |+}
+--- line new 1701 (len old 0 new 287)
+[--]{+| **DR-1 새 card 근거 문장(계획 N6.36)** | 원문: «-- 기존 card 가운데 `writer_plan` W 티어 규칙을 소유하는 card가 없다(LA-1은 범위가 이미 크고 IT-1은 입력 CM 변수 하나); 승인 대기 BL-DR1.» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | 계획 N6.36 근거(v6.38.4 열다섯째 커밋 계획 검증 4 M-4) |+}
+--- line new 1702 (len old 0 new 724)
+[--]{+| **N5.3 Q-2 행(계획 N5.3)** | 원문: «\| Q-2 \| (옛 I-A16) (a) `res_high_po` 머리 면적 기하 식 ratify(레이아웃 기하 해석 = 사용자 ratify 대상, `assets/sky130_pdk_decl.json:5` note) -- 권고: card SF-1 범위 9 design이 규칙 번호 식 초안을 내고 승인만 (b) 저항 분포 기생 C를 MNA에 넣을지 -- 권고: **넣음**(물리: 1 MΩ당 약 125 fF가 CMFB PM을 5.9°까지 낮춤 -- `wt/_drafts/evidence/2026-10-29/p4r_cm_sense.md` §3.3; 값은 고른 저항 종류의 셀 모델 crpf·crpfsw에서 계산, 발명 상수 0), 단 MNA 스탬프 변경이라 SF-1 범위 9가 아닌 별도 card(계획 개정 먼저 -- S-7); 확신도 중간(분포 RC를 양 끝 C/2로 근사하는 정확도 미측정). ⚠ (b)를 넣지 않으면 PM 판정이 물리보다 낙관(fail-open 위험) \| (a) SF-1 범위 9 design 전 (b) 계획 개정 전 \|» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | Q-2 (a)만 남김, (b) = SF-1 범위 9(v6.38.4 열다섯째 커밋 계획 검증 4 M-3) |+}
+--- line new 1703 (len old 0 new 781)
+[--]{+| **N5.3 Q-A1 행(계획 N5.3)** | 원문: «\| Q-A1 \| (옛 DF-37 (3)) `E/search/_helpers_guard.py:42` `Tolerant`가 LUT `SchemaRejectedError`('감도 열 미정의, 모델 bin 밖 폭')를 None으로 바꿔 offset·noise 가드 출발 구간을 끈다 -- N3.14 'SCHEMA_REJECTED는 탐색 중이라도 삼키지 않는다'와 문언 충돌(예외 감사 2026-10-28 E5-25는 '정당한 안전망'으로 분류). 물리 결정자: 'bin 밖 폭'은 스키마 위반이 아니라 LUT 정의역 밖(조회 실패) 사실. 선택지 (가) LUT 정의역 실패를 정의역 실패 분류(SEAL_VIOLATION `lut_query_failed` 꼴)로 바꾸고 `Tolerant`는 그것만 잡음(N3.14 문언 유지) (나) N3.14에 '출발 구간 보조 경계의 LUT 정의역 거부는 비활성 사유로 기록' 예외 행 추가. 권고 후보 (가)(예외 행을 늘리지 않음, fail-closed 분류 정합) -- 단 LUT가 어떤 사유에 SchemaRejected를 내는지 전수 실측 뒤 확정(불확실) \| LUT 거부 사유 전수 실측 \|» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | card LA-1 범위 15 (g) 'Q-A1 기본안 (가)'(v6.38.4 열다섯째 커밋 계획 검증 4 M-3) |+}
+--- line new 1704 (len old 0 new 307)
+[--]{+| **N5.3 Q-C2 판정 꼴(계획 N5.3)** | 원문: «재감사 판정 (d): 강제할 물리 결정자가 없음(DEC-04 '소자마다 독립 변수'·'규칙은 물리 정합 최우선, 제한은 물리 근거 있을 때만'), 선측정 B = 면적 +2.8~5.9 %, 레이아웃 L 종류 수는 LY 규칙 몫.» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | Q-C2 '(c)'(v6.38.4 열다섯째 커밋 계획 검증 4 m-1) |+}
+--- line new 1705 (len old 0 new 253)
+[--]{+| **SF-1 범위 9 끝 문장(계획 N6.28)** | 원문: «머리 기하 ratify·저항 기생 C(MNA 스탬프)는 이 확장 밖 -- N5.3 Q-2.» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | SF-1 범위 9 '저항 분포 기생 C의 MNA 스탬프'(v6.38.4 열다섯째 커밋 계획 검증 4 M-3) |+}
+--- line new 1706 (len old 0 new 736)
+[--]{+| **N6.2 단위 6 진입점 문언(계획 N6.2)** | 원문: «**진입점 exit code·θ* 기록**(v6.38.4 백로그 재감사 -- 옛 DF-18 재발 금지, 원문 history H2; 실측 2026-10-29: 최상위 진입점 `run_gmid_design_pipeline`·`sys.exit` 0건, 단계 A·B 보고서는 `exit_code` 칸만 -- `E/pipeline/stage_a.py:105,251`·`stage_b.py:22`): `run_gmid_design_pipeline`(MOD10)은 N3.14 분류 예외를 `exit_code_for`로 프로세스 종료 코드에 싣고(비0), 탐색 단계까지 간 실행은 결과 JSON에 θ*·실패 레코드를 쓴다 -- 판정: 분류마다 합성 실패 픽스처 → 종료 코드 = N3.14 표 값, 결과 JSON 파일 존재·θ* 칸; 완료 측정 = 그 test green + 구조 규칙 F의 예외 1곳(`pipeline/entry.py`)이 그 진입점; MOD10을 만드는 변경이 card가 되면 N6.3 '결정 뒤 card 행' 규칙으로 card 행을 만든다» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | offset-strategy card OS-2 범위·완료 측정(v6.38.4 열다섯째 커밋 계획 검증 4 M-2) |+}
+--- line new 1707 (len old 0 new 602)
+[--]{+| **SD-1 완료 (6) IC11(계획 N6.21)** | 원문: «(6) **IC11 원점 이동 불변**(v6.38.4 백로그 재감사 -- 옛 N5.3 I-B11 부속, N4.1 IC11·N6.2 단위 10과 같은 test; 원문 history H2): 레일 둘인 library 회로 하나를 (vdd, gnd) = (1.8, 0) 대 (0.9, −0.9)로 돌려 소자 VGS·VDS·VSB·gm/ID·W·dc/ss metric이 tol_V(그 밖은 감도 전파값) 안에서 같음; 단 `power_dc_w`는 DEC-78 정의상 기준 전위 V_0 = 넷리스트 0 V에 의존하므로(card SF-1 범위 8 'DUT 전력의 기준 전위') 비교에서 빼고 그 사실을 test에 적는다(test 작성 = test 주체, 이 card의 엔진 코드 변경 0은 그대로). 3레일(agnd) 회로는 단위 10 몫.» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | card SF-1 완료 (5)(v6.38.4 열다섯째 커밋 계획 검증 4 M-2·m-3) |+}
+--- line new 1708 (len old 0 new 295)
+[--]{+| **LA-0 (5) 대조 기준(계획 N6.14)** | 원문: «library 봉인점 가운데 약반전 소자(판정 정의는 LUT 열 -- 새 상수 없음)마다 엔진 `vds_ge_vdsat` 판정과 SPICE `.op` gds 기준 포화(같은 점·같은 기하) 대조표» | 2026-10-29 v6.38.4 열다섯째 커밋 계획 검증 4 -- `wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` | LA-0 (5) 판정 정의(v6.38.4 열다섯째 커밋 계획 검증 4 m-4) |+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 11-11 new 11-11
+--- line new 11 (len old 64403 new 64931)
+> **Status**: **Plan v6.38.4 -- design v1.15.2 재판정 P1~P8 반영(판정 대상·바이어스 ... -GC-B4(GC-5 자리값 동작 변경)·BL-OS-B9(`constraint_rows` writer = OS-2)·N5.3 [-Q-1~Q-4·Q-A1·Q-C1~Q-C5·P4-R(θ점-]{+Q-1~Q-4·Q-C1~Q-C5(Q-A1·Q-2 (b)·DS-U9는 v6.38.4 열다섯째 커밋 계획 검증 4으로 원칙 기본안 -- 질문에서 뺌)·**v6.38.4 열다섯째 커밋 계획 검증 4 원칙 기본안**(M-1 S3 색인 평가 키 부분 = LA-1·OS-2 먼저 병합 card 제작·`sctx.cache` 삭제, M-2 진입점 = OS-2 `run_plan`·GC-B9 (나)·IC11 → SF-1, M-3 저항 기생 C 넣음(SF-1 범위 9)·Q-A1 (가)(LA-1 범위 15 (g)), M-4 B12 → DT-1·DR-1 착수 조건 Q-C4, M-5 oracle `supply_current_A` 정의 하나)·P4-R(θ점+} DC 전류 0 저항 출발값 (나), U-a·U-b·U-c)·P2-h(h 정의 -- 주입 노드 구동·가지 노드 기생 범위)·  ... - 구조 원칙, DEC-60 (iii)·DEC-94 (1) 자리 변경)·P9-M1a(배정 card 없는 B4·B12·B13의 [-배정)·P9-M1b(SF-1-]{+배정 -- B4 → IT-1(성격 확장), B12 → DT-1(성격 확장, v6.38.4 열다섯째 커밋 계획 검증 4 M-4), B13 → SF-1 (e))·P9-M1b(SF-1+} 범위 6 소유를 spec·topology 로더로 넓힘)·P9-TN(TN-1 절단 넷 필드)·P9-HC(`device.dc_s ... A18·원문 기준)·P8 (i)(U-130 반복 → 열거)·P8 (E)(LUT 자료)·P9-G1·P9-M1b(O-144 J4 [-확장)·P9-TN·P9-HC;-]{+확장)·P9-TN·P9-HC·백로그 재감사 9건(DR-1 새 card·IT-1 성격 확장(B4)·DT-1 성격 확장(B12)·SF-1 범위 6 (e)·NB-1 삭제·LT-1 범위 (10)·Q-1·GC-B4·OS-B9);+} 경위 history H1 'v6.38.4 첫째~일곱째 [-묶음'·'아홉째'·'열째·열한째'·'열둘째'·'열셋째'-]{+묶음'·'아홉째'·'열째·열한째'·'열둘째'·'열셋째'·'열넷째'·'열다섯째'+} 행) 이전 판: **Plan v6.38.3 -- 입력 공통모드 변수 하나(DEC-106, 사용자 결정 O-168)·DEC-1 ... 과 역할 분리 gate는 폐기, 새 엔진 design은 MOD별 짧은 문서(N9.1). 다음 문서: `D0` 공통 인터페이스.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 162-162 new 162-162
+--- line new 162 (len old 384 new 388)
+| 현재 검증 발동 회로가 0인 부류 | 규칙 분기 기준으로 library에 검증 발동 회로가 없어 DEC-59 게이트가 탐색 전에 정지시키는 [-회로(I-G3·I-G7-]{+회로(옛 I-G3·옛 I-G7+} 해소). 현재 예: 비증폭 회로(밴드갭, constant-gm bias, 비교기, 스위치드 커패시터), gain boosti ... 에 넣어 ratify하면 범위에 들어온다(N9.3). 계산 규칙 없이 기록만 하는 분기는 ratify만으로 들어오지 않는다 |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 209-209 new 209-209
+--- line new 209 (len old 159 new 201)
+| DEC-09 | 게이트·소스를 공유하는 전류미러 멤버는 전부 VGS를 강제로 공유한다(`equal_vgs`). 파일럿 적용(ratified 대상): 18소자, tail M5/M6를 bias 미러에 묶음(설계 의도) | GB1, K2 | 구현됨(소자 이름 리터럴 [-여부-]{+금지+} [-DF-23)-]{+= 구조 규칙 E·I와 일반성 test -- 옛 DF-23 닫힘, history H2)+} |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 212-213 new 212-213
+--- line new 212 (len old 206 new 319)
+| DEC-12 | diode 창은 VGS를 공유하는 미러 멤버 전원의 W 한계를 함께 본다. 멤버 vds가 미정이면 그 멤버의 포화 하한(DEC-27의 VDsat)을 바닥으로 쓰고, 멤버 L/ID 미정은 명시적 실패 | W2 | [-부분(현 코드는 선언-]{+부분(선언+} 역할별 `min_vds` [-바닥.-]{+바닥은+} [-6b에서-]{+엔진에서 거부 키 -- `E/authoring/_spec_fields.py:53` `CIRCUIT_SPECIFIC_KEYS`; 포화 하한 = LUT VDSAT 열(DEC-88·봉인 7) -- 옛 DF-25 닫힘, history H2;+} S1 관계 엣지 [-기반·DEC-27-]{+기반+} [-VDsat-]{+diode+} [-바닥으로-]{+창+} [-전환,-]{+전수는+} [-DF-25)-]{+착수 때 재확인)+} |
+--- line new 213 (len old 137 new 256)
+| DEC-13 | 적층 diode는 2변수로 함께 푼다. vsb는 DEC-61로 노드전압과 bulk 넷에서 유도하며, 두 소자의 bulk가 같을 때 아래쪽 vsb = 위쪽 vsb + 위쪽 vds가 그 특수형이다 | W2 | [-부분(DF-01)-]{+구현됨(봉인 4 버전 혼재 거부 `E/sizing/seal_versions.py`, vsb = bulk 넷 전압 유도 `E/sizing/block_columns.py:202-206` -- 옛 DF-01 닫힘, history H2)+} |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 215-215 new 215-215
+--- line new 215 (len old 326 new 358)
+| DEC-15 | (DC) gate-source 사슬로 닫힌 KVL 루프(`kvl_branch`) 멤버는 S1 관계 엣지 ` ... 대조): M11a/M11b/M20a/M20b(class-AB 배터리) | GB1 | 탐지 규칙은 DEC-64(현 구현은 선언 [-기반,-]{+기반;+} 소자 이름 리터럴 [-여부-]{+금지+} [-DF-23)-]{+= 구조 규칙 E·I -- 옛 DF-23 닫힘, history H2)+} |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 217-217 new 217-217
+--- line new 217 (len old 654 new 720)
+| DEC-17 | L 동치류의 주인: 동치류에 tail이 있으면 tail. 여기서 tail은 **DC 역할**이다(뷰 무관, ...  GB1, LR2 | 부분(tail 주인만 구현, tail 없는 동치류 규칙은 6a. 층0 게이트의 `ValueError`는 [-DF-03)-]{+N3.14 후보 실패 기록으로 닫힘 -- `E/search/kernel.py:127,140`, 옛 DF-03 history H2)+} |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 223-223 new 223-223
+--- line new 223 (len old 9146 new 9148)
+| DEC-23 | 입력환산 오프셋. **2026-10-08 Q3 정정**: 옛 정의(입력쌍 gm 가중 RSS, 캐스코드 제외 ... '계통 ≤ 랜덤 예산'(`value_from_constraint: offset_in_sigma_mv`) 규칙을 유지한다. 옛 [-구현(DF-12)은-]{+구현(옛 DF-12)은+} 옛 엔진 기준선이다 | GB8 | 새 엔진 미구현(design 40 §3.8-8) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 227-227 new 227-227
+--- line new 227 (len old 733 new 768)
+| DEC-27 | (DC) VDS 엣지를 정확히 하나 포함한 게이트-소스 KVL 루프(DEC-64의 VDS-1 사이클) 사례 ... om-chain.plan.md) N2·N3.1) | W2 | 부분(탐지는 DEC-64로 통합.파일럿 KVL 상한 구현. 포화 [-하한은-]{+하한+} [-현-]{+=+} [-코드가-]{+LUT VDSAT 열(DEC-88·봉인 7 -- 옛 DF-25+} 강반전 근사 [-`2/(gm/ID)`,-]{+`2/(gm/ID)`+} [-DF-25,-]{+닫힘,+} [-6b)-]{+history H2))+} |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 236-236 new 236-236
+--- line new 236 (len old 171 new 173)
+| DEC-37 (D10, D11) | **폐기(2026-10-07, gate 끔, DEC-86)** -- 옛 형태: 결함 수정에 순서 예외는 [-없다(DF-03·DF-18도-]{+없다(옛 DF-03·DF-18도+} Phase 4). 메인 세션(오케스트레이터)은 엔진 소스·tests를 쓰지 못한다(EL1 강제) | Phase 4, EL1 | 폐기 |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 260-263 new 260-263
+--- line new 260 (len old 386 new 548)
+| DEC-61 | netlist 소자는 선택 필드 `bulk`(넷)를 가질 수 있다(connectivity라 사용자만 쓴다, ... 6). nmos·pmos 밖 kind는 `기록만` 규칙 분기로 기록한다(DEC-59) | S1 소자 `b`, W0, W2 | [-미구현(DF-24)-]{+구현됨(vsb = bulk 넷 전압 유도 `E/sizing/block_columns.py:202-206`, 원점 이동 test `E/tests/graph/test_bulk_default.py:131` -- 옛 DF-24 닫힘, history H2; 전 회로 IC11 test는 card SF-1 완료 (5))+} |
+--- line new 261 (len old 511 new 517)
+| DEC-62 | 새 토폴로지 추가는 데이터(topology.json connectivity·`ports`·`passive_ ... , 회로 이름 분기)가 필요해지면 그 사실을 일반 규칙의 결함(DF)으로 등록하고 규칙을 고친다. **옛 엔진의 위반 8곳은 [--]{+옛 +}DF-30**(`_METRICS_REGISTRY`의 회로 이름 키 4개와 그 회로별 metric 함수)**과[--]{+ 옛+} DF-31**(`_COMPENSATION_REGISTRY`의 회로별 보상 함수 4개)**로 등록돼 있고, 회로별 실행 spec 함수는[--]{+ 옛+} DF-34, 파일럿 넷 이름·topology 경로가 박힌 운영 metric은 DF-29다**. 새 엔진은 이 재발을 회로·소자·넷 이름 리터럴 금지 test로 처음부터 막는다(N4.2 머리 이식 목록) | N9.3 | 원칙 |
+--- line new 262 (len old 1052 new 1054)
+| DEC-63 | (AC구조 + `ss`) follower 묶음: 전압 구동 넷 u(입력 포트 또는 이득 블록 출력노드)에서 ...  cgb는 bulk 넷에 스탬프. 팔로워 입력 어드미턴스 cgd + cgb + cgs·(1 − A_buf)가 여기서 나온다, [--]{+옛 +}DF-28). 버퍼 블록은 gain 목표를 받지 않지만 내층 DP 단계로 결정한다(블록 gain을 누적 bin에 더하고 비용은 ... o_stage_ota_sf` {OUT; vout; vout}, 기존 4개 회로 0 | GB2, GB6, N3.8 | 미구현 |
+--- line new 263 (len old 3279 new 3283)
+| DEC-64 | (DC) **게이트-소스 KVL 루프 탐지 규칙 하나**(DEC-15·DEC-27 통합): G_vgs(용어 ... 1) drain–source 엣지를 정확히 하나 포함한 사이클 = 그 VDS 노드를 W1/W2로 쓰고 포화 하한(VDsat, [--]{+옛 +}DF-25)이 VGS 합의 **부등식**(DEC-27이 사례). VDS 엣지 2개 이상인 사이클의 VDS 노드는 기둥 창(W4 ...  루프 분류(N3.2-2)와 별개이고 루프 뷰를 만들지 않는다. 선언 기반 목록(DEC-15 소자 이름)은 탐지 결과 대조로 [-바꾼다(DF-23).-]{+바꾼다(옛 DF-23).+} 측정 기대(J12-c ratify 대상): 파일럿 v2 4(레일 경유)·v1 1(DEC-106 뒤 -- 입력 점 묶음으로 v ... ), `input_port_multiple_roots`)를 지운다 -- 입력 포트가 한 점이라 그 분기가 성립하지 않는다) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 270-270 new 270-270
+--- line new 270 (len old 12670 new 12672)
+| DEC-71 | **기둥 조립 presolve(층 0).** 전역을 한 번에 풀지 않고, 블록마다 레일부터 레일까지 소자를 ... -104 R5′·R6 -- **원래 취지와 다름(승인 O-128·O-142)**: 옛 '전 소자를 포화 여유 하한(VDsat,[--]{+ 옛+} DF-25)으로 채운 뒤 남은 헤드룸을 배분'): (c-1) 후보의 θ와 (VDS, VSB)로 R-1′ 변 가중치를 넣어 W ... B1, GB6, N3.7 | 미구현(as-built는 최소형 max-min 시작점 하나 -- card LA-1 F-LA1) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 277-277 new 277-277
+--- line new 277 (len old 885 new 887)
+| DEC-78 | **전력 축의 정의 = Σ_레일 V_레일 · I_레일(공급 전력, metric `power_dc_w`)** ... 렬 전류를 소자마다 더해 **중복 계상**하고 그 배율이 가지마다 달라 **front의 순서를 바꾸므로** 목적 축으로 쓰지 [-않는다(DF-16-]{+않는다(옛 DF-16+} 해소, U-10 확정). 기둥(DEC-71 (1))이 유도되면 **"기둥마다 전류를 한 번만 센다"**가 같은 값을 주며(여 ... 26-10-14 N12 '제약과 DEC-78 목적 축이 같은 선언을 읽음') | GB8, GB6 | 미구현(7a에서 교체) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 304-304 new 304-304
+--- line new 304 (len old 27851 new 27912)
+| DEC-105 | **C′ 앞단 결정 묶음 -- 승인됐으나 계획에 없던 단계 ② 결정의 정본 자리**(v6.38.2 --  ... 않는다(DEC-98 (4)); oracle `supply_current_A` 정의 = `counted_rails` 집합의 Σ [--]{+DUT +}레일 [-전류(엔진-]{+단자 전류(P7·oracle OP-11 판정 기준 -- v6.38.4 열다섯째 커밋 계획 검증 4 M-5)(엔진+} `supply_current_dc`와 같은 정의 하나 -- card SF-1 범위 8, v6.38.4 백로그 재감사). he ...  card는 U-132, (11)은 U-125, card CPG-1 기준선은 U-131 -- 모두 기본안 승인 O-166) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 391-391 new 391-391
+--- line new 391 (len old 565 new 571)
+| O-76 (v6.25) | AskUserQuestion 세 항목 "(권고)" (2026-10-21, `_drafts/use ... 5 pF, CL 2.25 pF `measurement_load` | N6.6 끝 '잡음의 `()`'·(10)(a), card [-NU-1(N6.23)·NB-1(N6.24),-]{+NU-1(N6.23)·옛 NB-1(N6.24, 삭제),+} N6.1 card 표, SD-1 D2·D3·D4 |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 515-515 new 515-515
+--- line new 515 (len old 1636 new 1638)
+| **S2 동작점** | 세 부분으로 나눈다(DEC-67). `dc` = 노드 DC 전압(경로별 값·충돌), 소자 op(ID ... ack(writer 티어 W0~W4, 봉인 대상) / `ss` = gm·gmb·gds·cgg(cgs·cgb 열이 생기면 포함,[--]{+ 옛+} DF-28), 노드 C_total·G, 소신호 metric(봉인 통과 스냅샷의 파생, 입력 `dc` 버전 카운터 기록) (옛 ... 10-12) | 필드마다 입력 버전(필드가 곧 캐시, DEC-83) | graph 스냅샷(불변, 구조 공유. LRU 없음) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 546-546 new 546-546
+--- line new 546 (len old 621 new 639)
+| B12 | 정규화 레일 전위 | 기존 W0 `node.dc_rail_v` 필드(writer를 S1 블록으로 -- 같은 정의 ... .py:88`(`spec.supplies_v` 재읽기 -- 필드 READS로; v6.38.4 재감사 C 추가분) | card [-IT-1-]{+DT-1+} [-범위-]{+범위(v6.38.4+} [-재작성-]{+열다섯째+} [-범위-]{+커밋+} [-6-]{+계획+} [-(a)(기본안-]{+검증 4 M-4 기본안+} --[--]{+ 순수 리팩터링;+} 승인 대기 P9-M1a; ⚠ 대안 [-card DT-1-]{+IT-1+} 범위 [-확장;-]{+6;+} 로더 몫은 SF-1 범위 6) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 553-553 new 553-553
+--- line new 553 (len old 1477 new 1869)
+**배정할 card가 없던 사안 -- 배정 기본안**(v6.38.4 열넷째 커밋 -- 백로그 재감사, 사용자 지시 2026-10-29 '백로그 재검증 → card 분배'; **승인 대기 P9-M1a**; 옛 문언 history H2): 오케스트레이터 [-기본안-]{+기본안(v6.38.4 열다섯째 커밋 계획 검증 4 M-4 재판정 -- writer·변경 종류 기준으로 나눔)+} = [-**B4·B12-]{+**B4+} → card IT-1 범위 재작성 범위 [-6**(N6.5-]{+6 (b)**(N6.5+} -- **card 성격 변화, 원래 취지와 다름**: 입력 공통모드·쓰기 계획 card를 [-S1·S1v-]{+S1v+} 소비자 정리까지 넓힘; 근거 = 범위 [-5가-]{+5+} [-이미-]{+(b)가+} [-S1-]{+새로+} [-규칙 파일(`E/graph/gvgs_cycles.py`, `S1_RULE_FILES`)과-]{+만드는+} S1v 술어 [-블록을 고쳐 S1 규칙 지문·S1v-]{+블록과+} writer가 [-이-]{+같다)+} [-card에서-]{+/+} [-바뀜)-]{+**B12 → card DT-1 범위**(N6.11 -- 순수 리팩터링: 레일 = DC 고정 넷 사실 필드라 DT-1의 'DC 고정 넷 = 필드 하나' 정리와 같은 꼴, IT-1은 `kernel_context.py`·`w0_rails.py`에 닿지 않는다(재감사 F4 실측) -- 동작 변경 card IT-1(LA-1·SF-1·SD-1·NU-1·TN-1·GV-1 직접 선행)에 순수 리팩터링을 얹지 않음, O-34 변경 종류 분리; **DT-1 성격 확장 -- 원래 취지와 다름**: 이름 바꾸기 card에 레일 필드 writer 이동을 더함)+} / **B13 → card SF-1 범위 6 (e)**(N6.28 -- 같은 '로더 단독 소유 → 파생값은 S0 블록 필드' 꼴). **⚠ 대안**: [--]{+(가″) B4·B12 둘 다 IT-1(v6.38.4 열다섯째 커밋 계획 검증 4 전 기본안 -- ⚠ 순수 리팩터링 B12가 동작 변경 critical path card에 얹힘) +}(가′) B4·B12 [-→-]{+둘 다+} card DT-1 범위 확장(재감사 C 권고 -- 실측 2026-10-29: IT-1은 `coupling_vars`·`ker ... 목). 블록 안 반복(감사 §2.3 E)은 이 규칙 밖이고 O-15 (E) 블록 안 local 범위(NFR-2 점검 대상)다.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 555-555 new 555-555
+--- line new 555 (len old 879 new 918)
+**v6.38.4 P9 계열 승인 질문 대안 비교**(P9 검증 m9·계획 검증 2 m-6; 기준 = graph 규칙 1·3· ...  -- 백로그 재감사; 옛 '(다) 백로그' 기본안은 사용자 지시 2026-10-29로 대체, 원문 history H2) = [-B4·B12-]{+B4+} → IT-1 범위 [-6,-]{+6 (b), B12 → DT-1(v6.38.4 열다섯째 커밋 계획 검증 4 M-4),+} B13 → SF-1 범위 6 (e) ⚠ [-IT-1-]{+IT-1·DT-1+} card 성격 [-확장·critical path-]{+확장+} / 대안 = [-DT-1-]{+둘+} [-범위-]{+다+} [-확장(critical-]{+IT-1 ⚠ critical+} path [-영향-]{+/+} [-0)-]{+둘 다 DT-1+} ⚠ DT-1 성격 [-확장-]{+더 넓음+} / 백로그 유지 ⚠ 둘째 생산자가 남음(위 '배정할 card가 없던 사안' 문단).
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 672-672 new 672-672
+--- line new 672 (len old 837 new 839)
+* **블록 국소 소신호 모델**: 블록 노드 집합(N3.2-6. 병렬 셀 입력을 잇는 pass 경로 노드를 포함한다, N3. ... dc` 스냅샷의 `ss` 값 (ii) GB6 내층 = 블록 국소 DC 점의 할당용 추정. LUT에 CGS·CGB 열이 생기기 [-전(DF-28)에는-]{+전(옛 DF-28)에는+} CGG−CGD를 g–s에 스탬프하는 근사로 표시하고 해당 metric은 `verified_by` 전까지 검증 대기다. 접합  ... 두는 근사가 되므로 그 블록 gain은 분해값으로만 쓰고 판정에 넣지 않는다(판정은 평가 커널 전회로 MNA, DEC-74).
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 678-678 new 678-678
+--- line new 678 (len old 185 new 187)
+* **전력**(DC 정지 전류 기반, **목적 축 1**): 정의·이름·레일별 기록·기둥 대조는 **DEC-78이 정본**이 ... `). 옛 엔진 결과를 인용하는 보고에는 그 값이 "기둥 중복계상 전력"(한 기둥의 직렬 전류를 소자마다 더해 세는 것)임을 [-명시한다(DF-16).-]{+명시한다(옛 DF-16).+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 691-691 new 691-691
+--- line new 691 (len old 204 new 255)
+  | `supply_current_dc` | DC | `.op`(`supply_current_A` -- 엔진 `supply_current_dc`와 같은 정의 = `counted_rails` 집합의 Σ [--]{+DUT +}레일[--]{+ 단자+} 전류, card SF-1 범위 [-8)-]{+8·oracle OP-11 -- v6.38.4 열다섯째 커밋 계획 검증 4 M-5)+} | θ·LUT 닫힌 식(커널) | `oracle_simulate.py:8`, `oracle_compare.py:138` |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 715-715 new 715-715
+--- line new 715 (len old 1308 new 1310)
+| LR3 | **L은 같은 PDK 모델 bin 안의 두 LUT L 점 사이에서만 선형 보간한다**(사용자 확정 2026-10 ... 램프하지 않고 구조화 실패 `lut_axis_out_of_range{소자, 축, 값, 범위}`(SEAL_VIOLATION)로 [-처리한다(DF-27).-]{+처리한다(옛 DF-27).+} 필요한 VS 축 상한은 상수로 두지 않고 library 회로 `supplies_v`의 최대 전위 차(현재 1.8 V, U-27)에서 유도해 LUT 생성 체크리스트 입력으로 둔다(U-27) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 746-746 new 746-746
+--- line new 746 (len old 255 new 447)
+| MOD10 | `pipeline`(`gmid_design_pipeline.py`) | 유일 최상위 진입점 [-`run_gmid_design_pipeline(spec)`(탐색-]{+`run_gmid_design_pipeline(spec)`(v6.38.4 열다섯째 커밋 계획 검증 4 M-2: 엔진 사슬 진입점 정본 = offset-strategy card OS-2 `run_plan`(pipeline 층, 사용자 승인 S-9 W-1) -- 이 이름은 그 진입의 표면 이름 후보이고 둘을 두지 않는다(이름 하나는 OS-0 design), 종료 코드·θ* 기록 = OS-2 완료 측정; 탐색+} 설정 인자 `search`와 계측 인자 `output_dir`·`instrument`·`activations_out`), exit code(N3.14), CLI(`--profile <path>`) | spec을 인자로 받는다(옛 `workspaces/`를 import하지 않는다) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 972-972 new 972-972
+--- line new 972 (len old 127 new 129)
+* 명칭: 슬루율 필드 이름은 metric 단위 레지스트리(DEC-53)의 이름-단위 규약과 DEC-68 접미사 규칙을 따라 하나로 [-정한다(I-C7-]{+정한다(옛 I-C7+} 해소). 실제 이름은 MOD5 design이 레지스트리 단위표를 인용해 적는다.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1066-1066 new 1066-1066
+--- line new 1066 (len old 610 new 614)
+| IC11 | 레일 기준 전위 가정(레일 0 V, 레일 이름 집합) | 전압 차는 노드전압과 레일 선언(DEC-60)에서만  ... ss·ls 전부, 여기·감지 넷 선언은 그대로)이 허용오차(전압 tol_V, 그 밖은 tol_V 섭동의 감도 전파값) 안에서 [-같음(DF-24·DF-26-]{+같음(옛 DF-24·옛 DF-26+} 검출). Phase 4 대상은 레일 둘인 기존 회로(예: `two_stage_ota` (vdd 1.8, gnd 0 V) 대  ... est 파일에서 먼저 증명한다(DEC-60, N4.3 공격 13) | 4(DEC-60 구현, 2레일), 6a(3레일 추가) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1148-1148 new 1148-1148
+--- line new 1148 (len old 538 new 597)
+**재발 금지 계약은 N3.14·NFR-2·DEC-60·N4.1 IC·graph 규칙과 엔진 test가 맡는다**(v6.38. ...  LT-1 범위 (10)(N6.4, 승인 대기 BL-DF37), DF-18(최상위 진입점의 exit code·θ* 기록) → [-N6.2-]{+card+} [-단위 6-]{+OS-2+} 완료 [-조건.-]{+조건(offset-strategy `run_plan` -- v6.38.4 열다섯째 커밋 계획 검증 4 M-2).+} design 40 §10.3a 'DF 재발 금지' 표(엔진에 없는 test 이름 23개 -- 재감사 실측)는 design 개정에서 실제 test node id 대응표로 바꾸거나 지운다(계획 먼저 -- S-7). 본문의 DF-nn 인용은 옛 결함 이름이고 원문은 history H2다.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1157-1157 new 1157-1157
+--- line new 1157 (len old 525 new 283)
+| Q-2 | (옛 I-A16)[- (a)-]{++} `res_high_po` 머리 면적 기하 식 ratify(레이아웃 기하 해석 = 사용자 ratify 대상, `assets/sky130_pdk_decl.json:5` note) -- 권고: card SF-1 범위 9 design이 규칙 번호 식 초안을 내고 [-승인만-]{+승인만. (옛+} (b) 저항 분포 기생 [-C를-]{+C는+} [-MNA에-]{+v6.38.4+} [-넣을지-]{+열다섯째 커밋 계획 검증 4 M-3으로 '원칙으로 정한 기본안 = 넣음'+} -- [-권고: **넣음**(물리: 1 MΩ당 약 125 fF가 CMFB PM을 5.9°까지 낮춤 -- `wt/_drafts/evidence/2026-10-29/p4r_cm_sense.md` §3.3; 값은 고른 저항 종류의 셀 모델 crpf·crpfsw에서 계산, 발명 상수 0), 단 MNA 스탬프 변경이라-]{+card+} SF-1 범위 [-9가-]{+9,+} [-아닌-]{+질문에서+} [-별도 card(계획 개정 먼저 -- S-7); 확신도 중간(분포 RC를 양 끝 C/2로 근사하는 정확도 미측정). ⚠ (b)를 넣지 않으면 PM 판정이 물리보다 낙관(fail-open 위험)-]{+뺌)+} |[- (a)-]{++} SF-1 범위 9 design 전 [-(b) 계획 개정 전 -]{++}|
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md delete old 1160-1160 new 1160-1159
+--- line new 1160 (len old 575 new 0)
+[-| Q-A1 | (옛 DF-37 (3)) `E/search/_helpers_guard.py:42` `Tolerant`가 LUT `SchemaRejectedError`('감도 열 미정의, 모델 bin 밖 폭')를 None으로 바꿔 offset·noise 가드 출발 구간을 끈다 -- N3.14 'SCHEMA_REJECTED는 탐색 중이라도 삼키지 않는다'와 문언 충돌(예외 감사 2026-10-28 E5-25는 '정당한 안전망'으로 분류). 물리 결정자: 'bin 밖 폭'은 스키마 위반이 아니라 LUT 정의역 밖(조회 실패) 사실. 선택지 (가) LUT 정의역 실패를 정의역 실패 분류(SEAL_VIOLATION `lut_query_failed` 꼴)로 바꾸고 `Tolerant`는 그것만 잡음(N3.14 문언 유지) (나) N3.14에 '출발 구간 보조 경계의 LUT 정의역 거부는 비활성 사유로 기록' 예외 행 추가. 권고 후보 (가)(예외 행을 늘리지 않음, fail-closed 분류 정합) -- 단 LUT가 어떤 사유에 SchemaRejected를 내는지 전수 실측 뒤 확정(불확실) | LUT 거부 사유 전수 실측 |-]{++}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1162-1162 new 1161-1161
+--- line new 1161 (len old 246 new 402)
+| Q-C2 | (U-23) 입력-캐스코드 같은 L 강제를 복원하지 않음(A 유지)으로 닫을지 -- [-재감사 -]{++}판정 [-(d):-]{+(c) 원칙상 불필요(v6.38.4 열다섯째 커밋 계획 검증 4 m-1 정정 -- 옛 '(d)+} 강제할 물리 [-결정자가-]{+결정자+} [-없음(DEC-04-]{+없음'은+} [-'소자마다-]{+틀린+} [-독립-]{+서술):+} [-변수'·'규칙은-]{+같은+} 물리 [-정합-]{+행의+} [-최우선,-]{+입력·캐스코드+} [-제한은-]{+L이 다르면 L 혼합 interdigitation(행 대칭·확산 공유)이+} 물리 [-근거-]{+결과로+} [-있을-]{+생기지만+} [-때만'),-]{+그 결정자는 LY4와 card LI-1 범위 (6) '행 대칭 → `review_needed`'가 소유하므로 L 동일 강제 규칙은 필요 없다(DEC-04 '결합은 제약·목적이 만듦'),+} 선측정 [-B-]{+A 우세(B+} = 면적 +2.8~5.9 [-%, 레이아웃 L 종류 수는 LY 규칙 몫.-]{+%).+} 닫히면 DEC-04 '복원할지는 7b 실측으로 정한다(U-23)' 문장을 지운다 | -- (일괄 승인 한 줄) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1188-1188 new 1187-1187
+--- line new 1187 (len old 139 new 194)
+| 6 | MOD6·MOD9·MOD10: 평가 커널 컨텍스트·조립, 실패 캐시·S3, 결과 JSON, 진입점·exit [-code,-]{+code(→ card OS-2 `run_plan` -- v6.38.4 열다섯째 커밋 계획 검증 4 M-2),+} **새 커널 cProfile 기록**(U-49의 근거) | N3.5, N3.14, DEC-30 | 4·5 | 5·6b |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1229-1230 new 1228-1229
+--- line new 1228 (len old 273 new 317)
+| DR-1(고정값 저항 망 노드 writer, v6.38.4 백로그 재감사 -- 옛 N5.3 I-H1 (i); **원래 취지 ... 통합 병합(`E/sizing/writer_plan.py` 파일 겹침); CPG-1과 무관(heldout은 CPG-1 밖) | [--]{+N5.3 Q-C4 확정(v6.38.4 열다섯째 커밋 계획 검증 4 M-4) → +}계획 개정(N3.4 W 티어 행 -- S-7) → design → design↔계획 gap |
+--- line new 1229 (len old 722 new 1029)
+| offset-strategy OS-* 전부(다른 계획 card -- OS-2·OS-V·OS-5·OS-L 등; offset  ... rows` 필드·writer와 PS-7 S3 색인 열거 API = OS-2가 만듦(첫 소비자; LA-1이 먼저면 읽기만 -- [--]{+열거 대상인 S3 색인 평가 키 부분(`sctx.cache` 대체)은 LA-1·OS-2 가운데 먼저 병합되는 card가 만듦(LA-1 범위 15 (iv), v6.38.4 열다섯째 커밋 계획 검증 4 M-1); 진입점 종료 코드·θ* 기록과 규칙 F 예외 파일 = OS-2 `run_plan`(v6.38.4 열다섯째 커밋 계획 검증 4 M-2, 옛 DF-18); +}옛 'OS-2 착수 선행 U17 ②', **원래 취지와 다름**, 승인 대기 BL-OS-B9; v6.38.4 열넷째 커밋 백로그 재감사; 옛 'U16·U17 ②' 이름은 하위 계획에서 EO-1·LA-1로 정리, U16 다섯 행의 [-소유는-]{+소유 =+} graph-consumption [-GC-0a-]{+GC-B9+} [-실측-]{+(나)+} [-뒤-]{+확정(v6.38.4 열다섯째 커밋 계획 검증 4 M-2): layout 두 행·R6 → LI-1 범위 (9), 나머지는 GC-7(도달하면 출력 전용 선언, 아니면 O-153 삭제+} -- [-불확실-]{+판정+} [-GC-B9)-]{+= GC-0a 계수))+} + design 40 §2.4.12 Q8 결정(사용자) -- 과도기 칸 금지(offset-strategy v0.7.1 `9b ... ; OS-V는 합성 행 결속만 -- `offset_sys_mv` `verified_by`는 VB-1 선행 | 그 계획 정본 |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1271-1271 new 1270-1270
+--- line new 1270 (len old 663 new 479)
+| 6 | 파일럿 1점 평가가 결과 JSON을 내고 봉인 실패 후보가 margin과 함께 기록되며 탐색이 계속됨, cProfile 기록 파일, WP-23 계수 test 묶음 활성(평가 커널 컨텍스트 S0당 1회, 같은 키 재계산 0), **진입점 [-exit-]{+종료+} [-code·θ*-]{+코드·θ*+} [-기록**(v6.38.4-]{+기록+} [-백로그-]{+=+} [-재감사-]{+card OS-2 완료 조건**(offset-strategy 계획+} --[--]{+ v6.38.4 열다섯째 커밋 계획 검증 4 M-2: 엔진 사슬 진입점 정본 = OS-2 `run_plan`(사용자 승인 S-9 W-1); 옛 'MOD10 `run_gmid_design_pipeline`'·'구조 규칙 F 예외 `pipeline/entry.py`'는 엔진에 없는 자리라 지움(실측 2026-10-29: `E/pipeline/`에 `entry.py` 없음, `E/tests/structure/structure_checks.py:49` 상수만);+} 옛 DF-18 재발 금지, 원문 history [-H2; 실측 2026-10-29: 최상위 진입점 `run_gmid_design_pipeline`·`sys.exit` 0건, 단계 A·B 보고서는 `exit_code` 칸만 -- `E/pipeline/stage_a.py:105,251`·`stage_b.py:22`): `run_gmid_design_pipeline`(MOD10)은 N3.14 분류 예외를 `exit_code_for`로 프로세스 종료 코드에 싣고(비0), 탐색 단계까지 간 실행은 결과 JSON에 θ*·실패 레코드를 쓴다 -- 판정: 분류마다 합성 실패 픽스처 → 종료 코드 = N3.14 표 값, 결과 JSON 파일 존재·θ* 칸; 완료 측정 = 그 test green + 구조 규칙 F의 예외 1곳(`pipeline/entry.py`)이 그 진입점; MOD10을 만드는 변경이 card가 되면 N6.3 '결정 뒤 card 행' 규칙으로 card 행을 만든다-]{+H2)+} |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1275-1275 new 1274-1274
+--- line new 1274 (len old 90 new 139)
+| 10 | nmcnr ±0.9 V와 0/1.8 V 실행이 원점 이동 동등(IC11, [-2레일·3레일),-]{+2레일·3레일 -- card SF-1 완료 (5), v6.38.4 열다섯째 커밋 계획 검증 4 M-2),+} push-pull 등식 잔차 ≤ 멤버 수 × tol_V |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1345-1345 new 1344-1344
+--- line new 1344 (len old 503 new 508)
+| F-LT2 | `skills/analog-grammar/` 추적 파일 11개. 저장소 안 소비자: 옛 엔진(`legacy/ ... 157, :163`, `stick-diagram-euler-layout.md:289, :307-308, :573`, 이 계획 [--]{+history H2 옛 +}DF-19 [-행·history.-]{+행.+} `install.py`는 이름으로 참조하지 않는다 | `git grep -l "analog-grammar\|analog_grammar"` |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1555-1555 new 1554-1554
+--- line new 1554 (len old 1596 new 749)
+6. [-**S1·S1v-]{+**S1v+} 같은 입력 재계산 정리**(N3.3 '같은 입력 재계산 배정' [-B4·B12-]{+B4+} -- v6.38.4 열넷째 커밋 백로그 [-재감사;-]{+재감사, v6.38.4 열다섯째 커밋 계획 검증 4 M-4로 B12는 card DT-1(N6.11);+} **승인 대기 P9-M1a**; **card 성격 확장 -- 원래 취지와 다름**: IT-1은 입력 공통모드·쓰기 계획 card였다 -- 이 범위로 [-S1·S1v-]{+S1v+} 소비자 정리까지 넓힌다. 근거 = 범위 [-5가-]{+5+} [-이미 S1 규칙 파일(`E/graph/gvgs_cycles.py`, `S1_RULE_FILES`)과-]{+(b)가+} S1v 술어 블록을 고쳐 [-S1 규칙 지문·S1v-]{+S1v+} writer가 이 card에서 바뀜. 커밋 단위로 DEC-106·E-19와 분리한다; ⚠ 대안 = 같은 본문을 card DT-1 범위로(N3.3 문단)):[- (a) **B12 정규화 레일 전위** -- 정본 = 기존 W0 `node.dc_rail_v` 필드 하나다: writer를 S1 블록 하나로 옮기고(supplies 선언을 정규화하는 S1 블록 -- S1 키가 `supplies_v_fp`를 담으므로 같은 키면 같은 값), 필드 이름은 유지한다(소비자 무변경; W0 블록과 S1 필드를 따로 두면 정의가 같은 필드 둘 -- graph 규칙 3). 같은 변경에서 지운다: `E/sizing/kernel_context.py:60-63`(재정규화·지문 대조 -- 같은 값 한 자리라 불일치가 구조상 없음, 우회 아님), `E/sizing/w0_rails.py`(`dc_rails`·`DC_RAILS_WRITER`, `PLAN_WRITERS`에서 제거), `s1_bulk`·`s1_symmetry`(S1·커널 문맥 두 호출)의 `supplies` extras(필드 READS로), `DcInputs.supplies_v`(소비자 0이 되면 -- O-169). `E/metrics/achievability.py:266`·`E/search/iv_context.py:88`의 `spec.supplies_v` 재읽기는 필드 READS로 바꾸되, 각 파일을 재작성하는 card(GV-1 범위 1·LA-1 범위 15)와는 파일 겹침만 있다(나중 병합 쪽이 맞춤 -- 새 순서 규칙 0). 로더 `E/authoring/spec_supplies.py`의 넷 소속 검사(`graph/supplies.py`와 같은 계산)를 S1 블록 안 거부로 옮기는 일은 G1 -- spec 로더 단독 소유 card SF-1 범위 6 몫이라 이 범위는 S1 쪽만 맡는다.-]{++} (b) **B4 S1v 파생 술어** -- `net_model`의 파생 술어(`diode_nodes`·`composite_m ... 지 않는다(READS에 쓰기 계획 필드 없음 -- 실측 2026-10-29). 새 cache·memo·sctx 슬롯·사본 0.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1565-1565 new 1564-1564
+--- line new 1564 (len old 365 new 258)
+7. **범위 [-6(B4·B12-]{+6(B4+} -- 승인 대기 [-P9-M1a)**:-]{+P9-M1a; B12 완료 측정은 DT-1 완료 (8) -- v6.38.4 열다섯째 커밋 계획 검증 4 M-4)**:+} (i)[- `supplies_declaration` 정규화 호출 자리 = S1 블록 하나(`git grep`), `dc_rails` grep 0 (ii)-]{++} `net_model(` 호출 = `s1v_fields` 하나 [-(iii)-]{+(ii)+} 순수 리팩터링 필드별 비교 -- 9회로 [-`node.dc_rail_v`·`graph/coupling`·`device.bulk`-]{+`graph/coupling`+} 값 같음(이산 정확, NFR-4); 변화표 원인 칸 'P9 [-B4·B12'는-]{+B4'는+} DEC-106·E-19와 따로 둔다 [-(iv) S1 규칙 지문·S0 키 변화 기록(DT-1 완료 (3) 꼴) (v)-]{+(iii)+} N6.3 래칫 -- [-B4·B12-]{+B4+} 해소, 새 B 0.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1770-1770 new 1769-1769
+--- line new 1769 (len old 1155 new 2170)
+**범위**: 그 술어를 DC 용어(뜻: gate 넷이 DC로 고정된 넷 -- 레일 또는 구동되지 않는 gate 전용 넷)로  ... sign이 GB3 y를 쓰지 않으면 `coupling_vars` 삭제(O-169 -- LA-1 design 착수 확인 항목).[--]{+ **B12 정규화 레일 전위**(N3.3 B12 -- v6.38.4 열다섯째 커밋 계획 검증 4 M-4 재판정으로 IT-1 범위 6 (a)에서 옮김, 승인 대기 P9-M1a; **card 성격 확장 -- 원래 취지와 다름**: 이름 바꾸기 card에 레일 사실 필드 writer 이동을 더함 -- 같은 'DC 고정 넷 사실 = 필드 하나' 정리, 변경 종류 = 순수 리팩터링): 정본 = 기존 W0 `node.dc_rail_v` 필드 하나다: writer를 S1 블록 하나로 옮기고(supplies 선언을 정규화하는 S1 블록 -- S1 키가 `supplies_v_fp`를 담으므로 같은 키면 같은 값), 필드 이름은 유지한다(소비자 무변경; W0 블록과 S1 필드를 따로 두면 정의가 같은 필드 둘 -- graph 규칙 3). 같은 변경에서 지운다: `E/sizing/kernel_context.py:60-63`(재정규화·지문 대조 -- 같은 값 한 자리라 불일치가 구조상 없음, 우회 아님), `E/sizing/w0_rails.py`(`dc_rails`·`DC_RAILS_WRITER`, `PLAN_WRITERS`에서 제거), `s1_bulk`·`s1_symmetry`(S1·커널 문맥 두 호출)의 `supplies` extras(필드 READS로), `DcInputs.supplies_v`(소비자 0이 되면 -- O-169). `E/metrics/achievability.py:266`·`E/search/iv_context.py:88`의 `spec.supplies_v` 재읽기는 필드 READS로 바꾸되, 각 파일을 재작성하는 card(GV-1 범위 1·LA-1 범위 15)와는 파일 겹침만 있다(나중 병합 쪽이 맞춤 -- 새 순서 규칙 0). 로더 `E/authoring/spec_supplies.py`의 넷 소속 검사(`graph/supplies.py`와 같은 계산)를 S1 블록 안 거부로 옮기는 일은 G1 -- spec 로더 단독 소유 card SF-1 범위 6 몫이라 이 범위는 S1 쪽만 맡는다.+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1772-1772 new 1771-1771
+--- line new 1771 (len old 846 new 1218)
+**순서**: 독립. 경미 card(엔진 동작 불변). **완료 조건**(변경 종류 = 순수 리팩터링, O-34): (1) 9 ... 뀌는 것이 이름·영역 표기뿐이다. 증거 칸 = 바뀐 이름·domain 칸을 판정에 쓰는 소비자 0의 `git grep` 결과.[--]{+ (8) **B12**(v6.38.4 열다섯째 커밋 계획 검증 4 M-4): (i) `supplies_declaration` 정규화 호출 자리 = S1 블록 하나(`git grep`), `dc_rails`·`DC_RAILS_WRITER` grep 0 (ii) 9회로 `node.dc_rail_v`·`device.bulk` 값 같음(이산 정확, NFR-4) (iii) S1 규칙 지문·S0 키 변화 기록(위 (3) 꼴) (iv) N6.3 래칫 -- B12 해소, 새 B 0; 파일 겹침(SF-1 범위 6 `spec_supplies.py`, GV-1·LA-1의 `achievability.py`·`iv_context.py`)은 나중 병합 쪽이 맞춤(새 순서 규칙 0).+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1780-1780 new 1779-1779
+--- line new 1779 (len old 1379 new 1692)
+**범위**(+ N3.3 '같은 입력 재계산 배정' B15 -- 지울 둘째 생산자 `layout/rows.py:188·204` ... ct` 하나), 새 필드 0(기존 `review_needed` 칸), 새 상수 0(LY4 common-centroid 정의).[--]{+ (9) **결과 JSON layout 배선**(v6.38.4 열다섯째 커밋 계획 검증 4 M-2 -- graph-consumption GC-B9 (나) 확정, 옛 'U16'): `layout_outputs`를 결과 JSON(OS-2 `run_plan` 결과, OS-2가 아직이면 단계 B 보고)에 설계점마다 배선해 `ly_rows`·`ly_dispositions`의 소비자를 만들고, R6(convergence의 layout 파생 판정 3자리 -- `layout_outputs` 미배선 때문에 생긴 사본)을 같은 변경에서 교체한다(새 필드 0, 사본 삭제).+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1782-1782 new 1781-1781
+--- line new 1781 (len old 628 new 991)
+**순서**: XRUN-F1 card B 병합 뒤. **완료 조건**: (1) layout 안 동작점 사본 0(`git gre ... ew_needed` 항목(base는 기록만 -- red), 대칭 toy → 항목 없음, library 9회로 발동 수 변화표.[--]{+ (9) graph-consumption 부채 목록의 `ly_rows`·`ly_dispositions`·R6 항목 0, 결과 JSON에 설계점마다 layout 칸(v6.38.4 열다섯째 커밋 계획 검증 4 M-2) (10) **해시 시드 독립**(v6.38.4 열다섯째 커밋 계획 검증 4 m-2 -- 옛 N5.3 I-B12 불확실의 소유): matching 행이 있는 library 회로 하나를 `PYTHONHASHSEED` 두 값으로 돌려 결과 비트 동일(`E/tests/search/test_converge.py:235` 꼴; `E/graph/mirror_trail.py:112` set 순회가 `canonical_rows`를 거치는지 확인).+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1853-1853 new 1852-1852
+--- line new 1852 (len old 3351 new 4562)
+15. **C′ 앞단 결정 구현**(+ v6.38.4 열넷째 커밋 백로그 재감사: 옛 U17 ② 잔여 [-`residual_probe`·`dof_numeric`·`coupling`-]{+(i) `residual_probe` (ii) `dof_numeric` (iii) `coupling`+} -- 배선 또는 O-153 삭제(소비자 없으면 지움), 완료 = graph-consumption 부채 목록의 그 세 항목 [-0)(+-]{+0; (iv) **S3 색인 평가 키 부분**(v6.38.4 열다섯째 커밋 계획 검증 4 M-1 -- design 40 398-402 `S3Index.get·failure·local·solved`, 실패 캐시 = S3 메모리 색인의 보기(N3.5)): 실행 수명 `sctx.cache`(`E/search/search_context.py:58`, EvalKey → EvalResult dict, 상한 없음 -- graph 규칙 2 승인 예외 밖)와 `computed_keys`를 지우고 커널 적중 = 색인 조회로 바꾼다(소비자 `E/search/kernel.py:101·112·170`·`E/search/find_front.py:105-111`), 분할 도입; 새 cache·사본 0(색인 이동). **제작 card = LA-1과 offset-strategy OS-2 가운데 먼저 병합되는 card**(N6.1 '조건부 제작 함수' 꼴 -- 새 순서 규칙 0, OS-2 PS-7 열거 API의 대상이 이 부분), 늦게 오는 card는 읽기만. 완료 = 엔진 `git grep "sctx.cache"` 0, 같은 키 재계산 0(G-10). `sctx.cell_floors`는 graph-consumption GC-7 완료 조건 13 소유(O-15 (A) -- 재감사 A '배정 card 없음'은 GB만 본 오판, v6.38.4 열다섯째 커밋 계획 검증 4 M-1))(++} N3.3 '같은 입력 재계산 배정' B5 -- 지울 둘째 생산자: `search/iv_context.py:55-56`·`se ... False` 첫 순서만 보는 `:332` 포함), P 계산; 행마다 대체 규칙·fail-closed·옛 코드 삭제는 그 표가 [-정본)-]{+정본; **Q-A1 기본안 (가)**(v6.38.4 열다섯째 커밋 계획 검증 4 M-3 -- 옛 N5.3 Q-A1·옛 DF-37 (3), **원칙으로 정한 기본안**: N3.14 '탐색 중에도 SCHEMA_REJECTED는 삼키지 않는다' 문언 유지·fail-closed 분류 정합·예외 행 늘리지 않음): LUT 정의역 밖 조회('모델 bin 밖 폭' 등)는 스키마 위반이 아니라 정의역 실패이므로 정의역 실패 분류(SEAL_VIOLATION `lut_query_failed` 꼴, 이름 design)로 내고 `E/search/_helpers_guard.py:42` `Tolerant`는 그 분류만 잡아 출발 구간 비활성 사유로 기록하며 `SchemaRejectedError`는 전파한다; 착수 실측 = LUT가 `SchemaRejectedError`를 내는 사유 전수(같은 계열 E-14 `derived_fns.py` 소유와 함께) -- 스키마 사유가 탐색 중 나오면 정지가 맞다)+} (h) **found_db '기준점 미발견' 원인 조사**(v6.38.3 일곱째 커밋 -- 결정 재검토 #5, DEC-105 ...  W-bin 슬라이스(DEC-105 (2))는 선행 card WB-1, 분해능(DEC-105 (8))은 card RS-1이다.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1878-1878 new 1877-1877
+--- line new 1877 (len old 816 new 1209)
+**card 0 LA-0**(검증자, 엔진 무변경, base = LA-1의 실제 base): 9회로에서 (1) 현 경로(최소형 ...  Π (5) **B88 약반전 포화 대조**(U-122, v6.38.4 백로그 재감사): library 봉인점 가운데 약반전 [-소자(판정 정의는 LUT 열 -- 새 상수 없음)마다-]{+소자마다+} 엔진 `vds_ge_vdsat` 판정과 SPICE `.op` [-gds-]{+포화+} [-기준 포화(같은-]{+판정(같은+} 점·같은 기하) 대조표[--]{+ -- **판정 정의**(v6.38.4 열다섯째 커밋 계획 검증 4 m-4, O-171 물리 결정자): 약반전 소자 = 그 점 gm/ID가 약반전 점근값 1/(n·U_T)(n = LUT 부임계 기울기에서 유도)에 gm/ID 열 셀 tol(DEC-87 방법) 안으로 붙는 소자; 약반전 포화 = 확산 전류식 ID ∝ 1 − exp(−VDS/U_T)에서 ID(VDS)/ID(VDS ≫ U_T) ≥ 1 − ε_ID, 즉 VDS ≥ U_T·ln(1/ε_ID) -- ε_ID = 기존 tol_V를 그 점 ID 감도로 전파한 상대 허용오차(새 상수 0); SPICE 쪽 = 같은 점 `.op` gds·U_T/ID에서 확산 항 e^(−VDS/U_T)/(1 − e^(−VDS/U_T))를 같은 ε_ID 기준으로 판정(채널 길이 변조 항은 별개 열로 대조표에 함께 적음)+} -- 불일치 1건 이상이면 규칙 정정은 `sat_threshold` 정본 card(headroom-chain HC-S) 범위 ... 결과는 케이스마다 파일에 append한다(중간 실패 보존). 같은 코드·입력 두 번 실행 비트 동일(결정성)도 함께 기록한다.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md insert old 1893-1892 new 1892-1892
+--- line new 1892 (len old 0 new 388)
+[--]{+11. **S3 색인 평가 키 부분·Q-A1**(범위 15 (iv)·(g) -- v6.38.4 열다섯째 커밋 계획 검증 4): (a) 이 card가 먼저 병합되면 `sctx.cache`·`computed_keys` 엔진 grep 0, 커널 적중이 색인 조회로 같은 결과(9회로 front·평가 수 같음 -- 순수 리팩터링 필드별, NFR-4), 같은 키 재계산 0(G-10); OS-2가 먼저였으면 색인을 읽기만(평가 키 부분 writer 1곳 -- `git grep`) (b) Q-A1 toy -- LUT 정의역 밖 폭 조회는 출발 구간 비활성 사유 기록, 스키마 위반 toy는 탐색 정지(base는 None으로 삼킴 -- red), `SchemaRejectedError` 사유 전수표 기록.+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1897-1897 new 1897-1897
+--- line new 1897 (len old 328 new 421)
+- U17 ②와 같은 통합 병합이다(LA-Q5 결정됨 (가), O-36 (4)·O-38 (3) -- card 안 커밋 순서로  ... ront 점을 EO-1 생산자로 oracle에 넣고 결과를 front 판정에 쓰는 자리)과 분할·graft·S3 색인·층 0 [-필드다.-]{+필드다(v6.38.4 열다섯째 커밋 계획 검증 4 M-1: S3 색인 평가 키 부분·분할 = 범위 15 (iv), 제작 = LA-1·OS-2 가운데 먼저 병합되는 card).+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2128-2128 new 2128-2128
+--- line new 2128 (len old 768 new 533)
+**완료 조건**: (1) SD-T2 D1~D5 반영, spec 로드 통과(`element_value_declaration`  ... - 탐색 궤적·front 변화는 (3) 변화표 몫) (5) SD-T3 test 갱신은 test 작성자, 판정은 검증자 (6) [-**IC11-]{+**원점 이동 data 기록**(v6.38.4 열다섯째 커밋 계획 검증 4 M-2 -- IC11 test는 엔진 변경 권한이 있는 card SF-1 완료 (5)로 옮김; SD-1은 data card라 test가 드러낸 엔진 결함을 고칠 수 없다): nmcnr+} 원점 이동 [-불변**(v6.38.4-]{+data+} [-백로그-]{+변경(있으면)의+} [-재감사 -- 옛 N5.3 I-B11 부속, N4.1 IC11·N6.2 단위 10과 같은 test; 원문 history H2): 레일 둘인 library 회로 하나를 (vdd, gnd) = (1.8, 0) 대 (0.9, −0.9)로 돌려 소자 VGS·VDS·VSB·gm/ID·W·dc/ss metric이 tol_V(그 밖은 감도 전파값) 안에서 같음; 단 `power_dc_w`는 DEC-78 정의상 기준 전위 V_0 = 넷리스트 0 V에 의존하므로(card SF-1 범위 8 'DUT 전력의 기준 전위') 비교에서 빼고 그 사실을 test에 적는다(test 작성 = test 주체, 이 card의 엔진 코드 변경 0은 그대로). 3레일(agnd) 회로는 단위 10 몫.-]{+기록만.+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2187-2187 new 2187-2187
+--- line new 2187 (len old 3251 new 3326)
+6. **spec 로더 단독 소유·`driving_spec` 섹션 삭제·재배선**(+ v6.38.4 P9 N3.3 '같은 입력 ... - **소유를 spec·topology 로더로 넓힘**(O-144 J4 범위 확장 -- **원래 취지와 다름**, 승인 대기 [-P9-M1):-]{+P9-M1b):+} 지울 둘째 생산자 `authoring/topology_load.py:88`·`authoring/name_uniqueness. ... symmetry_marks(dc_inputs_from_spec(spec))`)을 S0 필드로 둔다. writer는 S0 블록 [-하나다(블록·이름은-]{+하나다(층+} [-design;-]{+진술 -- v6.38.4 열다섯째 커밋 계획 검증 4 m-9: 입력 = spec뿐이라 S1 앞 S0 블록,+} 범위 8 제약 분류[--]{+ 블록과 같은 층; 블록·이름은 design, 그+} 블록과 합칠지도 design). 단계 A·단계 B·탐색 문맥·GB4는 그 필드를 READS한다. `DcInputs` 투영 부 ...  비교(9회로 `search_domain` 결과 같음), N6.3 래칫 B13 해소. 착수 때 base에서 다시 grep한다.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2189-2190 new 2189-2190
+--- line new 2189 (len old 7047 new 7164)
+8. **공급 전류 레일 선언 `counted_rails`**(+ N3.3 '같은 입력 재계산 배정' B14 -- 지울 둘째  ... `supply_current_A`의 정의 = 셈하는 레일 집합(`counted_rails`, EO-1이 싣는 같은 칸)의 Σ [--]{+DUT +}레일 [--]{+단자 전류(측정 부하 원소 +}전류[--]{+ 제외 -- P7, OP-11 `power_dc_w`의 I와 같은 양)+} -- 엔진 `supply_current_dc`와 같은 정의 하나(O-29 (1)·O-32), 레일 하나면 값 불변(비교 대상), 정정 [-자리 -]{++}= oracle-portability [-계획(그-]{+OP-11 판정 기준(v0.6.22 다섯째 커밋 -- 정의를 바꾼 칸, O-34 (1); v6.38.4 열다섯째 커밋+} 계획 [-후속-]{+검증+} [-정정-]{+4+} [-행),-]{+M-5),+} 완료 toy = 레일 둘 선언 toy에서 엔진·oracle 값 같음(v6.38.4 백로그 재감사 -- 옛 조건부 'N6.17 ...  P − P_diss = −Σ_비레일 V·I (iv) 레일 아닌 단자 전류 0 -- V_0를 옮겨도 P 불변(새 상수 없음).
+--- line new 2190 (len old 2837 new 4084)
+9. **엔진 계산 수동소자 θ 상자 규칙 -- 엔진 동작 변경 포함**(v6.38.2 DEC-105 (10), 사용자 결정  ...  값은 이미 res_high_po 셀 모델 식으로 계산(같은 PDK 셀을 값에는 쓰고 면적에는 안 쓰는 불일치). 머리 기하 [-ratify·저항 기생 C(MNA 스탬프)는-]{+ratify는+} 이 확장 밖 -- N5.3 Q-2.[--]{+ **저항 분포 기생 C의 MNA 스탬프**(v6.38.4 열다섯째 커밋 계획 검증 4 M-3 -- 옛 N5.3 Q-2 (b), **원칙으로 정한 기본안 = 넣음**(O-171: 빼면 PM 판정이 물리보다 낙관 = fail-open이고, high_po로 Ω당 면적이 1/7.2이 되어 큰 R 쪽 탐색이 늘어 영향이 커진다); 같은 셀 모델·같은 sha256 출처 하나라 이 범위가 소유하고 high_po 후보 추가와 같은 통합 병합 -- 면적 축이 큰 R을 싸게 보면서 PM 판정이 기생 C를 빼면 탐색이 낙관 쪽으로 밀리므로 둘을 나누지 않는다; 계획 개정 = 이 문단, design 먼저 -- S-7): **물리 결정자** = 균일 분포 RC 선(총 R, 총 C_par)의 2단자 어드미턴스 Y11 = (1/R)·θ·coth θ ≈ 1/R + sC_par/3, Y12 = −(1/R)·θ/sinh θ ≈ −1/R + sC_par/6 (θ² = sRC_par) -- 접지 분로 Y11 + Y12 ≈ sC_par/2가 양 끝에 하나씩(π 근사 C_par/2의 근거), 다리 항 −sC_par/6과 θ⁴ 이상 항이 근사 오차다; C_par = 고른 저항 종류의 셀 모델 면적·측벽 용량 계수(crpf·crpfsw)와 그 R의 폭·길이에서 계산(값 출처 = 셀 모델 원문, PDK 커밋 `f62031a`, sha256 선언 -- 새 상수 0); 스탬프 = 소신호 MNA만(DC 해 불변 -- DC/AC 분리); 근사 정확도 = card 착수 실측: 저항이 있는 library 회로와 `p4r_cm_sense` toy에서 C_par/2 스탬프 대 N분할 사다리(SPICE)의 PM·극점 차가 RS-1 분해능(Δp) 안이면 C_par/2, 아니면 분할 수를 그 분해능 안에 드는 최소로(분할 수는 분해능에서 유도 -- 상수 아님). 실측 근거: 1 MΩ ≈ 125 fF가 CMFB PM_cm을 5.9°까지 낮춤(`wt/_drafts/evidence/2026-10-29/p4r_cm_sense.md` §3.3).+} 완료 조건 추가: (a) 선언 읽기 test -- 두 후보 중 Ω당 면적 최소가 high_po로 선택됨(base는 gener ... nt 변화표(동작 변경, 원인 = 저항 종류) (c) cnr_ota spec 값 식과 같은 셀·같은 sha256(출처 하나).[--]{+ (d) 기생 C toy(v6.38.4 열다섯째 커밋 계획 검증 4 M-3) -- 이상 원천이 구동하는 저항 하나 + 끝 부하 C_load 손회로에서 엔진 극점 = 1/(R·(C_load + C_par/2))(Elmore 손계산, tol 안; base는 C_par 없음 -- red), 분할 수 실측 기록, 저항 노드가 있는 library 회로 PM 변화표(동작 변경, 원인 = 기생 C) (e) 기생 C 계수 출처 = (c)와 같은 셀·같은 sha256.+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2194-2194 new 2194-2194
+--- line new 2194 (len old 465 new 1155)
+**완료 조건**: (1) 정의 toy -- 방향별 `.tran` 항목 두 개가 따로 읽힘, registry 밖 이름이 ora ... DEC-98 (6)) current_reuse는 AP-1까지 판정 대기, 원인 칸 = 'spec 추가' (4) N6.3 공통.[--]{+ (5) **IC11 원점 이동 불변**(v6.38.4 열다섯째 커밋 계획 검증 4 M-2·m-3 -- 옛 SD-1 (6)·N6.2 단위 10의 2레일·3레일, 옛 N5.3 I-B11 부속; SF-1 = 레일·공급 선언(범위 8 기준 전위 V_0)과 spec 절대 전위 선언 형식을 소유하는 엔진 card): **물리 결정자** = 회로 방정식(KCL·소자 식)은 전압 차에만 의존하므로 **절대 전위로 선언된 값 전부**(레일 `supplies_v`·입력 DC·`bias_voltages`·V_ref·출력 기준·출력 범위 spec 등 -- 선언 키 전수는 design이 스키마에서 뽑음)를 같은 Δ만큼 옮기면 소자 VGS·VDS·VSB·gm/ID·W·dc/ss metric이 tol_V(그 밖은 감도 전파값) 안에서 같다(레일만 옮기면 불변이 성립하지 않음); `power_dc_w`는 DEC-78 정의상 V_0(넷리스트 0 V)에 의존하므로 비교에서 빼고 그 사실을 test에 적는다(범위 8). 대상 = 레일 둘 library 회로 (1.8, 0) 대 (0.9, −0.9)와 3레일(agnd) nmcnr ±0.9 V 대 0/1.8 V(N4.1 IC11 `test_rail_origin_shift_invariance`). 엔진 결함으로 실패하면 이 card가 고친다(레일 판정·bulk 유도·절대 전위 가정 -- 원인별 변화표).+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2262-2262 new 2262-2262
+--- line new 2262 (len old 2930 new 3115)
+**완료 조건**(O-34 동작 변경): (1) 정의 toy -- D1: W_min 왕복 반올림 점이 W_min bin에 듦( ... 트 동일 (7) N6.3 공통. (N6.35) E-18: CDD 열 없는 toy → 거부(base cgd 대체 -- red).[--]{+ (v6.38.4 열다섯째 커밋 계획 검증 4 m-9) 이 card가 HC-S보다 먼저 병합되면 `sat_threshold` 역방향 VDS toy(선언 방향 VDS < 0 → LUT 조회 없이 '포화 아님(역방향 VDS)' 사유; base는 LUT 조회 -- red) -- headroom-chain HC-S toy와 같은 toy.+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2322-2322 new 2322-2322
+--- line new 2322 (len old 306 new 308)
+| E-22 | [-P1-16(I-H3)-]{+P1-16(옛 I-H3)+} | V/V 행용 `\|rate\| ≤ float eps` 건너뜀 문턱이 A/V 전도 행에도 걸림 | C | 건너뜀 문턱은 그 ...  선형 감도 끝 블록이지만 전도 행은 IT-2c가 먼저 만든다 | 단위 다른 행 toy(base 같은 eps -- red) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2341-2341 new 2341-2341
+--- line new 2341 (len old 384 new 568)
+**근거**: 사용자 지시 2026-10-29 "백로그에 있는 항목을 지금 규칙들과 원칙들로 다시 검증해서 불필요한 것들은 지 ...  O-66 (1) '백로그 확인'). **원래 취지와 다름**: 새 card다(사용자 '새 card 0' 방향과 다름) -- [-기존-]{+근거(v6.38.4+} [-card-]{+열다섯째+} [-가운데-]{+커밋+} [-`writer_plan`-]{+계획+} [-W-]{+검증+} [-티어-]{+4+} [-규칙을-]{+M-4+} [-소유하는-]{+정정):+} [-card가-]{+heldout+} [-없다(LA-1은-]{+전용+} [-범위가-]{+동작+} [-이미-]{+변경(library+} [-크고-]{+9회로+} [-IT-1은-]{+발동 0)이라 IT 통합 병합 critical path(LA-1·SF-1·SD-1 등의 직접 선행)에 얹지 않는다(O-34 변경 종류 분리; `writer_plan.py`는 IT-1 범위 1 파일이라 IT-1 뒤 파일 겹침으로 둠); 옛 근거 'IT-1은+} 입력 CM 변수 [-하나);-]{+하나'는 같은 판 B4 배정 근거(IT-1 성격 확장)와 어긋나 지움(history H2);+} 승인 대기 BL-DR1.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2345-2345 new 2345-2345
+--- line new 2345 (len old 499 new 690)
+**범위**(새 cache·memo·sctx 슬롯·사본 0; 필드마다 writer 하나 -- 이름·블록은 design): S0 쓰기 계획에서 비트리 저항 엣지가 값 선언(또는 θ) [-저항뿐이고-]{+저항뿐이고, **대상 넷의 DC 원소가 값 선언·θ 저항과 MOS 게이트뿐이며**(v6.38.4 열다섯째 커밋 계획 검증 4 m-5 범위 조건 -- MOS 채널·이상 전류원이 닿는 넷은 그 전류가 넷 전압에 의존해 선형 해가 성립하지 않으므로 대상 밖, 정지 유지; 실측 cnr_ota VCR = 게이트 1·저항 2, net7 = 저항 2 -- 대상)+} 그 저항 넷들이 고정 전압 노드(레일·W 티어 기록 노드)에 저항 경로로 닿으면, 그 넷 전압을 같은 DC 블록이 노달 선형 ... 조적 0 전류 MOS = VDS 0 연결(노드 묶음)' 규칙을 이 card에 더한다(선언 없는 0 전류 MOS 정지는 유지).
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2347-2347 new 2347-2347
+--- line new 2347 (len old 316 new 389)
+**완료 조건**(검증자 판정 -- 동작 변경, O-34 (1)): (1) 분압 toy(base `dc_resistor_cyc ... graph 정본·G-10 계수·바뀐 필드 소비자 ≥ 1, `dc_resistor_cycle` 정지 갈래는 섬 사유로만 남음).[--]{+ (6) 범위 조건 toy(v6.38.4 열다섯째 커밋 계획 검증 4 m-5): 분압 넷에 MOS 채널이 닿는 toy는 정지 유지.+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2349-2349 new 2349-2349
+--- line new 2349 (len old 248 new 365)
+**순서·착수 조건**: 선행 = IT-1 + IT-2 통합 병합(`E/sizing/writer_plan.py` 파일 겹침). CPG-1과 무관(heldout은 CPG-1 밖). 착수 조건 =[--]{+ **N5.3 Q-C4(U-75 heldout 선정) 확정**(v6.38.4 열다섯째 커밋 계획 검증 4 M-4 -- 유일 소비자가 heldout `cnr_ota`라 미확정이면 DR-1 보류, 만들면 배선) ++} 계획 개정(N3.4 W 티어 행에 고정값 저항 망 규칙 -- S-7) → design → design↔계획 gap. SPICE 다리: library 9회로 값 변화 0이라 '대상 없음'(N6.3 (ii)), heldout cnr_ota는 판정 기록만.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2423-2423 new 2423-2423
+--- line new 2423 (len old 952 new 1021)
+| U-23 | 입력-캐스코드 블록의 L을 같게 맞추도록 강제하는 규칙을 복원할지(DEC-04) | 실측 후 결정. 캐스코드가 ...  40 §3.10.10**(2026-10-12 최종 검증 정정). 판정은 이 문언 그대로. | **재감사 권고 = A 유지로 [-닫음-]{+닫음(판정 꼴 (c) -- L 혼합 행 결과는 LY4·LI-1 (6) 소유, v6.38.4 열다섯째 커밋 계획 검증 4 m-1)+} -- 사용자 확인 대기 N5.3 Q-C2**; 옛 필요 시점 **7b 착수 전**(소규모 프로토타입으로 측정한다 -- 할당 층을 다 만든 뒤 재서 "안 쓴다"가 나오면 WP-01과 충돌한다) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2427-2427 new 2427-2427
+--- line new 2427 (len old 1620 new 1624)
+| U-27 | LUT 재생성: VS 축 0~1.8 V, CGS·CGB 열 추가, **`.noise` 해석 포함해 잡음 열 추 ... 이 없다(실측). 담당 Phase 4(`40-defect-fixes`, DF-27과 같은 design). 선행 조건: (1) [--]{+옛 +}DF-27 축 커버리지 게이트 red test가 옛 표본 LUT에서 VS 축 밖 입력을 거부함을 먼저 확인 (2) LUT 생성 ... 준선은 DEC-40 승인) (4) 새 LUT 해시로 S0·실패 캐시 지문이 바뀜을 기록. CGS·CGB 열의 소비(스탬프)는 [-7a(DF-28).-]{+7a(옛 DF-28).+} VS 축 상한 = library 회로 `supplies_v` 최대 전위차에서 유도한 1.8 V(LR3 유도와 일치). **L ... ne-out이 잰다. 이 재생성의 이유는 L과 무관한 항목(VS 축·열 추가·잡음 단위·생성기 수정)이다 | Phase 4 |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2447-2447 new 2447-2447
+--- line new 2447 (len old 426 new 457)
+| U-47 | front 시간 예산(재시작 반경 m 포함 -- N6.35 E-28) | 기본안: 풀이 1회 300 s(DEC ... 토 Q10 (ii), DEC-95 (4)) -- 새 커널 cProfile(단위 6, U-49) 실측 뒤 다시 묻는다 ; 하위 [-질문(offset-strategy-]{+항목(offset-strategy+} DS-U9): [-E_B를-]{+기본안+} [-시간 예산에서 유도하는 실행의 다변형 규칙 -- 후보:-]{+=+} 유도 실행을 결정성 요구 밖으로 표기 [-유지-]{+유지(NFR-4+} [-/-]{+-- v6.38.4 열다섯째 커밋 계획 검증 4 m-11, 원칙으로 정한 기본안),+} 유도 금지(E_B [-선언만)-]{+선언만)로 바꿀지만 묻는다+} | 단위 6 뒤(단위 8 전) -- 사용자 몫 질문 N5.3 Q-C3(v6.38.4 백로그 재감사) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2467-2467 new 2467-2467
+--- line new 2467 (len old 610 new 612)
+| U-67 | LOD·WPE·PSE 반영과 L 혼합 interdigitation 행의 좌우 대칭 [-검사(I-A13)-]{+검사(옛 I-A13)+} | **확정(사용자 결정 2026-10-12 "U-67은 (나)로")**: (1) L 혼합 interdigitation 행  ...  파라미터가 없어 규칙을 만들지 않음. dummy는 2026-10-08 ratify 식으로 판정 면적에 이미 포함 | 닫힘 |
+
+######## docs/01-plan/features/graph-consumption.history.md insert old 459-458 new 459-459
+--- line new 459 (len old 0 new 461)
+[--]{+| 0.14.5 (다섯째 커밋) | 2026-10-29 | 상위 v6.38.4 열다섯째 커밋 계획 검증 4 반영(`wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` M-2, 오케스트레이터 재판정 수용): GC-B9 (나) 확정 -- N3.2 표 `ly_rows`·`ly_dispositions`·R6 = 상위 LI-1 범위 (9)(결과 JSON layout 배선), `start.*`·`graph/start`·`dc_scc_log`·`dc_tie_breaks` = GC-7(진입점 도달이면 출력 전용 선언, 아니면 O-153 삭제 -- GC-0a 계수), 'U16' 인용 정리(88·93·503·580·668·673행). 옛 GC-B9 결정 칸 «\| 결정 = 오케스트레이터(GC-0a 실측 뒤), 이 계획은 행을 바꾸지 않음 \|», 옛 card 칸 = 'U16'. |+}
+
+######## docs/01-plan/features/graph-consumption.plan.md replace old 15-15 new 15-15
+--- line new 15 (len old 6780 new 6847)
+> **Status**: **v0.14.5 [-(v6.38.4-]{+(상위 v6.38.4 열다섯째 커밋 계획 검증 4 반영 -- GC-B9 (나) 확정·N3.2 'U16' 행 card 칸, 검증 대기; v6.38.4+} 열넷째 커밋 백로그 재감사 반영 -- 삭제 7·배정 3·질문 1·불확실 [-1, 검증 대기)-]{+1)+} -- 상위 gain-budget v6.38.4 P9-HC `device.dc_sat_v` writer 표지(둘째 커밋)·재판 ... 계는 v0.11 독립 검증 → 사용자 승인 → GC-0a(card 0 측정) → GC-D(상위 문서 개정 → design)다.
+
+######## docs/01-plan/features/graph-consumption.plan.md replace old 88-88 new 88-88
+--- line new 88 (len old 189 new 262)
+| 필드별 처리: 이 계획이 소유하는 필드의 출력 전용 선언·삭제·블랭킷 READS 정리·동적 접근의 정적 해석 형태 전환(GC-7) | 지정 소비자가 아직 없는 필드의 배선 자체. 소비자를 만드는 card가 맡는다(상위 LA-1(옛 '단위 8'·'U17 ②'), [-U16(소유-]{+옛+} [-card-]{+'U16'+} [-미정-]{+행 = GC-B9 (나) 확정+} -- [-불확실-]{+상위+} [-GC-B9)-]{+v6.38.4 열다섯째 커밋 계획 검증 4 M-2(layout 두 행·R6 = 상위 LI-1, 나머지 = GC-7 선언·삭제)+} -- N3.2 표) |
+
+######## docs/01-plan/features/graph-consumption.plan.md replace old 93-93 new 93-93
+--- line new 93 (len old 112 new 165)
+| 정본 술어 우회 교체(R1·R2, graph 층 안 R1″, 쓰기 계획의 (kind, gate, source) 재유도)(GC-6) | R6(layout 파생 판정)의 [-교체(U16-]{+교체(상위+} [-배선-]{+LI-1+} [-card)-]{+범위 (9) -- GC-B9 (나) 확정 -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2)+} |
+
+######## docs/01-plan/features/graph-consumption.plan.md replace old 307-307 new 307-307
+--- line new 307 (len old 127 new 216)
+| `graph/layout: ly_rows`(L-2) | design 40 §2.4.8: [-U16-]{+결과 JSON(상위 OS-2 `run_plan`+} 결과 [-JSON이-]{+-- 옛 'U16')이+} `layout_outputs`를 설계점마다 부르게 배선(42 D-LY5) | 배선 대기 | [-U16-]{+상위 LI-1 범위 (9)(GC-B9 (나) 확정 -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2)+} | U-G6 |
+
+######## docs/01-plan/features/graph-consumption.plan.md replace old 312-314 new 312-314
+--- line new 312 (len old 393 new 516)
+| `device: start.point`·`start.row`, `graph/start: area_est_m2·area_fr ... start_intervals.py:5` '출발값과 보고에만'. 보고서가 읽지 않는다 | 출력 전용 선언 대기. 출력 함수 = [-U16 -]{++}결과 JSON 진단 [-칸.-]{+칸(상위 OS-2 `run_plan` 결과 -- 옛 'U16').+} 상위 v6.38.1 O-151 DK1: `start.row`(와 `graph/start: rungs`)는 θ 독립 성분만 담 ... 속 W4·V_R)은 상위 R6 블록 출력 필드 하나다(그 필드 소비자 = 커널 평가 입력 조립, 상위 card LA-1) | [-U16-]{+GC-7(GC-B9 (나) 확정 -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2: GC-0a 계수에서 진입점 도달이면 출력 전용 선언, 아니면 O-153 삭제)+} | U-G6 |
+--- line new 313 (len old 112 new 197)
+| `graph/dc: dc_scc_log`·`dc_tie_breaks` | SCC 풀이 진단, 결정성 기록(상위 NFR-4) | 출력 전용 선언 [-대기(U16-]{+대기(결과+} [-결과-]{+JSON+} [-JSON)-]{+-- 옛 'U16')+} | [-U16-]{+GC-7(GC-B9 (나) 확정 -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2: 도달이면 출력 전용 선언, 아니면 O-153 삭제)+} | U-G6 |
+--- line new 314 (len old 93 new 152)
+| `graph/layout: ly_dispositions` | 소비자 미기재 | 출력 전용 선언 대기(`layout_outputs` 경유) | [-U16-]{+상위 LI-1 범위 (9)(GC-B9 (나) 확정 -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2)+} | U-G6 |
+
+######## docs/01-plan/features/graph-consumption.plan.md replace old 335-335 new 335-335
+--- line new 335 (len old 123 new 195)
+| R6(convergence의 layout 파생 판정 3자리) | `layout_outputs` 미배선 때문에 생긴 사본 | [-U16이-]{+상위 LI-1이+} `layout_outputs`를[--]{+ 결과 JSON에+} 배선할 때 같은 변경에서 교체 | [-U16-]{+상위 LI-1 범위 (9)(GC-B9 (나) 확정 -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2)+} | -- |
+
+######## docs/01-plan/features/graph-consumption.plan.md replace old 503-503 new 503-503
+--- line new 503 (len old 267 new 296)
+| 같은 문서 | card EO-1 완료 조건(v0.14.5 백로그 재감사 GC-B10, 옛 'U16') | '13회로 오라클 ... 대조와 forced 넷별 KCL 잔차(진단)가 점 레코드로 붙음'을 더한다(N3.5-2). 'U16' 이름 부채 항목의 소유 [-card는-]{+=+} [-미정(불확실-]{+GC-B9+} [-GC-B9,-]{+(나)+} [-N10.4).-]{+확정 -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2(N10.4).+} oracle-portability 계획의 관련 card에도 같은 문언이 필요한지는 그 계획 개정 때 확인 |
+
+######## docs/01-plan/features/graph-consumption.plan.md replace old 580-580 new 580-580
+--- line new 580 (len old 420 new 463)
+| X-G5 | **지정 소비자가 아직 없는 필드(층 0 조립 3필드, 단계 B 2필드, `ly_rows`, `dc_off_c ... 위 8, U17 ②, U16 -- v0.14.5 백로그 재감사 card 이름 정정: 단위 8·U17 ② → LA-1, U16 [-소유-]{+→+} [-미정)가-]{+GC-B9 (나) 확정 -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2)가+} 배선한다.** 그 card들의 완료 조건 변경은 상위 개정 항목이다(N3.10). `dc_off_current`는 O-46  ... 력 전용으로 선언한다(N3.2 표, v0.12) | 범위 초안 (4), 원칙 '만들면 배선' | 승인(O-13, U-G6) |
+
+######## docs/01-plan/features/graph-consumption.plan.md replace old 668-668 new 668-668
+--- line new 668 (len old 167 new 212)
+* **상위 LA-1(옛 '단위 8'·'U17 ②', v0.14.5 백로그 재감사 [-GC-B8)·U16(소유-]{+GC-B8)·상위+} [-card-]{+LI-1(옛+} [-미정-]{+'U16' layout 두 행·R6+} -- [-불확실-]{+GC-B9+} [-GC-B9,-]{+(나)+} [-N10.4)**:-]{+확정 -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2)**:+} 부채 목록 '배선 대기' 항목의 card다. 그 card의 완료 조건에 '해당 부채 항목 0'을 더하는 것은 N3.10 개정 항목이다.
+
+######## docs/01-plan/features/graph-consumption.plan.md replace old 673-673 new 673-673
+--- line new 673 (len old 332 new 390)
+2. **부채 목록**: 항목 키 집합 ⊆ 기준선 집합, 기준선·규칙 매개변수 지문 = GC-1 판정 기록의 지문, 낡은 항목 ... 항목은 0이다. 이 계획 소유 GC-8 항목도 0이다. 남은 항목은 다른 card(LA-1(옛 '단위 8'·'U17 ②'), [-U16(소유-]{+LI-1(옛+} [-미정-]{+'U16' layout 두 행·R6+} -- [-GC-B9),-]{+GC-B9 (나) 확정 -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2),+} HC-1, layout 동작점 사본의 LI-1 -- O-27, `size_and_seal_local` 배선 대기의 LA-1) id뿐이다.
+
+######## docs/01-plan/features/graph-consumption.plan.md replace old 792-792 new 792-792
+--- line new 792 (len old 562 new 709)
+| [-GC-B9(불확실)-]{+GC-B9+} | 'U16'(상위 card 표에 없는 이름)을 card로 기다리는 부채 행: N3.2 표 `ly_rows`·`start.p ...  상위 'U16 제품 진입점' card 신설은 새 card라 사용자 승인 필요(O-165 (a) 새 card 0과 충돌) | [-결정-]{+**확정 (나)**(상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2, 오케스트레이터 재판정): N3.2 표 행의 card 칸 갱신(layout 두 행·R6+} = [-오케스트레이터(GC-0a-]{+상위+} [-실측-]{+LI-1+} [-뒤),-]{+범위+} [-이-]{+(9),+} [-계획은-]{+`start.*`·`graph/start`·`dc_scc_log`·`dc_tie_breaks`+} [-행을-]{+=+} [-바꾸지-]{+GC-7+} [-않음-]{+-- 진입점 도달 판정 = GC-0a 계수)+} |
+
+######## docs/01-plan/features/offset-strategy.history.md insert old 331-330 new 331-331
+--- line new 331 (len old 0 new 407)
+[--]{+| 0.7.5 (다섯째 커밋) | 2026-10-29 | 상위 v6.38.4 열다섯째 커밋 계획 검증 4 반영(`wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` M-1·M-2·m-11, 오케스트레이터 재판정 수용): PS-7 열거 대상 = S3 색인 평가 키 부분(제작 = OS-2·상위 LA-1 가운데 먼저 병합 card, `sctx.cache` 삭제), OS-2 행에 평가 키 부분 조건부 제작·진입점 종료 코드·θ* 기록(상위 옛 DF-18) bullet, W-1 'U16' 문장 정리, DS-U9 기본안. 옛 문언: W-1 «U16은 나중에 제품 CLI를 `run_plan`에 배선한다(사슬을 두 벌 두지 않는다).», DS-U9 «**기본안 없음(열림)**.» |+}
+
+######## docs/01-plan/features/offset-strategy.plan.md replace old 11-11 new 11-11
+--- line new 11 (len old 2494 new 2589)
+> **Status**: **v0.7.5 [-(v6.38.4-]{+(상위 v6.38.4 열다섯째 커밋 계획 검증 4 반영 -- PS-7 대상 = S3 색인 평가 키 부분·조건부 제작, OS-2 진입점 종료 코드·θ*, DS-U9 기본안, 검증 대기; v6.38.4+} 열넷째 커밋 백로그 재감사 반영 -- 삭제 2·배정 5·질문 [-3, 검증 대기)-]{+3)+} -- 상위 gain-budget v6.38.4 재판정 P1 후속 정정(S-10 공존 검사의 판정 대상 = 상위 S0 필드 ` ... dget v6.23(병합 `294bde4d`)이다. 이전 Status 문단 원문은 history H1 'v0.7.3'에 있다.
+
+######## docs/01-plan/features/offset-strategy.plan.md replace old 443-443 new 443-443
+--- line new 443 (len old 403 new 712)
+  * **PS-7 -- S3 색인 평가 키 부분의 열거 API는 OS-2가 만든다**:[--]{+ 열거 대상 = S3 색인 평가 키 부분(design 40 398-402 `S3Index.get·failure·local·solved`; as-built `sctx.cache` -- 지울 슬롯 위에 API를 쌓지 않는다). 그 평가 키 부분은 **OS-2와 상위 LA-1 가운데 먼저 병합되는 card가 만든다**(상위 LA-1 범위 15 (iv), 상위 N6.1 '조건부 제작 함수' 꼴 -- 새 순서 규칙 0, 'OS-2·LA-1 선후 고정 없음' 유지; 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-1). 늦게 오는 card는 읽기만 한다.+} 하네스 사슬 대체(W-1, O-63 (3) 읽기 길 -- N3.12)는 열린 세션에서 평가 결과 전수(`seq` 순)를 읽어 ... 수 없다(만들면 배선). OS-2가 평가 목록 사본·dict를 따로 두는 것은 graph 규칙 2·6 위반이라 대안이 아니다.
+
+######## docs/01-plan/features/offset-strategy.plan.md replace old 463-463 new 463-463
+--- line new 463 (len old 2769 new 3332)
+| OS-2 (옛 OS-1 합침) | 한 card로 함께 병합한다. 옛 OS-1의 유도 제약·G-S1·G-S2는 유도 제약 입 ... 부분의 옛 코드는 같은 변경에서 지운다<br>• 공통 판정 검사(N3.4)는 이 card에 없다(OS-5, PD-6)<br>•[--]{+ (상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-1) S3 색인 평가 키 부분 -- OS-2가 상위 LA-1보다 먼저 병합되면 이 card가 만든다(`sctx.cache`·`computed_keys` 삭제, 커널 적중 = 색인 조회, 완료 = 엔진 `git grep "sctx.cache"` 0·9회로 결과 같음(순수 리팩터링 필드별)·같은 키 재계산 0); 늦으면 읽기만<br>• (상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2 -- 상위 옛 DF-18) **진입점 종료 코드·결과 기록**: `run_plan` 진입이 상위 N3.14 분류 예외를 `exit_code_for`로 프로세스 종료 코드(비0)에 싣고, 탐색까지 간 실행은 결과 JSON에 θ*·실패 레코드를 쓴다; 구조 규칙 F 예외 파일 = 그 진입점 파일(상수 `BROAD_EXCEPT_ENTRY_FILE` 갱신 -- 옛 `pipeline/entry.py`는 엔진에 없음). **완료 측정**: 분류마다 합성 실패 픽스처 → 종료 코드 = N3.14 표 값, 결과 JSON θ* 칸, 규칙 F 예외 1곳 = 진입점<br>•+} (v0.7.5 백로그 재감사 OS-B8 -- PS-7) S3 색인 평가 키 부분의 읽기 전용 열거(`seq` 순)를 세션 공 ... F-1, O-53 A2·B3, O-34 (1), O-61 P9, O-62 (3), O-63 (1)·(3), O-64 (2) |
+
+######## docs/01-plan/features/offset-strategy.plan.md replace old 473-473 new 473-473
+--- line new 473 (len old 416 new 527)
+* **W-1 (i)(사용자 승인 S-9)**: OS-2의 `run_plan`이 엔진 사슬 진입점의 정본이다. 하네스(`tes ... 페이스 호출(열기 → 변형 실행 → 읽기 → 닫기 -- v0.7.2, O-63 (3))로 대체하고 옛 수작업 사슬을 지운다. [-U16은-]{+제품 진입(종료 코드·θ* 기록)도 `run_plan`에 둔다 -- OS-2 범위(상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-2; 옛 'U16은+} 나중에 제품 CLI를 `run_plan`에 [-배선한다(사슬을-]{+배선' -- U16은 상위 card 표에 없는 이름이라 정리, 사슬을+} 두 벌 두지 않는다). design이 정할 요구(검증 B-1):
+
+######## docs/01-plan/features/offset-strategy.plan.md replace old 572-572 new 572-572
+--- line new 572 (len old 458 new 621)
+| DS-U9 | 시간 예산에서 E_B를 유도하는 실행의 다변형 규칙(완료 조건 2, NFR-S5) | [-**기본안-]{+**기본안(상위+} [-없음(열림)**.-]{+v6.38.4 열다섯째 커밋 계획 검증 4 m-11, NFR-S5·상위 NFR-4에서 -- 원칙으로 정한 기본안): 유도 실행 = 결정성 요구(완료 조건 2·NFR-S5) 밖 표기 유지**(옛 '기본안 없음(열림)'); 유도 금지(E_B 선언만)로 바꿀지만 사용자에게 묻는다(상위 U-47 하위 항목).+} '첫 변형의 유도값을 모든 변형에 쓴다'는 안은 조건 2를 지키지 못한다: 변형 2를 단독으로 돌리면 자기 유도값을 쓰고,  ... 구 밖으로 표기 유지 / 유도 금지(E_B 선언만)). 그때까지 지금 문언(표기·제외)은 fail-closed 표기라 유지 |
+
+######## docs/01-plan/features/offset-strategy.plan.md replace old 615-615 new 615-615
+--- line new 615 (len old 276 new 344)
+| PS-7 | 하네스가 평가 결과 전수(`seq` 순)를 읽는 S3 색인 평가 키 부분의 열거 API가 40 §2.4.5 조회 API에 없다(`get(key)`뿐, '색인을 순회하지 않는다'). O-63 (3) 읽기 길(N3.12)이 쓰는 API다 | OS-2 범위(소비자와 같은 [-변경-]{+변경; 열거 대상 부분의 제작 = OS-2·상위 LA-1 가운데 먼저+} --[--]{+ 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-1;+} v0.7.5 백로그 재감사 OS-B8, 옛 'U17 ② design(40 §2.4.5). v0.7.3부터 OS-2 착수 조건'); 40 §2.4.5 조회 API 개정안 = OS-0 design 개정 |
+
+######## docs/01-plan/features/oracle-portability.history.md insert old 171-170 new 171-171
+--- line new 171 (len old 0 new 604)
+[--]{+| 0.6.22 (다섯째 커밋) | 2026-10-29 | 상위 v6.38.4 열다섯째 커밋 계획 검증 4 반영(`wt/_drafts/evidence/2026-10-29/plan_v6384_validation4.md` M-5·m-10·m-12, 오케스트레이터 재판정 수용): OP-11 `supply_current_A` = `counted_rails` Σ I(엔진 `supply_current_dc`와 정의 하나 -- 정의를 바꾼 칸, 레일 하나면 동일성·레일 둘 toy 일치), B-L10 소유 = 상위 SF-1 범위 8, OP-5 꼬리 상계 PSD 점근 가정 = OP-0 design 질문(불능이면 fail-closed), OP-B14 소유 = OP-3 착수 조건(앞당김 안 함). 옛 문언: 칸 표 «\| OP-11 \| `rail_current_A`·`supply_current_A` \| `power_dc_w`(새 칸, 기존 레일 전류에서 계산) \|», 판정 기준 «**판정 기준**(O-34 (1)): `rail_current_A`·`supply_current_A`는 정의 그대로(동일성),», «(감사 B-L10 다시 열림 -- 상위 N6.17 백로그 (i);» |+}
+
+######## docs/01-plan/features/oracle-portability.plan.md replace old 18-18 new 18-18
+--- line new 18 (len old 23393 new 23523)
+> **Status**: **계획 v0.6.22 [-(v6.38.4-]{+(상위 v6.38.4 열다섯째 커밋 계획 검증 4 반영 -- OP-11 `supply_current_A` 정의 하나(정의를 바꾼 칸), OP-5 꼬리 상계 PSD 가정 = design 질문, OP-B14 소유 = OP-3 착수 조건, 검증 대기; v6.38.4+} 열넷째 커밋 백로그 재감사 반영 -- 삭제 6·배정 7·질문 0·불확실 [-2, 검증 대기)-]{+2)+} -- 둘째 커밋(OP-11 측정 부하 원소 전류 방향, 상위 계획 검증 2 m-5)·상위 gain-budget v6.38.4 ... _drafts/oracle_capability_handoff_from_offset_trim_v05.md`, 승인 안 됨)이다.
+
+######## docs/01-plan/features/oracle-portability.plan.md replace old 477-477 new 477-477
+--- line new 477 (len old 82 new 152)
+| OP-11 | [-`rail_current_A`·`supply_current_A`-]{+`rail_current_A`+} | `power_dc_w`(새 칸, 기존 레일 전류에서 [-계산)-]{+계산)·`supply_current_A`(정의 정정 = 셈하는 레일 `counted_rails` Σ I -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-5)+} |
+
+######## docs/01-plan/features/oracle-portability.plan.md replace old 508-508 new 508-508
+--- line new 508 (len old 3849 new 3992)
+| OP-5 | noise·offset_mc·swing 코어 + 어댑터 이전, **오라클 MC = 기술자 선언 네이티브 MC* ... 선언 칸에서 읽음, 상수 아님); noise 상한 확장은 꼬리 상계 ≤ 적분 상대 분해능이 되는 f_hi를 상계 식에서 직접 [-정하고,-]{+정하고(꼬리 상계는 PSD 점근 기울기 가정이 있어야 정의된다 -- 그 가정과 검사는 OP-0 design 질문으로 둔다; 가정이 성립하지 않거나 검사 불능이면 상계 불능 = fail-closed 사유, 상위 v6.38.4 열다섯째 커밋 계획 검증 4 m-10),+} 격자 밀도 반복은 연속 두 적분 차 ≤ 분해능까지(상한은 분해능에서 유도); 식 확정은 design(OP-0 개정). `NO ... 10), OP-1b(noise·MC (가-2) 동일성의 비교 상대, v0.6.10) | O-25·O-33·O-46·O-50 |
+
+######## docs/01-plan/features/oracle-portability.plan.md replace old 513-513 new 513-513
+--- line new 513 (len old 3384 new 3773)
+| OP-11 (v0.6.9 일곱째 커밋 신설) | **전력 `power_dc_w` 대조 배선**(근거: gain-budget ... -69`는 아직 닿지 않음 -- 상위 card SF-1 범위 8이 고침); 오라클도 같은 레일 집합을 읽는다(감사 B-L10 [-다시-]{+-- 상위 card SF-1 범위 8이 소유(상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-5; 옛 '다시+} 열림 -- 상위 N6.17 백로그 [-(i);-]{+(i)');+} v0.6.19, 옛 문장 '`power_dc_w`에는 닿지 않는다 … B-L10은 gain-budget 백로그'). **레일 ... 이 있을 때만(이 파일은 숫자 기본값 없음 규칙, 없으면 'N/A(tol 미설정)'). **판정 기준**(O-34 (1)): [-`rail_current_A`·`supply_current_A`는-]{+`rail_current_A`는+} 정의 [-그대로(동일성),-]{+그대로(동일성); **`supply_current_A`는 정의를 바꾼 칸**(상위 v6.38.4 열다섯째 커밋 계획 검증 4 M-5·상위 SF-1 범위 8 -- 옛 '정의 그대로'): `supply_current_A` = 셈하는 레일 집합(`counted_rails`, 상위 EO-1이 싣는 칸 -- 선언 없으면 레일 전부)의 Σ I_레일(DUT 레일 단자 전류 -- 위 `power_dc_w`의 I와 같은 양, P7 정정과 동일) = 엔진 `supply_current_dc`와 정의 하나(상위 graph 규칙 3), 레일 하나 선언이면 값 불변(동일성 비교), 레일 둘 선언 toy에서 엔진·오라클 값 같음(동작 변경 기준 toy);+} `power_dc_w`는 새 칸(동작 변경 기준 -- 손 회로 test: 레일·저항만인 회로에서 V²/R 합을 test 작성 ... U-5) | OP-3(compare 코어 이동 뒤 새 코어 위에서) | DEC-78·DEC-72·O-29·O-32·O-34 |
+
+######## docs/01-plan/features/oracle-portability.plan.md replace old 766-766 new 766-766
+--- line new 766 (len old 732 new 843)
+| (v0.6.7, 결정 아님 -- 확인 필요) 기존 LUT 폭 슬라이스 32개의 meta `generator_sha256`  ... ee·tag, 다른 줄 끝 변환) 탐색. 찾지 못하면 근거 (a)를 낮추지 않고 멈추고 보고한다(기준 약화는 사용자 결정). [-(v0.6.22-]{+(**소유 = OP-3 착수 조건(이 행 왼쪽 칸), 앞당김 안 함** -- 상위 v6.38.4 열다섯째 커밋 계획 검증 4 m-12 오케스트레이터 재판정; 아래 앞당김 권고는 채택 안 함, 기록만. v0.6.22+} 백로그 재감사 OP-B14 -- **불확실**: OP-3이 막히면 상위 EO-1·모든 SPICE 다리가 막히고 상위 WB-1 ... 씀) 뒤에만 판정에 씀 (나) 옆 선언 근거 (b)(include 그래프 밖 측정)만으로 역할 선언 -- 권고는 측정 뒤) |

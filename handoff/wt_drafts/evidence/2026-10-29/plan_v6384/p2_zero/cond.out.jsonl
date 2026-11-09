@@ -1,0 +1,9 @@
+{"circuit": "common_gate_amplifier", "paths": [], "other_output_devices": [], "condition_out": false}
+{"circuit": "current_reuse_telescopic_ota", "paths": [{"R": "Rz1", "C": "Cc1", "A": "Vop1", "B": "Vom", "S_cells": ["M16"]}, {"R": "Rz2", "C": "Cc2", "A": "Vom1", "B": "Vop", "S_cells": ["M26"]}], "other_output_devices": [{"path": "Rz1-Cc1", "A": "Vop1", "B": "Vom", "device": "M15", "gate": "Vg15", "declared_cap_A_gate": []}, {"path": "Rz2-Cc2", "A": "Vom1", "B": "Vop", "device": "M25", "gate": "Vg25", "declared_cap_A_gate": []}], "condition_out": false}
+{"circuit": "folded_cascode", "paths": [], "other_output_devices": [], "condition_out": false}
+{"circuit": "ngcc_3stage_ff", "paths": [], "other_output_devices": [], "condition_out": false}
+{"circuit": "nmcnr_amplifier", "paths": [{"R": "Rm", "C": "Cm2", "A": "NodeS2", "B": "Vout", "S_cells": ["M301"]}], "other_output_devices": [{"path": "Rm-Cm2", "A": "NodeS2", "B": "Vout", "device": "M302", "gate": "VB5", "declared_cap_A_gate": []}], "condition_out": false}
+{"circuit": "pushpull_follower_buffer", "paths": [], "other_output_devices": [], "condition_out": false}
+{"circuit": "sf_pushpull_output_opamp", "paths": [], "other_output_devices": [], "condition_out": false}
+{"circuit": "two_stage_ota", "paths": [{"R": "Rz", "C": "Cc", "A": "O1", "B": "OUT", "S_cells": ["M6"]}], "other_output_devices": [{"path": "Rz-Cc", "A": "O1", "B": "OUT", "device": "M7", "gate": "bias", "declared_cap_A_gate": []}], "condition_out": false}
+{"circuit": "two_stage_ota_sf", "paths": [], "other_output_devices": [], "condition_out": false}

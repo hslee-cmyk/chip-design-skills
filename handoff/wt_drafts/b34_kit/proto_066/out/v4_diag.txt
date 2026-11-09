@@ -1,0 +1,14 @@
+subjects: 14
+  proto c8 (fresh process) line 196: subject calls left=0 [] | right=0 [] | shared=0 -> rule(1) no hit
+  proto c8 (fresh process) line 203: no pair (hooked=False)
+  proto c8 (fresh process) line 210: no pair (hooked=False)
+  proto c8 (fresh process) line 227: subject calls left=14 ['audit_theta_root_direction', 'find_differential_and_mirror_forks', 'find_differential_pair_candidates', 'find_idiom_matches', 'find_stack_edges', 'find_verified_differential_and_mirror_relations', 'geometry_colocation_union', 'load_topology', 'propose_device_roles_gap_fill', 'propose_theta_kcl_gap_fill', 'propose_vertical_stack_id_gap_fill', 'refine_differential_and_mirror_relations', 'run_topology_pipeline', 'suggest_vertical_stack_composites'] | right=0 [] | shared=0 -> rule(1) no hit
+  helper-snapshot variant line 8: no pair (hooked=False)
+  helper-snapshot variant line 15: no pair (hooked=False)
+  helper-snapshot variant line 17: subject calls left=0 [] | right=0 [] | shared=0 -> rule(1) no hit
+  helper-snapshot variant lint_function: [('(2)', 'NO-SUBJECT'), ('(2)', 'NO-SUBJECT'), ('(2)', 'UNJUDGED')]
+  in-process-before variant line 8: no pair (hooked=False)
+  in-process-before variant line 15: no pair (hooked=False)
+  in-process-before variant line 17: subject calls left=1 ['find_stack_edges'] | right=1 ['find_stack_edges'] | shared=1 -> rule(1) FAIL
+  in-process-before variant lint_function: [('(1)', 'FAIL'), ('(2)', 'NO-SUBJECT'), ('(2)', 'NO-SUBJECT'), ('(2)', 'UNJUDGED')]
+  proto lint_function: [('(2)', 196, 'NO-SUBJECT'), ('(2)', 203, 'NO-SUBJECT'), ('(2)', 210, 'NO-SUBJECT'), ('(2)', 227, 'UNJUDGED')]

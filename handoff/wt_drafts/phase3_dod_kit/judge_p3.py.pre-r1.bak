@@ -1,0 +1,92 @@
+"""Phase 3 DoD 표 판정(design 30 §10 표 '통과 기준' 열을 그대로 기계로). 측정은 run_dod.sh가 하고 이 도구는 출력 JSON만 읽는다.
+
+    python -B judge_p3.py e01 <layer.json> <exit> <plan>       -- E0 present = N3.10 10행 전부, E1 exit 0·findings 0
+    python -B judge_p3.py e2  <S> <cards.txt> <invalid_flag>   -- card마다 ①V3 ②check ③일관성(증거 아님)
+    python -B judge_p3.py e4  <plan_final.json> <plan_exit> <test_exit>
+
+출력: 한 줄 'E? <PASS|FAIL|INVALID|PENDING> <근거>'. PENDING = 입력이 아직 없다(card 미병합) -- 판정이 아니다.
+"""
+import json
+import os
+import sys
+
+V3_KEYS = ("defs", "mutants", "move_rejected", "not_targeted", "targets_by_def", "moved")   # design §10 E2 ①·③
+CHK_KINDS = ("move-set", "move-rejected", "changed", "lost", "rebind", "future", "stmt-order", "order", "shim", "cache")
+
+
+def load(p):
+    try:
+        with open(p, encoding="utf-8") as fh:
+            txt = fh.read().strip()
+        return json.loads(txt.splitlines()[-1]) if txt else None
+    except (OSError, ValueError):
+        return None
+
+
+def e01(layer, rc, plan):
+    sys.path.insert(0, os.environ["GC"])
+    import import_layering as il
+    table = il.mod_table(open(plan, encoding="utf-8").read())
+    d = load(layer)
+    if d is None or "present" not in d:
+        print("E0 INVALID import_layering 출력 없음/ERROR: %s" % (d,)); print("E1 INVALID 같은 이유"); return
+    miss = sorted(set(table) - set(d["present"]))
+    print("E0 %s present %d/%d%s" % ("PASS" if not miss else "FAIL", len(d["present"]), len(table),
+                                     "" if not miss else " 없음: " + ",".join(m + ".py" for m in miss)))
+    f = d.get("findings", [])
+    print("E1 %s exit=%s findings=%d%s" % ("PASS" if rc == "0" and not f else "FAIL", rc, len(f),
+                                           "" if not f else " " + json.dumps(f[:6], ensure_ascii=False)))
+
+
+def e2(S, cards, invalid):
+    rows = [ln.split() for ln in open(cards, encoding="utf-8") if ln.strip()]
+    if not rows:
+        print("E2 PENDING cards.txt 0줄(M1~M6·M8·M9 판정 기록 없음)"); return
+    if invalid == "1":
+        print("E2 INVALID B0..HEAD tools/gates·tools/migrate 변경(D-27)"); return
+    bad = []
+    for r in rows:
+        m = r[2]
+        v3, ck = load(os.path.join(S, "v3_%s.json" % m)), load(os.path.join(S, "chk_%s.json" % m))
+        rc3 = open(os.path.join(S, "v3_%s.exit" % m)).read().strip() if os.path.exists(os.path.join(S, "v3_%s.exit" % m)) else "?"
+        rcc = open(os.path.join(S, "chk_%s.exit" % m)).read().strip() if os.path.exists(os.path.join(S, "chk_%s.exit" % m)) else "?"
+        if v3 is None:
+            bad.append("%s V3 출력 없음" % m); continue
+        miss = [k for k in V3_KEYS if k not in v3]
+        if miss:
+            bad.append("%s V3 키 없음 %s(G1·범위 정책 미병합 판이면 PENDING)" % (m, miss)); continue
+        ok1 = (rc3 == "0" and v3["defs"] == [] and v3["mutants"] == 0 and v3["move_rejected"] == {}
+               and v3["not_targeted"] == 0 and v3["targets_by_def"] == {})
+        if not ok1:
+            bad.append("%s ① V3 exit=%s defs=%s mutants=%s move_rejected=%s not_targeted=%s targets_by_def=%s" % (
+                m, rc3, v3["defs"], v3["mutants"], v3["move_rejected"], v3["not_targeted"], v3["targets_by_def"]))
+        if ck is None or "findings" not in ck:
+            bad.append("%s ② check 출력 없음" % m); continue
+        nz = {k: len(ck["findings"].get(k, [])) for k in CHK_KINDS if ck["findings"].get(k)}
+        absent = [k for k in CHK_KINDS if k not in ck["findings"]]
+        if rcc != "0" or nz or absent:
+            bad.append("%s ② check exit=%s 비지 않은 발견 %s 없는 키 %s" % (m, rcc, nz, absent))
+        md = ck.get("moved_defs")
+        n_md = len(md.get("defs", [])) if isinstance(md, dict) else (len(md) if isinstance(md, list) else None)
+        print("E2 ③ %s 일관성(증거 아님, 키 모양은 G1·D0a 병합 뒤 확정) V3 moved %s개 / check moved_defs %s개 / moved_units %s개 / assigned %s개" % (
+            m, len(v3.get("moved") or []), n_md, len(ck.get("moved_units") or []), len(ck.get("assigned") or [])))
+    print("E2 %s card %d개%s" % ("PASS" if not bad else "FAIL", len(rows), "" if not bad else " -- " + " | ".join(bad)))
+
+
+def e4(plan, rc_plan, rc_test):
+    d = load(plan)
+    if d is None:
+        print("E4 PENDING/INVALID plan 출력 없음(exit %s) -- move_plan.py(D0a) 없음이면 PENDING" % rc_plan); return
+    lists = {k: d.get(k) for k in ("reg_mismatch", "unassigned", "upward", "cycles", "conflicts")}
+    absent = sorted(d.get("absent_split", []))
+    a0 = [k for k, v in d.get("assignment", {}).items()
+          if k.split("::")[0] not in ("stick_diagram.py", "audit_current_forced.py") and v.get("rule") != "A-0"]
+    ok = (rc_test == "0" and rc_plan == "0" and all(v == [] for v in lists.values())
+          and absent == ["design_report.py", "sizing_recipe.py", "topology_library.py"] and not a0)
+    print("E4 %s test exit=%s plan exit=%s 목록 %s absent_split=%s A-0 밖 %d" % (
+        "PASS" if ok else "FAIL", rc_test, rc_plan, {k: (len(v) if isinstance(v, list) else v) for k, v in lists.items()}, absent, len(a0)))
+
+
+if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+    {"e01": e01, "e2": e2, "e4": e4}[sys.argv[1]](*sys.argv[2:])

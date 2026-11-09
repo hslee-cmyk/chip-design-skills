@@ -1,0 +1,2 @@
+{"case": "15-records", "mode": "direct", "verdict": "ERROR", "reason": "TimeoutExpired: Command '['C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe', '-s']' timed out after 3600 seconds"}
+{"summary": true, "mode": "direct", "phase": "0.5", "cases": {"ERROR": 1}, "steps": {}, "repo": "C:\\g259\\iso", "time": "20261002-194604"}

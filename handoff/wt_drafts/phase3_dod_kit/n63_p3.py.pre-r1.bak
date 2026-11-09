@@ -1,0 +1,138 @@
+"""Phase 3 DoD N6.3 공통 조건 1~5(Phase 2 DoD n63 절차를 phase 3 목록으로). 읽기 전용(git show/log/merge-base).
+
+    python -B n63_p3.py <iso> <H> <P2D> <out.json>
+
+1 판정 기록 전수 V1~V10 ∈ {PASS, N/A}
+2 `^phase: 3$` spec card 전부 판정 기록 있음, 목록 = p3_cards.PHASE3(20장)
+3 EL4 형식: 기록을 마지막으로 바꾼 커밋 = Role: audit + Change-Id, H 조상; test-only 아니면 'merge <id>' 병합 커밋 정확히 1개(H 조상),
+  test-only면 병합 0·code null·audit 커밋 단일 부모 = test_commit; base/test/code H 조상
+4 카드 밖 엔진 변경 0: P2D..H no-merges 중 엔진 경로(Phase 2와 같은 세 pathspec) + tools/migrate/** 를 바꾼 커밋 전부 Role code/test + phase 3 목록 Change-Id
+5 동작 변경 card 증거: red-green = red.test_ids·failure_hashes 비어 있지 않음 + V2 PASS; test-only = 4번 목록에서 Role test뿐; equivalence = V2 PASS + basis 인용
+(관찰, 판정 아님) Phase 3 기간 0.5 card V 판정, P2D..H tools/gates 커밋의 trailer
+"""
+import collections
+import json
+import os
+import re
+import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import p3_cards  # noqa: E402
+
+ENGINE = ["skills/analog-gmid-design/assets/*.py", "workspaces/run_harness.py",
+          "skills/analog-gmid-design/assets/library/*.json", "tools/migrate/*"]
+
+
+P2_IDS = ["20260923-probe-dead-delete", "20260923-probe-relocate", "20260923-probe-promote-clean",
+          "20260923-probe-promote-differential", "20260929-probe-engine-dup", "20260923-d-delete-dead",
+          "20260923-d-delete-telescopic", "20260930-d-move-tests", "20260930-registry-grade-fix",
+          "20260930-dup-w-calc", "20260930-p9-kcl-edges", "20260930-p10-df23-inventory",
+          "20260930-df23-registry-record", "20260930-restore-plan-functions", "20260930-df35-harness-paths",
+          "20260930-df36-instance-relpath", "20261001-topology-md-sync"]
+
+
+def main(iso, H, P2D, out, phase="3"):
+    if phase == "2":   # 판별력 대조(리허설): 같은 검사기로 committed phase2-dod.md N6.3 수치를 재현하는지(H = 5f643a9, P2D 자리 = da03c0e)
+        p3_cards.PHASE3 = [(i, i, None, "") for i in P2_IDS]
+    def git(*a):
+        p = subprocess.run(["git", "-c", "core.quotepath=off", "-C", iso, *a], capture_output=True)
+        return p.returncode, p.stdout.decode("utf-8", "replace")
+
+    anc = lambda c: bool(c) and git("merge-base", "--is-ancestor", c, H)[0] == 0
+    trailers = lambda c: git("show", "-s", "--format=%(trailers:only,unfold)", c)[1]
+    res = {"H": H, "P2D": P2D}
+    _, ls = git("ls-tree", "--name-only", H, ".ai/verification/")
+    allv = {}
+    for p in sorted(ls.split()):
+        if p.endswith(".json") and not p.endswith("_schema.json"):
+            d = json.loads(git("show", "%s:%s" % (H, p))[1])
+            allv[d["id"]] = d
+    V = lambda d: {k: d["checks"].get(k, {}).get("verdict") for k in ["V%d" % i for i in range(1, 11)]}
+    bad1 = {i: V(d) for i, d in allv.items() if any(x not in ("PASS", "N/A") for x in V(d).values())}
+    res["1"] = {"n": len(allv), "bad": bad1, "ok": not bad1}
+    _, cards = git("grep", "-l", "-E", "^phase: %s$" % phase, H, "--", "docs/02-design/specs")
+    ids3 = sorted(re.sub(r"^.*/(.*)\.spec\.md$", r"\1", c) for c in cards.split())
+    hit = p3_cards.match(p3_cards.PHASE3, ids3)
+    listed = {i for v in hit.values() for i in v}
+    res["2"] = {"n_cards": len(ids3), "expected": len(p3_cards.PHASE3),
+                "per_label": {k: v for k, v in hit.items()},
+                "with_record": sorted(i for i in ids3 if i in allv),
+                "without_record": sorted(i for i in ids3 if i not in allv),
+                "unlisted_phase3_cards": sorted(set(ids3) - listed),
+                "labels_missing": sorted(k for k, v in hit.items() if len(v) != 1)}
+    res["2"]["ok"] = (not res["2"]["without_record"] and not res["2"]["unlisted_phase3_cards"]
+                      and not res["2"]["labels_missing"])
+    merges = collections.defaultdict(list)
+    for ln in git("log", "--merges", "--format=%H%x09%s", H)[1].splitlines():
+        h, s = ln.split("\t", 1)
+        m = re.match(r"^merge (\S+)$", s)
+        if m:
+            merges[m.group(1)].append(h)
+    rows = []
+    for lab, rx, ev, _sup in p3_cards.PHASE3:
+        ids = hit[lab]
+        if len(ids) != 1 or ids[0] not in allv:
+            rows.append({"label": lab, "id": ids, "missing": True})
+            continue
+        i = ids[0]; d = allv[i]
+        a = git("log", "-1", "--format=%H", H, "--", ".ai/verification/%s.json" % i)[1].strip()
+        tr = trailers(a)
+        par = git("show", "-s", "--format=%P", a)[1].split()
+        mc = merges.get(i, [])
+        et = d.get("evidence_type")
+        if et == "test-only":
+            merge_ok = not mc and d.get("code_commit") is None and par == [d.get("test_commit")]
+        else:
+            merge_ok = len(mc) == 1 and anc(mc[0])
+        rows.append({"label": lab, "id": i, "evidence_type": et, "design_evidence": ev,
+                     "V": "".join("P" if x == "PASS" else ("N" if x == "N/A" else "X") for x in V(d).values()),
+                     "audit_commit": a[:7], "audit_trailers_ok": ("Role: audit" in tr and ("Change-Id: %s" % i) in tr and anc(a)),
+                     "merge_commits": [m[:7] for m in mc], "merge_ok": merge_ok,
+                     "base_test_code_anc": all(anc(c) for c in (d.get("base_commit"), d.get("test_commit"), d.get("code_commit")) if c),
+                     "red_n": [len((d.get("red") or {}).get("test_ids") or []), len((d.get("red") or {}).get("failure_hashes") or [])],
+                     "V2_verdict": d["checks"].get("V2", {}).get("verdict"),
+                     "V2_basis_head": (d["checks"].get("V2", {}).get("basis") or "")[:300]})
+    res["3_rows"] = rows
+    res["3"] = {"ok": all(r.get("audit_trailers_ok") and r.get("merge_ok") and r.get("base_test_code_anc")
+                          for r in rows) and not any(r.get("missing") for r in rows),
+                "missing_rows": [r["label"] for r in rows if r.get("missing")]}
+    p3ids = {r["id"] for r in rows if not r.get("missing")}
+    cs = git("log", "--no-merges", "--format=%H", "%s..%s" % (P2D, H), "--", *ENGINE)[1].split()
+    per = collections.Counter(); badc = []
+    for c in cs:
+        tr = trailers(c)
+        role = re.search(r"^Role: (\S+)", tr, re.M); cid = re.search(r"^Change-Id: (\S+)", tr, re.M)
+        if role and role.group(1) in ("code", "test") and cid and cid.group(1) in p3ids:
+            per["%s %s" % (cid.group(1), role.group(1))] += 1
+        else:
+            badc.append({"c": c[:7], "role": role and role.group(1), "cid": cid and cid.group(1)})
+    res["4"] = {"range": "%s..%s" % (P2D[:7], H[:7]), "pathspec": ENGINE, "n": len(cs), "per_card_role": dict(per),
+                "bad": badc, "ok": not badc}
+    ev5 = {}
+    for r in rows:
+        if r.get("missing"):
+            continue
+        if r["evidence_type"] == "red-green":
+            ev5[r["label"]] = {"red_n": r["red_n"], "V2": r["V2_verdict"], "ok": min(r["red_n"]) > 0 and r["V2_verdict"] == "PASS"}
+        elif r["evidence_type"] == "test-only":
+            roles = {k.split()[1] for k in per if k.split()[0] == r["id"]}
+            ev5[r["label"]] = {"roles_in_4": sorted(roles), "ok": roles <= {"test"}}
+        else:
+            ev5[r["label"]] = {"V2": r["V2_verdict"], "basis_head": r["V2_basis_head"], "ok": r["V2_verdict"] == "PASS"}
+    res["5"] = {"per_card": ev5, "ok": all(v["ok"] for v in ev5.values()) and not res["3"]["missing_rows"]}
+    # 관찰(판정 아님)
+    g05 = p3_cards.match(p3_cards.GATE05, list(allv))
+    res["obs_gate05"] = {lab: ({"id": v[0], "V": "".join("P" if x == "PASS" else ("N" if x == "N/A" else "X") for x in V(allv[v[0]]).values())}
+                               if len(v) == 1 else None) for lab, v in g05.items()}
+    gcs = git("log", "--no-merges", "--format=%H", "%s..%s" % (P2D, H), "--", "tools/gates")[1].split()
+    res["obs_tools_gates"] = [{"c": c[:7], "trailers": re.findall(r"^(?:Role|Change-Id): \S+", trailers(c), re.M)} for c in gcs]
+    json.dump(res, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print("N6.3 1 %s(n=%d) | 2 %s(%d/%d, 기록 없음 %d) | 3 %s | 4 %s(n=%d, 어긋남 %d) | 5 %s" % (
+        res["1"]["ok"], res["1"]["n"], res["2"]["ok"], res["2"]["n_cards"], res["2"]["expected"],
+        len(res["2"]["without_record"]), res["3"]["ok"], res["4"]["ok"], res["4"]["n"], len(badc), res["5"]["ok"]))
+
+
+if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+    main(*sys.argv[1:6])

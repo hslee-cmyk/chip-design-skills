@@ -1,0 +1,75 @@
+# Phase 3 이동 사슬 재측정 -- gate `master` `2183f2e`(B34 병합 뒤)
+
+작성 2026-10-06. **측정 전용(관찰)** -- 초안·키트는 고치지 않았다(이 파일만 씀). 실제 저장소 읽기 전용(`git -C`, `set -e`),
+스크래치 `C:/g315`만(TMP·TEMP 그 안, `clone -c core.autocrlf=false`, 끝에 삭제). 비교 기준 = `m_cards_plan.md` §1(r1) + 각 `draft_p3_m<k>.spec.md` '재현할 수치'
+(M2~M9 = `p3kit_m2_m9/out/cards_data.json`, gate `4a286f0` 사슬 `C:/g226`; M1 = r2 `7243f28` 사슬 `C:/g304`).
+
+## 0. 결론
+
+* **단위 수·규칙 분포·def 수·`mod_imports`·재수출 줄·단위별 규칙·`check`·`moved_defs`·G1 V3(대상 def 0·변이 0)·IMPORT-ANY·`import_layering`·E3b FAIL 수·계약 3(현재 `c3.py`)·병합본 `plan` 일곱 목록·W-2 ACF 로드·W-1 shim 읽기 수 = 모두 이전 값과 같다.**
+* **B34 때문에 바뀐 값**(아래 §3 전부): (1) SD·SR에서 온 단위의 **줄 범위**(SD −1~−14행, SR −1행), (2) split 파일·MOD 파일 줄 수, (3) **M2 G1 없는 V3 변이 315 → 302**(def 16 그대로),
+  (4) **E3b SD 사본 `base_files_reading_moved_out`: M2 1 → 2, M3 26 → 27**(새 파일 `tests/contracts/test_b34_grammar_explicit.py`가 옮긴 이름을 읽음, FAIL·새 FAIL은 0 그대로),
+  (5) **F1 모의 62/6/3 → 62/6/4(72파일)** -- `test_b34_grammar_explicit.py` FAIL `listed_changes_approved`(목록 단위 2개가 승인 5단위 목록 밖). 그 2단위를 승인 목록에 더하면 **62/7/3**.
+* G1 시제품 `g1_kit/install_proto.py`(md5 `733d173f…`) → `2183f2e`에 **'installed 4'**(앵커 실패 없음 -- `7243f28..2183f2e` 사이 `tools/` 변경 0).
+* D0a 대역 결정성: `PYTHONHASHSEED=0` 두 번 = **바이트 같음**(D0b 전·M1 base 모두). seed 1·2(M1 base)도 바이트 같음. D0b 전 `plan`은 seed 7에서 **`rule_counts_sim` dict 키 순서만** 다름(JSON 내용 같음 -- 배정·목록 영향 없음). `_drafts/d0a_determinism.md`는 없다.
+
+## 1. 사슬(스크래치 `C:/g315/r`)
+
+`2183f2e` → FU 대역 `4bab298`(DR 27행 뒤·ACF 37행 뒤) → T0 W-1 대역 `dfd763a`(1·3·1) → G1 시제품 `a2002cb`('installed 4') → D0a 대역 `c1d8b0d`(`move_plan_sim.py` md5 `affb8694…`)
+→ D0b 재생성 대역 = **M1 base `9920f5c`**(`regen_registry.py --write` one 354·multi 0·nested 7·nounit 18, `보류(Phase 3)` → `(Phase 4)`). D-11 토큰은 계획에 이미 1행(`qtok` 단계 없음). `MP_STMT_KEY=names`, `PYTHONHASHSEED=0`.
+빌드 = `p3kit_m2_m9/r1m/n1/build278.sh`의 인자판 사본, 사슬 = `chain226.py` 사본(경로만 `C:/g315`; `r1m/chain_lean.py`는 V3·IMPORT-ANY·E3b를 비워 두어 전체판을 썼다 -- 같은 생성기 `gen226.py`), 계약 3 = `r1m/n1/c3all.py` + `r1m/c3.py`(md5 `92bb2ae9…`).
+
+* D0b 전 `plan` exit 1: `reg_mismatch` 80, 나머지 0, 배정 403 = A-1 61·A-2 38·A-3 1·A-4 235·A-5 57·A-6 7·A-7 2·A-K 2 -- **같음**.
+* M1 base `plan` exit 0: 일곱 목록 0, 배정 403 = A-1 61·A-2 39·A-4 245·A-5 53·A-6 3·A-K 2, MOD1 8·MOD2 18·MOD3 82·MOD4 104·MOD5 21·MOD6 11·MOD8 30·MOD9 16·SD 잔류 111·ACF 2 -- **같음**.
+* card base → head: M1 `9920f5c→efa8f97`, M2 `→8cf36ae`, M3 `→55cdfd9`, M4 `→c6189c3`, M5 `→c448fd4`, M6 `→09c6d55`, M8 `→871c36b`, M9 `→ece0193`.
+
+## 2. card별 결과(새 값; '같음' = §1 표·'재현할 수치'와 같음)
+
+| card | 단위(출처) | 규칙 | def | `mod_imports` 머리/끝 | `check` | moved u/d | V3 G1 대상 def·변이 | G1 없는 def·변이 | IMPORT-ANY | LAYER | E3b(사본: LIVE moved_out / base_files_reading / FAIL head=bb / 새 FAIL) | 계약 3 (a)(b)(c) | 병합본 `plan` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M1 | 8(SR 8) | A-1 6·A-4 2 | 22 | 3/0 | PASS 0 | 8/22 | 0·0 | 22·590 | 6/6/0 | 0 | SR 8/46/9=9/0 | 일치(SR head) | 0·map 0·A-0 8 |
+| M2 | 18(SD 10·SR 7·ACF 1) | A-4 12·A-1 3·A-5 3 | 16 | 5/0 | PASS 0 | 18/16 | 0·0 | 16·**302**(옛 315) | 7/7/0 | 0 | SR 7/1/9=9/0; SD 10/**2**(옛 1)/0/0; ACF 1/0/0/0 INVALID(옛과 같음) | 일치(SD·SR·ACF head) | 0·0·A-0 18 |
+| M3 | 82(SR 43·SD 39) | A-4 48·A-1 15·A-5 10·A-2 7·A-6 2 | 100 | 8/0 | PASS 0 | 82/100 | 0·0 | 100·3052 | 8/8/0 | 0 | SR 43/22/9=9/0; SD 39/**27**(옛 26)/0/0 | 일치 | 0·0·A-0 82 |
+| M4 | 104(SR 97·TL 7) | A-4 69·A-1 19·A-5 9·A-2 7 | 126 | 10/0 | PASS 0 | 104/126 | 0·0 | 126·3999 | 9/9/0 | 0 | SR 97/26/9=9/0; TL 7/3/0/0 | 일치(TL 완전 shim) | 0·0·A-0 104 |
+| M5 | 21(SR) | A-4 11·A-1 6·A-5 3·A-2 1 | 23 | 9/0 | PASS 0 | 21/23 | 0·0 | 23·711 | 10/10/0 | 0 | SR 21/9/9=9/0 | 일치 | 0·0·A-0 21 |
+| M6 | 11(SR) | A-4 10·A-1 1 | 14 | 5/0 | PASS 0 | 11/14 | 0·0 | 14·333 | 11/11/0 | 0 | SR 11/7/9=9/0 | 일치(옛 문언 pre-n1은 SR index 16 불일치 -- n1과 같음) | 0·0·A-0 11 |
+| M8 | 30(SR) | A-4 17·A-1 8·A-5 3·A-2 2 | 58 | 13/1 | PASS 0 | 30/58 | 0·0 | 58·3077 | 12/12/0 | 0 | SR 30/37/9=9/0 | 일치(SR 완전 shim) | 0·0·A-0 30 |
+| M9 | 16(SD 8·DR 6·ACF 2) | A-4 8·A-5 4·A-1 3·A-2 1 | 16 | 8/1 | PASS 0 | 16/16 | 0·0 | 16·307 | 13/13/0 | **2**(예상) | SD 8/10/0/0; DR 6/5/0/0; ACF 2/0/0/0 INVALID | 일치(SD tail·DR 완전 shim·ACF head) | 0·0·A-0 16 |
+
+* 합: 이동 290 = §1 표, def 375 = §1 표, G1 없는 변이 12,384 → **12,371**(M2 −13).
+* 단위 집합·단위별 규칙·`mod_imports` 줄 문자열·재수출 줄 문자열: 8 card 모두 `cards_data.json`과 **문자열 같음**. 재수출 행: SR 46·47·48·49·50·51, SD 41·42, ACF 45·46 -- 같음. SD 끝 재수출(M9)은 파일 끝(4971행, 옛 4973 = 파일 길이 변화).
+* W-2 ACF 밖 cwd 로드(M2·M9) `ok`. W-1 shim 읽기(`shim_import_reads.py`) hits/files = 77/48·78/49·131/54·215/60·230/60·245/60·304/60·315/61 -- 같음.
+* `check` 시간 44~73 s, card 한 건 310~546 s.
+
+## 3. B34 때문에 바뀐 값(전부)
+
+B34 엔진 변경: SR `resolve_stack_layout` docstring −1행(blob `97a6c7bb…` → `2a7a1a0…`), SD 4 def(`_import_analog_grammar`·`find_idiom_matches`·`find_stack_edges`·`audit_theta_root_direction`) 본문·docstring + 그 앞 1행 감소, 새 test `tests/contracts/test_b34_grammar_explicit.py`. `tools/` 변경 0.
+
+1. **줄 범위(card base 파일 기준)** -- '재현할 수치'의 줄 번호 갱신 필요:
+   * M1: **변화 없음**(SR 변경 6507행은 MOD1 단위 뒤) -- 52~73·141~203·206~251·257·259~672·1343~1353·1356~1394·4782~4803 그대로, 재수출 SR 46행 그대로.
+   * M2(SD 9개): `_to_analog_grammar_devs` 1034~1041·`_import_analog_grammar` 1044~1057·`find_idiom_matches` **1060~1077**(20→18행)·`find_stack_edges` **1080~1089**(12→10행)·`_propose_headroom_roles` 2191~2308·`audit_theta_root_direction` **3323~3394**(79→72행)·`apply_theta_kcl_gap_fill` 3765~3817·`apply_device_roles_gap_fill` 4528~4590·`find_authoritative_sizing_devices` 4593~4633. `_scan_case_collisions` 927~934·SR 7·ACF 1은 같음.
+   * M3: SD 39개 중 37개 −1~−3행(1047~1092 → 1046~1091 … `load_topology` 8124~8313 → 8121~8310; `find_matching_candidates` 938~1014·`Transistor` 48~79 같음), SR 9개(6841행 이후) −1행(`_SPEC_RESOLUTION_KEYS` 6840~6842 … `_theta_feed_footprint` 8874~8910).
+   * M4: SR 9개(4941행 이후) −1행(`_metric_stage_budget_vds_by_device` 4940~4963 … `_hr_resolve_vertical_group` 5447~5946). TL 7 같음.
+   * M5: SR 1개 −1행(`make_matching_feasibility_check` 1829~1897).
+   * M6: SR 6개 −1행(`derived_bounds_path` 999~1008·`load_derived_bounds` 1011~1018·`_group_score_metric` 3114~3125·`_group_score_interior` 3128~3168·`_theta_device_map` 3466~3489·`repair_infeasible_baseline` 3492~3661).
+   * M8: SR 28개 = `resolve_stack_layout` 664~**772**(시작 같음·끝 −1, 본문 −1) + 그 뒤 27개 −1행( 예 `_build_theta_evaluator` 967~1970·`optimize_full_circuit_budget` 2112~2564·`run_topology_pipeline_with_finger_fixup` 4569~4697). `derive_role_L` 252~342·`estimate_area_budget` 347~376 같음.
+   * M9: SD 8개 −2행(`INSTANCE_SIZING_FIELDS` 4808 … `save_instance_json` 5125~5176). DR 6·ACF 2 같음.
+2. **파일 줄 수**: SR 11398 → 11397(M1 head; M1 base SR 12014 = `2183f2e` 원본과 같음), M2 head SD 8609 → 8606(M2 base SD 9010), M3 base SD 5178 → 5176, M9 병합본 SD 4973 → 4971, 각 card SR −1. MOD 파일: `topology_authoring.py` 598 → **587**, `circuit_state_graph.py` 4802 → 4801, `sizing_layout_convergence.py` 3995 → 3994(나머지 MOD 같음).
+3. **M2 G1 없는 V3 변이 315 → 302**(def 16 그대로; B34가 옮길 def 4개 본문을 줄임). G1 판 대상 def 0·변이 0은 같음. M1·M3~M9 변이 같음.
+4. **E3b SD 사본 `base_files_reading_moved_out`**: M2 1 → **2**, M3 26 → **27**(B34 test 파일이 SD에서 그 이름을 읽음). FAIL head = base 자기 대조(0)·새 FAIL 0은 같음. M9 SD 10은 같음.
+5. **F1 모의(`mk_chain_r1.sh C:/g315/f <repo> g1_kit/install_proto.py 2183f2e`, exit 0; D-11 빈 커밋 `c72ec57`·G1 `21e6723`·M1~M9 `c4899fb`·M9 정정 `0106d88`·F1 모의 `a182445`·F2 모의 `bbd91f3`; `assets` 트리 `7c6c2c8`·`e25ccd3`·`f05f7b8` -- B34로 옛 `6614ba2`·`df0724f`·`0806c27`과 다름)**:
+   `f12_equiv.py`(r4) `--d17 f1sim_names.json --approved out/approved_v5_5_mock.txt` → **72파일, PASS 62 · LISTED 6 · FAIL 4**(옛 71파일 62/6/3). 늘어난 FAIL = `test_b34_grammar_explicit.py` `listed_changes_approved`:
+   목록 단위 7(탈출 자리 `dunder` 3: `_b34_exc_problems` 73·`test_b34_c5_…` 271·`test_b34_c8_…` 301행), 바뀐 목록 단위 2 = `test_b34_c1_both_absent_raises_named_import_error`·`test_b34_c8_restored_values_equal_fresh_process`(F1 재작성기가 `stick_diagram.<이름>` 호출을 `_f1_topology_authoring`·`_f1_circuit_state_graph` 모듈 별칭으로 바꿈) -- 승인 목록 밖.
+   그 2단위를 더한 7단위 목록(스크래치 사본) → **62 · 7 · 3**(FAIL = selftest 3 `ast_same`·`from_same`, T0 몫 -- 옛과 같음). 승인 없이 → 62 · 1 · 9(옛 62/1/8). `d17_expect_vs_f1sim_diff` [].
+   → F1 card의 '현재 목록'(계약 3 (바))·승인 목록·LISTED/FAIL 기대 수에 `test_b34_grammar_explicit.py` 행을 더해야 한다(이 문서는 고치지 않음).
+
+## 4. 그 밖의 관찰
+
+* `mk_chain_r1.sh` 안 `sim_m_d31.py` 요약의 `import_fail`이 모든 card에서 `No module named 'numpy'`로 찼다 -- 백그라운드 실행 셸의 환경 문제(같은 `_ENV` 식으로 `work/state_M*` 92개 모듈을 다시 import하면 **실패 0**). `order_old_fail` M8·M9·`order_new_fail` []·`shim_new_fail` []는 옛 `p3kit_f12/out/sim_m_d31.json`과 같음. F1 판정(위 5)은 이 import 검사와 무관.
+* `sim_m_d31` 로그의 plan 규칙 수가 옛 파일과 다르다(A-1 60→61·A-4 240→239·upward 35→34) -- 옛 파일은 D-11 토큰 전(`4a286f0`) 산출로 보이며 B34와 무관한 차이로 판단(미확인).
+* E3 식·PT3·E-LIB·E-INST·V4/V5·실행 V3/V6/V7은 이번 범위 밖이라 돌리지 않았다.
+
+## 5. 격리
+
+실제 저장소: 이 측정은 쓰지 않았다(`git -C` 읽기·`clone`만). 시작 HEAD `2183f2e`, 끝 HEAD `6c724de` -- 측정 중 **다른 실행**이 docs 커밋 1개를 만들었다(b26pre spec card + interface card, reflog `commit:`). 이 측정은 `2183f2e`를 명시 checkout해 그 판으로 쟀다.
+`status --porcelain` md5 `76eea762…`(38줄)는 시작·끝 같음. `C:/g315` 삭제 확인.

@@ -1,0 +1,86 @@
+{
+  "id": "20260922-sections-major-merge",
+  "attempt": 2,
+  "evidence_type": "red-green",
+  "freeze": {
+    "T": "cbc23682b6304e9c676a09ab0edbcdbdcb8e82af",
+    "T_parent": "1ee5b396109cc7478938273b56f0dc755cf257f7",
+    "T_tree": "ed94ec48317ec45fd3e555792f31306fb40ae95f",
+    "T_trailers": "Role: test, Change-Id: 20260922-sections-major-merge",
+    "base": "1ee5b396109cc7478938273b56f0dc755cf257f7",
+    "code_commit": null,
+    "base_to_T_commits": 1,
+    "base_to_T_numstat": [
+      "122\t0\tskills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py"
+    ],
+    "name_status": "M 1",
+    "base_to_T_paths_outside_tests": 0,
+    "blobs_T": {
+      "tests/tooling/test_extract_selftest.py": "3105741610fcba792deefde4bbde4a25b74a49eb (base c4d59428c8a9cd775de348e90e197cdcccd30245)"
+    },
+    "approvals_in_T": {},
+    "spec_blobs_T": {
+      "docs/02-design/specs/20260922-sections-major-merge.spec.md": "551866e6dafc05f738611d57aa47d6af3b9a7ec3",
+      "docs/02-design/specs/20260922-sections-major-merge.interface.md": "e81aa054f66ded21463646b4f0c6b30f3229901d"
+    },
+    "test_change_summary": "추가만(삭제 0줄): 합성 블록 4개((i) 연속 대 표지, (i-b) 연속 대 표지 블록 끝, (ii) 대 표지·일반 문장·대 표지, (iii) 대 표지·소 표지·대 표지), 보조 _sections_of·assert_sections_match, test 4개. 2차 시도에서 1차 대비 판정 함수 이름 assert_sections_match, end 단언, test (i-b) 추가를 auditor가 T diff로 직접 확인"
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso",
+    "commands": [
+      "git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-sections-major-merge-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso remote remove origin",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso config core.longpaths true",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso checkout -q --detach 1ee5b396109cc7478938273b56f0dc755cf257f7",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso checkout -q --detach cbc23682b6304e9c676a09ab0edbcdbdcb8e82af"
+    ],
+    "env": "APPDATA=C:\\Users\\HSLEE\\AppData\\Roaming, PY=C:/Python314/python.exe(3.14.2, pytest 9.0.2)",
+    "gate_cache": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/1ee5b396109cc7478938273b56f0dc755cf257f7",
+    "outputs_dir": "C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out",
+    "tracked_changes_after_runs": 0
+  },
+  "test_sets": {
+    "base": {
+      "rev": "1ee5b396109cc7478938273b56f0dc755cf257f7",
+      "command": "V1 명령(아래 red_check.command에서 `-p merge_gate --continue-on-collection-errors`와 GMID_* 환경 변수를 뺀 형태 + -rA), PYTHONPYCACHEPREFIX=outputs_dir/pyc_base",
+      "result": "65 passed, 12 xfailed, 실패 0, 수집 오류 0, exit 0, 51.97s",
+      "output": "outputs_dir/base_v1.txt",
+      "output_sha256": "429a92678e33ee6e0e7bc3b790027cdc700e5645105c047d014b139fb1ac4bba"
+    },
+    "T": {
+      "rev": "cbc23682b6304e9c676a09ab0edbcdbdcb8e82af",
+      "command": "red_check.command",
+      "result": "1 failed, 68 passed, 12 xfailed, 수집 오류 0, exit 1, 48.27s",
+      "output": "outputs_dir/red_run.txt",
+      "output_sha256": "b5f0dbc0b5174746dd01536822efee943c64941a18319308b7c1b2976a02a978"
+    },
+    "pass_set_compare": "base PASSED 65 - T PASSED 68 = 0(base에서 통과하던 test가 T에서 깨지지 않음). T PASSED - base PASSED = 새 test 3개(test_sections_consecutive_majors_merge_into_one, test_sections_consecutive_majors_merged_section_ends_at_second_major, test_sections_major_after_sub_marker_starts_new_section) -- base 도구로 이미 통과(계약 1 (i) 무발동 입력과 (iii) 소 표지 뒤 대 표지는 base도 새 섹션). 새 test 4개 중 red는 (ii) 1개. 계산 outputs_dir/red_cmp.py -> red_cmp.json"
+  },
+  "red_check": {
+    "command": "APPDATA=C:\\Users\\HSLEE\\AppData\\Roaming PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out/pyc_red PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/1ee5b396109cc7478938273b56f0dc755cf257f7 GMID_RED_CAPTURE=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out/red.jsonl GMID_INTERFACE_CARD=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso/docs/02-design/specs/20260922-sections-major-merge.interface.md C:/Python314/python.exe -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/1ee5b396109cc7478938273b56f0dc755cf257f7/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso/skills/analog-gmid-design/assets/tests --gmid-phase=1 --gmid-strict=IC3:,IC5: -p merge_gate --continue-on-collection-errors -rA",
+    "rev": "cbc23682b6304e9c676a09ab0edbcdbdcb8e82af (T = base 코드 + test)",
+    "exit": 1,
+    "capture": "outputs_dir/red.jsonl, 13행(sha256 be3c5052625b29ac2fa15635148f0eb216ffa9d1924607229fb95b8bd7959d4e). 1행 = T FAILED 1개, 12행 = 비엄격 xfail 뼈대(IC1·IC2·IC4·IC6·IC8·IC9·IC10 각 1, IC7 2, IC11 3)의 pytest.fail() -- 결과가 XFAIL이라 red에서 뺐다",
+    "fail_causes": {
+      "tooling/test_extract_selftest.py::test_sections_major_after_plain_statement_starts_new_section": "builtins.AssertionError: assert 2 == 3 (test_extract_selftest.py:563, `assert len(secs) == 3`) -- base sections가 경우 (ii) '대 표지·assert·대 표지'의 두 번째 대 표지를 앞 대 표지 섹션에 합쳐 섹션 2개(P, A)를 낸다. design §5.1 위반(계약 1), spec card 판정 유형 근거와 일치"
+    },
+    "harness_errors": 0,
+    "failure_hash_method": "merge_gate.red_failure_hash(test_id, exc_type) = sha256(test_id + \"\\n\" + exc_type), 캐시 판 merge_gate로 13행 모두 재계산 일치",
+    "aggregate_hash": "6d5d774bec547635ff18f19fdcc7de263e51c342dd0d6d3dab60cccb70ac45a1",
+    "aggregate_hash_method": "sha256(정렬한 failure_hash를 \n으로 이은 UTF-8)",
+    "red": [
+      {
+        "test_id": "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_major_after_plain_statement_starts_new_section",
+        "exc_type": "builtins.AssertionError",
+        "failure_hash": "8c82a645a84eb006bc93e9d88a0c427b89faf151f6497ec8c447d712f4b73222"
+      }
+    ],
+    "result": "red 확인: T(base 코드)에서 FAIL 1개, 판정 유형 red(AssertionError), 수집 오류·하네스 오류 0. 병합본에서 이 test가 PASS이고 나머지 새 test 3개가 PASS를 유지해야 한다(V2)"
+  },
+  "v5_precheck": {
+    "command": "C:/Python314/python.exe C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/1ee5b396109cc7478938273b56f0dc755cf257f7/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso --base 1ee5b396109cc7478938273b56f0dc755cf257f7 --head cbc23682b6304e9c676a09ab0edbcdbdcb8e82af",
+    "exit": 0,
+    "output": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}",
+    "note": "base..T 사전 확인. test 변경은 추가만(삭제 0줄)이라 기준 약화 없음. 최종 V5는 병합본 대상으로 순서 7에서 다시 잰다"
+  }
+}

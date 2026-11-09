@@ -1,0 +1,47 @@
+=== run_gmid_design_pipeline
+=== U16
+=== U17 ②
+gain-budget-gmid-sizing.plan.md:11: 분류(U-76 (1)(5)에서도), PASS 승격은 U-112 범위, 슬루 선언 held-out 회로 U17 ② 완료는 U-112 뒤; N-1 VB-1·DEC-90 (3) `verified_by` 계약 개정(레지스트리 밖
+gain-budget-gmid-sizing.plan.md:11:= 엔진 시작점·front, 판정 규칙 셋, U17 단계 ② 완료 조건(design 40 §11 U17 ② 행·§10.5; library 9회로 + held-out 회로에서 시작점과 front 점(U-45)의 ngsp
+gain-budget-gmid-sizing.plan.md:297:� 쓴다 (5) U17 단계 ② 완료 조건 = N6.2 'A' 판정 기준' 문단(design 40 §11 U17 ② 행·§10.5). 결정 원문 밖 세부(엔진 쪽 조건·실패 정의, T4-pre, 전력·
+gain-budget-gmid-sizing.plan.md:297:�록한다(U-112 닫힘 -- O-143 (4)·O-144) (iii) 슬루를 선언한 held-out 회로의 U17 ② 완료는 (ii)의 front로 판정한다(v6.38.1 사용자 결정 O-151(2026-10-26, `_draf
+gain-budget-gmid-sizing.plan.md:318:| O-44 (1) | "모두 권고대로" -- U17 ② 가운데 엔진 점 → oracle 입력 생산자·판정 배선을 떼어 OP-3 뒤·첫 �
+gain-budget-gmid-sizing.plan.md:350:판정 입력에 넣음(DEC-98 (6)) (3) PASS 승격 규칙·held-out 슬루 선언 회로 U17 ② 완료는 U-112 뒤 (4) U-115는 DE-1 전체 착수 조건) + 판정 기준 완화 DEC-98
+gain-budget-gmid-sizing.plan.md:681:�다(새 칸 0, 기존 `unmeasured` 사유를 읽음). FAIL 분류·PASS 승격·held-out U17 ② 의존은 DEC-98 (6) (i)~(iii)(확정 O-124, (ii)·(iii) 개정 O-151 M2). 기각 (나) D
+gain-budget-gmid-sizing.plan.md:1199:��정 배선, v6.19 -- O-44 (1)) | N6.20 | oracle-portability OP-3 | design 개정(S-7 -- U17 ② 분할), OP-3 병합. **아래 모든 동작 변경 card의 완료 판정(SPICE 다리)�
+gain-budget-gmid-sizing.plan.md:1199:�서', v6.33 기본안). LA-1 병합보다 먼저(v6.38 사용자 결정 O-126 -- LA-1이 U17 ② 나머지로 함께 하는 front 판정 배선이 EO-1 생산자를 부르는 코드 의�
+gain-budget-gmid-sizing.plan.md:1221:기저 S0 필드 -- O-144 J3), EO-1(엔진 점 → oracle 입력 생산자 -- 이 card가 U17 ② 나머지로 함께 하는 front 판정 배선이 그 생산자를 부르는 코드 의�
+gain-budget-gmid-sizing.plan.md:1229:lan`(v6.38.4 열다섯째 커밋 계획 검증 4 M-2, 옛 DF-18); 옛 'OS-2 착수 선행 U17 ②', **원래 취지와 다름**, 승인 대기 BL-OS-B9; v6.38.4 열넷째 커밋 백로그
+gain-budget-gmid-sizing.plan.md:1229: 재감사; 옛 'U16·U17 ②' 이름은 하위 계획에서 EO-1·LA-1로 정리, U16 다섯 행의 소유 = graph-con
+gain-budget-gmid-sizing.plan.md:1293:(3)과 "①, ②, ③ 권고대로 진행해" ①. 단계 ②의 범위는 design 40 §11 U17 ② 행, 판정 절차는 §10.5. 첫 사례 nmcnr 시범의 경위·수치는 history H1·H4
+gain-budget-gmid-sizing.plan.md:1326:-consumption GC-5)의 SPICE oracle 다리 = 시작점의 ngspice 판정(DEC-98 A' 기준, U17 ② 완료 조건과 같은 판정). **모든 동작 변경 card의 SPICE 다리는 card EO-1
+gain-budget-gmid-sizing.plan.md:1475:�은 O-13 (1)로 이 판에서 정정했다), design 41 §6.7 KVL 출발 제약(`iv_kvl`, U17 ② -- 이 card 뒤에 쓰기 계획을 읽는다), 입력 DC 선언 회로의 동작, 이력
+gain-budget-gmid-sizing.plan.md:1504:headroom-chain 계획 334·483행). design 41 §6.7 KVL 출발(`iv_kvl`·`iv_kvl_choice`, U17 ②)도 개정된 쓰기 계획을 읽으므로 이 card 뒤다.
+gain-budget-gmid-sizing.plan.md:1747: **HC-1 뒤**에 둔다(파일 겹침, HC-1이 출발 구간 구조를 먼저 바꾼다). U17 ②(층 0 몫)는 LA-1과 같은 통합 병합이고(LA-Q5), FX-1과 LA-1·U17 ②는 선후�
+gain-budget-gmid-sizing.plan.md:1749:��칙(출발 단계만 바꾸는 card의 oracle 다리 = 시작점 ngspice 판정, DEC-98 U17 ② 조건), 검증자 변화표(3). 결정성 비트 동일.
+gain-budget-gmid-sizing.plan.md:1815:026-10-12 "A1~A6은 계획대로 되돌려"로 역산 우선 복귀), design 40 §11 U15·U17 ②. 이 card는 design 40 §11 단위 U15(층 0 gain 예산)를 O-33 (1)로 다시 정의한
+gain-budget-gmid-sizing.plan.md:1852:15. **C′ 앞단 결정 구현**(+ v6.38.4 열넷째 커밋 백로그 재감사: 옛 U17 ② 잔여 (i) `residual_probe` (ii) `dof_numeric` (iii) `coupling` -- 배선 또는 O-153 �
+gain-budget-gmid-sizing.plan.md:1885:변화표는 card 안 커밋 순서별로 나눈다**(LA-Q5, 사용자 결정 O-38 (3) -- U17 ② 상태층 커밋, 층 0 조립 커밋, find_front 배선 커밋 등 순서마다 직전 �
+gain-budget-gmid-sizing.plan.md:1896:과 같은 통합 병합 -- O-149), EO-1(엔진 점 → oracle 입력 생산자 -- 아래 U17 ② front 판정 배선이 이 생산자를 부르는 코드 의존이라 병합 선행; 완�
+gain-budget-gmid-sizing.plan.md:1897:- U17 ②와 같은 통합 병합이다(LA-Q5 결정됨 (가), O-36 (4)·O-38 (3) -- card 안 커�
+gain-budget-gmid-sizing.plan.md:1897:� 순서로 나누고 변화표도 커밋 순서별로, 완료 조건 5). 단 U17 ②의 DEC-98 oracle 배선 가운데 '엔진 점(시작점·front 점) → oracle 입력' �
+gain-budget-gmid-sizing.plan.md:1897:rd EO-1(N6.20)로 떼어 앞당겼다(사용자 결정 O-44 (1)) -- LA-1과 함께 남는 U17 ② 몫은 front 판정 배선(front 점을 EO-1 생산자로 oracle에 넣고 결과를 fron
+gain-budget-gmid-sizing.plan.md:1898:�록(출발 단계 §6.7 7a 확장, 층 0 공용)과 범위 1 VDS·V_R 배분은 이 card(U17 ② §6.7과 같은 통합 병합)가 구현하고, 그것이 READS하는 R-1′ 제약 그�
+gain-budget-gmid-sizing.plan.md:1948:| LA-Q5 | **결정됨(O-36 (4)): (가)**, O-38 결정(O-38 (3)) -- U17 ②와 같은 통합 병합 유지 + card 안 커밋 순서별로 변화표를 나눠 원인 
+gain-budget-gmid-sizing.plan.md:1948:귀속(완료 조건 5). 사용자 결정 O-44 (1): U17 ② 가운데 엔진 점 → oracle 입력 생산자·판정 배선은 card EO-1로 떼어 �
+gain-budget-gmid-sizing.plan.md:1948:�당기고, front 판정 배선은 LA-1과 함께 남는다. **U17 ②와 묶음**: design 40 §11 'U15(층 0)는 U17 ②와 한 변경'(분할 이식·S3 색�
+gain-budget-gmid-sizing.plan.md:1948:� `local`·`solved`·층 0 필드)을 유지하나 | (가) 유지 -- U17 ②의 분할·graft를 이 card와 같은 통합 병합에 넣음(card 안 순서 커밋으�
+=== U17 단계 ②
+gain-budget-gmid-sizing.plan.md:11:ce, 독립 대조군 = AI 손분석, 피검 = 엔진 시작점·front, 판정 규칙 셋, U17 단계 ② 완료 조건(design 40 §11 U17 ② 행·§10.5; library 9회로 + held-out 회로에서
+gain-budget-gmid-sizing.plan.md:297:��용자 몫 U-75)로 보고, library 9회로 도달률은 회귀 지표로만 쓴다 (5) U17 단계 ② 완료 조건 = N6.2 'A' 판정 기준' 문단(design 40 §11 U17 ② 행·§10.5). 결�
+gain-budget-gmid-sizing.plan.md:1163:�� 사라짐 | card DR-1 착수 전(v6.38.4 열여섯째 커밋 계획 검증 5 m-2; 옛 'U17 단계 ② 완료 판정 전') |
+gain-budget-gmid-sizing.plan.md:1293:**A' 판정 기준 -- U17 단계 ② 완료 조건**(DEC-98, 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권�
+gain-budget-gmid-sizing.plan.md:2475:�표 측정)에 쓰지 않은 회로, spec 값은 출처 있는 사용자 선언(N3.15) | U17 단계 ② 완료 판정 전 -- 사용자 몫 질문 N5.3 Q-C4(v6.38.4 백로그 재감사) |
+=== N분할
+=== 분할 수
+gain-budget-gmid-sizing.plan.md:2190:�호 = SPICE PDK 셀 X 인스턴스, tol 안); 옛 'N분할 사다리 대 RS-1 분해능·분할 수 유도' 규칙은 엔진을 PDK 모델에서 멀어지게 하므로 지운다. **분포�
+gain-budget-gmid-sizing.plan.md:2496:| U-96 | 블록 결과 색인 상한(design 40 §2.4.9 식 Σ_블록 분할 수 × (E_total + 1))의 실행 중 강제 -- 식의 전제 '커널 평가 수 ≤ E_total'�
+offset-strategy.plan.md:158:�� 2단계 실행에서 S0를 두 벌(원본·파생) 계산하므로 색인 상한을 Σ 분할 수 × (E_total + 2)로 둔다 | OT §10.1 |
+offset-strategy.plan.md:267:* **색인 상한**: Σ_블록 분할 수 × (Σ_v E_total,v + S0 계산 벌 수). S0 계산 벌 수는 계획 안 서로 다른 S0
+=== sctx.cache
+=== computed_keys

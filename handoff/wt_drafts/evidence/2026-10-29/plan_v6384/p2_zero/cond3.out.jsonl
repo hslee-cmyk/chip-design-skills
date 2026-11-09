@@ -1,0 +1,9 @@
+{"circuit": "common_gate_amplifier", "zero_cancel": []}
+{"circuit": "current_reuse_telescopic_ota", "zero_cancel": [{"R": "Rz1", "C": ["Cc1"], "single_branch": true, "n": "Vop1", "paths": [{"A": "Vop1", "B": "Vom", "S": ["M16"], "S_source_acgnd": true}], "coupling_to_other_output_devices": [["M15", "gate", "Vg15"]], "S_exact_form": false}, {"R": "Rz2", "C": ["Cc2"], "single_branch": true, "n": "Vom1", "paths": [{"A": "Vom1", "B": "Vop", "S": ["M26"], "S_source_acgnd": true}], "coupling_to_other_output_devices": [["M25", "gate", "Vg25"]], "S_exact_form": false}]}
+{"circuit": "folded_cascode", "zero_cancel": []}
+{"circuit": "ngcc_3stage_ff", "zero_cancel": []}
+{"circuit": "nmcnr_amplifier", "zero_cancel": [{"R": "Rm", "C": ["Cm1", "Cm2"], "single_branch": false, "n": "NodeCM", "paths": [{"A": "NodeS2", "B": "Vout", "S": ["M301"], "S_source_acgnd": true}], "coupling_to_other_output_devices": [], "S_exact_form": false}, {"R": "RL", "C": ["CL"], "single_branch": true, "n": "Vout", "paths": [], "coupling_to_other_output_devices": [], "S_exact_form": false}]}
+{"circuit": "pushpull_follower_buffer", "zero_cancel": []}
+{"circuit": "sf_pushpull_output_opamp", "zero_cancel": []}
+{"circuit": "two_stage_ota", "zero_cancel": [{"R": "Rz", "C": ["Cc"], "single_branch": true, "n": "O1", "paths": [{"A": "O1", "B": "OUT", "S": ["M6"], "S_source_acgnd": true}], "coupling_to_other_output_devices": [], "S_exact_form": true}]}
+{"circuit": "two_stage_ota_sf", "zero_cancel": []}

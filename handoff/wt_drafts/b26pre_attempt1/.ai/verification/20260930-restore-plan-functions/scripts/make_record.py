@@ -1,0 +1,119 @@
+"""복원 card 3차 순서 7 판정 기록 생성(auditor). red 필드는 순서 3 캡처(red3_T.jsonl)의 AttributeError 줄을 순서대로 옮긴다.
+사용: python -P make_record.py <red3_T.jsonl> <out.json> <time>"""
+import json, sys
+red_f, out, now = sys.argv[1:4]
+red = [json.loads(l) for l in open(red_f, encoding="utf-8")]
+red = [d for d in red if d["exc_type"] == "builtins.AttributeError"]
+assert len(red) == 34
+B = "c31e0b686b360f607ebdaa47f8145f3b64657b75"
+T = "e3f6871bd448de8dac5e61120298c4141085505a"
+K = "0b40315350c1bfedc06949a3e3295309e8ca1c18"
+M = "f1c4b7dc0955a48ae3705e2f993eeaeb119d236d"
+C = "C:/g13/gmid-gate-cache/" + B
+TARGET = "4dcd62889b4facd6fcee26a9a9ce9c5f6831105e5be5f5dd1cf1a940224fb0ba"
+checks = {
+ "V1": {"verdict": "PASS", "basis": (
+  "3차 시도. 병합본 M f1c4b7d(부모 [T e3f6871, K 0b40315], 트리 49d7596c = K 트리, Role: doc·Change-Id 일치)의 격리 복제본 C:/g13/m3"
+  "(git clone --no-hardlinks --no-local --no-checkout, origin 제거, checkout --detach, remote 0·status 0줄, 실행 뒤 status 0줄)에서 base 판 캐시 c31e0b6의 "
+  "pytest_gate.ini로 slow 포함 전체 실행(-k·--deselect·-x·-m 없음, --gmid-phase=2 --gmid-strict=): 739 passed, 15 xfailed, 실패·오류·skip·xpass 0, 수집 754, "
+  "수집 오류 0, exit 0, 87s. 수집 대조(scripts/green_cmp.py): T 수집 754와 id 집합 차이 0 -- base 716에서 test_d_delete_dead.py 자기 점검 매개변수 id 6개가 "
+  "이름 교체(V5 승인 20260930-restore-p5-test-list 범위)되고 새 파일 38건이 더해졌다; 739 = 701 - 6 + 6 + 38. 엄격 집합은 base 판 merge_gate.strict_set = 빈 집합, "
+  "v1_command_check 실패 0건(순서 3). 게이트 코드는 git cat-file blob c31e0b6:tools/gates/<파일>로 auditor가 redteam 밖 22개를 직접 뽑았다(file_set_sha256 "
+  "ab7afccd…, 2차와 같음). 격리 사전 검사(-p iso_probe 별도 실행, scripts/probe.sh): sizing_recipe·run_harness·stick_diagram은 C:/g13/m3 파일, design_report만 "
+  "run_harness.py 35행 sys.path 하드코딩(기존 결함 C-01) 때문에 주 저장소 파일로 import되나 그 내용(CRLF->LF 정규화 blob aa271931)이 병합본·base blob과 같다. "
+  "code-author 보고는 증거로 쓰지 않았다")},
+ "V2": {"verdict": "PASS", "basis": (
+  "red-green. [사슬] base c31e0b6(gate master; 2차 base 04c7248 + spec card 계약 3 보강·V7 면제 승인·context, skills·workspaces·tools 트리 04c7248과 같음) -> "
+  "T e3f6871(Role: test, 부모 base, test_d_delete_dead.py = 운반 blob e66e464a + 새 test_restore_plan_functions.py) -> K 0b40315(Role: code, 부모 T, sizing_recipe.py·"
+  "run_harness.py·레지스트리) -> M f1c4b7d(Role: doc, 부모 [T, K], 트리 = K 트리). test 커밋 불변: git diff T M = 엔진 두 파일·레지스트리뿐. "
+  "[red] 순서 3(이 폴더 base_check.json): T 복제본 C:/g13/iso3에서 base 판 red 수집 플러그인이 기록한 red 34건, 전부 builtins.AttributeError이고 (obj 모듈, 이름)이 "
+  "interface card 신규 시그니처 표의 (run_harness, derived_spec) 29 · (sizing_recipe, lut_conditions_from_npz) 5와 맞음, obj 모듈 __file__ 전부 복제본; failure_hash는 "
+  "sha256(test_id + 개행 + 예외 타입)으로 auditor가 따로 계산해 같다; 나머지는 base와 같다(705 passed = base 701 - 6 + 6 + 새 전제·자기 점검 4). "
+  "[green] 병합본 V1 739 passed; 새 파일 + test_d_delete_dead.py를 red 수집 플러그인으로 따로 돌려 89 passed, 허용 타입 red 기록 0; red 34 test id 34/34 PASSED"
+  "(scripts/run_m3.sh green, scripts/green_cmp.py). [계약 1 복원 대조] scripts/orig_defs.py로 병합본 두 정의를 P5 base 0ecb686 원본과 대조: lut_conditions_from_npz "
+  "ast.dump sha256 af1201bb… · 원문 바이트 460d1ca1… · docstring 848d36dc…, derived_spec 4dfc7c6c… · 673c3bc0… · ddc16104… 모두 같음, 시그니처·데코레이터 0·최상위 def 같음, "
+  "원문 바이트 파일 cmp 동일(0ecb686 값은 삭제 커밋 2a123ba의 부모에서도 같다). scripts/restore_cmp.py: 앞뒤 최상위 문장이 0ecb686과 같다(_PSRR_ESTIMATOR_REGISTRY 대입 뒤·"
+  "_load_full_topology_cached 앞 / canonical_spec 뒤·run 앞); 병합본 모듈 body에서 복원 def를 빼면 base 모듈 body ast.dump와 같다(최상위 229->230, 30->31); git diff "
+  "base M 파일마다 hunk 1·삭제 0줄·추가 비공백 줄 = 복원 def. 엔진 blob sizing_recipe.py 97a6c7bb·run_harness.py 24ce2ad3은 2차 M 2889a45와 같다(대조는 병합본에서 다시 쟀다). "
+  "[계약 2·3] test로 판정: lut 합성 4 + 저장소 npz 1 + 자기 점검, derived_spec blank_why 12·unregistered 1·override 없음 4·스칼라 override 4·list·tuple override 8 + "
+  "자기 점검 2 + 전제 1 -- 모두 PASSED. [계약 5] 레지스트리 §7 sizing_recipe.py (8->9) lut_conditions_from_npz 행 '보류(Phase 6a)', 비고 '계획 N3.3 S0·I-A5. P5에서 잘못 "
+  "삭제 → 복원(20260930-restore-plan-functions), 미배선 면제 20260930-restore-unwired-until-6a'; 기타 모듈 (0->1) derived_spec 행 '보류(Phase 6a)', 비고 'DEC-26(짝 게이트 "
+  "require_declared_spec_source). …복원…, 미배선 면제 …' -- spec card 계약 5·표 근거와 일치, 면제 승인 기록 실재; §1 집계 sizing_recipe D 8->9, 기타 모듈 D 0->1. "
+  "reg_check.py 병합본·base 모두 exit 0 '발견 0'. [계약 6 동작 보존] E-LIB(scripts/e_lib.py, C:/g13/eq = M, 같은 경로) 1d2e3bf6… 출력 파일이 base와 바이트 동일; "
+  "E-INST(scripts/e_inst.py, C:/g13/eq·C:/g13/ws_eq) folded_cascode 783db3fe…·current_reuse_telescopic_ota 9ca6c6ef… 병합본 2회씩 모두 base와 같다(시간 13.2~14.2s·"
+  "100.3~102.2s는 관찰값, 계약 6에 시간 조항 없음). E-INST 해시는 instance.json topology_ref에 복제본 경로가 들어가 경로에 기대므로 base·병합본을 같은 경로에서 쟀다. "
+  "e_inst.py는 sizing_recipe·stick_diagram·design_report가 복제본 밖이면 중단한다")},
+ "V3": {"verdict": "PASS", "basis": (
+  "base 판 캐시 mutate_changed.py --root C:/g13/m3 --base c31e0b6 --head f1c4b7d --pytest-ini <캐시>/pytest_gate.ini --gmid-phase=2 --gmid-strict= -> verdict PASS, "
+  "targets [sizing_recipe.py, run_harness.py], mutants 32, killed 32(lut_conditions_from_npz 14, derived_spec 18), 생존 0, exit 0. 2차 시도에서 생존한 derived_spec "
+  "list·tuple 값 n<길이> 서식 분기 변이 3개가 새 test_derived_spec_sequence_override_written_as_length로 죽는다")},
+ "V4": {"verdict": "PASS", "basis": (
+  "oracle 대조: 기대값마다 spec card oracle과 대조했다(아래 기대값별 대조, 모두 일치). 도구: base 판 캐시 test_lint.py를 피검별로 두 번(--interface-card로 한 번에 돌리면 interface card의 run_harness를 A 아래에서 찾다가 ERROR exit 2 -- A 밖 모듈을 "
+  "못 읽는 도구 한계, handoff): --subject sizing_recipe:lut_conditions_from_npz -> PASS exit 0, 규칙 (2) PASS 3·UNJUDGED 2·NO-SUBJECT 62; --subject "
+  "run_harness:derived_spec --module-dir workspaces -> PASS exit 0, 규칙 (2) PASS 1(268행)·UNJUDGED 4·NO-SUBJECT 62, FAIL 0, 다른 규칙 발견 0. PASS는 독립의 증거가 "
+  "아니다. 기대값별 대조: 이번 변경이 들여온 기대값은 test_restore_plan_functions.py뿐이고(test_d_delete_dead.py는 V5 승인 운반 blob) auditor가 소스를 읽어 하나씩 "
+  "대조했다. lut 합성 4(both·corner_only·temp_only·none) -- (a) 구성 입력, 기대값은 test가 대역 객체에 넣은 값 그대로와 spec card '거부해야 할 입력'(recorded False·"
+  "note, 값 안 지어냄)(일치; UNJUDGED 135행은 성질 판정 assert_not_recorded). 저장소 npz(144행 UNJUDGED) -- (d) spec card 계약 2 실측 문장 'corner tt·temp_c 27.0'"
+  "(일치; auditor 측정 아님, card 문장이 출처). derived_spec 거부 13 -- spec card 계약 3·'거부해야 할 입력'의 ValueError(일치). override 없음 4(268행 PASS) -- (a) 성질 "
+  "판정: 기대값 SPECS[key]['spec_fn']()와 키 집합·키별 값·why 미추가 대조. 기대값 출처 관찰: spec_fn()은 canonical_spec(run_harness.py 358-371, 'SPECS[key]"
+  "[\"spec_fn\"]()을 그대로 부르는 얇은 래퍼')의 안쪽 호출이라 피검 반환식과 같은 식은 아니어서 규칙 (2)는 통과하지만 기대값의 계산 출처는 피검이 쓰는 것과 같은 "
+  "spec_fn이다. 계약 3이 '정본과 같음'을 요구하므로 정본을 계산하는 것은 oracle 정의상 불가피하고, 판정되는 피검 행동(why 검사, override 없을 때 _spec_source 미추가, "
+  "키·값 불변, 정본 비변형)은 기대값과 독립이다 -- 수용(spec card 계약 3 보강 문장과 일치). 스칼라 override 4(281행 UNJUDGED) -- (a) test가 정본과 다르게 만든 값(vdd "
+  "절반·L_min 두 배), 나머지 키는 spec_fn/canonical 정본과 같음, _spec_source에 키·why(일치). list·tuple override 8(305·307·308행 UNJUDGED) -- (a) 정본 시퀀스 키를 한 "
+  "원소 긴 같은 종류로 바꾼 구성 입력, 기대 문자열 n<정본 길이>·n<새 길이>·원시 값 없음·스칼라 값 그대로는 spec card 계약 3 보강 문장(일치; auditor가 병합본 derived_spec "
+  "원문 분기 isinstance(list, tuple) and 비지 않음 -> f'n{len}'을 확인). 자기 점검 3(lut·derived·서식) -- (a) 손으로 만든 틀린 결과를 거부하는지(일치)")},
+ "V5": {"verdict": "PASS", "basis": (
+  "base 판 캐시 weakening_diff.py --root C:/g13/m3 --base c31e0b6 --head f1c4b7d -> verdict PASS, findings 4(test_d_delete_dead.py 리터럴 변경: 자기 점검 합성 케이스 "
+  "이름 교체 3 unit + 모듈 docstring·목록), diff_paths [skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py], approved true, exit 0; diff_hash = "
+  "승인 20260930-restore-p5-test-list target " + TARGET + ". 순서 3 base -> T 출력과 바이트 동일(K는 test를 건드리지 않았다). 승인 diff_base bf407c7·"
+  "이 card base c31e0b6의 그 파일 blob이 같고(735ecae8) head blob이 운반 blob e66e464a와 같다. 새 test 파일은 추가라 diff_paths 밖")},
+ "V6": {"verdict": "PASS", "basis": (
+  "base 판 캐시 source_lint.py --root C:/g13/m3 --base c31e0b6 --head f1c4b7d -> verdict PASS, targets [sizing_recipe.py, run_harness.py], findings 0, exit 0. "
+  "복원 두 함수는 0ecb686 원문 그대로(V2 대조)")},
+ "V7": {"verdict": "PASS", "basis": (
+  "base 판 캐시 reachability.py --root C:/g13/m3 --base c31e0b6 --head f1c4b7d -> verdict PASS, new_defs = unreached = [sizing_recipe.py::lut_conditions_from_npz, "
+  "run_harness.py::derived_spec], unreached_without_approval 없음, exit 0. 두 def는 운영 경로에서 불리지 않으며(spec card 의도, 레지스트리 보류(Phase 6a)) head 트리 "
+  "승인 20260930-restore-unwired-until-6a(target_kind decision, target = 두 def id, 사용자 원문 '승인')가 면제한다 -- spec card approval 줄에 있다. 2차 시도 V7 FAIL의 "
+  "원인(면제 승인 없음)이 해소됐다")},
+ "V8": {"verdict": "N/A", "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2 v_intro[V8] = 4). 이 card는 Phase 2이고 복원 함수는 운영 경로 밖이며 E-LIB·E-INST가 base와 같다(V2)"},
+ "V9": {"verdict": "N/A", "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2 v_intro[V9] = 6b). 엔진 식 변경 없음, E-LIB·E-INST가 base와 같다(V2)"},
+ "V10": {"verdict": "PASS", "basis": (
+  "spec card '재현할 수치'가 '없음'이라 reproduced_numbers는 빈 배열이다. 이 기록의 수치(수집 716 -> 754, 병합본 739 passed·15 xfailed, base red 34건과 해시, 복원 대조 "
+  "해시·위치, E-LIB·E-INST 값, 변이 32/32, 도구 출력)는 전부 auditor가 격리 복제본 C:/g13/*에서 직접 쟀다(순서 3은 이 폴더 base_check.json). 0ecb686 기준값과 E-LIB·E-INST "
+  "base 기준값은 2차 순서 3 측정을 재사용했다 -- 근거: skills·workspaces·tools 트리 id가 2차 base 04c7248과 3차 base c31e0b6에서 같다(auditor git rev-parse). "
+  "code-author·test-author·오케스트레이터 보고는 증거로 쓰지 않았다")},
+}
+rec = {
+ "id": "20260930-restore-plan-functions",
+ "spec_card": "docs/02-design/specs/20260930-restore-plan-functions.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": B,
+ "test_commit": T,
+ "code_commit": K,
+ "red": {"test_ids": [d["test_id"] for d in red], "failure_hashes": [d["failure_hash"] for d in red]},
+ "checks": checks,
+ "reproduced_numbers": [],
+ "approvals": ["20260923-u02-d-list", "20260930-restore-p5-test-list", "20260930-restore-unwired-until-6a"],
+ "auditor_run": {
+  "time": now,
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-restore-plan-functions-audit",
+  "commands": [
+   "환경: $PY = C:/Python314/python.exe(3.14.2), export APPDATA=C:/Users/HSLEE/AppData/Roaming, 출력 C:/g13/out, 스크립트 C:/g13/scripts/(사본 .ai/verification/20260930-restore-plan-functions/scripts/)",
+   "게이트 코드: C:/Python314/python.exe -P C:/g13/scripts/extract_gate.py C:/g13/base3 " + B + " " + C + " (git ls-tree + git cat-file blob, tools/gates/ 중 redteam/ 밖 22개)",
+   "격리: git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-restore-plan-functions-audit C:/g13/<이름>; git -C C:/g13/<이름> remote remove origin; git -C C:/g13/<이름> checkout -q --detach <rev> -- iso3 = T e3f6871, base3 = c31e0b6, m3 = M f1c4b7d, eq = 같은 경로 복제본(git fetch C:/g13/m3 M 뒤 checkout --detach + clean -fdxq), 모두 remote 0, status 0줄",
+   "V1: PYTHONPYCACHEPREFIX=C:/g13/pyc3_v1_m PYTHONPATH=" + C + " C:/Python314/python.exe -P -m pytest -c " + C + "/pytest_gate.ini --rootdir=C:/g13/m3 --confcutdir=C:/g13/m3 --gmid-phase=2 --gmid-strict= C:/g13/m3/skills/analog-gmid-design/assets/tests",
+   "수집·green: bash C:/g13/scripts/run_m3.sh v1|green 후 C:/Python314/python.exe -P C:/g13/scripts/green_cmp.py C:/g13/out/red3_T.jsonl C:/g13/out/green_m3.txt C:/g13/out/collect3_iso.txt C:/g13/out/collect3_m.txt",
+   "base red(순서 3): GMID_RED_CAPTURE=C:/g13/out/red3_T.jsonl GMID_INTERFACE_CARD=C:/g13/iso3/docs/02-design/specs/20260930-restore-plan-functions.interface.md PYTHONPYCACHEPREFIX=C:/g13/pyc3_full_iso PYTHONPATH=" + C + " C:/Python314/python.exe -P -m pytest -c " + C + "/pytest_gate.ini --rootdir=C:/g13/iso3 --confcutdir=C:/g13/iso3 -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g13/iso3/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider (bash C:/g13/scripts/run3.sh red)",
+   "격리 사전 검사: bash C:/g13/scripts/probe.sh <iso3|m3> <태그> [파일] (판정 명령 + -p iso_probe, PYTHONPATH=<캐시>;C:/g13/scripts)",
+   "복원 대조: C:/Python314/python.exe -P C:/g13/scripts/orig_defs.py C:/g13/m3 f1c4b7d C:/g13/out/merged3_defs.json C:/g13/out/orig/merged3; C:/Python314/python.exe -P C:/g13/scripts/restore_cmp.py C:/g13/m3 0ecb686 c31e0b6 f1c4b7d C:/g13/out/restore_cmp3.json (기준: orig_defs.py C:/g13/iso 0ecb686 C:/g13/out/orig_defs.json)",
+   "E-LIB: PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g13/scripts/e_lib.py C:/g13/eq C:/g13/out/elib_m3.json",
+   "E-INST: bash C:/g13/scripts/einst_time.sh C:/g13/eq <base|m3> <folded_cascode|current_reuse_telescopic_ota> <회수> (회마다 C:/g13/ws_eq 삭제, 새 프로세스)",
+   "게이트 도구(V3·V4·V5·V6·V7·reg_check): bash C:/g13/scripts/tools_m3.sh fast|v3 (base 판 캐시의 도구를 --root C:/g13/m3 --base " + B[:7] + " --head " + M[:7] + " 로, -P 없이; V4는 subject별 두 번)",
+   "사전 판정: PYTHONPATH=" + C + " C:/Python314/python.exe -P C:/g13/scripts/precheck_receive.py <스크래치 복제본> " + B[:7] + " <audit 커밋> 20260930-restore-plan-functions"
+  ]
+ }
+}
+with open(out, "w", encoding="utf-8", newline="\n") as fh:
+    json.dump(rec, fh, ensure_ascii=False, indent=2)
+    fh.write("\n")
+print("ok")

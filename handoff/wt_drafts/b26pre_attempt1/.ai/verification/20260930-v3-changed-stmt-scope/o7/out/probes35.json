@@ -1,0 +1,755 @@
+{
+ "p1": {
+  "exit": 1,
+  "stdout_lines": 1,
+  "keys": [
+   "tool",
+   "verdict",
+   "targets",
+   "mutants",
+   "killed",
+   "survivors",
+   "survivor_bindings",
+   "exempt_ignored",
+   "not_targeted",
+   "targets_by_def"
+  ],
+  "targets": [
+   "skills/analog-gmid-design/assets/m.py",
+   "skills/analog-gmid-design/assets/n.py"
+  ],
+  "mutants": 25,
+  "not_targeted": 9,
+  "targets_by_def": {
+   "skills/analog-gmid-design/assets/m.py::rt_a": {
+    "targeted": 10,
+    "not_targeted": 4,
+    "deleted_statements": 2,
+    "def_header_changed": false
+   },
+   "skills/analog-gmid-design/assets/m.py::rt_h": {
+    "targeted": 2,
+    "not_targeted": 5,
+    "deleted_statements": 0,
+    "def_header_changed": true
+   },
+   "skills/analog-gmid-design/assets/m.py::rt_new": {
+    "targeted": 5,
+    "not_targeted": 0,
+    "deleted_statements": 0,
+    "def_header_changed": false
+   },
+   "skills/analog-gmid-design/assets/n.py::rt_n": {
+    "targeted": 8,
+    "not_targeted": 0,
+    "deleted_statements": 0,
+    "def_header_changed": false
+   }
+  },
+  "tbd_key_order": [
+   "skills/analog-gmid-design/assets/m.py::rt_a",
+   "skills/analog-gmid-design/assets/m.py::rt_h",
+   "skills/analog-gmid-design/assets/m.py::rt_new",
+   "skills/analog-gmid-design/assets/n.py::rt_n"
+  ],
+  "tbd_field_orders": [
+   [
+    "targeted",
+    "not_targeted",
+    "deleted_statements",
+    "def_header_changed"
+   ],
+   [
+    "targeted",
+    "not_targeted",
+    "deleted_statements",
+    "def_header_changed"
+   ],
+   [
+    "targeted",
+    "not_targeted",
+    "deleted_statements",
+    "def_header_changed"
+   ],
+   [
+    "targeted",
+    "not_targeted",
+    "deleted_statements",
+    "def_header_changed"
+   ]
+  ],
+  "out_lines": 34,
+  "out_sha256": "be8f2c69ad1426c162c126c3ae7a2e2f24ca41a982390f15de94a63e99a68f44",
+  "disc_rt_a": [
+   "arith:body[1].value",
+   "arith:body[2].value.args[0]",
+   "const+:body[1].value.right",
+   "const+:body[2].value.args[0].right",
+   "const-:body[1].value.right",
+   "const-:body[2].value.args[0].right",
+   "early_return:body[0]",
+   "stmt_delete:body[1]",
+   "stmt_delete:body[2]",
+   "stmt_delete:body[3]"
+  ],
+  "disc_rt_h": [
+   "early_return:body[0]",
+   "stmt_delete:body[0]"
+  ]
+ },
+ "p2": {
+  "input": "rt_a: base [LOG.append(x - 1), y = x + 1, LOG.append(y * 2), z = 3, return y] -> head [LOG.append(x - 1), y = x + 2, LOG.append(y * 2), return y]",
+  "expected_order": [
+   "stmt_delete:body[0]/NT",
+   "stmt_delete:body[1]/T",
+   "stmt_delete:body[2]/T",
+   "stmt_delete:body[3]/T",
+   "arith:body[0].value.args[0]/NT",
+   "const+:body[0].value.args[0].right/NT",
+   "const-:body[0].value.args[0].right/NT",
+   "arith:body[1].value/T",
+   "const+:body[1].value.right/T",
+   "const-:body[1].value.right/T",
+   "arith:body[2].value.args[0]/T",
+   "const+:body[2].value.args[0].right/T",
+   "const-:body[2].value.args[0].right/T",
+   "early_return:body[0]/T"
+  ],
+  "observed_order": [
+   "stmt_delete:body[0]/NT",
+   "stmt_delete:body[1]/T",
+   "stmt_delete:body[2]/T",
+   "stmt_delete:body[3]/T",
+   "arith:body[0].value.args[0]/NT",
+   "const+:body[0].value.args[0].right/NT",
+   "const-:body[0].value.args[0].right/NT",
+   "arith:body[1].value/T",
+   "const+:body[1].value.right/T",
+   "const-:body[1].value.right/T",
+   "arith:body[2].value.args[0]/T",
+   "const+:body[2].value.args[0].right/T",
+   "const-:body[2].value.args[0].right/T",
+   "early_return:body[0]/T"
+  ],
+  "match": true,
+  "all_records_def_order": [
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_a",
+   "rt_h",
+   "rt_h",
+   "rt_h",
+   "rt_h",
+   "rt_h",
+   "rt_h",
+   "rt_h",
+   "rt_new",
+   "rt_new",
+   "rt_new",
+   "rt_new",
+   "rt_new",
+   "rt_n",
+   "rt_n",
+   "rt_n",
+   "rt_n",
+   "rt_n",
+   "rt_n",
+   "rt_n",
+   "rt_n"
+  ],
+  "def_runs": [
+   "rt_a",
+   "rt_h",
+   "rt_new",
+   "rt_n"
+  ]
+ },
+ "NG": [],
+ "p3": {
+  "exit": 1,
+  "head_hash_auditor": "cd5cebc66efee71b00b46ce91c13013e9aab215baed254e0a5c7740e0754eac1",
+  "records": {
+   "m:rt_a:stmt_delete:body[0]": {
+    "id": "m:rt_a:stmt_delete:body[0]",
+    "result": "not_targeted"
+   },
+   "m:rt_a:arith:body[0].value.args[0]": {
+    "id": "m:rt_a:arith:body[0].value.args[0]",
+    "result": "not_targeted"
+   },
+   "m:rt_a:stmt_delete:body[1]": {
+    "id": "m:rt_a:stmt_delete:body[1]",
+    "result": "exempt",
+    "bind_hash": "cd5cebc66efee71b00b46ce91c13013e9aab215baed254e0a5c7740e0754eac1"
+   },
+   "m:rt_a:arith:body[1].value": {
+    "id": "m:rt_a:arith:body[1].value",
+    "result": "survived",
+    "reason": "인벤토리 없음(도달하는 test 없음)"
+   },
+   "m:rt_a:const+:body[1].value.right": {
+    "id": "m:rt_a:const+:body[1].value.right",
+    "result": "survived",
+    "reason": "인벤토리 없음(도달하는 test 없음)"
+   }
+  },
+  "exempt_ignored": [
+   {
+    "id": "m:rt_a:arith:body[1].value",
+    "reason": "unbound"
+   },
+   {
+    "id": "m:rt_a:const+:body[1].value.right",
+    "reason": "hash_mismatch",
+    "approved_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "head_hash": "cd5cebc66efee71b00b46ce91c13013e9aab215baed254e0a5c7740e0754eac1"
+   }
+  ],
+  "mutants": 17,
+  "not_targeted": 9
+ },
+ "p4_p5": {
+  "exit": 1,
+  "targets_by_def": {
+   "skills/analog-gmid-design/assets/m.py::p4a": {
+    "targeted": 5,
+    "not_targeted": 13,
+    "deleted_statements": 0,
+    "def_header_changed": true
+   },
+   "skills/analog-gmid-design/assets/m.py::p4b": {
+    "targeted": 9,
+    "not_targeted": 2,
+    "deleted_statements": 0,
+    "def_header_changed": true
+   },
+   "skills/analog-gmid-design/assets/m.py::p4c": {
+    "targeted": 4,
+    "not_targeted": 6,
+    "deleted_statements": 0,
+    "def_header_changed": true
+   },
+   "skills/analog-gmid-design/assets/m.py::p4d": {
+    "targeted": 5,
+    "not_targeted": 5,
+    "deleted_statements": 0,
+    "def_header_changed": true
+   },
+   "skills/analog-gmid-design/assets/m.py::p4e": {
+    "targeted": 5,
+    "not_targeted": 6,
+    "deleted_statements": 0,
+    "def_header_changed": true
+   },
+   "skills/analog-gmid-design/assets/m.py::p5a": {
+    "targeted": 5,
+    "not_targeted": 13,
+    "deleted_statements": 0,
+    "def_header_changed": false
+   },
+   "skills/analog-gmid-design/assets/m.py::p5b": {
+    "targeted": 3,
+    "not_targeted": 10,
+    "deleted_statements": 0,
+    "def_header_changed": false
+   },
+   "skills/analog-gmid-design/assets/m.py::p5c": {
+    "targeted": 6,
+    "not_targeted": 8,
+    "deleted_statements": 1,
+    "def_header_changed": false
+   },
+   "skills/analog-gmid-design/assets/m.py::p5d": {
+    "targeted": 8,
+    "not_targeted": 5,
+    "deleted_statements": 1,
+    "def_header_changed": false
+   },
+   "skills/analog-gmid-design/assets/m.py::p5d.inner": {
+    "targeted": 6,
+    "not_targeted": 2,
+    "deleted_statements": 1,
+    "def_header_changed": false
+   }
+  },
+  "per_def": {
+   "p4a": {
+    "expected": [
+     "arith:body[0].body[0].value",
+     "const+:args.defaults[0]",
+     "const-:args.defaults[0]",
+     "early_return:body[0]",
+     "stmt_delete:body[0].body[0]"
+    ],
+    "tool_targeted": [
+     "arith:body[0].body[0].value",
+     "const+:args.defaults[0]",
+     "const-:args.defaults[0]",
+     "early_return:body[0]",
+     "stmt_delete:body[0].body[0]"
+    ],
+    "tool_not_targeted_n": 13,
+    "all": 18,
+    "match": true,
+    "disc_match": true
+   },
+   "p4b": {
+    "expected": [
+     "arith:body[0].value",
+     "arith:body[1].value",
+     "const+:body[0].value.right",
+     "const+:body[1].value.right",
+     "const-:body[0].value.right",
+     "const-:body[1].value.right",
+     "early_return:body[0]",
+     "stmt_delete:body[0]",
+     "stmt_delete:body[1]"
+    ],
+    "tool_targeted": [
+     "arith:body[0].value",
+     "arith:body[1].value",
+     "const+:body[0].value.right",
+     "const+:body[1].value.right",
+     "const-:body[0].value.right",
+     "const-:body[1].value.right",
+     "early_return:body[0]",
+     "stmt_delete:body[0]",
+     "stmt_delete:body[1]"
+    ],
+    "tool_not_targeted_n": 2,
+    "all": 11,
+    "match": true,
+    "disc_match": true
+   },
+   "p4c": {
+    "expected": [
+     "const+:args.kw_defaults[0]",
+     "const-:args.kw_defaults[0]",
+     "early_return:body[0]",
+     "stmt_delete:body[0]"
+    ],
+    "tool_targeted": [
+     "const+:args.kw_defaults[0]",
+     "const-:args.kw_defaults[0]",
+     "early_return:body[0]",
+     "stmt_delete:body[0]"
+    ],
+    "tool_not_targeted_n": 6,
+    "all": 10,
+    "match": true,
+    "disc_match": true
+   },
+   "p4d": {
+    "expected": [
+     "cmp_flip:body[0].test.ops[0]",
+     "const+:body[0].test.comparators[0]",
+     "const-:body[0].test.comparators[0]",
+     "early_return:body[0]",
+     "stmt_delete:body[0]"
+    ],
+    "tool_targeted": [
+     "cmp_flip:body[0].test.ops[0]",
+     "const+:body[0].test.comparators[0]",
+     "const-:body[0].test.comparators[0]",
+     "early_return:body[0]",
+     "stmt_delete:body[0]"
+    ],
+    "tool_not_targeted_n": 5,
+    "all": 10,
+    "match": true,
+    "disc_match": true
+   },
+   "p4e": {
+    "expected": [
+     "const+:args.defaults[0]",
+     "const+:args.kw_defaults[0]",
+     "const-:args.defaults[0]",
+     "const-:args.kw_defaults[0]",
+     "early_return:body[0]"
+    ],
+    "tool_targeted": [
+     "const+:args.defaults[0]",
+     "const+:args.kw_defaults[0]",
+     "const-:args.defaults[0]",
+     "const-:args.kw_defaults[0]",
+     "early_return:body[0]"
+    ],
+    "tool_not_targeted_n": 6,
+    "all": 11,
+    "match": true,
+    "disc_match": true
+   },
+   "p5a": {
+    "expected": [
+     "arith:body[0].value.args[0]",
+     "const+:body[0].value.args[0].right",
+     "const-:body[0].value.args[0].right",
+     "early_return:body[0]",
+     "stmt_delete:body[0]"
+    ],
+    "tool_targeted": [
+     "arith:body[0].value.args[0]",
+     "const+:body[0].value.args[0].right",
+     "const-:body[0].value.args[0].right",
+     "early_return:body[0]",
+     "stmt_delete:body[0]"
+    ],
+    "tool_not_targeted_n": 13,
+    "all": 18,
+    "match": true,
+    "disc_match": true
+   },
+   "p5b": {
+    "expected": [
+     "early_return:body[0]",
+     "except_body_delete:body[0].handlers[0]",
+     "stmt_delete:body[0]"
+    ],
+    "tool_targeted": [
+     "early_return:body[0]",
+     "except_body_delete:body[0].handlers[0]",
+     "stmt_delete:body[0]"
+    ],
+    "tool_not_targeted_n": 10,
+    "all": 13,
+    "match": true,
+    "disc_match": true
+   },
+   "p5c": {
+    "expected": [
+     "arith:body[0].cases[0].body[0].value",
+     "const+:body[0].cases[0].body[0].value.right",
+     "const-:body[0].cases[0].body[0].value.right",
+     "early_return:body[0]",
+     "stmt_delete:body[0]",
+     "stmt_delete:body[0].cases[0].body[0]"
+    ],
+    "tool_targeted": [
+     "arith:body[0].cases[0].body[0].value",
+     "const+:body[0].cases[0].body[0].value.right",
+     "const-:body[0].cases[0].body[0].value.right",
+     "early_return:body[0]",
+     "stmt_delete:body[0]",
+     "stmt_delete:body[0].cases[0].body[0]"
+    ],
+    "tool_not_targeted_n": 8,
+    "all": 14,
+    "match": true,
+    "disc_match": true
+   },
+   "p5d": {
+    "expected": [
+     "arith:body[0].body[0].value",
+     "const+:body[0].args.defaults[0]",
+     "const+:body[0].body[0].value.right",
+     "const-:body[0].args.defaults[0]",
+     "const-:body[0].body[0].value.right",
+     "early_return:body[0]",
+     "stmt_delete:body[0].body[0]",
+     "stmt_delete:body[0].body[1]"
+    ],
+    "tool_targeted": [
+     "arith:body[0].body[0].value",
+     "const+:body[0].args.defaults[0]",
+     "const+:body[0].body[0].value.right",
+     "const-:body[0].args.defaults[0]",
+     "const-:body[0].body[0].value.right",
+     "early_return:body[0]",
+     "stmt_delete:body[0].body[0]",
+     "stmt_delete:body[0].body[1]"
+    ],
+    "tool_not_targeted_n": 5,
+    "all": 13,
+    "match": true,
+    "disc_match": true
+   },
+   "p5d.inner": {
+    "expected": [
+     "arith:body[0].value",
+     "const+:body[0].value.right",
+     "const-:body[0].value.right",
+     "early_return:body[0]",
+     "stmt_delete:body[0]",
+     "stmt_delete:body[1]"
+    ],
+    "tool_targeted": [
+     "arith:body[0].value",
+     "const+:body[0].value.right",
+     "const-:body[0].value.right",
+     "early_return:body[0]",
+     "stmt_delete:body[0]",
+     "stmt_delete:body[1]"
+    ],
+    "tool_not_targeted_n": 2,
+    "all": 8,
+    "match": true,
+    "disc_match": true
+   }
+  },
+  "p5a_opcodes": [
+   [
+    "insert",
+    0,
+    0,
+    0,
+    1
+   ],
+   [
+    "equal",
+    0,
+    4,
+    1,
+    5
+   ]
+  ],
+  "p5e_in_tbd": false,
+  "p5e_records": 0,
+  "def_header_changed": {
+   "p4a": true,
+   "p4b": true,
+   "p4c": true,
+   "p4d": true,
+   "p4e": true,
+   "p5a": false,
+   "p5b": false,
+   "p5c": false,
+   "p5d": false,
+   "p5d.inner": false
+  }
+ },
+ "p6": {
+  "f": [
+   {
+    "id": "stmt_delete:body[0]",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "arith:body[0].value",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "const+:body[0].value.right",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "const-:body[0].value.right",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "const+:decorator_list[0].keywords[0].value",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": true
+   },
+   {
+    "id": "const-:decorator_list[0].keywords[0].value",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": true
+   },
+   {
+    "id": "early_return:body[0]",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   }
+  ],
+  "g": [
+   {
+    "id": "stmt_delete:body[0]",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "arith:body[0].value",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "const+:body[0].value.right",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "const-:body[0].value.right",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "const+:decorator_list[0].args[0]",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": true
+   },
+   {
+    "id": "const-:decorator_list[0].args[0]",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": true
+   },
+   {
+    "id": "const+:decorator_list[1].keywords[0].value",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": true
+   },
+   {
+    "id": "const-:decorator_list[1].keywords[0].value",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": true
+   },
+   {
+    "id": "early_return:body[0]",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   }
+  ],
+  "K.m": [
+   {
+    "id": "stmt_delete:body[0]",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "arith:body[0].value",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "const+:body[0].value.right",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "const-:body[0].value.right",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   },
+   {
+    "id": "const+:decorator_list[1].args[0]",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": true
+   },
+   {
+    "id": "const-:decorator_list[1].args[0]",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": true
+   },
+   {
+    "id": "early_return:body[0]",
+    "differs_from_original": true,
+    "def_equals_mutant": true,
+    "outside_unchanged": true,
+    "base_noop": false
+   }
+  ],
+  "summary": {
+   "decorator_mutants": 8,
+   "merged_all_differ": true,
+   "base_noop_count": 8
+  }
+ },
+ "p7": {
+  "merged_exit": 1,
+  "base_exit": 1,
+  "merged": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/m.py\"], \"mutants\": 12, \"killed\": 10, \"survivors\": [\"m:rt_scale:const+:body[0].test.comparators[0]\", \"m:rt_scale:const-:body[0].test.comparators[0]\"], \"survivor_bindings\": [\"m:rt_scale:const+:body[0].test.comparators[0]@452464fa3e0be0c3f3ed6f229d9f4fab43844cbc82b4c86f9af9d2007b468a43\", \"m:rt_scale:const-:body[0].test.comparators[0]@452464fa3e0be0c3f3ed6f229d9f4fab43844cbc82b4c86f9af9d2007b468a43\"], \"exempt_ignored\": [], \"not_targeted\": 0, \"targets_by_def\": {\"skills/analog-gmid-design/assets/m.py::rt_scale\": {\"targeted\": 12, \"not_targeted\": 0, \"deleted_statements\": 0, \"def_header_changed\": false}}}",
+  "base": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/m.py\"], \"mutants\": 12, \"killed\": 10, \"survivors\": [\"m:rt_scale:const+:body[0].test.comparators[0]\", \"m:rt_scale:const-:body[0].test.comparators[0]\"], \"survivor_bindings\": [\"m:rt_scale:const+:body[0].test.comparators[0]@452464fa3e0be0c3f3ed6f229d9f4fab43844cbc82b4c86f9af9d2007b468a43\", \"m:rt_scale:const-:body[0].test.comparators[0]@452464fa3e0be0c3f3ed6f229d9f4fab43844cbc82b4c86f9af9d2007b468a43\"], \"exempt_ignored\": []}",
+  "same_without_new_keys": true,
+  "not_targeted": 0,
+  "targets_by_def": {
+   "skills/analog-gmid-design/assets/m.py::rt_scale": {
+    "targeted": 12,
+    "not_targeted": 0,
+    "deleted_statements": 0,
+    "def_header_changed": false
+   }
+  },
+  "out_same": true,
+  "out_sha256": "f6879741d1343e62f357f784784c8b4dc4d149f08181b4e2fd69fac428eca28a",
+  "all_mutants": 12
+ },
+ "p9": {
+  "exit": 1,
+  "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/m.py\"], \"mutants\": 2, \"killed\": 1, \"survivors\": [\"m:rt_g:stmt_delete:body[1]\"], \"survivor_bindings\": [\"m:rt_g:stmt_delete:body[1]@446bc5f602f9570dc038abc811ff6f68c7d2a0ac2c0a3f1557776f58a53bd217\"], \"exempt_ignored\": [], \"not_targeted\": 1, \"targets_by_def\": {\"skills/analog-gmid-design/assets/m.py::rt_g\": {\"targeted\": 2, \"not_targeted\": 1, \"deleted_statements\": 1, \"def_header_changed\": false}}}",
+  "records": [
+   {
+    "id": "m:rt_g:stmt_delete:body[0]",
+    "result": "not_targeted"
+   },
+   {
+    "id": "m:rt_g:stmt_delete:body[1]",
+    "result": "survived",
+    "tests": [
+     "skills/analog-gmid-design/assets/tests/test_p9.py::test_rt_g_p9"
+    ]
+   },
+   {
+    "id": "m:rt_g:early_return:body[0]",
+    "result": "killed",
+    "exit": 1
+   }
+  ],
+  "auditor_full_targets": [
+   "early_return:body[0]",
+   "stmt_delete:body[1]"
+  ],
+  "auditor_without_T6a_targets": [
+   "early_return:body[0]"
+  ],
+  "X_target_full": true,
+  "X_target_without_T6a": false
+ }
+}

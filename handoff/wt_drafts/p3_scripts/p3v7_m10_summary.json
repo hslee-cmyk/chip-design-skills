@@ -1,0 +1,1219 @@
+{
+ "summary": {
+  "mutants": 71,
+  "base_inst_sha": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+  "base_report": false,
+  "deterministic": {
+   "inst_sha": true,
+   "stdout_sha": true,
+   "report_sha": true
+  },
+  "survive_T1": 50,
+  "survive_T1_print": 18,
+  "survive_T1_unreached_fc": 24,
+  "survive_T1_unreached_any": 13,
+  "survive_T2": 46,
+  "survive_T2_print": 18,
+  "survive_T2_unreached_fc": 23,
+  "survive_T2_unreached_any": 12,
+  "survive_T3": 24,
+  "survive_T3_print": 9,
+  "survive_T3_unreached_fc": 18,
+  "survive_T3_unreached_any": 7,
+  "survive_T4": 24,
+  "survive_T4_print": 9,
+  "survive_T4_unreached_fc": 18,
+  "survive_T4_unreached_any": 7,
+  "survivors_T3": [
+   "stmt_delete L423 if circuit_key not in SPECS:",
+   "stmt_delete L431 report_out = os.path.join(report_dir, f\"{stem}.report.html\")",
+   "stmt_delete L438 spec.setdefault(\"floorplan_target\", {",
+   "stmt_delete L442 spec.setdefault(\"max_layout_retry_rounds\", MAX_ITERS)",
+   "stmt_delete L424 raise ValueError(f\"등록되지 않은 circuit_key={circuit_key!r} -- \"",
+   "stmt_delete L451 print(\"pipeline_result=None -- 넷리스트 전체가 사이징되지 않아 자동 조정 불가\")",
+   "stmt_delete L453 for r in pr.get(\"layout_retry_rounds\", []):",
+   "stmt_delete L454 print(f\"[row_split 재시도] target={r['target']} row_split={r['row_split']",
+   "stmt_delete L473 print(\"run_full_circuit_audit.ok:\", full_circuit_audit.ok)",
+   "stmt_delete L474 for c in full_circuit_audit.checks:",
+   "stmt_delete L475 print(f\"  - {c.name}: {c.ok} ({c.detail})\")",
+   "stmt_delete L499 if full_circuit_audit is not None and not full_circuit_audit.ok:",
+   "stmt_delete L511 print(\"pipeline_result=None -- 넷리스트 전체가 사이징되지 않아 instance.json/report ",
+   "cmp_flip L422 ",
+   "stmt_delete L500 note_parts.append(\"run_full_circuit_audit.ok=False -- 위 체크 결과 참고\")",
+   "stmt_delete L505 report_data = assemble_report_data(topo, instance_out, full_circuit_au",
+   "stmt_delete L506 save_html_report(report_data, report_out)",
+   "stmt_delete L507 print(f\"report.html 저장: {report_out}\")",
+   "except_body_delete L512 except Exception as e:",
+   "stmt_delete L524 print()",
+   "stmt_delete L525 print(\"[diagnose_sizing_roles_gap() 추가 진단]\")",
+   "stmt_delete L526 try:",
+   "stmt_delete L527 print(\" \", diagnose_sizing_roles_gap(topo, spec))",
+   "except_body_delete L528 except Exception as _diag_e:"
+  ],
+  "survivors_T1_list": [
+   "stmt_delete L423 if circuit_key not in SPECS:",
+   "stmt_delete L431 report_out = os.path.join(report_dir, f\"{stem}.report.html\")",
+   "stmt_delete L438 spec.setdefault(\"floorplan_target\", {",
+   "stmt_delete L442 spec.setdefault(\"max_layout_retry_rounds\", MAX_ITERS)",
+   "stmt_delete L424 raise ValueError(f\"등록되지 않은 circuit_key={circuit_key!r} -- \"",
+   "stmt_delete L450 if pr is None:",
+   "stmt_delete L466 print(\"OK -- theta_star:\", result[\"theta_star\"])",
+   "stmt_delete L467 print(\"audit_ok:\", result[\"audit_ok\"])",
+   "stmt_delete L468 print(\"metrics:\", result[\"metrics\"])",
+   "stmt_delete L470 full_circuit_audit = None",
+   "stmt_delete L471 try:",
+   "stmt_delete L451 print(\"pipeline_result=None -- 넷리스트 전체가 사이징되지 않아 자동 조정 불가\")",
+   "stmt_delete L453 for r in pr.get(\"layout_retry_rounds\", []):",
+   "stmt_delete L460 print(f\"floorplan.aspect_ratio={floorplan.aspect_ratio:.3f}\"",
+   "cmp_flip L422 ",
+   "stmt_delete L454 print(f\"[row_split 재시도] target={r['target']} row_split={r['row_split']",
+   "cmp_flip L422 ",
+   "cmp_flip L422 ",
+   "stmt_delete L473 print(\"run_full_circuit_audit.ok:\", full_circuit_audit.ok)",
+   "stmt_delete L474 for c in full_circuit_audit.checks:",
+   "stmt_delete L475 print(f\"  - {c.name}: {c.ok} ({c.detail})\")",
+   "except_body_delete L476 except ValueError as e:",
+   "stmt_delete L485 print(f\"box_shape.ok={bs.ok}(참고용) rectangular={bs.rectangular} \"",
+   "stmt_delete L488 print(f\"floorplan.aspect_ratio={fp.aspect_ratio:.3f} \"",
+   "stmt_delete L490 print(f\"coverage.ok={pr['coverage'].ok} missing={pr['coverage'].missin",
+   "stmt_delete L493 note_parts = []",
+   "stmt_delete L494 if not result[\"audit_ok\"]:",
+   "stmt_delete L496 if not final_floorplan_ok:",
+   "stmt_delete L499 if full_circuit_audit is not None and not full_circuit_audit.ok:",
+   "stmt_delete L501 note = f\" ({'; '.join(note_parts)})\" if note_parts else \"\"",
+   "stmt_delete L502 print(f\"instance.json 저장: {instance_out}{note}\")",
+   "stmt_delete L504 if full_circuit_audit is not None:",
+   "stmt_delete L511 print(\"pipeline_result=None -- 넷리스트 전체가 사이징되지 않아 instance.json/report ",
+   "cmp_flip L422 ",
+   "cmp_flip L422 ",
+   "stmt_delete L495 note_parts.append(\"audit_ok=False -- audit_row_split에 남은 FAIL 항목 그대로 저",
+   "stmt_delete L497 note_parts.append(\"floorplan_ok=False -- 자동 재시도로도 못 고침(빈 공간 많거나 \"",
+   "stmt_delete L500 note_parts.append(\"run_full_circuit_audit.ok=False -- 위 체크 결과 참고\")",
+   "cmp_flip L422 ",
+   "stmt_delete L505 report_data = assemble_report_data(topo, instance_out, full_circuit_au",
+   "stmt_delete L506 save_html_report(report_data, report_out)",
+   "stmt_delete L507 print(f\"report.html 저장: {report_out}\")",
+   "stmt_delete L509 print(\"report.html 생략(full_circuit_audit 실패로 assemble_report_data 입력 불",
+   "cmp_flip L422 ",
+   "except_body_delete L512 except Exception as e:",
+   "stmt_delete L524 print()",
+   "stmt_delete L525 print(\"[diagnose_sizing_roles_gap() 추가 진단]\")",
+   "stmt_delete L526 try:",
+   "stmt_delete L527 print(\" \", diagnose_sizing_roles_gap(topo, spec))",
+   "except_body_delete L528 except Exception as _diag_e:"
+  ],
+  "wall_s_total": 3750.5,
+  "wall_s_killed_T1_mean": 32.5,
+  "wall_s_survived_T1_mean": 61.4
+ },
+ "rows": [
+  {
+   "k": "m000",
+   "op": "stmt_delete",
+   "line": 423,
+   "seg": "if circuit_key not in SPECS:",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 54.5
+  },
+  {
+   "k": "m001",
+   "op": "stmt_delete",
+   "line": 426,
+   "seg": "cfg = SPECS[circuit_key]",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 6.1
+  },
+  {
+   "k": "m002",
+   "op": "stmt_delete",
+   "line": 427,
+   "seg": "topo = os.path.join(LIBRARY_DIR, cfg[\"topology_file\"])",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 7.4
+  },
+  {
+   "k": "m003",
+   "op": "stmt_delete",
+   "line": 428,
+   "seg": "report_dir = os.path.join(WORKSPACES_DIR, cfg[\"report_dir\"])",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 7.2
+  },
+  {
+   "k": "m004",
+   "op": "stmt_delete",
+   "line": 429,
+   "seg": "stem = cfg[\"topology_file\"].removesuffix(\".topology.json\")",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 4.3
+  },
+  {
+   "k": "m005",
+   "op": "stmt_delete",
+   "line": 430,
+   "seg": "instance_out = os.path.join(report_dir, f\"{stem}.instance.json\")",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 95.1
+  },
+  {
+   "k": "m006",
+   "op": "stmt_delete",
+   "line": 431,
+   "seg": "report_out = os.path.join(report_dir, f\"{stem}.report.html\")",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 55.5
+  },
+  {
+   "k": "m007",
+   "op": "stmt_delete",
+   "line": 432,
+   "seg": "spec = cfg[\"spec_fn\"]()",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 4.3
+  },
+  {
+   "k": "m008",
+   "op": "stmt_delete",
+   "line": 438,
+   "seg": "spec.setdefault(\"floorplan_target\", {",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 59.3
+  },
+  {
+   "k": "m009",
+   "op": "stmt_delete",
+   "line": 442,
+   "seg": "spec.setdefault(\"max_layout_retry_rounds\", MAX_ITERS)",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 74.5
+  },
+  {
+   "k": "m010",
+   "op": "stmt_delete",
+   "line": 444,
+   "seg": "try:",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 4.2
+  },
+  {
+   "k": "m011",
+   "op": "stmt_delete",
+   "line": 424,
+   "seg": "raise ValueError(f\"등록되지 않은 circuit_key={circuit_key!r} -- \"",
+   "print": false,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 62.4
+  },
+  {
+   "k": "m012",
+   "op": "cmp_flip",
+   "line": 422,
+   "seg": "",
+   "print": false,
+   "reached_by": [],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 3.5
+  },
+  {
+   "k": "m013",
+   "op": "stmt_delete",
+   "line": 445,
+   "seg": "result = optimize_full_circuit_budget(",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 4.1
+  },
+  {
+   "k": "m014",
+   "op": "stmt_delete",
+   "line": 449,
+   "seg": "pr = result[\"pipeline_result\"]",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 52.0
+  },
+  {
+   "k": "m015",
+   "op": "stmt_delete",
+   "line": 450,
+   "seg": "if pr is None:",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 53.7
+  },
+  {
+   "k": "m016",
+   "op": "stmt_delete",
+   "line": 466,
+   "seg": "print(\"OK -- theta_star:\", result[\"theta_star\"])",
+   "print": true,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 50.8
+  },
+  {
+   "k": "m017",
+   "op": "stmt_delete",
+   "line": 467,
+   "seg": "print(\"audit_ok:\", result[\"audit_ok\"])",
+   "print": true,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 53.9
+  },
+  {
+   "k": "m018",
+   "op": "stmt_delete",
+   "line": 468,
+   "seg": "print(\"metrics:\", result[\"metrics\"])",
+   "print": true,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 54.4
+  },
+  {
+   "k": "m019",
+   "op": "stmt_delete",
+   "line": 470,
+   "seg": "full_circuit_audit = None",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 50.3
+  },
+  {
+   "k": "m020",
+   "op": "stmt_delete",
+   "line": 471,
+   "seg": "try:",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 79.3
+  },
+  {
+   "k": "m021",
+   "op": "stmt_delete",
+   "line": 480,
+   "seg": "if pr is not None:",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 46.3
+  },
+  {
+   "k": "m022",
+   "op": "stmt_delete",
+   "line": 451,
+   "seg": "print(\"pipeline_result=None -- 넷리스트 전체가 사이징되지 않아 자동 조정 불가\")",
+   "print": true,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 45.6
+  },
+  {
+   "k": "m023",
+   "op": "stmt_delete",
+   "line": 453,
+   "seg": "for r in pr.get(\"layout_retry_rounds\", []):",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 47.3
+  },
+  {
+   "k": "m024",
+   "op": "stmt_delete",
+   "line": 457,
+   "seg": "floorplan = pr[\"floorplan\"]",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 42.7
+  },
+  {
+   "k": "m025",
+   "op": "stmt_delete",
+   "line": 458,
+   "seg": "aspect_ok = floorplan.aspect_ratio <= FLOORPLAN_MAX_ASPECT_RATIO",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 53.3
+  },
+  {
+   "k": "m026",
+   "op": "stmt_delete",
+   "line": 459,
+   "seg": "density_ok = floorplan.packing_density >= FLOORPLAN_MIN_PACKING_DENSITY",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 52.7
+  },
+  {
+   "k": "m027",
+   "op": "stmt_delete",
+   "line": 460,
+   "seg": "print(f\"floorplan.aspect_ratio={floorplan.aspect_ratio:.3f}\"",
+   "print": true,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 44.9
+  },
+  {
+   "k": "m028",
+   "op": "cmp_flip",
+   "line": 422,
+   "seg": "",
+   "print": false,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 51.2
+  },
+  {
+   "k": "m029",
+   "op": "stmt_delete",
+   "line": 454,
+   "seg": "print(f\"[row_split 재시도] target={r['target']} row_split={r['row_split']} \"",
+   "print": true,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 51.4
+  },
+  {
+   "k": "m030",
+   "op": "cmp_flip",
+   "line": 422,
+   "seg": "",
+   "print": false,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 45.0
+  },
+  {
+   "k": "m031",
+   "op": "cmp_flip",
+   "line": 422,
+   "seg": "",
+   "print": false,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 45.7
+  },
+  {
+   "k": "m032",
+   "op": "stmt_delete",
+   "line": 472,
+   "seg": "full_circuit_audit = run_full_circuit_audit_from_topology(topo)",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 50.1
+  },
+  {
+   "k": "m033",
+   "op": "stmt_delete",
+   "line": 473,
+   "seg": "print(\"run_full_circuit_audit.ok:\", full_circuit_audit.ok)",
+   "print": true,
+   "reached_by": [
+    "current_reuse_telescopic_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 49.5
+  },
+  {
+   "k": "m034",
+   "op": "stmt_delete",
+   "line": 474,
+   "seg": "for c in full_circuit_audit.checks:",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 40.0
+  },
+  {
+   "k": "m035",
+   "op": "stmt_delete",
+   "line": 475,
+   "seg": "print(f\"  - {c.name}: {c.ok} ({c.detail})\")",
+   "print": true,
+   "reached_by": [
+    "current_reuse_telescopic_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 46.0
+  },
+  {
+   "k": "m036",
+   "op": "except_body_delete",
+   "line": 476,
+   "seg": "except ValueError as e:",
+   "print": false,
+   "reached_by": [
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 34.6
+  },
+  {
+   "k": "m037",
+   "op": "stmt_delete",
+   "line": 481,
+   "seg": "bs = pr[\"box_shape\"]",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 39.0
+  },
+  {
+   "k": "m038",
+   "op": "stmt_delete",
+   "line": 482,
+   "seg": "fp = pr[\"floorplan\"]",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 48.3
+  },
+  {
+   "k": "m039",
+   "op": "stmt_delete",
+   "line": 483,
+   "seg": "final_floorplan_ok = (fp.aspect_ratio <= FLOORPLAN_MAX_ASPECT_RATIO",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 52.6
+  },
+  {
+   "k": "m040",
+   "op": "stmt_delete",
+   "line": 485,
+   "seg": "print(f\"box_shape.ok={bs.ok}(참고용) rectangular={bs.rectangular} \"",
+   "print": true,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 58.6
+  },
+  {
+   "k": "m041",
+   "op": "stmt_delete",
+   "line": 488,
+   "seg": "print(f\"floorplan.aspect_ratio={fp.aspect_ratio:.3f} \"",
+   "print": true,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 53.0
+  },
+  {
+   "k": "m042",
+   "op": "stmt_delete",
+   "line": 490,
+   "seg": "print(f\"coverage.ok={pr['coverage'].ok} missing={pr['coverage'].missing}\")",
+   "print": true,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 53.5
+  },
+  {
+   "k": "m043",
+   "op": "stmt_delete",
+   "line": 492,
+   "seg": "save_instance_json(instance_out, topo, result[\"sizing\"], result[\"pipeline_result\"])",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 45.0
+  },
+  {
+   "k": "m044",
+   "op": "stmt_delete",
+   "line": 493,
+   "seg": "note_parts = []",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 52.1
+  },
+  {
+   "k": "m045",
+   "op": "stmt_delete",
+   "line": 494,
+   "seg": "if not result[\"audit_ok\"]:",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 52.6
+  },
+  {
+   "k": "m046",
+   "op": "stmt_delete",
+   "line": 496,
+   "seg": "if not final_floorplan_ok:",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 70.9
+  },
+  {
+   "k": "m047",
+   "op": "stmt_delete",
+   "line": 499,
+   "seg": "if full_circuit_audit is not None and not full_circuit_audit.ok:",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 60.2
+  },
+  {
+   "k": "m048",
+   "op": "stmt_delete",
+   "line": 501,
+   "seg": "note = f\" ({'; '.join(note_parts)})\" if note_parts else \"\"",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 87.9
+  },
+  {
+   "k": "m049",
+   "op": "stmt_delete",
+   "line": 502,
+   "seg": "print(f\"instance.json 저장: {instance_out}{note}\")",
+   "print": true,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 53.6
+  },
+  {
+   "k": "m050",
+   "op": "stmt_delete",
+   "line": 504,
+   "seg": "if full_circuit_audit is not None:",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 53.9
+  },
+  {
+   "k": "m051",
+   "op": "stmt_delete",
+   "line": 511,
+   "seg": "print(\"pipeline_result=None -- 넷리스트 전체가 사이징되지 않아 instance.json/report 저장 생략\")",
+   "print": true,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 53.8
+  },
+  {
+   "k": "m052",
+   "op": "cmp_flip",
+   "line": 422,
+   "seg": "",
+   "print": false,
+   "reached_by": [],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 55.1
+  },
+  {
+   "k": "m053",
+   "op": "cmp_flip",
+   "line": 422,
+   "seg": "",
+   "print": false,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 81.0
+  },
+  {
+   "k": "m054",
+   "op": "cmp_flip",
+   "line": 422,
+   "seg": "",
+   "print": false,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 54.6
+  },
+  {
+   "k": "m055",
+   "op": "stmt_delete",
+   "line": 495,
+   "seg": "note_parts.append(\"audit_ok=False -- audit_row_split에 남은 FAIL 항목 그대로 저장됨\")",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 89.4
+  },
+  {
+   "k": "m056",
+   "op": "stmt_delete",
+   "line": 497,
+   "seg": "note_parts.append(\"floorplan_ok=False -- 자동 재시도로도 못 고침(빈 공간 많거나 \"",
+   "print": false,
+   "reached_by": [
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 82.3
+  },
+  {
+   "k": "m057",
+   "op": "stmt_delete",
+   "line": 500,
+   "seg": "note_parts.append(\"run_full_circuit_audit.ok=False -- 위 체크 결과 참고\")",
+   "print": false,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 51.7
+  },
+  {
+   "k": "m058",
+   "op": "cmp_flip",
+   "line": 422,
+   "seg": "",
+   "print": false,
+   "reached_by": [],
+   "T1": false,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 61.7
+  },
+  {
+   "k": "m059",
+   "op": "stmt_delete",
+   "line": 505,
+   "seg": "report_data = assemble_report_data(topo, instance_out, full_circuit_audit=full_circuit_audit)",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 56.5
+  },
+  {
+   "k": "m060",
+   "op": "stmt_delete",
+   "line": 506,
+   "seg": "save_html_report(report_data, report_out)",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 62.7
+  },
+  {
+   "k": "m061",
+   "op": "stmt_delete",
+   "line": 507,
+   "seg": "print(f\"report.html 저장: {report_out}\")",
+   "print": true,
+   "reached_by": [
+    "current_reuse_telescopic_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 51.6
+  },
+  {
+   "k": "m062",
+   "op": "stmt_delete",
+   "line": 509,
+   "seg": "print(\"report.html 생략(full_circuit_audit 실패로 assemble_report_data 입력 불완전)\")",
+   "print": true,
+   "reached_by": [
+    "folded_cascode"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 60.4
+  },
+  {
+   "k": "m063",
+   "op": "cmp_flip",
+   "line": 422,
+   "seg": "",
+   "print": false,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": true,
+   "T4": true,
+   "wall_s": 134.9
+  },
+  {
+   "k": "m064",
+   "op": "except_body_delete",
+   "line": 512,
+   "seg": "except Exception as e:",
+   "print": false,
+   "reached_by": [
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 108.2
+  },
+  {
+   "k": "m065",
+   "op": "stmt_delete",
+   "line": 524,
+   "seg": "print()",
+   "print": true,
+   "reached_by": [
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 92.2
+  },
+  {
+   "k": "m066",
+   "op": "stmt_delete",
+   "line": 525,
+   "seg": "print(\"[diagnose_sizing_roles_gap() 추가 진단]\")",
+   "print": true,
+   "reached_by": [
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 58.0
+  },
+  {
+   "k": "m067",
+   "op": "stmt_delete",
+   "line": 526,
+   "seg": "try:",
+   "print": false,
+   "reached_by": [
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 57.5
+  },
+  {
+   "k": "m068",
+   "op": "stmt_delete",
+   "line": 527,
+   "seg": "print(\" \", diagnose_sizing_roles_gap(topo, spec))",
+   "print": true,
+   "reached_by": [
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 105.3
+  },
+  {
+   "k": "m069",
+   "op": "except_body_delete",
+   "line": 528,
+   "seg": "except Exception as _diag_e:",
+   "print": false,
+   "reached_by": [],
+   "T1": false,
+   "T2": false,
+   "T3": false,
+   "T4": false,
+   "wall_s": 60.9
+  },
+  {
+   "k": "m070",
+   "op": "early_return",
+   "line": 423,
+   "seg": "if circuit_key not in SPECS:",
+   "print": false,
+   "reached_by": [
+    "current_reuse_telescopic_ota",
+    "folded_cascode",
+    "nmcnr_amplifier",
+    "two_stage_ota"
+   ],
+   "T1": true,
+   "T2": true,
+   "T3": true,
+   "T4": true,
+   "wall_s": 8.4
+  }
+ ]
+}

@@ -1,0 +1,72 @@
+# G1 계약 12·계약 4 문구 결정 메모(2026-10-06) -- 계약은 고치지 않음, 원칙 기본안
+
+대상: `draft_p3_g1.spec.md`(G1 `20260930-p3-gate-move-aware`). 근거 실측: 그 초안 '작성 전 실측' `a17b8bd` 문단 끝 '계약 문구 확인 필요', 이 메모의 (b) 실측(`C:/g279`, gate `master` `dafe5cf` base 도구).
+**이 메모는 결정 기본안이다 -- spec 초안의 계약 문장은 바꾸지 않았다.** 적용은 G1 card 커밋 전 오케스트레이터 몫(바꾸면 승인 초안 pin 문단의 sha를 다시 재고, 차이가 계약 안이라는 사실을 그 문단에 적는다).
+
+## (a) 계약 12 '합성 관찰' -- "거부 단계(`move_rejected`가 있는 것)도 `not_targeted` = 0(같은 이유)"
+
+### 사실
+
+* 계약 4(규칙의 정본): 거부된 이동 후보는 "새 경로의 def로서 범위 정책 규칙대로 대상이 된다 -- **base 같은 경로에 같은 qualname이 없으면** 본문 전체이고, 이동 원본과 문장 단위로 맞추지 않는다".
+  즉 목적 경로 base에 **같은 qualname의 기존 def가 있으면**(`overwrite`·`swap` 모양 -- M-0), 그 def는 범위 정책 card 계약 1의 '해시가 바뀐 기존 def'이고 그 옛 def와 문장 단위로 맞춘다.
+* 실측(2026-10-02, 시제품 `a17b8bd` 앵커): 본문이 비슷한 합성 `overwrite-similar`(M-0 거부)에서 `not_targeted` 12(대상 7). 계약 12 표의 `overwrite`·`swap`은 덮는 base def와 본문이 통째로 달라
+  문장 맞춤에서 모든 문장이 '바뀐 문장'이라 0이다. 그래서 "(같은 이유)"는 틀린 근거이고, "= 0"은 표 픽스처에서만 성립한다(규칙상 0이 아니다).
+* base 도구(card 35 병합본, G1 없음)도 같은 입력에서 같은 범위를 고른다: base 도구는 이동을 모르므로 `b.py::f`를 '해시가 바뀐 기존 def'로 보고 옛 `b.py::f`와 맞춘다. G1은 거부 후보에 대해 base 도구와 **같은**
+  선택을 한다(계약 4 '나머지 대상 선택은 base 도구와 같다') -- G1이 더하는 약화는 없다.
+
+### 승인 범위 대조(인용)
+
+* 범위 정책 승인 `20260930-v3-changed-stmt-scope`(gate `dafe5cf` `.ai/approvals/`) '범위 설명': "**판정 기준 적용 범위 축소(약화) 승인.** design 05 §10 V3 ①·계획 N4.2 V3의 대상 단위 'AST 해시가 바뀐 def(본문 전체)'를,
+  **해시가 바뀐 기존 def에서는** 아래 '덮는 대상'으로 좁힌다 … 새 def는 본문 전체(지금 그대로)."
+  -- `overwrite`의 목적 경로 def는 같은 경로·같은 qualname의 해시가 바뀐 기존 def다. 이 승인이 덮는다.
+* design 30(UD-0 승인본) §5.2 V3: "대상이 된 def 안의 변이 선택은 범위 정책 card(N2)의 규칙 그대로이고, **새 경로에서 base 같은 경로에 같은 qualname이 없으면** '새 def'(본문 전체)다 --
+  이동 원본과 문장 단위로 맞추지 않는다(D-20, §5.5.2)."
+* D-20 근거(design 30 §5.2): "(1) 범위 정책 승인(A1-b, 약화 승인)이 덮는 것은 '**같은 경로의** 해시가 바뀐 기존 def'뿐이다 -- 원본을 경로 밖에서 찾아 문장 단위로 좁히는 것은 승인 범위 밖의 추가 약화다. …
+  (3) 거부 후보(M-0·M-0h·M-4 등)는 '이동으로 인정할 수 없다'는 판정이므로 **원본과 맞추는 것은** 그 판정을 무르는 것이다."
+  -- `overwrite`는 경로 밖 원본(`a.py::f`)이 아니라 같은 경로 옛 def와 맞춘다: (1)·(3) 어느 쪽에도 걸리지 않는다.
+* UD-5 질문 원문(승인 초안 인용): "어느 방식이든 약화는 없습니다(redteam 합성 반례 중 거부해야 할 단계는 전부 거부, 엔진 통째 이동의 거짓 거부 0)." -- G1은 base 도구 대비 약화가 없고,
+  계약 12 표의 거부 단계 23개 기대값(exit·관찰)은 그대로다(`overwrite`·`swap` 관찰 `not_targeted` = 0 유지).
+
+**판단: 승인 범위 안이다 → 사용자 질문 아님.** 다만 design 30 D-20 머리 문장·결정표 756행("옮기며 바뀐 def·거부된 이동 후보의 V3 대상 = 새 경로의 새 def(본문 전체)")은 조건("base 같은 경로에 같은
+qualname이 없으면")을 생략한 줄임말이다 -- §5.2 본문과 근거 (1)이 조건을 가진다. design 30 정정 대기열(문서 커밋, 판정 표 무관)에 "D-20 머리·756행에 §5.2 조건 구절을 붙인다"를 올린다(문구 정정, 규칙 무변경).
+
+### 문구 기본안(G1 card 커밋 전에 적용 -- 기대값 무변경)
+
+계약 12 '합성 관찰' 해당 구절을 아래로 바꾼다:
+
+> … `move-edited`·`class-header-changed`·`class-field-changed`·`class-method-edited`는 `defs`에 새 경로 def가 있고 `not_targeted` = 0(새 경로의 새 def라 본문 전체 -- D-20, 이동 원본과 문장 단위로 맞추면
+> `not_targeted` > 0이 된다), 거부 단계(`move_rejected`가 있는 것)도 **이 표의 픽스처에서는** `not_targeted` = 0 -- 목적 경로 base에 같은 qualname이 없으면 새 def(본문 전체)이고, 있으면(`overwrite`·`swap`)
+> 계약 4대로 그 같은 경로 기존 def와 범위 정책 계약 1로 맞추는데 이 표의 덮인 def는 본문이 통째로 달라 모든 문장이 대상이다. **일반 규칙은 0이 아니다**: 덮인 base def와 본문이 비슷하면 `not_targeted` > 0
+> (2026-10-02 합성 `overwrite-similar` 12 -- base 도구와 같은 선택, 범위 정책 승인 `20260930-v3-changed-stmt-scope`가 덮는 '같은 경로의 해시가 바뀐 기존 def').
+
+* 기대값·단계 수 변화 없음(31단계 = red 8 + 거부 23, 관찰 `not_targeted` 값 그대로) → 승인 초안의 단계 수 구절·`check_apr_draft` 무영향. 판별력: `G1_VARIANT=scope_from_origin`(이동 원본과 맞춤)은
+  여전히 `move-edited`·`class-header-changed`·`class-method-edited`에서 FAIL(실측 `not_targeted` 1·6·1).
+* 선택(기본 아님): `overwrite-similar`를 계약 12 표에 거부 단계로 더해 일반 규칙을 test로 고정하는 안 -- 단계 수가 32로 바뀌어 승인 초안 단계 구절·양식·`check_apr_draft` 대조가 함께 움직이고,
+  관찰 기대 `not_targeted` = 12는 범위 정책 규칙의 값이라 G1 표에 두면 범위 정책 변경 때 G1 표가 따라 바뀐다(소유권 혼선). 기본안은 문구 정정만 하고, 이 단계는 범위 정책 쪽 백로그로 둔다.
+* 적용 시 승인 초안 pin 문단: "card가 `<새 sha>`로 바뀌었다 -- 차이는 계약 12 '합성 관찰' 한 구절(근거 문장 정정, 기대값 무변경)과 …" 처럼 **계약 안 차이임을 그대로 적는다**(pin 규칙은 '계약·redteam 표 밖'을
+  확인하라는 것이므로, 안이면 그 사실과 '기대값 무변경·약화 아님' 근거를 적어 사용자가 본 질문 문안 범위 안임을 보인다).
+
+## (b) qualname 중복 def의 `targets_by_def` 덮어쓰기
+
+### 사실(실측 `C:/g279/w/dupq.py`, base 도구 = gate `dafe5cf` `mutate_changed.py`)
+
+* card 35 도구는 `targets_by_def["<경로>::<qualname>"] = stat`(사전)이라, 한 파일에 같은 qualname의 def가 둘이고 둘 다 대상이면 **마지막 def의 통계만 남는다**(`not_targeted` 합계는 둘 다 센다 --
+  `targets_by_def` 값 합과 다를 수 있다). 변이 id(`<모듈>:<qualname>:…`)도 두 def가 같은 접두를 쓴다.
+* `changed_defs`·`_Scope`의 base 짝은 `dict(iter_defs(base))`라 같은 qualname의 **마지막** base def다. 실측: `@property x`(getter 본문만 3.7 → 4.7) + `@x.setter x`(무변경)에서 대상 def는 getter 하나,
+  그 `_Scope` 짝은 base **setter**(`def_header_changed` True·`deleted_statements` 2), 변이 6 전부 대상(`not_targeted` 0). getter는 바뀌지 않아도 base 마지막 def(setter)와 해시가 달라 늘 '바뀐 def'로 잡힌다(보수).
+* G1 계약 4: `defs`는 "한 파일에 같은 qualname이 둘인 def(조건부 재정의·property getter/setter)는 대상인 만큼 두 번 나온다(v9)". 기존 키(`targets_by_def` 포함)는 "이름·뜻을 바꾸지 않는다".
+  즉 G1 출력에서 `defs`의 중복 항목 수와 `targets_by_def` 키 수가 다를 수 있다 -- 계약 문장은 이를 말하지 않는다. 엔진 4파일 qualname 중복 0(`g7_facts`) -- Phase 3 노출 0.
+
+### 판단
+
+G1이 바꾸는 것이 없다(범위 정책 card 출력 그대로, G1은 그 키의 이름·뜻을 바꾸지 않는다) → 약화 아님, 사용자 질문 아님. 짝 오류(getter ↔ base setter)는 범위 정책 card의 기존 동작이라
+G1 범위 밖 -- 범위 정책 쪽 백로그 후보("qualname 중복 def의 `_Scope` 짝을 iter_defs 순서로 맞추고 `targets_by_def`를 목록 값으로", 강화 방향이라도 게이트 변경 = 별도 card).
+
+### 문구 기본안(G1 card 커밋 전에 적용 -- 기대값 무변경)
+
+계약 4의 `"defs"` 설명 괄호 끝(…두 번 나온다, v9) 뒤에 한 문장을 더한다:
+
+> 범위 정책의 `targets_by_def`는 `<경로>::<qualname>` 사전이라 같은 qualname의 두 def는 마지막 것의 통계만 남는다(범위 정책 병합본 출력 그대로 -- 이 card는 바꾸지 않는다). 그래서 `defs`의 중복 항목 수와
+> `targets_by_def` 키 수가 다를 수 있고 `not_targeted`(합계)는 두 def 몫을 모두 센다. 같은 qualname def의 범위 정책 비교 기준도 base의 마지막 같은 qualname def다(범위 정책 동작, 이 card 범위 밖).
+
+* redteam 32 표 무영향(`property-getter-changed` 관찰은 `P.x` 이동 없음·qualname 중복 제외 -- V3 관찰 키는 `moved`·`move_rejected`·`defs`·`not_targeted`(키트 측정판 rt.py `observe: "moved"` 분기) -- `targets_by_def`는 대조하지 않는다).

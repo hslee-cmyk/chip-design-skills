@@ -1,0 +1,35 @@
+{
+ "40": {
+  "total_KB": 681.7,
+  "H_head_KB": 43.2,
+  "P_hist_paren_KB": 54.3,
+  "P_count": 354,
+  "S_strike_KB": 0.2,
+  "O_old_sentence_KB": 10.0,
+  "R_superseded_line_KB": 0.8,
+  "A_asbuilt_line_refs": 376,
+  "M_measure_sentence_KB": 5.5
+ },
+ "41": {
+  "total_KB": 596.0,
+  "H_head_KB": 51.0,
+  "P_hist_paren_KB": 73.6,
+  "P_count": 410,
+  "S_strike_KB": 12.8,
+  "O_old_sentence_KB": 7.4,
+  "R_superseded_line_KB": 26.1,
+  "A_asbuilt_line_refs": 151,
+  "M_measure_sentence_KB": 2.2
+ },
+ "42": {
+  "total_KB": 93.9,
+  "H_head_KB": 4.6,
+  "P_hist_paren_KB": 8.9,
+  "P_count": 76,
+  "S_strike_KB": 0.3,
+  "O_old_sentence_KB": 0.0,
+  "R_superseded_line_KB": 0.0,
+  "A_asbuilt_line_refs": 109,
+  "M_measure_sentence_KB": 2.3
+ }
+}

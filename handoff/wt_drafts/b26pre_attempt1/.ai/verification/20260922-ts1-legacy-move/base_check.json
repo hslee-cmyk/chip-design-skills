@@ -1,0 +1,103 @@
+{
+  "id": "20260922-ts1-legacy-move",
+  "step": "05-role-separation 12 순서 3 (freeze + base 대비 equivalence 확인: design 10 6.1 C2 증거 1·4)",
+  "evidence_type": "equivalence",
+  "phase": "1",
+  "base_commit": "8bf6d8e42b28c382a67c89f2c9b2fab995f24919",
+  "test_commit": "a9077148432d9fba2d2b69fb992103be3a9031f4",
+  "freeze": {
+    "T": "a9077148432d9fba2d2b69fb992103be3a9031f4",
+    "base_to_T_commits": 1,
+    "base_to_T_diff": [
+      "A skills/analog-gmid-design/assets/tests/legacy/selftest_design_report.py",
+      "A skills/analog-gmid-design/assets/tests/legacy/selftest_sizing_recipe.py",
+      "A skills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py",
+      "A skills/analog-gmid-design/assets/tests/legacy/selftest_topology_library.py",
+      "A skills/analog-gmid-design/assets/tests/legacy/test_legacy_selftests.py"
+    ],
+    "source_unchanged_base_to_T": {
+      "sizing_recipe.py": "e233dff3d0118e4ec7ac16dfe405f1c7c174b7cb",
+      "stick_diagram.py": "4ec01a247b46db77a1956771827ec133cdc1b95c",
+      "design_report.py": "75e4b9ab585f761fb233acfc6be49ead1647c383",
+      "topology_library.py": "cff71b4348c0ded03b77511611e987d059ce8834",
+      "note": "git rev-parse <base>:A/<m>.py = <T>:A/<m>.py (4개 모두 같은 blob). base..T 차이는 test 경로 추가 5개뿐"
+    }
+  },
+  "isolated_clone": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso",
+  "isolation_commands": [
+    "git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts1-legacy-move-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso",
+    "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso remote remove origin"
+  ],
+  "clone_note": "순서 7(병합본 실행, 증거 2·3·5)도 이 같은 경로에서 돌린다(stdout에 절대 경로가 나온다: stick_diagram stdout에 복제본 경로 1회). 복제본은 지우지 않았다. 복제본 core.autocrlf=true(전역 설정 상속)라 작업 트리 파일은 CRLF",
+  "environment": {"python": "3.14.2 (tags/v3.14.2:df79316, MSC v.1944 64 bit AMD64)", "python_path": "C:/Python314/python.exe"},
+  "evidence_1_base_stdout": {
+    "checkout": "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso checkout --detach 8bf6d8e42b28c382a67c89f2c9b2fab995f24919",
+    "cwd": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+    "command_template": "PYTHONHASHSEED=<s> C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/<m>.py",
+    "order": "m in (sizing_recipe, stick_diagram, design_report, topology_library), s = 1..5",
+    "runs": [
+      {"module": "sizing_recipe", "seed": 1, "returncode": 0, "stdout_bytes": 40026, "stdout_sha256": "21e0687b4fc5610bcd7625c8e409c85bca6fe485536aae02ddec45d4ab655db3", "stderr_bytes": 0},
+      {"module": "sizing_recipe", "seed": 2, "returncode": 0, "stdout_bytes": 40026, "stdout_sha256": "21e0687b4fc5610bcd7625c8e409c85bca6fe485536aae02ddec45d4ab655db3", "stderr_bytes": 0},
+      {"module": "sizing_recipe", "seed": 3, "returncode": 0, "stdout_bytes": 40026, "stdout_sha256": "21e0687b4fc5610bcd7625c8e409c85bca6fe485536aae02ddec45d4ab655db3", "stderr_bytes": 0},
+      {"module": "sizing_recipe", "seed": 4, "returncode": 0, "stdout_bytes": 40026, "stdout_sha256": "21e0687b4fc5610bcd7625c8e409c85bca6fe485536aae02ddec45d4ab655db3", "stderr_bytes": 0},
+      {"module": "sizing_recipe", "seed": 5, "returncode": 0, "stdout_bytes": 40026, "stdout_sha256": "21e0687b4fc5610bcd7625c8e409c85bca6fe485536aae02ddec45d4ab655db3", "stderr_bytes": 0},
+      {"module": "stick_diagram", "seed": 1, "returncode": 0, "stdout_bytes": 109905, "stdout_sha256": "1fc5248758e5a8967616b015e563a8c486159fa83b35ef7b0926f0e834d85e77", "stderr_bytes": 0},
+      {"module": "stick_diagram", "seed": 2, "returncode": 0, "stdout_bytes": 109905, "stdout_sha256": "1fc5248758e5a8967616b015e563a8c486159fa83b35ef7b0926f0e834d85e77", "stderr_bytes": 0},
+      {"module": "stick_diagram", "seed": 3, "returncode": 0, "stdout_bytes": 109905, "stdout_sha256": "1fc5248758e5a8967616b015e563a8c486159fa83b35ef7b0926f0e834d85e77", "stderr_bytes": 0},
+      {"module": "stick_diagram", "seed": 4, "returncode": 0, "stdout_bytes": 109905, "stdout_sha256": "1fc5248758e5a8967616b015e563a8c486159fa83b35ef7b0926f0e834d85e77", "stderr_bytes": 0},
+      {"module": "stick_diagram", "seed": 5, "returncode": 0, "stdout_bytes": 109905, "stdout_sha256": "1fc5248758e5a8967616b015e563a8c486159fa83b35ef7b0926f0e834d85e77", "stderr_bytes": 0},
+      {"module": "design_report", "seed": 1, "returncode": 0, "stdout_bytes": 985, "stdout_sha256": "af14d7b85e37486638a259aaff2fcf8b3d9107dac0780cfab45e48cef6e99522", "stderr_bytes": 0},
+      {"module": "design_report", "seed": 2, "returncode": 0, "stdout_bytes": 985, "stdout_sha256": "af14d7b85e37486638a259aaff2fcf8b3d9107dac0780cfab45e48cef6e99522", "stderr_bytes": 0},
+      {"module": "design_report", "seed": 3, "returncode": 0, "stdout_bytes": 985, "stdout_sha256": "af14d7b85e37486638a259aaff2fcf8b3d9107dac0780cfab45e48cef6e99522", "stderr_bytes": 0},
+      {"module": "design_report", "seed": 4, "returncode": 0, "stdout_bytes": 985, "stdout_sha256": "af14d7b85e37486638a259aaff2fcf8b3d9107dac0780cfab45e48cef6e99522", "stderr_bytes": 0},
+      {"module": "design_report", "seed": 5, "returncode": 0, "stdout_bytes": 985, "stdout_sha256": "af14d7b85e37486638a259aaff2fcf8b3d9107dac0780cfab45e48cef6e99522", "stderr_bytes": 0},
+      {"module": "topology_library", "seed": 1, "returncode": 0, "stdout_bytes": 4577, "stdout_sha256": "26f48d08985d1981501b9231e1b5befc2c6635c4e9d3571dabbbd8db994ae7db", "stderr_bytes": 0},
+      {"module": "topology_library", "seed": 2, "returncode": 0, "stdout_bytes": 4577, "stdout_sha256": "26f48d08985d1981501b9231e1b5befc2c6635c4e9d3571dabbbd8db994ae7db", "stderr_bytes": 0},
+      {"module": "topology_library", "seed": 3, "returncode": 0, "stdout_bytes": 4577, "stdout_sha256": "26f48d08985d1981501b9231e1b5befc2c6635c4e9d3571dabbbd8db994ae7db", "stderr_bytes": 0},
+      {"module": "topology_library", "seed": 4, "returncode": 0, "stdout_bytes": 4577, "stdout_sha256": "26f48d08985d1981501b9231e1b5befc2c6635c4e9d3571dabbbd8db994ae7db", "stderr_bytes": 0},
+      {"module": "topology_library", "seed": 5, "returncode": 0, "stdout_bytes": 4577, "stdout_sha256": "26f48d08985d1981501b9231e1b5befc2c6635c4e9d3571dabbbd8db994ae7db", "stderr_bytes": 0}
+    ],
+    "concat_sha256": "5f4a8013abbcd9764cba4263548bee2acdf6cca420c2d832b901bd2157037b0a",
+    "concat_note": "위 순서(모듈 4 x 시드 1..5)의 stdout 바이트를 이은 sha256. 모듈마다 시드 5개의 stdout이 바이트 동일(시드 불변)",
+    "stdout_files": ".ai/verification/20260922-ts1-legacy-move/base_stdout/<m>.s<s>.stdout (20개, 순서 7 E1 비교·F3 차이 줄 산출용 원본)",
+    "run_byproducts": "실행 전후 git -C <iso> status --short --ignored 출력 0줄(-B로 __pycache__ 없음, 부산물 없음)"
+  },
+  "evidence_4_extract_repro": {
+    "rule": "design 10 6.1 C2 증거 4(2026-09-22 개정, 승인 20260922-c2-extract-repro-path-line): 머리글 둘째 줄 '# 원본 경로:' 한 줄을 빼고 바이트 비교, 그 줄의 끝 파일 이름(<m>.py) 대조",
+    "checkout": "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso checkout --detach a9077148432d9fba2d2b69fb992103be3a9031f4",
+    "tool": "T 트리의 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/tools/migrate/extract_selftest.py",
+    "source_used": "T 트리 작업 트리의 A/<m>.py(base와 같은 blob -- freeze.source_unchanged_base_to_T). git show 출력(LF)이 아닌 작업 트리 파일을 쓴 이유: 커밋된 이관본 셋째 줄 '# 원본 blob id'는 도구가 읽은 원시 바이트(autocrlf 작업 트리의 CRLF)의 blob id이고, 복제본 작업 트리 소스 원시 바이트의 blob id가 커밋본 셋째 줄과 4개 모두 같음을 먼저 확인했다(sizing_recipe 13a7e691..., stick_diagram 91acc891..., design_report 48551feb..., topology_library 73325a33...)",
+    "committed_side": "git -C <iso> show a9077148432d9fba2d2b69fb992103be3a9031f4:A/tests/legacy/selftest_<m>.py 의 blob 바이트(작업 트리 파일은 autocrlf로 CRLF라 비교 대상이 아니다 -- 처음 작업 트리 파일과 비교했을 때 모든 줄이 CR 차이로 달랐고, 커밋 blob과 다시 비교했다)",
+    "extract_output_dir": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/e4 (복제본·AW 밖 임시)",
+    "results": [
+      {"module": "sizing_recipe",
+       "command": "C:/Python314/python.exe C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/tools/migrate/extract_selftest.py extract --source C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/sizing_recipe.py --module sizing_recipe --out <extract_output_dir>/selftest_sizing_recipe.py",
+       "returncode": 0, "committed_blob": "b50d248a71ed6693d36005c0e7951084327a216b",
+       "extracted_sha256": "8f36cbd0fc9e8d5618838ebff998042b8366f5282e320618cb0a916c26492818", "committed_sha256": "c4731aa2448abbe1771b6fd6fe74e70b11717f45c93265796e7ff02dff1ba175",
+       "differing_lines": [2], "excluding_line2_sha256_both": "4d33ef3fdc3ef437b267ca9cde6ea19dc3a2750aa90af0c094a6d416807d3f3a", "excluding_line2_equal": true,
+       "line2_basename": {"extracted": "sizing_recipe.py", "committed": "sizing_recipe.py"}, "verdict": "PASS"},
+      {"module": "stick_diagram",
+       "command": "C:/Python314/python.exe C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/tools/migrate/extract_selftest.py extract --source C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/stick_diagram.py --module stick_diagram --out <extract_output_dir>/selftest_stick_diagram.py",
+       "returncode": 0, "committed_blob": "6a81120ee521fbcff3924faf76bc4479286a86f1",
+       "extracted_sha256": "3269ae1db06a7d5bae425a8ab2aefcb0c31776690f65fec1af49bd9ae379f336", "committed_sha256": "77dbd3473704311d278d9130b94c3ce22c2b6940ecf29170523935721bb6b866",
+       "differing_lines": [2], "excluding_line2_sha256_both": "2be4b2cc366179d91eea399c0befddb64e419204f27d18a0352199c32322f467", "excluding_line2_equal": true,
+       "line2_basename": {"extracted": "stick_diagram.py", "committed": "stick_diagram.py"}, "verdict": "PASS"},
+      {"module": "design_report",
+       "command": "C:/Python314/python.exe C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/tools/migrate/extract_selftest.py extract --source C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/design_report.py --module design_report --out <extract_output_dir>/selftest_design_report.py",
+       "returncode": 0, "committed_blob": "d424763cd24b0ff7c3e6b1c8b45056c2d37392d0",
+       "extracted_sha256": "bd397c19bc41f8cbe82e98206bcb8e6c40977a10cd47483f177168d34e07e3e9", "committed_sha256": "f0898f65d42bef2687de30724a4ab9ec2530ae40a14d7ba0429418a800329e45",
+       "differing_lines": [2], "excluding_line2_sha256_both": "12ea1dee96ada04f13b8c99a0948f7abda71f25a3df3815fa678d9cadc4aac12", "excluding_line2_equal": true,
+       "line2_basename": {"extracted": "design_report.py", "committed": "design_report.py"}, "verdict": "PASS"},
+      {"module": "topology_library",
+       "command": "C:/Python314/python.exe C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/tools/migrate/extract_selftest.py extract --source C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/topology_library.py --module topology_library --out <extract_output_dir>/selftest_topology_library.py",
+       "returncode": 0, "committed_blob": "2678fe89840041abd71d638d885948ca9a42dca0",
+       "extracted_sha256": "43a95ec7547ce52c750c70934ff7730cabd52a867ee87d8f07194c882f3fe12c", "committed_sha256": "f8a887e42c70fbc838cea923a4bcac1d870e9d2f5620cc5dd44884061dda59b2",
+       "differing_lines": [2], "excluding_line2_sha256_both": "5a4b4345b45e0f47d4cd61e959a66071efc3abbb147b896adcaae1cdb6979283", "excluding_line2_equal": true,
+       "line2_basename": {"extracted": "topology_library.py", "committed": "topology_library.py"}, "verdict": "PASS"}
+    ],
+    "line2_values": "재추출본 둘째 줄 = '# 원본 경로: C:\\Users\\HSLEE\\AppData\\Local\\Temp\\20260922-ts1-legacy-move-iso\\skills\\analog-gmid-design\\assets\\<m>.py', 커밋본 = '# 원본 경로: C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\20260922-ts1-legacy-move-test\\skills\\analog-gmid-design\\assets\\<m>.py'",
+    "verdict": "PASS (4/4: 둘째 줄 외 바이트 동일, 셋째 줄 blob id 포함, 끝 파일 이름 일치, extract exit 0)",
+    "run_byproducts": "extract 실행 후 git -C <iso> status --short --ignored 0줄"
+  },
+  "pending_for_step_7": "증거 2(병합본 selftest_<m>.py 20회 실행, 같은 복제본 경로)·3(20쌍 바이트 비교, outputs_hash)·5(모듈 AST base = 병합본)와 V1~V10은 순서 7에서"
+}

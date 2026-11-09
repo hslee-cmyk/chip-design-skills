@@ -1,0 +1,595 @@
+#!/usr/bin/env bash
+# B26-1 card 20260930-b26-rail-accessor-set '두 번 시도 절차' 단계 2(운반, 오케스트레이터) -- 1차 시도(병합 안 함) K1·auditor 측정 뒤, 2차 시도 착수 전.
+# 근거: spec card(draft_b26_1.spec.md) '승인 줄 배치' 4·5와 '두 번 시도 절차' 표 단계 2 (a)→(b)→(c)→(d)(순서를 바꾸지 않는다), '운반 경로', '1차 산출물 보관',
+#       design 05 §12 'V5 승인 운반'·'정리' 행, 승인 문안 _drafts/approval_20261001-b26-p9-signature-update.md 주석 1~5.
+# 구조는 b26_1_launch.sh·b34_launch.sh를 따른다(단계별 함수, 옵션은 단계 이름 앞, 단일 출처, 게이트 캐시 절대 경로, push는 하지 않음 -- 명령만 출력).
+# 어느 확인이든 실패하면 그 자리에서 멈춘다(set -Eeuo pipefail + ERR trap). 재시도 루프 없음.
+#
+# 단일 출처: B1 = b26_1_launch.sh 상태 파일의 'B1='(launch after-push가 적은 gate master). T1·K1 = 1차 역할 브랜치 끝(check가 한 번 읽어 상태 파일에 적고,
+#   뒤 단계는 상태 파일 값만 쓴다 -- 정리 뒤에는 브랜치가 없다). 기록 4 target = 1차 auditor base_check.json의 diff_hash(도구 재실행·diff-hash로 대조),
+#   기록 5 target = 1차 auditor attempt1_v3.json(`mutate_changed.py --base B1 --head K1` 판정 JSON)의 survivor_bindings 원소 하나(K1 def에서 묶기 해시를 따로 계산해 대조).
+#
+#   bash b26_1_carry.sh prep        # check -> archive -> records   ((a) 정리 전 추출·보관·기록 작성 -- 저장소에는 운반 파일·기록 2개만 쓰고 커밋 없음)
+#   bash b26_1_carry.sh cleanup     # (b) 정리 전 마지막 확인 + 정리 명령 **출력만**(worktree remove --force 세 경로, branch -D 세 개) -- 오케스트레이터가 하나씩 단독 호출
+#   bash b26_1_carry.sh cleaned     # (b) 정리 결과 확인: refs/heads/role/ 0줄, 이 card worktree 0 (저장소 변경 없음)
+#   bash b26_1_carry.sh local       # cleaned -> commit -> final  ((c) Role: doc 커밋 하나 -- 끝에 push 명령 출력, push 안 함)
+#   bash b26_1_carry.sh after-push  # (d) push 뒤: gate master = C = 2차 base B2, B1·B2 P9 blob 같음, V5·V3 조회가 기록을 찾음 + 2차 시도 명령
+#   bash b26_1_carry.sh <단계>      # check | archive | records | commit | final 하나만(중단 뒤 이어 하기 -- 각 단계가 앞 단계 결과를 확인)
+#
+# B1(review_launch_scripts r1): 이 스크립트는 EL1이 판정하는 git 명령(worktree remove·branch -D·push)을 실행하지 않는다. 스크립트 안에서 돌면 EL1(PreToolUse)이
+#   바깥 `bash …` 문자열만 보고 design 05 §6.2 '정리 전 dispute 보존'(role_hooks._dispute_guard)을 건너뛴다. cleanup은 명령만 출력하고, 오케스트레이터의 단독 호출을
+#   EL1이 판정한다. 같은 판정을 check·archive·cleanup이 먼저 한다(dispute_guard -- 1차 code worktree·브랜치의 docs/02-design/disputes/<id>.md가 메인 HEAD spec card
+#   '## dispute 기록'에 없으면 멈춤: 운반·정리 전에 보관하고 사용자 결정을 받아 card에 그 기록을 먼저 적는다).
+#   `git worktree prune`은 쓰지 않는다(remove가 관리 디렉터리를 지우고, EL1은 §12의 add·remove 말고 worktree 쓰기를 거부한다).
+#
+# 사전 시험 옵션(반드시 단계 이름 앞에): --repo <복제본> --state <상태 파일> --launch-state <launch 상태 파일> --archive <보관 디렉터리> --wt <worktree 부모>
+#   실제 저장소 판별은 launch_common.sh lc_repo_guard(git-common-dir 정규화 비교 -- 별칭·worktree 경로도 실제 저장소).
+set -Eeuo pipefail
+shopt -s inherit_errexit
+trap 'echo "[중단] ${BASH_SOURCE[0]}:${LINENO}: ${BASH_COMMAND}" >&2' ERR
+. "$(dirname -- "${BASH_SOURCE[0]}")/launch_common.sh"
+
+# MSYS2 자식 bash는 HOME·APPDATA를 잃는다(post_p10b_runbook.sh와 같은 실측). TEMP·TMP는 lc_tmp_setup(상태 파일 옆)
+export HOME=/c/Users/HSLEE
+export APPDATA='C:\Users\HSLEE\AppData\Roaming' LOCALAPPDATA='C:\Users\HSLEE\AppData\Local' USERPROFILE='C:\Users\HSLEE'
+export PYTHONDONTWRITEBYTECODE=1 PYTHONIOENCODING=utf-8
+
+R_REAL=$LC_R_REAL
+W_REAL=$LC_W_REAL
+DR=$W_REAL/_drafts
+STATE_REAL=$DR/b26_1_carry_state.txt
+LSTATE_REAL=$DR/b26_1_launch_state.txt
+ADIR_REAL=$DR/b26_1_attempt1
+R=$R_REAL; W=$W_REAL; STATE=$STATE_REAL; LSTATE=$LSTATE_REAL; ADIR=$ADIR_REAL
+while [ $# -gt 1 ]; do
+  case "$1" in
+    --repo) R=$2; shift 2 ;;
+    --state) STATE=$2; shift 2 ;;
+    --launch-state) LSTATE=$2; shift 2 ;;
+    --archive) ADIR=$2; shift 2 ;;
+    --wt) W=$2; shift 2 ;;
+    *) break ;;
+  esac
+done
+# 단계 이름 뒤에 옵션을 붙이면 조용히 무시돼 실제 저장소에서 돈다(review_post_p10b_runbook B1과 같은 가드) -- 남은 인자는 단계 이름 하나뿐
+[ $# -eq 1 ] || { echo "[중단] 사용법: $0 [--repo R --state S --launch-state L --archive A --wt W] <단계>  (옵션은 단계 이름 앞에만)" >&2; exit 2; }
+case "$1" in --*) echo "[중단] 단계 이름 자리에 옵션: $1 (옵션 값이 빠졌거나 순서가 틀렸다)" >&2; exit 2 ;; esac
+lc_repo_guard "$R" "$R_REAL"
+if [ "$LC_REAL" = 0 ]; then
+  lc_need_sandbox --state "$STATE" "$STATE_REAL"; lc_need_sandbox --launch-state "$LSTATE" "$LSTATE_REAL"
+  lc_need_sandbox --archive "$ADIR" "$ADIR_REAL"; lc_need_sandbox --wt "$W" "$W_REAL"
+else
+  lc_need_real --state "$STATE" "$STATE_REAL"; lc_need_real --launch-state "$LSTATE" "$LSTATE_REAL"
+  lc_need_real --archive "$ADIR" "$ADIR_REAL"; lc_need_real --wt "$W" "$W_REAL"
+  STATE=$STATE_REAL; LSTATE=$LSTATE_REAL; ADIR=$ADIR_REAL; W=$W_REAL
+fi
+lc_tmp_setup "$STATE"
+echo "== 대상 저장소 R=$R  상태 $STATE  launch 상태 $LSTATE  보관 $ADIR  worktree 부모 $W"
+
+PY=/c/Python314/python.exe
+ID=20260930-b26-rail-accessor-set
+AID4=20261001-b26-p9-signature-update
+AID5=20261001-b26-v3-equiv-range
+DRAFT4=$DR/approval_$AID4.md
+DRAFT5=$DR/approval_$AID5.md                                                        # 기록 5 본문 단일 출처(u3 배선) -- FILL5가 채운다
+FILL5=$DR/b26_1_kit_selftest/fill_u3.py
+U3_DRAFT_SHA256=3d2333b7e65e560533a4fe54a21d2ea1d6daade9180e6ba8ce78733bfc8d0f10   # DRAFT5 바이트 핀(records가 대조) -- 한쪽만 바뀐 것(drift) 탐지용, 무결성 증거 아님(초안·핀 동시 수정은 못 막는다). 정당한 초안 변경은 이 값을 같이 고친다. 값은 (c) 커밋 본문에 남긴다
+U3_FILL_SHA256=a6d051332e7cb4e9ca3a428b49d8c8022d4ccb5223ec4c9c43ee6eef03455caf    # FILL5 바이트 핀(records가 대조) -- 한쪽만 바뀐 것(drift) 탐지용, 무결성 증거 아님(fill_u3·핀 동시 수정은 못 막는다). 정당한 fill_u3.py 변경은 이 값을 같이 고친다. 값은 (c) 커밋 본문에 남긴다
+JSONL5=$HOME/.claude/projects/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922.jsonl   # U3 질문·답 원문 출처(읽기만)
+F_SPEC=docs/02-design/specs/$ID.spec.md
+F_IFC=docs/02-design/specs/$ID.interface.md
+F_A4=.ai/approvals/$AID4.md
+F_A5=.ai/approvals/$AID5.md
+A=skills/analog-gmid-design/assets
+SD=$A/stick_diagram.py
+P9T=$A/tests/contracts/test_dup_kcl_edges.py
+D=docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/$ID            # card '운반 경로'(고정)
+AUD=.ai/verification/$ID                                                            # 1차 audit worktree 안 auditor 산출물(커밋 안 됨)
+WT_T=$W/$ID-test; WT_C=$W/$ID-code; WT_A=$W/$ID-audit
+APPR_BASE="20260930-b26-before-phase3 20261001-b26-phase3-cards 20260930-b26-b40-reason-key"   # launch가 커밋한 card 머리 approval 줄
+NSEC=12
+# V5 발견이 있어야 하는 단위(정확히 이 둘 -- card 단계 1 기대, 승인 문안 주석 3)
+UNITS="test_kcl_series_union_signature_unchanged test_kcl_and_matching_edges_signature_unchanged"
+# V3 등가 면제 대상(U3): find_differential_pair_candidates `range(i + 1, …)` const−
+V3_RE='^stick_diagram:find_differential_pair_candidates:const-:'
+COAUTH="Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
+SUBJ_C="docs: B26-1 1차 시도 운반 -- 승인 기록 $AID4(U5 P9 시그니처 test 2개 기대 갱신, diff)·$AID5(U3 range const- 등가 1개 면제, decision, 변이 id@묶기 해시) + V5 운반 blob·paths.tsv + spec card 개정(approval 줄 넷째·다섯째, 1차 시도 기록)"
+if [ "$ADIR" = "$ADIR_REAL" ]; then A_LABEL="_drafts/b26_1_attempt1/"; else A_LABEL="$ADIR/"; fi
+
+say() { printf '%s\n' "== $*"; }
+g() { git -C "$R" "$@"; }
+st_set() { touch "$STATE"; grep -v "^$1=" "$STATE" > "$STATE.tmp" || true; printf '%s=%s\n' "$1" "$2" >> "$STATE.tmp"; mv "$STATE.tmp" "$STATE"; }
+st_get() { local v; v=$(grep "^$1=" "$STATE" | tail -1 | cut -d= -f2-); test -n "$v"; printf '%s' "$v"; }
+lst_get() { local v; v=$(grep "^$1=" "$LSTATE" | tail -1 | cut -d= -f2-); test -n "$v"; printf '%s' "$v"; }
+cache_dir() {   # 게이트 코드 캐시 = <git-common-dir>/gmid-gate-cache/<gate master 전체 sha>(hook과 같은 ensure_cache)
+  local c
+  c=$("$PY" -B -c "import sys;sys.path.insert(0,sys.argv[1]);import role_paths as rp;print(rp.ensure_cache(rp.load_env(sys.argv[2])))" "$R/tools/gates" "$R")
+  test "$(basename "$c")" = "$(g rev-parse gate/master)"
+  test -f "$c/merge_gate.py" && test -f "$c/weakening_diff.py" && test -f "$c/reachability.py"
+  printf '%s' "$c"
+}
+staged_is() { test "$(g diff --cached --name-only | sort | tr '\n' ' ')" = "$(printf '%s\n' "$@" | sort | tr '\n' ' ')"; }
+trailer_of() { g log -1 --format="%(trailers:key=$2,valueonly)" "$1" | tr -d '\r' | grep -v '^$' || true; }
+role_branches() { g for-each-ref --format='%(refname)' refs/heads/role/; }
+# 바이트 단정: BOM·CR·HTML 주석·자리표시 0('! grep'은 set -e가 잡지 않고, MSYS2 grep은 CR 하나짜리 패턴을 빈 패턴으로 다룬다 -- 실측)
+# (u3) 자리표시 = 옛 목록 + 초안 양식 '<대문자·숫자·_>' 전부(예: <V3_MUTANT_ID>·<ARCHIVE_LABEL>). 초안 채우는 법 주석(<!-- … -->)은 '주석'이 잡는다
+bytes_ok() {
+  "$PY" -B -c "
+import re,sys
+b=open(sys.argv[1],'rb').read()
+bad=[k for k,v in (('BOM',b.startswith(b'\xef\xbb\xbf')),('CR',b'\r' in b),('주석',b'<!--' in b or b'-->' in b),('자리표시',any(x in b for x in (b'<TARGET',b'<DIFF_',b'<rev-parse>',b'<id>')) or re.search(rb'<[A-Z][A-Z0-9_]*>',b) is not None)) if v]
+assert not bad,(sys.argv[1],bad)
+assert b.endswith(b'\n') and not b.endswith(b'\n\n'),'끝 줄바꿈 하나'
+print('   바이트 OK',sys.argv[1].rsplit('/',1)[-1],len(b))" "$1"
+}
+parse_appr() { "$PY" -B "$1/merge_gate.py" parse-approval "$2"; }   # <캐시> <파일(<id>.md)>
+
+# design 05 §6.2 '정리 전 dispute 보존'(review30 R-16) -- role_hooks._dispute_guard와 같은 판정을 운반·정리 전에 스크립트가 먼저 한다(B1).
+# dispute blob = 1차 code worktree 파일(그 worktree에서 hash-object -- EL1과 같은 식) + role/code 브랜치 끝 + K1(상태 파일, 정리 뒤에도) 트리의 blob.
+DISP=docs/02-design/disputes/$ID.md
+dispute_blobs() {   # [K1] -> blob id 줄(중복 제거)
+  local b k1=${1:-}
+  {
+    if [ -f "$WT_C/$DISP" ]; then git -C "$WT_C" hash-object -- "$WT_C/$DISP"; fi
+    b=$(g rev-parse -q --verify "refs/heads/role/code/$ID:$DISP" 2>/dev/null || true); [ -z "$b" ] || echo "$b"
+    if [ -z "$k1" ] && [ -s "$STATE" ]; then k1=$(grep '^K1=' "$STATE" | tail -1 | cut -d= -f2- || true); fi
+    if [ -n "$k1" ]; then b=$(g rev-parse -q --verify "$k1:$DISP" 2>/dev/null || true); [ -z "$b" ] || echo "$b"; fi
+  } | sort -u
+}
+dispute_guard() {   # [K1]
+  local blobs sec miss="" b
+  blobs=$(dispute_blobs "${1:-}")
+  [ -n "$blobs" ] || { echo "   dispute: 1차 code worktree·브랜치·K1에 $DISP 없음"; return 0; }
+  sec=$(g show "HEAD:$F_SPEC" 2>/dev/null | "$PY" -B -c "
+import re, sys
+t = sys.stdin.buffer.read().decode('utf-8', 'replace').replace('\r\n', '\n')
+m = re.search(r'^## dispute 기록[^\n]*\n(.*?)(?=^## |\Z)', t, re.M | re.S)
+sys.stdout.write(m.group(1) if m else '')" || true)
+  for b in $blobs; do case "$sec" in *"$b"*) ;; *) miss="$miss $b" ;; esac; done
+  if [ -n "$miss" ]; then
+    echo "[중단] 1차 시도에 dispute($DISP, blob$miss)가 있고 메인 HEAD spec card '## dispute 기록'에 없다 -- 운반·정리 금지(design 05 §6.2, EL1 _dispute_guard와 같은 판정)." >&2
+    echo "       먼저 dispute 본문을 저장소 밖에 보관하고(예: git -C $WT_C show HEAD:$DISP 또는 $WT_C/$DISP 사본) 사용자 결정을 받아, spec card '## dispute 기록'에 그 보관 경로와 blob id를 적은 커밋을 메인에 둔다. 그 뒤 처음부터 다시(check)." >&2
+    return 1
+  fi
+  echo "   dispute blob $(echo $blobs) -- 메인 HEAD spec card '## dispute 기록'에 있음(보관 대상, archive가 $ADIR/dispute/에 복사)"
+}
+
+# ------------------------------------------------------------------ (a)-0 check
+stage_check() {
+  say "check: 1차 시도 상태 확인(저장소 변경 없음 -- fetch만)"
+  test -s "$LSTATE"
+  local B1; B1=$(lst_get B1)
+  test -n "$(git config --get user.email)"
+  g fetch gate
+  test "$(g rev-parse --abbrev-ref HEAD)" = master
+  test "$(g rev-parse gate/master)" = "$B1"                           # 1차 시도 중 gate가 움직이지 않았다(역할 브랜치가 있는 동안 문서 push는 EL1 거부)
+  test "$(g rev-parse HEAD)" = "$B1"
+  g diff --cached --quiet
+  test -z "$(g status --porcelain -- docs/ .ai/)"
+  # 역할 브랜치 = 정확히 이 card의 셋(그 밖이 있으면 정리 뒤에도 EL1이 문서 push를 거부한다)
+  test "$(role_branches | sort | tr '\n' ' ')" = "$(printf 'refs/heads/role/%s/%s\n' audit "$ID" code "$ID" test "$ID" | sort | tr '\n' ' ')"
+  local wl; wl=$(g worktree list --porcelain | tr -d '\r')
+  local r p; for r in test code audit; do
+    p=$("$PY" -B -c "import os,sys;print(os.path.normcase(os.path.abspath(sys.argv[1])))" "$W/$ID-$r")
+    printf '%s\n' "$wl" | "$PY" -B -c "
+import os,sys
+blocks=sys.stdin.read().strip().split('\n\n')
+want=(sys.argv[1],'branch refs/heads/role/%s/%s'%(sys.argv[2],sys.argv[3]))
+ok=[b for b in blocks if os.path.normcase(os.path.abspath(b.split('\n')[0][len('worktree '):]))==want[0] and want[1] in b.split('\n')]
+assert len(ok)==1,('worktree 없음 또는 브랜치 다름',want)" "$p" "$r" "$ID"
+  done
+  local T1 K1 c; T1=$(g rev-parse "refs/heads/role/test/$ID"); K1=$(g rev-parse "refs/heads/role/code/$ID")
+  dispute_guard "$K1"                                                 # 커밋된 dispute(Role: code·Change-Id 트레일러)도 아래 트레일러 확인을 통과하므로 여기서 먼저 멈춘다
+  test "$T1" != "$B1"; test "$K1" != "$T1"
+  g merge-base --is-ancestor "$B1" "$T1"; g merge-base --is-ancestor "$T1" "$K1"
+  test "$(g rev-list "$B1..$T1" | tr '\n' ' ')" = "$(g rev-list --first-parent "$B1..$T1" | tr '\n' ' ')"
+  test "$(g rev-list "$T1..$K1" | tr '\n' ' ')" = "$(g rev-list --first-parent "$T1..$K1" | tr '\n' ' ')"
+  for c in $(g rev-list "$B1..$T1"); do
+    test "$(g rev-list --parents -1 "$c" | wc -w | tr -d ' ')" = 2
+    test "$(trailer_of "$c" Role)" = test; test "$(trailer_of "$c" Change-Id)" = "$ID"
+  done
+  for c in $(g rev-list "$T1..$K1"); do
+    test "$(g rev-list --parents -1 "$c" | wc -w | tr -d ' ')" = 2
+    test "$(trailer_of "$c" Role)" = code; test "$(trailer_of "$c" Change-Id)" = "$ID"
+  done
+  # audit worktree = T1, 병합 상태 없음(card 단계 1: 병합 커밋을 만들지 않고 --head K1로 잰다), 추적 파일 변경 없음
+  test "$(git -C "$WT_A" rev-parse HEAD)" = "$T1"
+  if git -C "$WT_A" rev-parse -q --verify MERGE_HEAD > /dev/null; then echo "[중단] 1차 audit worktree에 병합 상태가 있다" >&2; false; fi
+  test -z "$(git -C "$WT_A" status --porcelain --untracked-files=no)"
+  test -z "$(git -C "$WT_T" status --porcelain)"                     # T1 밖 test 변경이 남아 있지 않다(운반 대상 = 커밋된 T1)
+  test -z "$(git -C "$WT_C" status --porcelain)"
+  local f; for f in base_check.json attempt1_v3.json attempt1_v3.out.jsonl; do test -s "$WT_A/$AUD/$f" || { echo "[중단] 1차 auditor 산출물 $AUD/$f가 없다 -- (b) 정리 전 멈춤(기록 4·5 target 출처)" >&2; false; }; done
+  local C; C=$(cache_dir)
+  # V5: auditor base_check.json의 diff_hash = 게이트 캐시 weakening_diff.py 재실행 = merge_gate.py diff-hash, 발견 = P9 경로의 시그니처 test 두 단위뿐
+  local wd dh
+  wd=$("$PY" -B "$C/weakening_diff.py" --root "$R" --base "$B1" --head "$T1" || true)
+  dh=$("$PY" -B "$C/merge_gate.py" diff-hash --repo "$R" --base "$B1" --head "$T1" "$P9T")
+  printf '%s\n' "$wd" > "$STATE.v5_rerun.json"
+  local out; out=$("$PY" -B - "$WT_A/$AUD/base_check.json" "$STATE.v5_rerun.json" "$dh" "$P9T" "$UNITS" <<'EOF'
+import json, sys, re
+bc = json.load(open(sys.argv[1], encoding="utf-8"))
+rr = json.loads(open(sys.argv[2], encoding="utf-8").read())
+dh, p9, units = sys.argv[3], sys.argv[4], set(sys.argv[5].split())
+hs, ps = set(), []
+def walk(o):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k == "diff_hash" and v is not None: hs.add(v)
+            if k == "diff_paths": ps.append(v)
+            walk(v)
+    elif isinstance(o, list):
+        for v in o: walk(v)
+walk(bc)
+assert len(hs) == 1 and re.fullmatch(r"[0-9a-f]{64}", next(iter(hs))), ("base_check.json diff_hash가 정확히 하나가 아니다", hs)
+h = hs.pop()
+assert ps and all(p == [p9] for p in ps), ("base_check.json diff_paths", ps)
+assert rr["tool"] == "V5" and rr["verdict"] == "FAIL" and rr["approved"] is False, rr.get("verdict")
+assert rr["diff_paths"] == [p9], rr["diff_paths"]
+assert rr["diff_hash"] == h == dh, ("diff_hash 불일치", rr["diff_hash"], h, dh)
+got = {f["unit"] for f in rr["findings"]}
+assert {f["path"] for f in rr["findings"]} == {p9}
+assert got == units, ("발견 단위가 두 시그니처 test가 아니다 -- 멈추고 승인 줄 배치 (6) 승인을 묻는다", sorted(got))
+print(h)
+EOF
+)
+  echo "   V5: base_check.json diff_hash = weakening_diff 재실행 = diff-hash = ${out:0:16}…, 발견 단위 = 두 시그니처 test, diff_paths = [$P9T]"
+  st_set B1 "$B1"; st_set T1 "$T1"; st_set K1 "$K1"; st_set DIFF_HASH "$out"; st_set CACHE "$C"
+  # V3: attempt1_v3.json(판정 JSON) 생존 1 = U3 대상, survivor_bindings 해시 = K1 def 묶기 해시(따로 계산), 경로 노드 = range(i + 1, …)의 1
+  g show "$K1:$SD" > "$STATE.K1_SD.py"
+  local v3; v3=$("$PY" -B - "$WT_A/$AUD/attempt1_v3.json" "$WT_A/$AUD/attempt1_v3.out.jsonl" "$STATE.K1_SD.py" "$V3_RE" "$SD" <<'EOF'
+import ast, hashlib, json, re, sys
+v = json.loads(open(sys.argv[1], encoding="utf-8").read())
+recs = [json.loads(l) for l in open(sys.argv[2], encoding="utf-8").read().splitlines() if l.strip()]
+src = open(sys.argv[3], encoding="utf-8").read()
+assert v["tool"] == "V3" and v["verdict"] == "FAIL", v.get("verdict")
+assert sys.argv[5] in v["targets"], v["targets"]
+assert "survivor_bindings" in v, "판정 JSON에 survivor_bindings가 없다 -- 묶기 card(20260930-v3-exempt-binding) 판 도구로 잰 것이 아니다"
+assert len(v["survivors"]) == 1 and len(v["survivor_bindings"]) == 1, ("생존이 U3 대상 1개가 아니다 -- 멈춤(card 단계 1)", v["survivors"])
+mid = v["survivors"][0]
+elem = v["survivor_bindings"][0]
+assert re.match(sys.argv[4], mid), mid
+assert elem.count("@") == 1 and elem.split("@")[0] == mid, elem
+h = elem.split("@")[1]
+assert re.fullmatch(r"[0-9a-f]{64}", h), h
+# 범위 card 35(20260930-v3-changed-stmt-scope) 계약 5: --out에는 대상 밖 변이 {"id","result":"not_targeted"}가 대상 레코드와 섞여 적히고,
+# 판정 JSON mutants(= 결과 레코드 수)는 대상 변이 수, not_targeted는 그 밖의 수다(착수 조건 6 -- 이 card는 35 병합본 도구로 잰다)
+# (review_kits_4a2 m1~m4) result 닫힌 집합 = 묶기 card 도구가 쓰는 killed·survived·exempt(4a286f0 실측 -- timeout은 killed 레코드의 exit 값, 기준 실패는 verdict ERROR)
+# + 35의 not_targeted. 수는 int만(bool·float 거부). not_targeted·targets_by_def는 필수(35 전 도구 출력 거부 -- 조건 6). not_targeted 레코드는 키 정확히 id·result(계약 5 키 순서).
+# targets_by_def(키 "<targets 경로>::<qualname>") 합: Σtargeted = mutants(exempt 포함 -- 계약 4 대상 변이의 면제), Σnot_targeted = not_targeted. deleted_statements·def_header_changed는 보지 않는다.
+assert "not_targeted" in v and "targets_by_def" in v, "판정 JSON에 not_targeted·targets_by_def가 없다 -- 범위 card 35(20260930-v3-changed-stmt-scope) 판 도구로 잰 것이 아니다(착수 조건 6)"
+assert all(type(v[k]) is int for k in ("mutants", "killed", "not_targeted")), ("판정 JSON 수가 int가 아니다", [(k, type(v[k]).__name__) for k in ("mutants", "killed", "not_targeted")])
+assert {r["result"] for r in recs} <= {"killed", "survived", "exempt", "not_targeted"}, ("--out result 값이 닫힌 집합 밖", sorted({repr(r["result"]) for r in recs}))
+ids = [r["id"] for r in recs]
+run = [r for r in recs if r["result"] != "not_targeted"]
+nt = [r for r in recs if r["result"] == "not_targeted"]
+assert all(list(r) == ["id", "result"] and type(r["id"]) is str for r in nt), ("not_targeted 레코드 모양이 {id, result}가 아니다", [r for r in nt if list(r) != ["id", "result"] or type(r["id"]) is not str][:3])
+assert len(ids) == len(set(ids)), ("--out id 중복", len(ids) - len(set(ids)))
+assert len(run) == v["mutants"], ("--out 대상 레코드 수가 판정 JSON mutants와 다르다", len(run), v["mutants"])
+assert len(nt) == v["not_targeted"], ("--out not_targeted 레코드 수가 판정 JSON not_targeted와 다르다", len(nt), v["not_targeted"])
+tb = v["targets_by_def"]
+assert type(tb) is dict and all(type(k) is str and "::" in k and k.split("::", 1)[0] in v["targets"] for k in tb), ("targets_by_def 키가 '<targets 경로>::<qualname>'가 아니다", list(tb)[:3] if type(tb) is dict else tb)
+assert all(type(d) is dict and all(type(d.get(c)) is int and d[c] >= 0 for c in ("targeted", "not_targeted")) for d in tb.values()), ("targets_by_def targeted·not_targeted가 0 이상 int가 아니다", tb)
+assert (sum(d["targeted"] for d in tb.values()), sum(d["not_targeted"] for d in tb.values())) == (v["mutants"], v["not_targeted"]), ("targets_by_def 합 != (mutants, not_targeted)", sum(d["targeted"] for d in tb.values()), sum(d["not_targeted"] for d in tb.values()), v["mutants"], v["not_targeted"])
+assert [r["id"] for r in run if r["result"] == "survived"] == [mid]
+assert v["killed"] == sum(1 for r in run if r["result"] == "killed")
+# 묶기 해시(묶기 card 머리 정의): ast.dump(F, annotate_fields=True, include_attributes=False, indent=None, show_empty=False)의 sha256, F = head def 원본
+mod, qual, op, path = mid.split(":", 3)
+tree = ast.parse(src)
+node = tree
+for part in qual.split("."):
+    node = [n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and n.name == part][-1]
+F = node
+hh = hashlib.sha256(ast.dump(F, annotate_fields=True, include_attributes=False, indent=None, show_empty=False).encode("utf-8")).hexdigest()
+assert hh == h, ("survivor_bindings 해시 != K1 def 묶기 해시", h, hh)
+def get(n, p):
+    chain = [n]
+    for seg in p.split("."):
+        m = re.fullmatch(r"([a-z_]+)(?:\[(\d+)\])?", seg)
+        n = getattr(n, m.group(1))
+        if m.group(2) is not None:
+            n = n[int(m.group(2))]
+        chain.append(n)
+    return chain
+ch = get(F, path)
+c, binop, call = ch[-1], ch[-2], ch[-3]   # 경로 마디 "args[0]"은 한 마디(속성+첨자)
+assert isinstance(c, ast.Constant) and c.value == 1 and type(c.value) is int, ast.dump(c)
+assert isinstance(binop, ast.BinOp) and isinstance(binop.op, ast.Add) and binop.right is c, ast.dump(binop)
+assert isinstance(call, ast.Call) and isinstance(call.func, ast.Name) and call.func.id == "range" and call.args[0] is binop, ast.dump(call)[:200]
+print(elem)
+EOF
+)
+  echo "   V3: 생존 1 = $v3 (K1 def 묶기 해시 따로 계산 일치, 노드 = range(… + 1, …)의 1)"
+  st_set V3_ELEM "$v3"
+  st_set CHECK_OK 1
+  say "check OK: B1 ${B1:0:7} T1 ${T1:0:7} K1 ${K1:0:7} -- 다음은 archive"
+}
+
+# ------------------------------------------------------------------ (a) ①~⑤ 추출·보관(정리 전, 커밋 없음)
+stage_archive() {
+  say "archive: (a)①~⑤ 운반 blob·paths.tsv(메인 worktree D) + 보관 디렉터리 $ADIR(저장소 밖)"
+  test "$(st_get CHECK_OK)" = 1
+  local B1 T1 K1; B1=$(st_get B1); T1=$(st_get T1); K1=$(st_get K1)
+  test "$(g rev-parse "refs/heads/role/test/$ID")" = "$T1"; test "$(g rev-parse "refs/heads/role/code/$ID")" = "$K1"
+  test ! -e "$ADIR" || { echo "[중단] 보관 디렉터리 $ADIR가 이미 있다(덮어쓰지 않는다)" >&2; false; }
+  test ! -e "$R/$D"; if g cat-file -e "$B1:$D" 2>/dev/null; then echo "[중단] 운반 디렉터리가 이미 B1 트리에 있다" >&2; false; fi
+  dispute_guard "$K1"                                                 # check 뒤 dispute가 생겼으면 보관 전에 멈춘다
+  mkdir -p "$R/$D" "$ADIR/v5-carry"
+  # (dispute가 card '## dispute 기록'에 이미 있으면) 그 본문도 보관한다 -- 정리 때 사라진다
+  if [ -n "$(dispute_blobs "$K1")" ]; then
+    mkdir -p "$ADIR/dispute"
+    if [ -f "$WT_C/$DISP" ]; then cp -- "$WT_C/$DISP" "$ADIR/dispute/worktree_$ID.md"; fi
+    if g cat-file -e "$K1:$DISP" 2>/dev/null; then g cat-file blob "$K1:$DISP" > "$ADIR/dispute/K1_$ID.md"; fi
+  fi
+  # ① 발견 경로(= P9 계약 test 하나)의 T1 blob -- 파일 이름 = blob id, 바이트 그대로(cat-file blob은 줄바꿈 변환을 하지 않는다)
+  local b; b=$(g rev-parse "$T1:$P9T")
+  git -C "$WT_T" cat-file blob "$T1:$P9T" > "$R/$D/$b.blob"
+  test "$(git hash-object "$R/$D/$b.blob")" = "$b"
+  printf '%s\t%s\n' "$P9T" "$b" > "$R/$D/paths.tsv"
+  cp "$R/$D/$b.blob" "$R/$D/paths.tsv" "$ADIR/v5-carry/"
+  # ② 커밋 id ③ K1 SD 사본·T1 patch(2차 test-author가 P9 밖 test 파일을 다시 쓸 때의 출처)
+  printf 'B1 %s\nT1 %s\nK1 %s\n' "$B1" "$T1" "$K1" > "$ADIR/commits.txt"
+  g show "$K1:$SD" > "$ADIR/K1_SD.py"
+  test "$(git hash-object "$ADIR/K1_SD.py")" = "$(g rev-parse "$K1:$SD")"
+  g show --no-color --no-ext-diff "$T1" > "$ADIR/T1.patch"
+  grep -qF "diff --git a/$P9T b/$P9T" "$ADIR/T1.patch"
+  # ④ 1차 auditor 산출물(정리 때 사라진다)
+  cp "$WT_A/$AUD/base_check.json" "$ADIR/attempt1_base_check.json"
+  cp "$WT_A/$AUD/attempt1_v3.json" "$ADIR/attempt1_v3.json"
+  cp "$WT_A/$AUD/attempt1_v3.out.jsonl" "$ADIR/attempt1_v3.out.jsonl"
+  cp -r "$WT_A/$AUD" "$ADIR/attempt1_audit"
+  diff -r "$WT_A/$AUD" "$ADIR/attempt1_audit" > /dev/null
+  # ⑤ sha256 목록(①~④ 전부)
+  # 임시 출력은 보관 디렉터리 밖에(안에 두면 find가 그 파일 자체를 목록에 넣는다 -- 사전 시험 실측)
+  ( cd "$ADIR" && find . -type f ! -name SHA256SUMS | LC_ALL=C sort | sed 's#^\./##' | while IFS= read -r f; do sha256sum -- "$f"; done ) > "$STATE.sums.tmp"
+  mv "$STATE.sums.tmp" "$ADIR/SHA256SUMS"
+  ( cd "$ADIR" && sha256sum -c --quiet SHA256SUMS )
+  st_set BLOB "$b"; st_set ARCHIVED 1
+  echo "   운반: $D/$b.blob + paths.tsv, 보관 $(wc -l < "$ADIR/SHA256SUMS" | tr -d ' ')파일(SHA256SUMS 대조 통과)"
+  say "archive OK -- 다음은 records"
+}
+
+# ------------------------------------------------------------------ (a)⑥ 승인 기록 4·5 작성(메인 worktree, 미커밋)
+stage_records() {
+  say "records: (a)⑥ 승인 기록 $AID4(diff)·$AID5(decision) 작성 + parse-approval"
+  test "$(st_get ARCHIVED)" = 1
+  # (pin) 기록 5 입력 바이트 핀: 초안 $DRAFT5·$FILL5의 sha256 = 위 상수 U3_DRAFT_SHA256·U3_FILL_SHA256. fill_u3는 인용 원문(질문·선택지·답)·자리표시·주석만
+  #   대조하므로 인용 밖 산문 변경은 그것만으로는 통과한다 -- 초안이나 fill_u3.py 한쪽만 바뀌면(핀 상수 그대로) 이 핀이 잡는다. 다르면 어떤 기록도 쓰기 전에 멈춘다.
+  #   핀은 한쪽만 바뀐 것(drift) 탐지기이지 무결성 증거가 아니다: _drafts는 git 밖이라 초안과 핀 상수를 함께 고치면 흔적 없이 통과한다(.bak도 같은 사람이 고칠 수 있다).
+  #   실제 방어선은 fill_u3의 jsonl 원문 대조(인용 3종)와, 기록 5가 (c) Role: doc 커밋에 들어가 diff로 보인다는 것이다. 핀 두 값은 그 커밋 본문에 적는다(stage_commit).
+  #   초안·fill_u3.py를 정당하게 고치면 같은 변경에서 이 스크립트의 핀 상수도 새 sha256으로 고친다.
+  local ph
+  ph=$(sha256sum -b < "$DRAFT5" | cut -c1-64)
+  if [ "$ph" != "$U3_DRAFT_SHA256" ]; then echo "[중단] 기록 5 초안 sha256 핀 불일치: $DRAFT5 = $ph, 핀 U3_DRAFT_SHA256 = $U3_DRAFT_SHA256 -- 정당한 변경이면 핀 상수를 고친다" >&2; false; fi
+  ph=$(sha256sum -b < "$FILL5" | cut -c1-64)
+  if [ "$ph" != "$U3_FILL_SHA256" ]; then echo "[중단] 기록 5 fill_u3.py sha256 핀 불일치: $FILL5 = $ph, 핀 U3_FILL_SHA256 = $U3_FILL_SHA256 -- 정당한 변경이면 핀 상수를 고친다" >&2; false; fi
+  local B1 T1 K1 DH V3E C; B1=$(st_get B1); T1=$(st_get T1); K1=$(st_get K1); DH=$(st_get DIFF_HASH); V3E=$(st_get V3_ELEM); C=$(st_get CACHE)
+  test "$C" = "$(cache_dir)"
+  # 중단 뒤 다시 실행: 미추적·미커밋 기록 파일만 다시 만든다(이 단계 출력은 입력에서 결정적으로 나온다). B1 트리에 있으면 멈춘다.
+  # (B1 검토: 아래 rm -f는 git 명령이 아니고 EL1 git 규칙 대상도 아니다 -- 이 단계가 만든 .ai/approvals/ 미추적 파일 하나만, B1 트리에 없고 staged가 아님을 확인한 뒤 지운다.
+  #  같은 경로 쓰기(오케스트레이터 .ai/approvals/)는 이 단계의 Python 쓰기와 같은 분류이고, 커밋 때 EL3 pre-commit이 경로를 다시 판정한다)
+  local f; for f in "$F_A4" "$F_A5"; do
+    if g cat-file -e "$B1:$f" 2>/dev/null; then echo "[중단] $f가 이미 B1 트리에 있다" >&2; false; fi
+    if [ -e "$R/$f" ]; then g diff --cached --quiet -- "$f"; echo "   (다시 실행) 미커밋 $f를 지우고 다시 만든다"; rm -f "$R/$f"; fi
+  done
+  ( cd "$ADIR" && sha256sum -c --quiet SHA256SUMS )
+  # 기록 4 = 문안 그대로 + 자리표시 3개 채움, 채우는 법 주석 블록(<!-- … -->) 삭제(문안 주석 첫 줄 '이 주석은 커밋 전에 지운다')
+  "$PY" -B - "$DRAFT4" "$R/$F_A4" "$DH" "$B1" "$T1" <<'EOF'
+import sys
+t = open(sys.argv[1], "rb").read().decode("utf-8")
+assert "\r" not in t
+for k, v in (("<TARGET_DIFF_HASH_64>", sys.argv[3]), ("<DIFF_BASE_40>", sys.argv[4]), ("<DIFF_HEAD_40>", sys.argv[5])):
+    assert t.count(k) == 1, k
+    t = t.replace(k, v)
+i, j = t.index("\n<!--\n"), t.index("\n-->")
+assert t.count("<!--") == 1 and t.count("-->") == 1 and t[j:] == "\n-->\n", repr(t[j:])
+t = t[:i].rstrip("\n") + "\n"
+open(sys.argv[2], "wb").write(t.encode("utf-8"))
+EOF
+  # 기록 5 = U3 결정(decision), target = 변이 id@K1 def 묶기 해시 하나. 단일 출처(u3 배선) = 초안 $DRAFT5(본문, 사용자 원문·질문 원문은 세션 jsonl(63c6146a…)
+  #   AskUserQuestion toolu_01KTtsbRiK7S3cv1coUsAyPw [U3] 그대로) + $FILL5(채우기). 값 = 상태 파일 V3_ELEM·K1·B1, 보관 SHA256SUMS 세 줄(표지 뗀 이름 '<이름> sha256 <해시>',
+  #   파일 순서, '; '), A_LABEL. fill_u3가 함께 대조: --src 보관 K1_SD.py의 그 def 묶기 해시·경로 끝 노드 = range(… + 1, …)의 1, --jsonl 질문·선택지·답 원문 바이트.
+  #   어느 확인이든 실패하면 fill_u3 exit 1(파일을 쓰지 않는다) -> set -e로 멈춤. 옛 heredoc 생성기(b26_1_carry.sh.pre-u3.bak)는 지웠다 -- 같은 값에서
+  #   바이트가 같음을 지우기 전에 쟀고 b26_1_kit_selftest/records_u3_test.sh가 fill_u3 --check-carry로 계속 대조한다.
+  test -s "$DRAFT5"; test -s "$FILL5"; test -s "$JSONL5"
+  "$PY" -B "$FILL5" --draft "$DRAFT5" --out "$R/$F_A5" --state "$STATE" --archive "$ADIR" --archive-label "$A_LABEL" --src "$ADIR/K1_SD.py" --jsonl "$JSONL5"
+  bytes_ok "$R/$F_A4"; bytes_ok "$R/$F_A5"
+  parse_appr "$C" "$R/$F_A4" > "$STATE.a4.json"
+  parse_appr "$C" "$R/$F_A5" > "$STATE.a5.json"
+  "$PY" -B - "$STATE.a4.json" "$STATE.a5.json" "$AID4" "$AID5" "$DH" "$B1" "$T1" "$P9T" "$V3E" "$ADIR/attempt1_base_check.json" <<'EOF'
+import json, sys
+a4 = json.load(open(sys.argv[1], encoding="utf-8")); a5 = json.load(open(sys.argv[2], encoding="utf-8"))
+aid4, aid5, dh, b1, t1, p9, v3e, bc = sys.argv[3:11]
+exp4 = dict(id=aid4, date="2026-10-01", target_kind="diff", target=dh, diff_base=b1, diff_head=t1, diff_path=[p9])
+bad = {k: (a4.get(k), v) for k, v in exp4.items() if a4.get(k) != v}
+assert not bad, bad
+exp5 = dict(id=aid5, date="2026-10-01", target_kind="decision", target=v3e, target_list=[v3e])
+bad = {k: (a5.get(k), v) for k, v in exp5.items() if a5.get(k) != v}
+assert not bad, bad
+print("   parse-approval OK: 기록 4 diff target %s… base %s head %s path %s / 기록 5 decision target %s" % (dh[:16], b1[:7], t1[:7], p9, v3e))
+EOF
+  st_set RECORDS 1
+  say "records OK -- 다음은 cleanup((b) 정리 명령 출력 -- 실행은 오케스트레이터 단독 호출, 되돌릴 수 없음)"
+}
+
+# ------------------------------------------------------------------ (b) 정리: 확인 + 명령 출력(실행하지 않는다 -- B1)
+stage_cleanup() {
+  say "cleanup: (b) 1차 시도 정리 전 마지막 확인 + 정리 명령 출력(design 05 §12 '정리' 재시도 형태 -- 스크립트는 실행하지 않는다, EL1이 각 명령을 판정)"
+  test "$(st_get RECORDS)" = 1
+  local B1 T1 K1 C; B1=$(st_get B1); T1=$(st_get T1); K1=$(st_get K1); C=$(st_get CACHE)
+  # 정리 전 마지막 확인: 보관 sha256, 두 기록 파싱, 운반 파일, dispute 보존 -- 하나라도 틀리면 명령을 출력하지 않는다(1차 브랜치가 남아 다시 잴 수 있다)
+  ( cd "$ADIR" && sha256sum -c --quiet SHA256SUMS )
+  parse_appr "$C" "$R/$F_A4" > /dev/null; parse_appr "$C" "$R/$F_A5" > /dev/null
+  test "$(git hash-object "$R/$D/$(st_get BLOB).blob")" = "$(st_get BLOB)"
+  test "$(g rev-parse "refs/heads/role/test/$ID")" = "$T1"; test "$(g rev-parse "refs/heads/role/code/$ID")" = "$K1"
+  dispute_guard "$K1"
+  local r n=0
+  echo "   아래 명령을 순서대로 하나씩 단독 호출한다(병렬·묶음·tail 금지, 전체 출력 확인; EL1 거부면 출력 전체를 보고하고 멈춘다 -- 재시도 루프 금지):"
+  for r in test code audit; do
+    if [ -e "$W/$ID-$r" ]; then n=$((n+1)); echo "     git -C $R worktree remove --force $W/$ID-$r"; fi
+  done
+  for r in test code audit; do
+    if g rev-parse -q --verify "refs/heads/role/$r/$ID" > /dev/null; then n=$((n+1)); echo "     git -C $R branch -D role/$r/$ID"; fi
+  done
+  st_set CLEANUP_PRINTED 1
+  say "cleanup 명령 ${n}개 출력 -- 실행 뒤: bash $0 [옵션…] cleaned  (또는 local = cleaned -> commit -> final)"
+}
+
+# ------------------------------------------------------------------ (b) 정리 결과 확인(저장소 변경 없음)
+stage_cleaned() {
+  say "cleaned: (b) 정리 결과 확인 -- refs/heads/role/ 0줄, $ID worktree 0"
+  test "$(st_get RECORDS)" = 1; test "$(st_get CLEANUP_PRINTED)" = 1
+  local T1 K1 r; T1=$(st_get T1); K1=$(st_get K1)
+  test -z "$(role_branches)" || { echo "[중단] refs/heads/role/에 브랜치가 남았다: $(role_branches | tr '\n' ' ') -- cleanup이 출력한 branch -D를 실행했는가(EL1이 문서 push를 거부한다)" >&2; false; }
+  if g worktree list --porcelain | grep -q -- "/$ID-"; then echo "[중단] $ID worktree가 남았다 -- cleanup이 출력한 worktree remove를 실행했는가" >&2; false; fi
+  for r in test code audit; do test ! -e "$W/$ID-$r" || { echo "[중단] $W/$ID-$r 경로가 남았다" >&2; false; }; done
+  ( cd "$ADIR" && sha256sum -c --quiet SHA256SUMS )
+  # branch -D 뒤에도 객체는 gc 유예 안에서 읽힌다(정보 -- 2차는 보관 사본이 정본)
+  if g cat-file -e "$T1^{commit}" 2>/dev/null && g cat-file -e "$K1^{commit}" 2>/dev/null; then echo "   T1·K1 객체 아직 읽힘(gc 유예) -- 2차 정본은 $ADIR"; fi
+  st_set CLEANED 1
+  say "cleaned OK: refs/heads/role/ 0줄 -- 다음은 local(commit -> final)"
+}
+
+# ------------------------------------------------------------------ (c) Role: doc 커밋 하나
+stage_commit() {
+  say "commit: (c) 기록 2 + 운반 blob·paths.tsv + spec card 개정 -- Role: doc 커밋 하나"
+  test "$(st_get CLEANED)" = 1
+  local B1 T1 K1 DH V3E C b; B1=$(st_get B1); T1=$(st_get T1); K1=$(st_get K1); DH=$(st_get DIFF_HASH); V3E=$(st_get V3_ELEM); b=$(st_get BLOB)
+  C=$(cache_dir); test "$C" = "$(st_get CACHE)"
+  test "$(g rev-parse HEAD)" = "$B1"; test "$(g rev-parse gate/master)" = "$B1"
+  test -z "$(role_branches)"
+  g diff --cached --quiet
+  # card 개정: 머리 approval 줄 넷째·다섯째 + '1차 시도 기록' 문단('두 번 시도 절차' 표 바로 뒤 -- A의 파일 이름과 sha256 인용).
+  # 입력 = HEAD blob(LF), 출력을 임시 파일로 만든 뒤 작업 파일이 HEAD 그대로이거나 이미 같은 개정이면 덮는다(중단 뒤 다시 실행 가능).
+  # 임시 파일은 상태 파일 옆 절대 경로(mktemp의 /tmp를 python --out에 넘기면 cmp가 그 파일을 못 찾았다 -- 사전 시험 실측)
+  local td="$STATE.d"; rm -rf "$td"; mkdir -p "$td"
+  g show "HEAD:$F_SPEC" > "$td/card.head.md"
+  "$PY" -B - "$td/card.head.md" "$AID4" "$AID5" "$B1" "$T1" "$K1" "$DH" "$V3E" "$b" "$D" "$A_LABEL" "$ADIR/SHA256SUMS" "$td/card.new.md" <<'EOF'
+import sys
+p, aid4, aid5, b1, t1, k1, dh, v3e, blob, d, alab, sums, outp = sys.argv[1:14]
+t = open(p, "rb").read().decode("utf-8")
+assert "\r" not in t
+head, rest = t.split("\n---\n", 1)
+hl = head.split("\n")
+last = max(i for i, l in enumerate(hl) if l.startswith("approval: "))
+hl[last + 1:last + 1] = ["approval: " + aid4, "approval: " + aid5]
+t = "\n".join(hl) + "\n---\n" + rest
+S = {}
+for line in open(sums, encoding="utf-8").read().splitlines():
+    h, f = line[:64], line[66:]          # '<64자 해시> <' ' 또는 '*'><이름>'
+    assert line[64] == " " and line[65] in " *", line
+    S[f] = h
+keep = ["attempt1_base_check.json", "attempt1_v3.json", "attempt1_v3.out.jsonl", "commits.txt", "K1_SD.py", "T1.patch", "v5-carry/%s.blob" % blob, "v5-carry/paths.tsv"]
+cites = "; ".join("`%s` %s" % (f, S[f]) for f in keep)
+para = ("**1차 시도 기록(오케스트레이터, '두 번 시도 절차' 2 (c)).** 1차 시도 base B1 `%s`, test 끝 T1 `%s`, code 끝 K1 `%s`(병합 안 함, 정리됨). " % (b1, t1, k1)
+        + "V5: `weakening_diff.py --base B1 --head T1` FAIL, 발견 = 두 시그니처 test, `diff_paths` = [`%s`], `diff_hash` `%s` -- 승인 기록 `%s`(diff) target. " % ("skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py", dh, aid4)
+        + "V3: `mutate_changed.py --base B1 --head K1` 생존 1 = `%s`(묶기 해시 = K1 def에서 따로 계산해 같음) -- 승인 기록 `%s`(decision) target. " % (v3e, aid5)
+        + "운반 `%s/%s.blob` + `paths.tsv`. 1차 산출물 보관 `%s`(sha256 -- `SHA256SUMS` 발췌): %s. " % (d, blob, alab, cites)
+        + "2차 시도는 B2 = 이 커밋을 담은 gate `master`에서 단계 3대로 한다(test-author는 `paths.tsv`대로 `.blob`을 `cp`, code-author는 `%sK1_SD.py`에서 show→Edit)." % alab)
+anchor = "\n\n**운반 경로(고정"
+assert t.count(anchor) == 1 and t.count("**1차 시도 기록(") == 0
+t = t.replace(anchor, "\n\n" + para + anchor)
+open(outp, "wb").write(t.encode("utf-8"))
+EOF
+  if g diff --quiet -- "$F_SPEC"; then cp "$td/card.new.md" "$R/$F_SPEC"
+  elif cmp -s "$td/card.new.md" "$R/$F_SPEC"; then echo "   (다시 실행) card 작업 파일이 이미 같은 개정"
+  else echo "[중단] card 작업 파일이 HEAD와도 이번 개정과도 다르다" >&2; false; fi
+  "$PY" -B -c "
+import sys, os
+sys.path.insert(0, sys.argv[1])
+import role_paths as rp
+c = rp.parse_spec_card(open(sys.argv[2], encoding='utf-8').read(), sys.argv[3])
+exp = ('3', 'red-green', 'no', sys.argv[4].split() + [sys.argv[5], sys.argv[6]], [], int(sys.argv[7]))
+got = (c['phase'], c['evidence_type'], c['gate_change'], c['approval'], c['activated_ic_case'], len(c['sections']))
+assert got == exp, (got, exp)
+for a in c['approval']:
+    assert os.path.isfile(os.path.join(sys.argv[8], '.ai', 'approvals', a + '.md')), a
+print('   개정 card parse_spec_card OK', got[3])" "$C" "$R/$F_SPEC" "$ID" "$APPR_BASE" "$AID4" "$AID5" "$NSEC" "$R"
+  # interface card는 바뀌지 않아야 한다(개정은 approval 줄·문단뿐) -- 다시 뽑아 커밋된 것과 바이트 대조
+  "$PY" -B "$C/interface_card.py" "$R/$F_SPEC" --root "$R" --out "$td/$ID.interface.md" > /dev/null
+  g show "HEAD:$F_IFC" | cmp - "$td/$ID.interface.md"
+  rm -rf "$td"
+  g add -- "$F_A4" "$F_A5" "$D/$b.blob" "$D/paths.tsv" "$F_SPEC"
+  staged_is "$F_A4" "$F_A5" "$D/$b.blob" "$D/paths.tsv" "$F_SPEC"
+  test "$(g diff --cached --numstat -- "$F_SPEC" | cut -f2)" = 0        # card는 줄 추가만
+  g commit -q -m "$SUBJ_C" \
+    -m "B26-1 card '두 번 시도 절차' 2 (a)~(c). 정리(b)는 이 커밋 전에 끝났다(refs/heads/role/ 0줄 -- EL1 _judge_push). 기록 4 = _drafts/approval_$AID4.md + B1·T1·diff 해시, 기록 5 = U3 원문 + 1차 auditor survivor_bindings. 보관 $A_LABEL(SHA256SUMS)." \
+    -m "기록 5 입력 바이트 핀(records 대조값 -- 한쪽만 바뀐 것 탐지용, 무결성 증거 아님): 초안 _drafts/approval_$AID5.md sha256 $U3_DRAFT_SHA256, _drafts/b26_1_kit_selftest/fill_u3.py sha256 $U3_FILL_SHA256." \
+    --trailer "Role: doc" --trailer "Change-Id: $ID" --trailer "$COAUTH"
+  test "$(g log -1 --format=%s)" = "$SUBJ_C"
+  local CC; CC=$(g rev-parse HEAD)
+  # 커밋 트리 대조: 운반 blob = T1의 P9 blob(줄바꿈 변환 없음), 기록 조회
+  test "$(g rev-parse "HEAD:$D/$b.blob")" = "$b"
+  test "$(g rev-parse "HEAD:$D/$b.blob")" = "$(g rev-parse "$T1:$P9T")"
+  "$PY" -B - "$C" "$R" "$B1" "$DH" "$V3E" "$AID4" <<'EOF'
+import sys
+sys.path.insert(0, sys.argv[1])
+import weakening_diff as wd, reachability as rch, merge_gate as mg
+c, r, b1, dh, v3e, aid4 = sys.argv[1:7]
+assert dh in wd.approved_hashes(r, "HEAD"), "V5 조회(head 트리)가 기록 4를 못 찾음"
+added = set(rch._approved_ids(r, "HEAD")) - set(rch._approved_ids(r, b1))
+assert added == {v3e}, ("decision 원소 증가가 기록 5 하나가 아니다", sorted(added))
+apps = mg.load_approvals(mg.TreeView(["-C", r], "HEAD"))
+assert any(a["id"] == aid4 and a["target_kind"] == "diff" and a["target"] == dh for a in apps)
+print("   HEAD 조회: weakening_diff.approved_hashes ∋ 기록 4 target, _approved_ids 증가 = {기록 5 원소}, load_approvals ∋ 기록 4")
+EOF
+  st_set C "$CC"
+  say "commit OK: $(g rev-parse --short HEAD)"
+}
+
+stage_final() {
+  say "final: push 전 종합 확인"
+  local B1 CC; B1=$(st_get B1); CC=$(st_get C)
+  test "$(g rev-parse HEAD)" = "$CC"; test "$(g rev-parse HEAD^)" = "$B1"
+  test "$(g rev-parse gate/master)" = "$B1"
+  test "$(g rev-list --count "$B1..HEAD")" = 1
+  test -z "$(role_branches)"
+  if g worktree list --porcelain | grep -q -- "/$ID-"; then echo "[중단] $ID worktree가 남았다" >&2; false; fi
+  test "$(trailer_of HEAD Role)" = doc; test "$(trailer_of HEAD Change-Id)" = "$ID"
+  test -z "$(g status --porcelain -- docs/ .ai/)"
+  ( cd "$ADIR" && sha256sum -c --quiet SHA256SUMS )
+  g log --format='%h %s' "$B1..HEAD"
+  g diff-tree --no-commit-id --name-status -r HEAD
+  say "final OK -- 다음은 push 단독 호출(병렬·tail 금지, 전체 출력 확인, 거부면 출력 전체를 보고하고 멈춘다 -- 재시도 루프 금지):  $(lc_push_cmd "$R")   그 뒤 after-push"
+}
+
+stage_after_push() {
+  say "after-push: gate master = C = 2차 base B2"
+  local B1 CC DH V3E b; B1=$(st_get B1); CC=$(st_get C); DH=$(st_get DIFF_HASH); V3E=$(st_get V3_ELEM); b=$(st_get BLOB)
+  g fetch gate
+  test "$(g rev-parse gate/master)" = "$CC"
+  test "$(g rev-parse HEAD)" = "$CC"
+  local B2=$CC
+  g diff --quiet "$B1" "$B2" -- "$P9T"                               # card 단계 3: B1·B2 P9 blob 같음 -> 해시 식 입력 같음
+  # 게이트 캐시는 gate master 하나만 둔다(ensure_cache 상한, WP-10) -- push 뒤 새 판으로 다시 받는다(2차 역할 agent·auditor가 쓸 캐시)
+  local C; C=$(cache_dir); st_set CACHE "$C"
+  "$PY" -B - "$C" "$R" "$B2" "$DH" "$V3E" <<'EOF'
+import sys
+sys.path.insert(0, sys.argv[1])
+import weakening_diff as wd, reachability as rch
+c, r, b2, dh, v3e = sys.argv[1:6]
+assert dh in wd.approved_hashes(r, b2) and v3e in rch._approved_ids(r, b2)
+print("   gate master(B2) 트리: V5 승인 해시·V3 묶인 원소 둘 다 있음")
+EOF
+  st_set B2 "$B2"
+  say "after-push OK -- B2 = $B2. 2차 시도(card '두 번 시도 절차' 3) 순서 1(단독 호출):  git -C $R worktree add $W/$ID-test -b role/test/$ID gate/master"
+  echo "   2차 test-author: $D/paths.tsv대로 $D/$b.blob을 cp로 $P9T에(손으로 다시 쓰지 않는다), 나머지 test 파일은 ${A_LABEL}T1.patch의 + 줄로 Write/Edit(P9 hunk 무시)"
+  echo "     paths.tsv는 'git -C <worktree> show HEAD:$D/paths.tsv'로 읽는다(작업 트리 사본은 core.autocrlf로 CRLF -- 그대로 읽으면 blob id 끝에 \\r, B26-1 착수 스크립트 실측)"
+  echo "   2차 code-author: find_differential_pair_candidates를 ${A_LABEL}K1_SD.py와 같은 글자로(show→Edit). 2차 auditor: V1 -c 캐시 old = B2, V5 basis에 기록 4 해시·'B1·B2 사이 P9 blob 같음', V3 exempt 1(기록 5)"
+  echo "   2차 순서 3 auditor: base_check.json 등 산출물은 audit worktree에 쓰기만 하고 커밋하지 않는다(커밋은 순서 7에서 M 위 한 커밋)."
+  echo "   2차 순서 6 병합 전: git -C $W/$ID-audit log --oneline role/test/$ID..HEAD 출력이 비어야 한다(아니면 순서 3 커밋이 섞인 것 -- 병합하지 말고 멈춤). 순서 7 auditor: 순서 3 산출물(미커밋)을 판정 기록과 한 커밋에."
+  echo "   병합 뒤(card 단계 5): 운반 디렉터리 $D 삭제 Role: doc 커밋"
+}
+
+case "$1" in
+  check) stage_check ;;
+  archive) stage_archive ;;
+  records) stage_records ;;
+  prep) stage_check; stage_archive; stage_records ;;
+  cleanup) stage_cleanup ;;
+  cleaned) stage_cleaned ;;
+  commit) stage_commit ;;
+  final) stage_final ;;
+  local) stage_cleaned; stage_commit; stage_final ;;
+  after-push) stage_after_push ;;
+  *) echo "사용: $0 [옵션…] prep|check|archive|records|cleanup|cleaned|local|commit|final|after-push" >&2; exit 2 ;;
+esac

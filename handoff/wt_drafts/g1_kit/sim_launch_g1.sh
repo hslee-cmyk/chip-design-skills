@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+# G1 `20260930-p3-gate-move-aware` 착수 절차 모의(모래상자 전용 -- 실제 저장소·gate는 읽기만).
+#   bash sim_launch_g1.sh <원본 저장소> <gate master 전체 sha> <모래상자 디렉터리(없어야 함, C:/g<n>/...)> <결과 디렉터리>
+# 단계: 0 모래상자(복제본 r + bare 가짜 gate + 게이트 캐시)
+#       P 선행 card 문서 커밋 흉내(34 → 35 → B33 문서 패치를 Role: doc 커밋으로 쌓고 가짜 gate master를 그 끝으로 -- 코드 변경은 흉내 내지 않는다)
+#       → A G1 문서 패치(design 05 V3·V6·V7 행·거부 증명 줄 + 계획 533행) 커밋 → B spec card + interface card(게이트 캐시의 interface_card.py) 커밋
+#       → C 승인 기록(fill_v3_approval.py -- 사용자 원문 자리는 모의 문자열로 채운 사본) 커밋
+#       → G gate_change_ok(HEAD) True / (HEAD~1) False → E EL4 receive exit 0 + 대조(트레일러 없는 커밋) exit 1
+set -Eeuo pipefail
+shopt -s inherit_errexit
+trap 'echo "[sim] 실패: 줄 $LINENO: $BASH_COMMAND" | tee -a "$OUT/sim.log" >&2' ERR
+export HOME=/c/Users/HSLEE
+export APPDATA=/c/Users/HSLEE/AppData/Roaming
+export PYTHONIOENCODING=utf-8
+test -n "$(git config --get user.email)"
+SRC=$1; GM=$2; S=$3; OUT=$4
+PY=/c/Python314/python.exe
+DR=/c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts
+K=$DR/g1_kit
+ID=20260930-p3-gate-move-aware
+D05=docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md
+PLAN=docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+test ${#GM} -eq 40
+test ! -e "$S"
+mkdir -p "$S/tmp" "$S/nohooks" "$OUT"
+export TMP="$S/tmp" TEMP="$S/tmp"
+log() { echo "$*" | tee -a "$OUT/sim.log"; }
+: > "$OUT/sim.log"
+
+# ---- 0 모래상자
+git clone -c core.autocrlf=false -q --no-hardlinks --no-local --no-checkout "$SRC" "$S/r"
+git -C "$S/r" remote remove origin
+git -C "$S/r" config core.longpaths true
+git -C "$S/r" config core.hooksPath "$S/nohooks"
+git -C "$S/r" checkout -q -B master "$GM"
+git clone -q --bare --no-hardlinks --no-local "$S/r" "$S/gate.git"
+rm -rf "$S/gate.git/hooks"; mkdir -p "$S/gate.git/hooks"
+git -C "$S/r" remote add gate "$S/gate.git"
+R="$S/r"
+PH0=$("$PY" -B "$R/tools/gates/merge_gate.py" plan-tables-hash "$R/$PLAN")
+log "0 모래상자: r = $GM, plan_tables_hash $PH0"
+
+# ---- P 선행 card 문서(34·35·B33) -- 실제로는 각 card의 문서 커밋. 여기서는 G1 앵커가 그 위에서 맞는지만 본다
+"$PY" -B "$K/patch_g1_docs.py" --root "$R" --check > "$OUT/pre_refuse.txt" || true
+grep -q '"REFUSED"' "$OUT/pre_refuse.txt"          # 선행 문구 없으면 거부해야 한다
+log "P0 선행 문구 없는 트리에서 G1 패치 거부: $(head -c 300 "$OUT/pre_refuse.txt")"
+"$PY" -B "$DR/patch_v3_binding_docs.py" --root "$R" > "$OUT/pre_34.txt"
+git -C "$R" commit -q -a --trailer "Role: doc" -m "sim: 34 문서 패치(흉내)"
+"$PY" -B "$DR/patch_v3_scope_docs.py" --root "$R" > "$OUT/pre_35.txt"
+git -C "$R" commit -q -a --trailer "Role: doc" -m "sim: 35 문서 패치(흉내)"
+"$PY" -B "$DR/patch_b33_design05.py" "$R" > "$OUT/pre_b33.txt"
+git -C "$R" commit -q -a --trailer "Role: doc" -m "sim: B33 문서 패치(흉내)"
+git -C "$S/gate.git" fetch -q "$R" "master:master"
+git -C "$R" fetch -q gate
+GM2=$(git -C "$R" rev-parse gate/master)
+test "$GM2" = "$(git -C "$R" rev-parse HEAD)"
+PH1=$("$PY" -B "$R/tools/gates/merge_gate.py" plan-tables-hash "$R/$PLAN")
+log "P 선행 문서 3커밋 → 가짜 gate master $GM2, plan_tables_hash $PH1"
+
+CD=$(git -C "$R" rev-parse --path-format=absolute --git-common-dir)
+"$PY" -B - "$R" "$GM2" "$CD" <<'EOF' > "$OUT/cache.txt"
+import os, sys
+r, gm, cd = sys.argv[1:4]
+sys.path.insert(0, os.path.join(r, "tools", "gates"))
+import role_paths as rp
+m = rp.tree_blobs(["-C", r], gm, rp.GATE_CODE_PREFIX, rp.GATE_CODE_EXCLUDE)
+dest = os.path.join(cd, "gmid-gate-cache", gm)
+os.makedirs(dest)
+rp.extract_blobs(["-C", r], m, dest)
+assert rp.dir_matches(dest, m)
+print(dest.replace("\\", "/"), len(m))
+EOF
+CACHE=$(cut -d' ' -f1 "$OUT/cache.txt")
+test -f "$CACHE/interface_card.py" && test -f "$CACHE/merge_gate.py" && test -f "$CACHE/weakening_diff.py"
+log "0' 캐시 $CACHE ($(cut -d' ' -f2 "$OUT/cache.txt") 파일)"
+
+# ---- 4.0 착수 전 확인
+test "$(git -C "$R" rev-parse --abbrev-ref HEAD)" = master
+test "$(git -C "$R" rev-parse HEAD)" = "$(git -C "$R" rev-parse gate/master)"
+test -z "$(git -C "$R" branch --list 'role/*')"
+test -z "$(git -C "$R" status --porcelain -- docs/ .ai/approvals/)"
+test -z "$(ls "$R/tools/gates/redteam/attacks" | grep '^32-' || true)"
+BASE=$(git -C "$R" rev-parse HEAD)
+
+# ---- A G1 문서 패치
+"$PY" -B "$K/patch_g1_docs.py" --root "$R" --check | tee -a "$OUT/sim.log"
+"$PY" -B "$K/patch_g1_docs.py" --root "$R" | tee -a "$OUT/sim.log"
+"$PY" -B "$K/patch_g1_docs.py" --root "$R" | tee "$OUT/patch_rerun.txt"
+grep -q '^already applied' "$OUT/patch_rerun.txt"
+git -C "$R" diff --numstat | tee "$OUT/numstat.txt"
+test "$(wc -l < "$OUT/numstat.txt")" -eq 2
+grep -q "^4	4	$D05\$" "$OUT/numstat.txt"
+grep -q "^1	1	$PLAN\$" "$OUT/numstat.txt"
+test "$("$PY" -B "$CACHE/merge_gate.py" plan-tables-hash "$R/$PLAN")" = "$PH1"
+git -C "$R" diff > "$OUT/docs.diff"
+git -C "$R" add -- "$D05" "$PLAN"
+git -C "$R" commit -q --trailer "Role: doc" -m "docs: $ID 문서 커밋(design 05 §10 V3·V6·V7 행 '옮긴 단위는 이동 원본과 비교', 거부 증명 줄 공격 32, 계획 N3.10 이동 규칙 V6·V7 한 문장)"
+A=$(git -C "$R" rev-parse HEAD)
+log "A 문서 커밋 $A (numstat design 05 4 4, 계획 1 1, plan_tables_hash 불변)"
+
+# ---- B spec card + interface card
+cp "$DR/draft_p3_g1.spec.md" "$R/docs/02-design/specs/$ID.spec.md"
+"$PY" -B "$CACHE/interface_card.py" "$R/docs/02-design/specs/$ID.spec.md" --root "$R" --out "$R/docs/02-design/specs/$ID.interface.md"
+cp "$R/docs/02-design/specs/$ID.interface.md" "$OUT/interface.md"
+"$PY" -B - "$R" "$CACHE" "$ID" <<'EOF' | tee -a "$OUT/sim.log"
+import os, sys
+r, cache, cid = sys.argv[1:4]
+sys.path.insert(0, cache)
+import role_paths as rp
+import merge_gate as mg
+card = rp.parse_spec_card(open(os.path.join(r, "docs/02-design/specs/%s.spec.md" % cid), encoding="utf-8").read(), cid)
+assert (card["phase"], card["evidence_type"], card["gate_change"], card["approval"]) == ("0.5", "red-green", "yes", [cid]), card
+pt = mg.read_plan_tables(os.path.join(r, "docs/01-plan/features/gain-budget-gmid-sizing.plan.md"))
+assert "0.5" in pt.phase_order, pt.phase_order
+print("B parse_spec_card ok: phase 0.5 red-green gate_change yes approval [%s], 절 %d개" % (cid, len(card["sections"])))
+EOF
+git -C "$R" add -- "docs/02-design/specs/$ID.spec.md" "docs/02-design/specs/$ID.interface.md"
+git -C "$R" commit -q --trailer "Role: doc" -m "docs: 게이트 변경 spec card $ID(G1 -- V3·V6·V7 옮긴 단위 인식, design 30 §3 MOVED) + interface card"
+SPECC=$(git -C "$R" rev-parse HEAD)
+log "B spec+interface 커밋 $SPECC"
+
+# ---- C 승인 기록(모의: 사용자 원문 자리는 '(모의)' 문자열 -- 실제는 UD-5 답 원문)
+sed -e 's/<승인일 YYYY-MM-DD>/2026-10-01/' -e 's/<UD-5 답 원문 -- AskUserQuestion 답 그대로>/(모의) (가) 전역 이동 인식 규칙 (Recommended)/' \
+    -e 's/<날짜·시각>/(모의)/' -e 's/<답 라벨>/(모의)/' "$K/approval_$ID.md" > "$S/tmp/approval_$ID.md"
+! grep -q '<승인일\|<UD-5\|<답 라벨>' "$S/tmp/approval_$ID.md"
+"$PY" -B "$DR/fill_v3_approval.py" --root "$R" --draft "$S/tmp/approval_$ID.md" --base "$BASE" --head "$SPECC" --check | tee "$OUT/fill_check.json"
+"$PY" -B "$DR/fill_v3_approval.py" --root "$R" --draft "$S/tmp/approval_$ID.md" --base "$BASE" --head "$SPECC" | tee "$OUT/fill.json"
+grep -q '"result": "written"' "$OUT/fill.json"
+"$PY" -B "$DR/fill_v3_approval.py" --root "$R" --draft "$S/tmp/approval_$ID.md" --base "$BASE" --head "$SPECC" | grep -q 'already-present'
+P4=("$PLAN" "$D05" "docs/02-design/specs/$ID.interface.md" "docs/02-design/specs/$ID.spec.md")
+TGT=$(PYTHONPATH="$CACHE" "$PY" -B -c "import sys,weakening_diff as wd;print(wd.diff_hash(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4:]))" "$R" "$BASE" "$SPECC" "${P4[@]}")
+TGT2=$("$PY" -B "$CACHE/merge_gate.py" diff-hash --repo "$R" --base "$BASE" --head "$SPECC" "${P4[@]}")
+test "$TGT" = "$TGT2"
+grep -q "^target: $TGT\$" "$R/.ai/approvals/$ID.md"
+"$PY" -B "$CACHE/merge_gate.py" parse-approval "$R/.ai/approvals/$ID.md" > "$OUT/parse_approval.json"
+! grep -q '<!--' "$R/.ai/approvals/$ID.md"
+! grep -q $'\r' "$R/.ai/approvals/$ID.md"
+cp "$R/.ai/approvals/$ID.md" "$OUT/approval_filled.md"
+git -C "$R" add -- ".ai/approvals/$ID.md"
+git -C "$R" commit -q --trailer "Role: doc" -m "docs: 승인 기록 $ID(UD-5 G1 게이트 변경 승인, target_kind diff -- spec card·interface card·design 05 §10·계획 N3.10 한 문장)"
+C=$(git -C "$R" rev-parse HEAD)
+test "$(git -C "$R" show --format= --name-only HEAD)" = ".ai/approvals/$ID.md"
+log "C 승인 기록 커밋 $C, target $TGT (weakening_diff.diff_hash == merge_gate diff-hash == 기록)"
+
+# ---- G gate_change_ok
+"$PY" -B - "$R" "$CACHE" "$ID" "$TGT" <<'EOF' | tee -a "$OUT/sim.log"
+import sys
+r, cache, cid, tgt = sys.argv[1:5]
+sys.path.insert(0, cache)
+import merge_gate as mg
+import weakening_diff as wd
+import reachability as rch
+ok_head = mg.gate_change_ok(mg.TreeView(["-C", r], "HEAD"), cid)
+ok_prev = mg.gate_change_ok(mg.TreeView(["-C", r], "HEAD~1"), cid)
+assert ok_head is True and ok_prev is False, (ok_head, ok_prev)
+assert tgt in wd.approved_hashes(r, "HEAD")
+n_prev, n_head = len(rch._approved_ids(r, "HEAD~1")), len(rch._approved_ids(r, "HEAD"))
+assert n_prev == n_head, (n_prev, n_head)
+print("G gate_change_ok HEAD True / HEAD~1 False, approved_hashes(HEAD)에 target, _approved_ids %d 그대로" % n_head)
+EOF
+
+# ---- E EL4 receive(가짜 gate, 게이트 캐시의 merge_gate.py)
+git -C "$S/gate.git" fetch -q "$R" "master:refs/heads/incoming"
+rc_ok=0
+"$PY" -B "$CACHE/merge_gate.py" receive --git-dir "$S/gate.git" --old "$GM2" --new "$C" > "$OUT/el4_ok.out" 2> "$OUT/el4_ok.err" || rc_ok=$?
+log "E EL4 receive --old $GM2 --new C: exit $rc_ok $(cat "$OUT/el4_ok.err")"
+test "$rc_ok" -eq 0
+git -C "$R" checkout -q -b neg
+echo "neg" >> "$R/docs/02-design/specs/$ID.interface.md"
+git -C "$R" commit -q -am "neg: 트레일러 없음"
+NEG=$(git -C "$R" rev-parse HEAD)
+git -C "$S/gate.git" fetch -q "$R" "neg:refs/heads/neg"
+rc_neg=0
+"$PY" -B "$CACHE/merge_gate.py" receive --git-dir "$S/gate.git" --old "$GM2" --new "$NEG" > "$OUT/el4_neg.out" 2> "$OUT/el4_neg.err" || rc_neg=$?
+log "E 대조(트레일러 없는 커밋): exit $rc_neg $(head -c 300 "$OUT/el4_neg.err")"
+test "$rc_neg" -eq 1
+git -C "$R" checkout -q master
+log "끝: BASE $BASE A $A SPECC $SPECC C $C target $TGT"

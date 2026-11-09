@@ -1,0 +1,12 @@
+sf_pushpull_output_opamp area_dir sealed {'gain_ss_db': 28.11211, 'gbw_ss_hz': 7273000.0, 'rout_ss_ohm': 352.03279, 'noise_excess_th': 2.83352, 'pm_ss_deg': 63.1619, 'offset_excess': 1.80056, 'icm_margin_v': 0.09207} 0.6242482441650777 {'M10': [-13.69, -13.32], 'M11': [-16.28, -14.16], 'M12': [-13.69, -13.44], 'M13': [-13.05, -12.92], 'M15': [-13.06, -12.93], 'M16': [-20.29, -19.54], 'M4': [-16.49, -12.62], 'M5': [-15.91, -14.03], 'M7': [-15.91, -14.03], 'M9': [-16.32, -14.95]}
+sf_pushpull_output_opamp area_dir_guard sealed {'gain_ss_db': 27.82897, 'gbw_ss_hz': 9546000.0, 'rout_ss_ohm': 352.03279, 'noise_excess_th': 2.51238, 'pm_ss_deg': 66.25638, 'offset_excess': 1.40093, 'icm_margin_v': 0.0955} 0.6242482441650777 {'M10': [-13.69, -13.32], 'M11': [-16.28, -15.41], 'M12': [-13.69, -13.07], 'M13': [-13.05, -12.92], 'M15': [-13.06, -12.93], 'M16': [-20.29, -19.29], 'M4': [-16.49, -12.62], 'M5': [-15.91, -14.03], 'M7': [-15.91, -14.03], 'M9': [-16.32, -15.95]}
+sf_pushpull_output_opamp start F0 sealed {'M9': 5.98e-06, 'R1c': 6.03e-06} {'gbw_ss_hz': 4042000.0, 'pm_ss_deg': 49.98212} 0.6242482441650777 None
+sf_pushpull_output_opamp start F1 sealed {'M9': 5.98e-06, 'R1c': 6.03e-06} {'gbw_ss_hz': 4042000.0, 'pm_ss_deg': 49.98212} 0.6242482441650777 None
+sf_pushpull_output_opamp start F2 failed {'M9': 2.42e-26, 'R1c': 5.31e-06} {} None {'L': 1.5e-07, 'W': 1.7013341761451744e-27, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+sf_pushpull_output_opamp area_dir_guard F0 sealed {'M9': 5.98e-06, 'R1c': 6.03e-06} {'gbw_ss_hz': 9546000.0, 'pm_ss_deg': 66.25638} 0.6242482441650777 None
+sf_pushpull_output_opamp area_dir_guard F1 sealed {'M9': 6.78e-06, 'R1c': 6.84e-06} {'gbw_ss_hz': 10760000.0, 'pm_ss_deg': 60.85455} 0.6271282493837346 None
+sf_pushpull_output_opamp area_dir_guard F2 failed {'M9': 2.42e-26, 'R1c': 5.31e-06} {} None {'L': 1.5e-07, 'W': 1.5014221407094308e-27, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+sf_pushpull_output_opamp area_dir F0 sealed {'M9': 5.98e-06, 'R1c': 6.03e-06} {'gbw_ss_hz': 7273000.0, 'pm_ss_deg': 63.1619} 0.6242482441650777 None
+sf_pushpull_output_opamp area_dir F1 sealed {'M9': 6.78e-06, 'R1c': 6.84e-06} {'gbw_ss_hz': 8206000.0, 'pm_ss_deg': 58.47219} 0.6271282493837346 None
+sf_pushpull_output_opamp area_dir F2 failed {'M9': 2.42e-26, 'R1c': 5.31e-06} {} None {'L': 1.5e-07, 'W': 1.5014221407094308e-27, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+done

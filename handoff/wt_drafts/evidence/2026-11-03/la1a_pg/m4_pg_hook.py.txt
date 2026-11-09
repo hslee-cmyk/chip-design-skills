@@ -1,0 +1,138 @@
+# r5r6v2 시제품(2026-10-26 사본)의 θ 전류 채움 자리만 대안으로 바꾸는 측정 훅(메모리 monkeypatch, 엔진 파일 무변경).
+# PG_ALT = A0: as-built Chebyshev 전류 중심(옛 시제품 조건 그대로) / NA: 칸 0 미정 θ 전류 = W_min 하한 행 LP(모든 MOS 행 ≥ W_min 전류, Σ 최소)
+#          / RA: NA + 미지 든 블록 입력 소자 행 = gm_b/(gm/ID) 등식
+# PG_D1 = 1: DEC-105 (1) + D1(버퍼 목표 없음, Σ 전부) 이득 L 하한 활성.
+import os, sys, math, json, pathlib
+import numpy as np
+from scipy.optimize import linprog
+
+ALT = os.environ.get("PG_ALT", "A0")
+RESULT = {}
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"; sys.dont_write_bytecode = True
+ROOT = r"C:/Users/HSLEE/Documents/Todoc/fpga/wt/integ-it12/skills/analog-gmid-design"
+sys.path.insert(0, ROOT)
+import gmid_engine.search  # noqa
+l0 = sys.modules["gmid_engine.search.layer0_center"]
+ivc = sys.modules["gmid_engine.search.iv_context"]
+from gmid_engine.metrics import ACH_KEY, ParamTables, block_spec
+from gmid_engine.search.start_values import GainInputs
+LOG = pathlib.Path(__file__).parent / "out" / "pg_hook.jsonl"
+
+
+def log(r):
+    with open(LOG, "ab") as f:
+        f.write((json.dumps(r, ensure_ascii=False, default=repr) + "\n").encode("utf-8"))
+
+
+_orig_cc = l0._current_centre
+
+
+def m1_blocks(circuit):
+    p = pathlib.Path(r"C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-11-03/la1a_pg/m1_current_facts.jsonl")
+    for ln in open(p, encoding="utf-8"):
+        d = json.loads(ln)
+        if d["circuit"] == circuit:
+            return d["blocks"]
+    return []
+
+
+def cc(sctx, variables, theta, rung=None):
+    if ALT == "A0":
+        return _orig_cc(sctx, variables, theta, rung)
+    rung_ = l0._selected(sctx) if rung is None else rung
+    given = set() if rung_ is None else {c for c, _v in rung_.theta}
+    schema = l0._schema(sctx)
+    unknown = [v for v in variables if v.component[0] == "current" and v.component not in given]
+    if not unknown:
+        return theta, None
+    ukeys = [v.component[1] for v in unknown]
+    ui = {k: i for i, k in enumerate(ukeys)}
+    fixed = {s: float(v) for s, v in schema.fixed}
+    fixed.update({c[1]: 0.0 for c in sctx.domain.zeros if c[0] == "current"})
+    known = {v.component[1]: theta[v.component] for v in variables if v.component[0] == "current" and v.component in given}
+    known.update(fixed)
+    alias = l0._current_alias(sctx)
+    rows_col = dict(sctx.dc.base.column("device", "start.row"))
+    floor = {m: float(sctx.domain.w_min_m) * math.exp(r.ln_idu) / r.l_chosen for m, r in rows_col.items() if r.ln_idu is not None}
+    eq = {}
+    if ALT in ("RA", "RB", "RC"):
+        macro = sctx.dc.base.value("graph", "start", "macro")
+        gm = dict((str(k), float(v)) for k, v in macro.gm) if macro is not None and macro.gm else {}
+        name = sys.argv[1]
+        for bi in m1_blocks(CIRCUIT):
+            for dev in bi["inputs"]:
+                if bi["key"] in gm and dev in rows_col:
+                    eq[dev] = gm[bi["key"]] / rows_col[dev].gm_id_chosen
+    A, B, Aeq, Beq = [], [], [], []
+    basis = next(v for _k, v in sctx.dc.base.column("graph", "dc_current_basis"))
+    for m, terms in basis.rows:
+        if m not in floor and m not in eq:
+            continue
+        coef = np.zeros(len(ukeys)); rest = 0.0; hit = False
+        for t in terms:
+            w = float(t.num) / t.den
+            s, sg = alias.get(t.source, (t.source, 1.0))
+            if s in ui:
+                coef[ui[s]] += w * sg; hit = True
+            else:
+                rest += w * sg * known.get(s, 0.0)
+        if not hit:
+            continue
+        if m in eq:
+            Aeq.append(coef); Beq.append(eq[m] - rest)
+        elif m in floor:
+            A.append(-coef); B.append(rest - floor[m])
+    K = 1e12
+    bounds = [(math.exp(v.lo) * K, math.exp(v.hi) * K) for v in unknown]
+    r = linprog(np.ones(len(ukeys)), A_ub=np.array(A) if A else None, b_ub=np.array(B) * K if B else None, A_eq=np.array(Aeq) if Aeq else None, b_eq=np.array(Beq) * K if Beq else None, bounds=bounds, method="highs")
+    if r.success:
+        r.x = r.x / K
+    log({"circuit": CIRCUIT, "alt": ALT, "lp": bool(r.success), "x": dict(zip(ukeys, map(float, r.x))) if r.success else str(r.message)[:200], "eq": eq, "floor": {k: floor[k] for k in floor}, "A": [list(map(float, x)) for x in A] if not r.success else None, "B": list(map(float, B)) if not r.success else None, "keys": ukeys, "known": known if not r.success else None})
+    if not r.success:
+        RESULT["lp_failed"] = True
+    if not r.success:
+        return _orig_cc(sctx, variables, theta, rung)
+    th = dict(theta)
+    for v, x in zip(unknown, r.x):
+        th[v.component] = float(x)
+    return th, None
+
+
+l0._current_centre = cc
+CIRCUIT = sys.argv[1]
+
+
+def gain_inputs_d1(p, views, lut, constraints):
+    if not any(m == "gain_ss_db" and op == ">=" for m, op, _v in constraints):
+        return None, (("gain_l", "constraint_not_declared"),)
+    gain = dict(p.column("graph", "gain_checks")).get(ACH_KEY)
+    view = next((v for v in views if v.kind == "transfer"), None)
+    found = [b.found_db for b in gain.blocks] if gain is not None else []
+    goal = max(float(v) for m, op, v in constraints if m == "gain_ss_db" and op == ">=")
+    if gain is None or view is None or not gain.blocks or len(view.blocks) != len(gain.blocks) or any(f is None for f in found):
+        return None, (("gain_l", "found_db_missing"),)
+    total = float(sum(found))
+    local = p.value("graph", ACH_KEY, "local_inputs").view
+    keep = [(block_spec(view, b, local), goal * f / total) for b, f in zip(view.blocks, found) if b.kind != "buffer"]
+    return GainInputs(local, ParamTables(lut.memo, local.w_keys, local.grids), tuple(keep)), ()
+
+
+if os.environ.get("PG_D1") == "1":
+    ivc._gain_inputs = gain_inputs_d1
+
+if CIRCUIT == "ngcc_3stage_ff":   # O-216 선언 내용을 TEMP 사본으로만
+    from gmid_engine.pipeline import run_stage_a as _rsa
+    from gmid_engine.authoring import load_topology
+    from gmid_engine.graph import structure_rule_fp
+    import gmid_engine.pipeline as _pl
+
+    def rsa(topo_path, spec_path, lut, output_dir=None, **kw):
+        topo = load_topology(str(topo_path))
+        st = {"schema_version": "1", "topology_hash": topo.connectivity_fp, "rule_hash": structure_rule_fp(), "facts": [
+            {"concept": "dc_role", "subject": m, "value": "signal", "status": "ratified",
+             "evidence": {"rule": "TEMP O-216 content", "nets": ["V1", "gnd"]}, "approval_id": "TEMP-la1a-pg"} for m in ("M8", "M14")]}
+        sp = pathlib.Path(output_dir) / (CIRCUIT + ".structure.json")
+        pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
+        sp.write_text(json.dumps(st), encoding="utf-8")
+        return _rsa(topo_path, spec_path, lut, output_dir=output_dir, structure_path=sp, **kw)
+    _pl.run_stage_a = rsa

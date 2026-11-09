@@ -1,0 +1,192 @@
+{
+ "note": "05-role-separation §12 순서 3 -- freeze(T)와 base 대비 확인. 2차 시도. 모든 수치는 auditor가 짧은 경로 격리 복제본에서 직접 다시 쟀다(작성자·오케스트레이터 보고 미사용, 1차 측정값 재활용 없음). 1차 값은 대조용으로만 인용한다.",
+ "id": "20260923-probe-promote-clean",
+ "attempt": 2,
+ "evidence_type": "test-only",
+ "phase": "2",
+ "measured_at": "2026-09-23T21:33:00+09:00",
+
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2)",
+  "pytest": "9.0.2, pluggy 1.6.0",
+  "APPDATA": "C:\\Users\\HSLEE\\AppData\\Roaming",
+  "note": "자식 셸(sh -c, 스크립트)에 APPDATA를 반드시 export한다 -- 없으면 사용자 site-packages(AppData/Roaming/Python/Python314/site-packages)가 sys.path에서 빠져 pytest·numpy import가 실패한다(이번 시도에서 실제로 재현했고 그래서 셔플 5회를 다시 돌렸다). 1차에서 긴 경로 복제본이 260자 MAX_PATH로 수집 ERROR를 냈으므로 이번에는 모든 복제본을 C:/g2/ 아래에 둔다(저장소 최장 경로 141자 + 접두사 10자). clone은 --no-checkout -> config core.longpaths true -> checkout 순서. 실행은 cd 없이 절대 경로."
+ },
+
+ "freeze": {
+  "base_commit": "a8941db713568ae359c5a2977acb5201bc155b80",
+  "base_subject": "docs: P3a DEC-40 승인 기록과 spec card 개정(계약 1 입력 구성기, 7-a 예외), R1 운반 blob",
+  "test_commit_T": "80efc66a31d9a84a42a716dd41b291db079affeb",
+  "audit_branch": "role/audit/20260923-probe-promote-clean",
+  "audit_branch_head": "80efc66a31d9a84a42a716dd41b291db079affeb",
+  "merge_base_base_T": "a8941db713568ae359c5a2977acb5201bc155b80",
+  "worktree_status": "빈 줄(git status --porcelain 출력 없음)",
+  "test_chain_first_parent": [
+   {"commit": "80efc66a31d9a84a42a716dd41b291db079affeb",
+    "parent": "a8941db713568ae359c5a2977acb5201bc155b80",
+    "tree": "2cf031c85ef5e8e4bf8ed1997688761ef0b73f78",
+    "trailers": ["Role: test", "Change-Id: 20260923-probe-promote-clean"],
+    "subject": "test: probe 4개 승격과 계약 test 규칙 유도(R1 3단계)"}
+  ],
+  "changed_paths_base_to_T": {
+   "n_entries": 11,
+   "shortstat": "11 files changed, 1081 insertions(+), 570 deletions(-)",
+   "modified": [
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py"
+   ],
+   "deleted": [
+    "skills/analog-gmid-design/assets/tests/probe_lut_L_interpolation.py",
+    "skills/analog-gmid-design/assets/tests/probe_parasitic_pm_all_circuits.py",
+    "skills/analog-gmid-design/assets/tests/probe_revalidation_scope.py",
+    "skills/analog-gmid-design/assets/tests/probe_role_L_derivation.py"
+   ],
+   "added": [
+    "skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py"
+   ],
+   "rename_note": "git diff --find-renames 로도 rename 0건이다(승격은 바이트 이동이 아니라 다시 쓴 것이다 -- 원본 probe 합계 558줄, 승격본 합계 793줄 + 입력 구성기 167줄)."
+  },
+  "outside_tests_diff": "git diff --name-only a8941db 80efc66 에서 skills/analog-gmid-design/assets/tests/ 밖 경로 0줄. A/*.py 7개(audit_current_forced·design_report·sizing_recipe·sky130_lut_sweep·stick_diagram·topology_library·topology_to_markdown)와 workspaces/run_harness.py 의 blob id가 base와 T에서 전부 같다 -- 엔진 소스 한 바이트도 안 바뀌었다(계약 7).",
+  "code_commit_K": null,
+  "code_commit_note": "test-only라 순서 4·5(code 커밋)와 순서 6(병합)이 없다. 00-common §8.1의 code_commit: null 조건이고 판정 대상 트리는 T 자신이다.",
+  "other_tests_untouched": "변경된 test는 이 card가 승격한 4개의 원본·승격본과 계약 7-a가 이름을 댄 계약 test 2개뿐이다. tests/probes/** 32개는 0경로 변경, conftest.py blob 동일."
+ },
+
+ "first_attempt_cross_check": {
+  "claim_source": "오케스트레이터가 전한 작성자 보고 -- '1차 산출물의 바이트 복원(11경로 blob 일치)'. auditor가 직접 확인했다(보고를 증거로 받지 않았다).",
+  "method": "git diff --name-status 586f93df2237a3ed8d1cc355518def9d624161f4 80efc66a31d9a84a42a716dd41b291db079affeb 와 경로별 git rev-parse <rev>:<path>",
+  "tree_diff_1st_vs_2nd": {
+   "n_entries": 10,
+   "entries": [
+    "A .ai/approvals/20260923-p3a-contract-tests.md",
+    "M docs/02-design/specs/20260923-probe-promote-clean.spec.md",
+    "A docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260923-probe-promote-clean/2ff14564cd37afb036b72549d46b80e39c8333e2.blob",
+    "A docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260923-probe-promote-clean/4f3b7ae49294ff8f490586358a4fd34e2453dd1b.blob",
+    "A docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260923-probe-promote-clean/6753888b8feaa55e0d7a275b4b01c6915bd6fac3.blob",
+    "A docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260923-probe-promote-clean/88e6a6eb74aff03799784fb668f070561c70ecda.blob",
+    "A docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260923-probe-promote-clean/c919dcac9470a3cc8f8f321f98f574003f72eb76.blob",
+    "A docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260923-probe-promote-clean/ceefa7ee637b9d8d2048d622144664e7635f05d3.blob",
+    "A docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260923-probe-promote-clean/e85f4acd01d92c39415adb708c68ecb254dfe53a.blob",
+    "A docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260923-probe-promote-clean/paths.tsv"
+   ],
+   "verdict": "확인됨 -- 운반 디렉터리(blob 7 + paths.tsv)·승인 기록·spec card 개정 말고 다른 경로 차이 0. 이 셋은 전부 base a8941db 가 더한 것이라 base..T diff 에는 나타나지 않는다."
+  },
+  "eleven_path_blob_identity": {
+   "same_blob": {
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py": "88e6a6eb74aff03799784fb668f070561c70ecda",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py": "e85f4acd01d92c39415adb708c68ecb254dfe53a",
+    "skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py": "6753888b8feaa55e0d7a275b4b01c6915bd6fac3",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py": "2ff14564cd37afb036b72549d46b80e39c8333e2",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py": "c919dcac9470a3cc8f8f321f98f574003f72eb76",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py": "4f3b7ae49294ff8f490586358a4fd34e2453dd1b",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py": "ceefa7ee637b9d8d2048d622144664e7635f05d3"
+   },
+   "absent_in_both": [
+    "skills/analog-gmid-design/assets/tests/probe_lut_L_interpolation.py",
+    "skills/analog-gmid-design/assets/tests/probe_parasitic_pm_all_circuits.py",
+    "skills/analog-gmid-design/assets/tests/probe_revalidation_scope.py",
+    "skills/analog-gmid-design/assets/tests/probe_role_L_derivation.py"
+   ],
+   "verdict": "확인됨 -- 7경로 blob id 동일, 4경로 양쪽 모두 부재. 11경로 바이트 복원 성립.",
+   "carry_blob_cross_check": "base 에 실린 운반 파일 이름(7개 .blob)이 위 blob id 7개와 글자 그대로 같고 paths.tsv 11줄이 위 11경로·상태와 같다 -- 운반 디렉터리가 T 의 내용과 어긋나지 않는다."
+  }
+ },
+
+ "isolation": {
+  "commands": [
+   "git clone --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-probe-promote-clean-audit C:/g2/<이름>",
+   "git -C C:/g2/<이름> config core.longpaths true",
+   "git -C C:/g2/<이름> checkout [--detach <rev>]",
+   "git -C C:/g2/<이름> remote remove origin"
+  ],
+  "clones": {
+   "C:/g2/iso": "T(=80efc66) 작업 트리. V1·V3~V7·계약 실측용. git status 빈 줄, remote 0개",
+   "C:/g2/base": "base(=a8941db) 작업 트리. 수집 집합 대조용",
+   "C:/g2/basec": "base + 계약 test 2개만 덮어쓴 대조군(승격본 없음) -- 규칙 유도인지 재는 실험",
+   "C:/g2/basex": "base + T의 test 7파일 전부를 덮어쓴 대조군(원본 probe도 남아 있는 '옮기다 만' 트리) -- 새 배타 판정이 실제로 거부하는지와 새 test가 base 엔진에서 통과하는지 재는 실험",
+   "C:/g2/eq": "같은 경로에서 base -> T 로 checkout --detach + clean -fdx 하며 재는 동등성 비교용(E-LIB·E-INST)"
+  },
+  "gate_code": {
+   "how": "git -C <audit worktree> cat-file blob a8941db:tools/gates/<파일> 로 redteam 밖 22개 전부를 재추출 -> C:/g2/gate (archive·checkout 은 줄끝을 바꾸므로 쓰지 않았다). V1 의 -c 가 요구하는 gmid-gate-cache/<old>/ 형식을 맞추려고 같은 내용을 C:/g2/gmid-gate-cache/a8941db713568ae359c5a2977acb5201bc155b80/ 에도 두고 두 디렉터리의 파일별 sha256 목록 해시가 같음을 확인했다",
+   "file_set_sha256": "6de81c94d5fce55cb229f7d51e0a38cf344939ab0ea33440813a83d40d438ced",
+   "file_set_sha256_def": "sha256(concat(sorted('<복제본 상대 경로> <파일 sha256>\\n')))  -- 파일 22개, __pycache__ 제외"
+  }
+ },
+
+ "base_run": {
+  "collection": {
+   "command": "PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=C:/g2/gate $PY -P -m pytest -c C:/g2/gate/pytest_gate.ini --rootdir=<복제본> --confcutdir=<복제본> <복제본>/skills/analog-gmid-design/assets/tests --gmid-phase=2 --gmid-strict= --collect-only -q",
+   "base_collected": 351,
+   "merged_collected": 372,
+   "base_only_disappeared": 0,
+   "new": 21,
+   "base_collect_sha256": "dc0a086e7949c8658e5def36974324fe0dcdae8603d16312f74b72205c291ae2",
+   "merged_collect_sha256": "2554003d3f4c5d31ac6bfe4aaa3a96e1377d383e1310cb879d7234f1467a722e",
+   "sha256_def": "sha256(UTF-8('\\n'.join(sorted(수집 id))))",
+   "new_ids": [
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_exclusive_promotion_check_rejects_original_left_behind",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_promotion_judgment_rejects_half_moved_and_stray_promotions",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py::test_declared_L_search_range_stays_inside_lut_anchor_span",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py::test_gm_id_max_within_thermal_limit_on_declared_L_search_grid",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py::test_gm_id_max_within_thermal_limit_over_declared_vds_candidates",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py::test_thermal_limit_rejects_unphysical_lut",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_declared_signal_path_is_interior_and_monotone_in_sink_set",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_node_pole_estimate_classifies_every_declared_path_node",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_parasitic_pm_judgment_rejects_out_of_band_values",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_parasitic_pm_stays_within_pole_count_bound",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_pole_partition_judgment_rejects_dropped_and_double_counted_nodes",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_signal_path_judgment_rejects_unreachable_and_endpoint_nodes",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py::test_declared_metric_device_refs_are_sound_across_library",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py::test_device_refs_never_leak_undeclared_names",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py::test_metric_without_declared_devices_depends_on_every_device",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py::test_revalidation_judgment_rejects_skipped_and_mislabelled_metrics",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py::test_revalidation_recomputes_metric_that_names_no_devices",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py::test_declared_L_role_is_rejected_when_theta_owned_or_unknown",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py::test_every_declared_L_role_is_one_the_engine_derives",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py::test_role_L_is_derived_for_every_harness_circuit",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py::test_role_L_judgment_rejects_constant_fallback_and_out_of_range_L"
+   ],
+   "verdict": "계약 8 성립 -- base에서 사라진 id 0, 늘어난 21건이 전부 이 card의 새 test(승격본 19 + 계약 test 2개가 더한 합성 반례 2)."
+  },
+  "red_capture": {
+   "note": "test-only라 판정 기록에 red 필드가 없다(00-common §8.1). 그래도 '새 test가 base 엔진에서 어떻게 되는가'를 직접 쟀다.",
+   "command": "GMID_RED_CAPTURE=<파일> GMID_INTERFACE_CARD=<spec card> PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=<캐시> $PY -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g2/basex --confcutdir=C:/g2/basex C:/g2/basex/skills/analog-gmid-design/assets/tests --gmid-phase=2 --gmid-strict= -p merge_gate --continue-on-collection-errors -q",
+   "result": "2 failed, 355 passed, 15 xfailed. 수집 오류 0.",
+   "red_lines_total": 14,
+   "red_builtins_Failed": 12,
+   "red_builtins_Failed_note": "12건은 IC 계약 test의 xfail(pytest Failed의 __module__ 이 builtins다) -- 실패가 아니라 기대된 xfail 15건 중 플러그인이 예외로 잡은 것들이다.",
+   "red_AssertionError": [
+    {"test_id": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_dead_probe_files_are_absent",
+     "failure_hash": "e31d5f1f7eacd3dfc90b0b9f583b086553e23620c6730111e645ec31d33be890"},
+    {"test_id": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_only_promotion_candidates_remain_in_tests_root",
+     "failure_hash": "c0ba3ba8201d0c4e1afa2d28f7ba3c6a8e7ff3df1cbedf5cdec8446056de122e"}
+   ],
+   "interpretation": "이 두 AssertionError는 엔진 결함이 아니라 **내가 만든 합성 트리의 성질**이다: C:/g2/basex 는 승격본을 덮어쓰되 원본 probe 4개를 남긴 '옮기다 만' 상태이고, 계약 7-a가 새로 넣은 양방향 배타 판정이 바로 그 상태를 거부한다. 즉 그 판정이 무동작이 아니라는 실측 증거다.",
+   "new_test_reds_on_base": 0,
+   "new_test_reds_note": "승격본 4파일 19건은 base 엔진(= T 엔진, blob 동일)에서 19 passed, red 0. test-only라 red-green 증거를 요구하지 않고(엔진이 안 바뀌었으니 red가 나오면 오히려 엔진 결함이다) 실제로 0이다."
+  },
+  "rule_derivation_control": {
+   "why": "계약 7-a의 변경이 '승격된 상태에 맞춘 재작성'이 아니라 '규칙 유도'인지 auditor가 직접 가르는 실험.",
+   "command": "$PY -P -m pytest -c C:/g2/gate/pytest_gate.ini --rootdir=C:/g2/basec --confcutdir=C:/g2/basec <basec>/…/contracts/test_ts6_dead_probes.py <basec>/…/contracts/test_ts6_probe_relocate.py --gmid-phase=2 --gmid-strict= -q",
+   "tree": "base 트리 + 계약 test 2개만 T 판으로 덮어씀(승격본 없음, 원본 probe 7개 그대로)",
+   "result": "60 passed, exit 0",
+   "verdict": "승격이 하나도 없는 트리에서도 그대로 통과한다 -- 기대값이 '승격 완료분'을 이름 규칙으로 세는 식이라 승격 수 0에서 42-3-0=39, 후보 집합 7 그대로가 되기 때문이다. 승인 기록이 약속한 'P3b 이후에도 다시 고칠 필요 없음'이 실측으로 성립한다.",
+   "half_moved_control": "같은 두 파일을 '옮기다 만' 트리(C:/g2/basex)에 두면 2 failed -- 규칙이 양쪽(통과해야 할 상태 / 거부해야 할 상태)을 실제로 가른다."
+  }
+ },
+
+ "shape_check": {
+  "evidence_type_claimed": "test-only",
+  "commit_shape": "base a8941db -> test 커밋 1개(80efc66, Role: test + Change-Id, 부모 = base) 로 끝. code 커밋 없음, 병합 없음. 00-common §8.1의 test-only 조건(code_commit: null, red·equivalence 필드 금지)과 맞는다.",
+  "source_test_mix": "없음 -- T가 바꾼 11경로가 전부 A/tests/ 아래이고 소스 분류(A/*.py, workspaces/run_harness.py, .ai/verification/_schema.json) 경로는 0건이다(EL3 '코드와 기준 동시 변경' 금지에 걸릴 것이 없다).",
+  "v1_command_form": "base 판 merge_gate.v1_command_check(아래 판정 기록 auditor_run의 `V1: ` 명령, python_path=C:/Python314/python.exe, old=a8941db…, strict_needed=[], phase='2') -> 실패 0건. 처음에 -c 를 C:/g2/gate/pytest_gate.ini 로 두었을 때는 'V1 -c 디렉터리가 gmid-gate-cache/<old>/가 아니다' 실패가 나왔고, 그래서 같은 내용의 캐시 디렉터리 C:/g2/gmid-gate-cache/a8941db…/ 를 만들어 V1을 다시 돌린 뒤의 값이다.",
+  "strict_set": "base 판 merge_gate.strict_set(TreeView(['-C', <audit worktree>], a8941db), role_paths.parse_spec_card(base 판 spec card)) = 공집합. 이 card의 activated_ic_case가 비었고 base 트리의 Phase 2 판정 기록들(20260923-probe-dead-delete·20260923-probe-relocate 등)도 비었다.",
+  "spec_card_parse": "id=20260923-probe-promote-clean, phase=2, evidence_type=test-only, gate_change=no, approval=[20260923-20-dead-code-dup-design], activated_ic_case=[], activated_ic_case_rename=[]"
+ },
+
+ "next": "순서 7에서 V1~V10을 재고 .ai/verification/20260923-probe-promote-clean.json 을 쓴다. 이 파일은 그 커밋에 함께 들어간다."
+}

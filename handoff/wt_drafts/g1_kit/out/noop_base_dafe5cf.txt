@@ -1,0 +1,21 @@
+repo=C:\g279\b
+log=C:\g279\b\tools\gates\redteam\logs\20261006-153013-direct.jsonl
+
+PASS             06-v4-expected-from-subject                  
+PASS             07-v4-assert-under-if                        
+PASS             09-v6-broad-except                           
+PASS             23-v4-boundary                               
+PASS             26-gate-output-utf8                          
+PASS             27f-v6-reconfigure-except                    
+PASS             28-v3-gmid-options                           
+PASS             29-v4-decision-exempt                        
+PASS             31-v3-git-history                            
+PASS             34-v3-exempt-binding                         
+PASS             35-v3-changed-scope                          
+PASS             v3_survivor                                  
+PASS             v7_unwired                                   
+
+케이스: {"PASS": 13}
+단계: {"PASS": 264}
+cases v3_survivor v7_unwired 06-v4 07-v4 09-v6 23-v4 26-gate-output 27f-v6 28-v3 29-v4 31-v3 34- 35-
+exit 0 log C:/g279/b/tools/gates/redteam/logs/20261006-153013-direct.jsonl

@@ -1,0 +1,31 @@
+repo=C:\g143\p2
+log=C:\g143\p2\tools\gates\redteam\logs\20261001-223800-direct.jsonl
+
+FAIL             32v-file_nodir-x                             
+    - FAIL file-dir-change-noshim.V3: exit 0 != 기대 1; 관찰 {'moved': ['workspaces/run_harness.py::ff'], 'move_rejected': {}, 'defs': [], 'not_targeted': 0} != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::ff': 'M-4'}, 'defs': ['workspaces/run_harness.py::ff'], 'not_targeted': 0}
+    - FAIL file-dir-change-noshim.V6: exit 0 != 기대 1; 관찰 {'moved': ['workspaces/run_harness.py::ff'], 'move_rejected': {}} != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::ff': 'M-4'}}
+    - FAIL file-dir-change-noshim.V7: exit 0 != 기대 1; 관찰 {'moved': ['workspaces/run_harness.py::ff'], 'move_rejected': {}} != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::ff': 'M-4'}}
+
+케이스: {"FAIL": 1}
+단계: {"FAIL": 3}
+variant file_nodir done
+repo=C:\g143\p2
+log=C:\g143\p2\tools\gates\redteam\logs\20261001-223833-direct.jsonl
+
+FAIL             32v-class_methods_all-x                      
+    - FAIL class-method-edited.V3: exit 0 != 기대 1; 관찰 {'moved': ['skills/analog-gmid-design/assets/b.py::C.m'], 'move_rejected': {}, 'defs': [], 'not_targeted': 0} != 기대 {'moved': [], 'move_rejected': {}, 'defs': ['skills/analog-gmid-design/assets/b.py::C.m'], 'not_targeted': 0}
+    - FAIL class-method-edited.V6: exit 0 != 기대 1; 관찰 {'moved': ['skills/analog-gmid-design/assets/b.py::C.m'], 'move_rejected': {}} != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL class-method-edited.V7: exit 0 != 기대 1; 관찰 {'moved': ['skills/analog-gmid-design/assets/b.py::C.m'], 'move_rejected': {}} != 기대 {'moved': [], 'move_rejected': {}}
+
+케이스: {"FAIL": 1}
+단계: {"FAIL": 3}
+variant class_methods_all done
+repo=C:\g143\p2
+log=C:\g143\p2\tools\gates\redteam\logs\20261001-223908-direct.jsonl
+
+FAIL             32v-v6_no_module_extra-x                     
+    - FAIL stmt-literal-moved.V6: exit 1 != 기대 0
+
+케이스: {"FAIL": 1}
+단계: {"PASS": 2, "FAIL": 1}
+variant v6_no_module_extra done

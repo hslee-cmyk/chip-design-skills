@@ -1,0 +1,89 @@
+{
+  "id": "20260930-d-move-tests",
+  "spec_card": "docs/02-design/specs/20260930-d-move-tests.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "efbf14a4908c27bc1e5481a5cde91b0cca57a693",
+  "test_commit": "c9565f0a790651399a61dcbd2b8eb9225a488e37",
+  "code_commit": "1c5b9202c7cbc82302dbd04fe5f1d49b10ed9a2b",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+      "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+      "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_moved_names_gone_from_engine",
+      "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_new_tool_modules_define_moved_names",
+      "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_new_tool_modules_do_not_copy_engine_definitions"
+    ],
+    "failure_hashes": [
+      "3612e0b9941c9d172a40c9a142f353d4fb06ad7718a27a64fa164606ca482519",
+      "44a588d3478182da5c52e339c51519ddcd62f5ebea574cc68767dbd47d6df758",
+      "1c8b0d0a44aef7120ef8a092d239e683d67a6d627d2758a36059778ed2ef9944",
+      "9bc2048277cb36415c72db7bad60b00012e0b5714bc14b93605001b809f9b5a3",
+      "a802aa681d5a5718f008e24c779a8813e26544a640750c9324af13d13b2041d4"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "병합본 M 1adbb7653f49cca3cd79a4fc7944b14f61ba0619(부모 [T c9565f0, K 1c5b920], 트리 23914bdb = K 트리, Role: doc·Change-Id 일치)의 격리 복제본 C:/g10/m(git clone --no-hardlinks --no-local --no-checkout, origin 제거, checkout --detach, remote 0·status 0줄, 실행 뒤 status 0줄)에서 base 판 캐시 efbf14a의 pytest_gate.ini로 slow 포함 전체 실행(-k·--deselect·-x·-m 없음, --gmid-phase=2 --gmid-strict=): 553 passed, 15 xfailed, 실패·오류·skip·xpass 0, 수집 568, 수집 오류 0, exit 0, 97s, 출력 sha256 bfba61c10e7cec27361d1fff0a5923ee020b9b9bbf516843c0465c6b53ec90f7. 수집 대조(scripts/cmp_collect.py): base 527(순서 3 수집 sha256 347441e9…)의 id 전부가 병합본에 있고(사라진 id 0) 새 id 41개는 전부 contracts/test_d_move_tests.py -- 계약 3·7(두 unit 파일 test id가 base와 같다) 충족; 553 = base 512 passed + 새 41, xfail 15 = base 15. 엄격 집합은 base 판 merge_gate.strict_set(TreeView(efbf14a), parse_spec_card(이 card)) = 빈 집합(conftest_has_gmid_phase 참), merge_gate.v1_command_check(auditor_run의 V1 문자열, python_path C:/Python314/python.exe, old efbf14a, strict [], phase 2) 실패 0건. 게이트 코드는 git cat-file blob efbf14a:tools/gates/<파일>로 auditor가 redteam 밖 22개를 직접 뽑았다(tools 트리 712beefc, file_set_sha256 ab7afccd… = P5·P5b와 같다). code-author 자체 실행 보고는 증거로 쓰지 않았다"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red-green. 커밋 사슬: base efbf14a(gate master) -> T c9565f0(Role: test, 부모 base) -> K 1c5b920(Role: code, 부모 T, 5경로 +176/-153) -> M 1adbb76(Role: doc, 부모 [T, K], 트리 = K 트리). test 커밋 불변: git diff T M 은 엔진 2파일 삭제·새 tests/tools 2파일·레지스트리뿐이고 T가 바꾼 test 3파일(contracts/test_d_move_tests.py, unit 두 파일)은 T blob 그대로다. red(순서 3, 이 폴더 base_check.json): T 복제본 C:/g10/iso에서 base 판 red 수집 플러그인(-p merge_gate --continue-on-collection-errors, GMID_INTERFACE_CARD = 이 변경의 interface card)이 5건 기록 -- unit 두 파일의 수집 ModuleNotFoundError(쌍 (regression_runner, *)·(interleave_splits, *)가 interface card 신규 시그니처 표 두 행과 같다), test_moved_names_gone_from_engine AssertionError(엔진 참조 15건: sizing_recipe def 3 + name 11, stick_diagram 259 def 1 -- auditor git grep과 같다), test_new_tool_modules_define_moved_names·test_new_tool_modules_do_not_copy_engine_definitions AssertionError(이관 위치 파일 없음); failure_hash는 sha256(test_id + 개행 + 예외 타입)으로 auditor가 따로 계산해 캡처 값과 같다; 나머지는 316 passed + 12 xfailed로 base와 같은 결과, test-author 보고는 대조용으로만 봤다. green: 병합본에서 V1 전체 553 passed(오류 0)이고, red 파일 3개를 -rA와 red 수집 플러그인으로 따로 돌려 237 passed + 3 xfailed(= 41 + 68 + 131), 세 계약 test PASSED, 허용 타입 red 기록 0(scripts/green_m.sh, 출력 sha256 36099a77…). 계약 2 E-AST(scripts/e_ast.py, git blob ast.parse, include_attributes=False, docstring·데코레이터 포함): 병합본 tests/tools/regression_runner.py의 RegressionVerdict 2d73f7c9…·_run_optimize_multistage_case 16fc29ee…·_REGRESSION_ENGINES 61818b47…·run_regression_case 9d0aa129…, interleave_splits.py의 find_interleaved_symmetric_splits ca4162af… -- 5개 모두 순서 3 base(엔진 파일) 값과 같고 최상위 바인딩 1개씩, 소스 줄 sha256(LF)도 5개 모두 같다(바이트 이관); 설명 주석 블록(base sizing_recipe 1416-1424, 871바이트, sha256 0dd44bd8…)이 regression_runner.py 21-29행에 바이트 동일. 계약 1(scripts/new_module_check.py): 새 파일의 이관 정의 밖 최상위 문장은 regression_runner = docstring 1 + import 6(json, os, sys, dataclasses.dataclass, numpy as np, from sizing_recipe import SemiEmpiricalGmIdLUT·_COMPENSATION_REGISTRY·optimize_multistage) + _ASSETS 대입·sys.path 삽입 If 2, interleave_splits = docstring 1뿐; 옮긴 정의의 자유 전역 이름 9개가 모두 새 파일에서 묶이고 base 엔진과 같은 대상(엔진 정의 3개는 sizing_recipe에서 import, json·np·dataclass는 같은 표준·numpy 모듈)을 가리키며, 엔진 최상위 이름 재정의 0(_ASSETS는 엔진에 없는 새 모듈 지역 이름). 엔진 순수 삭제(scripts/engine_pure_delete.py): base sizing_recipe 최상위 232에서 이관 4개를 뺀 AST 목록 = 병합본 228 목록(docstring 포함 dump 동일), stick_diagram 177-1 = 176 동일; 줄 diff는 sizing_recipe 1416-1529 연속 114줄 삭제(주석 블록 + 정의 4개 + 빈 줄)와 8257행 주석 1줄 수정('_REGRESSION_ENGINES' -> '(tests/tools/regression_runner.py의 회귀 엔진 dict)', 이관 사실과 맞고 AST 밖), stick_diagram 259-292 34줄 삭제뿐. 계약 4: 병합본 A/*.py·workspaces/run_harness.py에서 5개 이름 AST 참조 0(GONE test green + auditor git grep -w 코드 참조 0), A/tests/** 참조는 unit 두 파일이 새 모듈에서 import(test_tests_reference_moved_names_via_new_modules PASS). 계약 5: 레지스트리 §7 D 목록의 해당 행 4개(RegressionVerdict, _run_optimize_multistage_case, run_regression_case, find_interleaved_symmetric_splits -- base에 _REGRESSION_ENGINES 단독 행은 없었고 _run_optimize_multistage_case 행에 함께 이관을 적었다)가 'tests 이관 완료(새 경로, 20260930-d-move-tests)'로 같은 커밋 K에서 갱신. 계약 6 E-LIB·E-INST(같은 경로 C:/g10/eq, 작업 디렉터리 C:/g10/ws_eq, 같은 스크립트): E-LIB 1d2e3bf6…(9/9 load, V1 9·V2 9) 출력 파일이 base와 바이트 동일(cmp), E-INST current_reuse_telescopic_ota ea331104…(sizing 51)·folded_cascode 67da28c0…(sizing 13) 둘 다 base와 같고 결과 JSON 파일도 바이트 동일, exit 0, eq status 0줄. 관찰(판정 영향 없음, handoff): (1) 엔진 두 파일은 from __future__ import annotations가 있고 새 파일에는 없어, 옮긴 정의의 __annotations__·dataclasses.fields().type이 base에서는 문자열('bool', 'dict | None')이고 병합본에서는 평가된 타입이다(auditor 실측) -- 호출 동작과 AST는 같고 이 이름들의 주석을 읽는 코드는 저장소에 없다. (2) references/*.md 3개(design-report-spec.md 92·308, function-selection-map.md 99, stick-diagram-euler-layout.md 113·215·464·1223)가 find_interleaved_symmetric_splits를 이름으로 안내한다 -- 코드 참조가 아니라 계약 4 범위 밖이지만 function-selection-map.md 99는 이 함수를 쓸 때를 안내하므로 위치(tests/tools) 안내가 낡았다"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 mutate_changed.py --root C:/g10/m --base efbf14a --head 1adbb76 --pytest-ini <캐시>/pytest_gate.ini --gmid-phase=2 --gmid-strict= -> verdict PASS, targets [sizing_recipe.py, stick_diagram.py], mutants 0, survivors [] -- 엔진 변경이 삭제와 주석 1줄뿐이라 변이할 새 def가 없고 A/tests/tools/는 도구 대상 밖이다. 대신한 확인(scripts/mut_moved.py, 격리 복제본 C:/g10/mut = M, 끝나고 원본 복원, status 0줄): 새 모듈에 변이 11개를 하나씩 넣고 그 이름을 쓰는 test만 V1 형태로 실행, 대조군 2개(변이 없음)는 PASS -- regression_runner 8개 중 7개 죽음(_REGRESSION_ENGINES 비움, gms·stage 상대오차 비교 뒤집기, 마지막 ok=False, W_ref 변경, gm_id 격자 절반, objective 변경), 생존 1(기본 rel_tol 0.01 -> 10.0: test_s004는 골든이 정확히 맞는 한 케이스라 허용오차 완화를 볼 수 없다); interleave_splits 3개 중 1개 죽음(예외), 생존 2(항상 [] 반환, 정렬 삭제) -- test_s022_common_centroid_layout 627행이 find_interleaved_symmetric_splits(9, 9)의 반환값을 splits99에 담기만 하고 판정하지 않는다(파일 전체에서 splits99 사용 1곳). 생존 3은 이번 변경이 들여온 것이 아니다: 옮긴 정의의 AST와 두 test 함수 AST가 base와 같아(E-AST, 순서 3 unit_ast_cmp) base에서도 같은 test가 같은 변이를 못 잡는다. 기존 test 강도 부족으로 handoff에 적는다(특히 find_interleaved_symmetric_splits는 판정 없는 호출 하나가 유일한 사용처)"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: spec card 'oracle 종류와 출처'는 (c) 동작 보존(기대값 = base 트리의 원본 정의 AST와 base 실행 결과, 새 기대값을 만들지 않는다)이다 -- 이번 변경이 들여온 기대값은 contracts/test_d_move_tests.py 41건뿐이고(unit 두 파일은 import 출처 이동과 sys.path 삽입뿐, test 함수 AST는 base와 같다 -- 순서 3 auditor 대조) 하나씩 대조한다; test_moved_names_gone_from_engine의 '참조 0'은 card 계약 4 문장 (a)(일치, base 15건 red·병합본 green, auditor git grep 병합본 코드 참조 0); test_new_tool_modules_define_moved_names의 이름·종류(class 1, def 3, assign 1)는 card 대상 표 그대로 (a)(일치, auditor e_ast.py가 새 파일에서 같은 종류·바인딩 1개씩을 찾음); test_new_tool_modules_do_not_copy_engine_definitions의 '엔진 최상위 이름 재정의 0, regression_runner가 sizing_recipe import'는 card 계약 1 문장 (a)(일치, auditor new_module_check.py 재정의 0·import 확인); test_new_tool_file_names_do_not_match_contract_patterns는 card 계약 1이 나열한 패턴 3개 (a)(일치); test_tests_reference_moved_names_via_new_modules의 '새 모듈 밖 참조 0'은 계약 3·4 (a)(일치); test_engine_reference_check_rejects 10건·accepts 5건, test_definition_check_rejects 4건·accepts 1건, test_engine_copy_check 1건, test_test_reference_check_rejects 9건·accepts 6건은 손으로 만든 합성 소스 구성 (a)이고 auditor가 소스를 읽어 각각 참조·정의·사본 유무를 확인(일치); 옮긴 본문이 원본과 같은지는 test에 박지 않았고 auditor E-AST (c)로 대조(V2). 도구: base 판 캐시 test_lint.py --root C:/g10/m --base efbf14a --head 1adbb76 --module-dir <A>/tests/tools --subject regression_runner:run_regression_case --subject interleave_splits:find_interleaved_symmetric_splits -> verdict PASS, exit 0, 대상 파일 3, findings 617 = (2) NO-SUBJECT 616 + UNJUDGED 1, FAIL 0; 새 파일 findings 24건 전부 NO-SUBJECT. UNJUDGED 1건은 unit test_s004_optimize_multistage 613행 assert _verdict.ok -- 기대값은 sky130_regression_reference.json 골든(피검 출력 복사 아님)이고 docstring이 적은 대로 이관본 S004 판정 (c)이며 본문은 base와 같다(일치). --interface-card(이 card)를 그대로 주면 관찰 가능한 계약 표의 sizing_recipe:optimize_multistage가 피검에 들어가 unit test_s071_current_reuse_telescopic_topology의 (1) FAIL 2건(2983·2986행, gms[0]·gms[1]과 gms[2]·gms[3]의 상등 -- Eq.5·50:50 분할 구조 불변식)과 UNJUDGED 8건이 나와 verdict FAIL, exit 1이다; 같은 --subject sizing_recipe:optimize_multistage로 base 트리의 같은 파일을 재면 (test, 규칙, 출력) 목록 214건이 병합본과 완전히 같고 줄 번호만 +6(삽입된 import 6줄) -- 이번 변경이 들여온 발견이 아니라 이번 변경이 한 글자도 바꾸지 않은 기존 test의 발견이며 이 card의 판정 범위 밖이다(P5 20260923-d-delete-dead 선례와 같은 처리, handoff에 적는다)"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 weakening_diff.py --root C:/g10/m --base efbf14a --head 1adbb76 -> verdict PASS, findings [], diff_paths [], diff_hash null, approved false, exit 0 -- 출력이 순서 3의 base -> T 출력과 바이트 동일(K는 엔진·tests/tools·레지스트리만 바꾸고 test 파일을 건드리지 않았다). unit 두 파일의 import 출처 이동은 도구 패턴(assert·raises·approx 삭제, 비교 완화, 상수 변경, skip/xfail 추가, assert 감싸기, test 함수 삭제) 밖이라 발견이 아니며, auditor 판단으로도 판정 약화가 아니다: test 함수 AST가 base와 모두 같고 새 모듈의 정의가 원본과 AST·바이트 동일하다(V2 E-AST). 승인 대상 diff 없음"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 source_lint.py --root C:/g10/m --base efbf14a --head 1adbb76 -> verdict PASS, targets [sizing_recipe.py, stick_diagram.py], findings [], exit 0. 엔진 쪽 변경은 정의 삭제와 주석 1줄이라 새 except·폴백·상수가 없다. 새 파일(도구 대상 밖) 직접 확인: regression_runner.py의 except는 옮긴 run_regression_case 안의 except (ValueError, KeyError) 하나이고 base 원본과 AST가 같다(실패 verdict로 바꾸는 테스트 러너 동작, 레지스트리 비고에 이미 허용 기록); W_ref=5e-6 리터럴도 원본 그대로(레지스트리 비고의 기존 지문 대상); interleave_splits.py는 import·except 없음"
+    },
+    "V7": {
+      "verdict": "PASS",
+      "basis": "Phase 2부터 활성. base 판 캐시 reachability.py --root C:/g10/m --base efbf14a --head 1adbb76 -> verdict PASS, new_defs [], unreached [], unreached_without_approval [], roots 4개(A/sky130_lut_sweep.py::__main__, A/topology_to_markdown.py::__main__, workspaces/run_harness.py::__main__·run), roots_without_file 1개(A/gmid_design_pipeline.py::run_gmid_design_pipeline, base부터 같음), exit 0. 새 def는 A/tests/tools/라 도구 그래프 밖이다. 대신한 배선 확인: run_regression_case(+ _REGRESSION_ENGINES·_run_optimize_multistage_case·RegressionVerdict)는 unit test_s004_optimize_multistage가 V1마다 sky130 골든 케이스로 실제 실행하고 변이 7개가 그 test로 죽는다(V3); find_interleaved_symmetric_splits는 test_s022 한 곳에서 호출만 되고 반환값을 판정하지 않는다(V3 생존 2) -- 이관 전과 같은 배선 상태이며 card 범위(이관, 동작·판정 불변) 안이다. 엔진 운영 경로에서 이 5개 이름을 쓰던 곳은 base부터 0이었다(순서 3 grep, card 대상 표)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2 v_intro[V8] = 4). 이 card는 Phase 2이고 엔진 변경은 운영 경로가 쓰지 않던 정의의 삭제뿐이라 fallback_events를 내는 경로를 바꾸지 않는다(E-LIB·E-INST base와 같음)"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2 v_intro[V9] = 6b). 엔진 운영 경로 결과가 base와 같다(V2 E-LIB·E-INST)"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치'가 '없음'이라 reproduced_numbers는 빈 배열이다. 이 기록의 수치(수집 527 -> 568, 병합본 553 passed·15 xfailed, base red 5건과 해시, E-AST 5개·주석 블록, E-LIB·E-INST 값, V4 발견 수, 변이 13개 결과)는 전부 auditor가 격리 복제본 C:/g10/*에서 직접 쟀다(순서 3 측정은 .ai/verification/20260930-d-move-tests/base_check.json). code-author·test-author·오케스트레이터 보고는 증거로 쓰지 않았다"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260923-u02-d-list"
+  ],
+  "auditor_run": {
+    "time": "2026-09-30T12:25:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-d-move-tests-audit",
+    "commands": [
+      "환경: $PY = C:/Python314/python.exe(3.14.2), pytest 9.0.2, export APPDATA=C:/Users/HSLEE/AppData/Roaming, 출력 C:/g10/out, 스크립트 C:/g10/scripts/(사본 .ai/verification/20260930-d-move-tests/scripts/)",
+      "게이트 코드: C:/Python314/python.exe -P C:/g10/scripts/extract_gate.py C:/g10/base efbf14a4908c27bc1e5481a5cde91b0cca57a693 C:/g10/gmid-gate-cache/efbf14a4908c27bc1e5481a5cde91b0cca57a693 (git ls-tree + git cat-file blob, tools/gates/ 중 redteam/ 밖 22개)",
+      "격리: git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-d-move-tests-audit C:/g10/<이름>; git -C C:/g10/<이름> remote remove origin; git -C C:/g10/<이름> checkout -q --detach <rev> -- iso = T, base = efbf14a, m·eq·mut = M 1adbb76(eq는 순서 3에서 base로 잰 같은 경로를 지우고 다시 복제), 모두 remote 0, status 0줄",
+      "V1: PYTHONPYCACHEPREFIX=C:/g10/pyc_v1_m PYTHONPATH=C:/g10/gmid-gate-cache/efbf14a4908c27bc1e5481a5cde91b0cca57a693 C:/Python314/python.exe -P -m pytest -c C:/g10/gmid-gate-cache/efbf14a4908c27bc1e5481a5cde91b0cca57a693/pytest_gate.ini --rootdir=C:/g10/m --confcutdir=C:/g10/m --gmid-phase=2 --gmid-strict= C:/g10/m/skills/analog-gmid-design/assets/tests",
+      "수집 대조: V1 형태에 --collect-only -q -p no:cacheprovider 로 C:/g10/base·iso·m 수집(scripts/run.sh·run_m.sh) 후 C:/Python314/python.exe -P C:/g10/scripts/cmp_collect.py <base> <m> <out>",
+      "base red(순서 3): GMID_RED_CAPTURE=C:/g10/out/red_T.jsonl GMID_INTERFACE_CARD=C:/g10/iso/docs/02-design/specs/20260930-d-move-tests.interface.md PYTHONPYCACHEPREFIX=C:/g10/pyc_full_iso PYTHONPATH=<캐시> C:/Python314/python.exe -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g10/iso --confcutdir=C:/g10/iso -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g10/iso/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+      "green: bash C:/g10/scripts/green_m.sh (병합본 red 파일 3개, -p merge_gate 캡처, -rA)",
+      "E-AST: C:/Python314/python.exe -P C:/g10/scripts/e_ast.py C:/g10/base efbf14a <A>/sizing_recipe.py|stick_diagram.py <out> <이름>... 와 같은 스크립트를 C:/g10/m 1adbb76 <A>/tests/tools/regression_runner.py|interleave_splits.py 에",
+      "계약 1·순수 삭제: C:/Python314/python.exe -P C:/g10/scripts/new_module_check.py C:/g10/m efbf14a 1adbb76 <새 파일> <엔진 파일> <이름>...; C:/Python314/python.exe -P C:/g10/scripts/engine_pure_delete.py C:/g10/m efbf14a 1adbb76 <엔진 파일> <이름>...",
+      "E-LIB: PYTHONDONTWRITEBYTECODE=1 PYTHONHASHSEED=1 C:/Python314/python.exe -P C:/g10/scripts/e_lib.py C:/g10/eq C:/g10/out/elib_<rev>.json (base 뒤 M, 같은 경로)",
+      "E-INST: PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g10/scripts/e_inst.py C:/g10/eq <current_reuse_telescopic_ota|folded_cascode> C:/g10/ws_eq C:/g10/out/einst_<rev>/einst_<회로>.json",
+      "게이트 도구(V3·V4·V5·V6·V7): bash C:/g10/scripts/tools_m.sh (base 판 캐시의 mutate_changed.py·test_lint.py·weakening_diff.py·source_lint.py·reachability.py를 --root C:/g10/m --base efbf14a --head 1adbb76 로, -P 없이); V4 기존 발견 대조 bash C:/g10/scripts/v4_om.sh",
+      "변이(V3 보강): C:/Python314/python.exe -P C:/g10/scripts/mut_moved.py C:/g10/mut <캐시> C:/g10/out/mut_moved.jsonl"
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+shuffle-seed: none
+real_lut: skills/analog-gmid-design/assets/sky130_nfet_pfet_lut_sample.npz sha256=753d802a860320dd54b53b95920c6f9addcea821c55089358bf4b1f1ebaf177f
+rootdir: C:\g342\kt
+configfile: ..\gmid-gate-cache\6c724debd884dd1d31034f5279ae450f35e67fc4\pytest_gate.ini
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 19 items
+
+..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py . [  5%]
+............F.....                                                       [100%]
+
+================================== FAILURES ===================================
+_______________________ test_b26pre_vsid_gap_fill_ports _______________________
+
+    def test_b26pre_vsid_gap_fill_ports():
+        """계약 6(b): 포트 인자를 주면 differential 관계 M1–M2가 두 컬럼을 잇는다(docstring 2번).
+    
+        oracle 대조: (a) 구성 -- 컬럼 {M1,M1c,M3}과 {M2,M2c,M4}가 differential 엣지 M1–M2로 합쳐지고, M5는 3단자 ntail로만
+        닿아 혼자 남는다.
+        """
+        out = stick_diagram.propose_vertical_stack_id_gap_fill(
+            _b26pre_cas(), [], {"M1": {"vertical_stack_id": "colA"}},
+            inputs=("ninp", "ninn"), outputs=("no1", "no2"), biases=("nvb", "nvc", "nvp"))
+>       assert out["proposals"] == {"M1c": "colA", "M2": "colA", "M2c": "colA", "M3": "colA", "M4": "colA"}
+E       AssertionError: assert {'M1c': 'colA', 'M3': 'colA'} == {'M1c': 'colA...: 'colA', ...}
+E         
+E         Omitting 2 identical items, use -vv to show
+E         Right contains 3 more items:
+E         {'M2': 'colA', 'M2c': 'colA', 'M4': 'colA'}
+E         Use -v to get more diff
+
+C:\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py:425: AssertionError
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_ofcb_lutless_repair
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_euler_fixup_group_split
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds_euler
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_already_ok
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_pair_not_found
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_only_3b_left
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_all_disposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_mirror_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_diffpair_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_hub_gnd_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_resolve_stack_candidates
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_no_ports
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_case_collisions
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_seed_tap_p
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_seed_tap_n
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_trace_two_branches
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_trace_three_branches_order
+FAILED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_ports
+======================== 1 failed, 18 passed in 8.37s =========================

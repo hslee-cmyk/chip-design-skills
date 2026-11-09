@@ -1,0 +1,26 @@
+decision 기록(7535799): 11 ['20260918-u38-jsonschema', '20260921-f4-user-approval-row', '20260921-u01-test16-intent', '20260921-u39-paper-target-spec', '20260922-c2-extract-repro-path-line', '20260922-c9-ic11-split', '20260922-ic3-v3-exempt', '20260923-c9-v4-exempt', '20260923-u02-d-list', '20260929-p4-scan-exempt', '20260930-restore-unwired-until-6a']
+_approved_ids(7535799): 26
+V3 모양 원소: 14
+load_topology        58e954c  def_hash 104fac776b048167  bind 0b9eb2d684c500a2
+load_topology        6fe9cff  def_hash c22bdd32278748f4  bind 7e81d370aef6b457
+load_topology        070cf69  def_hash c22bdd32278748f4  bind 7e81d370aef6b457
+load_topology        b29be01  def_hash c22bdd32278748f4  bind 7e81d370aef6b457
+load_topology        cd64170  def_hash c22bdd32278748f4  bind 7e81d370aef6b457
+load_topology        7535799  def_hash c22bdd32278748f4  bind 7e81d370aef6b457
+load_topology        b7765b0  def_hash c22bdd32278748f4  bind 7e81d370aef6b457
+save_instance_json   58e954c  def_hash 0f519721202317e4  bind 043c6c880f9f65de
+save_instance_json   6fe9cff  def_hash 9cb09766c4a451c9  bind 1dbcaa2d28611cac
+save_instance_json   070cf69  def_hash 9cb09766c4a451c9  bind 1dbcaa2d28611cac
+save_instance_json   b29be01  def_hash 11a55c19fc03d7cc  bind 4a96ecf0e82205e0
+save_instance_json   cd64170  def_hash 11a55c19fc03d7cc  bind 4a96ecf0e82205e0
+save_instance_json   7535799  def_hash 11a55c19fc03d7cc  bind 4a96ecf0e82205e0
+save_instance_json   b7765b0  def_hash 11a55c19fc03d7cc  bind 4a96ecf0e82205e0
+DF-36 save_instance_json def_hash base 9cb09766c4a451c9 head 11a55c19fc03d7cc changed=True
+   stick_diagram:save_instance_json:const+:body[6].body[0].value.keywords[0].value | base | 2
+   stick_diagram:save_instance_json:const+:body[6].body[0].value.keywords[0].value | head | 2
+   stick_diagram:save_instance_json:const-:body[6].body[0].value.keywords[0].value | base | 2
+   stick_diagram:save_instance_json:const-:body[6].body[0].value.keywords[0].value | head | 2
+   stick_diagram:save_instance_json:stmt_delete:body[2] | base | if pipeline_result.get('scope_note'):
+   stick_diagram:save_instance_json:stmt_delete:body[2] | head | if pipeline_result.get('scope_note'):
+   stick_diagram:save_instance_json:stmt_delete:body[2].body[0] | base | data['scope_note'] = pipeline_result['scope_note']
+   stick_diagram:save_instance_json:stmt_delete:body[2].body[0] | head | data['scope_note'] = pipeline_result['scope_note']

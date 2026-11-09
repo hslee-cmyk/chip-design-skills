@@ -1,0 +1,2 @@
+{'activated_ic_case': [], 'activated_ic_case_rename': [], 'noop_activation_id': [], 'approval': ['20260930-30-module-split-design'], 'id': '20261002-p3-move-mod1-gmid-lut', 'phase': '3', 'evidence_type': 'equivalence', 'gate_change': 'no'}
+['의도', '관찰 가능한 계약', '신규 시그니처', '판정 유형 근거', 'oracle 종류와 출처', '거부해야 할 입력', 'library 회로 적용 여부', '무동작 판정 입력(무발동 값)', '재현할 수치', '결정 필요 항목', '작성 전 실측']

@@ -1,0 +1,4 @@
+rc=1
+skills.analog-gmid-design.assets.tests.contracts.test_ts6_probe_relocate::test_base_blob_reader_reads_the_base_tree [failure] AssertionError: base 939f926의 skills/analog-gmid-design/assets/tests/probe_L_search_window.py를 읽지 못했다: fatal: not a git repository (or any of the parent directories): .git    assert 128 == 0  +  where
+skills.analog-gmid-design.assets.tests.contracts.test_ts6_probe_relocate::test_moved_tool_matches_base_except_path_lines [failure] AssertionError: base 939f926의 skills/analog-gmid-design/assets/tests/derive_achievable_bounds.py를 읽지 못했다: fatal: not a git repository (or any of the parent directories): .git    assert 128 == 0  +  wh
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s003__evaluate [failure] AttributeError: 'NoneType' object has no attribute 'get'

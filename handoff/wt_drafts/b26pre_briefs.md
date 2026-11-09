@@ -1,0 +1,264 @@
+# b26pre test-only card `20260930-b26-pre-test-strengthen` -- 착수 키트(test-author 브리프 + auditor 브리프 + 순서 요약)
+
+작성 2026-10-06. 기준: gate `master` `6c724de`(= spec card·interface card 커밋, 부모 `2183f2e` = B34 판정 기록). `2183f2e..6c724de`의 `skills/`·`tools/` 차이 0(docs만) -- 엔진은 B34 병합본(`c851e54`) 그대로다.
+spec card = `docs/02-design/specs/20260930-b26-pre-test-strengthen.spec.md`(읽기: `git -C <repo> show 6c724de:<경로>`), interface card = 같은 폴더 `.interface.md`(관찰 가능한 계약 표 **19행**, 실측).
+test-author는 이미 실행 중이다(worktree `C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-pre-test-strengthen-test`, 브랜치 `role/test/20260930-b26-pre-test-strengthen`, 시작점 `6c724de`) -- 이 파일에 test-author 브리프는 없다.
+test-only라 code-author·병합(M)이 없다(K 없음). 모델: `b41_briefs.md` §2, `md_sync_briefs.md` §2, `t0_briefs.md` §3·§4, design 05 §9.2-4·§12, 선례 판정 기록 `20261001-topology-md-sync`·`20260930-p10-df23-inventory`(둘 다 test-only).
+측정 방법 출처: `_drafts/b26pre_on_b34real.md`(실제 B34 병합본 위 사전 실행, §0 표·§3 방법), `_drafts/b26pre_backfill_post35_dryrun.md`(card 35 실제 도구 사전 실행, §2). 그 문서의 수치는 **오케스트레이터 사전 측정**이고 판정 증거가 아니다.
+
+---
+
+## A2. 2차 시도(2026-10-06 추가 -- 이 절이 아래 절보다 앞선다)
+
+**1차 시도 결과**: test 커밋 T1 `d2b2ed7`(새 파일 하나, 19 test), auditor 판정 **V4만 FAIL**(V1·V2·V3·V5·V6·V7·V10 PASS, V8·V9 N/A). 1차 역할 브랜치·worktree는 정리됐다(`refs/heads/role/` 0, 2026-10-06 실측).
+1차 산출물 보관 `_drafts/b26pre_attempt1/`: `T1.patch`(= `6c724de..d2b2ed7` test diff, sha256 `286667e2…`, `diff --git` 1개 = 새 test 파일 하나), `.ai/verification/20260930-b26-pre-test-strengthen.json`(sha256 `6e8ac3a5…`)과 그 폴더(scripts·out).
+사용자 결정(2026-10-06, 원문): "(가) card 1(d)를 리터럴 기대값으로 개정 (Recommended)".
+
+**2차 순서**(design 05 §12 '재시도' -- 같은 id로 1부터, spec card 개정의 gate push는 정리 뒤):
+1. `bash $DR/b26pre_launch.sh conds` → `local`(2차 판: pre = 1차 잔재 0·gate card = 1차·T1 미포함·판정 기록 없음·리터럴 판 뒤 엔진 diff 0·초안 sha256 `dba86fa1…`·scratch `/c/g370`·`/c/g371`·`/c/g372` 셋 다 없음·`T1.patch` 한 파일을 `$DR/b26pre_att2_input/`로 복사(sha256 `286667e2…` 확인) → card = 개정 card 커밋 S2 + interface card 재생성(바이트 불변 기대) → final) → **단독** push → `after-push`. 상태 파일 `$DR/b26pre_launch2_state.txt`(1차 파일은 남긴다).
+2. 순서 1 → `test ! -e /c/g370` → **1.1절 test-author 브리프(2차, scratch `C:/g370`, 입력 `$DR/b26pre_att2_input/T1.patch`)** → 순서 3 → 순서 7 → 순서 8 → 정리. 2절 auditor 브리프는 아래 '2차 차이'를 덧붙여 쓴다.
+
+**V4 1차 발견 6건과 2차에서 요구하는 고침**(줄 = T1 파일 줄, 도구 = gate `6c724de` 판 `test_lint.py --interface-card`):
+
+| # | 규칙 | T1 위치 | 발견 | 2차 요구(개정 card 근거) |
+|---|---|---|---|---|
+| 1 | (1) | 172행 `test_b26pre_ofcb_lutless_repair` | `{t.stack_id for t in pr["transistors"]} == set(rr)` -- 두 쪽이 같은 `optimize_full_circuit_budget` 출력 | 오른쪽을 card 리터럴 `{"pair_row_repair0_repair0_repair0"}`로, 더해 `set(pr["repaired_rows"]) == {"pair_row_repair0_repair0_repair0"}`(계약 1 (d) 개정 -- 두 리터럴 비교로 정합 의미 유지) |
+| 2 | (1) | 196행 `test_b26pre_euler_fixup_group_split` | `len(flat) == len(set(flat))` -- 옆 줄 `sorted(flat) == ["M1","M2","M3"]`가 함축 | 지운다. stack_id는 행마다 리터럴 집합(`{…rows["row_seg0"]} == {"row_seg0"}`, `row_seg1`도), `n_fingers` 집합 `== {1}`(계약 2 개정) |
+| 3 | (1) | 397행 `test_b26pre_resolve_stack_candidates` | `len(members) == len(set(members))` -- 옆 줄 정렬 비교가 함축 | 지운다. 정렬 목록을 card 리터럴 `["M1","M1c","M2","M2c","M3","M4","M5"]`와 비교(계약 5 개정) |
+| 4 | (4) | 238행 `test_b26pre_growth_zero_rounds_euler` | 본문 판정 0개(`EULER_OK`가 도우미 `_b26pre_assert_euler_ok` 안에만) | `EULER_OK`의 `assert`를 본문으로(계약 3·8 개정). 도우미는 값만 돌려줄 수 있다. 같은 도우미를 쓰는 계약 3(d)·(e) test도 같게. 1차에서 주표 #13(SR 11879 `_finalize` 삭제)을 죽인 판정은 T1 115행(`all(c.ok for c in euler)`)이었다 -- 그 판정이 본문에 있어야 한다 |
+| 5 | (4) | 494행 `test_b26pre_seed_tap_p` | 본문 판정 0개(도우미 `_b26pre_seed_check` 안에만) | 계약 10의 다섯 판정을 본문으로(계약 10·8 개정). 1차에서 씨앗 6변이를 죽인 판정은 T1 482행(`roles("My") == ("matching","mirror")`)·490행(`sorted([x,"My"]) in pairs`) |
+| 6 | (4) | 505행 `test_b26pre_seed_tap_n` | 위와 같음 | 위와 같음 |
+
+도우미 이름을 `assert…`로 바꾸는 우회는 쓸 수 없다(계약 8이 도우미 접두를 `_b26pre_`로 정한다 -- 도구는 호출 이름이 `assert`로 시작해야 판정 문장으로 센다).
+
+**오케스트레이터 사전 측정(증거 아님 -- `_drafts/b26pre_att2_scripts/`, 모래상자 `C:/g344` 삭제됨)**: 위 6건만 고친 시제품(`proto_att2_NOT_FOR_ROLES.py` -- 역할에게 건네지 않는다)이 같은 도구에서 PASS exit 0(FAIL 0, UNJUDGED 60, NO-SUBJECT 19), base 19 passed(seed 0·1), base 문장 삭제 변이 29개에서 1차 test와 변이마다 같은 결과·같은 죽인 test(주표 14 죽음·SR 11878 생존, 참고표 14 죽음). 개정 card로 재생성한 interface card는 1차와 바이트 같다(sha256 `54552e82…`, 19행). `b26pre_launch.sh`(2차 판)는 모래상자(복제본 + 모래상자 gate)에서 `local` 통과(S2 = card 한 파일 커밋), `after-push`는 cache_dir에서 멈춤(백로그 B62 -- 모래상자 한계, 그 앞 확인은 통과), 1차 잔재 대조 2건(card 이미 개정·역할 브랜치 있음)에서 `pre`가 멈춤.
+
+**2차 차이(2절 auditor 브리프에 덧붙인다)**:
+* base = 2차 card 커밋 S2(`b26pre_launch2_state.txt`의 `S=`, push 뒤 gate master). `6c724de`라고 적힌 곳은 S2로 읽는다(`6c724de..S2`의 `skills/`·`tools/` 차이 0이어야 한다 -- 확인해 basis에). 0절 줄 위치는 그대로 유효하다.
+* scratch: 2절 머리 블록·2.x 명령에 2차 번호가 글자 그대로 적혀 있다(순서 3 = `C:/g371`, 순서 7 = `C:/g372`). 2차 test-author = `C:/g370`(1.1절). 세 번호 모두 2026-10-06 `test ! -e` 비어 있음 확인, 띄우기 직전 다시 `test ! -e`(launch `pre`도 셋 중 하나라도 있으면 멈춘다).
+* V4 기대에 더한다: (i) `test_lint` FAIL 0, (ii) 모든 `test_b26pre_` 함수 본문에 판정 문장 ≥ 1(도우미 `_b26pre_`의 `assert` 0 -- AST로 센다), (iii) `==` 판정 두 쪽이 같은 피검 호출 출력에서 나온 곳 0(도구 규칙 (1) + 손 대조), (iv) 계약 1 (d) 리터럴 두 판정(`transistors`의 stack_id 집합·`repaired_rows` 키 집합)을 auditor 스크립트로 base에서 다시 잼(오케스트레이터 값 `{"pair_row_repair0_repair0_repair0"}`은 증거 아님).
+* V2 계약 9 기대는 1차와 같다(주표 18/20 id·16/18 문장, 참고표 15/16). 1차 판정 기록·스크립트(`_drafts/b26pre_attempt1/.ai/…`)는 auditor가 방법 참고로 읽어도 되지만(같은 역할의 산출물) 수치는 다시 잰다.
+* 판정 기록 `notes`에 '2차 시도(1차 T1 `d2b2ed7` V4 FAIL, card 개정 S2)'를 적는다.
+
+---
+
+## 0. 착수 상태(오케스트레이터용)
+
+* spec card '착수 조건' 1~5는 `6c724de` 커밋 전에 확인됐다(B34 판정 기록 `2183f2e`가 gate에 있음). 판정 기록 `approvals[]` 후보 두 기록이 `6c724de` 트리에 있다(실측: `.ai/approvals/20261001-b26-phase3-cards.md`, `.ai/approvals/20260930-b26-before-phase3.md`).
+* 줄 위치(card 표는 measured `dd60db6`/`a796468` 줄 -- 엔진 내용 같음). base(`6c724de`) 위 위치, 줄 글을 직접 확인함:
+  * SR(sizing_recipe.py, 6512 뒤 전부 −1): 9403·9405(LUT 없는 repair 2문장), 6572(`if refined is not None and refined.get("vertical_stack_id_candidates"):`), 11695·11697·11699(euler fixup 3), 11799(`_backfill_interdig_ok(result)` 루프 안), 11800(`if result.ok:`), 11801(성공 분기 `_finalize` -- 참고표 SR 11802), 11876·11878(`_backfill_interdig_ok(result)` 루프 뒤)·11879·11880.
+  * SD(stick_diagram.py): 1562(`for j in range(i + 1, len(chains)):`), 3275(`if inputs or outputs or feedbacks or biases or clocks:`), 4515(`if disp.case_collisions:`), 6878·6880(체크 3 `current_mirror`·`diff_pair` 루프).
+  * 참고표 SD 줄(씨앗 6·3285·3286·4530)은 확인하지 않았다 -- auditor가 (def, 문장 글)로 찾는다.
+* scratch 배정(2차 시도, 고유, 다른 agent와 겹치지 않게): test-author = `C:/g370`, 순서 3 = `C:/g371`, 순서 7 = `C:/g372`. launch `pre`와 test-author 띄우기 직전에 `test ! -e /c/g370 && test ! -e /c/g371 && test ! -e /c/g372`, 순서 3·7 직전에 각자 번호를 다시(있으면 다른 번호로 바꿔 이 브리프의 글자를 고친다 -- 바꿔 읽기 지시·공용 루트 삭제 지시 금지).
+
+---
+
+## 1. test-author 브리프
+
+1차 시도: 생략(그때 이미 실행 중이었다). 산출물 기대: 새 파일 하나 `skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py`, card 계약 수로 test 함수 19개(계약 1:1, 2:1, 3:5, 4:4, 5:1, 6:2, 7:1, 10:2, 11:2), 모두 base에서 PASS.
+
+### 1.1 2차 시도 test-author 브리프(A2절)
+
+**1차 산출물 열람 결정 -- `T1.patch` 한 파일을 오케스트레이터가 더한 입력으로 준다**. 근거:
+* design 05 §14와 `agents/gmid-test-author.md` '입력'은 test-author 입력을 열거한다(interface card·spec card·test worktree). `T1.patch`는 그 열거에 없으므로 **오케스트레이터가 더한 입력**이다 -- 열거를 넓혀 읽는 것이 아니라 오케스트레이터가 이 시도에 입력 하나를 더 준다고 적는다.
+  선례: runbook 8.4 t0 2차 시도(운반 blob cp + `T1.patch`를 오케스트레이터가 2차 입력으로 줌). `T1.patch`는 test 경로 새 파일 하나의 diff다(`diff --git` 1개, `/dev/null` → 파일, 소스 줄 0, auditor 수치·경로 문자열 없음 -- 독립 검토 실측).
+* 같은 역할(test-author)이 같은 interface card·같은 card 계약에서 쓴 산출물이라 작성자≠검증자 경계를 넘지 않는다(검증자 = auditor의 측정값이 섞이지 않는 한 -- 아래 격리).
+  1차 auditor가 V4 'oracle 대조'로 T1의 기대 리터럴이 card 문장·base 재측정과 일치함을 확인했고, 18개 죽임 판정이 T1에 있다 -- 처음부터 다시 쓰면 그 판정을 잃을 위험만 는다.
+* 격리 방식: EL1은 `_drafts/**` 열람을 막지 않으므로 지시만으로 지키지 않는다. launch `pre`가 `_drafts/b26pre_attempt1/T1.patch`를 **그 파일 하나만** 전용 폴더 `_drafts/b26pre_att2_input/T1.patch`로 복사하고 sha256 `286667e28e12e1a02e36ac9ce6575189e0b7a669233fd2c9e09dfb1bfb9159e4`를 확인한다(폴더에 다른 파일이 있으면 멈춘다). test-author 브리프는 그 경로만 가리키고 `b26pre_attempt1/`은 언급하지 않는다.
+* 조건: card 문장이 이긴다(T1과 개정 card가 다르면 card대로). 열람 금지 = 전용 폴더 밖 `_drafts/**` 전부(`b26pre_attempt1/`의 auditor 판정 기록·스크립트·출력 -- base 엔진 측정값이 들어 있어 기대값 출처가 검증자가 된다, `b26pre_att2_scripts/`의 오케스트레이터 시제품·측정 포함), 엔진·도구 소스.
+
+```
+역할: gmid-test-author. change id = 20260930-b26-pre-test-strengthen(2차 시도), evidence_type test-only, phase 3.
+test worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-pre-test-strengthen-test (브랜치 role/test/20260930-b26-pre-test-strengthen, 시작점 gate/master = S2 -- 개정 card 커밋).
+입력(읽기): 그 worktree의 docs/02-design/specs/20260930-b26-pre-test-strengthen.spec.md(개정판 -- '관찰 가능한 계약' 절과 '이름(입력·판정용)' 항목, oracle 절)와 같은 폴더 .interface.md(19행).
+  오케스트레이터가 더한 입력: 1차 test diff C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/b26pre_att2_input/T1.patch(그 파일 하나만, sha256 286667e28e12e1a02e36ac9ce6575189e0b7a669233fd2c9e09dfb1bfb9159e4). 금지: 그 밖 _drafts/** 전부, 엔진·도구 소스(sizing_recipe.py·stick_diagram.py·tools/**) 열람.
+scratch: C:/g370 하나만(띄우기 직전 비어 있음 확인됨). TMP·TEMP·TMPDIR·PYTHONPYCACHEPREFIX·pytest --basetemp도 그 아래, "." 금지. 끝나면 그 폴더만 삭제(다른 C:/g* 금지).
+산출물: 새 파일 하나 skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py -- Write 도구로 쓴다(git apply·cherry-pick 금지). test 함수 19개(계약 1:1, 2:1, 3:5, 4:4, 5:1, 6:2, 7:1, 10:2, 11:2), parametrize 금지, 이름 test_b26pre_* / 도우미 _b26pre_* / 상수 _B26PRE_*.
+1차 V4 FAIL 6건(A2절 표)을 반드시 고친다:
+  (1) 172행 계약 1 (d): {t.stack_id for t in pr["transistors"]} == {"pair_row_repair0_repair0_repair0"} 와 set(pr["repaired_rows"]) == {"pair_row_repair0_repair0_repair0"} 두 판정(둘 다 오른쪽 리터럴, 같은 출력의 두 필드끼리 == 금지)
+  (2) 196행 계약 2: len(flat) == len(set(flat)) 삭제. {t.stack_id for t in rows["row_seg0"]} == {"row_seg0"}, row_seg1도 같은 꼴, n_fingers 집합 == {1}
+  (3) 397행 계약 5: len(members) == len(set(members)) 삭제. 정렬 목록 == ["M1", "M1c", "M2", "M2c", "M3", "M4", "M5"]
+  (4) 계약 3 EULER_OK: 두 조건의 assert를 test 본문으로(3(b)·(d)·(e) 세 test 모두). 도우미는 (이름, ok) 목록·status dict 같은 값만 돌려준다
+  (5)(6) 계약 10 TAP_P·TAP_N: 다섯 판정(My 역할 쌍, 정확히 하나 채택, Z 키 없음 둘, 매칭쌍 제안 in / not in)을 두 test 본문 각각에. 도우미는 load_topology 결과에서 필요한 값만 돌려준다
+규칙(card 계약 8 개정): 모든 assert는 test_b26pre_ 함수 본문에(도우미 assert 0), if·try 안에만 두지 않기, == 한 쪽은 card 리터럴 또는 interface card 심볼 호출을 담지 않는 값(size_transistor 결과에서 나온 W0·S 같은 값은 기대 쪽에 쓰지 않는다), 같은 피검 출력 두 값의 == 금지, 함축되는 중복 단언 금지.
+  기대값은 피검 함수 호출로 만들지 않는다. AuditResult·Transistor 객체 == 금지. 레일은 vdd·gnd만, topology마다 supply_nets ["vdd","gnd"]·schema_version "2.0".
+자기 점검(증거 아님 -- 판정은 auditor): 그 worktree에서 PYTHONHASHSEED 0·1로 새 파일만 실행 → 19 passed.
+  권장: gate 판 V4 도구를 자기 파일에 돌려 FAIL 0 확인 -- C:/Python314/python.exe -B <git-common-dir>/gmid-gate-cache/<S2 전체 sha>/test_lint.py --root <test worktree> --interface-card <test worktree>/docs/02-design/specs/20260930-b26-pre-test-strengthen.interface.md skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py (도구 소스는 열람하지 않는다 -- 실행만. 저장소 안 경로 인자라 EL1이 거부하면 건너뛴다 -- 필수 아님).
+커밋: 한 커밋 git -C <test worktree> commit --trailer "Role: test" --trailer "Change-Id: 20260930-b26-pre-test-strengthen" -m "test: …". 경로 = 새 파일 하나.
+보고: 커밋 해시, test 수, 계약별 test 이름 표, 위 6건 각각 어떻게 고쳤는지(줄 번호), 자기 점검 출력 요약. card가 틀렸다고 보면 고치지 말고 보고에 적고 멈춘다.
+```
+
+---
+
+## 2. gmid-verification-auditor 브리프(순서 3·7)
+
+순서 번호는 design 05 §12 표 기준(0 card 커밋, 1 test worktree, 2 test-author, 3 auditor freeze, 7 auditor 판정, 8 push). test-only라 4·5·6이 없다.
+
+```
+역할: gmid-verification-auditor. change id = 20260930-b26-pre-test-strengthen, evidence_type test-only, phase 3.
+audit worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-pre-test-strengthen-audit (브랜치 role/audit/20260930-b26-pre-test-strengthen, 시작점 role/test/<id> = T).
+base = gate master 6c724debd884dd1d31034f5279ae450f35e67fc4(착수 시 gate master -- 다르면 그 값을 쓰고 엔진 차이를 먼저 확인).
+spec card: docs/02-design/specs/20260930-b26-pre-test-strengthen.spec.md, interface card: 같은 폴더 .interface.md(19행).
+격리: 모든 측정은 격리 복제본에서만 -- git clone --no-hardlinks --no-local -c core.autocrlf=false <audit worktree> C:/g<n>/iso → git -C C:/g<n>/iso remote remove origin → test -z "$(git -C C:/g<n>/iso remote)".
+scratch는 배정된 C:/g<n> 하나만(순서 3 = C:/g371, 순서 7 = C:/g372). TMP·TEMP·TMPDIR·PYTHONPYCACHEPREFIX도 그 아래, "." 금지. 끝나면 그 폴더만 삭제(다른 C:/g* 금지).
+셸 가드(매 스크립트): set -euo pipefail, git은 git -C <절대 경로>만, cd·(cd … && …) 금지, 실제 저장소·다른 worktree에서 reset·checkout·branch·stash·clean 금지(쓰기는 자기 audit worktree의 판정 기록 경로만).
+  시작·끝에 실제 저장소 C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills의 HEAD, git status --porcelain md5, reflog 줄 수, for-each-ref md5를 적어 같음을 확인(다르면 원인을 판정 기록 notes에).
+리다이렉트 대상에 변수 경로(> $S/x)를 쓰지 말 것(EL1 role_guard가 거부) -- 출력은 스크립트 파일 안에서 쓰거나 리터럴 경로로.
+환경: APPDATA=C:/Users/HSLEE/AppData/Roaming·HOME export, PYTHONIOENCODING=utf-8, $PY = C:/Python314/python.exe.
+게이트 코드 = base 판: git -C <audit worktree> cat-file blob <base>:tools/gates/<파일>로 C:/g<n>/gmid-gate-cache/<base 전체 sha>/에 추출(오케스트레이터 캐시 <git-common-dir>/gmid-gate-cache/<base>와 diff -r 0 확인). V1 명령의 -c 값은 이 경로의 pytest_gate.ini(디렉터리 이름이 gmid-gate-cache/<base>/여야 v1_command_check 통과).
+  card 35 판 확인: grep -c not_targeted <캐시>/mutate_changed.py ≥ 1.
+증거 규칙: 작성자(test) 보고, 오케스트레이터 사전 측정(spec card '재현할 수치'·'작성 전 실측', _drafts/b26pre_on_b34real.md·b26pre_backfill_post35_dryrun.md의 수)은 증거가 아니다 -- 다시 잰다.
+  열람·사용 금지: 시제품 test(_drafts/b26pre_v2_scripts/proto_v2_test_b26pre.py, _drafts/b26_reconcile/proto_test_b26pre_trace.py, proto_test_b26pre_card.py) -- 변이 측정은 T의 실제 새 test 파일로만.
+  허용(입력 생성용, 판정 근거 아님): B26-1 v4 모의 head 빌더(_drafts/post35_kit/p35_heads.py가 사본·경로 치환해 쓰는 _drafts/b26_scripts/*·b26_reconcile/b26v4c.py), _drafts/post35_kit/p35_v3count.py(가짜 pytest로 도구 대상 집합만 봄), 주표 20 id 목록(_drafts/post35_kit/p35_items.py B26PRE_20 = 아래 2.3 표와 같음). 변이 대응·주입·실행 스크립트는 auditor 자신이 쓴다.
+판정 기록: .ai/verification/20260930-b26-pre-test-strengthen.json + .ai/verification/20260930-b26-pre-test-strengthen/{scripts,out}/.
+커밋: 순서 7에서 T 위 한 커밋만 -- git -C <audit worktree> commit --trailer "Role: audit" --trailer "Change-Id: 20260930-b26-pre-test-strengthen" -m "audit: …". 순서 3 산출물은 쓰기만 한다(커밋 금지).
+```
+
+test-only 모양(design 05 §9.2-4): `old..new^`는 첫 부모 사슬이고 전부 `Role: test`(1개 이상, Change-Id 이 id), `new` = `Role: audit` 1개, 병합 없음, T = `new^`, `code_commit` = null. `red`·`equivalence` 필드 금지(00-common §8.1, `_schema.json`) -- 거부 증거(계약 9 변이 측정)는 `checks.V2.basis`와 `reproduced_numbers`에.
+
+### 2.1 순서 3(freeze·base 확인 → `base_check.json`, 커밋하지 않음)
+
+* T 해시 고정: `git -C <audit wt> rev-parse HEAD` = `role/test/<id>` 끝. `git -C <iso> log --format='%H %P' <base>..<T>`가 첫 부모 사슬이고 커밋마다 `git interpret-trailers --parse`로 `Role: test`·`Change-Id: 20260930-b26-pre-test-strengthen`.
+* `git -C <iso> diff --name-only <base> <T>` = 정확히 `skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py` 하나(test 경로 밖 diff 0 -- freeze). 새 파일 blob id 기록.
+* T 복제본에서 새 test 파일만 실행(`PYTHONHASHSEED` 0·1 각각, 캐시 ini, `--gmid-phase=3 --gmid-strict=`, `-rA`) → 전부 PASS, 수집 수 기록(card 기준 19 -- 다르면 계약별로 어느 test가 어느 계약인지 표로 적고, 계약 4·10·11이 별개 test 함수인지 확인).
+* base 판 `mutate_changed.py --base <base> --head <T>`(V3) 한 번 -- 출력 보관.
+* 끝에 스스로: `git -C <audit wt> status --porcelain`(산출물 미커밋), `git -C <audit wt> log --oneline role/test/20260930-b26-pre-test-strengthen..HEAD` 빈 출력 -- 둘 다 `base_check.json`에 적는다(card 35의 순서 3 커밋 `dcf6269` 재발 방지, b41_briefs §2.1).
+
+### 2.2 순서 7(판정)
+
+* 순서 3 산출물은 audit worktree에 미커밋으로 있다 -- 이 순서의 한 커밋에 판정 기록과 함께 넣는다.
+* 판정 커밋 직전: `git -C C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-pre-test-strengthen-audit log --oneline role/test/20260930-b26-pre-test-strengthen..HEAD` 출력이 **비어야** 한다(아니면 멈추고 보고).
+
+| V | 기대 | 증거(격리 복제본·base 판 게이트 캐시) |
+|---|---|---|
+| V1 | PASS. T 전체 suite, base와 (판정, test id) 대조: 기존 id 전부 같은 결과 + 새 id 전부 PASS, base에만 있는 id 0. 참고 관찰: `2183f2e`(엔진·test가 base와 같다) **1090 passed 15 xfailed, id 1105**(t0_briefs §3.2) -- 새 test 19이면 T 1109 passed 15 xfailed, id 1124. 판정은 절대 수가 아니라 관계 | `PYTHONPYCACHEPREFIX=C:/g372/pyc/v1_T PYTHONPATH=C:/g372/gmid-gate-cache/<base> C:/Python314/python.exe -P -m pytest -c C:/g372/gmid-gate-cache/<base>/pytest_gate.ini --rootdir=C:/g372/iso --confcutdir=C:/g372/iso C:/g372/iso/skills/analog-gmid-design/assets/tests --gmid-phase=3 --gmid-strict= -rA`(`-k`·`--deselect`·`-x` 없음), base 복제본(`checkout --detach <base>`, origin 제거)도 같은 형태(병렬 가능, 각 약 6분 20초 -- t0 사전 측정). 엄격 집합 = 빈 집합 확인, `merge_gate.v1_command_check(V1 문자열)` 위반 0 |
+| V2 | PASS(test-only). ① 모양(2.1). ② 변경 전 test 전부 T에서 같은 결과(V1 대조). ③ 새 test가 base 엔진에서 PASS(= T 트리, seed 0·1). ④ **거부 확인 = 계약 9 변이 측정**(2.3): 주표 죽음 18/20 id(base 문장 단위 16/18), 생존 = backfill 2문장만; 참고표 15/16. ⑤ (card '통과해야 하는 것', 권장) 같은 새 test 파일이 B34 전 엔진(`dd60db6` archive 엔진 + T의 새 파일)과 backfill 정리 모의 base(`C4B` = base에서 `_backfill_interdig_ok(result)` 두 문장 삭제)에서도 PASS | 2.3 스크립트, `checks.V2.basis`에 모양·대조·변이 결과 문장, 수치는 `reproduced_numbers` |
+| V3 | **PASS**(card '판정 유형 근거'의 'V3 N/A'는 '대상 없음'의 뜻 -- 로더 규칙 10은 phase 3 ≥ `v_intro[V3]`이면 N/A를 거부한다. `read_plan_tables`로 `v_intro[V3]` 확인해 basis에). 기대 `verdict PASS, targets [], mutants 0, not_targeted 0, targets_by_def {}, exempt_ignored []`(선례 md-sync·p10: test-only V3 PASS targets []) | `$PY -B <캐시>/mutate_changed.py --root C:/g372/iso --base <base> --head <T> --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=3 --gmid-strict= --out C:/g372/out/v3.jsonl`. 이 card의 몫(B26-1 V3 생존 감소)은 V2 ④·V10에 적는다 |
+| V4 | PASS. `test_lint.py --root <iso> --base <base> --head <T> --interface-card <iso>/docs/02-design/specs/20260930-b26-pre-test-strengthen.interface.md`(19행이라 단독으로 돈다 -- exit 2면 원인을 적고 `--subject` 방식(md_sync 선례)으로). FAIL 0. basis는 `oracle 대조: `로 시작, 기대값마다(UNJUDGED 포함) card 'oracle 종류와 출처'와 대조: (a) 구성 = 계약 2·4·6·10·11(넷 차수·후보 키·KCL 엣지·대칭 후보 수·같은 서명 branch 쌍 -- auditor가 card 넷리스트에서 손으로 다시 셈), (c) 기준선 = 계약 1·3·5·7과 계약 11 (b) 순서 -- **auditor 자신의 스크립트로 base 엔진에 card 입력을 넣어 다시 잰 값**과 test 기대 리터럴이 같음(`unresolved_reason` 3 리터럴, `unresolved_pair == "unknown"`, `_repair<i>`·`_seg<i>` 행 이름, 계약 5 'M1·M2 한 그룹', 계약 7 `review_needed` 모양, 계약 11 (b) 순서). 계약 8 정적 확인(AST): 파일 하나·접두 `test_b26pre_`/`_b26pre_`, 밑줄 시작 엔진 심볼 호출 0, `AuditResult`·`Transistor` 객체 `==` 0, library 회로·소자 이름 0, topology마다 `supply_nets: ["vdd","gnd"]`·`schema_version "2.0"`, 레일 넷은 `vdd`·`gnd`만, 계약 4 네 경우·10 두 경우·11 두 경우가 별개 test 함수(parametrize 문자열 id 아님), 계약 11이 `layer1_fallback` 원소를 판정하지 않음, 계약 10이 `Mx1`/`Mx2` 중 '정확히 하나'로 단언(특정 이름 고정 아님) | 도구 출력 + AST 스크립트 |
+| V5 | PASS `findings [] diff_paths [] diff_hash null`(새 파일 추가뿐, 기존 test·conftest 변경 0) | `weakening_diff.py --root --base --head` |
+| V6 | PASS `targets []`(엔진·하니스 diff 0) | `source_lint.py --root --base --head` |
+| V7 | PASS `new_defs []`(도입 2 -- 활성. 새 def는 `tests/` 밖 그래프) | `reachability.py --root --base --head` |
+| V8 | N/A `도입 4: 폴백 발동 0 검사는 Phase 4부터다(base 판 계획서 v_intro[V8] = 4). 이 card는 Phase 3이고 엔진 불변` | `read_plan_tables`로 v_intro 확인 |
+| V9 | N/A `도입 6b: …(v_intro[V9] = 6b). 엔진·library 불변` | 같음 |
+| V10 | PASS. 2.4 목록을 auditor 스크립트로 다시 재서 `reproduced_numbers`에 주표·참고표를 나눠 적는다(card 계약 9 끝 문장) | 2.3·2.4 |
+
+* `approvals` = `["20261001-b26-phase3-cards", "20260930-b26-before-phase3"]`(card U1: 앞 것은 card 머리 `approval:`, 뒤 것은 '맥락(B26-1 선행 준비)'으로만 -- 두 파일이 `new` 트리에 있는지 로더 규칙 6으로 확인).
+* `spec_card`·`base_commit`(= base)·`test_commit`(= T)·`code_commit` null·`evidence_type` "test-only". `auditor_run.commands`에 `V1: …` 정확히 하나 + 격리·캐시·각 V 명령.
+
+### 2.3 계약 9 -- 주표 V3 죽임 측정(실제 card-35 도구)
+
+목적: B26-1 v4 모의 head 기준 N2w 대상 중 이 card의 주표 20 id가 **실제 도구의 대상**인지 확인하고, 그 변이를 base(T 트리)에 같은 연산자로 넣어 **T의 새 test 파일만** 실행했을 때 죽는지 잰다. v4 모의 head 자체는 실행할 수 없다(측정 전용 -- `sizing_recipe.py` UnboundLocalError로 전부 실패, dryrun §2 참고)라 죽임은 base 대응으로 잰다.
+
+**(가) 대상 집합(도구 + 가짜 pytest)** -- 방법 출처 `b26pre_on_b34real.md` §3, `post35_kit/remeasure.sh` 60~123행:
+1. `C:/g372/r` = audit worktree 격리 복제(`-c core.autocrlf=false`, origin 제거, `core.longpaths true`, `core.hooksPath` = 빈 폴더 `C:/g372/nohooks`, user.name/email 임의 값).
+2. `$PY -B <_drafts>/post35_kit/p35_heads.py setup C:/g372 <base 전체 sha>` → `C:/g372/kit/b26`(경로 치환 사본), `C:/g372/b1` = base archive 그대로(base가 `2eb7e55`를 품으므로 mk_b1 건너뜀 -- 로그 문장 확인). 이어 `… build C:/g372 <base>` → `C:/g372/out/heads.json`(B1 = base, H4, C4B, HA, H5, H5T). 복제본 안에만 커밋이 생긴다.
+3. 도구 = base 판 `tools/gates`(캐시). `$PY -B <_drafts>/post35_kit/p35_v3count.py --tool-dir <캐시> --root C:/g372/r --base <B1> --head <H4> --label b26v4 --work C:/g372/out --proto-dir C:/g372/kit/v3scope --ids C:/g372/out/ids_b26v4.json`(`scope_proto.py`는 `_drafts/v3scope_kit/`에서 `C:/g372/kit/v3scope/`로 복사, ids 파일 = 아래 20 id JSON).
+   기대(사전 측정, 증거 아님): 대상 **301** / not_targeted **2,141**(레코드 2,442, defs 32), scope_proto N2w 대칭차 0, 20 id **20/20 targeted**.
+   (덤) `--base <C4B> --head <H5>` → 299 / 2,136(2,435) -- B26-1 인계 문구 확인용, 판정 필수 아님.
+
+**(나) 주표 20 id**(head id, 모듈 접두 `sizing_recipe:`·`stick_diagram:`) -- base 줄은 `6c724de` 위치(0절 확인):
+
+| # | head id | base 위치·문장 | 기대 |
+|---|---|---|---|
+| 1 | `sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[5].body[13]` | SR 11695 `split = find_min_crossover_layout_with_branch_composite(` | 죽음(`test_b26pre_euler_fixup_group_split`) |
+| 2 | `…:_fixup_euler_blocked_rows:stmt_delete:body[5].body[14]` | SR 11697 `by_name = {t.name: t for t in row_transistors}` | 죽음(같음) |
+| 3 | `…:_fixup_euler_blocked_rows:stmt_delete:body[5].body[16]` | SR 11699 `for seg_idx, seg in enumerate(split['segments']):` | 죽음(같음) |
+| 4 | `sizing_recipe:optimize_full_circuit_budget._evaluate_row_split:stmt_delete:body[5].body[3].orelse[0]` | SR 9403 `repaired_rows, repaired_audit = repair_matching_safety(` | 죽음(`test_b26pre_ofcb_lutless_repair`) |
+| 5 | `…_evaluate_row_split:stmt_delete:body[5].body[3].orelse[1]` | SR 9405 `pr = dict(pr, repaired_rows=…)` | 죽음(같음) |
+| 6 | `sizing_recipe:optimize_full_circuit_budget:stmt_delete:body[12].body[3].body[5].body[3].orelse[0]` | SR 9403(바깥 def 쪽 id -- 같은 문장) | 죽음(같음) |
+| 7 | `…:optimize_full_circuit_budget:stmt_delete:body[12].body[3].body[5].body[3].orelse[1]` | SR 9405(같음) | 죽음(같음) |
+| 8 | `sizing_recipe:resolve_stack_layout:stmt_delete:body[5]` | SR 6572 `if refined is not None and refined.get(…)` | 죽음(`test_b26pre_resolve_stack_candidates`) |
+| 9 | `sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[1]` | SR 11799 `_backfill_interdig_ok(result)`(루프 안) | **생존**(backfill -- 결함 card 몫, U2) |
+| 10 | `…:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[2]` | SR 11800 `if result.ok:` | 죽음(`test_b26pre_growth_already_ok`) |
+| 11 | `…:stmt_delete:body[11]` | SR 11876 `current_rows, result = repair_matching_safety(…)` | 죽음(`test_b26pre_growth_zero_rounds`) |
+| 12 | `…:stmt_delete:body[12]` | SR 11878 `_backfill_interdig_ok(result)`(루프 뒤) | **생존**(backfill) |
+| 13 | `…:stmt_delete:body[13]` | SR 11879 `current_rows, cur_ctx, result = _finalize(…)` | 죽음(`test_b26pre_growth_zero_rounds_euler`) |
+| 14 | `…:stmt_delete:body[14]` | SR 11880 `return {'rows': current_rows, …}` | 죽음(`…zero_rounds`·`…zero_rounds_euler`) |
+| 15 | `stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[49]` | SD 4515 `if disp.case_collisions:` | 죽음(`test_b26pre_case_collisions`) |
+| 16 | `stick_diagram:propose_vertical_stack_id_gap_fill:stmt_delete:body[2]` | SD 3275 `if inputs or outputs or feedbacks or biases or clocks:` | 죽음(`test_b26pre_vsid_gap_fill_ports`) |
+| 17 | `stick_diagram:run_full_circuit_audit:stmt_delete:body[16]` | SD 6878 `for (kind, net), group in mc["current_mirror"].items():` | 죽음(`test_b26pre_full_audit_mirror_undisposed`) |
+| 18 | `stick_diagram:run_full_circuit_audit:stmt_delete:body[17]` | SD 6880 `… mc["diff_pair"] …` | 죽음(`test_b26pre_full_audit_diffpair_undisposed`) |
+| 19 | `stick_diagram:find_differential_pair_candidates:const+:body[8].body[3].body[1].body[0].iter.args[0].right` | SD 1562 `range(i + 1, …)` → `range(i + 2, …)` | 죽음(`test_b26pre_trace_two_branches`·`…three_branches_order`) |
+| 20 | `stick_diagram:find_differential_pair_candidates:arith:body[8].body[3].body[1].body[0].iter.args[0]` | SD 1562 `i + 1` → `i - 1` | 죽음(`…three_branches_order`) |
+
+(test 이름은 card 표 1의 이름 후보다. 실제 이름은 T 파일에서 읽어 계약 번호로 대응시킨다 -- 이름이 달라도 '어느 계약의 test가 죽였나'가 같으면 같은 결과다.)
+
+**(다) 죽임(auditor 스크립트)**:
+* 대응: H4 id의 문장을 B1(= base) 같은 def에서 찾는다 -- `rails=` 키워드를 지운 `ast.dump` 비교, 반복문·조건문은 머리(test/iter)만, 같은 모양이 둘 이상이면 같은 깊이·가장 가까운 경로(finger growth 4개 -- head에 머리 문장 하나가 앞에 끼어 base 순번이 다르다), trace 2는 for 머리가 B26-1에서 바뀌므로 `iter` 식으로. 대응 결과 base 줄·글이 위 표와 같은지 확인(다르면 멈추고 적는다).
+* 주입: base 판 캐시 `mutate_changed.py`의 `mutants`·`_replace_def`(실제 도구 함수)로 base 사본(T 트리 사본 -- 엔진 = base, 새 test 포함)에 **같은 연산자** 변이 하나씩. 변이마다 새 사본(또는 원본 복원 후 `git diff --quiet` 확인).
+* 실행: `PYTHONHASHSEED=1`, 캐시 ini, `--gmid-phase=3 --gmid-strict=`, `-rA`, 대상 = `…/tests/contracts/test_b26pre_existing_paths.py` 하나. 죽음 = exit 1이고 failed test가 1개 이상(assert 실패 또는 예외). exit 2·4·5(수집 오류·사용 오류·수집 0)는 죽음으로 세지 않고 원인을 적는다. 변이별로 결과 파일에 append(중간에 죽어도 남게).
+* 기준·복원: 변이 전과 끝난 뒤 변이 없는 사본에서 같은 명령 → 전부 PASS.
+* 단위 두 가지로 적는다(card 계약 9: 측정 단위는 base 문장 변이):
+  * **id 단위**: 20 targeted, **18 죽음**, 생존 2 = #9·#12(base SR **11799·11878** `_backfill_interdig_ok(result)`).
+  * **base 문장 단위**: E6·E7 16문장(#4·#6, #5·#7이 같은 문장) + trace 2변이 = 18 → **16 죽음**, 생존 2(같은 두 문장).
+* 생존 2의 판정 문장: '등가 아님 -- 결함, U-BF 결정으로 backfill 결함 card(`20261001-b26-backfill-interdig-fix`)가 문장을 지워 B26-1 대상에서 없앤다(card U2)'. 이 card의 FAIL 사유가 아니다.
+
+**(라) 참고표(N2d만, 16변이 -- B26-1 V3 대상 아님, test 강도로만)**: 같은 방식으로 base에서 (def, 문장 글)로 찾아 주입 -- SR 11834~11836(`if a not in all_devs or b not in all_devs:`·그 안 `_finalize`·`return`), 11801(성공 분기 `_finalize`), 11802(성공 분기 `return`), 11827(3b만 남음 분기 `_finalize`); SD 씨앗 6(`_propose_gm_id_roles`·`_propose_L_roles`의 `seeds[ga] = gb`·`seeds[gb] = ga`, `propose_device_roles_gap_fill`의 `seed_net_pairs[ga] = gb`·`[gb] = ga`), `propose_device_roles_gap_fill`의 `review_needed.append({'case_collisions': …})`, `propose_vertical_stack_id_gap_fill`의 `if relations is not None:` 삭제와 `cmp_flip`(`is not` → `is`), 그 안 `edges.extend(… relations['differential'])`. 기대: **15 죽음**, 생존 1 = SR 11801(card 표기 11802, 성공 분기 `_finalize` -- 등가 후보, N2w 대상 아님, 처리 불필요).
+
+**(마) 덤(참고, 판정 필수 아님)**: 같은 `range` 줄의 const−(`range(i + 0, …)`)는 등가라 생존(B26-1 Q1 몫 -- 이 card의 측정 대상 아님). 계약 10 '정확히 하나' 단언은 동점 순서 역전 변이(코드 주석 '동점이면 이름순' 바로 아래 정렬 줄을 이름 역순으로)에서 PASS여야 한다(card v3 개정 근거) -- 시간이 허락하면.
+
+### 2.4 재현할 수치(auditor가 다시 재서 `reproduced_numbers`에 -- 아래 값은 사전 측정이고 판정 수치가 아니다)
+
+| # | 이름 | 사전 측정 값 | 출처 |
+|---|---|---|---|
+| 1 | 새 test 파일 단독, T 트리(엔진 = base), seed 0·1 | 19 passed / 19 passed(시제품 기준 -- 실제 T 파일 수로) | card '재현할 수치'·b34real §0 |
+| 2 | interface card 관찰 가능한 계약 표 행 | 19 | spec card '작성 전 실측' 0 |
+| 3 | V1 base 전체 / T 전체 | base 1090 passed 15 xfailed(id 1105, `2183f2e` 관찰) / base + 새 test 수 | t0_briefs §3.2 |
+| 4 | B26-1 v4 모의 head V3 대상(B1..H4, card-35 도구) | 301 / not_targeted 2,141 / 레코드 2,442 / defs 32, 대칭차 0 | b34real §0 |
+| 5 | 주표 20 id 대상 여부 | 20/20 targeted | 같음 |
+| 6 | 주표 죽임 -- id 단위 | 18/20, 생존 SR 11799·11878 | 같음 |
+| 7 | 주표 죽임 -- base 문장 단위 | 16/18, 생존 같은 2문장 | card 계약 9 |
+| 8 | 참고표 죽임 | 15/16, 생존 SR 11801(card 11802) | card v2 판정 |
+| 9 | 씨앗 6문장(참고표 일부) | 6/6 죽음 | card 계약 10 |
+| 10 | 기준·복원 실행 | 전부 PASS | b34real §0 |
+| 11 | (덤) C4B..H5 V3 대상 | 299 / 2,136(2,435) | b34real §0 |
+| 12 | (권장) B34 전 엔진·C4B 엔진에서 새 test | 전부 PASS | card '통과해야 하는 것' |
+
+각 행에 `command`(스크립트 경로·인자)를 적는다. 값이 사전 측정과 다르면 다르다고 그대로 적고, 주표 생존이 backfill 2 밖이면 V2 FAIL이다(card 계약 9 -- '죽음' 변이가 살아남음).
+
+---
+
+## 3. 함정
+
+1. card 'V3: N/A' 문구를 판정 기록에 N/A로 옮기면 로더 규칙 10이 거부한다(phase 3, V3 도입 전 아님) -- PASS + 도구 출력(2.2).
+2. 줄 번호는 card 표가 measured(`dd60db6`/`a796468`) 기준이다. base 위치는 0절(SR 6512 뒤 −1, SD는 구간마다 −5~−14). 변이 위치는 줄이 아니라 (def, 문장 글, 경로)로 찾는다.
+3. `p35_heads.py setup`은 `C:/g372/kit/b26`이 이미 있으면 assert로 멈춘다(재실행 시 그 폴더만 지움). `setup`은 `_drafts/v3_scripts/out/{executed_lines.json,junit_base.xml}`을 복사한다(읽기만).
+4. `p35_heads.py`는 base가 `2eb7e55`를 품으면 mk_b1을 건너뛴다 -- 로그에 그 문장이 없으면 모의 B34가 실제 B34 위에 얹힌 것이니 멈춘다(b34real §2 'B1 = REV archive 그대로').
+5. H4는 실행 불가 head다 -- H4 사본에서 test를 돌리지 말 것(전부 실패해 '죽음'으로 잘못 센다).
+6. MSYS2 bash는 `gate/master:.ai/…` 인자를 경로로 바꾼다 -- `H=$(git -C … rev-parse …)`로 sha를 먼저 얻고 `"$H:<경로>"`.
+7. 판정 기록 JSON은 `PYTHONIOENCODING=utf-8`, `encoding="utf-8"`로 읽고 쓴다(cp949로 깨짐 -- md_sync 실측).
+8. test-author가 card 이름 후보와 다른 test 이름을 썼으면 2.3 표의 기대 test 이름은 계약 번호로 대응시킨다(이름 불일치는 결함이 아니다).
+
+---
+
+## 4. 순서 요약(오케스트레이터)
+
+```bash
+R=/c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills
+W=/c/Users/HSLEE/Documents/Todoc/fpga/wt
+ID=20260930-b26-pre-test-strengthen
+```
+
+0. **2차 시도(2026-10-06)**: A2절 '2차 순서'가 아래 1을 대신한다(순서 0 = `b26pre_launch.sh` 2차 판 → S2 push, 순서 1 = 새 test worktree, 순서 2 = `test ! -e /c/g370` → 1.1절 브리프, scratch `C:/g370`). 아래 3~8은 적힌 그대로 쓴다(scratch 순서 3 = `C:/g371`, 순서 7 = `C:/g372`).
+1. (1차, 끝남) 순서 0 spec card + interface card `6c724de` push, 순서 1 test worktree `$W/$ID-test`(`role/test/$ID`), 순서 2 test-author -- T1 `d2b2ed7`, V4 FAIL, 정리됨.
+2. test-author 끝 → 보고는 증거 아님. 확인만: `git -C "$W/$ID-test" log --oneline gate/master..HEAD`(Role: test 커밋, 경로 = 새 파일 하나).
+3. 순서 3 준비(단독 호출):
+   `git -C "$R" worktree add "$W/$ID-audit" -b "role/audit/$ID" "role/test/$ID"`
+   `test ! -e /c/g371` → auditor(2절 머리 블록 + 2.1, scratch `C:/g371`) 띄움.
+4. 순서 3 끝 확인: `git -C "$W/$ID-audit" log --oneline "role/test/$ID..HEAD"` **빈 출력**, `git -C "$W/$ID-audit" status --porcelain`에 `.ai/verification/$ID/…`만 미추적. 비어 있지 않으면 멈춤.
+5. 순서 7: `test ! -e /c/g372` → auditor(2절 머리 블록 + 2.2~2.4, scratch `C:/g372`). 판정 커밋 직전 auditor 자신이 4와 같은 guard. 끝나면 오케스트레이터가 다시:
+   `git -C "$W/$ID-audit" log --oneline "role/test/$ID..HEAD"` = `Role: audit` 커밋 **정확히 1개**, `git -C "$W/$ID-audit" log --format='%H %P' -1`의 부모 = T(`role/test/$ID` 끝).
+6. 순서 8 push -- **단독 실행, 전체 출력 확인**(병렬·`tail` 금지):
+   `git -C "$W/$ID-audit" push gate "role/audit/$ID:master"`
+   거부되면 정리하지 말고 출력 전체를 보고(재시도는 design 05 §12 '재시도' 형태).
+7. push 결과 확인 뒤에만:
+   `git -C "$R" fetch gate`
+   `test "$(git -C "$R" rev-parse gate/master)" = "$(git -C "$W/$ID-audit" rev-parse HEAD)"`
+   `git -C "$R" merge --ff-only gate/master`
+8. 정리(7 확인 뒤):
+   `git -C "$R" worktree remove "$W/$ID-audit"`
+   `git -C "$R" worktree remove "$W/$ID-test"`
+   `git -C "$R" branch -D "role/audit/$ID" "role/test/$ID"`
+   `test -z "$(git -C "$R" for-each-ref refs/heads/role/)"`, `/c/g370`(test-author 몫)·`/c/g371`·`/c/g372`(auditor 몫)가 지워졌는지 확인(남았으면 그 폴더만 삭제).
+   (미커밋 기록이 남은 재시도 정리에만 `worktree remove --force` -- 이 두 경로에만.)
+9. 다음 card(backfill 결함 card `20261001-b26-backfill-interdig-fix`)의 착수 조건에 이 card 병합(`git -C "$R" cat-file -e "$H:.ai/verification/$ID.json"`)이 든다. B26-1 card 인계(card '결정 필요 항목' 끝): E6·E7 줄을 'b26pre가 16 + trace 2 죽임, backfill 2는 결함 card, 등가 4는 Q1'로.

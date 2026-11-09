@@ -1,0 +1,13 @@
+{
+ "id": "20260930-v7-registry-edges",
+ "target": "200d6534ebf725401a8248c068cb7bc3d172da69d2d68e85722c2090226eeae3",
+ "diff_base": "0f237862c007f6a53122f2bdfb3c87e6366ec133",
+ "diff_head": "fd9334adb0e252da92fa034922880259bfde3f2a",
+ "diff_path": [
+  "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md",
+  "docs/02-design/specs/20260930-v7-registry-edges.interface.md",
+  "docs/02-design/specs/20260930-v7-registry-edges.spec.md"
+ ],
+ "dest": "C:\\g114\\sim\\r\\.ai\\approvals\\20260930-v7-registry-edges.md",
+ "result": "ok(--check, 쓰지 않음)"
+}

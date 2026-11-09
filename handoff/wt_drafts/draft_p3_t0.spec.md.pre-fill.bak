@@ -1,0 +1,234 @@
+---
+id: 20260930-p3-tests-location-free
+phase: 3
+evidence_type: test-only
+gate_change: no
+approval: 20260930-30-module-split-design
+approval: 20260930-p3-tests-location-free
+approval: 20261002-p3-t0-v4-s009-exempt
+---
+## 의도
+
+design `30-module-split`(초안 v8) §7.1 A군, card T0. Phase 3 이동 card(M1~M9)는 equivalence -- "test 커밋이 그대로이고 base와 병합본 모두 통과"(계획 N3.12.3 686행)다.
+그런데 계약 test 셋이 **정의가 특정 파일에 있다고 가정**해, 그 정의를 옮기는 첫 M card에서 병합본이 FAIL하거나(equivalence 불성립) 판정이 **조용히 공허**해진다:
+
+* `contracts/test_ic5.py:47-69` `_DOMAIN_TABLE` 키가 (파일 이름, 함수 이름) 21개 -- 함수를 옮기면 "design §5.6 영역 표의 함수가 대상에 없다" FAIL.
+* `contracts/test_dup_w_calc.py:442` `size_transistor` 정의를 `sizing_recipe.py`에서만 찾는다 -- MOD4로 옮기면 FAIL.
+* `contracts/test_ts6_dead_probes.py:219-222` `_L_ROLE_MULTIPLIERS` 바인딩 검사 범위가 `sizing_recipe.py` 한 파일 -- 옮긴 뒤 다른 파일에 그 이름이 다시 생겨도 통과(**공허**),
+  `:259-263` `audit_vsb_consistency`의 운영 호출자를 `sizing_recipe.py`에서만 찾는다 -- 호출자 `_build_theta_evaluator`가 MOD6로 가면 FAIL.
+* **(v5, B26-1 병합 뒤 생김)** `contracts/test_b26_rail_accessor.py`의 계수 test(B26-1 계약 3): `stick_diagram.rail_declaration` **모듈 속성**을 계수 래퍼로 바꿔 호출 수를 센다. 호출자
+  `load_topology`는 자기 모듈 전역에서 그 이름을 읽으므로, `load_topology`가 M3에서 MOD3(`circuit_state_graph.py`)로 가면(`rail_declaration`은 design 30 D-19 결정에 따라 M2에서 MOD2 또는 M3에서 MOD3 -- 어느 쪽이든) shim의 속성을 바꿔도
+  호출을 가로채지 못해 계수가 0 → FAIL(equivalence 불성립). HEAD `7535799`에는 엔진 모듈 속성을 바꾸는 test가 없다(`git grep -n setattr -- '*.py'` 0건; v7: `a796468`에서도 `tools/` 밖 0건 -- 4차 검토 m1) -- 이 test가 처음이다.
+  사용자 결정 A2(승인 기록 `20260930-b26-before-phase3`)로 B26-1이 Phase 3 전에 병합되므로 이 card의 범위에 넣는다. **이 card는 B26-1 병합 뒤 base에서 시작한다.**
+  병합은 **Phase 2 DoD PASS 뒤**다(`phase: 3` card -- 계획 991행 "이전 Phase DoD PASS", design 30 D-23, v6). 그 전에는 spec card 초안·작성 전 실측만 한다.
+  **v7(확정 순서, design 30 §8.1)**: P10b → Phase 2 DoD → 면제 묶기(34) → 범위 정책(35) → B34 → B26-1(앞선 test 보강 card 포함) → B33(33) → Phase 3. 이 card의 base는 B33 병합 뒤 master다.
+  **(키트 v9, 2026-10-01)**: design 30 v8.1(6차 검토 N3)의 순서는 B34 → b26pre(`20260930-b26-pre-test-strengthen`) → backfill(`20261001-b26-backfill-interdig-final-audit`) → B26-1이다. 네 card는 승인
+  `20261001-b26-phase3-cards`로 `phase: 3`이고(Phase 2 DoD 뒤·Phase 3 M card 전 병합 -- 그대로), 이 card의 계약은 phase 3 card를 세거나 나열하지 않으므로 그 변경으로 바뀌는 문장이 없다.
+
+* **(UD-6 W-1, 2026-10-02 사용자 답 "(가) T0에서 test import 수정 (Recommended)" -- A군 보강)** unit selftest 3파일이 **엔진 파일이 import로만 묶는 이름**(표준·서드파티·N3.10 밖 split 파일에서 온 이름)을
+  엔진 파일을 거쳐 import한다. design 30 §3 SHIM (b)(D0a 계약 4 (b))로 그 엔진 파일이 완전 shim이 되는 card(TL = M4, SR = M8, DR = M9)에서 그 이름이 사라져 V1 수집 오류가 난다
+  (M4 모의 PT3 `1 error during collection`, M9 모의 3 errors -- `_drafts/m_cards_plan.md` W-1). 이것도 'test가 엔진 파일의 내부 구성을 가정'하는 같은 종류다(A군 책임). 대상(gate `master` `4a286f0` 실측):
+  `tests/unit/test_selftest_topology_library.py:24`의 `math`, `tests/unit/test_selftest_sizing_recipe.py:24`의 `_dc_replace`·`json`·`math`·`np`·`nmcnr_predict_ac_response`, `tests/unit/test_selftest_design_report.py:24`의 `os`
+  -- 3줄·7이름(서로 다른 이름 6). 같은 줄의 엔진 이름(재수출로 계속 해석되는 것)은 그대로다(F1 몫). 계약 11.
+
+이 셋을 **정의 위치에 무관한 판정**으로 바꾼다. 규칙 R-DEF(design 30 §7.1): 이름 n의 정의 파일 = `A/*.py`(하위 디렉터리 제외)와 `workspaces/run_harness.py` 중 최상위에서 n을
+def·class·대입으로 바인딩하는 파일(AST; import로 받은 이름은 정의가 아니다). 정의 파일이 정확히 하나가 아니면 FAIL(0 = 공허, 2 이상 = 모호·사본). **판정 범위는 넓어지기만
+한다**(한 파일 → 엔진 전체). A = `skills/analog-gmid-design/assets`.
+
+모듈 이름으로 import하거나 파일 존재를 앵커로 쓰는 계약 test(B군 11파일 -- `test_d_delete_dead`·`test_d_delete_telescopic`·`test_d_move_tests`·`test_dup_w_calc:56·72-75`·
+`test_df35_harness_paths:206`·`test_ts6_probe_relocate:528`·`test_ts6_dead_probes:229`·`test_restore_plan_functions`·`test_ic3`·`test_df36_instance_relpath`, v7: P9가 더한 `test_dup_kcl_edges:35`(`importlib.import_module("stick_diagram")`)
+-- design 30 §7.1, 4차 검토 m3)는 shim이 살아
+있는 동안 통과하므로 이 card의 범위가 아니다 -- F1(호출부 갱신)에서 고친다(최소 수정, 계획 534행 '호출부 갱신'). 엔진 소스는 바뀌지 않는다.
+
+## 관찰 가능한 계약
+
+1. **공용 도우미** `A/tests/contracts/_engine_defs.py`(test-author): `engine_source_files()` = `A/*.py`(하위 디렉터리 제외) + `workspaces/run_harness.py`, `defining_files(name)` =
+   R-DEF의 정의 파일 목록(최상위 def·class·대입·주석 달린 대입, 메서드는 `Class.method`), **`binding_files(name)`**(v5) = 엔진 소스 파일 중 최상위에서 n을 **정의하거나 import로 바인딩하는**
+   파일 목록(`from M import n`·`from M import x as n` -- AST). 네 test 파일(v4의 셋 + v5 계약 10)이 이것을 부른다(만들면 배선). 파일 이름이 `_`로 시작해 pytest가
+   수집하지 않는다.
+2. `test_ic5.py`: `_DOMAIN_TABLE` 키를 함수 이름으로 바꾼다 -- **값(영역 집합) 21개는 그대로**. 표의 이름마다 대상 함수(모든 깊이, 기존 `_collect_targets`)가 정확히 하나여야 하고
+   (0 = "대상에 없다", 2 이상 = 모호), 그 하나의 docstring 영역 값 = 표 값. 형식 검사(2)와 합성 docstring test 5개는 그대로. 실패 메시지는 발견된 `파일:줄`을 그대로 보인다.
+3. `test_dup_w_calc.py::test_size_transistor_calls_new_function`: `size_transistor`의 정의 파일(R-DEF, 정확히 하나)에서 본문이 `width_from_id_density`를 부르는지 본다.
+4. `test_ts6_dead_probes.py::test_sizing_recipe_source_has_no_l_role_multipliers`: `engine_source_files()` 전부에서 `_L_ROLE_MULTIPLIERS` 바인딩 0(기존 `assert_source_binds_no_symbol`을
+   파일마다). `::test_audit_vsb_consistency_has_operational_caller`: `engine_source_files()` 전부에서 운영 호출자(기존 `_NON_OPERATIONAL_PREFIXES` 규칙) 1개 이상.
+   **test 함수 이름은 바꾸지 않는다**(수집 test id 불변 -- V2 test-only 매핑). 모듈 상수 `_SIZING_RECIPE`(60행)는 이 두 test(221·222·261·262행)만 쓰므로 바꾼 뒤 소비자가 0이 되어
+   **지운다**(죽은 이름을 남기지 않는다 -- 추적 `.py` 전체 `git grep -n _SIZING_RECIPE -- '*.py'` 결과가 이 파일의 그 다섯 줄뿐이고 병합본에서 **0건**.
+   r2t(review_t0_fu S1): `.py` 밖에는 design 30 577·611·1183행 서술 3줄이 있다(`6c8287f` UD-0 design 커밋, gate `4a286f0` 실측) -- 이 이름을 읽는 코드가 아니라 T0·S13 설명이므로 소비자가 아니고 병합본에도 남는다.
+   판정 범위는 추적 `.py`다).
+5. **범위 비약화**: 바뀐 test마다 판정 대상 집합이 base 판정 대상 집합의 상위집합이다(한 파일 → 엔진 전체), assert 수가 줄지 않는다, 표 값·기대 호출 이름은 그대로다.
+6. **위치 독립(LOC-FREE)**: base 트리에서, 그리고 **정의를 다른 파일로 옮긴 합성 트리**(격리 복제본에서 `check_quasi_static`·`size_transistor`·`_build_theta_evaluator`의 def
+   텍스트를 원래 파일에서 잘라 새 파일 `A/zz_loc_free_probe.py`에 붙이고 원래 파일 끝에 `from zz_loc_free_probe import <이름>`을 더한 트리 -- 바뀐 세 test는 소스를 AST로만
+   읽는다)에서 바뀐 test 함수가 모두 PASS한다. 같은 합성 트리에서 base의 옛 test는 FAIL(ic5·dup_w_calc·ts6 caller)한다 -- 이 card가 필요한 이유의 증거.
+7. **모호 거부**: 합성 트리에서 `size_transistor`를 새 파일에 **복사**(원래 것도 남김)하면 계약 3의 test가 FAIL(정의 파일 2개).
+8. 엔진 소스·`A/tests/**`의 다른 파일은 바뀌지 않는다(바뀌는 파일 = 세 test 파일 + 새 도우미 + v5 계약 10의 `test_b26_rail_accessor.py` + (UD-6 W-1) 계약 11의 unit selftest 3파일
+   `tests/unit/test_selftest_topology_library.py`·`test_selftest_sizing_recipe.py`·`test_selftest_design_report.py` -- 모두 **여덟** 파일).
+9. **전수 스캔 test와 충돌하지 않는 이름**: 도우미와 바뀐 세 파일의 **새 줄**은 다음 토큰을 식별자·문자열로 쓰지 않는다(쓰면 전수 스캔 test가 새 발견을 낸다):
+   * `test_d_delete_dead.py` `_DELETED_FUNCTIONS`·`_DELETED_METHODS`: `converge_with_parasitics`, `render_stick_diagram`, `slew_rate`, `suggest_headroom_stack_groups`, `fT`, `junction_cap`.
+   * `test_d_delete_telescopic.py` `_DELETED_NAMES`·`_DELETED_CONSTANTS`·`_DELETED_FIELDS`: `_cmfb_amp_gain_diode_load`, `_cmrr_telescopic_class_ab`, `_cmrr_telescopic_class_ab_cmfb`,
+     `_load_telescopic_topology_cached`, `_psrr_telescopic_class_ab`, `_psrr_telescopic_class_ab_cmfb`, `_telescopic_class_ab_open_loop_gains`, `_telescopic_class_ab_open_loop_response`,
+     `_telescopic_open_loop_device_names`, `_TELESCOPIC_FIXED_BASE`, `_open_loop_gains_cache`.
+   * `test_d_move_tests.py` `_MOVES`: `RegressionVerdict`, `_REGRESSION_ENGINES`, `_run_optimize_multistage_case`, `find_interleaved_symmetric_splits`, `run_regression_case`
+     (모듈 이름 `regression_runner`·`interleave_splits`를 import하지 않는다).
+   * `test_ts3_no_print_verdicts.py`: `print(...)`·`logging`/`logger`/`log` 호출 인자 안의 `PASS`·`FAIL` 문자열 토큰.
+   목록은 `wt/_drafts/p3v3_facts.py` `m6_scan_names`(cd64170)에서 뽑았다. auditor: 바뀐 줄(`git diff -U0 <base> <test_commit> -- <바뀐 여덟 파일>`의 `+` 줄 -- UD-6로 계약 11의 unit 3파일 포함)에 위 토큰 0.
+   (v5) B26-1·B34 병합본에서 목록을 다시 뽑는다 -- 두 card가 전수 스캔 test의 목록을 바꾸지 않을 것으로 보지만(두 card 모두 삭제·이관 이름 없음) 확인한다.
+10. **(v5) B26-1 계수 test의 위치 독립**: `test_b26_rail_accessor.py`의 계수 래퍼는 `stick_diagram` 한 모듈이 아니라 **`binding_files("rail_declaration")`의 모든 엔진 모듈**(정의 파일 + import로
+    바인딩한 파일 -- 재수출 shim 포함)의 그 속성을 같은 래퍼로 바꾼다(`monkeypatch.setattr`, 모듈은 파일 줄기로 import). 정의 파일은 R-DEF로 정확히 하나여야 한다(0·2 이상이면 FAIL). B26-1 계약 3의
+    불변식(호출 수 = `load_topology` 호출 수 + 선언을 가진 연결 파일 수, 반복 평가에서 늘지 않음)과 입력·기대값은 **그대로**다(계약 5 -- 판정 대상이 넓어지기만 한다: 한 모듈의 속성 → 그 이름을
+    바인딩한 모든 모듈). test 함수 이름은 바꾸지 않는다. 이 test 파일의 다른 test(`sizing_recipe._metric_kcl_residual` 이름 호출 -- design §7.1 B군)는 F1 몫이라 바꾸지 않는다.
+    위치 독립 증거(계약 6에 더함): 합성 트리에서 `load_topology` 정의를 새 파일로 옮기고(새 파일은 원래 파일에서 필요한 이름을 import, 원래 파일 끝에 재수출) `rail_declaration`은 다른 새 파일로
+    옮긴 뒤(원래 파일 재수출) 바뀐 계수 test가 PASS, base의 옛 계수 test는 FAIL(계수 0). 합성 트리 구성 세부는 B26-1 병합본의 실제 test 모양을 보고 test-author가 정한다(구성이 기대를 정한다 --
+    oracle (a)).
+11. **(UD-6 W-1) unit selftest의 import 출처**: 엔진 파일 E ∈ {`topology_library`, `sizing_recipe`, `design_report`}에서 이름을 import하는 unit selftest 3파일의 모듈 최상위 줄(지금 각 파일 24행
+    `from E import (…)  # noqa: E402`)에서 아래 7개를 빼고, 같은 이름을 **그 이름의 출처**에서 모듈 최상위로 묶는다(첫 사용 전 -- 위치는 test-author, `sys.path` 설정 뒤에 오는 줄은 `# noqa: E402`):
+
+    | 파일(`A/tests/unit/`) | E에서 뺄 이름 | 출처 import(E가 base에서 그 이름을 묶는 문장과 같은 출처) |
+    |---|---|---|
+    | `test_selftest_topology_library.py` | `math` | `import math` |
+    | `test_selftest_sizing_recipe.py` | `_dc_replace`, `json`, `math`, `np`, nmcnr_predict_ac_response | `from dataclasses import replace as _dc_replace`, `import json`, `import math`, `import numpy as np`, from topology_library import nmcnr_predict_ac_response(백틱 없음 -- interface card 생성기가 엔진 함수로 잡는다) |
+    | `test_selftest_design_report.py` | `os` | 없음 -- 이 파일은 13행에서 이미 `import os`로 같은 모듈을 묶는다(빼기만 한다) |
+
+    (a) 같은 줄의 나머지 이름(엔진 정의 이름과 E가 N3.10 파일에서 `from … import`로 받은 이름 -- 완전 shim에도 재수출로 남는다, design 30 §3 SHIM (b)·D0a 계약 4 '재수출 줄')은 바꾸지 않는다(F1 몫).
+    nmcnr_predict_ac_response는 TL 정의이고 TL은 M4 뒤에도 MOD4 재수출로 그 이름을 들고 있어 F2 전까지 해석된다 -- F1이 MOD 출처로 바꾼다.
+    (b) **동작 불변**: 바뀐 세 파일의 수집 test id 집합과 판정이 base와 같고, 7개 각각에서 바뀐 test 모듈이 묶은 객체가 base에서 E 모듈 속성으로 얻던 객체와 같다(`is`).
+    (c) **잔여 0**: 병합본에서 세 파일의 `from E import` 이름 중 'E 파일이 최상위 def·class·대입으로 정의하지 않고, N3.10 파일(`mod_table` 줄기)에서 `from … import`로 받지도 않은 이름'이 0개다
+    (오케스트레이터 측정 `p3fq_kit/shim_import_reads.py`와 같은 정의 -- base `4a286f0`에서 이 세 파일 3줄·7이름, 그 밖의 추적 `.py` 0).
+    test 함수·기대값은 바꾸지 않는다(import 줄만). 이 계약에는 새 test가 없다 -- 판정은 auditor가 (b)·(c)를 재서 basis에 적는다.
+
+## 신규 시그니처
+
+| 모듈 | 심볼 | 시그니처 |
+|---|---|---|
+
+## 판정 유형 근거
+
+test-only: 엔진 소스가 바뀌지 않아 code 커밋이 없다(`00-common` §8.1 `code_commit: null`, 계획 N3.12.3 '순서 4·5 생략'). 판정 유형은 커밋 모양이 정한다(`20-dead-code-dup` §8 P2 정정,
+`20260923-probe-promote-clean` 13행). red-green은 성립하지 않는다(피검 코드가 base와 같아 새 test가 base에서 FAIL할 수 없다). 계획 N3.12.3의 test-only 열거(TS0·TS2·TS3·TS5·TS7,
+TS6 승격·삭제, redteam 데이터 게이트 변경)에 Phase 3 T0가 없다 -- design 30 승인(UD-0)이 열거에 더하는 개정을 덮는다(문안 `_drafts/p3_doc_amendments.md` §3, design 커밋에서 반영).
+증거(V2 test-only, `checks.V2.basis`): 매핑 = 바뀐 test id → 같은 test id(계약 4), base 트리에서 바뀐 네 test 파일(계약 2~4의 셋 + 계약 10의 `test_b26_rail_accessor.py`)과 (UD-6) 계약 11의 unit selftest 3파일의 모든 test PASS(`PT3` --
+`--gmid-phase=3`, card `phase`와 같은 값) + 계약 6·7·10 합성 트리 실행 결과. 스키마상 test-only는
+`red`·`equivalence` 필드를 갖지 않으므로(`_schema.json` allOf) 합성 트리 결과는 `basis` 문장으로만 남는다(선례 `20260923-probe-promote-clean`).
+
+## oracle 종류와 출처
+
+(c) 동작 보존: 바뀐 test가 base 트리에서 base의 옛 test와 같은 판정(PASS)을 낸다. (a) 구성: 계약 6·7의 합성 이동 트리 -- 정의를 어디로 옮겼는지가 구성으로 정해져 기대(PASS·모호 FAIL)가
+정해진다. `_DOMAIN_TABLE` 값은 기존 (d)(design `10-test-separation` §5.6 영역 표) 그대로.
+
+## 거부해야 할 입력
+
+정의 파일 0개(공허) 또는 2개 이상(복사·모호) → FAIL(계약 2·3·7). `_L_ROLE_MULTIPLIERS`를 엔진 어느 파일에서든 다시 바인딩 → FAIL(계약 4 -- base 판정보다 넓다).
+(r2t, review_t0_fu m4 -- 범위 밖, 파일 단위) R-DEF는 정의 **파일** 수를 센다 -- **같은 파일 안 이중 def**(정의 2개·파일 1개)는 계약 3 test가 통과시킨다(base와 같은 한계, `4a286f0` `rdef_duplicate_names` {} 실측).
+계약 2(ic5)는 함수 수로 세므로 잡는다. 모듈 최상위 `if`/`try` 안 바인딩은 R-DEF가 보지 않는다 -- 그 결과는 정의 파일 0개라 FAIL 쪽으로 깨진다(안전).
+(UD-6 W-1, 계약 11 -- test가 아니라 auditor 확인이 거부한다) 7이름 중 하나를 엔진 import 줄에 남김(예: `test_selftest_topology_library.py` 24행에 `math` 유지) → 계약 11 (c) 잔여 1(그 파일·이름).
+그 상태가 실제로 깨지는 증거(오케스트레이터 사전 측정, 관찰): TL을 완전 shim으로 만든 M4 모의 트리에서 그 파일 PT3 수집 오류(`_drafts/p3kit_m1/out/simM4.pt3.txt`). 7이름 중 하나를 다른 객체로 묶음(예 `import cmath as math`) → 계약 11 (b) `is` 불일치.
+
+## library 회로 적용 여부
+
+해당 없음(소스 AST 판정).
+
+## 무동작 판정 입력(무발동 값)
+
+base 트리 전체 `PT3`(design 30 §10 -- `10-test-separation` §10 `PT`에서 `--gmid-phase=1`만 `--gmid-phase=3`, card V1과 같은 Phase 값; v8 -- 5차 검토 B1: v7의 `PT`는 `--gmid-phase=1`이라 phase 2·3 표식 케이스의 실패가 xfail로 지나갔다): 수집 test id 집합과 판정이 base와 같다(바뀐 세 파일 포함). 도우미 파일 추가가 다른 test의 전수 스캔(`test_ts3_no_print_verdicts`의
+print 판정 토큰, `test_d_delete_dead`·`test_d_delete_telescopic`·`test_d_move_tests`의 삭제·이관 이름 참조, `test_ic_markers_match_plan`의 `contracts/*.py` 표식 대조)에서 새 발견을
+만들지 않는다(계약 9의 토큰 목록).
+
+## 재현할 수치
+
+없음.
+
+## 결정 필요 항목
+
+V5 승인(design 30 §9.2 '뒤에 올 승인' -- 착수 전 사용자 결정이 아니다. 초안 v3의 UD-6을 2차 검토 §5 권고대로 T1·F1의 V5 승인과 같은 목록으로 옮겼다): `weakening_diff`가 문자열 상수 변경(`"sizing_recipe.py"` 등)을 '기대값·픽스처 리터럴 변경'으로 잡는다. test 커밋 뒤 그 diff 해시로 승인 기록
+`20260930-p3-tests-location-free`(`target_kind: diff`)를 받는다 -- 근거: 판정 범위 확대 + 유일성 검사 추가, 기대값 불변(계약 5), 죽은 상수 삭제(계약 4), (v5) 계수 래퍼 대상 확대(계약 10 --
+B26-1 계약 test의 판정 기준 소유자는 B26-1 승인이므로 승인 범위 설명에 'B26-1 계약 3의 불변식·기대값 불변, 래퍼 설치 모듈만 넓힘'을 적는다).
+(키트 v9 실측 -- 시제품 test 커밋, gate `master` `19eb475`, `_drafts/p3kit_t0/out/vtools/weakening_diff.json`): V5는 FAIL exit 1이고 발견 4개 = 리터럴 변경 3(`test_ic5` `<module>`
+`'stick_diagram.py'` 등 제거, `test_ts6_dead_probes` `<module>` `'sizing_recipe.py'` 제거, `test_dup_w_calc` 함수 안 `'sizing_recipe.py'` → 메시지 문자열·`0`·`1`) + **비교 완화 1**(`test_dup_w_calc`
+유일성 단언 `len(...) == 1`이 새 Compare라 '비교 연산자 변화'로 잡힌다). 승인 범위 설명에 '유일성 검사 추가로 생긴 비교 연산자'를 넣는다. 실제 발견 목록·해시는 실제 test 커밋에서 다시 잰다.
+**(UD-6 W-1, 2026-10-02 -- 착수 전 사용자 결정, 닫힘)**: AskUserQuestion [W-1](세션 `63c6146a-…jsonl` tool_use `toolu_01GVLKut4JY6FMvvZJEvhKS4`, 질문 13:35 KST·답 13:38 KST)의 답
+"(가) T0에서 test import 수정 (Recommended)" -- 선택지 설명 원문: "M1 전 test-only card T0에서 세 파일 24행의 그 이름들을 원래 출처에서 직접 import하게 고칩니다. 판정 기준은 그대로이고, T0 V5 승인 범위에 'import 출처 변경 3줄'이 더해집니다."
+질문 원문(바이트 그대로): "[W-1] M4·M8·M9에서 topology_library·sizing_recipe·design_report가 재수출만 남은 shim이 되면, 단위 selftest 3개가 이 파일들을 거쳐 import하던 비엔진 이름 7개(math·json·np·os·_dc_replace·nmcnr_predict_ac_response)가 사라져 test 수집이 실패합니다. 어떻게 할까요?"
+그래서 V5 승인 기록 `20260930-p3-tests-location-free`의 범위 설명과 사용자 원문 절은 (1) 계약 2~4·10의 판정 범위 확대·유일성 단언(비교 완화 1)·리터럴 변경·죽은 상수 삭제·계수 래퍼 대상 확대에 더해
+(2) **import 출처 변경 3줄(7이름, 계약 11 -- 객체 동일·test 함수와 기대값 불변)**을 적고, 위 [W-1] 질문·답을 jsonl에서 바이트 그대로 인용한다(별도 승인 기록 없음 -- 사용자 답의 설명이 'T0 V5 승인 범위에 더해진다'이다;
+D-11 승인 기록 `20261002-p3-d11-query-cache-max`는 [W-1]을 덮지 않는다고 적었다). 그 V5 질문을 다시 올릴 때 import 3줄을 한 줄로 드러낸다(사용자는 이미 방향을 골랐다 -- 승인 대상은 실제 test 커밋의 diff 해시).
+(r2t 실측, review_t0_fu m1 -- 모래상자 T = 계약 1~4 시제품 + 계약 11 import 3줄, base `4a286f0`, gate 판 `weakening_diff.py`): import 3줄은 V5 발견을 **내지 않는다**.
+발견 4 = 비교 완화 1 + 리터럴 변경 3(위와 같음), `diff_paths` = contracts 3파일(`test_dup_w_calc.py`·`test_ic5.py`·`test_ts6_dead_probes.py`)뿐이다. `diff_paths`는 '발견이 있는 경로'이므로
+**unit 3파일은 `diff_hash` 밖**이다. 그래서 V5 승인 기록의 범위 설명에는 'import 출처 변경 3줄(7이름)을 공개하지만 해시 대상(`diff_paths`)은 아니다 -- 그 3줄의 확인은 계약 11 (b)·(c)(auditor basis)'라고 적는다
+(해시가 그 3줄을 덮는다고 읽히지 않게). 실제 발견 목록·해시는 실제 test 커밋에서 다시 잰다.
+
+**(r2t, 2026-10-02 -- 착수 전 사용자 결정 필요, 열림) [T0-V4] V4 규칙 (1) 면제(decision)**: 계약 11이 unit selftest 3파일을 diff에 넣으므로 V4(`test_lint.py`, gate `4a286f0` 판 718~721행이
+`--diff-filter=AM` 파일을 고르고 723~726행이 고른 파일마다 **파일 전체**를 lint한다 -- 읽기는 705~709행 `read`가 `git show <head>:<rel>`로 파일 전체, hunk만 보는 경로 없음; 면제는 727~734행)가 `test_selftest_sizing_recipe.py` 3천 줄 전체를 판정한다. `--interface-card`(기존 함수 6) 단독 결과
+(모래상자, 위와 같은 T): **FAIL exit 1** -- `::test_s009_revalidate_finger_override` 719·744행 규칙 (1) 2건(T0가 바꾸지 않는 기존 줄, base 트리에서도 같은 FAIL) + UNJUDGED 78(같은 파일).
+* 원인: 피검 `size_transistor`가 입력 소자를 만드는 데 쓰여 판정식 양쪽에 남는다. 719행 = `revalidate_finger_override` 뒤 ID 보존(불변식 -- 새 gm/gm_id = 원래 `_l4_r1.ID`), 744행 = 원본 ctx 불변(`_l4_ctx.sized["M1"]["W"] == _l4_r1.W`).
+  둘 다 이관본 S009(oracle (c))의 판정이고 피검 출력을 리터럴로 박은 복사가 아니다 -- 선례 `20260923-c9-v4-exempt`(불변식·재현성 2건)와 같은 종류.
+  피검 `size_transistor`는 입력 소자를 만드는 데만 쓰였다(시험 대상은 `revalidate_finger_override`). base 트리의 같은 파일·같은 card(`--head 4a286f0`)도 같은 두 줄(base에서는 714·739행 -- T가 import 5줄을 더한다)로 FAIL이다
+  -- T0가 만든 FAIL이 아니다(독립 검증 `review_t0_v4.md` (2)). TS2 때는 피검이 `optimize_full_circuit_budget` 하나라 드러나지 않았다.
+* 원칙 대안 검토(모래상자 실측): (i) 커밋된 decision 승인 target 중 이 test id 0건(`c9-v4-exempt`는 s052·s054뿐), B26-1 초안 승인들도 이 id를 덮지 않는다.
+  (ii) V4는 hunk가 아니라 파일 전체를 본다 -- 계약 11을 다른 곳에 두어 피하는 것은 게이트 회피라 하지 않는다.
+  (iii) 두 줄을 T0에서 고치는 것은 **진짜 수정이 아니다**(독립 검증 `review_t0_v4.md` (3) 정정 반영): 두 줄 모두 면제 없이 고칠 수는 있다 -- 719행 기대값을 `200e-6 / _l4_gm_id`(식 계산)로,
+  744행 우변을 `_l4_L * (200e-6 / _l4_gm_id) / lut.gm_id_to_id_density(_l4_gm_id, _l4_L, _l4_vds, 0.0)`(W = L·ID/IDu, `size_transistor` 구현과 같은 식)로 바꾸면 V4 PASS·test_s009 pytest PASS다(모래상자 A+C).
+  744행을 스냅숏 지역 변수(`_l4_w0 = _l4_ctx.sized["M1"]["W"]`)로 바꾸는 것만은 V4 인라인이 꿰뚫어 FAIL이다. 그러나 고치면 oracle이 '원래 값 보존·원본 불변'에서 '구현과 같은 식의 값'으로 바뀌고
+  (판정 기준 변경 -- 계약 11 'test 함수·기대값 불변' 밖), 그 변경은 V5 `weakening_diff`가 **잡지 못한다**(unit 파일 발견 0, `diff_paths` = contracts 3파일뿐 -- 조용한 기대값 변경). 그래서 (iii)은 하지 않는다.
+  (iii') 계약 11을 T0에서 빼서 별도 test-only card로 옮기는 길: FAIL은 피검 집합에 달려 있다 -- `4a286f0` + 계약 11만 얹은 T에서 `--subject topology_library:nmcnr_predict_ac_response`(계약 11이 언급하는 유일한 엔진 함수)만 주면
+  **PASS**(UNJUDGED 2, FAIL 0), `--subject sizing_recipe:size_transistor`면 같은 FAIL 2(독립 검증 (4)). 면제 없이 갈 수 있지만 그것은 test_s009를 판정하지 않기 때문이고, [W-1] (가)를 되돌리고 card가 하나 늘며,
+  `size_transistor`를 피검으로 가진 card가 그 파일을 바꾸면 같은 FAIL이 다시 난다. 그 card에 같은 면제를 싣는 것은 T0에 싣는 것과 차이가 없다(`_approved_ids`는 card가 아니라 head 트리 전체를 읽는다).
+  V4를 바뀐 test 함수로 좁히는 게이트 변경 card(V3 `20260930-v3-changed-stmt-scope` 꼴)는 같은 규모 이상이고 범위 축소(약화)라 지금은 하지 않는다(백로그 후보). interface card에서 `size_transistor`를 빼는 것은 게이트 회피라 선택지가 아니다.
+  (iv) **기본안: decision 면제** -- 승인 기록 `20261002-p3-t0-v4-s009-exempt`(`target_kind: decision`, `target: skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s009_revalidate_finger_override`).
+  모래상자에서 그 기록을 head 트리에 두면 `--interface-card` 단독 **PASS exit 0**(규칙 (1) exempt 2, UNJUDGED 78, FAIL 0), `merge_gate.py parse-approval` exit 0.
+* 덮는 것: 그 test id의 **규칙 (1)** 발견만. 덮지 않는 것: 다른 test, 같은 test의 규칙 (2)~(5), 이름·경로가 바뀐 뒤(면제가 저절로 풀린다).
+  **T0에 묶이지 않는다**: `_approved_ids`가 head 트리의 `.ai/approvals` 전체를 읽으므로, 기록이 저장소에 있는 동안 이후 모든 card의 V4에도 적용되고 test 이름·경로가 바뀌면 풀린다(질문 선택지 1에 적는다).
+* 기록은 T0 test worktree를 만들기 **전에** master에 커밋한다(V4가 head = T 트리의 `.ai/approvals`를 읽는다 -- `test_lint.py` 731행 `rch._approved_ids(root, ns.head)`). 판정 기록 `approvals`에 넣는다(선례 TS2 판정 기록).
+* 착수 0단계에서 B26-1 병합본 위 모의 T로 V4를 다시 재서 FAIL test id 집합이 이 하나와 같을 때만 이 기록으로 간다(B26-1 계약 12가 같은 파일 15곳을 바꾸고 interface card에 `stick_diagram.rail_declaration` 행이 더해질 수 있다 --
+  늘면 그 id들을 같은 근거로 검토해 질문을 다시 올린다).
+* UNJUDGED 78: 78개 assert 식 전부 TS2 병합본(`caac910`) 같은 파일의 assert 식과 `ast.unparse` 문자 단위로 같다(모래상자 실측) -- TS2 판정 기록 V4 basis(이관본 전수 대조)의 oracle (c) 출처를 그대로 잇는다. auditor가 다시 재서 basis에 "TS2 전수 대조 식과 같음"으로 적는다
+  (TS2 basis는 이 78개를 UNJUDGED로 다룬 것이 아니라 전수 대조로 덮었다 -- TS2 때 UNJUDGED는 피검 `optimize_full_circuit_budget` 하나로 26개였다; 독립 검증 (5)).
+
+## 작성 전 실측
+
+**(UD-6, 2026-10-02 -- 계약 11 실측, gate `master` `4a286f0`, 실제 저장소는 `git show`로만 읽음)**: `_drafts/p3ud6_kit/w1_lines.py` → `out/w1_lines.json`(AST):
+`test_selftest_topology_library.py` 24행 `from topology_library import (…)` 이름 8개 중 W-1 이름 `math`, 그 파일의 다른 모듈 수준 `math` 바인딩 0, 사용 2.
+`test_selftest_sizing_recipe.py` 24행 `from sizing_recipe import (…)` 이름 52개 중 `_dc_replace`·`json`·`math`·`nmcnr_predict_ac_response`·`np`, 다른 바인딩 0, 사용 `json` 31·`math` 11·`_dc_replace` 2·`np` 1·`nmcnr_predict_ac_response` 1.
+`test_selftest_design_report.py` 24행 `from design_report import (…)` 이름 4개 중 `os`, 13행 `import os`가 이미 있음, 사용 8.
+엔진 쪽 출처(같은 판): TL 26행 `import math`; SR 37행 `import json`·38행 `import math`·42행 `from dataclasses import …, replace as _dc_replace`·45행 `import numpy as np`·1411~1412행 `from topology_library import (…, nmcnr_predict_ac_response)`; DR 30행 `import os`.
+`p3fq_kit/shim_import_reads.py`를 `4a286f0`에서 다시 돌린 결과(`p3ud6_kit/out/shim_reads_4a286f0.json`)가 `36e170e` 판(`p3fq_kit/out/shim_reads.json`)과 `rev` 밖 바이트 같음 -- 추적 `.py` 전수에서 이 3파일·7이름뿐(N3.10 파일 `stick_diagram`에서 받은 이름은 base 재수출로 남아 제외 -- 계약 11 (c)의 정의).
+이 판 초안 검사(gate `4a286f0` `tools/gates`, 스크래치 `C:/g222`): `parse_spec_card(expect_id=이 id)` 통과(`phase` 3·`test-only`·절 11개), `interface_card.py` '기존 함수 6개'(UD-6 전 판과 같음 -- 계약 절에 엔진 함수 이름을 백틱으로 적은 중간 판은 7개였다, 그래서 계약 11에서 그 이름은 백틱 없이 적었다).
+착수 때(이 card base = B33 병합 뒤 master) B26-1 계약 12의 test 입력 갱신(`rails=`)이 이 세 파일의 24행 이름 목록을 바꾸는지와 위 수치를 다시 잰다
+(r2t: 착수 0단계 (사) -- `t0_launch.sh kit-cmds`가 `w1_lines.py`·`shim_import_reads.py` 명령을 출력하고, 브리프 머리 판단 항목이 그 대조 기준이다. 같은 0단계 (아)가 V4를 모의 T로 다시 잰다 -- '결정 필요 항목' [T0-V4]).
+
+(기준 gate `master` `cd64170`; `7535799`(B28 병합 뒤)에서 `git diff --stat cd64170 HEAD -- skills/analog-gmid-design/assets` 0 -- 아래 줄 번호 불변.
+**v7(4차 검토 m1) `a796468`에서 다시 확인**: `git diff --stat 7535799 a796468 -- skills/analog-gmid-design/assets` = `stick_diagram.py`(P9, −11줄 순)와 새 계약 test 셋(`test_df23_inventory.py`·
+`test_dup_kcl_edges.py`·`test_phase2_stale_refs.py`)뿐 -- A군 3파일·아래 1·2·5·8의 인용 줄은 그대로다. 새 셋 중 정의 위치를 가정하는 것(A군)은 0: `test_df23_inventory.py`는 엔진 소스를 읽지 않고
+기록 JSON(`measured_at` 고정)만 보며, `test_phase2_stale_refs.py`는 `references/*.md`를 읽고, `test_dup_kcl_edges.py`는 모듈 이름 import(B군 -- F1)다. **v8(5차 검토 m6)**: gate `master`가 `0f23786`으로 나아갔다 -- `git diff --name-only a796468 0f23786` = `.ai/approvals/20261001-p10b-v3-equiv.md`·`docs/02-design/specs/20260930-df23-registry-record.spec.md` 2파일뿐(엔진·`tools/`·계획서·레지스트리 무변경)이라 위 확인이 그대로 성립한다.
+**v5: 이 card의 base는 P9·B34·B26-1 병합 뒤 master다**(design 30 §8.1; v7 확정 순서로는 B33 병합 뒤 master -- P10b·면제 묶기·범위 정책·B34·B26-1·B33 포함). B26-1의 test 입력 갱신 규칙(그 card 계약 12)이 `A/tests/**`의 호출에 `rails=`를 더하고 B34·B26-1이 계약 test 두 파일을
+더하므로, 착수 때 1·2·5와 계약 9 목록, 계약 10 대상 test의 실제 줄·모양을 그 병합본에서 다시 잰다. 아래 1의 '정의 파일 = `sizing_recipe.py`'와 A군 정의 위치는 B26-1이 정의를 옮기지 않으므로
+그대로일 것으로 보지만 줄은 밀릴 수 있다)
+**키트 v9(2026-10-01, gate `master` `19eb475`, 격리 복제본 `C:/g150`, 스크립트 `_drafts/p3kit_t0/`)**: `0f23786..19eb475` = P10b 병합(`tests/tools/reg_check.py`, 새 계약 test
+`test_reg_check_df23.py`, 레지스트리 §8), md 일치 spec card, library md 2개, design 20 E2 정정, history, 승인 기록 -- 엔진·`tools/gates` 무변경. `t0_facts.py` 재측정(`out/t0_facts_19eb475.json`):
+아래 1·2·5·8의 인용 줄·수치가 그대로다(차이 = `glob_sites`·`contracts_files`에 `test_reg_check_df23.py`가 더해진 것뿐 -- 이 파일은 `tests/tools/reg_check`를 import하고 엔진 파일 이름 리터럴 0,
+위치 가정 없음 → A군 아님). 1의 'contracts 10파일'은 `0f23786`부터 **11파일**(`test_df23_inventory.py` 2건 -- 320·367행 합성 입력 문자열, A군 아님). 시제품(계약 1~4, 계약 10 제외 -- 대상 파일이
+아직 없다)의 측정은 착수 키트 `_drafts/t0_briefs.md` 0절. 키트 작업 끝에 gate `master`가 `5f643a9`로 나아갔다(md 일치 test `test_topology_md_sync.py`와 판정 기록뿐 -- library md·json만 읽어 A군 아님).
+1. 사실: `git grep -c -E "(sizing_recipe|stick_diagram|topology_library|design_report|audit_current_forced)\.py" -- skills/analog-gmid-design/assets/tests ':!skills/analog-gmid-design/assets/tests/probes'`
+   → contracts 10파일 + unit 6 + tools 2. 파일별 `grep -n` 문맥으로 A군 3파일(위 의도의 줄)만 실제 트리의 정의 위치를 가정함을 확인(`test_reg_check.py` 13건·`test_probe_dup_scan.py`·
+   `test_d_*`의 `import sizing_recipe` 문자열은 합성 입력, `unit/test_selftest_*`는 주석·문자열). R-DEF 유일성: `A/*.py`+`run_harness.py` 최상위 바인딩 중복 0, ic5 표 21개 이름은
+   모든 깊이에서 각 1개, `size_transistor`·`width_from_id_density`·`audit_vsb_consistency`·`_build_theta_evaluator` 정의 파일 = `sizing_recipe.py` 1개, `_L_ROLE_MULTIPLIERS` 0개
+   (`$PY -B -c` AST 스캔, design 30 부록 A M24; 독립 검토 재측정 일치).
+2. 이름 충돌: 새 파일 `A/tests/contracts/_engine_defs.py` -- `git grep -n "glob(" -- skills/analog-gmid-design/assets/tests` → `contracts/*.py`를 읽는 것은
+   `test_ic_markers_match_plan.py:91`(표식 대조 -- 도우미에 `gmid_ic` 표식 없음), `rglob("*.py")` 전수 스캔은 `test_ts3_no_print_verdicts:59`·`test_d_delete_dead:87`·
+   `test_d_delete_telescopic:97`·`test_d_move_tests:87` -- 피할 토큰은 계약 9(`p3v3_facts.py` `m6_scan_names`). `test_*` 수집 glob과 겹치지 않는다(`_` 접두).
+3. 원칙: 범위 비약화 -- 계약 5, 위치 독립 -- 계약 6, 모호 거부 -- 계약 7, 만들면 배선 -- 계약 1(세 test가 부른다), 죽은 이름 없음 -- 계약 4(`_SIZING_RECIPE` 삭제).
+4. 쓰기 경로: 세 test·도우미 = test-author(`A/tests/**`), 엔진 소스 읽기는 test 실행 시 AST로만(test-author의 소스 열람 금지와 무관 -- 기존 test와 같은 방식), 합성 트리 실행 = auditor.
+5. 계획서 소비자: `git grep -n "_SIZING_RECIPE" -- .` → `test_ts6_dead_probes.py` 60(정의)·221·222·261·262뿐(초안 v2의 "229행이 계속 쓴다"는 틀렸다 -- 229행은
+   `importlib.import_module("sizing_recipe")`), docs·`.ai` 0건 → 지운다(r2t: `4a286f0`에서는 design 30 577·611·1183행 서술 3줄이 더 있다 -- 소비자 아님, 계약 4의 판정 범위는 추적 `.py`). 바뀌는 test id 둘은 `.ai/verification/20260930-df36-instance-relpath/order7/collect_m.txt`(기록된 수집 목록,
+   불변 기록)에만 나온다 -- id를 바꾸지 않으므로 무관. `grep -n "check_quasi_static" docs/02-design/features/*.md` → oracle (d)의 원천인 design `10-test-separation` §5.6 영역 표
+   (252~274행, 승인 `20260922-10-test-separation-design`)가 `| 파일 | 함수 | 영역 | 이유 |` 형식이다(254행 `audit_current_forced.py`, 255행 `sizing_recipe.py`, 262행 `stick_diagram.py` …).
+   영역 값은 그대로 두고 '파일' 열이 판정 키가 아니라 설명임(위치는 R-DEF)을 적는 문서 개정이 필요하다 -- design 30 승인(UD-0)이 덮는다. 문안은 `_drafts/p3_doc_amendments.md` §5이고
+   design 30 커밋에서 반영된다(v6: UD-0 승인 diff에 들어가므로 이 card의 문서 커밋이 따로 하지 않는다 -- 3차 검토 B4).
+6. 미배선: 새 엔진 def 없음. 도우미는 세 test가 부른다.
+7. 기존 계약 test: 바뀌는 것이 계약 test 자체 -- V5 승인 경로(결정 필요 항목). B군 11파일은 F1(v5: + `test_b34_grammar_explicit.py`, `test_b26_rail_accessor.py`의 이름 호출 test).
+8. (v5) 엔진 모듈 속성 교체: `git grep -n setattr HEAD -- '*.py'` → 0건, `git grep -n "monkeypatch\." HEAD -- skills/analog-gmid-design/assets/tests` → `test_df36_instance_relpath.py`의 `chdir` 4건뿐
+   (`7535799`, design 30 부록 A E3; v7: `a796468`에서도 `tools/` 밖 `setattr` 0건). 계약 10의 대상은 B26-1 초안 계약 3("계수 래퍼는 test가 `stick_diagram.rail_declaration`을 바꿔 센다")에서 온 추정이다 -- B26-1 병합본의 실제 test로 확인한다.
+   실제 test가 모듈 속성 교체가 아닌 방식(예: 호출자 모듈을 R-DEF로 찾아 교체)이면 계약 10은 필요 없고 지운다(빈 계약 금지).
+   (키트 v9) `19eb475`에서도 `tools/` 밖 `setattr` 0건·`monkeypatch.` = df36 `chdir` 4건 그대로. 착수 때 달라질 것: B34 test(`test_b34_grammar_explicit.py`)가 `monkeypatch.setattr(sys, "path", …)`·
+   `monkeypatch.setitem(sys.modules, …)`를 쓴다(B34 초안 89·126행) -- `sys` 속성이라 엔진 모듈 속성 교체가 아니다(A군 아님). B26-1 병합본의 엔진 모듈 속성 교체는 계약 10 대상 하나여야 한다.
+9. (키트 v9) **앞선 card가 더하는 계약 test의 분류(착수 때)**: B34 `test_b34_grammar_explicit.py`(B군 -- `stick_diagram.<이름>` 호출, `stick_diagram.__file__` 기준 경로), b26pre
+   `test_b26pre_existing_paths.py`, backfill `test_b26_backfill_interdig.py`, B26-1 `test_b26_rail_accessor.py`(계약 10 + B군 이름 호출), md 일치 `test_topology_md_sync.py`(library md·json만 읽음)를
+   병합본에서 '정의 위치를 파일 이름으로 가정하는가'(파일 경로 리터럴 + AST/텍스트 읽기)로 다시 본다. A군이 새로 나오면 이 card의 범위를 넓히는 개정(spec card 재작성)이고, B군은 F1 목록에 더한다.

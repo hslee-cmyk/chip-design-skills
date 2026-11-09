@@ -1,0 +1,41 @@
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+m9 elib exit=0 9e2651da8c09ada5099eb73e21c95807118b4e64
+m9 einst folded_cascode exit=0 s=64
+m9 einst current_reuse_telescopic_ota exit=0 s=493
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+m10 elib exit=0 a83a46b11130355f898d3d7c6f34c3471cbab2ce
+m10 einst folded_cascode exit=0 s=61
+m10 einst current_reuse_telescopic_ota exit=0 s=529
+finished
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+m10b elib exit=0 9ad0f387af56bd41a9aa5e03bde4d720be273381
+m10b einst folded_cascode exit=0 s=51
+m10b einst current_reuse_telescopic_ota exit=0 s=443
+finished

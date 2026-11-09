@@ -1,0 +1,36 @@
+ngcc_3stage_ff area_dir sealed {} 0.15889512467590128 {'M11': [-15.7, -10.2], 'M3': [-17.59, -17.46], 'M5': [-20.68, -16.8], 'M6A': [-18.53, -18.4], 'M9': [-14.95, -10.95]}
+ngcc_3stage_ff area_dir_guard sealed {} 0.15889512467590128 {'M11': [-15.7, -14.83], 'M3': [-17.59, -17.46], 'M5': [-20.68, -16.8], 'M6A': [-18.53, -18.4], 'M9': [-14.95, -10.95]}
+ngcc_3stage_ff start F0 sealed {'M5': 4.47e-08, 'M6A': 2.52e-08} {} 0.15889512467590128 None
+ngcc_3stage_ff start F1 sealed {'M5': 4.47e-08, 'M6A': 2.52e-08} {} 0.15889512467590128 None
+ngcc_3stage_ff start F2 failed {'M5': 1.95e-08, 'M6A': 2.65e-19} {} None {'L': 1.5e-07, 'W': 4.420757184096155e-18, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+ngcc_3stage_ff area_dir_guard F0 sealed {'M5': 4.47e-08, 'M6A': 2.52e-08} {} 0.15889512467590128 None
+ngcc_3stage_ff area_dir_guard F1 sealed {'M5': 4.81e-08, 'M6A': 2.86e-08} {'gbw_ss_hz': 7226000.0, 'pm_ss_deg': -110.80328} 0.1589011655452612 None
+ngcc_3stage_ff area_dir_guard F2 failed {'M5': 1.95e-08, 'M6A': 2.65e-19} {} None {'L': 1.5e-07, 'W': 3.901304522043455e-18, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+ngcc_3stage_ff area_dir F0 sealed {'M5': 4.47e-08, 'M6A': 2.52e-08} {} 0.15889512467590128 None
+ngcc_3stage_ff area_dir F1 sealed {'M5': 4.81e-08, 'M6A': 2.86e-08} {'gbw_ss_hz': 7225000.0, 'pm_ss_deg': -114.43363} 0.1589011655452612 None
+ngcc_3stage_ff area_dir F2 failed {'M5': 1.95e-08, 'M6A': 2.65e-19} {} None {'L': 1.5e-07, 'W': 3.901304522043455e-18, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+done
+folded_cascode area_dir sealed {'noise_excess_th': 9827.0, 'offset_excess': 8891.0} 0.004618188962409856 {'M7': [-14.72, -14.6], 'M8': [-14.72, -14.6], 'M9': [-14.72, -14.6], 'MN': [-24.33, -23.33]}
+folded_cascode area_dir_guard sealed {'noise_excess_th': 9827.0, 'offset_excess': 8891.0} 0.004618188962409856 {'M7': [-14.72, -14.6], 'M8': [-14.72, -14.6], 'M9': [-14.72, -14.6], 'MN': [-24.33, -23.33]}
+folded_cascode start F0 sealed {'M3': 1.13e-06, 'M4': 1.13e-06, 'M5': 1.13e-06, 'M6': 1.13e-06, 'MP': 3.06e-07} {} 0.004617893052536955 None
+folded_cascode start F1 sealed {'M3': 1.13e-06, 'M4': 1.13e-06, 'M5': 1.13e-06, 'M6': 1.13e-06, 'MP': 3.06e-07} {} 0.004617893052536955 None
+folded_cascode start F2 failed {'M3': 1.13e-06, 'M4': 3e-07, 'M5': 3.99e-11, 'M6': 1.13e-06, 'MP': 2.42e-26} {} None {'L': 1.5e-07, 'W': 1.4830517125967704e-11, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+folded_cascode area_dir_guard F0 failed {'M3': 1.13e-06, 'M4': 1.13e-06, 'M5': 1.13e-06, 'M6': 1.13e-06, 'MP': 3.06e-07} {} None {'L': 1.5e-07, 'W': 1.7130159811131935e-07, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+folded_cascode area_dir_guard F1 failed {'M3': 1.28e-06, 'M4': 1.28e-06, 'M5': 1.28e-06, 'M6': 1.28e-06, 'MP': 3.06e-07} {} None {'L': 1.5e-07, 'W': 1.7130159811131935e-07, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+folded_cascode area_dir_guard F2 failed {'M3': 1.13e-06, 'M4': 3e-07, 'M5': 3.99e-11, 'M6': 1.13e-06, 'MP': 2.42e-26} {} None {'L': 1.5e-07, 'W': 1.3087885427394294e-11, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+folded_cascode area_dir F0 failed {'M3': 1.13e-06, 'M4': 1.13e-06, 'M5': 1.13e-06, 'M6': 1.13e-06, 'MP': 3.06e-07} {} None {'L': 1.5e-07, 'W': 1.7130159811131935e-07, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+folded_cascode area_dir F1 failed {'M3': 1.28e-06, 'M4': 1.28e-06, 'M5': 1.28e-06, 'M6': 1.28e-06, 'MP': 3.06e-07} {} None {'L': 1.5e-07, 'W': 1.7130159811131935e-07, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+folded_cascode area_dir F2 failed {'M3': 1.13e-06, 'M4': 3e-07, 'M5': 3.99e-11, 'M6': 1.13e-06, 'MP': 2.42e-26} {} None {'L': 1.5e-07, 'W': 1.3087885427394294e-11, 'kind': 'nmos', 'reason': 'lut_mismatch_no_block', 'w_key': 1000}
+done
+two_stage_ota_sf area_dir sealed {'gain_ss_db': 51.58249, 'rout_ss_ohm': 771.60654, 'gbw_ss_hz': 5379000.0, 'noise_excess_th': 1.35144, 'pm_ss_deg': 77.22621, 'offset_excess': 1.6406} 0.13381663736331104 {'M3': [-16.55, -16.05], 'M5': [-16.63, -15.13]}
+two_stage_ota_sf area_dir_guard sealed {'gain_ss_db': 51.58249, 'rout_ss_ohm': 771.60654, 'gbw_ss_hz': 5379000.0, 'noise_excess_th': 1.35144, 'pm_ss_deg': 77.22621, 'offset_excess': 1.6406} 0.13381663736331104 {'M3': [-16.55, -16.05], 'M5': [-16.63, -15.13]}
+two_stage_ota_sf start F0 sealed {} {'gbw_ss_hz': 5352000.0, 'pm_ss_deg': 76.1499} 0.13381663736331104 None
+two_stage_ota_sf start F1 sealed {} {'gbw_ss_hz': 5352000.0, 'pm_ss_deg': 76.1499} 0.13381663736331104 None
+two_stage_ota_sf start F2 sealed {} {'gbw_ss_hz': 5352000.0, 'pm_ss_deg': 76.1499} 0.13381663736331104 None
+two_stage_ota_sf area_dir_guard F0 sealed {} {'gbw_ss_hz': 5379000.0, 'pm_ss_deg': 77.22621} 0.13381663736331104 None
+two_stage_ota_sf area_dir_guard F1 sealed {} {'gbw_ss_hz': 5379000.0, 'pm_ss_deg': 77.22621} 0.13381663736331104 None
+two_stage_ota_sf area_dir_guard F2 sealed {} {'gbw_ss_hz': 5379000.0, 'pm_ss_deg': 77.22621} 0.13381663736331104 None
+two_stage_ota_sf area_dir F0 sealed {} {'gbw_ss_hz': 5379000.0, 'pm_ss_deg': 77.22621} 0.13381663736331104 None
+two_stage_ota_sf area_dir F1 sealed {} {'gbw_ss_hz': 5379000.0, 'pm_ss_deg': 77.22621} 0.13381663736331104 None
+two_stage_ota_sf area_dir F2 sealed {} {'gbw_ss_hz': 5379000.0, 'pm_ss_deg': 77.22621} 0.13381663736331104 None
+done

@@ -1,0 +1,32 @@
+{
+ "base": {
+  "skills/analog-gmid-design/assets/sizing_recipe.py::lut_conditions_from_npz": 5,
+  "workspaces/run_harness.py::derived_spec": 5,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::width_from_id_density": 351,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::_build_theta_evaluator._evaluate": 64,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::compute_metric": 97,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::apply_theta_feed": 70,
+  "skills/analog-gmid-design/assets/stick_diagram.py::kcl_series_union": 87,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::optimize_full_circuit_budget": 64
+ },
+ "fixed": {
+  "skills/analog-gmid-design/assets/sizing_recipe.py::lut_conditions_from_npz": 5,
+  "workspaces/run_harness.py::derived_spec": 5,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::width_from_id_density": 373,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::_build_theta_evaluator._evaluate": 64,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::compute_metric": 102,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::apply_theta_feed": 70,
+  "skills/analog-gmid-design/assets/stick_diagram.py::kcl_series_union": 87,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::optimize_full_circuit_budget": 64
+ },
+ "draft": {
+  "skills/analog-gmid-design/assets/sizing_recipe.py::lut_conditions_from_npz": 5,
+  "workspaces/run_harness.py::derived_spec": 5,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::width_from_id_density": 469,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::_build_theta_evaluator._evaluate": 143,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::compute_metric": 181,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::apply_theta_feed": 149,
+  "skills/analog-gmid-design/assets/stick_diagram.py::kcl_series_union": 166,
+  "skills/analog-gmid-design/assets/sizing_recipe.py::optimize_full_circuit_budget": 143
+ }
+}

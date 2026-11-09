@@ -1,0 +1,4 @@
+baseline	9	GL-1 -> IT12 -> EO-1 -> HC-S -> WB-1 -> LA-0 -> LA-1 -> RS-1 -> CPG-1
+(가)	9	GL-1 -> IT12 -> EO-1 -> HC-S -> WB-1 -> LA-0 -> LA-1 -> RS-1 -> CPG-1
+(나) 분리 병합	9	GL-1 -> IT12 -> EO-1 -> HC-S -> WB-1 -> LA-0 -> LA-1 -> RS-1 -> CPG-1
+(다)	9	GL-1 -> IT12 -> EO-1 -> HC-S -> WB-1 -> LA-0 -> LA-1 -> RS-1 -> CPG-1

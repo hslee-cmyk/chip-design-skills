@@ -1,0 +1,52 @@
+* floating drain
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.option gmin=1e-18
+vdd vdd 0 1.8
+vs0 s0 0 0.7
+vg0 g0 0 0.35
+x0 d0 g0 s0 vdd sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+c0 d0 0 1p
+vs1 s1 0 0.7
+vg1 g1 0 0.35
+x1 d1 g1 s1 s1 sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+c1 d1 0 1p
+vs2 s2 0 0.7
+vg2 g2 0 0.45
+x2 d2 g2 s2 vdd sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+c2 d2 0 1p
+vs3 s3 0 0.7
+vg3 g3 0 0.45
+x3 d3 g3 s3 s3 sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+c3 d3 0 1p
+vs4 s4 0 0.7
+vg4 g4 0 0.4957
+x4 d4 g4 s4 vdd sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+c4 d4 0 1p
+vs5 s5 0 0.7
+vg5 g5 0 0.4957
+x5 d5 g5 s5 s5 sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+c5 d5 0 1p
+vs6 s6 0 1.1
+vg6 g6 0 0.7
+x6 d6 g6 s6 vdd sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+c6 d6 0 1p
+vs7 s7 0 1.1
+vg7 g7 0 0.7
+x7 d7 g7 s7 s7 sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+c7 d7 0 1p
+.control
+op
+print v(d0) v(s0)
+print v(d1) v(s1)
+print v(d2) v(s2)
+print v(d3) v(s3)
+print v(d4) v(s4)
+print v(d5) v(s5)
+print v(d6) v(s6)
+print v(d7) v(s7)
+.endc
+.end

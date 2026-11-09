@@ -1,0 +1,78 @@
+{
+ "id": "20260923-probe-dead-delete",
+ "spec_card": "docs/02-design/specs/20260923-probe-dead-delete.spec.md",
+ "evidence_type": "test-only",
+ "base_commit": "8dfa53974ea9f4bfe2d6f61f607a0c089a11c603",
+ "test_commit": "4b841d138055fb8f4a35aa6b7a6a1da4deed8d0a",
+ "code_commit": null,
+ "checks": {
+  "V1": {
+   "verdict": "PASS",
+   "basis": "code 커밋이 없는 test-only라 병합본 = T 4b841d138055fb8f4a35aa6b7a6a1da4deed8d0a. 깨끗한 격리 복제본(origin 제거, status 비어 있음)에서 base 판 캐시 8dfa539의 pytest_gate.ini로 slow 포함 전체 실행(-k/--deselect/-x/-m 없음, --gmid-phase=2 --gmid-strict=): 303 passed, 15 xfailed, 실패·오류·skip·xpass 0, 수집 오류 0, exit 0, 77.57s, 출력 sha256 앞 16자리 be7922fa9fc59a62. base에 같은 명령은 278 passed, 15 xfailed, exit 0. 엄격 집합은 base 판 캐시 merge_gate.strict_set(base TreeView, 이 spec card)으로 직접 계산해 공집합이다(이 card에 '활성화 IC 케이스' 필드가 없고 base에 Phase 2 판정 기록이 0건). 작성자 보고를 받지 않고 재현: --gmid-phase=2 --gmid-strict=IC3:,IC5: 는 conftest가 '모르는 케이스 키 -- 표식 Phase가 현재 Phase 2가 아님'으로 UsageError(exit 4)를 내 거부한다. base 판 merge_gate.v1_command_check(이 V1 명령, strict_needed 공집합, phase 2) 실패 목록 0"
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "test-only(계획 N3.12.3 개정 P5). 커밋 사슬: base 8dfa539 -> T 4b841d1(Role: test, 부모 = base, 변경 경로 4개 = tests/contracts/test_ts6_dead_probes.py 신설 + probe 3개 삭제, 그 밖 0). 엔진·하네스 diff 0줄(계약 5), probe 수 42 -> 39(계약 1·4). 섹션 기준: 지운 세 파일은 base pytest 수집 대상이 아니고(base 수집 모듈 18개 전부 test_*, probe_* 0) 10-test-separation 섹션->test 매핑표에도 없어 잃은 섹션이 0이다. base에서 PASS한 node id 278개가 병합본에서 전부 PASS(차집합 0), 병합본은 신설 파일 25개가 늘어 303. 동작 보존(design 20-dead-code-dup §3, 계획 N6.3): E-LIB -- 같은 경로 격리본에서 base/T를 차례로 checkout해 library 9회로 load_topology 9/9 성공, 결과 직렬화 sha256 a3cfe21f292ad4ec16625527565bd731659e9623907aace524a9aa08824e9ce8 양쪽 동일. E-INST -- 같은 경로에서 하네스 실행(저장소 절대 경로 리터럴만 격리본·스크래치로 치환, 로직 불변): current_reuse_telescopic_ota exit 0, 키 정렬 sha256 055ca6d1462998d68998a7b580050dc56b75ce84a3cdfffb6d58730d64e5d180 base = 병합본(소자 51), folded_cascode exit 0, 6cacb89912249b6c222508273c4cd1a8e08b2fa0e91365c47acc003367b4b091 base = 병합본(소자 13) -- run_topology_pipeline은 optimize_full_circuit_budget(sizing_recipe.py:9883·9897) 안에서 불려 이 해시에 들어간다. 삭제 근거 재측정(작성자 보고 미사용, base 트리에서 직접 실행): probe_mirror_common_L_wiring exit 1 AttributeError(66행 sr._L_ROLE_MULTIPLIERS), probe_node_voltage_audit exit 1 ModuleNotFoundError(37행 run_harness)이고 감사 대상 audit_vsb_consistency는 sizing_recipe.py:9481 _build_theta_evaluator._evaluate에 배선돼 있다, probe_vs_semantics는 '일치 0 / 불일치 0 / 미복원 0'으로 전 소자 skip한 뒤 81행 KeyError: 'vs'. base 대비 red: 새 test 25개 중 base에서 깨지는 것은 test_dead_probe_files_are_absent 하나(builtins.AssertionError, red_failure_hash e31d5f1f7eacd3dfc90b0b9f583b086553e23620c6730111e645ec31d33be890)이고 삭제 근거 판정 (b)(c)(d)는 base에서도 PASS다 -- 대상 상태가 이미 그렇기 때문이며 의도된 무발동이다(이 card는 그 상태를 고정만 한다). GONE: 지운 세 이름의 AST 참조 0(신설 test의 경로 문자열 3건 제외, 주석·docstring 언급 3곳은 AST 참조가 아니다)"
+  },
+  "V3": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 mutate_changed.py(--base 8dfa539 --head 4b841d1, --pytest-ini 격리본 tools/gates/pytest_gate.ini -- 줄끝만 다르고 내용은 캐시 판과 같음을 바이트 대조로 확인, --gmid-phase=2 --gmid-strict=, --python C:/Python314/python.exe): verdict PASS, targets [], mutants 0, killed 0, survivors [], exit 0. 대상이 0인 이유는 base..T diff가 닿은 def이 없기 때문이다 -- 변경 경로 4개가 전부 tests/ 이고 엔진·하네스 diff는 0줄이다(계약 5). 등가 변이 면제 승인 기록도 필요 없다"
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: spec card 'oracle 종류와 출처' = (a) 구성으로 정답이 정해진 입력. 기대값마다 대조 -- _DELETED_PROBES 세 경로 = spec card 계약 1 원문 그대로(일치); _PROBE_TOTAL_BEFORE 42·_REMAINING_PROBES 39 = 실측 probe_inventory.json 42에서 DF-21 3을 뺀 값, auditor가 git 트리에서 다시 세어 base 42·T 39(일치, 피검 출력 아님); _MISSING_SYMBOL '_L_ROLE_MULTIPLIERS' = DF-21·계약 2, base sizing_recipe에 바인딩 0이고 지운 probe 66행이 실제로 AttributeError(실행 실측 일치); _AUDIT_FUNC 'audit_vsb_consistency'의 운영 호출부 존재 = 계약 2가 적은 sizing_recipe.py:9481, auditor AST 실측으로 감싸는 운영 함수 _build_theta_evaluator._evaluate 확인(일치); _NON_OPERATIONAL_PREFIXES는 판정 기준 정의이지 기대값이 아니다; _PILOT_INSTANCE 경로 = 지운 probe_vs_semantics.py:22의 하드코딩 경로와 같음(일치); (d) 기대 'vs 0, 전 소자 vsb' = 파일럿 산출물 실측 51개 전부 vsb·vs 0(일치); 합성 거부 입력 13건(_L_ROLE_MULTIPLIERS를 바인딩하는 소스 4형태, 운영 호출부 0인 소스 5형태, 낡은 vs·vsb 결손·빈 dict 4형태)과 합성 통과 입력 6건(기대 집합 {run_pipeline}·{inner}·{a,b} 포함)은 전부 손으로 구성한 입력이라 정답이 구성으로 정해진다. 기대값을 interface card 심볼 호출로 만든 곳 0. 도구: base 판 캐시 test_lint.py(--interface-card 이 card, --module-dir skills/analog-gmid-design/assets, --base 8dfa539 --head 4b841d1) verdict PASS, exit 0, 대상 1파일, findings 21건 전부 규칙 (2) NO-SUBJECT, unjudged [], FAIL 0, 규칙 (3)(4)(5) 0. UNJUDGED가 0이어도 (2) PASS는 독립의 증거가 아니므로 위 대조를 손으로 했다"
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 weakening_diff.py(--root 격리본 --base 8dfa539 --head 4b841d1): verdict PASS, findings 0건, diff_paths 0개, diff 해시 없음(null), approved false, exit 0 -- N0.4 기준 약화 8패턴 발견이 0이고 test 분류의 .py 아닌 파일(기준선 등) 변경도 0이라 승인 기록이 필요 없다. 남은 test의 허용오차·assert·판정 리터럴은 한 줄도 바뀌지 않았고(base에서 PASS한 278개가 병합본에서 그대로 PASS), 지운 세 파일은 애초에 pytest 수집 대상이 아니었다"
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 source_lint.py(--root 격리본 --base 8dfa539 --head 4b841d1): verdict PASS, targets [], findings [], exit 0. 대상이 0인 이유는 엔진 소스·하네스 diff가 0줄이기 때문이다(계약 5 -- git diff --name-only base T 에서 tests/ 를 뺀 출력이 0줄). 새 광범위 except·skip 분기·태그 없는 숫자 리터럴이 들어갈 소스 변경 자체가 없다"
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "도입 Phase가 2라 이 card부터 활성이다(N4.2). base 판 캐시 reachability.py(--root 격리본 --base 8dfa539 --head 4b841d1): verdict PASS, new_defs [], unreached [], unreached_without_approval [], roots 4개(workspaces/run_harness.py::run·__main__, sky130_lut_sweep.py::__main__, topology_to_markdown.py::__main__), exit 0. 새 def가 0인 이유는 엔진·하네스에 추가된 def가 없기 때문이고, 신설 파일은 tests/ 라 배선 판정 대상이 아니다. 지운 세 파일은 삭제 전에도 운영 경로에서 도달하지 않았다(저장소 전체 AST 참조 0, G-2) -- 레지스트리 D 기록이나 승인 기록이 필요한 미도달 항목은 없다"
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터다(N4.2). 이 card는 엔진 소스를 한 바이트도 바꾸지 않아 fallback_events를 낳는 경로를 건드리지 않는다"
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터다(N4.2). 참고로 회로 결과 불변은 E-INST 해시가 base와 같음으로 확인했다(V2)"
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열이다. 이 card가 기대는 수치(probe 42 -> 39, 파일럿 소자 51, E-LIB·E-INST 해시, base red 1건)는 전부 auditor가 격리 복제본에서 직접 재서 V1·V2 basis와 .ai/verification/20260923-probe-dead-delete/base_check.json에 적었다"
+  }
+ },
+ "reproduced_numbers": [],
+ "approvals": [
+  "20260923-20-dead-code-dup-design",
+  "20260923-u02-d-list"
+ ],
+ "auditor_run": {
+  "time": "2026-09-23T16:07:31+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-probe-dead-delete-audit",
+  "commands": [
+   "PY = C:/Python314/python.exe(3.14.2, pytest 9.0.2), APPDATA=C:/Users/HSLEE/AppData/Roaming, 캐시 = C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/8dfa53974ea9f4bfe2d6f61f607a0c089a11c603, 작업 디렉터리 W = C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/w",
+   "격리: git -c core.longpaths=true clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-probe-dead-delete-audit <W>/iso; git -C <W>/iso remote remove origin; git -C <W>/iso config core.longpaths true (병합본 T 4b841d1)",
+   "격리(base 판): 같은 방식으로 <W>/iso-base 를 복제하고 origin 제거 뒤 git -C <W>/iso-base checkout --detach 8dfa539",
+   "격리(같은 경로 동등성 비교): 같은 방식으로 <W>/isoc 를 복제하고 origin 제거·core.longpaths 설정 뒤 base -> T 로 차례로 checkout --detach 하며 잰다",
+   "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/w/pyc PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/8dfa53974ea9f4bfe2d6f61f607a0c089a11c603 $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/8dfa53974ea9f4bfe2d6f61f607a0c089a11c603/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/w/iso --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/w/iso --gmid-phase=2 --gmid-strict= C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/w/iso/skills/analog-gmid-design/assets/tests",
+   "V1 base 대조: 같은 명령에서 --rootdir/--confcutdir/test 경로를 <W>/iso-base 로 바꿔 실행(278 passed, 15 xfailed, exit 0)",
+   "V2 base red: 위 base 명령에 -p merge_gate --continue-on-collection-errors -rA 를 더하고 GMID_RED_CAPTURE=<W>/out/red_base_T.jsonl GMID_INTERFACE_CARD=<W>/iso/docs/02-design/specs/20260923-probe-dead-delete.interface.md 를 둔 뒤, T의 tests/contracts/test_ts6_dead_probes.py 를 base 복제본에 놓고 실행(실행 뒤 제거해 status 비움)",
+   "V2 E-LIB(cwd 없음, 절대 경로 인자): $PY <W>/out/e_lib.py <W>/isoc <W>/out/elib_{base,merged}.json -- library 회로 전부의 load_topology 결과를 키 정렬 JSON 으로 직렬화해 sha256",
+   "V2 E-INST: $PY <W>/out/e_inst.py <W>/isoc current_reuse_telescopic_ota <W>/ws_{base,merged} <W>/out/einst_*_pilot.json, folded_cascode 도 같은 형태 -- run_harness.py 의 저장소 절대 경로 리터럴만 격리본·스크래치로 치환한 사본을 실행한다(로직 불변, 추적되는 instance.json 은 건드리지 않는다)",
+   "V2 삭제 근거 재측정: $PY <W>/out/run_dead_probes.py <W>/iso-base <W>/out/dead_probes_base.json -- base 복제본 안에서 세 probe 를 실제로 실행하고 git checkout 으로 원복",
+   "V3: $PY <캐시>/mutate_changed.py --root <W>/iso --base 8dfa53974ea9f4bfe2d6f61f607a0c089a11c603 --head 4b841d138055fb8f4a35aa6b7a6a1da4deed8d0a --pytest-ini <W>/iso/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=2 --gmid-strict= --out <W>/out/v3.jsonl",
+   "V4: $PY <캐시>/test_lint.py --root <W>/iso --interface-card <W>/iso/docs/02-design/specs/20260923-probe-dead-delete.interface.md --base 8dfa53974ea9f4bfe2d6f61f607a0c089a11c603 --head 4b841d138055fb8f4a35aa6b7a6a1da4deed8d0a --module-dir skills/analog-gmid-design/assets",
+   "V5: $PY <캐시>/weakening_diff.py --root <W>/iso --base 8dfa53974ea9f4bfe2d6f61f607a0c089a11c603 --head 4b841d138055fb8f4a35aa6b7a6a1da4deed8d0a",
+   "V6: $PY <캐시>/source_lint.py --root <W>/iso --base 8dfa53974ea9f4bfe2d6f61f607a0c089a11c603 --head 4b841d138055fb8f4a35aa6b7a6a1da4deed8d0a",
+   "V7: $PY <캐시>/reachability.py --root <W>/iso --base 8dfa53974ea9f4bfe2d6f61f607a0c089a11c603 --head 4b841d138055fb8f4a35aa6b7a6a1da4deed8d0a",
+   "엄격 집합·V1 명령 자기 대조: PYTHONPATH=<캐시> $PY -P <W>/out/v1cmd_check.py <W>/iso <W>/iso/.git 8dfa53974ea9f4bfe2d6f61f607a0c089a11c603 <W> -- merge_gate.strict_set 공집합, v1_command_check 실패 0",
+   "잘못된 엄격 옵션 확인: V1 명령의 --gmid-strict= 를 --gmid-strict=IC3:,IC5: 로 바꾸고 --collect-only -q 로 실행 -> conftest UsageError, exit 4"
+  ]
+ }
+}

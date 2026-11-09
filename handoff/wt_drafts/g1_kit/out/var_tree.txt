@@ -1,0 +1,8 @@
+repo=C:\g143\q
+log=C:\g143\q\tools\gates\redteam\logs\20261001-231730-direct.jsonl
+
+PASS             32v-none-x                                   
+
+케이스: {"PASS": 1}
+단계: {"PASS": 15}
+variant none done

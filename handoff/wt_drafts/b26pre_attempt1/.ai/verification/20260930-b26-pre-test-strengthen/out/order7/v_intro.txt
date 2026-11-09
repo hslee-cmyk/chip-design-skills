@@ -1,0 +1,2 @@
+docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+{'V1': '1', 'V2': '1', 'V3': '1', 'V4': '1', 'V5': '1', 'V6': '1', 'V7': '2', 'V8': '4', 'V9': '6b', 'V10': '0.5'}

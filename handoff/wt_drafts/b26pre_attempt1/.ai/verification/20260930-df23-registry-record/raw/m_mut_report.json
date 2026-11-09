@@ -1,0 +1,358 @@
+{
+ "target_defs": [
+  [
+   "_df23_expected",
+   170,
+   216
+  ],
+  [
+   "_df23_rows_under",
+   219,
+   239
+  ],
+  [
+   "check_df23",
+   242,
+   318
+  ],
+  [
+   "main",
+   349,
+   385
+  ]
+ ],
+ "mutants_planned": 290,
+ "mutants_run": 290,
+ "killed": 281,
+ "survived": 9,
+ "timeouts": 0,
+ "by_op": {
+  "stmt_delete": 163,
+  "cmp_flip": 28,
+  "const+": 38,
+  "const-": 38,
+  "arith": 17,
+  "early_return": 4,
+  "except_body_delete": 2
+ },
+ "done": true,
+ "branches": [
+  {
+   "branch": "df23-section title (제목 줄 없음 -> 발견 하나만)",
+   "lines": [
+    246,
+    252
+   ],
+   "mutants": 9,
+   "killed": 9,
+   "survived": []
+  },
+  {
+   "branch": "df23-section 목록 줄 없음",
+   "lines": [
+    269,
+    270
+   ],
+   "mutants": 3,
+   "killed": 3,
+   "survived": []
+  },
+  {
+   "branch": "df23-path",
+   "lines": [
+    271,
+    272
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "df23-section measured_at 줄 없음",
+   "lines": [
+    273,
+    274
+   ],
+   "mutants": 3,
+   "killed": 3,
+   "survived": []
+  },
+  {
+   "branch": "df23-measured-at",
+   "lines": [
+    275,
+    276
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "df23-section 8.1 (소절·표 머리 없음)",
+   "lines": [
+    278,
+    280
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "df23-total (§8.1 행 대조)",
+   "lines": [
+    282,
+    296
+   ],
+   "mutants": 41,
+   "killed": 39,
+   "survived": [
+    "reg_check:check_df23:arith:body[15].orelse[1].body[0].value.right.right",
+    "reg_check:check_df23:const+:body[15].orelse[1].body[0].value.right.right.left"
+   ]
+  },
+  {
+   "branch": "df23-section 8.2 (소절·표 머리 없음)",
+   "lines": [
+    298,
+    300
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "df23-function (§8.2 행 대조)",
+   "lines": [
+    302,
+    317
+   ],
+   "mutants": 45,
+   "killed": 43,
+   "survived": [
+    "reg_check:check_df23:arith:body[17].orelse[1].body[0].value.right.right",
+    "reg_check:check_df23:const+:body[17].orelse[1].body[0].value.right.right.left"
+   ]
+  },
+  {
+   "branch": "§ 절·소절 경계(_df23_rows_under, 절 끝)",
+   "lines": [
+    219,
+    258
+   ],
+   "mutants": 54,
+   "killed": 52,
+   "survived": [
+    "reg_check:_df23_rows_under:const-:body[8].iter.args[0].slice.lower.right",
+    "reg_check:check_df23:const-:body[8].value.slice.lower.right"
+   ]
+  },
+  {
+   "branch": "§8.1·§8.2 기대값 계산(_df23_expected 묶음·DF·Phase)",
+   "lines": [
+    186,
+    216
+   ],
+   "mutants": 54,
+   "killed": 53,
+   "survived": [
+    "reg_check:_df23_expected:const+:body[7].body[4].value.value.args[1]"
+   ]
+  },
+  {
+   "branch": "ValueError (i) measured_at·items 없음",
+   "lines": [
+    172,
+    173
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "ValueError (ii) 항목 필드 없음",
+   "lines": [
+    183,
+    185
+   ],
+   "mutants": 5,
+   "killed": 5,
+   "survived": []
+  },
+  {
+   "branch": "ValueError (iii) function 빈 값",
+   "lines": [
+    187,
+    188
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "ValueError (iv) 같은 파일 이름 다른 경로",
+   "lines": [
+    206,
+    208
+   ],
+   "mutants": 6,
+   "killed": 6,
+   "survived": []
+  },
+  {
+   "branch": "ValueError (v) 동작 항목 plan_mapping 형식",
+   "lines": [
+    195,
+    198
+   ],
+   "mutants": 6,
+   "killed": 6,
+   "survived": []
+  },
+  {
+   "branch": "CLI --df23-inventory 루트 밖 -> exit 2",
+   "lines": [
+    367,
+    370
+   ],
+   "mutants": 7,
+   "killed": 7,
+   "survived": []
+  },
+  {
+   "branch": "CLI 목록 읽기·dict 아님 -> exit 2",
+   "lines": [
+    371,
+    375
+   ],
+   "mutants": 7,
+   "killed": 5,
+   "survived": [
+    "reg_check:main:stmt_delete:body[8].body[3].body[5]",
+    "reg_check:main:stmt_delete:body[8].body[3].body[5].body[0]"
+   ]
+  },
+  {
+   "branch": "CLI 발견 합치기",
+   "lines": [
+    376,
+    376
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "CLI 입력 오류 except -> exit 2",
+   "lines": [
+    377,
+    379
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "CLI 인자 --df23-inventory",
+   "lines": [
+    353,
+    353
+   ],
+   "mutants": 1,
+   "killed": 1,
+   "survived": []
+  }
+ ],
+ "survivors": [
+  {
+   "id": "reg_check:_df23_expected:const+:body[7].body[4].value.value.args[1]",
+   "lines": [
+    189,
+    189
+   ],
+   "src": [
+    "base = str(file).replace(\"\\\\\", \"/\").rsplit(\"/\", 1)[-1]"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_rows_under:const-:body[8].iter.args[0].slice.lower.right",
+   "lines": [
+    235,
+    235
+   ],
+   "src": [
+    "for hdr, rws in _tables_in(sec[start + 1:end]):"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const-:body[8].value.slice.lower.right",
+   "lines": [
+    258,
+    258
+   ],
+   "src": [
+    "sec = lines[start + 1:end]"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:arith:body[15].orelse[1].body[0].value.right.right",
+   "lines": [
+    284,
+    284
+   ],
+   "src": [
+    "r = r + [\"\"] * (3 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const+:body[15].orelse[1].body[0].value.right.right.left",
+   "lines": [
+    284,
+    284
+   ],
+   "src": [
+    "r = r + [\"\"] * (3 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:arith:body[17].orelse[1].body[0].value.right.right",
+   "lines": [
+    304,
+    304
+   ],
+   "src": [
+    "r = r + [\"\"] * (5 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const+:body[17].orelse[1].body[0].value.right.right.left",
+   "lines": [
+    304,
+    304
+   ],
+   "src": [
+    "r = r + [\"\"] * (5 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:main:stmt_delete:body[8].body[3].body[5]",
+   "lines": [
+    374,
+    375
+   ],
+   "src": [
+    "if not isinstance(inventory, dict):",
+    "raise ValueError(\"목록 최상위가 dict가 아니다\")"
+   ]
+  },
+  {
+   "id": "reg_check:main:stmt_delete:body[8].body[3].body[5].body[0]",
+   "lines": [
+    375,
+    375
+   ],
+   "src": [
+    "raise ValueError(\"목록 최상위가 dict가 아니다\")"
+   ]
+  }
+ ]
+}

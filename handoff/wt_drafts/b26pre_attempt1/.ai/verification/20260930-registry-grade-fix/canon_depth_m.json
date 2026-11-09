@@ -1,0 +1,404 @@
+[
+ {
+  "concept": "W 계산 `W=L*ID/IDu`",
+  "cell": "`size_transistor` / LUT `_sizing_bundle`",
+  "funcs": [
+   {
+    "name": "size_transistor",
+    "def": "sizing_recipe.py:94 size_transistor",
+    "direct": [],
+    "depth1": {},
+    "depth2_obs": {}
+   },
+   {
+    "name": "_sizing_bundle",
+    "def": "sizing_recipe.py:391 SemiEmpiricalGmIdLUT._sizing_bundle",
+    "direct": [],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "diode 판정",
+  "cell": "`is_diode_connected`",
+  "funcs": [
+   {
+    "name": "is_diode_connected",
+    "def": "sizing_recipe.py:3109 is_diode_connected",
+    "direct": [],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "전류미러 그룹",
+  "cell": "정본 후보(`true_current_mirror_groups`(connectivity, 키 kind·gate·source) -- 레일 판정을 `_DEFAULT_RAIL_HI/_LO` 넷 이름 리터럴로 읽음(sizing_recipe 2197행 근처), B26 해소 뒤 확정)",
+  "funcs": [
+   {
+    "name": "true_current_mirror_groups",
+    "def": "sizing_recipe.py:2181 true_current_mirror_groups",
+    "direct": [
+     [
+      2197,
+      "const",
+      "_DEFAULT_RAIL_HI"
+     ],
+     [
+      2197,
+      "const",
+      "_DEFAULT_RAIL_LO"
+     ]
+    ],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": true,
+  "cell_marked_candidate": true
+ },
+ {
+  "concept": "diffpair / tail",
+  "cell": "(미정)",
+  "funcs": [],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "노드 DC 전압",
+  "cell": "정본 후보(`propagate_node_voltages`(평가당 1회로) -- 기본 인자 `rail_hi/rail_lo=_DEFAULT_RAIL_*` 넷 이름 리터럴을 엔진 호출부가 그대로 씀(sizing_recipe 3717행), B26 해소 뒤 확정)",
+  "funcs": [
+   {
+    "name": "propagate_node_voltages",
+    "def": "sizing_recipe.py:3717 propagate_node_voltages",
+    "direct": [
+     [
+      3718,
+      "const",
+      "_DEFAULT_RAIL_HI"
+     ],
+     [
+      3718,
+      "const",
+      "_DEFAULT_RAIL_LO"
+     ]
+    ],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": true,
+  "cell_marked_candidate": true
+ },
+ {
+  "concept": "KCL 엣지",
+  "cell": "정본 후보(`stick_diagram._kcl_and_matching_edges` -- 레일 판정을 `_RAIL_NETS` 넷 이름 리터럴로 읽음(stick_diagram 3148행), B26 해소 뒤 확정)",
+  "funcs": [
+   {
+    "name": "stick_diagram._kcl_and_matching_edges",
+    "def": "stick_diagram.py:3134 _kcl_and_matching_edges",
+    "direct": [
+     [
+      3148,
+      "const",
+      "_RAIL_NETS"
+     ]
+    ],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": true,
+  "cell_marked_candidate": true
+ },
+ {
+  "concept": "스택 KVL 합",
+  "cell": "`_hr_verify_group_kvl_sum`",
+  "funcs": [
+   {
+    "name": "_hr_verify_group_kvl_sum",
+    "def": "sizing_recipe.py:6943 _hr_verify_group_kvl_sum",
+    "direct": [],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "레일 넷 집합",
+  "cell": "(정본 없음 -- `supply_nets` 선언에서 읽는 경로가 후보)",
+  "funcs": [],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": true
+ },
+ {
+  "concept": "topology 로딩",
+  "cell": "`_load_full_topology_cached`",
+  "funcs": [
+   {
+    "name": "_load_full_topology_cached",
+    "def": "sizing_recipe.py:4772 _load_full_topology_cached",
+    "direct": [],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "theta가 건드리는 소자",
+  "cell": "`_theta_feed_footprint`",
+  "funcs": [
+   {
+    "name": "_theta_feed_footprint",
+    "def": "sizing_recipe.py:9591 _theta_feed_footprint",
+    "direct": [],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "euler 행 수정 전략",
+  "cell": "`run_topology_pipeline_with_finger_fixup`",
+  "funcs": [
+   {
+    "name": "run_topology_pipeline_with_finger_fixup",
+    "def": "sizing_recipe.py:11853 run_topology_pipeline_with_finger_fixup",
+    "direct": [],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "위반량 합",
+  "cell": "(함수 하나로)",
+  "funcs": [],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "union-find",
+  "cell": "(유틸 하나로)",
+  "funcs": [],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "다선형 보간",
+  "cell": "`_multilinear_interp`",
+  "funcs": [
+   {
+    "name": "_multilinear_interp",
+    "def": "sizing_recipe.py:131 _multilinear_interp",
+    "direct": [],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "이분 역산 뼈대",
+  "cell": "(하나로, **단조성 검사 포함**)",
+  "funcs": [],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "gain metric",
+  "cell": "정본 후보(`_metric_smallsignal_gain_db` -- 하위 `_full_circuit_response`가 접지 넷을 `fixed = {\"gnd\": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4957행), B26 해소 뒤 확정)",
+  "funcs": [
+   {
+    "name": "_metric_smallsignal_gain_db",
+    "def": "sizing_recipe.py:5008 _metric_smallsignal_gain_db",
+    "direct": [],
+    "depth1": {
+     "_full_circuit_response": [
+      [
+       4957,
+       "literal",
+       "gnd"
+      ]
+     ]
+    },
+    "depth2_obs": {}
+   },
+   {
+    "name": "_full_circuit_response",
+    "def": "sizing_recipe.py:4936 _full_circuit_response",
+    "direct": [
+     [
+      4957,
+      "literal",
+      "gnd"
+     ]
+    ],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": true,
+  "cell_marked_candidate": true
+ },
+ {
+  "concept": "PM metric",
+  "cell": "정본 후보(`_metric_parasitic_pm_deg` -- 하위 `build_ac_network`가 접지 넷을 `fixed = {\"gnd\": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4076행), B26 해소 뒤 확정)",
+  "funcs": [
+   {
+    "name": "_metric_parasitic_pm_deg",
+    "def": "sizing_recipe.py:4156 _metric_parasitic_pm_deg",
+    "direct": [],
+    "depth1": {
+     "build_ac_network": [
+      [
+       4076,
+       "literal",
+       "gnd"
+      ]
+     ]
+    },
+    "depth2_obs": {
+     "full_circuit_response_at_omega->build_ac_network": [
+      [
+       4076,
+       "literal",
+       "gnd"
+      ]
+     ]
+    }
+   },
+   {
+    "name": "build_ac_network",
+    "def": "sizing_recipe.py:4057 build_ac_network",
+    "direct": [
+     [
+      4076,
+      "literal",
+      "gnd"
+     ]
+    ],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": true,
+  "cell_marked_candidate": true
+ },
+ {
+  "concept": "CMRR",
+  "cell": "정본 후보(`_metric_smallsignal_ratio_db` -- 하위 `_full_circuit_response`가 접지 넷을 `fixed = {\"gnd\": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4957행), B26 해소 뒤 확정)",
+  "funcs": [
+   {
+    "name": "_metric_smallsignal_ratio_db",
+    "def": "sizing_recipe.py:4979 _metric_smallsignal_ratio_db",
+    "direct": [],
+    "depth1": {
+     "_full_circuit_response": [
+      [
+       4957,
+       "literal",
+       "gnd"
+      ]
+     ]
+    },
+    "depth2_obs": {}
+   },
+   {
+    "name": "_full_circuit_response",
+    "def": "sizing_recipe.py:4936 _full_circuit_response",
+    "direct": [
+     [
+      4957,
+      "literal",
+      "gnd"
+     ]
+    ],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": true,
+  "cell_marked_candidate": true
+ },
+ {
+  "concept": "MNA 소자 스탬프",
+  "cell": "정본 후보(`build_ac_network` -- 접지 넷을 `fixed = {\"gnd\": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4076행), B26 해소 뒤 확정)",
+  "funcs": [
+   {
+    "name": "build_ac_network",
+    "def": "sizing_recipe.py:4057 build_ac_network",
+    "direct": [
+     [
+      4076,
+      "literal",
+      "gnd"
+     ]
+    ],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": true,
+  "cell_marked_candidate": true
+ },
+ {
+  "concept": "HTML 리포트",
+  "cell": "`design_report.render_html_report`",
+  "funcs": [
+   {
+    "name": "design_report.render_html_report",
+    "def": "design_report.py:198 render_html_report",
+    "direct": [],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "diode 고정점",
+  "cell": "`solve_diode_connected_vds`",
+  "funcs": [
+   {
+    "name": "solve_diode_connected_vds",
+    "def": "sizing_recipe.py:3119 solve_diode_connected_vds",
+    "direct": [],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ },
+ {
+  "concept": "L grid 스냅",
+  "cell": "`quantize_L`",
+  "funcs": [
+   {
+    "name": "quantize_L",
+    "def": "sizing_recipe.py:736 quantize_L",
+    "direct": [],
+    "depth1": {},
+    "depth2_obs": {}
+   }
+  ],
+  "reads_names_depth_le_1": false,
+  "cell_marked_candidate": false
+ }
+]

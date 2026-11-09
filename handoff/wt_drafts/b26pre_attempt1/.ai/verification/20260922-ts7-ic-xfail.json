@@ -1,0 +1,81 @@
+{
+  "id": "20260922-ts7-ic-xfail",
+  "spec_card": "docs/02-design/specs/20260922-ts7-ic-xfail.spec.md",
+  "evidence_type": "test-only",
+  "base_commit": "80ae065e7fc4f3c30fee61b955d0a3a65643d03c",
+  "test_commit": "41cba3e1c14b9377008f35b4482ee19930e55c2a",
+  "code_commit": null,
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "T 41cba3e1c14b9377008f35b4482ee19930e55c2a(test-only라 병합본 = T) 격리 복제본 C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2(origin 없음)에서 V1 명령(-k/--deselect/-x/-m 없음, slow 포함 전체, base 판 캐시 80ae065 판 pytest_gate.ini, 병합본 conftest가 요구하므로 --gmid-phase=1 --gmid-strict= -- design §6.5 'C6의 병합본 실행부터', 이 card는 activated_ic_case 없음이고 같은 Phase 병합 card에도 없어 엄격 집합 빈 값): 54 passed, 14 xfailed(비엄격, IC 뼈대 11개의 케이스 14개), 실패·오류·skip·xpass 0, 수집 오류 0, exit 0, 47.23s, 출력 sha256 앞 16자리 2bbb894709bfeea1. merge gate는 old 80ae065에 conftest가 없어(conftest_has_gmid_phase 거짓) 엄격 집합을 대조하지 않는다(00-common §9.3 'CC-3 병합 전 판정식'); auditor가 캐시 판 merge_gate.v1_command_check로 이 V1 명령을 strict_needed=None과 strict_needed=빈 집합·phase 1 두 경우 모두 실패 0으로 확인. 실행 뒤 복제본 추적 파일 변경 0"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "test-only(계획 N3.12.3 개정 P5, spec card 판정 유형 근거 '대상 코드 불변'). code 커밋 없음: T의 부모 = base 80ae065, base..T 커밋 1개(Role: test, Change-Id 일치), 변경 14경로(A 13, M 1) 모두 A/tests 아래, 소스·tools/·.githooks/·계획서 변경 0. test-only 증거: base 전체(옵션 없이, base에 conftest 없음) 48 passed exit 0; T 전체(V1 명령) 54 passed·14 xfailed·수집 오류 0; base PASSED id 48개가 모두 T에서 PASSED(더해진 6개 = 대조 test 파일 6함수). 계약 1: conftest가 design §5.4 그대로 -- addoption 셋(--gmid-phase 기본값 없음, --gmid-strict, --gmid-dod 플래그), 표식 gmid_ic 등록, 옵션 거부 3가지 모두 exit 4 UsageError(--gmid-phase 없음 / --gmid-phase=9 phase_order 밖 / --gmid-strict=IC99: 모르는 키; 덤으로 IC7:run Phase 불일치 키도 exit 4), 빈 --gmid-strict= 는 키 없음(V1 exit 0), --gmid-strict=IC3: 는 IC3만 엄격 FAIL, --gmid-dod 는 Phase 1 표식 IC3·IC5 둘 FAIL, xfail reason 14줄 `<IC> -- 담당 Phase <p> -- 만료: <p> DoD` 문자 일치, tools/gates는 sys.path 끝에 더하고 merge_gate를 import. 승인이 요구한 확인: 추가 거부 두 가지(표식 둘 이상, 표식 인자 형식·phase 범위)는 정상 흐름 발동 0(V1 exit 0), --help 는 --gmid-phase 없이 exit 0. 계약 2: 파일 11개 함수 이름·(phase, case) 14개가 design §6.5 표와 계획서 N4.1(ic_test, ic_parts phase 집합)에 일치, 본문 모두 `pytest.fail()` 한 줄(인자 없음), IC7·IC11은 pytest.param marks(auditor AST 대조, problems 0). 계약 3: 대조 test 6개 PASS(IC 11개 대조 + 합성 소스 거부 두 가지 + 실제 계획 불일치 거부 + 일치 소스 수용). 계약 4: 위 전체 실행 결과. 운반 blob 14개 = T blob 14개(sha1 재계산·바이트 일치, R1). 상세: .ai/verification/20260922-ts7-ic-xfail/base_check.json"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "변이 대상 def 0개(대상 코드 불변). base 판 mutate_changed.py: targets 빈 목록, mutants 0, killed 0, survivors 빈 목록, exit 0. 근거: base..T diff는 A/tests 아래 test 분류 경로 14개뿐이고 V3 대상은 test 분류 밖 소스 def인데 소스 변경 0. 참고: C6 conftest 뒤 mutate_changed의 pytest 실행에 --gmid-* 가 없어 변이 대상이 있으면 기준 실행이 UsageError가 된다(design §6.10, C11 대상) -- 이번에는 대상 0이라 pytest를 실행하지 않아 판정에 영향 없음. --pytest-ini는 복제본 tools/gates/pytest_gate.ini(base..T에서 tools/ 변경 0)"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: base 판 test_lint.py를 interface card만으로 돌리면 ERROR(피검 심볼 없음 -- card 두 표가 비어 있다, 대상 코드 불변)라 (b) --module-dir tools/gates --subject merge_gate:read_plan_tables·read_plan_tables_text·ICPart·PlanTables와 (c) --module-dir skills/analog-gmid-design/assets 엔진 4모듈 최상위 def·class 370개로 실행: 둘 다 PASS, 대상 test 파일 12개, findings 12개 모두 NO-SUBJECT(test_ic_markers_match_plan.py 판정 문장 12개), FAIL 0, UNJUDGED 0, exit 0, 두 출력 sha256 같음(앞 16자리 f558e0c3d89748b3). 기대값 대조(spec card oracle (d) 계획서 N4.1 승인 판, (a) 구성 합성 소스): test_plan_declares_eleven_ics의 기대값 {IC1..IC11} = spec card 계약 3 'IC 11개'와 계획서 N4.1 표 11행 -- 일치; test_markers_match_plan의 기대값은 계획서를 게이트 파서 read_plan_tables로 읽은 ic_parts phase 집합이고 비교 대상은 contracts 파일 AST 표식이라 피검(conftest·표식) 출력의 복사가 아니다 -- auditor가 따로 AST로 읽은 14 표식 phase 집합이 계획서와 같다(oracle (d) 일치); test_judge_accepts_matching_source(거부 0), test_judge_rejects_phase_not_in_plan(IC3 한 건), test_judge_rejects_plan_phase_without_marker(IC7 한 건, IC3 한 건), test_judge_rejects_real_plan_mismatch(실제 계획서로 IC7만)의 기대값은 합성 소스 구성(phase를 계획 밖 4로 바꿈, 표식·데코레이터 뺌)에서 정해지는 정답과 같다(oracle (a) 일치). 판정기 judge_markers는 test 파일 안의 판정기라 이 test가 스스로의 거부를 합성 입력으로 보인다(design §6.5 요구). 뼈대 11개 test는 판정 문장이 `pytest.fail()`뿐(기대값 없음, V4 (4) 판정으로 센다). 기존 test 48개는 base와 바이트 같다(.py 변경은 새 파일뿐)"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 weakening_diff.py(base 80ae065, head 41cba3e) 원문 요약: verdict PASS, exit 0, findings 2(모두 pattern '무조건 승인 필요', detail 'test 분류 비-.py 파일 또는 tests/conftest.py 변경', unit (파일): skills/analog-gmid-design/assets/tests/README.md, skills/analog-gmid-design/assets/tests/conftest.py), diff_paths = 그 2 경로, diff_hash 9feedcc187a2d6d38dfa6e60610d3828f38822d78b592e0d4b2f99cd5a2124b2, approved true -- head 트리 .ai/approvals/20260922-ts7-conftest.md(target_kind diff, target 같은 해시, 1차 시도 기준 diff_base b3470ed·diff_head 2d312163, 같은 2 경로, 사용자 원문 '모두 승인 (Recommended)', 범위에 추가 거부 두 가지와 --help 예외 포함)가 덮는다. auditor가 00-common §8.2 식으로 (80ae065, 41cba3e)와 (b3470ed, 41cba3e)에서 다시 계산해도 같다: README base blob이 두 base에서 같고(6af3d27c) conftest는 둘 다 없으며 T blob c8c701d9·a0e788db가 승인 질문의 blob과 같다(R1 운반 blob 14개 재계산 일치). 승인이 요구한 '정상 흐름 추가 거부 발동 0'은 V1 exit 0으로 확인(V2). 출력 sha256 앞 16자리 e1f98ad2fb410c34(전체 값은 base_check.json -- merge gate §9.2-9가 V5 basis의 64자리 16진을 모두 승인 target으로 대조하므로 승인 해시 외에는 두지 않는다)"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 source_lint.py: targets 빈 목록, findings 0, verdict PASS, exit 0. 소스 변경 0"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 reachability.py PASS, new_defs 빈 목록, unreached 빈 목록(대상 코드 불변)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 코드 불변(test 뼈대·conftest 추가)"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 무관(test 뼈대·conftest 추가)"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260922-10-test-separation-design",
+    "20260922-ts7-conftest"
+  ],
+  "auditor_run": {
+    "time": "2026-09-22T16:20:38+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts7-ic-xfail-audit",
+    "commands": [
+      "격리: git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts7-ic-xfail-audit C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2",
+      "격리: git -C C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 remote remove origin",
+      "격리: git -C C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 config core.longpaths true",
+      "격리(base 측정): git -C C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 checkout -q --detach 80ae065e7fc4f3c30fee61b955d0a3a65643d03c",
+      "격리(T 측정): git -C C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 checkout -q --detach 41cba3e1c14b9377008f35b4482ee19930e55c2a",
+      "PY = C:/Python314/python.exe, APPDATA=C:\\Users\\HSLEE\\AppData\\Roaming",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/ts7-out2/pyc_t_v1 PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/80ae065e7fc4f3c30fee61b955d0a3a65643d03c $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/80ae065e7fc4f3c30fee61b955d0a3a65643d03c/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2/skills/analog-gmid-design/assets/tests --gmid-phase=1 --gmid-strict= -rA",
+      "V1 cwd: C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2",
+      "V2 base test 집합: V1 명령에서 ' --gmid-phase=1 --gmid-strict='만 뺀 형태를 base 80ae065 checkout에서(PYTHONPYCACHEPREFIX만 다른 빈 디렉터리 pyc_base_v1), -rA 요약 PASSED id sort 뒤 comm -23 (base에만 있는 PASS 0)",
+      "V2 옵션 확인(T, cwd iso): V1 앞부분 + <iso>/skills/analog-gmid-design/assets/tests/contracts + {'' | --gmid-phase=9 | --gmid-phase=1 --gmid-strict=IC99: | --gmid-phase=1 --gmid-strict=IC7:run | --gmid-phase=1 --gmid-strict=IC3: | --gmid-phase=1 --gmid-dod} -q -p no:cacheprovider (PYTHONPYCACHEPREFIX pyc_rej1..6), 그리고 --gmid-phase=1 --gmid-strict= -rx(PYTHONIOENCODING=utf-8, reason 대조), 전체 tests --help",
+      "V2 oracle 대조: $PY -B C:/Users/HSLEE/AppData/Local/Temp/ts7-out2/oracle_check.py C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 C:/Users/HSLEE/AppData/Local/Temp/ts7-out2/oracle_check.json",
+      "V3(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/80ae065e7fc4f3c30fee61b955d0a3a65643d03c/mutate_changed.py --root C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 --base 80ae065e7fc4f3c30fee61b955d0a3a65643d03c --head 41cba3e1c14b9377008f35b4482ee19930e55c2a --pytest-ini C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --out C:/Users/HSLEE/AppData/Local/Temp/ts7-out2/v3/v3.jsonl",
+      "V4(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/80ae065e7fc4f3c30fee61b955d0a3a65643d03c/test_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 --interface-card C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2/docs/02-design/specs/20260922-ts7-ic-xfail.interface.md --base 80ae065e7fc4f3c30fee61b955d0a3a65643d03c --head 41cba3e1c14b9377008f35b4482ee19930e55c2a (ERROR: 피검 심볼 없음)",
+      "V4 (b)(cwd iso): 같은 명령 + --module-dir tools/gates --subject merge_gate:read_plan_tables --subject merge_gate:read_plan_tables_text --subject merge_gate:ICPart --subject merge_gate:PlanTables",
+      "V4 (c): $PY -B C:/Users/HSLEE/AppData/Local/Temp/ts7-out2/run_v4c.py (같은 명령 + --module-dir skills/analog-gmid-design/assets + --subject 370개, outputs_dir/v4_subject_args.txt -- v4_subjects.py로 T 엔진 4모듈 최상위 def·class 추출)",
+      "V5(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/80ae065e7fc4f3c30fee61b955d0a3a65643d03c/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 --base 80ae065e7fc4f3c30fee61b955d0a3a65643d03c --head 41cba3e1c14b9377008f35b4482ee19930e55c2a",
+      "V5 재계산: oracle_check.py의 (4)(00-common §8.2 diff 해시 두 쌍, head 트리 승인 대조)",
+      "V6(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/80ae065e7fc4f3c30fee61b955d0a3a65643d03c/source_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 --base 80ae065e7fc4f3c30fee61b955d0a3a65643d03c --head 41cba3e1c14b9377008f35b4482ee19930e55c2a",
+      "V7 참고(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/80ae065e7fc4f3c30fee61b955d0a3a65643d03c/reachability.py --root C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 --base 80ae065e7fc4f3c30fee61b955d0a3a65643d03c --head 41cba3e1c14b9377008f35b4482ee19930e55c2a",
+      "기록 확인: $PY -B C:/Users/HSLEE/AppData/Local/Temp/ts7-out2/record_check.py (base 판 로더 규칙 1~10, §9.2-9 V5 basis 64자리 16진 대조, v1_command_check)"
+    ]
+  }
+}

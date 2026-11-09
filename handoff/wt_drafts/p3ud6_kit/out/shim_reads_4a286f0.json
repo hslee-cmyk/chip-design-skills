@@ -1,0 +1,298 @@
+{
+ "rev": "4a286f0",
+ "import_bound_counts": {
+  "topology_library": 3,
+  "sizing_recipe": 44,
+  "design_report": 5
+ },
+ "hits": [
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probe_physical_consistency.py",
+   "line": 42,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py",
+   "line": 84,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py",
+   "line": 44,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py",
+   "line": 34,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py",
+   "line": 62,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py",
+   "line": 44,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py",
+   "line": 54,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py",
+   "line": 83,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_full_research.py",
+   "line": 140,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py",
+   "line": 100,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py",
+   "line": 30,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py",
+   "line": 144,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py",
+   "line": 158,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py",
+   "line": 96,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py",
+   "line": 110,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py",
+   "line": 30,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py",
+   "line": 39,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py",
+   "line": 117,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py",
+   "line": 83,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py",
+   "line": 24,
+   "module": "design_report",
+   "name": "os",
+   "bound_by": "import",
+   "card": "M9",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "Transistor",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "_dc_replace",
+   "bound_by": "from dataclasses",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "json",
+   "bound_by": "import",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "load_topology",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "math",
+   "bound_by": "import",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "nmcnr_predict_ac_response",
+   "bound_by": "from topology_library",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "np",
+   "bound_by": "import",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "propagate_topology_forced_currents",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "suggest_pair_finger_adjustments",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "from-import"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py",
+   "line": 24,
+   "module": "topology_library",
+   "name": "math",
+   "bound_by": "import",
+   "card": "M4",
+   "how": "from-import"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py",
+   "line": 24,
+   "module": "sizing_recipe",
+   "name": "repair_matching_safety",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  },
+  {
+   "file": "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py",
+   "line": 20,
+   "module": "sizing_recipe",
+   "name": "repair_matching_safety",
+   "bound_by": "from stick_diagram",
+   "card": "M8",
+   "how": "attribute"
+  }
+ ]
+}

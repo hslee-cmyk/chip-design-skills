@@ -1,0 +1,42 @@
+== seq base 0f237862c007f6a53122f2bdfb3c87e6366ec133 autocrlf=true
+  plan_tables_hash 7167e02839f86c4ecbcd91a63a9833c4d83a8aab8008bfe2d8cfc36206d2596d | _approved_ids 36
+  OK  묶기 card 전 범위 패치 --check 거부(exit 2), 무쓰기
+== 묶기 card 20260930-v3-exempt-binding
+  patch_v3_binding_docs.py --check: {  "card": "20260930-v3-exempt-binding",  "root": "C:\\g109\\seq",  "edits": [   {    "path": "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md",    "name": "design05-V3-5-exempt",    "state": "pending"   },   {    "path": "docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md",    "name": "design10-382-C8",    "state": "pending"   },
+  numstat: 1	1	docs/01-plan/features/gain-budget-gmid-sizing.plan.md | 1	1	docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md | 1	1	docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md
+  OK  20260930-v3-exempt-binding 문서 패치: 파일마다 1줄 바꿈
+  OK  20260930-v3-exempt-binding 패치 재실행 멱등: {  "card": "20260930-v3-exempt-binding",  "root": "C:\\g109\\seq",  "edits": [   {    "path": "docs/02-design/featu
+  interface card 13줄
+  fill_v3_approval: {  "id": "20260930-v3-exempt-binding",  "target": "698550f2afa9702e29c418145952ab9bc92ac1333c980e79591f22017f0e7fec",  "diff_base": "0f237862c007f6a53122f2bdfb3c87e6366ec133",  "diff_head": "534844c6871c180b77f80a365d2a6dee16f3fa1a",  "diff_path": [   "docs/01-plan/features/gain-budget-gmid-si
+  OK  20260930-v3-exempt-binding gate_change_ok HEAD=True, HEAD~1=False
+  OK  20260930-v3-exempt-binding target == diff_hash == compute_diff_hash (698550f2afa9702e…)
+  OK  20260930-v3-exempt-binding approved_hashes(HEAD)에 target
+  parse_spec_card: {"phase": "0.5", "evidence_type": "red-green", "gate_change": "yes", "approval": ["20260930-v3-exempt-binding"]}
+  OK  20260930-v3-exempt-binding 승인 기록 blob: HTML 주석 없음, CR 없음
+  diff_path 5개: ['docs/01-plan/features/gain-budget-gmid-sizing.plan.md', 'docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md', 'docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md', 'docs/02-design/specs/20260930-v3-exempt-binding.interface.md', 'docs/02-design/specs/20260930-v3-exempt-binding.spec.md']
+== 범위 card 20260930-v3-changed-stmt-scope
+  patch_v3_scope_docs.py --check: {  "card": "20260930-v3-changed-stmt-scope",  "root": "C:\\g109\\seq",  "edits": [   {    "path": "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md",    "name": "design05-V3-1-target",    "state": "pending"   },   {    "path": "docs/01-plan/features/gain-budget-gmid-sizing.plan.md",    "name": "planN42-V3-target",    "state": "pending"   }  ],  "files": {
+  numstat: 1	1	docs/01-plan/features/gain-budget-gmid-sizing.plan.md | 1	1	docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md
+  OK  20260930-v3-changed-stmt-scope 문서 패치: 파일마다 1줄 바꿈
+  OK  20260930-v3-changed-stmt-scope 패치 재실행 멱등: {  "card": "20260930-v3-changed-stmt-scope",  "root": "C:\\g109\\seq",  "edits": [   {    "path": "docs/02-design/f
+  interface card 13줄
+  fill_v3_approval: {  "id": "20260930-v3-changed-stmt-scope",  "target": "274a83e126621c5dd69dcbb955fbea065d1ac29befbc8ab1e9287fb11073f6e5",  "diff_base": "906eda2fc85137a1255c7d2cfc1f9136eea0b061",  "diff_head": "1f5369b30d85466556c42e755da73229d4ab3d3f",  "diff_path": [   "docs/01-plan/features/gain-budget-gmi
+  OK  20260930-v3-changed-stmt-scope gate_change_ok HEAD=True, HEAD~1=False
+  OK  20260930-v3-changed-stmt-scope target == diff_hash == compute_diff_hash (274a83e126621c5d…)
+  OK  20260930-v3-changed-stmt-scope approved_hashes(HEAD)에 target
+  parse_spec_card: {"phase": "0.5", "evidence_type": "red-green", "gate_change": "yes", "approval": ["20260930-v3-changed-stmt-scope"]}
+  OK  20260930-v3-changed-stmt-scope 승인 기록 blob: HTML 주석 없음, CR 없음
+  diff_path 4개: ['docs/01-plan/features/gain-budget-gmid-sizing.plan.md', 'docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md', 'docs/02-design/specs/20260930-v3-changed-stmt-scope.interface.md', 'docs/02-design/specs/20260930-v3-changed-stmt-scope.spec.md']
+  OK  plan_tables_hash 불변(7167e02839f86c4e…)
+  OK  _approved_ids 수 불변(36)
+  OK  spec card 계약 10 인용문 2개(356자·129자)가 패치된 design 05·계획 V3 행 안에 그대로
+  OK  design 05 V3 행 `|` 개수 불변
+  LF 정규화 sha256 plan d723985d3ada6c11
+  LF 정규화 sha256 05 1b7772532dad856a
+  LF 정규화 sha256 10 fb0f187002278bc4
+  OK  EL4 receive 묶기 push old=0f23786 new=906eda2 exit 0 
+  OK  EL4 receive 범위 push old=906eda2 new=62d3b34 exit 0 
+  참고: 트레일러 없는 커밋(docs/02-design/specs/20260930-v3-changed-stmt-scope.spec.md) receive exit 1 [EL4 거부] 047702664f10: 트레일러 `Role: code|test|audit|doc|user`가 정확히 하나가 아니다([]) -- 주체 미정(트레일러 없음), 판정 행 §8.2-2, 위반 경로(표와 겹침): docs/02-design/specs/20260930-v3-changed-stmt-scope.spec.md
+  OK  EL4 대조(트레일러 없음) exit 1: [EL4 거부] a5fe8f9b07cb: 트레일러 `Role: code|test|audit|doc|user`가 정확히 하나가 아니다([]) -- 주체 미정(트레일러 없음), 판정 행 §8.2-2, 위반 경로(표와 겹침): tools/gates/mutate_changed.py
+== 커밋: 묶기 A 8ec6744 B 534844c C 906eda2 | 범위 A e68b65a B 1f5369b C 62d3b34
+== 결과: NG 0

@@ -1,0 +1,62 @@
+{
+ "path_missing(head ref, file only in base)": {
+  "raised": "RuntimeError",
+  "msg": "@bindhash 참조 경로가 head 사전에 없음: skills/analog-gmid-design/assets/rt_engine.py"
+ },
+ "qualname_missing": {
+  "raised": "RuntimeError",
+  "msg": "@bindhash qualname def 없음: head:skills/analog-gmid-design/assets/rt_engine.py:g"
+ },
+ "self_reference": {
+  "raised": "RuntimeError",
+  "msg": "@bindhash 참조 파일에 자리표시자가 있음(순환): head:skills/analog-gmid-design/assets/rt_engine.py"
+ },
+ "ref_file_has_placeholder(cycle)": {
+  "raised": "RuntimeError",
+  "msg": "@bindhash 참조 파일에 자리표시자가 있음(순환): head:skills/analog-gmid-design/assets/rt_engine.py"
+ },
+ "duplicate_qualname": {
+  "raised": "RuntimeError",
+  "msg": "@bindhash 같은 qualname def가 2개: head:skills/analog-gmid-design/assets/rt_engine.py:f"
+ },
+ "bad_side": {
+  "raised": "RuntimeError",
+  "msg": "@bindhash 형식 오류: 'mid:skills/analog-gmid-design/assets/rt_engine.py:f' (형식 <base|head>:<경로>:<qualname>)"
+ },
+ "None_spec_ref": {
+  "raised": "RuntimeError",
+  "msg": "@bindhash 참조 경로가 head 사전에 없음: skills/analog-gmid-design/assets/rt_engine.py"
+ },
+ "normal": {
+  "a.md": "t: e2198cfc5e4d50da84263252103274473e266a30504e4fd611ee80b813191458",
+  "eng_bytes_same": true
+ },
+ "out_jsonl_array_line": {
+  "raised": "RuntimeError",
+  "msg": "--out array_line.jsonl 2행이 JSON 객체가 아님: '[1, 2]'"
+ },
+ "out_jsonl_not_json": {
+  "raised": "RuntimeError",
+  "msg": "--out not_json.jsonl 1행이 JSON이 아님: 'garbage'"
+ },
+ "out_jsonl_ok": {
+  "observed": {
+   "lines": 4,
+   "by_result": {
+    "exempt": [
+     "a2",
+     "b"
+    ],
+    "not_targeted": [
+     "c"
+    ]
+   }
+  }
+ },
+ "out_jsonl_missing_file": {
+  "observed": {
+   "lines": 0,
+   "by_result": {}
+  }
+ }
+}

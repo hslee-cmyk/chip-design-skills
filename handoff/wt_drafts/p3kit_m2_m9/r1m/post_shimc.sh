@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# measure only: R-SHIMc follow-ups. $1 = card label (m8|m9), $2 = base, $3 = merged head, $4 = SHIMc variant commit, $5 = e3b stem, $6 = full PT3 (1/0), $7 = scratch root (e.g. C:/g278)
+set -u
+L=$1; B=$2; H=$3; V=$4; M=$5; FULL=$6; SCR=$7; O=$SCR/out; K=$SCR/kit
+export PYTHONIOENCODING=utf-8 TMP=$SCR/tmp TEMP=$SCR/tmp
+EXCL='^(\.ai/verification/|docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition\.py$)'
+C:/Python314/python.exe -B $K/e3b_$M.py $SCR/r $B $B "$EXCL" | tr -d '\r' | grep FAIL | sort > $O/shimc_${L}_bb.txt
+C:/Python314/python.exe -B $K/e3b_$M.py $SCR/r $B $H "$EXCL" | tr -d '\r' > $O/shimc_${L}_bh.txt
+C:/Python314/python.exe -B $K/e3b_$M.py $SCR/r $B $V "$EXCL" | tr -d '\r' > $O/shimc_${L}_bv.txt
+{
+echo "== $L e3b $M"
+echo "head : $(grep -m1 'LIVE\|INVALID' $O/shimc_${L}_bh.txt) newFAIL=$(grep FAIL $O/shimc_${L}_bh.txt | sort | comm -23 - $O/shimc_${L}_bb.txt | wc -l) last=$(tail -1 $O/shimc_${L}_bh.txt)"
+echo "var  : $(grep -m1 'LIVE\|INVALID' $O/shimc_${L}_bv.txt) newFAIL=$(grep FAIL $O/shimc_${L}_bv.txt | sort | comm -23 - $O/shimc_${L}_bb.txt | wc -l) last=$(tail -1 $O/shimc_${L}_bv.txt)"
+grep FAIL $O/shimc_${L}_bv.txt | sort | comm -23 - $O/shimc_${L}_bb.txt | head -5
+} >> $O/shimc_summary.txt
+if [ "$FULL" = 1 ]; then
+  git -C $SCR/pt9v checkout -q --detach $V
+  bash $K/pt3.sh $SCR/pt9v ${L}shimc $SCR/cache/tools/gates $O
+  echo "== $L PT3 variant: $(tail -2 $O/${L}shimc.pt3.txt | tr '\n' ' ')" >> $O/shimc_summary.txt
+fi
+echo "$L done" >> $O/shimc_summary.txt

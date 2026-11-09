@@ -1,0 +1,94 @@
+
+===== replace old 11-11 new 11-11
+  - 상자 적용 자리 로더 → S0 블록(SF-1 범위 9)
+  + 적용 상자 writer = 검색 정의역 S0 블록(`search_domain` 자리, SF-1 범위 9
+  + 로더 → S0 블록)
+  ~~
+
+===== replace old 304-304 new 304-304
+  - 권고 (나) 역할별 분리, Q-CB1 (나) 승인 시 상자 적용 자리 = S0 θ 상자 블록(card SF-1 범위 9
+  - 로더 → S0 블록)
+  + 권고 (나) 역할별 분리, Q-CB1 (나) 승인 시 적용 상자 writer = 검색 정의역 S0 블록(`search_domain` 자리)(card SF-1 범위 9
+  + 로더 → S0 블록, 층 = `dc_current_basis`·`theta_schema` 뒤)
+  ~~
+
+===== replace old 1166-1166 new 1166-1166
+  - (2) **상자 writer 하나**: S0 θ 상자 블록 하나가 모든 θ 수동소자 상자를 쓴다(순서 = 회로별 선언 → 결합 C는 선언 필수·미선언 정지 → 그 밖 커패시터는 공통 상자);
+  - 로더는 선언 구문 검사만 한다;
+  - 이 writer를 card SF-1 범위 9 처음부터 적용 자리로 두고(로더 적용을 넣었다가 지우지 않음
+  - O-153)
+  - 상자 소비자 4곳(`search_context.py:164`·`iv_context.py:32`·`macro_poles.py:133,141`·`achievability.py:126,248`)을 그 필드 READS로 재배선한다
+  - 적용 자리 로더 → S0 블록은 **원래 취지와 다름**(DEC-105 (10)·SF-1 범위 9);
+  - 대안 '결합 C만 S0 블록, 나머지는 로더' ⚠ 같은 양을 두 자리가 소자 집합으로 나눠 씀(graph 규칙 1)·로더는 결합 C를 판별 못 함.
+  + (2) **적용 상자 writer 하나**(검증 11 MJ11-1): 정의
+  + '적용 상자' = 원소별 탐색 상자(spec 선언·공통 상자·결합 C 규칙을 합친 양)
+  + '선언 상자' = spec `theta_bounds` 선언 추출(card SF-1 범위 6 (e) S0 필드, 입력 = spec, S1 앞)
+  + 정의 축이 다른 두 필드다(graph 규칙 3: 적용 상자는 공통 상자·결합 C 판별·미선언 정지를 적용한 양);
+  + 적용 상자 writer = 검색 정의역 S0 블록 하나(as-built 자리 = `E/search/search_domain.py:76-80·106-112·124-135` `search_domain`
+  + 재작성 범위로만 인용, O-165)
+  + 층 = `graph.dc_current_basis`·`theta_schema` 뒤(as-built READS `:89-90`)
+  + 본문 순서 = 회로별 선언(선언 상자 READS) → 결합 C 선언 필수·미선언 정지(DR-1 갈래) → 그 밖 커패시터 공통 상자 → 출처 없는 θ 수동소자 정지(기존 `theta_*_bounds_undeclared`);
+  + 로더는 선언 구문 검사만 하고, 기존 교차 검사 `theta_bound_element`(`E/authoring/spec_theta_bounds.py`
+  + topology 수동소자·kind·mode `engine`)는 검색 정의역 블록 안 거부로 남긴다(θ 아닌 원소 선언 = fail-closed
+  + 지우면 조용히 무시되는 fail-open, 검증 11 m11-5);
+  + 적용 자리 로더 → S0 블록은 **원래 취지와 다름**(DEC-105 (10)·SF-1 범위 9).
+  + **소비자 재배선**(적용 상자 = `domain.variables` READS): `E/search/iv_context.py:94`(spec 직접 읽기 → `StartView.theta_bounds` 사본 칸
+  + 사본 칸 `E/search/start_values.py:180`은 삭제(graph 규칙 2·4)
+  + 읽는 쪽은 적용 상자 READS)·`E/search/iv_area.py:85`(사본만 읽어 공통 상자 커패시터가 최소 면적 하한에서 빠지고 정지 없이 틀린 값을 냄)·`E/search/_helpers_area.py:24`·`E/search/macro_poles.py:133,141`·`E/metrics/achievability.py:126,248`;
+  + `E/search/search_context.py:164`는 소비자가 아니라 writer 입력이라 SF-1 범위 6 (e)가 지운다.
+  + 완료 조건 추가 = 적용 상자 writer 1곳·사본 칸 0·spec 설정 직접 읽기 0(`git grep`)·`iv_area` 공통 상자 커패시터 최소 면적 하한 toy(base = 그 커패시터 빠짐
+  + red).
+  + 대안: 새 S0 블록 ⚠ `search_domain`의 `_passive_box`·미선언 정지가 같은 양의 둘째 생산자로 남음(graph 규칙 1) / 범위 6 (e)의 S1 앞 블록에 둠 ⚠ `dc_current_basis` READS가 층 역전 / '결합 C만 S0, 나머지 로더' ⚠ 두 자리가 소자 집합으로 나눠 씀·로더는 결합 C 판별 불가.
+  ~~
+  - 결합 C 갈래를 card DR-1 범위로 이관(DR-1이 SF-1 범위 9의 S0 θ 상자 블록에 결합 C 갈래와 그 첫 소비자 toy를 함께 넣음, 순서 SF-1 → DR-1 선행 +1
+  - 소비자 소유 card가 첫 도달 card라는 기존 꼴(2533 선례))
+  + 결합 C 갈래를 card DR-1 범위로 이관(DR-1이 SF-1 범위 9의 검색 정의역 S0 블록(`search_domain` 자리)에 결합 C 갈래와 그 첫 소비자 toy를 함께 넣음, 순서 SF-1 → DR-1 선행 +1
+  + 소비자 소유 card가 첫 도달 card라는 기존 꼴(U-132 선례))
+  ~~
+
+===== replace old 1217-1217 new 1217-1217
+  - 그 밖 범위는 SF-1 병합으로 (→ v6.38.5 Q-CB1 (나)·(α) 승인 시: 범위 9 상자 적용 자리 = S0 θ 상자 블록·소비자 4곳 재배선;
+  + 그 밖 범위는 SF-1 병합으로 (→ v6.38.5 Q-CB1 (나)·(α) 승인 시: 범위 9 적용 상자 writer = 검색 정의역 S0 블록(`search_domain` 자리)·소비자 재배선(사본 칸 삭제);
+  ~~
+
+===== replace old 1231-1231 new 1231-1231
+  - 결합 C 상자 갈래를 이 card가 SF-1 범위 9의 S0 θ 상자 블록에 넣음) | heldout 선정(충족
+  + 결합 C 상자 갈래를 이 card가 SF-1 범위 9의 검색 정의역 S0 블록(`search_domain` 자리)에 넣음) | heldout 선정(충족
+  ~~
+
+===== replace old 2192-2192 new 2192-2192
+  - 범위 9가 `theta_bounds` 상자 규칙을 바꾸면 같은 필드의 writer 본문이 바뀐다(새 자리 0).
+  + 이 필드는 '선언 상자'(spec 추출 입력)이고, '적용 상자'(공통 상자·결합 C 판별·미선언 정지를 적용한 양
+  + 정의 축이 다름, graph 규칙 3)는 검색 정의역 S0 블록(`search_domain` 자리)이 이 필드를 READS해 쓴다;
+  + 범위 9가 상자 규칙을 바꾸면 그 블록 본문이 바뀐다(새 자리 0
+  + 검증 11 MJ11-1).
+  ~~
+
+===== replace old 2195-2195 new 2195-2195
+  - 엔진 동작 변경 포함**(→ v6.38.5 Q-CB1 (나)·(α) 승인 시: 상자 적용 자리 = 처음부터 S0 θ 상자 블록 하나(모든 θ 수동소자 상자 writer
+  - 회로별 선언 → 공통 상자;
+  - 로더는 선언 구문 검사만)
+  - 상자 소비자 4곳(`search_context.py:164`·`iv_context.py:32`·`macro_poles.py:133,141`·`achievability.py:126,248`)을 그 필드 READS로 재배선, 완료 조건 추가 = 상자 writer 1곳·소비자 4곳 READS·spec 설정 직접 읽기 0(`git grep`);
+  + 엔진 동작 변경 포함**(→ v6.38.5 Q-CB1 (나)·(α) 승인 시: 적용 상자 writer = 처음부터 검색 정의역 S0 블록(`search_domain` 자리) 하나(층 = `graph.dc_current_basis`·`theta_schema` 뒤, 선언 상자(범위 6 (e))를 READS;
+  + 로더는 구문 검사만, `theta_bound_element` 교차 검사는 그 블록 안 거부로)
+  + 소비자 재배선(`iv_context.py:94`
+  + 사본 칸 `StartView.theta_bounds`(`start_values.py:180`) 삭제·`iv_area.py:85`·`_helpers_area.py:24`·`macro_poles.py:133,141`·`achievability.py:126,248`)
+  + 완료 조건 추가 = 적용 상자 writer 1곳·사본 칸 0·spec 설정 직접 읽기 0(`git grep`)·`iv_area` 공통 상자 커패시터 최소 면적 하한 toy;
+  ~~
+
+===== replace old 2348-2348 new 2348-2348
+  - SF-1 범위 9의 S0 θ 상자 블록에 결합 C 갈래·미선언 정지·첫 소비자 toy를 넣음, N5.3 Q-CB1 행).
+  + SF-1 범위 9의 검색 정의역 S0 블록(`search_domain` 자리)에 결합 C 갈래·미선언 정지·첫 소비자 toy를 넣음, N5.3 Q-CB1 행).
+  ~~
+
+===== replace old 2350-2350 new 2350-2350
+  + (10) (→ Q-CB1 (나)·(α) 승인 시) 결합 C 갈래 toy
+  + 미선언 결합 C → 정지(base = 공통 상자 적용
+  + red)
+  + 선언 결합 C → 선언 상자, 0 전류 MOS 없는 θ 커패시터 → 공통 상자 그대로(검증 11 m11-2).
+  ~~
+
+===== replace old 2352-2352 new 2352-2352
+  - 결합 C 상자 갈래가 SF-1 범위 9의 S0 θ 상자 블록에 들어감, 새 병합 순서 규칙 하나
+  + 결합 C 상자 갈래가 SF-1 범위 9의 검색 정의역 S0 블록(`search_domain` 자리)에 들어감, 새 병합 순서 규칙 하나
+  ~~

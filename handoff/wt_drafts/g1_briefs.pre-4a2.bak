@@ -1,0 +1,415 @@
+# G1 게이트 card `20260930-p3-gate-move-aware` -- 착수 키트(세 역할 브리프 + 착수 확인)
+
+작성 2026-10-01. 기준: gate `master` `0f237862c007f6a53122f2bdfb3c87e6366ec133`(`0f23786`, `git -C <R> rev-parse gate/master` = 로컬 `master` 같음). 저장소 쓰기·상태 변경 git 없음.
+측정·모의는 격리 복제본 `C:/g143`(origin 제거, 빈 hooksPath, TMP도 그 아래, 끝나고 삭제)에서만. 측정 스크립트·출력: `_drafts/g1_kit/`(README는 이 문서 §5).
+대상 산출물: `draft_p3_g1.spec.md`(키트 재검증 반영판 v9, 직전판 `draft_p3_g1.spec.pre-kit.md`), `g1_kit/approval_20260930-p3-gate-move-aware.md`(승인 기록 초안),
+`g1_kit/patch_g1_docs.py`(문서 패치), `fill_v3_approval.py`(V3 card용을 그대로 재사용).
+card 순서(확정, design 30 v8.4 §8.1): P10b → Phase 2 DoD → 34 V3 면제 묶기 → 35 V3 범위 → B34 → B26-1(앞선 test 보강·backfill 포함) → B33 → Phase 3: T0, **FU**, **G1** → D0a → D0b → M1 …
+(FU `p3-future-annotations` = v8.4 준비 card(D-29): DR·ACF 머리에 `from __future__ import annotations` 한 줄씩. G1과 의존 없음 -- 의존은 'FU → D0b'뿐. G1 앞에 들어오면 0.7 ⑤의 엔진 사실 future 줄이 바뀐다.)
+
+> **v8.4 재검토(2026-10-02, gate `master` `dd60db6` -- `0f23786` 대비 엔진·`tools/` 무변경)**: design 30 v8.4(FU D-29, import 머리 D-30, 배정 규칙 D-31 + A-1 보정 8건, PT3·E5)에 맞춰 키트를 다시 쟀다 -- 0.2b(신규).
+> 결론: FU를 얹으면 모의 M card의 `__future__` 거부 9단위 → 0, D-31 배정으로도 거부 0, G1 계약·redteam 32 단계 표는 바뀌지 않는다. 바뀐 문장: spec card '거부해야 할 입력' 보수 비용 (1)(2)의 처리 문장, '결정 필요 항목' 순서(FU 자리), '작성 전 실측' 8(future 줄)·9(신규). 사본 `draft_p3_g1.spec.pre-v84.md`·`g1_briefs.pre-v84.md`.
+
+> **착수 조건(아직 충족 안 됨)**: Phase 3 design 승인(UD-0)과 **UD-5 답**(`_drafts/phase3_approval_question.md`)이 없다. G1의 문서·spec·승인 커밋은 그 답을 받은 뒤에만 한다.
+> 답이 UD-5 (나)(선언한 이동만 인정)면 이 card는 쓰지 않는다 -- 선언 대조 card를 새로 쓴다. 답이 '보류'면 Phase 3 M card도 시작하지 않는다(design 30 F5).
+> 그리고 선행 card(34·35·B34·B26 계열·B33)가 모두 병합·정리된 뒤다(§0.3).
+
+---
+
+## 0. 착수 확인 결과(오케스트레이터용)
+
+### 0.1 spec card 재검증(gate master `0f23786`)
+
+| 확인 | 결과 | 조치(v9 개정) |
+|---|---|---|
+| `tools/gates` 변경(`7535799` → `0f23786`) | `git diff --stat 7535799 0f23786 -- tools/gates` 0. `a796468..0f23786` = 승인 기록 1·spec card 1(엔진·도구 무변경). 엔진은 `7535799..0f23786`에서 `stick_diagram.py`(P9)만 | 사실 문장 그대로 |
+| `mutate_changed.py` 줄 | `make_clone` 53·323, `_rmtree_force` 61·406, `_strip_doc` 74, `def_hash` 84, `changed_defs` 88~100, diff 314, cat-file 359, `base_src` 361, `modname` 362, 호출 364, `mid` 374, 출력 398·402·407 | 같음 |
+| `reachability.py`·`source_lint.py`·`rt.py`·`run_all.py` 줄 | `module_name` 47, `base_defs`/`new_defs` 224·227·230·231; `compare` 212, 호출 268, `module_text` 102·129; vcase 1351, 선택 관찰 599~621; `observed_equals` 98, 발견 규칙 55 | 같음 |
+| 새 이름 grep | `moved_defs|SourceIndex|global_names|binding_origin|move_rejected|global-dynamic` in tools·plan·design 0건, `attacks/` 마지막 `31-v3-git-history`(32~35 없음) | 같음 |
+| 게이트 밖 `changed_defs`·`def_hash` 호출 | `0f23786`에서 4개. **(r3 정정, G1 착수 리허설) gate `master` `dd60db6`에서 7개** -- df23 판정 기록 `afcf36c`가 3개를 더했다(`git grep -n "def_hash\|changed_defs" dd60db6 -- . ':!*.jsonl' ':!tools/gates'`, 호출 줄만): `.ai/verification/20260930-df36-instance-relpath/scripts/mut_def.py:67`·`.ai/verification/20260930-df36-instance-relpath/scripts/probe_t2_vs_1st_survivor.py:16`, `.ai/verification/20260930-dup-w-calc/scripts/v3_baseline_probe.py:17`, `.ai/verification/20260930-p9-kcl-edges/scripts/v3_list.py:9`, **(r3) `.ai/verification/20260930-df23-registry-record/scripts/mut_df23.py:43`·`mut_df23_r3.py:44`·`witness.py:22`**. 전부 `mc.changed_defs(…)`(`mc.def_hash` 직접 호출 0) | '의도'·'작성 전 실측' 5 → 7개(r3) |
+| `reachability` import | `mutate_changed.py`, **`test_lint.py` 30행**(V4가 이 모듈을 읽는다) | 계약 11에 V4 케이스(06·07·23·29) 명시 |
+| 머리 수치 | 엔진 4파일을 새 파일로: def 473·변이 **15,650**(card 15,677)·V6 새 항목 **859**(card 861)·V7 미도달 109(면제 1 → 108) | '의도' 숫자 교체(P9가 SD를 고쳐 −27·−2) |
+| 엔진 사실 | star 0·`global` 0·`multi` 0·qualname 중복 0, future SR 35·SD 32·TL 24(DR 없음), 클래스 41(메서드 없는 36), `__file__` SD **1050·8962**(card 8973) | '작성 전 실측' 8 줄 번호 |
+| 계약 12 V7 루트 | vcase의 V7 `--config`는 시험 대상 `gate_config.json`(루트 `run_harness.py::run`·`::__main__` …) -- card의 '루트 = `run2`'는 초안 측정 스크립트 자체 설정이었다 | 계약 12 공통 성질 문장 정정 |
+| interface card | 계약 6의 맨 토큰 `build_graph`가 `stick_diagram.build_graph`와 겹쳐 '기존 함수' 1행이 생겼다(모의 0.6) | `reachability.build_graph`로(뜻 불변) -- 재생성하면 기존 함수 0행이어야 한다 |
+| 계약 12 판별력 | 잘못된 구현 실측(0.4): `__file__` 디렉터리 규칙을 뺀 구현이 `file-dir-change-noshim`을 통과(옛 구성은 `import os`의 디렉터리 차이로 거부), 옮긴 클래스 메서드를 해시 대조 없이 인정하는 구현·V6 `<module>` 덧셈을 뺀 구현은 29단계 어디서도 FAIL하지 않음 | `file-dir-change-noshim`을 `__file__`만 읽는 def로, 새 단계 `class-method-edited`(거부)·`stmt-literal-moved`(red, V6) -- 29 → **31단계**(red 8·거부 23), 계약 7 (r), '판정 유형 근거' red 8 |
+| 계약 4 `defs` | 한 파일에 같은 qualname이 둘인 def(조건부 재정의·property)는 대상 목록에 두 번 나온다(`changed_defs`가 둘 다 낸다) -- 문장이 없었다 | 계약 4 괄호 한 문장 |
+| 계약 13 문서 | "spec card와 같은 커밋"·"세 경로" -- 34·35·B33 선례는 문서 커밋 → spec+interface 커밋 → 승인 기록, diff_path에 interface 포함. 거부 증명 줄(B33 선례 -- 공격 33) 문장 없음 | 문서 커밋 분리·네 경로·거부 증명 줄 공격 32·행별 문안 고정(`patch_g1_docs.py`) |
+| B45 문장 | 계약 4 "**def 안의 변이 선택은 `20260930-v3-changed-stmt-scope` 계약 1 그대로**" 있음(97행) | 그대로 |
+| 모의 M card의 보수 비용 | 0.2 M행 -- `multi` import·`__future__` 혼합 거부 | '거부해야 할 입력' 끝에 보고 문장(규칙은 그대로) |
+| D0a AST 접근(오케스트레이터 지시, D0a 키트 0.3) | 계약 0 공개 표면(`units`·`global_names`·`binding_origin`)에 AST를 돌려주는 이름이 없어 D0a 계약 6 '다시 파싱하지 않는다'가 성립하지 않음 | 계약 0에 `SourceIndex.tree(path) -> ast.Module \| None`(색인의 같은 파싱 결과 객체, 다시 파싱 안 함), `units`의 문장 키 = `<stmt:해시12>` 명시, 계약 8·10, 신규 시그니처 7행. redteam은 CLI만 보므로 단계 없음(계약 12 표 위 문장) -- 시제품 `tree_check.py`: 색인 8파일 파싱 8, `tree` 두 번 같은 객체, 이후 질의·`moved_defs(S, S)`에도 파싱 8 그대로; 공격 32 부분 재실행 5단계 PASS |
+| 착수 조건 | card에 Phase 3 design 승인 전제 문장 없음 | '결정 필요 항목' 끝에 착수 조건 단락 |
+
+### 0.2 머리 수치 재측정(`g1_kit/m9_measure.py`·`m9_classify.py`·`g7_facts.py` -- 복제본 `C:/g143/b` = `0f23786`, 시제품 `C:/g143/p`)
+
+base 도구 = 복제본의 `tools/gates/*.py`. 시제품 = `install_proto.py`가 card 계약 0~6을 덧붙인 판(측정 전용 -- 역할 산출물 아님, 역할 열람 금지).
+
+| 수치 | card(v8) | `0f23786` 재측정 |
+|---|---|---|
+| H 엔진 4파일을 새 파일로(base 도구) | def 473·변이 15,677·V6 861·V7 미도달 108 | def 473·변이 **15,650**·V6 새 항목 **859**(SR 469·SD 351·TL 34·DR 5)·V7 미도달 109(면제 제외 108) |
+| W 통째 이동(같은 디렉터리 `<m>_mv.py`, 원본은 재수출만) | 단위 402/402·def 473/473·거부 0 | **같음**. 실제 도구: base V3 473 def/15,650 변이 → 시제품 0/0, V6 exit 1(859) → 0, V7 exit 1(109) → 0, V7 `moved` 473. `moved_defs` 19.9초, `ast.parse` 20(파일당 1)·`symtable` 4 |
+| G7 판정 기록 2건(df36·dup-w-calc) | 옮긴 단위 0 | 0·0(거부 0) |
+| M 모의 M card(p3v6_order_shim_sim 상태, raw) | -- | 아래 표 |
+
+모의 M card(design 30 §6.2 규칙의 근사 배정, 본문 바이트 그대로 + 생성 import 줄 -- D0b 이관표가 아니다):
+
+| card(MOD) | 옮긴 단위·def | 거부 raw(원인: multi·연쇄·future) | 거부 dedup | V3 대상 def·변이 base → 시제품 | V6 새 항목 base → 시제품 | V7 미도달 base → 시제품 |
+|---|---|---|---|---|---|---|
+| M1 gmid_lut | 5·7 | 2(1·1·0) | 0 | 8·211 → 1·20 | 7 → 1 | 5 → 1 |
+| M2 topology_authoring | 15·10 | 7(4·2·1) | 1(future) | 17·418 → 7·224 | 72 → 60 | 8 → 4 |
+| M3 circuit_state_graph | 32·26 | 29(22·7·0) | 0 | 77·2,317 → 51·1,719 | 117 → 97 | 12 → 7 |
+| M4 gmid_sizing_engine | 97·118 | 1(0·0·1) | 1(future) | 119·3,420 → 1·18 | 208 → 0 | 51 → 0 |
+| M5 circuit_metrics | 3·4 | 0 | 0 | 4·95 → 0·0 | 11 → 0 | 1 → 0 |
+| M6 theta_search | 12·14 | 4(3·1·0) | 0 | 15·340 → 1·7 | 11 → 0 | 2 → 0 |
+| M8 sizing_layout_convergence | 41·57 | 0 | 0 | 57·1,635 → 0·0 | 79 → 0 | 24 → 0 |
+| **M9 instance_report_builder** | 14·15 | **23(6·10·7)** | **7(future)** | 71·3,475 → 56·3,087 | 169 → 151 | 6 → 3 |
+
+* **multi**: 모의 생성기가 원본 파일들의 import 줄을 그대로 모아 같은 이름을 두 번 묶는다(예 `from dataclasses import asdict as _dc_asdict, dataclass, …`(SD 39행)와 `from dataclasses import asdict, dataclass, …`(SR 42행)).
+  `binding_origin`이 `multi`가 되어 그 이름을 읽는 옮긴 단위가 M-4 거부, 거기 기대는 단위가 연쇄 거부. **이름마다 import 한 번으로 고치면(dedup) 0** -- G1 규칙은 그대로 두고 **D0a `move_plan` 생성기의 제약**으로 넘긴다
+  (D0a 초안에 이 문장 없음 -- D0a 키트 몫).
+* **future**: `design_report.py`·`audit_current_forced.py`(future 없음) 단위를 future 있는 MOD 파일로 옮기면 M-4(`__future__`) 거부 -- dedup 뒤에도 남는 유일한 원인. M2 `_as_set`, M4 `_kv_table`, M9 7단위
+  (`build_topology_device_table`·`assemble_report_data`·`render_html_report`·`save_html_report`·`_theta_evidence_for_pair`·`audit_topology`·문장 1), def 10·변이 236, **전부 주석 있는 def**라 future 차이가 실제로 뜻을 바꾼다(규칙을 '주석 없는 단위는 무시'로 풀어도 줄지 않는다).
+  처리 선택(사용자·design 30 몫, G1 card는 바꾸지 않음): (가) 그 단위들은 해당 M card에서 V3 판정을 받는다(인벤토리 있으면 죽일 수 있음, 없으면 FAIL) (나) 이동 전 별도 card로 DR·ACF에
+  `from __future__ import annotations`를 더한다(주석 평가 시점 변경 -- E-LIB·E-INST로 동작 보존 확인) (다) 이관표에서 DR·ACF 단위를 future 없는 MOD에 모은다.
+  **→ design 30 v8.4가 (나)를 기본값으로 정함(준비 card FU, D-29 -- (가)는 M card 기준 약화, (다)는 불가). multi는 D-30(`mod_imports`). 재측정은 0.2b.**
+* 시간: 시제품 V6·V7 실행이 base보다 길다(W: V6 75 → 165초, V7 91 → 112초; `moved_defs` 10~20초 + 원본 맥락 V6 재계산 -- 다른 측정과 동시 실행이라 잡음, 계약 10은 호출 수로만 판정).
+
+### 0.2b v8.4 재검토(2026-10-02, gate `master` `dd60db6`, 격리 복제본 `C:/g181` -- 끝나고 삭제)
+
+복제본: `b` = `dd60db6`, `fb` = `b` + FU 모양 커밋(DR 28행·ACF 38행 앞 `from __future__ import annotations`), `fp` = `fb` + `install_proto.py`, `p0` = `b` + `install_proto.py`,
+`d`/`d0` = `fb`/`b` + 문서 개정 v8.4 §1 (a)(가)~(d)·§9 (e)~(g) 계획서 커밋 + `install_proto.py`. `0f23786..dd60db6`은 `tools/`·엔진·`workspaces/` 무변경(`git diff --stat` 빈 출력).
+스크래치 스크립트(삭제됨, 요지): `amend.py`(현재 줄이 정확히 하나일 때만 교체), `mk_d31.py`(D0a 시제품 `move_plan_proto.py` `d2f3da97…`의 배정 루프를 D0a 계약 2 v8.4 문언 -- docstring 제외·A-K·A-3/A-4 칸 먼저·승격·MOD7 상한·A-6·A-7·단조 -- 로 바꾼 사본),
+`mk_sim_assign.py`(`p3v6_order_shim_sim.py` 사본에 `SIM_ASSIGN`=plan JSON 배정 주입 -- 단위 키 대조, 문장은 `<stmt:def_hash12>`; 빠짐·남음 0), `measure_dedup.py`(m9_classify의 dedup + m9_measure의 측정을 dedup 상태에).
+
+| 질문 | 결과 |
+|---|---|
+| (1) FU 뒤 future 거부 | 근사 배정 모의: raw 거부 M1 2·M2 6·M3 29·M6 4·M9 16(multi·연쇄만, `__future__` **0**), dedup 거부 M1~M9 **0**(design F3v84 재현). 대조(FU 없는 `b`/`p0`): dedup 거부 M2 1·M4 1·M9 7 = **9단위 전부 `__future__`**(키트 0.2 재현) |
+| (1) dedup 뒤 V3·V6·V7 잔여(근사 배정, FU) | 옮긴 단위·def M1 7·8, M2 22·17, M3 61·77, M4 98·119, M5 3·4, M6 16·15, M8 41·57, M9 37·71. base V3 대상 def·변이 8·211, 17·418, 77·2,317, 119·3,420, 4·95, 15·340, 57·1,635, 71·3,475(합 368·11,911) → 시제품 **전부 0·0**. V6 새 항목 base 7·72·117·208·11·11·79·169 → **0**(exit 0). V7 미도달 base 5·8·12·51·1·2·24·6 → **0**(exit 0, `new_defs` 0) |
+| (2) D-31 배정 | `plan`(D-31 사본, `d`): `upward`·`cycles`·`unassigned`·`conflicts` 0, `import_time_high` [], 배정 403(규칙 A-4 230·A-5 64·A-1 59·A-2 38·A-6 7·A-K 2·A-7 2·A-3 1; SD 제자리 110·ACF 2, 옮김 291), docstring 제외 5, MOD7 밖 MOD7 0, `reg_mismatch` 78 -- design F4v84 재현 |
+| (2) D-31 배정 모의 M card | 옮긴 단위·def(dedup) M1 8·22, M2 18·16, M3 82·100, M4 103·127, M5 21·23, M6 11·14, M8 32·58, M9 16·15(단위 291 = 옮김 전부), dedup 거부 **0**(raw M2 2·M3 48 -- multi·연쇄). base V3 22·590, 16·315, 100·3,052, 127·4,017, 23·711, 14·333, 58·3,077, 15·289(합 375·12,384), V6 34·21·217·232·35·11·149·10, V7 5·5·19·61·12·2·2·2 → 시제품 **전부 0**. FU 없는 판(`d0`)에 같은 규칙: dedup 거부 M2 1·M4 1·M9 7(같은 9단위) -- D-31은 future 혼합을 풀지 않는다 |
+| (2) W·H(FU 판) | W 단위 402/402·def 473/473·거부 0, base V3 473·15,650 → 0·0, V6 exit 1(859) → 0, V7 exit 1(109) → 0(`moved` 473), `moved_defs` 1회·`ast.parse` 20·`symtable` 4(20.3초). H def 473·변이 15,650·V6 859·V7 미도달 109(면제 제외 108) -- `0f23786`과 같음 |
+| (3) 순서 | v8.4 §8.1: `… B33 → Phase 3: T0, FU, G1(32) → D0a → D0b → M1 …`, FU의 유일한 의존은 'FU → D0b'. card '결정 필요 항목' 순서 문장에 FU 자리·영향(엔진 사실 8의 future 줄) 추가 |
+| (4) 공격 32 | 측정판 93단계(`gen_attack32.py`): base(`b`) 93 FAIL·exit 표 왼쪽 열과 93/93 같음·병합본 기대와 다른 exit 22, 시제품(`p0`, `G1_SCOPE=1`) 93/93 PASS(793·871초) -- 키트 0.4와 같음. 합성 저장소라 FU·D-31과 무관 |
+
+* 해석: 옮긴 단위 **집합**은 배정 규칙에 따라 card별로 달라지지만(근사 대 D-31), G1이 인식할 모양(바이트 그대로 이동 + 원본 재수출 + 생성 import 머리)과 거부 원인(multi = D-30, future = FU)은 같다 -- G1 계약·redteam 32 단계 표는 바꿀 것이 없다.
+* 이 수치는 G1·D0a **시제품** 관찰이다(판정 근거 아님). D0b가 자기 base에서 이관표를 다시 계산한다. PT3·E5 변경(design 30 §10)은 Phase 3 DoD 명령이라 G1(phase 0.5, redteam 판정) 브리프에 걸리지 않는다 -- E5 ⑤가 FU를 '빼는 필드 없음'으로 적은 것만 확인.
+* 관찰: order sim의 card별 import 확인은 이 환경에서 `numpy` 없음으로 실패했다(`_ENV` PYTHONPATH -- G1 측정과 무관, 판정에 쓰지 않음).
+
+### 0.3 선행 card와의 관계(무엇이 G1에 걸리는가 -- 착수 때 다시 잴 것)
+
+| 선행 card | 고치는 것 중 G1 대상 파일 | G1에 걸리는 것 | 착수 때 할 일 |
+|---|---|---|---|
+| 34 `20260930-v3-exempt-binding` | `mutate_changed.py`(면제 묶기 `@bindhash`·`exempt_ignored`·`survivor_bindings` -- 변이 루프 안 면제 대조), `redteam/lib/rt.py`(`@bindhash` 자리표시자, `"observe": "out_jsonl"`), `attacks/34-*`, 문서 design 05 V3 ⑤·design 10·계획 N4.2 | `mutate_changed.py` 줄 번호(364·374·407 근처)가 밀린다. rt.py `observe` 분기에 G1의 `"moved"`를 **같은 사슬의 값 하나로** 더해야 한다(34의 `out_jsonl`과 공존). V3 출력 키 순서·이름 겹침 확인. 34 케이스는 계약 11 대상 | `grep -n json.dumps\|changed_defs(\|mutants(\|observe` 재측정, `run_noop.sh`에 `--only 34-` 추가해 미리보기 |
+| 35 `20260930-v3-changed-stmt-scope` | `mutate_changed.py`(대상 문장 선택·`not_targeted`·`targets_by_def`, `--out` not_targeted 레코드), `attacks/35-*`, 문서 design 05 V3 ①·계획 N4.2 | **계약 4 합성**: 옮긴 def를 범위 선택 **앞**에서 뺀다(`targets_by_def`·`not_targeted`에 안 듦). 계약 12 V3 관찰의 `not_targeted`는 이 병합본에서만 나온다. G1 문서 패치의 선행 문구(V3 ① 끝) | 키트 측정은 35 시제품(`v3scope_kit/scope_proto.py`)을 얹은 근사 -- 병합본 도구로 공격 32를 다시 돌린다(`run_attack32.sh`, base 열 불변 예상) |
+| B34 `20260930-b34-grammar-explicit` | 엔진 `stick_diagram.py`(`_import_analog_grammar` 예외 처리 -- `__file__` 1050행 함수), test | 엔진 사실(`__file__` 줄, `multi` 0 유지 -- 함수 안 변경이라 모듈 바인딩 불변 예상), H·W 수치 | `g7_facts.py`·`m9_measure.py` H·W 재실행 |
+| b26pre `20260930-b26-pre-test-strengthen` | test만 | 없음(게이트·엔진 무변경) | -- |
+| backfill `20261001-b26-backfill-interdig-final-audit` | 엔진 `sizing_recipe.py`, test | H·W 수치(SR def 해시) | H·W 재실행 |
+| B26-1 `20260930-b26-rail-accessor-set` | 엔진 SD·SR·레지스트리, test | 엔진 사실(design 30 §6.4 추정: 클래스 +1 `RailDeclaration`(메서드 없음), def +1 `rail_declaration`, W 단위 404·def 474) | `g7_facts.py`·W 재실행, 판정 기록 집계 |
+| B33 `20260930-v7-registry-edges` | **`reachability.py`**(`build_graph` R1~R3, `main` 도달 계산, docstring), `attacks/33-*`, 문서 design 05 V7 행·거부 증명 줄 | G1이 같은 파일을 고친다(SourceIndex·moved_defs 추가, `main`의 `new_defs`). B33 R3가 `main`에 소스 노드 제한을 넣으므로 `new_defs` 식 줄이 바뀐다. V7 머리 수치 108 → 약 39(B33 키트 시제품). G1 문서 패치의 선행 문구(V7 행·거부 증명 줄) | `reachability.py` `main`·`base_defs`·`new_defs` 줄, 33 케이스 미리보기, H의 V7 미도달 재측정 |
+| FU `p3-future-annotations`(v8.4, 선택적으로 G1 앞) | 엔진 DR·ACF 머리 한 줄씩(게이트 무변경) | 엔진 사실 future 줄만(card '작성 전 실측' 8), H·W 수치 불변(0.2b 실측) | 0.7 ①의 grep으로 병합 여부 확인 |
+| (전부) | `merge_gate.py` | 어느 선행 card도 쓰지 않는다(34·35·B26 계열은 읽기 인용만) -- G1도 쓰지 않는다 | `git -C <R> diff --quiet 0f23786 gate/master -- tools/gates/merge_gate.py` |
+
+* `install_proto.py`의 앵커는 `0f23786` 판이다 -- 선행 병합 뒤 시제품을 다시 쓰려면 앵커(`new_defs = sorted(...)`·`for q, fn in changed_defs(...)`·`mutants(...)` 루프·`json.dumps` 출력·rt.py `v4_first` 분기)를 병합본에 맞춰 고친다(측정 전용 -- 역할 산출물과 무관).
+* 판정 기록 집계(계약 11의 G7 2건)는 바뀌지 않는다. 다만 선행 card 판정 기록이 더해지므로, `moved_defs`를 그 기록들의 base·head 쌍에도 돌려 옮긴 단위 0인지 보는 것을 auditor 3.3에 넣었다.
+
+### 0.4 redteam 32 단계 표 실측(`g1_kit/run_attack32.sh`·`run_variants.sh`, 복제본 `C:/g143/{b,p,p2,p3}`)
+
+케이스 생성: `gen_attack32.py`(측정판 -- card 표의 구성·기대를 손으로 옮김, 피검 출력 아님). V3 관찰의 `not_targeted`는 35 시제품을 얹어(`G1_SCOPE=1`) 잼.
+
+| 실행 | 결과 |
+|---|---|
+| base 도구, 개정 31단계 x 3 = 93 | **93 FAIL**(관찰 키 `moved`·`move_rejected`·`defs`가 출력에 없음), **exit는 card 표 왼쪽 열과 93/93 같음**, exit가 병합본 기대와 다른 red = 22(8단계: red 7 x 3 + `stmt-literal-moved` V6) |
+| 시제품, 개정 31단계 | **93/93 PASS**(관찰 포함) -- 877초 |
+| (참고) v8 표 29단계 | base 87 FAIL(exit 87/87 표와 같음, red 21) / 시제품 87 PASS |
+
+계약 11 무동작 미리보기(`run_noop.sh`, V3·V4·V6·V7 관련 기존 11케이스): base·시제품 **케이스·단계 판정이 전부 같다**(PASS 8·FAIL 3 = 단계 239 PASS·8 FAIL). 단 그 8 FAIL(28·31·`v3_survivor`의 V3 단계)은
+**두 판 모두** exit 2 `BaselineFailed`(인벤토리 test 기준 실행 실패)였다 -- 이 측정 환경(TMP를 `C:/g143` 아래로 둔 동시 실행)에서 생긴 것으로 원인은 확인하지 않았다. 판정은 auditor가 정상 환경에서 base 표와 대조한다(3.1·3.2 V1).
+
+잘못된 구현(규칙 하나씩 뺀 시제품 변형 -- `G1_VARIANT`) -- 각 변형이 자기 단계에서 FAIL해야 한다:
+
+| 변형(빠진 규칙) | FAIL한 단계 |
+|---|---|
+| `no_m0`(M-0 덮어쓰기) | `overwrite`·`overwrite-import`·`swap`(swap은 M-2로 거부되지만 규칙 이름 대조로 FAIL) |
+| `m0_strict`(목적 파일 기존 바인딩 전부 거부 -- 원본 재수출도) | `absorb-own-import`(거짓 거부) |
+| `no_m0h`(목적 파일 유일 바인딩) | `dest-conditional-redef`·`dest-lambda-rebind`·`augassign-rebind`·`except-as-rebind`·`star-shadow` |
+| `no_m1`·`no_m2`·`no_m3` | `ambiguous` / `copy`·`wrapper`·`two-targets` / `two-targets` |
+| `no_m4`·`no_future` | `rebind`·`file-dir-change-noshim`·`global-reader`·`ext-dir-change`·`future-dropped` / `future-dropped` |
+| `no_global_dynamic`·`ext_nodir`·`star_unbound_only` | `global-reader` / `ext-dir-change` / `star-shadow` |
+| `file_nodir`(`__file__` 디렉터리 무시) | 개정 `file-dir-change-noshim`(**v8 구성에서는 PASS -- 구멍**, `import os`가 대신 거부) |
+| `class_name_only`(클래스 골격 = 이름만) | `class-header-changed`·`class-field-changed` |
+| `class_methods_all`(옮긴 클래스 메서드를 해시 대조 없이) | 새 `class-method-edited`(**v8 29단계 전부 PASS -- 구멍**) |
+| `no_dup_excl`·`no_dup_excl,key_only` | `property-getter-changed` |
+| `no_moved_map`(함께 옮긴 것 사상 없음)·`names_in_all`(지역 이름을 전역 읽기로) | `move-together`·`cache-together` / `local-shadow`(거짓 거부) |
+| `scope_from_origin`(새 경로 def를 이동 원본과 문장 단위 대조 -- D-20 위반) | `move-edited`·`class-header-changed`·`class-field-changed`(`not_targeted` > 0) |
+| `v6_no_module_extra`(V6 `<module>` += 옮긴 문장 원본 항목 생략) | 새 `stmt-literal-moved`(**v8 29단계 전부 PASS -- 구멍**) |
+| `key_only`(계약 4 해시 대조 생략) | 없음(29·31단계 전부 PASS) -- `defs`에 드는 def는 정의상 head 해시가 같아 합성 이력으로는 구별 불가. auditor 코드 확인 몫(3.3 m2) |
+| `stmt_names_in`(문장 단위 전역 읽기를 유효 범위 없이) | 없음(29단계 PASS), W(실제 엔진 통째 이동)에서도 402/402 그대로(`w_variants.py`) -- 더 엄격한 쪽(거짓 거부)이라 약화 위험 없음. 참고: `names_in_all`도 W 402/402, `no_moved_map`은 W 140/402(거부 262) |
+
+### 0.5 승인 기록 초안(`g1_kit/approval_20260930-p3-gate-move-aware.md`)
+
+* `target_kind: diff`, diff_path 네 개(계획서·design 05·interface·spec -- 34·35 선례 순서). '사용자 원문'·date·답 라벨은 UD-5 답을 받은 뒤 채운다(B33 키트 `check_user_quote.py` 선례로 세션 기록과 바이트 대조).
+* 범위: 계약 0~13 요약, redteam 31단계 + rt.py `observe: "moved"`, 문서 다섯 곳, 무동작. 덮지 않는 것: 선언 기반 인정(UD-5 (나)), V3 연산자·면제·범위 규칙·B33 간선, qualname 중복 보수 비용, M card 판정 자체.
+* 끝의 `<!-- 오케스트레이터: … -->`는 `fill_v3_approval.py`가 지운다.
+
+### 0.6 모의 결과(`g1_kit/sim_launch_g1.sh` -- `C:/g143/sim_launch/r` = gate master 복제, bare 가짜 gate, 출력 `g1_kit/out/sim_0f23786/`)
+
+| 단계 | 결과 |
+|---|---|
+| 0 모래상자 | r = `0f23786`, `plan_tables_hash` `7167e028…6d2596d` |
+| P0 선행 문구 없는 트리 | `patch_g1_docs.py --check` → REFUSED(35 V3 ①·B33 V7 행·B33 거부 증명 줄 문구 0개) -- 선행 card 전에 잘못 적용되지 않는다 |
+| P 선행 문서 흉내 | 34 → 35 → B33 문서 패치를 Role: doc 커밋 3개로 쌓고 가짜 gate master = 그 끝(`c7dde68`, 코드 변경은 흉내 안 냄). `plan_tables_hash` 불변. 게이트 캐시 22파일 |
+| A 문서 커밋 | `applied 5`(design 05 317·320·321·338행, 계획 533행) → 재실행 `already applied` → numstat design 05 `4 4`·계획 `1 1`, `plan_tables_hash` 불변 → Role: doc |
+| B spec+interface | 캐시의 `interface_card.py` exit 0, 신규 시그니처 6행. **기존 함수 1행**(`stick_diagram.build_graph` -- 계약 6 맨 토큰, v9에서 `reachability.build_graph`로 고침 → v9 재생성 0행 확인). `parse_spec_card`: phase 0.5·red-green·gate_change yes·approval [자기 id]·절 11 |
+| C 승인 기록 | 모의 원문으로 채운 사본 → `fill_v3_approval.py --check` ok → `written` → `already-present`. target `3adeb714…25367b4cf` = `weakening_diff.diff_hash` = `merge_gate.py diff-hash` = 기록. LF·주석 없음·`parse-approval` 통과. 커밋 경로 = 승인 기록 하나 |
+| G | `gate_change_ok(HEAD)` True, `HEAD~1` False, `approved_hashes(HEAD)`에 target, `_approved_ids` 36 그대로 |
+| E EL4 | `merge_gate.py receive --old <가짜 gate master> --new C` exit 0. 대조: 트레일러 없는 커밋 → exit 1 "[EL4 거부] … 트레일러 … 정확히 하나가 아니다([])" |
+
+* target은 blob 기반이라 실제 착수 때(34·35·B33 실제 문서 + design 30 승인 커밋 뒤) **값이 달라진다** -- fill 스크립트가 다시 계산한다.
+* 모의에 쓴 spec은 v9 반영 전 사본이라 interface '기존 함수' 1행이 나왔다. v9 spec으로 같은 캐시 `interface_card.py`를 다시 돌리면 **기존 함수 0개**·신규 시그니처 7행(v9 `SourceIndex.tree` 포함), `parse_spec_card` 그대로(0.5·red-green·yes·[자기 id]·절 11) -- 확인함. 착수 때 0.7 ⑦에서 다시 본다.
+
+### 0.7 착수 직전에 다시 볼 것(순서대로, 하나라도 어긋나면 멈추고 card 재측정)
+
+1. **착수 조건**: UD-0 승인과 UD-5 답이 승인 기록·`user_decisions.md`에 있다. UD-5 = (가)가 아니면 멈춘다. future 처리는 design 30 v8.4 D-29(FU)로 정해졌다 -- UD-0 승인이 덮는다(G1 착수 자체는 FU를 기다리지 않음). FU가 G1 앞에 병합됐는지 `git -C <R> grep -n "^from __future__" gate/master -- skills/analog-gmid-design/assets/design_report.py skills/analog-gmid-design/assets/audit_current_forced.py`로 보고 ⑤·card '작성 전 실측' 8의 future 문장을 맞춘다.
+2. **선행 병합·정리 끝**: gate master에 34·35·B34·b26pre·backfill·B26-1·B33의 `audit:` 커밋, `git branch --list 'role/*'` 비어 있음, `ls attacks`에 33·34·35 있고 `32-*` 없음.
+3. **도구 줄·키 재측정**: `grep -n` 으로 `mutate_changed.py`(`changed_defs(` 호출·`mutants(` 루프·`json.dumps` 출력 키), `reachability.py`(`base_defs`·`new_defs`·`main`), `source_lint.py`(`compare`·`main`), `rt.py`(`observe` 분기 -- `v4_first`·`out_jsonl`), `run_all.py:98`.
+   V3 출력 키 = 34·35 키 + G1의 `defs`·`moved`·`move_rejected` 겹침 없음. card '작성 전 실측' 1·2의 줄 표기를 실제 값으로(또는 "`0f23786` 줄" 표기 유지 -- 심볼이 앵커).
+   (r3) 새 이름 grep(card '작성 전 실측' 2)은 **0건이 아니다** -- Phase 3 design 커밋이 design 30에 33줄(초안 v8.5 실측)을 넣는다. 다시 세어 파일별 줄 수를 착수 재측정 문단에 적고, 출현이 문서(design 30 + 계약 13 문서 커밋)뿐이고 `tools/` 0건인지 본다. 게이트 밖 `changed_defs` 호출도 다시 센다(`dd60db6` 7개 -- §0.1).
+4. **`merge_gate.py` 불변**: `git -C <R> diff --quiet 0f23786 gate/master -- tools/gates/merge_gate.py`.
+5. **머리 수치·엔진 사실**: 새 격리 복제본(`C:/g<n>`)에서 `setup_clones.sh`(앵커를 병합본에 맞춘 뒤) → `m9_measure.py`(H·W)·`g7_facts.py --scratch C:/g<n>`(r3: `--gates`·`--repo`·`--rev`·`--out` 인자, 기본 `<scratch>/p/tools/gates`·`<scratch>/b`·`HEAD`·`out/g7_facts_<짧은 sha>.json` -- 사본에서 경로를 고칠 필요 없음). 단정: W 단위·def 전부 인정·거부 0(B26-1 뒤 추정 404·474), star·`global`·`multi`·qualname 중복 0. 어긋나면 card '의도'·'작성 전 실측' 8 숫자를 고친다.
+6. **공격 32 미리보기**: 병합본 base 도구로 `run_attack32.sh <S> b base -`(기대: 93 단계 exit가 표 왼쪽 열과 같음), 33·34·35 케이스 무동작 미리보기(r3: `run_noop.sh <S> b <이름표> --only 33- --only 34- --only 35-` -- `--only`를 여러 번 받아 기본 11케이스에 더한다, 사본 수정 불필요).
+7. **interface card**: 게이트 캐시 `interface_card.py`로 v9 spec에서 만든 결과가 신규 시그니처 7행(`SourceIndex.tree` 포함)·**기존 함수 0행**인지.
+8. **문서 패치**: `patch_g1_docs.py --root <R> --check`가 `check ok (would apply 5)`(선행 문구 없으면 REFUSED -- 그때 34·35·B33 문서 커밋이 실제로 들어갔는지부터). `plan_tables_hash` 전후 같음.
+9. 셸: role_guard는 `(cd … && …)`·상대 경로 쓰기·변수 든 `rm`·인자 속 저장소 경로(`C:/…/gmid-gate.git` 등)를 거부한다 -- 아래 명령은 절대 경로·`git -C`, 거부되면 B33 키트처럼 스크립트 안에서 부른다.
+
+### 0.8 명령 시퀀스(오케스트레이터, MSYS bash -- 0.7 통과 뒤)
+
+```bash
+R=/c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills
+DR=/c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts
+K=$DR/g1_kit
+W=/c/Users/HSLEE/Documents/Todoc/fpga/wt
+PY=C:/Python314/python.exe
+ID=20260930-p3-gate-move-aware
+D05=docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md
+PLAN=docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+# 4.0 착수 전 확인
+git -C "$R" fetch gate
+test "$(git -C "$R" rev-parse --abbrev-ref HEAD)" = master
+test "$(git -C "$R" rev-parse HEAD)" = "$(git -C "$R" rev-parse gate/master)"
+test -z "$(git -C "$R" branch --list 'role/*')"
+test -z "$(git -C "$R" status --porcelain -- docs/ .ai/approvals/)"
+GM=$(git -C "$R" rev-parse gate/master)
+CACHE=$(git -C "$R" rev-parse --path-format=absolute --git-common-dir)/gmid-gate-cache/$GM
+test -f "$CACHE/interface_card.py"
+BASE=$GM
+PH0=$($PY -B "$CACHE/merge_gate.py" plan-tables-hash "$R/$PLAN")
+# A. 문서 커밋(design 05 §10 V3·V6·V7 행 + 거부 증명 줄, 계획 N3.10 이동 규칙 줄)
+$PY -B "$K/patch_g1_docs.py" --root "$R" --check                 # check ok (would apply 5)
+$PY -B "$K/patch_g1_docs.py" --root "$R"                         # applied 5
+$PY -B "$K/patch_g1_docs.py" --root "$R"                         # already applied
+git -C "$R" diff --numstat                                       # design 05 4 4, 계획 1 1
+test "$($PY -B "$CACHE/merge_gate.py" plan-tables-hash "$R/$PLAN")" = "$PH0"
+git -C "$R" add -- "$D05" "$PLAN"
+git -C "$R" commit --trailer "Role: doc" -m "docs: $ID 문서 커밋(design 05 §10 V3·V6·V7 행 '옮긴 단위는 이동 원본과 비교', 거부 증명 줄 공격 32, 계획 N3.10 이동 규칙 V6·V7 한 문장)"
+# B. spec card + interface card(게이트 캐시의 interface_card.py, 절대 경로)
+cp "$DR/draft_p3_g1.spec.md" "$R/docs/02-design/specs/$ID.spec.md"
+$PY -B "$CACHE/interface_card.py" "$R/docs/02-design/specs/$ID.spec.md" --root "$R" --out "$R/docs/02-design/specs/$ID.interface.md"
+git -C "$R" add -- "docs/02-design/specs/$ID.spec.md" "docs/02-design/specs/$ID.interface.md"
+git -C "$R" commit --trailer "Role: doc" -m "docs: 게이트 변경 spec card $ID(G1 -- V3·V6·V7 옮긴 단위 인식, design 30 §3 MOVED) + interface card"
+SPECC=$(git -C "$R" rev-parse HEAD)
+# C. 승인 기록(초안의 date·사용자 원문·답 라벨을 UD-5 답으로 채운 뒤)
+$PY -B "$DR/fill_v3_approval.py" --root "$R" --draft "$K/approval_$ID.md" --base "$BASE" --head "$SPECC" --check
+$PY -B "$DR/fill_v3_approval.py" --root "$R" --draft "$K/approval_$ID.md" --base "$BASE" --head "$SPECC"
+PYTHONPATH="$CACHE" $PY -B -c "import sys,weakening_diff as wd;print(wd.diff_hash(*sys.argv[1:4],sys.argv[4:]))" "$R" "$BASE" "$SPECC" \
+  "$PLAN" "$D05" "docs/02-design/specs/$ID.interface.md" "docs/02-design/specs/$ID.spec.md"     # = 기록 target
+git -C "$R" add -- ".ai/approvals/$ID.md"
+git -C "$R" commit --trailer "Role: doc" -m "docs: 승인 기록 $ID(UD-5 G1 게이트 변경 승인, target_kind diff -- spec card·interface card·design 05 §10·계획 N3.10 한 문장)"
+# 확인(push 전)
+PYTHONPATH="$CACHE" $PY -B -c "import sys,merge_gate as mg;print(mg.gate_change_ok(mg.TreeView(['-C',sys.argv[1]],'HEAD'),sys.argv[2]))" "$R" "$ID"   # True
+# D. push -- 단독 실행, 전체 출력 확인(병렬·tail 금지)
+git -C "$R" push gate master:master
+git -C "$R" fetch gate
+git -C "$R" merge --ff-only gate/master
+test "$(git -C "$R" rev-parse HEAD)" = "$(git -C "$R" rev-parse gate/master)"
+# E. test worktree(design 05 §12 순서 1)
+git -C "$R" worktree add "$W/$ID-test" -b "role/test/$ID" gate/master
+```
+
+이어서 §12 순서 2(test-author, 1절) → 3(auditor freeze·base 표, 3.1) → 4(code worktree, 부모 = T) → 5(code-author, 2절) → 6(병합) → 7(auditor 판정, 3.2·3.3) → 8(`push gate role/audit/$ID:master`) → 정리 → D0a 키트(`SourceIndex` 재사용).
+
+---
+
+## 1. test-author 브리프(gmid-test-author, §12 순서 2)
+
+```
+역할: gmid-test-author. change id = 20260930-p3-gate-move-aware (게이트 변경, red-green, phase 0.5).
+worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-gate-move-aware-test (브랜치 role/test/20260930-p3-gate-move-aware). 모든 명령은 절대 경로(git -C, cd 금지).
+쓰기 경로: tools/gates/redteam/attacks/32-moved-defs/ 와 tools/gates/redteam/lib/rt.py 의 vcase 관찰 "observe": "moved" 추가만
+           (계획 N3.12.2 'gmid-test-author | tools/gates/redteam/** | 게이트 변경' -- spec card gate_change: yes + 승인 기록 범위 'redteam').
+           run_all.py·다른 케이스·rt.py의 다른 동작은 고치지 않는다.
+입력: interface card docs/02-design/specs/20260930-p3-gate-move-aware.interface.md, spec card '관찰 가능한 계약'(계약 0~13, 특히 3·4·7·12),
+      '판정 유형 근거', 'oracle 종류와 출처', '거부해야 할 입력'.
+열람 금지: tools/gates/reachability.py·mutate_changed.py·source_lint.py(피검), _drafts/g1_kit/·_drafts/p3v4_g1_measure.py·_drafts/p3_scripts/(오케스트레이터 측정 시제품 -- 기대값의 출처가 될 수 없다).
+           redteam 하네스(lib/rt.py·lib/iface.py·lib/sb.py·run_all.py)와 기존 케이스(attacks/31·33·34·35, v3_survivor, v7_unwired)는 읽어도 된다.
+커밋: git -C <worktree> commit --trailer "Role: test" --trailer "Change-Id: 20260930-p3-gate-move-aware" -m "test: …"
+```
+
+### 1.1 산출물
+
+* `tools/gates/redteam/attacks/32-moved-defs/`: `expect.json`(선례 31·33 모양: `"layer"`, `"exit"`, `"message_contains": []`, `"modes": ["direct"]`, `"phase": "0.5"`, `"steps_from_records": true`, `basis`, `title`),
+  `run.sh`(`set -e`, `rt() { "$PY" -B "$RT" "$@"; }`, `rt vcase v.json`), `v.json`(card 계약 12 표 **31단계 x V3·V6·V7 = 93 vcase 단계** -- 단계 이름 예 `move-exact.V3`).
+* `lib/rt.py` `a_vcase`: `case.get("observe") == "moved"` 분기 -- 도구 JSON에서 `{"moved": sorted(x["to"] for x in obj["moved"]), "move_rejected": {키: v["rule"]}}`, 도구가 V3이면
+  `"defs": sorted(obj["defs"])`와 `"not_targeted": obj["not_targeted"]`(35 병합본 키)를 더해 `observed`로. 키가 없으면 `None`(base 도구에서 관찰 불일치로 FAIL -- red 표시).
+  **34가 더한 `"observe": "out_jsonl"` 분기와 같은 `if/elif` 사슬에 값 하나를 더할 것**(다른 값·키 없는 케이스 동작 불변 -- 34 계약 9 문장).
+
+### 1.2 구성 규칙(계약 12 공통 성질 + 실측으로 확인한 함정)
+
+* 모든 단계에 `base`·`head`를 **단계마다** 둔다(`build_vrepo`는 단계의 `base`만 읽는다). head에서 지울 파일은 `null`.
+* 하네스 `workspaces/run_harness.py` = `from a import run` + `def run2(): return run()`(base·head 같게). V7 `--config`는 시험 대상의 `gate_config.json`이라 루트는 `run_harness.py::run`·`::__main__` -- 옮기는 def는 어디서도 불리지 않게.
+* 옮기는 def 몸체: 리터럴 3.7과 `except Exception`(V6 원천), `tests/` 없음(V3 인벤토리 0 → 생존). 예외 단계는 card 표 구성 칸 그대로.
+* `defs`는 대상 def **목록**이다 -- 한 파일에 같은 qualname이 둘이면(`dest-conditional-redef`의 `if FLAG: def f`, `property-getter-changed`의 getter·setter) 두 번 나온다(계약 4 v9 괄호).
+* `moved`는 def 목록이다 -- 문장 단위·메서드 없는 클래스(`cache-split`의 `_X_CACHE = {}`, `stmt-literal-moved`, `class-*`의 `Base`)는 옮겨져도 나오지 않는다(계약 12 관찰 방식 v9 문장).
+* `move_rejected` 키 = `<p_h>::<q>`(문장은 `<p_h>::<stmt:해시12>`). card 표의 규칙 이름을 그대로(`two-targets`는 b.py M-3·d.py M-2, `star-shadow`는 helper·g 둘 다 M-0h, `future-dropped`는 `b.py::Rec` M-4).
+* `file-dir-change-noshim`의 def는 **`__file__`만** 읽는다(외부 import 없음) -- `import os`를 쓰면 `os`의 디렉터리 차이로도 거부되어 `__file__` 규칙을 고정하지 못한다(v9).
+* 기대는 card 계약 문장에서만. `basis`에 계약 번호를 적는다. 피검 도구 출력을 복사하지 않는다(base 도구 출력은 red 확인용).
+
+### 1.3 단계 표(31단계 -- card 계약 12 표 그대로, 역할 열은 이 브리프의 분류)
+
+| # | 단계 | 역할 | V3/V6/V7(base → 병합본) | `moved` / `move_rejected` |
+|---|---|---|---|---|
+| 1~7 | `move-exact`·`absorb-own-import`·`move-together`·`move-chain`·`local-shadow`·`class-exact`·`cache-together` | red | 1/1/1 → 0/0/0 | 표의 옮긴 def / 없음 |
+| 8 | `stmt-literal-moved` | red(V6) | 0/1/0 → 0/0/0 | 없음 / 없음 |
+| 9~16 | `move-edited`·`copy`·`wrapper`·`ambiguous`·`two-targets`·`overwrite`(V7 0)·`overwrite-import`·`swap`(V7 0) | 거부 | 같음 | 없음 / 표 |
+| 17~18 | `rebind`·`file-dir-change-noshim` | 거부 | 1/1/1 | 없음 / M-4 |
+| 19~21 | `class-header-changed`·`class-field-changed`·`class-method-edited` | 거부 | 1/1/1 | 없음 / 없음 |
+| 22 | `cache-split` | 거부 | 0/1/0 | 없음 / 없음 |
+| 23~26 | `dest-conditional-redef`·`dest-lambda-rebind`·`augassign-rebind`·`except-as-rebind` | 거부 | 1/1/1 | 없음 / M-0h |
+| 27~31 | `property-getter-changed`(V6 0)·`star-shadow`·`global-reader`·`ext-dir-change`·`future-dropped`(0/0/0) | 거부 | 표 | 없음 / 표 |
+
+* 합계: red 8단계(exit 기준 22 vcase 단계), 거부 23단계. 관찰을 쓰므로 base 도구에서는 93 단계 전부 FAIL(관찰 키 없음)이고 exit는 표 왼쪽 열과 같아야 한다.
+* 각 거부 단계의 몫(느슨한 구현을 실제로 거부하는가)은 auditor가 잘못된 구현으로 잰다(3.1) -- 키트 실측 0.4.
+
+### 1.4 자기 점검(커밋 전)
+
+* `C:/Python314/python.exe -B <worktree>/tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 32-moved-defs` → base 도구에서 93 단계 FAIL이고, **단계마다 실제 exit가 card 표 왼쪽 열과 같아야** 한다
+  (`--keep` 로그의 `exit`). 표와 다른 exit가 있으면 구성이 틀렸다(대개 `base` 누락·하네스가 옮기는 def를 부름·리터럴 누락).
+* 같은 명령을 `--only` 없이 한 번 -- 32 말고 FAIL 케이스가 없어야 한다(rt.py 변경 무동작). 실행 시간: 32만 약 13~20분(키트 실측).
+
+---
+
+## 2. code-author 브리프(gmid-code-author, §12 순서 5)
+
+```
+역할: gmid-code-author. change id = 20260930-p3-gate-move-aware (게이트 변경, red-green).
+worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-gate-move-aware-code (브랜치 role/code/20260930-p3-gate-move-aware, 부모 = test 커밋 T). 절대 경로만, cd 금지.
+쓰기 경로: tools/gates/reachability.py·mutate_changed.py·source_lint.py(계획 N3.12.2 'gmid-code-author | tools/gates/*.py | 게이트 변경'). redteam/**·문서는 쓰지 않는다
+           (design 05·계획 문구는 오케스트레이터 문서 커밋에 이미 있다 -- 계약 13의 모듈 docstring만 이 파일들 안).
+입력: spec card·interface card. test가 틀렸다고 보면 고치지 말고 dispute(<worktree>/docs/02-design/disputes/20260930-p3-gate-move-aware.md)를 쓰고 같은 트레일러로 커밋한 뒤 멈춘다.
+열람 금지: _drafts/g1_kit/(특히 g1_core.py·install_proto.py)·_drafts/p3v4_g1_measure.py·_drafts/p3_scripts/(오케스트레이터 측정 시제품 -- 구현이 그것을 베끼면 기대와 구현의 출처가 같아진다).
+커밋: git -C <worktree> commit --trailer "Role: code" --trailer "Change-Id: 20260930-p3-gate-move-aware" -m "…"
+```
+
+### 2.1 바꿀 것(계약 번호)
+
+1. **정의 하나(계약 8)**: `_strip_doc`·`def_hash`를 `reachability.py`로 옮기고 `mutate_changed.py`는 같은 이름으로 import(`mutate_changed.def_hash is reachability.def_hash`). `changed_defs(base_src, head_src)` 시그니처·결과 그대로(게이트 밖 호출 7곳 -- §0.1, card '작성 전 실측' 5).
+2. **`SourceIndex`(계약 0~2)**: `reachability.py`에. 소스 파일(`_is_source`)만, 파일마다 `ast.parse` 1회·`symtable` 1회(처음 필요할 때), 결과를 파일 단위로 기억. `units`·`binding_origin`·`global_names`·**`tree`**(그 파싱 결과 객체를 그대로 -- D0a가 쓴다) 문언 그대로.
+   바인딩 = 모듈 공간 `Store`·`Del` 전부 + import(블록 안 포함)·def·class·`except as`·match 포획·`type` 별칭. star가 하나라도 있으면 그 모듈 모든 이름 `star`, `global` 선언 이름 `global-dynamic`(경로 포함), ext·ext-module에 가져오는 파일의 디렉터리.
+   문장 단위 전역 읽기는 AST 유효 범위(lambda 인자·컴프리헨션 대상 제외, 첫 `iter`는 바깥) -- 3.12+ symtable이 인라인 컴프리헨션 변수를 모듈 표에 넣기 때문(계약 2).
+3. **`moved_defs(base, head)`(계약 3)**: 단위 해시(함수 = `def_hash`, 클래스 = 골격 해시, 문장 = `def_hash`), M-1·M-0·M-0h·M-2·M-3, M-4 고정점(함께 옮긴 것 사상), future 집합 같음, 클래스 메서드는 골격이 옮겨지고 자기 해시가 원본 같은 qualname과 같을 때만,
+   함수 안 중첩 def는 함께, 최상위 블록 안 def는 아님, qualname 중복 def 제외. 반환 모양 `units`·`defs`·`def_hashes`·`rejected`(같은 원본이 base에 **있는** 후보만). 순수 함수.
+4. **V3(계약 4)**: 대상 def에서 `(경로, qualname, def_hash)`가 `defs`·`def_hashes`와 모두 맞는 것을 **범위 정책 선택 앞에서** 뺀다. 나머지 대상 선택·def 안 변이 선택(`20260930-v3-changed-stmt-scope` 계약 1)·면제 대조(`20260930-v3-exempt-binding`)는 그대로.
+   옮기며 바뀐 def·거부 후보는 새 경로의 def(base 같은 경로에 없으면 본문 전체 -- 이동 원본과 문장 대조 금지, D-20). 출력에 `defs`(대상 def 목록, 대상 선택 순서, 같은 qualname 둘이면 두 번)·`moved`(`[{"from","to"}]`)·`move_rejected` 추가.
+5. **V6(계약 5)**: 옮긴 def 단위의 이전 항목 수 = 원본 파일 맥락(원본 파일 전체 텍스트 -- `len(` 검사·`# derive:` 태그 포함)의 원본 단위 항목 수. 새 파일 `<module>` 이전 항목 수 += 그 파일로 옮긴 문장 단위 각각의 원본 맥락 항목 중 그 문장 줄 범위의 것. 출력 `moved`·`move_rejected`.
+6. **V7(계약 6)**: `new_defs`에서 계약 4와 같은 대조로 뺀다. `reachability.build_graph`·도달 계산(B33 R1~R3) 불변. 출력 `moved`·`move_rejected`.
+7. **재계산 없음(계약 10)**: 한 도구 실행에서 `moved_defs` 호출 1, `read_tree`는 V3 ≤ 2·V6 ≤ 2·V7 = 2. `moved_defs` 입력은 소스 파일만. 원칙: 회로·넷·소자 이름·`library/`·`.topology.json` 리터럴 금지(계약 9), 광범위 `except` 금지(V6·공격 27f).
+8. **docstring(계약 13)**: 세 도구 모듈 docstring에 '옮긴 단위는 이동 원본과 비교' 뜻.
+
+### 2.2 하지 말 것
+
+* 판정식 변경(대상·변이 연산자·면제 원소 형식·V6 검사 항목·V7 그래프 간선), 기존 출력 키 이름·뜻 변경, `rt.py`·redteam 수정.
+* 새 보조 함수를 만들고 세 `main`에서 안 부르는 것(미배선). `SourceIndex`를 D0a용으로 따로 두 벌 만드는 것(계약 8 -- `moved_defs`가 쓰는 그 클래스).
+
+### 2.3 자기 확인(판정 근거 아님)
+
+* `run_all.py --phase 0.5 --mode direct --only 32-moved-defs` → 93/93 PASS. `--only` 없이 전체 FAIL 0(특히 `v3_survivor`·`v7_unwired`·06·07·09·23·26·27f·28·29·31·33·34·35).
+
+---
+
+## 3. auditor 브리프(gmid-verification-auditor, §12 순서 3·7)
+
+```
+역할: gmid-verification-auditor. change id = 20260930-p3-gate-move-aware, evidence_type red-green, 게이트 변경(phase 0.5).
+audit worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-gate-move-aware-audit (브랜치 role/audit/20260930-p3-gate-move-aware).
+모든 측정은 격리 복제본에서(§12-7): git clone --no-hardlinks --no-local <audit worktree> <scratch>/iso → git -C <scratch>/iso remote remove origin.
+scratch는 새 C:/g<n> 하나만(다른 C:/g* 건드리지 말 것), TMP도 그 아래, 끝나면 그 폴더만 삭제. 셸 가드: set -euo pipefail, git -C <절대 경로>만, (cd … && …) 금지(role_guard 거부). 끝나면 실제 저장소 git status·reflog 불변 확인.
+게이트 코드는 base 판(= approval 커밋 뒤 gate master, 순서 0의 HEAD)을 git cat-file로 추출한 사본(캐시와 바이트 동일 확인).
+작성자(test·code) 보고와 오케스트레이터 착수 키트(_drafts/g1_kit 수치)는 증거로 받지 않는다 -- 다시 잰다.
+판정 기록 .ai/verification/20260930-p3-gate-move-aware.json + .ai/verification/20260930-p3-gate-move-aware/{scripts,out}/, Role: audit 커밋.
+```
+
+### 3.1 순서 3(freeze·base 확인 → `base_check.json`)
+
+* T 해시 고정, T 경로가 `tools/gates/redteam/attacks/32-moved-defs/**`와 `tools/gates/redteam/lib/rt.py`뿐인지(`git diff --name-only <base> <T>`).
+* base 게이트로 T 복제본에서 `run_all.py --phase 0.5 --mode direct`(전체)와 `--cases 0.5` → **base 표**(케이스·단계 판정, log sha256). rt.py 변경 무동작: 32 밖 케이스 판정이 base 판 rt.py와 같은지(T의 rt.py vs base rt.py로 각각).
+* red: 32의 93 단계 중 exit가 card 표 왼쪽 열과 다른 단계 0, exit가 병합본 기대와 다른 단계 = red 8단계(22 vcase 단계)인지와 원인(옮긴 def가 새 def로 셈 → 생존·리터럴·미도달; `stmt-literal-moved`는 V6 `<module>` 새 리터럴).
+  나머지 단계의 base FAIL 원인은 관찰 키 부재뿐인지. `failure_hashes` = base 판 `merge_gate.red_failure_hash("tools/gates/redteam/attacks/32-moved-defs::<step>", "redteam.FAIL")`.
+* **판별력**: card 문장에서 직접 만든 잘못된 구현(규칙 하나씩 뺀 것 -- 예 M-0 생략, M-0h 생략, M-2·M-3 생략, M-4 생략, future 무시, `__file__` 디렉터리 무시, 골격 = 이름만, 옮긴 클래스 메서드 해시 대조 생략,
+  qualname 중복 미제외, 함께 옮긴 것 사상 없음, 새 경로 def를 원본과 문장 대조, V6 `<module>` 덧셈 생략)을 병합본(순서 7) 격리 복제본에 넣어 32를 돌려 **각 거부·red 단계가 최소 한 변형에서 FAIL**인지.
+  어느 변형에서도 FAIL하지 않는 단계는 test 결함 후보로 보고. (키트 실측은 0.4 -- 증거로 받지 않는다.)
+
+### 3.2 순서 7(병합본 판정) -- design 05 §18, 선례 B28·B33 판정 기록 모양
+
+| V | 판정 | 근거·측정 |
+|---|---|---|
+| V1 | **PASS** | (1) pytest 전체(auditor_run `V1:` 명령, base 판 `pytest_gate.ini`, `--gmid-phase=0.5 --gmid-strict=`, `v1_command_check` 위반 0) -- 변경 경로가 `tools/gates/**`라 대상 트리 불변. (2) 병합본 redteam 전체 + `--cases 0.5`, 순서 3 base 표와 케이스·단계 단위 기계 대조: 바뀐 케이스는 32(FAIL→PASS) 하나, 나머지(`v3_survivor`·`v7_unwired`·06·07·09·23·26·27f·28·29·31·33·34·35 포함) 같음(계약 11) |
+| V2 | N/A(도입 1) | 참고: 커밋 사슬 base → T(Role: test) → code(Role: code, `tools/gates/*.py` 3경로) → 병합(Role: doc), `git diff T 병합 -- tools/gates/redteam` 0 |
+| V3 | N/A(도입 1) | 참고: base 판 `mutate_changed.py` targets 빈 목록(게이트 도구는 대상 밖) |
+| V4 | N/A(도입 1) | 참고: oracle 대조 -- 32 기대값이 계약 3·4·7·12 문장과 구성에서 왔는지(피검 출력에서 만들지 않았는지) 단계별로 |
+| V5 | N/A(도입 1) | 참고: 기존 케이스·`expect.json` 변경 0, rt.py는 `observe` 값 하나 추가. 승인 `target`을 base 판 `diff_hash`로 재계산해 일치 |
+| V6 | N/A(도입 1) | 참고: base 판 `source_lint.py`로 세 도구 광범위 except 추가 0 |
+| V7 | N/A(도입 2) | 참고: 배선 관찰 -- `SourceIndex`·`moved_defs`가 세 `main`에서 불리는가 |
+| V8 | N/A(도입 4) | 엔진 무관 |
+| V9 | N/A(도입 6b) | 회로 무관 |
+| V10 | PASS | '재현할 수치: 없음' → `reproduced_numbers` 빈 배열. 보고 수치는 `notes`(3.3) |
+
+### 3.3 redteam이 덮지 않는 계약 -- 측정(격리 복제본, base 도구 vs 병합본 도구, 기대값은 계약 문장에서)
+
+| 측정 | 계약 | 내용 |
+|---|---|---|
+| m1 실제 엔진 통째 이동 | 3·'의도' | HEAD 엔진 4파일을 같은 디렉터리 새 파일로(원본은 명시 재수출) -- 단위·def 전부 인정, 거부 0, 그 이동 커밋 쌍에서 병합본 V3 대상 def 0·V6 FAIL 0·V7 미도달 0, base 도구 수치(def·변이·V6 새 항목·V7 미도달) |
+| m2 코드 확인 | 0·8·10 | `SourceIndex.tree(p)`가 두 번 같은 객체·색인 밖 경로 `None`·호출이 `ast.parse`를 더하지 않음, `mutate_changed.def_hash is reachability.def_hash`, `changed_defs` 결과가 base 판과 같은 입력에서 같음(게이트 밖 스크립트 7곳 재실행 -- `.ai/verification/20260930-df36-instance-relpath/scripts/mut_def.py:67`·`.ai/verification/20260930-df36-instance-relpath/scripts/probe_t2_vs_1st_survivor.py:16`, `.ai/verification/20260930-dup-w-calc/scripts/v3_baseline_probe.py:17`, `.ai/verification/20260930-p9-kcl-edges/scripts/v3_list.py:9`, **(r3) `.ai/verification/20260930-df23-registry-record/scripts/mut_df23.py:43`·`mut_df23_r3.py:44`·`witness.py:22`**), `cProfile` `ncalls`: `moved_defs` 1, `read_tree` V3 ≤ 2·V6 ≤ 2·V7 = 2, 파일당 `ast.parse`·`symtable` 1, 해시 대조가 (경로, qualname, def_hash) 셋인지(키만 대조하는 구현은 redteam이 구별하지 못한다 -- 0.4) |
+| m3 위생 | 9 | 바뀐 게이트 소스에 `library/`·`.topology.json`·회로·넷·소자 이름 리터럴 없음(`git grep`) |
+| m4 과거 기록 | 11 | 판정 기록 2건(df36 `070cf69→ed98d35`, dup-w-calc `b7d1798→a9de49c`)과 착수 시점까지 더해진 기록들(34·35·B34·B26 계열·B33)의 base·code 쌍에서 `moved_defs` 옮긴 단위 0·거부 0, 세 도구 판정 base 판과 같음 |
+| m5 probe | 1·2·3 경계 | redteam에 없는 모양: `import M as N` 출처, 깊이 20 넘는 재수출 사슬(`cycle`), match 포획 바인딩, 문자열 주석 이름, walrus 컴프리헨션, 중첩 클래스 메서드, `__file__` 같은 디렉터리 이동(인정), 함수 안 중첩 def 함께, 최상위 `if` 안 def(옮긴 def 아님) |
+| m6 모의 M card | 3(보수 비용) | `p3v6_order_shim_sim.py` 상태 M1~M9에서 거부 원인(multi·연쇄·future) 수 -- '거부해야 할 입력' 보고 문장 확인(판정 아님, notes). v8.4: FU가 병합됐으면 FU 포함 base에서 future 0, dedup(이름마다 import 한 번, D-30) 뒤 거부 0인지 |
+
+판정 기록 `approvals` = `["20260930-p3-gate-move-aware"]`. 관찰(약화 아님)은 V10 끝에: 시제품 대비가 아니라 base 대비 도구 실행 시간(V6·V7), D0a 생성기 import 중복 제약, future 혼합 단위.
+
+---
+
+## 4. 순서 요약(오케스트레이터)
+
+UD-0·UD-5 답(착수 조건) → 34·35·B34·b26pre·backfill·B26-1·B33 병합·정리 → 0.7 확인(재측정 1~9) → 0.8 A(문서)·B(spec+interface, 게이트 캐시 `interface_card.py`)·C(승인 기록) → `gate_change_ok` True →
+push 단독·전체 출력 확인 → §12 순서 1(test worktree) → test-author(1절) → 순서 3 auditor freeze·base 표(3.1) → 순서 4 code worktree → code-author(2절) → 순서 6 병합 → 순서 7 auditor(3.2·3.3) → 순서 8 push → 정리 → D0a 키트.
+별도 보고(사용자·design 30 몫): ~~0.2 future 혼합 처리 선택(M2·M4·M9 9단위), D0a 생성기 import 중복 제약~~ -- design 30 v8.4가 닫음(D-29 FU, D-30 `mod_imports`; 재측정 0.2b). G1 쪽 남은 할 일 없음.
+
+## 5. `_drafts/g1_kit/` 내용
+
+| 파일 | 하는 일 |
+|---|---|
+| `g1_core.py` | G1 시제품 본문(측정 전용, 역할 열람 금지) -- card 계약 0~3을 `reachability.py` 이름 공간에 붙일 코드. `G1_VARIANT`(쉼표 목록)로 규칙 하나씩 끄는 잘못된 구현 변형 |
+| `install_proto.py <복제본>` | 복제본의 `reachability.py`(끝에 `g1_core.py` + V7 `main`), `mutate_changed.py`(계약 4·8, `G1_SCOPE=1`이면 35 시제품 `v3scope_kit/scope_proto.py`로 `not_targeted`), `source_lint.py`(계약 5), `rt.py`(`observe: "moved"`)를 고친다. 앵커는 `0f23786` 판(CRLF 체크아웃은 LF로 바꿔 쓴다) |
+| `setup_clones.sh <C:/g<n>> <원본>` | base 복제본 b·시제품 복제본 p 만들기 + 공격 32 측정판 생성 |
+| `gen_attack32.py <복제본> [--scope] [--only-stages=a,b] [--name=…]` | 공격 32 측정판(card 계약 12 표 31단계 x 3 = 93 단계, `_table.json`에 표 열). 기대는 card 표에서 손으로 옮김 |
+| `run_attack32.sh <S> <b|p> <이름표> <변형|->` | 한 번 실행 → `out/a32_<이름표>.{jsonl,txt}`. **실행 시간** 13~20분(다른 측정과 동시면 더) -- `run_in_background` + 긴 timeout |
+| `run_variants.sh <S> <복제본> <이름표> <변형:단계,…> …` | 변형마다 겨냥한 단계만 담은 케이스(`32v-<변형>-x`)를 돌려 `out/var_<이름표>.jsonl`. 단계 몇 개면 30초~3분, 31단계 전부면 12~15분 |
+| `run_noop.sh <S> <복제본> <이름표> [--only <케이스>]... [--no-default]` | 계약 11 무동작 미리보기(V3·V4·V6·V7 관련 기존 11케이스) → `out/noop_<이름표>.*`. (r3) `--only`는 여러 번 줄 수 있고 기본 11케이스에 더한다(예: `--only 33- --only 34- --only 35-`); `--no-default`면 `--only`로 준 것만. `.txt` 끝에 실제로 돌린 케이스 목록(`cases …`) |
+| `m9_measure.py <S> <b> <p> <sim WORK> <출력>` | H(머리 수치)·W(엔진 통째 이동)·M(모의 M card 쌍) -- 측정 저장소 `<S>/m`에 상태를 커밋해 실제 도구(base·시제품) V6·V7 실행, V3는 대상 선택식으로 정적 계산. 케이스마다 `.partial.jsonl` append |
+| `m9_classify.py <b> <p> <sim WORK> <출력>` | 모의 M card 거부 원인 분류(future·multi·연쇄), raw/dedup 두 판 |
+| `tree_check.py` | `SourceIndex.tree` 같은 객체·파싱 수(계약 0·10) 확인 -- 경로 `C:/g143/q` 하드코딩(복제본 바꿔 쓸 것) |
+| `g7_facts.py [--scratch C:/g<n>] [--gates …] [--repo …] [--rev …] [--out …]` | 판정 기록 2건 옮긴 단위 0 + 엔진 사실(star·global·multi·qualname 중복·클래스). (r3) 기본 `--scratch C:/g143`, `--gates <scratch>/p/tools/gates`, `--repo <scratch>/b`, `--rev HEAD`, `--out out/g7_facts_<--rev 짧은 sha>.json`. 경로 인자는 드라이브 절대 경로만 -- `.`·상대 경로·현재 디렉터리·저장소(chip-design-skills·gmid-gate.git) 안은 `[거부]`(exit 1) |
+| `patch_g1_docs.py --root <R> [--check] [--no-preconditions]` | 계약 13 문서 패치(다섯 곳, 줄 안 삽입, 줄 끝 보존, 멱등, 선행 34·35·B33 문구 없으면 거부) |
+| `sim_launch_g1.sh <원본> <gate sha> <모래상자> <출력>` | 0.6 모의 전체(선행 문서 흉내 → A·B·C → G → EL4 대조) |
+| `approval_20260930-p3-gate-move-aware.md` | 승인 기록 초안(UD-5 답 자리 비움) |
+| `w_variants.py` | W(엔진 통째 이동)에서 변형별 인정 단위·def·거부 수 |
+| `out/` | `a32_{base,proto}`(v8 29단계)·`a32_{base31,proto31}`(v9 31단계), `var_{g1,g2,g3,g4,x_proto,x_base}`(변형), `m9_0f23786.json`(+partial)·`m9_classify_0f23786.json`·`g7_facts_0f23786.json`, `order_sim_0f23786.json`(모의 상태 생성 로그), `sim_0f23786/`(모의 로그·interface card·채운 승인 기록), `noop_*` |

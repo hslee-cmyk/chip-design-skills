@@ -1,0 +1,5 @@
+card {'id': '20260930-p9-kcl-edges', 'phase': '2', 'evidence_type': 'equivalence', 'gate_change': 'no', 'approval': ['20260923-20-dead-code-dup-design', '20260930-p9-e1-correction'], 'activated_ic_case': []}
+strict_set []
+conftest_has_gmid_phase True
+v1_command_check []
+new_symbols []

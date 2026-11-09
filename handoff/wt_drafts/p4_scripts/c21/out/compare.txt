@@ -1,0 +1,30 @@
+== E-LIB hash (e_lib_p3.py; nomask = e_lib.py와 같은 hash, mask = meta['rails'] 뺌)
+  base nomask 1d2e3bf6acf762eb  mask 1d2e3bf6acf762eb  load 실패 0 []
+  p1   nomask c121333162fade9e  mask 1d2e3bf6acf762eb  load 실패 0 []
+  p20  nomask c121333162fade9e  mask 1d2e3bf6acf762eb  load 실패 0 []
+  p21  nomask c121333162fade9e  mask 1d2e3bf6acf762eb  load 실패 0 []
+  x1   nomask c42dcb00f9e78372  mask c42dcb00f9e78372  load 실패 9 ['common_gate_amplifier', 'current_reuse_telescopic_ota', 'folded_cascode']
+  x2   nomask 813ce7bb72a43c1f  mask 2d734d14869e4132  load 실패 0 []
+  x4   nomask 4e9814f1c67c3d84  mask 1d2e3bf6acf762eb  load 실패 0 []
+== meta 키 집합(회로별) -- base 대비 더해진 키
+  p1   (더한 키, 빠진 키) 9회로 값 종류: ['[["rails"], []]']
+  p20  (더한 키, 빠진 키) 9회로 값 종류: ['[["rails"], []]']
+  p21  (더한 키, 빠진 키) 9회로 값 종류: ['[["rails"], []]']
+  x1   (더한 키, 빠진 키) 9회로 값 종류: ['"EXC ValueError"']
+  x2   (더한 키, 빠진 키) 9회로 값 종류: ['[["rail_voltages", "rails"], []]']
+  x4   (더한 키, 빠진 키) 9회로 값 종류: ['[["rails"], []]']
+== #21 판정기 대조 (base = B26-1 뒤 판 p20 -- #21 card base 대용; head = 각 판)
+  head p21   J-hash PASS  J-mask PASS  J-mask+ PASS  []
+  head x1    J-hash FAIL  J-mask FAIL  J-mask+ FAIL  ['common_gate_amplifier', 'current_reuse_telescopic_ota', 'folded_cascode', 'ngcc_3stage_ff']
+  head x2    J-hash FAIL  J-mask FAIL  J-mask+ FAIL  []
+  head x4    J-hash FAIL  J-mask PASS  J-mask+ FAIL  ['common_gate_amplifier(필드 voltages)', 'current_reuse_telescopic_ota(필드 voltages)', 'folded_cascode(필드 voltages)', 'ngcc_3stage_ff(필드 voltages)']
+== 참고: B26-1 시제품 자체(Phase 3 E5 모양) base -> p1
+  base mask hash == p1 mask hash: True ; base nomask == p1 nomask: False
+  p1 nomask == p20 nomask (CC-5 최소 시제품 무동작): True
+  p20 nomask == p21 nomask (#21 시제품, rails 포함 전체): True
+  p21 masked.rails (9회로) == p20 masked.rails: True
+== E-INST (e_inst_p3.py; p1 = B26-1 시제품, p21 = #21 시제품)
+  folded_cascode: exists True/True fail_in_stdout False/False raw ef3cd9963d0a/ef3cd9963d0a 같음=True file_bytes 같음=True 다른 최상위 키=[] top_keys=['schema_version', 'topology_ref', 'sizing', 'netlist', 'floorplan', 'box_shape', 'audit_row_split', 'coverage']
+     stdout(경과 시간 가림) 같음=True ; p21 RailVoltages 읽기 계수 {'build': 1, 'read': 5601} (rc 0)
+  current_reuse_telescopic_ota: exists True/True fail_in_stdout False/False raw 2fc426d9ef3a/2fc426d9ef3a 같음=True file_bytes 같음=True 다른 최상위 키=[] top_keys=['schema_version', 'topology_ref', 'sizing', 'netlist', 'floorplan', 'box_shape', 'audit_row_split', 'coverage']
+     stdout(경과 시간 가림) 같음=True ; p21 RailVoltages 읽기 계수 {'build': 1721, 'read': 5978602} (rc 0)

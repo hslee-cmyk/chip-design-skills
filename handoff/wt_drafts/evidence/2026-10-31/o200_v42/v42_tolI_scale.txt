@@ -1,0 +1,6 @@
+[common_gate_amplifier] 평가 41: tol_I(max)/min ID (min,med,max) (0.2814, 0.3276, 0.3677) | tol_I(max)/max ID (0.2814, 0.3276, 0.3677) | tol_I(sum)/min ID (0.6401, 0.676, 0.7017) | tol_V 범위 0.0074~0.0138 V
+[folded_cascode] 평가 63: tol_I(max)/min ID (min,med,max) (0.7464, 4.0849, 60.5133) | tol_I(max)/max ID (0.2281, 0.3679, 0.3924) | tol_I(sum)/min ID (5.1823, 9.1315, 103.1821) | tol_V 범위 0.0063~0.0159 V
+[pushpull_follower_buffer] 평가 38: tol_I(max)/min ID (min,med,max) (0.9734, 2.2348, 1419292.6948) | tol_I(max)/max ID (0.346, 0.5602, 0.5715) | tol_I(sum)/min ID (2.5162, 4.5569, 3383753.198) | tol_V 범위 0.0071~0.0183 V
+[two_stage_ota] 평가 46: tol_I(max)/min ID (min,med,max) (9.6353, 27.2273, 12994220773335.973) | tol_I(max)/max ID (0.3495, 0.3701, 0.4457) | tol_I(sum)/min ID (13.6711, 36.4263, 10301412635002.486) | tol_V 범위 0.0063~0.0194 V
+ln10/(gm/ID) [V] (tol_V 1십진당 O-c 경계 VGS 이동, 약반전 근사) min/med/max: 0.0728 0.1116 0.516
+pushpull M2 행: {'ev': 22, 'vgs': 0.003447108073226346, 'vds': 0.6280988724252172, 'ID': 5.794879059998979e-10, 'I_off': 5.196554120698944e-10, 'epsID': 2.5878498232409087e-10, 'gm_id': 31.60810678612677, 'tol_V': 0.014128504993858355, 'kind': 'pmos', 'w_key': 1000} ln(ID/Ioff)= 0.109 eps= 0.4466

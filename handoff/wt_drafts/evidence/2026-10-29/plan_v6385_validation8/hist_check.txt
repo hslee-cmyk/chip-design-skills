@@ -1,0 +1,36 @@
+history 추가 줄 수 = 10
+«원문» 행 수 = 9
+  - **DR-1 옛 대안 철회 문장(라벨 겹침)**
+  - **DR-1 U1 소비자 0 문장**
+  - **DR-1 위험 기록 (b)(아홉째 커밋)**
+  - **Q-ZG1 종합 판정 조건(아홉째 커밋)**
+  - **N5.3 Q-ZG1 행(아홉째 커밋)**
+  - **N5.3 Q-KV1 행(아홉째 커밋)**
+  - **DEC-64 Q-KV1 표지(아홉째 커밋)**
+  - **Status 줄(아홉째 커밋)**
+  - **DR-1 U1 판정 조건(일곱째 커밋 문언)**
+
+=== old line 11 (tag replace)
+line whole in history-added: True
+fragments missing from both new line and history-added: 0
+
+=== old line 263 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 0
+
+=== old line 294 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 1
+  MISS: 뒤 stage 소자는 독립 유지 → 대칭 궤도 대표 → 이름
+
+=== old line 1163 (tag replace)
+line whole in history-added: True
+fragments missing from both new line and history-added: 0
+
+=== old line 1165 (tag replace)
+line whole in history-added: True
+fragments missing from both new line and history-added: 0
+
+=== old line 2346 (tag replace)
+line whole in history-added: False
+fragments missing from both new line and history-added: 0

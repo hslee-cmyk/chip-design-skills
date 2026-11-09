@@ -1,0 +1,4 @@
+folded_cascode summary {'converged': 15, 'converged_changed': 3, 'slice_cycle': 3, 'finger_below_min': 2} {'converged': 15, 'converged_changed': 3, 'slice_cycle': 3, 'finger_below_min': 2} R [] []
+  points identical: True
+two_stage_ota_sf summary {'finger_below_min': 4, 'converged': 10, 'slice_cycle': 1} {'finger_below_min': 4, 'converged': 10, 'slice_cycle': 1} R [] []
+  points identical: True

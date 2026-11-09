@@ -1,0 +1,2 @@
+J='import json,sys; d=json.loads(sys.stdin.buffer.read().decode("utf-8")); c=d["checks"]; sys.exit(0 if d["id"]==sys.argv[1] and len(c)==10 and all(v["verdict"] in ("PASS","N/A") for v in c.values()) else 1)'
+chk() { git -C "$R" cat-file -e "$H:.ai/verification/$1.json" && git -C "$R" show "$H:.ai/verification/$1.json" | C:/Python314/python.exe -c "$J" "$1"; }

@@ -1,0 +1,15 @@
+base_elib 1d2e3bf6acf762eb
+base_elibp3_nomask 1d2e3bf6acf762eb
+base_elibp3 1d2e3bf6acf762eb
+p1_elib c121333162fade9e
+p1_elibp3 1d2e3bf6acf762eb
+p2_elib e01c7b5202f29591
+p2_elibp3 1d2e3bf6acf762eb
+p3_elib ab5be6830f0e9f62
+p3_elibp3 58e3a1e805efca89
+current_reuse_telescopic_ota base_df36 raw 2fc426d9ef3a9623 w/o 185b675e9dd363a5 keys ['schema_version', 'topology_ref', 'sizing', 'netlist', 'floorplan', 'box_shape', 'audit_row_split', 'coverage']
+current_reuse_telescopic_ota base_p3 raw 2fc426d9ef3a9623 w/o 185b675e9dd363a5 keys ['schema_version', 'topology_ref', 'sizing', 'netlist', 'floorplan', 'box_shape', 'audit_row_split', 'coverage']
+current_reuse_telescopic_ota p1_p3 raw 2fc426d9ef3a9623 w/o 185b675e9dd363a5 keys ['schema_version', 'topology_ref', 'sizing', 'netlist', 'floorplan', 'box_shape', 'audit_row_split', 'coverage']
+folded_cascode base_df36 raw ef3cd9963d0a80ac w/o 0ca6746f1cb3d364 keys ['schema_version', 'topology_ref', 'sizing', 'netlist', 'floorplan', 'box_shape', 'audit_row_split', 'coverage']
+folded_cascode base_p3 raw ef3cd9963d0a80ac w/o 0ca6746f1cb3d364 keys ['schema_version', 'topology_ref', 'sizing', 'netlist', 'floorplan', 'box_shape', 'audit_row_split', 'coverage']
+folded_cascode p1_p3 raw ef3cd9963d0a80ac w/o 0ca6746f1cb3d364 keys ['schema_version', 'topology_ref', 'sizing', 'netlist', 'floorplan', 'box_shape', 'audit_row_split', 'coverage']

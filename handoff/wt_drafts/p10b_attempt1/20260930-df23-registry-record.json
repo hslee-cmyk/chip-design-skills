@@ -1,0 +1,98 @@
+{
+  "id": "20260930-df23-registry-record",
+  "spec_card": "docs/02-design/specs/20260930-df23-registry-record.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "a796468889741bb7eb8da121ffefb0589cb2b769",
+  "test_commit": "48ab2ae4c0e14ac92f0f15aab3fe58c38109b861",
+  "code_commit": "bc7e2aedbdfcbba289401bb745530bd7d488e032",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py"
+    ],
+    "failure_hashes": [
+      "dd51ea9c19cb4272034ad5dcc0bb900a00b04123ffa83e47abf5b643281e34db"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "병합본 M 429404809ad09b9bef303df20087c998caa9d345(부모 [T 48ab2ae, K bc7e2ae], 트리 2c8cb457 = K 트리, Role: doc·Change-Id 20260930-df23-registry-record)의 격리 복제본 C:/g88/m(git clone --no-hardlinks --no-local --no-checkout, origin 제거, checkout --detach, remote 0·status 0줄)에서 base 판 캐시 a796468의 pytest_gate.ini로 slow 포함 전체 실행(-k·--deselect·-x 없음, --gmid-phase=2 --gmid-strict=): 939 passed, 15 xfailed, 실패·오류·skip·xpass 0, exit 0, 688.79s. 수집 954, 수집 오류 0. 수집 대조(scripts/cmp_collect.py): base 886개 id가 전부 병합본에 있고 새 id 68개는 전부 contracts/test_reg_check_df23.py다(순서 3에서 스텁으로 센 68과 같다). 939 = base 871 + 68, xfail 15 = base 15. 엄격 집합은 base 판 strict_set = 빈 집합, v1_command_check 실패 0. 게이트 코드는 git cat-file blob a796468:tools/gates/<파일>로 auditor가 redteam 밖 22개를 직접 뽑았다. code-author 보고(939 passed·15 xfailed)는 대조만 했고 증거로 쓰지 않았다"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red-green. 커밋 사슬(이 card Change-Id 커밋만): base a796468(gate master) -> T 48ab2ae(Role: test, 새 test 1파일) -> K bc7e2ae(Role: code, 부모 T, 레지스트리 + A/tests/tools/reg_check.py) -> M 4294048(Role: doc, 부모 [T, K], 트리 = K 트리). test 커밋 불변: git diff T M = 레지스트리·reg_check.py 2파일, test_reg_check_df23.py blob 9537606e 그대로. red(순서 3 base_check.json): T 복제본에서 base 판 red 수집 플러그인이 1건 기록 -- 수집 단계 builtins.ImportError, 쌍 (reg_check, check_df23)이 interface card 신규 시그니처 표의 쌍과 같아 _NEW_SYMBOL_TYPES 조건부 허용. 해시는 auditor가 따로 계산해 같았고 나머지 871 passed·15 xfailed는 base와 같다. green: 병합본에서 test_reg_check_df23.py와 test_reg_check.py를 -rA와 red 수집 플러그인으로 따로 돌려 110 passed, 허용 타입 red 기록 0. 계약 1: 레지스트리 blob은 LF로 저장된다(base 524줄·병합본 601줄, CR 0). 작업 트리는 core.autocrlf 체크아웃이라 CRLF 601/601이다(card 실측 '524줄 전부 CRLF'는 작업 트리 기준). 병합본 blob은 base blob을 접두로 그대로 가지고 77줄을 끝에 더했을 뿐이다(numstat 77/0) -- §0~§7 바이트 동일, 줄 끝이 섞이지 않았다. 계약 2(E0): 병합본 도구 인자 없음 -> exit 0 'reg_check: 발견 0'. base 도구를 병합본 레지스트리에 돌린 출력과 바이트 동일. 계약 5 (a): --df23-inventory 병합본 목록 -> exit 0 '발견 0'. (b): base 레지스트리 + 병합본 도구 -> exit 1, 발견 1줄 {rule df23-section, name title}. (c): auditor 독립 스크립트 scripts/df23_recount.py(reg_check를 쓰지 않음, 자기 점검 12/12)로 목록 items에서 §8.1 8행·§8.2 52행을 다시 만들어 병합본 §8 표와 행 다중집합 대조 -> 빠짐 0·남음 0, 목록: 경로·measured_at 766b5c2b…·사용 규칙 문장 일치(verdict same). (d): V3 참조. 계약 6: git diff --name-only base M = 레지스트리, reg_check.py, 새 test 1개. A/tests/·docs/ 밖 diff 0줄이고 목록 JSON·test_reg_check.py blob은 base와 같다. 새 코드 리터럴(raw/literals_m.txt): 목록 필드 이름, 값 '동작을 정함'·'신규', 표 머리, 규칙 이름, 메시지뿐이다. 회로·소자·넷·함수 이름 리터럴 0, Phase 순서 상수 0(담당 Phase는 sorted 문자열 순). 숫자는 0·1·2·3·5(칸 수·인덱스). E-LIB·E-INST: 엔진·library 불변이라 base와 같다"
+    },
+    "V3": {
+      "verdict": "FAIL",
+      "basis": "base 판 캐시 mutate_changed.py --root C:/g88/m --base a796468 --head 4294048 -> verdict PASS, targets [], mutants 0. 변경이 문서와 A/tests/tools/(_is_source 밖)뿐이라 card가 예고한 대로 대상 0이다. card 계약 5 (d) 보충 뮤테이션(scripts/mut_df23.py)은 base 판 mutate_changed의 changed_defs·mutants·_replace_def를 그대로 써서 격리 복제본 C:/g88/mut(= M)에서 돌렸다. 대상 def는 _df23_expected·_df23_rows_under·check_df23·main 4개, 변이 290개(stmt_delete 163, const± 76, cmp_flip 28, arith 17, early_return 4, except_body_delete 2). 변이마다 test_reg_check_df23.py와 test_reg_check.py를 V1 형태로 실행했다. 기준 실행 110 passed, timeout 0, 끝난 뒤 원본 복원·status 0줄. 결과는 죽음 245·생존 45로 card 계약 '생존 0'을 어긴다. 생존 45 판정(scripts/mut_report.py, raw/mut_report.json): [등가 9] rsplit maxsplit 1->2(189행), 칸 채우기를 더 길게 하는 284·304행 const+·arith 4개, 슬라이스 시작 +0(235·258행, 제목·소절 머리 줄은 표·목록: 줄이 아니다) 2개, main의 최상위 dict 검사 삭제 2개(374-375행; _df23_expected 172행이 같은 입력에 ValueError를 내서 exit 2가 같다). [detail 문자열만 다름 6] 292·313행 메시지 슬라이스 5개와 304행 const-(규칙·name 같음) -- card가 detail을 판정하지 않지만 출력이 달라 등가로 세지 않는다. [비등가 30] (1) 절·소절 경계 16: check_df23 제목 탐색 break 삭제(250, '## 8.'+'DF-23' 제목이 둘이면 마지막을 잡음), 절 끝 탐색 삭제·변형(254-257 6개 -- §8 뒤의 '## ' 절이 §8 안으로 들어옴), sec 슬라이스 start-1·start+2(258 2개), _df23_rows_under 소절 머리 break 삭제(225), 소절 끝 탐색 삭제·변형(229-232 6개 -- 다음 '### ' 소절의 표가 §8.1/§8.2로 읽힘), 표 슬라이스 start-1·start+2(235 2개). (2) 짧은 행 처리 4: 284·304행 칸 채우기 삭제, 284행 const-(칸 수가 모자란 행에서 IndexError -> CLI가 잡지 않는 비-ValueError), 311행 r[2:6](6칸 이상 행에서 판정이 바뀜). (3) 입력 형 검사 4: items가 list 아님(175-176 2개), 항목이 dict 아님(181-182 2개) -- None·정수면 ValueError 대신 TypeError. (4) main의 base 코드 6: stdout reconfigure 삭제 2(358-359), argparse SystemExit 처리 3(356-357 except 본문 삭제·return 2의 ±1), '발견 0' 요약 줄 삭제(383 -- card 계약 2·5 (a)가 'reg_check: 발견 0' 출력을 말하지만 test가 판정하지 않는다). card 계약 5 (d)의 분기 대조표(raw/mut_report.json branches): 5규칙 중 df23-section 목록·measured_at·8.1·8.2, df23-path, df23-measured-at와 ValueError (i)~(v)(28개), CLI 루트 밖(7)·발견 합치기(4)·except exit 2(4)·인자(1)는 전부 죽었다. 생존이 있는 분기는 df23-section title(break 1), df23-total(5), df23-function(9), CLI dict 아님(2, 등가)이다. 비등가 생존이 남아 FAIL. 재현: PYTHONPATH=C:/g88/gmid-gate-cache/a796468889741bb7eb8da121ffefb0589cb2b769 C:/Python314/python.exe -P scripts/mut_df23.py C:/g88/mut C:/g88/gmid-gate-cache/a796468889741bb7eb8da121ffefb0589cb2b769 a796468889741bb7eb8da121ffefb0589cb2b769 C:/g88/out/mut_m.jsonl"
+    },
+    "V4": {
+      "verdict": "FAIL",
+      "basis": "base 판 캐시 test_lint.py --root C:/g88/m --base a796468 --head 4294048 --module-dir skills/analog-gmid-design/assets/tests/tools를 --interface-card(피검 reg_check:check_df23)와 --subject reg_check:check_df23 --subject reg_check:main 두 방식으로 돌렸다. 둘 다 verdict FAIL, exit 1, 대상 파일 1(test_reg_check_df23.py), findings 41. card 방식은 (2) NO-SUBJECT 18·UNJUDGED 16·FAIL 6, (4) FAIL 1이고, subject 방식은 (2) UNJUDGED 16·NO-SUBJECT 14·PASS 4·FAIL 6, (4) FAIL 1이다. FAIL 7: (2) 182·189·196·212·221·387행 'assert findings == []' 6개 -- 원인은 check_df23의 return 변형 중 하나가 누적 리스트 초기값 '[]'(259행 findings = [] -> 318행 return findings)이고 기대값 '[]'의 정규형이 그것과 같아(빈 리스트는 잎이 아님) 확실한 복사로 읽힌 것이다. P7 test_reg_check.py의 같은 모양 assert는 래퍼(_check·assert_no_findings) 너머라 피검이 보이지 않아 걸리지 않았다(auditor 재실행: 같은 도구로 test_reg_check.py는 PASS). 이 card는 oracle 절에서 '피검 심볼은 직접 호출한다'를 요구해 걸렸다. (4) 481행 test_p10b_cli_clean_exit_0 -- test 본문에 판정 문장이 없고 assert가 helper _p10b_assert_clean_pair 안에만 있다(도구는 helper를 따라가지 않는다, 선례 20260922-sections-major-merge 1차 FAIL과 같은 모양). oracle 대조: 기대값마다 spec card oracle (a)와 대조했다. _P10B_ROWS_81(role 동작 7·메시지뿐 2, phase 3:1·4:2·7a:1·7b:2·해당 없음:3)과 _P10B_ROWS_82(alpha_fn/mod_a.py 4·'DF-4, DF-19, 신규'·'3, 4, 7b', Gamma.beta_m/mod_a.py 1·DF-7·7b, <module>/mod_b.py 2·신규·'7a, 해당 없음')는 auditor가 합성 항목 9개에 계약 1 규칙을 손으로 적용한 값과 같다(일치). 발견 0 기대 6건(clean·row_order·wrong_totals·outside_section8·message_only·groups_by_file_name 끝)은 계약 3 규칙 문장과 card '발견하면 안 되는 것'에서 나온 것이다(일치 -- 피검 출력 복사가 아니라 계약 '발견 0'이다; 도구 FAIL 6은 이 의미에서 오탐이지만 도구 판정이 FAIL이라 V4는 FAIL이다). section·path·measured_at·total·function 발견 기대 name(UNJUDGED 16)은 계약 3 문장의 name 정의(title·목록·measured_at·8.1·8.2, 레지스트리 쪽 값, <축>:<값>, <파일>::<함수>)와 같다(일치). ValueError 13건은 계약 3 (i)~(v)(일치). CLI 기대 exit 0/1/2·키 넷·기존 발견 뒤 합치기·inventory_rel '/' 경로는 계약 4 문장(일치). 피검 출력을 기대값으로 복사한 test는 auditor 대조로는 없다. 그러나 도구 FAIL 7이 남아 V4 FAIL이다. 조치는 test-author 몫이다((4)는 test 본문에 assert, (2)는 판정 문장 모양). (2)를 도구 쪽 오탐으로 다룰지는 오케스트레이터 결정이다. 재현: PYTHONPYCACHEPREFIX=<빈 디렉터리> C:/Python314/python.exe C:/g88/gmid-gate-cache/a796468889741bb7eb8da121ffefb0589cb2b769/test_lint.py --root C:/g88/m --base a796468889741bb7eb8da121ffefb0589cb2b769 --head 429404809ad09b9bef303df20087c998caa9d345 --module-dir skills/analog-gmid-design/assets/tests/tools --interface-card C:/g88/m/docs/02-design/specs/20260930-df23-registry-record.interface.md"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 weakening_diff.py --root C:/g88/m --base a796468 --head 4294048 -> verdict PASS, findings [], diff_paths [], diff_hash null, approved false, exit 0. 출력이 순서 3의 base -> T 출력과 바이트 동일하다. test 변경은 새 파일 추가 하나이고 기존 test_reg_check.py blob은 그대로라 약화할 기존 판정이 없다. 승인 대상 diff 없음"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 source_lint.py --root C:/g88/m --base a796468 --head 4294048 -> verdict PASS, targets [], findings [], exit 0(엔진 변경 없음). 새 코드(도구 대상 밖)는 직접 확인했다. 새 except는 없고, main의 기존 except (OSError, UnicodeDecodeError, SyntaxError, ValueError)가 stderr '입력 오류'와 exit 2를 낸다. 새 입력 오류는 전부 ValueError로 올라간다(계약 3·4). 조용한 기본값은 없다: 동작 항목 plan_mapping이 DF도 신규도 아니면 ValueError. 폴백·임계 상수 없음, 표준 라이브러리만 쓴다"
+    },
+    "V7": {
+      "verdict": "PASS",
+      "basis": "Phase 2부터 활성. base 판 캐시 reachability.py --root C:/g88/m --base a796468 --head 4294048 -> verdict PASS, new_defs [], unreached [], unreached_without_approval [], roots 4개, roots_without_file 1개(gmid_design_pipeline.py::run_gmid_design_pipeline, base부터 같음), exit 0. 새 def(check_df23·_df23_expected·_df23_rows_under)는 A/tests/tools/라 그래프 밖이다. 대신 배선을 확인했다: main의 --df23-inventory 경로가 check_df23 -> _df23_expected·_df23_rows_under를 부르고, auditor 계약 5 (a)(b) 실행(raw/c5a_M.txt exit 0, raw/c5b_baseReg.txt exit 1)이 그 경로를 실제로 탔다. 레지스트리 §8 사용 규칙 문장이 갱신 때 같은 명령을 지정한다(card 실측 6과 같은 DoD 측정 도구 배선)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 이 card는 Phase 2이고 엔진 변경이 없다(A/tests/·docs/ 밖 diff 0줄)"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 엔진 변경 없음"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치'의 값을 auditor가 독립으로 쟀다(reproduced_numbers). 목록 515항목, role 동작을 정함 213·메시지뿐 302, phase 해당 없음 317·4 63·3 61·7b 46·7a 27·6b 1, §8.1 8행, §8.2 52행, 빈 function 0, 파일 이름 8개 모두 다름, 비-DF 동작 항목 76개 전부 '신규'로 시작. card 비교용 값과 모두 같다. 병합본 §8 표의 행이 이 재계산과 다중집합으로 같다(scripts/df23_recount.py, reg_check를 쓰지 않음). 계약 5 (d) 변이 수 290·죽인 수 245(생존 45 -- V3 FAIL). 모든 수치는 격리 복제본 C:/g88/{iso,base,m,mut}에서 직접 쟀고, code-author·test-author 보고는 증거로 쓰지 않았다"
+    }
+  },
+  "reproduced_numbers": [
+    {"name": "df23_inventory items 수", "value": 515, "command": "C:/Python314/python.exe -P scripts/df23_recount.py C:/g88/m C:/g88/out/recount_m.json (facts.n_items)"},
+    {"name": "role 동작을 정함 항목 수", "value": 213, "command": "scripts/df23_recount.py (facts.role_counts)"},
+    {"name": "role 메시지뿐 항목 수", "value": 302, "command": "scripts/df23_recount.py (facts.role_counts)"},
+    {"name": "phase 해당 없음 항목 수", "value": 317, "command": "scripts/df23_recount.py (facts.phase_counts)"},
+    {"name": "phase 4 항목 수", "value": 63, "command": "scripts/df23_recount.py (facts.phase_counts)"},
+    {"name": "phase 3 항목 수", "value": 61, "command": "scripts/df23_recount.py (facts.phase_counts)"},
+    {"name": "phase 7b 항목 수", "value": 46, "command": "scripts/df23_recount.py (facts.phase_counts)"},
+    {"name": "phase 7a 항목 수", "value": 27, "command": "scripts/df23_recount.py (facts.phase_counts)"},
+    {"name": "phase 6b 항목 수", "value": 1, "command": "scripts/df23_recount.py (facts.phase_counts)"},
+    {"name": "§8.1 행 수(재계산 = 병합본 레지스트리)", "value": 8, "command": "scripts/df23_recount.py (expected_rows81, registry_rows81_n, diff81 빈 값)"},
+    {"name": "§8.2 행 수(재계산 = 병합본 레지스트리)", "value": 52, "command": "scripts/df23_recount.py (expected_rows82, registry_rows82_n, diff82 빈 값)"},
+    {"name": "빈 function 항목 수", "value": 0, "command": "scripts/df23_recount.py (facts.empty_function)"},
+    {"name": "파일 이름 수(모두 다름)", "value": 8, "command": "scripts/df23_recount.py (facts.file_names, ambiguous_file_names 빈 값)"},
+    {"name": "동작 항목 중 DF 번호가 아닌 plan_mapping 수(전부 신규 시작)", "value": 76, "command": "scripts/df23_recount.py (facts.behavior_mapping_new_prefix, behavior_mapping_not_df_or_new 빈 값)"},
+    {"name": "계약 5 (d) 보충 변이 수", "value": 290, "command": "PYTHONPATH=<캐시> C:/Python314/python.exe -P scripts/mut_df23.py C:/g88/mut <캐시> a796468889741bb7eb8da121ffefb0589cb2b769 C:/g88/out/mut_m.jsonl"},
+    {"name": "계약 5 (d) 죽인 변이 수", "value": 245, "command": "scripts/mut_report.py C:/g88/out/mut_m.jsonl <병합본 reg_check.py> C:/g88/out/mut_report.json"},
+    {"name": "계약 5 (d) 생존 변이 수", "value": 45, "command": "scripts/mut_report.py (survived)"}
+  ],
+  "approvals": [
+    "20260923-20-dead-code-dup-design"
+  ],
+  "auditor_run": {
+    "time": "2026-10-01T16:49:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-df23-registry-record-audit",
+    "commands": [
+      "환경: $PY = C:/Python314/python.exe(3.14.2), pytest 9.0.2, export APPDATA=C:/Users/HSLEE/AppData/Roaming, 출력 C:/g88/out, 스크립트 C:/g88/scripts/(사본 .ai/verification/20260930-df23-registry-record/scripts/, 원자료 사본 raw/)",
+      "게이트 코드: C:/Python314/python.exe -P C:/g88/scripts/extract_gate.py C:/g88/base a796468889741bb7eb8da121ffefb0589cb2b769 C:/g88/gmid-gate-cache/a796468889741bb7eb8da121ffefb0589cb2b769 (git ls-tree + git cat-file blob, tools/gates/ 중 redteam/ 밖 22개)",
+      "격리: git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-df23-registry-record-audit C:/g88/<이름>; git -C C:/g88/<이름> remote remove origin; git -C C:/g88/<이름> checkout -q --detach <rev> -- iso = T 48ab2ae, base = a796468, m·mut = M 4294048, 모두 remote 0, status 0줄",
+      "V1: PYTHONPYCACHEPREFIX=C:/g88/pyc_v1_m PYTHONPATH=C:/g88/gmid-gate-cache/a796468889741bb7eb8da121ffefb0589cb2b769 C:/Python314/python.exe -P -m pytest -c C:/g88/gmid-gate-cache/a796468889741bb7eb8da121ffefb0589cb2b769/pytest_gate.ini --rootdir=C:/g88/m --confcutdir=C:/g88/m --gmid-phase=2 --gmid-strict= C:/g88/m/skills/analog-gmid-design/assets/tests",
+      "수집 대조: bash scripts/run.sh collect·bash scripts/run_m.sh collect 후 C:/Python314/python.exe -P scripts/cmp_collect.py <base> <m> <out>",
+      "base red(순서 3): GMID_RED_CAPTURE=C:/g88/out/red_T.jsonl GMID_INTERFACE_CARD=C:/g88/iso/docs/02-design/specs/20260930-df23-registry-record.interface.md PYTHONPYCACHEPREFIX=C:/g88/pyc_full_iso PYTHONPATH=<캐시> C:/Python314/python.exe -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g88/iso --confcutdir=C:/g88/iso -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g88/iso/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+      "green: bash scripts/run_m.sh green (병합본 test_reg_check_df23.py·test_reg_check.py -rA + -p merge_gate 캡처)",
+      "게이트 도구(V3·V4·V5·V6·V7): bash scripts/tools_m.sh (base 판 캐시의 mutate_changed.py·test_lint.py·weakening_diff.py·source_lint.py·reachability.py를 --root C:/g88/m --base a796468 --head 4294048로, -P 없이)",
+      "계약 2·5 (a)(b): bash scripts/regcheck_df23.sh C:/g88/m C:/g88/base C:/g88/out",
+      "계약 5 (c): C:/Python314/python.exe -P scripts/df23_recount.py C:/g88/m C:/g88/out/recount_m.json (자기 점검 scripts/df23_recount_selftest.py 12/12)",
+      "계약 5 (d)·V3 보충: PYTHONPATH=<캐시> C:/Python314/python.exe -P scripts/mut_df23.py C:/g88/mut <캐시> a796468889741bb7eb8da121ffefb0589cb2b769 C:/g88/out/mut_m.jsonl; C:/Python314/python.exe -P scripts/mut_report.py C:/g88/out/mut_m.jsonl C:/g88/m/skills/analog-gmid-design/assets/tests/tools/reg_check.py C:/g88/out/mut_report.json",
+      "계약 1·6: git -C C:/g88/m cat-file blob a796468:<레지스트리>와 4294048:<레지스트리> 접두 비교; git -C C:/g88/m diff --name-only a796468 4294048 -- ':(exclude)skills/analog-gmid-design/assets/tests/**' ':(exclude)docs/**' (0줄); 새 코드 리터럴 AST 목록 raw/literals_m.txt"
+    ]
+  }
+}

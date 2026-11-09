@@ -1,0 +1,68 @@
+# M10·T1 spec card 초안 -- 남은 항목과 원칙 기본안
+
+작성 2026-10-06. 대상 초안: `_drafts/draft_p3_m10.spec.md`(`20261006-p3-mod10-entry`), `_drafts/draft_p3_t1.spec.md`(`20261006-p3-test-relocate`).
+근거: design `30-module-split` v8.5(gate `master` `2183f2e` -- `git -C <저장소> show 2183f2e:<경로>`로 읽음) §2.3·§3·§7.1·§8·§8.1·§9.2, 계획 N3.10·N3.11·N3.12, `00-common` §10.1·§10.2, `10-test-separation` §6.8,
+`_drafts/user_decisions.md`(D-11 (가)·W-1 (가)·F1 경로 'gmid 폴더로 좁힘'·TS6 (마)·T0-V4 'test_s009 규칙(1) 면제'), 선례 초안 `draft_p3_m9.spec.md`(이동 card 틀)·`draft_p3_t0.spec.md`(test card 틀)·`draft_p3_f1.spec.md`(T1 뒤 상태 가정).
+측정: 스크래치 `C:/g323`(격리 복제본, TMP/TEMP `C:/g323/tmp`, `-c core.autocrlf=false`, 실제 저장소 읽기 전용, 작업 끝에 삭제). 스크립트·원자료 사본 `_drafts/p3kit_m10_t1/`(측정 전용 -- 역할 산출물 아님, 역할 agent에게 건네지 않는다).
+사슬: `2183f2e` → FU 대역 `63b04c1` → T0 W-1 대역 `3236aa0` → G1 시제품 `3b398b1`(`g1_kit/install_proto.py`) → D0a 대역 `8dad764` → D0b 재생성 `e70ccad`(M1 base 대역) → M1~M9 `chain_lean.py`(`p3kit_m2_m9/r1m`) `f35e9b9`…`9e2651d`(card마다 `check` 발견 0)
+→ M10 모의(기본안 code `9ad0f38`·test 시제품 `84e7273`·병합 `1306cfc`·레지스트리 행 `8a9b9cf`; 처리부까지 옮긴 대안 `a83a46b`) → T1 모의(base `b6d4eb2`, head `bff6cd1`).
+
+**결론: 사용자 질문 1건(T1-2).** 나머지는 design 승인 범위·기존 사용자 결정·메모리 원칙으로 기본안이 정해진다. 질문은 묻지 않았다(지시대로) -- 아래 문안과 시점만 적는다.
+
+## 사용자 질문(진짜 사용자 몫)
+
+| ID | card | 질문 | 왜 사용자 몫인가 | 원칙 기본안 | 시점 |
+|---|---|---|---|---|---|
+| **T1-2** | T1 | 옮긴 test 3개의 V4 규칙 (1) 면제를 새 test id로 다시 받을지 | 면제(판정 예외)는 사용자 답으로만 생기는 승인 기록이다. 기존 두 기록이 '이름·경로가 바뀌면 면제가 저절로 풀린다'고 적었고 사용자는 그 조건으로 답했다 -- 자리만 옮겨도 다시 묻는 것이 그 기록의 뜻 | **(가) 같은 범위로 다시 받기**: decision 기록 `20261006-p3-t1-v4-exempt` 하나, target = `skills/analog-gmid-design/assets/tests/unit/test_mod8_sizing_layout_convergence.py::test_s009_revalidate_finger_override`·`…::test_s052_compensation`·`…::test_s054_section`(모의 매핑 -- 실제 파일 이름은 T1 매핑 표 값), 덮는 것 = 규칙 (1)만, 재검토 줄은 옛 기록(`20260923-c9-v4-exempt` B9·Phase 4 I-C11, `20261002-p3-t0-v4-s009-exempt`) 것을 잇는다 | T1 test worktree 생성 **전**(V4가 head 트리 `.ai/approvals`를 읽는다 -- T0 선례). T1 V5 승인 질문(test 커밋 뒤 diff 해시)과는 따로 -- V5는 커밋 뒤에만 물을 수 있고 V4 면제는 커밋 전에 있어야 한다 |
+
+질문 문안(초안, AskUserQuestion용 -- 커밋 직전 T1 base 실측 값으로 파일 이름을 바꿔 넣는다):
+> [T1-V4] T1이 단위 selftest 4개를 MOD별 파일(`unit/test_mod<k>_….py`)로 옮기면 test id가 바뀌어, 지금 V4 규칙 (1)을 면제받은 test 3개(`test_s009_revalidate_finger_override`·`test_s052_compensation`·`test_s054_section` -- 승인 20260923-c9-v4-exempt·20261002-p3-t0-v4-s009-exempt)의 면제가 풀리고 V4가 FAIL합니다(모의: 같은 4줄 FAIL, 다른 FAIL 0). 본문은 한 글자도 바뀌지 않습니다. 어떻게 할까요?
+> 선택지: "(가) 같은 범위로 다시 면제 (Recommended)" -- 새 id 셋에 규칙 (1)만, 옛 기록의 재검토 조건을 그대로 잇는 decision 기록 1건 / "(나) V4 피검을 C9 것 하나로 좁힘" -- s009가 판정 밖으로 빠집니다(판정 범위 축소). s052·s054 면제는 그래도 다시 필요 / "(다) T1 보류" -- 계획 N3.11 파일 이름 배치를 미룹니다(F1 base가 바뀝니다).
+
+모의 실측(`draft_p3_t1.spec.md` 작성 전 실측 6): 피검 C9 ∪ T0 interface(6) → V4 FAIL 규칙 (1) 4줄(s009 2·s052·s054, 전부 `test_mod8_sizing_layout_convergence.py`); 새 id 셋을 target으로 한 decision 기록 시제품을 head에 두면 PASS(`exempt` 4, FAIL 0), `merge_gate.py parse-approval` 통과.
+
+## 원칙 기본안으로 닫은 항목
+
+| ID | card | 항목 | 분류 | 기본안과 근거 |
+|---|---|---|---|---|
+| M10-1 | M10 | **옮길 범위**: design §2.3 (i) "try 몸체부터 옮긴다" vs §2.3 (iv) '진입점 본문 변이 약 58 + run() 바뀐 문장 몇 개'(처리부까지 옮긴 71-13 모양의 추정) | (ii) design 문언 해석 | **`try` 몸체만 옮기고 `except Exception` 처리부는 `run()`에 바이트 그대로**. 근거: (1) 문언 '몸체' (2) `00-common` §10.2-6 -- Phase 4 계측 도구가 '진입점 호출 전체를 잡는다'(진입점이 예외를 올려야 성립) (3) 처리부를 새 엔진 파일로 옮기면 V6 `broad_except` 새 발견 2 FAIL(모의 `a83a46b`: MOD10 82·98행) -- 광범위 except 정리는 DF-37 Phase 4 몫이고 이동이 아닌 추출이라 G1 이동 제외도 안 된다. 판정 기준 불변(V3 대상은 오히려 design 추정과 같은 58). 모의: 기본안 V6 PASS·IMPORT-ANY 14·E-INST/E-LIB base와 같음·예외 전파 test 통과. 사용자 질문 아님(design 승인 문언 안의 선택, 기준 약화 없음) |
+| M10-2 | M10 | 진입점이 쓰는 floorplan 임계값 출처 | (i) 정의 하나 | `spec["floorplan_target"]`(하네스 `setdefault`가 같은 값을 넣고 엔진도 그 키를 읽는다). 숫자를 MOD10에 다시 적지 않는다. 하네스 4회로는 spec 함수에서 그 키를 정하지 않아 출력 같음(모의 E-INST 같음). 계약 6 (e)가 '다른 값을 주면 그 값으로 판정'을 test로 둔다(R-5 리터럴 판을 거부 -- 모의 1 FAIL) |
+| M10-3 | M10 | 진입점 test 기대값 기록 모양 | (i) 게이트 사실 | test 옆 `.py` 리터럴 모듈. `.json`이면 V5 '무조건 승인 필요'(test 분류 비-`.py`) FAIL -- 모의 실측. 승인 하나를 피하는 것이 아니라 기록이 test 코드의 일부라서 `.py`가 맞는 자리다(선례: 계약 test들이 기대값을 모듈 상수로 둔다) |
+| M10-4 | M10 | 진입점 test 위치 | (i) 계획 문언 | `A/tests/integration/`(계획 N3.11 `integration/` = end-to-end). `unit/test_mod*.py`는 T1 매핑 집합과 겹치므로 피한다. 디렉터리는 지금 없다(새로 생김 -- `pytest_gate.ini` `testpaths`가 tests 전체라 수집됨, `norecursedirs = tools`) |
+| M10-5 | M10 | 레지스트리 갱신 | (i) WP-14 | 새 행 `run_gmid_design_pipeline`(목적지 `gmid_design_pipeline`, 근거 규칙 `A-0`) + `run` 행 책임·비고 갱신(지우지 않음 -- 하네스에 남는 함수). 모의: 행 있음/없음 모두 `plan` 일곱 0, 목적지를 틀리게 쓰면 `reg_mismatch` 1, `reg_check` 0 |
+| M10-6 | M10 | V3 비용 | (i) 관찰 | 실측은 아래 'M10 V3' 절. 인벤토리 정렬상 `contracts/test_b34_grammar_explicit.py` 두 test(`test_b34_c5_…`·`test_b34_c8_…`)·`test_reg_check_df23.py` 1·`test_ts6_probe_relocate.py` 2가 새 test보다 먼저 돌아 죽는 변이마다 그 시간이 더해진다. 판정 영향 없음 |
+| M10-7 | M10 | V4 interface card의 `run_harness` 행 | (i) 도구 한계(선례 있음) | interface card에 `run_harness.run`·`canonical_spec`·`derived_spec`이 '기존 함수'로 들어가 `--interface-card` 한 번이면 V4 ERROR -- 선례 `20260930-restore-plan-functions` 판정 기록 V4 basis대로 auditor가 `A` 피검과 `--module-dir workspaces` 피검을 나눠 돈다(계약 9). 도구 개선은 백로그 후보(게이트 변경 card) -- 이 card 범위 밖 |
+| T1-1 | T1 | 매핑 규칙(design 30이 규칙 문장을 두지 않음 -- 10 design 413행이 30에 맡김) | (ii) 설계 공백을 원칙으로 | **닫힘(본문 + fixture·도우미 전이)이 읽는 엔진 정의의 N3.10 번호 최댓값** -- N3.10 계층 규칙("import는 작은 번호로만")의 test 판. 슬러그 규칙은 212 중 125를 정할 수 없고 11이 계층과 어긋남(모의). 판정 불변(본문 그대로)이라 사용자 결정 아님 -- design 승인 범위(UD-0 '파일 배치') 안의 배치 규칙. **design 문서 정정 후보**(다음 design 개정 때 §8 T1 행에 규칙 한 문장 -- 기준 변경 아님) |
+| T1-3 | T1 | 다른 test docstring 안 옛 test id(2파일) | (i) 죽은 참조 | 이 card에서 새 id로 바꾼다. V5 리터럴 발견이 2 늘지만 V5 승인 범위 설명에 적는다 |
+| T1-4 | T1 | 공유 fixture 자리 | (i) 정의 하나 | `U/_selftest_shared.py`(fixture 2 -- `s086_state`·`s120_state`). `U/conftest.py`는 판정 환경 파일(V5 무조건 승인)이라, test 모듈끼리 import는 수집 부작용 위험이라 고르지 않는다 |
+| T1-5 | T1 | fixture 이름 충돌 1(`s065_state`, MOD3에서 sizing·stick) | (i) 최소 변경 | 뒤 옛 파일 쪽을 `<이름>__<옛 모듈>`로(사용처 매개변수 1곳 함께). test 이름 충돌은 0이라 이름 바꾸기는 이 하나뿐 |
+
+## 다른 card·문서로 넘길 관찰(이 두 card 범위 밖 -- 사용자 질문 아님)
+
+| ID | 대상 | 관찰 | 처리 기본안 |
+|---|---|---|---|
+| X-1 | D0a(`draft_p3_d0a.spec.md` 계약 `--allow-changed`)·DoD E6 | `move_plan check --allow-changed <id>`가 D0a 초안 문언상 `changed`에서만 그 id를 뺀다. 대역(`move_plan_sim.py`)으로 M9 → M10 기본안에 `--card gmid_design_pipeline.py --allow-changed workspaces/run_harness.py::run …gmid_design_pipeline.py::run_gmid_design_pipeline`를 주면 **`lost` 1(`run_harness.py::run`) + `rebind` 1(`run`이 읽는 `run_gmid_design_pipeline`: base `unbound` → head 그 모듈)**로 FAIL -- E6 MOVE-TOTAL(design §10)이 M10의 선언 변경 때문에 마지막에 FAIL할 모양 | D0a 착수 전 오케스트레이터가 D0a 초안 계약 문언을 '`--allow-changed` id는 `changed`·`lost`·`rebind` 모두에서 뺀다(그 단위가 읽는 이름의 출처 변화 포함)'로 고친다 -- design §3 MOVE-TOTAL '바뀐·새·사라진 단위는 M10이 선언한 것뿐'의 뜻 그대로라 기준 변경 아님. D0a가 이미 시작됐으면 D0a 후속 card. M10 card는 이 문언에 기대지 않는다(계약 3·5 AST + V3 `targets_by_def` 키 집합으로 같은 사실을 판정) |
+| X-2 | design 30 §2.3 (iv)·§8 M10 행 | (iv)의 '진입점 본문 변이 약 58'·§2.3 표의 생존 실측(71 변이)은 처리부까지 옮긴 모양 기준. 기본안(M10-1)에서는 처리부 변이(`except_body_delete` 2·진단 분기)가 `run()`에 남아 대상 밖이다 | 다음 design 개정 때 사실 문장 정정(규칙·판정식 불변) |
+| X-3 | F1(`draft_p3_f1.spec.md`) | T1 뒤 파일 이름이 바뀐다: F1 초안 실측의 `unit/test_selftest_design_report.py:24`·`test_selftest_stick_diagram.py` 등은 T1 매핑 표의 새 파일로 바뀐다(F1 초안 25행이 이미 예고). 새 파일 머리는 옛 머리 원문을 이어 붙인 것이라 F1 대상 import 줄 수가 파일 수만큼 늘 수 있다(모의: sizing·stick 머리를 함께 가진 파일 2 -- MOD3·MOD8) | F1 '작성 전 실측' 재측정 항목에 'T1 매핑 표로 파일 이름 치환, 머리 중복 줄 포함'을 더한다 |
+| X-4 | design 30 §2.2·§7.1 서술 | `test_selftest_design_report.py:25`·`test_selftest_stick_diagram.py` 같은 파일 이름이 서술에 남는다(판정 명령은 식으로 계산해 영향 없음) | 문서 정정 후보(기준 아님) |
+| X-5 | M10 브리프 | 하네스는 `workspaces/<회로>-report/`에 쓴다 -- test-author가 base 하네스로 기대값을 기록할 때 추적 파일(`workspaces/folded-cascode-report/folded_cascode.instance.json`)을 덮지 않게 사본에서 | M10 초안 작성 전 실측 14에 넣음 |
+
+## M10 V3(실측)
+
+* 대상 선택 정적 계수(G1 시제품 + 범위 정책 판 `mutate_changed`의 `changed_defs`·`mutants`·`_Scope` 그대로): 기본안 진입점 58(stmt_delete 48·cmp_flip 8·except_body_delete 1·early_return 1) + `run()` 4(나머지 14 `not_targeted`) = 62. 처리부까지 옮긴 판 65 + 3(8 `not_targeted`) = 68.
+* **생존 선별**(`m10_mut_fast.py` -- 같은 변이 생성기·범위로 변이마다 시제품 test 파일만 실행, 빠른 test 먼저·실제 회로 test 뒤): 62개 모두 죽음(생존 0), 변이당 평균 5.6 s(합 349 s, 최대 8.3 s) -- 대부분 분기 계약 test가 먼저 죽인다.
+* **실제 V3**(`mutate_changed.py --base 9e2651d --head 1306cfc --gmid-phase=3 --gmid-strict=`, 인벤토리 70 test 함수, `-x`): 아래 V3-RESULT 줄(측정 끝난 값).
+V3-RESULT: exit 0 **PASS** -- `mutants` 62·`killed` 62·`survivors` []·`not_targeted` 14, `defs` = [진입점, `workspaces/run_harness.py::run`], `moved` []·`move_rejected` {}, `targets_by_def` 진입점 58·`run` 4(not_targeted 14, deleted_statements 12). 4,939 s(변이당 약 80 s, 다른 agent 측정과 겹친 시간). 원자료 `p3kit_m10_t1/out/v3_m10b.json(l)`. 결론: 계약 6 test 모양이면 V3 면제 질문이 생기지 않는다(design §9.2 '뒤에 올 승인'의 M10 V3 생존 면제는 이 모양에서 0건 예상).
+
+## 양식 검사(gate `2183f2e` `tools/gates`, `git archive` 사본 `C:/g323/gate`)
+
+* `role_paths.parse_spec_card(text, expect_id=…)`: M10 초안 -- 예외 없음, `phase` 3·`evidence_type` red-green·`gate_change` no·`approval` 1, 절 11개(양식 순서 그대로). T1 초안 -- 예외 없음, `phase` 3·`evidence_type` test-only·`gate_change` no·`approval` 3, 절 11개.
+* `interface_card.py <초안> --root <모의 트리>`: M10(모의 M10 병합본 `8a9b9cf`) -- exit 0, 기존 함수 11(`gmid_design_pipeline.run_gmid_design_pipeline`, `run_harness` `run`·`canonical_spec`·`derived_spec`, `instance_report_builder` 5, `sizing_layout_convergence` `optimize_full_circuit_budget`·`diagnose_sizing_roles_gap`), 신규 시그니처 표 1행.
+  T1(모의 T1 head `bff6cd1`) -- exit 0, 기존 함수 6(`optimize_full_circuit_budget`, `size_transistor`, `width_from_id_density`, `check_quasi_static`, `_build_theta_evaluator`, `load_topology` -- T1 계약 11의 피검 합집합과 같다).
+
+## 다음 할 일(오케스트레이터)
+
+1. T1-2 질문을 T1 착수 전에 올린다(문안 위). 답이 (가)면 decision 기록 커밋(T1 test worktree 생성 전) -- 자리표시자 없이 실제 새 id로.
+2. X-1을 D0a 초안에 반영(D0a 착수 전) -- 아니면 DoD E6가 M10 선언 변경에서 FAIL한다.
+3. 각 card 커밋 직전 '앞 card 의존 재확인'(M10 작성 전 실측 13, T1 작성 전 실측 11) -- 앞 card 판정 기록 `code_commit`에서 줄 번호·정의 모듈·변이 수·매핑 표를 다시 떠 '재현할 수치'를 바꾼다.
+4. T1 매핑 생성기 정본 `docs/03-analysis/gain-budget-gmid-sizing-30-module-split/build_t1_mapping.py`·`t1-mapping.json`을 T1 spec card 커밋에 넣는다(시제품 `p3kit_m10_t1/t1_map.py` + 대체 규칙 -- 역할 산출물 아님, 오케스트레이터 문서).

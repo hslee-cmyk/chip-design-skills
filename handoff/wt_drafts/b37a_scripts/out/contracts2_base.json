@@ -1,0 +1,299 @@
+{
+ "c3_library_all_nonrail": {
+  "common_gate_amplifier": {
+   "renamed": 5,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "current_reuse_telescopic_ota": {
+   "renamed": 35,
+   "same": false,
+   "diff_keys": [
+    "_device_roles_autofilled",
+    "device_roles"
+   ],
+   "diff_devices": {
+    "device_roles": [
+     "M15",
+     "M16",
+     "M1a",
+     "M1b",
+     "M25",
+     "M26",
+     "M4a",
+     "M4b"
+    ],
+    "_device_roles_autofilled": [
+     "M15",
+     "M16",
+     "M1a",
+     "M1b",
+     "M25",
+     "M26",
+     "M4a",
+     "M4b"
+    ]
+   }
+  },
+  "folded_cascode": {
+   "renamed": 12,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "ngcc_3stage_ff": {
+   "renamed": 11,
+   "same": false,
+   "diff_keys": [
+    "_device_roles_autofilled",
+    "device_roles"
+   ],
+   "diff_devices": {
+    "device_roles": [
+     "M10",
+     "M13",
+     "M14",
+     "M2",
+     "M8"
+    ],
+    "_device_roles_autofilled": [
+     "M10",
+     "M13",
+     "M14",
+     "M2",
+     "M8"
+    ]
+   }
+  },
+  "nmcnr_amplifier": {
+   "renamed": 15,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "pushpull_follower_buffer": {
+   "renamed": 6,
+   "same": false,
+   "diff_keys": [
+    "_device_roles_autofilled",
+    "device_roles"
+   ],
+   "diff_devices": {
+    "device_roles": [
+     "M1",
+     "M2",
+     "M3",
+     "M4"
+    ],
+    "_device_roles_autofilled": [
+     "M1",
+     "M2",
+     "M3",
+     "M4"
+    ]
+   }
+  },
+  "sf_pushpull_output_opamp": {
+   "renamed": 20,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "two_stage_ota": {
+   "renamed": 7,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "two_stage_ota_sf": {
+   "renamed": 8,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  }
+ },
+ "c3_synthetic_ports_only": {
+  "ota": {
+   "all_same": false,
+   "distinct": 3
+  },
+  "tele": {
+   "all_same": false,
+   "distinct": 3
+  }
+ },
+ "b1_nonport_gate_rename": {
+  "same": false,
+  "diff_keys": [
+   "_device_roles_autofilled",
+   "device_roles"
+  ]
+ },
+ "c4": {
+  "sig_a": {
+   "M3": "S1",
+   "M5": "S1"
+  },
+  "sig_a__device_roles_vsid": {
+   "M0": null,
+   "M1": "S1",
+   "M2": null,
+   "M3": "S1",
+   "M4": null,
+   "M5": "S1",
+   "M6": null
+  },
+  "Vip": {
+   "M3": "S1",
+   "M5": "S1"
+  },
+  "Vip__device_roles_vsid": {
+   "M0": null,
+   "M1": "S1",
+   "M2": null,
+   "M3": "S1",
+   "M4": null,
+   "M5": "S1"
+  }
+ },
+ "c5": {
+  "has_ports_kw": false,
+  "sig_a": "KeyError: 'ports'",
+  "sig_a__base_sig": [
+   [
+    "M0",
+    "M1",
+    "M2"
+   ],
+   [
+    "M3"
+   ],
+   [
+    "M4"
+   ],
+   [
+    "M5"
+   ],
+   [
+    "M6"
+   ]
+  ],
+  "Vip": "KeyError: 'ports'",
+  "Vip__base_sig": [
+   [
+    "M0"
+   ],
+   [
+    "M1"
+   ],
+   [
+    "M2"
+   ],
+   [
+    "M3"
+   ],
+   [
+    "M4"
+   ],
+   [
+    "M5"
+   ],
+   [
+    "M6"
+   ]
+  ],
+  "vin_p": "KeyError: 'ports'",
+  "vin_p__base_sig": [
+   [
+    "M0",
+    "M1",
+    "M2"
+   ],
+   [
+    "M3"
+   ],
+   [
+    "M4"
+   ],
+   [
+    "M5"
+   ],
+   [
+    "M6"
+   ]
+  ],
+  "Vinp": "KeyError: 'ports'",
+  "Vinp__base_sig": [
+   [
+    "M0",
+    "M1",
+    "M2"
+   ],
+   [
+    "M3"
+   ],
+   [
+    "M4"
+   ],
+   [
+    "M5"
+   ],
+   [
+    "M6"
+   ]
+  ]
+ },
+ "c6": {
+  "reject": {
+   "no_key": "ACCEPTED",
+   "null": "ACCEPTED",
+   "list": "ACCEPTED",
+   "item_not_dict": "ACCEPTED",
+   "no_role": "ACCEPTED",
+   "role_vocab": "ACCEPTED",
+   "dir_contra_in": "ACCEPTED",
+   "dir_contra_out": "ACCEPTED",
+   "empty_name": "ACCEPTED",
+   "not_in_netlist": "ACCEPTED",
+   "on_rail": "ACCEPTED"
+  },
+  "accept": {
+   "empty": null,
+   "comment_only": null,
+   "outputs_only": null,
+   "inputs_only": null,
+   "with_direction_consistent": null,
+   "port_on_passive_only": null,
+   "port_on_ideal_only": null
+  },
+  "accessor_direct": {},
+  "linked": {
+   "linked_differs": "ACCEPTED",
+   "linked_vocab": "ACCEPTED",
+   "linked_absent": "ACCEPTED",
+   "linked_same": "ACCEPTED",
+   "linked_passive_port": null
+  }
+ },
+ "c7": {
+  "no_direction": [],
+  "with_direction": [
+   [
+    "M1",
+    "M2"
+   ]
+  ],
+  "empty_ports_with_offset_pair": "ValueError: <TMP>\\c7_empty_ports_with_offset_pair.topology.json에 `ports` 선언이 없다 -- 입력환산 오프셋은 '게이트가 신호 입력에 물린 쌍'만 세야 하는데(파일럿 실측: offset 쌍 3개 중 하나는 CMFB 오차증폭기 M37a/M37b다) 어느 ",
+  "empty_ports_no_offset_pair": "ValueError: <TMP>\\c7_empty_no_offset.topology.json에 `ports` 선언이 없다 -- 입력환산 오프셋은 '게이트가 신호 입력에 물린 쌍'만 세야 하는데(파일럿 실측: offset 쌍 3개 중 하나는 CMFB 오차증폭기 M37a/M37b다) 어느 net이 입력인지 알 수",
+  "single_name_offset_empty_ports": "ValueError: <TMP>\\c7_single_name_offset_empty_ports.topology.json에 `ports` 선언이 없다 -- 입력환산 오프셋은 '게이트가 신호 입력에 물린 쌍'만 세야 하는데(파일럿 실측: offset 쌍 3개 중 하나는 CMFB 오차증폭기 M37a/M37b다) 어",
+  "single_name_offset_with_inputs": []
+ },
+ "c8": {
+  "exc": "AttributeError: module 'stick_diagram' has no attribute 'port_declaration'",
+  "exc_obj_name": [
+   true,
+   "port_declaration"
+  ]
+ }
+}

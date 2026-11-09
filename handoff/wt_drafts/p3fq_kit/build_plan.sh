@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# p3 follow-up questions (measure only, NOT a role artifact): rebuild the M1-base stand-in on gate master and run
+# the D0a plan prototype (p3kit_m1/move_plan_sim.py) with statement key = hash (prototype) vs names (D0a contract 2 wording),
+# plus two amendment variants for M1-2: (q) N3.10 MOD1 token `_QUERY_CACHE_MAX`, (r) registry row 277 function cell fixed.
+#   bash build_plan.sh <gate master rev>
+set -euo pipefail
+REV=$1
+S=/c/g215; SC=C:/g215
+SRC=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills
+D=C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts
+K=$D/p3fq_kit
+PY="C:/Python314/python.exe -B"
+export TMP=$SC/tmp TEMP=$SC/tmp PYTHONIOENCODING=utf-8 MSYS_NO_PATHCONV=1
+mkdir -p $S/tmp $S/out $S/nohooks
+R=$SC/r
+O=$SC/out
+if [ ! -e $S/r ]; then
+  git clone -c core.autocrlf=false -q --no-hardlinks --no-local "$SRC" "$R"
+  git -C "$R" remote remove origin
+  git -C "$R" config core.hooksPath $SC/nohooks
+fi
+G="git -C $R -c user.name=m -c user.email=m@x"
+git -C "$R" checkout -q --detach "$REV"
+echo "base $(git -C $R rev-parse HEAD)" | tee $O/build.txt
+# FU stand-in: future line right after module docstring of DR and ACF
+$PY $K/fu_standin.py "$R"
+$G commit -q -am "FU stand-in (measure only)"
+# G1 prototype into tools/gates
+# G1 proto anchors in mutate_changed.py/rt.py moved with exempt binding (34); plan uses only reachability/import_layering/role_paths
+# (unchanged dd60db6..gate master) -- install on the dd60db6 copies of those two files (measure only)
+git -C "$R" checkout -q dd60db6 -- tools/gates/mutate_changed.py tools/gates/redteam/lib/rt.py
+$PY $D/g1_kit/install_proto.py "$R" | tee -a $O/build.txt
+$G add -A tools && $G commit -q -m "G1 proto stand-in (measure only)"
+B=$(git -C $R rev-parse HEAD); echo "M1-base stand-in pre-regen $B" | tee -a $O/build.txt
+source $D/p3kit_m1/mpargs.sh
+MP=$D/p3kit_m1/move_plan_sim.py
+run() { # $1 name $2 key $3 rev
+  local s=$(date +%s); set +e
+  MP_STMT_KEY=$2 $PY $MP plan --root "$R" --rev "$3" "${MP_ARGS[@]}" > $O/plan_$1.json; local rc=$?; set -e
+  echo "plan $1 key=$2 rev=$3 exit=$rc $(( $(date +%s)-s ))s" | tee -a $O/build.txt
+}
+run hash hash "$B"
+run names names "$B"
+# variant q: N3.10 MOD1 token
+git -C "$R" checkout -q --detach "$B"
+$PY $K/variant.py "$R" qtok
+$G commit -q -am "variant qtok (measure only)"; Q=$(git -C $R rev-parse HEAD)
+run qtok names "$Q"
+# variant r: registry row 277 function cell = SemiEmpiricalGmIdLUT.__init__
+git -C "$R" checkout -q --detach "$B"
+$PY $K/variant.py "$R" regfix
+$G commit -q -am "variant regfix (measure only)"; RF=$(git -C $R rev-parse HEAD)
+run regfix names "$RF"
+git -C "$R" checkout -q --detach "$B"
+echo "B=$B Q=$Q RF=$RF" | tee -a $O/build.txt

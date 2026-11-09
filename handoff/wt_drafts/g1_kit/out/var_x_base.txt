@@ -1,0 +1,17 @@
+repo=C:\g143\b
+log=C:\g143\b\tools\gates\redteam\logs\20261001-222710-direct.jsonl
+
+FAIL             32v-base-x                                   
+    - FAIL file-dir-only.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::ff': 'M-4'}, 'defs': ['workspaces/run_harness.py::ff'], 'not_targeted': 0}
+    - FAIL file-dir-only.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::ff': 'M-4'}}
+    - FAIL file-dir-only.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::ff': 'M-4'}}
+    - FAIL class-method-edited.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {}, 'defs': ['skills/analog-gmid-design/assets/b.py::C.m'], 'not_targeted': 0}
+    - FAIL class-method-edited.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL class-method-edited.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL stmt-literal-moved.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {}, 'defs': [], 'not_targeted': 0}
+    - FAIL stmt-literal-moved.V6: exit 1 != 기대 0; 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL stmt-literal-moved.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+
+케이스: {"FAIL": 1}
+단계: {"FAIL": 9}
+variant base done

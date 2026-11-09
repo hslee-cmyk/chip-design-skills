@@ -1,0 +1,23 @@
+strict exit 0
+v1 exit 0 148s
+c1 exit 0
+c3 exit 0
+c4 exit 0
+c3b_no_failing merged exit 0
+c3b_no_failing base exit 0
+c3c_failing_last merged exit 0
+c3c_failing_last base exit 0
+--- rerun with APPDATA 2026-09-30T20:53:24+09:00
+c3b_no_failing merged exit 0
+c3b_no_failing base exit 0
+c3c_failing_last merged exit 0
+c3c_failing_last base exit 0
+df36 exit 0 443s left=2
+ref_mutate_changed exit 0
+ref_weakening_diff exit 0
+ref_source_lint exit 0
+ref_reachability exit 0
+ref_test_lint exit 0
+ref_weakening_diff_T exit 0
+rt_full exit 0 2026-09-30T21:34:46+09:00
+rt_cases exit 0 2026-09-30T21:35:22+09:00

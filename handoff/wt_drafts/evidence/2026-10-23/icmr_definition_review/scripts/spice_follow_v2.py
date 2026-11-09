@@ -1,0 +1,229 @@
+"""IT-2c SPICE 틀 판정 v2 -- SPICE 쪽 (v1 결함 수정: v1 은 w_key 를 nm 로 읽어 1 um finger 로 만들었다).
+
+v2 기하: finger 폭 = 엔진 LUT 정본 필드 slice_map[(kind, w_key)].w_m (out_v2/slice_wm.json, slice_wm.py 가 엔진에서 읽음),
+m = W / w_m (실수 배수, 진단 전용 -- 엔진 모형 'w_m 슬라이스 전류밀도 x W' 를 넷리스트로 그대로 옮김).
+오라클 스키마는 n_fingers 정수라 convert·write_netlists 에는 n = max(1, round(W/w_m)) 를 넘기고, 쓴 넷리스트의 MOS 행 m= 만
+실수 W/w_m 으로 바꾼다(그 밖의 본문·확산 기하(ad/as/pd/ps = finger 폭 규칙)는 오라클 경로 출력 그대로).
+---- 이하 v1 설명
+
+엔진 봉인점 값(out/<회로>.engine.json, eng_seal.py)을 오라클의 기존 경로로 넷리스트로 만든다:
+  legacy_adapter.convert(dump, w_source="layout", isrc="topology")  -> oracle_input (스키마 검증)
+  oracle_netlist.write_netlists(inp, "free", ...)                    -> free 본 넷리스트(.cir + .meta.json)
+dump 는 convert 가 읽는 칸만 엔진 봉인점 값으로 채운다(새 넷리스트 생성기 없음). 기하 = 엔진 W 를 엔진 DC 폭 슬라이스(w_key)
+이상 finger 로 나눈 instance 행(layout 모드 입력 형식).
+
+follower 측정: free 넷리스트는 반전 입력 = V(out) − Vofs (Efb_·Vofs_·Lfb_ servo), 비반전 입력 = Vdc_ 이다. 본문(.control 앞)을
+그대로 두고 control 만 바꿔
+  B (봉인점 유지 follower): Vofs = 넷리스트 값(V_out,pred − V_inn,pred) -- 증분 u = V_out, 엔진 선형 틀과 같은 동작점 가족
+  A (순수 follower)        : Vofs = 0 -- 반전 입력 = 출력(계획 측정 구성 그대로)
+에서 `dc Vdc_<비반전> x0→레일` 두 방향(0.5 mV)을 돌고 모든 넷 전압·모든 MOS 의 id·vds·vdsat·vgs 를 wrdata 로 쓴다.
+"""
+import json
+import math
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+SRC_ORACLE = Path(r"C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2c\src\skills\analog-gmid-design\tools\spice_oracle")
+LIB = SRC_ORACLE.parent.parent / "assets" / "library"
+sys.path.insert(0, str(SRC_ORACLE))
+import legacy_adapter  # noqa: E402
+import oracle_netlist  # noqa: E402
+
+ROOT = Path(r"C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_icmr_def")
+ENG_DIR = ROOT / "out"
+OUT = ROOT / "out"
+SP = ROOT / "spice"
+WM = json.loads((OUT / "slice_wm.json").read_text(encoding="utf-8"))
+NGSPICE = r"C:\ngspice\Spice64\bin\ngspice_con.exe"
+LUT_NPZ = r"C:\Users\HSLEE\Documents\Todoc\fpga\lut_data\sky130_lut_v2\sky130_nfet_pfet_lut_v2_r2.npz"
+STEP = 0.5e-3
+SERVO_G = 1000.0
+V_INV0 = [None]
+V_OUT0 = [None]
+CFGS = ("L", "A", "S")
+PARAMS = ("id", "vds", "vdsat", "vgs")
+
+
+def build_input(name, eng):
+    ops = eng["device_cols"]["dc_op"]
+    ss = eng["device_cols"]["ss_dev"]
+    kinds = eng["device_cols"]["kind"]
+    sizing, dpred, inst = {}, {}, []
+    for m, op in ops.items():
+        W, wm = op["W"], WM[name][m]["w_m"]
+        n = max(1, round(W / wm))
+        inst.append({"name": m, "w": W, "n_fingers": n, "finger_w": wm, "l": op["L"]})
+        sizing[m] = {"W": W, "L": op["L"], "ID": op["current"], "vds": op["vds"], "vsb": op["vsb"],
+                     "gm": ss[m]["gm"], "gds": ss[m]["gds"], "gm_id": op["gm_id"]}
+        dpred[m] = {"vgs": op["vgs"]}
+    theta_star = {k: v for k, v in eng["device_cols"]["dc_current"].items() if kinds.get(k) == "current_source"}
+    pv = eng["device_cols"]["passive_value"]
+    dump = {"circuit_key": name, "engine_ok": True, "topology_path": str(LIB / (name + ".topology.json")), "lut_path": LUT_NPZ,
+            "spec_scalars": {"CL": pv.get("CL")}, "sizing": sizing, "node_pred": eng["values"],
+            "lut_meta": {"corner": "tt", "W_ref_m": None}, "device_pred": dpred, "metrics": {}, "theta_star": theta_star}
+    ipath = SP / (name + ".instance.json")
+    ipath.write_text(json.dumps({"netlist": inst}, indent=1), encoding="utf-8")
+    tb = json.loads((SRC_ORACLE / "legacy_testbench.json").read_text(encoding="utf-8"))
+    tb = {k: v for k, v in tb.items() if not k.startswith("_")}
+    topo_for_convert = LIB / (name + ".topology.json")
+    t0 = json.loads(topo_for_convert.read_text(encoding="utf-8"))
+    sizing_roles_null = t0.get("sizing_roles", {}) is None
+    if sizing_roles_null:   # convert 는 sizing_roles 가 null 이면 AttributeError -- metric·제약 전용 칸이라 {} 로 바꾼 사본만 convert 에 준다(연결 불변, C15 는 원본으로)
+        t0["sizing_roles"] = {}
+        topo_for_convert = SP / (name + ".topology.convert_copy.json")
+        topo_for_convert.write_text(json.dumps(t0, ensure_ascii=False, indent=1), encoding="utf-8")
+    dump["topology_path"] = str(topo_for_convert)
+    inp = legacy_adapter.convert(dump, "layout", "topology", tb, str(topo_for_convert), str(ipath), str(SP))
+    inp["provenance"]["it2c_sizing_roles_null_copy"] = sizing_roles_null
+    # 수동소자 값: convert 는 topology 값만 읽는다 -- 엔진 봉인점 값(device.passive_value)으로 맞춘다(DC 에서 용량은 열림, 직렬 Rz 는 DC 전류 0)
+    fixed = []
+    names = {p["name"] for p in inp["passives"]}
+    for p in inp["passives"]:
+        if p["name"] in pv and pv[p["name"]] is not None and p["value"] != pv[p["name"]]:
+            fixed.append((p["name"], p["value"], pv[p["name"]]))
+            p["value"], p["value_basis"] = pv[p["name"]], "엔진 봉인점 device.passive_value"
+    topo = json.loads((LIB / (name + ".topology.json")).read_text(encoding="utf-8"))
+    for p in topo.get("passive_elements") or []:
+        if p["name"] not in names and pv.get(p["name"]) is not None:
+            inp["passives"].append({"name": p["name"], "kind": p["kind"], "terminals": p["terminals"], "value": pv[p["name"]],
+                                    "value_basis": "엔진 봉인점 device.passive_value"})
+            fixed.append((p["name"], None, pv[p["name"]]))
+    inp["provenance"]["it2c_passive_fix"] = fixed
+    # bulk 대조: convert 규칙(NMOS 최저 레일, PMOS 최고 레일) vs 엔진 device.bulk
+    eb = {k: v["net"] for k, v in eng["device_cols"]["bulk"].items()}
+    inp["provenance"]["it2c_bulk_mismatch"] = [(d["name"], d["bulk"], eb.get(d["name"])) for d in inp["devices"] if eb.get(d["name"]) != d["bulk"]]
+    return inp
+
+
+def sweep_netlist(cir_text, meta, inp, cfg, x0, lo, hi, tag):
+    body = []
+    for raw in cir_text.splitlines():
+        if raw.strip().lower().startswith(".control"):
+            break
+        body.append(raw)
+    ports = inp["ports"]
+    non, inv = ports["input_p"], ports["input_n"]
+    nets = [n for n in meta["nets"]]
+    vecs = [f"v({meta['spice_node'][n]})" for n in nets if meta["spice_node"][n] != "0"]
+    for d in inp["devices"]:
+        vecs += [meta["probes"][d["name"]][p] for p in PARAMS]
+    for i in range(0, len(vecs), 6):
+        body.append(".save " + " ".join(vecs[i:i + 6]))
+    if cfg == "S":   # servo: 반전 입력 = V(out) - (c - (x - x0)) -> 출력은 봉인점 값에 묶이고 두 입력이 함께 움직인다 (oracle_swing ICMR 구성)
+        nb = []
+        for ln in body:
+            t = ln.split()
+            if t and t[0].lower() == f"vofs_{inv.lower()}":
+                cval = float(t[4])
+                ln = f"Bofs_{inv} {t[1]} {t[2]} V={cval!r} - (v(dcs_{non}) - {x0!r})"
+            nb.append(ln)
+        body = nb
+    if cfg == "T":   # 고이득 servo(진단): 반전 입력 = x - (x0 - V_inv0) + G*(V(out) - V_out0), G = SERVO_G -- 출력을 V_out0 에 묶는 정도가 DUT 이득에 덜 의존
+        out_net = inp["ports"].get("output")
+        nb = []
+        for ln in body:
+            t = ln.split()
+            if t and t[0].lower() in (f"vofs_{inv.lower()}", f"efb_{inv.lower()}"):
+                if t[0].lower().startswith("vofs"):
+                    nb.append(f"Bsrv_{inv} {t[2]} 0 V=v(dcs_{non}) - ({x0!r} - {V_INV0[0]!r}) + {SERVO_G!r}*(v({meta['spice_node'][out_net]}) - {V_OUT0[0]!r})")
+                continue
+            nb.append(ln)
+        body = nb
+    c = [".control", "set noaskquit", "set wr_singlescale", "set wr_vecnames", "option numdgt=12"]
+    if cfg == "A":
+        c.append(f"alter vofs_{inv.lower()} dc = 0")
+    up = SP / f"{tag}.up.txt"
+    dn = SP / f"{tag}.dn.txt"
+    c.append(f"dc vdc_{non.lower()} {x0:.9g} {hi:.9g} {STEP:.9g}")
+    c.append(f"wrdata {up.name} " + " ".join(vecs))
+    c.append("reset")
+    if cfg == "A":
+        c.append(f"alter vofs_{inv.lower()} dc = 0")
+    c.append(f"dc vdc_{non.lower()} {x0:.9g} {lo:.9g} {-STEP:.9g}")
+    c.append(f"wrdata {dn.name} " + " ".join(vecs))
+    c += ["quit", ".endc", ".end"]
+    return "\n".join(body + c) + "\n", vecs, up, dn
+
+
+def read_wrdata(path):
+    if not path.exists():
+        return None
+    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    head = lines[0].split()
+    rows = [[float(t) for t in ln.split()] for ln in lines[1:] if ln.strip()]
+    return {"cols": head, "rows": rows}
+
+
+def main(name):
+    eng = json.loads((ENG_DIR / (name + ".engine.json")).read_text(encoding="utf-8"))
+    inp = build_input(name, eng)
+    errs = oracle_netlist.validate_input(inp)
+    ip = SP / (name + ".oracle_input.json")
+    ip.write_text(json.dumps(inp, ensure_ascii=False, indent=1), encoding="utf-8")
+    cir = SP / (name + ".free.cir")
+    meta = oracle_netlist.write_netlists(inp, "free", str(cir), str(LIB / (name + ".topology.json")), False)
+    info = {"circuit": name, "schema_errors": [str(e) for e in errs], "netlist_blockers": meta["blockers"],
+            "topology_identity": meta["topology_identity"]["status"], "adapter_warnings": inp["provenance"]["warnings"],
+            "adapter_blockers": inp["provenance"]["blockers"], "passive_fix": inp["provenance"]["it2c_passive_fix"],
+            "bulk_mismatch": inp["provenance"]["it2c_bulk_mismatch"], "sizing_roles_null_copy": inp["provenance"]["it2c_sizing_roles_null_copy"], "ports": inp["ports"],
+            "bias_voltages": inp["bias_voltages"], "sources": inp["sources"], "notes": meta["notes"]}
+    if inp["ports"].get("input_n") != eng["inv"] or inp["ports"].get("input_p") != eng["non"]:
+        info["stop"] = f"port role 과 엔진 반전 입력 식별이 다르다: ports {inp['ports']} engine inv {eng['inv']}"
+        (OUT / (name + ".spice_info.json")).write_text(json.dumps(info, ensure_ascii=False, indent=1), encoding="utf-8")
+        return
+    rails = [float(r["voltage"]) for r in inp["rails"]]
+    lo, hi = min(rails), max(rails)
+    x0 = eng["values"][eng["non"]]
+    text = cir.read_text(encoding="utf-8")
+    # v2: MOS 행 m= 를 실수 W / w_m 으로 (진단 전용)
+    import re
+    ops = eng["device_cols"]["dc_op"]
+    patched, new = [], []
+    for ln in text.splitlines():
+        mm = re.match(r"^X(\S+) (.*) m=(\d+)( .*)?$", ln)
+        if mm and mm.group(1) in ops:
+            mreal = ops[mm.group(1)]["W"] / WM[name][mm.group(1)]["w_m"]
+            ln = f"X{mm.group(1)} {mm.group(2)} m={mreal:.12g}{mm.group(4) or ''}"
+            patched.append((mm.group(1), int(mm.group(3)), mreal))
+        new.append(ln)
+    text = "\n".join(new) + "\n"
+    (SP / (name + ".free.mreal.cir")).write_text(text, encoding="utf-8")
+    info["m_patch"] = patched
+    if len(patched) != len(ops):
+        info["stop"] = f"m 패치 수 {len(patched)} != MOS 수 {len(ops)}"
+        (OUT / (name + ".spice_info.json")).write_text(json.dumps(info, ensure_ascii=False, indent=1), encoding="utf-8")
+        return
+    info["runs"] = {}
+    V_INV0[0] = eng["values"][eng["inv"]]
+    V_OUT0[0] = eng["values"][eng["outputs"][0]]
+    for cfg in CFGS:
+        tag = f"{name}.{cfg}"
+        net, vecs, up, dn = sweep_netlist(text, meta, inp, cfg, x0, lo, hi, tag)
+        p = SP / (tag + ".dc.cir")
+        p.write_text(net, encoding="utf-8")
+        for f in (up, dn):
+            if f.exists():
+                f.unlink()
+        r = subprocess.run([NGSPICE, "-b", p.name], cwd=str(SP), capture_output=True, text=True, errors="replace", timeout=3600)
+        (SP / (tag + ".dc.log")).write_text(r.stdout + "\n--- stderr ---\n" + r.stderr, encoding="utf-8")
+        info["runs"][cfg] = {"rc": r.returncode, "up_rows": None, "dn_rows": None}
+        for key, f in (("up", up), ("dn", dn)):
+            d = read_wrdata(f)
+            info["runs"][cfg][key + "_rows"] = None if d is None else len(d["rows"])
+            if d is not None:
+                (OUT / f"{tag}.{key}.json").write_text(json.dumps(d), encoding="utf-8")
+    info["vecs"] = vecs
+    info["probes"] = meta["probes"]
+    info["spice_node"] = meta["spice_node"]
+    (OUT / (name + ".spice_info.json")).write_text(json.dumps(info, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(name, json.dumps(info["runs"]), flush=True)
+
+
+if __name__ == "__main__":
+    import os as _os
+    if _os.environ.get("CFGS"):
+        CFGS = tuple(_os.environ["CFGS"].split(","))
+    for nm in sys.argv[1:]:
+        main(nm)

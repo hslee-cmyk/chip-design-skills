@@ -1,0 +1,16 @@
+{
+ "id": "20260930-30-module-split-design",
+ "target": "cb273b10d79670e688eb6c06a920a379f57d705601edd51c8ac6adc4894aa14c",
+ "diff_base": "3e835e012e4cf24443a16b9c8f6ee7a6f357c030",
+ "diff_head": "6c8287f4915d31ac0c9d96d52c50c32ee157ca90",
+ "diff_path": [
+  "docs/01-plan/features/gain-budget-gmid-sizing.plan.md",
+  "docs/02-design/features/gain-budget-gmid-sizing.00-common.design.md",
+  "docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md",
+  "docs/02-design/features/gain-budget-gmid-sizing.30-module-split.design.md",
+  "docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_inst_p3.py",
+  "docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_lib_p3.py"
+ ],
+ "dest": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\.ai\\approvals\\20260930-30-module-split-design.md",
+ "result": "written"
+}

@@ -1,0 +1,6 @@
+{"kind": "mc_cost", "mode": "reset", "n": 1, "t_s": 0.2666939999908209, "samples_out": 1}
+{"kind": "mc_cost", "mode": "noreset", "n": 1, "t_s": 0.19988649990409613, "samples_out": 1}
+{"kind": "mc_cost", "mode": "reset", "n": 50, "t_s": 3.6377066001296043, "samples_out": 50}
+{"kind": "mc_cost", "mode": "noreset", "n": 50, "t_s": 0.227403299883008, "samples_out": 50}
+{"kind": "mc_cost", "mode": "reset", "n": 200, "t_s": 17.229785999981686, "samples_out": 200}
+{"kind": "mc_cost", "mode": "noreset", "n": 200, "t_s": 0.31134469993412495, "samples_out": 200}

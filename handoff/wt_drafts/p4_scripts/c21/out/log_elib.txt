@@ -1,0 +1,133 @@
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/base C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_base_nomask.json
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=4s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/base C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_base_mask.json rails
+E-LIB c121333162fade9e9a1f0b2d81f8ca37c835edf9fc818cd88c0aecefbfcae2e8
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=4s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/p1 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_p1_nomask.json
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/p1 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_p1_mask.json rails
+E-LIB c121333162fade9e9a1f0b2d81f8ca37c835edf9fc818cd88c0aecefbfcae2e8
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=4s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/p20 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_p20_nomask.json
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/p20 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_p20_mask.json rails
+E-LIB c121333162fade9e9a1f0b2d81f8ca37c835edf9fc818cd88c0aecefbfcae2e8
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/p21 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_p21_nomask.json
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/p21 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_p21_mask.json rails
+E-LIB c42dcb00f9e78372c5a67cff7d433e767da4888d2c4352a2bc43195aa3bc80eb
+common_gate_amplifier None {'load': False} {'load': 'ValueError'}
+current_reuse_telescopic_ota None {'load': False} {'load': 'ValueError'}
+folded_cascode None {'load': False} {'load': 'ValueError'}
+ngcc_3stage_ff None {'load': False} {'load': 'ValueError'}
+nmcnr_amplifier None {'load': False} {'load': 'ValueError'}
+pushpull_follower_buffer None {'load': False} {'load': 'ValueError'}
+sf_pushpull_output_opamp None {'load': False} {'load': 'ValueError'}
+two_stage_ota None {'load': False} {'load': 'ValueError'}
+two_stage_ota_sf None {'load': False} {'load': 'ValueError'}
+rc=0 t=2s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/x1 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_x1_nomask.json
+E-LIB c42dcb00f9e78372c5a67cff7d433e767da4888d2c4352a2bc43195aa3bc80eb
+common_gate_amplifier None {'load': False} {'load': 'ValueError'}
+current_reuse_telescopic_ota None {'load': False} {'load': 'ValueError'}
+folded_cascode None {'load': False} {'load': 'ValueError'}
+ngcc_3stage_ff None {'load': False} {'load': 'ValueError'}
+nmcnr_amplifier None {'load': False} {'load': 'ValueError'}
+pushpull_follower_buffer None {'load': False} {'load': 'ValueError'}
+sf_pushpull_output_opamp None {'load': False} {'load': 'ValueError'}
+two_stage_ota None {'load': False} {'load': 'ValueError'}
+two_stage_ota_sf None {'load': False} {'load': 'ValueError'}
+rc=0 t=1s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/x1 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_x1_mask.json rails
+E-LIB 813ce7bb72a43c1f67ff5a581896861cfbad00d2dbde56557b1fe132935d8266
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=5s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/x2 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_x2_nomask.json
+E-LIB 2d734d14869e4132913ed992ac9fc70dff2353062e669fc3cf580f553059ce8e
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+rc=0 t=4s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3_scripts/e_lib_p3_proposed/e_lib_p3.py C:/g148/x2 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/elib_x2_mask.json rails
+DONE elib

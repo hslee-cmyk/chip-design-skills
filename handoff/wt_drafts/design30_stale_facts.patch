@@ -1,0 +1,203 @@
+diff --git a/docs/02-design/features/gain-budget-gmid-sizing.30-module-split.design.md b/docs/02-design/features/gain-budget-gmid-sizing.30-module-split.design.md
+index 9cb9da0..9ad87d9 100644
+--- a/docs/02-design/features/gain-budget-gmid-sizing.30-module-split.design.md
++++ b/docs/02-design/features/gain-budget-gmid-sizing.30-module-split.design.md
+@@ -56,13 +56,13 @@ WP-01·WP-03·WP-11·WP-14, NFR-2.
+ 
+ ## 1. 범위 (N9.2-1)
+ 
+-계획 N6.1 Phase 3 행(1000행)이 정본이다: "10모듈 이동(N3.10), shim, 추적 파일 호출부 갱신 후 `sizing_recipe.py` 삭제 | equivalence | U-03". 이 Phase가 구현하는 것:
++계획 N6.1 Phase 3 행(1002행)이 정본이다: "10모듈 이동(N3.10), shim, 추적 파일 호출부 갱신 후 `sizing_recipe.py` 삭제 | equivalence | U-03". 이 Phase가 구현하는 것:
+ 
+ 1. **게이트의 이동 인식**(G1): 계획 N3.10 533행 "해시가 같은 함수는 V3 대상에서 뺀다"가 도구에 없다(§5). 이동 card가 판정 가능하려면 먼저 필요하다. G1은 먼저 병합되는 게이트 card
+    셋(B33 V7 그래프 간선, V3 면제 묶기, V3 범위 정책)과 합성된다(§5.5).
+ 2. **계약 test 위치 독립화**(T0): 정의가 **특정 파일에 있다고 가정하는** 계약 test 3개가 첫 이동 card에서 깨지거나 공허해진다(§7.1).
+ 3. **이관표**(D0a·D0b): 레지스트리 '이관 목적지' 열을 N3.10 10모듈 이름으로 재생성하고, 계층 규칙(import는 작은 번호로만, 순환 0)을 **옮기기 전에** 계산으로 만족시키는 단위→모듈 배정(§6).
+-4. **이동**(M1~M9, 모듈 하나당 card 하나 -- 계획 N3.12.3 674행)과 **MOD10 진입점**(M10).
++4. **이동**(M1~M9, 모듈 하나당 card 하나 -- 계획 N3.12.3 676행)과 **MOD10 진입점**(M10).
+ 5. **test 재배치**(T1): `unit/test_selftest_<모듈>.py` 4개 → `unit/test_mod*.py`(계획 N3.11 test 배치 541~543행, `10-test-separation` 187·413행).
+ 6. **호출부 갱신과 shim 삭제**(F1·F2), 모듈 속성을 덮어써 계측하는 probe의 처리(§7.2 D군, D-17). v7: shim 3파일뿐 아니라 `stick_diagram`의 임시 재수출을 지운 뒤에도
+    추적 파일이 SD에서 읽는 이름이 전부 해석되는지를 DoD가 잰다(E3b, D-26 -- 4차 검토 N1).
+@@ -121,7 +121,7 @@ A = `skills/analog-gmid-design/assets`.
+   위반이면 위치 규칙으로 풀 수 없다(머리 배치 = 순환, 끝 배치 = `NameError`, 지연 import = 금지) -- D0b가 멈추고 배정을 바꾼다(N3.10 밖이면 D-11 승인).
+   (4) 위쪽 import는 M9~F1 동안 `import_layering`이 `큰 번호로의 import`·순환으로 보고한다(모의 M9 트리 실측) -- LAYER는 DoD(F2 뒤) 판정이고(§3), F2가 SD의 위쪽 재수출을 지우면 사라진다.
+   F2는 끝에 둔 import 줄을 머리로 올려도 된다(import 줄만 차이).
+-* 모듈 수준 캐시(`sizing_recipe.py:2391 _KNEE_L_CACHE`, `:2530 _FEASIBLE_L_WINDOW_CACHE`, `:7697 _ACHIEVABLE_BOUND_CACHE` -- 셋 다 주석 대입 `: dict = {}`, 사용 함수는 각각 하나
++* 모듈 수준 캐시(`sizing_recipe.py:2391 _KNEE_L_CACHE`, `:2530 _FEASIBLE_L_WINDOW_CACHE`, `:7696 _ACHIEVABLE_BOUND_CACHE` -- 셋 다 주석 대입 `: dict = {}`, 사용 함수는 각각 하나
+   `knee_L_for_kind`·`feasible_L_window`·`achievable_metric_bound`; `topology_library.py:248` `@functools.lru_cache(maxsize=256)` 1곳 -- 254행은 주석)는 **읽고 쓰는 함수와 같은 모듈로**
+   옮긴다(판정 CACHE-ID, NFR-2). 판정 도구는 `move_plan check`의 `cache` 발견이다. V6 `unbounded_cache`는 `ast.Assign`만 보므로 이 셋(주석 대입)을 보지 않는다 -- 그래서 CACHE-ID를
+   게이트가 아니라 D0a 도구로 잰다. `global` 문 0개라 재수출 이름은 같은 객체를 가리킨다(부록 A M18; SHIM 판정 참고).
+@@ -134,7 +134,7 @@ A = `skills/analog-gmid-design/assets`.
+   (`subprocess.run`류 속성 호출 → 같은 이름의 모든 def)로 이어진 것(`tooling/test_extract_selftest.py` 24, `unit/test_selftest_sizing_recipe.py` 22 …)이고 하네스를 실제로 실행하지
+   않는다 -- 변이를 죽이지 못한다. 그래서 **M10은 red-green**(새 test가 진입점을 library 회로로 불러 E-INST 해시를 대조, base에는 진입점이 없어 red)이다(§8).
+ * **M10 V3 비용(v6, 3차 검토 S3)**: M10은 Phase 3에서 V3 변이가 생기는 거의 유일한 card다(나머지는 G1 이동 제외로 `defs` = `[]`). 대상 = 새 진입점 본문 전체 + `run()`의 바뀐 문장(범위 정책 N2).
+-  HEAD `run`(422~529행) 변이 71개(3차 검토 실측) → **추정 약 70**. V3는 변이마다 인벤토리 test를 `-x`로 돌리므로(`mutate_changed.py:350`) 변이 비용 ≈ 첫 실패까지의 test 시간이다.
++  HEAD `run`(422~529행) 변이 71개(3차 검토 실측) → **추정 약 70**. V3는 변이마다 인벤토리 test를 `-x`로 돌리므로(`mutate_changed.py:656`) 변이 비용 ≈ 첫 실패까지의 test 시간이다.
+   * 회로(v8 정정 -- 5차 검토 S4): E-INST test는 **instance.json을 만드는 회로(= E-INST 회로 집합, `20-dead-code-dup` §3: 파일럿·`folded_cascode`) 중 한 판이 가장 짧은 것**으로
+     부른다 = **`folded_cascode`**. 판정 기록 실측 E-INST 한 판: `folded_cascode` 13~19초, `current_reuse_telescopic_ota` 98~137초
+     (`.ai/verification/20260930-dup-w-calc/einst_time.txt`·`20260930-restore-plan-functions/einst_time.txt`), 파일럿 판당 7~8분(`dryrun_phase2_e4.md`). `two_stage_ota`·`nmcnr_amplifier`는
+@@ -207,7 +207,7 @@ A = `skills/analog-gmid-design/assets`.
+ |---|---|---|---|
+ | E-LIB / E-INST | 동작 보존 | `20-dead-code-dup` §3 | 그 정의의 측정 명령. **v8(5차 검토 S1, D-28)**: E-INST는 Phase 3 모든 card·DoD에서 같은 해시 정의를 재는 `e_inst_p3.py`(design 커밋이 `docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/`에 넣는다 -- F1 뒤 `e_inst_df36.py`는 `sys.modules["sizing_recipe"]` `KeyError`), E-LIB는 M card에서 `e_lib.py` 사본 그대로, DoD E5에서 `e_lib_p3.py`(v8.2 -- `e_lib.py`에 meta 키를 빼는 인자 하나를 더한 사본, D-28·§10 E5) |
+ | MOVED | 이동 인식(G1) | head 단위 u = (p_h, 키 q, 해시 h)가 **옮긴 단위** ⇔ (M-1) base에서 (종류, q, h)를 가진 소스 파일이 정확히 하나 p_b ≠ p_h(파일 안에서도 하나) (M-0) u가 바인딩하는 이름마다 base p_h의 바인딩 출처가 없거나 `("def", p_b, 이름)`(**덮어쓰기 거부**) (M-0h) u가 바인딩하는 이름마다 **head** p_h의 바인딩 출처 = `("def", p_h, 이름)` -- 목적 파일에서도 u가 그 이름의 유일한 바인딩(`multi`·`star`·`global-dynamic`이면 거부: **목적 파일의 조건부 재정의·재바인딩 거부**, 2차 검토 B1 (1)의 M-0') (M-2) head p_b에 같은 단위가 없고 p_b에 남은 그 이름의 출처는 없거나 `("def", p_h, 이름)`(재수출뿐) (M-3) head에서 (종류, q, h)가 p_h 한 곳 (M-4) p_b와 p_h의 `__future__` 기능 집합이 같고(2차 검토 S3), `global_names(u)`의 이름마다 base p_b의 출처 = head p_h의 출처, 또는 head 출처가 함께 옮긴 단위이고 그 원본 출처가 base 출처(**재바인딩·`__file__`·import 디렉터리 변경·star 가림·`global` 쓰기 대상 거부**, 고정점). 메서드는 클래스 골격이 옮겨지고 자기 해시가 원본과 같을 때만 옮긴 def(**클래스 머리·필드 변경 거부**). **옮긴 def**(V3·V7 제외 목록)에는 p_b 또는 p_h에서 qualname이 둘 이상인 def를 넣지 않고(property getter/setter 등, 2차 검토 B1 (2)), V3·V7은 (경로, qualname, `def_hash`)가 모두 같을 때만 뺀다(B1 (3)) | `reachability.moved_defs`(V3·V6·V7이 부름) |
+-| MOVE-AST | 이동 동일성(533·1018행) | card k의 병합본에서 (a) 이 base→head에서 MOVED가 낸 **모든** 옮긴 단위 집합 = 이관표가 card k에 배정한 **최상위 단위**(함수·클래스·문장) 집합이고 목적지가 전부 card k의 MOD 파일(2차 검토 S4) (b) 옮긴 단위가 아닌데 해시가 바뀌었거나 새로 생긴 단위 0(클래스 골격·문장 포함 -- V3가 보지 않는 클래스 필드 기본값 변경도 여기서 잡힌다) + 옮긴 클래스 안 def의 해시가 원본과 다른 것 0(2차 검토 S6) (c) 사라진 단위 0 (d) MOVED가 거부한 후보 0 (e) 옮긴 단위·제자리 단위 모두 전역 읽기 출처가 base와 같음(옮긴 단위 사상 적용 -- import 줄 교체 거부, 2차 검토 S5) (f) 목적 파일 `__future__` ⊇ 원본(S3) (g) 옮긴 문장 단위의 원본 상대 순서 보존(m2) | `move_plan check`(`move-set`·`changed`·`lost`·`move-rejected`·`rebind`·`future`·`stmt-order`) + card마다 V3 JSON `defs` = `[]`(§8 M행, §10 E2) |
++| MOVE-AST | 이동 동일성(533·1020행) | card k의 병합본에서 (a) 이 base→head에서 MOVED가 낸 **모든** 옮긴 단위 집합 = 이관표가 card k에 배정한 **최상위 단위**(함수·클래스·문장) 집합이고 목적지가 전부 card k의 MOD 파일(2차 검토 S4) (b) 옮긴 단위가 아닌데 해시가 바뀌었거나 새로 생긴 단위 0(클래스 골격·문장 포함 -- V3가 보지 않는 클래스 필드 기본값 변경도 여기서 잡힌다) + 옮긴 클래스 안 def의 해시가 원본과 다른 것 0(2차 검토 S6) (c) 사라진 단위 0 (d) MOVED가 거부한 후보 0 (e) 옮긴 단위·제자리 단위 모두 전역 읽기 출처가 base와 같음(옮긴 단위 사상 적용 -- import 줄 교체 거부, 2차 검토 S5) (f) 목적 파일 `__future__` ⊇ 원본(S3) (g) 옮긴 문장 단위의 원본 상대 순서 보존(m2) | `move_plan check`(`move-set`·`changed`·`lost`·`move-rejected`·`rebind`·`future`·`stmt-order`) + card마다 V3 JSON `defs` = `[]`(§8 M행, §10 E2) |
+ | MOVE-TOTAL | 정의 보존 | Phase 전 base와 Phase 후 병합본 사이에서 MOVE-AST (b)(c)(d)를 전 단위로: 바뀐·새·사라진 단위는 M10이 선언한 것(`run_harness.py::run`, `gmid_design_pipeline.py::run_gmid_design_pipeline`)뿐 | `move_plan check --card ALL --allow-changed …`(E6) |
+ | PLAN-LAYER | 이동 전 계층 사전 검사 | 이관표 σ에서, 단위 u의 참조 R(u)(`global_names`의 이름 중 출처가 split·MOD 파일의 정의인 것 + 그 파일 모듈 별칭 속성, 중첩 def·메서드 포함 -- 문자열·해석 못 한 이름 제외) u→v 중 σ(u) < σ(v)인 것 0, 모듈 순환 0 | `move_plan plan`(`upward`·`cycles`) |
+ | LAYER | 계층 | Phase 3 마지막 병합본(F2 뒤)에서 `import_layering.py --root <iso>` exit 0. M9~F1 중간 상태의 SD → MOD9 임시 재수출(§2.2 D-22)은 이 판정의 대상 시점이 아니다 -- 중간 상태는 ORDER·IMPORT-ANY가 맡는다 | 그 도구(E1) |
+@@ -218,7 +218,7 @@ A = `skills/analog-gmid-design/assets`.
+ | LOC-FREE | 위치 독립(T0) | 계약 test의 판정이 '정의 파일'을 이름으로 가정하지 않는다 -- 같은 test가 base 트리와 **정의 하나를 다른 파일로 옮긴 합성 트리**에서 같은 결과 | T0 계약 6·7(auditor 합성 트리 실행) |
+ | GONE-SHIM | shim 삭제 | 마지막 card 병합본에서 `sizing_recipe.py`·`topology_library.py`·`design_report.py` 없음, 추적 `.py`의 해당 import(줄 머리와 문자열 import 모두) 0(제외 집합 D-9 밖). 도구 오류(git 실패·`git show` 실패·파이썬 비정상 종료)는 FAIL(v7 -- 4차 검토 S1) | §10 E3 |
+ | SD-NAMES | SD 임시 재수출 삭제 뒤 이름 해석(v7, D-26 -- 4차 검토 N1) | 마지막 card 병합본에서 D-9 제외 집합 밖 추적 `.py`가 `stick_diagram`에서 읽는 이름 N(`from stick_diagram import N`, 그리고 **SD 모듈 식**의 속성 `.N`과 `getattr`·`hasattr`·`setattr`·`delattr(SD 모듈 식, "N")` -- SD 모듈 식 = `import stick_diagram [as a]`의 이름, `importlib.import_module("stick_diagram")`·`_import`·`__import__` 호출, 그것을 대입받은 이름, 그것을 돌려주는 함수의 호출)마다 head `stick_diagram.py` 최상위 바인딩(정의·import)이나 모듈 기본 속성(`__file__` 등)이 있다. base에서 이미 풀리지 않던 (파일, 이름)은 뺀다(`a796468`·`0f23786` 1건 -- §11-10). star import·동적 이름·파싱 오류는 풀리지 않는 이름으로 FAIL이고 **base에 이미 있어도 빼지 않는다**(v8 -- 5차 검토 B2: v7 식은 표지 이름이 base SD에서 풀리지 않는다는 이유로 면제했다), 도구 오류는 FAIL. **거부 확인**: base(M1 판정 기록 `base_commit`)의 SD 정의 중 head SD에 정의가 없는 이름(= Phase 3가 SD 밖으로 옮긴 이름)이 1개 이상이고, base에서 그 이름을 SD에서 읽는 추적 파일이 1개 이상이어야 한다(아니면 INVALID) | §10 E3b |
+-| REG-DEST | 레지스트리 = 실제 위치(1018행) | 레지스트리 함수 행의 목적지 셀이 MOD 파일 이름 하나이고, 그 단위의 배정 MOD(= 이동 뒤에는 규칙 A-0의 현재 파일)와 같다 | `move_plan plan`(`reg_mismatch`, A-0) |
++| REG-DEST | 레지스트리 = 실제 위치(1020행) | 레지스트리 함수 행의 목적지 셀이 MOD 파일 이름 하나이고, 그 단위의 배정 MOD(= 이동 뒤에는 규칙 A-0의 현재 파일)와 같다 | `move_plan plan`(`reg_mismatch`, A-0) |
+ | LAYOUT-FLAT | 평면 배치 | MOD1~MOD10 파일이 전부 `A/` 바로 아래 | E0(`import_layering` `present`) |
+ | ENTRY | MOD10 | `run_gmid_design_pipeline`이 있고 `workspaces`를 import하지 않으며 하네스 `run()`이 그것을 부른다 | M10 spec card(red-green) |
+ 
+@@ -234,7 +234,7 @@ Phase 4 전이라 N3.14 실패 클래스가 없다(`20-dead-code-dup` §4와 같
+ | F2 | MOVE-AST FAIL(옮기며 본문·클래스 머리·필드가 바뀜) | V2 FAIL(G1 뒤에는 V3 대상도 생긴다) | card 되돌림. 본문 수정이 필요한 이동은 Phase 3가 아니다 |
+ | F3 | 중간 상태 순환 import(v6: M9~F1의 SD ↔ MOD9 -- §2.2 D-22) | V1 수집 오류, 또는 V1이 우연히 다른 모듈을 먼저 import해 숨기고 F1에서 드러남 | 순서·import 줄 위치를 고친다(§2.2 D-22 규칙), IMPORT-ANY로 card마다 확인. 함수 안 지연 import로 우회하지 않는다(우회 = skip, 메모리 원칙). **v7(4차 검토 S5)**: MOD8·MOD9가 import 시점에 출처 번호 7 이상 모듈의 이름을 읽는 배정이면 위치로 풀 수 없다 -- D0b 계약 test의 단언(§8 D0b행)이 이관표 단계에서 먼저 거부하고, 배정을 바꾼다(N3.10 밖 개정이면 D-11 승인) |
+ | F4 | E-LIB·E-INST 차이 | V2 FAIL | 모듈 수준 상태 분리를 먼저 의심(CACHE-ID) |
+-| F5 | G1 병합 전 이동 card | 판정 불가(V3 변이 약 1.6만 개(15,650), V6 새 항목 859, V7 미도달 약 108 -- v8.4: G1 착수 키트가 `0f23786`에서 다시 잰 값(P9 전 `cd64170` 값은 15,677·861); B33 병합 뒤에는 약 39로 줄 것으로 추정(B33 시제품, 소스 전체 기준), 그래도 0이 아니다 -- §5.1·§5.5.4) | G1 병합 전에는 M card를 시작하지 않는다(§8) |
++| F5 | G1 병합 전 이동 card | 판정 불가(V3 변이 약 1.6만 개(15,635), V6 새 항목 859, V7 미도달 약 108 -- `6df4bd7` 실측(G1 키트 H; v8.4 `0f23786` 값 15,650에서 B34 −13·backfill −2, P9 전 `cd64170` 값은 15,677·861); B33 병합 뒤에는 약 39로 줄 것으로 추정(B33 시제품, 소스 전체 기준), 그래도 0이 아니다 -- §5.1·§5.5.4) | G1 병합 전에는 M card를 시작하지 않는다(§8) |
+ | F6 | 계약 test가 첫 이동에서 깨지거나 공허해짐 | equivalence 불성립 | T0 병합 전에는 M card를 시작하지 않는다 |
+ | F7 | MOVED 거부(`move-rejected` M-0/M-0h/M-4) | 옮긴 단위가 아니라 V3 대상·`changed` | 배정을 따라 **함께 옮길 것을 함께** 옮기거나(재바인딩 대상이 이 card 배정이면) 새 MOD가 원본과 같은 출처에서 import하게 import 줄만 고친다(`from __future__ import annotations` 포함). 몸체를 고치지 않는다 |
+ | F8 | 모듈 속성 덮어쓰기 probe가 이동 뒤 계측을 잃음(§7.2 D군) | probe 결과가 조용히 비거나 달라짐(V1이 probe를 수집하지 않아 FAIL로 드러나지 않는다) | D-17대로 F1에서 덮어쓰기 대상을 호출자 모듈로 옮긴다 |
+@@ -248,18 +248,18 @@ Phase 4 전이라 N3.14 실패 클래스가 없다(`20-dead-code-dup` §4와 같
+ 
+ | 도구 | '새/바뀐 def'를 정하는 곳(`7535799`, B28 병합 뒤) | 옮긴 정의에 대한 결과 |
+ |---|---|---|
+-| V3 `mutate_changed.py` | `changed_defs(base_src, head_src)`(88~100행, `_strip_doc` 74·`def_hash` 84)이 **같은 경로**의 base 소스와만 비교. `main`이 `git cat-file -e <base>:<path>`(359행)로 base 파일이 없으면 `base_src = None`(361행) → 그 파일의 def 전부가 대상(`changed_defs` 호출 364행). diff는 `--no-renames --diff-filter=AM`(314행). test 실행 환경은 B28의 `make_clone`(53행 정의, 323행 호출 -- 옛 `copytree` 없음), 정리 `_rmtree_force`(406행), 출력 398·402(ERROR)·407(PASS/FAIL) | 엔진 4파일을 새 파일로 옮기면 대상 def 473개·변이 15,650개·V6 새 항목 859(v8.4: G1 착수 키트 `0f23786` 재측정 -- 부록 A G1의 15,677·861은 P9 전 `cd64170` 값, P9가 SD를 고쳐 −27·−2). 인벤토리 없는 def는 변이 전부 '생존' |
+-| V6 `source_lint.py` | `compare(path, base_src, head_src, kd)`(212행)가 같은 경로 base와 단위별 항목 수 비교, base 없으면 전부 '새 항목' | 새 파일로 옮기면 새 항목: magic_number 500·continue 347·broad_except 8·id_call 6(부록 A G1) |
++| V3 `mutate_changed.py` | `changed_defs(base_src, head_src)`(88~100행, `_strip_doc` 74·`def_hash` 84)이 **같은 경로**의 base 소스와만 비교. `main`이 `git cat-file -e <base>:<path>`(359행)로 base 파일이 없으면 `base_src = None`(361행) → 그 파일의 def 전부가 대상(`changed_defs` 호출 364행). diff는 `--no-renames --diff-filter=AM`(314행). test 실행 환경은 B28의 `make_clone`(53행 정의, 323행 호출 -- 옛 `copytree` 없음), 정리 `_rmtree_force`(406행), 출력 398·402(ERROR)·407(PASS/FAIL) | 엔진 4파일을 새 파일로 옮기면 대상 def 473개·변이 15,635개(SR 8,872·SD 5,893·TL 683·DR 187)·V6 새 항목 859(`6df4bd7` 실측, G1 키트 H -- v8.4 `0f23786` 값 15,650에서 B34 −13(SD 5,906 → 5,893)·backfill −2(SR 8,874 → 8,872); 부록 A G1의 15,677·861은 P9 전 `cd64170` 값, P9가 SD를 고쳐 −27·−2). 인벤토리 없는 def는 변이 전부 '생존' |
++| V6 `source_lint.py` | `compare(path, base_src, head_src, kd)`(212행)가 같은 경로 base와 단위별 항목 수 비교, base 없으면 전부 '새 항목' | 새 파일로 옮기면 새 항목: magic_number 499·continue 346·broad_except 8·id_call 6 = 859(`6df4bd7` 실측, G1 키트 H; 부록 A G1 `cd64170` 값은 500·347·8·6 = 861) |
+ | V7 `reachability.py` | `base_defs` = base의 (파일, qualname) 집합(224~229행), `new_defs` = head 노드 중 그 집합에 없는 것(230~231행) | 지금 운영 루트로 도달하지 못하는 엔진 def 109개(승인 면제 1) -- 옮기면 전부 '새 def 미도달'로 FAIL(부록 A G2) |
+ 
+ **v5 주의(재측정 대상)**: 위 줄 번호는 `7535799`의 값이다. G1 전에 병합되는 게이트 card 셋이 이 세 파일을 바꾼다 -- 면제 묶기·범위 정책은 `mutate_changed.py`의 `main`(면제 대조 375행 근처, 대상 선택
+ 364행 근처, 출력 407행), B33은 `reachability.py`의 `build_graph`(97행~)와 `main`의 도달 계산(223·230행 근처, R3 소스 범위). V7 '미도달 109'는 B33 뒤 줄어든다(B33 시제품: 소스 전체 기준 미도달
+ 115 → 39 -- `draft_b33.spec.md` '작성 전 실측' 1, 판정 기록 수치 아님). 옮긴 def를 새 def로 보는 결함 자체는 B33과 무관하게 남는다(B33은 '무엇이 도달하는가', G1은 '무엇이 새 def인가'). G1 card는
+-이 줄 번호와 수치를 그 병합본에서 다시 잰다(G1 card '작성 전 실측' 1).
++이 줄 번호와 수치를 그 병합본에서 다시 잰다(G1 card '작성 전 실측' 1). `6df4bd7` 실측(면제 묶기 `dd01d1d`·범위 정책 `b70a05a` 병합 뒤, B33 전 -- §5.3 문단의 줄 번호도 `7535799` 값이다): `mutate_changed.py` `make_clone` 59행 정의·627행 호출, `_rmtree_force` 67행 정의·740행 호출, `_strip_doc` 80, `def_hash` 90, `changed_defs` 140행~, diff `--no-renames` 618, pytest `-x` 656, `cat-file` 665, `base_src … else None` 667, `changed_defs` 호출 676, 면제 대조 `exempt_decision` 702, 출력 732·736(ERROR)·741(PASS/FAIL). `reachability.py`·`source_lint.py`는 `7535799`와 같다.
+ 
+ 합성 저장소 red 실측(부록 A G5 `move-exact`): def 하나를 바이트 그대로 새 파일로 옮기고 원래 파일은 재수출만 남긴 커밋에서 base V3·V6·V7 모두 exit 1.
+ 
+-**계획 원문**(N3.10 533행): "무변경 증명 = 이동 전후 함수별 `ast.dump`(docstring 제외) 해시 동일 + import 줄만 차이. **해시가 같은 함수는 V3 대상에서 뺀다.**" -- V3 행(N4.2 839행)도 "대상 = diff가 닿은 def 중 AST 해시가 바뀐 것"이고 경로를 말하지 않는다. V6(842행)·V7(843행)은 이동을 말하지 않는다.
++**계획 원문**(N3.10 533행): "무변경 증명 = 이동 전후 함수별 `ast.dump`(docstring 제외) 해시 동일 + import 줄만 차이. **해시가 같은 함수는 V3 대상에서 뺀다.**" -- V3 행(N4.2 841행)도 "대상 = diff가 닿은 def 중 AST 해시가 바뀐 것"(범위 정책 `20260930-v3-changed-stmt-scope`가 뒤에 "의 바뀐 문장과 그 주변(…), 새 def는 전체"를 더했다)이고 경로를 말하지 않는다. V6(844행)·V7(845행)은 이동을 말하지 않는다.
+ 
+ ### 5.2 고칠 방향
+ 
+@@ -302,7 +302,7 @@ Phase 4 전이라 N3.14 실패 클래스가 없다(`20-dead-code-dup` §4와 같
+   잡는다(`future`·`changed` def 단위·`changed`/`lost`). 2차 검토 §3 표의 N8a·N8b·N9a·N9b·N10·N11·N12는 v3에서도 거부였고 v4에서도 거부.
+ * **거짓 거부 측정**(부록 A G6'): 실제 엔진 4파일 각각을 같은 디렉터리 새 파일로 통째 옮기고 원래 파일은 명시 재수출만 남긴 모의에서 **v4 규칙으로** 옮긴 단위 402/402(SR 218·SD 169·TL 8·DR 7),
+   옮긴 def 473/473, 거부 0(M-0h 위반 0, qualname 중복 제외 0), `move_plan check` 발견 모의 0(`changed`·`lost`·def 단위 `changed`·`stmt-order`·`future`·`rebind` 모두 0 -- 트리 전체 단위의
+-  `rebind` 대조 포함). `stick_diagram`의 `__file__` 사용 2곳(1050·8973행)도 같은 디렉터리라 인정. 참조 구현 한 호출 7.9~15.6초(전체 소스 두 벌 색인 -- v3 측정 5.8~9.2초와 같은 규모,
++  `rebind` 대조 포함). `stick_diagram`의 `__file__` 사용 2곳(1049·8948행 -- `6df4bd7` 실측; v4 `7535799` 값 1050·8973)도 같은 디렉터리라 인정. 참조 구현 한 호출 7.9~15.6초(전체 소스 두 벌 색인 -- v3 측정 5.8~9.2초와 같은 규모,
+   기계 부하 차), `check` 모의 1.3~2.4초.
+ * **관찰 가능**: 세 도구의 판정 JSON에 `moved`(`[{"from", "to"}]`)와 `move_rejected`를 더하고, V3에는 변이 대상 def 목록 `defs`를 더한다(§10 E2가 `targets`가 아니라 이것을 잰다 -- 검토 B5).
+   먼저 병합된 card가 더한 키(범위 정책 `not_targeted`·`targets_by_def`, 면제 묶기 `exempt_ignored`·`survivor_bindings`, B28 `baseline_failed`)는 이름·뜻을 그대로 둔다(§5.5).
+@@ -370,7 +370,7 @@ G1 base = 이 셋이 병합된 gate `master`. 셋 사이의 순서는 G1에 영
+ 
+ #### 5.5.3 면제 묶기와 옮긴 def
+ 
+-* 변이 id = `<모듈>:<qualname>:<연산자>:<경로>`이고 `<모듈>` = 파일 줄기(`reachability.module_name` 47행, `mutate_changed.py` 362·374행 -- 부록 A E2). 그래서 **def를 옮기면 그 def 변이 id의 모듈
++* 변이 id = `<모듈>:<qualname>:<연산자>:<경로>`이고 `<모듈>` = 파일 줄기(`reachability.module_name` 47행, `mutate_changed.py` 674·692행 -- `6df4bd7` 실측, 부록 A E2의 362·374는 `7535799` 값). 그래서 **def를 옮기면 그 def 변이 id의 모듈
+   부분이 바뀐다**. 묶기 해시(docstring 포함 def 원본)는 바이트 그대로 옮기면 같다.
+ * 옮긴 def(G1 인정): V3 대상이 아니어서 변이 id가 만들어지지 않는다 → 면제 대조 자체가 없다. 옛 경로 id의 원소는 '이번 실행의 변이 id'와 같지 않아 `exempt_ignored`에도 실리지 않는다(면제 묶기 계약 3).
+ * 거부된 이동 후보(본문은 같지만 M-0h·M-4 등으로 대상): 새 모듈 이름의 id로 변이된다. 옛 모듈 이름 id의 원소는 **적용되지 않는다**(fail-closed, 누수 아님). 면제가 필요하면 `<새 모듈>:…@<묶기 해시>`로
+@@ -419,7 +419,7 @@ G1 base = 이 셋이 병합된 gate `master`. 셋 사이의 순서는 G1에 영
+   `run_topology_pipeline_with_finger_fixup`(MOD8)을 부른다 → Phase 3 위치 MOD8(D-3), 탐색부 추출 뒤 MOD6(CC-7, `00-common` 435행과 일치).
+   이 세 건과 D-19가 UD-0이 덮는 N3.10 개정 문안이다(`_drafts/p3_doc_amendments.md` §1).
+   **A-1 충돌(v8.4 -- D0b 착수 키트 실측, 부록 A F4v84, G1·D0a 시제품 관찰)**: 위 세 건을 적용한 트리에서도 `plan`은 `upward` 34·`cycles` 1을 냈고, 아래 v8.4 규칙(docstring 제외·A-K·승격·A-6·A-7)을 더하면
+-  `upward` 7로 줄지만 남는 7건은 **모두 원천이 A-1 토큰**이라 규칙으로 풀 수 없다(N3.10 표 안의 모순 2건 `sizing_recipe.py:8060` `_build_theta_evaluator`(MOD6) → `resolve_stack_layout`(MOD8)·`:7683`
++  `upward` 7로 줄지만 남는 7건은 **모두 원천이 A-1 토큰**이라 규칙으로 풀 수 없다(N3.10 표 안의 모순 2건 `sizing_recipe.py:8059` `_build_theta_evaluator`(MOD6) → `resolve_stack_layout`(MOD8)·`:7682`
+   `require_declared_spec_source`(MOD2) → `spec_fingerprint`(MOD3), 토큰 → 레지스트리 칸 3건 `:5272`·`:399`·`_METRICS_REGISTRY` → `_metric_nulling_resistor_ohm`, 승격이 끌어올린 2건 `apply_theta_feed` →
+   feed 레지스트리·`load_topology` → `propose_device_roles_gap_fill`). 지금 계산되므로 UD-0 개정 문안에 넣었다(§1 (a)~(d) 갱신 + §9 -- 보정 8건·토큰 11개: MOD6의 `_build_theta_evaluator`·`search_stage_budget_L_warm_start`·
+   `presolve_warm_start`·`_optimize_theta_slsqp` → MOD8(Phase 3 위치 -- D-3과 같은 모양, 넷을 함께 옮겨야 닫힌다: 하나 `upward` 4·셋 1·넷 0), `require_declared_spec_source` MOD2 → MOD3, `apply_theta_feed` MOD4 → MOD5,
+@@ -477,7 +477,7 @@ printf '[%s]\n' "${MP_ARGS[@]}" | tail -1   # 확인: [{"optimizer": "theta_sear
+ 사용자 결정 A2(승인 기록 `20260930-b26-before-phase3`, decision): B26-1(`20260930-b26-rail-accessor-set`)과 B34(`20260930-b34-grammar-explicit`)는 **Phase 3 M card보다 먼저** 병합되는
+ 앞당긴 card다. **v7 정정(오케스트레이터 확정 순서, 사용자 지시)**: 둘은 **Phase 2 DoD 뒤**에 병합한다 -- P10b → Phase 2 DoD → 면제 묶기(34) → 범위 정책(35) → B34 → B26-1(앞선 test 보강 card
+ `20260930-b26-pre-test-strengthen` 포함) → B33(33) → Phase 3. v6의 "Phase 2 진행 중(순서 P9 → B34 → B26-1)에 병합"은 틀렸다. 둘은 design 20 §8 범위 밖(A2로 앞당긴 Phase 4 몫, 계획
+-1001행)이라 Phase 2 DoD의 N6.3 판정 기록 목록에 들지 않는다(v8.3: 네 card(B34·b26pre·backfill·B26-1) 초안은 `phase: 3`이고, 승인 기록 A2 ③의 "Phase 2 진행 중에 병합" 문구는 decision 기록 `20261001-b26-phase3-cards`(사용자 답 2026-10-01)가 'Phase 2 DoD 뒤·Phase 3 M card 전(card `phase: 3`)'으로 바로잡았다 -- 그래서 네 card는 **Phase 3 DoD**의 N6.3 목록에 든다, §9.1·§11-11). 그 기록의 '재검토' 절: 둘 중 병합되지 않은 card가 있는 채 M card가
++1003행)이라 Phase 2 DoD의 N6.3 판정 기록 목록에 들지 않는다(v8.3: 네 card(B34·b26pre·backfill·B26-1) 초안은 `phase: 3`이고, 승인 기록 A2 ③의 "Phase 2 진행 중에 병합" 문구는 decision 기록 `20261001-b26-phase3-cards`(사용자 답 2026-10-01)가 'Phase 2 DoD 뒤·Phase 3 M card 전(card `phase: 3`)'으로 바로잡았다 -- 그래서 네 card는 **Phase 3 DoD**의 N6.3 목록에 든다, §9.1·§11-11). 그 기록의 '재검토' 절: 둘 중 병합되지 않은 card가 있는 채 M card가
+ `stick_diagram`·`sizing_recipe`를 나누기 시작하면 그 card의 앞당김은 효력을 잃고 편집 범위를 새 모듈 기준으로 다시 잰다 -- 그래서 §9.1 착수 조건에 'M1 전 두 card 병합'을 둔다.
+ 
+ 두 card 초안(`_drafts/draft_b26_1.spec.md`, `draft_b34.spec.md`)에서 **추정한** Phase 3 영향(병합 전이라 잴 수 없다 -- 전부 'Phase 3 시작 때 재측정', D0b가 실제 값으로 확정):
+@@ -489,8 +489,8 @@ printf '[%s]\n' "${MP_ARGS[@]}" | tail -1   # 확인: [{"optimizer": "theta_sear
+ | 엔진 클래스(A-2 입력) | 41(dataclass 36·메서드 없음 36·예외 3) | 42(dataclass 37·메서드 없음 37·예외 3) | 같음 |
+ | 레지스트리에 행이 없는 최상위 정의(M12) | SD 24 | SD 26 | B26-1 계약 11은 §2(개념 정본)·§6 문장만 고친다 -- 함수 행 추가 없음 |
+ | 바뀌는 def | -- | B34: `_import_analog_grammar`·`find_idiom_matches`·`find_stack_edges`·`audit_theta_root_direction`. B26-1: 판정·통과 사이트 SD 18·SR 2(`true_current_mirror_groups`·`resolve_stack_layout`)에 키워드 전용 `rails: RailDeclaration`, `load_topology`·`l_sharing_classes`·`_metric_kcl_residual` 등 본문, `propose_device_roles_gap_fill`의 `refined is None` 분기 반환에서 `unavailable_reason` 키 삭제(B40 -- v8.3, 사용자 답 U4·승인 `20260930-b26-b40-reason-key`; 새 def·이동 단위 변화 없음), 동작 불변 정리 C1·C2(`_propose_L_roles` 중복 None 가드, `open_terminals[0]` -- U3; 최상위 정의 수 불변) | B34 사이트 표, B26-1 계약 4·5·6·13·15 |
+-| SD 줄 이동 | `__file__` 1050·8973, future 32행 | B34 코드만으로 1073 이후 4줄 당김(B26-1 초안 '순서' 절) + B34 docstring 수정분 + B26-1 접근자·클래스 추가분. 1050(`_import_analog_grammar` 안 `_ag_path`)은 B34가 그 def를 바꾸므로 근처에서 다시 잰다 | B26-1 의도 '순서' |
+-| SR 캐시 줄 | 2391·2530·7697 | B26-1이 SR 2191~2230·4200대·6470대·8000대 본문을 바꿔 몇 줄 밀릴 수 있다 | B26-1 계약 4·6 |
++| SD 줄 이동 | `__file__` 1050·8973, future 32행 | B34 코드만으로 1073 이후 4줄 당김(B26-1 초안 '순서' 절) + B34 docstring 수정분 + B26-1 접근자·클래스 추가분. 1050(`_import_analog_grammar` 안 `_ag_path`)은 B34가 그 def를 바꾸므로 근처에서 다시 잰다. **B34 병합 뒤 실측(`6c724de`·`6df4bd7` 같음)**: `__file__` 1049·8948, future 32행 -- 병합 직전 `dd60db6` 1050·8962(v4 값과의 차 −11은 P9 몫) 대비 −1·−14로 '4줄 당김' 추정과 다르다. B26-1 몫은 그 병합본에서 다시 잰다 | B26-1 의도 '순서' |
++| SR 캐시 줄 | 2391·2530·7697 | B26-1이 SR 2191~2230·4200대·6470대·8000대 본문을 바꿔 몇 줄 밀릴 수 있다. **B34·backfill 병합 뒤 실측(`6df4bd7`)**: 2391·2530·7696(B34가 `resolve_stack_layout` 안에서 −1, backfill은 11,758행 뒤만 바꿈) | B26-1 계약 4·6 |
+ | `run_harness.py:422·427·446`, `topology_library.py:248` | -- | 바뀌지 않을 것으로 봄(두 card 모두 편집 목록에 없음) -- 확인만 | 두 card '바꾸는 것' 표 |
+ | 계약 test(§7.1) | contracts 3개가 엔진 모듈 import(M22) | `tests/contracts/test_b34_grammar_explicit.py`(B군 -- `stick_diagram.<이름>(…)` 직접 호출), `tests/contracts/test_b26_rail_accessor.py`(**A군 후보** -- 계수 래퍼가 `stick_diagram.rail_declaration` 모듈 속성을 바꿈, B군 -- `sizing_recipe._metric_kcl_residual` 이름 호출) | §7.1 v5 행, T0 계약 10 |
+ 
+@@ -603,7 +603,7 @@ V1 수집 test라 T0). Phase 3 시작 때 S11을 대입문과 `setattr` 두 형
+ 
+ ## 8. 역할별 산출물 -- spec card 목록 (N9.2-5)
+ 
+-card 단위는 N3.12.3(674행: 이동은 모듈 하나가 한 건). 판정 유형은 **커밋 모양이 정한다**(code 커밋이 없으면 test-only, 있으면 red-green 또는 equivalence -- `20-dead-code-dup` §8 P2·P7 정정).
++card 단위는 N3.12.3(676행: 이동은 모듈 하나가 한 건). 판정 유형은 **커밋 모양이 정한다**(code 커밋이 없으면 test-only, 있으면 red-green 또는 equivalence -- `20-dead-code-dup` §8 P2·P7 정정).
+ 
+ | # | id(초안) | 대상 | 판정 유형 | oracle | 원칙 제약 |
+ |---|---|---|---|---|---|
+@@ -647,17 +647,17 @@ P10b → [Phase 2 DoD PASS] → 면제 묶기(34) → 범위 정책(35) → B34
+ | G1 | D0a | D0a가 G1의 `SourceIndex`·`moved_defs`를 부른다(정의 하나). 오케스트레이터 지시문의 괄호 "T0·D0a·D0b → G1(32)"는 이 의존과 어긋난다 -- D0a는 G1 없이 import가 실패하므로 G1 → D0a로 둔다(§11-12, 확인 요청) |
+ | B34·b26pre·backfill·B26-1·B33·D0a | D0b | §6.4 -- 이관표를 D0b 자신의 base에서 처음 계산 |
+ | FU(v8.4) | D0b | §6.5 -- D0b 계약 test의 `plan` exit 0에 `import_conflicts`가 들어가 `__future__` 기능 집합이 갈린 배정이 남으면 FAIL. FU는 다른 card와 의존이 없다(엔진 두 파일 머리 한 줄씩 -- B33 뒤 아무 때나, D-27 동결 전) |
+-| Phase 2 DoD PASS | T0·FU·D0a·D0b(phase 3 card) | 계획 991행 "이전 Phase DoD PASS"(D-23). 확정 순서상 B26-1·B33 뒤라 자동으로 성립한다 |
+-| Phase 2 DoD PASS | B34·b26pre·backfill·B26-1(phase 3 card -- v8.3) | 계획 991행 "이전 Phase DoD PASS"(D-23). 확정 순서 그대로라 자동으로 성립한다. design 30 승인·U-03은 기다리지 않는다(기록 `20261001-b26-phase3-cards` 범위 설명) |
++| Phase 2 DoD PASS | T0·FU·D0a·D0b(phase 3 card) | 계획 993행 "이전 Phase DoD PASS"(D-23). 확정 순서상 B26-1·B33 뒤라 자동으로 성립한다 |
++| Phase 2 DoD PASS | B34·b26pre·backfill·B26-1(phase 3 card -- v8.3) | 계획 993행 "이전 Phase DoD PASS"(D-23). 확정 순서 그대로라 자동으로 성립한다. design 30 승인·U-03은 기다리지 않는다(기록 `20261001-b26-phase3-cards` 범위 설명) |
+ | G1·T0·D0b | M1 | F5·F6, §9.1 |
+ | M1 → M2 → … → M6 → M8 → M9 | M10 → T1 → F1 → F2 | ORDER(번호순), F1이 shim 삭제 조건(534행) |
+ | D0b 병합 | F2 병합까지 | **동결(D-27, v7 -- 4차 검토 S4; v8 범위 확대 -- 5차 검토 S6)**: 이 구간에는 엔진 파일(`A/*.py`, `workspaces/run_harness.py`), `tools/gates/**`·`tools/migrate/**`, 레지스트리(`docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`)의 '이관 목적지' 열을 바꾸는 Phase 3 밖 card를 병합하지 않는다 |
+ 
+-* **phase 3 card의 병합 시점(D-23)**: T0·FU·D0a·D0b는 spec card `phase: 3`이고 계획 991행 공통 착수 조건 "이전 Phase DoD PASS"가 이 card들에도 걸린다(기본값 = Phase 순서 그대로). v8.3: B34·b26pre·backfill·B26-1도 `phase: 3`이다(사용자 답 2026-10-01, 기록 `20261001-b26-phase3-cards`) -- "이전 Phase DoD PASS"는 확정 순서(Phase 2 DoD 뒤)로 자동 성립하고, design 30 승인·U-03은 그 기록이 기다리지 않는다고 정했다. 게이트는 이 순서를
++* **phase 3 card의 병합 시점(D-23)**: T0·FU·D0a·D0b는 spec card `phase: 3`이고 계획 993행 공통 착수 조건 "이전 Phase DoD PASS"가 이 card들에도 걸린다(기본값 = Phase 순서 그대로). v8.3: B34·b26pre·backfill·B26-1도 `phase: 3`이다(사용자 답 2026-10-01, 기록 `20261001-b26-phase3-cards`) -- "이전 Phase DoD PASS"는 확정 순서(Phase 2 DoD 뒤)로 자동 성립하고, design 30 승인·U-03은 그 기록이 기다리지 않는다고 정했다. 게이트는 이 순서를
+   강제하지 않으므로(`merge_gate.rule10_phase` 실측, 3차 검토) 오케스트레이터가 지킨다. G1은 `phase: 0.5` 게이트 변경(05 §18)이라 Phase 2 DoD와 독립이지만 확정 순서상 B33 뒤다.
+   test·code worktree는 각 card의 앞 card가 병합된 뒤 만든다. 그 전에 할 수 있는 것은 **준비**(spec card 초안·작성 전 실측·interface card 초안)뿐이다.
+ * **지금 병렬로 준비 가능(spec card 초안·작성 전 실측)**: G1, T0, D0a, FU(v8.4). 실행 순서는 G1 → D0a, T0·FU는 G1과 독립(FU는 D0b 전).
+-* **B26-2~B26-4·B35의 자리(v7 -- 4차 검토 S4, D-27)**: 계획 769·929·936행은 B26-2(극성)·B26-3(MNA 고정 노드)·B26-4(이름 상수 삭제·lint)를 "Phase 3 착수 전에 해도 된다"고 적는다. 위 확정
++* **B26-2~B26-4·B35의 자리(v7 -- 4차 검토 S4, D-27)**: 계획 771·931·938행은 B26-2(극성)·B26-3(MNA 고정 노드)·B26-4(이름 상수 삭제·lint)를 "Phase 3 착수 전에 해도 된다"고 적는다. 위 확정
+   순서에는 없으므로 **기본값 = F2 뒤**(Phase 3 뒤 새 모듈에서 바꾼다). 오케스트레이터가 어느 것을 Phase 3 전에 넣으려면 **D0b 전**(B33 뒤·G1 앞 또는 G1 뒤·D0b 앞)에 병합해야 하고, 그러면
+   §9.1 재측정 (1)에 그 card가 들어간다. B35(B34·B26-1 인계 사이트 5~8·10·14 -- §6.4)는 착수 조건(B36 게이트 변경 card·`plan_tables` 승인·B26-2)상 Phase 3 전에 올 수 없어 **F2 뒤**다.
+ * M 순서가 번호순인 이유: 작은 번호부터 만들면 매 card 병합본에서 새 파일이 잔여 shim을 import할 일이 없다(ORDER). M 작성 전 실측은 D0b 이관표 한 벌에서 결정적으로 나온다.
+@@ -668,12 +668,12 @@ P10b → [Phase 2 DoD PASS] → 면제 묶기(34) → 범위 정책(35) → B34
+ 
+ ### 9.1 착수 조건
+ 
+-* 공통(N6.1 991행): 이 문서의 사용자 승인(DEC-51), **Phase 2 DoD PASS**. v6 작성 중 gate `master`가 `7535799` → `a796468`로 나아갔다(P9 병합·판정 기록 `766b5c2`, P10 판정 기록 `62ae24f`,
++* 공통(N6.1 993행): 이 문서의 사용자 승인(DEC-51), **Phase 2 DoD PASS**. v6 작성 중 gate `master`가 `7535799` → `a796468`로 나아갔다(P9 병합·판정 기록 `766b5c2`, P10 판정 기록 `62ae24f`,
+   계획 A2 정정 `8356c1e`, P10b spec card `a796468`). **v7 정정(확정 순서, §8.1)**: `a796468` 기준 Phase 2에 남은 것 = Phase 2 card **P10b** 병합과 design 20 §10 **DoD E0~E5**(P3c 보류 B21은 D2
+   기본안대로 관찰 기록)뿐이다. **B34·B26-1은 Phase 2 DoD 뒤**에 병합하는 앞당긴 card(A2)이고 Phase 2 DoD의 N6.3 판정 기록 목록에 들지 않는다(design 20 §8 범위 밖 -- v6이 "Phase 2에 남은 것"에
+-  둘을 넣은 것은 틀렸다). **v8.3**: 네 card(B34·b26pre·backfill·B26-1)는 spec card `phase: 3`(사용자 답 2026-10-01, 기록 `20261001-b26-phase3-cards`)이라 **Phase 3 DoD의 N6.3 판정 기록 목록**에 든다 -- Phase 2 DoD가 `git grep -l -E '^phase: 2$' <H> -- docs/02-design/specs`로 모은 것과 같은 방식(`^phase: 3$`)이면 네 card가 잡힌다. Phase 3 DoD는 그 판정 기록을 각 card 병합 때 기록 그대로 센다(다시 판정하지 않는다 -- E2가 V3를 다시 도는 것은 M card뿐이고, E5는 P2D 대 마지막 병합본 비교라 네 card의 의도된 변경은 D-28 (e) 목록으로 이미 들어 있다). 몫은 A2로 앞당긴 Phase 4 몫이라 계획 1001행대로 Phase 4 행 범위에서 빠지지 않는다. 게이트 card(`phase: 0.5`) 면제 묶기·범위 정책·B33은 Phase 2 DoD 항목이 아니라 G1의 선행이고, 확정 순서상 Phase 2 DoD 뒤다. 이 조건은 M card뿐 아니라
++  둘을 넣은 것은 틀렸다). **v8.3**: 네 card(B34·b26pre·backfill·B26-1)는 spec card `phase: 3`(사용자 답 2026-10-01, 기록 `20261001-b26-phase3-cards`)이라 **Phase 3 DoD의 N6.3 판정 기록 목록**에 든다 -- Phase 2 DoD가 `git grep -l -E '^phase: 2$' <H> -- docs/02-design/specs`로 모은 것과 같은 방식(`^phase: 3$`)이면 네 card가 잡힌다. Phase 3 DoD는 그 판정 기록을 각 card 병합 때 기록 그대로 센다(다시 판정하지 않는다 -- E2가 V3를 다시 도는 것은 M card뿐이고, E5는 P2D 대 마지막 병합본 비교라 네 card의 의도된 변경은 D-28 (e) 목록으로 이미 들어 있다). 몫은 A2로 앞당긴 Phase 4 몫이라 계획 1003행대로 Phase 4 행 범위에서 빠지지 않는다. 게이트 card(`phase: 0.5`) 면제 묶기·범위 정책·B33은 Phase 2 DoD 항목이 아니라 G1의 선행이고, 확정 순서상 Phase 2 DoD 뒤다. 이 조건은 M card뿐 아니라
+   T0·FU·D0a·D0b(`phase: 3`)의 **병합**에도 건다(D-23).
+-* U-03(N7.2 1078행): 승인 기록 없음(부록 A M27).
++* U-03(N7.2 1080행): 승인 기록 없음(부록 A M27).
+ * 게이트 선행: B28 병합(**완료** -- `2b41e79`, 판정 기록 `8790b24`), **B33·면제 묶기·범위 정책 병합(G1 전, §5.5.1)**, G1 병합.
+ * **엔진 선행(A2, v5)**: B34·B26-1(앞선 test 보강 card와 backfill 결함 card 포함 -- v8.1) 병합(M1 전, 확정 순서상 Phase 2 DoD 뒤·B33 전). 승인 기록 `20260930-b26-before-phase3` '재검토': 둘 중 하나라도 병합되지 않은 채 M card를
+   시작하면 그 card의 앞당김이 효력을 잃는다 -- 그래서 M1의 착수 조건이다. T0는 B26-1 병합 뒤(§8.1).
+@@ -756,9 +756,9 @@ T1·F1의 V5 승인(test 파일 이동·import 문자열).
+ | D-20 | 옮기며 바뀐 def·거부된 이동 후보의 V3 대상 = 새 경로의 새 def(본문 전체). 이동 원본과 문장 단위로 맞추지 않는다 | 범위 정책 약화 승인(A1-b)은 같은 경로의 기존 def만 덮는다, Phase 3는 옮기며 바꾸지 않는다(F2)(§5.5.2) |
+ | D-21 | G1은 V3 면제 대조(면제 묶기 card)를 바꾸지 않는다. 옮긴 def는 대상이 아니라 대조 없음, 거부 후보는 새 모듈 id라 옛 원소 미적용(fail-closed) | 변이 id 모듈 = 파일 줄기, 묶기 해시 = def 원본(§5.5.3) |
+ | D-22 | (v6) 재수출·import 줄 위치: split 파일 재수출은 import 머리 뒤, SD의 MOD 8·9 재수출은 SD 끝, MOD8·MOD9의 번호 7 이상 모듈 import는 파일 끝. M card·F1에 IMPORT-ANY(모듈마다 단독 첫 import 성공) 추가. M9~F1의 SD → MOD9 위쪽 import는 F2가 없앤다(LAYER는 F2 뒤 판정). **v7(4차 검토 S5)**: 이 배치의 전제(MOD8·MOD9의 import 시점 읽기 출처 < 7)를 D0b 계약 test가 `import_time_high` 0으로 단언한다. IMPORT-ANY는 시도 수 대조·목록 실패 INVALID(S2) | 모의 `p3v6_order_shim_sim`(§2.2): 머리 배치는 M9에서 순환 `ImportError`, 이 배치는 M1~M9 모두 성공(`a796468` 재실행 같음). 함수 안 지연 import 우회 금지(F3). 판정을 더하는 쪽(강화)이다 |
+-| D-23 | (v6) T0·D0a·D0b(`phase: 3`, v8.4: FU도)도 Phase 2 DoD PASS 뒤에 병합한다. 그 전에는 준비(초안·실측)만. v7: 확정 순서(§8.1)상 B26-1·B33 뒤라 이 조건은 자동으로 성립한다. v8.3: B34·b26pre·backfill·B26-1도 `phase: 3`(기록 `20261001-b26-phase3-cards`) -- 같은 조건이 걸리고 확정 순서상 자동 성립, design 30 승인은 기다리지 않는다(그 기록). Phase 3 DoD `^phase: 3$` 목록에 네 card가 더해진다(§9.1) | 계획 991행 "이전 Phase DoD PASS", Phase 순서 기본값(3차 검토 S2 (ii)). G1은 `phase: 0.5`라 해당 없음 |
++| D-23 | (v6) T0·D0a·D0b(`phase: 3`, v8.4: FU도)도 Phase 2 DoD PASS 뒤에 병합한다. 그 전에는 준비(초안·실측)만. v7: 확정 순서(§8.1)상 B26-1·B33 뒤라 이 조건은 자동으로 성립한다. v8.3: B34·b26pre·backfill·B26-1도 `phase: 3`(기록 `20261001-b26-phase3-cards`) -- 같은 조건이 걸리고 확정 순서상 자동 성립, design 30 승인은 기다리지 않는다(그 기록). Phase 3 DoD `^phase: 3$` 목록에 네 card가 더해진다(§9.1) | 계획 993행 "이전 Phase DoD PASS", Phase 순서 기본값(3차 검토 S2 (ii)). G1은 `phase: 0.5`라 해당 없음 |
+ | D-24 | (v6) E3 문자열 import는 텍스트 일치가 아니라 AST의 import 호출(`import_module`·`_import`·`__import__`의 첫 인자 문자열 상수)로 잰다. docstring·주석 언급은 import가 아니다. **한계(v7, 4차 검토 m5)**: 이름을 바꾼 호출(`from importlib import import_module as im; im("sizing_recipe")`), 하위 프로세스 문자열(`subprocess.run([…, "-c", "import sizing_recipe"])`), 변수 인자(`import_module(name)`), 문자열 조립(`"sizing_" + "recipe"`)은 잡지 못한다 -- `a796468` 추적 `.py` 실측(부록 A F5v7): 별칭 0, 하위 프로세스 문자열 0(문자열 안 `import sizing_recipe`는 전부 계약 test의 합성 소스 입력), 변수 인자 `import_module`은
+-`stick_diagram.py:1056`(analog-grammar 모듈)과 `test_restore_plan_functions.py:59`(`_import` 도우미 -- 호출부는 상수 인자라 E3가 `_import("sizing_recipe")`로 잡는다) 둘뿐이다. E3b(D-26)도 같은 한계를 갖고,
++`stick_diagram.py:1055`(analog-grammar 모듈)과 `test_restore_plan_functions.py:59`(`_import` 도우미 -- 호출부는 상수 인자라 E3가 `_import("sizing_recipe")`로 잡는다) 둘뿐이다. E3b(D-26)도 같은 한계를 갖고,
+ 동적 이름(`getattr(sd, name)` -- 지금 0건)은 FAIL로 센다. **v8 한계 추가(5차 검토 m7)**: 경로로 로드한 엔진 모듈(`importlib.util.spec_from_file_location`·`runpy.run_path`로 엔진 파일을 직접 실행)도 잡지 못한다 -- `0f23786` 추적 `.py` 실측(부록 A F4v8): 그 호출이 엔진 4파일(SR·SD·TL·DR)을 로드하는 곳 0(로드 대상은 `run_harness.py` -- `test_df35_harness_paths.py:163`·`test_selftest_stick_diagram.py:488`, review 스크립트끼리 `review9_bias_dependent_net_scan.py`, `w_sites.py`, `runpy`로 자기 자신) | 3차 검토 S7: 텍스트 일치는 `test_d_move_tests.py:37` docstring을 잡아 거짓 FAIL. 호출 9곳은 그대로 잡힌다(§10 E3 실측) |
+ | D-25 | (v6, v8 정정) M10 진입점 test 회로 = **instance.json을 만드는 회로(= `20-dead-code-dup` §3 E-INST 회로 집합: 파일럿·`folded_cascode`) 중 E-INST 한 판이 가장 짧은 것 = `folded_cascode`**. instance.json을 만들지 않는 실패 경로 회로(`two_stage_ota`·`nmcnr_amplifier` -- v7 측정 `inst_sha: null`)는 후보가 아니고 §2.3 (ii)의 보조 회로로만 쓴다(5차 검토 S4: v7 문언 '네 library 회로 중 가장 짧은 것'은 문언대로면 instance.json을 만들지 않는 31~34초 회로를 뽑는다) | V3 비용(§2.3 -- 파일럿이면 9시간 이상, `--timeout` 위험), 판정 기준 불변. **v7 정정(4차 검토 S3)**: D-25는 새 진입점 test의 회로만 정한다(M10 equivalence의 E-INST 회로 집합은 `20-dead-code-dup` §3 그대로). 회로 하나·해시 대조만으로는 생존이 남는다(실측 50/71) -- 추가 test 모양은 §2.3 (i)~(iii) |
+ | D-26 | (v7, 4차 검토 N1) DoD에 **E3b**(SD-NAMES)를 더한다: F2 뒤 D-9 제외 집합 밖 추적 `.py`가 `stick_diagram`에서 읽는 이름이 모두 head SD에서 해석된다. 거부 확인 = base에서 'SD 밖으로 나간 이름'을 SD에서 읽는 추적 파일 > 0. F2 oracle에 E3b, F1 범위는 이름 단위(§7.2). 도구 오류·파싱 오류·star·동적 이름은 FAIL(**v8: base에 이미 있어도 FAIL** -- 5차 검토 B2, `pre_existing`은 실제 이름만). **한계(v8, 5차 검토 m2)**: E3b는 SD 최상위 바인딩을 `symtable`로 따로 센다(§2.4 '정의 하나'의 `reachability.SourceIndex`가 아니다 -- DoD는 G1 병합 뒤라 SourceIndex를 쓸 수 있지만, DoD 명령이 G1 코드의 동작에 기대지 않도록 독립 식으로 둔다). `symtable`은 `try/except ImportError` 안·`if TYPE_CHECKING:` 안의 바인딩도 '있음'으로 센다 -- SD에 그런 조건부 바인딩으로 남은 이름은 E3b가 해석된다고 본다. `0f23786` SD 실측: 최상위 `try`·`if` 문 0개(조건부 바인딩 없음). D-22 배치 규칙상 F2가 남기는 SD import도 무조건 import 줄이라 지금은 이 한계에 걸리는 이름이 없다. **한계(v8.1, 6차 검토 m-a -- v7부터 있던 식의 한계)**: E3b는 `stick_diagram` 모듈 객체를 이렇게 얻는 reader를 놓친다 -- (1) `sys.modules` 대입 별칭(`m = sys.modules['stick_diagram']; m.X`) (2) lambda가 돌려주는 모듈(`get = lambda: importlib.import_module('stick_diagram'); get().X`) (3) 이름을 바꾼 `import_module`(`from importlib import import_module as im; im('stick_diagram').X` -- D-24의 E3 한계와 같은 모양). 검토자 합성(9 reader)에서 6 탐지·이 3 놓침. `0f23786` 추적 `.py` 노출: `sys.modules[…stick_diagram…]`·`import_module as`·`from importlib import import_module` 0건 | 계획 534행 '추적 파일 갱신 후 삭제'가 SD 재수출 경로에서는 판정되지 않았다 -- V1 밖 SD 이름 reader가 많다(§2.2, 부록 A F1v7). 판정을 더하는 쪽(강화) |
+@@ -1137,7 +1137,7 @@ $PY "$S/move_plan.py" check --root "$ISO" --base "$B0" --head "$H" --card ALL "$
+     `pre_existing` 수로만 남긴다(Phase 3가 만든 깨짐이 아니다). 처리(스크립트 갱신·삭제·보존)는 사용자 몫인 workspaces 정리라 백로그로 넘긴다.
+ 11. (v7; v8 -- 5차 검토 S3; **v8.3 해소됨**) 사용자 승인 기록 문장과의 충돌: 승인 기록 `20260930-b26-before-phase3` 27·28행 ③은 B26-1·B34를 "Phase 2 진행 중에 병합하는 것(card `phase: 2`)"이라 적었는데,
+     확정 순서는 둘(과 그 사이 b26pre·backfill -- 넷)을 Phase 2 DoD **뒤**에 둔다. **해소(2026-10-01)**: 사용자 답 B26 묶음 [card phase] "phase 3 + 정정 기록 (Recommended)" -- decision 기록 `20261001-b26-phase3-cards`가 ③의 병합 시점 문구를
+-    'Phase 2 DoD 뒤·Phase 3 M card 전(card `phase: 3`)'으로 바로잡고(옛 기록은 고치지 않음), 네 card 초안 머리는 `phase: 3`·`approval: 20261001-b26-phase3-cards`다. 계획 1001행("먼저 병합하는 card의 spec card `phase` 값은 병합 시점의 진행 Phase다")과 맞다.
++    'Phase 2 DoD 뒤·Phase 3 M card 전(card `phase: 3`)'으로 바로잡고(옛 기록은 고치지 않음), 네 card 초안 머리는 `phase: 3`·`approval: 20261001-b26-phase3-cards`다. 계획 1003행("먼저 병합하는 card의 spec card `phase` 값은 병합 시점의 진행 Phase다")과 맞다.
+     그 기록은 design 30 승인·U-03을 기다리지 않는다고 적었다. 그래서 이 항목은 승인 질문에서 빠졌고(v8.3, 7차 검토 S2), `_drafts/pending_questions.md` Q-B34-PHASE는 닫혔다.
+     게이트 사실(`0f23786` 실측, 결정 근거로 남김): `merge_gate.rule10_phase`(532~549행)는 card `phase`를 진행 Phase와 대조하지 않는다. V1 명령 대조(1008~1010행)는 `--gmid-phase=`가 card `phase`와 같은지 본다 -- 그래서 **네 card 판정 기록의 V1은 `--gmid-phase=3`**이다.
+     `strict_set`(1042행 `if c["phase"] == card["phase"]: keys |= set(c["activated_ic_case"])`)은 같은 Phase card의 엄격 집합인데, 네 card는 `activated_ic_case`가 없고 그 앞에 병합된 phase 3 card도 없어 자기 strict 집합은 빈 집합이며 뒤 phase 3 card의 집합도 바꾸지 않는다.

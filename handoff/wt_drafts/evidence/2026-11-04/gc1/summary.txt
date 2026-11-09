@@ -1,0 +1,13 @@
+modules=420 scopes=2014 classes=393 blocks(AST)=55 blocks(import)=55 diff=[]
+fields(table)=136
+[draft] missing_entries=[] reach=1292/1594 output_fns=26 L-1=52 L-2=12 ok=72
+[draft+converge] missing_entries=[] reach=1416/1594 output_fns=26 L-1=37 L-2=12 ok=87
+[recommended] missing_entries=[] reach=1570/1594 output_fns=34 L-1=36 L-2=11 ok=89
+fields read only in entry bodies=1
+dynamic_sites=57 (reach=57) record.get_reads=0
+L-3 items=110 not_read=99 unverifiable=11 no_fn=0
+L-4 slots=2054 zero=230 | decl_module slots=1791 zero=204
+L-5 diode_sites=12 gs_tuple_sites=37
+L-5 op sink candidates=6 (reach=6)
+L-5 gs kind-first dictcomp key sites=1
+L-1x zero_callers fn=10 (method=2 block=0) cls=1

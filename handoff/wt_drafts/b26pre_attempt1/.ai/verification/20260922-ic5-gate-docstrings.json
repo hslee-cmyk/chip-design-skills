@@ -1,0 +1,83 @@
+{
+  "id": "20260922-ic5-gate-docstrings",
+  "spec_card": "docs/02-design/specs/20260922-ic5-gate-docstrings.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41",
+  "test_commit": "5dda0839cfb879ba870024ccb5896627c2fdd2ef",
+  "code_commit": "1bbeda4f158cd179e2bee8dec9964738c6ddb9b5",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_gate_docstring_declares_blind_spots"
+    ],
+    "failure_hashes": [
+      "bb48b0e5581ae3f0a642d71b530893e70f7d8c09b9202ae5d640a9d3a2a3127e"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "병합본 f3d00a810adb7acf510c5d63fc4519bde882b7c0(부모 T 5dda083 + code 1bbeda4, 병합 트리 = code 커밋 트리) 새 격리 복제본 C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3(origin 없음)에서 V1 명령(-k/--deselect/-x/-m 없음, slow 포함 전체, base 판 캐시 4ea430d 판 pytest_gate.ini, --gmid-phase=1 --gmid-strict=IC5: -- 엄격 집합 = spec card activated_ic_case, 00-common §9.3): 63 passed, 13 xfailed(비엄격 IC 뼈대 케이스 13개), 실패·오류·skip·xpass 0, 수집 오류 0, exit 0, 48.08s, 출력 sha256 앞 16자리 7d31f638fa208c08. test_ic5.py 9개 모두 PASSED(red id test_gate_docstring_declares_blind_spots 포함). base 판 캐시 merge_gate.v1_command_check로 이 V1 명령을 strict_needed = strict_set(old 트리, spec card) = {IC5:}, phase 1로 확인해 문제 0(old 4ea430d에 conftest --gmid-phase 있음). 실행 뒤 복제본 추적 파일 변경 0"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red-green. 커밋 사슬: base 4ea430d -> T 5dda083(Role: test, 변경 = tests/contracts/test_ic5.py 1경로, 소스·tools/·.githooks/ 변경 0) -> code 1bbeda4(Role: code, 부모 T, 변경 = audit_current_forced.py·sizing_recipe.py·stick_diagram.py 3경로, test 분류 경로 변경 0) -> 병합 f3d00a8. test 커밋 불변: 병합본의 test_ic5.py blob 371a03ff0bd0a5d3eaa6eb6403b31abfc6ade874 = T blob, T..병합본 diff에 tests/ 경로 0. red 재측정(같은 복제본을 T로 checkout, base 판 캐시 -p merge_gate --continue-on-collection-errors --gmid-phase=1 --gmid-strict=IC5:, GMID_RED_CAPTURE·GMID_INTERFACE_CARD): 1 failed, 62 passed, 13 xfailed, exit 1; FAILED = contracts/test_ic5.py::test_gate_docstring_declares_blind_spots 하나, capture 14행 중 builtins.AssertionError 1행(나머지 13행은 비엄격 xfail 뼈대 builtins.Failed -- red 아님), failure_hash bb48b0e5581ae3f0...(전체 값은 red.failure_hashes) = 순서 3 base_check.json 기록과 일치. green: 병합본 V1에서 같은 id PASSED. 계약 직접 확인(auditor oracle_check.py, git 객체에서 AST로): 계약 1 -- base·병합본 모두 대상(A/*.py + workspaces/run_harness.py, 이름 규칙, 모든 깊이) 21개이고 이름 집합 = design §5.6 표 21행(표를 design 원문에서 파싱); 계약 2 -- base 형식 위반 21/21('검사하지 않는 것:' 줄 없음, '영역:' 0개), 병합본 위반 0/21(design §5.6 정규식 원문); 계약 3 -- 병합본 21개 영역 값 집합이 design §5.6 표와 모두 같다(불일치 0), test의 _DOMAIN_TABLE 21항목도 design 표 파싱값과 같고 test의 정규식 문자열은 design 원문과 같다; 계약 4 -- 바뀐 소스 3파일에서 docstring이 바뀐 def = 21개 = 표 21개, 그 21개 모두 docstring을 뺀 ast.dump(include_attributes=False)가 base와 같고, 파일마다 모든 def와 모듈 전체의 docstring 뺀 dump가 base와 같다(본문 차이 def 0, 삭제 def 0). 상세: .ai/verification/20260922-ic5-gate-docstrings/base_check.json"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "변이 대상 def 0개(docstring만 변경). base 판 mutate_changed.py(base 4ea430d, head f3d00a8): targets = 소스 3파일(audit_current_forced.py·sizing_recipe.py·stick_diagram.py), mutants 0, killed 0, survivors 빈 목록, exit 0, --out jsonl 0행. 근거: 도구 규칙 ①은 diff가 닿은 def 중 docstring을 뺀 ast.dump 해시(_strip_doc: 모든 깊이의 def·class·모듈 첫 문자열 문장 제거)가 base와 다른 것만 변이 대상으로 삼는데, 이 변경의 21개 def는 docstring만 바뀌어 해시가 base와 같다 -- auditor가 따로 잰 계약 4(docstring 뺀 ast.dump 21/21 동일, 모듈 전체도 동일)와 일치한다. 대상 def가 0이라 변이 전 기준 pytest 실행도 일어나지 않았다: C6 conftest 뒤로 mutate_changed가 pytest에 --gmid-phase를 넘기지 않아 대상이 있으면 기준 실행이 UsageError(exit 4)로 끝나 모든 변이가 '살아남음'이 되는 결함(design 10-test-separation §6.10, C11 v3-gmid-options가 고친다)은 이번 판정에 영향이 없다. docstring 텍스트는 동작이 아니므로(코드 경로가 읽지 않음 -- 21개 def 본문 불변) 변이로 검증할 동작 변화가 없다는 것이 도구 규칙의 뜻과도 맞다. --pytest-ini는 복제본 tools/gates/pytest_gate.ini(base..head에서 tools/·.githooks/ 변경 0)"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: base 판 test_lint.py(--interface-card 이 변경 card, --base 4ea430d --head f3d00a8, --module-dir skills/analog-gmid-design/assets): verdict PASS, exit 0, 대상 test 파일 1개(contracts/test_ic5.py), findings 19개 모두 (2) NO-SUBJECT(피검 21개 게이트 함수를 호출하지 않고 소스를 AST로 읽는 test), FAIL 0, UNJUDGED 0, (3)(4)(5) 0, 출력 sha256 앞 16자리 8f4e617b1e054142; 기대값 대조(spec card oracle (d) 계획 N4.1 IC5·00-common §5(+C1)·design §5.6 표, (a) 합성 입력): test_gate_docstring_declares_blind_spots의 _DOMAIN_TABLE 21항목 = auditor가 design §5.6 표 원문에서 파싱한 21행과 같다(oracle (d) 일치), _DOMAIN_RE 문자열 = design §5.6 정규식 원문(일치), _ALLOWED = 00-common §4 domain 값 4개 + §5 게이트 함수 행 없음(스키마)·없음(배치)(일치), 대상 이름 정규식 두 개 = design §5.6·spec card 계약 1 원문(일치), '(1) 개수 >= 1'·'표 21개가 대상 안' 단언은 design §6.6 (1)(3) 공허 방지 요구(일치); test_format_checker_accepts_valid_control(위반 0, 값 {dc, ac_struct})·rejects_missing_blind_spot_section·rejects_empty_blind_spot_section·rejects_two_domain_lines·rejects_unknown_domain_value(dc_ac)·rejects_missing_docstring의 기대값은 합성 docstring에 넣은 위반 그대로(oracle (a), spec card '거부해야 할 입력' 세 가지 절 없음·영역 두 줄·dc_ac 모두 포함 -- 일치); test_target_collector_finds_all_depths의 기대 집합은 합성 소스에 넣은 이름·깊이에 design §5.6 이름 규칙을 손으로 적용한 값(checker·load_topology·my_verify_x·helper 제외, 중첩·메서드·async 포함 -- oracle (a) 일치); test_domain_table_uses_allowed_values는 표 값이 허용 문자열 안(oracle (d) 일치). 판정기가 피검 docstring을 만들지 않으므로 기대값이 피검 출력의 복사가 아니다. 참고: test의 '검사하지 않는 것:' 내용 판정은 design 문장('콜론 뒤나 다음 비지 않은 줄에 공백 아닌 문자')을 글자대로 적용해 다음 줄이 '영역:'이어도 내용으로 센다 -- 병합본 21개는 모두 콜론 뒤에 본문이 있어 auditor의 더 엄격한 판정(다음 줄이 영역:이면 내용 아님)으로도 위반 0"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 weakening_diff.py(base 4ea430d, head f3d00a8): verdict PASS, exit 0, findings 2(contracts/test_ic5.py test_gate_docstring_declares_blind_spots '비교 완화', <module> '리터럴 변경' -- 뼈대 pytest.fail()을 실제 검사로 바꾼 것), diff_paths = skills/analog-gmid-design/assets/tests/contracts/test_ic5.py 1경로, diff_hash 1acb495d2a3917314a46fb0c8ea8616809ed020f3acf492fe1d63a555afd697f, approved true -- head 트리 .ai/approvals/20260922-ic5-test-activation.md(target_kind diff, target = 같은 해시, diff_path 같은 1경로)가 덮는다. code 커밋의 소스 3파일은 V5 findings 대상이 아니다(test 분류 변경만 약화 검사). 순서 3 사전 측정(base..T)과 findings·diff_paths·diff_hash가 같고 출력 바이트도 같다(sha256 앞 16자리 e925e6c69d0ac4fe, 전체 값은 base_check.json -- merge gate §9.2-9가 V5 basis의 64자리 16진을 모두 승인 target으로 대조하므로 승인 해시 외에는 두지 않는다)"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 source_lint.py(base 4ea430d, head f3d00a8): targets = 소스 3파일(audit_current_forced.py·sizing_recipe.py·stick_diagram.py), findings 0, verdict PASS, exit 0. 소스 변경은 docstring 텍스트뿐(계약 4, 모듈 전체 docstring 뺀 ast.dump 동일)"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 reachability.py PASS, exit 0, new_defs 빈 목록, unreached 빈 목록(새 def 없음, docstring만 변경)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 함수 본문 불변(docstring만 변경)"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 무관(docstring만 변경, spec card 'library 회로 적용 여부: 해당 없음')"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260922-10-test-separation-design",
+    "20260922-ic5-test-activation"
+  ],
+  "auditor_run": {
+    "time": "2026-09-22T16:56:48+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ic5-gate-docstrings-audit",
+    "commands": [
+      "격리: git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ic5-gate-docstrings-audit C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3",
+      "격리: git -C C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 remote remove origin",
+      "격리: git -C C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 config core.longpaths true",
+      "PY = C:/Python314/python.exe, APPDATA=C:\\Users\\HSLEE\\AppData\\Roaming, 출력 디렉터리 C:/Users/HSLEE/AppData/Local/Temp/ic5-out3",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/ic5-out3/pyc_v1 PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41 $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3/skills/analog-gmid-design/assets/tests --gmid-phase=1 --gmid-strict=IC5: -rA",
+      "V1 cwd: C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 (HEAD f3d00a810adb7acf510c5d63fc4519bde882b7c0)",
+      "V2 red 재측정: git -C C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 checkout -q --detach 5dda0839cfb879ba870024ccb5896627c2fdd2ef 뒤 GMID_RED_CAPTURE=C:/Users/HSLEE/AppData/Local/Temp/ic5-out3/red_T.jsonl GMID_INTERFACE_CARD=C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3/docs/02-design/specs/20260922-ic5-gate-docstrings.interface.md PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/ic5-out3/pyc_red + V1 명령에 -p merge_gate --continue-on-collection-errors, 끝나고 checkout -q --detach f3d00a810adb7acf510c5d63fc4519bde882b7c0",
+      "V2 계약 1~4: $PY -B C:/Users/HSLEE/AppData/Local/Temp/ic5-out3/oracle_check.py C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 C:/Users/HSLEE/AppData/Local/Temp/ic5-out3/oracle_check.json, 그리고 test_ic5.py를 importlib로 읽어 _DOMAIN_TABLE·_DOMAIN_RE를 design §5.6 파싱값과 대조",
+      "V3(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41/mutate_changed.py --root C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 --base 4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41 --head f3d00a810adb7acf510c5d63fc4519bde882b7c0 --pytest-ini C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --out C:/Users/HSLEE/AppData/Local/Temp/ic5-out3/v3/v3.jsonl",
+      "V4(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41/test_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 --interface-card C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3/docs/02-design/specs/20260922-ic5-gate-docstrings.interface.md --base 4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41 --head f3d00a810adb7acf510c5d63fc4519bde882b7c0 --module-dir skills/analog-gmid-design/assets",
+      "V5(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 --base 4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41 --head f3d00a810adb7acf510c5d63fc4519bde882b7c0",
+      "V6(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41/source_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 --base 4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41 --head f3d00a810adb7acf510c5d63fc4519bde882b7c0",
+      "V7 참고(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41/reachability.py --root C:/Users/HSLEE/AppData/Local/Temp/ic5-iso3 --base 4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41 --head f3d00a810adb7acf510c5d63fc4519bde882b7c0",
+      "기록 확인: $PY -B C:/Users/HSLEE/AppData/Local/Temp/ic5-out3/record_check.py (base 판 로더 규칙 1~10, §9.2-9 V5 basis 64자리 16진 대조, v1_command_check)"
+    ]
+  }
+}

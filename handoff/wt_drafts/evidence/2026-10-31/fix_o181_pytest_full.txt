@@ -1,0 +1,625 @@
+........................................................................ [  0%]
+........................................................................ [  1%]
+........................................................................ [  2%]
+........................................................................ [  2%]
+........................................................................ [  3%]
+........................................................................ [  4%]
+........................................................................ [  4%]
+........................................................................ [  5%]
+........................................................................ [  6%]
+........................................................................ [  6%]
+........................................................................ [  7%]
+........................................................................ [  8%]
+........................................................................ [  9%]
+........................................................................ [  9%]
+........................................................................ [ 10%]
+........................................................................ [ 11%]
+........................................................................ [ 11%]
+........................................................................ [ 12%]
+........................................................................ [ 13%]
+........................................................................ [ 13%]
+........................................................................ [ 14%]
+........................................................................ [ 15%]
+........................................................................ [ 15%]
+........................................................................ [ 16%]
+........................................................................ [ 17%]
+........................................................................ [ 18%]
+........................................................................ [ 18%]
+........................................................................ [ 19%]
+........................................................................ [ 20%]
+........................................................................ [ 20%]
+........................................................................ [ 21%]
+........................................................................ [ 22%]
+........................................................................ [ 22%]
+........................................................................ [ 23%]
+........................................................................ [ 24%]
+........................................................................ [ 24%]
+........................................................................ [ 25%]
+........................................................................ [ 26%]
+........................................................................ [ 27%]
+........................................................................ [ 27%]
+........................................................................ [ 28%]
+........................................................................ [ 29%]
+........................................................................ [ 29%]
+........................................................................ [ 30%]
+........................................................................ [ 31%]
+........................................................................ [ 31%]
+........................................................................ [ 32%]
+........................................................................ [ 33%]
+........................................................................ [ 33%]
+........................................................................ [ 34%]
+........................................................................ [ 35%]
+........................................................................ [ 36%]
+........................................................................ [ 36%]
+........................................................................ [ 37%]
+........................................................................ [ 38%]
+........................................................................ [ 38%]
+........................................................................ [ 39%]
+........................................................................ [ 40%]
+........................................................................ [ 40%]
+........................................................................ [ 41%]
+........................................................................ [ 42%]
+........................................................................ [ 43%]
+........................................................................ [ 43%]
+........................................................................ [ 44%]
+........................................................................ [ 45%]
+........................................................................ [ 45%]
+........................................................................ [ 46%]
+........................................................................ [ 47%]
+........................................................................ [ 47%]
+........................................................................ [ 48%]
+........................................................................ [ 49%]
+........................................................................ [ 49%]
+........................................................................ [ 50%]
+........................................................................ [ 51%]
+........................................................................ [ 52%]
+........................................................................ [ 52%]
+........................................................................ [ 53%]
+........................................................................ [ 54%]
+...................................F..F....FF........................... [ 54%]
+...........................................................F..F....FF... [ 55%]
+.F..F....FF............................................................. [ 56%]
+........................................................................ [ 56%]
+........................................................................ [ 57%]
+....F..F....F.......F..F.........F..F.........F..F...................... [ 58%]
+........................................................................ [ 58%]
+........................................................................ [ 59%]
+........................................................................ [ 60%]
+........................................................................ [ 61%]
+....................................................................xx.. [ 61%]
+........................................................................ [ 62%]
+........................................................................ [ 63%]
+........................................................................ [ 63%]
+........................................................................ [ 64%]
+........................................................................ [ 65%]
+........................................................................ [ 65%]
+........................................................................ [ 66%]
+........................................................................ [ 67%]
+........................................................................ [ 67%]
+........................................................................ [ 68%]
+........................................................................ [ 69%]
+........................................................................ [ 70%]
+........................................................................ [ 70%]
+........................................................................ [ 71%]
+........................................................................ [ 72%]
+........................................................................ [ 72%]
+........................................................................ [ 73%]
+........................................................................ [ 74%]
+........................................................................ [ 74%]
+........................................................................ [ 75%]
+........................................................................ [ 76%]
+........................................................................ [ 77%]
+........................................................................ [ 77%]
+........................................................................ [ 78%]
+........................................................................ [ 79%]
+........................................................................ [ 79%]
+........................................................................ [ 80%]
+........................................................................ [ 81%]
+........................................................................ [ 81%]
+........................................................................ [ 82%]
+........................................................................ [ 83%]
+........................................................................ [ 83%]
+........................................................................ [ 84%]
+........................................................................ [ 85%]
+........................................................................ [ 86%]
+........................................................................ [ 86%]
+........................................................................ [ 87%]
+........................................................................ [ 88%]
+........................................................................ [ 88%]
+........................................................................ [ 89%]
+........................................................................ [ 90%]
+........................................................................ [ 90%]
+........................................................................ [ 91%]
+........................................................................ [ 92%]
+........................................................................ [ 92%]
+........................................................................ [ 93%]
+........................................................................ [ 94%]
+........................................................................ [ 95%]
+........................................................................ [ 95%]
+........................................................................ [ 96%]
+........................................................................ [ 97%]
+........................................................................ [ 97%]
+........................................................................ [ 98%]
+........................................................................ [ 99%]
+........................................................................ [ 99%]
+...........                                                              [100%]
+================================== FAILURES ===================================
+_______ test_layer0_baseline_present_for_every_library_circuit[cnr_ota] _______
+
+circuit = 'cnr_ota'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_layer0_baseline_present_for_every_library_circuit(circuit):
+        """기준선에 없는 회로는 아래 경계 test 의 대상에서 조용히 빠진다 -- 회로별로 명시적으로 실패시킨다(skip 금지, 원칙 10).
+        새 4회로의 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 층 0 경계 test 대상에서 빠짐" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'cnr_ota' 없음 -- 층 0 경계 test 대상에서 빠짐
+E       assert 'cnr_ota' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_layer0_boundary_rows.py:71: AssertionError
+______ test_layer0_baseline_present_for_every_library_circuit[erfc_ota] _______
+
+circuit = 'erfc_ota'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_layer0_baseline_present_for_every_library_circuit(circuit):
+        """기준선에 없는 회로는 아래 경계 test 의 대상에서 조용히 빠진다 -- 회로별로 명시적으로 실패시킨다(skip 금지, 원칙 10).
+        새 4회로의 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 층 0 경계 test 대상에서 빠짐" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'erfc_ota' 없음 -- 층 0 경계 test 대상에서 빠짐
+E       assert 'erfc_ota' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_layer0_boundary_rows.py:71: AssertionError
+______ test_layer0_baseline_present_for_every_library_circuit[r2r_opamp] ______
+
+circuit = 'r2r_opamp'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_layer0_baseline_present_for_every_library_circuit(circuit):
+        """기준선에 없는 회로는 아래 경계 test 의 대상에서 조용히 빠진다 -- 회로별로 명시적으로 실패시킨다(skip 금지, 원칙 10).
+        새 4회로의 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 층 0 경계 test 대상에서 빠짐" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'r2r_opamp' 없음 -- 층 0 경계 test 대상에서 빠짐
+E       assert 'r2r_opamp' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_layer0_boundary_rows.py:71: AssertionError
+_______ test_layer0_baseline_present_for_every_library_circuit[rfc_ota] _______
+
+circuit = 'rfc_ota'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_layer0_baseline_present_for_every_library_circuit(circuit):
+        """기준선에 없는 회로는 아래 경계 test 의 대상에서 조용히 빠진다 -- 회로별로 명시적으로 실패시킨다(skip 금지, 원칙 10).
+        새 4회로의 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 층 0 경계 test 대상에서 빠짐" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'rfc_ota' 없음 -- 층 0 경계 test 대상에서 빠짐
+E       assert 'rfc_ota' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_layer0_boundary_rows.py:71: AssertionError
+__________ test_baseline_present_for_every_library_circuit[cnr_ota] ___________
+
+circuit = 'cnr_ota'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_baseline_present_for_every_library_circuit(circuit):
+        """library 회로마다 기준선 항목이 있다(O-181: 새 4회로는 기준선이 아직 없어 이 test 가 red -- 측정은 별도 판정 몫)."""
+>       assert _baseline(circuit)["status"]
+               ^^^^^^^^^^^^^^^^^^
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:310: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+circuit = 'cnr_ota'
+
+    def _baseline(circuit):
+        """회로의 기준선 항목. 기준선에 없는 회로는 수집 때 KeyError 로 모듈 전체를 죽이지 않고, 그 회로의 test 만 명시적으로 실패한다
+        (skip 금지 -- 원칙 10: 기준선이 없으면 이 회로는 회귀 보호가 없다는 사실을 red 로 둔다). 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'cnr_ota' 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)
+E       assert 'cnr_ota' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:183: AssertionError
+__________ test_baseline_present_for_every_library_circuit[erfc_ota] __________
+
+circuit = 'erfc_ota'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_baseline_present_for_every_library_circuit(circuit):
+        """library 회로마다 기준선 항목이 있다(O-181: 새 4회로는 기준선이 아직 없어 이 test 가 red -- 측정은 별도 판정 몫)."""
+>       assert _baseline(circuit)["status"]
+               ^^^^^^^^^^^^^^^^^^
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:310: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+circuit = 'erfc_ota'
+
+    def _baseline(circuit):
+        """회로의 기준선 항목. 기준선에 없는 회로는 수집 때 KeyError 로 모듈 전체를 죽이지 않고, 그 회로의 test 만 명시적으로 실패한다
+        (skip 금지 -- 원칙 10: 기준선이 없으면 이 회로는 회귀 보호가 없다는 사실을 red 로 둔다). 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'erfc_ota' 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)
+E       assert 'erfc_ota' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:183: AssertionError
+_________ test_baseline_present_for_every_library_circuit[r2r_opamp] __________
+
+circuit = 'r2r_opamp'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_baseline_present_for_every_library_circuit(circuit):
+        """library 회로마다 기준선 항목이 있다(O-181: 새 4회로는 기준선이 아직 없어 이 test 가 red -- 측정은 별도 판정 몫)."""
+>       assert _baseline(circuit)["status"]
+               ^^^^^^^^^^^^^^^^^^
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:310: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+circuit = 'r2r_opamp'
+
+    def _baseline(circuit):
+        """회로의 기준선 항목. 기준선에 없는 회로는 수집 때 KeyError 로 모듈 전체를 죽이지 않고, 그 회로의 test 만 명시적으로 실패한다
+        (skip 금지 -- 원칙 10: 기준선이 없으면 이 회로는 회귀 보호가 없다는 사실을 red 로 둔다). 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'r2r_opamp' 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)
+E       assert 'r2r_opamp' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:183: AssertionError
+__________ test_baseline_present_for_every_library_circuit[rfc_ota] ___________
+
+circuit = 'rfc_ota'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_baseline_present_for_every_library_circuit(circuit):
+        """library 회로마다 기준선 항목이 있다(O-181: 새 4회로는 기준선이 아직 없어 이 test 가 red -- 측정은 별도 판정 몫)."""
+>       assert _baseline(circuit)["status"]
+               ^^^^^^^^^^^^^^^^^^
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:310: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+circuit = 'rfc_ota'
+
+    def _baseline(circuit):
+        """회로의 기준선 항목. 기준선에 없는 회로는 수집 때 KeyError 로 모듈 전체를 죽이지 않고, 그 회로의 test 만 명시적으로 실패한다
+        (skip 금지 -- 원칙 10: 기준선이 없으면 이 회로는 회귀 보호가 없다는 사실을 red 로 둔다). 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'rfc_ota' 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)
+E       assert 'rfc_ota' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:183: AssertionError
+_______________ test_stage_reports_unchanged_from_base[cnr_ota] _______________
+
+env = namespace(lut=LutSet(spec=LutSpec(manufacturing_grid_m=5e-09, min_finger_w_m=(('nmos', 3.6e-07), ('pmos', 4.1999999999... "status": "ok",\r\n "stop_reasons": []\r\n}'))}, memo=<gmid_engine.lut.lut_memo.LutMemo object at 0x0000029CFDDCB8C0>)
+circuit = 'cnr_ota'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_stage_reports_unchanged_from_base(env, circuit):
+>       want = _baseline(circuit)            # 기준선 없으면 실행 전에 이 회로만 실패
+               ^^^^^^^^^^^^^^^^^^
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:322: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+circuit = 'cnr_ota'
+
+    def _baseline(circuit):
+        """회로의 기준선 항목. 기준선에 없는 회로는 수집 때 KeyError 로 모듈 전체를 죽이지 않고, 그 회로의 test 만 명시적으로 실패한다
+        (skip 금지 -- 원칙 10: 기준선이 없으면 이 회로는 회귀 보호가 없다는 사실을 red 로 둔다). 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'cnr_ota' 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)
+E       assert 'cnr_ota' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:183: AssertionError
+______________ test_stage_reports_unchanged_from_base[erfc_ota] _______________
+
+env = namespace(lut=LutSet(spec=LutSpec(manufacturing_grid_m=5e-09, min_finger_w_m=(('nmos', 3.6e-07), ('pmos', 4.1999999999... "status": "ok",\r\n "stop_reasons": []\r\n}'))}, memo=<gmid_engine.lut.lut_memo.LutMemo object at 0x0000029CFDDCB8C0>)
+circuit = 'erfc_ota'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_stage_reports_unchanged_from_base(env, circuit):
+>       want = _baseline(circuit)            # 기준선 없으면 실행 전에 이 회로만 실패
+               ^^^^^^^^^^^^^^^^^^
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:322: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+circuit = 'erfc_ota'
+
+    def _baseline(circuit):
+        """회로의 기준선 항목. 기준선에 없는 회로는 수집 때 KeyError 로 모듈 전체를 죽이지 않고, 그 회로의 test 만 명시적으로 실패한다
+        (skip 금지 -- 원칙 10: 기준선이 없으면 이 회로는 회귀 보호가 없다는 사실을 red 로 둔다). 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'erfc_ota' 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)
+E       assert 'erfc_ota' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:183: AssertionError
+______________ test_stage_reports_unchanged_from_base[r2r_opamp] ______________
+
+env = namespace(lut=LutSet(spec=LutSpec(manufacturing_grid_m=5e-09, min_finger_w_m=(('nmos', 3.6e-07), ('pmos', 4.1999999999..."review_needed",\r\n "stop_reasons": []\r\n}'))}, memo=<gmid_engine.lut.lut_memo.LutMemo object at 0x0000029C4C5B6580>)
+circuit = 'r2r_opamp'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_stage_reports_unchanged_from_base(env, circuit):
+>       want = _baseline(circuit)            # 기준선 없으면 실행 전에 이 회로만 실패
+               ^^^^^^^^^^^^^^^^^^
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:322: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+circuit = 'r2r_opamp'
+
+    def _baseline(circuit):
+        """회로의 기준선 항목. 기준선에 없는 회로는 수집 때 KeyError 로 모듈 전체를 죽이지 않고, 그 회로의 test 만 명시적으로 실패한다
+        (skip 금지 -- 원칙 10: 기준선이 없으면 이 회로는 회귀 보호가 없다는 사실을 red 로 둔다). 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'r2r_opamp' 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)
+E       assert 'r2r_opamp' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:183: AssertionError
+_______________ test_stage_reports_unchanged_from_base[rfc_ota] _______________
+
+env = namespace(lut=LutSet(spec=LutSpec(manufacturing_grid_m=5e-09, min_finger_w_m=(('nmos', 3.6e-07), ('pmos', 4.1999999999..."review_needed",\r\n "stop_reasons": []\r\n}'))}, memo=<gmid_engine.lut.lut_memo.LutMemo object at 0x0000029C4C5B6580>)
+circuit = 'rfc_ota'
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_stage_reports_unchanged_from_base(env, circuit):
+>       want = _baseline(circuit)            # 기준선 없으면 실행 전에 이 회로만 실패
+               ^^^^^^^^^^^^^^^^^^
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:322: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+circuit = 'rfc_ota'
+
+    def _baseline(circuit):
+        """회로의 기준선 항목. 기준선에 없는 회로는 수집 때 KeyError 로 모듈 전체를 죽이지 않고, 그 회로의 test 만 명시적으로 실패한다
+        (skip 금지 -- 원칙 10: 기준선이 없으면 이 회로는 회귀 보호가 없다는 사실을 red 로 둔다). 기준선 측정은 별도 판정 몫."""
+>       assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)" % circuit
+E       AssertionError: 기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'rfc_ota' 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)
+E       assert 'rfc_ota' in {'_source': 'U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). s...66bc43a45b44867e12b', 'exit_code': '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9', ...}, ...}, ...}
+
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:183: AssertionError
+______________ test_block_grid_products_and_budget_gate[cnr_ota] ______________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'cnr_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000029C47D4B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8066'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_block_grid_products_and_budget_gate(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+        nL, nG, nD, nS = env["stats"]["axes"]
+        size_of = {"vgs": nG, "L": nL, "vds": nD, "vsb": nS, "current": nG, "resistor": nG}
+        ns = b.report["count_budget"]
+>       g = b.report["achievability"]["gain"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:153: TypeError
+_____________ test_block_grid_products_and_budget_gate[erfc_ota] ______________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'erfc_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000029C47D4B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8066'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_block_grid_products_and_budget_gate(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+        nL, nG, nD, nS = env["stats"]["axes"]
+        size_of = {"vgs": nG, "L": nL, "vds": nD, "vsb": nS, "current": nG, "resistor": nG}
+        ns = b.report["count_budget"]
+>       g = b.report["achievability"]["gain"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:153: TypeError
+_____________ test_block_grid_products_and_budget_gate[r2r_opamp] _____________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'r2r_opamp'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000029C47D4B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8066'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_block_grid_products_and_budget_gate(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+        nL, nG, nD, nS = env["stats"]["axes"]
+        size_of = {"vgs": nG, "L": nL, "vds": nD, "vsb": nS, "current": nG, "resistor": nG}
+        ns = b.report["count_budget"]
+        g = b.report["achievability"]["gain"]
+        for blk in list(g["blocks"]) + list(g["ff"]):
+            assert all(size == size_of[kind] for kind, size in blk["axes"]), blk["axes"]
+>           assert blk["pi"] == math.prod(size for _, size in blk["axes"])
+E           assert 0 == 1
+E            +  where 1 = <built-in function prod>(<generator object test_block_grid_products_and_budget_gate.<locals>.<genexpr> at 0x0000029C4F6457E0>)
+E            +    where <built-in function prod> = math.prod
+
+gmid_engine\tests\integration\test_stage_b_library.py:156: AssertionError
+____________________ test_gain_target_and_verdict[cnr_ota] ____________________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'cnr_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000029C47D4B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8066'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_gain_target_and_verdict(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+>       g = b.report["achievability"]["gain"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:191: TypeError
+___________________ test_gain_target_and_verdict[erfc_ota] ____________________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'erfc_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000029C47D4B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8066'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_gain_target_and_verdict(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+>       g = b.report["achievability"]["gain"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:191: TypeError
+_____________ test_area_lower_bound_from_declared_values[cnr_ota] _____________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'cnr_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000029C47D4B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8066'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_area_lower_bound_from_declared_values(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+>       area = b.report["achievability"]["area"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:211: TypeError
+____________ test_area_lower_bound_from_declared_values[erfc_ota] _____________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'erfc_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000029C47D4B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8066'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_area_lower_bound_from_declared_values(env, circuit, tmp_path_factory):
+        _, b = _run(env, circuit, tmp_path_factory)
+>       area = b.report["achievability"]["area"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+gmid_engine\tests\integration\test_stage_b_library.py:211: TypeError
+____________ test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota] ____________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'cnr_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000029C47D4B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8066'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_diagnostic_mode_keeps_stage_a_exit_code(env, circuit, tmp_path_factory):
+        a, b = _run(env, circuit, tmp_path_factory)
+        # [U17 ①-b] StageBResult.achievability 묶음 삭제 -> 결과 S0 수준 스냅샷의 graph/ach 레코드(설계 40 v1.9.1 §2.4.7·§2.4.8 GB4 행, D2)
+>       assert b.s1 is not None and b.s1.snapshot.record("graph", "ach") is not None    # 진단 모드: s1v 가 있으면 계산한다
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert (S1Graph(key=S1Key(topology_fp='2456805b2986b5decfcc0e27e9005deab1607d3bd380a78b940110e021755c96', rule_fp='63b76a02c0f...e676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1')) is not None and None is not None)
+E        +  where S1Graph(key=S1Key(topology_fp='2456805b2986b5decfcc0e27e9005deab1607d3bd380a78b940110e021755c96', rule_fp='63b76a02c0f...e676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1')) = namespace(status='stopped', exit_code=2, report={'circuit': 'cnr_ota', 'status': 'stopped', 'exit_code': 2, 'diagnosti...676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1'))).s1
+E        +  and   None = record('graph', 'ach')
+E        +    where record = GraphSnapshot(writers=WriterTable(entries=((('device', 'bulk'), 's1_bulk'), (('device', 'bulk_declared'), 's1_structur...de676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1').record
+E        +      where GraphSnapshot(writers=WriterTable(entries=((('device', 'bulk'), 's1_bulk'), (('device', 'bulk_declared'), 's1_structur...de676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1') = S1Graph(key=S1Key(topology_fp='2456805b2986b5decfcc0e27e9005deab1607d3bd380a78b940110e021755c96', rule_fp='63b76a02c0f...e676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1')).snapshot
+E        +        where S1Graph(key=S1Key(topology_fp='2456805b2986b5decfcc0e27e9005deab1607d3bd380a78b940110e021755c96', rule_fp='63b76a02c0f...e676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1')) = namespace(status='stopped', exit_code=2, report={'circuit': 'cnr_ota', 'status': 'stopped', 'exit_code': 2, 'diagnosti...676ccd6d12cc741126ce3af0264b76d0dd9758cba0'}), fp='f03cd4e55858b75a74a2a2382f6b41a0b1245b1a03625aac7dba3b9d87b014a1'))).s1
+
+gmid_engine\tests\integration\test_stage_b_library.py:243: AssertionError
+___________ test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota] ____________
+
+env = {'cache': {'cnr_ota': (namespace(status='stopped', exit_code=2), namespace(status='stopped', exit_code=2, report={'cir...640180915616072, 0.15345306861677457), 'idu_max': {'nmos': 0.0001670965851459998, 'pmos': 3.111078490476897e-05}, ...}}
+circuit = 'erfc_ota'
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000029C47D4B820>, _basetemp=WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-8066'), _retention_count=3, _retention_policy='all')
+
+    @pytest.mark.parametrize("circuit", CIRCUITS)
+    def test_diagnostic_mode_keeps_stage_a_exit_code(env, circuit, tmp_path_factory):
+        a, b = _run(env, circuit, tmp_path_factory)
+        # [U17 ①-b] StageBResult.achievability 묶음 삭제 -> 결과 S0 수준 스냅샷의 graph/ach 레코드(설계 40 v1.9.1 §2.4.7·§2.4.8 GB4 행, D2)
+>       assert b.s1 is not None and b.s1.snapshot.record("graph", "ach") is not None    # 진단 모드: s1v 가 있으면 계산한다
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert (S1Graph(key=S1Key(topology_fp='a5710202f8a186ee0c2f99b88398ab95a909cdc3b12f5776de9d9a4b9c24972e', rule_fp='63b76a02c0f...2e6175ff80132faf9e66a35e55425ba0f7d0d4116b2'}), fp='64b862635ce621888fb372e6bf362b40b3098e71d656e27943b3bf1c820338bb')) is not None and None is not None)
+E        +  where S1Graph(key=S1Key(topology_fp='a5710202f8a186ee0c2f99b88398ab95a909cdc3b12f5776de9d9a4b9c24972e', rule_fp='63b76a02c0f...2e6175ff80132faf9e66a35e55425ba0f7d0d4116b2'}), fp='64b862635ce621888fb372e6bf362b40b3098e71d656e27943b3bf1c820338bb')) = namespace(status='stopped', exit_code=2, report={'circuit': 'erfc_ota', 'status': 'stopped', 'exit_code': 2, 'diagnost...e6175ff80132faf9e66a35e55425ba0f7d0d4116b2'}), fp='64b862635ce621888fb372e6bf362b40b3098e71d656e27943b3bf1c820338bb'))).s1
+E        +  and   None = record('graph', 'ach')
+E        +    where record = GraphSnapshot(writers=WriterTable(entries=((('device', 'bulk'), 's1_bulk'), (('device', 'bulk_declared'), 's1_structur...32e6175ff80132faf9e66a35e55425ba0f7d0d4116b2'}), fp='64b862635ce621888fb372e6bf362b40b3098e71d656e27943b3bf1c820338bb').record
+E        +      where GraphSnapshot(writers=WriterTable(entries=((('device', 'bulk'), 's1_bulk'), (('device', 'bulk_declared'), 's1_structur...32e6175ff80132faf9e66a35e55425ba0f7d0d4116b2'}), fp='64b862635ce621888fb372e6bf362b40b3098e71d656e27943b3bf1c820338bb') = S1Graph(key=S1Key(topology_fp='a5710202f8a186ee0c2f99b88398ab95a909cdc3b12f5776de9d9a4b9c24972e', rule_fp='63b76a02c0f...2e6175ff80132faf9e66a35e55425ba0f7d0d4116b2'}), fp='64b862635ce621888fb372e6bf362b40b3098e71d656e27943b3bf1c820338bb')).snapshot
+E        +        where S1Graph(key=S1Key(topology_fp='a5710202f8a186ee0c2f99b88398ab95a909cdc3b12f5776de9d9a4b9c24972e', rule_fp='63b76a02c0f...2e6175ff80132faf9e66a35e55425ba0f7d0d4116b2'}), fp='64b862635ce621888fb372e6bf362b40b3098e71d656e27943b3bf1c820338bb')) = namespace(status='stopped', exit_code=2, report={'circuit': 'erfc_ota', 'status': 'stopped', 'exit_code': 2, 'diagnost...e6175ff80132faf9e66a35e55425ba0f7d0d4116b2'}), fp='64b862635ce621888fb372e6bf362b40b3098e71d656e27943b3bf1c820338bb'))).s1
+
+gmid_engine\tests\integration\test_stage_b_library.py:243: AssertionError
+============================== warnings summary ===============================
+gmid_engine/tests/lut/test_table_cache.py::test_write_failure_returns_result_no_temp_left
+  C:\Users\HSLEE\Documents\Todoc\fpga\wt\fix-o181\skills\analog-gmid-design\gmid_engine\lut\table_cache.py:285: RuntimeWarning: TableCache: 읽을 수 없다 C:\Users\HSLEE\AppData\Local\Temp\gtcz1xx5m5x\c\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl ([Errno 13] Permission denied: '\\\\?\\C:\\Users\\HSLEE\\AppData\\Local\\Temp\\gtcz1xx5m5x\\c\\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl')
+    warnings.warn("TableCache: 읽을 수 없다 %s (%s)" % (path, exc), RuntimeWarning)
+
+gmid_engine/tests/lut/test_table_cache.py::test_write_failure_returns_result_no_temp_left
+  C:\Users\HSLEE\Documents\Todoc\fpga\wt\fix-o181\skills\analog-gmid-design\gmid_engine\lut\table_cache.py:335: RuntimeWarning: TableCache: 쓰지 못했다 C:\Users\HSLEE\AppData\Local\Temp\gtcz1xx5m5x\c\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl ([WinError 5] 액세스가 거부되었습니다: '\\\\?\\C:\\Users\\HSLEE\\AppData\\Local\\Temp\\gtcz1xx5m5x\\c\\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl.pa4yd7kd.tmp' -> '\\\\?\\C:\\Users\\HSLEE\\AppData\\Local\\Temp\\gtcz1xx5m5x\\c\\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl') -- 경로 길이 193 자: Windows MAX_PATH 한도 초과가 원인일 수 있다(더 짧은 캐시 폴더를 쓸 것)
+    warnings.warn("TableCache: 쓰지 못했다 %s (%s)%s" % (path, exc, hint), RuntimeWarning)
+
+gmid_engine/tests/lut/test_table_cache.py::test_write_failure_returns_result_no_temp_left
+  C:\Users\HSLEE\Documents\Todoc\fpga\wt\fix-o181\skills\analog-gmid-design\gmid_engine\lut\table_cache.py:335: RuntimeWarning: TableCache: 쓰지 못했다 C:\Users\HSLEE\AppData\Local\Temp\gtcz1xx5m5x\c\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl ([WinError 5] 액세스가 거부되었습니다: '\\\\?\\C:\\Users\\HSLEE\\AppData\\Local\\Temp\\gtcz1xx5m5x\\c\\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl.yqvr24pv.tmp' -> '\\\\?\\C:\\Users\\HSLEE\\AppData\\Local\\Temp\\gtcz1xx5m5x\\c\\tol_v_table-b04fc0e222f95cd9cc9fce07b47e9798355f217993d1b9460319b26c377a9b55-1d0cf63b5642bdcff9ffdfb846f9f89186167c6b6195165f651498334e269829.tbl') -- 경로 길이 193 자: Windows MAX_PATH 한도 초과가 원인일 수 있다(더 짧은 캐시 폴더를 쓸 것)
+    warnings.warn("TableCache: 쓰지 못했다 %s (%s)%s" % (path, exc, hint), RuntimeWarning)
+
+gmid_engine/tests/metrics/test__helpers_nodal.py::test_singular_returns_none
+gmid_engine/tests/metrics/test_block_model.py::test_undefined_codes
+gmid_engine/tests/metrics/test_dc_limit.py::test_singular_dc_limit_all_columns_nan
+gmid_engine/tests/metrics/test_point_solve.py::test_singular_point_nan_no_exception
+gmid_engine/tests/sizing/test_scc_newton.py::test_singular_jacobian[rank_one_2x2]
+gmid_engine/tests/sizing/test_scc_newton.py::test_r7_singular_checked_before_acceptance
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 2 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/metrics/test_offset_analysis.py::test_undefined_codes
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 4 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/metrics/test_probe_loop.py::test_probe_singular_is_value_not_exception
+gmid_engine/tests/metrics/test_probe_loop.py::test_undefined_paths_raise_nothing_i10
+gmid_engine/tests/sizing/test_scc_newton.py::test_singular_jacobian[zero_derivative_1d]
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 1 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/metrics/test_probe_loop.py: 2 warnings
+gmid_engine/tests/metrics/test_ss_metrics.py: 12 warnings
+gmid_engine/tests/search/test_find_front.py: 3 warnings
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 5 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[err_amp]
+gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[cascode_ideal]
+gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[degen]
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 7 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/search/test_iv_matching_l.py::test_absolute_offset_activates_l_lower_bound_on_input_cell_only
+gmid_engine/tests/search/test_iv_matching_l.py::test_tighter_offset_target_gives_larger_l_lower_bound
+gmid_engine/tests/search/test_iv_matching_l.py::test_sigma_query_width_is_at_least_w_min[M1]
+gmid_engine/tests/search/test_iv_matching_l.py::test_sigma_query_width_is_at_least_w_min[M3]
+gmid_engine/tests/search/test_search_context.py::test_offset_constraints_with_mismatch_lut_enter_ss_constraints
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 3 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== gmid_engine 구조 규칙 -- 검사 대상 수 =========================
+엔진 루트: C:\Users\HSLEE\Documents\Todoc\fpga\wt\fix-o181\skills\analog-gmid-design\gmid_engine
+test_removed_names_absent_from_engine    대상 420개, 위반 0건
+test_local_inputs_not_rebuilt_in_search  대상  58개, 위반 0건
+test_rule_a_one_entry_point_per_file     대상 408개, 위반 0건
+test_rule_b_no_private_name_import       대상 420개, 위반 0건
+test_rule_c_layering_public_api_no_cycles 대상 420개, 위반 0건
+test_rule_d_numeric_literals             대상 419개, 위반 0건
+test_rule_e_no_circuit_name_literals     대상 420개, 위반 0건
+test_rule_f_no_broad_except              대상 420개, 위반 0건
+test_rule_g_no_module_level_mutable_cache 대상 420개, 위반 0건
+test_rule_i_no_circuit_specific_behavior 대상 420개, 위반 0건
+test_rule_k_front_query_not_called_in_engine 대상 417개, 위반 0건
+test_rule_m_run_pair_not_shared          대상 911개, 위반 0건
+test_rule_copy_manifest_matches_copies   대상  60개, 위반 0건
+test_rule_copy_manifest_matches_original 대상  60개, 위반 0건
+=========================== short test summary info ===========================
+FAILED gmid_engine/tests/integration/test_layer0_boundary_rows.py::test_layer0_baseline_present_for_every_library_circuit[cnr_ota]
+FAILED gmid_engine/tests/integration/test_layer0_boundary_rows.py::test_layer0_baseline_present_for_every_library_circuit[erfc_ota]
+FAILED gmid_engine/tests/integration/test_layer0_boundary_rows.py::test_layer0_baseline_present_for_every_library_circuit[r2r_opamp]
+FAILED gmid_engine/tests/integration/test_layer0_boundary_rows.py::test_layer0_baseline_present_for_every_library_circuit[rfc_ota]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_baseline_present_for_every_library_circuit[cnr_ota]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_baseline_present_for_every_library_circuit[erfc_ota]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_baseline_present_for_every_library_circuit[r2r_opamp]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_baseline_present_for_every_library_circuit[rfc_ota]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[cnr_ota]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[erfc_ota]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[r2r_opamp]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[rfc_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_block_grid_products_and_budget_gate[cnr_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_block_grid_products_and_budget_gate[erfc_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_block_grid_products_and_budget_gate[r2r_opamp]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_gain_target_and_verdict[cnr_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_gain_target_and_verdict[erfc_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_area_lower_bound_from_declared_values[cnr_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_area_lower_bound_from_declared_values[erfc_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota]
+FAILED gmid_engine/tests/integration/test_stage_b_library.py::test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota]
+21 failed, 10356 passed, 28 deselected, 2 xfailed, 38 warnings in 3513.20s (0:58:33)

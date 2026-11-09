@@ -1,0 +1,50 @@
+{
+ "circuit_key": "nmcnr_amplifier",
+ "topology_path": "C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\library\\nmcnr_amplifier.topology.json",
+ "repo_root": "C:/g452/repo",
+ "lut_path": "C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\sky130_nfet_pfet_lut_sample.npz",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0,
+  "W_ref_m": 5e-06
+ },
+ "spec_scalars": {
+  "_spec_source": "run_harness.SPECS",
+  "vdd": 1.8,
+  "GBW": 816000.0,
+  "CL": 1e-10,
+  "kg": 0.5,
+  "PM_target_deg": 70.0,
+  "L_grid_step": 5e-09,
+  "L_min": 1.5e-07,
+  "L_min_by_kind": {
+   "nmos": 1.5e-07,
+   "pmos": 1.5e-07
+  },
+  "W_bounds": [
+   1e-06,
+   0.0002
+  ],
+  "stage_objective": "power",
+  "stage_w_max": 0.0005,
+  "min_vds_by_role": {
+   "cascode": 0.2,
+   "mirror": 0.2
+  },
+  "min_finger_w": 1e-06,
+  "max_finger_w": 4e-05,
+  "vth0_slope": {
+   "nfet": 0.003356,
+   "pfet": 0.005856
+  },
+  "floorplan_target": {
+   "max_aspect_ratio": 1.5,
+   "min_packing_density": 0.5
+  },
+  "max_layout_retry_rounds": 6
+ },
+ "engine_ok": false,
+ "engine_error": "ValueError: 모든 theta 격자점이 infeasible -- bounds/constraints를 확인하세요. 마지막 평가 조합의 theta=None, metrics=None, 위반된 제약=[]. 물리적으로 불가능해 건너뛴 조합 1개(마지막 사유: 'stage2_diode_ref' 그룹(예산 1.5V, 미해결 ['M203']): 스택 예산 1.5V 중 0.525V를 배정할 곳이 없다 -- 이 그룹은 구간 제약 소자(diode)뿐인데 전부 상한까지 올려도 예산을 못 채운다. 구간: [M203∈[0.6375,0.975]]. 이 컬럼에 선언되지 않은 소자/수동소자가 있거나 vertical_stack_id 선언이 실제 직렬 경로와 다르다는 뜻이다, theta={'Ibg_tail': 1e-05, 'r_split_M102_M103': 0.5, 'r_fold_M108_M109': 0.5, 'kcl_M104': 1.0, 'kcl_M105': 1.0, 'r_series_M106': 1.0, 'r_series_M107': 1.0, 'kcl_M203': 1.0, 'kcl_M302': 1.0, 'r_mirror_M204_M203': 1.0, 'kcl_M202': 1.0})",
+ "engine_traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_drafts\\engine\\spice_harness\\engine_dump.py\", line 77, in main\n    res = optimize_full_circuit_budget(\n        topo, spec, grid_points_per_theta=cfg[\"grid_points_per_theta\"],\n        search_method=cfg.get(\"search_method\", \"grid\"),\n        slsqp_kwargs=cfg.get(\"slsqp_kwargs\"))\n  File \"C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\sizing_recipe.py\", line 9252, in optimize_full_circuit_budget\n    raise ValueError(\n    ...<4 lines>...\n        f\"{last_infeasible_reason}, theta={last_infeasible_theta})\")\nValueError: 모든 theta 격자점이 infeasible -- bounds/constraints를 확인하세요. 마지막 평가 조합의 theta=None, metrics=None, 위반된 제약=[]. 물리적으로 불가능해 건너뛴 조합 1개(마지막 사유: 'stage2_diode_ref' 그룹(예산 1.5V, 미해결 ['M203']): 스택 예산 1.5V 중 0.525V를 배정할 곳이 없다 -- 이 그룹은 구간 제약 소자(diode)뿐인데 전부 상한까지 올려도 예산을 못 채운다. 구간: [M203∈[0.6375,0.975]]. 이 컬럼에 선언되지 않은 소자/수동소자가 있거나 vertical_stack_id 선언이 실제 직렬 경로와 다르다는 뜻이다, theta={'Ibg_tail': 1e-05, 'r_split_M102_M103': 0.5, 'r_fold_M108_M109': 0.5, 'kcl_M104': 1.0, 'kcl_M105': 1.0, 'r_series_M106': 1.0, 'r_series_M107': 1.0, 'kcl_M203': 1.0, 'kcl_M302': 1.0, 'r_mirror_M204_M203': 1.0, 'kcl_M202': 1.0})\n",
+ "engine_seconds": 18.940942764282227
+}

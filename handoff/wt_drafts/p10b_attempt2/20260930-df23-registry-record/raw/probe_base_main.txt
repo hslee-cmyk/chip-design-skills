@@ -1,0 +1,5 @@
+reg_check file: C:\g88\iso2\skills\analog-gmid-design\assets\tests\tools\reg_check.py
+no_s8: rc=0 out='reg_check: 발견 0\n'
+with_s8: rc=0 out='reg_check: 발견 0\n'
+stale: rc=1 out='{"rule": "stale", "section": "7/engine_p10b.py", "name": "p10b_gone_fn", "detail": "엔진 정의 이름에 없다"}\n'
+base_unknown_arg: rc=2

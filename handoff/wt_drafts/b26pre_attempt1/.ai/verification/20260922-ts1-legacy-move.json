@@ -1,0 +1,101 @@
+{
+  "id": "20260922-ts1-legacy-move",
+  "spec_card": "docs/02-design/specs/20260922-ts1-legacy-move.spec.md",
+  "evidence_type": "equivalence",
+  "base_commit": "8bf6d8e42b28c382a67c89f2c9b2fab995f24919",
+  "test_commit": "a9077148432d9fba2d2b69fb992103be3a9031f4",
+  "code_commit": "7792f9c86f983738dbb374a4d951281e310a2ce9",
+  "equivalence": {
+    "commands": [
+      "PYTHONHASHSEED=1 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_sizing_recipe.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=2 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_sizing_recipe.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=3 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_sizing_recipe.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=4 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_sizing_recipe.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=5 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_sizing_recipe.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=1 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=2 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=3 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=4 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=5 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=1 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_design_report.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=2 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_design_report.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=3 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_design_report.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=4 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_design_report.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=5 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_design_report.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=1 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_topology_library.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=2 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_topology_library.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=3 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_topology_library.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=4 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_topology_library.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+      "PYTHONHASHSEED=5 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_topology_library.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets"
+    ],
+    "outputs_hash": "5f4a8013abbcd9764cba4263548bee2acdf6cca420c2d832b901bd2157037b0a"
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "병합본 ee4e42d3695458b90962393d46b118b57166a1a5 격리 복제본(순서 3과 같은 경로, origin 없음)에서 V1 명령(-k/--deselect/-x/-m 없음, slow 포함 전체, base 판 캐시 8bf6d8e 판 pytest_gate.ini): collected 38, 38 passed(tests/tooling 34 + tests/legacy/test_legacy_selftests.py parametrize 4), 실패·오류·skip·xfail·xpass 0, exit 0, 49.60s. tests 아래 conftest.py 없음(CC-3 미병합이라 --gmid-phase·--gmid-strict 없음). selftest_<m>.py 4개는 test_*.py 패턴 밖이라 수집되지 않고 test_legacy_selftests.py가 하위 프로세스로 실행한다. 출력 파일 sha256 9d1b46e8bfd5ce86278d645a3122c468fa9c1e09531070e9a54ac45da4077e20. 실행 부산물: 무시 대상 .pytest_cache/ 1개뿐(추적 파일 변경 0)"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "equivalence(design 10 6.1 C2 증거 1~5, 7 E1·E2·E3). test 커밋 불변: 병합본 첫 부모 = T a9077148432d9fba2d2b69fb992103be3a9031f4, code 커밋 7792f9c86f983738dbb374a4d951281e310a2ce9는 소스 4개만 바꾸고(numstat 추가 0, 삭제 2705/3951/66/174 = 6896) test 경로 변경 0. 증거 1(base 8bf6d8e, 순서 3 base_check.json): 20회 전부 exit 0·stderr 0, 이은 stdout sha256 5f4a8013abbcd9764cba4263548bee2acdf6cca420c2d832b901bd2157037b0a. 증거 2(병합본, 같은 복제본 경로 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso, cwd <iso>/skills/analog-gmid-design/assets): equivalence.commands 20개 전부 exit 0·stderr 0, 이은 stdout sha256 = outputs_hash 5f4a8013abbcd9764cba4263548bee2acdf6cca420c2d832b901bd2157037b0a -- 증거 1의 해시와 같다. 증거 3(E1): 20쌍을 cmp로 바이트 비교해 20/20 동일(차이 줄 없음, F3 부속 산출물 불필요), 모듈별 stdout sha256 sizing_recipe 21e0687b.. (40026B), stick_diagram 1fc52487.. (109905B, 복제본 경로 1회 포함), design_report af14d7b8.. (985B), topology_library 26f48d08.. (4577B), 모듈마다 시드 5개 바이트 동일. 증거 4(E2, 순서 3): T에서 도구 재추출 = 커밋된 이관본(머리글 둘째 줄 '# 원본 경로:' 제외 바이트 동일, 끝 파일 이름 일치) 4/4 -- 그 한 줄 제외는 사용자 승인 20260922-c2-extract-repro-path-line(master b3cc911에 있고 이 병합본 트리에는 없어 approvals 배열에는 넣지 않았다). 증거 5(E3): 4개 소스 base·병합본 모듈 AST(최상위 __main__ 블록 제외 ast.dump) 동일 4/4, 병합본 __main__ 블록 0개, 블록 밖 삭제 줄은 배너 # 줄과 빈 줄뿐. 상세: .ai/verification/20260922-ts1-legacy-move/base_check.json, merged_check.json(base_stdout 20개는 비교 뒤 지우고 해시만 남겼다)"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "게이트 규칙상 변이 대상 def 0개(순수 삭제). base 판 mutate_changed.py: targets = 소스 4개(design_report·sizing_recipe·stick_diagram·topology_library.py), mutants 0, killed 0, survivors 빈 목록, exit 0. 근거: changed_defs는 head의 def 중 base와 def_hash가 다르거나 새로 생긴 것만 고르는데, code 커밋은 각 파일 끝의 __main__ 블록과 앞 배너·빈 줄만 지웠고(추가 줄 0) 블록 밖 모듈 AST가 base와 같으므로(V2 증거 5) head def는 모두 base와 같다. 블록 안에만 있던 def(예: sizing_recipe의 _tst_grids)는 head에 없어 대상이 아니다. test 파일은 V3 대상 분류 밖. --pytest-ini는 복제본 tools/gates/pytest_gate.ini(blob 5d89b982178b2e0e8d15aefd290cc5e17ab1e9c5 = base 8bf6d8e 같은 경로, base..head에서 tools/·.githooks/ 변경 0)"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: base 판 test_lint.py를 interface card만으로 돌리면 ERROR(피검 심볼 없음 -- card 신규 시그니처 표가 비어 있다, 동작 보존 변경이라 신규 심볼이 없다)라 병합본 소스 4개의 최상위 def·class 370개를 --subject로 주고 --module-dir skills/analog-gmid-design/assets로 실행: PASS, 대상 파일 5개(tests/legacy/selftest_<m>.py 4 + test_legacy_selftests.py), 판정 문장 1개(test_legacy_selftests.py 33행) NO-SUBJECT, FAIL·UNJUDGED 0, (3)(4)(5) 발견 0, 출력 sha256 662eb7ec27bd43b4c69cbe46168f55a89e36cbb277efce78fcc33f3763ed9eaf; 기대값 대조 -- test_legacy_selftest_exits_zero의 returncode == 0: spec card oracle (c) 이관 전 출력(동작 보존)과 일치, base 소스 self-test 20회 직접 실행이 모두 exit 0(순서 3 base_check.json 측정)이라 기대값의 출처가 피검 출력이 아니라 base 동작이고, 판정 대상(프로세스 종료 코드)은 피검 함수의 반환값에서 계산되지 않는다; 이관본 4개 안의 모듈 수준 assert는 base 블록 본문을 그대로 옮긴 것(증거 4)이라 이 변경이 만든 기대값이 아니며 test 함수가 아니어서 lint 판정 문장으로 잡히지 않는다(판정 공백, TS2·TS3 소관); 출력 동등성의 기대값은 base stdout(oracle (c))이고 auditor E1이 판정했다(V2)"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 weakening_diff.py(base 8bf6d8e42b28c382a67c89f2c9b2fab995f24919, head ee4e42d3695458b90962393d46b118b57166a1a5): verdict PASS, findings 0, diff_paths 빈 목록, diff_hash null, approved false, exit 0. design 10 6.1 C2의 예상(소스 __main__ 단위가 통째로 사라지고 test 함수 단위가 아니다 -- 발견 없음)과 같다. F5 해당 없음"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 source_lint.py: targets = 소스 4개(design_report·sizing_recipe·stick_diagram·topology_library.py), findings 0, verdict PASS, exit 0. 소스 변경은 삭제만이라 새 줄에서 나올 발견이 없다"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 reachability.py PASS, new_defs 빈 목록, unreached 빈 목록(순수 삭제라 새 def 없음)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 동작 불변(self-test 위치 이동)"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 무관"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260922-10-test-separation-design"
+  ],
+  "auditor_run": {
+    "time": "2026-09-22T13:33:03+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts1-legacy-move-audit",
+    "commands": [
+      "격리(순서 3): git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts1-legacy-move-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso",
+      "격리(순서 3): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso remote remove origin",
+      "격리(순서 7, 같은 복제본): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso fetch -q C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts1-legacy-move-audit role/audit/20260922-ts1-legacy-move",
+      "격리(순서 7, 같은 복제본): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso checkout -q --detach ee4e42d",
+      "PY = C:/Python314/python.exe",
+      "증거 2 cwd: C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets (명령은 equivalence.commands 20개, 순서대로)",
+      "증거 3: cmp -s <AW>/.ai/verification/20260922-ts1-legacy-move/base_stdout/<m>.s<s>.stdout <병합본 stdout>/<m>.s<s>.stdout (20쌍)",
+      "증거 5: git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso show <rev>:skills/analog-gmid-design/assets/<m>.py 를 ast.parse, 최상위 __main__ 블록 제외 ast.dump 비교(rev = 8bf6d8e42b28c382a67c89f2c9b2fab995f24919, ee4e42d3695458b90962393d46b118b57166a1a5)",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-pyc7m PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/8bf6d8e42b28c382a67c89f2c9b2fab995f24919 $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/8bf6d8e42b28c382a67c89f2c9b2fab995f24919/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests -rA",
+      "V1 cwd: C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso",
+      "V3(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/8bf6d8e42b28c382a67c89f2c9b2fab995f24919/mutate_changed.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso --base 8bf6d8e42b28c382a67c89f2c9b2fab995f24919 --head ee4e42d3695458b90962393d46b118b57166a1a5 --pytest-ini C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --out C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-v3.jsonl",
+      "V4(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/8bf6d8e42b28c382a67c89f2c9b2fab995f24919/test_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso --interface-card C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/docs/02-design/specs/20260922-ts1-legacy-move.interface.md --base 8bf6d8e42b28c382a67c89f2c9b2fab995f24919 --head ee4e42d3695458b90962393d46b118b57166a1a5 (ERROR: 피검 심볼 없음)",
+      "V4(cwd iso): 같은 명령에 --subject <m>:<이름> 370개(병합본 소스 4개 최상위 FunctionDef·AsyncFunctionDef·ClassDef, ast로 추출) --module-dir skills/analog-gmid-design/assets 추가",
+      "V5(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/8bf6d8e42b28c382a67c89f2c9b2fab995f24919/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso --base 8bf6d8e42b28c382a67c89f2c9b2fab995f24919 --head ee4e42d3695458b90962393d46b118b57166a1a5",
+      "V6(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/8bf6d8e42b28c382a67c89f2c9b2fab995f24919/source_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso --base 8bf6d8e42b28c382a67c89f2c9b2fab995f24919 --head ee4e42d3695458b90962393d46b118b57166a1a5",
+      "V7 참고(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/8bf6d8e42b28c382a67c89f2c9b2fab995f24919/reachability.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso --base 8bf6d8e42b28c382a67c89f2c9b2fab995f24919 --head ee4e42d3695458b90962393d46b118b57166a1a5"
+    ]
+  }
+}

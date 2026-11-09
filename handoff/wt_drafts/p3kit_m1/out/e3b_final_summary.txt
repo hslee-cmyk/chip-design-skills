@@ -1,0 +1,22 @@
+== sizing_recipe
+E3b LIVE moved_out=217 base_files_reading_moved_out=60 pre_existing=1
+new FAIL: 5
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:24 _dc_replace
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:24 json
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:24 math
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:24 nmcnr_predict_ac_response
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:24 np
+== topology_library
+E3b LIVE moved_out=7 base_files_reading_moved_out=2 pre_existing=0
+new FAIL: 1
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py:24 math
+== design_report
+E3b LIVE moved_out=6 base_files_reading_moved_out=5 pre_existing=0
+new FAIL: 1
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py:24 os
+== stick_diagram
+E3b LIVE moved_out=58 base_files_reading_moved_out=31 pre_existing=1
+new FAIL: 0
+== audit_current_forced
+E3b LIVE moved_out=3 base_files_reading_moved_out=0 pre_existing=0
+new FAIL: 0

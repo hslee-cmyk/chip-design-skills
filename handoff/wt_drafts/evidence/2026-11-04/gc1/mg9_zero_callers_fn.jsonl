@@ -1,0 +1,10 @@
+{"file": "core/writer_table.py", "fn": "core.writer_table:WriterTable.fields_of", "is_block": false, "is_method": true, "line": 55}
+{"file": "layout/floorplan_pack.py", "fn": "layout.floorplan_pack:pack_floorplan_grouped", "is_block": false, "is_method": false, "line": 546}
+{"file": "layout/outputs.py", "fn": "layout.outputs:layout_outputs", "is_block": false, "is_method": false, "line": 44}
+{"file": "lut/curve_check.py", "fn": "lut.curve_check:curve_report", "is_block": false, "is_method": false, "line": 42}
+{"file": "lut/id_inverse.py", "fn": "lut.id_inverse:gm_id_for_target", "is_block": false, "is_method": false, "line": 32}
+{"file": "metrics/model_error.py", "fn": "metrics.model_error:model_error_pairs", "is_block": false, "is_method": false, "line": 15}
+{"file": "search/eval_budget.py", "fn": "search.eval_budget:EvalBudget.remaining", "is_block": false, "is_method": true, "line": 37}
+{"file": "search/macro_poles.py", "fn": "search.macro_poles:_signed", "is_block": false, "is_method": false, "line": 223}
+{"file": "search/residual_probe.py", "fn": "search.residual_probe:residual_probe", "is_block": false, "is_method": false, "line": 66}
+{"file": "sizing/size_and_seal_local.py", "fn": "sizing.size_and_seal_local:size_and_seal_local", "is_block": false, "is_method": false, "line": 113}

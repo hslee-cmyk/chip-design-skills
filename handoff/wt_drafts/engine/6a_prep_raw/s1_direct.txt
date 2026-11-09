@@ -1,0 +1,10 @@
+circuit | n_mos(n/p) | n_passive(R/C) | n_isrc/vsrc | nets | mos_term(g,d,s) | pas_term | src_term | bulk_decl | rails(present) | diode(g==d) | deg_max(net) | deg1_nets | gate_only_nets
+common_gate_amplifier | 2/1 | 0/0 | 0/0 | 7 | 9 | 0 | 0 | 0 | ['vdd', 'gnd'] of ['vdd', 'gnd'] | 0 [] | 2(vout) | ['VNBias1', 'VNBias2', 'VPBias1', 'gnd', 'vdd'] | ['VNBias1', 'VNBias2', 'VPBias1']
+current_reuse_telescopic_ota | 24/27 | 4/8 | 1/0 | 37 | 153 | 24 | 2 | 0 | ['vdd', 'gnd'] of ['vdd', 'gnd'] | 16 ['M11a', 'M11b', 'M14a', 'M14b', 'M18_bg', 'M20a', 'M20b', 'M23a', 'M24b', 'M36a', 'M36b', 'M39', 'M40', 'M57', 'M64', 'M66'] | 19(gnd) | [] | []
+folded_cascode | 6/7 | 0/0 | 1/0 | 14 | 39 | 0 | 2 | 0 | ['vdd', 'gnd'] of ['vdd', 'gnd'] | 4 ['M7', 'M9', 'MN', 'MP'] | 5(vb1) | ['vin_n', 'vin_p'] | ['bias3', 'vin_n', 'vin_p']
+ngcc_3stage_ff | 9/7 | 0/3 | 0/0 | 13 | 48 | 6 | 0 | 0 | ['vdd', 'gnd'] of ['vdd', 'gnd'] | 3 ['M3', 'M6A', 'M9'] | 10(gnd) | ['VBN', 'Vinn', 'Vinp'] | ['VBN', 'VBP', 'Vinn', 'Vinp']
+nmcnr_amplifier | 7/8 | 0/0 | 0/0 | 17 | 45 | 0 | 0 | 0 | ['vdd', 'vss'] of ['vdd', 'vss'] | 2 ['M108', 'M203'] | 6(vdd) | ['VB1', 'VB4', 'VB5', 'Vin_n', 'Vin_p'] | ['VB1', 'VB2', 'VB3', 'VB4', 'VB5', 'Vin_n', 'Vin_p']
+pushpull_follower_buffer | 3/3 | 0/1 | 0/0 | 9 | 18 | 2 | 0 | 0 | ['vdd', 'vss', 'agnd'] of ['vdd', 'vss', 'agnd'] | 0 [] | 3(vss) | ['VNB1', 'VPB1', 'agnd'] | ['VNB1', 'VPB1', 'vin']
+sf_pushpull_output_opamp | 11/11 | 3/2 | 1/0 | 23 | 66 | 10 | 2 | 0 | ['vdd', 'vss', 'agnd'] of ['vdd', 'vss', 'agnd'] | 1 ['M4'] | 8(vdd) | ['vin_n', 'vin_p'] | ['vin_n', 'vin_p']
+two_stage_ota | 4/3 | 0/0 | 0/0 | 9 | 21 | 0 | 0 | 0 | ['vdd', 'gnd'] of ['vdd', 'gnd'] | 1 ['M3'] | 4(D3) | ['vin_n', 'vin_p'] | ['bias', 'vin_n', 'vin_p']
+two_stage_ota_sf | 6/3 | 0/2 | 0/0 | 10 | 27 | 4 | 0 | 0 | ['vdd', 'gnd'] of ['vdd', 'gnd'] | 1 ['M3'] | 4(vdd) | ['vin_n', 'vin_p'] | ['bias', 'vin_n', 'vin_p']

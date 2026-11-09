@@ -1,0 +1,138 @@
+== common_gate_amplifier
+  transistors same: True
+  meta diff keys: []
+  ports(head): {'__dc__': 'PortDeclaration', 'inputs': ['vin'], 'outputs': ['vout']}
+  E3 declared_vsid=False same=True
+  offset same: True []
+  audit same: True ValueError: <P>에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from
+== current_reuse_telescopic_ota
+  transistors same: True
+  meta diff keys: []
+  ports(head): {'__dc__': 'PortDeclaration', 'inputs': ['Vim', 'Vip'], 'outputs': ['Vom', 'Vop']}
+  E3 declared_vsid=True same=True
+  offset same: True [['M1a', 'M1b'], ['M4a', 'M4b']]
+  audit same: True result
+== folded_cascode
+  transistors same: True
+  meta diff keys: []
+  ports(head): {'__dc__': 'PortDeclaration', 'inputs': ['vin_n', 'vin_p'], 'outputs': ['out']}
+  E3 declared_vsid=True same=True
+  offset same: True [['M1', 'M2']]
+  audit same: True ValueError: <P>에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from
+== ngcc_3stage_ff
+  transistors same: True
+  meta diff keys: ['_device_roles_autofilled', 'device_roles']
+    _device_roles_autofilled.M1: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M4: {'headroom_role': ('mirror', None)}
+    _device_roles_autofilled.M6B: {'headroom_role': ('mirror', None)}
+    _device_roles_autofilled.M7: {'headroom_role': ('mirror', None)}
+    device_roles.M1: {'headroom_role': ('cascode', None)}
+    device_roles.M4: {'headroom_role': ('mirror', None)}
+    device_roles.M6B: {'headroom_role': ('mirror', None)}
+    device_roles.M7: {'headroom_role': ('mirror', None)}
+  ports(head): {'__dc__': 'PortDeclaration', 'inputs': ['Vinn', 'Vinp'], 'outputs': ['Vout']}
+  E3 declared_vsid=False same=False
+    base multi-groups: [['M0', 'M1', 'M2']]
+    head multi-groups: [['M1', 'M2']]
+  offset same: True []
+  audit same: True ValueError: <P>에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from
+== nmcnr_amplifier
+  transistors same: True
+  meta diff keys: ['_device_roles_gap_fill_review_needed']
+    _device_roles_gap_fill_review_needed: len 12 -> 10
+      - removed: {"device": "M201", "note": "compensation.stage_devices 소속 -- gm_id_role 제안은 sizing_recipe.py의 _AUTHORITATIVE_GM_ID_SOURCES 가드(2026-08-14 신설)로 무시되므로 충돌 없이 안전하게 적용된다(사람이 참고용으로만 확인할 것, 자동 반영 자체를 막을 필요는 없음)."}
+      - removed: {"device": "M301", "note": "compensation.stage_devices 소속 -- gm_id_role 제안은 sizing_recipe.py의 _AUTHORITATIVE_GM_ID_SOURCES 가드(2026-08-14 신설)로 무시되므로 충돌 없이 안전하게 적용된다(사람이 참고용으로만 확인할 것, 자동 반영 자체를 막을 필요는 없음)."}
+  ports(head): {'__dc__': 'PortDeclaration', 'inputs': ['Vin_n', 'Vin_p'], 'outputs': ['Vout']}
+  E3 declared_vsid=True same=True
+  offset same: True [['M102', 'M103']]
+  audit same: True ValueError: <P>에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from
+== pushpull_follower_buffer
+  transistors same: True
+  meta diff keys: []
+  ports(head): {'__dc__': 'PortDeclaration', 'inputs': ['vin'], 'outputs': ['vout']}
+  E3 declared_vsid=False same=True
+  offset same: True []
+  audit same: True ValueError: <P>에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from
+== sf_pushpull_output_opamp
+  transistors same: True
+  meta diff keys: ['_device_roles_autofilled', 'device_roles']
+    _device_roles_autofilled.M1: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M10: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M11: {'headroom_role': ('mirror', None)}
+    _device_roles_autofilled.M12: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M13: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M14: {'headroom_role': ('mirror', None)}
+    _device_roles_autofilled.M15: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M16: {'headroom_role': ('mirror', None)}
+    _device_roles_autofilled.M17: {'headroom_role': ('mirror', None)}
+    _device_roles_autofilled.M18: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M19: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M2: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M20: {'headroom_role': ('mirror', None)}
+    _device_roles_autofilled.M21: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M22: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M5: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M6: {'headroom_role': ('mirror', None)}
+    _device_roles_autofilled.M7: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M8: {'headroom_role': ('mirror', None)}
+    _device_roles_autofilled.M9: {'headroom_role': ('mirror', None)}
+    device_roles.M1: {'headroom_role': ('cascode', None)}
+    device_roles.M10: {'headroom_role': ('cascode', None)}
+    device_roles.M11: {'headroom_role': ('mirror', None)}
+    device_roles.M12: {'headroom_role': ('cascode', None)}
+    device_roles.M13: {'headroom_role': ('cascode', None)}
+    device_roles.M14: {'headroom_role': ('mirror', None)}
+    device_roles.M15: {'headroom_role': ('cascode', None)}
+    device_roles.M16: {'headroom_role': ('mirror', None)}
+    device_roles.M17: {'headroom_role': ('mirror', None)}
+    device_roles.M18: {'headroom_role': ('cascode', None)}
+    device_roles.M19: {'headroom_role': ('cascode', None)}
+    device_roles.M2: {'headroom_role': ('cascode', None)}
+    device_roles.M20: {'headroom_role': ('mirror', None)}
+    device_roles.M21: {'headroom_role': ('cascode', None)}
+    device_roles.M22: {'headroom_role': ('cascode', None)}
+    device_roles.M5: {'headroom_role': ('cascode', None)}
+    device_roles.M6: {'headroom_role': ('mirror', None)}
+    device_roles.M7: {'headroom_role': ('cascode', None)}
+    device_roles.M8: {'headroom_role': ('mirror', None)}
+    device_roles.M9: {'headroom_role': ('mirror', None)}
+  ports(head): {'__dc__': 'PortDeclaration', 'inputs': ['vin_n', 'vin_p'], 'outputs': ['vout']}
+  E3 declared_vsid=False same=False
+    base multi-groups: [['M10', 'M9'], ['M11', 'M12'], ['M15', 'M16'], ['M17', 'M18'], ['M19', 'M20'], ['M5', 'M6'], ['M7', 'M8']]
+    head multi-groups: [['M10', 'M9'], ['M11', 'M12'], ['M15', 'M16'], ['M5', 'M6'], ['M7', 'M8']]
+  offset same: True []
+  audit same: True ValueError: <P>에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from
+== two_stage_ota
+  transistors same: True
+  meta diff keys: ['_device_roles_gap_fill_review_needed']
+    _device_roles_gap_fill_review_needed: len 9 -> 7
+      - removed: {"device": "M4", "field_conflicts": {"headroom_role": ["cascode", "mirror"]}, "note": "이미 선언된 값과 제안이 달라 그 필드만 자동 반영하지 않음(다른 무관한 필드는 그대로 제안)"}
+      - removed: {"device": "M6", "note": "compensation.stage_devices 소속 -- gm_id_role 제안은 sizing_recipe.py의 _AUTHORITATIVE_GM_ID_SOURCES 가드(2026-08-14 신설)로 무시되므로 충돌 없이 안전하게 적용된다(사람이 참고용으로만 확인할 것, 자동 반영 자체를 막을 필요는 없음)."}
+  ports(head): {'__dc__': 'PortDeclaration', 'inputs': ['vin_n', 'vin_p'], 'outputs': ['OUT']}
+  E3 declared_vsid=True same=True
+  offset same: True [['M1', 'M2']]
+  audit same: True result
+== two_stage_ota_sf
+  transistors same: True
+  meta diff keys: ['_device_roles_autofilled', 'device_roles']
+    _device_roles_autofilled.M1: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M2: {'headroom_role': ('cascode', None)}
+    _device_roles_autofilled.M4: {'headroom_role': ('mirror', None)}
+    _device_roles_autofilled.M6: {'headroom_role': ('mirror', None)}
+    _device_roles_autofilled.M8: {'headroom_role': ('cascode', None)}
+    device_roles.M1: {'headroom_role': ('cascode', None)}
+    device_roles.M2: {'headroom_role': ('cascode', None)}
+    device_roles.M4: {'headroom_role': ('mirror', None)}
+    device_roles.M6: {'headroom_role': ('mirror', None)}
+    device_roles.M8: {'headroom_role': ('cascode', None)}
+  ports(head): {'__dc__': 'PortDeclaration', 'inputs': ['vin_n', 'vin_p'], 'outputs': ['vout']}
+  E3 declared_vsid=False same=False
+    base multi-groups: [['M1', 'M2'], ['M8', 'M9']]
+    head multi-groups: [['M1', 'M2']]
+  offset same: True []
+  audit same: True ValueError: <P>에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from
+== SPECS
+  two_stage_ota same={'metrics': True, 'sized_hash': True, 'error': True} sec 29.5/30.7 n_metrics=0 err=InfeasibleSizingError: 'stage1_ref' 그룹(예산 0.9V, 미해결 ['M3', 'M5']): 스택 예산 0.9V가 부
+  current_reuse_telescopic_ota same={'metrics': True, 'sized_hash': True, 'error': True} sec 20.2/19.3 n_metrics=19 err=
+  folded_cascode same={'metrics': True, 'sized_hash': True, 'error': True} sec 0.2/0.2 n_metrics=5 err=
+  nmcnr_amplifier same={'metrics': True, 'sized_hash': True, 'error': True} sec 8.6/8.4 n_metrics=0 err=InfeasibleSizingError: 'stage2_diode_ref' 그룹(예산 1.5V, 미해결 ['M203']): 스택 예산 1.5V 

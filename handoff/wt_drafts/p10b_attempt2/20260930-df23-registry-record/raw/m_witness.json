@@ -1,0 +1,330 @@
+{
+ "nonequiv": {
+  "reg_check:_df23_rows_under:stmt_delete:body[2].body[0].body[1]": {
+   "in_plan": true,
+   "orig": [],
+   "mutant": [
+    [
+     "df23-total",
+     "phase:3",
+     "행이 빠졌다"
+    ],
+    [
+     "df23-total",
+     "phase:4",
+     "행이 빠졌다"
+    ],
+    [
+     "df23-total",
+     "phase:해당 없음",
+     "행이 빠졌다"
+    ],
+    [
+     "df23-total",
+     "role:가짜",
+     "목록에 없는 행이다"
+    ],
+    [
+     "df23-total",
+     "role:동작을 정함",
+     "행이 빠졌다"
+    ],
+    [
+     "df23-total",
+     "role:메시지뿐",
+     "행이 빠졌다"
+    ]
+   ],
+   "differs": true
+  },
+  "reg_check:_df23_rows_under:const+:body[5].iter.args[0].right": {
+   "in_plan": true,
+   "orig": [
+    [
+     "df23-section",
+     "8.1",
+     "§8.1 소절 또는 표 머리가 없다"
+    ]
+   ],
+   "mutant": [
+    [
+     "df23-total",
+     "phase:3",
+     "행이 빠졌다"
+    ],
+    [
+     "df23-total",
+     "phase:4",
+     "행이 빠졌다"
+    ],
+    [
+     "df23-total",
+     "phase:해당 없음",
+     "행이 빠졌다"
+    ],
+    [
+     "df23-total",
+     "role:가짜",
+     "목록에 없는 행이다"
+    ],
+    [
+     "df23-total",
+     "role:동작을 정함",
+     "행이 빠졌다"
+    ],
+    [
+     "df23-total",
+     "role:메시지뿐",
+     "행이 빠졌다"
+    ]
+   ],
+   "differs": true
+  },
+  "reg_check:_df23_rows_under:arith:body[8].iter.args[0].slice.lower": {
+   "in_plan": true,
+   "orig": [],
+   "mutant": [
+    [
+     "df23-section",
+     "8.1",
+     "§8.1 소절 또는 표 머리가 없다"
+    ]
+   ],
+   "differs": true
+  },
+  "reg_check:_df23_rows_under:const+:body[8].iter.args[0].slice.lower.right": {
+   "in_plan": true,
+   "orig": [],
+   "mutant": [
+    [
+     "df23-section",
+     "8.1",
+     "§8.1 소절 또는 표 머리가 없다"
+    ],
+    [
+     "df23-section",
+     "8.2",
+     "§8.2 소절 또는 표 머리가 없다"
+    ]
+   ],
+   "differs": true
+  },
+  "reg_check:check_df23:const+:body[7].iter.args[0].right": {
+   "in_plan": true,
+   "orig": [
+    [
+     "df23-section",
+     "8.1",
+     "§8.1 소절 또는 표 머리가 없다"
+    ],
+    [
+     "df23-section",
+     "8.2",
+     "§8.2 소절 또는 표 머리가 없다"
+    ],
+    [
+     "df23-section",
+     "measured_at",
+     "`measured_at:` 줄이 없다"
+    ],
+    [
+     "df23-section",
+     "목록",
+     "`목록:` 줄이 없다"
+    ]
+   ],
+   "mutant": [],
+   "differs": true
+  },
+  "reg_check:check_df23:stmt_delete:body[7].body[0].body[1]": {
+   "in_plan": true,
+   "orig": [
+    [
+     "df23-section",
+     "8.1",
+     "§8.1 소절 또는 표 머리가 없다"
+    ],
+    [
+     "df23-section",
+     "8.2",
+     "§8.2 소절 또는 표 머리가 없다"
+    ]
+   ],
+   "mutant": [],
+   "differs": true
+  },
+  "reg_check:check_df23:arith:body[8].value.slice.lower": {
+   "in_plan": true,
+   "orig": [
+    [
+     "df23-section",
+     "목록",
+     "`목록:` 줄이 없다"
+    ]
+   ],
+   "mutant": [],
+   "differs": true
+  },
+  "reg_check:check_df23:const+:body[8].value.slice.lower.right": {
+   "in_plan": true,
+   "orig": [],
+   "mutant": [
+    [
+     "df23-section",
+     "목록",
+     "`목록:` 줄이 없다"
+    ]
+   ],
+   "differs": true
+  },
+  "reg_check:check_df23:const+:body[17].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.args[0].slice.upper": {
+   "in_plan": true,
+   "orig": [
+    [
+     "df23-function",
+     "mod_a.py::alpha_fn",
+     "(항목 수, DF, 담당 Phase) ('9', 'DF-19, 신규', '3, 4') != ('2', 'DF-19, 신규', '3, 4')"
+    ]
+   ],
+   "mutant": [
+    [
+     "df23-function",
+     "mod_a.py::alpha_fn",
+     "(항목 수, DF, 담당 Phase) ('9', 'DF-19, 신규', '3, 4', '덧칸') != ('2', 'DF-19, 신규', '3, 4')"
+    ]
+   ],
+   "differs": true
+  }
+ },
+ "equiv_recheck": {
+  "reg_check:_df23_expected:const+:body[7].body[4].value.value.args[1]": {
+   "in_plan": true,
+   "inputs": 1239,
+   "diffs": 0
+  },
+  "reg_check:check_df23:arith:body[15].orelse[1].body[0].value.right.right": {
+   "in_plan": true,
+   "inputs": 1239,
+   "diffs": 0
+  },
+  "reg_check:check_df23:const+:body[15].orelse[1].body[0].value.right.right.left": {
+   "in_plan": true,
+   "inputs": 1239,
+   "diffs": 0
+  },
+  "reg_check:check_df23:arith:body[17].orelse[1].body[0].value.right.right": {
+   "in_plan": true,
+   "inputs": 1239,
+   "diffs": 0
+  },
+  "reg_check:check_df23:const+:body[17].orelse[1].body[0].value.right.right.left": {
+   "in_plan": true,
+   "inputs": 1239,
+   "diffs": 0
+  },
+  "reg_check:_df23_rows_under:const-:body[8].iter.args[0].slice.lower.right": {
+   "in_plan": true,
+   "inputs": 1239,
+   "diffs": 0
+  },
+  "reg_check:check_df23:const-:body[8].value.slice.lower.right": {
+   "in_plan": true,
+   "inputs": 1239,
+   "diffs": 0
+  },
+  "reg_check:main:stmt_delete:body[8].body[3].body[5]": {
+   "in_plan": true,
+   "inputs": 8,
+   "diffs": 0,
+   "exits": [
+    [
+     "[1, 2]",
+     2,
+     2
+    ],
+    [
+     "\"s\"",
+     2,
+     2
+    ],
+    [
+     "null",
+     2,
+     2
+    ],
+    [
+     "3",
+     2,
+     2
+    ],
+    [
+     "true",
+     2,
+     2
+    ],
+    [
+     "{\"measured_at\": \"0000000000000000000000000000000000000000\", \"items\": [{\"file\": \"p/mod_a.py\", \"function\": \"alpha_fn\", \"role\": \"동작을 정함\", \"phase\": \"4\", \"plan_mapping\": \"DF-19\"}, {\"file\": \"p/mod_a.py\", \"function\": \"alpha_fn\", \"role\": \"동작을 정함\", \"phase\": \"3\", \"plan_mapping\": \"신규\"}, {\"file\": \"q/mod_b.py\", \"function\": \"beta_fn\", \"role\": \"메시지뿐\", \"phase\": \"해당 없음\", \"plan_mapping\": \"DF-2\"}]}",
+     1,
+     1
+    ],
+    [
+     "{\"items\": []}",
+     2,
+     2
+    ],
+    [
+     "{not json",
+     2,
+     2
+    ]
+   ]
+  },
+  "reg_check:main:stmt_delete:body[8].body[3].body[5].body[0]": {
+   "in_plan": true,
+   "inputs": 8,
+   "diffs": 0,
+   "exits": [
+    [
+     "[1, 2]",
+     2,
+     2
+    ],
+    [
+     "\"s\"",
+     2,
+     2
+    ],
+    [
+     "null",
+     2,
+     2
+    ],
+    [
+     "3",
+     2,
+     2
+    ],
+    [
+     "true",
+     2,
+     2
+    ],
+    [
+     "{\"measured_at\": \"0000000000000000000000000000000000000000\", \"items\": [{\"file\": \"p/mod_a.py\", \"function\": \"alpha_fn\", \"role\": \"동작을 정함\", \"phase\": \"4\", \"plan_mapping\": \"DF-19\"}, {\"file\": \"p/mod_a.py\", \"function\": \"alpha_fn\", \"role\": \"동작을 정함\", \"phase\": \"3\", \"plan_mapping\": \"신규\"}, {\"file\": \"q/mod_b.py\", \"function\": \"beta_fn\", \"role\": \"메시지뿐\", \"phase\": \"해당 없음\", \"plan_mapping\": \"DF-2\"}]}",
+     1,
+     1
+    ],
+    [
+     "{\"items\": []}",
+     2,
+     2
+    ],
+    [
+     "{not json",
+     2,
+     2
+    ]
+   ]
+  }
+ }
+}

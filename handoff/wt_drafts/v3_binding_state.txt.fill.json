@@ -1,0 +1,15 @@
+{
+ "id": "20260930-v3-exempt-binding",
+ "target": "1ba14d40b454598f8a7c818d6883ffd2d49348d91140773d1b1577b7a298e7d0",
+ "diff_base": "cf26d3916c92899b015e0f3bf4944d7e8e0ca7df",
+ "diff_head": "7718505715a26585d1510ae4f55d8d358a35229d",
+ "diff_path": [
+  "docs/01-plan/features/gain-budget-gmid-sizing.plan.md",
+  "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md",
+  "docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md",
+  "docs/02-design/specs/20260930-v3-exempt-binding.interface.md",
+  "docs/02-design/specs/20260930-v3-exempt-binding.spec.md"
+ ],
+ "dest": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\.ai\\approvals\\20260930-v3-exempt-binding.md",
+ "result": "written"
+}

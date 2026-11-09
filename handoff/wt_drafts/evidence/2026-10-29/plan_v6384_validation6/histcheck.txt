@@ -1,0 +1,33 @@
+gain-budget-gmid-sizing old 11: segs missing 1
+   MISS(frag60 in hist=False): 묶음'·'아홉째'·'열째·열한째'·'열둘째'·'열셋째'·'열넷째'·'열다섯째'
+gain-budget-gmid-sizing old 125: segs missing 0
+gain-budget-gmid-sizing old 746: segs missing 0
+gain-budget-gmid-sizing old 1066: segs missing 0
+gain-budget-gmid-sizing old 1162: segs missing 0
+gain-budget-gmid-sizing old 1163: segs missing 0
+gain-budget-gmid-sizing old 1242: segs missing 0
+gain-budget-gmid-sizing old 1281: segs missing 0
+gain-budget-gmid-sizing old 1771: segs missing 1
+   MISS(frag60 in hist=False): `achievability.py`·`iv_context.py`)은
+gain-budget-gmid-sizing old 1779: segs missing 0
+gain-budget-gmid-sizing old 1852: segs missing 0
+gain-budget-gmid-sizing old 1877: segs missing 0
+gain-budget-gmid-sizing old 1892: segs missing 0
+gain-budget-gmid-sizing old 2190: segs missing 0
+gain-budget-gmid-sizing old 2194: segs missing 0
+oracle-portability old 18: segs missing 0
+oracle-portability old 506: segs missing 0
+oracle-portability old 513: segs missing 0
+graph-consumption old 15: segs missing 0
+graph-consumption old 758: segs missing 0
+offset-strategy old 11: segs missing 0
+offset-strategy old 121: segs missing 0
+offset-strategy old 152: segs missing 0
+offset-strategy old 443: segs missing 0
+offset-strategy old 454: segs missing 0
+offset-strategy old 463: segs missing 0
+offset-strategy old 467: segs missing 0
+offset-strategy old 477: segs missing 0
+offset-strategy old 615: segs missing 0
+offset-strategy old 653: segs missing 0
+{"lines": 30, "verbatim": 0, "segs": 17, "segs_ok": 15}

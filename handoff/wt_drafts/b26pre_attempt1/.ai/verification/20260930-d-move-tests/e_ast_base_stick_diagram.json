@@ -1,0 +1,18 @@
+{
+ "repo_rev": "efbf14a4908c27bc1e5481a5cde91b0cca57a693",
+ "path": "skills/analog-gmid-design/assets/stick_diagram.py",
+ "blob_sha256": "62babecfebf6ac5d29425a2feeb96239e46d84bb128e5755d120f74fea81e995",
+ "defs": {
+  "find_interleaved_symmetric_splits": {
+   "n_top_level_bindings": 1,
+   "kind": "FunctionDef",
+   "lineno": 259,
+   "end_lineno": 290,
+   "has_docstring": true,
+   "ast_dump_sha256": "ca4162af4fe817217790c988756f0297bd8281566ad6302e9f76723f69eccc05",
+   "ast_dump_len": 2791,
+   "source_lines_sha256_lf": "53f3d916c426ab45a291863fb417d46713b4b52ea24745f22ae9dfa149d46060",
+   "ast_dump": "FunctionDef(name='find_interleaved_symmetric_splits', args=arguments(args=[arg(arg='count_a', annotation=Name(id='int', ctx=Load())), arg(arg='count_b', annotation=Name(id='int', ctx=Load()))]), body=[Expr(value=Constant(value='A, B가 서로 swap 파트너(예: pair_map={\"A\":\"B\",\"B\":\"A\"})이고 **개별 finger 총합이\\n    홀수**라 각자 단독으로는 좌우 절반씩 나눌 수 없을 때, 두 소자를 섞어 배치하면 전체 대칭을\\n    살릴 수 있다 — folded cascode bottom row의 실제 사례(M9=3, M10=3, 둘 다 홀수)가 정확히\\n    이 경우다: 원본 시퀀스 `...9xxoo99nno...`에서 M9는 좌1/우2, M10은 좌2/우1로 **불균등하게**\\n    나뉘어 있지만, 두 소자가 서로의 불균형을 정확히 상쇄해 전체는 대칭이 된다.\\n\\n    수학적으로: A가 왼쪽에 `a_left`개, B가 왼쪽에 `b_left`개 있으면, 대칭이 성립하려면\\n    `a_left == count_b - b_left`(B의 오른쪽 개수)이고 `b_left == count_a - a_left`(A의\\n    오른쪽 개수)여야 한다 — 이 두 식을 풀면 **count_a == count_b일 때만** 정수해가 존재한다\\n    (다르면 잔여 불균형이 남아 다른 소자로 흡수하거나, 폴디드 캐스코드의 MP처럼 축 위에 단독\\n    배치해야 한다).\\n\\n    **\"최대한 섞는다\" 원칙(우선순위 정렬)**: 대칭 조건을 만족하는 후보가 여러 개일 때 전부\\n    matching 효과가 같은 건 아니다 — 한쪽에 몰아넣는 분할(`(0,3,3,0)`처럼 A와 B가 사실상 안\\n    섞이고 각자 한쪽 절반을 통째로 차지)은 그 방향의 공정 gradient를 전혀 상쇄하지 못하고,\\n    양쪽에 고르게 나뉜 분할(`(1,2,2,1)`처럼 양쪽 다 A·B가 섞여 있음)일수록 gradient 상쇄\\n    효과가 커진다 — interdigitation의 근본 목적(§2.5) 그 자체다. 그래서 이 함수는 결과를\\n    **\"얼마나 고르게 섞였는가\"(`|a_left - a_right|` 오름차순) 순으로 정렬**해서 반환한다 —\\n    맨 앞이 matching 효과가 가장 좋은 후보다. 실제 folded cascode(M9=3, M10=3)에서 pptx가\\n    채택한 `(1,2,2,1)`이 정확히 이 정렬의 1순위 후보와 일치한다(§9 Test 9).\\n\\n    반환: `count_a == count_b`이면 `[(a_left, a_right, b_left, b_right), ...]`를 매칭 효과\\n    내림차순(=|a_left-a_right| 오름차순)으로 정렬해 반환, 아니면 빈 리스트. 정렬은 matching\\n    효과 기준일 뿐 오일러 조건(§3)까지 보장하지는 않는다 — 앞쪽 후보부터 순서대로 실제 stack에\\n    적용해 오일러 조건도 만족하는지 확인해서 최종 채택할 것.\\n    ')), If(test=Compare(left=Name(id='count_a', ctx=Load()), ops=[NotEq()], comparators=[Name(id='count_b', ctx=Load())]), body=[Return(value=List(ctx=Load()))]), Assign(targets=[Name(id='splits', ctx=Store())], value=ListComp(elt=Tuple(elts=[Name(id='k', ctx=Load()), BinOp(left=Name(id='count_a', ctx=Load()), op=Sub(), right=Name(id='k', ctx=Load())), BinOp(left=Name(id='count_a', ctx=Load()), op=Sub(), right=Name(id='k', ctx=Load())), Name(id='k', ctx=Load())], ctx=Load()), generators=[comprehension(target=Name(id='k', ctx=Store()), iter=Call(func=Name(id='range', ctx=Load()), args=[BinOp(left=Name(id='count_a', ctx=Load()), op=Add(), right=Constant(value=1))]), is_async=0)])), Expr(value=Call(func=Attribute(value=Name(id='splits', ctx=Load()), attr='sort', ctx=Load()), keywords=[keyword(arg='key', value=Lambda(args=arguments(args=[arg(arg='s')]), body=Call(func=Name(id='abs', ctx=Load()), args=[BinOp(left=Subscript(value=Name(id='s', ctx=Load()), slice=Constant(value=0), ctx=Load()), op=Sub(), right=Subscript(value=Name(id='s', ctx=Load()), slice=Constant(value=1), ctx=Load()))])))])), Return(value=Name(id='splits', ctx=Load()))], returns=Name(id='list', ctx=Load()))"
+  }
+ }
+}

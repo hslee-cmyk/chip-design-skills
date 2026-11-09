@@ -1,0 +1,75 @@
+{
+ "note": "N3.12.3 순서 3 -- freeze(T)와 base 대비 확인. 모든 수치는 auditor가 격리 복제본에서 직접 쟀다(작성자 보고 미사용).",
+ "id": "20260923-probe-dead-delete",
+ "evidence_type": "test-only",
+ "freeze": {
+  "base_commit": "8dfa53974ea9f4bfe2d6f61f607a0c089a11c603",
+  "test_commit_T": "4b841d138055fb8f4a35aa6b7a6a1da4deed8d0a",
+  "T_parent": "8dfa53974ea9f4bfe2d6f61f607a0c089a11c603",
+  "T_trailers": ["Role: test", "Change-Id: 20260923-probe-dead-delete"],
+  "changed_paths_base_to_T": [
+   "A skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py",
+   "D skills/analog-gmid-design/assets/tests/probe_mirror_common_L_wiring.py",
+   "D skills/analog-gmid-design/assets/tests/probe_node_voltage_audit.py",
+   "D skills/analog-gmid-design/assets/tests/probe_vs_semantics.py"
+  ],
+  "engine_and_harness_diff": "빈 집합 -- git diff --name-only base T -- ':(exclude)skills/analog-gmid-design/assets/tests/**' 출력 0줄(spec card 계약 5)",
+  "probe_count": {"base": 42, "T": 39, "expected_T": 39}
+ },
+ "isolated_clones": {
+  "merged_T": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/w/iso",
+  "base": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/w/iso-base",
+  "same_path_for_equivalence": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/w/isoc"
+ },
+ "strict_set": {
+  "phase": "2",
+  "card_activated_ic_case": [],
+  "merged_phase2_records_in_base": [],
+  "strict_needed": [],
+  "v1_option": "--gmid-strict=",
+  "checked_with": "base 판 캐시 merge_gate.strict_set(TreeView(base), parse_spec_card) 및 v1_command_check -> fails []",
+  "wrong_option_probe": "--gmid-phase=2 --gmid-strict=IC3:,IC5: 는 conftest UsageError(exit 4, '모르는 케이스 키 [IC3:, IC5:] ... 표식 Phase가 현재 Phase 2 가 아님')로 거부됨을 실측"
+ },
+ "base_red": {
+  "how": "T의 test 파일 1개를 base 트리 복제본에 그대로 두고 base 판 캐시 게이트 코드로 전체 실행(-p merge_gate --continue-on-collection-errors, GMID_RED_CAPTURE/GMID_INTERFACE_CARD)",
+  "result": "1 failed, 302 passed, 15 xfailed, 수집 오류 0, exit 1",
+  "red_test_ids": ["skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_dead_probe_files_are_absent"],
+  "red_exc_types": ["builtins.AssertionError"],
+  "red_failure_hashes": ["e31d5f1f7eacd3dfc90b0b9f583b086553e23620c6730111e645ec31d33be890"],
+  "no_op_at_base": "삭제 근거 판정 (b) _L_ROLE_MULTIPLIERS 부재, (c) audit_vsb_consistency 운영 호출부 존재, (d) 파일럿 instance.json vsb-only 는 base 에서도 PASS -- 의도된 무발동(대상 코드가 이미 그 상태이고 이 card 는 그 상태를 고정만 한다)",
+  "note": "test-only 이므로 판정 기록의 red 필드는 스키마상 금지다. 이 측정은 '새 test 중 삭제 사실을 보는 것만 base 에서 깨진다'를 확인하려고 auditor 가 따로 쟀다."
+ },
+ "deleted_probe_behaviour_at_base": {
+  "how": "base 복제본 안에서 하드코딩 절대 경로 리터럴만 복제본 경로로 치환해 세 파일을 그대로 실행(실행 뒤 git checkout 으로 원복)",
+  "probe_mirror_common_L_wiring.py": {"exit": 1, "exc": "AttributeError", "detail": "66행 sr._L_ROLE_MULTIPLIERS -- module 'sizing_recipe' has no attribute '_L_ROLE_MULTIPLIERS'"},
+  "probe_node_voltage_audit.py": {"exit": 1, "exc": "ModuleNotFoundError", "detail": "37행 import run_harness -- 이 파일은 assets 만 sys.path 에 넣어 하네스를 못 찾는다(감사 대상 audit_vsb_consistency 가 이미 sizing_recipe.py:9481 _build_theta_evaluator._evaluate 에 배선돼 존재 이유도 소멸)"},
+  "probe_vs_semantics.py": {"exit": 1, "exc": "KeyError", "detail": "전 소자 skip('vs' not in e) -- 집계 '일치 0 / 불일치 0 / 미복원 0' 출력 뒤 81행 ea[\"vs\"] 에서 KeyError: 'vs'"}
+ },
+ "equivalence_measurements": {
+  "E-LIB": {
+   "how": "같은 경로(isoc)에서 base -> T 로 checkout 하며 library 회로 전부의 load_topology 결과를 키 정렬 JSON 으로 직렬화해 sha256",
+   "n_circuits": 9,
+   "loaded_ok": 9,
+   "base_hash": "a3cfe21f292ad4ec16625527565bd731659e9623907aace524a9aa08824e9ce8",
+   "merged_hash": "a3cfe21f292ad4ec16625527565bd731659e9623907aace524a9aa08824e9ce8",
+   "equal": true
+  },
+  "E-INST": {
+   "how": "같은 경로(isoc)에서 run_harness.py 의 저장소 절대 경로 리터럴만 복제본·스크래치로 치환해 실행(로직 불변), instance.json 키 정렬 직렬화 sha256",
+   "current_reuse_telescopic_ota": {"base": "055ca6d1462998d68998a7b580050dc56b75ce84a3cdfffb6d58730d64e5d180", "merged": "055ca6d1462998d68998a7b580050dc56b75ce84a3cdfffb6d58730d64e5d180", "exit": 0, "n_sizing": 51, "equal": true},
+   "folded_cascode": {"base": "6cacb89912249b6c222508273c4cd1a8e08b2fa0e91365c47acc003367b4b091", "merged": "6cacb89912249b6c222508273c4cd1a8e08b2fa0e91365c47acc003367b4b091", "exit": 0, "n_sizing": 13, "equal": true},
+   "scope_note": "run_topology_pipeline 은 optimize_full_circuit_budget 안(sizing_recipe.py:9883/9897)에서 불리므로 이 두 회로의 instance.json(box_shape/audit_row_split/floorplan/coverage 포함)이 그 출력의 해시다. 사이징 스펙이 선언되지 않은 나머지 7회로는 파이프라인을 돌릴 입력이 없어 load 동일성만 잰다(10-test-separation §7 절차와 같다)"
+  }
+ },
+ "G1_G4_and_new_topo": {
+  "G-1": "세 파일은 선언(circuit_family, metric type, 보상 함수 키)이나 파일 이름 규약으로 선택되지 않는다 -- pytest 는 probe_*.py 를 수집하지 않고(base 수집 모듈 18개 전부 test_*), 레지스트리 등록 딕셔너리 어디에도 값으로 없다",
+  "G-2": "AST 참조 0 -- 저장소 전체 .py 를 AST 로 훑어 import/Name/Attribute/경로 문자열을 센 결과, 세 이름의 참조는 신설 test 의 경로 문자열 3건뿐(주석·docstring 언급 3곳은 AST 참조가 아니다)",
+  "G-3": "(b) 해당 -- 세 파일 모두 옛 심볼·파일럿 절대 경로를 코드에 박아 두어 다른 topology 에 쓰면 값 자체가 나오지 않거나 틀린다(위 실행 결과)",
+  "G-4": "삭제한 것이 '선택지'가 아니라 최상위 진단 스크립트라 조용한 무동작으로 바뀔 경로가 없다. 되살아나면 test_dead_probe_files_are_absent 가 즉시 FAIL 한다(base 에서 실제 FAIL 실측)",
+  "NEW-TOPO": "무해당 -- 새 topology 가 이 세 파일을 고를 데이터 경로가 없다(G-1). design §8 P1 의 oracle 칸도 (a) 하나다. 동작 보존은 E-LIB·E-INST 로 쟀다"
+ },
+ "scope_limits": [
+  "계약 3(d) 의 판정 범위는 파일럿 instance.json 하나다. spec card 계약 3 과 지운 probe_vs_semantics.py:22 의 하드코딩 경로가 모두 파일럿 하나를 가리키므로 범위가 맞다.",
+  "추적되는 다른 instance.json 5개(folded_cascode 13, nmcnr_amplifier 15, two_stage_ota 3판 각 7)는 아직 vs 키만 가진다. 다만 지금 엔진이 새로 쓰는 산출물은 vsb 만 가진다(auditor 재생성 실측: folded_cascode 13/13 vsb, vs 0) -- 남은 vs 는 옛 엔진 시절의 낡은 산출물이고 이 card 의 계약 밖이다."
+ ]
+}

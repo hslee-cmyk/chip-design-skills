@@ -1,0 +1,28 @@
+_TEMPLATE.topology.json: LOAD FAIL AttributeError: 'str' object has no attribute 'items'
+common_gate_amplifier.topology.json [forced] n_dev=3 n_pairs=0 groups=1 equal=True
+common_gate_amplifier.topology.json [none] n_dev=3 n_pairs=0 groups=1 equal=True
+   railish nets present=['gnd', 'vdd'] in_RAIL_NETS=['gnd', 'vdd'] supply_nets_decl=['vdd', 'gnd']
+current_reuse_telescopic_ota.topology.json [forced] n_dev=51 n_pairs=19 groups=17 equal=True
+current_reuse_telescopic_ota.topology.json [none] n_dev=51 n_pairs=0 groups=29 equal=True
+   railish nets present=['gnd', 'vdd'] in_RAIL_NETS=['gnd', 'vdd'] supply_nets_decl=['vdd', 'gnd']
+folded_cascode.topology.json [forced] n_dev=13 n_pairs=5 groups=5 equal=True
+folded_cascode.topology.json [none] n_dev=13 n_pairs=0 groups=9 equal=True
+   railish nets present=['gnd', 'vdd'] in_RAIL_NETS=['gnd', 'vdd'] supply_nets_decl=['vdd', 'gnd']
+ngcc_3stage_ff.topology.json [forced] n_dev=16 n_pairs=1 groups=11 equal=True
+ngcc_3stage_ff.topology.json [none] n_dev=16 n_pairs=0 groups=12 equal=True
+   railish nets present=['gnd', 'vdd'] in_RAIL_NETS=['gnd', 'vdd'] supply_nets_decl=['vdd', 'gnd']
+nmcnr_amplifier.topology.json [forced] n_dev=15 n_pairs=3 groups=7 equal=True
+nmcnr_amplifier.topology.json [none] n_dev=15 n_pairs=0 groups=10 equal=True
+   railish nets present=['vdd', 'vss'] in_RAIL_NETS=['vdd', 'vss'] supply_nets_decl=['vdd', 'vss']
+pushpull_follower_buffer.topology.json [forced] n_dev=6 n_pairs=0 groups=3 equal=True
+pushpull_follower_buffer.topology.json [none] n_dev=6 n_pairs=0 groups=3 equal=True
+   railish nets present=['vdd', 'vss'] in_RAIL_NETS=['vdd', 'vss'] supply_nets_decl=['vdd', 'vss', 'agnd']
+sf_pushpull_output_opamp.topology.json [forced] n_dev=22 n_pairs=1 groups=11 equal=True
+sf_pushpull_output_opamp.topology.json [none] n_dev=22 n_pairs=0 groups=12 equal=True
+   railish nets present=['vdd', 'vss'] in_RAIL_NETS=['vdd', 'vss'] supply_nets_decl=['vdd', 'vss', 'agnd']
+two_stage_ota.topology.json [forced] n_dev=7 n_pairs=2 groups=3 equal=True
+two_stage_ota.topology.json [none] n_dev=7 n_pairs=0 groups=4 equal=True
+   railish nets present=['gnd', 'vdd'] in_RAIL_NETS=['gnd', 'vdd'] supply_nets_decl=['vdd', 'gnd']
+two_stage_ota_sf.topology.json [forced] n_dev=9 n_pairs=1 groups=4 equal=True
+two_stage_ota_sf.topology.json [none] n_dev=9 n_pairs=0 groups=5 equal=True
+   railish nets present=['gnd', 'vdd'] in_RAIL_NETS=['gnd', 'vdd'] supply_nets_decl=['vdd', 'gnd']

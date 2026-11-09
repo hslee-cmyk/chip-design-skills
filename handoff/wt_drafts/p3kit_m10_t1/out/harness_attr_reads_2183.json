@@ -1,0 +1,81 @@
+{
+ "rev": "2183f2e",
+ "files_reading": {
+  "skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py": [
+   "SPECS",
+   "canonical_spec",
+   "derived_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_full_research.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py": [
+   "SPECS",
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py": [
+   "SPECS",
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py": [
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py": [
+   "SPECS",
+   "canonical_spec"
+  ],
+  "skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py": [
+   "SPECS",
+   "canonical_spec"
+  ]
+ },
+ "from_imports": {},
+ "attr_counts": {
+  "canonical_spec": 21,
+  "SPECS": 5,
+  "derived_spec": 1
+ },
+ "parse_errors": []
+}

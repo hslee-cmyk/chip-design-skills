@@ -1,0 +1,25 @@
+<class 'list'> [{'name': 'M6', 'kind': 'pmos', 'source': 'vdd', 'drain': 'Vx', 'gate': 'Vbias1'}, {'name': 'M7', 'kind': 'pmos', 'source': 'vdd', 'drain': 'Vx', 'gate': 'Vcmfb'}]
+M8 {'name': 'M8', 'kind': 'pmos', 'source': 'vdd', 'drain': 'Vg15', 'gate': 'Vbias1'}
+M11a {'name': 'M11a', 'kind': 'pmos', 'source': 'vdd', 'drain': 'N11a11b', 'gate': 'N11a11b'}
+M11b {'name': 'M11b', 'kind': 'pmos', 'source': 'N11a11b', 'drain': 'N11b', 'gate': 'N11b'}
+M15 {'name': 'M15', 'kind': 'pmos', 'source': 'vdd', 'drain': 'Vom', 'gate': 'Vg15'}
+M9a {'name': 'M9a', 'kind': 'pmos', 'source': 'Vg15', 'drain': 'Vop1', 'gate': 'N11b'}
+M9b {'name': 'M9b', 'kind': 'nmos', 'source': 'Vop1', 'drain': 'Vg15', 'gate': 'N14a14b'}
+M12 {'name': 'M12', 'kind': 'nmos', 'source': 'gnd', 'drain': 'N11b', 'gate': 'Vbias4'}
+M10 {'name': 'M10', 'kind': 'nmos', 'source': 'gnd', 'drain': 'Vop1', 'gate': 'Vbias4'}
+M14a {'name': 'M14a', 'kind': 'nmos', 'source': 'N14a_14b', 'drain': 'N14a14b', 'gate': 'N14a14b'}
+M14b {'name': 'M14b', 'kind': 'nmos', 'source': 'gnd', 'drain': 'N14a_14b', 'gate': 'N14a_14b'}
+M16 {'name': 'M16', 'kind': 'nmos', 'source': 'gnd', 'drain': 'Vom', 'gate': 'Vop1'}
+M13 {'name': 'M13', 'kind': 'pmos', 'source': 'vdd', 'drain': 'N14a14b', 'gate': 'Vbias1'}
+M22 {'name': 'M22', 'kind': 'pmos', 'source': 'vdd', 'drain': 'N24b23a', 'gate': 'Vbias1'}
+M20a {'name': 'M20a', 'kind': 'pmos', 'source': 'vdd', 'drain': 'N20a20b', 'gate': 'N20a20b'}
+M20b {'name': 'M20b', 'kind': 'pmos', 'source': 'N20a20b', 'drain': 'N20b', 'gate': 'N20b'}
+M25 {'name': 'M25', 'kind': 'pmos', 'source': 'vdd', 'drain': 'Vop', 'gate': 'Vg25'}
+M18a {'name': 'M18a', 'kind': 'pmos', 'source': 'Vg25', 'drain': 'Vom1', 'gate': 'N20b'}
+M18b {'name': 'M18b', 'kind': 'nmos', 'source': 'Vom1', 'drain': 'Vg25', 'gate': 'N24b23a'}
+M21 {'name': 'M21', 'kind': 'nmos', 'source': 'gnd', 'drain': 'N20b', 'gate': 'Vbias4'}
+M19 {'name': 'M19', 'kind': 'nmos', 'source': 'gnd', 'drain': 'Vom1', 'gate': 'Vbias4'}
+M23a {'name': 'M23a', 'kind': 'nmos', 'source': 'N23a24b', 'drain': 'N24b23a', 'gate': 'N24b23a'}
+M24b {'name': 'M24b', 'kind': 'nmos', 'source': 'gnd', 'drain': 'N23a24b', 'gate': 'N23a24b'}
+M26 {'name': 'M26', 'kind': 'nmos', 'source': 'gnd', 'drain': 'Vop', 'gate': 'Vom1'}
+M17 {'name': 'M17', 'kind': 'pmos', 'source': 'vdd', 'drain': 'Vg25', 'gate': 'Vbias1'}

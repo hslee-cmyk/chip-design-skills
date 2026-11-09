@@ -1,0 +1,44 @@
+files 442 {'tests': 10406, 'failures': 25, 'errors': 0, 'skipped': 2} sec 4654 min_free_mb 2684
+not done []
+rc not in 0,1 [('skills/analog-gmid-design/gmid_engine/tests/structure/test_structure_test_mapping.py', 5)]
+zero tests ['skills/analog-gmid-design/gmid_engine/tests/structure/test_structure_test_mapping.py']
+FILE skills/analog-gmid-design/gmid_engine/tests/integration/test_layer0_boundary_rows.py F 4 E 0
+FILE skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py F 4 E 0
+FILE skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py F 8 E 0
+FILE skills/analog-gmid-design/gmid_engine/tests/integration/test_stage_b_library.py F 9 E 0
+base files 45 not done []
+base rc not in 0,1 []
+base counts {'tests': 1637, 'failures': 4, 'errors': 0, 'skipped': 0}
+merged bad 25 base bad 4
+== merged only
+  gmid_engine.tests.integration.test_g10_no_recompute_9circuits::test_no_same_input_recompute_in_one_run[cnr_ota]
+  gmid_engine.tests.integration.test_g10_no_recompute_9circuits::test_no_same_input_recompute_in_one_run[erfc_ota]
+  gmid_engine.tests.integration.test_g10_no_recompute_9circuits::test_no_same_input_recompute_in_one_run[r2r_opamp]
+  gmid_engine.tests.integration.test_g10_no_recompute_9circuits::test_no_same_input_recompute_in_one_run[rfc_ota]
+  gmid_engine.tests.integration.test_layer0_boundary_rows::test_layer0_baseline_present_for_every_library_circuit[cnr_ota]
+  gmid_engine.tests.integration.test_layer0_boundary_rows::test_layer0_baseline_present_for_every_library_circuit[erfc_ota]
+  gmid_engine.tests.integration.test_layer0_boundary_rows::test_layer0_baseline_present_for_every_library_circuit[r2r_opamp]
+  gmid_engine.tests.integration.test_layer0_boundary_rows::test_layer0_baseline_present_for_every_library_circuit[rfc_ota]
+  gmid_engine.tests.integration.test_s0_layer_9circuits::test_baseline_present_for_every_library_circuit[cnr_ota]
+  gmid_engine.tests.integration.test_s0_layer_9circuits::test_baseline_present_for_every_library_circuit[erfc_ota]
+  gmid_engine.tests.integration.test_s0_layer_9circuits::test_baseline_present_for_every_library_circuit[r2r_opamp]
+  gmid_engine.tests.integration.test_s0_layer_9circuits::test_baseline_present_for_every_library_circuit[rfc_ota]
+  gmid_engine.tests.integration.test_s0_layer_9circuits::test_stage_reports_unchanged_from_base[cnr_ota]
+  gmid_engine.tests.integration.test_s0_layer_9circuits::test_stage_reports_unchanged_from_base[erfc_ota]
+  gmid_engine.tests.integration.test_s0_layer_9circuits::test_stage_reports_unchanged_from_base[r2r_opamp]
+  gmid_engine.tests.integration.test_s0_layer_9circuits::test_stage_reports_unchanged_from_base[rfc_ota]
+  gmid_engine.tests.integration.test_stage_b_library::test_area_lower_bound_from_declared_values[cnr_ota]
+  gmid_engine.tests.integration.test_stage_b_library::test_area_lower_bound_from_declared_values[erfc_ota]
+  gmid_engine.tests.integration.test_stage_b_library::test_block_grid_products_and_budget_gate[cnr_ota]
+  gmid_engine.tests.integration.test_stage_b_library::test_block_grid_products_and_budget_gate[erfc_ota]
+  gmid_engine.tests.integration.test_stage_b_library::test_block_grid_products_and_budget_gate[r2r_opamp]
+  gmid_engine.tests.integration.test_stage_b_library::test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota]
+  gmid_engine.tests.integration.test_stage_b_library::test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota]
+  gmid_engine.tests.integration.test_stage_b_library::test_gain_target_and_verdict[cnr_ota]
+  gmid_engine.tests.integration.test_stage_b_library::test_gain_target_and_verdict[erfc_ota]
+== both
+== base only
+  gmid_engine.tests.authoring.test_spec_load::test_spec_fixture_names_disjoint_from_library
+  gmid_engine.tests.authoring.test_topology_load::test_fixture_names_disjoint_from_library
+  gmid_engine.tests.integration.test_authoring_library_load::test_library_has_exactly_nine_circuits
+  gmid_engine.tests.integration.test_bias_source_manifest_library::test_library_set_is_nine

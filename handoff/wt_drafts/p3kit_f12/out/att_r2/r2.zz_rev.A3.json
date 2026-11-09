@@ -1,0 +1,65 @@
+{
+ "nameless_dest": "instance_report_builder",
+ "files": {
+  "skills/analog-gmid-design/assets/tests/probes/zz_rev.py": {
+   "escape_new_none": true,
+   "listed_changes_approved": false,
+   "listed_collected": false,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "listed_units": [
+    "<If#1>",
+    "main"
+   ],
+   "escape_sites_base": [
+    [
+     "main",
+     "assign",
+     13
+    ],
+    [
+     "main",
+     "arg",
+     12
+    ],
+    [
+     "main",
+     "dynamic_name",
+     16
+    ],
+    [
+     "main",
+     "vars",
+     11
+    ]
+   ],
+   "listed_changed_units": [
+    "main"
+   ],
+   "listed_unapproved": [
+    "main"
+   ],
+   "failed": [
+    "listed_changes_approved",
+    "listed_collected"
+   ],
+   "verdict": "FAIL"
+  }
+ },
+ "summary": {
+  "files": 1,
+  "pass": 0,
+  "listed": {},
+  "fail": {
+   "skills/analog-gmid-design/assets/tests/probes/zz_rev.py": [
+    "listed_changes_approved",
+    "listed_collected"
+   ]
+  },
+  "d17_expect_vs_f1sim_diff": []
+ }
+}

@@ -1,0 +1,1 @@
+MP_ARGS=(--plan docs/01-plan/features/gain-budget-gmid-sizing.plan.md --registry docs/03-analysis/gain-budget-gmid-sizing.function-registry.md --split sizing_recipe.py stick_diagram.py topology_library.py design_report.py audit_current_forced.py --keep audit_current_forced.py --aliases '{"optimizer": "theta_search.py"}')

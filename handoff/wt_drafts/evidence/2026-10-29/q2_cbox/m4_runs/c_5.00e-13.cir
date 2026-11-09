@@ -1,0 +1,24 @@
+* coupling toy
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.option gmin=1e-15 reltol=1e-5 abstol=1e-15 vntol=1e-8 method=gear
+vx x 0 pwl(0 0 10n 0 11n 0.6)
+cc x g 5e-13
+rb g vb 1e12
+vvb vb 0 0.55
+vvd d 0 0.9
+xm1 d g 0 0 sky130_fd_pr__nfet_01v8 w=20u l=0.3u
+.control
+op
+let cgg0 = @m.xm1.msky130_fd_pr__nfet_01v8[cgg]
+let id0 = -i(vvd)
+print cgg0 id0
+tran 0.05n 40n
+meas tran vgpk max v(g) from=10n to=40n
+let idd = -i(vvd)
+meas tran idpk max idd from=10n to=40n
+meas tran vg0 find v(g) at=9n
+meas tran id0t find idd at=9n
+.endc
+.end

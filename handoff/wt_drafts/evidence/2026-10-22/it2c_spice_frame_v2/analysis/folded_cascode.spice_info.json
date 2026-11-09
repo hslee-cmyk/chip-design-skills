@@ -1,0 +1,336 @@
+{
+ "circuit": "folded_cascode",
+ "schema_errors": [],
+ "netlist_blockers": [],
+ "topology_identity": "verified",
+ "adapter_warnings": [
+  "instance.json 행의 w != n_fingers*finger_w: ['M1', 'M10', 'M11', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'MN', 'MP'] -- 넷리스트는 finger 규칙(finger_w x n_fingers)을 쓰고, 행 w 합은 devices[].W 로 남긴다(오라클 W_rel 로 드러남)"
+ ],
+ "adapter_blockers": [],
+ "passive_fix": [],
+ "bulk_mismatch": [],
+ "sizing_roles_null_copy": false,
+ "ports": {
+  "input_p": "vin_p",
+  "input_n": "vin_n",
+  "output": "out"
+ },
+ "bias_voltages": [
+  {
+   "net": "bias3",
+   "value": 1.386454799255296
+  }
+ ],
+ "sources": [
+  {
+   "name": "Ibg",
+   "kind": "current",
+   "terminals": [
+    "vb1",
+    "vb2"
+   ],
+   "value": 1.0164246545176949e-06,
+   "value_basis": "theta_star"
+  }
+ ],
+ "notes": [
+  "current source Ibg=1.016424655e-06 (theta_star)",
+  "capacitor CL=1e-12 (topology value_farad)",
+  "free: DC 되먹임 out -> vin_n (V(out)_pred=1.13169, V(vin_n)_pred=1.04799)",
+  "게이트 전용 넷 bias3 = 1.38645 V (bias_voltages 선언)",
+  "free: .nodeset 11개 = 예측 노드전압(뉴턴 초기값)"
+ ],
+ "m_patch": [
+  [
+   "MP",
+   1,
+   0.27911123987498954
+  ],
+  [
+   "M3",
+   1,
+   1.1438905974133633
+  ],
+  [
+   "M4",
+   1,
+   1.2178340176043392
+  ],
+  [
+   "M5",
+   2379,
+   2378.8786477269223
+  ],
+  [
+   "M6",
+   2379,
+   2378.8786477269223
+  ],
+  [
+   "M1",
+   560,
+   560.3231523471906
+  ],
+  [
+   "M2",
+   560,
+   560.3231523470666
+  ],
+  [
+   "M9",
+   1,
+   0.08400000125169765
+  ],
+  [
+   "M10",
+   1,
+   0.08530281374529244
+  ],
+  [
+   "M7",
+   1,
+   0.08400000125169765
+  ],
+  [
+   "M8",
+   1,
+   0.08400000125169765
+  ],
+  [
+   "M11",
+   567,
+   567.2852554093643
+  ],
+  [
+   "MN",
+   1123,
+   1123.475728805804
+  ]
+ ],
+ "runs": {
+  "B": {
+   "rc": 0,
+   "up_rows": 1508,
+   "dn_rows": 2093
+  },
+  "A": {
+   "rc": 0,
+   "up_rows": 1508,
+   "dn_rows": 2093
+  }
+ },
+ "vecs": [
+  "v(vb1)",
+  "v(vdd)",
+  "v(X)",
+  "v(Y)",
+  "v(Vg7)",
+  "v(bias3)",
+  "v(out)",
+  "v(vin_n)",
+  "v(tail)",
+  "v(vin_p)",
+  "v(Vg9)",
+  "v(Vg10)",
+  "v(vb2)",
+  "@m.xmp.msky130_fd_pr__pfet_01v8[id]",
+  "@m.xmp.msky130_fd_pr__pfet_01v8[vds]",
+  "@m.xmp.msky130_fd_pr__pfet_01v8[vdsat]",
+  "@m.xmp.msky130_fd_pr__pfet_01v8[vgs]",
+  "@m.xm3.msky130_fd_pr__pfet_01v8[id]",
+  "@m.xm3.msky130_fd_pr__pfet_01v8[vds]",
+  "@m.xm3.msky130_fd_pr__pfet_01v8[vdsat]",
+  "@m.xm3.msky130_fd_pr__pfet_01v8[vgs]",
+  "@m.xm4.msky130_fd_pr__pfet_01v8[id]",
+  "@m.xm4.msky130_fd_pr__pfet_01v8[vds]",
+  "@m.xm4.msky130_fd_pr__pfet_01v8[vdsat]",
+  "@m.xm4.msky130_fd_pr__pfet_01v8[vgs]",
+  "@m.xm5.msky130_fd_pr__pfet_01v8[id]",
+  "@m.xm5.msky130_fd_pr__pfet_01v8[vds]",
+  "@m.xm5.msky130_fd_pr__pfet_01v8[vdsat]",
+  "@m.xm5.msky130_fd_pr__pfet_01v8[vgs]",
+  "@m.xm6.msky130_fd_pr__pfet_01v8[id]",
+  "@m.xm6.msky130_fd_pr__pfet_01v8[vds]",
+  "@m.xm6.msky130_fd_pr__pfet_01v8[vdsat]",
+  "@m.xm6.msky130_fd_pr__pfet_01v8[vgs]",
+  "@m.xm1.msky130_fd_pr__nfet_01v8[id]",
+  "@m.xm1.msky130_fd_pr__nfet_01v8[vds]",
+  "@m.xm1.msky130_fd_pr__nfet_01v8[vdsat]",
+  "@m.xm1.msky130_fd_pr__nfet_01v8[vgs]",
+  "@m.xm2.msky130_fd_pr__nfet_01v8[id]",
+  "@m.xm2.msky130_fd_pr__nfet_01v8[vds]",
+  "@m.xm2.msky130_fd_pr__nfet_01v8[vdsat]",
+  "@m.xm2.msky130_fd_pr__nfet_01v8[vgs]",
+  "@m.xm9.msky130_fd_pr__nfet_01v8[id]",
+  "@m.xm9.msky130_fd_pr__nfet_01v8[vds]",
+  "@m.xm9.msky130_fd_pr__nfet_01v8[vdsat]",
+  "@m.xm9.msky130_fd_pr__nfet_01v8[vgs]",
+  "@m.xm10.msky130_fd_pr__nfet_01v8[id]",
+  "@m.xm10.msky130_fd_pr__nfet_01v8[vds]",
+  "@m.xm10.msky130_fd_pr__nfet_01v8[vdsat]",
+  "@m.xm10.msky130_fd_pr__nfet_01v8[vgs]",
+  "@m.xm7.msky130_fd_pr__nfet_01v8[id]",
+  "@m.xm7.msky130_fd_pr__nfet_01v8[vds]",
+  "@m.xm7.msky130_fd_pr__nfet_01v8[vdsat]",
+  "@m.xm7.msky130_fd_pr__nfet_01v8[vgs]",
+  "@m.xm8.msky130_fd_pr__nfet_01v8[id]",
+  "@m.xm8.msky130_fd_pr__nfet_01v8[vds]",
+  "@m.xm8.msky130_fd_pr__nfet_01v8[vdsat]",
+  "@m.xm8.msky130_fd_pr__nfet_01v8[vgs]",
+  "@m.xm11.msky130_fd_pr__nfet_01v8[id]",
+  "@m.xm11.msky130_fd_pr__nfet_01v8[vds]",
+  "@m.xm11.msky130_fd_pr__nfet_01v8[vdsat]",
+  "@m.xm11.msky130_fd_pr__nfet_01v8[vgs]",
+  "@m.xmn.msky130_fd_pr__nfet_01v8[id]",
+  "@m.xmn.msky130_fd_pr__nfet_01v8[vds]",
+  "@m.xmn.msky130_fd_pr__nfet_01v8[vdsat]",
+  "@m.xmn.msky130_fd_pr__nfet_01v8[vgs]"
+ ],
+ "probes": {
+  "MP": {
+   "id": "@m.xmp.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xmp.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xmp.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xmp.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xmp.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xmp.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xmp.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xmp.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M3": {
+   "id": "@m.xm3.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm3.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm3.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm3.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm3.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm3.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm3.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm3.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M4": {
+   "id": "@m.xm4.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm4.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm4.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm4.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm4.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm4.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm4.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm4.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M5": {
+   "id": "@m.xm5.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm5.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm5.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm5.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm5.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm5.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm5.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm5.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M6": {
+   "id": "@m.xm6.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm6.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm6.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm6.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm6.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm6.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm6.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm6.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M1": {
+   "id": "@m.xm1.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm1.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm1.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm1.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm1.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm1.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm1.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm1.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M2": {
+   "id": "@m.xm2.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm2.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm2.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm2.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm2.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm2.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm2.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm2.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M9": {
+   "id": "@m.xm9.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm9.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm9.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm9.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm9.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm9.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm9.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm9.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M10": {
+   "id": "@m.xm10.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm10.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm10.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm10.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm10.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm10.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm10.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm10.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M7": {
+   "id": "@m.xm7.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm7.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm7.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm7.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm7.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm7.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm7.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm7.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M8": {
+   "id": "@m.xm8.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm8.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm8.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm8.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm8.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm8.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm8.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm8.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M11": {
+   "id": "@m.xm11.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm11.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm11.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm11.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm11.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm11.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm11.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm11.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "MN": {
+   "id": "@m.xmn.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xmn.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xmn.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xmn.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xmn.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xmn.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xmn.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xmn.msky130_fd_pr__nfet_01v8[vbs]"
+  }
+ },
+ "spice_node": {
+  "vb1": "vb1",
+  "vdd": "vdd",
+  "X": "X",
+  "Y": "Y",
+  "Vg7": "Vg7",
+  "bias3": "bias3",
+  "out": "out",
+  "vin_n": "vin_n",
+  "tail": "tail",
+  "vin_p": "vin_p",
+  "Vg9": "Vg9",
+  "Vg10": "Vg10",
+  "vb2": "vb2"
+ }
+}

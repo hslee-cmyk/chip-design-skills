@@ -1,0 +1,384 @@
+{
+ "head": "cd64170",
+ "n310_header": [
+  "ID",
+  "파일",
+  "책임",
+  "대표 대상"
+ ],
+ "n310_rep_tokens": {
+  "MOD1": {
+   "ident": [
+    "GmIdLUT",
+    "SemiEmpiricalGmIdLUT",
+    "_multilinear_interp",
+    "_solve_vgs",
+    "lut_conditions_from_npz"
+   ],
+   "pyfile": [],
+   "dotted": [],
+   "other": [
+    "∂ID/∂VSB"
+   ],
+   "prose_left": "gmb 유도()"
+  },
+  "MOD2": {
+   "ident": [
+    "load_topology",
+    "validate_metric_units",
+    "validate_no_legacy_vs_key",
+    "require_declared_spec_source",
+    "validate_theta_declaration_order"
+   ],
+   "pyfile": [],
+   "dotted": [],
+   "other": [],
+   "prose_left": ""
+  },
+  "MOD3": {
+   "ident": [
+    "is_diode_connected",
+    "true_current_mirror_groups",
+    "l_sharing_classes",
+    "l_class_owners",
+    "vgs_alias_map",
+    "_kcl_and_matching_edges",
+    "trace_*_branches",
+    "propagate_topology_forced_currents",
+    "spec_fingerprint"
+   ],
+   "pyfile": [],
+   "dotted": [],
+   "other": [],
+   "prose_left": ""
+  },
+  "MOD4": {
+   "ident": [
+    "size_transistor",
+    "feasible_gm_ids",
+    "measure_L_knee",
+    "_hr_*",
+    "solve_diode_connected_vds",
+    "solve_stacked_diode_pair",
+    "apply_theta_feed"
+   ],
+   "pyfile": [
+    "topology_library.py"
+   ],
+   "dotted": [],
+   "other": [],
+   "prose_left": "보상식"
+  },
+  "MOD5": {
+   "ident": [
+    "compute_metric",
+    "_METRICS_REGISTRY",
+    "build_ac_network",
+    "_full_circuit_response",
+    "estimate_mismatch_sigma"
+   ],
+   "pyfile": [],
+   "dotted": [],
+   "other": [],
+   "prose_left": ""
+  },
+  "MOD6": {
+   "ident": [
+    "_build_theta_evaluator",
+    "optimize_full_circuit_budget",
+    "search_stage_budget_L_warm_start",
+    "presolve_warm_start",
+    "_optimize_theta_slsqp",
+    "repair_infeasible_baseline"
+   ],
+   "pyfile": [],
+   "dotted": [],
+   "other": [],
+   "prose_left": "탐색부"
+  },
+  "MOD7": {
+   "ident": [],
+   "pyfile": [],
+   "dotted": [],
+   "other": [],
+   "prose_left": "레지스트리 등급 R0 레이아웃 함수"
+  },
+  "MOD8": {
+   "ident": [
+    "run_topology_pipeline_with_finger_fixup",
+    "revalidate_finger_override",
+    "resolve_stack_layout"
+   ],
+   "pyfile": [],
+   "dotted": [],
+   "other": [],
+   "prose_left": ""
+  },
+  "MOD9": {
+   "ident": [
+    "save_instance_json"
+   ],
+   "pyfile": [],
+   "dotted": [
+    "design_report.render_html_report"
+   ],
+   "other": [],
+   "prose_left": "계열, (재사용, 누락 절만 추가)"
+  },
+  "MOD10": {
+   "ident": [],
+   "pyfile": [],
+   "dotted": [],
+   "other": [
+    "workspaces/"
+   ],
+   "prose_left": "spec을 인자로 받는다(를 import하지 않는다)"
+  }
+ },
+ "mod_table": {
+  "gmid_lut": 1,
+  "topology_authoring": 2,
+  "circuit_state_graph": 3,
+  "gmid_sizing_engine": 4,
+  "circuit_metrics": 5,
+  "theta_search": 6,
+  "stick_diagram": 7,
+  "sizing_layout_convergence": 8,
+  "instance_report_builder": 9,
+  "gmid_design_pipeline": 10
+ },
+ "S6_nested_refs": {
+  "sizing_recipe.py": {
+   "top_units_with_refs_only_in_nested_or_methods": 17,
+   "sample": [
+    [
+     "SemiEmpiricalGmIdLUT",
+     [
+      "_multilinear_interp",
+      "_multilinear_interp_point_multi"
+     ]
+    ],
+    [
+     "optimize_multistage",
+     [
+      "find_optimal_sizing"
+     ]
+    ],
+    [
+     "solve_diode_stack_current",
+     [
+      "_invert_gm_id_for_current"
+     ]
+    ],
+    [
+     "stack_kvl_vgs_limit",
+     [
+      "lut_vdsat_headroom"
+     ]
+    ],
+    [
+     "_metric_parasitic_pm_deg",
+     [
+      "full_circuit_response_at_omega"
+     ]
+    ],
+    [
+     "_make_shared_current_scorer",
+     [
+      "_metric_stage_budget_finalize",
+      "compute_metric",
+      "width_from_id_density"
+     ]
+    ]
+   ]
+  },
+  "stick_diagram.py": {
+   "top_units_with_refs_only_in_nested_or_methods": 4,
+   "sample": [
+    [
+     "propose_theta_kcl_gap_fill",
+     [
+      "_kcl_terminal_sign"
+     ]
+    ],
+    [
+     "merge_layout_groups_by_matching_pairs",
+     [
+      "_verified_euler_fix"
+     ]
+    ],
+    [
+     "AuditResult",
+     [
+      "AuditCheck"
+     ]
+    ],
+    [
+     "skyline_pack",
+     [
+      "_block_center"
+     ]
+    ]
+   ]
+  }
+ },
+ "future_annotations": {
+  "sizing_recipe.py": [
+   35
+  ],
+  "stick_diagram.py": [
+   32
+  ]
+ },
+ "S12_run_inventory": {
+  "count": 60,
+  "sample": [
+   "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_base_blob_reader_reads_the_base_tree",
+   "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines",
+   "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_body_is_block_verbatim_with_single_substitution",
+   "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_deterministic_bytes",
+   "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_encoding_utf8_no_bom_lf",
+   "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_exit0_and_writes_file",
+   "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_header_fixed_lines_in_order",
+   "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_import_line_names",
+   "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_input_errors_exit2",
+   "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_missing_source_exit2"
+  ]
+ },
+ "S12_optimize_full_circuit_budget_inventory": {
+  "count": 60,
+  "sample": [
+   "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_base_blob_reader_reads_the_base_tree",
+   "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines",
+   "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_body_is_block_verbatim_with_single_substitution",
+   "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_deterministic_bytes",
+   "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_encoding_utf8_no_bom_lf"
+  ]
+ },
+ "m6_scan_names": {
+  "test_d_delete_dead.py": {
+   "_DELETED_FUNCTIONS": [
+    "converge_with_parasitics",
+    "render_stick_diagram",
+    "slew_rate",
+    "suggest_headroom_stack_groups"
+   ],
+   "_DELETED_METHODS": [
+    "GmIdLUT",
+    "SemiEmpiricalGmIdLUT",
+    "fT",
+    "junction_cap"
+   ]
+  },
+  "test_d_delete_telescopic.py": {
+   "_DELETED_NAMES": [
+    "_cmfb_amp_gain_diode_load",
+    "_cmrr_telescopic_class_ab",
+    "_cmrr_telescopic_class_ab_cmfb",
+    "_load_telescopic_topology_cached",
+    "_psrr_telescopic_class_ab",
+    "_psrr_telescopic_class_ab_cmfb",
+    "_telescopic_class_ab_open_loop_gains",
+    "_telescopic_class_ab_open_loop_response",
+    "_telescopic_open_loop_device_names"
+   ],
+   "_DELETED_CONSTANTS": [
+    "_TELESCOPIC_FIXED_BASE"
+   ],
+   "_DELETED_FIELDS": [
+    "SizingContext",
+    "_open_loop_gains_cache"
+   ]
+  },
+  "test_d_move_tests.py": {
+   "_MOVES": [
+    "RegressionVerdict",
+    "_REGRESSION_ENGINES",
+    "_run_optimize_multistage_case",
+    "assign",
+    "class",
+    "def",
+    "find_interleaved_symmetric_splits",
+    "interleave_splits",
+    "regression_runner",
+    "run_regression_case"
+   ]
+  }
+ },
+ "m7_string_imports": {
+  "count": 10,
+  "lines": [
+   "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py:101:    return importlib.import_module(\"sizing_recipe\")",
+   "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py:111:    return importlib.import_module(\"sizing_recipe\")",
+   "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py:37:판정하지 않은 것: `importlib.import_module(\"sizing_recipe\")` 뒤 `getattr(m,",
+   "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py:75:    return importlib.import_module(\"sizing_recipe\")",
+   "skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py:113:    sr = _import(\"sizing_recipe\")",
+   "skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py:120:    sr = _import(\"sizing_recipe\")",
+   "skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py:127:    sr = _import(\"sizing_recipe\")",
+   "skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py:134:    sr = _import(\"sizing_recipe\")",
+   "skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py:140:    sr = _import(\"sizing_recipe\")",
+   "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:229:    module = importlib.import_module(\"sizing_recipe\")"
+  ]
+ },
+ "S13_SIZING_RECIPE": [
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:60:_SIZING_RECIPE = _ASSETS_DIR / \"sizing_recipe.py\"",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:221:    source = _SIZING_RECIPE.read_text(encoding=\"utf-8\")",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:222:    assert_source_binds_no_symbol(source, _MISSING_SYMBOL, _SIZING_RECIPE.name)",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:261:    source = _SIZING_RECIPE.read_text(encoding=\"utf-8\")",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:262:    callers = assert_symbol_has_operational_caller(source, _AUDIT_FUNC, _SIZING_REC"
+ ],
+ "S11_attr_overrides": [
+  "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py:104:    sr.diode_vds_window = _ORIG_WINDOW if b22_on else _window_no_mirror",
+  "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py:116:        sr.diode_vds_window = _ORIG_WINDOW",
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py:63:sr._hr_resolve_vertical_group = traced",
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py:94:sr.apply_diode_self_consistent_gm_id = traced",
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py:100:    sr.diode_vds_window = patched_window",
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py:108:        sr.diode_vds_window = _orig_singleton_window",
+  "skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py:124:sr._optimize_theta_slsqp = traced",
+  "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py:47:sr.resolve_feed_vds = traced_resolve_feed_vds",
+  "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py:53:sr._feed_vds_fallback = traced_fb",
+  "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py:62:sr.allocate_stack_headroom = traced_alloc",
+  "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py:73:    sr._metric_stage_budget_vds_by_device = traced_sbv",
+  "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py:79:sr._hr_resolve_vertical_group = traced_rvg",
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py:24:sizing_recipe.repair_matching_safety = lambda rows, pairs, kinds, max_iter=3: (rows, typ",
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py:20:sizing_recipe.repair_matching_safety = lambda rows, pairs, kinds, max_iter=3: (rows, typ"
+ ],
+ "B5_v3_output_keys": {
+  "HEAD": [
+   [
+    "tool",
+    "verdict",
+    "targets",
+    "mutants",
+    "killed",
+    "survivors"
+   ],
+   [
+    "tool",
+    "verdict",
+    "error"
+   ]
+  ],
+  "role/code/20260930-v3-history-clone": [
+   [
+    "tool",
+    "verdict",
+    "targets",
+    "mutants",
+    "killed",
+    "survivors"
+   ],
+   [
+    "tool",
+    "verdict",
+    "error",
+    "baseline_failed"
+   ],
+   [
+    "tool",
+    "verdict",
+    "error"
+   ]
+  ]
+ }
+}

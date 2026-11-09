@@ -1,0 +1,13 @@
+ngcc_3stage_ff:A0d1 done ngcc_3stage_ff A0d1 sealed {'area_search_m2<=': 877472.607, 'gain_ss_db>=': -0.774, 'gbw_ss_hz>=': -4.001, 'icmr_v>=': 11.479, 'offset_excess<=': 8.18, 'noise_excess_th<=': -1.142}
+ngcc_3stage_ff:NCd1 done ngcc_3stage_ff NCd1 sealed {'area_search_m2<=': 3739854.649, 'gain_ss_db>=': -0.774, 'gbw_ss_hz>=': -3.999, 'icmr_v>=': 11.479, 'offset_excess<=': 8.18, 'noise_excess_th<=': -1.142}
+sf_pushpull_output_opamp:A0d0 done sf_pushpull_output_opamp A0d0 sealed {'area_search_m2<=': -18696100.42, 'gain_ss_db>=': -3.57, 'gbw_ss_hz>=': -0.04, 'rout_ss_ohm<=': 8.776, 'offset_excess<=': 0.71, 'icm_margin_v>=': 17.412, 'noise_excess_th<=': 0.119, 'pm_ss_deg>=': -0.944}
+nmcnr_amplifier:A0d0 done nmcnr_amplifier A0d0 sealed {'area_search_m2<=': 2362716.185, 'gain_ss_db>=': -5.061, 'gbw_ss_hz>=': 0.27, 'pm_ss_deg>=': -1.735, 'icmr_v>=': 13.678, 'swing_out_v>=': 25.203, 'offset_excess<=': -3.462, 'noise_excess_th<=': -1.06}
+nmcnr_amplifier:NCd1 done nmcnr_amplifier NCd1 sealed {'area_search_m2<=': 2357810.252, 'gain_ss_db>=': -5.189, 'gbw_ss_hz>=': 0.094, 'pm_ss_deg>=': -1.613, 'icmr_v>=': 13.678, 'swing_out_v>=': 25.203, 'offset_excess<=': -3.438, 'noise_excess_th<=': -1.038}
+nmcnr_amplifier:RCd1 done nmcnr_amplifier RCd1 sealed {'area_search_m2<=': 2365633.247, 'gain_ss_db>=': -4.476, 'gbw_ss_hz>=': 0.606, 'pm_ss_deg>=': -2.214, 'icmr_v>=': 13.678, 'swing_out_v>=': 25.203, 'offset_excess<=': -3.446, 'noise_excess_th<=': -1.04}
+folded_cascode:A0d0 done folded_cascode A0d0 sealed {'area_search_m2<=': 2057568.075, 'offset_excess<=': -2.366, 'noise_excess_th<=': -0.482}
+folded_cascode:NCd1 done folded_cascode NCd1 sealed {'area_search_m2<=': 2941023.721, 'offset_excess<=': -2.451, 'noise_excess_th<=': -0.736}
+common_gate_amplifier:A0d0 done common_gate_amplifier A0d0 sealed {'area_search_m2<=': 2380821.14, 'noise_excess_th<=': 1.586}
+pushpull_follower_buffer:A0d0 done pushpull_follower_buffer A0d0 sealed {'area_search_m2<=': 2379338.799, 'rout_ss_ohm<=': -2.884}
+sf_pushpull_output_opamp:NCd1 
+two_stage_ota_sf:NBd1 done two_stage_ota_sf NBd1 sealed {'area_search_m2<=': 7056272.917, 'gain_ss_db>=': -2.416, 'rout_ss_ohm<=': 1.137, 'gbw_ss_hz>=': -1.512, 'offset_excess<=': -0.304, 'noise_excess_th<=': 2.962, 'pm_ss_deg>=': 1.875}
+sf_pushpull_output_opamp:NCd1 done sf_pushpull_output_opamp NCd1 sealed {'area_search_m2<=': 8405039.939, 'gain_ss_db>=': -3.57, 'gbw_ss_hz>=': -8.123, 'rout_ss_ohm<=': 8.776, 'offset_excess<=': 0.214, 'icm_margin_v>=': 17.412, 'noise_excess_th<=': -0.224, 'pm_ss_deg>=': -0.526}

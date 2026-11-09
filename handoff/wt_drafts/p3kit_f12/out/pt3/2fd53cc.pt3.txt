@@ -1,0 +1,151 @@
+........................................................................ [  6%]
+...................................................F.................... [ 13%]
+........................................................................ [ 20%]
+........................................................................ [ 27%]
+.......................................................................F [ 33%]
+.......xxxxxx..xF........xxxxx.......................................... [ 40%]
+........................................................................ [ 47%]
+........................................................................ [ 54%]
+........................................................................ [ 61%]
+........................................................................ [ 67%]
+.............F..............................................F........... [ 74%]
+........................................................................ [ 81%]
+..................................x...x................................. [ 88%]
+........................................................................ [ 94%]
+..........................x...........................                   [100%]
+================================== FAILURES ===================================
+____________ test_new_tool_modules_do_not_copy_engine_definitions _____________
+
+    def test_new_tool_modules_do_not_copy_engine_definitions():
+        # oracle (a): 엔진 최상위 정의 집합(저장소 트리)과 새 모듈 정의의 교집합이 공이고 regression_runner가
+        # sizing_recipe를 import한다(spec card 계약 1). base에서는 파일이 없어 red.
+        files = _engine_files()
+        assert_engine_scope_present(files)
+        engine_defined = set()
+        for path in files:
+            engine_defined |= set(top_level_definitions(_read(path)))
+        assert engine_defined, "엔진 최상위 정의 집합이 비었다(판정 범위 공허)"
+        for module in _MOVES:
+            path = _tool_path(module)
+            assert path.is_file(), f"이관 위치 파일이 없다: {_rel(path)}"
+>           assert_no_engine_copy(_read(path), engine_defined, _REQUIRED_ENGINE_IMPORT.get(module), _rel(path))
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_move_tests.py:252: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+source = '"""공정-무관 회귀 검증 러너 test 도구.\n\n`sizing_recipe.py`에서 이관됐다(spec card 20260930-d-move-tests, 운영 호출 0 -- self-test 전용).\n본...ey=case_key, actual=actual,\n                              detail=f"{ref.get(\'source\', reference_json_path)}와 일치")\n'
+engine_defined = {'ASSETS_DIR', 'AdjustmentSuggestion', 'AuditCheck', 'AuditResult', 'BoxLayoutCandidate', 'BoxShapeVerdict', ...}
+required_import = 'sizing_recipe'
+where = 'skills/analog-gmid-design/assets/tests/tools/regression_runner.py'
+
+    def assert_no_engine_copy(source: str, engine_defined: set, required_import, where: str) -> None:
+        """판정: `source` 최상위가 엔진 최상위 정의 이름을 다시 정의하지 않고, `required_import`(있으면)를 import한다."""
+        copies = sorted(set(top_level_definitions(source)) & engine_defined)
+        assert copies == [], f"{where}: 엔진 정의 이름을 다시 정의했다(사본) {copies}"
+        if required_import is not None:
+>           assert required_import in imported_modules(source), f"{where}: {required_import} 를 import하지 않는다"
+E           AssertionError: skills/analog-gmid-design/assets/tests/tools/regression_runner.py: sizing_recipe 를 import하지 않는다
+E           assert 'sizing_recipe' in {'dataclasses', 'gmid_lut', 'gmid_sizing_engine', 'json', 'numpy', 'os', ...}
+E            +  where {'dataclasses', 'gmid_lut', 'gmid_sizing_engine', 'json', 'numpy', 'os', ...} = imported_modules('"""공정-무관 회귀 검증 러너 test 도구.\n\n`sizing_recipe.py`에서 이관됐다(spec card 20260930-d-move-tests, 운영 호출 0 -- self-test 전용).\n본...ey=case_key, actual=actual,\n                              detail=f"{ref.get(\'source\', reference_json_path)}와 일치")\n')
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_move_tests.py:237: AssertionError
+___________________ test_size_transistor_calls_new_function ___________________
+
+    def test_size_transistor_calls_new_function():
+        # oracle (a): 현재 sizing_recipe AST가 입력, 기대값은 'size_transistor 본문에 width_from_id_density 호출 1개 이상'(계약 3).
+        path = _ASSETS_DIR / "sizing_recipe.py"
+        assert path.exists(), path
+>       assert_function_calls(_read(path), _CANON_FUNC, _NEW_FUNC, _rel(path))
+
+skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py:444: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+source = '#!/usr/bin/env python\\n"""sizing_recipe.py \u2014 gm/ID sizing template (Jespers gm/ID methodology).\\n\\n\uc774 \ud30c\uc77c\uc740 \xa71(LUT \uc778\ud130\ud398\uc774\uc2a4...                           check_stick_diagram_coverage,\\n                            require_device_roles_reviewed)\\n'
+func_name = 'size_transistor', callee = 'width_from_id_density'
+where = 'skills/analog-gmid-design/assets/sizing_recipe.py'
+
+    def assert_function_calls(source: str, func_name: str, callee: str, where: str) -> None:
+        """판정: `func_name` 정의가 있고 그 본문이 `callee`를 한 번 이상 부른다."""
+        n = calls_in_function(source, func_name, callee)
+>       assert n != -1, f"{where}: {func_name} 정의가 없다"
+E       AssertionError: skills/analog-gmid-design/assets/sizing_recipe.py: size_transistor 정의가 없다
+E       assert -1 != -1
+
+skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py:436: AssertionError
+__________________ test_gate_docstring_declares_blind_spots ___________________
+
+    @pytest.mark.gmid_ic("IC5", phase="1", case="")
+    def test_gate_docstring_declares_blind_spots():
+        # oracle (d): 계획 N4.1 IC5, `00-common` §5(+C1), design §5.6 형식·영역 표(spec card 계약 1~3).
+        assert _HARNESS.is_file(), f"design §5.6 소스 분류 파일이 없다: {_HARNESS}"
+        targets = []
+        for path in _source_files():
+            targets.extend(_collect_targets(path.read_text(encoding="utf-8"), path.name))
+    
+        # (1) 공허한 통과 방지.
+        assert len(targets) >= 1, "IC5 대상 함수가 0개다"
+    
+        # 표의 21개가 대상 집합 안에 있어야 (3)이 공허하지 않다.
+        found_keys = {(f, n) for f, n, _, _ in targets}
+        missing = sorted(set(_DOMAIN_TABLE) - found_keys)
+>       assert not missing, f"design §5.6 영역 표의 함수가 대상에 없다({len(missing)}개): {missing}"
+E       AssertionError: design §5.6 영역 표의 함수가 대상에 없다(12개): [('audit_current_forced.py', 'audit_topology'), ('sizing_recipe.py', 'audit_l_sharing_consistency'), ('sizing_recipe.py', 'audit_vsb_consistency'), ('sizing_recipe.py', 'check_quasi_static'), ('sizing_recipe.py', 'require_declared_spec_source'), ('sizing_recipe.py', 'validate_metric_units'), ('sizing_recipe.py', 'validate_no_legacy_vs_key'), ('sizing_recipe.py', 'validate_theta_declaration_order'), ('stick_diagram.py', 'audit_theta_root_direction'), ('stick_diagram.py', 'audit_vertical_stack_id_vs_kcl'), ('stick_diagram.py', 'check_symmetry_dispositions'), ('stick_diagram.py', 'require_device_roles_reviewed')]
+E       assert not [('audit_current_forced.py', 'audit_topology'), ('sizing_recipe.py', 'audit_l_sharing_consistency'), ('sizing_recipe.p...asi_static'), ('sizing_recipe.py', 'require_declared_spec_source'), ('sizing_recipe.py', 'validate_metric_units'), ...]
+
+skills\analog-gmid-design\assets\tests\contracts\test_ic5.py:139: AssertionError
+______________ test_audit_vsb_consistency_has_operational_caller ______________
+
+    def test_audit_vsb_consistency_has_operational_caller():
+        # oracle (a): 저장소의 현재 호출 관계가 기대값이다 -- 호출 유무만 세고 구현은 보지 않는다.
+        source = _SIZING_RECIPE.read_text(encoding="utf-8")
+>       callers = assert_symbol_has_operational_caller(source, _AUDIT_FUNC, _SIZING_RECIPE.name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py:262: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+source = '#!/usr/bin/env python\\n"""sizing_recipe.py \u2014 gm/ID sizing template (Jespers gm/ID methodology).\\n\\n\uc774 \ud30c\uc77c\uc740 \xa71(LUT \uc778\ud130\ud398\uc774\uc2a4...                           check_stick_diagram_coverage,\\n                            require_device_roles_reviewed)\\n'
+symbol = 'audit_vsb_consistency', where = 'sizing_recipe.py'
+
+    def assert_symbol_has_operational_caller(source: str, symbol: str, where: str) -> set:
+        callers = _operational_callers(source, symbol)
+>       assert callers, f"{where}: {symbol} 을 호출하는 운영 함수가 없다"
+E       AssertionError: sizing_recipe.py: audit_vsb_consistency 을 호출하는 운영 함수가 없다
+E       assert set()
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py:161: AssertionError
+_______________ test_moved_tool_matches_base_except_path_lines ________________
+
+    def test_moved_tool_matches_base_except_path_lines():
+        # oracle (c): 기준선 = base 커밋 blob 그 자체(계약 5의 '경로 계산 줄을 뺀 나머지가 원본과 같다').
+        new_path = _TOOLS_DIR / _TOOL_NAME
+        assert new_path.is_file(), f"{new_path} 가 없다"
+>       assert_only_path_lines_changed(base_blob_text(f"{_TESTS_REL}/{_TOOL_NAME}"),
+                                       new_path.read_text(encoding="utf-8"), _TOOL_NAME)
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py:672: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+base_source = '# -*- coding: utf-8 -*-\n"""제약 임계값을 **달성 가능 실측**에서 유도해 사이드카(`<topology>.derived.json`)에 남긴다.\n\n사용자 지시(2026-09-10): *....dump(book, fh, ensure_ascii=False, indent=2)\n    emit(f"  사이드카 저장: {path}  (지문 {fp})")\n\nemit("")\nemit("=" * 96)\n'
+new_source = '# -*- coding: utf-8 -*-\n"""제약 임계값을 **달성 가능 실측**에서 유도해 사이드카(`<topology>.derived.json`)에 남긴다.\n\n사용자 지시(2026-09-10): *....dump(book, fh, ensure_ascii=False, indent=2)\n    emit(f"  사이드카 저장: {path}  (지문 {fp})")\n\nemit("")\nemit("=" * 96)\n'
+where = 'derive_achievable_bounds.py'
+
+    def assert_only_path_lines_changed(base_source: str, new_source: str, where: str) -> None:
+        """계약 2·5: 바뀐 줄이 전부 경로 줄이고 그 밖의 줄은 모두 같다."""
+        offenders = non_path_line_changes(base_source, new_source)
+>       assert offenders == [], f"{where}: 경로 줄이 아닌 변경 {offenders}"
+E       AssertionError: derive_achievable_bounds.py: 경로 줄이 아닌 변경 [('base', 33, 'import sizing_recipe as sr'), ('new', 33, 'import circuit_state_graph as _f1_circuit_state_graph'), ('new', 34, 'import sizing_layout_convergence as _f1_sizing_layout_convergence'), ('new', 35, 'import theta_search as _f1_theta_search'), ('base', 68, '    fp = sr.spec_fingerprint(spec)'), ('base', 69, '    book = sr.load_derived_bounds(topo)'), ('new', 70, '    fp = _f1_circuit_state_graph.spec_fingerprint(spec)'), ('new', 71, '    book = _f1_theta_search.load_derived_bounds(topo)'), ('base', 78, '            r = sr.achievable_metric_bound('), ('new', 80, '            r = _f1_sizing_layout_convergence.achievable_metric_bound('), ('base', 112, '    path = sr.derived_bounds_path(topo)'), ('new', 114, '    path = _f1_theta_search.derived_bounds_path(topo)')]
+E       assert [('base', 33,...(topo)'), ...] == []
+E         
+E         Left contains 12 more items, first extra item: ('base', 33, 'import sizing_recipe as sr')
+E         Use -v to get more diff
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py:296: AssertionError
+=========================== short test summary info ===========================
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_new_tool_modules_do_not_copy_engine_definitions
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_size_transistor_calls_new_function
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_gate_docstring_declares_blind_spots
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines
+5 failed, 1042 passed, 15 xfailed in 211.92s (0:03:31)
+exit=1 seconds=221

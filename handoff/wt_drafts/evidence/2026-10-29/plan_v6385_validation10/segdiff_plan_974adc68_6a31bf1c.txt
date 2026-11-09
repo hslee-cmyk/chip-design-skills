@@ -1,0 +1,180 @@
+
+===== replace old 11-11 new 11-11
+  - M9a 손 판정 F라 권고 (다) B 멤버 종속 + (A) 옛 OrderHints 삭제·쓰기 계획 키 재작성(card TB-1);
+  + 배터리 손 판정(M9b F 상·M9a 중하)으로 권고 (다) B 멤버 종속 + (A) 옛 OrderHints 삭제·쓰기 계획 키 재작성(card TB-1);
+  ~~
+  - C 상자는 Q-CB1 (나)로 해소 권고)
+  + Q-CB1 (나)는 0.1 pF 관례 하한 원인만 제거, front 공백 위험은 남음(fail-closed 기록))
+  ~~
+  - 사용자 결정됨)·Q-W1 후보·Q-KV1 (다)(DEC-95 (3) ①·② 개정·TB-1 범위)·Q-CA1(채택 시 U-35 `user_spec` 삭제)·Q-CB1('10번'·N13·DEC-105 (10)(a));
+  + 사용자 결정됨)·Q-W1 후보·Q-KV1 (다)(DEC-95 (3) ①·② 개정·TB-1 범위·DEC-104 (3)(a) 층 위치·O-149 병합 규칙 재검토)·Q-CA1(채택 시 U-35 `user_spec` 삭제)·Q-CB1('10번'·N13·DEC-105 (10)(a));
+  ~~
+
+===== replace old 263-263 new 263-263
+  - M9a 손 판정 F(검증 8 MJ8-1)라 권고 (다)
+  + 배터리 손 판정(M9b F 확신도 상·M9a 중하
+  + 검증 8·9)으로 권고 (다)
+  ~~
+
+===== replace old 294-294 new 294-294
+  - | DEC-95 | **탐색 방법 묶음**(reference 검토 Q10): (1) 외층 L bin 처리 = LR10 (2) 면적 동률 폭 ΔA_tie = `MANUFACTURINGGRID` × max(두 점 bbox 변)(DEC-79 '격자 한 칸'의 식) (3) 종속 gm_id 소자 선택(`equal_vgs`·`kvl_branch` 등 비트리 관계): ratified 선택 → diode → GB5가 gm을 요구하는 소자·뒤 stage 소자는 독립 유지(→ v6.38.5 Q-KV1 (다) 승인 시: `kvl_branch` 고리에 R13 B 멤버가 있으면 B 멤버가 종속(B 안 순위 = diode → 대칭 궤도 대표 → 이름)
+  + | DEC-95 | **탐색 방법 묶음**(reference 검토 Q10): (1) 외층 L bin 처리 = LR10 (2) 면적 동률 폭 ΔA_tie = `MANUFACTURINGGRID` × max(두 점 bbox 변)(DEC-79 '격자 한 칸'의 식) (3) 종속 gm_id 소자 선택(`equal_vgs`·`kvl_branch` 등 비트리 관계): ratified 선택 → ① diode → ② GB5가 gm을 요구하는 소자·뒤 stage 소자는 독립 유지(→ v6.38.5 Q-KV1 (다) 승인 시: `kvl_branch` 고리에 R13 B 멤버가 있으면 B 멤버가 종속(B 안 순위 = diode → 대칭 궤도 대표 → 이름)
+  ~~
+
+===== replace old 303-304 new 303-304
+  - 입력 = S1v `Block.roles`·`device.dc_coord`·spec(GBW·rout)·L 동치류, topology 태그는 쓰지 않는다;
+  + 입력 = S1v `Block.roles`·`device.dc_coord`·spec(GBW·rout)·L 동치류(→ v6.38.5 Q-KV1 (다) 승인 시 `device.dc_coord` 제외
+  + 순환 방지)
+  + topology 태그는 쓰지 않는다;
+  ~~
+  - **W와 실현 기하의 관계**(검증 5 V5-2
+  + **W와 실현 기하의 관계**(→ v6.38.5 Q-W1 권고안 문언
+  + 승인 전에는 조건부, 일괄 반영 목록 N5.3 Q-W1 행)(검증 5 V5-2
+  ~~
+  - 결합 C 하한 결정자 = 결합비 α와 SR(대신호)
+  - 권고 (나) 역할별 분리, **원래 취지와 다름**
+  + 결합 C 하한 결정자 = 결합비 α와 SR(대신호);
+  + Q-CB1 (나) 승인 시 결합 C는 공통 상자 대상 밖·회로별 선언·미선언 정지(card SF-1 범위 9)
+  + **원래 취지와 다름**
+  ~~
+
+===== replace old 1161-1161 new 1161-1161
+  - **표지 자리·되돌릴 목록**(design 영향 대조 `wt/_drafts/evidence/2026-10-29/plan_v6385_design_impact.md` §3 2): 권고안 문언이 본문에 들어간 자리 = DEC-105 (2) '탐색 평가와 실현 평가'·'실현 총 폭'·측정 구성·front 처리, WB-1 범위 2b·완료 (5) 실현 평가 toy, U-130 행 DeviceOp.W 문장, E-0 '실현 평가 봉인점' 조건
+  + **표지 자리·되돌릴 목록**(design 영향 대조 `wt/_drafts/evidence/2026-10-29/plan_v6385_design_impact.md` §3 2): 권고안 문언이 본문에 들어간 자리 = DEC-105 (2) 'W와 실현 기하의 관계'·'탐색 평가와 실현 평가'·'실현 총 폭'·측정 구성·front 처리, WB-1 범위 2b·완료 (5) 실현 평가 toy, U-130 행 DeviceOp.W 문장, E-0 '실현 평가 봉인점' 조건
+  ~~
+
+===== replace old 1163-1163 new 1163-1163
+  - 권고**(승인 시 ⚠ 원인이 상자에서 해소, (i) 불필요;
+  + 권고**(승인 시 0.1 pF 관례 하한 원인 제거, front 공백 위험은 남아 (i) fail-closed 기록 유지
+  + 남는 원인 θ 의존 SR_∞·C_g,eff·경계 여유 < 측정 잡음(1.5 pF 상승 SR 19.77 대 19.32, 잡음 ±0.7)·정류 표류;
+  ~~
+  - 권고 정리: Q-ZG1 = (나) 기하 W_min·L_min, C 상자는 Q-CB1에 따름.
+  + 권고 정리: Q-ZG1 = (나) 기하 W_min·L_min, C 상자는 Q-CB1에 따름, (i) 기록은 함께 유지.
+  ~~
+
+===== replace old 1165-1166 new 1165-1166
+  - **M9a R13 손 판정**(검증 8 MJ8-1
+  + **배터리 R13 손 판정**(검증 8 MJ8-1·검증 9 m9-1
+  ~~
+  - F = 그 밖 신호 소자, B = 부하·미러·바이어스·FF'와 연결: M9a는 채널이 Vop1(1단 출력)↔Vg15(M15 gate)를 잇고 gate만 바이어스(N11b)다
+  - AC에서 1단 신호를 M15 gate로 넘기는 정방향 pass 경로(as-built S1v 전달 뷰 `kind: pass`·`forward: true`·main_path 안
+  - `plan_v6385_validation8/s1v_m9a.txt`;
+  - 배터리 전달 H0 = 1.40~1.53·배터리 극점이 PM을 깎음
+  - `classab_battery.md` 결정자 3·7)이라 신호 소자이고, R3이 그 gm을 정하지 않으므로 **F**(확신도 중);
+  - M9b(채널 Vg15↔Vop1, gate N14a14b 바이어스, source Vop1
+  - 1단 신호를 source로 받아 drain Vg15로 넘기는 CG 꼴 pass)도 같은 근거로 **F**(확신도 중하
+  - S1v 셀 기록 미확인)
+  - M18a·M18b는 대칭으로 같다.
+  + F = 그 밖 신호 소자, B = 부하·미러·바이어스·FF'와 연결: **M9b**(채널 Vg15↔Vop1, gate N14a14b 바이어스, source Vop1
+  + 1단 신호를 source로 받아 drain Vg15로 넘기는 CG 꼴, 배터리 전달 H0의 분자;
+  + as-built S1v에 `pass`·`forward`·main_path로 기록
+  + 검증 9)는 R3이 gm을 정하지 않는 신호 소자라 **F(확신도 상)**, M18b도 대칭으로 같다;
+  + **M9a**(채널 Vop1↔Vg15, gate N11b 바이어스
+  + S1v 전달 뷰 `pass`·`forward`·main_path 안(`plan_v6385_validation8/s1v_m9a.txt`)이지만 Vg15의 종단 임피던스(H0의 분모, `classab_battery.md` 결정자 3)라 기능상 부하에 가까움)는 **F/B 경계(확신도 중하)**, M18a도 같다.
+  ~~
+  - **귀결**: F이면 DEC-95 (3)(①이 다이오드를 독립으로 둠, ②가 출력을 독립으로 둠 → 배터리 종속)은 F를 종속으로 골라 L-11('B는 어느 층에서도 독립 변수가 아니다')·R6(B ln IDu 종속)과 충돌한다
+  + **귀결**: (다)는 M9a 분류와 무관하게 L-11·R6과 정합한다(M9a가 B여도 B 안 순위 diode 먼저 → M11a);
+  + (가)의 모순은 M9b·M18b 고리(F 확신도 상)에서 성립한다
+  + 배터리가 F이면 DEC-95 (3)(①이 다이오드를 독립으로 둠, ②가 출력을 독립으로 둠 → 배터리 종속)은 F를 종속으로 골라 L-11('B는 어느 층에서도 독립 변수가 아니다')·R6(B ln IDu 종속)과 충돌한다
+  ~~
+  - 순환 0·역전 0·새 필드 0 ⚠ F 경우 L-11·R6과 모순 유지 (나) DEC-95 ② → R13 S·F 멤버 독립, ① 유지 ⚠ 같은 모순(B 아닌 멤버 종속)·R13 앞당김 필요 (다) **권고**: 고리에 R13 B 멤버가 있으면 B 멤버가 종속(B 안 순위 = diode → 대칭 궤도 대표 → 이름)
+  + 순환 0·역전 0·새 필드 0 ⚠ F 경우 L-11·R6과 모순 유지 (나) DEC-95 ② → R13 S·F 멤버 독립, ① 유지 ⚠ 같은 모순(B 아닌 멤버 종속)·R13 앞당김 필요 (다) **권고**: 고리에 R13 B 멤버가 있으면 B 멤버가 종속(B 안 순위 = diode → 대칭 궤도 대표 → 이름;
+  + ratified 선택은 B 멤버 안에서만
+  + 아니면 정지·기록;
+  + 대칭 고리 쌍은 대표 고리 선택의 상(image)으로 고름
+  + 둘 다 design 몫, 검증 9 m9-2)
+  ~~
+  - **권고 (나) 역할별 분리**: 보상 C = '10번' 공통 상자 유지(⚠ 관례 근거
+  - PM 목표 없는 3회로 Cc·ngcc Cm2가 하한에 붙는 사례 기록);
+  + **권고 (나) 역할별 분리**: 보상 C = '10번' 공통 상자 유지(⚠ 원칙 경고: 관례를 정의로 쓰는 상태가 남음
+  + 하한에 붙는 사례는 PM 목표 없는 3회로 Cc와 PM 목표가 있는 ngcc Cm2 둘 다라, 관례값이 설계값이 되는 것은 PM 목표 유무와 무관;
+  + 보상 C 하한의 물리 결정자 후보(PDK 최소 MIM·마디 기생 바닥)는 후속 질문(백로그));
+  ~~
+  - 상수 발명 금지)
+  + 상수 발명 금지;
+  + 격자 간격·반복성(측정 잡음 ±0.7 V/µs 대비 경계 여유)을 함께 기록
+  + 경계값이 격자에 따라 바뀜)
+  ~~
+  - 결합 C 판별 = 구조 규칙('C 한 끝 넷에 MOS 게이트와 구조적 0 전류 MOS만 닿음'
+  + 결합 C 판별 = 구조 규칙(대상 = θ 커패시터, 'C 한 끝 넷에 닿는 소자가 MOS 게이트와 구조적 0 전류 MOS(≥ 1)뿐'
+  + 게이트·커패시터만의 DC 부유 넷은 제외
+  ~~
+  - **Q-ZG1과의 관계**: 승인되면 Q-ZG1 ⚠(C_BAT 하한 SR 저하·front 공백)의 원인이 상자에서 해소되고 Q-ZG1 (i) 수용은 불필요
+  + **Q-ZG1과의 관계**: 승인되면 Q-ZG1 ⚠의 원인 하나(면적이 C를 0.1 pF로 밀어 SR 확실 FAIL)가 제거되나 front 공백 위험은 남아 Q-ZG1 (i)의 fail-closed 기록은 유지한다(남는 원인: θ 의존 SR_∞·C_g,eff(엔진은 O-122로 SR_∞를 깎는 전류 최소화를 막지 못함)
+  + 경계 여유 < 측정 잡음(1.5 pF 상승 SR 19.77 대 spec 19.32 V/µs, 잡음 ±0.7 V/µs
+  + `cbox_rereview/c5_sr2080.txt`)
+  + 정류 표류
+  + 선언 하한은 front 공백 방지용 탐색 범위이지 PASS 보장이 아님(`cbox_rereview.md` §2.4 (iii))
+  + oracle이 점별 판정)
+  ~~
+  - 맞음(조건: 하한 값은 oracle 실측 경계와 사용자 승인, sky130 bench는 경향) | card SF-1 결합 C data 커밋 전(SR 항목 정의 뒤 재측정) |
+  + 맞음(조건: 하한 값은 oracle 실측 경계와 사용자 승인, sky130 bench는 경향)  **구현 자리·순서**(검증 9 MJ9-2): 구현 card = SF-1 범위 9(θ 상자 적용
+  + 결합 C는 공통 상자 대상 밖·회로별 선언 읽기·미선언 결합 C 정지);
+  + 판별 술어의 0 전류 MOS 입력 = card DR-1이 재작성하는 KCL 항등 0 전류 MOS 집합 필드(`E/sizing/current_basis.py:129-133` `dead`의 정본
+  + READS만, 둘째 생산자 0);
+  + 그래서 상자 적용은 spec 로더(그래프 전)가 아니라 그 필드 뒤 S0 θ 상자 블록이 하고(자리·필드 이름은 design
+  + 그 필드가 graph 필드가 아니면 멈추고 보고, S-7)
+  + SF-1 범위 9의 결합 C 갈래(별도 커밋)는 card DR-1과 같은 통합 병합으로만 master에 들어간다(SF-1의 나머지 범위는 늦추지 않음;
+  + DR-1 전에는 erfc가 `mos_zero_current_structural`로 멈추므로 결합 C 갈래가 없어도 결과 영향 0).
+  + 출처 하나 비교: (α) **권고**
+  + 구조 판별로 결합 C를 공통 상자 대상에서 빼고 회로별 선언만 읽음, 미선언 결합 C는 정지(fail-closed, DEC-105 (10)(d) `theta_*_bounds_undeclared` 꼴) / (β) '선언 있으면 선언, 없으면 공통' ⚠ 미선언 결합 C가 공통 하한을 받는 fail-open 갈래.
+  + 미선언 처리 원칙 = fail-closed(출처 없는 θ 수동소자 거부와 같은 규칙).
+  + | card SF-1 design(범위 9) 착수 전
+  + 하한 값은 SF-1 `.tran` SR 항목 정의 뒤 재측정 |
+  ~~
+
+===== replace old 1210-1210 new 1210-1210
+  - v6.38.2 U-132 기본안) | N6.29 | headroom-chain HC-S(`sat_threshold`).
+  + v6.38.2 U-132 기본안)(→ v6.38.5 Q-KV1 (다)+(A) 승인 시: `writer_plan.py`·`kernel_context.py`·`sizing/__init__.py` 범위 추가
+  + 파일 겹침 card IT-1·DR-1(같은 통합 병합 금지, 나중 card가 rebase)
+  + card 성격 확장(필드만 → 쓰기 계획 배선, 동작 변경)) | N6.29 | headroom-chain HC-S(`sat_threshold`).
+  ~~
+
+===== replace old 2194-2194 new 2194-2194
+  - 엔진 동작 변경 포함**(v6.38.2 DEC-105 (10)
+  + 엔진 동작 변경 포함**(→ v6.38.5 Q-CB1 (나) 승인 시: 결합 C(구조 판별
+  + DR-1의 0 전류 MOS 집합 필드 READS)는 공통 상자 대상 밖·회로별 `search.theta_bounds` 선언·미선언 정지, 이 갈래는 별도 커밋으로 card DR-1과 같은 통합 병합
+  + N5.3 Q-CB1 행)(v6.38.2 DEC-105 (10)
+  ~~
+
+===== replace old 2208-2208 new 2208-2208
+  - 그리고 쓰기 계획 Kruskal 키가 이 필드를 READS하도록 `E/sizing/writer_plan.py`를 고치고 옛 OrderHints(`E/sizing/s2_values.py:208-219`·`kernel_context.py:53·85`)와 그 Kruskal 단계를 지우는 일이 이 card 범위로 추가(Q-KV1 (A);
+  + 그리고 쓰기 계획 Kruskal 키가 이 필드를 READS하도록 `E/sizing/writer_plan.py`를 고치고 옛 OrderHints(`E/sizing/s2_values.py:208-219`·`kernel_context.py:53·85`·`sizing/__init__.py`(export)·`sizing/CONTRACT.md:1001-1004`;
+  + test `tests/sizing/{conftest.py, test_kernel_run.py, test_s2_values.py, test_size_and_seal.py, test_writer_plan.py}`
+  + test 주체 몫)와 그 Kruskal 단계를 지우는 일이 이 card 범위로 추가(Q-KV1 (A);
+  ~~
+  - 입력 = S1v `Block.roles`·`device.dc_coord`·spec 선언 사실(GBW·rout·정착 선언 있음)·L 동치류, topology 태그 READS 0.
+  + 입력 = S1v `Block.roles`·`device.dc_coord`·spec 선언 사실(GBW·rout·정착 선언 있음)·L 동치류(→ v6.38.5 Q-KV1 (다) 승인 시 `device.dc_coord` 제외
+  + 쓰기 계획 앞 블록이 쓰기 계획 출력을 읽으면 순환)
+  + topology 태그 READS 0.
+  ~~
+
+===== replace old 2213-2213 new 2213-2213
+  - O-144 J3 이연 범위): 이 card의 필드는 병합 때 **엔진 소비자 0**이다(as-built `vds_saturation`도 test만 읽음).
+  + O-144 J3 이연 범위): 이 card의 필드는 병합 때 **엔진 소비자 0**이다(→ v6.38.5 Q-KV1 (다)+(A) 승인 시: 행동 소비자 = 쓰기 계획(같은 card)
+  + 동작 변경 card)(as-built `vds_saturation`도 test만 읽음).
+  ~~
+
+===== replace old 2215-2215 new 2215-2215
+  - 새 필드는 아직 판정·탐색에 쓰이지 않고, 재배선 자리는 값 동일) (6) N6.3 공통 (7) 범위 3·4의 toy·변화표는 U-132 기본안으로 card LA-1 완료 조건 10 (c)·(d).
+  + 새 필드는 아직 판정·탐색에 쓰이지 않고, 재배선 자리는 값 동일)(→ v6.38.5 Q-KV1 (다)+(A) 승인 시 순수 리팩터링이 아니라 동작 변경: 변화표(종속 멤버·θ 축·front
+  + 9회로 + heldout;
+  + current_reuse 4고리 종속 M15·M16·M25·M26 → M11a·M14a·M20a·M23a, ratified 로더가 배선되면 J12-f 버퍼 2회로도) + E-0 단언(종속 다이오드 W가 LUT 정의역 안·모든 소자 포화) + I_Q 손계산 대 oracle(E-1)) (6) N6.3 공통 (7) 범위 3·4의 toy·변화표는 U-132 기본안으로 card LA-1 완료 조건 10 (c)·(d).
+  ~~
+
+===== replace old 2347-2347 new 2347-2347
+  - **권고**(Q-CB1 승인 시 ⚠의 원인이 상자에서 해소되어 (i) 수용은 불필요;
+  + **권고**(Q-CB1 승인 시 '면적이 C를 관례 하한 0.1 pF로 밀어 SR 확실 FAIL'이라는 원인 하나가 제거되나 front 공백 위험은 남아 (i)의 fail-closed 기록은 유지
+  + 남는 원인: θ 의존 SR_∞·C_g,eff(엔진은 O-122로 SR_∞를 깎는 전류 최소화를 막지 못함)
+  + 경계 여유 < 측정 잡음(1.5 pF 상승 SR 19.77 대 spec 19.32 V/µs, 잡음 ±0.7 V/µs
+  + `cbox_rereview/c5_sr2080.txt`)
+  + 정류 표류
+  + 선언 하한은 front 공백 방지용 탐색 범위이지 PASS 보장이 아님(`cbox_rereview.md` §2.4 (iii))
+  + oracle이 점별 판정;
+  ~~
+
+===== replace old 2351-2351 new 2351-2351
+  - 엔진 실패가 아니고(design 40 §10.5 `oracle_only_fail` ≠ 엔진 실패) card 완료를 막지 않으며, 사유(U-112 닫힘·O-144 되먹임 없음·Q-ZG1 ⚠ C_BAT 하한 SR)를 판정 기록에 남긴다
+  + 엔진 실패가 아니고(design 40 §10.5 `oracle_only_fail` ≠ 엔진 실패) card 완료를 막지 않으며, 사유(U-112 닫힘·O-144 되먹임 없음;
+  + Q-CB1 결정 전: C_BAT 관례 하한 0.1 pF / 결정 뒤: θ 의존 SR_∞·C_g,eff·경계 여유 < 측정 잡음·정류 표류)를 판정 기록에 남긴다
+  ~~

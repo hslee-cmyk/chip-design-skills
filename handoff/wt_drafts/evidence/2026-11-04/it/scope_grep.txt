@@ -1,0 +1,521 @@
+# base
+0d99a813
+b9351eac
+merge-base: d7800c03
+commits only on master: 126
+commits only on integ:  97
+## merge-tree master integ/it12 (첫 줄 = tree, 충돌이 있으면 뒤에 경로·CONFLICT 줄)
+ebbb281795f9fa358b1bca2278f5f3bd68f5d690
+exit=0
+## 양쪽이 고친 파일(merge-base 기준)
+skills/analog-gmid-design/gmid_engine/metrics/CONTRACT.md
+skills/analog-gmid-design/gmid_engine/sizing/CONTRACT.md
+## master 쪽 엔진 변경
+ skills/analog-gmid-design/gmid_engine/convergence/CONTRACT.md | 2 +-
+ skills/analog-gmid-design/gmid_engine/lut/CONTRACT.md         | 1 +
+ skills/analog-gmid-design/gmid_engine/metrics/CONTRACT.md     | 1 +
+ skills/analog-gmid-design/gmid_engine/sizing/CONTRACT.md      | 1 +
+ 4 files changed, 4 insertions(+), 1 deletion(-)
+## integ 쪽 규모
+ 1340 files changed, 703640 insertions(+), 508 deletions(-)
+ 42 files changed, 2121 insertions(+), 446 deletions(-)
+## .ai/verification 크기 (파일 수, MiB)
+master 4561 28.6639
+integ/it12 5848 46.5139
+
+### 엔진: input_port_multiple_roots|BRANCH_INPUT_MULTIPLE_ROOTS
+sizing/CONTRACT.md:327:   `unsupported_rule_branch`, rule_branch `BRANCH_INPUT_MULTIPLE_ROOTS`("input_port_multiple_roots"), nets = 그 뿌리 넷들 
+sizing/__init__.py:23:    BRANCH_INPUT_MULTIPLE_ROOTS,
+sizing/__init__.py:160:    "BRANCH_INPUT_MULTIPLE_ROOTS",
+sizing/s2_values.py:94:BRANCH_INPUT_MULTIPLE_ROOTS = "input_port_multiple_roots"   # 입력 포트인 W4 뿌리가 둘 이상(DEC-76 미구현)
+sizing/writer_plan.py:29:`input_port_multiple_roots`, nets = 뿌리 넷들 쓰기 순번 순; 뿌리별 y 묶음·창은 미구현 -- DEC-76). 비트�
+sizing/writer_plan.py:39:    BRANCH_INPUT_MULTIPLE_ROOTS,
+sizing/writer_plan.py:257:                                                           "rule_branch": BRANCH_INPUT_MULTIPLE_ROOTS,
+
+### 엔진: gvgs_self_edge|BRANCH_GVGS_SELF_EDGE
+graph/CONTRACT.md:256:  같은 비레일 넷(g == s) -> `gvgs_self_edge` 정지(devices = 그 소자, `nets` = 그 넷). 평행 엣지는 이름순 �
+graph/CONTRACT.md:399:| `gvgs_self_edge` | s1_gvgs | MOS gate == source(비레일) | 그 소자 / `nets` |
+graph/CONTRACT.md:556:  `column_enumeration_over_budget`(3 은 통과); gate == source(비레일 tail 넷) MOS 추가 -> `gvgs_self_edge`; `column_lim
+graph/__init__.py:53:    BRANCH_GVGS_SELF_EDGE,
+graph/__init__.py:212:    "BRANCH_GVGS_SELF_EDGE",
+graph/gvgs_cycles.py:9:  레일 차로 고정 -> `fixed_vgs` 에만 기록. 같은 비레일 넷(g == s)이면 `gvgs_self_edge` 정지(core `Structure
+graph/gvgs_cycles.py:29:    BRANCH_GVGS_SELF_EDGE,
+graph/gvgs_cycles.py:78:            devices=tuple(self_edges), detail={"reason": UNSUPPORTED_RULE_BRANCH, "rule_branch": BRANCH_GVGS_SELF_EDGE,
+graph/s1_values.py:125:BRANCH_GVGS_SELF_EDGE = "gvgs_self_edge"
+
+### 엔진: net_model\(
+graph/coupling_vars.py:179:    model = net_model(s1)
+graph/net_model.py:3:진입점: `net_model(s1) -> NetModel`.
+graph/net_model.py:32:def net_model(s1):
+graph/s1v_fields.py:253:    model = net_model(s1)
+
+### 엔진: dc_output_structure|_output_structure|OUTPUT_HIGH_IMPEDANCE|OUTPUT_KVL
+_module_map.py:596:                "쓰기 계획(F 묶은 G_vgs 최소 신장 숲, 노드 writer·소자 좌표 역할, 출력 포트 구조 분류 n
+sizing/CONTRACT.md:16:> * `dc_writer_plan` 은 `node.dc_output_structure`(출력 포트 넷마다 `high_impedance`|`kvl_fixed` -- G_vgs 엣지 목록�
+sizing/CONTRACT.md:204:| node.dc_output_structure [IT-2b] | dc_writer_plan | 출력 포트 넷 | str `"high_impedance"`\|`"kvl_fixed"`(`OUTPUT_HIGH_IM
+sizing/s2_values.py:114:OUTPUT_HIGH_IMPEDANCE = "high_impedance"               # `node.dc_output_structure` 분류 값 둘(설계 41 4.7-1a) -- 출력
+sizing/s2_values.py:115:OUTPUT_KVL_FIXED = "kvl_fixed"
+sizing/s2_values.py:150:                             ("node", "dc_output_structure"))),
+sizing/writer_plan.py:25:8. [카드 IT-2b, 설계 41 4.7-1a] `node.dc_output_structure` = 출력 포트 넷마다 `high_impedance`|`kvl_fixed`. 위 2�
+sizing/writer_plan.py:49:    OUTPUT_HIGH_IMPEDANCE,
+sizing/writer_plan.py:50:    OUTPUT_KVL_FIXED,
+sizing/writer_plan.py:77:          ("node", "dc_output_structure"))
+sizing/writer_plan.py:122:def _output_structure(edges, outputs, fixed):
+sizing/writer_plan.py:143:        structure[output] = OUTPUT_KVL_FIXED if reached else OUTPUT_HIGH_IMPEDANCE
+sizing/writer_plan.py:269:            ("node", "dc_output_structure"): _output_structure(edges, outputs, fixed_prime)}
+
+### 엔진: INPUT_STATUS_F_COMPONENT_UNDECLARED|f_component_undeclared
+sizing/CONTRACT.md:1024:  x 이동량 Δ 로 움직이는 창(`saturation_window` roots = 선언 포트 묶음), F 성분 미선언 포트 = `Window(N
+sizing/block_columns.py:40:  미선언 포트는 `f_component_undeclared`(lo·hi None). (4) 측정 실패는 뿌리 항목만 `unmeasured`(뿌리 아�
+sizing/block_columns.py:64:    INPUT_STATUS_F_COMPONENT_UNDECLARED,
+sizing/block_columns.py:805:            out[net] = Window(None, None, 0, INPUT_STATUS_F_COMPONENT_UNDECLARED)
+sizing/s2_values.py:119:INPUT_STATUS_F_COMPONENT_UNDECLARED = "f_component_undeclared"   # F 성분에 속한 입력 DC 미선언 포트(lo·hi None)
+
+### 엔진: writer_head|declared_inputs|def input_windows|def input_roots
+sizing/block_columns.py:231:    def input_roots(self):
+sizing/block_columns.py:235:    def declared_inputs(self):
+sizing/block_columns.py:239:    def writer_head(self, net):
+sizing/block_columns.py:270:    def input_windows(self, values, roots):
+sizing/block_columns.py:790:    group = c.declared_inputs()
+sizing/block_columns.py:803:        head, relation = c.writer_head(net)
+
+### 엔진: def region_rows|tol_vdsat_table\(|vds - sat - tol|sat - vds - tol
+lut/CONTRACT.md:467:| `tol_vdsat_table(memo, kind, w_key, l_bin_checks=None)` [r6] | `TolVdsatTable` | 5.2 |
+lut/CONTRACT.md:703:### 5.2 [r6] VDsat 허용오차 `tol_vdsat_table(memo, kind, w_key, l_bin_checks=None) -> TolVdsatTable`
+lut/CONTRACT.md:715:- 소비자(sizing O1): 봉인 7 `VDS − VDsat ≥ +tol_VDsat` 의 tol_VDsat = `tol_vdsat_table(memo, kind, w_key).at(L, vds)`.
+lut/CONTRACT.md:719:  = 0.2557 V, L 0.85 µm·vsb 0.3 = 0.2107 V, `tol_vdsat_table(nmos, 1000).at(1e-6, 0.9)` = 0.93 mV. 다른 폭: nmos w_key 72 ori
+lut/CONTRACT.md:805:| `tol_vdsat_table(m, "nmos", 100)` | 같은 `lut_column_unavailable` |
+lut/CONTRACT.md:810:| toy 기준 LUT 에 `GMBS_n = 0.25·ID_n`, `ID_n` = 폭 1e-6 슬라이스 ID, `VDSAT_n = 0.1 + 0.2·VGS`(축 broadcast) 를 더�
+lut/derived_fns.py:53:        cells = tol_vdsat_table(memo, kind, w_key).cells
+lut/derived_fns.py:119:        table = tol_vdsat_table(memo, kind, w_key)
+lut/vdsat_tolerance.py:100:def tol_vdsat_table(memo, kind, w_key, l_bin_checks=None):
+metrics/metrics_aux.py:120:            sat_tol = tol_vdsat_table(lut.memo, op.kind, op.w_key).at(op.L, op.vds)
+sizing/CONTRACT.md:584:| 7 | `dc_seal_saturation` | [r4] 행 = `dc_op.current > 0` 이고 linear_devices 밖인 MOS(이름순), n_checked = 그 수(0 
+sizing/CONTRACT.md:869:- **[r4] O1 처리 상태**: (a)·(b) API 는 lut r6 의 `vdsat`·`tol_vdsat_table(...).at(L, vds)` 로 생겼고 봉인 7 판�
+sizing/block_columns.py:247:    def region_rows(self, values):
+sizing/block_columns.py:258:                tol = tol_vdsat_table(self.lut.memo, kind, w_key).at(self.L[m], vds)
+sizing/block_columns.py:265:                rows.append((d, s, -sign, sat - vds - tol, _ROW_TRIODE))
+sizing/block_columns.py:267:                rows.append((d, s, sign, vds - sat - tol, _ROW_SAT))
+sizing/seal_saturation.py:8:* tol_VDsat = lut `tol_vdsat_table(memo, kind, w_key).at(L, vds)`(VDSAT 열 같은 방법 LOO 셀값, lut CONTRACT 5.2) --
+sizing/seal_saturation.py:42:        tol = tol_vdsat_table(lut.memo, op.kind, op.w_key).at(op.L, op.vds)
+
+### 엔진: def saturation_window|roots
+_module_map.py:125:            ('_helpers_probe.py', 'area.py', 'area_lower_bound.py', 'block_gain_model.py', 'block_gain_rows.py', 'block_param_table
+_module_map.py:642:                "창 끝 식 하나 saturation_window(unknown, roots, values, gradient, rows, *, slope=None) -> (dlo, dhi, slope) |
+_module_map.py:662:                "pencil 유한 고유값(QZ 동차 좌표 유한·원점 판정, pencil_roots·probe_loop 공용) + 루프 이득 T
+_module_map.py:682:    ModuleEntry("metrics/pencil_roots.py", "entry", "pencil_roots",
+graph/blocks.py:170:        roots = {owners.find(b) for b in ids}
+graph/blocks.py:171:        inner = sorted(roots & readers.get(net, set()))
+graph/blocks.py:172:        if len(roots) == 1 or len(inner) != 1:
+graph/blocks.py:176:        for other in sorted(roots - {keep}):
+graph/blocks.py:302:    roots = tuple((net, tuple(sorted({owners.find(b) for b in ids}))) for net, ids in sorted_items(owners.conflicts))
+graph/blocks.py:303:    conflicts = tuple((net, ids) for net, ids in roots if len(ids) > 1)     # 측면 주입 합치기(`_absorb_side_injections`) �
+lut/table_cache.py:164:    roots = [line[len("worktree "):] for line in _git(here, "worktree", "list", "--porcelain").splitlines()
+lut/table_cache.py:167:    for root in roots:
+metrics/CONTRACT.md:39:| 0 | `_helpers_pencil.py` | (helper) | `finite_eigs`(pencil 유한 고유값, `pencil_roots`·`probe_loop` 공용), [CM 2026-1
+metrics/CONTRACT.md:46:| 1 | `pencil_roots.py` | `pencil_roots` | 극점·영점 |
+metrics/CONTRACT.md:147:### 3.4 `pencil_roots(system) -> Roots`
+metrics/CONTRACT.md:158:### 3.5 `omega_grid(roots_tuple) -> tuple`
+metrics/CONTRACT.md:163:- 계마다 `pencil_roots` 1회, 모든 계 근의 합집합으로 **공유 격자** 1개. ω = 0 은 `solve_dc_limit`(LU 1회
+metrics/CONTRACT.md:215:    회로)의 계 극점(`pencil_roots(build_mna(원래 회로, …)).poles`). MOD5 는 이 값을 metric 으로 내지 않�
+metrics/__init__.py:133:from .pencil_roots import pencil_roots
+metrics/__init__.py:327:    "pencil_roots",
+metrics/_helpers_pencil.py:1:"""일반화 고유값의 유한 근 공용 helper (사용처: `pencil_roots.py` 계 극점·영점, `probe_loop.py` 루�
+metrics/mna_solve.py:5:* 계마다 극점·영점(`pencil_roots`)을 한 번 구하고, 모든 계의 근으로 공유 ω 격자(`omega_grid`)를 만�
+metrics/mna_solve.py:18:from .pencil_roots import pencil_roots
+metrics/mna_solve.py:49:    roots = tuple(pencil_roots(s) for s in systems)
+metrics/mna_solve.py:50:    grid = numpy.array(omega_grid(roots))
+metrics/mna_solve.py:52:    for system, r in zip(systems, roots):
+metrics/mna_solve.py:57:            system=system, roots=r, omegas=grid, values=values, undefined=limit.undefined + ac_undefined,
+metrics/mna_types.py:116:    roots: Roots
+metrics/mna_types.py:160:        return self.response.roots.poles
+metrics/mna_types.py:165:        return self.response.roots.zeros[self.row][self.column]
+metrics/omega_grid.py:16:def omega_grid(roots_seq):
+metrics/omega_grid.py:18:    if not isinstance(roots_seq, tuple) or not roots_seq:
+metrics/omega_grid.py:21:    for roots in roots_seq:
+metrics/omega_grid.py:22:        if not isinstance(roots, Roots):
+metrics/omega_grid.py:23:            raise TypeError("omega_grid: 원소는 Roots 여야 한다: %r" % (roots,))
+metrics/omega_grid.py:24:        for z in roots.poles + tuple(z for row in roots.zeros for col in row for z in col):
+metrics/pencil_roots.py:3:진입점: `pencil_roots`.
+metrics/pencil_roots.py:24:def pencil_roots(system):
+metrics/pencil_roots.py:27:        raise TypeError("pencil_roots 는 MnaSystem 을 받는다")
+metrics/probe_loop.py:75:def _roots(system, pairs, weights):
+metrics/probe_loop.py:104:    poles, zeros = _roots(system, pairs, probe.weights)
+metrics/ss_metrics.py:368:                           _input_devices(noise.decl, request.view), response.roots.poles, mode)
+search/macro_poles.py:16:(`pencil_roots`, `solve_responses` 가 부른다), 위상 지연·UGF·PM 은 U7 MNA 풀이(`solve_responses`·`analyze_loop`
+search/macro_poles.py:211:        poles = resp.roots.poles
+search/macro_poles.py:220:        return loop.ugf_hz, loop.phase_margin_deg, resp.roots.poles
+sizing/CONTRACT.md:327:   `unsupported_rule_branch`, rule_branch `BRANCH_INPUT_MULTIPLE_ROOTS`("input_port_multiple_roots"), nets = 그 뿌리 넷들 
+sizing/CONTRACT.md:1024:  x 이동량 Δ 로 움직이는 창(`saturation_window` roots = 선언 포트 묶음), F 성분 미선언 포트 = `Window(N
+sizing/block_columns.py:39:  전부가 같은 x 이동량 Δ 로 함께 움직이는 창(`saturation_window` roots = 선언 포트 묶음), 포트 창
+sizing/block_columns.py:231:    def input_roots(self):
+sizing/block_columns.py:270:    def input_windows(self, values, roots):
+sizing/block_columns.py:271:        """해 `values` 에서 잰 이동량 창과 감도 `(dlo, dhi, slope)`(`saturation_window`) -- `roots` = x 로 함
+sizing/block_columns.py:272:        선언 포트 묶음 -- 설계 41 4.7-3 2·3). 고정 노드 가운데 roots 의 넷은 미지수로 넣는다(그
+sizing/block_columns.py:276:        moving = frozenset(r for r in roots if isinstance(r, str))
+sizing/block_columns.py:278:        return saturation_window(unknown, roots, values, self.writer_grad, rows)
+sizing/block_columns.py:712:    (root,) = c.input_roots()
+sizing/block_columns.py:736:    roots = c.input_roots()
+sizing/block_columns.py:737:    if not roots:
+sizing/block_columns.py:740:    (root,) = roots
+sizing/input_window.py:3:진입점: `saturation_window(unknown, roots, values, gradient, rows, *, slope=None) -> (dlo, dhi, slope) | None`.
+sizing/input_window.py:5:창 끝 식(행 교집합)은 이 함수 하나에만 있다. 입력 공통모드 x(= `roots` 가 함께 움직이는 넷)를
+sizing/input_window.py:12:* `roots` 원소 = 넷이면 그 넷의 s = 1(커널 뿌리·선언 포트 묶음), 쌍 `(행 넷, 고정 넷)` 이면 행 �
+sizing/input_window.py:14:* 노드가 x 를 따라 움직이는 정도 s_n = dV_n/dx 는 선형 연립 s_n − Σ_j (∂g_n/∂V_j)·s_j = 0 (roots �
+sizing/input_window.py:30:def _sensitivities(unknown, roots, values, gradient):
+sizing/input_window.py:33:    plain = frozenset(r for r in roots if isinstance(r, str))
+sizing/input_window.py:34:    replaced = {r[0]: r[1] for r in roots if not isinstance(r, str)}
+sizing/input_window.py:58:def saturation_window(unknown, roots, values, gradient, rows, *, slope=None):
+sizing/input_window.py:61:            slope = _sensitivities(tuple(unknown), tuple(roots), values, gradient)
+sizing/s2_values.py:94:BRANCH_INPUT_MULTIPLE_ROOTS = "input_port_multiple_roots"   # 입력 포트인 W4 뿌리가 둘 이상(DEC-76 미구현)
+sizing/writer_plan.py:29:`input_port_multiple_roots`, nets = 뿌리 넷들 쓰기 순번 순; 뿌리별 y 묶음·창은 미구현 -- DEC-76). 비트�
+sizing/writer_plan.py:254:    input_roots = tuple(net for net, w in plan.writes.items() if w.relation == REL_WINDOW and net in free_inputs)
+sizing/writer_plan.py:255:    if len(input_roots) > 1:
+sizing/writer_plan.py:258:                                                           "nets": input_roots})
+
+### 엔진: _refine_ends|_interior_solution|_dyadic_ys|INPUT_STATUS_UNSETTLED
+sizing/CONTRACT.md:104:| 2 | `block_columns.py` [IT-2b: `_Circuit.region_rows`·`input_windows`, 커널 창, `_refine_ends` 삭제] | `dc_columns` | `
+sizing/CONTRACT.md:1019:* 효과(toy 차동쌍): 종래 y ∈ [0.05, 0.95] 무작위 60점 중 봉인 19, 이후 60. 평가 시간 약 3배(IT-2b 전 
+sizing/CONTRACT.md:1021:* (5) [IT-2b 개정, 설계 41 4.7-3 1] 커널은 창 끝을 다듬지 않는다(`_refine_ends` 를 부르지 않음 -- 끝 x 
+sizing/block_columns.py:67:    INPUT_STATUS_UNSETTLED,
+sizing/block_columns.py:676:def _dyadic_ys(count):
+sizing/block_columns.py:704:def _interior_solution(c, key, requested):
+sizing/block_columns.py:713:    for y in _dyadic_ys(budget):
+sizing/block_columns.py:752:        found = _interior_solution(c, key, requested)
+sizing/block_columns.py:761:        return _Kernel(values, logs, INPUT_STATUS_UNSETTLED, None, measured)
+sizing/block_columns.py:780:    return _Kernel(values, logs, INPUT_STATUS_MEASURED if settled else INPUT_STATUS_UNSETTLED, tol, measured)
+sizing/block_columns.py:796:            status = INPUT_STATUS_MEASURED if tol is not None else INPUT_STATUS_UNSETTLED
+sizing/s2_values.py:117:INPUT_STATUS_UNSETTLED = "unsettled"                   # 창은 잰 해에서 쟀으나 되풀이가 k_max 안에 수렴하지
+
+### 엔진: dc_seal_conduction|dc_off_current|dc_conduction_floor
+_module_map.py:613:    ModuleEntry("sizing/seal_conduction.py", "entry", "dc_seal_conduction",
+_module_map.py:615:                compute_block="dc_seal_conduction"),
+sizing/CONTRACT.md:66:  (`seal_conduction.py`, `dc_seal_conduction`, `SEAL_CONDUCTION` = 9): 전도 MOS 마다 VGS = 0 누설 I_off ≤ ε·ID, ε = (
+sizing/CONTRACT.md:67:  (metrics 9절 ε_d 와 같은 양). 소자별 `device.dc_off_current`·`device.dc_conduction_floor`(ID 하한 I_off/ε) 필드
+sizing/CONTRACT.md:102:| 1 | `seal_conduction.py` [r8] | `dc_seal_conduction` | `dc_seal_conduction` |
+sizing/CONTRACT.md:120:(`NonconvergentError`·`SealViolationError`)를 이름으로 잡아 그 블록에 들어간 스냅샷을 `core.attach_partial` 
+sizing/CONTRACT.md:212:| [r8] graph.dc_seal_9 | dc_seal_conduction | DC_KEY | `SealItem` |
+sizing/CONTRACT.md:213:| [r8] device.dc_off_current | dc_seal_conduction | `dc_op.current > 0` 인 MOS | float A(VGS = 0 누설) |
+sizing/CONTRACT.md:214:| [r8] device.dc_conduction_floor | dc_seal_conduction | `dc_op.current > 0` 인 MOS | float A(ID 하한 I_off/ε) 또는 None(
+sizing/CONTRACT.md:561:`dc_seal_conduction(lut)` -> 4 `seal_versions(snapshot, calls + 위 8개, base)` -> 5 `seal_writers(snapshot)` -> `dc_seal_repo
+sizing/CONTRACT.md:586:| 9 | `dc_seal_conduction` | [r8] 행 = `dc_op.current > 0` 인 MOS(이름순, linear_devices 포함 -- 전도면 영역과 무
+sizing/CONTRACT.md:933:  `device.dc_conduction_floor` = I_off/ε 는 **그 점의 W 에 비례**한다(I_off = IDu(VGS=0)·W/L, ID = IDu(VGS)·W/L). �
+sizing/CONTRACT.md:938:  위에서 VGS* 최댓값(보수) 또는 봉인 뒤 `dc_conduction_floor`/ID(= margin) 를 쓰는 사후 제약을 고를 수 
+sizing/__init__.py:139:from .seal_conduction import dc_seal_conduction
+sizing/__init__.py:285:    "dc_seal_conduction",
+sizing/s2_values.py:142:DC_SEAL_CONDUCTION_WRITER = "dc_seal_conduction"
+sizing/s2_values.py:166:    (DC_SEAL_CONDUCTION_WRITER, (("graph", "dc_seal_9"), ("device", "dc_off_current"), ("device", "dc_conduction_floor"))),
+sizing/seal.py:23:from .seal_conduction import dc_seal_conduction
+sizing/seal.py:44:    dc_seal_conduction,
+sizing/seal.py:59:        dc_seal_conduction: (lut,),
+sizing/seal_conduction.py:4:진입점: `dc_seal_conduction`(`@compute_block`) -- `dc_seal_conduction(snapshot, lut)`.
+sizing/seal_conduction.py:12:* writes `device.dc_off_current`(전도 MOS 마다 I_off, A) · `device.dc_conduction_floor`(전도 MOS 마다 ID 하한 
+sizing/seal_conduction.py:24:WRITES = (("graph", "dc_seal_9"), ("device", "dc_off_current"), ("device", "dc_conduction_floor"))
+sizing/seal_conduction.py:36:def dc_seal_conduction(projection):
+sizing/seal_conduction.py:49:            ("device", "dc_off_current"): offs, ("device", "dc_conduction_floor"): floors}
+
+### 엔진: SEAL_ITEM_BLOCKS|derive_child|attach_partial\(
+core/CONTRACT.md:145:  부착은 `failure_errors.py` 밖의 함수 `attach_partial(exc, snapshot) -> None`(파일 `failure_partial.py`, 같은 패키�
+core/CONTRACT.md:209:- [IT-2a 20261021-it2a-snapshot-derive, 계획 N3.3 스냅샷 파생 규칙] **`derive_child(keep_writers)`**: writer ∈ `keep_w
+core/failure_partial.py:3:진입점: `attach_partial(exc, snapshot)`.
+core/failure_partial.py:13:def attach_partial(exc, snapshot):
+core/graph_snapshot.py:149:    def derive_child(self, keep_writers):
+metrics/CONTRACT.md:626:`core.attach_partial(exc, snapshot)` 로 붙인 뒤 같은 예외를 다시 낸다(`exc.partial`, 이미 있으면 바꾸지 �
+metrics/ss_evaluate.py:114:        attach_partial(exc, snapshot)        # ss 단계 부분 스냅샷 = 실패 직전까지 쓴 스냅샷(그 블록에
+sizing/CONTRACT.md:13:>   `base.block_version(w)`(`PLAN_WRITERS` = 위 계획 블록 + `kernel_context`·`dc_theta_schema`). `run_kernel` 의 parent �
+sizing/CONTRACT.md:121:스스로 내는 `SealViolationError` 에는 `dc_seal_report` 까지 쓴 스냅샷을 붙여 낸다(`exc.partial`). `seal_dc(sn
+sizing/CONTRACT.md:599:- 시작 스냅샷 = `parent.snapshot.derive_child(keep)`(keep = base writer ∪ 커널 블록 ∪ `SEAL_ITEM_BLOCKS`) 또는 c
+sizing/kernel_run.py:8:(`ctx.base.block_versions` 키 전부)의 `block_version` 이 `base` 와 같은지로 본다. parent 스냅샷은 `derive_child
+sizing/kernel_run.py:34:from .seal import SEAL_ITEM_BLOCKS, seal_dc
+sizing/kernel_run.py:61:        attach_partial(exc, snapshot)
+sizing/kernel_run.py:86:        snapshot = parent.snapshot.derive_child(set(base_writers) | {b.name for b in later_blocks} | {b.name for b, _ in steps
+sizing/kernel_run.py:87:                                                | {b.name for b in SEAL_ITEM_BLOCKS})
+sizing/seal.py:4:`base` = 커널 컨텍스트 `ctx.base`(봉인 4 의 base writer 정본 -- 사본 없음). 기본값 없는 필수 키워드, None �
+sizing/seal.py:35:# 봉인 항목 블록 여덟 -- 구성원·순서의 정의 하나. `seal_dc` 호출 순서와 `run_kernel` 의 derive_child keep(�
+sizing/seal.py:36:SEAL_ITEM_BLOCKS = (
+sizing/seal.py:61:    if set(extras_of) != set(SEAL_ITEM_BLOCKS):
+sizing/seal.py:62:        raise ValueError("seal_dc: extras 매핑의 블록이 SEAL_ITEM_BLOCKS 와 다르다")
+sizing/seal.py:64:    for block in SEAL_ITEM_BLOCKS:
+sizing/seal.py:69:            attach_partial(exc, snapshot)      # 봉인 항목 블록 단계 실패: 그 블록에 들어간 스냅샷이 부분 스
+sizing/seal.py:77:        attach_partial(exc, snapshot)
+sizing/seal.py:87:        attach_partial(violation, snapshot)      # 실패 평가의 부분 스냅샷 = 보고서까지 쓴 스냅샷(X-3)
+sizing/size_and_seal.py:8:  블록은 입력 버전이 같으면 계산하지 않고 parent 스냅샷에서 `derive_child(base writer ∪ 커널 블�
+
+### 엔진: ls_swing\(|_ss_of|SsCircuit\(|ss_circuit\(
+metrics/CONTRACT.md:513:- `SsCircuit(nodes, circuit, resistors, capacitors, ground_nets, input_nets, missing=())`.
+metrics/CONTRACT.md:553:### 7.3 `ss_circuit(nodes, ground_nets, input_nets, devices, passive_values) -> SsCircuit`
+metrics/CONTRACT.md:1238:| `ls_swing.py` | `ls_swing(devices, rails, node_v, outputs, inputs, diff_outputs, input_dc_v) -> SwingIcmr` | `swing_out_v`�
+metrics/ls_swing.py:4:진입점: `ls_swing(devices, rails, node_v, outputs, inputs, diff_outputs=False, input_dc_v=None) -> SwingIcmr`.
+metrics/ls_swing.py:84:def ls_swing(devices, rails, node_v, outputs, inputs, diff_outputs=False, input_dc_v=None):
+metrics/metrics_aux.py:92:def _ss_of(projection):
+metrics/metrics_aux.py:105:    return ss_circuit(nodes, ground, inputs, devices, projection.column("device", "passive_value")), ss_values, device_orbi
+metrics/metrics_aux.py:160:    ss, ss_values, device_orbit = _ss_of(projection)
+metrics/metrics_aux.py:264:    return ls_swing(devices, rails, tuple(node_v.items()), outputs, inputs, diff, input_dc_v)
+metrics/ss_circuit.py:3:진입점: `ss_circuit(nodes, ground_nets, input_nets, devices, passive_values) -> SsCircuit`.
+metrics/ss_circuit.py:33:def ss_circuit(nodes, ground_nets, input_nets, devices, passive_values):
+metrics/ss_circuit.py:60:    return SsCircuit(tuple(nodes), circuit, tuple(r_names), tuple(c_names), tuple(sorted(ground_nets)),
+metrics/ss_metrics.py:394:    ss = ss_circuit(nodes, ground, inputs, devices, projection.column("device", "passive_value"))
+
+### 엔진: conductance_matrix\(|nodal_factor\(
+metrics/_helpers_nodal.py:9:* `nodal_factor(g, fixed)` -> `NodalFactor` 대신 튜플 `(unknown, lu, piv, coupling, floating)`: `unknown` = 미지수 
+metrics/_helpers_nodal.py:26:def conductance_matrix(circuit, size):
+metrics/_helpers_nodal.py:36:def nodal_factor(g, fixed):
+metrics/block_model.py:91:        volt, _residual = nodal_solve(nodal_factor(conductance_matrix(sub, size), set(range(size)) - unknown), size, {index[
+metrics/block_model.py:112:    g = conductance_matrix(sub, size)
+metrics/block_model.py:113:    factor = nodal_factor(g, set(range(size)) - unknown)
+metrics/block_residual.py:73:    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+metrics/ff_gm_ratio.py:55:    current = (conductance_matrix(ff_circuit, len(ss.nodes)) @ volt)[index[f.merge]]
+metrics/offset_analysis.py:69:    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+metrics/offset_systematic.py:46:    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+
+### 엔진: collect_views|_default\(model
+_module_map.py:505:    ModuleEntry("graph/views.py", "entry", "collect_views",
+graph/CONTRACT.md:639:* 순서: `collect_views` -> 전달 뷰마다 `analyze_view` -> 전달 뷰의 (3) 루프가 만든 루프 뷰(끊는 점 (소자
+graph/s1v_fields.py:11:* 순서: 뷰 수집(`collect_views`) -> 전달 뷰마다 `analyze_view` -> 전달 뷰의 (3) 루프가 만든 루프 뷰(끊�
+graph/s1v_fields.py:78:from .views import collect_views
+graph/s1v_fields.py:118:    """`metric` 제약이 걸린 전달 뷰의 (여기, 감지) 키 집합. spec 의 해당 제약만 골라 `collect_views` �
+graph/s1v_fields.py:122:    seeds, _ = collect_views(model, types.SimpleNamespace(judged_constraints=chosen))
+graph/s1v_fields.py:254:    seeds, view_findings = collect_views(model, types.SimpleNamespace(judged_constraints=judged))
+graph/s1v_values.py:44:# ---- 뷰 씨앗 출처(`collect_views` 가 `ViewSeed.source` 에 쓴다)와 spec metric 이름(authoring/metrics 카탈로그
+graph/views.py:3:진입점: `collect_views(model, spec) -> (tuple[ViewSeed], tuple[Finding])`.
+graph/views.py:66:def _default(model):
+graph/views.py:77:def collect_views(model, spec):
+graph/views.py:78:    seeds = _declared(spec) or _default(model)
+
+### 엔진: linear_devices
+authoring/SPEC_CONTRACT.md:96:`linear_devices`(봉인 7 포화 여유 제외 대상)를 만든다 -- sizing 은 낱말을 따로 정의하지 않는�
+metrics/metrics_aux.py:3:진입점: `metrics_aux`(`@compute_block`) -- `metrics_aux(snapshot, requests, lut, mismatch, structure, targets, input_dc_v,
+metrics/metrics_aux.py:10:  `targets` = spec 노드 목표 ((넷, V), ...), `input_dc_v` = 선언 입력 DC 또는 None(SP-2 대기 -> 해의 y_icm), 
+metrics/metrics_aux.py:159:    (requests, lut, mismatch, structure, targets, input_dc_v, linear_devices, transfer_views, ugf_hz, driving) = projection
+metrics/metrics_aux.py:214:            found = once("swing", lambda: _swing(projection, lut, linear_devices, canonical, node_v, input_dc_v))
+metrics/metrics_aux.py:236:                swing = once("swing", lambda: _swing(projection, lut, linear_devices, canonical, node_v, input_dc_v))
+metrics/ss_evaluate.py:110:                                   ctx.inputs.linear_devices, views, ugf, driving, **keys)
+sizing/CONTRACT.md:40:  실제 판정한다(6절 표): `dc_seal_saturation(snapshot, linear_devices, lut)`, 열 없는 LUT 세트(옛 12-L 등)만 und
+sizing/CONTRACT.md:71:  spec 로더는 `intended_region` 영역으로 "triode" 만 받는데 sizing 이 "linear" 를 찾아 spec 경로로는 `linear_
+sizing/CONTRACT.md:121:스스로 내는 `SealViolationError` 에는 `dc_seal_report` 까지 쓴 스냅샷을 붙여 낸다(`exc.partial`). `seal_dc(sn
+sizing/CONTRACT.md:132:### 1.1 `DcInputs(supplies_v, input_dc_v=None, node_targets=(), element_values=(), linear_devices=(), pending=(), engine_elemen
+sizing/CONTRACT.md:134:  `element_values` ((원소, 값 또는 None), ...) / `linear_devices` 소자 이름 tuple / `pending` ((경로, 결정 ID), ..
+sizing/CONTRACT.md:142:  `linear_devices` = intended_region 이 tuple 일 때 region == `LINEAR_REGION` 인 소자(이름순). [r9] `LINEAR_REGION` = 
+sizing/CONTRACT.md:557:## 6. 봉인 (`seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, base, donors, counters) -
+sizing/CONTRACT.md:560:`dc_seal_bulk_reverse()` -> 7 `dc_seal_saturation(linear_devices, lut)`([r4] lut 추가) -> 8 `dc_seal_kvl_branch()` -> [r8] 9
+sizing/CONTRACT.md:584:| 7 | `dc_seal_saturation` | [r4] 행 = `dc_op.current > 0` 이고 linear_devices 밖인 MOS(이름순), n_checked = 그 수(0 
+sizing/CONTRACT.md:586:| 9 | `dc_seal_conduction` | [r8] 행 = `dc_op.current > 0` 인 MOS(이름순, linear_devices 포함 -- 전도면 영역과 무
+sizing/CONTRACT.md:601:  `dc_widths(ctx.lut)` -> `seal_dc(..., resistances = ctx.resistor_values + θ resistance 쌍, ctx.inputs.linear_devices)`.
+sizing/CONTRACT.md:952:  어휘(sat|triode|off)와도 같아진다. 바뀌는 test: `tests/sizing/test_dc_inputs.py::test_linear_devices_from_intended
+sizing/CONTRACT.md:1018:* (1)이 풀리지 않거나 VDSAT 열 없음·tol 미정이면 종래 사상(순서 창 = 레일 범위). `dc_columns(..., li
+sizing/dc_inputs.py:8:* `linear_devices` = intended_region 에서 region == `LINEAR_REGION`(= authoring `REGION_TRIODE` "triode") 인 선언 소자(�
+sizing/kernel_run.py:98:    later = list(zip(later_blocks, (columns_extras + ((ctx.inputs.linear_devices,) if ctx.inputs.linear_devices else ()),
+sizing/kernel_run.py:104:    return seal_dc(snapshot, steps, ctx.lut, resistances, ctx.inputs.linear_devices, raise_on_violation,
+sizing/s2_values.py:194:    ((원소, 값 또는 None), ...) 저항(Ω)·이상 전류원(A), `linear_devices` = 선형 영역 선언 소자(봉인 7 
+sizing/s2_values.py:202:    linear_devices: tuple = ()
+sizing/seal.py:3:진입점: `seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, base, donors, counters) -> DcEvalu
+sizing/seal.py:48:def seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, base, donors, counters):
+sizing/seal.py:57:        dc_seal_saturation: (linear_devices, lut),
+sizing/seal_saturation.py:3:진입점: `dc_seal_saturation`(`@compute_block`) -- `dc_seal_saturation(snapshot, linear_devices, lut)`.
+sizing/seal_saturation.py:52:    linear_devices, lut = projection.extras
+sizing/seal_saturation.py:56:        if op.current > 0 and m not in linear_devices:
+sizing/symmetry_marks.py:23:    for name in inputs.linear_devices:
+
+===== 옛 test (파일:건수) =====
+
+### test: input_port_multiple_roots|BRANCH_INPUT_MULTIPLE_ROOTS
+search/test_orbit_ties.py:1
+sizing/test_s2_values.py:1
+sizing/test_writer_plan.py:3
+
+### test: gvgs_self_edge|BRANCH_GVGS_SELF_EDGE
+graph/graph_u2_oracle.py:1
+graph/test_gvgs_cycles.py:2
+graph/test_s1_values.py:2
+
+### test: dc_output_structure|OUTPUT_HIGH_IMPEDANCE|OUTPUT_KVL|kvl_fixed|high_impedance
+sizing/test_s2_values.py:6
+sizing/test_writer_plan.py:23
+
+### test: f_component_undeclared|INPUT_STATUS_F_COMPONENT
+sizing/test_block_columns.py:3
+sizing/test_s2_values.py:2
+
+### test: saturation_window
+generality/README.md:1
+sizing/test_input_window.py:18
+
+### test: region_rows|_ROW_SAT|_ROW_TRIODE|_Circuit
+sizing/test_block_columns.py:12
+
+### test: tol_vdsat_table|tol_VDsat
+lut/test__helpers_columns.py:8
+lut/test__helpers_loo.py:9
+lut/test_lut_memo.py:7
+lut/test_midpoint_checks.py:4
+lut/test_table_cache.py:7
+lut/test_vdsat_tolerance.py:27
+sizing/test_block_columns.py:5
+sizing/test_input_window.py:3
+sizing/test_seal_saturation.py:4
+sizing/test_size_and_seal_local.py:2
+
+### test: SS_WRITES|DC_TABLE|SS_TABLE
+integration/test_authoring_library_load.py:5
+metrics/test_ss_types.py:4
+sizing/test_s2_values.py:9
+
+### test: S1V_WRITES|net_model
+graph/test_net_model.py:1
+
+### test: ls_swing\(
+metrics/test_ls_swing.py:17
+
+### test: "ls"|, "ls",
+authoring/conftest.py:3
+core/test_metric_signature.py:1
+lut/test_lut_set.py:1
+metrics/test_pending_metrics.py:1
+metrics/test_registry.py:3
+
+### test: dc_seal_conduction|dc_off_current|dc_conduction_floor
+search/test_kernel.py:1
+sizing/test_block_columns.py:2
+sizing/test_kernel_run.py:1
+sizing/test_s2_values.py:6
+sizing/test_scc_newton.py:2
+sizing/test_seal_conduction.py:16
+sizing/test_seal_report.py:1
+sizing/test_size_and_seal.py:2
+
+### test: partial|attach_partial
+core/test_compute_block.py:2
+core/test_failure_partial.py:23
+graph/test_bulk_default.py:1
+graph/test_s1v_build.py:1
+lut/test_table_cache.py:4
+search/test_kernel.py:35
+sizing/test_s2_lift.py:3
+structure/structure_checks.py:1
+
+===== 새 이름 충돌 (엔진 + test, integ/it12) =====
+input_point: 0 파일
+REL_INPUT_POINT: 0 파일
+input_cm_undefined: 0 파일
+BRANCH_INPUT_CM_UNDEFINED: 0 파일
+gate_source_same: 0 파일
+writers_in_scope: 0 파일
+icm_config: 1 파일
+ICM_CONFIG_WRITER: 0 파일
+ss_nodal: 0 파일
+SS_NODAL_WRITER: 0 파일
+ss_circuit_field: 0 파일
+SS_CIRCUIT_WRITER: 0 파일
+kvl_sensitivity: 0 파일
+IcmConfig: 1 파일
+IcmPort: 0 파일
+IcmWindow: 0 파일
+NodalSystem: 0 파일
+icm_window_metrics: 0 파일
+_helpers_dc_solve: 2 파일
+diode_nodes: 5 파일
+composite_mos: 5 파일
+composite_bundles: 5 파일
+composite_internal: 4 파일
+icm_capacitive_only_node: 0 파일
+default_port: 0 파일
+g_bound: 0 파일
+test_it1_: 0 파일
+test_it2c_: 0 파일
+test_it2d_: 0 파일
+test_it2e_: 0 파일
+## test glob 패턴
+core/test_blas_env.py:53:        out += sorted(glob.glob(os.path.join(os.path.dirname(spec.origin) + ".libs", "*openblas*")))
+core/test_blas_env.py:506:    files = sorted((ENGINE / "core").glob("*.py"))
+core/test_engine_code_fp.py:132:    for src in _ENGINE_DIR.rglob("*.py"):
+integration/test_no_s0_files_written.py:81:    for p in root.rglob("*"):
+lut/conftest.py:1098:    for path in sorted(LUT_SRC.glob("*.py")):
+lut/conftest.py:1116:    for path in sorted(LUT_SRC.glob("*.py")):
+lut/test_table_cache.py:301:    lut_py = sorted(p for p in (eng / "lut").glob("*.py"))[0]
+lut/test_table_cache.py:306:    core_py = sorted(p for p in (eng / "core").glob("*.py"))[0]
+lut/test_table_cache.py:312:    others = sorted(p for p in eng.iterdir() if p.is_dir() and p.name not in ("lut", "core") and any(p
+lut/test_table_cache.py:314:    _append(sorted(others[0].glob("*.py"))[0], b"\n# not lut/core\n")
+metrics/test_verified_by.py:64:    text = "".join(p.read_text(encoding="utf-8") for p in ORACLE.glob("oracle_*.py"))
+pipeline/test_stage_b.py:294:    assert not list((tmp_path / "out").glob("*.stage_b.*"))
+sizing/test_block_columns.py:1600:    for path in ENGINE.rglob("*.py"):
+structure/structure_checks.py:131:    for p in sorted(root.rglob("*.py")):
+structure/structure_checks.py:979:        for t in sorted(tests_dir.rglob("test_*.py")):
+structure/structure_checks.py:1248:    for p in sorted(root.rglob("*.py")):
+## structure.json rule_hash
+library/current_reuse_telescopic_ota.structure.json:4:  "rule_hash": "adc91fc87947b00d8d45e1f09337a8965f41fb33faa9f2cb02
+library/nmcnr_amplifier.structure.json:4:  "rule_hash": "adc91fc87947b00d8d45e1f09337a8965f41fb33faa9f2cb02cdd7c11e45b75
+## S1V_RULE_FILES·S1_RULE_FILES에 이 card가 고칠 파일이 드는가
+S1V_RULE_FILES = (
+    "ac_ground_view.py", "blocks.py", "buffer_bundles.py", "cells.py", "composite_blocks.py", "declared_compare.py",
+    "drive_kind.py", "feedforward_cells.py", "l_classes.py", "loop_classify.py", "loop_cuts.py", "loop_roles.py", "loops.py",
+    "net_model.py", "node_impedance.py", "output_direction.py", "polarity.py", "pole_nodes.py", "s1v_build.py", "s1v_fields.py", "s1v_values.py",
+    "signal_reach.py", "stage_bfs.py", "structure_load.py", "view_analysis.py", "views.py", "virtual_ground.py",
+)
+# ---- `structure_rule_fp` 대상 = S1V_RULE_FILES 합집합 이 파일들: 사실이 대조하거나 덮어쓰는 값을 만드는 S1 쪽 소비 파일(40 §3.2-3 `rule_hash`)
+STRUCTURE_RULE_EXTRA_FILES = ("composite_diode.py", "dc_roles.py", "gs_groups.py", "matching_groups.py")
+integ/it12:skills/analog-gmid-design/gmid_engine/graph/s1_values.py:222:S1_RULE_FILES = ("ac_ground_static.py", "automorphism_orbits.py", "branches.py", "bulk_default.py", "canonical_form.py", "column
+integ/it12:skills/analog-gmid-design/gmid_engine/graph/s1_values.py-223-                 "composite_diode.py", "dc_conduction.py", "dc_roles.py", "gs_groups.py", "gvgs_cycles.py", "matching_groups.py"
+integ/it12:skills/analog-gmid-design/gmid_engine/graph/s1_values.py-224-                 "rel_kcl.py", "rel_matching.py", "rel_vgs.py", "s1_build.py", "s1_index.py", "s1_structure.py",
+integ/it12:skills/analog-gmid-design/gmid_engine/graph/s1_values.py-225-                 "s1_symmetry.py", "s1_values.py", "supplies.py")
+integ/it12:skills/analog-gmid-design/gmid_engine/graph/s1_values.py-226-NO_SUPPLIES_FP = "none"
+integ/it12:skills/analog-gmid-design/gmid_engine/graph/s1_values.py-227-NO_FACTS_FP = "none"                                   # S1 에 적용되는 ratified 사실(`dc_role`·`matching_pair`)이 없�
+integ/it12:skills/analog-gmid-design/gmid_engine/graph/s1_values.py-228-NO_MARKS_FP = "none"                                   # 선언 표시가 없을 때(`NO_MARKS`)의 지문
+
+===== 계획·design 소비자(master, history 제외, 파일:건수) =====
+### 문서: input_port_multiple_roots
+docs/01-plan/features/gain-budget-gmid-sizing.plan.md:6
+docs/02-design/features/gain-budget-gmid-sizing.40-engine.design.md:4
+docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md:4
+docs/02-design/features/gain-budget-gmid-sizing.42-gap-checklist.design.md:2
+docs/02-design/specs/20261021-it1-input-tie-removal.interface.md:2
+docs/02-design/specs/20261021-it1-input-tie-removal.spec.md:8
+### 문서: gvgs_self_edge
+docs/01-plan/features/gain-budget-gmid-sizing.plan.md:3
+docs/01-plan/features/graph-consumption.plan.md:8
+docs/02-design/features/gain-budget-gmid-sizing.40-engine.design.md:1
+docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md:1
+docs/02-design/features/gain-budget-gmid-sizing.42-gap-checklist.design.md:1
+### 문서: dc_output_structure
+docs/01-plan/features/gain-budget-gmid-sizing.plan.md:4
+docs/02-design/features/gain-budget-gmid-sizing.40-engine.design.md:4
+docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md:6
+docs/02-design/features/gain-budget-gmid-sizing.42-gap-checklist.design.md:1
+docs/02-design/specs/20261021-it0-baseline.spec.md:1
+docs/02-design/specs/20261021-it2-common.md:6
+docs/02-design/specs/20261021-it2b-kernel-window.interface.md:2
+docs/02-design/specs/20261021-it2b-kernel-window.spec.md:5
+docs/02-design/specs/20261021-it2c-icm-config.interface.md:1
+docs/02-design/specs/20261021-it2c-icm-config.spec.md:3
+### 문서: _conduction_rows
+docs/01-plan/features/gain-budget-gmid-sizing.plan.md:3
+docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md:7
+docs/02-design/features/gain-budget-gmid-sizing.42-gap-checklist.design.md:1
+### 문서: dc_window_def
+docs/01-plan/features/gain-budget-gmid-sizing.plan.md:13
+docs/01-plan/features/graph-consumption.plan.md:3
+docs/01-plan/features/headroom-chain.plan.md:3
+docs/02-design/features/gain-budget-gmid-sizing.40-engine.design.md:2
+docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md:9
+docs/02-design/features/gain-budget-gmid-sizing.42-gap-checklist.design.md:1
+docs/02-design/specs/20261021-it2-common.md:6
+docs/02-design/specs/20261021-it2d-refine-front.interface.md:1
+docs/02-design/specs/20261021-it2d-refine-front.spec.md:3
+### 문서: f_component_undeclared
+docs/01-plan/features/gain-budget-gmid-sizing.plan.md:3
+docs/02-design/features/gain-budget-gmid-sizing.40-engine.design.md:1
+docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md:9
+docs/02-design/features/gain-budget-gmid-sizing.42-gap-checklist.design.md:1
+docs/02-design/specs/20261021-it0-baseline.spec.md:1
+docs/02-design/specs/20261021-it2-common.md:5
+docs/02-design/specs/20261021-it2b-kernel-window.interface.md:2
+docs/02-design/specs/20261021-it2b-kernel-window.spec.md:1
+docs/02-design/specs/20261021-it2c-icm-config.interface.md:2
+### 문서: writer_head
+docs/02-design/features/gain-budget-gmid-sizing.40-engine.design.md:2
+docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md:7
+docs/02-design/features/gain-budget-gmid-sizing.42-gap-checklist.design.md:1
+## 쓰이지 않은 GL-1 card 흔적(tools·specs)
+tools/gates tools/migrate 
+docs/02-design/specs/20261103-gl1.interface.md
+docs/02-design/specs/20261103-gl1.spec.md
+END

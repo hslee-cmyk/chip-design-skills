@@ -1,0 +1,209 @@
+---
+id: 20261006-p3-mod10-entry
+phase: 3
+evidence_type: red-green
+gate_change: no
+approval: 20260930-30-module-split-design
+---
+## 의도
+
+design `30-module-split` **v8.5**(사용자 승인 UD-0 `20260930-30-module-split-design`, gate `master` `6df4bd7` 판 -- `6c724de`(= `2183f2e` + b26pre spec·interface card 문서 2파일, `git diff --stat 2183f2e 6c724de -- tools skills workspaces <레지스트리>` 빈 출력)에 b26pre spec card 개정·test·판정 기록, backfill spec·interface card·test·code·판정 기록, B40 승인 기록, B26-1 spec·interface card를 더한 판. `git diff --name-only 6c724de 6df4bd7 -- tools skills workspaces <레지스트리>` = test 2파일(`A/tests/contracts/test_b26pre_existing_paths.py`·`test_b26_backfill_interdig.py`) + `A/sizing_recipe.py`(`run_matching_safety_with_finger_growth` 본문 −5/+4 -- 11755행 이후, 이 card가 인용하는 줄 밖) -- H·레지스트리·`tools/gates` 바이트 같음 -- 아래 `6c724de` 표기는 그 판에서 잰 측정 이름) §2.3·§3 ENTRY·§8 M10 행·§8.1·D-5·D-15·D-25, card **M10**.
+A = `skills/analog-gmid-design/assets`, H = `workspaces/run_harness.py`, MOD10 = `A/gmid_design_pipeline.py`(계획 N3.10 MOD10 행 원문: `| MOD10 | `gmid_design_pipeline.py` | 유일 최상위 진입점 `run_gmid_design_pipeline(spec)`(탐색 설정 인자 `search`와 계측 인자 `output_dir`·`instrument`·`activations_out`, `00-common` §10.1·§11) | spec을 인자로 받는다(`workspaces/`를 import하지 않는다) |`).
+
+**무엇을 하는가**: 새 파일 MOD10에 운영 진입점 `run_gmid_design_pipeline(spec, *, topology_path, search, output_dir)`(D-5 -- `instrument`·`activations_out`은 CC-7·CC-8 몫)를 만들고,
+하네스 `run()`이 그것을 **즉시** 부른다(만들면 배선 -- 계획 N3.10 '운영 경로 Phase 3 후: `run_gmid_design_pipeline` 이하', gate `reachability_roots.after_phase3` 첫 원소). M10은 이동이 아니라 **추출**(새 def + `run()` 몸체 변경)이라 V3 대상이고
+red-green이다(D-15 -- 지금 `run()` 인벤토리는 `build_graph` 이름 과대 근사뿐, design §2.3).
+
+**옮길 범위(design §2.3 읽기와 V6로 고른 기본안 -- '결정 필요 항목' M10-1)**: base `run()`(H 422~529행, gate `6c724de`(H는 `2183f2e`와 바이트 같음)와 M9 병합 모의본에서 같은 줄)의 `try:`(444행) **몸체**(445~511행, 67줄)만 진입점 본문으로 옮긴다.
+`except Exception as e:` 처리부(512~529행 -- `[FAIL]` 출력·`traceback.print_exc()`·`ValueError`면 `diagnose_sizing_roles_gap` 진단)는 **`run()`에 바이트 그대로 남는다** -- 진입점은 예외를 삼키지 않고 호출자에게 올린다.
+근거: (1) **V6** -- 처리부의 두 `except Exception`을 새 엔진 파일로 옮기면 `broad_except` 새 발견 2로 V6 FAIL이고(작성 전 실측 6; 이동이 아닌 추출이라 G1 이동 제외도 받지 못한다 -- 광범위 except 정리는 DF-37 Phase 4 몫이라 이 card가 고치지도 면제받지도 않는다), 기본안은 PASS `findings` [].
+(2) **design §2.3 읽기** -- 문언만으로는 정해지지 않는다((ii)·(iv)는 처리부까지 옮긴 모양을 전제했다 -- open items X-2). 기본안은 처리부 변이를 V3 대상 밖(`run()` `not_targeted`)에 두고, 그 동작은 분기 계약 test(계약 6 (b) 시나리오 8~10: 최적화 `ValueError` → 진단 출력, 진단 자체 실패, `RuntimeError` 진단 없음)로 고정한다.
+(3) **고칠 곳이 `run()` 하나로 남는다** -- `00-common` §10.2-1은 Phase 4 계측 도구가 하네스 `run(circuit, output_dir=…, instrument=…)`를 부른다고 적으므로, 기본안에서도 `run()`의 `except Exception`이 예외를 삼키는 동안은 §10.2-6("진입점 호출 전체를 잡는다")이 성립하지 않는다. Phase 4 DF-37이 `run()`의 except를 고친다. 처리부까지 옮기면 고칠 곳이 엔진 파일까지 두 곳이 된다(레지스트리 §5 R2 `run` 행 비고도 "`except Exception`(:507)으로 실패도 exit 0"을 R2 결함으로 적어 두었다 -- 결함을 엔진 파일로 옮기지 않는다).
+`run()`에 남는 것: 회로 키 검사·`raise`, `cfg`, `topo`, `report_dir`, `spec = cfg["spec_fn"]()`, `setdefault` 두 줄, `try:`/처리부. 지우는 것: `stem`·`instance_out`·`report_out` 세 대입(진입점이 `topology_path`·`output_dir`에서 같은 값을 만든다).
+`print`는 진입점에 그대로 둔다(출력 위치를 바꾸면 재구성이다 -- design §2.3 (i)).
+
+**정의 하나**: 진입점이 읽는 floorplan 판정 임계값은 `spec["floorplan_target"]`(`max_aspect_ratio`·`min_packing_density`)에서 읽는다 -- 하네스 상수 `FLOORPLAN_MAX_ASPECT_RATIO`·`FLOORPLAN_MIN_PACKING_DENSITY`는
+`run()`의 `setdefault`가 이미 같은 값으로 spec에 넣고 `optimize_full_circuit_budget`도 그 키를 읽는다(SR `floorplan_target.get("max_aspect_ratio")` 8984행, gate `6c724de`). 엔진 파일에 같은 숫자를 다시 적지 않는다(상수 복제 금지).
+`search` = `{"grid_points_per_theta": cfg["grid_points_per_theta"], "search_method": cfg.get("search_method", "grid"), "slsqp_kwargs": cfg.get("slsqp_kwargs")}`(`00-common` §10.1 431행 '`search`는 탐색 설정(`grid_points_per_theta`, `search_method`, `slsqp_kwargs`)') --
+기본값 `"grid"`·`None`은 `run()`이 채워 넘긴다(진입점에 기본값을 두지 않는다 -- 지금 기본값의 주인이 하네스 SPECS 해석이므로).
+
+**왜 이 순서인가(design §8.1)**: `M1 → … → M9 → M10 → T1 → F1 → F2`. MOD10은 MOD8(`optimize_full_circuit_budget`)·MOD9(`save_instance_json`·`run_full_circuit_audit_from_topology`·`assemble_report_data`·`save_html_report`)를
+정의 모듈에서 import하므로(ORDER: N3.10 번호 < 10, split 파일 import 0) M9 병합 뒤라야 한다. T1·F1은 이 card 병합본이 base다(F1 초안 `draft_p3_f1.spec.md` 25행 '자리').
+
+**착수 조건**: M1~M9와 같음(Phase 2 DoD PASS, B34 → b26pre → backfill → B26-1 → B33 → T0·FU·G1 → D0a → D0b 병합, 면제 묶기(34)·범위 정책(35), D-27 동결 중) + **앞 card M9(`p3-move-mod9-instance-report-builder`) 판정 기록**이 gate `master`에 있음.
+T0(`20260930-p3-tests-location-free`) 병합 전이면 PT3에 A군 3 FAIL이 남는다(작성 전 실측 9 -- 이 card와 무관).
+
+**만들면 배선**: 새 def 하나(`run_gmid_design_pipeline`) -- 소비자 = 하네스 `run()`(같은 card code 커밋), 새 test. V7 `new_defs` = 그 하나, 루트 `after_phase3`에서 도달.
+레지스트리(WP-14 -- '새 함수를 추가하거나 대체했으면 같은 커밋에서 이 문서를 갱신'): `run_gmid_design_pipeline` 행 추가(계약 10).
+
+## 관찰 가능한 계약
+
+1. **범위(diff, auditor)**: code 커밋 diff = `A/gmid_design_pipeline.py`(추가) + `workspaces/run_harness.py`(수정) + `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`(수정) 3파일뿐. `git diff --name-only <base> <code_commit> -- tools` 빈 출력(D-16·D-27),
+   다른 엔진 파일·library·계획/설계 문서 0. test 커밋 diff = `A/tests/integration/` 아래 새 파일만(`.py`만 -- 계약 9 V5), 기존 test 파일 변경 0.
+2. **진입점 시그니처**: `gmid_design_pipeline.run_gmid_design_pipeline`의 매개변수 = `spec`(위치·키워드) + 키워드 전용 `topology_path`, `search`, `output_dir`(이 순서, 기본값 없음, `*args`·`**kwargs` 없음). `instrument`·`activations_out` 없음(Phase 4). 반환 `None`.
+3. **진입점 모듈 모양(auditor AST)**: MOD10 최상위 문장 = `import`·`from … import` 문장들 + `def run_gmid_design_pipeline` 하나뿐(모듈 docstring·다른 대입·`if __name__` 없음 -- design §3 MOVE-TOTAL이 바뀐·새 단위를 `run_harness.py::run`·`gmid_design_pipeline.py::run_gmid_design_pipeline` 둘로 선언).
+   import가 가리키는 트리 모듈은 **N3.10 번호 < 10 파일**뿐(정의 모듈에서 직접 -- 이름마다 G1 `binding_origin` = 그 import가 가리키는 모듈의 `("def", …)`), split 파일(`sizing_recipe`·`topology_library`·`design_report`·`audit_current_forced`) import 0, `run_harness`·`workspaces` import 0(ENTRY).
+   새 프로세스에서 `import gmid_design_pipeline` 뒤 `sys.modules`에 `run_harness`·`workspaces/` 아래 파일 모듈 0.
+4. **진입점 본문(auditor AST)**: base `run()` `try` 몸체 문장열이 같은 순서로 들어 있다 -- `print` 호출 16개·`if` 6·`for` 2·안쪽 `try`(`except ValueError` 하나) 1이 base 몸체와 같은 수, 몸체 밖에서 더한 것은 그 문장들이 읽는 이름
+   (`topo`, `instance_out`, `report_out`, floorplan 임계값 둘)을 매개변수에서 만드는 대입뿐이고, `cfg[...]`/`cfg.get(...)` 세 곳은 `search[...]` 세 곳으로 바뀐다. `except Exception`(이름 있든 없든)·`except:`·`BaseException` 처리 0.
+5. **하네스 `run()`(auditor AST)**: (a) `try` 처리부(`except Exception as e:` 블록 전체)의 `ast.dump`가 base와 같다 (b) `try` 몸체 = `run_gmid_design_pipeline(...)` 호출 문장 하나, 인자 = 위치 `spec`, 키워드 `topology_path=topo`·`output_dir=report_dir`·`search={위 세 키}`
+   (c) 회로 키 검사·`cfg`·`topo`·`report_dir`·`spec`·`setdefault` 두 문장의 `ast.dump`가 base와 같고 `stem`·`instance_out`·`report_out` 대입 0 (d) H 최상위 `from … import`가 묶는 이름마다 H 안에서 읽힌다(옮겨서 안 쓰게 된 이름의 import는 지운다 -- 죽은 이름 없음; base M9 병합본에서 이 식 0건)
+   그리고 `from gmid_design_pipeline import run_gmid_design_pipeline`이 있다. H의 다른 최상위 문장·def(`canonical_spec`·`derived_spec`·`SPECS`·`_spec_*`)는 `ast.dump`가 base와 같다(D-6).
+6. **동작 보존 -- 새 test(test-author, 소스 열람 없이 interface card와 이 계약만으로)**: 기대값 = **이 card base(M9 병합본)의 하네스 동작**을 test-author가 base 트리 사본에서 같은 호출로 기록한 값(oracle (c)). 기록은 test 파일 옆 **`.py` 모듈의 리터럴**로 둔다(계약 9 V5).
+   출력 경로는 자리표시(`<OUT>`·`<ROOT>`)로 정규화한다(경로만 다르고 내용은 같다 -- `topology_ref`는 저장소 루트 상대라 출력 위치와 무관, SD `_topology_ref_relpath` 8942행).
+   (a) **배선**: SPECS 키마다(4개) `run_harness.run(key)`가 `run_harness.run_gmid_design_pipeline`을 정확히 한 번, 계약 5 (b)의 인자로 부른다(모듈 속성 교체로 기록 -- 계산 없음, 초 단위). 기대 인자는 `SPECS[key]`와 하네스 상수에서 구성(oracle (a)).
+   (b) **분기 계약(design §2.3 (iii))**: 진입점 모듈 속성 `optimize_full_circuit_budget`·`run_full_circuit_audit_from_topology`·`save_instance_json`·`assemble_report_data`·`save_html_report`와 하네스 모듈 속성 `diagnose_sizing_roles_gap`을
+       합성 반환값·예외로 바꾸고 `run_harness.run("folded_cascode")`(`WORKSPACES_DIR`는 임시 디렉터리로 교체)의 stdout 전체와 각 호출의 인자(정규화)가 base 기록과 같다. 시나리오(최소): `pr is None` + 감사 `ValueError`, 재시도 줄 2개 + 감사 성공(체크 2) + report 저장,
+       `audit_ok=False`·floorplan 불만족·감사 FAIL note 셋 모두, density만 불만족, aspect만 불만족, 경계값 같음(`<=`·`>=` 등호), `pr` 있음 + 감사 `ValueError`(report 생략), 최적화 `ValueError` → 진단 출력, 진단 자체 실패, 최적화 `RuntimeError`(진단 없음) -- 10개.
+   (c) **실제 회로(D-25)**: 준비 -- base 기록과 병합본 test 모두 `WORKSPACES_DIR`를 임시 디렉터리로 바꾼 뒤 그 아래 `SPECS[key]["report_dir"]` 디렉터리를 **미리 만든다**
+       (하네스·`save_instance_json`은 그 디렉터리를 만들지 않는다 -- 안 만들면 `folded_cascode`가 `[FAIL] FileNotFoundError: …folded_cascode.instance.json`으로 끝나 instance.json이 없다, 작성 전 실측 15).
+       `folded_cascode`(E-INST 회로 중 한 판이 가장 짧은 것) -- instance.json이 **있고** 그 정규 해시가 base 기록과 같으며, stdout 전체(정규화)가 같고 report.html이 없다.
+       정규 해시 = E-INST `raw_sha256`과 **같은 정의**: `hashlib.sha256(json.dumps(obj, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()`
+       (`obj` = instance.json을 `json.load`한 객체; `docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_inst_p3.py`의 `h()` -- `separators`를 빼면 다른 값이다, 작성 전 실측 15).
+       기록된 `folded_cascode` 해시는 **null이 아니다**(test가 단언한다), 그리고 auditor는 그 기록값이 이 card base의 E-INST `folded_cascode` `raw_sha256`(계약 11 base 측정)과 같은지 대조한다 -- null이거나 다르면 계약 6 (c) FAIL(null = null 무발동 통과 금지 -- 거부 입력 R-12·R-13).
+       실패 경로 보조 회로 `two_stage_ota` -- (같은 준비로) stdout 전체(정규화, `[FAIL]` 줄과 진단 줄 포함)가 같고 instance.json·report.html 없음. 두 회로 기록 stdout 모두 `FileNotFoundError`가 없다(auditor가 기록에서 확인 -- `two_stage_ota`의 `[FAIL]`은 저장 전 `ValueError`).
+       파일럿은 쓰지 않는다(판당 수 분 -- 작성 전 실측 7).
+   (d) **예외 전파**: 진입점 모듈 `optimize_full_circuit_budget`이 `RuntimeError`를 내면 `run_gmid_design_pipeline(...)` 호출이 그 예외를 올린다(`pytest.raises`).
+   (e) **임계값 출처**: `spec["floorplan_target"]`을 하네스 상수와 **다른** 값(예 `{2.0, 0.3}`)으로 주고 합성 `pr`(aspect 1.8·density 0.25)로 부르면 floorplan 줄이 그 spec 값으로 판정·출력된다(`(<= 2.0 ? True)`·`(>= 0.3 ? False)`) -- oracle (a) 구성. 숫자 상수를 MOD10에 다시 적으면 이 test가 FAIL(작성 전 실측 10 R-5).
+   (f) **진입점 시그니처·모듈 모양**: 계약 2와 계약 3의 마지막 문장(새 프로세스 `sys.modules`)을 test가 단언한다.
+7. **red-green(V2)**: test 커밋만 얹은 base에서 새 test 파일 수집이 `ModuleNotFoundError: No module named 'gmid_design_pipeline'`로 실패(red -- 신규 시그니처 표의 모듈), 병합본에서 새 test 전부 PASS(green).
+8. **V3(auditor, 판정 때 gate `master` 판 -- G1·면제 묶기·범위 정책 병합본)**: exit 0, `survivors` `[]`, `move_rejected` `{}`, `moved` = `[]`(이동 아님), `defs` = 아래 두 def, `targets_by_def` 키 집합 = {`workspaces/run_harness.py::run`, `A/gmid_design_pipeline.py::run_gmid_design_pipeline`}
+   (진입점은 새 def라 본문 전체, `run()`은 범위 정책 N2로 바뀐 문장 주변만 -- 나머지는 `not_targeted`). 생존이 남으면 V3 FAIL이고 면제는 사용자 승인(design §9.2 '뒤에 올 승인')이다 -- test 보강이 먼저다.
+9. **V4·V5·V6·V7**: V4 = 이 card interface card의 '기존 함수' 전부를 피검으로 PASS. interface card에 `run_harness` 행(`run`·`canonical_spec`·`derived_spec`)이 생기므로 `--interface-card` 한 번이면 `A/run_harness.py`를 찾다가 ERROR다 -- 선례 `20260930-restore-plan-functions` 판정 기록 V4 basis대로 **두 번**: `A` 피검은 `--subject`로, `run_harness` 피검은 `--module-dir workspaces --subject run_harness:…`로(작성 전 실측 8). V5 PASS(`diff_paths` `[]` -- test 분류의 `.py` 아닌 파일은 무조건 승인 대상이라 기록을 `.json`으로 두지 않는다, 작성 전 실측 8).
+   V6 PASS `findings` `[]`(계약 4의 처리부 잔류 때문에 `broad_except` 새 발견 0). V7 PASS `new_defs` = [`A/gmid_design_pipeline.py::run_gmid_design_pipeline`], `unreached` `[]`. V8·V9 N/A.
+10. **레지스트리(REG-DEST)**: 새 행은 **§4 `R1`의 `### 기타 모듈 (16)` 표**(gate `6c724de` 376행 -- §3은 R0, §4는 R1, §5는 R2)에 `| `run_gmid_design_pipeline` | <책임> | gmid_design_pipeline | A-0 | <비고> |`
+    (열 모양은 base 표 머리 그대로 -- D0b 재생성 뒤 `이관 목적지` 다음 `근거 규칙` 열; 이관 목적지 = MOD 파일 줄기, 근거 규칙 = 병합본 `plan`의 `rule`).
+    R1인 근거: 유일한 운영 진입점이라 새 호출부는 이것을 그대로 부르고(같은 일을 새로 만들지 않는다), 옮겨 온 몸체가 `run` 행 R2 비고의 결함('3단계 분리 없음, θ* print만')을 함께 가져와 그 자리에서 고칠 대상이다(레지스트리 §0 규칙 3 R1 "그 함수를 고친다. 새 함수를 만들지 않는다." -- §4 제목(271행) 문구는 '재사용하되 국소 수정 (새 함수를 만들지 말고 이것을 고친다)').
+    R2가 아닌 이유: 이 함수가 바로 §5 R2 `run` 행의 이관 목적지(`gmid_design_pipeline.run_gmid_design_pi…`, `00-common` §10.1 정본 진입점)라, R2("새 호출부를 늘리지 않는다")로 두면 Phase 4 계측 도구와 이후 호출부가 이것을 불러야 한다는 계획과 규칙이 충돌한다.
+    같은 code 커밋에서 (i) 그 소절 제목 괄호 수 = base 값 + 1 = 그 표 행 수(gate `6c724de`·`863a037` 값 -- 레지스트리 바이트 같음 -- **16 → 17**, 표 행 16 → 17) (ii) `## 1. 집계` 표 '기타 모듈' 행(27행)의 **R1 칸 = base 값 + 1**(= (i)의 수, 같은 판 값 **16 → 17** -- 행 `22·16·1·1·1` → `22·17·1·1·1`), 그 행의 다른 칸(R0·R2·D·DUP)과 다른 행은 base와 같다
+    (base 값은 작성 전 실측 13 (ii)에서 이 card base로 다시 잰다 -- 바뀌면 그 값 + 1)
+    (`reg_check`는 §7 D 열만 보므로 (i)(ii)는 auditor가 base 대비 diff로 읽어 대조한다).
+    `run` 행은 **§5 `R2`의 `### 기타 모듈 (1)` 표**(gate `6c724de`·`863a037` 441~445행)에 그대로 둔다 -- 지우지 않고 절도 옮기지 않으며(R2 소절 괄호 수·§1 R2 칸 불변), 책임·비고만 남은 일(준비·실패 출력·진단; `except Exception`은 DF-37 Phase 4 몫)로 고친다
+    (계획 N3.10 '`canonical_spec()`/`SPECS`는 하네스에 남고 MOD10에 인자로 넘긴다' -- D-6과 같은 읽기).
+    병합본에서 `move_plan plan`(`MPC` -- design §2.4) exit 0, 판정 목록 일곱 0, `assignment["gmid_design_pipeline.py::run_gmid_design_pipeline"]` = `{"mod": "gmid_design_pipeline.py", "rule": "A-0"}`, 나머지 (단위 키 → MOD) 사상이 base와 같다.
+    `tests/tools/reg_check.py` 발견 0.
+11. **E-INST·E-LIB·IMPORT-ANY(auditor, design §10 그대로, base·병합본 같은 체크아웃 경로)**: E-LIB(`e_lib.py` 사본) 출력 JSON 전체가 base와 같다. E-INST(`e_inst_p3.py`) 파일럿·`folded_cascode`: `engine_origin`을 뺀 키 전부 base와 같고,
+    병합본 `engine_origin`의 경로가 전부 `<iso>` 안이며 `gmid_design_pipeline`을 포함한다; stdout 사본은 `elapsed=<초>s`를 가리면 같다. IMPORT-ANY `tried=<n> expected=<n> failed=0`(n = base의 n + 1 -- MOD10이 `present`에 더해진다).
+    PT3 전체 base·병합본: 병합본 test id 집합 = base 집합 ∪ 새 test id, 공통 id별 결과 같음, 실패 0(T0 병합 뒤).
+12. **ORDER·LAYER(중간 상태)**: `import_layering --root <iso>`의 발견이 base와 같은 두 개(MOD7 → MOD9 큰 번호 import 1·순환 `instance_report_builder ↔ stick_diagram` 1 -- design D-22 (4), F2가 없앤다)이고 MOD10 관련 발견 0, `present`에 `gmid_design_pipeline` = 10.
+    `move_plan check --card gmid_design_pipeline.py`의 `order` 발견 0(MOD10이 split 파일을 import하면 `order` 1 -- 작성 전 실측 10 R-2).
+
+## 신규 시그니처
+
+| 모듈 | 심볼 | 시그니처 |
+|---|---|---|
+| `gmid_design_pipeline` | `run_gmid_design_pipeline` | `def run_gmid_design_pipeline(spec, *, topology_path, search, output_dir)` |
+
+## 판정 유형 근거
+
+**red-green**(design §8 M10 행·D-15): 새 def가 생기고 하네스 `run()` 몸체가 바뀌므로 code 커밋이 있고, 지금 `run()`에 도달하는 인벤토리 test는 전부 `build_graph`의 이름 과대 근사(`subprocess.run`류 속성 호출 → 같은 이름의 모든 def)라
+하네스를 실제로 실행하지 않는다(design §2.3, 부록 A S12) -- equivalence로 판정하면 V3 변이가 거의 모두 산다. 새 test가 base에서 실패(진입점 모듈 없음)하고 병합본에서 통과한다.
+equivalence 몫(E-LIB·E-INST·IMPORT-ANY·PT3)은 계약 11로 같은 판정 기록 `checks`에 함께 싣는다(design §8 M10 행 oracle '(c) E-INST·E-LIB + (a) ENTRY').
+'Phase 3 이동은 equivalence'(계획 N3.12.3 686행)의 예외가 아니다 -- M10은 이동이 아니라 추출이다(design §2.3 '이동이 아니라 추출').
+
+## oracle 종류와 출처
+
+(c) 동작 보존: 계약 6 (a)~(c)의 기대값 = 이 card base(M9 병합본) 하네스를 같은 호출(같은 모듈 속성 교체·같은 정규화)로 실행한 기록 -- test-author가 base 트리 사본에서 만든다(피검 = 새 진입점이고 base에는 없다. base 하네스 실행은 피검 호출이 아니다).
+E-LIB·E-INST·PT3 기대값 = base 실행 결과(auditor, 격리 복제본). (a) 구성: 계약 6 (a)의 기대 인자(SPECS·하네스 상수에서 구성), (d) 예외 전파, (e) 임계값 출처(넣은 spec 값이 기대를 정한다), 계약 2·3·4·5의 모양(design §2.3·D-5·`00-common` §10.1에서 손으로 정함).
+(d) 문서: 시그니처 = `00-common` §10.1 431행에서 Phase 3 몫(D-5). 모의 스크립트(`_drafts/p3kit_m10_t1/`)는 작성 전 실측용 시제품이고 판정 도구·기대값 출처가 아니다(작성자≠검증자 -- test-author·code-author·auditor에게 건네지 않는다).
+
+## 거부해야 할 입력
+
+auditor 판정기 자기 점검(병합본 사본에 하나씩 커밋해 실제로 거부되는지 먼저 확인 -- 모의 실측은 작성 전 실측 10, 시제품 test 기준이라 실제 test로 다시 잰다):
+| ID | 변형(병합본 기준) | 거부해야 할 판정 |
+|---|---|---|
+| R-1 | MOD10에 `import run_harness` 한 줄 | 계약 3(AST) + 새 test 수집 오류(모의 `1 error`) + IMPORT-ANY `FAIL: gmid_design_pipeline`(assets 경로에서 단독 import 실패) |
+| R-2 | MOD10이 `optimize_full_circuit_budget`을 MOD8 대신 `sizing_recipe`(shim)에서 import | 계약 3(정의 모듈 직접 import) + 계약 12 `check` `order` 1 (새 test는 통과 -- 같은 객체라 동작 판정은 못 잡는다) |
+| R-3 | 하네스 `run()`이 진입점을 부르지 않고 옛 몸체 유지(MOD10만 추가) | 계약 5 (b) + 새 test 계약 6 (a)·(b) FAIL(시제품 14 FAIL) |
+| R-4 | `run()`의 `search` 기본값 `"grid"`를 뺌(`cfg.get("search_method")`) | 계약 5 (b) + 새 test 6 (a) 3키·6 (b) 10시나리오 FAIL(시제품 13 FAIL) |
+| R-5 | MOD10에 임계값 리터럴 `1.5`(spec 대신) | 계약 6 (e) FAIL(시제품 1 FAIL -- 하네스 경로는 같은 값이라 6 (a)~(c)는 통과) |
+| R-6 | 진입점에서 `print("audit_ok:", …)` 한 줄 삭제 | 계약 4(print 수) + 새 test 6 (b) FAIL(시제품 7 FAIL) + 6 (c) |
+| R-7 | 하네스에 이제 안 쓰는 엔진 import 이름을 남김 | 계약 5 (d)만(시제품 test 통과·V6 PASS -- AST 판정 몫) |
+| R-8 | `try` 문 전체(처리부 포함)를 진입점으로 옮김(design §2.3 (iv) 추정의 모양) | 계약 4·5 (a) + V6 `broad_except` 새 발견 2 FAIL + 계약 6 (d) FAIL(예외를 삼킨다) |
+| R-9 | 레지스트리 새 행 이관 목적지를 `theta_search`로 | 계약 10 `plan` `reg_mismatch` 1 |
+| R-10 | MOD10에 모듈 docstring | 계약 3(최상위 문장 = import + def 하나) -- E6 MOVE-TOTAL의 선언 단위 둘 밖 |
+| R-11 | 기록(기대값)을 `tests/integration/*.json`으로 둠 | 계약 9 V5 '무조건 승인 필요' FAIL |
+| R-12 | test(와 base 기록)가 임시 `WORKSPACES_DIR` 아래 `report_dir`를 미리 만들지 않음 -- 기록 해시 null, stdout `[FAIL] FileNotFoundError`(null = null 무발동) | 계약 6 (c): test의 'instance.json 있음'·'기록 해시 null 아님' 단언 FAIL + auditor 대조(기록값 = E-INST base `raw_sha256`) FAIL (작성 전 실측 15: 옛 문언 모양 test는 PASS, 고친 문언 모양은 FAIL) |
+| R-13 | 기록 해시를 `separators` 없이(`json.dumps(obj, sort_keys=True, ensure_ascii=False)`) 계산 | 계약 6 (c) auditor 대조 FAIL(`folded_cascode` 값이 E-INST `raw_sha256`과 다름 -- 작성 전 실측 15) |
+| R-14 | 레지스트리 새 행은 넣었지만 §1 집계 '기타 모듈' R1 칸·§4 소절 괄호 수를 그대로 둠 | 계약 10 (i)(ii) auditor diff 대조(`reg_check`·`plan`은 통과 -- 기계 검사가 못 잡는 stale 수) |
+
+## library 회로 적용 여부
+
+적용 -- E-LIB 9회로(`load_topology`·`run_topology_pipeline` 경로, 이 card가 닿지 않음), E-INST 파일럿·`folded_cascode`(하네스 `run()` → 진입점 → 엔진 전 경로). 새 test는 `folded_cascode`·`two_stage_ota`를 실제로 돌린다(D-25).
+회로·넷·소자 이름은 진입점 코드에 없다(topology 무관 -- 회로 선택은 하네스 SPECS의 몫이고 진입점은 `topology_path`만 받는다). test의 회로 이름은 D-25가 정한 판정 입력이다.
+
+## 무동작 판정 입력(무발동 값)
+
+새 산출물 필드 없음. library 회로 전부의 instance.json·report·stdout이 base와 같다(계약 11 E-INST·E-LIB, 계약 6 (c)). 발동 계수 ID 없음. 진입점의 무동작 증명 = 하네스 경로 전체가 base와 바이트 같은 출력(경과 시간 줄 제외).
+
+## 재현할 수치
+
+(모의 -- 작성 전 실측 머리 사슬, 2026-10-06, 스크래치 `C:/g323`. **전부 관찰이고 기대값 근거가 아니다**: 실제 base(B34·b26pre·backfill·B26-1·B33 등 병합 뒤 M9 병합본)에서 auditor가 다시 잰다. 값이 바뀌는 수는 관계로 적는다.)
+* 진입점 V3 대상 변이 = base `run()` `try` **몸체** 변이 수와 같은 집합(이동한 문장이 같다) -- 모의 58(stmt_delete 48·cmp_flip 8·except_body_delete 1(안쪽 감사 `except ValueError`)·early_return 1); `run()` 대상 4(나머지 14 `not_targeted`). 합 62. 시제품 test 모양(계약 6)으로 생존 0(모의 V3 PASS, 62/62 죽음).
+* E-INST: 병합본 `raw_sha256`·`without_topology_ref_sha256`·`field_sha256` = base 값(모의 `folded_cascode` `ef3cd996…`, 파일럿 `2fc426d9…` -- M9 초안 '재현할 수치'와 같은 값), 다른 키는 `engine_origin` 하나.
+* E-LIB `hash` = base 값(모의 `1d2e3bf6…`). IMPORT-ANY `tried` = base + 1(모의 13 → 14). `import_layering` 발견 수 = base 발견 수(모의 2).
+* PT3 병합본 id 수 = base id 수 + 새 test id 수(모의 1105 → 1124, 시제품 19; 실패 3은 둘 다 T0 A군 -- 모의 사슬에 T0 R-DEF 없음).
+* `plan` 일곱 목록 0, 새 단위 규칙 `A-0` 1.
+
+## 결정 필요 항목
+
+모두 **기본안이 있다**(원칙 유도 -- 사용자 질문 아님). 사용자 몫이 될 조건은 `_drafts/m10_t1_open_items.md`에 모았다(이 card 관련: M10-1~M10-6).
+* **M10-1 옮길 범위 = `try` 몸체(처리부는 `run()`에 남김)**: 계약 4·5 (a). 근거는 '의도'의 셋 -- V6(처리부까지 옮기면 `broad_except` 새 발견 2로 FAIL, 기본안 PASS), design §2.3 읽기, 고칠 곳이 `run()` 하나로 남음(Phase 4 DF-37이 `run()`의 except를 고친다).
+  design §2.3 (ii)(iv)는 처리부까지 옮긴 모양을 전제했다 -- 기본안은 처리부 변이를 V3 대상 밖(`run()` `not_targeted`)으로 두고 분기 계약 test(계약 6 (b) 시나리오 8~10)로 동작을 고정한다.
+  모의: 처리부까지 옮기면 V6 FAIL(`broad_except` 2)이고 진입점이 예외를 삼킨다(R-8). (기본안 진입점 대상 변이 58과 design 추정 '약 58'의 같음은 근거가 아니다 -- 진입점에 새로 생긴 준비 대입이 처리부 변이 수를 대신 채운 우연이다; 처리부까지 옮긴 판은 65.)
+* **M10-2 임계값 출처 = `spec["floorplan_target"]`**: 계약 6 (e). 하네스 4회로는 `floorplan_target`을 spec 함수에서 정하지 않고(`setdefault`만 -- gate `6c724de` H 438~441행) 출력은 같다(계약 6 (c) 모의 같음).
+* **M10-3 기대값 기록의 모양 = test 옆 `.py` 리터럴 모듈**: 계약 9. `.json` 기록은 V5 '무조건 승인' 대상이 된다(모의 FAIL). 기록에 해시·정규화 stdout을 담는다.
+* **M10-4 test 위치 = `A/tests/integration/`**(계획 N3.11 `integration/` = end-to-end). `unit/test_mod*.py`는 T1 매핑 집합이라 피한다. 파일 이름은 test-author(전수 스캔 토큰 회피 -- T0 계약 9 목록).
+* **M10-5 레지스트리 행**: 계약 10 -- 새 행은 §4 R1 '기타 모듈' 표, `run` 행은 §5 R2 '기타 모듈 (1)'에 남김, §1 집계 R1 칸 + 1. 행이 없어도 `plan`은 0이지만(레지스트리 사용 규칙 4 -- WP-14) 같은 커밋에서 더한다.
+* **M10-6 V3 비용**: 인벤토리 정렬상 `contracts/test_b26pre_existing_paths.py` 1·`contracts/test_b34_grammar_explicit.py` 2가 새 test보다 먼저 돈다(gate `6df4bd7` 인벤토리 -- 작성 전 실측 6 r4) -- 죽는 변이마다 그 시간이 더해진다. 판정 영향 없음(비용만), test 배치는 test-author.
+* **id 날짜**: 초안 id `20261006-p3-mod10-entry`(slug = design §8 `p3-mod10-entry`). card 커밋 날짜로 바꾼다.
+
+## 작성 전 실측
+
+(2026-10-06. 실제 저장소 쓰기 없음 -- `git -C <저장소> show 2183f2e:<경로>`로 읽기만. 격리 복제본 `C:/g323/r`(`git clone -c core.autocrlf=false --no-local`, origin 제거, 빈 hooksPath, TMP/TEMP `C:/g323/tmp`), 작업 끝에 `C:/g323` 삭제.
+B34만 병합된 gate `master` **`2183f2e`**에서 b26pre·backfill·B26-1·B33·T0·FU·G1·D0a·D0b·M1~M9는 **미병합**이라 사슬로 대역했다: `2183f2e` → `63b04c1` FU 대역(`fu_standin.py`) → `3236aa0` T0 W-1 대역(`t0w1_standin.py`) → `3b398b1` G1 시제품(`_drafts/g1_kit/install_proto.py` `installed 4`) →
+`8dad764` D0a 대역(`move_plan_sim.py`, `MP_STMT_KEY=names`) → `e70ccad` D0b 재생성 대역(`regen_registry.py --write` one 354·nested 7·nounit 18, `보류(Phase 4)`) = M1 base 대역(D-11 MOD1 토큰은 `2183f2e`에 이미 있음 -- 계획 29d2fc2) →
+M1~M9 `chain_lean.py`(`p3kit_m2_m9/r1m`, 경로 인자) `f35e9b9`…`9e2651d`(card마다 `check` 발견 0, 단위 8·18·82·104·21·11·30·16 -- M2~M9 초안 수치와 같음) = **이 card base 대역 `9e2651d`**. 스크립트·원자료 `_drafts/p3kit_m10_t1/`.
+gate `master`는 r2 때 **`6c724de`**(= `2183f2e` + b26pre spec·interface card 문서 2파일; `git diff --stat 2183f2e 6c724de -- tools skills workspaces docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` 빈 출력 -- r2 재확인), 지금(r3, 2026-10-07)은 **`863a037`**이다.
+`6c724de..863a037` 4커밋(`ae1b588` b26pre spec card 개정·`e4d5833` b26pre test·`2db7622` b26pre 판정 기록·`863a037` backfill spec·interface card)의 바뀐 경로는 `.ai/verification/20260930-b26-pre-test-strengthen/` 아래 판정 기록·출력·스크립트, `docs/02-design/specs/` 3파일(`20260930-b26-pre-test-strengthen.spec.md`·`20261001-b26-backfill-interdig-final-audit.spec.md`·`.interface.md`), test 1파일(`skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py` -- 새 파일 -- 그 test 하나 `test_b26pre_ofcb_lutless_repair`가 SR `optimize_full_circuit_budget` → `_build_theta_evaluator._evaluate` → `workspaces/current-reuse-telescopic-ota-report/spice/stage1_psrr_ngspice_crosscheck.py::report`·`::run`의 이름 과대 근사로 `run()` 인벤토리에 든다: gate 도구로 잰 인벤토리 `6c724de` 63 → `863a037`·`6df4bd7` 64; backfill test 5개는 들지 않는다)뿐이고, `tools`·`workspaces`·레지스트리·엔진 소스 diff 0(`git diff --name-only 6c724de 863a037 -- tools skills workspaces <레지스트리>` = 그 test 1파일; H·SR·레지스트리 바이트 같음 -- r3 확인).
+1~11의 사실은 바이트 같은 파일에서 잰 것이라 `6c724de`·`863a037`에서도 같다. 12·15는 r2에서 `6c724de`로 다시 쟀고(측정 이름은 그대로 둔다), 12의 양식은 r3에서 `863a037`로 다시 쟀다. PT3 id 수는 새 test 파일만큼 늘었으나 '재현할 수치'는 관계(base + 새 test)로 적었으므로 문장 영향 0.
+r4(2026-10-07): gate `master`는 **`6df4bd7`**. `863a037..6df4bd7`(`3004096` backfill test·`495bb0e` code·`0bb2278` 병합·`22fd126` 판정 기록·`a6eaec3` B40 승인·`6df4bd7` B26-1 spec·interface card)의 `tools`·`workspaces`·레지스트리 diff는 0이다. `skills` diff는 `A/sizing_recipe.py`(11755~11878행, `run_matching_safety_with_finger_growth` 안 -- 최상위 이름 증감 0, 이 card가 인용하는 SR 8984행·SD 8942행 그대로)와 새 test `A/tests/contracts/test_b26_backfill_interdig.py`(test 5)뿐이다. backfill 판정 기록상 E-INST `folded_cascode`·파일럿 instance.json은 base와 바이트 같다.)
+
+1. **사실 문장 재측정(gate `2183f2e`; H·SR·레지스트리는 `6c724de`와 바이트 같음)**: H `run` 422~529행, `try` 444행, 몸체 445~511행, 처리부 512~529행(`except Exception as e`); `stem`·`instance_out`·`report_out` 429~431행 세 대입; `setdefault` 438~442행; H 엔진 import 40~43행(`sizing_recipe` 5이름·`stick_diagram` 2·`design_report` 2).
+   N3.10 MOD10 행 원문(위 '의도'). `00-common` §10.1 431행(`search` 키 셋, `topology_path`), §10.2-6. gate `tools/gates/gate_config.json` `reachability_roots.after_phase3` 첫 원소 = `skills/analog-gmid-design/assets/gmid_design_pipeline.py::run_gmid_design_pipeline`.
+   레지스트리 **§5 `R2` '기타 모듈 (1)'**(`6c724de` 441~445행; §3 R0 '기타 모듈 (22)' 244행·§4 R1 '기타 모듈 (16)' 376행, §1 집계 '기타 모듈' 행 22·16·1·1·1 = 27행) `run` 행 이관 목적지 `gmid_design_pipeline.run_gmid_design_pi…`(D0b 재생성 뒤에도 비대상 행이라 그대로, `근거 규칙` `-`). spec 함수 넷이 `floorplan_target`을 정하지 않음(H에서 그 키는 `setdefault` 438행뿐).
+2. **진입점 import 출처(모의 M9 병합본 R-DEF)**: `optimize_full_circuit_budget`·`diagnose_sizing_roles_gap` → `sizing_layout_convergence`(MOD8), `save_instance_json`·`run_full_circuit_audit_from_topology`·`assemble_report_data`·`save_html_report` → `instance_report_builder`(MOD9).
+   M10-1 기본안에서 진입점 import = `os` + MOD9 4이름 + MOD8 `optimize_full_circuit_budget`; H는 `diagnose_sizing_roles_gap`·`traceback`을 그대로 쓴다. H의 바깥 독자(추적 `.py`, AST): `run_harness` 속성 읽기는 `canonical_spec` 21·`SPECS` 5·`derived_spec` 1파일뿐 -- 지우는 엔진 import 이름을 H 경유로 읽는 곳 0.
+3. **모의 M10(기본안, `9ad0f38` code + `84e7273` test 시제품 → 병합 `1306cfc`)**: MOD10 79줄, 최상위 = import 3 + def 1. 진입점 `print` 16·`if` 6·`for` 2·안쪽 `try` 1 = base 몸체와 같음; `run()` 처리부 `ast.dump` base와 같음; H 미사용 import 0(M9 병합본도 0).
+4. **IMPORT-ANY**: `tried=14 expected=14 failed=0`(M9 병합본 13). `import_layering` 발견 2(M9와 같음), `present` `gmid_design_pipeline` 10.
+5. **plan·레지스트리**: 병합본 `plan` exit 0·일곱 0, 새 단위 `A-0`. 계약 10 행을 더한 커밋 `8a9b9cf`: `plan` 일곱 0·`reg_check` 발견 0; 그 행 목적지를 `theta_search`로 바꾸면 `reg_mismatch` 1(`registry: theta_search.py, assigned: gmid_design_pipeline.py`). 행이 없어도 `plan`은 0(비대상 처리).
+6. **V3·V6·V7(G1 시제품 판 게이트)**: 대상 선택 정적 계수(`v3_static_scope.py` -- `mutate_changed.changed_defs`·`mutants`·`_Scope` 그대로): 기본안 진입점 58(새 def, 본문 전체)·`run()` 4 대상·14 `not_targeted`; 처리부까지 옮긴 판(`a83a46b`) 진입점 65·`run()` 3 대상·8 `not_targeted`.
+   인벤토리(이름 과대 근사 + 새 test): 63 test 함수(새 test 없이) → 70(시제품 test 함수 7 더함) -- `tooling/test_extract_selftest.py` 24·`unit/test_selftest_sizing_recipe.py` 22·`unit/test_probe_parasitic_pm_all_circuits.py` 5 …, 정렬 첫 다섯 = `contracts/test_b34_grammar_explicit.py` 2·`test_reg_check_df23.py` 1·`test_ts6_probe_relocate.py` 2. (모의 사슬 `2183f2e` 기준 관찰. gate `6df4bd7`에서는 b26pre test 1이 더해져 64 → 시제품 test를 더하면 71이고, 정렬 첫 원소가 `contracts/test_b26pre_existing_paths.py::test_b26pre_ofcb_lutless_repair`다 -- r4 실측)
+   V6: 기본안 PASS `findings` []; 처리부까지 옮긴 판 **FAIL** `broad_except` base 0 → head 2(MOD10 82·98행). V7 PASS `new_defs` [진입점], `unreached` [].
+   실제 V3 실행·생존: '재현할 수치'와 아래 11.
+7. **회로 한 판 시간(모의 사슬, 다른 측정과 겹침)**: base 하네스 `folded_cascode` 47.8 s(시제품 test 안 52.6 s), `two_stage_ota` 18.8 s(25.0 s), `nmcnr_amplifier` 6.8 s; E-INST 파일럿 443~529 s, `folded_cascode` 51~64 s.
+   (design §2.3의 기록 13~19 s보다 길다 -- 같은 시각 다른 측정 다수. 관계: `folded_cascode` < 파일럿, `nmcnr_amplifier`·`two_stage_ota`는 instance.json 없음.)
+8. **V4·V5**: 실제 interface card는 순서 0에서 **base(M9 병합본)**로 만든다 -- 기존 함수 **10**(`run_harness` 3·`instance_report_builder` 5(`_topology_ref_relpath` 포함)·`sizing_layout_convergence` 2) + 신규 시그니처 표 1행(진입점; 독립 검토 §5가 base 대역 `1e99f72`에서 실측).
+   (모의 M10 병합본 `8a9b9cf`로 만들면 진입점까지 '기존 함수'로 잡혀 11 -- `read_card_symbols`가 두 표를 다 읽으므로 V4 피검 집합은 어느 쪽이든 같다. 아래 NO-SUBJECT 수는 그 11 판 관찰.) 그 카드를 `--interface-card`로 주면 V4 **ERROR**(`git show …:skills/analog-gmid-design/assets/run_harness.py` 없음 -- A 밖 모듈을 못 읽는 도구 한계); 선례대로 나눠 돌리면 A 피검 8 → PASS(NO-SUBJECT 17), `--module-dir workspaces` 피검 3 → PASS(NO-SUBJECT 14·UNJUDGED 3, FAIL 0). V5: 기대값 기록을 `m10_golden.json`으로 두면 **FAIL**(`무조건 승인 필요` -- test 분류 비-`.py` 파일), 같은 값을 `.py` 리터럴 모듈로 두면 PASS(`diff_paths` [], `diff_hash` null).
+9. **PT3(design §10 `PT3`)**: M9 병합본 `3 failed, 1087 passed, 15 xfailed`, M10 병합본(처리부까지 옮긴 판 + 시제품 test 19) `3 failed, 1106 passed, 15 xfailed` -- 실패는 둘 다 T0 A군 3(`test_dup_w_calc`·`test_ic5`·`test_ts6_dead_probes` -- 모의에 T0 R-DEF 없음), 새로 깨진 test 0.
+10. **거부 입력 실측**(M9 병합본 + 시제품 test + 변형 code, 실제 회로 test 제외 `-k "not real_run"`, `neg_m10.sh`): 기본안 19 passed; R-1 수집 오류 + IMPORT-ANY `FAIL: gmid_design_pipeline`; R-2 test 통과·`check` `order` 1(`imports: sizing_recipe.py`); R-3 14 failed; R-4 13 failed; R-5 1 failed(`test_entry_thresholds_come_from_spec`);
+    R-6 7 failed; R-7 test 통과·H 미사용 import 5이름(계약 5 (d)만 잡는다); R-8 V6 FAIL(위 6) + 예외 전파 test FAIL(처리부가 삼킴); R-9 위 5; R-11 위 8.
+    **red**: test 시제품만 얹은 base(`84e7273`)에서 `1 error during collection`(`gmid_design_pipeline` 없음), 병합본 20 passed(87.7 s).
+    **E-INST·E-LIB(기본안 code `9ad0f38`, base `9e2651d`, 같은 경로 `C:/g323/ei`)**: 두 회로 모두 다른 키 = `engine_origin` 하나(병합본에 `gmid_design_pipeline` 포함, 전부 `<iso>` 안), stdout 사본 `elapsed` 가림 뒤 같음(`folded_cascode`는 바이트도 같음), E-LIB JSON 전체 같음. 처리부까지 옮긴 판(`a83a46b`)도 같은 결과.
+11. **V3 실제 실행(기본안, G1 시제품 판 `mutate_changed.py --base 9e2651d --head 1306cfc --gmid-phase=3 --gmid-strict=`)**: exit 0 **PASS**, `mutants` 62·`killed` 62·`survivors` []·`not_targeted` 14, `defs` = [진입점, `run`], `moved` []·`move_rejected` {}, `targets_by_def` 진입점 targeted 58·`run` targeted 4(not_targeted 14, deleted_statements 12). 4,939 s(변이당 약 80 s -- 다른 측정과 겹침; 인벤토리 70 test 함수, 정렬상 contracts 5개가 먼저 돈다). 생존 선별(`m10_mut_fast.py` -- 같은 생성기·범위로 시제품 test 파일만): 62 모두 죽음, 변이당 평균 5.6 s. design §2.3 (iv)의 목표(생존 0, 약 20~40분)는 생존 0은 같고 시간은 이 측정에서 더 길었다(겹침·contracts 선행 test).
+12. **양식(r2, gate `6c724de` `tools/gates` `git archive` 사본)**: `role_paths.parse_spec_card(text, expect_id="20261006-p3-mod10-entry")`와 `interface_card.py <이 spec> --root <트리>` -- `parse_spec_card` 예외 없음, `phase` 3·`evidence_type` red-green·`gate_change` no·`approval` [`20260930-30-module-split-design`], 절 11개(양식 순서 그대로).
+    `interface_card.py --root <gate 6c724de 트리>` exit 0 **기존 함수 10** + 신규 시그니처 표 1행(M1~M9 미병합이라 정의 모듈은 아직 `sizing_recipe`·`stick_diagram`·`design_report` -- M9 병합본에서는 `instance_report_builder`·`sizing_layout_convergence`, 이름 10개는 같다);
+    `--root <15의 병합 대역 ef08d39>` exit 0 기존 함수 11(진입점 포함 -- 8의 괄호와 같은 모양).
+    r3(2026-10-07, gate `863a037` `tools/gates`·`A/*.py`·H `git archive` 사본 `C:/g392`, TMP/TEMP 그 아래, cd 없음, 끝에 삭제): `parse_spec_card` 예외 없음·같은 값(절 11개), `interface_card.py --root C:/g392` exit 0 기존 함수 10 + 신규 1행(위와 같은 이름·정의 모듈).
+    r4(gate `6df4bd7` `tools/gates`·`A`·H `git archive` 사본 `C:/g428`, TMP/TEMP 그 아래, cd 없음, 끝에 삭제): `parse_spec_card` 예외 없음·같은 값(절 11), `interface_card.py --root C:/g428/t --out <사본 안>` exit 0, 기존 함수 10 + 신규 1행(같은 이름·정의 모듈).
+13. **앞 card 의존 재확인(오케스트레이터, card 커밋 직전 -- 그때의 gate `master` 판으로, 지금은 `863a037`)**: (i) gate `master`에 M9 판정 기록 (ii) 그 `code_commit`(= 이 card base)에서 1의 줄 번호·2의 정의 모듈·6의 대상 변이 수, 그리고 레지스트리 §4 R1 `### 기타 모듈 (n)` 소절 괄호 수 = 그 표 행 수(지금 16, 376행)와 `## 1. 집계` '기타 모듈' 행(지금 22·16·1·1·1, 27행)을 다시 잰다(값이 바뀌면 '재현할 수치'와 계약 10의 base 값을 그 값으로) (iii) `git diff --stat <D0b 병합> gate/master -- tools docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` 빈 출력(D-27).
+14. **브리프 가드(역할 agent 지시문에 넣을 것)**: 순서 3(auditor freeze·base 측정) 브리프에는 '이 단계에서는 커밋하지 않는다(no-commit)'를, 순서 6(병합본 판정) 브리프에는 '격리 경로 + `git -C <경로>` + `set -e` + 끝나면 reflog·status 확인'을 그대로 넣는다(메모리 원칙 -- 검증 agent git 실측 가드).
+    test-author 브리프에는 기대값 기록을 base 트리 **사본**(자기 worktree 밖 임시 경로)에서 만들라는 문장을 넣는다(하네스가 `workspaces/<회로>-report/`에 쓰므로 -- 추적 파일 `workspaces/folded-cascode-report/folded_cascode.instance.json`을 덮지 않게).
+    test-author 브리프에 다음 한 줄도 그대로 넣는다: "assert를 공용 검사 도우미 안에만 두지 말 것(test 함수 본문에 판정 assert가 있어야 한다 -- V4 규칙 (4)), `subprocess.run(...)` 결과 하나의 두 필드끼리 비교하지 말 것(피검 `run_harness:run`과 속성 이름이 같아 V4 규칙 (1)이 피검 호출로 잡는다 -- 기록·구성값과 비교할 것)."
+    같은 브리프에 계약 6 (c) 준비("임시 `WORKSPACES_DIR` 아래 `SPECS[key]["report_dir"]`를 base 기록과 test 양쪽에서 미리 만든다", 해시 식은 계약 6 (c)의 식 그대로)를 옮겨 적는다.
+15. **계약 6 (c) 고친 문언의 실제 거부(r2, 2026-10-06, 샌드박스 `C:/g373` -- clone `-c core.autocrlf=false --no-local`, origin 제거, 빈 hooksPath, TMP/TEMP `C:/g373/tmp`, cd 없음, 끝에 삭제)**:
+    base = gate `6c724de`(M1~M9 미병합 -- 하네스 `run()` 동작은 M9 병합본과 같다: 이동 card들은 E-INST 같음이 판정 조건), 병합 대역 = `p3kit_m10_t1/gen_m10b.py`(기본안)를 그대로 얹은 `ef08d39`(import 출처는 `6c724de`의 정의 모듈 `sizing_recipe`·`stick_diagram`·`design_report` -- ORDER와 무관한 이 측정 전용).
+    base 기록(`.py` 리터럴, 정규화 = `<OUT>`·`<ROOT>`, repr 이스케이프 표기 포함): report 디렉터리 **안 만듦** → `folded_cascode` 해시 `null`, stdout `[FAIL] FileNotFoundError …folded_cascode.instance.json`; **만듦** → `ef3cd9963d0a80ac…`(= gate `.ai/verification/20260930-b34-grammar-explicit/order7/einst/base_folded_cascode.json` `raw_sha256`), `[FAIL]` 없음.
+    같은 instance.json을 `separators` 없이 해시하면 `e690b95d4c9d1007…`(R-13).
+    병합 대역에서 test 넷(pytest, gate `pytest_gate.ini`, 52~64 s): (1) 옛 문언 모양(디렉터리 안 만듦 + null 기록, '없으면 None'끼리 비교) **PASS -- 무발동 통과 재현** (2) 고친 문언 모양 + 디렉터리 안 만듦 + null 기록 **FAIL**(`assert None is not None`) (3) 고친 문언 모양 + 디렉터리 안 만듦 + 바른 기록 **FAIL**(instance.json 없음) (4) 고친 문언 모양 + 디렉터리 만듦 + 바른 기록 **PASS**.
+    auditor 쪽 대조(기록값 null 아님 ∧ = E-INST base `raw_sha256`): null 기록 **FAIL**, 바른 기록 **PASS**. `two_stage_ota` `[FAIL]`이 저장 전 `ValueError`(KVL)라는 것은 모의 base 기록(`p3kit_m10_t1/out/m10_golden.json`) 관찰.

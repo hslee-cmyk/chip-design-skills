@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# measure only: T1 r2 on M9 tip of C:/g369/r. No cd. TMP under C:/g369.
+set -u
+export TMP=C:/g369/tmp TEMP=C:/g369/tmp PYTHONIOENCODING=utf-8 MSYS_NO_PATHCONV=1 APPDATA="C:/Users/HSLEE/AppData/Roaming" HOME="C:/Users/HSLEE"
+R=C:/g369/r; K=C:/g369/kit; O=C:/g369/out; GC=C:/g369/cache/tools/gates; GG=C:/g369/gate/tools/gates
+PY="C:/Python314/python.exe -B"
+G="git -C $R -c user.name=m -c user.email=m@x"
+A=skills/analog-gmid-design/assets
+M9=$(git -C $R rev-parse HEAD); echo "M9 $M9" | tee $O/t1_state.txt
+$PY $K/t1_map.py $R $M9 $GC $O/t1_map.json > $O/t1_map.summary.json; echo "map exit $?" | tee -a $O/t1_state.txt
+$PY $K/gen_t1.py C:/g369/r $O/t1_map.json $O/t1_gen.json > $O/t1_gen.stdout.txt; echo "gen exit $?" | tee -a $O/t1_state.txt
+$G add -A skills && $G commit -q -m "T1 r2 sim (measure only)"; T1=$(git -C $R rev-parse HEAD); echo "T1 $T1" | tee -a $O/t1_state.txt
+git -C $R diff --shortstat $M9 $T1 | tee -a $O/t1_state.txt
+$PY $K/t1_verify.py $R $M9 $T1 $O/t1_map.json $O/t1_verify.json > $O/t1_verify.stdout.txt; echo "verify exit $?" | tee -a $O/t1_state.txt
+PYTHONPYCACHEPREFIX="$(mktemp -d)" C:/Python314/python.exe -B -P $K/t1_header_ident.py $R $A/tests/unit > $O/t1_hdr.txt 2>&1; echo "hdr exit $?" | tee -a $O/t1_state.txt
+PYTHONPATH=$GG C:/Python314/python.exe -B -P $GG/weakening_diff.py --root $R --base $M9 --head $T1 > $O/t1_v5.json; echo "v5 exit $?" | tee -a $O/t1_state.txt
+PYTHONPATH=$GG C:/Python314/python.exe -B -P $GG/interface_card.py C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/draft_p3_t1.spec.md --root $R --out $O/t1.interface.md > $O/t1_iface.stdout.txt 2>&1; echo "iface exit $?" | tee -a $O/t1_state.txt
+# V4: no file-list argument -- test_lint.py picks files itself with --no-renames --diff-filter=AM (card contract 11, R-12).
+# A `git diff --diff-filter=AM` list (rename detection on) drops test_mod7/test_mod8 as renames -> files 10, false PASS.
+PYTHONPATH=$GG C:/Python314/python.exe -B -P $GG/test_lint.py --root $R --interface-card $O/t1.interface.md --base $M9 --head $T1 > $O/t1_v4.json; echo "v4 exit $?" | tee -a $O/t1_state.txt
+echo "T1 $T1" > $O/t1_head.txt

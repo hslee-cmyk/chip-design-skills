@@ -1,0 +1,20 @@
+== 대상 저장소 R=/c/g253/sb/repo  상태 파일 /c/g253/sb/t0_state.txt  spec 초안 /c/g253/sb/t0.spec.md  worktree 부모 /c/g253/sb/wt
+== conds: 착수 조건 1~11 + approval 줄(읽기 전용 -- fetch 안 함, 지금 로컬 gate/master 기준)
+   착수 조건(gate master 27e47a3) exit: 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0 9:0 10:0 11:128   조건 3 결과 파일 규약 전체(Python)=0
+      1 0    Phase 3 design 승인 기록 20260930-30-module-split-design(card approval 줄 첫째)
+      2 0    design 30-module-split 문서 커밋(승인 기록 diff_head)
+      3 0    Phase 2 DoD PASS(결과 파일 판정 줄)
+      4 0    B34 20260930-b34-grammar-explicit 병합
+      5 0    b26pre 20260930-b26-pre-test-strengthen 병합
+      6 0    backfill 20261001-b26-backfill-interdig-final-audit 병합
+      7 0    B26-1 20260930-b26-rail-accessor-set 병합
+      8 0    B33 20260930-v7-registry-edges 병합(이 card의 base = B33 병합 뒤 master)
+      9 0    계약 10 대상 test(B26-1 test_b26_rail_accessor.py)가 있다
+     10 0    이 card spec이 아직 없다(순서 0 전)
+     11 128  V4 면제 decision 승인 기록 20261002-p3-t0-v4-s009-exempt(card approval 줄 셋째, 사용자 답 [T0-V4])
+   미충족: 11 (exit 3)
+   approval 줄 20260930-p3-tests-location-free(V5 diff): gate에 없음(정상 -- test 커밋 뒤에 받는다)
+   approval 줄 20261002-p3-t0-v4-s009-exempt(V4 면제 decision): 조건 11 -- 사용자 답 [T0-V4](p3kit_t0/ask_t0_v4.md) 뒤 기록 커밋
+   spec 초안 measured rev: 27e47a3
+   역할 브랜치: 
+[중단] /c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/t0_launch.sh:405: return $rc

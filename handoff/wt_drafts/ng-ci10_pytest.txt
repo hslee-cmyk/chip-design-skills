@@ -1,0 +1,73 @@
+........................................................................ [  4%]
+........................................................................ [  8%]
+........................................................................ [ 12%]
+........................................................................ [ 16%]
+........................................................................ [ 20%]
+........................................................................ [ 24%]
+........................................................................ [ 28%]
+........................................................................ [ 32%]
+........................................................................ [ 36%]
+........................................................................ [ 40%]
+........................................................................ [ 44%]
+........................................................................ [ 48%]
+........................................................................ [ 52%]
+........................................................................ [ 56%]
+........................................................................ [ 60%]
+.........................F.......F...................................... [ 64%]
+........................................................................ [ 68%]
+........................................................................ [ 72%]
+........................................................................ [ 76%]
+........................................................................ [ 80%]
+........................................................................ [ 84%]
+........................................................................ [ 88%]
+........................................................................ [ 92%]
+........................................................................ [ 96%]
+..................................................................       [100%]
+================================== FAILURES ===================================
+__ test_remaining_pending_equals_json_markers[current_reuse_telescopic_ota] ___
+
+name = 'current_reuse_telescopic_ota'
+
+    @pytest.mark.parametrize("name", sorted(TABLE))
+    def test_remaining_pending_equals_json_markers(name):
+        doc = _load(name)
+        want = sorted(_markers(_spec(name)))
+        assert sorted(p.decision for p in doc.pending) == want
+>       assert len(want) == TABLE[name][2]
+E       AssertionError: assert 11 == 13
+E        +  where 11 = len(['AC-3', 'CI-15', 'CI-18', 'MOD5', 'MOD5', 'MOD5', ...])
+
+gmid_engine\tests\integration\test_spec_library_load.py:129: AssertionError
+___________________________ test_pending_id_totals ____________________________
+
+    def test_pending_id_totals():
+        json_total = Counter(x for name in TABLE for x in _markers(_spec(name)))
+        doc_total = Counter(p.decision for name in TABLE for p in _load(name).pending)
+        assert json_total == doc_total
+>       assert dict(json_total) == ID_TOTALS
+E       AssertionError: assert {'AC-3': 9, '...I-18': 9, ...} == {'AC-3': 9, '...I-17': 1, ...}
+E         
+E         Omitting 8 identical items, use -vv to show
+E         Differing items:
+E         {'MOD5': 6} != {'MOD5': 7}
+E         Right contains 1 more item:
+E         {'CI-10': 1}
+E         Use -v to get more diff
+
+gmid_engine\tests\integration\test_spec_library_load.py:136: AssertionError
+============================== warnings summary ===============================
+gmid_engine/tests/metrics/test_dc_limit.py::test_singular_dc_limit_all_columns_nan
+gmid_engine/tests/metrics/test_point_solve.py::test_singular_point_nan_no_exception
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 2 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/metrics/test_probe_loop.py::test_probe_singular_is_value_not_exception
+gmid_engine/tests/metrics/test_probe_loop.py::test_undefined_paths_raise_nothing_i10
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 1 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED gmid_engine/tests/integration/test_spec_library_load.py::test_remaining_pending_equals_json_markers[current_reuse_telescopic_ota]
+FAILED gmid_engine/tests/integration/test_spec_library_load.py::test_pending_id_totals
+2 failed, 1792 passed, 4 warnings in 259.15s (0:04:19)

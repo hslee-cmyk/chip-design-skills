@@ -1,0 +1,1273 @@
+{
+ "nameless_dest": "instance_report_builder",
+ "files": {
+  "skills/analog-gmid-design/assets/tests/conftest.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "listed_units": [
+    "_b34_exc_problems",
+    "test_b34_c1_both_absent_raises_named_import_error",
+    "test_b34_c2_idioms_only_absent_load_topology_raises",
+    "test_b34_c2_netclass_only_absent_find_stack_edges_raises",
+    "test_b34_c5_import_without_grammar_succeeds",
+    "test_b34_c8_restored_values_equal_fresh_process",
+    "test_b34_selfcheck_exc_problems_rejects_bad_errors"
+   ],
+   "escape_sites_base": [
+    [
+     "_b34_exc_problems",
+     "dunder",
+     73
+    ],
+    [
+     "test_b34_c5_import_without_grammar_succeeds",
+     "dunder",
+     271
+    ],
+    [
+     "test_b34_c8_restored_values_equal_fresh_process",
+     "dunder",
+     301
+    ]
+   ],
+   "listed_changed_units": [
+    "test_b34_c1_both_absent_raises_named_import_error",
+    "test_b34_c8_restored_values_equal_fresh_process"
+   ],
+   "failed": [],
+   "verdict": "LISTED"
+  },
+  "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "listed_units": [
+    "_import_sizing_recipe",
+    "test_registered_metric_type_on_same_context_yields_value",
+    "test_runtime_registries_hold_no_deleted_callable",
+    "test_unregistered_metric_type_is_rejected"
+   ],
+   "escape_sites_base": [
+    [
+     "_import_sizing_recipe",
+     "return",
+     101
+    ]
+   ],
+   "listed_changed_units": [
+    "_import_sizing_recipe"
+   ],
+   "failed": [],
+   "verdict": "LISTED"
+  },
+  "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "listed_units": [
+    "_import_sizing_recipe",
+    "synthetic_ctx",
+    "test_registries_drop_deleted_families"
+   ],
+   "escape_sites_base": [
+    [
+     "_import_sizing_recipe",
+     "return",
+     111
+    ]
+   ],
+   "listed_changed_units": [
+    "_import_sizing_recipe"
+   ],
+   "failed": [],
+   "verdict": "LISTED"
+  },
+  "skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "listed_units": [
+    "_net",
+    "_sd",
+    "test_kcl_and_matching_edges_shape_on_synthetic_netlist",
+    "test_kcl_and_matching_edges_signature_unchanged",
+    "test_kcl_series_union_groups_on_synthetic_netlist",
+    "test_kcl_series_union_signature_unchanged"
+   ],
+   "escape_sites_base": [
+    [
+     "_sd",
+     "return",
+     35
+    ]
+   ],
+   "listed_changed_units": [
+    "_sd"
+   ],
+   "failed": [],
+   "verdict": "LISTED"
+  },
+  "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "listed_units": [
+    "_import_sizing_recipe",
+    "_new_function",
+    "test_size_transistor_signature_unchanged"
+   ],
+   "escape_sites_base": [
+    [
+     "_import_sizing_recipe",
+     "return",
+     75
+    ]
+   ],
+   "listed_changed_units": [
+    "_import_sizing_recipe"
+   ],
+   "failed": [],
+   "verdict": "LISTED"
+  },
+  "skills/analog-gmid-design/assets/tests/contracts/test_ic3.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "listed_units": [
+    "_import"
+   ],
+   "escape_sites_base": [
+    [
+     "_import",
+     "dynamic_import",
+     59
+    ]
+   ],
+   "listed_changed_units": [],
+   "failed": [],
+   "verdict": "LISTED"
+  },
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "listed_units": [
+    "test_sizing_recipe_module_has_no_l_role_multipliers_attribute"
+   ],
+   "escape_sites_base": [
+    [
+     "test_sizing_recipe_module_has_no_l_role_multipliers_attribute",
+     "dynamic_name",
+     230
+    ]
+   ],
+   "listed_changed_units": [
+    "test_sizing_recipe_module_has_no_l_role_multipliers_attribute"
+   ],
+   "failed": [],
+   "verdict": "LISTED"
+  },
+  "skills/analog-gmid-design/assets/tests/probe_physical_consistency.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_allocation_solvers.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_full_research.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_gmid_gain_landscape.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_l5c_stage2out_L.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_common_L.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_infeasibility.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_error.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_stacked_diode_options.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/tools/regression_runner.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": false,
+   "from_same": false,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "from_diff": [
+    [
+     [
+      "os",
+      [
+       "unbound",
+       "os"
+      ]
+     ]
+    ],
+    []
+   ],
+   "failed": [
+    "ast_same",
+    "from_same"
+   ],
+   "verdict": "FAIL"
+  },
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": false,
+   "from_same": false,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "from_diff": [
+    [
+     [
+      "_dc_replace",
+      [
+       "unbound",
+       "_dc_replace"
+      ]
+     ],
+     [
+      "json",
+      [
+       "unbound",
+       "json"
+      ]
+     ],
+     [
+      "math",
+      [
+       "unbound",
+       "math"
+      ]
+     ],
+     [
+      "nmcnr_predict_ac_response",
+      [
+       "unbound",
+       "nmcnr_predict_ac_response"
+      ]
+     ],
+     [
+      "np",
+      [
+       "unbound",
+       "np"
+      ]
+     ]
+    ],
+    [
+     [
+      "nmcnr_predict_ac_response",
+      [
+       "def",
+       "skills/analog-gmid-design/assets/gmid_sizing_engine.py",
+       "nmcnr_predict_ac_response"
+      ]
+     ]
+    ]
+   ],
+   "failed": [
+    "ast_same",
+    "from_same"
+   ],
+   "verdict": "FAIL"
+  },
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": false,
+   "from_same": false,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "from_diff": [
+    [
+     [
+      "math",
+      [
+       "unbound",
+       "math"
+      ]
+     ]
+    ],
+    []
+   ],
+   "failed": [
+    "ast_same",
+    "from_same"
+   ],
+   "verdict": "FAIL"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/resize.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/stick.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/structural_symmetry_probe.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/run_harness.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/two-stage-ota-report/check_box_shape.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/two-stage-ota-report/diagnose_gain_sweep.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  },
+  "workspaces/two-stage-ota-report/diagnose_gain_sweep2.py": {
+   "escape_new_none": true,
+   "multibind_new_none": true,
+   "listed_changes_approved": true,
+   "listed_collected": true,
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": true,
+   "def_module": true,
+   "d17_same": true,
+   "nameless_ok": true,
+   "failed": [],
+   "verdict": "PASS"
+  }
+ },
+ "summary": {
+  "files": 72,
+  "pass": 62,
+  "listed": {
+   "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py": [
+    "_b34_exc_problems",
+    "test_b34_c1_both_absent_raises_named_import_error",
+    "test_b34_c2_idioms_only_absent_load_topology_raises",
+    "test_b34_c2_netclass_only_absent_find_stack_edges_raises",
+    "test_b34_c5_import_without_grammar_succeeds",
+    "test_b34_c8_restored_values_equal_fresh_process",
+    "test_b34_selfcheck_exc_problems_rejects_bad_errors"
+   ],
+   "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py": [
+    "_import_sizing_recipe",
+    "test_registered_metric_type_on_same_context_yields_value",
+    "test_runtime_registries_hold_no_deleted_callable",
+    "test_unregistered_metric_type_is_rejected"
+   ],
+   "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py": [
+    "_import_sizing_recipe",
+    "synthetic_ctx",
+    "test_registries_drop_deleted_families"
+   ],
+   "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py": [
+    "_net",
+    "_sd",
+    "test_kcl_and_matching_edges_shape_on_synthetic_netlist",
+    "test_kcl_and_matching_edges_signature_unchanged",
+    "test_kcl_series_union_groups_on_synthetic_netlist",
+    "test_kcl_series_union_signature_unchanged"
+   ],
+   "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py": [
+    "_import_sizing_recipe",
+    "_new_function",
+    "test_size_transistor_signature_unchanged"
+   ],
+   "skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py": [
+    "_import"
+   ],
+   "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py": [
+    "test_sizing_recipe_module_has_no_l_role_multipliers_attribute"
+   ]
+  },
+  "fail": {
+   "skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py": [
+    "ast_same",
+    "from_same"
+   ],
+   "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": [
+    "ast_same",
+    "from_same"
+   ],
+   "skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py": [
+    "ast_same",
+    "from_same"
+   ]
+  },
+  "d17_expect_vs_f1sim_diff": []
+ }
+}

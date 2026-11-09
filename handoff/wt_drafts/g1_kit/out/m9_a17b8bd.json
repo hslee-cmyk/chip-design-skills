@@ -1,0 +1,665 @@
+{
+ "base_clone_head": "a17b8bd3cc746518f9297d905bedd4f631c26e47",
+ "H": {
+  "per_file": {
+   "sizing_recipe": {
+    "defs": 272,
+    "mutants": 8874,
+    "v6_new_items": {
+     "magic_number": 268,
+     "id_call": 6,
+     "continue": 187,
+     "broad_except": 8
+    }
+   },
+   "stick_diagram": {
+    "defs": 181,
+    "mutants": 5906,
+    "v6_new_items": {
+     "magic_number": 194,
+     "continue": 157
+    }
+   },
+   "topology_library": {
+    "defs": 12,
+    "mutants": 683,
+    "v6_new_items": {
+     "magic_number": 34
+    }
+   },
+   "design_report": {
+    "defs": 8,
+    "mutants": 187,
+    "v6_new_items": {
+     "continue": 2,
+     "magic_number": 3
+    }
+   }
+  },
+  "defs": 473,
+  "mutants": 15650,
+  "v6_new_items": 859,
+  "engine_defs": 473,
+  "unreached": 109,
+  "unreached_unapproved": 108
+ },
+ "W": {
+  "label": "W-rename-4",
+  "units_moved": 402,
+  "defs_moved": 473,
+  "rejected_by_rule": {},
+  "rejected_sample": {},
+  "moved_defs_seconds": 17.6,
+  "parse_counts": {
+   "moved_defs": 1,
+   "ast.parse": 20,
+   "symtable": 4
+  },
+  "v3_base_static": {
+   "defs": 473,
+   "mutants": 15650
+  },
+  "v3_proto_static": {
+   "defs": 0,
+   "mutants": 0
+  },
+  "base": {
+   "V6": {
+    "exit": 1,
+    "findings": 279,
+    "new_items": 859,
+    "sec": 117.9
+   },
+   "V7": {
+    "exit": 1,
+    "new_defs": 473,
+    "unreached_without_approval": 109,
+    "sec": 205.4,
+    "moved": 0
+   }
+  },
+  "proto": {
+   "V6": {
+    "exit": 0,
+    "findings": 0,
+    "new_items": 0,
+    "sec": 260.7
+   },
+   "V7": {
+    "exit": 0,
+    "new_defs": 0,
+    "unreached_without_approval": 0,
+    "sec": 154.9,
+    "moved": 473
+   }
+  },
+  "units_total": 402,
+  "defs_total": 473
+ },
+ "M": [
+  {
+   "label": "state_M1",
+   "units_moved": 5,
+   "defs_moved": 6,
+   "rejected_by_rule": {
+    "M-4": 2
+   },
+   "rejected_sample": {
+    "skills/analog-gmid-design/assets/gmid_lut.py::MultiLeafHubParityVerdict": {
+     "rule": "M-4",
+     "detail": [
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/gmid_lut.py', 'dataclass')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/gmid_lut.py::check_multi_leaf_hub_parity": {
+     "rule": "M-4",
+     "detail": [
+      "MultiLeafHubParityVerdict",
+      "('def', 'skills/analog-gmid-design/assets/stick_diagram.py', 'MultiLeafHubParityVerdict')",
+      "('def', 'skills/analog-gmid-design/assets/gmid_lut.py', 'MultiLeafHubParityVerdict')"
+     ]
+    }
+   },
+   "moved_defs_seconds": 8.39,
+   "parse_counts": {
+    "moved_defs": 1,
+    "ast.parse": 17,
+    "symtable": 1
+   },
+   "v3_base_static": {
+    "defs": 7,
+    "mutants": 270
+   },
+   "v3_proto_static": {
+    "defs": 1,
+    "mutants": 20
+   },
+   "base": {
+    "V6": {
+     "exit": 1,
+     "findings": 2,
+     "new_items": 5,
+     "sec": 89.8
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 7,
+     "unreached_without_approval": 3,
+     "sec": 113.2,
+     "moved": 0
+    }
+   },
+   "proto": {
+    "V6": {
+     "exit": 1,
+     "findings": 1,
+     "new_items": 1,
+     "sec": 104.7
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 1,
+     "unreached_without_approval": 1,
+     "sec": 107.5,
+     "moved": 6
+    }
+   }
+  },
+  {
+   "label": "state_M2",
+   "units_moved": 17,
+   "defs_moved": 12,
+   "rejected_by_rule": {
+    "M-4": 4
+   },
+   "rejected_sample": {
+    "skills/analog-gmid-design/assets/topology_authoring.py::_scan_case_collisions": {
+     "rule": "M-4",
+     "detail": [
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/topology_authoring.py', 'defaultdict')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/topology_authoring.py::_propose_headroom_roles": {
+     "rule": "M-4",
+     "detail": [
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/topology_authoring.py', 'defaultdict')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/topology_authoring.py::SymmetryDispositionsVerdict": {
+     "rule": "M-4",
+     "detail": [
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/topology_authoring.py', 'dataclass')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/topology_authoring.py::_as_set": {
+     "rule": "M-4",
+     "detail": [
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    }
+   },
+   "moved_defs_seconds": 9.13,
+   "parse_counts": {
+    "moved_defs": 1,
+    "ast.parse": 19,
+    "symtable": 1
+   },
+   "v3_base_static": {
+    "defs": 16,
+    "mutants": 315
+   },
+   "v3_proto_static": {
+    "defs": 4,
+    "mutants": 81
+   },
+   "base": {
+    "V6": {
+     "exit": 1,
+     "findings": 8,
+     "new_items": 21,
+     "sec": 49.6
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 16,
+     "unreached_without_approval": 5,
+     "sec": 78.0,
+     "moved": 0
+    }
+   },
+   "proto": {
+    "V6": {
+     "exit": 0,
+     "findings": 0,
+     "new_items": 0,
+     "sec": 84.9
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 4,
+     "unreached_without_approval": 1,
+     "sec": 94.4,
+     "moved": 12
+    }
+   }
+  },
+  {
+   "label": "state_M3",
+   "units_moved": 34,
+   "defs_moved": 28,
+   "rejected_by_rule": {
+    "M-4": 35
+   },
+   "rejected_sample": {
+    "skills/analog-gmid-design/assets/circuit_state_graph.py::Transistor": {
+     "rule": "M-4",
+     "detail": [
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'dataclass')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/circuit_state_graph.py::find_matching_candidates": {
+     "rule": "M-4",
+     "detail": [
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/circuit_state_graph.py::find_stacked_matching_candidates": {
+     "rule": "M-4",
+     "detail": [
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/circuit_state_graph.py::trace_vdd_to_gnd_branches": {
+     "rule": "M-4",
+     "detail": [
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/circuit_state_graph.py::trace_gnd_to_vdd_branches": {
+     "rule": "M-4",
+     "detail": [
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/circuit_state_graph.py::find_differential_and_mirror_forks": {
+     "rule": "M-4",
+     "detail": [
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ]
+    }
+   },
+   "moved_defs_seconds": 7.91,
+   "parse_counts": {
+    "moved_defs": 1,
+    "ast.parse": 21,
+    "symtable": 1
+   },
+   "v3_base_static": {
+    "defs": 87,
+    "mutants": 2886
+   },
+   "v3_proto_static": {
+    "defs": 59,
+    "mutants": 2253
+   },
+   "base": {
+    "V6": {
+     "exit": 1,
+     "findings": 56,
+     "new_items": 214,
+     "sec": 29.5
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 87,
+     "unreached_without_approval": 17,
+     "sec": 70.6,
+     "moved": 0
+    }
+   },
+   "proto": {
+    "V6": {
+     "exit": 1,
+     "findings": 42,
+     "new_items": 192,
+     "sec": 95.9
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 59,
+     "unreached_without_approval": 10,
+     "sec": 79.9,
+     "moved": 28
+    }
+   }
+  },
+  {
+   "label": "state_M4",
+   "units_moved": 93,
+   "defs_moved": 116,
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "moved_defs_seconds": 7.51,
+   "parse_counts": {
+    "moved_defs": 1,
+    "ast.parse": 23,
+    "symtable": 1
+   },
+   "v3_base_static": {
+    "defs": 116,
+    "mutants": 3270
+   },
+   "v3_proto_static": {
+    "defs": 0,
+    "mutants": 0
+   },
+   "base": {
+    "V6": {
+     "exit": 1,
+     "findings": 61,
+     "new_items": 199,
+     "sec": 29.9
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 116,
+     "unreached_without_approval": 52,
+     "sec": 63.2,
+     "moved": 0
+    }
+   },
+   "proto": {
+    "V6": {
+     "exit": 0,
+     "findings": 0,
+     "new_items": 0,
+     "sec": 71.6
+    },
+    "V7": {
+     "exit": 0,
+     "new_defs": 0,
+     "unreached_without_approval": 0,
+     "sec": 47.0,
+     "moved": 116
+    }
+   }
+  },
+  {
+   "label": "state_M5",
+   "units_moved": 4,
+   "defs_moved": 4,
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "moved_defs_seconds": 5.8,
+   "parse_counts": {
+    "moved_defs": 1,
+    "ast.parse": 25,
+    "symtable": 1
+   },
+   "v3_base_static": {
+    "defs": 4,
+    "mutants": 95
+   },
+   "v3_proto_static": {
+    "defs": 0,
+    "mutants": 0
+   },
+   "base": {
+    "V6": {
+     "exit": 1,
+     "findings": 4,
+     "new_items": 11,
+     "sec": 14.9
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 4,
+     "unreached_without_approval": 1,
+     "sec": 35.8,
+     "moved": 0
+    }
+   },
+   "proto": {
+    "V6": {
+     "exit": 0,
+     "findings": 0,
+     "new_items": 0,
+     "sec": 43.3
+    },
+    "V7": {
+     "exit": 0,
+     "new_defs": 0,
+     "unreached_without_approval": 0,
+     "sec": 42.9,
+     "moved": 4
+    }
+   }
+  },
+  {
+   "label": "state_M6",
+   "units_moved": 12,
+   "defs_moved": 14,
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "moved_defs_seconds": 5.45,
+   "parse_counts": {
+    "moved_defs": 1,
+    "ast.parse": 27,
+    "symtable": 1
+   },
+   "v3_base_static": {
+    "defs": 14,
+    "mutants": 333
+   },
+   "v3_proto_static": {
+    "defs": 0,
+    "mutants": 0
+   },
+   "base": {
+    "V6": {
+     "exit": 1,
+     "findings": 5,
+     "new_items": 11,
+     "sec": 14.5
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 14,
+     "unreached_without_approval": 2,
+     "sec": 30.4,
+     "moved": 0
+    }
+   },
+   "proto": {
+    "V6": {
+     "exit": 0,
+     "findings": 0,
+     "new_items": 0,
+     "sec": 44.6
+    },
+    "V7": {
+     "exit": 0,
+     "new_defs": 0,
+     "unreached_without_approval": 0,
+     "sec": 45.1,
+     "moved": 14
+    }
+   }
+  },
+  {
+   "label": "state_M8",
+   "units_moved": 67,
+   "defs_moved": 113,
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "moved_defs_seconds": 7.58,
+   "parse_counts": {
+    "moved_defs": 1,
+    "ast.parse": 29,
+    "symtable": 1
+   },
+   "v3_base_static": {
+    "defs": 113,
+    "mutants": 4841
+   },
+   "v3_proto_static": {
+    "defs": 0,
+    "mutants": 0
+   },
+   "base": {
+    "V6": {
+     "exit": 1,
+     "findings": 73,
+     "new_items": 238,
+     "sec": 17.0
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 113,
+     "unreached_without_approval": 27,
+     "sec": 30.1,
+     "moved": 0
+    }
+   },
+   "proto": {
+    "V6": {
+     "exit": 0,
+     "findings": 0,
+     "new_items": 0,
+     "sec": 35.7
+    },
+    "V7": {
+     "exit": 0,
+     "new_defs": 0,
+     "unreached_without_approval": 0,
+     "sec": 37.4,
+     "moved": 113
+    }
+   }
+  },
+  {
+   "label": "state_M9",
+   "units_moved": 5,
+   "defs_moved": 5,
+   "rejected_by_rule": {
+    "M-4": 8
+   },
+   "rejected_sample": {
+    "skills/analog-gmid-design/assets/instance_report_builder.py::build_topology_device_table": {
+     "rule": "M-4",
+     "detail": [
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    },
+    "skills/analog-gmid-design/assets/instance_report_builder.py::assemble_report_data": {
+     "rule": "M-4",
+     "detail": [
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    },
+    "skills/analog-gmid-design/assets/instance_report_builder.py::<stmt:c206c582df67>": {
+     "rule": "M-4",
+     "detail": [
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    },
+    "skills/analog-gmid-design/assets/instance_report_builder.py::_kv_table": {
+     "rule": "M-4",
+     "detail": [
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    },
+    "skills/analog-gmid-design/assets/instance_report_builder.py::render_html_report": {
+     "rule": "M-4",
+     "detail": [
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    },
+    "skills/analog-gmid-design/assets/instance_report_builder.py::save_html_report": {
+     "rule": "M-4",
+     "detail": [
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    }
+   },
+   "moved_defs_seconds": 4.62,
+   "parse_counts": {
+    "moved_defs": 1,
+    "ast.parse": 31,
+    "symtable": 1
+   },
+   "v3_base_static": {
+    "defs": 15,
+    "mutants": 285
+   },
+   "v3_proto_static": {
+    "defs": 10,
+    "mutants": 229
+   },
+   "base": {
+    "V6": {
+     "exit": 1,
+     "findings": 7,
+     "new_items": 10,
+     "sec": 15.4
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 15,
+     "unreached_without_approval": 2,
+     "sec": 36.2,
+     "moved": 0
+    }
+   },
+   "proto": {
+    "V6": {
+     "exit": 1,
+     "findings": 5,
+     "new_items": 8,
+     "sec": 45.0
+    },
+    "V7": {
+     "exit": 1,
+     "new_defs": 10,
+     "unreached_without_approval": 2,
+     "sec": 41.0,
+     "moved": 5
+    }
+   }
+  }
+ ]
+}

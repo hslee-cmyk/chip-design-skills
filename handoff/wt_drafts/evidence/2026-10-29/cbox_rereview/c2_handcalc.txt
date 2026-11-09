@@ -1,0 +1,7 @@
+# C2 alpha_req 손계산 (sky130 tt 단일 소자 DC, I_req = CL*SR_spec = 1.3524 mA)
+- 입력(대신호 실측, C 10 pF both): dV_X = 0.802 V, dn7d = -0.935 V
+- (1) V_s5 = V_DS(M3B 90/0.3 @ V_GS 1.300, I_req) = 0.0270 V; V_GS5(60/0.3, V_SB 0.027) = 0.8440 V
+      alpha1_req = (0.0270 + 0.8440 - 0.7) / 0.802 = **0.213**
+- (2) V_SG9(48/0.3, I_req) = 1.4350 V -> n_m7d = 0.3650 V, |dn7d| 손계산 = 0.6436 V (실측 0.935)
+      V_SG7(24/0.3, 소스 1.75 V) = 1.6635 V; 필요 V_g7 <= 0.0865 V; alpha2_req = (0.7 - 0.0865) / 0.6436 = **0.953**
+- 결합비 -> C 하한: C_min = alpha_req/(1 - alpha_req) * C_g,eff.  C_g,eff 는 c1_sweep 실측 alpha 에서 역산(C_g,eff = C(1-alpha)/alpha).

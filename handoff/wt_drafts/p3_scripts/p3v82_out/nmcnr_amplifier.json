@@ -1,0 +1,13 @@
+{
+ "circuit": "nmcnr_amplifier",
+ "calls": [],
+ "save_calls": [],
+ "exc": null,
+ "instance_json": null,
+ "report_html": null,
+ "stdout": {
+  "relaxed": 0,
+  "interdig": 0,
+  "bytes": 759
+ }
+}

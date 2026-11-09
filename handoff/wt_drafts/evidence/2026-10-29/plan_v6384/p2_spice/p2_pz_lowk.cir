@@ -1,0 +1,85 @@
+* plan v6.38.4 P2: current_reuse 파일럿 벤치(wt/_pilot_current_reuse/cr_a2_0.5e-6_0.45e-12_cl.cir 복사) -- A(Vop1)->G(Vg15) 고주파 전압비 h와 소자 정전용량
+.include "C:\pdk\sky130_fd_pr\models\parameters\lod.spice"
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+vdd vdd 0 1.8
+iiref Vbias1 0 dc 1.200000e-06
+vcm ncm 0 dc 0.872965
+lbp Vip ncm 1e15
+lbm Vim ncm 1e15
+xm6 Vx Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=1.0000u w=3.0611u m=8.6299 ad=1.5306p as=1.5306p pd=5.0611u ps=5.0611u
+xm7 Vx Vcmfb vdd vdd sky130_fd_pr__pfet_01v8 l=1.0000u w=1.5500u m=6.8866 ad=0.7750p as=0.7750p pd=3.5500u ps=3.5500u
+xm1a N1a2a Vip Vx vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=4.2108u m=6.0000 ad=2.1054p as=2.1054p pd=6.2108u ps=6.2108u
+xm1b N1b2b Vim Vx vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=4.2108u m=6.0000 ad=2.1054p as=2.1054p pd=6.2108u ps=6.2108u
+xm2a Vom1 Vbias2 N1a2a vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=4.8500u m=13.0000 ad=2.4250p as=2.4250p pd=6.8500u ps=6.8500u
+xm2b Vop1 Vbias2 N1b2b vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=4.8500u m=13.0000 ad=2.4250p as=2.4250p pd=6.8500u ps=6.8500u
+xm3a Vom1 Vbias3 N3a4a 0 sky130_fd_pr__nfet_01v8 l=0.2500u w=4.8500u m=13.0000 ad=2.4250p as=2.4250p pd=6.8500u ps=6.8500u
+xm3b Vop1 Vbias3 N3b4b 0 sky130_fd_pr__nfet_01v8 l=0.2500u w=4.8500u m=13.0000 ad=2.4250p as=2.4250p pd=6.8500u ps=6.8500u
+xm4a N3a4a Vip Vy 0 sky130_fd_pr__nfet_01v8 l=0.1500u w=4.7848u m=2.0000 ad=2.3924p as=2.3924p pd=6.7848u ps=6.7848u
+xm4b N3b4b Vim Vy 0 sky130_fd_pr__nfet_01v8 l=0.1500u w=4.7848u m=2.0000 ad=2.3924p as=2.3924p pd=6.7848u ps=6.7848u
+xm5 Vy Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=1.0000u w=0.6047u m=12.3567 ad=0.3023p as=0.3023p pd=2.6047u ps=2.6047u
+xm8 Vg15 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=1.0000u w=3.0611u m=1.7424 ad=1.5306p as=1.5306p pd=5.0611u ps=5.0611u
+xm11a N11a11b N11a11b vdd vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=2.1368u m=1.0000 ad=1.0684p as=1.0684p pd=4.1368u ps=4.1368u
+xm11b N11b N11b N11a11b vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=0.4200u m=1.0000 ad=0.2100p as=0.2100p pd=2.4200u ps=2.4200u
+xm15 Vom Vg15 vdd vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=2.1368u m=9.1807 ad=1.0684p as=1.0684p pd=4.1368u ps=4.1368u
+xm9a Vop1 N11b Vg15 vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=0.4200u m=1.0000 ad=0.2100p as=0.2100p pd=2.4200u ps=2.4200u
+xm9b Vg15 N14a14b Vop1 0 sky130_fd_pr__nfet_01v8 l=0.5000u w=1.3453u m=0.9096 ad=0.6727p as=0.6727p pd=3.3453u ps=3.3453u
+xm12 N11b Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=0.1500u w=1.1601u m=1.0000 ad=0.5800p as=0.5800p pd=3.1601u ps=3.1601u
+xm10 Vop1 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=1.0000u w=0.6047u m=1.7357 ad=0.3023p as=0.3023p pd=2.6047u ps=2.6047u
+xm14a N14a14b N14a14b N14a_14b 0 sky130_fd_pr__nfet_01v8 l=0.5000u w=1.3453u m=1.0000 ad=0.6727p as=0.6727p pd=3.3453u ps=3.3453u
+xm14b N14a_14b N14a_14b 0 0 sky130_fd_pr__nfet_01v8 l=0.1500u w=1.3217u m=1.0000 ad=0.6608p as=0.6608p pd=3.3217u ps=3.3217u
+xm16 Vom Vop1 0 0 sky130_fd_pr__nfet_01v8 l=0.1500u w=1.3217u m=17.7986 ad=0.6608p as=0.6608p pd=3.3217u ps=3.3217u
+xm13 N14a14b Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=1.0000u w=3.0611u m=1.0244 ad=1.5306p as=1.5306p pd=5.0611u ps=5.0611u
+xm22 N24b23a Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=1.0000u w=3.0611u m=1.0244 ad=1.5306p as=1.5306p pd=5.0611u ps=5.0611u
+xm20a N20a20b N20a20b vdd vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=2.1368u m=1.0000 ad=1.0684p as=1.0684p pd=4.1368u ps=4.1368u
+xm20b N20b N20b N20a20b vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=0.4200u m=1.0000 ad=0.2100p as=0.2100p pd=2.4200u ps=2.4200u
+xm25 Vop Vg25 vdd vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=2.1368u m=9.1807 ad=1.0684p as=1.0684p pd=4.1368u ps=4.1368u
+xm18a Vom1 N20b Vg25 vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=0.4200u m=1.0000 ad=0.2100p as=0.2100p pd=2.4200u ps=2.4200u
+xm18b Vg25 N24b23a Vom1 0 sky130_fd_pr__nfet_01v8 l=0.5000u w=1.3453u m=0.9096 ad=0.6727p as=0.6727p pd=3.3453u ps=3.3453u
+xm21 N20b Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=0.1500u w=1.1601u m=1.0000 ad=0.5800p as=0.5800p pd=3.1601u ps=3.1601u
+xm19 Vom1 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=1.0000u w=0.6047u m=1.7357 ad=0.3023p as=0.3023p pd=2.6047u ps=2.6047u
+xm23a N24b23a N24b23a N23a24b 0 sky130_fd_pr__nfet_01v8 l=0.5000u w=1.3453u m=1.0000 ad=0.6727p as=0.6727p pd=3.3453u ps=3.3453u
+xm24b N23a24b N23a24b 0 0 sky130_fd_pr__nfet_01v8 l=0.1500u w=1.3217u m=1.0000 ad=0.6608p as=0.6608p pd=3.3217u ps=3.3217u
+xm26 Vop Vom1 0 0 sky130_fd_pr__nfet_01v8 l=0.1500u w=1.3217u m=17.7986 ad=0.6608p as=0.6608p pd=3.3217u ps=3.3217u
+xm17 Vg25 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=1.0000u w=3.0611u m=1.7424 ad=1.5306p as=1.5306p pd=5.0611u ps=5.0611u
+xm18_bg Vbias1 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=1.0000u w=3.0611u m=1.0000 ad=1.5306p as=1.5306p pd=5.0611u ps=5.0611u
+xm60 Vbias4 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=1.0000u w=3.0611u m=0.9995 ad=1.5306p as=1.5306p pd=5.0611u ps=5.0611u
+xm61 Vbias3 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=1.0000u w=3.0611u m=1.0102 ad=1.5306p as=1.5306p pd=5.0611u ps=5.0611u
+xm64 Vbias3 Vbias3 N64_63 0 sky130_fd_pr__nfet_01v8 l=0.2500u w=4.9992u m=1575.0000 ad=2.4996p as=2.4996p pd=6.9992u ps=6.9992u
+xm63 N64_63 Vbias3 Vy 0 sky130_fd_pr__nfet_01v8 l=4.0000u w=0.4722u m=1.0000 ad=0.2361p as=0.2361p pd=2.4722u ps=2.4722u
+xm58 N58_57 Vbias2 Vx vdd sky130_fd_pr__pfet_01v8 l=0.5000u w=1.0115u m=1.0000 ad=0.5057p as=0.5057p pd=3.0115u ps=3.0115u
+xm57 Vbias2 Vbias2 N58_57 vdd sky130_fd_pr__pfet_01v8 l=0.1500u w=4.5228u m=9.0000 ad=2.2614p as=2.2614p pd=6.5228u ps=6.5228u
+xm66 Vbias4 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=1.0000u w=0.6047u m=1.0000 ad=0.3023p as=0.3023p pd=2.6047u ps=2.6047u
+xm68 Vbias2 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=1.0000u w=0.6047u m=1.0211 ad=0.3023p as=0.3023p pd=2.6047u ps=2.6047u
+xm36a Vcmfb Vcmfb vdd vdd sky130_fd_pr__pfet_01v8 l=1.0000u w=1.5500u m=1.0000 ad=0.7750p as=0.7750p pd=3.5500u ps=3.5500u
+xm36b N36b N36b vdd vdd sky130_fd_pr__pfet_01v8 l=1.0000u w=1.5500u m=1.0000 ad=0.7750p as=0.7750p pd=3.5500u ps=3.5500u
+xm37a Vcmfb Voc Ncmfb_tail 0 sky130_fd_pr__nfet_01v8 l=1.0000u w=0.3600u m=1.0000 ad=0.1800p as=0.1800p pd=2.3600u ps=2.3600u
+xm37b N36b Voc_des Ncmfb_tail 0 sky130_fd_pr__nfet_01v8 l=1.0000u w=0.3600u m=1.0000 ad=0.1800p as=0.1800p pd=2.3600u ps=2.3600u
+xm38 Ncmfb_tail Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=0.1500u w=0.6391u m=1.0000 ad=0.3195p as=0.3195p pd=2.6391u ps=2.6391u
+xm39 Voc_des Voc_des vdd vdd sky130_fd_pr__pfet_01v8 l=0.2500u w=1.2878u m=1.0000 ad=0.6439p as=0.6439p pd=3.2878u ps=3.2878u
+xm40 0 0 Voc_des vdd sky130_fd_pr__pfet_01v8 l=0.2500u w=4.6683u m=14.0000 ad=2.3342p as=2.3342p pd=6.6683u ps=6.6683u
+r1 Vom Voc 1.000000e+04
+r2 Voc Vop 1.000000e+04
+cc1 Vom N_cc_rz1 4.500000e-13
+rz1 N_cc_rz1 Vop1 8.779659e+02
+cc2 Vop N_cc_rz2 4.500000e-13
+rz2 N_cc_rz2 Vom1 8.779659e+02
+cl1 Vop 0 1.000000e-12
+cl2 Vom 0 1.000000e-12
+cf1 Vom Vip 5.000000e-13
+cf2 Vop Vim 5.000000e-13
+cs1 Vip nsp 5.000000e-13
+cs2 Vim nsm 5.000000e-13
+vsp nsp 0 dc 0 ac 0.5
+vsm nsm 0 dc 0 ac 0.5 180
+.nodeset v(N64_63)=0.6242 v(N58_57)=1.1046 v(Vbias1)=0.7203 v(Vbias4)=0.6993 v(Vbias3)=1.0742 v(Vbias2)=0.4796 v(Vx)=1.6066 v(Vy)=0.1989 v(N1a2a)=1.1841 v(N3a4a)=0.4164 v(Vom1)=0.6278 v(Vop1)=0.6278 v(Vg15)=1.0757 v(Vg25)=1.0757 v(N11b)=0.1439 v(N20b)=0.1439 v(N11a11b)=1.0757 v(N20a20b)=1.0757 v(N14a14b)=1.3848 v(N24b23a)=1.3848 v(N14a_14b)=0.6278 v(N23a24b)=0.6278 v(Vom)=0.8757 v(Vop)=0.8757 v(Voc)=0.8757 v(Voc_des)=0.8757 v(Vcmfb)=0.7202 v(Ncmfb_tail)=0.1535
+.options savecurrents
+.control
+op
+pz nsp 0 Vom 0 vol zer
+print all
+quit
+.endc
+.end

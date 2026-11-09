@@ -1,0 +1,19 @@
+LA-1a 선행 칸에 'XRUN-F1 card B': True
+LA-1a 선행 칸에 'IT-1 + IT-2 통합 병합': True
+LA-1a 선행 칸에 'card WB-1': True
+LA-1a 선행 칸에 'UB-1 + NL-1': True
+LA-1a 선행 칸에 'headroom-chain HC-S': True
+LA-1a 선행 칸에 'card TB-1': True
+LA-1a 선행 칸에 'headroom-chain HC-1 + graph-consumption GC-8': True
+LA-1a 선행 칸에 'EO-1'이 병합 선행으로: True (SPICE 다리만 표기)
+LA-1 선행 칸에 'card LA-1a': True
+기존 순환: 없음
+더한 뒤 순환: 없음
+LA-1a 조상(24): EO-1, GC-0a, GC-0b, GC-1, GC-8, GC-D, HC-0, HC-1, HC-D, HC-S, IT-1+IT-2, NL-1, OP-0, OP-1, OP-1a, OP-1b, OP-2, OP-3, OP-7, TB-1, UB-1, WB-1, cardB, cardC
+LA-1 조상(26): EO-1, GC-0a, GC-0b, GC-1, GC-8, GC-D, HC-0, HC-1, HC-D, HC-S, IT-1+IT-2, LA-1a, NL-1, OP-0, OP-1, OP-1a, OP-1b, OP-2, OP-3, OP-7, SF-1, TB-1, UB-1, WB-1, cardB, cardC
+LA-1a ⊆ LA-1 조상: True
+LA-1이 LA-1a 조상: False
+OP-5 ∈ LA-1a 조상: False
+EO-1 ∈ LA-1a 조상: True
+SF-1 ∈ LA-1a 조상: False
+DE-1 ∈ LA-1a 조상: False

@@ -1,0 +1,76 @@
+r2_base_gbw_cl1e-12_g10 a 0.01 closed 2 [[-2.16], [0.4]]
+r2_base_gbw_cl1e-12_g14 a 0.01 closed 2 [[-2.01], [0.41]]
+r2_base_gbw_cl1e-12_g20 a 0.01 closed 2 [[-4.17], [0.17]]
+  guard base_gbw_cl1e-12_g10 ok {'GBW': 1.85} pass True P g/z1 1.5
+  guard base_gbw_cl1e-12_g14 ok {'GBW': 2.0} pass True P g/z1 1.6
+  guard base_gbw_cl1e-12_g20 ok {'GBW': -0.29} pass False P g/z1 -0.5
+r2_base_gbw_cl1e-13_g10 a 0.01 closed 3 [[-11.93], [-2.79], [0.41]]
+r2_base_gbw_cl1e-13_g14 a 0.01 closed 3 [[-12.24], [-2.99], [0.39]]
+r2_base_gbw_cl1e-13_g20 a 0.01 closed 4 [[-20.42], [-8.26], [-0.2], [0.48]]
+  guard base_gbw_cl1e-13_g10 ok {'GBW': 2.89} pass True P g/z1 3.0
+  guard base_gbw_cl1e-13_g14 ok {'GBW': 2.39} pass True P g/z1 2.4
+  guard base_gbw_cl1e-13_g20 ok {'GBW': -8.53} pass False P g/z1 -12.3
+r2_base_gbw_cl3e-14_g10 a 0.01 closed 4 [[-23.89], [-11.34], [-0.8], [0.42]]
+r2_base_gbw_cl3e-14_g14 a 0.01 closed 4 [[-24.55], [-11.92], [-0.93], [0.41]]
+r2_base_gbw_cl3e-14_g20 a 0.01 closed 5 [[-35.51], [-22.56], [-4.98], [-0.48], [0.45]]
+  guard base_gbw_cl3e-14_g10 ok {'GBW': -6.1} pass False P g/z1 -9.8
+  guard base_gbw_cl3e-14_g14 ok {'GBW': -7.1} pass False P g/z1 -11.4
+  guard base_gbw_cl3e-14_g20 ok {'GBW': -22.72} pass False P g/z1 -39.6
+r2_base_multi_cl1e-12_g12 a 0.01 closed 2 [[-1.73, 0.26], [0.48, 0.55]]
+r2_base_multi_cl1e-12_g18 a 0.01 closed 2 [[-2.94, -0.45], [0.62, 0.81]]
+  guard base_multi_cl1e-12_g12 ok {'GBW': 1.21, 'A0': 0.8} pass True P g/z1 0.4
+  guard base_multi_cl1e-12_g18 ok {'GBW': -0.09, 'A0': 0.08} pass False P g/z1 1.1
+r2_base_multi_cl1e-13_g12 a 0.01 closed 3 [[-11.61, 0.26], [-2.65, 0.55], [0.4, 0.5]]
+r2_base_multi_cl1e-13_g18 a 0.01 closed 3 [[-15.72, -0.45], [-5.96, 0.81], [0.94, 0.49]]
+  guard base_multi_cl1e-13_g12 ok {'GBW': -0.03, 'A0': 0.8} pass False P g/z1 -0.9
+  guard base_multi_cl1e-13_g18 ok {'GBW': -5.7, 'A0': 0.08} pass False P g/z1 -8.1
+r2_base_multi_cl3e-14_g12 a 0.01 closed 4 [[-23.71, 0.26], [-11.21, 0.55], [-0.79, 0.5], [0.43, 0.5]]
+r2_base_multi_cl3e-14_g18 a 0.01 closed 4 [[-29.4, -0.45], [-18.09, 0.81], [-0.57, 0.49], [0.34, 0.5]]
+  guard base_multi_cl3e-14_g12 ok {'GBW': -8.71, 'A0': 0.8} pass False P g/z1 -13.9
+  guard base_multi_cl3e-14_g18 ok {'GBW': -17.22, 'A0': 0.08} pass False P g/z1 -28.3
+r2_base_miller_cl1e-12_gbw30M_pm60 a 0.01 closed 4 [[-14.68, -2.0, 1.69], [-0.99, -1.69, 0.75], [6.47, 10.59, 0.49], [0.51, 0.37, 0.5]]
+  guard base_miller_cl1e-12_gbw30M_pm60 ok {'GBW': -2.01, 'PM': -1.86, 'A0': 3.12} pass False P g/z1 -8.7
+r2_base_miller_cl2e-13_gbw100M_pm60 a 0.01 e0 2 [[-20.53, -19.48, 1.69], [-0.59, -13.42, 0.75]]
+r2_base_miller_cl2e-13_gbw80M_pm60 a 0.01 closed 10 [[-18.85, -14.92, 1.69], [0.12, -9.9, 0.75], [-17.6, 17.46, 0.49], [2.57, -2.19, 0.5], [2.83, -0.31, 0.5], [2.59, 0.61, 0.5], [0.14, 1.24, 0.5], [0.5, 1.25, 0.5], [-0.75, -5.49, 0.5], [0.46, 0.45, 0.5]]
+r2_base_miller_cl2e-13_gbw80M_pm70 a 0.01 e0 2 [[-14.46, -18.63, 1.69], [-1.71, -7.89, 0.75]]
+  guard base_miller_cl2e-13_gbw100M_pm60 ok {'GBW': -1.47, 'PM': -13.54, 'A0': 3.12} pass False P g/z1 nan
+  guard base_miller_cl2e-13_gbw80M_pm60 ok {'GBW': 1.53, 'PM': -7.62, 'A0': 3.12} pass False P g/z1 -31.9
+  guard base_miller_cl2e-13_gbw80M_pm70 ok {'GBW': 1.57, 'PM': -8.64, 'A0': 3.12} pass False P g/z1 nan
+r2_C_gbw_cl1e-12_g10 a 0.01 closed 2 [[-0.85], [0.49]]
+r2_C_gbw_cl1e-12_g14 a 0.01 closed 2 [[-0.66], [0.49]]
+r2_C_gbw_cl1e-12_g20 a 0.01 closed 2 [[-1.48], [0.47]]
+  guard C_gbw_cl1e-12_g10 ok {'GBW': 0.62} pass True P g/z1 0.1
+  guard C_gbw_cl1e-12_g14 ok {'GBW': 0.81} pass True P g/z1 0.3
+  guard C_gbw_cl1e-12_g20 ok {'GBW': -0.02} pass False P g/z1 -0.5
+r2_C_gbw_cl1e-13_g10 a 0.01 closed 1 [[0.42]]
+r2_C_gbw_cl1e-13_g14 a 0.01 closed 1 [[0.76]]
+r2_C_gbw_cl1e-13_g20 a 0.01 closed 1 [[0.86]]
+  guard C_gbw_cl1e-13_g10 ok {'GBW': 1.3} pass True P g/z1 1.1
+  guard C_gbw_cl1e-13_g14 ok {'GBW': 1.65} pass True P g/z1 1.1
+  guard C_gbw_cl1e-13_g20 ok {'GBW': 1.75} pass True P g/z1 1.3
+r2_C_gbw_cl3e-14_g10 a 0.01 closed 2 [[1.16], [0.49]]
+r2_C_gbw_cl3e-14_g14 a 0.01 closed 2 [[1.48], [0.49]]
+r2_C_gbw_cl3e-14_g20 a 0.01 closed 2 [[2.26], [0.43]]
+  guard C_gbw_cl3e-14_g10 ok {'GBW': 3.43} pass True P g/z1 4.6
+  guard C_gbw_cl3e-14_g14 ok {'GBW': 3.76} pass True P g/z1 5.2
+  guard C_gbw_cl3e-14_g20 ok {'GBW': 4.61} pass True P g/z1 9.1
+r2_C_multi_cl1e-12_g12 a 0.01 closed 2 [[-0.43, 0.26], [0.55, 0.55]]
+r2_C_multi_cl1e-12_g18 a 0.01 closed 2 [[-1.06, -0.45], [0.99, 0.81]]
+  guard C_multi_cl1e-12_g12 ok {'GBW': 0.73, 'A0': 0.8} pass True P g/z1 -0.2
+  guard C_multi_cl1e-12_g18 ok {'GBW': 0.13, 'A0': 0.08} pass True P g/z1 1.0
+r2_C_multi_cl1e-13_g12 a 0.01 closed 1 [[0.88, 0.26]]
+r2_C_multi_cl1e-13_g18 a 0.01 closed 4 [[0.74, -0.45], [1.04, 0.81], [1.32, 0.49], [0.07, 0.5]]
+  guard C_multi_cl1e-13_g12 ok {'GBW': 1.88, 'A0': 0.8} pass True P g/z1 0.4
+  guard C_multi_cl1e-13_g18 ok {'GBW': 1.8, 'A0': 0.08} pass True P g/z1 2.7
+r2_C_multi_cl3e-14_g12 a 0.01 closed 2 [[1.57, 0.26], [0.53, 0.55]]
+r2_C_multi_cl3e-14_g18 a 0.01 closed 4 [[1.57, -0.45], [1.05, 0.81], [-0.27, 0.49], [0.41, 0.5]]
+  guard C_multi_cl3e-14_g12 ok {'GBW': 3.24, 'A0': 0.8} pass True P g/z1 3.9
+  guard C_multi_cl3e-14_g18 ok {'GBW': 3.34, 'A0': 0.08} pass True P g/z1 4.7
+r2_C_miller_cl1e-12_gbw30M_pm60 a 0.01 closed 2 [[0.95, -0.56, 1.69], [0.71, 0.42, 0.75]]
+  guard C_miller_cl1e-12_gbw30M_pm60 ok {'GBW': 1.68, 'PM': 0.08, 'A0': 3.12} pass True P g/z1 -0.1
+r2_C_miller_cl2e-13_gbw100M_pm60 a 0.01 closed 2 [[1.38, -2.71, 1.69], [0.58, 0.37, 0.75]]
+r2_C_miller_cl2e-13_gbw80M_pm60 a 0.01 closed 2 [[1.35, -2.01, 1.69], [0.66, 0.47, 0.75]]
+r2_C_miller_cl2e-13_gbw80M_pm70 a 0.01 e0 0 []
+  guard C_miller_cl2e-13_gbw100M_pm60 ok {'GBW': 2.38, 'PM': -0.14, 'A0': 3.12} pass False P g/z1 16.7
+  guard C_miller_cl2e-13_gbw80M_pm60 ok {'GBW': 2.46, 'PM': 0.75, 'A0': 3.12} pass True P g/z1 8.8
+  guard C_miller_cl2e-13_gbw80M_pm70 e0 {} pass None P g/z1 nan

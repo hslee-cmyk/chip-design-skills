@@ -1,0 +1,94 @@
+== sizing_recipe.py::input_referred_offset_pairs  all=22  N2=16  inv=60  info={"cps": [], "def_hdr": false, "new": 3, "hdr": 1, "dels": 5, "t6": 2}
+     stmt_delete          body[3]                                  T4n
+     stmt_delete          body[3].body[0]                          T1
+     stmt_delete          body[3].body[1]                          T6
+     stmt_delete          body[3].body[2]                          T1
+     stmt_delete          body[3].body[3]                          T1
+     stmt_delete          body[3].body[5]                          T2,T4n
+     cmp_flip             body[3].test.ops[0]                      T4n
+     cmp_flip             body[3].body[2].value.generators[0].ifs[0].values[0].ops[0] T1
+     cmp_flip             body[3].body[2].value.generators[0].ifs[0].values[1].ops[0] T1
+     const+               body[3].body[2].value.generators[0].ifs[0].values[1].comparators[0] T1
+     const-               body[3].body[2].value.generators[0].ifs[0].values[1].comparators[0] T1
+     stmt_delete          body[3].body[3].body[0]                  T1
+     stmt_delete          body[3].body[5].body[0]                  T6
+     cmp_flip             body[3].body[5].body[0].test.args[0].elt.values[0].ops[0] T6
+     cmp_flip             body[3].body[5].body[0].test.args[0].elt.values[1].ops[0] T6
+     early_return         body[1]                                  T5n
+== sizing_recipe.py::_load_full_topology_cached  all=10  N2=4  inv=63  info={"cps": [], "def_hdr": false, "new": 1, "hdr": 0, "dels": 1, "t6": 0}
+     stmt_delete          body[2]                                  T4n
+     stmt_delete          body[2].body[2]                          T1
+     cmp_flip             body[2].test.ops[0]                      T4n
+     early_return         body[1]                                  T5n
+== sizing_recipe.py::resolve_stack_layout  all=26  N2=4  inv=61  info={"cps": ["ports"], "def_hdr": true, "new": 1, "hdr": 0, "dels": 1, "t6": 1}
+     stmt_delete          body[4]                                  T1,T3name
+     stmt_delete          body[5]                                  T6
+     cmp_flip             body[5].test.values[0].ops[0]            T6
+     early_return         body[1]                                  T5n
+== sizing_recipe.py::_build_theta_evaluator  all=497  N2=3  inv=60  info={"cps": [], "def_hdr": false, "new": 1, "hdr": 0, "dels": 1, "t6": 1}
+     stmt_delete          body[26]                                 T1
+     stmt_delete          body[27]                                 T6
+     early_return         body[1]                                  T5n
+== stick_diagram.py::port_declaration  all=27  N2=27  inv=137  info={"new": "newdef"}
+     stmt_delete          body[1]                                  
+     stmt_delete          body[2]                                  
+     stmt_delete          body[3]                                  
+     stmt_delete          body[4]                                  
+     stmt_delete          body[5]                                  
+     stmt_delete          body[6]                                  
+     stmt_delete          body[1].body[0]                          
+     cmp_flip             body[1].test.ops[0]                      
+     stmt_delete          body[3].body[0]                          
+     stmt_delete          body[5].body[0]                          
+     stmt_delete          body[5].body[1]                          
+     stmt_delete          body[5].body[2]                          
+     stmt_delete          body[5].body[3]                          
+     stmt_delete          body[5].body[4]                          
+     stmt_delete          body[5].body[5]                          
+     stmt_delete          body[5].body[6]                          
+     stmt_delete          body[5].body[0].body[0]                  
+     stmt_delete          body[5].body[1].body[0]                  
+     stmt_delete          body[5].body[2].body[0]                  
+     cmp_flip             body[5].body[2].test.values[1].ops[0]    
+     stmt_delete          body[5].body[4].body[0]                  
+     cmp_flip             body[5].body[4].test.ops[0]              
+     stmt_delete          body[5].body[5].body[0]                  
+     cmp_flip             body[5].body[5].test.values[0].ops[0]    
+     cmp_flip             body[5].body[5].test.values[1].ops[0]    
+     cmp_flip             body[5].body[6].value.func.value.test.ops[0] 
+     early_return         body[1]                                  
+== stick_diagram.py::load_topology  all=77  N2=27  inv=137  info={"cps": [], "def_hdr": false, "new": 13, "hdr": 0, "dels": 3, "t6": 3}
+     stmt_delete          body[3]                                  T1
+     stmt_delete          body[10]                                 T1
+     stmt_delete          body[13]                                 T4n
+     stmt_delete          body[15]                                 T1
+     stmt_delete          body[16]                                 T1
+     stmt_delete          body[17]                                 T1
+     stmt_delete          body[18]                                 T1
+     stmt_delete          body[19]                                 T1
+     stmt_delete          body[20]                                 T1
+     stmt_delete          body[24]                                 T1
+     stmt_delete          body[25]                                 T6
+     stmt_delete          body[28]                                 T1
+     stmt_delete          body[29]                                 T6
+     stmt_delete          body[35]                                 T1
+     stmt_delete          body[36]                                 T6
+     stmt_delete          body[13].body[1]                         T1
+     stmt_delete          body[13].body[2]                         T1
+     stmt_delete          body[13].body[1].body[0]                 T1
+     cmp_flip             body[13].body[1].test.values[0].ops[0]   T1
+     cmp_flip             body[13].body[1].test.values[1].ops[0]   T1
+     arith                body[16].value.generators[0].iter        T1
+     arith                body[17].value.generators[0].iter        T1
+     cmp_flip             body[17].value.generators[0].ifs[0].ops[0] T1
+     stmt_delete          body[18].body[0]                         T1
+     arith                body[19].value.args[0].left.args[0]      T1
+     stmt_delete          body[20].body[0]                         T1
+     early_return         body[1]                                  T5n
+TOTAL all=659 N2=81
+  sizing_recipe.py::input_referred_offset_pairs                all=22   N2=16  inv=60
+  sizing_recipe.py::_load_full_topology_cached                 all=10   N2=4   inv=63
+  sizing_recipe.py::resolve_stack_layout                       all=26   N2=4   inv=61
+  sizing_recipe.py::_build_theta_evaluator                     all=497  N2=3   inv=60
+  stick_diagram.py::port_declaration                           all=27   N2=27  inv=137
+  stick_diagram.py::load_topology                              all=77   N2=27  inv=137

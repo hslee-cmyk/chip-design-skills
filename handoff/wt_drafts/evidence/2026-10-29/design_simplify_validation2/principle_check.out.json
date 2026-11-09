@@ -1,0 +1,346 @@
+{
+ "40": {
+  "new_backtick": [
+   "E/authoring/bias_inputs.py",
+   "E/authoring/spec_settings.py",
+   "E/convergence/converge.py",
+   "E/convergence/layout_input.py",
+   "E/core/failure_errors.py",
+   "E/core/field_value.py",
+   "E/core/margin.py",
+   "E/graph/coupling_values.py",
+   "E/layout/contract_input.py",
+   "E/lut/_helpers_anchor.py",
+   "E/lut/_helpers_bins.py",
+   "E/lut/midpoint_checks.py",
+   "E/metrics/_helpers_nodal.py",
+   "E/metrics/_helpers_pencil.py",
+   "E/metrics/_helpers_probe.py",
+   "E/metrics/block_gain_model.py",
+   "E/metrics/block_gain_rows.py",
+   "E/metrics/dc_limit.py",
+   "E/metrics/dc_metrics.py",
+   "E/metrics/mna_solve.py",
+   "E/metrics/mna_types.py",
+   "E/metrics/noise_transfer.py",
+   "E/metrics/noise_types.py",
+   "E/metrics/point_solve.py",
+   "E/metrics/sensitivity.py",
+   "E/metrics/ss_types.py",
+   "E/metrics/supply.py",
+   "E/search/__init__.py",
+   "E/search/cone_rows.py",
+   "E/search/current_box.py",
+   "E/search/iv_curves.py",
+   "E/search/kernel.py",
+   "E/search/objectives.py",
+   "E/search/residual_probe.py",
+   "E/search/search_values.py",
+   "E/search/start_points.py",
+   "E/sizing/fixed_point.py",
+   "E/sizing/scc_newton.py",
+   "E/sizing/seal.py",
+   "E/sizing/seal_conduction.py",
+   "E/sizing/seal_kcl.py",
+   "E/sizing/size_and_seal_local.py",
+   "achievability.py",
+   "authoring/SPEC_CONTRACT.md",
+   "cell_floor.py",
+   "classification.md",
+   "core/pdk_decl.py",
+   "finger_candidates.py",
+   "gain-budget-gmid-sizing.design.history.md",
+   "graph/blocks.py",
+   "graph/canonical_form.py",
+   "graph/composite_diode.py",
+   "graph/drive_kind.py",
+   "graph/feedforward_cells.py",
+   "graph/gvgs_cycles.py",
+   "graph/view_analysis.py",
+   "graph/views.py",
+   "hidden_rails.py",
+   "jobs_*.py",
+   "l_bin_search.py",
+   "layout/crossover.py",
+   "layout/diffusion.py",
+   "layout/euler_graph.py",
+   "layout/mirror_trail.py",
+   "metrics/block_param_tables.py",
+   "metrics/ss_metrics.py",
+   "mover.py",
+   "outputs.py",
+   "pareto.py",
+   "pattern_select.py",
+   "scc_newton.py",
+   "search/iv_curves.py",
+   "search/macro_poles.py",
+   "search/search_domain.py",
+   "sizing/block_columns.py",
+   "sizing/writer_plan.py",
+   "source_manifest.py",
+   "strip_lines.out.jsonl",
+   "strip_vrefs.out.jsonl",
+   "strip_vtags.out.jsonl",
+   "structure_checks.py",
+   "topology_schema.py",
+   "wt/_cmp_pilot/judge/eng2spice.py",
+   "wt/_drafts/evidence/2026-10-29/handcalc_principle_audit.md"
+  ],
+  "failclosed_before": {
+   "fail-closed": 84,
+   "정의 불능": 45,
+   "거부": 108,
+   "정지": 117,
+   "봉인 실패": 8,
+   "fail\b": 0,
+   "undefined": 23
+  },
+  "failclosed_after": {
+   "fail-closed": 73,
+   "정의 불능": 42,
+   "거부": 98,
+   "정지": 104,
+   "봉인 실패": 9,
+   "fail\b": 0,
+   "undefined": 19
+  },
+  "new_numbers": [],
+  "circuit_counts": {
+   "two_stage": [
+    33,
+    25
+   ],
+   "current_reuse": [
+    26,
+    22
+   ],
+   "nmcnr": [
+    47,
+    41
+   ],
+   "folded": [
+    18,
+    12
+   ],
+   "pushpull": [
+    41,
+    35
+   ],
+   "common_gate": [
+    14,
+    9
+   ],
+   "telescopic": [
+    2,
+    1
+   ],
+   "ngcc": [
+    33,
+    28
+   ],
+   "cnr_ota": [
+    0,
+    0
+   ],
+   "erfc": [
+    1,
+    1
+   ],
+   "sf_pushpull": [
+    19,
+    16
+   ],
+   "r2r": [
+    0,
+    0
+   ]
+  }
+ },
+ "41": {
+  "new_backtick": [
+   " 입력 꼴 변경**: as-built ",
+   " 칸). **없는 것**(O-109 C1): ",
+   "(4.7-3a 1 -- 포화·",
+   "E/authoring/_feedback_cuts.py",
+   "E/authoring/spec_regions.py",
+   "E/authoring/spec_views.py",
+   "E/convergence/convergence_values.py",
+   "E/core/compute_block.py",
+   "E/core/field_value.py",
+   "E/graph/matching_groups.py",
+   "E/lut/lut_set.py",
+   "E/lut/lut_types.py",
+   "E/metrics/_helpers_view.py",
+   "E/metrics/block_residual.py",
+   "E/metrics/loop_cut.py",
+   "E/metrics/ls_swing.py",
+   "E/metrics/mna_build.py",
+   "E/metrics/offset_analysis.py",
+   "E/metrics/offset_systematic.py",
+   "E/metrics/ss_evaluate.py",
+   "E/metrics/ss_linearize.py",
+   "E/metrics/ss_types.py",
+   "E/search/constraints.py",
+   "E/search/fd_jacobian.py",
+   "E/search/iv_area.py",
+   "E/search/iv_noise.py",
+   "E/search/macro_poles.py",
+   "E/sizing/kernel_context.py",
+   "E/sizing/s2_lift.py",
+   "E/sizing/seal_conduction.py",
+   "E/tests/sizing/test_block_columns.py",
+   "Window(0.31, 1.12, 2)",
+   "block_model.py",
+   "ff_gm_ratio.py",
+   "gain-budget-gmid-sizing.design.history.md",
+   "mna_solve.py",
+   "seal_conduction.py",
+   "wt/_drafts/evidence/2026-10-29/handcalc_principle_audit.md"
+  ],
+  "failclosed_before": {
+   "fail-closed": 45,
+   "정의 불능": 103,
+   "거부": 58,
+   "정지": 96,
+   "봉인 실패": 3,
+   "fail\b": 0,
+   "undefined": 49
+  },
+  "failclosed_after": {
+   "fail-closed": 33,
+   "정의 불능": 83,
+   "거부": 54,
+   "정지": 81,
+   "봉인 실패": 4,
+   "fail\b": 0,
+   "undefined": 39
+  },
+  "new_numbers": [
+   "0.54"
+  ],
+  "circuit_counts": {
+   "two_stage": [
+    21,
+    21
+   ],
+   "current_reuse": [
+    23,
+    23
+   ],
+   "nmcnr": [
+    20,
+    19
+   ],
+   "folded": [
+    21,
+    19
+   ],
+   "pushpull": [
+    39,
+    38
+   ],
+   "common_gate": [
+    16,
+    15
+   ],
+   "telescopic": [
+    12,
+    12
+   ],
+   "ngcc": [
+    15,
+    14
+   ],
+   "cnr_ota": [
+    2,
+    0
+   ],
+   "erfc": [
+    2,
+    0
+   ],
+   "sf_pushpull": [
+    17,
+    17
+   ],
+   "r2r": [
+    0,
+    0
+   ]
+  }
+ },
+ "42": {
+  "new_backtick": [
+   "wt/_drafts/evidence/2026-10-29/design_v1152/m1_power/README.md"
+  ],
+  "failclosed_before": {
+   "fail-closed": 10,
+   "정의 불능": 9,
+   "거부": 24,
+   "정지": 16,
+   "봉인 실패": 0,
+   "fail\b": 0,
+   "undefined": 6
+  },
+  "failclosed_after": {
+   "fail-closed": 11,
+   "정의 불능": 9,
+   "거부": 24,
+   "정지": 16,
+   "봉인 실패": 0,
+   "fail\b": 0,
+   "undefined": 6
+  },
+  "new_numbers": [],
+  "circuit_counts": {
+   "two_stage": [
+    7,
+    7
+   ],
+   "current_reuse": [
+    4,
+    4
+   ],
+   "nmcnr": [
+    8,
+    8
+   ],
+   "folded": [
+    4,
+    4
+   ],
+   "pushpull": [
+    5,
+    5
+   ],
+   "common_gate": [
+    1,
+    1
+   ],
+   "telescopic": [
+    1,
+    1
+   ],
+   "ngcc": [
+    7,
+    7
+   ],
+   "cnr_ota": [
+    0,
+    0
+   ],
+   "erfc": [
+    1,
+    1
+   ],
+   "sf_pushpull": [
+    2,
+    2
+   ],
+   "r2r": [
+    0,
+    0
+   ]
+  }
+ }
+}

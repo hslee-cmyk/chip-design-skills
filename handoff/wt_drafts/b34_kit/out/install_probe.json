@@ -1,0 +1,226 @@
+{
+ "0f23786|without": {
+  "common_gate_amplifier.topology.json": {
+   "ok": true,
+   "device_roles": 0,
+   "gap_fill_review": 0,
+   "meta_sha": "07cc8aa090e38c37"
+  },
+  "current_reuse_telescopic_ota.topology.json": {
+   "ok": true,
+   "device_roles": 54,
+   "gap_fill_review": 0,
+   "meta_sha": "2cfac2e23fd6ece0"
+  },
+  "folded_cascode.topology.json": {
+   "ok": true,
+   "device_roles": 13,
+   "gap_fill_review": 0,
+   "meta_sha": "78d9cd63163ba043"
+  },
+  "ngcc_3stage_ff.topology.json": {
+   "ok": true,
+   "device_roles": 0,
+   "gap_fill_review": 0,
+   "meta_sha": "afeb94a752718987"
+  },
+  "nmcnr_amplifier.topology.json": {
+   "ok": true,
+   "device_roles": 15,
+   "gap_fill_review": 0,
+   "meta_sha": "291066515c4b7484"
+  },
+  "pushpull_follower_buffer.topology.json": {
+   "ok": true,
+   "device_roles": 0,
+   "gap_fill_review": 0,
+   "meta_sha": "d1f2be09e8a9cecd"
+  },
+  "sf_pushpull_output_opamp.topology.json": {
+   "ok": true,
+   "device_roles": 0,
+   "gap_fill_review": 0,
+   "meta_sha": "567733ae6e56b58d"
+  },
+  "two_stage_ota.topology.json": {
+   "ok": true,
+   "device_roles": 9,
+   "gap_fill_review": 0,
+   "meta_sha": "b2484f349ce6bcf1"
+  },
+  "two_stage_ota_sf.topology.json": {
+   "ok": true,
+   "device_roles": 0,
+   "gap_fill_review": 0,
+   "meta_sha": "7ff6481681cff596"
+  }
+ },
+ "0f23786|with": {
+  "common_gate_amplifier.topology.json": {
+   "ok": true,
+   "device_roles": 3,
+   "gap_fill_review": 0,
+   "meta_sha": "f44d271d37674135"
+  },
+  "current_reuse_telescopic_ota.topology.json": {
+   "ok": true,
+   "device_roles": 54,
+   "gap_fill_review": 28,
+   "meta_sha": "8249d8b7579adb77"
+  },
+  "folded_cascode.topology.json": {
+   "ok": true,
+   "device_roles": 13,
+   "gap_fill_review": 4,
+   "meta_sha": "f6ccf18baad36e16"
+  },
+  "ngcc_3stage_ff.topology.json": {
+   "ok": true,
+   "device_roles": 13,
+   "gap_fill_review": 5,
+   "meta_sha": "50ec481030876184"
+  },
+  "nmcnr_amplifier.topology.json": {
+   "ok": true,
+   "device_roles": 15,
+   "gap_fill_review": 12,
+   "meta_sha": "8838b89ff1f80eba"
+  },
+  "pushpull_follower_buffer.topology.json": {
+   "ok": true,
+   "device_roles": 2,
+   "gap_fill_review": 1,
+   "meta_sha": "e18702f9b3affb68"
+  },
+  "sf_pushpull_output_opamp.topology.json": {
+   "ok": true,
+   "device_roles": 22,
+   "gap_fill_review": 1,
+   "meta_sha": "4999f6983804e260"
+  },
+  "two_stage_ota.topology.json": {
+   "ok": true,
+   "device_roles": 9,
+   "gap_fill_review": 9,
+   "meta_sha": "b831113cbae50852"
+  },
+  "two_stage_ota_sf.topology.json": {
+   "ok": true,
+   "device_roles": 9,
+   "gap_fill_review": 2,
+   "meta_sha": "fd5a6a3ec179ca27"
+  }
+ },
+ "sim-b34|without": {
+  "common_gate_amplifier.topology.json": {
+   "ok": false,
+   "exc": "ImportError",
+   "msg": "analog-grammar skill을 import할 수 없다(탐색 경로 C:\\g123\\inst\\sim-b34_without\\skills\\analog-grammar\\assets)",
+   "cause": "ModuleNotFoundError"
+  },
+  "current_reuse_telescopic_ota.topology.json": {
+   "ok": false,
+   "exc": "ImportError",
+   "msg": "analog-grammar skill을 import할 수 없다(탐색 경로 C:\\g123\\inst\\sim-b34_without\\skills\\analog-grammar\\assets)",
+   "cause": "ModuleNotFoundError"
+  },
+  "folded_cascode.topology.json": {
+   "ok": false,
+   "exc": "ImportError",
+   "msg": "analog-grammar skill을 import할 수 없다(탐색 경로 C:\\g123\\inst\\sim-b34_without\\skills\\analog-grammar\\assets)",
+   "cause": "ModuleNotFoundError"
+  },
+  "ngcc_3stage_ff.topology.json": {
+   "ok": false,
+   "exc": "ImportError",
+   "msg": "analog-grammar skill을 import할 수 없다(탐색 경로 C:\\g123\\inst\\sim-b34_without\\skills\\analog-grammar\\assets)",
+   "cause": "ModuleNotFoundError"
+  },
+  "nmcnr_amplifier.topology.json": {
+   "ok": false,
+   "exc": "ImportError",
+   "msg": "analog-grammar skill을 import할 수 없다(탐색 경로 C:\\g123\\inst\\sim-b34_without\\skills\\analog-grammar\\assets)",
+   "cause": "ModuleNotFoundError"
+  },
+  "pushpull_follower_buffer.topology.json": {
+   "ok": false,
+   "exc": "ImportError",
+   "msg": "analog-grammar skill을 import할 수 없다(탐색 경로 C:\\g123\\inst\\sim-b34_without\\skills\\analog-grammar\\assets)",
+   "cause": "ModuleNotFoundError"
+  },
+  "sf_pushpull_output_opamp.topology.json": {
+   "ok": false,
+   "exc": "ImportError",
+   "msg": "analog-grammar skill을 import할 수 없다(탐색 경로 C:\\g123\\inst\\sim-b34_without\\skills\\analog-grammar\\assets)",
+   "cause": "ModuleNotFoundError"
+  },
+  "two_stage_ota.topology.json": {
+   "ok": false,
+   "exc": "ImportError",
+   "msg": "analog-grammar skill을 import할 수 없다(탐색 경로 C:\\g123\\inst\\sim-b34_without\\skills\\analog-grammar\\assets)",
+   "cause": "ModuleNotFoundError"
+  },
+  "two_stage_ota_sf.topology.json": {
+   "ok": false,
+   "exc": "ImportError",
+   "msg": "analog-grammar skill을 import할 수 없다(탐색 경로 C:\\g123\\inst\\sim-b34_without\\skills\\analog-grammar\\assets)",
+   "cause": "ModuleNotFoundError"
+  }
+ },
+ "sim-b34|with": {
+  "common_gate_amplifier.topology.json": {
+   "ok": true,
+   "device_roles": 3,
+   "gap_fill_review": 0,
+   "meta_sha": "f44d271d37674135"
+  },
+  "current_reuse_telescopic_ota.topology.json": {
+   "ok": true,
+   "device_roles": 54,
+   "gap_fill_review": 28,
+   "meta_sha": "8249d8b7579adb77"
+  },
+  "folded_cascode.topology.json": {
+   "ok": true,
+   "device_roles": 13,
+   "gap_fill_review": 4,
+   "meta_sha": "f6ccf18baad36e16"
+  },
+  "ngcc_3stage_ff.topology.json": {
+   "ok": true,
+   "device_roles": 13,
+   "gap_fill_review": 5,
+   "meta_sha": "50ec481030876184"
+  },
+  "nmcnr_amplifier.topology.json": {
+   "ok": true,
+   "device_roles": 15,
+   "gap_fill_review": 12,
+   "meta_sha": "8838b89ff1f80eba"
+  },
+  "pushpull_follower_buffer.topology.json": {
+   "ok": true,
+   "device_roles": 2,
+   "gap_fill_review": 1,
+   "meta_sha": "e18702f9b3affb68"
+  },
+  "sf_pushpull_output_opamp.topology.json": {
+   "ok": true,
+   "device_roles": 22,
+   "gap_fill_review": 1,
+   "meta_sha": "4999f6983804e260"
+  },
+  "two_stage_ota.topology.json": {
+   "ok": true,
+   "device_roles": 9,
+   "gap_fill_review": 9,
+   "meta_sha": "b831113cbae50852"
+  },
+  "two_stage_ota_sf.topology.json": {
+   "ok": true,
+   "device_roles": 9,
+   "gap_fill_review": 2,
+   "meta_sha": "fd5a6a3ec179ca27"
+  }
+ }
+}

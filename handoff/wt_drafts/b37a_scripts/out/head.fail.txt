@@ -1,0 +1,20 @@
+rc=1
+skills.analog-gmid-design.assets.tests.contracts.test_ts6_probe_relocate::test_base_blob_reader_reads_the_base_tree [failure] AssertionError: base 939f926의 skills/analog-gmid-design/assets/tests/probe_L_search_window.py를 읽지 못했다: fatal: not a git repository (or any of the parent directories): .git    assert 128 == 0  +  where
+skills.analog-gmid-design.assets.tests.contracts.test_ts6_probe_relocate::test_moved_tool_matches_base_except_path_lines [failure] AssertionError: base 939f926의 skills/analog-gmid-design/assets/tests/derive_achievable_bounds.py를 읽지 못했다: fatal: not a git repository (or any of the parent directories): .git    assert 128 == 0  +  wh
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s003__evaluate [failure] AssertionError: assert '_COMPENSATION_REGISTRY' in 'ports: 선언이 없다(DEC-62)'  +  where 'ports: 선언이 없다(DEC-62)' = str(ValueError('ports: 선언이 없다(DEC-62)'))
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s011_run_topology_pipeline_with_finger_fixup [failure] ValueError: ports: 선언이 없다(DEC-62)
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s012_optimize_full_circuit_budget [failure] ValueError: ports: 선언이 없다(DEC-62)
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s013_resolve_stack_layout [failure] TypeError: resolve_stack_layout() missing 1 required keyword-only argument: 'ports'
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s036_optimize_full_circuit_budget [failure] ValueError: ports: 선언이 없다(DEC-62)
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s037_optimize_full_circuit_budget [failure] ValueError: ports: 선언이 없다(DEC-62)
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s038_section [failure] ValueError: ports: 선언이 없다(DEC-62)
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s039_section [error] failed on setup with "ValueError: ports: 선언이 없다(DEC-62)"
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s040_VGS [failure] ValueError: ports: 선언이 없다(DEC-62)
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s041_section [error] failed on setup with "ValueError: ports: 선언이 없다(DEC-62)"
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s042__ref_depth [failure] ValueError: ports: 선언이 없다(DEC-62)
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s043_section [failure] AssertionError: 막힌 그룹(grpX/grpY)이 에러 메시지에 없음: ports: 선언이 없다(DEC-62) assert ('grpX' in 'ports: 선언이 없다(DEC-62)')  +  where 'ports: 선언이 없다(DEC-62)' = str(ValueError('ports: 선언이 없다(DEC-62)'))
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s045_section [failure] ValueError: ports: 선언이 없다(DEC-62)
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s050_section [error] failed on setup with "ValueError: ports: 선언이 없다(DEC-62)"
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s052_compensation [failure] ValueError: ports: 선언이 없다(DEC-62)
+skills.analog-gmid-design.assets.tests.unit.test_selftest_sizing_recipe::test_s053_L_role [error] failed on setup with "ValueError: ports: 선언이 없다(DEC-62)"
+skills.analog-gmid-design.assets.tests.unit.test_selftest_stick_diagram::test_s071_section [failure] ValueError: ports: 선언이 없다(DEC-62)

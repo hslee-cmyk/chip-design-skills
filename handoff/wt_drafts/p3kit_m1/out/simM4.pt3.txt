@@ -1,0 +1,18 @@
+
+=================================== ERRORS ====================================
+_ ERROR collecting skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py _
+ImportError while importing test module 'C:\g200\m4\skills\analog-gmid-design\assets\tests\unit\test_selftest_topology_library.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\g200\m4\skills\analog-gmid-design\assets\tests\unit\test_selftest_topology_library.py:24: in <module>
+    from topology_library import (current_reuse_telescopic_topology, math, miller_ota_topology, ngcc_3stage_topology, nmcnr_3stage_topology, nmcnr_check_dominant_pole_approximation, nmcnr_compensation_elements, nmcnr_predict_ac_response)  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ImportError: cannot import name 'math' from 'topology_library' (C:\g200\m4\skills\analog-gmid-design\assets\topology_library.py)
+=========================== short test summary info ===========================
+ERROR ..\..\..\..\..\..\g200\m4\skills\analog-gmid-design\assets\tests\unit\test_selftest_topology_library.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 6.40s
+exit=2 seconds=12

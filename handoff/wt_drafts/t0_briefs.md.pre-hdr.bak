@@ -1,0 +1,250 @@
+# Phase 3 T0 card `20260930-p3-tests-location-free` -- 착수 키트(test-author·auditor 브리프 + 착수 확인)
+
+작성 2026-10-01. 기준: gate `master` **`19eb475`**(작업 시작 때 `0f23786`이었고 작업 중 P10b 병합·md 일치 card·design 20 E2 정정이 들어왔다 -- 둘 다 재서 차이를 0.1에 적었다).
+저장소 쓰기·상태 변경 git 없음. 측정은 격리 복제본 `C:/g150`(`git init` + `git fetch <저장소> <sha>` -- origin 없음, 작업 끝에 삭제)에서만.
+대상: spec 초안 `_drafts/draft_p3_t0.spec.md`(이 키트 반영판, 직전판 `.spec.pre-kit.md`), 키트 `_drafts/p3kit_t0/`.
+**착수 조건**: Phase 3 design(`30-module-split`) 승인(UD-0) -- 아직 아님. 그리고 확정 순서상 B34 → b26pre → backfill → B26-1 → B33 병합 뒤(이 card의 base = B33 병합 뒤 master; 계약 10이 B26-1 test를 고친다).
+**(r2t 2026-10-02)** 착수 조건에 V4 면제 decision 승인 기록 `20261002-p3-t0-v4-s009-exempt`(사용자 답 [T0-V4], `t0_launch.sh` 조건 11)를 더했다 -- 0.5.
+네 card(B34·b26pre·backfill·B26-1)는 승인 `20261001-b26-phase3-cards`로 `phase: 3` -- T0 계약은 phase 3 card를 세거나 나열하지 않아 바뀌는 문장 없음(확인함).
+
+**착수 0단계(반드시, 다른 단계 전에 -- 읽기 전용)**:
+```
+R=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills; B=$(git -C $R rev-parse gate/master)
+git -C $R diff --name-only 19eb475 $B -- skills/analog-gmid-design/assets workspaces/run_harness.py docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md
+# 격리 복제본 <iso>(= $B)에서:
+C:/Python314/python.exe -B C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3kit_t0/t0_facts.py <iso> $B <scratch>/t0_facts_$B.json
+```
+```
+# (r2t 2026-10-02, review_t0_fu S3·B1·S4) 같은 격리 복제본(= $B)에서 이어서:
+C:/Python314/python.exe -B C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3ud6_kit/w1_lines.py <iso> $B <scratch>/w1_lines_$B.json
+C:/Python314/python.exe -B C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3fq_kit/shim_import_reads.py <iso> $B <scratch>/shim_reads_$B.json
+bash C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p3kit_t0/step0_v4.sh <iso> $B <게이트 캐시 tools/gates> C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/draft_p3_t0.spec.md <scratch>/step0_v4
+```
+판단: `t0_facts` 출력을 `p3kit_t0/out/t0_facts_19eb475.json`과 키별로 대조한다(차이 나는 키만 본다). **예상된 차이**(r2t, review m3): `design10_table.header`가 `[]`(design 10 §5.6 '파일' 열 개정이 `6c8287f`에 이미 반영 --
+머리 "파일(설명, Phase 3 전 위치)"), `_SIZING_RECIPE_all`에 design 30 577·611·1183행 3줄(서술, 소비자 아님 -- card 계약 4 범위는 추적 `.py`), md 일치 test 추가. 꼭 볼 것 --
+(가) `ic5_names_alldepth` 21개 각 1곳, `rdef_duplicate_names` {}, `rdef_probe`의 `size_transistor`·`check_quasi_static`·`_build_theta_evaluator`·`audit_vsb_consistency` = SR 1개,
+`rail_declaration` = SD 1개(B26-1 뒤), `_L_ROLE_MULTIPLIERS` 0개 (나) `binding_files_probe["rail_declaration"]` -- B26-1 계약 3상 SR은 import하지 않으므로 SD 하나일 것 (다) `cited_lines`의 줄 내용
+(밀렸으면 spec card 줄 번호를 고친다) (라) `contracts_files`에 새로 생긴 파일(B34·b26pre·backfill·B26-1·md 일치의 계약 test)을 spec card '작성 전 실측' 9대로 A/B군 분류 (마) `m6_scan_names`가
+계약 9 목록과 같은지 (바) `setattr_outside_tools`·`monkeypatch_in_tests` -- 엔진 모듈 속성 교체가 계약 10 대상 하나뿐인지
+**(사)(r2t, S3) 계약 11 재측정**: `w1_lines`·`shim_reads`를 `p3ud6_kit/out/w1_lines.json`·`p3ud6_kit/out/shim_reads_4a286f0.json`과 `rev` 밖 대조 -- 3파일·7이름·각 파일 import 줄 모양(한 줄 괄호)·엔진 쪽 출처 줄이 그대로인지.
+B26-1 계약 12가 SR selftest 24행에 SD 이름(`RailDeclaration` 등)을 `sizing_recipe` 경유로 넣었으면 (c) 정의상 그 이름이 N3.10 파일(`stick_diagram`)에서 온 것인지 본다 -- (c) 잔여가 늘면 계약 11 표를 고친다(spec card 재작성).
+**(아)(r2t, B1) V4 재측정**: `step0_v4.sh` 요약 마지막 줄이 `판단: MATCH`(FAIL test id = `test_selftest_sizing_recipe.py::test_s009_revalidate_finger_override` 하나)이고 'UNJUDGED assert 식 = TS2 병합본 식'이 전부인지.
+MATCH면 [T0-V4] 질문(`p3kit_t0/ask_t0_v4.md`)을 그대로 올리고, 답 뒤 `p3kit_t0/approval_20261002-p3-t0-v4-s009-exempt.draft.md`를 채워 **Role: doc 커밋·push를 test worktree 생성 전에**(V4는 head = T 트리의 승인 기록을 읽는다 --
+gate `4a286f0` `test_lint.py` 731행). DIFF면 늘어난 id를 같은 근거(T0가 바꾸지 않는 기존 줄, 피검이 입력을 만들어 양쪽에 남는가)로 검토해 질문·기록 초안을 고친 뒤 올린다.
+`t0_launch.sh` 조건 11이 그 기록을 요구한다.
+**(자)(r2t, S4) 계약 10 dry run -- B26-1 병합 직후, test-author 착수 전(공식 재시도 전 규칙: test + 옛 코드 변이 dry run)**: 같은 복제본에서 B26-1 `test_b26_rail_accessor.py`의 실제 계수 방식을 읽고
+(모듈 속성 교체가 아니면 card 계약 10 삭제), `load_topology` def를 새 파일로(새 파일은 SD에서 필요한 이름 import, SD 끝 재수출)·`rail_declaration`을 다른 새 파일로(SD 재수출) 옮긴 합성 트리에서
+base 옛 계수 test = **FAIL(계수 0)**, 계약 10 시제품(같은 래퍼를 `binding_files("rail_declaration")` 전부에) = **PASS**인지 본다. 스크립트는 그때 실제 test 모양에서 쓴다(지금은 대상 파일이 없어 미리 만들지 않는다).
+기대가 다르면 test-author 착수 전에 card 계약 10을 고친다(B26-1 초안 계약 3 102행 "test가 `stick_diagram.rail_declaration`을 바꿔 센다"와 맞는 것은 review_t0_fu가 확인).
+(가)~(자)가 맞으면 spec card의 measured 문장(rev)만 새 sha로 바꾸고 진행 -- 구체적으로 spec 초안 `_drafts/draft_p3_t0.spec.md` **'## 작성 전 실측' 첫 문단 앞에** 한 줄
+`**measured at \`<gate master 7자>\`**(착수 0단계 재측정 <날짜> -- _drafts/t0_launch.sh가 읽는 measured rev 단일 출처): …`을 넣는다(지금 초안에는 이 줄이 없다).
+`t0_launch.sh pre`(`stage_pre` → `meas_rev`, 118~123행)는 이 줄이 생길 때까지 `[중단] spec 초안에 '**measured at \`<rev>\`**' 줄이 없다`로 **거부한다** -- 0단계 재측정 전에는 pre를 통과할 수 없다(r2 2026-10-02 주석, 원본 `t0_briefs.pre-r2.md`). A군이 새로 나오면 spec card 재작성(범위 확대), 계약 10 대상 test 모양이 '모듈 속성 교체'가 아니면 계약 10 삭제(card 8의 지시).
+
+---
+
+## 0. 착수 확인 결과(오케스트레이터용)
+
+### 0.1 spec card 재검증(gate `master` `0f23786` → `19eb475`)
+
+| 확인 | 결과(`p3kit_t0/out/t0_facts_{0f23786,19eb475}.json`) | 조치 |
+|---|---|---|
+| `0f23786..19eb475` 변경 | P10b 병합(`tests/tools/reg_check.py`, 새 계약 test `test_reg_check_df23.py`, 레지스트리 §8), md 일치 spec card, library md 2, design 20 E2·history, 승인 기록. **엔진·`tools/gates` 무변경**(`git diff --quiet 0f23786 19eb475 -- tools/gates` 0) | spec card에 '키트 v9' 문단 |
+| `test_ic5.py` `_DOMAIN_TABLE` 47~69, 21행 | 그대로. 표 21개 이름은 엔진 소스 모든 깊이에서 각 1곳 | -- |
+| `test_dup_w_calc.py` 442(경로)·56(`_REQUIRED_ENGINE_FILES`)·72~75(import) | 그대로 | -- |
+| `test_ts6_dead_probes.py` 60·221·222·229·259~263, `_NON_OPERATIONAL_PREFIXES` 66 | 그대로. `_SIZING_RECIPE` 저장소 전체 소비자 = 60·221·222·261·262뿐 | -- |
+| R-DEF 유일성 | 엔진 소스 8파일(A 바로 아래 7 + `run_harness.py`), 최상위 바인딩 중복 0. `size_transistor`·`width_from_id_density`·`audit_vsb_consistency`·`_build_theta_evaluator`·`check_quasi_static` 정의 = SR 1, `load_topology` = SD 1, `_L_ROLE_MULTIPLIERS` 0 | -- |
+| 파일 이름 리터럴 test 수(작성 전 실측 1) | contracts **11**(card 문장 '10'은 `cd64170` 값 -- `test_df23_inventory.py` 320·367행 합성 입력 문자열 2건이 `0f23786`부터 있다, A군 아님) + unit 6 + tools 2 | card '키트 v9' 문단에 11 |
+| 새 계약 test `test_reg_check_df23.py`(P10b) | `from reg_check import check_df23, main`(tests/tools 도구), 엔진 파일 이름 리터럴 0, 엔진 소스 읽기 0 → A군 아님, B군도 아님 | -- |
+| glob 사용처(작성 전 실측 2) | `test_ic_markers_match_plan.py:91`, `rglob("*.py")` 4곳 `ts3:59`·`d_delete_dead:87`·`d_delete_telescopic:97`·`d_move_tests:87` 그대로 | -- |
+| 계약 9 토큰 목록 | `m6_scan_names` 재추출 = card 목록과 같다(card가 뺀 `GmIdLUT`·`SemiEmpiricalGmIdLUT`(`_DELETED_METHODS`의 클래스 쪽)·`SizingContext`·`"assign"/"class"/"def"`(`_MOVES` 종류 문자열)는 스캔이 이름 참조로 보지 않는 값 -- 의도된 생략으로 읽음) | -- |
+| `setattr`(tools 밖)·`monkeypatch.` | 0건 · df36 `chdir` 4건(197·199·204·211) | 착수 때 B34 `monkeypatch.setattr(sys, "path", …)` 생김 -- card 작성 전 실측 8에 문장 |
+| design 10 §5.6 영역 표 | 머리 252행, 254(ACF)·255(SR)·262(SD) | -- |
+| PT3(B1 수정) | card '무동작 판정 입력'이 `PT3`(`--gmid-phase=3`)를 쓴다 -- 확인. '판정 유형 근거'의 V2 basis 문장에 phase 값이 없었다 | 그 문장에 `PT3`·네 파일(계약 10 포함)을 적음 |
+| phase 3 card 변경(B34·b26pre·backfill·B26-1) | T0 계약은 phase 3 card를 세지 않는다. 순서 문장에 b26pre·backfill이 빠져 있었다 | 순서 문장에 키트 v9 한 줄 |
+| interface card 생성 | `interface_card.py` exit 0, 기존 함수 6개(`size_transistor`·`width_from_id_density`·`check_quasi_static`·`_build_theta_evaluator`·`load_topology`·`_metric_kcl_residual`) -- `out/t0.interface.generated.md` | -- |
+
+**작업 끝 확인(gate `master` `5f643a9`)**: `19eb475..5f643a9` = md 일치 card의 test 커밋(`test_topology_md_sync.py` 새 계약 test, 609줄)과 판정 기록뿐. 그 test는 표준 모듈 + `pytest`만 import하고
+`*.topology.md`만 glob하며 엔진 파일 이름 리터럴·`setattr`·`monkeypatch` 0 → A군 아님(0.3 표의 md 일치 행 확인됨). 전체 test 수는 그 판정 기록 V1 기준 1047 passed 15 xfailed(phase 2 실행)로 늘었다 --
+위 1008은 `19eb475` 값이다.
+
+### 0.2 시제품 측정(`C:/g150`, base = `19eb475`, 시제품 = 계약 1~4를 그대로 옮긴 test 커밋 -- 계약 10은 대상 파일이 B26-1 전이라 없음)
+
+시제품은 오케스트레이터 사전 측정용이다 -- **test-author·auditor에게 건네지 않는다**(작성자≠검증자). 설치기 `p3kit_t0/install_t0_proto.py`.
+
+| 측정 | 결과 |
+|---|---|
+| 바뀐 세 파일 `PT3`(base vs 시제품) | 둘 다 **141 passed**(17초), (판정, test id) 집합 동일(`out/cmp_3files_19eb475.json` -- `stale_mixed_0f23786/`의 첫 측정은 base/시제품 판이 섞여 버림) |
+| 전체 `PT3`(무동작 판정 입력) | base **1008 passed 15 xfailed**(6분 20초), 시제품 **1008 passed 15 xfailed**(6분 23초), (판정, test id) 집합 **동일**(`out/cmp_full_19eb475.json`) -- 새 도우미 `_engine_defs.py`가 전수 스캔 test(`ts3`·`d_*`·`ic_markers`)에 새 발견 0 |
+| 계약 6 합성 이동 트리(`make_synth.py move` -- SR에서 `check_quasi_static`·`size_transistor`·`_build_theta_evaluator` def를 잘라 `A/zz_loc_free_probe.py`로, SR 끝에 재수출) | **시제품 test 4개 전부 PASS** / base 옛 test: `test_gate_docstring_declares_blind_spots` FAIL, `test_size_transistor_calls_new_function` FAIL, `test_audit_vsb_consistency_has_operational_caller` FAIL, `test_sizing_recipe_source_has_no_l_role_multipliers` PASS(**공허 통과** -- 한 파일만 보므로) |
+| 계약 7 복사 트리(`copy` -- `size_transistor`를 새 파일에 복사, 원래 것 남김) | 시제품: `test_size_transistor_calls_new_function` **FAIL**(정의 파일 2개), 나머지 3 PASS / base 옛 test: 4개 전부 PASS(모호를 못 본다) |
+| '거부해야 할 입력' 재바인딩(`rebind` -- move 트리 + `topology_library.py` 끝에 `_L_ROLE_MULTIPLIERS = {}`) | 시제품: `test_sizing_recipe_source_has_no_l_role_multipliers` **FAIL**, 나머지 PASS / base 옛 test: 그 test PASS(범위 밖) |
+| 계약 9 토큰(`token_check.py`) | 시제품 `+` 93줄에 card 토큰 0, print·logging 안 PASS/FAIL 0 |
+| V3·V4·V5·V6·V7(`v_tools.sh`, 게이트 캐시 = `git archive 19eb475 tools/gates`) | V3 PASS `targets [] mutants 0`(89초) · V4 PASS -- `--interface-card`(생성본) 단독으로도 PASS(files 4 = 도우미 포함, findings 76 전부 (2) NO-SUBJECT, UNJUDGED 0; `--subject` 373개 방식도 PASS -- **r2t: 이 373개 PASS는 공허였다**(`v4_subjects.txt` CRLF, `read -r`가 `\r`을 남겨 subject가 하나도 맞지 않음 -- `v_tools.sh` 수정) · **r2t: 이 행은 계약 11 전(unit 3파일 미포함) 값 -- 지금 값은 0.5**) · **V5 FAIL exit 1**(발견 4: 리터럴 변경 3 + **비교 완화 1** = `len(files) == 1` 새 Compare; `diff_hash` = 시제품 값이라 실제 값 아님) -- 계획된 V5 승인 경로 · V6 PASS `targets []` · V7 PASS `new_defs []` |
+
+### 0.3 앞선 card가 같은 파일을 건드리는 것 -- 착수 때 다시 잴 것
+
+| card | 건드리는 것(T0 관련) | 착수 때 |
+|---|---|---|
+| B34 `20260930-b34-grammar-explicit`(phase 3) | 엔진 `audit_theta_root_direction` docstring의 '검사하지 않는 것:' 절(3363~3364 -- IC5 대상, 영역 줄 그대로), 새 계약 test `test_b34_grammar_explicit.py`(`stick_diagram.<이름>` 호출·`stick_diagram.__file__` 경로 -- B군, F1), `monkeypatch.setattr(sys, "path")` | ic5 표 값 21개 그대로인지(`t0_facts`), 새 test B군 확인, `setattr` 출현 분류 |
+| b26pre `20260930-b26-pre-test-strengthen`(test-only) | 새 계약 test `test_b26pre_existing_paths.py`(selftest 3파일 경로 test 보강) | A/B군 분류, `rglob` 전수 스캔 토큰 충돌 없음 |
+| backfill `20261001-b26-backfill-interdig-final-audit` | 엔진(SD `run_matching_safety_with_finger_growth`·`_fixup_euler_blocked_rows` 근처), 새 계약 test `test_b26_backfill_interdig.py` | 분류, R-DEF 유일성 |
+| B26-1 `20260930-b26-rail-accessor-set` | SD `RailDeclaration`·`rail_declaration`, `load_topology` meta, IC5 대상 `audit_vertical_stack_id_vs_kcl` 등의 시그니처(`*, rails`), `A/tests/**` 호출에 `rails=`(계약 12), 새 `test_b26_rail_accessor.py`(**계약 10 대상**) | 계약 10 대상 test의 실제 모양(모듈 속성 교체인가), `binding_files("rail_declaration")`, ic5 대상 docstring 영역 값 불변, `test_dup_w_calc.py`·`test_ts6_dead_probes.py`가 B26-1 계약 12로 바뀌었으면 줄 번호 |
+| B33 `20260930-v7-registry-edges`(게이트) | `tools/gates/reachability.py` -- T0 test와 무관, V7 판정 도구가 바뀐다 | V7 실행 결과 `new_defs []` 재확인(도우미는 `tests/` 안이라 그래프 밖) |
+| G1 `20260930-p3-gate-move-aware`(게이트) | `reachability`·`mutate_changed`·`source_lint` -- T0 test와 무관, V3/V6/V7 출력 키(`moved`·`move_rejected`)가 늘어난다 | T0가 G1보다 먼저 병합되면 무관. 뒤면 V3·V6·V7 출력 모양만 바뀜 |
+| V3 면제 묶기·범위 정책(게이트) | `mutate_changed` 출력 키(`exempt_ignored`·`not_targeted` 등) | V3는 `targets []`라 판정 영향 없음 |
+| md 일치 `20261001-topology-md-sync`(test-only) | 새 계약 test `test_topology_md_sync.py`(library md·json만 읽음) | A군 아님 확인 |
+
+### 0.4 착수 직전에 다시 볼 것
+
+0. 착수 0단계 명령(머리 절).
+1. 역할 브랜치 `role/*` 0개(문서 커밋 gate push는 EL1이 거부). 동시에 진행 중인 Phase 3 card(G1·D0a)가 있으면 각자 worktree.
+2. spec card 머리 `approval:` 세 줄(r2t) -- `20260930-30-module-split-design`(design 승인), `20260930-p3-tests-location-free`(V5 diff 승인 -- test 커밋 뒤에 받는다), `20261002-p3-t0-v4-s009-exempt`(V4 규칙 (1) 면제 decision -- 순서 0 전에 gate에). 판정 기록 `approvals`에 셋 다.
+3. interface card는 절대 경로로 생성(role_guard가 `cd` 뒤 상대 경로 쓰기를 거부): `C:/Python314/python.exe -B <R>/tools/gates/interface_card.py <R>/docs/02-design/specs/20260930-p3-tests-location-free.spec.md --root <R> --out <R>/docs/02-design/specs/20260930-p3-tests-location-free.interface.md`.
+4. EL1 hook은 리다이렉트 대상에 변수 경로가 있으면 거부한다 -- 측정 명령은 스크립트 파일(`p3kit_t0/*.sh`)로.
+
+### 0.5 r2t 재측정(2026-10-02, gate `master` `4a286f0`, 격리 복제본 `C:/g253`, review_t0_fu 반영)
+
+모의 T = base `4a286f0` + 계약 1~4 시제품(`install_t0_proto.py`) + 계약 11(`install_t0_c11.py`) -- 7파일 diff. 도구는 gate 판 `tools/gates`(`git archive 4a286f0`).
+
+| 측정 | 결과 |
+|---|---|
+| V4 `--interface-card` 단독(기존 함수 6, 초안 r2t에서 생성 = 키트 `out/t0.interface.generated.md`와 바이트 같음) | **FAIL exit 1**: `unit/test_selftest_sizing_recipe.py::test_s009_revalidate_finger_override` 719·744행 규칙 (1) 2건 + 같은 파일 UNJUDGED 78, 나머지 (2) NO-SUBJECT 241 |
+| V4 범위 | gate `test_lint.py` 719~725행: `--diff-filter=AM` 파일을 **파일 전체** lint(702~707행 head 트리 파일 전체 읽기) -- hunk 단위 아님. 24행 import만 바뀌어도 3천 줄 전체가 대상 |
+| (i) 기존 면제 | 커밋된 decision target 중 이 id 0건(`20260923-c9-v4-exempt` = s052·s054뿐). B26-1 초안 승인도 덮지 않음 |
+| (iii) T0에서 두 줄 고치기 | 719행 기대값을 `200e-6 / _l4_gm_id`로 → 그 줄은 통과하지만 oracle 변경이고 V5 `weakening_diff` 발견 0(`diff_paths`에 SR 없음 -- 조용한 기대값 변경). 744행은 스냅숏 지역 변수로 바꿔도 FAIL 1 그대로(V4 인라인). **하지 않는다** |
+| (iv) decision 면제 기록을 head 트리에 둠 | **PASS exit 0**(규칙 (1) exempt 2, UNJUDGED 78, FAIL 0), `merge_gate.py parse-approval` exit 0 → card '결정 필요 항목' [T0-V4], 질문 `p3kit_t0/ask_t0_v4.md` |
+| UNJUDGED 78 출처 | 78개 assert 식 전부 TS2 병합본 `caac910` 같은 파일 assert 식과 `ast.unparse` 같음(`step0_v4.sh` 요약) -- TS2 판정 기록 V4 basis(이관본 전수 대조)의 oracle (c)를 잇는다 |
+| `--subject` 373(진단, 판정 입력 아님) `v_tools.sh` CRLF 수정 뒤 | `v4 subjects 373` 출력, **FAIL** -- 규칙 (1) FAIL 3(SR `test_s071` 2988·2991, DR `test_s003` 101) + exempt 4(s009 2·c9 s052/s054 2) + 규칙 (2) FAIL 8(SR s011·s012·s028·s059·s074·s075·s076) -- 공허가 아니다. 모두 T0가 바꾸지 않는 기존 줄, 피검이 interface card 밖이라 V4 판정 대상 아님(기록만) |
+| V5 | FAIL exit 1, 발견 4 = 비교 완화 1 + 리터럴 3, `diff_paths` = contracts 3파일 -- **import 3줄은 발견 0, `diff_hash` 밖** |
+| V3·V6·V7 | V3 PASS(119초) · V6 PASS · V7 PASS |
+| 착수 0단계 `step0_v4.sh` 리허설 | `판단: MATCH`, `test_b26_rail_accessor.py` 없음(B26-1 전)이라 rail lint 생략 |
+
+---
+
+## 1. gmid-test-author 브리프(순서 2)
+
+```
+역할: gmid-test-author. change id = 20260930-p3-tests-location-free (test-only, phase 3, gate_change: no).
+worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-tests-location-free-test (브랜치 role/test/20260930-p3-tests-location-free). 모든 명령 절대 경로(git -C, cd 금지).
+쓰기 경로: skills/analog-gmid-design/assets/tests/ 아래 여덟 파일뿐 -- contracts/의 새 _engine_defs.py, test_ic5.py, test_dup_w_calc.py, test_ts6_dead_probes.py, test_b26_rail_accessor.py와
+  unit/의 test_selftest_topology_library.py, test_selftest_sizing_recipe.py, test_selftest_design_report.py(계약 8, UD-6 W-1 계약 11 -- 24행 import 출처만).
+입력: interface card docs/02-design/specs/20260930-p3-tests-location-free.interface.md, spec card '관찰 가능한 계약' 1~11·'거부해야 할 입력'.
+열람 금지: 엔진 소스(A/*.py, run_harness.py) -- test는 실행 때 AST로만 읽는다(기존 test와 같은 방식). _drafts/는 보지 않는다.
+커밋: git -C <worktree> commit --trailer "Role: test" --trailer "Change-Id: 20260930-p3-tests-location-free" -m "test: …"
+```
+
+**모양 요구(card에서 -- 놓치기 쉬운 것)**
+1. `_engine_defs.py`: `engine_source_files()`·`defining_files(name)`·`binding_files(name)`(계약 1). 이름이 `_`로 시작해 수집되지 않는다. `contracts/`에 `__init__.py`가 없어 pytest(prepend)가 test 파일 디렉터리를
+   `sys.path`에 넣으므로 `from _engine_defs import …`가 된다(선례 `unit/`의 `import _library_sized_contexts`). 파일마다 파싱은 한 번만(같은 test 실행 안에서 캐시 -- 캐시 원칙).
+   `defining_files`는 최상위 def·class·대입·주석 대입과 `Class.method`만, import는 정의가 아니다. `binding_files`는 정의 + `from M import n`/`from M import x as n`.
+2. `test_ic5.py`: `_DOMAIN_TABLE` 키를 함수 이름으로, **값 21개 그대로**. 이름마다 대상(모든 깊이, 기존 `_collect_targets`)이 **정확히 하나** -- 0 = '대상에 없다', 2 이상 = 모호, 메시지에 `파일:줄`.
+   형식 검사 (2)·합성 test 5개·`test_domain_table_uses_allowed_values`(len 21) 그대로.
+3. `test_dup_w_calc.py::test_size_transistor_calls_new_function`: `defining_files("size_transistor")` 길이 정확히 1을 단언한 뒤 그 파일에서 기존 `assert_function_calls`.
+4. `test_ts6_dead_probes.py`: 두 test **이름 그대로**. `_L_ROLE_MULTIPLIERS` 판정은 엔진 소스 파일마다 기존 `assert_source_binds_no_symbol`(파일 목록이 비지 않음도 단언 -- 공허 방지).
+   운영 호출자 판정은 **파일마다 `assert_symbol_has_operational_caller`를 부르면 안 된다**(그 도우미가 파일마다 '호출자 있음'을 단언해 호출자 없는 파일에서 FAIL) -- 파일마다 `_operational_callers`를
+   모아 합집합이 비지 않음을 단언하고, 기존 263행 단언(모두 비운영 접두 아님)은 남긴다. 모듈 상수 `_SIZING_RECIPE`(60행)는 지운다(소비자 0이 된다).
+5. `test_b26_rail_accessor.py`(계약 10): 계수 래퍼를 `binding_files("rail_declaration")`의 **모든** 모듈 속성에 같은 래퍼로 `monkeypatch.setattr`(모듈은 파일 줄기로 import -- A 디렉터리 모듈.
+   `workspaces/run_harness.py`가 목록에 들면 `workspaces/`도 `sys.path`에 넣어야 한다 -- 지금은 들지 않을 것). 정의 파일 R-DEF 정확히 1 단언. 불변식·입력·기대값·test 이름 그대로.
+   이 파일의 다른 test(`sizing_recipe._metric_kcl_residual` 이름 호출)는 건드리지 않는다(F1 몫). 먼저 B26-1 병합본의 실제 test 모양을 확인 -- 모듈 속성 교체가 아니면 손대지 말고 오케스트레이터에 알린다.
+6. 새 줄에 계약 9 토큰(삭제·이관 이름) 0, `print`/`logging` 안 `PASS`·`FAIL` 0. 기대값·표 값·기대 호출 이름은 바꾸지 않는다(계약 5).
+7. test 함수마다 if·try 밖 assert ≥ 1(V4 (3)(4)).
+8. **(UD-6 W-1) 계약 11 -- unit selftest 3파일 24행**: 그 줄의 `from <엔진> import (…)`에서 card 표의 7이름(TL `math`; SR `_dc_replace`·`json`·`math`·`np`·nmcnr_predict_ac_response; DR `os`)만 빼고,
+   card 표의 출처 import를 모듈 최상위에 둔다(첫 사용 전; `sys.path` 설정 뒤 줄은 `# noqa: E402`). DR은 13행 `import os`가 이미 있어 빼기만. 같은 줄의 다른 이름·test 함수·기대값은 그대로(F1 몫).
+   출처는 card 표가 정본이다(엔진 소스를 열지 않는다 -- 표는 오케스트레이터가 gate master에서 잰 값).
+   nmcnr_predict_ac_response를 card·이 brief에서 백틱 없이 적는 것은 형식 때문이다: interface card 생성기가 백틱 엔진 함수 이름을 '기존 함수'로 잡아 6개가 7개로 바뀐다. 이 이름은 card 계약 11 표와 이 brief가 정본이고 interface card에는 없다(없는 것이 정상).
+   (r2t) 이 세 파일은 V4가 파일 전체를 lint한다 -- `test_s009_revalidate_finger_override`의 규칙 (1) 2건은 기존 줄이고 승인 `20261002-p3-t0-v4-s009-exempt`로 면제된다. **그 test를 고치지 않는다**(판정 기준 변경).
+
+**자기 실행(판정 아님)**: `PT3`(card '무동작 판정 입력') -- `PYTHONPATH=<게이트 캐시> PYTHONPYCACHEPREFIX=<빈 임시> C:/Python314/python.exe -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=<wt> --confcutdir=<wt>
+<wt>/skills/analog-gmid-design/assets/tests/contracts/{test_ic5,test_dup_w_calc,test_ts6_dead_probes,test_b26_rail_accessor}.py
+<wt>/skills/analog-gmid-design/assets/tests/unit/{test_selftest_topology_library,test_selftest_sizing_recipe,test_selftest_design_report}.py --gmid-phase=3` 전부 PASS(사전 측정: contracts 세 파일 141 passed, 17초 -- unit 3파일 포함 전체 PT3는 review_t0_fu 측정(`4a286f0`, 계약 1~4 + 계약 11 모의 T)에서 base·T 모두 1047 passed 15 xfailed, id 1062, 차이 0).
+전체 실행(6분 20초)으로 수집 id 집합이 base와 같은지도 한 번.
+
+**소요 예상**: 작성 30~40분(시제품 +93줄 -33줄 + 계약 10), 자기 실행 7분.
+
+---
+
+## 2. code-author
+
+없음 -- test-only(엔진 소스 불변, `code_commit: null`, 계획 N3.12.3 '순서 4·5 생략').
+
+---
+
+## 3. gmid-verification-auditor 브리프(순서 3·6)
+
+```
+역할: gmid-verification-auditor. change id = 20260930-p3-tests-location-free, evidence_type test-only, phase 3.
+audit worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-tests-location-free-audit (브랜치 role/audit/20260930-p3-tests-location-free).
+격리 복제본에서만(§12-7). scratch는 새 C:/g<n> 하나(다른 C:/g* 금지), 끝나면 그 폴더만 삭제. set -euo pipefail, git -C <절대 경로>만. 끝나면 실제 저장소 git status·reflog 불변 확인.
+게이트 코드 = base 판(gate master) 캐시. 작성자 보고는 증거가 아니다. 판정 기록 .ai/verification/20260930-p3-tests-location-free.json + {scripts,out}/, Role: audit 커밋.
+```
+
+(r2t: 계약 11 작성 지시는 test-author 몫이라 1절 '모양 요구' 8로 옮겼다 -- review_t0_fu S2. auditor는 아래 '계약 11 확인'만 한다.)
+
+test-only 모양(design 05 §9.2-4): `old..new^` = Role: test 커밋 T 하나, code 커밋 없음, `red`·`equivalence` 필드 금지(`_schema.json` allOf) -- 합성 트리 결과는 `checks.V2.basis` 문장으로(선례 `20260923-probe-promote-clean`).
+
+### 3.1 순서 3(freeze·base 확인)
+* **커밋하지 않는다**: base_check.json 등 산출물은 audit worktree에 쓰기만 하고 커밋하지 않는다(커밋은 판정 순서(이 브리프 3.2 '순서 6')에서 M 위 한 커밋).
+* T 해시 고정. `git diff --name-only <base> <T>` = 계약 8의 여덟 경로 정확히(도우미 + 네 contracts test + unit selftest 3 -- UD-6 W-1).
+* base 트리에서 바뀐 일곱 test 파일의 옛 test 전부 PASS(`PT3`), 수집 test id 목록 보관.
+
+### 3.2 순서 6(병합본 판정)
+
+* 순서 3 산출물(base_check.json 등)은 이미 audit worktree에 미커밋으로 있다 -- 이 판정 순서의 한 커밋(M 위, `Role: audit`)에 판정 기록과 함께 넣는다.
+
+| V | 기대 | 증거(격리 복제본·base 판 게이트 캐시) | 사전 측정 소요 |
+|---|---|---|---|
+| V1 | PASS. 전체 `PT3 --gmid-strict=`(card phase 3 → `--gmid-phase=3`, `v1_command_check` 위반 0). base와 (판정, test id) 집합 같음 -- 사전 측정 `4a286f0`(r2t, review_t0_fu m2): base·모의 T 모두 **1047 passed 15 xfailed, id 1062**, 차이 0(+ 앞선 card B34~B26-1이 더한 test -- 절대 수가 아니라 base = 병합본 집합 같음이 기준) | `pytest -c <캐시>/pytest_gate.ini --rootdir=<iso> --confcutdir=<iso> <iso>/…/tests --gmid-phase=3 --gmid-strict= -rA` base·병합본 두 번(병렬 가능) | 6분 20초씩 |
+| V2 | PASS(test-only). 매핑 = 바뀐 test id → 같은 id(계약 4 -- 이름 불변). base에서 일곱 test 파일(네 contracts + unit selftest 3) 전부 PASS. **합성 트리**(auditor 스크립트로 직접 -- 아래)에서 계약 6·7·10 결과 | 아래 '합성 트리' | 트리당 20초 |
+| V3 | PASS `targets [] mutants 0`(엔진 불변) | `mutate_changed.py … --gmid-phase=3 --gmid-strict=` | 1분 30초 |
+| V4 | **승인 기록으로 PASS**(r2t). `--interface-card` 단독(피검 6행 이상), 대상 = diff의 여덟 파일 **전체**(gate `test_lint.py` 719~725행 -- unit 3파일 포함). 승인 `20261002-p3-t0-v4-s009-exempt`(decision)가 head 트리에 있으면 사전 측정(`4a286f0` 모의 T): verdict PASS, 규칙 (1) **exempt 2**(`test_selftest_sizing_recipe.py::test_s009_revalidate_finger_override` 719·744행 -- 기존 줄), FAIL 0, **UNJUDGED 78**(같은 파일). basis: ① exempt가 그 test id의 규칙 (1)뿐이고 다른 발견은 면제되지 않음(선례 TS2 판정 기록 V4 basis 문장) ② UNJUDGED마다 그 줄이 T0 diff hunk 밖(`git diff -U0 <base> <T>` -- unit 3파일은 import 줄 근처만)이고 assert 식이 TS2 병합본 `caac910` 같은 파일의 assert 식과 같음(`ast.unparse` -- 사전 측정 78/78) → oracle (c) 출처는 TS2 basis(이관본 전수 대조), 다른 것이 있으면 그 줄을 바꾼 card의 V4 basis를 찾아 적음(선례 `20260923-d-delete-telescopic` 'UNJUDGED 52') ③ 바뀐 test의 기대값 oracle 대조 -- ic5 값 = design 10 §5.6 표(d), 위치 = R-DEF 구성(a), 계수 기대값 = B26-1 계약 3 그대로(c). 승인 기록 없이 FAIL이면 card 계약 결함이 아니라 착수 조건 11 누락이다 -- 멈춘다 | `test_lint.py --root <iso> --base <base> --head <T> --interface-card <card>` | 40초 |
+| V5 | **승인 기록으로 PASS**. 도구 단독은 FAIL(리터럴 변경 + 비교 완화 -- 사전 측정 발견 4). r2t 실측(`4a286f0` 모의 T): UD-6 W-1 import 출처 변경 3줄은 **발견을 내지 않고** `diff_paths`(= 발견 있는 경로 = contracts 3파일) 밖이라 **`diff_hash` 대상이 아니다** -- 그 3줄은 계약 11 (b)·(c)가 확인한다(승인 범위 설명에 그대로 적는다). 승인 `20260930-p3-tests-location-free`(`target_kind: diff`)의 `target` = base 판 `weakening_diff.diff_hash`(base→T) 재계산과 일치. 사람 판단: 판정 범위 확대 + 유일성 단언, 기대값 불변, 죽은 상수 삭제, 계수 래퍼 대상 확대, **import 출처 변경 3줄(7이름 -- 사용자 답 [W-1] (가), 2026-10-02)** | `weakening_diff.py --root --base --head` | 20초 |
+| V6 | PASS `targets []` | `source_lint.py` | 45초 |
+| V7 | PASS `new_defs []`(도우미는 `tests/` -- 그래프 밖) | `reachability.py` | 1분 30초 |
+| V8·V9 | N/A(도입 4·6b) | -- | -- |
+| V10 | PASS, `reproduced_numbers` [] ('재현할 수치: 없음') | -- | -- |
+
+**합성 트리(계약 6·7·10, '거부해야 할 입력')** -- auditor가 card 문장대로 자기 스크립트로 만든다(키트 `make_synth.py`는 오케스트레이터 사전 측정용):
+* 계약 6 `move`: base 트리와 병합본 트리 각각에서 SR의 `check_quasi_static`·`size_transistor`·`_build_theta_evaluator` def 텍스트(데코레이터 포함)를 잘라 `A/zz_loc_free_probe.py`(머리 `from __future__ import annotations`)에
+  붙이고 SR 끝에 `from zz_loc_free_probe import <이름>` → 병합본 test **전부 PASS**, base 옛 test는 ic5·dup_w_calc·ts6 caller **FAIL**(사전 측정 그대로 -- `_L_ROLE` test는 base에서 공허 PASS).
+* 계약 7 `copy`: `size_transistor`만 새 파일에 복사(원래 것 남김) → 병합본 `test_size_transistor_calls_new_function` FAIL(정의 파일 2개).
+* '거부해야 할 입력' `rebind`: move 트리 + 다른 엔진 파일(예 `topology_library.py`) 끝에 `_L_ROLE_MULTIPLIERS = {}` → 병합본 `_L_ROLE` test FAIL(base 옛 test는 PASS -- 넓어진 범위의 증거).
+* 계약 10: B26-1 병합본 test 모양을 보고 정한다 -- `load_topology` def를 새 파일로(새 파일은 원래 파일에서 필요한 이름 import, 원래 파일 끝 재수출), `rail_declaration`을 다른 새 파일로(원래 파일 재수출)
+  → 병합본 계수 test PASS, base 옛 계수 test FAIL(계수 0). 이 트리는 import가 실제로 되어야 한다(계수 test는 실행 test) -- 순환 import가 나면 재수출 줄 위치를 파일 끝으로.
+* 실행은 바뀐 test id만(`::<이름>`), `PT3`.
+
+**계약 확인(판정 기록 basis)**: 계약 5(범위 비약화 -- 바뀐 test마다 대상 집합 ⊇ base, assert 수 비감소, 표 값·기대 호출 이름 불변: AST로 세어 기록), 계약 8(바뀐 경로 여덟), 계약 9(`git diff -U0 <base> <T> -- <여덟 파일>`의 `+` 줄 토큰 0 --
+토큰 목록은 병합본의 `test_d_*` 상수에서 다시 뽑아 card 목록과 대조), 계약 4(`git grep -n _SIZING_RECIPE -- '*.py'` 추적 `.py` 0건 -- design 30 577·611·1183행 서술 3줄은 소비자가 아니라 범위 밖(r2t, review S1), test id 불변).
+**계약 11 확인(UD-6 W-1, basis)**: (b) ① base 트리와 병합본에서 세 unit 파일의 수집 test id 집합·판정이 같음(base 대조는 이것으로 충분하다).
+② 7이름 각각 card 문언 그대로 **`is`**: **병합본 한 프로세스에서** 바뀐 test 모듈을 로드한 뒤 `test_mod.<이름> is E.<이름>`(E = 그 줄의 엔진 모듈 -- TL `topology_library`·SR `sizing_recipe`·DR `design_report`)이 7개 모두 `True`.
+T0은 엔진을 바꾸지 않으므로(계약 8 -- 먼저 `git diff --name-only <base> <병합본>`에 세 E 파일이 없음을 확인해 basis에 적는다) 병합본의 `E.<이름>`이 곧 'base에서 E 모듈 속성으로 얻던 객체'다.
+이름·`__qualname__`·`__module__` 대조로 대신하지 않는다(`is`보다 약하다 -- review_ud6 S2). 거부 입력 `import cmath as math`는 이 ②에서 `False`.
+(c) 병합본에서 세 파일의 엔진 import 이름 중 '엔진 파일이 최상위에서 정의하지 않고 N3.10 파일에서 `from … import`로 받지도 않은 이름' 0(오케스트레이터 측정 `p3fq_kit/shim_import_reads.py`와 같은 정의를 auditor가 자기 스크립트로 -- base `4a286f0`에서 3파일·7이름).
+거부 입력 확인: 병합본 사본에서 `test_selftest_topology_library.py` 24행에 `math`를 되돌리면 (c) 잔여 1. V5 판정 기록 basis에 'import 출처 변경 3줄(7이름)'을 사람 판단 문장으로.
+**환경**: `APPDATA`·`HOME` export(빠지면 사용자 site numpy를 못 찾는다), `PYTHONIOENCODING=utf-8`. 리다이렉트는 스크립트 파일로(EL1).
+**총 소요 예상**: 순서 3 10분, 순서 6 30분(V1 두 번 병렬 7분 + 합성 트리 4개 + V3~V7 4분 + 기록).
+
+---
+
+## 4. 순서 요약(오케스트레이터)
+
+design 30 승인(UD-0) → 확정 순서대로 B34 → b26pre → backfill → B26-1 → B33 병합 → **착수 0단계**((가)~(바) + (사) 계약 11 재측정 + (아) V4 재측정 + (자) **계약 10 합성 트리 dry run -- B26-1 병합 직후, test-author 전**) →
+**[T0-V4] 질문 → V4 면제 승인 기록 Role: doc 커밋·push**(r2t -- test worktree 전, `t0_launch.sh` 조건 11) → spec card 커밋(rev 갱신) + interface card(절대 경로) → 순서 1(test worktree) → test-author(1절) →
+순서 3 auditor freeze(3.1) → **V5 diff 승인 질문**(test 커밋 `diff_hash`, 범위 문장 card '결정 필요 항목' 그대로 + 비교 완화 한 줄 + import 출처 변경 3줄 한 줄 -- [W-1] 질문·답은 승인 기록 사용자 원문 절에 jsonl 바이트 그대로) → 승인 기록 커밋 → 병합(Role: doc, 트리 = T; 병합 전 `git -C C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-p3-tests-location-free-audit log --oneline role/test/20260930-p3-tests-location-free..HEAD` 출력이 비어야 한다 -- 비어 있지 않으면 순서 3 커밋이 섞인 것, 병합하지 말고 멈춤) → 순서 6 auditor(3.2) → push 단독 실행·전체 출력 확인 → 정리.
+T0는 G1과 독립(design 30 §8.1) -- G1·D0a와 병렬 가능, M1 전에 병합.
+
+## 5. 키트 파일(`_drafts/p3kit_t0/`)
+
+| 파일 | 내용 |
+|---|---|
+| `t0_facts.py` | 작성 전 실측 재측정(rev 트리만 읽음) → JSON. `out/t0_facts_0f23786.json`, `out/t0_facts_19eb475.json` |
+| `install_t0_proto.py` | 계약 1~4 시제품 설치기(측정 전용 -- **역할에게 건네지 않는다**) |
+| `pt3.sh` | design 30 §10 `PT3` 실행기(출력 파일에 pytest 출력) |
+| `cmp_ids.py` | 두 `-rA` 출력의 (판정, test id) 집합 대조 |
+| `make_synth.py`, `synth_run.sh` | 계약 6·7·'거부' 합성 트리 생성·실행(`out/synth_*`, `out/synth_summary_19eb475.txt`) |
+| `token_check.py` | 계약 9 `+` 줄 토큰 점검(`out/token_check.json`) |
+| `v_tools.sh` | V3·V4(`--subject` 373 진단 + 6번째 인자로 interface card를 주면 공식 입력 `test_lint_iface.json`)·V5·V6·V7 일괄(`out/vtools/`, `out/vtools_summary.txt`). r2t: subject 줄의 `\r`을 떼고 개수를 출력(전에는 CRLF로 공허 PASS) |
+| `install_t0_c11.py` | (r2t) 계약 11 시제품 설치기(측정 전용 -- 역할에게 건네지 않는다) |
+| `step0_v4.sh` | (r2t) 착수 0단계 (아): B 위 모의 T(계약 1~4 + 11) 커밋 → interface card 생성 → V4 단독 + rail test lint → FAIL id·UNJUDGED 출처(TS2 `caac910` 대조) 요약 `MATCH/DIFF` |
+| `ask_t0_v4.md`, `approval_20261002-p3-t0-v4-s009-exempt.draft.md` | (r2t) [T0-V4] AskUserQuestion 초안, V4 면제 decision 승인 기록 초안 |
+| `out/t0.interface.generated.md` | 이 키트 반영 초안으로 생성한 interface card(`19eb475`) |
+| `out/stale_mixed_0f23786/` | 첫 측정(base `0f23786` / 시제품이 `afcf36c`로 섞임 -- 판단에 쓰지 않는다, 기록만) |

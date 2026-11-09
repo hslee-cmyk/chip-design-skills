@@ -1,0 +1,678 @@
+{
+ "base": "1b1991d3bbd99f2547168240e5608ebce1b8c7b3",
+ "head": "b7739d2e64a9c507b1bc02dad025a63e7448f0fd",
+ "diff": [
+  "skills/analog-gmid-design/assets/sizing_recipe.py",
+  "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py"
+ ],
+ "targets": [
+  "skills/analog-gmid-design/assets/sizing_recipe.py"
+ ],
+ "defs": [
+  {
+   "path": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "def": "run_matching_safety_with_finger_growth",
+   "new": false,
+   "all": 97,
+   "N2w": 4,
+   "N2b": 4,
+   "inventory": [
+    "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_interdig_ok_after_loop",
+    "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_interdig_ok_in_loop",
+    "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_euler_fixup_group_split",
+    "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_growth_already_ok",
+    "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_growth_only_3b_left",
+    "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_growth_pair_not_found",
+    "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds",
+    "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds_euler",
+    "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_ofcb_lutless_repair",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_base_blob_reader_reads_the_base_tree",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_body_is_block_verbatim_with_single_substitution",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_deterministic_bytes",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_encoding_utf8_no_bom_lf",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_exit0_and_writes_file",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_header_fixed_lines_in_order",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_import_line_names",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_input_errors_exit2",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_missing_source_exit2",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unresolved_name_exit3",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_runs_and_matches_original_stdout",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_exit_code",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_out_json_lists_top_level_files_only",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_rejects_missing_root_exit2",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_consecutive_majors_merge_into_one",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_consecutive_majors_merged_section_ends_at_second_major",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_deps_and_provides",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_exit0_and_count",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_kind_and_category",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_major_after_plain_statement_starts_new_section",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_major_after_sub_marker_starts_new_section",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_rejects_missing_source_exit2",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_start_lines",
+    "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_verdict_counts",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_declared_signal_path_is_interior_and_monotone_in_sink_set",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_node_pole_estimate_classifies_every_declared_path_node",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_parasitic_pm_stays_within_pole_count_bound",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_pole_partition_judgment_rejects_dropped_and_double_counted_nodes",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_signal_path_judgment_rejects_unreachable_and_endpoint_nodes",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py::test_sized_diodes_satisfy_vgs_equals_vds_whatever_their_role",
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py::test_role_L_is_derived_for_every_harness_circuit",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s002_assemble_report_data",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s003_assemble_report_data",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s004_report",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s003__evaluate",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s012_optimize_full_circuit_budget",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s014_section",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s015_suggest_matching_finger_growth",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s016_run_matching_safety_with_finger_growth",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s036_optimize_full_circuit_budget",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s037_optimize_full_circuit_budget",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s038_section",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s039_section",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s040_VGS",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s041_section",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s042__ref_depth",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s043_section",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s045_section",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s046_diagnose_sizing_roles_gap",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s047_nmcnr_3stage_topology",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s049_section",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s050_section",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget_known_limitation",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s052_compensation",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s053_L_role",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section_known_limitation",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s157_M1",
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s157_M1_known_limitation"
+   ]
+  }
+ ],
+ "mutants": [
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[1]",
+   "line": 11762,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[2]",
+   "line": 11763,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[3]",
+   "line": 11764,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[4]",
+   "line": 11765,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[5]",
+   "line": 11766,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[8]",
+   "line": 11796,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9]",
+   "line": 11797,
+   "N2w": true,
+   "N2b": true
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10]",
+   "line": 11876,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[11]",
+   "line": 11878,
+   "N2w": true,
+   "N2b": true
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[12]",
+   "line": 11879,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:args.defaults[0].elts[0]",
+   "line": 11715,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:args.defaults[0].elts[0]",
+   "line": 11715,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:args.defaults[0].elts[1]",
+   "line": 11715,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:args.defaults[0].elts[1]",
+   "line": 11715,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:args.defaults[1]",
+   "line": 11715,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:args.defaults[1]",
+   "line": 11715,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:args.defaults[2]",
+   "line": 11715,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:args.defaults[2]",
+   "line": 11715,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0]",
+   "line": 11771,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[0]",
+   "line": 11772,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[1]",
+   "line": 11774,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[2]",
+   "line": 11775,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[0].body[0]",
+   "line": 11773,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[6].body[0].body[0].test.ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[2].body[0]",
+   "line": 11776,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[2].body[0].body[0]",
+   "line": 11777,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[2].body[0].body[1]",
+   "line": 11778,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[6].body[0].body[2].body[0].test.values[1].ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[7].body[0]",
+   "line": 11788,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[7].body[1]",
+   "line": 11791,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[7].body[2]",
+   "line": 11793,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[7].body[3]",
+   "line": 11794,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[0]",
+   "line": 11798,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[1]",
+   "line": 11800,
+   "N2w": true,
+   "N2b": true
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[2]",
+   "line": 11810,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[3]",
+   "line": 11811,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4]",
+   "line": 11812,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[5]",
+   "line": 11820,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[6]",
+   "line": 11822,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[7]",
+   "line": 11832,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[8]",
+   "line": 11833,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[9]",
+   "line": 11834,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[10]",
+   "line": 11839,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[11]",
+   "line": 11840,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[12]",
+   "line": 11844,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[13]",
+   "line": 11845,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[14]",
+   "line": 11848,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15]",
+   "line": 11849,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[16]",
+   "line": 11866,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[17]",
+   "line": 11867,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[18]",
+   "line": 11870,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[1].body[0]",
+   "line": 11801,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[1].body[1]",
+   "line": 11802,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4].body[0]",
+   "line": 11813,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4].body[1]",
+   "line": 11815,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4].body[2]",
+   "line": 11816,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4].body[0].body[0]",
+   "line": 11814,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[4].body[0].test.values[1].ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4].body[2].body[0]",
+   "line": 11817,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[4].body[2].test.values[1].ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:body[9].body[4].body[2].test.values[1].left.elts[0].args[0]",
+   "line": 11816,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[4].body[2].test.values[1].left.elts[0].args[0]",
+   "line": 11816,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:body[9].body[4].body[2].test.values[1].left.elts[1].args[0]",
+   "line": 11816,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[4].body[2].test.values[1].left.elts[1].args[0]",
+   "line": 11816,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:body[9].body[4].body[2].body[0].value.args[0].elts[0].args[0]",
+   "line": 11817,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[4].body[2].body[0].value.args[0].elts[0].args[0]",
+   "line": 11817,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:body[9].body[4].body[2].body[0].value.args[0].elts[1].args[0]",
+   "line": 11817,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[4].body[2].body[0].value.args[0].elts[1].args[0]",
+   "line": 11817,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[5].value.generators[0].ifs[0].ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[6].body[0]",
+   "line": 11826,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[6].body[1]",
+   "line": 11827,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[6].body[2]",
+   "line": 11828,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:body[9].body[7].value.slice",
+   "line": 11832,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[7].value.slice",
+   "line": 11832,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[9].body[0]",
+   "line": 11835,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[9].body[1]",
+   "line": 11836,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[9].test.values[0].ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[9].test.values[1].ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[11].value.test.ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:arith:body[9].body[11].value.body.args[0].args[0].args[0]",
+   "line": 11840,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[12].value.generators[1].ifs[0].ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[0]",
+   "line": 11850,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[1]",
+   "line": 11853,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[2]",
+   "line": 11861,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[3]",
+   "line": 11862,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[15].body[0].value.test.values[0].ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[15].body[0].value.test.values[1].ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[15].body[0].value.orelse.test.ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[1].body[0]",
+   "line": 11857,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[1].body[1]",
+   "line": 11858,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[1].body[2]",
+   "line": 11860,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[15].body[1].test.values[0].ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[16].value.generators[0].ifs[0].ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[17].body[0]",
+   "line": 11868,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[17].body[0].value.elt.test.ops[0]",
+   "line": null,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[18].body[0]",
+   "line": 11871,
+   "N2w": false,
+   "N2b": false
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:early_return:body[1]",
+   "line": 11762,
+   "N2w": true,
+   "N2b": true
+  }
+ ]
+}

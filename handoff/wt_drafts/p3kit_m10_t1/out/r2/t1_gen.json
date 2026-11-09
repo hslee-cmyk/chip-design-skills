@@ -1,0 +1,367 @@
+{
+ "files": {
+  "test_mod1_gmid_lut.py": {
+   "tests": 2,
+   "fixtures_helpers": 0,
+   "origins": [
+    "sizing_recipe"
+   ],
+   "imports_shared": []
+  },
+  "test_mod3_circuit_state_graph.py": {
+   "tests": 58,
+   "fixtures_helpers": 13,
+   "origins": [
+    "sizing_recipe",
+    "stick_diagram"
+   ],
+   "imports_shared": [
+    "s120_state"
+   ]
+  },
+  "test_mod4_gmid_sizing_engine.py": {
+   "tests": 20,
+   "fixtures_helpers": 6,
+   "origins": [
+    "sizing_recipe",
+    "topology_library"
+   ],
+   "imports_shared": []
+  },
+  "test_mod5_circuit_metrics.py": {
+   "tests": 15,
+   "fixtures_helpers": 3,
+   "origins": [
+    "sizing_recipe"
+   ],
+   "imports_shared": []
+  },
+  "test_mod6_theta_search.py": {
+   "tests": 1,
+   "fixtures_helpers": 0,
+   "origins": [
+    "sizing_recipe"
+   ],
+   "imports_shared": []
+  },
+  "test_mod7_stick_diagram.py": {
+   "tests": 76,
+   "fixtures_helpers": 20,
+   "origins": [
+    "stick_diagram"
+   ],
+   "imports_shared": [
+    "s086_state"
+   ]
+  },
+  "test_mod8_sizing_layout_convergence.py": {
+   "tests": 32,
+   "fixtures_helpers": 11,
+   "origins": [
+    "sizing_recipe",
+    "stick_diagram"
+   ],
+   "imports_shared": []
+  },
+  "test_mod9_instance_report_builder.py": {
+   "tests": 8,
+   "fixtures_helpers": 2,
+   "origins": [
+    "stick_diagram",
+    "design_report"
+   ],
+   "imports_shared": [
+    "s086_state",
+    "s120_state"
+   ]
+  },
+  "_selftest_shared.py": {
+   "tests": 0,
+   "fixtures_helpers": 2,
+   "origins": [
+    "stick_diagram"
+   ],
+   "imports_shared": []
+  }
+ },
+ "renames": [
+  [
+   "3",
+   "stick_diagram",
+   "s065_state",
+   "s065_state__stick_diagram"
+  ]
+ ],
+ "header_conflicts": {
+  "test_mod3_circuit_state_graph.py": [
+   "load_topology",
+   "Transistor",
+   "os",
+   "propagate_topology_forced_currents",
+   "_dc_replace",
+   "json",
+   "suggest_pair_finger_adjustments",
+   "optimize_full_circuit_budget"
+  ],
+  "test_mod4_gmid_sizing_engine.py": [
+   "nmcnr_predict_ac_response"
+  ],
+  "test_mod7_stick_diagram.py": [
+   "os"
+  ],
+  "test_mod8_sizing_layout_convergence.py": [
+   "load_topology",
+   "Transistor",
+   "os",
+   "propagate_topology_forced_currents",
+   "_dc_replace",
+   "json",
+   "suggest_pair_finger_adjustments",
+   "optimize_full_circuit_budget"
+  ],
+  "test_mod9_instance_report_builder.py": [
+   "os",
+   "run_full_circuit_audit_from_topology"
+  ],
+  "_selftest_shared.py": [
+   "os"
+  ]
+ },
+ "unused_defs": [],
+ "docstring_refs": [
+  [
+   "tests/unit/test_probe_revalidation_scope.py",
+   "unit/test_selftest_sizing_recipe.py::test_s009_revalidate_finger_override",
+   "unit/test_mod8_sizing_layout_convergence.py::test_s009_revalidate_finger_override"
+  ],
+  [
+   "tests/unit/test_probe_role_L_derivation.py",
+   "unit/test_selftest_sizing_recipe.py::test_s024_section",
+   "unit/test_mod8_sizing_layout_convergence.py::test_s024_section"
+  ]
+ ],
+ "id_map": {
+  "unit/test_selftest_sizing_recipe.py::test_s003__evaluate": "unit/test_mod8_sizing_layout_convergence.py::test_s003__evaluate",
+  "unit/test_selftest_sizing_recipe.py::test_s004_optimize_multistage": "unit/test_mod4_gmid_sizing_engine.py::test_s004_optimize_multistage",
+  "unit/test_selftest_sizing_recipe.py::test_s006_solve_id_for_target_gm": "unit/test_mod4_gmid_sizing_engine.py::test_s006_solve_id_for_target_gm",
+  "unit/test_selftest_sizing_recipe.py::test_s007_solve_diode_stack_current": "unit/test_mod4_gmid_sizing_engine.py::test_s007_solve_diode_stack_current",
+  "unit/test_selftest_sizing_recipe.py::test_s008_compute_metric": "unit/test_mod5_circuit_metrics.py::test_s008_compute_metric",
+  "unit/test_selftest_sizing_recipe.py::test_s009_revalidate_finger_override": "unit/test_mod8_sizing_layout_convergence.py::test_s009_revalidate_finger_override",
+  "unit/test_selftest_sizing_recipe.py::test_s010_apply_and_revalidate_pair_adjustment": "unit/test_mod8_sizing_layout_convergence.py::test_s010_apply_and_revalidate_pair_adjustment",
+  "unit/test_selftest_sizing_recipe.py::test_s011_run_topology_pipeline_with_finger_fixup": "unit/test_mod8_sizing_layout_convergence.py::test_s011_run_topology_pipeline_with_finger_fixup",
+  "unit/test_selftest_sizing_recipe.py::test_s012_optimize_full_circuit_budget": "unit/test_mod8_sizing_layout_convergence.py::test_s012_optimize_full_circuit_budget",
+  "unit/test_selftest_sizing_recipe.py::test_s013_resolve_stack_layout": "unit/test_mod8_sizing_layout_convergence.py::test_s013_resolve_stack_layout",
+  "unit/test_selftest_sizing_recipe.py::test_s014_section": "unit/test_mod8_sizing_layout_convergence.py::test_s014_section",
+  "unit/test_selftest_sizing_recipe.py::test_s015_suggest_matching_finger_growth": "unit/test_mod8_sizing_layout_convergence.py::test_s015_suggest_matching_finger_growth",
+  "unit/test_selftest_sizing_recipe.py::test_s016_run_matching_safety_with_finger_growth": "unit/test_mod8_sizing_layout_convergence.py::test_s016_run_matching_safety_with_finger_growth",
+  "unit/test_selftest_sizing_recipe.py::test_s018_allocate_stack_headroom": "unit/test_mod4_gmid_sizing_engine.py::test_s018_allocate_stack_headroom",
+  "unit/test_selftest_sizing_recipe.py::test_s019_section": "unit/test_mod4_gmid_sizing_engine.py::test_s019_section",
+  "unit/test_selftest_sizing_recipe.py::test_s020_section": "unit/test_mod4_gmid_sizing_engine.py::test_s020_section",
+  "unit/test_selftest_sizing_recipe.py::test_s021_search_gm_id_for_role": "unit/test_mod4_gmid_sizing_engine.py::test_s021_search_gm_id_for_role",
+  "unit/test_selftest_sizing_recipe.py::test_s022_ro": "unit/test_mod4_gmid_sizing_engine.py::test_s022_ro",
+  "unit/test_selftest_sizing_recipe.py::test_s023_section": "unit/test_mod4_gmid_sizing_engine.py::test_s023_section",
+  "unit/test_selftest_sizing_recipe.py::test_s024_section": "unit/test_mod8_sizing_layout_convergence.py::test_s024_section",
+  "unit/test_selftest_sizing_recipe.py::test_s025_section": "unit/test_mod5_circuit_metrics.py::test_s025_section",
+  "unit/test_selftest_sizing_recipe.py::test_s026_section": "unit/test_mod3_circuit_state_graph.py::test_s026_section",
+  "unit/test_selftest_sizing_recipe.py::test_s027_section": "unit/test_mod6_theta_search.py::test_s027_section",
+  "unit/test_selftest_sizing_recipe.py::test_s028_estimate_area_budget": "unit/test_mod8_sizing_layout_convergence.py::test_s028_estimate_area_budget",
+  "unit/test_selftest_sizing_recipe.py::test_s030_section": "unit/test_mod5_circuit_metrics.py::test_s030_section",
+  "unit/test_selftest_sizing_recipe.py::test_s031_section": "unit/test_mod5_circuit_metrics.py::test_s031_section",
+  "unit/test_selftest_sizing_recipe.py::test_s032_section": "unit/test_mod5_circuit_metrics.py::test_s032_section",
+  "unit/test_selftest_sizing_recipe.py::test_s033_section": "unit/test_mod5_circuit_metrics.py::test_s033_section",
+  "unit/test_selftest_sizing_recipe.py::test_s034_theta": "unit/test_mod5_circuit_metrics.py::test_s034_theta",
+  "unit/test_selftest_sizing_recipe.py::test_s035_section": "unit/test_mod5_circuit_metrics.py::test_s035_section",
+  "unit/test_selftest_sizing_recipe.py::test_s036_optimize_full_circuit_budget": "unit/test_mod8_sizing_layout_convergence.py::test_s036_optimize_full_circuit_budget",
+  "unit/test_selftest_sizing_recipe.py::test_s037_optimize_full_circuit_budget": "unit/test_mod8_sizing_layout_convergence.py::test_s037_optimize_full_circuit_budget",
+  "unit/test_selftest_sizing_recipe.py::test_s038_section": "unit/test_mod8_sizing_layout_convergence.py::test_s038_section",
+  "unit/test_selftest_sizing_recipe.py::test_s039_section": "unit/test_mod8_sizing_layout_convergence.py::test_s039_section",
+  "unit/test_selftest_sizing_recipe.py::test_s040_VGS": "unit/test_mod8_sizing_layout_convergence.py::test_s040_VGS",
+  "unit/test_selftest_sizing_recipe.py::test_s041_section": "unit/test_mod8_sizing_layout_convergence.py::test_s041_section",
+  "unit/test_selftest_sizing_recipe.py::test_s042__ref_depth": "unit/test_mod8_sizing_layout_convergence.py::test_s042__ref_depth",
+  "unit/test_selftest_sizing_recipe.py::test_s043_section": "unit/test_mod8_sizing_layout_convergence.py::test_s043_section",
+  "unit/test_selftest_sizing_recipe.py::test_s045_section": "unit/test_mod8_sizing_layout_convergence.py::test_s045_section",
+  "unit/test_selftest_sizing_recipe.py::test_s046_diagnose_sizing_roles_gap": "unit/test_mod8_sizing_layout_convergence.py::test_s046_diagnose_sizing_roles_gap",
+  "unit/test_selftest_sizing_recipe.py::test_s047_nmcnr_3stage_topology": "unit/test_mod8_sizing_layout_convergence.py::test_s047_nmcnr_3stage_topology",
+  "unit/test_selftest_sizing_recipe.py::test_s048_require_declared_spec_source": "unit/test_mod3_circuit_state_graph.py::test_s048_require_declared_spec_source",
+  "unit/test_selftest_sizing_recipe.py::test_s049_section": "unit/test_mod8_sizing_layout_convergence.py::test_s049_section",
+  "unit/test_selftest_sizing_recipe.py::test_s050_section": "unit/test_mod8_sizing_layout_convergence.py::test_s050_section",
+  "unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget": "unit/test_mod8_sizing_layout_convergence.py::test_s051_optimize_full_circuit_budget",
+  "unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget_known_limitation": "unit/test_mod8_sizing_layout_convergence.py::test_s051_optimize_full_circuit_budget_known_limitation",
+  "unit/test_selftest_sizing_recipe.py::test_s052_compensation": "unit/test_mod8_sizing_layout_convergence.py::test_s052_compensation",
+  "unit/test_selftest_sizing_recipe.py::test_s053_L_role": "unit/test_mod8_sizing_layout_convergence.py::test_s053_L_role",
+  "unit/test_selftest_sizing_recipe.py::test_s054_section": "unit/test_mod8_sizing_layout_convergence.py::test_s054_section",
+  "unit/test_selftest_sizing_recipe.py::test_s054_section_known_limitation": "unit/test_mod8_sizing_layout_convergence.py::test_s054_section_known_limitation",
+  "unit/test_selftest_sizing_recipe.py::test_s056_noise_1f_density": "unit/test_mod1_gmid_lut.py::test_s056_noise_1f_density",
+  "unit/test_selftest_sizing_recipe.py::test_s057_section": "unit/test_mod1_gmid_lut.py::test_s057_section",
+  "unit/test_selftest_sizing_recipe.py::test_s058__metric_flicker_plus_thermal_sum": "unit/test_mod5_circuit_metrics.py::test_s058__metric_flicker_plus_thermal_sum",
+  "unit/test_selftest_sizing_recipe.py::test_s059_estimate_mismatch_sigma": "unit/test_mod5_circuit_metrics.py::test_s059_estimate_mismatch_sigma",
+  "unit/test_selftest_sizing_recipe.py::test_s060_section": "unit/test_mod5_circuit_metrics.py::test_s060_section",
+  "unit/test_selftest_sizing_recipe.py::test_s061_section": "unit/test_mod5_circuit_metrics.py::test_s061_section",
+  "unit/test_selftest_sizing_recipe.py::test_s062_section": "unit/test_mod3_circuit_state_graph.py::test_s062_section",
+  "unit/test_selftest_sizing_recipe.py::test_s063__nmcnr_stage1_rout": "unit/test_mod5_circuit_metrics.py::test_s063__nmcnr_stage1_rout",
+  "unit/test_selftest_sizing_recipe.py::test_s064_section": "unit/test_mod5_circuit_metrics.py::test_s064_section",
+  "unit/test_selftest_sizing_recipe.py::test_s065_section": "unit/test_mod3_circuit_state_graph.py::test_s065_section",
+  "unit/test_selftest_sizing_recipe.py::test_s067_family": "unit/test_mod3_circuit_state_graph.py::test_s067_family",
+  "unit/test_selftest_sizing_recipe.py::test_s070_section": "unit/test_mod5_circuit_metrics.py::test_s070_section",
+  "unit/test_selftest_sizing_recipe.py::test_s071_current_reuse_telescopic_topology": "unit/test_mod4_gmid_sizing_engine.py::test_s071_current_reuse_telescopic_topology",
+  "unit/test_selftest_sizing_recipe.py::test_s073_section": "unit/test_mod3_circuit_state_graph.py::test_s073_section",
+  "unit/test_selftest_sizing_recipe.py::test_s074_section": "unit/test_mod3_circuit_state_graph.py::test_s074_section",
+  "unit/test_selftest_sizing_recipe.py::test_s075_section": "unit/test_mod3_circuit_state_graph.py::test_s075_section",
+  "unit/test_selftest_sizing_recipe.py::test_s076_section": "unit/test_mod3_circuit_state_graph.py::test_s076_section",
+  "unit/test_selftest_stick_diagram.py::test_s021_M2b": "unit/test_mod7_stick_diagram.py::test_s021_M2b",
+  "unit/test_selftest_stick_diagram.py::test_s022_common_centroid_layout": "unit/test_mod7_stick_diagram.py::test_s022_common_centroid_layout",
+  "unit/test_selftest_stick_diagram.py::test_s023_common_centroid_layout": "unit/test_mod7_stick_diagram.py::test_s023_common_centroid_layout",
+  "unit/test_selftest_stick_diagram.py::test_s024_interdigitate_layout": "unit/test_mod7_stick_diagram.py::test_s024_interdigitate_layout",
+  "unit/test_selftest_stick_diagram.py::test_s025_common_centroid_layout": "unit/test_mod7_stick_diagram.py::test_s025_common_centroid_layout",
+  "unit/test_selftest_stick_diagram.py::test_s027_section": "unit/test_mod7_stick_diagram.py::test_s027_section",
+  "unit/test_selftest_stick_diagram.py::test_s028_section": "unit/test_mod7_stick_diagram.py::test_s028_section",
+  "unit/test_selftest_stick_diagram.py::test_s029_section": "unit/test_mod7_stick_diagram.py::test_s029_section",
+  "unit/test_selftest_stick_diagram.py::test_s030_section": "unit/test_mod7_stick_diagram.py::test_s030_section",
+  "unit/test_selftest_stick_diagram.py::test_s031_section": "unit/test_mod7_stick_diagram.py::test_s031_section",
+  "unit/test_selftest_stick_diagram.py::test_s032_section": "unit/test_mod7_stick_diagram.py::test_s032_section",
+  "unit/test_selftest_stick_diagram.py::test_s033_section": "unit/test_mod7_stick_diagram.py::test_s033_section",
+  "unit/test_selftest_stick_diagram.py::test_s034_section": "unit/test_mod7_stick_diagram.py::test_s034_section",
+  "unit/test_selftest_stick_diagram.py::test_s036_section": "unit/test_mod7_stick_diagram.py::test_s036_section",
+  "unit/test_selftest_stick_diagram.py::test_s037_section": "unit/test_mod7_stick_diagram.py::test_s037_section",
+  "unit/test_selftest_stick_diagram.py::test_s038_N": "unit/test_mod7_stick_diagram.py::test_s038_N",
+  "unit/test_selftest_stick_diagram.py::test_s039_section": "unit/test_mod7_stick_diagram.py::test_s039_section",
+  "unit/test_selftest_stick_diagram.py::test_s040_section": "unit/test_mod7_stick_diagram.py::test_s040_section",
+  "unit/test_selftest_stick_diagram.py::test_s041_section": "unit/test_mod7_stick_diagram.py::test_s041_section",
+  "unit/test_selftest_stick_diagram.py::test_s042_interdigitate_layout": "unit/test_mod7_stick_diagram.py::test_s042_interdigitate_layout",
+  "unit/test_selftest_stick_diagram.py::test_s044_section": "unit/test_mod7_stick_diagram.py::test_s044_section",
+  "unit/test_selftest_stick_diagram.py::test_s045_section": "unit/test_mod7_stick_diagram.py::test_s045_section",
+  "unit/test_selftest_stick_diagram.py::test_s046_section": "unit/test_mod7_stick_diagram.py::test_s046_section",
+  "unit/test_selftest_stick_diagram.py::test_s047_section": "unit/test_mod7_stick_diagram.py::test_s047_section",
+  "unit/test_selftest_stick_diagram.py::test_s048_section": "unit/test_mod7_stick_diagram.py::test_s048_section",
+  "unit/test_selftest_stick_diagram.py::test_s049_section": "unit/test_mod7_stick_diagram.py::test_s049_section",
+  "unit/test_selftest_stick_diagram.py::test_s051_section": "unit/test_mod7_stick_diagram.py::test_s051_section",
+  "unit/test_selftest_stick_diagram.py::test_s052_section": "unit/test_mod7_stick_diagram.py::test_s052_section",
+  "unit/test_selftest_stick_diagram.py::test_s053_section": "unit/test_mod7_stick_diagram.py::test_s053_section",
+  "unit/test_selftest_stick_diagram.py::test_s054_None": "unit/test_mod7_stick_diagram.py::test_s054_None",
+  "unit/test_selftest_stick_diagram.py::test_s055__count_matching_pair_splits": "unit/test_mod7_stick_diagram.py::test_s055__count_matching_pair_splits",
+  "unit/test_selftest_stick_diagram.py::test_s056_section": "unit/test_mod7_stick_diagram.py::test_s056_section",
+  "unit/test_selftest_stick_diagram.py::test_s057_check_box_shape": "unit/test_mod7_stick_diagram.py::test_s057_check_box_shape",
+  "unit/test_selftest_stick_diagram.py::test_s058_section": "unit/test_mod7_stick_diagram.py::test_s058_section",
+  "unit/test_selftest_stick_diagram.py::test_s060_run_full_circuit_audit": "unit/test_mod7_stick_diagram.py::test_s060_run_full_circuit_audit",
+  "unit/test_selftest_stick_diagram.py::test_s061_pack_floorplan": "unit/test_mod7_stick_diagram.py::test_s061_pack_floorplan",
+  "unit/test_selftest_stick_diagram.py::test_s062_find_diffusion_safe_split_points": "unit/test_mod7_stick_diagram.py::test_s062_find_diffusion_safe_split_points",
+  "unit/test_selftest_stick_diagram.py::test_s063_pack_floorplan_grouped": "unit/test_mod7_stick_diagram.py::test_s063_pack_floorplan_grouped",
+  "unit/test_selftest_stick_diagram.py::test_s064_section": "unit/test_mod7_stick_diagram.py::test_s064_section",
+  "unit/test_selftest_stick_diagram.py::test_s065_diffusion": "unit/test_mod7_stick_diagram.py::test_s065_diffusion",
+  "unit/test_selftest_stick_diagram.py::test_s067_MB": "unit/test_mod3_circuit_state_graph.py::test_s067_MB",
+  "unit/test_selftest_stick_diagram.py::test_s069_section": "unit/test_mod3_circuit_state_graph.py::test_s069_section",
+  "unit/test_selftest_stick_diagram.py::test_s070_section": "unit/test_mod3_circuit_state_graph.py::test_s070_section",
+  "unit/test_selftest_stick_diagram.py::test_s071_section": "unit/test_mod3_circuit_state_graph.py::test_s071_section",
+  "unit/test_selftest_stick_diagram.py::test_s072_audit_row_split": "unit/test_mod7_stick_diagram.py::test_s072_audit_row_split",
+  "unit/test_selftest_stick_diagram.py::test_s075_two_stage_ota_example": "unit/test_mod7_stick_diagram.py::test_s075_two_stage_ota_example",
+  "unit/test_selftest_stick_diagram.py::test_s078_interdigitation": "unit/test_mod7_stick_diagram.py::test_s078_interdigitation",
+  "unit/test_selftest_stick_diagram.py::test_s079_section": "unit/test_mod7_stick_diagram.py::test_s079_section",
+  "unit/test_selftest_stick_diagram.py::test_s083_check_stick_diagram_coverage": "unit/test_mod7_stick_diagram.py::test_s083_check_stick_diagram_coverage",
+  "unit/test_selftest_stick_diagram.py::test_s084_section": "unit/test_mod7_stick_diagram.py::test_s084_section",
+  "unit/test_selftest_stick_diagram.py::test_s086_folded_cascode_example": "unit/test_mod7_stick_diagram.py::test_s086_folded_cascode_example",
+  "unit/test_selftest_stick_diagram.py::test_s088_save_instance_json": "unit/test_mod9_instance_report_builder.py::test_s088_save_instance_json",
+  "unit/test_selftest_stick_diagram.py::test_s089_run_topology_pipeline": "unit/test_mod7_stick_diagram.py::test_s089_run_topology_pipeline",
+  "unit/test_selftest_stick_diagram.py::test_s090_run_topology_pipeline": "unit/test_mod7_stick_diagram.py::test_s090_run_topology_pipeline",
+  "unit/test_selftest_stick_diagram.py::test_s092_section": "unit/test_mod7_stick_diagram.py::test_s092_section",
+  "unit/test_selftest_stick_diagram.py::test_s093_section": "unit/test_mod7_stick_diagram.py::test_s093_section",
+  "unit/test_selftest_stick_diagram.py::test_s094_section": "unit/test_mod7_stick_diagram.py::test_s094_section",
+  "unit/test_selftest_stick_diagram.py::test_s096_section": "unit/test_mod7_stick_diagram.py::test_s096_section",
+  "unit/test_selftest_stick_diagram.py::test_s097_ref": "unit/test_mod7_stick_diagram.py::test_s097_ref",
+  "unit/test_selftest_stick_diagram.py::test_s098_section": "unit/test_mod7_stick_diagram.py::test_s098_section",
+  "unit/test_selftest_stick_diagram.py::test_s099_find_diode_stacks": "unit/test_mod7_stick_diagram.py::test_s099_find_diode_stacks",
+  "unit/test_selftest_stick_diagram.py::test_s100_find_diode_stacks": "unit/test_mod3_circuit_state_graph.py::test_s100_find_diode_stacks",
+  "unit/test_selftest_stick_diagram.py::test_s102_select_layout_tool": "unit/test_mod7_stick_diagram.py::test_s102_select_layout_tool",
+  "unit/test_selftest_stick_diagram.py::test_s103_repair_matching_safety": "unit/test_mod7_stick_diagram.py::test_s103_repair_matching_safety",
+  "unit/test_selftest_stick_diagram.py::test_s104_repair_matching_safety": "unit/test_mod7_stick_diagram.py::test_s104_repair_matching_safety",
+  "unit/test_selftest_stick_diagram.py::test_s105_repair_matching_safety": "unit/test_mod7_stick_diagram.py::test_s105_repair_matching_safety",
+  "unit/test_selftest_stick_diagram.py::test_s106__branch_composite_pair": "unit/test_mod7_stick_diagram.py::test_s106__branch_composite_pair",
+  "unit/test_selftest_stick_diagram.py::test_s107__composite_collapse_for_crossover": "unit/test_mod7_stick_diagram.py::test_s107__composite_collapse_for_crossover",
+  "unit/test_selftest_stick_diagram.py::test_s108_section": "unit/test_mod7_stick_diagram.py::test_s108_section",
+  "unit/test_selftest_stick_diagram.py::test_s109_repair_matching_safety": "unit/test_mod7_stick_diagram.py::test_s109_repair_matching_safety",
+  "unit/test_selftest_stick_diagram.py::test_s111_geometry_colocation_union": "unit/test_mod7_stick_diagram.py::test_s111_geometry_colocation_union",
+  "unit/test_selftest_stick_diagram.py::test_s112_geometry_colocation_union": "unit/test_mod7_stick_diagram.py::test_s112_geometry_colocation_union",
+  "unit/test_selftest_stick_diagram.py::test_s113_assign_finger_geometry": "unit/test_mod7_stick_diagram.py::test_s113_assign_finger_geometry",
+  "unit/test_selftest_stick_diagram.py::test_s115_section": "unit/test_mod3_circuit_state_graph.py::test_s115_section",
+  "unit/test_selftest_stick_diagram.py::test_s116_None": "unit/test_mod3_circuit_state_graph.py::test_s116_None",
+  "unit/test_selftest_stick_diagram.py::test_s117_connectivity": "unit/test_mod3_circuit_state_graph.py::test_s117_connectivity",
+  "unit/test_selftest_stick_diagram.py::test_s118_folded_cascode_example": "unit/test_mod3_circuit_state_graph.py::test_s118_folded_cascode_example",
+  "unit/test_selftest_stick_diagram.py::test_s119_M2": "unit/test_mod3_circuit_state_graph.py::test_s119_M2",
+  "unit/test_selftest_stick_diagram.py::test_s120_section": "unit/test_mod3_circuit_state_graph.py::test_s120_section",
+  "unit/test_selftest_stick_diagram.py::test_s122_section": "unit/test_mod9_instance_report_builder.py::test_s122_section",
+  "unit/test_selftest_stick_diagram.py::test_s123_dispositions": "unit/test_mod3_circuit_state_graph.py::test_s123_dispositions",
+  "unit/test_selftest_stick_diagram.py::test_s124_section": "unit/test_mod9_instance_report_builder.py::test_s124_section",
+  "unit/test_selftest_stick_diagram.py::test_s125_section": "unit/test_mod9_instance_report_builder.py::test_s125_section",
+  "unit/test_selftest_stick_diagram.py::test_s126_trace_vdd_to_gnd_branches": "unit/test_mod3_circuit_state_graph.py::test_s126_trace_vdd_to_gnd_branches",
+  "unit/test_selftest_stick_diagram.py::test_s127_suggest_vertical_stack_composites": "unit/test_mod3_circuit_state_graph.py::test_s127_suggest_vertical_stack_composites",
+  "unit/test_selftest_stick_diagram.py::test_s128_trace_gnd_to_vdd_branches": "unit/test_mod3_circuit_state_graph.py::test_s128_trace_gnd_to_vdd_branches",
+  "unit/test_selftest_stick_diagram.py::test_s129_find_verified_differential_and_mirror_relations": "unit/test_mod3_circuit_state_graph.py::test_s129_find_verified_differential_and_mirror_relations",
+  "unit/test_selftest_stick_diagram.py::test_s130_find_differential_pair_candidates": "unit/test_mod3_circuit_state_graph.py::test_s130_find_differential_pair_candidates",
+  "unit/test_selftest_stick_diagram.py::test_s131_refine_differential_and_mirror_relations": "unit/test_mod3_circuit_state_graph.py::test_s131_refine_differential_and_mirror_relations",
+  "unit/test_selftest_stick_diagram.py::test_s132_find_verified_differential_and_mirror_relations": "unit/test_mod3_circuit_state_graph.py::test_s132_find_verified_differential_and_mirror_relations",
+  "unit/test_selftest_stick_diagram.py::test_s133_refine_differential_and_mirror_relations": "unit/test_mod3_circuit_state_graph.py::test_s133_refine_differential_and_mirror_relations",
+  "unit/test_selftest_stick_diagram.py::test_s134__propose_vertical_stack_ids": "unit/test_mod3_circuit_state_graph.py::test_s134__propose_vertical_stack_ids",
+  "unit/test_selftest_stick_diagram.py::test_s135_section": "unit/test_mod3_circuit_state_graph.py::test_s135_section",
+  "unit/test_selftest_stick_diagram.py::test_s136_refine_differential_and_mirror_relations": "unit/test_mod3_circuit_state_graph.py::test_s136_refine_differential_and_mirror_relations",
+  "unit/test_selftest_stick_diagram.py::test_s137_suggest_vertical_stack_composites": "unit/test_mod3_circuit_state_graph.py::test_s137_suggest_vertical_stack_composites",
+  "unit/test_selftest_stick_diagram.py::test_s138_refine_differential_and_mirror_relations": "unit/test_mod3_circuit_state_graph.py::test_s138_refine_differential_and_mirror_relations",
+  "unit/test_selftest_stick_diagram.py::test_s139_find_verified_differential_and_mirror_relations": "unit/test_mod3_circuit_state_graph.py::test_s139_find_verified_differential_and_mirror_relations",
+  "unit/test_selftest_stick_diagram.py::test_s140_audit_vertical_stack_id_vs_kcl": "unit/test_mod3_circuit_state_graph.py::test_s140_audit_vertical_stack_id_vs_kcl",
+  "unit/test_selftest_stick_diagram.py::test_s141_merge_layout_groups_by_matching_pairs": "unit/test_mod7_stick_diagram.py::test_s141_merge_layout_groups_by_matching_pairs",
+  "unit/test_selftest_stick_diagram.py::test_s142_section": "unit/test_mod7_stick_diagram.py::test_s142_section",
+  "unit/test_selftest_stick_diagram.py::test_s143_section": "unit/test_mod7_stick_diagram.py::test_s143_section",
+  "unit/test_selftest_stick_diagram.py::test_s144_audit_vertical_stack_id_euler_feasibility": "unit/test_mod7_stick_diagram.py::test_s144_audit_vertical_stack_id_euler_feasibility",
+  "unit/test_selftest_stick_diagram.py::test_s145_section": "unit/test_mod7_stick_diagram.py::test_s145_section",
+  "unit/test_selftest_stick_diagram.py::test_s146_find_euler_repair_options": "unit/test_mod7_stick_diagram.py::test_s146_find_euler_repair_options",
+  "unit/test_selftest_stick_diagram.py::test_s147_section": "unit/test_mod7_stick_diagram.py::test_s147_section",
+  "unit/test_selftest_stick_diagram.py::test_s148_derive_horizontal_stack_groups": "unit/test_mod7_stick_diagram.py::test_s148_derive_horizontal_stack_groups",
+  "unit/test_selftest_stick_diagram.py::test_s149_section": "unit/test_mod7_stick_diagram.py::test_s149_section",
+  "unit/test_selftest_stick_diagram.py::test_s151_section": "unit/test_mod3_circuit_state_graph.py::test_s151_section",
+  "unit/test_selftest_stick_diagram.py::test_s152_section": "unit/test_mod3_circuit_state_graph.py::test_s152_section",
+  "unit/test_selftest_stick_diagram.py::test_s153_section": "unit/test_mod3_circuit_state_graph.py::test_s153_section",
+  "unit/test_selftest_stick_diagram.py::test_s154_load_topology": "unit/test_mod3_circuit_state_graph.py::test_s154_load_topology",
+  "unit/test_selftest_stick_diagram.py::test_s155_propose_device_roles_gap_fill": "unit/test_mod3_circuit_state_graph.py::test_s155_propose_device_roles_gap_fill",
+  "unit/test_selftest_stick_diagram.py::test_s156_section": "unit/test_mod3_circuit_state_graph.py::test_s156_section",
+  "unit/test_selftest_stick_diagram.py::test_s157_M1": "unit/test_mod8_sizing_layout_convergence.py::test_s157_M1",
+  "unit/test_selftest_stick_diagram.py::test_s157_M1_known_limitation": "unit/test_mod8_sizing_layout_convergence.py::test_s157_M1_known_limitation",
+  "unit/test_selftest_stick_diagram.py::test_s158_propose_device_roles_gap_fill": "unit/test_mod3_circuit_state_graph.py::test_s158_propose_device_roles_gap_fill",
+  "unit/test_selftest_stick_diagram.py::test_s159_apply_device_roles_gap_fill": "unit/test_mod3_circuit_state_graph.py::test_s159_apply_device_roles_gap_fill",
+  "unit/test_selftest_stick_diagram.py::test_s160_propose_device_roles_gap_fill": "unit/test_mod3_circuit_state_graph.py::test_s160_propose_device_roles_gap_fill",
+  "unit/test_selftest_stick_diagram.py::test_s161_find_authoritative_sizing_devices": "unit/test_mod3_circuit_state_graph.py::test_s161_find_authoritative_sizing_devices",
+  "unit/test_selftest_stick_diagram.py::test_s162_section": "unit/test_mod3_circuit_state_graph.py::test_s162_section",
+  "unit/test_selftest_stick_diagram.py::test_s163_find_unreviewed_matching_pairs": "unit/test_mod3_circuit_state_graph.py::test_s163_find_unreviewed_matching_pairs",
+  "unit/test_selftest_stick_diagram.py::test_s164_differential": "unit/test_mod3_circuit_state_graph.py::test_s164_differential",
+  "unit/test_selftest_stick_diagram.py::test_s165_audit_theta_root_direction": "unit/test_mod3_circuit_state_graph.py::test_s165_audit_theta_root_direction",
+  "unit/test_selftest_stick_diagram.py::test_s166_section": "unit/test_mod3_circuit_state_graph.py::test_s166_section",
+  "unit/test_selftest_stick_diagram.py::test_s167_kcl_tail_M38": "unit/test_mod3_circuit_state_graph.py::test_s167_kcl_tail_M38",
+  "unit/test_selftest_stick_diagram.py::test_s168_section": "unit/test_mod3_circuit_state_graph.py::test_s168_section",
+  "unit/test_selftest_stick_diagram.py::test_s169_propose_theta_kcl_gap_fill": "unit/test_mod3_circuit_state_graph.py::test_s169_propose_theta_kcl_gap_fill",
+  "unit/test_selftest_stick_diagram.py::test_s170_section": "unit/test_mod3_circuit_state_graph.py::test_s170_section",
+  "unit/test_selftest_stick_diagram.py::test_s171_section": "unit/test_mod3_circuit_state_graph.py::test_s171_section",
+  "unit/test_selftest_stick_diagram.py::test_s172_section": "unit/test_mod3_circuit_state_graph.py::test_s172_section",
+  "unit/test_selftest_stick_diagram.py::test_s173_apply_theta_kcl_gap_fill": "unit/test_mod3_circuit_state_graph.py::test_s173_apply_theta_kcl_gap_fill",
+  "unit/test_selftest_design_report.py::test_s001_build_topology_device_table": "unit/test_mod9_instance_report_builder.py::test_s001_build_topology_device_table",
+  "unit/test_selftest_design_report.py::test_s002_assemble_report_data": "unit/test_mod9_instance_report_builder.py::test_s002_assemble_report_data",
+  "unit/test_selftest_design_report.py::test_s003_assemble_report_data": "unit/test_mod9_instance_report_builder.py::test_s003_assemble_report_data",
+  "unit/test_selftest_design_report.py::test_s004_report": "unit/test_mod9_instance_report_builder.py::test_s004_report",
+  "unit/test_selftest_topology_library.py::test_s002_section": "unit/test_mod4_gmid_sizing_engine.py::test_s002_section",
+  "unit/test_selftest_topology_library.py::test_s004_nmcnr_predict_ac_response": "unit/test_mod4_gmid_sizing_engine.py::test_s004_nmcnr_predict_ac_response",
+  "unit/test_selftest_topology_library.py::test_s006_section": "unit/test_mod4_gmid_sizing_engine.py::test_s006_section",
+  "unit/test_selftest_topology_library.py::test_s007_section": "unit/test_mod4_gmid_sizing_engine.py::test_s007_section",
+  "unit/test_selftest_topology_library.py::test_s008_section": "unit/test_mod4_gmid_sizing_engine.py::test_s008_section",
+  "unit/test_selftest_topology_library.py::test_s011_tan": "unit/test_mod4_gmid_sizing_engine.py::test_s011_tan",
+  "unit/test_selftest_topology_library.py::test_s012_start": "unit/test_mod4_gmid_sizing_engine.py::test_s012_start",
+  "unit/test_selftest_topology_library.py::test_s013_Cgg1_total": "unit/test_mod4_gmid_sizing_engine.py::test_s013_Cgg1_total",
+  "unit/test_selftest_topology_library.py::test_s014_section": "unit/test_mod4_gmid_sizing_engine.py::test_s014_section",
+  "unit/test_selftest_topology_library.py::test_s015_Cgg2": "unit/test_mod4_gmid_sizing_engine.py::test_s015_Cgg2"
+ },
+ "legacy_scripts": [
+  "test_mod1_gmid_lut.py",
+  "test_mod3_circuit_state_graph.py",
+  "test_mod4_gmid_sizing_engine.py",
+  "test_mod5_circuit_metrics.py",
+  "test_mod6_theta_search.py",
+  "test_mod7_stick_diagram.py",
+  "test_mod8_sizing_layout_convergence.py",
+  "test_mod9_instance_report_builder.py"
+ ]
+}

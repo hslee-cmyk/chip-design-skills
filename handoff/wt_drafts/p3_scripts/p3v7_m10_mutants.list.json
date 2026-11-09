@@ -1,0 +1,428 @@
+[
+ {
+  "op": "stmt_delete",
+  "path": "body[0]",
+  "line": 423,
+  "seg": "if circuit_key not in SPECS:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[1]",
+  "line": 426,
+  "seg": "cfg = SPECS[circuit_key]"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[2]",
+  "line": 427,
+  "seg": "topo = os.path.join(LIBRARY_DIR, cfg[\"topology_file\"])"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[3]",
+  "line": 428,
+  "seg": "report_dir = os.path.join(WORKSPACES_DIR, cfg[\"report_dir\"])"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[4]",
+  "line": 429,
+  "seg": "stem = cfg[\"topology_file\"].removesuffix(\".topology.json\")"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[5]",
+  "line": 430,
+  "seg": "instance_out = os.path.join(report_dir, f\"{stem}.instance.json\")"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[6]",
+  "line": 431,
+  "seg": "report_out = os.path.join(report_dir, f\"{stem}.report.html\")"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[7]",
+  "line": 432,
+  "seg": "spec = cfg[\"spec_fn\"]()"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[8]",
+  "line": 438,
+  "seg": "spec.setdefault(\"floorplan_target\", {"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[9]",
+  "line": 442,
+  "seg": "spec.setdefault(\"max_layout_retry_rounds\", MAX_ITERS)"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10]",
+  "line": 444,
+  "seg": "try:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[0].body[0]",
+  "line": 424,
+  "seg": "raise ValueError(f\"등록되지 않은 circuit_key={circuit_key!r} -- \""
+ },
+ {
+  "op": "cmp_flip",
+  "path": "body[0].test.ops[0]",
+  "line": 422,
+  "seg": ""
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[0]",
+  "line": 445,
+  "seg": "result = optimize_full_circuit_budget("
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[1]",
+  "line": 449,
+  "seg": "pr = result[\"pipeline_result\"]"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[2]",
+  "line": 450,
+  "seg": "if pr is None:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[3]",
+  "line": 466,
+  "seg": "print(\"OK -- theta_star:\", result[\"theta_star\"])"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[4]",
+  "line": 467,
+  "seg": "print(\"audit_ok:\", result[\"audit_ok\"])"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[5]",
+  "line": 468,
+  "seg": "print(\"metrics:\", result[\"metrics\"])"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[6]",
+  "line": 470,
+  "seg": "full_circuit_audit = None"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[7]",
+  "line": 471,
+  "seg": "try:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8]",
+  "line": 480,
+  "seg": "if pr is not None:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[2].body[0]",
+  "line": 451,
+  "seg": "print(\"pipeline_result=None -- 넷리스트 전체가 사이징되지 않아 자동 조정 불가\")"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[2].orelse[0]",
+  "line": 453,
+  "seg": "for r in pr.get(\"layout_retry_rounds\", []):"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[2].orelse[1]",
+  "line": 457,
+  "seg": "floorplan = pr[\"floorplan\"]"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[2].orelse[2]",
+  "line": 458,
+  "seg": "aspect_ok = floorplan.aspect_ratio <= FLOORPLAN_MAX_ASPECT_RATIO"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[2].orelse[3]",
+  "line": 459,
+  "seg": "density_ok = floorplan.packing_density >= FLOORPLAN_MIN_PACKING_DENSITY"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[2].orelse[4]",
+  "line": 460,
+  "seg": "print(f\"floorplan.aspect_ratio={floorplan.aspect_ratio:.3f}\""
+ },
+ {
+  "op": "cmp_flip",
+  "path": "body[10].body[2].test.ops[0]",
+  "line": 422,
+  "seg": ""
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[2].orelse[0].body[0]",
+  "line": 454,
+  "seg": "print(f\"[row_split 재시도] target={r['target']} row_split={r['row_split']} \""
+ },
+ {
+  "op": "cmp_flip",
+  "path": "body[10].body[2].orelse[2].value.ops[0]",
+  "line": 422,
+  "seg": ""
+ },
+ {
+  "op": "cmp_flip",
+  "path": "body[10].body[2].orelse[3].value.ops[0]",
+  "line": 422,
+  "seg": ""
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[7].body[0]",
+  "line": 472,
+  "seg": "full_circuit_audit = run_full_circuit_audit_from_topology(topo)"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[7].body[1]",
+  "line": 473,
+  "seg": "print(\"run_full_circuit_audit.ok:\", full_circuit_audit.ok)"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[7].body[2]",
+  "line": 474,
+  "seg": "for c in full_circuit_audit.checks:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[7].body[2].body[0]",
+  "line": 475,
+  "seg": "print(f\"  - {c.name}: {c.ok} ({c.detail})\")"
+ },
+ {
+  "op": "except_body_delete",
+  "path": "body[10].body[7].handlers[0]",
+  "line": 476,
+  "seg": "except ValueError as e:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[0]",
+  "line": 481,
+  "seg": "bs = pr[\"box_shape\"]"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[1]",
+  "line": 482,
+  "seg": "fp = pr[\"floorplan\"]"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[2]",
+  "line": 483,
+  "seg": "final_floorplan_ok = (fp.aspect_ratio <= FLOORPLAN_MAX_ASPECT_RATIO"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[3]",
+  "line": 485,
+  "seg": "print(f\"box_shape.ok={bs.ok}(참고용) rectangular={bs.rectangular} \""
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[4]",
+  "line": 488,
+  "seg": "print(f\"floorplan.aspect_ratio={fp.aspect_ratio:.3f} \""
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[5]",
+  "line": 490,
+  "seg": "print(f\"coverage.ok={pr['coverage'].ok} missing={pr['coverage'].missing}\")"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[6]",
+  "line": 492,
+  "seg": "save_instance_json(instance_out, topo, result[\"sizing\"], result[\"pipeline_result\"])"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[7]",
+  "line": 493,
+  "seg": "note_parts = []"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[8]",
+  "line": 494,
+  "seg": "if not result[\"audit_ok\"]:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[9]",
+  "line": 496,
+  "seg": "if not final_floorplan_ok:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[10]",
+  "line": 499,
+  "seg": "if full_circuit_audit is not None and not full_circuit_audit.ok:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[11]",
+  "line": 501,
+  "seg": "note = f\" ({'; '.join(note_parts)})\" if note_parts else \"\""
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[12]",
+  "line": 502,
+  "seg": "print(f\"instance.json 저장: {instance_out}{note}\")"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[13]",
+  "line": 504,
+  "seg": "if full_circuit_audit is not None:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].orelse[0]",
+  "line": 511,
+  "seg": "print(\"pipeline_result=None -- 넷리스트 전체가 사이징되지 않아 instance.json/report 저장 생략\")"
+ },
+ {
+  "op": "cmp_flip",
+  "path": "body[10].body[8].test.ops[0]",
+  "line": 422,
+  "seg": ""
+ },
+ {
+  "op": "cmp_flip",
+  "path": "body[10].body[8].body[2].value.values[0].ops[0]",
+  "line": 422,
+  "seg": ""
+ },
+ {
+  "op": "cmp_flip",
+  "path": "body[10].body[8].body[2].value.values[1].ops[0]",
+  "line": 422,
+  "seg": ""
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[8].body[0]",
+  "line": 495,
+  "seg": "note_parts.append(\"audit_ok=False -- audit_row_split에 남은 FAIL 항목 그대로 저장됨\")"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[9].body[0]",
+  "line": 497,
+  "seg": "note_parts.append(\"floorplan_ok=False -- 자동 재시도로도 못 고침(빈 공간 많거나 \""
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[10].body[0]",
+  "line": 500,
+  "seg": "note_parts.append(\"run_full_circuit_audit.ok=False -- 위 체크 결과 참고\")"
+ },
+ {
+  "op": "cmp_flip",
+  "path": "body[10].body[8].body[10].test.values[0].ops[0]",
+  "line": 422,
+  "seg": ""
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[13].body[0]",
+  "line": 505,
+  "seg": "report_data = assemble_report_data(topo, instance_out, full_circuit_audit=full_circuit_audit)"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[13].body[1]",
+  "line": 506,
+  "seg": "save_html_report(report_data, report_out)"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[13].body[2]",
+  "line": 507,
+  "seg": "print(f\"report.html 저장: {report_out}\")"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].body[8].body[13].orelse[0]",
+  "line": 509,
+  "seg": "print(\"report.html 생략(full_circuit_audit 실패로 assemble_report_data 입력 불완전)\")"
+ },
+ {
+  "op": "cmp_flip",
+  "path": "body[10].body[8].body[13].test.ops[0]",
+  "line": 422,
+  "seg": ""
+ },
+ {
+  "op": "except_body_delete",
+  "path": "body[10].handlers[0]",
+  "line": 512,
+  "seg": "except Exception as e:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].handlers[0].body[2].body[0]",
+  "line": 524,
+  "seg": "print()"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].handlers[0].body[2].body[1]",
+  "line": 525,
+  "seg": "print(\"[diagnose_sizing_roles_gap() 추가 진단]\")"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].handlers[0].body[2].body[2]",
+  "line": 526,
+  "seg": "try:"
+ },
+ {
+  "op": "stmt_delete",
+  "path": "body[10].handlers[0].body[2].body[2].body[0]",
+  "line": 527,
+  "seg": "print(\" \", diagnose_sizing_roles_gap(topo, spec))"
+ },
+ {
+  "op": "except_body_delete",
+  "path": "body[10].handlers[0].body[2].body[2].handlers[0]",
+  "line": 528,
+  "seg": "except Exception as _diag_e:"
+ },
+ {
+  "op": "early_return",
+  "path": "body[0]",
+  "line": 423,
+  "seg": "if circuit_key not in SPECS:"
+ }
+]

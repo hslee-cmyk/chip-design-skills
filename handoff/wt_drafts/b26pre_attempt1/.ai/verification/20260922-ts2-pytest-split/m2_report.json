@@ -1,0 +1,2761 @@
+[
+ {
+  "module": "sizing_recipe",
+  "number": 3,
+  "tests": [
+   "test_s003__evaluate"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 1,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 4,
+  "tests": [
+   "test_s004_optimize_multistage"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 6,
+  "tests": [
+   "test_s006_solve_id_for_target_gm"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 7,
+  "tests": [
+   "test_s007_solve_diode_stack_current"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 8,
+  "tests": [
+   "test_s008_compute_metric"
+  ],
+  "m2_min": 4,
+  "asserts": 3,
+  "raises": 1,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 9,
+  "tests": [
+   "test_s009_revalidate_finger_override"
+  ],
+  "m2_min": 8,
+  "asserts": 8,
+  "raises": 0,
+  "got": 8,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 10,
+  "tests": [
+   "test_s010_apply_and_revalidate_pair_adjustment"
+  ],
+  "m2_min": 9,
+  "asserts": 9,
+  "raises": 0,
+  "got": 9,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 11,
+  "tests": [
+   "test_s011_run_topology_pipeline_with_finger_fixup"
+  ],
+  "m2_min": 17,
+  "asserts": 17,
+  "raises": 0,
+  "got": 17,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 12,
+  "tests": [
+   "test_s012_optimize_full_circuit_budget"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 13,
+  "tests": [
+   "test_s013_resolve_stack_layout"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 1,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 14,
+  "tests": [
+   "test_s014_section"
+  ],
+  "m2_min": 6,
+  "asserts": 7,
+  "raises": 1,
+  "got": 8,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 15,
+  "tests": [
+   "test_s015_suggest_matching_finger_growth"
+  ],
+  "m2_min": 11,
+  "asserts": 11,
+  "raises": 0,
+  "got": 11,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 16,
+  "tests": [
+   "test_s016_run_matching_safety_with_finger_growth"
+  ],
+  "m2_min": 7,
+  "asserts": 7,
+  "raises": 0,
+  "got": 7,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 18,
+  "tests": [
+   "test_s018_allocate_stack_headroom"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 19,
+  "tests": [
+   "test_s019_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 20,
+  "tests": [
+   "test_s020_section"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 21,
+  "tests": [
+   "test_s021_search_gm_id_for_role"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 22,
+  "tests": [
+   "test_s022_ro"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 23,
+  "tests": [
+   "test_s023_section"
+  ],
+  "m2_min": 1,
+  "asserts": 0,
+  "raises": 1,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 24,
+  "tests": [
+   "test_s024_section"
+  ],
+  "m2_min": 4,
+  "asserts": 7,
+  "raises": 1,
+  "got": 8,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 25,
+  "tests": [
+   "test_s025_section"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 26,
+  "tests": [
+   "test_s026_section"
+  ],
+  "m2_min": 2,
+  "asserts": 1,
+  "raises": 1,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 27,
+  "tests": [
+   "test_s027_section"
+  ],
+  "m2_min": 5,
+  "asserts": 3,
+  "raises": 2,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 28,
+  "tests": [
+   "test_s028_estimate_area_budget"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 30,
+  "tests": [
+   "test_s030_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 31,
+  "tests": [
+   "test_s031_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 32,
+  "tests": [
+   "test_s032_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 33,
+  "tests": [
+   "test_s033_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 34,
+  "tests": [
+   "test_s034_theta"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 35,
+  "tests": [
+   "test_s035_section"
+  ],
+  "m2_min": 1,
+  "asserts": 0,
+  "raises": 1,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 36,
+  "tests": [
+   "test_s036_optimize_full_circuit_budget"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 37,
+  "tests": [
+   "test_s037_optimize_full_circuit_budget"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 38,
+  "tests": [
+   "test_s038_section"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 39,
+  "tests": [
+   "test_s039_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 1,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 40,
+  "tests": [
+   "test_s040_VGS"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 41,
+  "tests": [
+   "test_s041_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 1,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 42,
+  "tests": [
+   "test_s042__ref_depth"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 0,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 43,
+  "tests": [
+   "test_s043_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 1,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 45,
+  "tests": [
+   "test_s045_section"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 46,
+  "tests": [
+   "test_s046_diagnose_sizing_roles_gap"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 47,
+  "tests": [
+   "test_s047_nmcnr_3stage_topology"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 48,
+  "tests": [
+   "test_s048_require_declared_spec_source"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 1,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 49,
+  "tests": [
+   "test_s049_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 50,
+  "tests": [
+   "test_s050_section"
+  ],
+  "m2_min": 1,
+  "asserts": 0,
+  "raises": 1,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 51,
+  "tests": [
+   "test_s051_optimize_full_circuit_budget",
+   "test_s051_optimize_full_circuit_budget_known_limitation"
+  ],
+  "m2_min": 4,
+  "asserts": 5,
+  "raises": 1,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 52,
+  "tests": [
+   "test_s052_compensation"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 53,
+  "tests": [
+   "test_s053_L_role"
+  ],
+  "m2_min": 1,
+  "asserts": 0,
+  "raises": 1,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 54,
+  "tests": [
+   "test_s054_section",
+   "test_s054_section_known_limitation"
+  ],
+  "m2_min": 2,
+  "asserts": 3,
+  "raises": 2,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 56,
+  "tests": [
+   "test_s056_noise_1f_density"
+  ],
+  "m2_min": 1,
+  "asserts": 0,
+  "raises": 1,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 57,
+  "tests": [
+   "test_s057_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 58,
+  "tests": [
+   "test_s058__metric_flicker_plus_thermal_sum"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 59,
+  "tests": [
+   "test_s059_estimate_mismatch_sigma"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 60,
+  "tests": [
+   "test_s060_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 61,
+  "tests": [
+   "test_s061_section"
+  ],
+  "m2_min": 1,
+  "asserts": 0,
+  "raises": 1,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 62,
+  "tests": [
+   "test_s062_section"
+  ],
+  "m2_min": 7,
+  "asserts": 7,
+  "raises": 0,
+  "got": 7,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 63,
+  "tests": [
+   "test_s063__nmcnr_stage1_rout"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 64,
+  "tests": [
+   "test_s064_section"
+  ],
+  "m2_min": 1,
+  "asserts": 0,
+  "raises": 1,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 65,
+  "tests": [
+   "test_s065_section"
+  ],
+  "m2_min": 16,
+  "asserts": 16,
+  "raises": 0,
+  "got": 16,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 66,
+  "tests": [
+   "test_s066_family"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 67,
+  "tests": [
+   "test_s067_family"
+  ],
+  "m2_min": 12,
+  "asserts": 12,
+  "raises": 0,
+  "got": 12,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 68,
+  "tests": [
+   "test_s068_family"
+  ],
+  "m2_min": 7,
+  "asserts": 6,
+  "raises": 1,
+  "got": 7,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 69,
+  "tests": [
+   "test_s069_section"
+  ],
+  "m2_min": 2,
+  "asserts": 1,
+  "raises": 1,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 70,
+  "tests": [
+   "test_s070_section"
+  ],
+  "m2_min": 7,
+  "asserts": 7,
+  "raises": 0,
+  "got": 7,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 71,
+  "tests": [
+   "test_s071_current_reuse_telescopic_topology"
+  ],
+  "m2_min": 9,
+  "asserts": 9,
+  "raises": 0,
+  "got": 9,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 73,
+  "tests": [
+   "test_s073_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 74,
+  "tests": [
+   "test_s074_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 75,
+  "tests": [
+   "test_s075_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "sizing_recipe",
+  "number": 76,
+  "tests": [
+   "test_s076_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 21,
+  "tests": [
+   "test_s021_M2b"
+  ],
+  "m2_min": 3,
+  "asserts": 1,
+  "raises": 2,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 22,
+  "tests": [
+   "test_s022_common_centroid_layout"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 23,
+  "tests": [
+   "test_s023_common_centroid_layout"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 24,
+  "tests": [
+   "test_s024_interdigitate_layout"
+  ],
+  "m2_min": 6,
+  "asserts": 6,
+  "raises": 0,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 25,
+  "tests": [
+   "test_s025_common_centroid_layout"
+  ],
+  "m2_min": 12,
+  "asserts": 9,
+  "raises": 3,
+  "got": 12,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 27,
+  "tests": [
+   "test_s027_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 28,
+  "tests": [
+   "test_s028_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 29,
+  "tests": [
+   "test_s029_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 30,
+  "tests": [
+   "test_s030_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 31,
+  "tests": [
+   "test_s031_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 32,
+  "tests": [
+   "test_s032_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 33,
+  "tests": [
+   "test_s033_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 34,
+  "tests": [
+   "test_s034_section"
+  ],
+  "m2_min": 1,
+  "asserts": 0,
+  "raises": 1,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 36,
+  "tests": [
+   "test_s036_section"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 0,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 37,
+  "tests": [
+   "test_s037_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 38,
+  "tests": [
+   "test_s038_N"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 39,
+  "tests": [
+   "test_s039_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 40,
+  "tests": [
+   "test_s040_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 41,
+  "tests": [
+   "test_s041_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 42,
+  "tests": [
+   "test_s042_interdigitate_layout"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 44,
+  "tests": [
+   "test_s044_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 45,
+  "tests": [
+   "test_s045_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 46,
+  "tests": [
+   "test_s046_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 47,
+  "tests": [
+   "test_s047_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 48,
+  "tests": [
+   "test_s048_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 49,
+  "tests": [
+   "test_s049_section"
+  ],
+  "m2_min": 2,
+  "asserts": 0,
+  "raises": 2,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 51,
+  "tests": [
+   "test_s051_section"
+  ],
+  "m2_min": 6,
+  "asserts": 6,
+  "raises": 0,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 52,
+  "tests": [
+   "test_s052_section"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 53,
+  "tests": [
+   "test_s053_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 54,
+  "tests": [
+   "test_s054_None"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 55,
+  "tests": [
+   "test_s055__count_matching_pair_splits"
+  ],
+  "m2_min": 7,
+  "asserts": 7,
+  "raises": 0,
+  "got": 7,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 56,
+  "tests": [
+   "test_s056_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 57,
+  "tests": [
+   "test_s057_check_box_shape"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 58,
+  "tests": [
+   "test_s058_section"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 60,
+  "tests": [
+   "test_s060_run_full_circuit_audit"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 61,
+  "tests": [
+   "test_s061_pack_floorplan"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 62,
+  "tests": [
+   "test_s062_find_diffusion_safe_split_points"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 63,
+  "tests": [
+   "test_s063_pack_floorplan_grouped"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 64,
+  "tests": [
+   "test_s064_section"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 65,
+  "tests": [
+   "test_s065_diffusion"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 67,
+  "tests": [
+   "test_s067_MB"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 69,
+  "tests": [
+   "test_s069_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 70,
+  "tests": [
+   "test_s070_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 71,
+  "tests": [
+   "test_s071_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 72,
+  "tests": [
+   "test_s072_audit_row_split"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 75,
+  "tests": [
+   "test_s075_two_stage_ota_example"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 78,
+  "tests": [
+   "test_s078_interdigitation"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 79,
+  "tests": [
+   "test_s079_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 83,
+  "tests": [
+   "test_s083_check_stick_diagram_coverage"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 84,
+  "tests": [
+   "test_s084_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 86,
+  "tests": [
+   "test_s086_folded_cascode_example"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 88,
+  "tests": [
+   "test_s088_save_instance_json"
+  ],
+  "m2_min": 2,
+  "asserts": 1,
+  "raises": 1,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 89,
+  "tests": [
+   "test_s089_run_topology_pipeline"
+  ],
+  "m2_min": 1,
+  "asserts": 0,
+  "raises": 1,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 90,
+  "tests": [
+   "test_s090_run_topology_pipeline"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 1,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 92,
+  "tests": [
+   "test_s092_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 93,
+  "tests": [
+   "test_s093_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 94,
+  "tests": [
+   "test_s094_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 96,
+  "tests": [
+   "test_s096_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 97,
+  "tests": [
+   "test_s097_ref"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 98,
+  "tests": [
+   "test_s098_section"
+  ],
+  "m2_min": 1,
+  "asserts": 0,
+  "raises": 1,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 99,
+  "tests": [
+   "test_s099_find_diode_stacks"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 100,
+  "tests": [
+   "test_s100_find_diode_stacks"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 102,
+  "tests": [
+   "test_s102_select_layout_tool"
+  ],
+  "m2_min": 5,
+  "asserts": 4,
+  "raises": 1,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 103,
+  "tests": [
+   "test_s103_repair_matching_safety"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 104,
+  "tests": [
+   "test_s104_repair_matching_safety"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 105,
+  "tests": [
+   "test_s105_repair_matching_safety"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 106,
+  "tests": [
+   "test_s106__branch_composite_pair"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 107,
+  "tests": [
+   "test_s107__composite_collapse_for_crossover"
+  ],
+  "m2_min": 8,
+  "asserts": 8,
+  "raises": 0,
+  "got": 8,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 108,
+  "tests": [
+   "test_s108_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 109,
+  "tests": [
+   "test_s109_repair_matching_safety"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 111,
+  "tests": [
+   "test_s111_geometry_colocation_union"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 112,
+  "tests": [
+   "test_s112_geometry_colocation_union"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 113,
+  "tests": [
+   "test_s113_assign_finger_geometry"
+  ],
+  "m2_min": 6,
+  "asserts": 6,
+  "raises": 0,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 115,
+  "tests": [
+   "test_s115_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 116,
+  "tests": [
+   "test_s116_None"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 117,
+  "tests": [
+   "test_s117_connectivity"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 118,
+  "tests": [
+   "test_s118_folded_cascode_example"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 119,
+  "tests": [
+   "test_s119_M2"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 0,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 120,
+  "tests": [
+   "test_s120_section"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 122,
+  "tests": [
+   "test_s122_section"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 0,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 123,
+  "tests": [
+   "test_s123_dispositions"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 124,
+  "tests": [
+   "test_s124_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 1,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 125,
+  "tests": [
+   "test_s125_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 1,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 126,
+  "tests": [
+   "test_s126_trace_vdd_to_gnd_branches"
+  ],
+  "m2_min": 6,
+  "asserts": 6,
+  "raises": 0,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 127,
+  "tests": [
+   "test_s127_suggest_vertical_stack_composites"
+  ],
+  "m2_min": 8,
+  "asserts": 8,
+  "raises": 0,
+  "got": 8,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 128,
+  "tests": [
+   "test_s128_trace_gnd_to_vdd_branches"
+  ],
+  "m2_min": 6,
+  "asserts": 6,
+  "raises": 0,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 129,
+  "tests": [
+   "test_s129_find_verified_differential_and_mirror_relations"
+  ],
+  "m2_min": 6,
+  "asserts": 6,
+  "raises": 0,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 130,
+  "tests": [
+   "test_s130_find_differential_pair_candidates"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 0,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 131,
+  "tests": [
+   "test_s131_refine_differential_and_mirror_relations"
+  ],
+  "m2_min": 11,
+  "asserts": 11,
+  "raises": 0,
+  "got": 11,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 132,
+  "tests": [
+   "test_s132_find_verified_differential_and_mirror_relations"
+  ],
+  "m2_min": 6,
+  "asserts": 6,
+  "raises": 0,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 133,
+  "tests": [
+   "test_s133_refine_differential_and_mirror_relations"
+  ],
+  "m2_min": 9,
+  "asserts": 9,
+  "raises": 0,
+  "got": 9,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 134,
+  "tests": [
+   "test_s134__propose_vertical_stack_ids"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 135,
+  "tests": [
+   "test_s135_section"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 0,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 136,
+  "tests": [
+   "test_s136_refine_differential_and_mirror_relations"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 0,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 137,
+  "tests": [
+   "test_s137_suggest_vertical_stack_composites"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 138,
+  "tests": [
+   "test_s138_refine_differential_and_mirror_relations"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 139,
+  "tests": [
+   "test_s139_find_verified_differential_and_mirror_relations"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 140,
+  "tests": [
+   "test_s140_audit_vertical_stack_id_vs_kcl"
+  ],
+  "m2_min": 6,
+  "asserts": 6,
+  "raises": 0,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 141,
+  "tests": [
+   "test_s141_merge_layout_groups_by_matching_pairs"
+  ],
+  "m2_min": 7,
+  "asserts": 7,
+  "raises": 0,
+  "got": 7,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 142,
+  "tests": [
+   "test_s142_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 143,
+  "tests": [
+   "test_s143_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 144,
+  "tests": [
+   "test_s144_audit_vertical_stack_id_euler_feasibility"
+  ],
+  "m2_min": 10,
+  "asserts": 10,
+  "raises": 0,
+  "got": 10,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 145,
+  "tests": [
+   "test_s145_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 146,
+  "tests": [
+   "test_s146_find_euler_repair_options"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 147,
+  "tests": [
+   "test_s147_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 148,
+  "tests": [
+   "test_s148_derive_horizontal_stack_groups"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 149,
+  "tests": [
+   "test_s149_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 151,
+  "tests": [
+   "test_s151_section"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 152,
+  "tests": [
+   "test_s152_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 153,
+  "tests": [
+   "test_s153_section"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 154,
+  "tests": [
+   "test_s154_load_topology"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 0,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 155,
+  "tests": [
+   "test_s155_propose_device_roles_gap_fill"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 156,
+  "tests": [
+   "test_s156_section"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 157,
+  "tests": [
+   "test_s157_M1",
+   "test_s157_M1_known_limitation"
+  ],
+  "m2_min": 3,
+  "asserts": 4,
+  "raises": 2,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 158,
+  "tests": [
+   "test_s158_propose_device_roles_gap_fill"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 159,
+  "tests": [
+   "test_s159_apply_device_roles_gap_fill"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 160,
+  "tests": [
+   "test_s160_propose_device_roles_gap_fill"
+  ],
+  "m2_min": 6,
+  "asserts": 6,
+  "raises": 0,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 161,
+  "tests": [
+   "test_s161_find_authoritative_sizing_devices"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 162,
+  "tests": [
+   "test_s162_section"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 1,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 163,
+  "tests": [
+   "test_s163_find_unreviewed_matching_pairs"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 1,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 164,
+  "tests": [
+   "test_s164_differential"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 165,
+  "tests": [
+   "test_s165_audit_theta_root_direction"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 166,
+  "tests": [
+   "test_s166_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 167,
+  "tests": [
+   "test_s167_kcl_tail_M38"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 168,
+  "tests": [
+   "test_s168_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 169,
+  "tests": [
+   "test_s169_propose_theta_kcl_gap_fill"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 0,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 170,
+  "tests": [
+   "test_s170_section"
+  ],
+  "m2_min": 6,
+  "asserts": 6,
+  "raises": 0,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 171,
+  "tests": [
+   "test_s171_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 172,
+  "tests": [
+   "test_s172_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "stick_diagram",
+  "number": 173,
+  "tests": [
+   "test_s173_apply_theta_kcl_gap_fill"
+  ],
+  "m2_min": 5,
+  "asserts": 5,
+  "raises": 0,
+  "got": 5,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "design_report",
+  "number": 1,
+  "tests": [
+   "test_s001_build_topology_device_table"
+  ],
+  "m2_min": 3,
+  "asserts": 3,
+  "raises": 0,
+  "got": 3,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "design_report",
+  "number": 2,
+  "tests": [
+   "test_s002_assemble_report_data"
+  ],
+  "m2_min": 4,
+  "asserts": 4,
+  "raises": 0,
+  "got": 4,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "design_report",
+  "number": 3,
+  "tests": [
+   "test_s003_assemble_report_data"
+  ],
+  "m2_min": 5,
+  "asserts": 6,
+  "raises": 0,
+  "got": 6,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "design_report",
+  "number": 4,
+  "tests": [
+   "test_s004_report"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "topology_library",
+  "number": 2,
+  "tests": [
+   "test_s002_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "topology_library",
+  "number": 4,
+  "tests": [
+   "test_s004_nmcnr_predict_ac_response"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "topology_library",
+  "number": 6,
+  "tests": [
+   "test_s006_section"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "topology_library",
+  "number": 7,
+  "tests": [
+   "test_s007_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "topology_library",
+  "number": 8,
+  "tests": [
+   "test_s008_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "topology_library",
+  "number": 11,
+  "tests": [
+   "test_s011_tan"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "topology_library",
+  "number": 12,
+  "tests": [
+   "test_s012_start"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "topology_library",
+  "number": 13,
+  "tests": [
+   "test_s013_Cgg1_total"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "topology_library",
+  "number": 14,
+  "tests": [
+   "test_s014_section"
+  ],
+  "m2_min": 2,
+  "asserts": 2,
+  "raises": 0,
+  "got": 2,
+  "ok": true,
+  "missing": []
+ },
+ {
+  "module": "topology_library",
+  "number": 15,
+  "tests": [
+   "test_s015_Cgg2"
+  ],
+  "m2_min": 1,
+  "asserts": 1,
+  "raises": 0,
+  "got": 1,
+  "ok": true,
+  "missing": []
+ }
+]

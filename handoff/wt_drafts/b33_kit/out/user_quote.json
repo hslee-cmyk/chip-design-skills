@@ -1,0 +1,46 @@
+{
+ "questions": [
+  {
+   "ts": "2026-10-01T04:33:58.981Z",
+   "question": "[B33] V7 호출 그래프를 고치는 게이트 변경(20260930-v7-registry-edges)을 승인하시겠습니까? 고치는 결함은 두 가지입니다. ① 레지스트리 dict와 클래스 생성자를 거치는 호출을 못 봐서, 실제로 쓰는 함수(_METRICS_REGISTRY의 metric 등)를 '도달 안 함'으로 셈니다. ② 반대로 test 파일의 같은 이름 함수로 간선이 새어 나가, 쓰지 않는 함수(size_transistor)를 '도달'로 잘못 셈니다(거짓 PASS). 고치면 미도달 함수가 115개에서 39개로 줄어듭니다. V3 인벤토리도 같은 그래프를 쓰므로 1.31배로 늘어납니다. 이는 레지스트리로만 불리던 metric 함수의 인벤토리가 0이라 반드시 FAIL하던 거짓 FAIL을 없애는 방향입니다. 독립 검토에서 나온 구멍 3건(super().__init__ 누수, 그래프 밖 재수출, 문자열과 속성만으로 레지스트리 도달)은 막았고, 과거 판정 기록 27건의 V7 결과는 그대로입니다.",
+   "options": [
+    "승인 (Recommended)",
+    "보류"
+   ],
+   "descriptions": [
+    "spec card·interface card·design 05 V7 행 문구를 커밋하고 승인 기록(target_kind diff)을 남깁니다. 순서는 Phase 3 G1보다 먼저입니다.",
+    "지금 그래프를 유지합니다. 레지스트리 경유 함수를 바꾸는 card는 V3에서 거짓 FAIL이 납니다."
+   ]
+  },
+  {
+   "ts": "2026-10-01T04:33:58.981Z",
+   "question": "[B33 Q1] 생성자 간선(R2)을 어디서 생기게 할까요? 지금 HEAD 기준으로는 두 선택지 모두 미도달 39개로 결과가 같고, 앞으로의 판정 엄격도만 다릅니다.",
+   "options": [
+    "(a) 호출 위치만 (Recommended)",
+    "(b) 클래스 이름 참조 전부"
+   ],
+   "descriptions": [
+    "Cls(...)와 raise Cls가 있을 때만 생성자가 도달한 것으로 봅니다. 엄격한 쪽입니다. defaultdict(Cls) 같은 팩토리 모양은 거짓 FAIL이 나며, 면제 승인으로 처리합니다.",
+    "isinstance나 except에만 쓰인 클래스의 생성자도 '도달'이 됩니다. 거짓 PASS 가능성이 있습니다."
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "ts": "2026-10-01T04:35:41.197Z",
+   "text": "Your questions have been answered: \"[B33] V7 호출 그래프를 고치는 게이트 변경(20260930-v7-registry-edges)을 승인하시겠습니까? 고치는 결함은 두 가지입니다. ① 레지스트리 dict와 클래스 생성자를 거치는 호출을 못 봐서, 실제로 쓰는 함수(_METRICS_REGISTRY의 metric 등)를 '도달 안 함'으로 셈니다. ② 반대로 test 파일의 같은 이름 함수로 간선이 새어 나가, 쓰지 않는 함수(size_transistor)를 '도달'로 잘못 셈니다(거짓 PASS). 고치면 미도달 함수가 115개에서 39개로 줄어듭니다. V3 인벤토리도 같은 그래프를 쓰므로 1.31배로 늘어납니다. 이는 레지스트리로만 불리던 metric 함수의 인벤토리가 0이라 반드시 FAIL하던 거짓 FAIL을 없애는 방향입니다. 독립 검토에서 나온 구멍 3건(super().__init__ 누수, 그래프 밖 재수출, 문자열과 속성만으로 레지스트리 도달)은 막았고, 과거 판정 기록 27건의 V7 결과는 그대로입니다.\"=\"승인 (Recommended)\", \"[B33 Q1] 생성자 간선(R2)을 어디서 생기게 할까요? 지금 HEAD 기준으로는 두 선택지 모두 미도달 39개로 결과가 같고, 앞으로의 판정 엄격도만 다릅니다.\"=\"(a) 호출 위치만 (Recommended)\". You can now continue with these answers in mind."
+  }
+ ],
+ "question_in_draft": [
+  true,
+  true
+ ],
+ "options_in_draft": [
+  true,
+  true
+ ],
+ "descriptions_in_draft": [
+  true,
+  true
+ ]
+}

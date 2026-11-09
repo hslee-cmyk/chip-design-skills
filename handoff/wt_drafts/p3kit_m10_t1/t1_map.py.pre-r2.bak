@@ -1,0 +1,201 @@
+"""measure only (NOT a role artifact): T1 mapping candidates for unit/test_selftest_*.py -> unit/test_mod<k>_<stem>.py.
+
+    python -B t1_map.py <repo> <rev> <gates dir> <out.json>
+
+For every test function: engine names it references (body only / closure = body + requested fixtures + called module helpers,
+transitively), each resolved by R-DEF (design 30 §7.1: top-level def/class/assign binding in A/*.py (no subdirs) + workspaces/run_harness.py,
+exactly one defining file) to its file, then to the N3.10 number (import_layering.mod_table). Rules compared:
+  R1  = MOD of the slug (test_sNNN_<slug>) when slug is an engine name with an N3.10 defining file
+  R2b = max N3.10 number over body-only engine refs
+  R2c = max N3.10 number over the closure (layering rule applied to tests: file test_mod<k> reads only MOD <= k)
+Also: name collisions (tests, fixtures/helpers) per target file under R2c, fixtures whose users land in >1 target file."""
+import ast
+import collections
+import json
+import subprocess
+import sys
+
+R, REV, GATES, OUT = sys.argv[1:5]
+sys.path.insert(0, GATES)
+import import_layering as il  # noqa: E402
+
+A = "skills/analog-gmid-design/assets/"
+U = A + "tests/unit/"
+OLD = ["sizing_recipe", "stick_diagram", "design_report", "topology_library"]
+
+
+def show(p):
+    r = subprocess.run(["git", "-C", R, "show", "%s:%s" % (REV, p)], capture_output=True)
+    return r.stdout.decode("utf-8") if r.returncode == 0 else None
+
+
+plan = show("docs/01-plan/features/gain-budget-gmid-sizing.plan.md")
+mods = il.mod_table(plan)  # stem -> k
+ls = subprocess.run(["git", "-C", R, "ls-tree", "--name-only", REV, A], capture_output=True).stdout.decode().split("\n")
+engine_files = [p for p in ls if p.endswith(".py")] + ["workspaces/run_harness.py"]
+binders = collections.defaultdict(set)   # name -> {stem}
+methods = collections.defaultdict(set)   # method name -> {stem}
+for p in engine_files:
+    src = show(p)
+    if src is None:
+        continue
+    stem = p.rsplit("/", 1)[-1][:-3]
+    for n in ast.parse(src).body:
+        names = []
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names = [n.name]
+        elif isinstance(n, ast.Assign):
+            for t in n.targets:
+                names += [x.id for x in ast.walk(t) if isinstance(x, ast.Name)]
+        elif isinstance(n, ast.AnnAssign) and isinstance(n.target, ast.Name):
+            names = [n.target.id]
+        for nm in names:
+            binders[nm].add(stem)
+        if isinstance(n, ast.ClassDef):
+            for m in n.body:
+                if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    methods[m.name].add(stem)
+engine_stems = {p.rsplit("/", 1)[-1][:-3] for p in engine_files}
+
+
+def mod_of(name):
+    if name.startswith("method:"):
+        b = methods.get(name[7:], set())
+        s_ = next(iter(b))
+        return mods.get(s_), s_
+    if name.startswith("tools:"):
+        name = name[6:]
+    b = binders.get(name, set())
+    if len(b) != 1:
+        return None, sorted(b)
+    s = next(iter(b))
+    return mods.get(s), s
+
+
+TOOLS_ENG = {}
+for tp in subprocess.run(["git", "-C", R, "ls-tree", "--name-only", REV, A + "tests/tools/"], capture_output=True).stdout.decode().split():
+    if tp.endswith(".py"):
+        tt = ast.parse(show(tp))
+        TOOLS_ENG[tp.rsplit("/", 1)[-1][:-3]] = {a.name for n in tt.body if isinstance(n, ast.ImportFrom) and n.module
+                                                and n.module.split(".")[0] in {p.rsplit("/", 1)[-1][:-3] for p in engine_files} for a in n.names}
+CONFTEST_FIX = set()
+cf = show(A + "tests/conftest.py")
+for n in ast.parse(cf).body:
+    if isinstance(n, ast.FunctionDef) and any("fixture" in ast.unparse(d) for d in n.decorator_list):
+        CONFTEST_FIX.add(n.name)
+
+res = {"rev": REV, "mods": mods, "tests": {}, "summary": {}}
+target_tests = collections.defaultdict(list)
+fixture_users = collections.defaultdict(set)
+helper_users = collections.defaultdict(set)
+for old in OLD:
+    src = show(U + "test_selftest_%s.py" % old)
+    t = ast.parse(src)
+    imp = {}      # local -> (module, orig)
+    modalias = {}  # local -> module
+    for n in t.body:
+        if isinstance(n, ast.ImportFrom) and n.module:
+            for a in n.names:
+                imp[a.asname or a.name] = (n.module, a.name)
+        elif isinstance(n, ast.Import):
+            for a in n.names:
+                modalias[a.asname or a.name.split(".")[0]] = a.name
+    funcs = {n.name: n for n in t.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    fixtures = {k for k, v in funcs.items() if any("fixture" in ast.unparse(d) for d in v.decorator_list)}
+    helpers = {k for k in funcs if k not in fixtures and not k.startswith("test")}
+
+    def refs(fn):
+        names, attrs = set(), set()
+        for x in ast.walk(fn):
+            if isinstance(x, ast.Name):
+                names.add(x.id)
+            elif isinstance(x, ast.Attribute) and isinstance(x.value, ast.Name) and x.value.id in modalias:
+                attrs.add((modalias[x.value.id], x.attr))
+        params = [a.arg for a in fn.args.args + fn.args.kwonlyargs]
+        return names, attrs, params
+
+    cache = {}
+
+    def eng(fn_name, stack=()):
+        if fn_name in cache:
+            return cache[fn_name]
+        fn = funcs[fn_name]
+        names, attrs, params = refs(fn)
+        body = set()
+        for nm in names:
+            if nm in imp and imp[nm][0].split(".")[0] in engine_stems:
+                body.add(imp[nm][1])
+            elif nm in imp and imp[nm][0].split(".")[0] in TOOLS_ENG:
+                body |= {"tools:" + x for x in TOOLS_ENG[imp[nm][0].split(".")[0]]}
+        for x in ast.walk(fn):
+            if isinstance(x, ast.Attribute) and x.attr in methods and len(methods[x.attr]) == 1 and x.attr not in binders:
+                body.add("method:" + x.attr)
+        for (m, at) in attrs:
+            if m.split(".")[0] in engine_stems:
+                body.add(at)
+        closure = set(body)
+        used_fix = [p for p in params if p in fixtures]
+        used_help = [nm for nm in names if nm in helpers and nm != fn_name]
+        for d in used_fix + used_help:
+            if d in stack:
+                continue
+            closure |= eng(d, stack + (fn_name,))[1]
+        cache[fn_name] = (body, closure, used_fix, used_help)
+        return cache[fn_name]
+
+    for name, fn in funcs.items():
+        if not name.startswith("test"):
+            continue
+        body, closure, used_fix, used_help = eng(name)
+        # transitive fixtures/helpers
+        seen, st = set(), list(used_fix + used_help)
+        while st:
+            d = st.pop()
+            if d in seen:
+                continue
+            seen.add(d)
+            st += [x for x in eng(d)[2] + eng(d)[3] if x not in seen]
+        slug = name.split("_", 2)[2] if name.count("_") >= 2 else ""
+        r1 = mod_of(slug)[0] if slug in binders else None
+        bm = [mod_of(x) for x in sorted(body)]
+        cm = [mod_of(x) for x in sorted(closure)]
+        r2b = max([k for k, s in bm if k is not None], default=None)
+        r2c = max([k for k, s in cm if k is not None], default=None)
+        nonmod = sorted({str(s) for k, s in cm if k is None})
+        rec = {"old": old, "slug": slug, "R1": r1, "R2b": r2b, "R2c": r2c, "closure_refs": len(closure),
+               "closure_nonmod_files": nonmod, "fixtures_transitive": sorted(x for x in seen if x in fixtures),
+               "helpers_transitive": sorted(x for x in seen if x in helpers),
+               "conftest_fixtures": sorted(p for p in [a.arg for a in fn.args.args] if p in CONFTEST_FIX)}
+        res["tests"]["%s::%s" % (old, name)] = rec
+        tgt = r2c
+        target_tests[tgt].append((old, name))
+        for f in rec["fixtures_transitive"]:
+            fixture_users[(old, f)].add(tgt)
+        for h in rec["helpers_transitive"]:
+            helper_users[(old, h)].add(tgt)
+
+S = res["summary"]
+for rule in ("R1", "R2b", "R2c"):
+    S[rule] = dict(collections.Counter(str(v[rule]) for v in res["tests"].values()))
+S["R2c_by_old"] = {o: dict(collections.Counter(str(v["R2c"]) for v in res["tests"].values() if v["old"] == o)) for o in OLD}
+S["R1_vs_R2c_differ"] = sum(1 for v in res["tests"].values() if v["R1"] is not None and v["R1"] != v["R2c"])
+S["R1_none"] = sum(1 for v in res["tests"].values() if v["R1"] is None)
+coll = {}
+for tgt, lst in target_tests.items():
+    c = collections.Counter(n for _, n in lst)
+    d = sorted(k for k, v in c.items() if v > 1)
+    if d:
+        coll[str(tgt)] = d
+S["R2c_test_name_collisions_per_target"] = coll
+S["R2c_targets_mixing_old_files"] = {str(t): sorted({o for o, _ in lst}) for t, lst in target_tests.items() if len({o for o, _ in lst}) > 1}
+S["fixtures_shared_across_targets"] = {"%s:%s" % k: sorted(str(x) for x in v) for k, v in fixture_users.items() if len(v) > 1}
+S["n_fixtures_shared"] = len(S["fixtures_shared_across_targets"])
+S["helpers_shared_across_targets"] = {"%s:%s" % k: sorted(str(x) for x in v) for k, v in helper_users.items() if len(v) > 1}
+fx_by_target = collections.defaultdict(lambda: collections.defaultdict(set))
+for (o, f), tg in fixture_users.items():
+    for x in tg:
+        fx_by_target[x][f].add(o)
+S["R2c_fixture_name_collisions_per_target"] = {str(t): sorted(f for f, os_ in d.items() if len(os_) > 1) for t, d in fx_by_target.items()
+                                               if any(len(os_) > 1 for os_ in d.values())}
+json.dump(res, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+print(json.dumps(S, ensure_ascii=False))

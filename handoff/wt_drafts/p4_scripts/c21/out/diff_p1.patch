@@ -1,0 +1,52 @@
+diff --git a/skills/analog-gmid-design/assets/stick_diagram.py b/skills/analog-gmid-design/assets/stick_diagram.py
+index ca46b5c..bf186c2 100644
+--- a/skills/analog-gmid-design/assets/stick_diagram.py
++++ b/skills/analog-gmid-design/assets/stick_diagram.py
+@@ -8582,6 +8582,7 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
+             return json.load(f)
+ 
+     data = _read_one(json_path)
++    _rails = rail_declaration(data)
+     all_netlist = list(data["netlist"])
+     all_matching_pairs = list(data["symmetry"]["matching_pairs"])
+     all_dispositions = list(data["symmetry"].get("dispositions", []))
+@@ -8593,6 +8594,8 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
+     base_dir = os.path.dirname(os.path.abspath(json_path))
+     for rel_path in linked:
+         linked_data = _read_one(os.path.join(base_dir, rel_path))
++        if "supply_nets" in linked_data and rail_declaration(linked_data).nets != _rails.nets:
++            raise ValueError("linked supply_nets mismatch")
+         all_netlist.extend(linked_data["netlist"])
+         all_matching_pairs.extend(linked_data["symmetry"]["matching_pairs"])
+         all_dispositions.extend(linked_data["symmetry"].get("dispositions", []))
+@@ -8700,6 +8703,7 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
+ 
+     meta = {
+         "topology_name": data["topology_name"],
++        "rails": _rails,
+         "schema_version": data["schema_version"],
+         "source": data.get("source"),
+         "symmetry": {"matching_pairs": all_matching_pairs, "dispositions": all_dispositions},
+@@ -9022,3 +9026,22 @@ def save_instance_json(path: str, topology_json_path: str, sizing_results: dict,
+ 
+     with open(path, "w", encoding="utf-8") as f:
+         json.dump(data, f, indent=2, ensure_ascii=False)
++
++
++@dataclass(frozen=True)
++class RailDeclaration:
++    nets: frozenset
++
++
++def rail_declaration(topology: dict) -> RailDeclaration:
++    """B26-1 계약 1 시제품(c21 측정용)."""
++    if "supply_nets" not in topology:
++        raise ValueError("supply_nets 선언 없음(DEC-60)")
++    v = topology["supply_nets"]
++    if not isinstance(v, list):
++        raise ValueError("supply_nets가 list가 아님(DEC-60)")
++    if any((not isinstance(x, str)) or x == "" for x in v):
++        raise ValueError("supply_nets 원소 오류(DEC-60)")
++    if len(set(v)) != len(v):
++        raise ValueError("supply_nets 중복(DEC-60)")
++    return RailDeclaration(nets=frozenset(v))

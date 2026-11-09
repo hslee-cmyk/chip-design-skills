@@ -1,0 +1,445 @@
+{
+ "schema": "spice_oracle_input/1",
+ "circuit": "folded_cascode",
+ "process": {
+  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2\\sky130_nfet_pfet_lut_v2_r2.npz",
+  "ngspice_exe": "C:\\ngspice\\Spice64\\bin\\ngspice_con.exe",
+  "models": {
+   "nmos": {
+    "subckt": "sky130_fd_pr__nfet_01v8",
+    "includes": [
+     "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__{corner}.pm3.spice",
+     "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__nfet_01v8[{param}]",
+    "polarity": "n"
+   },
+   "pmos": {
+    "subckt": "sky130_fd_pr__pfet_01v8",
+    "includes": [
+     "C:\\pdk\\sky130_fd_pr\\models\\parameters\\lod.spice",
+     "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__{corner}.pm3.spice",
+     "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__pfet_01v8[{param}]",
+    "polarity": "p"
+   }
+  },
+  "diffusion": {
+   "ad_per_w_m": 5e-07,
+   "pd_extra_m": 2.0000000000000003e-06
+  },
+  "lut_reference_width_m": 4.9999999999999996e-06,
+  "provenance": "LUT 생성기 assets\\sky130_lut_sweep.py 공개 상수 + DUT/include/probe 줄"
+ },
+ "rails": [
+  {
+   "net": "vdd",
+   "voltage": 1.8
+  },
+  {
+   "net": "gnd",
+   "voltage": 0.0,
+   "reference": true
+  }
+ ],
+ "devices": [
+  {
+   "name": "MP",
+   "kind": "pmos",
+   "drain": "vb1",
+   "gate": "vb1",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 1,
+   "W": 1.3955561993749475e-06
+  },
+  {
+   "name": "M3",
+   "kind": "pmos",
+   "drain": "X",
+   "gate": "vb1",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 1,
+   "W": 5.7194529870668155e-06
+  },
+  {
+   "name": "M4",
+   "kind": "pmos",
+   "drain": "Y",
+   "gate": "vb1",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 1,
+   "W": 6.089170088021695e-06
+  },
+  {
+   "name": "M5",
+   "kind": "pmos",
+   "drain": "Vg7",
+   "gate": "bias3",
+   "source": "Y",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 2379,
+   "W": 0.01189439323863461
+  },
+  {
+   "name": "M6",
+   "kind": "pmos",
+   "drain": "out",
+   "gate": "bias3",
+   "source": "X",
+   "bulk": "vdd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 2379,
+   "W": 0.01189439323863461
+  },
+  {
+   "name": "M1",
+   "kind": "nmos",
+   "drain": "X",
+   "gate": "vin_n",
+   "source": "tail",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 560,
+   "W": 0.0028016157617359524
+  },
+  {
+   "name": "M2",
+   "kind": "nmos",
+   "drain": "Y",
+   "gate": "vin_p",
+   "source": "tail",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 560,
+   "W": 0.0028016157617353327
+  },
+  {
+   "name": "M9",
+   "kind": "nmos",
+   "drain": "Vg9",
+   "gate": "Vg9",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 1,
+   "W": 4.200000062584882e-07
+  },
+  {
+   "name": "M10",
+   "kind": "nmos",
+   "drain": "Vg10",
+   "gate": "Vg9",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 1,
+   "W": 4.265140687264622e-07
+  },
+  {
+   "name": "M7",
+   "kind": "nmos",
+   "drain": "Vg7",
+   "gate": "Vg7",
+   "source": "Vg9",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 1,
+   "W": 4.200000062584882e-07
+  },
+  {
+   "name": "M8",
+   "kind": "nmos",
+   "drain": "out",
+   "gate": "Vg7",
+   "source": "Vg10",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 1,
+   "W": 4.200000062584882e-07
+  },
+  {
+   "name": "M11",
+   "kind": "nmos",
+   "drain": "tail",
+   "gate": "vb2",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 567,
+   "W": 0.002836426277046821
+  },
+  {
+   "name": "MN",
+   "kind": "nmos",
+   "drain": "vb2",
+   "gate": "vb2",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 1123,
+   "W": 0.0056173786440290195
+  }
+ ],
+ "sources": [
+  {
+   "name": "Ibg",
+   "kind": "current",
+   "terminals": [
+    "vb1",
+    "vb2"
+   ],
+   "value": 1.0164246545176949e-06,
+   "value_basis": "theta_star"
+  }
+ ],
+ "passives": [
+  {
+   "name": "CL",
+   "kind": "capacitor",
+   "terminals": [
+    "out",
+    "gnd"
+   ],
+   "value": 1e-12,
+   "value_basis": "topology value_farad"
+  }
+ ],
+ "bias_voltages": [
+  {
+   "net": "bias3",
+   "value": 1.386454799255296
+  }
+ ],
+ "feedback_passives": [],
+ "feedback_passives_basis": "legacy_c12_input_net_passives",
+ "ports": {
+  "input_p": "vin_p",
+  "input_n": "vin_n",
+  "output": "out"
+ },
+ "predictions": {
+  "nodes": {
+   "gnd": 0.0,
+   "vdd": 1.8,
+   "Vg10": 0.6665966820548325,
+   "Vg7": 1.4534192793025638,
+   "Vg9": 0.6836345341683037,
+   "X": 1.596781832823054,
+   "Y": 1.626709639651282,
+   "bias3": 1.386454799255296,
+   "out": 1.1316892574389432,
+   "tail": 0.680736485164882,
+   "vb1": 1.093236967988572,
+   "vb2": 0.2908859716759406,
+   "vin_n": 1.0479895018650156,
+   "vin_p": 1.0461079873747878
+  },
+  "devices": {
+   "MP": {
+    "ID": 1.0164246545176949e-06,
+    "VGS": 0.706763032011428,
+    "VDS": 0.706763032011428,
+    "VSB": -0.0,
+    "gm": 1.5193457192611698e-05,
+    "gds": 1.758577094175613e-06,
+    "gm_id": 14.947942402893766,
+    "region": "sat"
+   },
+   "M3": {
+    "ID": 1.6268231836091585e-06,
+    "VGS": 0.706763032011428,
+    "VDS": 0.20321816717694596,
+    "VSB": -0.0,
+    "gm": 2.4971707897947423e-05,
+    "gds": 3.3535733100806358e-06,
+    "gm_id": 15.349982806703615,
+    "region": "sat"
+   },
+   "M4": {
+    "ID": 1.6268231836090486e-06,
+    "VGS": 0.706763032011428,
+    "VDS": 0.17329036034871814,
+    "VSB": -0.0,
+    "gm": 2.494425401847899e-05,
+    "gds": 3.4859716696990006e-06,
+    "gm_id": 15.333107045561682,
+    "region": "sat"
+   },
+   "M5": {
+    "ID": 1.1297243843711983e-06,
+    "VGS": 0.24025484039598588,
+    "VDS": 0.17329036034871814,
+    "VSB": 0.17329036034871814,
+    "gm": 2.330959145640886e-05,
+    "gds": 3.099648699764958e-06,
+    "gm_id": 20.632989584785246,
+    "region": "sat"
+   },
+   "M6": {
+    "ID": 1.1297243843711983e-06,
+    "VGS": 0.21032703356775806,
+    "VDS": 0.46509257538411086,
+    "VSB": 0.20321816717694596,
+    "gm": 2.344160506230856e-05,
+    "gds": 2.8016766039048473e-06,
+    "gm_id": 20.749844286450536,
+    "region": "sat"
+   },
+   "M1": {
+    "ID": 4.970987992379602e-07,
+    "VGS": 0.36725301670013355,
+    "VDS": 0.916045347658172,
+    "VSB": 0.680736485164882,
+    "gm": 1.2940777473785704e-05,
+    "gds": 8.336676087333863e-07,
+    "gm_id": 26.032606583688366,
+    "region": "sat"
+   },
+   "M2": {
+    "ID": 4.970987992378503e-07,
+    "VGS": 0.3653715022099058,
+    "VDS": 0.9459731544863998,
+    "VSB": 0.680736485164882,
+    "gm": 1.2916262211966065e-05,
+    "gds": 8.232467657718676e-07,
+    "gm_id": 25.983289904882533,
+    "region": "sat"
+   },
+   "M9": {
+    "ID": 1.1297243843711983e-06,
+    "VGS": 0.6836345341683037,
+    "VDS": 0.6836345341683037,
+    "VSB": 0.0,
+    "gm": 2.0423571939368086e-05,
+    "gds": 1.0521570085132352e-06,
+    "gm_id": 18.07836692020753,
+    "region": "sat"
+   },
+   "M10": {
+    "ID": 1.1297243843711983e-06,
+    "VGS": 0.6836345341683037,
+    "VDS": 0.6665966820548325,
+    "VSB": 0.0,
+    "gm": 2.046126966299373e-05,
+    "gds": 1.0694144934326088e-06,
+    "gm_id": 18.11173587651861,
+    "region": "sat"
+   },
+   "M7": {
+    "ID": 1.1297243843711983e-06,
+    "VGS": 0.7697847451342601,
+    "VDS": 0.7697847451342601,
+    "VSB": 0.6836345341683037,
+    "gm": 2.167701855338573e-05,
+    "gds": 1.1669235940821006e-06,
+    "gm_id": 19.18788233065457,
+    "region": "sat"
+   },
+   "M8": {
+    "ID": 1.1297243843711983e-06,
+    "VGS": 0.7868225972477313,
+    "VDS": 0.46509257538411075,
+    "VSB": 0.6665966820548325,
+    "gm": 2.147742567515874e-05,
+    "gds": 1.517722607741973e-06,
+    "gm_id": 19.011208372839558,
+    "region": "sat"
+   },
+   "M11": {
+    "ID": 9.941975984758105e-07,
+    "VGS": 0.2908859716759406,
+    "VDS": 0.680736485164882,
+    "VSB": 0.0,
+    "gm": 2.436146041005588e-05,
+    "gds": 1.373553637467257e-06,
+    "gm_id": 24.503640370288636,
+    "region": "sat"
+   },
+   "MN": {
+    "ID": 1.0164246545176949e-06,
+    "VGS": 0.2908859716759406,
+    "VDS": 0.2908859716759406,
+    "VSB": 0.0,
+    "gm": 2.5307973275356e-05,
+    "gds": 2.1961300616271404e-06,
+    "gm_id": 24.89901554716313,
+    "region": "sat"
+   }
+  },
+  "metrics": []
+ },
+ "acceptance": {
+  "constraints": [],
+  "not_measurable": []
+ },
+ "testbench": {
+  "dc_choke_H": 1000000000000.0,
+  "loop_dc_choke_H": 1e+20,
+  "ac_couple_F": 1.0,
+  "nodeset_from_predictions": true,
+  "nodeset_per_line": 8,
+  "options": {
+   "gmin": "1e-15",
+   "reltol": "1e-4",
+   "abstol": "1e-14",
+   "vntol": "1e-7",
+   "itl1": "500",
+   "itl2": "500"
+  },
+  "ac": {
+   "fstart_hz": 0.01,
+   "fstop_hz": 10000000000.0,
+   "points_per_decade": 40,
+   "input_p_ac": 0.5,
+   "input_n_ac": -0.5,
+   "input_ac": 1.0,
+   "diff_feedback_gain": 0.5
+  }
+ },
+ "judge": {},
+ "topology": {
+  "path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_it2c\\src\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+  "sha256": "3014061aa83bd0ff10c2800f3620c8f1876b80d3f25932a6678def6734c84116"
+ },
+ "provenance": {
+  "adapter": "legacy_adapter.py",
+  "engine": "legacy (skills/analog-gmid-design/legacy)",
+  "w_source": "layout",
+  "isrc": "topology",
+  "topology": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_it2c\\src\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\lut_data\\sky130_lut_v2\\sky130_nfet_pfet_lut_v2_r2.npz",
+  "metrics_unmapped": [],
+  "warnings": [
+   "instance.json 행의 w != n_fingers*finger_w: ['M1', 'M10', 'M11', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'MN', 'MP'] -- 넷리스트는 finger 규칙(finger_w x n_fingers)을 쓰고, 행 w 합은 devices[].W 로 남긴다(오라클 W_rel 로 드러남)"
+  ],
+  "blockers": [],
+  "engine_metrics_raw": {},
+  "theta_star": {
+   "Ibg": 1.0164246545176949e-06
+  },
+  "it2c_sizing_roles_null_copy": false,
+  "it2c_passive_fix": [],
+  "it2c_bulk_mismatch": []
+ }
+}

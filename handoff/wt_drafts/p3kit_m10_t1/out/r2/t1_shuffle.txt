@@ -1,0 +1,6 @@
+seed=1 exit=0 s=190 239 passed, 3 xfailed in 181.00s (0:03:01)
+seed=2 exit=0 s=160 239 passed, 3 xfailed in 152.32s (0:02:32)
+seed=3 exit=0 s=181 239 passed, 3 xfailed in 172.91s (0:02:52)
+seed=4 exit=0 s=168 239 passed, 3 xfailed in 159.88s (0:02:39)
+seed=5 exit=0 s=166 239 passed, 3 xfailed in 159.82s (0:02:39)
+finished

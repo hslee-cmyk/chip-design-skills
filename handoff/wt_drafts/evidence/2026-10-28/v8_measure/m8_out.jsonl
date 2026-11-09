@@ -1,0 +1,9 @@
+{"circuit": "common_gate_amplifier", "rungs_len": 7, "macro_records": ["macro_inactive"], "macro_root_missing": 0, "start_conflicts": 0}
+{"circuit": "current_reuse_telescopic_ota", "rungs_len": 7, "macro_records": ["macro_inactive"], "macro_root_missing": 0, "start_conflicts": 0}
+{"circuit": "folded_cascode", "rungs_len": 7, "macro_records": ["macro_inactive"], "macro_root_missing": 0, "start_conflicts": 0}
+{"circuit": "ngcc_3stage_ff", "rungs_len": 7, "macro_records": [], "macro_root_missing": 0, "start_conflicts": 0}
+{"circuit": "nmcnr_amplifier", "rungs_len": 7, "macro_records": ["macro_root_missing"], "macro_root_missing": 1, "start_conflicts": 9}
+{"circuit": "pushpull_follower_buffer", "rungs_len": 7, "macro_records": ["macro_inactive"], "macro_root_missing": 0, "start_conflicts": 0}
+{"circuit": "sf_pushpull_output_opamp", "rungs_len": 7, "macro_records": [], "macro_root_missing": 0, "start_conflicts": 24}
+{"circuit": "two_stage_ota", "rungs_len": 6, "macro_records": [], "macro_root_missing": 0, "start_conflicts": 0}
+{"circuit": "two_stage_ota_sf", "rungs_len": 7, "macro_records": [], "macro_root_missing": 0, "start_conflicts": 0}

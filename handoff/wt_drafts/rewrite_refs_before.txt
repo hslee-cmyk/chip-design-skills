@@ -1,0 +1,5 @@
+libspec-spec f1ad3697948bb244e324773ab4702f1ef8b90177
+libspec-tests ce8d08036888a8153cc98d99c50622b2f6f75273
+libspec-integ ef7957b3d0ca0cb50a57c6622b5f68db388e3a04
+role/audit/libspec 00a94f6fcfb07a4e27974ca62e3f07e6e723a590
+sources-archive 012273f6e0329cfb5f3fdc5a82090f24df6ed312

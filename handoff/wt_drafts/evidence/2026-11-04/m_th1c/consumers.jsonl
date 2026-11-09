@@ -1,0 +1,310 @@
+{"file": "convergence/layout_input.py", "line": 72, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "devices.append(LayoutDevice(name, op.kind, d, g, s, body, float(op.W), float(op.L), float(op.current), float(op.gm_id),"}
+{"file": "layout/canon_block.py", "line": 94, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "values = [(\"ID\", d.ID_A), (\"L\", d.L_m), (\"W\", d.W_m), (\"gm_id\", d.gm_id), (\"vds\", d.vds_V), (\"vsb\", d.vsb_V),"}
+{"file": "layout/canon_block.py", "line": 144, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "_Device(name, p.kind, p.L_m, p.ID_A, p.gm_id, p.vds_V, p.vsb_V, pins[name].drain, pins[name].gate, pins[name].source,"}
+{"file": "layout/contract_input.py", "line": 80, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "for what in (\"W_m\", \"L_m\", \"ID_A\", \"gm_id\"):"}
+{"file": "layout/finger_candidates.py", "line": 45, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "memo_key = (point.gm_id, slices_of[name])"}
+{"file": "layout/finger_candidates.py", "line": 47, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "memo[memo_key] = _candidates(point.gm_id, slices_of[name], grid)"}
+{"file": "layout/outputs.py", "line": 79, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "f.W_realized_m, d.ID_A, d.gm_id, d.L_m, d.vds_V, d.vsb_V, not attrs[name].diode, True,"}
+{"file": "layout/run.py", "line": 58, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "(DEVICE, F_POINT): {d.name: ConservedPoint(d.kind, d.L_m, d.ID_A, d.gm_id, d.vds_V, d.vsb_V) for d in layout_input.devices},"}
+{"file": "layout/slice_density.py", "line": 17, "how": "import", "name": "vgs_for_gm_id", "scope": "<module>"}
+{"file": "layout/slice_density.py", "line": 27, "how": "call", "name": "vgs_for_gm_id", "scope": "_one", "text": "vgs = vgs_for_gm_id(memo, device.kind, key, device.gm_id, device.L_m, device.vds_V, device.vsb_V)"}
+{"file": "layout/slice_density.py", "line": 27, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "vgs = vgs_for_gm_id(memo, device.kind, key, device.gm_id, device.L_m, device.vds_V, device.vsb_V)"}
+{"file": "lut/__init__.py", "line": 8, "how": "import", "name": "curve_report", "scope": "<module>"}
+{"file": "lut/__init__.py", "line": 12, "how": "import", "name": "ft_curve", "scope": "<module>"}
+{"file": "lut/__init__.py", "line": 13, "how": "import", "name": "gm_id_curve", "scope": "<module>"}
+{"file": "lut/__init__.py", "line": 15, "how": "import", "name": "gm_id_for_target", "scope": "<module>"}
+{"file": "lut/__init__.py", "line": 16, "how": "import", "name": "idu_curve", "scope": "<module>"}
+{"file": "lut/__init__.py", "line": 17, "how": "import", "name": "intrinsic_gain_curve", "scope": "<module>"}
+{"file": "lut/__init__.py", "line": 21, "how": "import", "name": "TOL_V_METRICS", "scope": "<module>"}
+{"file": "lut/__init__.py", "line": 76, "how": "import", "name": "vdsat_curve", "scope": "<module>"}
+{"file": "lut/__init__.py", "line": 80, "how": "import", "name": "vgs_for_gm_id", "scope": "<module>"}
+{"file": "lut/__init__.py", "line": 125, "how": "str", "name": "TOL_V_METRICS", "scope": "<module>", "text": "\"TOL_V_METRICS\","}
+{"file": "lut/_helpers_gmid_axis.py", "line": 12, "how": "import", "name": "gm_id_curve", "scope": "<module>"}
+{"file": "lut/_helpers_gmid_axis.py", "line": 16, "how": "def", "name": "axis_curve", "scope": "<module>", "text": "def axis_curve(memo, quantity, kind, w_key, L, vds, vsb, node_values):"}
+{"file": "lut/_helpers_gmid_axis.py", "line": 22, "how": "call", "name": "gm_id_curve", "scope": "axis_curve", "text": "curve = gm_id_curve(memo, kind, w_key, L, vds, vsb)"}
+{"file": "lut/_helpers_loo.py", "line": 131, "how": "def", "name": "branch_targets", "scope": "<module>", "text": "def branch_targets(g, on_curve):"}
+{"file": "lut/_helpers_root.py", "line": 20, "how": "def", "name": "peak_index", "scope": "<module>", "text": "def peak_index(g):"}
+{"file": "lut/_helpers_root.py", "line": 25, "how": "def", "name": "strong_inversion_root", "scope": "<module>", "text": "def strong_inversion_root(v, y, m, targets):"}
+{"file": "lut/_helpers_root.py", "line": 53, "how": "def", "name": "monotone_end", "scope": "<module>", "text": "def monotone_end(q, p):"}
+{"file": "lut/curve_check.py", "line": 12, "how": "import", "name": "peak_index", "scope": "<module>"}
+{"file": "lut/curve_check.py", "line": 42, "how": "def", "name": "curve_report", "scope": "<module>", "text": "def curve_report(memo):"}
+{"file": "lut/curve_check.py", "line": 27, "how": "call", "name": "peak_index", "scope": "_rows_of", "text": "p = peak_index(g)"}
+{"file": "lut/derived_fns.py", "line": 26, "how": "import", "name": "intrinsic_gain_curve", "scope": "<module>"}
+{"file": "lut/derived_fns.py", "line": 30, "how": "import", "name": "vdsat_curve", "scope": "<module>"}
+{"file": "lut/derived_fns.py", "line": 36, "how": "def", "name": "_conduction_ok", "scope": "<module>", "text": "def _conduction_ok(sl, tol):"}
+{"file": "lut/derived_fns.py", "line": 74, "how": "call", "name": "_conduction_ok", "scope": "_edge_costs", "text": "ok, branch_on = _conduction_ok(sl, tol)"}
+{"file": "lut/derived_fns.py", "line": 136, "how": "call", "name": "intrinsic_gain_curve", "scope": "_param_row", "text": "curve = intrinsic_gain_curve(memo, kind, w_key, L, vds, vsb)"}
+{"file": "lut/derived_fns.py", "line": 111, "how": "call", "name": "vdsat_curve", "scope": "_reference_vds", "text": "return vdsat_curve(memo, kind, w_key, float(L), v, vsb).vds"}
+{"file": "lut/derived_fns.py", "line": 40, "how": "peak_text", "name": "peak", "scope": "", "text": "peak = np.argmax(gm_id, axis=1)"}
+{"file": "lut/derived_fns.py", "line": 41, "how": "peak_text", "name": "peak", "scope": "", "text": "branch = np.arange(on.shape[1])[None, :, None, None] >= peak[:, None, :, :]"}
+{"file": "lut/derived_fns.py", "line": 96, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "(\"gm_id\", float(np.exp(log_gm[i_l, i_v, i_d, i_s] - log_id[i_l, i_v, i_d, i_s]))))"}
+{"file": "lut/derived_fns.py", "line": 141, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "x = np.asarray(curve.gm_id, dtype=float)"}
+{"file": "lut/ft_curve.py", "line": 13, "how": "import", "name": "axis_curve", "scope": "<module>"}
+{"file": "lut/ft_curve.py", "line": 17, "how": "def", "name": "ft_curve", "scope": "<module>", "text": "def ft_curve(memo, kind, w_key, L, vds, vsb):"}
+{"file": "lut/ft_curve.py", "line": 31, "how": "call", "name": "axis_curve", "scope": "ft_curve", "text": "return axis_curve(memo, \"ft_hz\", kind, w_key, L, vds, vsb, values)"}
+{"file": "lut/gm_id_curve.py", "line": 20, "how": "def", "name": "gm_id_curve", "scope": "<module>", "text": "def gm_id_curve(memo, kind, w_key, L, vds, vsb):"}
+{"file": "lut/id_inverse.py", "line": 26, "how": "import", "name": "monotone_end", "scope": "<module>"}
+{"file": "lut/id_inverse.py", "line": 26, "how": "import", "name": "peak_index", "scope": "<module>"}
+{"file": "lut/id_inverse.py", "line": 27, "how": "import", "name": "gm_id_curve", "scope": "<module>"}
+{"file": "lut/id_inverse.py", "line": 32, "how": "def", "name": "gm_id_for_target", "scope": "<module>", "text": "def gm_id_for_target(memo, kind, w_key, L, vds, vsb, *, W, gm=None, current=None):"}
+{"file": "lut/id_inverse.py", "line": 46, "how": "call", "name": "gm_id_curve", "scope": "gm_id_for_target", "text": "curve = gm_id_curve(memo, kind, w_key, L, vds, vsb)"}
+{"file": "lut/id_inverse.py", "line": 56, "how": "call", "name": "peak_index", "scope": "compute", "text": "p = peak_index(curve.gm_id_vals)"}
+{"file": "lut/id_inverse.py", "line": 57, "how": "call", "name": "monotone_end", "scope": "compute", "text": "end = monotone_end(q, p)"}
+{"file": "lut/idu_curve.py", "line": 8, "how": "import", "name": "axis_curve", "scope": "<module>"}
+{"file": "lut/idu_curve.py", "line": 11, "how": "def", "name": "idu_curve", "scope": "<module>", "text": "def idu_curve(memo, kind, w_key, L, vds, vsb):"}
+{"file": "lut/idu_curve.py", "line": 19, "how": "call", "name": "axis_curve", "scope": "idu_curve", "text": "return axis_curve(memo, \"idu_a\", kind, w_key, L, vds, vsb, values)"}
+{"file": "lut/intrinsic_gain_curve.py", "line": 7, "how": "import", "name": "axis_curve", "scope": "<module>"}
+{"file": "lut/intrinsic_gain_curve.py", "line": 11, "how": "def", "name": "intrinsic_gain_curve", "scope": "<module>", "text": "def intrinsic_gain_curve(memo, kind, w_key, L, vds, vsb):"}
+{"file": "lut/intrinsic_gain_curve.py", "line": 17, "how": "call", "name": "axis_curve", "scope": "intrinsic_gain_curve", "text": "return axis_curve(memo, \"intrinsic_gain\", kind, w_key, L, vds, vsb, values)"}
+{"file": "lut/lut_types.py", "line": 22, "how": "name", "name": "TOL_V_METRICS", "scope": "<module>", "text": "TOL_V_METRICS = (\"gm_id_inverse\", \"id_equivalent\")"}
+{"file": "lut/lut_types.py", "line": 22, "how": "str", "name": "gm_id_inverse", "scope": "<module>", "text": "TOL_V_METRICS = (\"gm_id_inverse\", \"id_equivalent\")"}
+{"file": "lut/lut_types.py", "line": 346, "how": "name", "name": "gm_id_inverse_v", "scope": "TolVCell", "text": "gm_id_inverse_v: object"}
+{"file": "lut/lut_types.py", "line": 373, "how": "name", "name": "gm_id_inverse_v", "scope": "MidpointRow", "text": "gm_id_inverse_v: object"}
+{"file": "lut/midpoint_checks.py", "line": 30, "how": "import", "name": "branch_targets", "scope": "<module>"}
+{"file": "lut/midpoint_checks.py", "line": 31, "how": "import", "name": "strong_inversion_root", "scope": "<module>"}
+{"file": "lut/midpoint_checks.py", "line": 56, "how": "call", "name": "branch_targets", "scope": "_inverse", "text": "c, j = branch_targets(truth, on)"}
+{"file": "lut/midpoint_checks.py", "line": 60, "how": "call", "name": "strong_inversion_root", "scope": "_inverse", "text": "root, _ = strong_inversion_root(np.broadcast_to(v, (c.size, v.size)), _curves(y)[c], _curves(g)[c], truth[c, j])"}
+{"file": "lut/midpoint_checks.py", "line": 55, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "truth = _curves(np.where(mt.on_mask[m], mt.gm_id[m], -np.inf))"}
+{"file": "lut/midpoint_checks.py", "line": 55, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "truth = _curves(np.where(mt.on_mask[m], mt.gm_id[m], -np.inf))"}
+{"file": "lut/midpoint_checks.py", "line": 126, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "eq = _vds_max(np.abs(lid - mt.log_ID[m]) / mt.gm_id[m], on)"}
+{"file": "lut/midpoint_checks.py", "line": 126, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "eq = _vds_max(np.abs(lid - mt.log_ID[m]) / mt.gm_id[m], on)"}
+{"file": "lut/tolerance.py", "line": 33, "how": "import", "name": "branch_targets", "scope": "<module>"}
+{"file": "lut/tolerance.py", "line": 48, "how": "import", "name": "strong_inversion_root", "scope": "<module>"}
+{"file": "lut/tolerance.py", "line": 49, "how": "import", "name": "TOL_V_METRICS", "scope": "<module>"}
+{"file": "lut/tolerance.py", "line": 62, "how": "str", "name": "gm_id_inverse_v", "scope": "<module>", "text": "_EXTERNAL_FIELDS = (\"gm_id_inverse_v\", \"id_equivalent_v\")"}
+{"file": "lut/tolerance.py", "line": 163, "how": "call", "name": "branch_targets", "scope": "_inverse_cell", "text": "s_t, j_t = branch_targets(G, on_curve)"}
+{"file": "lut/tolerance.py", "line": 53, "how": "str", "name": "gm_id_inverse", "scope": "<module>", "text": "(\"gm_id_inverse\", \"L\", \"linear\", LINEAR_ORDER),"}
+{"file": "lut/tolerance.py", "line": 54, "how": "str", "name": "gm_id_inverse", "scope": "<module>", "text": "(\"gm_id_inverse\", \"VDS\", \"linear_slope\", LINEAR_ORDER),"}
+{"file": "lut/tolerance.py", "line": 55, "how": "str", "name": "gm_id_inverse", "scope": "<module>", "text": "(\"gm_id_inverse\", \"VGS\", \"hermite_slope\", HERMITE_SLOPE_ORDER),"}
+{"file": "lut/tolerance.py", "line": 56, "how": "str", "name": "gm_id_inverse", "scope": "<module>", "text": "(\"gm_id_inverse\", \"VS\", \"linear\", LINEAR_ORDER),"}
+{"file": "lut/tolerance.py", "line": 185, "how": "call", "name": "strong_inversion_root", "scope": "_inverse_cell", "text": "root, _ = strong_inversion_root(vv, yy, gg, target)"}
+{"file": "lut/tolerance.py", "line": 229, "how": "name", "name": "TOL_V_METRICS", "scope": "at", "text": "if metric not in TOL_V_METRICS:"}
+{"file": "lut/tolerance.py", "line": 286, "how": "name", "name": "TOL_V_METRICS", "scope": "tol_v_table", "text": "(LOO_ORDERS, TOL_V_METRICS, AXES))"}
+{"file": "lut/tolerance.py", "line": 269, "how": "str", "name": "gm_id_inverse", "scope": "compute", "text": "orders = {a: _order(\"gm_id_inverse\", a) for a in AXES}"}
+{"file": "lut/tolerance.py", "line": 242, "how": "attr", "name": "gm_id_inverse_v", "scope": "_checks_of", "text": "l_bin_checks = tuple((r.model, r.gm_id_inverse_v, r.id_equivalent_v) for r in rows)"}
+{"file": "lut/tolerance.py", "line": 230, "how": "name", "name": "TOL_V_METRICS", "scope": "at", "text": "raise ValueError(\"TolVTable.at: metric 은 %s 중 하나\" % (TOL_V_METRICS,))"}
+{"file": "lut/tolerance.py", "line": 277, "how": "str", "name": "gm_id_inverse_v", "scope": "compute", "text": "with_external(opt(inv), ext[\"gm_id_inverse_v\"][k] if ext else None),"}
+{"file": "lut/tolerance.py", "line": 111, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "g = gm_id[i, :, k, :].T"}
+{"file": "lut/tolerance.py", "line": 162, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "G = gm_id[i, :, k, :].T"}
+{"file": "lut/vdsat_curve.py", "line": 7, "how": "import", "name": "axis_curve", "scope": "<module>"}
+{"file": "lut/vdsat_curve.py", "line": 11, "how": "def", "name": "vdsat_curve", "scope": "<module>", "text": "def vdsat_curve(memo, kind, w_key, L, vds, vsb):"}
+{"file": "lut/vdsat_curve.py", "line": 17, "how": "call", "name": "axis_curve", "scope": "vdsat_curve", "text": "return axis_curve(memo, \"vdsat_v\", kind, w_key, L, vds, vsb, values)"}
+{"file": "lut/vgs_current_density.py", "line": 22, "how": "import", "name": "monotone_end", "scope": "<module>"}
+{"file": "lut/vgs_current_density.py", "line": 22, "how": "import", "name": "peak_index", "scope": "<module>"}
+{"file": "lut/vgs_current_density.py", "line": 23, "how": "import", "name": "gm_id_curve", "scope": "<module>"}
+{"file": "lut/vgs_current_density.py", "line": 33, "how": "call", "name": "gm_id_curve", "scope": "vgs_for_current_density", "text": "curve = gm_id_curve(memo, kind, w_key, L, vds, vsb)"}
+{"file": "lut/vgs_current_density.py", "line": 45, "how": "call", "name": "peak_index", "scope": "compute", "text": "p = peak_index(g)"}
+{"file": "lut/vgs_current_density.py", "line": 46, "how": "call", "name": "monotone_end", "scope": "compute", "text": "end = monotone_end(y, p)"}
+{"file": "lut/vgs_root.py", "line": 13, "how": "import", "name": "peak_index", "scope": "<module>"}
+{"file": "lut/vgs_root.py", "line": 13, "how": "import", "name": "strong_inversion_root", "scope": "<module>"}
+{"file": "lut/vgs_root.py", "line": 14, "how": "import", "name": "gm_id_curve", "scope": "<module>"}
+{"file": "lut/vgs_root.py", "line": 17, "how": "def", "name": "vgs_for_gm_id", "scope": "<module>", "text": "def vgs_for_gm_id(memo, kind, w_key, gm_id, L, vds, vsb):"}
+{"file": "lut/vgs_root.py", "line": 26, "how": "call", "name": "gm_id_curve", "scope": "vgs_for_gm_id", "text": "curve = gm_id_curve(memo, kind, w_key, L, vds, vsb)"}
+{"file": "lut/vgs_root.py", "line": 34, "how": "call", "name": "strong_inversion_root", "scope": "compute", "text": "vgs, cell = strong_inversion_root(curve.vgs_grid[None, :], curve.log_id_vals[None, :], g[None, :],"}
+{"file": "lut/vgs_root.py", "line": 37, "how": "call", "name": "peak_index", "scope": "compute", "text": "p = peak_index(g)"}
+{"file": "metrics/achievability_types.py", "line": 42, "how": "name", "name": "METHOD_INVERSE", "scope": "<module>", "text": "METHOD_INVERSE = \"inverse\"          # 단조 Hermite 칸: 역산 허용(`vgs_for_gm_id`, `vgs_for_current_density`)"}
+{"file": "metrics/metrics_aux.py", "line": 209, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "gmid = tuple((m.label, ops[m.label].gm_id) for m in mos)"}
+{"file": "metrics/ss_linearize.py", "line": 11, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "* [NFR-5] `lut_rel_tol` = `dc_op.gm_id · dc_tol_v`(무차원, metrics CONTRACT 9.1) -- tol_V(id_equivalent) = |Δln ID| / (gm/ID) 의 정의를"}
+{"file": "metrics/ss_linearize.py", "line": 74, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "lut_rel_tol=None if tol_v is None else op.gm_id * tol_v,"}
+{"file": "search/__init__.py", "line": 10, "how": "import", "name": "ln_idu_floors", "scope": "<module>"}
+{"file": "search/_helpers_area.py", "line": 11, "how": "import", "name": "curve_bundle_of", "scope": "<module>"}
+{"file": "search/_helpers_area.py", "line": 11, "how": "import", "name": "curve_value", "scope": "<module>"}
+{"file": "search/_helpers_area.py", "line": 32, "how": "call", "name": "curve_bundle_of", "scope": "area_estimate", "text": "bundle = curve_bundle_of(ctx, d.name, d.kind, lengths[d.name])"}
+{"file": "search/_helpers_area.py", "line": 36, "how": "call", "name": "curve_value", "scope": "area_estimate", "text": "per_device[d.name] = current * lengths[d.name] ** 2 / curve_value(bundle, QUANTITY_IDU, gm_id[d.name])"}
+{"file": "search/_helpers_area.py", "line": 36, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "per_device[d.name] = current * lengths[d.name] ** 2 / curve_value(bundle, QUANTITY_IDU, gm_id[d.name])"}
+{"file": "search/_helpers_curves.py", "line": 22, "how": "import", "name": "ft_curve", "scope": "<module>"}
+{"file": "search/_helpers_curves.py", "line": 22, "how": "import", "name": "idu_curve", "scope": "<module>"}
+{"file": "search/_helpers_curves.py", "line": 22, "how": "import", "name": "intrinsic_gain_curve", "scope": "<module>"}
+{"file": "search/_helpers_curves.py", "line": 22, "how": "import", "name": "vdsat_curve", "scope": "<module>"}
+{"file": "search/_helpers_curves.py", "line": 34, "how": "def", "name": "_at_gm_id", "scope": "<module>", "text": "def _at_gm_id(gm_id, values, g, log=False):"}
+{"file": "search/_helpers_curves.py", "line": 51, "how": "def", "name": "hull", "scope": "<module>", "text": "def hull(gm_id, values, level, below=True):"}
+{"file": "search/_helpers_curves.py", "line": 126, "how": "def", "name": "curve_bundle", "scope": "<module>", "text": "def curve_bundle(v, kind, L, vds=None, vsb=None):"}
+{"file": "search/_helpers_curves.py", "line": 140, "how": "def", "name": "curve_bundle_of", "scope": "<module>", "text": "def curve_bundle_of(v, name, kind, L):"}
+{"file": "search/_helpers_curves.py", "line": 148, "how": "def", "name": "curve_value", "scope": "<module>", "text": "def curve_value(bundle, quantity, g):"}
+{"file": "search/_helpers_curves.py", "line": 154, "how": "call", "name": "_at_gm_id", "scope": "curve_value", "text": "return _at_gm_id(curve.gm_id, curve.values, g, log=quantity in _LOG_QUANTITIES)"}
+{"file": "search/_helpers_curves.py", "line": 29, "how": "name", "name": "ft_curve", "scope": "<module>", "text": "_CURVE_FN = ((QUANTITY_FT, ft_curve), (QUANTITY_GAIN, intrinsic_gain_curve), (QUANTITY_VDSAT, vdsat_curve), (QUANTITY_IDU, idu_curve))"}
+{"file": "search/_helpers_curves.py", "line": 29, "how": "name", "name": "intrinsic_gain_curve", "scope": "<module>", "text": "_CURVE_FN = ((QUANTITY_FT, ft_curve), (QUANTITY_GAIN, intrinsic_gain_curve), (QUANTITY_VDSAT, vdsat_curve), (QUANTITY_IDU, idu_curve))"}
+{"file": "search/_helpers_curves.py", "line": 29, "how": "name", "name": "vdsat_curve", "scope": "<module>", "text": "_CURVE_FN = ((QUANTITY_FT, ft_curve), (QUANTITY_GAIN, intrinsic_gain_curve), (QUANTITY_VDSAT, vdsat_curve), (QUANTITY_IDU, idu_curve))"}
+{"file": "search/_helpers_curves.py", "line": 29, "how": "name", "name": "idu_curve", "scope": "<module>", "text": "_CURVE_FN = ((QUANTITY_FT, ft_curve), (QUANTITY_GAIN, intrinsic_gain_curve), (QUANTITY_VDSAT, vdsat_curve), (QUANTITY_IDU, idu_curve))"}
+{"file": "search/_helpers_curves.py", "line": 143, "how": "call", "name": "curve_bundle", "scope": "curve_bundle_of", "text": "found = None if point is None else curve_bundle(v, kind, L, point[0], point[1])"}
+{"file": "search/_helpers_curves.py", "line": 144, "how": "call", "name": "curve_bundle", "scope": "curve_bundle_of", "text": "return curve_bundle(v, kind, L) if found is None else found"}
+{"file": "search/_helpers_curves.py", "line": 152, "how": "call", "name": "_at_gm_id", "scope": "curve_value", "text": "return _at_gm_id(curve.gm_id, curve.vgs, g)"}
+{"file": "search/_helpers_curves.py", "line": 152, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "return _at_gm_id(curve.gm_id, curve.vgs, g)"}
+{"file": "search/_helpers_curves.py", "line": 154, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "return _at_gm_id(curve.gm_id, curve.values, g, log=quantity in _LOG_QUANTITIES)"}
+{"file": "search/_helpers_guard.py", "line": 12, "how": "import", "name": "curve_bundle_of", "scope": "<module>"}
+{"file": "search/_helpers_guard.py", "line": 12, "how": "import", "name": "hull", "scope": "<module>"}
+{"file": "search/_helpers_guard.py", "line": 13, "how": "import", "name": "QUANTITY_GM_ID", "scope": "<module>"}
+{"file": "search/_helpers_guard.py", "line": 86, "how": "call", "name": "hull", "scope": "guard_bounds", "text": "found = hull(nodes, values, level, below=True) if level > 0 else None"}
+{"file": "search/_helpers_guard.py", "line": 71, "how": "call", "name": "curve_bundle_of", "scope": "guard_bounds", "text": "nodes = curve_bundle_of(ctx, d.name, d.kind, lengths[n])[QUANTITY_FT].gm_id"}
+{"file": "search/_helpers_guard.py", "line": 81, "how": "call", "name": "curve_bundle_of", "scope": "guard_bounds", "text": "nodes = curve_bundle_of(ctx, d.name, d.kind, lengths[name])[QUANTITY_FT].gm_id"}
+{"file": "search/_helpers_guard.py", "line": 55, "how": "call", "name": "curve_bundle_of", "scope": "guard_input_gm_id", "text": "nodes = [float(g) for g in curve_bundle_of(ctx, d.name, d.kind, lengths[n])[QUANTITY_FT].gm_id if gm_id_lo[n] <= g <= gm_id_cap[n]] + [gm_id_lo[n]]"}
+{"file": "search/_helpers_guard.py", "line": 5, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "* `guard_bounds(ctx, inputs, loads, term, ratio, lengths, gm_id_lo, g_in, source) -> (bounds, conflicts)`: 부하 합 가드 `Σ_loads term_k(gm/ID_k) ≤ ratio · "}
+{"file": "search/_helpers_guard.py", "line": 47, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "def guard_input_gm_id(ctx, term, inputs, lengths, gm_id_lo, gm_id_cap):"}
+{"file": "search/_helpers_guard.py", "line": 48, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "\"\"\"가드 우변(입력 기여)을 재는 입력 gm/ID -- {입력: g}. 입력 소자가 가질 수 있는 값(하한 `gm_id_lo` ~ 가드가 아닌 경계가 정한 상한 `gm_id_cap`) 중 기여가 최대인 곡선 마디."}
+{"file": "search/_helpers_guard.py", "line": 49, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "부하는 최소·입력은 최대일 때가 가드가 가장 느슨한 경우라서 거짓 충돌을 만들지 않는다. LUT 가 정의하지 못하는 마디(None)는 뺀다. `gm_id_cap` 이 없으면 하한 하나.\"\"\""}
+{"file": "search/_helpers_guard.py", "line": 50, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "if gm_id_cap is None:"}
+{"file": "search/_helpers_guard.py", "line": 51, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "return {n: gm_id_lo[n] for n in inputs}"}
+{"file": "search/_helpers_guard.py", "line": 55, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "nodes = [float(g) for g in curve_bundle_of(ctx, d.name, d.kind, lengths[n])[QUANTITY_FT].gm_id if gm_id_lo[n] <= g <= gm_id_cap[n]] + [gm_id_lo[n]]"}
+{"file": "search/_helpers_guard.py", "line": 55, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "nodes = [float(g) for g in curve_bundle_of(ctx, d.name, d.kind, lengths[n])[QUANTITY_FT].gm_id if gm_id_lo[n] <= g <= gm_id_cap[n]] + [gm_id_lo[n]]"}
+{"file": "search/_helpers_guard.py", "line": 57, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "out[n] = max(scored)[1] if scored else gm_id_lo[n]"}
+{"file": "search/_helpers_guard.py", "line": 61, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "def guard_bounds(ctx, inputs, loads, term, ratio, lengths, gm_id_lo, g_in, source):"}
+{"file": "search/_helpers_guard.py", "line": 71, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "nodes = curve_bundle_of(ctx, d.name, d.kind, lengths[n])[QUANTITY_FT].gm_id"}
+{"file": "search/_helpers_guard.py", "line": 72, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "at_lo = term(n, gm_id_lo[n])"}
+{"file": "search/_helpers_guard.py", "line": 73, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "around = [v for v in [term(n, float(g)) for g in nodes if g >= gm_id_lo[n]] if v is not None]"}
+{"file": "search/_helpers_guard.py", "line": 81, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "nodes = curve_bundle_of(ctx, d.name, d.kind, lengths[name])[QUANTITY_FT].gm_id"}
+{"file": "search/cell_floor.py", "line": 35, "how": "def", "name": "_peak_floor", "scope": "<module>", "text": "def _peak_floor(sctx, kind, w_key, cell):"}
+{"file": "search/cell_floor.py", "line": 93, "how": "def", "name": "ln_idu_floors", "scope": "<module>", "text": "def ln_idu_floors(sctx, variables, cells, one_var_only=False, start=None):"}
+{"file": "search/cell_floor.py", "line": 108, "how": "call", "name": "_peak_floor", "scope": "ln_idu_floors", "text": "parts.append(_peak_floor(sctx, *key))"}
+{"file": "search/cell_floor.py", "line": 46, "how": "peak_text", "name": "peak", "scope": "", "text": "peak = np.argmax(gm_id, axis=1)"}
+{"file": "search/cell_floor.py", "line": 47, "how": "peak_text", "name": "peak", "scope": "", "text": "at_peak = np.take_along_axis(ln_idu, peak[:, None, :, :], axis=1)[:, 0]"}
+{"file": "search/cell_floor.py", "line": 48, "how": "peak_text", "name": "peak", "scope": "", "text": "valid = np.take_along_axis(on, peak[:, None, :, :], axis=1)[:, 0]"}
+{"file": "search/cell_floor.py", "line": 49, "how": "peak_text", "name": "peak", "scope": "", "text": "sctx.cell_floors[key] = float(np.max(np.where(valid, at_peak, -np.inf)))"}
+{"file": "search/constraints.py", "line": 21, "how": "import", "name": "gm_id_curve", "scope": "<module>"}
+{"file": "search/constraints.py", "line": 45, "how": "call", "name": "gm_id_curve", "scope": "constraint_rows", "text": "curve = gm_id_curve(lut_access.memo, op.kind, w_keys[op.kind], op.L, op.vds, op.vsb)"}
+{"file": "search/constraints.py", "line": 11, "how": "peak_text", "name": "peak", "scope": "", "text": "* 반전 하한(D-1 (라), 설계 4.2): 쓰기 소자(`dc_coord.role == writer`)마다 c = (r − r_peak)·(gm/ID)/tol_V. r = 좌표 ln IDu,"}
+{"file": "search/constraints.py", "line": 12, "how": "peak_text", "name": "peak", "scope": "", "text": "r_peak = 그 소자 동작점 (L, VDS, VSB) 의 gm/ID 곡선 정점 ln IDu(lut `gm_id_curve`, memo), gm/ID = dc_op 순방향 값."}
+{"file": "search/constraints.py", "line": 46, "how": "peak_text", "name": "peak", "scope": "", "text": "peak = int(np.argmax(curve.gm_id_vals))"}
+{"file": "search/constraints.py", "line": 48, "how": "peak_text", "name": "peak", "scope": "", "text": "r_peak = math.log(float(curve.id_vals[peak])) + math.log(op.L) - math.log(w_m)"}
+{"file": "search/constraints.py", "line": 49, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "rows.append(_row(CON_INVERSION + \":\" + m, (op.ln_idu - r_peak) * op.gm_id / tol))"}
+{"file": "search/constraints.py", "line": 49, "how": "peak_text", "name": "peak", "scope": "", "text": "rows.append(_row(CON_INVERSION + \":\" + m, (op.ln_idu - r_peak) * op.gm_id / tol))"}
+{"file": "search/fd_jacobian.py", "line": 46, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "defined = [tols[m] * ops[m].gm_id for m in ops if tols.get(m)]"}
+{"file": "search/fd_jacobian.py", "line": 64, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "steps.append(_cell_width(sl.VGS_grid, op.vgs) * op.gm_id)"}
+{"file": "search/fd_jacobian.py", "line": 70, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "rel = [tols[m] * ops[m].gm_id for m in sources.get(key, ()) if tols.get(m)]"}
+{"file": "search/front_query.py", "line": 15, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "_OP_FIELDS = (\"vgs\", \"vds\", \"vsb\", \"current\", \"gm_id\", \"W\", \"L\")"}
+{"file": "search/iv_area.py", "line": 28, "how": "import", "name": "curve_bundle_of", "scope": "<module>"}
+{"file": "search/iv_area.py", "line": 28, "how": "import", "name": "curve_value", "scope": "<module>"}
+{"file": "search/iv_area.py", "line": 28, "how": "import", "name": "hull", "scope": "<module>"}
+{"file": "search/iv_area.py", "line": 29, "how": "import", "name": "QUANTITY_GM_ID", "scope": "<module>"}
+{"file": "search/iv_area.py", "line": 59, "how": "call", "name": "curve_bundle_of", "scope": "_per_amp", "text": "bundle = curve_bundle_of(ctx, name, kind, L)"}
+{"file": "search/iv_area.py", "line": 72, "how": "call", "name": "hull", "scope": "area_bounds", "text": "low = hull(g, np.log(width), math.log(ctx.w_min_m), below=False)      # IDu 는 log 보간 -- log W 위에서 교차를 구한다"}
+{"file": "search/iv_area.py", "line": 106, "how": "call", "name": "hull", "scope": "area_bounds", "text": "top = hull(g, gm_k * lengths[d.name] ** 2 / (g * idu), avail, below=True)"}
+{"file": "search/iv_area.py", "line": 100, "how": "call", "name": "curve_bundle_of", "scope": "area_bounds", "text": "anchor = curve_bundle_of(ctx, d.name, d.kind, L)"}
+{"file": "search/iv_area.py", "line": 101, "how": "call", "name": "curve_value", "scope": "area_bounds", "text": "if anchor is not None and gm * L ** 2 / (gm_id_lo[d.name] * curve_value(anchor, QUANTITY_IDU, gm_id_lo[d.name])) <= avail:"}
+{"file": "search/iv_area.py", "line": 3, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "진입점: `area_bounds(ctx, currents, lengths, gm_id_lo) -> AreaBounds`."}
+{"file": "search/iv_area.py", "line": 5, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "**gm 이 고정된 전류 모델**: 1회차(`gm_id_lo`)의 소자 전류 I_k 에서 gm_k = I_k·gm/ID_lo,k 를 정하고, gm/ID = g 일 때 전류는 I_k(g) = gm_k / g 다(매크로 모델이 정하는 것은 gm 이고 전류는 gm/ID 에 "}
+{"file": "search/iv_area.py", "line": 55, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "def _per_amp(ctx, name, kind, L, currents, gm_id_lo):"}
+{"file": "search/iv_area.py", "line": 61, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "return np.asarray(curve.gm_id, dtype=float), np.asarray(curve.values, dtype=float), currents[name] * gm_id_lo[name]"}
+{"file": "search/iv_area.py", "line": 61, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "return np.asarray(curve.gm_id, dtype=float), np.asarray(curve.values, dtype=float), currents[name] * gm_id_lo[name]"}
+{"file": "search/iv_area.py", "line": 64, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "def area_bounds(ctx, currents, lengths, gm_id_lo):"}
+{"file": "search/iv_area.py", "line": 67, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "nodes = _per_amp(ctx, d.name, d.kind, lengths[d.name], currents, gm_id_lo)"}
+{"file": "search/iv_area.py", "line": 86, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "_total, per_device, passive = area_estimate(ctx, currents, gm_id_lo, lengths, low_values, low_values)"}
+{"file": "search/iv_area.py", "line": 96, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "gm = currents[d.name] * gm_id_lo[d.name]"}
+{"file": "search/iv_area.py", "line": 101, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "if anchor is not None and gm * L ** 2 / (gm_id_lo[d.name] * curve_value(anchor, QUANTITY_IDU, gm_id_lo[d.name])) <= avail:"}
+{"file": "search/iv_area.py", "line": 105, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "g, idu, gm_k = _per_amp(ctx, d.name, d.kind, lengths[d.name], currents, gm_id_lo)"}
+{"file": "search/iv_currents.py", "line": 28, "how": "import", "name": "curve_bundle_of", "scope": "<module>"}
+{"file": "search/iv_currents.py", "line": 28, "how": "import", "name": "curve_value", "scope": "<module>"}
+{"file": "search/iv_currents.py", "line": 100, "how": "call", "name": "curve_bundle_of", "scope": "_per_amp", "text": "bundle = curve_bundle_of(ctx, d.name, d.kind, lengths[d.name])"}
+{"file": "search/iv_currents.py", "line": 104, "how": "call", "name": "curve_value", "scope": "_per_amp", "text": "idu = curve_value(bundle, QUANTITY_IDU, gm_id[d.name])"}
+{"file": "search/iv_currents.py", "line": 107, "how": "call", "name": "curve_value", "scope": "_per_amp", "text": "c = caps(ctx.memo, d.kind, lengths[d.name], curve_value(bundle, QUANTITY_VGS, gm_id[d.name]), bundle[QUANTITY_IDU].vds,"}
+{"file": "search/iv_currents.py", "line": 104, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "idu = curve_value(bundle, QUANTITY_IDU, gm_id[d.name])"}
+{"file": "search/iv_currents.py", "line": 107, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "c = caps(ctx.memo, d.kind, lengths[d.name], curve_value(bundle, QUANTITY_VGS, gm_id[d.name]), bundle[QUANTITY_IDU].vds,"}
+{"file": "search/iv_currents.py", "line": 130, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "rhs[i] = 1.0 / gm_id[name]"}
+{"file": "search/iv_currents.py", "line": 142, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "equations.append((ctx.by_name[name].colour, name, gm_ff / gm_id[name]))"}
+{"file": "search/iv_domain.py", "line": 22, "how": "import", "name": "idu_curve", "scope": "<module>"}
+{"file": "search/iv_domain.py", "line": 24, "how": "import", "name": "curve_bundle_of", "scope": "<module>"}
+{"file": "search/iv_domain.py", "line": 25, "how": "import", "name": "QUANTITY_GM_ID", "scope": "<module>"}
+{"file": "search/iv_domain.py", "line": 60, "how": "call", "name": "idu_curve", "scope": "_idu_curve", "text": "return idu_curve(ctx.memo, kind, ctx.w_keys[kind], float(L), float(vds), float(slice_of(ctx, kind).grids[3][0]))"}
+{"file": "search/iv_domain.py", "line": 82, "how": "call", "name": "curve_bundle_of", "scope": "domain_bounds", "text": "ref = curve_bundle_of(ctx, d.name, d.kind, L)"}
+{"file": "search/iv_domain.py", "line": 88, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "for j in range(len(curve.gm_id)):"}
+{"file": "search/iv_domain.py", "line": 97, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "usable.append(float(curve.gm_id[j]))"}
+{"file": "search/iv_domain.py", "line": 97, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "usable.append(float(curve.gm_id[j]))"}
+{"file": "search/iv_gain_l.py", "line": 3, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "진입점: `gain_l_bounds(ctx, elements, resistors, gm_id_lo) -> GainLBounds`(1회차 매크로 뒤). 입력 묶음 `GainInputs` 는 출발 구간 블록 호출 안에서 `iv_context.start_view` 가 만든다"}
+{"file": "search/iv_gain_l.py", "line": 98, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "def gain_l_bounds(ctx, elements, resistors, gm_id_lo):"}
+{"file": "search/iv_gain_l.py", "line": 116, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "row = _row(ctx, inputs, model, j, gm_id_lo, elements, resistors)"}
+{"file": "search/iv_headroom.py", "line": 28, "how": "import", "name": "curve_bundle", "scope": "<module>"}
+{"file": "search/iv_headroom.py", "line": 28, "how": "import", "name": "hull", "scope": "<module>"}
+{"file": "search/iv_headroom.py", "line": 29, "how": "import", "name": "QUANTITY_GM_ID", "scope": "<module>"}
+{"file": "search/iv_headroom.py", "line": 148, "how": "call", "name": "hull", "scope": "_lower_bound", "text": "found = hull(curve.gm_id, values, level, below=True)"}
+{"file": "search/iv_headroom.py", "line": 159, "how": "call", "name": "curve_bundle", "scope": "headroom_bounds", "text": "bundle = curve_bundle(ctx, d.kind, lengths[d.name])"}
+{"file": "search/iv_headroom.py", "line": 148, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "found = hull(curve.gm_id, values, level, below=True)"}
+{"file": "search/iv_matching_l.py", "line": 26, "how": "import", "name": "curve_bundle_of", "scope": "<module>"}
+{"file": "search/iv_matching_l.py", "line": 26, "how": "import", "name": "curve_value", "scope": "<module>"}
+{"file": "search/iv_matching_l.py", "line": 62, "how": "call", "name": "curve_bundle_of", "scope": "_sigma_vgs", "text": "bundle = curve_bundle_of(ctx, d.name, d.kind, L)"}
+{"file": "search/iv_matching_l.py", "line": 64, "how": "call", "name": "curve_value", "scope": "_sigma_vgs", "text": "vgs = curve_value(bundle, QUANTITY_VGS, g)"}
+{"file": "search/iv_matching_l.py", "line": 63, "how": "call", "name": "curve_value", "scope": "_sigma_vgs", "text": "w = max(current * L / curve_value(bundle, QUANTITY_IDU, g), ctx.w_min_m)      # 실현 폭은 PDK 최소 finger 폭 W_min 이상(W 하한 제약 S-18): 그 아래 폭은 mismatch 모델 bin "}
+{"file": "search/iv_matching_l.py", "line": 91, "how": "call", "name": "curve_bundle_of", "scope": "_l_lower", "text": "anchors = [L for L in l_anchors(ctx, d.kind) if curve_bundle_of(ctx, d.name, d.kind, L) is not None]"}
+{"file": "search/iv_matching_l.py", "line": 76, "how": "call", "name": "curve_bundle_of", "scope": "_sigma_from", "text": "for node in sorted(float(x) for x in curve_bundle_of(ctx, d.name, d.kind, L)[QUANTITY_IDU].gm_id if x > g):"}
+{"file": "search/iv_matching_l.py", "line": 129, "how": "call", "name": "curve_bundle_of", "scope": "matching_bounds", "text": "L = max(a for a in l_anchors(ctx, ctx.by_name[name].kind) if curve_bundle_of(ctx, name, ctx.by_name[name].kind, a) is not None)"}
+{"file": "search/iv_matching_l.py", "line": 3, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "진입점: `matching_bounds(ctx, currents, lengths, gm_id_lo) -> MatchingBounds`."}
+{"file": "search/iv_matching_l.py", "line": 14, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "* **가드의 입력 쪽 gm/ID**: 입력 기여는 입력 소자가 가질 수 있는 최대(가드 아닌 경계가 정한 상한 `gm_id_cap`, 없으면 하한)에서 잰다 -- 부하는 최소·입력은 최대가 '가능한 가장 느슨한 경우'라서"}
+{"file": "search/iv_matching_l.py", "line": 76, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "for node in sorted(float(x) for x in curve_bundle_of(ctx, d.name, d.kind, L)[QUANTITY_IDU].gm_id if x > g):"}
+{"file": "search/iv_matching_l.py", "line": 106, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "def matching_bounds(ctx, currents, lengths, gm_id_lo, gm_id_cap=None):"}
+{"file": "search/iv_matching_l.py", "line": 125, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "L = _l_lower(ctx, name, currents[name], gm_id_lo[name], share)"}
+{"file": "search/iv_matching_l.py", "line": 139, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "found, lost = guard_bounds(ctx, inputs, loads, term, min(guard) ** 2 - 1, lengths, gm_id_lo,"}
+{"file": "search/iv_matching_l.py", "line": 140, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "guard_input_gm_id(ctx, term, inputs, lengths, gm_id_lo, gm_id_cap), SRC_OFFSET_GUARD)"}
+{"file": "search/iv_noise.py", "line": 21, "how": "import", "name": "curve_bundle_of", "scope": "<module>"}
+{"file": "search/iv_noise.py", "line": 21, "how": "import", "name": "curve_value", "scope": "<module>"}
+{"file": "search/iv_noise.py", "line": 56, "how": "call", "name": "curve_bundle_of", "scope": "_white_density", "text": "bundle = curve_bundle_of(ctx, d.name, d.kind, L)"}
+{"file": "search/iv_noise.py", "line": 58, "how": "call", "name": "curve_value", "scope": "_white_density", "text": "params = noise_params(ctx.memo, d.kind, d.w_key, L, curve_value(bundle, QUANTITY_VGS, g), curve.vds, curve.vsb)"}
+{"file": "search/iv_noise.py", "line": 61, "how": "call", "name": "curve_value", "scope": "_white_density", "text": "w = max(current * L / curve_value(bundle, QUANTITY_IDU, g), ctx.w_min_m)          # 실현 폭은 PDK 최소 finger 폭 이상"}
+{"file": "search/iv_noise.py", "line": 3, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "진입점: `noise_bounds(ctx, currents, lengths, gm_id_lo) -> NoiseBounds`."}
+{"file": "search/iv_noise.py", "line": 65, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "def noise_bounds(ctx, currents, lengths, gm_id_lo, gm_id_cap=None):"}
+{"file": "search/iv_noise.py", "line": 85, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "bounds, conflicts = guard_bounds(ctx, inputs, loads, term, min(guard) - 1, lengths, gm_id_lo,"}
+{"file": "search/iv_noise.py", "line": 86, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "guard_input_gm_id(ctx, term, inputs, lengths, gm_id_lo, gm_id_cap), SRC_NOISE_GUARD)"}
+{"file": "search/iv_speed.py", "line": 18, "how": "import", "name": "curve_bundle_of", "scope": "<module>"}
+{"file": "search/iv_speed.py", "line": 18, "how": "import", "name": "curve_value", "scope": "<module>"}
+{"file": "search/iv_speed.py", "line": 18, "how": "import", "name": "hull", "scope": "<module>"}
+{"file": "search/iv_speed.py", "line": 19, "how": "import", "name": "QUANTITY_GM_ID", "scope": "<module>"}
+{"file": "search/iv_speed.py", "line": 63, "how": "call", "name": "curve_bundle_of", "scope": "speed_bounds", "text": "bundle = curve_bundle_of(ctx, d.name, d.kind, lengths[d.name])"}
+{"file": "search/iv_speed.py", "line": 66, "how": "call", "name": "hull", "scope": "speed_bounds", "text": "top = hull(curve.gm_id, curve.values, f_np, below=False)"}
+{"file": "search/iv_speed.py", "line": 73, "how": "call", "name": "curve_bundle_of", "scope": "speed_bounds", "text": "anchor = curve_bundle_of(ctx, d.name, d.kind, L)"}
+{"file": "search/iv_speed.py", "line": 78, "how": "call", "name": "curve_value", "scope": "speed_bounds", "text": "if curve_value(anchor, QUANTITY_FT, g) >= f_np:"}
+{"file": "search/iv_speed.py", "line": 3, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "진입점: `speed_bounds(ctx, dominant, lengths, gm_id_lo) -> SpeedBounds`."}
+{"file": "search/iv_speed.py", "line": 51, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "def speed_bounds(ctx, dominant, lengths, gm_id_lo):"}
+{"file": "search/iv_speed.py", "line": 66, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "top = hull(curve.gm_id, curve.values, f_np, below=False)"}
+{"file": "search/iv_speed.py", "line": 77, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "g = min(max(gm_id_lo.get(d.name, float(min(ft.gm_id))), float(min(ft.gm_id))), float(max(ft.gm_id)))"}
+{"file": "search/iv_speed.py", "line": 77, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "g = min(max(gm_id_lo.get(d.name, float(min(ft.gm_id))), float(min(ft.gm_id))), float(max(ft.gm_id)))"}
+{"file": "search/layer0_center.py", "line": 53, "how": "import", "name": "ln_idu_floors", "scope": "<module>"}
+{"file": "search/layer0_center.py", "line": 468, "how": "call", "name": "ln_idu_floors", "scope": "_repair", "text": "floors = ln_idu_floors(sctx, variables, cells)"}
+{"file": "search/layer0_center.py", "line": 565, "how": "call", "name": "ln_idu_floors", "scope": "_halton_probe", "text": "floors = ln_idu_floors(sctx, variables, cells)"}
+{"file": "search/layer0_center.py", "line": 292, "how": "call", "name": "ln_idu_floors", "scope": "_maxmin", "text": "for i, floor in ln_idu_floors(sctx, variables, cells, one_var_only=True, start=theta0).items():"}
+{"file": "search/macro_poles.py", "line": 34, "how": "import", "name": "curve_bundle_of", "scope": "<module>"}
+{"file": "search/macro_poles.py", "line": 34, "how": "import", "name": "curve_value", "scope": "<module>"}
+{"file": "search/macro_poles.py", "line": 84, "how": "call", "name": "curve_bundle_of", "scope": "__init__", "text": "bundle = curve_bundle_of(ctx, d.name, d.kind, lengths[d.name])"}
+{"file": "search/macro_poles.py", "line": 91, "how": "call", "name": "curve_value", "scope": "__init__", "text": "self.a_intr.append(None if bundle is None else curve_value(bundle, QUANTITY_GAIN, gm_id[d.name]))"}
+{"file": "search/macro_poles.py", "line": 91, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "self.a_intr.append(None if bundle is None else curve_value(bundle, QUANTITY_GAIN, gm_id[d.name]))"}
+{"file": "search/macro_poles.py", "line": 155, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "total = sum(float(self.model.mos[x][:-1] @ gm + self.model.mos[x][-1]) * gm_id[x] for x in cells if x in self.model.mos)"}
+{"file": "search/macro_poles.py", "line": 285, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "lo = [math.log(box[i][0] * gm_id[first[i].name]) for i in range(nb)]"}
+{"file": "search/macro_poles.py", "line": 286, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "hi = [math.log(box[i][1] * gm_id[first[i].name]) for i in range(nb)]"}
+{"file": "search/search_domain.py", "line": 54, "how": "peak_text", "name": "peak", "scope": "", "text": "peak = np.argmax(gm_id, axis=1)                                         # VGS 축(1) 위 정점 index"}
+{"file": "search/search_domain.py", "line": 55, "how": "peak_text", "name": "peak", "scope": "", "text": "at_peak = np.take_along_axis(ln_idu, peak[:, None, :, :], axis=1)[:, 0]"}
+{"file": "search/search_domain.py", "line": 56, "how": "peak_text", "name": "peak", "scope": "", "text": "valid = np.take_along_axis(on, peak[:, None, :, :], axis=1)[:, 0]"}
+{"file": "search/search_domain.py", "line": 57, "how": "peak_text", "name": "peak", "scope": "", "text": "lo = float(np.min(np.where(valid, at_peak, np.inf)))"}
+{"file": "search/slsqp_outer.py", "line": 36, "how": "import", "name": "ln_idu_floors", "scope": "<module>"}
+{"file": "search/slsqp_outer.py", "line": 66, "how": "call", "name": "ln_idu_floors", "scope": "_layout", "text": "for i, floor in ln_idu_floors(sctx, variables, start.cells, one_var_only=True, start=theta).items():"}
+{"file": "search/start_intervals.py", "line": 44, "how": "import", "name": "curve_bundle", "scope": "<module>"}
+{"file": "search/start_intervals.py", "line": 44, "how": "import", "name": "curve_bundle_of", "scope": "<module>"}
+{"file": "search/start_intervals.py", "line": 44, "how": "import", "name": "curve_value", "scope": "<module>"}
+{"file": "search/start_intervals.py", "line": 57, "how": "import", "name": "QUANTITY_GM_ID", "scope": "<module>"}
+{"file": "search/start_intervals.py", "line": 139, "how": "call", "name": "curve_bundle_of", "scope": "_width_floor_gm_id", "text": "bundle = curve_bundle_of(ctx, d.name, d.kind, length)"}
+{"file": "search/start_intervals.py", "line": 126, "how": "call", "name": "curve_bundle_of", "scope": "_state", "text": "bundle = curve_bundle_of(ctx, d.name, d.kind, lengths[d.name])"}
+{"file": "search/start_intervals.py", "line": 316, "how": "call", "name": "curve_bundle_of", "scope": "start_intervals", "text": "bundles = {d.name: curve_bundle_of(ctx, d.name, d.kind, chosen_L[d.name]) for d in devices}"}
+{"file": "search/start_intervals.py", "line": 445, "how": "call", "name": "curve_value", "scope": "_report", "text": "idu = curve_value(bundles[d.name], QUANTITY_IDU, g[d.name])"}
+{"file": "search/start_intervals.py", "line": 197, "how": "call", "name": "curve_bundle", "scope": "_snap", "text": "if curve_bundle(ctx, d.kind, pick) is not None:"}
+{"file": "search/start_intervals.py", "line": 265, "how": "call", "name": "curve_bundle", "scope": "start_intervals", "text": "lut_range = {d.name: _curve_range(curve_bundle(ctx, d.kind, first_L[d.name])) for d in devices}"}
+{"file": "search/start_intervals.py", "line": 143, "how": "call", "name": "curve_value", "scope": "excess", "text": "return target - current * length / curve_value(bundle, QUANTITY_IDU, x)       # > 0 : 폭 부족"}
+{"file": "search/start_intervals.py", "line": 200, "how": "call", "name": "curve_bundle", "scope": "_snap", "text": "if pick <= anchor <= hi and curve_bundle(ctx, d.kind, anchor) is not None:"}
+{"file": "search/start_intervals.py", "line": 128, "how": "call", "name": "curve_value", "scope": "_state", "text": "refs[d.name] = max(scale, ctx.w_min_m * curve_value(bundle, QUANTITY_IDU, gm_id[d.name]) / lengths[d.name])"}
+{"file": "search/start_intervals.py", "line": 188, "how": "call", "name": "curve_bundle", "scope": "_first_defined", "text": "return next((L for L in l_anchors(ctx, d.kind) if lo <= L <= hi and curve_bundle(ctx, d.kind, L) is not None), None)"}
+{"file": "search/start_intervals.py", "line": 339, "how": "name", "name": "QUANTITY_GM_ID", "scope": "start_intervals", "text": "conflicts.extend(c for c in part.conflicts if c.quantity == QUANTITY_GM_ID)"}
+{"file": "search/start_intervals.py", "line": 422, "how": "call", "name": "curve_value", "scope": "_rung", "text": "theta.append((component, math.log(curve_value(bundles[key], QUANTITY_IDU, g[key]))))"}
+{"file": "search/start_intervals.py", "line": 338, "how": "name", "name": "QUANTITY_GM_ID", "scope": "start_intervals", "text": "g_items[name].extend(b for b in items if b.quantity == QUANTITY_GM_ID)"}
+{"file": "search/start_intervals.py", "line": 331, "how": "name", "name": "QUANTITY_GM_ID", "scope": "start_intervals", "text": "if b.quantity == QUANTITY_GM_ID and b.side == SIDE_HI]) for d in devices}"}
+{"file": "search/start_intervals.py", "line": 128, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "refs[d.name] = max(scale, ctx.w_min_m * curve_value(bundle, QUANTITY_IDU, gm_id[d.name]) / lengths[d.name])"}
+{"file": "search/start_intervals.py", "line": 147, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "nodes = np.asarray(bundle[QUANTITY_IDU].gm_id, dtype=float)"}
+{"file": "search/start_intervals.py", "line": 207, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "g = np.asarray(bundle[QUANTITY_FT].gm_id, dtype=float)"}
+{"file": "search/start_intervals.py", "line": 322, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "g_items = {d.name: [b for b in head2.bounds.get(d.name, ()) if b.value > float(min(bundles[d.name][QUANTITY_FT].gm_id)) * (1 + _REL)] + list(dom2.boun"}
+{"file": "search/start_intervals.py", "line": 324, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "g_lo = {d.name: max([float(min(bundles[d.name][QUANTITY_FT].gm_id))] + _side(head2.bounds.get(d.name, ()), QUANTITY_GM_ID, SIDE_LO)"}
+{"file": "search/start_intervals.py", "line": 329, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "g_cap = {d.name: min([float(max(bundles[d.name][QUANTITY_FT].gm_id))] + _side(g_items[d.name], QUANTITY_GM_ID, SIDE_HI)"}
+{"file": "search/start_intervals.py", "line": 341, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "raw_hi = {d.name: min([float(max(bundles[d.name][QUANTITY_FT].gm_id))] + _side(g_items[d.name], QUANTITY_GM_ID, SIDE_HI)) for d in devices}"}
+{"file": "search/start_values.py", "line": 16, "how": "name", "name": "QUANTITY_GM_ID", "scope": "<module>", "text": "QUANTITY_GM_ID = \"gm_id\""}
+{"file": "search/start_values.py", "line": 8, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "* `StartRow` = 소자 하나의 보고 행(41 §6.6 `start_intervals[{device, gm_id_lo/hi/chosen, L_lo/hi/chosen, bin, I_start, sources, inactive_reasons, conflicts}]`"}
+{"file": "search/start_values.py", "line": 16, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "QUANTITY_GM_ID = \"gm_id\""}
+{"file": "search/start_values.py", "line": 101, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "gm_id_lo: object"}
+{"file": "search/start_values.py", "line": 102, "how": "gm_coord_text", "name": "gm_id_coord", "scope": "", "text": "gm_id_hi: object"}
+{"file": "sizing/seal_conduction.py", "line": 9, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "* ε = (gm/ID)·tol_V -- `dc_op.gm_id` 와 `device.dc_tol_v`(id_equivalent tol_V 셀). metrics 9절 ε_d(`lut_rel_tol`)와 같은 소자 자기"}
+{"file": "sizing/seal_conduction.py", "line": 44, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "eps = None if tol_v.get(m) is None else op.gm_id * tol_v[m]"}
+{"file": "sizing/seal_kvl_branch.py", "line": 29, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "residual = sum(abs(math.log(ops[m].idu_forward) - ops[m].ln_idu) / ops[m].gm_id for m in edge.members)"}
+{"file": "sizing/seal_tolerances.py", "line": 8, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "* `device.dc_gm` = 그 소자 ID × 그 동작점(L, VGS, VDS, VSB)의 LUT gm/ID(`dc_op.gm_id` × `dc_op.current`, S) -- dc 단계 gm 의 유일한"}
+{"file": "sizing/seal_tolerances.py", "line": 30, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "gm[m] = op.gm_id * op.current"}
+{"file": "sizing/seal_vgs_match.py", "line": 25, "how": "gm_id_field_text", "name": "gm_id", "scope": "", "text": "mismatch = abs(math.log(op.idu_forward) - op.ln_idu) / op.gm_id"}

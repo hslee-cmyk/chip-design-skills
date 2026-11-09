@@ -1,0 +1,11 @@
+# 검증 45 직접 확인 기록 (읽기 전용, 2026-10-31)
+## nmcnr_amplifier.sizing_spec.json "metric" 행: 83 gain_ss_db, 95 gbw_ss_hz, 107 pm_ss_deg, 117 icmr_v, 129 swing_out_v, 141 offset_excess, 151 noise_excess_th, 161 area_search_m2, 173 gain_ss_db(pending SP-4), 177 ratio_ss_db(pending SP-7); intended_region 199-200 {"pending": "CI-18"}  -- v5 인용과 같음
+##   (주의: 173·177은 '측정 구성' 제약이 아니라 pending_constraints(decision SP-4·SP-7) 항목)
+## ngcc_3stage_ff.sizing_spec.json: 63 gain_ss_db, 75 gbw_ss_hz, 87 pm_ss_deg, 99 icmr_v, 111 offset_excess, 121 noise_excess_th, 131 area_search_m2, 143 gain_ss_db; intended_region 164-165 pending CI-18 -- v5 인용과 같음
+## "metric": "icmr_v" 를 가진 spec: nmcnr·ngcc 2/13 -- v5와 같음
+## 그러나 ICMR 창 경계를 읽는 다른 판정 제약 "icm_margin_v" (>= 0):
+##   current_reuse_telescopic_ota.sizing_spec.json:257  _comment "선언 입력 DC 와 ICMR 창 경계의 최소 거리 >= 0"
+##   sf_pushpull_output_opamp.sizing_spec.json:141       record "선언 입력 DC가 ICMR 창 안, design 40 §3.8-8·§9.2, 41 §4.6"
+##   계획 P:716 metric 표: `icmr_v`·`icm_margin_v` 를 같은 행(DC 동작 범위 보고 양, ICMR 정의 = N3.8 'ICMR 측정 구성'(servo))으로 둠; P:1041 ICMR 둘
+##   => ICMR 창을 판정에 쓰는 회로 = 4/13 (icmr_v 2 + icm_margin_v 2). v5 §2.4.5 '영향 범위 = 두 회로', Q-1 ⚠·Q-1b (가) 'icmr_v 판정 제약'만 -- icm_margin_v 누락
+## v5 문서 grep: 'ss_nodal' 0건, 'icm_margin' 0건; 금지어 0건

@@ -1,0 +1,41 @@
+........................................................................ [  6%]
+........................................................................ [ 13%]
+........................................................................ [ 20%]
+........................................................................ [ 27%]
+........................................................................ [ 33%]
+.......xxxxxx..xF........xxxxx.......................................... [ 40%]
+........................................................................ [ 47%]
+........................................................................ [ 54%]
+........................................................................ [ 61%]
+........................................................................ [ 67%]
+........................................................................ [ 74%]
+........................................................................ [ 81%]
+..................................x...x................................. [ 88%]
+........................................................................ [ 94%]
+..........................x...........................                   [100%]
+================================== FAILURES ===================================
+__________________ test_gate_docstring_declares_blind_spots ___________________
+
+    @pytest.mark.gmid_ic("IC5", phase="1", case="")
+    def test_gate_docstring_declares_blind_spots():
+        # oracle (d): 계획 N4.1 IC5, `00-common` §5(+C1), design §5.6 형식·영역 표(spec card 계약 1~3).
+        assert _HARNESS.is_file(), f"design §5.6 소스 분류 파일이 없다: {_HARNESS}"
+        targets = []
+        for path in _source_files():
+            targets.extend(_collect_targets(path.read_text(encoding="utf-8"), path.name))
+    
+        # (1) 공허한 통과 방지.
+        assert len(targets) >= 1, "IC5 대상 함수가 0개다"
+    
+        # 표의 21개가 대상 집합 안에 있어야 (3)이 공허하지 않다.
+        found_keys = {(f, n) for f, n, _, _ in targets}
+        missing = sorted(set(_DOMAIN_TABLE) - found_keys)
+>       assert not missing, f"design §5.6 영역 표의 함수가 대상에 없다({len(missing)}개): {missing}"
+E       AssertionError: design §5.6 영역 표의 함수가 대상에 없다(3개): [('sizing_recipe.py', 'validate_metric_units'), ('sizing_recipe.py', 'validate_no_legacy_vs_key'), ('stick_diagram.py', 'audit_theta_root_direction')]
+E       assert not [('sizing_recipe.py', 'validate_metric_units'), ('sizing_recipe.py', 'validate_no_legacy_vs_key'), ('stick_diagram.py', 'audit_theta_root_direction')]
+
+C:\g226\pt\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py:139: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\..\..\..\..\..\g226\pt\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_gate_docstring_declares_blind_spots
+1 failed, 1046 passed, 15 xfailed in 284.93s (0:04:44)
+exit=1 seconds=295

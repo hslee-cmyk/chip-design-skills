@@ -1,0 +1,2 @@
+rev=b7739d2e64a9c507b1bc02dad025a63e7448f0fd rc=0 elapsed_s=446
+890 passed, 15 xfailed in 432.89s (0:07:12)

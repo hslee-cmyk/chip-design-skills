@@ -1,0 +1,203 @@
+{
+ "circuit": "folded_cascode",
+ "theta": {
+  "Ibg": 5e-07,
+  "r_split_M1_M2": 0.5,
+  "r_mirror_M3_M4": 1.5,
+  "kcl_fold_M6": 1.0,
+  "kcl_fold_M5": 1.0
+ },
+ "vs_grid": [
+  0.0,
+  0.2,
+  0.4,
+  0.6,
+  0.8
+ ],
+ "conflicts": [
+  [
+   "M4",
+   "Y",
+   0.0,
+   1.6,
+   1.6
+  ],
+  [
+   "M1",
+   "X",
+   1.6,
+   0.0,
+   1.6
+  ],
+  [
+   "M9",
+   "Vg9",
+   -0.65,
+   0.45,
+   1.1
+  ],
+  [
+   "M8",
+   "out",
+   1.4,
+   0.4,
+   1.0
+  ]
+ ],
+ "unresolved": [],
+ "nodes": {
+  "GND": 0.0,
+  "VDD": 1.8,
+  "VSS": 0.0,
+  "Vg10": 0.2,
+  "Vg7": -0.2,
+  "Vg9": -0.65,
+  "X": 1.6,
+  "Y": 0.0,
+  "gnd": 0.0,
+  "out": 1.4,
+  "tail": 0.2,
+  "vb1": 1.125,
+  "vb2": 0.45,
+  "vdd": 1.8,
+  "vss": 0.0
+ },
+ "devices": {
+  "M1": {
+   "kind": "pmos",
+   "source": "tail",
+   "drain": "X",
+   "gate": "vin_n",
+   "V_source": 0.2,
+   "vsb": 1.6,
+   "vds": 0.2,
+   "axis_out": "True"
+  },
+  "M10": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "Vg10",
+   "gate": "Vg9",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.2,
+   "axis_out": "False"
+  },
+  "M11": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "tail",
+   "gate": "vb2",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.2,
+   "axis_out": "False"
+  },
+  "M2": {
+   "kind": "pmos",
+   "source": "tail",
+   "drain": "Y",
+   "gate": "vin_p",
+   "V_source": 0.2,
+   "vsb": 1.6,
+   "vds": 0.2,
+   "axis_out": "True"
+  },
+  "M3": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "X",
+   "gate": "vb1",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.2,
+   "axis_out": "False"
+  },
+  "M4": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Y",
+   "gate": "vb1",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.2,
+   "axis_out": "False"
+  },
+  "M5": {
+   "kind": "pmos",
+   "source": "Y",
+   "drain": "Vg7",
+   "gate": "bias3",
+   "V_source": 0.0,
+   "vsb": 1.8,
+   "vds": 0.2,
+   "axis_out": "True"
+  },
+  "M6": {
+   "kind": "pmos",
+   "source": "X",
+   "drain": "out",
+   "gate": "bias3",
+   "V_source": 1.6,
+   "vsb": 0.19999999999999996,
+   "vds": 0.2,
+   "axis_out": "False"
+  },
+  "M7": {
+   "kind": "nmos",
+   "source": "Vg9",
+   "drain": "Vg7",
+   "gate": "Vg7",
+   "V_source": -0.6499999999999999,
+   "vsb": -0.6499999999999999,
+   "vds": 0.44999999999999996,
+   "axis_out": "True"
+  },
+  "M8": {
+   "kind": "nmos",
+   "source": "Vg10",
+   "drain": "out",
+   "gate": "Vg7",
+   "V_source": 0.2,
+   "vsb": 0.2,
+   "vds": 0.2,
+   "axis_out": "False"
+  },
+  "M9": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "Vg9",
+   "gate": "Vg9",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.44999999999999996,
+   "axis_out": "False"
+  },
+  "MN": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "vb2",
+   "gate": "vb2",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.44999999999999996,
+   "axis_out": "False"
+  },
+  "MP": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "vb1",
+   "gate": "vb1",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.6749999999999999,
+   "axis_out": "False"
+  }
+ },
+ "axis_out_devices": [
+  "M1",
+  "M2",
+  "M5",
+  "M7"
+ ]
+}

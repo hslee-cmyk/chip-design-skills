@@ -1,0 +1,33 @@
+* O-202 [0, I_off] monotonicity check: ID for VGS<0 (off direction) vs VGS=0, sky130 tt, VDS=1.8 V
+.include "C:\pdk\sky130_fd_pr\models\parameters\lod.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+vdd vdd 0 dc 1.8
+* nfet: s=b=0, d=1.8, gate vgn
+vgn gn 0 dc 0
+vdn dn 0 dc 1.8
+xn1 dn gn 0 0 sky130_fd_pr__nfet_01v8 l=0.15u w=5u ad=2.5p as=2.5p pd=7u ps=7u
+xn2 dn gn 0 0 sky130_fd_pr__nfet_01v8 l=1u w=5u ad=2.5p as=2.5p pd=7u ps=7u
+* pfet: s=b=1.8, d=0, gate = 1.8 + vgp (vgp>=0 means VSG<=0 = off direction)
+vgp gp vdd dc 0
+vdp dp 0 dc 0
+xp1 dp gp vdd vdd sky130_fd_pr__pfet_01v8 l=0.15u w=5u ad=2.5p as=2.5p pd=7u ps=7u
+xp2 dp gp vdd vdd sky130_fd_pr__pfet_01v8 l=1u w=5u ad=2.5p as=2.5p pd=7u ps=7u
+.control
+set wr_singlescale
+foreach v 0 -0.1 -0.2 -0.3 -0.4 -0.5 -0.6
+  alter vgn dc = $v
+  op
+  print @m.xn1.msky130_fd_pr__nfet_01v8[id] @m.xn2.msky130_fd_pr__nfet_01v8[id]
+end
+alter vgn dc = 0
+foreach v 0 0.1 0.2 0.3 0.4 0.5 0.6
+  alter vgp dc = $v
+  op
+  print @m.xp1.msky130_fd_pr__pfet_01v8[id] @m.xp2.msky130_fd_pr__pfet_01v8[id]
+end
+quit
+.endc
+.end

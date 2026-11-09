@@ -1,0 +1,20 @@
+status chain old len chars=62764 bytes=95849 sha=ac49ef3625272be2
+history 1532 len chars=62764 bytes=95849 sha=ac49ef3625272be2
+exact equal: True; chain in H: True
+old status prefix tail: 획 검증 5 m-6)·oracle OP-3 DUT 저항 = 이상 R + C_par/2(기생 C 추가로 오라클 PM 기준선 변경 -- v6.38.4 스무째 커밋 계획 검증 8 M5)·Q-P8 (A)(U-130·O-166 연속 손가락 폭 → 슬라이스 폭 -- (A) 채택 시)·DEC-92 (3) O-172 한계 문언 철회(실측 R_S/R_null 0.98·1.12·1.00); 경위 history H1 'v6.38.4 첫째~일곱째 묶음'·'아홉째'·'열째·열한째'·'열둘째'·'열셋째'·'열넷째'·'열다섯째'·'열여섯째'~'스무째' 행) 
+L304 len=332 samples 5/6 :: 커밋 계획 검증 8 m1). 실측(`wt/_drafts/evidence/2026-10-29/handcalc_principle_audit/p8_exact_slice.summary.json`, 65 소자-점): \|r\| 중앙 1.1×10⁻⁴, ≤ 10 % 58/65, 최
+L304 len=215 samples 5/5 :: -- `wt/_drafts/evidence/2026-10-29/plan_v6384/p8_finger/`·검증 1 `p8_recount/continuum.out.json`; 지금 LUT 슬라이스 기준, (E) 슬라이스 추가 뒤 다시 잼): 측정 가능 5회로 소자-점 65
+L304 len=349 samples 6/6 :: = 수렴 53·순환 4·W_min 아래 8; 연속해 판정으로 옛 거부 12점 가운데 9점이 해를 갖고 실현 불능은 3점(folded 52 M10 -- 기준 폭에서 이미 W 0.38 µm < W_min, two_stage_ota_sf 1·11 M4) -- 해당 회로 3/
+L553 len=111 samples 6/6 :: **승인 대기 P9-M1a**; 옛 문언 history H2): 오케스트레이터 기본안(v6.38.4 열다섯째 커밋 계획 검증 4 M-4 재판정 -- writer·변경 종류 기준으로 나눔) = **B4
+L553 len=119 samples 6/6 :: -- **card 성격 변화, 원래 취지와 다름**: 입력 공통모드·쓰기 계획 card를 S1v 소비자 정리까지 넓힘; 근거 = 범위 5 (b)가 새로 만드는 S1v 술어 블록과 writer가 같다) / **B12
+L553 len=299 samples 6/6 :: DT-1 범위**(N6.11 -- 순수 리팩터링: 레일 = DC 고정 넷 사실 필드라 DT-1의 'DC 고정 넷 = 필드 하나' 정리와 같은 꼴, IT-1은 `kernel_context.py`·`w0_rails.py`에 닿지 않는다(재감사 F4 실측) -- 동작 변경 
+L553 len=863 samples 6/6 :: 꼴). **⚠ 대안**: (가″) B4·B12 둘 다 IT-1(v6.38.4 열다섯째 커밋 계획 검증 4 전 기본안 -- ⚠ 순수 리팩터링 B12가 동작 변경 critical path card에 얹힘) (가′) B4·B12 둘 다 card DT-1 범위 확장(재감사 C
+L553 len=106 samples 6/6 :: 0이다(단계 A 보고서만 읽음 -- 실측 2026-10-29). B4 정리는 NFR-2(같은 실행 재계산 0) 몫이고 소비 배선은 LA-1(N6.1 단위 8 GB3 결합변수 y)이 한다 --
+L555 len=670 samples 5/5 :: 비교**(P9 검증 m9·계획 검증 2 m-6; 기준 = graph 규칙 1·3·4·NFR-2·O-169 단순성·fail-closed): **P9**(전역 규칙) -- 권고 = 같은 입력 값은 필드 하나 + READS / 대안 = 순수 함수 정의 하나를 자리마다 부름 
+L555 len=195 samples 5/5 :: 6 (b), B12 → DT-1(v6.38.4 열다섯째 커밋 계획 검증 4 M-4), B13 → SF-1 범위 6 (e) ⚠ IT-1·DT-1 card 성격 확장 / 대안 = 둘 다 IT-1 ⚠ critical path / 둘 다 DT-1 ⚠ DT-1 성격 더 넓음 /
+L2349 len=513 samples 6/6 :: 검증해서 불필요한 것들은 지우고 반드시 필요한 사항들은 바로 카드분배를 통해서 해결해." 재감사 `wt/_drafts/evidence/2026-10-29/backlog_reaudit_parts/B_N53.md` I-H1 행. 옛 N5.3 I-H1(원문 history H
+L2351 len=179 samples 6/6 :: 때 다시 잰다): heldout `cnr_ota` 저항 x40 VDD_1V8–VCR, x39 VCR–net7, x3 net7–VSS(`assets/heldout/cnr_ota.topology.json` `passive_elements`, 레일 = VDD_1V8·VSS)
+L2353 len=444 samples 0/6 :: 유지; 실측 cnr_ota VCR = 게이트 1·저항 2, net7 = 저항 2 -- 대상) 그 저항 넷들이 고정 전압 노드(레일·W 티어 기록 노드)에 저항 경로로 닿으면, 그 넷 전압을 같은 DC 블록이 노달 선형 해(Ohm + KCL, 게이트 전류 0) 하나로 쓴
+L2355 len=142 samples 0/6 :: `dc_resistor_cycle` 정지 -- red) 노드전압 = 손계산 분압, tol_V 안 (2) 저항 섬 toy(고정 전압 노드에 저항 경로가 없는 섬) 정지 유지 (3) cnr_ota 단계 A가 다음 정지 사유까지 진행하고 그 사유를 기록 (4)
+L2355 len=129 samples 0/6 :: 계수·바뀐 필드 소비자 ≥ 1, `dc_resistor_cycle` 정지 갈래는 섬 사유로만 남음). (6) 범위 조건 toy(v6.38.4 열다섯째 커밋 계획 검증 4 m-5): 분압 넷에 MOS 채널이 닿는 toy는 정지 유지.
+spans>=60: 15, with missing samples: 4

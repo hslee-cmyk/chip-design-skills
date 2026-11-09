@@ -1,0 +1,18 @@
+ot223: * **극성**(쌍마다 둘): nmos 싱크 셀은 주입 넷에서 하단 레일 쪽으로 전류를 뺀다. pmos 소스 셀은 상단 레일 쪽에서 넣는다. 극성마다 headroom 창을 경로 합(F-15)으로 계산한다. 창은 1단계 봉인 점 주입 넷 전압과 그 레일 사이에서 셀 출력 소자 VDsat + 스위치 VDS가 들어갈 여유다. 이 창은 DC 양이고 정의는 gain-budget N3.8 스윙·입력 범위(DC 동작 범위 -- DC 범위 조건 = 모든 MOS가 선언 영역(선언 없음 = 포화, triode, off)에 머무름, 훑기 중 이탈 = 범위 끝; 사용자 결정 O-54) 꼴을 인용한다. 봉인점 값으로 낸 이 여유는 **'추정'** 표기 손계산이다(사용자 결정 O-29 (2)·O-31, 감사 E2). 정확값은 오라클 끝 코드 `.dc`다(N3.5).
+
+ot234:   * 스위치(표현은 D-10)
+
+ot235: * **코드 표현**(D-10 기본안): 스위치 게이트는 스위치마다 전용 넷에 둔다. 코드는 `trim_decl` 안의 'DC 값 벡터'(전용 게이트 넷마다 on/off 전압)로 표현한다. 그래서 코드는 파생 topology의 connectivity 지문 밖에 있고, 코드 상태를 바꿔도 지문은 같다. 승인 결속은 `trim_decl` 해시(N3.3 출처 기록)로 유지된다. 엔진은 N3.5의 네 코드 상태만 평가한다.
+
+ot297:   * 전류 0 steering 소자와 off 스위치 = `off`. 모든 코드에 off 소자가 있으므로 봉인 기준 코드(δ = +I_u)에도 있다.
+
+ot298:   * on 스위치 = `trim_decl`의 스위치 영역 선언 칸(triode/saturation, 사용자 ratify 대상, N3.3). `triode`는 intended_region `triode`로, `saturation`은 intended_region **선언 없음**(= 포화 기본)으로 옮긴다. intended_region 값 집합 {triode, off}에 새 값을 더하지 않는다(감사 4차 B-6).
+
+ot795: | 전류 0 소자(꺼진 스위치·꺼진 출력)가 DC writer·LUT 경로에서 정의되지 않은 값을 낸다 | intended_region `off` 선언·대조·LUT 경로 제외(O-53 B1, G-1 해소) |
+
+P2384: | E-21 | O-09·O-10 | oracle `off_current_A` 없으면 문턱 0·`W_ref` 대체값, 게이트 전용 이상 전압 넷 조건 미검사 | C | 문턱·폭은 선언·LUT에서 -- 없으면 판정 불능 | EO-1 범위(새 생산자 -- 문턱·폭 없으면 판정 불능)·LT-1 범위(legacy 대체값 삭제), 게이트 전용 넷 검사와 oracle 판정 쪽 대체값(`tools/spice_oracle/oracle_swing.py:15` '`judge.off_current_A` 없으면 문턱 0' -- 엄격 방향이라 fail-open은 아니나 소유를 둠, 검증 6 L-9) = 게이트 전용 이상 전압 넷 조건은 oracle-portability OP-3 입력 계약 교차 규칙, oracle 판정 쪽 문턱 0 대체값은 OP-5(X-31 -- 칸 삭제, 이미 범위) | EO-1: 문턱·폭 선언 없는 점 → 판정 불능(base 문턱 0 -- red); LT-1: `lut_reference_width_m` 대체 grep 0 |
+
+P2398: | E-35 | 재검토 O-169 #6, E5-03 | `constraint_rows`가 `undefined`를 돌려주고 커널이 버림(`E/search/kernel.py:153` `seal_rows, _undefined = constraint_rows(...)`), `constraints.py` docstring '판정 보류 -- 통과로 세지 않는다'는 실제 동작과 다름 | A → **삭제** | tol_V 미정 점의 판정 자리는 봉인 6 하나(상류에서 그 점을 SEALED 불가로 막음) -- `constraint_rows`는 `undefined`를 돌려주지 않고 docstring을 '봉인 6이 판정'으로 고친다(버리는 반환값 삭제, v6.38.3 열두째 커밋 사용자 대원칙 O-169) | **LA-1 범위 15 (g)**(층 0이 부르는 평가 커널 자리, 새 순서 규칙 0) | `_undefined` 반환·버림 grep 0, docstring 정정 |
+
+P1268: | SB-1(DEC-104 R8·R10 공급 요구 하한 구현, v6.38.1 -- O-151 DK2) | N6.31 | card LA-1·SF-1(범위 3·출력 범위 data·`swing_out_v` 제약 삭제 data는 LA-1과 통합 병합 -- N6.1 병합 순서 규칙 표 #3)·TB-1·DE-1(R9 조회 함수 = DE-1이 만듦, 순서 DE-1 → SB-1 -- 표 #1) | 출력 범위 값 확정(O-154·O-157 S1, 닫힘) → 계획 v6.38.1 승인 → design(S-7) (재검증 r-3: 옛 '출력 절대 범위 data(O-151 DK5 -- card SF-1)'는 같은 통합 병합에 실릴 수 있어 순환처럼 읽혔다) |
+

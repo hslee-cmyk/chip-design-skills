@@ -1,0 +1,12 @@
+# S 정의(DEC-92 (3) v6.38.3 다섯째 커밋) 연결 판독 -- topology netlist·passive_elements, spec element_values engine:true
+# 경로 = 보상 R의 한 끝 넷(중간 넷)에 R과 보상 C만 닿을 때(T 망이면 C 여럿) R의 다른 끝 ~ 각 C의 다른 끝; S = 각 경로 두 끝에 gate·drain이 걸린 MOS의 합집합
+common_gate_amplifier R-C 보상 경로 0
+current_reuse_telescopic_ota Rz1 paths= [('Rz1-Cc1', 'mid=N_cc_rz1', 'Vop1', 'Vom', ['M16'])] S= ['M16']
+current_reuse_telescopic_ota Rz2 paths= [('Rz2-Cc2', 'mid=N_cc_rz2', 'Vom1', 'Vop', ['M26'])] S= ['M26']
+folded_cascode R-C 보상 경로 0
+ngcc_3stage_ff R-C 보상 경로 0
+nmcnr_amplifier Rm paths= [('Rm-Cm1', 'mid=NodeCM', 'Vout', 'NodeM2', []), ('Rm-Cm2', 'mid=NodeCM', 'Vout', 'NodeS2', ['M301'])] S= ['M301']
+pushpull_follower_buffer R-C 보상 경로 0
+sf_pushpull_output_opamp R-C 보상 경로 0
+two_stage_ota Rz paths= [('Rz-Cc', 'mid=N_cc_rz', 'O1', 'OUT', ['M6'])] S= ['M6']
+two_stage_ota_sf R-C 보상 경로 0

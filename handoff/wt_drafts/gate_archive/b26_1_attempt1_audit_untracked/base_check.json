@@ -1,0 +1,1754 @@
+{
+ "change_id": "20260930-b26-rail-accessor-set",
+ "attempt": 1,
+ "order": 3,
+ "base_B1": "6df4bd7fd9920e752da4b16bff9b0513caf78362",
+ "test_end_T1": "c247a7697fad8f4695a89d6c9fd0683b900e86fd",
+ "isolation": [
+  "git clone --no-hardlinks --no-local -c core.autocrlf=false -c core.longpaths=true --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-audit C:/g412/iso",
+  "git -C C:/g412/iso remote remove origin",
+  "test -z \"$(git -C C:/g412/iso remote)\"",
+  "git -C C:/g412/iso checkout --detach c247a7697fad8f4695a89d6c9fd0683b900e86fd",
+  "(B1 기준값용 같은 절차) C:/g412/isob, checkout --detach 6df4bd7fd9920e752da4b16bff9b0513caf78362"
+ ],
+ "gate_code": {
+  "cache": "C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362",
+  "gate_master": "6df4bd7fd9920e752da4b16bff9b0513caf78362",
+  "orchestrator_cache_cmp": "16개 파일 모두 cmp 같음(out/cache_cmp.txt)"
+ },
+ "freeze": {
+  "audit_wt_HEAD": "c247a7697fad8f4695a89d6c9fd0683b900e86fd",
+  "role_test_tip": "c247a7697fad8f4695a89d6c9fd0683b900e86fd",
+  "commits_B1_to_T1": [
+   {
+    "commit": "61751ab1756c371953be188ede0fc08e3f02240c",
+    "parent": "6df4bd7fd9920e752da4b16bff9b0513caf78362",
+    "trailers": [
+     "Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+     "Role: test",
+     "Change-Id: 20260930-b26-rail-accessor-set"
+    ],
+    "note": "트레일러 셋(Co-Authored-By 포함) -- '정확히 두 줄' 조건과 다름. 1차는 병합 없는 측정 시도라 멈추지 않음(오케스트레이터 지시), 2차에서 다시 씀"
+   },
+   {
+    "commit": "c247a7697fad8f4695a89d6c9fd0683b900e86fd",
+    "parent": "61751ab1756c371953be188ede0fc08e3f02240c",
+    "trailers": [
+     "Role: test",
+     "Change-Id: 20260930-b26-rail-accessor-set"
+    ]
+   }
+  ],
+  "first_parent_chain_on_B1": true,
+  "merges": 0,
+  "changed_paths": [
+   {
+    "path": "skills/analog-gmid-design/assets/tests/contracts/test_b26_rail_accessor.py",
+    "status": "A",
+    "b1_blob": "0000000000000000000000000000000000000000",
+    "t1_blob": "9b540520d9fff6903a5cf21b4ba1da1d9f64581d"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py",
+    "status": "M",
+    "b1_blob": "f5f40d50a2d11e4de8c1b3363500d24b1cf8b692",
+    "t1_blob": "d26efc1cabd06c4be36bd5ae650b5a08803a8296"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py",
+    "status": "M",
+    "b1_blob": "ce4f3ad3ddadaa0c89fe29571711eb9c847583a9",
+    "t1_blob": "0b5e58693314779bb2f868faed11c07494d62cde"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py",
+    "status": "M",
+    "b1_blob": "003c0d1d691ba81b6336c579a40441fb61985362",
+    "t1_blob": "face81c87757150b33d743d7378b85ad77da0040"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py",
+    "status": "M",
+    "b1_blob": "c592a89d7cdb42e8d4041e970571cbb1221866ec",
+    "t1_blob": "8fc6aa0b65002197ec309e3975036208c325b380"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py",
+    "status": "M",
+    "b1_blob": "28f53e418fc8e8b5ce0abe340f3fd4098c01695c",
+    "t1_blob": "39bd76a868ec499e3f085137db39d2280cd0efc0"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py",
+    "status": "M",
+    "b1_blob": "7641efdbe8d24b8d5af40a9ca82f502ee4f35823",
+    "t1_blob": "875ef3abd1e9390bf632f49c7c3e8a8d84d56a79"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py",
+    "status": "M",
+    "b1_blob": "e8a575ea3f4248eda5635944a9ce3e79a688ca81",
+    "t1_blob": "e611b4855bf058a4fdf7846f64e5e605ca4d163b"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+    "status": "M",
+    "b1_blob": "aeddecfbeb1c6bb03c2813842623c86eb5f8f544",
+    "t1_blob": "5207ca17b869e42e05aa6dac731a2e94f9eac746"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+    "status": "M",
+    "b1_blob": "fe724a8c0e0571016332da41a77ac7286c535d5b",
+    "t1_blob": "ac2333a77d656448ad59b5b00f6ad754617158b0"
+   }
+  ],
+  "all_under_tests_not_tools": true
+ },
+ "strict_set": {
+  "value": "",
+  "source": "base 판 merge_gate.strict_set(TreeView(B1), parse_spec_card(B1 card)) -- phase 3, activated_ic_case [] -> 빈 집합",
+  "raw": "phase=3\nactivated_ic_case=[]\nstrict="
+ },
+ "V5": {
+  "tool": "V5",
+  "verdict": "FAIL",
+  "findings": [
+   {
+    "path": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py",
+    "unit": "<module>",
+    "pattern": "리터럴 변경(허용오차·기대값·픽스처 입력·격자)",
+    "detail": "['\\'\\\\nimport json, sys\\\\nsys.path[:0] = [sys.argv[1], sys.argv[2]]\\\\nimport stick_diagram\\\\nfrom test_b34_grammar_explicit import _b34_normalize, _b34_overrides\\\\np = sys.argv[3]\\\\nts, _meta = stick_diagram.load_topology(p)\\\\nout = {\\\\n    \"load_topology\": _b34_normalize(stick_diagram.load_topology(p)),\\\\n    \"run_topology_pipeline\": _b34_normalize(stick_diagram.run_topology_pipeline(p, _b34_overrides(ts))),\\\\n    \"find_stack_edges\": _b34_normalize(stick_diagram.find_stack_edges(ts)),\\\\n    \"find_idiom_matches\": _b34_normalize(stick_diagram.find_idiom_matches(ts)),\\\\n    \"find_differential_and_mirror_forks\": _b34_normalize(stick_diagram.find_differential_and_mirror_forks(ts)),\\\\n    \"suggest_vertical_stack_composites\": _b34_normalize(stick_diagram.suggest_vertical_stack_composites(ts)),\\\\n    \"find_differential_pair_candidates\": _b34_normalize(stick_diagram.find_differential_pair_candidates(ts)),\\\\n    \"find_verified_differential_and_mirror_relations\": _b34_normalize(stick_diagram.find_verified_differential_and_mirror_relations(ts)),\\\\n    \"refine_differential_and_mirror_relations\": _b34_normalize(stick_diagram.refine_differential_and_mirror_relations(ts)),\\\\n    \"audit_theta_root_direction\": _b34_normalize(stick_diagram.audit_theta_root_direction(ts, None)),\\\\n    \"propose_theta_kcl_gap_fill\": _b34_normalize(stick_diagram.propose_theta_kcl_gap_fill(ts, [])),\\\\n    \"propose_device_roles_gap_fill\": _b34_normalize(stick_diagram.propose_device_roles_gap_fill(ts, {}, [])),\\\\n    \"geometry_colocation_union\": _b34_normalize(stick_diagram.geometry_colocation_union(ts, [])),\\\\n    \"propose_vertical_stack_id_gap_fill\": _b34_normalize(stick_diagram.propose_vertical_stack_id_gap_fill(ts, [], {}, inputs=(\"vinp\",))),\\\\n}\\\\nsys.stdout.write(json.dumps(out, sort_keys=True))\\\\n\\''] -> ['\\'\\\\nimport json, sys\\\\nsys.path[:0] = [sys.argv[1], sys.argv[2]]\\\\nimport stick_diagram\\\\nfrom test_b34_grammar_explicit import _b34_normalize, _b34_overrides\\\\np = sys.argv[3]\\\\nts, _meta = stick_diagram.load_topology(p)\\\\nrails = stick_diagram.rail_declaration(json.load(open(p, encoding=\"utf-8\")))\\\\nout = {\\\\n    \"load_topology\": _b34_normalize(stick_diagram.load_topology(p)),\\\\n    \"run_topology_pipeline\": _b34_normalize(stick_diagram.run_topology_pipeline(p, _b34_overrides(ts))),\\\\n    \"find_stack_edges\": _b34_normalize(stick_diagram.find_stack_edges(ts)),\\\\n    \"find_idiom_matches\": _b34_normalize(stick_diagram.find_idiom_matches(ts)),\\\\n    \"find_differential_and_mirror_forks\": _b34_normalize(stick_diagram.find_differential_and_mirror_forks(ts)),\\\\n    \"suggest_vertical_stack_composites\": _b34_normalize(stick_diagram.suggest_vertical_stack_composites(ts)),\\\\n    \"find_differential_pair_candidates\": _b34_normalize(stick_diagram.find_differential_pair_candidates(ts, rails=rails)),\\\\n    \"find_verified_differential_and_mirror_relations\": _b34_normalize(stick_diagram.find_verified_differential_and_mirror_relations(ts)),\\\\n    \"refine_differential_and_mirror_relations\": _b34_normalize(stick_diagram.refine_differential_and_mirror_relations(ts, rails=rails)),\\\\n    \"audit_theta_root_direction\": _b34_normalize(stick_diagram.audit_theta_root_direction(ts, None)),\\\\n    \"propose_theta_kcl_gap_fill\": _b34_normalize(stick_diagram.propose_theta_kcl_gap_fill(ts, [])),\\\\n    \"propose_device_roles_gap_fill\": _b34_normalize(stick_diagram.propose_device_roles_gap_fill(ts, {}, [], rails=rails)),\\\\n    \"geometry_colocation_union\": _b34_normalize(stick_diagram.geometry_colocation_union(ts, [])),\\\\n    \"propose_vertical_stack_id_gap_fill\": _b34_normalize(stick_diagram.propose_vertical_stack_id_gap_fill(ts, [], {}, inputs=(\"vinp\",), rails=rails)),\\\\n}\\\\nsys.stdout.write(json.dumps(out, sort_keys=True))\\\\n\\'']"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py",
+    "unit": "test_kcl_series_union_signature_unchanged",
+    "pattern": "비교 완화",
+    "detail": "Compare 연산자 또는 approx rel/abs 변화"
+   },
+   {
+    "path": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py",
+    "unit": "test_kcl_and_matching_edges_signature_unchanged",
+    "pattern": "비교 완화",
+    "detail": "Compare 연산자 또는 approx rel/abs 변화"
+   }
+  ],
+  "diff_paths": [
+   "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py",
+   "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py"
+  ],
+  "diff_hash": "4b4ba5428d99eb6aee80035b75471f6347f740f4ce51c078c828b0b7c078fd5f",
+  "approved": false
+ },
+ "V5_check": {
+  "command": "C:/Python314/python.exe C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362/weakening_diff.py --root C:/g412/iso --base 6df4bd7fd9920e752da4b16bff9b0513caf78362 --head c247a7697fad8f4695a89d6c9fd0683b900e86fd",
+  "verdict": "FAIL",
+  "approved": false,
+  "expected_by_user_decision_20261007": "2경로(test_dup_kcl_edges.py·test_b34_grammar_explicit.py), 발견 = P9 시그니처 test 2건 '비교 완화' + test_b34 <module> '리터럴 변경' 1건",
+  "findings_units": [
+   [
+    "test_b34_grammar_explicit.py",
+    "<module>",
+    "리터럴 변경(허용오차·기대값·픽스처 입력·격자)"
+   ],
+   [
+    "test_dup_kcl_edges.py",
+    "test_kcl_series_union_signature_unchanged",
+    "비교 완화"
+   ],
+   [
+    "test_dup_kcl_edges.py",
+    "test_kcl_and_matching_edges_signature_unchanged",
+    "비교 완화"
+   ]
+  ],
+  "matches_expectation": true,
+  "note": "V5 출력의 해시는 sha256 64자리(키 V5 안). 승인 기록은 2차 운반에서(사용자 답 '(가) 합친 V5 승인')."
+ },
+ "red_preview": {
+  "commands": [
+   "GMID_RED_CAPTURE=C:/g412/red_<tag>.jsonl GMID_INTERFACE_CARD=C:/g412/iso/docs/02-design/specs/20260930-b26-rail-accessor-set.interface.md PYTHONPYCACHEPREFIX=C:/g412/pycache_<tag> PYTHONPATH=C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362 C:/Python314/python.exe -P -m pytest -c C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362/pytest_gate.ini --rootdir=C:/g412/iso --confcutdir=C:/g412/iso --gmid-phase=3 --gmid-strict= -q -rA -p merge_gate --continue-on-collection-errors C:/g412/iso/skills/analog-gmid-design/assets/tests  (PYTHONHASHSEED=0, 1)"
+  ],
+  "summary_T1_tests_B1_engine": {
+   "seed0": "131 failed, 1040 passed, 15 xfailed, 8 errors in 420.98s (0:07:00)",
+   "seed1": "131 failed, 1040 passed, 15 xfailed, 8 errors in 396.87s (0:06:36)",
+   "outcomes_identical_across_seeds": true
+  },
+  "red_capture": {
+   "n_seed0": 147,
+   "n_seed1": 147,
+   "identical_across_seeds": true,
+   "set_sha256_of_sorted_testid_tab_exctype_lines": "3741573811b3adaa2bcc113cded50d9f6f20218bed117798b79cf621ab418ee2",
+   "file": "out/red_t1red_s0.jsonl, out/red_t1red_s1.jsonl",
+   "xfail_tests_recorded_as_Failed(base에서도 XFAIL, 판정 변화 없음)": [
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic1.py::test_vgs_consistency_all_devices",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic10.py::test_cache_key_covers_mutable_state",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[rail2]",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[rail3]",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[reject]",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic2.py::test_order_shuffle_invariance",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic4.py::test_role_label_removal_invariance",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic6.py::test_dof_catches_incident19_fixture",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic7.py::test_all_library_topologies_run[run]",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic7.py::test_all_library_topologies_run[stop]",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic8.py::test_unevidenced_derivation_stops_before_search",
+    "skills/analog-gmid-design/assets/tests/contracts/test_ic9.py::test_no_raw_duplicated_writes"
+   ]
+  },
+  "new_tests_total": 65,
+  "four_columns_counts": {
+   "base TypeError 집계 밖": {
+    "FAILED|AttributeError|red=builtins.AttributeError": 12,
+    "FAILED|None|red=builtins.AttributeError": 3,
+    "FAILED|KeyError|red=None": 1
+   },
+   "신규 심볼 red": {
+    "FAILED|AttributeError|red=builtins.AttributeError": 14,
+    "PASSED|None|red=None": 1
+   },
+   "단언 red": {
+    "FAILED|Failed|red=builtins.Failed": 9,
+    "FAILED|KeyError|red=None": 3,
+    "FAILED|AssertionError|red=builtins.AssertionError": 10,
+    "PASSED|None|red=None": 11
+   },
+   "green 회귀 고정": {
+    "PASSED|None|red=None": 1
+   }
+  },
+  "assertion_red_column_TypeError_or_AttributeError": [],
+  "new_tests": [
+   {
+    "test": "test_b26_c13_absent_grammar_raises_import_error[common_gate_amplifier]",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c13_absent_grammar_raises_import_error[current_reuse_telescopic_ota]",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c13_absent_grammar_raises_import_error[folded_cascode]",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c13_absent_grammar_raises_import_error[ngcc_3stage_ff]",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c13_absent_grammar_raises_import_error[nmcnr_amplifier]",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c13_absent_grammar_raises_import_error[pushpull_follower_buffer]",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c13_absent_grammar_raises_import_error[sf_pushpull_output_opamp]",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c13_absent_grammar_raises_import_error[two_stage_ota]",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c13_absent_grammar_raises_import_error[two_stage_ota_sf]",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c14_no_gate_input_returns",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_empty_list_accepted",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_frozen_dataclass_with_nets_field_only",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_rejection_check_fails_on_silent_or_unlabeled_refusal",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c1_rejects_bad_declaration[dict_not_list]",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_rejects_bad_declaration[duplicate_element]",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_rejects_bad_declaration[empty_string_element]",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_rejects_bad_declaration[int_element]",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_rejects_bad_declaration[missing_key]",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_rejects_bad_declaration[none_element]",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_rejects_bad_declaration[none_value]",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_rejects_bad_declaration[str_not_list]",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_rejects_bad_declaration[tuple_not_list]",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_returns_declared_nets",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c1_undeclared_vdd_is_not_rail",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c2_linked_declaration_format_rejected[duplicate_element]",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "Failed",
+    "last_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+    "red_capture_exc_type": "builtins.Failed"
+   },
+   {
+    "test": "test_b26_c2_linked_declaration_format_rejected[empty_string_element]",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "Failed",
+    "last_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+    "red_capture_exc_type": "builtins.Failed"
+   },
+   {
+    "test": "test_b26_c2_linked_declaration_format_rejected[int_element]",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "Failed",
+    "last_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+    "red_capture_exc_type": "builtins.Failed"
+   },
+   {
+    "test": "test_b26_c2_linked_declaration_format_rejected[str_not_list]",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "Failed",
+    "last_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+    "red_capture_exc_type": "builtins.Failed"
+   },
+   {
+    "test": "test_b26_c2_linked_declaration_set_mismatch_rejected[subset]",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "Failed",
+    "last_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+    "red_capture_exc_type": "builtins.Failed"
+   },
+   {
+    "test": "test_b26_c2_linked_declaration_set_mismatch_rejected[superset]",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "Failed",
+    "last_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+    "red_capture_exc_type": "builtins.Failed"
+   },
+   {
+    "test": "test_b26_c2_linked_same_set_other_order_accepted",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "KeyError",
+    "last_E": "KeyError: 'rails'",
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c2_linked_without_declaration_uses_entry",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "KeyError",
+    "last_E": "KeyError: 'rails'",
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c2_meta_rails_is_entry_declaration",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "KeyError",
+    "last_E": "KeyError: 'rails'",
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c2_missing_supply_nets_rejected",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "Failed",
+    "last_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+    "red_capture_exc_type": "builtins.Failed"
+   },
+   {
+    "test": "test_b26_c3_rail_declaration_call_count",
+    "column": "신규 심볼 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c4_existing_defaults_unchanged",
+    "column": "green 회귀 고정",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c4_rails_keyword_only_without_default",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "KeyError",
+    "last_E": "KeyError: 'rails'",
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c5_l_sharing_classes_rejects_meta_without_rails",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "Failed",
+    "last_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+    "red_capture_exc_type": "builtins.Failed"
+   },
+   {
+    "test": "test_b26_c6_declared_rail_excluded",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AssertionError",
+    "last_E": "Expected: 5e-06 ± 1.0e-12",
+    "red_capture_exc_type": "builtins.AssertionError"
+   },
+   {
+    "test": "test_b26_c6_exclude_nets",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c6_metric_rail_nets_key_rejected",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "Failed",
+    "last_E": "Failed: DID NOT RAISE <class 'ValueError'>",
+    "red_capture_exc_type": "builtins.Failed"
+   },
+   {
+    "test": "test_b26_c6_missing_id_raises_key_error",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c6_mos_sign_and_max",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c6_no_remaining_node_is_zero",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c6_non_current_source_skipped",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c6_null_value_source_excludes_its_nodes",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c6_single_terminal_source_skipped",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c6_undeclared_vdd_counted_as_internal_node",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AssertionError",
+    "last_E": "Expected: 7e-06 ± 1.0e-12",
+    "red_capture_exc_type": "builtins.AssertionError"
+   },
+   {
+    "test": "test_b26_c6_valued_source_flows_first_to_second_terminal",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_c7_reverse_direct_calls_treat_undeclared_names_as_internal",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c7_reverse_matching_pair_on_undeclared_source",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AssertionError",
+    "last_E": "assert ['Qa', 'Qb'] in []",
+    "red_capture_exc_type": "builtins.AssertionError"
+   },
+   {
+    "test": "test_b26_c7_reverse_mirror_class_on_undeclared_gate",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AssertionError",
+    "last_E": "+  where False = any(<generator object test_b26_c7_reverse_mirror_class_on_undeclared_gate.<locals>.<genexpr> at 0x000001FD43DA86C0>)",
+    "red_capture_exc_type": "builtins.AssertionError"
+   },
+   {
+    "test": "test_b26_c7_reverse_vertical_stack_id_follows_undeclared_names",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AssertionError",
+    "last_E": "AssertionError: assert None == {'Kb': 'S1', 'Kc': 'S1', 'Kd': 'S1'}",
+    "red_capture_exc_type": "builtins.AssertionError"
+   },
+   {
+    "test": "test_b26_c7a_direct_calls_rail_shared_pair_not_candidate",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c7a_positive_undeclared_shared_source_is_candidate",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c7a_rail_shared_pair_not_autofilled",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AssertionError",
+    "last_E": "assert ['Qa', 'Qb'] not in [['Qa', 'Qb']]",
+    "red_capture_exc_type": "builtins.AssertionError"
+   },
+   {
+    "test": "test_b26_c7b_direct_kcl_edges_skip_declared_rails",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_c7b_rail_does_not_carry_vertical_stack_id",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AssertionError",
+    "last_E": "assert 'Qb' not in {'Pa': 'S1', 'Pb': 'S1', 'Qb': 'S1'}",
+    "red_capture_exc_type": "builtins.AssertionError"
+   },
+   {
+    "test": "test_b26_c7c_rail_gate_does_not_form_mirror_class",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AssertionError",
+    "last_E": "+  where True = any(<generator object test_b26_c7c_rail_gate_does_not_form_mirror_class.<locals>.<genexpr> at 0x000001FD43E73780>)",
+    "red_capture_exc_type": "builtins.AssertionError"
+   },
+   {
+    "test": "test_b26_c7d_kcl_residual_excludes_declared_rails",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AssertionError",
+    "last_E": "Expected: 5e-07 ± 1.0e-12",
+    "red_capture_exc_type": "builtins.AssertionError"
+   },
+   {
+    "test": "test_b26_c7e_gap_fill_rail_sites",
+    "column": "base TypeError 집계 밖",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AttributeError",
+    "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+    "red_capture_exc_type": "builtins.AttributeError"
+   },
+   {
+    "test": "test_b26_oracle_b_setup_invariant_under_rail_rename[current_reuse_telescopic_ota]",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_oracle_b_setup_invariant_under_rail_rename[folded_cascode]",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_oracle_b_setup_invariant_under_rail_rename[nmcnr_amplifier]",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "PASSED",
+    "exception": null,
+    "last_E": null,
+    "red_capture_exc_type": null
+   },
+   {
+    "test": "test_b26_oracle_b_setup_invariant_under_rail_rename[two_stage_ota]",
+    "column": "단언 red",
+    "base_outcome(T1 tests, B1 engine)": "FAILED",
+    "exception": "AssertionError",
+    "last_E": "Use -v to get more diff",
+    "red_capture_exc_type": "builtins.AssertionError"
+   }
+  ],
+  "facts": [
+   "단언 red 칸 33개: red 수집 19(AssertionError 10, Failed 9), 그 밖 FAILED 3(test_b26_c2_meta_rails_is_entry_declaration·c2_linked_same_set_other_order_accepted·c2_linked_without_declaration_uses_entry -- KeyError 'rails', 허용 예외 밖이라 red 아님), PASSED 11(c6 가지 8개 -- 동작 보존 가지, oracle (b) current_reuse_telescopic_ota·folded_cascode·nmcnr_amplifier 3개). TypeError·AttributeError 0 -> 진입점 결함 없음",
+   "oracle (b) two_stage_ota만 base AssertionError(card 문장과 같음)",
+   "card 'base TypeError(집계 밖)' 칸 16개: 15개는 TypeError가 아니라 stick_diagram.rail_declaration AttributeError(신규 심볼 쌍이라 red 수집이 신규 심볼 red로 기록), test_b26_c4_rails_keyword_only_without_default는 KeyError 'rails'(red 아님)",
+   "신규 심볼 칸 15개: 14개 AttributeError(rail_declaration) red, test_b26_c1_rejection_check_fails_on_silent_or_unlabeled_refusal은 base PASSED(합성 구현만 판정 -- 신규 심볼 미사용)",
+   "green 칸 test_b26_c4_existing_defaults_unchanged base PASSED"
+  ],
+  "existing_tests_changed_B1_to_T1": {
+   "n": 87,
+   "by_reason": {
+    "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError": 76,
+    "_B34_FRESH_SCRIPT 새 프로세스가 rail_declaration AttributeError로 종료 -> assert 1 == 0": 9,
+    "P9 시그니처 test 기대에 rails 추가(V5 발견 '비교 완화' 단위) -> base 시그니처와 다름": 2
+   },
+   "outside_rails_cause": [],
+   "rows": [
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_resolve_stack_candidates",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_trace_three_branches_order",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_trace_two_branches",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_no_ports",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_ports",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[common_gate_amplifier]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[current_reuse_telescopic_ota]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[folded_cascode]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[ngcc_3stage_ff]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[nmcnr_amplifier]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[pushpull_follower_buffer]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[sf_pushpull_output_opamp]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[two_stage_ota]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[two_stage_ota_sf]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c5_no_gate_devices_unchanged",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[common_gate_amplifier]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AssertionError",
+     "exception": "AssertionError",
+     "last_E": "assert 1 == 0",
+     "reason": "_B34_FRESH_SCRIPT 새 프로세스가 rail_declaration AttributeError로 종료 -> assert 1 == 0"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[current_reuse_telescopic_ota]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AssertionError",
+     "exception": null,
+     "last_E": null,
+     "reason": "_B34_FRESH_SCRIPT 새 프로세스가 rail_declaration AttributeError로 종료 -> assert 1 == 0"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[folded_cascode]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AssertionError",
+     "exception": "AssertionError",
+     "last_E": "assert 1 == 0",
+     "reason": "_B34_FRESH_SCRIPT 새 프로세스가 rail_declaration AttributeError로 종료 -> assert 1 == 0"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[ngcc_3stage_ff]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AssertionError",
+     "exception": "AssertionError",
+     "last_E": "assert 1 == 0",
+     "reason": "_B34_FRESH_SCRIPT 새 프로세스가 rail_declaration AttributeError로 종료 -> assert 1 == 0"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[nmcnr_amplifier]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AssertionError",
+     "exception": "AssertionError",
+     "last_E": "assert 1 == 0",
+     "reason": "_B34_FRESH_SCRIPT 새 프로세스가 rail_declaration AttributeError로 종료 -> assert 1 == 0"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[pushpull_follower_buffer]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AssertionError",
+     "exception": null,
+     "last_E": null,
+     "reason": "_B34_FRESH_SCRIPT 새 프로세스가 rail_declaration AttributeError로 종료 -> assert 1 == 0"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[sf_pushpull_output_opamp]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AssertionError",
+     "exception": null,
+     "last_E": null,
+     "reason": "_B34_FRESH_SCRIPT 새 프로세스가 rail_declaration AttributeError로 종료 -> assert 1 == 0"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AssertionError",
+     "exception": "AssertionError",
+     "last_E": "assert 1 == 0",
+     "reason": "_B34_FRESH_SCRIPT 새 프로세스가 rail_declaration AttributeError로 종료 -> assert 1 == 0"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota_sf]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AssertionError",
+     "exception": "AssertionError",
+     "last_E": "assert 1 == 0",
+     "reason": "_B34_FRESH_SCRIPT 새 프로세스가 rail_declaration AttributeError로 종료 -> assert 1 == 0"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[chain_interleaved]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_pair_reversed_order]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_pair_without_shared_net]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_triple_chains]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_triple_reversed_rep_last_declared]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_matching_joins_isolated]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_matching_joins_two_branches]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_no_matching]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[rail_named_net_three_uses_not_merged]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[source_equals_drain_not_merged]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[three_use_net_not_merged]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_signature_unchanged",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AssertionError",
+     "exception": "AssertionError",
+     "last_E": "Use -v to get more diff",
+     "reason": "P9 시그니처 test 기대에 rails 추가(V5 발견 '비교 완화' 단위) -> base 시그니처와 다름"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[chain_interleaved]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_pair_reversed_order]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_pair_without_shared_net]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_triple_chains]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_triple_reversed_rep_last_declared]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_matching_joins_isolated]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_matching_joins_two_branches]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_no_matching]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[rail_named_net_three_uses_not_merged]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[source_equals_drain_not_merged]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[three_use_net_not_merged]",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": null,
+     "last_E": null,
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_signature_unchanged",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AssertionError",
+     "exception": "AssertionError",
+     "last_E": "Use -v to get more diff",
+     "reason": "P9 시그니처 test 기대에 rails 추가(V5 발견 '비교 완화' 단위) -> base 시그니처와 다름"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s013_resolve_stack_layout",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s060_run_full_circuit_audit",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s067_MB",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s069_section",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s070_section",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s071_section",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s103_repair_matching_safety",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s104_repair_matching_safety",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s105_repair_matching_safety",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s106__branch_composite_pair",
+     "b1": "PASSED",
+     "t1": "ERROR",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s107__composite_collapse_for_crossover",
+     "b1": "PASSED",
+     "t1": "ERROR",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s108_section",
+     "b1": "PASSED",
+     "t1": "ERROR",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s109_repair_matching_safety",
+     "b1": "PASSED",
+     "t1": "ERROR",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s116_None",
+     "b1": "PASSED",
+     "t1": "ERROR",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s117_connectivity",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s118_folded_cascode_example",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s119_M2",
+     "b1": "PASSED",
+     "t1": "ERROR",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s120_section",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s130_find_differential_pair_candidates",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s131_refine_differential_and_mirror_relations",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s133_refine_differential_and_mirror_relations",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s134__propose_vertical_stack_ids",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s135_section",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s136_refine_differential_and_mirror_relations",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s138_refine_differential_and_mirror_relations",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s139_find_verified_differential_and_mirror_relations",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s140_audit_vertical_stack_id_vs_kcl",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s141_merge_layout_groups_by_matching_pairs",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s142_section",
+     "b1": "PASSED",
+     "t1": "ERROR",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s151_section",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s152_section",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s153_section",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s154_load_topology",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s155_propose_device_roles_gap_fill",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s156_section",
+     "b1": "PASSED",
+     "t1": "ERROR",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s158_propose_device_roles_gap_fill",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s159_apply_device_roles_gap_fill",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s160_propose_device_roles_gap_fill",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    },
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s162_section",
+     "b1": "PASSED",
+     "t1": "FAILED",
+     "red_capture_exc_type": "builtins.AttributeError",
+     "exception": "AttributeError",
+     "last_E": "AttributeError: module 'stick_diagram' has no attribute 'rail_declaration'",
+     "reason": "rails= 호출을 위해 stick_diagram.rail_declaration(신규 심볼, base 부재) 호출 -> AttributeError"
+    }
+   ]
+  }
+ },
+ "V4_preview": {
+  "command": "C:/Python314/python.exe C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362/test_lint.py --root C:/g412/iso --interface-card C:/g412/iso/docs/02-design/specs/20260930-b26-rail-accessor-set.interface.md --base 6df4bd7fd9920e752da4b16bff9b0513caf78362 --head c247a7697fad8f4695a89d6c9fd0683b900e86fd",
+  "b1_comparison_command": "C:/Python314/python.exe C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362/test_lint.py --root C:/g412/iso --interface-card C:/g412/iso/docs/02-design/specs/20260930-b26-rail-accessor-set.interface.md --head 6df4bd7fd9920e752da4b16bff9b0513caf78362 <B1에 있는 바뀐 파일 9개>",
+  "verdict": "FAIL",
+  "rule1": [
+   {
+    "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+    "test": "test_s052_compensation",
+    "t1_line": 2536,
+    "text": "assert abs(_La_final - _Lb_final) < 1e-15, \\",
+    "output": "exempt",
+    "new_file": false,
+    "changed_line": false,
+    "b1_same_finding": [
+     {
+      "b1_line": 2502,
+      "b1_output": "exempt"
+     }
+    ],
+    "class": "기존"
+   },
+   {
+    "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+    "test": "test_s054_section",
+    "t1_line": 2589,
+    "text": "assert _tso_result[\"sizing\"][_n][\"W\"] == _tso_result2[\"sizing\"][_n][\"W\"], \\",
+    "output": "exempt",
+    "new_file": false,
+    "changed_line": false,
+    "b1_same_finding": [
+     {
+      "b1_line": 2555,
+      "b1_output": "exempt"
+     }
+    ],
+    "class": "기존"
+   },
+   {
+    "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+    "test": "test_s133_refine_differential_and_mirror_relations",
+    "t1_line": 3120,
+    "text": "assert _t40_cand[\"M1a\"] == _t40_cand[\"M2a\"], \\",
+    "output": "FAIL",
+    "new_file": false,
+    "changed_line": false,
+    "b1_same_finding": [
+     {
+      "b1_line": 3090,
+      "b1_output": "FAIL"
+     }
+    ],
+    "class": "기존"
+   },
+   {
+    "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+    "test": "test_s133_refine_differential_and_mirror_relations",
+    "t1_line": 3122,
+    "text": "assert _t40_cand[\"M1b\"] == _t40_cand[\"M2b\"], \\",
+    "output": "FAIL",
+    "new_file": false,
+    "changed_line": false,
+    "b1_same_finding": [
+     {
+      "b1_line": 3092,
+      "b1_output": "FAIL"
+     }
+    ],
+    "class": "기존"
+   },
+   {
+    "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+    "test": "test_s133_refine_differential_and_mirror_relations",
+    "t1_line": 3124,
+    "text": "assert _t40_cand[\"M3a\"] == _t40_cand[\"M4a\"], \\",
+    "output": "FAIL",
+    "new_file": false,
+    "changed_line": false,
+    "b1_same_finding": [
+     {
+      "b1_line": 3094,
+      "b1_output": "FAIL"
+     }
+    ],
+    "class": "기존"
+   },
+   {
+    "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+    "test": "test_s133_refine_differential_and_mirror_relations",
+    "t1_line": 3126,
+    "text": "assert _t40_cand[\"M3b\"] == _t40_cand[\"M4b\"], \\",
+    "output": "FAIL",
+    "new_file": false,
+    "changed_line": false,
+    "b1_same_finding": [
+     {
+      "b1_line": 3096,
+      "b1_output": "FAIL"
+     }
+    ],
+    "class": "기존"
+   },
+   {
+    "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+    "test": "test_s134__propose_vertical_stack_ids",
+    "t1_line": 3159,
+    "text": "assert set(_t41_alt[\"Mup\"]) == {_t41_groups[\"Mlo1\"], _t41_groups[\"Mlo2\"]}, \\",
+    "output": "FAIL",
+    "new_file": false,
+    "changed_line": false,
+    "b1_same_finding": [
+     {
+      "b1_line": 3129,
+      "b1_output": "FAIL"
+     }
+    ],
+    "class": "기존"
+   },
+   {
+    "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+    "test": "test_s135_section",
+    "t1_line": 3183,
+    "text": "assert _t42_vsid[\"groups\"][\"Mamb\"] == _t42_vsid[\"groups\"][\"Mout\"], \\",
+    "output": "FAIL",
+    "new_file": false,
+    "changed_line": false,
+    "b1_same_finding": [
+     {
+      "b1_line": 3153,
+      "b1_output": "FAIL"
+     }
+    ],
+    "class": "기존"
+   },
+   {
+    "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+    "test": "test_s159_apply_device_roles_gap_fill",
+    "t1_line": 3956,
+    "text": "assert sorted(_t55_apply1[\"applied_matching_pairs\"]) == _t55_expected_new, \\",
+    "output": "FAIL",
+    "new_file": false,
+    "changed_line": false,
+    "b1_same_finding": [
+     {
+      "b1_line": 3926,
+      "b1_output": "FAIL"
+     }
+    ],
+    "class": "기존"
+   }
+  ],
+  "rule1_new_or_changed_line_FAIL": [],
+  "rule1_existing_FAIL_lines_T1": [
+   3120,
+   3122,
+   3124,
+   3126,
+   3159,
+   3183,
+   3956
+  ],
+  "rule1_existing_FAIL_lines_B1": [
+   3090,
+   3092,
+   3094,
+   3096,
+   3129,
+   3153,
+   3926
+  ],
+  "rule2_counts": {
+   "PASS": 26,
+   "UNJUDGED": 385,
+   "NO-SUBJECT": 402,
+   "FAIL": 0
+  },
+  "note": "SD selftest 기존 7건(B1 s133 3090·3092·3094·3096, s134 3129, s135 3153, s159 3926 = T1 3120·3122·3124·3126·3159·3183·3956)은 B1 트리 같은 도구에서 같은 줄 글·같은 FAIL -- '기존'(사용자 답 '(가′) 면제 + 재검토 줄', 면제 기록은 2차 전). SR s052·s054 exempt. 새 파일(test_b26_rail_accessor.py)·바뀐 줄 FAIL 0.",
+  "files": "out/order3_v4_test_lint.json, out/order3_v4_test_lint_B1files.json, out/order3_v4_compare.json"
+ },
+ "base_reference_B1": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g412/pycache_<tag> PYTHONPATH=C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362 C:/Python314/python.exe -P -m pytest -c C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362/pytest_gate.ini --rootdir=C:/g412/isob --confcutdir=C:/g412/isob --gmid-phase=3 --gmid-strict= -q -rA C:/g412/isob/skills/analog-gmid-design/assets/tests  (PYTHONHASHSEED=0)",
+  "result": "1114 passed, 15 xfailed in 367.97s (0:06:07)",
+  "counts": {
+   "PASSED": 1114,
+   "XFAIL": 15
+  },
+  "failed_ids": [],
+  "ids_file": "out/order3_base_ids_B1.json"
+ },
+ "V3_test_only": {
+  "command": "C:/Python314/python.exe C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362/mutate_changed.py --root C:/g412/iso --base 6df4bd7fd9920e752da4b16bff9b0513caf78362 --head c247a7697fad8f4695a89d6c9fd0683b900e86fd --pytest-ini C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=3 --gmid-strict=",
+  "output": {
+   "tool": "V3",
+   "verdict": "PASS",
+   "targets": [],
+   "mutants": 0,
+   "killed": 0,
+   "survivors": [],
+   "survivor_bindings": [],
+   "exempt_ignored": [],
+   "not_targeted": 0,
+   "targets_by_def": {}
+  },
+  "expected_targets_empty": true
+ },
+ "stop_reasons": [],
+ "end_checks": {
+  "audit_wt_status_porcelain": "?? .ai/verification/20260930-b26-rail-accessor-set/\n",
+  "log_role_test_to_HEAD": "",
+  "log_empty": true
+ }
+}

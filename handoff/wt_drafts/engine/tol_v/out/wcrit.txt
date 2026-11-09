@@ -1,0 +1,22 @@
+MFG=0.005 um, PDK bins 최소 W: nmos 0.36 um, pmos 0.42 um
+[raw] nmos: 셀 480개 중 finger_w_crit > 최소W 인 셀 0개; crit 최댓값 0.121 um (tol_V=36.10 mV, gm/ID_min=0.57); 그런 셀 안에서 모순 목표 비율 평균 0.0000
+[raw] pmos: 셀 480개 중 finger_w_crit > 최소W 인 셀 0개; crit 최댓값 0.1 um (tol_V=20.20 mV, gm/ID_min=1.23); 그런 셀 안에서 모순 목표 비율 평균 0.0000
+   [raw] gm/ID >= 1 만: crit 최댓값(셀 tol_V 최소 x gm/ID=1) = 0.124 um
+   [raw] gm/ID >= 2 만: crit 최댓값(셀 tol_V 최소 x gm/ID=2) = 0.0619 um
+   [raw] gm/ID >= 3 만: crit 최댓값(셀 tol_V 최소 x gm/ID=3) = 0.0412 um
+   [raw] gm/ID >= 4 만: crit 최댓값(셀 tol_V 최소 x gm/ID=4) = 0.0309 um
+   [raw] gm/ID >= 5 만: crit 최댓값(셀 tol_V 최소 x gm/ID=5) = 0.0247 um
+[branch] nmos: 셀 480개 중 finger_w_crit > 최소W 인 셀 0개; crit 최댓값 0.121 um (tol_V=36.10 mV, gm/ID_min=0.57); 그런 셀 안에서 모순 목표 비율 평균 0.0000
+[branch] pmos: 셀 480개 중 finger_w_crit > 최소W 인 셀 0개; crit 최댓값 0.124 um (tol_V=17.96 mV, gm/ID_min=1.13); 그런 셀 안에서 모순 목표 비율 평균 0.0000
+   [branch] gm/ID >= 1 만: crit 최댓값(셀 tol_V 최소 x gm/ID=1) = 0.139 um
+   [branch] gm/ID >= 2 만: crit 최댓값(셀 tol_V 최소 x gm/ID=2) = 0.0696 um
+   [branch] gm/ID >= 3 만: crit 최댓값(셀 tol_V 최소 x gm/ID=3) = 0.0464 um
+   [branch] gm/ID >= 4 만: crit 최댓값(셀 tol_V 최소 x gm/ID=4) = 0.0348 um
+   [branch] gm/ID >= 5 만: crit 최댓값(셀 tol_V 최소 x gm/ID=5) = 0.0278 um
+[id_equiv] nmos: 셀 480개 중 finger_w_crit > 최소W 인 셀 72개; crit 최댓값 0.577 um (tol_V=5.22 mV, gm/ID_min=0.83); 그런 셀 안에서 모순 목표 비율 평균 0.0445
+[id_equiv] pmos: 셀 480개 중 finger_w_crit > 최소W 인 셀 0개; crit 최댓값 0.173 um (tol_V=14.95 mV, gm/ID_min=0.97); 그런 셀 안에서 모순 목표 비율 평균 0.0000
+   [id_equiv] gm/ID >= 1 만: crit 최댓값(셀 tol_V 최소 x gm/ID=1) = 0.522 um
+   [id_equiv] gm/ID >= 2 만: crit 최댓값(셀 tol_V 최소 x gm/ID=2) = 0.261 um
+   [id_equiv] gm/ID >= 3 만: crit 최댓값(셀 tol_V 최소 x gm/ID=3) = 0.174 um
+   [id_equiv] gm/ID >= 4 만: crit 최댓값(셀 tol_V 최소 x gm/ID=4) = 0.131 um
+   [id_equiv] gm/ID >= 5 만: crit 최댓값(셀 tol_V 최소 x gm/ID=5) = 0.104 um

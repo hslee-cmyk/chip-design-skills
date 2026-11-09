@@ -1,0 +1,17 @@
+# R6 g = s MOS 수 (topology.json netlist 연결 필드만)
+## library: 파일 13개
+cnr_ota.topology.json | MOS 72 | g = s 0 [] | (참고) g = d diode 7
+common_gate_amplifier.topology.json | MOS 3 | g = s 0 [] | (참고) g = d diode 0
+current_reuse_telescopic_ota.topology.json | MOS 51 | g = s 0 [] | (참고) g = d diode 16
+erfc_ota.topology.json | MOS 29 | g = s 0 [] | (참고) g = d diode 0
+folded_cascode.topology.json | MOS 13 | g = s 0 [] | (참고) g = d diode 4
+ngcc_3stage_ff.topology.json | MOS 16 | g = s 0 [] | (참고) g = d diode 3
+nmcnr_amplifier.topology.json | MOS 15 | g = s 0 [] | (참고) g = d diode 2
+pushpull_follower_buffer.topology.json | MOS 6 | g = s 0 [] | (참고) g = d diode 0
+r2r_opamp.topology.json | MOS 31 | g = s 0 [] | (참고) g = d diode 7
+rfc_ota.topology.json | MOS 35 | g = s 0 [] | (참고) g = d diode 2
+sf_pushpull_output_opamp.topology.json | MOS 22 | g = s 0 [] | (참고) g = d diode 1
+two_stage_ota.topology.json | MOS 7 | g = s 0 [] | (참고) g = d diode 1
+two_stage_ota_sf.topology.json | MOS 9 | g = s 0 [] | (참고) g = d diode 1
+## heldout: 파일 0개 (폴더 C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets\heldout 없음 또는 비어 있음)
+g = s 소자가 있는 회로 0/13

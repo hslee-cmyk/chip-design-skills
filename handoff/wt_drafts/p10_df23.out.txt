@@ -1,0 +1,7 @@
+behavior 266
+behavior by plan_mapping [('신규(계획 DF-29~34 목록 밖)', 148), ('DF-29', 40), ('DF-34', 18), ('DF-30(회로별 metric 함수)', 17), ('DF-33', 12), ('DF-31(회로별 보상 함수)', 11), ('DF-30(신규 위치)', 7), ('DF-31', 6), ('DF-30', 4), ('DF-29(신규 위치)', 2), ('DF-32', 1)]
+behavior new_subcat [('레일 넷 이름 리터럴(vdd/gnd/vss)', 63), ('픽스처 넷리스트(stick_diagram 6928-7010, 운영 호출부 0)', 61), ('기타 넷/소자 이름 리터럴', 9), ('어휘 충돌(역할 라벨/spec 키 -- 넷·소자 이름 아님)', 9), ('파일 이름 규약 리터럴(.topology.json 등)', 6)]
+behavior by context [('운영', 205), ('픽스처(folded', 59), ('픽스처', 2)]
+A py now ['audit_current_forced.py', 'design_report.py', 'sizing_recipe.py', 'sky130_lut_sweep.py', 'stick_diagram.py', 'topology_library.py', 'topology_to_markdown.py']
+behavior items: line same 13 moved 211 gone 42
+gone fn counter [('', 25), ('_telescopic_class_ab_open_loop_response', 10), ('<module>', 5), ('_load_telescopic_topology_cached', 1), ('suggest_headroom_stack_groups', 1)]

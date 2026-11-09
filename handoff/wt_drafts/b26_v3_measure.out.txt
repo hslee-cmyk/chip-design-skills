@@ -1,0 +1,150 @@
+# b26_v3_measure.py 출력 (C:/g39, cd64170 사본, 2026-09-30)
+B26-1 roots (callers outside 20): {"skills/analog-gmid-design/assets/stick_diagram.py": ["load_topology", "run_full_circuit_audit_from_topology"], "skills/analog-gmid-design/assets/sizing_recipe.py": ["_build_theta_evaluator", "_fixup_euler_blocked_rows", "l_sharing_classes", "optimize_full_circuit_budget", "run_matching_safety_with_finger_growth", "run_topology_pipeline_with_finger_fixup", "_metric_kcl_residual(직접)"]}
+== B26-1 sim head: changed defs 31, mutants 2472, touched 106, no-inventory mutants 57
+  sizing_recipe.py::_build_theta_evaluator                     new=False mut= 498 touched=  3 inv=  60 inv_s=177.0 lines=1005
+  stick_diagram.py::propose_device_roles_gap_fill              new=False mut= 331 touched= 17 inv= 138 inv_s=191.5 lines=706
+  sizing_recipe.py::optimize_full_circuit_budget               new=False mut= 230 touched=  2 inv=  60 inv_s=177.0 lines=454
+  stick_diagram.py::repair_matching_safety                     new=False mut= 112 touched=  3 inv=  69 inv_s=178.8 lines=180
+  stick_diagram.py::_branch_composite_pair                     new=False mut= 102 touched=  1 inv=  70 inv_s=179.3 lines=88
+  sizing_recipe.py::run_matching_safety_with_finger_growth     new=False mut= 100 touched=  4 inv=  62 inv_s=177.6 lines=174
+  stick_diagram.py::refine_differential_and_mirror_relations   new=False mut=  95 touched=  5 inv= 145 inv_s=191.7 lines=220
+  sizing_recipe.py::_fixup_euler_blocked_rows                  new=False mut=  90 touched=  2 inv=  62 inv_s=177.6 lines=129
+  sizing_recipe.py::run_topology_pipeline_with_finger_fixup    new=False mut=  65 touched=  2 inv=  61 inv_s=177.4 lines=130
+  stick_diagram.py::find_differential_pair_candidates          new=False mut=  65 touched=  4 inv= 146 inv_s=191.7 lines=104
+  stick_diagram.py::load_topology                              new=False mut=  65 touched=  9 inv= 137 inv_s=191.5 lines=195
+  sizing_recipe.py::optimize_full_circuit_budget._evaluate_row_split new=False mut=  62 touched=  1 inv=  60 inv_s=177.0 lines=133
+  stick_diagram.py::find_matching_candidates                   new=False mut=  60 touched=  2 inv= 146 inv_s=191.6 lines=77
+  sizing_recipe.py::_metric_kcl_residual                       new=False mut=  57 touched=  4 inv=   0 inv_s=0.0 lines=72
+  stick_diagram.py::audit_vertical_stack_id_vs_kcl             new=False mut=  56 touched=  6 inv=  63 inv_s=177.3 lines=101
+  stick_diagram.py::_composite_collapse_for_crossover          new=False mut=  55 touched=  1 inv=  65 inv_s=178.4 lines=75
+  stick_diagram.py::run_full_circuit_audit                     new=False mut=  53 touched=  1 inv=  64 inv_s=177.3 lines=90
+  stick_diagram.py::kcl_series_union                           new=False mut=  49 touched=  2 inv=  70 inv_s=179.3 lines=57
+  stick_diagram.py::propose_vertical_stack_id_gap_fill         new=False mut=  48 touched=  1 inv= 140 inv_s=191.5 lines=78
+  sizing_recipe.py::l_sharing_classes                          new=False mut=  42 touched=  5 inv=  60 inv_s=177.0 lines=50
+  stick_diagram.py::check_symmetry_dispositions                new=False mut=  37 touched=  1 inv= 140 inv_s=191.5 lines=85
+  stick_diagram.py::_propose_L_roles                           new=False mut=  30 touched=  3 inv= 145 inv_s=191.7 lines=81
+  stick_diagram.py::_kcl_and_matching_edges                    new=False mut=  30 touched=  2 inv= 140 inv_s=191.5 lines=22
+  sizing_recipe.py::resolve_stack_layout                       new=False mut=  26 touched=  2 inv=  61 inv_s=177.2 lines=110
+  stick_diagram.py::_propose_gm_id_roles                       new=False mut=  26 touched=  2 inv= 145 inv_s=191.7 lines=61
+  stick_diagram.py::run_full_circuit_audit_from_topology       new=False mut=  23 touched=  2 inv=  63 inv_s=177.3 lines=55
+  stick_diagram.py::_diff_pair_layer1_groups                   new=False mut=  22 touched=  2 inv= 146 inv_s=191.7 lines=13
+  sizing_recipe.py::true_current_mirror_groups                 new=False mut=  17 touched=  1 inv=  60 inv_s=177.0 lines=25
+  stick_diagram.py::rail_declaration                           new=True  mut=  14 touched= 14 inv= 137 inv_s=191.5 lines=13
+  stick_diagram.py::_kcl_branch_map                            new=False mut=   7 touched=  1 inv=  70 inv_s=179.3 lines=12
+  stick_diagram.py::find_min_crossover_layout_with_branch_composite new=False mut=   5 touched=  1 inv=  64 inv_s=178.2 lines=29
+== B26-1 sim head + 이름 직접 참조 test: changed defs 31, mutants 2472, touched 106, no-inventory mutants 0
+  sizing_recipe.py::_build_theta_evaluator                     new=False mut= 498 touched=  3 inv=  60 inv_s=177.0 lines=1005
+  stick_diagram.py::propose_device_roles_gap_fill              new=False mut= 331 touched= 17 inv= 139 inv_s=191.5 lines=706
+  sizing_recipe.py::optimize_full_circuit_budget               new=False mut= 230 touched=  2 inv=  60 inv_s=177.0 lines=454
+  stick_diagram.py::repair_matching_safety                     new=False mut= 112 touched=  3 inv=  69 inv_s=178.8 lines=180
+  stick_diagram.py::_branch_composite_pair                     new=False mut= 102 touched=  1 inv=  70 inv_s=179.3 lines=88
+  sizing_recipe.py::run_matching_safety_with_finger_growth     new=False mut= 100 touched=  4 inv=  62 inv_s=177.6 lines=174
+  stick_diagram.py::refine_differential_and_mirror_relations   new=False mut=  95 touched=  5 inv= 146 inv_s=191.7 lines=220
+  sizing_recipe.py::_fixup_euler_blocked_rows                  new=False mut=  90 touched=  2 inv=  62 inv_s=177.6 lines=129
+  sizing_recipe.py::run_topology_pipeline_with_finger_fixup    new=False mut=  65 touched=  2 inv=  61 inv_s=177.4 lines=130
+  stick_diagram.py::find_differential_pair_candidates          new=False mut=  65 touched=  4 inv= 147 inv_s=191.7 lines=104
+  stick_diagram.py::load_topology                              new=False mut=  65 touched=  9 inv= 138 inv_s=191.5 lines=195
+  sizing_recipe.py::optimize_full_circuit_budget._evaluate_row_split new=False mut=  62 touched=  1 inv=  60 inv_s=177.0 lines=133
+  stick_diagram.py::find_matching_candidates                   new=False mut=  60 touched=  2 inv= 147 inv_s=191.6 lines=77
+  sizing_recipe.py::_metric_kcl_residual                       new=False mut=  57 touched=  4 inv=   1 inv_s=0.0 lines=72
+  stick_diagram.py::audit_vertical_stack_id_vs_kcl             new=False mut=  56 touched=  6 inv=  63 inv_s=177.3 lines=101
+  stick_diagram.py::_composite_collapse_for_crossover          new=False mut=  55 touched=  1 inv=  65 inv_s=178.4 lines=75
+  stick_diagram.py::run_full_circuit_audit                     new=False mut=  53 touched=  1 inv=  64 inv_s=177.3 lines=90
+  stick_diagram.py::kcl_series_union                           new=False mut=  49 touched=  2 inv=  70 inv_s=179.3 lines=57
+  stick_diagram.py::propose_vertical_stack_id_gap_fill         new=False mut=  48 touched=  1 inv= 141 inv_s=191.5 lines=78
+  sizing_recipe.py::l_sharing_classes                          new=False mut=  42 touched=  5 inv=  60 inv_s=177.0 lines=50
+  stick_diagram.py::check_symmetry_dispositions                new=False mut=  37 touched=  1 inv= 141 inv_s=191.5 lines=85
+  stick_diagram.py::_propose_L_roles                           new=False mut=  30 touched=  3 inv= 146 inv_s=191.7 lines=81
+  stick_diagram.py::_kcl_and_matching_edges                    new=False mut=  30 touched=  2 inv= 141 inv_s=191.5 lines=22
+  sizing_recipe.py::resolve_stack_layout                       new=False mut=  26 touched=  2 inv=  61 inv_s=177.2 lines=110
+  stick_diagram.py::_propose_gm_id_roles                       new=False mut=  26 touched=  2 inv= 146 inv_s=191.7 lines=61
+  stick_diagram.py::run_full_circuit_audit_from_topology       new=False mut=  23 touched=  2 inv=  63 inv_s=177.3 lines=55
+  stick_diagram.py::_diff_pair_layer1_groups                   new=False mut=  22 touched=  2 inv= 147 inv_s=191.7 lines=13
+  sizing_recipe.py::true_current_mirror_groups                 new=False mut=  17 touched=  1 inv=  60 inv_s=177.0 lines=25
+  stick_diagram.py::rail_declaration                           new=True  mut=  14 touched= 14 inv= 138 inv_s=191.5 lines=13
+  stick_diagram.py::_kcl_branch_map                            new=False mut=   7 touched=  1 inv=  70 inv_s=179.3 lines=12
+  stick_diagram.py::find_min_crossover_layout_with_branch_composite new=False mut=   5 touched=  1 inv=  64 inv_s=178.2 lines=29
+== P9 sim head: changed defs 1, mutants 24, touched 2, no-inventory mutants 0
+  stick_diagram.py::kcl_series_union                           new=False mut=  24 touched=  2 inv=  70 inv_s=179.3 lines=46
+== B34 직접 폴백 def (base 본문 기준): defs 12, mutants 1130
+  stick_diagram.py::_import_analog_grammar                     mut=  12 inv= 159 inv_s=191.7 lines=14
+  stick_diagram.py::find_idiom_matches                         mut=  11 inv=  15 inv_s=0.4 lines=20
+  stick_diagram.py::find_stack_edges                           mut=   9 inv=  66 inv_s=177.6 lines=12
+  stick_diagram.py::find_differential_and_mirror_forks         mut=  50 inv=  10 inv_s=0.1 lines=74
+  stick_diagram.py::suggest_vertical_stack_composites          mut=  79 inv= 153 inv_s=191.7 lines=139
+  stick_diagram.py::find_verified_differential_and_mirror_relations mut=  69 inv= 150 inv_s=191.7 lines=184
+  stick_diagram.py::_propose_vertical_stack_ids                mut= 141 inv= 145 inv_s=191.7 lines=238
+  stick_diagram.py::_propose_headroom_roles                    mut=  55 inv= 145 inv_s=191.7 lines=118
+  stick_diagram.py::refine_differential_and_mirror_relations   mut=  95 inv= 145 inv_s=191.7 lines=220
+  stick_diagram.py::audit_theta_root_direction                 mut=  36 inv=   4 inv_s=0.2 lines=79
+  stick_diagram.py::propose_theta_kcl_gap_fill                 mut= 242 inv=   5 inv_s=0.2 lines=346
+  stick_diagram.py::propose_device_roles_gap_fill              mut= 331 inv= 138 inv_s=191.5 lines=706
+== B34 전파 폴백 def (base 본문 기준): defs 6, mutants 265
+  stick_diagram.py::find_differential_pair_candidates          mut=  65 inv= 146 inv_s=191.7 lines=104
+  stick_diagram.py::_propose_gm_id_roles                       mut=  26 inv= 145 inv_s=191.7 lines=61
+  stick_diagram.py::_propose_L_roles                           mut=  30 inv= 145 inv_s=191.7 lines=81
+  stick_diagram.py::propose_vertical_stack_id_gap_fill         mut=  48 inv= 140 inv_s=191.5 lines=78
+  stick_diagram.py::geometry_colocation_union                  mut=  38 inv=  64 inv_s=177.6 lines=70
+  stick_diagram.py::load_topology                              mut=  58 inv= 137 inv_s=191.5 lines=190
+
+# 요약(summ.py): upper_h = Σ 변이 × 인벤토리 test 시간(전부 생존 가정), touched = diff가 닿은 변이
+b26: defs=31 mutants=2472 upper_h=122.3 touched=106 touched_upper_h=5.27 noinv=57
+b26_with_direct_test: defs=31 mutants=2472 upper_h=122.3 touched=106 touched_upper_h=5.27 noinv=0
+p9: defs=1 mutants=24 upper_h=1.2 touched=2 touched_upper_h=0.10 noinv=0
+b34_direct: defs=12 mutants=1130 upper_h=42.1 touched=0 touched_upper_h=0.00 noinv=0
+b34_prop: defs=6 mutants=265 upper_h=14.0 touched=0 touched_upper_h=0.00 noinv=0
+
+# 전체 test 1회(run_full.py): junit 813건 합 272.4 s
+
+exit=1 wall=306.1
+# pytest 기동(startup.py, test_ic5.py 1파일 3회)
+rc=0 times=[6.41883397102356, 4.670743942260742, 7.055931806564331]
+
+# b26_v3_leak.py 출력
+exempt=2366 touched=106
+B34 targets on B26-1 head: mutants=1402, ids already in B26-1 exempt set=619
+  refine_differential_and_mirror_relations 90/95
+  propose_device_roles_gap_fill 314/331
+  find_differential_pair_candidates 61/65
+  _propose_gm_id_roles 24/26
+  _propose_L_roles 27/30
+  propose_vertical_stack_id_gap_fill 47/48
+  load_topology 56/65
+
+# leak2 출력(cd64170 트리의 기존 decision 승인 id 대조)
+approved ids in cd64170 tree: 26
+== base(cd64170) bodies: approved-id hits 14
+  stick_diagram:load_topology:stmt_delete:body[11].body[2] | line 8608 | all_matching_pairs.extend(linked_data['symmetry']['matching_pairs'])
+  stick_diagram:load_topology:stmt_delete:body[11].body[3] | line 8609 | all_dispositions.extend(linked_data['symmetry'].get('dispositions', []))
+  stick_diagram:load_topology:stmt_delete:body[11].body[4] | line 8610 | all_device_roles.update(linked_data.get('device_roles') or {})
+  stick_diagram:load_topology:stmt_delete:body[11].body[5] | line 8611 | all_netlist_sections_structured.update(linked_data.get('_netlist_sections_structured') or 
+  stick_diagram:load_topology:stmt_delete:body[11].body[6] | line 8612 | all_ideal_sources.extend(linked_data.get('ideal_sources') or [])
+  stick_diagram:load_topology:stmt_delete:body[26].body[1] | line 8703 | if _key in _droles_existing_pair_keys:
+  stick_diagram:load_topology:stmt_delete:body[26].body[1].body[0] | line 8704 | continue
+  stick_diagram:load_topology:stmt_delete:body[26].body[2].body[0] | line 8706 | all_matching_pairs.append(_p)
+  stick_diagram:load_topology:stmt_delete:body[26].body[2].body[1] | line 8707 | _droles_existing_pair_keys.add(_key)
+  stick_diagram:load_topology:stmt_delete:body[26].body[2].body[2] | line 8708 | _droles_new_pairs.append(_p)
+  stick_diagram:save_instance_json:stmt_delete:body[2] | line 9017 | if pipeline_result.get('scope_note'):
+  stick_diagram:save_instance_json:stmt_delete:body[2].body[0] | line 9018 | data['scope_note'] = pipeline_result['scope_note']
+  stick_diagram:save_instance_json:const+:body[6].body[0].value.keywords[0].value | line 9035 | 2
+  stick_diagram:save_instance_json:const-:body[6].body[0].value.keywords[0].value | line 9035 | 2
+== B26-1 sim head: approved-id hits 4
+  stick_diagram:save_instance_json:stmt_delete:body[2] | line 9023 | if pipeline_result.get('scope_note'):
+  stick_diagram:save_instance_json:stmt_delete:body[2].body[0] | line 9024 | data['scope_note'] = pipeline_result['scope_note']
+  stick_diagram:save_instance_json:const+:body[6].body[0].value.keywords[0].value | line 9041 | 2
+  stick_diagram:save_instance_json:const-:body[6].body[0].value.keywords[0].value | line 9041 | 2
+== P9 sim head: approved-id hits 14
+  stick_diagram:load_topology:stmt_delete:body[11].body[2] | line 8597 | all_matching_pairs.extend(linked_data['symmetry']['matching_pairs'])
+  stick_diagram:load_topology:stmt_delete:body[11].body[3] | line 8598 | all_dispositions.extend(linked_data['symmetry'].get('dispositions', []))
+  stick_diagram:load_topology:stmt_delete:body[11].body[4] | line 8599 | all_device_roles.update(linked_data.get('device_roles') or {})
+  stick_diagram:load_topology:stmt_delete:body[11].body[5] | line 8600 | all_netlist_sections_structured.update(linked_data.get('_netlist_sections_structured') or 
+  stick_diagram:load_topology:stmt_delete:body[11].body[6] | line 8601 | all_ideal_sources.extend(linked_data.get('ideal_sources') or [])
+  stick_diagram:load_topology:stmt_delete:body[26].body[1] | line 8692 | if _key in _droles_existing_pair_keys:
+  stick_diagram:load_topology:stmt_delete:body[26].body[1].body[0] | line 8693 | continue
+  stick_diagram:load_topology:stmt_delete:body[26].body[2].body[0] | line 8695 | all_matching_pairs.append(_p)
+  stick_diagram:load_topology:stmt_delete:body[26].body[2].body[1] | line 8696 | _droles_existing_pair_keys.add(_key)
+  stick_diagram:load_topology:stmt_delete:body[26].body[2].body[2] | line 8697 | _droles_new_pairs.append(_p)
+  stick_diagram:save_instance_json:stmt_delete:body[2] | line 9006 | if pipeline_result.get('scope_note'):
+  stick_diagram:save_instance_json:stmt_delete:body[2].body[0] | line 9007 | data['scope_note'] = pipeline_result['scope_note']
+  stick_diagram:save_instance_json:const+:body[6].body[0].value.keywords[0].value | line 9024 | 2
+  stick_diagram:save_instance_json:const-:body[6].body[0].value.keywords[0].value | line 9024 | 2

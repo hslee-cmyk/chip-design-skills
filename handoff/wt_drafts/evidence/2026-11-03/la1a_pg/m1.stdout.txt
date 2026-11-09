@@ -1,0 +1,10 @@
+common_gate_amplifier done 7.8
+current_reuse_telescopic_ota done 17.6
+folded_cascode done 14.8
+ngcc_3stage_ff done 33.7
+nmcnr_amplifier done 27.5
+pushpull_follower_buffer done 6.9
+sf_pushpull_output_opamp done 10.9
+two_stage_ota done 11.9
+two_stage_ota_sf done 66.3
+done

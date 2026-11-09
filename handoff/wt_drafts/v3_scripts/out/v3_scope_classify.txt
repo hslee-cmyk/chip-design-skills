@@ -1,0 +1,96 @@
+== P9 실제(7535799 -> b7765b0): changed defs 2
+   all=28  old_N1=4  old_N2=4  old_D1=5  N1a=8  N2a=12  D1a=11  N1b=8  N2b=12  D1b=11  N2b_noS6=4
+   time all            28 mutants  low     2.3 min  high    1.49 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.04 h
+   time old_N1          4 mutants  low     0.3 min  high    0.21 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time old_N2          4 mutants  low     0.3 min  high    0.21 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time old_D1          5 mutants  low     0.4 min  high    0.27 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time N1a             8 mutants  low     0.7 min  high    0.43 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time N2a            12 mutants  low     1.0 min  high    0.64 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.02 h
+   time D1a            11 mutants  low     0.9 min  high    0.58 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.02 h
+   time N1b             8 mutants  low     0.7 min  high    0.43 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time N2b            12 mutants  low     1.0 min  high    0.64 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.02 h
+   time D1b            11 mutants  low     0.9 min  high    0.58 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.02 h
+   time N2b_noS6        4 mutants  low     0.3 min  high    0.21 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   stick_diagram.py::kcl_series_union                         hdr=False cps=- new=1 chdr=1 del=6 t6=3 inv=70 inv_s=189.0 deco=0 | all=23 oN1=3 oN2=3 oD1=4 | N1a=6 N2a=8 D1a=9 | N1b=6 N2b=8 D1b=9 N2b_noS6=3 | unexec all/N2a/N2b=0/0/0
+   stick_diagram.py::kcl_series_union.find                    hdr=False cps=- new=0 chdr=0 del=1 t6=1 inv=142 inv_s=202.2 deco=0 | all=5 oN1=1 oN2=1 oD1=1 | N1a=2 N2a=4 D1a=2 | N1b=2 N2b=4 D1b=2 N2b_noS6=1 | unexec all/N2a/N2b=0/0/0
+== P9 시뮬레이션(build_p9): changed defs 1
+   all=24  old_N1=3  old_N2=3  old_D1=4  N1a=5  N2a=5  D1a=8  N1b=5  N2b=5  D1b=8  N2b_noS6=3
+   time all            24 mutants  low     2.0 min  high    1.26 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.03 h
+   time old_N1          3 mutants  low     0.2 min  high    0.16 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.00 h
+   time old_N2          3 mutants  low     0.2 min  high    0.16 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.00 h
+   time old_D1          4 mutants  low     0.3 min  high    0.21 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time N1a             5 mutants  low     0.4 min  high    0.26 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time N2a             5 mutants  low     0.4 min  high    0.26 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time D1a             8 mutants  low     0.7 min  high    0.42 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time N1b             5 mutants  low     0.4 min  high    0.26 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time N2b             5 mutants  low     0.4 min  high    0.26 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time D1b             8 mutants  low     0.7 min  high    0.42 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.01 h
+   time N2b_noS6        3 mutants  low     0.2 min  high    0.16 h | base 미실행 줄 변이     0 (판정불가 새 줄     2) -> 현실 하한   0.00 h
+   stick_diagram.py::kcl_series_union                         hdr=False cps=- new=1 chdr=1 del=5 t6=2 inv=70 inv_s=189.0 deco=0 | all=24 oN1=3 oN2=3 oD1=4 | N1a=5 N2a=5 D1a=8 | N1b=5 N2b=5 D1b=8 N2b_noS6=3 | unexec all/N2a/N2b=0/0/0
+== B26-1 시뮬레이션(build_b26): changed defs 31
+   all=2472  old_N1=139  old_N2=176  old_D1=388  N1a=1297  N2a=1309  D1a=1391  N1b=191  N2b=228  D1b=399  N2b_noS6=178
+   time all          2472 mutants  low   206.0 min  high  128.99 h | base 미실행 줄 변이   306 (판정불가 새 줄   119) -> 현실 하한  19.19 h
+   time old_N1        139 mutants  low    11.6 min  high    7.28 h | base 미실행 줄 변이     2 (판정불가 새 줄   119) -> 현실 하한   0.30 h
+   time old_N2        176 mutants  low    14.7 min  high    9.26 h | base 미실행 줄 변이     2 (판정불가 새 줄   119) -> 현실 하한   0.35 h
+   time old_D1        388 mutants  low    32.3 min  high   20.51 h | base 미실행 줄 변이    19 (판정불가 새 줄   119) -> 현실 하한   1.53 h
+   time N1a          1297 mutants  low   108.1 min  high   70.47 h | base 미실행 줄 변이    74 (판정불가 새 줄   119) -> 현실 하한   5.78 h
+   time N2a          1309 mutants  low   109.1 min  high   71.09 h | base 미실행 줄 변이    74 (판정불가 새 줄   119) -> 현실 하한   5.79 h
+   time D1a          1391 mutants  low   115.9 min  high   75.18 h | base 미실행 줄 변이    86 (판정불가 새 줄   119) -> 현실 하한   6.53 h
+   time N1b           191 mutants  low    15.9 min  high   10.03 h | base 미실행 줄 변이     6 (판정불가 새 줄   119) -> 현실 하한   0.58 h
+   time N2b           228 mutants  low    19.0 min  high   12.02 h | base 미실행 줄 변이     6 (판정불가 새 줄   119) -> 현실 하한   0.63 h
+   time D1b           399 mutants  low    33.2 min  high   21.04 h | base 미실행 줄 변이    20 (판정불가 새 줄   119) -> 현실 하한   1.60 h
+   time N2b_noS6      178 mutants  low    14.8 min  high    9.37 h | base 미실행 줄 변이     2 (판정불가 새 줄   119) -> 현실 하한   0.35 h
+   sizing_recipe.py::_build_theta_evaluator                   hdr=False cps=- new=3 chdr=0 del=2 t6=1 inv=60 inv_s=186.6 deco=0 | all=498 oN1=4 oN2=4 oD1=9 | N1a=5 N2a=5 D1a=9 | N1b=5 N2b=5 D1b=9 N2b_noS6=4 | unexec all/N2a/N2b=70/0/0
+   stick_diagram.py::propose_device_roles_gap_fill            hdr=True  cps=rails new=5 chdr=4 del=5 t6=5 inv=138 inv_s=202.2 deco=0 | all=331 oN1=18 oN2=21 oD1=78 | N1a=331 N2a=331 D1a=331 | N1b=27 N2b=30 D1b=79 N2b_noS6=21 | unexec all/N2a/N2b=13/13/0
+   sizing_recipe.py::optimize_full_circuit_budget             hdr=False cps=- new=2 chdr=0 del=1 t6=1 inv=60 inv_s=186.6 deco=0 | all=230 oN1=3 oN2=9 oD1=18 | N1a=4 N2a=10 D1a=18 | N1b=4 N2b=10 D1b=18 N2b_noS6=9 | unexec all/N2a/N2b=77/1/1
+   stick_diagram.py::repair_matching_safety                   hdr=True  cps=rails new=1 chdr=0 del=1 t6=1 inv=69 inv_s=188.5 deco=0 | all=112 oN1=4 oN2=6 oD1=10 | N1a=112 N2a=112 D1a=112 | N1b=6 N2b=8 D1b=10 N2b_noS6=6 | unexec all/N2a/N2b=5/5/0
+   stick_diagram.py::_branch_composite_pair                   hdr=True  cps=rails new=1 chdr=0 del=1 t6=1 inv=70 inv_s=189.0 deco=0 | all=102 oN1=2 oN2=2 oD1=3 | N1a=102 N2a=102 D1a=102 | N1b=3 N2b=3 D1b=3 N2b_noS6=2 | unexec all/N2a/N2b=25/25/0
+   sizing_recipe.py::run_matching_safety_with_finger_growth   hdr=False cps=- new=4 chdr=0 del=3 t6=3 inv=62 inv_s=186.9 deco=0 | all=100 oN1=5 oN2=6 oD1=33 | N1a=10 N2a=11 D1a=33 | N1b=10 N2b=11 D1b=33 N2b_noS6=6 | unexec all/N2a/N2b=15/1/1
+   stick_diagram.py::refine_differential_and_mirror_relations hdr=True  cps=rails new=3 chdr=0 del=3 t6=2 inv=145 inv_s=202.4 deco=0 | all=95 oN1=6 oN2=7 oD1=18 | N1a=95 N2a=95 D1a=95 | N1b=9 N2b=10 D1b=18 N2b_noS6=7 | unexec all/N2a/N2b=5/5/0
+   sizing_recipe.py::_fixup_euler_blocked_rows                hdr=False cps=- new=2 chdr=0 del=1 t6=1 inv=62 inv_s=186.9 deco=0 | all=90 oN1=3 oN2=4 oD1=10 | N1a=4 N2a=5 D1a=11 | N1b=4 N2b=5 D1b=11 N2b_noS6=4 | unexec all/N2a/N2b=40/1/1
+   sizing_recipe.py::run_topology_pipeline_with_finger_fixup  hdr=False cps=- new=2 chdr=0 del=1 t6=1 inv=61 inv_s=187.1 deco=0 | all=65 oN1=3 oN2=4 oD1=13 | N1a=4 N2a=5 D1a=14 | N1b=4 N2b=5 D1b=14 N2b_noS6=4 | unexec all/N2a/N2b=11/0/0
+   stick_diagram.py::find_differential_pair_candidates        hdr=True  cps=rails new=0 chdr=2 del=0 t6=0 inv=146 inv_s=202.4 deco=0 | all=65 oN1=5 oN2=13 oD1=16 | N1a=65 N2a=65 D1a=65 | N1b=5 N2b=13 D1b=16 N2b_noS6=13 | unexec all/N2a/N2b=2/2/0
+   stick_diagram.py::load_topology                            hdr=False cps=- new=5 chdr=0 del=2 t6=2 inv=137 inv_s=202.2 deco=0 | all=65 oN1=10 oN2=10 oD1=20 | N1a=12 N2a=12 D1a=21 | N1b=12 N2b=12 D1b=21 N2b_noS6=10 | unexec all/N2a/N2b=1/0/0
+   sizing_recipe.py::optimize_full_circuit_budget._evaluate_row_split hdr=False cps=- new=1 chdr=0 del=1 t6=1 inv=60 inv_s=186.6 deco=0 | all=62 oN1=2 oN2=5 oD1=16 | N1a=3 N2a=6 D1a=16 | N1b=3 N2b=6 D1b=16 N2b_noS6=5 | unexec all/N2a/N2b=15/1/1
+   stick_diagram.py::find_matching_candidates                 hdr=True  cps=rails new=0 chdr=1 del=0 t6=0 inv=146 inv_s=202.2 deco=0 | all=60 oN1=3 oN2=4 oD1=4 | N1a=60 N2a=60 D1a=60 | N1b=3 N2b=4 D1b=4 N2b_noS6=4 | unexec all/N2a/N2b=0/0/0
+   sizing_recipe.py::_metric_kcl_residual                     hdr=False cps=- new=2 chdr=0 del=1 t6=1 inv=0 inv_s=0 deco=0 | all=57 oN1=5 oN2=5 oD1=9 | N1a=6 N2a=6 D1a=10 | N1b=6 N2b=6 D1b=10 N2b_noS6=5 | unexec all/N2a/N2b=5/0/0
+   stick_diagram.py::audit_vertical_stack_id_vs_kcl           hdr=True  cps=rails new=2 chdr=0 del=2 t6=2 inv=63 inv_s=187.0 deco=0 | all=56 oN1=7 oN2=12 oD1=12 | N1a=56 N2a=56 D1a=56 | N1b=9 N2b=14 D1b=13 N2b_noS6=12 | unexec all/N2a/N2b=1/1/0
+   stick_diagram.py::_composite_collapse_for_crossover        hdr=True  cps=rails new=1 chdr=0 del=1 t6=1 inv=65 inv_s=187.9 deco=0 | all=55 oN1=2 oN2=3 oD1=11 | N1a=55 N2a=55 D1a=55 | N1b=4 N2b=5 D1b=11 N2b_noS6=3 | unexec all/N2a/N2b=2/2/0
+   stick_diagram.py::run_full_circuit_audit                   hdr=True  cps=rails new=1 chdr=0 del=1 t6=1 inv=64 inv_s=187.1 deco=0 | all=53 oN1=4 oN2=4 oD1=9 | N1a=53 N2a=53 D1a=53 | N1b=5 N2b=5 D1b=10 N2b_noS6=4 | unexec all/N2a/N2b=9/9/2
+   stick_diagram.py::kcl_series_union                         hdr=True  cps=rails new=0 chdr=1 del=0 t6=0 inv=70 inv_s=189.0 deco=0 | all=49 oN1=3 oN2=4 oD1=4 | N1a=49 N2a=49 D1a=49 | N1b=3 N2b=4 D1b=4 N2b_noS6=4 | unexec all/N2a/N2b=0/0/0
+   stick_diagram.py::propose_vertical_stack_id_gap_fill       hdr=True  cps=rails new=1 chdr=0 del=1 t6=1 inv=140 inv_s=202.2 deco=0 | all=48 oN1=3 oN2=3 oD1=7 | N1a=48 N2a=48 D1a=48 | N1b=4 N2b=4 D1b=8 N2b_noS6=3 | unexec all/N2a/N2b=4/4/0
+   sizing_recipe.py::l_sharing_classes                        hdr=False cps=- new=2 chdr=1 del=0 t6=0 inv=60 inv_s=186.6 deco=0 | all=42 oN1=6 oN2=6 oD1=12 | N1a=6 N2a=6 D1a=12 | N1b=6 N2b=6 D1b=12 N2b_noS6=6 | unexec all/N2a/N2b=0/0/0
+   stick_diagram.py::check_symmetry_dispositions              hdr=True  cps=rails new=1 chdr=0 del=1 t6=1 inv=140 inv_s=202.2 deco=0 | all=37 oN1=2 oN2=2 oD1=3 | N1a=37 N2a=37 D1a=37 | N1b=3 N2b=3 D1b=4 N2b_noS6=2 | unexec all/N2a/N2b=0/0/0
+   stick_diagram.py::_propose_L_roles                         hdr=True  cps=rails new=3 chdr=0 del=3 t6=3 inv=145 inv_s=202.4 deco=0 | all=30 oN1=4 oN2=4 oD1=14 | N1a=30 N2a=30 D1a=30 | N1b=9 N2b=9 D1b=14 N2b_noS6=4 | unexec all/N2a/N2b=2/2/0
+   stick_diagram.py::_kcl_and_matching_edges                  hdr=True  cps=rails new=0 chdr=1 del=0 t6=0 inv=140 inv_s=202.2 deco=0 | all=30 oN1=3 oN2=4 oD1=4 | N1a=30 N2a=30 D1a=30 | N1b=3 N2b=4 D1b=4 N2b_noS6=4 | unexec all/N2a/N2b=0/0/0
+   sizing_recipe.py::resolve_stack_layout                     hdr=True  cps=rails new=2 chdr=0 del=2 t6=2 inv=61 inv_s=186.8 deco=0 | all=26 oN1=3 oN2=4 oD1=8 | N1a=26 N2a=26 D1a=26 | N1b=7 N2b=8 D1b=8 N2b_noS6=4 | unexec all/N2a/N2b=0/0/0
+   stick_diagram.py::_propose_gm_id_roles                     hdr=True  cps=rails new=2 chdr=0 del=2 t6=2 inv=145 inv_s=202.4 deco=0 | all=26 oN1=3 oN2=3 oD1=10 | N1a=26 N2a=26 D1a=26 | N1b=6 N2b=6 D1b=10 N2b_noS6=3 | unexec all/N2a/N2b=1/1/0
+   stick_diagram.py::run_full_circuit_audit_from_topology     hdr=False cps=- new=2 chdr=0 del=1 t6=0 inv=63 inv_s=187.1 deco=0 | all=23 oN1=3 oN2=3 oD1=7 | N1a=3 N2a=3 D1a=7 | N1b=3 N2b=3 D1b=7 N2b_noS6=3 | unexec all/N2a/N2b=2/0/0
+   stick_diagram.py::_diff_pair_layer1_groups                 hdr=True  cps=rails new=0 chdr=1 del=0 t6=0 inv=146 inv_s=202.4 deco=0 | all=22 oN1=3 oN2=4 oD1=4 | N1a=22 N2a=22 D1a=22 | N1b=3 N2b=4 D1b=4 N2b_noS6=4 | unexec all/N2a/N2b=0/0/0
+   sizing_recipe.py::true_current_mirror_groups               hdr=True  cps=rails new=1 chdr=0 del=1 t6=1 inv=60 inv_s=186.6 deco=0 | all=17 oN1=2 oN2=2 oD1=4 | N1a=17 N2a=17 D1a=17 | N1b=5 N2b=5 D1b=5 N2b_noS6=4 | unexec all/N2a/N2b=1/1/0
+   stick_diagram.py::rail_declaration                         hdr=None  cps=- new=newdef chdr=0 del=0 t6=0 inv=137 inv_s=202.2 deco=0 | all=14 oN1=14 oN2=14 oD1=14 | N1a=14 N2a=14 D1a=14 | N1b=14 N2b=14 D1b=14 N2b_noS6=14 | unexec all/N2a/N2b=0/0/0
+   stick_diagram.py::_kcl_branch_map                          hdr=True  cps=rails new=1 chdr=0 del=1 t6=1 inv=70 inv_s=189.0 deco=0 | all=7 oN1=2 oN2=2 oD1=3 | N1a=7 N2a=7 D1a=7 | N1b=3 N2b=3 D1b=4 N2b_noS6=2 | unexec all/N2a/N2b=0/0/0
+   stick_diagram.py::find_min_crossover_layout_with_branch_composite hdr=True  cps=rails new=1 chdr=0 del=1 t6=1 inv=64 inv_s=187.7 deco=0 | all=5 oN1=2 oN2=2 oD1=5 | N1a=5 N2a=5 D1a=5 | N1b=3 N2b=3 D1b=5 N2b_noS6=2 | unexec all/N2a/N2b=0/0/0
+== B34 좁힌 초안(사이트 1·2·3·11·11b): changed defs 4
+   all=55  old_N1=5  old_N2=6  old_D1=6  N1a=9  N2a=10  D1a=14  N1b=9  N2b=10  D1b=14  N2b_noS6=6
+   time all            55 mutants  low     4.6 min  high    0.99 h | base 미실행 줄 변이     1 (판정불가 새 줄     1) -> 현실 하한   0.08 h
+   time old_N1          5 mutants  low     0.4 min  high    0.16 h | base 미실행 줄 변이     0 (판정불가 새 줄     1) -> 현실 하한   0.01 h
+   time old_N2          6 mutants  low     0.5 min  high    0.22 h | base 미실행 줄 변이     0 (판정불가 새 줄     1) -> 현실 하한   0.01 h
+   time old_D1          6 mutants  low     0.5 min  high    0.22 h | base 미실행 줄 변이     0 (판정불가 새 줄     1) -> 현실 하한   0.01 h
+   time N1a             9 mutants  low     0.8 min  high    0.22 h | base 미실행 줄 변이     0 (판정불가 새 줄     1) -> 현실 하한   0.01 h
+   time N2a            10 mutants  low     0.8 min  high    0.27 h | base 미실행 줄 변이     0 (판정불가 새 줄     1) -> 현실 하한   0.01 h
+   time D1a            14 mutants  low     1.2 min  high    0.33 h | base 미실행 줄 변이     0 (판정불가 새 줄     1) -> 현실 하한   0.02 h
+   time N1b             9 mutants  low     0.8 min  high    0.22 h | base 미실행 줄 변이     0 (판정불가 새 줄     1) -> 현실 하한   0.01 h
+   time N2b            10 mutants  low     0.8 min  high    0.27 h | base 미실행 줄 변이     0 (판정불가 새 줄     1) -> 현실 하한   0.01 h
+   time D1b            14 mutants  low     1.2 min  high    0.33 h | base 미실행 줄 변이     0 (판정불가 새 줄     1) -> 현실 하한   0.02 h
+   time N2b_noS6        6 mutants  low     0.5 min  high    0.22 h | base 미실행 줄 변이     0 (판정불가 새 줄     1) -> 현실 하한   0.01 h
+   stick_diagram.py::audit_theta_root_direction               hdr=False cps=- new=0 chdr=0 del=2 t6=2 inv=4 inv_s=0.3 deco=0 | all=29 oN1=1 oN2=1 oD1=1 | N1a=3 N2a=3 D1a=5 | N1b=3 N2b=3 D1b=5 N2b_noS6=1 | unexec all/N2a/N2b=1/0/0
+   stick_diagram.py::_import_analog_grammar                   hdr=False cps=- new=1 chdr=1 del=1 t6=0 inv=159 inv_s=202.4 deco=0 | all=12 oN1=2 oN2=3 oD1=3 | N1a=2 N2a=3 D1a=3 | N1b=2 N2b=3 D1b=3 N2b_noS6=3 | unexec all/N2a/N2b=0/0/0
+   stick_diagram.py::find_idiom_matches                       hdr=False cps=- new=0 chdr=0 del=1 t6=1 inv=15 inv_s=0.5 deco=0 | all=8 oN1=1 oN2=1 oD1=1 | N1a=2 N2a=2 D1a=3 | N1b=2 N2b=2 D1b=3 N2b_noS6=1 | unexec all/N2a/N2b=0/0/0
+   stick_diagram.py::find_stack_edges                         hdr=False cps=- new=0 chdr=0 del=1 t6=1 inv=66 inv_s=187.3 deco=0 | all=6 oN1=1 oN2=1 oD1=1 | N1a=2 N2a=2 D1a=3 | N1b=2 N2b=2 D1b=3 N2b_noS6=1 | unexec all/N2a/N2b=0/0/0
+== B26-1 대상 def(base 본문): base 본문 변이 2438 중 미실행 줄 314
+   optimize_full_circuit_budget 78/229, _build_theta_evaluator 70/497, _fixup_euler_blocked_rows 41/89, _branch_composite_pair 25/102, optimize_full_circuit_budget._evaluate_row_split 16/62, run_matching_safety_with_finger_growth 16/99, propose_device_roles_gap_fill 13/331, run_topology_pipeline_with_finger_fixup 11/64, run_full_circuit_audit 9/53, refine_differential_and_mirror_relations 7/95, repair_matching_safety 7/112, _metric_kcl_residual 5/54, propose_vertical_stack_id_gap_fill 4/48, find_differential_pair_candidates 2/65, _propose_L_roles 2/30, _composite_collapse_for_crossover 2/55, run_full_circuit_audit_from_topology 2/22, _propose_gm_id_roles 1/26, audit_vertical_stack_id_vs_kcl 1/56, load_topology 1/58, true_current_mirror_groups 1/17
+== 넓은 B34(v1, 18 def) base 본문: base 본문 변이 1395 중 미실행 줄 75
+   _propose_vertical_stack_ids 22/141, propose_device_roles_gap_fill 13/331, refine_differential_and_mirror_relations 7/95, propose_theta_kcl_gap_fill 6/242, find_differential_and_mirror_forks 5/50, propose_vertical_stack_id_gap_fill 4/48, find_verified_differential_and_mirror_relations 3/69, audit_theta_root_direction 3/36, _propose_headroom_roles 2/55, find_differential_pair_candidates 2/65, _propose_L_roles 2/30, _import_analog_grammar 1/12, find_idiom_matches 1/11, find_stack_edges 1/9, suggest_vertical_stack_composites 1/79, _propose_gm_id_roles 1/26, load_topology 1/58
+== 좁힌 B34(4 def) base 본문: base 본문 변이 68 중 미실행 줄 6
+   audit_theta_root_direction 3/36, _import_analog_grammar 1/12, find_idiom_matches 1/11, find_stack_edges 1/9

@@ -1,0 +1,18 @@
+== A 소부하: gm1=5e-05 gm2=0.0005 R1=2e+06 R2=200000 C1(마디 기생)=5e-14 CL=1e-12 ==
+  Rz=0: Cc_min(PM>=70) = 4.47e-13 F | 손계산 tan(PM)*gm1/gm2*CL = 2.75e-13 F (비 1.63) | PM 단조=True
+     Cc=C_min_MIM 2.76e-15: fu=1.09e+08 Hz PM=3.2 deg ; Cc=0.1pF: fu=5.42e+07 PM=40.3 ; Cc_min/C_min_MIM = 162배, Cc_min/C1 = 8.9
+  Rz=1/gm2: Cc_min(PM>=70) = 3.16e-13 F | PM 단조=True
+     Cc=C_min_MIM 2.76e-15: fu=1.09e+08 Hz PM=3.2 deg ; Cc=0.1pF: fu=5.45e+07 PM=43.4 ; Cc_min/C_min_MIM = 115배, Cc_min/C1 = 6.3
+== B 중부하: gm1=0.0001 gm2=0.001 R1=1e+06 R2=100000 C1(마디 기생)=1e-13 CL=3e-12 ==
+  Rz=0: Cc_min(PM>=70) = 1.26e-12 F | 손계산 tan(PM)*gm1/gm2*CL = 8.24e-13 F (비 1.53) | PM 단조=True
+     Cc=C_min_MIM 2.76e-15: fu=9.06e+07 Hz PM=2.1 deg ; Cc=0.1pF: fu=6.16e+07 PM=21.8 ; Cc_min/C_min_MIM = 456배, Cc_min/C1 = 12.6
+  Rz=1/gm2: Cc_min(PM>=70) = 8.91e-13 F | PM 단조=True
+     Cc=C_min_MIM 2.76e-15: fu=9.06e+07 Hz PM=2.1 deg ; Cc=0.1pF: fu=6.18e+07 PM=23.0 ; Cc_min/C_min_MIM = 323배, Cc_min/C1 = 8.9
+== C 대부하: gm1=0.0001 gm2=0.002 R1=1e+06 R2=50000 C1(마디 기생)=2e-13 CL=2e-11 ==
+  Rz=0: Cc_min(PM>=70) = 3.35e-12 F | 손계산 tan(PM)*gm1/gm2*CL = 2.75e-12 F (비 1.22) | PM 단조=True
+     Cc=C_min_MIM 2.76e-15: fu=3.53e+07 Hz PM=1.9 deg ; Cc=0.1pF: fu=2.87e+07 PM=11.3 ; Cc_min/C_min_MIM = 1214배, Cc_min/C1 = 16.7
+  Rz=1/gm2: Cc_min(PM>=70) = 2.82e-12 F | PM 단조=True
+     Cc=C_min_MIM 2.76e-15: fu=3.53e+07 Hz PM=1.9 deg ; Cc=0.1pF: fu=2.87e+07 PM=11.4 ; Cc_min/C_min_MIM = 1021배, Cc_min/C1 = 14.1
+
+해석 열쇠: Cc_min 은 PM 목표·gm 비·CL(선언 부하)이 정한다. 최소 MIM 은 PM 목표가 있는 한 묶이지 않는다(Cc_min >> C_min_MIM).
+PM 목표가 없으면 면적 목적이 Cc 를 상자 하한으로 민다 -> 하한 = 설계값 (하한 값이 무엇이든). 그 경우 실현 가능한 가장 작은 값 = 최소 MIM 이 물리 하한.

@@ -1,0 +1,16 @@
+* triode
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+vd d 0 0
+vs s 0 0
+vb b 0 0
+vg g 0 1.299641
+x1 d g s b sky130_fd_pr__nfet_01v8 w=90u l=0.3u
+.control
+dc vd 0 0.6 0.0005
+wrdata C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-29/cbox_rereview/c2_m3b_tri.dat i(vd)
+.endc
+.end

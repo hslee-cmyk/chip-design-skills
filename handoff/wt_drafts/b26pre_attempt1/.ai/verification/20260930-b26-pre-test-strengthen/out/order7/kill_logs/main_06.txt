@@ -1,0 +1,124 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+shuffle-seed: none
+real_lut: skills/analog-gmid-design/assets/sky130_nfet_pfet_lut_sample.npz sha256=753d802a860320dd54b53b95920c6f9addcea821c55089358bf4b1f1ebaf177f
+rootdir: C:\g342\kt
+configfile: ..\gmid-gate-cache\6c724debd884dd1d31034f5279ae450f35e67fc4\pytest_gate.ini
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 19 items
+
+..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py F [  5%]
+..................                                                       [100%]
+
+================================== FAILURES ===================================
+_______________________ test_b26pre_ofcb_lutless_repair _______________________
+
+tmp_path = WindowsPath('C:/g342/tmp/pytest-of-HSLEE/pytest-6/test_b26pre_ofcb_lutless_repai0')
+toy_lut = <sizing_recipe.SemiEmpiricalGmIdLUT object at 0x0000019CA90CAA50>
+
+    def test_b26pre_ofcb_lutless_repair(tmp_path, toy_lut):
+        """계약 1: `lut_by_kind` 없는 spec의 bare `repair_matching_safety` 폴백(E6-a).
+    
+        oracle 대조: (c) 기존 동작 기준선. 근거 -- (a) 코드 주석(sizing_recipe.py 9363~9367) 'lut_by_kind가 없는 구형
+        spec은 ... bare repair_matching_safety()로 폴백'; (b) offset 쌍은 3c 필수, `repair_matching_safety` docstring
+        (stick_diagram.py 7555~7557) 'n_fingers가 1이면 dx<=0.5 달성 못 함'; (c) 같은 docstring 7532 행 이름
+        `f"{원래행}_repair{i}"`; (d) 코드 주석(9408~9412) 'repaired_rows를 최종 정본으로 승격'.
+        빈 문자열 역할 값은 입력 구성이다(자동 채움·L/gm/ID 유도를 막는다).
+        """
+        w0, s = _b26pre_sizing(toy_lut)
+        pair = _b26pre_pair(w0)
+        path = _b26pre_write_topology(
+            tmp_path, "b26pre_lutless",
+            [_b26pre_net_entry(t) for t in pair],
+            symmetry={
+                "matching_pairs": [{"names": ["Ma", "Mb"], "matching_sensitivity": "offset", "current_forced": False}],
+                "dispositions": [],
+            },
+            device_roles={"Ma": {"gm_id_role": "", "L_role": ""}, "Mb": {"gm_id_role": "", "L_role": ""}},
+            sizing_roles={
+                "metrics": {"pair_area": {"type": "sum_area", "unit": "m^2", "devices": ["Ma", "Mb"]}},
+                "constraints": [{"metric": "pair_area", "op": "<=", "value": 2 * w0 * _B26PRE_L * 3}],
+            },
+        )
+        spec = {
+            "known_sizing": {"Ma": s, "Mb": s},
+            "min_finger_w": 0.1e-6,
+            "max_finger_w": 40e-6,
+            "L_min": 0.1e-6,
+            "gm_id_bounds": (2.0, 28.0),
+            "stack_groups_override": {"pair_row": ["Ma", "Mb"]},
+        }
+>       res = sizing_recipe.optimize_full_circuit_budget(path, spec)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\g342\kt\skills\analog-gmid-design\assets\sizing_recipe.py:9260: in optimize_full_circuit_budget
+    round0 = _evaluate_row_split(_base_row_split)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+candidate_row_split = {}
+
+    def _evaluate_row_split(candidate_row_split: dict) -> dict:
+        pr = dict(_base_pipeline_result)
+        ov, sz, mr = (_base_sizing_overrides, _base_sizing, _base_metrics_result)
+        if candidate_row_split:
+            _rs_rows = split_into_stacks(pr['transistors'])
+            _rs_rows = apply_explicit_row_split(_rs_rows, candidate_row_split)
+            _rs_transistors = [t for devs in _rs_rows.values() for t in devs]
+            _rs_matching_pairs = [pair for p in pairs_meta for pair in itertools.combinations(p['names'], 2)]
+            _rs_pair_sensitivity = {pair: p['matching_sensitivity'] for p in pairs_meta for pair in itertools.combinations(p['names'], 2)}
+            _rs_audit = audit_row_split(_rs_rows, matching_pairs=_rs_matching_pairs, pair_sensitivity=_rs_pair_sensitivity)
+            pr = dict(pr, transistors=_rs_transistors, box_shape=_rs_audit.box_shape, audit_row_split=_rs_audit)
+        audit = pr['audit_row_split']
+        ok = audit.ok if hasattr(audit, 'ok') else all((v.ok for v in audit.values()))
+        if not ok:
+            rows = split_into_stacks(pr['transistors'])
+            matching_pairs_tuples = [pair for p in pairs_meta for pair in itertools.combinations(p['names'], 2)]
+            pair_sensitivity = {pair: p['matching_sensitivity'] for p in pairs_meta for pair in itertools.combinations(p['names'], 2)}
+            if _lut_by_kind is not None:
+                match_fix = run_matching_safety_with_finger_growth(rows, matching_pairs_tuples, pair_sensitivity, pr['ctx'], _lut_by_kind, metrics_specs, constraints, gm_id_bounds=spec.get('gm_id_bounds', (2.0, 30.0)))
+                repaired_rows, repaired_audit = (match_fix['rows'], match_fix['audit'])
+                final_n_fingers: dict = {}
+                for devs in repaired_rows.values():
+                    for t in devs:
+                        final_n_fingers[t.name] = final_n_fingers.get(t.name, 0) + t.n_fingers
+                ov = dict(ov)
+                for name, n in final_n_fingers.items():
+                    entry = ov[name]
+                    if n != entry['n_fingers']:
+                        ov[name] = {**entry, 'n_fingers': n, 'w': n * entry['finger_w']}
+                sz = match_fix['ctx'].sized
+                mr = {name: compute_metric(mspec, match_fix['ctx']) for name, mspec in metrics_specs.items()}
+                pr = dict(pr, repaired_rows=repaired_rows, repaired_audit=repaired_audit, growth_rounds=match_fix['growth_rounds'], unresolved_pair=match_fix['unresolved_pair'], unresolved_reason=match_fix['unresolved_reason'], relaxed_pairs=match_fix['relaxed_pairs'])
+            else:
+                pass
+>               pr = dict(pr, repaired_rows=repaired_rows, repaired_audit=repaired_audit)
+                                            ^^^^^^^^^^^^^
+E               UnboundLocalError: cannot access local variable 'repaired_rows' where it is not associated with a value
+
+C:\g342\kt\skills\analog-gmid-design\assets\sizing_recipe.py:9248: UnboundLocalError
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_euler_fixup_group_split
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds_euler
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_already_ok
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_pair_not_found
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_only_3b_left
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_all_disposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_mirror_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_diffpair_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_hub_gnd_undisposed
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_resolve_stack_candidates
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_no_ports
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_ports
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_case_collisions
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_seed_tap_p
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_seed_tap_n
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_trace_two_branches
+PASSED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_trace_three_branches_order
+FAILED ..\..\..\..\..\..\g342\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_ofcb_lutless_repair
+======================== 1 failed, 18 passed in 20.54s ========================

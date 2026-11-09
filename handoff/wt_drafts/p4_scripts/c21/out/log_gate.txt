@@ -1,0 +1,13 @@
+wrote C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_base.json
+rc=0 t=3s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/gate_check.py C:/g148/base C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_base.json
+wrote C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_p1.json
+rc=0 t=4s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/gate_check.py C:/g148/p1 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_p1.json
+wrote C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_p20.json
+rc=0 t=3s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/gate_check.py C:/g148/p20 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_p20.json
+wrote C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_p21.json
+rc=0 t=4s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/gate_check.py C:/g148/p21 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_p21.json
+wrote C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_x1.json
+rc=0 t=3s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/gate_check.py C:/g148/x1 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_x1.json
+wrote C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_x3.json
+rc=0 t=4s :: C:/Python314/python.exe -B -P C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/gate_check.py C:/g148/x3 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/p4_scripts/c21/out/gate_x3.json
+DONE gate

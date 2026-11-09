@@ -1,0 +1,7 @@
+1	git -C "$R" cat-file -e "$H:.ai/verification/20260930-v3-exempt-binding.json"
+2	git -C "$R" cat-file -e "$H:.ai/verification/20260930-v3-changed-stmt-scope.json"
+3	D2=docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/phase2-dod.md; test "$(git -C "$R" show "$H:$D2" | tr -d '\r' | grep -cx '판정: \(PASS\|FAIL\)')" = 1 && git -C "$R" show "$H:$D2" | tr -d '\r' | grep -qx '판정: PASS'
+4	git -C "$R" cat-file -e "$H:.ai/approvals/20261001-b26-phase3-cards.md"
+4	git -C "$R" cat-file -e "$H:.ai/approvals/20261001-b26-backfill-interdig-fix.md"
+5	git -C "$R" cat-file -e "$H:.ai/verification/20260930-b34-grammar-explicit.json"
+5	git -C "$R" cat-file -e "$H:.ai/verification/20260930-b26-pre-test-strengthen.json"

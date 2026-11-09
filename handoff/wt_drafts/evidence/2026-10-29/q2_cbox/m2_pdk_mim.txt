@@ -1,0 +1,24 @@
+== 최소 MIM 용량 (capm.1 w_min = 1.000 um, 정사각 1개, MF=1) ==
+res_high__cap_high__lin.spice: camimc=2.231e-15 F/um^2 (행 7), cpmimc=3.5e-16 F/um (행 8) -> C_min = 3.631 fF (면적항 2.231 + 둘레항 1.400, 둘레 몫 39%)
+res_high__cap_low__lin.spice: camimc=1.778e-15 F/um^2 (행 7), cpmimc=3e-17 F/um (행 8) -> C_min = 1.898 fF (면적항 1.778 + 둘레항 0.120, 둘레 몫 6%)
+res_low__cap_high__lin.spice: camimc=2.231e-15 F/um^2 (행 7), cpmimc=3.5e-16 F/um (행 8) -> C_min = 3.631 fF (면적항 2.231 + 둘레항 1.400, 둘레 몫 39%)
+res_low__cap_low__lin.spice: camimc=1.778e-15 F/um^2 (행 7), cpmimc=3e-17 F/um (행 8) -> C_min = 1.898 fF (면적항 1.778 + 둘레항 0.120, 둘레 몫 6%)
+res_typical__cap_typical__lin.spice: camimc=2e-15 F/um^2 (행 7), cpmimc=1.9e-16 F/um (행 8) -> C_min = 2.760 fF (면적항 2.000 + 둘레항 0.760, 둘레 몫 28%)
+box 하한 0.1 pF / C_min(tt) = 36.2 배
+0.1 pF 정사각 변 = 6.88 um (면적 47.4 um^2); 면적만 식(C/camimc) = 50.0 um^2 -> 둘레 무시 오차 +5.5%
+C_min(tt)를 면적만 식으로 환산한 면적 = 1.38 um^2 vs 실제 1.00 um^2 (+38%)
+
+== 면적 예산이 주는 C 상한 (area_search_m2 x camimc_tt; MOS 면적 0 가정 느슨한 경계) ==
+cnr_ota                          area 제약 없음 -> 면적 상한 유도 불가 ; θ C 상자 -
+erfc_ota                         area 제약 없음 -> 면적 상한 유도 불가 ; θ C 상자 -
+r2r_opamp                        area 제약 없음 -> 면적 상한 유도 불가 ; θ C 상자 -
+rfc_ota                          area 제약 없음 -> 면적 상한 유도 불가 ; θ C 상자 -
+common_gate_amplifier            area=5e-09 m^2 -> C_max(전 면적 C) = 10.0 pF ; θ C 상자 - 상한 10 pF 대비 1.00 배
+current_reuse_telescopic_ota     area=4e-08 m^2 -> C_max(전 면적 C) = 80.0 pF ; θ C 상자 ['Cc1', 'Cc2'] 상한 10 pF 대비 8.00 배
+folded_cascode                   area=1e-08 m^2 -> C_max(전 면적 C) = 20.0 pF ; θ C 상자 - 상한 10 pF 대비 2.00 배
+ngcc_3stage_ff                   area=2.5e-08 m^2 -> C_max(전 면적 C) = 50.0 pF ; θ C 상자 ['Cm1', 'Cm2'] 상한 10 pF 대비 5.00 배
+nmcnr_amplifier                  area=2.5e-08 m^2 -> C_max(전 면적 C) = 50.0 pF ; θ C 상자 ['Cm1', 'Cm2'] 상한 10 pF 대비 5.00 배
+pushpull_follower_buffer         area=5e-09 m^2 -> C_max(전 면적 C) = 10.0 pF ; θ C 상자 - 상한 10 pF 대비 1.00 배
+sf_pushpull_output_opamp         area=2e-08 m^2 -> C_max(전 면적 C) = 40.0 pF ; θ C 상자 ['Cc'] 상한 10 pF 대비 4.00 배
+two_stage_ota                    area=1.5e-08 m^2 -> C_max(전 면적 C) = 30.0 pF ; θ C 상자 ['Cc'] 상한 10 pF 대비 3.00 배
+two_stage_ota_sf                 area=1.5e-08 m^2 -> C_max(전 면적 C) = 30.0 pF ; θ C 상자 ['Cc'] 상한 10 pF 대비 3.00 배

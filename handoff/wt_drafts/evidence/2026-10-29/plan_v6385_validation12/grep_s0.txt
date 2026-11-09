@@ -1,0 +1,61 @@
+11 상자 역할별 분리 -- 결합 C = 회로별 spec 선언 상자, 하한 = oracle SR 실측 경계; 적용 상자 writer = 검색 정의역 S0 블록(`search_domain` 자리, SF-1 범위 9 -- 로더 → S0 블록), 결합 C 갈래 = card DR-1(SF-1 → DR-1); 사용자 결정 '10번'·N13 재질
+11 cle SR 실측 경계; 적용 상자 writer = 검색 정의역 S0 블록(`search_domain` 자리, SF-1 범위 9 -- 로더 → S0 블록), 결합 C 갈래 = card DR-1(SF-1 → DR-1); 사용자 결정 '10번'·N13 재질문), Q-CB2(보상 C 하한 물리 결정자 -- 열린 질문, LA-1·ME-1
+11 재검토)·Q-CA1(채택 시 U-35 `user_spec` 삭제)·Q-CB1('10번'·N13·DEC-105 (10)(a)·적용 자리 로더 → S0 블록·SF-1 → DR-1 순서); 경위 history H1 'v6.38.5' 행) 이전 판: **Plan v6.38.4 승인 O-173** -- Status 원문 = history 
+270 유, diode VGS = VDS, 벌크 역바이어스 -- 덮는 소자의 포화 부등식은 R-1′ 제약 그래프(headroom-chain N3.1, S0 필드, 사본 금지)의 변과 writer_root 행이며 기둥 KVL만으로 대신하지 않는다(VDS가 게이트–소스 강하·저항 강하로 정해지는 경우 포함, v6.38 O-127·O-141 
+293 DEC-94 | (→ v6.38.4 P9-G1: (1) `gate_only_undeclared` 등 계산값 거부 자리 = topology 구조 S0 블록 안, 선언 형식 거부는 로더 -- 원래 취지와 다름, 승인 O-173) **MOD2 입력 게이트 -- gate 전용 바이어스 넷과 소자 수 대조**(reference 검토 Q9 
+303 고리(MOS 채널·게이트–소스·저항 엣지)에서 종속 성분을 제거한 기저다. 고리 = R-1′ 제약 그래프(headroom-chain N3.1, S0 필드)의 변과 그 위 순환, 그리고 1변수 노드 근 존재(writer_root) 행이다(O-141 (6)). CM 되먹임 루프의 DC 평형 등식도 θ 전류 축의 종속을 만든다(v6.3
+303 로 재고 엔진 값과의 차는 모델 오차(DEC-72)로 기록한다; 탐색 안에서는 무거운 계산을 하지 않는다. **R13** S/B/F/X 분류는 S0 필드 하나다(O-128 Q7): S = 필요 gm이 R3으로 정의된 신호 소자(매크로 활성 입력, rout follower), F = 그 밖 신호 소자, B = 부하·미러·바이어스·F
+303 ); 이름은 design이 정하고 각 필드 writer 하나, 새 cache·memo·sctx 슬롯·사본 0): (a) **S/B/F/X 분류 S0 필드**(R13) -- 만드는 card = TB-1(N6.29, O-144 J3), writer = 분류 블록 하나(쓰기 계획 다음 S0 블록 -- → v6.38.5 Q-KV1 (다)
+303 분류 S0 필드**(R13) -- 만드는 card = TB-1(N6.29, O-144 J3), writer = 분류 블록 하나(쓰기 계획 다음 S0 블록 -- → v6.38.5 Q-KV1 (다) 승인 시 쓰기 계획 앞 S0 블록; R-1′ 블록이 읽을 수 있는 층인지 층 순서 검사로 design에서 확인), 소비자 = R6 블록·
+303 O-144 J3), writer = 분류 블록 하나(쓰기 계획 다음 S0 블록 -- → v6.38.5 Q-KV1 (다) 승인 시 쓰기 계획 앞 S0 블록; R-1′ 블록이 읽을 수 있는 층인지 층 순서 검사로 design에서 확인), 소비자 = R6 블록·출발 단계(§6.7)·층 0(§5.3.3)·R-1′ 블록의 처리 자리 속성 
+303 입력 조립(층 0 후보·출발 시작점 -- card LA-1, R6 블록과 같은 card) (d) 고리와 변 좌표 집합 = R-1′ 제약 그래프 S0 필드(정의 = headroom-chain N3.1·N3.4, 만드는 card = TB-1 -- O-144 J3로 HC-1에서 옮김)의 변 속성(새 필드 아님). **(4) 값 미선언 
+304 .dc_window_cfg`(IT-2c)에만 남는다(N6.35 E-13 -- 포화 거부는 봉인 7). 이 원천을 가진 회로 집합 Rʳ ≠ ∅는 S0 필드(`dc_writer`·`dc_coord`·`dc_scc_order`)로 정적으로 정해진다 -- library 9/9 Rʳ = ∅(`wt/_drafts/evidence/2026-1
+304 FD 열 비율 × 실측 노드 풀이 시간 -- 유도값, 실측 아님 표기) + 지금 잴 수 있는 되먹임 양 둘 -- (a) Rʳ ≠ ∅ 회로 집합(S0 필드 정적 계수 -- 측정 2026-10-29 library 9/9 Rʳ = ∅, 노드 재풀이 0, `wt/_drafts/evidence/2026-10-29/design_v1152/m
+304 본안**(Q3-2 원문 '구조로 더하는 방식은 design에서 정의' -- design이 바꾸면 design 개정에서 보고). 인스턴스 목록은 S0 필드 하나(writer = 구조 블록 하나, 이름은 design; 소비자 = R6 블록 -- 필드와 소비자가 같은 card, 만들면 배선). 구현 = card LA-1 범위 15 (c
+304  C 하한 결정자 = 결합비 α와 SR(대신호); 권고 (나) 역할별 분리, Q-CB1 (나) 승인 시 적용 상자 writer = 검색 정의역 S0 블록(`search_domain` 자리)(card SF-1 범위 9 -- 로더 → S0 블록, 층 = `dc_current_basis`·`theta_schema` 뒤), 결합 C는 공
+304 (나) 승인 시 적용 상자 writer = 검색 정의역 S0 블록(`search_domain` 자리)(card SF-1 범위 9 -- 로더 → S0 블록, 층 = `dc_current_basis`·`theta_schema` 뒤), 결합 C는 공통 상자 대상 밖·회로별 선언·미선언 정지(card DR-1 범위), **원래 취지와 다
+354 으로 DE-1 착수 전 다시 물음), Q5 선언 정리, Q6 R7 B 선택 = 가드 안 K-1 max-min, Q7 R13 S/B/F/X 분류 S0 필드, Q8 R3 출발 단계 rout → follower gm(E10), Q9 N1.1 결정 순서(M7); Q3(R10 동적 요구, O-122 수정 M4)는 재검토 -- 근거 LDA 
+531  합치므로 반복점·봉인값 모두 그 블록 안 값(블록 밖 둘째 생산 0 -- 배정 표 D 행); (G1) **두 자리 이상이 쓰는 로더 계산값은 S0 필드(writer = S0 블록 하나)이고 로더는 그 값의 정본 자리가 아니다** -- 선언 자체의 파싱·스키마 거부(형식·키·문법, DEC-94 (1)의 선언 형식 거부 등)는 로더
+531 두 그 블록 안 값(블록 밖 둘째 생산 0 -- 배정 표 D 행); (G1) **두 자리 이상이 쓰는 로더 계산값은 S0 필드(writer = S0 블록 하나)이고 로더는 그 값의 정본 자리가 아니다** -- 선언 자체의 파싱·스키마 거부(형식·키·문법, DEC-94 (1)의 선언 형식 거부 등)는 로더에 남고, 계산값을 읽는 검
+531 1(구조 원칙); (G6) **파이프라인 접착 코드도 정본 자리가 아니다** -- 단계 A·B·탐색 문맥이 같은 입력에서 다시 만드는 파생값은 S0 필드(writer = S0 블록), 투영은 (G2); (G2) **투영·뷰는 필드를 읽는 접근자로만** -- 새 양 없이 열 모양만 바꾸면 READS(값 사본 금지 -- 규칙 4); 
+531 **파이프라인 접착 코드도 정본 자리가 아니다** -- 단계 A·B·탐색 문맥이 같은 입력에서 다시 만드는 파생값은 S0 필드(writer = S0 블록), 투영은 (G2); (G2) **투영·뷰는 필드를 읽는 접근자로만** -- 새 양 없이 열 모양만 바꾸면 READS(값 사본 금지 -- 규칙 4); **혼합 객체는 파생 술어·
+542 | B8 | 되먹임 소자 절단 넷 | S0 필드 하나(writer = 되먹임 선언 S0 블록), 로더 검사·루프 뷰·`noise_plan` READS(G1·G7) | `authoring/spec_elements.py:104`·
+542 | B8 | 되먹임 소자 절단 넷 | S0 필드 하나(writer = 되먹임 선언 S0 블록), 로더 검사·루프 뷰·`noise_plan` READS(G1·G7) | `authoring/spec_elements.py:104`·`authoring/spec_views.py:
+543 | B9 | gate 전용 넷(바이어스 입력 단언·고정 넷 판정) | S0 필드 하나(writer = topology 구조 S0 블록 -- B10과 같은 블록; DEC-94 (1) `gate_only_undeclared` 거부는 그 블록 안 -- G1, 원래
+543 | B9 | gate 전용 넷(바이어스 입력 단언·고정 넷 판정) | S0 필드 하나(writer = topology 구조 S0 블록 -- B10과 같은 블록; DEC-94 (1) `gate_only_undeclared` 거부는 그 블록 안 -- G1, 원래 취지와 다름), 바이어스 고정 넷 S1v 필드가 RE
+544 | B10 | topology가 아는 넷 집합 | S0 필드(writer = topology 구조 S0 블록 하나 -- 규칙 6 정본 자리, G1); 넷 참조 검사는 그 블록 안 거부(첫 소비자 앞 -- G1) | `authoring/to
+544 | B10 | topology가 아는 넷 집합 | S0 필드(writer = topology 구조 S0 블록 하나 -- 규칙 6 정본 자리, G1); 넷 참조 검사는 그 블록 안 거부(첫 소비자 앞 -- G1) | `authoring/topology_load.py:88`·`spec_co
+547 DC 입력의 **파생**(extras `spec_bounds`·`untie` 등 -- `DcInputs` 투영 부분은 접근자, G2·G6) | S0 필드(writer = S0 블록 하나), 단계 A·B·탐색 문맥 READS | `pipeline/stage_b.py:151·153-156`·`search/search_context.p
+547 xtras `spec_bounds`·`untie` 등 -- `DcInputs` 투영 부분은 접근자, G2·G6) | S0 필드(writer = S0 블록 하나), 단계 A·B·탐색 문맥 READS | `pipeline/stage_b.py:151·153-156`·`search/search_context.py:164-168`·`met
+680 마다)으로부터 **선언 절단 넷**(= 반전 입력 -- 선언 소자의 입력 포트 단자 넷, spec 규칙 L2로 소자마다 하나; **절단 넷 = S0 필드 하나**(소자 단자 넷 × 입력 포트 넷 집합 → 절단 넷; writer = 되먹임 선언 S0 블록 하나, 세 소비자 READS -- card TN-1, v6.38.4 P9 --
+680 칙 L2로 소자마다 하나; **절단 넷 = S0 필드 하나**(소자 단자 넷 × 입력 포트 넷 집합 → 절단 넷; writer = 되먹임 선언 S0 블록 하나, 세 소비자 READS -- card TN-1, v6.38.4 P9 -- **원래 취지와 다름** P9-TN: 옛 '순수 함수 하나·호출 넷이 모두 직접 부름'(O-83 R
+682 -118과 같은 card, O-142), 층 = U-118 결정에 따름(출발 단계 또는 층 0 W 뒤 -- 재검증 2 m2); S 분류(R13 S0 필드, card TB-1)는 β·대역폭 값을 읽지 않고 '정착 선언 있음 + GBW 미선언'이라는 선언 사실로만 매크로 활성을 가른다 -- 층 역전 없음); **β를 읽는 점은 미결 
+1158 성을 막는다; 정본 자리가 없어 계획부터 고친다(graph 규칙 6, S-7) | 선언 뒤 AP-1 착수 조건 계획 개정(응용 topology S0 블록 writer 하나) → design |
+1165 으로 고름 -- 둘 다 design 몫, 검증 9 m9-2), ①·②는 B 멤버가 없는 고리에만 -- R13 S/B/F를 쓰기 계획 **앞** S0 블록이 쓰고(입력 = S1v `Block.roles`·spec·L 동치류, `dc_coord` READS 0 -- 순환 0), X 칸은 없앰(`dc_coord.role` READS -
+1166 선언·공통 상자·결합 C 규칙을 합친 양), '선언 상자' = spec `theta_bounds` 선언 추출(card SF-1 범위 6 (e) S0 필드, 입력 = spec, S1 앞) -- 정의 축이 다른 두 필드다(graph 규칙 3: 적용 상자는 공통 상자·결합 C 판별·미선언 정지를 적용한 양); 적용 상자 writer =
+1166 다른 두 필드다(graph 규칙 3: 적용 상자는 공통 상자·결합 C 판별·미선언 정지를 적용한 양); 적용 상자 writer = 검색 정의역 S0 블록 하나(as-built 자리 = `E/search/search_domain.py:76-80·106-112·124-135` `search_domain` -- 재작성 범위로만 인용, 
+1166 긴다(θ 아닌 원소 선언 = fail-closed -- 지우면 조용히 무시되는 fail-open, 검증 11 m11-5); 적용 자리 로더 → S0 블록은 **원래 취지와 다름**(DEC-105 (10)·SF-1 범위 9). **소비자 재배선**(적용 상자 = `domain.variables` READS): `E/search/iv
+1166 0(`git grep`)·`iv_area` 공통 상자 커패시터 최소 면적 하한 toy(base = 그 커패시터 빠짐 -- red). 대안: 새 S0 블록 ⚠ `search_domain`의 `_passive_box`·미선언 정지가 같은 양의 둘째 생산자로 남음(graph 규칙 1) / 범위 6 (e)의 S1 앞 블록에 둠 ⚠ `dc
+1166 , card 성격 그대로 / (Q) **권고** -- 결합 C 갈래를 card DR-1 범위로 이관(DR-1이 SF-1 범위 9의 검색 정의역 S0 블록(`search_domain` 자리)에 결합 C 갈래와 그 첫 소비자 toy를 함께 넣음, 순서 SF-1 → DR-1 선행 +1 -- 소비자 소유 card가 첫 도달 card라는 
+1211 | TB-1(θ 기저 S0 필드 -- S/B/F/X 분류 필드·R-1′ 제약 그래프 S0 필드, v6.38 -- O-144 J3; R7 가드 필드 자리·`mirror_vds` 인스턴스 필드는 card LA-1 
+1211 | TB-1(θ 기저 S0 필드 -- S/B/F/X 분류 필드·R-1′ 제약 그래프 S0 필드, v6.38 -- O-144 J3; R7 가드 필드 자리·`mirror_vds` 인스턴스 필드는 card LA-1 범위 15 -- v6.38.2 U-132 기본안)(→ v6.38
+1217 2), 그 밖 범위는 SF-1 병합으로 (→ v6.38.5 Q-CB1 (나)·(α) 승인 시: 범위 9 적용 상자 writer = 검색 정의역 S0 블록(`search_domain` 자리)·소비자 재배선(사본 칸 삭제); 결합 C 갈래는 card DR-1로 -- 순서 SF-1 → DR-1) | 계획 v6.38 승인 → design
+1224  (2)) + NL-1(같은 통합 병합), headroom-chain HC-S(`sat_threshold` 정본), card TB-1(θ 기저 S0 필드 -- O-144 J3), EO-1(엔진 점 → oracle 입력 생산자 -- 이 card가 U17 ② 나머지로 함께 하는 front 판정 배선이 그 생산자를 부르는 코드 의존이라
+1231 .5 Q-CB1 (나)·(α) 승인 시: card SF-1 선행 추가 -- 결합 C 상자 갈래를 이 card가 SF-1 범위 9의 검색 정의역 S0 블록(`search_domain` 자리)에 넣음) | heldout 선정(충족 -- 사용자 결정 O-173) → 계획 개정(N3.4 W 티어 행 -- S-7; 충족 v6.38.5 W2
+1237 _decisions.md` O-144 행) J3 -- 원래 취지와 다름(승인 O-144))**: DEC-104 R6 블록(LA-1)이 R-1′ S0 필드를 READS하고 HC-1이 S/B/F/X 분류 필드를 READS해 생긴 순환을 끊으려고, 그 필드들을 card TB-1(N6.29)이 HC-1·LA-1 앞에서 만든다(순서 HC-
+1493 변화표가 판정 근거). 무동작 대상(F-IT2 library 입력 DC 선언 2회로)은 순수 리팩터링 기준(필드별, NFR-4)으로 쓰기 계획·S0 필드·결과 JSON이 같다(WP-05, N6.3 library 회로 행). ICM 세 metric은 U-106(O-116) V_cm 좌표 정의 하나라 결과 JSON 형식(값, lo, 
+1575 0 → LA-1 → CPG-1 경로가 그만큼 늦어짐 | ⚠ 슬라이스 변화와 입력 공통모드 변화가 같은 회로 front를 함께 바꿈. 쓰기 계획(S0 블록)은 WB-1 재작성 범위 밖 | 택하지 않음 |
+1599  않음(탐색 경로 `E/search/search_context.py` `base = dc_ctx.base.widen(S0_WRITERS)` 뒤 S0 블록 포함), `lift_s1`(호출 `E/sizing/kernel_context.py:81`, 정의 `E/sizing/s2_lift.py:17`)이 writer 귀속을 바꾸지 않는지
+1609 류): D1로 `node.dc_window` 값에서 뿌리 아닌 포트·선언 포트 항목이 빠져 `dc_columns` 출력 지문이 바뀌고, D4로 S0 필드(design `node.dc_output_structure`)가 없어져 base writer(쓰기 계획) 출력 지문이 바뀐다 -- 둘 다 지문 = 동작 변경, 변화표에 원인(O-
+1857  VCCS를 셀마다 gate 넷에서)으로 넓힌다 -- 지금 변경 없음) (c) `mirror_vds` 목표 행 -- 체계 오프셋 술어 인스턴스 S0 필드(DEC-105 (4) -- writer = 구조 블록 하나, 연결·S1v만 읽음, topology 태그 READS 0; 신호 경로 판정 = DEC-104 R10 '바이어스 고정 
+1901 1·522행(v0.7.6 `aa6e064c`); 없으면 층 0이 문턱을 둘째로 계산하게 됨, graph 규칙 1), card TB-1(θ 기저 S0 필드 -- R-1′ 제약 그래프 S0 필드·S/B/F/X 분류 필드; R6 블록과 VDS·V_R 배분이 READS -- O-144 J3; R7 가드 필드·`mirror_vds` 인스턴
+1901 4c`); 없으면 층 0이 문턱을 둘째로 계산하게 됨, graph 규칙 1), card TB-1(θ 기저 S0 필드 -- R-1′ 제약 그래프 S0 필드·S/B/F/X 분류 필드; R6 블록과 VDS·V_R 배분이 READS -- O-144 J3; R7 가드 필드·`mirror_vds` 인스턴스 필드는 U-132 기본안으로 이 c
+1903 )과 범위 1 VDS·V_R 배분은 이 card(U17 ② §6.7과 같은 통합 병합)가 구현하고, 그것이 READS하는 R-1′ 제약 그래프 S0 필드·S/B/F/X 분류 필드는 card TB-1(N6.29)이 이 card와 HC-1 앞에서 만든다(R7 가드 자리는 O-144 J3 원문으로 TB-1이었으나 현재 배정은 U-132
+2157  다름**: 사용자 결정 O-83 R-N1의 '순수 함수 분리·세 자리 직접 호출'을 대체, 승인 O-173 P9-TN): (1) 절단 넷 = S0 필드 하나(되먹임 소자마다 입력 포트 넷 쪽 단자 넷; writer = 되먹임 선언 S0 블록 하나, 규칙 정의는 그 블록 본문 한 자리 -- 이름은 design, 옛 design 이
+2157 , 승인 O-173 P9-TN): (1) 절단 넷 = S0 필드 하나(되먹임 소자마다 입력 포트 넷 쪽 단자 넷; writer = 되먹임 선언 S0 블록 하나, 규칙 정의는 그 블록 본문 한 자리 -- 이름은 design, 옛 design 이름 `feedback_cut_nets`) -- 세 자리의 입력(topology + spec
+2159 **변경 종류**: 값 동일 리팩터링(O-34 (1) -- 절단 넷 값 비트 동일; 새 S0 필드 1·writer 블록 1 -- 필드 소유표 행 추가, v6.38.4 P9; SPICE 다리 '대상 없음' N6.3 (ii)).
+2192 rride.py:51`·`authoring/spec_node_targets.py:28` -- 넷 집합·gate 전용 넷은 topology 구조 S0 블록 필드, DC 엣지는 S1 `s1_structure` 필드, 숨은 레일(DEC-60 (iii))·`gate_only_undeclared`(DEC-94 (1))·넷 참조 거부는 그 
+2192 파생**(N3.3 B13 -- **승인 O-173 P9-M1a**; 범위 6 확장 -- 원래 취지와 다름, 같은 '로더 단독 소유 → 파생값은 S0 블록 필드' 꼴): 파생(`theta_bounds` 상자 선언 추출 `spec_bounds`, `untie_orbits` 이름 목록 `untie`, `symmetry_marks(dc_
+2192 s`, `untie_orbits` 이름 목록 `untie`, `symmetry_marks(dc_inputs_from_spec(spec))`)을 S0 필드로 둔다. writer는 S0 블록 하나다(층 진술: 입력 = spec뿐이라 S1 앞 S0 블록, 범위 8 제약 분류 블록과 같은 층; 블록·이름은 design, 그 블록과 합칠지
+2192 이름 목록 `untie`, `symmetry_marks(dc_inputs_from_spec(spec))`)을 S0 필드로 둔다. writer는 S0 블록 하나다(층 진술: 입력 = spec뿐이라 S1 앞 S0 블록, 범위 8 제약 분류 블록과 같은 층; 블록·이름은 design, 그 블록과 합칠지도 design). 단계 A·단계 
+total 77

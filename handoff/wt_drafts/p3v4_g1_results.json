@@ -1,0 +1,4317 @@
+{
+ "head": "7535799",
+ "counterexamples": {
+  "move-exact": {
+   "kind": "accept",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_defs": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "move-edited": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {},
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {},
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "copy": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": "M-2"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-2",
+     "detail": [
+      "원본 자리에 정의가 남음"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "wrapper": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": "M-2"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-2",
+     "detail": [
+      "원본 자리에 정의가 남음"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/a.py::f",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/a.py::f",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "ambiguous": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": "M-1"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-1",
+     "detail": [
+      "['skills/analog-gmid-design/assets/a.py', 'skills/analog-gmid-design/assets/c.py']"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "two-targets": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": "M-3",
+    "skills/analog-gmid-design/assets/d.py::f": "M-2"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-3",
+     "detail": [
+      "['skills/analog-gmid-design/assets/b.py', 'skills/analog-gmid-design/assets/d.py']"
+     ]
+    },
+    "skills/analog-gmid-design/assets/d.py::f": {
+     "rule": "M-2",
+     "detail": [
+      "f",
+      "('def', 'skills/analog-gmid-design/assets/b.py', 'f')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f",
+     "skills/analog-gmid-design/assets/d.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/d.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/d.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f",
+     "skills/analog-gmid-design/assets/d.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f",
+     "skills/analog-gmid-design/assets/d.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::f",
+     "skills/analog-gmid-design/assets/d.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "overwrite": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 0
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 0
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": "M-0"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 0
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-0",
+     "detail": [
+      "f",
+      "('def', 'skills/analog-gmid-design/assets/b.py', 'f')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "overwrite-import": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": "M-0"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-0",
+     "detail": [
+      "f",
+      "('def', 'skills/analog-gmid-design/assets/c.py', 'f')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "absorb-own-import": {
+   "kind": "accept",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_defs": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "swap": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 0
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 0
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/a.py::f": "M-0",
+    "skills/analog-gmid-design/assets/b.py::f": "M-0"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 0
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/a.py::f": {
+     "rule": "M-0",
+     "detail": [
+      "f",
+      "('def', 'skills/analog-gmid-design/assets/a.py', 'f')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-0",
+     "detail": [
+      "f",
+      "('def', 'skills/analog-gmid-design/assets/b.py', 'f')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/a.py::f",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/a.py::f",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/a.py::f",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "rebind": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::g": "M-4"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::g": {
+     "rule": "M-4",
+     "detail": [
+      "helper",
+      "('def', 'skills/analog-gmid-design/assets/a.py', 'helper')",
+      "('def', 'skills/analog-gmid-design/assets/c.py', 'helper')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::g"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "move-with-helper-import": {
+   "kind": "accept",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_defs": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "move-together": {
+   "kind": "accept",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::helper": "skills/analog-gmid-design/assets/a.py::helper",
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::helper": "skills/analog-gmid-design/assets/a.py::helper",
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_defs": {
+    "skills/analog-gmid-design/assets/b.py::helper": "skills/analog-gmid-design/assets/a.py::helper",
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "move-chain": {
+   "kind": "accept",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/m2.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/m2.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_defs": {
+    "skills/analog-gmid-design/assets/m2.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "local-shadow": {
+   "kind": "accept",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_defs": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "file-same-dir": {
+   "kind": "accept",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::ff": "skills/analog-gmid-design/assets/a.py::ff"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::ff": "skills/analog-gmid-design/assets/a.py::ff"
+   },
+   "v4_defs": {
+    "skills/analog-gmid-design/assets/b.py::ff": "skills/analog-gmid-design/assets/a.py::ff"
+   },
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "file-dir-change": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "workspaces/run_harness.py::ff": "M-2"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "workspaces/run_harness.py::ff": {
+     "rule": "M-2",
+     "detail": [
+      "ff",
+      "('ext', 'skills/analog-gmid-design/assets', 'run_harness', 'ff')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "workspaces/run_harness.py::ff"
+    ],
+    "v6": [
+     {
+      "path": "workspaces/run_harness.py",
+      "unit": "ff",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "workspaces/run_harness.py",
+      "unit": "ff",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "workspaces/run_harness.py::ff"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "workspaces/run_harness.py::ff"
+    ],
+    "changed": [
+     "workspaces/run_harness.py::ff"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::ff"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "file-dir-change-noshim": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "workspaces/run_harness.py::ff": "M-4"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "workspaces/run_harness.py::ff": {
+     "rule": "M-4",
+     "detail": [
+      "__file__",
+      "('file-dir', 'skills/analog-gmid-design/assets')",
+      "('file-dir', 'workspaces')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "workspaces/run_harness.py::ff"
+    ],
+    "v6": [
+     {
+      "path": "workspaces/run_harness.py",
+      "unit": "ff",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "workspaces/run_harness.py",
+      "unit": "ff",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "workspaces/run_harness.py::ff"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "workspaces/run_harness.py::ff"
+    ],
+    "changed": [
+     "workspaces/run_harness.py::ff"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::ff"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "class-exact": {
+   "kind": "accept",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::Base": "skills/analog-gmid-design/assets/a.py::Base",
+    "skills/analog-gmid-design/assets/b.py::Other": "skills/analog-gmid-design/assets/a.py::Other",
+    "skills/analog-gmid-design/assets/b.py::C": "skills/analog-gmid-design/assets/a.py::C"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::Base": "skills/analog-gmid-design/assets/a.py::Base",
+    "skills/analog-gmid-design/assets/b.py::Other": "skills/analog-gmid-design/assets/a.py::Other",
+    "skills/analog-gmid-design/assets/b.py::C": "skills/analog-gmid-design/assets/a.py::C"
+   },
+   "v4_defs": {
+    "skills/analog-gmid-design/assets/b.py::C.m": "skills/analog-gmid-design/assets/a.py::C.m"
+   },
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "class-header-changed": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::Base": "skills/analog-gmid-design/assets/a.py::Base",
+    "skills/analog-gmid-design/assets/b.py::Other": "skills/analog-gmid-design/assets/a.py::Other"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::Base": "skills/analog-gmid-design/assets/a.py::Base",
+    "skills/analog-gmid-design/assets/b.py::Other": "skills/analog-gmid-design/assets/a.py::Other"
+   },
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::C.m"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "C.m",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "C.m",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::C.m"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::C"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::C"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "class-field-changed": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::Base": "skills/analog-gmid-design/assets/a.py::Base",
+    "skills/analog-gmid-design/assets/b.py::Other": "skills/analog-gmid-design/assets/a.py::Other"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::Base": "skills/analog-gmid-design/assets/a.py::Base",
+    "skills/analog-gmid-design/assets/b.py::Other": "skills/analog-gmid-design/assets/a.py::Other"
+   },
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::C.m"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "C.m",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "C.m",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::C.m"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::C"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::C"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "record-class-exact": {
+   "kind": "observe",
+   "base_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::Rec": "skills/analog-gmid-design/assets/a.py::Rec"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::Rec": "skills/analog-gmid-design/assets/a.py::Rec"
+   },
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "record-class-default-changed": {
+   "kind": "observe",
+   "base_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::Rec"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::Rec"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "cache-together": {
+   "kind": "accept",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::<stmt:c0ba5e2f546f>": "skills/analog-gmid-design/assets/a.py::<stmt:c0ba5e2f546f>",
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::<stmt:c0ba5e2f546f>": "skills/analog-gmid-design/assets/a.py::<stmt:c0ba5e2f546f>",
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_defs": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "cache-split": {
+   "kind": "reject",
+   "base_exit": {
+    "V3": 0,
+    "V6": 1,
+    "V7": 0
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 1,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::<stmt:c0ba5e2f546f>": "skills/analog-gmid-design/assets/a.py::<stmt:c0ba5e2f546f>"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 1,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::<stmt:c0ba5e2f546f>": "skills/analog-gmid-design/assets/a.py::<stmt:c0ba5e2f546f>"
+   },
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "<module>",
+      "check": "unbounded_cache",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [],
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "same-path-rebind(observation)": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": [
+     "skills/analog-gmid-design/assets/a.py::run:helper"
+    ]
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/a.py::run"
+   ],
+   "g1_caught": [],
+   "d0a_caught": [
+    "rebind"
+   ],
+   "rejected_overall": true,
+   "v3_matches_previous_run": true,
+   "v4_equals_v3_exit": true
+  },
+  "N1-dest-conditional-redef-noshim": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-0h",
+     "detail": [
+      "f",
+      "('multi', 'skills/analog-gmid-design/assets/b.py', 'f')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::<stmt:160f5a60f78b>",
+     "skills/analog-gmid-design/assets/b.py::<stmt:885f72c1c6ee>",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N1b-dest-conditional-redef-shim": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": "M-2"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-0h",
+     "detail": [
+      "f",
+      "('multi', 'skills/analog-gmid-design/assets/b.py', 'f')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::<stmt:160f5a60f78b>",
+     "skills/analog-gmid-design/assets/b.py::<stmt:885f72c1c6ee>",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N1c-same-path-conditional-redef": {
+   "kind": "observe",
+   "base_exit": {
+    "V3": 1,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [
+     "skills/analog-gmid-design/assets/a.py::<stmt:160f5a60f78b>",
+     "skills/analog-gmid-design/assets/a.py::<stmt:885f72c1c6ee>"
+    ],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "changed"
+   ]
+  },
+  "P-property-getter-changed": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 0,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::P": "skills/analog-gmid-design/assets/a.py::P"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 0,
+    "V7": 1
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::P": "skills/analog-gmid-design/assets/a.py::P"
+   },
+   "v4_defs": {},
+   "v4_dup_excluded": [
+    "skills/analog-gmid-design/assets/b.py::P.x"
+   ],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::P.x",
+     "skills/analog-gmid-design/assets/b.py::P.x"
+    ],
+    "v6": [],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::P.x"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [
+     "skills/analog-gmid-design/assets/b.py::P.x"
+    ],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::P.x"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::P.x"
+   ],
+   "d0a_caught": [
+    "changed-def"
+   ],
+   "rejected_overall": true
+  },
+  "P-property-exact": {
+   "kind": "accept-or-conservative",
+   "base_exit": {
+    "V3": 1,
+    "V6": 0,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::P": "skills/analog-gmid-design/assets/a.py::P"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 0,
+    "V7": 1
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::P": "skills/analog-gmid-design/assets/a.py::P"
+   },
+   "v4_defs": {},
+   "v4_dup_excluded": [
+    "skills/analog-gmid-design/assets/b.py::P.x"
+   ],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::P.x",
+     "skills/analog-gmid-design/assets/b.py::P.x"
+    ],
+    "v6": [],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::P.x"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": []
+  },
+  "N2-dest-lambda-rebind": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-0h",
+     "detail": [
+      "f",
+      "('multi', 'skills/analog-gmid-design/assets/b.py', 'f')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::<stmt:eca772f5e6e1>",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N3-star-shadow-builtin": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::g": "M-4"
+   },
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::helper": "skills/analog-gmid-design/assets/a.py::helper"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::helper": {
+     "rule": "M-0h",
+     "detail": [
+      "helper",
+      "('star', 'skills/analog-gmid-design/assets/b.py', 'helper')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/b.py::g": {
+     "rule": "M-0h",
+     "detail": [
+      "g",
+      "('star', 'skills/analog-gmid-design/assets/b.py', 'g')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "helper",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::g",
+     "skills/analog-gmid-design/assets/a.py::helper"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N3b-star-shadow": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::helper": "skills/analog-gmid-design/assets/a.py::helper",
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::helper": {
+     "rule": "M-0h",
+     "detail": [
+      "helper",
+      "('star', 'skills/analog-gmid-design/assets/b.py', 'helper')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/b.py::g": {
+     "rule": "M-0h",
+     "detail": [
+      "g",
+      "('star', 'skills/analog-gmid-design/assets/b.py', 'g')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "helper",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::g",
+     "skills/analog-gmid-design/assets/a.py::helper"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N4-unbound-global-reader-moved": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::g": {
+     "rule": "M-4",
+     "detail": [
+      "X",
+      "('global-dynamic', 'skills/analog-gmid-design/assets/a.py', 'X')",
+      "('unbound', 'X')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::g"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N5-future-annotations-dropped": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::Rec": "skills/analog-gmid-design/assets/a.py::Rec"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::Rec": {
+     "rule": "M-4",
+     "detail": [
+      "__future__",
+      "['annotations']",
+      "[]"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::Rec"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::Rec"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::Rec"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [
+     "skills/analog-gmid-design/assets/b.py::Rec"
+    ],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::Rec"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::Rec"
+   ],
+   "d0a_caught": [
+    "changed",
+    "future",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N5ok-future-annotations-kept": {
+   "kind": "accept",
+   "base_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::Rec": "skills/analog-gmid-design/assets/a.py::Rec"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::Rec": "skills/analog-gmid-design/assets/a.py::Rec"
+   },
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": []
+  },
+  "N6-moved-stmt-order-swapped": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 0,
+    "V6": 1,
+    "V7": 0
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::<stmt:a95a8f0821e5>": "skills/analog-gmid-design/assets/a.py::<stmt:a95a8f0821e5>",
+    "skills/analog-gmid-design/assets/b.py::<stmt:6d28dea2804f>": "skills/analog-gmid-design/assets/a.py::<stmt:6d28dea2804f>",
+    "skills/analog-gmid-design/assets/b.py::<stmt:f2ce3553b499>": "skills/analog-gmid-design/assets/a.py::<stmt:f2ce3553b499>"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::<stmt:a95a8f0821e5>": "skills/analog-gmid-design/assets/a.py::<stmt:a95a8f0821e5>",
+    "skills/analog-gmid-design/assets/b.py::<stmt:6d28dea2804f>": "skills/analog-gmid-design/assets/a.py::<stmt:6d28dea2804f>",
+    "skills/analog-gmid-design/assets/b.py::<stmt:f2ce3553b499>": "skills/analog-gmid-design/assets/a.py::<stmt:f2ce3553b499>"
+   },
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [
+     "skills/analog-gmid-design/assets/b.py <- skills/analog-gmid-design/assets/a.py"
+    ],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": [
+    "stmt-order"
+   ],
+   "rejected_overall": true
+  },
+  "N6ok-moved-stmt-order-kept": {
+   "kind": "accept",
+   "base_exit": {
+    "V3": 0,
+    "V6": 1,
+    "V7": 0
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::<stmt:a95a8f0821e5>": "skills/analog-gmid-design/assets/a.py::<stmt:a95a8f0821e5>",
+    "skills/analog-gmid-design/assets/b.py::<stmt:f2ce3553b499>": "skills/analog-gmid-design/assets/a.py::<stmt:f2ce3553b499>",
+    "skills/analog-gmid-design/assets/b.py::<stmt:6d28dea2804f>": "skills/analog-gmid-design/assets/a.py::<stmt:6d28dea2804f>"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::<stmt:a95a8f0821e5>": "skills/analog-gmid-design/assets/a.py::<stmt:a95a8f0821e5>",
+    "skills/analog-gmid-design/assets/b.py::<stmt:f2ce3553b499>": "skills/analog-gmid-design/assets/a.py::<stmt:f2ce3553b499>",
+    "skills/analog-gmid-design/assets/b.py::<stmt:6d28dea2804f>": "skills/analog-gmid-design/assets/a.py::<stmt:6d28dea2804f>"
+   },
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [],
+   "g1_caught": [],
+   "d0a_caught": []
+  },
+  "N7-method-body-changed-in-moved-class": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::Base": "skills/analog-gmid-design/assets/a.py::Base",
+    "skills/analog-gmid-design/assets/b.py::Other": "skills/analog-gmid-design/assets/a.py::Other",
+    "skills/analog-gmid-design/assets/b.py::C": "skills/analog-gmid-design/assets/a.py::C"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::Base": "skills/analog-gmid-design/assets/a.py::Base",
+    "skills/analog-gmid-design/assets/b.py::Other": "skills/analog-gmid-design/assets/a.py::Other",
+    "skills/analog-gmid-design/assets/b.py::C": "skills/analog-gmid-design/assets/a.py::C"
+   },
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::C.m"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "C.m",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "C.m",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::C.m"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [
+     "skills/analog-gmid-design/assets/b.py::C.m"
+    ],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::C.m"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::C.m"
+   ],
+   "d0a_caught": [
+    "changed-def"
+   ],
+   "rejected_overall": true
+  },
+  "N8a-decorator-added": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {},
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {},
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 2
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N8b-decorator-name-rebound": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": "M-4"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-4",
+     "detail": [
+      "deco",
+      "('def', 'skills/analog-gmid-design/assets/c.py', 'deco')",
+      "('def', 'skills/analog-gmid-design/assets/d.py', 'deco')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N9a-default-const-rebound": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": "M-4"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-4",
+     "detail": [
+      "K",
+      "('def', 'skills/analog-gmid-design/assets/a.py', 'K')",
+      "('def', 'skills/analog-gmid-design/assets/b.py', 'K')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "<module>",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::<stmt:41e117b76531>",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N9b-default-expr-changed": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {},
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {},
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N10-import-as-rebound": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::g": "M-4"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::g": {
+     "rule": "M-4",
+     "detail": [
+      "h",
+      "('def', 'skills/analog-gmid-design/assets/c.py', 'helper')",
+      "('def', 'skills/analog-gmid-design/assets/d.py', 'helper')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::g"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::g"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N11-method-to-toplevel": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {},
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {},
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::m"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "m",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "m",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::m"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [
+     "skills/analog-gmid-design/assets/a.py::C",
+     "skills/analog-gmid-design/assets/b.py::m"
+    ],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::m"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::m"
+   ],
+   "d0a_caught": [
+    "changed"
+   ],
+   "rejected_overall": true
+  },
+  "N12-try-import-fallback": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::helper": "M-2",
+    "skills/analog-gmid-design/assets/b.py::g": "M-4"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::helper": {
+     "rule": "M-0h",
+     "detail": [
+      "helper",
+      "('multi', 'skills/analog-gmid-design/assets/b.py', 'helper')"
+     ]
+    },
+    "skills/analog-gmid-design/assets/b.py::g": {
+     "rule": "M-4",
+     "detail": [
+      "helper",
+      "('def', 'skills/analog-gmid-design/assets/a.py', 'helper')",
+      "('multi', 'skills/analog-gmid-design/assets/b.py', 'helper')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "helper",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "g",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::<stmt:31c342daeef6>",
+     "skills/analog-gmid-design/assets/b.py::g",
+     "skills/analog-gmid-design/assets/b.py::helper"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::g",
+     "skills/analog-gmid-design/assets/a.py::helper"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::g",
+    "skills/analog-gmid-design/assets/b.py::helper"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::g",
+    "skills/analog-gmid-design/assets/b.py::helper"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "N13-ext-dir-change": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "workspaces/run_harness.py::g": "skills/analog-gmid-design/assets/a.py::g"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "workspaces/run_harness.py::g": {
+     "rule": "M-4",
+     "detail": [
+      "h",
+      "('ext', 'skills/analog-gmid-design/assets', 'wsutil', 'h')",
+      "('ext', 'workspaces', 'wsutil', 'h')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "workspaces/run_harness.py::g"
+    ],
+    "v6": [
+     {
+      "path": "workspaces/run_harness.py",
+      "unit": "g",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "workspaces/run_harness.py",
+      "unit": "g",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "workspaces/run_harness.py::g"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "workspaces/run_harness.py::g"
+    ],
+    "changed": [
+     "workspaces/run_harness.py::g"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::g"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "workspaces/run_harness.py::g"
+   ],
+   "g1_caught": [
+    "workspaces/run_harness.py::g"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "S2-augassign-rebind": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": "M-2"
+   },
+   "v3_units": {},
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-0h",
+     "detail": [
+      "f",
+      "('multi', 'skills/analog-gmid-design/assets/b.py', 'f')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::<stmt:51385c3c26c5>",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "S2-except-as-rebind": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 1,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_rejected": {
+    "skills/analog-gmid-design/assets/b.py::f": {
+     "rule": "M-0h",
+     "detail": [
+      "f",
+      "('multi', 'skills/analog-gmid-design/assets/b.py', 'f')"
+     ]
+    }
+   },
+   "v4_units": {},
+   "v4_defs": {},
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "v6": [
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "<module>",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "broad_except",
+      "base": 0,
+      "head": 1
+     },
+     {
+      "path": "skills/analog-gmid-design/assets/b.py",
+      "unit": "f",
+      "check": "magic_number",
+      "base": 0,
+      "head": 1
+     }
+    ],
+    "v7_new_defs": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ]
+   },
+   "d0a_check_sim": {
+    "move-rejected": [
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "changed": [
+     "skills/analog-gmid-design/assets/b.py::<stmt:5422ede3eb2a>",
+     "skills/analog-gmid-design/assets/b.py::f"
+    ],
+    "lost": [
+     "skills/analog-gmid-design/assets/a.py::f"
+    ],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": []
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "g1_caught": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a_caught": [
+    "changed",
+    "lost"
+   ],
+   "rejected_overall": true
+  },
+  "S5-inplace-rebind-in-move-card": {
+   "kind": "adversarial",
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v3_rejected": {},
+   "v3_units": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_rejected": {},
+   "v4_units": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_defs": {
+    "skills/analog-gmid-design/assets/b.py::f": "skills/analog-gmid-design/assets/a.py::f"
+   },
+   "v4_dup_excluded": [],
+   "v4_detail": {
+    "v3_targets": [],
+    "v6": [],
+    "v7_new_defs": []
+   },
+   "d0a_check_sim": {
+    "move-rejected": [],
+    "changed": [],
+    "lost": [],
+    "changed-def": [],
+    "stmt-order": [],
+    "future": [],
+    "rebind": [
+     "skills/analog-gmid-design/assets/a.py::user:helper"
+    ]
+   },
+   "subjects": [
+    "skills/analog-gmid-design/assets/a.py::user"
+   ],
+   "g1_caught": [],
+   "d0a_caught": [
+    "rebind"
+   ],
+   "rejected_overall": true
+  }
+ },
+ "adversarial_summary": {
+  "same-path-rebind(observation)": {
+   "g1": [],
+   "d0a": [
+    "rebind"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "base_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   }
+  },
+  "N1-dest-conditional-redef-noshim": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N1b-dest-conditional-redef-shim": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "P-property-getter-changed": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::P.x"
+   ],
+   "d0a": [
+    "changed-def"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 0,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 0,
+    "V7": 1
+   }
+  },
+  "N2-dest-lambda-rebind": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N3-star-shadow-builtin": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N3b-star-shadow": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N4-unbound-global-reader-moved": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N5-future-annotations-dropped": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::Rec"
+   ],
+   "d0a": [
+    "changed",
+    "future",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "base_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   }
+  },
+  "N6-moved-stmt-order-swapped": {
+   "g1": [],
+   "d0a": [
+    "stmt-order"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "base_exit": {
+    "V3": 0,
+    "V6": 1,
+    "V7": 0
+   }
+  },
+  "N7-method-body-changed-in-moved-class": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::C.m"
+   ],
+   "d0a": [
+    "changed-def"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N8a-decorator-added": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N8b-decorator-name-rebound": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N9a-default-const-rebound": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N9b-default-expr-changed": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N10-import-as-rebound": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::g"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N11-method-to-toplevel": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::m"
+   ],
+   "d0a": [
+    "changed"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N12-try-import-fallback": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::g",
+    "skills/analog-gmid-design/assets/b.py::helper"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "N13-ext-dir-change": {
+   "g1": [
+    "workspaces/run_harness.py::g"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "S2-augassign-rebind": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "S2-except-as-rebind": {
+   "g1": [
+    "skills/analog-gmid-design/assets/b.py::f"
+   ],
+   "d0a": [
+    "changed",
+    "lost"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 0,
+    "V6": 1,
+    "V7": 0
+   },
+   "v4_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  },
+  "S5-inplace-rebind-in-move-card": {
+   "g1": [],
+   "d0a": [
+    "rebind"
+   ],
+   "rejected": true,
+   "v3_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "v4_exit": {
+    "V3": 0,
+    "V6": 0,
+    "V7": 0
+   },
+   "base_exit": {
+    "V3": 1,
+    "V6": 1,
+    "V7": 1
+   }
+  }
+ },
+ "v3_regression": {
+  "move-exact": true,
+  "move-edited": true,
+  "copy": true,
+  "wrapper": true,
+  "ambiguous": true,
+  "two-targets": true,
+  "overwrite": true,
+  "overwrite-import": true,
+  "absorb-own-import": true,
+  "swap": true,
+  "rebind": true,
+  "move-with-helper-import": true,
+  "move-together": true,
+  "move-chain": true,
+  "local-shadow": true,
+  "file-same-dir": true,
+  "file-dir-change": true,
+  "file-dir-change-noshim": true,
+  "class-exact": true,
+  "class-header-changed": true,
+  "class-field-changed": true,
+  "record-class-exact": true,
+  "record-class-default-changed": true,
+  "cache-together": true,
+  "cache-split": true,
+  "same-path-rebind(observation)": true
+ },
+ "v3_steps_v4_changed": {},
+ "noop": {
+  "df36": {
+   "units": {},
+   "defs": {},
+   "rejected": {}
+  },
+  "dup-w-calc": {
+   "units": {},
+   "defs": {},
+   "rejected": {}
+  }
+ },
+ "real_rename_same_dir": {
+  "sizing_recipe": {
+   "units_total": 218,
+   "units_moved": 218,
+   "defs_total": 272,
+   "defs_moved": 272,
+   "dup_excluded": [],
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "m0h_violations": 0,
+   "d0a_check_findings": {
+    "move-rejected": 0,
+    "changed": 0,
+    "lost": 0,
+    "changed-def": 0,
+    "stmt-order": 0,
+    "future": 0,
+    "rebind": 0
+   },
+   "d0a_check_sample": {},
+   "moved_defs_seconds": 15.62,
+   "check_seconds": 1.26
+  },
+  "stick_diagram": {
+   "units_total": 169,
+   "units_moved": 169,
+   "defs_total": 181,
+   "defs_moved": 181,
+   "dup_excluded": [],
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "m0h_violations": 0,
+   "d0a_check_findings": {
+    "move-rejected": 0,
+    "changed": 0,
+    "lost": 0,
+    "changed-def": 0,
+    "stmt-order": 0,
+    "future": 0,
+    "rebind": 0
+   },
+   "d0a_check_sample": {},
+   "moved_defs_seconds": 10.72,
+   "check_seconds": 1.74
+  },
+  "topology_library": {
+   "units_total": 8,
+   "units_moved": 8,
+   "defs_total": 12,
+   "defs_moved": 12,
+   "dup_excluded": [],
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "m0h_violations": 0,
+   "d0a_check_findings": {
+    "move-rejected": 0,
+    "changed": 0,
+    "lost": 0,
+    "changed-def": 0,
+    "stmt-order": 0,
+    "future": 0,
+    "rebind": 0
+   },
+   "d0a_check_sample": {},
+   "moved_defs_seconds": 8.25,
+   "check_seconds": 2.36
+  },
+  "design_report": {
+   "units_total": 7,
+   "units_moved": 7,
+   "defs_total": 8,
+   "defs_moved": 8,
+   "dup_excluded": [],
+   "rejected_by_rule": {},
+   "rejected_sample": {},
+   "m0h_violations": 0,
+   "d0a_check_findings": {
+    "move-rejected": 0,
+    "changed": 0,
+    "lost": 0,
+    "changed-def": 0,
+    "stmt-order": 0,
+    "future": 0,
+    "rebind": 0
+   },
+   "d0a_check_sample": {},
+   "moved_defs_seconds": 7.94,
+   "check_seconds": 2.25
+  }
+ },
+ "engine_facts": {
+  "sizing_recipe": {
+   "star": false,
+   "global_declared": [],
+   "futures": [
+    "annotations"
+   ],
+   "future_line": [
+    35
+   ],
+   "qualname_dups": [],
+   "multi_bound": []
+  },
+  "stick_diagram": {
+   "star": false,
+   "global_declared": [],
+   "futures": [
+    "annotations"
+   ],
+   "future_line": [
+    32
+   ],
+   "qualname_dups": [],
+   "multi_bound": []
+  },
+  "topology_library": {
+   "star": false,
+   "global_declared": [],
+   "futures": [
+    "annotations"
+   ],
+   "future_line": [
+    24
+   ],
+   "qualname_dups": [],
+   "multi_bound": []
+  },
+  "design_report": {
+   "star": false,
+   "global_declared": [],
+   "futures": [],
+   "future_line": [],
+   "qualname_dups": [],
+   "multi_bound": []
+  }
+ }
+}

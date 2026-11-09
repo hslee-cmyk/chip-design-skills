@@ -1,0 +1,82 @@
+"""F2 작성 전 실측용 시제품(측정 전용 -- test-author에게 건네지 않는다. 작성자 != 검증자). F2 spec card 계약 6의 red 모양·green을 모의 트리에서 재려는 것.
+
+    P3SD_ROOT=<저장소 루트> python -m pytest test_p3_shim_delete.proto.py
+
+(a) shim 세 파일 부재(red: F2 base에 있다), (b) import_layering --root exit 0(red: F2 base는 SD -> MOD9 위쪽 import로 exit 1),
+(c) D-9 밖 추적 .py가 세 모듈을 import하지 않는다(F1 뒤 base에서도 참 -- (a)와 한 test로 묶는다), (d) D-9 밖 추적 .py가 stick_diagram에서 읽는 이름이 SD 최상위에 바인딩돼 있다(base에서도 참 -- (b)와 묶는다).
+"""
+import ast
+import os
+import pathlib
+import re
+import subprocess
+import symtable
+import sys
+
+ROOT = pathlib.Path(os.environ["P3SD_ROOT"])
+A = ROOT / "skills" / "analog-gmid-design" / "assets"
+SHIMS = ("sizing_recipe", "topology_library", "design_report")
+EXCL = re.compile(r"^(\.ai/verification/|docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition\.py$)")
+IMPF = ("import_module", "_import", "__import__")
+
+
+def _tracked_py():
+    out = subprocess.run(["git", "-c", "core.quotepath=off", "-C", str(ROOT), "ls-files", "-z", "--", "*.py"],
+                         capture_output=True, check=True).stdout.decode("utf-8").split("\0")
+    # 범위 = 판정 트리(skills/analog-gmid-design/**) + 하네스 -- workspaces 하위 진단 스크립트는 DoD E3·E3b가 맡는다(base에서 이미 깨진 것 포함, design §11-10)
+    return [p for p in out if p and not EXCL.search(p)
+            and (p.startswith("skills/analog-gmid-design/") or p == "workspaces/run_harness.py")]
+
+
+def _shim_importers():
+    bad = []
+    for p in _tracked_py():
+        src = (ROOT / p).read_bytes()
+        if not re.search(rb"sizing_recipe|topology_library|design_report", src):
+            continue
+        for n in ast.walk(ast.parse(src)):
+            if isinstance(n, ast.Import) and any(a.name.split(".")[0] in SHIMS for a in n.names):
+                bad.append((p, n.lineno))
+            elif isinstance(n, ast.ImportFrom) and n.level == 0 and n.module and n.module.split(".")[0] in SHIMS:
+                bad.append((p, n.lineno))
+            elif isinstance(n, ast.Call) and n.args and isinstance(n.args[0], ast.Constant) and isinstance(n.args[0].value, str):
+                f = n.func
+                fn = f.id if isinstance(f, ast.Name) else getattr(f, "attr", "")
+                if fn in IMPF and n.args[0].value.split(".")[0] in SHIMS:
+                    bad.append((p, n.lineno))
+    return bad
+
+
+def _sd_unresolved():
+    sd = A / "stick_diagram.py"
+    top = {s.get_name() for s in symtable.symtable(sd.read_text(encoding="utf-8"), str(sd), "exec").get_symbols()
+           if s.is_imported() or s.is_assigned() or s.is_namespace()}
+    top |= {"__file__", "__name__", "__doc__", "__dict__", "__spec__", "__loader__", "__package__"}
+    bad = []
+    for p in _tracked_py():
+        if p.endswith("assets/stick_diagram.py"):
+            continue
+        src = (ROOT / p).read_bytes()
+        if b"stick_diagram" not in src:
+            continue
+        t = ast.parse(src)
+        al = {a.asname or a.name for n in ast.walk(t) if isinstance(n, ast.Import) for a in n.names if a.name == "stick_diagram"}
+        for n in ast.walk(t):
+            if isinstance(n, ast.ImportFrom) and n.level == 0 and n.module == "stick_diagram":
+                bad += [(p, n.lineno, a.name) for a in n.names if a.name not in top]
+            elif isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name) and n.value.id in al and n.attr not in top:
+                bad.append((p, n.lineno, n.attr))
+    return bad
+
+
+def test_p3sd_shims_gone_and_no_importers():
+    present = [s for s in SHIMS if (A / (s + ".py")).exists()]
+    assert present == [], "shim 파일이 남아 있다: %s" % present
+    assert _shim_importers() == []
+
+
+def test_p3sd_layering_clean_and_sd_names_resolve():
+    r = subprocess.run([sys.executable, "-B", str(ROOT / "tools" / "gates" / "import_layering.py"), "--root", str(ROOT)],
+                       capture_output=True)
+    assert r.returncode == 0, r.stdout.decode("utf-8", "replace")[:400]
+    assert _sd_unresolved() == []

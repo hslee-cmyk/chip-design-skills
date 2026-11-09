@@ -1,0 +1,69 @@
+{
+ "test_selftest_sizing_recipe.py": {
+  "nonengine": [
+   "_dc_replace",
+   "json",
+   "math",
+   "np"
+  ],
+  "tl_names": [
+   "nmcnr_predict_ac_response"
+  ],
+  "base_lines": [
+   "from dataclasses import replace as _dc_replace  # noqa: E402",
+   "import json  # noqa: E402",
+   "import math  # noqa: E402",
+   "import numpy as np  # noqa: E402",
+   "from sizing_recipe import (SemiEmpiricalGmIdLUT, SizingContext, Transistor, _COMPENSATION_REGISTRY, _blocked_euler_rows, _build_theta_evaluator, _full_circuit_response, _group_score_interior, _group_score_metric, _invert_gm_id_for_current, _lerp, _load_full_topology_cached, _nmcnr_stage1_rout, allocate_stack_headroom, apply_and_revalidate_matching_finger_growth, apply_and_revalidate_pair_adjustment, apply_theta_feed, build_toy_lut, check_quasi_static, compute_metric, derive_class_L, derive_role_L, diagnose_sizing_roles_gap, diode_vds_window, estimate_area_budget, estimate_mismatch_sigma, feasible_L_window, find_optimal_sizing, knee_L_for_kind, load_topology, optimize_full_circuit_budget, optimize_multistage, propagate_topology_forced_currents, require_declared_spec_source, resolve_constraint_references, resolve_stack_layout, revalidate_finger_override, run_matching_safety_with_finger_growth, run_topology_pipeline_with_finger_fixup, search_gm_id_for_role, size_transistor, solve_diode_connected_vds, solve_diode_stack_current, solve_id_for_target_gm, suggest_matching_finger_growth, suggest_pair_finger_adjustments, validate_theta_declaration_order)  # noqa: E402",
+   "from topology_library import nmcnr_predict_ac_response  # noqa: E402"
+  ],
+  "head_lines": [
+   "from dataclasses import replace as _dc_replace  # noqa: E402",
+   "import json  # noqa: E402",
+   "import math  # noqa: E402",
+   "import numpy as np  # noqa: E402",
+   "from circuit_metrics import _full_circuit_response, apply_theta_feed, compute_metric, estimate_mismatch_sigma",
+   "from circuit_state_graph import Transistor, _load_full_topology_cached, load_topology, propagate_topology_forced_currents, require_declared_spec_source, resolve_constraint_references, validate_theta_declaration_order",
+   "from gmid_lut import SemiEmpiricalGmIdLUT, build_toy_lut",
+   "from gmid_sizing_engine import SizingContext, _COMPENSATION_REGISTRY, _invert_gm_id_for_current, _nmcnr_stage1_rout, allocate_stack_headroom, check_quasi_static, derive_class_L, diode_vds_window, feasible_L_window, find_optimal_sizing, knee_L_for_kind, nmcnr_predict_ac_response, optimize_multistage, search_gm_id_for_role, size_transistor, solve_diode_connected_vds, solve_diode_stack_current, solve_id_for_target_gm",
+   "from sizing_layout_convergence import _blocked_euler_rows, _build_theta_evaluator, apply_and_revalidate_matching_finger_growth, apply_and_revalidate_pair_adjustment, derive_role_L, diagnose_sizing_roles_gap, estimate_area_budget, optimize_full_circuit_budget, resolve_stack_layout, revalidate_finger_override, run_matching_safety_with_finger_growth, run_topology_pipeline_with_finger_fixup, suggest_matching_finger_growth",
+   "from stick_diagram import suggest_pair_finger_adjustments",
+   "from theta_search import _group_score_interior, _group_score_metric, _lerp"
+  ]
+ },
+ "test_selftest_topology_library.py": {
+  "nonengine": [
+   "math"
+  ],
+  "tl_names": [
+   "nmcnr_predict_ac_response"
+  ],
+  "base_lines": [
+   "import math  # noqa: E402",
+   "from topology_library import (current_reuse_telescopic_topology, miller_ota_topology, ngcc_3stage_topology, nmcnr_3stage_topology, nmcnr_check_dominant_pole_approximation, nmcnr_compensation_elements)  # noqa: E402",
+   "from topology_library import nmcnr_predict_ac_response  # noqa: E402"
+  ],
+  "head_lines": [
+   "import math  # noqa: E402",
+   "from gmid_sizing_engine import current_reuse_telescopic_topology, miller_ota_topology, ngcc_3stage_topology, nmcnr_3stage_topology, nmcnr_check_dominant_pole_approximation, nmcnr_compensation_elements, nmcnr_predict_ac_response"
+  ]
+ },
+ "test_selftest_design_report.py": {
+  "nonengine": [
+   "os"
+  ],
+  "tl_names": [],
+  "base_lines": [
+   "import os  # noqa: E402",
+   "from design_report import (assemble_report_data, build_topology_device_table, render_html_report)  # noqa: E402",
+   "from stick_diagram import (run_full_circuit_audit_from_topology)  # noqa: E402"
+  ],
+  "head_lines": [
+   "import os  # noqa: E402",
+   "from instance_report_builder import assemble_report_data, build_topology_device_table, render_html_report",
+   "from instance_report_builder import run_full_circuit_audit_from_topology  # noqa: E402"
+  ]
+ },
+ "T0B": "144be26c9f2a50f3b7a24c389555806ac0edfeb7",
+ "T0H": "a9bcafacd99ac256ac51512b4b5a16355a16817e"
+}

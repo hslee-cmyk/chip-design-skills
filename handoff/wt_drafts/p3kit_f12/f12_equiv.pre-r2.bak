@@ -1,0 +1,310 @@
+"""F1 작성 전 실측 -- 계약 3 판정기 r1(측정 전용. 판정 도구가 아니다: auditor는 계약 문언만 보고 독립으로 쓴다, 작성자 != 검증자).
+
+review_p3_f12.md S1 반영판. 옛 판(지우는 정규화)은 f12_equiv_v1.py로 남겼다(작성 전 실측 5의 옛 수치 재현용).
+
+    python -B f12_equiv.py <복제본 루트> <base rev> <head rev> <out.json> [--d17 <f1sim.json>] [--only <경로>…]
+
+base·head 커밋 쌍의 바뀐 추적 .py(엔진 파일 A/*.py 제외)마다 (가)~(마)를 잰다.
+ (가) 정규화 AST 같음 -- 엔진 import 문(첫 성분이 SR·TL·DR·SD 또는 그 트리의 N3.10 줄기)은 **지우지 않고 그 자리에 표지 문장**으로 바꾼다
+     (같은 문장 목록에서 연속한 엔진 import 묶음 = 표지 하나 -- 1→N 분할·뒤에 붙인 별칭 import 허용. `import a, X as b`처럼 섞이면 비엔진 몫은 남기고 표지를 뒤에).
+     모듈 식(엔진 import가 묶은 별칭 Name, import 호출 `import_module/_import/__import__("X")`)은 `<M>`로.
+     D-17 대입은 **모듈 속성 대상만** 표지 `<D17>` 하나로 바꾸고(첫 모듈 속성 대상 자리) 그 밖의 대상(Name 등)은 남긴다.
+     D-17 호출(`setattr`/`delattr`/`<x>.setattr`(monkeypatch)/`<x>.delattr` -- 첫 인자 모듈 식, 둘째 인자 문자열 상수)을 담은 식 문장은
+     표지 `<D17C kind name value>` 하나로, 연속한 같은 표지는 하나로(같은 값을 여러 모듈에 넣는 1→N 허용).
+ (나) 해석 같음 -- from-import (묶는 이름 → 정의) 정렬 목록이 **같다**(부분집합 아님, m12), 모듈 식 속성·getattr류 상수 이름의 (등장 순서 → 정의) 목록이 같다.
+ (다) 정의 모듈 -- head의 엔진 from-import·모듈 식 읽기마다 그 이름의 정의 파일 모듈을 직접 가리킨다(예외: F2 뒤 SD에 남는 이름).
+ (라) D-17 -- head의 대입·호출 대상 모듈 집합(이름마다) = 기대 집합. 기대 = head 트리 엔진 파일 중 그 이름을 전역으로 읽고 같은 정의로 푸는 모듈 전부
+     (0이면 정의 모듈 하나; 이 판정기가 계산 -- --d17 json이 있으면 그것과도 대조해 차이를 적는다).
+ (마) 이름 없는 엔진 import -- base에서 묶은 이름을 어디서도 읽지 않는 엔진 `import X`(순서 고정용)는 head 같은 표지 묶음에
+     **N3.10 MOD10 진입 모듈**(head 트리에 없으면 -- 모의 -- head에 있는 N3.10 최대 번호 모듈)의 이름 없는 import로 같은 수만큼 있어야 한다.
+"""
+import ast
+import json
+import os
+import subprocess
+import sys
+
+ROOT, BASE, HEAD, OUT = sys.argv[1:5]
+D17IN = json.load(open(sys.argv[sys.argv.index("--d17") + 1], encoding="utf-8"))["d17"] if "--d17" in sys.argv else None
+ONLY = sys.argv[sys.argv.index("--only") + 1:] if "--only" in sys.argv else None
+A = "skills/analog-gmid-design/assets/"
+IMPF = ("import_module", "_import", "__import__")
+SETF = ("setattr", "delattr")
+SHIMS = {"sizing_recipe", "topology_library", "design_report"}
+sys.path.insert(0, os.path.join(ROOT, "tools", "gates"))
+import reachability as rch  # noqa: E402
+import import_layering as il  # noqa: E402
+
+
+def git(*a):
+    r = subprocess.run(["git", "-c", "core.quotepath=off", "-C", ROOT] + list(a), capture_output=True)
+    if r.returncode:
+        raise SystemExit("git %s: %s" % (a, r.stderr.decode("utf-8", "replace")))
+    return r.stdout.decode("utf-8")
+
+
+IB = rch.SourceIndex(rch.read_tree(ROOT, BASE, rch.SOURCE_GLOBS))
+IH = rch.SourceIndex(rch.read_tree(ROOT, HEAD, rch.SOURCE_GLOBS))
+MODT = il.mod_table(git("show", HEAD + ":docs/01-plan/features/gain-budget-gmid-sizing.plan.md"))
+ENG = {"sizing_recipe", "topology_library", "design_report", "stick_diagram"} | set(MODT)
+_present = sorted(((k, m) for m, k in MODT.items() if (A + m + ".py") in IH.paths()), key=lambda x: x[0])
+NAMELESS_DEST = [m for k, m in _present if k == 10] or [_present[-1][1]]
+NAMELESS_DEST = NAMELESS_DEST[0]
+HEAD_ENGINE_FILES = sorted(p for p in IH.paths() if p.startswith(A) and "/" not in p[len(A):] and p.endswith(".py"))
+
+SD_READ = set()   # head SD가 스스로 읽는 이름(F2 뒤에도 SD에 바인딩이 남는다 -- design 30 §7.2)
+for _gn in IH.global_names(A + "stick_diagram.py").values():
+    SD_READ |= set(_gn)
+
+
+def canon(o):
+    if o[0] == "def":
+        return ("def", o[1], o[2])
+    if o[0] == "ext":
+        return ("ext", o[-2], o[-1])
+    if o[0] == "ext-module":
+        return ("ext-module", o[-1])
+    if o[0] == "module":
+        return ("module", o[1])
+    return (o[0],) + tuple(o[1:])
+
+
+def resolve(idx, mod, name):
+    p = A + mod + ".py"
+    if p not in idx.paths():
+        return ("unresolved", mod, name)
+    return canon(idx.binding_origin(p, name))
+
+
+_CALLERS = {}
+
+
+def expected_callers(name, origin):
+    """(라) 기대: head 트리 엔진 파일 중 name을 전역으로 읽고 같은 정의(origin)로 푸는 모듈 전부, 0이면 정의 모듈."""
+    k = (name, origin)
+    if k not in _CALLERS:
+        out = set()
+        if origin[0] == "def":
+            for p in HEAD_ENGINE_FILES:
+                st = p[len(A):-3]
+                if st in SHIMS:
+                    continue
+                if any(name in gn for gn in IH.global_names(p).values()) and canon(IH.binding_origin(p, name)) == origin:
+                    out.add(st)
+            if not out and origin[1].startswith(A):
+                out.add(origin[1][len(A):-3])
+        _CALLERS[k] = sorted(out)
+    return _CALLERS[k]
+
+
+def eng_mod(name):
+    return name.split(".")[0] in ENG
+
+
+def analyze(src, idx):
+    t = ast.parse(src)
+    al = {}            # 모듈 별칭 -> 엔진 모듈
+    loads = set()
+    for n in ast.walk(t):
+        if isinstance(n, ast.Import):
+            for a in n.names:
+                if eng_mod(a.name):
+                    al[a.asname or a.name.split(".")[0]] = a.name.split(".")[0]
+        elif isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load):
+            loads.add(n.id)
+
+    def call_mod(e):
+        if isinstance(e, ast.Call):
+            f = e.func
+            nm = f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+            if nm in IMPF and e.args and isinstance(e.args[0], ast.Constant) and isinstance(e.args[0].value, str) \
+                    and eng_mod(e.args[0].value):
+                return e.args[0].value.split(".")[0]
+        return None
+    for n in ast.walk(t):   # 별칭 = import 호출 결과를 대입받은 이름
+        if isinstance(n, ast.Assign) and call_mod(n.value):
+            for tg in n.targets:
+                if isinstance(tg, ast.Name):
+                    al[tg.id] = call_mod(n.value)
+
+    def mod_of(e):
+        if isinstance(e, ast.Name) and e.id in al:
+            return al[e.id]
+        return call_mod(e)
+
+    def setcall(e):
+        """D-17 호출: (종류, 모듈, 이름) 또는 None."""
+        if not isinstance(e, ast.Call) or len(e.args) < 2:
+            return None
+        f = e.func
+        nm = f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+        if nm in SETF and mod_of(e.args[0]) and isinstance(e.args[1], ast.Constant) and isinstance(e.args[1].value, str):
+            return (nm, mod_of(e.args[0]), e.args[1].value)
+        return None
+
+    froms, attrs, notdef, d17t, nameless = [], [], [], [], []
+    for n in ast.walk(t):
+        if isinstance(n, ast.ImportFrom) and n.level == 0 and n.module and eng_mod(n.module):
+            for a in n.names:
+                r = resolve(idx, n.module.split(".")[0], a.name)
+                froms.append((a.asname or a.name, r))
+                if r[0] == "def" and r[1] != A + n.module.split(".")[0] + ".py" and not (n.module == "stick_diagram" and a.name in SD_READ):
+                    notdef.append((n.lineno, n.module, a.name, r[1]))
+        elif isinstance(n, ast.Import):
+            for a in n.names:
+                if eng_mod(a.name) and (a.asname or a.name.split(".")[0]) not in loads:
+                    nameless.append(a.name.split(".")[0])
+        elif isinstance(n, ast.Attribute) and mod_of(n.value) and not isinstance(n.ctx, ast.Store) and not isinstance(n.ctx, ast.Del):
+            r = resolve(idx, mod_of(n.value), n.attr)
+            attrs.append(r)
+            if r[0] == "def" and r[1] != A + mod_of(n.value) + ".py" and not (mod_of(n.value) == "stick_diagram" and n.attr in SD_READ):
+                notdef.append((n.lineno, mod_of(n.value), n.attr, r[1]))
+        elif isinstance(n, (ast.Assign, ast.AugAssign, ast.AnnAssign, ast.Delete)):
+            tgs = n.targets if isinstance(n, (ast.Assign, ast.Delete)) else [n.target]
+            tg = [x for x in tgs if isinstance(x, ast.Attribute) and mod_of(x.value)]
+            for x in tg:
+                d17t.append((x.attr, mod_of(x.value)))
+        elif isinstance(n, ast.Call) and setcall(n):
+            k, m, nm = setcall(n)
+            d17t.append((nm, m))
+            attrs.append(("d17call", k) + resolve(idx, m, nm))
+        elif isinstance(n, ast.Call) and n.args and mod_of(n.args[0]) and \
+                (n.func.id if isinstance(n.func, ast.Name) else getattr(n.func, "attr", "")) in ("getattr", "hasattr"):
+            a1 = n.args[1] if len(n.args) > 1 else None
+            attrs.append(resolve(idx, mod_of(n.args[0]), a1.value) if isinstance(a1, ast.Constant) else ("dynamic",))
+
+    def marker(text):
+        return ast.Expr(ast.Constant(text))
+
+    class Norm(ast.NodeTransformer):
+        def _stmts(self, body):
+            out, prev = [], None
+            for s in body:
+                if isinstance(s, ast.Import) and any(eng_mod(a.name) for a in s.names):
+                    rest = [a for a in s.names if not eng_mod(a.name)]
+                    if rest:
+                        s.names = rest
+                        out.append(s)
+                        prev = None
+                    if prev != "<ENGINE-IMPORT>":
+                        out.append(marker("<ENGINE-IMPORT>"))
+                    prev = "<ENGINE-IMPORT>"
+                    continue
+                if isinstance(s, ast.ImportFrom) and s.level == 0 and s.module and eng_mod(s.module):
+                    if prev != "<ENGINE-IMPORT>":
+                        out.append(marker("<ENGINE-IMPORT>"))
+                    prev = "<ENGINE-IMPORT>"
+                    continue
+                if isinstance(s, ast.Expr) and setcall(s.value):
+                    k, _m, nm = setcall(s.value)
+                    v = s.value.args[2] if len(s.value.args) > 2 else None
+                    txt = "<D17C %s %s %s>" % (k, nm, ast.dump(self.visit(v), include_attributes=False) if v is not None else "")
+                    if prev != txt:
+                        out.append(marker(txt))
+                    prev = txt
+                    continue
+                prev = None
+                r = self.visit(s)
+                if r is None:
+                    continue
+                out.extend(r if isinstance(r, list) else [r])
+            return out
+
+        def generic_visit(self, node):
+            for fld in ("body", "orelse", "finalbody"):
+                v = getattr(node, fld, None)
+                if isinstance(v, list) and v and isinstance(v[0], ast.stmt):
+                    setattr(node, fld, self._stmts(v))
+            for fld, v in ast.iter_fields(node):
+                if fld in ("body", "orelse", "finalbody") and isinstance(v, list) and v and isinstance(v[0], ast.stmt):
+                    continue
+                if isinstance(v, list):
+                    nv = []
+                    for x in v:
+                        if isinstance(x, ast.AST):
+                            x = self.visit(x)
+                            if x is None:
+                                continue
+                            if isinstance(x, list):
+                                nv.extend(x)
+                                continue
+                        nv.append(x)
+                    setattr(node, fld, nv)
+                elif isinstance(v, ast.AST):
+                    setattr(node, fld, self.visit(v))
+            return node
+
+        def visit_Assign(self, n):
+            if any(isinstance(x, ast.Attribute) and mod_of(x.value) for x in n.targets):
+                new, done = [], False
+                for x in n.targets:
+                    if isinstance(x, ast.Attribute) and mod_of(x.value):
+                        if not done:
+                            new.append(ast.Name("<D17>", ast.Store()))
+                            done = True
+                        continue
+                    new.append(x)
+                n.targets = new
+            return self.generic_visit(n)
+
+        def visit_Name(self, n):
+            return ast.Name("<M>", n.ctx) if n.id in al and isinstance(n.ctx, ast.Load) else n
+
+        def visit_Call(self, n):
+            if call_mod(n):
+                return ast.Name("<M>", ast.Load())
+            return self.generic_visit(n)
+
+    t2 = Norm().visit(ast.parse(src))
+    return ast.dump(t2, include_attributes=False), sorted(froms), attrs, notdef, d17t, nameless
+
+
+changed = [p for p in git("diff", "--name-only", "-z", BASE, HEAD).split("\0")
+           if p.endswith(".py") and not (p.startswith(A) and "/" not in p[len(A):])]
+if ONLY:
+    changed = [p for p in changed if p in ONLY]
+res = {"nameless_dest": NAMELESS_DEST, "files": {}, "summary": {}}
+for p in changed:
+    try:
+        sb, sh = git("show", BASE + ":" + p), git("show", HEAD + ":" + p)
+    except SystemExit:
+        res["files"][p] = {"verdict": "absent"}
+        continue
+    nb, fb, ab, _nd, d17b, nlb = analyze(sb, IB)
+    nh, fh, ah, ndh, d17h, nlh = analyze(sh, IH)
+    # (라) 기대: base D-17 대상 (이름, base 모듈)마다 정의를 base에서 풀고 head 트리의 호출자 전부
+    want = {}
+    for nm, m in d17b:
+        o = resolve(IB, m, nm)
+        want.setdefault(nm, set()).update(expected_callers(nm, o))
+    got = {}
+    for nm, m in d17h:
+        got.setdefault(nm, set()).add(m)
+    want = {k: sorted(v) for k, v in want.items()}
+    got = {k: sorted(v) for k, v in got.items()}
+    v = {"ast_same": nb == nh, "from_same": fb == fh, "attr_same": ab == ah, "def_module": not ndh,
+         "d17_same": want == got,
+         "nameless_ok": len(nlb) == len(nlh) and all(m == NAMELESS_DEST for m in nlh) if nlb else not nlh or nlb == nlh}
+    if D17IN is not None:
+        f1 = {x["name"]: sorted(x["callers"]) for x in D17IN.get(p, [])}
+        if f1 and f1 != want:
+            v["d17_expect_vs_f1sim"] = [want, f1]
+    if ndh:
+        v["not_def_module"] = ndh[:5]
+    if not v["d17_same"]:
+        v["d17_diff"] = {"want": want, "got": got}
+    if not v["from_same"]:
+        v["from_diff"] = [sorted(set(fb) - set(fh))[:5], sorted(set(fh) - set(fb))[:5]]
+    if not v["attr_same"]:
+        v["attr_diff"] = [(i, x, y) for i, (x, y) in enumerate(zip(ab, ah)) if x != y][:5] + ([("len", len(ab), len(ah))] if len(ab) != len(ah) else [])
+    if not v["nameless_ok"]:
+        v["nameless"] = [nlb, nlh]
+    v["verdict"] = "PASS" if all((v["ast_same"], v["from_same"], v["attr_same"], v["def_module"], v["d17_same"], v["nameless_ok"])) else "FAIL"
+    v["failed"] = [k for k in ("ast_same", "from_same", "attr_same", "def_module", "d17_same", "nameless_ok") if not v[k]]
+    res["files"][p] = v
+res["summary"] = {"files": len(changed), "pass": sum(1 for x in res["files"].values() if x.get("verdict") == "PASS"),
+                  "fail": {p: x["failed"] for p, x in sorted(res["files"].items()) if x.get("verdict") == "FAIL"},
+                  "d17_expect_vs_f1sim_diff": sorted(p for p, x in res["files"].items() if "d17_expect_vs_f1sim" in x)}
+with open(OUT, "w", encoding="utf-8") as fh:
+    json.dump(res, fh, ensure_ascii=False, indent=1, default=list)
+print(json.dumps(res["summary"], ensure_ascii=False))

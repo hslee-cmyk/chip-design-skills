@@ -1,0 +1,5 @@
+card {'id': '20260930-v3-history-clone', 'phase': '0.5', 'evidence_type': 'red-green', 'gate_change': 'yes', 'approval': ['20260930-v3-history-clone'], 'activated_ic_case': []}
+strict_set []
+conftest_has_gmid_phase True
+v1_command_check []
+new_symbols []

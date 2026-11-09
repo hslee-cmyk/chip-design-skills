@@ -1,0 +1,18 @@
+* D
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.option gmin=1e-18
+.temp 27
+vdd vdd 0 1.8
+vs s 0 1.1
+vg g 0 0.7
+x1 d g s vdd sky130_fd_pr__pfet_01v8 w=3u l=1u ad=0.87p as=0.87p pd=6.58u ps=6.58u
+c1 d 0 1p
+.control
+op
+print v(d)-v(s)
+.endc
+.end

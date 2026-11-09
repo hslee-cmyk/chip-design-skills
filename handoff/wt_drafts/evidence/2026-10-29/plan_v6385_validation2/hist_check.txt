@@ -1,0 +1,23 @@
+old history lines all kept: True
+quote in old plan=True in new plan=False :: **구조적 0 전류 MOS = VDS 0 묶음**(사용자 결정 O-174 -- O-173 Q-4 대체, **원래 취지와 다름**: 영역 선언 `intended_r
+quote in old plan=True in new plan=False :: (7) 구조적 0 전류 toy(O-174): DC 원소가 MOS 채널 하나뿐인 넷 + bulk = source → 그 넷 VDS = 0 묶음(base `mos_z
+quote in old plan=True in new plan=False :: 지울 상태 = 커널 쪽(`node.dc_window`) 상태 쓰기 -- 상수 `INPUT_STATUS_UNSETTLED`와 커널 경로의 `input_status`
+quote in old plan=True in new plan=False :: 커널 창 경로(`sizing/block_columns.py` 커널 창 쓰기) grep 0(상수 `INPUT_STATUS_UNSETTLED`·커널의 `input_s
+quote in old plan=True in new plan=False :: `DeviceOp.W` = θ 유도 W(I·L/IDu, 봉인점) -- 기존 필드·소비자 그대로이고,
+quote in old plan=True in new plan=False :: **실현 총 폭** = m·w_f(격자 반올림 뒤 -- (m, w_f) 필드에서 나오는 양, 저장 사본 없음); 읽는 쪽은 위 'W와 실현 기하의 관계'의 손가락
+quote in old plan=True in new plan=False :: **탐색 평가와 실현 평가**(v6.38.5 -- design v1.15.3 40 §3.7-A 5 멈춤 해소; **원래 취지와 다름 후보**(O-173 C1 '물
+quote in old plan=True in new plan=False :: `DeviceOp.W`(θ 유도 W)의 소비자 12곳은 바꾸지 않는다(소자 물리 양 -- DEC-105 (2) 'W와 실현 기하의 관계', 완료 조건 (5) 점검
+quote in old plan=True in new plan=False :: 실현 기하 (m, w_f)는 `DeviceOp.W`(θ 유도 W)와 정의 축이 다른 별도 필드이고
+quote in old plan=True in new plan=False :: > **Status**: **Plan v6.38.5 -- O-174 구조적 0 전류 규칙(DR-1)·WB-1 범위 3 cfg 공유 이름 범위·탐색 평가 대 실현 
+removed fragments 85, not literally in new H rows: 11
+  MISS: 한정)
+  MISS: 망
+  MISS: 고정),
+  MISS: 재탐색·`unmeasured`/`unsettled` 상태는
+  MISS: 되풀이·`_interior_solution`·`unmeasured`/`unsettled`
+  MISS: 0),
+  MISS: 경로·상태
+  MISS: 망
+  MISS: 유일
+  MISS: `cnr_ota`)
+  MISS: cnr_ota는

@@ -1,0 +1,24 @@
+| # | 동작 변경 | 지금(def 전체) 대상 / weak 판정 / 변경 고유 | N2b(승인 당시) | N2w(T6 넓힌 판) |
+|---|---|---|---|---|
+| 1a | **kw 전달 bool 기본값 exact=False->True | 6 / PASS / 0 | 2 / PASS / 0 | 2 / PASS / 0 |
+| 1b | **kw 전달 int 기본값 scale=2->3 | 8 / FAIL(weak 생존 2) / 2 | 4 / FAIL(weak 생존 2) / 2 | 4 / FAIL(weak 생존 2) / 2 |
+| 1c | bool 기본값 -> 별칭 s = strict -> 바뀌지 않은 if s and x < 0 | 12 / FAIL(weak 생존 3) / 3 | 2 / PASS / 0 | 2 / PASS / 0 |
+| 2 | 모듈 수준 상수 THRESH 5->6(바뀌지 않은 def가 읽음) | 0 / PASS / 0 | 0 / PASS / 0 | 0 / PASS / 0 |
+| 3a | 문장 안 helper 이름 ha(x)->hb(x) | 6 / PASS / 0 | 6 / PASS / 0 | 6 / PASS / 0 |
+| 3b | 모듈 수준 helper = ha -> hb | 0 / PASS / 0 | 0 / PASS / 0 | 0 / PASS / 0 |
+| 4a | 문장 안 lambda r[0] -> -r[0] | 9 / FAIL(weak 생존 1) / 1 | 9 / FAIL(weak 생존 1) / 1 | 9 / FAIL(weak 생존 1) / 1 |
+| 4b | 기본값 lambda key=lambda r: r[0] -> -r[0] | 9 / FAIL(weak 생존 1) / 1 | 4 / PASS / 0 | 4 / PASS / 0 |
+| 5 | 컴프리헨션 필터 v > 0 -> v >= 0 | 7 / FAIL(weak 생존 2) / 1 | 7 / FAIL(weak 생존 2) / 1 | 7 / FAIL(weak 생존 2) / 1 |
+| 6 | 문장 순서 바꾸기 | 10 / FAIL(weak 생존 7) / 4 | 6 / FAIL(weak 생존 3) / 0 | 10 / FAIL(weak 생존 7) / 4 |
+| 7 | raise ValueError -> KeyError | 7 / PASS / 0 | 6 / PASS / 0 | 6 / PASS / 0 |
+| 8 | 반환식 피연산자만 a + b -> a + c | 3 / PASS / 0 | 3 / PASS / 0 | 3 / PASS / 0 |
+| 9 | dict 리터럴 키 'gain' -> 'gm' | 6 / PASS / 0 | 6 / PASS / 0 | 6 / PASS / 0 |
+| 10a | 데코레이터 인자 maxsize=128->1 | 7 / FAIL(weak 생존 2) / 2 | 3 / FAIL(weak 생존 2) / 2 | 3 / FAIL(weak 생존 2) / 2 |
+| 10b | 데코레이터 문자열 인자 @register('a') -> ('b') | 5 / PASS / 0 | 1 / PASS / 0 | 1 / PASS / 0 |
+| 11 | mode = 'fast'->'exact', 한 문장 건너 같은 블록의 if mode == 'exact' | 16 / FAIL(weak 생존 8) / 4 | 3 / PASS / 0 | 5 / FAIL(weak 생존 2) / 2 |
+| 11b | 11과 같되 사용하는 if가 바로 뒤 문장 | 16 / FAIL(weak 생존 9) / 4 | 4 / FAIL(weak 생존 2) / 2 | 4 / FAIL(weak 생존 2) / 2 |
+| 12 | 문장 삽입 y = max(y, 0) | 12 / FAIL(weak 생존 3) / 3 | 4 / FAIL(weak 생존 3) / 3 | 8 / FAIL(weak 생존 3) / 3 |
+| 13 | elif x > 5 -> x > 6 | 18 / FAIL(weak 생존 4) / 1 | 9 / FAIL(weak 생존 4) / 1 | 9 / FAIL(weak 생존 4) / 1 |
+| 14 | neg = False->True, 두 문장 뒤 같은 블록 if neg: | 7 / FAIL(weak 생존 2) / 2 | 3 / PASS / 0 | 4 / FAIL(weak 생존 1) / 1 |
+| 15 | else 절 통째 삭제(뒤의 return y * 3이 영향) | 15 / FAIL(weak 생존 4) / 3 | 5 / FAIL(weak 생존 1) / 0 | 5 / FAIL(weak 생존 1) / 0 |
+합계 대상: now=179, N2b=87, N2w=98

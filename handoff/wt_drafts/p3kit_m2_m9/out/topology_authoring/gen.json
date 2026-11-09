@@ -1,0 +1,57 @@
+{
+ "card": "topology_authoring.py",
+ "units": [
+  "stick_diagram.py::_scan_case_collisions",
+  "stick_diagram.py::_to_analog_grammar_devs",
+  "stick_diagram.py::_import_analog_grammar",
+  "stick_diagram.py::find_idiom_matches",
+  "stick_diagram.py::find_stack_edges",
+  "stick_diagram.py::_propose_headroom_roles",
+  "stick_diagram.py::audit_theta_root_direction",
+  "stick_diagram.py::apply_theta_kcl_gap_fill",
+  "stick_diagram.py::apply_device_roles_gap_fill",
+  "stick_diagram.py::find_authoritative_sizing_devices",
+  "sizing_recipe.py::_METRIC_UNITS",
+  "sizing_recipe.py::_UNIT_SCALES",
+  "sizing_recipe.py::_UNIT_NAME_SUFFIXES",
+  "sizing_recipe.py::unit_hint_from_metric_name",
+  "sizing_recipe.py::metric_unit_scale",
+  "sizing_recipe.py::validate_no_legacy_vs_key",
+  "sizing_recipe.py::validate_metric_units",
+  "audit_current_forced.py::_as_set"
+ ],
+ "mod_imports_head": [
+  "from __future__ import annotations",
+  "from collections import defaultdict",
+  "import itertools",
+  "import json",
+  "import os"
+ ],
+ "mod_imports_tail": [],
+ "reexports": {
+  "stick_diagram.py": "from topology_authoring import _import_analog_grammar, _propose_headroom_roles, _scan_case_collisions, _to_analog_grammar_devs, apply_device_roles_gap_fill, apply_theta_kcl_gap_fill, audit_theta_root_direction, find_authoritative_sizing_devices, find_idiom_matches, find_stack_edges",
+  "sizing_recipe.py": "from topology_authoring import _METRIC_UNITS, _UNIT_NAME_SUFFIXES, _UNIT_SCALES, metric_unit_scale, unit_hint_from_metric_name, validate_metric_units, validate_no_legacy_vs_key",
+  "audit_current_forced.py": "from topology_authoring import _as_set  # noqa: E402"
+ },
+ "spans": [
+  "stick_diagram.py:927-934 FunctionDef",
+  "stick_diagram.py:1035-1042 FunctionDef",
+  "stick_diagram.py:1045-1058 FunctionDef",
+  "stick_diagram.py:1061-1080 FunctionDef",
+  "stick_diagram.py:1083-1094 FunctionDef",
+  "stick_diagram.py:2197-2314 FunctionDef",
+  "stick_diagram.py:3330-3408 FunctionDef",
+  "stick_diagram.py:3779-3831 FunctionDef",
+  "stick_diagram.py:4542-4604 FunctionDef",
+  "stick_diagram.py:4607-4647 FunctionDef",
+  "sizing_recipe.py:4515-4539 Assign",
+  "sizing_recipe.py:4541-4552 Assign",
+  "sizing_recipe.py:4556-4568 Assign",
+  "sizing_recipe.py:4571-4577 FunctionDef",
+  "sizing_recipe.py:4580-4597 FunctionDef",
+  "sizing_recipe.py:4600-4625 FunctionDef",
+  "sizing_recipe.py:4628-4660 FunctionDef",
+  "audit_current_forced.py:47-53 FunctionDef"
+ ],
+ "n_defs_in_units": 16
+}

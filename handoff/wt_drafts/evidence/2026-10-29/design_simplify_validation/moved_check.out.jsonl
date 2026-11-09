@@ -1,0 +1,44 @@
+{"diff_line": 6, "len": 13335, "verbatim": false, "chunk_frac": 0.081, "head": "> **Date**: 2026-10-29 · **Status**: **design v1.15.2 -- 계획 v6.38.3(승인"}
+{"diff_line": 9, "len": 1482, "verbatim": true, "chunk_frac": 1.0, "head": "**측정 부하가 중간 rail에 걸린 회로의 DUT 전력**(**계획 v6.38.4 대기(P7)** -- 정의 선택은 계획이 "}
+{"diff_line": 12, "len": 723, "verbatim": true, "chunk_frac": 1.0, "head": "- (b) **영점 상쇄 보상 저항**(구조 규칙 셀 집합 S가 정의되는 저항 -- §3.5) -- 물리 결정자: R은 영점 "}
+{"diff_line": 15, "len": 180, "verbatim": true, "chunk_frac": 1.0, "head": "**S 셀 집합과 일반형 판정**(v1.15.2 -- 계획 DEC-92 (3) v6.38.3 '한계'가 design에 맡긴 판"}
+{"diff_line": 16, "len": 212, "verbatim": true, "chunk_frac": 1.0, "head": "- **S 정의**(DEC-92 (3) 그대로): 보상 R과 보상 C가 이어진 경로(R의 한 끝 넷에 R과 보상 C만 닿는 직"}
+{"diff_line": 17, "len": 2149, "verbatim": true, "chunk_frac": 1.0, "head": "- **물리 결정자**(절점식): R이 없애려는 것은 보상 가지의 feedforward가 만드는 우반면 영점이다. A→B 전달"}
+{"diff_line": 18, "len": 1368, "verbatim": true, "chunk_frac": 1.0, "head": "- **회로이론 판정 -- 실측**(`wt/_drafts/evidence/2026-10-29/design_v1152/class"}
+{"diff_line": 19, "len": 495, "verbatim": true, "chunk_frac": 1.0, "head": "- **판정**: 'AC로 같은 출력 노드를 구동하는 소자'를 넣는 일반형 = **틀림**(영점 무한대 조건의 정의로; 검증 "}
+{"diff_line": 20, "len": 167, "verbatim": true, "chunk_frac": 1.0, "head": "- **9회로 적용표**(topology 연결 판독 -- `wt/_drafts/evidence/2026-10-28/s_def_"}
+{"diff_line": 22, "len": 102, "verbatim": true, "chunk_frac": 1.0, "head": "| 회로 | R–C 경로(A → B) | B에 drain이 닿은 MOS(gate 넷) | S = G_m(∞) 소자(현행 = 일"}
+{"diff_line": 23, "len": 25, "verbatim": true, "chunk_frac": 1.0, "head": "|---|---|---|---|---|---|"}
+{"diff_line": 24, "len": 73, "verbatim": true, "chunk_frac": 1.0, "head": "| two_stage_ota | Rz–Cc: O1 → OUT | M6(O1), M7(bias) | {M6} | {M6} | 같"}
+{"diff_line": 25, "len": 341, "verbatim": true, "chunk_frac": 1.0, "head": "| current_reuse_telescopic_ota | Rz1–Cc1: Vop1 → Vom; Rz2–Cc2: Vom1 → "}
+{"diff_line": 26, "len": 177, "verbatim": true, "chunk_frac": 1.0, "head": "| nmcnr_amplifier | Rm–Cm2: NodeS2 → Vout; Rm–Cm1: NodeM2 → Vout(T 망) "}
+{"diff_line": 27, "len": 162, "verbatim": true, "chunk_frac": 1.0, "head": "| common_gate_amplifier·folded_cascode·ngcc_3stage_ff·pushpull_followe"}
+{"diff_line": 29, "len": 192, "verbatim": true, "chunk_frac": 1.0, "head": "- **U-134 상자 영향**: 현행 S에서 R_null(θ) = 1/G_m(∞)(θ)는 정의상 늘 상자 [1/max Σgm"}
+{"diff_line": 30, "len": 249, "verbatim": true, "chunk_frac": 1.0, "head": "- **측정 한계**: 소신호 모델은 출력단 한쪽(첫 단 출력 컨덕턴스·용량을 g_A·C_A로 둠, CMFB·반대쪽 가지 생략"}
+{"diff_line": 33, "len": 348, "verbatim": false, "chunk_frac": 0.167, "head": "- **결과 성질**: 수렴 회차에서 모든 종속 소자의 `DeviceOp.W`·`w_key`·`gm_id`·`idu_forwa"}
+{"diff_line": 36, "len": 386, "verbatim": false, "chunk_frac": 0.0, "head": "- 규칙: w_hi = 그 L에서 kind 기준 폭(`w_ref_m`) 슬라이스가 속한 W-bin의 위 끝(W-bin 지도에서"}
+{"diff_line": 39, "len": 1065, "verbatim": true, "chunk_frac": 1.0, "head": "측정 = 엔진 밖 사실 측정(DEC-104 (1′) (b)): integ/it12 `d759838a`를 고치지 않고 impor"}
+{"diff_line": 41, "len": 323, "verbatim": true, "chunk_frac": 1.0, "head": "| 회로 | FD 노드 풀이 calls / reuse 비(실측) | 노드 풀이 compute 평균 ms(실측) | 노드 풀이 "}
+{"diff_line": 42, "len": 37, "verbatim": true, "chunk_frac": 1.0, "head": "|---|---|---|---|---|---|---|---|---|"}
+{"diff_line": 43, "len": 93, "verbatim": true, "chunk_frac": 1.0, "head": "| common_gate_amplifier | 27 / 11 % | 63.4 | 10 % | 80 % | 1/9 | 0.19 "}
+{"diff_line": 44, "len": 134, "verbatim": true, "chunk_frac": 1.0, "head": "| current_reuse_telescopic_ota | 0 / -- | 498.0 | 27 % | 98 % | 14/38 "}
+{"diff_line": 45, "len": 90, "verbatim": true, "chunk_frac": 1.0, "head": "| folded_cascode | 59 / 17 % | 170.9 | 21 % | 79 % | 5/26 | 1.71 / 4 %"}
+{"diff_line": 46, "len": 97, "verbatim": true, "chunk_frac": 1.0, "head": "| ngcc_3stage_ff | -- (단계 B까지) | -- | -- | -- | 9/22 † | 정의 불능(탐색 미도달 "}
+{"diff_line": 47, "len": 90, "verbatim": true, "chunk_frac": 1.0, "head": "| nmcnr_amplifier | 37 / 24 % | 207.8 | 21 % | 93 % | 8/36 | 1.87 / 3 "}
+{"diff_line": 48, "len": 101, "verbatim": true, "chunk_frac": 1.0, "head": "| pushpull_follower_buffer | 29 / 21 % | 29.3 | 10 % | 73 % | 3/14 | 0"}
+{"diff_line": 49, "len": 130, "verbatim": true, "chunk_frac": 1.0, "head": "| sf_pushpull_output_opamp | 0 / -- | 50.9 | 7 % | 92 % | 7/26 † | 0 /"}
+{"diff_line": 50, "len": 87, "verbatim": true, "chunk_frac": 1.0, "head": "| two_stage_ota | 48 / 25 % | 64.3 | 7 % | 79 % | 3/16 | 0.58 / 2 % | "}
+{"diff_line": 51, "len": 90, "verbatim": true, "chunk_frac": 1.0, "head": "| two_stage_ota_sf | 40 / 25 % | 70.0 | 2 % | 76 % | 4/19 | 0.56 / 0 %"}
+{"diff_line": 53, "len": 322, "verbatim": true, "chunk_frac": 1.0, "head": "- **읽는 법**: FD 단계 노드 풀이 reuse는 지금도 11~25 %뿐이고, 그 reuse의 거의 전부가 θ 전류 열에"}
+{"diff_line": 54, "len": 126, "verbatim": true, "chunk_frac": 1.0, "head": "- **야코비안이 돌 때의 손실**(보충 측정 ‡): 이 예산에서 FD가 없던 current_reuse는 야코비안 한 번에 1"}
+{"diff_line": 55, "len": 1560, "verbatim": true, "chunk_frac": 1.0, "head": "- **블록 안 반복 회차 수**(계획 'design 입력' -- 검증 M-4·재판정 P5로 측정; 원자료 `wt/_draft"}
+{"diff_line": 56, "len": 80, "verbatim": true, "chunk_frac": 1.0, "head": "- **슬라이스별 tol 표 첫 구성 비용**(7): 이 측정은 기준 폭 슬라이스만 썼다 -- 슬라이스별 표 비용은 구현 뒤 "}
+{"diff_line": 57, "len": 287, "verbatim": true, "chunk_frac": 1.0, "head": "- **측정 한계**: 시간은 1회 실행 값(같은 측정 두 번 사이 노드 풀이 평균이 최대 약 40 % 달라짐 -- 크기 정도"}
+{"diff_line": 61, "len": 769, "verbatim": true, "chunk_frac": 1.0, "head": "**12. 완료 조건 대응**: 계획 card WB-1 완료 조건 (1)~(7)이 정본이다(이 절은 그 toy가 볼 블록 꼴만"}
+{"diff_line": 64, "len": 1964, "verbatim": false, "chunk_frac": 0.061, "head": "6. **CM 되먹임 DC 평형**(v1.15.1 -- 계획 v6.38.2 DEC-105 (7), 사용자 결정 2026-10-"}
+{"diff_line": 75, "len": 790, "verbatim": true, "chunk_frac": 1.0, "head": "| Q-DC1 | DC 블록 하나(40 §3.7-A)의 손계산 속도 손실을 받아들이나 | 받아들임 -- 계획 DEC-105 ("}
+{"diff_line": 78, "len": 559, "verbatim": true, "chunk_frac": 1.0, "head": "| Q-PW1 | 측정 부하가 중간 rail에 걸린 회로(library nmcnr 1)의 DUT 전력 정의 | **계획 v6."}
+{"diff_line": 81, "len": 945, "verbatim": true, "chunk_frac": 1.0, "head": "**고지(질문 아님 -- 계획 문언 또는 물리 판정의 직접 결과)**: (1) **W < W_min 점**(m = 1에서 격자"}
+{"diff_line": 84, "len": 238, "verbatim": true, "chunk_frac": 1.0, "head": "**옛 판(v1.15.1) 질문 처리**: Q-DC2 → 위 고지 (1)(질문 아님 -- 검증 M-1). Q-DC4 → 삭제("}
+{"diff_line": 87, "len": 499, "verbatim": true, "chunk_frac": 1.0, "head": "**원래 취지와 다름**(이 판이 새로 만든 것 -- 계획 승인 표지가 있는 항목(DEC-106, N6.35 행의 '원래 취지"}
+{"diff_line": 89, "len": 676, "verbatim": false, "chunk_frac": 0.0, "head": "**계획 정정 후보 → 계획 v6.38.4에서 처리 중**(오케스트레이터 재판정 `wt/_drafts/evidence/2026"}

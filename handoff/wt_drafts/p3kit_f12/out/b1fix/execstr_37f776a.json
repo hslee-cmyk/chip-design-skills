@@ -1,0 +1,1604 @@
+{
+ "rev": "37f776a",
+ "files_scanned": 376,
+ "exec": [
+  {
+   "path": ".ai/verification/20260930-b34-grammar-explicit/scripts/install_probe.py",
+   "line": 9,
+   "len": 913,
+   "sink": "write via PROBE",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 1,
+   "sd_drop_reads": [],
+   "imports": [
+    "hashlib",
+    "json",
+    "os",
+    "stick_diagram",
+    "sys"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-d-move-tests/scripts/mut_moved.py",
+   "line": 40,
+   "len": 16,
+   "sink": "-c",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-df23-registry-record/scripts/mut_df23.py",
+   "line": 72,
+   "len": 16,
+   "sink": "-c",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-df23-registry-record/scripts/mut_df23_r3.py",
+   "line": 73,
+   "len": 16,
+   "sink": "-c",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-df35-harness-paths/scripts/mut_lines.py",
+   "line": 27,
+   "len": 16,
+   "sink": "-c",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-df36-instance-relpath/scripts/mut_def.py",
+   "line": 87,
+   "len": 16,
+   "sink": "-c",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-df36-instance-relpath/scripts/probe_t2_vs_1st_survivor.py",
+   "line": 20,
+   "len": 16,
+   "sink": "-c",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-df36-instance-relpath/scripts/v3_baseline_probe.py",
+   "line": 27,
+   "len": 16,
+   "sink": "-c",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-dup-w-calc/scripts/mut_sites.py",
+   "line": 47,
+   "len": 16,
+   "sink": "-c",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-registry-grade-fix/scripts/mut_regcheck.py",
+   "line": 32,
+   "len": 16,
+   "sink": "-c",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-v3-changed-stmt-scope/o7/scripts/probe_selection.py",
+   "line": 26,
+   "len": 23,
+   "sink": "write",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sys"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c1_discriminate.py",
+   "line": 13,
+   "len": 27,
+   "sink": "-c via INI",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c1_head.py",
+   "line": 42,
+   "len": 40,
+   "sink": "param:w via ENG0",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c1_head.py",
+   "line": 44,
+   "len": 735,
+   "sink": "param:w via TEST",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "pathlib",
+    "rt_engine",
+    "subprocess",
+    "sys"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c1_head.py",
+   "line": 84,
+   "len": 11,
+   "sink": "param:w",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c1_head.py",
+   "line": 90,
+   "len": 12,
+   "sink": "param:w",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c1_head.py",
+   "line": 89,
+   "len": 38,
+   "sink": "param:w",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3_mixed.py",
+   "line": 44,
+   "len": 40,
+   "sink": "param:w via ENG0",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3b_no_failing.py",
+   "line": 44,
+   "len": 40,
+   "sink": "param:w via ENG0",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3c_failing_last.py",
+   "line": 44,
+   "len": 40,
+   "sink": "param:w via ENG0",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c4_clonefail.py",
+   "line": 42,
+   "len": 40,
+   "sink": "param:w via ENG0",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c4_clonefail.py",
+   "line": 44,
+   "len": 184,
+   "sink": "param:w via TEST",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "pathlib",
+    "rt_engine",
+    "sys"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c4_clonefail.py",
+   "line": 55,
+   "len": 31,
+   "sink": "param:w",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c4_feasible.py",
+   "line": 60,
+   "len": 19,
+   "sink": "-c",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/red_cause.py",
+   "line": 10,
+   "len": 27,
+   "sink": "-c via INI",
+   "parses": false
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/red_cause.py",
+   "line": 36,
+   "len": 19,
+   "sink": "-c",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_r4_gb2.py",
+   "line": 44,
+   "len": 41,
+   "sink": "param:emit",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_r4_gb2.py",
+   "line": 73,
+   "len": 0,
+   "sink": "param:emit",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_r4_gb2.py",
+   "line": 74,
+   "len": 46,
+   "sink": "param:emit",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_r4_gb2.py",
+   "line": 83,
+   "len": 0,
+   "sink": "param:emit",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_r4_gb2.py",
+   "line": 63,
+   "len": 0,
+   "sink": "param:emit",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_r4_rules.py",
+   "line": 734,
+   "len": 4,
+   "sink": "param:emit",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_r4_rules.py",
+   "line": 658,
+   "len": 45,
+   "sink": "param:emit",
+   "parses": false
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_r4_rules.py",
+   "line": 695,
+   "len": 24,
+   "sink": "param:emit",
+   "parses": false
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_r4_rules.py",
+   "line": 716,
+   "len": 33,
+   "sink": "param:emit",
+   "parses": false
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review5_probe_follower_structure.py",
+   "line": 121,
+   "len": 0,
+   "sink": "param:w",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review5_probe_follower_structure.py",
+   "line": 129,
+   "len": 36,
+   "sink": "param:w",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review5_probe_follower_structure.py",
+   "line": 57,
+   "len": 49,
+   "sink": "param:w",
+   "parses": false
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review5_probe_follower_structure.py",
+   "line": 63,
+   "len": 67,
+   "sink": "param:w",
+   "parses": false
+  },
+  {
+   "path": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review5_probe_follower_structure.py",
+   "line": 105,
+   "len": 17,
+   "sink": "param:w",
+   "parses": false
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py",
+   "line": 123,
+   "len": 1741,
+   "sink": "param:_b34_fresh_process via _B34_FRESH_SCRIPT",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 15,
+   "sd_drop_reads": [
+    "audit_theta_root_direction",
+    "find_differential_and_mirror_forks",
+    "find_differential_pair_candidates",
+    "find_idiom_matches",
+    "find_verified_differential_and_mirror_relations",
+    "propose_device_roles_gap_fill",
+    "propose_theta_kcl_gap_fill",
+    "propose_vertical_stack_id_gap_fill",
+    "refine_differential_and_mirror_relations",
+    "suggest_vertical_stack_composites"
+   ],
+   "imports": [
+    "json",
+    "stick_diagram",
+    "sys",
+    "test_b34_grammar_explicit"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py",
+   "line": 150,
+   "len": 154,
+   "sink": "param:_b34_fresh_process via _B34_IMPORT_SCRIPT",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "stick_diagram",
+    "sys"
+   ]
+  },
+  {
+   "path": "tools/gates/mutate_changed.py",
+   "line": 61,
+   "len": 19,
+   "sink": "-c",
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": []
+  }
+ ],
+ "content_only": [
+  {
+   "path": ".ai/verification/20260930-d-move-tests/scripts/mut_moved.py",
+   "line": 12,
+   "len": 12,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "json"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-d-move-tests/scripts/mut_moved.py",
+   "line": 12,
+   "len": 12,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "json"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-changed-stmt-scope/o7/scripts/probes35.py",
+   "line": 139,
+   "len": 38,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "functools"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-changed-stmt-scope/o7/scripts/probes35.py",
+   "line": 420,
+   "len": 307,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "functools"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-changed-stmt-scope/o7/scripts/probes35.py",
+   "line": 485,
+   "len": 204,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "m",
+    "pathlib",
+    "sys"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-changed-stmt-scope/o7/scripts/probes35.py",
+   "line": 509,
+   "len": 207,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "m",
+    "pathlib",
+    "sys"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-exempt-binding/scripts/probes.py",
+   "line": 97,
+   "len": 113,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "asyncio",
+    "pathlib",
+    "sys"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-exempt-binding/scripts/probes.py",
+   "line": 231,
+   "len": 316,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "pa"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-exempt-binding/scripts/probes.py",
+   "line": 245,
+   "len": 58,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "pb"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-exempt-binding/scripts/probes.py",
+   "line": 373,
+   "len": 57,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "pc"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3_mixed.py",
+   "line": 48,
+   "len": 98,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "pathlib",
+    "sys"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3_mixed.py",
+   "line": 49,
+   "len": 92,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "rt_engine"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3_mixed.py",
+   "line": 50,
+   "len": 91,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "rt_engine"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3b_no_failing.py",
+   "line": 47,
+   "len": 98,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "pathlib",
+    "sys"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3b_no_failing.py",
+   "line": 48,
+   "len": 92,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "rt_engine"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3b_no_failing.py",
+   "line": 49,
+   "len": 91,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "rt_engine"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3c_failing_last.py",
+   "line": 48,
+   "len": 98,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "pathlib",
+    "sys"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3c_failing_last.py",
+   "line": 49,
+   "len": 92,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "rt_engine"
+   ]
+  },
+  {
+   "path": ".ai/verification/20260930-v3-history-clone/scripts/c3c_failing_last.py",
+   "line": 50,
+   "len": 91,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "rt_engine"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py",
+   "line": 379,
+   "len": 51,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py",
+   "line": 380,
+   "len": 68,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 1,
+   "sd_drop_reads": [],
+   "imports": [
+    "stick_diagram"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py",
+   "line": 386,
+   "len": 57,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py",
+   "line": 495,
+   "len": 52,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py",
+   "line": 496,
+   "len": 77,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py",
+   "line": 509,
+   "len": 60,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py",
+   "line": 510,
+   "len": 49,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 279,
+   "len": 330,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 291,
+   "len": 96,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 292,
+   "len": 49,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 293,
+   "len": 68,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "json"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 294,
+   "len": 110,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 295,
+   "len": 92,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 379,
+   "len": 69,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 380,
+   "len": 60,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 1,
+   "sd_drop_reads": [],
+   "imports": [
+    "stick_diagram"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 381,
+   "len": 50,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 382,
+   "len": 64,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 383,
+   "len": 79,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 1,
+   "sd_drop_reads": [],
+   "imports": [
+    "stick_diagram"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 384,
+   "len": 64,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "regression_runner"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 385,
+   "len": 47,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 156,
+   "len": 50,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "regression_runner"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 157,
+   "len": 76,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "interleave_splits"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 159,
+   "len": 37,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "x"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 399,
+   "len": 84,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "regression_runner"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 400,
+   "len": 64,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "interleave_splits"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 401,
+   "len": 56,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "regression_runner"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 402,
+   "len": 62,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py",
+   "line": 404,
+   "len": 118,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py",
+   "line": 477,
+   "len": 130,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_ic_markers_match_plan.py",
+   "line": 111,
+   "len": 356,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "pytest"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py",
+   "line": 114,
+   "len": 50,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py",
+   "line": 211,
+   "len": 374,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py",
+   "line": 79,
+   "len": 121,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "math"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py",
+   "line": 101,
+   "len": 116,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "collections"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py",
+   "line": 292,
+   "len": 56,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py",
+   "line": 334,
+   "len": 148,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py",
+   "line": 98,
+   "len": 41,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "logging"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py",
+   "line": 251,
+   "len": 58,
+   "sink": null,
+   "parses": true,
+   "e3": [
+    [
+     "stmt",
+     1
+    ]
+   ],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sizing_recipe"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py",
+   "line": 238,
+   "len": 33,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py",
+   "line": 496,
+   "len": 259,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os",
+    "sys"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py",
+   "line": 513,
+   "len": 151,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os",
+    "tempfile"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py",
+   "line": 618,
+   "len": 151,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os",
+    "sys"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py",
+   "line": 629,
+   "len": 77,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py",
+   "line": 630,
+   "len": 94,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py",
+   "line": 639,
+   "len": 115,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py",
+   "line": 644,
+   "len": 138,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py",
+   "line": 78,
+   "len": 279,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "json",
+    "math",
+    "os",
+    "zlib"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py",
+   "line": 347,
+   "len": 555,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "json"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py",
+   "line": 590,
+   "len": 113,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sys"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py",
+   "line": 277,
+   "len": 17,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py",
+   "line": 194,
+   "len": 9,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py",
+   "line": 194,
+   "len": 10,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sys"
+   ]
+  },
+  {
+   "path": "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py",
+   "line": 334,
+   "len": 61,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "tools/gates/redteam/lib/rt.py",
+   "line": 945,
+   "len": 56,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sys"
+   ]
+  },
+  {
+   "path": "tools/gates/redteam/lib/rt.py",
+   "line": 950,
+   "len": 148,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "pathlib",
+    "rt_mod",
+    "sys"
+   ]
+  },
+  {
+   "path": "tools/gates/redteam/lib/rt.py",
+   "line": 952,
+   "len": 50,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "tools/gates/redteam/lib/rt.py",
+   "line": 953,
+   "len": 46,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "tools/gates/redteam/lib/rt.py",
+   "line": 833,
+   "len": 16,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "pytest"
+   ]
+  },
+  {
+   "path": "tools/gates/redteam/lib/sb.py",
+   "line": 152,
+   "len": 92,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "rt_engine"
+   ]
+  },
+  {
+   "path": "tools/migrate/extract_selftest.py",
+   "line": 306,
+   "len": 9,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "os"
+   ]
+  },
+  {
+   "path": "tools/migrate/extract_selftest.py",
+   "line": 307,
+   "len": 10,
+   "sink": null,
+   "parses": true,
+   "e3": [],
+   "sd_reads": 0,
+   "sd_drop_reads": [],
+   "imports": [
+    "sys"
+   ]
+  }
+ ],
+ "parse_error": []
+}

@@ -1,0 +1,796 @@
+* pfet sweep
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.option gmin=1e-18
+vdd vdd 0 1.8
+vs0 s0 0 0.7
+vg0 g0 0 0.5000
+xa0 s0 g0 s0 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd0 d0 0 0.6990
+xb0 d0 g0 s0 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs1 s1 0 0.7
+vg1 g1 0 0.4500
+xa1 s1 g1 s1 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd1 d1 0 0.6990
+xb1 d1 g1 s1 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs2 s2 0 0.7
+vg2 g2 0 0.4000
+xa2 s2 g2 s2 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd2 d2 0 0.6990
+xb2 d2 g2 s2 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs3 s3 0 0.7
+vg3 g3 0 0.3500
+xa3 s3 g3 s3 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd3 d3 0 0.6990
+xb3 d3 g3 s3 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs4 s4 0 0.7
+vg4 g4 0 0.3000
+xa4 s4 g4 s4 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd4 d4 0 0.6990
+xb4 d4 g4 s4 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs5 s5 0 0.7
+vg5 g5 0 0.2500
+xa5 s5 g5 s5 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd5 d5 0 0.6990
+xb5 d5 g5 s5 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs6 s6 0 0.7
+vg6 g6 0 0.2000
+xa6 s6 g6 s6 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd6 d6 0 0.6990
+xb6 d6 g6 s6 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs7 s7 0 0.7
+vg7 g7 0 0.5000
+xa7 s7 g7 s7 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd7 d7 0 0.6990
+xb7 d7 g7 s7 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs8 s8 0 0.7
+vg8 g8 0 0.4500
+xa8 s8 g8 s8 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd8 d8 0 0.6990
+xb8 d8 g8 s8 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs9 s9 0 0.7
+vg9 g9 0 0.4000
+xa9 s9 g9 s9 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd9 d9 0 0.6990
+xb9 d9 g9 s9 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs10 s10 0 0.7
+vg10 g10 0 0.3500
+xa10 s10 g10 s10 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd10 d10 0 0.6990
+xb10 d10 g10 s10 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs11 s11 0 0.7
+vg11 g11 0 0.3000
+xa11 s11 g11 s11 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd11 d11 0 0.6990
+xb11 d11 g11 s11 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs12 s12 0 0.7
+vg12 g12 0 0.2500
+xa12 s12 g12 s12 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd12 d12 0 0.6990
+xb12 d12 g12 s12 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs13 s13 0 0.7
+vg13 g13 0 0.2000
+xa13 s13 g13 s13 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd13 d13 0 0.6990
+xb13 d13 g13 s13 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs14 s14 0 0.7
+vg14 g14 0 0.5000
+xa14 s14 g14 s14 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd14 d14 0 0.6990
+xb14 d14 g14 s14 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs15 s15 0 0.7
+vg15 g15 0 0.4500
+xa15 s15 g15 s15 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd15 d15 0 0.6990
+xb15 d15 g15 s15 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs16 s16 0 0.7
+vg16 g16 0 0.4000
+xa16 s16 g16 s16 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd16 d16 0 0.6990
+xb16 d16 g16 s16 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs17 s17 0 0.7
+vg17 g17 0 0.3500
+xa17 s17 g17 s17 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd17 d17 0 0.6990
+xb17 d17 g17 s17 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs18 s18 0 0.7
+vg18 g18 0 0.3000
+xa18 s18 g18 s18 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd18 d18 0 0.6990
+xb18 d18 g18 s18 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs19 s19 0 0.7
+vg19 g19 0 0.2500
+xa19 s19 g19 s19 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd19 d19 0 0.6990
+xb19 d19 g19 s19 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs20 s20 0 0.7
+vg20 g20 0 0.2000
+xa20 s20 g20 s20 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd20 d20 0 0.6990
+xb20 d20 g20 s20 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs21 s21 0 0.7
+vg21 g21 0 0.5000
+xa21 s21 g21 s21 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd21 d21 0 0.6990
+xb21 d21 g21 s21 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs22 s22 0 0.7
+vg22 g22 0 0.4500
+xa22 s22 g22 s22 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd22 d22 0 0.6990
+xb22 d22 g22 s22 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs23 s23 0 0.7
+vg23 g23 0 0.4000
+xa23 s23 g23 s23 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd23 d23 0 0.6990
+xb23 d23 g23 s23 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs24 s24 0 0.7
+vg24 g24 0 0.3500
+xa24 s24 g24 s24 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd24 d24 0 0.6990
+xb24 d24 g24 s24 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs25 s25 0 0.7
+vg25 g25 0 0.3000
+xa25 s25 g25 s25 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd25 d25 0 0.6990
+xb25 d25 g25 s25 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs26 s26 0 0.7
+vg26 g26 0 0.2500
+xa26 s26 g26 s26 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd26 d26 0 0.6990
+xb26 d26 g26 s26 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs27 s27 0 0.7
+vg27 g27 0 0.2000
+xa27 s27 g27 s27 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd27 d27 0 0.6990
+xb27 d27 g27 s27 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs28 s28 0 0.7
+vg28 g28 0 0.5000
+xa28 s28 g28 s28 s28 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd28 d28 0 0.6990
+xb28 d28 g28 s28 s28 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs29 s29 0 0.7
+vg29 g29 0 0.4500
+xa29 s29 g29 s29 s29 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd29 d29 0 0.6990
+xb29 d29 g29 s29 s29 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs30 s30 0 0.7
+vg30 g30 0 0.4000
+xa30 s30 g30 s30 s30 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd30 d30 0 0.6990
+xb30 d30 g30 s30 s30 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs31 s31 0 0.7
+vg31 g31 0 0.3500
+xa31 s31 g31 s31 s31 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd31 d31 0 0.6990
+xb31 d31 g31 s31 s31 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs32 s32 0 0.7
+vg32 g32 0 0.3000
+xa32 s32 g32 s32 s32 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd32 d32 0 0.6990
+xb32 d32 g32 s32 s32 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs33 s33 0 0.7
+vg33 g33 0 0.2500
+xa33 s33 g33 s33 s33 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd33 d33 0 0.6990
+xb33 d33 g33 s33 s33 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs34 s34 0 0.7
+vg34 g34 0 0.2000
+xa34 s34 g34 s34 s34 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd34 d34 0 0.6990
+xb34 d34 g34 s34 s34 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs35 s35 0 0.7
+vg35 g35 0 0.5000
+xa35 s35 g35 s35 s35 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd35 d35 0 0.6990
+xb35 d35 g35 s35 s35 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs36 s36 0 0.7
+vg36 g36 0 0.4500
+xa36 s36 g36 s36 s36 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd36 d36 0 0.6990
+xb36 d36 g36 s36 s36 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs37 s37 0 0.7
+vg37 g37 0 0.4000
+xa37 s37 g37 s37 s37 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd37 d37 0 0.6990
+xb37 d37 g37 s37 s37 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs38 s38 0 0.7
+vg38 g38 0 0.3500
+xa38 s38 g38 s38 s38 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd38 d38 0 0.6990
+xb38 d38 g38 s38 s38 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs39 s39 0 0.7
+vg39 g39 0 0.3000
+xa39 s39 g39 s39 s39 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd39 d39 0 0.6990
+xb39 d39 g39 s39 s39 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs40 s40 0 0.7
+vg40 g40 0 0.2500
+xa40 s40 g40 s40 s40 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd40 d40 0 0.6990
+xb40 d40 g40 s40 s40 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs41 s41 0 0.7
+vg41 g41 0 0.2000
+xa41 s41 g41 s41 s41 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd41 d41 0 0.6990
+xb41 d41 g41 s41 s41 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs42 s42 0 0.7
+vg42 g42 0 0.5000
+xa42 s42 g42 s42 s42 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd42 d42 0 0.6990
+xb42 d42 g42 s42 s42 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs43 s43 0 0.7
+vg43 g43 0 0.4500
+xa43 s43 g43 s43 s43 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd43 d43 0 0.6990
+xb43 d43 g43 s43 s43 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs44 s44 0 0.7
+vg44 g44 0 0.4000
+xa44 s44 g44 s44 s44 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd44 d44 0 0.6990
+xb44 d44 g44 s44 s44 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs45 s45 0 0.7
+vg45 g45 0 0.3500
+xa45 s45 g45 s45 s45 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd45 d45 0 0.6990
+xb45 d45 g45 s45 s45 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs46 s46 0 0.7
+vg46 g46 0 0.3000
+xa46 s46 g46 s46 s46 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd46 d46 0 0.6990
+xb46 d46 g46 s46 s46 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs47 s47 0 0.7
+vg47 g47 0 0.2500
+xa47 s47 g47 s47 s47 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd47 d47 0 0.6990
+xb47 d47 g47 s47 s47 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs48 s48 0 0.7
+vg48 g48 0 0.2000
+xa48 s48 g48 s48 s48 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd48 d48 0 0.6990
+xb48 d48 g48 s48 s48 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs49 s49 0 0.7
+vg49 g49 0 0.5000
+xa49 s49 g49 s49 s49 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd49 d49 0 0.6990
+xb49 d49 g49 s49 s49 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs50 s50 0 0.7
+vg50 g50 0 0.4500
+xa50 s50 g50 s50 s50 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd50 d50 0 0.6990
+xb50 d50 g50 s50 s50 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs51 s51 0 0.7
+vg51 g51 0 0.4000
+xa51 s51 g51 s51 s51 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd51 d51 0 0.6990
+xb51 d51 g51 s51 s51 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs52 s52 0 0.7
+vg52 g52 0 0.3500
+xa52 s52 g52 s52 s52 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd52 d52 0 0.6990
+xb52 d52 g52 s52 s52 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs53 s53 0 0.7
+vg53 g53 0 0.3000
+xa53 s53 g53 s53 s53 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd53 d53 0 0.6990
+xb53 d53 g53 s53 s53 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs54 s54 0 0.7
+vg54 g54 0 0.2500
+xa54 s54 g54 s54 s54 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd54 d54 0 0.6990
+xb54 d54 g54 s54 s54 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs55 s55 0 0.7
+vg55 g55 0 0.2000
+xa55 s55 g55 s55 s55 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd55 d55 0 0.6990
+xb55 d55 g55 s55 s55 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs56 s56 0 1.1
+vg56 g56 0 0.9000
+xa56 s56 g56 s56 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd56 d56 0 1.0990
+xb56 d56 g56 s56 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs57 s57 0 1.1
+vg57 g57 0 0.8500
+xa57 s57 g57 s57 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd57 d57 0 1.0990
+xb57 d57 g57 s57 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs58 s58 0 1.1
+vg58 g58 0 0.8000
+xa58 s58 g58 s58 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd58 d58 0 1.0990
+xb58 d58 g58 s58 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs59 s59 0 1.1
+vg59 g59 0 0.7500
+xa59 s59 g59 s59 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd59 d59 0 1.0990
+xb59 d59 g59 s59 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs60 s60 0 1.1
+vg60 g60 0 0.7000
+xa60 s60 g60 s60 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd60 d60 0 1.0990
+xb60 d60 g60 s60 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs61 s61 0 1.1
+vg61 g61 0 0.6500
+xa61 s61 g61 s61 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd61 d61 0 1.0990
+xb61 d61 g61 s61 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs62 s62 0 1.1
+vg62 g62 0 0.6000
+xa62 s62 g62 s62 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd62 d62 0 1.0990
+xb62 d62 g62 s62 vdd sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs63 s63 0 1.1
+vg63 g63 0 0.9000
+xa63 s63 g63 s63 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd63 d63 0 1.0990
+xb63 d63 g63 s63 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs64 s64 0 1.1
+vg64 g64 0 0.8500
+xa64 s64 g64 s64 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd64 d64 0 1.0990
+xb64 d64 g64 s64 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs65 s65 0 1.1
+vg65 g65 0 0.8000
+xa65 s65 g65 s65 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd65 d65 0 1.0990
+xb65 d65 g65 s65 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs66 s66 0 1.1
+vg66 g66 0 0.7500
+xa66 s66 g66 s66 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd66 d66 0 1.0990
+xb66 d66 g66 s66 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs67 s67 0 1.1
+vg67 g67 0 0.7000
+xa67 s67 g67 s67 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd67 d67 0 1.0990
+xb67 d67 g67 s67 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs68 s68 0 1.1
+vg68 g68 0 0.6500
+xa68 s68 g68 s68 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd68 d68 0 1.0990
+xb68 d68 g68 s68 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs69 s69 0 1.1
+vg69 g69 0 0.6000
+xa69 s69 g69 s69 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd69 d69 0 1.0990
+xb69 d69 g69 s69 vdd sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs70 s70 0 1.1
+vg70 g70 0 0.9000
+xa70 s70 g70 s70 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd70 d70 0 1.0990
+xb70 d70 g70 s70 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs71 s71 0 1.1
+vg71 g71 0 0.8500
+xa71 s71 g71 s71 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd71 d71 0 1.0990
+xb71 d71 g71 s71 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs72 s72 0 1.1
+vg72 g72 0 0.8000
+xa72 s72 g72 s72 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd72 d72 0 1.0990
+xb72 d72 g72 s72 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs73 s73 0 1.1
+vg73 g73 0 0.7500
+xa73 s73 g73 s73 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd73 d73 0 1.0990
+xb73 d73 g73 s73 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs74 s74 0 1.1
+vg74 g74 0 0.7000
+xa74 s74 g74 s74 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd74 d74 0 1.0990
+xb74 d74 g74 s74 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs75 s75 0 1.1
+vg75 g75 0 0.6500
+xa75 s75 g75 s75 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd75 d75 0 1.0990
+xb75 d75 g75 s75 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs76 s76 0 1.1
+vg76 g76 0 0.6000
+xa76 s76 g76 s76 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd76 d76 0 1.0990
+xb76 d76 g76 s76 vdd sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs77 s77 0 1.1
+vg77 g77 0 0.9000
+xa77 s77 g77 s77 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd77 d77 0 1.0990
+xb77 d77 g77 s77 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs78 s78 0 1.1
+vg78 g78 0 0.8500
+xa78 s78 g78 s78 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd78 d78 0 1.0990
+xb78 d78 g78 s78 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs79 s79 0 1.1
+vg79 g79 0 0.8000
+xa79 s79 g79 s79 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd79 d79 0 1.0990
+xb79 d79 g79 s79 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs80 s80 0 1.1
+vg80 g80 0 0.7500
+xa80 s80 g80 s80 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd80 d80 0 1.0990
+xb80 d80 g80 s80 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs81 s81 0 1.1
+vg81 g81 0 0.7000
+xa81 s81 g81 s81 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd81 d81 0 1.0990
+xb81 d81 g81 s81 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs82 s82 0 1.1
+vg82 g82 0 0.6500
+xa82 s82 g82 s82 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd82 d82 0 1.0990
+xb82 d82 g82 s82 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs83 s83 0 1.1
+vg83 g83 0 0.6000
+xa83 s83 g83 s83 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd83 d83 0 1.0990
+xb83 d83 g83 s83 vdd sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs84 s84 0 1.1
+vg84 g84 0 0.9000
+xa84 s84 g84 s84 s84 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd84 d84 0 1.0990
+xb84 d84 g84 s84 s84 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs85 s85 0 1.1
+vg85 g85 0 0.8500
+xa85 s85 g85 s85 s85 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd85 d85 0 1.0990
+xb85 d85 g85 s85 s85 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs86 s86 0 1.1
+vg86 g86 0 0.8000
+xa86 s86 g86 s86 s86 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd86 d86 0 1.0990
+xb86 d86 g86 s86 s86 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs87 s87 0 1.1
+vg87 g87 0 0.7500
+xa87 s87 g87 s87 s87 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd87 d87 0 1.0990
+xb87 d87 g87 s87 s87 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs88 s88 0 1.1
+vg88 g88 0 0.7000
+xa88 s88 g88 s88 s88 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd88 d88 0 1.0990
+xb88 d88 g88 s88 s88 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs89 s89 0 1.1
+vg89 g89 0 0.6500
+xa89 s89 g89 s89 s89 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd89 d89 0 1.0990
+xb89 d89 g89 s89 s89 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs90 s90 0 1.1
+vg90 g90 0 0.6000
+xa90 s90 g90 s90 s90 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vd90 d90 0 1.0990
+xb90 d90 g90 s90 s90 sky130_fd_pr__pfet_01v8 w=3u l=0.5u
+vs91 s91 0 1.1
+vg91 g91 0 0.9000
+xa91 s91 g91 s91 s91 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd91 d91 0 1.0990
+xb91 d91 g91 s91 s91 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs92 s92 0 1.1
+vg92 g92 0 0.8500
+xa92 s92 g92 s92 s92 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd92 d92 0 1.0990
+xb92 d92 g92 s92 s92 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs93 s93 0 1.1
+vg93 g93 0 0.8000
+xa93 s93 g93 s93 s93 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd93 d93 0 1.0990
+xb93 d93 g93 s93 s93 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs94 s94 0 1.1
+vg94 g94 0 0.7500
+xa94 s94 g94 s94 s94 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd94 d94 0 1.0990
+xb94 d94 g94 s94 s94 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs95 s95 0 1.1
+vg95 g95 0 0.7000
+xa95 s95 g95 s95 s95 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd95 d95 0 1.0990
+xb95 d95 g95 s95 s95 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs96 s96 0 1.1
+vg96 g96 0 0.6500
+xa96 s96 g96 s96 s96 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd96 d96 0 1.0990
+xb96 d96 g96 s96 s96 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs97 s97 0 1.1
+vg97 g97 0 0.6000
+xa97 s97 g97 s97 s97 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vd97 d97 0 1.0990
+xb97 d97 g97 s97 s97 sky130_fd_pr__pfet_01v8 w=3u l=1.0u
+vs98 s98 0 1.1
+vg98 g98 0 0.9000
+xa98 s98 g98 s98 s98 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd98 d98 0 1.0990
+xb98 d98 g98 s98 s98 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs99 s99 0 1.1
+vg99 g99 0 0.8500
+xa99 s99 g99 s99 s99 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd99 d99 0 1.0990
+xb99 d99 g99 s99 s99 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs100 s100 0 1.1
+vg100 g100 0 0.8000
+xa100 s100 g100 s100 s100 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd100 d100 0 1.0990
+xb100 d100 g100 s100 s100 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs101 s101 0 1.1
+vg101 g101 0 0.7500
+xa101 s101 g101 s101 s101 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd101 d101 0 1.0990
+xb101 d101 g101 s101 s101 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs102 s102 0 1.1
+vg102 g102 0 0.7000
+xa102 s102 g102 s102 s102 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd102 d102 0 1.0990
+xb102 d102 g102 s102 s102 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs103 s103 0 1.1
+vg103 g103 0 0.6500
+xa103 s103 g103 s103 s103 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd103 d103 0 1.0990
+xb103 d103 g103 s103 s103 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs104 s104 0 1.1
+vg104 g104 0 0.6000
+xa104 s104 g104 s104 s104 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vd104 d104 0 1.0990
+xb104 d104 g104 s104 s104 sky130_fd_pr__pfet_01v8 w=3u l=2.0u
+vs105 s105 0 1.1
+vg105 g105 0 0.9000
+xa105 s105 g105 s105 s105 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd105 d105 0 1.0990
+xb105 d105 g105 s105 s105 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs106 s106 0 1.1
+vg106 g106 0 0.8500
+xa106 s106 g106 s106 s106 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd106 d106 0 1.0990
+xb106 d106 g106 s106 s106 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs107 s107 0 1.1
+vg107 g107 0 0.8000
+xa107 s107 g107 s107 s107 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd107 d107 0 1.0990
+xb107 d107 g107 s107 s107 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs108 s108 0 1.1
+vg108 g108 0 0.7500
+xa108 s108 g108 s108 s108 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd108 d108 0 1.0990
+xb108 d108 g108 s108 s108 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs109 s109 0 1.1
+vg109 g109 0 0.7000
+xa109 s109 g109 s109 s109 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd109 d109 0 1.0990
+xb109 d109 g109 s109 s109 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs110 s110 0 1.1
+vg110 g110 0 0.6500
+xa110 s110 g110 s110 s110 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd110 d110 0 1.0990
+xb110 d110 g110 s110 s110 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vs111 s111 0 1.1
+vg111 g111 0 0.6000
+xa111 s111 g111 s111 s111 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+vd111 d111 0 1.0990
+xb111 d111 g111 s111 s111 sky130_fd_pr__pfet_01v8 w=3u l=4.0u
+.control
+op
+print @m.xa0.msky130_fd_pr__pfet_01v8[vth] @m.xa0.msky130_fd_pr__pfet_01v8[gds] @m.xa0.msky130_fd_pr__pfet_01v8[gm] @m.xa0.msky130_fd_pr__pfet_01v8[id]
+print i(vd0)
+print @m.xa1.msky130_fd_pr__pfet_01v8[vth] @m.xa1.msky130_fd_pr__pfet_01v8[gds] @m.xa1.msky130_fd_pr__pfet_01v8[gm] @m.xa1.msky130_fd_pr__pfet_01v8[id]
+print i(vd1)
+print @m.xa2.msky130_fd_pr__pfet_01v8[vth] @m.xa2.msky130_fd_pr__pfet_01v8[gds] @m.xa2.msky130_fd_pr__pfet_01v8[gm] @m.xa2.msky130_fd_pr__pfet_01v8[id]
+print i(vd2)
+print @m.xa3.msky130_fd_pr__pfet_01v8[vth] @m.xa3.msky130_fd_pr__pfet_01v8[gds] @m.xa3.msky130_fd_pr__pfet_01v8[gm] @m.xa3.msky130_fd_pr__pfet_01v8[id]
+print i(vd3)
+print @m.xa4.msky130_fd_pr__pfet_01v8[vth] @m.xa4.msky130_fd_pr__pfet_01v8[gds] @m.xa4.msky130_fd_pr__pfet_01v8[gm] @m.xa4.msky130_fd_pr__pfet_01v8[id]
+print i(vd4)
+print @m.xa5.msky130_fd_pr__pfet_01v8[vth] @m.xa5.msky130_fd_pr__pfet_01v8[gds] @m.xa5.msky130_fd_pr__pfet_01v8[gm] @m.xa5.msky130_fd_pr__pfet_01v8[id]
+print i(vd5)
+print @m.xa6.msky130_fd_pr__pfet_01v8[vth] @m.xa6.msky130_fd_pr__pfet_01v8[gds] @m.xa6.msky130_fd_pr__pfet_01v8[gm] @m.xa6.msky130_fd_pr__pfet_01v8[id]
+print i(vd6)
+print @m.xa7.msky130_fd_pr__pfet_01v8[vth] @m.xa7.msky130_fd_pr__pfet_01v8[gds] @m.xa7.msky130_fd_pr__pfet_01v8[gm] @m.xa7.msky130_fd_pr__pfet_01v8[id]
+print i(vd7)
+print @m.xa8.msky130_fd_pr__pfet_01v8[vth] @m.xa8.msky130_fd_pr__pfet_01v8[gds] @m.xa8.msky130_fd_pr__pfet_01v8[gm] @m.xa8.msky130_fd_pr__pfet_01v8[id]
+print i(vd8)
+print @m.xa9.msky130_fd_pr__pfet_01v8[vth] @m.xa9.msky130_fd_pr__pfet_01v8[gds] @m.xa9.msky130_fd_pr__pfet_01v8[gm] @m.xa9.msky130_fd_pr__pfet_01v8[id]
+print i(vd9)
+print @m.xa10.msky130_fd_pr__pfet_01v8[vth] @m.xa10.msky130_fd_pr__pfet_01v8[gds] @m.xa10.msky130_fd_pr__pfet_01v8[gm] @m.xa10.msky130_fd_pr__pfet_01v8[id]
+print i(vd10)
+print @m.xa11.msky130_fd_pr__pfet_01v8[vth] @m.xa11.msky130_fd_pr__pfet_01v8[gds] @m.xa11.msky130_fd_pr__pfet_01v8[gm] @m.xa11.msky130_fd_pr__pfet_01v8[id]
+print i(vd11)
+print @m.xa12.msky130_fd_pr__pfet_01v8[vth] @m.xa12.msky130_fd_pr__pfet_01v8[gds] @m.xa12.msky130_fd_pr__pfet_01v8[gm] @m.xa12.msky130_fd_pr__pfet_01v8[id]
+print i(vd12)
+print @m.xa13.msky130_fd_pr__pfet_01v8[vth] @m.xa13.msky130_fd_pr__pfet_01v8[gds] @m.xa13.msky130_fd_pr__pfet_01v8[gm] @m.xa13.msky130_fd_pr__pfet_01v8[id]
+print i(vd13)
+print @m.xa14.msky130_fd_pr__pfet_01v8[vth] @m.xa14.msky130_fd_pr__pfet_01v8[gds] @m.xa14.msky130_fd_pr__pfet_01v8[gm] @m.xa14.msky130_fd_pr__pfet_01v8[id]
+print i(vd14)
+print @m.xa15.msky130_fd_pr__pfet_01v8[vth] @m.xa15.msky130_fd_pr__pfet_01v8[gds] @m.xa15.msky130_fd_pr__pfet_01v8[gm] @m.xa15.msky130_fd_pr__pfet_01v8[id]
+print i(vd15)
+print @m.xa16.msky130_fd_pr__pfet_01v8[vth] @m.xa16.msky130_fd_pr__pfet_01v8[gds] @m.xa16.msky130_fd_pr__pfet_01v8[gm] @m.xa16.msky130_fd_pr__pfet_01v8[id]
+print i(vd16)
+print @m.xa17.msky130_fd_pr__pfet_01v8[vth] @m.xa17.msky130_fd_pr__pfet_01v8[gds] @m.xa17.msky130_fd_pr__pfet_01v8[gm] @m.xa17.msky130_fd_pr__pfet_01v8[id]
+print i(vd17)
+print @m.xa18.msky130_fd_pr__pfet_01v8[vth] @m.xa18.msky130_fd_pr__pfet_01v8[gds] @m.xa18.msky130_fd_pr__pfet_01v8[gm] @m.xa18.msky130_fd_pr__pfet_01v8[id]
+print i(vd18)
+print @m.xa19.msky130_fd_pr__pfet_01v8[vth] @m.xa19.msky130_fd_pr__pfet_01v8[gds] @m.xa19.msky130_fd_pr__pfet_01v8[gm] @m.xa19.msky130_fd_pr__pfet_01v8[id]
+print i(vd19)
+print @m.xa20.msky130_fd_pr__pfet_01v8[vth] @m.xa20.msky130_fd_pr__pfet_01v8[gds] @m.xa20.msky130_fd_pr__pfet_01v8[gm] @m.xa20.msky130_fd_pr__pfet_01v8[id]
+print i(vd20)
+print @m.xa21.msky130_fd_pr__pfet_01v8[vth] @m.xa21.msky130_fd_pr__pfet_01v8[gds] @m.xa21.msky130_fd_pr__pfet_01v8[gm] @m.xa21.msky130_fd_pr__pfet_01v8[id]
+print i(vd21)
+print @m.xa22.msky130_fd_pr__pfet_01v8[vth] @m.xa22.msky130_fd_pr__pfet_01v8[gds] @m.xa22.msky130_fd_pr__pfet_01v8[gm] @m.xa22.msky130_fd_pr__pfet_01v8[id]
+print i(vd22)
+print @m.xa23.msky130_fd_pr__pfet_01v8[vth] @m.xa23.msky130_fd_pr__pfet_01v8[gds] @m.xa23.msky130_fd_pr__pfet_01v8[gm] @m.xa23.msky130_fd_pr__pfet_01v8[id]
+print i(vd23)
+print @m.xa24.msky130_fd_pr__pfet_01v8[vth] @m.xa24.msky130_fd_pr__pfet_01v8[gds] @m.xa24.msky130_fd_pr__pfet_01v8[gm] @m.xa24.msky130_fd_pr__pfet_01v8[id]
+print i(vd24)
+print @m.xa25.msky130_fd_pr__pfet_01v8[vth] @m.xa25.msky130_fd_pr__pfet_01v8[gds] @m.xa25.msky130_fd_pr__pfet_01v8[gm] @m.xa25.msky130_fd_pr__pfet_01v8[id]
+print i(vd25)
+print @m.xa26.msky130_fd_pr__pfet_01v8[vth] @m.xa26.msky130_fd_pr__pfet_01v8[gds] @m.xa26.msky130_fd_pr__pfet_01v8[gm] @m.xa26.msky130_fd_pr__pfet_01v8[id]
+print i(vd26)
+print @m.xa27.msky130_fd_pr__pfet_01v8[vth] @m.xa27.msky130_fd_pr__pfet_01v8[gds] @m.xa27.msky130_fd_pr__pfet_01v8[gm] @m.xa27.msky130_fd_pr__pfet_01v8[id]
+print i(vd27)
+print @m.xa28.msky130_fd_pr__pfet_01v8[vth] @m.xa28.msky130_fd_pr__pfet_01v8[gds] @m.xa28.msky130_fd_pr__pfet_01v8[gm] @m.xa28.msky130_fd_pr__pfet_01v8[id]
+print i(vd28)
+print @m.xa29.msky130_fd_pr__pfet_01v8[vth] @m.xa29.msky130_fd_pr__pfet_01v8[gds] @m.xa29.msky130_fd_pr__pfet_01v8[gm] @m.xa29.msky130_fd_pr__pfet_01v8[id]
+print i(vd29)
+print @m.xa30.msky130_fd_pr__pfet_01v8[vth] @m.xa30.msky130_fd_pr__pfet_01v8[gds] @m.xa30.msky130_fd_pr__pfet_01v8[gm] @m.xa30.msky130_fd_pr__pfet_01v8[id]
+print i(vd30)
+print @m.xa31.msky130_fd_pr__pfet_01v8[vth] @m.xa31.msky130_fd_pr__pfet_01v8[gds] @m.xa31.msky130_fd_pr__pfet_01v8[gm] @m.xa31.msky130_fd_pr__pfet_01v8[id]
+print i(vd31)
+print @m.xa32.msky130_fd_pr__pfet_01v8[vth] @m.xa32.msky130_fd_pr__pfet_01v8[gds] @m.xa32.msky130_fd_pr__pfet_01v8[gm] @m.xa32.msky130_fd_pr__pfet_01v8[id]
+print i(vd32)
+print @m.xa33.msky130_fd_pr__pfet_01v8[vth] @m.xa33.msky130_fd_pr__pfet_01v8[gds] @m.xa33.msky130_fd_pr__pfet_01v8[gm] @m.xa33.msky130_fd_pr__pfet_01v8[id]
+print i(vd33)
+print @m.xa34.msky130_fd_pr__pfet_01v8[vth] @m.xa34.msky130_fd_pr__pfet_01v8[gds] @m.xa34.msky130_fd_pr__pfet_01v8[gm] @m.xa34.msky130_fd_pr__pfet_01v8[id]
+print i(vd34)
+print @m.xa35.msky130_fd_pr__pfet_01v8[vth] @m.xa35.msky130_fd_pr__pfet_01v8[gds] @m.xa35.msky130_fd_pr__pfet_01v8[gm] @m.xa35.msky130_fd_pr__pfet_01v8[id]
+print i(vd35)
+print @m.xa36.msky130_fd_pr__pfet_01v8[vth] @m.xa36.msky130_fd_pr__pfet_01v8[gds] @m.xa36.msky130_fd_pr__pfet_01v8[gm] @m.xa36.msky130_fd_pr__pfet_01v8[id]
+print i(vd36)
+print @m.xa37.msky130_fd_pr__pfet_01v8[vth] @m.xa37.msky130_fd_pr__pfet_01v8[gds] @m.xa37.msky130_fd_pr__pfet_01v8[gm] @m.xa37.msky130_fd_pr__pfet_01v8[id]
+print i(vd37)
+print @m.xa38.msky130_fd_pr__pfet_01v8[vth] @m.xa38.msky130_fd_pr__pfet_01v8[gds] @m.xa38.msky130_fd_pr__pfet_01v8[gm] @m.xa38.msky130_fd_pr__pfet_01v8[id]
+print i(vd38)
+print @m.xa39.msky130_fd_pr__pfet_01v8[vth] @m.xa39.msky130_fd_pr__pfet_01v8[gds] @m.xa39.msky130_fd_pr__pfet_01v8[gm] @m.xa39.msky130_fd_pr__pfet_01v8[id]
+print i(vd39)
+print @m.xa40.msky130_fd_pr__pfet_01v8[vth] @m.xa40.msky130_fd_pr__pfet_01v8[gds] @m.xa40.msky130_fd_pr__pfet_01v8[gm] @m.xa40.msky130_fd_pr__pfet_01v8[id]
+print i(vd40)
+print @m.xa41.msky130_fd_pr__pfet_01v8[vth] @m.xa41.msky130_fd_pr__pfet_01v8[gds] @m.xa41.msky130_fd_pr__pfet_01v8[gm] @m.xa41.msky130_fd_pr__pfet_01v8[id]
+print i(vd41)
+print @m.xa42.msky130_fd_pr__pfet_01v8[vth] @m.xa42.msky130_fd_pr__pfet_01v8[gds] @m.xa42.msky130_fd_pr__pfet_01v8[gm] @m.xa42.msky130_fd_pr__pfet_01v8[id]
+print i(vd42)
+print @m.xa43.msky130_fd_pr__pfet_01v8[vth] @m.xa43.msky130_fd_pr__pfet_01v8[gds] @m.xa43.msky130_fd_pr__pfet_01v8[gm] @m.xa43.msky130_fd_pr__pfet_01v8[id]
+print i(vd43)
+print @m.xa44.msky130_fd_pr__pfet_01v8[vth] @m.xa44.msky130_fd_pr__pfet_01v8[gds] @m.xa44.msky130_fd_pr__pfet_01v8[gm] @m.xa44.msky130_fd_pr__pfet_01v8[id]
+print i(vd44)
+print @m.xa45.msky130_fd_pr__pfet_01v8[vth] @m.xa45.msky130_fd_pr__pfet_01v8[gds] @m.xa45.msky130_fd_pr__pfet_01v8[gm] @m.xa45.msky130_fd_pr__pfet_01v8[id]
+print i(vd45)
+print @m.xa46.msky130_fd_pr__pfet_01v8[vth] @m.xa46.msky130_fd_pr__pfet_01v8[gds] @m.xa46.msky130_fd_pr__pfet_01v8[gm] @m.xa46.msky130_fd_pr__pfet_01v8[id]
+print i(vd46)
+print @m.xa47.msky130_fd_pr__pfet_01v8[vth] @m.xa47.msky130_fd_pr__pfet_01v8[gds] @m.xa47.msky130_fd_pr__pfet_01v8[gm] @m.xa47.msky130_fd_pr__pfet_01v8[id]
+print i(vd47)
+print @m.xa48.msky130_fd_pr__pfet_01v8[vth] @m.xa48.msky130_fd_pr__pfet_01v8[gds] @m.xa48.msky130_fd_pr__pfet_01v8[gm] @m.xa48.msky130_fd_pr__pfet_01v8[id]
+print i(vd48)
+print @m.xa49.msky130_fd_pr__pfet_01v8[vth] @m.xa49.msky130_fd_pr__pfet_01v8[gds] @m.xa49.msky130_fd_pr__pfet_01v8[gm] @m.xa49.msky130_fd_pr__pfet_01v8[id]
+print i(vd49)
+print @m.xa50.msky130_fd_pr__pfet_01v8[vth] @m.xa50.msky130_fd_pr__pfet_01v8[gds] @m.xa50.msky130_fd_pr__pfet_01v8[gm] @m.xa50.msky130_fd_pr__pfet_01v8[id]
+print i(vd50)
+print @m.xa51.msky130_fd_pr__pfet_01v8[vth] @m.xa51.msky130_fd_pr__pfet_01v8[gds] @m.xa51.msky130_fd_pr__pfet_01v8[gm] @m.xa51.msky130_fd_pr__pfet_01v8[id]
+print i(vd51)
+print @m.xa52.msky130_fd_pr__pfet_01v8[vth] @m.xa52.msky130_fd_pr__pfet_01v8[gds] @m.xa52.msky130_fd_pr__pfet_01v8[gm] @m.xa52.msky130_fd_pr__pfet_01v8[id]
+print i(vd52)
+print @m.xa53.msky130_fd_pr__pfet_01v8[vth] @m.xa53.msky130_fd_pr__pfet_01v8[gds] @m.xa53.msky130_fd_pr__pfet_01v8[gm] @m.xa53.msky130_fd_pr__pfet_01v8[id]
+print i(vd53)
+print @m.xa54.msky130_fd_pr__pfet_01v8[vth] @m.xa54.msky130_fd_pr__pfet_01v8[gds] @m.xa54.msky130_fd_pr__pfet_01v8[gm] @m.xa54.msky130_fd_pr__pfet_01v8[id]
+print i(vd54)
+print @m.xa55.msky130_fd_pr__pfet_01v8[vth] @m.xa55.msky130_fd_pr__pfet_01v8[gds] @m.xa55.msky130_fd_pr__pfet_01v8[gm] @m.xa55.msky130_fd_pr__pfet_01v8[id]
+print i(vd55)
+print @m.xa56.msky130_fd_pr__pfet_01v8[vth] @m.xa56.msky130_fd_pr__pfet_01v8[gds] @m.xa56.msky130_fd_pr__pfet_01v8[gm] @m.xa56.msky130_fd_pr__pfet_01v8[id]
+print i(vd56)
+print @m.xa57.msky130_fd_pr__pfet_01v8[vth] @m.xa57.msky130_fd_pr__pfet_01v8[gds] @m.xa57.msky130_fd_pr__pfet_01v8[gm] @m.xa57.msky130_fd_pr__pfet_01v8[id]
+print i(vd57)
+print @m.xa58.msky130_fd_pr__pfet_01v8[vth] @m.xa58.msky130_fd_pr__pfet_01v8[gds] @m.xa58.msky130_fd_pr__pfet_01v8[gm] @m.xa58.msky130_fd_pr__pfet_01v8[id]
+print i(vd58)
+print @m.xa59.msky130_fd_pr__pfet_01v8[vth] @m.xa59.msky130_fd_pr__pfet_01v8[gds] @m.xa59.msky130_fd_pr__pfet_01v8[gm] @m.xa59.msky130_fd_pr__pfet_01v8[id]
+print i(vd59)
+print @m.xa60.msky130_fd_pr__pfet_01v8[vth] @m.xa60.msky130_fd_pr__pfet_01v8[gds] @m.xa60.msky130_fd_pr__pfet_01v8[gm] @m.xa60.msky130_fd_pr__pfet_01v8[id]
+print i(vd60)
+print @m.xa61.msky130_fd_pr__pfet_01v8[vth] @m.xa61.msky130_fd_pr__pfet_01v8[gds] @m.xa61.msky130_fd_pr__pfet_01v8[gm] @m.xa61.msky130_fd_pr__pfet_01v8[id]
+print i(vd61)
+print @m.xa62.msky130_fd_pr__pfet_01v8[vth] @m.xa62.msky130_fd_pr__pfet_01v8[gds] @m.xa62.msky130_fd_pr__pfet_01v8[gm] @m.xa62.msky130_fd_pr__pfet_01v8[id]
+print i(vd62)
+print @m.xa63.msky130_fd_pr__pfet_01v8[vth] @m.xa63.msky130_fd_pr__pfet_01v8[gds] @m.xa63.msky130_fd_pr__pfet_01v8[gm] @m.xa63.msky130_fd_pr__pfet_01v8[id]
+print i(vd63)
+print @m.xa64.msky130_fd_pr__pfet_01v8[vth] @m.xa64.msky130_fd_pr__pfet_01v8[gds] @m.xa64.msky130_fd_pr__pfet_01v8[gm] @m.xa64.msky130_fd_pr__pfet_01v8[id]
+print i(vd64)
+print @m.xa65.msky130_fd_pr__pfet_01v8[vth] @m.xa65.msky130_fd_pr__pfet_01v8[gds] @m.xa65.msky130_fd_pr__pfet_01v8[gm] @m.xa65.msky130_fd_pr__pfet_01v8[id]
+print i(vd65)
+print @m.xa66.msky130_fd_pr__pfet_01v8[vth] @m.xa66.msky130_fd_pr__pfet_01v8[gds] @m.xa66.msky130_fd_pr__pfet_01v8[gm] @m.xa66.msky130_fd_pr__pfet_01v8[id]
+print i(vd66)
+print @m.xa67.msky130_fd_pr__pfet_01v8[vth] @m.xa67.msky130_fd_pr__pfet_01v8[gds] @m.xa67.msky130_fd_pr__pfet_01v8[gm] @m.xa67.msky130_fd_pr__pfet_01v8[id]
+print i(vd67)
+print @m.xa68.msky130_fd_pr__pfet_01v8[vth] @m.xa68.msky130_fd_pr__pfet_01v8[gds] @m.xa68.msky130_fd_pr__pfet_01v8[gm] @m.xa68.msky130_fd_pr__pfet_01v8[id]
+print i(vd68)
+print @m.xa69.msky130_fd_pr__pfet_01v8[vth] @m.xa69.msky130_fd_pr__pfet_01v8[gds] @m.xa69.msky130_fd_pr__pfet_01v8[gm] @m.xa69.msky130_fd_pr__pfet_01v8[id]
+print i(vd69)
+print @m.xa70.msky130_fd_pr__pfet_01v8[vth] @m.xa70.msky130_fd_pr__pfet_01v8[gds] @m.xa70.msky130_fd_pr__pfet_01v8[gm] @m.xa70.msky130_fd_pr__pfet_01v8[id]
+print i(vd70)
+print @m.xa71.msky130_fd_pr__pfet_01v8[vth] @m.xa71.msky130_fd_pr__pfet_01v8[gds] @m.xa71.msky130_fd_pr__pfet_01v8[gm] @m.xa71.msky130_fd_pr__pfet_01v8[id]
+print i(vd71)
+print @m.xa72.msky130_fd_pr__pfet_01v8[vth] @m.xa72.msky130_fd_pr__pfet_01v8[gds] @m.xa72.msky130_fd_pr__pfet_01v8[gm] @m.xa72.msky130_fd_pr__pfet_01v8[id]
+print i(vd72)
+print @m.xa73.msky130_fd_pr__pfet_01v8[vth] @m.xa73.msky130_fd_pr__pfet_01v8[gds] @m.xa73.msky130_fd_pr__pfet_01v8[gm] @m.xa73.msky130_fd_pr__pfet_01v8[id]
+print i(vd73)
+print @m.xa74.msky130_fd_pr__pfet_01v8[vth] @m.xa74.msky130_fd_pr__pfet_01v8[gds] @m.xa74.msky130_fd_pr__pfet_01v8[gm] @m.xa74.msky130_fd_pr__pfet_01v8[id]
+print i(vd74)
+print @m.xa75.msky130_fd_pr__pfet_01v8[vth] @m.xa75.msky130_fd_pr__pfet_01v8[gds] @m.xa75.msky130_fd_pr__pfet_01v8[gm] @m.xa75.msky130_fd_pr__pfet_01v8[id]
+print i(vd75)
+print @m.xa76.msky130_fd_pr__pfet_01v8[vth] @m.xa76.msky130_fd_pr__pfet_01v8[gds] @m.xa76.msky130_fd_pr__pfet_01v8[gm] @m.xa76.msky130_fd_pr__pfet_01v8[id]
+print i(vd76)
+print @m.xa77.msky130_fd_pr__pfet_01v8[vth] @m.xa77.msky130_fd_pr__pfet_01v8[gds] @m.xa77.msky130_fd_pr__pfet_01v8[gm] @m.xa77.msky130_fd_pr__pfet_01v8[id]
+print i(vd77)
+print @m.xa78.msky130_fd_pr__pfet_01v8[vth] @m.xa78.msky130_fd_pr__pfet_01v8[gds] @m.xa78.msky130_fd_pr__pfet_01v8[gm] @m.xa78.msky130_fd_pr__pfet_01v8[id]
+print i(vd78)
+print @m.xa79.msky130_fd_pr__pfet_01v8[vth] @m.xa79.msky130_fd_pr__pfet_01v8[gds] @m.xa79.msky130_fd_pr__pfet_01v8[gm] @m.xa79.msky130_fd_pr__pfet_01v8[id]
+print i(vd79)
+print @m.xa80.msky130_fd_pr__pfet_01v8[vth] @m.xa80.msky130_fd_pr__pfet_01v8[gds] @m.xa80.msky130_fd_pr__pfet_01v8[gm] @m.xa80.msky130_fd_pr__pfet_01v8[id]
+print i(vd80)
+print @m.xa81.msky130_fd_pr__pfet_01v8[vth] @m.xa81.msky130_fd_pr__pfet_01v8[gds] @m.xa81.msky130_fd_pr__pfet_01v8[gm] @m.xa81.msky130_fd_pr__pfet_01v8[id]
+print i(vd81)
+print @m.xa82.msky130_fd_pr__pfet_01v8[vth] @m.xa82.msky130_fd_pr__pfet_01v8[gds] @m.xa82.msky130_fd_pr__pfet_01v8[gm] @m.xa82.msky130_fd_pr__pfet_01v8[id]
+print i(vd82)
+print @m.xa83.msky130_fd_pr__pfet_01v8[vth] @m.xa83.msky130_fd_pr__pfet_01v8[gds] @m.xa83.msky130_fd_pr__pfet_01v8[gm] @m.xa83.msky130_fd_pr__pfet_01v8[id]
+print i(vd83)
+print @m.xa84.msky130_fd_pr__pfet_01v8[vth] @m.xa84.msky130_fd_pr__pfet_01v8[gds] @m.xa84.msky130_fd_pr__pfet_01v8[gm] @m.xa84.msky130_fd_pr__pfet_01v8[id]
+print i(vd84)
+print @m.xa85.msky130_fd_pr__pfet_01v8[vth] @m.xa85.msky130_fd_pr__pfet_01v8[gds] @m.xa85.msky130_fd_pr__pfet_01v8[gm] @m.xa85.msky130_fd_pr__pfet_01v8[id]
+print i(vd85)
+print @m.xa86.msky130_fd_pr__pfet_01v8[vth] @m.xa86.msky130_fd_pr__pfet_01v8[gds] @m.xa86.msky130_fd_pr__pfet_01v8[gm] @m.xa86.msky130_fd_pr__pfet_01v8[id]
+print i(vd86)
+print @m.xa87.msky130_fd_pr__pfet_01v8[vth] @m.xa87.msky130_fd_pr__pfet_01v8[gds] @m.xa87.msky130_fd_pr__pfet_01v8[gm] @m.xa87.msky130_fd_pr__pfet_01v8[id]
+print i(vd87)
+print @m.xa88.msky130_fd_pr__pfet_01v8[vth] @m.xa88.msky130_fd_pr__pfet_01v8[gds] @m.xa88.msky130_fd_pr__pfet_01v8[gm] @m.xa88.msky130_fd_pr__pfet_01v8[id]
+print i(vd88)
+print @m.xa89.msky130_fd_pr__pfet_01v8[vth] @m.xa89.msky130_fd_pr__pfet_01v8[gds] @m.xa89.msky130_fd_pr__pfet_01v8[gm] @m.xa89.msky130_fd_pr__pfet_01v8[id]
+print i(vd89)
+print @m.xa90.msky130_fd_pr__pfet_01v8[vth] @m.xa90.msky130_fd_pr__pfet_01v8[gds] @m.xa90.msky130_fd_pr__pfet_01v8[gm] @m.xa90.msky130_fd_pr__pfet_01v8[id]
+print i(vd90)
+print @m.xa91.msky130_fd_pr__pfet_01v8[vth] @m.xa91.msky130_fd_pr__pfet_01v8[gds] @m.xa91.msky130_fd_pr__pfet_01v8[gm] @m.xa91.msky130_fd_pr__pfet_01v8[id]
+print i(vd91)
+print @m.xa92.msky130_fd_pr__pfet_01v8[vth] @m.xa92.msky130_fd_pr__pfet_01v8[gds] @m.xa92.msky130_fd_pr__pfet_01v8[gm] @m.xa92.msky130_fd_pr__pfet_01v8[id]
+print i(vd92)
+print @m.xa93.msky130_fd_pr__pfet_01v8[vth] @m.xa93.msky130_fd_pr__pfet_01v8[gds] @m.xa93.msky130_fd_pr__pfet_01v8[gm] @m.xa93.msky130_fd_pr__pfet_01v8[id]
+print i(vd93)
+print @m.xa94.msky130_fd_pr__pfet_01v8[vth] @m.xa94.msky130_fd_pr__pfet_01v8[gds] @m.xa94.msky130_fd_pr__pfet_01v8[gm] @m.xa94.msky130_fd_pr__pfet_01v8[id]
+print i(vd94)
+print @m.xa95.msky130_fd_pr__pfet_01v8[vth] @m.xa95.msky130_fd_pr__pfet_01v8[gds] @m.xa95.msky130_fd_pr__pfet_01v8[gm] @m.xa95.msky130_fd_pr__pfet_01v8[id]
+print i(vd95)
+print @m.xa96.msky130_fd_pr__pfet_01v8[vth] @m.xa96.msky130_fd_pr__pfet_01v8[gds] @m.xa96.msky130_fd_pr__pfet_01v8[gm] @m.xa96.msky130_fd_pr__pfet_01v8[id]
+print i(vd96)
+print @m.xa97.msky130_fd_pr__pfet_01v8[vth] @m.xa97.msky130_fd_pr__pfet_01v8[gds] @m.xa97.msky130_fd_pr__pfet_01v8[gm] @m.xa97.msky130_fd_pr__pfet_01v8[id]
+print i(vd97)
+print @m.xa98.msky130_fd_pr__pfet_01v8[vth] @m.xa98.msky130_fd_pr__pfet_01v8[gds] @m.xa98.msky130_fd_pr__pfet_01v8[gm] @m.xa98.msky130_fd_pr__pfet_01v8[id]
+print i(vd98)
+print @m.xa99.msky130_fd_pr__pfet_01v8[vth] @m.xa99.msky130_fd_pr__pfet_01v8[gds] @m.xa99.msky130_fd_pr__pfet_01v8[gm] @m.xa99.msky130_fd_pr__pfet_01v8[id]
+print i(vd99)
+print @m.xa100.msky130_fd_pr__pfet_01v8[vth] @m.xa100.msky130_fd_pr__pfet_01v8[gds] @m.xa100.msky130_fd_pr__pfet_01v8[gm] @m.xa100.msky130_fd_pr__pfet_01v8[id]
+print i(vd100)
+print @m.xa101.msky130_fd_pr__pfet_01v8[vth] @m.xa101.msky130_fd_pr__pfet_01v8[gds] @m.xa101.msky130_fd_pr__pfet_01v8[gm] @m.xa101.msky130_fd_pr__pfet_01v8[id]
+print i(vd101)
+print @m.xa102.msky130_fd_pr__pfet_01v8[vth] @m.xa102.msky130_fd_pr__pfet_01v8[gds] @m.xa102.msky130_fd_pr__pfet_01v8[gm] @m.xa102.msky130_fd_pr__pfet_01v8[id]
+print i(vd102)
+print @m.xa103.msky130_fd_pr__pfet_01v8[vth] @m.xa103.msky130_fd_pr__pfet_01v8[gds] @m.xa103.msky130_fd_pr__pfet_01v8[gm] @m.xa103.msky130_fd_pr__pfet_01v8[id]
+print i(vd103)
+print @m.xa104.msky130_fd_pr__pfet_01v8[vth] @m.xa104.msky130_fd_pr__pfet_01v8[gds] @m.xa104.msky130_fd_pr__pfet_01v8[gm] @m.xa104.msky130_fd_pr__pfet_01v8[id]
+print i(vd104)
+print @m.xa105.msky130_fd_pr__pfet_01v8[vth] @m.xa105.msky130_fd_pr__pfet_01v8[gds] @m.xa105.msky130_fd_pr__pfet_01v8[gm] @m.xa105.msky130_fd_pr__pfet_01v8[id]
+print i(vd105)
+print @m.xa106.msky130_fd_pr__pfet_01v8[vth] @m.xa106.msky130_fd_pr__pfet_01v8[gds] @m.xa106.msky130_fd_pr__pfet_01v8[gm] @m.xa106.msky130_fd_pr__pfet_01v8[id]
+print i(vd106)
+print @m.xa107.msky130_fd_pr__pfet_01v8[vth] @m.xa107.msky130_fd_pr__pfet_01v8[gds] @m.xa107.msky130_fd_pr__pfet_01v8[gm] @m.xa107.msky130_fd_pr__pfet_01v8[id]
+print i(vd107)
+print @m.xa108.msky130_fd_pr__pfet_01v8[vth] @m.xa108.msky130_fd_pr__pfet_01v8[gds] @m.xa108.msky130_fd_pr__pfet_01v8[gm] @m.xa108.msky130_fd_pr__pfet_01v8[id]
+print i(vd108)
+print @m.xa109.msky130_fd_pr__pfet_01v8[vth] @m.xa109.msky130_fd_pr__pfet_01v8[gds] @m.xa109.msky130_fd_pr__pfet_01v8[gm] @m.xa109.msky130_fd_pr__pfet_01v8[id]
+print i(vd109)
+print @m.xa110.msky130_fd_pr__pfet_01v8[vth] @m.xa110.msky130_fd_pr__pfet_01v8[gds] @m.xa110.msky130_fd_pr__pfet_01v8[gm] @m.xa110.msky130_fd_pr__pfet_01v8[id]
+print i(vd110)
+print @m.xa111.msky130_fd_pr__pfet_01v8[vth] @m.xa111.msky130_fd_pr__pfet_01v8[gds] @m.xa111.msky130_fd_pr__pfet_01v8[gm] @m.xa111.msky130_fd_pr__pfet_01v8[id]
+print i(vd111)
+.endc
+.end

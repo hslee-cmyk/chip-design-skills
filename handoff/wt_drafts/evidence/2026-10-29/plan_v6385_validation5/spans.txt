@@ -1,0 +1,756 @@
+
+#### plan replace old 11-11 new 11-11
+-- line new 11
+  [insert] ctx« 흡수·실현 평가 측정 구성 servo·X-LA11 근거 교체(WB-1 완료 노드 수준·DE-1 V_id*)»
+    OLD«»
+    NEW«·IT-2 → WB-1 순서 추가»
+  [insert] ctx«), Q-CF1(WB-1 범위 3 cfg 이름 안 A), Q-ZG1(0 전류 MOS 기하 출처 -- 권고 (»
+    OLD«»
+    NEW«δ) 손계산 격자 선택(θ 아님) + (»
+  [delete] ctx« 안 A), Q-ZG1(0 전류 MOS 기하 출처 -- 권고 (마) 대역 하한 spec 선언 + (바) 기록»
+    OLD«, W_min·L θ»
+    NEW«»
+
+#### plan replace old 304-304 new 304-304
+-- line new 304
+  [delete] ctx«조 -- graph 규칙 4)에 묶고 입력 차(여기 방향 좌표 -- DEC-23 V_id)를 미지수로 푼다(»
+    OLD«N3.8 ICMR servo 피벗과 같은 정의 함수; »
+    NEW«»
+  [insert] ctx«age to go to zero'); 입력 공통모드·바이어스 원·W′는 고정, 나머지 노드는 KCL 미지수다»
+    OLD«»
+    NEW«. **풀이**(검증 4 m4-3): 비선형 재풀이다 -- W′ 고정 노드 KCL을 출력 묶음 행·입력 차 미지수로 다시 푼다(O-173 C1 '재풀이' 그대로; 봉인 1~3은 실제 KCL 해여야 하므로 N3.8 선형 Schur 1칸으로는 봉인할 수 없음); N3.8 선형 Schur는 servo 피벗 판정과 뉴턴 출발 걸음으로만 쓴다. **servo 피벗·갈래 판정 자리**(검증 4 MJ4-2): 묶음 정의와 피벗 판정(a_e·판정 분해능 -- N3.8 '판정 분해능의 정의 자리'의 정의 함수 하나)은 card IT-2(IT-2c `icm_config`) 몫이고, 실현 servo는 같은 θ 탐색 평가의 servo 피벗 판정을 기록 참조로 읽는다(graph 규칙 4 -- 새 판정 자리 0); DE-1 병합 뒤 DE-1 (c) A_dc 갈래(DEC-23 '갈래 판정 자리 하나')는 같은 정의 함수를 같은 봉인점의 같은 DC 극한 전달(감지 넷 = 출력)에 부르므로 같은 답이다(card DE-1 완료 조건에 단언 toy; 두 칸의 통합 여부는 기존 IT-2c·DE-1 design 몫 -- 이 개정이 새 칸을 만들지 않음). **비용**(검증 4 m4-4): front 점 수 × 평가 1회(13~261 ms -- F-LA10)이고 FD 열이 없다; '커널 전 블록 재실행'은 실현 입력(W′·기하 지문)에 닿는 블록만 다시 계산한다는 뜻이고 입력 버전이 같은 블록(S0 정적 필드 등)은 graph reuse다(graph 규칙 2)»
+  [insert] ctx«DE-1 (c) A_dc 정본 값이다(V_id* 전체가 실현 값 -- 탐색 스냅샷 A_dc를 섞지 않음). »
+    OLD«»
+    NEW«servo 피벗이 판정 불능(IT-2 피벗 판정 -- DE-1 병합 뒤 DEC-23 »
+  [replace] ctx« 정본 값이다(V_id* 전체가 실현 값 -- 탐색 스냅샷 A_dc를 섞지 않음). A_dc 정의 불능 갈래»
+    OLD«(DEC-23»
+    NEW«와 같은 답»
+  [delete] ctx«id* 전체가 실현 값 -- 탐색 스냅샷 A_dc를 섞지 않음). A_dc 정의 불능 갈래(DEC-23)이면»
+    OLD« servo 피벗이 없으므로»
+    NEW«»
+
+#### plan replace old 1161-1161 new 1161-1161
+-- line new 1161
+  [insert] ctx«iceOp.W` 한 필드, 탐색 평가 = θ 유도 W(조각 안 연속), 실현 평가(front 점) = W′ »
+    OLD«»
+    NEW«비선형 »
+  [replace] ctx« = DEC-23 V_id* 정의와 같은 servo -- 출력 = 같은 θ 봉인점 출력, 입력 차 미지수; »
+    OLD«커널»
+    NEW«servo»
+  [replace] ctx«DEC-23 V_id* 정의와 같은 servo -- 출력 = 같은 θ 봉인점 출력, 입력 차 미지수; 커널 »
+    OLD«전»
+    NEW«피벗 판정 = IT-2 판정 기록 참조; 실현 입력에 닿는»
+  [insert] ctx«23 V_id* 정의와 같은 servo -- 출력 = 같은 θ 봉인점 출력, 입력 차 미지수; 커널 전 블록»
+    OLD«»
+    NEW«만»
+  [replace] ctx« V_id* 정의와 같은 servo -- 출력 = 같은 θ 봉인점 출력, 입력 차 미지수; 커널 전 블록 재»
+    OLD«실행»
+    NEW«계산, 나머지 graph reuse; 비용 = front 점 수 × 평가 1회 13~261 ms»
+  [insert] ctx«자리·Q-P8 적용 범위 = 실현 평가, O-46·O-118·O-119 성분 (3), X-LA11 근거 교체»
+    OLD«»
+    NEW«, IT-2 → WB-1 순서 추가»
+  [delete] ctx« 유지 + 실현 평가는 봉인만 ⚠ 같은 ΔW 효과를 실현 노드 해와 1차식 두 자리가 냄(graph 규칙 1»
+    OLD« -- 피하려면 offset을 탐색 스냅샷 값으로 판정해야 해 '실현 값으로 판정'(E-0)과 충돌»
+    NEW«»
+  [replace] ctx«색 봉인점에 적용하지 않는 것은 E-0 범위 축소 -- 실현 평가가 front의 유일한 실현 관문이다. **»
+    OLD«X-LA11»
+    NEW«순서»
+  [insert] ctx«-- 실현 평가가 front의 유일한 실현 관문이다. **X-LA11·완료 조건 배치**(검증 3 MJ3-2»
+    OLD«»
+    NEW«·검증 4 MJ4-2»
+  [replace] ctx«실현 평가가 front의 유일한 실현 관문이다. **X-LA11·완료 조건 배치**(검증 3 MJ3-2): »
+    OLD«흡수»
+    NEW«실현»
+  [replace] ctx«평가가 front의 유일한 실현 관문이다. **X-LA11·완료 조건 배치**(검증 3 MJ3-2): 흡수 »
+    OLD«뒤»
+    NEW«servo는»
+  [replace] ctx«가 front의 유일한 실현 관문이다. **X-LA11·완료 조건 배치**(검증 3 MJ3-2): 흡수 뒤 »
+    OLD«DE»
+    NEW«IT-2c servo 피벗 정의·판정(N3.8 O»
+  [replace] ctx«ont의 유일한 실현 관문이다. **X-LA11·완료 조건 배치**(검증 3 MJ3-2): 흡수 뒤 DE-1»
+    OLD«의»
+    NEW«15)에»
+  [replace] ctx«t의 유일한 실현 관문이다. **X-LA11·완료 조건 배치**(검증 3 MJ3-2): 흡수 뒤 DE-1의 »
+    OLD«(m»
+    NEW«기대고»
+  [delete] ctx«유일한 실현 관문이다. **X-LA11·완료 조건 배치**(검증 3 MJ3-2): 흡수 뒤 DE-1의 (m,»
+    OLD« w_f) READS는 없어지지만»
+    NEW«»
+  [delete] ctx«w_f) READS는 없어지지만 '계통 offset = 실현 평가 성분 (1)(2)' 단언은 DE-1 (c)»
+    OLD«의»
+    NEW«»
+  [delete] ctx«EADS는 없어지지만 '계통 offset = 실현 평가 성분 (1)(2)' 단언은 DE-1 (c)의 (나′)»
+    OLD« V_id*»
+    NEW«»
+  [replace] ctx«계통 offset = 실현 평가 성분 (1)(2)' 단언은 DE-1 (c)의 (나′) V_id* writer»
+    OLD«가»
+    NEW«에»
+  [replace] ctx« offset = 실현 평가 성분 (1)(2)' 단언은 DE-1 (c)의 (나′) V_id* writer가 »
+    OLD«있어야 성립한»
+    NEW«기댄»
+  [delete] ctx«= 실현 평가 성분 (1)(2)' 단언은 DE-1 (c)의 (나′) V_id* writer가 있어야 성립한다»
+    OLD«(지금 문언의 WB-1 완료 (5)는 순서 WB-1 → DE-1에서 불성립 -- 둘째 커밋부터의 결함)»
+    NEW«»
+  [insert] ctx«DE-1에서 불성립 -- 둘째 커밋부터의 결함). 비교(병합 순서 규칙 수·완료 조건 성립·O-165 (a)»
+    OLD«»
+    NEW«·지연»
+  [insert] ctx«합 순서 규칙 수·완료 조건 성립·O-165 (a)): (i) 순서 DE-1 → WB-1 -- 규칙 1(역순»
+    OLD«»
+    NEW«, X-LA11 뒤집기»
+  [delete] ctx«순서 규칙 수·완료 조건 성립·O-165 (a)): (i) 순서 DE-1 → WB-1 -- 규칙 1(역순),»
+    OLD« 두 card 완료 조건 성립, O-165 (a) 맞음 ⚠ WB-1·LA-0·LA-1 사슬이»
+    NEW«»
+  [insert] ctx«음 ⚠ WB-1·LA-0·LA-1 사슬이 DE-1 선행(SF-1·IT-1·IT-2·HC-S·EO-1·VB-1»
+    OLD«»
+    NEW«·card B»
+  [insert] ctx« ⚠ WB-1·LA-0·LA-1 사슬이 DE-1 선행(SF-1·IT-1·IT-2·HC-S·EO-1·VB-1)»
+    OLD«»
+    NEW«이 두 의존을 자동으로 채워 두 card 완료 조건 성립(WB-1이 실현 V_id*까지 단언 가능), O-165 (a) 맞음 ⚠ WB-1 → LA-0 → LA-1 사슬이 DE-1 선행 전체»
+  [insert] ctx«E-1 선행(SF-1·IT-1·IT-2·HC-S·EO-1·VB-1) 뒤로 밀림 (ii) **권고**: 순서 »
+    OLD«»
+    NEW«IT-1 + IT-2 → »
+  [replace] ctx«IT-1·IT-2·HC-S·EO-1·VB-1) 뒤로 밀림 (ii) **권고**: 순서 WB-1 → DE-1 »
+    OLD«유지»
+    NEW«-- 규칙 2»
+  [insert] ctx«1·IT-2·HC-S·EO-1·VB-1) 뒤로 밀림 (ii) **권고**: 순서 WB-1 → DE-1 유지(»
+    OLD«»
+    NEW«IT-2 → WB-1 추가, »
+  [replace] ctx«-S·EO-1·VB-1) 뒤로 밀림 (ii) **권고**: 순서 WB-1 → DE-1 유지(X-LA11 유지»
+    OLD«, »
+    NEW«·»
+  [delete] ctx«·VB-1) 뒤로 밀림 (ii) **권고**: 순서 WB-1 → DE-1 유지(X-LA11 유지, 근거 교체»
+    OLD« = DE-1 완료 조건이 WB-1 실현 평가를 씀»
+    NEW«»
+  [insert] ctx«근거 교체 = DE-1 완료 조건이 WB-1 실현 평가를 씀), WB-1 완료 (5)는 노드 수준(servo»
+    OLD«»
+    NEW« 비선형 재풀이»
+  [insert] ctx«씀), WB-1 완료 (5)는 노드 수준(servo 입력 차 이동 = 손계산 ln(1 + r)/(gm/ID)»
+    OLD«»
+    NEW«, 피벗 판정 = IT-2 판정»
+  [replace] ctx«), WB-1 완료 (5)는 노드 수준(servo 입력 차 이동 = 손계산 ln(1 + r)/(gm/ID))»
+    OLD«으로»
+    NEW«이라»
+  [replace] ctx«WB-1 완료 (5)는 노드 수준(servo 입력 차 이동 = 손계산 ln(1 + r)/(gm/ID))으로 »
+    OLD«한정»
+    NEW«WB-1 병합 때 성립»
+  [delete] ctx« (5)는 노드 수준(servo 입력 차 이동 = 손계산 ln(1 + r)/(gm/ID))으로 한정하고 실현»
+    OLD« 평가»
+    NEW«»
+  [replace] ctx«계산 ln(1 + r)/(gm/ID))으로 한정하고 실현 평가 V_id* 단언은 card DE-1 완료 조건»
+    OLD«으로 -- »
+    NEW«(»
+  [delete] ctx«m/ID))으로 한정하고 실현 평가 V_id* 단언은 card DE-1 완료 조건으로 -- 실현 평가가 커널»
+    OLD« 전 블록»
+    NEW«»
+  [replace] ctx«하고 실현 평가 V_id* 단언은 card DE-1 완료 조건으로 -- 실현 평가가 커널 전 블록을 다시 돌»
+    OLD«리므로»
+    NEW«려»
+  [delete] ctx« 단언은 card DE-1 완료 조건으로 -- 실현 평가가 커널 전 블록을 다시 돌리므로 DE-1 병합 뒤 »
+    OLD«실현 V_id*가 »
+    NEW«»
+  [replace] ctx« 조건으로 -- 실현 평가가 커널 전 블록을 다시 돌리므로 DE-1 병합 뒤 실현 V_id*가 배선 없이 나»
+    OLD«온다;»
+    NEW«옴)이라»
+  [replace] ctx«로 -- 실현 평가가 커널 전 블록을 다시 돌리므로 DE-1 병합 뒤 실현 V_id*가 배선 없이 나온다; »
+    OLD«규칙 »
+    NEW«DE-»
+  [delete] ctx« 실현 평가가 커널 전 블록을 다시 돌리므로 DE-1 병합 뒤 실현 V_id*가 배선 없이 나온다; 규칙 1»
+    OLD«(그대로), 두 card 완료 조건이 각자»
+    NEW«»
+  [insert] ctx«; 규칙 1(그대로), 두 card 완료 조건이 각자 병합 때 성립, O-165 (a) 맞음(조건부 배선 0»
+    OLD«»
+    NEW«), WB-1은 IT-1 + IT-2(DE-1도 기다리는 것)만 기다려 (i)보다 덜 밀림 ⚠ IT-2 쪽 '선후와 무관, 새 순서 규칙 0' 문언 정정(원래 취지와 다름 후보»
+  [delete] ctx«i) 선후 고정 해제 ⚠ 병합 순서에 따라 완료 조건 성립이 갈림(O-165 (a)가 없앤 조건부 꼴) --»
+    OLD« 셋째 커밋 권고»
+    NEW«»
+  [insert] ctx«metric 행, U-108 행, card DE-1 (c) 배선·완료 toy(→ 실현 평가 V_id* toy»
+    OLD«»
+    NEW«·피벗 판정 같은 답 toy»
+  [insert] ctx«toy(→ 실현 평가 V_id* toy)·순서, card WB-1 2a 소비자·완료 (5)(노드 수준)·순서»
+    OLD«»
+    NEW«(IT-2 선행 추가), card IT-2 '선후와 무관' 문언»
+
+#### plan replace old 1163-1163 new 1163-1163
+-- line new 1163
+  [replace] ctx«| (v6.38.5) DR-1 구조적 0 전류 MOS 기하 출처 -- 물리: DC 무관, AC f_HP = »
+    OLD«gds(L, W, VSG)»
+    NEW«1»
+  [insert] ctx«적 0 전류 MOS 기하 출처 -- 물리: DC 무관, AC f_HP = gds(L, W, VSG)/(2π·»
+    OLD«»
+    NEW«R_ds·»
+  [replace] ctx«0 전류 MOS 기하 출처 -- 물리: DC 무관, AC f_HP = gds(L, W, VSG)/(2π·C_»
+    OLD«BAT»
+    NEW«c»
+  [replace] ctx«기하 출처 -- 물리: DC 무관, AC f_HP = gds(L, W, VSG)/(2π·C_BAT)·τ = »
+    OLD«1/(2π»
+    NEW«R_ds»
+  [replace] ctx«-- 물리: DC 무관, AC f_HP = gds(L, W, VSG)/(2π·C_BAT)·τ = 1/(2π·»
+    OLD«f»
+    NEW«C»
+  [replace] ctx« 물리: DC 무관, AC f_HP = gds(L, W, VSG)/(2π·C_BAT)·τ = 1/(2π·f_»
+    OLD«HP)»
+    NEW«c»
+  [replace] ctx«gds(L, W, VSG)/(2π·C_BAT)·τ = 1/(2π·f_HP); L이 R_ds를 5자릿수 움직이»
+    OLD«는 제어 축,»
+    NEW«고»
+  [replace] ctx«·C_BAT)·τ = 1/(2π·f_HP); L이 R_ds를 5자릿수 움직이는 제어 축, R(W)는 비단조(»
+    OLD«좁»
+    NEW«긴 L에서 W ↑ → R ↑, W_min»
+  [replace] ctx«BAT)·τ = 1/(2π·f_HP); L이 R_ds를 5자릿수 움직이는 제어 축, R(W)는 비단조(좁은 »
+    OLD«폭»
+    NEW«R»
+  [replace] ctx«T)·τ = 1/(2π·f_HP); L이 R_ds를 5자릿수 움직이는 제어 축, R(W)는 비단조(좁은 폭 »
+    OLD«Vth»
+    NEW«최소 쪽»
+  [delete] ctx«P); L이 R_ds를 5자릿수 움직이는 제어 축, R(W)는 비단조(좁은 폭 Vth); 선언 관문(T(0)»
+    OLD« 이득»
+    NEW«»
+  [replace] ctx«를 5자릿수 움직이는 제어 축, R(W)는 비단조(좁은 폭 Vth); 선언 관문(T(0) 이득·GBW·PM)»
+    OLD«과 »
+    NEW«·»
+  [insert] ctx«선언 관문(T(0) 이득·GBW·PM)과 면적은 f_HP 위치를 정하지 않음 -- 결정자 = 신호 대역 하한»
+    OLD«»
+    NEW« f_low»
+  [replace] ctx«적은 f_HP 위치를 정하지 않음 -- 결정자 = 신호 대역 하한(spec, 소비자 DR-1). 권고 = (»
+    OLD«마»
+    NEW«δ»
+  [replace] ctx«f_HP 위치를 정하지 않음 -- 결정자 = 신호 대역 하한(spec, 소비자 DR-1). 권고 = (마) »
+    OLD«대역»
+    NEW«기하는»
+  [replace] ctx«P 위치를 정하지 않음 -- 결정자 = 신호 대역 하한(spec, 소비자 DR-1). 권고 = (마) 대역 »
+    OLD«하한»
+    NEW«θ»
+  [replace] ctx«치를 정하지 않음 -- 결정자 = 신호 대역 하한(spec, 소비자 DR-1). 권고 = (마) 대역 하한 »
+    OLD«spec»
+    NEW«아님, 손계산»
+  [insert] ctx« 않음 -- 결정자 = 신호 대역 하한(spec, 소비자 DR-1). 권고 = (마) 대역 하한 spec 선»
+    OLD«»
+    NEW«택: R_req = 1/(2π·f_low·C_c), LUT 격자(W 슬라이스 × L 격자점, 보간 없음)에서 그 평가 VSG로 R ≥ R_req 가운데 W·L 최소(동률 = R 큰 쪽, 다음 작은 W), 해 없음 = fail-closed; 미선»
+  [insert] ctx«않음 -- 결정자 = 신호 대역 하한(spec, 소비자 DR-1). 권고 = (마) 대역 하한 spec 선언»
+    OLD«»
+    NEW«이면 W_min·L_min»
+  [delete] ctx« -- 결정자 = 신호 대역 하한(spec, 소비자 DR-1). 권고 = (마) 대역 하한 spec 선언 +»
+    OLD« (바) front 점»
+    NEW«»
+  [delete] ctx« 소비자 DR-1). 권고 = (마) 대역 하한 spec 선언 + (바) front 점 f_HP/GBW·τ »
+    OLD«출력 기록, 구조 (라) W = W_min(같은 R 면적 최소·3 % 안, 예외 R < R(W_min, L_min) 기록)·L θ·C_BAT θ; 미선언이면 f_HP 미결정·»
+    NEW«»
+  [insert] ctx«< R(W_min, L_min) 기록)·L θ·C_BAT θ; 미선언이면 f_HP 미결정·기록(정지 안 함)»
+    OLD«»
+    NEW«; writer = DC 블록 DR-1 갈래 하나(평가마다, 같은 입력 버전이면 reuse); f_HP·τ 칸 하나·제약 행 없음(손계산 f_HP는 C_X를 빼 보수 쪽) + (마) f_low spec 선언(사용자 값) + (바) 기록; θ 차원 0·상수 0»
+  [insert] ctx«in, L_min) 기록)·L θ·C_BAT θ; 미선언이면 f_HP 미결정·기록(정지 안 함). 대안: (»
+    OLD«»
+    NEW«α) 선언 시 W 열거 + L θ ⚠ θ +1·제약 행 / (β) W·L θ ⚠ W 이산·bin 넘는 보간 / (γ) W_min + L θ ⚠ 총면적 최대 ×4.9·R > 5.1e11 Ω 불가 / (»
+  [replace] ctx« L_min) 기록)·L θ·C_BAT θ; 미선언이면 f_HP 미결정·기록(정지 안 함). 대안: (라) »
+    OLD«단독»
+    NEW«L·C θ만»
+  [replace] ctx«n) 기록)·L θ·C_BAT θ; 미선언이면 f_HP 미결정·기록(정지 안 함). 대안: (라) 단독 ⚠ »
+    OLD«L»
+    NEW«f_HP»
+  [delete] ctx« θ·C_BAT θ; 미선언이면 f_HP 미결정·기록(정지 안 함). 대안: (라) 단독 ⚠ L 결정자 없음»
+    OLD«(면적 귀결 L_min·0.1 pF, erfc M21 f_HP 0.14·GBW)»
+    NEW«»
+  [delete] ctx«F, erfc M21 f_HP 0.14·GBW) / (사) R 최대 기하 ⚠ τ 0.33~165 s·MOS »
+    OLD«면적 »
+    NEW«»
+  [delete] ctx«1 f_HP 0.14·GBW) / (사) R 최대 기하 ⚠ τ 0.33~165 s·MOS 면적 140 µm²»
+    OLD« > C_BAT 50 µm²·누설 미측정»
+    NEW«»
+  [replace] ctx« s·MOS 면적 140 µm² > C_BAT 50 µm²·누설 미측정 / (가) W_min·L_min ⚠ »
+    OLD«R»
+    NEW«VSG»
+  [replace] ctx«·MOS 면적 140 µm² > C_BAT 50 µm²·누설 미측정 / (가) W_min·L_min ⚠ R »
+    OLD«최소»
+    NEW«≳ 0.38 V에서만 관문»
+  [delete] ctx« µm² > C_BAT 50 µm²·누설 미측정 / (가) W_min·L_min ⚠ R 최소 / (나) 기하»
+    OLD« spec»
+    NEW«»
+  [delete] ctx«m²·누설 미측정 / (가) W_min·L_min ⚠ R 최소 / (나) 기하 spec 선언 ⚠ 사용자 부담»
+    OLD« / (다) W·L θ ⚠ W 이득 ≤ 3 %»
+    NEW«»
+  [replace] ctx«) 기하 spec 선언 ⚠ 사용자 부담 / (다) W·L θ ⚠ W 이득 ≤ 3 %. 사용자 몫: erfc »
+    OLD«대역 하한»
+    NEW«f_low»
+  [insert] ctx« W·L θ ⚠ W 이득 ≤ 3 %. 사용자 몫: erfc 대역 하한 값(원문 없음 -- 선언 또는 미선언)»
+    OLD«»
+    NEW«. 선언 시 card DR-1 착수 조건 = oracle 측정 정의·ME-1 e_m»
+
+#### plan replace old 1210-1210 new 1210-1210
+-- line new 1210
+  [insert] ctx«스, v6.38.2 -- Q6-1 (A)·O-164) | N6.32 | XRUN-F1 card B(병합됨),»
+    OLD«»
+    NEW« (→ v6.38.5 Q-W1 승인 시 card IT-1 + IT-2 통합 병합 선행 추가 -- 실현 servo가 IT-2c servo 피벗 정의를 읽음, 원래 취지와 다름 후보(IT-2 '선후와 무관' 정정))»
+
+#### plan replace old 1592-1592 new 1592-1592
+-- line new 1592
+  [insert] ctx«고치지도 않는다(그 삭제는 card WB-1 범위 3 -- IT-2·WB-1 선후와 무관, 새 순서 규칙 0»
+    OLD«»
+    NEW« -- → v6.38.5 Q-W1 승인 시 순서 IT-2 → WB-1(실현 servo가 이 card의 servo 피벗 정의를 읽음, 원래 취지와 다름 후보)»
+
+#### plan replace old 2263-2263 new 2263-2263
+-- line new 2263
+  [insert] ctx«포함)을 통과해야 남음, 실현 탈락 뒤 재필터, 노드 수준 측정 구성 toy(Q-W1 권고안 -- servo»
+    OLD«»
+    NEW« 비선형 재풀이»
+  [replace] ctx« 재필터, 노드 수준 측정 구성 toy(Q-W1 권고안 -- servo: 출력 = 봉인점 값·입력 차 미지수»
+    OLD«,»
+    NEW«;»
+  [insert] ctx«, 노드 수준 측정 구성 toy(Q-W1 권고안 -- servo: 출력 = 봉인점 값·입력 차 미지수, 단단»
+    OLD«»
+    NEW« 차동쌍 + 전류 거울»
+  [insert] ctx«수준 측정 구성 toy(Q-W1 권고안 -- servo: 출력 = 봉인점 값·입력 차 미지수, 단단 손 회로»
+    OLD«»
+    NEW«, 잔차 r을 입력쌍 한쪽 소자(W′ = (1 + r)·W)에 두고 약반전(gm/ID ≥ 20)»
+  [delete] ctx«oy(Q-W1 권고안 -- servo: 출력 = 봉인점 값·입력 차 미지수, 단단 손 회로에서 입력 차 이동»
+    OLD« ΔV_id»
+    NEW«»
+  [insert] ctx« 값·입력 차 미지수, 단단 손 회로에서 입력 차 이동 ΔV_id = 손계산 ln(1 + r)/(gm/ID)»
+    OLD«»
+    NEW«, tol = 봉인 tol_V(셀 구성은 Q-T0); servo 피벗 판정은 IT-2 판정을 읽음»
+  [insert] ctx« + r)/(gm/ID); 실현 평가 V_id* 단언은 card DE-1 완료 조건 -- 검증 3 MJ3-2»
+    OLD«»
+    NEW«·검증 4 m4-3»
+
+#### plan replace old 2265-2265 new 2265-2265
+-- line new 2265
+  [insert] ctx«**순서**: 선행 = XRUN-F1 card B(병합됨),»
+    OLD«»
+    NEW« (→ v6.38.5 Q-W1 승인 시 card IT-1 + IT-2 통합 병합 -- 실현 servo의 servo 피벗 정의·판정 자리, 일괄 반영 목록 N5.3 Q-W1 행)»
+
+#### plan replace old 2344-2344 new 2344-2344
+-- line new 2344
+  [replace] ctx« 기울기가 거의 0이다. 그래서 선언이 없으면 신호 대역 대비 f_HP 위치의 결정자가 θ 안에 없고(O-1»
+    OLD«69»
+    NEW«71 물리 결정자 점검»
+  [replace] ctx«- `wt/_drafts/evidence/2026-10-29/plan_v6385_v3/zg1_alt.txt`»
+    OLD«, »
+    NEW«(»
+  [insert] ctx«dence/2026-10-29/plan_v6385_v3/zg1_alt.txt`, 재현 `zg1_alt.py`»
+    OLD«»
+    NEW«)·검증 4 `wt/_drafts/evidence/2026-10-29/plan_v6385_validation4/zg1_grid.txt`(격자점만, 보간 없음)·`zg1_total.txt`(MOS + C_BAT 총면적)»
+  [delete] ctx«t.txt`, 재현 `zg1_alt.py`; M19·M20 VSG 0.204 V, M21 VSG 0.40 V»
+    OLD«; 면적 = MOS W·L 대 C_BAT/밀도, τ = R·C_BAT»
+    NEW«»
+  [replace] ctx«밀도, τ = R·C_BAT): (라) W_min·L θ·C_BAT θ, 결정자 = GBW·PM·면적뿐 ⚠ »
+    OLD«L»
+    NEW«f_HP»
+  [delete] ctx«τ 18 µs, M21 0.14·τ 0.85 µs; MOS 0.063 µm² 대 C_BAT 50 µm²) (»
+    OLD«마) 신호 대역 하한 f_low(또는 f_HP 상한) spec 선언 -- 결정자 = 그 선언, 출발 꼴 손계산 f_HP = gds(L, VSG)/(2π·C_BAT) ≤ f_low, 면적 최소 귀결 = W_min·C_BAT 0.1 pF·필요 L(계산 예시 f_low 1 kHz → M21 L 0.46 µm·0.19 µm²·τ 0.16 ms, 10 Hz → L 7.1 µm·3.0 µm²·τ 16 ms -- f_low 값은 사용자 몫이고 예시일 뿐, L은 bin 넘는 보간 추정) ⚠ 사용자 값·새 선언 자리(spec 로더 소유 card SF-1, 이름·형식 design), erfc 원문에 값 없음 (바) front 점마다 f_HP/GBW·τ 손계산 출력 기록과 '대역 하한 미선언' 표지(출력 전용 필드 하나 -- graph-consumption 출력 전용 선언, 정의 자리 design) ⚠ 단독으로는 결정자 없음 (»
+    NEW«»
+  [delete] ctx«(사) R 최대 기하(L = LUT 정의역 최대 20 µm, W = 그 L에서 R 최대 슬라이스 7 µm) »
+    OLD«-- f_HP 최소(@ 0.1 pF M19·M20 7e-10·GBW, M21 3.5e-7·GBW) »
+    NEW«»
+  [delete] ctx«W, M21 3.5e-7·GBW) ⚠ τ = 165 s(M19·M20)·0.33 s(M21) @ 0.1 pF»
+    OLD«(10 pF면 ×100 -- 전원 투입 뒤 DC 정착)»
+    NEW«»
+  [delete] ctx«pF면 ×100 -- 전원 투입 뒤 DC 정착), MOS 면적 140 µm²로 C_BAT 50 µm²보다 큼»
+    OLD«(W_min·L 20 µm면 8.4 µm²·τ 27 s/0.05 s)»
+    NEW«»
+  [delete] ctx« 누설이 부유 노드 DC를 옮길 수 있음(미측정) (가) W_min·L_min 고정 ⚠ R_ds 최소 -- »
+    OLD«C_BAT 증가로 면적이 끌려가는 것은 »
+    NEW«»
+  [insert] ctx«정) (가) W_min·L_min 고정 ⚠ R_ds 최소 -- C_BAT 증가로 면적이 끌려가는 것은 GBW»
+    OLD«»
+    NEW«·PM»
+  [replace] ctx«(가) W_min·L_min 고정 ⚠ R_ds 최소 -- C_BAT 증가로 면적이 끌려가는 것은 GBW 관문»
+    OLD«이»
+    NEW«은»
+  [replace] ctx«) W_min·L_min 고정 ⚠ R_ds 최소 -- C_BAT 증가로 면적이 끌려가는 것은 GBW 관문이 »
+    OLD«걸리는»
+    NEW«VSG»
+  [replace] ctx«min·L_min 고정 ⚠ R_ds 최소 -- C_BAT 증가로 면적이 끌려가는 것은 GBW 관문이 걸리는 »
+    OLD«영역»
+    NEW«≳ 0.38 V»
+  [insert] ctx«·L_min 고정 ⚠ R_ds 최소 -- C_BAT 증가로 면적이 끌려가는 것은 GBW 관문이 걸리는 영역(»
+    OLD«»
+    NEW«W_min·L_min·0.1 pF에서 »
+  [delete] ctx«ds 최소 -- C_BAT 증가로 면적이 끌려가는 것은 GBW 관문이 걸리는 영역(f_HP ≳ 0.1·GBW»
+    OLD«,»
+    NEW«»
+  [replace] ctx« 최소 -- C_BAT 증가로 면적이 끌려가는 것은 GBW 관문이 걸리는 영역(f_HP ≳ 0.1·GBW, »
+    OLD«VSG»
+    NEW«--»
+  [replace] ctx«-- C_BAT 증가로 면적이 끌려가는 것은 GBW 관문이 걸리는 영역(f_HP ≳ 0.1·GBW, VSG »
+    OLD«0»
+    NEW«검증 4 `zg1_check»
+  [replace] ctx« C_BAT 증가로 면적이 끌려가는 것은 GBW 관문이 걸리는 영역(f_HP ≳ 0.1·GBW, VSG 0.»
+    OLD«6»
+    NEW«txt`»
+  [replace] ctx«_BAT 증가로 면적이 끌려가는 것은 GBW 관문이 걸리는 영역(f_HP ≳ 0.1·GBW, VSG 0.6 »
+    OLD«V급»
+    NEW«(4)»
+  [insert] ctx«가로 면적이 끌려가는 것은 GBW 관문이 걸리는 영역(f_HP ≳ 0.1·GBW, VSG 0.6 V급)에서만»
+    OLD«»
+    NEW« 걸림»
+  [insert] ctx« 0.1·GBW, VSG 0.6 V급)에서만 (나) 소자 기하 spec 선언 ⚠ 선언 자리 신설·사용자 부담»
+    OLD«»
+    NEW«. 선언 대역 하한이 있을 때 기하를 정하는 넷(검증 4 MJ4-1 -- 넷째 커밋의 'W = W_min(같은 R 면적 최소·3 % 안)'과 '(다) W 이득 ≤ 3 %'는 실측과 달라 철회: VSG 0.40 V·R 1e10~1.6e11 Ω에서 다른 W가 MOS 면적 −26~−55 %, R > R(W_min, L_max) = 5.1e11 Ω은 W_min으로 불가, f_low 1·0.1 Hz면 W_min 고정 총면적이 W 자유의 2.2·4.9배; 물리 = 긴 L에서 좁은 폭 Vth 저하가 1/W를 이겨 W_min이 R 최소 쪽이다):»
+  [insert] ctx«.1·GBW, VSG 0.6 V급)에서만 (나) 소자 기하 spec 선언 ⚠ 선언 자리 신설·사용자 부담 (»
+    OLD«»
+    NEW«α) 미선언 W_min, 선언 시 W 슬라이스 열거 + L θ -- θ +1(L 동치류마»
+  [insert] ctx«1·GBW, VSG 0.6 V급)에서만 (나) 소자 기하 spec 선언 ⚠ 선언 자리 신설·사용자 부담 (다»
+    OLD«»
+    NEW«), 면적 ≈ 최소, f_HP 보장 = 제약 행(f_HP 칸 READS), FD 열 +1 (β»
+  [delete] ctx« V급)에서만 (나) 소자 기하 spec 선언 ⚠ 선언 자리 신설·사용자 부담 (다) W·L 둘 다 θ ⚠ »
+    OLD«R(»
+    NEW«»
+  [delete] ctx«)에서만 (나) 소자 기하 spec 선언 ⚠ 선언 자리 신설·사용자 부담 (다) W·L 둘 다 θ ⚠ R(W»
+    OLD«)»
+    NEW«»
+  [replace] ctx«서만 (나) 소자 기하 spec 선언 ⚠ 선언 자리 신설·사용자 부담 (다) W·L 둘 다 θ ⚠ R(W) »
+    OLD«비단조·같은»
+    NEW«슬라이스는»
+  [replace] ctx«소자 기하 spec 선언 ⚠ 선언 자리 신설·사용자 부담 (다) W·L 둘 다 θ ⚠ R(W) 비단조·같은 »
+    OLD«R 면적 차 ≤ 3 %(아래)»
+    NEW«이산이»
+  [replace] ctx« 자리 신설·사용자 부담 (다) W·L 둘 다 θ ⚠ R(W) 비단조·같은 R 면적 차 ≤ 3 %(아래)라 »
+    OLD«W»
+    NEW«연속»
+  [replace] ctx«리 신설·사용자 부담 (다) W·L 둘 다 θ ⚠ R(W) 비단조·같은 R 면적 차 ≤ 3 %(아래)라 W »
+    OLD«축»
+    NEW«θ가»
+  [replace] ctx«신설·사용자 부담 (다) W·L 둘 다 θ ⚠ R(W) 비단조·같은 R 면적 차 ≤ 3 %(아래)라 W 축 »
+    OLD«이득»
+    NEW«되려면 bin을 넘는 보간»
+  [replace] ctx«용자 부담 (다) W·L 둘 다 θ ⚠ R(W) 비단조·같은 R 면적 차 ≤ 3 %(아래)라 W 축 이득이 »
+    OLD«작고»
+    NEW«필요(bin»
+  [replace] ctx«부담 (다) W·L 둘 다 θ ⚠ R(W) 비단조·같은 R 면적 차 ≤ 3 %(아래)라 W 축 이득이 작고 »
+    OLD«차원만»
+    NEW«안»
+  [replace] ctx«다) W·L 둘 다 θ ⚠ R(W) 비단조·같은 R 면적 차 ≤ 3 %(아래)라 W 축 이득이 작고 차원만 »
+    OLD«늘림.»
+    NEW«보간»
+  [replace] ctx«·L 둘 다 θ ⚠ R(W) 비단조·같은 R 면적 차 ≤ 3 %(아래)라 W 축 이득이 작고 차원만 늘림. »
+    OLD«**W»
+    NEW«결정과»
+  [replace] ctx« 다 θ ⚠ R(W) 비단조·같은 R 면적 차 ≤ 3 %(아래)라 W 축 이득이 작고 차원만 늘림. **W »
+    OLD«=»
+    NEW«충돌), θ +2 (γ)»
+  [delete] ctx«R(W) 비단조·같은 R 면적 차 ≤ 3 %(아래)라 W 축 이득이 작고 차원만 늘림. **W = W_min»
+    OLD«의»
+    NEW«»
+  [replace] ctx«W) 비단조·같은 R 면적 차 ≤ 3 %(아래)라 W 축 이득이 작고 차원만 늘림. **W = W_min의 »
+    OLD«근거»
+    NEW«고정 + L θ ⚠ 총면적 최대 ×4.9(M21 0.1 Hz)·R > 5.1e11 Ω 도달 불가, θ +1 (δ) **0 전류 MOS 기하 = θ 아님, 손계산 선택 -- 권고»
+  [replace] ctx«·같은 R 면적 차 ≤ 3 %(아래)라 W 축 이득이 작고 차원만 늘림. **W = W_min의 근거**: »
+    OLD«같은»
+    NEW«R_req = 1/(2π·f_low·C_c)(C_c = 빈 쪽 넷에 닿는 결합 커패시터 값 합 -- 그 평가의 θ 값 또는 선언 값), LUT 격자(W 슬라이스 × L 격자점, 보간 없음)에서 그 평가의 VSG로 조회한 R(W, L, VSG) ≥»
+  [replace] ctx« 면적 차 ≤ 3 %(아래)라 W 축 이득이 작고 차원만 늘림. **W = W_min의 근거**: 같은 R_»
+    OLD«ds를 내는»
+    NEW«req인»
+  [insert] ctx« 축 이득이 작고 차원만 늘림. **W = W_min의 근거**: 같은 R_ds를 내는 (W, L) 가운데 »
+    OLD«»
+    NEW«MOS »
+  [delete] ctx« 작고 차원만 늘림. **W = W_min의 근거**: 같은 R_ds를 내는 (W, L) 가운데 면적 W·L»
+    OLD«이»
+    NEW«»
+  [replace] ctx«차원만 늘림. **W = W_min의 근거**: 같은 R_ds를 내는 (W, L) 가운데 면적 W·L이 최소»
+    OLD«이거나»
+    NEW«(동률»
+  [replace] ctx«늘림. **W = W_min의 근거**: 같은 R_ds를 내는 (W, L) 가운데 면적 W·L이 최소이거나 »
+    OLD«3 % 안이다(VSG 0.375 V:»
+    NEW«=»
+  [replace] ctx«같은 R_ds를 내는 (W, L) 가운데 면적 W·L이 최소이거나 3 % 안이다(VSG 0.375 V: R »
+    OLD«1»
+    NEW«큰 쪽, 다음 작은 W)를 결정적으로 고르고, 해가 없으면 그 점은 실현 불능(fail-clos»
+  [replace] ctx« R_ds를 내는 (W, L) 가운데 면적 W·L이 최소이거나 3 % 안이다(VSG 0.375 V: R 1e»
+    OLD«8·1e9·1e11»
+    NEW«d,»
+  [replace] ctx«W, L) 가운데 면적 W·L이 최소이거나 3 % 안이다(VSG 0.375 V: R 1e8·1e9·1e11 »
+    OLD«Ω은»
+    NEW«사유 기록); 미선언이면 면적 최소 기하»
+  [insert] ctx«데 면적 W·L이 최소이거나 3 % 안이다(VSG 0.375 V: R 1e8·1e9·1e11 Ω은 W_min»
+    OLD«»
+    NEW«·L_min(격자에서 W·L»
+  [insert] ctx«적 W·L이 최소이거나 3 % 안이다(VSG 0.375 V: R 1e8·1e9·1e11 Ω은 W_min 최소»
+    OLD«»
+    NEW«)이고 f_HP는 결정하지 않는다. θ 차원 0»
+  [replace] ctx«W·L이 최소이거나 3 % 안이다(VSG 0.375 V: R 1e8·1e9·1e11 Ω은 W_min 최소, »
+    OLD«1e10 Ω은 W»
+    NEW«상수»
+  [replace] ctx«3 % 안이다(VSG 0.375 V: R 1e8·1e9·1e11 Ω은 W_min 최소, 1e10 Ω은 W 0»
+    OLD«.55»
+    NEW«;»
+  [replace] ctx«안이다(VSG 0.375 V: R 1e8·1e9·1e11 Ω은 W_min 최소, 1e10 Ω은 W 0.55 »
+    OLD«µm가»
+    NEW«총면적»
+  [replace] ctx«VSG 0.375 V: R 1e8·1e9·1e11 Ω은 W_min 최소, 1e10 Ω은 W 0.55 µm가 »
+    OLD«−3»
+    NEW«=»
+  [replace] ctx« 0.375 V: R 1e8·1e9·1e11 Ω은 W_min 최소, 1e10 Ω은 W 0.55 µm가 −3 »
+    OLD«%»
+    NEW«C_BAT»
+  [replace] ctx«.375 V: R 1e8·1e9·1e11 Ω은 W_min 최소, 1e10 Ω은 W 0.55 µm가 −3 % »
+    OLD«--»
+    NEW«θ마다»
+  [replace] ctx«5 V: R 1e8·1e9·1e11 Ω은 W_min 최소, 1e10 Ω은 W 0.55 µm가 −3 % -- »
+    OLD«L은»
+    NEW«격자»
+  [replace] ctx«: R 1e8·1e9·1e11 Ω은 W_min 최소, 1e10 Ω은 W 0.55 µm가 −3 % -- L은 »
+    OLD«log R 대 L 보간이»
+    NEW«최소»
+  [delete] ctx«11 Ω은 W_min 최소, 1e10 Ω은 W 0.55 µm가 −3 % -- L은 log R 대 L 보간이라»
+    OLD« bin을 넘는 추정,»
+    NEW«»
+  [replace] ctx«1e10 Ω은 W 0.55 µm가 −3 % -- L은 log R 대 L 보간이라 bin을 넘는 추정, 검증 »
+    OLD«3»
+    NEW«4»
+  [replace] ctx« W 0.55 µm가 −3 % -- L은 log R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_»
+    OLD«w»
+    NEW«total»
+  [insert] ctx« µm가 −3 % -- L은 log R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` »
+    OLD«»
+    NEW«'W 자유' 열과 같은 격자 해»
+  [insert] ctx«µm가 −3 % -- L은 log R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (»
+    OLD«»
+    NEW«M»
+  [insert] ctx«m가 −3 % -- L은 log R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2»
+    OLD«»
+    NEW«1 1 Hz 74.0 µm²·0.1 Hz 320 µm²»
+  [insert] ctx«가 −3 % -- L은 log R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)»
+    OLD«»
+    NEW«; f_HP ≤ f_low는 선택이 보장(제약 행 없음); 손계산 속도 = 소자당 평가마다 격자 조회 216회(12 W × 18 L), FD 열 0; writer = DC 블록의 DR-1 갈래 하나(노드 풀이 뒤 그 평가의 VSG = 게이트·고정 쪽 `node.dc_v`와 C_c 값을 READS -- I = 0이라 기하가 DC에 되먹지 않아 순환 없음; VSG가 동작점마다 바뀌므로 선택은 평가마다 다시 돌고, 입력 버전이 같으면 graph reuse) ⚠ C_BAT θ가 움직일 때 MOS 면적·f_HP 칸이 계단(MOS 면적 ≪ C_BAT 면적이라 면적 축 FD 기울기 영향은 작음 -- 추정»
+  [replace] ctx«3 % -- L은 log R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)). »
+    OLD«예외»
+    NEW«비교(θ 차원 / 면적 / f_HP 보장 / 손계산 속도 / writer)»
+  [insert] ctx«-- L은 log R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)). 예외: »
+    OLD«»
+    NEW«(α) +1 / ≈ 최소 / 제약 행 / FD 열 +1 / L θ + 열거 + 제약 행 -- (β) +2 / 최소 / 제약 행 / FD 열 +2 / bin 보간 결정과 충돌 -- (γ) +1 / 최대 ×4.9 / 제약 행 / FD 열 +1 -- (δ) 0 / 격자 최소 / 선택이 보장 / 격자 조회만 / DC 블록 하나 -- (δ)가 손계산 우선(O-173)·graph 단일 정본·가장 단순한 형태에 맞는다. **정본 자리**(검증 4 m4-6): f_HP·τ 칸 하나(writer = 같은 D»
+  [insert] ctx«- L은 log R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)). 예외: R»
+    OLD«»
+    NEW«-1»
+  [replace] ctx« L은 log R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)). 예외: R »
+    OLD«<»
+    NEW«갈래, 선택에 쓴»
+  [delete] ctx« log R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)). 예외: R < R»
+    OLD«(W»
+    NEW«»
+  [insert] ctx«g R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)). 예외: R < R(W_»
+    OLD«»
+    NEW«ds·C_c로 계산; 미선언 시 출력 전용 선언 -- graph-consu»
+  [insert] ctx« R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)). 예외: R < R(W_m»
+    OLD«»
+    NEW«pt»
+  [insert] ctx«R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)). 예외: R < R(W_mi»
+    OLD«»
+    NEW«o»
+  [insert] ctx« 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)). 예외: R < R(W_min»
+    OLD«»
+    NEW«)»
+  [replace] ctx« L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)). 예외: R < R(W_min, »
+    OLD«L_min)(1.2e7»
+    NEW«제약»
+  [replace] ctx«넘는 추정, 검증 3 `zg1_w.txt` (2)). 예외: R < R(W_min, L_min)(1.2e7 »
+    OLD«Ω @ 0.375 V)»
+    NEW«행»
+  [replace] ctx«g1_w.txt` (2)). 예외: R < R(W_min, L_min)(1.2e7 Ω @ 0.375 V)은 »
+    OLD«W»
+    NEW«두지»
+  [replace] ctx«_w.txt` (2)). 예외: R < R(W_min, L_min)(1.2e7 Ω @ 0.375 V)은 W »
+    OLD«축으로만 닿»
+    NEW«않»
+  [replace] ctx«2)). 예외: R < R(W_min, L_min)(1.2e7 Ω @ 0.375 V)은 W 축으로만 닿는다(»
+    OLD«L»
+    NEW«둘째 f»
+  [replace] ctx«). 예외: R < R(W_min, L_min)(1.2e7 Ω @ 0.375 V)은 W 축으로만 닿는다(L_»
+    OLD«min에서»
+    NEW«HP»
+  [replace] ctx« R < R(W_min, L_min)(1.2e7 Ω @ 0.375 V)은 W 축으로만 닿는다(L_min에서 »
+    OLD«W»
+    NEW«생산자»
+  [replace] ctx« < R(W_min, L_min)(1.2e7 Ω @ 0.375 V)은 W 축으로만 닿는다(L_min에서 W »
+    OLD«7»
+    NEW«0).»
+  [replace] ctx« R(W_min, L_min)(1.2e7 Ω @ 0.375 V)은 W 축으로만 닿는다(L_min에서 W 7 »
+    OLD«µm»
+    NEW«손계산 f_HP = 1/(2π·R_ds·C_c)는 결합 노드의 다른 용량 C_X(게이트·접합)를 빼므»
+  [insert] ctx«_min, L_min)(1.2e7 Ω @ 0.375 V)은 W 축으로만 닿는다(L_min에서 W 7 µm로 »
+    OLD«»
+    NEW«실제 1/(»
+  [replace] ctx«min, L_min)(1.2e7 Ω @ 0.375 V)은 W 축으로만 닿는다(L_min에서 W 7 µm로 2»
+    OLD«.8e6»
+    NEW«π·R_ds·(C_c»
+  [replace] ctx«L_min)(1.2e7 Ω @ 0.375 V)은 W 축으로만 닿는다(L_min에서 W 7 µm로 2.8e6 »
+    OLD«Ω까지»
+    NEW«+ C_X»
+  [insert] ctx«n)(1.2e7 Ω @ 0.375 V)은 W 축으로만 닿는다(L_min에서 W 7 µm로 2.8e6 Ω까지)»
+    OLD«»
+    NEW«)보다 높다»
+  [replace] ctx«2e7 Ω @ 0.375 V)은 W 축으로만 닿는다(L_min에서 W 7 µm로 2.8e6 Ω까지) -- R»
+    OLD«을»
+    NEW«_req를»
+  [replace] ctx«7 Ω @ 0.375 V)은 W 축으로만 닿는다(L_min에서 W 7 µm로 2.8e6 Ω까지) -- R을 »
+    OLD«줄»
+    NEW«크게 잡는 보수 쪽»
+  [replace] ctx«Ω @ 0.375 V)은 W 축으로만 닿는다(L_min에서 W 7 µm로 2.8e6 Ω까지) -- R을 줄이»
+    OLD«라는»
+    NEW«다.»
+  [replace] ctx«375 V)은 W 축으로만 닿는다(L_min에서 W 7 µm로 2.8e6 Ω까지) -- R을 줄이라는 선언 »
+    OLD«제약은»
+    NEW«시»
+  [replace] ctx«V)은 W 축으로만 닿는다(L_min에서 W 7 µm로 2.8e6 Ω까지) -- R을 줄이라는 선언 제약은 »
+    OLD«지금»
+    NEW«oracle»
+  [replace] ctx« W 축으로만 닿는다(L_min에서 W 7 µm로 2.8e6 Ω까지) -- R을 줄이라는 선언 제약은 지금 »
+    OLD«없으므»
+    NEW«측정 정의(결합 경»
+  [replace] ctx«로만 닿는다(L_min에서 W 7 µm로 2.8e6 Ω까지) -- R을 줄이라는 선언 제약은 지금 없으므로 »
+    OLD«그런»
+    NEW«저역»
+  [replace] ctx«닿는다(L_min에서 W 7 µm로 2.8e6 Ω까지) -- R을 줄이라는 선언 제약은 지금 없으므로 그런 »
+    OLD«점은»
+    NEW«차단»
+  [replace] ctx«(L_min에서 W 7 µm로 2.8e6 Ω까지) -- R을 줄이라는 선언 제약은 지금 없으므로 그런 점은 »
+    OLD«관문에서»
+    NEW«--»
+  [replace] ctx«n에서 W 7 µm로 2.8e6 Ω까지) -- R을 줄이라는 선언 제약은 지금 없으므로 그런 점은 관문에서 »
+    OLD«떨어지고»
+    NEW«AC»
+  [replace] ctx« 7 µm로 2.8e6 Ω까지) -- R을 줄이라는 선언 제약은 지금 없으므로 그런 점은 관문에서 떨어지고 »
+    OLD«사»
+    NEW«훑기)와 ME-1 e_m 소»
+  [replace] ctx« µm로 2.8e6 Ω까지) -- R을 줄이라는 선언 제약은 지금 없으므로 그런 점은 관문에서 떨어지고 사유»
+    OLD«를»
+    NEW«는»
+  [replace] ctx«m로 2.8e6 Ω까지) -- R을 줄이라는 선언 제약은 지금 없으므로 그런 점은 관문에서 떨어지고 사유를 »
+    OLD«기록한»
+    NEW«card DR-1 착수 조건이»
+  [insert] ctx«.8e6 Ω까지) -- R을 줄이라는 선언 제약은 지금 없으므로 그런 점은 관문에서 떨어지고 사유를 기록한다»
+    OLD«»
+    NEW«(oracle-portability 후속 정정)»
+  [insert] ctx«-- R을 줄이라는 선언 제약은 지금 없으므로 그런 점은 관문에서 떨어지고 사유를 기록한다. **권고 = (»
+    OLD«»
+    NEW«δ) + (»
+  [insert] ctx« R을 줄이라는 선언 제약은 지금 없으므로 그런 점은 관문에서 떨어지고 사유를 기록한다. **권고 = (마)»
+    OLD«»
+    NEW« 선언 출처»
+  [insert] ctx«라는 선언 제약은 지금 없으므로 그런 점은 관문에서 떨어지고 사유를 기록한다. **권고 = (마) + (바)»
+    OLD«»
+    NEW« 기록»
+  [replace] ctx« 선언 제약은 지금 없으므로 그런 점은 관문에서 떨어지고 사유를 기록한다. **권고 = (마) + (바)**»
+    OLD«, 구조는»
+    NEW«:»
+  [replace] ctx« 지금 없으므로 그런 점은 관문에서 떨어지고 사유를 기록한다. **권고 = (마) + (바)**, 구조는 (»
+    OLD«라»
+    NEW«마»
+  [delete] ctx«금 없으므로 그런 점은 관문에서 떨어지고 사유를 기록한다. **권고 = (마) + (바)**, 구조는 (라)»
+    OLD«: W»
+    NEW«»
+  [replace] ctx« 그런 점은 관문에서 떨어지고 사유를 기록한다. **권고 = (마) + (바)**, 구조는 (라): W = »
+    OLD«W_min(위 근거 -- 상수 아님, PDK 값), L = θ 연속 성분(그 kind LUT L 정의역, 기존 L 축 규칙), C_BAT은 기존 θ; 결정자 = 선언»
+    NEW«신호»
+  [insert] ctx«성분(그 kind LUT L 정의역, 기존 L 축 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한»
+    OLD«»
+    NEW« f_low spec 선언»
+  [insert] ctx«분(그 kind LUT L 정의역, 기존 L 축 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한(»
+    OLD«»
+    NEW«사용자 값, »
+  [replace] ctx« kind LUT L 정의역, 기존 L 축 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한(선언 »
+    OLD«시»
+    NEW«자리»
+  [replace] ctx«ind LUT L 정의역, 기존 L 축 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한(선언 시 »
+    OLD«제약»
+    NEW«=»
+  [replace] ctx« LUT L 정의역, 기존 L 축 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한(선언 시 제약 »
+    OLD«행»
+    NEW«spec»
+  [insert] ctx«UT L 정의역, 기존 L 축 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한(선언 시 제약 행 »
+    OLD«»
+    NEW«로더 소유 card SF»
+  [replace] ctx«T L 정의역, 기존 L 축 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한(선언 시 제약 행 -»
+    OLD«-»
+    NEW«1,»
+  [insert] ctx«L 정의역, 기존 L 축 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한(선언 시 제약 행 -- »
+    OLD«»
+    NEW«이름·»
+  [insert] ctx« L 축 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한(선언 시 제약 행 -- 형식 design»
+    OLD«»
+    NEW« -- erfc 원문에 값 없음), (바»
+  [replace] ctx« 축 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한(선언 시 제약 행 -- 형식 design) »
+    OLD«+»
+    NEW«=»
+  [replace] ctx« 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한(선언 시 제약 행 -- 형식 design) + »
+    OLD«선언 GBW·PM 전회로 MNA + 면적 축; 미선언이면»
+    NEW«위»
+  [delete] ctx« 시 제약 행 -- 형식 design) + 선언 GBW·PM 전회로 MNA + 면적 축; 미선언이면 f_HP»
+    OLD« 위치는 결정하지 않고(면적이 L_min 쪽으로) front 점마다 f_HP/GBW»
+    NEW«»
+  [replace] ctx«; 미선언이면 f_HP 위치는 결정하지 않고(면적이 L_min 쪽으로) front 점마다 f_HP/GBW·τ»
+    OLD«와»
+    NEW« 칸과»
+  [delete] ctx«위치는 결정하지 않고(면적이 L_min 쪽으로) front 점마다 f_HP/GBW·τ와 '대역 하한 미선언'»
+    OLD«을»
+    NEW«»
+  [replace] ctx«는 결정하지 않고(면적이 L_min 쪽으로) front 점마다 f_HP/GBW·τ와 '대역 하한 미선언'을 »
+    OLD«출력»
+    NEW«표지;»
+  [replace] ctx«정하지 않고(면적이 L_min 쪽으로) front 점마다 f_HP/GBW·τ와 '대역 하한 미선언'을 출력 »
+    OLD«기록한다(»
+    NEW«미선언이면 »
+  [replace] ctx«L_min 쪽으로) front 점마다 f_HP/GBW·τ와 '대역 하한 미선언'을 출력 기록한다(정지 안 함»
+    OLD« -- »
+    NEW«(»
+  [replace] ctx« 대상 아님). 판정(O-171): 물리 결정자 = 신호 대역 하한(spec)과 gds(VDS = 0)·C_»
+    OLD«BAT»
+    NEW«c»
+  [replace] ctx«1): 물리 결정자 = 신호 대역 하한(spec)과 gds(VDS = 0)·C_BAT의 1차 RC, 식 = »
+    OLD«f»
+    NEW«R»
+  [replace] ctx«: 물리 결정자 = 신호 대역 하한(spec)과 gds(VDS = 0)·C_BAT의 1차 RC, 식 = f_»
+    OLD«HP = gds/(2π·C_BAT)·τ»
+    NEW«req»
+  [replace] ctx«DS = 0)·C_BAT의 1차 RC, 식 = f_HP = gds/(2π·C_BAT)·τ = 1/(2π·f_»
+    OLD«HP»
+    NEW«low·C_c»
+  [insert] ctx«= 0)·C_BAT의 1차 RC, 식 = f_HP = gds/(2π·C_BAT)·τ = 1/(2π·f_HP)»
+    OLD«»
+    NEW«·τ = R_ds·C_c»
+  [insert] ctx«의 1차 RC, 식 = f_HP = gds/(2π·C_BAT)·τ = 1/(2π·f_HP), 실측 = LUT»
+    OLD«»
+    NEW« 격자»
+  [insert] ctx«= f_HP = gds/(2π·C_BAT)·τ = 1/(2π·f_HP), 실측 = LUT·ngspice 일치»
+    OLD«»
+    NEW«(검증 3·4)»
+  [delete] ctx« = gds/(2π·C_BAT)·τ = 1/(2π·f_HP), 실측 = LUT·ngspice 일치, 판정 =»
+    OLD« 조건부»
+    NEW«»
+  [replace] ctx«_BAT)·τ = 1/(2π·f_HP), 실측 = LUT·ngspice 일치, 판정 = 조건부 맞음(조건: »
+    OLD«대역 하한»
+    NEW«f_low»
+  [delete] ctx«P), 실측 = LUT·ngspice 일치, 판정 = 조건부 맞음(조건: 대역 하한 값은 사용자 spec 몫»
+    OLD« -- erfc는 사용자 결정»
+    NEW«»
+
+#### plan replace old 2346-2346 new 2346-2346
+-- line new 2346
+  [replace] ctx«음 셋이 발동하고 다음 정지 사유까지 진행·기록 (9) 0 전류 MOS 기하 = Q-ZG1 결정대로(권고 (»
+    OLD«마)+(바»
+    NEW«δ»
+  [insert] ctx« 다음 정지 사유까지 진행·기록 (9) 0 전류 MOS 기하 = Q-ZG1 결정대로(권고 (마)+(바) --»
+    OLD«»
+    NEW« 선언 시 격자 선택 toy(R ≥ R_req 가운데 W·L 최소, 동률 규칙, 해 없음 → fail-closed; base는 선택 없음 -- red), 미선언 시»
+  [insert] ctx«유까지 진행·기록 (9) 0 전류 MOS 기하 = Q-ZG1 결정대로(권고 (마)+(바) -- W_min·L»
+    OLD«»
+    NEW«_min»
+  [replace] ctx«까지 진행·기록 (9) 0 전류 MOS 기하 = Q-ZG1 결정대로(권고 (마)+(바) -- W_min·L »
+    OLD«θ, 대역 하한 선언 시 제약 행 toy, 미선언 시»
+    NEW«+»
+  [insert] ctx«) -- W_min·L θ, 대역 하한 선언 시 제약 행 toy, 미선언 시 f_HP/GBW·τ 기록 toy»
+    OLD«»
+    NEW«, VSG가 바뀐 평가에서 선택이 다시 돎»
+
+#### history insert old 1537-1536 new 1537-1537
+NEW 1537: | **v6.38.5 다섯째 커밋** 계획 검증 4 반영(검증 대기) | 2026-10-29 | 근거: 독립 계획 검증 4(`wt/_drafts/evidence/2026-10-29/plan_v6385_validation4.md`, Major 2·Minor 6), 오케스트레이터 재판정 전부 수용. MJ4-1 Q-ZG1 -- 'W_min = 같은 R 면적 최소·3 %'·'(다) W 이득 ≤ 3 %' 철회(검증 4 `zg1_grid.txt`·`zg1_total.txt` -- VSG 0.40 V에서 다른 W가 MOS 면적 −26~−55 %, R > 5.1e11 Ω W_min 불가, f_low 1·0.1 Hz 총면적 2.2·4.9배), 대안 (α)(β)(γ)(δ) 비교(θ 차원·면적·f_HP 보장·속도·writer), 권고 (δ) 0 전류 MOS 기하 = 손계산 격자 선택(θ 아님, R_req = 1/(2π·f_low·C_c), 해 없음 fail-closed, 미선언 W_min·L_min + 기록) + (마) + (바), writer = DC 블록 DR-1 갈래(평가마다 VSG 읽음), f_HP·τ 칸 하나·제약 행 없음·C_X 보수 쪽, 선언 시 oracle 측정·ME-1 e_m = DR-1 착수 조건. MJ4-2 Q-W1 -- 실현 servo의 IT-2c 피벗 정의·판정 의존을 WB-1 순서에 넣음(IT-1 + IT-2 → WB-1 → DE-1), 피벗 판정 = 탐색 평가 IT-2 판정 기록 참조, DE-1 (c) A_dc 갈래와 같은 답 단언, (i) 역순 대 (ii) 재비교·권고 (ii). Minor m4-1 (가) VSG ≳ 0.38 V, m4-2 O-169 인용 → O-171, m4-3 실현 servo = 비선형 재풀이(선형 Schur는 피벗 판정·출발 걸음)·WB-1 toy 꼴(입력쌍 한쪽 r·약반전·tol_V), m4-4 비용·graph reuse, m4-5 1714 «원문», m4-6 정본 자리. |
+
+#### history insert old 1857-1856 new 1858-1867
+NEW 1858: | **DR-1 O-169 인용** | 원문: «결정자가 θ 안에 없고(O-169)» | 2026-10-29 v6.38.5 다섯째 커밋 | 계획 같은 자리 |
+NEW 1859: | **DR-1 대안·W_min 근거·권고 문단(넷째 커밋)** | 원문: «**대안**(erfc 대표점 손계산·LUT 실측 -- `wt/_drafts/evidence/2026-10-29/plan_v6385_v3/zg1_alt.txt`, 재현 `zg1_alt.py`; M19·M20 VSG 0.204 V, M21 VSG 0.40 V; 면적 = MOS W·L 대 C_BAT/밀도, τ = R·C_BAT): (라) W_min·L θ·C_BAT θ, 결정자 = GBW·PM·면적뿐 ⚠ L 결정자 없음 -- 관문이 걸리지 않으면 면적 귀결 = W_min·L_min·0.1 pF(M19·M20 f_HP/GBW 6.6e-3·τ 18 µs, M21 0.14·τ 0.85 µs; MOS 0.063 µm² 대 C_BAT 50 µm²) (마) 신호 대역 하한 f_low(또는 f_HP 상한) spec 선언 -- 결정자 = 그 선언, 출발 꼴 손계산 f_HP = gds(L, VSG)/(2π·C_BAT) ≤ f_low, 면적 최소 귀결 = W_min·C_BAT 0.1 pF·필요 L(계산 예시 f_low 1 kHz → M21 L 0.46 µm·0.19 µm²·τ 0.16 ms, 10 Hz → L 7.1 µm·3.0 µm²·τ 16 ms -- f_low 값은 사용자 몫이고 예시일 뿐, L은 bin 넘는 보간 추정) ⚠ 사용자 값·새 선언 자리(spec 로더 소유 card SF-1, 이름·형식 design), erfc 원문에 값 없음 (바) front 점마다 f_HP/GBW·τ 손계산 출력 기록과 '대역 하한 미선언' 표지(출력 전용 필드 하나 -- graph-consumption 출력 전용 선언, 정의 자리 design) ⚠ 단독으로는 결정자 없음 (사) R 최대 기하(L = LUT 정의역 최대 20 µm, W = 그 L에서 R 최대 슬라이스 7 µm) -- f_HP 최소(@ 0.1 pF M19·M20 7e-10·GBW, M21 3.5e-7·GBW) ⚠ τ = 165 s(M19·M20)·0.33 s(M21) @ 0.1 pF(10 pF면 ×100 -- 전원 투입 뒤 DC 정착), MOS 면적 140 µm²로 C_BAT 50 µm²보다 큼(W_min·L 20 µm면 8.4 µm²·τ 27 s/0.05 s), R 1e12~1e15 Ω에서 fA급 누설이 부유 노드 DC를 옮길 수 있음(미측정) (가) W_min·L_min 고정 ⚠ R_ds 최소 -- C_BAT 증가로 면적이 끌려가는 것은 GBW 관문이 걸리는 영역(f_HP ≳ 0.1·GBW, VSG 0.6 V급)에서만 (나) 소자 기하 spec 선언 ⚠ 선언 자리 신설·사용자 부담 (다) W·L 둘 다 θ ⚠ R(W) 비단조·같은 R 면적 차 ≤ 3 %(아래)라 W 축 이득이 작고 차원만 늘림. **W = W_min의 근거**: 같은 R_ds를 내는 (W, L) 가운데 면적 W·L이 최소이거나 3 % 안이다(VSG 0.375 V: R 1e8·1e9·1e11 Ω은 W_min 최소, 1e10 Ω은 W 0.55 µm가 −3 % -- L은 log R 대 L 보간이라 bin을 넘는 추정, 검증 3 `zg1_w.txt` (2)). 예외: R < R(W_min, L_min)(1.2e7 Ω @ 0.375 V)은 W 축으로만 닿는다(L_min에서 W 7 µm로 2.8e6 Ω까지) -- R을 줄이라는 선언 제약은 지금 없으므로 그런 점은 관문에서 떨어지고 사유를 기록한다. **권고 = (마) + (바)**, 구조는 (라): W = W_min(위 근거 -- 상수 아님, PDK 값), L = θ 연속 성분(그 kind LUT L 정의역, 기존 L 축 규칙), C_BAT은 기존 θ; 결정자 = 선언 대역 하한(선언 시 제약 행 -- 형식 design) + 선언 GBW·PM 전회로 MNA + 면적 축; 미선언이면 f_HP 위치는 결정하지 않고(면적이 L_min 쪽으로) front 점마다 f_HP/GBW·τ와 '대역 하한 미선언'을 출력 기록한다(정지 안 함 -- 동작점은 물리적으로 성립, E-0 대상 아님). 판정(O-171): 물리 결정자 = 신호 대역 하한(spec)과 gds(VDS = 0)·C_BAT의 1차 RC, 식 = f_HP = gds/(2π·C_BAT)·τ = 1/(2π·f_HP), 실측 = LUT·ngspice 일치, 판정 = 조건부 맞음(조건: 대역 하한 값은 사용자 spec 몫 -- erfc는 사용자 결정, 발동 회로 = erfc뿐). » | 2026-10-29 v6.38.5 다섯째 커밋 | 계획 같은 자리 |
+NEW 1860: | **DR-1 완료 (9) 머리(넷째 커밋)** | 원문: «(9) 0 전류 MOS 기하 = Q-ZG1 결정대로(권고 (마)+(바) -- W_min·L θ, 대역 하한 선언 시 제약 행 toy, 미선언 시 f_HP/GBW·τ 기록 toy)» | 2026-10-29 v6.38.5 다섯째 커밋 | 계획 같은 자리 |
+NEW 1861: | **DEC-105 (2) 실현 평가 측정 구성 첫 문장** | 원문: «입력 차(여기 방향 좌표 -- DEC-23 V_id)를 미지수로 푼다(N3.8 ICMR servo 피벗과 같은 정의 함수; Razavi 1판 §13.2 p.466 'the input level that forces the output voltage to go to zero'); 입력 공통모드·바이어스 원·W′는 고정, 나머지 노드는 KCL 미지수다.» | 2026-10-29 v6.38.5 다섯째 커밋 | 계획 같은 자리 |
+NEW 1862: | **DEC-105 (2) A_dc 갈래 처리 머리** | 원문: «A_dc 정의 불능 갈래(DEC-23)이면 servo 피벗이 없으므로 입력을 봉인점 값에 고정하고 봉인만 다시 잰다(V_id*는 그 갈래대로 정의 불능;» | 2026-10-29 v6.38.5 다섯째 커밋 | 계획 같은 자리 |
+NEW 1863: | **WB-1 완료 (5) 노드 수준 toy(넷째 커밋)** | 원문: «노드 수준 측정 구성 toy(Q-W1 권고안 -- servo: 출력 = 봉인점 값·입력 차 미지수, 단단 손 회로에서 입력 차 이동 ΔV_id = 손계산 ln(1 + r)/(gm/ID); 실현 평가 V_id* 단언은 card DE-1 완료 조건 -- 검증 3 MJ3-2)» | 2026-10-29 v6.38.5 다섯째 커밋 | 계획 같은 자리 |
+NEW 1864: | **N5.3 Q-W1 행(넷째 커밋)** | 원문: «\| Q-W1 \| (v6.38.5) 탐색 평가 대 실현 평가(DEC-105 (2)) -- 권고: `DeviceOp.W` 한 필드, 탐색 평가 = θ 유도 W(조각 안 연속), 실현 평가(front 점) = W′ 재풀이(측정 구성 = DEC-23 V_id* 정의와 같은 servo -- 출력 = 같은 θ 봉인점 출력, 입력 차 미지수; 커널 전 블록 재실행) + N3.6 봉인 전 항목, 실현 평가를 거치지 않은 점은 front·선택·oracle 입력 불가, 실현 탈락 뒤 재필터, E-1·결과·oracle = 실현 값(V_id* 성분 (2)의 A_dc도 실현 스냅샷 값), DEC-23 성분 (3)은 실현 평가 성분 (1)에 흡수(성분 (3) 식 삭제). **원래 취지와 다름**(O-173 C1 재풀이 자리·Q-P8 적용 범위 = 실현 평가, O-46·O-118·O-119 성분 (3), X-LA11 근거 교체). 대안: (가) 매 평가 재풀이 ⚠ 조각 안 기울기 0 계단 (나) 매 평가 둘 다 풀기 ⚠ DC 풀이 2배 (다) 측정 구성 = 선언 입력 고정 ⚠ 출력이 ΔV_out ≈ r·V_A,eff·A_후단만큼 움직여 r 꼬리(다단)에서 봉인 7이 깨져 닫힌 루프에서 정상인 점이 front에서 빠짐(E-1 결정 뒤집힘 -- 추정) (라) 성분 (3) 1차식 유지 + 실현 평가는 봉인만 ⚠ 같은 ΔW 효과를 실현 노드 해와 1차식 두 자리가 냄(graph 규칙 1 -- 피하려면 offset을 탐색 스냅샷 값으로 판정해야 해 '실현 값으로 판정'(E-0)과 충돌)·1차식은 r 37 % 꼬리에서 선형 범위 밖. ⚠ 원칙 경고: E-0을 탐색 봉인점에 적용하지 않는 것은 E-0 범위 축소 -- 실현 평가가 front의 유일한 실현 관문이다. **X-LA11·완료 조건 배치**(검증 3 MJ3-2): 흡수 뒤 DE-1의 (m, w_f) READS는 없어지지만 '계통 offset = 실현 평가 성분 (1)(2)' 단언은 DE-1 (c)의 (나′) V_id* writer가 있어야 성립한다(지금 문언의 WB-1 완료 (5)는 순서 WB-1 → DE-1에서 불성립 -- 둘째 커밋부터의 결함). 비교(병합 순서 규칙 수·완료 조건 성립·O-165 (a)): (i) 순서 DE-1 → WB-1 -- 규칙 1(역순), 두 card 완료 조건 성립, O-165 (a) 맞음 ⚠ WB-1·LA-0·LA-1 사슬이 DE-1 선행(SF-1·IT-1·IT-2·HC-S·EO-1·VB-1) 뒤로 밀림 (ii) **권고**: 순서 WB-1 → DE-1 유지(X-LA11 유지, 근거 교체 = DE-1 완료 조건이 WB-1 실현 평가를 씀), WB-1 완료 (5)는 노드 수준(servo 입력 차 이동 = 손계산 ln(1 + r)/(gm/ID))으로 한정하고 실현 평가 V_id* 단언은 card DE-1 완료 조건으로 -- 실현 평가가 커널 전 블록을 다시 돌리므로 DE-1 병합 뒤 실현 V_id*가 배선 없이 나온다; 규칙 1(그대로), 두 card 완료 조건이 각자 병합 때 성립, O-165 (a) 맞음(조건부 배선 0) (iii) 선후 고정 해제 ⚠ 병합 순서에 따라 완료 조건 성립이 갈림(O-165 (a)가 없앤 조건부 꼴) -- 셋째 커밋 권고 철회. **승인 뒤 일괄 반영 목록**(지금은 각 자리에 'Q-W1 승인 시' 표지): DEC-23 판정 자리·(나′) 성분 (3) 식, DEC-67 계산법·'ΔW 기준 봉인점'·front 판정 문장, DEC-74 판정 자리, DEC-105 (2) 소비자 문장(card DE-1 성분 (3)의 레이아웃 전 판정 W)·소비 기준·'DE-1 배선'·격자 반올림 차·반올림 효과·레이아웃 전 계통 offset, `offset_sys_mv` metric 행, U-108 행, card DE-1 (c) 배선·완료 toy(→ 실현 평가 V_id* toy)·순서, card WB-1 2a 소비자·완료 (5)(노드 수준)·순서, N6.1 DE-1·WB-1 행, X-LA11 행. **시점**: card WB-1 착수 실측(엔진 무수정 읽기 전용 스크립트 -- Q-P8 `p8_exact_slice` 선례; 측정 구성) → Q-W1 결정 → 계획 일괄 반영·검증 → design \| card WB-1 착수 실측 → 결정 → 계획 일괄 반영·검증 → design \|» | 2026-10-29 v6.38.5 다섯째 커밋 | 계획 같은 자리 |
+NEW 1865: | **N5.3 Q-ZG1 행(넷째 커밋)** | 원문: «\| Q-ZG1 \| (v6.38.5) DR-1 구조적 0 전류 MOS 기하 출처 -- 물리: DC 무관, AC f_HP = gds(L, W, VSG)/(2π·C_BAT)·τ = 1/(2π·f_HP); L이 R_ds를 5자릿수 움직이는 제어 축, R(W)는 비단조(좁은 폭 Vth); 선언 관문(T(0) 이득·GBW·PM)과 면적은 f_HP 위치를 정하지 않음 -- 결정자 = 신호 대역 하한(spec, 소비자 DR-1). 권고 = (마) 대역 하한 spec 선언 + (바) front 점 f_HP/GBW·τ 출력 기록, 구조 (라) W = W_min(같은 R 면적 최소·3 % 안, 예외 R < R(W_min, L_min) 기록)·L θ·C_BAT θ; 미선언이면 f_HP 미결정·기록(정지 안 함). 대안: (라) 단독 ⚠ L 결정자 없음(면적 귀결 L_min·0.1 pF, erfc M21 f_HP 0.14·GBW) / (사) R 최대 기하 ⚠ τ 0.33~165 s·MOS 면적 140 µm² > C_BAT 50 µm²·누설 미측정 / (가) W_min·L_min ⚠ R 최소 / (나) 기하 spec 선언 ⚠ 사용자 부담 / (다) W·L θ ⚠ W 이득 ≤ 3 %. 사용자 몫: erfc 대역 하한 값(원문 없음 -- 선언 또는 미선언). 기록: `gain_ss_db` T(0) 정의 축 \| card DR-1 design 착수 전 \|» | 2026-10-29 v6.38.5 다섯째 커밋 | 계획 같은 자리 |
+NEW 1866: | **Status 줄(v6.38.5 넷째 커밋)** | 원문: «> **Status**: **Plan v6.38.5 -- O-174 구조적 0 전류 규칙(DR-1, 일반형)·WB-1 범위 3 cfg 공유 이름 범위·탐색 평가 대 실현 평가(W/W′), 검증 대기**(2026-10-29, 브랜치 `plan/v6385`, 기준 master `07964dfe`; **열린 결정**: N5.3 Q-W1(탐색 평가 대 실현 평가 -- 원래 취지와 다름 후보: O-173 C1 재풀이 자리·Q-P8 적용 범위·E-0 범위 = 실현 평가, O-46·O-118·O-119 성분 (3) 흡수·실현 평가 측정 구성 servo·X-LA11 근거 교체(WB-1 완료 노드 수준·DE-1 V_id*); 착수 실측 → 결정 → 계획 일괄 반영·검증 → design), Q-CF1(WB-1 범위 3 cfg 이름 안 A), Q-ZG1(0 전류 MOS 기하 출처 -- 권고 (마) 대역 하한 spec 선언 + (바) 기록, W_min·L θ; erfc 대역 하한 값은 사용자 몫), Q-T0·Q-T3(card WB-1 착수 실측 뒤), Q-C1(사용자 작성 몫), Q-1(LOD 보류 -- 재개 조건), Q-2(머리 기하 ratify); 원래 취지와 다름 = O-174(O-173 Q-4 대체 -- 사용자 결정됨)·Q-W1 후보; 경위 history H1 'v6.38.5' 행) 이전 판: **Plan v6.38.4 승인 O-173** -- Status 원문 = history H2 'v6.38.5' 행.» | 2026-10-29 v6.38.5 다섯째 커밋 | 계획 같은 자리 |
+NEW 1867: | **card DE-1 완료 toy 1714 Q-W1 표지(셋째 커밋 문언)** | 원문: «계통 offset은 **ΔW ≠ 0 손 회로 toy**(→ v6.38.5 Q-W1 승인 시 front 점 계통 offset = 실현 평가 성분 (1)(2), 성분 (3) 흡수 -- 일괄 반영 목록 N5.3 Q-W1 행)(» | 2026-10-29 v6.38.5 넷째 커밋(다섯째 커밋 소급 -- 검증 4 m4-5) | 계획 같은 자리 |

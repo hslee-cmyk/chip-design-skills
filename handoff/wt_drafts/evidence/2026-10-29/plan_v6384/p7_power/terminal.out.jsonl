@@ -1,0 +1,9 @@
+{"circuit": "common_gate_amplifier", "rails": ["gnd", "vdd"], "nonrail_terminal_dc_paths": [{"net": "vin", "role": "single_ended_input", "channel_terminals": ["M1", "M2"], "dut_resistors": [], "measurement_load_resistors": []}], "differs_possible": true}
+{"circuit": "current_reuse_telescopic_ota", "rails": ["gnd", "vdd"], "nonrail_terminal_dc_paths": [], "differs_possible": false}
+{"circuit": "folded_cascode", "rails": ["gnd", "vdd"], "nonrail_terminal_dc_paths": [], "differs_possible": false}
+{"circuit": "ngcc_3stage_ff", "rails": ["gnd", "vdd"], "nonrail_terminal_dc_paths": [], "differs_possible": false}
+{"circuit": "nmcnr_amplifier", "rails": ["agnd", "vdd", "vss"], "nonrail_terminal_dc_paths": [{"net": "Vout", "role": "single_ended_output", "channel_terminals": ["M301", "M302"], "dut_resistors": ["Rm"], "measurement_load_resistors": ["RL"]}], "differs_possible": true}
+{"circuit": "pushpull_follower_buffer", "rails": ["agnd", "vdd", "vss"], "nonrail_terminal_dc_paths": [], "differs_possible": false}
+{"circuit": "sf_pushpull_output_opamp", "rails": ["agnd", "vdd", "vss"], "nonrail_terminal_dc_paths": [], "differs_possible": false}
+{"circuit": "two_stage_ota", "rails": ["gnd", "vdd"], "nonrail_terminal_dc_paths": [], "differs_possible": false}
+{"circuit": "two_stage_ota_sf", "rails": ["gnd", "vdd"], "nonrail_terminal_dc_paths": [], "differs_possible": false}

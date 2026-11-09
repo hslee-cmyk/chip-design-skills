@@ -1,0 +1,16 @@
+### (a) MOD2 행 -- `load_topology`·`validate_theta_declaration_order` 제거, (D-19 (가)일 때) `rail_declaration` 추가
+
+현재 `plan.md:522`:
+```
+| MOD2 | `topology_authoring.py` | topology·spec 로딩, 스키마·단위·참조·선언 순서 게이트, 구조 제안 | `load_topology`, `validate_metric_units`, `validate_no_legacy_vs_key`, `require_declared_spec_source`, `validate_theta_declaration_order` |
+```
+새 문안 -- D-19 답이 **(가) MOD2**일 때:
+```
+| MOD2 | `topology_authoring.py` | topology·spec 로딩, 스키마·단위·참조·선언 순서 게이트, 구조 제안 | `validate_metric_units`, `validate_no_legacy_vs_key`, `require_declared_spec_source`, `rail_declaration`(전원 선언 접근자, B26-1). load_topology와 validate_theta_declaration_order는 MOD3 구조 유도 함수를 불러 계층상 MOD3에 둔다(Phase 3 design 30 §6.2) |
+```
+새 문안 -- D-19 답이 **(나) MOD3**일 때(`rail_declaration` 토큰만 없다):
+```
+| MOD2 | `topology_authoring.py` | topology·spec 로딩, 스키마·단위·참조·선언 순서 게이트, 구조 제안 | `validate_metric_units`, `validate_no_legacy_vs_key`, `require_declared_spec_source`. load_topology와 validate_theta_declaration_order는 MOD3 구조 유도 함수를 불러 계층상 MOD3에 둔다(Phase 3 design 30 §6.2) |
+```
+설명 문장의 두 함수 이름에 **백틱을 쓰지 않는다** -- 백틱 식별자는 A-1 토큰이라 MOD2·MOD3 두 행에 걸려 `conflicts`가 된다(D0a 계약 2). 책임 열은 바꾸지 않는다(MOD2에 spec 로딩·나머지 선언 게이트가 남는다).
+

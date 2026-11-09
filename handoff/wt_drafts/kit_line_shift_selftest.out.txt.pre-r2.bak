@@ -1,0 +1,73 @@
+kit_line_shift selftest
+PASS d.md:1 'SR 1200' patched={1200: 1205} conf={1200: 'medium'}
+PASS d.md:2 '`sr_line_1200 = 1200` sizing_recipe.py:1200' patched={1200: 1205} conf={1200: 'high'}
+PASS d.md:3 'SR 1200 `sr_line_1200`' patched={1200: 1205} conf={1200: 'medium'}
+PASS d.md:4 'SR 2550 big_func' patched={2550: 2555} conf={2550: 'medium'}
+PASS d.md:5 '* `sr_line_1200` 근처, sizing_recipe.py:1205' patched={} conf={1205: 'already-new'}
+PASS d.md:6 '* 주석, sizing_recipe.py:1205~1206:' patched={} conf={1205: 'already-new', 1206: 'already-new'}
+PASS d.md:7 '  > `sr_line_1200 = 1200`' patched={} conf={1200: 'ambiguous'}
+PASS d.md:8 '  > `sr_line_1201 = 1201`' patched={} conf={1201: 'ambiguous'}
+PASS d.md:9 '* 주석, sizing_recipe.py:1200~1201:' patched={1200: 1205, 1201: 1206} conf={1200: 'high', 1201: 'high'}
+PASS d.md:10 '  > `sr_line_1200 = 1200`' patched={} conf={1200: 'ambiguous'}
+PASS d.md:11 '  > `sr_line_1201 = 1201`' patched={} conf={1201: 'ambiguous'}
+PASS d.md:12 "exp = {1205: b'sr_line_1200 = 1200'}" patched={} conf={1205: 'already-new', 1200: 'ambiguous'}
+PASS d.md:13 '' patched={} conf={}
+PASS d.md:14 "exp = {1200: b'sr_line_1200 = 1200'}" patched={1200: 1205} conf={1200: 'ambiguous'}
+PASS d.md:15 "exp = {500: b'common = 1'}" patched={} conf={500: 'ambiguous'}
+PASS d.md:16 'SR 130줄을 고쳤다' patched={} conf={130: 'ambiguous'}
+PASS d.md:17 'SR 2026년 10월 6일' patched={} conf={2026: 'ambiguous'}
+PASS d.md:18 'SR 2026/10/06' patched={} conf={}
+PASS d.md:19 'SR 2026' patched={} conf={2026: 'ambiguous'}
+PASS d.md:20 'SR 1200 2026년' patched={1200: 1205} conf={1200: 'medium', 2026: 'ambiguous'}
+PASS d.md:21 'SR 1200 / 2026' patched={1200: 1205} conf={1200: 'medium', 2026: 'ambiguous'}
+PASS d.md:22 'SD 512 MB' patched={} conf={512: 'ambiguous'}
+PASS d.md:23 'SR 100% 통과' patched={} conf={100: 'ambiguous'}
+PASS d.md:24 'SR 300 tests passed' patched={} conf={300: 'ambiguous'}
+PASS d.md:25 'SR: 300 passed' patched={} conf={300: 'ambiguous'}
+PASS d.md:26 'SR 1200·133개' patched={1200: 1205} conf={1200: 'medium', 133: 'ambiguous'}
+PASS d.md:27 'sizing_recipe.py 3000줄 중 1200' patched={} conf={3000: 'ambiguous', 1200: 'ambiguous'}
+PASS d.md:28 'SR 1200 → 1205(이미 옮긴 값)' patched={} conf={1200: 'ambiguous', 1205: 'ambiguous'}
+PASS d.md:29 'SR 1200->1205' patched={} conf={1200: 'ambiguous', 1205: 'ambiguous'}
+PASS d.md:30 '`C:/g83/b1/skills/a/stick_diagram.py:1200`' patched={} conf={1200: 'ambiguous'}
+PASS d.md:31 'SR 9024→9016줄' patched={} conf={9024: 'ambiguous', 9016: 'ambiguous'}
+PASS d.md:32 'SR 12345' patched={} conf={12345: 'low'}
+PASS d.md:33 'SR 2026-10-06' patched={} conf={}
+PASS d.md:34 'SR v1.2.300' patched={} conf={}
+PASS d.md:35 'SR 0x1234' patched={} conf={}
+PASS d.md:36 'SR 3.14159' patched={} conf={}
+PASS d.md:37 'SR 1,200줄' patched={} conf={}
+PASS d.md:38 'SR 1234567' patched={} conf={}
+PASS d.md:39 'SR 래치 1200' patched={} conf={1200: 'ambiguous'}
+PASS d.md:40 'SR latch 1200' patched={} conf={1200: 'ambiguous'}
+PASS d.md:41 '| SR | 1200 | 1300 |' patched={} conf={1200: 'ambiguous', 1300: 'ambiguous'}
+PASS d.md:42 'PR #1234, SR' patched={} conf={1234: 'ambiguous'}
+PASS d.md:43 'SR 1200 (a1b2c3d)' patched={} conf={1200: 'anchored'}
+PASS d.md:44 'SD 1567(b34 1563)' patched={} conf={1567: 'ambiguous', 1563: 'ambiguous'}
+PASS d.md:45 'SR 1200(B34 사본 1195)' patched={} conf={1200: 'ambiguous', 1195: 'ambiguous'}
+PASS d.md:46 'sizing_recipe.py:1200, test_sizing_recipe.py:1300' patched={1200: 1205} conf={1200: 'medium'}
+PASS d.md:47 'SR 1200-1210' patched={} conf={1200: 'ambiguous', 1210: 'ambiguous'}
+PASS d.md:48 'SR 01200' patched={} conf={}
+PASS d.md:49 'SR 3000' patched={3000: 3005} conf={3000: 'medium'}
+PASS d.md:50 'SR 3001' patched={} conf={3001: 'low'}
+PASS d.md:51 'SR 1195 이전' patched={1195: 1200} conf={1195: 'medium'}
+PASS d.md:52 '## 근거(gate `master` `e8c861b` 줄 번호)' patched={} conf={}
+PASS d.md:53 '* SR 1205, SD 1210' patched={} conf={1205: 'already-new', 1210: 'already-new'}
+PASS d.md:54 'SITE_SD = [1014, 1571]' patched={} conf={1014: 'already-new', 1571: 'already-new'}
+PASS d.md:55 '## 옛 절(줄 번호는 `a9f0e22`)' patched={} conf={}
+PASS d.md:56 '* SR 1205' patched={1205: 1210} conf={1205: 'medium'}
+PASS d.md:57 'sizing_recipe.py 1201~1205, `sr_line_1200 = 1200`' patched={} conf={1201: 'ambiguous', 1205: 'ambiguous', 1200: 'ambiguous'}
+PASS d.md:58 '(gate master `e8c861b` 재측정 -- measured rev는 `a9f0e22` 그대로)' patched={} conf={}
+PASS d.md:59 '* SR 1200' patched={1200: 1205} conf={1200: 'medium'}
+PASS d.md:60 "exp = ({1205: b'sr_line_1200 = 1200'} if new_rev else" patched={} conf={1205: 'already-new', 1200: 'ambiguous'}
+PASS d.md:61 "       {1200: b'sr_line_1200 = 1200'})" patched={} conf={1200: 'ambiguous'}
+PASS d.md:62 '| x | `sd_line_1210 = 1210` | SD 1210(b34 1215) |' patched={} conf={1210: 'ambiguous', 1215: 'ambiguous'}
+PASS m5 U+2028/\x0c 줄 번호 [(2, 1200), (4, 1300)]
+PASS patch git apply --check 
+PASS m1 CRLF 엔진 리터럴 [('high', 1205)]
+PASS S3 r3 {'attrs': '*.py -diff\n'} [('medium', 1205)]
+PASS S3 r4 {'nul': True} [('medium', 1205)]
+PASS S3 Σ 단언(덩어리 빠짐 -> 멈춤) SR @ base old: 덩어리 Σ(추가-삭제)=0 != new-base 줄 수 차 5 -- 덩어리를 빠뜨렸다(바이너리·textconv?), 멈춘다
+PASS m9 이름 바뀐 엔진 -> 멈춤 git show 6ae4287e07f4ee5ce5b23dbe2fe373b284ae57ec:skills/a/sizing_recipe.py 실패(rc 128): fatal: path 'skills/a/sizing_rec
+PASS S1 재실행 절 표지 -> 이중 이동 0 [(1205, 'already-new')]
+sandbox removed: True
+TOTAL 70, FAIL 0

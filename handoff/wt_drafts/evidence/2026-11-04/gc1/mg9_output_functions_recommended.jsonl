@@ -1,0 +1,34 @@
+{"file": "core/engine_code_fp.py", "fn": "core.engine_code_fp:engine_code_fp", "reads": []}
+{"file": "core/exit_code.py", "fn": "core.exit_code:exit_code_for", "reads": []}
+{"file": "core/pdk_decl.py", "fn": "core.pdk_decl:_mismatch_blocks", "reads": []}
+{"file": "core/pdk_decl.py", "fn": "core.pdk_decl:_mismatch_models", "reads": []}
+{"file": "graph/orbit_matching_crosstab.py", "fn": "graph.orbit_matching_crosstab:orbit_matching_crosstab", "reads": ["device.element_class", "device.pins", "graph.matching_groups", "graph.orbits", "node.port_role"]}
+{"file": "graph/structure_tables.py", "fn": "graph.structure_tables:_plain", "reads": []}
+{"file": "graph/structure_tables.py", "fn": "graph.structure_tables:structure_tables", "reads": []}
+{"file": "lut/data_location.py", "fn": "lut.data_location:_file", "reads": []}
+{"file": "lut/fingerprint.py", "fn": "lut.fingerprint:lut_fingerprint", "reads": []}
+{"file": "lut/lut_set.py", "fn": "lut.lut_set:_midpoint_tables", "reads": []}
+{"file": "lut/mismatch_set.py", "fn": "lut.mismatch_set:load_mismatch_tables", "reads": []}
+{"file": "lut/noise_set.py", "fn": "lut.noise_set:load_noise_tables", "reads": []}
+{"file": "lut/table_cache.py", "fn": "lut.table_cache:TableCache._write", "reads": []}
+{"file": "metrics/ss_metrics.py", "fn": "metrics.ss_metrics:_noise_result", "reads": []}
+{"file": "pipeline/stage_a.py", "fn": "pipeline.stage_a:_coupling_report", "reads": ["graph.bias_columns", "graph.column_block_map", "graph.vars"]}
+{"file": "pipeline/stage_a.py", "fn": "pipeline.stage_a:_crosstab_report", "reads": []}
+{"file": "pipeline/stage_a.py", "fn": "pipeline.stage_a:_ff_ratio_rows", "reads": []}
+{"file": "pipeline/stage_a.py", "fn": "pipeline.stage_a:_finding_line", "reads": []}
+{"file": "pipeline/stage_a.py", "fn": "pipeline.stage_a:_finish", "reads": []}
+{"file": "pipeline/stage_a.py", "fn": "pipeline.stage_a:_stopped", "reads": []}
+{"file": "pipeline/stage_a.py", "fn": "pipeline.stage_a:_unmatched_loop_cuts", "reads": []}
+{"file": "pipeline/stage_a.py", "fn": "pipeline.stage_a:_view_summary", "reads": []}
+{"file": "pipeline/stage_a_report.py", "fn": "pipeline.stage_a_report:write_stage_a_report", "reads": []}
+{"file": "pipeline/stage_b.py", "fn": "pipeline.stage_b:_ach_body", "reads": ["graph.area_bound", "graph.buffer_window_report", "graph.count_budget", "graph.curve_checks", "graph.dof", "graph.gain_checks", "graph.headroom_rows", "graph.reasons", "graph.verdict", "graph.warnings"]}
+{"file": "pipeline/stage_b.py", "fn": "pipeline.stage_b:_curve_summary", "reads": []}
+{"file": "pipeline/stage_b.py", "fn": "pipeline.stage_b:_finish", "reads": []}
+{"file": "pipeline/stage_b.py", "fn": "pipeline.stage_b:_jsonable", "reads": []}
+{"file": "pipeline/stage_b.py", "fn": "pipeline.stage_b:_write", "reads": []}
+{"file": "pipeline/stage_b.py", "fn": "pipeline.stage_b:run_stage_b.finish", "reads": []}
+{"file": "search/archive.py", "fn": "search.archive:S3Archive._append", "reads": []}
+{"file": "search/front_query.py", "fn": "search.front_query:_from_file", "reads": []}
+{"file": "search/front_query.py", "fn": "search.front_query:_from_snapshot", "reads": ["device.dc_op", "device.pins", "node.dc_rail_v", "node.dc_v", "node.dc_writer"]}
+{"file": "search/start_intervals.py", "fn": "search.start_intervals:_snap", "reads": []}
+{"file": "sizing/block_columns.py", "fn": "sizing.block_columns:_Circuit.solve_self.channel", "reads": []}

@@ -1,0 +1,9 @@
+{"case": "indep_symbolic_CAG0", "num_degree": 2, "lead_coeff": "-CG*Cc*(R*g16 - 1)", "R_null": ["1/g16"]}
+{"case": "indep_symbolic_CAG", "num_degree": 2, "lead_coeff": "-Cc*(CAG*R*g15 + CAG*R*g16 - CAG + CG*R*g16 - CG)", "R_null": ["(CAG + CG)/(CAG*g15 + CAG*g16 + CG*g16)"]}
+{"case": "indep_sweep_162", "cur_rhp0": 162, "gen_rhp1": 162, "n": 162}
+{"case": "indep_CAG_threshold", "gm15/gm16": 0.5, "lambda": 1.0, "CAG/CG": 1.0, "R_star_x_gm16": 0.8016, "pred_1/(gm16+gm15*h_inf)_x_gm16": 0.8, "rhp_at_R=1/gm16": 0}
+{"case": "indep_CAG_threshold", "gm15/gm16": 0.5, "lambda": 10.0, "CAG/CG": 1.0, "R_star_x_gm16": 0.8016, "pred_1/(gm16+gm15*h_inf)_x_gm16": 0.8, "rhp_at_R=1/gm16": 0}
+{"case": "indep_CAG_threshold", "gm15/gm16": 1.0, "lambda": 1.0, "CAG/CG": 1.0, "R_star_x_gm16": 0.6668, "pred_1/(gm16+gm15*h_inf)_x_gm16": 0.6667, "rhp_at_R=1/gm16": 0}
+{"case": "indep_CAG_threshold", "gm15/gm16": 1.0, "lambda": 10.0, "CAG/CG": 1.0, "R_star_x_gm16": 0.6668, "pred_1/(gm16+gm15*h_inf)_x_gm16": 0.6667, "rhp_at_R=1/gm16": 0}
+{"case": "indep_CAG_threshold", "gm15/gm16": 2.0, "lambda": 1.0, "CAG/CG": 1.0, "R_star_x_gm16": 0.5, "pred_1/(gm16+gm15*h_inf)_x_gm16": 0.5, "rhp_at_R=1/gm16": 0}
+{"case": "indep_CAG_threshold", "gm15/gm16": 2.0, "lambda": 10.0, "CAG/CG": 1.0, "R_star_x_gm16": 0.5029, "pred_1/(gm16+gm15*h_inf)_x_gm16": 0.5, "rhp_at_R=1/gm16": 0}

@@ -1,0 +1,10 @@
+[hist] gain-budget-gmid-sizing: ops=['insert'] n_ops=2 inserted_lines=34 rest==old True CRLF old=4 new=4
+[hist] graph-consumption: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=0 new=0
+[hist] headroom-chain: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=0 new=0
+[hist] offset-strategy: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=0 new=0
+[hist] offset-trim: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=0 new=0
+[hist] oracle-portability: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=2 new=2
+[MISS-LINE] gain-budget-gmid-sizing old 2044: | oracle-portability design §21.1·§21.3(v6.38.6 -- 사용자 결정 O-205 (2)·O-210 RR-2·O-211) | 전도 판정 두 단계(`conduction_margin`·`stage2` 대기)·합격 판정 2단계·범위 판정 2단계 확정 지목 | oracle 한 단계 부호 판정(채널 `@m[id]` ≤ 0 = FAIL), ICMR 기능 기준 = 훑기 점별 `.tf` -- oracle-portability design 개정(그 계획 0.6.25, OP-5 착수 전) |
+[MISS] gain-budget-gmid-sizing old 2429 len 158:  **[정정됨 v6.38.6 열다섯째 커밋 -- 사용자 결정 O-202~O-212; 정본 = N3.6 '전도·포화 경계·`off` 선언 정본'·N3.8 'ICMR 기능 기준'·'창 필드'; 이 행의 옛 전도·꺼짐·포화 여유·`off` 대조·2단계 판정·정의 창 문언은 결정 기록]**
+[MISS] headroom-chain old 60 len 166: * **[정정됨 -- 상위 gain-budget v6.38.6 열다섯째 커밋(사용자 결정 O-202~O-212); 정본 = 상위 gain-budget N3.6 '전도·포화 경계·`off` 선언 정본'·N3.8; 이 행의 옛 전도·꺼짐·포화 여유·`off` 대조·2단계 판정·정의 창 문언은 기록]*
+segments checked 12, miss 3

@@ -1,0 +1,26 @@
+repo=C:\g143\p2
+log=C:\g143\p2\tools\gates\redteam\logs\20261001-225322-direct.jsonl
+
+PASS             06-v4-expected-from-subject                  
+PASS             07-v4-assert-under-if                        
+PASS             09-v6-broad-except                           
+PASS             23-v4-boundary                               
+PASS             26-gate-output-utf8                          
+PASS             27f-v6-reconfigure-except                    
+FAIL             28-v3-gmid-options                           
+    - FAIL opts-kill: exit 2 != 기대 0; 메시지에 '"verdict": "PASS"' 없음
+    - FAIL pre-c6-no-opts: exit 2 != 기대 0; 메시지에 '"verdict": "PASS"' 없음
+    - FAIL pre-c6-with-opts: exit 2 != 기대 0; 메시지에 '"verdict": "PASS"' 없음
+    - FAIL strict-outside-inventory: exit 2 != 기대 0; 메시지에 '"verdict": "PASS"' 없음
+PASS             29-v4-decision-exempt                        
+FAIL             31-v3-git-history                            
+    - FAIL git-history-kill: exit 2 != 기대 0; 메시지에 '"verdict": "PASS"' 없음
+    - FAIL survivor-fail-clean: exit 2 != 기대 1; 메시지에 '"verdict": "FAIL"' 없음
+FAIL             v3_survivor                                  
+    - FAIL attack: exit 2 != 기대 1
+    - FAIL control: exit 2 != 기대 0
+PASS             v7_unwired                                   
+
+케이스: {"PASS": 8, "FAIL": 3}
+단계: {"PASS": 239, "FAIL": 8}
+exit 1 log C:/g143/p2/tools/gates/redteam/logs/20261001-225322-direct.jsonl

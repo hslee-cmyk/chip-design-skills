@@ -1,0 +1,28 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "trimfx_fd_rcmfb",
+  "source": "[초안·사용자 승인 전, T-9/T-17] offset trim 2단계 검증용 시험 회로 후보 C -- 완전 차동 1단 OTA: NMOS 차동쌍(M1·M2) + NMOS 꼬리 전류원(M5) + PMOS 전류원 부하(M3·M4). 부하 게이트 넷 cms 는 두 출력에서 같은 저항 Rcm1·Rcm2 로 평균한 출력 공통모드 감지점이다(저항 감지 CMFB 를 부하 게이트에 직접 건 구조 -- 별도 오차 증폭기 없음). 차동 신호에서는 cms 가 교류 접지, 공통모드에서는 부하가 다이오드처럼 동작해 출력 CM 이 vdd - VSG(M3) 로 정해진다. 새로 쓴 회로라 connectivity·해석 모두 사용자 공동 확인 필요.",
+  "_fixture_note": "library 밖 시험 위치(design §16.1). 차동 출력이라 출력 균형 기준 = V(vop) - V(vom) = 0 이고 node_voltage_targets_v 기준 선언이 필요 없다(design §3.6 G-6). 감지 저항을 엔진 값으로 두는 것은 current_reuse_telescopic_ota R1·R2 의 사용자 원칙(2026-10-07, '감지 저항은 출력 노드를 부하하지 않아야 한다')과 같다.",
+  "supply_nets": ["vdd", "gnd"],
+  "bias_inputs": ["bias"],
+  "ports": {
+    "_comment": "극성: vip 상승 -> M1 전류 증가 -> M1.drain = vom 하강, M2.drain = vop 상승 -> vop - vom 상승(vip -> vop 비반전). trim 주입 쌍 규칙(design §9.1): n_p = M1.drain = vom, n_n = M2.drain = vop.",
+    "vip": {"role": "differential_input_p", "direction": "input"},
+    "vim": {"role": "differential_input_n", "direction": "input"},
+    "vop": {"role": "differential_output_p", "direction": "output"},
+    "vom": {"role": "differential_output_n", "direction": "output"}
+  },
+  "netlist": [
+    {"name": "M1", "kind": "nmos", "source": "tail", "drain": "vom", "gate": "vip"},
+    {"name": "M2", "kind": "nmos", "source": "tail", "drain": "vop", "gate": "vim"},
+    {"name": "M3", "kind": "pmos", "source": "vdd", "drain": "vom", "gate": "cms"},
+    {"name": "M4", "kind": "pmos", "source": "vdd", "drain": "vop", "gate": "cms"},
+    {"name": "M5", "kind": "nmos", "source": "gnd", "drain": "tail", "gate": "bias"}
+  ],
+  "passive_elements": [
+    {"name": "Rcm1", "kind": "resistor", "value_ohm": null, "terminals": ["vop", "cms"], "_comment": "출력 CM 감지 저항(vop 쪽). 값은 엔진 계산."},
+    {"name": "Rcm2", "kind": "resistor", "value_ohm": null, "terminals": ["vom", "cms"], "_comment": "출력 CM 감지 저항(vom 쪽). 값은 엔진 계산."},
+    {"name": "CL1", "kind": "capacitor", "value_farad": null, "terminals": ["vop", "gnd"], "_comment": "측정 부하(vop). 값은 spec 정본."},
+    {"name": "CL2", "kind": "capacitor", "value_farad": null, "terminals": ["vom", "gnd"], "_comment": "측정 부하(vom). 값은 spec 정본."}
+  ]
+}

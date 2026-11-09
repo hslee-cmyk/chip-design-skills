@@ -1,0 +1,47 @@
+........................................................................ [  6%]
+........................................................................ [ 13%]
+........................................................................ [ 20%]
+........................................................................ [ 27%]
+........................................................................ [ 33%]
+.......xxxxxx..x.........xxxxx.......................................... [ 40%]
+........................................................................ [ 47%]
+........................................................................ [ 54%]
+........................................................................ [ 61%]
+........................................................................ [ 67%]
+............................................................F........... [ 74%]
+........................................................................ [ 81%]
+................................x...x................................... [ 88%]
+........................................................................ [ 95%]
+........................x...........................                     [100%]
+================================== FAILURES ===================================
+_______________ test_moved_tool_matches_base_except_path_lines ________________
+
+    def test_moved_tool_matches_base_except_path_lines():
+        # oracle (c): 기준선 = base 커밋 blob 그 자체(계약 5의 '경로 계산 줄을 뺀 나머지가 원본과 같다').
+        new_path = _TOOLS_DIR / _TOOL_NAME
+        assert new_path.is_file(), f"{new_path} 가 없다"
+>       assert_only_path_lines_changed(base_blob_text(f"{_TESTS_REL}/{_TOOL_NAME}"),
+                                       new_path.read_text(encoding="utf-8"), _TOOL_NAME)
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py:672: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+base_source = '# -*- coding: utf-8 -*-\n"""제약 임계값을 **달성 가능 실측**에서 유도해 사이드카(`<topology>.derived.json`)에 남긴다.\n\n사용자 지시(2026-09-10): *....dump(book, fh, ensure_ascii=False, indent=2)\n    emit(f"  사이드카 저장: {path}  (지문 {fp})")\n\nemit("")\nemit("=" * 96)\n'
+new_source = '# -*- coding: utf-8 -*-\n"""제약 임계값을 **달성 가능 실측**에서 유도해 사이드카(`<topology>.derived.json`)에 남긴다.\n\n사용자 지시(2026-09-10): *....dump(book, fh, ensure_ascii=False, indent=2)\n    emit(f"  사이드카 저장: {path}  (지문 {fp})")\n\nemit("")\nemit("=" * 96)\n'
+where = 'derive_achievable_bounds.py'
+
+    def assert_only_path_lines_changed(base_source: str, new_source: str, where: str) -> None:
+        """계약 2·5: 바뀐 줄이 전부 경로 줄이고 그 밖의 줄은 모두 같다."""
+        offenders = non_path_line_changes(base_source, new_source)
+>       assert offenders == [], f"{where}: 경로 줄이 아닌 변경 {offenders}"
+E       AssertionError: derive_achievable_bounds.py: 경로 줄이 아닌 변경 [('base', 69, '    book = sr.load_derived_bounds(topo)'), ('new', 69, '    book = {}'), ('base', 112, '    path = sr.derived_bounds_path(topo)'), ('new', 112, '    path = None')]
+E       assert [('base', 69,...path = None')] == []
+E         
+E         Left contains 4 more items, first extra item: ('base', 69, '    book = sr.load_derived_bounds(topo)')
+E         Use -v to get more diff
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py:296: AssertionError
+=========================== short test summary info ===========================
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines
+1 failed, 1044 passed, 15 xfailed in 242.46s (0:04:02)
+exit=1

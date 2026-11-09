@@ -1,0 +1,16 @@
+=== opt=[]
+[33mx[0m[33mx[0m[33mx[0m[33m                                                                      [100%][0m
+[36m[1m=========================== short test summary info ===========================[0m
+[33mXFAIL[0m iso\skills\analog-gmid-design\assets\tests\contracts\test_ic11.py::[1mtest_rail_origin_shift_invariance[rail2][0m - IC11 -- ´ã´ç Phase 4 -- ¸¸·á: 4 DoD
+[33mXFAIL[0m iso\skills\analog-gmid-design\assets\tests\contracts\test_ic11.py::[1mtest_rail_origin_shift_invariance[rail3][0m - IC11 -- ´ã´ç Phase 6a -- ¸¸·á: 6a DoD
+[33mXFAIL[0m iso\skills\analog-gmid-design\assets\tests\contracts\test_ic11.py::[1mtest_rail_origin_shift_invariance[reject][0m - IC11 -- ´ã´ç Phase 6a -- ¸¸·á: 6a DoD
+[33m[33m[1m3 xfailed[0m[33m in 0.55s[0m[0m
+=== opt=[--gmid-dod]
+[1m[31mE       Failed[0m
+
+[1m[31miso\skills\analog-gmid-design\assets\tests\contracts\test_ic11.py[0m:16: Failed
+[36m[1m=========================== short test summary info ===========================[0m
+[33mXFAIL[0m iso\skills\analog-gmid-design\assets\tests\contracts\test_ic11.py::[1mtest_rail_origin_shift_invariance[rail3][0m - IC11 -- ´ã´ç Phase 6a -- ¸¸·á: 6a DoD
+[33mXFAIL[0m iso\skills\analog-gmid-design\assets\tests\contracts\test_ic11.py::[1mtest_rail_origin_shift_invariance[reject][0m - IC11 -- ´ã´ç Phase 6a -- ¸¸·á: 6a DoD
+[31mFAILED[0m iso\skills\analog-gmid-design\assets\tests\contracts\test_ic11.py::[1mtest_rail_origin_shift_invariance[rail2][0m - Failed
+[31m[31m[1m1 failed[0m, [33m2 xfailed[0m[31m in 0.70s[0m[0m

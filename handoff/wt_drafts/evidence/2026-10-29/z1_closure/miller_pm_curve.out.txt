@@ -1,0 +1,9 @@
+{'I2': 0.0, 'hand_PM': 57.858, 'oracle_PM': 45.196, 'hand_GBW': 100000001.393, 'oracle_GBW': 77687600.0, 'oracle_A0': 3290.46}
+{'I2': 0.0, 'hand_PM': 70.54, 'oracle_PM': 51.842, 'hand_GBW': 100000001.393, 'oracle_GBW': 82647000.0, 'oracle_A0': 3290.46}
+{'I2': 0.0, 'hand_PM': 78.762, 'oracle_PM': 56.941, 'hand_GBW': 100000001.393, 'oracle_GBW': 84036700.0, 'oracle_A0': 3290.46}
+{'I2': 0.0, 'hand_PM': 83.625, 'oracle_PM': 60.604, 'hand_GBW': 100000001.393, 'oracle_GBW': 82243700.0, 'oracle_A0': 3290.46}
+{'I2': 0.0, 'hand_PM': 86.405, 'oracle_PM': 63.4, 'hand_GBW': 100000001.393, 'oracle_GBW': 77367300.0, 'oracle_A0': 3290.46}
+{'I2': 0.0, 'hand_PM': 87.976, 'oracle_PM': 66.0, 'hand_GBW': 100000001.393, 'oracle_GBW': 69286500.0, 'oracle_A0': 3290.46}
+{'I2': 0.001, 'hand_PM': 88.862, 'oracle_PM': 68.989, 'hand_GBW': 100000001.393, 'oracle_GBW': 58245200.0, 'oracle_A0': 3290.46}
+{'I2': 0.001, 'hand_PM': 89.36, 'oracle_PM': 72.664, 'hand_GBW': 100000001.393, 'oracle_GBW': 45359200.0, 'oracle_A0': 3290.46}
+{'I2': 0.002, 'hand_PM': 89.64, 'oracle_PM': 76.817, 'hand_GBW': 100000001.393, 'oracle_GBW': 32536800.0, 'oracle_A0': 3290.46}

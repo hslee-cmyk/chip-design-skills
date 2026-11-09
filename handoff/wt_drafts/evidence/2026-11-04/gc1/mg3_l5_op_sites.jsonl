@@ -1,0 +1,87 @@
+{"file": "convergence/converge_point.py", "line": 67, "fn": "converge_point", "reads_dc_op": true, "kind": "tuple", "src": "(m, op)"}
+{"file": "convergence/converge_point.py", "line": 68, "fn": "converge_point", "reads_dc_op": true, "kind": "tuple", "src": "(m, op)"}
+{"file": "convergence/converge_point.py", "line": 90, "fn": "converge_point", "reads_dc_op": true, "kind": "tuple", "src": "(m, op)"}
+{"file": "convergence/converge_point.py", "line": 117, "fn": "converge_point", "reads_dc_op": true, "kind": "tuple", "src": "(m, _w)"}
+{"file": "convergence/layout_input.py", "line": 75, "fn": "layout_input_of", "reads_dc_op": true, "kind": "tuple", "src": "(name, key)"}
+{"file": "convergence/layout_input.py", "line": 71, "fn": "layout_input_of", "reads_dc_op": true, "kind": "tuple", "src": "(op.kind, body)"}
+{"file": "convergence/layout_input.py", "line": 76, "fn": "layout_input_of", "reads_dc_op": true, "kind": "call:row_members.setdefault(key, []).append", "src": "row_members.setdefault(key, []).append(name)"}
+{"file": "convergence/layout_input.py", "line": 68, "fn": "layout_input_of", "reads_dc_op": true, "kind": "call:snapshot.value", "src": "snapshot.value('device', name, 'pins')"}
+{"file": "convergence/layout_input.py", "line": 70, "fn": "layout_input_of", "reads_dc_op": true, "kind": "call:snapshot.value", "src": "snapshot.value('device', name, 'bulk')"}
+{"file": "convergence/layout_input.py", "line": 72, "fn": "layout_input_of", "reads_dc_op": true, "kind": "call:LayoutDevice", "src": "LayoutDevice(name, op.kind, d, g, s, body, float(op.W), float(op.L), float(op.current), float(op.gm_id), float(op.vds), "}
+{"file": "metrics/dc_metrics.py", "line": 117, "fn": "metrics_dc", "reads_dc_op": true, "kind": "call:area_search", "src": "area_search(gates, tuple((PassiveArea(n, values[n], unit.get(n), heads.get(n, 0.0)) for n in passives if values.get(n) i"}
+{"file": "metrics/dc_metrics.py", "line": 113, "fn": "metrics_dc", "reads_dc_op": true, "kind": "call:GateArea", "src": "GateArea(o.W, o.L, label=m)"}
+{"file": "metrics/dc_metrics.py", "line": 113, "fn": "metrics_dc", "reads_dc_op": true, "kind": "tuple", "src": "(m, o)"}
+{"file": "metrics/ls_fields.py", "line": 53, "fn": "_signal_current", "reads_dc_op": false, "kind": "return", "src": "return op.current"}
+{"file": "metrics/ls_fields.py", "line": 55, "fn": "_signal_current", "reads_dc_op": false, "kind": "call:op_point", "src": "op_point(lut.memo, op.kind, op.w_key, op.L, vgs_max, op.vds, op.vsb)"}
+{"file": "metrics/ls_fields.py", "line": 63, "fn": "_cell_current", "reads_dc_op": false, "kind": "return", "src": "return ops[label].current"}
+{"file": "metrics/ls_fields.py", "line": 65, "fn": "_cell_current", "reads_dc_op": false, "kind": "call:_signal_current", "src": "_signal_current(label, pins, ops, volts, bounds, lut)"}
+{"file": "metrics/ls_fields.py", "line": 70, "fn": "_direction", "reads_dc_op": false, "kind": "call:_cell_current", "src": "_cell_current(label, cls, pins, ops, volts, bounds, lut)"}
+{"file": "metrics/ls_fields.py", "line": 93, "fn": "ls_fields", "reads_dc_op": false, "kind": "call:_direction", "src": "_direction(charge, CHARGE, pins, ops, volts, bound, lut, rel_tols)"}
+{"file": "metrics/ls_fields.py", "line": 94, "fn": "ls_fields", "reads_dc_op": false, "kind": "call:_direction", "src": "_direction(discharge, DISCHARGE, pins, ops, volts, bound, lut, rel_tols)"}
+{"file": "metrics/metrics_aux.py", "line": 114, "fn": "_sat_devices", "reads_dc_op": true, "kind": "tuple", "src": "(label, op)"}
+{"file": "metrics/metrics_aux.py", "line": 119, "fn": "_sat_devices", "reads_dc_op": true, "kind": "call:vdsat", "src": "vdsat(lut.memo, op.kind, op.w_key, op.L, op.vgs, op.vds, op.vsb)"}
+{"file": "metrics/metrics_aux.py", "line": 120, "fn": "_sat_devices", "reads_dc_op": true, "kind": "call:tol_vdsat_table(lut.memo, op.kind, op.w_key).at", "src": "tol_vdsat_table(lut.memo, op.kind, op.w_key).at(op.L, op.vds)"}
+{"file": "metrics/metrics_aux.py", "line": 125, "fn": "_sat_devices", "reads_dc_op": true, "kind": "call:SatDevice", "src": "SatDevice(label, 1 if kinds[label] == NMOS else -1, drain, gate, source, op.vgs, sat, sat_tol, tols.get(label), label in"}
+{"file": "metrics/metrics_aux.py", "line": 126, "fn": "_sat_devices", "reads_dc_op": true, "kind": "call:tols.get", "src": "tols.get(label)"}
+{"file": "metrics/metrics_aux.py", "line": 120, "fn": "_sat_devices", "reads_dc_op": true, "kind": "call:tol_vdsat_table", "src": "tol_vdsat_table(lut.memo, op.kind, op.w_key)"}
+{"file": "metrics/metrics_aux.py", "line": 209, "fn": "metrics_aux", "reads_dc_op": true, "kind": "tuple", "src": "(m.label, ops[m.label].gm_id)"}
+{"file": "metrics/metrics_aux.py", "line": 239, "fn": "metrics_aux", "reads_dc_op": true, "kind": "call:ls_fields", "src": "ls_fields(ss, vstruct, ops, node_v, swing.bounds, lut, rel_tols, driving, outs)"}
+{"file": "metrics/metrics_aux.py", "line": 181, "fn": "metrics_aux", "reads_dc_op": true, "kind": "tuple", "src": "(m.label, ops[m.label].kind, ops[m.label].w_key, ops[m.label].L, ops[m.label].W, ops[m.label].vgs, ops[m.label].vds, ops"}
+{"file": "metrics/noise_devices.py", "line": 31, "fn": "_device", "reads_dc_op": false, "kind": "call:noise_params", "src": "noise_params(memo, op.kind, op.w_key, op.L, op.vgs, op.vds, op.vsb)"}
+{"file": "metrics/noise_devices.py", "line": 32, "fn": "_device", "reads_dc_op": false, "kind": "call:tol_noise_table", "src": "tol_noise_table(memo, op.kind)"}
+{"file": "metrics/noise_devices.py", "line": 33, "fn": "_device", "reads_dc_op": false, "kind": "call:table.at", "src": "table.at(op.L, op.vds, TOL_THERMAL)"}
+{"file": "metrics/noise_devices.py", "line": 34, "fn": "_device", "reads_dc_op": false, "kind": "call:table.at", "src": "table.at(op.L, op.vds, TOL_FLICKER)"}
+{"file": "metrics/noise_devices.py", "line": 51, "fn": "noise_devices", "reads_dc_op": true, "kind": "call:_device", "src": "_device(memo, name, op)"}
+{"file": "metrics/noise_devices.py", "line": 51, "fn": "noise_devices", "reads_dc_op": true, "kind": "tuple", "src": "(name, op)"}
+{"file": "metrics/noise_devices.py", "line": 53, "fn": "noise_devices", "reads_dc_op": true, "kind": "tuple", "src": "(_name, op)"}
+{"file": "metrics/ss_linearize.py", "line": 64, "fn": "_linearize", "reads_dc_op": false, "kind": "tuple", "src": "(op.L, op.vgs, op.vds, op.vsb)"}
+{"file": "metrics/ss_linearize.py", "line": 69, "fn": "_linearize", "reads_dc_op": false, "kind": "call:junction_caps", "src": "junction_caps(junction.params_of(op.kind), geometry, op.vds + op.vsb, op.vsb, junction.temp_c)"}
+{"file": "metrics/ss_linearize.py", "line": 69, "fn": "_linearize", "reads_dc_op": false, "kind": "call:junction.params_of", "src": "junction.params_of(op.kind)"}
+{"file": "metrics/ss_linearize.py", "line": 63, "fn": "_linearize", "reads_dc_op": false, "kind": "tuple", "src": "(op.kind, op.w_key)"}
+{"file": "metrics/ss_linearize.py", "line": 65, "fn": "_linearize", "reads_dc_op": false, "kind": "call:op_point", "src": "op_point(memo, op.kind, op.w_key, *args)"}
+{"file": "metrics/ss_linearize.py", "line": 66, "fn": "_linearize", "reads_dc_op": false, "kind": "call:gmb", "src": "gmb(memo, op.kind, op.w_key, *args)"}
+{"file": "metrics/ss_linearize.py", "line": 67, "fn": "_linearize", "reads_dc_op": false, "kind": "call:caps", "src": "caps(memo, op.kind, *args, op.W)"}
+{"file": "metrics/ss_linearize.py", "line": 73, "fn": "_linearize", "reads_dc_op": false, "kind": "call:_gmb_model", "src": "_gmb_model(memo.lut, op.kind, op.w_key)"}
+{"file": "metrics/ss_linearize.py", "line": 84, "fn": "ss_dev", "reads_dc_op": true, "kind": "call:_linearize", "src": "_linearize(lut, junction, m, op, tols.get(m), gm[m], realized.get(m))"}
+{"file": "metrics/ss_linearize.py", "line": 84, "fn": "ss_dev", "reads_dc_op": true, "kind": "call:tols.get", "src": "tols.get(m)"}
+{"file": "metrics/ss_linearize.py", "line": 84, "fn": "ss_dev", "reads_dc_op": true, "kind": "call:realized.get", "src": "realized.get(m)"}
+{"file": "metrics/ss_linearize.py", "line": 85, "fn": "ss_dev", "reads_dc_op": true, "kind": "tuple", "src": "(m, op)"}
+{"file": "search/constraints.py", "line": 36, "fn": "constraint_rows", "reads_dc_op": true, "kind": "tuple", "src": "(m, op)"}
+{"file": "search/constraints.py", "line": 38, "fn": "constraint_rows", "reads_dc_op": true, "kind": "call:tols.get", "src": "tols.get(m)"}
+{"file": "search/constraints.py", "line": 45, "fn": "constraint_rows", "reads_dc_op": true, "kind": "call:gm_id_curve", "src": "gm_id_curve(lut_access.memo, op.kind, w_keys[op.kind], op.L, op.vds, op.vsb)"}
+{"file": "search/constraints.py", "line": 40, "fn": "constraint_rows", "reads_dc_op": true, "kind": "call:undefined.append", "src": "undefined.append(m)"}
+{"file": "search/constraints.py", "line": 47, "fn": "constraint_rows", "reads_dc_op": true, "kind": "tuple", "src": "(op.kind, w_keys[op.kind])"}
+{"file": "search/constraints.py", "line": 48, "fn": "constraint_rows", "reads_dc_op": true, "kind": "call:math.log", "src": "math.log(op.L)"}
+{"file": "search/fd_jacobian.py", "line": 46, "fn": "_steps", "reads_dc_op": true, "kind": "call:tols.get", "src": "tols.get(m)"}
+{"file": "search/fd_jacobian.py", "line": 63, "fn": "_steps", "reads_dc_op": true, "kind": "tuple", "src": "(op.kind, w_keys[op.kind])"}
+{"file": "search/fd_jacobian.py", "line": 64, "fn": "_steps", "reads_dc_op": true, "kind": "call:_cell_width", "src": "_cell_width(sl.VGS_grid, op.vgs)"}
+{"file": "search/fd_jacobian.py", "line": 70, "fn": "_steps", "reads_dc_op": true, "kind": "call:tols.get", "src": "tols.get(m)"}
+{"file": "search/front_query.py", "line": 26, "fn": "_from_snapshot", "reads_dc_op": true, "kind": "tuple", "src": "(m, op)"}
+{"file": "search/front_query.py", "line": 29, "fn": "_from_snapshot", "reads_dc_op": true, "kind": "tuple", "src": "(m, terms, tuple(((f, getattr(op, f)) for f in _OP_FIELDS)))"}
+{"file": "search/front_query.py", "line": 27, "fn": "_from_snapshot", "reads_dc_op": true, "kind": "tuple", "src": "(t, net)"}
+{"file": "search/front_query.py", "line": 29, "fn": "_from_snapshot", "reads_dc_op": true, "kind": "tuple", "src": "(f, getattr(op, f))"}
+{"file": "search/front_query.py", "line": 54, "fn": "_from_file", "reads_dc_op": true, "kind": "tuple", "src": "(f, op[f])"}
+{"file": "search/gate_run.py", "line": 49, "fn": "run_sensitivity_gate", "reads_dc_op": true, "kind": "tuple", "src": "(m, _)"}
+{"file": "search/gate_run.py", "line": 50, "fn": "run_sensitivity_gate", "reads_dc_op": true, "kind": "call:_affected", "src": "_affected(sctx, v, everything)"}
+{"file": "sizing/seal_bulk_reverse.py", "line": 22, "fn": "dc_seal_bulk_reverse", "reads_dc_op": true, "kind": "tuple", "src": "(m, op)"}
+{"file": "sizing/seal_bulk_reverse.py", "line": 24, "fn": "dc_seal_bulk_reverse", "reads_dc_op": true, "kind": "tuple", "src": "(m, forward, tol_v[m], (m,), ())"}
+{"file": "sizing/seal_bulk_reverse.py", "line": 24, "fn": "dc_seal_bulk_reverse", "reads_dc_op": true, "kind": "tuple", "src": "(m,)"}
+{"file": "sizing/seal_conduction.py", "line": 29, "fn": "_off_current", "reads_dc_op": false, "kind": "call:op_point", "src": "op_point(lut.memo, op.kind, op.w_key, op.L, 0.0, op.vds, op.vsb)"}
+{"file": "sizing/seal_conduction.py", "line": 40, "fn": "dc_seal_conduction", "reads_dc_op": true, "kind": "tuple", "src": "(m, op)"}
+{"file": "sizing/seal_conduction.py", "line": 43, "fn": "dc_seal_conduction", "reads_dc_op": true, "kind": "call:_off_current", "src": "_off_current(lut, m, op)"}
+{"file": "sizing/seal_conduction.py", "line": 47, "fn": "dc_seal_conduction", "reads_dc_op": true, "kind": "tuple", "src": "(m, off, None if eps is None else eps * op.current, (m,), ())"}
+{"file": "sizing/seal_conduction.py", "line": 44, "fn": "dc_seal_conduction", "reads_dc_op": true, "kind": "call:tol_v.get", "src": "tol_v.get(m)"}
+{"file": "sizing/seal_conduction.py", "line": 47, "fn": "dc_seal_conduction", "reads_dc_op": true, "kind": "tuple", "src": "(m,)"}
+{"file": "sizing/seal_kvl_branch.py", "line": 29, "fn": "dc_seal_kvl_branch", "reads_dc_op": true, "kind": "call:math.log", "src": "math.log(ops[m].idu_forward)"}
+{"file": "sizing/seal_saturation.py", "line": 36, "fn": "_row", "reads_dc_op": false, "kind": "call:vdsat", "src": "vdsat(lut.memo, op.kind, op.w_key, op.L, op.vgs, op.vds, op.vsb)"}
+{"file": "sizing/seal_saturation.py", "line": 42, "fn": "_row", "reads_dc_op": false, "kind": "call:tol_vdsat_table(lut.memo, op.kind, op.w_key).at", "src": "tol_vdsat_table(lut.memo, op.kind, op.w_key).at(op.L, op.vds)"}
+{"file": "sizing/seal_saturation.py", "line": 42, "fn": "_row", "reads_dc_op": false, "kind": "call:tol_vdsat_table", "src": "tol_vdsat_table(lut.memo, op.kind, op.w_key)"}
+{"file": "sizing/seal_saturation.py", "line": 55, "fn": "dc_seal_saturation", "reads_dc_op": true, "kind": "tuple", "src": "(m, op)"}
+{"file": "sizing/seal_saturation.py", "line": 57, "fn": "dc_seal_saturation", "reads_dc_op": true, "kind": "call:_row", "src": "_row(lut, m, op)"}
+{"file": "sizing/seal_tolerances.py", "line": 28, "fn": "dc_tolerances", "reads_dc_op": true, "kind": "tuple", "src": "(m, op)"}
+{"file": "sizing/seal_tolerances.py", "line": 29, "fn": "dc_tolerances", "reads_dc_op": true, "kind": "call:tol_v_cell", "src": "tol_v_cell(lut, m, op.kind, op.L, op.vds)"}
+{"file": "sizing/seal_vgs_match.py", "line": 24, "fn": "dc_seal_vgs_match", "reads_dc_op": true, "kind": "tuple", "src": "(m, op)"}
+{"file": "sizing/seal_vgs_match.py", "line": 26, "fn": "dc_seal_vgs_match", "reads_dc_op": true, "kind": "tuple", "src": "(m, mismatch, tol_v[m], (m,), ())"}
+{"file": "sizing/seal_vgs_match.py", "line": 26, "fn": "dc_seal_vgs_match", "reads_dc_op": true, "kind": "tuple", "src": "(m,)"}
+{"file": "sizing/seal_vgs_match.py", "line": 25, "fn": "dc_seal_vgs_match", "reads_dc_op": true, "kind": "call:math.log", "src": "math.log(op.idu_forward)"}
+{"file": "sizing/size_and_seal_local.py", "line": 128, "fn": "size_and_seal_local", "reads_dc_op": true, "kind": "tuple", "src": "(m, ops[m])"}

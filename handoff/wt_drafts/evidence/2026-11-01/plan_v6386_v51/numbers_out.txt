@@ -1,0 +1,210 @@
+gain-budget-gmid-sizing	a4d87f1a	pA	5
+gain-budget-gmid-sizing	a4d87f1a	7380	0
+gain-budget-gmid-sizing	a4d87f1a	1354	0
+gain-budget-gmid-sizing	a4d87f1a	3.2e-10	0
+gain-budget-gmid-sizing	a4d87f1a	6.35	270
+gain-budget-gmid-sizing	a4d87f1a	1.06	0
+gain-budget-gmid-sizing	a4d87f1a	3.39	0
+gain-budget-gmid-sizing	a4d87f1a	0.003 dB	0
+gain-budget-gmid-sizing	a4d87f1a	1.7 mV	0
+gain-budget-gmid-sizing	a4d87f1a	37.5	0
+gain-budget-gmid-sizing	a4d87f1a	22.7	0
+gain-budget-gmid-sizing	a4d87f1a	0.295	0
+gain-budget-gmid-sizing	a4d87f1a	0.946	0
+gain-budget-gmid-sizing	a4d87f1a	2413	0
+gain-budget-gmid-sizing	a4d87f1a	2.5 pA	0
+gain-budget-gmid-sizing	a4d87f1a	1.9e-18	0
+gain-budget-gmid-sizing	a4d87f1a	8.9~28.4	0
+gain-budget-gmid-sizing	a4d87f1a	23.6~75.7	0
+gain-budget-gmid-sizing	a4d87f1a	4/13	0
+gain-budget-gmid-sizing	a4d87f1a	0/13	2
+gain-budget-gmid-sizing	a4d87f1a	13 spec	2
+gain-budget-gmid-sizing	ef911010	pA	5
+gain-budget-gmid-sizing	ef911010	7380	0
+gain-budget-gmid-sizing	ef911010	1354	0
+gain-budget-gmid-sizing	ef911010	3.2e-10	0
+gain-budget-gmid-sizing	ef911010	6.35	274
+gain-budget-gmid-sizing	ef911010	1.06	0
+gain-budget-gmid-sizing	ef911010	3.39	0
+gain-budget-gmid-sizing	ef911010	0.003 dB	0
+gain-budget-gmid-sizing	ef911010	1.7 mV	0
+gain-budget-gmid-sizing	ef911010	37.5	0
+gain-budget-gmid-sizing	ef911010	22.7	0
+gain-budget-gmid-sizing	ef911010	0.295	0
+gain-budget-gmid-sizing	ef911010	0.946	0
+gain-budget-gmid-sizing	ef911010	2413	0
+gain-budget-gmid-sizing	ef911010	2.5 pA	0
+gain-budget-gmid-sizing	ef911010	1.9e-18	0
+gain-budget-gmid-sizing	ef911010	8.9~28.4	0
+gain-budget-gmid-sizing	ef911010	23.6~75.7	0
+gain-budget-gmid-sizing	ef911010	4/13	1
+gain-budget-gmid-sizing	ef911010	0/13	3
+gain-budget-gmid-sizing	ef911010	13 spec	3
+graph-consumption	a4d87f1a	pA	0
+graph-consumption	a4d87f1a	7380	0
+graph-consumption	a4d87f1a	1354	0
+graph-consumption	a4d87f1a	3.2e-10	0
+graph-consumption	a4d87f1a	6.35	22
+graph-consumption	a4d87f1a	1.06	0
+graph-consumption	a4d87f1a	3.39	0
+graph-consumption	a4d87f1a	0.003 dB	0
+graph-consumption	a4d87f1a	1.7 mV	0
+graph-consumption	a4d87f1a	37.5	0
+graph-consumption	a4d87f1a	22.7	0
+graph-consumption	a4d87f1a	0.295	0
+graph-consumption	a4d87f1a	0.946	0
+graph-consumption	a4d87f1a	2413	0
+graph-consumption	a4d87f1a	2.5 pA	0
+graph-consumption	a4d87f1a	1.9e-18	0
+graph-consumption	a4d87f1a	8.9~28.4	0
+graph-consumption	a4d87f1a	23.6~75.7	0
+graph-consumption	a4d87f1a	4/13	0
+graph-consumption	a4d87f1a	0/13	0
+graph-consumption	a4d87f1a	13 spec	0
+graph-consumption	ef911010	pA	0
+graph-consumption	ef911010	7380	0
+graph-consumption	ef911010	1354	0
+graph-consumption	ef911010	3.2e-10	0
+graph-consumption	ef911010	6.35	21
+graph-consumption	ef911010	1.06	0
+graph-consumption	ef911010	3.39	0
+graph-consumption	ef911010	0.003 dB	0
+graph-consumption	ef911010	1.7 mV	0
+graph-consumption	ef911010	37.5	0
+graph-consumption	ef911010	22.7	0
+graph-consumption	ef911010	0.295	0
+graph-consumption	ef911010	0.946	0
+graph-consumption	ef911010	2413	0
+graph-consumption	ef911010	2.5 pA	0
+graph-consumption	ef911010	1.9e-18	0
+graph-consumption	ef911010	8.9~28.4	0
+graph-consumption	ef911010	23.6~75.7	0
+graph-consumption	ef911010	4/13	0
+graph-consumption	ef911010	0/13	0
+graph-consumption	ef911010	13 spec	0
+headroom-chain	a4d87f1a	pA	0
+headroom-chain	a4d87f1a	7380	0
+headroom-chain	a4d87f1a	1354	0
+headroom-chain	a4d87f1a	3.2e-10	0
+headroom-chain	a4d87f1a	6.35	6
+headroom-chain	a4d87f1a	1.06	0
+headroom-chain	a4d87f1a	3.39	0
+headroom-chain	a4d87f1a	0.003 dB	0
+headroom-chain	a4d87f1a	1.7 mV	0
+headroom-chain	a4d87f1a	37.5	0
+headroom-chain	a4d87f1a	22.7	0
+headroom-chain	a4d87f1a	0.295	0
+headroom-chain	a4d87f1a	0.946	0
+headroom-chain	a4d87f1a	2413	0
+headroom-chain	a4d87f1a	2.5 pA	0
+headroom-chain	a4d87f1a	1.9e-18	0
+headroom-chain	a4d87f1a	8.9~28.4	0
+headroom-chain	a4d87f1a	23.6~75.7	0
+headroom-chain	a4d87f1a	4/13	0
+headroom-chain	a4d87f1a	0/13	0
+headroom-chain	a4d87f1a	13 spec	0
+headroom-chain	ef911010	pA	0
+headroom-chain	ef911010	7380	0
+headroom-chain	ef911010	1354	0
+headroom-chain	ef911010	3.2e-10	0
+headroom-chain	ef911010	6.35	6
+headroom-chain	ef911010	1.06	0
+headroom-chain	ef911010	3.39	0
+headroom-chain	ef911010	0.003 dB	0
+headroom-chain	ef911010	1.7 mV	0
+headroom-chain	ef911010	37.5	0
+headroom-chain	ef911010	22.7	0
+headroom-chain	ef911010	0.295	0
+headroom-chain	ef911010	0.946	0
+headroom-chain	ef911010	2413	0
+headroom-chain	ef911010	2.5 pA	0
+headroom-chain	ef911010	1.9e-18	0
+headroom-chain	ef911010	8.9~28.4	0
+headroom-chain	ef911010	23.6~75.7	0
+headroom-chain	ef911010	4/13	0
+headroom-chain	ef911010	0/13	0
+headroom-chain	ef911010	13 spec	0
+offset-trim	a4d87f1a	pA	0
+offset-trim	a4d87f1a	7380	0
+offset-trim	a4d87f1a	1354	0
+offset-trim	a4d87f1a	3.2e-10	0
+offset-trim	a4d87f1a	6.35	1
+offset-trim	a4d87f1a	1.06	0
+offset-trim	a4d87f1a	3.39	0
+offset-trim	a4d87f1a	0.003 dB	0
+offset-trim	a4d87f1a	1.7 mV	0
+offset-trim	a4d87f1a	37.5	0
+offset-trim	a4d87f1a	22.7	0
+offset-trim	a4d87f1a	0.295	0
+offset-trim	a4d87f1a	0.946	0
+offset-trim	a4d87f1a	2413	0
+offset-trim	a4d87f1a	2.5 pA	0
+offset-trim	a4d87f1a	1.9e-18	0
+offset-trim	a4d87f1a	8.9~28.4	0
+offset-trim	a4d87f1a	23.6~75.7	0
+offset-trim	a4d87f1a	4/13	0
+offset-trim	a4d87f1a	0/13	0
+offset-trim	a4d87f1a	13 spec	0
+offset-trim	ef911010	pA	0
+offset-trim	ef911010	7380	0
+offset-trim	ef911010	1354	0
+offset-trim	ef911010	3.2e-10	0
+offset-trim	ef911010	6.35	1
+offset-trim	ef911010	1.06	0
+offset-trim	ef911010	3.39	0
+offset-trim	ef911010	0.003 dB	0
+offset-trim	ef911010	1.7 mV	0
+offset-trim	ef911010	37.5	0
+offset-trim	ef911010	22.7	0
+offset-trim	ef911010	0.295	0
+offset-trim	ef911010	0.946	0
+offset-trim	ef911010	2413	0
+offset-trim	ef911010	2.5 pA	0
+offset-trim	ef911010	1.9e-18	0
+offset-trim	ef911010	8.9~28.4	0
+offset-trim	ef911010	23.6~75.7	0
+offset-trim	ef911010	4/13	0
+offset-trim	ef911010	0/13	0
+offset-trim	ef911010	13 spec	0
+oracle-portability	a4d87f1a	pA	0
+oracle-portability	a4d87f1a	7380	0
+oracle-portability	a4d87f1a	1354	0
+oracle-portability	a4d87f1a	3.2e-10	0
+oracle-portability	a4d87f1a	6.35	4
+oracle-portability	a4d87f1a	1.06	0
+oracle-portability	a4d87f1a	3.39	0
+oracle-portability	a4d87f1a	0.003 dB	0
+oracle-portability	a4d87f1a	1.7 mV	0
+oracle-portability	a4d87f1a	37.5	0
+oracle-portability	a4d87f1a	22.7	0
+oracle-portability	a4d87f1a	0.295	0
+oracle-portability	a4d87f1a	0.946	0
+oracle-portability	a4d87f1a	2413	0
+oracle-portability	a4d87f1a	2.5 pA	0
+oracle-portability	a4d87f1a	1.9e-18	0
+oracle-portability	a4d87f1a	8.9~28.4	0
+oracle-portability	a4d87f1a	23.6~75.7	0
+oracle-portability	a4d87f1a	4/13	0
+oracle-portability	a4d87f1a	0/13	0
+oracle-portability	a4d87f1a	13 spec	0
+oracle-portability	ef911010	pA	0
+oracle-portability	ef911010	7380	0
+oracle-portability	ef911010	1354	0
+oracle-portability	ef911010	3.2e-10	0
+oracle-portability	ef911010	6.35	5
+oracle-portability	ef911010	1.06	0
+oracle-portability	ef911010	3.39	0
+oracle-portability	ef911010	0.003 dB	0
+oracle-portability	ef911010	1.7 mV	0
+oracle-portability	ef911010	37.5	0
+oracle-portability	ef911010	22.7	0
+oracle-portability	ef911010	0.295	0
+oracle-portability	ef911010	0.946	0
+oracle-portability	ef911010	2413	0
+oracle-portability	ef911010	2.5 pA	0
+oracle-portability	ef911010	1.9e-18	0
+oracle-portability	ef911010	8.9~28.4	0
+oracle-portability	ef911010	23.6~75.7	0
+oracle-portability	ef911010	4/13	0
+oracle-portability	ef911010	0/13	0
+oracle-portability	ef911010	13 spec	0

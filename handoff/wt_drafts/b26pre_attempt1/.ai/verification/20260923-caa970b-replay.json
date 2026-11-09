@@ -1,0 +1,80 @@
+{
+  "id": "20260923-caa970b-replay",
+  "spec_card": "docs/02-design/specs/20260923-caa970b-replay.spec.md",
+  "evidence_type": "test-only",
+  "base_commit": "5d70a57a3d9abb1b12f15e889f7e8c71723600b3",
+  "test_commit": "c3b7827f7046cfce63ad2350a819ef303d62a667",
+  "code_commit": null,
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "병합본 = T c3b7827f7046cfce63ad2350a819ef303d62a667(test-only이라 N3.12.3 순서 4·5가 없어 audit worktree HEAD = T)의 격리 복제본에서 V1 명령(-k·--deselect·-x 없음, slow 포함 전체, base 판 캐시 5d70a57의 pytest_gate.ini, --gmid-phase=1 --gmid-strict=IC3:,IC5:): collected 293, 278 passed, 15 xfailed, XPASS·FAILED·ERROR·skip 0, exit 0, 76.37s, 출력 sha256 1c9a480e7228680b7af6c6c52ddcbaa2f70aa62309cdccc08465b50123a18c86(4779바이트). 머리에 shuffle-seed: none과 real_lut sha256=753d802a860320dd54b53b95920c6f9addcea821c55089358bf4b1f1ebaf177f가 나온다. 이 변경은 skills/analog-gmid-design/assets/** 를 한 바이트도 바꾸지 않으므로(base..T 변경 경로 4개가 전부 tools/gates/redteam/ 아래) 수치가 직전 C9 판정(collected 293, 278 passed, 15 xfailed)과 같은 것이 정상이다. 실행 뒤 복제본 git status --porcelain 0줄"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "test-only(N4.2 V2). code 커밋 없음(code_commit null). 이 card는 섹션->test 이관이 아니라 게이트 재생 데이터 추가라 '섹션->test 매핑표'가 없고, 증거는 design 10 §6.9 C10과 spec card 계약 3~6이 정한 두 단계의 실측이다. auditor가 rt.py를 쓰지 않고 케이스 파일 red.json의 명세만 읽어 합성 트리를 직접 만들고 05 §12-7 격리 명령을 직접 돌린 실측: attack = pytest exit 0(collected 1 / 1 passed), red 수집 0건 -> 단계 exit 1(적발) / control = pytest exit 1(1 failed), red 수집 1건, test id skills/analog-gmid-design/assets/tests/test_caa970b_l4.py::test_caa970b_l4, 예외 타입 builtins.AssertionError -> 단계 exit 0(오거부 없음). 둘 다 케이스가 커밋해 둔 observed_equals와 완전히 같다. control의 failure_hash는 base 판 캐시 merge_gate.red_failure_hash로 6668ac52b3ea703679705c25a9113bac76f90ff228f9ba15107233fb711cca37이고 수식 sha256(test_id + LF + 'builtins.AssertionError')과 같다(이 값은 판정 기록의 red 필드가 아니다 -- test-only라 red 금지). 새 판정식의 문장 대조: a_redrun의 단계 exit = (red 수집 0건이면 1, 1건 이상이면 0)은 N4.2 V2 'red-green: 새·바뀐 test가 base에서 assertion FAIL'의 앞 절반을 그대로 옮긴 것이다 -- 00-common §8.1의 red 수집이 '허용 예외 타입으로 base에서 실패한 test'만 기록하므로 red>=1 <-> 'base에서 assertion FAIL'이 성립하고 red=0 <-> 'red 부재'라 V2 불만족이다. 합성 head 트리에 test 파일이 하나뿐이어서(collected 1) '새·바뀐 test'가 곧 수집 전부이고, IC 표식·conftest가 없어 '활성화 IC 케이스' 절은 해당 없음이다. 범위 한계를 함께 적는다: 이 케이스는 V2의 뒷 절반('병합본 PASS')과 equivalence·test-only 갈래를 재생하지 않는다(design 10 §6.9가 정한 재생 대상이 'V2 red 부재' 하나다). 또 exit이 red 건수만 보므로 '허용 밖 예외로 죽은 test'도 red 0으로 묶이는데, N4.2 V2가 요구하는 것이 assertion FAIL이라 그 묶임은 V2와 어긋나지 않고, 케이스는 pytest_exit을 별도 관찰값으로 못박아(attack 0) 'base에서 PASS'와 '오류로 죽음'을 구별한다. 도구 재생도 같은 값을 냈다: run_all.py --cases 1 --mode direct -> 케이스 PASS, 단계 attack PASS(exit 1)·control PASS(exit 0), 8.7초(design 10 §10 D7의 명령). 상세는 .ai/verification/20260923-caa970b-replay/base_check.json"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 mutate_changed.py(--gmid-phase=1 --gmid-strict=IC3:,IC5: 전달, C11 계약): targets 빈 목록, mutants 0, killed 0, survivors 빈 목록, verdict PASS, exit 0, --out jsonl 파일 미생성(0행). 근거: 변이 대상은 base..T diff의 .py 중 reachability._is_source가 참인 것이고 그 술어는 skills/analog-gmid-design/assets/ 바로 아래 .py와 workspaces/run_harness.py만 참인데, 이 변경의 유일한 .py는 tools/gates/redteam/lib/rt.py라 AST 해시가 바뀐 대상 def가 0개다. --pytest-ini는 복제본 tools/gates/pytest_gate.ini(blob 5d89b982178b2e0e8d15aefd290cc5e17ab1e9c5 = base 같은 경로의 blob과 동일)"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: spec card 'oracle 종류와 출처'는 (a) 구성으로 정답이 정해진 입력 -- base 트리는 고정 커밋 caa970b의 blob이고 두 단계의 기대는 caa970b의 단언과 d32811b의 단언에서 직접 나온다. 기대값마다 대조(이 변경이 만든 기대값은 red.json의 observed_equals 8개와 단계 exit 2개다): (1) attack.pytest_exit=0·red_count=0 <- caa970b:sizing_recipe.py 2592-2646행 L4 섹션의 단언 `unaffected_metrics_skipped == [\"other_current\"]`를 같은 커밋 코드에 돌린 것이라 정의상 통과이고, auditor가 caa970b blob을 직접 잘라 그 단언이 원문 그대로임을 확인했다(게이트 출력에서 만든 값이 아니다) (2) attack.red_test_ids=[]·red_exc_types=[] <- (1)의 따름 (3) control.pytest_exit=1·red_count=1·red_exc_types=[\"builtins.AssertionError\"] <- d32811b:sizing_recipe.py 9769행 `assert _l4_pass_result[\"unaffected_metrics_skipped\"] == [],`가 출처이고, auditor가 그 커밋 blob에서 비교식을 직접 읽어 케이스의 replace 결과와 같음을 확인했다. 예외 타입은 00-common §8.1 허용 목록의 이름이고 실측도 같았다 (4) control.red_test_ids=[\".../test_caa970b_l4.py::test_caa970b_l4\"] <- 케이스가 정한 파일 이름과 def 이름의 합성이라 구성값이다 (5) 단계 exit 1/0 <- N4.2 V2 문장(V2 basis의 문장 대조) -- 모두 게이트 출력을 기대값으로 삼지 않았다. 원문 충실도 실측: 합성 head 파일에서 caa970b 원문 밖 바이트는 148바이트(머리 142 + 조각 사이 개행 6)뿐이고, 세 조각(prelude 2409-2427 19줄, lut 2429-2441 13줄, L4 섹션 2592-2646 55줄)은 공통 들여쓰기 4칸을 벗긴 것 말고는 원문과 바이트로 같으며 되붙이면 원문이 복원된다. 섹션의 assert 6개 전부 원형, attack의 replace 0건, control의 replace는 비교식 한 곳뿐이다. base 판 test_lint.py(interface card 두 표가 비어 있어 --interface-card만으로는 ERROR(피검 심볼 없음)라 --module-dir tools/gates/redteam/lib --subject rt:a_redrun·iso_cmd·iso_env·iso_common·gate_cache_copy·lines_block·compose_file·a_isolated_run로 실행): verdict PASS, 대상 test 파일 0개(base..T의 변경은 tools/gates/redteam/** 뿐이고 V4 test 분류 파일 변경 0), findings 0, UNJUDGED 0, exit 0 -- 검출기가 판정한 assert가 0개이므로 독립성의 근거는 검출기가 아니라 위의 oracle (a) 출처 대조에 선다"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 weakening_diff.py(base 5d70a57, head c3b7827): verdict PASS, findings 0건, diff_paths 빈 목록, diff_hash 없음(null), approved false, exit 0 -- 승인 target과 대조할 해시가 없다(이 변경에는 V5 승인이 없고 필요하지도 않다). 근거와 한계: 도구의 test 분류는 skills/analog-gmid-design/assets/tests/**(tests/tools/** 제외)뿐이고 TS1 뒤라 소스 if __name__ 블록도 입력이 아니어서, 이 변경이 건드린 tools/gates/redteam/**는 V5 범위 밖이다 -- 즉 redteam expect.json의 skip_reason 제거나 케이스 기대 변경은 V5가 보지 못한다(C13 때 적은 것과 같은 한계). 그 공백은 auditor가 직접 메웠다: base..T에서 기존 케이스의 expect.json 변경은 caa970b 케이스 하나뿐이고(다른 6개 케이스 expect.json 변경 0줄), 그 변경도 기대를 느슨하게 한 것이 아니라 SKIPPED였던 케이스를 실제로 실행하게 켠 것이다(skip_reason 제거 + steps_from_records 추가, phase \"1\"·layer·modes [\"direct\"]는 그대로). 기존 동작 a_isolated_run의 판정이 바뀌지 않았음은 base 판 rt.py와 T 판 rt.py로 공격 17을 각각 돌려 명령 문자열·exit·note·stderr가 전부 같음을 실측해 확인했다(차이는 pytest 실행 시간 문자열뿐)"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 source_lint.py(base 5d70a57, head c3b7827): targets 빈 목록, findings 빈 목록, verdict PASS, exit 0 -- 소스 lint 대상(assets 최상위 소스 .py와 workspaces/run_harness.py) 변경이 0이다. 관찰(범위 밖이지만 적어 둔다): T의 rt.py 추가분에 새 광범위 except는 없고 except는 subprocess.TimeoutExpired 하나(기록 뒤 continue, 사유는 note에 남긴다)이며, lines_block은 빈 줄 범위를 RuntimeError로 거부한다(삼키는 경로가 아니다). 추가분의 숫자 리터럴은 timeout=1800 하나이고 게이트 도구라 V6 태그 규칙 대상이 아니다"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터 병합 판정에 쓴다(N4.2 도입 열). 이 card는 Phase 1이다. 참고 실행(base 판 reachability.py): verdict PASS, new_defs 빈 목록, unreached 빈 목록, exit 0 -- 새 def는 게이트 도구 안에만 있어 소스 호출 그래프 밖이다. 배선 자체는 실측으로 확인했다: a_redrun은 run.sh의 `rt redrun red.json`에서 불리고 그 경로가 run_all.py --cases 1 PASS를 지난다. iso_common·iso_cmd·iso_env·gate_cache_copy는 a_isolated_run과 a_redrun 두 곳에서 불리고 공격 17 재실행이 그 경로를 지난다"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터 병합 판정에 쓴다(N4.2 도입 열). 이 card는 Phase 1이고 엔진 소스를 바꾸지 않아 정본 spec 실행 결과가 달라지지 않는다"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터 병합 판정에 쓴다(N4.2 도입 열). 이 card는 Phase 1이고 사이징 결과를 만들지 않는다"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치'가 '없음'이라 재현할 보고 수치가 없다 -- reproduced_numbers는 빈 배열이다. 이 판정 기록의 모든 수치(collected 293·278 passed·15 xfailed, attack red 0건·pytest exit 0, control red 1건·pytest exit 1, 원문 밖 148바이트, 케이스 50 PASS·7 SKIPPED·단계 586 PASS·12 RECORD, V3~V6 도구 출력)는 auditor가 격리 복제본에서 직접 잰 값이고 작성자(test-author·오케스트레이터)의 보고를 받지 않았다. 계약별 실측: 계약 5(design 10 §10 D7) run_all.py --cases 1 --mode direct -> caa970b 케이스 PASS, 나머지 6개 SKIPPED, 단계 {PASS:2}. 계약 6 run_all.py --phase 0.5 --mode direct -> 케이스 {PASS:50, SKIPPED:7}, 단계 {PASS:586, RECORD:12}, FAIL·MISSING·ERROR 0(SKIPPED 7 = installed 전용 4 + Phase 6a 3으로 base와 같은 사유이고 그 expect.json은 이 변경이 건드리지 않았다). 더해 run_all.py --cases 0.5 --mode direct -> 기존 사례 5개 전부 PASS, caa970b는 '실행 Phase 1 != 0.5'로 SKIPPED. 계약 7(설치 사본 미변경) base..T에서 tools/gates/gate/**·hooks/role_*·.githooks/**·.claude/** 변경 파일 수 0 -- 05 §13.4 재설치 없음"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260922-10-test-separation-design",
+    "20260923-caa970b-replay"
+  ],
+  "auditor_run": {
+    "time": "2026-09-23T14:04:37+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-caa970b-replay-audit",
+    "commands": [
+      "격리(순서 3·7): git -c core.longpaths=true clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-caa970b-replay-audit C:/Users/HSLEE/AppData/Local/Temp/20260923-caa970b-replay-iso",
+      "격리(순서 3·7): git -C C:/Users/HSLEE/AppData/Local/Temp/20260923-caa970b-replay-iso remote remove origin",
+      "격리(회귀 비교용 base 판): git -c core.longpaths=true clone --no-hardlinks --no-local C:/Users/HSLEE/AppData/Local/Temp/20260923-caa970b-replay-iso C:/Users/HSLEE/AppData/Local/Temp/caa-base-iso -> git -C C:/Users/HSLEE/AppData/Local/Temp/caa-base-iso remote remove origin -> git -C C:/Users/HSLEE/AppData/Local/Temp/caa-base-iso checkout 5d70a57",
+      "PY = C:/Python314/python.exe (3.14.2, pytest 9.0.2), <cache> = C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/5d70a57a3d9abb1b12f15e889f7e8c71723600b3, <iso> = C:/Users/HSLEE/AppData/Local/Temp/20260923-caa970b-replay-iso",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/caa-audit/pyc-empty PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/5d70a57a3d9abb1b12f15e889f7e8c71723600b3 $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/5d70a57a3d9abb1b12f15e889f7e8c71723600b3/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260923-caa970b-replay-iso --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260923-caa970b-replay-iso --gmid-phase=1 --gmid-strict=IC3:,IC5: C:/Users/HSLEE/AppData/Local/Temp/20260923-caa970b-replay-iso/skills/analog-gmid-design/assets/tests",
+      "V2 실측(auditor 직접 구성, rt.py 미사용): C:/Users/HSLEE/AppData/Local/Temp/caa-audit/indep.py -- red.json 명세만 읽어 base 트리(caa970b blob 3개)와 head test 파일을 직접 만들고 단계마다 PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=<cache> GMID_RED_CAPTURE=<파일> $PY -P -m pytest -c <cache>/pytest_gate.ini --rootdir=<합성 루트> --confcutdir=<합성 루트> -p merge_gate --continue-on-collection-errors <합성 루트>/skills/analog-gmid-design/assets/tests 실행",
+      "V2 failure_hash: sys.path에 <cache>를 넣고 merge_gate.red_failure_hash(test_id, exc)를 직접 호출(00-common §8.1 수식과 대조)",
+      "V2 원문 대조: git -C <iso> show caa970b:skills/analog-gmid-design/assets/sizing_recipe.py 와 d32811b:... 를 읽어 줄 범위 2409-2427·2429-2441과 표지 `  [L4 revalidate_finger_override()` 섹션을 auditor가 다시 잘라 바이트 대조(C:/Users/HSLEE/AppData/Local/Temp/caa-audit/accounting.py)",
+      "V2 섹션 교차 확인: $PY -B <iso>/tools/migrate/extract_selftest.py sections --source <caa970b blob 사본> --out <임시>/sections.json (섹션 0 = P 2409-2427, 섹션 1 = B 2429-2441, 섹션 13 = A 2591-2647 deps lut/섹션 1)",
+      "회귀(공격 17): $PY -B C:/Users/HSLEE/AppData/Local/Temp/caa-base-iso/tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 17-isolated-run 와 $PY -B <iso>/tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 17-isolated-run 의 단계 기록을 경로 정규화 뒤 대조",
+      "계약 5(design 10 §10 D7): $PY -B <iso>/tools/gates/redteam/run_all.py --cases 1 --mode direct",
+      "계약 6: $PY -B <iso>/tools/gates/redteam/run_all.py --phase 0.5 --mode direct",
+      "기존 사례 회귀: $PY -B <iso>/tools/gates/redteam/run_all.py --cases 0.5 --mode direct",
+      "V3: $PY <cache>/mutate_changed.py --root <iso> --base 5d70a57a3d9abb1b12f15e889f7e8c71723600b3 --head c3b7827f7046cfce63ad2350a819ef303d62a667 --pytest-ini <iso>/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=1 --gmid-strict=IC3:,IC5: --out C:/Users/HSLEE/AppData/Local/Temp/caa-audit/out/v3.jsonl",
+      "V4: $PY <cache>/test_lint.py --root <iso> --module-dir tools/gates/redteam/lib --subject rt:a_redrun --subject rt:iso_cmd --subject rt:iso_env --subject rt:iso_common --subject rt:gate_cache_copy --subject rt:lines_block --subject rt:compose_file --subject rt:a_isolated_run --base 5d70a57a3d9abb1b12f15e889f7e8c71723600b3 --head c3b7827f7046cfce63ad2350a819ef303d62a667 (참고: --interface-card <iso>/docs/02-design/specs/20260923-caa970b-replay.interface.md 만으로는 exit 2 ERROR '피검 심볼이 없다')",
+      "V5: $PY <cache>/weakening_diff.py --root <iso> --base 5d70a57a3d9abb1b12f15e889f7e8c71723600b3 --head c3b7827f7046cfce63ad2350a819ef303d62a667",
+      "V6: $PY <cache>/source_lint.py --root <iso> --base 5d70a57a3d9abb1b12f15e889f7e8c71723600b3 --head c3b7827f7046cfce63ad2350a819ef303d62a667",
+      "V7 참고: $PY <cache>/reachability.py --root <iso> --base 5d70a57a3d9abb1b12f15e889f7e8c71723600b3 --head c3b7827f7046cfce63ad2350a819ef303d62a667",
+      "계약 7: git -C <iso> diff --name-only 5d70a57a3d9abb1b12f15e889f7e8c71723600b3 c3b7827f7046cfce63ad2350a819ef303d62a667 -- tools/gates/gate .claude hooks .githooks tools/gates/role_hooks.py tools/gates/role_paths.py tools/gates/integrity.py (출력 0줄)"
+    ]
+  }
+}

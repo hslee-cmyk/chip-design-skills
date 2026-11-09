@@ -1,0 +1,14 @@
+{
+ "id": "20260930-v3-changed-stmt-scope",
+ "target": "25f2ba19de7952abd3779fc5984e448d04b5f0f2ac8787b877ec0d215dc2bda6",
+ "diff_base": "36e170eec5b9e893c03927e5bb45635071de7e69",
+ "diff_head": "a6a7e342627d72b8fc2c79844f69da7930333520",
+ "diff_path": [
+  "docs/01-plan/features/gain-budget-gmid-sizing.plan.md",
+  "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md",
+  "docs/02-design/specs/20260930-v3-changed-stmt-scope.interface.md",
+  "docs/02-design/specs/20260930-v3-changed-stmt-scope.spec.md"
+ ],
+ "dest": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\.ai\\approvals\\20260930-v3-changed-stmt-scope.md",
+ "result": "written"
+}

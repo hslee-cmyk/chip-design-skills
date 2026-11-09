@@ -1,0 +1,27 @@
+front_n 0 pending 0 unmeasured 0
+ note {"verdict": "judgment_pending", "rule": "DEC-72", "reason": "model_error_unmeasured_front_estimated"}
+ note {"verdict": "not_run", "rule": "DEC-79", "reason": "layout_axis_refilter_is_mod8"}
+ note {"verdict": "closed", "rule": "S-3b", "reason": "current_upper_from_area_budget_IDu_max_A_over_L2", "area_budget_m2": 4e-08, "current_box": [["nmos", [2.653005708771122e-19, 292.3523787719962]], ["pmos", [2.424298699402881e-26, 54.94307881532581]]]}
+ note {"verdict": "layer0_minimal", "rule": "DEC-71", "reason": "seal_margin_maxmin_centre", "stop": "converged", "t": 0.722074324197225, "hard_ok": true, "start_status": "failed", "centre_u": 0.6931471805605162, "kernel_calls": 1112, "probes": 927, "origin_point": "halton:927", "meaning": "feasibility_on
+{"verdict": "l_search", "rule": "LR10", "stops": []}
+ note {"verdict": "not_computed", "rule": "DEC-78", "reason": "supply_current_dc_needs_counted_rails_declaration", "axis_used": "power_dc_w"}
+ note {"verdict": "unmeasured", "rule": "S-1", "constraints": [["gain_ss_db", ">=", "view_pending"], ["parasitic_pm_ss_deg", ">=", "view_pending"], ["pm_ss_deg", ">=", "dc_not_above_level"], ["ratio_ss_db", ">=", "view_pending"]], "points": 124}
+{'kernel_calls': 1175, 'requests': 1371, 'wall_s': 709.5108773000538, 'stops_eval_budget': 0, 'stops_wall_budget': 1, 'n_starts': 1, 'n_solves': 2}
+{"case": "done", "s": 745.7376620769501, "n_evals": 1178}
+Counter({'failed': 1051, 'sealed': 124, 'outside_domain': 3})
+ok seqs [-1, -1, -1, 1050, 1051, 1052, 1053, 1054, 1055, 1056]
+244 ('SEAL_VIOLATION', ('M37b',), 'Ncmfb_tail', 'no_root_in_window')
+174 ('SEAL_VIOLATION', ('M20b',), 'N20b', 'no_root_in_window')
+173 ('SEAL_VIOLATION', ('M4a',), 'Vy', 'no_root_in_window')
+121 ('SEAL_VIOLATION', ('M23a',), 'N24b23a', 'no_root_in_window')
+72 ('SEAL_VIOLATION', ('M63',), None, 'lut_query_failed')
+65 ('SEAL_VIOLATION', ('M18a',), 'Vg25', 'no_root_in_window')
+63 ('SEAL_VIOLATION', ('M18b',), 'Vom1', 'no_root_in_window')
+35 ('SEAL_VIOLATION', ('M37a',), None, 'lut_query_failed')
+30 ('SEAL_VIOLATION', ('M24b',), 'N23a24b', 'no_root_in_window')
+27 ('SEAL_VIOLATION', ('M66',), 'Vbias4', 'no_root_in_window')
+22 ('SEAL_VIOLATION', ('M4a',), None, 'lut_query_failed')
+15 ('NONCONVERGENT', ('M3a', 'M3b', 'M4a', 'M4b', 'M5', 'M61', 'M63', 'M64'), None, 'newton_start_outside_domain')
+4 ('SEAL_VIOLATION', ('M3a',), 'N3a4a', 'no_root_in_window')
+2 ('SEAL_VIOLATION', ('M1a',), 'Vx', 'no_root_in_window')
+2 ('NONCONVERGENT', ('M17', 'M18a', 'M18b', 'M19', 'M25', 'M26', 'M2a', 'M3a'), None, 'newton_start_outside_domain')

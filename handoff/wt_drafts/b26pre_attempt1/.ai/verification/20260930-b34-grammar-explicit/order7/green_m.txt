@@ -1,0 +1,47 @@
+...........................................                              [100%]
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[common_gate_amplifier]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[current_reuse_telescopic_ota]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[folded_cascode]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[ngcc_3stage_ff]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[nmcnr_amplifier]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[pushpull_follower_buffer]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[sf_pushpull_output_opamp]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[two_stage_ota]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[two_stage_ota_sf]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[common_gate_amplifier]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[current_reuse_telescopic_ota]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[folded_cascode]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[ngcc_3stage_ff]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[nmcnr_amplifier]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[pushpull_follower_buffer]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[sf_pushpull_output_opamp]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[two_stage_ota]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[two_stage_ota_sf]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[common_gate_amplifier]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[current_reuse_telescopic_ota]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[folded_cascode]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[ngcc_3stage_ff]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[nmcnr_amplifier]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[pushpull_follower_buffer]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[sf_pushpull_output_opamp]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[two_stage_ota]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[two_stage_ota_sf]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c4_search_path_inserted_first_once
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c5_no_gate_devices_unchanged
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c5_import_without_grammar_succeeds
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c6_theta_without_findings
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[common_gate_amplifier]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[current_reuse_telescopic_ota]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[folded_cascode]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[ngcc_3stage_ff]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[nmcnr_amplifier]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[pushpull_follower_buffer]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[sf_pushpull_output_opamp]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota_sf]
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_selfcheck_raises_rejects_quiet_fakes
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_selfcheck_exc_problems_rejects_bad_errors
+PASSED ..\..\..\..\..\..\g299\iso\skills\analog-gmid-design\assets\tests\contracts\test_b34_grammar_explicit.py::test_b34_selfcheck_normalize_equal_and_different
+43 passed in 22.91s

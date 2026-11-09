@@ -1,0 +1,58 @@
+[
+ {
+  "file": "sizing_recipe.py",
+  "line": 257,
+  "names": "sizing_recipe.py::_QUERY_CACHE_MAX",
+  "hash_key": "sizing_recipe.py::<stmt:73c6d0638d0d>",
+  "hash": {
+   "mod": "gmid_lut.py",
+   "rule": "A-5"
+  },
+  "names_key_assign": {
+   "mod": "gmid_sizing_engine.py",
+   "rule": "A-4"
+  }
+ },
+ {
+  "file": "sizing_recipe.py",
+  "line": 1416,
+  "names": "sizing_recipe.py::_COMPENSATION_REGISTRY",
+  "hash_key": "sizing_recipe.py::<stmt:1cf3b2854d71>",
+  "hash": {
+   "mod": "sizing_layout_convergence.py",
+   "rule": "A-5"
+  },
+  "names_key_assign": {
+   "mod": "gmid_sizing_engine.py",
+   "rule": "A-4"
+  }
+ },
+ {
+  "file": "sizing_recipe.py",
+  "line": 2605,
+  "names": "sizing_recipe.py::_L_ROLE_TARGETS",
+  "hash_key": "sizing_recipe.py::<stmt:84c1ad952ea5>",
+  "hash": {
+   "mod": "sizing_layout_convergence.py",
+   "rule": "A-5"
+  },
+  "names_key_assign": {
+   "mod": "gmid_sizing_engine.py",
+   "rule": "A-4"
+  }
+ },
+ {
+  "file": "stick_diagram.py",
+  "line": 8412,
+  "names": "stick_diagram.py::INSTANCE_TOP_FIELDS",
+  "hash_key": "stick_diagram.py::<stmt:0bdff84dd59d>",
+  "hash": {
+   "mod": "instance_report_builder.py",
+   "rule": "A-5"
+  },
+  "names_key_assign": {
+   "mod": "stick_diagram.py",
+   "rule": "A-4"
+  }
+ }
+]

@@ -1,0 +1,45 @@
+folded_cascode [none] out writer=NodeWrite(tier='W4', relation='free_window', element=None, known=None, y_key='out', order=13)
+   W4 nodes=['Y', 'out', 'vin_p']
+   dependent=[('M1', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M10', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M9')"), ('M11', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='MN')"), ('M3', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='MP')"), ('M4', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='MP')")]
+folded_cascode [W3] out writer=NodeWrite(tier='W3', relation='declared_target', element=None, known=None, y_key=None, order=0)
+   W4 nodes=['Y', 'vin_p']
+   dependent=[('M1', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M10', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M9')"), ('M11', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='MN')"), ('M3', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='MP')"), ('M4', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='MP')")]
+ngcc_3stage_ff [none] out writer=NodeWrite(tier='W4', relation='free_window', element=None, known=None, y_key='Vout', order=12)
+   W4 nodes=['Vinp', 'Vout']
+   dependent=[('M0', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M5')"), ('M1', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M10', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M9')"), ('M12', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M5')"), ('M14', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M8')"), ('M4', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M3')"), ('M6B', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M3')"), ('M7', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M6A')")]
+ngcc_3stage_ff [W3] out writer=NodeWrite(tier='W3', relation='declared_target', element=None, known=None, y_key=None, order=0)
+   W4 nodes=['Vinp']
+   dependent=[('M0', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M5')"), ('M1', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M10', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M9')"), ('M12', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M5')"), ('M14', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M8')"), ('M4', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M3')"), ('M6B', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M3')"), ('M7', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M6A')")]
+nmcnr_amplifier [none] out writer=NodeWrite(tier='W2', relation='resistor_drop', element='RL', known='agnd', y_key=None, order=6)
+   W4 nodes=['NodeF2', 'Vin_p']
+   dependent=[('M102', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M104', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M105')"), ('M109', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M108')"), ('M204', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M203')")]
+nmcnr_amplifier ERROR StructureUnresolvedError: {'class': 'STRUCTURE_UNRESOLVED', 'devices': ['RL'], 'margin': None, 'detail': {'nets': ('Vout', 'agnd'), 'reason': 'unsupported_rule_branch', 'rule_branch': 'dc_resistor_cycle'}}
+Traceback (most recent call last):
+  File "C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\63c6146a-ab1d-4035-a169-bae810986922\scratchpad\probe_w3.py", line 31, in <module>
+    b = dc_writer_plan(b, tuple(sorted(n for n, _ in targets)), inp2.input_dc_v is not None)
+  File "C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\gmid_engine\core\compute_block.py", line 146, in __call__
+    result = self.fn(projection)
+  File "C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\gmid_engine\sizing\writer_plan.py", line 177, in dc_writer_plan
+    raise StructureUnresolvedError(devices=(name,), detail={"reason": UNSUPPORTED_RULE_BRANCH,
+                                                            "rule_branch": BRANCH_RESISTOR_CYCLE,
+                                                            "nets": (a, b)})
+gmid_engine.core.failure_errors.StructureUnresolvedError: {'class': 'STRUCTURE_UNRESOLVED', 'devices': ['RL'], 'margin': None, 'detail': {'nets': ('Vout', 'agnd'), 'reason': 'unsupported_rule_branch', 'rule_branch': 'dc_resistor_cycle'}}
+
+sf_pushpull_output_opamp [none] out writer=NodeWrite(tier='W2', relation='vgs_source', element='M22', known='N17', y_key=None, order=22)
+   W4 nodes=['N20']
+   dependent=[('M14', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M16')"), ('M17', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M9')"), ('M2', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M20', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M16')"), ('M21', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M3', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M4')"), ('M6', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M9')"), ('M8', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M11')")]
+sf_pushpull_output_opamp [W3] out writer=NodeWrite(tier='W3', relation='declared_target', element=None, known=None, y_key=None, order=2)
+   W4 nodes=[]
+   dependent=[('M14', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M16')"), ('M17', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M9')"), ('M2', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M20', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M16')"), ('M21', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M3', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M4')"), ('M6', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M9')"), ('M8', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M11')")]
+two_stage_ota [none] out writer=NodeWrite(tier='W4', relation='free_window', element=None, known=None, y_key='OUT', order=9)
+   W4 nodes=['OUT', 'vin_p']
+   dependent=[('M1', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M4', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M3')"), ('M7', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M5')")]
+two_stage_ota [W3] out writer=NodeWrite(tier='W3', relation='declared_target', element=None, known=None, y_key=None, order=0)
+   W4 nodes=['vin_p']
+   dependent=[('M1', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M4', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M3')"), ('M7', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M5')")]
+two_stage_ota_sf [none] out writer=NodeWrite(tier='W2', relation='vgs_source', element='M8', known='OUT', y_key=None, order=9)
+   W4 nodes=['OUT', 'vin_p']
+   dependent=[('M1', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M4', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M3')"), ('M7', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M5')"), ('M9', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M5')")]
+two_stage_ota_sf [W3] out writer=NodeWrite(tier='W3', relation='declared_target', element=None, known=None, y_key=None, order=0)
+   W4 nodes=['vin_p']
+   dependent=[('M1', "DeviceCoord(role='dependent', relation='cycle_vgs', partner=None)"), ('M4', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M3')"), ('M7', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M5')"), ('M9', "DeviceCoord(role='dependent', relation='parallel_vgs', partner='M5')")]

@@ -1,0 +1,9 @@
+R_sq = rsheet_cell*w = 389.34 Ohm/sq
+R=     1412  l(R/rsheet_cell)=    1.269 um C=    0.78 fF | literal l(R*w/rsheet_cell)=    0.444 um C=    0.67 fF ratio=0.855
+R=     1701  l(R/rsheet_cell)=    1.529 um C=    0.82 fF | literal l(R*w/rsheet_cell)=    0.535 um C=    0.68 fF ratio=0.833
+R=     2000  l(R/rsheet_cell)=    1.798 um C=    0.86 fF | literal l(R*w/rsheet_cell)=    0.629 um C=    0.70 fF ratio=0.812
+R=    10000  l(R/rsheet_cell)=    8.989 um C=    1.85 fF | literal l(R*w/rsheet_cell)=    3.146 um C=    1.04 fF ratio=0.564
+R=   100000  l(R/rsheet_cell)=   89.895 um C=   13.01 fF | literal l(R*w/rsheet_cell)=   31.463 um C=    4.95 fF ratio=0.380
+R=  1000000  l(R/rsheet_cell)=  898.949 um C=  124.57 fF | literal l(R*w/rsheet_cell)=  314.632 um C=   44.00 fF ratio=0.353
+heldout rfc_ota RB = 1412 Ohm (value declared, DUT bias resistor) < R_min 1701 Ohm (_0p35)
+single cell head alone rcon=589.99 Ohm; R_min (audit, ngspice pow semantics) = 1701 Ohm at l*=0.333 um

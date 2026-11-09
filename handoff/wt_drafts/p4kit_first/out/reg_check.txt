@@ -1,0 +1,13 @@
+== wB
+reg_check: 발견 0
+exit=0
+== wM
+reg_check: 발견 0
+exit=0
+== code-only registry (simA) on wM tree
+{"rule": "stale", "section": "7/sizing_recipe.py", "name": "solve_diode_stack_current", "detail": "엔진 정의 이름에 없다"}
+{"rule": "stale", "section": "7/sizing_recipe.py", "name": "estimate_area_budget", "detail": "엔진 정의 이름에 없다"}
+{"rule": "stale", "section": "7/sizing_recipe.py", "name": "load_derived_bounds", "detail": "엔진 정의 이름에 없다"}
+{"rule": "stale", "section": "7/stick_diagram.py", "name": "MultiLeafHubParityVerdict", "detail": "엔진 정의 이름에 없다"}
+{"rule": "stale", "section": "7/stick_diagram.py", "name": "check_multi_leaf_hub_parity", "detail": "엔진 정의 이름에 없다"}
+exit=1

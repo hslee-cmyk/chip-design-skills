@@ -1,0 +1,19 @@
+import pathlib
+H = pathlib.Path(__file__).parent
+T = "C:/Users/HSLEE/AppData/Local/Temp/la1a_pg_a/proto"
+def rep(name, pairs):
+    p = H / name
+    s = p.read_text(encoding="utf-8")
+    for a, b in pairs:
+        if a not in s:
+            print("miss", name, a[:60])
+        s = s.replace(a, b)
+    p.write_text(s, encoding="utf-8")
+rep("r5r6v2.py", [('HERE = Path(r"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_r5r6")', 'HERE = Path(__file__).parent\nimport pg_hook')])
+rep("proto_base.py", [('sys.path.insert(0, r"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_b81\\scripts")', 'sys.path.insert(0, r"%s/b81_scripts")' % T),
+                      ('OUT = Path(r"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_r5r6\\out")', 'OUT = Path(r"%s/out")' % T)])
+rep("b81_scripts/ctx.py", [('OUT = Path(r"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_b81\\out")', 'OUT = Path(r"%s/out")' % T),
+                           ('tempfile.mkdtemp(prefix="b81_" + name[:6])', 'tempfile.mkdtemp(prefix="b81_" + name[:6], dir=r"C:/Users/HSLEE/AppData/Local/Temp/la1a_pg_a")')])
+rep("b81_scripts/eng_seal.py", [('SKILL = Path(r"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\integ-it12\\skills\\analog-gmid-design")', 'SKILL = Path(r"C:/Users/HSLEE/Documents/Todoc/fpga/wt/design-v115/skills/analog-gmid-design")'),
+                                ('OUTDIR = Path(r"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_b81\\out")', 'OUTDIR = Path(r"%s/out")' % T)])
+print("ok")

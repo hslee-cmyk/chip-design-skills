@@ -1,0 +1,35 @@
+{
+ "red": [
+  {
+   "test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::bound-exempt",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "9ff578b9cf0afc1af6a09d05b51d13d052c941aa04a61023fba3ddf38077e175"
+  },
+  {
+   "test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::bound-other-def",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "050cf55ccc4ceed54dd73893d2346e93f8bbe192ab94864a5170a97f13617e08"
+  },
+  {
+   "test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::docstring-shift",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "28c3ff705b356f633d99610eaa4d55d595e083f2946c8ececdc1b3110946d38a"
+  },
+  {
+   "test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::hash-mismatch",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "3131af97b68392d20e1827407a96a4ce1dad07a028d81acee61bf004e41d3d0e"
+  },
+  {
+   "test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::legacy-unbound-leak",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "be6d198eeb02511ae56f5fad57f35e8b11baf55230152b254dab9ad66d2eb00f"
+  },
+  {
+   "test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::malformed-element",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "eeb5e7c5d306290e13d97af265583df21885a680dce1a40c744105b69ae8f44a"
+  }
+ ],
+ "aggregate_hash": "18f342fc3abdd4f5987523338b74c31af3e662200be66d299571a68d2449a3ce"
+}

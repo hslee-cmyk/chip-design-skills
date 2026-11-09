@@ -1,0 +1,76 @@
+{
+ "nameless_dest": "instance_report_builder",
+ "files": {
+  "skills/analog-gmid-design/assets/tests/probes/zz_attack.py": {
+   "ast_same": true,
+   "from_same": true,
+   "attr_same": false,
+   "def_module": true,
+   "d17_same": false,
+   "nameless_ok": false,
+   "d17_diff": {
+    "want": {
+     "diode_vds_window": [
+      "gmid_sizing_engine"
+     ],
+     "load_derived_bounds": [
+      "theta_search"
+     ]
+    },
+    "got": {
+     "diode_vds_window": [
+      "gmid_sizing_engine"
+     ],
+     "load_derived_bounds": [
+      "design_report"
+     ]
+    }
+   },
+   "attr_diff": [
+    [
+     0,
+     [
+      "d17call",
+      "setattr",
+      "def",
+      "skills/analog-gmid-design/assets/theta_search.py",
+      "load_derived_bounds"
+     ],
+     [
+      "d17call",
+      "setattr",
+      "unbound",
+      "load_derived_bounds"
+     ]
+    ]
+   ],
+   "nameless": [
+    [
+     "sizing_recipe"
+    ],
+    [
+     "instance_report_builder",
+     "theta_search"
+    ]
+   ],
+   "verdict": "FAIL",
+   "failed": [
+    "attr_same",
+    "d17_same",
+    "nameless_ok"
+   ]
+  }
+ },
+ "summary": {
+  "files": 1,
+  "pass": 0,
+  "fail": {
+   "skills/analog-gmid-design/assets/tests/probes/zz_attack.py": [
+    "attr_same",
+    "d17_same",
+    "nameless_ok"
+   ]
+  },
+  "d17_expect_vs_f1sim_diff": []
+ }
+}

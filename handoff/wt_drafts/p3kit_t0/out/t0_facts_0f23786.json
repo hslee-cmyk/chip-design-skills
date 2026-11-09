@@ -1,0 +1,355 @@
+{
+ "rev": "0f237862c007f6a53122f2bdfb3c87e6366ec133",
+ "filename_literal_tests": {
+  "per_file": {
+   "contracts/test_d_delete_dead.py": 1,
+   "contracts/test_d_delete_telescopic.py": 3,
+   "contracts/test_d_move_tests.py": 1,
+   "contracts/test_df23_inventory.py": 2,
+   "contracts/test_df35_harness_paths.py": 1,
+   "contracts/test_dup_w_calc.py": 2,
+   "contracts/test_ic5.py": 21,
+   "contracts/test_reg_check.py": 13,
+   "contracts/test_ts3_no_print_verdicts.py": 2,
+   "contracts/test_ts6_dead_probes.py": 4,
+   "contracts/test_ts6_probe_relocate.py": 2,
+   "tools/interleave_splits.py": 1,
+   "tools/regression_runner.py": 1,
+   "unit/test_probe_revalidation_scope.py": 1,
+   "unit/test_probe_role_L_derivation.py": 1,
+   "unit/test_selftest_design_report.py": 6,
+   "unit/test_selftest_sizing_recipe.py": 73,
+   "unit/test_selftest_stick_diagram.py": 137,
+   "unit/test_selftest_topology_library.py": 12
+  },
+  "per_dir_count": {
+   "contracts": 11,
+   "tools": 2,
+   "unit": 6
+  }
+ },
+ "glob_sites": [
+  "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py:82:    return sorted(_ASSETS_DIR.glob(\"*.py\")) + [_RUN_HARNESS]",
+  "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py:87:    return sorted(_TESTS_DIR.rglob(\"*.py\"))",
+  "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py:92:    return sorted(_ASSETS_DIR.glob(\"*.py\"))",
+  "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py:97:    return sorted(_TESTS_DIR.rglob(\"*.py\"))",
+  "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py:78:    return sorted(_ASSETS_DIR.glob(\"*.py\")) + [_RUN_HARNESS]",
+  "skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py:87:    return sorted(_TESTS_DIR.rglob(\"*.py\"))",
+  "skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py:109:    for p in sorted(pathlib.Path(library_dir).glob(\"*.topology.json\")):",
+  "skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py:58:    return sorted(p for p in _LIBRARY_DIR.glob(\"*.topology.json\") if not p.name.startswith(\"_\"))",
+  "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py:61:    return sorted(_ASSETS_DIR.glob(\"*.py\")) + [_RUN_HARNESS]",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ic3.py:49:    return sorted(p for p in _LIBRARY_DIR.glob(\"*.topology.json\") if not p.name.startswith(\"_\"))",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ic5.py:86:    return sorted(_ASSETS_DIR.glob(\"*.py\")) + [_HARNESS]",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ic_markers_match_plan.py:91:    return {p.name: p.read_text(encoding=\"utf-8\") for p in sorted(_CONTRACTS_DIR.glob(\"*.py\"))}",
+  "skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py:85:    files = sorted((skill_dir / \"references\").rglob(\"*.md\"))",
+  "skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py:438:    assert any(probes_dir.rglob(\"*.py\")), f\"probes/에 .py가 없다: {probes_dir}\"",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py:59:    for path in sorted(_TESTS_DIR.rglob(\"*.py\")):",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:80:    return {p.stem for p in tests_dir.rglob(\"probe_*.py\")}",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:85:    return {p.stem[len(_PROMOTED_PREFIX):] for p in unit_dir.glob(f\"{_PROMOTED_PREFIX}probe_*.py\")}",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py:320:    return {p.name for p in directory.glob(pattern)}",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py:325:    return {p.stem[len(_PROMOTED_PREFIX):] for p in unit_dir.glob(f\"{_PROMOTED_PREFIX}probe_*.py\")}",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py:423:    assert {p.name for p in _PROBES_DIR.rglob(\"probe_*.py\")} == expected",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py:437:    scanned = sorted(_PROBES_DIR.rglob(\"*.py\"))",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py:449:    collected = sorted(p.name for p in _PROBES_DIR.rglob(\"*.py\") if _COLLECTED_NAME_RE.match(p.name))",
+  "skills/analog-gmid-design/assets/tests/tools/engine_dup_scan.py:107:    for rec in sorted(adir.glob(\"*.md\")):",
+  "skills/analog-gmid-design/assets/tests/tools/engine_dup_scan.py:138:        files = sorted(probes.rglob(\"*.py\")) if probes.is_dir() else []",
+  "skills/analog-gmid-design/assets/tests/tools/reg_check.py:179:    for p in sorted(assets.glob(\"*.py\")):",
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:3056:    for _vtdo_path in sorted(_vtdo_glob.glob(_os.path.join(_vtdo_lib, \"*.topology.json\"))):"
+ ],
+ "setattr_outside_tools": [],
+ "monkeypatch_in_tests": [
+  "skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py:197:            monkeypatch.chdir(cwd)",
+  "skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py:199:            monkeypatch.chdir(tmp_path)",
+  "skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py:204:    monkeypatch.chdir(tmp_path)",
+  "skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py:211:    monkeypatch.chdir(tmp_path)"
+ ],
+ "_SIZING_RECIPE_all": [
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:60:_SIZING_RECIPE = _ASSETS_DIR / \"sizing_recipe.py\"",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:221:    source = _SIZING_RECIPE.read_text(encoding=\"utf-8\")",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:222:    assert_source_binds_no_symbol(source, _MISSING_SYMBOL, _SIZING_RECIPE.name)",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:261:    source = _SIZING_RECIPE.read_text(encoding=\"utf-8\")",
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:262:    callers = assert_symbol_has_operational_caller(source, _AUDIT_FUNC, _SIZING_RECIPE.name)"
+ ],
+ "m6_scan_names": {
+  "test_d_delete_dead.py": {
+   "_DELETED_FUNCTIONS": [
+    "converge_with_parasitics",
+    "render_stick_diagram",
+    "slew_rate",
+    "suggest_headroom_stack_groups"
+   ],
+   "_DELETED_METHODS": [
+    "GmIdLUT",
+    "SemiEmpiricalGmIdLUT",
+    "fT",
+    "junction_cap"
+   ]
+  },
+  "test_d_delete_telescopic.py": {
+   "_DELETED_NAMES": [
+    "_cmfb_amp_gain_diode_load",
+    "_cmrr_telescopic_class_ab",
+    "_cmrr_telescopic_class_ab_cmfb",
+    "_load_telescopic_topology_cached",
+    "_psrr_telescopic_class_ab",
+    "_psrr_telescopic_class_ab_cmfb",
+    "_telescopic_class_ab_open_loop_gains",
+    "_telescopic_class_ab_open_loop_response",
+    "_telescopic_open_loop_device_names"
+   ],
+   "_DELETED_CONSTANTS": [
+    "_TELESCOPIC_FIXED_BASE"
+   ],
+   "_DELETED_FIELDS": [
+    "SizingContext",
+    "_open_loop_gains_cache"
+   ]
+  },
+  "test_d_move_tests.py": {
+   "_MOVES": [
+    "RegressionVerdict",
+    "_REGRESSION_ENGINES",
+    "_run_optimize_multistage_case",
+    "assign",
+    "class",
+    "def",
+    "find_interleaved_symmetric_splits",
+    "interleave_splits",
+    "regression_runner",
+    "run_regression_case"
+   ]
+  }
+ },
+ "engine_source_files": [
+  "skills/analog-gmid-design/assets/audit_current_forced.py",
+  "skills/analog-gmid-design/assets/design_report.py",
+  "skills/analog-gmid-design/assets/sizing_recipe.py",
+  "skills/analog-gmid-design/assets/sky130_lut_sweep.py",
+  "skills/analog-gmid-design/assets/stick_diagram.py",
+  "skills/analog-gmid-design/assets/topology_library.py",
+  "skills/analog-gmid-design/assets/topology_to_markdown.py",
+  "workspaces/run_harness.py"
+ ],
+ "rdef_duplicate_names": {},
+ "ic5_table": {
+  "rows": 21,
+  "names": [
+   "audit_topology",
+   "check_quasi_static",
+   "audit_l_sharing_consistency",
+   "audit_vsb_consistency",
+   "validate_no_legacy_vs_key",
+   "validate_metric_units",
+   "validate_theta_declaration_order",
+   "require_declared_spec_source",
+   "check_mirror_symmetry",
+   "check_symmetry_dispositions",
+   "check_multi_leaf_hub_parity",
+   "audit_vertical_stack_id_vs_kcl",
+   "audit_theta_root_direction",
+   "require_device_roles_reviewed",
+   "audit_vertical_stack_id_euler_feasibility",
+   "check_finger_width_compatibility",
+   "check_euler_condition",
+   "check_box_shape",
+   "check_walk_sequence",
+   "check_stick_diagram_coverage",
+   "audit_row_split"
+  ]
+ },
+ "ic5_names_alldepth": {
+  "audit_topology": [
+   "skills/analog-gmid-design/assets/audit_current_forced.py:79"
+  ],
+  "check_quasi_static": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:124"
+  ],
+  "audit_l_sharing_consistency": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:2351"
+  ],
+  "audit_vsb_consistency": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:3850"
+  ],
+  "validate_no_legacy_vs_key": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:5217"
+  ],
+  "validate_metric_units": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:5245"
+  ],
+  "validate_theta_declaration_order": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:6296"
+  ],
+  "require_declared_spec_source": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:7617"
+  ],
+  "check_mirror_symmetry": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:238"
+  ],
+  "check_symmetry_dispositions": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:2546"
+  ],
+  "check_multi_leaf_hub_parity": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:2806"
+  ],
+  "audit_vertical_stack_id_vs_kcl": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:3147"
+  ],
+  "audit_theta_root_direction": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:3330"
+  ],
+  "require_device_roles_reviewed": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:4721"
+  ],
+  "audit_vertical_stack_id_euler_feasibility": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:4821"
+  ],
+  "check_finger_width_compatibility": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:5171"
+  ],
+  "check_euler_condition": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:5303"
+  ],
+  "check_box_shape": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:6347"
+  ],
+  "check_walk_sequence": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:6473"
+  ],
+  "check_stick_diagram_coverage": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:6933"
+  ],
+  "audit_row_split": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:7018"
+  ]
+ },
+ "rdef_probe": {
+  "size_transistor": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py"
+  ],
+  "width_from_id_density": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py"
+  ],
+  "audit_vsb_consistency": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py"
+  ],
+  "_build_theta_evaluator": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py"
+  ],
+  "check_quasi_static": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py"
+  ],
+  "load_topology": [
+   "skills/analog-gmid-design/assets/stick_diagram.py"
+  ],
+  "rail_declaration": [],
+  "RailDeclaration": [],
+  "_L_ROLE_MULTIPLIERS": []
+ },
+ "binding_files_probe": {
+  "size_transistor": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py"
+  ],
+  "width_from_id_density": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py"
+  ],
+  "audit_vsb_consistency": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py"
+  ],
+  "_build_theta_evaluator": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py"
+  ],
+  "check_quasi_static": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py"
+  ],
+  "load_topology": [
+   "skills/analog-gmid-design/assets/audit_current_forced.py",
+   "skills/analog-gmid-design/assets/design_report.py",
+   "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "skills/analog-gmid-design/assets/stick_diagram.py",
+   "skills/analog-gmid-design/assets/topology_to_markdown.py"
+  ],
+  "rail_declaration": [],
+  "RailDeclaration": [],
+  "_L_ROLE_MULTIPLIERS": []
+ },
+ "cited_lines": {
+  "test_dup_w_calc.py": {
+   "56": "_REQUIRED_ENGINE_FILES = (\"sizing_recipe.py\", \"run_harness.py\")",
+   "72": "def _import_sizing_recipe():",
+   "75": "return importlib.import_module(\"sizing_recipe\")",
+   "442": "path = _ASSETS_DIR / \"sizing_recipe.py\""
+  },
+  "test_df35_harness_paths.py": {
+   "206": "assert (_EXPECTED_ASSETS / \"sizing_recipe.py\").is_file(), \"기대 ASSETS_DIR에 엔진이 없다\""
+  },
+  "test_ts6_probe_relocate.py": {
+   "528": "assert (_ASSETS_DIR / \"sizing_recipe.py\").is_file()"
+  },
+  "test_ts6_dead_probes.py": {
+   "60": "_SIZING_RECIPE = _ASSETS_DIR / \"sizing_recipe.py\"",
+   "221": "source = _SIZING_RECIPE.read_text(encoding=\"utf-8\")",
+   "222": "assert_source_binds_no_symbol(source, _MISSING_SYMBOL, _SIZING_RECIPE.name)",
+   "229": "module = importlib.import_module(\"sizing_recipe\")",
+   "261": "source = _SIZING_RECIPE.read_text(encoding=\"utf-8\")",
+   "262": "callers = assert_symbol_has_operational_caller(source, _AUDIT_FUNC, _SIZING_RECIPE.name)"
+  },
+  "test_dup_kcl_edges.py": {
+   "35": "return importlib.import_module(\"stick_diagram\")"
+  }
+ },
+ "design10_table": {
+  "header": [
+   [
+    252,
+    "| 파일 | 함수 | 영역 | 이유(N0.4 '영역') |"
+   ]
+  ],
+  "first_row": [
+   76,
+   "| `A/*.py`의 `if __name__ == \"__main__\":` 블록 | 7개 파일 | A-1 |"
+  ],
+  "rows_252_274": [
+   [
+    254,
+    "| `audit_current_forced.py` | `audit_topology` | 없음(스키마) | `"
+   ],
+   [
+    255,
+    "| `sizing_recipe.py` | `check_quasi_static` | ss | gm·Cgg(선형"
+   ],
+   [
+    262,
+    "| `stick_diagram.py` | `check_mirror_symmetry` | 없음(배치) | fi"
+   ]
+  ]
+ },
+ "contracts_files": [
+  "contracts/test_d_delete_dead.py",
+  "contracts/test_d_delete_telescopic.py",
+  "contracts/test_d_move_tests.py",
+  "contracts/test_df23_inventory.py",
+  "contracts/test_df35_harness_paths.py",
+  "contracts/test_df36_instance_relpath.py",
+  "contracts/test_dup_kcl_edges.py",
+  "contracts/test_dup_w_calc.py",
+  "contracts/test_ic1.py",
+  "contracts/test_ic10.py",
+  "contracts/test_ic11.py",
+  "contracts/test_ic2.py",
+  "contracts/test_ic3.py",
+  "contracts/test_ic4.py",
+  "contracts/test_ic5.py",
+  "contracts/test_ic6.py",
+  "contracts/test_ic7.py",
+  "contracts/test_ic8.py",
+  "contracts/test_ic9.py",
+  "contracts/test_ic_markers_match_plan.py",
+  "contracts/test_phase2_stale_refs.py",
+  "contracts/test_probe_dup_scan.py",
+  "contracts/test_reg_check.py",
+  "contracts/test_restore_plan_functions.py",
+  "contracts/test_ts3_no_print_verdicts.py",
+  "contracts/test_ts6_dead_probes.py",
+  "contracts/test_ts6_probe_relocate.py"
+ ]
+}

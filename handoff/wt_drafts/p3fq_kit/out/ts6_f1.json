@@ -1,0 +1,12 @@
+{
+ "current_passes": true,
+ "sr_attr_names": {
+  "achievable_metric_bound": "sizing_layout_convergence.py",
+  "derived_bounds_path": "theta_search.py",
+  "load_derived_bounds": "theta_search.py",
+  "spec_fingerprint": "circuit_state_graph.py"
+ },
+ "sr_attr_lines": 4,
+ "alias": "FAIL: alias: 경로 줄이 아닌 변경 [('base', 33, 'import sizing_recipe as sr'), ('new', 33, 'import gmid_sizing_engine as sr')]",
+ "names": "FAIL: names: 경로 줄이 아닌 변경 [('base', 33, 'import sizing_recipe as sr'), ('new', 33, 'from circuit_state_graph import spec_fingerprint'), ('new', 34, 'from sizing_layout_convergence import achievable_metric_bo"
+}

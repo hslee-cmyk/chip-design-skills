@@ -1,0 +1,26 @@
+* 검증 1 bin 선택 규약 -- 순서 21, 방향 L
+vd d 0 1.0
+vg g 0 0.6
+m1 d g 0 0 nb w=0.5u l=0.49u
+m2 d g 0 0 nb w=0.5u l=0.498u
+m3 d g 0 0 nb w=0.5u l=0.499u
+m4 d g 0 0 nb w=0.5u l=0.4995u
+m5 d g 0 0 nb w=0.5u l=0.5u
+m6 d g 0 0 nb w=0.5u l=0.5005u
+m7 d g 0 0 nb w=0.5u l=0.501u
+m8 d g 0 0 nb w=0.5u l=0.502u
+.model nb.2 nmos level=54 version=4.5 wmin=0.1u wmax=1u lmin=0.5u lmax=1u vth0=0.55
+.model nb.1 nmos level=54 version=4.5 wmin=0.1u wmax=1u lmin=0.1u lmax=0.5u vth0=0.05
+.control
+op
+print @m1[vth]
+print @m2[vth]
+print @m3[vth]
+print @m4[vth]
+print @m5[vth]
+print @m6[vth]
+print @m7[vth]
+print @m8[vth]
+quit
+.endc
+.end

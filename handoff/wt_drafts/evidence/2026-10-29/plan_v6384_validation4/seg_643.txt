@@ -1,0 +1,70 @@
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.history.md insert old 1520-1519 new 1520-1520
+--- line new 1520 (len old 0 new 2166)
+[--]{+| **v6.38.4 열셋째 커밋** 계획 검증 3 반영(계획 v6.38.4, 검증 대기) | 2026-10-29 | 근거: 계획 검증 3(`wt/_drafts/evidence/2026-10-29/plan_v6384_validation3.md`, 84/100 -- M-1~M-3·m-1~m-8), 오케스트레이터 재판정 전부 수용. 바꾼 것: (M-1) P8 중점 검증 격자 = (kind, W bin, L 앵커, VDS)마다 중점 슬라이스, 보간 w_f 셀 = 두 끝 셀 tol_V 최댓값, 중점 없는 셀 = missing_external + fail-closed, 비용 약 2.7배; (M-2) U-a를 기존 N3.8 static settling 출발 목표(정확형 (1/ε − 1)/β로 정정 -- 식 하나)를 R 출발값 하한 행으로 소비할지로, U-118 선행 조건, O-133 충돌 서술 정정; (M-3) dc_sat_v off 갈래 = EO-1과 필드 제작 card 가운데 늦게(N6.1 꼴), GB 2098 옛 문언, WB-1 완료 조건 '정의 1곳'; (m-1~m-8) P2-h 본문 표지·662 조건, P9-M1a·M1b 분리, Status history 지시·HC/OP Status, ln ID 수치(1.47 대 4.58 mV, nfet L 0.15 예외), P4-R 문언(경로 일반·writer·블록 안 값), R10 영향 0/9·결론 자리, 잔차 출력 전용 기준선, GB 1770. 옛 문언(바꾼 구절 원문): «**슬라이스 밀도 = 비용 선택**(판정 기준 아님):» / «ID는 ln ID(실측 pfet L 0.5~4 µm W 축 오차 ln ID 0.4 mV 대 ID 선형 4.6 mV -- 계획 검증 2 `p8_indep`)» / «**U-a** current_reuse에는 R(과 이득 전반)을 키울 엔진 행이 없어(`gain_ss_db` 삭제 -- O-133, 정적 정착 오차 ≤ 0.1 %는 oracle `.tran` 판정만 -- DEC-58) 출발·외층 모두 R이 상자 아래 끝으로 가고 정적 오차는 oracle FAIL로만 드러난다(파일럿 범위 끝 ε ≈ 0.24 %) -- 대안 (b) 정적 오차 ε에서 루프 이득 출발 목표 추정 A_req = (1/ε − 1)/β(DC 등식 ε = 1/(1 + β·A), 판정 아님, 대역폭 출발 목표 '추정'(O-139·O-157 S3)과 같은 지위 -- 물리 근거 있음, 새 상수 0) ⚠ O-133('같은 물리량 둘째 원천' 삭제) 취지와 부딪칠 수 있음(추정은 원천이 아니라 출발 목표라는 논리로 정합 가능하나 사용자 판단, **원래 취지와 다름**) / (a) 현행 ⚠ 엔진 탐색이 정적 오차를 보지 못함;» / «손계산 출발값 = 개루프 이득 A ≥ 1/(β·ε)(루프 이득 βA ≥ 1/ε, '추정';» / «(HC-S·EO-1 중 늦게 병합되는 쪽 변경 → v6.38.4 P9-HC: writer = DC 블록이라 HC-S·EO-1·WB-1 가운데 늦게 병합되는 쪽, 원래 취지와 다름, 승인 대기)» / «`off` 갈래 = HC-S·EO-1·WB-1 가운데 늦게 병합되는 쪽(O-56 확장) \|» / «headroom-chain N3.4 규칙에 따라 HC-S와 이 card 중 늦게 병합되는 쪽 변경에 들어간다(이 card가 늦으면 여기서 같은 술어로;» / «중점 검증값과 보간값 차가 그 성분과 일치(LUT 자료 검증)» / «**신호 주입 노드(앞 단 출력)를 구동 노드로 두고**» / «구조 조건(단일 가지·S source 교류 접지·결합 없음)» / «P9-M1(배정 card 없는 B4·B12·B13, SF-1 범위 6 소유를 spec·topology 로더로)» / «P9-M1(O-144 J4 확장)» / «경위 history H1 'v6.38.4 첫째~일곱째 묶음' 행» / «범위 끝 공급 행 -- 범위 끝 가지 전류 V_od/(R1 + R2))» / «그런 행이 없으면 상자 아래 끝; 상자 안에서 만족 불가면 R5′ (4)(iii) 재개방과 같은 K-1(위반 최소);» / «R10 출발 하한(R9 조회 셀 전류 합 − 응용 망 부하)에는 그 가지가 들어가지 않는다 -- **불확실, design 확인 항목**(넣지 않으면 출발 하한이 낙관).» / «같은 묶음의 `sat_v`·`sat_tol_v`는 HC-S의 `device.dc_sat_v`를 읽는다» |+}
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 11-11 new 11-11
+--- line new 11 (len old 64134 new 64177)
+> **Status**: **Plan v6.38.4 -- design v1.15.2 재판정 P1~P8 반영(판정 대상·바이어스 ... P9-G1(로더 계산값 검사를 writer 블록 안 거부로 -- 구조 원칙, DEC-60 (iii)·DEC-94 (1) 자리 [-변경)·P9-M1(배정-]{+변경)·P9-M1a(배정+} card 없는 [-B4·B12·B13,-]{+B4·B12·B13의+} [-SF-1-]{+배정)·P9-M1b(SF-1+} 범위 6 소유를 spec·topology [-로더로)·P9-TN(TN-1-]{+로더로 넓힘)·P9-TN(TN-1+} 절단 넷 필드)·P9-HC(`device.dc_sat_v` writer 봉인 7 → DC 블록)·P1(S-10 자리 변경)· ... 172 A10)·P2-b·P4·P7(O-172 A18·원문 기준)·P8 (i)(U-130 반복 → 열거)·P8 (E)(LUT [-자료)·P9-G1·P9-M1(O-144-]{+자료)·P9-G1·P9-M1b(O-144+} J4 확장)·P9-TN·P9-HC; 경위 history H1 'v6.38.4 첫째~일곱째 [-묶음'-]{+묶음'·'아홉째'·'열째·열한째'·'열둘째'·'열셋째'+} 행) 이전 판: **Plan v6.38.3 -- 입력 공통모드 변수 하나(DEC-106, 사용자 결정 O-168)·DEC-1 ... 과 역할 분리 gate는 폐기, 새 엔진 design은 MOD별 짧은 문서(N9.1). 다음 문서: `D0` 공통 인터페이스.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 291-291 new 291-291
+--- line new 291 (len old 4499 new 4529)
+| DEC-92 | **GB5 보상 방법**(reference 검토 Q7 (i) (나); 영점 상쇄 저항은 (3) -- O-3 ... ), h = s → ∞ 용량망(보상 C·소자 용량 포함, B AC 접지)에서 **신호 주입 노드(앞 단 출력)를 구동 노드로 [-두고**-]{+두고**(h 정의 범위 = v6.38.4 승인 대기 P2-h)+} 나머지 노드에 KCL을 세워 푼 그 단자 넷의 전압비(주입 노드를 수동 노드로 보면 틀림 -- 계획 검증 2 `p2_noda ... ), MOD6 θ 스키마 | 미구현((3) 영점 상쇄 저항 θ화와 그 상자 = card SF-1 범위 9, v6.38.3) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 303-304 new 303-304
+--- line new 303 (len old 24175 new 24298)
+| DEC-104 | **θ 기저·손계산 순서 원칙**(근본원칙, v6.38 -- 사용자 결정 O-127(2026-10-26  ...  출발값 = spec 상자 안에서 그 R이 들어가는 선언 행(이득 행 -- 출력 노드에 1/R 부하, 범위 끝 공급 행 -- [--]{+그 R이 놓인 DC 경로의 +}범위 끝 가지 [-전류-]{+전류(예: CM 감지 쌍이면+} V_od/(R1 + [-R2))을-]{+R2)))을+} 모두 만족하는 최소 R(R5′ (1)·R7 (가) '나머지 경계' 꼴 -- R은 θ점 전력 중립이고 면적이 R에 단조 증가); 그런 행이 없으면 상자 아래 끝; 상자 안에서 만족 불가면 R5′ (4)(iii) 재개방과 같은 K-1(위반 최소);[--]{+ writer = 출발점 조립 블록(DEC-104 (3)(c) -- 출발 θ의 R 성분, 새 필드 0), A(R)·행 만족 판정은 그 블록 안 값(R5′ (1) 선례);+} 그 행이 출발 단계에서 정의 불능이면 출발값 선택에서 빼고 사유 기록(skip 아님 -- EP-7 출발값은 출발값일 뿐, 출 ... 1 가운데 먼저 병합되는 card가 만든다 -- O-151 DK2, N6.1 '조건부 제작 함수'); F 처리 U-117) |
+--- line new 304 (len old 27186 new 27807)
+| DEC-105 | **C′ 앞단 결정 묶음 -- 승인됐으나 계획에 없던 단계 ② 결정의 정본 자리**(v6.38.2 --  ... 없음' 대체) (2) bin 안 DC 열은 **1/w에 대해 선형 보간**(보간량 = 운영 보간과 같은 양 -- ID는 ln [-ID(실측-]{+ID(근거 = 운영 보간과 같은 양(주) + 실측(보조):+} pfet L 0.5~4 µm W 축 오차 [--]{+최댓값 +}ln ID [-0.4 mV-]{+1.47+} 대 ID 선형 [-4.6-]{+4.58 mV, nfet은 비슷(L 0.15 µm에서 선형 8.40 대 ln 8.61+} mV[--]{+ -- 예외)+} -- 계획 검증 2 [-`p8_indep`),-]{+`p8_indep`·검증 3 `p8_lnid` 10/12 ln ≤ 선형),+} 다른 DC 열(GM·GDS·VTH·VDSAT·GMBS)은 운영 보간이 쓰는 양, 열마다 design)(BSIM binning ... 가 작은 셀은 W 축 성분이 셀 tol_V를 정한다(그 셀 tol이 실제 보간 오차를 담게 됨 -- fail-open 없음).[--]{+ **중점 검증 격자와 셀 배정**(v6.38.4 열셋째 커밋 -- 계획 검증 3 M-1): 중점 슬라이스 = (kind, W bin, L 앵커, VDS 격자 전부)마다 하나, 중점 w = bin 1/w 중앙의 제조 격자 반올림(L 2앵커 선례 `midpoint_checks`는 w_ref 한 폭뿐이라 W bin마다 따로 둠); 보간된 w_f의 tol_V 셀 = 두 끝 w_key 셀 tol_V의 최댓값(운영 보간의 두 끝 조회와 같은 꼴, 새 상수 0); 중점이 없는 셀은 사유 `missing_external`로 두고 그 셀을 읽는 봉인은 fail-closed(대안 '중점 일부 L만' ⚠ fail-open) -- 'fail-open 없음'은 이 두 규칙으로 성립한다. **비용 재추정**: 끝점(양 끝 슬라이스 약 +27) + 중점(W bin × L 앵커) → LUT 슬라이스 생성 약 2.7배(지금 576조합·벽시계 66분 기준 -- 계획 검증 3 §2.2 (c)), 승인 대기 P8-DEC87 질문에 포함.+} **슬라이스 밀도 = 비용 선택**(판정 기준 아님): bin 양 끝 두 슬라이스로 둔다 -- 실측 W 축 오차 최대 8.6 ...  card는 U-132, (11)은 U-125, card CPG-1 기준선은 U-131 -- 모두 기본안 승인 O-166) |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 406-406 new 406-406
+--- line new 406 (len old 377 new 438)
+| O-56 (v6.20, 최종 diff 확인) | "권고대로 해" -- O-55 U2 확장: EO-1 범위에 (a) `sea ... `device.dc_sat_v`의 `off` 갈래(HC-S·EO-1 중 늦게 병합되는 쪽 변경 → v6.38.4 P9-HC: [-writer-]{+EO-1과+} [-=-]{+`dc_sat_v`+} [-DC-]{+필드+} [-블록이라-]{+제작+} [-HC-S·EO-1·WB-1-]{+card(HC-S·WB-1 가운데 먼저 병합되는 card)+} 가운데 늦게 병합되는 [-쪽,-]{+쪽 -- N6.1 '조건부 제작 함수'와 같은 꼴, 새 순서 규칙 0,+} 원래 취지와 다름, 승인 대기)를 둔다; 판정 부분(공용 전도 판정 함수 하나)은 넓히지 않음; 대안 '별도 card' 기각 | EO-1 범위 4, N3.6 표 9행 |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 536-536 new 536-536
+--- line new 536 (len old 527 new 542)
+| B2 | 봉인점 소자 (VDsat, tol_VDsat) | `device.dc_sat_v` 하나(headroom-chain ... reshold`) -- 필드 제작 = 둘 가운데 먼저 병합되는 card(N6.1 '조건부 제작 함수'), `off` 갈래 = [-HC-S·EO-1·WB-1-]{+EO-1과 필드 제작 card+} 가운데 늦게 병합되는 쪽(O-56 [-확장)-]{+확장, 계획 검증 3 M-3)+} |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 662-662 new 662-662
+--- line new 662 (len old 1544 new 1558)
+* 보상 변수 = 극점 노드 목록의 두 노드 사이에 걸린 보상 수동소자 전부(개수 가변)와 gm_i. 판정은 봉인 후보마다의  ... 8.4 -- G_m(∞) = Σgm(h_gate − h_source), 구조 조건(단일 가지·S source 교류 접지·결합 [-없음)에서-]{+없음·가지 노드 접지 용량 0)에서+} S 정확형, 조건 밖은 출발값일 뿐·기록(사용자 확인 대기 P2-b), 출발값 영향뿐)); S가 정해지지 않으면 상자 출처가 ...  구성(예: 극점 노드 목록으로 보상 변수를 정할 수 없는 구성)은 `기록만` 규칙 분기로 기록한다(항상 DEC-59 정지).
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 699-699 new 699-699
+--- line new 699 (len old 319 new 394)
+  | static settling error(이름은 design -- v6.38 O-133) | DC | 그 측정 구성(원문 ...  상대 차(이상값 기준) -- oracle만 | 엔진 값 없음(판정 = oracle). 손계산 출발값 = 개루프 이득 A ≥ [-1/(β·ε)(루프-]{+(1/ε − 1)/β(정확형 -- DC 등식 ε = 1/(1 + βA), 옛 근사 1/(β·ε) 대체, v6.38.4 계획 검증 3 M-2; 루프+} 이득 βA ≥ [-1/ε,-]{+1/ε − 1,+} '추정'; β = 되먹임 계수 -- 정의와 읽는 점은 U-118 한 자리, 재검증 n1) -- 같은 물리량의 gain 선언은 두지 않는다(원천 하나, O-133) | N3.8 '정착 측정 정의', O-133 |
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1770-1770 new 1770-1770
+--- line new 1770 (len old 1520 new 1580)
+**소비자 표**(base `b2c72a01`, 착수 때 재측정): F-DE7 전부 + `E/metrics/ls_swing.p ... 지우는 칸(유일 소비자 `E/metrics/ls_swing.py:47`). 같은 묶음의 `sat_v`·`sat_tol_v`는 [-HC-S의-]{+`device.dc_sat_v`(제작+} [-`device.dc_sat_v`를-]{+= HC-S·WB-1 가운데 먼저 병합되는 card, writer = DC 블록 -- v6.38.4 P9-HC)를+} 읽는다, 2026-10-19 재확인), `E/metrics/_helpers_view.py:1`(사용처 `offset_syst ... , design 40 §3.8-3·§3.8-8(1232행 `swing_out_v` 정의), design 41 §4.6 J-E.
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1908-1908 new 1908-1908
+--- line new 1908 (len old 5390 new 5665)
+6. **수리 단계**(단계 (3), LA-Q1 결정됨 O-36 (4), O-37): 조립점이 봉인을 통과하지 못하면 `_re ... 므로 E-32 사유로 기록). **P4-R 사용자 질문**(권고 (나)·대안 (가)(다) ⚠는 DEC-104 (4) 문언): [-**U-a**-]{+**U-a**(계획 검증 3 M-2로 다시 씀):+} current_reuse에는 [-R(과-]{+R을+} [-이득-]{+아래에서+} [-전반)을-]{+묶는+} [-키울-]{+선언+} [-엔진-]{+판정+} 행이 [-없어(`gain_ss_db`-]{+없다(`gain_ss_db`+} 삭제 -- O-133, 정적 정착 오차 ≤ 0.1 %는 oracle [-`.tran` -]{++}판정만 -- DEC-58) [-출발·외층 모두 R이 상자 아래 끝으로 가고 정적 오차는 oracle FAIL로만 드러난다(파일럿 범위 끝 ε ≈ 0.24 %) -]{++}-- [-대안-]{+그런데+} [-(b)-]{+N3.8+} [-정적-]{+metric+} [-오차-]{+표+} [-ε에서-]{+'static+} [-루프-]{+settling+} [-이득-]{+error' 행이 이미 **손계산+} 출발 목표 [-추정-]{+A+} [-A_req =-]{+≥+} (1/ε − [-1)/β(DC-]{+1)/β**('추정',+} [-등식-]{+판정+} [-ε-]{+아님; O-133과 정합 -- 같은 물리량의 gain 선언이 아니라 출발값; β+} = [-1/(1-]{+U-118+} [-+-]{+한+} [-β·A),-]{+자리)를+} [-판정-]{+둔다.+} [-아님,-]{+질문+} [-대역폭-]{+= **그 기존+} 출발 [-목표-]{+목표를+} [-'추정'(O-139·O-157-]{+DEC-104+} [-S3)과-]{+(4)+} [-같은-]{+R+} [-지위-]{+출발값의 하한 행으로 소비할지**(소비 범위 확장+} --[- 물리 근거 있음, 새 상수 0) ⚠ O-133('같은 물리량 둘째 원천' 삭제) 취지와 부딪칠 수 있음(추정은 원천이 아니라 출발 목표라는 논리로 정합 가능하나 사용자 판단,-]{++} **원래 취지와 [-다름**)-]{+다름**, O-133 충돌 아님; 식은 N3.8 한 자리 -- graph 규칙 3, 정확형 (1/ε − 1)/β로 그 행을 정정); **선행 조건** = U-118 결정(β 읽는 점 -- 0.086 대 0.5에서 A_req 66.0~81.3 dB로 갈림, LA-1 design) -- 미결이면 그 행은 출발 단계 정의 불능이라 U-c 갈래(출발값 선택에서 빼고 기록)+} / (a) [-현행-]{+현행(소비 안 함)+} ⚠ 엔진 탐색이 정적 오차를 보지 못함; **U-b** R 상자 [10 kΩ, 10 MΩ](사용자 2026-10-08 '8번 ...  합 − 응용 망 부하)에는 그 가지가 들어가지 않는다 -- **불확실, design 확인 항목**(넣지 않으면 출발 하한이 [-낙관).-]{+낙관); 현재 9회로 영향 0/9(current_reuse 출력 공급 셀은 신호 구동이라 R10 대상 밖 -- 계획 검증 3 m-6); R_ss에 DUT 내부 DC 경로 가지를 넣는지는 정의 질문이라 결론은 DEC-104 R10 문언 자리에 둔다.+} **Halton 삭제 위험**(계획 검증 2 M-D 정정; `wt/_drafts/evidence/2026-10-29/plan ...  없어져 front 0이 되는 회로가 생길 수 있음 -- 그 경우 보고는 '출발 불능·성능 판정 보류', 조용한 대체 없음).
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2098-2098 new 2098-2098
+--- line new 2098 (len old 5428 new 5503)
+**범위**(Role: code; 사용자 결정 O-45(2026-10-20 "권고대로", `_drafts/user_decisi ... hain `device.dc_sat_v`의 `off` 갈래(값 없이 사유)는 headroom-chain N3.4 규칙에 따라 [-HC-S와-]{+이 card와 `dc_sat_v` 필드 제작 card(HC-S·WB-1 가운데 먼저 병합 -- v6.38.4 P9-HC, 옛 'HC-S와+} 이 [-card-]{+card')+} [-중-]{+가운데+} 늦게 병합되는 쪽 변경에 들어간다(이 card가 늦으면 여기서 같은 술어로; 사용자 결정 O-56 -- O-55 U2 확장) ... eference_width_m` 대체 금지) -- 완료 toy: 선언 없는 점 → 판정 불능(base 문턱 0 -- red).
+
+######## docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2326-2326 new 2326-2326
+--- line new 2326 (len old 2723 new 2930)
+**완료 조건**(O-34 동작 변경): (1) 정의 toy -- D1: W_min 왕복 반올림 점이 W_min bin에 듦( ... bin 중점 ngspice 검증 외부 값, DEC-87 개정)·중점 검증값과 보간값 차가 그 성분과 일치(LUT 자료 검증),[--]{+ 중점 없는 셀을 읽는 봉인 fail-closed(사유 `missing_external`), 전류 잔차 device 칸 = graph-consumption 출력 전용 선언(L-2) 기준선 등록(계획 검증 3 m-7), HC-S보다 나중 병합이면 `device.dc_sat_v` writer 1곳(`git grep`)·자기 사본 0(N6.1 (iii), 검증 3 M-3),+} 쓰기 소자는 옛 m = ⌈W/w_hi⌉ 규칙과 같은 답(green), oracle 넷리스트 `w`·`m`·`l`이 필드(격자 ... 트 동일 (7) N6.3 공통. (N6.35) E-18: CDD 열 없는 toy → 거부(base cgd 대체 -- red).
+
+######## docs/01-plan/features/headroom-chain.history.md insert old 306-305 new 306-306
+--- line new 306 (len old 0 new 279)
+[--]{+| 0.7.9.5 (다섯째 커밋) | 2026-10-29 | 상위 v6.38.4 계획 검증 3 M-3 -- `off` 갈래 = 상위 EO-1과 필드 제작 card 가운데 늦게, 나중 card 완료 조건 writer 1곳, Status 넷째 커밋 기재, 검증 대기. 옛 문언: «`off` 갈래 = HC-S·상위 EO-1·상위 WB-1 가운데 늦게 병합되는 쪽(상위 O-56 확장 -- **원래 취지와 다름**, 승인 대기 P9-HC))» / «> **Status**: **v0.7.9.5 -- » |+}
+
+######## docs/01-plan/features/headroom-chain.plan.md replace old 24-24 new 24-24
+--- line new 24 (len old 5038 new 5116)
+> **Status**: **v0.7.9.5 -- [--]{+넷째 커밋(`dc_sat_v` writer 문장 정정·필드 제작 card·`off` 갈래 -- +}상위[--]{+ 계획 검증 2 M-C·검증 3 M-3)·상위+} gain-budget v6.38.4 재판정 P9 후속 정정(HC-S 포화 기준: 정의 함수 `sat_threshold` 하나 ... 반영했고, v0.7.5는 v0.7.4 독립 검증 '수정 필요' 8건을 반영했다. 경위와 바뀐 곳은 history H5에 있다.
+
+######## docs/01-plan/features/headroom-chain.plan.md replace old 330-330 new 330-330
+--- line new 330 (len old 6466 new 6551)
+| **포화 기준 (VDsat, tol_VDsat)**(O-15 (C)) | **정본 함수 하나, 사본 금지**: `sat_t ... (상위 N6.1 '조건부 제작 함수' 꼴 -- 명세 한 자리, 나중 card 완료 조건 '정의 1곳'), `off` 갈래 = [-HC-S·상위-]{+상위+} [-EO-1·상위-]{+EO-1과+} [-WB-1-]{+그 필드 제작 card+} 가운데 늦게 병합되는 쪽(상위 O-56 확장 -- **원래 취지와 다름**, 승인 대기 [-P9-HC)):-]{+P9-HC; 상위 계획 검증 3 M-3); 나중 병합 card 완료 조건 = `device.dc_sat_v` writer 1곳(`git grep`)·자기 사본 0):+} 상위 DC 블록이 동작점에서 `sat_threshold`가 정의되는 모든 MOS(**`off` 선언 소자 제외**, v0.7 ... H2와 어긋났다. `edge_costs`·`dc_sat_v` 범위·`_vds_floor`는 v0.7.4 독립 검증 지적이다 |
+
+######## docs/01-plan/features/oracle-portability.history.md insert old 169-168 new 169-169
+--- line new 169 (len old 0 new 122)
+[--]{+| 0.6.22 (셋째 커밋) | 2026-10-29 | 상위 v6.38.4 계획 검증 3 m-3 -- Status 둘째 커밋 기재, 검증 대기. 옛 문언: «> **Status**: **계획 v0.6.22 -- » |+}
+
+######## docs/01-plan/features/oracle-portability.plan.md replace old 18-18 new 18-18
+--- line new 18 (len old 23290 new 23334)
+> **Status**: **계획 v0.6.22 -- [--]{+둘째 커밋(OP-11 측정 부하 원소 전류 방향, +}상위[--]{+ 계획 검증 2 m-5)·상위+} gain-budget v6.38.4 P7 후속 정정(OP-11 `power_dc_w` = DUT 레일 단자 전류(레일 전압원 ... _drafts/oracle_capability_handoff_from_offset_trim_v05.md`, 승인 안 됨)이다.

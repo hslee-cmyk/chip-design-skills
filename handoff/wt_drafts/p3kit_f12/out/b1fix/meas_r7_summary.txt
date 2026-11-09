@@ -1,0 +1,20 @@
+E3[ast] base 4d4170a verdict=E3 FAIL: sizing_recipe.py 있음;E3 FAIL: topology_library.py 있음;E3 FAIL: design_report.py 있음; fail_files=0 b0_stmt=69 b0_call=9 b0_exec=0 head_lines=1 head_exec_hits=0 head_exec_d9out=0 head_markers=0 scanned=[] record_outside_head=0
+E3[exec] base 4d4170a verdict=E3 FAIL: sizing_recipe.py 있음;E3 FAIL: topology_library.py 있음;E3 FAIL: design_report.py 있음; fail_files=0 b0_stmt=69 b0_call=9 b0_exec=0 head_lines=1 head_exec_hits=0 head_exec_d9out=0 head_markers=0 scanned=[exec_strings_scanned=0 rev=8a2ea09 exec_strings_scanned=0 rev=4d4170a ] record_outside_head=9
+PROTO[r6] base rc=1 2 failed in 3.94s | b: layering_exit=1 unresolved=0 | a:  failed=[test_p3sd_shims_gone_and_no_importers test_p3sd_layering_clean_and_sd_names_resolve ] nonassert=0
+PROTO[r7] base rc=1 2 failed in 3.92s | b: layering_exit=1 unresolved=0 | a:  failed=[test_p3sd_shims_gone_and_no_importers test_p3sd_layering_clean_and_sd_names_resolve ] nonassert=0
+E3[ast] head 0173737 verdict=E3 PASS; fail_files=0 b0_stmt=69 b0_call=9 b0_exec=0 head_lines=1 head_exec_hits=0 head_exec_d9out=0 head_markers=0 scanned=[] record_outside_head=0
+E3[exec] head 0173737 verdict=E3 PASS; fail_files=0 b0_stmt=69 b0_call=9 b0_exec=0 head_lines=1 head_exec_hits=0 head_exec_d9out=0 head_markers=0 scanned=[exec_strings_scanned=0 rev=8a2ea09 exec_strings_scanned=0 rev=0173737 ] record_outside_head=9
+PROTO[r6] head rc=0 2 passed in 7.15s | b: layering_exit=0 unresolved=0 | a:  failed=[] nonassert=0
+PROTO[r7] head rc=0 2 passed in 8.31s | b: layering_exit=0 unresolved=0 | a: importers=0 exec_embedded=0 failed=[] nonassert=0
+E3[ast] b1f2 a6ed480 verdict=E3 PASS; fail_files=0 b0_stmt=69 b0_call=9 b0_exec=0 head_lines=1 head_exec_hits=0 head_exec_d9out=0 head_markers=0 scanned=[] record_outside_head=0
+E3[exec] b1f2 a6ed480 verdict=E3 PASS; fail_files=0 b0_stmt=69 b0_call=9 b0_exec=0 head_lines=1 head_exec_hits=0 head_exec_d9out=0 head_markers=0 scanned=[exec_strings_scanned=0 rev=8a2ea09 exec_strings_scanned=0 rev=a6ed480 ] record_outside_head=9
+PROTO[r6] b1f2 rc=1 1 failed, 1 passed in 5.13s | b: layering_exit=0 unresolved=10 | a:  failed=[test_p3sd_layering_clean_and_sd_names_resolve ] nonassert=0
+PROTO[r7] b1f2 rc=1 1 failed, 1 passed in 6.66s | b: layering_exit=0 unresolved=10 | a: importers=0 exec_embedded=0 failed=[test_p3sd_layering_clean_and_sd_names_resolve ] nonassert=0
+E3[ast] nof1 8db0483 verdict=E3 FAIL:; fail_files=65 b0_stmt=69 b0_call=9 b0_exec=0 head_lines=77 head_exec_hits=0 head_exec_d9out=0 head_markers=0 scanned=[] record_outside_head=0
+E3[exec] nof1 8db0483 verdict=E3 FAIL:; fail_files=65 b0_stmt=69 b0_call=9 b0_exec=0 head_lines=77 head_exec_hits=0 head_exec_d9out=0 head_markers=0 scanned=[exec_strings_scanned=0 rev=8a2ea09 exec_strings_scanned=0 rev=8db0483 ] record_outside_head=9
+PROTO[r6] nof1 rc=1 2 failed in 6.05s | b: layering_exit=0 unresolved=79 | a:  failed=[test_p3sd_shims_gone_and_no_importers test_p3sd_layering_clean_and_sd_names_resolve ] nonassert=0
+PROTO[r7] nof1 rc=1 2 failed in 8.90s | b: layering_exit=0 unresolved=79 | a: importers=58 exec_embedded=0 failed=[test_p3sd_shims_gone_and_no_importers test_p3sd_layering_clean_and_sd_names_resolve ] nonassert=0
+E3[ast] syn 8f4f0c0 verdict=E3 PASS; fail_files=0 b0_stmt=69 b0_call=9 b0_exec=0 head_lines=1 head_exec_hits=0 head_exec_d9out=0 head_markers=0 scanned=[] record_outside_head=0
+E3[exec] syn 8f4f0c0 verdict=E3 FAIL:; fail_files=1 b0_stmt=69 b0_call=9 b0_exec=0 head_lines=2 head_exec_hits=1 head_exec_d9out=1 head_markers=0 scanned=[exec_strings_scanned=0 rev=8a2ea09 exec_strings_scanned=1 rev=8f4f0c0 ] record_outside_head=9
+PROTO[r6] syn rc=0 2 passed in 4.65s | b: layering_exit=0 unresolved=0 | a:  failed=[] nonassert=0
+PROTO[r7] syn rc=1 1 failed, 1 passed in 4.86s | b: layering_exit=0 unresolved=0 | a: importers=1 exec_embedded=1 failed=[test_p3sd_shims_gone_and_no_importers ] nonassert=0

@@ -1,0 +1,8 @@
+['test_b26x_approx.py', 'test_b26x_metric_approx.py'] rc=0 7.3s failed=[]
+......                                                                   [100%]
+6 passed in 3.14s
+
+['test_b26pre_card.py'] rc=0 7.8s failed=[]
+...............                                                          [100%]
+15 passed in 3.76s
+

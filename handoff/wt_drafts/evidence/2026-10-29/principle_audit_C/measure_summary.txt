@@ -1,0 +1,33 @@
+M1 heldout\cnr_ota.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 heldout\erfc_ota.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 heldout\r2r_opamp.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 heldout\rfc_ota.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 library\common_gate_amplifier.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 library\current_reuse_telescopic_ota.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 library\folded_cascode.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 library\ngcc_3stage_ff.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 library\nmcnr_amplifier.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 library\pushpull_follower_buffer.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 library\sf_pushpull_output_opamp.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 library\two_stage_ota.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 library\two_stage_ota_sf.sizing_spec.json dof_rank_sample_count=10 source={'kind': 'plan_rule', 'plan_id': 'N3.7', 'record': '기본 10'}
+M1 합계 13/13 spec이 dof_rank_sample_count 선언
+M1 계획 문언: 옛 기본 10은 근거 없는 상수라 v6
+M2 constraints ('heldout', 'user_spec', 'paper') = 12
+M2 constraints ('library', 'reference', None) = 4
+M2 constraints ('library', 'user_spec', 'drawing') = 4
+M2 constraints ('library', 'user_spec', 'lecture') = 1
+M2 constraints ('library', 'user_spec', 'paper') = 9
+M2 constraints ('library', 'user_spec', None) = 38
+M3 chip-design-skills: 유일 소비자 = heldout `cnr_ota`
+M3 wt: 13회로 발동 = heldout erfc_ota M19~M21 셋뿐(library 9·heldout 나머지 0, 사슬·포트 꼴 0 -- 검증 1 `plan_v6385_validation1/dr1_net_audit.txt`)
+M3 wt: 13회로 해당 = erfc CBAT 셋뿐 | card DR-1 design 착수 전 |
+| Q-CA1 | (v6.38.5 classab 점검 R-A -- **사용자 결정 대기**
+M3 wt: 13회로 해당 = erfc CBAT1_L·CBAT1_R·CBAT2 셋
+M3 chip-design-skills: cnr_ota 단계 A가 다음 정지 사유까지 진행하고 그 사유를 기록 
+M3 wt: cnr_ota 단계 A가 다음 정지 사유까지 진행하고 그 사유를 기록 
+M3 wt: erfc_ota 단계 A
+M4 cbox_rereview.md: DEC-98 0, U-75 0, U-76 0, '개발 회로' 0
+M4 erfc_region.md: DEC-98 0, U-75 0, U-76 0, '개발 회로' 0
+M4 flow_derivation.md: DEC-98 0, U-75 0, U-76 0, '개발 회로' 0
+M4 audit_r2r_fport_cmr.md: DEC-98 1, U-75 4, heldout 언급 10

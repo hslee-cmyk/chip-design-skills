@@ -1,0 +1,4 @@
+1210 | TB-1(θ 기저 S0 필드 -- S/B/F/X 분류 필드·R-1′ 제약 그래프 S0 필드, v6.38 -- O-144 J3; R7 가드 필드 자리·`mirror_vds` 인스턴스 필드는 card LA-1 범위 15 -- v6.38.2 U-132 기본안) | N6.29 | headroom-chain HC-S(`sat_threshold`). 뒤따르는 card = headroom-chain HC-1·LA-1; **master에는 행동 소비자 card(HC-1·LA-1) 가운데 먼저 master에 들어가는 쪽과 같은 통합 병합으로만**(O-149 -- O-146 K2 정정; HC-1·LA-1 순서는 O-126 (c)대로 고정하지 않음) | 계획 v6.38 승인 → **headroom-chain HC-D design 승인**(R-1′ 필드 형식의 정본 -- 재검증 2 m3) → U-132 사용자 확인(충족 -- O-166) → design(S-7 -- 필드 이름·블록) |
+----
+2202 ### N6.29 card TB-1 -- θ 기저 S0 필드(사용자 결정 O-144 J3)
+----

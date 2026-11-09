@@ -1,0 +1,130 @@
+common_gate_amplifier A0d0: accepted=0 base_status=sealed fail=None min0=0.53166 viol0=[] | derive min=0.53166 viol=[] changed={} conflicts=[]
+   stages=
+common_gate_amplifier NAd0: accepted=0 base_status=sealed fail=None min0=0.53166 viol0=[] | derive min=0.53166 viol=[] changed={} conflicts=[]
+   stages=
+common_gate_amplifier NBd1: accepted=0 base_status=sealed fail=None min0=0.53166 viol0=[] | derive min=0.53166 viol=[] changed={} conflicts=[]
+   stages=
+common_gate_amplifier NCd1: accepted=0 base_status=sealed fail=None min0=0.53166 viol0=[] | derive min=0.53166 viol=[] changed={} conflicts=[]
+   stages=
+current_reuse_telescopic_ota A0d0: accepted=None base_status=failed fail=['SEAL_VIOLATION', ['M4a'], {'hi': -0.0375, 'item': 7, 'lo': 0.0, 'node': 'Vy', 'reason':  min0=-1.8 viol0=[['M1a', -0.0442], ['M1b', -0.0442], ['M4a', -0.3049], ['M4b', -0.305], ['M5', -0.0649], ['M58', -0.0489], ['M | derive min=-1.8 viol=[['M1b', -0.1281], ['M4a', -0.0263], ['M4b', -0.1397], ['M5', -0.0649], ['M6', -0.0702], ['M63', -0.0274], ['M7', -0.1477], ['root:M1a', -1. changed={'M57': [-15.915, -15.9866], 'M58': [-15.915, -15.7438], 'M63': [-17.4836, -17.4462]} conflicts=[{'bundles': [[['B', 'M14b'], ['root:M14b', 'M13', 'M10', 'M
+   stages=
+current_reuse_telescopic_ota A0d1none: accepted=None base_status=failed fail=['SEAL_VIOLATION', ['M37b'], {'hi': 1.5081970804109495, 'item': 7, 'lo': 0.0, 'node': 'Ncm min0=-1.8 viol0=[['M1a', -0.0124], ['M1b', -0.1336], ['M38', -0.045], ['M4a', -0.3049], ['M4b', -0.0847], ['M5', -0.0638], ['M | derive min=-1.8 viol=[['M4a', -0.0887], ['M4b', -0.1008], ['M5', -0.0576], ['root:M3b', -0.0068], ['root:M4a', -1.8]] changed={'M23a': [-21.3534, -16.3343], 'M24b': [-21.3534, -17.4519], 'M40': [-23.6377, -18.4061],  conflicts=[{'bundles': [[['B', 'M14b'], ['root:M14b', 'M13', 'M10', 'M
+   stages=
+current_reuse_telescopic_ota NAd0: accepted=None base_status=failed fail=['SEAL_VIOLATION', ['M4a'], {'hi': -0.0375, 'item': 7, 'lo': 0.0, 'node': 'Vy', 'reason':  min0=-1.8 viol0=[['M1a', -0.0442], ['M1b', -0.0442], ['M4a', -0.3049], ['M4b', -0.305], ['M5', -0.0649], ['M58', -0.0489], ['M | derive min=-1.8 viol=[['M1b', -0.1281], ['M4a', -0.0263], ['M4b', -0.1397], ['M5', -0.0649], ['M6', -0.0702], ['M63', -0.0274], ['M7', -0.1477], ['root:M1a', -1. changed={'M57': [-15.915, -15.9866], 'M58': [-15.915, -15.7438], 'M63': [-17.4836, -17.4462]} conflicts=[{'bundles': [[['B', 'M14b'], ['root:M14b', 'M13', 'M10', 'M
+   stages=
+current_reuse_telescopic_ota NBd1: accepted=None base_status=failed fail=['SEAL_VIOLATION', ['M4a'], {'hi': -0.0375, 'item': 7, 'lo': 0.0, 'node': 'Vy', 'reason':  min0=-1.8 viol0=[['M1a', -0.0442], ['M1b', -0.0442], ['M4a', -0.3049], ['M4b', -0.305], ['M5', -0.0649], ['M58', -0.0489], ['M | derive min=-1.8 viol=[['M1b', -0.1281], ['M4a', -0.0263], ['M4b', -0.1397], ['M5', -0.0649], ['M6', -0.0702], ['M63', -0.0274], ['M7', -0.1477], ['root:M1a', -1. changed={'M57': [-15.915, -15.9866], 'M58': [-15.915, -15.7438], 'M63': [-17.4836, -17.4462]} conflicts=[{'bundles': [[['B', 'M14b'], ['root:M14b', 'M13', 'M10', 'M
+   stages=
+current_reuse_telescopic_ota NCd1: accepted=None base_status=failed fail=['SEAL_VIOLATION', ['M4a'], {'hi': -0.0375, 'item': 7, 'lo': 0.0, 'node': 'Vy', 'reason':  min0=-1.8 viol0=[['M1a', -0.0442], ['M1b', -0.0442], ['M4a', -0.3049], ['M4b', -0.305], ['M5', -0.0649], ['M58', -0.0489], ['M | derive min=-1.8 viol=[['M1b', -0.1281], ['M4a', -0.0263], ['M4b', -0.1397], ['M5', -0.0649], ['M6', -0.0702], ['M63', -0.0274], ['M7', -0.1477], ['root:M1a', -1. changed={'M57': [-15.915, -15.9866], 'M58': [-15.915, -15.7438], 'M63': [-17.4836, -17.4462]} conflicts=[{'bundles': [[['B', 'M14b'], ['root:M14b', 'M13', 'M10', 'M
+   stages=
+current_reuse_telescopic_ota NDd1none: accepted=None base_status=failed fail=['SEAL_VIOLATION', ['M37b'], {'hi': 1.5081970804109495, 'item': 7, 'lo': 0.0, 'node': 'Ncm min0=-1.8 viol0=[['M1a', -0.0124], ['M1b', -0.1336], ['M38', -0.045], ['M4a', -0.3049], ['M4b', -0.0847], ['M5', -0.0638], ['M | derive min=-1.8 viol=[['M4a', -0.0887], ['M4b', -0.1008], ['M5', -0.0576], ['root:M3b', -0.0068], ['root:M4a', -1.8]] changed={'M23a': [-21.3534, -16.3343], 'M24b': [-21.3534, -17.4519], 'M40': [-23.6377, -18.4061],  conflicts=[{'bundles': [[['B', 'M14b'], ['root:M14b', 'M13', 'M10', 'M
+   stages=
+folded_cascode A0d0: accepted=0 base_status=sealed fail=None min0=0.10122 viol0=[] | derive min=0.10122 viol=[] changed={} conflicts=[]
+   stages=
+folded_cascode NAd0: accepted=0 base_status=sealed fail=None min0=0.10122 viol0=[] | derive min=0.10122 viol=[] changed={} conflicts=[]
+   stages=
+folded_cascode NBd1: accepted=0 base_status=sealed fail=None min0=0.10122 viol0=[] | derive min=0.10122 viol=[] changed={} conflicts=[]
+   stages=
+folded_cascode NCd1: accepted=0 base_status=sealed fail=None min0=0.10122 viol0=[] | derive min=0.10122 viol=[] changed={} conflicts=[]
+   stages=
+ngcc_3stage_ff A0d1: accepted=0 base_status=sealed fail=None min0=0.31812 viol0=[] | derive min=0.31812 viol=[] changed={} conflicts=[]
+   stages=
+ngcc_3stage_ff NAd1: accepted=None base_status=None fail=None min0=None viol0=None | derive min=None viol=None changed=None conflicts=None
+   stages=None
+ngcc_3stage_ff NBd1: accepted=None base_status=None fail=None min0=None viol0=None | derive min=None viol=None changed=None conflicts=None
+   stages=None
+ngcc_3stage_ff NCd1: accepted=0 base_status=sealed fail=None min0=0.31812 viol0=[] | derive min=0.31812 viol=[] changed={} conflicts=[]
+   stages=
+nmcnr_amplifier A0d0: accepted=0 base_status=failed fail=['SEAL_VIOLATION', ['M109'], {'item': 7}] min0=-0.00671 viol0=[['M109', -0.0067]] | derive min=0.02778 viol=[] changed={'M201': [-23.1706, -22.5551]} conflicts=[]
+   stages=
+nmcnr_amplifier NAd0: accepted=0 base_status=failed fail=['SEAL_VIOLATION', ['M109'], {'item': 7}] min0=-0.00671 viol0=[['M109', -0.0067]] | derive min=0.02778 viol=[] changed={'M201': [-23.1706, -22.5551]} conflicts=[]
+   stages=
+nmcnr_amplifier NBd1: accepted=0 base_status=failed fail=['SEAL_VIOLATION', ['M109'], {'item': 7}] min0=-0.00671 viol0=[['M109', -0.0067]] | derive min=0.02778 viol=[] changed={'M201': [-23.1706, -22.5551]} conflicts=[]
+   stages=
+nmcnr_amplifier NCd1: accepted=0 base_status=failed fail=['SEAL_VIOLATION', ['M109'], {'item': 7}] min0=-0.00671 viol0=[['M109', -0.0067]] | derive min=0.02778 viol=[] changed={'M201': [-23.1706, -22.5551]} conflicts=[]
+   stages=
+nmcnr_amplifier RAd0: accepted=0 base_status=failed fail=['SEAL_VIOLATION', ['M109'], {'item': 7}] min0=-0.00671 viol0=[['M109', -0.0067]] | derive min=0.02778 viol=[] changed={'M201': [-23.1706, -22.5551]} conflicts=[]
+   stages=
+nmcnr_amplifier RBd1: accepted=0 base_status=failed fail=['SEAL_VIOLATION', ['M109'], {'item': 7}] min0=-0.00671 viol0=[['M109', -0.0067]] | derive min=0.02778 viol=[] changed={'M201': [-23.1706, -22.5551]} conflicts=[]
+   stages=
+nmcnr_amplifier RCd1: accepted=0 base_status=failed fail=['SEAL_VIOLATION', ['M109'], {'item': 7}] min0=-0.00671 viol0=[['M109', -0.0067]] | derive min=0.02778 viol=[] changed={'M201': [-23.1706, -22.5551]} conflicts=[]
+   stages=
+pushpull_follower_buffer A0d0: accepted=0 base_status=sealed fail=None min0=0.49729 viol0=[] | derive min=0.49729 viol=[] changed={} conflicts=[]
+   stages=
+pushpull_follower_buffer NAd0: accepted=0 base_status=sealed fail=None min0=0.49729 viol0=[] | derive min=0.49729 viol=[] changed={} conflicts=[]
+   stages=
+pushpull_follower_buffer NBd1: accepted=0 base_status=sealed fail=None min0=0.49729 viol0=[] | derive min=0.49729 viol=[] changed={} conflicts=[]
+   stages=
+pushpull_follower_buffer NCd1: accepted=0 base_status=sealed fail=None min0=0.49729 viol0=[] | derive min=0.49729 viol=[] changed={} conflicts=[]
+   stages=
+sf_pushpull_output_opamp A0d0: accepted=0 base_status=failed fail=['SEAL_VIOLATION', ['M9'], {'axis': 'VDS', 'device_query': 'tol_v_cell', 'hi': 1.8, 'lo':  min0=-1.8 viol0=[['M10', -0.0465], ['M11', -0.0517], ['M17', -0.0583], ['M6', -0.0583], ['M8', -0.0517], ['M9', -0.0694], ['ro | derive min=0.0449 viol=[] changed={'M11': [-23.5005, -16.2802], 'M16': [-13.1751, -20.2879], 'M9': [-16.6675, -16.3237]} conflicts=[]
+   stages=
+sf_pushpull_output_opamp NAd0: accepted=0 base_status=failed fail=['SEAL_VIOLATION', ['M9'], {'axis': 'VDS', 'device_query': 'tol_v_cell', 'hi': 1.8, 'lo':  min0=-1.8 viol0=[['M10', -0.0465], ['M11', -0.0517], ['M17', -0.0583], ['M6', -0.0583], ['M8', -0.0517], ['M9', -0.0694], ['ro | derive min=0.0449 viol=[] changed={'M11': [-23.5005, -16.2802], 'M16': [-13.1751, -20.2879], 'M9': [-16.6675, -16.3237]} conflicts=[]
+   stages=
+sf_pushpull_output_opamp NBd1: accepted=0 base_status=failed fail=['SEAL_VIOLATION', ['M9'], {'axis': 'VDS', 'device_query': 'tol_v_cell', 'hi': 1.8, 'lo':  min0=-1.8 viol0=[['M10', -0.0465], ['M11', -0.0517], ['M17', -0.0583], ['M6', -0.0583], ['M8', -0.0517], ['M9', -0.0694], ['ro | derive min=0.0449 viol=[] changed={'M11': [-23.5005, -16.2802], 'M16': [-13.1751, -20.2879], 'M9': [-16.6675, -16.3237]} conflicts=[]
+   stages=
+sf_pushpull_output_opamp NCd1: accepted=0 base_status=failed fail=['SEAL_VIOLATION', ['M9'], {'axis': 'VDS', 'device_query': 'tol_v_cell', 'hi': 1.8, 'lo':  min0=-1.8 viol0=[['M10', -0.0465], ['M11', -0.0517], ['M17', -0.0583], ['M6', -0.0583], ['M8', -0.0517], ['M9', -0.0694], ['ro | derive min=0.0449 viol=[] changed={'M11': [-23.5005, -16.2802], 'M16': [-13.1751, -20.2879], 'M9': [-16.6675, -16.3237]} conflicts=[]
+   stages=
+two_stage_ota NBd1: accepted=0 base_status=sealed fail=None min0=0.4012 viol0=[] | derive min=0.4012 viol=[] changed={} conflicts=[]
+   stages=
+two_stage_ota_sf NBd1: accepted=0 base_status=sealed fail=None min0=0.1104 viol0=[] | derive min=0.1104 viol=[] changed={} conflicts=[]
+   stages=
+--- LP x
+nmcnr_amplifier NA lp=True x={'M109': 9.77e-06, 'M302': 8.91e-06, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={}
+nmcnr_amplifier NA lp=True x={'M109': 9.77e-06, 'M302': 8.91e-06, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={}
+nmcnr_amplifier RA lp=True x={'M109': 9.77e-06, 'M302': 4.75e-05, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={'M103': 3.83e-06, 'M102': 3.83e-06, 'M201': 3.03e-05, 'M301': 4.75e-05}
+nmcnr_amplifier RA lp=True x={'M109': 9.77e-06, 'M302': 4.75e-05, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={'M103': 3.83e-06, 'M102': 3.83e-06, 'M201': 3.03e-05, 'M301': 4.75e-05}
+ngcc_3stage_ff NA lp=True x={'M6A': 2.65e-19, 'M5': 2.42e-26} eq={}
+ngcc_3stage_ff NA lp=True x={'M6A': 2.65e-19, 'M5': 2.42e-26} eq={}
+sf_pushpull_output_opamp NA lp=True x={'M9': 5.98e-06, 'R1c': 6.03e-06} eq={}
+sf_pushpull_output_opamp NA lp=True x={'M9': 5.98e-06, 'R1c': 6.03e-06} eq={}
+current_reuse_telescopic_ota NA lp=True x={'M19': 2.65e-19, 'M18a': 2.42e-26, 'M1a': 2.42e-26, 'M25': 1.57e-07, 'M36a': 2.64e-07, 'M36b': 2.64e-07, 'M39': 2.42e-26} eq={}
+current_reuse_telescopic_ota NA lp=True x={'M19': 2.65e-19, 'M18a': 2.42e-26, 'M1a': 2.42e-26, 'M25': 1.57e-07, 'M36a': 2.64e-07, 'M36b': 2.64e-07, 'M39': 2.42e-26} eq={}
+current_reuse_telescopic_ota NA lp=False x=The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None) eq={}
+current_reuse_telescopic_ota NA lp=False x=The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None) eq={}
+folded_cascode NA lp=True x={'M5': 1.13e-06, 'M6': 1.13e-06, 'M4': 1.13e-06, 'M3': 1.13e-06, 'MP': 3.06e-07} eq={}
+folded_cascode NA lp=True x={'M5': 1.13e-06, 'M6': 1.13e-06, 'M4': 1.13e-06, 'M3': 1.13e-06, 'MP': 3.06e-07} eq={}
+sf_pushpull_output_opamp NB lp=True x={'M9': 5.98e-06, 'R1c': 6.03e-06} eq={}
+sf_pushpull_output_opamp NB lp=True x={'M9': 5.98e-06, 'R1c': 6.03e-06} eq={}
+ngcc_3stage_ff NB lp=True x={'M6A': 2.65e-19, 'M5': 2.42e-26} eq={}
+ngcc_3stage_ff NB lp=True x={'M6A': 2.65e-19, 'M5': 2.42e-26} eq={}
+nmcnr_amplifier NB lp=True x={'M109': 9.77e-06, 'M302': 8.91e-06, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={}
+nmcnr_amplifier NB lp=True x={'M109': 9.77e-06, 'M302': 8.91e-06, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={}
+pushpull_follower_buffer NA lp=True x={'M4': 2.65e-19, 'M5': 2.42e-26, 'M2': 2.42e-26} eq={}
+pushpull_follower_buffer NA lp=True x={'M4': 2.65e-19, 'M5': 2.42e-26, 'M2': 2.42e-26} eq={}
+nmcnr_amplifier RB lp=True x={'M109': 9.77e-06, 'M302': 4.75e-05, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={'M103': 3.83e-06, 'M102': 3.83e-06, 'M201': 3.03e-05, 'M301': 4.75e-05}
+nmcnr_amplifier RB lp=True x={'M109': 9.77e-06, 'M302': 4.75e-05, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={'M103': 3.83e-06, 'M102': 3.83e-06, 'M201': 3.03e-05, 'M301': 4.75e-05}
+common_gate_amplifier NA lp=True x={'M3': 2.42e-26} eq={}
+common_gate_amplifier NA lp=True x={'M3': 2.42e-26} eq={}
+folded_cascode NB lp=True x={'M5': 1.13e-06, 'M6': 1.13e-06, 'M4': 1.13e-06, 'M3': 1.13e-06, 'MP': 3.06e-07} eq={}
+folded_cascode NB lp=True x={'M5': 1.13e-06, 'M6': 1.13e-06, 'M4': 1.13e-06, 'M3': 1.13e-06, 'MP': 3.06e-07} eq={}
+current_reuse_telescopic_ota NB lp=True x={'M19': 2.65e-19, 'M18a': 2.42e-26, 'M1a': 2.42e-26, 'M25': 1.57e-07, 'M36a': 2.64e-07, 'M36b': 2.64e-07, 'M39': 2.42e-26} eq={}
+current_reuse_telescopic_ota NB lp=True x={'M19': 2.65e-19, 'M18a': 2.42e-26, 'M1a': 2.42e-26, 'M25': 1.57e-07, 'M36a': 2.64e-07, 'M36b': 2.64e-07, 'M39': 2.42e-26} eq={}
+current_reuse_telescopic_ota NB lp=False x=The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None) eq={}
+current_reuse_telescopic_ota NB lp=False x=The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None) eq={}
+pushpull_follower_buffer NB lp=True x={'M4': 2.65e-19, 'M5': 2.42e-26, 'M2': 2.42e-26} eq={}
+pushpull_follower_buffer NB lp=True x={'M4': 2.65e-19, 'M5': 2.42e-26, 'M2': 2.42e-26} eq={}
+common_gate_amplifier NB lp=True x={'M3': 2.42e-26} eq={}
+common_gate_amplifier NB lp=True x={'M3': 2.42e-26} eq={}
+ngcc_3stage_ff NC lp=True x={'M6A': 2.52e-08, 'M5': 4.47e-08} eq={}
+ngcc_3stage_ff NC lp=True x={'M6A': 2.52e-08, 'M5': 4.47e-08} eq={}
+nmcnr_amplifier NC lp=True x={'M109': 9.77e-06, 'M302': 8.91e-06, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={}
+nmcnr_amplifier NC lp=True x={'M109': 9.77e-06, 'M302': 8.91e-06, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={}
+nmcnr_amplifier RC lp=True x={'M109': 9.77e-06, 'M302': 4.75e-05, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={'M103': 3.83e-06, 'M102': 3.83e-06, 'M201': 3.03e-05, 'M301': 4.75e-05}
+nmcnr_amplifier RC lp=True x={'M109': 9.77e-06, 'M302': 4.75e-05, 'M108': 9.77e-06, 'RL': 2.65e-19} eq={'M103': 3.83e-06, 'M102': 3.83e-06, 'M201': 3.03e-05, 'M301': 4.75e-05}
+folded_cascode NC lp=True x={'M5': 1.13e-06, 'M6': 1.13e-06, 'M4': 1.13e-06, 'M3': 1.13e-06, 'MP': 3.06e-07} eq={}
+folded_cascode NC lp=True x={'M5': 1.13e-06, 'M6': 1.13e-06, 'M4': 1.13e-06, 'M3': 1.13e-06, 'MP': 3.06e-07} eq={}
+pushpull_follower_buffer NC lp=True x={'M4': 1.52e-10, 'M5': 6.37e-11, 'M2': 1.52e-10} eq={}
+pushpull_follower_buffer NC lp=True x={'M4': 1.52e-10, 'M5': 6.37e-11, 'M2': 1.52e-10} eq={}
+common_gate_amplifier NC lp=True x={'M3': 1.51e-10} eq={}
+common_gate_amplifier NC lp=True x={'M3': 1.51e-10} eq={}
+current_reuse_telescopic_ota NC lp=True x={'M19': 1.77e-09, 'M18a': 1.3e-10, 'M1a': 1.87e-09, 'M25': 1.57e-07, 'M36a': 2.64e-07, 'M36b': 2.64e-07, 'M39': 1.52e-10} eq={}
+current_reuse_telescopic_ota NC lp=True x={'M19': 1.77e-09, 'M18a': 1.3e-10, 'M1a': 1.87e-09, 'M25': 1.57e-07, 'M36a': 2.64e-07, 'M36b': 2.64e-07, 'M39': 1.52e-10} eq={}
+current_reuse_telescopic_ota NC lp=False x=The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None) eq={}
+current_reuse_telescopic_ota NC lp=False x=The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None) eq={}
+sf_pushpull_output_opamp NC lp=True x={'M9': 5.98e-06, 'R1c': 6.03e-06} eq={}
+sf_pushpull_output_opamp NC lp=True x={'M9': 5.98e-06, 'R1c': 6.03e-06} eq={}
+current_reuse_telescopic_ota ND lp=True x={'M19': 1.77e-09, 'M18a': 1.3e-10, 'M1a': 1.87e-09, 'M25': 1.57e-07, 'M36a': 2.64e-07, 'M36b': 2.64e-07, 'M39': 1.52e-10} eq={}
+current_reuse_telescopic_ota ND lp=True x={'M19': 1.77e-09, 'M18a': 1.3e-10, 'M1a': 1.87e-09, 'M25': 1.57e-07, 'M36a': 2.64e-07, 'M36b': 2.64e-07, 'M39': 1.52e-10} eq={}
+current_reuse_telescopic_ota ND lp=False x=The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None) eq={}
+current_reuse_telescopic_ota ND lp=True x={'M19': 1.77e-09, 'M18a': 1.3e-10, 'M1a': 1.87e-09, 'M25': 1.57e-07, 'M36a': 2.64e-07, 'M36b': 2.64e-07, 'M39': 1.52e-10} eq={}
+current_reuse_telescopic_ota ND lp=True x={'M19': 1.77e-09, 'M18a': 1.3e-10, 'M1a': 1.87e-09, 'M25': 1.57e-07, 'M36a': 2.64e-07, 'M36b': 2.64e-07, 'M39': 1.52e-10} eq={}

@@ -1,0 +1,132 @@
+{
+ "check": {
+  "stored_prefix_match": 63,
+  "stored_prefix_mismatch": 2
+ },
+ "per_circuit": {
+  "folded_cascode": {
+   "device_points": 20,
+   "iter_converged": 15,
+   "B_diff": 3,
+   "C_diff": 3,
+   "D_same": 3,
+   "B_same": 12,
+   "C_same": 12,
+   "D_diff": 12,
+   "iter_slice_cycle": 3,
+   "iter_fail_but_B_fit": 3,
+   "iter_finger_below_min": 2,
+   "rule_none": 2
+  },
+  "two_stage_ota": {
+   "device_points": 10,
+   "iter_finger_below_min": 2,
+   "rule_none": 2,
+   "iter_converged": 8,
+   "B_same": 8,
+   "C_same": 8,
+   "D_diff": 8
+  },
+  "two_stage_ota_sf": {
+   "device_points": 15,
+   "iter_finger_below_min": 4,
+   "rule_none": 5,
+   "iter_converged": 10,
+   "B_same": 10,
+   "C_same": 10,
+   "D_diff": 8,
+   "D_same": 2,
+   "iter_slice_cycle": 1
+  },
+  "nmcnr_amplifier": {
+   "device_points": 15,
+   "iter_converged": 15,
+   "B_same": 14,
+   "C_same": 14,
+   "D_diff": 15,
+   "B_diff": 1,
+   "C_diff": 1
+  },
+  "pushpull_follower_buffer": {
+   "device_points": 5,
+   "iter_converged": 5,
+   "B_same": 5,
+   "C_diff": 5,
+   "D_diff": 5
+  }
+ },
+ "detail": [
+  [
+   "folded_cascode",
+   "1",
+   "M10",
+   "converged",
+   "iter(m,w_f,key)",
+   [
+    1,
+    0.475,
+    "104"
+   ],
+   "B'",
+   [
+    1,
+    0.685,
+    "148"
+   ]
+  ],
+  [
+   "folded_cascode",
+   "17",
+   "M10",
+   "converged",
+   "iter(m,w_f,key)",
+   [
+    1,
+    0.475,
+    "104"
+   ],
+   "B'",
+   [
+    1,
+    0.685,
+    "148"
+   ]
+  ],
+  [
+   "folded_cascode",
+   "30",
+   "M10",
+   "converged",
+   "iter(m,w_f,key)",
+   [
+    1,
+    0.475,
+    "104"
+   ],
+   "B'",
+   [
+    1,
+    0.685,
+    "148"
+   ]
+  ],
+  [
+   "nmcnr_amplifier",
+   "67",
+   "M104",
+   "converged",
+   "iter(m,w_f,key)",
+   [
+    373,
+    4.985,
+    "1000"
+   ],
+   "B'",
+   [
+    372,
+    5.0,
+    "1000"
+   ]
+  ]
+ ]
+}

@@ -1,0 +1,36 @@
+old len 23878 new len 555
+delete old_len 10 in_history_exact short | new: '' | old head: '열여섯째~열여덟째 '
+replace old_len 45 in_history_exact True | new: '별' | old head: ' 저항 문언은 이 단순화로 대체; 상위 v6.38.4 열일곱째 커밋 계획 검증 6'
+replace old_len 2 in_history_exact short | new: '이력은' | old head: '--'
+replace old_len 4 in_history_exact short | new: 'history' | old head: 'OP-3'
+replace old_len 3 in_history_exact short | new: 'Version' | old head: 'DUT'
+replace old_len 2 in_history_exact short | new: 'History' | old head: '저항'
+replace old_len 49 in_history_exact True | new: '0.' | old head: '기하 = 셀 R 식 역산·세그먼트·오라클 변화표·원래 취지와 다름, 검증 대기; 상위 v'
+replace old_len 4 in_history_exact short | new: '22' | old head: '38.4'
+replace old_len 302 in_history_exact True | new: '행들' | old head: '열여섯째 커밋 계획 검증 5 반영 -- OP-3 DUT 저항 소자 줄 = PDK 셀(상위 SF-1 범위 9와 같은 통합 병합), `supply_'
+delete old_len 1 in_history_exact short | new: '' | old head: ':'
+replace old_len 4 in_history_exact short | new: 'Status' | old head: '**계획'
+insert old_len 0 in_history_exact short | new: '사슬(' | old head: ''
+replace old_len 2 in_history_exact short | new: '이하)과' | old head: '--'
+delete old_len 1362 in_history_exact True | new: '' | old head: '상위 gain-budget v6.38.3 열두째 커밋(사용자 대원칙 O-169) OP-12 철회(지울 `legacy_adapter` 수정 = 호'
+delete old_len 21 in_history_exact True | new: '' | old head: '1 절) 이전 판: **계획 v0.6.'
+delete old_len 2104 in_history_exact True | new: '' | old head: '0 -- 상위 gain-budget v6.38.3 N6.35 예외 정리 표 행 인용(OP-12 = E-23 -- v0.6.21 철회, X-D1 '
+replace old_len 1 in_history_exact short | new: ' =' | old head: '는'
+delete old_len 23 in_history_exact True | new: '' | old head: "v0.6.18 승인 커밋' 절로 옮김). "
+delete old_len 1 in_history_exact short | new: '' | old head: ':'
+replace old_len 4 in_history_exact short | new: 'Status' | old head: '**계획'
+replace old_len 7 in_history_exact short | new: "사슬'" | old head: 'v0.6.17'
+replace old_len 15 in_history_exact short | new: '절' | old head: '-- O-85 반영, 승인됨'
+delete old_len 50 in_history_exact True | new: '' | old head: '사용자 O-86, 2026-10-21)**(출력 범위 끝 판정 -- 2026-10-26, '
+delete old_len 12 in_history_exact short | new: '' | old head: ' gain-budget'
+delete old_len 13 in_history_exact short | new: '' | old head: '1 넷째 커밋, O-15'
+delete old_len 58 in_history_exact True | new: '' | old head: "Q3 '범위 전체 출력 능력은 R8 범위 끝 헤드룸 고리가 강제, 정확값 oracle `.dc`'의 오케"
+replace old_len 206 in_history_exact True | new: '물두' | old head: '트레이터 기본안: `swing_out_v` 판정 measure → 선언 출력 범위 끝 `.dc` 판정(선언 회로만), `swing_out_v`는'
+delete old_len 50 in_history_exact True | new: '' | old head: 'O-154 Q3: 엔진 metric·spec 제약 `swing_out_v` 삭제 -- 이 '
+delete old_len 55 in_history_exact True | new: '' | old head: '의 `swing_out_v` oracle measure 존폐는 다음 개정에서 정함(규칙 변경 없음,'
+delete old_len 73 in_history_exact True | new: '' | old head: '대기))(근거 문언 정정 -- 2026-10-26, 상위 gain-budget v6.38.1 둘째 커밋 O-153 감사 C5: D-'
+replace old_len 90 in_history_exact True | new: 'n' | old head: "'엔진 선언 파일·로더를 바꾸지 않는다'의 근거 = card 경계, 기준선 변화는 근거가 아님 -- 규칙 변경 없음, 검증 대기; 경위 hist"
+delete old_len 2631 in_history_exact True | new: '' | old head: "7 근거 문언 정정' 행)(둘째 커밋 -- 이 계획 규칙 변경 없음, 짝 gain-budget v6.28 둘째 커밋 O-86 M1·N1~N4)("
+delete old_len 16178 in_history_exact True | new: '' | old head: ')(셋째 커밋 -- 사용자 결정 O-69 (1): OQ-11 닫힘(다), 슬루 측정 그대로·과도 되먹임 = 선언 구성 전체, 용량만 선언된 차동'
+tail len 23037 in history True 2e801914d5df27ea
+other lines changed: [18] 777 777

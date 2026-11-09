@@ -1,0 +1,86 @@
+
+===== replace old 304-304 new 304-304
+  - design v1.15.3 40 §3.7-A 5 멈춤 해소;
+  + design v1.15.3 40 §3.7-A 2-5 멈춤 해소;
+  ~~
+  - **실현 총 폭** = 실현 평가의 `DeviceOp.W`(= m·w_s)
+  + **실현 총 폭**(→ v6.38.5 Q-W1 권고안 문언
+  + 승인 전에는 조건부, 일괄 반영 목록 N5.3 Q-W1 행) = 실현 평가의 `DeviceOp.W`(= m·w_s)
+  ~~
+
+===== replace old 567-567 new 567-567
+  - class-AB 배터리 KVL, 신호 CD 셀의 source 노드(`V(s) = V(g) ∓ VGS(gm_id, L, vds = abs(V(d) − V(s))
+  + class-AB 배터리 KVL, 고정값 저항 망 노드(Ohm + KCL 선형 해)·구조적 0 전류 MOS 빈 쪽 넷(VDS = 0 묶음
+  + writer = DC 블록, 규칙 = card DR-1 N6.36, v6.38.5)
+  + 신호 CD 셀의 source 노드(`V(s) = V(g) ∓ VGS(gm_id, L, vds = abs(V(d) − V(s))
+  ~~
+
+===== replace old 1161-1161 new 1161-1161
+  + **표지 자리·되돌릴 목록**(design 영향 대조 `wt/_drafts/evidence/2026-10-29/plan_v6385_design_impact.md` §3 2): 권고안 문언이 본문에 들어간 자리 = DEC-105 (2) '탐색 평가와 실현 평가'·'실현 총 폭'·측정 구성·front 처리, WB-1 범위 2b·완료 (5) 실현 평가 toy, U-130 행 DeviceOp.W 문장, E-0 '실현 평가 봉인점' 조건
+  + 모두 'Q-W1 권고안 문언' 표지;
+  + 대안 (가)(매 평가 W′ 재풀이) 채택 시 되돌릴 목록 = 위 표지 자리 전부 + 일괄 반영 목록(실현 평가·servo·front 재필터 문언을 '매 평가 DC 블록 W′ 재풀이, `DeviceOp.W` = W′ 하나'로)
+  + 이때도 DEC-23 성분 (3)은 매 평가 노드 해에 ΔW 효과가 이미 들어가므로 1차식을 더하지 않는다(이중 계산 방지
+  + 흡수 이유가 같음, 측정 구성 servo 문언은 매 평가에 적용);
+  + 순서 (i)(DE-1 → WB-1) 채택 시 되돌릴 목록 = IT-2 → WB-1 선행 표지(N6.1 WB-1 행·card WB-1 순서·card IT-2 '선후와 무관' 표지) 철회·X-LA11 역순 표지·WB-1 완료 (5) 노드 수준 한정 철회(실현 V_id* 단언을 WB-1로).
+  ~~
+
+===== replace old 1229-1229 new 1229-1229
+  - S-7) → design → design↔계획 gap |
+  + S-7;
+  + 충족 v6.38.5 W2 행) → design → design↔계획 gap |
+  ~~
+
+===== replace old 1313-1313 new 1313-1313
+  - v6.38.5 Q-W1, 원래 취지와 다름 후보)
+  + v6.38.5 Q-W1, 원래 취지와 다름 후보
+  + 권고안 문언, 승인 전에는 조건부, 일괄 반영 목록 N5.3 Q-W1 행)
+  ~~
+
+===== replace old 2260-2260 new 2260-2260
+  - 만들면 배선, 둘째 생산자 금지, O-153 옛 코드 삭제): 같은 card에서 아래를 '총 폭 = 그 평가의 `DeviceOp.W`(탐색 평가 = θ 유도 W, 실현 평가 = W′ = m·w_s
+  + 만들면 배선, 둘째 생산자 금지, O-153 옛 코드 삭제): 같은 card에서(→ v6.38.5 Q-W1 권고안 문언
+  + 승인 전에는 조건부, 일괄 반영 목록 N5.3 Q-W1 행) 아래를 '총 폭 = 그 평가의 `DeviceOp.W`(탐색 평가 = θ 유도 W, 실현 평가 = W′ = m·w_s
+  ~~
+
+===== replace old 2265-2265 new 2265-2265
+  - 검증 5 실측, 착수 때 재조사)이 그 평가의 `DeviceOp.W`를 그대로 읽고(탐색 평가 = θ 유도 W, 실현 평가 = W′
+  + 검증 5 실측, 착수 때 재조사)이 그 평가의 `DeviceOp.W`를 그대로 읽고(→ v6.38.5 Q-W1 권고안 문언
+  + 승인 전에는 조건부, 일괄 반영 목록 N5.3 Q-W1 행)(탐색 평가 = θ 유도 W, 실현 평가 = W′
+  ~~
+
+===== replace old 2346-2346 new 2346-2346
+  - **정본 자리**: 기하 = DC 블록 DR-1 갈래(`DeviceOp.W`·L 쓰기, C_c READS 없음
+  - 노드 풀이 graph reuse 유지);
+  + **정본 자리**(design 영향 대조 §3 3(b)
+  + graph 규칙 1): 0 전류 MOS의 L은 기존 `device.dc_L` writer `dc_lengths`(`E/sizing/block_lengths.py:17`) 안의 갈래로 L_min(그 kind LUT L 정의역 하한)을 쓰고, W는 기존 `DeviceOp.W` writer(DC 블록) 안의 갈래로 W_min을 쓴다(I = 0이라 W = I·L/IDu가 정의 불능
+  + 선택 함수를 부르지 않는 갈래)
+  + DR-1이 따로 쓰지 않으므로 필드마다 writer 하나 그대로이고, 대안 'DR-1 블록이 쓰고 그 소자를 `dc_lengths`·DC 블록 대상에서 뺌'은 같은 필드의 writer가 소자 집합으로 갈려 소유가 둘이 되므로 기각;
+  + C_c READS 없음
+  + 노드 풀이 graph reuse 유지;
+  ~~
+
+===== replace old 2348-2348 new 2348-2348
+  - erfc 전회로 MNA에 R_ds–C_BAT 극·영점이 나타나고 f_HP 손계산과 대조.
+  + 선언 커패시터 값 toy 회로의 전회로 MNA에 R_ds–C 극·영점이 나타나고 f_HP 손계산과 대조(card SF-1 범위 9와 무관
+  + 커패시터 θ가 아니라 선언 값);
+  + erfc 전회로(C_BAT θ) MNA 대조는 card SF-1 범위 9 병합 뒤 heldout 판정 기록의 통합 검사로 둔다(순서 의존 없음
+  + 조건부 완료 조건 0, design 영향 대조 §3 3(c)).
+  ~~
+
+===== replace old 2350-2350 new 2350-2350
+  - S-7) → design → design↔계획 gap.
+  + S-7;
+  + **충족** v6.38.5 열두째 커밋
+  + W2 행에 저항 망·VDS = 0 묶음) → design → design↔계획 gap.
+  ~~
+  - heldout cnr_ota·erfc_ota는 판정 기록만.
+  + heldout cnr_ota·erfc_ota는 판정 기록만(erfc front가 전부 oracle 슬루 FAIL(`oracle_only_fail`)로 비면 그 실행은 'fail-closed 기록'으로 분류한다
+  + 엔진 실패가 아니고(design 40 §10.5 `oracle_only_fail` ≠ 엔진 실패) card 완료를 막지 않으며, 사유(U-112 닫힘·O-144 되먹임 없음·Q-ZG1 ⚠ C_BAT 하한 SR)를 판정 기록에 남긴다
+  + design 영향 대조 §3 4).
+  ~~
+
+===== replace old 2530-2530 new 2530-2530
+  - 실현 기하 (m, w_f)는 `DeviceOp.W`(그 평가가 쓴 W
+  + 실현 기하 (m, w_f)는(→ v6.38.5 Q-W1 권고안 문언
+  + 승인 전에는 조건부, 일괄 반영 목록 N5.3 Q-W1 행) `DeviceOp.W`(그 평가가 쓴 W
+  ~~

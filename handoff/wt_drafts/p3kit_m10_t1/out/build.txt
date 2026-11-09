@@ -1,0 +1,17 @@
+start 2183f2ef629e808a793d0c165833e1ddcbcaafb7
+D11 token lines in plan: 1
+FU design_report.py after line 27
+FU audit_current_forced.py after line 37
+FU 63b04c164fc6b0b7a4e8c96589658dc47dd9ce5a
+T0-W1 stand-in test_selftest_topology_library.py 1
+T0-W1 stand-in test_selftest_sizing_recipe.py 3
+T0-W1 stand-in test_selftest_design_report.py 1
+T0W1 3236aa0e9e18482c357fc9e60ebfd95c84afc360
+installed 4
+G1 3b398b1b685c19a61e83a473b5103b2af492c65a
+D0a 8dad7647a5520fdc57caad3d8acbad50b7372350
+plan pre exit 1
+{"tables": 15, "counts": {"one": 354, "multi": 0, "nested": 7, "nounit": 18}, "write": true}
+M1BASE e70ccad667507be02fcc1e8d3debf6f3475910e3
+plan M1base exit 0
+done

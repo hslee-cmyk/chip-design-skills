@@ -1,0 +1,18 @@
+# 검증 43 (3) offset-trim toy 재grep (git -C chip-design-skills grep, 2026-10-31, 읽기 전용)
+## augment_trim | trim_decl  (-l, 저장소 전체)
+docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+docs/01-plan/features/headroom-chain.plan.md
+docs/01-plan/features/offset-trim.history.md
+docs/01-plan/features/offset-trim.plan.md
+docs/01-plan/features/oracle-portability.plan.md
+docs/02-design/features/offset-strategy.design.history.md
+docs/02-design/features/offset-strategy.design.md
+docs/02-design/features/offset-trim.design.md
+docs/02-design/features/oracle-portability.design.md
+=> skills/analog-gmid-design(엔진·tests·tools·assets) 0건. 문서에만 있음.
+## trim·steer·dac 파일 이름(ls-files)
+offset-trim 계획·design·history + assets/technique/sources/offset_trim__{bertotti_2012,kay_2024,lu_2007,mohamed_2013,srinivasan_2007,staudt_2011,zhou_2017}/{paper.md,source.pdf}
+=> toy·픽스처·회로 파일 0. 원문 PDF는 로컬에 있음.
+## spec 영역 어휘: gmid_engine/authoring/spec_regions.py:6,16 REGIONS = ("triode",) -- 'off' 없음 (as-built 사실)
+## "off" 처리 as-built (재작성 범위 사실): tools/spice_oracle/oracle_compare.py:240 `if pred.get("region") == "off"` (엔진 예측 off = 전도 확인 대상 아님), :277-281 `abs(idv) < thr(off_current_A)` -> region "off"; oracle_input.schema.json:121 region enum {sat, triode, off}
+## Bertotti 2012 paper.md: "the LSB current cell in this work is based on an NMOS transistor operated in subthreshold region" (켜진 LSB 전류 자체가 약반전)

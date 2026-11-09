@@ -1,0 +1,36 @@
+case	expected	got	match	desc	detail	old_check_jsonl
+real4	PASS	PASS	ok	기록 4 실제 초안 + 실제 jsonl(실제 답 수용)		-
+real5	PASS	PASS	ok	기록 5 실제 초안 + 실제 jsonl(실제 답 수용)		PASS
+syn4	PASS	PASS	ok	기록 4 + 합성 jsonl(실제 두 줄 그대로)		-
+syn5	PASS	PASS	ok	기록 5 + 합성 jsonl(실제 두 줄 그대로)		-
+swap_reject4	STOP	STOP	ok	기록 4 답 자리를 거부 선택지로	(('답 인용 != 사용자가 고른 답(toolUseResult.answers[질문] 전체 일치)', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', 'P9 시그니처 유지', '갱신 승인 (Recommended)'),)	-
+swap_reject5	STOP	STOP	ok	기록 5 답 자리를 다른(비승인) 선택지로	(('답 인용 != 사용자가 고른 답(toolUseResult.answers[질문] 전체 일치)', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', '등가 4개 모두 면제', '정리 2줄 + 면제 1 (Recommended)'),)	STOP
+elsewhere4	STOP	STOP	ok	기록 4 답 자리 변조 + 실제 답을 범위 설명에 인용	(('답 인용 != 사용자가 고른 답(toolUseResult.answers[질문] 전체 일치)', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', 'P9 시그니처 유지', '갱신 승인 (Recommended)'),)	-
+elsewhere5	STOP	STOP	ok	기록 5 답 자리 변조 + 실제 답을 범위 설명에 인용(옛 check_jsonl 통과 사례)	(('답 인용 != 사용자가 고른 답(toolUseResult.answers[질문] 전체 일치)', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', '등가 4개 모두 면제', '정리 2줄 + 면제 1 (Recommended)'),)	PASS
+user_rejected4	STOP	STOP	ok	jsonl에서 사용자가 거부 선택지를 골랐고 기록이 그대로 인용	(('답 != 그 사전 승인 질문의 승인 선택지 label -- 승인이 아닌 답으로 승인 기록을 만들 수 없다', 'P9 시그니처 유지', '갱신 승인 (Recommended)'),)	-
+user_rejected5	STOP	STOP	ok	jsonl에서 사용자가 비승인 선택지를 골랐고 기록이 그대로 인용	(('답 != 그 사전 승인 질문의 승인 선택지 label -- 승인이 아닌 답으로 승인 기록을 만들 수 없다', '등가 4개 모두 면제', '정리 2줄 + 면제 1 (Recommended)'),)	-
+wrong_toolu4	STOP	STOP	ok	기록 4 toolu를 같은 jsonl의 다른 AskUserQuestion으로	(('AskUserQuestion toolu != 핀', 'toolu_01UZMV9c7hahwakQs6EiNken', 'toolu_01KTtsbRiK7S3cv1coUsAyPw'),)	-
+wrong_toolu5	STOP	STOP	ok	기록 5 toolu를 다른 AskUserQuestion으로	(('AskUserQuestion toolu != 핀', 'toolu_01UZMV9c7hahwakQs6EiNken', 'toolu_01KTtsbRiK7S3cv1coUsAyPw'),)	PASS
+is_error4	STOP	STOP	ok	tool_result is_error = true	(('tool_result is_error', 'toolu_01KTtsbRiK7S3cv1coUsAyPw'),)	-
+is_error5	STOP	STOP	ok	tool_result is_error = true	(('tool_result is_error', 'toolu_01KTtsbRiK7S3cv1coUsAyPw'),)	-
+result_id	STOP	STOP	ok	tool_result tool_use_id가 다른 id	(('jsonl에 그 tool_result가 정확히 하나가 아니다', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', 0),)	-
+result_dup	STOP	STOP	ok	같은 toolu tool_result 두 줄	(('jsonl에 그 tool_result가 정확히 하나가 아니다', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', 2),)	-
+jsonl_name	STOP	STOP	ok	jsonl 파일 이름이 인용 세션과 다름	(('jsonl 경로 이름 != 인용 세션', 'C:/g437/qb\\name\\other-session.jsonl', '63c6146a-ab1d-4035-a169-bae810986922'),)	-
+header	STOP	STOP	ok	인용 [header]를 다른 질문 header로	(('질문 header != 인용 [header] != 핀', 'U5 P9 시그', 'U4 B40', 'U5 P9 시그'),)	-
+question	STOP	STOP	ok	질문 원문 한 글자 변조	(('질문 인용이 그 tool_use의 질문 하나와 전체 일치하지 않는다', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', '[U5] P9 계약 test 2개(test_kcl_series_union_signature_unchanged·test_kcl_and_matchi'),)	-
+question_other	STOP	STOP	ok	기록 4 질문·답 자리에 같은 toolu의 U3 질문·답	(('질문 header != 인용 [header] != 핀', 'U3 등가', 'U5 P9 시그', 'U5 P9 시그'),)	-
+options	STOP	STOP	ok	선택지 description 변조	(('선택지 줄 != 그 질문 options 전체(label·description·순서)', '"갱신 승인 (Recommended)" -- "새 기대 = 원래 두 매개변수 + 키워드 전용·기본값 없음·주석 RailDeclaration인 r'),)	-
+q_time	STOP	STOP	ok	질문 시각 1분 변조	(("'질문' 시각 != tool_use 줄 timestamp(KST 분)", '2026-10-01 21:09 KST', '2026-10-01 21:10 KST'),)	-
+a_time	STOP	STOP	ok	답 시각 1분 변조	(("'답' 시각 != tool_result 줄 timestamp(KST 분)", '2026-10-01 21:15 KST', '2026-10-01 21:14 KST'),)	PASS
+n_questions	STOP	STOP	ok	질문 수 변조	(("'질문 N개' != tool_use 질문 수", '3', 4),)	-
+stray_line	STOP	STOP	ok	답 자리에 인용 줄 하나 더(두 줄 답 != 실제 답)	(('답 인용 != 사용자가 고른 답(toolUseResult.answers[질문] 전체 일치)', 'toolu_01KTtsbRiK7S3cv1coUsAyPw', '갱신 승인 (Recommended)\n덧붙인 인용', '갱신 승인 (Recommended)'),)	-
+stray_para	STOP	STOP	ok	절 안 떠도는 문단	(("'## 사용자 원문' 절이 B26-1 인용 양식(블록 = 답 자리 -> (질문 시각·답 시각·세션·toolu·N·[header]) 질문 원문 -> 선택지, 블록의 나열)과 정확히 같지 않다", '## 사용자 원문\n\n> 정리 2줄 + 면제 1 (Recommended)\n\n(질문 2026-10-01 21:10 KST, 답 2026-10-01 21:1	PASS
+wrong_aid	STOP	STOP	ok	기록 4 본문을 기록 5 id로 검사	(('기록 머리 id != 기록 id', ['20261001-b26-p9-signature-update'], '20261001-b26-v3-equiv-range'),)	STOP
+v5blk_missing	STOP	STOP	ok	기록 4에서 [B26-1 V5] 블록 삭제(U5만 -- 옛 한 경로 기록 모양)	(('인용 블록 수 != 사전 승인 핀 수', 1, 2, ['U5 P9 시그']),)	-
+v5blk_order	STOP	STOP	ok	두 블록 순서 바꿈	(('AskUserQuestion toolu != 핀', 'toolu_01MGv1L1nfGzLcPrjMTk5A44', 'toolu_01KTtsbRiK7S3cv1coUsAyPw'),)	-
+v5blk_dup	STOP	STOP	ok	[B26-1 V5] 블록 두 번	(('인용 블록 수 != 사전 승인 핀 수', 3, 2, ['U5 P9 시그', 'B26-1 V5', 'B26-1 V5']),)	-
+v5blk_answer	STOP	STOP	ok	[B26-1 V5] 답 자리를 거부 선택지로	(('답 인용 != 사용자가 고른 답(toolUseResult.answers[질문] 전체 일치)', 'toolu_01MGv1L1nfGzLcPrjMTk5A44', '(나) card 계약 12 개정', '(가) 합친 V5 승인 (Recommended)'),)	-
+v5blk_user_rej	STOP	STOP	ok	jsonl에서 사용자가 [B26-1 V5] 거부 선택지를 골랐고 기록이 그대로 인용	(('답 != 그 사전 승인 질문의 승인 선택지 label -- 승인이 아닌 답으로 승인 기록을 만들 수 없다', '(나) card 계약 12 개정', '(가) 합친 V5 승인 (Recommended)'),)	-
+v5blk_is_error	STOP	STOP	ok	[B26-1 V5] tool_result is_error = true	(('tool_result is_error', 'toolu_01MGv1L1nfGzLcPrjMTk5A44'),)	-
+v5blk_v4_quoted	STOP	STOP	ok	[B26-1 V5] 자리에 같은 toolu의 [B26-1 V4] 질문·답(철회된 V4 면제)	(('질문 header != 인용 [header] != 핀', 'B26-1 V4', 'B26-1 V4', 'B26-1 V5'),)	-
+v5blk_syn	PASS	PASS	ok	기록 4 두 블록 + 합성 jsonl(두 toolu 네 줄 그대로)		-

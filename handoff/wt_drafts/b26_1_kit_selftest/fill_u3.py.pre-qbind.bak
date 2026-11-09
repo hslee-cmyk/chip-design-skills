@@ -1,0 +1,167 @@
+"""U3 등가 면제 승인 기록 `20261001-b26-v3-equiv-range` 채우기(B26-1 '두 번 시도 절차' 2 (a)⑥).
+
+초안 `_drafts/approval_20261001-b26-v3-equiv-range.md`의 자리표시 6개를 auditor 측정값으로 채우고 채우는 법 주석을 지워 `--out`(파일 이름 = <id>.md)에 쓴다.
+b26_1_carry.sh records 단계가 이 스크립트를 불러 기록 5를 쓴다(초안 = 기록 5 본문 단일 출처, carry 안 heredoc 생성기는 u3 배선에서 지웠다).
+`--check-carry <파일>`은 그 파일 안 옛 기록 5 heredoc 생성기(`"$PY" -B - "$R/$F_A5"` 줄 다음 ~ EOF -- 예: b26_1_carry.sh.pre-u3.bak)를
+같은 값으로 돌려 바이트 대조한다(회귀 대조, records_u3_test.sh).
+
+    $PY fill_u3.py --out <dir>/20261001-b26-v3-equiv-range.md
+                   (--elem <변이 id>@<해시64> --k1 <40> --b1 <40> | --state <b26_1_carry_state.txt>)
+                   (--sums '<이름> sha256 <해시>; …' | --archive <보관 디렉터리(SHA256SUMS)>)
+                   [--src <K1 stick_diagram.py>]   # 묶기 해시·경로 끝 노드를 따로 계산해 대조
+                   [--check-carry <b26_1_carry.sh>] [--archive-label _drafts/b26_1_attempt1/]
+                   [--jsonl <세션 jsonl>]           # 인용한 U3 질문·선택지·답이 jsonl AskUserQuestion과 같은지
+
+어느 확인이든 실패하면 exit 1(AssertionError), 쓰지 않는다.
+"""
+import argparse, ast, hashlib, json, os, re, subprocess, sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DR = os.path.dirname(HERE)
+AID = "20261001-b26-v3-equiv-range"
+DRAFT = os.path.join(DR, "approval_%s.md" % AID)
+V3_RE = r"^stick_diagram:find_differential_pair_candidates:const-:"
+TOOL_USE = "toolu_01KTtsbRiK7S3cv1coUsAyPw"
+# 자리표시 -> 초안 안 개수
+PH = {"<V3_MUTANT_ID>": 2, "<V3_BIND_HASH_64>": 2, "<K1_40>": 1, "<B1_40>": 1, "<ATTEMPT1_SUMS>": 1, "<ARCHIVE_LABEL>": 1}
+SUM_NAMES = ("attempt1_v3.json", "attempt1_v3.out.jsonl", "K1_SD.py")
+
+
+def state_get(path, key):
+    v = [l.split("=", 1)[1] for l in open(path, encoding="utf-8").read().splitlines() if l.startswith(key + "=")]
+    assert v and v[-1], ("상태 파일에 값 없음", key)
+    return v[-1]
+
+
+def sums_from_archive(adir):
+    """carry records와 같은 식: SHA256SUMS에서 세 이름 줄, 표지('*'·' ') 뗀 이름, 파일 순서 그대로 '; '로."""
+    out = []
+    for line in open(os.path.join(adir, "SHA256SUMS"), encoding="utf-8").read().splitlines():
+        m = re.fullmatch(r"([0-9a-f]{64}) [ *](.+)", line)
+        if m and m.group(2) in SUM_NAMES:
+            out.append("%s sha256 %s" % (m.group(2), m.group(1)))
+    assert len(out) == 3, ("SHA256SUMS에 세 줄이 아니다", out)
+    return "; ".join(out)
+
+
+def check_src(src_path, mid, h):
+    """묶기 해시(mutate_changed.bind_hash 정의)와 경로 끝 노드 = range(… + 1, …)의 정수 1."""
+    tree = ast.parse(open(src_path, encoding="utf-8").read())
+    mod, qual, op, path = mid.split(":", 3)
+    node = tree
+    for part in qual.split("."):
+        node = [n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and n.name == part][-1]
+    hh = hashlib.sha256(ast.dump(node, annotate_fields=True, include_attributes=False, indent=None,
+                                 show_empty=False).encode("utf-8")).hexdigest()
+    assert hh == h, ("묶기 해시 != src def 묶기 해시", h, hh)
+    chain = [node]
+    n = node
+    for seg in path.split("."):
+        m = re.fullmatch(r"([a-z_]+)(?:\[(\d+)\])?", seg)
+        n = getattr(n, m.group(1))
+        if m.group(2) is not None:
+            n = n[int(m.group(2))]
+        chain.append(n)
+    c, binop, call = chain[-1], chain[-2], chain[-3]
+    assert isinstance(c, ast.Constant) and type(c.value) is int and c.value == 1, ast.dump(c)
+    assert isinstance(binop, ast.BinOp) and isinstance(binop.op, ast.Add) and binop.right is c, ast.dump(binop)
+    assert isinstance(call, ast.Call) and isinstance(call.func, ast.Name) and call.func.id == "range" and call.args[0] is binop
+    print("   src OK: 묶기 해시 일치, 경로 끝 = range(… + 1, …)의 1")
+
+
+def check_jsonl(jpath, text):
+    q = None
+    ans = None
+    with open(jpath, encoding="utf-8") as fh:
+        for line in fh:
+            if TOOL_USE not in line:
+                continue
+            o = json.loads(line)
+            c = o.get("message", {}).get("content")
+            if isinstance(c, list):
+                for b in c:
+                    if b.get("type") == "tool_use" and b.get("id") == TOOL_USE:
+                        q = [x for x in b["input"]["questions"] if x["header"] == "U3 등가"][0]
+            tur = o.get("toolUseResult")
+            if isinstance(tur, dict) and tur.get("answers"):
+                ans = tur["answers"]
+    assert q is not None and ans is not None, "jsonl에서 U3 질문·답을 못 찾음"
+    a = ans[q["question"]]
+    assert "\n> %s\n" % a in text, ("답 원문 인용 불일치", a)
+    assert '질문 원문(고치지 않고 그대로): "%s"\n' % q["question"] in text, "질문 원문 불일치"
+    sel = "선택지: " + " / ".join('"%s" -- "%s"' % (o["label"], o["description"]) for o in q["options"]) + ".)"
+    assert sel in text, "선택지 원문 불일치"
+    print("   jsonl OK: 질문·선택지 4·답 %r 바이트 일치" % a)
+
+
+def carry_bytes(carry_sh, elem, k1, b1, sums, alab, tmpdir):
+    lines = open(carry_sh, encoding="utf-8").read().split("\n")
+    start = [i for i, l in enumerate(lines) if l.lstrip().startswith('"$PY" -B - "$R/$F_A5"')]
+    assert len(start) == 1, "carry에서 기록 5 생성기를 못 찾음"
+    end = lines.index("EOF", start[0] + 1)
+    gen = os.path.join(tmpdir, "carry_rec5_gen.py")
+    out = os.path.join(tmpdir, AID + ".carry.md")
+    open(gen, "wb").write("\n".join(lines[start[0] + 1:end]).encode("utf-8") + b"\n")
+    subprocess.run([sys.executable, "-B", gen, out, AID, elem, k1, b1, sums, alab], check=True)
+    b = open(out, "rb").read()
+    os.remove(gen); os.remove(out)
+    return b
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(prog="fill_u3.py")
+    ap.add_argument("--draft", default=DRAFT)
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--elem"); ap.add_argument("--k1"); ap.add_argument("--b1"); ap.add_argument("--state")
+    ap.add_argument("--sums"); ap.add_argument("--archive")
+    ap.add_argument("--src"); ap.add_argument("--check-carry"); ap.add_argument("--jsonl")
+    ap.add_argument("--archive-label", default="_drafts/b26_1_attempt1/")
+    ns = ap.parse_args(argv)
+    elem = ns.elem or (ns.state and state_get(ns.state, "V3_ELEM"))
+    k1 = ns.k1 or (ns.state and state_get(ns.state, "K1"))
+    b1 = ns.b1 or (ns.state and state_get(ns.state, "B1"))
+    sums = ns.sums or (ns.archive and sums_from_archive(ns.archive))
+    assert elem and k1 and b1 and sums, "값 부족: --elem/--k1/--b1(또는 --state)와 --sums(또는 --archive)"
+    assert os.path.basename(ns.out) == AID + ".md", ("--out 파일 이름은 <id>.md(parse-approval basename 대조)", ns.out)
+    # 값 형식
+    assert elem.count("@") == 1, elem
+    mid, h = elem.split("@")
+    assert re.match(V3_RE, mid) and mid.count(":") >= 3, ("변이 id가 U3 대상 모양이 아니다", mid)
+    assert re.fullmatch(r"[0-9a-f]{64}", h), ("묶기 해시 64자리 소문자 16진 아님", h)
+    for k, v in (("K1", k1), ("B1", b1)):
+        assert re.fullmatch(r"[0-9a-f]{40}", v), (k, v)
+    assert re.fullmatch(r"[^;]+ sha256 [0-9a-f]{64}(; [^;]+ sha256 [0-9a-f]{64}){2}", sums), ("sums 형식", sums)
+    assert not any(c in v for v in (mid, sums) for c in "\r\n,<>"), "값에 줄바꿈·쉼표·꺾쇠"
+    alab = ns.archive_label
+    assert alab.endswith("/") and not any(c in alab for c in "\r\n,<>`"), ("--archive-label 형식(끝 '/', 줄바꿈·쉼표·꺾쇠·backtick 없음)", alab)
+    # 채우기
+    t = open(ns.draft, "rb").read().decode("utf-8")
+    assert "\r" not in t and not t.startswith("﻿")
+    # 채우는 법 주석(끝 블록) 먼저 지운다 -- 주석 안 자리표시 이름은 세지 않는다
+    i, j = t.index("\n<!--\n"), t.index("\n-->")
+    assert t.count("<!--") == 1 and t.count("-->") == 1 and t[j:] == "\n-->\n", repr(t[j:])
+    t = t[:i].rstrip("\n") + "\n"
+    for k, n in PH.items():
+        assert t.count(k) == n, (k, t.count(k), n)
+    t = t.replace("<V3_MUTANT_ID>@<V3_BIND_HASH_64>", elem)   # target 줄(원소 하나)
+    for k, v in (("<V3_MUTANT_ID>", mid), ("<V3_BIND_HASH_64>", h), ("<K1_40>", k1), ("<B1_40>", b1), ("<ATTEMPT1_SUMS>", sums), ("<ARCHIVE_LABEL>", alab)):
+        t = t.replace(k, v)
+    assert not re.search(r"<[A-Z][A-Z0-9_]*>", t), re.findall(r"<[A-Z][A-Z0-9_]*>", t)
+    assert t.count("\ntarget: %s\n" % elem) == 1
+    b = t.encode("utf-8")
+    if ns.src:
+        check_src(ns.src, mid, h)
+    if ns.jsonl:
+        check_jsonl(ns.jsonl, t)
+    if ns.check_carry:
+        cb = carry_bytes(ns.check_carry, elem, k1, b1, sums, alab, os.path.dirname(os.path.abspath(ns.out)))
+        assert cb == b, "carry records 기록 5와 바이트가 다르다"
+        print("   carry OK: %s 기록 5 생성기 출력과 바이트 일치" % os.path.basename(ns.check_carry))
+    open(ns.out, "wb").write(b)
+    print("   wrote %s (%d bytes) target %s" % (ns.out, len(b), elem))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.exit(main(sys.argv[1:]))

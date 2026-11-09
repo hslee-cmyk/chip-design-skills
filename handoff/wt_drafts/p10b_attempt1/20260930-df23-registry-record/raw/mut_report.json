@@ -1,0 +1,760 @@
+{
+ "target_defs": [
+  [
+   "_df23_expected",
+   170,
+   216
+  ],
+  [
+   "_df23_rows_under",
+   219,
+   239
+  ],
+  [
+   "check_df23",
+   242,
+   318
+  ],
+  [
+   "main",
+   349,
+   385
+  ]
+ ],
+ "mutants_planned": 290,
+ "mutants_run": 290,
+ "killed": 245,
+ "survived": 45,
+ "timeouts": 0,
+ "by_op": {
+  "stmt_delete": 163,
+  "cmp_flip": 28,
+  "const+": 38,
+  "const-": 38,
+  "arith": 17,
+  "early_return": 4,
+  "except_body_delete": 2
+ },
+ "done": true,
+ "branches": [
+  {
+   "branch": "df23-section title (제목 줄 없음 -> 발견 하나만)",
+   "lines": [
+    246,
+    252
+   ],
+   "mutants": 9,
+   "killed": 8,
+   "survived": [
+    "reg_check:check_df23:stmt_delete:body[4].body[0].body[1]"
+   ]
+  },
+  {
+   "branch": "df23-section 목록 줄 없음",
+   "lines": [
+    269,
+    270
+   ],
+   "mutants": 3,
+   "killed": 3,
+   "survived": []
+  },
+  {
+   "branch": "df23-path",
+   "lines": [
+    271,
+    272
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "df23-section measured_at 줄 없음",
+   "lines": [
+    273,
+    274
+   ],
+   "mutants": 3,
+   "killed": 3,
+   "survived": []
+  },
+  {
+   "branch": "df23-measured-at",
+   "lines": [
+    275,
+    276
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "df23-section 8.1 (소절·표 머리 없음)",
+   "lines": [
+    278,
+    280
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "df23-total (§8.1 행 대조)",
+   "lines": [
+    282,
+    296
+   ],
+   "mutants": 41,
+   "killed": 36,
+   "survived": [
+    "reg_check:check_df23:stmt_delete:body[15].orelse[1].body[0]",
+    "reg_check:check_df23:arith:body[15].orelse[1].body[0].value.right.right",
+    "reg_check:check_df23:const+:body[15].orelse[1].body[0].value.right.right.left",
+    "reg_check:check_df23:const-:body[15].orelse[1].body[0].value.right.right.left",
+    "reg_check:check_df23:const-:body[15].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.slice"
+   ]
+  },
+  {
+   "branch": "df23-section 8.2 (소절·표 머리 없음)",
+   "lines": [
+    298,
+    300
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "df23-function (§8.2 행 대조)",
+   "lines": [
+    302,
+    317
+   ],
+   "mutants": 45,
+   "killed": 36,
+   "survived": [
+    "reg_check:check_df23:stmt_delete:body[17].orelse[1].body[0]",
+    "reg_check:check_df23:arith:body[17].orelse[1].body[0].value.right.right",
+    "reg_check:check_df23:const+:body[17].orelse[1].body[0].value.right.right.left",
+    "reg_check:check_df23:const-:body[17].orelse[1].body[0].value.right.right.left",
+    "reg_check:check_df23:const+:body[17].orelse[1].body[3].orelse[0].orelse[0].test.left.args[0].slice.upper",
+    "reg_check:check_df23:const+:body[17].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.args[0].slice.lower",
+    "reg_check:check_df23:const-:body[17].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.args[0].slice.lower",
+    "reg_check:check_df23:const+:body[17].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.args[0].slice.upper",
+    "reg_check:check_df23:const-:body[17].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.args[0].slice.upper"
+   ]
+  },
+  {
+   "branch": "§ 절·소절 경계(_df23_rows_under, 절 끝)",
+   "lines": [
+    219,
+    258
+   ],
+   "mutants": 54,
+   "killed": 36,
+   "survived": [
+    "reg_check:_df23_rows_under:stmt_delete:body[5]",
+    "reg_check:_df23_rows_under:stmt_delete:body[2].body[0].body[1]",
+    "reg_check:_df23_rows_under:stmt_delete:body[5].body[0]",
+    "reg_check:_df23_rows_under:const+:body[5].iter.args[0].right",
+    "reg_check:_df23_rows_under:stmt_delete:body[5].body[0].body[0]",
+    "reg_check:_df23_rows_under:stmt_delete:body[5].body[0].body[1]",
+    "reg_check:_df23_rows_under:arith:body[8].iter.args[0].slice.lower",
+    "reg_check:_df23_rows_under:const+:body[8].iter.args[0].slice.lower.right",
+    "reg_check:_df23_rows_under:const-:body[8].iter.args[0].slice.lower.right",
+    "reg_check:check_df23:stmt_delete:body[7]",
+    "reg_check:check_df23:stmt_delete:body[4].body[0].body[1]",
+    "reg_check:check_df23:stmt_delete:body[7].body[0]",
+    "reg_check:check_df23:const+:body[7].iter.args[0].right",
+    "reg_check:check_df23:stmt_delete:body[7].body[0].body[0]",
+    "reg_check:check_df23:stmt_delete:body[7].body[0].body[1]",
+    "reg_check:check_df23:arith:body[8].value.slice.lower",
+    "reg_check:check_df23:const+:body[8].value.slice.lower.right",
+    "reg_check:check_df23:const-:body[8].value.slice.lower.right"
+   ]
+  },
+  {
+   "branch": "§8.1·§8.2 기대값 계산(_df23_expected 묶음·DF·Phase)",
+   "lines": [
+    186,
+    216
+   ],
+   "mutants": 54,
+   "killed": 53,
+   "survived": [
+    "reg_check:_df23_expected:const+:body[7].body[4].value.value.args[1]"
+   ]
+  },
+  {
+   "branch": "ValueError (i) measured_at·items 없음",
+   "lines": [
+    172,
+    173
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "ValueError (ii) 항목 필드 없음",
+   "lines": [
+    183,
+    185
+   ],
+   "mutants": 5,
+   "killed": 5,
+   "survived": []
+  },
+  {
+   "branch": "ValueError (iii) function 빈 값",
+   "lines": [
+    187,
+    188
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "ValueError (iv) 같은 파일 이름 다른 경로",
+   "lines": [
+    206,
+    208
+   ],
+   "mutants": 6,
+   "killed": 6,
+   "survived": []
+  },
+  {
+   "branch": "ValueError (v) 동작 항목 plan_mapping 형식",
+   "lines": [
+    195,
+    198
+   ],
+   "mutants": 6,
+   "killed": 6,
+   "survived": []
+  },
+  {
+   "branch": "CLI --df23-inventory 루트 밖 -> exit 2",
+   "lines": [
+    367,
+    370
+   ],
+   "mutants": 7,
+   "killed": 7,
+   "survived": []
+  },
+  {
+   "branch": "CLI 목록 읽기·dict 아님 -> exit 2",
+   "lines": [
+    371,
+    375
+   ],
+   "mutants": 7,
+   "killed": 5,
+   "survived": [
+    "reg_check:main:stmt_delete:body[8].body[3].body[5]",
+    "reg_check:main:stmt_delete:body[8].body[3].body[5].body[0]"
+   ]
+  },
+  {
+   "branch": "CLI 발견 합치기",
+   "lines": [
+    376,
+    376
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "CLI 입력 오류 except -> exit 2",
+   "lines": [
+    377,
+    379
+   ],
+   "mutants": 4,
+   "killed": 4,
+   "survived": []
+  },
+  {
+   "branch": "CLI 인자 --df23-inventory",
+   "lines": [
+    353,
+    353
+   ],
+   "mutants": 1,
+   "killed": 1,
+   "survived": []
+  }
+ ],
+ "survivors": [
+  {
+   "id": "reg_check:_df23_expected:stmt_delete:body[3]",
+   "lines": [
+    175,
+    176
+   ],
+   "src": [
+    "if not isinstance(items, list):",
+    "raise ValueError(\"목록 items가 목록이 아니다\")"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_expected:stmt_delete:body[3].body[0]",
+   "lines": [
+    176,
+    176
+   ],
+   "src": [
+    "raise ValueError(\"목록 items가 목록이 아니다\")"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_expected:stmt_delete:body[7].body[0]",
+   "lines": [
+    181,
+    182
+   ],
+   "src": [
+    "if not isinstance(it, dict):",
+    "raise ValueError(f\"항목 {idx}가 dict가 아니다\")"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_expected:stmt_delete:body[7].body[0].body[0]",
+   "lines": [
+    182,
+    182
+   ],
+   "src": [
+    "raise ValueError(f\"항목 {idx}가 dict가 아니다\")"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_expected:const+:body[7].body[4].value.value.args[1]",
+   "lines": [
+    189,
+    189
+   ],
+   "src": [
+    "base = str(file).replace(\"\\\\\", \"/\").rsplit(\"/\", 1)[-1]"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_rows_under:stmt_delete:body[5]",
+   "lines": [
+    229,
+    232
+   ],
+   "src": [
+    "for j in range(start + 1, len(sec)):",
+    "if sec[j].startswith(\"### \"):",
+    "end = j",
+    "break"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_rows_under:stmt_delete:body[2].body[0].body[1]",
+   "lines": [
+    225,
+    225
+   ],
+   "src": [
+    "break"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_rows_under:stmt_delete:body[5].body[0]",
+   "lines": [
+    230,
+    232
+   ],
+   "src": [
+    "if sec[j].startswith(\"### \"):",
+    "end = j",
+    "break"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_rows_under:const+:body[5].iter.args[0].right",
+   "lines": [
+    229,
+    229
+   ],
+   "src": [
+    "for j in range(start + 1, len(sec)):"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_rows_under:stmt_delete:body[5].body[0].body[0]",
+   "lines": [
+    231,
+    231
+   ],
+   "src": [
+    "end = j"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_rows_under:stmt_delete:body[5].body[0].body[1]",
+   "lines": [
+    232,
+    232
+   ],
+   "src": [
+    "break"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_rows_under:arith:body[8].iter.args[0].slice.lower",
+   "lines": [
+    235,
+    235
+   ],
+   "src": [
+    "for hdr, rws in _tables_in(sec[start + 1:end]):"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_rows_under:const+:body[8].iter.args[0].slice.lower.right",
+   "lines": [
+    235,
+    235
+   ],
+   "src": [
+    "for hdr, rws in _tables_in(sec[start + 1:end]):"
+   ]
+  },
+  {
+   "id": "reg_check:_df23_rows_under:const-:body[8].iter.args[0].slice.lower.right",
+   "lines": [
+    235,
+    235
+   ],
+   "src": [
+    "for hdr, rws in _tables_in(sec[start + 1:end]):"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:stmt_delete:body[7]",
+   "lines": [
+    254,
+    257
+   ],
+   "src": [
+    "for j in range(start + 1, len(lines)):",
+    "if lines[j].startswith(\"## \"):",
+    "end = j",
+    "break"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:stmt_delete:body[4].body[0].body[1]",
+   "lines": [
+    250,
+    250
+   ],
+   "src": [
+    "break"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:stmt_delete:body[7].body[0]",
+   "lines": [
+    255,
+    257
+   ],
+   "src": [
+    "if lines[j].startswith(\"## \"):",
+    "end = j",
+    "break"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const+:body[7].iter.args[0].right",
+   "lines": [
+    254,
+    254
+   ],
+   "src": [
+    "for j in range(start + 1, len(lines)):"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:stmt_delete:body[7].body[0].body[0]",
+   "lines": [
+    256,
+    256
+   ],
+   "src": [
+    "end = j"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:stmt_delete:body[7].body[0].body[1]",
+   "lines": [
+    257,
+    257
+   ],
+   "src": [
+    "break"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:arith:body[8].value.slice.lower",
+   "lines": [
+    258,
+    258
+   ],
+   "src": [
+    "sec = lines[start + 1:end]"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const+:body[8].value.slice.lower.right",
+   "lines": [
+    258,
+    258
+   ],
+   "src": [
+    "sec = lines[start + 1:end]"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const-:body[8].value.slice.lower.right",
+   "lines": [
+    258,
+    258
+   ],
+   "src": [
+    "sec = lines[start + 1:end]"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:stmt_delete:body[15].orelse[1].body[0]",
+   "lines": [
+    284,
+    284
+   ],
+   "src": [
+    "r = r + [\"\"] * (3 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:arith:body[15].orelse[1].body[0].value.right.right",
+   "lines": [
+    284,
+    284
+   ],
+   "src": [
+    "r = r + [\"\"] * (3 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const+:body[15].orelse[1].body[0].value.right.right.left",
+   "lines": [
+    284,
+    284
+   ],
+   "src": [
+    "r = r + [\"\"] * (3 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const-:body[15].orelse[1].body[0].value.right.right.left",
+   "lines": [
+    284,
+    284
+   ],
+   "src": [
+    "r = r + [\"\"] * (3 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const-:body[15].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.slice",
+   "lines": [
+    292,
+    292
+   ],
+   "src": [
+    "findings.append(_finding(\"df23-total\", \"8.1\", name, f\"항목 수 {r[2]!r} != {exp81[key]!r}\"))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:stmt_delete:body[17].orelse[1].body[0]",
+   "lines": [
+    304,
+    304
+   ],
+   "src": [
+    "r = r + [\"\"] * (5 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:arith:body[17].orelse[1].body[0].value.right.right",
+   "lines": [
+    304,
+    304
+   ],
+   "src": [
+    "r = r + [\"\"] * (5 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const+:body[17].orelse[1].body[0].value.right.right.left",
+   "lines": [
+    304,
+    304
+   ],
+   "src": [
+    "r = r + [\"\"] * (5 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const-:body[17].orelse[1].body[0].value.right.right.left",
+   "lines": [
+    304,
+    304
+   ],
+   "src": [
+    "r = r + [\"\"] * (5 - len(r))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const+:body[17].orelse[1].body[3].orelse[0].orelse[0].test.left.args[0].slice.upper",
+   "lines": [
+    311,
+    311
+   ],
+   "src": [
+    "elif tuple(r[2:5]) != exp82[key]:"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const+:body[17].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.args[0].slice.lower",
+   "lines": [
+    313,
+    313
+   ],
+   "src": [
+    "f\"(항목 수, DF, 담당 Phase) {tuple(r[2:5])!r} != {exp82[key]!r}\"))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const-:body[17].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.args[0].slice.lower",
+   "lines": [
+    313,
+    313
+   ],
+   "src": [
+    "f\"(항목 수, DF, 담당 Phase) {tuple(r[2:5])!r} != {exp82[key]!r}\"))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const+:body[17].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.args[0].slice.upper",
+   "lines": [
+    313,
+    313
+   ],
+   "src": [
+    "f\"(항목 수, DF, 담당 Phase) {tuple(r[2:5])!r} != {exp82[key]!r}\"))"
+   ]
+  },
+  {
+   "id": "reg_check:check_df23:const-:body[17].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.args[0].slice.upper",
+   "lines": [
+    313,
+    313
+   ],
+   "src": [
+    "f\"(항목 수, DF, 담당 Phase) {tuple(r[2:5])!r} != {exp82[key]!r}\"))"
+   ]
+  },
+  {
+   "id": "reg_check:main:stmt_delete:body[5]",
+   "lines": [
+    358,
+    359
+   ],
+   "src": [
+    "if hasattr(sys.stdout, \"reconfigure\"):",
+    "sys.stdout.reconfigure(encoding=\"utf-8\")"
+   ]
+  },
+  {
+   "id": "reg_check:main:except_body_delete:body[4].handlers[0]",
+   "lines": [
+    356,
+    357
+   ],
+   "src": [
+    "except SystemExit:",
+    "return 2"
+   ]
+  },
+  {
+   "id": "reg_check:main:const+:body[4].handlers[0].body[0].value",
+   "lines": [
+    357,
+    357
+   ],
+   "src": [
+    "return 2"
+   ]
+  },
+  {
+   "id": "reg_check:main:const-:body[4].handlers[0].body[0].value",
+   "lines": [
+    357,
+    357
+   ],
+   "src": [
+    "return 2"
+   ]
+  },
+  {
+   "id": "reg_check:main:stmt_delete:body[5].body[0]",
+   "lines": [
+    359,
+    359
+   ],
+   "src": [
+    "sys.stdout.reconfigure(encoding=\"utf-8\")"
+   ]
+  },
+  {
+   "id": "reg_check:main:stmt_delete:body[8].body[3].body[5]",
+   "lines": [
+    374,
+    375
+   ],
+   "src": [
+    "if not isinstance(inventory, dict):",
+    "raise ValueError(\"목록 최상위가 dict가 아니다\")"
+   ]
+  },
+  {
+   "id": "reg_check:main:stmt_delete:body[8].body[3].body[5].body[0]",
+   "lines": [
+    375,
+    375
+   ],
+   "src": [
+    "raise ValueError(\"목록 최상위가 dict가 아니다\")"
+   ]
+  },
+  {
+   "id": "reg_check:main:stmt_delete:body[10].body[0]",
+   "lines": [
+    383,
+    383
+   ],
+   "src": [
+    "print(\"reg_check: 발견 0\")"
+   ]
+  }
+ ]
+}

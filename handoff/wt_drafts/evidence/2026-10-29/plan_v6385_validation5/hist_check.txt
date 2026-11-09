@@ -1,0 +1,16 @@
+old history lines 7316, new 7327; old lines preserved as prefix/suffix check:
+opcodes [('insert', 1536, 1536, 1536, 1537), ('insert', 1856, 1856, 1857, 1867)]
+L1856 parts=1 in_old=False in_new=False | | **N5.3 Q-ZG1 행(셋째 커밋)** | 원문: «\| Q-ZG1 \| (v6.38.5) DR-1 구조적 0 전류 MOS 기하 출처(물리: DC 무관, 
+L1857 parts=1 in_old=False in_new=False | | **Status 줄(v6.38.5 셋째 커밋)** | 원문: «> **Status**: **Plan v6.38.5 -- O-174 구조적 0 전류 규칙(DR-
+L1858 parts=1 in_old=True in_new=False | | **DR-1 O-169 인용** | 원문: «결정자가 θ 안에 없고(O-169)» | 2026-10-29 v6.38.5 다섯째 커밋 | 계획 같은 자리 |
+L1859 parts=1 in_old=True in_new=False | | **DR-1 대안·W_min 근거·권고 문단(넷째 커밋)** | 원문: «**대안**(erfc 대표점 손계산·LUT 실측 -- `wt/_drafts/evide
+L1860 parts=1 in_old=True in_new=False | | **DR-1 완료 (9) 머리(넷째 커밋)** | 원문: «(9) 0 전류 MOS 기하 = Q-ZG1 결정대로(권고 (마)+(바) -- W_min·L θ, 대
+L1861 parts=1 in_old=True in_new=False | | **DEC-105 (2) 실현 평가 측정 구성 첫 문장** | 원문: «입력 차(여기 방향 좌표 -- DEC-23 V_id)를 미지수로 푼다(N3.8 ICMR
+L1862 parts=1 in_old=True in_new=False | | **DEC-105 (2) A_dc 갈래 처리 머리** | 원문: «A_dc 정의 불능 갈래(DEC-23)이면 servo 피벗이 없으므로 입력을 봉인점 값에 고
+L1863 parts=1 in_old=True in_new=False | | **WB-1 완료 (5) 노드 수준 toy(넷째 커밋)** | 원문: «노드 수준 측정 구성 toy(Q-W1 권고안 -- servo: 출력 = 봉인점 값·입력
+L1864 parts=1 in_old=True in_new=False | | **N5.3 Q-W1 행(넷째 커밋)** | 원문: «\| Q-W1 \| (v6.38.5) 탐색 평가 대 실현 평가(DEC-105 (2)) -- 권고: `De
+L1865 parts=1 in_old=True in_new=False | | **N5.3 Q-ZG1 행(넷째 커밋)** | 원문: «\| Q-ZG1 \| (v6.38.5) DR-1 구조적 0 전류 MOS 기하 출처 -- 물리: DC 무
+L1866 parts=1 in_old=True in_new=False | | **Status 줄(v6.38.5 넷째 커밋)** | 원문: «> **Status**: **Plan v6.38.5 -- O-174 구조적 0 전류 규칙(DR-
+L1867 parts=1 in_old=False in_new=False | | **card DE-1 완료 toy 1714 Q-W1 표지(셋째 커밋 문언)** | 원문: «계통 offset은 **ΔW ≠ 0 손 회로 toy**(→ v6.3
+L1868 parts=1 in_old=False in_new=False | | **WB-1 완료 (5) 소비자 괄호(둘째 커밋 삭제분 -- 검증 2 m2-4 소급)** | 원문: «(탐색 평가 = θ 유도 W, 실현 평가 = W′ -- 
+L1869 parts=1 in_old=False in_new=False | | **DR-1 순서 소비자(둘째 커밋 삭제분 -- 검증 2 m2-4 소급)** | 원문: «U-75 닫힘; 유일 소비자 = heldout `cnr_ota`)» 

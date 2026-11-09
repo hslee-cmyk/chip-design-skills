@@ -1,0 +1,387 @@
+# B26-1 card `20260930-b26-rail-accessor-set` -- 착수 키트(두 번 시도: 1차 test·auditor·code 브리프 + 운반 + 2차 브리프·병합·push·정리)
+
+작성 2026-10-07. 기준: gate `master` = **B1 = `6df4bd7fd9920e752da4b16bff9b0513caf78362`**(spec card·interface card 커밋 S, `_drafts/b26_1_launch_state.txt`의 `B1=`·`S=` 같음 -- carry의 단일 출처).
+spec card(계약의 정본 -- 브리프는 요약이다, 다르면 card가 이긴다): `git -C /c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills show 6df4bd7:docs/02-design/specs/20260930-b26-rail-accessor-set.spec.md`.
+interface card = 같은 폴더 `.interface.md`(관찰 가능한 계약 **44행** + 신규 시그니처 **2행**(`RailDeclaration`·`rail_declaration`) = 표 행 46, 2026-10-07 실측).
+모델: `b26_backfill_briefs.md`(red-green·병합·push·정리 모양), `b26pre_briefs.md`(2차 시도·입력 전용 폴더·V4 교훈), `t0_briefs.md` X-1(운반 blob `cp`). 절차 정본: card '두 번 시도 절차'·'승인 줄 배치'·'운반 경로'·'1차 산출물 보관', `_drafts/b26_1_carry.sh` 머리(1~26행).
+엔진 blob(B1): SD `9993047c…`, SR `0a2cc9e3…`(backfill 병합본 그대로), P9 계약 test `003c0d1d…`. `0bb2278`(backfill M)..B1의 `skills/`·`tools/`·`workspaces/` 차이 0(docs·`.ai`만) -- 참고 관찰: backfill 판정 기록 M 1114 passed·15 xfailed가 B1 test 상태다(판정은 auditor가 다시 잰다).
+
+**세 가지 규칙(모든 블록 공통)**
+* 역할 커밋은 트레일러 **정확히 두 개**: `--trailer "Role: <test|code|audit>" --trailer "Change-Id: 20260930-b26-rail-accessor-set"`(Co-Authored-By 등 다른 트레일러 금지). 문서 커밋(오케스트레이터)은 `--trailer "Role: doc"`(+ 필요하면 Change-Id).
+* V 도구(`mutate_changed`·`test_lint`·`weakening_diff`·`source_lint`·`reachability`)의 `--base`·`--head`는 **40자리 전체 sha**만(약칭·브랜치 이름·`HEAD` 금지), `--root` = 격리 복제본 루트.
+* 셸: `cd`·`(cd … && …)` 금지, git은 `git -C <절대 경로>`만, 변수 든 리다이렉트 대상(`> $S/x`) 금지(EL1) -- 출력은 스크립트 파일 안에서 쓰거나 리터럴 경로로. 변수는 `env NAME=값 … bash <스크립트 절대 경로>`로 넘긴다. TMP·TEMP·TMPDIR·PYTHONPYCACHEPREFIX·pytest `--basetemp`는 **자기 scratch 아래**(`.` 금지). 끝나면 자기 scratch만 삭제(다른 `C:/g*` 금지).
+
+**scratch 배정(고유 -- 2026-10-07 `test ! -e` 여덟 개 모두 비어 있음 확인, 바꾼 번호 없음)**
+
+| 시도 | 역할·순서 | scratch |
+|---|---|---|
+| 1차 | test-author(순서 2) | `C:/g411` |
+| 1차 | auditor 순서 3 + K1 뒤 V3 측정(두 번 띄움, 차례로 같은 번호 -- 각 실행 끝에 삭제, 다음 실행 직전 `test ! -e`) | `C:/g412` |
+| 1차 | code-author(순서 5) | `C:/g413` |
+| 2차 | test-author | `C:/g414` |
+| 2차 | code-author | `C:/g415` |
+| 2차 | auditor 순서 3 | `C:/g416` |
+| 2차 | auditor 순서 7 | `C:/g417` |
+| (키트 작성) | 이 문서 검증용 모래상자 | `C:/g418`(작성 끝에 삭제) |
+
+띄우기 직전마다 그 번호 `test ! -e`. 있으면 빈 번호로 바꾸고 **이 문서의 글자를 고친다**(바꿔 읽기 지시·공용 루트 삭제 지시 금지).
+
+---
+
+## 0. 착수 확인(오케스트레이터용)
+
+### 0.1 줄·수 인용 재확인(gate 트리 `6df4bd7`, 읽기 전용 `git show`, 2026-10-07)
+
+| 인용 | 결과 |
+|---|---|
+| SD 사이트 13줄(card 머리 16행) 1014·1570·1612·2090·2166·3130·3235·3967·4146·4282·4298·4345·4367 | 글 확인: 전부 `_RAIL_NETS` 판정 또는 씨앗(`seeds = {"vdd": "vdd", "gnd": "gnd"}` 2090·2166, `seed_net_pairs = {net: net for net in _RAIL_NETS}` 3967) |
+| SR 2207(`true_current_mirror_groups`)·4293(`_metric_kcl_residual` 인라인 튜플)·4361(`_metric_supply_current` -- B26-2 몫) | 글 확인 |
+| B34 인계(card '의도' 표) 2394~2395 `if netclass is None`·2404~2405 `if cls_before is None`·2434~2435 `if relations is None`·4046~4048 `_static_ref_roles … if _netclass_lcmf is not None else ()`·3941~3945 B40 `unavailable_reason` | 글 확인. 남기는 것: 2414 `if candidates is None`, B35로 넘기는 2489 `if _netclass_al is not None`·4062 `if _idioms_lcmf is not None` |
+| docstring 3907~3908·2343~2344 "(`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그)" | 글 확인 |
+| `find_differential_pair_candidates` 1562 `for j in range(i + 1, len(chains)):`(U3 면제 대상 `range` const−의 자리) | 글 확인 |
+| P9 계약 test `test_dup_kcl_edges.py` 281~298(두 시그니처 test, 매개변수 목록 정확 일치·모든 매개변수 `annotation in (list, "list")`·기본값 없음) | 글 확인 |
+| 계약 4 함수의 기존 test 호출(AST) | `unit/test_selftest_stick_diagram.py` 49(card 7과 같음), `unit/test_selftest_sizing_recipe.py` `resolve_stack_layout` 2, `probes/` 4파일 `true_current_mirror_groups` 각 1, `contracts/test_dup_kcl_edges.py` 2(루프 안), `contracts/test_b26pre_existing_paths.py` 5, `contracts/test_b34_grammar_explicit.py` **11**(`refine_…` 4·`propose_device_roles_gap_fill` 3·`find_differential_pair_candidates` 2·`propose_vertical_stack_id_gap_fill` 2 -- card는 수를 적지 않았다, 이번 실측) |
+| `supply_nets` 없는 로드 경로 픽스처(card 7) | SR selftest 180·237·289·457·585·878·1008·1899·1924·1987·2079·2161·2227·2273·2459, SD selftest 1780·1787·2798(3988은 로드 안 함) -- 두 파일은 cd64170..6df4bd7 차이 0, 줄 글(`_ofc_topo = {` 등) 확인 |
+| 레지스트리 `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` §2 40(전류미러)·42(노드 DC)·43(KCL 엣지)·45(레일 넷 집합)·53~56(MNA), §6 `_metric_kcl_residual` 행 = **308행** | 글 확인 |
+| 선례 `contracts/test_d_delete_telescopic.py` 185 `_SYN_RAILS`·215·272 `test_rejection_check_fails_on_silent_or_unlisted_refusal`, `contracts/test_ic11.py` 15 `test_rail_origin_shift_invariance` | 확인. 새 파일 이름 `test_b26_rail_accessor.py` -- B1 트리에 없음 |
+| 계획 `v_intro`(base 판 `read_plan_tables`) | V8 = `4`, V9 = `6b`, V3·V4·V5 = `1` |
+| base 판 `mutate_changed.py` | `targets_by_def` 3회·`survivor_bindings` 4회(범위·묶기 card 판), 직렬 실행·`tempfile.mkdtemp`(TMP 필요)·`make_clone`이 `--root`를 `--no-local` 복제(참조 안 되는 커밋은 따라오지 않는다 -- 2.2) |
+
+### 0.2 **미리 본 V4 문제(사용자 결정 필요 -- 보고 '열린 질문' 1)**
+
+`test_lint.py`는 base..head에서 바뀐(A/M) test 파일을 **파일 전체** lint한다. B26-1 T는 계약 12대로 `unit/test_selftest_stick_diagram.py`(호출 49곳 `rails=`, 픽스처 3)를 반드시 고친다.
+이 card의 interface card(44 심볼)를 피검으로 B1 트리를 lint하면 그 파일의 **기존 이관 test 4개에서 규칙 (1) FAIL 7건**이 난다(모래상자 `C:/g418` 실측, 그 파일만 한 줄 바꾼 모의 head에서 `--base/--head`로도 같음, head 트리 면제 적용 뒤에도 FAIL):
+`test_s133_refine_differential_and_mirror_relations` 3090·3092·3094·3096, `test_s134__propose_vertical_stack_ids` 3129, `test_s135_section` 3153, `test_s159_apply_device_roles_gap_fill` 3926
+(이관본 판정 -- 같은 피검 결과 안의 두 필드 비교. 기대값을 고치면 V5 약화다). `unit/test_selftest_sizing_recipe.py`의 규칙 (1) 2건(`test_s052_compensation` 2502·`test_s054_section` 2555)은 기존 승인 `20260923-c9-v4-exempt`가 이미 면제한다.
+그 밖 파일(`test_b34_grammar_explicit.py`·`test_b26pre_existing_paths.py`·`test_dup_kcl_edges.py`·probes 4)은 FAIL 0(NO-SUBJECT·PASS만).
+→ 이대로면 card '두 번 시도 절차' 단계 1의 "V4 FAIL도 멈춘다"에 걸리고 2차 판정도 V4 FAIL이다. 처리 후보(사용자 결정): c9 선례와 같은 `target_kind: decision` 규칙 (1) 면제 기록 1건(target = 위 4 test id).
+기록 target은 test id라 지금 정할 수 있지만, 역할 브랜치(`role/test/<id>`)가 이미 있어 메인 push가 EL1에 거부된다 -- 면제가 승인되면 **1차 정리 뒤**(carry `after-push` 다음, 2차 worktree 전) 별도 `Role: doc` 커밋·push로 올린다(4.1 단계 ⑨). carry `commit` 단계는 staged 파일 집합을 정확히 대조하므로 그 커밋에 섞지 않는다.
+1차 auditor는 V4를 미리 재서 이 7건이 B1에서 이미 있던 발견(줄 글 불변)인지, 새 발견이 있는지 갈라 적는다(2.1). **새 발견이 있으면 test 결함 -- 멈춤**.
+
+### 0.3 V3 실행 시간(위험 메모 -- 사용자 결정 아님)
+
+card 'V3 계획'의 착수 base 대상은 299(모의), 모의 측정 벽시계 약 1시간 45분은 **12개 병렬 복제**(`v3_replica` 류) 값이다. 게이트 도구 `mutate_changed.py`는 변이를 **직렬**로 돈다(인벤토리 pytest `-x`, 변이당 상한 `--timeout` 600초 기본).
+선례: B34 판정 V3 대상 12개에 1202초(변이당 약 100초). 같은 비율이면 300개는 8시간 남짓이다 -- Bash `run_in_background` 상한(2시간)을 넘을 수 있다.
+carry `check`는 `attempt1_v3.json`이 **도구 판정 JSON 그대로**(`survivor_bindings`·`targets_by_def`·`not_targeted`, `--out` 레코드 수 = `mutants`)이기를 요구하므로 병렬 복제 결과로 대신할 수 없다.
+그래서 auditor는 V3 전에 소요를 재고(2.2 ①), 2시간 안에 끝나지 않을 것으로 보이면 **띄우기 전에 멈추고 보고**한다(오케스트레이터가 실행 방식을 정한다 -- 수동 `&`·`nohup` 금지). 중간에 끊기면 `--out`을 지우고 처음부터.
+
+### 0.4 carry가 요구하는 worktree 상태(역할 모두에게 전달)
+
+`b26_1_carry.sh check`: test·code worktree `git status --porcelain` **완전히 빈 출력**(미추적 포함), audit worktree HEAD = T1·추적 파일 변경 0·병합 상태 없음,
+`B1..T1` 전부 `Role: test`·`B1` 위 첫 부모 사슬·병합 커밋 없음, `T1..K1` 전부 `Role: code`, audit worktree `.ai/verification/20260930-b26-rail-accessor-set/`에 `base_check.json`·`attempt1_v3.json`·`attempt1_v3.out.jsonl`.
+`.pytest_cache`는 `.gitignore`에 없다 -- worktree 안 pytest는 `-p no:cacheprovider`, `PYTHONDONTWRITEBYTECODE=1`.
+
+### 0.5 card 보관 목록의 빈칸(이 키트가 메운다 -- 사용자 결정 아님)
+
+card 단계 3은 2차 code-author가 "나머지 code 변경도 K1과 같게" 하라고 하지만 보관 목록(`_drafts/b26_1_attempt1/`)에는 SD 사본 `K1_SD.py`뿐이고 SR·레지스트리 변경의 사본이 없다(T1·K1 객체는 `branch -D` 뒤 gc 유예 안에서만 읽힌다).
+그래서 4.1 ③에서 정리 **전에** `K1.diff`(= `T1..K1` 전체 diff)를 2차 code-author 입력 전용 폴더에 둔다. 2차 test-author 입력도 `b26pre` 선례처럼 전용 폴더로 분리한다(보관 폴더에는 auditor 측정값·엔진 사본이 있어 test-author가 열면 안 된다).
+
+---
+
+## 1. 1차 test-author 브리프(gmid-test-author, §12 순서 2)
+
+```
+역할: gmid-test-author. change id = 20260930-b26-rail-accessor-set (B26-1, red-green, phase 3) -- 1차 시도(병합하지 않는 계획된 측정 시도, card '두 번 시도 절차' 1).
+test worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-test (브랜치 role/test/20260930-b26-rail-accessor-set, 시작점 gate master 6df4bd7fd9920e752da4b16bff9b0513caf78362 -- 이미 만들어져 있음).
+입력(읽기): 그 worktree의 docs/02-design/specs/20260930-b26-rail-accessor-set.spec.md('관찰 가능한 계약' 1~15, '신규 시그니처', '판정 유형 근거', 'oracle 종류와 출처', '거부해야 할 입력', '재현할 수치', 'V3 계획' 4)
+  와 같은 폴더 .interface.md(44행 + 신규 2행). 기존 test 파일(A/tests/**)은 읽고 고칠 수 있다.
+열람 금지: 엔진 소스(skills/analog-gmid-design/assets/*.py, workspaces/run_harness.py), tools/**(게이트 도구 소스 -- 실행만 허용, 아래 자기 점검), C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/** 전부.
+쓰기 경로: skills/analog-gmid-design/assets/tests/**(tests/tools/** 제외). conftest.py는 건드리지 않는다.
+scratch: C:/g411 하나만(띄우기 직전 비어 있음 확인됨). TMP·TEMP·TMPDIR·PYTHONPYCACHEPREFIX·pytest --basetemp도 C:/g411 아래, "." 금지. 끝나면 C:/g411만 삭제.
+셸: git -C <worktree 절대 경로>만, cd 금지, 변수는 env NAME=… bash <스크립트>. pytest는 -p no:cacheprovider, PYTHONDONTWRITEBYTECODE=1(worktree에 미추적 파일을 남기지 않는다 -- 끝에 git status --porcelain 빈 출력).
+커밋(여럿이어도 된다, 병합 커밋 금지): git -C C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-test commit --trailer "Role: test" --trailer "Change-Id: 20260930-b26-rail-accessor-set" -m "test: …"
+  트레일러는 정확히 두 개(Co-Authored-By 등 금지).
+card가 틀렸다고 보면 고치지 말고 보고에 적고 멈춘다.
+```
+
+### 1.1 산출물 A -- 새 계약 test 파일 `A/tests/contracts/test_b26_rail_accessor.py`
+
+이름: test 함수 `test_b26_…`, 모듈 수준 도우미 `_b26_…`, 상수 `_B26_…`(card 'V3 계획' 4: `_b26_` 접두로 유일하게, parametrize 이름 문자열·`getattr` 금지). 파일 스캔형 contracts test가 `tests/**/*.py` 내용을 읽으므로 삭제된 이름 참조·`print` 안 `PASS`/`FAIL` 토큰을 두지 않는다(card '작성 전 실측' 2).
+`RailDeclaration`은 직접 만들지 않는다 -- 언제나 `stick_diagram.rail_declaration(<topology dict>)`로 얻는다(계약 12). 합성 넷·소자·회로 이름은 library에 없는 것(선례 `_SYN_RAILS = ["rail_hi", "rail_lo"]`, `test_d_delete_telescopic.py` 185행), topology마다 `schema_version "2.0"`.
+
+계약별 test(기대값은 전부 card 문장의 규칙을 **손으로** 적용한 리터럴 -- 피검 함수를 불러 만들지 않는다):
+
+| 계약 | test가 판정하는 것(card 원문이 정본) | base에서 기대(판정은 auditor) |
+|---|---|---|
+| 1 | `rail_declaration` 반환 `.nets == frozenset({...})`(리터럴), 거부 `ValueError` 다섯(키 없음·list 아님·빈 문자열·비문자열·중복, 메시지에 `supply_nets`·`DEC-60`), 빈 list `[]` 받음, 선언 밖 `"vdd"`는 레일 아님. **거부 판정기 자기 점검**: 조용한 통과(기본값 대입) 합성 구현을 넣으면 거부 test 판정이 실패함을 보이는 test(선례 `test_d_delete_telescopic.py` 272행 `test_rejection_check_fails_on_silent_or_unlisted_refusal` 모양) | 신규 심볼 red(`ImportError`/`AttributeError`) |
+| 2 | `load_topology`(tmp 파일): `meta["rails"].nets` = 선언 리터럴, `supply_nets` 없음 → `ValueError`, 연결 파일 선언 형식 위반·집합 불일치 → `ValueError`, 연결 파일 선언 없음 → 진입 파일 선언 | `supply_nets` 없음 test는 단언 red(`pytest.raises` DID NOT RAISE) |
+| 3 | 계수 래퍼(`monkeypatch`로 `stick_diagram.rail_declaration`을 세는 래퍼로 교체): test마다 새 tmp 경로, `load_topology` 1회 → 1, 첫 `compute_metric`(kcl_residual) → 2, 뒤이은 `compute_metric` N회·`l_sharing_classes` N회 → 2 그대로(리터럴) | 신규 심볼 red |
+| 4 | `inspect.signature`: 계약 4 함수의 `rails`가 `KEYWORD_ONLY`·`default is inspect.Parameter.empty`, 기본값 불변(E3) `refine_…max_iterations == 5`·`repair_matching_safety max_iter == 3`·`run_full_circuit_audit row_width_tol == 1.5` | 기본값 단언 green, `rails` 단언 base `KeyError`(집계 밖) |
+| 5 | `l_sharing_classes(by_name, meta)`에 `"rails"` 없는 meta → `ValueError` | 단언 red |
+| 6 + 'V3 계획' 4 | `sizing_recipe._metric_kcl_residual(spec, ctx)` **이름 직접 호출**과 `compute_metric({"type": "kcl_residual", …}, ctx)`: 가지마다 손 계산(MOS 부호, `ID` 없음 `KeyError`, `current_source` 아닌 이상원·단자 2개 미만 건너뜀, `value_amp` `null` 노드 제외, 값 흘림, `exclude_nets`, 선언 레일 제외, 최댓값·빈 경우 0.0), 선언에 metric `rail_nets` 키 → `ValueError` | `rail_nets` 거부는 단언 red(base 5.0e-7) |
+| 7(a)(b)(c)(d) | 공개 진입점(시그니처 불변): (a) meta `_matching_pairs_autofilled`에 선언 레일 공유 쌍 없음, (b) meta `_vertical_stack_id_autofilled`가 선언 레일만으로 이어진 소자에 번지지 않음(`device_roles.Qa.vertical_stack_id = "S1"` 입력), (c) `l_sharing_classes(by_name, meta)` -- meta는 `load_topology(<tmp 경로>)`에서(직접 만들지 않는다), (d) kcl_residual 선언 레일 제외(합성 4소자 `ID` 1·2·1·2.5 µA → 손 계산) | 단언 red(card '판정 유형 근거' 표) |
+| 7(a) 양성 E5 | `Da`·`Db`·`Dt`(선언 `[rail_hi, rail_lo]`, `vdd`는 보통 넷): `find_matching_candidates(ts, rails=rails)["diff_pair"]` 이름 목록 = `{("nmos", "vdd"): ["Da", "Db"]}`, `_diff_pair_layer1_groups` = `{("nmos", "vdd", None): ["Da", "Db"]}`, `find_differential_pair_candidates(ts, rails=rails)["candidates"]`에 card의 `layer1_fallback` dict가 있음 | base `TypeError`(집계 밖) |
+| 7 역방향 | 선언에 없는 `vdd`·`gnd`·`vss` 넷이 meta 두 키·`l_sharing_classes`·kcl_residual·직접 호출 세 함수에서 보통 내부 노드와 같은 결과 | 공개 진입점 test는 단언 red 가능, `rails=` 직접 호출은 `TypeError` |
+| 7(e) E1 | card 12소자 입력·`roles`(vertical_stack_id만)·`compensation_stage_devices=["Qy", "Qz"]`에서 세 필드만 뽑은 비지 않은 항목 = card 리터럴 `{"Qx": {"vds_match_vgs_of": "Qy"}, "Mx": {"budget_reference_device": "My"}, "My": {"budget_reference_device": "Mx"}, "Kx": {"fold_group": "n_r_fold"}, "Ky": {"fold_group": "n_r_fold"}}` | base `TypeError`(집계 밖) |
+| 13 | analog-grammar 부재(`monkeypatch.setitem(sys.modules, "netclass", None)`·`"idioms"`): library 9회로 각각 `refine_…(ts, rails=…)`·`propose_device_roles_gap_fill(ts, {}, [], rails=…)`이 `ImportError`(`__cause__`가 `ImportError`). 선언은 부재를 만들기 **전에** 얻는다(`load_topology`는 부재에서 `ImportError`) | base `TypeError`(집계 밖) |
+| 14 B40·E4 | `fx`(gate 없음 2소자, 선언 `["vdd","gnd"]`): `propose_device_roles_gap_fill(fx, {}, [], rails=rails) ==` 키 정확히 셋 dict 리터럴(`unavailable_reason` 없음), `refine_…(fx, rails=rails) is None`, `_propose_gm_id_roles(fx, (), (), (), (), (), rails=rails) is None`, `_propose_L_roles(fx, {}, (), (), (), (), (), rails=rails) is None` | base `TypeError`(집계 밖) |
+| oracle (b) | 사이징 대상 4회로(`current_reuse_telescopic_ota`·`folded_cascode`·`two_stage_ota`·`nmcnr_amplifier`) library 사본의 레일 넷 이름만 바꾼 tmp 사본: `_build_theta_evaluator(<사본>, <canonical spec>)` setup 반환 `stack_groups_kcl`·`stack_groups_geometry`를 이름 되돌려 원본 호출과 같음(반환 `evaluate`는 부르지 않는다) | base `two_stage_ota` 단언 red |
+
+계약 8·9·10·11·15는 auditor·code-author 몫이다(새 test 없음). '계약이 아닌 것'(card 계약 7 끝: `headroom_role`, `_device_roles_gap_fill_review_needed`, analog-grammar 유래 필드, `L_role`·`gm_id_role`의 `null` 여부, meta 전체 이름 불변)을 기대값으로 쓰지 않는다.
+
+### 1.2 산출물 B -- 기존 test 입력 갱신(계약 12 -- 판정·기대값은 바꾸지 않는다)
+
+* 계약 4 함수의 기존 호출에 `rails=`만 더한다(0.1 표 수: SD selftest 49, SR selftest 2, probes 4, P9 2, b26pre 5, B34 11). 값: topology를 쓰는 test는 그 topology dict로 `rail_declaration`, probes는 `rails=meta["rails"]`,
+  넷리스트만 쓰는 test는 card 계약 12 다섯째 항목 규칙(단자에 나오는 소문자 정확히 `vdd`·`gnd`·`vss`, 처음 나온 순서, 중복 없이, 없으면 `[]`), b26pre 세 함수는 `["vdd", "gnd"]`. B34 부재 test는 선언을 부재 만들기 전에.
+  `test_probe_dup_scan.py` 213행 문자열 `sr.true_current_mirror_groups(by)`는 호출이 아니다 -- 고치지 않는다. `test_b26_backfill_interdig.py`는 고치지 않는다.
+* `supply_nets` 없는 로드 경로 픽스처 SR selftest 15·SD selftest 2(0.1 표 줄)에 선언 **키를 더한다**(그 픽스처가 쓰는 `vdd`·`gnd`·`vss`, 없으면 `[]`). 메시지 단언 픽스처(s003·s043·s125)는 반드시.
+* **P9 시그니처 test 2개(`test_dup_kcl_edges.py` 281~298)** -- 사용자 승인 U5 "갱신 승인 (Recommended)"으로 기대 갱신: 매개변수 목록 `["netlist", "matching_pairs", "rails"]`·`["transistors", "matching_pairs", "rails"]`, 앞 두 매개변수 단언은 지금 그대로(주석 `list`/`"list"`, 기본값 없음),
+  `rails`는 `KEYWORD_ONLY`·기본값 없음·주석 `in (RailDeclaration, "RailDeclaration")`(card는 `RailDeclaration`(또는 `"RailDeclaration"`) -- 이름은 `stick_diagram`에서 얻는다), 반환 주석 단언 그대로. test 이름의 `unchanged`는 그대로.
+* **V5 경계(중요 -- 2차 운반이 이것에 기댄다)**: 기존 리터럴을 **바꾸거나 지우는** 편집은 위 두 시그니처 test 말고는 하지 않는다(순수 삽입: `supply_nets` 키 줄, 호출의 `rails=…`, 새 줄의 `rails = …` 대입). 줄 재배치·포맷 정리·문구 수정 금지.
+  두 test 밖에서 V5 발견이 나면 승인 기록 4로 V5를 통과할 수 없어 1차 시도가 멈춘다(card '승인 줄 배치' (6)).
+* 병합본에서 기존 기대값과 다르게 나올 것으로 보이면(특히 `vss` 픽스처 -- `_propose_*` 씨앗에 `vss`가 들어간다) 기대값을 고치지 말고 보고(dispute 후보).
+
+### 1.3 V4 교훈(b26pre 1차 V4 FAIL 6건, backfill 판정 -- 이번에 지킬 모양)
+
+1. **판정 문장은 test 함수 본문에** -- 도우미(`_b26_…`)에는 `assert` 0개, 값만 돌려준다(도우미 이름을 `assert…`로 바꾸는 우회 금지). `if`·`try` 안에만 두지 않는다.
+2. **같은 피검 출력에서 나온 두 값의 `==` 금지**(규칙 (1)) -- 한쪽은 card 리터럴이거나 interface card 심볼 호출을 담지 않는 값. `size_transistor` 같은 피검 결과를 기대 쪽에 쓰지 않는다.
+3. **리터럴 기대값**: 7(e)·7(a) 양성·14·계약 3 호출 수·계약 6 잔차는 card 문장의 규칙을 손으로 적용한 리터럴(관계 단언으로 대신하지 않는다). 함축되는 중복 단언(`len(x) == len(set(x))` 옆에 정렬 비교 등) 금지.
+4. 객체 `==`(`AuditResult`·`Transistor`) 금지. oracle 주석: test마다 `# oracle (a) 구성: …` / `(b) 변환 불변: …` 식으로 card 'oracle 종류와 출처'의 종류와 근거.
+5. oracle (b)의 원본·이름 바꾼 사본 두 호출은 인자 정규형이 달라 규칙 (1)이 아니다 -- 그 비교의 독립성은 auditor basis 몫(card 'oracle' (b)).
+
+### 1.4 자기 점검(커밋 전 -- 판정 근거 아님)
+
+* `env TMP=C:/g411/tmp TEMP=C:/g411/tmp PYTHONPYCACHEPREFIX=C:/g411/pyc PYTHONDONTWRITEBYTECODE=1 APPDATA=C:/Users/HSLEE/AppData/Roaming C:/Python314/python.exe -P -m pytest -p no:cacheprovider --basetemp=C:/g411/pt --rootdir=<worktree> <worktree>/skills/analog-gmid-design/assets/tests/contracts/test_b26_rail_accessor.py -q --gmid-phase=3 --gmid-strict=`
+  (base 엔진이라 green은 볼 수 없다.) 기대: 1.1 표의 'base 기대' 칸대로 -- 단언 red는 `AssertionError`/`Failed: DID NOT RAISE`, 신규 심볼은 `ImportError`/`AttributeError`, `rails=` 직접 호출은 `TypeError`, E3 기본값 test는 PASS. 단언 red 자리가 `TypeError`·`AttributeError`로 나면 진입점이 틀렸다(시그니처 불변 진입점을 써야 한다) -- 고친다. PYTHONHASHSEED 0·1 같은 결과.
+* 기존 test 파일: 수집 오류 0(`--co -q`). 갱신한 호출은 base에서 `TypeError`가 정상이고, `supply_nets` 키만 더한 픽스처 test는 base에서 결과가 그대로여야 한다.
+* 권장(실행만, 도구 소스는 열지 않는다 -- EL1이 저장소 안 경로 인자를 거부하면 건너뛴다): gate 판 `weakening_diff.py --root <worktree> --base 6df4bd7fd9920e752da4b16bff9b0513caf78362 --head <HEAD 40자리>` 발견 단위 = 두 시그니처 test뿐, `test_lint.py --root <worktree> --interface-card <worktree>/docs/02-design/specs/20260930-b26-rail-accessor-set.interface.md --base … --head …` 새 파일 FAIL 0(기존 SD selftest 7건은 0.2의 알려진 발견 -- 보고에 그대로 적는다).
+* 끝: `git -C <worktree> status --porcelain` 빈 출력, C:/g411 삭제.
+
+보고: 커밋 해시(40자리)·경로 목록, 새 test 함수 표(계약·oracle·base 기대 칸), 거부 test 목록, 기존 파일 갱신 수(파일별 `rails=` 수·픽스처 수), P9 두 test의 새 단언, 자기 점검 출력 요약, 막힌 점.
+
+---
+
+## 2. 1차 auditor 브리프(gmid-verification-auditor -- 순서 3, 그리고 K1 뒤 V3 측정. 두 번 띄운다)
+
+공통 머리 블록(두 번 모두 붙인다):
+```
+역할: gmid-verification-auditor. change id = 20260930-b26-rail-accessor-set, evidence_type red-green, phase 3 -- **1차 시도(병합 없음, 순서 7 판정 기록·커밋 없음)**.
+B1 = base = 6df4bd7fd9920e752da4b16bff9b0513caf78362(spec card·interface card 커밋, gate master. 착수 시 gate master가 다르면 멈추고 보고).
+T1 = <role/test/20260930-b26-rail-accessor-set 끝 40자리 -- 오케스트레이터가 띄우기 전에 적는다>. (V3 실행 때) K1 = <role/code/20260930-b26-rail-accessor-set 끝 40자리>.
+spec card: docs/02-design/specs/20260930-b26-rail-accessor-set.spec.md('판정 유형 근거' 네 칸 표, 'V3 계획', '두 번 시도 절차' 1, '재현할 수치'), interface card: 같은 폴더 .interface.md(44 + 신규 2).
+audit worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-audit (브랜치 role/audit/20260930-b26-rail-accessor-set, 시작점 T1 -- 오케스트레이터가 만들어 둠).
+scratch: C:/g412 하나만(띄우기 직전 test ! -e 확인됨). TMP·TEMP·TMPDIR·PYTHONPYCACHEPREFIX·pytest --basetemp 모두 그 아래("." 금지). 끝나면 C:/g412만 삭제.
+격리(§12-7): git clone --no-hardlinks --no-local -c core.autocrlf=false -c core.longpaths=true --no-checkout <audit worktree> C:/g412/iso → (V3 실행 때만, origin 제거 전에) git -C C:/g412/iso branch --no-track a1-k1 refs/remotes/origin/role/code/20260930-b26-rail-accessor-set
+  → git -C C:/g412/iso remote remove origin → test -z "$(git -C C:/g412/iso remote)" → checkout --detach <커밋>. 측정은 복제본 안에서만.
+셸 가드(매 스크립트): set -euo pipefail, git은 git -C <절대 경로>만, cd·(cd … && …) 금지, 실제 저장소·다른 worktree에서 reset·checkout·branch·stash·clean·merge 금지. 변수 든 리다이렉트 대상 금지(스크립트 파일 안에서 쓰기).
+  시작·끝에 실제 저장소 C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills의 HEAD, git status --porcelain md5, reflog 줄 수, for-each-ref md5를 적어 같음 확인(다르면 원인을 산출물에).
+환경: env APPDATA=C:/Users/HSLEE/AppData/Roaming HOME=/c/Users/HSLEE PYTHONIOENCODING=utf-8 … bash <스크립트>, $PY = C:/Python314/python.exe.
+게이트 코드 = base 판: git -C <audit worktree> cat-file blob 6df4bd7fd9920e752da4b16bff9b0513caf78362:tools/gates/<파일>로 C:/g412/gmid-gate-cache/6df4bd7fd9920e752da4b16bff9b0513caf78362/에 추출
+  (오케스트레이터 캐시 <git-common-dir>/gmid-gate-cache/6df4bd7f…와 파일마다 cmp -- 저장소 .git 안을 가리키는 인자는 EL1이 거부하므로 스크립트 파일 안에서), PYTHONPATH 맨 앞, pytest는 $PY -P.
+산출물 위치(launch after-push 문구 그대로): C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-audit/.ai/verification/20260930-b26-rail-accessor-set/ 안 --
+  base_check.json(순서 3), attempt1_v3.json·attempt1_v3.out.jsonl(V3), 그 밖 원출력·스크립트(하위 디렉터리 scripts/·out/). **커밋하지 않는다**(1차는 순서 7·병합이 없다 -- 산출물은 쓰기만, carry가 보관한다).
+증거 규칙: 작성자(test·code) 보고, 오케스트레이터 사전 측정(card '재현할 수치'·'작성 전 실측', _drafts/**)은 증거가 아니다. 시제품(_drafts/b26_scripts/test_b26x_approx.py 등) 열람·사용 금지 -- 측정은 T1·K1의 실제 test로만.
+V basis 표기(판정 기록·base_check.json·attempt1_*.json의 근거 문장): 도구 명령의 `--base`·`--head`와 커밋 표기는 **40자리 전체 sha**로 적는다(7자 약칭·말줄임 `…` 금지 -- 판정 기록은 커밋 뒤 고칠 수 없고, 후속 집계(B33 m4)가 근거 명령에서 쌍을 다시 읽는다. 사례: b26pre 기록 `--base ae1b588… --head e4d5833…`).
+```
+
+### 2.1 첫 번째 실행 -- 순서 3(freeze·base 확인 → `base_check.json`)
+
+* **freeze**: `git -C <audit wt> rev-parse HEAD` = T1 = `role/test/<id>` 끝. `git -C <iso> log --format='%H %P' B1..T1`이 B1 위 첫 부모 사슬(병합 0), 커밋마다 `git interpret-trailers --parse`로 정확히 `Role: test`·`Change-Id: 20260930-b26-rail-accessor-set` 두 줄.
+  `git -C <iso> diff --name-only B1 T1` -- 전부 `skills/analog-gmid-design/assets/tests/**`(tests/tools 밖)인지, 경로 목록과 blob id 기록.
+* **V5(carry가 읽는 형식 -- 필수)**: base 판 `weakening_diff.py --root <iso> --base B1 --head T1` 출력 JSON을 **그대로** `base_check.json`의 키 `"V5"`에 둔다.
+  기대: `verdict FAIL`, `approved false`, `diff_paths == ["skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py"]`, 발견 `unit` = `test_kcl_series_union_signature_unchanged`·`test_kcl_and_matching_edges_signature_unchanged` 정확히 둘.
+  **`base_check.json`의 다른 어디에도 `diff_hash`·`diff_paths` 키를 두지 않는다**(carry `check`가 파일 전체를 훑어 diff_hash가 정확히 하나인지 본다). 다른 도구 출력은 `out/` 아래 별도 파일.
+  발견 경로·단위가 다르면 **멈추고 보고**(card '승인 줄 배치' (6) -- 사용자 승인이 따로 필요).
+* **red 수집(V2 미리보기)**: T1 복제본(엔진 = B1)에서 전체 `A/tests`를 `-p merge_gate --continue-on-collection-errors`, `GMID_RED_CAPTURE=<C:/g412 아래 파일>`, `GMID_INTERFACE_CARD=<iso>/docs/02-design/specs/20260930-b26-rail-accessor-set.interface.md`로(캐시 ini, `--gmid-phase=3 --gmid-strict=<base 판 strict_set 값>`, PYTHONHASHSEED 0·1).
+  새 test를 card '판정 유형 근거' **네 칸**(단언 red / 신규 심볼 red / base `TypeError` 집계 밖 / green 회귀 고정)으로 나눠 표로 적는다. 단언 red 칸 test가 `TypeError`·`AttributeError`면 진입점 결함 -- 멈추고 보고.
+  기존 test 중 B1→T1에서 판정이 바뀐 것: `rails=`를 더한 호출 test(base `TypeError` 예정) 목록과 그 밖(0이어야 한다)을 나눠 적는다.
+* **V4 미리보기**: base 판 `test_lint.py --root <iso> --interface-card <iso>/docs/02-design/specs/20260930-b26-rail-accessor-set.interface.md --base B1 --head T1` → `out/order3_v4_test_lint.json`.
+  FAIL마다 (파일, test, 줄, 줄 글)과 **B1 트리의 같은 test에서 같은 발견이 이미 있었는지**(B1 파일을 같은 도구에 파일 인자로 넘겨 대조)를 적는다. 0.2의 SD selftest 7건(s133 3090·3092·3094·3096, s134 3129, s135 3153, s159 3926 -- B1 줄)은 '기존'으로 예상, SR selftest s052·s054는 `exempt`.
+  **새 파일 또는 바뀐 줄에서 FAIL이 하나라도 나면 test 결함 -- 멈추고 보고.** 판정 (2) 정보 항목(NO-SUBJECT·UNJUDGED) 수도 적는다.
+* **base 기준값**: B1 복제본 전체 suite(V1과 같은 명령 형태, `-k`·`--deselect`·`-x` 없음) 판정·id 목록 보관(참고 관찰: backfill M 1114 passed·15 xfailed). 엄격 집합 = base 판 `strict_set(B1 트리, card)` 값을 적는다.
+* **V3(test-only 구간)**: base 판 `mutate_changed.py --root <iso> --base B1 --head T1 …` 한 번 -- 기대 targets [](엔진 diff 0). 출력은 `out/`(이 출력은 `attempt1_v3.json`이 아니다).
+* 끝에 스스로: `git -C <audit wt> status --porcelain`(산출물 미추적만), `git -C <audit wt> log --oneline role/test/20260930-b26-rail-accessor-set..HEAD` 빈 출력 -- 둘 다 `base_check.json`에 적는다. C:/g412 삭제.
+
+보고: V5 출력 요지(diff_hash 앞 16자, 발견 단위), red 네 칸 표, V4 표(기존/새), base 수치, 멈춤 사유 유무.
+
+### 2.2 두 번째 실행 -- K1 뒤 V3 측정(card 단계 1, 병합 커밋 없이 `--head K1`)
+
+* 시작 전: `test ! -e /c/g412`(첫 실행이 지웠는지), audit worktree HEAD = T1 그대로·추적 파일 변경 0·`MERGE_HEAD` 없음. **audit worktree에 병합·checkout을 하지 않는다**(K1 트리 = 병합 후보 트리 -- card 단계 1).
+* 복제본: 공통 블록의 격리 명령 + `a1-k1` 브랜치(origin 제거 **전에** 만든다 -- 도구의 `make_clone`은 `--root`를 `--no-local`로 복제하므로 참조 없는 K1은 따라오지 않는다). `git -C C:/g412/iso rev-parse a1-k1` = K1, `merge-base --is-ancestor T1 K1` 확인.
+  `git -C <iso> diff --name-only T1 K1` = SD·SR·레지스트리 md(code-author 쓰기 경로 밖이면 멈춤), `log T1..K1` 커밋마다 트레일러 `Role: code`·Change-Id 두 줄.
+* ① **소요 추정**: `targets_by_def` 대상 수는 도구 실행 전에 알 수 없으니, 바뀐 def별 인벤토리 test 수와 인벤토리 기준 실행(변이 없는 K1) 시간을 재서 대상 수 추정(card 'V3 계획' 1: 약 299)과 곱한다. 2시간을 넘을 것으로 보이면 **V3를 띄우지 말고 멈추고 보고**(0.3).
+* ② **V3 실행(필수 산출물)** -- 스크립트 파일 안에서(리터럴 경로):
+  `rm -f <audit wt>/.ai/verification/20260930-b26-rail-accessor-set/attempt1_v3.out.jsonl` (도구가 append -- 남기면 carry check가 'id 중복'으로 멈춘다)
+  `env TMP=C:/g412/tmp TEMP=C:/g412/tmp TMPDIR=C:/g412/tmp … $PY -B C:/g412/gmid-gate-cache/6df4bd7f…/mutate_changed.py --root C:/g412/iso --base 6df4bd7fd9920e752da4b16bff9b0513caf78362 --head <K1 40자리> --pytest-ini C:/g412/gmid-gate-cache/6df4bd7f…/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=3 --gmid-strict=<base 판 strict_set> --out <audit wt>/.ai/verification/20260930-b26-rail-accessor-set/attempt1_v3.out.jsonl`
+  stdout(판정 JSON 한 줄)은 **그대로** `attempt1_v3.json`에, stderr는 `out/attempt1_v3.stderr.txt`에. Bash `run_in_background`로(수동 `&`·`nohup` 금지).
+  기대(card 단계 1): `verdict FAIL`, `survivors` = `survivor_bindings` 1개 = `stick_diagram:find_differential_pair_candidates:const-:…` (`range(i + 1, …)`의 `1`을 0으로 -- U3 등가), `targets`에 `skills/analog-gmid-design/assets/stick_diagram.py`, `not_targeted`·`targets_by_def` 키 있음, 나머지 killed, `exempt_ignored` [].
+  **생존이 그 1개가 아니면 멈춘다**(계약·test 결함 -- 재설계). `verdict ERROR`(기준 실행 실패)면 그 인벤토리·출력을 적고 멈춘다.
+* ③ **미리보기(같은 실행, `out/attempt1_preview_*.json` -- 2차 판정에서 FAIL할 것을 1차에서 잡는다)**: K1 복제본 전체 suite(V1 형태, 기존 id 결과 = B1, 새 test 전부 PASS인지 -- 새 test 중 FAIL이 있으면 멈춤), red→green 대조(2.1의 단언 red·신규 심볼 red test가 K1에서 PASS),
+  `test_lint.py --base B1 --head T1`(2.1과 같음), `source_lint.py --root <iso> --base B1 --head K1`(새 except·skip·숫자 리터럴 0), `reachability.py --root <iso> --base B1 --head K1`(새 def `rail_declaration`·`RailDeclaration`이 `load_topology` 경유로 도달, `new_defs` 미도달 0).
+  시간이 남으면 card 계약 8(E-LIB 9/9 `load_topology`·`run_topology_pipeline`·`run_full_circuit_audit_from_topology` B1 대 K1, E-INST 두 회로 재생성 `instance.json` 해시)과 계약 13 AST 측정(두 def에서 `_import_analog_grammar` 반환 이름의 `None` 비교 = 2개, 사이트 10·14뿐).
+* 끝에 스스로: audit worktree HEAD = T1, `git -C <audit wt> status --porcelain --untracked-files=no` 빈 출력, 세 필수 파일(`base_check.json`·`attempt1_v3.json`·`attempt1_v3.out.jsonl`) 크기 > 0. C:/g412 삭제.
+
+보고: V3 판정 JSON 요지(mutants·killed·not_targeted·survivors·survivor_bindings 원소, targets_by_def def별 targeted), 소요 시간, 미리보기 표, 멈춤 사유 유무.
+
+---
+
+## 3. 1차 code-author 브리프(gmid-code-author, §12 순서 5)
+
+```
+역할: gmid-code-author. change id = 20260930-b26-rail-accessor-set (B26-1, red-green, phase 3) -- 1차 시도(병합 안 함. 이 커밋 K1의 find_differential_pair_candidates def가 U3 면제 기록의 해시가 되고, 2차 시도에서 같은 글자로 다시 만든다).
+base B1 = 6df4bd7fd9920e752da4b16bff9b0513caf78362, T1 = <40자리 -- 오케스트레이터가 적는다>.
+code worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-code (브랜치 role/code/20260930-b26-rail-accessor-set, 부모 = T1). 절대 경로만(git -C), cd·(cd … && …) 금지.
+입력: 그 worktree의 spec card(계약 1~15, '의도'의 인계 표·docstring 문단·'범위 밖'·'집합 판정인데 이 card에서 빼는 것', '원칙을 계약으로'), interface card, T1의 test(읽기만).
+쓰기 경로: skills/analog-gmid-design/assets/stick_diagram.py, skills/analog-gmid-design/assets/sizing_recipe.py, docs/03-analysis/gain-budget-gmid-sizing.function-registry.md. test·spec card·승인 기록은 쓰지 않는다.
+test가 틀렸다고 보면 고치지 말고 dispute(<worktree>/docs/02-design/disputes/20260930-b26-rail-accessor-set.md)를 쓰고 같은 트레일러로 커밋한 뒤 멈춘다.
+scratch: C:/g413 하나만(띄우기 직전 test ! -e 확인됨). TMP·TEMP·TMPDIR·PYTHONPYCACHEPREFIX·--basetemp도 그 아래, "." 금지. 끝나면 C:/g413만 삭제.
+pytest는 -p no:cacheprovider, PYTHONDONTWRITEBYTECODE=1 -- 끝에 git -C <worktree> status --porcelain 빈 출력(carry가 확인한다).
+커밋(트레일러 정확히 두 개 -- Co-Authored-By 등 금지):
+  git -C C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-code commit --trailer "Role: code" --trailer "Change-Id: 20260930-b26-rail-accessor-set" -m "code: …"
+```
+
+### 3.1 바꿀 것(card 계약이 정본 -- 요약과 줄 위치는 B1 실측)
+
+1. **새 심볼(SD)**: `@dataclass(frozen=True) class RailDeclaration: nets: frozenset`, `def rail_declaration(topology: dict) -> RailDeclaration`(계약 1 거부 규칙·메시지에 `supply_nets`·`DEC-60`, 빈 list 받음, docstring '검사하지 않는 것:' 절).
+2. **`load_topology`**: 진입 파일 dict로 `rail_declaration` 정확히 한 번 → `meta["rails"]`, `supply_nets` 없으면 다른 분석 전에 `ValueError`, 연결 파일 선언은 같은 형식 검사·집합 다르면 `ValueError`(계약 2). meta의 다른 키·transistors 불변(계약 8).
+3. **사이트 교체(판정은 `rails.nets` 소속만)**: SD 13줄 1014·1570·1612·2090·2166·3130·3235·3967·4146·4282·4298·4345·4367(씨앗 = 선언 레일 각각을 자기 자신에), SR 2207·4293. 계약 4 시그니처 전부 끝에 **기본값 없는 키워드 전용** `rails: RailDeclaration`, 호출부 `rails=rails`.
+   뿌리는 스스로 선언을 얻는다(계약 4 마지막 묶음): SR은 `_topology_meta_cached(path)["rails"]`나 손에 든 `meta["rails"]`로만 받는다 -- **SR에서 `from stick_diagram import rail_declaration` 금지**(계약 3 계수 관찰), 새 캐시·새 엔트리 필드 금지, 평가 루프 안 접근자 호출 0.
+4. **meta 소비처·metric**: `l_sharing_classes`(와 세 함수) meta에 `"rails"` 없으면 `ValueError`(계약 5). `_metric_kcl_residual`은 `ctx.topology_path` 선언 레일, metric `rail_nets` 키 → `ValueError`, 다른 가지 불변(계약 6).
+5. **B34 인계 삭제(card '의도' 표)**: 사이트 9 `classify`의 `if netclass is None: return None, None`(B1 2394~2395)·`if cls_before is None: return None`(2404~2405), 10b `if relations is None: return None`(2434~2435), 13 `_static_ref_roles`를 조건 없는 4원소 튜플(4046~4048), B40 반환 dict에서 `unavailable_reason` 키만 삭제(3941~3945, 분기는 남김 -- 승인 `20260930-b26-b40-reason-key`).
+   **지우지 않는 것**: 2414 `if candidates is None`, 사이트 10(2489 `if _netclass_al is not None`)·14(4062 `if _idioms_lcmf is not None`) -- B35. docstring 3907~3908·2343~2344의 B34 구절을 card 문안("`_netclass_al`·`_idioms_lcmf`의 `is not None` 분기는 도달 불가 -- 삭제는 B35")으로.
+6. **정리 C1·C2(계약 15)**: C1 `_propose_L_roles`의 두 번째 `find_differential_pair_candidates(…, rails=rails)` 뒤 `if candidates is None: return None` 삭제, C2 `propose_device_roles_gap_fill`의 `open_net = open_terminals[0]` → `(open_net,) = open_terminals`. C3(`itertools.combinations`)는 하지 않는다 -- `range(i + 1, len(chains))` 줄은 그대로(U3 면제 대상).
+7. **레지스트리(계약 11)**: §2 45행 정본 칸 = `stick_diagram.rail_declaration`(B26-1), 40·43행 'B26 해소 뒤 확정' 조건 중 레일 판정 몫만 해소로, 42·53~56행 그대로, §6 `_metric_kcl_residual` 행(308행)의 '인라인 튜플' 문장을 선언 기반으로.
+
+**하지 말 것**: card '범위 밖'(B26-2 극성 사이트 1217·1228·1229·1265·1276·1277·1350·1352·1552·1553·1732 등, SR 3728·3790·4361·4626·4650~4653·4086·4991)과 '집합 판정인데 이 card에서 빼는 것'(SR 7281·8002·8090·6880·6885·6919·6930·6947, 3950, SD 3534·3536·3694, analog-grammar) 건드리기,
+이름 상수(`_RAIL_NETS`·`_DEFAULT_RAIL_*`) 삭제(B26-4), 광범위 `except`·skip·새 숫자 리터럴(V6), 새 함수(신규 시그니처 2개 밖)·새 인자(`rails` 밖), 레일 이름 리터럴 추가(계약 9: 병합본 = base − B26-1 행, 새 행 0).
+
+### 3.2 자기 확인(판정 근거 아님)
+
+* T1의 새 test 파일 전부 PASS, 갱신된 기존 test 파일(SD·SR selftest, probes, P9·b26pre·B34 계약 test) PASS, `A/tests` 전체 실패 0(참고: B1 1114 passed·15 xfailed + 새 test 수). PYTHONHASHSEED 0·1.
+* `git -C <worktree> diff --name-only <T1> HEAD` = SD·SR·레지스트리 md 셋뿐. `grep -n "from stick_diagram import" <SR>`에 `rail_declaration` 없음. 레일 인자에 기본값 없음(`inspect`로 확인).
+* 끝: `git -C <worktree> status --porcelain` 빈 출력, C:/g413 삭제.
+
+보고: 커밋 해시(40자리), 바꾼 def 목록(계약 4 20함수 + 뿌리), 인계 삭제·C1·C2 줄(K1 줄 번호와 글), 레지스트리 diff 요지, 자기 확인 출력, dispute 유무.
+
+---
+
+## 4. 운반(carry)과 2차 시도
+
+### 4.1 오케스트레이터 순서(1차 정리 → 운반 커밋 → 2차 착수)
+
+```bash
+R=/c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills
+W=/c/Users/HSLEE/Documents/Todoc/fpga/wt
+DR=$W/_drafts
+ID=20260930-b26-rail-accessor-set
+B1=6df4bd7fd9920e752da4b16bff9b0513caf78362
+```
+① 1차 끝 확인(단독 호출): `git -C "$W/$ID-audit" rev-parse HEAD` = T1, `git -C "$W/$ID-audit" log --oneline "role/test/$ID..HEAD"` 빈 출력, `git -C "$W/$ID-audit" status --porcelain --untracked-files=no` 빈 출력, test·code worktree `status --porcelain` 빈 출력, 1차 auditor 두 보고에 멈춤 사유 없음(V5 단위 둘·V3 생존 1·V4 새 발견 0·미리보기 FAIL 0 -- 0.2의 기존 7건은 사용자 결정 대기 항목).
+② `bash $DR/b26_1_carry.sh prep` -- check(V5 diff_hash 3중 대조·발견 단위·V3 생존 1·묶기 해시 재계산·dispute guard) → archive(`D` 운반 blob·`paths.tsv`, 보관 `$DR/b26_1_attempt1/` -- `T1.patch`·`K1_SD.py`·`attempt1_*`·`attempt1_audit/`·`commits.txt`·`SHA256SUMS`) → records(승인 기록 4 `20261001-b26-p9-signature-update`·5 `20261001-b26-v3-equiv-range` 작성, 인용 묶기·`parse-approval`). 어느 확인이든 실패하면 멈춘다(재시도 루프 금지).
+③ **(0.5 -- 정리 전) 2차 입력 전용 폴더**(오케스트레이터 Bash, 리터럴 경로, 값은 `$DR/b26_1_carry_state.txt`의 `T1=`·`K1=`):
+   * `mkdir -p /c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/b26_1_att2_input /c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/b26_1_att2_code_input`(둘 다 처음엔 없어야 한다)
+   * `cp $DR/b26_1_attempt1/T1.patch $DR/b26_1_att2_input/T1.patch` -- `sha256sum`이 `$DR/b26_1_attempt1/SHA256SUMS`의 `T1.patch` 줄과 같음. 폴더 안 파일 = 그 하나.
+   * `cp $DR/b26_1_attempt1/K1_SD.py $DR/b26_1_att2_code_input/K1_SD.py`(SHA256SUMS 대조), `git -C "$R" diff --no-color --no-ext-diff <T1 40> <K1 40> > /c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/b26_1_att2_code_input/K1.diff`(diff 경로 = SD·SR·레지스트리 셋인지 `grep '^diff --git'`), 두 파일 `sha256sum > …/SHA256SUMS`.
+④ `bash $DR/b26_1_carry.sh cleanup` → 출력된 명령(`worktree remove --force` 세 경로, `branch -D` 세 개)을 **하나씩 단독 호출**(병렬·묶음·tail 금지, EL1 거부면 출력 전체 보고하고 멈춤).
+⑤ `bash $DR/b26_1_carry.sh local` → cleaned → commit(`Role: doc` 하나 = 기록 4·5 + 운반 blob·`paths.tsv` + card 개정) → final. 끝에 출력되는 push 명령을 **단독 실행·전체 출력 확인**:
+   `env APPDATA='C:\Users\HSLEE\AppData\Roaming' LOCALAPPDATA='C:\Users\HSLEE\AppData\Local' git -C /c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills push gate master:master`
+⑥ `bash $DR/b26_1_carry.sh after-push` -- gate master = C = B2, B1·B2 P9 blob 같음, V5·V3 조회가 기록을 찾음.
+⑦ (0.2 -- **사용자가 V4 면제를 승인한 경우에만**) 면제 기록(`target_kind: decision`, target = `skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s133_refine_differential_and_mirror_relations`, `…::test_s134__propose_vertical_stack_ids`, `…::test_s135_section`, `…::test_s159_apply_device_roles_gap_fill`, 사용자 원문 인용, c9 기록 모양)을
+   `.ai/approvals/<id>.md`로 `parse-approval` 통과 → `Role: doc` 커밋 하나 → push 단독 → `fetch`·`merge --ff-only`. 이때 2차 base B2는 **이 커밋**이다(carry 상태의 B2와 다르다 -- 아래 B2는 "2차 착수 때 gate master"로 읽고, `git -C "$R" diff --quiet <carry B2> <새 B2> -- skills tools workspaces`와 P9 blob 같음을 다시 확인).
+   승인되지 않으면 2차를 띄우지 않는다(V4 FAIL이 확정이라 -- 사용자 결정 대기).
+⑧ 2차 착수 전 확인: `B2=$(git -C "$R" rev-parse gate/master)`, `git -C "$R" diff --quiet $B1 $B2 -- skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py`, `test -z "$(git -C "$R" for-each-ref refs/heads/role/)"`, `test ! -e /c/g414 -a ! -e /c/g415 -a ! -e /c/g416 -a ! -e /c/g417`.
+   `git -C "$R" show $B2:docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/$ID/paths.tsv`로 운반 blob id 확인(작업 트리 사본은 CRLF일 수 있다).
+⑨ 순서 1: `git -C "$R" worktree add "$W/$ID-test" -b "role/test/$ID" gate/master` → 4.2.
+
+### 4.2 2차 test-author 브리프
+
+```
+역할: gmid-test-author. change id = 20260930-b26-rail-accessor-set -- 2차 시도(card '두 번 시도 절차' 3). 1차 test 커밋 T1의 내용을 그대로 다시 만든다(새로 설계하지 않는다).
+test worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-test (브랜치 role/test/20260930-b26-rail-accessor-set, 시작점 gate master B2 = <40자리 -- 오케스트레이터가 적는다>, 운반 커밋 포함).
+입력(읽기): 그 worktree의 spec card(개정판 -- '1차 시도 기록' 문단 포함)·interface card,
+  운반 디렉터리 docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260930-b26-rail-accessor-set/(paths.tsv + <blob id>.blob -- 저장소 안),
+  오케스트레이터가 더한 입력 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/b26_1_att2_input/T1.patch(그 파일 하나만, sha256 <오케스트레이터가 적는다>).
+열람 금지: 그 밖 _drafts/** 전부(특히 b26_1_attempt1/ -- auditor 측정값·엔진 사본이 있다), 엔진 소스, tools/** 소스.
+쓰기 경로: skills/analog-gmid-design/assets/tests/**(tests/tools/** 제외).
+scratch: C:/g414 하나만(TMP·TEMP·TMPDIR·PYTHONPYCACHEPREFIX·--basetemp 그 아래, "." 금지, 끝나면 그 폴더만 삭제). pytest -p no:cacheprovider, PYTHONDONTWRITEBYTECODE=1.
+할 일:
+ (1) P9 경로: git -C <worktree> show HEAD:docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260930-b26-rail-accessor-set/paths.tsv 로 경로·blob id를 읽고(작업 트리 사본은 CRLF일 수 있다),
+     같은 디렉터리의 <blob id>.blob을 cp로 skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py에 둔다. 손으로 다시 쓰지 않는다(1바이트라도 다르면 승인 해시가 바뀐다).
+     확인: git -C <worktree> hash-object <worktree>/skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py = paths.tsv의 blob id. 다르면(줄바꿈 변환) cp 대신
+     git -C <worktree> show HEAD:<운반 디렉터리>/<blob id>.blob 출력을 그 경로에 쓰고(리터럴 경로 리다이렉트) 다시 확인. 그래도 다르면 멈추고 보고.
+ (2) 나머지 test 파일: T1.patch의 + 줄대로 최종 내용을 만든다 -- 새 파일은 Write, 기존 파일 변경은 Edit(git apply·patch·cherry-pick 금지). patch 안 P9 경로 hunk는 무시((1)이 맡는다).
+     T1.patch와 개정 card가 다르면 card대로 하고 보고에 적는다(다르게 만든 줄은 V5·V4 대상이 될 수 있다).
+ (3) 커밋(여럿이어도 된다): git -C <worktree> commit --trailer "Role: test" --trailer "Change-Id: 20260930-b26-rail-accessor-set" -m "test: …" -- 트레일러 정확히 두 개.
+자기 점검: 커밋 뒤 git -C <worktree> rev-parse HEAD:skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py = paths.tsv blob id, 
+  T1.patch의 경로 집합 = git -C <worktree> diff --name-only <B2> HEAD 경로 집합, 새 test 파일 수집 오류 0, git status --porcelain 빈 출력.
+보고: 커밋 해시, 경로별로 T1과 같은 내용인지(blob id -- T1.patch의 index 줄 뒤 blob id와 대조), 다르게 쓴 곳과 이유.
+```
+
+### 4.3 2차 auditor 순서 3(scratch `C:/g416` -- 커밋하지 않음)
+
+머리 블록은 2절 공통 블록에서 다음만 바꾼다: "1차 시도" → **"2차 시도(판정 기록을 쓰는 시도)"**, base = **B2**(2차 착수 때 gate master 40자리), T1 → **T2**(2차 `role/test/<id>` 끝), scratch `C:/g416`, 게이트 캐시 = **B2 판**(`C:/g416/gmid-gate-cache/<B2 40자리>/` -- V1 `-c` 경로의 old = B2. 모의에서 B1을 적어 EL4가 거부했다, card 단계 4), 산출물 = `base_check.json`과 `out/`·`scripts/`(attempt1 이름 파일 없음), "순서 7에서 M 위 한 커밋" 문구.
+* freeze: T2 = `role/test/<id>` 끝, `B2..T2` 첫 부모 사슬·전부 `Role: test` 두 트레일러. `git -C <iso> rev-parse T2:skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py` = 운반 `paths.tsv` blob id.
+  **1차 대조**: `_drafts/b26_1_attempt1/SHA256SUMS` 대조 뒤(오케스트레이터가 보관 경로를 넘긴다 -- auditor 산출물 사본이라 auditor가 읽어도 된다) `T1.patch`의 경로·blob id와 `B2..T2` 경로·blob id 표 -- 같지 않은 경로는 이유를 적는다.
+* V5: `weakening_diff.py --root <iso> --base B2 --head T2` → `approved: true`, `diff_hash` = 승인 기록 `20261001-b26-p9-signature-update` target(64자리), `diff_paths` = P9 경로 하나. 다르면 멈춘다.
+* red 수집(2.1과 같은 방법, T2 복제본), 네 칸 표. 1차 2.1 표와 같아야 한다(다르면 적는다).
+* V4: `test_lint.py --base B2 --head T2` -- FAIL 0(0.2 면제 기록이 B2에 있으면 SD selftest 7건은 `exempt`), 새 파일 FAIL 0. 아니면 멈춤.
+* base 기준값: B2 복제본 전체 suite·엄격 집합, test-only 구간 V3 `--base B2 --head T2`(기대 targets []).
+* V basis 표기(판정 기록·base_check.json·attempt1_*.json의 근거 문장): 도구 명령의 `--base`·`--head`와 커밋 표기는 **40자리 전체 sha**로 적는다(7자 약칭·말줄임 `…` 금지 -- 판정 기록은 커밋 뒤 고칠 수 없고, 후속 집계(B33 m4)가 근거 명령에서 쌍을 다시 읽는다. 사례: b26pre 기록 `--base ae1b588… --head e4d5833…`).
+* 끝: `status --porcelain`(미추적만), `log --oneline role/test/<id>..HEAD` 빈 출력을 `base_check.json`에. C:/g416 삭제.
+
+### 4.4 2차 code-author 브리프(scratch `C:/g415`)
+
+오케스트레이터 준비: `git -C "$R" worktree add "$W/$ID-code" -b "role/code/$ID" <T2 40자리>`(순서 4 -- 4.3 끝 확인 뒤).
+```
+역할: gmid-code-author. change id = 20260930-b26-rail-accessor-set -- 2차 시도. 1차 code 커밋 K1의 변경을 **같은 글자로** 다시 만든다(새로 설계하지 않는다).
+base B2 = <40자리>, T2 = <40자리>. code worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-code (브랜치 role/code/20260930-b26-rail-accessor-set, 부모 = T2).
+입력: spec card(개정판)·interface card·T2 test, 오케스트레이터가 더한 입력 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/b26_1_att2_code_input/ 의 K1_SD.py(K1의 stick_diagram.py 전체 사본)·K1.diff(T1..K1 전체 diff -- SD·SR·레지스트리)·SHA256SUMS(먼저 대조).
+  금지: 그 밖 _drafts/**(b26_1_attempt1/의 auditor 산출물 포함), git apply·patch·cherry-pick·git show K1(보관 사본이 정본) -- 읽고 Edit로 쓴다(show→Edit).
+쓰기 경로: stick_diagram.py·sizing_recipe.py·docs/03-analysis/gain-budget-gmid-sizing.function-registry.md.
+할 일: K1.diff의 세 파일 변경을 Edit로 같은 결과가 되게 만든다. 특히 stick_diagram.py의 find_differential_pair_candidates def는 K1_SD.py의 그 def와 **글자까지 같게**(U3 면제 기록 20261001-b26-v3-equiv-range의 해시가 그 def의 AST에 묶여 있다 -- 다르면 면제가 자동 무효).
+  가능하면 stick_diagram.py 전체가 K1_SD.py와 바이트 같게(git -C <worktree> hash-object <SD> = K1_SD.py의 hash-object).
+scratch: C:/g415(TMP·TEMP·TMPDIR·PYTHONPYCACHEPREFIX·--basetemp 그 아래, "." 금지, 끝나면 그 폴더만 삭제). pytest -p no:cacheprovider, PYTHONDONTWRITEBYTECODE=1.
+test가 틀렸다고 보면 고치지 말고 dispute(<worktree>/docs/02-design/disputes/20260930-b26-rail-accessor-set.md) 커밋 후 멈춘다.
+커밋: git -C <worktree> commit --trailer "Role: code" --trailer "Change-Id: 20260930-b26-rail-accessor-set" -m "code: …" -- 트레일러 정확히 두 개.
+자기 확인: git -C <worktree> diff <T2> HEAD 가 K1.diff와 같은 내용(경로·hunk -- 줄 번호 머리 말고), 새 test·기존 test 전부 PASS, git status --porcelain 빈 출력.
+보고: 커밋 해시, 세 파일 각각 K1과 바이트 같은지(hash-object 대조), 다른 곳과 이유.
+```
+오케스트레이터 확인(병합 전): `git -C "$W/$ID-code" log --format='%H %P' <T2>..HEAD` 첫 부모 사슬·트레일러 두 개, `diff --name-only <T2> HEAD` = 세 파일, 그리고 U3 묶기 해시 대조(스크립트 파일로 -- 변수 리다이렉트 금지):
+`$PY -B -c "import ast,hashlib,sys;f=lambda s:hashlib.sha256(ast.dump([n for n in ast.parse(s).body if isinstance(n,ast.FunctionDef) and n.name=='find_differential_pair_candidates'][-1],annotate_fields=True,include_attributes=False,indent=None,show_empty=False).encode()).hexdigest();print(f(open(sys.argv[1],encoding='utf-8').read())==f(open(sys.argv[2],encoding='utf-8').read()))" <code wt>/skills/analog-gmid-design/assets/stick_diagram.py $DR/b26_1_att2_code_input/K1_SD.py` → `True`
+(그리고 그 해시 = `.ai/approvals/20261001-b26-v3-equiv-range.md` target의 `@` 뒤 64자리). `False`면 병합하지 않는다(기록 5 무효 → 재승인, card 단계 3 멈춤 조건).
+
+### 4.5 순서 6 병합(오케스트레이터, 단독 호출)
+
+병합 전: `git -C "$W/$ID-audit" log --oneline "role/test/$ID..HEAD"` **빈 출력**(아니면 순서 3 커밋이 섞인 것 -- 병합하지 말고 멈춤).
+`git -C "$W/$ID-audit" merge --no-ff "role/code/$ID" -m "merge $ID" -m "Role: doc⏎Change-Id: $ID"`(⏎ = 실제 줄바꿈, 트레일러 정확히 두 개, Co-Authored-By 없음).
+확인: `log -1 --format='%P'` = `<T2> <K2>`, `HEAD^{tree}` = `role/code/$ID^{tree}`, 메시지를 `interpret-trailers --parse`에 넣으면 두 줄.
+
+### 4.6 2차 auditor 순서 7(scratch `C:/g417` -- 판정 기록, M 위 커밋 정확히 하나)
+
+머리 블록 = 4.3과 같고 scratch `C:/g417`, M = 4.5의 HEAD 40자리, K2 = M의 둘째 부모. 순서 3 산출물(`base_check.json` 등 미커밋)은 이 커밋에 함께 넣는다.
+커밋: `git -C C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-audit commit --trailer "Role: audit" --trailer "Change-Id: 20260930-b26-rail-accessor-set" -m "audit: …"`(트레일러 정확히 두 개). 커밋 직전 `log --oneline --first-parent M..HEAD` 빈 출력, 뒤 정확히 1개.
+판정 기록 `.ai/verification/20260930-b26-rail-accessor-set.json` + `…/{scripts,out}/`: `base_commit` = B2, `test_commit` = T2, `code_commit` = K2, `evidence_type` "red-green", `approvals` = 개정 card 머리 `approval:` 줄 전부(`20260930-b26-before-phase3`·`20261001-b26-phase3-cards`·`20260930-b26-b40-reason-key`·`20261001-b26-p9-signature-update`·`20261001-b26-v3-equiv-range` + 4.1 ⑦ 면제 기록이 있으면 그 id), `notes`에 '2차 시도(1차 B1 `6df4bd7`·T1·K1 -- 병합 안 함, 운반 커밋 C)'.
+1차 근거: `_drafts/b26_1_attempt1/`의 `attempt1_base_check.json`·`attempt1_v3.json`을 `SHA256SUMS` 대조 뒤 판정 기록 디렉터리로 옮겨 싣는다(P5b 선례 `attempt1_base_check.json`).
+V basis 표기(V1~V10 `basis` 전부, 판정 기록·base_check.json·attempt1_*.json의 근거 문장): 도구 명령의 `--base`·`--head`와 커밋 표기는 **40자리 전체 sha**로 적는다(7자 약칭·말줄임 `…` 금지 -- 판정 기록은 커밋 뒤 고칠 수 없고, 후속 집계(B33 m4)가 근거 명령에서 쌍을 다시 읽는다. 사례: b26pre 기록 `--base ae1b588… --head e4d5833…`).
+
+| V | 기대 | 근거·측정(격리 복제본 = M, B2 판 캐시) |
+|---|---|---|
+| V1 | PASS | `PYTHONPYCACHEPREFIX=C:/g417/pyc/v1_M PYTHONPATH=C:/g417/gmid-gate-cache/<B2> C:/Python314/python.exe -P -m pytest -c C:/g417/gmid-gate-cache/<B2>/pytest_gate.ini --rootdir=C:/g417/iso --confcutdir=C:/g417/iso C:/g417/iso/skills/analog-gmid-design/assets/tests --gmid-phase=3 --gmid-strict=<B2 판 strict_set> -rA`(`-k`·`--deselect`·`-x` 없음), `merge_gate.v1_command_check(V1 문자열, python_path=…, old=B2, strict_needed=<strict_set 값>, phase="3")`(B2 판 시그니처 -- 키워드 전용 넷) 위반 0. 판정 = 관계(기존 id 같은 결과 + 새 id 전부 PASS) |
+| V2 | PASS | red = card 네 칸 중 '단언 red'·'신규 심볼 red'(T2 복제본, B2 엔진), green = M에서 새 test 전부 PASS, base `TypeError` 칸은 집계 밖으로 basis에, E3 기본값은 green 회귀 고정. 계약 13 AST 측정(두 def의 `None` 비교 = 2, 사이트 10·14뿐)과 diff로 사이트 9 둘째 줄·10b `if` 삭제 확인. 계약 14 base 값 차이는 필요하면 `rails` 없이 부른 B2 호출로 따로 |
+| V3 | PASS | `$PY -B <캐시>/mutate_changed.py --root C:/g417/iso --base <B2> --head <M> --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=3 --gmid-strict=<…> --out C:/g417/out/v3.jsonl`(소요는 0.3 -- 2.2 ①처럼 먼저 추정). 기대: exempt 1 = 기록 `20261001-b26-v3-equiv-range` target(`exempt_ignored` [] -- `hash_mismatch`면 멈춤), 나머지 killed, survivors 0. 대상 수·def별 targeted를 1차 `attempt1_v3.json`과 대조(같아야 한다 -- 엔진 같음). basis에 범위 card `20260930-v3-changed-stmt-scope`·묶기 card `20260930-v3-exempt-binding`, U3 결정(b26pre·backfill card id, 면제 승인 id), 계약 15 정리로 새로 대상이 된 4개(지운 가드 뒤 문장 삭제 1, `open_net` 읽는 문장 3)가 죽었는지 |
+| V4 | PASS | `test_lint.py --root <iso> --interface-card <iso>/docs/02-design/specs/20260930-b26-rail-accessor-set.interface.md --base <B2> --head <T2>`. FAIL 0(0.2의 7건은 면제 기록으로 `exempt` -- 기록이 없으면 FAIL). basis `oracle 대조: `로 시작: 기대값마다(UNJUDGED 포함) card oracle (a)(b) 대조 -- 7(e)·7(a) 양성·14·계약 3·계약 6 리터럴을 auditor가 card 규칙으로 손으로 다시 적용해 같음, oracle (b) 두 호출 비교의 독립성, 도우미 `assert` 0(AST), 같은 피검 출력 두 값 `==` 0 |
+| V5 | PASS | `weakening_diff.py --root <iso> --base <B2> --head <T2>`·`--head <M>`: `approved: true`, `diff_hash` = 기록 4 target, `diff_paths` = P9 경로 하나. basis에 "B1·B2 사이 P9 blob 같음"(P5b 판정 기록 V5 basis 모양) |
+| V6 | PASS | `source_lint.py --root <iso> --base <B2> --head <M>`: 새 except·skip·숫자 리터럴 0 |
+| V7 | PASS | `reachability.py --root <iso> --base <B2> --head <M>`: `rail_declaration`·`RailDeclaration` 도달(`load_topology` 경유), 계약 10 -- 판정 사이트의 `rails` 실인자가 `load_topology` `meta["rails"]`에서 옴(호출 그래프), 운영 코드에서 `RailDeclaration(...)` 직접 생성은 `rail_declaration` 하나 |
+| V8 | N/A | `도입 4: …`(B2 판 계획서 `v_intro[V8]` = 4 -- `read_plan_tables`로 확인) |
+| V9 | N/A | `도입 6b: …`(`v_intro[V9]` = 6b) |
+| V10 | PASS | card '재현할 수치'를 auditor 스크립트로 다시: 계약 8(E-LIB 9/9 `load_topology`(meta `rails` 제외)·`run_topology_pipeline`·`run_full_circuit_audit_from_topology` B2 대 M, `meta["rails"].nets` = 각 회로 `supply_nets`), E-INST 두 회로 재생성 `instance.json` 해시(커밋된 파일이 아니라 B2에서 다시 만든 것과 비교 -- backfill 선례), 계약 13 9/9 대조(같은 `PYTHONHASHSEED`), 계약 9 이름 리터럴 다중집합(병합본 = base − B26-1 행), 계약 3 호출 수, oracle (b) setup 4회로 |
+
+### 4.7 push·정리·운반 디렉터리 삭제(오케스트레이터)
+
+1. 끝 확인: `git -C "$W/$ID-audit" log --oneline --first-parent "<M>..HEAD"` = `Role: audit` 커밋 정확히 1개(부모 M, 트레일러 두 개), `/c/g417` 지워짐.
+2. 순서 8 push -- **단독 실행·전체 출력 확인**(병렬·`tail` 금지): `env APPDATA='C:\Users\HSLEE\AppData\Roaming' LOCALAPPDATA='C:\Users\HSLEE\AppData\Local' git -C /c/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-rail-accessor-set-audit push gate role/audit/20260930-b26-rail-accessor-set:master`. 거부되면 정리하지 말고 출력 전체를 보고.
+3. push 결과 확인 뒤에만: `git -C "$R" fetch gate`, `test "$(git -C "$R" rev-parse gate/master)" = "$(git -C "$W/$ID-audit" rev-parse HEAD)"`, `git -C "$R" merge --ff-only gate/master`.
+4. 정리(3 확인 뒤, 하나씩 단독 호출): `git -C "$R" worktree remove "$W/$ID-audit"`, `… "$W/$ID-code"`, `… "$W/$ID-test"`, `git -C "$R" branch -D "role/audit/$ID" "role/code/$ID" "role/test/$ID"`, `test -z "$(git -C "$R" for-each-ref refs/heads/role/)"`, `/c/g414`~`/c/g417` 없음 확인(남았으면 그 폴더만 삭제).
+5. card 단계 5: 운반 디렉터리 삭제 `Role: doc` 커밋 -- `git -C "$R" rm -r -q -- docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260930-b26-rail-accessor-set`, `git -C "$R" commit --trailer "Role: doc" -m "docs: B26-1 병합 뒤 V5 운반 디렉터리 삭제(design 05 §12 (4))"`, push 단독(2와 같은 `env … push gate master:master` 형태, 메인 저장소) → fetch·`merge --ff-only` 확인.
+6. 저장소 밖 보관(`_drafts/b26_1_attempt1/`·`b26_1_att2_input/`·`b26_1_att2_code_input/`)은 지우지 않는다(판정 기록이 인용).
+
+---
+
+## 5. 순서 요약
+
+1차(병합 안 함): [순서 1 끝남: test worktree `6df4bd7`] → `test ! -e /c/g411` → **1절 test-author** → T1 확인(`B1..T1` 첫 부모 사슬·`Role: test` 두 트레일러·경로 전부 `A/tests/**`·`status` 빈 출력)
+→ `git -C "$R" worktree add "$W/$ID-audit" -b "role/audit/$ID" "role/test/$ID"` → `test ! -e /c/g412` → **2.1 auditor 순서 3**(멈춤 사유 확인 -- V5 단위·red 네 칸·V4 새 발견)
+→ `git -C "$R" worktree add "$W/$ID-code" -b "role/code/$ID" <T1>` → `test ! -e /c/g413` → **3절 code-author** → K1 확인
+→ `test ! -e /c/g412` → **2.2 auditor V3 측정**(소요 추정 먼저) → **4.1 운반**(prep → ③ 2차 입력 폴더 → cleanup 단독 호출들 → local → push 단독 → after-push → ⑦ V4 면제(사용자 결정) → ⑧ 확인)
+2차: 4.1 ⑨ test worktree → **4.2 test-author**(g414) → audit worktree → **4.3 auditor 순서 3**(g416) → code worktree(부모 T2) → **4.4 code-author**(g415) → U3 묶기 해시 대조 → **4.5 병합** → **4.6 auditor 순서 7**(g417) → **4.7** push → 정리 → 운반 디렉터리 삭제 push.

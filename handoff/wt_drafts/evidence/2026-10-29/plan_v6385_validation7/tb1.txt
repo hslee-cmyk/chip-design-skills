@@ -1,0 +1,34 @@
+--- 2200
+
+--- 2201
+### N6.29 card TB-1 -- θ 기저 S0 필드(사용자 결정 O-144 J3)
+--- 2202
+
+--- 2203
+**근거**: 사용자 결정 O-144(2026-10-26 "모두 권고대로", `_drafts/user_decisions.md` O-144 행) J3 -- 재검증 `wt/_drafts/evidence/2026-10-26/plan_v638_revalidation.md` §2 (6) 안 (나): DEC-104 R6 블록(card LA-1)이 R-1′ 제약 그래프 S0 필드를 READS하고 headroom-chain HC-1(N3.1-5 처리 자리)이 S/B/F/X 분류 필드를 READS해 R6 ⇄ HC-1 순환이 생긴다 -- 필드만 만드는 작은 card로 순환을 끊는다(필드마다 writer 하나, P2). **원래 취지와 다름(승인 O-144)**: O-126 (c)('HC-1은 LA-1의 선행이 아니다' -- 근거는 범위 11뿐) 위에 새 선행 card를 두고, headroom-chain H-12 순서와 HC-1 범위(R-1′ S0 필드 생성)를 바꾼다.
+--- 2204
+
+--- 2205
+**범위**(필드마다 writer 하나 -- 이름·블록은 design, 새 cache·memo·sctx 슬롯·사본 0):
+--- 2206
+
+--- 2207
+1. **S/B/F/X 분류 S0 필드**(DEC-104 R13·(3)(a)) -- writer = 분류 블록 하나. 셀 속성 '바이어스 구동 레일 source 셀'은 두지 않는다(v6.38.1 사용자 결정 O-157(2026-10-26, `_drafts/user_decisions.md` O-157 행) S4 J2 -- 대상 판정은 card SB-1이 S1v β(모든 뷰) ∧ source 레일을 READS; 옛 '셀 속성 '바이어스 구동 레일 source 셀'(R13, O-144 J2)을 담는다' -- 소비자가 SB-1뿐이라 O-149 규칙으로도 master에서 소비자 0, 같은 정의 성분의 둘째 자리). 입력 = S1v `Block.roles`·`device.dc_coord`·spec 선언 사실(GBW·rout·정착 선언 있음)·L 동치류, topology 태그 READS 0.
+--- 2208
+2. **R-1′ 제약 그래프 S0 필드**(정의 = headroom-chain N3.1·N3.4 -- 마디·변·κ 출처, V_R 차분 변 쌍(N3.1-1), writer_root 행(O-141 (6)), 변 좌표 집합 속성(N3.1-5)) -- writer = R-1′ 블록 하나, 포화 항 = `sat_threshold`(HC-S). headroom-chain N3.4 규칙대로 같은 변경에서 `gvgs_summary.vds_saturation`을 지우고 그 소비자를 이 필드로 다시 잇는다(소비자 목록은 착수 실측).
+--- 2209
+3. **R7 matching·잡음 가드 필드 자리**(DEC-104 (3)(b)) -- **card LA-1 범위 15 (d)가 만든다**(v6.38.2 열째 커밋 U-132 기본안 -- 행동 소비자가 LA-1(R6 블록) 하나라 필드와 소비자를 같은 card에 둠, O-165 (a); 대안(이 범위 유지)은 U-132).
+--- 2210
+4. **체계 오프셋 술어 인스턴스 S0 필드**(v6.38.2 DEC-105 (4)) -- **card LA-1 범위 15 (c)가 만든다**(v6.38.2 열째 커밋 U-132 기본안 -- 같은 이유; 대안(이 범위에 두기)은 U-132). 이 card는 범위 1·2만 만들고 O-149 규칙을 그대로 따른다.
+--- 2211
+
+--- 2212
+**만들면 배선**(WP-01, 사용자 결정 O-146(2026-10-26 "K1, K2는 권고대로", `_drafts/user_decisions.md` O-146 행) K2 -- O-144 J3 이연 범위): 이 card의 필드는 병합 때 **엔진 소비자 0**이다(as-built `vds_saturation`도 test만 읽음). 행동 소비자 = headroom-chain HC-1(출발 구간 판정·층 0 거르기)·card LA-1(R6 블록), 기한 = 그 병합. 그래서 이 card는 **master에 행동 소비자 card(headroom-chain HC-1·card LA-1) 가운데 먼저 master에 들어가는 쪽과 같은 통합 병합으로만 넣는다**(소비자 0 필드가 master에 홀로 있지 않게 -- 사용자 결정 O-149(2026-10-26 "첫 소비자와 병합 (권고)", `_drafts/user_decisions.md` O-149 행), O-146 K2 정정).
+--- 2213
+
+--- 2214
+**착수 실측**(graph-consumption GC-B7): library 9 + heldout에서 θ 전류 기저 저항 수와 그중 양 끝이 레일이 아닌 넷 수 -- 0이면 규칙 문장만(저항 θ 방향 규칙 질문은 그 실측 뒤). **완료 조건**: (1) 필드마다 writer 하나·READS 단언(`git grep`·블록 READS) (2) R-1′ 필드 정의 toy -- 양의 순환 유무 손계산 대조, V_R 차분 변, writer_root 행 (3) 분류 필드 toy -- 선언·연결만 읽음(topology 태그 READS 0)(옛 ''바이어스 구동 레일 source 셀' 속성 손계산 대조'는 O-157 S4로 card SB-1 대상 판정 toy로) (4) `vds_saturation` 삭제 비교 -- headroom-chain N3.1-6 비교(base 집합 ⊆ 새 길이 1 집합, 원인 없는 차이 0) (5) 탐색 결과는 순수 리팩터링 필드별 비교(O-35 꼴 -- 새 필드는 아직 판정·탐색에 쓰이지 않고, 재배선 자리는 값 동일) (6) N6.3 공통 (7) 범위 3·4의 toy·변화표는 U-132 기본안으로 card LA-1 완료 조건 10 (c)·(d).
+--- 2215
+
+303 **R13** S/B/F/X 분류는 S0 필드 하나다(O-128 Q7): S = 필요 gm이 R3으로 정의된 신호 소자(매크로 활성 입력, rout follower), F = 그 밖 신호 소자, B = 부하·미러·바이어스·FF, X = 쓰기 계획 종속;
+303 이름은 design이 정하고 각 필드 writer 하나, 새 cache·memo·sctx 슬롯·사본 0): (a) **S/B/F/X 분류 S0 필드**(R13) -- 만드는 card = TB-1(N6.29, O-144 J3), writer = 분류 블록 하나(쓰기 계획 다음 S0 블록;

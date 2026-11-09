@@ -1,0 +1,90 @@
+gain-budget-gmid-sizing	2단계	ef: R=30 N=20 C=15	c19: R=29 N=21 C=20
+gain-budget-gmid-sizing	I_off >	ef: R=0 N=3 C=0	c19: R=0 N=3 C=0
+gain-budget-gmid-sizing	I_off ≤	ef: R=1 N=3 C=0	c19: R=1 N=3 C=0
+gain-budget-gmid-sizing	VDSAT \+ tol	ef: R=1 N=0 C=1	c19: R=0 N=1 C=5
+gain-budget-gmid-sizing	VDsat \+ tol	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+gain-budget-gmid-sizing	V_on	ef: R=1 N=11 C=4	c19: R=1 N=11 C=4
+gain-budget-gmid-sizing	\(gm/ID\)·tol_V	ef: R=1 N=5 C=0	c19: R=1 N=5 C=0
+gain-budget-gmid-sizing	\+ ?tol_VDsat	ef: R=2 N=6 C=6	c19: R=1 N=7 C=6
+gain-budget-gmid-sizing	\+tol	ef: R=8 N=11 C=5	c19: R=2 N=14 C=6
+gain-budget-gmid-sizing	\[0, I_off\]	ef: R=0 N=3 C=0	c19: R=0 N=3 C=0
+gain-budget-gmid-sizing	\bP-7\b	ef: R=0 N=11 C=2	c19: R=0 N=11 C=3
+gain-budget-gmid-sizing	\bR0\b	ef: R=0 N=16 C=3	c19: R=0 N=17 C=2
+gain-budget-gmid-sizing	\bU-69\b	ef: R=0 N=9 C=1	c19: R=0 N=11 C=1
+gain-budget-gmid-sizing	_peak_floor	ef: R=0 N=0 C=1	c19: R=0 N=0 C=1
+gain-budget-gmid-sizing	confirmed_range	ef: R=0 N=1 C=0	c19: R=0 N=1 C=2
+gain-budget-gmid-sizing	dc_conduction_floor	ef: R=0 N=10 C=1	c19: R=0 N=9 C=1
+gain-budget-gmid-sizing	dc_off_current	ef: R=3 N=6 C=0	c19: R=3 N=5 C=0
+gain-budget-gmid-sizing	dc_window_def	ef: R=5 N=8 C=3	c19: R=5 N=8 C=4
+gain-budget-gmid-sizing	floor	ef: R=1 N=20 C=11	c19: R=1 N=22 C=15
+gain-budget-gmid-sizing	g = s[^|]{0,60}꺼짐	ef: R=0 N=4 C=3	c19: R=0 N=4 C=4
+gain-budget-gmid-sizing	gain_ss_db	ef: R=0 N=10 C=25	c19: R=0 N=10 C=25
+gain-budget-gmid-sizing	off 유지 경계	ef: R=1 N=2 C=1	c19: R=1 N=2 C=1
+gain-budget-gmid-sizing	off_current_A	ef: R=0 N=6 C=2	c19: R=0 N=8 C=5
+gain-budget-gmid-sizing	stage2_judgment	ef: R=1 N=2 C=1	c19: R=1 N=2 C=1
+gain-budget-gmid-sizing	ε·ID	ef: R=1 N=5 C=0	c19: R=1 N=5 C=0
+gain-budget-gmid-sizing	− ?tol_VDsat	ef: R=2 N=2 C=1	c19: R=1 N=2 C=1
+gain-budget-gmid-sizing	꺼짐 판정	ef: R=3 N=3 C=5	c19: R=3 N=3 C=5
+gain-budget-gmid-sizing	단조성 구간	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+gain-budget-gmid-sizing	두 단계	ef: R=0 N=0 C=6	c19: R=0 N=0 C=6
+gain-budget-gmid-sizing	둘째 단계	ef: R=1 N=0 C=0	c19: R=1 N=0 C=0
+gain-budget-gmid-sizing	반전 수준 하한	ef: R=1 N=8 C=0	c19: R=1 N=8 C=0
+gain-budget-gmid-sizing	선언 영역 대조	ef: R=1 N=5 C=0	c19: R=1 N=5 C=0
+gain-budget-gmid-sizing	잡음 수준	ef: R=0 N=4 C=0	c19: R=0 N=4 C=0
+gain-budget-gmid-sizing	전도 여유	ef: R=0 N=5 C=1	c19: R=0 N=5 C=0
+gain-budget-gmid-sizing	전도 행	ef: R=0 N=18 C=5	c19: R=0 N=18 C=3
+gain-budget-gmid-sizing	확정 지목	ef: R=0 N=1 C=1	c19: R=0 N=1 C=1
+graph-consumption	2단계	ef: R=9 N=0 C=0	c19: R=8 N=0 C=0
+graph-consumption	I_off ≤	ef: R=1 N=0 C=0	c19: R=1 N=0 C=0
+graph-consumption	\+tol	ef: R=3 N=0 C=0	c19: R=3 N=0 C=0
+graph-consumption	\bP-7\b	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+graph-consumption	\bR0\b	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+graph-consumption	_peak_floor	ef: R=0 N=1 C=2	c19: R=0 N=1 C=2
+graph-consumption	dc_conduction_floor	ef: R=9 N=3 C=0	c19: R=8 N=4 C=0
+graph-consumption	dc_off_current	ef: R=8 N=3 C=1	c19: R=7 N=4 C=1
+graph-consumption	dc_window_def	ef: R=2 N=1 C=0	c19: R=2 N=1 C=0
+graph-consumption	floor	ef: R=19 N=16 C=21	c19: R=18 N=17 C=21
+graph-consumption	g = s[^|]{0,60}꺼짐	ef: R=0 N=4 C=0	c19: R=0 N=4 C=0
+graph-consumption	off 유지 경계	ef: R=1 N=1 C=0	c19: R=1 N=1 C=0
+graph-consumption	off_current_A	ef: R=2 N=1 C=0	c19: R=2 N=1 C=0
+graph-consumption	ε·ID	ef: R=1 N=0 C=0	c19: R=1 N=0 C=0
+graph-consumption	꺼짐 판정	ef: R=3 N=1 C=2	c19: R=3 N=2 C=1
+graph-consumption	두 단계	ef: R=1 N=2 C=2	c19: R=1 N=2 C=2
+graph-consumption	둘째 단계	ef: R=6 N=1 C=2	c19: R=3 N=1 C=0
+graph-consumption	반전 수준 하한	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+graph-consumption	선언 영역 대조	ef: R=2 N=2 C=1	c19: R=1 N=2 C=1
+graph-consumption	전도 행	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+headroom-chain	2단계	ef: R=2 N=1 C=0	c19: R=1 N=1 C=0
+headroom-chain	I_off >	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+headroom-chain	I_off ≤	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+headroom-chain	VDSAT \+ tol	ef: R=1 N=0 C=0	c19: R=1 N=0 C=0
+headroom-chain	VDsat \+ tol	ef: R=0 N=4 C=5	c19: R=0 N=1 C=0
+headroom-chain	\+ ?tol_VDsat	ef: R=2 N=3 C=0	c19: R=0 N=3 C=0
+headroom-chain	\+tol	ef: R=2 N=6 C=3	c19: R=0 N=3 C=1
+headroom-chain	dc_window_def	ef: R=4 N=3 C=0	c19: R=0 N=3 C=2
+headroom-chain	floor	ef: R=0 N=2 C=3	c19: R=0 N=2 C=3
+headroom-chain	ε·ID	ef: R=0 N=2 C=0	c19: R=0 N=2 C=0
+headroom-chain	− ?tol_VDsat	ef: R=0 N=3 C=0	c19: R=0 N=3 C=0
+headroom-chain	꺼짐 판정	ef: R=0 N=2 C=0	c19: R=0 N=2 C=0
+headroom-chain	선언 영역 대조	ef: R=0 N=4 C=0	c19: R=0 N=5 C=0
+offset-strategy	2단계	ef: R=0 N=0 C=3	c19: R=0 N=2 C=1
+offset-trim	2단계	ef: R=0 N=1 C=13	c19: R=0 N=1 C=12
+offset-trim	off 유지 경계	ef: R=0 N=2 C=0	c19: R=0 N=2 C=0
+offset-trim	꺼짐 판정	ef: R=0 N=4 C=0	c19: R=0 N=4 C=0
+offset-trim	두 단계	ef: R=0 N=0 C=2	c19: R=0 N=0 C=2
+offset-trim	둘째 단계	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+offset-trim	선언 영역 대조	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+oracle-portability	2단계	ef: R=34 N=27 C=19	c19: R=34 N=26 C=6
+oracle-portability	I_off ≤	ef: R=3 N=1 C=0	c19: R=3 N=1 C=0
+oracle-portability	\(gm/ID\)·tol_V	ef: R=2 N=0 C=0	c19: R=2 N=0 C=0
+oracle-portability	\+ ?tol_VDsat	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+oracle-portability	\+tol	ef: R=0 N=1 C=0	c19: R=0 N=1 C=0
+oracle-portability	confirmed_range	ef: R=1 N=1 C=0	c19: R=1 N=1 C=0
+oracle-portability	dc_off_current	ef: R=0 N=2 C=0	c19: R=0 N=2 C=0
+oracle-portability	off_current_A	ef: R=9 N=8 C=1	c19: R=9 N=8 C=1
+oracle-portability	stage2_judgment	ef: R=4 N=1 C=0	c19: R=4 N=1 C=0
+oracle-portability	ε·ID	ef: R=3 N=1 C=0	c19: R=3 N=1 C=0
+oracle-portability	꺼짐 판정	ef: R=1 N=1 C=0	c19: R=1 N=1 C=0
+oracle-portability	두 단계	ef: R=5 N=4 C=5	c19: R=5 N=2 C=1
+oracle-portability	선언 영역 대조	ef: R=0 N=0 C=0	c19: R=0 N=1 C=0
+oracle-portability	확정 지목	ef: R=0 N=3 C=0	c19: R=0 N=3 C=0

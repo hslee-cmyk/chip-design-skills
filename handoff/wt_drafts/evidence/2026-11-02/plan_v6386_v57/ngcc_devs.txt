@@ -1,0 +1,7 @@
+<class 'list'> [{'name': 'M0', 'kind': 'pmos', 'source': 'vdd', 'drain': 'TAIL', 'gate': 'VBP'}, {'name': 'M1', 'kind': 'pmos', 'source': 'TAIL', 'drain': 'ND', 'gate': 'Vinn'}]
+{"name": "M1", "kind": "pmos", "source": "TAIL", "drain": "ND", "gate": "Vinn"}
+{"name": "M2", "kind": "pmos", "source": "TAIL", "drain": "V1", "gate": "Vinp"}
+{"name": "M3", "kind": "nmos", "source": "gnd", "drain": "ND", "gate": "ND"}
+{"name": "M4", "kind": "nmos", "source": "gnd", "drain": "V1", "gate": "ND"}
+{"name": "M8", "kind": "nmos", "source": "gnd", "drain": "NP", "gate": "V1"}
+{"name": "M14", "kind": "nmos", "source": "gnd", "drain": "Vout", "gate": "V1"}

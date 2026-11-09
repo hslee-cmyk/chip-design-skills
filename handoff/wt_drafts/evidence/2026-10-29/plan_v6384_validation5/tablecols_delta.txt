@@ -1,0 +1,9 @@
+gain-budget-gmid-sizing.plan:533: # base 4 now 6
+gain-budget-gmid-sizing.plan:534: --- base 3 now 6
+gain-budget-gmid-sizing.plan:1182: 1 base 4 now 6
+gain-budget-gmid-sizing.plan:1187: 6 base 4 now 6
+gain-budget-gmid-sizing.plan:1270: 6 base 4 now 3
+gain-budget-gmid-sizing.plan:1274: 10 base 4 now 3
+oracle-portability.plan:506: OP-3 base 4 now 5
+oracle-portability.plan:507: OP-4 base 4 now 5
+oracle-portability.plan:508: OP-5 base 4 now 5

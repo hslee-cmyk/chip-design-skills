@@ -1,0 +1,88 @@
+{
+ "id": "20260930-v3-history-clone",
+ "spec_card": "docs/02-design/specs/20260930-v3-history-clone.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "cd6417026696091fd0ce02603a11a3729af3147e",
+ "test_commit": "b93c1e4a9e2f5681670ed415a2c5782c0bf15c3d",
+ "code_commit": "dee338d9bac42504a7e1a8fa1283f636b5a313f6",
+ "red": {
+  "test_ids": [
+   "tools/gates/redteam/attacks/31-v3-git-history::baseline-fail-error",
+   "tools/gates/redteam/attacks/31-v3-git-history::git-history-kill"
+  ],
+  "failure_hashes": [
+   "ee134ea0476703431a4588bf10e7328c80563c95ed79e1f3e22912fb123b7c14",
+   "168ace87beb9c879f1187491bceee69f541715d67f015391302f6a0838f4b288"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "PASS",
+   "basis": "게이트 변경(Phase 0.5)의 V1은 pytest 전체 + redteam 재생 둘 다(선례 20260929-rejudge-cache). (1) pytest(auditor_run의 `V1: ` 명령, base 판 게이트 코드 cd64170(git cat-file 추출, 캐시와 바이트 동일) pytest_gate.ini, -k·--deselect·-x 없음, slow 포함 전체, --gmid-phase=0.5 --gmid-strict= -- 엄격 집합은 base 판 merge_gate.strict_set(old cd64170 트리, 이 spec card)로 재어 빈 집합, conftest_has_gmid_phase 참, v1_command_check 위반 0): 795 passed, 15 xfailed, 3 xpassed, FAILED·ERROR·SKIPPED 0, exit 0, 148초, 출력 sha256 b84964fd34fbb43afe40b2f6df30c9e7150b9d52a6fd5df89d2fc05beb2be92f. base..병합본 변경 5경로가 전부 tools/gates/** 라 pytest 대상 트리는 base와 같다. (2) redteam 병합본 전체(격리 복제본 C:/g17/isom, origin 없음, HEAD 2b41e79): run_all.py --phase 0.5 --mode direct exit 0, 케이스 PASS 52·SKIPPED 7·FAIL 0, 단계 PASS 604·RECORD 13·FAIL 0(log 20260930-204658-direct.jsonl sha256 25a962b79f9b5cd8ad766fdfbf3f11f2bf73b175c4ac0c5c2e0631e21a0fec67); --cases 0.5 exit 0, PASS 5·SKIPPED 2, 단계 PASS 6(log 20260930-213447-direct-cases.jsonl). 판정 불변(spec card 계약 6·'무동작 판정 입력'): 순서 3 base 표(T 복제본 C:/g17/iso, base 게이트, log sha256 b8632ff1ed1ddc3cf5c023ec9a6bd702a142422b66c2cbfadbf97ce476086df5)와 케이스·단계 단위 기계 대조(scripts/cmp_rt.py -> out/cmp_rt.json): 케이스·단계 집합 같음, 판정이 다른 케이스는 31-v3-git-history(FAIL -> PASS) 하나, 다른 단계는 31의 git-history-kill·baseline-fail-error(FAIL -> PASS) 둘뿐 = red 집합. v3_survivor·28·26·27f 포함 나머지 전부 같음, --cases 0.5 차이 0"
+  },
+  "V2": {
+   "verdict": "N/A",
+   "basis": "도입 1: 병합 판정의 V2 적용은 Phase 1부터(N4.2 v_intro, 이 card는 Phase 0.5). 측정은 했다 -- 커밋 사슬: base cd64170 -> T b93c1e4(Role: test, tools/gates/redteam/** 4경로) -> code dee338d(Role: code, 부모 T, tools/gates/mutate_changed.py 1경로 +49/-7) -> 병합 2b41e79(Role: doc, 부모 T·dee338d, 트리 62b048f = code 트리). test 커밋 불변: git diff b93c1e4 2b41e79 -- tools/gates/redteam 차이 0. red: 순서 3 base(T 복제본)에서 공격 31의 git-history-kill·baseline-fail-error가 FAIL(둘 다 exit 1 -- base 도구가 .git 없는 사본에서 기준 실행 실패를 '생존'으로 셈, --out 사유로 재현), failure_hashes = base 판 merge_gate.red_failure_hash(test_id, \"redteam.FAIL\"), 집계 sha256 c39e0f6f24987f9da4ff83d62306c247fc990ac5a99b4dc54ad13568b0951f63(base_check.json). green: 병합본에서 두 단계 PASS(git-history-kill exit 0, baseline-fail-error exit 2 + verdict ERROR + test_rt_scale_seven), FAIL -> PASS 집합 = red 집합. survivor-fail-clean은 base·병합본 모두 PASS(exit 1). 세 단계 observed tmp_left []·root_unchanged true"
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "도입 1: 뮤테이션은 Phase 1 병합부터(N4.2). 참고 실행: base 판 mutate_changed.py(root C:/g17/isom, base cd64170, head 2b41e79, --gmid-phase=0.5 --gmid-strict=): targets 빈 목록, mutants 0, exit 0 -- 대상은 assets 최상위 소스·workspaces/run_harness.py뿐이고 이번 변경의 .py는 게이트 도구. 바뀐 def(make_clone·_run_git·_rmtree_force·BaselineFailed·main)의 동작은 공격 31과 auditor probe c1·c3(변형 b·c)·c4·읽기 전용 pack 시연·실제 DF-36 범위 재실행이 직접 판정했다(V10 아래 수치 참고, out/)"
+  },
+  "V4": {
+   "verdict": "N/A",
+   "basis": "도입 1: 자기참조 lint 병합 적용은 Phase 1부터(N4.2). 참고: base 판 test_lint.py(--module-dir tools/gates --subject mutate_changed:main·make_clone·_run_git·_rmtree_force) verdict PASS, files 빈 목록, findings 0, unjudged 0. oracle 대조(참고): 공격 31 기대값 exit 0/2/1·verdict PASS/ERROR/FAIL은 spec card 계약 3·7과 design 05 §10·§17 exit 규약에서, test_rt_scale_seven 포함은 계약 3 '실패 인벤토리 출력'에서, rt_scale(2.0) == 6.0·== 7.0·rt_scale(0.0) == 0.0은 합성 소스 구성(3배, oracle (a))에서, HEAD~1 blob 내용(rt_gain 있음·rt_scale 없음)은 build_vrepo 이력 구성에서, git remote 빈 값은 계약 1 'origin 없음'에서, tmp_left []·root_unchanged true는 계약 5·2에서 -- 피검 출력에서 만들지 않았다(expect basis마다 근거 문장, 순서 3 base 관찰과 달라 red). auditor probe 기대(c1 exit 0·c3 ERROR·c4 exit 2)도 같은 계약 문장에서 왔다"
+  },
+  "V5": {
+   "verdict": "N/A",
+   "basis": "도입 1: 기준 약화 검사 병합 적용은 Phase 1부터(N4.2). 참고 실행: base 판 weakening_diff.py base cd64170 -> T b93c1e4와 base -> 병합본 2b41e79 둘 다 verdict PASS, findings 0, diff_paths 빈 목록, diff_hash null, approved false, exit 0. 범위 한계: weakening_diff는 skills/analog-gmid-design/assets/tests/** 와 assets/*.py의 __main__ 블록만 보므로 tools/gates/** 변경은 발견 경로 밖 -- 이 PASS만으로는 약화 없음의 증거가 아니다. 사람 판단: 기존 redteam expect.json·v.json 변경 0, rt.py는 선택 관찰 키 추가뿐(키 없으면 호출 불변 -- base 하네스 대조 15케이스·95단계 차이 0), 도구 쪽은 기준 실행 실패를 FAIL(생존)에서 ERROR(exit 2)로 바꾼다 -- 둘 다 거부이고 원인이 드러나므로 약화 아님(spec card 의도 문단, 승인 기록 20260930-v3-history-clone 범위 설명과 같은 판단). 게이트 변경 승인 target은 base 판 diff_hash로 재계산해 일치(앞 16자리 f9a02d8532119b08, base_check.json)"
+  },
+  "V6": {
+   "verdict": "N/A",
+   "basis": "도입 1: 소스 lint 병합 적용은 Phase 1부터(N4.2). 참고: base 판 source_lint.py targets 빈 목록, findings 0, exit 0. 관찰(공격 27f 관점): code 커밋이 더한 except는 `except BaselineFailed`(전용 타입, ERROR exit 2)와 _rmtree_force onexc 안 `except OSError: pass`(재시도 삭제 실패 무시 -- 좁은 타입, 임시 정리 전용) 둘이고 광범위 except(Exception·bare) 0. clone 실패는 _run_git이 RuntimeError로 올려 기존 좁은 튜플이 ERROR exit 2로 받는다(계약 4, probe c4 실측)"
+  },
+  "V7": {
+   "verdict": "N/A",
+   "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 reachability.py PASS, new_defs 빈 목록, unreached 빈 목록(게이트 도구는 소스 그래프 밖). 배선 관찰: make_clone은 main의 기존 copytree 자리(유일 호출), _run_git은 make_clone에서, _rmtree_force는 main finally에서, BaselineFailed는 기준 실행 실패 분기에서 raise·main except에서 받는다 -- 옛 copytree·기준 실패->생존 분기는 같은 커밋에서 삭제(대체 완료). 공격 31·probe·DF-36 실제 범위 실행이 그 경로를 지났다"
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 무관 게이트 변경"
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 무관(spec card 'library 회로 적용 여부: 해당 없음')"
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열. 계약 확인 측정(전부 이 기록의 격리 실측, 작성자 보고 미사용, out/): 계약 1 c1(root HEAD가 --head 다음 커밋 + 미커밋 변경 + 추적 안 된 표지): 병합본 exit 0 PASS killed 5/5(base 도구 exit 1 기준 실패), tmp_left []·root 불변·root 형제 새 항목 0; 판별력 확인 c1disc(--head 복제본만 통과). 계약 3 c3(실패 인벤토리 먼저): exit 2 ERROR, baseline_failed = test_rt_seven.py::test_rt_scale_seven, rt_scale 변이는 stdout·--out 어디에도 survived 없음; 변형 b(실패 인벤토리 없음): exit 1 FAIL, rt_orphan 5개 survived(인벤토리 없음) 유지·rt_twice const± 2개 survived; 변형 c(실패 def 마지막): 앞 def --out 기록(orphan survived 5, twice killed 3·survived 2) 뒤 exit 2 ERROR. 계약 4 c4(head 트리 비-.py blob 손상, 앞단 git은 성공): exit 2, stdout JSON 한 줄 ERROR(RuntimeError git clone 실패 exit 128), Traceback 없음, tmp_left [](base 도구는 .git을 안 읽어 exit 0). 계약 5: --no-local 복제의 pack은 읽기 전용(0444) -- rmtree(ignore_errors)는 3파일을 남기고 _rmtree_force는 모두 지움(out/ro_demo.txt); PASS·FAIL·ERROR·복제 실패 경로 모두 도구 임시 디렉터리 남은 항목 0. 계약 8: 모듈 docstring ④와 design 05 317행 ④가 spec card 문장과 같은 뜻. B28 원래 문제 대체: 병합본 도구로 DF-36 범위(--base 070cf69 --head b29be01 --gmid-phase=2)를 다시 돌려 verdict PASS, mutants 26, killed 22, 면제 4, survivors 0, exit 0, 443초 -- 1차 base 도구의 '26개 전부 기준 실행 실패 생존'이 사라지고 DF-36 auditor 대체 측정(killed 22·면제 4·생존 0)과 같다. 관찰(판정 약화 아님, 보고만): (a) 기준 실행 실패 시 즉시 중단이라 ERROR 출력에 survivors 키가 없고 baseline_failed는 처음 실패한 인벤토리 하나만 담는다 (b) 인벤토리 test 자체가 TEMP에 만든 파일(pytest-of-*·topology json)은 도구 책임 밖이라 남는다 (c) 환경 결함(pytest 미설치 환경)도 이제 생존이 아니라 ERROR로 드러났다(auditor의 APPDATA 누락 실행에서 관찰, 재실행으로 정정)"
+  }
+ },
+ "reproduced_numbers": [],
+ "approvals": [
+  "20260930-v3-history-clone"
+ ],
+ "auditor_run": {
+  "time": "2026-09-30T21:36:34+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-v3-history-clone-audit",
+  "commands": [
+   "격리(병합본): git clone -q -c core.longpaths=true --no-checkout --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-v3-history-clone-audit C:/g17/isom",
+   "격리(병합본): git -C C:/g17/isom remote remove origin",
+   "격리(병합본): git -C C:/g17/isom checkout -q role/audit/20260930-v3-history-clone (HEAD 2b41e79a44900797ea799c7c0a2c983dfc4c889f)",
+   "격리(base 판 T, 순서 3): git clone -c core.longpaths=true --no-checkout --no-hardlinks --no-local <audit worktree> C:/g17/iso (HEAD b93c1e4) 뒤 remote remove origin; base 하네스 대조 C:/g17/isob(checkout --detach cd64170) 뒤 remote remove origin",
+   "게이트 코드: C:/Python314/python.exe <audit>/.ai/verification/20260930-df36-instance-relpath/scripts/extract_gate.py C:/g17/iso cd6417026696091fd0ce02603a11a3729af3147e C:/g17/gmid-gate-cache/cd6417026696091fd0ce02603a11a3729af3147e (git ls-tree + cat-file, redteam 밖 22파일, 캐시 최상위 16파일과 바이트 동일)",
+   "환경: $PY = C:/Python314/python.exe, export APPDATA=C:/Users/HSLEE/AppData/Roaming, 출력 C:/g17/o7, 스크립트 사본 .ai/verification/20260930-v3-history-clone/scripts/",
+   "엄격 집합: PYTHONPYCACHEPREFIX=C:/g17/o7/pyc_s PYTHONPATH=C:/g17/gmid-gate-cache/cd6417026696091fd0ce02603a11a3729af3147e $PY -P strict_check.py C:/g17/isom cd64170 20260930-v3-history-clone <V1 명령> -> strict_set [], conftest_has_gmid_phase True, v1_command_check []",
+   "V1: PYTHONPYCACHEPREFIX=C:/g17/o7/pyc_v1 PYTHONPATH=C:/g17/gmid-gate-cache/cd6417026696091fd0ce02603a11a3729af3147e $PY -P -m pytest -c C:/g17/gmid-gate-cache/cd6417026696091fd0ce02603a11a3729af3147e/pytest_gate.ini --rootdir=C:/g17/isom --confcutdir=C:/g17/isom C:/g17/isom/skills/analog-gmid-design/assets/tests --gmid-phase=0.5 --gmid-strict= -rA",
+   "V1 cwd: C:/g17/isom (HEAD 2b41e79a44900797ea799c7c0a2c983dfc4c889f)",
+   "redteam 병합본(cwd C:/g17/isom, TEMP=TMP=C:/g17/tmpm): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/g17/isom ; --cases 0.5 --mode direct --repo C:/g17/isom",
+   "redteam base 표(순서 3, cwd C:/g17/iso, TEMP=TMP=C:/g17/tmp): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct [--only 31-v3 --keep] --repo C:/g17/iso ; --cases 0.5",
+   "판정 불변 대조: $PY scripts/cmp_rt.py <iso>/…/20260930-195924-direct.jsonl <isom>/…/20260930-204658-direct.jsonl <iso>/…/20260930-203703-direct-cases.jsonl <isom>/…/20260930-213447-direct-cases.jsonl out/cmp_rt.json",
+   "계약 probe(병합본 도구 C:/g17/isom/tools/gates/mutate_changed.py, base 기준값은 캐시 판): bash scripts/run_o7.sh probes (c1_head.py·c3_mixed.py·c4_clonefail.py) ; bash scripts/run_c3v.sh (make_c3_variants.py -> c3b_no_failing.py·c3c_failing_last.py) ; $PY scripts/c1_discriminate.py",
+   "읽기 전용 pack 시연: $PY -c (copytree c1disc/a -> rmtree ignore_errors -> 남은 파일 수 -> mutate_changed._rmtree_force) -> out/ro_demo.txt",
+   "B28 원래 문제 대체: bash scripts/run_o7.sh df36 = $PY C:/g17/isom/tools/gates/mutate_changed.py --root C:/g17/isom --base 070cf6937e2841bdd3b4781eb9b8ba5bba9cc606 --head b29be01 --pytest-ini <캐시>/pytest_gate.ini --gmid-phase=2 --gmid-strict= --out out/df36_v3.jsonl",
+   "V3~V7 참고(cwd C:/g17/isom): bash scripts/run_o7.sh tools = <캐시>/{mutate_changed,weakening_diff,source_lint,reachability}.py --root C:/g17/isom --base cd64170 --head 2b41e79, test_lint.py --module-dir tools/gates --subject mutate_changed:main·make_clone·_run_git·_rmtree_force, weakening_diff.py --head b93c1e4",
+   "red 해시(순서 3): PYTHONPATH=C:/g17/gate $PY -P -c … merge_gate.red_failure_hash(test_id, \"redteam.FAIL\") (C:/g17/gate = cd64170 blob, 캐시와 동일)",
+   "승인 target 재계산(순서 3): PYTHONPATH=C:/g17/gate $PY -P -c … weakening_diff.diff_hash(C:/g17/iso, 148bd6d, d99919c, [design 05, spec card]) = 승인 target"
+  ]
+ }
+}

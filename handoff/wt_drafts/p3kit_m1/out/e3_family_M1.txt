@@ -1,0 +1,36 @@
+E3 rev=4b2ab859f02cb51ab4073672321fdb1063129d75 rc=0 stmt=69 call=9 outside_excl=66
+E3 rev=a206346f559fbd588fd842644c4bb650208ad086 rc=0 stmt=69 call=9 outside_excl=66
+== E3b-form module=stick_diagram
+E3b LIVE moved_out=0 base_files_reading_moved_out=0 pre_existing=1
+E3b INVALID: base에서 SD 밖으로 나간 이름을 읽는 추적 파일 0(명령 고장 또는 base 오지정)
+rc=0
+== E3b-form module=sizing_recipe
+E3b LIVE moved_out=8 base_files_reading_moved_out=46 pre_existing=1
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py:202 <동적 이름>
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py:203 <동적 이름>
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py:156 <동적 이름>
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py:157 <동적 이름>
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py:268 <동적 이름>
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py:450 <동적 이름>
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py:81 <동적 이름>
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py:82 <동적 이름>
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:230 <동적 이름>
+rc=0
+== E3b-form module=topology_library
+E3b LIVE moved_out=0 base_files_reading_moved_out=0 pre_existing=0
+E3b INVALID: base에서 SD 밖으로 나간 이름을 읽는 추적 파일 0(명령 고장 또는 base 오지정)
+rc=0
+== E3b-form module=design_report
+E3b LIVE moved_out=0 base_files_reading_moved_out=0 pre_existing=0
+E3b INVALID: base에서 SD 밖으로 나간 이름을 읽는 추적 파일 0(명령 고장 또는 base 오지정)
+rc=0
+== E3b-form module=audit_current_forced
+E3b LIVE moved_out=0 base_files_reading_moved_out=0 pre_existing=0
+E3b INVALID: base에서 SD 밖으로 나간 이름을 읽는 추적 파일 0(명령 고장 또는 base 오지정)
+rc=0
+== IMPORT-ANY C:/g200/pb
+IMPORT-ANY tried=5 expected=5 failed=0
+import_any rc=0
+== IMPORT-ANY C:/g200/ph
+IMPORT-ANY tried=6 expected=6 failed=0
+import_any rc=0

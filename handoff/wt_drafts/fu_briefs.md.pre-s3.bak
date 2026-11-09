@@ -1,0 +1,169 @@
+# Phase 3 FU card `20261002-p3-future-annotations` -- 착수 키트(착수 조건 + 역할 브리프 + 오케스트레이터 절차)
+
+작성 2026-10-02. 기준: gate `master` **`dd60db6`**(`git -C <repo> rev-parse gate/master` = `dd60db6515b6fe80ab16349835c19aa75d4f292f`, 로컬 `master` 같음). design 30 **v8.5**(사용자 승인 UD-0, 답 2026-10-02 11:05 KST "승인 (Recommended)") §6.5·D-29·§8 FU 행·§8.1.
+r1(2026-10-02): 독립 검토 `_drafts/review_fu.md`(조건부 ready, B 0·S 2·minor 5) 반영 -- S1 v8.5 사실(갈리는 MOD 둘), S2 test 커밋 0이어도 `role/test/<id>` 브랜치를 만드는 절차(§1·§2·§3·§4), m1~m5는 spec 쪽. 원본 `fu_briefs.pre-r1.md`.
+r2t(2026-10-02): 독립 검토 `_drafts/review_t0_fu.md` FU-B1·m1~m3 반영 -- '재현할 수치'를 A(관계 + DR·ACF·Python만 보는 값, V10 대상)·B(`dd60db6` 관찰, V10 대상 아님)로 나눔(B34~B26-1이 PT3 수·E-LIB·E-INST를 바꿔도 V10이 숫자 불일치로 FAIL하지 않게),
+`pre`가 Python 3.14.2를 확인(A2 코드 객체 값의 전제), 계약 1 diff 부분 거부 입력 2개, e_lib blob 기준, S-1 충족 문장, 249행. 원본 `fu_briefs.md.pre-r2t.bak`.
+r2(2026-10-02): 0단계 future grep pathspec을 최상위 전용 `:(glob)`으로(맨 `*.py`는 `tests/tooling/` 하위까지 잡음), §1·§4 worktree 명령을 `git -C <repo>` 꼴로, measured 줄과 `fu_launch.sh pre` 거부 명시. 원본 `fu_briefs.pre-r2.md`.
+저장소 쓰기·상태 변경 git 없음. 측정은 스크래치 `C:/g184`(복제본 `base` = `dd60db6`, `fu` = `dd60db6` + 두 줄 커밋 `bc3fd5d`, `iso` = 같은 체크아웃 경로 측정용, `cache` = `git archive gate/master tools/gates`)에서만 했고
+끝에 지웠다(출력 사본은 `_drafts/p3kit_fu/out/`). 그래서 아래 수치는 **FU 모양 대역**(`bc3fd5d`)의 관찰이다 -- (r2t) 판에 따라 바뀌는 절대값(PT3 수·E-LIB `hash`·E-INST `raw_sha256`)은 V10 대상이 아니고
+판정 때 base = 병합본 관계로 본다(spec '재현할 수치' A1). DR·ACF·Python만 보는 값(A2)은 gate `4a286f0`에서 다시 재 같았다(스크래치 `C:/g253`).
+대상: spec 초안 `_drafts/draft_p3_fu.spec.md`, interface card 생성본 `_drafts/p3kit_fu/20261002-p3-future-annotations.interface.md`, 측정 스크립트 `_drafts/p3kit_fu/`(5절).
+
+---
+
+## 0. 착수 조건(전부 충족해야 code worktree를 만든다)
+
+| # | 조건 | 지금 | 근거 |
+|---|---|---|---|
+| S-1 | **Phase 3 design 승인 기록**: UD-0 승인 기록 `20260930-30-module-split-design`(diff)이 gate `master`에 있고, 그 범위 설명에 **이 card id `20261002-p3-future-annotations`와 D-29 원문**("DR·ACF 머리 `from __future__ import annotations` 한 줄, 동작 불변, card 16 → 17")이 있다 | **충족**(r2t, review m3): 사용자 승인(답 2026-10-02 11:05 KST "승인 (Recommended)") 뒤 기록이 gate `4a286f0`에 있다(`36e170e`) -- 108행 FU id, 112행 D-29 원문. `fu_launch.sh` 조건 1·2 exit 0 | design D-29 "UD-0 범위(card 수 16 → 17은 질문 본문에 사실로)", UD-0 행 '사실로 드러낼 것: 준비 card FU로 card 17'. spec '작성 전 실측' 9. FU는 기준을 바꾸지 않아 따로 묻는 결정은 없다 |
+| S-2 | Phase 2 DoD PASS | **충족** -- 판정 기록 `2eefda1`(H = `5f643a9`, PASS) | 계획 991행, design D-23(`phase: 3` card) |
+| S-3 | **앞 card 병합**: 확정 순서 `… → B34 → b26pre → backfill → B26-1 → B33 → Phase 3: T0, FU, G1 → D0a → D0b → M1 …`에서 **B33까지** 병합(면제 묶기 34·범위 정책 35 포함) | 미병합 | design §8.1 'FU는 B33 뒤 D0b 전 아무 때나'. FU는 T0·G1·D0a와 **의존 없음** -- Phase 3 첫 줄 셋(T0·FU·G1) 중 어느 순서여도 된다(병합은 한 번에 하나) |
+| S-4 | **D0b 착수 전**에 병합되고, D-27 동결(D0b 병합 ~ F2) 전이다 | -- | design §8.1 'FU → D0b': D0b 계약 test의 `import_conflicts` = [] 단언이 FU 없이는 UD-0 문서 개정(§9 (h) `_kv_table` → MOD9) 적용 트리에서 **2건(MOD2·MOD9)**으로 FAIL(design v8.5 §6.5 534행·부록 A F5v85; 개정 전 판은 MOD2·MOD4·MOD9 셋 -- D0b spec 실측 3의 '3'은 v8.5 전 값, D0b card 몫) |
+| S-5 | FU base에서 DR·ACF 머리가 `dd60db6`과 같다(아직 future 없음, docstring 끝·첫 import 자리 그대로) -- 앞 card 초안(B34·b26pre·backfill·B26-1·B33·T0·G1·D0a)은 DR·ACF를 고치지 않는다(초안 grep 실측: 0) | 미확인 | spec 계약 1의 AST 판정이 줄 번호에 기대지 않으므로 줄이 바뀌어도 계약은 그대로 -- 사실 문장만 고친다 |
+| S-6 | `role/*` 브랜치 0개(오케스트레이터 절차 기본) | -- | -- |
+
+**자리 권고(결정 아님)**: design 순서 그대로 T0, FU, G1 중 **FU를 G1·D0a 앞에** 두면 G1 spec '작성 전 실측' 8(298행 -- "split 5파일 모두 future")과 D0a 브리핑 엔진 사실 줄(future + DR 28·ACF 38)을
+처음부터 FU 뒤 사실로 쓸 수 있다(두 card의 규칙·계약은 FU와 무관 -- 문장만). FU 뒤에 G1이 와도 G1 V3는 FU diff를 다시 보지 않는다.
+
+**착수 0단계(읽기 전용, S-3 뒤)**:
+```
+R=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills; B=$(git -C $R rev-parse gate/master)
+git -C $R log --oneline -12 $B                         # B33(과 그 앞 card) 판정 기록 확인
+A=skills/analog-gmid-design/assets
+git -C $R diff --stat dd60db6 $B -- $A/design_report.py $A/audit_current_forced.py      # 기대: 빈 출력(S-5)
+git -C $R grep -n "^from __future__ import annotations" $B -- ':(glob)'$A'/*.py'       # 기대: SR·SD·TL 셋뿐(DR·ACF 없음) -- 최상위만
+git -C $R show $B:$A/design_report.py | sed -n 26,29p; git -C $R show $B:$A/audit_current_forced.py | sed -n 36,39p   # docstring 끝 · 첫 import
+git -C $R ls-tree $B .ai/approvals/ | grep 30-module-split-design                       # S-1 (기록 있음)
+git -C $R show $B:.ai/approvals/20260930-30-module-split-design.md | grep -c "20261002-p3-future-annotations"   # S-1 (기대: 1 이상 -- 범위 설명에 card id)
+```
+pathspec은 `fu_launch.sh` kit-cmds(209행)·S-5 표(145행)와 같은 **최상위 전용** `':(glob)skills/analog-gmid-design/assets/*.py'`이다. 맨 `$A/*.py`는 git pathspec에서 `*`가 `/`도 넘어 하위 디렉터리까지 잡는다 --
+gate `master` `dd60db6` 실측: 맨 `*.py` = 4파일(SR·SD·TL + `tests/tooling/test_extract_selftest.py`), `:(glob)` = **SR·SD·TL 정확히 3파일**.
+빈 출력이 아니면 spec card '작성 전 실측' 1의 줄 번호 문장만 그 판으로 고친다(계약 무변경).
+0단계 재측정이 맞으면 spec 초안 `_drafts/draft_p3_fu.spec.md` **'## 작성 전 실측' 첫 문단 앞에** 한 줄
+`**measured at \`<gate master 7자>\`**(착수 0단계 재측정 <날짜> -- _drafts/fu_launch.sh가 읽는 measured rev 단일 출처): …`을 넣는다. 지금 초안에는 이 줄이 없고,
+`fu_launch.sh pre`(`stage_pre` → `meas_rev`, 107~112행)는 이 줄이 생길 때까지 `[중단] spec 초안에 '**measured at \`<rev>\`**' 줄이 없다`로 **거부한다** -- 0단계를 건너뛰고 pre를 통과시킬 길은 없다. 그다음 spec card를 `docs/02-design/specs/20261002-p3-future-annotations.spec.md`로, interface card를 생성기로 다시 만든다
+(`$PY tools/gates/interface_card.py <spec> --root <repo>` -- 이 초안 생성본은 '기존 함수 0개'·두 표 빈 행).
+
+---
+
+## 0.1 지금 실측 요약(근거는 spec '작성 전 실측')
+
+| 측정 | `dd60db6` → FU 대역 `bc3fd5d` (r2t: PT3·E-LIB·E-INST 행은 관찰 기록 B -- V10은 관계 A1로 본다) |
+|---|---|
+| (r2t) A2 재현(`4a286f0` → 두 줄 head, DR·ACF = `dd60db6` 바이트) | `fu_codeobj.py` 같음 DR 16·ACF 5, `__annotate__` DR 5·ACF 4, dump sha256 base = head = `f94f7895…`(21줄) |
+| diff | DR 28행 앞·ACF 38행 앞에 한 줄씩(2 files, 2 insertions), 인덱스 LF |
+| 몸체 코드 객체(`fu_codeobj.py`) | 같음 DR 16(qualname 12)·ACF 5, 다름 0; 다른 `__annotate__` DR 5·ACF 4; 자기 점검(몸체에 문장 하나) FAIL |
+| 요약 출력(`fu_codeobj.py dump`) | base = head sha256 `f94f78955cb25fc0e3787972c5d19601903d111adb59c2d0f6007a5995c60eb2`(21줄) |
+| PT3 전체(`fu_pt3.sh`) | 두 판 1047 passed·15 xfailed, test id 1062, 결과 차이 0(`fu_junit_cmp.py`) -- 393 s / 371 s |
+| E-LIB(`e_lib.py` `045f65c8…`) | `hash` `1d2e3bf6…` 같음(Phase 2 DoD 판과 같음) |
+| E-INST(`e_inst_p3.py` 문안 `7d26134a…`, 같은 경로 `C:/g184/iso`) | 파일럿·`folded_cascode` 출력 22키 모두 같음, stdout은 `elapsed=<n>s` 가리면 같음 -- 파일럿 402~410 s, `folded_cascode` 52~63 s |
+| V3 | base 판 도구 PASS `mutants` 0; G1 시제품 PASS `defs` []·`moved` []·`move_rejected` {}; N2w 시제품 대상 0(대조: `_kv_table` 주석 변경 → def 1·변이 18·N2w 1) |
+| V4·V5·V6·V7 | V4 `--interface-card`만 ERROR(피검 심볼 없음) → `--subject` 둘 PASS `files` []; V5 PASS `diff_paths` []; V6 PASS `findings` []; V7 PASS `new_defs` [] |
+| 주석 관찰 | `__annotations__` 문자열화 DR 5·ACF 4 함수, 모듈 이름 차이 `annotations` 하나, 주석 조회 추적 코드의 대상 = SD·SR 객체뿐 |
+| `reg_check.py` | base·head exit 0('발견 0') |
+| `parse_spec_card`(gate 판 `role_paths`) | 통과 -- id·phase `3`·`equivalence`·`gate_change: no`·approval 1 |
+
+---
+
+## 1. gmid-test-author -- 띄우지 않는다(브랜치 `role/test/<id>`는 오케스트레이터가 만든다, 커밋 0)
+
+equivalence, **test 커밋 0**(design §8 FU 행, spec '판정 유형 근거'). design 05 §10-4(289행) "①의 `Role: test`가 0개면 M^1 = `old`" -- T = base B.
+구조 단언(future 줄이 있다)은 영구 test가 아니라 auditor 측정이다(P9 선례 -- base에서 FAIL하는 단언은 equivalence의 영구 test가 될 수 없다).
+
+**그래도 `role/test/<id>` 브랜치는 만든다**(EL hook 요구, gate `master` 실측):
+* `tools/gates/role_hooks.py` `_judge_worktree` 913~914행 -- `role/code/<id>`·`role/audit/<id>` worktree add는 base 인자가 **문자열 `role/test/<id>`**일 때만 허용(`want_base`), 그 밖은 926행 `_deny`.
+* `tools/gates/role_commit_gate.py` `_judge_merge` 98~99행 -- audit worktree 병합은 HEAD가 `refs/heads/role/test/<id>` 끝이어야 한다.
+* `role_hooks.py` 1066~1070행 -- code·audit 커밋 범위를 `refs/heads/role/test/<id>..HEAD`로 정하고 그 ref가 없으면 실패.
+* 모양 근거: redteam 공격 20(e)(`tools/gates/redteam/attacks/20e-normal-equivalence/run.sh`, `lib/sb.py` `flow_start` 327~332행)가 test worktree·브랜치를 gate/master에 만들고 **커밋 없이** code → merge → audit → EL4를 '오거부 0'으로 지난다.
+
+오케스트레이터 절차(test-author 없음):
+```
+R=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills; W=C:/Users/HSLEE/Documents/Todoc/fpga/wt; ID=20261002-p3-future-annotations
+git -C $R worktree add $W/$ID-test -b role/test/$ID gate/master      # 커밋 0 -- T = B. base 인자는 문자열 gate/master 그대로
+git -C $R worktree add $W/$ID-audit -b role/audit/$ID role/test/$ID  # 순서 3
+git -C $R worktree add $W/$ID-code -b role/code/$ID role/test/$ID    # 순서 4
+```
+(`fu_launch.sh roles` 출력 331~333행과 같은 `git -C <repo> worktree add …` 꼴 -- `cd` 없이 저장소를 `-C`로 지정한다.)
+`role/test/<id>` 브랜치(와 test worktree)는 병합·push 결과 확인 뒤 **정리 때까지 지우지 않는다**(병합 판정 98행·범위 판정 1066행이 그때까지 이 ref를 읽는다).
+
+---
+
+## 2. gmid-code-author 브리프(순서 5)
+
+```
+역할: gmid-code-author. change id = 20261002-p3-future-annotations (equivalence, phase 3, gate_change: no).
+worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261002-p3-future-annotations-code (브랜치 role/code/20261002-p3-future-annotations, 부모 = role/test/20261002-p3-future-annotations(= B = 착수 때 gate master, test 커밋 0)). 절대 경로만.
+쓰기 경로: skills/analog-gmid-design/assets/design_report.py, skills/analog-gmid-design/assets/audit_current_forced.py 두 파일. 그 밖(tests/**·레지스트리·tools/**·문서) 쓰지 않는다.
+입력: spec card·interface card(빈 표).
+커밋: git -C <worktree> commit --trailer "Role: code" --trailer "Change-Id: 20261002-p3-future-annotations" -m "code: DR·ACF 머리에 from __future__ import annotations (FU, design 30 D-29)"
+```
+
+**만들 것 / 지킬 것**
+1. 두 파일마다 **모듈 docstring이 끝난 바로 다음 줄(첫 `import` 앞)**에 `from __future__ import annotations` 한 줄. 빈 줄을 더하거나 빼지 않는다, 다른 줄·공백·주석·docstring을 고치지 않는다.
+   (`dd60db6` 기준 DR은 27행에서 docstring이 끝나고 28행 `import html as _html`, ACF는 37행 `"""` 뒤 38행 `import sys` -- 착수 base에서 다시 확인.)
+   docstring **앞**에 두면 docstring이 사라지고(spec 계약 1 FAIL), 첫 import **뒤**에 두면 `SyntaxError`다.
+2. 기능은 `annotations` 하나(`from __future__ import annotations, …` 금지). 줄 끝은 작업 트리 기존 형식(CRLF, 인덱스 LF -- autocrlf)을 따른다: `git diff --stat`이 2 files changed, 2 insertions(+)이고
+   `git diff`에 `^M` 표시나 다른 줄이 없어야 한다.
+3. 커밋 하나. 몸체를 바꾸고 싶은 이유가 보여도(예: 주석 표기 정리) 고치지 않는다 -- card당 한 책임, M card 바이트 이동의 전제.
+
+**자기 확인(판정 아님)**: `C:/Python314/python.exe -B -c "import ast,sys; [ast.parse(open(p,encoding='utf-8').read()) for p in sys.argv[1:]]" <두 파일>`(문법), 
+`PT3`로 `unit/test_selftest_design_report.py`·`contracts/test_ic5.py` PASS. 전체 실행은 auditor 몫(6분 안팎).
+
+---
+
+## 3. gmid-verification-auditor 브리프(순서 3·7)
+
+```
+역할: gmid-verification-auditor. change id = 20261002-p3-future-annotations, equivalence, phase 3.
+audit worktree: C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261002-p3-future-annotations-audit (브랜치 role/audit/20261002-p3-future-annotations).
+격리 복제본에서만, scratch 새 C:/g<n> 하나(끝나면 그 폴더만 삭제), set -euo pipefail, git -C 절대 경로, "."·공용 루트 삭제 금지. 실제 저장소 status·reflog 불변 확인.
+게이트 코드 = base 판(gate master) 캐시. 작성자 보고는 증거가 아니다. 판정 기록 .ai/verification/20261002-p3-future-annotations.json + {scripts,out}/, Role: audit 커밋.
+판정기(spec 계약 1·2·3(d))는 직접 쓴다 -- _drafts/p3kit_fu/ 시제품을 판정 도구로 쓰지 않는다(작성자≠검증자). 쓰기 전 '거부해야 할 입력'의 합성 소스로 판정기가 실제로 FAIL하는지 먼저 확인.
+```
+
+### 3.1 순서 3(freeze·base 확인)
+* audit worktree는 오케스트레이터가 `role/test/<id>`(커밋 0, = B)에서 만든 것이다(§1). T = `role/test/<id>` 끝 = B(test 커밋 0 -- 05 §10-4). `git log B..role/test/<id>` 빈 것 기록.
+* base에서 `PT3` 전체 → 실패 0(1047 passed·15 xfailed 근처, 앞 card가 test를 더했으면 그 수), junit 보관(V1 비교 기준).
+* base E-LIB·E-INST(파일럿·`folded_cascode`)·몸체 요약 출력 -- 같은 체크아웃 경로에서(3.2와 같은 경로를 쓸 것) 보관.
+
+### 3.2 순서 7(병합본 판정)
+
+| V | 기대 | 증거 |
+|---|---|---|
+| V1 | PASS. 병합본 `PT3` 전체 실패 0, base와 test id 집합·id별 결과 같음(spec 계약 3(a)) | base·병합본 junit 대조 |
+| V2 | PASS equivalence: test 커밋 불변(0개) + base·병합본 모두 PASS + 동등 증명 = spec 계약 1·2·3. 계획 838행 'Phase 3 AST 해시 동일'은 이 card에서 계약 1(모듈 `body` 전체 `B[:1]+[I]+B[1:]` ⇒ 모든 def AST 같음)이 대신한다(spec '판정 유형 근거') | 아래 `equivalence` 블록 + 계약 1·2 판정 |
+| V3 | PASS `mutants` 0(대상 def 0; G1 병합 뒤면 `defs` []·`moved` []·`move_rejected` {}, 범위 정책 병합 뒤면 `not_targeted` 0·`targets_by_def` {}) | `mutate_changed.py --root <iso> --base B --head <merge> --pytest-ini <cache>/pytest_gate.ini --gmid-phase=3 --gmid-strict=` |
+| V4 | PASS `files` []. `--interface-card`만이면 ERROR('피검 심볼이 없다') -- **두 표가 빈 card의 DESIGN-GAP 우회**로 `--subject design_report:render_html_report --subject audit_current_forced:audit_topology`(선례 `20260922-ts7-ic-xfail`) | `test_lint.py --root <iso> --interface-card <card> --subject … --base B --head <merge>` |
+| V5 | PASS `diff_paths` [] | `weakening_diff.py` |
+| V6 | PASS `findings` [] | `source_lint.py` |
+| V7 | PASS `new_defs` [] | `reachability.py` |
+| V8·V9 | N/A(도입 Phase 4) | -- |
+| V10 | PASS. spec '재현할 수치' **A만** 재실행(r2t -- B는 `dd60db6` 판 관찰이라 V10 대상 아님): A1 관계(같은 판정 판에서 PT3 (id, 결과) 집합·E-LIB JSON 전체·E-INST 두 회로 JSON 전체·몸체 요약 sha256이 base = 병합본 -- 절대 수는 이 판정의 base에서 잰 값을 적는다), A2(코드 객체 같음 DR 16·ACF 5·다름 0, `__annotate__` DR 5·ACF 4, 요약 sha256 `f94f7895…` 21줄, `__annotations__` 문자열화 DR 5·ACF 4, 이름 차이 `annotations` 하나) + **계약 확인 측정**: ① 계약 1 diff 범위·AST `H = B[:1] + [I] + B[1:]`(두 파일) ② 계약 5 관찰((a)(b) 차이 목록, (c) `git grep -nE "get_type_hints\|__annotations__\|annotationlib\|get_annotations\|inspect\.signature"` 대상 객체, (d) 모듈 속성 `annotations` 읽기 0) ③ 계약 6(D0a가 gate에 있으면 `plan` `import_conflicts`의 `__future__` 항목 0, 없으면 N/A) ④ 계약 7 `reg_check.py` exit 0 | auditor 스크립트(기대값은 spec 문장) |
+
+**`equivalence` 블록(판정 기록)**: `commands` = (1) E-LIB `e_lib.py`(git blob `00fbb20f…` -- `git show`(LF) 사본 sha256 `41b72d7d…`, CRLF 작업 트리 사본 `045f65c8…`; 격리 복제본 `autocrlf=false`에서 꺼내면 `41b72d7d…`가 나온다 -- 기록에 blob id와 그 sha256을 함께, r2t review m2) (2) E-INST 파일럿 (3) E-INST `folded_cascode`(`e_inst_p3.py` -- design 커밋에 들어간 정본; 없으면 `e_inst_df36.py`, 사본 sha256 기록)
+(4) auditor가 쓴 몸체 코드 객체 요약 스크립트(파일·qualname#순번마다 비교 필드 sha256 한 줄, `<module>`·`__annotate__` 제외). 같은 체크아웃 경로에서 base → 병합본 차례로(`checkout --detach` + `clean -fdx`).
+`outputs_hash` = 병합본 (1)~(4) 출력 바이트를 이어 붙인 sha256, base 출력의 같은 값과 같아야 한다(E-INST stdout 사본은 `elapsed=<n>s`를 가린 뒤 비교 -- 출력 JSON 자체에는 시간이 없다).
+판정 기록 `approvals` = `["20260930-30-module-split-design"]`.
+
+---
+
+## 4. 순서 요약(오케스트레이터)
+
+design 30 승인(UD-0 v8.5 -- 사용자 승인 2026-10-02; 기록 범위 설명에 card id `20261002-p3-future-annotations`·D-29 원문, S-1) → (B34 → b26pre → backfill → B26-1 → B33 병합) → 착수 0단계(S-5) → spec card(rev·사실 문장 갱신) + interface card(생성본) 순서 0 커밋 →
+순서 2: test-author 없음 -- 오케스트레이터가 `git -C <repo> worktree add <W>/<id>-test -b role/test/<id> gate/master`(커밋 0, T = B -- §1) → 순서 3 audit worktree(`-b role/audit/<id> role/test/<id>`) + auditor(3.1) →
+순서 4 code worktree(`-b role/code/<id> role/test/<id>`) → code-author(2절) → 순서 6 병합(audit worktree, HEAD = `role/test/<id>` 끝) → 순서 7 auditor(3.2) → push 단독·전체 출력 확인 →
+정리(이때 처음으로 `role/test/<id>`·`role/code/<id>`·`role/audit/<id>` 브랜치와 세 worktree를 지운다) → G1·D0a 착수 때 그 spec의 future 사실 문장 갱신
+→ D0b 착수 0단계의 `git grep "^from __future__ import annotations"`(D0b 브리프 0단계)가 이 card의 두 줄을 본다.
+백로그 한 줄(spec '결정 필요 항목' 참고): 레지스트리 217행 `design_report.py:32` → FU 뒤 33 -- 레지스트리를 다음에 고치는 card가 이름 참조로.
+
+## 5. 키트 파일(`_drafts/p3kit_fu/` -- 측정 전용, 역할에게 건네지 않는다)
+
+| 파일 | 내용 |
+|---|---|
+| `fu_codeobj.py` | `<base> <head> <out.json> [--selfcheck]`: DR·ACF 코드 객체 짝 비교(계약 2 시제품) + 하위 프로세스 import 관찰(계약 5); `dump <트리>`: 몸체 요약 출력(계약 3(d) 시제품) |
+| `fu_v3_n2w.py` | `<gate tools/gates> <base> <head> <out.json>`: 현재 도구 `changed_defs` + N2w 시제품(`b26pre_scripts/v3_scope_widen.py`, `sim_head` 의존을 빈 모듈로 끊음) 대상 수, `_kv_table` 주석 변경 대조 |
+| `fu_pt3.sh` | `<tree> <label> <cache tools/gates> <out>`: `PT3` 전체 + junit |
+| `fu_junit_cmp.py` | junit 두 개의 test id별 결과 대조 |
+| `fu_elib_einst.sh` | `<iso> <base> <head> <e_lib.py> <e_inst_p3.py> <out>`: 같은 체크아웃 경로에서 E-LIB·E-INST 두 판 |
+| `20261002-p3-future-annotations.interface.md` | interface card 생성본(gate 판 `interface_card.py`, 기존 함수 0개) |

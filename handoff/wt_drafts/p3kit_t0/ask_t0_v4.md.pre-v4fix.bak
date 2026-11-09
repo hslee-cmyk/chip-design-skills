@@ -1,0 +1,16 @@
+# AskUserQuestion 초안 [T0-V4] (r2t 2026-10-02 -- review_t0_fu T0-B1)
+
+올릴 때: T0 착수 전. 착수 0단계 `step0_v4.sh`가 B26-1 병합본에서 MATCH가 아니면 늘어난 test id를 넣어 문장을 고친 뒤 올린다.
+답이 오면 `approval_20261002-p3-t0-v4-s009-exempt.draft.md`의 '사용자 원문'에 jsonl 바이트 그대로 옮겨 Role: doc 커밋·push(T0 test worktree 생성 **전**).
+
+질문(header `T0-V4`, multiSelect false):
+
+"[T0-V4] T0 계약 11(단위 selftest 3파일 import 출처 3줄)로 test_selftest_sizing_recipe.py가 diff에 들어가자, 파일 전체를 보는 V4 검사기가 T0가 손대지 않는 기존 test_s009의 판정 2줄(ID 보존·원본 ctx 불변 -- 이관본 불변식)을 '피검 호출이 양쪽에 있다'(규칙 1)로 FAIL합니다. 어떻게 할까요?"
+
+선택지:
+1. label: "test_s009 규칙(1) 면제 (Recommended)"
+   description: "선례 c9-v4-exempt처럼 decision 승인 기록 하나로 그 test id의 규칙 (1)만 면제합니다. 판정 2줄은 그대로이고, 다른 규칙·다른 test는 계속 검사합니다. 모래상자에서 이 기록이 있으면 V4 PASS(면제 2, 미판정 78은 TS2 이관본 대조로 auditor가 basis에 적음)."
+2. label: "T0에서 두 줄을 고침"
+   description: "기대값을 식 값으로 바꾸는 등 test를 고쳐 검사기를 통과시킵니다. 판정 기준이 바뀌는데 V5가 잡지 못하고(측정), 744행은 고쳐도 FAIL이 남아 권하지 않습니다. 계약 11·V5 승인 범위를 다시 써야 합니다."
+3. label: "계약 11을 T0에서 빼기"
+   description: "unit 3파일을 T0에서 빼고 W-1을 다른 card로 옮깁니다. 이미 고른 [W-1] (가)를 되돌리는 것이라 M4·M8·M9 전까지 다른 test-only card가 필요합니다(같은 V4 문제가 그 card에서 다시 납니다)."

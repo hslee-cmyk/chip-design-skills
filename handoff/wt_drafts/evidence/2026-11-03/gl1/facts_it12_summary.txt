@@ -1,0 +1,15 @@
+label it12 engine files 420 frozen dataclasses 337 dup names {"MatchingGroup": ["graph/s1_values.py", "layout/contract_input.py"], "MatchingDisposition": ["graph/s1_values.py", "layout/contract_output.py"]}
+('g_attr_container', False) 58
+('g_attr_container', True) 10
+('g_cached_property', False) 3
+('g_default_factory', False) 4
+('g_id_call', False) 2
+('g_id_call', True) 2
+('vt_module', False) 10
+g_attr_container files 13 ['graph/blocks.py', 'graph/canonical_form.py', 'graph/gvgs_cycles.py', 'layout/canon_block.py', 'layout/diffusion.py', 'layout/pattern_select.py', 'layout/rows.py', 'metrics/block_param_tables.py', 'metrics/ss_metrics.py', 'search/macro_poles.py', 'search/search_context.py', 'sizing/block_columns.py', 'sizing/writer_plan.py']
+g_cached_property files 1 ['layout/_helpers_alias.py']
+g_default_factory files 2 ['layout/euler_graph.py', 'layout/mirror_trail.py']
+g_id_call files 2 ['metrics/noise_analysis.py', 'metrics/resolution.py']
+vt_module files 7 ['_module_map.py', 'graph/s1_values.py', 'layout/_ly_fields.py', 'lut/lut_set.py', 'metrics/s0_fields.py', 'search/s0_fields.py', 'sizing/s2_values.py']
+vt_module top types [('WriterTable', 6), ('ModuleEntry', 1), ('SymmetryMarks', 1), ('LBinMap', 1), ('OrderHints', 1)]
+EvalResult frozen: True SearchContext frozen: False KernelContext frozen: True

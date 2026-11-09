@@ -1,0 +1,60 @@
+{"tag": "T1", "case": "baseline", "r": [0, [], "19 passed in 1.77s"]}
+{"tag": "T1", "case": "SR:9403", "r": [1, ["test_b26pre_ofcb_lutless_repair"], "1 failed, 18 passed in 6.17s"]}
+{"tag": "T1", "case": "SR:9405", "r": [1, ["test_b26pre_ofcb_lutless_repair"], "1 failed, 18 passed in 3.57s"]}
+{"tag": "T1", "case": "SR:11695", "r": [1, ["test_b26pre_euler_fixup_group_split"], "1 failed, 18 passed in 4.52s"]}
+{"tag": "T1", "case": "SR:11697", "r": [1, ["test_b26pre_euler_fixup_group_split"], "1 failed, 18 passed in 6.70s"]}
+{"tag": "T1", "case": "SR:11699", "r": [1, ["test_b26pre_euler_fixup_group_split"], "1 failed, 18 passed in 4.54s"]}
+{"tag": "T1", "case": "SR:6572", "r": [1, ["test_b26pre_resolve_stack_candidates"], "1 failed, 18 passed in 5.47s"]}
+{"tag": "T1", "case": "SR:11800", "r": [1, ["test_b26pre_growth_already_ok"], "1 failed, 18 passed in 3.01s"]}
+{"tag": "T1", "case": "SR:11876", "r": [1, ["test_b26pre_growth_zero_rounds"], "1 failed, 18 passed in 3.90s"]}
+{"tag": "T1", "case": "SR:11878", "r": [0, [], "19 passed in 3.51s"]}
+{"tag": "T1", "case": "SR:11879", "r": [1, ["test_b26pre_growth_zero_rounds_euler"], "1 failed, 18 passed in 2.09s"]}
+{"tag": "T1", "case": "SR:11880", "r": [1, ["test_b26pre_growth_zero_rounds", "test_b26pre_growth_zero_rounds_euler"], "2 failed, 17 passed in 4.84s"]}
+{"tag": "T1", "case": "SR:11827", "r": [1, ["test_b26pre_euler_fixup_group_split", "test_b26pre_growth_only_3b_left"], "2 failed, 17 passed in 3.87s"]}
+{"tag": "T1", "case": "SR:11834", "r": [1, ["test_b26pre_growth_pair_not_found"], "1 failed, 18 passed in 4.51s"]}
+{"tag": "T1", "case": "SR:11835", "r": [1, ["test_b26pre_growth_pair_not_found"], "1 failed, 18 passed in 3.82s"]}
+{"tag": "T1", "case": "SR:11836", "r": [1, ["test_b26pre_growth_pair_not_found"], "1 failed, 18 passed in 4.58s"]}
+{"tag": "T1", "case": "SR:11802", "r": [1, ["test_b26pre_growth_already_ok"], "1 failed, 18 passed in 3.92s"]}
+{"tag": "T1", "case": "SD:4515", "r": [1, ["test_b26pre_case_collisions"], "1 failed, 18 passed in 4.26s"]}
+{"tag": "T1", "case": "SD:4516", "r": [1, ["test_b26pre_case_collisions"], "1 failed, 18 passed in 5.21s"]}
+{"tag": "T1", "case": "SD:3275", "r": [1, ["test_b26pre_vsid_gap_fill_ports"], "1 failed, 18 passed in 6.50s"]}
+{"tag": "T1", "case": "SD:3278", "r": [1, ["test_b26pre_vsid_gap_fill_ports"], "1 failed, 18 passed in 5.43s"]}
+{"tag": "T1", "case": "SD:3279", "r": [1, ["test_b26pre_vsid_gap_fill_ports"], "1 failed, 18 passed in 4.20s"]}
+{"tag": "T1", "case": "SD:6878", "r": [1, ["test_b26pre_full_audit_mirror_undisposed"], "1 failed, 18 passed in 4.36s"]}
+{"tag": "T1", "case": "SD:6880", "r": [1, ["test_b26pre_full_audit_diffpair_undisposed"], "1 failed, 18 passed in 4.54s"]}
+{"tag": "T1", "case": "SD:2094", "r": [1, ["test_b26pre_seed_tap_p"], "1 failed, 18 passed in 3.76s"]}
+{"tag": "T1", "case": "SD:2095", "r": [1, ["test_b26pre_seed_tap_n"], "1 failed, 18 passed in 2.38s"]}
+{"tag": "T1", "case": "SD:2170", "r": [1, ["test_b26pre_seed_tap_p"], "1 failed, 18 passed in 6.03s"]}
+{"tag": "T1", "case": "SD:2171", "r": [1, ["test_b26pre_seed_tap_n"], "1 failed, 18 passed in 4.98s"]}
+{"tag": "T1", "case": "SD:3971", "r": [1, ["test_b26pre_seed_tap_p"], "1 failed, 18 passed in 3.25s"]}
+{"tag": "T1", "case": "SD:3972", "r": [1, ["test_b26pre_seed_tap_n"], "1 failed, 18 passed in 4.49s"]}
+{"tag": "P2", "case": "baseline", "r": [0, [], "19 passed in 2.97s"]}
+{"tag": "P2", "case": "SR:9403", "r": [1, ["test_b26pre_ofcb_lutless_repair"], "1 failed, 18 passed in 7.70s"]}
+{"tag": "P2", "case": "SR:9405", "r": [1, ["test_b26pre_ofcb_lutless_repair"], "1 failed, 18 passed in 8.44s"]}
+{"tag": "P2", "case": "SR:11695", "r": [1, ["test_b26pre_euler_fixup_group_split"], "1 failed, 18 passed in 11.29s"]}
+{"tag": "P2", "case": "SR:11697", "r": [1, ["test_b26pre_euler_fixup_group_split"], "1 failed, 18 passed in 8.07s"]}
+{"tag": "P2", "case": "SR:11699", "r": [1, ["test_b26pre_euler_fixup_group_split"], "1 failed, 18 passed in 4.63s"]}
+{"tag": "P2", "case": "SR:6572", "r": [1, ["test_b26pre_resolve_stack_candidates"], "1 failed, 18 passed in 4.22s"]}
+{"tag": "P2", "case": "SR:11800", "r": [1, ["test_b26pre_growth_already_ok"], "1 failed, 18 passed in 3.42s"]}
+{"tag": "P2", "case": "SR:11876", "r": [1, ["test_b26pre_growth_zero_rounds"], "1 failed, 18 passed in 5.05s"]}
+{"tag": "P2", "case": "SR:11878", "r": [0, [], "19 passed in 3.67s"]}
+{"tag": "P2", "case": "SR:11879", "r": [1, ["test_b26pre_growth_zero_rounds_euler"], "1 failed, 18 passed in 2.62s"]}
+{"tag": "P2", "case": "SR:11880", "r": [1, ["test_b26pre_growth_zero_rounds", "test_b26pre_growth_zero_rounds_euler"], "2 failed, 17 passed in 3.94s"]}
+{"tag": "P2", "case": "SR:11827", "r": [1, ["test_b26pre_euler_fixup_group_split", "test_b26pre_growth_only_3b_left"], "2 failed, 17 passed in 4.04s"]}
+{"tag": "P2", "case": "SR:11834", "r": [1, ["test_b26pre_growth_pair_not_found"], "1 failed, 18 passed in 5.73s"]}
+{"tag": "P2", "case": "SR:11835", "r": [1, ["test_b26pre_growth_pair_not_found"], "1 failed, 18 passed in 5.01s"]}
+{"tag": "P2", "case": "SR:11836", "r": [1, ["test_b26pre_growth_pair_not_found"], "1 failed, 18 passed in 7.15s"]}
+{"tag": "P2", "case": "SR:11802", "r": [1, ["test_b26pre_growth_already_ok"], "1 failed, 18 passed in 4.86s"]}
+{"tag": "P2", "case": "SD:4515", "r": [1, ["test_b26pre_case_collisions"], "1 failed, 18 passed in 4.54s"]}
+{"tag": "P2", "case": "SD:4516", "r": [1, ["test_b26pre_case_collisions"], "1 failed, 18 passed in 3.71s"]}
+{"tag": "P2", "case": "SD:3275", "r": [1, ["test_b26pre_vsid_gap_fill_ports"], "1 failed, 18 passed in 3.56s"]}
+{"tag": "P2", "case": "SD:3278", "r": [1, ["test_b26pre_vsid_gap_fill_ports"], "1 failed, 18 passed in 3.35s"]}
+{"tag": "P2", "case": "SD:3279", "r": [1, ["test_b26pre_vsid_gap_fill_ports"], "1 failed, 18 passed in 3.21s"]}
+{"tag": "P2", "case": "SD:6878", "r": [1, ["test_b26pre_full_audit_mirror_undisposed"], "1 failed, 18 passed in 2.00s"]}
+{"tag": "P2", "case": "SD:6880", "r": [1, ["test_b26pre_full_audit_diffpair_undisposed"], "1 failed, 18 passed in 1.61s"]}
+{"tag": "P2", "case": "SD:2094", "r": [1, ["test_b26pre_seed_tap_p"], "1 failed, 18 passed in 1.82s"]}
+{"tag": "P2", "case": "SD:2095", "r": [1, ["test_b26pre_seed_tap_n"], "1 failed, 18 passed in 3.95s"]}
+{"tag": "P2", "case": "SD:2170", "r": [1, ["test_b26pre_seed_tap_p"], "1 failed, 18 passed in 5.26s"]}
+{"tag": "P2", "case": "SD:2171", "r": [1, ["test_b26pre_seed_tap_n"], "1 failed, 18 passed in 3.68s"]}
+{"tag": "P2", "case": "SD:3971", "r": [1, ["test_b26pre_seed_tap_p"], "1 failed, 18 passed in 4.03s"]}
+{"tag": "P2", "case": "SD:3972", "r": [1, ["test_b26pre_seed_tap_n"], "1 failed, 18 passed in 4.56s"]}

@@ -1,0 +1,52 @@
+16:43:27 start profile folded_cascode base
+16:45:12 done profile folded_cascode base
+16:45:12 start profile folded_cascode head
+16:46:18 done profile folded_cascode head
+16:46:18 start profile two_stage_ota base
+16:47:40 done profile two_stage_ota base
+16:47:40 start profile two_stage_ota head
+16:48:50 done profile two_stage_ota head
+16:48:50 start plain folded_cascode base
+16:50:10 done plain folded_cascode base
+16:50:10 start plain folded_cascode head
+16:51:08 done plain folded_cascode head
+16:51:08 start plain two_stage_ota base
+16:52:11 done plain two_stage_ota base
+16:52:11 start plain two_stage_ota head
+16:52:52 done plain two_stage_ota head
+16:53:18 start profile folded_cascode base
+16:55:02 done profile folded_cascode base
+16:55:02 start profile folded_cascode head
+16:56:07 done profile folded_cascode head
+16:56:07 start profile two_stage_ota base
+16:57:05 done profile two_stage_ota base
+16:57:05 start profile two_stage_ota head
+16:57:46 done profile two_stage_ota head
+16:57:46 start plain folded_cascode base
+16:58:47 done plain folded_cascode base
+16:58:47 start plain folded_cascode head
+16:59:43 done plain folded_cascode head
+16:59:43 start plain two_stage_ota base
+17:00:32 done plain two_stage_ota base
+17:00:32 start plain two_stage_ota head
+17:01:03 done plain two_stage_ota head
+17:01:04 start profile folded_cascode base
+17:02:29 done profile folded_cascode base
+17:02:29 start profile folded_cascode head
+17:03:22 done profile folded_cascode head
+17:03:22 start profile two_stage_ota base
+17:04:34 done profile two_stage_ota base
+17:04:34 start profile two_stage_ota head
+17:05:15 done profile two_stage_ota head
+17:05:15 start plain folded_cascode base
+17:06:17 done plain folded_cascode base
+17:06:17 start plain folded_cascode head
+17:06:58 done plain folded_cascode head
+17:06:58 start plain two_stage_ota base
+17:07:58 done plain two_stage_ota base
+17:07:58 start plain two_stage_ota head
+17:08:34 done plain two_stage_ota head
+17:08:54 rev1 head
+17:09:33 rev1 base
+17:10:22 rev2 head
+17:10:56 rev2 base

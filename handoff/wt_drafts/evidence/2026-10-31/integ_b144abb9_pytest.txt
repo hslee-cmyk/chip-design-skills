@@ -1,0 +1,40 @@
+
+=================================== ERRORS ====================================
+_ ERROR collecting gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py _
+gmid_engine\tests\integration\test_g10_no_recompute_9circuits.py:30: in <module>
+    from test_s0_layer_9circuits import DEVICE_START, GRAPH_ROWS  # noqa: E402  S0 수준 블록 정의 한 곳
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\_pytest\assertion\rewrite.py:197: in exec_module
+    exec(co, module.__dict__)
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:184: in <module>
+    SEARCHED = [c for c in CIRCUITS if _searched(c)]
+                                       ^^^^^^^^^^^^
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:181: in _searched
+    return BASELINE[circuit]["status"] == ["ok", "ok"]
+           ^^^^^^^^^^^^^^^^^
+E   KeyError: 'cnr_ota'
+_ ERROR collecting gmid_engine/tests/integration/test_layer0_boundary_rows.py _
+gmid_engine\tests\integration\test_layer0_boundary_rows.py:32: in <module>
+    SEARCHED = [c for c in CIRCUITS if BASELINE[c]["status"] == ["ok", "ok"]]     # 층 0 이 있는 회로(기준선 단계 A·B 상태)
+                                       ^^^^^^^^^^^
+E   KeyError: 'cnr_ota'
+__ ERROR collecting gmid_engine/tests/integration/test_s0_layer_9circuits.py __
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:184: in <module>
+    SEARCHED = [c for c in CIRCUITS if _searched(c)]
+                                       ^^^^^^^^^^^^
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:181: in _searched
+    return BASELINE[circuit]["status"] == ["ok", "ok"]
+           ^^^^^^^^^^^^^^^^^
+E   KeyError: 'cnr_ota'
+=========================== short test summary info ===========================
+ERROR gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py - KeyE...
+ERROR gmid_engine/tests/integration/test_layer0_boundary_rows.py - KeyError: ...
+ERROR gmid_engine/tests/integration/test_s0_layer_9circuits.py - KeyError: 'c...
+!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!
+15 deselected, 3 errors in 35.89s

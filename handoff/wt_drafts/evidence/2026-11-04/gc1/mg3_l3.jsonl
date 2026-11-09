@@ -1,0 +1,110 @@
+{"block": "achievability", "column": "device.bulk", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "device.dc_colour", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "device.element_class", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "device.kind", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "device.pins", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "graph.dc_current_basis", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "graph.fixed_values", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "graph.l_classes", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "graph.l_ties", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "graph.orbits", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "node.dc_colour", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "node.dc_writer", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "node.is_rail", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "node.port_direction", "passes_on": [], "status": "reads_not_read"}
+{"block": "achievability", "column": "node.port_role", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.bulk", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.bulk_declared", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.dc_colour", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.dc_nets", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.dc_role", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.element_class", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.is_diode", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.kind", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.pins", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.unsupported", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.value", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "device.value_key", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.branches", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.column_orphans", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.column_pairs", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.columns", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.current_symmetry", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.dc_pruned", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.dc_segments", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.gs_groups", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.gvgs_summary", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.matching_dispositions", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.matching_groups", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.orbits", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.rel_equal_vgs", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.rel_kcl_group", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.rel_kvl_branch", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.rel_l_class", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.rel_matching_offset", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.rel_matching_ratio", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "graph.rel_vds_eq_vgs", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "node.ac_ground_class", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "node.dc_branch_node", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "node.dc_colour", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "node.is_rail", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "node.port_direction", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "node.port_role", "passes_on": [], "status": "reads_not_read"}
+{"block": "build_s1v", "column": "node.terminals", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.bulk", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.bulk_declared", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.dc_colour", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.dc_nets", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.dc_role", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.element_class", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.is_diode", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.kind", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.pins", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.unsupported", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.value", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "device.value_key", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.branches", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.column_orphans", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.column_pairs", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.columns", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.current_symmetry", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.dc_pruned", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.dc_segments", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.gs_groups", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.gvgs_summary", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.matching_dispositions", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.matching_groups", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.orbits", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.rel_equal_vgs", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.rel_kcl_group", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.rel_kvl_branch", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.rel_l_class", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.rel_matching_offset", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.rel_matching_ratio", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "graph.rel_vds_eq_vgs", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "node.ac_ground_class", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "node.dc_branch_node", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "node.dc_colour", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "node.is_rail", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "node.port_direction", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "node.port_role", "passes_on": [], "status": "reads_not_read"}
+{"block": "coupling_vars", "column": "node.terminals", "passes_on": [], "status": "reads_not_read"}
+{"block": "ly_canonical_naming", "column": "graph.ly_groups_in", "passes_on": ["('layout.canon_block:canon_tables', 'dynamic')"], "status": "reads_unverifiable"}
+{"block": "ly_canonical_naming", "column": "graph.ly_passives", "passes_on": ["('layout.canon_block:canon_tables', 'dynamic')"], "status": "reads_unverifiable"}
+{"block": "ly_canonical_naming", "column": "graph.ly_row_groups", "passes_on": ["('layout.canon_block:canon_tables', 'dynamic')"], "status": "reads_unverifiable"}
+{"block": "ly_pattern_select", "column": "graph.ly_canon", "passes_on": [], "status": "reads_not_read"}
+{"block": "ly_rows", "column": "graph.ly_canon_rows", "passes_on": [], "status": "reads_not_read"}
+{"block": "metrics_dc", "column": "device.dc_colour", "passes_on": ["('metrics.dc_metrics:_canonical', 'dynamic')", "('metrics.dc_metrics:_operating_point', 'helper_passes:_canonical')"], "status": "reads_unverifiable"}
+{"block": "metrics_dc", "column": "node.dc_colour", "passes_on": ["('metrics.dc_metrics:_canonical', 'dynamic')", "('metrics.dc_metrics:_operating_point', 'helper_passes:_canonical')"], "status": "reads_unverifiable"}
+{"block": "s1_dc_conduction", "column": "device.kind", "passes_on": [], "status": "reads_not_read"}
+{"block": "s1_gvgs", "column": "device.kind", "passes_on": [], "status": "reads_not_read"}
+{"block": "s1_symmetry", "column": "device.bulk", "passes_on": ["('graph.canonical_form:canonical_form', 'helper_passes:_graph')"], "status": "reads_unverifiable"}
+{"block": "s1_symmetry", "column": "device.is_diode", "passes_on": ["('graph.canonical_form:canonical_form', 'helper_passes:_graph')"], "status": "reads_unverifiable"}
+{"block": "s1_symmetry", "column": "device.kind", "passes_on": ["('graph.canonical_form:canonical_form', 'helper_passes:_graph')"], "status": "reads_unverifiable"}
+{"block": "s1_symmetry", "column": "node.is_rail", "passes_on": ["('graph.canonical_form:canonical_form', 'helper_passes:_graph')"], "status": "reads_unverifiable"}
+{"block": "search_domain", "column": "device.dc_colour", "passes_on": [], "status": "reads_not_read"}
+{"block": "search_domain", "column": "graph.current_symmetry", "passes_on": [], "status": "reads_not_read"}
+{"block": "search_domain", "column": "graph.dc_current_basis", "passes_on": [], "status": "reads_not_read"}
+{"block": "search_domain", "column": "node.dc_colour", "passes_on": [], "status": "reads_not_read"}
+{"block": "start_intervals", "column": "graph.gain_checks", "passes_on": ["('search.iv_context:start_view', 'helper_passes:StartView')", "('search.iv_context:start_view', 'helper_passes:_gain_inputs')", "('search.iv_context:start_view', 'helper_passes:_target')", "('search.iv_context:start_view', 'helper_passes:current_box')"], "status": "reads_unverifiable"}
+{"block": "start_intervals", "column": "graph.local_inputs", "passes_on": ["('search.iv_context:start_view', 'helper_passes:StartView')", "('search.iv_context:start_view', 'helper_passes:_gain_inputs')", "('search.iv_context:start_view', 'helper_passes:_target')", "('search.iv_context:start_view', 'helper_passes:current_box')"], "status": "reads_unverifiable"}

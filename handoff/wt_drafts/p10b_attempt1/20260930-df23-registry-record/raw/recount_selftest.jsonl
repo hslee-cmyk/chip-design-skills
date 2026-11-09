@@ -1,0 +1,12 @@
+{"case": "clean", "exit": 0, "want": 0, "ok": true}
+{"case": "clean_reversed", "exit": 0, "want": 0, "ok": true}
+{"case": "no_section", "exit": 1, "want": 1, "ok": true}
+{"case": "row81_missing", "exit": 1, "want": 1, "ok": true}
+{"case": "row81_dup", "exit": 1, "want": 1, "ok": true}
+{"case": "row82_missing", "exit": 1, "want": 1, "ok": true}
+{"case": "row82_count_off", "exit": 1, "want": 1, "ok": true}
+{"case": "row82_dup", "exit": 1, "want": 1, "ok": true}
+{"case": "path_off", "exit": 1, "want": 1, "ok": true}
+{"case": "measured_off", "exit": 1, "want": 1, "ok": true}
+{"case": "hdr82_off", "exit": 1, "want": 1, "ok": true}
+{"case": "usage_missing", "exit": 1, "want": 1, "ok": true}

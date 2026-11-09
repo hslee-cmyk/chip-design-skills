@@ -1,0 +1,4 @@
+{"circuit": "current_reuse_telescopic_ota", "status_ab": ["ok", "ok"], "domain_components": {"capacitance": 1, "current": 14, "ln_idu": 21, "resistance": 1, "y": 1}, "total": 38, "current_cols": 14}
+{"circuit": "sf_pushpull_output_opamp", "status_ab": ["ok", "ok"], "domain_components": {"capacitance": 1, "current": 7, "ln_idu": 14, "resistance": 3, "y": 1}, "total": 26, "current_cols": 7}
+{"circuit": "ngcc_3stage_ff", "status_ab": ["review_needed", "review_needed"], "domain_components": {"capacitance": 2, "current": 9, "ln_idu": 9, "y": 2}, "total": 22, "current_cols": 9}
+{"circuit": "two_stage_ota", "status_ab": ["ok", "ok"], "domain_components": {"capacitance": 1, "current": 3, "ln_idu": 5, "y": 2}, "total": 11, "current_cols": 3}

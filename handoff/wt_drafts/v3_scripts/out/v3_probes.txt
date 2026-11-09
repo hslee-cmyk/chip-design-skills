@@ -1,0 +1,27 @@
+python 3.14.2 | ast.dump signature: (node, annotate_fields=True, include_attributes=False, *, indent=None, show_empty=False)
+[B1] def_hash(①, docstring 제외) equal: True
+[B1] 묶기 해시(docstring 포함) equal: False
+[B1] stmt_delete:body[1] | A: log(y) | B: y = clamp(x)
+[B1] stmt_delete:body[2] | A: return y | B: log(y)
+[B1] 같은 id 집합 교집합: [('stmt_delete', 'body[1]'), ('stmt_delete', 'body[2]')]
+[B2] bool default False->True   해시 다름=True  def 자기 필드 변이(옛 T3)=0  전체 변이=2 ['stmt_delete', 'early_return']
+[B2] str default                해시 다름=True  def 자기 필드 변이(옛 T3)=0  전체 변이=2 ['stmt_delete', 'early_return']
+[B2] None -> []                 해시 다름=True  def 자기 필드 변이(옛 T3)=0  전체 변이=2 ['stmt_delete', 'early_return']
+[B2] param add                  해시 다름=True  def 자기 필드 변이(옛 T3)=0  전체 변이=2 ['stmt_delete', 'early_return']
+[B2] param rename               해시 다름=True  def 자기 필드 변이(옛 T3)=0  전체 변이=2 ['stmt_delete', 'early_return']
+[B2] kw-only *                  해시 다름=True  def 자기 필드 변이(옛 T3)=0  전체 변이=2 ['stmt_delete', 'early_return']
+[B2] decorator add              해시 다름=True  def 자기 필드 변이(옛 T3)=2  전체 변이=4 ['stmt_delete', 'const+', 'const-', 'early_return']
+[B2-deco] stmt_delete  body[0]                                  NOOP=False
+[B2-deco] arith        body[0].value                            NOOP=False
+[B2-deco] const+       body[0].value.right                      NOOP=False
+[B2-deco] const-       body[0].value.right                      NOOP=False
+[B2-deco] const+       decorator_list[0].keywords[0].value      NOOP=True
+[B2-deco] const-       decorator_list[0].keywords[0].value      NOOP=True
+[B2-deco] early_return body[0]                                  NOOP=False
+[B2-deco 개정] stmt_delete  body[0]                                  NOOP=False
+[B2-deco 개정] arith        body[0].value                            NOOP=False
+[B2-deco 개정] const+       body[0].value.right                      NOOP=False
+[B2-deco 개정] const-       body[0].value.right                      NOOP=False
+[B2-deco 개정] const+       decorator_list[0].keywords[0].value      NOOP=False
+[B2-deco 개정] const-       decorator_list[0].keywords[0].value      NOOP=False
+[B2-deco 개정] early_return body[0]                                  NOOP=False

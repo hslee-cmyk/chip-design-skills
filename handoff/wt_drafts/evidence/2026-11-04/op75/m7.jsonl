@@ -1,0 +1,9 @@
+{"kind": "random", "digits": 5, "grid": "equal", "max_ratio_to_bound": 0.9326001901252254}
+{"kind": "random", "digits": 5, "grid": "last_short", "max_ratio_to_bound": 0.9107019344922224}
+{"kind": "worst_case_sign", "digits": 5, "ratio_to_bound": 1.0, "bound_over_8u_per_delta": 1.0000250008332543}
+{"kind": "random", "digits": 7, "grid": "equal", "max_ratio_to_bound": 0.9259818897836631}
+{"kind": "random", "digits": 7, "grid": "last_short", "max_ratio_to_bound": 0.9226996100598155}
+{"kind": "worst_case_sign", "digits": 7, "ratio_to_bound": 0.9999999999999998, "bound_over_8u_per_delta": 1.0000002499178169}
+{"kind": "random", "digits": 9, "grid": "equal", "max_ratio_to_bound": 0.9252243448891119}
+{"kind": "random", "digits": 9, "grid": "last_short", "max_ratio_to_bound": 0.9361005836842414}
+{"kind": "worst_case_sign", "digits": 9, "ratio_to_bound": 1.0, "bound_over_8u_per_delta": 0.9999999964225291}

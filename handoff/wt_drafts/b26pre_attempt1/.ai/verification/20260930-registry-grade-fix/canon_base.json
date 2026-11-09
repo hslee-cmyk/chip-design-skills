@@ -1,0 +1,332 @@
+{
+ "n_rows": 22,
+ "scan": [
+  {
+   "concept": "W 계산 `W=L*ID/IDu`",
+   "cell": "`size_transistor` / LUT `_sizing_bundle`",
+   "name": "size_transistor",
+   "found": true,
+   "def": "sizing_recipe.py:94 size_transistor",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 1
+  },
+  {
+   "concept": "W 계산 `W=L*ID/IDu`",
+   "cell": "`size_transistor` / LUT `_sizing_bundle`",
+   "name": "_sizing_bundle",
+   "found": true,
+   "def": "sizing_recipe.py:391 SemiEmpiricalGmIdLUT._sizing_bundle",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 0
+  },
+  {
+   "concept": "diode 판정",
+   "cell": "`is_diode_connected`",
+   "name": "is_diode_connected",
+   "found": true,
+   "def": "sizing_recipe.py:3109 is_diode_connected",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 0
+  },
+  {
+   "concept": "전류미러 그룹",
+   "cell": "`true_current_mirror_groups`(connectivity, 키 kind·gate·source)",
+   "name": "true_current_mirror_groups",
+   "found": true,
+   "def": "sizing_recipe.py:2181 true_current_mirror_groups",
+   "direct_name_set_consts": {
+    "_DEFAULT_RAIL_HI": [
+     3704,
+     [
+      "vdd",
+      "VDD"
+     ]
+    ],
+    "_DEFAULT_RAIL_LO": [
+     3705,
+     [
+      "gnd",
+      "GND",
+      "vss",
+      "VSS"
+     ]
+    ]
+   },
+   "direct_netlike_strings": [],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 0
+  },
+  {
+   "concept": "노드 DC 전압",
+   "cell": "`propagate_node_voltages`(평가당 1회로)",
+   "name": "propagate_node_voltages",
+   "found": true,
+   "def": "sizing_recipe.py:3717 propagate_node_voltages",
+   "direct_name_set_consts": {
+    "_DEFAULT_RAIL_HI": [
+     3704,
+     [
+      "vdd",
+      "VDD"
+     ]
+    ],
+    "_DEFAULT_RAIL_LO": [
+     3705,
+     [
+      "gnd",
+      "GND",
+      "vss",
+      "VSS"
+     ]
+    ]
+   },
+   "direct_netlike_strings": [],
+   "compared_strings": [
+    "pmos"
+   ],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 1
+  },
+  {
+   "concept": "KCL 엣지",
+   "cell": "`stick_diagram._kcl_and_matching_edges`",
+   "name": "stick_diagram._kcl_and_matching_edges",
+   "found": true,
+   "def": "stick_diagram.py:3134 _kcl_and_matching_edges",
+   "direct_name_set_consts": {
+    "_RAIL_NETS": [
+     2983,
+     [
+      "vdd",
+      "gnd",
+      "vss"
+     ]
+    ]
+   },
+   "direct_netlike_strings": [],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 0
+  },
+  {
+   "concept": "스택 KVL 합",
+   "cell": "`_hr_verify_group_kvl_sum`",
+   "name": "_hr_verify_group_kvl_sum",
+   "found": true,
+   "def": "sizing_recipe.py:6943 _hr_verify_group_kvl_sum",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [
+    "vdd"
+   ],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 3
+  },
+  {
+   "concept": "topology 로딩",
+   "cell": "`_load_full_topology_cached`",
+   "name": "_load_full_topology_cached",
+   "found": true,
+   "def": "sizing_recipe.py:4772 _load_full_topology_cached",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 0
+  },
+  {
+   "concept": "theta가 건드리는 소자",
+   "cell": "`_theta_feed_footprint`",
+   "name": "_theta_feed_footprint",
+   "found": true,
+   "def": "sizing_recipe.py:9591 _theta_feed_footprint",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [
+    "A",
+    "B",
+    "C",
+    "const",
+    "l_class",
+    "metric_stage_budget",
+    "settling_split"
+   ],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 0
+  },
+  {
+   "concept": "euler 행 수정 전략",
+   "cell": "`run_topology_pipeline_with_finger_fixup`",
+   "name": "run_topology_pipeline_with_finger_fixup",
+   "found": true,
+   "def": "sizing_recipe.py:11853 run_topology_pipeline_with_finger_fixup",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {
+    "revalidate_finger_override": {
+     "consts": [
+      "_CONSTRAINT_OPS"
+     ],
+     "netlike": [],
+     "line": 11265
+    },
+    "compute_metric": {
+     "consts": [
+      "_METRICS_REGISTRY"
+     ],
+     "netlike": [],
+     "line": 5246
+    },
+    "metric_unit_scale": {
+     "consts": [
+      "_METRIC_UNITS"
+     ],
+     "netlike": [],
+     "line": 5163
+    }
+   },
+   "n_transitive_callees": 8
+  },
+  {
+   "concept": "다선형 보간",
+   "cell": "`_multilinear_interp`",
+   "name": "_multilinear_interp",
+   "found": true,
+   "def": "sizing_recipe.py:131 _multilinear_interp",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 0
+  },
+  {
+   "concept": "gain metric",
+   "cell": "`_metric_smallsignal_gain_db`",
+   "name": "_metric_smallsignal_gain_db",
+   "found": true,
+   "def": "sizing_recipe.py:5008 _metric_smallsignal_gain_db",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [
+    "diff"
+   ],
+   "transitive_callees_reading_names": {
+    "_full_circuit_response": {
+     "consts": [],
+     "netlike": [
+      "gnd"
+     ],
+     "line": 4936
+    }
+   },
+   "n_transitive_callees": 5
+  },
+  {
+   "concept": "PM metric",
+   "cell": "`_metric_parasitic_pm_deg`",
+   "name": "_metric_parasitic_pm_deg",
+   "found": true,
+   "def": "sizing_recipe.py:4156 _metric_parasitic_pm_deg",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [
+    "omega_c"
+   ],
+   "transitive_callees_reading_names": {
+    "build_ac_network": {
+     "consts": [],
+     "netlike": [
+      "gnd"
+     ],
+     "line": 4057
+    }
+   },
+   "n_transitive_callees": 7
+  },
+  {
+   "concept": "CMRR",
+   "cell": "`_metric_smallsignal_ratio_db`",
+   "name": "_metric_smallsignal_ratio_db",
+   "found": true,
+   "def": "sizing_recipe.py:4979 _metric_smallsignal_ratio_db",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [
+    "diff"
+   ],
+   "transitive_callees_reading_names": {
+    "_full_circuit_response": {
+     "consts": [],
+     "netlike": [
+      "gnd"
+     ],
+     "line": 4936
+    }
+   },
+   "n_transitive_callees": 5
+  },
+  {
+   "concept": "MNA 소자 스탬프",
+   "cell": "`build_ac_network`",
+   "name": "build_ac_network",
+   "found": true,
+   "def": "sizing_recipe.py:4057 build_ac_network",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [
+    "gnd"
+   ],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 5
+  },
+  {
+   "concept": "HTML 리포트",
+   "cell": "`design_report.render_html_report`",
+   "name": "design_report.render_html_report",
+   "found": true,
+   "def": "design_report.py:198 render_html_report",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [
+    "ok"
+   ],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 1
+  },
+  {
+   "concept": "diode 고정점",
+   "cell": "`solve_diode_connected_vds`",
+   "name": "solve_diode_connected_vds",
+   "found": true,
+   "def": "sizing_recipe.py:3119 solve_diode_connected_vds",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 1
+  },
+  {
+   "concept": "L grid 스냅",
+   "cell": "`quantize_L`",
+   "name": "quantize_L",
+   "found": true,
+   "def": "sizing_recipe.py:736 quantize_L",
+   "direct_name_set_consts": {},
+   "direct_netlike_strings": [],
+   "compared_strings": [],
+   "transitive_callees_reading_names": {},
+   "n_transitive_callees": 0
+  }
+ ]
+}

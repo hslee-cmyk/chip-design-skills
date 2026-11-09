@@ -1,0 +1,399 @@
+# Phase 3 남은 순서 -- 오케스트레이터 단일 체크리스트 (runbook)
+
+작성 2026-10-06. **기준 상태**: gate `master` = 메인 `master` = `2183f2e`(B34 병합 `c851e54` + 판정 기록), `refs/heads/role/` 0개(실측 `git -C <R> branch --list 'role/*'` 빈 출력), 메인 worktree 밖 worktree는 `.claude/worktrees/*` 3개(역할 worktree 아님).
+이 문서는 읽기만 해서 모은 **목차·순서표**다. 정본은 각 card의 spec 초안·`*_launch.sh` 머리·`*_briefs.md` §0·§4이고, 어긋나면 그쪽이 이긴다. 이 문서 작성 때 다른 파일은 고치지 않았다.
+
+근거로 읽은 것: `p3_ud6_runbook.md`(대기열 절), `user_decisions.md`, `t0_fu_at_2183.md`, `b26pre_on_b34real.md`, `backfill_on_b34real.md`, `b26_1_on_b34real.md`, `b26_1_ready_fd4.md`,
+`review_t0_fu_r2.md`, `review_d0a_d0b_ready_r1.md`, `review_g1_dafe.md`, `review_b33_dafe.md`, `review_m2_m9_r2.md`, `m2_m9_open_items.md`, `review_p3_f12_r4.md`, `review_p3_f2_cur.md`, `review_b26_1_carry_today.md`,
+`draft_phase3_dod.md`, `review_phase3_dod_r1.md`, `m_cards_plan.md`, `backlog_additions.md`, `d0a_determinism.md`, `kit_line_shift.md`, launch 스크립트 머리 9개, 브리프 §4 8개, design 05 §12(gate `2183f2e`).
+
+**표지**: **[초안 작업 중]** = 지금 다른 agent가 그 card 초안·키트를 고치고 있다(b26pre, backfill, B26-1, F2, D0a) -- 이 문서의 해당 줄 번호·수치는 그 agent 결과가 들어오면 다시 확인한다. **[GAP]** = 초안이 없다.
+
+---
+
+## 0. 약칭·공통 변수 (MSYS bash, 절대 경로만 -- role_guard가 `cd`·상대 경로 쓰기·변수 든 `rm`을 거부)
+
+```bash
+R=/c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills      # 실제 저장소(메인 worktree)
+DR=/c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts             # 초안·키트
+W=/c/Users/HSLEE/Documents/Todoc/fpga/wt                      # 역할 worktree 부모
+PY=C:/Python314/python.exe
+COAUTH="Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
+```
+* 게이트 캐시 = `<git-common-dir>/gmid-gate-cache/<gate master 전체 sha>/` -- launch 스크립트가 `CACHE=`를 상태 파일에 적는다. `$CACHE/…`를 Bash 인자로 직접 부르면 EL1이 "저장소 내부를 가리키는 인자"로 거부할 수 있다 -- 그때는 스크립트 파일 안에서 부른다(backfill 브리프 0.7-3).
+* 임시 경로는 card·agent마다 **고유** `C:/g<번호>`(메모리 '임시 경로 고유 배정'). 공용 루트 삭제 지시 금지.
+* 모래상자 리허설은 `gate_config.json` `gate_path`를 모래상자로 바꾼 합성 커밋이 있어야 `cache_dir`가 막히지 않는다(백로그 B62, review_b33_dafe §5) -- 실제 실행에는 영향 없음.
+
+## 1. 공통 규칙 (모든 card에 매번)
+
+1. **push는 단독 호출·전체 출력 확인**(병렬·`| tail` 금지 -- 메모리 'gate push 결과 확인 뒤에만 정리'). launch 스크립트는 push하지 않고 명령만 출력한다.
+2. **문서·승인 기록 push는 역할 브랜치 0일 때만**: EL1 `_judge_push`는 `refs/heads/role/`가 하나라도 있으면 경로와 무관하게 `git push gate master:master`를 거부한다(p3_ud6_runbook §1). 그래서 card 사이 문서 슬롯 = 앞 card 정리 뒤·다음 card 순서 0 전. 로컬 `master`에 미리 커밋해 두지 않는다(정리 뒤 `merge --ff-only gate/master` 실패).
+3. **순서 3 무커밋 가드**: auditor 순서 3 산출물(`$W/$ID-audit/.ai/verification/$ID/base_check.json` 등)은 **쓰기만, 커밋 금지**(커밋은 순서 7에서 M 위 한 커밋). auditor가 돌아온 뒤 확인:
+   ```bash
+   test -z "$(git -C "$W/$ID-audit" log --oneline "role/test/$ID..HEAD")" || { echo "순서 3 커밋 발견 -- 멈춤"; false; }
+   git -C "$W/$ID-audit" status --porcelain      # .ai/verification/$ID/ 미추적 파일만이어야 한다
+   ```
+4. **순서 6 빈 브랜치 가드**(병합 직전, 모든 브리프 §4 공통 문장): `git -C "$W/$ID-audit" log --oneline "role/test/$ID..HEAD"` 출력이 **비어야** 한다. 비어 있지 않으면 순서 3 커밋이 섞인 것 -- 병합하지 말고 멈춤.
+   (FU는 `role/test/$ID`에 커밋 0이 정상 -- 가드는 같다. test-only card는 병합이 없다 -- §2 변형 참고.)
+5. **dispute 확인**(정리 전): `$W/$ID-code/docs/02-design/disputes/$ID.md`가 있으면 정리 전에 메인 spec card `## dispute 기록` 절로 옮겨 커밋(EL1이 그 전에는 code worktree 정리를 거부, design 05 §12 '재시도').
+6. **`.ai/context.md`는 Python 바이너리 append로만**(선례 `$DR/context_append_20261006.py`), 그 뒤 `git -C "$R" diff --numstat`의 삭제 0줄 확인 후 커밋. heredoc append 금지.
+7. **트레일러는 `--trailer`**(`Role: …`, `Change-Id: …`, `$COAUTH`). `git merge`에는 `--trailer`가 없어 두 줄 `-m`(design 05 §12-6).
+8. **재시도**: auditor FAIL·dispute·push 거부 → 정리 형태로 세 worktree·브랜치 지우고 같은 id로 1부터(부분 `reset`·`rebase` 금지). `--force`는 세 역할 경로에만.
+9. 사실 문장 재측정은 그 card 착수 0단계에서(메모리 'card 처리 속도 규칙'), 줄 이동 제안은 `$DR/kit_line_shift.py`(제안만, 초안 수정은 사람이).
+
+## 2. §12 공통 명령 틀 (design 05 §12, gate `2183f2e` 388~397행)
+
+```bash
+ID=<card id>
+# 순서 0 -- launch 스크립트 local → (단독) git -C "$R" push gate master:master → launch after-push
+git -C "$R" fetch gate
+test "$(git -C "$R" rev-parse HEAD)" = "$(git -C "$R" rev-parse gate/master)"
+test -z "$(git -C "$R" branch --list 'role/*')"
+# 순서 1
+git -C "$R" worktree add "$W/$ID-test" -b "role/test/$ID" gate/master
+# 순서 2 -- gmid-test-author(브리프 1절, 소스 열람 금지)
+# 순서 3
+git -C "$R" worktree add "$W/$ID-audit" -b "role/audit/$ID" "role/test/$ID"
+#   gmid-verification-auditor(브리프 3.1) → §1-3 무커밋 가드
+# 순서 4
+git -C "$R" worktree add "$W/$ID-code" -b "role/code/$ID" "role/test/$ID"
+# 순서 5 -- gmid-code-author(브리프 2절)
+# 순서 6 -- §1-4 빈 브랜치 가드 뒤
+git -C "$W/$ID-audit" merge --no-ff "role/code/$ID" -m "merge $ID" -m "Role: doc
+Change-Id: $ID"
+# 순서 7 -- auditor(브리프 3.2, 격리 복제본: clone --no-hardlinks --no-local -c core.autocrlf=false + remote remove origin) → Role: audit 한 커밋
+# 순서 8 -- 단독
+git -C "$W/$ID-audit" push gate "role/audit/$ID:master"
+git -C "$R" fetch gate
+git -C "$R" merge --ff-only gate/master
+# 정리 -- §1-5 dispute 확인 뒤, 한 줄씩 단독
+git -C "$R" worktree remove "$W/$ID-test"
+git -C "$R" worktree remove "$W/$ID-code"
+git -C "$R" worktree remove "$W/$ID-audit"
+git -C "$R" branch -D "role/test/$ID"
+git -C "$R" branch -D "role/code/$ID"
+git -C "$R" branch -D "role/audit/$ID"
+git -C "$R" for-each-ref refs/heads/role/          # 빈 출력
+# 기록 -- .ai/context.md Python 바이너리 append → numstat 삭제 0 → commit(Role: doc) → 단독 push; _drafts/user_decisions.md 끝 절에 병합 해시
+```
+변형:
+* **test-only**(b26pre·T0·T1): 순서 4·5·6 없음. design 05 §9.2-4 test-only 행 "`old..new^` 전부 `Role: test`, `new` = `Role: audit` 1개, **병합 없음**"(선례 md-sync `2de923b` → `5f643a9`). 순서 7의 audit 커밋은 T 바로 위. 정리는 test·audit 두 개.
+* **equivalence, test 커밋 0**(FU): `role/test/$ID`는 만들되 커밋 0(T = S). `fu_launch.sh after-push`가 세 worktree 명령을 출력하고 `roles`가 확인.
+* **gate card**(B33·G1, `phase: 0.5`): 순서 0이 문서 커밋 + spec + 승인 기록 3커밋, `gate_change_ok` True 확인 뒤 push.
+
+## 3. 승인·결정 기록 현황 (gate `2183f2e` `.ai/approvals/` 실측 + `_drafts/approval_*.md`)
+
+| id | 종류 | 쓰는 card | gate에 있음 | 초안 | 언제 커밋 |
+|---|---|---|---|---|---|
+| `20261001-b26-phase3-cards` | decision | b26pre·backfill·B26-1(+B34) | **있음** | -- | 끝남 |
+| `20261001-b26-backfill-interdig-fix` | decision | backfill | **있음** | -- | 끝남 |
+| `20260930-b26-before-phase3` | decision | B26-1 | **있음** | -- | 끝남 |
+| `20260930-b26-b40-reason-key` | decision(U4) | B26-1 | 없음 | `approval_20260930-b26-b40-reason-key.md` | `b26_1_launch.sh local1`(P) → push #1(B26-1 순서 0 전) |
+| `20261001-b26-p9-signature-update` | diff(U5) | B26-1 | 없음 | `approval_20261001-b26-p9-signature-update.md`(diff_base/head/target 빈칸) | B26-1 1차 시도 뒤 `b26_1_carry.sh prep`→`local`(운반 커밋) |
+| `20261001-b26-v3-equiv-range` | decision(U3) | B26-1 | 없음 | `approval_20261001-b26-v3-equiv-range.md`(+`b26_1_kit_selftest/fill_u3.py`, sha256 핀) | 위와 같은 운반 커밋 |
+| `20260930-v7-registry-edges` | diff | B33 | 없음 | `approval_20260930-v7-registry-edges.md` | `b33_launch.sh local`의 appr(C) |
+| `20261002-p3-t0-v4-s009-exempt` | decision([T0-V4]) | T0 | 없음 | `approval_20261002-p3-t0-v4-s009-exempt.md`(105행 `<MATCH 결과 줄 …>` 자리표시 남음) | **B26-1·B33 병합 뒤, T0 순서 0(spec) 전, T0 test worktree 전** -- §6.1 |
+| `20260930-p3-tests-location-free` | diff(V5) | T0 | 없음 | `approval_20260930-p3-tests-location-free.md`(양식 -- 해시·B1·T1·diff_path·발견은 `t0_carry.sh records`가, 사용자 답 자리 `<V5_…>`·`<DATE>`는 오케스트레이터가 채움) | **두 번 시도 운반**(X-1 닫힘): 1차 시도 순서 3 뒤 V5 질문 → `t0_carry.sh records` → 정리 → `local`(운반 Role: doc 커밋) → push → 2차 시도 |
+| `20260930-30-module-split-design` | diff(UD-0) | T0·FU·D0a·D0b·M·F1·F2 | **있음**(`36e170e`, FU id·D-29 원문 포함 -- grep 2) | -- | 끝남 |
+| `20260930-p3-gate-move-aware` | diff(UD-5) | G1 | 없음 | `approval_20260930-p3-gate-move-aware.md`(= `g1_kit` 양식, pin 문단 dafe5cf 반영) | `g1_launch.sh local`의 appr(C) |
+| `20261002-p3-d11-query-cache-max` | diff(D-11) | D0b·M1 | **있음**(`300fd65`, 계획 `29d2fc2`) | -- | 끝남(조건: D0b가 다른 N3.10 개정을 계산하면 재질문) |
+| `20261002-p3-f1-workspaces-write-path` | plan_tables | F1 | **있음**(`fd4ef8c`) | -- | 끝남 |
+| F1 V5(TS6 (마) 전환 + 계약 8 ⑤ 목록) | diff(V5) | F1 | 없음 | **없음**(id 제안 `20261002-p3-callers-update` = card id, `_drafts/f1_v5_carry_plan.md`) | 두 번 시도 운반(X-1 닫힘 -- 같은 이유, 절차는 f1_v5_carry_plan.md) |
+| T1 V5 | diff(V5) | T1 | 없음 | **없음**([GAP]) | T1 test 커밋 뒤 |
+
+사용자 질문이 **새로** 필요한 지점(나머지는 답 받음): T0 V5 diff(질문 문안 = T0 card '결정 필요 항목' + 비교 완화 한 줄 + import 출처 3줄, [W-1] 질문·답은 jsonl 바이트 그대로), F1 V5(⑤ 목록 제시 방법 -- review_p3_f12_r3 끝 절·r4 m1~m2), T1 V5, 그리고 조건부: B26-1 1차 발견이 두 시그니처 test 밖이면 (6) 승인, D0b S-5가 비지 않으면 0.4 멈춤 절차 재질문, T0 (아)가 MATCH 아니면 재보고.
+
+---
+
+## 4. b26pre `20260930-b26-pre-test-strengthen` (test-only, phase 3) -- **2차 시도 준비됨(2026-10-06)**
+
+* **1차 시도(끝남)**: card S1 `6c724de` push → test T1 `d2b2ed7` → auditor **V4만 FAIL**(규칙 (1) 172·196·397행, 규칙 (4) 3 test -- 판정이 `_b26pre_` 도우미에만), 나머지 PASS(V8·V9 N/A). 판정 기록 push 안 됨, 역할 브랜치·worktree 정리됨(`refs/heads/role/` 0). 보관 `$DR/b26pre_attempt1/`(`T1.patch` sha256 `286667e2…`, 판정 기록 사본·scripts·out).
+* **사용자 결정**: "(가) card 1(d)를 리터럴 기대값으로 개정 (Recommended)"(2026-10-06).
+* **card 개정**(`$DR/draft_b26pre.spec.md`, 백업 `.pre-att2.bak`·`.pre-att2r.bak`, sha256 `dba86fa1…`): 계약 1 (d) `{t.stack_id for t in pr["transistors"]}`·`set(pr["repaired_rows"])` 각각 `== {"pair_row_repair0_repair0_repair0"}`(measured at `6c724de`, 2026-10-06 재측정 seed 0·1·7·123·42 둘 다 참, (c) 기준선 값 -- `max_iter` 기본 3과 docstring에 맞음), 계약 2·5 중복 단언 대신 리터럴 비교 한 번, 계약 3·10 판정 문장은 test 본문, 계약 8에 '판정 문장의 자리'(규칙 (4) 판정 = 본문 `assert`·`assert…` 호출·`pytest.raises/warns/fail/deprecated_call`)·'`==` 판정의 기대 쪽'(interface card 심볼 호출을 담지 않는 값) 규칙, oracle 절 (c) 목록, '작성 전 실측' 0에 2차 시도 문단. measured rev 표지는 `dd60db6` 그대로.
+  gate `6c724de` `parse_spec_card` = `('3','test-only','no',['20261001-b26-phase3-cards'],[],11)`, 재생성 interface card = 1차와 바이트 같음(sha256 `54552e82…`, 19행). 독립 검토 `review_b26pre_att2.md`(B 0·S 1·minor 6) 반영(r, 2026-10-06): S1·m1~m5, m6 정보성.
+* **launch**: `$DR/b26pre_launch.sh` 2차 판(1차 판 = `.pre-att2.bak`, 상태 파일 `b26pre_launch2_state.txt`): `conds` → `local`(pre: 1차 잔재 0·gate card sha = 1차·T1 미포함·판정 기록 없음·`6c724de` 뒤 SR/SD diff 0·초안 sha256 고정·scratch `/c/g370`·`/c/g371`·`/c/g372` 셋 다 없음·`T1.patch` 한 파일을 `$DR/b26pre_att2_input/`로 복사(sha256 `286667e2…`, 다른 파일 있으면 멈춤) → card: 개정 card 한 파일 커밋 S2(interface card 재생성 바이트 불변 확인) → final) → 단독 push → `after-push`.
+* **선행**: 1차 정리(충족), 역할 브랜치 0(충족), 승인 새 기록 없음(approval 줄 = phase3-cards 하나).
+* **명령**:
+  ```bash
+  bash $DR/b26pre_launch.sh conds            # 기대 exit 0(0·0·0·0·0)
+  bash $DR/b26pre_launch.sh local            # 2차 전제 OK → parse_spec_card ('3','test-only','no',['20261001-b26-phase3-cards'],[],11) → S2 = card 한 파일
+  git -C "$R" push gate master:master        # 단독(lc_push_cmd 형태 -- APPDATA env)
+  bash $DR/b26pre_launch.sh after-push
+  ```
+  → §2 test-only 변형: 순서 1 → `test ! -e /c/g370` → test-author(`$DR/b26pre_briefs.md` **1.1절**, scratch `C:/g370` -- 오케스트레이터가 더한 입력 `$DR/b26pre_att2_input/T1.patch` 한 파일만, 그 밖 `_drafts/**` 금지; 선례 8.4) → `test ! -e /c/g371` → 순서 3 auditor(scratch `C:/g371`, 브리프 2절 + A2 '2차 차이') → `test ! -e /c/g372` → 순서 7(scratch `C:/g372`) → 순서 8 push → 정리(test·audit, `/c/g370`·`/c/g371`·`/c/g372` 삭제 확인).
+* **기대 수치(오케스트레이터 사전 측정, 증거 아님)**: 개정 문장 시제품 V4 도구 PASS(FAIL 0), base 19 passed(seed 0·1), V3 주표 20/20 targeted·18 죽음·생존 2(= backfill 몫 SR 11799·11878), 전체 301/not_targeted 2,141(1차 auditor 측정과 같은 기대), 참고표 15/16.
+* **병합 뒤 재측정 → backfill**: (다) b26pre test 존재, backfill `v3count` 대상 4(병합 도구), backfill red(2 failed) 재현.
+
+## 5. backfill `20261001-b26-backfill-interdig-final-audit` (red-green, phase 3) -- **[초안 작업 중]**
+
+* **launch**: `$DR/backfill_launch.sh` -- `conds` → `--scratch /c/g<번호> local`(pre → v3count → card → final) → 단독 push → `after-push`. `local`은 `--scratch` 필수(없는 경로, 성공 시 삭제).
+* **선행**: b26pre 병합·정리. 착수 0단계 (가)~(아)(브리프 머리): (가) `git -C "$R" diff --stat 2183f2e gate/master -- …/sizing_recipe.py` 빈 출력, (나) 11757~11880 글, (다) b26pre test 1, (라) U-BF 기록 1, (마)(바) 34·35 기록, (사) phase3-cards, (아) Phase 2 DoD PASS.
+* **승인**: U-BF `20261001-b26-backfill-interdig-fix`(gate 있음 -- 다시 올리지 않음), phase3-cards(있음). 새 기록 없음.
+* **열린 항목(backfill_on_b34real §3)**: 이미 반영된 것 -- launch 287행 `exp={11799,11878}`, 브리프 머리 measured `2183f2e`, spec 174행 새 measured 문단(`2183f2e`, 마지막 출현). 확인할 것: spec·브리프의 SR 줄 −1 전수(`draft_b26_backfill_audit.spec.md` 15~183행 목록), `b26_backfill_briefs.md:18` 판정 문구, `post35_kit/p35_heads.py:120`. **gate 기록 `approval_…interdig-fix.md:13`의 줄(11784~11786)은 고치지 말 것**(dd60db6 기준, card에 그렇게 적기).
+* **명령**:
+  ```bash
+  bash $DR/backfill_launch.sh conds                          # 기대 exit 0
+  bash $DR/backfill_launch.sh --scratch /c/g<새번호> local   # v3count: {"verdict":"PASS","mutants":4,"killed":4,"not_targeted":93} 모양, 대상 4가 아니면 멈춤
+  git -C "$R" push gate master:master                        # 단독
+  bash $DR/backfill_launch.sh after-push
+  ```
+  → §2 표준(red-green): 순서 1~8, 수정 = SR 11799·11878 두 줄 삭제(numstat `0 2`). 기대: 변이 전 dry run 2 failed(`assert False is True`), green 21 passed(backfill 2 + b26pre 19).
+* **병합 뒤 재측정 → B26-1(브리프 §4 끝 'B26-1 인계')**: B26-1 V3 대상 수 '299'·not_targeted 2,136, E6 finger growth 행 6 → 4, AST 경로 순번, Q1(U3) 문안, `b26v4_head.py` `SITE_SD_B1`(실제 B34 줄 1014·1570·1612·2090·2166·3130·3235·3967·4146·4282·4298·4345·4367).
+
+## 6. B26-1 `20260930-b26-rail-accessor-set` (red-green, phase 3, **두 번 시도**) -- **[초안 작업 중]**
+
+* **launch**: `$DR/b26_1_launch.sh`(1차 시도 직전까지) + `$DR/b26_1_carry.sh`(운반, 단계 2). 정본 = spec '승인 줄 배치' 1~5·'두 번 시도 절차' 표(444~466행).
+* **선행**: backfill 병합·정리. 착수 조건 1~11(card 명령). 조건 10 = `20260930-b26-b40-reason-key`가 gate에(이 card 순서 0 전 -- local1이 올린다).
+* **승인**: b40-reason-key(local1 P), p9-signature-update·v3-equiv-range(운반 커밋). 사용자 답은 모두 받음(U3·U4·U5, 2026-10-01). 새 질문은 1차 발견이 다를 때만(아래 1차 기대 밖 → 멈춤·(6) 승인).
+* **열린 항목(b26_1_on_b34real)**: D1 `ALLOW_SR`에 B34 id -- **반영됨**(85행). D2~D6 spec 줄(15·30·38~46·52·71~72행 → 실제 B34 base 줄) -- 작업 중 agent 몫. `b26_scripts/b26v4_head.py:13` `SITE_SD_B1` 실제 줄로(안 고치면 `_check_sites` AssertionError -- 측정 키트). 묶기 해시는 실제 B34에서 `3fe8fe66…`(모의 `cdab7b02…`와 다름) -- 미리 적은 해시 쓰지 말 것(기록 5 target은 1차 실측값). review_b26_1_carry_today: B 0·S 0·minor 4.
+* **명령 -- 순서 0(push 두 번)**:
+  ```bash
+  bash $DR/b26_1_launch.sh conds              # 기대 exit 3, 미충족 = 10(b40 기록)만
+  bash $DR/b26_1_launch.sh local1             # pre → appr → final-appr (로컬 커밋 P = b40-reason-key)
+  git -C "$R" push gate master:master         # push #1 단독
+  bash $DR/b26_1_launch.sh after-push-appr    # 조건 1~11 전부 0
+  bash $DR/b26_1_launch.sh local2             # card → final (S: spec + interface 46행 = 기존 44 + 신규 2)
+  git -C "$R" push gate master:master         # push #2 단독
+  bash $DR/b26_1_launch.sh after-push         # gate master = S = B1(상태 파일 B1=, carry 단일 출처)
+  ```
+* **1차 시도(병합 안 함)**: §2 순서 1~5. auditor 순서 3: `weakening_diff.py --base B1 --head T1` → `base_check.json`(기대 FAIL, 발견 = 두 P9 시그니처 test '비교 완화'뿐, `diff_paths` = [`…/contracts/test_dup_kcl_edges.py`]). V5 FAIL은 예정 -- 순서 5(K1)까지 진행, auditor가 `mutate_changed.py --base B1 --head K1`로 V3 → `attempt1_v3.json`·`attempt1_v3.out.jsonl`(audit worktree `.ai/verification/$ID/`, **커밋 금지**). 기대: mutants 299·not_targeted 2,136·생존 1 = U3(`find_differential_pair_candidates` `range(i + 1, …)` const−). 다르면 멈춤.
+* **운반(단계 2, 순서 고정 (a)→(b)→(c)→(d))**:
+  ```bash
+  bash $DR/b26_1_carry.sh prep        # (a) check → archive(_drafts/b26_1_attempt1/) → records(기록 4·5 작성, 커밋 없음)
+  bash $DR/b26_1_carry.sh cleanup     # (b) 정리 명령 '출력만' -- 출력된 worktree remove --force 3줄·branch -D 3줄을 한 줄씩 단독 실행
+  bash $DR/b26_1_carry.sh cleaned     # refs/heads/role/ 0, 이 card worktree 0
+  bash $DR/b26_1_carry.sh local       # (c) Role: doc 커밋 하나(운반 blob + paths.tsv + 기록 4·5 + card approval 줄 4·5)
+  git -C "$R" push gate master:master # 단독
+  bash $DR/b26_1_carry.sh after-push  # (d) gate master = B2, B1·B2 P9 blob 같음, 2차 시도 명령 출력
+  ```
+* **2차 시도**: base B2. 착수 전 `git -C "$R" diff --quiet B1 B2 -- skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py`. test-author = 운반 `.blob`을 `cp`, 나머지 test는 `_drafts/b26_1_attempt1/T1.patch`의 `+` 줄로 Write/Edit(apply·cherry-pick 금지). code-author = `_drafts/b26_1_attempt1/K1_SD.py`에서 show→Edit로 같은 글자. auditor = V5 `approved: true`(target = 기록 4), V3 exempt 1(기록 5)·나머지 killed, V1 `-c` old = **B2**. 순서 6~8·정리는 §2 표준.
+* **병합 뒤 정리 커밋**: 운반 디렉터리 `docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260930-b26-rail-accessor-set/` 삭제(Role: doc, 단독 push).
+* **병합 뒤 재측정**: → T0 (가)(나) `rail_declaration` = SD 1, (사) B26-1 계약 12가 SR selftest 24행 이름 목록을 바꿨는지, (아) `step0_v4.sh` MATCH, (자) 계약 10 dry run(`test_b26_rail_accessor.py` 실제 계수 방식). → B33 머리 수치 전체(V7 그래프 입력). → D0a 조건 8 (e1)·(e4) 스캔. → M2·M3 단위(MOD2에 `rail_declaration` A-1·`RailDeclaration` A-2, m2_m9_open_items O-1).
+
+## 7. B33 `20260930-v7-registry-edges` (gate card, phase 0.5, red-green)
+
+* **launch**: `$DR/b33_launch.sh` -- `kit-cmds`(재측정 명령 출력) → `pre` → `local`(pre → doc → card → appr → final, 로컬 커밋 3개) → 단독 push → `after-push`.
+* **선행**: 34·35·B34·b26pre·backfill·B26-1 병합·정리(launch 머리). `reachability.py` 불변 확인(브리프 0.6-2).
+* **승인**: `20260930-v7-registry-edges`(diff -- 사용자 "승인 (Recommended)" + Q1 "(a) 호출 위치만", 2026-10-01). 초안 있음 → appr 단계가 커밋.
+* **열린 항목**: measured 문단은 `dafe5cf`(2026-10-06) -- `dafe5cf..2183f2e` V7 그래프 입력 78파일 바뀜 + B26 계열 → **`pre`가 멈추도록 설계됨**: B26-1 병합 뒤 `kit-cmds`로 다시 재고 spec '작성 전 실측'에 `(착수 재측정 <날짜>, gate master <rev> …` 문단을 HL_RE 형식대로 더한다. review_b33_dafe minor 2(264행 `0f23786 523·580` 옆에 `dafe5cf 592·666` 병기 / launch 293행 grep이 726행 출력 -- 알림).
+* **명령**:
+  ```bash
+  bash $DR/b33_launch.sh kit-cmds     # 출력된 재측정(run_headline.sh·summarize.py·run_attack33.sh·34/35 무동작)을 새 C:/g<n>에서 실행
+  #   → spec 초안 '작성 전 실측'에 새 문단(수치 = 출력) -- 단정: edges_equal_head_tool true, 인벤토리 0 회귀 0, m4 not_same_or_error 0
+  bash $DR/b33_launch.sh pre
+  bash $DR/b33_launch.sh local        # A 문서(design 05 §10 V7 행) · B spec+interface · C 승인 기록; final에서 gate_change_ok True
+  git -C "$R" push gate master:master # 단독
+  bash $DR/b33_launch.sh after-push
+  ```
+  → §2 표준 순서 1~8(redteam 33 단계 표 30단계, 브리프 1.3) → 정리.
+* **병합 뒤 재측정 → G1**: G1 키트 재측정(B33 병합본 `reachability.py` 위, g1 브리프 0.7 ②~⑥). → T0 conds 4~8 충족.
+
+## 8. T0 `20260930-p3-tests-location-free` (test-only, phase 3) -- T0-V4 면제 기록 커밋 포함
+
+* **launch**: `$DR/t0_launch.sh` -- `kit-cmds` → `conds`(조건 1~11) → `local`(pre → card → final) → 단독 push → `after-push`.
+* **선행**: UD-0 기록(있음), design 30 문서(있음), Phase 2 DoD PASS(있음), B34·b26pre·backfill·B26-1·B33 판정 기록(조건 4~8), B26-1 `test_b26_rail_accessor.py`(조건 9), 이 card spec 없음(10), **조건 11 = V4 면제 기록 gate에**.
+* **승인**: `20260930-30-module-split-design`(있음), `20261002-p3-t0-v4-s009-exempt`(초안, §8.1에서 커밋), `20260930-p3-tests-location-free`(V5 diff -- 순서 0 때는 gate에 **없어야** 함, test 커밋 뒤).
+* **열린 항목**: t0_fu_at_2183 STOP 0. drift D2(`t0_briefs.md:161·200` PT3 절대 수 1047 → 지금 1090 passed·15 xfailed, id 1105 -- 판정 무관), D3(spec 227~231행 '`tools/` 밖 setattr 0' → 2건: B34 test 242행, `disc35.py:40` -- (바) 분류 문장에 한 줄). review_t0_fu_r2 m1(계획 686 → 688행, 991 → 993행). review_t0_fu_r2 S1'·S2'는 반영됨(launch 153~154행 `exa_filled`). §18 X-1·X-2 **닫힘**(두 번 시도 운반 `t0_carry.sh`, 병합 없음 -- 8.4).
+* **8.1 착수 0단계(B33 병합 뒤 gate master = $B, 격리 복제본 <iso>)** -- 브리프 머리 그대로:
+  ```bash
+  bash $DR/t0_launch.sh kit-cmds      # 아래 명령 출력
+  B=$(git -C "$R" rev-parse gate/master)
+  git -C "$R" diff --name-only 19eb475 $B -- skills/analog-gmid-design/assets workspaces/run_harness.py docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md
+  $PY -B $DR/p3kit_t0/t0_facts.py <iso> $B <scratch>/t0_facts_$B.json                 # (가)~(바)
+  $PY -B $DR/p3ud6_kit/w1_lines.py <iso> $B <scratch>/w1_lines_$B.json                # (사) 계약 11
+  $PY -B $DR/p3fq_kit/shim_import_reads.py <iso> $B <scratch>/shim_reads_$B.json      # (사)
+  bash $DR/p3kit_t0/step0_v4.sh <iso> $B <게이트 캐시 tools/gates> $DR/draft_p3_t0.spec.md <scratch>/step0_v4   # (아) 마지막 줄 '판단: MATCH'
+  #   (자) 계약 10 dry run -- B26-1 test 실제 모양으로 스크립트를 그때 작성(합성 트리: base 옛 계수 FAIL(0), 시제품 PASS). 아니면 test-author 전에 계약 10 수정/삭제
+  ```
+* **8.2 T0-V4 면제 기록 커밋(질문 없음 -- 답 2026-10-02 19:54 KST, test worktree 전·순서 0 전, 역할 브랜치 0)**:
+  (아)가 MATCH(FAIL id = `test_selftest_sizing_recipe.py::test_s009_revalidate_finger_override` 하나, UNJUDGED 식 = TS2 식)일 때만. 아니면 **커밋하지 말고 멈추고 보고**.
+  ```bash
+  # 1) $DR/approval_20261002-p3-t0-v4-s009-exempt.md 105행 '<MATCH 결과 줄 …>' 자리를 <scratch>/step0_v4/v4_summary.txt 판단 줄로 Edit (초안 = p3kit_t0/…draft.md 바이트 같음 -- 사본 남김)
+  grep -c '<MATCH 결과 줄' $DR/approval_20261002-p3-t0-v4-s009-exempt.md     # 0
+  grep -c '판단: MATCH' $DR/approval_20261002-p3-t0-v4-s009-exempt.md        # 1 이상
+  cp $DR/approval_20261002-p3-t0-v4-s009-exempt.md "$R/.ai/approvals/20261002-p3-t0-v4-s009-exempt.md"
+  $PY -B "$R/tools/gates/merge_gate.py" parse-approval "$R/.ai/approvals/20261002-p3-t0-v4-s009-exempt.md"   # exit 0, id 일치 (gate 판 = 작업 트리 판 확인 뒤)
+  git -C "$R" add -- .ai/approvals/20261002-p3-t0-v4-s009-exempt.md
+  git -C "$R" commit --trailer "Role: doc" --trailer "Change-Id: 20261002-p3-t0-v4-s009-exempt" --trailer "$COAUTH" -m "docs: 승인 기록 20261002-p3-t0-v4-s009-exempt([T0-V4] test_s009 규칙(1) 면제, target_kind decision -- 착수 0단계 (아) MATCH)"
+  git -C "$R" push gate master:master        # 단독, 전체 출력 확인
+  ```
+  (Change-Id 트레일러는 D-11 승인 커밋 선례 `p3_ud6_runbook` §2-4를 따랐다.)
+* **8.3 순서 0**: spec 초안 '## 작성 전 실측' 첫 문단 앞에 `**measured at \`<gate master 7자>\`**(착수 0단계 재측정 <날짜> -- _drafts/t0_launch.sh가 읽는 measured rev 단일 출처): …` 한 줄(없으면 pre가 거부), D3·m1 사실 문장 갱신.
+  ```bash
+  bash $DR/t0_launch.sh conds       # exit 0
+  bash $DR/t0_launch.sh local       # parse_spec_card ('3','test-only','no',[3개],[],11), interface 기존 함수 6
+  git -C "$R" push gate master:master
+  bash $DR/t0_launch.sh after-push
+  ```
+* **8.4 역할(X-1·X-2 닫힘, 2026-10-06)**: **1차 시도** 순서 1 → test-author(계약 1~11, import 출처 3파일 24행 7이름) → 순서 3 auditor 3.1(base_check.json 키 `V5`에 weakening_diff 출력, V5 FAIL로 멈춤 -- §1-3 무커밋 가드) → `bash $DR/t0_carry.sh prep` → **V5 diff 승인 질문**(`_drafts/t0_attempt1/v5_question.txt` 그대로 + card 범위 문장) → 답을 `$DR/approval_20260930-p3-tests-location-free.md` 자리에 Edit → `records` → `cleanup`(출력된 4줄 단독) → `local` → push 단독 → `after-push` → **2차 시도** 순서 1 → test-author(운반 blob cp + T1.patch) → `t2-check` → 순서 3 → 빈 브랜치 가드 → 순서 7(T2 바로 위 Role: audit, **병합 없음**) → 순서 8 → 정리(test·audit) → `purge` → push 단독. 근거·명령 정본 = `t0_briefs.md` §4, `t0_carry.sh` 머리, card '결정 필요 항목' (X-1) 문단. 모래상자 리허설(`/c/g322`, 2026-10-06): 1차 → 운반 → 2차 → purge 전 구간 PASS, 거부 사례 5(자리표시 남음·꾸민 답·정리 전 cleaned·병합 전 purge·2차 blob 다름) 모두 거부, 2차 worktree autocrlf=true(.blob CRLF 사본 cp → 같은 blob). **review_t0_carry(B 0·S 2·minor 5) 반영(r1, 2026-10-06)**: records 인용 대조 = `_drafts/t0_quote_check.py`(인용 블록마다 머리 줄의 세션 jsonl·toolu 하나에 묶어 질문 = `input.questions[].question`, 답 = `toolUseResult.answers[질문]` 전체 일치 -- fill_u3 방식; jsonl 이름은 `--jsonl` 폴더에서 찾음), 입력 핀 `T0_DRAFT_SHA256`(초안 canon -- V5 자리 6개 밖 산문)·`T0_QCHK_SHA256`(커밋 본문에 기록), 양식 끝 `</content>`·`</invoke>` 삭제 + bytes_ok 닫는 태그 거부, t2-check 기준 = 보관 `t1_blobs.tsv`(SHA256SUMS + 상태 사본 cmp), archive 중단 흔적이면 rm 두 줄·다시 실행 명령 출력, after-push 순서 8 = push → fetch → merge --ff-only → 정리 4줄 → purge → push(옵션 포함 출력). 리허설 r1(`/c/g343`): 전 구간 PASS, 거부 사례 16(위 5 + S1 4[고르지 않은 선택지·잘린 '승인'·W-1 답 ↔ D-11 답·W-1 답 '(나)'; 뒤 둘은 산문 핀이 먼저 거부] + 꾸민 답 + 산문 변조 '기대값 변경 허용' + 끝 태그 두 줄 + 자리 값 안 태그(bytes_ok) + archive 재실행·중단 흔적 + t2-check 기준 변조 둘), after-push가 출력한 명령을 그대로 실행; `t0_quote_check_test.py` 20/20 + 실제 답 전수 85/85 수용(세션 jsonl 전부, 답 없는 거부·오류 질문 9개는 거부가 맞음). **review_t0_carry_r1(B 0·S 1·minor 3) 반영(r2, 2026-10-06)**: records가 `t0_quote_check.check_record`로 V5 블록을 이 target에 묶는다 -- V5 질문 인용 ⊇ 보관 `v5_question.txt` 전체(그 안 `diff_hash(target)` 줄 = 상태 DIFF_HASH), 답 = 선택지 label 정본 `V5_APPROVE_LABEL`(archive가 `labels`로 `t0_attempt1/v5_options.txt`에 써서 질문 선택지로 쓴다), V5 tool_use 줄 timestamp > 상태 `ARCHIVED_AT`, `<V5_ASKED_AT>` = 'YYYY-MM-DD HH:MM KST' = 그 timestamp KST 분; bytes_ok 태그 거부에 'V5 질문 문안에서 `</`를 피해 다시 묻는다' 안내; 핀 `T0_QCHK_SHA256` 갱신(초안 canon 핀 그대로). selftest 30/30 + 실제 답 전수 87/87(하위 폴더 포함, tool_use timestamp→KST 68/68), 리허설 r2(`/c/g363`, 스크립트 scratchpad `t0_carry_rehearse_r2.sh`): 전 구간 PASS, 거부 21(r1 16 - 자리 값 안 태그 1 + X1 W-1 세션 D-11 질문·답·X2 사용자가 '거부' 고름·X3 V5_ASKED_AT 산문·형식만 맞고 timestamp와 다름·archive 전 질문·정당한 질문 안 `</b>`).
+* **병합 뒤 재측정**: F1 착수 조건 (2)(shim 경유 비엔진 이름 읽기 0), M1 계약 test 위치 가정(F6). T0는 G1과 독립 -- G1·D0a와 병렬 착수 가능하나 병합은 한 번에 하나, M1 전에 병합.
+
+## 9. FU `20261002-p3-future-annotations` (equivalence, phase 3, test 커밋 0)
+
+* **launch**: `$DR/fu_launch.sh` -- `kit-cmds` → `conds`(1~13) → `local` → 단독 push → `after-push`(세 worktree 명령 출력) → `roles`(확인).
+* **선행**: S-1 UD-0 기록 + FU id·D-29 원문(충족, grep 2), S-2 Phase 2 DoD(충족), S-3 B33까지 병합, S-4 D0b 미착수(D-27 동결 전), S-5 DR·ACF = `dd60db6` 바이트·future 줄 SR·SD·TL 셋뿐(2183f2e 성립), S-6 역할 브랜치 0.
+* **승인**: `20260930-30-module-split-design`만(있음). 새 질문 없음.
+* **열린 항목**: t0_fu_at_2183 D1(spec 163~164행 추적 `.py` 21 → **23**), D2(`fu_briefs.md:129` PT3 절대 수). review_t0_fu_r2 FU-B1'은 r3t 반영(A2에서 sha256 절대값 뺌). A2 전제 Python 3.14.2(pre가 확인).
+* **명령**:
+  ```bash
+  bash $DR/fu_launch.sh kit-cmds    # 0단계 명령(브리프 §0): diff --stat dd60db6 $B -- DR ACF 빈 출력, ':(glob)' future grep = SR·SD·TL
+  #   → spec '## 작성 전 실측' 첫 문단 앞에 '**measured at `<7자>`**(…fu_launch.sh가 읽는 measured rev 단일 출처)' 줄
+  bash $DR/fu_launch.sh conds       # exit 0
+  bash $DR/fu_launch.sh local
+  git -C "$R" push gate master:master
+  bash $DR/fu_launch.sh after-push  # 출력된 명령을 한 줄씩:
+  git -C "$R" worktree add "$W/$ID-test" -b "role/test/$ID" gate/master                 # 커밋 0
+  git -C "$R" worktree add "$W/$ID-audit" -b "role/audit/$ID" "role/test/$ID"           # auditor 3.1
+  git -C "$R" worktree add "$W/$ID-code" -b "role/code/$ID" "role/test/$ID"             # code-author 2절
+  bash $DR/fu_launch.sh roles
+  ```
+  → 순서 6(§1-4 가드) → 7(A1 관계 PT3·E-LIB·E-INST base = 병합본, A2 DR 16·ACF 5 코드 객체 같음) → 8 → 정리(이때 처음으로 세 브랜치·worktree 삭제).
+* **병합 뒤 재측정**: G1 spec '작성 전 실측' 8 future 문장('split 5파일 모두 future'), D0a 브리핑 엔진 사실 줄(future + DR 28·ACF 38), D0b 0단계 future grep 두 줄. 백로그 한 줄: 레지스트리 217행 `design_report.py:32` → 33.
+
+## 10. G1 `20260930-p3-gate-move-aware` (gate card, phase 0.5, redteam 32)
+
+* **launch**: `$DR/g1_launch.sh` -- `kit-cmds` → `pre` → `local`(pre → doc → card → appr → final, 3커밋) → 단독 push → `after-push`.
+* **선행**: 34·35·B34·b26pre·backfill·B26-1·B33 판정 기록(lc_pred_ok), UD-0 기록 + design 30, `.ai/context.md`에 UD-5 답 줄, measured rev 뒤 G1 입력 불변(아니면 멈춤). FU·T0는 독립(병합 여부만 봄 -- FU 병합됐으면 spec 실측 8 문장 갱신).
+* **승인**: `20260930-p3-gate-move-aware`(UD-5 "(가) 전역 이동 인식 (Recommended)", 2026-10-02; jsonl `toolu_01VKN8qT3BbTikfZQyV9sdQi` 바이트 대조는 pre (3)이 함) -- appr 단계가 커밋.
+* **열린 항목**: review_g1_dafe B 0·S 1(setup_clones autocrlf -- **반영됨**, `g1_kit/setup_clones.sh` 9~10행 r1g)·minor 5. 계약 12 `overwrite-similar` not_targeted 12 = 승인 범위 안(질문 없음), qualname 중복 문구 확정. noop 기준선 = `g1_kit/out/noop_base_dafe5cf.*`(env export 수정 뒤). measured 최신 문단 `dafe5cf`(306행) -- B34·B26·B33 병합 뒤 G1 입력(엔진 assets·tools/gates)이 바뀌므로 **pre가 멈춘다 → kit-cmds로 재측정 문단 추가**(0.7 ③ 새 이름 grep 줄 수 다시 세기, `tools/` 0건).
+* **명령**:
+  ```bash
+  bash $DR/g1_launch.sh kit-cmds   # 0.7 ③⑤⑥: setup_clones.sh <S> <R> <gate sha>, m9_measure.py, g7_facts.py, run_attack32.sh <S> b base -(93단계 표 왼쪽 열), run_noop.sh … --only 33- --only 34- --only 35-
+  bash $DR/g1_launch.sh pre
+  bash $DR/g1_launch.sh local      # A patch_g1_docs.py(design 05 §10 V3·V6·V7 + 계획 533행) · B spec + interface(신규 7행·기존 0행) · C fill_v3_approval.py(diff_path 4개)
+  git -C "$R" push gate master:master
+  bash $DR/g1_launch.sh after-push
+  ```
+  → §2 표준(redteam 32 단계 표 31단계: red 8 + 거부 23) → 정리.
+* **병합 뒤 재측정 → D0a**: `SourceIndex.tree` 공개(C-4), 재사용 이름 시그니처, G1 `units` 문장 키, 계약 8 (a) 관찰은 **병합본 G1으로**(시제품 키트 쓰지 않음).
+
+## 11. D0a `20260930-p3-move-plan-tool` (red-green, phase 3) -- **[초안 작업 중]**
+
+* **launch**: `$DR/d0a_launch.sh` -- `conds`(1~8; 8 = (e1)·(e4) AST 스캔) → `local` → 단독 push → `after-push`. `PREDS` = B34·b26pre·backfill·B26-1·B33·35·G1. `MEAS_PATHS` = tools/gates·tools/migrate·계획·레지스트리·tests/tooling.
+* **선행**: C-1 UD-0(충족), C-2 Phase 2 DoD(충족), C-3 G1까지 병합, C-4 `SourceIndex.tree`, C-5 역할 브랜치 0, C-6 interface 기존 함수 0.
+* **승인**: `20260930-30-module-split-design`만. 새 질문 없음.
+* **열린 항목**: review_d0a_d0b_ready_r1 D0a minor m2~m5 이월. `d0a_determinism.md` 반영(계약 2 '결정성' 문단·(e5)·합성 단계 `determinism` -- 작업 중 agent). 인용할 때 키 방식(names/hash) 명시. spec measured 앵커는 G1 병합 뒤 base로.
+* **명령**:
+  ```bash
+  # 0단계(브리프 머리): diff --stat 36e170e $B -- tools/gates tools/migrate <계획> <레지스트리> …/tests/tooling; reachability.py·import_layering.py grep (가)~(라)
+  bash $DR/d0a_launch.sh conds     # exit 0 (조건 8: (e1)·(e4) 둘 다 0 -- B34·backfill·B26-1 실제 코드 위)
+  bash $DR/d0a_launch.sh local
+  git -C "$R" push gate master:master
+  bash $DR/d0a_launch.sh after-push
+  ```
+  → §2 표준 → 정리.
+* **병합 뒤 재측정 → D0b**: D0a `code_commit`의 `tools/migrate/move_plan.py plan`(design 30 §6.3 `MP_ARGS`)으로 S-4·S-5·S-7. 0.4 기록 전달(D0a 브리프).
+
+## 12. D0b `20260930-p3-registry-dest` (red-green, phase 3) -- D-11 조건 확인, D-27 동결 시작
+
+* **launch**: `$DR/d0b_launch.sh` -- `--iso /c/g<n>/d0b-iso conds`(S-1~S-7) → `--iso … local` → 단독 push → `after-push`(S-6 대기열 + test worktree 명령) → 병합 뒤 `freeze`. `PREDS` = B34·b26pre·backfill·B26-1·B33·G1·FU·D0a(T0는 아님).
+* **선행**: S-1 UD-0 + D-19(충족), **S-1b D-11 기록 `300fd65` + 계획 MOD1 토큰 `29d2fc2`(충족)**, S-2 D0a + FU 병합, S-3 Phase 2 DoD, S-4 D0a 규칙, S-5 여섯 목록·MOD7 밖 0, S-6 역할 브랜치 0 + **D-27 동결 대상 card(B26-2~B26-4·B35·B36·B37a 등)를 대기열에서 F2 뒤로**, S-7 (d)-1 표 근거 재확인(`_QUERY_CACHE_MAX` rule = `A-1`).
+* **D-11 조건 확인(사용자 답의 조건)**: S-5가 `conflicts`·`upward`·`cycles`·`unassigned`·`import_time_high`·`import_conflicts` 모두 `[]`, MOD7 밖 0이면 진행(재질문 없음). **하나라도 비지 않으면 멈추고 다시 묻는다** -- 브리프 0.4 멈춤 절차(질문 모양 `p3_followup_questions.md` §1.3: 현재 배정 → 새 배정, 위로 가는 참조·줄 번호, (가) N3.10 토큰 / (나) 다른 해소) → 문서 커밋 + 승인 기록(`target_kind: diff`) → push → S-5 다시 → spec `approval` 줄 추가.
+* **승인**: `20260930-30-module-split-design`, `20261002-p3-d11-query-cache-max`(둘 다 있음).
+* **열린 항목**: review_d0a_d0b_ready_r1 D0b B 0·S 0·새 minor 3(r1-m1 요약 키에 스크립트 sha -- **반영됨**(머리 주석), r1-m2 실패 plan 캐시 지우는 안내 -- 반영됨, 나머지 1). 키트 `p3kit_d0b/*.sh`는 `C:/g162` 가드가 박혀 있어 사본으로 고쳐 써야 함(브리프 0단계).
+* **명령**:
+  ```bash
+  # 0단계: git -C "$R" log --oneline -14 $B; diff --stat dd60db6 $B -- <계획> <레지스트리> tools/gates tools/migrate 'skills/analog-gmid-design/assets/*.py'; '보류(Phase 3)' 셈; DR·ACF future 두 줄
+  bash $DR/d0b_launch.sh --iso /c/g<새번호>/d0b-iso conds     # exit 0, 아니면 0.4
+  bash $DR/d0b_launch.sh --iso /c/g<새번호>/d0b-iso local
+  git -C "$R" push gate master:master
+  bash $DR/d0b_launch.sh after-push
+  ```
+  → §2 표준 → 정리 → `bash $DR/d0b_launch.sh freeze`(**D-27 동결 공지** -- 시작 = D0b 판정 기록 `code_commit`, F2 병합까지 엔진·`tools/gates/**`·`tools/migrate/**`·레지스트리 '이관 목적지' 열을 바꾸는 Phase 3 밖 card 병합 금지).
+* **병합 뒤 재측정 → M1**: `git -C "$R" diff --stat <D0b code_commit> gate/master -- skills/analog-gmid-design/assets/*.py workspaces/run_harness.py tools` 빈 출력(D0b~M1 구간은 DoD가 덮지 않음), D0b 판정 기록의 `_QUERY_CACHE_MAX` 배정 = `gmid_lut.py`(A-1)(M1 실측 15).
+
+## 13. M1~M9 이동 card (equivalence, phase 3, M7 흡수) -- launch 스크립트 **없음**
+
+공통(정본 `m_cards_plan.md` §1~§3·§6, 각 `draft_p3_m<n>.spec.md`):
+* **순서**: D0b → M1 → M2 → M3 → M4 → M5 → M6 → M8 → M9(→ M10 → T1, [GAP]). M7(`stick_diagram.py` 레이아웃 잔류 111단위)은 card 없음 -- M2·M3·M9에 흡수(design §8 M7 행, 빈 card 금지).
+* **착수 조건(각 card)**: M1 = D0b까지(T0·FU·G1·D0a 포함) 병합 + D-11 토큰(충족) + D-27 동결 중. M2 이후 = M1과 같음 + **바로 앞 M card 판정 기록**이 gate에.
+* **승인**: 모두 `20260930-30-module-split-design` 하나. 새 질문 없음(M1-1 기본안 (가) MOD 파일 모듈 docstring 두지 않음, M1-3 기본안 계약 8 유지 -- 원칙 기본안). W-1(T0)·W-2(재수출 줄 위치) 닫힘.
+* **launch 대체 절차(스크립트가 생길 때까지 수동, 앞 card 패턴)**: ① 0단계 = 앞 card 판정 기록 `code_commit`에서 `plan`·`mod_imports` 다시 떠 '재현할 수치'·'작성 전 실측' 15 갱신(m2_m9_open_items 다음 할 일 1; 생성기 `p3kit_m2_m9/gen226.py` 등은 측정 전용) ② spec card + interface card(게이트 캐시 `interface_card.py` 절대 경로) Role: doc 커밋 → 단독 push ③ §2 표준 순서 1~8 → 정리. **launch 스크립트를 만들지 여부는 오케스트레이터 결정**(만들면 배선 -- M1에서 쓰지 않을 거면 만들지 않는다).
+
+| card | id(초안) | 단위(r1 names 키) | 특이 | 열린 항목 |
+|---|---|---|---|---|
+| M1 | `20261002-p3-move-mod1-gmid-lut` | 8(SR 8, `_QUERY_CACHE_MAX` A-1) | `gmid_lut.py`는 엔진 import 0 | M1 커밋 전 D0b 기록의 `_QUERY_CACHE_MAX` 배정 확인; 초안 18:04 갱신(`.pre-cur.bak`) |
+| M2 | `…-mod2-topology-authoring` | 18(SD 10·SR 7·ACF 1) | ACF 재수출 위치(W-2) -- 계약 10 auditor 명령(저장소 밖 cwd `spec_from_file_location`) | O-1 B26-1 뒤 MOD2에 `rail_declaration`·`RailDeclaration` 더해짐 -- 실제 base에서 재측정 |
+| M3 | `…-mod3-circuit-state-graph` | 82(SR 43·SD 39) | -- | O-1(B34 def 4개) |
+| M4 | `…-mod4-gmid-sizing-engine` | 104(SR 97·TL 7) | **TL 완전 shim** | O-3 완전 shim 사각, O-4 CACHE-ID 두 방향 |
+| M5 | `…-mod5-circuit-metrics` | 21 | -- | -- |
+| M6 | `…-mod6-theta-search` | 11 | -- | N-1 해소(review_m2_m9_r2) |
+| M8 | `…-mod8-sizing-layout-convergence` | 30 | **SR 완전 shim**, D-22 끝 import 1줄(SD 14이름) | O-4, O-8 R-D22 변형이 통과 |
+| M9 | `…-mod9-instance-report-builder` | 16(SD 8·DR 6·ACF 2) | **DR 완전 shim**, SD 재수출 파일 끝, ACF W-2 | O-5 card 단위 E3b ACF 사본 INVALID(기록만), O-6 `INSTANCE_TOP_FIELDS` SD 잔류 |
+
+* review_m2_m9_r2: M2~M9 통과, B·S 0, m-1(**`p3fq_kit/variant.py qtok`를 실제 gate에 돌리지 말 것** -- 토큰 이미 있는 판에서도 한 번 더 넣는다), m-2(정보).
+* O-7: T0 A군 test가 처음 깨지는 card(M2 `test_ic5…`, M4 `test_dup_w_calc…` 등) -- T0가 먼저 병합되어야 함(착수 조건).
+* D0a interface card 문장 보강(m2_m9_open_items 다음 할 일 2 -- O-4 두 방향·S-4 모양)은 D0a 초안 쪽 [초안 작업 중].
+* **각 M 병합 뒤 재측정**: 다음 M의 단위 집합·`mod_imports`·재수출 이름(`plan`이 냄, 손으로 정하지 않음), V3 대상 def 수(G1 `moved_defs`), IMPORT-ANY 시도 수.
+
+### 13.1 [GAP] M10 `<날짜>-p3-mod10-entry`(red-green)·T1 `<날짜>-p3-test-relocate`(test-only)
+
+지시 순서(M9 → F1)에는 없지만 design §8.1 ORDER `… M9 → M10 → T1 → F1 → F2`에 있고, **F1 base = T1 병합 뒤**(F1 spec 25행 -- T1이 `unit/test_selftest_*.py` 4개를 `unit/test_mod*.py`로 옮긴 뒤), DoD는 phase 3 card **20장**(M10·T1 포함, `draft_phase3_dod.md` §0 C1·§9-3), DoD E6 `--allow-changed`는 M10 둘이다. spec 초안·키트 **없음**. T1은 V5 승인(design §9.2 '뒤에 올 승인: T1·F1')이 필요하다. F1 착수 전에 두 초안이 있어야 한다.
+
+## 14. F1 `20261002-p3-callers-update` (equivalence, phase 3) -- launch 스크립트 **없음**
+
+* **선행**: M1~M9·M10·T1 병합(base = T1 병합 뒤). 착수 조건(spec 28~42행): (1) 계획 N3.12.2 gmid 폴더 두 행(충족 `fd4ef8c`), (2) T0 병합으로 shim 경유 비엔진 이름 읽기 0 -- 아니면 **멈추고 묻는다**, (3) D-17 정밀 정의·엔진 모듈 `import X`·모듈 속성 접근 0, S1 목록(서로 다른 엔진 모듈에 묶인 이름) 측정 -- 0 아니고 PT3 수집 계약 test 밖이면 **멈추고 묻는다**.
+* **승인**: `20260930-30-module-split-design`, `20261002-p3-f1-workspaces-write-path`(있음). **V5**: TS6 (마) 전환(사용자 답 "(마) 전체 정규화 핀 (Recommended)", 2026-10-02 -- 질문 한 번에 F1 V5와 #2 D1 묶음) + 계약 8 ⑤ 목록 단위 -- test 커밋 diff_hash로 기록 -- 두 번 시도 운반(§18 X-1 닫힘, `_drafts/f1_v5_carry_plan.md`).
+* **열린 항목**: review_p3_f12_r4 B 0·S 0·minor 3(⑤ 제시 방법 -- m1 V5 발견은 줄이 아니라 (경로·단위·패턴), m2 '단위 diff 해시' 정의 없음, m3 `mk_chain_r1.sh` 재현 경로). design 정정 (i) §7.1 B군 표 `test_ts6_probe_relocate.py:668-673`(F2 (ii)와 같은 정정 커밋에서 한 번, §15). review_p3_f2_cur A3: PT3는 전체 이력 clone에서(얕은 복제 금지 -- TS6 (마) test가 `git rev-list`를 부름).
+* **절차**: 0단계 착수 조건 (1)~(3) 실측 → spec(+interface, measured 갱신) Role: doc → push → §2 표준(test 커밋 = TS6 (마) 전환 + 계약 1 (c)(d) 앵커 갱신, code 커밋 = 추적 파일·workspaces 16파일 호출부) -- **두 번 시도**: 1차 = 순서 0~3(V5 FAIL로 멈춤) → 운반(V5 질문·승인 기록·운반 커밋) → 2차 = 순서 1~8(병합 있음) → 정리 → 운반 삭제(`_drafts/f1_v5_carry_plan.md` §4).
+* **병합 뒤 재측정 → F2**: F1 계약 5 (a)(E3 AST 0 -- shim import 0), TS6 핀 `pin_commit`, F2 base에서 F2 '작성 전 실측' 갱신.
+
+## 15. F2 `20261002-p3-shim-delete` (red-green, phase 3, 마지막 card) -- **[초안 작업 중]**, launch 스크립트 없음
+
+* **선행**: F1 병합(base = F1 병합본). D-27 동결 끝 = F2 병합.
+* **승인**: `20260930-30-module-split-design`만. 결정 필요 항목 1~3 = 오케스트레이터 기본안(ACF 임시 재수출 지움, SD import 위치 그대로, 새 test 범위 = 판정 트리 + run_harness.py), 4 = F1 의존(사용자 결정 완료), 5 = design 정정 목록(사용자 질문 아님).
+* **열린 항목(review_p3_f2_cur -- 작성자 자기 점검표, 독립 검토 아님)**: A3 S(PT3 전체 이력 clone 문장 -- 계약 9 또는 auditor 브리핑), A2 m(auditor가 TS6 test F2 base·head 결과를 이름으로 기록), A4 m(거부 입력 'TS6 핀 고친 head' 선택). **독립 검토가 아직 없다**.
+* **문서 정정 커밋(F1 또는 F2 착수 전 슬롯, 역할 브랜치 0, Role: doc, 승인 기록 불요)**: design 30 (i) §7.1 B군 표(570행)에 `test_ts6_probe_relocate.py:668-673`, (ii) §8 F2 행(620행)에 'ACF 임시 재수출', (iii) design §2.2 106행 W-2 보충(m2_m9_open_items 3). 한 커밋에서 한 번.
+* **절차**: 0단계 → spec Role: doc → push → §2 표준(red-green: 새 test 1 + SR·TL·DR 삭제·SD/ACF 재수출 줄 삭제) → 정리.
+* **병합 뒤**: 이 병합본 = Phase 3 DoD 대상 H.
+
+## 16. Phase 3 DoD
+
+* **키트**: `$DR/draft_phase3_dod.md`(v2, 기준 `fd4ef8c`) + `$DR/phase3_dod_kit/run_dod.sh <G> <H> <rehearse|official> [단계]`(단계 guard inputs e01 e2 e3 e3b e4 ia e5pt e5lib e6 n63 watch).
+* **착수 조건 C1~C9**(§0): phase 3 card 20장 spec·판정 기록, 게이트 card 넷(34·35·B33·G1) 기록, 역할 브랜치 0, C4 기록 둘(**phase3-cards는 이제 gate에 있음** -- §0 표 'C4 뒤 것 없음' 문장은 낡음), P2D `5f643a9`, `move_plan.py`·`test_p3_registry_dest.py`, E5 사본 4, D-27 동결 준수, `C:/g<N>` 예약.
+* **절차**: `bash $DR/phase3_dod_kit/run_dod.sh /c/g<N> <H> official`(guard 하나라도 어긋나면 exit 1) → auditor 결과 `_drafts/phase3_dod_result.md`(§10 형식) → §11: 다시 계산하지 않고 `docs/03-analysis/gain-budget-gmid-sizing-30-module-split/phase3-dod.md`로 옮겨 Role: doc 커밋 → `.ai/context.md` append(삭제 0) → 단독 push → `C:/g<N>` 삭제. 이 커밋이 Phase 4 착수 조건 인용 대상.
+* **열린 항목**: 브리핑 v2는 `fd4ef8c` 기준 -- H 확정 뒤 `inputs.json` `missing` 0 확인, 판정 블록 sha256·줄 범위 재추출(§2). review_phase3_dod_r1 B 0·S 0.
+
+---
+
+## 17. 문서 슬롯 대기열 (card 사이, 역할 브랜치 0일 때만, 각각 단독 push)
+
+| 언제 | 무엇 | 근거 |
+|---|---|---|
+| 아무 card 사이(가장 이른 슬롯) | 백로그 B56~B62 `.ai/context.md` Python 바이너리 append | `backlog_additions.md` 머리 |
+| B26-1 병합·B33 병합 뒤, T0 순서 0 전 | T0-V4 면제 승인 기록 | §8.2 |
+| B26-1 병합 뒤 | 운반 디렉터리 삭제 | §6 |
+| F1 또는 F2 착수 전 | design 30 정정 (i)(ii)(iii) | §15 |
+| D0b S-5 비지 않을 때만 | N3.10 개정 문서 커밋 + 승인 기록(재질문 뒤) | §12 |
+| 각 card 병합 뒤 | `.ai/context.md` 한 줄 + `user_decisions.md` 병합 해시 | §1-6 |
+
+## 18. card 사이 걸친 확인 필요 항목 (오케스트레이터 판단 -- 사용자 질문 아님, 착수 전에 닫을 것)
+
+* **X-1 test 커밋 뒤 V5 승인의 경로(T0·F1·T1)** -- **닫힘(2026-10-06): 세 card 모두 두 번 시도 운반.** 근거: gate가 V5 승인을 new 트리에서 찾고(`merge_gate.py` 9 `load_approvals(new_view)`, `weakening_diff.approved_hashes(root, head)`), target = (경로, base blob, head blob) 해시라 T 전에 정할 수 없으며(오케스트레이터가 test blob을 쓰면 작성자≠검증자 위반), test-only·red-green·equivalence 어느 push 모양에도 승인 기록을 담는 Role: doc 커밋이 낄 자리가 없고(§9.2-4 '커밋 집합이 모양과 정확히 같다'), 역할 브랜치가 있는 동안 메인 문서 push는 EL1이 거부한다. T0 = `_drafts/t0_carry.sh`(배선: `t0_launch.sh after-push` 출력·`t0_briefs.md` §4·card (X-1) 문단, 리허설 PASS -- §8.4). F1 = `_drafts/f1_v5_carry_plan.md`(같은 분석 + 1차 시도 범위 순서 1~3, approval 줄·⑤ 목록 처리). T1 = 초안 없음([GAP]) -- 초안 때 같은 절차를 card에 적는다.
+* **X-2 test-only의 '순서 6 병합' 문구(T0)** -- **닫힘(2026-10-06)**: `t0_briefs.md` §4·3.1·3.2를 '병합 없음, audit 커밋은 T 바로 위'로 고침(원본 `.pre-x1.bak`), `t0_launch.sh after-push` 출력에 '병합(순서 6) 없음'. design 05 §9.2-4 test-only 행·`merge_gate.py` 4 test-only 분기('test-only에 병합이 있다' 거부)와 같다.
+* **X-3 M10·T1 초안 없음([GAP])**: F1 base·DoD 20장의 전제. §13.1.
+* **X-4 M card launch 스크립트 없음**: 9장(+M10·T1·F1·F2) 수동 절차 또는 공통 스크립트 -- 만들면 바로 M1에서 쓰는 조건으로만(만들면 배선).
+* **X-5 모래상자 리허설 `cache_dir` 막힘(B62)**: 실제 실행 무관, 리허설 때 gate_path 합성 커밋 필요.
+* **X-6 DoD 브리핑 낡은 문장**: §0 C4 'phase3-cards 없음' → 지금 있음. H 확정 때 v3로.
+
+## 19. 진행 표 (오케스트레이터가 채움)
+
+| # | card | 착수 0단계 | 순서 0 push | 순서 1~5 | 순서 6 | 순서 7 | 순서 8 push | 정리 | 기록 |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | b26pre | | | | (없음) | | | | |
+| 2 | backfill | | | | | | | | |
+| 3 | B26-1 1차 | | P·S | | (없음) | V3만 | -- | carry | |
+| 3' | B26-1 2차 | | 운반 C | | | | | | 운반 삭제 |
+| 4 | B33 | | A·B·C | | | | | | |
+| 5 | T0-V4 기록 | -- | 기록 | -- | -- | -- | -- | -- | |
+| 6 | T0 1차 | | S | 1~3(V5 FAIL) | (없음) | -- | -- | carry(`t0_carry.sh`) | |
+| 6' | T0 2차 | | 운반 C | 1~3(t2-check) | (없음) | | | | 운반 삭제(`purge`) |
+| 7 | FU | | | | | | | | |
+| 8 | G1 | | A·B·C | | | | | | |
+| 9 | D0a | | | | | | | | |
+| 10 | D0b | S-5·D-11 | | | | | | | freeze 공지 |
+| 11~18 | M1·M2·M3·M4·M5·M6·M8·M9 | | | | | | | | |
+| -- | M10·T1 [GAP] | | | | | | | | |
+| 19 | F1 | | | | | | | | |
+| 20 | F2 | | | | | | | | |
+| 21 | Phase 3 DoD | guard | -- | -- | -- | official | 결과 커밋 | `C:/g<N>` 삭제 | |

@@ -1,0 +1,2348 @@
+{
+ "scenarios": {
+  "pr_none_audit_skip": {
+   "stdout": "pipeline_result=None -- 넷리스트 전체가 사이징되지 않아 자동 조정 불가\nOK -- theta_star: {'Ibg': 1e-05}\naudit_ok: True\nmetrics: {'gain_db': 70.0}\n[SKIP] run_full_circuit_audit_from_topology() 실패(topology.json에 _netlist_sections_structured가 없는 등 별개 gap일 수 있음): no sections\npipeline_result=None -- 넷리스트 전체가 사이징되지 않아 instance.json/report 저장 생략\n",
+   "calls": [
+    [
+     "optimize_full_circuit_budget",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {
+      "grid_points_per_theta": 400,
+      "search_method": "grid",
+      "slsqp_kwargs": null
+     }
+    ],
+    [
+     "run_full_circuit_audit_from_topology",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json"
+     ],
+     {}
+    ]
+   ]
+  },
+  "full_ok": {
+   "stdout": "[row_split 재시도] target=M1 row_split={'M1': 2} score 1.500->1.250 accepted=True\n[row_split 재시도] target=M2 row_split={'M2': 3} score 1.250->1.500 accepted=False\nfloorplan.aspect_ratio=1.200(<= 1.5 ? True), packing_density=0.700(>= 0.5 ? True) -- 정본 판정=floorplan_ok=True, row_split={'M1': 2}\nOK -- theta_star: {'Ibg': 1e-05}\naudit_ok: True\nmetrics: {'gain_db': 70.0}\nrun_full_circuit_audit.ok: True\n  - c1: True (d1)\n  - c2: True (d2)\nbox_shape.ok=True(참고용) rectangular=False width_ratio=1.250 approx=True row_widths=[1, 2] row_heights=[3]\nfloorplan.aspect_ratio=1.200 packing_density=0.700 (정본 판정=floorplan_ok=True)\ncoverage.ok=False missing=['M9']\ninstance.json 저장: <OUT>\\folded_cascode.instance.json\nreport.html 저장: <OUT>\\folded_cascode.report.html\n",
+   "calls": [
+    [
+     "optimize_full_circuit_budget",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {
+      "grid_points_per_theta": 400,
+      "search_method": "grid",
+      "slsqp_kwargs": null
+     }
+    ],
+    [
+     "run_full_circuit_audit_from_topology",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json"
+     ],
+     {}
+    ],
+    [
+     "save_instance_json",
+     [
+      "<OUT>\\folded_cascode.instance.json",
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "M1": {
+        "W": 1e-06
+       }
+      },
+      {
+       "box_shape": "SimpleNamespace",
+       "coverage": "SimpleNamespace",
+       "floorplan": "SimpleNamespace",
+       "layout_retry_rounds": [
+        {
+         "accepted": true,
+         "row_split": {
+          "M1": 2
+         },
+         "score_after": 1.25,
+         "score_before": 1.5,
+         "target": "M1"
+        },
+        {
+         "accepted": false,
+         "row_split": {
+          "M2": 3
+         },
+         "score_after": 1.5,
+         "score_before": 1.25,
+         "target": "M2"
+        }
+       ],
+       "row_split": {
+        "M1": 2
+       }
+      }
+     ],
+     {}
+    ],
+    [
+     "assemble_report_data",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      "<OUT>\\folded_cascode.instance.json"
+     ],
+     {
+      "full_circuit_audit": "SimpleNamespace"
+     }
+    ],
+    [
+     "save_html_report",
+     [
+      {
+       "report": 1
+      },
+      "<OUT>\\folded_cascode.report.html"
+     ],
+     {}
+    ]
+   ]
+  },
+  "notes_all": {
+   "stdout": "[row_split 재시도] target=M1 row_split={'M1': 2} score 1.500->1.250 accepted=True\n[row_split 재시도] target=M2 row_split={'M2': 3} score 1.250->1.500 accepted=False\nfloorplan.aspect_ratio=2.000(<= 1.5 ? False), packing_density=0.300(>= 0.5 ? False) -- 정본 판정=floorplan_ok=False, row_split={'M1': 2}\nOK -- theta_star: {'Ibg': 1e-05}\naudit_ok: False\nmetrics: {'gain_db': 70.0}\nrun_full_circuit_audit.ok: False\n  - c1: True (d1)\n  - c2: False (d2)\nbox_shape.ok=True(참고용) rectangular=False width_ratio=1.250 approx=True row_widths=[1, 2] row_heights=[3]\nfloorplan.aspect_ratio=2.000 packing_density=0.300 (정본 판정=floorplan_ok=False)\ncoverage.ok=False missing=['M9']\ninstance.json 저장: <OUT>\\folded_cascode.instance.json (audit_ok=False -- audit_row_split에 남은 FAIL 항목 그대로 저장됨; floorplan_ok=False -- 자동 재시도로도 못 고침(빈 공간 많거나 종횡비 초과), 그대로 저장됨; run_full_circuit_audit.ok=False -- 위 체크 결과 참고)\nreport.html 저장: <OUT>\\folded_cascode.report.html\n",
+   "calls": [
+    [
+     "optimize_full_circuit_budget",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {
+      "grid_points_per_theta": 400,
+      "search_method": "grid",
+      "slsqp_kwargs": null
+     }
+    ],
+    [
+     "run_full_circuit_audit_from_topology",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json"
+     ],
+     {}
+    ],
+    [
+     "save_instance_json",
+     [
+      "<OUT>\\folded_cascode.instance.json",
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "M1": {
+        "W": 1e-06
+       }
+      },
+      {
+       "box_shape": "SimpleNamespace",
+       "coverage": "SimpleNamespace",
+       "floorplan": "SimpleNamespace",
+       "layout_retry_rounds": [
+        {
+         "accepted": true,
+         "row_split": {
+          "M1": 2
+         },
+         "score_after": 1.25,
+         "score_before": 1.5,
+         "target": "M1"
+        },
+        {
+         "accepted": false,
+         "row_split": {
+          "M2": 3
+         },
+         "score_after": 1.5,
+         "score_before": 1.25,
+         "target": "M2"
+        }
+       ],
+       "row_split": {
+        "M1": 2
+       }
+      }
+     ],
+     {}
+    ],
+    [
+     "assemble_report_data",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      "<OUT>\\folded_cascode.instance.json"
+     ],
+     {
+      "full_circuit_audit": "SimpleNamespace"
+     }
+    ],
+    [
+     "save_html_report",
+     [
+      {
+       "report": 1
+      },
+      "<OUT>\\folded_cascode.report.html"
+     ],
+     {}
+    ]
+   ]
+  },
+  "density_only_bad": {
+   "stdout": "floorplan.aspect_ratio=1.000(<= 1.5 ? True), packing_density=0.400(>= 0.5 ? False) -- 정본 판정=floorplan_ok=False, row_split={'M1': 2}\nOK -- theta_star: {'Ibg': 1e-05}\naudit_ok: True\nmetrics: {'gain_db': 70.0}\nrun_full_circuit_audit.ok: True\n  - c1: True (d1)\n  - c2: True (d2)\nbox_shape.ok=True(참고용) rectangular=False width_ratio=1.250 approx=True row_widths=[1, 2] row_heights=[3]\nfloorplan.aspect_ratio=1.000 packing_density=0.400 (정본 판정=floorplan_ok=False)\ncoverage.ok=False missing=['M9']\ninstance.json 저장: <OUT>\\folded_cascode.instance.json (floorplan_ok=False -- 자동 재시도로도 못 고침(빈 공간 많거나 종횡비 초과), 그대로 저장됨)\nreport.html 저장: <OUT>\\folded_cascode.report.html\n",
+   "calls": [
+    [
+     "optimize_full_circuit_budget",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {
+      "grid_points_per_theta": 400,
+      "search_method": "grid",
+      "slsqp_kwargs": null
+     }
+    ],
+    [
+     "run_full_circuit_audit_from_topology",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json"
+     ],
+     {}
+    ],
+    [
+     "save_instance_json",
+     [
+      "<OUT>\\folded_cascode.instance.json",
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "M1": {
+        "W": 1e-06
+       }
+      },
+      {
+       "box_shape": "SimpleNamespace",
+       "coverage": "SimpleNamespace",
+       "floorplan": "SimpleNamespace",
+       "layout_retry_rounds": [],
+       "row_split": {
+        "M1": 2
+       }
+      }
+     ],
+     {}
+    ],
+    [
+     "assemble_report_data",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      "<OUT>\\folded_cascode.instance.json"
+     ],
+     {
+      "full_circuit_audit": "SimpleNamespace"
+     }
+    ],
+    [
+     "save_html_report",
+     [
+      {
+       "report": 1
+      },
+      "<OUT>\\folded_cascode.report.html"
+     ],
+     {}
+    ]
+   ]
+  },
+  "aspect_only_bad": {
+   "stdout": "floorplan.aspect_ratio=1.600(<= 1.5 ? False), packing_density=0.900(>= 0.5 ? True) -- 정본 판정=floorplan_ok=False, row_split={'M1': 2}\nOK -- theta_star: {'Ibg': 1e-05}\naudit_ok: True\nmetrics: {'gain_db': 70.0}\nrun_full_circuit_audit.ok: True\n  - c1: True (d1)\n  - c2: True (d2)\nbox_shape.ok=True(참고용) rectangular=False width_ratio=1.250 approx=True row_widths=[1, 2] row_heights=[3]\nfloorplan.aspect_ratio=1.600 packing_density=0.900 (정본 판정=floorplan_ok=False)\ncoverage.ok=False missing=['M9']\ninstance.json 저장: <OUT>\\folded_cascode.instance.json (floorplan_ok=False -- 자동 재시도로도 못 고침(빈 공간 많거나 종횡비 초과), 그대로 저장됨)\nreport.html 저장: <OUT>\\folded_cascode.report.html\n",
+   "calls": [
+    [
+     "optimize_full_circuit_budget",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {
+      "grid_points_per_theta": 400,
+      "search_method": "grid",
+      "slsqp_kwargs": null
+     }
+    ],
+    [
+     "run_full_circuit_audit_from_topology",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json"
+     ],
+     {}
+    ],
+    [
+     "save_instance_json",
+     [
+      "<OUT>\\folded_cascode.instance.json",
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "M1": {
+        "W": 1e-06
+       }
+      },
+      {
+       "box_shape": "SimpleNamespace",
+       "coverage": "SimpleNamespace",
+       "floorplan": "SimpleNamespace",
+       "layout_retry_rounds": [],
+       "row_split": {
+        "M1": 2
+       }
+      }
+     ],
+     {}
+    ],
+    [
+     "assemble_report_data",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      "<OUT>\\folded_cascode.instance.json"
+     ],
+     {
+      "full_circuit_audit": "SimpleNamespace"
+     }
+    ],
+    [
+     "save_html_report",
+     [
+      {
+       "report": 1
+      },
+      "<OUT>\\folded_cascode.report.html"
+     ],
+     {}
+    ]
+   ]
+  },
+  "boundary_eq": {
+   "stdout": "floorplan.aspect_ratio=1.500(<= 1.5 ? True), packing_density=0.500(>= 0.5 ? True) -- 정본 판정=floorplan_ok=True, row_split={'M1': 2}\nOK -- theta_star: {'Ibg': 1e-05}\naudit_ok: True\nmetrics: {'gain_db': 70.0}\nrun_full_circuit_audit.ok: True\n  - c1: True (d1)\n  - c2: True (d2)\nbox_shape.ok=True(참고용) rectangular=False width_ratio=1.250 approx=True row_widths=[1, 2] row_heights=[3]\nfloorplan.aspect_ratio=1.500 packing_density=0.500 (정본 판정=floorplan_ok=True)\ncoverage.ok=False missing=['M9']\ninstance.json 저장: <OUT>\\folded_cascode.instance.json\nreport.html 저장: <OUT>\\folded_cascode.report.html\n",
+   "calls": [
+    [
+     "optimize_full_circuit_budget",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {
+      "grid_points_per_theta": 400,
+      "search_method": "grid",
+      "slsqp_kwargs": null
+     }
+    ],
+    [
+     "run_full_circuit_audit_from_topology",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json"
+     ],
+     {}
+    ],
+    [
+     "save_instance_json",
+     [
+      "<OUT>\\folded_cascode.instance.json",
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "M1": {
+        "W": 1e-06
+       }
+      },
+      {
+       "box_shape": "SimpleNamespace",
+       "coverage": "SimpleNamespace",
+       "floorplan": "SimpleNamespace",
+       "layout_retry_rounds": [],
+       "row_split": {
+        "M1": 2
+       }
+      }
+     ],
+     {}
+    ],
+    [
+     "assemble_report_data",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      "<OUT>\\folded_cascode.instance.json"
+     ],
+     {
+      "full_circuit_audit": "SimpleNamespace"
+     }
+    ],
+    [
+     "save_html_report",
+     [
+      {
+       "report": 1
+      },
+      "<OUT>\\folded_cascode.report.html"
+     ],
+     {}
+    ]
+   ]
+  },
+  "audit_skip_with_pr": {
+   "stdout": "[row_split 재시도] target=M1 row_split={'M1': 2} score 1.500->1.250 accepted=True\n[row_split 재시도] target=M2 row_split={'M2': 3} score 1.250->1.500 accepted=False\nfloorplan.aspect_ratio=1.200(<= 1.5 ? True), packing_density=0.700(>= 0.5 ? True) -- 정본 판정=floorplan_ok=True, row_split={'M1': 2}\nOK -- theta_star: {'Ibg': 1e-05}\naudit_ok: True\nmetrics: {'gain_db': 70.0}\n[SKIP] run_full_circuit_audit_from_topology() 실패(topology.json에 _netlist_sections_structured가 없는 등 별개 gap일 수 있음): no sections\nbox_shape.ok=True(참고용) rectangular=False width_ratio=1.250 approx=True row_widths=[1, 2] row_heights=[3]\nfloorplan.aspect_ratio=1.200 packing_density=0.700 (정본 판정=floorplan_ok=True)\ncoverage.ok=False missing=['M9']\ninstance.json 저장: <OUT>\\folded_cascode.instance.json\nreport.html 생략(full_circuit_audit 실패로 assemble_report_data 입력 불완전)\n",
+   "calls": [
+    [
+     "optimize_full_circuit_budget",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {
+      "grid_points_per_theta": 400,
+      "search_method": "grid",
+      "slsqp_kwargs": null
+     }
+    ],
+    [
+     "run_full_circuit_audit_from_topology",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json"
+     ],
+     {}
+    ],
+    [
+     "save_instance_json",
+     [
+      "<OUT>\\folded_cascode.instance.json",
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "M1": {
+        "W": 1e-06
+       }
+      },
+      {
+       "box_shape": "SimpleNamespace",
+       "coverage": "SimpleNamespace",
+       "floorplan": "SimpleNamespace",
+       "layout_retry_rounds": [
+        {
+         "accepted": true,
+         "row_split": {
+          "M1": 2
+         },
+         "score_after": 1.25,
+         "score_before": 1.5,
+         "target": "M1"
+        },
+        {
+         "accepted": false,
+         "row_split": {
+          "M2": 3
+         },
+         "score_after": 1.5,
+         "score_before": 1.25,
+         "target": "M2"
+        }
+       ],
+       "row_split": {
+        "M1": 2
+       }
+      }
+     ],
+     {}
+    ]
+   ]
+  },
+  "opt_valueerror_diag": {
+   "stdout": "[FAIL] ValueError: infeasible\n\n[diagnose_sizing_roles_gap() 추가 진단]\n  GAP-REPORT\n",
+   "calls": [
+    [
+     "optimize_full_circuit_budget",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {
+      "grid_points_per_theta": 400,
+      "search_method": "grid",
+      "slsqp_kwargs": null
+     }
+    ],
+    [
+     "diagnose_sizing_roles_gap",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {}
+    ]
+   ]
+  },
+  "opt_valueerror_diag_fails": {
+   "stdout": "[FAIL] ValueError: infeasible\n\n[diagnose_sizing_roles_gap() 추가 진단]\n  (진단 자체도 실패: KeyError: 'x')\n",
+   "calls": [
+    [
+     "optimize_full_circuit_budget",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {
+      "grid_points_per_theta": 400,
+      "search_method": "grid",
+      "slsqp_kwargs": null
+     }
+    ],
+    [
+     "diagnose_sizing_roles_gap",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {}
+    ]
+   ]
+  },
+  "opt_runtimeerror": {
+   "stdout": "[FAIL] RuntimeError: boom\n",
+   "calls": [
+    [
+     "optimize_full_circuit_budget",
+     [
+      "<ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+      {
+       "L_candidates": [
+        1.5e-07,
+        2.45e-07,
+        3.4000000000000003e-07,
+        4.4e-07,
+        5.35e-07,
+        6.300000000000001e-07,
+        7.3e-07,
+        8.249999999999999e-07,
+        9.200000000000001e-07,
+        1.015e-06,
+        1.1100000000000002e-06,
+        1.21e-06,
+        1.305e-06,
+        1.4000000000000001e-06,
+        1.5e-06,
+        1.595e-06,
+        1.6900000000000001e-06,
+        1.785e-06,
+        1.88e-06,
+        1.98e-06,
+        2.075e-06,
+        2.17e-06,
+        2.27e-06,
+        2.365e-06,
+        2.4599999999999997e-06,
+        2.5549999999999997e-06,
+        2.65e-06,
+        2.75e-06,
+        2.845e-06,
+        2.94e-06,
+        3.0399999999999997e-06,
+        3.135e-06,
+        3.23e-06,
+        3.325e-06,
+        3.42e-06,
+        3.5199999999999998e-06,
+        3.615e-06,
+        3.71e-06,
+        3.81e-06,
+        3.905e-06,
+        4.000000000000001e-06
+       ],
+       "L_grid_step": 5e-09,
+       "L_min": 1.5e-07,
+       "L_min_by_kind": {
+        "nmos": 1.5e-07,
+        "pmos": 1.5e-07
+       },
+       "VDS_candidates": [
+        0.0,
+        0.15,
+        0.3,
+        0.44999999999999996,
+        0.6,
+        0.75,
+        0.8999999999999999,
+        1.05,
+        1.2,
+        1.3499999999999999,
+        1.5,
+        1.65,
+        1.8
+       ],
+       "W_bounds": [
+        1e-06,
+        0.0002
+       ],
+       "_spec_source": "run_harness.SPECS",
+       "floorplan_target": {
+        "max_aspect_ratio": 1.5,
+        "min_packing_density": 0.5
+       },
+       "gm_id_grid": [
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5,
+        22.0,
+        22.5,
+        23.0,
+        23.5,
+        24.0,
+        24.5,
+        25.0,
+        25.5,
+        26.0,
+        26.5,
+        27.0,
+        27.5,
+        28.0,
+        28.5,
+        29.0,
+        29.5,
+        30.0
+       ],
+       "lut": "SemiEmpiricalGmIdLUT",
+       "lut_by_kind": {
+        "nmos": "SemiEmpiricalGmIdLUT",
+        "pmos": "SemiEmpiricalGmIdLUT"
+       },
+       "max_finger_w": 4e-05,
+       "max_layout_retry_rounds": 6,
+       "min_finger_w": 1e-06,
+       "min_vds_by_role": {
+        "cascode": 0.2,
+        "mirror": 0.2
+       },
+       "vdd": 1.8,
+       "vth0_slope": {
+        "nfet": 0.003356,
+        "pfet": 0.005856
+       }
+      }
+     ],
+     {
+      "grid_points_per_theta": 400,
+      "search_method": "grid",
+      "slsqp_kwargs": null
+     }
+    ]
+   ]
+  }
+ },
+ "real": {
+  "folded_cascode": {
+   "stdout": "floorplan.aspect_ratio=3.278(<= 1.5 ? False), packing_density=0.989(>= 0.5 ? True) -- 정본 판정=floorplan_ok=False, row_split={}\nOK -- theta_star: {'Ibg': 5e-07, 'r_split_M1_M2': 0.5, 'r_mirror_M3_M4': 1.5, 'kcl_fold_M6': 1.0, 'kcl_fold_M5': 1.0}\naudit_ok: False\nmetrics: {'power_uA': 9.5, 'gain_db': 41.05571897348187, 'pm_deg': 87.21814139323817, 'cmrr_db': 23.614168894383155, 'psrr_db': 29.04206290435072}\n[SKIP] run_full_circuit_audit_from_topology() 실패(topology.json에 _netlist_sections_structured가 없는 등 별개 gap일 수 있음): <ROOT>\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from_topology()는 expected_counts를 자동 도출할 수 없다(prose _netlist_sections를 구조화된 dict로 먼저 변환할 것, 세션20 참고).\nbox_shape.ok=False(참고용) rectangular=False width_ratio=2.500 approx=False row_widths={'biasgen_mp': 1.7000000000000002e-06, 'col_m3': 6.800000000000001e-07, 'col_m5': 1.7000000000000002e-06, 'col_m6': 1.7000000000000002e-06, 'col_m10': 1.225e-06, 'col_m7': 1.225e-06, 'col_m8': 9.8e-07, 'biasgen_mn': 9.8e-07, 'col_m1_repair0_repair0_repair0_repair0': 6.800000000000001e-07, 'col_m1_repair0_repair0_repair0_repair1': 6.800000000000001e-07} row_heights={'biasgen_mp': 2.7726288589701956e-05, 'col_m3': 1.0172127731792665e-06, 'col_m5': 3.9009449947758596e-05, 'col_m6': 3.96687998487307e-05, 'col_m10': 3.9009449947758596e-05, 'col_m7': 3.050318791456732e-05, 'col_m8': 1.415509804315073e-05, 'biasgen_mn': 2.7726288589701956e-05, 'col_m1_repair0_repair0_repair0_repair0': 1.704328520953336e-06, 'col_m1_repair0_repair0_repair0_repair1': 1.704328520953336e-06}\nfloorplan.aspect_ratio=3.278 packing_density=0.989 (정본 판정=floorplan_ok=False)\ncoverage.ok=True missing=set()\ninstance.json 저장: <OUT>\\folded_cascode.instance.json (audit_ok=False -- audit_row_split에 남은 FAIL 항목 그대로 저장됨; floorplan_ok=False -- 자동 재시도로도 못 고침(빈 공간 많거나 종횡비 초과), 그대로 저장됨)\nreport.html 생략(full_circuit_audit 실패로 assemble_report_data 입력 불완전)\n",
+   "seconds": 47.8,
+   "instance_canon_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+   "report_sha256": null
+  },
+  "two_stage_ota": {
+   "stdout": "[FAIL] ValueError: 'stage1_out' 그룹의 VDS 합(2.37965V)이 vdd(1.8V)와 불일치(diff=+0.579654V) -- KVL(직렬 branch 전압강하 합=vdd)이 깨졌다. 소자별 값: M4=0.9172, M2=0.9, refs(M5=0.5625). 이 그룹의 소자들이 서로 다른 경로(compensation/metric_stage_budget/gm_target_convention/headroom_role)로 각자 독립적으로 vds를 받으면 이런 불일치가 생길 수 있다 -- topology.json의 device_roles/theta feeds를 확인할 것\n\n[diagnose_sizing_roles_gap() 추가 진단]\n  {'status': 'has_theta', 'message': 'sizing_roles.theta가 이미 선언돼 있음 -- 이 진단은 theta 없는(sizing_roles=null) 회로 전용'}\n",
+   "seconds": 18.8,
+   "instance_canon_sha256": null,
+   "report_sha256": null
+  },
+  "nmcnr_amplifier": {
+   "stdout": "[FAIL] ValueError: 모든 theta 격자점이 infeasible -- bounds/constraints를 확인하세요. 마지막 평가 조합의 theta=None, metrics=None, 위반된 제약=[]. 물리적으로 불가능해 건너뛴 조합 1개(마지막 사유: 'stage2_diode_ref' 그룹(예산 1.5V, 미해결 ['M203']): 스택 예산 1.5V 중 0.525V를 배정할 곳이 없다 -- 이 그룹은 구간 제약 소자(diode)뿐인데 전부 상한까지 올려도 예산을 못 채운다. 구간: [M203∈[0.6375,0.975]]. 이 컬럼에 선언되지 않은 소자/수동소자가 있거나 vertical_stack_id 선언이 실제 직렬 경로와 다르다는 뜻이다, theta={'Ibg_tail': 1e-05, 'r_split_M102_M103': 0.5, 'r_fold_M108_M109': 0.5, 'kcl_M104': 1.0, 'kcl_M105': 1.0, 'r_series_M106': 1.0, 'r_series_M107': 1.0, 'kcl_M203': 1.0, 'kcl_M302': 1.0, 'r_mirror_M204_M203': 1.0, 'kcl_M202': 1.0})\n\n[diagnose_sizing_roles_gap() 추가 진단]\n  {'status': 'has_theta', 'message': 'sizing_roles.theta가 이미 선언돼 있음 -- 이 진단은 theta 없는(sizing_roles=null) 회로 전용'}\n",
+   "seconds": 6.8,
+   "instance_canon_sha256": null,
+   "report_sha256": null
+  }
+ }
+}

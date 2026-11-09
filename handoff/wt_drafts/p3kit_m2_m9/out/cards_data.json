@@ -1,0 +1,5347 @@
+{
+ "gmid_lut": {
+  "base": "1a1841657a2ea88f92e04455c2041adc660f0629",
+  "head": "56c88b8cc8e7c2a0f3a501c9c75687aa47bc7fa8",
+  "plan": {
+   "upward": 0,
+   "cycles": 0,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 0,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "assigned": 8,
+  "rules": {
+   "sizing_recipe.py::GmIdLUT": "A-1",
+   "sizing_recipe.py::SemiEmpiricalGmIdLUT": "A-1",
+   "sizing_recipe.py::_QUERY_CACHE_MAX": "A-1",
+   "sizing_recipe.py::_invq_newton": "A-4",
+   "sizing_recipe.py::_multilinear_interp": "A-1",
+   "sizing_recipe.py::_multilinear_interp_point_multi": "A-1",
+   "sizing_recipe.py::build_toy_lut": "A-4",
+   "sizing_recipe.py::lut_conditions_from_npz": "A-1"
+  },
+  "units": 8,
+  "gen": {
+   "mod_imports_head": [
+    "from __future__ import annotations",
+    "import math",
+    "import numpy as np"
+   ],
+   "mod_imports_tail": [],
+   "reexports": {
+    "sizing_recipe.py": "from gmid_lut import GmIdLUT, SemiEmpiricalGmIdLUT, _QUERY_CACHE_MAX, _invq_newton, _multilinear_interp, _multilinear_interp_point_multi, build_toy_lut, lut_conditions_from_npz"
+   },
+   "spans": [
+    "sizing_recipe.py:52-73 ClassDef",
+    "sizing_recipe.py:141-203 FunctionDef",
+    "sizing_recipe.py:206-251 FunctionDef",
+    "sizing_recipe.py:257-257 Assign",
+    "sizing_recipe.py:259-672 ClassDef",
+    "sizing_recipe.py:1343-1353 FunctionDef",
+    "sizing_recipe.py:1356-1394 FunctionDef",
+    "sizing_recipe.py:4782-4803 FunctionDef"
+   ],
+   "n_defs_in_units": 22
+  },
+  "check_verdict": "PASS",
+  "check_findings": {},
+  "moved_units": 8,
+  "moved_defs": 22,
+  "v3_static": {
+   "defs": [],
+   "n_defs": 0,
+   "mutants": 0,
+   "pre_g1_defs": 22,
+   "pre_g1_mutants": 590,
+   "moved_defs": 22,
+   "n_rejected": 0
+  },
+  "import_any": [
+   "IMPORT-ANY tried=6 expected=6 failed=0",
+   "rc=0"
+  ],
+  "import_layering": {
+   "present": {
+    "gmid_lut": 1,
+    "stick_diagram": 7
+   },
+   "n_findings": 0,
+   "findings": []
+  },
+  "e3b": {
+   "sizing_recipe": {
+    "live": [
+     "E3b LIVE moved_out=8 base_files_reading_moved_out=46 pre_existing=1"
+    ],
+    "fail_head": 9,
+    "fail_bb": 9,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:230 <동적 이름>"
+    ]
+   }
+  },
+  "w2_acf_foreign_load": null,
+  "t_check": 72.0,
+  "sec": 390.5,
+  "rule_counts": {
+   "A-1": 6,
+   "A-4": 2
+  },
+  "src_counts": {
+   "sizing_recipe.py": 8
+  },
+  "w1_nonreexport_reads": 0,
+  "w1_sample": [],
+  "plan_head": {
+   "lists": {
+    "upward": 0,
+    "cycles": 0,
+    "unassigned": 0,
+    "conflicts": 0,
+    "reg_mismatch": 0,
+    "import_time_high": 0,
+    "import_conflicts": 0
+   },
+   "map_diff": 0,
+   "moved_rule": {
+    "A-0": 8
+   },
+   "n_assign": 403
+  },
+  "V3": {
+   "verdict": "PASS",
+   "defs": [],
+   "mutants": 0,
+   "survivors": [],
+   "move_rejected": {},
+   "targets": [
+    "skills/analog-gmid-design/assets/gmid_lut.py",
+    "skills/analog-gmid-design/assets/sizing_recipe.py"
+   ],
+   "error": null,
+   "moved_n": 22
+  },
+  "V6": {
+   "verdict": "PASS",
+   "findings": [],
+   "move_rejected": {},
+   "error": null
+  },
+  "V7": {
+   "verdict": "PASS",
+   "new_defs": [],
+   "move_rejected": {},
+   "error": null,
+   "moved_n": 22
+  },
+  "pt3": {
+   "ids_base": 1062,
+   "ids_head": 1062,
+   "same_ids": true,
+   "diff": [],
+   "base": {
+    "summary": [
+     "1047 passed, 15 xfailed in 283.78s (0:04:43)"
+    ],
+    "exit": "exit=0 seconds=295",
+    "failed": []
+   },
+   "head": {
+    "summary": [
+     "1047 passed, 15 xfailed in 285.22s (0:04:45)"
+    ],
+    "exit": "exit=0 seconds=296",
+    "failed": []
+   }
+  },
+  "einst": {
+   "elib_equal": true,
+   "elib_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f",
+   "current_reuse_telescopic_ota": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d",
+    "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   },
+   "folded_cascode": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+    "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   }
+  },
+  "e3": {
+   "base": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "head": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "same_outside": true,
+   "n_outside": 66
+  },
+  "unit_rows": [
+   {
+    "uid": "sizing_recipe.py::GmIdLUT",
+    "span": "sizing_recipe.py:52-73 ClassDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_multilinear_interp",
+    "span": "sizing_recipe.py:141-203 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_multilinear_interp_point_multi",
+    "span": "sizing_recipe.py:206-251 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_QUERY_CACHE_MAX",
+    "span": "sizing_recipe.py:257-257 Assign",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+    "span": "sizing_recipe.py:259-672 ClassDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_invq_newton",
+    "span": "sizing_recipe.py:1343-1353 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::build_toy_lut",
+    "span": "sizing_recipe.py:1356-1394 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::lut_conditions_from_npz",
+    "span": "sizing_recipe.py:4782-4803 FunctionDef",
+    "rule": "A-1"
+   }
+  ],
+  "reexport_pos": {
+   "sizing_recipe.py": {
+    "line": 46,
+    "n_lines": 11398,
+    "prev": "import numpy as np",
+    "next": "# ---------------------------------------------------------------------------"
+   }
+  },
+  "mod_file_lines": 637,
+  "V4": {
+   "subjects": [
+    "gmid_lut:GmIdLUT",
+    "gmid_lut:_multilinear_interp"
+   ],
+   "exit": 0,
+   "out": "{\"tool\": \"V4\", \"verdict\": \"PASS\", \"files\": [], \"findings\": [], \"unjudged\": []}"
+  },
+  "V5": {
+   "exit": 0,
+   "out": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}"
+  },
+  "neg": [
+   {
+    "variant": "R-1 edit-body",
+    "what": "gmid_lut:82 in _multilinear_interp",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 3,
+     "move-rejected": 2,
+     "changed": 3,
+     "lost": 3,
+     "rebind": 2,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 17,
+     "mutants": 440,
+     "n_rejected": 2
+    },
+    "import_any": [
+     "IMPORT-ANY tried=6 expected=6 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-2 drop-reexport",
+    "what": "sizing_recipe.py drop GmIdLUT",
+    "check_exit": 1,
+    "check_findings": {
+     "rebind": 9,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=6 expected=6 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-3 import-shim",
+    "what": "import sizing_recipe",
+    "check_exit": 1,
+    "check_findings": {
+     "order": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY FAIL: gmid_lut",
+     "IMPORT-ANY tried=6 expected=6 failed=1",
+     "rc=1"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-4 dup-import",
+    "what": "import math",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 3,
+     "move-rejected": 3,
+     "changed": 3,
+     "lost": 3,
+     "rebind": 2,
+     "import-dup": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 17,
+     "mutants": 374,
+     "n_rejected": 3
+    },
+    "import_any": [
+     "IMPORT-ANY tried=6 expected=6 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-5 no-future",
+    "what": "-future",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 8,
+     "move-rejected": 8,
+     "changed": 8,
+     "lost": 8,
+     "rebind": 11,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 22,
+     "mutants": 590,
+     "n_rejected": 8
+    },
+    "import_any": [
+     "IMPORT-ANY tried=6 expected=6 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-7 docstring",
+    "what": "docstring",
+    "check_exit": 1,
+    "check_findings": {
+     "changed": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=6 expected=6 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-6 extra-unit",
+    "what": "sizing_recipe.py::_base_stack_id (A-4 -> sizing_layout_convergence.py)",
+    "check_exit": 1,
+    "check_findings": {
+     "move-rejected": 1,
+     "changed": 1,
+     "lost": 1,
+     "rebind": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 1,
+     "mutants": 2,
+     "n_rejected": 1
+    },
+    "import_any": [
+     "IMPORT-ANY tried=6 expected=6 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   }
+  ]
+ },
+ "topology_authoring": {
+  "base": "56c88b8cc8e7c2a0f3a501c9c75687aa47bc7fa8",
+  "head": "c20b73d0537965f41928cc08ef86065ac89de8fb",
+  "plan": {
+   "upward": 0,
+   "cycles": 0,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 0,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "assigned": 18,
+  "rules": {
+   "audit_current_forced.py::_as_set": "A-4",
+   "sizing_recipe.py::_METRIC_UNITS": "A-5",
+   "sizing_recipe.py::_UNIT_NAME_SUFFIXES": "A-5",
+   "sizing_recipe.py::_UNIT_SCALES": "A-5",
+   "sizing_recipe.py::metric_unit_scale": "A-1",
+   "sizing_recipe.py::unit_hint_from_metric_name": "A-4",
+   "sizing_recipe.py::validate_metric_units": "A-1",
+   "sizing_recipe.py::validate_no_legacy_vs_key": "A-1",
+   "stick_diagram.py::_import_analog_grammar": "A-4",
+   "stick_diagram.py::_propose_headroom_roles": "A-4",
+   "stick_diagram.py::_scan_case_collisions": "A-4",
+   "stick_diagram.py::_to_analog_grammar_devs": "A-4",
+   "stick_diagram.py::apply_device_roles_gap_fill": "A-4",
+   "stick_diagram.py::apply_theta_kcl_gap_fill": "A-4",
+   "stick_diagram.py::audit_theta_root_direction": "A-4",
+   "stick_diagram.py::find_authoritative_sizing_devices": "A-4",
+   "stick_diagram.py::find_idiom_matches": "A-4",
+   "stick_diagram.py::find_stack_edges": "A-4"
+  },
+  "units": 18,
+  "gen": {
+   "mod_imports_head": [
+    "from __future__ import annotations",
+    "from collections import defaultdict",
+    "import itertools",
+    "import json",
+    "import os"
+   ],
+   "mod_imports_tail": [],
+   "reexports": {
+    "stick_diagram.py": "from topology_authoring import _import_analog_grammar, _propose_headroom_roles, _scan_case_collisions, _to_analog_grammar_devs, apply_device_roles_gap_fill, apply_theta_kcl_gap_fill, audit_theta_root_direction, find_authoritative_sizing_devices, find_idiom_matches, find_stack_edges",
+    "sizing_recipe.py": "from topology_authoring import _METRIC_UNITS, _UNIT_NAME_SUFFIXES, _UNIT_SCALES, metric_unit_scale, unit_hint_from_metric_name, validate_metric_units, validate_no_legacy_vs_key",
+    "audit_current_forced.py": "from topology_authoring import _as_set  # noqa: E402"
+   },
+   "spans": [
+    "stick_diagram.py:927-934 FunctionDef",
+    "stick_diagram.py:1035-1042 FunctionDef",
+    "stick_diagram.py:1045-1058 FunctionDef",
+    "stick_diagram.py:1061-1080 FunctionDef",
+    "stick_diagram.py:1083-1094 FunctionDef",
+    "stick_diagram.py:2197-2314 FunctionDef",
+    "stick_diagram.py:3330-3408 FunctionDef",
+    "stick_diagram.py:3779-3831 FunctionDef",
+    "stick_diagram.py:4542-4604 FunctionDef",
+    "stick_diagram.py:4607-4647 FunctionDef",
+    "sizing_recipe.py:4515-4539 Assign",
+    "sizing_recipe.py:4541-4552 Assign",
+    "sizing_recipe.py:4556-4568 Assign",
+    "sizing_recipe.py:4571-4577 FunctionDef",
+    "sizing_recipe.py:4580-4597 FunctionDef",
+    "sizing_recipe.py:4600-4625 FunctionDef",
+    "sizing_recipe.py:4628-4660 FunctionDef",
+    "audit_current_forced.py:47-53 FunctionDef"
+   ],
+   "n_defs_in_units": 16
+  },
+  "check_verdict": "PASS",
+  "check_findings": {},
+  "moved_units": 18,
+  "moved_defs": 16,
+  "v3_static": {
+   "defs": [],
+   "n_defs": 0,
+   "mutants": 0,
+   "pre_g1_defs": 16,
+   "pre_g1_mutants": 315,
+   "moved_defs": 16,
+   "n_rejected": 0
+  },
+  "import_any": [
+   "IMPORT-ANY tried=7 expected=7 failed=0",
+   "rc=0"
+  ],
+  "import_layering": {
+   "present": {
+    "gmid_lut": 1,
+    "topology_authoring": 2,
+    "stick_diagram": 7
+   },
+   "n_findings": 0,
+   "findings": []
+  },
+  "e3b": {
+   "sizing_recipe": {
+    "live": [
+     "E3b LIVE moved_out=7 base_files_reading_moved_out=1 pre_existing=1"
+    ],
+    "fail_head": 9,
+    "fail_bb": 9,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:230 <동적 이름>"
+    ]
+   },
+   "stick_diagram": {
+    "live": [
+     "E3b LIVE moved_out=10 base_files_reading_moved_out=1 pre_existing=1"
+    ],
+    "fail_head": 0,
+    "fail_bb": 0,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b PASS"
+    ]
+   },
+   "audit_current_forced": {
+    "live": [
+     "E3b LIVE moved_out=1 base_files_reading_moved_out=0 pre_existing=0"
+    ],
+    "fail_head": 0,
+    "fail_bb": 0,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b INVALID: base에서 SD 밖으로 나간 이름을 읽는 추적 파일 0(명령 고장 또는 base 오지정)"
+    ]
+   }
+  },
+  "w2_acf_foreign_load": "ok",
+  "t_check": 63.2,
+  "sec": 587.5,
+  "rule_counts": {
+   "A-4": 12,
+   "A-5": 3,
+   "A-1": 3
+  },
+  "src_counts": {
+   "audit_current_forced.py": 1,
+   "sizing_recipe.py": 7,
+   "stick_diagram.py": 10
+  },
+  "w1_nonreexport_reads": 0,
+  "w1_sample": [],
+  "plan_head": {
+   "lists": {
+    "upward": 0,
+    "cycles": 0,
+    "unassigned": 0,
+    "conflicts": 0,
+    "reg_mismatch": 0,
+    "import_time_high": 0,
+    "import_conflicts": 0
+   },
+   "map_diff": 0,
+   "moved_rule": {
+    "A-0": 18
+   },
+   "n_assign": 403
+  },
+  "V3": {
+   "verdict": "PASS",
+   "defs": [],
+   "mutants": 0,
+   "survivors": [],
+   "move_rejected": {},
+   "targets": [
+    "skills/analog-gmid-design/assets/audit_current_forced.py",
+    "skills/analog-gmid-design/assets/sizing_recipe.py",
+    "skills/analog-gmid-design/assets/stick_diagram.py",
+    "skills/analog-gmid-design/assets/topology_authoring.py"
+   ],
+   "error": null,
+   "moved_n": 16
+  },
+  "V6": {
+   "verdict": "PASS",
+   "findings": [],
+   "move_rejected": {},
+   "error": null
+  },
+  "V7": {
+   "verdict": "PASS",
+   "new_defs": [],
+   "move_rejected": {},
+   "error": null,
+   "moved_n": 16
+  },
+  "pt3": {
+   "ids_base": 1062,
+   "ids_head": 1062,
+   "same_ids": true,
+   "diff": [
+    "skills.analog-gmid-design.assets.tests.contracts.test_ic5::test_gate_docstring_declares_blind_spots passed->failure"
+   ],
+   "base": {
+    "summary": [
+     "1047 passed, 15 xfailed in 285.22s (0:04:45)"
+    ],
+    "exit": "exit=0 seconds=296",
+    "failed": []
+   },
+   "head": {
+    "summary": [
+     "1 failed, 1046 passed, 15 xfailed in 284.93s (0:04:44)"
+    ],
+    "exit": "exit=1 seconds=295",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots"
+    ]
+   }
+  },
+  "einst": {
+   "elib_equal": true,
+   "elib_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f",
+   "current_reuse_telescopic_ota": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d",
+    "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   },
+   "folded_cascode": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+    "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   }
+  },
+  "e3": {
+   "base": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "head": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "same_outside": true,
+   "n_outside": 66
+  },
+  "unit_rows": [
+   {
+    "uid": "stick_diagram.py::_scan_case_collisions",
+    "span": "stick_diagram.py:927-934 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_to_analog_grammar_devs",
+    "span": "stick_diagram.py:1035-1042 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_import_analog_grammar",
+    "span": "stick_diagram.py:1045-1058 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::find_idiom_matches",
+    "span": "stick_diagram.py:1061-1080 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::find_stack_edges",
+    "span": "stick_diagram.py:1083-1094 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_propose_headroom_roles",
+    "span": "stick_diagram.py:2197-2314 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::audit_theta_root_direction",
+    "span": "stick_diagram.py:3330-3408 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::apply_theta_kcl_gap_fill",
+    "span": "stick_diagram.py:3779-3831 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::apply_device_roles_gap_fill",
+    "span": "stick_diagram.py:4542-4604 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::find_authoritative_sizing_devices",
+    "span": "stick_diagram.py:4607-4647 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_METRIC_UNITS",
+    "span": "sizing_recipe.py:4515-4539 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_UNIT_SCALES",
+    "span": "sizing_recipe.py:4541-4552 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_UNIT_NAME_SUFFIXES",
+    "span": "sizing_recipe.py:4556-4568 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::unit_hint_from_metric_name",
+    "span": "sizing_recipe.py:4571-4577 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::metric_unit_scale",
+    "span": "sizing_recipe.py:4580-4597 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::validate_no_legacy_vs_key",
+    "span": "sizing_recipe.py:4600-4625 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::validate_metric_units",
+    "span": "sizing_recipe.py:4628-4660 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "audit_current_forced.py::_as_set",
+    "span": "audit_current_forced.py:47-53 FunctionDef",
+    "rule": "A-4"
+   }
+  ],
+  "reexport_pos": {
+   "stick_diagram.py": {
+    "line": 41,
+    "n_lines": 8609,
+    "prev": "from typing import Iterable, Mapping, Sequence",
+    "next": "# ---------------------------------------------------------------------------"
+   },
+   "sizing_recipe.py": {
+    "line": 47,
+    "n_lines": 11265,
+    "prev": "from gmid_lut import GmIdLUT, SemiEmpiricalGmIdLUT, _QUERY_CACHE_MAX, _invq_newton, _multilinear_interp, _multilinear_in",
+    "next": "# ---------------------------------------------------------------------------"
+   },
+   "audit_current_forced.py": {
+    "line": 45,
+    "n_lines": 182,
+    "prev": "from stick_diagram import load_topology  # noqa: E402",
+    "next": "def _theta_evidence_for_pair(a: str, b: str, thetas: list) -> str | None:"
+   }
+  },
+  "mod_file_lines": 598,
+  "V4": {
+   "subjects": [
+    "topology_authoring:_scan_case_collisions",
+    "topology_authoring:_to_analog_grammar_devs"
+   ],
+   "exit": 0,
+   "out": "{\"tool\": \"V4\", \"verdict\": \"PASS\", \"files\": [], \"findings\": [], \"unjudged\": []}"
+  },
+  "V5": {
+   "exit": 0,
+   "out": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}"
+  },
+  "neg": [
+   {
+    "variant": "R-1 edit-body",
+    "what": "topology_authoring:15 in _scan_case_collisions",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 1,
+     "changed": 1,
+     "lost": 1,
+     "rebind": 2,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 1,
+     "mutants": 8,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=7 expected=7 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-2 drop-reexport",
+    "what": "stick_diagram.py drop _import_analog_grammar",
+    "check_exit": 1,
+    "check_findings": {
+     "rebind": 7,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=7 expected=7 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-3 import-shim",
+    "what": "import sizing_recipe",
+    "check_exit": 1,
+    "check_findings": {
+     "order": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY FAIL: audit_current_forced",
+     "IMPORT-ANY FAIL: design_report",
+     "IMPORT-ANY FAIL: stick_diagram",
+     "IMPORT-ANY FAIL: topology_authoring",
+     "IMPORT-ANY tried=7 expected=7 failed=4",
+     "rc=1"
+    ],
+    "w2_foreign_load": "\u001b[1;35mImportError\u001b[0m: \u001b[35mcannot import name '_METRIC_UNITS' from partially initialized module 'topology_authoring' (most likely due to a circular import) (C",
+    "ERROR": null
+   },
+   {
+    "variant": "R-4 dup-import",
+    "what": "from collections import defaultdict",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 2,
+     "move-rejected": 2,
+     "changed": 2,
+     "lost": 2,
+     "rebind": 3,
+     "import-dup": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 3,
+     "mutants": 74,
+     "n_rejected": 2
+    },
+    "import_any": [
+     "IMPORT-ANY tried=7 expected=7 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-5 no-future",
+    "what": "-future",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 18,
+     "move-rejected": 18,
+     "changed": 18,
+     "lost": 18,
+     "rebind": 25,
+     "shim": 3
+    },
+    "v3_static_g1": {
+     "n_defs": 16,
+     "mutants": 315,
+     "n_rejected": 18
+    },
+    "import_any": [
+     "IMPORT-ANY tried=7 expected=7 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-6 extra-unit",
+    "what": "sizing_recipe.py::_base_stack_id (A-4 -> sizing_layout_convergence.py)",
+    "check_exit": 1,
+    "check_findings": {
+     "move-rejected": 1,
+     "changed": 1,
+     "lost": 1,
+     "rebind": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 1,
+     "mutants": 2,
+     "n_rejected": 1
+    },
+    "import_any": [
+     "IMPORT-ANY tried=7 expected=7 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-7 docstring",
+    "what": "docstring",
+    "check_exit": 1,
+    "check_findings": {
+     "changed": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=7 expected=7 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-W2 acf-before-path",
+    "what": "ACF re-export before sys.path.insert",
+    "check_exit": 0,
+    "check_findings": {},
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=7 expected=7 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "\u001b[1;35mModuleNotFoundError\u001b[0m: \u001b[35mNo module named 'topology_authoring'\u001b[0m",
+    "ERROR": null
+   }
+  ]
+ },
+ "circuit_state_graph": {
+  "base": "c20b73d0537965f41928cc08ef86065ac89de8fb",
+  "head": "74fd89ad7a68399552ef1db1589278119be2527f",
+  "plan": {
+   "upward": 0,
+   "cycles": 0,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 0,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "assigned": 82,
+  "rules": {
+   "sizing_recipe.py::NodeVoltageReport": "A-2",
+   "sizing_recipe.py::_AUTHORITATIVE_GM_ID_ONLY_SOURCES": "A-5",
+   "sizing_recipe.py::_AUTHORITATIVE_GM_ID_SOURCES": "A-5",
+   "sizing_recipe.py::_DEFAULT_ALL_DEVICES_METRIC_TYPES": "A-5",
+   "sizing_recipe.py::_DEFAULT_RAIL_HI": "A-5",
+   "sizing_recipe.py::_DEFAULT_RAIL_LO": "A-5",
+   "sizing_recipe.py::_FULL_CIRCUIT_METRIC_TYPES": "A-5",
+   "sizing_recipe.py::_RESOLVE_STALE_NOTES": "A-5",
+   "sizing_recipe.py::_SPEC_RESOLUTION_KEYS": "A-5",
+   "sizing_recipe.py::_build_shared_current_joint_plan": "A-4",
+   "sizing_recipe.py::_device_roles_cached": "A-4",
+   "sizing_recipe.py::_diode_set_cached": "A-4",
+   "sizing_recipe.py::_gm_id_already_authoritative": "A-4",
+   "sizing_recipe.py::_ideal_sources_cached": "A-4",
+   "sizing_recipe.py::_l_class_owners_cached": "A-4",
+   "sizing_recipe.py::_l_sharing_classes_cached": "A-4",
+   "sizing_recipe.py::_load_full_topology_cached": "A-4",
+   "sizing_recipe.py::_matching_pairs_cached": "A-4",
+   "sizing_recipe.py::_metric_device_footprint": "A-4",
+   "sizing_recipe.py::_shared_current_groups_from_compensation": "A-4",
+   "sizing_recipe.py::_theta_feed_footprint": "A-4",
+   "sizing_recipe.py::_topology_meta_cached": "A-4",
+   "sizing_recipe.py::_vgs_root": "A-4",
+   "sizing_recipe.py::audit_l_sharing_consistency": "A-4",
+   "sizing_recipe.py::audit_vsb_consistency": "A-4",
+   "sizing_recipe.py::derive_vsb_from_nodes": "A-4",
+   "sizing_recipe.py::gain_stage_tails": "A-4",
+   "sizing_recipe.py::input_referred_offset_pairs": "A-4",
+   "sizing_recipe.py::is_diode_connected": "A-1",
+   "sizing_recipe.py::l_class_owners": "A-1",
+   "sizing_recipe.py::l_sharing_classes": "A-1",
+   "sizing_recipe.py::materialize_input_offset_pairs": "A-4",
+   "sizing_recipe.py::node_pole_estimate": "A-4",
+   "sizing_recipe.py::propagate_node_voltages": "A-4",
+   "sizing_recipe.py::reconcile_vsb_from_nodes": "A-4",
+   "sizing_recipe.py::require_declared_spec_source": "A-1",
+   "sizing_recipe.py::resolve_constraint_references": "A-4",
+   "sizing_recipe.py::signal_path_nodes": "A-1",
+   "sizing_recipe.py::spec_fingerprint": "A-1",
+   "sizing_recipe.py::synthesize_l_class_thetas": "A-4",
+   "sizing_recipe.py::true_current_mirror_groups": "A-1",
+   "sizing_recipe.py::validate_theta_declaration_order": "A-1",
+   "sizing_recipe.py::vgs_alias_map": "A-1",
+   "stick_diagram.py::DiodeStack": "A-2",
+   "stick_diagram.py::DiodeStackMember": "A-2",
+   "stick_diagram.py::NameCollisionVerdict": "A-2",
+   "stick_diagram.py::StructuralSymmetryVerdict": "A-2",
+   "stick_diagram.py::SymmetryDispositionsVerdict": "A-2",
+   "stick_diagram.py::Transistor": "A-2",
+   "stick_diagram.py::_RAIL_NETS": "A-5",
+   "stick_diagram.py::_diff_pair_layer1_groups": "A-4",
+   "stick_diagram.py::_kcl_and_matching_edges": "A-1",
+   "stick_diagram.py::_kcl_terminal_sign": "A-4",
+   "stick_diagram.py::_propose_L_roles": "A-4",
+   "stick_diagram.py::_propose_gm_id_roles": "A-4",
+   "stick_diagram.py::_propose_vertical_stack_ids": "A-4",
+   "stick_diagram.py::audit_vertical_stack_id_vs_kcl": "A-4",
+   "stick_diagram.py::check_symmetry_dispositions": "A-4",
+   "stick_diagram.py::check_topology_name_uniqueness": "A-5",
+   "stick_diagram.py::find_differential_and_mirror_forks": "A-4",
+   "stick_diagram.py::find_differential_pair_candidates": "A-4",
+   "stick_diagram.py::find_diode_stacks": "A-4",
+   "stick_diagram.py::find_hub_merge_candidates": "A-1",
+   "stick_diagram.py::find_matching_candidates": "A-4",
+   "stick_diagram.py::find_stacked_matching_candidates": "A-4",
+   "stick_diagram.py::find_structural_symmetry_candidates": "A-4",
+   "stick_diagram.py::find_unreviewed_device_roles": "A-4",
+   "stick_diagram.py::find_unreviewed_matching_pairs": "A-4",
+   "stick_diagram.py::find_verified_differential_and_mirror_relations": "A-4",
+   "stick_diagram.py::folded_cascode_example": "A-6",
+   "stick_diagram.py::kcl_series_union": "A-4",
+   "stick_diagram.py::load_topology": "A-1",
+   "stick_diagram.py::propagate_topology_forced_currents": "A-1",
+   "stick_diagram.py::propose_device_roles_gap_fill": "A-4",
+   "stick_diagram.py::propose_theta_kcl_gap_fill": "A-4",
+   "stick_diagram.py::propose_vertical_stack_id_gap_fill": "A-4",
+   "stick_diagram.py::refine_differential_and_mirror_relations": "A-4",
+   "stick_diagram.py::require_device_roles_reviewed": "A-4",
+   "stick_diagram.py::suggest_vertical_stack_composites": "A-4",
+   "stick_diagram.py::trace_gnd_to_vdd_branches": "A-1",
+   "stick_diagram.py::trace_vdd_to_gnd_branches": "A-1",
+   "stick_diagram.py::two_stage_ota_example": "A-6"
+  },
+  "units": 82,
+  "gen": {
+   "mod_imports_head": [
+    "from __future__ import annotations",
+    "from collections import defaultdict",
+    "from dataclasses import dataclass",
+    "from topology_authoring import _import_analog_grammar, _propose_headroom_roles, _scan_case_collisions, _to_analog_grammar_devs, find_authoritative_sizing_devices, find_idiom_matches",
+    "from typing import Sequence",
+    "import itertools",
+    "import json",
+    "import os"
+   ],
+   "mod_imports_tail": [],
+   "reexports": {
+    "stick_diagram.py": "from circuit_state_graph import DiodeStack, DiodeStackMember, NameCollisionVerdict, StructuralSymmetryVerdict, SymmetryDispositionsVerdict, Transistor, _RAIL_NETS, _diff_pair_layer1_groups, _kcl_and_matching_edges, _kcl_terminal_sign, _propose_L_roles, _propose_gm_id_roles, _propose_vertical_stack_ids, audit_vertical_stack_id_vs_kcl, check_symmetry_dispositions, check_topology_name_uniqueness, find_differential_and_mirror_forks, find_differential_pair_candidates, find_diode_stacks, find_hub_merge_candidates, find_matching_candidates, find_stacked_matching_candidates, find_structural_symmetry_candidates, find_unreviewed_device_roles, find_unreviewed_matching_pairs, find_verified_differential_and_mirror_relations, folded_cascode_example, kcl_series_union, load_topology, propagate_topology_forced_currents, propose_device_roles_gap_fill, propose_theta_kcl_gap_fill, propose_vertical_stack_id_gap_fill, refine_differential_and_mirror_relations, require_device_roles_reviewed, suggest_vertical_stack_composites, trace_gnd_to_vdd_branches, trace_vdd_to_gnd_branches, two_stage_ota_example",
+    "sizing_recipe.py": "from circuit_state_graph import NodeVoltageReport, _AUTHORITATIVE_GM_ID_ONLY_SOURCES, _AUTHORITATIVE_GM_ID_SOURCES, _DEFAULT_ALL_DEVICES_METRIC_TYPES, _DEFAULT_RAIL_HI, _DEFAULT_RAIL_LO, _FULL_CIRCUIT_METRIC_TYPES, _RESOLVE_STALE_NOTES, _SPEC_RESOLUTION_KEYS, _build_shared_current_joint_plan, _device_roles_cached, _diode_set_cached, _gm_id_already_authoritative, _ideal_sources_cached, _l_class_owners_cached, _l_sharing_classes_cached, _load_full_topology_cached, _matching_pairs_cached, _metric_device_footprint, _shared_current_groups_from_compensation, _theta_feed_footprint, _topology_meta_cached, _vgs_root, audit_l_sharing_consistency, audit_vsb_consistency, derive_vsb_from_nodes, gain_stage_tails, input_referred_offset_pairs, is_diode_connected, l_class_owners, l_sharing_classes, materialize_input_offset_pairs, node_pole_estimate, propagate_node_voltages, reconcile_vsb_from_nodes, require_declared_spec_source, resolve_constraint_references, signal_path_nodes, spec_fingerprint, synthesize_l_class_thetas, true_current_mirror_groups, validate_theta_declaration_order, vgs_alias_map"
+   },
+   "spans": [
+    "stick_diagram.py:48-79 ClassDef",
+    "stick_diagram.py:938-1014 FunctionDef",
+    "stick_diagram.py:1047-1092 FunctionDef",
+    "stick_diagram.py:1126-1175 FunctionDef",
+    "stick_diagram.py:1178-1223 FunctionDef",
+    "stick_diagram.py:1226-1299 FunctionDef",
+    "stick_diagram.py:1302-1440 FunctionDef",
+    "stick_diagram.py:1443-1546 FunctionDef",
+    "stick_diagram.py:1549-1561 FunctionDef",
+    "stick_diagram.py:1564-1747 FunctionDef",
+    "stick_diagram.py:1750-1987 FunctionDef",
+    "stick_diagram.py:1990-2050 FunctionDef",
+    "stick_diagram.py:2053-2133 FunctionDef",
+    "stick_diagram.py:2138-2357 FunctionDef",
+    "stick_diagram.py:2360-2364 ClassDef",
+    "stick_diagram.py:2367-2451 FunctionDef",
+    "stick_diagram.py:2462-2485 FunctionDef",
+    "stick_diagram.py:2496-2502 ClassDef",
+    "stick_diagram.py:2507-2617 FunctionDef",
+    "stick_diagram.py:2676-2727 FunctionDef",
+    "stick_diagram.py:2730-2734 ClassDef",
+    "stick_diagram.py:2738-2741 ClassDef",
+    "stick_diagram.py:2744-2772 FunctionDef",
+    "stick_diagram.py:2804-2804 Assign",
+    "stick_diagram.py:2824-2869 FunctionDef",
+    "stick_diagram.py:2944-2965 FunctionDef",
+    "stick_diagram.py:2968-3068 FunctionDef",
+    "stick_diagram.py:3071-3148 FunctionDef",
+    "stick_diagram.py:3161-3170 FunctionDef",
+    "stick_diagram.py:3173-3518 FunctionDef",
+    "stick_diagram.py:3523-4228 FunctionDef",
+    "stick_diagram.py:4235-4270 FunctionDef",
+    "stick_diagram.py:4273-4303 FunctionDef",
+    "stick_diagram.py:4306-4361 FunctionDef",
+    "stick_diagram.py:6295-6334 FunctionDef",
+    "stick_diagram.py:6337-6367 FunctionDef",
+    "stick_diagram.py:8062-8067 ClassDef",
+    "stick_diagram.py:8071-8115 FunctionDef",
+    "stick_diagram.py:8124-8313 FunctionDef",
+    "sizing_recipe.py:1043-1062 FunctionDef",
+    "sizing_recipe.py:1065-1071 FunctionDef",
+    "sizing_recipe.py:1597-1621 FunctionDef",
+    "sizing_recipe.py:1624-1670 FunctionDef",
+    "sizing_recipe.py:1673-1726 FunctionDef",
+    "sizing_recipe.py:1729-1754 FunctionDef",
+    "sizing_recipe.py:1757-1794 FunctionDef",
+    "sizing_recipe.py:1857-1933 FunctionDef",
+    "sizing_recipe.py:2514-2515 Assign",
+    "sizing_recipe.py:2516-2516 Assign",
+    "sizing_recipe.py:2519-2522 FunctionDef",
+    "sizing_recipe.py:2525-2532 FunctionDef",
+    "sizing_recipe.py:3120-3120 Assign",
+    "sizing_recipe.py:3121-3121 Assign",
+    "sizing_recipe.py:3124-3130 ClassDef",
+    "sizing_recipe.py:3133-3192 FunctionDef",
+    "sizing_recipe.py:3195-3211 FunctionDef",
+    "sizing_recipe.py:3214-3253 FunctionDef",
+    "sizing_recipe.py:3256-3283 FunctionDef",
+    "sizing_recipe.py:3286-3320 FunctionDef",
+    "sizing_recipe.py:3323-3396 FunctionDef",
+    "sizing_recipe.py:3887-3935 FunctionDef",
+    "sizing_recipe.py:3939-3965 FunctionDef",
+    "sizing_recipe.py:4190-4221 FunctionDef",
+    "sizing_recipe.py:4224-4231 FunctionDef",
+    "sizing_recipe.py:4234-4243 FunctionDef",
+    "sizing_recipe.py:4246-4254 FunctionDef",
+    "sizing_recipe.py:4257-4260 FunctionDef",
+    "sizing_recipe.py:4263-4274 FunctionDef",
+    "sizing_recipe.py:4277-4280 FunctionDef",
+    "sizing_recipe.py:4283-4286 FunctionDef",
+    "sizing_recipe.py:4855-4866 FunctionDef",
+    "sizing_recipe.py:4886-4941 FunctionDef",
+    "sizing_recipe.py:5546-5638 FunctionDef",
+    "sizing_recipe.py:6841-6843 Assign",
+    "sizing_recipe.py:6846-6864 FunctionDef",
+    "sizing_recipe.py:6867-6933 FunctionDef",
+    "sizing_recipe.py:7068-7068 AnnAssign",
+    "sizing_recipe.py:7071-7178 FunctionDef",
+    "sizing_recipe.py:8795-8795 Assign",
+    "sizing_recipe.py:8801-8819 Assign",
+    "sizing_recipe.py:8822-8872 FunctionDef",
+    "sizing_recipe.py:8875-8911 FunctionDef"
+   ],
+   "n_defs_in_units": 100
+  },
+  "check_verdict": "PASS",
+  "check_findings": {},
+  "moved_units": 82,
+  "moved_defs": 100,
+  "v3_static": {
+   "defs": [],
+   "n_defs": 0,
+   "mutants": 0,
+   "pre_g1_defs": 100,
+   "pre_g1_mutants": 3052,
+   "moved_defs": 100,
+   "n_rejected": 0
+  },
+  "import_any": [
+   "IMPORT-ANY tried=8 expected=8 failed=0",
+   "rc=0"
+  ],
+  "import_layering": {
+   "present": {
+    "gmid_lut": 1,
+    "topology_authoring": 2,
+    "circuit_state_graph": 3,
+    "stick_diagram": 7
+   },
+   "n_findings": 0,
+   "findings": []
+  },
+  "e3b": {
+   "sizing_recipe": {
+    "live": [
+     "E3b LIVE moved_out=43 base_files_reading_moved_out=22 pre_existing=1"
+    ],
+    "fail_head": 9,
+    "fail_bb": 9,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:230 <동적 이름>"
+    ]
+   },
+   "stick_diagram": {
+    "live": [
+     "E3b LIVE moved_out=39 base_files_reading_moved_out=26 pre_existing=1"
+    ],
+    "fail_head": 0,
+    "fail_bb": 0,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b PASS"
+    ]
+   }
+  },
+  "w2_acf_foreign_load": null,
+  "t_check": 84.6,
+  "sec": 615.8,
+  "rule_counts": {
+   "A-2": 7,
+   "A-5": 10,
+   "A-4": 48,
+   "A-1": 15,
+   "A-6": 2
+  },
+  "src_counts": {
+   "sizing_recipe.py": 43,
+   "stick_diagram.py": 39
+  },
+  "w1_nonreexport_reads": 0,
+  "w1_sample": [],
+  "plan_head": {
+   "lists": {
+    "upward": 0,
+    "cycles": 0,
+    "unassigned": 0,
+    "conflicts": 0,
+    "reg_mismatch": 0,
+    "import_time_high": 0,
+    "import_conflicts": 0
+   },
+   "map_diff": 0,
+   "moved_rule": {
+    "A-0": 82
+   },
+   "n_assign": 403
+  },
+  "V3": {
+   "verdict": "PASS",
+   "defs": [],
+   "mutants": 0,
+   "survivors": [],
+   "move_rejected": {},
+   "targets": [
+    "skills/analog-gmid-design/assets/circuit_state_graph.py",
+    "skills/analog-gmid-design/assets/sizing_recipe.py",
+    "skills/analog-gmid-design/assets/stick_diagram.py"
+   ],
+   "error": null,
+   "moved_n": 100
+  },
+  "V6": {
+   "verdict": "PASS",
+   "findings": [],
+   "move_rejected": {},
+   "error": null
+  },
+  "V7": {
+   "verdict": "PASS",
+   "new_defs": [],
+   "move_rejected": {},
+   "error": null,
+   "moved_n": 100
+  },
+  "pt3": {
+   "ids_base": 1062,
+   "ids_head": 1062,
+   "same_ids": true,
+   "diff": [],
+   "base": {
+    "summary": [
+     "1 failed, 1046 passed, 15 xfailed in 284.93s (0:04:44)"
+    ],
+    "exit": "exit=1 seconds=295",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots"
+    ]
+   },
+   "head": {
+    "summary": [
+     "1 failed, 1046 passed, 15 xfailed in 336.32s (0:05:36)"
+    ],
+    "exit": "exit=1 seconds=352",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots"
+    ]
+   }
+  },
+  "einst": {
+   "elib_equal": true,
+   "elib_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f",
+   "current_reuse_telescopic_ota": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d",
+    "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   },
+   "folded_cascode": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+    "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   }
+  },
+  "e3": {
+   "base": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "head": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "same_outside": true,
+   "n_outside": 66
+  },
+  "unit_rows": [
+   {
+    "uid": "stick_diagram.py::Transistor",
+    "span": "stick_diagram.py:48-79 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "stick_diagram.py::find_matching_candidates",
+    "span": "stick_diagram.py:938-1014 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::find_stacked_matching_candidates",
+    "span": "stick_diagram.py:1047-1092 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::trace_vdd_to_gnd_branches",
+    "span": "stick_diagram.py:1126-1175 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "stick_diagram.py::trace_gnd_to_vdd_branches",
+    "span": "stick_diagram.py:1178-1223 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "stick_diagram.py::find_differential_and_mirror_forks",
+    "span": "stick_diagram.py:1226-1299 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::suggest_vertical_stack_composites",
+    "span": "stick_diagram.py:1302-1440 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::find_differential_pair_candidates",
+    "span": "stick_diagram.py:1443-1546 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_diff_pair_layer1_groups",
+    "span": "stick_diagram.py:1549-1561 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::find_verified_differential_and_mirror_relations",
+    "span": "stick_diagram.py:1564-1747 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_propose_vertical_stack_ids",
+    "span": "stick_diagram.py:1750-1987 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_propose_gm_id_roles",
+    "span": "stick_diagram.py:1990-2050 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_propose_L_roles",
+    "span": "stick_diagram.py:2053-2133 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::refine_differential_and_mirror_relations",
+    "span": "stick_diagram.py:2138-2357 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::SymmetryDispositionsVerdict",
+    "span": "stick_diagram.py:2360-2364 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "stick_diagram.py::check_symmetry_dispositions",
+    "span": "stick_diagram.py:2367-2451 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::find_hub_merge_candidates",
+    "span": "stick_diagram.py:2462-2485 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "stick_diagram.py::StructuralSymmetryVerdict",
+    "span": "stick_diagram.py:2496-2502 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "stick_diagram.py::find_structural_symmetry_candidates",
+    "span": "stick_diagram.py:2507-2617 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::propagate_topology_forced_currents",
+    "span": "stick_diagram.py:2676-2727 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "stick_diagram.py::DiodeStackMember",
+    "span": "stick_diagram.py:2730-2734 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "stick_diagram.py::DiodeStack",
+    "span": "stick_diagram.py:2738-2741 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "stick_diagram.py::find_diode_stacks",
+    "span": "stick_diagram.py:2744-2772 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_RAIL_NETS",
+    "span": "stick_diagram.py:2804-2804 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "stick_diagram.py::kcl_series_union",
+    "span": "stick_diagram.py:2824-2869 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_kcl_and_matching_edges",
+    "span": "stick_diagram.py:2944-2965 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "stick_diagram.py::audit_vertical_stack_id_vs_kcl",
+    "span": "stick_diagram.py:2968-3068 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::propose_vertical_stack_id_gap_fill",
+    "span": "stick_diagram.py:3071-3148 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_kcl_terminal_sign",
+    "span": "stick_diagram.py:3161-3170 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::propose_theta_kcl_gap_fill",
+    "span": "stick_diagram.py:3173-3518 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::propose_device_roles_gap_fill",
+    "span": "stick_diagram.py:3523-4228 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::find_unreviewed_device_roles",
+    "span": "stick_diagram.py:4235-4270 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::find_unreviewed_matching_pairs",
+    "span": "stick_diagram.py:4273-4303 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::require_device_roles_reviewed",
+    "span": "stick_diagram.py:4306-4361 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::folded_cascode_example",
+    "span": "stick_diagram.py:6295-6334 FunctionDef",
+    "rule": "A-6"
+   },
+   {
+    "uid": "stick_diagram.py::two_stage_ota_example",
+    "span": "stick_diagram.py:6337-6367 FunctionDef",
+    "rule": "A-6"
+   },
+   {
+    "uid": "stick_diagram.py::NameCollisionVerdict",
+    "span": "stick_diagram.py:8062-8067 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "stick_diagram.py::check_topology_name_uniqueness",
+    "span": "stick_diagram.py:8071-8115 FunctionDef",
+    "rule": "A-5"
+   },
+   {
+    "uid": "stick_diagram.py::load_topology",
+    "span": "stick_diagram.py:8124-8313 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::vgs_alias_map",
+    "span": "sizing_recipe.py:1043-1062 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_vgs_root",
+    "span": "sizing_recipe.py:1065-1071 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::true_current_mirror_groups",
+    "span": "sizing_recipe.py:1597-1621 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::l_sharing_classes",
+    "span": "sizing_recipe.py:1624-1670 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::gain_stage_tails",
+    "span": "sizing_recipe.py:1673-1726 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::l_class_owners",
+    "span": "sizing_recipe.py:1729-1754 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::audit_l_sharing_consistency",
+    "span": "sizing_recipe.py:1757-1794 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::synthesize_l_class_thetas",
+    "span": "sizing_recipe.py:1857-1933 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_AUTHORITATIVE_GM_ID_SOURCES",
+    "span": "sizing_recipe.py:2514-2515 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_AUTHORITATIVE_GM_ID_ONLY_SOURCES",
+    "span": "sizing_recipe.py:2516-2516 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_gm_id_already_authoritative",
+    "span": "sizing_recipe.py:2519-2522 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::is_diode_connected",
+    "span": "sizing_recipe.py:2525-2532 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_DEFAULT_RAIL_HI",
+    "span": "sizing_recipe.py:3120-3120 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_DEFAULT_RAIL_LO",
+    "span": "sizing_recipe.py:3121-3121 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::NodeVoltageReport",
+    "span": "sizing_recipe.py:3124-3130 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "sizing_recipe.py::propagate_node_voltages",
+    "span": "sizing_recipe.py:3133-3192 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::derive_vsb_from_nodes",
+    "span": "sizing_recipe.py:3195-3211 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::reconcile_vsb_from_nodes",
+    "span": "sizing_recipe.py:3214-3253 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::audit_vsb_consistency",
+    "span": "sizing_recipe.py:3256-3283 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::signal_path_nodes",
+    "span": "sizing_recipe.py:3286-3320 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::node_pole_estimate",
+    "span": "sizing_recipe.py:3323-3396 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::input_referred_offset_pairs",
+    "span": "sizing_recipe.py:3887-3935 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::materialize_input_offset_pairs",
+    "span": "sizing_recipe.py:3939-3965 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_load_full_topology_cached",
+    "span": "sizing_recipe.py:4190-4221 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_topology_meta_cached",
+    "span": "sizing_recipe.py:4224-4231 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_l_sharing_classes_cached",
+    "span": "sizing_recipe.py:4234-4243 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_l_class_owners_cached",
+    "span": "sizing_recipe.py:4246-4254 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_ideal_sources_cached",
+    "span": "sizing_recipe.py:4257-4260 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_diode_set_cached",
+    "span": "sizing_recipe.py:4263-4274 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_device_roles_cached",
+    "span": "sizing_recipe.py:4277-4280 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_matching_pairs_cached",
+    "span": "sizing_recipe.py:4283-4286 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_shared_current_groups_from_compensation",
+    "span": "sizing_recipe.py:4855-4866 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_build_shared_current_joint_plan",
+    "span": "sizing_recipe.py:4886-4941 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::validate_theta_declaration_order",
+    "span": "sizing_recipe.py:5546-5638 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_SPEC_RESOLUTION_KEYS",
+    "span": "sizing_recipe.py:6841-6843 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::spec_fingerprint",
+    "span": "sizing_recipe.py:6846-6864 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::require_declared_spec_source",
+    "span": "sizing_recipe.py:6867-6933 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_RESOLVE_STALE_NOTES",
+    "span": "sizing_recipe.py:7068-7068 AnnAssign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::resolve_constraint_references",
+    "span": "sizing_recipe.py:7071-7178 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_FULL_CIRCUIT_METRIC_TYPES",
+    "span": "sizing_recipe.py:8795-8795 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_DEFAULT_ALL_DEVICES_METRIC_TYPES",
+    "span": "sizing_recipe.py:8801-8819 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_device_footprint",
+    "span": "sizing_recipe.py:8822-8872 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_theta_feed_footprint",
+    "span": "sizing_recipe.py:8875-8911 FunctionDef",
+    "rule": "A-4"
+   }
+  ],
+  "reexport_pos": {
+   "stick_diagram.py": {
+    "line": 42,
+    "n_lines": 5178,
+    "prev": "from topology_authoring import _import_analog_grammar, _propose_headroom_roles, _scan_case_collisions, _to_analog_gramma",
+    "next": "# ---------------------------------------------------------------------------"
+   },
+   "sizing_recipe.py": {
+    "line": 48,
+    "n_lines": 10068,
+    "prev": "from topology_authoring import _METRIC_UNITS, _UNIT_NAME_SUFFIXES, _UNIT_SCALES, metric_unit_scale, unit_hint_from_metri",
+    "next": "# ---------------------------------------------------------------------------"
+   }
+  },
+  "mod_file_lines": 4802,
+  "V4": {
+   "subjects": [
+    "circuit_state_graph:Transistor",
+    "circuit_state_graph:find_matching_candidates"
+   ],
+   "exit": 0,
+   "out": "{\"tool\": \"V4\", \"verdict\": \"PASS\", \"files\": [], \"findings\": [], \"unjudged\": []}"
+  },
+  "V5": {
+   "exit": 0,
+   "out": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}"
+  },
+  "neg": [
+   {
+    "variant": "R-1 edit-body",
+    "what": "circuit_state_graph:116 in find_matching_candidates",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 14,
+     "move-rejected": 13,
+     "changed": 14,
+     "lost": 14,
+     "rebind": 30,
+     "shim": 2
+    },
+    "v3_static_g1": {
+     "n_defs": 17,
+     "mutants": 582,
+     "n_rejected": 13
+    },
+    "import_any": [
+     "IMPORT-ANY tried=8 expected=8 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-2 drop-reexport",
+    "what": "stick_diagram.py drop DiodeStack",
+    "check_exit": 1,
+    "check_findings": {
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=8 expected=8 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-3 import-shim",
+    "what": "import sizing_recipe",
+    "check_exit": 1,
+    "check_findings": {
+     "order": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY FAIL: audit_current_forced",
+     "IMPORT-ANY FAIL: circuit_state_graph",
+     "IMPORT-ANY FAIL: design_report",
+     "IMPORT-ANY FAIL: stick_diagram",
+     "IMPORT-ANY tried=8 expected=8 failed=4",
+     "rc=1"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-4 dup-import",
+    "what": "from collections import defaultdict",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 35,
+     "move-rejected": 35,
+     "changed": 35,
+     "lost": 35,
+     "rebind": 37,
+     "import-dup": 1,
+     "shim": 2
+    },
+    "v3_static_g1": {
+     "n_defs": 64,
+     "mutants": 2063,
+     "n_rejected": 35
+    },
+    "import_any": [
+     "IMPORT-ANY tried=8 expected=8 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-5 no-future",
+    "what": "-future",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 82,
+     "move-rejected": 82,
+     "changed": 82,
+     "lost": 82,
+     "rebind": 77,
+     "shim": 2
+    },
+    "v3_static_g1": {
+     "n_defs": 100,
+     "mutants": 3052,
+     "n_rejected": 82
+    },
+    "import_any": [
+     "IMPORT-ANY tried=8 expected=8 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-6 extra-unit",
+    "what": "sizing_recipe.py::_base_stack_id (A-4 -> sizing_layout_convergence.py)",
+    "check_exit": 1,
+    "check_findings": {
+     "move-rejected": 1,
+     "changed": 1,
+     "lost": 1,
+     "rebind": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 1,
+     "mutants": 2,
+     "n_rejected": 1
+    },
+    "import_any": [
+     "IMPORT-ANY tried=8 expected=8 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-7 docstring",
+    "what": "docstring",
+    "check_exit": 1,
+    "check_findings": {
+     "changed": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=8 expected=8 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   }
+  ]
+ },
+ "gmid_sizing_engine": {
+  "base": "74fd89ad7a68399552ef1db1589278119be2527f",
+  "head": "d48e233dabc0e06080b631ab5dc5ca752c3f0d9c",
+  "plan": {
+   "upward": 0,
+   "cycles": 0,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 0,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "assigned": 104,
+  "rules": {
+   "sizing_recipe.py::DEFAULT_POLICY": "A-5",
+   "sizing_recipe.py::DiodeSelfConsistencyError": "A-2",
+   "sizing_recipe.py::HeadroomPolicy": "A-2",
+   "sizing_recipe.py::InfeasibleSizingError": "A-2",
+   "sizing_recipe.py::QuasiStaticVerdict": "A-2",
+   "sizing_recipe.py::SizingContext": "A-2",
+   "sizing_recipe.py::SizingResult": "A-2",
+   "sizing_recipe.py::_CMRR_ESTIMATOR_REGISTRY": "A-5",
+   "sizing_recipe.py::_COMPENSATION_REGISTRY": "A-4",
+   "sizing_recipe.py::_CONSTRAINT_FEASIBILITY_RTOL": "A-5",
+   "sizing_recipe.py::_DEFAULT_MIN_VDS_FALLBACK": "A-5",
+   "sizing_recipe.py::_DEFAULT_SENSE_RESISTOR_OHM": "A-5",
+   "sizing_recipe.py::_DEFAULT_UNCONSTRAINED_VDS": "A-5",
+   "sizing_recipe.py::_FEASIBLE_L_WINDOW_CACHE": "A-4",
+   "sizing_recipe.py::_HeadroomDependencyNotReady": "A-2",
+   "sizing_recipe.py::_KNEE_L_CACHE": "A-4",
+   "sizing_recipe.py::_LUT_VDSAT_ROLES": "A-4",
+   "sizing_recipe.py::_L_ROLE_TARGETS": "A-4",
+   "sizing_recipe.py::_PSRR_ESTIMATOR_REGISTRY": "A-5",
+   "sizing_recipe.py::_cmrr_diff_pair_tail": "A-4",
+   "sizing_recipe.py::_constraint_tol": "A-4",
+   "sizing_recipe.py::_default_cascode_headroom": "A-4",
+   "sizing_recipe.py::_evenly_subsample": "A-4",
+   "sizing_recipe.py::_feed_diode_stack_target": "A-4",
+   "sizing_recipe.py::_feed_gm_target_convention": "A-4",
+   "sizing_recipe.py::_feed_l_class": "A-4",
+   "sizing_recipe.py::_feed_root_const": "A-4",
+   "sizing_recipe.py::_feed_root_ratio": "A-4",
+   "sizing_recipe.py::_feed_root_signed_sum": "A-4",
+   "sizing_recipe.py::_feed_settling_split": "A-4",
+   "sizing_recipe.py::_feed_vds_fallback": "A-4",
+   "sizing_recipe.py::_folded_cascode_rout": "A-4",
+   "sizing_recipe.py::_full_circuit_devices": "A-4",
+   "sizing_recipe.py::_hashable_key": "A-4",
+   "sizing_recipe.py::_hr_fold_group_check": "A-1",
+   "sizing_recipe.py::_hr_resolve_vertical_group": "A-1",
+   "sizing_recipe.py::_hr_sum_ref_vds": "A-1",
+   "sizing_recipe.py::_hr_thin_singleton_ideal_source_check": "A-1",
+   "sizing_recipe.py::_hr_verify_group_kvl_sum": "A-1",
+   "sizing_recipe.py::_hr_vfind": "A-1",
+   "sizing_recipe.py::_invert_gm_id_for_current": "A-4",
+   "sizing_recipe.py::_metric_battery_centering_deviation": "A-4",
+   "sizing_recipe.py::_metric_cmrr_estimate": "A-4",
+   "sizing_recipe.py::_metric_flicker_plus_thermal_sum": "A-4",
+   "sizing_recipe.py::_metric_folded_cascode_gain_db": "A-4",
+   "sizing_recipe.py::_metric_folded_cascode_pm_deg": "A-4",
+   "sizing_recipe.py::_metric_gain_stages_sum": "A-4",
+   "sizing_recipe.py::_metric_kcl_residual": "A-4",
+   "sizing_recipe.py::_metric_mirror_ratio_error": "A-4",
+   "sizing_recipe.py::_metric_mirror_ratio_error_input_referred": "A-4",
+   "sizing_recipe.py::_metric_nmcnr_gain_db": "A-4",
+   "sizing_recipe.py::_metric_nmcnr_pm_deg": "A-4",
+   "sizing_recipe.py::_metric_nulling_resistor_ohm": "A-1",
+   "sizing_recipe.py::_metric_psrr_estimate": "A-4",
+   "sizing_recipe.py::_metric_rail_referenced_voltage": "A-4",
+   "sizing_recipe.py::_metric_stack_headroom_slack": "A-4",
+   "sizing_recipe.py::_metric_stage_budget_finalize": "A-4",
+   "sizing_recipe.py::_metric_stage_budget_vds_by_device": "A-4",
+   "sizing_recipe.py::_metric_sum_area": "A-4",
+   "sizing_recipe.py::_metric_sum_current": "A-4",
+   "sizing_recipe.py::_metric_supply_current": "A-4",
+   "sizing_recipe.py::_mirror_ratio_aggregate": "A-4",
+   "sizing_recipe.py::_mirror_ratio_error_pairs": "A-4",
+   "sizing_recipe.py::_mna_solve_smallsignal": "A-4",
+   "sizing_recipe.py::_mna_stamp_capacitance": "A-4",
+   "sizing_recipe.py::_nmcnr_predict": "A-4",
+   "sizing_recipe.py::_nmcnr_stage1_rout": "A-4",
+   "sizing_recipe.py::_psrr_diff_pair_tail": "A-4",
+   "sizing_recipe.py::_resolve_capacitor_farad": "A-4",
+   "sizing_recipe.py::_resolve_nulling_resistor_ohm": "A-4",
+   "sizing_recipe.py::_shared_current_root_grids": "A-4",
+   "sizing_recipe.py::allocate_stack_headroom": "A-4",
+   "sizing_recipe.py::apply_diode_self_consistent_gm_id": "A-4",
+   "sizing_recipe.py::check_quasi_static": "A-4",
+   "sizing_recipe.py::derive_class_L": "A-4",
+   "sizing_recipe.py::diode_vds_cached": "A-4",
+   "sizing_recipe.py::diode_vds_window": "A-4",
+   "sizing_recipe.py::feasible_L_window": "A-5",
+   "sizing_recipe.py::feasible_gm_ids": "A-1",
+   "sizing_recipe.py::find_optimal_sizing": "A-4",
+   "sizing_recipe.py::gm_from_fT": "A-4",
+   "sizing_recipe.py::knee_L_for_kind": "A-5",
+   "sizing_recipe.py::lut_vdsat_headroom": "A-4",
+   "sizing_recipe.py::make_replica_feasibility_check": "A-4",
+   "sizing_recipe.py::measure_L_knee": "A-1",
+   "sizing_recipe.py::optimize_multistage": "A-4",
+   "sizing_recipe.py::reserved_vds_for_other_stack_members": "A-4",
+   "sizing_recipe.py::resolve_feed_vds": "A-4",
+   "sizing_recipe.py::search_gm_id_for_role": "A-4",
+   "sizing_recipe.py::set_device_vds": "A-4",
+   "sizing_recipe.py::size_transistor": "A-1",
+   "sizing_recipe.py::solve_diode_connected_vds": "A-1",
+   "sizing_recipe.py::solve_diode_stack_current": "A-4",
+   "sizing_recipe.py::solve_id_for_target_gm": "A-4",
+   "sizing_recipe.py::solve_stacked_diode_pair": "A-1",
+   "sizing_recipe.py::stack_kvl_vgs_limit": "A-4",
+   "sizing_recipe.py::width_from_id_density": "A-4",
+   "topology_library.py::current_reuse_telescopic_topology": "A-1",
+   "topology_library.py::miller_ota_topology": "A-1",
+   "topology_library.py::ngcc_3stage_topology": "A-1",
+   "topology_library.py::nmcnr_3stage_topology": "A-1",
+   "topology_library.py::nmcnr_check_dominant_pole_approximation": "A-1",
+   "topology_library.py::nmcnr_compensation_elements": "A-1",
+   "topology_library.py::nmcnr_predict_ac_response": "A-1"
+  },
+  "units": 104,
+  "gen": {
+   "mod_imports_head": [
+    "from __future__ import annotations",
+    "from circuit_state_graph import _AUTHORITATIVE_GM_ID_SOURCES, _DEFAULT_RAIL_HI, _DEFAULT_RAIL_LO, _device_roles_cached, _diode_set_cached, _ideal_sources_cached, _load_full_topology_cached, _matching_pairs_cached, _topology_meta_cached, _vgs_root, derive_vsb_from_nodes, is_diode_connected, propagate_node_voltages, vgs_alias_map",
+    "from collections import defaultdict",
+    "from dataclasses import dataclass, field",
+    "from gmid_lut import GmIdLUT, SemiEmpiricalGmIdLUT",
+    "from typing import Callable",
+    "import functools",
+    "import itertools",
+    "import math",
+    "import numpy as np"
+   ],
+   "mod_imports_tail": [],
+   "reexports": {
+    "topology_library.py": "from gmid_sizing_engine import current_reuse_telescopic_topology, miller_ota_topology, ngcc_3stage_topology, nmcnr_3stage_topology, nmcnr_check_dominant_pole_approximation, nmcnr_compensation_elements, nmcnr_predict_ac_response  (complete shim)",
+    "sizing_recipe.py": "from gmid_sizing_engine import DEFAULT_POLICY, DiodeSelfConsistencyError, HeadroomPolicy, InfeasibleSizingError, QuasiStaticVerdict, SizingContext, SizingResult, _CMRR_ESTIMATOR_REGISTRY, _COMPENSATION_REGISTRY, _CONSTRAINT_FEASIBILITY_RTOL, _DEFAULT_MIN_VDS_FALLBACK, _DEFAULT_SENSE_RESISTOR_OHM, _DEFAULT_UNCONSTRAINED_VDS, _FEASIBLE_L_WINDOW_CACHE, _HeadroomDependencyNotReady, _KNEE_L_CACHE, _LUT_VDSAT_ROLES, _L_ROLE_TARGETS, _PSRR_ESTIMATOR_REGISTRY, _cmrr_diff_pair_tail, _constraint_tol, _default_cascode_headroom, _evenly_subsample, _feed_diode_stack_target, _feed_gm_target_convention, _feed_l_class, _feed_root_const, _feed_root_ratio, _feed_root_signed_sum, _feed_settling_split, _feed_vds_fallback, _folded_cascode_rout, _full_circuit_devices, _hashable_key, _hr_fold_group_check, _hr_resolve_vertical_group, _hr_sum_ref_vds, _hr_thin_singleton_ideal_source_check, _hr_verify_group_kvl_sum, _hr_vfind, _invert_gm_id_for_current, _metric_battery_centering_deviation, _metric_cmrr_estimate, _metric_flicker_plus_thermal_sum, _metric_folded_cascode_gain_db, _metric_folded_cascode_pm_deg, _metric_gain_stages_sum, _metric_kcl_residual, _metric_mirror_ratio_error, _metric_mirror_ratio_error_input_referred, _metric_nmcnr_gain_db, _metric_nmcnr_pm_deg, _metric_nulling_resistor_ohm, _metric_psrr_estimate, _metric_rail_referenced_voltage, _metric_stack_headroom_slack, _metric_stage_budget_finalize, _metric_stage_budget_vds_by_device, _metric_sum_area, _metric_sum_current, _metric_supply_current, _mirror_ratio_aggregate, _mirror_ratio_error_pairs, _mna_solve_smallsignal, _mna_stamp_capacitance, _nmcnr_predict, _nmcnr_stage1_rout, _psrr_diff_pair_tail, _resolve_capacitor_farad, _resolve_nulling_resistor_ohm, _shared_current_root_grids, allocate_stack_headroom, apply_diode_self_consistent_gm_id, check_quasi_static, derive_class_L, diode_vds_cached, diode_vds_window, feasible_L_window, feasible_gm_ids, find_optimal_sizing, gm_from_fT, knee_L_for_kind, lut_vdsat_headroom, make_replica_feasibility_check, measure_L_knee, optimize_multistage, reserved_vds_for_other_stack_members, resolve_feed_vds, search_gm_id_for_role, set_device_vds, size_transistor, solve_diode_connected_vds, solve_diode_stack_current, solve_id_for_target_gm, solve_stacked_diode_pair, stack_kvl_vgs_limit, width_from_id_density"
+   },
+   "spans": [
+    "topology_library.py:33-52 FunctionDef",
+    "topology_library.py:62-118 FunctionDef",
+    "topology_library.py:121-134 FunctionDef",
+    "topology_library.py:137-245 FunctionDef",
+    "topology_library.py:248-329 FunctionDef",
+    "topology_library.py:339-363 FunctionDef",
+    "topology_library.py:373-520 FunctionDef",
+    "sizing_recipe.py:61-63 FunctionDef",
+    "sizing_recipe.py:66-72 ClassDef",
+    "sizing_recipe.py:75-82 FunctionDef",
+    "sizing_recipe.py:85-93 FunctionDef",
+    "sizing_recipe.py:100-102 ClassDef",
+    "sizing_recipe.py:105-113 FunctionDef",
+    "sizing_recipe.py:282-389 FunctionDef",
+    "sizing_recipe.py:398-797 FunctionDef",
+    "sizing_recipe.py:823-830 Assign",
+    "sizing_recipe.py:840-875 FunctionDef",
+    "sizing_recipe.py:878-903 FunctionDef",
+    "sizing_recipe.py:906-955 FunctionDef",
+    "sizing_recipe.py:964-972 FunctionDef",
+    "sizing_recipe.py:981-981 Assign",
+    "sizing_recipe.py:985-996 FunctionDef",
+    "sizing_recipe.py:998-1041 FunctionDef",
+    "sizing_recipe.py:1048-1192 FunctionDef",
+    "sizing_recipe.py:1194-1216 ClassDef",
+    "sizing_recipe.py:1219-1219 Assign",
+    "sizing_recipe.py:1222-1300 FunctionDef",
+    "sizing_recipe.py:1317-1317 Assign",
+    "sizing_recipe.py:1329-1329 Assign",
+    "sizing_recipe.py:1332-1348 FunctionDef",
+    "sizing_recipe.py:1351-1364 FunctionDef",
+    "sizing_recipe.py:1367-1513 FunctionDef",
+    "sizing_recipe.py:1518-1568 FunctionDef",
+    "sizing_recipe.py:1581-1581 AnnAssign",
+    "sizing_recipe.py:1584-1638 FunctionDef",
+    "sizing_recipe.py:1643-1643 AnnAssign",
+    "sizing_recipe.py:1646-1712 FunctionDef",
+    "sizing_recipe.py:1718-1721 Assign",
+    "sizing_recipe.py:1817-1875 FunctionDef",
+    "sizing_recipe.py:1910-1958 ClassDef",
+    "sizing_recipe.py:1961-1964 FunctionDef",
+    "sizing_recipe.py:1967-1970 FunctionDef",
+    "sizing_recipe.py:1973-1982 FunctionDef",
+    "sizing_recipe.py:1985-2003 FunctionDef",
+    "sizing_recipe.py:2006-2019 FunctionDef",
+    "sizing_recipe.py:2022-2050 FunctionDef",
+    "sizing_recipe.py:2053-2075 FunctionDef",
+    "sizing_recipe.py:2078-2129 FunctionDef",
+    "sizing_recipe.py:2132-2136 FunctionDef",
+    "sizing_recipe.py:2139-2155 FunctionDef",
+    "sizing_recipe.py:2158-2183 FunctionDef",
+    "sizing_recipe.py:2206-2210 ClassDef",
+    "sizing_recipe.py:2227-2301 FunctionDef",
+    "sizing_recipe.py:2304-2319 FunctionDef",
+    "sizing_recipe.py:2322-2443 FunctionDef",
+    "sizing_recipe.py:2446-2497 FunctionDef",
+    "sizing_recipe.py:2500-2586 FunctionDef",
+    "sizing_recipe.py:2589-2670 FunctionDef",
+    "sizing_recipe.py:2673-2805 FunctionDef",
+    "sizing_recipe.py:2829-2861 FunctionDef",
+    "sizing_recipe.py:2864-2898 FunctionDef",
+    "sizing_recipe.py:3102-3171 FunctionDef",
+    "sizing_recipe.py:3174-3208 FunctionDef",
+    "sizing_recipe.py:3212-3220 FunctionDef",
+    "sizing_recipe.py:3223-3266 FunctionDef",
+    "sizing_recipe.py:3269-3287 FunctionDef",
+    "sizing_recipe.py:3289-3312 FunctionDef",
+    "sizing_recipe.py:3368-3386 FunctionDef",
+    "sizing_recipe.py:3389-3412 FunctionDef",
+    "sizing_recipe.py:3415-3421 FunctionDef",
+    "sizing_recipe.py:3424-3430 FunctionDef",
+    "sizing_recipe.py:3433-3505 FunctionDef",
+    "sizing_recipe.py:3508-3516 FunctionDef",
+    "sizing_recipe.py:3519-3521 Assign",
+    "sizing_recipe.py:3524-3533 FunctionDef",
+    "sizing_recipe.py:3536-3538 Assign",
+    "sizing_recipe.py:3559-3559 Assign",
+    "sizing_recipe.py:3562-3586 FunctionDef",
+    "sizing_recipe.py:3589-3621 FunctionDef",
+    "sizing_recipe.py:3713-3722 FunctionDef",
+    "sizing_recipe.py:3725-3734 FunctionDef",
+    "sizing_recipe.py:3845-3880 FunctionDef",
+    "sizing_recipe.py:3883-3897 FunctionDef",
+    "sizing_recipe.py:3900-3933 FunctionDef",
+    "sizing_recipe.py:3936-3994 FunctionDef",
+    "sizing_recipe.py:3997-4054 FunctionDef",
+    "sizing_recipe.py:4057-4083 FunctionDef",
+    "sizing_recipe.py:4086-4122 FunctionDef",
+    "sizing_recipe.py:4127-4141 FunctionDef",
+    "sizing_recipe.py:4146-4178 FunctionDef",
+    "sizing_recipe.py:4688-4718 FunctionDef",
+    "sizing_recipe.py:4763-4763 Assign",
+    "sizing_recipe.py:4766-4774 FunctionDef",
+    "sizing_recipe.py:4788-4812 ClassDef",
+    "sizing_recipe.py:4815-4826 ClassDef",
+    "sizing_recipe.py:4941-4964 FunctionDef",
+    "sizing_recipe.py:4967-5054 FunctionDef",
+    "sizing_recipe.py:5057-5101 FunctionDef",
+    "sizing_recipe.py:5224-5229 FunctionDef",
+    "sizing_recipe.py:5232-5262 FunctionDef",
+    "sizing_recipe.py:5265-5316 FunctionDef",
+    "sizing_recipe.py:5319-5333 FunctionDef",
+    "sizing_recipe.py:5336-5445 FunctionDef",
+    "sizing_recipe.py:5448-5947 FunctionDef"
+   ],
+   "n_defs_in_units": 126
+  },
+  "check_verdict": "PASS",
+  "check_findings": {},
+  "moved_units": 104,
+  "moved_defs": 126,
+  "v3_static": {
+   "defs": [],
+   "n_defs": 0,
+   "mutants": 0,
+   "pre_g1_defs": 126,
+   "pre_g1_mutants": 3999,
+   "moved_defs": 126,
+   "n_rejected": 0
+  },
+  "import_any": [
+   "IMPORT-ANY tried=9 expected=9 failed=0",
+   "rc=0"
+  ],
+  "import_layering": {
+   "present": {
+    "gmid_lut": 1,
+    "topology_authoring": 2,
+    "circuit_state_graph": 3,
+    "gmid_sizing_engine": 4,
+    "stick_diagram": 7
+   },
+   "n_findings": 0,
+   "findings": []
+  },
+  "e3b": {
+   "sizing_recipe": {
+    "live": [
+     "E3b LIVE moved_out=97 base_files_reading_moved_out=26 pre_existing=1"
+    ],
+    "fail_head": 9,
+    "fail_bb": 9,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:230 <동적 이름>"
+    ]
+   },
+   "topology_library": {
+    "live": [
+     "E3b LIVE moved_out=7 base_files_reading_moved_out=3 pre_existing=0"
+    ],
+    "fail_head": 0,
+    "fail_bb": 0,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b PASS"
+    ]
+   }
+  },
+  "w2_acf_foreign_load": null,
+  "t_check": 81.1,
+  "sec": 610.4,
+  "rule_counts": {
+   "A-5": 9,
+   "A-2": 7,
+   "A-4": 69,
+   "A-1": 19
+  },
+  "src_counts": {
+   "sizing_recipe.py": 97,
+   "topology_library.py": 7
+  },
+  "w1_nonreexport_reads": 0,
+  "w1_sample": [],
+  "plan_head": {
+   "lists": {
+    "upward": 0,
+    "cycles": 0,
+    "unassigned": 0,
+    "conflicts": 0,
+    "reg_mismatch": 0,
+    "import_time_high": 0,
+    "import_conflicts": 0
+   },
+   "map_diff": 0,
+   "moved_rule": {
+    "A-0": 104
+   },
+   "n_assign": 403
+  },
+  "V3": {
+   "verdict": "PASS",
+   "defs": [],
+   "mutants": 0,
+   "survivors": [],
+   "move_rejected": {},
+   "targets": [
+    "skills/analog-gmid-design/assets/gmid_sizing_engine.py",
+    "skills/analog-gmid-design/assets/sizing_recipe.py",
+    "skills/analog-gmid-design/assets/topology_library.py"
+   ],
+   "error": null,
+   "moved_n": 126
+  },
+  "V6": {
+   "verdict": "PASS",
+   "findings": [],
+   "move_rejected": {},
+   "error": null
+  },
+  "V7": {
+   "verdict": "PASS",
+   "new_defs": [],
+   "move_rejected": {},
+   "error": null,
+   "moved_n": 126
+  },
+  "pt3": {
+   "ids_base": 1062,
+   "ids_head": 1062,
+   "same_ids": true,
+   "diff": [
+    "skills.analog-gmid-design.assets.tests.contracts.test_dup_w_calc::test_size_transistor_calls_new_function passed->failure"
+   ],
+   "base": {
+    "summary": [
+     "1 failed, 1046 passed, 15 xfailed in 336.32s (0:05:36)"
+    ],
+    "exit": "exit=1 seconds=352",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots"
+    ]
+   },
+   "head": {
+    "summary": [
+     "2 failed, 1045 passed, 15 xfailed in 296.12s (0:04:56)"
+    ],
+    "exit": "exit=1 seconds=311",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_w_calc.py::test_size_transistor_calls_new_function",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots"
+    ]
+   }
+  },
+  "einst": {
+   "elib_equal": true,
+   "elib_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f",
+   "current_reuse_telescopic_ota": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d",
+    "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   },
+   "folded_cascode": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+    "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   }
+  },
+  "e3": {
+   "base": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "head": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "same_outside": true,
+   "n_outside": 66
+  },
+  "unit_rows": [
+   {
+    "uid": "topology_library.py::miller_ota_topology",
+    "span": "topology_library.py:33-52 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "topology_library.py::nmcnr_3stage_topology",
+    "span": "topology_library.py:62-118 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "topology_library.py::nmcnr_compensation_elements",
+    "span": "topology_library.py:121-134 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "topology_library.py::nmcnr_predict_ac_response",
+    "span": "topology_library.py:137-245 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "topology_library.py::nmcnr_check_dominant_pole_approximation",
+    "span": "topology_library.py:248-329 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "topology_library.py::ngcc_3stage_topology",
+    "span": "topology_library.py:339-363 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "topology_library.py::current_reuse_telescopic_topology",
+    "span": "topology_library.py:373-520 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::gm_from_fT",
+    "span": "sizing_recipe.py:61-63 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::SizingResult",
+    "span": "sizing_recipe.py:66-72 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "sizing_recipe.py::width_from_id_density",
+    "span": "sizing_recipe.py:75-82 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::size_transistor",
+    "span": "sizing_recipe.py:85-93 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::QuasiStaticVerdict",
+    "span": "sizing_recipe.py:100-102 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "sizing_recipe.py::check_quasi_static",
+    "span": "sizing_recipe.py:105-113 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::find_optimal_sizing",
+    "span": "sizing_recipe.py:282-389 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::optimize_multistage",
+    "span": "sizing_recipe.py:398-797 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_COMPENSATION_REGISTRY",
+    "span": "sizing_recipe.py:823-830 Assign",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::solve_id_for_target_gm",
+    "span": "sizing_recipe.py:840-875 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_invert_gm_id_for_current",
+    "span": "sizing_recipe.py:878-903 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::solve_diode_stack_current",
+    "span": "sizing_recipe.py:906-955 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_default_cascode_headroom",
+    "span": "sizing_recipe.py:964-972 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_LUT_VDSAT_ROLES",
+    "span": "sizing_recipe.py:981-981 Assign",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::feasible_gm_ids",
+    "span": "sizing_recipe.py:985-996 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::lut_vdsat_headroom",
+    "span": "sizing_recipe.py:998-1041 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::stack_kvl_vgs_limit",
+    "span": "sizing_recipe.py:1048-1192 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::HeadroomPolicy",
+    "span": "sizing_recipe.py:1194-1216 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "sizing_recipe.py::DEFAULT_POLICY",
+    "span": "sizing_recipe.py:1219-1219 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::allocate_stack_headroom",
+    "span": "sizing_recipe.py:1222-1300 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_DEFAULT_UNCONSTRAINED_VDS",
+    "span": "sizing_recipe.py:1317-1317 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_DEFAULT_MIN_VDS_FALLBACK",
+    "span": "sizing_recipe.py:1329-1329 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_feed_vds_fallback",
+    "span": "sizing_recipe.py:1332-1348 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::resolve_feed_vds",
+    "span": "sizing_recipe.py:1351-1364 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::search_gm_id_for_role",
+    "span": "sizing_recipe.py:1367-1513 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::measure_L_knee",
+    "span": "sizing_recipe.py:1518-1568 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_KNEE_L_CACHE",
+    "span": "sizing_recipe.py:1581-1581 AnnAssign",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::knee_L_for_kind",
+    "span": "sizing_recipe.py:1584-1638 FunctionDef",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_FEASIBLE_L_WINDOW_CACHE",
+    "span": "sizing_recipe.py:1643-1643 AnnAssign",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::feasible_L_window",
+    "span": "sizing_recipe.py:1646-1712 FunctionDef",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_L_ROLE_TARGETS",
+    "span": "sizing_recipe.py:1718-1721 Assign",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::derive_class_L",
+    "span": "sizing_recipe.py:1817-1875 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::SizingContext",
+    "span": "sizing_recipe.py:1910-1958 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_sum_current",
+    "span": "sizing_recipe.py:1961-1964 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_sum_area",
+    "span": "sizing_recipe.py:1967-1970 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_gain_stages_sum",
+    "span": "sizing_recipe.py:1973-1982 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_folded_cascode_rout",
+    "span": "sizing_recipe.py:1985-2003 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_folded_cascode_gain_db",
+    "span": "sizing_recipe.py:2006-2019 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_folded_cascode_pm_deg",
+    "span": "sizing_recipe.py:2022-2050 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_nmcnr_stage1_rout",
+    "span": "sizing_recipe.py:2053-2075 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_nmcnr_predict",
+    "span": "sizing_recipe.py:2078-2129 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_nmcnr_gain_db",
+    "span": "sizing_recipe.py:2132-2136 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_nmcnr_pm_deg",
+    "span": "sizing_recipe.py:2139-2155 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_flicker_plus_thermal_sum",
+    "span": "sizing_recipe.py:2158-2183 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::DiodeSelfConsistencyError",
+    "span": "sizing_recipe.py:2206-2210 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "sizing_recipe.py::solve_diode_connected_vds",
+    "span": "sizing_recipe.py:2227-2301 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::diode_vds_cached",
+    "span": "sizing_recipe.py:2304-2319 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_stack_headroom_slack",
+    "span": "sizing_recipe.py:2322-2443 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::set_device_vds",
+    "span": "sizing_recipe.py:2446-2497 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::diode_vds_window",
+    "span": "sizing_recipe.py:2500-2586 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::solve_stacked_diode_pair",
+    "span": "sizing_recipe.py:2589-2670 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::apply_diode_self_consistent_gm_id",
+    "span": "sizing_recipe.py:2673-2805 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_resolve_capacitor_farad",
+    "span": "sizing_recipe.py:2829-2861 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_mna_stamp_capacitance",
+    "span": "sizing_recipe.py:2864-2898 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_kcl_residual",
+    "span": "sizing_recipe.py:3102-3171 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_supply_current",
+    "span": "sizing_recipe.py:3174-3208 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_mirror_ratio_aggregate",
+    "span": "sizing_recipe.py:3212-3220 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_mirror_ratio_error_pairs",
+    "span": "sizing_recipe.py:3223-3266 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_mirror_ratio_error_input_referred",
+    "span": "sizing_recipe.py:3269-3287 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_mirror_ratio_error",
+    "span": "sizing_recipe.py:3289-3312 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_rail_referenced_voltage",
+    "span": "sizing_recipe.py:3368-3386 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_battery_centering_deviation",
+    "span": "sizing_recipe.py:3389-3412 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_nulling_resistor_ohm",
+    "span": "sizing_recipe.py:3415-3421 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_cmrr_diff_pair_tail",
+    "span": "sizing_recipe.py:3424-3430 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_mna_solve_smallsignal",
+    "span": "sizing_recipe.py:3433-3505 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_hashable_key",
+    "span": "sizing_recipe.py:3508-3516 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_CMRR_ESTIMATOR_REGISTRY",
+    "span": "sizing_recipe.py:3519-3521 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_psrr_diff_pair_tail",
+    "span": "sizing_recipe.py:3524-3533 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_PSRR_ESTIMATOR_REGISTRY",
+    "span": "sizing_recipe.py:3536-3538 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_DEFAULT_SENSE_RESISTOR_OHM",
+    "span": "sizing_recipe.py:3559-3559 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_resolve_nulling_resistor_ohm",
+    "span": "sizing_recipe.py:3562-3586 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_full_circuit_devices",
+    "span": "sizing_recipe.py:3589-3621 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_cmrr_estimate",
+    "span": "sizing_recipe.py:3713-3722 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_psrr_estimate",
+    "span": "sizing_recipe.py:3725-3734 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_feed_root_ratio",
+    "span": "sizing_recipe.py:3845-3880 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_feed_root_const",
+    "span": "sizing_recipe.py:3883-3897 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_feed_root_signed_sum",
+    "span": "sizing_recipe.py:3900-3933 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_feed_diode_stack_target",
+    "span": "sizing_recipe.py:3936-3994 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_feed_gm_target_convention",
+    "span": "sizing_recipe.py:3997-4054 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_feed_settling_split",
+    "span": "sizing_recipe.py:4057-4083 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_stage_budget_finalize",
+    "span": "sizing_recipe.py:4086-4122 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_evenly_subsample",
+    "span": "sizing_recipe.py:4127-4141 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_shared_current_root_grids",
+    "span": "sizing_recipe.py:4146-4178 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_feed_l_class",
+    "span": "sizing_recipe.py:4688-4718 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_CONSTRAINT_FEASIBILITY_RTOL",
+    "span": "sizing_recipe.py:4763-4763 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_constraint_tol",
+    "span": "sizing_recipe.py:4766-4774 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::InfeasibleSizingError",
+    "span": "sizing_recipe.py:4788-4812 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "sizing_recipe.py::_HeadroomDependencyNotReady",
+    "span": "sizing_recipe.py:4815-4826 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_stage_budget_vds_by_device",
+    "span": "sizing_recipe.py:4941-4964 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::reserved_vds_for_other_stack_members",
+    "span": "sizing_recipe.py:4967-5054 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::make_replica_feasibility_check",
+    "span": "sizing_recipe.py:5057-5101 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_hr_vfind",
+    "span": "sizing_recipe.py:5224-5229 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_hr_thin_singleton_ideal_source_check",
+    "span": "sizing_recipe.py:5232-5262 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_hr_fold_group_check",
+    "span": "sizing_recipe.py:5265-5316 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_hr_sum_ref_vds",
+    "span": "sizing_recipe.py:5319-5333 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_hr_verify_group_kvl_sum",
+    "span": "sizing_recipe.py:5336-5445 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_hr_resolve_vertical_group",
+    "span": "sizing_recipe.py:5448-5947 FunctionDef",
+    "rule": "A-1"
+   }
+  ],
+  "reexport_pos": {
+   "topology_library.py": {
+    "line": 25,
+    "n_lines": 25,
+    "prev": "from __future__ import annotations",
+    "next": "<EOF>"
+   },
+   "sizing_recipe.py": {
+    "line": 49,
+    "n_lines": 6080,
+    "prev": "from circuit_state_graph import NodeVoltageReport, _AUTHORITATIVE_GM_ID_ONLY_SOURCES, _AUTHORITATIVE_GM_ID_SOURCES, _DEF",
+    "next": "# ---------------------------------------------------------------------------"
+   }
+  },
+  "mod_file_lines": 4662,
+  "V4": {
+   "subjects": [
+    "gmid_sizing_engine:miller_ota_topology",
+    "gmid_sizing_engine:nmcnr_3stage_topology"
+   ],
+   "exit": 0,
+   "out": "{\"tool\": \"V4\", \"verdict\": \"PASS\", \"files\": [], \"findings\": [], \"unjudged\": []}"
+  },
+  "V5": {
+   "exit": 0,
+   "out": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}"
+  },
+  "neg": [
+   {
+    "variant": "R-1 edit-body",
+    "what": "gmid_sizing_engine:20 in miller_ota_topology",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 2,
+     "move-rejected": 1,
+     "changed": 2,
+     "lost": 2,
+     "rebind": 1,
+     "shim": 2
+    },
+    "v3_static_g1": {
+     "n_defs": 2,
+     "mutants": 70,
+     "n_rejected": 1
+    },
+    "import_any": [
+     "IMPORT-ANY tried=9 expected=9 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-2 drop-reexport",
+    "what": "topology_library.py drop current_reuse_telescopic_topology",
+    "check_exit": 1,
+    "check_findings": {
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY FAIL: sizing_recipe",
+     "IMPORT-ANY tried=9 expected=9 failed=1",
+     "rc=1"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-3 import-shim",
+    "what": "import sizing_recipe",
+    "check_exit": 1,
+    "check_findings": {
+     "order": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY FAIL: gmid_sizing_engine",
+     "IMPORT-ANY FAIL: topology_library",
+     "IMPORT-ANY tried=9 expected=9 failed=2",
+     "rc=1"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-4 dup-import",
+    "what": "from circuit_state_graph import _AUTHORITATIVE_GM_ID_SOURCES, _DEFAULT_RAIL_HI, _DEFAULT_RAIL_LO, _device_roles_cached, _diode_set_cached, _ideal_sources_cached, _load_full_topology_cached, _matching_pairs_cached, _topology_meta_cached, _vgs_root, derive_vsb_from_nodes, is_diode_connected, propagate_node_voltages, vgs_alias_map",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 13,
+     "move-rejected": 13,
+     "changed": 13,
+     "lost": 13,
+     "rebind": 13,
+     "import-dup": 14,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 26,
+     "mutants": 1069,
+     "n_rejected": 13
+    },
+    "import_any": [
+     "IMPORT-ANY tried=9 expected=9 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-5 no-future",
+    "what": "-future",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 104,
+     "move-rejected": 104,
+     "changed": 104,
+     "lost": 104,
+     "rebind": 99,
+     "shim": 2
+    },
+    "v3_static_g1": {
+     "n_defs": 126,
+     "mutants": 3999,
+     "n_rejected": 104
+    },
+    "import_any": [
+     "IMPORT-ANY tried=9 expected=9 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-6 extra-unit",
+    "what": "sizing_recipe.py::_base_stack_id (A-4 -> sizing_layout_convergence.py)",
+    "check_exit": 1,
+    "check_findings": {
+     "move-rejected": 1,
+     "changed": 1,
+     "lost": 1,
+     "rebind": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 1,
+     "mutants": 2,
+     "n_rejected": 1
+    },
+    "import_any": [
+     "IMPORT-ANY tried=9 expected=9 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-7 docstring",
+    "what": "docstring",
+    "check_exit": 1,
+    "check_findings": {
+     "changed": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=9 expected=9 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-SHIM complete-shim-logic",
+    "what": "topology_library.py + _SHIM_FLAG = 1",
+    "check_exit": 1,
+    "check_findings": {
+     "changed": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=9 expected=9 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-CACHE cache-split",
+    "what": "_KNEE_L_CACHE stays in SR, user moved",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 3,
+     "move-rejected": 2,
+     "changed": 2,
+     "lost": 2,
+     "rebind": 3,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 2,
+     "mutants": 99,
+     "n_rejected": 2
+    },
+    "import_any": [
+     "IMPORT-ANY tried=9 expected=9 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   }
+  ]
+ },
+ "circuit_metrics": {
+  "base": "d48e233dabc0e06080b631ab5dc5ca752c3f0d9c",
+  "head": "3f266f0d0b11e9683eef8043aa2e92acc68c8419",
+  "plan": {
+   "upward": 0,
+   "cycles": 0,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 0,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "assigned": 21,
+  "rules": {
+   "sizing_recipe.py::FeedHandler": "A-2",
+   "sizing_recipe.py::_CONSTRAINT_OPS": "A-5",
+   "sizing_recipe.py::_DEFAULT_METRIC_STAGE_BUDGET_GM_ID": "A-5",
+   "sizing_recipe.py::_METRICS_REGISTRY": "A-1",
+   "sizing_recipe.py::_THETA_FEED_REGISTRY": "A-5",
+   "sizing_recipe.py::_feed_metric_stage_budget": "A-4",
+   "sizing_recipe.py::_full_circuit_response": "A-1",
+   "sizing_recipe.py::_make_shared_current_scorer": "A-4",
+   "sizing_recipe.py::_metric_input_referred_offset": "A-4",
+   "sizing_recipe.py::_metric_parasitic_pm_deg": "A-4",
+   "sizing_recipe.py::_metric_pelgrom_mismatch": "A-4",
+   "sizing_recipe.py::_metric_smallsignal_gain_db": "A-4",
+   "sizing_recipe.py::_metric_smallsignal_ratio_db": "A-4",
+   "sizing_recipe.py::_refine_shared_current_joint_scan_for_full_circuit_constraints": "A-4",
+   "sizing_recipe.py::_run_shared_current_joint_scan": "A-4",
+   "sizing_recipe.py::apply_theta_feed": "A-1",
+   "sizing_recipe.py::build_ac_network": "A-1",
+   "sizing_recipe.py::compute_metric": "A-1",
+   "sizing_recipe.py::estimate_mismatch_sigma": "A-1",
+   "sizing_recipe.py::full_circuit_response_at_omega": "A-4",
+   "sizing_recipe.py::make_matching_feasibility_check": "A-4"
+  },
+  "units": 21,
+  "gen": {
+   "mod_imports_head": [
+    "from __future__ import annotations",
+    "from circuit_state_graph import _load_full_topology_cached, _metric_device_footprint, input_referred_offset_pairs",
+    "from dataclasses import dataclass",
+    "from gmid_sizing_engine import InfeasibleSizingError, SizingContext, _constraint_tol, _feed_diode_stack_target, _feed_gm_target_convention, _feed_l_class, _feed_root_const, _feed_root_ratio, _feed_root_signed_sum, _feed_settling_split, _full_circuit_devices, _metric_battery_centering_deviation, _metric_cmrr_estimate, _metric_flicker_plus_thermal_sum, _metric_folded_cascode_gain_db, _metric_folded_cascode_pm_deg, _metric_gain_stages_sum, _metric_kcl_residual, _metric_mirror_ratio_error, _metric_mirror_ratio_error_input_referred, _metric_nmcnr_gain_db, _metric_nmcnr_pm_deg, _metric_nulling_resistor_ohm, _metric_psrr_estimate, _metric_rail_referenced_voltage, _metric_stack_headroom_slack, _metric_stage_budget_finalize, _metric_sum_area, _metric_sum_current, _metric_supply_current, _mna_solve_smallsignal, _mna_stamp_capacitance, _shared_current_root_grids, resolve_feed_vds, search_gm_id_for_role, stack_kvl_vgs_limit, width_from_id_density",
+    "from topology_authoring import metric_unit_scale",
+    "from typing import Callable",
+    "import itertools",
+    "import math",
+    "import numpy as np"
+   ],
+   "mod_imports_tail": [],
+   "reexports": {
+    "sizing_recipe.py": "from circuit_metrics import FeedHandler, _CONSTRAINT_OPS, _DEFAULT_METRIC_STAGE_BUDGET_GM_ID, _METRICS_REGISTRY, _THETA_FEED_REGISTRY, _feed_metric_stage_budget, _full_circuit_response, _make_shared_current_scorer, _metric_input_referred_offset, _metric_parasitic_pm_deg, _metric_pelgrom_mismatch, _metric_smallsignal_gain_db, _metric_smallsignal_ratio_db, _refine_shared_current_joint_scan_for_full_circuit_constraints, _run_shared_current_joint_scan, apply_theta_feed, build_ac_network, compute_metric, estimate_mismatch_sigma, full_circuit_response_at_omega, make_matching_feasibility_check"
+   },
+   "spans": [
+    "sizing_recipe.py:340-340 Assign",
+    "sizing_recipe.py:536-542 FunctionDef",
+    "sizing_recipe.py:545-553 FunctionDef",
+    "sizing_recipe.py:612-647 FunctionDef",
+    "sizing_recipe.py:649-709 FunctionDef",
+    "sizing_recipe.py:711-808 FunctionDef",
+    "sizing_recipe.py:829-875 FunctionDef",
+    "sizing_recipe.py:919-959 FunctionDef",
+    "sizing_recipe.py:962-988 FunctionDef",
+    "sizing_recipe.py:991-1005 FunctionDef",
+    "sizing_recipe.py:1012-1039 Assign",
+    "sizing_recipe.py:1075-1087 FunctionDef",
+    "sizing_recipe.py:1114-1117 ClassDef",
+    "sizing_recipe.py:1142-1229 FunctionDef",
+    "sizing_recipe.py:1232-1278 FunctionDef",
+    "sizing_recipe.py:1281-1344 FunctionDef",
+    "sizing_recipe.py:1347-1645 FunctionDef",
+    "sizing_recipe.py:1650-1663 AnnAssign",
+    "sizing_recipe.py:1666-1675 FunctionDef",
+    "sizing_recipe.py:1697-1701 Assign",
+    "sizing_recipe.py:1830-1898 FunctionDef"
+   ],
+   "n_defs_in_units": 23
+  },
+  "check_verdict": "PASS",
+  "check_findings": {},
+  "moved_units": 21,
+  "moved_defs": 23,
+  "v3_static": {
+   "defs": [],
+   "n_defs": 0,
+   "mutants": 0,
+   "pre_g1_defs": 23,
+   "pre_g1_mutants": 711,
+   "moved_defs": 23,
+   "n_rejected": 0
+  },
+  "import_any": [
+   "IMPORT-ANY tried=10 expected=10 failed=0",
+   "rc=0"
+  ],
+  "import_layering": {
+   "present": {
+    "gmid_lut": 1,
+    "topology_authoring": 2,
+    "circuit_state_graph": 3,
+    "gmid_sizing_engine": 4,
+    "circuit_metrics": 5,
+    "stick_diagram": 7
+   },
+   "n_findings": 0,
+   "findings": []
+  },
+  "e3b": {
+   "sizing_recipe": {
+    "live": [
+     "E3b LIVE moved_out=21 base_files_reading_moved_out=9 pre_existing=1"
+    ],
+    "fail_head": 9,
+    "fail_bb": 9,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:230 <동적 이름>"
+    ]
+   }
+  },
+  "w2_acf_foreign_load": null,
+  "t_check": 72.8,
+  "sec": 482.5,
+  "rule_counts": {
+   "A-2": 1,
+   "A-5": 3,
+   "A-1": 6,
+   "A-4": 11
+  },
+  "src_counts": {
+   "sizing_recipe.py": 21
+  },
+  "w1_nonreexport_reads": 0,
+  "w1_sample": [],
+  "plan_head": {
+   "lists": {
+    "upward": 0,
+    "cycles": 0,
+    "unassigned": 0,
+    "conflicts": 0,
+    "reg_mismatch": 0,
+    "import_time_high": 0,
+    "import_conflicts": 0
+   },
+   "map_diff": 0,
+   "moved_rule": {
+    "A-0": 21
+   },
+   "n_assign": 403
+  },
+  "V3": {
+   "verdict": "PASS",
+   "defs": [],
+   "mutants": 0,
+   "survivors": [],
+   "move_rejected": {},
+   "targets": [
+    "skills/analog-gmid-design/assets/circuit_metrics.py",
+    "skills/analog-gmid-design/assets/sizing_recipe.py"
+   ],
+   "error": null,
+   "moved_n": 23
+  },
+  "V6": {
+   "verdict": "PASS",
+   "findings": [],
+   "move_rejected": {},
+   "error": null
+  },
+  "V7": {
+   "verdict": "PASS",
+   "new_defs": [],
+   "move_rejected": {},
+   "error": null,
+   "moved_n": 23
+  },
+  "pt3": {
+   "ids_base": 1062,
+   "ids_head": 1062,
+   "same_ids": true,
+   "diff": [],
+   "base": {
+    "summary": [
+     "2 failed, 1045 passed, 15 xfailed in 296.12s (0:04:56)"
+    ],
+    "exit": "exit=1 seconds=311",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_w_calc.py::test_size_transistor_calls_new_function",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots"
+    ]
+   },
+   "head": {
+    "summary": [
+     "2 failed, 1045 passed, 15 xfailed in 352.83s (0:05:52)"
+    ],
+    "exit": "exit=1 seconds=366",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_w_calc.py::test_size_transistor_calls_new_function",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots"
+    ]
+   }
+  },
+  "einst": {
+   "elib_equal": true,
+   "elib_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f",
+   "current_reuse_telescopic_ota": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d",
+    "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   },
+   "folded_cascode": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+    "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   }
+  },
+  "e3": {
+   "base": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "head": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "same_outside": true,
+   "n_outside": 66
+  },
+  "unit_rows": [
+   {
+    "uid": "sizing_recipe.py::_DEFAULT_METRIC_STAGE_BUDGET_GM_ID",
+    "span": "sizing_recipe.py:340-340 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::estimate_mismatch_sigma",
+    "span": "sizing_recipe.py:536-542 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_pelgrom_mismatch",
+    "span": "sizing_recipe.py:545-553 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::build_ac_network",
+    "span": "sizing_recipe.py:612-647 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::full_circuit_response_at_omega",
+    "span": "sizing_recipe.py:649-709 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_parasitic_pm_deg",
+    "span": "sizing_recipe.py:711-808 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_input_referred_offset",
+    "span": "sizing_recipe.py:829-875 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_full_circuit_response",
+    "span": "sizing_recipe.py:919-959 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_smallsignal_ratio_db",
+    "span": "sizing_recipe.py:962-988 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_metric_smallsignal_gain_db",
+    "span": "sizing_recipe.py:991-1005 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_METRICS_REGISTRY",
+    "span": "sizing_recipe.py:1012-1039 Assign",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::compute_metric",
+    "span": "sizing_recipe.py:1075-1087 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::FeedHandler",
+    "span": "sizing_recipe.py:1114-1117 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "sizing_recipe.py::_make_shared_current_scorer",
+    "span": "sizing_recipe.py:1142-1229 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_run_shared_current_joint_scan",
+    "span": "sizing_recipe.py:1232-1278 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_refine_shared_current_joint_scan_for_full_circuit_constraints",
+    "span": "sizing_recipe.py:1281-1344 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_feed_metric_stage_budget",
+    "span": "sizing_recipe.py:1347-1645 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_THETA_FEED_REGISTRY",
+    "span": "sizing_recipe.py:1650-1663 AnnAssign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::apply_theta_feed",
+    "span": "sizing_recipe.py:1666-1675 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_CONSTRAINT_OPS",
+    "span": "sizing_recipe.py:1697-1701 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::make_matching_feasibility_check",
+    "span": "sizing_recipe.py:1830-1898 FunctionDef",
+    "rule": "A-4"
+   }
+  ],
+  "reexport_pos": {
+   "sizing_recipe.py": {
+    "line": 50,
+    "n_lines": 5098,
+    "prev": "from gmid_sizing_engine import DEFAULT_POLICY, DiodeSelfConsistencyError, HeadroomPolicy, InfeasibleSizingError, QuasiSt",
+    "next": "# ---------------------------------------------------------------------------"
+   }
+  },
+  "mod_file_lines": 1034,
+  "V4": {
+   "subjects": [
+    "circuit_metrics:estimate_mismatch_sigma",
+    "circuit_metrics:_metric_pelgrom_mismatch"
+   ],
+   "exit": 0,
+   "out": "{\"tool\": \"V4\", \"verdict\": \"PASS\", \"files\": [], \"findings\": [], \"unjudged\": []}"
+  },
+  "V5": {
+   "exit": 0,
+   "out": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}"
+  },
+  "neg": [
+   {
+    "variant": "R-1 edit-body",
+    "what": "circuit_metrics:96 in full_circuit_response_at_omega",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 10,
+     "move-rejected": 9,
+     "changed": 10,
+     "lost": 10,
+     "rebind": 5,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 13,
+     "mutants": 487,
+     "n_rejected": 9
+    },
+    "import_any": [
+     "IMPORT-ANY tried=10 expected=10 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-2 drop-reexport",
+    "what": "sizing_recipe.py drop FeedHandler",
+    "check_exit": 1,
+    "check_findings": {
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=10 expected=10 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-3 import-shim",
+    "what": "import sizing_recipe",
+    "check_exit": 1,
+    "check_findings": {
+     "order": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY FAIL: circuit_metrics",
+     "IMPORT-ANY tried=10 expected=10 failed=1",
+     "rc=1"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-4 dup-import",
+    "what": "from circuit_state_graph import _load_full_topology_cached, _metric_device_footprint, input_referred_offset_pairs",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 15,
+     "move-rejected": 15,
+     "changed": 15,
+     "lost": 15,
+     "rebind": 5,
+     "import-dup": 3,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 19,
+     "mutants": 616,
+     "n_rejected": 15
+    },
+    "import_any": [
+     "IMPORT-ANY tried=10 expected=10 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-5 no-future",
+    "what": "-future",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 21,
+     "move-rejected": 21,
+     "changed": 21,
+     "lost": 21,
+     "rebind": 11,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 23,
+     "mutants": 711,
+     "n_rejected": 21
+    },
+    "import_any": [
+     "IMPORT-ANY tried=10 expected=10 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-6 extra-unit",
+    "what": "sizing_recipe.py::_base_stack_id (A-4 -> sizing_layout_convergence.py)",
+    "check_exit": 1,
+    "check_findings": {
+     "move-rejected": 1,
+     "changed": 1,
+     "lost": 1,
+     "rebind": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 1,
+     "mutants": 2,
+     "n_rejected": 1
+    },
+    "import_any": [
+     "IMPORT-ANY tried=10 expected=10 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-7 docstring",
+    "what": "docstring",
+    "check_exit": 1,
+    "check_findings": {
+     "changed": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=10 expected=10 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   }
+  ]
+ },
+ "theta_search": {
+  "base": "3f266f0d0b11e9683eef8043aa2e92acc68c8419",
+  "head": "1f63aab5d2b098f20fd01b388f34f51cdf0bcae4",
+  "plan": {
+   "upward": 0,
+   "cycles": 0,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 0,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "assigned": 11,
+  "rules": {
+   "sizing_recipe.py::_grid_points_in_range": "A-4",
+   "sizing_recipe.py::_group_score_interior": "A-4",
+   "sizing_recipe.py::_group_score_metric": "A-4",
+   "sizing_recipe.py::_lerp": "A-4",
+   "sizing_recipe.py::_theta_device_map": "A-4",
+   "sizing_recipe.py::dense_candidates": "A-4",
+   "sizing_recipe.py::derived_bounds_path": "A-4",
+   "sizing_recipe.py::layout_grid_L_candidates": "A-4",
+   "sizing_recipe.py::load_derived_bounds": "A-4",
+   "sizing_recipe.py::quantize_L": "A-4",
+   "sizing_recipe.py::repair_infeasible_baseline": "A-1"
+  },
+  "units": 11,
+  "gen": {
+   "mod_imports_head": [
+    "from __future__ import annotations",
+    "from gmid_lut import SemiEmpiricalGmIdLUT",
+    "from gmid_sizing_engine import InfeasibleSizingError",
+    "import json",
+    "import math"
+   ],
+   "mod_imports_tail": [],
+   "reexports": {
+    "sizing_recipe.py": "from theta_search import _grid_points_in_range, _group_score_interior, _group_score_metric, _lerp, _theta_device_map, dense_candidates, derived_bounds_path, layout_grid_L_candidates, load_derived_bounds, quantize_L, repair_infeasible_baseline"
+   },
+   "spans": [
+    "sizing_recipe.py:95-163 FunctionDef",
+    "sizing_recipe.py:166-182 FunctionDef",
+    "sizing_recipe.py:185-212 FunctionDef",
+    "sizing_recipe.py:215-234 FunctionDef",
+    "sizing_recipe.py:791-792 FunctionDef",
+    "sizing_recipe.py:1000-1009 FunctionDef",
+    "sizing_recipe.py:1012-1019 FunctionDef",
+    "sizing_recipe.py:3115-3126 FunctionDef",
+    "sizing_recipe.py:3129-3169 FunctionDef",
+    "sizing_recipe.py:3467-3490 FunctionDef",
+    "sizing_recipe.py:3493-3662 FunctionDef"
+   ],
+   "n_defs_in_units": 14
+  },
+  "check_verdict": "PASS",
+  "check_findings": {},
+  "moved_units": 11,
+  "moved_defs": 14,
+  "v3_static": {
+   "defs": [],
+   "n_defs": 0,
+   "mutants": 0,
+   "pre_g1_defs": 14,
+   "pre_g1_mutants": 333,
+   "moved_defs": 14,
+   "n_rejected": 0
+  },
+  "import_any": [
+   "IMPORT-ANY tried=11 expected=11 failed=0",
+   "rc=0"
+  ],
+  "import_layering": {
+   "present": {
+    "gmid_lut": 1,
+    "topology_authoring": 2,
+    "circuit_state_graph": 3,
+    "gmid_sizing_engine": 4,
+    "circuit_metrics": 5,
+    "theta_search": 6,
+    "stick_diagram": 7
+   },
+   "n_findings": 0,
+   "findings": []
+  },
+  "e3b": {
+   "sizing_recipe": {
+    "live": [
+     "E3b LIVE moved_out=11 base_files_reading_moved_out=7 pre_existing=1"
+    ],
+    "fail_head": 9,
+    "fail_bb": 9,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:230 <동적 이름>"
+    ]
+   }
+  },
+  "w2_acf_foreign_load": null,
+  "t_check": 77.5,
+  "sec": 584.1,
+  "rule_counts": {
+   "A-4": 10,
+   "A-1": 1
+  },
+  "src_counts": {
+   "sizing_recipe.py": 11
+  },
+  "w1_nonreexport_reads": 0,
+  "w1_sample": [],
+  "plan_head": {
+   "lists": {
+    "upward": 0,
+    "cycles": 0,
+    "unassigned": 0,
+    "conflicts": 0,
+    "reg_mismatch": 0,
+    "import_time_high": 0,
+    "import_conflicts": 0
+   },
+   "map_diff": 0,
+   "moved_rule": {
+    "A-0": 11
+   },
+   "n_assign": 403
+  },
+  "V3": {
+   "verdict": "PASS",
+   "defs": [],
+   "mutants": 0,
+   "survivors": [],
+   "move_rejected": {},
+   "targets": [
+    "skills/analog-gmid-design/assets/sizing_recipe.py",
+    "skills/analog-gmid-design/assets/theta_search.py"
+   ],
+   "error": null,
+   "moved_n": 14
+  },
+  "V6": {
+   "verdict": "PASS",
+   "findings": [],
+   "move_rejected": {},
+   "error": null
+  },
+  "V7": {
+   "verdict": "PASS",
+   "new_defs": [],
+   "move_rejected": {},
+   "error": null,
+   "moved_n": 14
+  },
+  "pt3": {
+   "ids_base": 1062,
+   "ids_head": 1062,
+   "same_ids": true,
+   "diff": [],
+   "base": {
+    "summary": [
+     "2 failed, 1045 passed, 15 xfailed in 352.83s (0:05:52)"
+    ],
+    "exit": "exit=1 seconds=366",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_w_calc.py::test_size_transistor_calls_new_function",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots"
+    ]
+   },
+   "head": {
+    "summary": [
+     "2 failed, 1045 passed, 15 xfailed in 337.13s (0:05:37)"
+    ],
+    "exit": "exit=1 seconds=353",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_w_calc.py::test_size_transistor_calls_new_function",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots"
+    ]
+   }
+  },
+  "einst": {
+   "elib_equal": true,
+   "elib_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f",
+   "current_reuse_telescopic_ota": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d",
+    "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   },
+   "folded_cascode": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+    "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   }
+  },
+  "e3": {
+   "base": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "head": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "same_outside": true,
+   "n_outside": 66
+  },
+  "unit_rows": [
+   {
+    "uid": "sizing_recipe.py::dense_candidates",
+    "span": "sizing_recipe.py:95-163 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::quantize_L",
+    "span": "sizing_recipe.py:166-182 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_grid_points_in_range",
+    "span": "sizing_recipe.py:185-212 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::layout_grid_L_candidates",
+    "span": "sizing_recipe.py:215-234 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_lerp",
+    "span": "sizing_recipe.py:791-792 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::derived_bounds_path",
+    "span": "sizing_recipe.py:1000-1009 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::load_derived_bounds",
+    "span": "sizing_recipe.py:1012-1019 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_group_score_metric",
+    "span": "sizing_recipe.py:3115-3126 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_group_score_interior",
+    "span": "sizing_recipe.py:3129-3169 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_theta_device_map",
+    "span": "sizing_recipe.py:3467-3490 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::repair_infeasible_baseline",
+    "span": "sizing_recipe.py:3493-3662 FunctionDef",
+    "rule": "A-1"
+   }
+  ],
+  "reexport_pos": {
+   "sizing_recipe.py": {
+    "line": 51,
+    "n_lines": 4698,
+    "prev": "from circuit_metrics import FeedHandler, _CONSTRAINT_OPS, _DEFAULT_METRIC_STAGE_BUDGET_GM_ID, _METRICS_REGISTRY, _THETA_",
+    "next": "# ---------------------------------------------------------------------------"
+   }
+  },
+  "mod_file_lines": 428,
+  "V4": {
+   "subjects": [
+    "theta_search:dense_candidates",
+    "theta_search:quantize_L"
+   ],
+   "exit": 0,
+   "out": "{\"tool\": \"V4\", \"verdict\": \"PASS\", \"files\": [], \"findings\": [], \"unjudged\": []}"
+  },
+  "V5": {
+   "exit": 0,
+   "out": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}"
+  },
+  "neg": [
+   {
+    "variant": "R-1 edit-body",
+    "what": "theta_search:68 in dense_candidates",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 1,
+     "changed": 1,
+     "lost": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 1,
+     "mutants": 39,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=11 expected=11 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-2 drop-reexport",
+    "what": "sizing_recipe.py drop _grid_points_in_range",
+    "check_exit": 1,
+    "check_findings": {
+     "rebind": 2,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=11 expected=11 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-3 import-shim",
+    "what": "import sizing_recipe",
+    "check_exit": 1,
+    "check_findings": {
+     "order": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY FAIL: theta_search",
+     "IMPORT-ANY tried=11 expected=11 failed=1",
+     "rc=1"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-4 dup-import",
+    "what": "from gmid_lut import SemiEmpiricalGmIdLUT",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 1,
+     "move-rejected": 1,
+     "changed": 1,
+     "lost": 1,
+     "import-dup": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 1,
+     "mutants": 9,
+     "n_rejected": 1
+    },
+    "import_any": [
+     "IMPORT-ANY tried=11 expected=11 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-5 no-future",
+    "what": "-future",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 11,
+     "move-rejected": 11,
+     "changed": 11,
+     "lost": 11,
+     "rebind": 8,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 14,
+     "mutants": 333,
+     "n_rejected": 11
+    },
+    "import_any": [
+     "IMPORT-ANY tried=11 expected=11 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-6 extra-unit",
+    "what": "sizing_recipe.py::_base_stack_id (A-4 -> sizing_layout_convergence.py)",
+    "check_exit": 1,
+    "check_findings": {
+     "move-rejected": 1,
+     "changed": 1,
+     "lost": 1,
+     "rebind": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 1,
+     "mutants": 2,
+     "n_rejected": 1
+    },
+    "import_any": [
+     "IMPORT-ANY tried=11 expected=11 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-7 docstring",
+    "what": "docstring",
+    "check_exit": 1,
+    "check_findings": {
+     "changed": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=11 expected=11 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   }
+  ]
+ },
+ "sizing_layout_convergence": {
+  "base": "1f63aab5d2b098f20fd01b388f34f51cdf0bcae4",
+  "head": "2a0942189a3a40f1d5e0395da62a680a261b4ba9",
+  "plan": {
+   "upward": 0,
+   "cycles": 0,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 0,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "assigned": 30,
+  "rules": {
+   "sizing_recipe.py::_ACHIEVABLE_BOUND_CACHE": "A-5",
+   "sizing_recipe.py::_HeadroomEvalEnv": "A-2",
+   "sizing_recipe.py::_HeadroomTopoEnv": "A-2",
+   "sizing_recipe.py::_SPLIT_SUFFIX_RE": "A-5",
+   "sizing_recipe.py::_base_stack_id": "A-4",
+   "sizing_recipe.py::_blocked_euler_rows": "A-4",
+   "sizing_recipe.py::_build_theta_evaluator": "A-1",
+   "sizing_recipe.py::_collect_device_refs": "A-4",
+   "sizing_recipe.py::_fixup_euler_blocked_rows": "A-4",
+   "sizing_recipe.py::_optimize_theta_slsqp": "A-1",
+   "sizing_recipe.py::_optimize_theta_slsqp_block_coordinate": "A-4",
+   "sizing_recipe.py::_pick_split_target": "A-4",
+   "sizing_recipe.py::_score_floorplan": "A-4",
+   "sizing_recipe.py::_sync_finger_fixup": "A-4",
+   "sizing_recipe.py::achievable_metric_bound": "A-4",
+   "sizing_recipe.py::apply_and_revalidate_matching_finger_growth": "A-4",
+   "sizing_recipe.py::apply_and_revalidate_pair_adjustment": "A-4",
+   "sizing_recipe.py::derive_role_L": "A-5",
+   "sizing_recipe.py::derive_theta_dependency_graph": "A-4",
+   "sizing_recipe.py::diagnose_sizing_roles_gap": "A-4",
+   "sizing_recipe.py::estimate_area_budget": "A-4",
+   "sizing_recipe.py::extract_linear_feasibility_constraints": "A-4",
+   "sizing_recipe.py::optimize_full_circuit_budget": "A-1",
+   "sizing_recipe.py::presolve_warm_start": "A-1",
+   "sizing_recipe.py::resolve_stack_layout": "A-1",
+   "sizing_recipe.py::revalidate_finger_override": "A-1",
+   "sizing_recipe.py::run_matching_safety_with_finger_growth": "A-4",
+   "sizing_recipe.py::run_topology_pipeline_with_finger_fixup": "A-1",
+   "sizing_recipe.py::search_stage_budget_L_warm_start": "A-1",
+   "sizing_recipe.py::suggest_matching_finger_growth": "A-4"
+  },
+  "units": 30,
+  "gen": {
+   "mod_imports_head": [
+    "from __future__ import annotations",
+    "from circuit_metrics import _CONSTRAINT_OPS, _DEFAULT_METRIC_STAGE_BUDGET_GM_ID, _refine_shared_current_joint_scan_for_full_circuit_constraints, apply_theta_feed, compute_metric, make_matching_feasibility_check",
+    "from circuit_state_graph import _build_shared_current_joint_plan, _diode_set_cached, _gm_id_already_authoritative, _l_class_owners_cached, _l_sharing_classes_cached, _matching_pairs_cached, _metric_device_footprint, _shared_current_groups_from_compensation, _theta_feed_footprint, audit_l_sharing_consistency, audit_vertical_stack_id_vs_kcl, audit_vsb_consistency, kcl_series_union, load_topology, materialize_input_offset_pairs, propagate_topology_forced_currents, reconcile_vsb_from_nodes, refine_differential_and_mirror_relations, require_declared_spec_source, require_device_roles_reviewed, resolve_constraint_references, spec_fingerprint, synthesize_l_class_thetas",
+    "from collections import defaultdict",
+    "from dataclasses import dataclass, replace as _dc_replace",
+    "from gmid_sizing_engine import InfeasibleSizingError, SizingContext, _COMPENSATION_REGISTRY, _DEFAULT_MIN_VDS_FALLBACK, _HeadroomDependencyNotReady, _L_ROLE_TARGETS, _feed_vds_fallback, _hr_fold_group_check, _hr_resolve_vertical_group, _hr_sum_ref_vds, _hr_thin_singleton_ideal_source_check, _hr_verify_group_kvl_sum, _hr_vfind, _invert_gm_id_for_current, _metric_stage_budget_vds_by_device, apply_diode_self_consistent_gm_id, derive_class_L, feasible_L_window, knee_L_for_kind, make_replica_feasibility_check, optimize_multistage, reserved_vds_for_other_stack_members, search_gm_id_for_role, set_device_vds, width_from_id_density",
+    "from theta_search import _grid_points_in_range, _group_score_interior, _group_score_metric, _lerp, quantize_L, repair_infeasible_baseline",
+    "from topology_authoring import validate_metric_units, validate_no_legacy_vs_key",
+    "import itertools",
+    "import json",
+    "import math",
+    "import numpy as np",
+    "import re"
+   ],
+   "mod_imports_tail": [
+    "from stick_diagram import _branch_composite_pair, apply_explicit_row_split, assign_finger_geometry, audit_row_split, build_stick_diagram, check_stick_diagram_coverage, derive_horizontal_stack_groups, find_min_crossover_layout_with_branch_composite, geometry_colocation_union, rebuild_floorplan, repair_matching_safety, run_topology_pipeline, split_into_stacks, suggest_pair_finger_adjustments"
+   ],
+   "reexports": {
+    "sizing_recipe.py": "from sizing_layout_convergence import _ACHIEVABLE_BOUND_CACHE, _HeadroomEvalEnv, _HeadroomTopoEnv, _SPLIT_SUFFIX_RE, _base_stack_id, _blocked_euler_rows, _build_theta_evaluator, _collect_device_refs, _fixup_euler_blocked_rows, _optimize_theta_slsqp, _optimize_theta_slsqp_block_coordinate, _pick_split_target, _score_floorplan, _sync_finger_fixup, achievable_metric_bound, apply_and_revalidate_matching_finger_growth, apply_and_revalidate_pair_adjustment, derive_role_L, derive_theta_dependency_graph, diagnose_sizing_roles_gap, estimate_area_budget, extract_linear_feasibility_constraints, optimize_full_circuit_budget, presolve_warm_start, resolve_stack_layout, revalidate_finger_override, run_matching_safety_with_finger_growth, run_topology_pipeline_with_finger_fixup, search_stage_budget_L_warm_start, suggest_matching_finger_growth  (complete shim)"
+   },
+   "spans": [
+    "sizing_recipe.py:252-342 FunctionDef",
+    "sizing_recipe.py:347-376 FunctionDef",
+    "sizing_recipe.py:664-773 FunctionDef",
+    "sizing_recipe.py:808-816 ClassDef",
+    "sizing_recipe.py:819-829 ClassDef",
+    "sizing_recipe.py:862-862 AnnAssign",
+    "sizing_recipe.py:869-961 FunctionDef",
+    "sizing_recipe.py:968-1971 FunctionDef",
+    "sizing_recipe.py:1986-1986 Assign",
+    "sizing_recipe.py:1989-1993 FunctionDef",
+    "sizing_recipe.py:1996-2014 FunctionDef",
+    "sizing_recipe.py:2017-2027 FunctionDef",
+    "sizing_recipe.py:2030-2110 FunctionDef",
+    "sizing_recipe.py:2113-2565 FunctionDef",
+    "sizing_recipe.py:2594-2786 FunctionDef",
+    "sizing_recipe.py:2800-2947 FunctionDef",
+    "sizing_recipe.py:2965-3249 FunctionDef",
+    "sizing_recipe.py:3264-3464 FunctionDef",
+    "sizing_recipe.py:3476-3771 FunctionDef",
+    "sizing_recipe.py:3774-3939 FunctionDef",
+    "sizing_recipe.py:3960-3979 FunctionDef",
+    "sizing_recipe.py:3982-4079 FunctionDef",
+    "sizing_recipe.py:4082-4152 FunctionDef",
+    "sizing_recipe.py:4155-4167 FunctionDef",
+    "sizing_recipe.py:4170-4187 FunctionDef",
+    "sizing_recipe.py:4200-4218 FunctionDef",
+    "sizing_recipe.py:4221-4262 FunctionDef",
+    "sizing_recipe.py:4265-4392 FunctionDef",
+    "sizing_recipe.py:4395-4567 FunctionDef",
+    "sizing_recipe.py:4570-4698 FunctionDef"
+   ],
+   "n_defs_in_units": 58
+  },
+  "check_verdict": "PASS",
+  "check_findings": {},
+  "moved_units": 30,
+  "moved_defs": 58,
+  "v3_static": {
+   "defs": [],
+   "n_defs": 0,
+   "mutants": 0,
+   "pre_g1_defs": 58,
+   "pre_g1_mutants": 3077,
+   "moved_defs": 58,
+   "n_rejected": 0
+  },
+  "import_any": [
+   "IMPORT-ANY tried=12 expected=12 failed=0",
+   "rc=0"
+  ],
+  "import_layering": {
+   "present": {
+    "gmid_lut": 1,
+    "topology_authoring": 2,
+    "circuit_state_graph": 3,
+    "gmid_sizing_engine": 4,
+    "circuit_metrics": 5,
+    "theta_search": 6,
+    "stick_diagram": 7,
+    "sizing_layout_convergence": 8
+   },
+   "n_findings": 0,
+   "findings": []
+  },
+  "e3b": {
+   "sizing_recipe": {
+    "live": [
+     "E3b LIVE moved_out=30 base_files_reading_moved_out=37 pre_existing=1"
+    ],
+    "fail_head": 9,
+    "fail_bb": 9,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py:230 <동적 이름>"
+    ]
+   }
+  },
+  "w2_acf_foreign_load": null,
+  "t_check": 77.0,
+  "sec": 745.5,
+  "rule_counts": {
+   "A-5": 3,
+   "A-2": 2,
+   "A-4": 17,
+   "A-1": 8
+  },
+  "src_counts": {
+   "sizing_recipe.py": 30
+  },
+  "w1_nonreexport_reads": 0,
+  "w1_sample": [],
+  "plan_head": {
+   "lists": {
+    "upward": 0,
+    "cycles": 0,
+    "unassigned": 0,
+    "conflicts": 0,
+    "reg_mismatch": 0,
+    "import_time_high": 0,
+    "import_conflicts": 0
+   },
+   "map_diff": 0,
+   "moved_rule": {
+    "A-0": 30
+   },
+   "n_assign": 403
+  },
+  "V3": {
+   "verdict": "PASS",
+   "defs": [],
+   "mutants": 0,
+   "survivors": [],
+   "move_rejected": {},
+   "targets": [
+    "skills/analog-gmid-design/assets/sizing_layout_convergence.py",
+    "skills/analog-gmid-design/assets/sizing_recipe.py"
+   ],
+   "error": null,
+   "moved_n": 58
+  },
+  "V6": {
+   "verdict": "PASS",
+   "findings": [],
+   "move_rejected": {},
+   "error": null
+  },
+  "V7": {
+   "verdict": "PASS",
+   "new_defs": [],
+   "move_rejected": {},
+   "error": null,
+   "moved_n": 58
+  },
+  "pt3": {
+   "ids_base": 1062,
+   "ids_head": 1062,
+   "same_ids": true,
+   "diff": [
+    "skills.analog-gmid-design.assets.tests.contracts.test_ts6_dead_probes::test_audit_vsb_consistency_has_operational_caller passed->failure"
+   ],
+   "base": {
+    "summary": [
+     "2 failed, 1045 passed, 15 xfailed in 337.13s (0:05:37)"
+    ],
+    "exit": "exit=1 seconds=353",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_w_calc.py::test_size_transistor_calls_new_function",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots"
+    ]
+   },
+   "head": {
+    "summary": [
+     "3 failed, 1044 passed, 15 xfailed in 359.34s (0:05:59)"
+    ],
+    "exit": "exit=1 seconds=377",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_w_calc.py::test_size_transistor_calls_new_function",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller"
+    ]
+   }
+  },
+  "einst": {
+   "elib_equal": true,
+   "elib_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f",
+   "current_reuse_telescopic_ota": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d",
+    "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   },
+   "folded_cascode": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+    "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   }
+  },
+  "e3": {
+   "base": {
+    "rc": 0,
+    "stmt": 70,
+    "call": 9
+   },
+   "head": {
+    "rc": 0,
+    "stmt": 69,
+    "call": 9
+   },
+   "same_outside": false,
+   "n_outside": 65
+  },
+  "unit_rows": [
+   {
+    "uid": "sizing_recipe.py::derive_role_L",
+    "span": "sizing_recipe.py:252-342 FunctionDef",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::estimate_area_budget",
+    "span": "sizing_recipe.py:347-376 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::resolve_stack_layout",
+    "span": "sizing_recipe.py:664-773 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_HeadroomTopoEnv",
+    "span": "sizing_recipe.py:808-816 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "sizing_recipe.py::_HeadroomEvalEnv",
+    "span": "sizing_recipe.py:819-829 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "sizing_recipe.py::_ACHIEVABLE_BOUND_CACHE",
+    "span": "sizing_recipe.py:862-862 AnnAssign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::achievable_metric_bound",
+    "span": "sizing_recipe.py:869-961 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_build_theta_evaluator",
+    "span": "sizing_recipe.py:968-1971 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_SPLIT_SUFFIX_RE",
+    "span": "sizing_recipe.py:1986-1986 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "sizing_recipe.py::_base_stack_id",
+    "span": "sizing_recipe.py:1989-1993 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_pick_split_target",
+    "span": "sizing_recipe.py:1996-2014 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_score_floorplan",
+    "span": "sizing_recipe.py:2017-2027 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::diagnose_sizing_roles_gap",
+    "span": "sizing_recipe.py:2030-2110 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::optimize_full_circuit_budget",
+    "span": "sizing_recipe.py:2113-2565 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::derive_theta_dependency_graph",
+    "span": "sizing_recipe.py:2594-2786 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::extract_linear_feasibility_constraints",
+    "span": "sizing_recipe.py:2800-2947 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::search_stage_budget_L_warm_start",
+    "span": "sizing_recipe.py:2965-3249 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::presolve_warm_start",
+    "span": "sizing_recipe.py:3264-3464 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_optimize_theta_slsqp",
+    "span": "sizing_recipe.py:3476-3771 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::_optimize_theta_slsqp_block_coordinate",
+    "span": "sizing_recipe.py:3774-3939 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_collect_device_refs",
+    "span": "sizing_recipe.py:3960-3979 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::revalidate_finger_override",
+    "span": "sizing_recipe.py:3982-4079 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "sizing_recipe.py::apply_and_revalidate_pair_adjustment",
+    "span": "sizing_recipe.py:4082-4152 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_blocked_euler_rows",
+    "span": "sizing_recipe.py:4155-4167 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_sync_finger_fixup",
+    "span": "sizing_recipe.py:4170-4187 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::suggest_matching_finger_growth",
+    "span": "sizing_recipe.py:4200-4218 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::apply_and_revalidate_matching_finger_growth",
+    "span": "sizing_recipe.py:4221-4262 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::_fixup_euler_blocked_rows",
+    "span": "sizing_recipe.py:4265-4392 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::run_matching_safety_with_finger_growth",
+    "span": "sizing_recipe.py:4395-4567 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "sizing_recipe.py::run_topology_pipeline_with_finger_fixup",
+    "span": "sizing_recipe.py:4570-4698 FunctionDef",
+    "rule": "A-1"
+   }
+  ],
+  "reexport_pos": {
+   "sizing_recipe.py": {
+    "line": 43,
+    "n_lines": 43,
+    "prev": "from stick_diagram import Transistor, load_topology, propagate_topology_forced_currents, kcl_series_union, geometry_colo",
+    "next": "<EOF>"
+   }
+  },
+  "mod_file_lines": 3995,
+  "V4": {
+   "subjects": [
+    "sizing_layout_convergence:derive_role_L",
+    "sizing_layout_convergence:estimate_area_budget"
+   ],
+   "exit": 0,
+   "out": "{\"tool\": \"V4\", \"verdict\": \"PASS\", \"files\": [], \"findings\": [], \"unjudged\": []}"
+  },
+  "V5": {
+   "exit": 0,
+   "out": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}"
+  },
+  "neg": [
+   {
+    "variant": "R-1 edit-body",
+    "what": "sizing_layout_convergence:88 in derive_role_L",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 11,
+     "move-rejected": 10,
+     "changed": 11,
+     "lost": 11,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 39,
+     "mutants": 2543,
+     "n_rejected": 10
+    },
+    "import_any": [
+     "IMPORT-ANY tried=12 expected=12 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-2 drop-reexport",
+    "what": "sizing_recipe.py drop _ACHIEVABLE_BOUND_CACHE",
+    "check_exit": 1,
+    "check_findings": {
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=12 expected=12 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-3 import-shim",
+    "what": "import sizing_recipe",
+    "check_exit": 1,
+    "check_findings": {
+     "order": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY FAIL: sizing_layout_convergence",
+     "IMPORT-ANY tried=12 expected=12 failed=1",
+     "rc=1"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-4 dup-import",
+    "what": "from circuit_metrics import _CONSTRAINT_OPS, _DEFAULT_METRIC_STAGE_BUDGET_GM_ID, _refine_shared_current_joint_scan_for_full_circuit_constraints, apply_theta_feed, compute_metric, make_matching_feasibility_check",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 16,
+     "move-rejected": 16,
+     "changed": 16,
+     "lost": 16,
+     "import-dup": 6,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 47,
+     "mutants": 2876,
+     "n_rejected": 16
+    },
+    "import_any": [
+     "IMPORT-ANY tried=12 expected=12 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-5 no-future",
+    "what": "-future",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 30,
+     "move-rejected": 30,
+     "changed": 30,
+     "lost": 30,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 58,
+     "mutants": 3077,
+     "n_rejected": 30
+    },
+    "import_any": [
+     "IMPORT-ANY tried=12 expected=12 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-6 extra-unit",
+    "what": "stick_diagram.py::_audit_result_json (A-4 -> instance_report_builder.py)",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY FAIL: sizing_layout_convergence",
+     "IMPORT-ANY tried=12 expected=12 failed=1",
+     "rc=1"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-7 docstring",
+    "what": "docstring",
+    "check_exit": 1,
+    "check_findings": {
+     "changed": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=12 expected=12 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-SHIM complete-shim-logic",
+    "what": "sizing_recipe.py + _SHIM_FLAG = 1",
+    "check_exit": 1,
+    "check_findings": {
+     "changed": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=12 expected=12 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-D22 tail-imports-to-head",
+    "what": "tail imports to head: 1",
+    "check_exit": 0,
+    "check_findings": {},
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=12 expected=12 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   },
+   {
+    "variant": "R-CACHE cache-split",
+    "what": "_ACHIEVABLE_BOUND_CACHE stays in SR, user moved",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 2,
+     "move-rejected": 1,
+     "changed": 1,
+     "lost": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 1,
+     "mutants": 47,
+     "n_rejected": 1
+    },
+    "import_any": [
+     "IMPORT-ANY tried=12 expected=12 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": null,
+    "ERROR": null
+   }
+  ]
+ },
+ "instance_report_builder": {
+  "base": "2a0942189a3a40f1d5e0395da62a680a261b4ba9",
+  "head": "629b09ae3be3a58240f9951d6f6af462e5dfe00f",
+  "plan": {
+   "upward": 0,
+   "cycles": 0,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 0,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "assigned": 16,
+  "rules": {
+   "audit_current_forced.py::_theta_evidence_for_pair": "A-4",
+   "audit_current_forced.py::audit_topology": "A-4",
+   "design_report.py::_CSS": "A-5",
+   "design_report.py::_kv_table": "A-1",
+   "design_report.py::assemble_report_data": "A-4",
+   "design_report.py::build_topology_device_table": "A-4",
+   "design_report.py::render_html_report": "A-1",
+   "design_report.py::save_html_report": "A-4",
+   "stick_diagram.py::CompletenessVerdict": "A-2",
+   "stick_diagram.py::INSTANCE_SIZING_FIELDS": "A-5",
+   "stick_diagram.py::_audit_result_json": "A-4",
+   "stick_diagram.py::_box_shape_json": "A-4",
+   "stick_diagram.py::_topology_ref_relpath": "A-5",
+   "stick_diagram.py::check_instance_completeness": "A-5",
+   "stick_diagram.py::run_full_circuit_audit_from_topology": "A-4",
+   "stick_diagram.py::save_instance_json": "A-1"
+  },
+  "units": 16,
+  "gen": {
+   "mod_imports_head": [
+    "from __future__ import annotations",
+    "from circuit_state_graph import load_topology",
+    "from dataclasses import asdict as _dc_asdict, dataclass",
+    "from topology_authoring import _as_set",
+    "from typing import Iterable, Mapping",
+    "import html as _html",
+    "import json",
+    "import os"
+   ],
+   "mod_imports_tail": [
+    "from stick_diagram import AuditResult, INSTANCE_TOP_FIELDS, run_full_circuit_audit"
+   ],
+   "reexports": {
+    "stick_diagram.py": "from instance_report_builder import CompletenessVerdict, INSTANCE_SIZING_FIELDS, _audit_result_json, _box_shape_json, _topology_ref_relpath, check_instance_completeness, run_full_circuit_audit_from_topology, save_instance_json",
+    "design_report.py": "from instance_report_builder import _CSS, _kv_table, assemble_report_data, build_topology_device_table, render_html_report, save_html_report  (complete shim)",
+    "audit_current_forced.py": "from instance_report_builder import _theta_evidence_for_pair, audit_topology  # noqa: E402"
+   },
+   "spans": [
+    "stick_diagram.py:4810-4810 AnnAssign",
+    "stick_diagram.py:4813-4820 ClassDef",
+    "stick_diagram.py:4823-4869 FunctionDef",
+    "stick_diagram.py:5030-5083 FunctionDef",
+    "stick_diagram.py:5086-5098 FunctionDef",
+    "stick_diagram.py:5101-5107 FunctionDef",
+    "stick_diagram.py:5110-5124 FunctionDef",
+    "stick_diagram.py:5127-5178 FunctionDef",
+    "design_report.py:36-91 FunctionDef",
+    "design_report.py:94-138 FunctionDef",
+    "design_report.py:141-175 Assign",
+    "design_report.py:178-196 FunctionDef",
+    "design_report.py:199-310 FunctionDef",
+    "design_report.py:313-317 FunctionDef",
+    "audit_current_forced.py:50-71 FunctionDef",
+    "audit_current_forced.py:74-121 FunctionDef"
+   ],
+   "n_defs_in_units": 16
+  },
+  "check_verdict": "PASS",
+  "check_findings": {},
+  "moved_units": 16,
+  "moved_defs": 16,
+  "v3_static": {
+   "defs": [],
+   "n_defs": 0,
+   "mutants": 0,
+   "pre_g1_defs": 16,
+   "pre_g1_mutants": 307,
+   "moved_defs": 16,
+   "n_rejected": 0
+  },
+  "import_any": [
+   "IMPORT-ANY tried=13 expected=13 failed=0",
+   "rc=0"
+  ],
+  "import_layering": {
+   "present": {
+    "gmid_lut": 1,
+    "topology_authoring": 2,
+    "circuit_state_graph": 3,
+    "gmid_sizing_engine": 4,
+    "circuit_metrics": 5,
+    "theta_search": 6,
+    "stick_diagram": 7,
+    "sizing_layout_convergence": 8,
+    "instance_report_builder": 9
+   },
+   "n_findings": 2,
+   "findings": [
+    {
+     "check": "큰 번호로의 import",
+     "from": "MOD7 stick_diagram",
+     "to": "MOD9 instance_report_builder"
+    },
+    {
+     "check": "순환",
+     "cycle": [
+      "instance_report_builder",
+      "stick_diagram",
+      "instance_report_builder"
+     ]
+    }
+   ]
+  },
+  "e3b": {
+   "stick_diagram": {
+    "live": [
+     "E3b LIVE moved_out=8 base_files_reading_moved_out=10 pre_existing=1"
+    ],
+    "fail_head": 0,
+    "fail_bb": 0,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b PASS"
+    ]
+   },
+   "design_report": {
+    "live": [
+     "E3b LIVE moved_out=6 base_files_reading_moved_out=5 pre_existing=0"
+    ],
+    "fail_head": 0,
+    "fail_bb": 0,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b PASS"
+    ]
+   },
+   "audit_current_forced": {
+    "live": [
+     "E3b LIVE moved_out=2 base_files_reading_moved_out=0 pre_existing=0"
+    ],
+    "fail_head": 0,
+    "fail_bb": 0,
+    "new_fail": [],
+    "error": [],
+    "last": [
+     "E3b INVALID: base에서 SD 밖으로 나간 이름을 읽는 추적 파일 0(명령 고장 또는 base 오지정)"
+    ]
+   }
+  },
+  "w2_acf_foreign_load": "ok",
+  "t_check": 75.3,
+  "sec": 521.9,
+  "rule_counts": {
+   "A-4": 8,
+   "A-5": 4,
+   "A-1": 3,
+   "A-2": 1
+  },
+  "src_counts": {
+   "audit_current_forced.py": 2,
+   "design_report.py": 6,
+   "stick_diagram.py": 8
+  },
+  "w1_nonreexport_reads": 0,
+  "w1_sample": [],
+  "plan_head": {
+   "lists": {
+    "upward": 0,
+    "cycles": 0,
+    "unassigned": 0,
+    "conflicts": 0,
+    "reg_mismatch": 0,
+    "import_time_high": 0,
+    "import_conflicts": 0
+   },
+   "map_diff": 0,
+   "moved_rule": {
+    "A-0": 16
+   },
+   "n_assign": 403
+  },
+  "V3": {
+   "verdict": "PASS",
+   "defs": [],
+   "mutants": 0,
+   "survivors": [],
+   "move_rejected": {},
+   "targets": [
+    "skills/analog-gmid-design/assets/audit_current_forced.py",
+    "skills/analog-gmid-design/assets/design_report.py",
+    "skills/analog-gmid-design/assets/instance_report_builder.py",
+    "skills/analog-gmid-design/assets/stick_diagram.py"
+   ],
+   "error": null,
+   "moved_n": 16
+  },
+  "V6": {
+   "verdict": "PASS",
+   "findings": [],
+   "move_rejected": {},
+   "error": null
+  },
+  "V7": {
+   "verdict": "PASS",
+   "new_defs": [],
+   "move_rejected": {},
+   "error": null,
+   "moved_n": 16
+  },
+  "pt3": {
+   "ids_base": 1062,
+   "ids_head": 1062,
+   "same_ids": true,
+   "diff": [],
+   "base": {
+    "summary": [
+     "3 failed, 1044 passed, 15 xfailed in 359.34s (0:05:59)"
+    ],
+    "exit": "exit=1 seconds=377",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_w_calc.py::test_size_transistor_calls_new_function",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller"
+    ]
+   },
+   "head": {
+    "summary": [
+     "3 failed, 1044 passed, 15 xfailed in 370.93s (0:06:10)"
+    ],
+    "exit": "exit=1 seconds=389",
+    "failed": [
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_dup_w_calc.py::test_size_transistor_calls_new_function",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ic5.py::test_gate_docstring_declares_blind_spots",
+     "FAILED ..\\..\\..\\..\\..\\..\\g226\\pt\\skills\\analog-gmid-design\\assets\\tests\\contracts\\test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller"
+    ]
+   }
+  },
+  "einst": {
+   "elib_equal": true,
+   "elib_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f",
+   "current_reuse_telescopic_ota": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d",
+    "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   },
+   "folded_cascode": {
+    "n_keys": 22,
+    "diff_keys": [
+     "engine_origin"
+    ],
+    "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+    "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+    "origin_has_mod": true,
+    "origin_in_iso": true
+   }
+  },
+  "e3": {
+   "base": {
+    "rc": 0,
+    "stmt": 69,
+    "call": 9
+   },
+   "head": {
+    "rc": 0,
+    "stmt": 69,
+    "call": 9
+   },
+   "same_outside": true,
+   "n_outside": 65
+  },
+  "unit_rows": [
+   {
+    "uid": "stick_diagram.py::INSTANCE_SIZING_FIELDS",
+    "span": "stick_diagram.py:4810-4810 AnnAssign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "stick_diagram.py::CompletenessVerdict",
+    "span": "stick_diagram.py:4813-4820 ClassDef",
+    "rule": "A-2"
+   },
+   {
+    "uid": "stick_diagram.py::check_instance_completeness",
+    "span": "stick_diagram.py:4823-4869 FunctionDef",
+    "rule": "A-5"
+   },
+   {
+    "uid": "stick_diagram.py::run_full_circuit_audit_from_topology",
+    "span": "stick_diagram.py:5030-5083 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_box_shape_json",
+    "span": "stick_diagram.py:5086-5098 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_audit_result_json",
+    "span": "stick_diagram.py:5101-5107 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "stick_diagram.py::_topology_ref_relpath",
+    "span": "stick_diagram.py:5110-5124 FunctionDef",
+    "rule": "A-5"
+   },
+   {
+    "uid": "stick_diagram.py::save_instance_json",
+    "span": "stick_diagram.py:5127-5178 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "design_report.py::build_topology_device_table",
+    "span": "design_report.py:36-91 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "design_report.py::assemble_report_data",
+    "span": "design_report.py:94-138 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "design_report.py::_CSS",
+    "span": "design_report.py:141-175 Assign",
+    "rule": "A-5"
+   },
+   {
+    "uid": "design_report.py::_kv_table",
+    "span": "design_report.py:178-196 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "design_report.py::render_html_report",
+    "span": "design_report.py:199-310 FunctionDef",
+    "rule": "A-1"
+   },
+   {
+    "uid": "design_report.py::save_html_report",
+    "span": "design_report.py:313-317 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "audit_current_forced.py::_theta_evidence_for_pair",
+    "span": "audit_current_forced.py:50-71 FunctionDef",
+    "rule": "A-4"
+   },
+   {
+    "uid": "audit_current_forced.py::audit_topology",
+    "span": "audit_current_forced.py:74-121 FunctionDef",
+    "rule": "A-4"
+   }
+  ],
+  "reexport_pos": {
+   "stick_diagram.py": {
+    "line": 4973,
+    "n_lines": 4973,
+    "prev": "    }",
+    "next": "<EOF>"
+   },
+   "design_report.py": {
+    "line": 30,
+    "n_lines": 30,
+    "prev": "from stick_diagram import load_topology, _audit_result_json",
+    "next": "<EOF>"
+   },
+   "audit_current_forced.py": {
+    "line": 46,
+    "n_lines": 113,
+    "prev": "from topology_authoring import _as_set  # noqa: E402",
+    "next": "def render_report(topology_path: str) -> tuple[str, bool]:"
+   }
+  },
+  "mod_file_lines": 582,
+  "V4": {
+   "subjects": [
+    "instance_report_builder:CompletenessVerdict",
+    "instance_report_builder:check_instance_completeness"
+   ],
+   "exit": 0,
+   "out": "{\"tool\": \"V4\", \"verdict\": \"PASS\", \"files\": [], \"findings\": [], \"unjudged\": []}"
+  },
+  "V5": {
+   "exit": 0,
+   "out": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}"
+  },
+  "neg": [
+   {
+    "variant": "R-1 edit-body",
+    "what": "instance_report_builder:209 in save_instance_json",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 1,
+     "changed": 1,
+     "lost": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 1,
+     "mutants": 14,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=13 expected=13 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-2 drop-reexport",
+    "what": "stick_diagram.py drop CompletenessVerdict",
+    "check_exit": 1,
+    "check_findings": {
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=13 expected=13 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-3 import-shim",
+    "what": "import sizing_recipe",
+    "check_exit": 1,
+    "check_findings": {
+     "order": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY FAIL: instance_report_builder",
+     "IMPORT-ANY tried=13 expected=13 failed=1",
+     "rc=1"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-4 dup-import",
+    "what": "from circuit_state_graph import load_topology",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 5,
+     "move-rejected": 5,
+     "changed": 5,
+     "lost": 5,
+     "rebind": 1,
+     "import-dup": 1,
+     "shim": 3
+    },
+    "v3_static_g1": {
+     "n_defs": 7,
+     "mutants": 125,
+     "n_rejected": 5
+    },
+    "import_any": [
+     "IMPORT-ANY tried=13 expected=13 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-5 no-future",
+    "what": "-future",
+    "check_exit": 1,
+    "check_findings": {
+     "move-set": 16,
+     "move-rejected": 16,
+     "changed": 16,
+     "lost": 16,
+     "rebind": 1,
+     "shim": 3
+    },
+    "v3_static_g1": {
+     "n_defs": 16,
+     "mutants": 307,
+     "n_rejected": 16
+    },
+    "import_any": [
+     "IMPORT-ANY tried=13 expected=13 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-6 extra-unit",
+    "what": null,
+    "check_exit": null,
+    "check_findings": null,
+    "v3_static_g1": null,
+    "import_any": null,
+    "w2_foreign_load": null,
+    "ERROR": "RuntimeError('no candidate')"
+   },
+   {
+    "variant": "R-7 docstring",
+    "what": "docstring",
+    "check_exit": 1,
+    "check_findings": {
+     "changed": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=13 expected=13 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-W2 acf-before-path",
+    "what": "ACF re-export before sys.path.insert",
+    "check_exit": 0,
+    "check_findings": {},
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=13 expected=13 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ModuleNotFoundError: No module named 'instance_report_builder'",
+    "ERROR": null
+   },
+   {
+    "variant": "R-SHIM complete-shim-logic",
+    "what": "design_report.py + _SHIM_FLAG = 1",
+    "check_exit": 1,
+    "check_findings": {
+     "changed": 1,
+     "shim": 1
+    },
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY tried=13 expected=13 failed=0",
+     "rc=0"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   },
+   {
+    "variant": "R-D22 tail-imports-to-head",
+    "what": "tail imports to head: 1",
+    "check_exit": 0,
+    "check_findings": {},
+    "v3_static_g1": {
+     "n_defs": 0,
+     "mutants": 0,
+     "n_rejected": 0
+    },
+    "import_any": [
+     "IMPORT-ANY FAIL: instance_report_builder",
+     "IMPORT-ANY tried=13 expected=13 failed=1",
+     "rc=1"
+    ],
+    "w2_foreign_load": "ok",
+    "ERROR": null
+   }
+  ]
+ }
+}

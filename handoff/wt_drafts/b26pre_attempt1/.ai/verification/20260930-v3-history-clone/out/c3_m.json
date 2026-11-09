@@ -1,0 +1,20 @@
+{
+ "tool": "C:/g17/isom/tools/gates/mutate_changed.py",
+ "base": "f8fcc0df29884603c6326c838d0ea1676f5fa9cf",
+ "head": "419a984bb7a4968e6bf823269df72fe7b30d6fcf",
+ "cmd": "C:\\Python314\\python.exe C:/g17/isom/tools/gates/mutate_changed.py --root C:/g17/probe/c3/root --base f8fcc0df29884603c6326c838d0ea1676f5fa9cf --head 419a984bb7a4968e6bf823269df72fe7b30d6fcf --pytest-ini C:/g17/gmid-gate-cache/cd6417026696091fd0ce02603a11a3729af3147e/pytest_gate.ini --out C:/g17/probe/c3/out.jsonl",
+ "exit": 2,
+ "stdout": "{\"tool\": \"V3\", \"verdict\": \"ERROR\", \"error\": \"BaselineFailed: 기준 실행 실패(exit 1): skills/analog-gmid-design/assets/tests/test_rt_seven.py::test_rt_scale_seven\", \"baseline_failed\": [\"skills/analog-gmid-design/assets/tests/test_rt_seven.py::test_rt_scale_seven\"]}\r\n",
+ "stderr_tail": "",
+ "records": [],
+ "results_by_fn": {},
+ "stdout_keys": [
+  "baseline_failed",
+  "error",
+  "tool",
+  "verdict"
+ ],
+ "survivor_fns": null,
+ "failing_test_id_in_stdout": true,
+ "tmp_left": []
+}

@@ -1,0 +1,539 @@
+#!/usr/bin/env bash
+# Phase 3 design 30-module-split 착수 커밋(오케스트레이터) -- 사용자 승인 2026-10-02 UD-0·D-19·UD-1(같은 승인 기록), UD-5(G1 기록 초안만).
+# 설명서: _drafts/p3_design_commit.md. 어느 확인이든 실패하면 그 자리에서 멈춘다(set -Eeuo pipefail + ERR trap).
+#
+# 커밋 순서(push 한 번 -- 게이트가 요구하는 순서는 없다: 바뀌는 계획서 줄이 plan_tables_hash 입력 밖이라 doc 커밋에 승인 기록이 필요 없고,
+#           diff 승인 기록은 diff_head가 있어야 쓸 수 있으므로 문서 커밋 뒤):
+#   C1 문서 커밋(Role: doc, Change-Id 없음): design 30(초안 v8.5 바이트, 3행 초안 표지만 승인 표지로) + p3_doc_amendments.md v8.5 적용
+#      (계획 N3.10 8행·534·687행, 00-common 103·431행, 10-test-separation 250·252행) + scripts/e_inst_p3.py·e_lib_p3.py(같은 바이트)
+#   C2 승인 기록 20260930-30-module-split-design(target_kind diff, diff_base = C1^ = gate master, diff_head = C1, diff_path 6개 -- fill_v3_approval.py)
+#      + .ai/context.md 바이너리 append(사용자 결정 4문항 + C1 기록)
+#   UD-5 승인 기록(20260930-p3-gate-move-aware)은 여기서 커밋하지 않는다 -- diff_head가 G1 spec card 커밋이라 G1 착수 때(초안 _drafts/approval_20260930-p3-gate-move-aware.md).
+#
+#   bash p3_design_commit.sh pre          # 착수 전 확인만(저장소 변경 없음)
+#   bash p3_design_commit.sh local        # pre -> c1 -> appr -> final (로컬 커밋 2개, push 안 함 -- 끝에 push 명령 출력)
+#   bash p3_design_commit.sh <단계>       # pre | c1 | appr | final 하나만(중단 뒤 이어 하기 -- 각 단계가 앞 단계 결과를 확인)
+#   bash p3_design_commit.sh after-push   # push 뒤: gate master = 로컬 master(C2)
+#   (push는 이 스크립트가 하지 않는다 -- final이 출력하는 명령을 오케스트레이터가 단독 호출, EL1 판정 대상)
+#
+# 사전 시험(모래상자):
+#   bash p3_design_commit.sh --sbx /c/g188/a [--base <커밋>] mk-sandbox   # 실제 저장소 복제 + 가짜 gate(실제 pre-receive·gate-runner, EL3 .githooks)
+#   bash p3_design_commit.sh --repo /c/g188/a/r --state /c/g188/a/state.txt local
+#   옵션은 반드시 단계 이름 앞. --repo를 주면 --state 필수(실제 저장소 판별은 launch_common.sh lc_repo_guard -- git-common-dir 정규화 비교).
+set -Eeuo pipefail
+shopt -s inherit_errexit
+trap 'echo "[중단] ${BASH_SOURCE[0]}:${LINENO}: ${BASH_COMMAND}" >&2' ERR
+. "$(dirname -- "${BASH_SOURCE[0]}")/launch_common.sh"
+
+export HOME=/c/Users/HSLEE
+export APPDATA='C:\Users\HSLEE\AppData\Roaming' LOCALAPPDATA='C:\Users\HSLEE\AppData\Local' USERPROFILE='C:\Users\HSLEE'
+export PYTHONDONTWRITEBYTECODE=1 PYTHONIOENCODING=utf-8
+
+R_REAL=$LC_R_REAL
+R=$R_REAL
+DR=$LC_W_REAL/_drafts
+STATE_REAL=$DR/p3_design_commit_state.txt
+STATE=$STATE_REAL
+SBX=
+BASE_OPT=
+while [ $# -gt 1 ]; do
+  case "$1" in
+    --repo) R=$2; shift 2 ;;
+    --state) STATE=$2; shift 2 ;;
+    --sbx) SBX=$2; shift 2 ;;
+    --base) BASE_OPT=$2; shift 2 ;;
+    *) break ;;
+  esac
+done
+[ $# -eq 1 ] || { echo "[중단] 사용법: $0 [--repo R --state S] <단계> | $0 --sbx /c/g<번호>/<이름> [--base <커밋>] mk-sandbox  (옵션은 단계 이름 앞에만)" >&2; exit 2; }
+case "$1" in --*) echo "[중단] 단계 이름 자리에 옵션: $1" >&2; exit 2 ;; esac
+STEP=$1
+PY=/c/Python314/python.exe
+COAUTH="Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
+
+# ---------------------------------------------------------------- 모래상자 만들기(실제 저장소·gate는 읽기만 -- post_p10b_dryrun_setup.sh 모양)
+if [ "$STEP" = mk-sandbox ]; then
+  [ -n "$SBX" ] || { echo "[중단] mk-sandbox에는 --sbx 필수" >&2; exit 2; }
+  # /c/g<숫자만>/<이름 한 단계>만(glob `/c/g[0-9]*/*`는 /c/g196x/… 같은 경로도 받았다). 이름은 '.'으로 시작하지 않는다('.'·'..' 금지).
+  [[ "$SBX" =~ ^/c/g[0-9]+/[A-Za-z0-9_][A-Za-z0-9._-]*$ ]] || { echo "[중단] 모래상자는 /c/g<번호>/<이름>만: $SBX" >&2; exit 2; }
+  [ -z "${BASE_OPT}" ] || [ -n "$(git -C "$R_REAL" rev-parse --verify -q "$BASE_OPT^{commit}")" ]
+  BASE=$(git -C "$R_REAL" rev-parse "${BASE_OPT:-gate/master}^{commit}")
+  SW=$(printf '%s' "$SBX" | sed -E 's#^/([a-zA-Z])/#\U\1:/#')
+  test ! -e "$SBX/r"; test ! -e "$SBX/gate.git"
+  mkdir -p "$SBX"
+  lc_tmp_setup "$SBX/setup"
+  test -n "$(git config --get user.email)"
+  git clone -c core.autocrlf=false -q --no-hardlinks --no-local --no-checkout "$R_REAL" "$SBX/r"
+  git -C "$SBX/r" config core.longpaths true
+  git -C "$SBX/r" checkout -q master
+  test "$(git -C "$SBX/r" rev-parse HEAD)" = "$(git -C "$R_REAL" rev-parse gate/master)"   # 복제 시점 메인 master = gate master
+  git -C "$SBX/r" merge -q --ff-only "$BASE"                                              # --base(예: 진행 중 card의 병합 M)까지 ff
+  # 합성 audit 커밋: gate_config.json gate_path·workspace_path와 pre-receive 실행 경로만 모래상자로(EL3·EL4가 실제 gate 대신 모래상자 gate를 본다)
+  "$PY" -B - "$SBX/r" "$SW" <<'EOF'
+import json, sys, os
+r, sw = sys.argv[1], sys.argv[2]
+p = os.path.join(r, "tools", "gates", "gate_config.json")
+raw = open(p, "rb").read()
+crlf = b"\r\n" in raw
+cfg = json.loads(raw.decode("utf-8"))
+cfg["gate_path"] = sw + "/gate.git"
+cfg["workspace_path"] = sw + "/r"
+out = json.dumps(cfg, ensure_ascii=False, indent=2) + "\n"
+if crlf:
+    out = out.replace("\n", "\r\n")
+open(p, "wb").write(out.encode("utf-8"))
+q = os.path.join(r, "tools", "gates", "gate", "pre-receive")
+b = open(q, "rb").read()
+old = b"C:/Users/HSLEE/Documents/Todoc/fpga/gmid-gate.git/gate-runner.py"
+assert b.count(old) == 1
+open(q, "wb").write(b.replace(old, (sw + "/gate.git/gate-runner.py").encode()))
+EOF
+  git -C "$SBX/r" add -- tools/gates/gate_config.json tools/gates/gate/pre-receive
+  git -C "$SBX/r" commit -q -m "audit: p3-design-commit DRY-RUN 합성(모래상자 gate 경로만 바꿈, 실제 판정 아님)" --trailer "Role: audit" --trailer "Change-Id: 20261002-p3-design-dryrun"
+  SYN=$(git -C "$SBX/r" rev-parse HEAD)
+  git clone -q --bare --no-hardlinks --no-local "$SBX/r" "$SBX/gate.git"
+  rm -rf "$SBX/gate.git/hooks"; mkdir -p "$SBX/gate.git/hooks"
+  git -C "$SBX/r" show "HEAD:tools/gates/gate/pre-receive" > "$SBX/gate.git/hooks/pre-receive"
+  git -C "$SBX/r" show "HEAD:tools/gates/gate/gate-runner.py" > "$SBX/gate.git/gate-runner.py"
+  BL=$("$PY" -B -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8'))['baseline_commit'])" "$SBX/r/tools/gates/gate_config.json")
+  printf '%s %s 2026-10-02T00:00:00\n%s %s 2026-10-02T00:00:01\n' "$BL" "$BL" "$BL" "$SYN" > "$SBX/gate.git/gmid-accept-log"
+  git -C "$SBX/r" remote remove origin
+  git -C "$SBX/r" remote add gate "$SW/gate.git"
+  git -C "$SBX/r" fetch -q gate
+  git -C "$SBX/r" branch -q --set-upstream-to=gate/master master
+  git -C "$SBX/r" config core.hooksPath "$SW/r/.githooks"
+  mkdir -p "$SBX/r/.claude/hooks"
+  cp "$R_REAL/.claude/hooks/"role_*.py "$SBX/r/.claude/hooks/"
+  cp "$R_REAL/.claude/settings.json" "$SBX/r/.claude/settings.json"
+  test "$(git -C "$SBX/r" rev-parse gate/master)" = "$SYN"
+  echo "모래상자 준비: $SBX/r HEAD = gate master = $SYN (base ${BASE:0:7} + 합성 audit)"
+  exit 0
+fi
+
+lc_repo_guard "$R" "$R_REAL"
+if [ "$LC_REAL" = 0 ]; then
+  lc_need_sandbox --state "$STATE" "$STATE_REAL"
+else
+  lc_need_real --state "$STATE" "$STATE_REAL"; STATE=$STATE_REAL
+fi
+lc_tmp_setup "$STATE"
+echo "== 대상 저장소 R=$R  상태 파일 $STATE  (실제 저장소=$LC_REAL)"
+
+AID=20260930-30-module-split-design
+G1AID=20260930-p3-gate-move-aware
+V3B=20260930-v3-exempt-binding                     # 진행 중 게이트 card -- 그 판정 기록 push가 끝난 뒤에만 실제 실행(gate master가 card 중간에 움직이지 않게)
+DRAFT_D30=$DR/draft_phase3_design_v8.md
+DRAFT_AMD=$DR/p3_doc_amendments.md
+DRAFT_EI=$DR/p3_scripts/e_inst_p3_proposed/e_inst_p3.py
+DRAFT_EL=$DR/p3_scripts/e_lib_p3_proposed/e_lib_p3.py
+DRAFT_APR=$DR/approval_$AID.md
+DRAFT_G1APR=$DR/approval_$G1AID.md
+FILL=$DR/fill_v3_approval.py
+G1PATCH=$DR/g1_kit/patch_g1_docs.py
+JSONL=/c/Users/HSLEE/.claude/projects/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922.jsonl
+ASK_ID=toolu_01VKN8qT3BbTikfZQyV9sdQi
+PLAN=docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+C00=docs/02-design/features/gain-budget-gmid-sizing.00-common.design.md
+T10=docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md
+D30=docs/02-design/features/gain-budget-gmid-sizing.30-module-split.design.md
+EI=docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_inst_p3.py
+EL=docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_lib_p3.py
+CTX=.ai/context.md
+F_APR=.ai/approvals/$AID.md
+SUBJ_C1="docs: Phase 3 design 30-module-split v8.5(UD-0 승인본) + 문서 개정(계획 N3.10 표 정정 12건·D-19 (가) rail_declaration MOD2, 534행 shim, N3.12.3 T0·T1, 00-common 103·431행 topology_path, 10-test-separation §5.6 '파일' 열) + Phase 3 E-INST·E-LIB 측정 스크립트"
+SUBJ_C2="docs: 승인 기록 $AID(UD-0 design 30 승인 + D-19 (가) MOD2 + UD-1 (가) U-03 기본안, target_kind diff -- 6경로), 사용자 결정 기록(Phase 3 승인 4문항, UD-5 포함)"
+
+say() { printf '%s\n' "== $*"; }
+g() { git -C "$R" "$@"; }
+st_set() { touch "$STATE"; grep -v "^$1=" "$STATE" > "$STATE.tmp" || true; printf '%s=%s\n' "$1" "$2" >> "$STATE.tmp"; mv "$STATE.tmp" "$STATE"; }
+st_get() { local v; v=$(grep "^$1=" "$STATE" | tail -1 | cut -d= -f2-); test -n "$v"; printf '%s' "$v"; }
+cache_dir() {
+  local c
+  c=$("$PY" -B -c "import sys;sys.path.insert(0,sys.argv[1]);import role_paths as rp;print(rp.ensure_cache(rp.load_env(sys.argv[2])))" "$R/tools/gates" "$R")
+  test "$(basename "$c")" = "$(g rev-parse gate/master)"
+  test -f "$c/merge_gate.py"
+  printf '%s' "$c"
+}
+staged_is() { test "$(g diff --cached --name-only | sort | tr '\n' ' ')" = "$(printf '%s\n' "$@" | sort | tr '\n' ' ')"; }
+numstat_is() { test "$(g diff --cached --numstat -- "$1" | cut -f1-2 | tr '\t' ' ')" = "$2"; }
+head_subj_is() { test "$(g log -1 --format=%s)" = "$1"; }
+trailer_is() {   # <커밋> <키> <값|-(없음)>
+  local v; v=$(g log -1 --format="%(trailers:key=$2,valueonly)" "$1" | tr -d '\r' | grep -v '^$' || true)
+  if [ "$3" = - ]; then test -z "$v"; else test "$v" = "$3"; fi
+}
+plan_hash_rev() {   # <rev 또는 :> -> 그 판 계획서의 plan_tables_hash(캐시 merge_gate)
+  local spec="$1:$PLAN"; [ "$1" != : ] || spec=":$PLAN"
+  g show "$spec" | "$PY" -B -c "import sys;sys.path.insert(0,sys.argv[1]);import merge_gate as mg;print(mg.plan_tables_hash(sys.stdin.buffer.read().decode('utf-8')))" "$2"
+}
+
+# 문서 개정 적용·검증(한 함수 -- apply: 작업 트리에 쓴다 / verify: 스테이징·커밋 판이 기대 바이트와 같은지만 본다). 기대 바이트는 언제나 <base 커밋> 판에서 계산한다.
+#   amend <apply|verify> <base 커밋> <대조 판: 'worktree'|':'|커밋> <캐시>
+amend() {
+  "$PY" -B - "$R" "$1" "$2" "$3" "$4" "$DRAFT_D30" "$DRAFT_AMD" "$DRAFT_EI" "$DRAFT_EL" <<'EOF'
+import hashlib, json, os, re, subprocess, sys
+R, MODE, BASE, CMP, CACHE, F_D30, F_AMD, F_EI, F_EL = sys.argv[1:10]
+sys.path.insert(0, CACHE)
+import role_paths as rp, import_layering as il, merge_gate as mg   # noqa: E402
+PLAN = "docs/01-plan/features/gain-budget-gmid-sizing.plan.md"
+C00 = "docs/02-design/features/gain-budget-gmid-sizing.00-common.design.md"
+T10 = "docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md"
+D30 = "docs/02-design/features/gain-budget-gmid-sizing.30-module-split.design.md"
+EI = "docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_inst_p3.py"
+EL = "docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_lib_p3.py"
+SHA = {F_D30: "a4350dc05ff861799b15b0aa7e0a0af53c06c887b428718d4397e7f7b0cea9db",
+       F_AMD: "363e3cc2da4fc96dd423e3ec1b8670b9e41742228ef2ea0567df972e4a29fd3a",
+       F_EI: "7d26134ad00ec50412bf65b1fcc3aa046845a315b8edf28dc93f4a102c25e283",
+       F_EL: "c6b82fc7b4cd974ce06032559c92ecdcc8cf21e327b154e4a56bda0772aa140e"}
+OLD3 = "> **[초안 v8.5 -- 저장소 미반영]** 정식 경로(계획 N9.1): `docs/02-design/features/gain-budget-gmid-sizing.30-module-split.design.md`(현재 없음)."
+NEW3 = ("> **v8.5 -- 사용자 승인 2026-10-02**(UD-0 \"승인 (Recommended)\"·D-19 \"(가) MOD2 (Recommended)\"·UD-1 \"(가) 깨지게 둠 (Recommended)\", 승인 기록 `20260930-30-module-split-design`). "
+        "정식 경로(계획 N9.1) = 이 파일. 승인본 = 초안 `_drafts/draft_phase3_design_v8.md`(sha256 `a4350dc05ff86179…`) -- 저장소에 넣으며 이 줄(초안 표지)만 바꿨다.")
+
+
+def die(m):
+    sys.stderr.write("[중단] amend: %s\n" % m)
+    sys.exit(2)
+
+
+def git(*a, inp=None):
+    p = subprocess.run(["git", "-C", R] + list(a), capture_output=True, input=inp)
+    if p.returncode != 0:
+        die("git %s: %s" % (" ".join(a), p.stderr.decode("utf-8", "replace").strip()))
+    return p.stdout
+
+
+raw = {}
+for f, h in SHA.items():
+    b = open(f, "rb").read()
+    if hashlib.sha256(b).hexdigest() != h:
+        die("초안 해시 다름(승인 대상 판이 아니다): %s" % f)
+    raw[f] = b
+amd = raw[F_AMD].decode("utf-8")
+B = re.findall(r"```\n(.*?)\n```", amd, flags=re.S)
+if len(B) != 29:
+    die("문서 개정 블록 수 %d != 29" % len(B))
+# (파일, 현재 블록, 새 블록) -- 문서 순서: §1 a(현재·(가)·(나)) b c d, §2, §3, §4 103·431, §5 250·252, §9 e f g h
+MAP = [(PLAN, 0, 1), (PLAN, 3, 4), (PLAN, 5, 6), (PLAN, 7, 8), (PLAN, 9, 10), (PLAN, 11, 12),
+       (C00, 13, 14), (C00, 15, 16), (T10, 17, 18), (T10, 19, 20),
+       (PLAN, 21, 22), (PLAN, 23, 24), (PLAN, 25, 26), (PLAN, 27, 28)]
+PFX = {0: "| MOD2 |", 3: "| MOD3 |", 5: "| MOD6 |", 7: "| MOD8 |", 9: "* **shim**:", 11: "* test 전용 변경", 13: "| 계측 인터페이스 |",
+       15: "* 운영 진입점 ", 17: "**영역 표**", 19: "| 파일 | 함수 |", 21: "| MOD1 |", 23: "| MOD4 |", 25: "| MOD5 |", 27: "| MOD9 |"}
+for ci, ni in [(c, n) for _, c, n in MAP]:
+    if not (B[ci].startswith(PFX[ci]) and "\n" not in B[ci] and "\n" not in B[ni]):
+        die("블록 %d/%d 모양이 기대와 다르다" % (ci, ni))
+if "`rail_declaration`" not in B[1] or "rail_declaration" in B[2]:
+    die("§1 (a) D-19 두 안 블록이 기대와 다르다((가) = 블록 1)")
+
+exp = {}
+for f in (PLAN, C00, T10):
+    t = git("show", "%s:%s" % (BASE, f)).decode("utf-8")
+    if "\r" in t:
+        die("base blob에 CR: %s" % f)
+    L = t.split("\n")
+    for ff, ci, ni in MAP:
+        if ff != f:
+            continue
+        hit = [i for i, x in enumerate(L) if x == B[ci]]
+        if len(hit) != 1:
+            die("'현재' 블록 %d가 %s에 정확히 한 줄이 아니다(%d) -- 이미 적용됐거나 문안이 바뀜" % (ci, f, len(hit)))
+        if B[ni] in L:
+            die("새 문안 %d가 이미 %s에 있다" % (ni, f))
+        L[hit[0]] = B[ni]
+    exp[f] = "\n".join(L).encode("utf-8")
+d = raw[F_D30].decode("utf-8").split("\n")
+if d[2] != OLD3 or sum(1 for x in d if x == OLD3) != 1:
+    die("design 초안 3행이 초안 표지가 아니다")
+d[2] = NEW3
+exp[D30] = "\n".join(d).encode("utf-8")
+exp[EI] = raw[F_EI]
+exp[EL] = raw[F_EL]
+
+# 적용 확인(문서 개정 '적용 확인' 1~3 + v8.4·v8.5 확장) -- 기대 바이트에서
+plan = exp[PLAN].decode("utf-8")
+mt = il.mod_table(plan)
+hdr, rows = rp.read_section_table(plan, "### N3.10 ")
+rep = hdr.index("대표 대상")
+where = {}
+for r in rows:
+    for t in re.findall(r"`([^`]+)`", r[rep]):
+        if re.fullmatch(r"[A-Za-z_*][A-Za-z0-9_*]*", t):
+            where.setdefault(t, []).append(r[0].strip())
+multi = {k: v for k, v in where.items() if len(v) > 1}
+WANT = {"load_topology": "MOD3", "validate_theta_declaration_order": "MOD3", "require_declared_spec_source": "MOD3",
+        "find_hub_merge_candidates": "MOD3", "signal_path_nodes": "MOD3", "optimize_full_circuit_budget": "MOD8",
+        "_build_theta_evaluator": "MOD8", "search_stage_budget_L_warm_start": "MOD8", "presolve_warm_start": "MOD8",
+        "_optimize_theta_slsqp": "MOD8", "metric_unit_scale": "MOD2", "rail_declaration": "MOD2",
+        "_multilinear_interp_point_multi": "MOD1", "_metric_nulling_resistor_ohm": "MOD4", "apply_theta_feed": "MOD5", "_kv_table": "MOD9"}
+bad_place = {k: where.get(k) for k, v in WANT.items() if where.get(k) != [v]}
+t10 = exp[T10].decode("utf-8")
+h10, r10 = rp.read_section_table(t10, "### 5.6 ")
+h_before = mg.plan_tables_hash(git("show", "%s:%s" % (BASE, PLAN)).decode("utf-8"))
+h_after = mg.plan_tables_hash(plan)
+chk = {"mod_table_n": len(mt), "n310_cols": len(hdr), "n310_rows": len(rows), "multi_row_tokens": multi, "bad_placement": bad_place,
+       "t10_56_header": h10, "t10_56_rows": len(r10), "plan_tables_hash_before": h_before, "plan_tables_hash_after": h_after}
+ok = (len(mt) == 10 and len(hdr) == 4 and len(rows) == 10 and not multi and not bad_place and len(r10) == 21
+      and h10[0] == "파일(설명, Phase 3 전 위치)" and h_before == h_after)
+if not ok:
+    die("적용 확인 실패: %s" % json.dumps(chk, ensure_ascii=False))
+
+if MODE == "check":
+    pass
+elif MODE == "apply":
+    for f, b in exp.items():
+        p = os.path.join(R, f)
+        if f in (PLAN, C00, T10):
+            cur = open(p, "rb").read()
+            if cur.replace(b"\r\n", b"\n") != git("show", "%s:%s" % (BASE, f)):
+                die("작업 트리 %s가 base 판과 다르다(로컬 변경)" % f)
+            out = b.replace(b"\n", b"\r\n") if b"\r\n" in cur else b
+        else:
+            if os.path.exists(p):
+                die("새 파일이 이미 있다: %s" % f)
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            out = b
+        open(p, "wb").write(out)
+elif MODE == "verify":
+    for f, b in exp.items():
+        got = git("show", (":" + f) if CMP == ":" else "%s:%s" % (CMP, f))
+        if got != b:
+            die("%s 판 %s가 기대 바이트와 다르다" % (CMP, f))
+    for f in (EI, EL):
+        h = hashlib.sha256(git("show", (":" + f) if CMP == ":" else "%s:%s" % (CMP, f))).hexdigest()
+        if h != SHA[F_EI if f == EI else F_EL]:
+            die("%s sha256 다름" % f)
+else:
+    die("모드: %s" % MODE)
+print(json.dumps(dict(chk, mode=MODE, base=BASE[:12], paths=sorted(exp)), ensure_ascii=False))
+EOF
+}
+
+# 사용자 원문 바이트 대조(세션 jsonl의 AskUserQuestion tool_use·tool_result): <초안> <header… | msg:<uuid>…>
+#   header: 그 질문 항목('* 질문 [H] 원문: "…"'부터 다음 '\n* '·빈 줄 앞까지) 안에 선택지마다 '"라벨" -- "설명"' 짝이 그대로, '답: "…"'이 있고, 파일 어딘가에 '> 답'
+#   msg:<uuid>: 그 uuid의 assistant text 블록(사용자에게 보인 오케스트레이터 메시지)이 '```text\n<원문>\n```'로 그대로 있다
+check_quote() {
+  local f=$1; shift
+  "$PY" -B - "$JSONL" "$ASK_ID" "$f" "$@" <<'EOF'
+import json, sys
+J, TID, F = sys.argv[1:4]
+want = [a for a in sys.argv[4:] if not a.startswith("msg:")]
+msgs = [a[4:] for a in sys.argv[4:] if a.startswith("msg:")]
+use = res = None
+mtext = {}
+with open(J, "rb") as fh:
+    for line in fh:
+        hit_t = TID.encode() in line
+        hit_m = [u for u in msgs if u.encode() in line]
+        if not (hit_t or hit_m):
+            continue
+        o = json.loads(line)
+        for c in (o.get("message") or {}).get("content") or []:
+            if isinstance(c, dict) and c.get("type") == "tool_use" and c.get("id") == TID:
+                use = c["input"]
+            if isinstance(c, dict) and c.get("type") == "tool_result" and c.get("tool_use_id") == TID:
+                res = o.get("toolUseResult")
+        if o.get("uuid") in msgs and (o.get("message") or {}).get("role") == "assistant" and not o.get("isSidechain"):
+            mtext[o["uuid"]] = [c["text"] for c in o["message"]["content"] if isinstance(c, dict) and c.get("type") == "text"]
+if use is None or res is None:
+    sys.exit("[중단] jsonl에서 질문(tool_use)이나 답(tool_result)을 찾지 못함")
+t = open(F, "rb").read().decode("utf-8").replace("\r\n", "\n")
+miss = []
+for q in use["questions"]:
+    if q["header"] not in want:
+        continue
+    ans = res["answers"].get(q["question"])
+    if ans is None:
+        miss.append((q["header"], "답 없음"))
+        continue
+    head = '* 질문 [%s] 원문: "%s"' % (q["header"], q["question"])
+    if t.count(head) != 1:
+        miss.append((q["header"], "질문 항목 %d개" % t.count(head)))
+        continue
+    i = t.index(head)
+    ends = [e for e in (t.find("\n* ", i + 1), t.find("\n\n", i + 1)) if e != -1]
+    seg = t[i:min(ends)] if ends else t[i:]
+    for s in ['답: "%s"' % ans] + ['"%s" -- "%s"' % (o["label"], o["description"]) for o in q["options"]]:
+        if s not in seg:
+            miss.append((q["header"], s[:60]))
+    if "> %s" % ans not in t:
+        miss.append((q["header"], "> %s" % ans))
+for u in msgs:
+    tx = mtext.get(u)
+    if not tx or len(tx) != 1:
+        miss.append(("msg", "%s: text 블록 %r" % (u, None if tx is None else len(tx))))
+    elif "```text\n%s\n```" % tx[0] not in t:
+        miss.append(("msg", "%s 원문 불일치" % u))
+got = sorted(q["header"] for q in use["questions"] if q["header"] in want)
+if got != sorted(want) or miss:
+    sys.exit("[중단] 사용자 원문 대조 실패: headers %r, 누락 %r" % (got, miss))
+print("사용자 원문 바이트 대조 OK: %s%s (%s)" % (",".join(want), "".join(" +msg " + u[:8] for u in msgs), F.split("/")[-1]))
+EOF
+}
+MSG_LAST=ddf321ed-c121-4a46-ab50-27312e7cc731   # 질문 바로 앞 오케스트레이터 텍스트(16:33:31Z, Phase 3 무관)
+MSG_SUM=4a9d93cf-e925-42e4-9186-e0bff7670b41    # 질문 앞 마지막 Phase 3 요약(16:17:04Z)
+
+stage_pre() {
+  say "pre: 착수 전 확인(저장소 변경 없음)"
+  test -n "$(git config --get user.email)"
+  g fetch -q gate
+  test "$(g rev-parse --abbrev-ref HEAD)" = master
+  test "$(g rev-parse HEAD)" = "$(g rev-parse gate/master)"
+  test -z "$(g for-each-ref refs/heads/role/)"                        # 역할 브랜치가 남으면 문서 push를 EL1이 거부(design 05 §12)
+  g diff --cached --quiet
+  test -z "$(g status --porcelain -- "$PLAN" "$C00" "$T10" "$CTX" .ai/approvals docs/02-design/features docs/03-analysis/gain-budget-gmid-sizing-30-module-split)"
+  test ! -e "$R/$D30"; test ! -e "$R/$EI"; test ! -e "$R/$EL"; test ! -e "$R/$F_APR"
+  if g cat-file -e "HEAD:$D30" 2>/dev/null || g cat-file -e "HEAD:$F_APR" 2>/dev/null; then echo "[중단] design 30·승인 기록이 이미 gate master에 있다" >&2; return 1; fi
+  # 선행: 진행 중 V3 면제 묶기 card의 판정 기록이 gate master에 있다(launch_common m6 단일 기준). 모래상자는 보고만.
+  if lc_pred_ok "$R" HEAD "$V3B"; then echo "   선행 $V3B 판정 기록 병합됨"
+  elif [ "$LC_REAL" = 1 ]; then echo "[중단] $V3B 판정 기록 push 전 -- gate master가 card 중간이다. 그 push 뒤에 실행" >&2; return 1
+  else echo "   (모래상자: $V3B 판정 기록 없음 -- 실제 실행이면 여기서 멈춘다)"; fi
+  for f in "$DRAFT_D30" "$DRAFT_AMD" "$DRAFT_EI" "$DRAFT_EL" "$DRAFT_APR" "$DRAFT_G1APR" "$FILL" "$JSONL"; do test -s "$f"; done
+  test "$(grep -c '<rev-parse>' "$DRAFT_APR")" = 3
+  test "$(grep -c '<rev-parse>' "$DRAFT_G1APR")" = 3
+  check_quote "$DRAFT_APR" UD-0 D-19 UD-1 "msg:$MSG_LAST" "msg:$MSG_SUM"
+  check_quote "$DRAFT_G1APR" UD-5
+  local C H; C=$(cache_dir); H=$(plan_hash_rev HEAD "$C"); test ${#H} = 64
+  rm -f "$STATE"
+  # 기대 바이트 계산과 적용 확인만(쓰기 없음): '현재' 블록 14줄 일치·표 모양·토큰 배치·plan_tables_hash 불변
+  amend check HEAD - "$C" > "$STATE.amend.json"
+  # 거부 확인: verify가 적용 전 판(gate master)을 통과시키면 대조가 죽은 것이다
+  if amend verify HEAD HEAD "$C" > /dev/null 2>&1; then echo "[중단] verify가 적용 전 판을 통과시켰다(대조 무효)" >&2; return 1; fi
+  st_set GATE_BASE "$(g rev-parse HEAD)"; st_set PLAN_HASH "$H"; st_set CACHE "$C"
+  say "pre OK: gate master $(g rev-parse --short HEAD), plan_tables_hash $H, cache $C"
+}
+
+stage_c1() {
+  say "c1: design 30 + 문서 개정 + 측정 스크립트 2개 -- Role: doc"
+  test "$(g rev-parse HEAD)" = "$(st_get GATE_BASE)"
+  g diff --cached --quiet
+  local C; C=$(st_get CACHE)
+  amend apply HEAD worktree "$C"
+  "$PY" -B "$C/import_layering.py" --root "$R" > /dev/null             # 적용 확인 3: 계층 표(파일·ID 열) 그대로
+  g add -- "$PLAN" "$C00" "$T10" "$D30" "$EI" "$EL"
+  staged_is "$PLAN" "$C00" "$T10" "$D30" "$EI" "$EL"
+  amend verify HEAD : "$C" > /dev/null                                 # 스테이징 blob = 기대 바이트(줄 끝 정규화 포함)
+  numstat_is "$PLAN" "10 10"; numstat_is "$C00" "2 2"; numstat_is "$T10" "2 2"
+  numstat_is "$D30" "1397 0"; numstat_is "$EI" "100 0"; numstat_is "$EL" "91 0"
+  local H; H=$(plan_hash_rev : "$C"); test "$H" = "$(st_get PLAN_HASH)"   # 판정 표 불변 -> plan_tables 승인 불필요
+  g commit -q -m "$SUBJ_C1" \
+    -m "design: _drafts/draft_phase3_design_v8.md v8.5(sha256 a4350dc05ff861799b15b0aa7e0a0af53c06c887b428718d4397e7f7b0cea9db) 바이트 그대로, 3행 초안 표지('[초안 v8.5 -- 저장소 미반영] … (현재 없음).')만 승인 표지로. 문서 개정: _drafts/p3_doc_amendments.md v8.5(sha256 363e3cc2da4fc96dd423e3ec1b8670b9e41742228ef2ea0567df972e4a29fd3a) §1 (a)(가)~(d)·§2·§3·§4·§5·§9 (e)~(h) '현재' 14줄을 새 문안으로(줄 수 불변, 줄 끝 보존). 측정 스크립트: e_inst_p3.py(7d26134a…)·e_lib_p3.py(c6b82fc7…) 같은 바이트." \
+    -m "적용 확인: mod_table 10행, N3.10 4열·10행, 두 행 이상 백틱 식별자 0, 이동 토큰 16개 기대 행에만, import_layering --root exit 0, 10-test-separation §5.6 21행. 판정 표 무변경(plan_tables_hash $H). 계획 533행(UD-5)은 G1 문서 커밋 몫. 승인 기록 $AID가 이 커밋의 부모를 diff_base로 가리킨다." \
+    --trailer "Role: doc" --trailer "$COAUTH"
+  head_subj_is "$SUBJ_C1"
+  test "$(g rev-parse HEAD^)" = "$(st_get GATE_BASE)"
+  trailer_is HEAD Role doc; trailer_is HEAD Change-Id -
+  test "$(g diff --name-status HEAD^ HEAD | tr '\t' ' ' | sort | tr '\n' ';')" = "$(printf '%s\n' "A $D30" "A $EI" "A $EL" "M $C00" "M $PLAN" "M $T10" | sort | tr '\n' ';')"
+  amend verify HEAD^ HEAD "$C" > /dev/null
+  st_set C1 "$(g rev-parse HEAD)"
+  say "c1 OK: $(g rev-parse --short HEAD)"
+}
+
+stage_appr() {
+  say "appr: 승인 기록 $AID(fill_v3_approval.py) + .ai/context.md 바이너리 append -- Role: doc"
+  test "$(g rev-parse HEAD)" = "$(st_get C1)"
+  g diff --cached --quiet
+  test -z "$(g status --porcelain -- "$CTX")"
+  # 중단 뒤 이어 하기: 승인 기록 파일은 없거나(처음) fill이 같은 내용이라고 확인하는 추적 안 된 파일 하나만(그 밖의 .ai/approvals 변경은 멈춤)
+  test -z "$(g status --porcelain --untracked-files=all -- .ai/approvals | grep -vxF "?? $F_APR" || true)"
+  local C; C=$(st_get CACHE)
+  "$PY" -B "$FILL" --root "$R" --draft "$DRAFT_APR" --base "$(st_get GATE_BASE)" --head "$(st_get C1)" > "$STATE.fill.json"
+  "$PY" -B -c "
+import json,sys
+r=json.load(open(sys.argv[1],encoding='utf-8'))
+assert r['result'] in ('written','already-present(같은 내용)') and r['id']==sys.argv[2] and r['diff_base']==sys.argv[3] and r['diff_head']==sys.argv[4] and len(r['diff_path'])==6, r
+print('fill OK target', r['target'])" "$STATE.fill.json" "$AID" "$(st_get GATE_BASE)" "$(st_get C1)"
+  "$PY" -B "$C/merge_gate.py" parse-approval "$R/$F_APR" > "$STATE.appr.json"
+  local T; T=$("$PY" -B -c "import json,sys;r=json.load(open(sys.argv[1],encoding='utf-8'));assert r['target_kind']=='diff' and r['date']=='2026-10-02',r;print(r['target'])" "$STATE.appr.json")
+  test "$("$PY" -B "$C/merge_gate.py" diff-hash --repo "$R" --base "$(st_get GATE_BASE)" --head "$(st_get C1)" "$PLAN" "$C00" "$T10" "$D30" "$EI" "$EL")" = "$T"
+  check_quote "$R/$F_APR" UD-0 D-19 UD-1 "msg:$MSG_LAST" "msg:$MSG_SUM"
+  # .ai/context.md -- 바이너리 append만(메모리 규칙: heredoc append 금지). 원래 바이트 + 더한 바이트인지 다시 읽어 대조, 같은 표지 줄이 있으면 중단.
+  "$PY" -B - "$R" "$(st_get C1)" "$(st_get PLAN_HASH)" "$T" <<'EOF'
+import subprocess, sys
+R, C1, H, T = sys.argv[1:5]
+p = R + "/.ai/context.md"
+old = open(p, "rb").read()
+MARK = "- 사용자 결정 2026-10-02 Phase 3 승인 4문항"
+if MARK.encode() in old:
+    sys.exit("[중단] context.md에 같은 표지 줄이 이미 있다")
+if not old.endswith(b"\n"):
+    sys.exit("[중단] context.md 끝이 줄 끝이 아니다")
+nl = b"\r\n" if old.endswith(b"\r\n") else b"\n"   # 작업 트리 줄 끝을 따른다(실제 체크아웃 w/lf, 모래상자 복제는 autocrlf로 w/crlf) -- index blob은 어느 쪽이든 LF
+c1 = subprocess.run(["git", "-C", R, "rev-parse", "--short=7", C1], check=True, capture_output=True).stdout.decode().strip()
+lines = [
+    "",
+    MARK + "(AskUserQuestion, 질문 원문 = 세션 jsonl tool_use toolu_01VKN8qT3BbTikfZQyV9sdQi, 배경 _drafts/phase3_approval_question.md v8.5): "
+    "UD-0 \"승인 (Recommended)\" -- design 30-module-split v8.5 + 문서 개정(N3.10 표 정정 12건 등) + 측정 스크립트 2개, 기준에 닿는 기본값 (a)~(d) 그대로, D0b가 새로 계산하는 N3.10 개정은 다시 묻는다; "
+    "D-19 \"(가) MOD2 (Recommended)\" -- rail_declaration은 MOD2 topology_authoring(N3.10 MOD2 대표 대상); "
+    "UD-1 \"(가) 깨지게 둠 (Recommended)\" -- U-03 계획 기본안(추적 파일만 갱신, 추적 안 된 smoke_run_harness_session18_save.py는 그대로); "
+    "UD-5 \"(가) 전역 이동 인식 (Recommended)\" -- G1 게이트 변경 승인. 승인 기록: UD-0·D-19·UD-1 = 20260930-30-module-split-design(diff, target %s), "
+    "UD-5 = 20260930-p3-gate-move-aware(diff -- G1 문서·spec card 커밋 뒤, 초안 _drafts/approval_20260930-p3-gate-move-aware.md). 결정 원문 wt/_drafts/user_decisions.md." % T[:16],
+    "- Phase 3 design 문서 커밋 %s: design 30 v8.5(초안 sha256 a4350dc0…, 3행 초안 표지만 승인 표지로) + 계획 N3.10 8행·534·687행 + 00-common 103·431행 + 10-test-separation 250·252행 + "
+    "docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_inst_p3.py·e_lib_p3.py. plan_tables_hash 전후 동일 %s. 계획 533행은 G1 문서 커밋 몫." % (c1, H),
+]
+add = nl.join(x.encode("utf-8") for x in lines) + nl
+with open(p, "ab") as fh:
+    fh.write(add)
+if open(p, "rb").read() != old + add:
+    sys.exit("[중단] append 뒤 바이트 대조 실패")
+print("context.md append %d줄(%d바이트)" % (len(lines), len(add)))
+EOF
+  g add -- "$F_APR" "$CTX"
+  staged_is "$F_APR" "$CTX"
+  numstat_is "$CTX" "3 0"                                             # 삭제 0줄
+  "$PY" -B -c "
+import subprocess, sys
+R, f = sys.argv[1], sys.argv[2]
+a = subprocess.run(['git', '-C', R, 'show', 'HEAD:' + f], capture_output=True, check=True).stdout
+b = subprocess.run(['git', '-C', R, 'show', ':' + f], capture_output=True, check=True).stdout
+sys.exit(0 if b.startswith(a) and b[len(a):].count(b'\n') == 3 and b'\r' not in b[len(a):] else '[중단] context.md 스테이징 blob이 이전 blob + 3줄(LF)이 아니다')
+" "$R" "$CTX"                                                          # 스테이징 blob = 이전 blob 바이트 그대로 + 더한 3줄
+  g commit -q -m "$SUBJ_C2" \
+    -m "사용자 2026-10-02 Phase 3 승인 4문항(AskUserQuestion) 중 UD-0 \"승인 (Recommended)\"·D-19 \"(가) MOD2 (Recommended)\"·UD-1 \"(가) 깨지게 둠 (Recommended)\" 원문과 질문·선택지 원문(세션 jsonl 바이트 대조)을 인용. target = weakening_diff.diff_hash(diff_base = 문서 커밋의 부모 $(st_get GATE_BASE), diff_head = 문서 커밋 $(st_get C1), diff_path 6개) = $T (merge_gate.compute_diff_hash와 같은 값). UD-5 \"(가) 전역 이동 인식 (Recommended)\"은 .ai/context.md에 기록하고 승인 기록 20260930-p3-gate-move-aware는 G1 문서·spec card 커밋 뒤. .ai/context.md는 바이너리 append(삭제 0줄)." \
+    --trailer "Role: doc" --trailer "$COAUTH"
+  head_subj_is "$SUBJ_C2"
+  test "$(g rev-parse HEAD^)" = "$(st_get C1)"
+  trailer_is HEAD Role doc; trailer_is HEAD Change-Id -
+  st_set C2 "$(g rev-parse HEAD)"; st_set TARGET "$T"
+  say "appr OK: $(g rev-parse --short HEAD), target $T"
+}
+
+stage_final() {
+  say "final: push 전 대조(EL4 receive를 로컬에서 같은 코드로) -- push는 하지 않는다"
+  test "$(g rev-parse HEAD)" = "$(st_get C2)"
+  g fetch -q gate                                                     # 원격 추적 ref를 지금 gate로(움직였으면 push가 non-ff로 거부되기 전에 여기서 멈춘다)
+  test "$(g rev-parse gate/master)" = "$(st_get GATE_BASE)"            # gate master가 그사이 움직이지 않았다
+  test "$(g rev-list --count gate/master..HEAD)" = 2
+  test -z "$(g status --porcelain -- "$PLAN" "$C00" "$T10" "$D30" "$EI" "$EL" "$CTX" .ai/approvals)"
+  test -z "$(g for-each-ref refs/heads/role/)"
+  local C GD; C=$(cache_dir); test "$C" = "$(st_get CACHE)"
+  GD=$(g rev-parse --path-format=absolute --git-common-dir)
+  "$PY" -B "$C/merge_gate.py" receive --git-dir "$GD" --old "$(st_get GATE_BASE)" --new "$(st_get C2)"
+  echo "   로컬 EL4 receive(gate master 판 merge_gate) exit 0 -- 거부 0"
+  amend verify "$(st_get GATE_BASE)" "$(st_get C1)" "$C" > /dev/null
+  test "$(plan_hash_rev HEAD "$C")" = "$(st_get PLAN_HASH)"
+  # G1 문서 패치(UD-5, 계획 533행)의 앵커가 이 개정 뒤에도 그대로인지(읽기만 -- --check --no-preconditions, 쓰지 않는다)
+  if "$PY" -B "$G1PATCH" --root "$R" --check --no-preconditions > "$STATE.g1check.txt" 2>&1; then
+    echo "   G1 문서 패치 앵커 확인(--check --no-preconditions) exit 0: $(tr '\n' ' ' < "$STATE.g1check.txt" | cut -c1-200)"
+  else
+    echo "[중단] G1 문서 패치 앵커가 이 개정 뒤 깨졌다: $(cat "$STATE.g1check.txt")" >&2; return 1
+  fi
+  say "final OK -- 오케스트레이터가 단독 호출할 push 명령(EL1 판정 대상, 병렬 호출·tail 금지):"
+  lc_push_cmd "$R"; echo
+}
+
+stage_after_push() {
+  say "after-push: gate master = 로컬 master(C2)"
+  g fetch -q gate
+  test "$(g rev-parse gate/master)" = "$(st_get C2)"
+  test "$(g rev-parse HEAD)" = "$(st_get C2)"
+  g log --oneline -3 gate/master
+  say "after-push OK -- 다음: G1(UD-5) 문서·spec card 커밋 뒤 승인 기록 $G1AID(초안 $DRAFT_G1APR, fill_v3_approval.py)"
+}
+
+case "$STEP" in
+  pre) stage_pre ;;
+  c1) stage_c1 ;;
+  appr) stage_appr ;;
+  final) stage_final ;;
+  local) stage_pre; stage_c1; stage_appr; stage_final ;;
+  after-push) stage_after_push ;;
+  *) echo "[중단] 모르는 단계: $STEP" >&2; exit 2 ;;
+esac

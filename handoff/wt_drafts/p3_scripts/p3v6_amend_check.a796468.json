@@ -1,0 +1,67 @@
+{
+ "blocks": 21,
+ "current_match": {
+  "gain-budget-gmid-sizing.plan.md:522": true,
+  "gain-budget-gmid-sizing.plan.md:523": true,
+  "gain-budget-gmid-sizing.plan.md:526": true,
+  "gain-budget-gmid-sizing.plan.md:528": true,
+  "gain-budget-gmid-sizing.plan.md:534": true,
+  "gain-budget-gmid-sizing.plan.md:687": true,
+  "gain-budget-gmid-sizing.00-common.design.md:103": true,
+  "gain-budget-gmid-sizing.00-common.design.md:431": true,
+  "gain-budget-gmid-sizing.10-test-separation.design.md:250": true,
+  "gain-budget-gmid-sizing.10-test-separation.design.md:252": true
+ },
+ "variants": {
+  "D19-ga": {
+   "mod_table_n": 10,
+   "n310_cols": 4,
+   "n310_rows": 10,
+   "multi_row_tokens": {},
+   "load_topology": [
+    "MOD3"
+   ],
+   "validate_theta_declaration_order": [
+    "MOD3"
+   ],
+   "optimize_full_circuit_budget": [
+    "MOD8"
+   ],
+   "rail_declaration": [
+    "MOD2"
+   ],
+   "import_layering_exit": 0,
+   "t10_56_header": [
+    "파일(설명, Phase 3 전 위치)",
+    "함수",
+    "영역",
+    "이유(N0.4 '영역')"
+   ],
+   "t10_56_rows": 21
+  },
+  "D19-na": {
+   "mod_table_n": 10,
+   "n310_cols": 4,
+   "n310_rows": 10,
+   "multi_row_tokens": {},
+   "load_topology": [
+    "MOD3"
+   ],
+   "validate_theta_declaration_order": [
+    "MOD3"
+   ],
+   "optimize_full_circuit_budget": [
+    "MOD8"
+   ],
+   "rail_declaration": null,
+   "import_layering_exit": 0,
+   "t10_56_header": [
+    "파일(설명, Phase 3 전 위치)",
+    "함수",
+    "영역",
+    "이유(N0.4 '영역')"
+   ],
+   "t10_56_rows": 21
+  }
+ }
+}

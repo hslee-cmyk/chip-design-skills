@@ -1,0 +1,150 @@
+{"doc": "40", "line": 104, "removed": ["E/core/graph_snapshot.py:34,148-200", "E/core/field_value.py:12-35", "E/core/compute_block.py:77"]}
+{"doc": "40", "line": 176, "removed": ["E/search/start_points.py:33-47", "E/search/search_context.py:137-149·234-235", "E/search/kernel.py:105"]}
+{"doc": "40", "line": 178, "removed": ["E/search/find_front.py:138"]}
+{"doc": "40", "line": 188, "removed": ["E/tests/structure/structure_checks.py:198-214", "E/_module_map.py:921"]}
+{"doc": "40", "line": 192, "removed": ["E/search/__init__.py:27·190", "E/tests/structure/structure_checks.py:433-505"]}
+{"doc": "40", "line": 209, "removed": ["E/core/compute_block.py:73-90", "E/core/graph_snapshot.py:144-200"]}
+{"doc": "40", "line": 212, "removed": ["E/sizing/size_and_seal_local.py:65-85"]}
+{"doc": "40", "line": 244, "removed": ["E/core/compute_block.py:136-137"]}
+{"doc": "40", "line": 261, "removed": ["E/core/failure_errors.py:20"]}
+{"doc": "40", "line": 262, "removed": ["E/core/failure_errors.py:20·60", "E/tests/structure/structure_checks.py:241-249"]}
+{"doc": "40", "line": 329, "removed": ["E/lut/lut_memo.py:60-62"]}
+{"doc": "40", "line": 332, "removed": ["E/core/bounded_lru.py:7-9"]}
+{"doc": "40", "line": 339, "removed": ["E/sizing/block_columns.py:335-398"]}
+{"doc": "40", "line": 340, "removed": ["E/search/cell_floor.py:47-60", "search_context.py:84"]}
+{"doc": "40", "line": 341, "removed": ["E/metrics/edge_cost_bounds.py:51", "E/search/iv_curves.py:49-52", "E/metrics/achievability.py:233"]}
+{"doc": "40", "line": 342, "removed": ["E/search/iv_curves.py:84-87,125-139"]}
+{"doc": "40", "line": 343, "removed": ["E/metrics/block_param_tables.py:37-54", "achievability.py:308", "iv_context.py:69"]}
+{"doc": "40", "line": 344, "removed": ["E/sizing/block_columns.py:177"]}
+{"doc": "40", "line": 346, "removed": ["cell_floor.py:38"]}
+{"doc": "40", "line": 348, "removed": ["E/search/search_context.py:134-150"]}
+{"doc": "40", "line": 350, "removed": ["E/search/search_context.py:134-150"]}
+{"doc": "40", "line": 353, "removed": ["E/lut/lut_memo.py:50"]}
+{"doc": "40", "line": 355, "removed": ["E/search/search_context.py:138·149"]}
+{"doc": "40", "line": 356, "removed": ["E/lut/sweep_memo.py:14-25", "E/core/bounded_lru.py:7-9", "sweep_memo.py:22-24"]}
+{"doc": "40", "line": 360, "removed": ["E/search/find_front.py:126"]}
+{"doc": "40", "line": 379, "removed": ["E/lut/lut_memo.py:25-36"]}
+{"doc": "40", "line": 390, "removed": ["E/search/start_values.py:186-235"]}
+{"doc": "40", "line": 393, "removed": ["E/metrics/ss_types.py:79-88"]}
+{"doc": "40", "line": 394, "removed": ["E/search/search_values.py:146-162"]}
+{"doc": "40", "line": 397, "removed": ["E/sizing/size_and_seal_local.py:119-129"]}
+{"doc": "40", "line": 406, "removed": ["E/_module_map.py:228", "E/tests/structure/structure_checks.py:241-249"]}
+{"doc": "40", "line": 422, "removed": ["E/search/search_context.py:128-129"]}
+{"doc": "40", "line": 440, "removed": ["E/sizing/struct_colour.py:20"]}
+{"doc": "40", "line": 441, "removed": ["E/pipeline/stage_a.py:101-121", "E/graph/coupling_values.py:68"]}
+{"doc": "40", "line": 442, "removed": ["E/metrics/achievability_types.py:130"]}
+{"doc": "40", "line": 444, "removed": ["E/search/residual_probe.py:66"]}
+{"doc": "40", "line": 452, "removed": ["E/metrics/noise_types.py:23"]}
+{"doc": "40", "line": 454, "removed": ["achievability.py:77-113", "iv_context.py:63-69", "E/metrics/achievability_types.py:221"]}
+{"doc": "40", "line": 455, "removed": ["E/sizing/theta_schema.py:63"]}
+{"doc": "40", "line": 458, "removed": ["E/sizing/seal_tolerances.py:36-45", "E/sizing/kernel_run.py:51-96"]}
+{"doc": "40", "line": 468, "removed": ["E/search/objectives.py:31-45"]}
+{"doc": "40", "line": 475, "removed": ["wt/_cmp_pilot/judge/eng2spice.py:3"]}
+{"doc": "40", "line": 478, "removed": ["E/layout/run.py:62-85", "E/layout/run.py:110"]}
+{"doc": "40", "line": 480, "removed": ["canonical_naming.py:55", "outputs.py:58·70·75", "canonical_naming.py:28·34", "outputs.py:78"]}
+{"doc": "40", "line": 482, "removed": ["E/convergence/layout_input.py:7", "pattern_select.py:258", "canonical_naming.py:56"]}
+{"doc": "40", "line": 484, "removed": ["finger_candidates.py:36", "pattern_select.py:278-283", "rows.py:275-281", "finger_candidates.py:44-47", "canonical_naming.py:28-60", "E/layout/outputs.py:59"]}
+{"doc": "40", "line": 505, "removed": ["E/core/bounded_lru.py:38,58-65"]}
+{"doc": "40", "line": 506, "removed": ["E/lut/table_cache.py:195-228"]}
+{"doc": "40", "line": 531, "removed": ["E/search/kernel.py:111-112"]}
+{"doc": "40", "line": 546, "removed": ["structure_checks.py:880-920"]}
+{"doc": "40", "line": 569, "removed": ["graph/blocks.py:65-67", "layout/pattern_select.py:116", "layout/rows.py:80,86-87", "metrics/block_param_tables.py:25-26", "metrics/ss_metrics.py:102", "search/iv_curves.py:37-40", "search/macro_poles.py:92-95", "search/search_context.py:65-66,84", "sizing/block_columns.py:149,171,177-178"]}
+{"doc": "40", "line": 570, "removed": ["layout/euler_graph.py:19", "layout/mirror_trail.py:46"]}
+{"doc": "40", "line": 571, "removed": ["layout/_helpers_alias.py:28,32,36"]}
+{"doc": "40", "line": 583, "removed": ["convergence/place_layout.py:60", "core/pdk_decl.py:283", "graph/canonical_form.py:135", "graph/composite_diode.py:103", "graph/drive_kind.py:73", "graph/feedforward_cells.py:224", "graph/gvgs_cycles.py:75", "graph/views.py:81", "graph/view_analysis.py:163", "layout/crossover.py:36,37", "layout/diffusion.py:58", "search/search_domain.py:144", "sizing/writer_plan.py:78,148,151"]}
+{"doc": "40", "line": 604, "removed": ["E/tests/conftest.py:33-49"]}
+{"doc": "40", "line": 617, "removed": ["E/search/macro_poles.py:345", "E/search/layer0_center.py:235", "E/search/slsqp_outer.py:195"]}
+{"doc": "40", "line": 618, "removed": ["E/metrics/point_solve.py:46-47", "E/metrics/sensitivity.py:81-83", "E/metrics/_helpers_probe.py:125·128·139·140"]}
+{"doc": "40", "line": 619, "removed": ["E/metrics/point_solve.py:40", "E/metrics/sensitivity.py:76", "E/metrics/_helpers_probe.py:122"]}
+{"doc": "40", "line": 620, "removed": ["E/metrics/dc_limit.py:34·41", "E/metrics/offset_analysis.py:123", "E/metrics/_helpers_nodal.py:46·66·81", "E/metrics/_helpers_probe.py:81·86", "E/sizing/scc_newton.py:47·50"]}
+{"doc": "40", "line": 621, "removed": ["E/metrics/mna_solve.py:35", "E/metrics/noise_transfer.py:77·91·92", "E/search/macro_poles.py:206", "E/sizing/input_window.py:42", "E/metrics/block_gain_rows.py:15·20"]}
+{"doc": "40", "line": 622, "removed": ["E/metrics/_helpers_pencil.py:36"]}
+{"doc": "40", "line": 623, "removed": ["E/metrics/_helpers_pencil.py:48"]}
+{"doc": "40", "line": 624, "removed": ["E/metrics/_helpers_nodal.py:68·70", "E/metrics/_helpers_pencil.py:50·51·55"]}
+{"doc": "40", "line": 654, "removed": ["E/search/find_front.py:129-130", "E/convergence/converge.py:96"]}
+{"doc": "40", "line": 658, "removed": ["E/search/l_bin_search.py:32-34", "E/search/find_front.py:137"]}
+{"doc": "40", "line": 675, "removed": ["E/search/constraints.py:27-37", "E/search/cone_rows.py:17-29"]}
+{"doc": "40", "line": 676, "removed": ["E/search/search_values.py:79-80"]}
+{"doc": "40", "line": 677, "removed": ["E/search/search_domain.py:172", "E/search/search_values.py:76·80"]}
+{"doc": "40", "line": 678, "removed": ["E/metrics/dc_metrics.py:11"]}
+{"doc": "40", "line": 679, "removed": ["E/metrics/mna_types.py:365"]}
+{"doc": "40", "line": 680, "removed": ["E/metrics/supply.py:70", "E/metrics/dc_metrics.py:11"]}
+{"doc": "40", "line": 681, "removed": ["E/search/fd_jacobian.py:9-20"]}
+{"doc": "40", "line": 683, "removed": ["E/core/margin.py:1-8"]}
+{"doc": "40", "line": 684, "removed": ["E/sizing/seal_tolerances.py:5-11"]}
+{"doc": "40", "line": 724, "removed": ["E/search/search_context.py:134-150"]}
+{"doc": "40", "line": 725, "removed": ["E/search/layer0_center.py:283-288", "E/search/gate_run.py:55-61", "E/search/slsqp_outer.py:70-75·110-118"]}
+{"doc": "40", "line": 726, "removed": ["E/search/layer0_center.py:652"]}
+{"doc": "40", "line": 727, "removed": ["E/search/layer0_center.py:495·509"]}
+{"doc": "40", "line": 738, "removed": ["E/search/slsqp_outer.py:110-118"]}
+{"doc": "40", "line": 739, "removed": ["E/search/slsqp_outer.py:70-75", "E/search/gate_run.py:55-61", "E/search/fd_jacobian.py:99-101"]}
+{"doc": "40", "line": 763, "removed": ["layer0_center.py:262", "slsqp_outer.py:94"]}
+{"doc": "40", "line": 813, "removed": ["hidden_rails.py:16", "source_manifest.py:19", "topology_schema.py:22"]}
+{"doc": "40", "line": 814, "removed": ["E/authoring/bias_inputs.py:20"]}
+{"doc": "40", "line": 817, "removed": ["E/authoring/spec_settings.py:62", "E/authoring/spec_settings.py:62"]}
+{"doc": "40", "line": 819, "removed": ["authoring/SPEC_CONTRACT.md:226-228"]}
+{"doc": "40", "line": 822, "removed": ["E/authoring/spec_settings.py:62"]}
+{"doc": "40", "line": 991, "removed": ["E/search/search_domain.py:97"]}
+{"doc": "40", "line": 1087, "removed": ["E/search/eps_sweep.py:1-14", "pareto.py:31", "slsqp_outer.py:49", "l_bin_search.py:1-12"]}
+{"doc": "40", "line": 1088, "removed": ["E/search/eps_sweep.py:1-14"]}
+{"doc": "40", "line": 1089, "removed": ["E/search/eps_sweep.py:4"]}
+{"doc": "40", "line": 1090, "removed": ["search/CONTRACT.md:537"]}
+{"doc": "40", "line": 1091, "removed": ["search/CONTRACT.md:591"]}
+{"doc": "40", "line": 1092, "removed": ["E/search/find_front.py:60-70"]}
+{"doc": "40", "line": 1103, "removed": ["E/metrics/ss_linearize.py:70", "E/sizing/seal_kcl.py:35", "E/search/search_values.py:123", "E/sizing/kernel_run.py:51-96", "E/search/objectives.py:36-38"]}
+{"doc": "40", "line": 1115, "removed": ["E/sizing/fixed_point.py:21", "scc_newton.py:33"]}
+{"doc": "40", "line": 1116, "removed": ["E/sizing/seal.py:30"]}
+{"doc": "40", "line": 1117, "removed": ["E/sizing/seal_tolerances.py:36-45", "E/sizing/kernel_run.py:51-96"]}
+{"doc": "40", "line": 1118, "removed": ["sizing/CONTRACT.md:276"]}
+{"doc": "40", "line": 1119, "removed": ["E/sizing/writer_plan.py:13-17"]}
+{"doc": "40", "line": 1121, "removed": ["E/sizing/pre_layout_widths.py:14-22", "E/sizing/kernel_run.py:84"]}
+{"doc": "40", "line": 1193, "removed": ["E/lut/_helpers_bins.py:6-14", "E/lut/_helpers_anchor.py:39", "E/lut/midpoint_checks.py:109"]}
+{"doc": "40", "line": 1279, "removed": ["E/layout/floorplan.py:83"]}
+{"doc": "40", "line": 1359, "removed": ["E/layout/contract_input.py:43,129-152", "layout/CONTRACT.md:226-239"]}
+{"doc": "40", "line": 1361, "removed": ["layout/diffusion.py:7"]}
+{"doc": "40", "line": 1362, "removed": ["E/layout/floorplan.py:79"]}
+{"doc": "40", "line": 1363, "removed": ["layout/CONTRACT.md:392"]}
+{"doc": "40", "line": 1388, "removed": ["E/sizing/seal_tolerances.py:5-7"]}
+{"doc": "40", "line": 1457, "removed": ["E/sizing/s2_values.py:117-118", "E/sizing/block_columns.py:744-780·796", "E/search/fd_jacobian.py:55"]}
+{"doc": "40", "line": 1480, "removed": ["E/search/current_box.py:6", "E/sizing/seal_conduction.py:8"]}
+{"doc": "40", "line": 1505, "removed": ["E/metrics/block_gain_model.py:20-23"]}
+{"doc": "40", "line": 1651, "removed": ["E/sizing/struct_colour.py:1-15"]}
+{"doc": "40", "line": 1702, "removed": ["E/search/current_box.py:12-33"]}
+{"doc": "40", "line": 1739, "removed": ["block_columns.py:177,397-398"]}
+{"doc": "41", "line": 22, "removed": ["E/lut/lut_types.py:384,396"]}
+{"doc": "41", "line": 23, "removed": ["E/lut/lut_set.py:124-173"]}
+{"doc": "41", "line": 24, "removed": ["E/metrics/mna_build.py:47", "mna_solve.py:42"]}
+{"doc": "41", "line": 107, "removed": ["E/authoring/spec_views.py:61,110"]}
+{"doc": "41", "line": 255, "removed": ["E/authoring/_feedback_cuts.py:11", "E/metrics/loop_cut.py:60", "E/graph/matching_groups.py:202"]}
+{"doc": "41", "line": 640, "removed": ["E/sizing/block_columns.py:225-244"]}
+{"doc": "41", "line": 641, "removed": ["E/sizing/block_columns.py:246-259"]}
+{"doc": "41", "line": 644, "removed": ["E/sizing/block_columns.py:663-688"]}
+{"doc": "41", "line": 645, "removed": ["E/sizing/block_columns.py:770-778", "E/sizing/s2_values.py:355-361", "E/sizing/CONTRACT.md:202"]}
+{"doc": "41", "line": 646, "removed": ["E/metrics/ls_swing.py:107-118"]}
+{"doc": "41", "line": 657, "removed": ["E/sizing/s2_values.py:281-287"]}
+{"doc": "41", "line": 689, "removed": ["E/authoring/spec_regions.py:16-17"]}
+{"doc": "41", "line": 699, "removed": ["E/sizing/seal_conduction.py:12", "E/sizing/s2_values.py:395", "E/metrics/ss_types.py:19", "seal_conduction.py:43-46"]}
+{"doc": "41", "line": 704, "removed": ["E/metrics/ss_evaluate.py:101", "E/metrics/ss_linearize.py:78", "ss_evaluate.py:107", "E/sizing/s2_values.py:173-179", "E/search/fd_jacobian.py:54-55"]}
+{"doc": "41", "line": 714, "removed": ["E/core/compute_block.py:129-132", "E/core/field_value.py:19", "E/core/fingerprint.py:80-83"]}
+{"doc": "41", "line": 715, "removed": ["E/metrics/_helpers_view.py:23"]}
+{"doc": "41", "line": 716, "removed": ["E/metrics/offset_analysis.py:69", "E/metrics/offset_systematic.py:46", "E/metrics/block_residual.py:73", "ff_gm_ratio.py:55", "block_model.py:91", "ff_gm_ratio.py:55"]}
+{"doc": "41", "line": 717, "removed": ["E/core/compute_block.py:138-170"]}
+{"doc": "41", "line": 725, "removed": ["kernel_run.py:73"]}
+{"doc": "41", "line": 727, "removed": ["E/sizing/kernel_context.py:81", "E/sizing/s2_lift.py:17"]}
+{"doc": "41", "line": 753, "removed": ["metrics_aux.py:58-62"]}
+{"doc": "41", "line": 757, "removed": ["E/search/eps_sweep.py:33-38"]}
+{"doc": "41", "line": 776, "removed": ["E/tests/sizing/test_block_columns.py:1159", "test_input_window.py:344"]}
+{"doc": "41", "line": 823, "removed": ["E/search/layer0_center.py:1-8"]}
+{"doc": "41", "line": 1220, "removed": ["E/search/slsqp_outer.py:5-7"]}
+{"doc": "41", "line": 1459, "removed": ["E/search/start_intervals.py:78", "E/search/macro_poles.py:282", "E/search/iv_matching_l.py:99", "E/search/constraints.py:27-28"]}
+{"doc": "41", "line": 1475, "removed": ["E/search/start_intervals.py:126-128"]}
+{"doc": "41", "line": 1476, "removed": ["E/search/start_intervals.py:137-152"]}
+{"doc": "41", "line": 1477, "removed": ["E/search/start_intervals.py:390-395"]}
+{"doc": "41", "line": 1478, "removed": ["E/search/iv_area.py:72-78", "E/search/start_intervals.py:407"]}
+{"doc": "41", "line": 1479, "removed": ["E/search/iv_matching_l.py:99", "E/search/start_intervals.py:307-310", "E/search/iv_matching_l.py:8"]}
+{"doc": "41", "line": 1480, "removed": ["E/search/iv_matching_l.py:63", "E/search/iv_noise.py:61"]}
+{"doc": "41", "line": 1481, "removed": ["E/search/layer0_center.py:244"]}
+{"doc": "41", "line": 1482, "removed": ["E/search/macro_poles.py:353-357"]}
+{"doc": "41", "line": 1483, "removed": ["E/search/layer0_center.py:374", "E/search/slsqp_outer.py:195"]}
+{"doc": "41", "line": 1543, "removed": ["E/convergence/convergence_values.py:47"]}
+{"doc": "41", "line": 1593, "removed": ["E/search/iv_gain_l.py:125-127"]}

@@ -1,0 +1,224 @@
+{
+ "steps": {
+  "unchanged-stmt-survivor": {
+   "base_exit": 1,
+   "n_all": 10,
+   "n_target": 6,
+   "full_holds": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": true
+   },
+   "aimed_caught": {
+    "ALL": true
+   }
+  },
+  "changed-stmt-survivor": {
+   "base_exit": 1,
+   "n_all": 7,
+   "n_target": 2,
+   "full_holds": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "aimed_caught": {
+    "T1": true
+   }
+  },
+  "enclosing-guard-survivor": {
+   "base_exit": 1,
+   "n_all": 11,
+   "n_target": 7,
+   "full_holds": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "aimed_caught": {
+    "T4": true
+   }
+  },
+  "unwrapped-stmt": {
+   "base_exit": 1,
+   "n_all": 7,
+   "n_target": 3,
+   "full_holds": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "aimed_caught": {
+    "INDENT": true
+   }
+  },
+  "header-only-change": {
+   "base_exit": 1,
+   "n_all": 11,
+   "n_target": 5,
+   "full_holds": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "aimed_caught": {
+    "T2": true
+   }
+  },
+  "header-default-bool": {
+   "base_exit": 1,
+   "n_all": 4,
+   "n_target": 2,
+   "full_holds": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "aimed_caught": {
+    "T3-T5": true,
+    "T3": true,
+    "T5": true
+   }
+  },
+  "delete-then-use": {
+   "base_exit": 1,
+   "n_all": 3,
+   "n_target": 2,
+   "full_holds": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "aimed_caught": {
+    "T6a": false,
+    "T6a-T6b": true
+   }
+  },
+  "decorator-mutant-applied": {
+   "base_exit": 1,
+   "n_all": 7,
+   "n_target": 3,
+   "full_holds": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "aimed_caught": {
+    "DECO_NOOP": true
+   }
+  },
+  "same-block-later-use": {
+   "base_exit": 1,
+   "n_all": 20,
+   "n_target": 5,
+   "full_holds": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "aimed_caught": {
+    "T6b_far": true
+   }
+  },
+  "loop-carried-use": {
+   "base_exit": 1,
+   "n_all": 13,
+   "n_target": 8,
+   "full_holds": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": null
+   },
+   "aimed_caught": {
+    "LOOP": true
+   }
+  },
+  "cross-block-not-targeted": {
+   "base_exit": 1,
+   "n_all": 17,
+   "n_target": 10,
+   "full_holds": {
+    "holds": true,
+    "exit_ok": true,
+    "missing_fragments": [],
+    "observed_ok": true
+   },
+   "aimed_caught": {
+    "WIDEN": true,
+    "ALL": true
+   }
+  }
+ },
+ "variant_caught_by": {
+  "ALL": [
+   "unchanged-stmt-survivor",
+   "enclosing-guard-survivor",
+   "header-default-bool",
+   "same-block-later-use",
+   "cross-block-not-targeted"
+  ],
+  "T1": [
+   "unchanged-stmt-survivor",
+   "changed-stmt-survivor",
+   "unwrapped-stmt",
+   "cross-block-not-targeted"
+  ],
+  "T2": [
+   "header-only-change"
+  ],
+  "T3": [
+   "header-default-bool"
+  ],
+  "T4": [
+   "enclosing-guard-survivor",
+   "cross-block-not-targeted"
+  ],
+  "T5": [
+   "unchanged-stmt-survivor",
+   "header-default-bool",
+   "cross-block-not-targeted"
+  ],
+  "T3-T5": [
+   "unchanged-stmt-survivor",
+   "header-default-bool",
+   "cross-block-not-targeted"
+  ],
+  "T6a": [],
+  "T6b": [
+   "same-block-later-use",
+   "loop-carried-use"
+  ],
+  "T6a-T6b": [
+   "unchanged-stmt-survivor",
+   "delete-then-use",
+   "same-block-later-use",
+   "loop-carried-use",
+   "cross-block-not-targeted"
+  ],
+  "T6b_far": [
+   "same-block-later-use"
+  ],
+  "LOOP": [
+   "loop-carried-use"
+  ],
+  "INDENT": [
+   "unwrapped-stmt"
+  ],
+  "WIDEN": [
+   "cross-block-not-targeted"
+  ],
+  "DECO_NOOP": [
+   "decorator-mutant-applied"
+  ]
+ }
+}

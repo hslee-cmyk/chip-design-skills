@@ -1,0 +1,201 @@
+{
+ "changed": {
+  "skills/analog-gmid-design/assets/tests/conftest.py": 1,
+  "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py": 339,
+  "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py": 1,
+  "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py": 1,
+  "skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py": 4,
+  "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py": 1,
+  "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py": 1,
+  "skills/analog-gmid-design/assets/tests/contracts/test_ic3.py": 3,
+  "skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py": 2,
+  "skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py": 1,
+  "skills/analog-gmid-design/assets/tests/probe_physical_consistency.py": 1,
+  "skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py": 94,
+  "skills/analog-gmid-design/assets/tests/probes/probe_allocation_solvers.py": 114,
+  "skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py": 85,
+  "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py": 128,
+  "skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py": 128,
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py": 95,
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py": 113,
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py": 97,
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py": 44,
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py": 120,
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py": 90,
+  "skills/analog-gmid-design/assets/tests/probes/probe_full_research.py": 124,
+  "skills/analog-gmid-design/assets/tests/probes/probe_gmid_gain_landscape.py": 74,
+  "skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py": 1,
+  "skills/analog-gmid-design/assets/tests/probes/probe_l5c_stage2out_L.py": 129,
+  "skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py": 78,
+  "skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py": 103,
+  "skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py": 97,
+  "skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py": 43,
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_common_L.py": 1,
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py": 307,
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py": 249,
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_infeasibility.py": 1,
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py": 100,
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_error.py": 58,
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py": 141,
+  "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py": 124,
+  "skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py": 78,
+  "skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py": 109,
+  "skills/analog-gmid-design/assets/tests/probes/probe_stacked_diode_options.py": 1,
+  "skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py": 70,
+  "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py": 119,
+  "skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py": 88,
+  "skills/analog-gmid-design/assets/tests/tools/regression_runner.py": 2,
+  "skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py": 124,
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py": 1,
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py": 1,
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py": 1,
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py": 162,
+  "skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py": 1,
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py": 87,
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": 3008,
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": 4231,
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py": 198,
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py": 163,
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py": 164,
+  "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py": 85,
+  "workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py": 51,
+  "workspaces/current-reuse-telescopic-ota-report/resize.py": 247,
+  "workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py": 63,
+  "workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py": 78,
+  "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py": 72,
+  "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py": 96,
+  "workspaces/current-reuse-telescopic-ota-report/stick.py": 358,
+  "workspaces/current-reuse-telescopic-ota-report/structural_symmetry_probe.py": 63,
+  "workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py": 99,
+  "workspaces/run_harness.py": 491,
+  "workspaces/two-stage-ota-report/check_box_shape.py": 108,
+  "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py": 101,
+  "workspaces/two-stage-ota-report/diagnose_gain_sweep.py": 56,
+  "workspaces/two-stage-ota-report/diagnose_gain_sweep2.py": 58
+ },
+ "notes": {
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py": [
+   "unresolved sizing_recipe._cmfb_amp_gain_diode_load"
+  ]
+ },
+ "d17": {
+  "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py": [
+   {
+    "line": 104,
+    "name": "diode_vds_window",
+    "callers": [
+     "gmid_sizing_engine"
+    ]
+   },
+   {
+    "line": 116,
+    "name": "diode_vds_window",
+    "callers": [
+     "gmid_sizing_engine"
+    ]
+   }
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py": [
+   {
+    "line": 63,
+    "name": "_hr_resolve_vertical_group",
+    "callers": [
+     "gmid_sizing_engine",
+     "sizing_layout_convergence"
+    ]
+   }
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py": [
+   {
+    "line": 94,
+    "name": "apply_diode_self_consistent_gm_id",
+    "callers": [
+     "sizing_layout_convergence"
+    ]
+   }
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py": [
+   {
+    "line": 100,
+    "name": "diode_vds_window",
+    "callers": [
+     "gmid_sizing_engine"
+    ]
+   },
+   {
+    "line": 108,
+    "name": "diode_vds_window",
+    "callers": [
+     "gmid_sizing_engine"
+    ]
+   }
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py": [
+   {
+    "line": 124,
+    "name": "_optimize_theta_slsqp",
+    "callers": [
+     "sizing_layout_convergence"
+    ]
+   }
+  ],
+  "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py": [
+   {
+    "line": 47,
+    "name": "resolve_feed_vds",
+    "callers": [
+     "circuit_metrics",
+     "gmid_sizing_engine"
+    ]
+   },
+   {
+    "line": 53,
+    "name": "_feed_vds_fallback",
+    "callers": [
+     "gmid_sizing_engine",
+     "sizing_layout_convergence"
+    ]
+   },
+   {
+    "line": 62,
+    "name": "allocate_stack_headroom",
+    "callers": [
+     "gmid_sizing_engine"
+    ]
+   },
+   {
+    "line": 79,
+    "name": "_hr_resolve_vertical_group",
+    "callers": [
+     "gmid_sizing_engine",
+     "sizing_layout_convergence"
+    ]
+   },
+   {
+    "line": 73,
+    "name": "_metric_stage_budget_vds_by_device",
+    "callers": [
+     "sizing_layout_convergence"
+    ]
+   }
+  ],
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py": [
+   {
+    "line": 24,
+    "name": "repair_matching_safety",
+    "callers": [
+     "sizing_layout_convergence"
+    ]
+   }
+  ],
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py": [
+   {
+    "line": 20,
+    "name": "repair_matching_safety",
+    "callers": [
+     "sizing_layout_convergence"
+    ]
+   }
+  ]
+ }
+}

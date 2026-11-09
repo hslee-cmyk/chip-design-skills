@@ -1,0 +1,321 @@
+
+## sizing_recipe.py
+
+### headroom_role  (code lines 15, functions 10)
+- _min_need: 1742
+- resolve_feed_vds: 1983
+- gain_stage_tails: 2294
+- _metric_stage_budget_vds_by_device: 6614
+- reserved_vds_for_other_stack_members: 6700,6701
+- _hr_thin_singleton_ideal_source_check: 6913
+- _hr_verify_group_kvl_sum: 7097
+- _hr_resolve_vertical_group: 7201,7205,7206,7256,7449
+- _stack_min_vds: 7250
+- search_stage_budget_L_warm_start: 10233
+
+### gm_id_role  (code lines 13, functions 5)
+- _build_shared_current_joint_plan: 5691
+- _feed_metric_stage_budget: 6052,6148,6154
+- make_replica_feasibility_check: 6737,6739
+- _hr_resolve_vertical_group: 7147
+- _evaluate: 8702,8735,8742,8793,8795,8871
+
+### L_role  (code lines 15, functions 6)
+- l_class_owners: 2351
+- derive_role_L: 2673,2674,2677
+- apply_diode_self_consistent_gm_id: 3663
+- _hr_resolve_vertical_group: 7443
+- _evaluate: 8398,8406,8409,8414,8448,8521,8722,8786
+- diagnose_sizing_roles_gap: 9072
+
+### sizing_roles  (code lines 12, functions 6)
+- vgs_alias_map: 1651
+- gain_stage_tails: 2297
+- validate_theta_declaration_order: 6352,6353
+- achievable_metric_bound: 7779,7782
+- _build_theta_evaluator: 7965
+- diagnose_sizing_roles_gap: 9004,9042,9043,9063,9083
+
+### device_roles  (code lines 71, functions 27)
+- vgs_alias_map: 1648
+- stack_kvl_vgs_limit: 1724
+- resolve_feed_vds: 1983
+- l_sharing_classes: 2259
+- gain_stage_tails: 2292
+- derive_role_L: 2674
+- _metric_stack_headroom_slack: 3262
+- _load_full_topology_cached: 4844
+- _device_roles_cached: 4903,4906
+- validate_no_legacy_vs_key: 5227,5244,5248
+- <module>: 5327
+- _feed_diode_stack_target: 5471
+- _feed_metric_stage_budget: 6217,6223
+- resolve_stack_layout: 6481,6559,6562,6574
+- _metric_stage_budget_vds_by_device: 6594,6614
+- reserved_vds_for_other_stack_members: 6620,6668,6676,6700,6701
+- make_replica_feasibility_check: 6710,6737
+- _HeadroomTopoEnv: 6855
+- _hr_thin_singleton_ideal_source_check: 6891,6913
+- _hr_fold_group_check: 6930,6940,6950
+- _hr_verify_group_kvl_sum: 7049,7058,7098
+- _hr_resolve_vertical_group: 7104,7201,7256,7430,7443,7449,7520
+- _stack_min_vds: 7250
+- _build_theta_evaluator: 7964,7981,7987,8073,8102,8937
+- _evaluate: 8141,8226,8231,8240,8280,8397,8448,8521,8539,8701,8722,8769,8786,8793,8871
+- diagnose_sizing_roles_gap: 9072
+- search_stage_budget_L_warm_start: 10158,10233
+
+### fold_group  (code lines 24, functions 4)
+- _hr_fold_group_check: 6918,6940,6941,6942,6947,6950,6953,6954,6964,6967,6968
+- _hr_verify_group_kvl_sum: 7058
+- _fold_group_check: 7120,7121,8112,8113
+- _hr_resolve_vertical_group: 7519,7520,7530,7533,7549,7561,7564,7599
+
+### vertical_stack_id  (code lines 29, functions 12)
+- stack_kvl_vgs_limit: 1771,1775
+- allocate_stack_headroom: 1915
+- _metric_stack_headroom_slack: 3285,3343
+- <module>: 5321
+- _feed_diode_stack_target: 5472
+- _feed_metric_stage_budget: 6223
+- resolve_stack_layout: 6558,6560,6562,6569,6570,6572,6574,6585,6587
+- reserved_vds_for_other_stack_members: 6668
+- _hr_sum_ref_vds: 6983
+- _hr_resolve_vertical_group: 7145,7225
+- _evaluate: 8231,8253,8540,8656,8668,8723,8787
+- diagnose_sizing_roles_gap: 9072
+
+### same_as_device  (code lines 6, functions 3)
+- l_sharing_classes: 2261,2262
+- _hr_resolve_vertical_group: 7224,7229
+- _evaluate: 8563,8657
+
+### gm_id_match_vgs_of  (code lines 18, functions 6)
+- vgs_alias_map: 1649,1650,1653,1655
+- _build_shared_current_joint_plan: 5689
+- _feed_metric_stage_budget: 6051,6059
+- validate_theta_declaration_order: 6370,6371,6374
+- _hr_resolve_vertical_group: 7433,7441
+- _evaluate: 8770,8792,8794,8797,8806,8871
+
+### budget_reference_device  (code lines 8, functions 6)
+- stack_kvl_vgs_limit: 1778
+- _metric_stack_headroom_slack: 3301,3302
+- reserved_vds_for_other_stack_members: 6676
+- _hr_sum_ref_vds: 6982
+- _evaluate: 8544,8657
+- diagnose_sizing_roles_gap: 9074
+
+### shared_gm_id_groups  (code lines 6, functions 4)
+- optimize_multistage: 944,1121
+- _size_shared_group: 1204
+- _shared_current_groups_from_compensation: 5627
+- _evaluate: 8287,8324
+
+### gain_stages_sum  (code lines 8, functions 5)
+- gain_stage_tails: 2302
+- _metric_gain_stages_sum: 2866
+- <module>: 5096,5145
+- _metric_device_footprint: 9597
+- search_stage_budget_L_warm_start: 10225,10246,10250
+
+### stage_devices  (code lines 15, functions 5)
+- _shared_current_groups_from_compensation: 5625,5626
+- _feed_metric_stage_budget: 6122,6123
+- validate_theta_declaration_order: 6357
+- _evaluate: 8171,8172,8174,8175,8204,8228,8282,8300,8325
+- _expand_to_devices: 9757
+
+### matching_pairs  (code lines 43, functions 21)
+- l_sharing_classes: 2217,2263
+- l_class_owners: 2329,2339
+- audit_l_sharing_consistency: 2358,2379
+- synthesize_l_class_thetas: 2458,2510
+- _metric_stack_headroom_slack: 3274
+- _mirror_ratio_error_pairs: 4419
+- input_referred_offset_pairs: 4532
+- _load_full_topology_cached: 4839
+- _l_sharing_classes_cached: 4868
+- _l_class_owners_cached: 4879
+- _matching_pairs_cached: 4909,4912
+- <module>: 5322
+- resolve_stack_layout: 6481,6562,6582,6589,6591
+- _build_theta_evaluator: 7973,7990
+- _evaluate: 8918
+- _evaluate_row_split: 9348,9356,9370,9382,9417
+- apply_and_revalidate_pair_adjustment: 11412,11450
+- _fixup_euler_blocked_rows: 11595,11674
+- run_matching_safety_with_finger_growth: 11727,11815,11856,11894
+- _finalize: 11805,11807
+- run_topology_pipeline_with_finger_fixup: 11970,11971,11989
+
+### current_forced  (code lines 4, functions 2)
+- _build_theta_evaluator: 8041,8066
+- _evaluate: 8517,8863
+
+### "stages"  (code lines 7, functions 6)
+- gain_stage_tails: 2302,2303
+- _metric_gain_stages_sum: 2871
+- _metric_flicker_plus_thermal_sum: 3063
+- validate_theta_declaration_order: 6386
+- _evaluate: 8301
+- _metric_device_footprint: 9598
+
+## stick_diagram.py
+
+### headroom_role  (code lines 6, functions 3)
+- _propose_headroom_roles: 2194
+- refine_differential_and_mirror_relations: 2442,2525
+- propose_device_roles_gap_fill: 3955,4432,4433
+
+### gm_id_role  (code lines 18, functions 6)
+- _propose_gm_id_roles: 2047
+- _propose_L_roles: 2162,2164,2179
+- _propose_headroom_roles: 2194,2288
+- refine_differential_and_mirror_relations: 2438,2443,2468,2470,2523
+- propose_device_roles_gap_fill: 3953,4420,4427,4428,4429,4465
+- find_unreviewed_device_roles: 4672
+
+### L_role  (code lines 15, functions 6)
+- _propose_L_roles: 2111,2180,2186
+- _propose_headroom_roles: 2195
+- _diode_like_mirror: 2278
+- refine_differential_and_mirror_relations: 2440,2444,2469,2524
+- propose_device_roles_gap_fill: 3954,3966,4430,4431,4493
+- find_unreviewed_device_roles: 4672
+
+### sizing_roles  (code lines 11, functions 5)
+- audit_theta_root_direction: 3328,3371
+- apply_theta_kcl_gap_fill: 3790,3791,3792,3793,3815,3816
+- propose_device_roles_gap_fill: 4517
+- find_authoritative_sizing_devices: 4625
+- load_topology: 8743
+
+### device_roles  (code lines 55, functions 9)
+- audit_vertical_stack_id_vs_kcl: 3143,3209
+- propose_vertical_stack_id_gap_fill: 3247,3303
+- propose_device_roles_gap_fill: 3825,3949,4117,4169,4190,4195,4262,4271,4282,4314,4340,4346,4372,4407,4462,4509,4524
+- _propose_pair: 3995
+- apply_device_roles_gap_fill: 4532,4568,4569,4570,4572,4573,4585,4587,4593
+- find_unreviewed_device_roles: 4640,4667
+- require_device_roles_reviewed: 4711,4748,4752,4756,4757,4762,4763
+- audit_vertical_stack_id_euler_feasibility: 4811,4879
+- load_topology: 8619,8635,8669,8671,8693,8694,8704,8705,8706,8713,8744,8759,8763
+
+### fold_group  (code lines 8, functions 1)
+- propose_device_roles_gap_fill: 4298,4337,4342,4358,4402,4403,4438,4439
+
+### vertical_stack_id  (code lines 28, functions 8)
+- _propose_vertical_stack_ids: 1808
+- _propose_headroom_roles: 2194,2267
+- refine_differential_and_mirror_relations: 2436,2443,2522
+- audit_vertical_stack_id_vs_kcl: 3142,3208,3210,3221
+- propose_vertical_stack_id_gap_fill: 3246,3302,3304
+- propose_device_roles_gap_fill: 4169,4172,4272,4282,4314,4341,4346,4394
+- audit_vertical_stack_id_euler_feasibility: 4811,4880,4881
+- load_topology: 8668,8671,8752,8753
+
+### same_as_device  (code lines 3, functions 1)
+- propose_device_roles_gap_fill: 4196,4275,4390
+
+### gm_id_match_vgs_of  (code lines 2, functions 1)
+- propose_device_roles_gap_fill: 4158,4409
+
+### budget_reference_device  (code lines 8, functions 1)
+- propose_device_roles_gap_fill: 4197,4265,4269,4275,4316,4390,4436,4437
+
+### netlist_sections_structured  (code lines 6, functions 2)
+- load_topology: 8620,8636,8745
+- run_full_circuit_audit_from_topology: 8936,8939,8955
+
+### stage_devices  (code lines 10, functions 4)
+- propose_theta_kcl_gap_fill: 3424,3565,3743
+- propose_device_roles_gap_fill: 3826,4115,4163,4464
+- find_authoritative_sizing_devices: 4623
+- load_topology: 8688,8695
+
+### matching_pairs  (code lines 94, functions 31)
+- check_symmetry_dispositions: 2539,2616
+- kcl_series_union: 2997,3031
+- geometry_colocation_union: 3046,3093
+- _kcl_and_matching_edges: 3117,3136
+- audit_vertical_stack_id_vs_kcl: 3142,3191
+- propose_vertical_stack_id_gap_fill: 3246,3278
+- propose_theta_kcl_gap_fill: 3422,3556
+- propose_device_roles_gap_fill: 3825,3949,3980,3984,4511,4523
+- _propose_pair: 3993
+- apply_device_roles_gap_fill: 4553,4560,4593
+- find_unreviewed_matching_pairs: 4678,4708
+- require_device_roles_reviewed: 4749,4753,4757
+- audit_vertical_stack_id_euler_feasibility: 4812,4883
+- merge_layout_groups_by_matching_pairs: 4911,4912,4997
+- derive_horizontal_stack_groups: 5022,5072
+- find_euler_repair_options: 5075,5114
+- _mirror_node_map_from_pairs: 5368,5393
+- _count_matching_pair_splits: 5503,5530,5543
+- _select_crossover_pairing: 5578,5608,5617
+- find_min_crossover_layout: 5625,5690,5709,5714,5716
+- suggest_pair_finger_adjustments: 5786,5821
+- mirror_symmetric_trail: 6562,6599
+- build_stick_diagram: 6655,6666
+- audit_row_split: 7009,7091,7093,7120
+- _sensitivity_of: 7117
+- _branch_composite_pair: 7315,7359
+- _composite_collapse_for_crossover: 7406,7450,7451,7454,7456,7468,7481
+- find_min_crossover_layout_with_branch_composite: 7485,7504,7505,7506
+- repair_matching_safety: 7516,7576,7609,7694
+- load_topology: 8617,8633,8667,8694,8725,8726,8731,8741,8754,8758
+- run_topology_pipeline: 8864,8868,8880,8889,8893
+
+### current_forced  (code lines 8, functions 6)
+- propose_theta_kcl_gap_fill: 3557,3712
+- _run_rules_1_to_3: 3629
+- _propose_pair: 3987,3994
+- propose_device_roles_gap_fill: 4516
+- require_device_roles_reviewed: 4754
+- load_topology: 8667
+
+### netclass  (code lines 45, functions 12)
+- find_idiom_matches: 1072,1076,1077
+- find_stack_edges: 1086,1090
+- find_differential_and_mirror_forks: 1308,1309,1314
+- suggest_vertical_stack_composites: 1440,1441,1446,1447,1455,1456
+- find_verified_differential_and_mirror_relations: 1710,1711,1716
+- _propose_vertical_stack_ids: 1889,1890,1893,1894,1901
+- _propose_headroom_roles: 2255,2256,2261,2262,2286,2301,2305,2307
+- classify: 2398,2400,2401
+- refine_differential_and_mirror_relations: 2487,2488,2490,2501,2502
+- audit_theta_root_direction: 3364
+- propose_theta_kcl_gap_fill: 3508,3509
+- propose_device_roles_gap_fill: 4049,4050,4051,4067
+
+### net_class  (code lines 2, functions 1)
+- refine_differential_and_mirror_relations: 2452,2520
+
+## design_report.py
+
+### device_roles  (code lines 3, functions 1)
+- build_topology_device_table: 44,84,85
+
+### matching_pairs  (code lines 1, functions 1)
+- build_topology_device_table: 64
+
+## topology_library.py
+
+## topology_to_markdown.py
+
+## audit_current_forced.py
+
+### sizing_roles  (code lines 3, functions 3)
+- audit_topology: 94
+- render_report: 136
+- <module>: 175
+
+### matching_pairs  (code lines 3, functions 2)
+- audit_topology: 93
+- <module>: 175,184
+
+### current_forced  (code lines 7, functions 3)
+- audit_topology: 104,112
+- render_report: 137,145,150,155
+- <module>: 175

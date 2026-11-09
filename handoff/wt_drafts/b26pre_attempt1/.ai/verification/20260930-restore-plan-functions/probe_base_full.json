@@ -1,0 +1,98 @@
+{
+ "root": "c:\\g13\\base",
+ "main": "c:\\users\\hslee\\documents\\todoc\\fpga\\chip-design-skills",
+ "exitstatus": 0,
+ "n_clone": 44,
+ "main_modules": {
+  "design_report": {
+   "file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\\design_report.py",
+   "where": "MAIN"
+  }
+ },
+ "key_modules": {
+  "sizing_recipe": {
+   "file": "C:\\g13\\base\\skills\\analog-gmid-design\\assets\\sizing_recipe.py",
+   "where": "clone"
+  },
+  "run_harness": {
+   "file": "C:\\g13\\base\\workspaces\\run_harness.py",
+   "where": "clone"
+  },
+  "stick_diagram": {
+   "file": "C:\\g13\\base\\skills\\analog-gmid-design\\assets\\stick_diagram.py",
+   "where": "clone"
+  },
+  "design_report": {
+   "file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\\design_report.py",
+   "where": "MAIN"
+  },
+  "conftest": {
+   "file": "C:\\g13\\base\\skills\\analog-gmid-design\\assets\\tests\\conftest.py",
+   "where": "clone"
+  },
+  "merge_gate": null,
+  "role_paths": null
+ },
+ "failures": [
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic1.py::test_vgs_consistency_all_devices",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic10.py::test_cache_key_covers_mutable_state",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[rail2]",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[rail3]",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[reject]",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic2.py::test_order_shuffle_invariance",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic4.py::test_role_label_removal_invariance",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic6.py::test_dof_catches_incident19_fixture",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic7.py::test_all_library_topologies_run[run]",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic7.py::test_all_library_topologies_run[stop]",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic8.py::test_unevidenced_derivation_stops_before_search",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/contracts/test_ic9.py::test_no_raw_duplicated_writes",
+   "exc": "Failed"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget",
+   "exc": "ValueError"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section",
+   "exc": "ValueError"
+  },
+  {
+   "nodeid": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s157_M1",
+   "exc": "ValueError"
+  }
+ ]
+}

@@ -1,0 +1,55 @@
+kill_v4_N2d: 160 mutants ({'killed': 106, 'survived': 54}), survivors 54
+E6-b                 sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[5].body[13] N2b=1 N2w=1 N2d=1 head:11704 b1:None | split = find_min_crossover_layout_with_branch_composite(row_transistors, row_pairs, row_pair_sensitivity, rail | proto: KILLED 
+E6-b                 sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[5].body[14] N2b=1 N2w=1 N2d=1 head:11706 b1:None | by_name = {t.name: t for t in row_transistors} | proto: KILLED 
+E6-b                 sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[5].body[16] N2b=0 N2w=1 N2d=1 head:11708 b1:None | for seg_idx, seg in enumerate(split['segments']): | proto: KILLED 
+E6-a                 sizing_recipe:optimize_full_circuit_budget._evaluate_row_split:stmt_delete:body[5].body[3].orelse[0] N2b=1 N2w=1 N2d=1 head:9411 b1:None | repaired_rows, repaired_audit = repair_matching_safety(rows, matching_pairs_tuples, pair_sensitivity, rails=ra | proto: KILLED 
+E6-a                 sizing_recipe:optimize_full_circuit_budget._evaluate_row_split:stmt_delete:body[5].body[3].orelse[1] N2b=1 N2w=1 N2d=1 head:9413 b1:None | pr = dict(pr, repaired_rows=repaired_rows, repaired_audit=repaired_audit) | proto: KILLED 
+E6-a                 sizing_recipe:optimize_full_circuit_budget:stmt_delete:body[12].body[3].body[5].body[3].orelse[0] N2b=1 N2w=1 N2d=1 head:9411 b1:None | repaired_rows, repaired_audit = repair_matching_safety(rows, matching_pairs_tuples, pair_sensitivity, rails=ra | proto: KILLED 
+E6-a                 sizing_recipe:optimize_full_circuit_budget:stmt_delete:body[12].body[3].body[5].body[3].orelse[1] N2b=1 N2w=1 N2d=1 head:9413 b1:None | pr = dict(pr, repaired_rows=repaired_rows, repaired_audit=repaired_audit) | proto: KILLED 
+E7                   sizing_recipe:resolve_stack_layout:stmt_delete:body[5]     N2b=1 N2w=1 N2d=1 head:6578 b1:None | if refined is not None and refined.get('vertical_stack_id_candidates'): | proto: KILLED 
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[10] N2b=0 N2w=0 N2d=1 head:11844 b1:None | if a not in all_devs or b not in all_devs: | proto: KILLED 
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[10].body[0] N2b=0 N2w=0 N2d=1 head:11845 b1:None | current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx) | proto: KILLED 
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[10].body[1] N2b=0 N2w=0 N2d=1 head:11846 b1:None | return {'rows': current_rows, 'audit': result, 'ctx': cur_ctx, 'growth_rounds': growth_rounds, 'unresolved_pai | proto: KILLED 
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[1] N2b=1 N2w=1 N2d=1 head:11809 b1:None | _backfill_interdig_ok(result) | proto: survived
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[2] N2b=0 N2w=1 N2d=1 head:11810 b1:None | if result.ok: | proto: KILLED 
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[2].body[0] N2b=0 N2w=0 N2d=1 head:11811 b1:None | current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx) | proto: survived
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[2].body[1] N2b=0 N2w=0 N2d=1 head:11812 b1:None | return {'rows': current_rows, 'audit': result, 'ctx': cur_ctx, 'growth_rounds': growth_rounds, 'unresolved_pai | proto: KILLED 
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[7].body[1] N2b=0 N2w=0 N2d=1 head:11837 b1:None | current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx) | proto: KILLED 
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[11] N2b=1 N2w=1 N2d=1 head:11886 b1:None | current_rows, result = repair_matching_safety(current_rows, matching_pairs, pair_sensitivity, relaxed_pairs=re | proto: KILLED 
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[12] N2b=1 N2w=1 N2d=1 head:11888 b1:None | _backfill_interdig_ok(result) | proto: survived
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[13] N2b=0 N2w=1 N2d=1 head:11889 b1:None | current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx) | proto: KILLED 
+E6-c                 sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[14] N2b=0 N2w=1 N2d=1 head:11890 b1:None | return {'rows': current_rows, 'audit': result, 'ctx': cur_ctx, 'growth_rounds': growth_rounds, 'unresolved_pai | proto: KILLED 
+E4(B26-1 계약 14)      stick_diagram:_propose_L_roles:stmt_delete:body[2]         N2b=1 N2w=1 N2d=1 head:2161 b1:None | if gm_id_roles is None: | proto: survived
+E4(B26-1 계약 14)      stick_diagram:_propose_L_roles:stmt_delete:body[4]         N2b=1 N2w=1 N2d=1 head:2165 b1:None | if candidates is None: | proto: survived
+E7-seed              stick_diagram:_propose_L_roles:stmt_delete:body[7].body[2] N2b=0 N2w=0 N2d=1 head:2172 b1:None | seeds[ga] = gb | proto: survived
+E7-seed              stick_diagram:_propose_L_roles:stmt_delete:body[7].body[3] N2b=0 N2w=0 N2d=1 head:2173 b1:None | seeds[gb] = ga | proto: survived
+E4(B26-1 계약 14)      stick_diagram:_propose_gm_id_roles:stmt_delete:body[2]     N2b=1 N2w=1 N2d=1 head:2088 b1:None | if candidates is None: | proto: survived
+E7-seed              stick_diagram:_propose_gm_id_roles:stmt_delete:body[6].body[2] N2b=0 N2w=0 N2d=1 head:2096 b1:None | seeds[ga] = gb | proto: survived
+E7-seed              stick_diagram:_propose_gm_id_roles:stmt_delete:body[6].body[3] N2b=0 N2w=0 N2d=1 head:2097 b1:None | seeds[gb] = ga | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[40].body[12].test.ops[0] N2b=1 N2w=1 N2d=1 head:4295 b1:None | y.source not in rails.nets | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[40].body[5].value.generators[0].ifs[0].values[0].ops[0] N2b=0 N2w=1 N2d=1 head:4275 b1:None | m.name != x.name | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[40].body[5].value.generators[0].ifs[0].values[1].ops[0] N2b=0 N2w=1 N2d=1 head:4276 b1:None | (device_roles.get(m.name) or {}).get('vertical_stack_id') == x_vsid | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[40].body[6].value.generators[0].ifs[0].values[1].ops[0] N2b=1 N2w=1 N2d=1 head:4279 b1:None | n not in own_group_nets | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[43].body[4].test.values[0].ops[0] N2b=1 N2w=1 N2d=1 head:4342 b1:None | x.drain in rails.nets | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[43].body[4].test.values[1].ops[0] N2b=1 N2w=1 N2d=1 head:4342 b1:None | x.drain in own_group_nets | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[43].body[9].test.ops[0] N2b=1 N2w=1 N2d=1 head:4364 b1:None | y.source in rails.nets | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:const+:body[40].body[7].test.comparators[0] N2b=1 N2w=1 N2d=1 head:4280 b1:None | 1 | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:const-:body[40].body[8].value.slice N2b=0 N2w=1 N2d=1 head:4282 b1:None | 0 | proto: survived
+E7-seed              stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[13].body[2] N2b=0 N2w=0 N2d=1 head:3968 b1:None | seed_net_pairs[ga] = gb | proto: survived
+E7-seed              stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[13].body[3] N2b=0 N2w=0 N2d=1 head:3969 b1:None | seed_net_pairs[gb] = ga | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[36].body[1] N2b=1 N2w=1 N2d=1 head:4143 b1:None | if y is None or y.gate in rails.nets: | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[40] N2b=1 N2w=1 N2d=1 head:4264 b1:None | for x in transistors: | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[40].body[12] N2b=1 N2w=1 N2d=1 head:4295 b1:None | if y.source not in rails.nets: | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[43] N2b=1 N2w=1 N2d=1 head:4333 b1:None | for x in transistors: | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[43].body[4] N2b=1 N2w=1 N2d=1 head:4342 b1:None | if x.drain in rails.nets or x.drain in own_group_nets: | proto: survived
+E1(B26-1 계약 7(e))    stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[43].body[9] N2b=1 N2w=1 N2d=1 head:4364 b1:None | if y.source in rails.nets: | proto: survived
+E7                   stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[49] N2b=0 N2w=1 N2d=1 head:4512 b1:None | if disp.case_collisions: | proto: KILLED 
+E7                   stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[49].body[0] N2b=0 N2w=0 N2d=1 head:4513 b1:None | review_needed.append({'case_collisions': disp.case_collisions}) | proto: KILLED 
+E7                   stick_diagram:propose_vertical_stack_id_gap_fill:cmp_flip:body[2].body[1].test.ops[0] N2b=0 N2w=0 N2d=1 head:3275 b1:None | relations is not None | proto: KILLED 
+E7                   stick_diagram:propose_vertical_stack_id_gap_fill:stmt_delete:body[2] N2b=1 N2w=1 N2d=1 head:3272 b1:None | if inputs or outputs or feedbacks or biases or clocks: | proto: KILLED 
+E7                   stick_diagram:propose_vertical_stack_id_gap_fill:stmt_delete:body[2].body[1] N2b=0 N2w=0 N2d=1 head:3275 b1:None | if relations is not None: | proto: KILLED 
+E7                   stick_diagram:propose_vertical_stack_id_gap_fill:stmt_delete:body[2].body[1].body[0] N2b=0 N2w=0 N2d=1 head:3276 b1:None | edges.extend((rel['devices'] for rel in relations['differential'])) | proto: KILLED 
+E7                   stick_diagram:run_full_circuit_audit:const+:args.defaults[1] N2b=1 N2w=1 N2d=1 head:6806 b1:None | 1.5 | proto: survived
+E7                   stick_diagram:run_full_circuit_audit:const-:args.defaults[1] N2b=1 N2w=1 N2d=1 head:6806 b1:None | 1.5 | proto: survived
+E7                   stick_diagram:run_full_circuit_audit:stmt_delete:body[16]  N2b=0 N2w=1 N2d=1 head:6875 b1:None | for (kind, net), group in mc['current_mirror'].items(): | proto: KILLED 
+E7                   stick_diagram:run_full_circuit_audit:stmt_delete:body[17]  N2b=0 N2w=1 N2d=1 head:6877 b1:None | for (kind, net), group in mc['diff_pair'].items(): | proto: KILLED 

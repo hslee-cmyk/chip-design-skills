@@ -1,0 +1,10 @@
+{"toy": "T1_A_gain", "closed": -1.6304347826086956, "solved": -1.6304347826086956, "rel": 0.0}
+{"toy": "T1_A_zout", "closed": 1630.4347826086955, "solved": 1630.4347826086955, "rel": 0.0}
+{"toy": "T1_B_gain", "closed": 9.333333333333334, "solved": 9.333333333333334, "rel": 0.0}
+{"toy": "T2_bound_ratio", "closed": 11.5, "solved": 11.5, "rel": 0.0}
+{"toy": "T3_same_gain", "closed": -18.75, "solved": -18.749999999999996, "rel": 1.8947806286936006e-16}
+{"toy": "T3_mz_equals_out", "closed": -18.749999999999996, "solved": -18.749999999999996, "rel": 0.0}
+{"toy": "T3b_gate_reader", "closed": 156.25, "solved": 156.24999999999997, "rel": 1.8189894035458566e-16}
+{"toy": "T4_charge_gain", "closed": -6.139991813344248, "solved": -6.139991813344248, "rel": 0.0}
+{"toy": "T4_vn", "closed": 0.32746623004502656, "solved": 0.32746623004502656, "rel": 0.0}
+{"toy": "T5_peak_over_end", "closed": 1.2, "solved": 1.2000000000000002, "rel": 1.8503717077085943e-16}

@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# F1/F2 작성 전 실측 r1 모의 사슬(측정 전용, review_p3_f12 m14 -- 손 단계 2곳을 명령으로 적음).
+# 2026-10-02 C:/g230에서 아래 명령을 단계별로 실제로 돌린 순서 그대로 모은 것이다.
+#   bash mk_chain_r1.sh <스크래치 루트(C:/g230 형식)> <작업 저장소> <G1 설치기 경로> <시작 rev>
+# review_p3_f12_r4 m3(2026-10-06): 설치기·시작 rev를 인자로 받는다(옛 판은 ../g1_kit/install_proto.py·4a286f0 고정).
+#   * 4a286f0 시작이면 설치기 = g1_kit/install_proto.py.pre-35.bak(현재 install_proto.py는 card 35 병합 전 판에서 exit 1).
+#   * 7243f28 시작이면 설치기 = g1_kit/install_proto.py(현재 판). 이 판 계획서에는 D-11 토큰이 이미 있다(29d2fc2) --
+#     1단계는 p3fq_kit/variant.py qtok의 'already applied' 거부를 '이미 있음'으로 보고 빈 커밋만 만든다(커밋 수 유지).
+#   예: bash mk_chain_r1.sh C:/g306 <작업 트리> <_drafts>/g1_kit/install_proto.py 7243f28
+# 커밋 해시는 author/date에 따라 다르다(실측: bf5f3cd 9f45a9f 2e70cad daae48d 8ee0845 6b58942 3115856).
+set -eu
+[ $# -eq 4 ] || { echo "usage: mk_chain_r1.sh <scratch C:/g*> <repo> <G1 installer> <base rev>"; exit 2; }
+S="$1"; REPO="$2"; INST="$3"; BASE="$4"; K="$(dirname "$(realpath "$0")")"; R="$S/r"; PY=C:/Python314/python.exe
+case "$S" in C:/g*|/c/g*) ;; *) echo "scratch must be C:/g*"; exit 2;; esac
+[ -f "$INST" ] || { echo "installer not found: $INST"; exit 2; }
+export TMP="$S/tmp" TEMP="$S/tmp"; mkdir -p "$S/tmp" "$S/out" "$S/nohooks"
+# review_p3_f2_cur D2(2026-10-06): 백그라운드 셸에는 APPDATA가 없어 사용자 site-packages(numpy)가 안 보인다 -> sim_m_d31.py import 확인이 전부 ModuleNotFoundError로 찍힘
+export APPDATA="${APPDATA:-C:/Users/HSLEE/AppData/Roaming}" HOME="${HOME:-C:/Users/HSLEE}"
+G() { git -C "$R" -c user.name=sim -c user.email=sim@x "$@"; }
+git -c core.autocrlf=false clone -q --no-local "$REPO" "$R"
+git -C "$R" remote remove origin; git -C "$R" config core.hooksPath "$S/nohooks"; git -C "$R" config core.autocrlf false
+git -C "$R" checkout -q --detach "$BASE"
+# 1 D-11 (가) 토큰 -- variant.py가 'already applied'로 거부하면 이미 있음(빈 커밋), 그 밖의 거부는 멈춤
+if V1=$("$PY" -B "$K/../p3fq_kit/variant.py" "$R" qtok 2>&1); then
+  echo "$V1"; G commit -qam "sim: D-11 token"
+else
+  case "$V1" in *"already applied"*) echo "D-11 token already present -- skip"; G commit -q --allow-empty -m "sim: D-11 token (already present)";;
+    *) echo "variant.py qtok: $V1"; exit 1;; esac
+fi
+# 2 G1 시제품
+"$PY" -B "$INST" "$R"; G add -A; G commit -qm "sim: G1 proto"; G1=$(git -C "$R" rev-parse HEAD)
+# 3 D-31 배정(names 키 -- F12_STMTKEY 미지정)
+"$PY" -B "$K/plan_d31.py" --root "$R" --rev "$G1" --plan docs/01-plan/features/gain-budget-gmid-sizing.plan.md \
+  --registry docs/03-analysis/gain-budget-gmid-sizing.function-registry.md \
+  --split sizing_recipe.py stick_diagram.py topology_library.py design_report.py audit_current_forced.py \
+  --keep audit_current_forced.py --aliases '{"optimizer": "theta_search.py"}' > "$S/out/plan_names.json"
+# 4 M1~M9
+F12_PLAN="$S/out/plan_names.json" "$PY" -B "$K/sim_m_d31.py" "$R" "$S/out/sim_names.json" "$S/work" bottom7
+cp "$S/work/state_M9/"*.py "$R/skills/analog-gmid-design/assets/"; G add -A; G commit -qm "sim: M1-M9"
+# 5 M9 정정(손 단계 1): 완전 shim SR·DR에 base의 `from stick_diagram import …` 문을 원문 그대로 파일 끝에(SHIM (c))
+"$PY" -B - "$R" "$G1" <<'EOF'
+import ast, subprocess, sys
+R, G1 = sys.argv[1:3]
+for f in ("sizing_recipe", "design_report"):
+    rel = "skills/analog-gmid-design/assets/%s.py" % f
+    s = subprocess.run(["git", "-C", R, "show", "%s:%s" % (G1, rel)], capture_output=True, check=True).stdout.decode("utf-8")
+    seg = [ast.get_source_segment(s, n) for n in ast.parse(s).body if isinstance(n, ast.ImportFrom) and n.module == "stick_diagram"]
+    assert len(seg) == 1
+    p = R + "/" + rel
+    cur = open(p, encoding="utf-8", newline="").read()
+    open(p, "w", encoding="utf-8", newline="").write(cur + ("" if cur.endswith("\n") else "\n") + seg[0] + "\n")
+EOF
+G add -A; G commit -qm "sim: M9 fix"; M9F=$(git -C "$R" rev-parse HEAD)
+# 6 F1 없는 F2
+"$PY" -B "$K/mk_f2.py" "$R" --acf; G add -A; G commit -qm "sim: F2 without F1"; F2N=$(git -C "$R" rev-parse HEAD)
+# 7 F1 모의 + 손 단계 2(재작성기가 첫 곳만 바꾼 `_import("sizing_recipe")` 나머지 4곳)
+git -C "$R" checkout -q --detach "$M9F"
+F12_B0PRE="$G1" "$PY" -B "$K/f12_f1sim.py" "$R" "$M9F" "$F2N" "$S/out/f1sim_names.json"
+T="$R/skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py"
+[ "$(grep -c '_import("sizing_recipe")' "$T")" = 4 ]; sed -i 's/_import("sizing_recipe")/_import("gmid_lut")/' "$T"
+G add -A; G commit -qm "sim: F1 mock"
+# 8 F2 모의
+"$PY" -B "$K/mk_f2.py" "$R" --acf; G add -A; G commit -qm "sim: F2 mock"
+git -C "$R" log --oneline -8 | cat

@@ -1,0 +1,230 @@
+# G:/내 드라이브/work/Todoc/기술문서/Gm_over_Id/Design of Analog CMOS Integrated Circuits (Behzad Razavi)marcado.pdf pages=706
+
+=== PDF page 346
+iee. 9.7 
+Input Range Limitations 
+325 
+1.7 Input Range Limitations 
+The op amp circuits studied thus far have evolved to achieve large differential output swings. 
+While the differential input swings are usually much smaller (by a factor equal to the open-
+loop gain), the input common-mode level may need to vary over a wide range in some 
+applications. For example, consider the simple unity-gain buffer shown in Fig. 9.47, where 
+the input swing is nearly equal to the output swing. Interestingly, in this case the voltage 
+swings are limited by the input differential pair rather than the output cascade branch. 
+Specifically, V;n,min ~ Vout,min = Vcsu + V1ss. approximately one threshold voltage 
+higher than the allowable minimum provided by M5-M8• 
+Figure 9.47 Unity-gain buffer. 
+What happens if V; 11 falls below the minimum given above? The MOS transistor operating 
+as Iss enters the triode region, decreasing the bias current of the differential pair and hence 
+lowering the transconductance. We then postulate that the limitation is overcome if the 
+transconductance can somehow be restored. 
+A simple approach to extending the input CM range is to incorporate both NMOS and 
+PMOS differential pairs such that when one is "dead," the other is "alive." Illustrated in 
+Fig. 9.48, the idea is to combine two folded-cascode op amps with NMOS and PMOS 
+input differential pairs. Here, as the input CM level approaches the ground potential, the 
+NMOS pair's transconductance drops, eventually falling to zero. Nonetheless, the PMOS 
+pair remains active, allowing normal operation. Conversely, if the input CM level approaches 
+VDD· M1p and M2p begin to tum off but M1 and M2 function properly. 
+An important concern in the circuit of Fig. 9.48 is the variation of the overall transcon-
+ductance of the two pairs as the input CM level changes. Considering the operation of each 
+pair, we anticipate the behavior depicted in Fig. 9.49. Thus, many properties of the circuit, 
+including gain, speed, and noise, vary. More sophisticated techniques of minimizing this 
+variation are described in [7]. 
+
+
+=== PDF page 347
+326 
+9.8 Slew Rate 
+9mp 
+0 
+Chap. 9 
+Operational Amplifier 
+Figure 9.48 Extension of input CM range. 
+9mn 
+Figure 9.49 Variation of equivalent 
+transconductance with the input CM 
+level. 
+Op amps used in feedback circuits exhibit a large-signal behavior called "slewing." We fb 
+describe an interesting property of linear systems that vanishes during slewing. Consid 
+the simple RC network shown in Fig. 9.50, where the input is an ideal voltage step ofheig 
+Vo. Since Vout = Vo[l 
+exp(-t/r)], where r = RC, we have 
+R1 
+V~cV 
+1n 
+J 1 
+out 
+0 
+0 
+dVour 
+Vo 
+-t 
+-- = -exp 
+. 
+dt 
+r 
+r 
+t 
+Figure 9.50 Response of a linear circuit to input step. 
+(9.2 
+
+
+=== PDF page 364
+Problems 
+343 
+9.21. Calculate the input.referred noise of the op amp designed in Problem 9 .18( d). 
+9.22. It is possible to use the bulk terminal of PMOS devices as an input [9]. Consider the amplifier 
+shown in Fig. 9.69 as an example. 
+Figure9.69 
+(a) Calculate the voltage gain. 
+(b) What is the acceptable input common·mode range? 
+(c) How does the small·signal gain vary with the input common·mode level? 
+(d) Calculate the inpuHeferred thermal noise voltage and compare the result with that of a 
+regular PMOS differential pair having NMOS current·source loads. 
+9.23. The idea of the active current mirror can be applied to the output stage of a two·stage op amp 
+as well. That is, the load current source can become a function of the signal. Figure 9.70 shows 
+an example [10). Here, the first stage consists of M1 ·M4 and the output is produced by Ms·Ms. 
+Transistors M7 and Ms operate as active current sources because their current varies with the 
+signal voltage at nodes Y and X, respectively. 
+(a) Calculate the differential voltage gain of the op amp. 
+(b) Estimate the magnitude of the three major poles of the circuit. 
+Vout2 
+Figure 9.70 
+
+
+=== PDF page 699
+678 
+charge injection, channel, 418-20,421-23 
+charge modeling, MOS device models, 598 
+charge-pump phase-locked loops (CPPLLs), 549---62; 
+basic, 555---62; charge pumps, 550-55; 
+dynamics, 557---61; linearity, 557; 
+lock acquisition, 549---62; 
+phase/frequency detector, 550-55; 
+stability issues, 561---62; transfer function, 557---61 
+charge pumps: in charge-pump phase-locked loops (CPPLLs), 
+550-55; PFD/CP nonidealities, 562---67 
+charge redistribution in noninverting amplifier, 434 
+chemical vapor deposition (CVD), 611 
+circuit design, abstraction levels, 7, 8 
+circuit symbols, MOS, 12-13 
+circuits: bandgap reference, 377-404; closed-loop, 250-53; 
+common-gate, 250; differential, 452-54; digital, 12; 
+feedback. 247-54; guard rings for, 663; half, 113-18; 
+noise represented in, 218-24; open-loop, 250, 
+253-54; precision multiply-by-two, 438-39, 622; 
+RLC, 496-99; sampling, 41 0-14; 
+switched-capacitor, 405-47 
+clamp transistors, 332-33 
+clock: amplification and offset modes controlled by, 4 72; 
+edges, 427: feedthrough, 420-22 
+closed-loop circuits, 250-53 
+closed-loop frequency response, 351-55 
+closed-loop gain, 248-49, 252; in operational amplifiers, 293; 
+and voltage-voltage feedback, 272-73 
+closed-loop transfer function, 247 
+CMFB. See common-mode feedback 
+CMOS (complementary MOS) devices, 6-7; processing 
+technology, 604-30 
+CMOS inverters, 581; driving load capacitance, 668; ring 
+oscillators using, 490 
+CMOS oscillators. See oscillators 
+CMOS technology: compatibility with bandgap references, 
+386; diodes realized in, 523 
+collector current variation, 385-86 
+Colpitts oscillators, 502-5 
+common-centroid layout, 640-41 
+common-drain stage, 67. See also source follower 
+common-gate circuit, with feedback, 250 
+common-gate (CG) stage, 76-83; frequency compensation 
+using, 370-71; and frequency response, 183; at high 
+frequencies, 183; input impedance, 80-83; 
+input-output characteristic, 77; input-referred noise, 
+229-31; output impedance, 80-83; with parasitic 
+capacitance, 171; single-stage amplifiers. 228-31; 
+transfer function, 171 
+common mode (CM), input-output characteristic, 105 
+common-mode behavior, differential pair, I 05---6 
+common-mode input, 116-18 
+common-mode feedback (CMFB): modifying, 323-24; 
+operational amplifiers, 314; switched-capacitor, 
+442-43; topology, 317 
+common-mode level, sensing and controlling, 319-22 
+common-mode noise rejection, 101 
+common-mode properties, active current mirrors, 154-58 
+common-mode range, extending, 325-26 
+common-mode rejection: alternative definition, 478-79; in 
+voltage-controlled oscillators (VCOs). 512 
+common-mode response, differential amplifiers, 118-24 
+common-mode signals. response of differential 
+pairs to, 187-93 
+common-source (CS) stage, 48---67; with current-source load, 
+58-59; with diode-connected load, 53-58; distortion 
+in, 449; with feedback, 248, 251-52; frequency 
+Index 
+response, 172-78; gain stage added to, 219; 
+high-frequency model, 172; input impedance in, 177; 
+and input-referred noise, 219-221: with resistive 
+degeneration, 458-59; single-stage amplifiers, 
+225-28; with source degeneration, 60---67; and source 
+impedance stimulation, 223-24; transfer function, 
+172-77; with triode load, 59---60; using n-well 
+resistors, 618; zero calculated in, 176-77 
+compensation, frequency, 355-61 
+complementary switches, 422 
+conduction, subthreshold, 27-28 
+constant-field scaling, 579 
+constant-Om biasing, 392-93 
+contact spiking, 615-16 
+contact windows, 615 
+continuous-time: feedback amplifiers, 405--7; integrator, 439; 
+resistors, 439 
+control voltage, 126-29 
+conversion, differential, 120-24 
+corner frequency, flicker noise, 217-18 
+correlated sources of noise, 207-9 
+coupling: capacitive, 654; one-dimensional cross-, 641-42; 
+substrate, 660-65 
+cross-coupled oscillators, 499-50 I, 522 
+CS stage. See common-source stage 
+current: amplifiers, 254-56; copying, 137; drain, 148-49; 
+generating PTAT (proportional to absolute 
+temperature), 390-92; generation versus voltage 
+amplification, 225; meters, 256-58; mismatch, 
+469-70, 565---67; notation, 8; resistive biasing, 
+135-36: scaling. 643-44; steering, 515-·20; 
+tail, 120-21. See also biasing 
+current -current feedback, 269-70: loading in, 281 
+current mirrors: active, 135---65, 145-58; basic, 135-39; 
+cascade, 139-45; passive, 135---65 
+current-source load: common-source stage with, 58-59; 
+differential pair with, 146 
+current sources: applications, 135-36: cascade, 140-45; 
+NMOS device used by source follower as, 69; noise 
+represented in, 221-22 
+current-voltage feedback, 263-66; loading in, 275-78 
+curvature correction, 390 
+CVD. See chemical vapor deposition 
+Czochralski method, 606 
+DAC (digital-to-analog converter), 3 
+dangling bonds, 215 
+data: binary, 2-3; four-level, 2-3; stored on hard disks. 
+3; transmission of over long distances, 4 
+dead zone in phase-locked loops (PLLs). 563---64 
+deep triode region, MOSFETs operating in, 460---61. 
+See also triode region 
+degeneration, resistive, 458---63 
+delay-locked loops (DLLs), 570-72 
+delay variation: by interpolation, 518-20; by positive 
+feedback, 515-18 
+deposition, 611 
+design rules, 632-34 
+designing operational amplifiers, 299-300 
+device models, choice of. 92-93 
+devices. See active devices; MOS devices; NMOS devices; 
+passive devices; PMOS devices 
+DIBL. See drain-induced barrier lowering 
+differential amplifiers, 100-34; biased by current mirrors. 
+138-39; common-mode response, 118-24; 
+Gilbert cell, 126-29 
+

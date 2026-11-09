@@ -1,0 +1,3096 @@
+{
+ "rev": "a83a46b11130355f898d3d7c6f34c3471cbab2ce",
+ "mods": {
+  "gmid_lut": 1,
+  "topology_authoring": 2,
+  "circuit_state_graph": 3,
+  "gmid_sizing_engine": 4,
+  "circuit_metrics": 5,
+  "theta_search": 6,
+  "stick_diagram": 7,
+  "sizing_layout_convergence": 8,
+  "instance_report_builder": 9,
+  "gmid_design_pipeline": 10
+ },
+ "tests": {
+  "sizing_recipe::test_s003__evaluate": {
+   "old": "sizing_recipe",
+   "slug": "_evaluate",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s004_optimize_multistage": {
+   "old": "sizing_recipe",
+   "slug": "optimize_multistage",
+   "R1": 4,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "assets_dir"
+   ]
+  },
+  "sizing_recipe::test_s006_solve_id_for_target_gm": {
+   "old": "sizing_recipe",
+   "slug": "solve_id_for_target_gm",
+   "R1": 4,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s007_solve_diode_stack_current": {
+   "old": "sizing_recipe",
+   "slug": "solve_diode_stack_current",
+   "R1": 4,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s008_compute_metric": {
+   "old": "sizing_recipe",
+   "slug": "compute_metric",
+   "R1": 5,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s009_revalidate_finger_override": {
+   "old": "sizing_recipe",
+   "slug": "revalidate_finger_override",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s010_apply_and_revalidate_pair_adjustment": {
+   "old": "sizing_recipe",
+   "slug": "apply_and_revalidate_pair_adjustment",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 6,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s011_run_topology_pipeline_with_finger_fixup": {
+   "old": "sizing_recipe",
+   "slug": "run_topology_pipeline_with_finger_fixup",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s012_optimize_full_circuit_budget": {
+   "old": "sizing_recipe",
+   "slug": "optimize_full_circuit_budget",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s011_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s013_resolve_stack_layout": {
+   "old": "sizing_recipe",
+   "slug": "resolve_stack_layout",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "sizing_recipe::test_s014_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir",
+    "real_lut"
+   ]
+  },
+  "sizing_recipe::test_s015_suggest_matching_finger_growth": {
+   "old": "sizing_recipe",
+   "slug": "suggest_matching_finger_growth",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 8,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "assets_dir",
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s016_run_matching_safety_with_finger_growth": {
+   "old": "sizing_recipe",
+   "slug": "run_matching_safety_with_finger_growth",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 7,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s015_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s018_allocate_stack_headroom": {
+   "old": "sizing_recipe",
+   "slug": "allocate_stack_headroom",
+   "R1": 4,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s019_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s018_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s020_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s021_search_gm_id_for_role": {
+   "old": "sizing_recipe",
+   "slug": "search_gm_id_for_role",
+   "R1": 4,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s022_ro": {
+   "old": "sizing_recipe",
+   "slug": "ro",
+   "R1": null,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s021_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s023_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s021_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s024_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s025_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s026_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s027_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 6,
+   "R2c": 6,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s028_estimate_area_budget": {
+   "old": "sizing_recipe",
+   "slug": "estimate_area_budget",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s030_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s031_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s032_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s033_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s034_theta": {
+   "old": "sizing_recipe",
+   "slug": "theta",
+   "R1": null,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s035_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s036_optimize_full_circuit_budget": {
+   "old": "sizing_recipe",
+   "slug": "optimize_full_circuit_budget",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir",
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s037_optimize_full_circuit_budget": {
+   "old": "sizing_recipe",
+   "slug": "optimize_full_circuit_budget",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 7,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s038_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s039_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s038_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s040_VGS": {
+   "old": "sizing_recipe",
+   "slug": "VGS",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [
+    "_tst_grids"
+   ],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s041_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s040_state"
+   ],
+   "helpers_transitive": [
+    "_tst_grids"
+   ],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s042__ref_depth": {
+   "old": "sizing_recipe",
+   "slug": "_ref_depth",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [
+    "_tst_grids"
+   ],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s043_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s042_state"
+   ],
+   "helpers_transitive": [
+    "_tst_grids"
+   ],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s045_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s043_state"
+   ],
+   "helpers_transitive": [
+    "_tst_grids"
+   ],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s046_diagnose_sizing_roles_gap": {
+   "old": "sizing_recipe",
+   "slug": "diagnose_sizing_roles_gap",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "sizing_recipe::test_s047_nmcnr_3stage_topology": {
+   "old": "sizing_recipe",
+   "slug": "nmcnr_3stage_topology",
+   "R1": 4,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "sizing_recipe::test_s048_require_declared_spec_source": {
+   "old": "sizing_recipe",
+   "slug": "require_declared_spec_source",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "sizing_recipe::test_s049_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "sizing_recipe::test_s050_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 7,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s037_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s051_optimize_full_circuit_budget": {
+   "old": "sizing_recipe",
+   "slug": "optimize_full_circuit_budget",
+   "R1": 8,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s051_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s051_optimize_full_circuit_budget_known_limitation": {
+   "old": "sizing_recipe",
+   "slug": "optimize_full_circuit_budget_known_limitation",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s051_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s052_compensation": {
+   "old": "sizing_recipe",
+   "slug": "compensation",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [
+    "_tst_grids"
+   ],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s053_L_role": {
+   "old": "sizing_recipe",
+   "slug": "L_role",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s052_state"
+   ],
+   "helpers_transitive": [
+    "_tst_grids"
+   ],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s054_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s051_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s054_section_known_limitation": {
+   "old": "sizing_recipe",
+   "slug": "section_known_limitation",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s051_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s056_noise_1f_density": {
+   "old": "sizing_recipe",
+   "slug": "noise_1f_density",
+   "R1": null,
+   "R2b": 1,
+   "R2c": 1,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s057_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 1,
+   "R2c": 1,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s058__metric_flicker_plus_thermal_sum": {
+   "old": "sizing_recipe",
+   "slug": "_metric_flicker_plus_thermal_sum",
+   "R1": 4,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s057_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s059_estimate_mismatch_sigma": {
+   "old": "sizing_recipe",
+   "slug": "estimate_mismatch_sigma",
+   "R1": 5,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s060_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s061_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s060_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s062_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "sizing_recipe::test_s063__nmcnr_stage1_rout": {
+   "old": "sizing_recipe",
+   "slug": "_nmcnr_stage1_rout",
+   "R1": 4,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s064_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s063_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s065_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "sizing_recipe::test_s067_family": {
+   "old": "sizing_recipe",
+   "slug": "family",
+   "R1": null,
+   "R2b": null,
+   "R2c": 3,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s065_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s070_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 5,
+   "R2c": 5,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "assets_dir"
+   ]
+  },
+  "sizing_recipe::test_s071_current_reuse_telescopic_topology": {
+   "old": "sizing_recipe",
+   "slug": "current_reuse_telescopic_topology",
+   "R1": 4,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "toy_lut"
+   ]
+  },
+  "sizing_recipe::test_s073_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s074_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s075_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "sizing_recipe::test_s076_section": {
+   "old": "sizing_recipe",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s021_M2b": {
+   "old": "stick_diagram",
+   "slug": "M2b",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s022_common_centroid_layout": {
+   "old": "stick_diagram",
+   "slug": "common_centroid_layout",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s023_common_centroid_layout": {
+   "old": "stick_diagram",
+   "slug": "common_centroid_layout",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s024_interdigitate_layout": {
+   "old": "stick_diagram",
+   "slug": "interdigitate_layout",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s022_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s025_common_centroid_layout": {
+   "old": "stick_diagram",
+   "slug": "common_centroid_layout",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 5,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s027_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s025_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s028_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s025_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s029_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s025_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s030_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s031_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s032_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s033_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s034_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s036_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s037_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s038_N": {
+   "old": "stick_diagram",
+   "slug": "N",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 4,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s039_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s040_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s041_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s040_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s042_interdigitate_layout": {
+   "old": "stick_diagram",
+   "slug": "interdigitate_layout",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 4,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s044_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s045_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s046_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s047_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s046_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s048_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s049_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s051_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 9,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s052_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 9,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s051_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s053_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s054_None": {
+   "old": "stick_diagram",
+   "slug": "None",
+   "R1": null,
+   "R2b": null,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s045_state",
+    "s046_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s055__count_matching_pair_splits": {
+   "old": "stick_diagram",
+   "slug": "_count_matching_pair_splits",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s056_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 9,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s051_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s057_check_box_shape": {
+   "old": "stick_diagram",
+   "slug": "check_box_shape",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s058_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s060_run_full_circuit_audit": {
+   "old": "stick_diagram",
+   "slug": "run_full_circuit_audit",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s061_pack_floorplan": {
+   "old": "stick_diagram",
+   "slug": "pack_floorplan",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [
+    "overlap"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s062_find_diffusion_safe_split_points": {
+   "old": "stick_diagram",
+   "slug": "find_diffusion_safe_split_points",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 7,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s061_state"
+   ],
+   "helpers_transitive": [
+    "overlap"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s063_pack_floorplan_grouped": {
+   "old": "stick_diagram",
+   "slug": "pack_floorplan_grouped",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s061_state"
+   ],
+   "helpers_transitive": [
+    "overlap"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s064_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s061_state",
+    "s063_state"
+   ],
+   "helpers_transitive": [
+    "overlap"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s065_diffusion": {
+   "old": "stick_diagram",
+   "slug": "diffusion",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 6,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s061_state",
+    "s063_state",
+    "s064_state"
+   ],
+   "helpers_transitive": [
+    "overlap"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s067_MB": {
+   "old": "stick_diagram",
+   "slug": "MB",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s065_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s069_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s070_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s071_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 3,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s072_audit_row_split": {
+   "old": "stick_diagram",
+   "slug": "audit_row_split",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s075_two_stage_ota_example": {
+   "old": "stick_diagram",
+   "slug": "two_stage_ota_example",
+   "R1": 3,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s078_interdigitation": {
+   "old": "stick_diagram",
+   "slug": "interdigitation",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s075_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s079_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s075_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s083_check_stick_diagram_coverage": {
+   "old": "stick_diagram",
+   "slug": "check_stick_diagram_coverage",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s084_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s083_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s086_folded_cascode_example": {
+   "old": "stick_diagram",
+   "slug": "folded_cascode_example",
+   "R1": 3,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s088_save_instance_json": {
+   "old": "stick_diagram",
+   "slug": "save_instance_json",
+   "R1": 9,
+   "R2b": 9,
+   "R2c": 9,
+   "closure_refs": 6,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s086_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s089_run_topology_pipeline": {
+   "old": "stick_diagram",
+   "slug": "run_topology_pipeline",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s086_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s090_run_topology_pipeline": {
+   "old": "stick_diagram",
+   "slug": "run_topology_pipeline",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s086_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s092_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": null,
+   "R2c": 7,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s086_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s093_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s086_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s094_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s086_state",
+    "s093_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s096_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 7,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s086_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s097_ref": {
+   "old": "stick_diagram",
+   "slug": "ref",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 7,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s086_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s098_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 7,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s086_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s099_find_diode_stacks": {
+   "old": "stick_diagram",
+   "slug": "find_diode_stacks",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 7,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s086_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s100_find_diode_stacks": {
+   "old": "stick_diagram",
+   "slug": "find_diode_stacks",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 3,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s102_select_layout_tool": {
+   "old": "stick_diagram",
+   "slug": "select_layout_tool",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s103_repair_matching_safety": {
+   "old": "stick_diagram",
+   "slug": "repair_matching_safety",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 7,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s086_state"
+   ],
+   "helpers_transitive": [
+    "_first_pair_matching"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s104_repair_matching_safety": {
+   "old": "stick_diagram",
+   "slug": "repair_matching_safety",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 6,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s086_state",
+    "s103_state"
+   ],
+   "helpers_transitive": [
+    "_first_pair_matching"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s105_repair_matching_safety": {
+   "old": "stick_diagram",
+   "slug": "repair_matching_safety",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 5,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s106__branch_composite_pair": {
+   "old": "stick_diagram",
+   "slug": "_branch_composite_pair",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 7,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s086_state",
+    "s103_state",
+    "s104_state"
+   ],
+   "helpers_transitive": [
+    "_first_pair_matching"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s107__composite_collapse_for_crossover": {
+   "old": "stick_diagram",
+   "slug": "_composite_collapse_for_crossover",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 8,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s105_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s108_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 7,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s086_state",
+    "s103_state",
+    "s104_state"
+   ],
+   "helpers_transitive": [
+    "_first_pair_matching"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s109_repair_matching_safety": {
+   "old": "stick_diagram",
+   "slug": "repair_matching_safety",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 8,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s086_state",
+    "s103_state",
+    "s104_state",
+    "s105_state"
+   ],
+   "helpers_transitive": [
+    "_first_pair_matching"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s111_geometry_colocation_union": {
+   "old": "stick_diagram",
+   "slug": "geometry_colocation_union",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 6,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s086_state",
+    "s103_state"
+   ],
+   "helpers_transitive": [
+    "_first_pair_matching"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s112_geometry_colocation_union": {
+   "old": "stick_diagram",
+   "slug": "geometry_colocation_union",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 6,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s086_state",
+    "s103_state",
+    "s111_state"
+   ],
+   "helpers_transitive": [
+    "_first_pair_matching"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s113_assign_finger_geometry": {
+   "old": "stick_diagram",
+   "slug": "assign_finger_geometry",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 7,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s086_state",
+    "s103_state",
+    "s111_state"
+   ],
+   "helpers_transitive": [
+    "_first_pair_matching"
+   ],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s115_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s116_None": {
+   "old": "stick_diagram",
+   "slug": "None",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s007_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s117_connectivity": {
+   "old": "stick_diagram",
+   "slug": "connectivity",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s118_folded_cascode_example": {
+   "old": "stick_diagram",
+   "slug": "folded_cascode_example",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s119_M2": {
+   "old": "stick_diagram",
+   "slug": "M2",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s118_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s120_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s122_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 9,
+   "R2c": 9,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s120_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s123_dispositions": {
+   "old": "stick_diagram",
+   "slug": "dispositions",
+   "R1": null,
+   "R2b": null,
+   "R2c": 3,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s120_state",
+    "s122_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s124_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 9,
+   "R2c": 9,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s125_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 9,
+   "R2c": 9,
+   "closure_refs": 2,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s126_trace_vdd_to_gnd_branches": {
+   "old": "stick_diagram",
+   "slug": "trace_vdd_to_gnd_branches",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s127_suggest_vertical_stack_composites": {
+   "old": "stick_diagram",
+   "slug": "suggest_vertical_stack_composites",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s128_trace_gnd_to_vdd_branches": {
+   "old": "stick_diagram",
+   "slug": "trace_gnd_to_vdd_branches",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 4,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s129_find_verified_differential_and_mirror_relations": {
+   "old": "stick_diagram",
+   "slug": "find_verified_differential_and_mirror_relations",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s128_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s130_find_differential_pair_candidates": {
+   "old": "stick_diagram",
+   "slug": "find_differential_pair_candidates",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s128_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s131_refine_differential_and_mirror_relations": {
+   "old": "stick_diagram",
+   "slug": "refine_differential_and_mirror_relations",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s132_find_verified_differential_and_mirror_relations": {
+   "old": "stick_diagram",
+   "slug": "find_verified_differential_and_mirror_relations",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s128_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s133_refine_differential_and_mirror_relations": {
+   "old": "stick_diagram",
+   "slug": "refine_differential_and_mirror_relations",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s128_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s134__propose_vertical_stack_ids": {
+   "old": "stick_diagram",
+   "slug": "_propose_vertical_stack_ids",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s135_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s128_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s136_refine_differential_and_mirror_relations": {
+   "old": "stick_diagram",
+   "slug": "refine_differential_and_mirror_relations",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s128_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s137_suggest_vertical_stack_composites": {
+   "old": "stick_diagram",
+   "slug": "suggest_vertical_stack_composites",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s128_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s138_refine_differential_and_mirror_relations": {
+   "old": "stick_diagram",
+   "slug": "refine_differential_and_mirror_relations",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s128_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s139_find_verified_differential_and_mirror_relations": {
+   "old": "stick_diagram",
+   "slug": "find_verified_differential_and_mirror_relations",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s128_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s140_audit_vertical_stack_id_vs_kcl": {
+   "old": "stick_diagram",
+   "slug": "audit_vertical_stack_id_vs_kcl",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s141_merge_layout_groups_by_matching_pairs": {
+   "old": "stick_diagram",
+   "slug": "merge_layout_groups_by_matching_pairs",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s142_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s141_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s143_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s144_audit_vertical_stack_id_euler_feasibility": {
+   "old": "stick_diagram",
+   "slug": "audit_vertical_stack_id_euler_feasibility",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s145_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s146_find_euler_repair_options": {
+   "old": "stick_diagram",
+   "slug": "find_euler_repair_options",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s144_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s147_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s148_derive_horizontal_stack_groups": {
+   "old": "stick_diagram",
+   "slug": "derive_horizontal_stack_groups",
+   "R1": 7,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 4,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s144_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s149_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s151_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s152_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s153_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s154_load_topology": {
+   "old": "stick_diagram",
+   "slug": "load_topology",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s155_propose_device_roles_gap_fill": {
+   "old": "stick_diagram",
+   "slug": "propose_device_roles_gap_fill",
+   "R1": 3,
+   "R2b": 7,
+   "R2c": 7,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s156_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s155_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s157_M1": {
+   "old": "stick_diagram",
+   "slug": "M1",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 2,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s157_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s157_M1_known_limitation": {
+   "old": "stick_diagram",
+   "slug": "M1_known_limitation",
+   "R1": null,
+   "R2b": 8,
+   "R2c": 8,
+   "closure_refs": 2,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s157_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s158_propose_device_roles_gap_fill": {
+   "old": "stick_diagram",
+   "slug": "propose_device_roles_gap_fill",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s159_apply_device_roles_gap_fill": {
+   "old": "stick_diagram",
+   "slug": "apply_device_roles_gap_fill",
+   "R1": 2,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 4,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s160_propose_device_roles_gap_fill": {
+   "old": "stick_diagram",
+   "slug": "propose_device_roles_gap_fill",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s161_find_authoritative_sizing_devices": {
+   "old": "stick_diagram",
+   "slug": "find_authoritative_sizing_devices",
+   "R1": 2,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 5,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s162_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 6,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s161_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s163_find_unreviewed_matching_pairs": {
+   "old": "stick_diagram",
+   "slug": "find_unreviewed_matching_pairs",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 4,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s164_differential": {
+   "old": "stick_diagram",
+   "slug": "differential",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 3,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s163_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s165_audit_theta_root_direction": {
+   "old": "stick_diagram",
+   "slug": "audit_theta_root_direction",
+   "R1": 2,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s166_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 2,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s165_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s167_kcl_tail_M38": {
+   "old": "stick_diagram",
+   "slug": "kcl_tail_M38",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s168_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s169_propose_theta_kcl_gap_fill": {
+   "old": "stick_diagram",
+   "slug": "propose_theta_kcl_gap_fill",
+   "R1": 3,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s170_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s169_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s171_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": 3,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "stick_diagram::test_s172_section": {
+   "old": "stick_diagram",
+   "slug": "section",
+   "R1": null,
+   "R2b": null,
+   "R2c": 3,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s171_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "stick_diagram::test_s173_apply_theta_kcl_gap_fill": {
+   "old": "stick_diagram",
+   "slug": "apply_theta_kcl_gap_fill",
+   "R1": 2,
+   "R2b": 2,
+   "R2c": 3,
+   "closure_refs": 4,
+   "closure_nonmod_files": [
+    "[]"
+   ],
+   "fixtures_transitive": [
+    "s169_state",
+    "s170_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": [
+    "library_dir"
+   ]
+  },
+  "design_report::test_s001_build_topology_device_table": {
+   "old": "design_report",
+   "slug": "build_topology_device_table",
+   "R1": 9,
+   "R2b": 9,
+   "R2c": 9,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s000_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "design_report::test_s002_assemble_report_data": {
+   "old": "design_report",
+   "slug": "assemble_report_data",
+   "R1": 9,
+   "R2b": 9,
+   "R2c": 9,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s000_state",
+    "s001_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "design_report::test_s003_assemble_report_data": {
+   "old": "design_report",
+   "slug": "assemble_report_data",
+   "R1": 9,
+   "R2b": 9,
+   "R2c": 9,
+   "closure_refs": 3,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s000_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "design_report::test_s004_report": {
+   "old": "design_report",
+   "slug": "report",
+   "R1": null,
+   "R2b": 9,
+   "R2c": 9,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "topology_library::test_s002_section": {
+   "old": "topology_library",
+   "slug": "section",
+   "R1": null,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "topology_library::test_s004_nmcnr_predict_ac_response": {
+   "old": "topology_library",
+   "slug": "nmcnr_predict_ac_response",
+   "R1": 4,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "topology_library::test_s006_section": {
+   "old": "topology_library",
+   "slug": "section",
+   "R1": null,
+   "R2b": null,
+   "R2c": 4,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s004_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "topology_library::test_s007_section": {
+   "old": "topology_library",
+   "slug": "section",
+   "R1": null,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s004_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "topology_library::test_s008_section": {
+   "old": "topology_library",
+   "slug": "section",
+   "R1": null,
+   "R2b": 4,
+   "R2c": 4,
+   "closure_refs": 2,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "topology_library::test_s011_tan": {
+   "old": "topology_library",
+   "slug": "tan",
+   "R1": null,
+   "R2b": null,
+   "R2c": null,
+   "closure_refs": 0,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "topology_library::test_s012_start": {
+   "old": "topology_library",
+   "slug": "start",
+   "R1": null,
+   "R2b": null,
+   "R2c": 4,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s008_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "topology_library::test_s013_Cgg1_total": {
+   "old": "topology_library",
+   "slug": "Cgg1_total",
+   "R1": null,
+   "R2b": null,
+   "R2c": 4,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s008_state",
+    "s012_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "topology_library::test_s014_section": {
+   "old": "topology_library",
+   "slug": "section",
+   "R1": null,
+   "R2b": null,
+   "R2c": 4,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s008_state",
+    "s012_state",
+    "s013_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  },
+  "topology_library::test_s015_Cgg2": {
+   "old": "topology_library",
+   "slug": "Cgg2",
+   "R1": null,
+   "R2b": null,
+   "R2c": 4,
+   "closure_refs": 1,
+   "closure_nonmod_files": [],
+   "fixtures_transitive": [
+    "s008_state",
+    "s012_state",
+    "s013_state"
+   ],
+   "helpers_transitive": [],
+   "conftest_fixtures": []
+  }
+ },
+ "summary": {
+  "R1": {
+   "None": 125,
+   "4": 10,
+   "5": 2,
+   "8": 12,
+   "3": 26,
+   "7": 29,
+   "9": 4,
+   "2": 4
+  },
+  "R2b": {
+   "8": 32,
+   "4": 14,
+   "5": 15,
+   "3": 56,
+   "6": 1,
+   "1": 2,
+   "None": 11,
+   "7": 71,
+   "9": 8,
+   "2": 2
+  },
+  "R2c": {
+   "8": 32,
+   "4": 19,
+   "5": 15,
+   "3": 57,
+   "6": 1,
+   "1": 2,
+   "7": 77,
+   "9": 8,
+   "None": 1
+  },
+  "R2c_by_old": {
+   "sizing_recipe": {
+    "8": 30,
+    "4": 10,
+    "5": 15,
+    "3": 9,
+    "6": 1,
+    "1": 2
+   },
+   "stick_diagram": {
+    "7": 77,
+    "3": 48,
+    "9": 4,
+    "8": 2
+   },
+   "design_report": {
+    "9": 4
+   },
+   "topology_library": {
+    "4": 9,
+    "None": 1
+   }
+  },
+  "R1_vs_R2c_differ": 11,
+  "R1_none": 125,
+  "R2c_test_name_collisions_per_target": {},
+  "R2c_targets_mixing_old_files": {
+   "8": [
+    "sizing_recipe",
+    "stick_diagram"
+   ],
+   "4": [
+    "sizing_recipe",
+    "topology_library"
+   ],
+   "3": [
+    "sizing_recipe",
+    "stick_diagram"
+   ],
+   "9": [
+    "design_report",
+    "stick_diagram"
+   ]
+  },
+  "fixtures_shared_across_targets": {
+   "stick_diagram:s086_state": [
+    "7",
+    "9"
+   ],
+   "stick_diagram:s120_state": [
+    "3",
+    "9"
+   ]
+  },
+  "n_fixtures_shared": 2,
+  "helpers_shared_across_targets": {},
+  "R2c_fixture_name_collisions_per_target": {
+   "3": [
+    "s065_state"
+   ]
+  }
+ }
+}

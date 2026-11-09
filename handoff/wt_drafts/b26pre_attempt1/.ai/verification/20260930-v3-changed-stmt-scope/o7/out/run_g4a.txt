@@ -1,0 +1,23 @@
+repo=C:\g259\iso
+log=C:\g259\iso\tools\gates\redteam\logs\20261002-184133-direct.jsonl
+
+PASS             01-code-author-write-tests                   
+PASS             01b-dispute-own-vs-other-id                  
+PASS             02-code-author-bash-tests                    
+PASS             03-src-and-tests-one-commit                  
+PASS             04-commit-no-verify                          
+PASS             05-commit-tree-push                          
+PASS             06-v4-expected-from-subject                  
+PASS             07-v4-assert-under-if                        
+PASS             08-v5-tolerance-widening                     
+PASS             09-v6-broad-except                           
+PASS             10-orchestrator-engine-edit                  
+PASS             10b-outside-role-pass                        
+PASS             10c-gate-cache                               
+SKIPPED          11-rtl-agent-edit                            modes ['installed']에 direct 없음
+SKIPPED          12-optional-stages-off                       GB0 로드 게이트(DEC-60·DEC-75)는 Phase 6a 구현 -- 0.5 실행 대상 아님(계획 N4.3, 05 §13.2 마지막 행)
+SKIPPED          13-rails-without-supply-nets                 GB0 로드 게이트(DEC-60·DEC-75)는 Phase 6a 구현 -- 0.5 실행 대상 아님(계획 N4.3, 05 §13.2 마지막 행)
+SKIPPED          14-hidden-rail                               GB0 로드 게이트(DEC-60·DEC-75)는 Phase 6a 구현 -- 0.5 실행 대상 아님(계획 N4.3, 05 §13.2 마지막 행)
+
+케이스: {"PASS": 13, "SKIPPED": 4}
+단계: {"PASS": 47, "RECORD": 3}

@@ -1,0 +1,52 @@
+{
+ "id": "20260930-b26-pre-test-strengthen",
+ "order": 3,
+ "evidence_type": "test-only",
+ "base_commit": "6c724debd884dd1d31034f5279ae450f35e67fc4",
+ "freeze": {
+  "T": "d2b2ed71ce506b010e5d87c03add007069a5a322",
+  "T_parent": "6c724debd884dd1d31034f5279ae450f35e67fc4",
+  "first_parent_chain_base_to_T": ["d2b2ed71ce506b010e5d87c03add007069a5a322 (Role: test, Change-Id: 20260930-b26-pre-test-strengthen, 부모 = base)"],
+  "T_trailers": ["Role: test", "Change-Id: 20260930-b26-pre-test-strengthen"],
+  "merge_commits_in_chain": 0,
+  "base_to_T_diff": ["A skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py"],
+  "diff_outside_test_path": 0,
+  "new_test_blobs": {"test_b26pre_existing_paths.py": "b276f20a105ba96eff69cb4f9f1f9cefed16588f"},
+  "new_test_lines": 556
+ },
+ "new_test_file_alone_on_T_tree": {
+  "engine": "base 그대로(base..T diff = 새 test 파일 하나)",
+  "collected": 19,
+  "seed0": "19 passed, exit 0",
+  "seed1": "19 passed, exit 0",
+  "contract_map": {
+   "1": ["test_b26pre_ofcb_lutless_repair"],
+   "2": ["test_b26pre_euler_fixup_group_split"],
+   "3": ["test_b26pre_growth_zero_rounds", "test_b26pre_growth_zero_rounds_euler", "test_b26pre_growth_already_ok", "test_b26pre_growth_pair_not_found", "test_b26pre_growth_only_3b_left"],
+   "4": ["test_b26pre_full_audit_all_disposed", "test_b26pre_full_audit_mirror_undisposed", "test_b26pre_full_audit_diffpair_undisposed", "test_b26pre_full_audit_hub_gnd_undisposed"],
+   "5": ["test_b26pre_resolve_stack_candidates"],
+   "6": ["test_b26pre_vsid_gap_fill_no_ports", "test_b26pre_vsid_gap_fill_ports"],
+   "7": ["test_b26pre_case_collisions"],
+   "10": ["test_b26pre_seed_tap_p", "test_b26pre_seed_tap_n"],
+   "11": ["test_b26pre_trace_two_branches", "test_b26pre_trace_three_branches_order"]
+  },
+  "contracts_4_10_11_separate_functions": true,
+  "command": "PYTHONHASHSEED=<0|1> PYTHONPYCACHEPREFIX=C:/g341/pyc/new_<seed> PYTHONPATH=C:/g341/gmid-gate-cache/6c724debd884dd1d31034f5279ae450f35e67fc4 C:/Python314/python.exe -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g341/iso --confcutdir=C:/g341/iso <iso>/skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py --gmid-phase=3 --gmid-strict= -rA -p no:cacheprovider (scripts/order3.sh, 출력 out/order3/new_seed0.txt·new_seed1.txt)"
+ },
+ "v3_once": {
+  "command": "C:/Python314/python.exe -B <캐시>/mutate_changed.py --root C:/g341/iso --base 6c724debd884dd1d31034f5279ae450f35e67fc4 --head d2b2ed71ce506b010e5d87c03add007069a5a322 --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=3 --gmid-strict= --out C:/g341/out/v3.jsonl",
+  "result": {"tool": "V3", "verdict": "PASS", "targets": [], "mutants": 0, "killed": 0, "survivors": [], "survivor_bindings": [], "exempt_ignored": [], "not_targeted": 0, "targets_by_def": {}},
+  "exit": 0,
+  "seconds": 73,
+  "note": "변이 0이라 --out 파일은 생기지 않았다(stdout out/order3/v3_stdout.txt)"
+ },
+ "gate_code": "C:/g341/gmid-gate-cache/6c724debd884dd1d31034f5279ae450f35e67fc4 (git cat-file blob <base>:tools/gates/<파일>, redteam 밖 22개, file_set_sha256 41885fd263066c317f65663aaf9bac206771fd57708ae539df271af96bd09d17, 오케스트레이터 캐시와 파일 22/22 내용 같음(scripts/cache_cmp.py), mutate_changed.py의 not_targeted 7곳 -- card 35 판)",
+ "isolation": "git clone -q --no-hardlinks --no-local -c core.autocrlf=false -c core.longpaths=true <audit worktree> C:/g341/iso; git -C C:/g341/iso remote remove origin; remote 0개, HEAD = T, status 0줄",
+ "self_check": {
+  "audit_worktree_status_porcelain": ["?? .ai/verification/20260930-b26-pre-test-strengthen/"],
+  "log_role_test_to_HEAD": "",
+  "committed": false
+ },
+ "measured_by": "gmid-verification-auditor, 격리 복제본 C:/g341/iso(T), origin 제거. test-author 보고는 쓰지 않았다",
+ "time": "2026-10-06T19:05:00+09:00"
+}

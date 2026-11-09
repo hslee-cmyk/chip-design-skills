@@ -1,0 +1,7 @@
+base master 7620f5ee
+items=390
+by_rule={'L-1': 36, 'L-1d': 9, 'L-1x': 11, 'L-2': 3, 'L-3': 110, 'L-4': 204, 'L-5': 17}
+by_card={'EO-1': 2, 'GC-2': 4, 'GC-3': 1, 'GC-6': 11, 'GC-7': 359, 'LA-1': 7, 'LI-1': 5, 'XRUN-F1 card C': 1}
+NEW(계획 표 밖)={'L-1': 8, 'L-1d': 6, 'L-1x': 8, 'L-3': 34, 'L-5': 7}
+unassigned=[]
+sha256(keys)=24449710aabb52b6492b861c9dbc4be95d105240e60278d27084f17951ca401e

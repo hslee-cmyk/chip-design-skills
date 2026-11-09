@@ -1,0 +1,195 @@
+* spice_oracle: ngcc_3stage_ff bias=free
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:\pdk\sky130_fd_pr\models\parameters\lod.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7 itl1=500 itl2=500
+Vrail_vdd vdd 0 DC 1.8
+XM0 TAIL VBP vdd vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=13630.7131239 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM1 ND Vinn TAIL vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=0.79941866644 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM2 V1 Vinp TAIL vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=0.79941866644 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM3 ND ND 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=6.24456580168 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM4 V1 ND 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=5.73537158577 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM5 NX VBP vdd vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=7037.00253168 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM6A NX NX 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=21.9901019187 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM6B NX ND 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=19.6816706168 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM7 Vout NX 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=2.97786958407 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM8 NP V1 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=5.30972416705 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM9 NP NP vdd vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=1.37739061724 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM10 V2 NP vdd vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=0.793538364595 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM11 V2 VBN 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=5.30972416705 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM12 Vout VBP vdd vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5e-06 m=47683.3482432 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM13 Vout V2 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=5.63435002321 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM14 Vout V1 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=5e-06 m=5.89909287583 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+Cp_LOAD_Vout Vout 0 1e-11
+Cp_Cm1 V1 Vout 6.545500428e-13
+Cp_Cm2 V2 Vout 1e-13
+Cp_CL Vout 0 1e-11
+Vdc_Vinp dcs_Vinp 0 DC 0.5375709093
+Ldc_Vinp dcs_Vinp Vinp 1e+12
+Cac_Vinp Vinp acs_Vinp 1
+Vac_Vinp acs_Vinp 0 DC 0 AC 0.5
+Efb_Vinn fbs_Vinn 0 Vout 0 1
+Vofs_Vinn fbs_Vinn fbd_Vinn DC 0.3546312947
+Lfb_Vinn fbd_Vinn Vinn 1e+12
+Cac_Vinn Vinn acs_Vinn 1
+Vac_Vinn acs_Vinn 0 DC 0 AC -0.5
+Vbias_VBP VBP 0 DC 1.658598782
+Vbias_VBN VBN 0 DC 0.605895283
+.nodeset v(TAIL)=1.31383812 v(ND)=0.52214688 v(Vinn)=0.5453687053 v(V1)=0.5878923653 v(Vinp)=0.5375709093 v(NX)=0.517313205 v(Vout)=0.9 v(NP)=1.025111087
+.nodeset v(V2)=0.6219470461
+.control
+set noaskquit
+op
+echo OPSTART
+print @m.xm0.msky130_fd_pr__pfet_01v8[id]
+print @m.xm0.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm0.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm0.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm0.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm0.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm0.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm0.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm1.msky130_fd_pr__pfet_01v8[id]
+print @m.xm1.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm1.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm1.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm1.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm1.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm1.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm1.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm2.msky130_fd_pr__pfet_01v8[id]
+print @m.xm2.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm2.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm2.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm2.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm2.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm2.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm2.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm3.msky130_fd_pr__nfet_01v8[id]
+print @m.xm3.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm3.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm3.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm3.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm3.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm3.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm3.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm4.msky130_fd_pr__nfet_01v8[id]
+print @m.xm4.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm4.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm4.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm4.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm4.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm4.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm4.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm5.msky130_fd_pr__pfet_01v8[id]
+print @m.xm5.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm5.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm5.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm5.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm5.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm5.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm5.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm6a.msky130_fd_pr__nfet_01v8[id]
+print @m.xm6a.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm6a.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm6a.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm6a.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm6a.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm6a.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm6a.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm6b.msky130_fd_pr__nfet_01v8[id]
+print @m.xm6b.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm6b.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm6b.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm6b.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm6b.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm6b.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm6b.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm7.msky130_fd_pr__nfet_01v8[id]
+print @m.xm7.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm7.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm7.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm7.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm7.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm7.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm7.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm8.msky130_fd_pr__nfet_01v8[id]
+print @m.xm8.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm8.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm8.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm8.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm8.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm8.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm8.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm9.msky130_fd_pr__pfet_01v8[id]
+print @m.xm9.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm9.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm9.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm9.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm9.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm9.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm9.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm10.msky130_fd_pr__pfet_01v8[id]
+print @m.xm10.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm10.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm10.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm10.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm10.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm10.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm10.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm11.msky130_fd_pr__nfet_01v8[id]
+print @m.xm11.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm11.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm11.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm11.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm11.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm11.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm11.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm12.msky130_fd_pr__pfet_01v8[id]
+print @m.xm12.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm12.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm12.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm12.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm12.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm12.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm12.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm13.msky130_fd_pr__nfet_01v8[id]
+print @m.xm13.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm13.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm13.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm13.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm13.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm13.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm13.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm14.msky130_fd_pr__nfet_01v8[id]
+print @m.xm14.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm14.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm14.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm14.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm14.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm14.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm14.msky130_fd_pr__nfet_01v8[vbs]
+print v(TAIL)
+print v(VBP)
+print v(vdd)
+print v(ND)
+print v(Vinn)
+print v(V1)
+print v(Vinp)
+print v(NX)
+print v(Vout)
+print v(NP)
+print v(V2)
+print v(VBN)
+print i(vrail_vdd)
+echo OPEND
+ac dec 40 0.01 1e+10
+let hout = v(Vout)
+set wr_singlescale
+wrdata ngcc_3stage_ff.free.ac.txt hout
+quit
+.endc
+.end

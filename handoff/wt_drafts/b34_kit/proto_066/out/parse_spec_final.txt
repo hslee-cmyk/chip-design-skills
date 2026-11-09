@@ -1,0 +1,2 @@
+{"phase": "2", "evidence_type": "red-green", "gate_change": "no", "approval": ["20260930-b26-before-phase3"], "activated_ic_case": [], "n_sections": 12}
+interface rows identical (14)

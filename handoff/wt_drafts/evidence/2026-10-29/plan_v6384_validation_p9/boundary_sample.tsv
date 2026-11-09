@@ -1,0 +1,37 @@
+#	fn	audit_class	new_wording_class	agree	boundary_used	note
+1	authoring._feedback_cuts.input_terminal_nets	B	B	yes	G1,G7	로더 두 자리 + noise_plan θ마다
+2	authoring._terminal_nets.mos_terminal_nets	B	B	yes	G1	배정 card 범위는 불일치(보고서 M1)
+3	authoring.dc_edges.dc_edges_unpruned	B	B	yes	G1	검사 위치 = 첫 소비자 전이어야(M7)
+4	graph.net_model.net_model	B	B(파생 술어) + READS(투영 부분)	partial	G2	혼합 객체 처리 미정; B4 행은 모형 전체를 S1v 필드로(M4)
+5	graph.supplies.supplies_declaration	B	B	yes	G5	kernel_context 대조 삭제 근거 필요(m5)
+6	layout._helpers_pattern.offsets	B	B (새 k 행은 C)	yes	G5
+7	lut.point_query.op_point	B(+C)	G3 -> B / N3.3 (a) 'LUT와 숫자 인자만의 순수 함수' -> 예외	split	G3 vs N3.3(a)	인자 출처 기준 없음(M3)
+8	sizing._helpers_lut.forward_point	B	B	yes	G5	G3 충돌 같은 꼴
+9	lut.vdsat_query.vdsat	B	B	yes	G3	정본 writer 이중(C1)
+10	lut.vdsat_tolerance.tol_vdsat_table(.at)	B	B (표 자체 A')	yes	G3
+11	metrics.ss_circuit.ss_circuit	B	B	yes	-	IT-2c
+12	metrics.block_gain_model.block_gain_model_of	B	B	yes	G4
+13	metrics.block_param_tables.ParamTables	B	G4 -> B / N3.3(a) LUT memo -> 예외 / S0 파생 행 'ParamTables graph 열 사본 폐기'	split	G3,G4	(m10)
+14	search.current_box.current_box	B	G3 -> B / 인자 = (lut, kind) 뿐이라 N3.3(a) 예외	split	G3 vs N3.3(a)	(M3)
+15	search.layer0_center.centre_start	B	B (n_θ)	yes	-	n_θ 출처 표기 두 가지(m3)
+16	sizing.dc_inputs.dc_inputs_from_spec	B	G6 -> B / G2 spec 투영이면 READS(X)	split	G2 vs G6	(M4)
+17	sizing._helpers_lut.tol_v_cell	D	G5 조건문('정의상 같으면') -> 여전히 미정	unresolved	G5	배정·측정 없음(m2)
+18	metrics.dc_metrics.metrics_dc	A	A	yes	-	S3 graft
+19	search.area_decl.passive_area_decl	A	A	yes	-
+20	lut.derived_fns.derived	A'	A' (N3.3 a) / G3 문언상 같은 키 2자리면 필드로 읽힐 여지	weak-split	G3
+21	search._helpers_curves.edge_cost	A'	A' / G3 문언상 achievability _headroom과 같은 키 2자리 -> B	split	G3	(M3)
+22	metrics._helpers_nodal.conductance_matrix	E	E	yes	G7	블록 입력 층(ss) 값
+23	search._helpers_guard.guard_devices	E	E	yes	G7	start_intervals 입력 층(S0)
+24	search.dominant_node.dominant_node	E	E	yes	G7
+25	graph.signal_reach.signal_reach	E	E	yes	-	다른 접지 집합
+26	layout._helpers_pattern.device_views	X	X (READS)	yes	G2
+27	sizing._helpers_seal.node_values	X	'두 열 합치기'가 집계인지 미정	weak-split	G2	(m8)
+28	search.canonical_rows.canonical_row_key	X	key 유도가 '새 양'인지 미정	weak-split	G2	(m8)
+29	sizing.theta_check.check_theta	X	'술어 포함, 예외 없음' 문언상 같은 봉인점 2회 검사 = B	no	rule body	검사(값 없음) 제외 문언 없음(m8)
+30	lut.cap_query.caps	C	C	yes	-	봉인점 대 추정점
+31	lut.mismatch_query.mismatch_dvgs	C	C	yes	-
+32	metrics.block_gain_rows.row_gains	C	C	yes	G4	평가
+33	metrics.dc_limit.solve_dc_limit	C	C	yes	-	봉인 ss 대 매크로 망
+34	search.kernel.evaluate	C	C	yes	-	θ 다름
+35	lut._helpers_root.monotone_end	C	C (쌍둥이 코드 -- N6.3 보조 grep 후보로 잡힘, 규칙 밖)	yes	-	N6.3 보조 grep 판정 기준 없음
+36	authoring.topology_load.load_topology	C	C	yes	G1	파싱

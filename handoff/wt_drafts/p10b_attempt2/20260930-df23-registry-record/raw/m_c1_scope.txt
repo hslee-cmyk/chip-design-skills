@@ -1,0 +1,51 @@
+## chain
+e67211cd528850d14b585298cb499f8a76767182 04e1697f6fa93e1ba1844bf3517852d493808f06 3fd34f688528a7d2e0c5d4e7523d4eea720223ba | doc | 20260930-df23-registry-record
+3fd34f688528a7d2e0c5d4e7523d4eea720223ba 04e1697f6fa93e1ba1844bf3517852d493808f06 | code | 20260930-df23-registry-record
+04e1697f6fa93e1ba1844bf3517852d493808f06 0f237862c007f6a53122f2bdfb3c87e6366ec133 | test | 20260930-df23-registry-record
+## M tree vs M^2 tree
+5e84c36dc28e0b170c0595d8222f367029eec741
+5e84c36dc28e0b170c0595d8222f367029eec741
+## diff base M name-status
+M	docs/03-analysis/gain-budget-gmid-sizing.function-registry.md
+A	skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py
+M	skills/analog-gmid-design/assets/tests/tools/reg_check.py
+## numstat
+77	0	docs/03-analysis/gain-budget-gmid-sizing.function-registry.md
+794	0	skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py
+174	0	skills/analog-gmid-design/assets/tests/tools/reg_check.py
+## diff T M name-status
+M	docs/03-analysis/gain-budget-gmid-sizing.function-registry.md
+M	skills/analog-gmid-design/assets/tests/tools/reg_check.py
+## test file blob T vs M
+c820d6786a679647a48d3082f2cbd403718ff2a3
+c820d6786a679647a48d3082f2cbd403718ff2a3
+## engine/library/inventory/old tests diff
+2
+## registry blob prefix
+   524 C:/g88/out3/reg_base_blob.md
+   601 C:/g88/out3/reg_m_blob.md
+  1125 total
+base blob is byte prefix of M blob
+CR in M blob: 0
+worktree eol M: CRLF 601 / lines 601
+## appended section
+## 8. DF-23 -- 엔진 이름 리터럴 종속 (전수 목록 기록)
+
+목록: `docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/df23_inventory.json`
+measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
+
+목록을 다시 재면 이 절을 같은 Phase 안에서 갱신한다(대조: `reg_check.py --df23-inventory`).
+
+### 8.1 총계
+
+| 축 | 값 | 항목 수 |
+|---|---|---|
+| phase | 3 | 61 |
+| phase | 4 | 63 |
+| phase | 6b | 1 |
+| phase | 7a | 27 |
+| phase | 7b | 46 |
+| phase | 해당 없음 | 317 |
+| role | 동작을 정함 | 213 |
+| role | 메시지뿐 | 302 |
+

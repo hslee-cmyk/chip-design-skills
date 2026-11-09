@@ -1,0 +1,93 @@
+gain-budget-gmid-sizing old 11: segs missing 2
+   MISS(frag60 in hist=False): Q-1~Q-4·Q-A1·Q-C1~Q-C5·P4-R(θ점
+   MISS(frag60 in hist=False): 묶음'·'아홉째'·'열째·열한째'·'열둘째'·'열셋째'
+gain-budget-gmid-sizing old 162: segs missing 0
+gain-budget-gmid-sizing old 209: segs missing 0
+gain-budget-gmid-sizing old 212: segs missing 0
+gain-budget-gmid-sizing old 213: segs missing 0
+gain-budget-gmid-sizing old 215: segs missing 0
+gain-budget-gmid-sizing old 217: segs missing 0
+gain-budget-gmid-sizing old 223: segs missing 0
+gain-budget-gmid-sizing old 227: segs missing 0
+gain-budget-gmid-sizing old 236: segs missing 0
+gain-budget-gmid-sizing old 260: segs missing 0
+gain-budget-gmid-sizing old 261: segs missing 0
+gain-budget-gmid-sizing old 262: segs missing 0
+gain-budget-gmid-sizing old 263: segs missing 0
+gain-budget-gmid-sizing old 270: segs missing 0
+gain-budget-gmid-sizing old 277: segs missing 0
+gain-budget-gmid-sizing old 304: segs missing 0
+gain-budget-gmid-sizing old 391: segs missing 0
+gain-budget-gmid-sizing old 515: segs missing 0
+gain-budget-gmid-sizing old 546: segs missing 0
+gain-budget-gmid-sizing old 553: segs missing 0
+gain-budget-gmid-sizing old 555: segs missing 0
+gain-budget-gmid-sizing old 672: segs missing 0
+gain-budget-gmid-sizing old 678: segs missing 0
+gain-budget-gmid-sizing old 691: segs missing 0
+gain-budget-gmid-sizing old 715: segs missing 0
+gain-budget-gmid-sizing old 746: segs missing 0
+gain-budget-gmid-sizing old 972: segs missing 0
+gain-budget-gmid-sizing old 1066: segs missing 0
+gain-budget-gmid-sizing old 1148: segs missing 0
+gain-budget-gmid-sizing old 1157: VERBATIM(norm)
+gain-budget-gmid-sizing old 1160: VERBATIM(norm)
+gain-budget-gmid-sizing old 1162: segs missing 0
+gain-budget-gmid-sizing old 1188: segs missing 0
+gain-budget-gmid-sizing old 1229: segs missing 0
+gain-budget-gmid-sizing old 1230: segs missing 0
+gain-budget-gmid-sizing old 1271: segs missing 0
+gain-budget-gmid-sizing old 1275: segs missing 0
+gain-budget-gmid-sizing old 1345: segs missing 0
+gain-budget-gmid-sizing old 1555: segs missing 1
+   MISS(frag60 in hist=False): (a) **B12 정규화 레일 전위** -- 정본 = 기존 W0 `node.dc_rail_v` 필드 하나다: writer를 S1 블록 하나로 옮기고(supplies 선언을 정규화하는 S1 블록 -- S1 키가 `supplies_v_fp`를 담으므로 같은 키면 같은 값), 필드 이름은 유지한다(소비자 무변경; W0 블록과 S1 필드를 따로 두면 정의가 같은 
+gain-budget-gmid-sizing old 1565: VERBATIM
+gain-budget-gmid-sizing old 1770: segs missing 0
+gain-budget-gmid-sizing old 1772: segs missing 0
+gain-budget-gmid-sizing old 1780: segs missing 0
+gain-budget-gmid-sizing old 1782: segs missing 0
+gain-budget-gmid-sizing old 1853: segs missing 1
+   MISS(frag60 in hist=False): `residual_probe`·`dof_numeric`·`coupling`
+gain-budget-gmid-sizing old 1878: segs missing 0
+gain-budget-gmid-sizing old 1897: segs missing 0
+gain-budget-gmid-sizing old 2128: segs missing 0
+gain-budget-gmid-sizing old 2187: segs missing 0
+gain-budget-gmid-sizing old 2189: segs missing 0
+gain-budget-gmid-sizing old 2190: segs missing 0
+gain-budget-gmid-sizing old 2194: segs missing 0
+gain-budget-gmid-sizing old 2262: segs missing 0
+gain-budget-gmid-sizing old 2322: segs missing 0
+gain-budget-gmid-sizing old 2341: segs missing 0
+gain-budget-gmid-sizing old 2345: segs missing 0
+gain-budget-gmid-sizing old 2347: segs missing 0
+gain-budget-gmid-sizing old 2349: segs missing 0
+gain-budget-gmid-sizing old 2423: segs missing 0
+gain-budget-gmid-sizing old 2427: segs missing 0
+gain-budget-gmid-sizing old 2447: segs missing 1
+   MISS(frag60 in hist=False): 시간 예산에서 유도하는 실행의 다변형 규칙 -- 후보:
+gain-budget-gmid-sizing old 2467: segs missing 0
+oracle-portability old 18: segs missing 0
+oracle-portability old 477: VERBATIM(norm)
+oracle-portability old 508: segs missing 0
+oracle-portability old 513: segs missing 0
+oracle-portability old 766: segs missing 0
+graph-consumption old 15: segs missing 0
+graph-consumption old 88: segs missing 0
+graph-consumption old 93: segs missing 0
+graph-consumption old 307: segs missing 0
+graph-consumption old 312: segs missing 0
+graph-consumption old 313: segs missing 0
+graph-consumption old 314: segs missing 0
+graph-consumption old 335: segs missing 0
+graph-consumption old 503: segs missing 0
+graph-consumption old 580: segs missing 0
+graph-consumption old 668: segs missing 0
+graph-consumption old 673: segs missing 0
+graph-consumption old 792: segs missing 0
+offset-strategy old 11: segs missing 0
+offset-strategy old 443: segs missing 0
+offset-strategy old 463: segs missing 0
+offset-strategy old 473: segs missing 0
+offset-strategy old 572: segs missing 0
+offset-strategy old 615: segs missing 0
+{"lines": 87, "verbatim": 4, "segs": 12, "segs_ok": 7}

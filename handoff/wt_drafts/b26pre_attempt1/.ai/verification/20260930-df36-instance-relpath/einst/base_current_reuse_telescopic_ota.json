@@ -1,0 +1,59 @@
+{
+ "circuit": "current_reuse_telescopic_ota",
+ "root": "C:\\g16\\eq",
+ "harness_file": "C:\\g16\\eq\\workspaces\\run_harness.py",
+ "constants_raw": {
+  "ASSETS_DIR": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets",
+  "LIBRARY_DIR": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets\\library",
+  "WORKSPACES_DIR": "C:\\g16\\eq\\workspaces",
+  "LUTFILE": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets\\sky130_nfet_pfet_lut_sample.npz"
+ },
+ "sys_path_added": [
+  "C:\\g16\\eq\\skills\\analog-grammar\\assets",
+  "C:\\g16\\eq\\skills\\analog-gmid-design\\assets"
+ ],
+ "engine_origin": {
+  "sizing_recipe": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets\\sizing_recipe.py",
+  "stick_diagram": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets\\stick_diagram.py",
+  "design_report": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets\\design_report.py"
+ },
+ "instance_path": "C:\\g16\\eq\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json",
+ "exists": true,
+ "fail_in_stdout": false,
+ "top_keys_in_file_order": [
+  "schema_version",
+  "topology_ref",
+  "sizing",
+  "netlist",
+  "floorplan",
+  "box_shape",
+  "audit_row_split",
+  "coverage"
+ ],
+ "raw_sha256": "534c3e0df359ad1135ca95a8dec1a682031783d0efa3485f72fff0a6abe5593a",
+ "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+ "field_sha256": {
+  "schema_version": "86169bcf42397928e1828b0a8e09ab69037ac05474b33486513c2fea65908565",
+  "topology_ref": "831a55bd833d8d42f1522605d8872c8fee311bc39cff2849037147024faca42a",
+  "sizing": "38cbc704a63d9706c1dc8e1c6fd7cb87e86adb84dc6a5e5e2c16eeed90239f63",
+  "netlist": "8cfd62aea77fec4bb999f158aeea9ffc8ccc0c590769eb45b78c6bf5b9a542e3",
+  "floorplan": "1497b86eac34a68b1edc1d24d50aaf6428568a7fb1023211275fac7773b52aab",
+  "box_shape": "d85fa9ce54f5fde97ca888a0dc9692f52613969f96c205797c79eeee5b781150",
+  "audit_row_split": "0ed646536f791578c2edf610cce02162e2665b965227f4477ca9b33f0e4c97b0",
+  "coverage": "bbce9d8746554b37d98058c46c1edb34cfe410d7e7168186e2741d35fdf183c2"
+ },
+ "file_bytes_sha256": "466bddfaf7e97409c8b53149d63eff69aeff94b045f05128850cf1f8cb90f504",
+ "mask_form": "ensure_ascii=False",
+ "file_bytes_masked_sha256": "f555c89ce58de5454ae8442470b0bd87c82cbf776f85d6a5c1e544396855f2f5",
+ "file_len": 100130,
+ "topology_ref_raw": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json",
+ "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json",
+ "topology_ref_equals_expected_contract1": false,
+ "path_string_hits": [
+  {
+   "json_path": "/topology_ref",
+   "value": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json"
+  }
+ ],
+ "n_sizing": 51
+}

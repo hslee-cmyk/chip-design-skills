@@ -1,0 +1,32 @@
+[
+{
+"id": "sizing_recipe:optimize_full_circuit_budget:stmt_delete:body[1]",
+"why": "no counterpart",
+"key": "('stmt_delete', 'DELstmt_delete', \"rails = meta['rails']\", 0)"
+},
+{
+"id": "sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[1]",
+"why": "no counterpart",
+"key": "('stmt_delete', 'DELstmt_delete', \"rails = meta['rails']\", 0)"
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[1]",
+"why": "no counterpart",
+"key": "('stmt_delete', 'DELstmt_delete', \"rails = meta['rails']\", 0)"
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[2]",
+"why": "no counterpart",
+"key": "('stmt_delete', 'DELstmt_delete', \"if refined is None:\\n    return {'matching_pairs_proposals': [], 'device_roles_proposals': {}, 'review_needed': []}\", 0)"
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[24]",
+"why": "no counterpart",
+"key": "('stmt_delete', 'DELstmt_delete', '_static_ref_roles = (_netclass_lcmf.DIODE, _netclass_lcmf.CURR_SRC, _netclass_lcmf.ACTIVE_LOAD, _netclass_lcmf.CASCODE)', 0)"
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[2].body[0]",
+"why": "no counterpart",
+"key": "('stmt_delete', 'DELstmt_delete', \"return {'matching_pairs_proposals': [], 'device_roles_proposals': {}, 'review_needed': []}\", 0)"
+}
+]

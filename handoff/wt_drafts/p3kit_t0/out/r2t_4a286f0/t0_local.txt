@@ -1,0 +1,40 @@
+== 대상 저장소 R=/c/g253/sb/repo  상태 파일 /c/g253/sb/t0_state.txt  spec 초안 /c/g253/sb/t0.spec.md  worktree 부모 /c/g253/sb/wt
+== pre: 착수 전 확인(저장소 변경 없음)
+   착수 조건(gate master fe74038) exit: 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0 9:0 10:0 11:0   조건 3 결과 파일 규약 전체(Python)=0
+      1 0    Phase 3 design 승인 기록 20260930-30-module-split-design(card approval 줄 첫째)
+      2 0    design 30-module-split 문서 커밋(승인 기록 diff_head)
+      3 0    Phase 2 DoD PASS(결과 파일 판정 줄)
+      4 0    B34 20260930-b34-grammar-explicit 병합
+      5 0    b26pre 20260930-b26-pre-test-strengthen 병합
+      6 0    backfill 20261001-b26-backfill-interdig-final-audit 병합
+      7 0    B26-1 20260930-b26-rail-accessor-set 병합
+      8 0    B33 20260930-v7-registry-edges 병합(이 card의 base = B33 병합 뒤 master)
+      9 0    계약 10 대상 test(B26-1 test_b26_rail_accessor.py)가 있다
+     10 0    이 card spec이 아직 없다(순서 0 전)
+     11 0    V4 면제 decision 승인 기록 20261002-p3-t0-v4-s009-exempt(card approval 줄 셋째, 사용자 답 [T0-V4])
+   measured 27e47a3 -> gate fe74038: 선행 5 card 판정 기록 포함, A/·run_harness.py·design 10 차이 0
+   승인 기록 20260930-30-module-split-design: gate fe74038에 있음(parse-approval id 일치, target_kind diff)
+   승인 기록 20261002-p3-t0-v4-s009-exempt: gate fe74038에 있음(parse-approval id 일치, target_kind decision)
+== pre OK: gate master fe74038, _approved_ids 39, plan_tables_hash 7167e02839f86c4e…, cache C:/g253/sb/repo/.git/gmid-gate-cache/fe74038b5dd60525e35ae072a620c1f88e4a9cb5
+== card (S): spec card + interface card(게이트 캐시 interface_card.py, 절대 경로) -- Role: doc
+   착수 조건(gate master fe74038) exit: 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0 9:0 10:0 11:0   조건 3 결과 파일 규약 전체(Python)=0
+      1 0    Phase 3 design 승인 기록 20260930-30-module-split-design(card approval 줄 첫째)
+      2 0    design 30-module-split 문서 커밋(승인 기록 diff_head)
+      3 0    Phase 2 DoD PASS(결과 파일 판정 줄)
+      4 0    B34 20260930-b34-grammar-explicit 병합
+      5 0    b26pre 20260930-b26-pre-test-strengthen 병합
+      6 0    backfill 20261001-b26-backfill-interdig-final-audit 병합
+      7 0    B26-1 20260930-b26-rail-accessor-set 병합
+      8 0    B33 20260930-v7-registry-edges 병합(이 card의 base = B33 병합 뒤 master)
+      9 0    계약 10 대상 test(B26-1 test_b26_rail_accessor.py)가 있다
+     10 0    이 card spec이 아직 없다(순서 0 전)
+     11 0    V4 면제 decision 승인 기록 20261002-p3-t0-v4-s009-exempt(card approval 줄 셋째, 사용자 답 [T0-V4])
+   승인 기록 20260930-30-module-split-design: gate fe74038에 있음(parse-approval id 일치, target_kind diff)
+   승인 기록 20261002-p3-t0-v4-s009-exempt: gate fe74038에 있음(parse-approval id 일치, target_kind decision)
+   parse_spec_card OK ('3', 'test-only', 'no', ['20260930-30-module-split-design', '20260930-p3-tests-location-free', '20261002-p3-t0-v4-s009-exempt'], [], 11) -- approval 20260930-30-module-split-design 20261002-p3-t0-v4-s009-exempt 있음, 20260930-p3-tests-location-free 뒤에(test 커밋 뒤)
+interface card: C:/g253/sb/repo/docs/02-design/specs/20260930-p3-tests-location-free.interface.md (기존 함수 6개)
+   interface card 기존 함수 6 (필수 6 + rail_declaration 0 ), 신규 0
+== card OK: 5f99634 (interface 47줄)
+== final: push 전 종합 확인
+5f99634 docs: T0 spec card 20260930-p3-tests-location-free(Phase 3 이동 전 계약 test 셋·B26-1 계수 test를 정의 위치 무관 판정으로, unit selftest 3파일 import 출처(W-1) -- R-DEF 공용 도우미, 판정 범위 확대만, test-only, phase 3, 승인 20260930-30-module-split-design·V4 면제 20261002-p3-t0-v4-s009-exempt, V5 diff 승인 20260930-p3-tests-location-free는 test 커밋 뒤) + interface card
+== final OK -- 다음은 push 단독 호출(병렬·tail 금지):  env APPDATA='C:\Users\HSLEE\AppData\Roaming' LOCALAPPDATA='C:\Users\HSLEE\AppData\Local' git -C /c/g253/sb/repo push gate master:master   그 뒤 after-push

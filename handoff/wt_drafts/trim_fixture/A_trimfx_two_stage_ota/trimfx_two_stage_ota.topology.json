@@ -1,0 +1,29 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "trimfx_two_stage_ota",
+  "source": "[초안·사용자 승인 전, T-9/T-17] offset trim 2단계 검증용 시험 회로 후보 A -- assets/library/two_stage_ota.topology.json(master 944020f)의 connectivity(netlist·passive_elements·supply_nets·ports·bias_inputs·source_manifest)를 그대로 복사했다. 연결은 한 글자도 바꾸지 않았다(connectivity_fp 가 library 원본과 같아야 한다 -- 로드 검사로 확인). 태그 키(device_roles·symmetry·sizing_roles·compensation)와 옛 주석 키(_declared_target_spec 등)는 로더가 읽지 않으므로 빼었다(IC4).",
+  "_fixture_note": "library 밖 시험 위치에 둔다(design §16.1). 원본 connectivity 확정 이력: Maloberti p.28-33, 사용자 확정 TOPOLOGY_CORRECTION_QUEUE Q4/Q4'(2026-10-07, Rz-Cc 직렬 보상과 CL 3 pF), ports 2026-09-10/2026-09-17.",
+  "supply_nets": ["vdd", "gnd"],
+  "bias_inputs": ["bias"],
+  "ports": {
+    "_comment": "원본 그대로: vin_p -> v(OUT) 비반전(2026-09-17 review9_input_polarity_probe 확인). 입력쌍 M1(gate vin_n, drain D3 다이오드 쪽)·M2(gate vin_p, drain O1).",
+    "vin_p": {"role": "differential_input_p", "direction": "input"},
+    "vin_n": {"role": "differential_input_n", "direction": "input"},
+    "OUT": {"role": "single_ended_output", "direction": "output"}
+  },
+  "netlist": [
+    {"name": "M3", "kind": "pmos", "source": "vdd", "drain": "D3", "gate": "D3"},
+    {"name": "M4", "kind": "pmos", "source": "vdd", "drain": "O1", "gate": "D3"},
+    {"name": "M6", "kind": "pmos", "source": "vdd", "drain": "OUT", "gate": "O1"},
+    {"name": "M1", "kind": "nmos", "source": "CS", "drain": "D3", "gate": "vin_n"},
+    {"name": "M2", "kind": "nmos", "source": "CS", "drain": "O1", "gate": "vin_p"},
+    {"name": "M5", "kind": "nmos", "source": "gnd", "drain": "CS", "gate": "bias"},
+    {"name": "M7", "kind": "nmos", "source": "gnd", "drain": "OUT", "gate": "bias"}
+  ],
+  "passive_elements": [
+    {"name": "Rz", "kind": "resistor", "value_ohm": null, "terminals": ["O1", "N_cc_rz"], "_comment": "원본 그대로: O1 - Rz - N_cc_rz - Cc - OUT 직렬 보상. 값은 엔진 계산."},
+    {"name": "Cc", "kind": "capacitor", "value_farad": null, "terminals": ["N_cc_rz", "OUT"], "_comment": "원본 그대로. 값은 엔진 계산."},
+    {"name": "CL", "kind": "capacitor", "value_farad": 3e-12, "terminals": ["OUT", "gnd"], "_comment": "원본 그대로(값 3 pF 이 topology 에도 남아 있다 -- spec 값과 같아야 element_value_conflict 가 없다)."}
+  ],
+  "source_manifest": {"figure": "Maloberti p.28-33", "device_count": 7, "passive_count": 3}
+}

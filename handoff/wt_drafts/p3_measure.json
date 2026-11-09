@@ -1,0 +1,1728 @@
+{
+ "toplevel_counts": {
+  "sizing_recipe": {
+   "ClassDef": 13,
+   "FunctionDef": 174,
+   "Assign": 30
+  },
+  "stick_diagram": {
+   "ClassDef": 28,
+   "Assign": 8,
+   "FunctionDef": 131
+  },
+  "topology_library": {
+   "FunctionDef": 7
+  },
+  "design_report": {
+   "FunctionDef": 5,
+   "Assign": 1
+  },
+  "audit_current_forced": {
+   "FunctionDef": 4
+  },
+  "topology_to_markdown": {
+   "FunctionDef": 4
+  },
+  "sky130_lut_sweep": {
+   "Assign": 14,
+   "FunctionDef": 6
+  }
+ },
+ "registry_rows": 379,
+ "registry_dest_mod_counts": {
+  "gmid_sizing_engine": 114,
+  "UNMAPPED": 62,
+  "circuit_state_graph": 61,
+  "instance_report_builder": 7,
+  "topology_authoring": 32,
+  "sizing_layout_convergence": 14,
+  "stick_diagram": 87,
+  "gmid_design_pipeline": 2
+ },
+ "registry_unmapped": [
+  [
+   84,
+   [
+    "dense_candidates"
+   ],
+   "optimizer(탐색 격자 생성)"
+  ],
+  [
+   85,
+   [
+    "quantize_L"
+   ],
+   "optimizer"
+  ],
+  [
+   86,
+   [
+    "_grid_points_in_range"
+   ],
+   "optimizer"
+  ],
+  [
+   87,
+   [
+    "layout_grid_L_candidates"
+   ],
+   "optimizer"
+  ],
+  [
+   134,
+   [
+    "_lerp"
+   ],
+   "optimizer"
+  ],
+  [
+   143,
+   [
+    "derived_bounds_path"
+   ],
+   "optimizer(S3 저장 경로)"
+  ],
+  [
+   146,
+   [
+    "extract_linear_feasibility_constraints"
+   ],
+   "optimizer"
+  ],
+  [
+   147,
+   [
+    "_group_score_metric"
+   ],
+   "optimizer"
+  ],
+  [
+   148,
+   [
+    "_group_score_interior"
+   ],
+   "optimizer"
+  ],
+  [
+   248,
+   [
+    "render_report"
+   ],
+   "audit_current_forced.py"
+  ],
+  [
+   250,
+   [
+    "  └ topology_fn"
+   ],
+   "〃"
+  ],
+  [
+   251,
+   [
+    "  └ topology_fn"
+   ],
+   "〃"
+  ],
+  [
+   252,
+   [
+    "nmcnr_compensation_elements"
+   ],
+   "〃"
+  ],
+  [
+   253,
+   [
+    "nmcnr_predict_ac_response"
+   ],
+   "〃"
+  ],
+  [
+   254,
+   [
+    "  └ _H"
+   ],
+   "〃"
+  ],
+  [
+   255,
+   [
+    "  └ topology_fn"
+   ],
+   "〃"
+  ],
+  [
+   256,
+   [
+    "_kv_table"
+   ],
+   "〃"
+  ],
+  [
+   257,
+   [
+    "  └ _section"
+   ],
+   "〃"
+  ],
+  [
+   258,
+   [
+    "save_html_report"
+   ],
+   "〃"
+  ],
+  [
+   260,
+   [
+    "_gen_netlist"
+   ],
+   "LUT 생성 도구 유지"
+  ],
+  [
+   261,
+   [
+    "_parse_output"
+   ],
+   "〃"
+  ],
+  [
+   262,
+   [
+    "_ltag"
+   ],
+   "〃"
+  ],
+  [
+   263,
+   [
+    "_cleanup_temp"
+   ],
+   "〃"
+  ],
+  [
+   264,
+   [
+    "run_device"
+   ],
+   "〃"
+  ],
+  [
+   266,
+   [
+    "_flag_gate_only_nets"
+   ],
+   "〃"
+  ],
+  [
+   267,
+   [
+    "_net_table"
+   ],
+   "〃"
+  ],
+  [
+   268,
+   [
+    "render_markdown"
+   ],
+   "〃"
+  ],
+  [
+   343,
+   [
+    "achievable_metric_bound"
+   ],
+   "optimizer(S3 유도 임계값)"
+  ],
+  [
+   349,
+   [
+    "repair_infeasible_baseline"
+   ],
+   "optimizer"
+  ],
+  [
+   380,
+   [
+    "nmcnr_3stage_topology"
+   ],
+   "〃"
+  ],
+  [
+   381,
+   [
+    "nmcnr_check_dominant_pole_approximation"
+   ],
+   "〃"
+  ],
+  [
+   382,
+   [
+    "ngcc_3stage_topology"
+   ],
+   "〃"
+  ],
+  [
+   383,
+   [
+    "current_reuse_telescopic_topology"
+   ],
+   "〃"
+  ],
+  [
+   384,
+   [
+    "  └ topology_fn"
+   ],
+   "〃"
+  ],
+  [
+   386,
+   [
+    "assemble_report_data"
+   ],
+   "〃"
+  ],
+  [
+   388,
+   [
+    "_theta_evidence_for_pair"
+   ],
+   "〃"
+  ],
+  [
+   389,
+   [
+    "audit_topology"
+   ],
+   "〃"
+  ],
+  [
+   390,
+   [
+    "_run_combo"
+   ],
+   "〃"
+  ],
+  [
+   392,
+   [
+    "_spec_current_reuse_telescopic_ota"
+   ],
+   "〃"
+  ],
+  [
+   393,
+   [
+    "_spec_folded_cascode"
+   ],
+   "〃"
+  ],
+  [
+   394,
+   [
+    "_spec_nmcnr_amplifier"
+   ],
+   "〃"
+  ],
+  [
+   395,
+   [
+    "SPECS"
+   ],
+   "〃"
+  ],
+  [
+   403,
+   [
+    "_optimize_theta_slsqp_block_coordinate"
+   ],
+   "optimizer"
+  ],
+  [
+   419,
+   [
+    "derive_theta_dependency_graph"
+   ],
+   "optimizer"
+  ],
+  [
+   420,
+   [
+    "search_stage_budget_L_warm_start"
+   ],
+   "optimizer"
+  ],
+  [
+   421,
+   [
+    "presolve_warm_start"
+   ],
+   "optimizer"
+  ],
+  [
+   422,
+   [
+    "_optimize_theta_slsqp"
+   ],
+   "optimizer"
+  ],
+  [
+   461,
+   [
+    "_theta_device_map"
+   ],
+   "(정본 `_theta_feed_footprint` 10174 / walk…"
+  ],
+  [
+   462,
+   [
+    "_collect_device_refs"
+   ],
+   "(`_theta_device_map` 10933)"
+  ],
+  [
+   463,
+   [
+    "_fixup_euler_blocked_rows"
+   ],
+   "(`run_topology_pipeline_with_finger_fixu…"
+  ],
+  [
+   481,
+   [
+    "  └ _find"
+   ],
+   "공통 유틸"
+  ],
+  [
+   489,
+   [
+    "_invq_newton"
+   ],
+   "tests/ 픽스처(삭제 아님)"
+  ],
+  [
+   490,
+   [
+    "build_toy_lut"
+   ],
+   "tests/ 픽스처(§8.8 test 분리 시 이관)"
+  ],
+  [
+   491,
+   [
+    "solve_diode_stack_current"
+   ],
+   "삭제 후보"
+  ],
+  [
+   493,
+   [
+    "signal_path_nodes"
+   ],
+   "(삭제 후보)"
+  ],
+  [
+   494,
+   [
+    "node_pole_estimate"
+   ],
+   "(삭제 후보)"
+  ],
+  [
+   496,
+   [
+    "load_derived_bounds"
+   ],
+   "optimizer S3(흡수) 또는 삭제"
+  ],
+  [
+   506,
+   [
+    "find_differential_and_mirror_forks"
+   ],
+   "삭제 후보"
+  ],
+  [
+   507,
+   [
+    "MultiLeafHubParityVerdict"
+   ],
+   "test util"
+  ],
+  [
+   508,
+   [
+    "check_multi_leaf_hub_parity"
+   ],
+   "test util"
+  ],
+  [
+   509,
+   [
+    "DiodeStackMember"
+   ],
+   "-"
+  ],
+  [
+   510,
+   [
+    "DiodeStack"
+   ],
+   "-"
+  ]
+ ],
+ "coverage": {
+  "sizing_recipe": {
+   "defs": 187,
+   "missing_in_registry": 3,
+   "missing_sample": [
+    [
+     "knee_L_for_kind",
+     2394
+    ],
+    [
+     "feasible_L_window",
+     2533
+    ],
+    [
+     "derive_role_L",
+     2611
+    ]
+   ]
+  },
+  "stick_diagram": {
+   "defs": 159,
+   "missing_in_registry": 23,
+   "missing_sample": [
+    [
+     "FingerWidthVerdict",
+     5177
+    ],
+    [
+     "_is_connected_ignoring_isolated",
+     5290
+    ],
+    [
+     "check_euler_condition",
+     5314
+    ],
+    [
+     "suggest_finger_adjustments",
+     5755
+    ],
+    [
+     "suggest_pair_finger_adjustments",
+     5806
+    ],
+    [
+     "search_unit_cell_sizing",
+     5904
+    ],
+    [
+     "search_stack_finger_w",
+     5953
+    ],
+    [
+     "search_shared_finger_w",
+     6204
+    ],
+    [
+     "compute_row_geometry",
+     6304
+    ],
+    [
+     "check_box_shape",
+     6358
+    ],
+    [
+     "check_walk_sequence",
+     6484
+    ],
+    [
+     "folded_cascode_example",
+     6721
+    ],
+    [
+     "two_stage_ota_example",
+     6763
+    ],
+    [
+     "AuditResult",
+     6814
+    ],
+    [
+     "check_stick_diagram_coverage",
+     6944
+    ],
+    [
+     "PlacedBlock",
+     7740
+    ],
+    [
+     "FloorplanResult",
+     7749
+    ],
+    [
+     "_total_wire_cost",
+     7764
+    ],
+    [
+     "skyline_pack_best_width",
+     7902
+    ],
+    [
+     "pack_to_height",
+     7929
+    ],
+    [
+     "evaluate_row_split_candidates",
+     7991
+    ],
+    [
+     "pack_group_as_unit",
+     8289
+    ],
+    [
+     "pack_floorplan_grouped",
+     8360
+    ]
+   ]
+  },
+  "topology_library": {
+   "defs": 7,
+   "missing_in_registry": 0,
+   "missing_sample": []
+  },
+  "design_report": {
+   "defs": 5,
+   "missing_in_registry": 0,
+   "missing_sample": []
+  },
+  "audit_current_forced": {
+   "defs": 4,
+   "missing_in_registry": 0,
+   "missing_sample": []
+  }
+ },
+ "multi_dest": {},
+ "plan_rep_vs_registry": [
+  {
+   "plan_mod": 1,
+   "name": "GmIdLUT",
+   "where": [
+    "sizing_recipe:52"
+   ],
+   "registry": [
+    [
+     69,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 1,
+   "name": "SemiEmpiricalGmIdLUT",
+   "where": [
+    "sizing_recipe:259"
+   ],
+   "registry": [
+    [
+     74,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     75,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     76,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     77,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     78,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     79,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     80,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     81,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     82,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     83,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     278,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     279,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     280,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ],
+    [
+     281,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 1,
+   "name": "_multilinear_interp",
+   "where": [
+    "sizing_recipe:141"
+   ],
+   "registry": [
+    [
+     73,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 1,
+   "name": "_solve_vgs",
+   "where": null,
+   "registry": null,
+   "agree": false
+  },
+  {
+   "plan_mod": 1,
+   "name": "lut_conditions_from_npz",
+   "where": [
+    "sizing_recipe:4782"
+   ],
+   "registry": [
+    [
+     497,
+     "circuit_state_graph",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 2,
+   "name": "load_topology",
+   "where": [
+    "stick_diagram:8550"
+   ],
+   "registry": [
+    [
+     439,
+     "circuit_state_graph",
+     "stick_diagram.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 2,
+   "name": "validate_metric_units",
+   "where": [
+    "sizing_recipe:5245"
+   ],
+   "registry": [
+    [
+     127,
+     "topology_authoring",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 2,
+   "name": "validate_no_legacy_vs_key",
+   "where": [
+    "sizing_recipe:5217"
+   ],
+   "registry": [
+    [
+     126,
+     "topology_authoring",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 2,
+   "name": "require_declared_spec_source",
+   "where": [
+    "sizing_recipe:7617"
+   ],
+   "registry": [
+    [
+     142,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 2,
+   "name": "validate_theta_declaration_order",
+   "where": [
+    "sizing_recipe:6296"
+   ],
+   "registry": [
+    [
+     495,
+     "topology_authoring",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 3,
+   "name": "is_diode_connected",
+   "where": [
+    "sizing_recipe:3119"
+   ],
+   "registry": [
+    [
+     108,
+     "circuit_state_graph",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 3,
+   "name": "true_current_mirror_groups",
+   "where": [
+    "sizing_recipe:2191"
+   ],
+   "registry": [
+    [
+     455,
+     "circuit_state_graph",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 3,
+   "name": "l_sharing_classes",
+   "where": [
+    "sizing_recipe:2218"
+   ],
+   "registry": [
+    [
+     95,
+     "circuit_state_graph",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 3,
+   "name": "l_class_owners",
+   "where": [
+    "sizing_recipe:2323"
+   ],
+   "registry": [
+    [
+     96,
+     "circuit_state_graph",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 3,
+   "name": "vgs_alias_map",
+   "where": [
+    "sizing_recipe:1637"
+   ],
+   "registry": [
+    [
+     91,
+     "circuit_state_graph",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 3,
+   "name": "_kcl_and_matching_edges",
+   "where": [
+    "stick_diagram:3134"
+   ],
+   "registry": [
+    [
+     473,
+     "circuit_state_graph",
+     "stick_diagram.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 3,
+   "name": "propagate_topology_forced_currents",
+   "where": [
+    "stick_diagram:2855"
+   ],
+   "registry": [
+    [
+     436,
+     "circuit_state_graph",
+     "stick_diagram.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 3,
+   "name": "spec_fingerprint",
+   "where": [
+    "sizing_recipe:7596"
+   ],
+   "registry": [
+    [
+     416,
+     "circuit_state_graph",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 4,
+   "name": "size_transistor",
+   "where": [
+    "sizing_recipe:104"
+   ],
+   "registry": [
+    [
+     453,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 4,
+   "name": "feasible_gm_ids",
+   "where": [
+    "sizing_recipe:1578"
+   ],
+   "registry": [
+    [
+     90,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 4,
+   "name": "measure_L_knee",
+   "where": [
+    "sizing_recipe:2138"
+   ],
+   "registry": [
+    [
+     94,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 4,
+   "name": "solve_diode_connected_vds",
+   "where": [
+    "sizing_recipe:3129"
+   ],
+   "registry": [
+    [
+     109,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 4,
+   "name": "solve_stacked_diode_pair",
+   "where": [
+    "sizing_recipe:3491"
+   ],
+   "registry": [
+    [
+     409,
+     "circuit_state_graph",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 4,
+   "name": "apply_theta_feed",
+   "where": [
+    "sizing_recipe:6284"
+   ],
+   "registry": [
+    [
+     132,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 5,
+   "name": "compute_metric",
+   "where": [
+    "sizing_recipe:5280"
+   ],
+   "registry": [
+    [
+     128,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 5,
+   "name": "_METRICS_REGISTRY",
+   "where": [
+    "sizing_recipe:5083"
+   ],
+   "registry": null,
+   "agree": false
+  },
+  {
+   "plan_mod": 5,
+   "name": "build_ac_network",
+   "where": [
+    "sizing_recipe:4067"
+   ],
+   "registry": [
+    [
+     306,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 5,
+   "name": "_full_circuit_response",
+   "where": [
+    "sizing_recipe:4970"
+   ],
+   "registry": [
+    [
+     325,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 5,
+   "name": "estimate_mismatch_sigma",
+   "where": [
+    "sizing_recipe:3073"
+   ],
+   "registry": [
+    [
+     105,
+     "gmid_sizing_engine",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 6,
+   "name": "_build_theta_evaluator",
+   "where": [
+    "sizing_recipe:7930"
+   ],
+   "registry": [
+    [
+     417,
+     "circuit_state_graph",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 6,
+   "name": "optimize_full_circuit_budget",
+   "where": [
+    "sizing_recipe:9075"
+   ],
+   "registry": [
+    [
+     418,
+     "sizing_layout_convergence",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 6,
+   "name": "search_stage_budget_L_warm_start",
+   "where": [
+    "sizing_recipe:10088"
+   ],
+   "registry": [
+    [
+     420,
+     null,
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 6,
+   "name": "presolve_warm_start",
+   "where": [
+    "sizing_recipe:10581"
+   ],
+   "registry": [
+    [
+     421,
+     null,
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 6,
+   "name": "_optimize_theta_slsqp",
+   "where": [
+    "sizing_recipe:10793"
+   ],
+   "registry": [
+    [
+     422,
+     null,
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 6,
+   "name": "repair_infeasible_baseline",
+   "where": [
+    "sizing_recipe:10410"
+   ],
+   "registry": [
+    [
+     349,
+     null,
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": false
+  },
+  {
+   "plan_mod": 8,
+   "name": "run_topology_pipeline_with_finger_fixup",
+   "where": [
+    "sizing_recipe:11887"
+   ],
+   "registry": [
+    [
+     353,
+     "sizing_layout_convergence",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 8,
+   "name": "revalidate_finger_override",
+   "where": [
+    "sizing_recipe:11299"
+   ],
+   "registry": [
+    [
+     350,
+     "sizing_layout_convergence",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 8,
+   "name": "resolve_stack_layout",
+   "where": [
+    "sizing_recipe:6470"
+   ],
+   "registry": [
+    [
+     338,
+     "sizing_layout_convergence",
+     "sizing_recipe.py"
+    ]
+   ],
+   "agree": true
+  },
+  {
+   "plan_mod": 9,
+   "name": "save_instance_json",
+   "where": [
+    "stick_diagram:8967"
+   ],
+   "registry": [
+    [
+     242,
+     "instance_report_builder",
+     "stick_diagram.py"
+    ]
+   ],
+   "agree": true
+  }
+ ],
+ "current_intra_imports": {
+  "sizing_recipe": [
+   "stick_diagram",
+   "topology_library"
+  ],
+  "stick_diagram": [],
+  "topology_library": [],
+  "design_report": [
+   "stick_diagram"
+  ],
+  "audit_current_forced": [
+   "stick_diagram"
+  ],
+  "topology_to_markdown": [
+   "stick_diagram"
+  ],
+  "sky130_lut_sweep": []
+ },
+ "mod_edges": {
+  "circuit_state_graph->gmid_sizing_engine": 32,
+  "circuit_state_graph->sizing_layout_convergence": 1,
+  "circuit_state_graph->stick_diagram": 2,
+  "circuit_state_graph->topology_authoring": 9,
+  "gmid_sizing_engine->circuit_state_graph": 69,
+  "instance_report_builder->circuit_state_graph": 4,
+  "instance_report_builder->gmid_sizing_engine": 1,
+  "instance_report_builder->stick_diagram": 2,
+  "sizing_layout_convergence->circuit_state_graph": 9,
+  "sizing_layout_convergence->gmid_sizing_engine": 4,
+  "sizing_layout_convergence->stick_diagram": 14,
+  "sizing_layout_convergence->topology_authoring": 2,
+  "stick_diagram->circuit_state_graph": 4,
+  "stick_diagram->topology_authoring": 2,
+  "topology_authoring->circuit_state_graph": 17,
+  "topology_authoring->gmid_sizing_engine": 1,
+  "topology_authoring->stick_diagram": 1
+ },
+ "upward_violations_count": 54,
+ "upward_violations_by_pair": {
+  "circuit_state_graph->gmid_sizing_engine": 32,
+  "topology_authoring->gmid_sizing_engine": 1,
+  "topology_authoring->circuit_state_graph": 17,
+  "circuit_state_graph->sizing_layout_convergence": 1,
+  "topology_authoring->stick_diagram": 1,
+  "circuit_state_graph->stick_diagram": 2
+ },
+ "upward_violations_sample": [
+  {
+   "from": "sizing_recipe.stack_kvl_vgs_limit",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.lut_vdsat_headroom",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe.stack_kvl_vgs_limit",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe._LUT_VDSAT_ROLES",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe.resolve_feed_vds",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe._feed_vds_fallback",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe.set_device_vds",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.DiodeSelfConsistencyError",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe.set_device_vds",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.solve_diode_connected_vds",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe.solve_stacked_diode_pair",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.width_from_id_density",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe.validate_metric_units",
+   "from_mod": "topology_authoring",
+   "to": "sizing_recipe.metric_unit_scale",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe.validate_theta_declaration_order",
+   "from_mod": "topology_authoring",
+   "to": "sizing_recipe._build_shared_current_joint_plan",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "sizing_recipe.validate_theta_declaration_order",
+   "from_mod": "topology_authoring",
+   "to": "sizing_recipe._shared_current_groups_from_compensation",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "sizing_recipe._hr_resolve_vertical_group",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe._LUT_VDSAT_ROLES",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._hr_resolve_vertical_group",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.diode_vds_window",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._hr_resolve_vertical_group",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.allocate_stack_headroom",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._hr_resolve_vertical_group",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe._hr_verify_group_kvl_sum",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._hr_resolve_vertical_group",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.width_from_id_density",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._hr_resolve_vertical_group",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe._hr_sum_ref_vds",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._hr_resolve_vertical_group",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.lut_vdsat_headroom",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._hr_resolve_vertical_group",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.InfeasibleSizingError",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe.resolve_constraint_references",
+   "from_mod": "topology_authoring",
+   "to": "sizing_recipe.spec_fingerprint",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe._L_ROLE_TARGETS",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.search_gm_id_for_role",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.reserved_vds_for_other_stack_members",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.compute_metric",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.apply_diode_self_consistent_gm_id",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe._refine_shared_current_joint_scan_for_full_circuit_constraints",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.derive_class_L",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.make_matching_feasibility_check",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe._metric_stage_budget_vds_by_device",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.require_declared_spec_source",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe._hr_verify_group_kvl_sum",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.width_from_id_density",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.apply_theta_feed",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.optimize_multistage",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe._hr_sum_ref_vds",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.resolve_stack_layout",
+   "to_mod": "sizing_layout_convergence"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.InfeasibleSizingError",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe.make_replica_feasibility_check",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe._build_theta_evaluator",
+   "from_mod": "circuit_state_graph",
+   "to": "sizing_recipe._COMPENSATION_REGISTRY",
+   "to_mod": "gmid_sizing_engine"
+  },
+  {
+   "from": "sizing_recipe.diagnose_sizing_roles_gap",
+   "from_mod": "topology_authoring",
+   "to": "sizing_recipe._build_theta_evaluator",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram.suggest_vertical_stack_composites",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram.trace_vdd_to_gnd_branches",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram.suggest_vertical_stack_composites",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram.trace_gnd_to_vdd_branches",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram._propose_gm_id_roles",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram.find_differential_pair_candidates",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram._propose_gm_id_roles",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram.find_structural_symmetry_candidates",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram._propose_L_roles",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram.find_differential_pair_candidates",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram._propose_L_roles",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram.find_structural_symmetry_candidates",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram.refine_differential_and_mirror_relations",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram.find_differential_pair_candidates",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram.check_symmetry_dispositions",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram.find_matching_candidates",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram.check_symmetry_dispositions",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram.find_hub_merge_candidates",
+   "to_mod": "stick_diagram"
+  },
+  {
+   "from": "stick_diagram.audit_vertical_stack_id_vs_kcl",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram._kcl_and_matching_edges",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram.propose_vertical_stack_id_gap_fill",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram._kcl_and_matching_edges",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram.propose_theta_kcl_gap_fill",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram._kcl_terminal_sign",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram.propose_device_roles_gap_fill",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram.find_matching_candidates",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram.propose_device_roles_gap_fill",
+   "from_mod": "topology_authoring",
+   "to": "stick_diagram.find_structural_symmetry_candidates",
+   "to_mod": "circuit_state_graph"
+  },
+  {
+   "from": "stick_diagram.load_topology",
+   "from_mod": "circuit_state_graph",
+   "to": "stick_diagram.check_topology_name_uniqueness",
+   "to_mod": "stick_diagram"
+  },
+  {
+   "from": "stick_diagram.load_topology",
+   "from_mod": "circuit_state_graph",
+   "to": "stick_diagram.Transistor",
+   "to_mod": "stick_diagram"
+  }
+ ],
+ "unassigned_toplevel": {
+  "sizing_recipe": [
+   "dense_candidates",
+   "quantize_L",
+   "_grid_points_in_range",
+   "layout_grid_L_candidates",
+   "_invq_newton",
+   "build_toy_lut",
+   "solve_diode_stack_current",
+   "DEFAULT_POLICY",
+   "_DEFAULT_UNCONSTRAINED_VDS",
+   "_DEFAULT_METRIC_STAGE_BUDGET_GM_ID",
+   "_DEFAULT_MIN_VDS_FALLBACK",
+   "knee_L_for_kind",
+   "feasible_L_window",
+   "derive_role_L",
+   "_AUTHORITATIVE_GM_ID_SOURCES",
+   "_AUTHORITATIVE_GM_ID_ONLY_SOURCES",
+   "_DEFAULT_RAIL_HI",
+   "_DEFAULT_RAIL_LO",
+   "signal_path_nodes",
+   "node_pole_estimate",
+   "_CMRR_ESTIMATOR_REGISTRY",
+   "_PSRR_ESTIMATOR_REGISTRY",
+   "_DEFAULT_SENSE_RESISTOR_OHM",
+   "_METRICS_REGISTRY",
+   "_METRIC_UNITS",
+   "_UNIT_SCALES",
+   "_UNIT_NAME_SUFFIXES",
+   "_THETA_FEED_REGISTRY",
+   "_CONSTRAINT_FEASIBILITY_RTOL",
+   "_CONSTRAINT_OPS",
+   "_lerp",
+   "_SPEC_RESOLUTION_KEYS",
+   "_ACHIEVABLE_BOUND_CACHE",
+   "derived_bounds_path",
+   "load_derived_bounds",
+   "achievable_metric_bound",
+   "_RESOLVE_STALE_NOTES",
+   "_SPLIT_SUFFIX_RE",
+   "_FULL_CIRCUIT_METRIC_TYPES",
+   "_DEFAULT_ALL_DEVICES_METRIC_TYPES",
+   "derive_theta_dependency_graph",
+   "extract_linear_feasibility_constraints",
+   "_group_score_metric",
+   "_group_score_interior",
+   "search_stage_budget_L_warm_start",
+   "_theta_device_map",
+   "repair_infeasible_baseline",
+   "presolve_warm_start",
+   "_optimize_theta_slsqp",
+   "_optimize_theta_slsqp_block_coordinate",
+   "_collect_device_refs",
+   "_fixup_euler_blocked_rows"
+  ],
+  "stick_diagram": [
+   "INTERDIGITATION_PATTERNS",
+   "COMMON_CENTROID_PATTERNS",
+   "find_differential_and_mirror_forks",
+   "MultiLeafHubParityVerdict",
+   "check_multi_leaf_hub_parity",
+   "DiodeStackMember",
+   "DiodeStack",
+   "_RAIL_NETS",
+   "FingerWidthVerdict",
+   "_is_connected_ignoring_isolated",
+   "check_euler_condition",
+   "_MAX_CROSSOVER_PAIRING_NODES",
+   "suggest_finger_adjustments",
+   "suggest_pair_finger_adjustments",
+   "search_unit_cell_sizing",
+   "search_stack_finger_w",
+   "search_shared_finger_w",
+   "PROCESS_GEOMETRY",
+   "compute_row_geometry",
+   "check_box_shape",
+   "check_walk_sequence",
+   "_MAX_MIRROR_TRAIL_COMBO_PAIRS",
+   "folded_cascode_example",
+   "two_stage_ota_example",
+   "AuditResult",
+   "check_stick_diagram_coverage",
+   "PlacedBlock",
+   "FloorplanResult",
+   "_total_wire_cost",
+   "skyline_pack_best_width",
+   "pack_to_height",
+   "evaluate_row_split_candidates",
+   "pack_group_as_unit",
+   "pack_floorplan_grouped"
+  ],
+  "topology_library": [
+   "nmcnr_3stage_topology",
+   "nmcnr_compensation_elements",
+   "nmcnr_predict_ac_response",
+   "nmcnr_check_dominant_pole_approximation",
+   "ngcc_3stage_topology",
+   "current_reuse_telescopic_topology"
+  ],
+  "design_report": [
+   "assemble_report_data",
+   "_CSS",
+   "_kv_table",
+   "save_html_report"
+  ]
+ }
+}

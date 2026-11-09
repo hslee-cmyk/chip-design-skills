@@ -1,0 +1,103 @@
+{
+  "id": "20260922-ts7-ic-xfail",
+  "attempt": 2,
+  "evidence_type": "test-only",
+  "freeze": {
+    "T": "41cba3e1c14b9377008f35b4482ee19930e55c2a",
+    "T_parent": "80ae065e7fc4f3c30fee61b955d0a3a65643d03c",
+    "T_trailers": "Role: test, Change-Id: 20260922-ts7-ic-xfail",
+    "code_commit": null,
+    "base_to_T_commits": 1,
+    "base_to_T_numstat": [
+      "2\t1\tskills/analog-gmid-design/assets/tests/README.md",
+      "115\t0\tskills/analog-gmid-design/assets/tests/conftest.py",
+      "12\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic1.py",
+      "12\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic10.py",
+      "16\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic11.py",
+      "12\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic2.py",
+      "12\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic3.py",
+      "12\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic4.py",
+      "12\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic5.py",
+      "12\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic6.py",
+      "15\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic7.py",
+      "12\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic8.py",
+      "12\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic9.py",
+      "162\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ic_markers_match_plan.py"
+    ],
+    "name_status": "A 13, M 1 (M = tests/README.md)",
+    "base_to_T_paths_outside_tests": 0,
+    "base_to_T_source_changes": 0,
+    "base_to_T_tools_githooks_changes": 0,
+    "plan_blob_base_eq_T": "da3d1699b6705d203c8b98201b00845af5b17381",
+    "blobs_T": {
+      "tests/README.md": "a0e788db2efc9250f2ccbe90539cbeff329252ec (base 6af3d27c4b4975f9d144e359952fbac259ee5455)",
+      "tests/conftest.py": "c8c701d97afabd874fbe349ca4726b87f4d61b97 (base 없음)",
+      "tests/contracts/test_ic1.py": "a94a41d0ce66a000af064233383ee6bb126ac16c",
+      "tests/contracts/test_ic2.py": "a0b115614fb9501f5be48b457be93fdf27a33244",
+      "tests/contracts/test_ic3.py": "fcd70e9f091a12e0dc6347bb4da85036c1b3fb6e",
+      "tests/contracts/test_ic4.py": "5ca7c7cb5d6c33cf12f4c3012756daf36eceb6ac",
+      "tests/contracts/test_ic5.py": "517bb8c26e35b8e1f677681e3850e94a4c235c5f",
+      "tests/contracts/test_ic6.py": "f351a7017d95c7d079f5c4d305cad0875ee37db6",
+      "tests/contracts/test_ic7.py": "d357582f0a27160c12a8d76591bd44d275818a95",
+      "tests/contracts/test_ic8.py": "1ac58df24354f3db5a6d9825f98bea4fff6131f9",
+      "tests/contracts/test_ic9.py": "b8b41d83df011bc5a3fd87244f5a955004020dc8",
+      "tests/contracts/test_ic10.py": "ce9ba486973dcbc96059f8f0f9385d095745ba21",
+      "tests/contracts/test_ic11.py": "daba4f7f85746a770277df32bbed51faecb877b7",
+      "tests/contracts/test_ic_markers_match_plan.py": "153112285a434c729b4a6d074b9f08fb7c136f9b"
+    },
+    "v5_carry_check": "base 트리 docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/v5-carry/20260922-ts7-ic-xfail/paths.tsv 14행 = base..T 변경 경로 14개 전부. 행마다 운반 blob 파일의 git 객체 sha1('blob <len>\\0'+내용) = 파일 이름 = T 트리 blob, 바이트 동일(auditor Python 재계산, outputs_dir/oracle_check.json carry). 2차 시도 blob 14개가 운반 blob과 같다(R1)"
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2",
+    "commands": [
+      "git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts7-ic-xfail-audit C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 remote remove origin",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 config core.longpaths true",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 checkout -q --detach 80ae065e7fc4f3c30fee61b955d0a3a65643d03c",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/ts7-iso2 checkout -q --detach 41cba3e1c14b9377008f35b4482ee19930e55c2a"
+    ],
+    "env": "APPDATA=C:\\Users\\HSLEE\\AppData\\Roaming, PY=C:/Python314/python.exe(3.14, pytest 9.0.2, jsonschema 4.26.0)",
+    "gate_cache": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/80ae065e7fc4f3c30fee61b955d0a3a65643d03c",
+    "outputs_dir": "C:/Users/HSLEE/AppData/Local/Temp/ts7-out2",
+    "tracked_changes_after_runs": 0
+  },
+  "test_sets": {
+    "base": {
+      "rev": "80ae065e7fc4f3c30fee61b955d0a3a65643d03c",
+      "command": "V1 명령에서 ` --gmid-phase=1 --gmid-strict=`만 뺀 형태(base에는 conftest가 없다 -- design §6.5), PYTHONPYCACHEPREFIX=outputs_dir/pyc_base_v1",
+      "result": "48 passed, 실패·오류·skip·xfail·xpass 0, exit 0, 46.22s",
+      "output_sha256": "e205a0a6166928391135a5c43c34beb06f770bced0db5407a997f17e1ebed3e6"
+    },
+    "T": {
+      "rev": "41cba3e1c14b9377008f35b4482ee19930e55c2a",
+      "command": "V1 명령(판정 기록 auditor_run.commands `V1: `)",
+      "result": "54 passed, 14 xfailed, 실패·오류·skip·xpass 0, 수집 오류 0, exit 0, 47.23s",
+      "output_sha256": "2bbb894709bfeea14d745fb7fe677d2c846de804a38ed706e7d50691b22d4824"
+    },
+    "base_pass_subset_of_T_pass": "-rA 요약 PASSED id 48개가 T PASSED id 54개에 모두 있다(comm -23 결과 0줄). T에만 있는 PASSED 6개 = contracts/test_ic_markers_match_plan.py의 test_plan_declares_eleven_ics·test_markers_match_plan·test_judge_accepts_matching_source·test_judge_rejects_phase_not_in_plan·test_judge_rejects_plan_phase_without_marker·test_judge_rejects_real_plan_mismatch",
+    "xfailed_14": "IC1·IC2·IC3·IC4·IC5·IC6·IC8·IC9·IC10 각 1 + IC7[run]·IC7[stop] + IC11[rail2]·IC11[rail3]·IC11[reject] = 14, 모두 비엄격 xfail, reason `<IC> -- 담당 Phase <phase> -- 만료: <phase> DoD`(PYTHONIOENCODING=utf-8로 contracts만 다시 돌린 outputs_dir/r7_reasons.txt에서 14줄 문자 대조, exit 0)"
+  },
+  "option_checks": {
+    "note": "T checkout, V1과 같은 앞부분(캐시 PYTHONPATH·-P·-c 캐시 pytest_gate.ini·--rootdir=·--confcutdir=) + test 경로 <iso>/skills/analog-gmid-design/assets/tests/contracts + 아래 옵션 + -q -p no:cacheprovider",
+    "no_phase": {"opts": "", "exit": 4, "message": "ERROR: --gmid-phase=<Phase> 가 필요하다(기본값 없음, 00-common §9.3)", "output_sha256": "1ea6aad33b669481c68780dd4cb325879dff30b4989ec879ffdd09e7a0e57033"},
+    "phase_outside_plan": {"opts": "--gmid-phase=9", "exit": 4, "message": "ERROR: --gmid-phase=9 는 계획서 phase_order ['0.5', '1', '2', '3', '4', '5', '6a', '6b', '6c', '7a', '7b', '7c'] 밖이다(00-common §9.3)", "output_sha256": "3f601f484d5e34ab8b20268934538ad502f2c028c8d899031373c67527ed2b1c"},
+    "unknown_strict_key": {"opts": "--gmid-phase=1 --gmid-strict=IC99:", "exit": 4, "message": "ERROR: --gmid-strict 의 모르는 케이스 키 ['IC99:'] ... no tests ran", "output_sha256": "7e5cf2b906693e5c7a16c7aa9b64924c717fffa8ba7cc7ae14b8cb6e0ff209be"},
+    "extra_phase_mismatch_key": {"opts": "--gmid-phase=1 --gmid-strict=IC7:run", "exit": 4, "message": "모르는 케이스 키 ['IC7:run'](표식 Phase 6a != 현재 1)", "output_sha256": "cc09c9e007e1812c05d0affb073651bc463fe8f5da70eb12e86e9c9bb4d5fbc8"},
+    "extra_strict_IC3": {"opts": "--gmid-phase=1 --gmid-strict=IC3:", "exit": 1, "result": "1 failed(test_ic3), 16 passed, 13 xfailed -- 엄격 대상은 xfail 없이 뼈대 pytest.fail()로 FAIL(활성화 card의 red 형태)", "output_sha256": "98ac9c16667a62f0d9e18a23c2475304c98da343d2e78d588b70375c3d16320e"},
+    "extra_dod": {"opts": "--gmid-phase=1 --gmid-dod", "exit": 1, "result": "2 failed(test_ic3·test_ic5 = Phase 1 표식 전부), 16 passed, 12 xfailed", "output_sha256": "47e0593add8c5933d3b7e4f997363b70efc554972302ae726f9fb38507125d95"},
+    "extra_help": {"opts": "--help(전체 tests 경로, --gmid-phase 없음)", "exit": 0, "result": "도움말에 gmid 6줄 -- 승인 범위의 `--help` 예외"},
+    "added_rejections_in_normal_flow": "승인 기록 20260922-ts7-conftest가 요구한 확인: design에 없던 보수적 거부 두 가지(표식 둘 이상, 표식 인자 형식·phase 범위)가 정상 흐름(V1 명령, gmid_ic 표식 item 14개 전부 처리)에서 발동 0 -- V1 exit 0, UsageError 0"
+  },
+  "oracle_check": {
+    "impl": "outputs_dir/oracle_check.py(T·base git 객체만 읽음, base 판 게이트 read_plan_tables_text·compute_diff_hash·load_approvals), 결과 outputs_dir/oracle_check.json(ok true, problems 0)",
+    "plan_n4_1": "계획서 판정 표(blob da3d1699, base = T): ic_parts phase 집합 IC1 {6b}, IC2 {6b}, IC3 {1}, IC4 {6c}, IC5 {1}, IC6 {6c}, IC7 {6a,6c}, IC8 {6c}, IC9 {6b}, IC10 {6b}, IC11 {4,6a}; ic_test 11개",
+    "design_6_5": "선언 표 11행의 파일·함수 이름·(phase, case) 목록",
+    "T_contracts": "파일마다 최상위 함수 하나 = design 함수 이름 = 계획서 ic_test[IC]; gmid_ic 표식 (phase, case) 목록 = design 표(총 14 케이스), phase 집합 = 계획서; 표식 IC = 자기 IC, 키워드 {phase, case}; 케이스 둘 이상(IC7·IC11)은 parametrize + pytest.param marks; 본문 11개 모두 `pytest.fail()` 한 줄(인자 없음)"
+  },
+  "v5": {
+    "tool_output_sha256": "e1f98ad2fb410c340befb646f715dca970b366506983bf0f301e29b711c697b2",
+    "recompute": "00-common §8.2 식(base 판 compute_diff_hash)으로 (80ae065, 41cba3e)와 (승인 diff_base b3470ed, 41cba3e) 두 쌍에서 README·conftest 해시를 다시 계산해 둘 다 승인 target과 같다. 승인 diff_head 2d31216(1차 시도)은 복제본에 없어 그 쌍으로는 재계산하지 않았다 -- 해시는 blob id로만 정해지고 README base blob이 b3470ed·80ae065에서 같고(6af3d27c) conftest는 둘 다 없으며 T blob이 승인 질문의 blob(c8c701d9·a0e788db)과 같다",
+    "approval_record_blob_T": "401d84db113bce2f7240337ac340bfe57d5340d0"
+  },
+  "v4_output_sha256": "f558e0c3d89748b3444626871fe7f54d9a424c0d01f9aef27e600533fc6b1f9f"
+}

@@ -1,0 +1,8 @@
+[hist] gain-budget-gmid-sizing: ops=['insert'] n_ops=2 inserted_lines=26 rest==old True CRLF old=4 new=4
+[hist] graph-consumption: ops=['insert'] n_ops=1 inserted_lines=1 rest==old True CRLF old=0 new=0
+[hist] headroom-chain: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=0 new=0
+[hist] offset-strategy: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=0 new=0
+[hist] offset-trim: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=0 new=0
+[hist] oracle-portability: ops=[] n_ops=0 inserted_lines=0 rest==old True CRLF old=2 new=2
+[MISS-LINE] gain-budget-gmid-sizing old 2027: | design 41·40(v6.38.6 스무째 커밋 -- 사용자 결정 O-214) | design 41 §5(층 0 조립 -- L 역산 §5.3.x)·§6(출발 구간 -- 출발점 L 칸)·§6.7 7a(R6 블록)·§5.10-3·§5.9(출발 경로 `layer0_center`), design 40 §11 U15·U17 ② 행 -- LA-1 한 card로 기술 | card LA-1a(R6 블록 본체·R7 가드 필드·출발점 L 칸 = DEC-71 (4)(b) 함수 READS·층 0 점 없음 경로 출발점 한 규칙·as-built 출발 경로 삭제·출발 회귀 가드)와 LA-1 나머지(조립·선언 범위 갈래·R8 재개방·`mirror_vds` 행·수리·외층)로 범위 나눔, 순서 LA-1a → LA-1(표 #22); 정
+segments checked 8, miss 1

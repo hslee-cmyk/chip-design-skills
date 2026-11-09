@@ -1,0 +1,169 @@
+gain-budget-gmid-sizing old 11 len 3602 whole_in_hist=True shingles=179 lost=0
+gain-budget-gmid-sizing old 12 len 363 whole_in_hist=True shingles=17 lost=0
+gain-budget-gmid-sizing old 305 len 31881 whole_in_hist=False shingles=1593 lost=2
+    LOST: 임이 아님) 뒤 **N3.6 봉인 전 항목**(봉인 9 전도 여유 포함)
+    LOST:  항목**(봉인 9 전도 여유 포함) 재적용, 전류밀도 = I′·L/W′
+gain-budget-gmid-sizing old 425 len 868 whole_in_hist=False shingles=42 lost=2
+    LOST: **: SF-1 성격 확장(O-128 Q5), card +1 | N3.1
+    LOST:  Q5), card +1 | N3.16 PDK 상수 행·R 행, LR8,
+gain-budget-gmid-sizing old 646 len 1352 whole_in_hist=False shingles=66 lost=3
+    LOST:  판정에 쓰지 않음). `off` 선언 소자가 있는 점은 같은 기준을 정
+    LOST: 본 (5) (마) G2-a 보정 여유에도 건다. 선형 영역을 의도한 소자
+    LOST: 에도 건다. 선형 영역을 의도한 소자는 spec 선언 `human.int
+gain-budget-gmid-sizing old 654 len 488 whole_in_hist=False shingles=23 lost=0
+gain-budget-gmid-sizing old 658 len 2045 whole_in_hist=False shingles=101 lost=6
+    LOST: 다(빈 값 아님 -- 만들면 배선). (마) **G2-a**: ΔV를 선
+    LOST:  (마) **G2-a**: ΔV를 선언 없는·`triode` 선언 소자의
+    LOST:  O-212로 구간이 없어져 대상 소멸). (바) **O-h**: `of
+    LOST: 멸). (바) **O-h**: `off` 선언 소자마다 그 꺼짐의 결과를
+    LOST: 1 범위 4 (b))이라 한 변경 한 자리). 칸이 없거나 비었거나, 그
+    LOST:  자리). 칸이 없거나 비었거나, 그 목록의 metric 가운데 판정 제
+gain-budget-gmid-sizing old 729 len 43602 whole_in_hist=False shingles=2179 lost=9
+    LOST:  상수 0; 칸 이름·꼴은 design, spec 로더 소유 card =
+    LOST: n, spec 로더 소유 card = SF-1). ICMR 끝 = 영역 
+    LOST:  SF-1). ICMR 끝 = 영역 행 끝 ∧ 기능 기준 끝. 기능 기준
+    LOST: d DE-1 (e)와 같은 순수 함수 하나(그 상태에서 LUT 재조회 +
+    LOST:  하나(그 상태에서 LUT 재조회 + ω→0 노달 손계산 -- graph
+    LOST:  SPICE식 정풀이 아님, 원칙 1 (2); 첫 교차를 보장하는 구간 
+gain-budget-gmid-sizing old 1314 len 259 whole_in_hist=False shingles=11 lost=1
+    LOST:  N6.38 | -- (생산 card -- 소비 card MOD7 단위·
+gain-budget-gmid-sizing old 1316 len 1038 whole_in_hist=False shingles=50 lost=2
+    LOST: 3·OP-5(`.tf` A_dc·`.dc` V_id*·2단계 전도), `
+    LOST: dc` V_id*·2단계 전도), `constraint_rows` 필드·
+gain-budget-gmid-sizing old 1323 len 326 whole_in_hist=False shingles=15 lost=0
+gain-budget-gmid-sizing old 1329 len 98 whole_in_hist=True shingles=3 lost=0
+gain-budget-gmid-sizing old 1333 len 142 whole_in_hist=True shingles=6 lost=0
+gain-budget-gmid-sizing old 1346 len 4319 whole_in_hist=False shingles=214 lost=8
+    LOST: 1 (2)) #2 범위 끝 이득 순수 함수 -- LA-1 → DE-1, 
+    LOST:  함수 -- LA-1 → DE-1, 생산 LA-1(O-183) #3 출력
+    LOST: )·SB-1이 소비) -- LA-1 → SB-1(LA-1과 통합 병합),
+    LOST: → SB-1(LA-1과 통합 병합), 생산 LA-1(사용자 결정 O-21
+    LOST: 기·LUT 위치 선언이 R10 정의 필드를 READS), 생산 PD-1(
+    LOST: 필드를 READS), 생산 PD-1(사용자 결정 O-213 조건 '병합 
+gain-budget-gmid-sizing old 1703 len 9692 whole_in_hist=False shingles=483 lost=1
+    LOST: 수, K_max 근 찾기, 조건 넷). **창 경계 조건 = DC 범위 
+gain-budget-gmid-sizing old 1708 len 268 whole_in_hist=False shingles=12 lost=2
+    LOST: 09 D4 -- 그 예외도 함께 소멸); E-22 = 측정 구성 창 전도
+    LOST: ); E-22 = 측정 구성 창 전도 행(R0)의 건너뜀 문턱은 그 행 
+gain-budget-gmid-sizing old 1716 len 18270 whole_in_hist=False shingles=912 lost=2
+    LOST:  칸 = O-205 (3)·O-206 (v) 기본 포트 뷰를 S1v에 늘
+    LOST:  변경**(O-34 (1) -- v6.36 O-118: 전도 행(R0)·
+gain-budget-gmid-sizing old 1720 len 4952 whole_in_hist=False shingles=246 lost=2
+    LOST: 지 않음 -- GV-1), 측정 구성 창 전도 행(R0, v6.36 O-
+    LOST: 용을 design에서 먼저 고친다), F 성분 미선언 포트도 함께 구동(
+gain-budget-gmid-sizing old 1807 len 2169 whole_in_hist=False shingles=107 lost=1
+    LOST: 이 같은 함수로 부른다(사용자 결정 O-211 -- 생산 card = 첫
+gain-budget-gmid-sizing old 2044 len 285 whole_in_hist=False shingles=13 lost=0
+gain-budget-gmid-sizing old 2149 len 4137 whole_in_hist=False shingles=205 lost=2
+    LOST: 선언 소자가 있는 점 E-0 정지(O-212), G2-a 판정(공용 함수
+    LOST: -212), G2-a 판정(공용 함수에 보정 VDS·VDSAT를 넣어 부
+gain-budget-gmid-sizing old 2153 len 3190 whole_in_hist=False shingles=158 lost=4
+    LOST: ; '그 소자 누설만 빼고 계속' 경로 0) (iii) G2-a -- 보
+    LOST: 로 0) (iii) G2-a -- 보정 여유 < 0 toy 거부(base
+    LOST: 정 여유 < 0 toy 거부(base 통과 -- red) (iv) O-h
+    LOST:  통과 -- red) (iv) O-h -- `judged_by` 칸 없음
+gain-budget-gmid-sizing old 2429 len 5310 whole_in_hist=False shingles=264 lost=5
+    LOST: | E-13 | **[정정됨 v6.38.6 열다섯째 커밋 -- 사용자 결
+    LOST: 조·2단계 판정·정의 창 문언은 결정 기록]** §4 #13, E6-09
+    LOST:  기록]** §4 #13, E6-09·10 | 입력 창 측정·overri
+    LOST: `kvl_window`(integ `d759838a`)); +tol 포화
+    LOST: d759838a`)); +tol 포화 창 = x 감도가 0이 아닌 모든 
+gain-budget-gmid-sizing old 2483 len 363 whole_in_hist=False shingles=17 lost=2
+    LOST: T 확장 작업(사용자 결정 O-212 -- R10 READS)(N6.1 
+    LOST:  -- R10 READS)(N6.1 병합 순서 규칙 표 #20, O-18
+graph-consumption old 347 len 808 whole_in_hist=True shingles=39 lost=0
+graph-consumption old 688 len 660 whole_in_hist=False shingles=31 lost=1
+    LOST: 전 확인에서 검증자가 AST 호출 그래프로 잰다. 이 함수가 생기면 규칙
+headroom-chain old 20 len 214 whole_in_hist=False shingles=9 lost=1
+    LOST: e뿐'을 넓힘). 면제는 판정 생략이 아니다: 선언 영역은 실제와 대조하
+headroom-chain old 60 len 866 whole_in_hist=False shingles=42 lost=6
+    LOST: * **[정정됨 -- 상위 gain-budget v6.38.6 열다섯째 
+    LOST: 은 기록]** **상위 gain-budget 인용 기준**: v0.7.6
+    LOST: )의 N3.8 '창 필드'에서 읽었다: 창 필드는 θ 프레임 탐색 창 `
+    LOST: : 창 필드는 θ 프레임 탐색 창 `node.dc_window`(+tol
+    LOST: f_refined`이고 정의는 상위 한 자리다(이 계획은 인용만). N7
+    LOST: 한 자리다(이 계획은 인용만). N7.2·N7.3의 N6.3 판정 다리 
+headroom-chain old 81 len 228 whole_in_hist=False shingles=10 lost=1
+    LOST:  + tol을 만족할 수 없는 상태다(판정식 N3.2-1).<br>Y 크
+headroom-chain old 128 len 146 whole_in_hist=False shingles=6 lost=1
+    LOST: 정본, v0.7.7)을 받아 그 소자를 포화 판정에서 빼고 선언 영역과 
+headroom-chain old 247 len 134 whole_in_hist=False shingles=5 lost=2
+    LOST:  적층 후보**: 일반 전도 소자와 같은 항(VDsat + tol)을 쓴
+    LOST: 같은 항(VDsat + tol)을 쓴다. 포화 불가 판정이 나와도 항을 
+headroom-chain old 248 len 92 whole_in_hist=False shingles=3 lost=1
+    LOST:  안이다. 기초 부등식 VGS ≥ VDsat + tol은 LUT로 평가한
+headroom-chain old 259 len 720 whole_in_hist=False shingles=34 lost=2
+    LOST: **: LA-1 후보·조립점·수리점을 거를 때 항(VDsat + tol,
+    LOST:  거를 때 항(VDsat + tol, 정의역 하한)은 그 점 자신의 (V
+headroom-chain old 283 len 144 whole_in_hist=False shingles=6 lost=2
+    LOST:      * 유도: 포화 조건 VDS(X) ≥ VDsat + tol을 K
+    LOST: (X) − VDsat(X) − tol이다. 판정식은 VGS(Y)와 X s
+headroom-chain old 331 len 6367 whole_in_hist=False shingles=317 lost=16
+    LOST:  (VDsat, tol)과 결측 사유 하나를 낸다.<br>• 부르는 곳:
+    LOST:  하나를 낸다.<br>• 부르는 곳: 상위 DC 블록(봉인점 `devic
+    LOST: 유 행, VDS ≥ VDsat + tol -- θ 프레임 탐색 창은 KV
+    LOST: ol -- θ 프레임 탐색 창은 KVL 순서 창이라 부르지 않음, 상위 
+    LOST: -budget N3.8 '창 필드'가 정본): 정의 창(VDS ≥ VDS
+    LOST:  정본): 정의 창(VDS ≥ VDSAT, tol 없음, 전도 끝 포함)
+headroom-chain old 411 len 106 whole_in_hist=False shingles=4 lost=1
+    LOST: 다 | 유도 성립 조건 'VGS ≥ VDsat + tol' | LUT로 
+headroom-chain old 491 len 194 whole_in_hist=False shingles=8 lost=1
+    LOST: 역(VDS 대 VDsat + tol)을 잰다. 함께 N3.2-1 판정식 
+headroom-chain old 517 len 777 whole_in_hist=False shingles=37 lost=5
+    LOST: 범위, O-53 B1)을 받아 그 소자를 포화 판정에서 빼고 선언 영역과
+    LOST: 류 거부, O-54·O-55 U1, N3.6). spec 어휘(U-H1)
+    LOST: N3.6). spec 어휘(U-H1)도 반영한다. **EO-1 생산자 갱
+    LOST: 과 같은지(선언 없는 소자는 칸에 없음 = 포화 기본) 대조한다. 변경 
+    LOST: 음 = 포화 기본) 대조한다. 변경 종류: 새 칸·새 배선 = 동작 변경
+headroom-chain old 577 len 206 whole_in_hist=False shingles=9 lost=3
+    LOST: n` {triode, off} 선언 소자가 포화 판정에서 빠지고, 선언 
+    LOST: 치 = 선언 오류 거부, O-54·O-55 U1). EO-1 생산자 갱신
+    LOST: -55 U1). EO-1 생산자 갱신 커밋의 칸 대조 toy에 `trio
+offset-strategy old 11 len 3175 whole_in_hist=False shingles=157 lost=1
+    LOST: > **Status**: **v0.7.6 -- 승인됨(상위 사용자 결정 
+offset-strategy old 326 len 695 whole_in_hist=False shingles=33 lost=5
+    LOST: 형식)·gain-budget EO-1(엔진 점 → 오라클 입력 생산자, 
+    LOST: (엔진 점 → 오라클 입력 생산자, 2단계 전도 판정 함수)·oracle
+    LOST: 2단계 전도 판정 함수)·oracle-portability OP-5(계통
+    LOST:  불일치 σ의 A = `.tf`, 2단계 전도 판정 1단계)이고, off
+    LOST: 단계 전도 판정 1단계)이고, offset-trim TR-TL의 선행이다
+offset-trim old 493 len 514 whole_in_hist=False shingles=24 lost=3
+    LOST: = `.tf`, 계통 offset `.dc` V_id*, 2단계 전도 판
+    LOST: .dc` V_id*, 2단계 전도 판정의 oracle 쪽 칸, 네이티브 
+    LOST: 정의 oracle 쪽 칸, 네이티브 MC) → **OP-6**(능력 확인
+oracle-portability old 421 len 1212 whole_in_hist=False shingles=59 lost=3
+    LOST: 은 v6.20 정본 -- VB-1 연결 대상이 바뀜), 전도 판정 2단계
+    LOST: 결 대상이 바뀜), 전도 판정 2단계 함수(G5)는 OP-5 통합 병합의
+    LOST:  함수(G5)는 OP-5 통합 병합의 엔진 커밋 | OP-5·OP-10·
+oracle-portability old 510 len 4089 whole_in_hist=False shingles=203 lost=11
+    LOST: 준). (v0.6.9 아홉째 커밋) 같은 card에 더함: 훑기 점별 I
+    LOST: 용자 결정 O-46 (2)로 확정, 열여섯째 커밋), G-18 확장 칸을
+    LOST: 열여섯째 커밋), G-18 확장 칸을 내는 EO-1 생산자 갱신 커밋(`
+    LOST:  보조 정의', OP-10). **선언 영역 칸**(O-53 B1): 선
+    LOST: ff}로 넓혀 범위·합격 판정에서 대조(N3.9 '선언 영역'). **온
+    LOST: 조(N3.9 '선언 영역'). **온도 점 판정**(O-53 B2 -- 
+oracle-portability old 523 len 1730 whole_in_hist=False shingles=85 lost=4
+    LOST: 1 생산자를 갱신한다(U-6 규칙). (v0.6.10) OP-5 통합 병
+    LOST:  (v0.6.10) OP-5 통합 병합에는 생산자 갱신과 함께 **전도 
+    LOST: tol_V 계산, N3.9 '두 단계')의 엔진 커밋도 들어간다. 이로써
+    LOST: ')의 엔진 커밋도 들어간다. 이로써 EO-1 → HC-O → HC-1 
+oracle-portability old 555 len 1691 whole_in_hist=False shingles=83 lost=17
+    LOST: 건에서 빼 꺼지는 점을 범위 끝으로 보지 않는 경로, **ε가 빠진 전도
+    LOST: 보지 않는 경로, **ε가 빠진 전도 판정**(`|ID| > I_off`
+    LOST:  판정**(`|ID| > I_off`, ε = 1과 같음), 차동 전제로
+    LOST: , ε = 1과 같음), 차동 전제로 단일 입력을 `unavailable
+    LOST: 달 함수가 나옴), **훑기 점 대신 동작점의 I_off·tol_V로 범
+    LOST:  동작점의 I_off·tol_V로 범위를 판정하는 경로**, **합격 판
+oracle-portability old 594 len 3877 whole_in_hist=False shingles=192 lost=12
+    LOST: 지 않는다**(v0.6.10, 사용자 결정 O-50 G5 -- v0.6.
+    LOST: '; design v0.3.0 DV-6 닫힘). 대신 **결과 칸**: 
+    LOST: 6 닫힘). 대신 **결과 칸**: 판정 점(합격 판정 free `.op
+    LOST: 좁히기 점)마다 소자별 VDS·VSB·ID(선언 방향 부호)·gm/ID와
+    LOST:  새 사본 칸을 두지 않는다(design이 확인). 오라클은 엔진을 im
+    LOST: gn이 확인). 오라클은 엔진을 import하지 않으므로 나머지 선언 값
+oracle-portability old 643 len 331 whole_in_hist=False shingles=15 lost=3
+    LOST: r 하나·사본 없음). **U-6 알림**: OP-6 PC-10·EO-1
+    LOST:  2단계 배선·검증자 N4-2 비교 칸이 읽는 자리가 바뀐다 -- OP-
+    LOST: 칸이 읽는 자리가 바뀐다 -- OP-5 통합 병합의 EO-1 생산자 갱신
+oracle-portability old 772 len 222 whole_in_hist=True shingles=10 lost=0
+oracle-portability old 773 len 224 whole_in_hist=True shingles=10 lost=0

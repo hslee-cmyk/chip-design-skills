@@ -1,0 +1,340 @@
+F...............................F...............................F....... [  6%]
+....F.............................F................F.................... [ 13%]
+...............................................F........................ [ 20%]
+.....................................................................F.. [ 27%]
+.......................................................................F [ 33%]
+.......xxxxxx..xF........xxxxx.......................................... [ 40%]
+........................................................................ [ 47%]
+........................................................................ [ 54%]
+........................................................................ [ 61%]
+........................................................................ [ 67%]
+......F......F...................................F..........F........... [ 74%]
+........................................................................ [ 81%]
+..................................x...x................................. [ 88%]
+........................................................................ [ 94%]
+..........................x...........................                   [100%]
+================================== FAILURES ===================================
+____________ test_deleted_names_are_not_registered_as_dict_values _____________
+
+    def test_deleted_names_are_not_registered_as_dict_values():
+        # oracle (a): 저장소의 현재 엔진 소스가 입력이고 기대값은 '등록 0건'(spec card 계약 2).
+        files = _engine_files()
+>       assert_engine_scope_present(files)
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_delete_dead.py:162: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+files = [WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/audit_current_forced.py'), WindowsPath('C:/g202/wt_3...sizing_engine.py'), WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/instance_report_builder.py'), ...]
+
+    def assert_engine_scope_present(files: list) -> None:
+        """판정 범위가 공허하지 않다: 계약 1 표의 정의 파일과 run_harness가 범위 안에 실재한다."""
+        names = {p.name for p in files if p.exists()}
+        missing = [n for n in _REQUIRED_ENGINE_FILES + (_RUN_HARNESS.name,) if n not in names]
+>       assert missing == [], f"판정 범위에 있어야 할 엔진 파일이 없다: {missing}"
+E       AssertionError: 판정 범위에 있어야 할 엔진 파일이 없다: ['sizing_recipe.py']
+E       assert ['sizing_recipe.py'] == []
+E         
+E         Left contains one more item: 'sizing_recipe.py'
+E         Use -v to get more diff
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_delete_dead.py:156: AssertionError
+__________________ test_deleted_names_have_no_ast_references __________________
+
+    def test_deleted_names_have_no_ast_references():
+        # oracle (a): 저장소 트리의 현재 AST가 입력, 기대값은 '참조 0'(spec card 계약 4). P5 base에서는 정의가 있어 red였다.
+        engine = _engine_files()
+>       assert_engine_scope_present(engine)
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_delete_dead.py:362: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+files = [WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/audit_current_forced.py'), WindowsPath('C:/g202/wt_3...sizing_engine.py'), WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/instance_report_builder.py'), ...]
+
+    def assert_engine_scope_present(files: list) -> None:
+        """판정 범위가 공허하지 않다: 계약 1 표의 정의 파일과 run_harness가 범위 안에 실재한다."""
+        names = {p.name for p in files if p.exists()}
+        missing = [n for n in _REQUIRED_ENGINE_FILES + (_RUN_HARNESS.name,) if n not in names]
+>       assert missing == [], f"판정 범위에 있어야 할 엔진 파일이 없다: {missing}"
+E       AssertionError: 판정 범위에 있어야 할 엔진 파일이 없다: ['sizing_recipe.py']
+E       assert ['sizing_recipe.py'] == []
+E         
+E         Left contains one more item: 'sizing_recipe.py'
+E         Use -v to get more diff
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_delete_dead.py:156: AssertionError
+___________________ test_pilot_topology_path_literal_absent ___________________
+
+    def test_pilot_topology_path_literal_absent():
+        # oracle (a): 저장소의 현재 엔진 소스가 입력, 기대값은 '경로 리터럴 0건'(spec card 계약 4). base에서 red.
+        files = _engine_files()
+>       assert_engine_scope_present(files)
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_delete_telescopic.py:387: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+files = [WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/audit_current_forced.py'), WindowsPath('C:/g202/wt_3...sizing_engine.py'), WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/instance_report_builder.py'), ...]
+
+    def assert_engine_scope_present(files: list) -> None:
+        """판정 범위가 공허하지 않다: 계약 1 표의 정의 파일 `sizing_recipe.py`가 범위 안에 실재한다."""
+        names = {p.name for p in files if p.exists()}
+>       assert "sizing_recipe.py" in names, f"판정 범위에 sizing_recipe.py 가 없다: {sorted(names)}"
+E       AssertionError: 판정 범위에 sizing_recipe.py 가 없다: ['audit_current_forced.py', 'circuit_metrics.py', 'circuit_state_graph.py', 'gmid_lut.py', 'gmid_sizing_engine.py', 'instance_report_builder.py', 'sizing_layout_convergence.py', 'sky130_lut_sweep.py', 'stick_diagram.py', 'theta_search.py', 'topology_authoring.py', 'topology_to_markdown.py']
+E       assert 'sizing_recipe.py' in {'audit_current_forced.py', 'circuit_metrics.py', 'circuit_state_graph.py', 'gmid_lut.py', 'gmid_sizing_engine.py', 'instance_report_builder.py', ...}
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_delete_telescopic.py:117: AssertionError
+__________________ test_deleted_names_have_no_ast_references __________________
+
+    def test_deleted_names_have_no_ast_references():
+        # oracle (a): 저장소 트리의 현재 AST가 입력, 기대값은 '참조 0'(spec card 계약 7). base에서는 정의가 있어 red.
+        engine = _engine_files()
+>       assert_engine_scope_present(engine)
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_delete_telescopic.py:479: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+files = [WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/audit_current_forced.py'), WindowsPath('C:/g202/wt_3...sizing_engine.py'), WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/instance_report_builder.py'), ...]
+
+    def assert_engine_scope_present(files: list) -> None:
+        """판정 범위가 공허하지 않다: 계약 1 표의 정의 파일 `sizing_recipe.py`가 범위 안에 실재한다."""
+        names = {p.name for p in files if p.exists()}
+>       assert "sizing_recipe.py" in names, f"판정 범위에 sizing_recipe.py 가 없다: {sorted(names)}"
+E       AssertionError: 판정 범위에 sizing_recipe.py 가 없다: ['audit_current_forced.py', 'circuit_metrics.py', 'circuit_state_graph.py', 'gmid_lut.py', 'gmid_sizing_engine.py', 'instance_report_builder.py', 'sizing_layout_convergence.py', 'sky130_lut_sweep.py', 'stick_diagram.py', 'theta_search.py', 'topology_authoring.py', 'topology_to_markdown.py']
+E       assert 'sizing_recipe.py' in {'audit_current_forced.py', 'circuit_metrics.py', 'circuit_state_graph.py', 'gmid_lut.py', 'gmid_sizing_engine.py', 'instance_report_builder.py', ...}
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_delete_telescopic.py:117: AssertionError
+______________________ test_moved_names_gone_from_engine ______________________
+
+    def test_moved_names_gone_from_engine():
+        # oracle (a): 저장소 엔진 트리의 현재 AST가 입력, 기대값은 '참조 0'(spec card 계약 4). base에서는 정의가 있어 red.
+        files = _engine_files()
+>       assert_engine_scope_present(files)
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_move_tests.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+files = [WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/audit_current_forced.py'), WindowsPath('C:/g202/wt_3...sizing_engine.py'), WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/instance_report_builder.py'), ...]
+
+    def assert_engine_scope_present(files: list) -> None:
+        """판정 범위가 공허하지 않다: 대상 표의 정의 파일과 run_harness가 범위 안에 실재한다."""
+        names = {p.name for p in files if p.exists()}
+        missing = [n for n in _REQUIRED_ENGINE_FILES + (_RUN_HARNESS.name,) if n not in names]
+>       assert missing == [], f"판정 범위에 있어야 할 엔진 파일이 없다: {missing}"
+E       AssertionError: 판정 범위에 있어야 할 엔진 파일이 없다: ['sizing_recipe.py']
+E       assert ['sizing_recipe.py'] == []
+E         
+E         Left contains one more item: 'sizing_recipe.py'
+E         Use -v to get more diff
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_move_tests.py:106: AssertionError
+____________ test_new_tool_modules_do_not_copy_engine_definitions _____________
+
+    def test_new_tool_modules_do_not_copy_engine_definitions():
+        # oracle (a): 엔진 최상위 정의 집합(저장소 트리)과 새 모듈 정의의 교집합이 공이고 regression_runner가
+        # sizing_recipe를 import한다(spec card 계약 1). base에서는 파일이 없어 red.
+        files = _engine_files()
+>       assert_engine_scope_present(files)
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_move_tests.py:244: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+files = [WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/audit_current_forced.py'), WindowsPath('C:/g202/wt_3...sizing_engine.py'), WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/instance_report_builder.py'), ...]
+
+    def assert_engine_scope_present(files: list) -> None:
+        """판정 범위가 공허하지 않다: 대상 표의 정의 파일과 run_harness가 범위 안에 실재한다."""
+        names = {p.name for p in files if p.exists()}
+        missing = [n for n in _REQUIRED_ENGINE_FILES + (_RUN_HARNESS.name,) if n not in names]
+>       assert missing == [], f"판정 범위에 있어야 할 엔진 파일이 없다: {missing}"
+E       AssertionError: 판정 범위에 있어야 할 엔진 파일이 없다: ['sizing_recipe.py']
+E       assert ['sizing_recipe.py'] == []
+E         
+E         Left contains one more item: 'sizing_recipe.py'
+E         Use -v to get more diff
+
+skills\analog-gmid-design\assets\tests\contracts\test_d_move_tests.py:106: AssertionError
+__________________________ test_expected_paths_exist __________________________
+
+    def test_expected_paths_exist():
+        # 판정 범위가 공허하지 않다: test 파일 위치에서 구한 기대 경로가 실재한다.
+        assert _EXPECTED_ASSETS.is_dir(), _EXPECTED_ASSETS
+        assert _EXPECTED_WORKSPACES.is_dir(), _EXPECTED_WORKSPACES
+        assert _HARNESS_FILE.is_file(), _HARNESS_FILE
+>       assert (_EXPECTED_ASSETS / "sizing_recipe.py").is_file(), "기대 ASSETS_DIR에 엔진이 없다"
+E       AssertionError: 기대 ASSETS_DIR에 엔진이 없다
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = (WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets') / 'sizing_recipe.py').is_file
+
+skills\analog-gmid-design\assets\tests\contracts\test_df35_harness_paths.py:206: AssertionError
+________________ test_no_inline_w_formula_outside_new_function ________________
+
+    def test_no_inline_w_formula_outside_new_function():
+        # oracle (a): 저장소의 현재 엔진 AST가 입력, 기대값은 '0개'(spec card 계약 2). base에서는 18개라 red.
+        files = _engine_files()
+>       assert_engine_scope_present(files)
+
+skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py:318: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+files = [WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/audit_current_forced.py'), WindowsPath('C:/g202/wt_3...sizing_engine.py'), WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/instance_report_builder.py'), ...]
+
+    def assert_engine_scope_present(files: list) -> None:
+        """판정 범위가 공허하지 않다: 새 함수가 들어갈 파일과 run_harness가 범위 안에 실재한다."""
+        names = {p.name for p in files if p.exists()}
+        missing = [n for n in _REQUIRED_ENGINE_FILES if n not in names]
+>       assert missing == [], f"판정 범위에 있어야 할 엔진 파일이 없다: {missing}"
+E       AssertionError: 판정 범위에 있어야 할 엔진 파일이 없다: ['sizing_recipe.py']
+E       assert ['sizing_recipe.py'] == []
+E         
+E         Left contains one more item: 'sizing_recipe.py'
+E         Use -v to get more diff
+
+skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py:312: AssertionError
+___________________ test_size_transistor_calls_new_function ___________________
+
+    def test_size_transistor_calls_new_function():
+        # oracle (a): 현재 sizing_recipe AST가 입력, 기대값은 'size_transistor 본문에 width_from_id_density 호출 1개 이상'(계약 3).
+        path = _ASSETS_DIR / "sizing_recipe.py"
+>       assert path.exists(), path
+E       AssertionError: WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/sizing_recipe.py')
+E       assert False
+E        +  where False = exists()
+E        +    where exists = WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/sizing_recipe.py').exists
+
+skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py:443: AssertionError
+__________________ test_gate_docstring_declares_blind_spots ___________________
+
+    @pytest.mark.gmid_ic("IC5", phase="1", case="")
+    def test_gate_docstring_declares_blind_spots():
+        # oracle (d): 계획 N4.1 IC5, `00-common` §5(+C1), design §5.6 형식·영역 표(spec card 계약 1~3).
+        assert _HARNESS.is_file(), f"design §5.6 소스 분류 파일이 없다: {_HARNESS}"
+        targets = []
+        for path in _source_files():
+            targets.extend(_collect_targets(path.read_text(encoding="utf-8"), path.name))
+    
+        # (1) 공허한 통과 방지.
+        assert len(targets) >= 1, "IC5 대상 함수가 0개다"
+    
+        # 표의 21개가 대상 집합 안에 있어야 (3)이 공허하지 않다.
+        found_keys = {(f, n) for f, n, _, _ in targets}
+        missing = sorted(set(_DOMAIN_TABLE) - found_keys)
+>       assert not missing, f"design §5.6 영역 표의 함수가 대상에 없다({len(missing)}개): {missing}"
+E       AssertionError: design §5.6 영역 표의 함수가 대상에 없다(12개): [('audit_current_forced.py', 'audit_topology'), ('sizing_recipe.py', 'audit_l_sharing_consistency'), ('sizing_recipe.py', 'audit_vsb_consistency'), ('sizing_recipe.py', 'check_quasi_static'), ('sizing_recipe.py', 'require_declared_spec_source'), ('sizing_recipe.py', 'validate_metric_units'), ('sizing_recipe.py', 'validate_no_legacy_vs_key'), ('sizing_recipe.py', 'validate_theta_declaration_order'), ('stick_diagram.py', 'audit_theta_root_direction'), ('stick_diagram.py', 'audit_vertical_stack_id_vs_kcl'), ('stick_diagram.py', 'check_symmetry_dispositions'), ('stick_diagram.py', 'require_device_roles_reviewed')]
+E       assert not [('audit_current_forced.py', 'audit_topology'), ('sizing_recipe.py', 'audit_l_sharing_consistency'), ('sizing_recipe.p...asi_static'), ('sizing_recipe.py', 'require_declared_spec_source'), ('sizing_recipe.py', 'validate_metric_units'), ...]
+
+skills\analog-gmid-design\assets\tests\contracts\test_ic5.py:139: AssertionError
+_____________ test_sizing_recipe_source_has_no_l_role_multipliers _____________
+
+    def test_sizing_recipe_source_has_no_l_role_multipliers():
+        # oracle (a): 엔진 소스의 현재 심볼 유무가 곧 기대값이다(지운 probe의 66·142행이 읽던 이름).
+>       source = _SIZING_RECIPE.read_text(encoding="utf-8")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py:221: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python314\Lib\pathlib\__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/sizing_recipe.py')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: 'C:\\g202\\wt_3bcab98\\skills\\analog-gmid-design\\assets\\sizing_recipe.py'
+
+C:\Python314\Lib\pathlib\__init__.py:771: FileNotFoundError
+______________ test_audit_vsb_consistency_has_operational_caller ______________
+
+    def test_audit_vsb_consistency_has_operational_caller():
+        # oracle (a): 저장소의 현재 호출 관계가 기대값이다 -- 호출 유무만 세고 구현은 보지 않는다.
+>       source = _SIZING_RECIPE.read_text(encoding="utf-8")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py:261: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python314\Lib\pathlib\__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets/sizing_recipe.py')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: 'C:\\g202\\wt_3bcab98\\skills\\analog-gmid-design\\assets\\sizing_recipe.py'
+
+C:\Python314\Lib\pathlib\__init__.py:771: FileNotFoundError
+__________________ test_assets_dir_holds_engine_entry_points __________________
+
+    def test_assets_dir_holds_engine_entry_points():
+        # oracle (a): `A`의 정의(design §5: A = `skills/analog-gmid-design/assets`)가 곧 기대값이다.
+        # 아래 판정이 "아무 디렉터리"를 `A`로 인정하지 않게 하는 전제다.
+        assert _ASSETS_DIR.name == "assets" and _ASSETS_DIR.parent.name == "analog-gmid-design"
+>       assert (_ASSETS_DIR / "sizing_recipe.py").is_file()
+E       AssertionError: assert False
+E        +  where False = is_file()
+E        +    where is_file = (WindowsPath('C:/g202/wt_3bcab98/skills/analog-gmid-design/assets') / 'sizing_recipe.py').is_file
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py:528: AssertionError
+_______________ test_moved_tool_matches_base_except_path_lines ________________
+
+    def test_moved_tool_matches_base_except_path_lines():
+        # oracle (c): 기준선 = base 커밋 blob 그 자체(계약 5의 '경로 계산 줄을 뺀 나머지가 원본과 같다').
+        new_path = _TOOLS_DIR / _TOOL_NAME
+        assert new_path.is_file(), f"{new_path} 가 없다"
+>       assert_only_path_lines_changed(base_blob_text(f"{_TESTS_REL}/{_TOOL_NAME}"),
+                                       new_path.read_text(encoding="utf-8"), _TOOL_NAME)
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py:672: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+base_source = '# -*- coding: utf-8 -*-\n"""제약 임계값을 **달성 가능 실측**에서 유도해 사이드카(`<topology>.derived.json`)에 남긴다.\n\n사용자 지시(2026-09-10): *....dump(book, fh, ensure_ascii=False, indent=2)\n    emit(f"  사이드카 저장: {path}  (지문 {fp})")\n\nemit("")\nemit("=" * 96)\n'
+new_source = '# -*- coding: utf-8 -*-\n"""제약 임계값을 **달성 가능 실측**에서 유도해 사이드카(`<topology>.derived.json`)에 남긴다.\n\n사용자 지시(2026-09-10): *....dump(book, fh, ensure_ascii=False, indent=2)\n    emit(f"  사이드카 저장: {path}  (지문 {fp})")\n\nemit("")\nemit("=" * 96)\n'
+where = 'derive_achievable_bounds.py'
+
+    def assert_only_path_lines_changed(base_source: str, new_source: str, where: str) -> None:
+        """계약 2·5: 바뀐 줄이 전부 경로 줄이고 그 밖의 줄은 모두 같다."""
+        offenders = non_path_line_changes(base_source, new_source)
+>       assert offenders == [], f"{where}: 경로 줄이 아닌 변경 {offenders}"
+E       AssertionError: derive_achievable_bounds.py: 경로 줄이 아닌 변경 [('base', 33, 'import sizing_recipe as sr'), ('new', 33, 'import circuit_state_graph as _f1_circuit_state_graph'), ('new', 34, 'import sizing_layout_convergence as _f1_sizing_layout_convergence'), ('new', 35, 'import theta_search as _f1_theta_search'), ('base', 68, '    fp = sr.spec_fingerprint(spec)'), ('base', 69, '    book = sr.load_derived_bounds(topo)'), ('new', 70, '    fp = _f1_circuit_state_graph.spec_fingerprint(spec)'), ('new', 71, '    book = _f1_theta_search.load_derived_bounds(topo)'), ('base', 78, '            r = sr.achievable_metric_bound('), ('new', 80, '            r = _f1_sizing_layout_convergence.achievable_metric_bound('), ('base', 112, '    path = sr.derived_bounds_path(topo)'), ('new', 114, '    path = _f1_theta_search.derived_bounds_path(topo)')]
+E       assert [('base', 33,...(topo)'), ...] == []
+E         
+E         Left contains 12 more items, first extra item: ('base', 33, 'import sizing_recipe as sr')
+E         Use -v to get more diff
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py:296: AssertionError
+=========================== short test summary info ===========================
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_deleted_names_are_not_registered_as_dict_values
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_deleted_names_have_no_ast_references
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_pilot_topology_path_literal_absent
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_names_have_no_ast_references
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_moved_names_gone_from_engine
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_new_tool_modules_do_not_copy_engine_definitions
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_expected_paths_exist
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_no_inline_w_formula_outside_new_function
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_size_transistor_calls_new_function
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_gate_docstring_declares_blind_spots
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_sizing_recipe_source_has_no_l_role_multipliers
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_assets_dir_holds_engine_entry_points
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines
+14 failed, 1033 passed, 15 xfailed in 230.93s (0:03:50)
+exit=1 seconds=241

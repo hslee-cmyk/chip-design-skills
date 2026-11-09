@@ -1,0 +1,623 @@
+{
+ "circuit": "current_reuse_telescopic_ota",
+ "theta": {
+  "L_cascode": 1e-06,
+  "L_stage2out_p": 1.5e-07,
+  "L_stage2out_n": 1.5e-07,
+  "K_replica": 0.05,
+  "N_cmfb_bw_mirror": 1.0,
+  "r_cmfb_vocdes": 0.02,
+  "r_biasgen": 0.02,
+  "r_classab_battery": 0.3,
+  "r_classab_diode_src": 0.02,
+  "kcl_tail_M5": 1.0,
+  "kcl_tail_M38": 1.0,
+  "kcl_sink_M10": 1.0,
+  "kcl_sink_M19": 1.0,
+  "kcl_battery_M9b": 1.0,
+  "mirror_M18a": 1.0,
+  "kcl_battery_M18b": 1.0,
+  "f_slew": 0.1,
+  "N_cmfb_bw": 2.0,
+  "r_tail_M6": 0.5,
+  "r_tail_M7": 0.1,
+  "r_diode_M11a": 0.02,
+  "r_bg_vbias2": 0.02,
+  "L_class__M68": 5.109106823223974e-07,
+  "L_class__M8": 4.739047237100781e-07
+ },
+ "vs_grid": [
+  0.0,
+  0.2,
+  0.4,
+  0.6,
+  0.8
+ ],
+ "conflicts": [
+  [
+   "M5",
+   "Vy",
+   0.027278,
+   0.25,
+   0.222722
+  ],
+  [
+   "M64",
+   "Vbias3",
+   1.4875,
+   1.264778,
+   0.222722
+  ],
+  [
+   "M1a",
+   "N1a2a",
+   0.877278,
+   1.1,
+   0.222722
+  ],
+  [
+   "M1b",
+   "N1b2b",
+   0.877278,
+   1.1,
+   0.222722
+  ]
+ ],
+ "unresolved": [],
+ "nodes": {
+  "GND": 0.0,
+  "N11a11b": 1.125,
+  "N11b": 0.3,
+  "N14a14b": 1.2375,
+  "N14a_14b": 0.5625,
+  "N1a2a": 0.877278,
+  "N1b2b": 0.877278,
+  "N20a20b": 1.125,
+  "N20b": 0.3,
+  "N23a24b": 0.5625,
+  "N24b23a": 1.2375,
+  "N36b": 0.9375,
+  "N3a4a": 0.477278,
+  "N3b4b": 0.477278,
+  "N58_57": 1.1,
+  "N64_63": 0.589778,
+  "Ncmfb_tail": 0.7375,
+  "VDD": 1.8,
+  "VSS": 0.0,
+  "Vbias1": 0.9375,
+  "Vbias2": 0.3125,
+  "Vbias3": 1.4875,
+  "Vbias4": 0.5625,
+  "Vcmfb": 0.9375,
+  "Vg15": 0.975032,
+  "Vg25": 0.975032,
+  "Voc_des": 1.0125,
+  "Vom": 0.9,
+  "Vom1": 0.677278,
+  "Vop": 0.9,
+  "Vop1": 0.677278,
+  "Vx": 1.55,
+  "Vy": 0.027278,
+  "gnd": 0.0,
+  "vdd": 1.8,
+  "vss": 0.0
+ },
+ "devices": {
+  "M10": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "Vop1",
+   "gate": "Vbias4",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.677278476824353,
+   "axis_out": "False"
+  },
+  "M11a": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "N11a11b",
+   "gate": "N11a11b",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.6749999999999999,
+   "axis_out": "False"
+  },
+  "M11b": {
+   "kind": "pmos",
+   "source": "N11a11b",
+   "drain": "N11b",
+   "gate": "N11b",
+   "V_source": 1.125,
+   "vsb": 0.675,
+   "vds": 0.825,
+   "axis_out": "False"
+  },
+  "M12": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "N11b",
+   "gate": "Vbias4",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.30000000000000004,
+   "axis_out": "False"
+  },
+  "M13": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "N14a14b",
+   "gate": "Vbias1",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.5625000000000002,
+   "axis_out": "False"
+  },
+  "M14a": {
+   "kind": "nmos",
+   "source": "N14a_14b",
+   "drain": "N14a14b",
+   "gate": "N14a14b",
+   "V_source": 0.5624999999999999,
+   "vsb": 0.5624999999999999,
+   "vds": 0.6749999999999999,
+   "axis_out": "False"
+  },
+  "M14b": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "N14a_14b",
+   "gate": "N14a_14b",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.5625,
+   "axis_out": "False"
+  },
+  "M15": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Vom",
+   "gate": "Vg15",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.8999999999999999,
+   "axis_out": "False"
+  },
+  "M16": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "Vom",
+   "gate": "Vop1",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.9000000000000001,
+   "axis_out": "False"
+  },
+  "M17": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Vg25",
+   "gate": "Vbias1",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.8249682544824056,
+   "axis_out": "False"
+  },
+  "M18_bg": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Vbias1",
+   "gate": "Vbias1",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.8624999999999999,
+   "axis_out": "False"
+  },
+  "M18a": {
+   "kind": "pmos",
+   "source": "Vg25",
+   "drain": "Vom1",
+   "gate": "N20b",
+   "V_source": 0.9750317455175944,
+   "vsb": 0.8249682544824056,
+   "vds": 0.2977532686932415,
+   "axis_out": "True"
+  },
+  "M18b": {
+   "kind": "nmos",
+   "source": "Vom1",
+   "drain": "Vg25",
+   "gate": "N24b23a",
+   "V_source": 0.6772784768243529,
+   "vsb": 0.6772784768243529,
+   "vds": 0.29775326869324137,
+   "axis_out": "False"
+  },
+  "M19": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "Vom1",
+   "gate": "Vbias4",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.677278476824353,
+   "axis_out": "False"
+  },
+  "M1a": {
+   "kind": "pmos",
+   "source": "Vx",
+   "drain": "N1a2a",
+   "gate": "Vip",
+   "V_source": 1.5499999999999998,
+   "vsb": 0.2500000000000002,
+   "vds": 0.44999999999999996,
+   "axis_out": "False"
+  },
+  "M1b": {
+   "kind": "pmos",
+   "source": "Vx",
+   "drain": "N1b2b",
+   "gate": "Vim",
+   "V_source": 1.5499999999999998,
+   "vsb": 0.2500000000000002,
+   "vds": 0.44999999999999996,
+   "axis_out": "False"
+  },
+  "M20a": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "N20a20b",
+   "gate": "N20a20b",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.6749999999999999,
+   "axis_out": "False"
+  },
+  "M20b": {
+   "kind": "pmos",
+   "source": "N20a20b",
+   "drain": "N20b",
+   "gate": "N20b",
+   "V_source": 1.125,
+   "vsb": 0.675,
+   "vds": 0.825,
+   "axis_out": "False"
+  },
+  "M21": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "N20b",
+   "gate": "Vbias4",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.30000000000000004,
+   "axis_out": "False"
+  },
+  "M22": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "N24b23a",
+   "gate": "Vbias1",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.5625000000000002,
+   "axis_out": "False"
+  },
+  "M23a": {
+   "kind": "nmos",
+   "source": "N23a24b",
+   "drain": "N24b23a",
+   "gate": "N24b23a",
+   "V_source": 0.5624999999999999,
+   "vsb": 0.5624999999999999,
+   "vds": 0.6749999999999999,
+   "axis_out": "False"
+  },
+  "M24b": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "N23a24b",
+   "gate": "N23a24b",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.5625,
+   "axis_out": "False"
+  },
+  "M25": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Vop",
+   "gate": "Vg25",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.8999999999999999,
+   "axis_out": "False"
+  },
+  "M26": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "Vop",
+   "gate": "Vom1",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.9000000000000001,
+   "axis_out": "False"
+  },
+  "M2a": {
+   "kind": "pmos",
+   "source": "N1a2a",
+   "drain": "Vom1",
+   "gate": "Vbias2",
+   "V_source": 0.8772784768243529,
+   "vsb": 0.9227215231756472,
+   "vds": 0.2,
+   "axis_out": "True"
+  },
+  "M2b": {
+   "kind": "pmos",
+   "source": "N1b2b",
+   "drain": "Vop1",
+   "gate": "Vbias2",
+   "V_source": 0.8772784768243531,
+   "vsb": 0.9227215231756469,
+   "vds": 0.2,
+   "axis_out": "True"
+  },
+  "M36a": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Vcmfb",
+   "gate": "Vcmfb",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.8624999999999999,
+   "axis_out": "False"
+  },
+  "M36b": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "N36b",
+   "gate": "N36b",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.8624999999999999,
+   "axis_out": "False"
+  },
+  "M37a": {
+   "kind": "nmos",
+   "source": "Ncmfb_tail",
+   "drain": "Vcmfb",
+   "gate": "Voc",
+   "V_source": 0.7375,
+   "vsb": 0.7375,
+   "vds": 0.2,
+   "axis_out": "False"
+  },
+  "M37b": {
+   "kind": "nmos",
+   "source": "Ncmfb_tail",
+   "drain": "N36b",
+   "gate": "Voc_des",
+   "V_source": 0.7375,
+   "vsb": 0.7375,
+   "vds": 0.2,
+   "axis_out": "False"
+  },
+  "M38": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "Ncmfb_tail",
+   "gate": "Vbias4",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.7375,
+   "axis_out": "False"
+  },
+  "M39": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Voc_des",
+   "gate": "Voc_des",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.7875,
+   "axis_out": "False"
+  },
+  "M3a": {
+   "kind": "nmos",
+   "source": "N3a4a",
+   "drain": "Vom1",
+   "gate": "Vbias3",
+   "V_source": 0.4772784768243529,
+   "vsb": 0.4772784768243529,
+   "vds": 0.2,
+   "axis_out": "False"
+  },
+  "M3b": {
+   "kind": "nmos",
+   "source": "N3b4b",
+   "drain": "Vop1",
+   "gate": "Vbias3",
+   "V_source": 0.47727847682435304,
+   "vsb": 0.47727847682435304,
+   "vds": 0.2,
+   "axis_out": "False"
+  },
+  "M40": {
+   "kind": "pmos",
+   "source": "Voc_des",
+   "drain": "gnd",
+   "gate": "gnd",
+   "V_source": 1.0125000000000002,
+   "vsb": 0.7874999999999999,
+   "vds": 1.0125,
+   "axis_out": "False"
+  },
+  "M4a": {
+   "kind": "nmos",
+   "source": "Vy",
+   "drain": "N3a4a",
+   "gate": "Vip",
+   "V_source": 0.02727847682435297,
+   "vsb": 0.02727847682435297,
+   "vds": 0.44999999999999996,
+   "axis_out": "False"
+  },
+  "M4b": {
+   "kind": "nmos",
+   "source": "Vy",
+   "drain": "N3b4b",
+   "gate": "Vim",
+   "V_source": 0.02727847682435297,
+   "vsb": 0.02727847682435297,
+   "vds": 0.44999999999999996,
+   "axis_out": "False"
+  },
+  "M5": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "Vy",
+   "gate": "Vbias4",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.2500000000000001,
+   "axis_out": "False"
+  },
+  "M57": {
+   "kind": "pmos",
+   "source": "N58_57",
+   "drain": "Vbias2",
+   "gate": "Vbias2",
+   "V_source": 1.1,
+   "vsb": 0.7,
+   "vds": 0.7875,
+   "axis_out": "False"
+  },
+  "M58": {
+   "kind": "pmos",
+   "source": "Vx",
+   "drain": "N58_57",
+   "gate": "Vbias2",
+   "V_source": 1.5499999999999998,
+   "vsb": 0.2500000000000001,
+   "vds": 0.44999999999999996,
+   "axis_out": "False"
+  },
+  "M6": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Vx",
+   "gate": "Vbias1",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.2500000000000001,
+   "axis_out": "False"
+  },
+  "M60": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Vbias4",
+   "gate": "Vbias1",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 1.2375,
+   "axis_out": "False"
+  },
+  "M61": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Vbias3",
+   "gate": "Vbias1",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.3125,
+   "axis_out": "False"
+  },
+  "M63": {
+   "kind": "nmos",
+   "source": "Vy",
+   "drain": "N64_63",
+   "gate": "Vbias3",
+   "V_source": 0.02727847682435297,
+   "vsb": 0.02727847682435297,
+   "vds": 0.5625,
+   "axis_out": "False"
+  },
+  "M64": {
+   "kind": "nmos",
+   "source": "N64_63",
+   "drain": "Vbias3",
+   "gate": "Vbias3",
+   "V_source": 0.589778476824353,
+   "vsb": 0.589778476824353,
+   "vds": 0.6749999999999999,
+   "axis_out": "False"
+  },
+  "M66": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "Vbias4",
+   "gate": "Vbias4",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.5625,
+   "axis_out": "False"
+  },
+  "M68": {
+   "kind": "nmos",
+   "source": "gnd",
+   "drain": "Vbias2",
+   "gate": "Vbias4",
+   "V_source": 0.0,
+   "vsb": 0.0,
+   "vds": 0.3125,
+   "axis_out": "False"
+  },
+  "M7": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Vx",
+   "gate": "Vcmfb",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.2500000000000001,
+   "axis_out": "False"
+  },
+  "M8": {
+   "kind": "pmos",
+   "source": "vdd",
+   "drain": "Vg15",
+   "gate": "Vbias1",
+   "V_source": 1.8,
+   "vsb": 0.0,
+   "vds": 0.8249682544824056,
+   "axis_out": "False"
+  },
+  "M9a": {
+   "kind": "pmos",
+   "source": "Vg15",
+   "drain": "Vop1",
+   "gate": "N11b",
+   "V_source": 0.9750317455175944,
+   "vsb": 0.8249682544824056,
+   "vds": 0.2977532686932415,
+   "axis_out": "True"
+  },
+  "M9b": {
+   "kind": "nmos",
+   "source": "Vop1",
+   "drain": "Vg15",
+   "gate": "N14a14b",
+   "V_source": 0.677278476824353,
+   "vsb": 0.677278476824353,
+   "vds": 0.29775326869324137,
+   "axis_out": "False"
+  }
+ },
+ "axis_out_devices": [
+  "M18a",
+  "M2a",
+  "M2b",
+  "M9a"
+ ]
+}

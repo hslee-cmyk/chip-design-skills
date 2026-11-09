@@ -1,0 +1,94 @@
+{
+ "id": "20260930-v3-exempt-binding",
+ "spec_card": "docs/02-design/specs/20260930-v3-exempt-binding.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "dd60db6515b6fe80ab16349835c19aa75d4f292f",
+ "test_commit": "8b1f9293681df57e79522c8a2262342ef07f87b3",
+ "code_commit": "dd01d1d528d4461f5e406b5261a318d5310f1721",
+ "red": {
+  "test_ids": [
+   "tools/gates/redteam/attacks/34-v3-exempt-binding::bound-exempt",
+   "tools/gates/redteam/attacks/34-v3-exempt-binding::bound-other-def",
+   "tools/gates/redteam/attacks/34-v3-exempt-binding::docstring-shift",
+   "tools/gates/redteam/attacks/34-v3-exempt-binding::hash-mismatch",
+   "tools/gates/redteam/attacks/34-v3-exempt-binding::legacy-unbound-leak",
+   "tools/gates/redteam/attacks/34-v3-exempt-binding::malformed-element"
+  ],
+  "failure_hashes": [
+   "9ff578b9cf0afc1af6a09d05b51d13d052c941aa04a61023fba3ddf38077e175",
+   "050cf55ccc4ceed54dd73893d2346e93f8bbe192ab94864a5170a97f13617e08",
+   "28c3ff705b356f633d99610eaa4d55d595e083f2946c8ececdc1b3110946d38a",
+   "3131af97b68392d20e1827407a96a4ce1dad07a028d81acee61bf004e41d3d0e",
+   "be6d198eeb02511ae56f5fad57f35e8b11baf55230152b254dab9ad66d2eb00f",
+   "eeb5e7c5d306290e13d97af265583df21885a680dce1a40c744105b69ae8f44a"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "PASS",
+   "basis": "게이트 변경(Phase 0.5)의 V1 = pytest 전체 + redteam 기계 대조 두 몫(선례 20260930-v3-history-clone). (1) pytest(auditor_run의 `V1: ` 명령, base 판 게이트 코드 dd60db6(git cat-file 추출 22파일 file_set_sha256 705036ea…82c4) pytest_gate.ini, -k·--deselect·-x 없음, slow 포함 전체, --gmid-phase=0.5 --gmid-strict= -- 엄격 집합은 base 판 merge_gate.strict_set(old dd60db6 트리, 이 spec card)로 재서 빈 집합, conftest_has_gmid_phase 참, v1_command_check 위반 0, out/strict.txt): 1044 passed, 15 xfailed, 3 xpassed, FAILED·ERROR·SKIPPED 0, exit 0, 194초, 출력 sha256 d8aeb0174892c1ee73b4561b6fbdae14a35a2e301938825fdde2c193756bada6. base..병합본 변경 5경로가 전부 tools/gates/**라 pytest 대상 트리는 base와 같다. (2) redteam 병합본 전체(격리 복제본 C:/g186/isom, origin 없음, HEAD 5a602d4, --only 없이 한 번에): run_all.py --phase 0.5 --mode direct exit 0, 케이스 PASS 53·SKIPPED 7·FAIL 0, 단계 PASS 610·RECORD 13·FAIL 0(log 20261002-110657-direct.jsonl sha256 1f10d98240b2c2a6749c75f6da87f0a9f0457a5e33e0382d72c3f02e4387210f); --cases 0.5 exit 0, PASS 5·SKIPPED 2, 단계 PASS 6(log 20261002-122811-direct-cases.jsonl sha256 82980a87…18e8). 순서 3 base 표(T 복제본 C:/g186/iso, base 게이트, log sha256 6bb141c0…0dd0)와 케이스·단계 단위 기계 대조(scripts/cmp_rt.py -> out/cmp_rt.json sha256 d8d4b60f…e447): 케이스·단계 집합 같음, 판정이 다른 케이스는 34-v3-exempt-binding(FAIL -> PASS) 하나, 다른 단계는 34의 6단계(FAIL -> PASS) = red 집합. v3_survivor·26·27f·28·29·31 포함 나머지 판정 같음(계약 8), --cases 0.5 차이 0. 34 병합본: (a) exit 1 unbound, (b)(d)(e) exit 1 hash_mismatch(head_hash 포함), (c) exit 0 PASS·exempt_ignored []·observed {lines 6, by_result {exempt: [X]}}, (f) exit 1 malformed"
+  },
+  "V2": {
+   "verdict": "N/A",
+   "basis": "도입 1: 판정 유형별 증거 V2 판정은 Phase 1부터(N4.2 v_intro, 이 card는 Phase 0.5). 참고 측정 -- 커밋 사슬: base dd60db6 -> T 8b1f929(Role: test, tools/gates/redteam/** 4경로) -> code dd01d1d(Role: code, 부모 T, tools/gates/mutate_changed.py 1경로 +65/-5) -> 병합 5a602d4(Role: doc, 부모 T·dd01d1d, 트리 fe64b4c = code 트리). test 커밋 불변: git diff 8b1f929 5a602d4 -- tools/gates/redteam 빈 값. red: 순서 3 base(T 복제본, base 게이트)에서 34의 6단계 모두 FAIL -- (a) exit 0(해시 없는 원소를 경로만으로 면제), (c) exit 1(`@` 원소 모름)·observed by_result {}, (b)(d)(e)(f) exit 1이지만 exempt_ignored 조각 없음; failure_hashes = base 판 merge_gate.red_failure_hash(test_id, \"redteam.FAIL\"), 집계 sha256 18f342fc3abdd4f5987523338b74c31af3e662200be66d299571a68d2449a3ce(base_check.json). 판별력: 승인 기록을 뺀 같은 저장소에서 6단계 모두 base 도구 survivors == [X](rt.py와 독립한 git 합성, out/disc.json). green: 병합본에서 6단계 모두 PASS, FAIL -> PASS 집합 = red 집합"
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "도입 1: 뮤테이션은 Phase 1 병합본부터(N4.2). 참고 실행: base 판 mutate_changed.py(root C:/g186/isom, base dd60db6, head 5a602d4, --gmid-phase=0.5 --gmid-strict=): targets 빈 목록, mutants 0, exit 0 -- 대상은 assets 최상위 소스·workspaces/run_harness.py뿐이고 이번 변경은 게이트 도구라 대상 밖. 바뀐 def(bind_hash·approved_index·exempt_decision·main)의 동작은 공격 34와 auditor probe p1~p9(병합본 도구, 기대값은 계약 문장·구성, out/probes.json·p7.json·p9.json)와 DF-36 범위 재실행이 쟀다(V10)"
+  },
+  "V4": {
+   "verdict": "N/A",
+   "basis": "도입 1: 자기참조 lint 판정은 Phase 1부터(N4.2). 참고: base 판 test_lint.py(--module-dir tools/gates --subject mutate_changed:main·bind_hash·approved_index·exempt_decision) verdict PASS, files 빈 목록, findings 0, unjudged 0(out/ref_test_lint.txt). oracle 대조(참고): 34 기대값 -- exit 1/0은 계약 5, 조각 키 순서·이름(unbound·hash_mismatch·approved_hash·malformed·element·exempt_ignored·survivors)은 계약 2·3·6 문장, observed_equals lines 6은 head rt_scale 변이 6개(구성: 계약 머리 연산자 목록을 head def에 적용), by_result exempt [X]는 계약 1·9(c), X 유일 생존은 test 단언 rt_scale(2.0)==6.0·(-2.0)==6.0(구성), 해시는 rt.py @bindhash가 계약 머리 정의로 독립 계산(auditor 독립 구현과 4건 64자 일치, base_check.json) -- 피검 출력에서 만들지 않았다(base 도구 출력과 달라 red)"
+  },
+  "V5": {
+   "verdict": "N/A",
+   "basis": "도입 1: 기준 약화 검사 판정은 Phase 1부터(N4.2). 참고 실행: base 판 weakening_diff.py base dd60db6 -> T 8b1f929와 base -> 병합본 5a602d4 둘 다 verdict PASS, findings 0, diff_paths 빈 목록, diff_hash null, exit 0. 범위 한계: 발견 경로가 assets/tests/**·assets/*.py의 __main__뿐이라 tools/gates/** 변경은 이 PASS만으로 약화 없음의 증거가 아니다. 사람 판단: 기존 redteam expect.json·v.json 변경 0, rt.py는 선택 키 두 개(@bindhash 자리표시자, observe out_jsonl)와 build_vrepo 두 단계화뿐(base 하네스 대 T 하네스 전체 대조 공통 케이스 59·단계 617 (verdict, exit, observed) 차이 0 -- base_check.json), 도구는 면제 적용 범위 축소(해시 없음·다름·형식 오류 원소를 적용하지 않음)라 강화 -- 승인 기록 범위 (i). 승인 target을 base 판 diff_hash로 재계산해 일치(앞 16자리 1ba14d40b454598f, base_check.json)"
+  },
+  "V6": {
+   "verdict": "N/A",
+   "basis": "도입 1: 소스 lint 판정은 Phase 1부터(N4.2). 참고 실행: base 판 source_lint.py targets 빈 목록, findings 0, exit 0. 관찰(공격 27f 관점): code 커밋 diff에 추가된 except 0줄(grep '^+.*except' 0) -- 광범위 except 추가 없음"
+  },
+  "V7": {
+   "verdict": "N/A",
+   "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 reachability.py PASS, new_defs 빈 목록(게이트 도구는 소스 그래프 밖). 배선 관찰: bind_hash는 main에서 def마다 한 번(fn_bind), approved_index는 main의 approved_idx = approved_index(_approved(root, ns.head)), exempt_decision은 변이마다 main에서 호출 -- 옛 `if mid in approved:` 분기는 같은 code 커밋에서 대체되어 병합본에 없음(grep 0). 공격 34·probe·DF-36 실행이 이 경로를 실제로 지났다"
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 무관 게이트 변경"
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 무관(spec card 'library 회로 적용 여부: 해당 없음')"
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "spec card '재현할 수치: 없음' -- 보고 수치가 없어 reproduced_numbers는 빈 배열. 계약 확인 측정(전부 auditor 격리 실측, 병합본 도구, 기대값은 계약 문장·구성, 묶기 해시는 auditor 독립 구현): p1(계약 4) 같은 id에 X·X@0*64·X@<맞음> -> exempt, exempt_ignored에 그 id 없음; X@abc·X·X@f*64 -> 3항목 원소 문자열 오름차순; 두 기록의 같은 원소 -> 1번. p2(계약 3·7) V4 test id·V7 def id·다른 def V3 id(해시 없음·@해시)·결정 id U-01·V3 대상 밖 tests/tools/m.py의 V3 모양 id(해시 없음·@그 def 묶기 해시, 같은 커밋에서 m.py도 바꿈) -> exempt_ignored에는 이번 실행 변이 id 하나(unbound)뿐, targets에 m.py 없음. p3(계약 1·6) 출력 키 순서 tool…survivors·survivor_bindings·exempt_ignored, exempt --out 레코드 키 id·result·bind_hash, mutants = --out 줄 수(exempt 포함) = 무기록 base 실행 줄 수, survivor_bindings = survivors 순서의 id@64자, 두 파일·여러 def에서 exempt_ignored 순서 = 생성 순서(무기록 base 도구 --out 순서와 같음), stdout 한 줄. p4(머리) 생존 바인딩 14개 도구 해시 = auditor 해시: 데코레이터 def·데코레이터 인자 변이·async def·K.meth·중첩 노드의 바깥 def 변이(F = outer)·outer.inner 자신·docstring def, @deco2(1)을 @deco2(2)로만 바꾼 def 해시 -> hash_mismatch(head_hash = auditor 값). p5 X@a@b·대문자 64자·63자 -> malformed(element 원문), 앞뒤 공백 원소 -> 정상 적용(exempt). p6(계약 5) 풀린 unbound 원소의 변이가 죽으면 exit 0 PASS, exempt_ignored 비지 않음. p7(계약 7) @ 원소 기록 저장소에서 base 대 병합본 test_lint.py(exit 0 PASS)·reachability.py 출력·exit 같음, parse_approval_header(@ 원소 통과)·approved_hashes·_approved_ids 결과 같음; 다섯 파일(merge_gate·weakening_diff·test_lint·reachability·gate_config)과 engine_dup_scan은 base..병합본 diff 밖(바이트 같음). p8(계약 8) 무기록 저장소에서 base·병합본 exit 같음, 새 두 키를 빼면 출력 같음, exempt_ignored [], survivor_bindings = survivors@auditor 해시, --out 같음. p9(계약 9) rt.py @bindhash 참조 경로 없음·None 명세·qualname 없음·자기 참조·참조 파일 자리표시자·중복 def·잘못된 side -> RuntimeError, out_jsonl 배열 줄·JSON 아닌 줄 -> RuntimeError, 파일 없음 -> {lines 0, by_result {}}; 끝까지 실행(qualname 없는 자리표시자 케이스) -> run_all 케이스 ERROR(조용한 통과 아님). p10(원래 문제 대체, B41 측정값 -- 이 card 판정 아님) 병합본 도구로 DF-36 범위(--base 070cf69 --head b29be01 --gmid-phase=2) 재실행: exit 1 FAIL, mutants 26, killed 22, 생존 4 = C8 save_instance_json 원소 4개(stmt_delete body[2]·body[2].body[0], const+/- body[6].body[0].value.keywords[0].value) -- exempt_ignored에 4개 모두 unbound로 실리고 실제로 실행되어 생존, survivor_bindings 해시 4a96ecf0…(spec card 해시 앵커 b29be01 save_instance_json 묶기 해시와 같음), load_topology 변이 0(대상 아님), 1014초. 관찰(약화 아님, 정보): (a) ERROR 출력(기준 실행 실패·예외)에는 새 두 키가 없다 (b) 중첩 def는 바깥 def 변이와 자기 변이로 두 번 돈다(백로그 6) (c) DF-36 실행 뒤 TEMP에 inventory test 자신의 pytest-of-*·topology json 2항목이 남음(도구 임시 디렉터리 아님, 선례 관찰 (b)와 같음)"
+  }
+ },
+ "reproduced_numbers": [],
+ "approvals": [
+  "20260930-v3-exempt-binding"
+ ],
+ "auditor_run": {
+  "time": "2026-10-02T12:32:51+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-v3-exempt-binding-audit",
+  "commands": [
+   "격리(병합본): git clone -c core.longpaths=true --no-checkout --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-v3-exempt-binding-audit C:/g186/isom",
+   "격리(병합본): git -C C:/g186/isom remote remove origin",
+   "격리(병합본): git -C C:/g186/isom checkout -q role/audit/20260930-v3-exempt-binding (HEAD 5a602d43e67e6b0c8c45cb028c1f92473add8601)",
+   "격리(base 판 T, 순서 3): 같은 clone -> C:/g186/iso (HEAD 8b1f929) · remote remove origin; base 하네스 대조 C:/g186/isob(checkout --detach dd60db6) · remote remove origin",
+   "게이트 코드: C:/Python314/python.exe -B scripts/extract_gate.py C:/g186/iso dd60db6515b6fe80ab16349835c19aa75d4f292f C:/g186/gate -> C:/g186/gmid-gate-cache/dd60db6515b6fe80ab16349835c19aa75d4f292f (redteam 밖 22파일, file_set_sha256 705036ea1039e7abb0e449918a8209b229f4a685ab2da9d0e03907bf571d82c4; 병합본에서 다시 추출해도 diff -r 같음). 저장소 내부 캐시 디렉터리 직접 대조는 role_guard EL1이 막아 이 추출본 대조로 갈음(오케스트레이터 지시)",
+   "환경: $PY = C:/Python314/python.exe, export APPDATA=C:/Users/HSLEE/AppData/Roaming PYTHONDONTWRITEBYTECODE=1, 출력 C:/g186/o7, 스크립트 사본 .ai/verification/20260930-v3-exempt-binding/scripts/",
+   "엄격 집합: PYTHONPYCACHEPREFIX=C:/g186/o7/pyc_s PYTHONPATH=C:/g186/gmid-gate-cache/dd60db6515b6fe80ab16349835c19aa75d4f292f $PY -P scripts/strict_check.py C:/g186/isom dd60db6515b6fe80ab16349835c19aa75d4f292f 20260930-v3-exempt-binding <V1 명령> -> strict_set [], conftest_has_gmid_phase True, v1_command_check []",
+   "V1: PYTHONPYCACHEPREFIX=C:/g186/o7/pyc_v1 PYTHONPATH=C:/g186/gmid-gate-cache/dd60db6515b6fe80ab16349835c19aa75d4f292f $PY -P -m pytest -c C:/g186/gmid-gate-cache/dd60db6515b6fe80ab16349835c19aa75d4f292f/pytest_gate.ini --rootdir=C:/g186/isom --confcutdir=C:/g186/isom C:/g186/isom/skills/analog-gmid-design/assets/tests --gmid-phase=0.5 --gmid-strict= -rA",
+   "V1 cwd: C:/g186/isom (HEAD 5a602d43e67e6b0c8c45cb028c1f92473add8601), TEMP=TMP=TMPDIR=C:/g186/tmpv",
+   "redteam 병합본(cwd C:/g186/isom, TEMP=TMP=TMPDIR=C:/g186/tmpm, background 한 번에): bash scripts/run_rt.sh C:/g186/isom C:/g186/tmpm M = $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/g186/isom ; $PY tools/gates/redteam/run_all.py --cases 0.5 --mode direct --repo C:/g186/isom",
+   "redteam base 표(순서 3): bash scripts/run_rt.sh C:/g186/iso C:/g186/tmp T ; base 하네스 bash scripts/run_rt.sh C:/g186/isob C:/g186/tmpb B ; $PY scripts/cmp_harness.py (T 대 B)",
+   "기계 대조: $PY scripts/cmp_rt.py <iso>/logs/20261002-014302-direct.jsonl <isom>/logs/20261002-110657-direct.jsonl <iso>/logs/20261002-023651-direct-cases.jsonl <isom>/logs/20261002-122811-direct-cases.jsonl out/cmp_rt.json",
+   "red·판별력(순서 3): $PY -B scripts/disc.py <T v.json> C:/g186/gate <T lib> C:/g186/probe/disc out/disc.json ; red 해시: PYTHONPATH=C:/g186/gate $PY -P (merge_gate.red_failure_hash) -> out/red_hashes.json",
+   "참고 도구(V3~V7): bash scripts/run_o7.sh tools (base 판 mutate_changed·weakening_diff·source_lint·reachability base..병합본, test_lint --module-dir tools/gates --subject mutate_changed:main·bind_hash·approved_index·exempt_decision, weakening_diff base..T)",
+   "계약 probe: $PY -B scripts/probes.py C:/g186/isom/tools/gates/mutate_changed.py <캐시>/mutate_changed.py <캐시>/pytest_gate.ini C:/g186/o7/pw out/probes.json (p1·p3·p4·p5·p6·p8·p2) ; $PY -B scripts/p7_other_tools.py <캐시> C:/g186/isom/tools/gates out/p7.json ; $PY -B scripts/p9_rt_errors.py C:/g186/isom/tools/gates/redteam/lib C:/g186/o7/p9w out/p9.json ; p9 끝까지: 별도 복제본 C:/g186/isop에 임시 케이스 99-p9-bindhash-error(34 bound-exempt의 qualname을 no_such_def로) -> run_all.py --only 99-p9 -> 케이스 ERROR(out/p9_e2e.txt)",
+   "p10 DF-36 범위(B41 측정값): bash scripts/run_o7.sh df36 = $PY C:/g186/isom/tools/gates/mutate_changed.py --root C:/g186/isom --base 070cf6937e2841bdd3b4781eb9b8ba5bba9cc606 --head b29be01 --pytest-ini <캐시>/pytest_gate.ini --gmid-phase=2 --gmid-strict= --out out/df36_v3.jsonl"
+  ]
+ }
+}

@@ -1,0 +1,118 @@
+# 사용자 결정 패키지 v4 (2026-10-02, gate master `dd60db6` 기준)
+
+한눈에 보기: **결정 완료 19건**(§1 표의 행 수, 참고 1 포함) · **지금 필요 1묶음(Phase 3 design 승인 4문항)** · **Phase 4 착수 때 질문 5문항**(1차 4 + 2차 1 -- `phase4_approval_question.md`. 그 밖의 Phase 4 항목은 card 착수 때 건별 -- §3 표) · **사용자 작업 2건 + 조건부 1**.
+원천: `user_decisions.md`(결정의 정본), `git log gate/master`, 각 초안 파일(아래 '파일' 열). 옛 판: v1(9-30, `7535799`) `decision_package.v1.md`, v2(10-01, `a796468`) `decision_package.v3.md`(v3로 고치기 직전 사본), v3(10-01, `5f643a9`) `decision_package.v4.md`(v4로 고치기 직전 사본). **(v4)** 9차 Phase 4 검토 `review9_phase4_v094.md` m3 -- gate 진행(`5f643a9` → `dd60db6`: `2eefda1`·`cf26d39`·`84e91a4`·`7718505`·`dd60db6`, 모두 문서·승인 커밋)으로 낡은 곳 셋(A1-a 커밋됨, §2-1 제목의 Phase 2 DoD, B47 결정 출처)을 고쳤다. `dd60db6` `.ai/approvals/` 실측: A1-b·B33·B26-1 U4·U5·Q-B34-PHASE는 여전히 없음. **(v3)** 8차 Phase 4 검토 `review8_phase4_v093.md` §5가 짚은 낡은 곳 11곳과 '약 15건'(질문 수도 행 수도 아니었다)을 고쳤다.
+카드 순서(사용자 지정): P10 → P10b → **Phase 2 DoD** → V3 면제 묶기 → V3 범위 정책 → B34 → **B26-1** → B33 → **Phase 3**(G1·T0·D0a…) → … → Phase 4.
+
+---
+
+## 1. 결정 완료
+
+| id | 한 줄 내용 | 날짜 | 기록 위치 / 커밋 |
+|---|---|---|---|
+| E1 정정 | P9: design 20 E1·§6.2·§8 P9 행 정정(P9 = `kcl_series_union` 중복 엣지만 정본 호출로) | 09-30 | 설계 `6398a28`, 승인 `20260930-p9-e1-correction`(`ab90ec5`) |
+| topology 주석 보류 | current_reuse 1250·1281·1872, nmcnr 74 주석 정정은 보류 | 09-30 | 백로그 B29(gate `.ai/context.md`) |
+| D1 | Phase 2 E4 기준값 = da03c0e 대 Phase 2 마지막 병합본 같은 경로 비교 | 09-30 | 설계 `2140da8`, 승인 `20260930-phase2-e4-baseline`(`b7d2570`) |
+| D2 | P3c 보류분은 추가 card 없이 E2 문구대로, DoD '남긴 관찰'에 기록 | 09-30 | 승인 불필요. Phase 2 DoD 기록에 적을 몫 |
+| A2 | DEC-60 넷 전환기 종료 + DF-19·26 넷 몫 MG1 분리 + B26-1·B34를 Phase 3 전에 | 10-01 | 승인 `20260930-b26-before-phase3`(`2d58fd8`), 계획 정정 `8356c1e` |
+| A3 | E4 PT = `--gmid-phase=2` + `--gmid-dod` 두 실행 | 10-01 | 설계 `fe638ab`, 승인 `20260930-phase2-e4-phase`(`2d58fd8`) |
+| A1-a | V3 면제 = 변이 id@함수 원본 해시, 해시 같을 때만 적용(강화) | 10-01 | 승인 `20260930-v3-exempt-binding`(`dd60db6` -- spec card `7718505`, 문서 `84e91a4`) |
+| A1-b + 정정 | V3 범위 N2(바뀐 문장+제어문+삭제 주변+새 def 전체+early_return), 정정: T6 = 같은 블록 뒤쪽에서 바뀐 이름 읽는 문장 전부. **약화 승인** | 10-01 | 승인 초안 `approval_20260930-v3-changed-stmt-scope.md` -- **gate 미커밋** |
+| B33 | V7 레지스트리·생성자 간선 게이트 변경(미도달 115 → 39, 인벤토리 1.31배) | 10-01 | 승인 초안 `approval_20260930-v7-registry-edges.md` -- **gate 미커밋** |
+| B33 Q1 | 생성자 간선은 호출 위치(`Cls(...)`·`raise Cls`)만, 팩토리 모양은 면제 승인 처리 | 10-01 | 같은 기록 범위 설명 |
+| (참고) B28 | V3 이력 복제본 게이트 변경 -- `user_decisions.md`에는 없고 gate에 기록만 | 09-30 | 승인 `20260930-v3-history-clone`(`ab90ec5`) |
+| P10b 1차 V3 면제 | 보충 뮤테이션 생존 45 중 등가 9만 면제, detail 6은 계약 test로, 비등가 30은 test 보강 | 10-01 | 승인 `20261001-p10b-v3-equiv`(`d6a9778`) |
+| U-BF | backfill `interdig_ok` 불일치를 결함으로 고침 -- red-green card를 B26pre 뒤·B26-1 앞에 | 10-01 | 승인 `20261001-b26-backfill-interdig-fix`(`19eb475`) |
+| Q-P2DOD-E2 | Phase 2 DoD E2 = 'exit 0, 면제되지 않은 발견 0'(현재 면제 `20260929-p4-scan-exempt` 1건) 문구 정정 | 10-01 | design 20 정정 `1a464e4`, 승인 `20261001-p2dod-e2-wording`(`dc196cd`) |
+| B26-1 U3 | "정리 2줄 + 면제 1" -- 동작 불변 정리 C1·C2, `range` const− 1개만 변이 id@def 해시 면제(**약화 승인 1건**) | 10-01 | 기록 `20261001-b26-v3-equiv-range` -- **아직 없음**: B26-1 card '두 번 시도 절차'대로 1차 시도(병합 안 함) code 커밋 K1 뒤 auditor 측정 해시로 **2차 시도 착수 전** 커밋(card 착수 조건 아님) |
+| B26-1 U4 | A2 범위에 B40(`unavailable_reason` 키 삭제) 추가 | 10-01 | 기록 `20260930-b26-b40-reason-key`(decision) -- 초안 `approval_20260930-b26-b40-reason-key.md`, **gate 미커밋** |
+| B26-1 U5 | P9 시그니처 test 2개 기대값 갱신(V5) | 10-01 | 기록 `20261001-b26-p9-signature-update`(diff) -- 초안 `approval_20261001-b26-p9-signature-update.md`, **gate 미커밋** |
+| Q-B34-PHASE | B34·B26pre·backfill·B26-1 네 card `phase: 3`, 순서 그대로, A2 ③ 문구 정정 기록 | 10-01 | 기록 `20261001-b26-phase3-cards`(decision) -- 초안 `approval_20261001-b26-phase3-cards.md`, **gate 미커밋** |
+| B47 md 일치 | 낡은 `folded_cascode.topology.md` 재생성 + library md 표 ↔ json connectivity 일치 test card 진행 | 10-01 | (`user_decisions.md`에 없음 -- 결정 출처는 gate 승인 기록) 승인 `20261001-b47-md-sync`(`378ebe6`), md 일치 card `20261001-topology-md-sync` spec `80b9970`·test `2de923b`·판정 기록 `5f643a9` |
+
+---
+
+## 2. 지금 필요한 결정 (다음 card를 막는 것, 순서대로)
+
+**(v3)** v2의 '2-1. B26-1 U3·U4·U5'는 모두 결정됐다(§1 표 -- U3 "정리 2줄 + 면제 1", U4 추가 승인, U5 갱신 승인). v2의 U3 권고 '(1) 앞선 test-only card'와 '질문 문안 아직 없음'은 낡은 문장이었다. B26-1에 남은 것은 승인 기록 커밋(오케스트레이터)뿐이다.
+
+### 2-1. Phase 3 design 승인 4문항 -- 지금 물을 수 있음(Phase 2 DoD는 `2eefda1`에서 PASS로 기록됨 -- phase 3 card 병합의 Phase 2 DoD 조건은 충족) (문안 `phase3_approval_question.md` -- design 초안 v8.3)
+
+| 항목 | 질문 | 선택지 | 권고 | 막는 것 | 파일 |
+|---|---|---|---|---|---|
+| **UD-0** | design `30-module-split`(10모듈 분할, card 16건) + 문서 개정(N3.10 표·534행·N3.12.3·00-common·10 §5.6) 승인. 기준에 닿는 기본값 **D-9**(판정 기록 증거 스크립트·`probe_stage_partition.py`는 import 갱신 안 함, 기록 커밋에서만 재실행) · **D-17**(probe 8개 대입 14줄을 새 모듈로, "import 줄 외 동일" 검사에서 그 줄만 제외) 포함 + **(c) D-28 동작 보존 비교 판**(E5 E-LIB·E-INST -- 기본안 = Phase 2 DoD 대상 커밋 `P2D`와 비교하고 B26-1이 의도로 바꾼 `meta["rails"]`만 계약값으로 정확 일치 판정(선례 `20260930-phase2-e4-baseline` 모양), 대안 c-2 = B0와 비교) | 승인 / 승인 + 추가 표 개정 위임 / 수정 요청((a)·(b)·(c) 지정) / 보류 | **승인**(추가 표 개정은 나오면 다시 묻기) | Phase 3 전체 | `phase3_approval_question.md`, `draft_phase3_design_v8.md`(v8.3), `p3_doc_amendments.md` |
+| **D-19** | B26-1이 만드는 `rail_declaration`을 둘 모듈 | (가) MOD2 `topology_authoring`(선언 검사 함수들과 같은 곳, B37a `port_declaration`도) / (나) MOD3 `circuit_state_graph`(유일한 호출자 옆) | **(가)** | N3.10 MOD2 행 문안, Phase 4 #47 모듈 | 같은 질문 문안 |
+| **UD-5** | 게이트 변경 G1(옮긴 정의를 새 정의로 안 봄, V3·V6·V7) 승인과 방식 -- 둘 다 약화 없음 | (가) 전역 이동 인식 규칙(1회) / (나) 승인 기록에 선언한 이동만(M card 8건마다 승인 1건) / 보류 | **(가)** | G1 → M card 전부(이동 card는 지금 변이 ~1.6만 개로 판정 불가) | 같은 문안, `draft_p3_g1.spec.md` |
+| **UD-1** | U-03: 추적 안 된 `workspaces/smoke_run_harness_session18_save.py`가 shim 삭제로 깨짐 | (가) 깨지게 둠 / (나) 지금 추적 추가 + F1에서 갱신 / (다) 삭제(사용자 작업) | **(가)**(계획 기본안) | F1/F2 shim 삭제 | 같은 문안 |
+
+답을 받은 뒤 기록: UD-0·D-19 → `20260930-30-module-split-design`(diff), UD-5 → `20260930-p3-gate-move-aware`(diff), UD-1 → design 기록 범위 설명.
+뒤에 올 것(지금 아님): T0·T1·F1 V5 승인(test 커밋 뒤), D0b가 계산하는 추가 N3.10 개정.
+
+---
+
+## 3. Phase 4 착수 때 결정 (`draft_phase4_design.md` **v0.9.5** §7 -- 질문 문안 `phase4_approval_question.md`: 1차 UD-0·UD-6·UD-1·UD-15, 2차 U-04·U-05·U-26 (a). 아래 표의 나머지는 card 착수 때 건별)
+
+### 3-1. 회로 해석 공동분석 -- UD-17a~e (`ud17_coanalysis_pack.md`, 기본안 없음)
+
+| 항목 | 질문 | 선택지 | 판단 자료 | 막는 card |
+|---|---|---|---|---|
+| **UD-17a** | folded M1·M2 선언 | (1) kind → nmos / (2) pmos 유지 + source↔drain 교환 / (3) 원문이 pmos 입력 → 여러 소자 거울상 연결 | tail에서 KCL 불가, 연결 패턴은 NMOS 입력 폴디드 전형. **새 발견: (1)·(2)로 극성(0.4 V)만 고쳐도 X·Y 충돌이 1.2 V로 남는다** -- tail 컬럼 KVL 공백(vds 합 0.6 대 VDD 1.8)이라 **UD-17c의 입력 CM 선언 없이는 F26·F27 해소 안 됨** | #53 |
+| **UD-17b** | `kcl_fold_M5`·`M6` 부호(I6 = I3 − I1?) | UD-17a 답에서 KCL로 유도 | 교과서형이면 I6 = I5 = 0.5 µA(지금 1.0) → M5~M10 재계산 | #53 |
+| **UD-17c** | folded 컬럼 공백(tail 1.2 V, Y 0.5 V, out 1.0 V)을 어디서 정하나 | (i) `bias3`·출력 CM·**입력 CM** 선언(새 필드 + 엔진 해석, 승인) / (ii) 엔진이 fold_group 컬럼 KVL 풀이(외부 DC 없으면 해가 하나로 안 정해짐) / (iii) 두고 SEAL_VIOLATION으로 멈춤 | 지금 선언할 필드 없음(`ports`에 DC 값 없음) | #53 갈래 |
+| **UD-17d** | current_reuse Vom1·Vop1 DC를 무엇이 정하나 | (i) 출력단 VGS 0.677 V(컬럼 분할 선언) / (ii) 컬럼 0.9 V(M16·M26 VGS 변경) / (iii) 다른 것(CMFB 등) | **(i)이면 아래 반쪽 최소합 0.9 V > 0.677 V → M5 vds 0.027 V, 꼬리 M5 triode** = 설계 변경 필요. M2a·M2b vsb 0.9227이 진짜 축 밖이 되어 UD-17e 질문이 번짐 | #54, DoD E3·E8 |
+| **UD-17e** | M9a·M18a(그리고 M2a·M2b) bulk | (i) vdd(지금 가정, vsb 0.825 축 밖, 오차 0.7 %) / (ii) 자기 source(n-well) | **두 json 모두 `bulk` 필드 없음 -- 엔진은 레일 bulk(NMOS=gnd, PMOS=vdd)를 가정**. (ii)는 connectivity(사용자) + 엔진 배선 card | #54, #22 |
+
+### 3-2. 그 밖의 Phase 4 결정
+
+| 항목 | 질문 | 권고(기본안) | 막는 card | 파일 |
+|---|---|---|---|---|
+| **UD-0(P4)** | Phase 4 design 승인 -- 원칙 기본안 P-1~P-37(§7.2) + 계획·설계 정정 요청 §9-1~§9-26 + margin 처리 + 기준에 닿는 것 (a) 정본 실행 결과 변경 (b) IC11 2레일·성능 보고가 UD-17d에 걸림 (c) **E11 라이브러리 회로 재측정 = '바뀐 (회로, 항목) 집합 == 승인된 차이표 합집합' 정확 일치**(v0.9.4 -- 빼는 키 목록 없음, 극성 기대값은 design에 넣는 판정 쪽 스크립트 `derive_polarity_p4.py`) | 승인 | Phase 4 전체 | `phase4_approval_question.md`, design §6 'E11 차이 집합 표'·§7.2·§9 |
+| **UD-18** | B37a Q1 동작 변경 수용(card v2 기대 차이표: **E-LIB 5회로** -- 자동 채움 소실 3회로(ngcc·sf_pushpull·two_stage_ota_sf: `device_roles`·`_device_roles_autofilled`) + 검토 목록 감소 2회로(nmcnr 12 → 10, two_stage_ota 9 → 7: `_device_roles_gap_fill_review_needed`), **E3 3회로** 그룹 변화. 착수 시 재측정) / Q2 `ports` 선언 확인(ngcc·sf_pushpull·two_stage_ota_sf·pushpull·common_gate) / Q3 sf_pushpull 그룹을 계약 test로 고정(대안 = 비등가 변이 면제 = 약화) | Q1 수용, Q2 표대로 확인, **Q3 고정** | #47 | `draft_b37a_approval_question.md` |
+| **P4-UD-1** | 레일 극성 | (C) 구조 규칙 + 예외만 `supply_roles`(9/9 규칙 판정, 파일 수정 0) | #17, #19 | `b26_decision_table.md` |
+| **U-26 (a)** | `supplies_v` 제안표 확인(two_stage·current_reuse·folded `{vdd 1.8, gnd 0}`, nmcnr 최종 `{0.9, −0.9}`는 계획 확정 -- 묻는 것은 중간값 `{vdd 1.8, vss 0}`) | 2차 질문(셋 다 기본안) | #21 | design §7.2 P-14, 승인 질문 2차 |
+| **U-04** | 픽스처/정본 spec 구분 | `origin: canonical \| fixture` 필수 | #37 | 계획 1079행 |
+| **U-05** | 비단조 곡선 이분 역산 | 단조 구간별 근 전부 + 호출자 선택 규칙 | #31 | 계획 1080행 |
+| **U-09 (UD-6)** | I-C11 해소 | #43 실패 명시화는 무조건. nmcnr는 (C) topology 정정부터, two_stage는 (A) DEC-70 Phase로 이관 | #44, E2 | design §11 |
+| **U-A** | theta 작성 묶음 4함수 | 배선 | C1, #19 | `prep_deferred_rows.md` |
+| **U-B** | `find_diode_stacks` | 삭제(current_reuse만 18 대 16 차이, ★diode 정의 공동분석) | 6a S1 | 같은 곳 |
+| **U-C** | `find_differential_and_mirror_forks` | 6a 공동분석까지 유지(면제) | #19 | 같은 곳 |
+| **U-D** | `check_mirror_symmetry` | 7b I-A13 바탕으로 배선(기존 U-02 삭제 승인 번복) | 7b | 같은 곳 |
+| **UD-15 / B36** | (1) analog-grammar 소속·게이트 편입 (2) B35 방식 (3) mid 레일 grammar 매핑 | (1) 별도 skill + gmid 게이트 편입 (2) X analog-grammar 확장 (3) 공동분석 -- 선언 레일은 `RAIL_Z`, 라벨은 hi/lo만 | #46·#17·#49·#19·#52 | design §7.1 비교표, `prep_b34_b35_grammar.md`. (v0.9.4) B35 card 작성 전 `agnd` 회로 meta 실측(바뀌면 design 개정 -- [미확인]) |
+| **DEC-40 기준선**(발생 시 건별) | U-27 새 LUT 옛 격자점 차이(UD-b), U-30 `W_bounds` 하한 1 → 0.42 µm로 바뀌는 θ*·finger(UD-a; folded M3·M4, nmcnr M202), current_reuse `cmrr_estimate_db` 73.145 → 73.380, #23 current_reuse θ* 마지막 자리(P-36), #13 `fallback_events` 키, topology 변경 결과(#53·#54·#55(UD-17e (ii)일 때만)·#44 (C) -- E-LIB 차이표에 (회로, `rails`) 행 포함) | auditor 비교표 받은 뒤 승인 | #27, #29, #18, #23, #13, #53·#54·#55·#44 | `prep_u27_u30.md` §4.1, design §7.4 |
+| **topology 수정 승인**(#53·#54·#55·#44 (C)) | UD-17 답(#53·#54·#55)·UD-6 (C) 답(#44 -- nmcnr 선언 정정) 뒤 library json 수정(쓰기 경로 WP-07·U-16), 공동분석 확인표를 `docs/03-analysis/gain-budget-gmid-sizing-40-defect-fixes/`에 함께 커밋 | 답에 따라 | #53, #54, #55, #44 | design §7.3 |
+
+### 3-3. 백로그 중 사용자 확인이 필요한 것 ((v4) gate 백로그 반영됨 -- `cf26d39` 백로그 이관(B35 보충, B38~B44·B46·B48~B53, B47 해소 표기), `dd60db6` `.ai/context.md`에 B39·B40 항목 있음. §1 'gate 미커밋' 열은 `dd60db6`로 재대조함)
+
+| 항목 | 확인할 것 | 시점 |
+|---|---|---|
+| ~~B47~~ | **결정됨**(§1 'B47 md 일치' -- 승인 `20261001-b47-md-sync` `378ebe6`, md 일치 card spec `80b9970`). 대기 아님 | -- |
+| **B36** | = UD-15 (1). B35를 확장안으로 하면 B35 착수 조건 | Phase 4(단독으로 앞당길 수 있음) |
+| B39 | 사이트 4 등가 생존 변이(`>= 2`→`>= 1`) 면제 승인 | B39 처리 card 때 |
+| B29 | 보류된 topology 주석 정정을 언제 풀지 | 사용자가 원할 때 |
+
+---
+
+## 4. 사용자 작업 (Claude가 할 수 없음)
+
+| 작업 | 이유 | 시점 |
+|---|---|---|
+| `install.py` `SKILLS`에 `"analog-grammar"` 추가(27~29행) | 쓰기 경로 N3.12.2 '사용자'. 없으면 B34 뒤 설치본이 **명시적 ImportError**로 실패(지금은 조용한 폴백) | **B34 병합 전후, 가능하면 전** |
+| 원본 회로도로 UD-17 체크리스트 확인 | connectivity·kind·bulk는 사용자만 고침. 넷 단자 목록을 회로도와 한 넷씩 대조(folded: Maloberti p.34~38, current_reuse: Vom1·Vop1·CMFB·bulk) | Phase 4 #53·#54 전 (`ud17_coanalysis_pack.md` §5) |
+| (UD-1 (다)를 고를 때만) `smoke_run_harness_session18_save.py` 삭제 | 추적 안 된 사용자 파일 | Phase 3 F2 전 |
+
+---
+
+## 5. 알림 -- 원칙 기본안 (묻지 않음)
+
+| 항목 | 기본안 | 근거 |
+|---|---|---|
+| Phase 3 D-1~D-25(D-9·D-17·D-19 제외) | UD-0이 덮음. 코드 배치·판정 절차, 회로 해석 없음 | design 30 §9.3 |
+| Phase 4 P-1~P-37 | UD-0(P4)이 덮음. P-26~P-32: 클램프 거부 계획대로, 충돌 노드에서 vsb 유도 금지(SEAL_VIOLATION), 축 밖 오류 고유 클래스, 선형 외삽 불가, VS 상한 1.8 V, IC11 우선순위 current_reuse → folded. **P-33~P-37**: P-33 `FallbackEvent`·`record_fallback` 모듈 배치, P-34 LUT 축 밖 오류의 raise 위치·원인 보존, P-35 #2~#4·B26-2·B26-3은 Phase 3 뒤 단일 경로, **P-36** 노드전압 사슬의 vsb 비교 = 비트 동일·`node_tol` 명시 전달, **P-37** E-LIB 비교 = 선례 모양(Phase 3 DoD 대상 커밋 대 Phase 4 마지막 병합본 -- 판정 기준 자체는 UD-0 (c)) | design §7.2 |
+| B34 | 새 승인 불필요(A2가 덮음, V3·V7 면제 0) | `b34_commit_plan.md` §1 |
+| B37a 형식 규칙 | `ports` 누락·형식 오류·모순 거부, `ports: {}` 수용, '출력은 포트만'은 B37b 결정으로 | `draft_b37a_approval_question.md` §2 |
+| U-30 `min_finger_w` = 0.42 µm | 계획이 닫음. 사용자 몫은 결과 승인(DEC-40)뿐 | `prep_u27_u30.md` §4.1 |
+| 정보: `max_finger_w` 40 µm > 모델 bin W 상한 7.0 µm | 값 유지, 결정은 원할 때(7a SPICE 대조) | 같은 곳 UD-c |
+| U-27 VS 간격 0.2 V | 유지, 보간 오차 기록 → 백로그 B51((v0.9.2 번호 정정) 옛 제안 번호 B48은 오케스트레이터 백로그 B48(test_lint 빈 컨테이너 오탐)과 겹쳐 B51로 -- Phase 4 design §9-12) | design §7.2 P-5 |
+| `_metric_kcl_residual` 이름 직접 호출 test | 어느 안이든 추가(인벤토리 0 → 1) | `draft_b26_1.spec.md` V3 계획 4 |
+
+**초안 간 정리 필요(오케스트레이터 몫, 사용자 결정 아님)**: Phase 4 design 정본 초안은 `draft_phase4_design.md`(**v0.9.5** -- 9차 검토로 검토 루프 종료)이고 `.v05.md`~`.v094.md`는 옛 판 사본이다(v2의 'v05와 내용이 같다'는 더 이상 사실이 아니다). gate에 아직 없는 승인 기록(`dd60db6` `.ai/approvals/` 실측 -- (v4) A1-a는 `dd60db6`에 커밋됨): A1-b·B33 2건(해당 card 커밋 때 rev-parse 채워 커밋), B26-1 U4·U5·Q-B34-PHASE 3건(초안 `approval_*`), U3 1건(2차 시도 착수 전).

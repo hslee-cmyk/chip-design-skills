@@ -1,0 +1,590 @@
+--- b1/skills/analog-gmid-design/assets/stick_diagram.py
++++ head/skills/analog-gmid-design/assets/stick_diagram.py
+@@ -943,5 +943,5 @@
+ # ---------------------------------------------------------------------------
+ 
+-def find_matching_candidates(transistors: list, idiom_matches: list | None = None) -> dict:
++def find_matching_candidates(transistors: list, idiom_matches: list | None = None, *, rails) -> dict:
+     """구조적 신호만으로 matching **후보**(확정 아님)를 찾는다 — AI/설계자가 소자쌍을
+     일일이 수동으로 훑지 않도록 후보를 미리 좁혀주는 게 이 함수의 존재 이유다(토큰 절약).
+@@ -1012,5 +1012,5 @@
+         # 빠뜨리고 있었다). 서로 무관한 두 소자가 우연히 같은 레일을 source로 공유하기만 해도
+         # (극단적으로는 회로에 정확히 2개만 있으면) diff_pair로 오탐된다.
+-        if source in _RAIL_NETS:
++        if source in rails.nets:
+             continue
+         if len(group) != 2:
+@@ -1499,5 +1499,5 @@
+ 
+ def find_differential_pair_candidates(transistors: list, inputs=(), outputs=(),
+-                                        feedbacks=(), biases=(), clocks=()) -> dict | None:
++                                        feedbacks=(), biases=(), clocks=(), *, rails) -> dict | None:
+     """구조적으로 매칭된 branch 쌍(`suggest_vertical_stack_composites()`의 composite
+     시퀀스가 완전히 같은 branch끼리 묶음, C-10과 동일 원리) 안에서, 서로 다른 위치의
+@@ -1569,5 +1569,5 @@
+                         if ta.kind != tb.kind or ta.gate == tb.gate:
+                             continue
+-                        if ta.source != tb.source or ta.source in _RAIL_NETS:
++                        if ta.source != tb.source or ta.source in rails.nets:
+                             continue
+                         key = (direction, frozenset((a, b)))
+@@ -1591,5 +1591,5 @@
+     # (branch-composite 비교가 이미 찾은 걸 덮어쓰지 않고, 못 찾던 것만 보충)라 기존
+     # 실측(Test 37 등)에 회귀가 없다."""
+-    for (kind, source, _w), group in _diff_pair_layer1_groups(transistors).items():
++    for (kind, source, _w), group in _diff_pair_layer1_groups(transistors, rails=rails).items():
+         if len(group) != 2:
+             continue
+@@ -1604,5 +1604,5 @@
+ 
+ 
+-def _diff_pair_layer1_groups(transistors: list) -> dict:
++def _diff_pair_layer1_groups(transistors: list, *, rails) -> dict:
+     """`find_matching_candidates()`의 `diff_pair` net-only 판정(같은 kind + 같은
+     non-rail source + 다른 gate, role/idiom 분류 불필요)만 떼어낸 헬퍼 -- `find_
+@@ -1611,5 +1611,5 @@
+     by_source = defaultdict(list)
+     for t in transistors:
+-        if t.source in _RAIL_NETS:
++        if t.source in rails.nets:
+             continue
+         by_source[(t.kind, t.source, t.w)].append(t)
+@@ -2045,5 +2045,5 @@
+ 
+ 
+-def _propose_gm_id_roles(transistors, base_inputs, outputs, feedbacks, biases, clocks):
++def _propose_gm_id_roles(transistors, base_inputs, outputs, feedbacks, biases, clocks, *, rails):
+     """`refine_differential_and_mirror_relations()`가 쓰는 내부 헬퍼 -- `topology.json`
+     `device_roles`의 `gm_id_role`(`matching`/`gain`/`balanced` 중 이 프로젝트가 실제로
+@@ -2085,10 +2085,10 @@
+     실제로 반영할지는 소자마다 다를 수 있다."""
+     candidates = find_differential_pair_candidates(
+-        transistors, base_inputs, outputs, feedbacks, biases, clocks)
++        transistors, base_inputs, outputs, feedbacks, biases, clocks, rails=rails)
+     if candidates is None:
+         return None
+     shared_sources = {c["shared_source"] for c in candidates["candidates"]}
+     by_name = {t.name: t for t in transistors}
+-    seeds = {"vdd": "vdd", "gnd": "gnd"}
++    seeds = {n: n for n in rails.nets}
+     for c in candidates["candidates"]:
+         a, b = c["devices"]
+@@ -2108,5 +2108,5 @@
+ 
+ 
+-def _propose_L_roles(transistors, relations, base_inputs, outputs, feedbacks, biases, clocks):
++def _propose_L_roles(transistors, relations, base_inputs, outputs, feedbacks, biases, clocks, *, rails):
+     """`refine_differential_and_mirror_relations()`가 쓰는 내부 헬퍼 -- `topology.json`
+     `device_roles`의 `L_role`(`mirror`=2.5*L_min | `bias_replica`=1.2*L_min) 후보를
+@@ -2158,13 +2158,13 @@
+     "confirmed_by_structural_symmetry": bool, "symmetry_partner": str|None}, ...}` --
+     **이제 sparse dict다**(근거 있는 소자만)."""
+-    gm_id_roles = _propose_gm_id_roles(transistors, base_inputs, outputs, feedbacks, biases, clocks)
++    gm_id_roles = _propose_gm_id_roles(transistors, base_inputs, outputs, feedbacks, biases, clocks, rails=rails)
+     if gm_id_roles is None:
+         return None
+     candidates = find_differential_pair_candidates(
+-        transistors, base_inputs, outputs, feedbacks, biases, clocks)
++        transistors, base_inputs, outputs, feedbacks, biases, clocks, rails=rails)
+     if candidates is None:
+         return None
+     by_name = {t.name: t for t in transistors}
+-    seeds = {"vdd": "vdd", "gnd": "gnd"}
++    seeds = {n: n for n in rails.nets}
+     for c in candidates["candidates"]:
+         a, b = c["devices"]
+@@ -2313,5 +2313,5 @@
+ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outputs=(),
+                                                feedbacks=(), biases=(), clocks=(),
+-                                               max_iterations: int = 5) -> dict | None:
++                                               max_iterations: int = 5, *, rails) -> dict | None:
+     """`find_differential_pair_candidates()`(C-11)가 `inputs=` 선언 없이 순수
+     connectivity로 찾아낸 differential pair 후보의 gate net을 **자동으로**
+@@ -2394,6 +2394,4 @@
+     def classify(cur_inputs):
+         netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
+-        if netclass is None:
+-            return None, None
+         devs = _to_analog_grammar_devs(transistors)
+         cls, imp, _assume = netclass.classify_nets(devs, cur_inputs, outputs, biases, feedbacks, clocks)
+@@ -2404,6 +2402,4 @@
+     cur_inputs = base_inputs
+     cls_before, role_before = classify(cur_inputs)
+-    if cls_before is None:
+-        return None
+ 
+     promoted_inputs = []
+@@ -2413,5 +2409,5 @@
+         iterations += 1
+         candidates = find_differential_pair_candidates(
+-            transistors, cur_inputs, outputs, feedbacks, biases, clocks)
++            transistors, cur_inputs, outputs, feedbacks, biases, clocks, rails=rails)
+         if candidates is None:
+             return None
+@@ -2434,13 +2430,11 @@
+     relations = find_verified_differential_and_mirror_relations(
+         transistors, cur_inputs, outputs, feedbacks, biases, clocks)
+-    if relations is None:
+-        return None
+ 
+     vertical_stack_id_candidates = _propose_vertical_stack_ids(
+         transistors, relations, base_inputs, outputs, feedbacks, biases, clocks)
+     gm_id_role_candidates = _propose_gm_id_roles(
+-        transistors, base_inputs, outputs, feedbacks, biases, clocks)
++        transistors, base_inputs, outputs, feedbacks, biases, clocks, rails=rails)
+     L_role_candidates = _propose_L_roles(
+-        transistors, relations, base_inputs, outputs, feedbacks, biases, clocks)
++        transistors, relations, base_inputs, outputs, feedbacks, biases, clocks, rails=rails)
+     headroom_role_candidates = _propose_headroom_roles(
+         transistors, gm_id_role_candidates, vertical_stack_id_candidates,
+@@ -2541,5 +2535,5 @@
+ 
+ def check_symmetry_dispositions(transistors: list, matching_pairs: list,
+-                                  dispositions: dict | None = None) -> SymmetryDispositionsVerdict:
++                                  dispositions: dict | None = None, *, rails) -> SymmetryDispositionsVerdict:
+     """`find_matching_candidates()`/`find_hub_merge_candidates()`는 **후보**만 낸다 — "이
+     회로 기능상 진짜 matching/병합인가"는 항상 판단(설계자/AI)이 남아 있는데, 그 판단이
+@@ -2604,5 +2598,5 @@
+     case_collisions = _scan_case_collisions(all_nets)
+ 
+-    matching_candidates = find_matching_candidates(transistors)
++    matching_candidates = find_matching_candidates(transistors, rails=rails)
+     hub_candidates = find_hub_merge_candidates(transistors)
+     found_groups = []
+@@ -2997,5 +2991,5 @@
+ 
+ 
+-def kcl_series_union(netlist: list, matching_pairs: list) -> dict:
++def kcl_series_union(netlist: list, matching_pairs: list, *, rails) -> dict:
+     """L2 축A(2026-08-05, 세션10 L1/L2 구현) — `derive_stack_groups()`를 KCL용/geometry용
+     두 함수로 분리한 것 중 KCL(축A, `sizing_recipe.py`의 `stack_groups_kcl`) 쪽. 두 규칙으로
+@@ -3030,5 +3024,5 @@
+ 
+     # 엣지 정의(내부 2단자 net + 매칭 쌍)는 `_kcl_and_matching_edges()` 한 곳에만 둔다.
+-    for a, b, _kind, _detail in _kcl_and_matching_edges(netlist, matching_pairs):
++    for a, b, _kind, _detail in _kcl_and_matching_edges(netlist, matching_pairs, rails=rails):
+         union(a, b)
+ 
+@@ -3117,5 +3111,5 @@
+ 
+ 
+-def _kcl_and_matching_edges(transistors: list, matching_pairs: list) -> list:
++def _kcl_and_matching_edges(transistors: list, matching_pairs: list, *, rails) -> list:
+     """`kcl_series_union()`이 union할 때 실제로 쓰는 것과 똑같은 두 종류의 edge(내부
+     2단자 net + declared `current_forced` matching_pairs)를 `(a, b, kind, detail)`
+@@ -3131,5 +3125,5 @@
+     edges = []
+     for net, uses in net_uses.items():
+-        if net in _RAIL_NETS:
++        if net in rails.nets:
+             continue
+         if len(uses) == 2 and uses[0] != uses[1]:
+@@ -3142,5 +3136,5 @@
+ 
+ def audit_vertical_stack_id_vs_kcl(transistors: list, matching_pairs: list,
+-                                    device_roles: dict) -> dict:
++                                    device_roles: dict, *, rails) -> dict:
+     """L2 축A(`kcl_series_union()`)와 declared `vertical_stack_id`(topology.json
+     `device_roles`)가 서로 다른 질문에 답한다는 걸 2026-08-10 세션 대화에서 실측으로
+@@ -3189,5 +3183,5 @@
+         net_uses[t.source].append(t.name)
+         net_uses[t.drain].append(t.name)
+-    edges = _kcl_and_matching_edges(transistors, matching_pairs)
++    edges = _kcl_and_matching_edges(transistors, matching_pairs, rails=rails)
+     parent = {t.name: t.name for t in transistors}
+ 
+@@ -3236,5 +3230,5 @@
+                 member_nets.add(t.drain)
+             hub_nets = sorted((n, len(net_uses[n])) for n in member_nets
+-                               if n not in _RAIL_NETS and len(net_uses.get(n, [])) >= 3)
++                               if n not in rails.nets and len(net_uses.get(n, [])) >= 3)
+             hub_findings.append({"vsid": vsid, "members": sorted(members),
+                                   "kcl_subgroup_count": len(kcl_ids),
+@@ -3246,5 +3240,5 @@
+ def propose_vertical_stack_id_gap_fill(transistors: list, matching_pairs: list,
+                                         device_roles: dict, inputs=(), outputs=(),
+-                                        feedbacks=(), biases=(), clocks=()) -> dict:
++                                        feedbacks=(), biases=(), clocks=(), *, rails) -> dict:
+     """선언 안 된 소자가 **결합(union) 그룹** 안에서 이미 선언된 `vertical_stack_id`를
+     물려받는 제안을 만든다(2026-08-13 세션31, 사용자 요청 -- `two_stage_ota.topology.
+@@ -3274,5 +3268,5 @@
+     한 union 그룹 안에 서로 다른 declared 값이 2개 이상 섞인 경우(자동으로 못 정함,
+     사람 검토 필요), `components_used`는 미선언 멤버가 하나라도 있던 그룹만(디버깅용)."""
+-    edges = [(a, b) for a, b, kind, _detail in _kcl_and_matching_edges(transistors, matching_pairs)
++    edges = [(a, b) for a, b, kind, _detail in _kcl_and_matching_edges(transistors, matching_pairs, rails=rails)
+              if kind == "internal_series"]
+     if inputs or outputs or feedbacks or biases or clocks:
+@@ -3827,5 +3821,5 @@
+                                     compensation_stage_devices: list | None = None,
+                                     vds_theta_authoritative: set | None = None,
+-                                    inputs=(), outputs=(), feedbacks=(), biases=(), clocks=()) -> dict:
++                                    inputs=(), outputs=(), feedbacks=(), biases=(), clocks=(), *, rails) -> dict:
+     """`symmetry.matching_pairs`/`device_roles`(`gm_id_role`/`L_role`/`headroom_role`)를 **netlist
+     connectivity만으로** 제안한다(2026-08-14, `.ai/context.md` 세션32 I절 설계 + 다음 세션 실측
+@@ -3944,10 +3938,7 @@
+     {"promoted_inputs", "final_inputs", "structural_symmetry_unresolved"}}`."""
+     refined = refine_differential_and_mirror_relations(transistors, inputs, outputs, feedbacks,
+-                                                          biases, clocks)
++                                                          biases, clocks, rails=rails)
+     if refined is None:
+-        return {"matching_pairs_proposals": [], "device_roles_proposals": {}, "review_needed": [],
+-                "unavailable_reason": "analog-grammar를 import할 수 없어 이 오케스트레이션 전체가 "
+-                                        "동작하지 않는다(refine_differential_and_mirror_relations()가 "
+-                                        "None을 반환)."}
++        return {"matching_pairs_proposals": [], "device_roles_proposals": {}, "review_needed": []}
+ 
+     relations = refined["relations"]
+@@ -3971,5 +3962,5 @@
+     }
+ 
+-    seed_net_pairs = {net: net for net in _RAIL_NETS}
++    seed_net_pairs = {net: net for net in rails.nets}
+     for rel in relations["differential"]:
+         a, b = rel["devices"]
+@@ -4052,5 +4043,5 @@
+     _static_ref_roles = (
+         (_netclass_lcmf.DIODE, _netclass_lcmf.CURR_SRC, _netclass_lcmf.ACTIVE_LOAD,
+-         _netclass_lcmf.CASCODE) if _netclass_lcmf is not None else ())
++         _netclass_lcmf.CASCODE))
+     role_candidates = refined.get("role_candidates") or {}
+ 
+@@ -4103,5 +4094,5 @@
+     gain_role_candidates |= cascoded_active_load_legs
+ 
+-    matching_candidates = find_matching_candidates(transistors)
++    matching_candidates = find_matching_candidates(transistors, rails=rails)
+     for group in matching_candidates["diff_pair"].values():
+         if len(group) == 2:
+@@ -4150,5 +4141,5 @@
+     for y_name in compensation_names:
+         y = by_name.get(y_name)
+-        if y is None or y.gate in _RAIL_NETS:
++        if y is None or y.gate in rails.nets:
+             continue
+         raw_drivers = [x for x in transistors if x.name != y.name and x.drain == y.gate]
+@@ -4286,5 +4277,5 @@
+                            for n in (m.source, m.drain)}
+         open_terminals = [n for n in (x.source, x.drain)
+-                           if n not in _RAIL_NETS and n not in own_group_nets]
++                           if n not in rails.nets and n not in own_group_nets]
+         if len(open_terminals) != 1:
+             continue  # 그룹 안에서 완결되거나(0개) 경계가 하나가 아니면(2개) 단일 참조로 표현 불가
+@@ -4302,5 +4293,5 @@
+             continue
+         y = other_drain_touches[0]
+-        if y.source not in _RAIL_NETS:
++        if y.source not in rails.nets:
+             continue
+         # ⚠️ 2026-08-20 실측으로 발견(일반 원칙, 이 회로 전용 아님) -- X.source==Y.source면
+@@ -4349,5 +4340,5 @@
+                            and (device_roles.get(m.name) or {}).get("vertical_stack_id") == x_vsid
+                            for n in (m.source, m.drain)}
+-        if x.drain in _RAIL_NETS or x.drain in own_group_nets:
++        if x.drain in rails.nets or x.drain in own_group_nets:
+             continue
+         all_drain_touches = [y for y in transistors if y.name != x.name and y.drain == x.drain]
+@@ -4371,5 +4362,5 @@
+         # 폴딩 노드(Vom1의 M2a/M3a)는 양쪽 다 source가 레일이 아니라 각자의 그룹 안쪽
+         # 노드에서 온다 -- 이 차이로 "직렬"과 "폴딩"을 구분한다.
+-        if y.source in _RAIL_NETS:
++        if y.source in rails.nets:
+             continue
+         y_existing = device_roles.get(y.name) or {}
+@@ -4513,5 +4504,5 @@
+ 
+     tentative_pairs_meta = matching_pairs_meta + matching_pairs_proposals
+-    disp = check_symmetry_dispositions(transistors, tentative_pairs_meta, dispositions={})
++    disp = check_symmetry_dispositions(transistors, tentative_pairs_meta, dispositions={}, rails=rails)
+     if disp.undisposed:
+         review_needed.append({"undisposed_candidates": disp.undisposed,
+@@ -6814,5 +6805,5 @@
+ def run_full_circuit_audit(devices: dict, expected_counts: dict, dispositions: dict,
+                             box_shape_checks: dict | None = None, row_width_tol: float = 1.5,
+-                            accept_fail_blocks: set | None = None) -> AuditResult:
++                            accept_fail_blocks: set | None = None, *, rails) -> AuditResult:
+     """리포트를 "완료"로 선언하기 전 **반드시 이 함수 하나로** 전체 회로를 감사한다 —
+     sub-block마다 따로 짠 1회용 검증 스크립트를 다시 만들지 않는다(이게 바로 이 함수가 막으려는
+@@ -6876,5 +6867,5 @@
+            for name, (kind, s, d, g, block) in devices.items()]
+     hub = find_hub_merge_candidates(trs)
+-    mc = find_matching_candidates(trs)
++    mc = find_matching_candidates(trs, rails=rails)
+ 
+     found_groups = []
+@@ -7283,5 +7274,5 @@
+ 
+ 
+-def _kcl_branch_map(devices: list) -> dict:
++def _kcl_branch_map(devices: list, *, rails) -> dict:
+     """`devices`에 `kcl_series_union()`의 순수 자동발견 규칙(2단자 net, `matching_pairs`
+     강제병합 없음)만 돌려 `{소자명: branch 전체 소자명 리스트}`로 펼쳐 반환한다 --
+@@ -7289,5 +7280,5 @@
+     같은 직렬 컬럼(예: 캐스코드 스택)을 이루는가"를 판단하는 데 쓴다. 이미 있는 `kcl_series_
+     union()`(세션10 L2, `stack_groups_kcl`용)을 그대로 재사용할 뿐 새 그래프 로직은 없다."""
+-    groups = kcl_series_union(devices, [])
++    groups = kcl_series_union(devices, [], rails=rails)
+     branch_of: dict = {}
+     for members in groups.values():
+@@ -7314,5 +7305,5 @@
+ 
+ 
+-def _branch_composite_pair(a: str, b: str, devices_by_name: dict, matching_pairs: list):
++def _branch_composite_pair(a: str, b: str, devices_by_name: dict, matching_pairs: list, *, rails):
+     """실패한 매칭쌍 (a,b)가 서로 다른 hub(source)를 써서 `interdigitate_layout()`/
+     `common_centroid_layout()`을 직접 적용할 수 없을 때(세션15 A-3/세션16에서 확인된 한계 --
+@@ -7334,5 +7325,5 @@
+     어느 도구(interdigitate/common-centroid)를 쓸지는 호출자가 hub쌍/leaf쌍 각각의
+     `matching_sensitivity`로 직접 판단한다(이 함수는 구조 정합성만 확인). 실패하면 `None`."""
+-    branch_map = _kcl_branch_map(list(devices_by_name.values()))
++    branch_map = _kcl_branch_map(list(devices_by_name.values()), rails=rails)
+     branch_a, branch_b = branch_map.get(a, [a]), branch_map.get(b, [b])
+     if len(branch_a) != 2 or len(branch_b) != 2:
+@@ -7405,5 +7396,5 @@
+ 
+ def _composite_collapse_for_crossover(transistors: list, matching_pairs: list,
+-                                       pair_sensitivity: dict | None = None) -> tuple:
++                                       pair_sensitivity: dict | None = None, *, rails) -> tuple:
+     """**세션17 신설** -- `find_min_crossover_layout()`을 부르기 전에 이 그룹의 branch
+     (예: M1a-M2a 캐스코드 컬럼)를 `_branch_composite_pair()`로 미리 합성 소자 하나로
+@@ -7451,5 +7442,5 @@
+         if a in consumed and b in consumed:
+             continue  # 이미 다른 선언 쌍(같은 branch의 반대쪽)에서 합성됨
+-        composite = _branch_composite_pair(a, b, devices_by_name, matching_pairs)
++        composite = _branch_composite_pair(a, b, devices_by_name, matching_pairs, rails=rails)
+         if composite is None:
+             new_matching_pairs.append((a, b))
+@@ -7482,5 +7473,5 @@
+ 
+ def find_min_crossover_layout_with_branch_composite(
+-        transistors: list, matching_pairs: list, pair_sensitivity: dict | None = None) -> dict:
++        transistors: list, matching_pairs: list, pair_sensitivity: dict | None = None, *, rails) -> dict:
+     """**세션17 신설** -- `find_min_crossover_layout()`을 branch-인지형으로 감싸는
+     wrapper(`find_min_crossover_layout()` 자체는 안 건드림, 완전히 별도 함수). 호출
+@@ -7501,5 +7492,5 @@
+     디버깅 정보를 조용히 숨기지 않는다)."""
+     new_transistors, new_matching_pairs, new_pair_sensitivity, expand_map = \
+-        _composite_collapse_for_crossover(transistors, matching_pairs, pair_sensitivity)
++        _composite_collapse_for_crossover(transistors, matching_pairs, pair_sensitivity, rails=rails)
+     result = find_min_crossover_layout(new_transistors, new_matching_pairs, new_pair_sensitivity)
+     expanded_segments = [
+@@ -7513,5 +7504,5 @@
+ 
+ def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: dict | None = None,
+-                            max_iter: int = 3, relaxed_pairs: set | None = None) -> tuple:
++                            max_iter: int = 3, relaxed_pairs: set | None = None, *, rails) -> tuple:
+     """배치 7-4 — `audit_row_split()`이 FAIL한 matching pair에 대해 `select_layout_tool()`
+     (배치 7-4b)이 고른 도구(`interdigitate_layout`/`common_centroid_layout`)로 그 pair가
+@@ -7604,5 +7595,5 @@
+             # 개별-소자 경로로 자연히 폴백된다(하위호환, branch 없는 회로는 완전히 그대로).
+             all_devs_by_name = {t.name: t for devs in current_rows.values() for t in devs}
+-            composite = _branch_composite_pair(a, b, all_devs_by_name, matching_pairs)
++            composite = _branch_composite_pair(a, b, all_devs_by_name, matching_pairs, rails=rails)
+             if composite is not None:
+                 ca, cb = composite["composite_a"], composite["composite_b"]
+@@ -8570,4 +8561,9 @@
+     하지 않는다(형제 파일이 또 자기 형제를 나열하는 체인 구조는 지원 안 함 — 방사형으로,
+     그룹 안의 모든 파일이 서로를 전부 나열해야 한다)."""
++    rails = rail_declaration(topology)
++    for _lf in _linked_topologies:
++        if 'supply_nets' in _lf and rail_declaration(_lf).nets != rails.nets:
++            raise ValueError('supply_nets conflict (DEC-60)')
++    meta['rails'] = rails
+     def _read_one(path):
+         with open(path, "r", encoding="utf-8") as f:
+@@ -8623,5 +8619,5 @@
+     _vsid_forced_pairs = [tuple(p["names"]) for p in all_matching_pairs if p.get("current_forced")]
+     _vsid_gap_fill = propose_vertical_stack_id_gap_fill(
+-        transistors, _vsid_forced_pairs, all_device_roles)
++        transistors, _vsid_forced_pairs, all_device_roles, rails=rails)
+     for _name, _vsid in _vsid_gap_fill["proposals"].items():
+         all_device_roles.setdefault(_name, {})["vertical_stack_id"] = _vsid
+@@ -8650,5 +8646,5 @@
+         transistors, all_device_roles, all_matching_pairs,
+         compensation_stage_devices=_comp_stage_devices,
+-        vds_theta_authoritative=find_authoritative_sizing_devices(data))
++        vds_theta_authoritative=find_authoritative_sizing_devices(data), rails=rails)
+     # 2026-08-14 -- device_roles_proposals를 그대로 "_device_roles_autofilled"로 노출하면
+     # 안 된다(실측으로 발견한 버그): propose_device_roles_gap_fill()의 conflict 검사는
+@@ -8888,4 +8884,5 @@
+     않는다 -- box_shape의 형태가 `cell_groups` 유무로 달라져 자동 변환이 오히려 조용한
+     오판을 낼 수 있다)."""
++    rails = meta['rails']
+     transistors, meta = load_topology(topology_json_path)
+     structured = meta.get("netlist_sections_structured")
+@@ -8919,5 +8916,5 @@
+     return run_full_circuit_audit(devices, expected_counts, dispositions,
+                                     box_shape_checks=box_shape_checks, row_width_tol=row_width_tol,
+-                                    accept_fail_blocks=accept_fail_blocks)
++                                    accept_fail_blocks=accept_fail_blocks, rails=rails)
+ 
+ 
+@@ -9016,2 +9013,22 @@
+         json.dump(data, f, indent=2, ensure_ascii=False)
+ 
++
++@dataclass(frozen=True)
++class RailDeclaration:
++    nets: frozenset
++
++
++def rail_declaration(topology: dict) -> RailDeclaration:
++    """doc"""
++    if 'supply_nets' not in topology:
++        raise ValueError('supply_nets missing (DEC-60)')
++    v = topology['supply_nets']
++    if not isinstance(v, list):
++        raise ValueError('supply_nets not list (DEC-60)')
++    for x in v:
++        if not isinstance(x, str) or not x:
++            raise ValueError('supply_nets element (DEC-60)')
++    if len(set(v)) != len(v):
++        raise ValueError('supply_nets duplicate (DEC-60)')
++    return RailDeclaration(nets=frozenset(v))
++
+--- b1/skills/analog-gmid-design/assets/sizing_recipe.py
++++ head/skills/analog-gmid-design/assets/sizing_recipe.py
+@@ -2189,5 +2189,5 @@
+ 
+ 
+-def true_current_mirror_groups(by_name: dict) -> list:
++def true_current_mirror_groups(by_name: dict, *, rails) -> list:
+     """**진짜 전류미러** 그룹 -- 같은 `(kind, gate net, source net)`을 공유하는 소자 집합.
+ 
+@@ -2205,5 +2205,5 @@
+     class-AB 센터링용 VGS 매칭이라 L을 독립으로 둔다)이 규칙에서 저절로 지켜진다."""
+     groups = {}
+-    rails = set(_DEFAULT_RAIL_HI) | set(_DEFAULT_RAIL_LO)
++    rails = set(rails.nets)
+     for name in sorted(by_name):
+         tr = by_name[name]
+@@ -2234,4 +2234,7 @@
+     실측(2026-09-10 파일럿): 이 세 edge만으로 NMOS류(M5·M38 포함)와 PMOS류(M6·M7·M36a
+     포함)가 나온다 -- `M7 --same_as-- M6`이 Vcmfb 그룹과 Vbias1 그룹을 잇는다."""
++    if 'rails' not in meta:
++        raise ValueError('meta rails (DEC-60)')
++    rails = meta['rails']
+     parent = {}
+ 
+@@ -2248,5 +2251,5 @@
+             parent[ra] = rb
+ 
+-    for grp in true_current_mirror_groups(by_name):
++    for grp in true_current_mirror_groups(by_name, rails=rails):
+         for other in grp[1:]:
+             union(grp[0], other)
+@@ -4291,5 +4294,7 @@
+     `exclude_nets`(선택)로 위 (2)에 해당하는 노드를 명시적으로 뺄 수 있다 -- 다만 **빼는
+     이유를 선언에 적어야** 하며, 기본값은 아무것도 빼지 않는다(조용한 면제 금지)."""
+-    rails = set(spec.get("rail_nets") or ("vdd", "VDD", "gnd", "GND", "vss", "VSS"))
++    if 'rail_nets' in spec:
++        raise ValueError('rail_nets (DEC-60)')
++    rails = set(_topology_meta_cached(ctx.topology_path)["rails"].nets)
+     exclude = set(spec.get("exclude_nets") or ())
+     by_name, _passives = _load_full_topology_cached(ctx.topology_path)
+@@ -6469,5 +6474,5 @@
+ 
+ def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: dict,
+-                          stack_groups_override: dict | None = None) -> dict:
++                          stack_groups_override: dict | None = None, *, rails) -> dict:
+     """B-5-3 설계(`.ai/context.md` 세션22~25) 중 실제로 비어있던 조각 하나만 채운다 --
+     2026-08-10 정밀조사(Explore 조사) 결과, B-5-3이 "새로 만들어야 한다"고 제안했던
+@@ -6549,5 +6554,5 @@
+                 if isinstance(entry, dict) and entry.get("vertical_stack_id")}
+     if declared:
+-        audit = audit_vertical_stack_id_vs_kcl(transistors, matching_pairs, device_roles)
++        audit = audit_vertical_stack_id_vs_kcl(transistors, matching_pairs, device_roles, rails=rails)
+         review_needed = (
+             [f for f in audit["hub_findings"] if not f["candidate_hub_nets"]] +
+@@ -6570,5 +6575,5 @@
+         return derive_horizontal_stack_groups(transistors, dict(groups), matching_pairs)
+ 
+-    refined = refine_differential_and_mirror_relations(transistors)
++    refined = refine_differential_and_mirror_relations(transistors, rails=rails)
+     if refined is not None and refined.get("vertical_stack_id_candidates"):
+         groups = defaultdict(list)
+@@ -7941,4 +7946,5 @@
+     호출자가 필요한 theta는 전부 채워 넘길 것, 부분 평가를 원하면 나머지를 bounds-midpoint
+     등으로 채워 넣을 것)."""
++    rails = meta['rails']
+     require_declared_spec_source(topology_path, spec)
+     transistors, meta = load_topology(topology_path)
+@@ -8053,5 +8059,5 @@
+     # 레일 제외+같은 극성+drain=source만 -- 각 함수 docstring 참고).
+     _forced_pairs = [tuple(p["names"]) for p in pairs_meta if p["current_forced"]]
+-    stack_groups_kcl = kcl_series_union(transistors, _forced_pairs)
++    stack_groups_kcl = kcl_series_union(transistors, _forced_pairs, rails=rails)
+     # 2026-08-10(resolve_stack_layout() 신설) -- 1차 물리 그룹 분할 경계를 자동추론
+     # (geometry_colocation_union) 대신 사람이 선언한 vertical_stack_id로 대체(우선순위는
+@@ -8060,5 +8066,5 @@
+     stack_groups_geometry = resolve_stack_layout(
+         transistors, _forced_pairs, device_roles,
+-        stack_groups_override=spec.get("stack_groups_override"))
++        stack_groups_override=spec.get("stack_groups_override"), rails=rails)
+     stack_id_of = {name: sid for sid, members in stack_groups_kcl.items() for name in members}
+     transistors_stackid = [_dc_replace(t, stack_id=stack_id_of.get(t.name)) for t in transistors]
+@@ -9142,4 +9148,5 @@
+     미연결) — 이런 소자가 있는 회로는 `device_roles`로 해당 소자의 `ID`를 `known_sizing`에
+     직접 시딩해 우회할 것."""
++    rails = meta['rails']
+     ev = _build_theta_evaluator(topology_path, spec)
+     transistors, meta = ev["transistors"], ev["meta"]
+@@ -9403,5 +9410,5 @@
+                     # kind를 쓰므로(실측 확인) 이 분기는 실전에서 아직 노출되지 않았다.
+                     repaired_rows, repaired_audit = repair_matching_safety(
+-                        rows, matching_pairs_tuples, pair_sensitivity)
++                        rows, matching_pairs_tuples, pair_sensitivity, rails=rails)
+                     pr = dict(pr, repaired_rows=repaired_rows, repaired_audit=repaired_audit)
+                 ok = repaired_audit.ok
+@@ -11614,4 +11621,5 @@
+     반환: `(rows, ctx)` -- 갱신된 물리 행 구성과(그룹분할/컴포넌트분리는 순수 재배치라
+     ctx 불변, 핑거증가만 W/gm_id/gm/gds가 바뀌므로 ctx도 갱신) SizingContext."""
++    rails = meta['rails']
+     def _connected_components(transistors: list) -> list:
+         net_to_devs = defaultdict(list)
+@@ -11695,5 +11703,5 @@
+         row_pair_sensitivity = {k: v for k, v in pair_sensitivity.items() if set(k) <= row_names}
+         split = find_min_crossover_layout_with_branch_composite(
+-            row_transistors, row_pairs, row_pair_sensitivity)
++            row_transistors, row_pairs, row_pair_sensitivity, rails=rails)
+         by_name = {t.name: t for t in row_transistors}
+         del current_rows[blocked_row]
+@@ -11760,4 +11768,5 @@
+     `"relaxed_to_layout"`이 새로 추가됐다 -- growth가 gm/ID 예산으로 막혀서 완화를 적용했고,
+     (완화 대상 아닌 다른 3c 실패가 없어) 이 함수가 더 할 일이 없다는 뜻이다."""
++    rails = meta['rails']
+     current_rows = {k: list(v) for k, v in rows.items()}
+     cur_ctx = ctx
+@@ -11797,5 +11806,5 @@
+     for round_idx in range(max_rounds):
+         current_rows, result = repair_matching_safety(
+-            current_rows, matching_pairs, pair_sensitivity, relaxed_pairs=relaxed_pair_keys)
++            current_rows, matching_pairs, pair_sensitivity, relaxed_pairs=relaxed_pair_keys, rails=rails)
+         _backfill_interdig_ok(result)
+         if result.ok:
+@@ -11838,5 +11847,5 @@
+                     "growth_rounds": growth_rounds, "unresolved_pair": (a, b),
+                     "unresolved_reason": "pair_not_found", "relaxed_pairs": relaxed_pairs}
+-        composite = _branch_composite_pair(a, b, all_devs, matching_pairs)
++        composite = _branch_composite_pair(a, b, all_devs, matching_pairs, rails=rails)
+         names = tuple(sorted(set(composite["expand"][composite["composite_a"].name] +
+                                   composite["expand"][composite["composite_b"].name]))) \
+@@ -11876,5 +11885,5 @@
+ 
+     current_rows, result = repair_matching_safety(
+-        current_rows, matching_pairs, pair_sensitivity, relaxed_pairs=relaxed_pair_keys)
++        current_rows, matching_pairs, pair_sensitivity, relaxed_pairs=relaxed_pair_keys, rails=rails)
+     _backfill_interdig_ok(result)
+     current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)
+@@ -11944,4 +11953,5 @@
+     `group_splits`가 비어있으면 이번 실행에서 그룹분할이 전혀 필요 없었다는 뜻(완전
+     하위호환 신호 -- 기존 호출부는 이 필드를 몰라도 다른 동작이 전혀 안 바뀐다)."""
++    rails = meta['rails']
+     overrides = dict(sizing_overrides)
+     cur_ctx = ctx
+@@ -11986,5 +11996,5 @@
+                                  if set(k) <= row_names}
+         split = find_min_crossover_layout_with_branch_composite(
+-            row_transistors, row_pairs, row_pair_sensitivity)
++            row_transistors, row_pairs, row_pair_sensitivity, rails=rails)
+         new_seg_names = []
+         for seg_idx, seg in enumerate(split["segments"]):

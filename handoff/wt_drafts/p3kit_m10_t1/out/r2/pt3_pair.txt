@@ -1,0 +1,2 @@
+t1base 7fd4b16 3 failed, 1087 passed, 15 xfailed in 303.26s (0:05:03) exit=1 seconds=320 
+t1head 93d7c0a 3 failed, 1087 passed, 15 xfailed in 318.62s (0:05:18) exit=1 seconds=328 

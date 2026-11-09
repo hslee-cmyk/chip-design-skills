@@ -1,0 +1,35 @@
+---
+id: 20261002-p3-t0-v4-s009-exempt
+date: <사용자 답 날짜>
+target_kind: decision
+target: skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s009_revalidate_finger_override
+scope: Phase 3 T0 20260930-p3-tests-location-free -- 계약 11(import 출처 3줄)로 V4 대상이 된 이관본 test 1개를 V4 규칙 (1)에서 면제(불변식 2줄, T0가 바꾸지 않는 기존 줄)
+---
+
+## 사용자 원문
+
+> <AskUserQuestion [T0-V4] 답 -- jsonl에서 바이트 그대로>
+
+질문 원문: <p3kit_t0/ask_t0_v4.md의 질문 문장 -- 바이트 그대로>
+
+## 범위 설명
+
+근거: T0 계약 11이 unit selftest 3파일 24행의 import 출처만 바꾸지만, V4(`tools/gates/test_lint.py`, gate `4a286f0` 판 718~721행 선택·723~726행 lint)는 `--diff-filter=AM` 파일을
+**파일 전체** lint한다(705~709행 `read`가 head 트리의 파일 전체를 읽는다 -- hunk만 보는 경로 없음). 그래서 `test_selftest_sizing_recipe.py` 전체가 interface card 피검(`sizing_recipe.size_transistor` 등 기존 함수 6)으로 판정되고,
+`test_s009_revalidate_finger_override`의 두 판정 문장이 규칙 (1)에 걸린다(base 트리에서도 같은 FAIL -- T0가 만든 판정이 아니다):
+* 719행 `abs(_l4_du_pass["new_gm"] / _l4_du_pass["new_gm_id"] - _l4_r1.ID) < 1e-15` -- `revalidate_finger_override()` 뒤 ID 보존(불변식). `_l4_r1 = size_transistor(...)`가 입력 소자를 만들어 양쪽에 남는다.
+* 744행 `_l4_ctx.sized["M1"]["W"] == _l4_r1.W` -- 원본 ctx를 바꾸지 않음(불변식). 같은 이유.
+둘 다 이관본 S009(oracle (c), docstring '판정을 그대로 옮겼다')의 판정이고 피검 출력을 리터럴로 박은 복사가 아니다. 선례 `20260923-c9-v4-exempt`(불변식·재현성 2건)와 같은 종류다.
+피검 `size_transistor`는 입력 소자를 만드는 데만 쓰였다(시험 대상은 `revalidate_finger_override`). base 트리의 같은 파일도 같은 피검으로 재면 같은 두 줄(base 714·739행)이 FAIL이다.
+T0에서 두 줄을 고치는 대안: 두 줄 모두 면제 없이 고칠 수는 있다(719행 기대값을 gm/gm_id 식 값으로, 744행을 W = L·ID/IDu 식으로 -- 모래상자 V4·test PASS; 744행을 스냅숏 지역 변수로 바꾸는 것만은 V4 인라인이 꿰뚫어 FAIL).
+그러나 그러면 판정이 '원래 값 보존·원본 불변'에서 '구현과 같은 식의 값'으로 바뀌는 판정 기준 변경이고, 이 파일은 V5 `diff_paths` 밖이라 V5가 그 변경을 잡지 못한다 -- 하지 않는다.
+덮는 것: 위 test id의 **규칙 (1)** 발견만(면제 경로 C13 `20260923-v4-decision-exempt`, `test_lint.py` 727~734행). 발견은 `output: exempt`로 출력 JSON과 판정 기록에 남는다.
+덮지 않는 것: 다른 test, 같은 test의 규칙 (2)~(5), 이름·경로가 바뀐 뒤의 같은 판정(그때는 면제가 저절로 풀린다 -- F1·M card에서 파일이 옮겨지면 다시 본다).
+다른 card 범위로 한정하지 않는다: V4는 head 트리의 `.ai/approvals` 전체를 읽으므로(`reachability._approved_ids`), 이 기록이 저장소에 남아 있는 동안 T0 뒤 모든 card의 V4에도 적용된다(test 이름·경로가 바뀌면 풀린다).
+측정(모래상자, base `4a286f0`, 모의 T = 계약 1~4 시제품 + 계약 11): 이 기록 없이 `--interface-card` 단독 FAIL exit 1(규칙 (1) 2), 이 기록을 head 트리에 두면 PASS exit 0(exempt 2, UNJUDGED 78, FAIL 0).
+UNJUDGED 78은 TS2 병합본 `caac910` 같은 파일의 assert 식(메시지 포함)과 `ast.unparse` 문자 단위로 같다 -- auditor basis에는 "TS2 전수 대조 식과 같음"으로 적는다(TS2 때 UNJUDGED는 26개였고 이 78개는 전수 대조로 덮였다).
+착수 0단계(`p3kit_t0/step0_v4.sh`) B26-1 병합본 재측정 = <MATCH 결과 줄>.
+
+## 재검토
+
+Phase 4에서 `test_selftest_sizing_recipe.py`의 판정을 다른 oracle로 쓸 수 있는지 `20260923-c9-v4-exempt` 재검토(백로그 B9)와 함께 본다.

@@ -1,0 +1,58 @@
+{
+ "card": "instance_report_builder.py",
+ "units": [
+  "stick_diagram.py::INSTANCE_SIZING_FIELDS",
+  "stick_diagram.py::CompletenessVerdict",
+  "stick_diagram.py::check_instance_completeness",
+  "stick_diagram.py::run_full_circuit_audit_from_topology",
+  "stick_diagram.py::_box_shape_json",
+  "stick_diagram.py::_audit_result_json",
+  "stick_diagram.py::_topology_ref_relpath",
+  "stick_diagram.py::save_instance_json",
+  "design_report.py::build_topology_device_table",
+  "design_report.py::assemble_report_data",
+  "design_report.py::_CSS",
+  "design_report.py::_kv_table",
+  "design_report.py::render_html_report",
+  "design_report.py::save_html_report",
+  "audit_current_forced.py::_theta_evidence_for_pair",
+  "audit_current_forced.py::audit_topology"
+ ],
+ "mod_imports_head": [
+  "from __future__ import annotations",
+  "from circuit_state_graph import load_topology",
+  "from dataclasses import asdict as _dc_asdict, dataclass",
+  "from topology_authoring import _as_set",
+  "from typing import Iterable, Mapping",
+  "import html as _html",
+  "import json",
+  "import os"
+ ],
+ "mod_imports_tail": [
+  "from stick_diagram import AuditResult, INSTANCE_TOP_FIELDS, run_full_circuit_audit"
+ ],
+ "reexports": {
+  "stick_diagram.py": "from instance_report_builder import CompletenessVerdict, INSTANCE_SIZING_FIELDS, _audit_result_json, _box_shape_json, _topology_ref_relpath, check_instance_completeness, run_full_circuit_audit_from_topology, save_instance_json",
+  "design_report.py": "from instance_report_builder import _CSS, _kv_table, assemble_report_data, build_topology_device_table, render_html_report, save_html_report  (complete shim)",
+  "audit_current_forced.py": "from instance_report_builder import _theta_evidence_for_pair, audit_topology  # noqa: E402"
+ },
+ "spans": [
+  "stick_diagram.py:4810-4810 AnnAssign",
+  "stick_diagram.py:4813-4820 ClassDef",
+  "stick_diagram.py:4823-4869 FunctionDef",
+  "stick_diagram.py:5030-5083 FunctionDef",
+  "stick_diagram.py:5086-5098 FunctionDef",
+  "stick_diagram.py:5101-5107 FunctionDef",
+  "stick_diagram.py:5110-5124 FunctionDef",
+  "stick_diagram.py:5127-5178 FunctionDef",
+  "design_report.py:36-91 FunctionDef",
+  "design_report.py:94-138 FunctionDef",
+  "design_report.py:141-175 Assign",
+  "design_report.py:178-196 FunctionDef",
+  "design_report.py:199-310 FunctionDef",
+  "design_report.py:313-317 FunctionDef",
+  "audit_current_forced.py:50-71 FunctionDef",
+  "audit_current_forced.py:74-121 FunctionDef"
+ ],
+ "n_defs_in_units": 16
+}

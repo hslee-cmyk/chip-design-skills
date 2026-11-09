@@ -1,0 +1,11 @@
+_RAIL_NETS=['gnd', 'vdd', 'vss']
+_TEMPLATE.topology.json: LOAD FAIL AttributeError
+common_gate_amplifier.topology.json: rail_uses={'gnd': 1, 'vdd': 1} rail_used_exactly_twice_distinct=[]
+current_reuse_telescopic_ota.topology.json: rail_uses={'vdd': 16, 'gnd': 13} rail_used_exactly_twice_distinct=[]
+folded_cascode.topology.json: rail_uses={'vdd': 3, 'gnd': 4} rail_used_exactly_twice_distinct=[]
+ngcc_3stage_ff.topology.json: rail_uses={'vdd': 5, 'gnd': 9} rail_used_exactly_twice_distinct=[]
+nmcnr_amplifier.topology.json: rail_uses={'vdd': 6, 'vss': 5} rail_used_exactly_twice_distinct=[]
+pushpull_follower_buffer.topology.json: rail_uses={'vdd': 3, 'vss': 3} rail_used_exactly_twice_distinct=[]
+sf_pushpull_output_opamp.topology.json: rail_uses={'vss': 7, 'vdd': 7} rail_used_exactly_twice_distinct=[]
+two_stage_ota.topology.json: rail_uses={'vdd': 3, 'gnd': 2} rail_used_exactly_twice_distinct=['gnd']
+two_stage_ota_sf.topology.json: rail_uses={'vdd': 4, 'gnd': 3} rail_used_exactly_twice_distinct=[]

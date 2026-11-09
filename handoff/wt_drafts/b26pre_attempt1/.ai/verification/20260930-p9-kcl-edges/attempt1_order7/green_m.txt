@@ -1,0 +1,28 @@
+........................                                                 [100%]
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[chain_interleaved]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[three_use_net_not_merged]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[source_equals_drain_not_merged]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_pair_without_shared_net]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_pair_reversed_order]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_triple_chains]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_triple_reversed_rep_last_declared]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[rail_named_net_three_uses_not_merged]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_no_matching]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_matching_joins_isolated]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_matching_joins_two_branches]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[chain_interleaved]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[three_use_net_not_merged]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[source_equals_drain_not_merged]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_pair_without_shared_net]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_pair_reversed_order]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_triple_chains]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_triple_reversed_rep_last_declared]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[rail_named_net_three_uses_not_merged]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_no_matching]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_matching_joins_isolated]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_matching_joins_two_branches]
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_series_union_signature_unchanged
+PASSED ..\..\..\..\..\..\g47\m\skills\analog-gmid-design\assets\tests\contracts\test_dup_kcl_edges.py::test_kcl_and_matching_edges_signature_unchanged
+24 passed in 0.69s

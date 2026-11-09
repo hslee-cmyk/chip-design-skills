@@ -1,0 +1,134 @@
+fn	class	note
+authoring._feedback_cuts.input_terminal_nets	B	B8 절단 넷: spec_elements·spec_views(같은 topology+feedback) + noise_plan._input_side 둘째 구현(metrics_ss, θ마다)
+authoring._terminal_nets.mos_terminal_nets	B	B10 알려진 넷 집합: 로더 6자리 같은 topology (G1)
+authoring._terminal_nets.two_terminal_nets	B	B10 + B9 gate 전용 넷 두 구현 안에서도 사용 (G1)
+authoring._two_terminal.two_terminal_elements	C	sources 대 passives -- 다른 입력
+authoring.dc_edges.dc_edges_unpruned	B	B11 로더 hidden_rails 대 S1 s1_structure 같은 소자 목록 (G1)
+authoring.spec_sources.source_declaration_checks	C	spec 항목마다 다른 source 칸
+authoring.topology_load.load_topology	C	stage_a 대상 회로 대 spec_load 참조 회로
+graph.net_model.net_model	B	B4 build_s1v 대 coupling_vars 같은 S1 투영 (docstring 'S0 당 1회'와 다름)
+graph.signal_reach.signal_reach	E	build_s1v 블록 안, 접지 집합이 다른 호출
+graph.supplies.supplies_declaration	B	B12 build_s1 대 kernel_context 같은 supplies_v·레일 (kernel_context는 지문 대조용 재정규화)
+layout._helpers_pattern.device_views	X	투영 재구성(G2) -- ly_pattern_select·ly_rows 둘 다 ly_point·ly_pins 읽기
+layout._helpers_pattern.offsets	B	B15 ly_rows._rebuild offsets(old) = ly_groups GroupLayout.dx/dy (writer ly_pattern_select) 재계산; 새 k 행은 C
+layout._helpers_pattern.orient	B	B15 같은 그룹·소자의 hub 방향 ends 두 블록 계산(필드 없음)
+layout._helpers_pattern.pattern_rows	C	ly_rows는 새 k 행 수 결과 -- 다른 입력 (k 겹침은 D)
+layout.area_tie.area_tie_m2	C	다른 점 쌍
+layout.canonical_naming.canonical_names	X	장식자
+layout.canonical_rows.canonical_row	C	다른 행
+layout.crossover.find_min_crossover_layout	C	다른 소자 집합
+layout.euler_condition.check_euler_condition	C	다른 그래프
+layout.euler_graph.build_graph	C	다른 소자 집합
+layout.euler_trail.hierholzer	C	다른 그래프
+layout.patterns_common_centroid.common_centroid_layout	C	n_rows 다름(ly_rows k = 현재+1..)
+layout.patterns_row_swap.row_swap_layout	C	n_rows 다름
+layout.row_euler.row_euler	C	다른 행 조각
+layout.row_fold.apply_explicit_row_split	C	다른 행·n
+lut._helpers_anchor.l_position	C	LUT 내부 도구
+lut._helpers_bins.bin_index	C	LUT 내부 도구
+lut._helpers_columns.column_source	C	열 이름 다름
+lut._helpers_gmid_axis.axis_curve	C	양(quantity) 다름
+lut._helpers_grids.npz_condition_mismatch	C	다른 npz
+lut._helpers_grids.npz_grids	C	다른 npz
+lut._helpers_interp.cell	C	LUT 내부 도구
+lut._helpers_interp.hermite	C	LUT 내부 도구
+lut._helpers_interp.hermite_root	C	LUT 내부 도구
+lut._helpers_interp.linear_point	C	LUT 내부 도구
+lut._helpers_interp.node_values	C	LUT 내부 도구
+lut._helpers_loo.branch_targets	C	LUT 내부 도구
+lut._helpers_loo.cell_max	C	LUT 내부 도구
+lut._helpers_loo.external_by_model	C	LUT 내부 도구
+lut._helpers_loo.l_interior	C	LUT 내부 도구
+lut._helpers_loo.l_loo_report	C	LUT 내부 도구
+lut._helpers_loo.linear_loo_cells	C	LUT 내부 도구
+lut._helpers_loo.loo_estimate	C	LUT 내부 도구
+lut._helpers_loo.opt	C	LUT 내부 도구
+lut._helpers_loo.per_vds	C	LUT 내부 도구
+lut._helpers_loo.table_at	C	LUT 내부 도구
+lut._helpers_loo.with_external	C	LUT 내부 도구
+lut._helpers_root.monotone_end	C	LUT 내부 도구 (iv_domain._monotone_end 쌍둥이 구현 -- 코드 중복, 값 중복 아님)
+lut._helpers_root.peak_index	C	LUT 내부 도구
+lut._helpers_root.strong_inversion_root	C	LUT 내부 도구
+lut._helpers_width.width_key	C	LUT 적재 도구
+lut.cap_query.caps	C	ss_dev 봉인점 대 start 추정점 대 ft 격자
+lut.derived_fns.derived	A'	LUT 파생표 = 승인 예외(LUT memo·디스크 캐시 U-87)
+lut.gm_id_curve.gm_id_curve	C	LUT 내부 (곡선, memo curve 영역)
+lut.midpoint_checks.midpoint_l_bin_checks	A'	LUT 파생표 승인 예외
+lut.mismatch_query.mismatch_dvgs	C	metrics_aux 봉인점 대 start 추정점
+lut.mismatch_sigma.mismatch_sigma_vgs	C	봉인점 대 추정점
+lut.noise_planes.noise_planes	A'	LUT 파생표 승인 예외
+lut.noise_query.noise_params	C	봉인점 대 추정점
+lut.point_query.op_point	B	B3 봉인 (L,vgs,vds,vsb): dc_widths(forward_point)·ss_dev(_linearize)·dc_columns:825 같은 점; 그 밖 자리(vgs=0·vgs_max·폭 키·격자)는 C
+lut.tolerance.tol_v_table	A'	LUT 파생표 승인 예외 (셀 조회 .at 은 tol_v_cell 행 참조)
+lut.vdsat_query.vdsat	B	B2 dc_seal_saturation 대 metrics_aux._sat_devices 같은 dc_op; dc_columns 반복점·vdsat_curve 격자는 C
+lut.vdsat_tolerance.tol_vdsat_table	B	B2 표 자체는 A'(승인 예외), 같은 dc_op (L,vds) 셀 조회 .at 가 두 블록 = B
+metrics._helpers_dc.dc_limit_parts	C	metrics_ss 봉인 ss 대 start 매크로 망
+metrics._helpers_nodal.conductance_matrix	E	metrics_aux 블록 안 (같은 ss.circuit 인수분해 최대 3회 -- NFR-2)
+metrics._helpers_nodal.nodal_adjoint	E	metrics_aux 블록 안
+metrics._helpers_nodal.nodal_factor	E	metrics_aux 블록 안 (같은 입력 반복)
+metrics._helpers_nodal.nodal_solve	E	metrics_aux 블록 안
+metrics._helpers_noise.source_gradient	E	metrics_ss 블록 안 (일부 뿌리 미해결 -- 메서드 호출)
+metrics._helpers_noise.weights	E	metrics_ss 블록 안
+metrics._helpers_pencil.finite_eigs	C	봉인 ss 대 매크로 망
+metrics._helpers_pencil.probe_pencil	C	봉인 ss 대 매크로 망
+metrics._helpers_probe.probe_value	C	다른 ω·인자
+metrics._helpers_product.check_factors	C	다른 인자 묶음
+metrics._helpers_product.product_at	C	다른 ω
+metrics._helpers_stamp.admittance_pair	B	B1 파생 (같은 ss 소자 스탬프)
+metrics._helpers_view.view_system	E	metrics_aux 블록 안 (같은 뷰 반복 가능)
+metrics.block_gain_model.block_gain_model_of	B	B5 achievability 대 iv_gain_l: 같은 (local, block_spec) 모형 생성
+metrics.block_gain_rows.row_gains	C	범위 끝 격자 대 행 평가 -- 계획 예시 '범위 끝 이득 함수'
+metrics.block_model.block_local_gain	C	다른 블록·구동
+metrics.block_param_tables.ParamTables	B	B5 같은 (memo, w_keys, grids) 표 두 블록 생성
+metrics.catalog.metric_catalog	X	상수 표
+metrics.dc_limit.solve_dc_limit	C	봉인 ss 대 매크로 망
+metrics.dc_metrics.metrics_dc	A	계산 블록 호출 (S3 graft); 커널 비봉인 갈래 counted_rails=() 대 ss_evaluate 갈래 -- 점이 다름
+metrics.evaluate.metric_value	C	metric 다름
+metrics.loop_analysis.analyze_loop	C	봉인 ss 대 매크로 망
+metrics.mna_solve.solve_responses	C	봉인 ss 대 매크로 망
+metrics.noise_transfer.noise_transfer	E	metrics_ss 블록 안 (다른 원천·ω)
+metrics.passive_values.theta_passive_pairs	C	커널 봉인/비봉인 배타 갈래, 점마다
+metrics.point_solve.solve_point	C	다른 ω·망
+metrics.registry.metric_registry	X	상수 표
+metrics.ss_circuit.ss_circuit	B	B1 metrics_aux 대 metrics_ss 같은 투영 (docstring '같은 입력 -> 같은 회로'를 다시 만든다고 명시)
+metrics.stamp_mos.mos_stamps	B	B1 파생 (metrics_aux conductance_matrix 대 metrics_ss mna_build 같은 ss 소자); lut_parameters·offset 단위 스탬프는 C
+metrics.stamp_two_terminal.two_terminal_stamps	B	B1 파생
+search._helpers_area.area_estimate	E	start_intervals 블록 안 (gm_id_lo 대 gm_id -- 다른 입력)
+search._helpers_curves.curve_bundle	E	start_intervals 블록 안
+search._helpers_curves.curve_bundle_of	E	start_intervals 블록 안 (같은 (소자,L) 반복 다수 -- 블록 local memo 여부 확인 필요)
+search._helpers_curves.curve_value	E	start_intervals 블록 안
+search._helpers_curves.edge_cost	A'	LUT 파생표(edge_costs) 승인 예외; achievability _headroom 도 derived(edge_costs) 같은 키
+search._helpers_curves.hull	E	블록 안, 다른 곡선
+search._helpers_curves.l_anchors	X	LUT 격자 접근자
+search._helpers_curves.slice_of	X	LUT 접근자
+search._helpers_curves.snap_vds	E	블록 안, 다른 목표
+search._helpers_curves.tol_vdsat	A'	derived(tol_vdsat_max) 승인 예외
+search._helpers_guard.Tolerant	E	블록 안
+search._helpers_guard.guard_bounds	E	블록 안, term 다름
+search._helpers_guard.guard_devices	E	블록 안 같은 ctx 2회 (iv_matching_l·iv_noise) -- NFR-2
+search._helpers_guard.guard_input_gm_id	E	블록 안 같은 인자 2회 -- NFR-2
+search.area_decl.passive_area_decl	A	계산 블록 호출 (stage_b·search_context, S3 graft)
+search.canonical_order.canonical_order	C	변수 = domain 변수 + 시작 칸(cells) 의존 L 변수
+search.canonical_rows.canonical_row_key	X	dc_colour 투영으로 key 함수 (G2)
+search.cell_floor.ln_idu_floors	C	θ·칸 다름
+search.cone_rows.cone_rows	C	θ 다름
+search.current_box.current_box	B	B6 search_domain 대 start_intervals(iv_context) 같은 (lut, kind)
+search.current_symmetry.current_symmetry	E	search_domain 블록 안, orbit_ties 에 값으로 넘김(재계산 없음)
+search.dominant_node.dominant_node	E	start_intervals 블록 안 같은 ctx.transfer 2회 -- NFR-2
+search.fd_jacobian.fd_jacobian	C	점 다름
+search.kernel.evaluate	C	θ 다름
+search.layer0_center.centre_start	B	B7 _wire_sweep_memo(n_θ만)·residual_probe·layer0_start(rung None) 같은 sctx
+search.pareto.nondominated	C	다른 점 집합
+search.slsqp_outer.solve_eps	C	시작·축 다름
+search.tie_expand.expand_ties	C	θ 다름
+sizing._helpers_lut.forward_point	B	B3 dc_columns:825(최종값) 대 dc_widths 같은 노드 전압; dc_columns 반복 안은 C
+sizing._helpers_lut.terminal_voltages	C	산술, 다른 전압
+sizing._helpers_lut.tol_v_cell	D	dc_columns 반복점 대 dc_tolerances 봉인값 -- 마지막 반복점이 봉인값과 같은지 미확인
+sizing._helpers_lut.w_key_of	X	접근자
+sizing._helpers_lut.with_device	X	오류 꼬리표
+sizing._helpers_seal.judge	C	봉인 항목마다 다른 행
+sizing._helpers_seal.node_values	X	두 열 합치는 투영 (G2)
+sizing.dc_inputs.dc_inputs_from_spec	B	B13 stage_a 대 stage_b 같은 spec (파이프라인, G6)
+sizing.k_max.k_max	C	폭·tol 다름
+sizing.kernel_run.run_kernel	C	인자 다름
+sizing.theta_check.check_theta	X	입력 θ 검사 (같은 봉인점에서 run_kernel·ss_evaluate 두 번 -- 검사)

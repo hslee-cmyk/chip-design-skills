@@ -1,0 +1,249 @@
+{
+ "b1_tool_verdict": "FAIL",
+ "b1_files": [
+  "skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py",
+  "skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py",
+  "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py",
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py",
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py",
+  "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py",
+  "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py",
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py"
+ ],
+ "b1_rule1": [
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "test": "test_s052_compensation",
+   "text": "assert abs(_La_final - _Lb_final) < 1e-15, \\",
+   "output": "exempt",
+   "lines": [
+    2502
+   ]
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "test": "test_s054_section",
+   "text": "assert _tso_result[\"sizing\"][_n][\"W\"] == _tso_result2[\"sizing\"][_n][\"W\"], \\",
+   "output": "exempt",
+   "lines": [
+    2555
+   ]
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s133_refine_differential_and_mirror_relations",
+   "text": "assert _t40_cand[\"M1a\"] == _t40_cand[\"M2a\"], \\",
+   "output": "FAIL",
+   "lines": [
+    3090
+   ]
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s133_refine_differential_and_mirror_relations",
+   "text": "assert _t40_cand[\"M1b\"] == _t40_cand[\"M2b\"], \\",
+   "output": "FAIL",
+   "lines": [
+    3092
+   ]
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s133_refine_differential_and_mirror_relations",
+   "text": "assert _t40_cand[\"M3a\"] == _t40_cand[\"M4a\"], \\",
+   "output": "FAIL",
+   "lines": [
+    3094
+   ]
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s133_refine_differential_and_mirror_relations",
+   "text": "assert _t40_cand[\"M3b\"] == _t40_cand[\"M4b\"], \\",
+   "output": "FAIL",
+   "lines": [
+    3096
+   ]
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s134__propose_vertical_stack_ids",
+   "text": "assert set(_t41_alt[\"Mup\"]) == {_t41_groups[\"Mlo1\"], _t41_groups[\"Mlo2\"]}, \\",
+   "output": "FAIL",
+   "lines": [
+    3129
+   ]
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s135_section",
+   "text": "assert _t42_vsid[\"groups\"][\"Mamb\"] == _t42_vsid[\"groups\"][\"Mout\"], \\",
+   "output": "FAIL",
+   "lines": [
+    3153
+   ]
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s159_apply_device_roles_gap_fill",
+   "text": "assert sorted(_t55_apply1[\"applied_matching_pairs\"]) == _t55_expected_new, \\",
+   "output": "FAIL",
+   "lines": [
+    3926
+   ]
+  }
+ ],
+ "t1_rule1": [
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "test": "test_s052_compensation",
+   "t1_line": 2536,
+   "text": "assert abs(_La_final - _Lb_final) < 1e-15, \\",
+   "output": "exempt",
+   "new_file": false,
+   "changed_line": false,
+   "b1_same_finding": [
+    {
+     "b1_line": 2502,
+     "b1_output": "exempt"
+    }
+   ],
+   "class": "기존"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py",
+   "test": "test_s054_section",
+   "t1_line": 2589,
+   "text": "assert _tso_result[\"sizing\"][_n][\"W\"] == _tso_result2[\"sizing\"][_n][\"W\"], \\",
+   "output": "exempt",
+   "new_file": false,
+   "changed_line": false,
+   "b1_same_finding": [
+    {
+     "b1_line": 2555,
+     "b1_output": "exempt"
+    }
+   ],
+   "class": "기존"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s133_refine_differential_and_mirror_relations",
+   "t1_line": 3120,
+   "text": "assert _t40_cand[\"M1a\"] == _t40_cand[\"M2a\"], \\",
+   "output": "FAIL",
+   "new_file": false,
+   "changed_line": false,
+   "b1_same_finding": [
+    {
+     "b1_line": 3090,
+     "b1_output": "FAIL"
+    }
+   ],
+   "class": "기존"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s133_refine_differential_and_mirror_relations",
+   "t1_line": 3122,
+   "text": "assert _t40_cand[\"M1b\"] == _t40_cand[\"M2b\"], \\",
+   "output": "FAIL",
+   "new_file": false,
+   "changed_line": false,
+   "b1_same_finding": [
+    {
+     "b1_line": 3092,
+     "b1_output": "FAIL"
+    }
+   ],
+   "class": "기존"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s133_refine_differential_and_mirror_relations",
+   "t1_line": 3124,
+   "text": "assert _t40_cand[\"M3a\"] == _t40_cand[\"M4a\"], \\",
+   "output": "FAIL",
+   "new_file": false,
+   "changed_line": false,
+   "b1_same_finding": [
+    {
+     "b1_line": 3094,
+     "b1_output": "FAIL"
+    }
+   ],
+   "class": "기존"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s133_refine_differential_and_mirror_relations",
+   "t1_line": 3126,
+   "text": "assert _t40_cand[\"M3b\"] == _t40_cand[\"M4b\"], \\",
+   "output": "FAIL",
+   "new_file": false,
+   "changed_line": false,
+   "b1_same_finding": [
+    {
+     "b1_line": 3096,
+     "b1_output": "FAIL"
+    }
+   ],
+   "class": "기존"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s134__propose_vertical_stack_ids",
+   "t1_line": 3159,
+   "text": "assert set(_t41_alt[\"Mup\"]) == {_t41_groups[\"Mlo1\"], _t41_groups[\"Mlo2\"]}, \\",
+   "output": "FAIL",
+   "new_file": false,
+   "changed_line": false,
+   "b1_same_finding": [
+    {
+     "b1_line": 3129,
+     "b1_output": "FAIL"
+    }
+   ],
+   "class": "기존"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s135_section",
+   "t1_line": 3183,
+   "text": "assert _t42_vsid[\"groups\"][\"Mamb\"] == _t42_vsid[\"groups\"][\"Mout\"], \\",
+   "output": "FAIL",
+   "new_file": false,
+   "changed_line": false,
+   "b1_same_finding": [
+    {
+     "b1_line": 3153,
+     "b1_output": "FAIL"
+    }
+   ],
+   "class": "기존"
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py",
+   "test": "test_s159_apply_device_roles_gap_fill",
+   "t1_line": 3956,
+   "text": "assert sorted(_t55_apply1[\"applied_matching_pairs\"]) == _t55_expected_new, \\",
+   "output": "FAIL",
+   "new_file": false,
+   "changed_line": false,
+   "b1_same_finding": [
+    {
+     "b1_line": 3926,
+     "b1_output": "FAIL"
+    }
+   ],
+   "class": "기존"
+  }
+ ],
+ "t1_rule2_counts": {
+  "PASS": 26,
+  "UNJUDGED": 385,
+  "NO-SUBJECT": 402,
+  "FAIL": 0
+ }
+}

@@ -1,0 +1,11 @@
+source: classab_battery/_stage_a/current_reuse_telescopic_ota.stage_a.json
+/tables/views[0] main_path has M9a=True M15=True M11a=False
+/tables/views[0]/cells[1] {"degeneration": false, "dev": "M11a", "forward": false, "kind": "diode_load", "out": ""}
+/tables/views[0]/cells[2] {"degeneration": false, "dev": "M11b", "forward": false, "kind": "diode_load", "out": ""}
+/tables/views[0]/cells[7] {"degeneration": false, "dev": "M15", "forward": true, "kind": "cs", "out": "Vom"}
+/tables/views[0]/cells[49] {"degeneration": false, "dev": "M9a", "forward": true, "kind": "pass", "out": ""}
+/tables/views[1] main_path has M9a=False M15=False M11a=False
+/tables/views[1]/cells[1] {"degeneration": false, "dev": "M11a", "forward": false, "kind": "diode_load", "out": ""}
+/tables/views[1]/cells[2] {"degeneration": false, "dev": "M11b", "forward": false, "kind": "diode_load", "out": ""}
+/tables/views[1]/cells[7] {"degeneration": false, "dev": "M15", "forward": true, "kind": "cs", "out": "Vom"}
+/tables/views[1]/cells[49] {"degeneration": false, "dev": "M9a", "forward": true, "kind": "pass", "out": ""}

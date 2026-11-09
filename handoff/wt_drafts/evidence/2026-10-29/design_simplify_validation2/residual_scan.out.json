@@ -1,0 +1,119 @@
+{
+ "40": {
+  "bytes": 591294,
+  "lines": 2233,
+  "replace_marker": {
+   "lines": 23,
+   "count": 24,
+   "line_bytes": 34258
+  },
+  "old_text": {
+   "lines": 31,
+   "count": 39,
+   "line_bytes": 39780
+  },
+  "version_tag": {
+   "lines": 168,
+   "count": 238,
+   "line_bytes": 145930
+  },
+  "verif_ref": {
+   "lines": 8,
+   "count": 9,
+   "line_bytes": 6914
+  },
+  "asbuilt_line": {
+   "lines": 67,
+   "count": 227,
+   "line_bytes": 103591
+  },
+  "commit_hash": {
+   "lines": 23,
+   "count": 27,
+   "line_bytes": 31102
+  },
+  "strike": {
+   "lines": 7,
+   "count": 14,
+   "line_bytes": 4492
+  }
+ },
+ "41": {
+  "bytes": 527273,
+  "lines": 2078,
+  "replace_marker": {
+   "lines": 17,
+   "count": 21,
+   "line_bytes": 51162
+  },
+  "old_text": {
+   "lines": 21,
+   "count": 25,
+   "line_bytes": 35292
+  },
+  "version_tag": {
+   "lines": 141,
+   "count": 224,
+   "line_bytes": 200001
+  },
+  "verif_ref": {
+   "lines": 27,
+   "count": 40,
+   "line_bytes": 109126
+  },
+  "asbuilt_line": {
+   "lines": 40,
+   "count": 124,
+   "line_bytes": 119661
+  },
+  "commit_hash": {
+   "lines": 24,
+   "count": 39,
+   "line_bytes": 75421
+  },
+  "strike": {
+   "lines": 1,
+   "count": 2,
+   "line_bytes": 440
+  }
+ },
+ "42": {
+  "bytes": 95687,
+  "lines": 422,
+  "replace_marker": {
+   "lines": 11,
+   "count": 12,
+   "line_bytes": 6668
+  },
+  "old_text": {
+   "lines": 4,
+   "count": 8,
+   "line_bytes": 1494
+  },
+  "version_tag": {
+   "lines": 68,
+   "count": 109,
+   "line_bytes": 37076
+  },
+  "verif_ref": {
+   "lines": 2,
+   "count": 2,
+   "line_bytes": 5228
+  },
+  "asbuilt_line": {
+   "lines": 92,
+   "count": 124,
+   "line_bytes": 26161
+  },
+  "commit_hash": {
+   "lines": 16,
+   "count": 21,
+   "line_bytes": 12355
+  },
+  "strike": {
+   "lines": 4,
+   "count": 8,
+   "line_bytes": 1494
+  }
+ }
+}

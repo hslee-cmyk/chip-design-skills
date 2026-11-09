@@ -1,0 +1,8 @@
+base seed=1 rc=0 14.5s 17 passed in 5.69s
+base seed=0 rc=0 30.8s 17 passed in 11.60s
+base seed=7 rc=0 23.4s 17 passed in 8.51s
+base seed=123 rc=0 24.4s 17 passed in 10.85s
+b34 seed=0 rc=0 25.2s 17 passed in 11.65s
+b34 seed=1 rc=0 13.5s 17 passed in 5.30s
+b34 seed=7 rc=0 24.3s 17 passed in 10.16s
+b34 seed=123 rc=0 22.7s 17 passed in 7.99s

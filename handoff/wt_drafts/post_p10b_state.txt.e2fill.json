@@ -1,0 +1,11 @@
+{
+ "id": "20261001-p2dod-e2-wording",
+ "target": "ddacfe22022dd0b5d5f8bf2cc8c1e80b45c22844fa1624e8968a4fbd676aed64",
+ "diff_base": "80b9970c144e6fe4450c31a21949ca957b9b4f4d",
+ "diff_head": "1a464e42fa5598d50150c6257f73d088a519357b",
+ "diff_path": [
+  "docs/02-design/features/gain-budget-gmid-sizing.20-dead-code-dup.design.md"
+ ],
+ "dest": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\.ai\\approvals\\20261001-p2dod-e2-wording.md",
+ "result": "written"
+}

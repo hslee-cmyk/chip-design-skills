@@ -1,0 +1,73 @@
+== (a) unchanged-stmt-survivor [control] S = LOG.append(x * 3)(C 앞, C가 바꾸는 t를 읽지 않음) -- test는 LOG를 보지 않는다
+  rt_calc: 변이 10, 대상 6, 대상 밖 4
+  이 card 생존(대상 중): [] -> exit 0
+  대상 밖 id: ['arith:body[0].value.args[0]', 'const+:body[0].value.args[0].right', 'const-:body[0].value.args[0].right', 'stmt_delete:body[0]']
+  지금 도구 모사(def 전체, 데코레이터 NOOP) 생존: ['stmt_delete:body[0]', 'arith:body[0].value.args[0]', 'const+:body[0].value.args[0].right', 'const-:body[0].value.args[0].right'] -> exit 1
+  판정: 기대대로
+== (b) changed-stmt-survivor [attack] X = 새 문장 LOG.append(t)의 stmt_delete(test는 LOG를 보지 않는다)
+  rt_b: 변이 7, 대상 2, 대상 밖 5
+  이 card 생존(대상 중): ['stmt_delete:body[1]'] -> exit 1
+  대상 밖 id: ['arith:body[0].value', 'const+:body[0].value.right', 'const-:body[0].value.right', 'stmt_delete:body[0]', 'stmt_delete:body[2]']
+  지금 도구 모사(def 전체, 데코레이터 NOOP) 생존: ['stmt_delete:body[1]'] -> exit 1
+  X=stmt_delete:body[1]  N2w 대상=True  N2b 대상=True
+  판정: 기대대로
+== (c) enclosing-guard-survivor [attack] X = 감싸는 if의 a < b 뒤집기(`or True`로 등가 -- 도구에 진리값 부정 연산자가 없어 이 꼴)
+  rt_c: 변이 11, 대상 7, 대상 밖 4
+  이 card 생존(대상 중): ['cmp_flip:body[1].test.values[0].ops[0]'] -> exit 1
+  대상 밖 id: ['const+:body[0].value', 'const-:body[0].value', 'stmt_delete:body[0]', 'stmt_delete:body[2]']
+  지금 도구 모사(def 전체, 데코레이터 NOOP) 생존: ['stmt_delete:body[0]', 'const+:body[0].value', 'const-:body[0].value', 'cmp_flip:body[1].test.values[0].ops[0]'] -> exit 1
+  X=cmp_flip:body[1].test.values[0].ops[0]  N2w 대상=True  N2b 대상=True
+  판정: 기대대로
+== (d) unwrapped-stmt [attack] X = 감싸던 if를 없애 내어쓴 LOG.append(y)의 stmt_delete
+  rt_d: 변이 7, 대상 3, 대상 밖 4
+  이 card 생존(대상 중): ['stmt_delete:body[1]'] -> exit 1
+  대상 밖 id: ['arith:body[0].value', 'const+:body[0].value.right', 'const-:body[0].value.right', 'stmt_delete:body[0]']
+  지금 도구 모사(def 전체, 데코레이터 NOOP) 생존: ['stmt_delete:body[1]'] -> exit 1
+  X=stmt_delete:body[1]  N2w 대상=True  N2b 대상=True
+  판정: 기대대로
+== (e) header-only-change [attack] X = for 머리 -1(UnaryOp(-, 1))의 피연산자 const+(-2 -- 0 이상 입력에서 같음). 본문 불변
+  rt_e: 변이 11, 대상 5, 대상 밖 6
+  이 card 생존(대상 중): ['const+:body[1].iter.generators[0].ifs[0].comparators[0].operand'] -> exit 1
+  대상 밖 id: ['arith:body[1].body[0].value.args[0]', 'const+:body[1].body[0].value.args[0].right', 'const-:body[1].body[0].value.args[0].right', 'stmt_delete:body[0]', 'stmt_delete:body[1].body[0]', 'stmt_delete:body[2]']
+  지금 도구 모사(def 전체, 데코레이터 NOOP) 생존: ['const+:body[1].iter.generators[0].ifs[0].comparators[0].operand'] -> exit 1
+  X=const+:body[1].iter.generators[0].ifs[0].comparators[0].operand  N2w 대상=True  N2b 대상=True
+  판정: 기대대로
+== (f) header-default-bool [attack] test 없음(인벤토리 0) -- 대상 변이 전부 생존. 대상 = strict를 읽는 if의 몫(stmt_delete) + early_return
+  rt_f: 변이 4, 대상 2, 대상 밖 2
+  이 card 생존(대상 중): ['stmt_delete:body[0]', 'early_return:body[0]'] -> exit 1
+  대상 밖 id: ['stmt_delete:body[0].body[0]', 'stmt_delete:body[1]']
+  지금 도구 모사(def 전체, 데코레이터 NOOP) 생존: ['stmt_delete:body[0]', 'stmt_delete:body[1]', 'stmt_delete:body[0].body[0]', 'early_return:body[0]'] -> exit 1
+  판정: 기대대로
+== (g) delete-then-use [attack] X = 지운 자리 바로 뒤 return의 stmt_delete(test는 반환값을 보지 않고 LOG만 본다 -- early_return은 죽는다)
+  rt_g: 변이 3, 대상 2, 대상 밖 1
+  이 card 생존(대상 중): ['stmt_delete:body[1]'] -> exit 1
+  대상 밖 id: ['stmt_delete:body[0]']
+  지금 도구 모사(def 전체, 데코레이터 NOOP) 생존: ['stmt_delete:body[1]'] -> exit 1
+  X=stmt_delete:body[1]  N2w 대상=True  N2b 대상=True
+  판정: 기대대로
+== (h) decorator-mutant-applied [control] 데코레이터 상수 ±1(T3 자기 필드)이 계약 9 판으로 실제 적용되어 죽는다. 지금 도구는 NOOP
+  rt_h: 변이 7, 대상 3, 대상 밖 4
+  이 card 생존(대상 중): [] -> exit 0
+  대상 밖 id: ['arith:body[0].value', 'const+:body[0].value.right', 'const-:body[0].value.right', 'stmt_delete:body[0]']
+  지금 도구 모사(def 전체, 데코레이터 NOOP) 생존: ['const+:decorator_list[0].keywords[0].value', 'const-:decorator_list[0].keywords[0].value'] -> exit 1
+  판정: 기대대로
+== (i) same-block-later-use [attack] X = 한 문장 건너 if mode == 'exact'의 뒤집기(두 가지가 같은 값 -- 등가). if 삭제는 r 미정의로 죽는다
+  rt_i: 변이 20, 대상 5, 대상 밖 15
+  이 card 생존(대상 중): ['cmp_flip:body[2].test.ops[0]'] -> exit 1
+  대상 밖 id: ['arith:body[2].body[0].value', 'arith:body[2].body[0].value.left', 'arith:body[2].orelse[0].value', 'arith:body[2].orelse[0].value.left', 'const+:body[2].body[0].value.left.right', 'const+:body[2].body[0].value.right', 'const+:body[2].orelse[0].value.left.right', 'const+:body[2].orelse[0].value.right', 'const-:body[2].body[0].value.left.right', 'const-:body[2].body[0].value.right', 'const-:body[2].orelse[0].value.left.right', 'const-:body[2].orelse[0].value.right', 'stmt_delete:body[2].body[0]', 'stmt_delete:body[2].orelse[0]', 'stmt_delete:body[3]']
+  지금 도구 모사(def 전체, 데코레이터 NOOP) 생존: ['stmt_delete:body[2].orelse[0]', 'cmp_flip:body[2].test.ops[0]', 'arith:body[2].orelse[0].value', 'arith:body[2].orelse[0].value.left', 'const+:body[2].orelse[0].value.left.right', 'const-:body[2].orelse[0].value.left.right', 'const+:body[2].orelse[0].value.right', 'const-:body[2].orelse[0].value.right'] -> exit 1
+  X=cmp_flip:body[2].test.ops[0]  N2w 대상=True  N2b 대상=False
+  판정: 기대대로
+== (j) loop-carried-use [attack] X = 반복문 본문 앞쪽 LOG.append(acc)의 stmt_delete(다음 회차로 흐름, test는 LOG를 보지 않는다)
+  rt_j: 변이 13, 대상 8, 대상 밖 5
+  이 card 생존(대상 중): ['stmt_delete:body[2].body[0]'] -> exit 1
+  대상 밖 id: ['const+:body[1].value', 'const-:body[1].value', 'stmt_delete:body[0]', 'stmt_delete:body[1]', 'stmt_delete:body[3]']
+  지금 도구 모사(def 전체, 데코레이터 NOOP) 생존: ['stmt_delete:body[2].body[0]'] -> exit 1
+  X=stmt_delete:body[2].body[0]  N2w 대상=True  N2b 대상=False
+  판정: 기대대로
+== (k) cross-block-not-targeted [control] Y = 바깥 블록 return y + 1의 변이(test는 LOG만 본다 -- 지금 도구에서는 생존). 이 card에서는 대상 밖
+  rt_k: 변이 17, 대상 10, 대상 밖 7
+  이 card 생존(대상 중): [] -> exit 0
+  대상 밖 id: ['arith:body[2].value', 'const+:body[0].value', 'const+:body[2].value.right', 'const-:body[0].value', 'const-:body[2].value.right', 'stmt_delete:body[0]', 'stmt_delete:body[2]']
+  지금 도구 모사(def 전체, 데코레이터 NOOP) 생존: ['stmt_delete:body[2]', 'const+:body[0].value', 'const-:body[0].value', 'arith:body[2].value', 'const+:body[2].value.right', 'const-:body[2].value.right'] -> exit 1
+  판정: 기대대로

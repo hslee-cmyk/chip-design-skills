@@ -1,0 +1,4010 @@
+[
+{
+"id": "sizing_recipe:resolve_stack_layout:arith:body[3].body[1].value",
+"def_": "resolve_stack_layout",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:l_sharing_classes:stmt_delete:body[6]",
+"def_": "l_sharing_classes",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "sizing_recipe:resolve_stack_layout:stmt_delete:body[3]",
+"def_": "resolve_stack_layout",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:true_current_mirror_groups:cmp_flip:body[3].body[2].test.ops[0]",
+"def_": "true_current_mirror_groups",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_7c_gate_on_rail_not_mirror"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:l_sharing_classes:early_return:body[1]",
+"def_": "l_sharing_classes",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:resolve_stack_layout:stmt_delete:body[3].body[0]",
+"def_": "resolve_stack_layout",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "sizing_recipe:resolve_stack_layout:stmt_delete:body[3].body[1]",
+"def_": "resolve_stack_layout",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:true_current_mirror_groups:stmt_delete:body[3].body[2]",
+"def_": "true_current_mirror_groups",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_7c_gate_on_rail_not_mirror"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:resolve_stack_layout:stmt_delete:body[4]",
+"def_": "resolve_stack_layout",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_resolve_stack_candidates"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:resolve_stack_layout:stmt_delete:body[5]",
+"def_": "resolve_stack_layout",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_resolve_stack_candidates"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:true_current_mirror_groups:stmt_delete:body[3]",
+"def_": "true_current_mirror_groups",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_7c_gate_on_rail_not_mirror"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:_metric_kcl_residual:early_return:body[1]",
+"def_": "_metric_kcl_residual",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "sizing_recipe:true_current_mirror_groups:early_return:body[1]",
+"def_": "true_current_mirror_groups",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_7c_gate_on_rail_not_mirror"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:_metric_kcl_residual:stmt_delete:body[2]",
+"def_": "_metric_kcl_residual",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "sizing_recipe:_metric_kcl_residual:stmt_delete:body[3]",
+"def_": "_metric_kcl_residual",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:true_current_mirror_groups:stmt_delete:body[2]",
+"def_": "true_current_mirror_groups",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_7c_gate_on_rail_not_mirror"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget:stmt_delete:body[12]",
+"def_": "optimize_full_circuit_budget",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:resolve_stack_layout:cmp_flip:body[5].test.values[0].ops[0]",
+"def_": "resolve_stack_layout",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_resolve_stack_candidates"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget:cmp_flip:body[12].test.args[0].elt.values[1].ops[0]",
+"def_": "optimize_full_circuit_budget",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget:stmt_delete:body[12].body[3].body[5].body[3].orelse[0]",
+"def_": "optimize_full_circuit_budget",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget:stmt_delete:body[12].body[3].body[5].body[3].orelse[1]",
+"def_": "optimize_full_circuit_budget",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": true
+},
+{
+"id": "sizing_recipe:_build_theta_evaluator:early_return:body[1]",
+"def_": "_build_theta_evaluator",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:_build_theta_evaluator:stmt_delete:body[39]",
+"def_": "_build_theta_evaluator",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget:cmp_flip:body[12].test.args[0].elt.values[0].ops[0]",
+"def_": "optimize_full_circuit_budget",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:resolve_stack_layout:early_return:body[1]",
+"def_": "resolve_stack_layout",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_resolve_stack_candidates"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:_build_theta_evaluator:stmt_delete:body[27]",
+"def_": "_build_theta_evaluator",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:_build_theta_evaluator:stmt_delete:body[28]",
+"def_": "_build_theta_evaluator",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:_build_theta_evaluator:stmt_delete:body[26]",
+"def_": "_build_theta_evaluator",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget:early_return:body[1]",
+"def_": "optimize_full_circuit_budget",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget:stmt_delete:body[12].body[3].body[5]",
+"def_": "optimize_full_circuit_budget",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget:stmt_delete:body[12].body[3].body[5].body[3]",
+"def_": "optimize_full_circuit_budget",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget._evaluate_row_split:cmp_flip:body[5].body[3].test.ops[0]",
+"def_": "optimize_full_circuit_budget._evaluate_row_split",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget._evaluate_row_split:stmt_delete:body[5].body[3]",
+"def_": "optimize_full_circuit_budget._evaluate_row_split",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget:cmp_flip:body[12].body[3].body[5].body[3].test.ops[0]",
+"def_": "optimize_full_circuit_budget",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[5].body[13]",
+"def_": "_fixup_euler_blocked_rows",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_euler_fixup_group_split"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget._evaluate_row_split:stmt_delete:body[5].body[3].orelse[1]",
+"def_": "optimize_full_circuit_budget._evaluate_row_split",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": true
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget._evaluate_row_split:stmt_delete:body[5].body[3].orelse[0]",
+"def_": "optimize_full_circuit_budget._evaluate_row_split",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[5].body[16]",
+"def_": "_fixup_euler_blocked_rows",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_euler_fixup_group_split"
+],
+"unexec": true
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget._evaluate_row_split:stmt_delete:body[5]",
+"def_": "optimize_full_circuit_budget._evaluate_row_split",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_growth_pair_not_found",
+"test_b26pre_growth_only_3b_left"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[5].body[14]",
+"def_": "_fixup_euler_blocked_rows",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_euler_fixup_group_split"
+],
+"unexec": true
+},
+{
+"id": "sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[5]",
+"def_": "_fixup_euler_blocked_rows",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_euler_fixup_group_split",
+"test_b26pre_growth_zero_rounds_euler",
+"test_b26pre_growth_pair_not_found",
+"test_b26pre_growth_only_3b_left"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:optimize_full_circuit_budget._evaluate_row_split:early_return:body[0]",
+"def_": "optimize_full_circuit_budget._evaluate_row_split",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[12]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": true
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[11]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_growth_zero_rounds"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[13]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": true
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[0]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_growth_already_ok",
+"test_b26pre_growth_pair_not_found",
+"test_b26pre_growth_only_3b_left"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:_fixup_euler_blocked_rows:early_return:body[1]",
+"def_": "_fixup_euler_blocked_rows",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_euler_fixup_group_split",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler",
+"test_b26pre_growth_already_ok",
+"test_b26pre_growth_pair_not_found",
+"test_b26pre_growth_only_3b_left"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[11]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[5]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_growth_pair_not_found"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[18]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[2]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_growth_already_ok"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[12]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[14]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": true
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[13]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[10].body[12].value.test.ops[0]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[1]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_topology_pipeline_with_finger_fixup:stmt_delete:body[12]",
+"def_": "run_topology_pipeline_with_finger_fixup",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[9]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_growth_pair_not_found"
+],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[10].body[13].value.generators[1].ifs[0].ops[0]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:arith:body[10].body[12].value.body.args[0].args[0].args[0]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_matching_safety_with_finger_growth:early_return:body[1]",
+"def_": "run_matching_safety_with_finger_growth",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler",
+"test_b26pre_growth_already_ok",
+"test_b26pre_growth_pair_not_found",
+"test_b26pre_growth_only_3b_left"
+],
+"unexec": null
+},
+{
+"id": "sizing_recipe:run_topology_pipeline_with_finger_fixup:early_return:body[1]",
+"def_": "run_topology_pipeline_with_finger_fixup",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "sizing_recipe:run_topology_pipeline_with_finger_fixup:stmt_delete:body[12].body[11]",
+"def_": "run_topology_pipeline_with_finger_fixup",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "sizing_recipe:run_topology_pipeline_with_finger_fixup:stmt_delete:body[12].body[12]",
+"def_": "run_topology_pipeline_with_finger_fixup",
+"file": "sizing_recipe.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_topology_pipeline_with_finger_fixup:stmt_delete:body[12].body[15]",
+"def_": "run_topology_pipeline_with_finger_fixup",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:stmt_delete:body[8].body[3]",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_matching_candidates:stmt_delete:body[7].body[0]",
+"def_": "find_matching_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:stmt_delete:body[8]",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_matching_candidates:stmt_delete:body[7]",
+"def_": "find_matching_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e5_layer1_positive"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_full_audit_diffpair_undisposed"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:stmt_delete:body[9]",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e5_layer1_positive"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:stmt_delete:body[8].body[3].body[1].body[0]",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "sizing_recipe:run_topology_pipeline_with_finger_fixup:stmt_delete:body[12].body[13]",
+"def_": "run_topology_pipeline_with_finger_fixup",
+"file": "sizing_recipe.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:arith:body[8].body[3].body[1].body[0].iter.args[0]",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_matching_candidates:cmp_flip:body[7].body[0].test.ops[0]",
+"def_": "find_matching_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e5_layer1_positive"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_full_audit_diffpair_undisposed"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:const-:body[8].body[3].body[1].body[0].iter.args[0].right",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:stmt_delete:body[8].body[3].body[1]",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_matching_candidates:early_return:body[1]",
+"def_": "find_matching_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26_e5_layer1_positive",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:stmt_delete:body[8].body[3].body[1].body[0].body[1]",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:const+:body[8].body[3].body[1].body[0].iter.args[0].right",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:cmp_flip:body[8].body[3].body[1].body[0].body[1].body[3].test.values[0].ops[0]",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:stmt_delete:body[8].body[3].body[1].body[0].body[1].body[3]",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:early_return:body[1]",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26_e5_layer1_positive"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_differential_pair_candidates:cmp_flip:body[8].body[3].body[1].body[0].body[1].body[3].test.values[1].ops[0]",
+"def_": "find_differential_pair_candidates",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:_propose_gm_id_roles:early_return:body[1]",
+"def_": "_propose_gm_id_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_diff_pair_layer1_groups:stmt_delete:body[2].body[0]",
+"def_": "_diff_pair_layer1_groups",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:_diff_pair_layer1_groups:stmt_delete:body[2]",
+"def_": "_diff_pair_layer1_groups",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e5_layer1_positive"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_gm_id_roles:stmt_delete:body[3]",
+"def_": "_propose_gm_id_roles",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_gm_id_roles:stmt_delete:body[6]",
+"def_": "_propose_gm_id_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_diff_pair_layer1_groups:cmp_flip:body[2].body[0].test.ops[0]",
+"def_": "_diff_pair_layer1_groups",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e5_layer1_positive"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:_propose_gm_id_roles:stmt_delete:body[2]",
+"def_": "_propose_gm_id_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e4_propose_gateless_direct"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_gm_id_roles:stmt_delete:body[1]",
+"def_": "_propose_gm_id_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26_e4_propose_gateless_direct",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:_diff_pair_layer1_groups:early_return:body[1]",
+"def_": "_diff_pair_layer1_groups",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26_e5_layer1_positive",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_L_roles:stmt_delete:body[3]",
+"def_": "_propose_L_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:_propose_L_roles:cmp_flip:body[2].test.ops[0]",
+"def_": "_propose_L_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_gm_id_roles:cmp_flip:body[2].test.ops[0]",
+"def_": "_propose_gm_id_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e4_propose_gateless_direct"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_L_roles:stmt_delete:body[4]",
+"def_": "_propose_L_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[9]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_gm_id_roles:stmt_delete:body[5]",
+"def_": "_propose_gm_id_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:_propose_L_roles:stmt_delete:body[2]",
+"def_": "_propose_L_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_L_roles:cmp_flip:body[4].test.ops[0]",
+"def_": "_propose_L_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_L_roles:stmt_delete:body[1]",
+"def_": "_propose_L_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26_e4_propose_gateless_direct",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:_propose_L_roles:stmt_delete:body[7]",
+"def_": "_propose_L_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_gm_id_roles:stmt_delete:body[7]",
+"def_": "_propose_gm_id_roles",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_L_roles:early_return:body[1]",
+"def_": "_propose_L_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[11]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_propose_L_roles:stmt_delete:body[6]",
+"def_": "_propose_L_roles",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:_propose_L_roles:stmt_delete:body[8]",
+"def_": "_propose_L_roles",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[24]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[9].body[2]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[2].body[1]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[14]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[12]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:const-:args.defaults[5]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e3_default_constants"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:const+:args.defaults[5]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e3_default_constants"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[6]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[13]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[9].body[5]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:cmp_flip:body[9].body[2].test.ops[0]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:cmp_flip:body[18].value.value.test.values[1].ops[0]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[9].body[1]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:early_return:body[1]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations:stmt_delete:body[18]",
+"def_": "refine_differential_and_mirror_relations",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations.classify:early_return:body[0]",
+"def_": "refine_differential_and_mirror_relations.classify",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:check_symmetry_dispositions:stmt_delete:body[4]",
+"def_": "check_symmetry_dispositions",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:stmt_delete:body[3]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:kcl_series_union:stmt_delete:body[4]",
+"def_": "kcl_series_union",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:_kcl_and_matching_edges:stmt_delete:body[4].body[0]",
+"def_": "_kcl_and_matching_edges",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_vsid_gap_fill_no_ports"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:_kcl_and_matching_edges:stmt_delete:body[4]",
+"def_": "_kcl_and_matching_edges",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_vsid_gap_fill_no_ports",
+"test_b26pre_vsid_gap_fill_ports"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:refine_differential_and_mirror_relations.classify:stmt_delete:body[1]",
+"def_": "refine_differential_and_mirror_relations.classify",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_resolve_stack_candidates",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:stmt_delete:body[4]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_kcl_and_matching_edges:cmp_flip:body[4].body[0].test.ops[0]",
+"def_": "_kcl_and_matching_edges",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_vsid_gap_fill_no_ports",
+"test_b26pre_vsid_gap_fill_ports"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:stmt_delete:body[15]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:kcl_series_union:early_return:body[1]",
+"def_": "kcl_series_union",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:const+:body[15].body[1].test.comparators[0]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:stmt_delete:body[15].body[1]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:stmt_delete:body[10]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:stmt_delete:body[7]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:check_symmetry_dispositions:early_return:body[1]",
+"def_": "check_symmetry_dispositions",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:stmt_delete:body[15].body[1].body[2]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:check_symmetry_dispositions:stmt_delete:body[5]",
+"def_": "check_symmetry_dispositions",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:const-:body[15].body[1].test.comparators[0]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:cmp_flip:body[15].body[1].test.ops[0]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:stmt_delete:body[15].body[1].body[3]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:cmp_flip:body[15].body[1].body[2].value.args[0].generators[0].ifs[0].values[1].ops[0]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:const-:body[15].body[1].body[2].value.args[0].generators[0].ifs[0].values[1].comparators[0]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:cmp_flip:body[15].body[1].body[2].value.args[0].generators[0].ifs[0].values[0].ops[0]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:const+:body[15].body[1].body[2].value.args[0].generators[0].ifs[0].values[1].comparators[0]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:audit_vertical_stack_id_vs_kcl:early_return:body[1]",
+"def_": "audit_vertical_stack_id_vs_kcl",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_vertical_stack_id_gap_fill:cmp_flip:body[1].value.generators[0].ifs[0].ops[0]",
+"def_": "propose_vertical_stack_id_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_vsid_gap_fill_no_ports",
+"test_b26pre_vsid_gap_fill_ports"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_kcl_and_matching_edges:early_return:body[1]",
+"def_": "_kcl_and_matching_edges",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_vsid_gap_fill_no_ports",
+"test_b26pre_vsid_gap_fill_ports",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_vertical_stack_id_gap_fill:stmt_delete:body[2]",
+"def_": "propose_vertical_stack_id_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_vsid_gap_fill_ports"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[3]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_vertical_stack_id_gap_fill:stmt_delete:body[6]",
+"def_": "propose_vertical_stack_id_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_vsid_gap_fill_no_ports",
+"test_b26pre_vsid_gap_fill_ports"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[7]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[9]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[8]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_vertical_stack_id_gap_fill:early_return:body[1]",
+"def_": "propose_vertical_stack_id_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_vsid_gap_fill_no_ports",
+"test_b26pre_vsid_gap_fill_ports",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[5]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[14]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[13]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[6]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_vertical_stack_id_gap_fill:stmt_delete:body[1]",
+"def_": "propose_vertical_stack_id_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_vsid_gap_fill_no_ports",
+"test_b26pre_vsid_gap_fill_ports",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[1]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[12]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[25]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[31]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[48]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[36]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[10]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[40]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[43]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[30]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[26]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[36].body[1]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[49]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[29]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[36].body[1].test.values[0].ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[26].value.generators[0].ifs[0].ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[2].test.ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[40].body[6]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[50]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[40].body[5].value.generators[0].ifs[0].values[0].ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[40].body[7].test.ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[40].body[5]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[40].body[8]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[47]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[40].body[6].value.generators[0].ifs[0].values[1].ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:const-:body[40].body[7].test.comparators[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[40].body[5].value.generators[0].ifs[0].values[1].ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[36].body[1].test.values[1].ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[40].body[6].value.generators[0].ifs[0].values[0].ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[40].body[7]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:const-:body[40].body[8].value.slice",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:const+:body[40].body[8].value.slice",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[40].body[12]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:const+:body[40].body[7].test.comparators[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[40].body[12].test.ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[43].body[9].test.ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[43].body[4]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:run_full_circuit_audit:stmt_delete:body[17]",
+"def_": "run_full_circuit_audit",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_full_audit_diffpair_undisposed"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[43].body[4].test.values[1].ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:run_full_circuit_audit:const+:args.defaults[1]",
+"def_": "run_full_circuit_audit",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e3_default_constants"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": true
+},
+{
+"id": "stick_diagram:run_full_circuit_audit:stmt_delete:body[13]",
+"def_": "run_full_circuit_audit",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:run_full_circuit_audit:const-:args.defaults[1]",
+"def_": "run_full_circuit_audit",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e3_default_constants"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": true
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:early_return:body[1]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites",
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:run_full_circuit_audit:stmt_delete:body[16]",
+"def_": "run_full_circuit_audit",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "survived(g103)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_full_audit_mirror_undisposed"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[43].body[9]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:propose_device_roles_gap_fill:cmp_flip:body[43].body[4].test.values[0].ops[0]",
+"def_": "propose_device_roles_gap_fill",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e1_device_roles_rail_sites"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:run_full_circuit_audit:early_return:body[1]",
+"def_": "run_full_circuit_audit",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_kcl_branch_map:stmt_delete:body[3]",
+"def_": "_kcl_branch_map",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:run_full_circuit_audit:stmt_delete:body[14]",
+"def_": "run_full_circuit_audit",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26pre)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:stmt_delete:body[12]",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:stmt_delete:body[5]",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:const-:body[4].value.args[1].slice.slice",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_kcl_branch_map:stmt_delete:body[1]",
+"def_": "_kcl_branch_map",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:_kcl_branch_map:stmt_delete:body[2]",
+"def_": "_kcl_branch_map",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_kcl_branch_map:early_return:body[1]",
+"def_": "_kcl_branch_map",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:_branch_composite_pair:stmt_delete:body[1]",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:_branch_composite_pair:const-:body[4].value.args[0].slice.slice",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:stmt_delete:body[13]",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:const+:body[5].value.args[0].slice.slice",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:stmt_delete:body[4]",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:const-:body[5].value.args[0].slice.slice",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:const+:body[4].value.args[0].slice.slice",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:const-:body[5].value.args[1].slice.slice",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:stmt_delete:body[2]",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_composite_collapse_for_crossover:stmt_delete:body[8].body[2]",
+"def_": "_composite_collapse_for_crossover",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:const+:body[4].value.args[1].slice.slice",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:early_return:body[1]",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:_composite_collapse_for_crossover:stmt_delete:body[8].body[1]",
+"def_": "_composite_collapse_for_crossover",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:_composite_collapse_for_crossover:stmt_delete:body[8]",
+"def_": "_composite_collapse_for_crossover",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_composite_collapse_for_crossover:stmt_delete:body[8].body[8]",
+"def_": "_composite_collapse_for_crossover",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_composite_collapse_for_crossover:early_return:body[1]",
+"def_": "_composite_collapse_for_crossover",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_euler_fixup_group_split"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_composite_collapse_for_crossover:stmt_delete:body[8].body[7]",
+"def_": "_composite_collapse_for_crossover",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_composite_collapse_for_crossover:cmp_flip:body[8].body[2].test.ops[0]",
+"def_": "_composite_collapse_for_crossover",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_branch_composite_pair:const+:body[5].value.args[1].slice.slice",
+"def_": "_branch_composite_pair",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_composite_collapse_for_crossover:stmt_delete:body[8].body[3]",
+"def_": "_composite_collapse_for_crossover",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_min_crossover_layout_with_branch_composite:stmt_delete:body[2]",
+"def_": "find_min_crossover_layout_with_branch_composite",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_euler_fixup_group_split"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:_composite_collapse_for_crossover:stmt_delete:body[8].body[6]",
+"def_": "_composite_collapse_for_crossover",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:_composite_collapse_for_crossover:stmt_delete:body[8].body[4]",
+"def_": "_composite_collapse_for_crossover",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_min_crossover_layout_with_branch_composite:stmt_delete:body[4]",
+"def_": "find_min_crossover_layout_with_branch_composite",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_euler_fixup_group_split"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_min_crossover_layout_with_branch_composite:stmt_delete:body[3]",
+"def_": "find_min_crossover_layout_with_branch_composite",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_euler_fixup_group_split"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:repair_matching_safety:stmt_delete:body[6].body[5].body[7]",
+"def_": "repair_matching_safety",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_min_crossover_layout_with_branch_composite:stmt_delete:body[1]",
+"def_": "find_min_crossover_layout_with_branch_composite",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_euler_fixup_group_split"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:repair_matching_safety:const-:args.defaults[1]",
+"def_": "repair_matching_safety",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e3_default_constants"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:repair_matching_safety:stmt_delete:body[6].body[5].body[6]",
+"def_": "repair_matching_safety",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:repair_matching_safety:stmt_delete:body[6].body[5]",
+"def_": "repair_matching_safety",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:find_min_crossover_layout_with_branch_composite:early_return:body[1]",
+"def_": "find_min_crossover_layout_with_branch_composite",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_euler_fixup_group_split"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:repair_matching_safety:stmt_delete:body[6]",
+"def_": "repair_matching_safety",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:repair_matching_safety:const+:args.defaults[1]",
+"def_": "repair_matching_safety",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "survived(g103)",
+"con": "killed",
+"con_failed": [
+"test_b26_e3_default_constants"
+],
+"pre": "survived",
+"pre_failed": [],
+"unexec": null
+},
+{
+"id": "stick_diagram:load_topology:stmt_delete:body[20]",
+"def_": "load_topology",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:load_topology:stmt_delete:body[19]",
+"def_": "load_topology",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:load_topology:stmt_delete:body[25]",
+"def_": "load_topology",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:load_topology:stmt_delete:body[29]",
+"def_": "load_topology",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "survived",
+"pre_failed": [],
+"unexec": false
+},
+{
+"id": "stick_diagram:run_full_circuit_audit_from_topology:stmt_delete:body[11]",
+"def_": "run_full_circuit_audit_from_topology",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:load_topology:stmt_delete:body[23]",
+"def_": "load_topology",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:repair_matching_safety:cmp_flip:body[6].body[5].body[7].test.ops[0]",
+"def_": "repair_matching_safety",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:load_topology:early_return:body[1]",
+"def_": "load_topology",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:repair_matching_safety:early_return:body[1]",
+"def_": "repair_matching_safety",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_growth_zero_rounds",
+"test_b26pre_growth_zero_rounds_euler",
+"test_b26pre_growth_already_ok",
+"test_b26pre_growth_pair_not_found",
+"test_b26pre_growth_only_3b_left"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:load_topology:stmt_delete:body[24]",
+"def_": "load_topology",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:run_full_circuit_audit_from_topology:early_return:body[1]",
+"def_": "run_full_circuit_audit_from_topology",
+"file": "stick_diagram.py",
+"N2b": true,
+"existing": "killed(prior-b26)",
+"con": "survived",
+"con_failed": [],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed"
+],
+"unexec": null
+},
+{
+"id": "stick_diagram:load_topology:stmt_delete:body[30]",
+"def_": "load_topology",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+},
+{
+"id": "stick_diagram:load_topology:stmt_delete:body[31]",
+"def_": "load_topology",
+"file": "stick_diagram.py",
+"N2b": false,
+"existing": "killed(prior-b26)",
+"con": "killed",
+"con_failed": [
+"test_b26x_metric_kcl_residual_direct"
+],
+"pre": "killed",
+"pre_failed": [
+"test_b26pre_ofcb_lutless_repair",
+"test_b26pre_full_audit_all_disposed",
+"test_b26pre_full_audit_mirror_undisposed",
+"test_b26pre_full_audit_diffpair_undisposed",
+"test_b26pre_full_audit_hub_undisposed",
+"test_b26pre_case_collisions"
+],
+"unexec": false
+}
+]

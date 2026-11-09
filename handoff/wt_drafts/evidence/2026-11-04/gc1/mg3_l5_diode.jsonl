@@ -1,0 +1,12 @@
+{"file": "graph/cells.py", "fn": "_signal_cells", "line": 53, "reach": true, "src": "m.g == m.d"}
+{"file": "graph/cells.py", "fn": "_pass_groups", "line": 88, "reach": true, "src": "m.g != m.d"}
+{"file": "graph/cells.py", "fn": "classify_cells", "line": 117, "reach": true, "src": "m.g == m.d"}
+{"file": "graph/loops.py", "fn": "_graph_edges", "line": 61, "reach": true, "src": "m.g != m.d"}
+{"file": "graph/loops.py", "fn": "_graph_edges", "line": 57, "reach": true, "src": "m.d != m.g"}
+{"file": "graph/net_model.py", "fn": "net_model", "line": 75, "reach": true, "src": "m.g == m.d"}
+{"file": "graph/node_impedance.py", "fn": "node_impedance", "line": 22, "reach": true, "src": "m.g == m.d"}
+{"file": "graph/output_direction.py", "fn": "output_directions", "line": 49, "reach": true, "src": "m.g != m.d"}
+{"file": "graph/s1_structure.py", "fn": "s1_structure", "line": 67, "reach": true, "src": "x.g == x.d"}
+{"file": "metrics/block_gain_model.py", "fn": "block_gain_model_of", "line": 166, "reach": true, "src": "local.pins[m]['g'] == local.pins[m]['d']"}
+{"file": "metrics/ls_swing.py", "fn": "_constraints", "line": 46, "reach": true, "src": "m.g == m.d"}
+{"file": "search/iv_speed.py", "fn": "_providers", "line": 48, "reach": true, "src": "d.drain == d.gate"}

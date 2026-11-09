@@ -1,0 +1,25 @@
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::[1mtest_s008_section[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::[1mtest_s011_tan[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::[1mtest_s012_start[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::[1mtest_s013_Cgg1_total[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::[1mtest_s014_section[0m
+[32mPASSED[0m skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::[1mtest_s015_Cgg2[0m
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic1.py::[1mtest_vgs_consistency_all_devices[0m - IC1 -- ´ã´ç Phase 6b -- ¸¸·á: 6b DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic10.py::[1mtest_cache_key_covers_mutable_state[0m - IC10 -- ´ã´ç Phase 6b -- ¸¸·á: 6b DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::[1mtest_rail_origin_shift_invariance[rail2][0m - IC11 -- ´ã´ç Phase 4 -- ¸¸·á: 4 DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::[1mtest_rail_origin_shift_invariance[rail3][0m - IC11 -- ´ã´ç Phase 6a -- ¸¸·á: 6a DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::[1mtest_rail_origin_shift_invariance[reject][0m - IC11 -- ´ã´ç Phase 6a -- ¸¸·á: 6a DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic2.py::[1mtest_order_shuffle_invariance[0m - IC2 -- ´ã´ç Phase 6b -- ¸¸·á: 6b DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic4.py::[1mtest_role_label_removal_invariance[0m - IC4 -- ´ã´ç Phase 6c -- ¸¸·á: 6c DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic6.py::[1mtest_dof_catches_incident19_fixture[0m - IC6 -- ´ã´ç Phase 6c -- ¸¸·á: 6c DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic7.py::[1mtest_all_library_topologies_run[run][0m - IC7 -- ´ã´ç Phase 6a -- ¸¸·á: 6a DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic7.py::[1mtest_all_library_topologies_run[stop][0m - IC7 -- ´ã´ç Phase 6c -- ¸¸·á: 6c DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic8.py::[1mtest_unevidenced_derivation_stops_before_search[0m - IC8 -- ´ã´ç Phase 6c -- ¸¸·á: 6c DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/contracts/test_ic9.py::[1mtest_no_raw_duplicated_writes[0m - IC9 -- ´ã´ç Phase 6b -- ¸¸·á: 6b DoD
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::[1mtest_s051_optimize_full_circuit_budget[0m - I-C11 two_stage_ota stage1_out KVL -- ´ã´ç Phase 4
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::[1mtest_s054_section[0m - I-C11 two_stage_ota stage1_out KVL -- ´ã´ç Phase 4
+[33mXFAIL[0m skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::[1mtest_s157_M1[0m - I-C11 two_stage_ota stage1_out KVL -- ´ã´ç Phase 4
+[33mXPASS[0m skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::[1mtest_coverage_and_field_completeness[0m - IC3 -- ´ã´ç Phase 1 -- ¸¸·á: 1 DoD
+[33mXPASS[0m skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::[1mtest_linked_topology_files_merge_and_collision[0m - IC3 -- ´ã´ç Phase 1 -- ¸¸·á: 1 DoD
+[33mXPASS[0m skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::[1mtest_gate_docstring_declares_blind_spots[0m - IC5 -- ´ã´ç Phase 1 -- ¸¸·á: 1 DoD
+[33m=========== [32m1044 passed[0m, [33m[1m15 xfailed[0m, [33m[1m3 xpassed[0m[33m in 187.73s (0:03:07)[0m[33m ===========[0m

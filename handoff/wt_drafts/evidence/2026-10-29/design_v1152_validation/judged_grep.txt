@@ -1,0 +1,21 @@
+40-eng 12 es` 칸 이름 읽기·사유 `load_peak_resolution_undefined`, 선언 슬루 미측정 사유 `oracle_judged`; D-2 41 §5.3.1·§5.3.3 블록 전류 슬루 몫 삭제; D-3 40 R27 슬루 = oracl
+40-eng 12  정정). design이 정한 이름(계획이 'design에서 정함'으로 넘긴 것만) = 선언 슬루 미측정 사유 `oracle_judged`, 피크 행 분해능 사유 `load_peak_resolution_undefined`, 보고 `nodes` 
+40-eng 989 ), 잴 수 없으면 None. spec 로더가 `SizingSpecDoc.spice_unverifiable` = 판정 제약(`judged`) 중 `oracle_measure is None`인 metric 이름 tuple(정렬)을 만들고, 단계 
+40-eng 1019 DK4·O-155 M-1·재검증 R-3). DE-1 미병합 기간에 첫 소비자가 SB-1이면 범위 끝 이득 행은 `oracle_judged` 표기(SB-1 범위 4). library data 선언은 계획 범위 5 목록에 없다(이 판은 data를 
+40-eng 1031 두 축은 '판정 대상'이라는 한 양의 조건이라 술어 하나다(graph 규칙 3). 로더 사본 칸 `ConstraintDecl.judged`는 지운다; `SizingSpecDoc.judged_constraints`는 이 함수를 부르는 계산 속성으
+40-eng 1049 a 값·source 칸 대조 (3) 변화표 -- 슬루·정착 선언 회로는 `unmeasured_front`(사유 `oracle_judged`, §3.8-3 (나)), current_reuse는 AP-1까지 판정 대기, 원인 칸 'spec 추가' 
+40-eng 1459 - spec `oracle_tran`(§3.1-1)의 항목마다 행 없이 미측정 `(<metric>, <op>, "oracle_judged")` 하나를 낸다(방향 키는 그 방향, `slew_rate_v_per_s`는 그 이름 하나 -- 사유 **
+40-eng 1459 ed")` 하나를 낸다(방향 키는 그 방향, `slew_rate_v_per_s`는 그 이름 하나 -- 사유 **`oracle_judged`** = 'oracle 판정 대상', P N3.8 '선언 슬루의 엔진 표시' (가), 확정 O-124; 새
+40-eng 1459 t`로 가고(S-1 -- `E/search/eps_sweep.py` `_CLASSES`), 미측정 사유가 모두 `oracle_judged`인 점은 oracle front 판정 입력이 된다(§10.5, P DEC-98 (6)). 옛 슬루 행 사유
+40-eng 1459 정 사유가 `ss_requires_sealed_snapshot`·`ls_fields_unavailable`에서 `oracle_judged`로 바뀌어 S-1 notes 집계(`E/search/find_front.py:108-111`)가 달라진다 
+40-eng 1470 asure 대응은 6의 oracle 전용 `verified_by` 항목이고, 엔진 쪽 표시는 3의 미측정 사유 `oracle_judged`뿐이다. `offset_sys_mv`의 `verified_by` 연결(`spice_unverifiable`
+40-eng 2322  U-45 대상: 양 끝점 + 예산 점), 그리고 `unmeasured_front` 가운데 미측정 사유가 모두 `oracle_judged`인 점(P DEC-98 (6) -- 아래 'oracle 전용 제약') | 셋 모두 SPICE 오라클로 판정
+40-eng 2322 le 전용 제약') | 셋 모두 SPICE 오라클로 판정한다 -- 시작점·front 점은 아래 완료 조건에서, `oracle_judged` 점은 아래 'oracle 전용 제약' (i)~(iii)에서 | 
+40-eng 2335  피검 front 점(P U-45 대상)과 함께, `unmeasured_front` 가운데 미측정 사유가 모두 `oracle_judged`(§3.8-3)인 점을 oracle 판정 입력에 넣는다(기존 `unmeasured` 사유를 읽음, 새 칸 
+40-eng 2335 -- O-44 (1)). 이 판의 읽기: 'FAIL 점 front 제외'의 여집합으로 oracle 합격(그리고 `oracle_judged` 사유뿐인) `unmeasured_front` 점은 최종 `front` 후보로 남고, 그 집합에 비지배 재
+41-gai 17 es` 칸 이름 읽기·사유 `load_peak_resolution_undefined`, 선언 슬루 미측정 사유 `oracle_judged`; D-2 41 §5.3.1·§5.3.3 블록 전류 슬루 몫 삭제; D-3 40 R27 슬루 = oracl
+41-gai 17  정정). design이 정한 이름(계획이 'design에서 정함'으로 넘긴 것만) = 선언 슬루 미측정 사유 `oracle_judged`, 피크 행 분해능 사유 `load_peak_resolution_undefined`, 보고 `nodes` 
+41-gai 805 언 슬루의 엔진 표시', 확정 O-124): 같은 `unmeasured_front` 가운데 미측정 사유가 모두 `oracle_judged`('oracle 판정 대상' -- 엔진 metric이 없는 oracle 전용 제약, 지금은 슬루; 40 §
+41-gai 805  입력에 들어간다(40 §10.5; 새 칸 0). 위 (가)의 정의 불능 code가 하나라도 있는 점은 사유가 `oracle_judged`뿐이 아니므로 들지 않는다(fail-closed). oracle 판정 뒤 처리는 **계획 U-112 닫힘*
+41-gai 2107  상자 (a)~(d) toy·`zero_cancel_box` 손계산 구간 | `tests/authoring/test_spec_judged.py`, `tests/authoring/test_spec_settings.py`, `tests/metric
+42-gap 306 e 전용 제약(P DEC-98 (6), 확정 O-124): `unmeasured_front` 중 미측정 사유가 `oracle_judged`뿐인 점도 oracle 판정 입력, 그 불합격 = `oracle_only_fail`(엔진 결함 아님); v

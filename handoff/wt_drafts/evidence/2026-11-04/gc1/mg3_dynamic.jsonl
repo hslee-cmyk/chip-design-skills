@@ -1,0 +1,57 @@
+{"file": "core/blas_env.py", "fn": "_symbol", "line": 122, "reach": true, "src": "getattr_nonconst"}
+{"file": "core/canonical_key.py", "fn": "canonical_key", "line": 83, "reach": true, "src": "getattr_nonconst"}
+{"file": "core/compute_block.py", "fn": "_norm_code", "line": 78, "reach": true, "src": "getattr_nonconst"}
+{"file": "core/compute_block.py", "fn": "_norm_code", "line": 78, "reach": true, "src": "getattr_nonconst"}
+{"file": "core/fingerprint.py", "fn": "_encode", "line": 75, "reach": true, "src": "getattr_nonconst"}
+{"file": "core/graft.py", "fn": "graft", "line": 22, "reach": true, "src": "donor.column(kind, field)"}
+{"file": "core/graph_snapshot.py", "fn": "GraphSnapshot.column", "line": 114, "reach": true, "src": "self.column_fields(kind, field)"}
+{"file": "core/graph_snapshot.py", "fn": "GraphSnapshot.value", "line": 107, "reach": true, "src": "self.field(kind, key, field)"}
+{"file": "core/graph_snapshot.py", "fn": "GraphSnapshot.write", "line": 179, "reach": true, "src": "self.column_fields(kind, field)"}
+{"file": "core/immutability.py", "fn": "_children", "line": 25, "reach": true, "src": "getattr_nonconst"}
+{"file": "core/projection.py", "fn": "Projection.value", "line": 89, "reach": true, "src": "self.column(kind, field)"}
+{"file": "core/run_counters.py", "fn": "RunCounters.snapshot", "line": 97, "reach": true, "src": "getattr_nonconst"}
+{"file": "graph/s1_model.py", "fn": "S1Graph.column", "line": 27, "reach": true, "src": "self.snapshot.column(kind, field)"}
+{"file": "graph/s1_model.py", "fn": "S1Graph.value", "line": 32, "reach": true, "src": "self.snapshot.value(kind, key, field)"}
+{"file": "graph/structure_tables.py", "fn": "_plain", "line": 21, "reach": true, "src": "getattr_nonconst"}
+{"file": "graph/structure_tables.py", "fn": "structure_tables", "line": 34, "reach": true, "src": "source.value('graph', S1V_KEY, name)"}
+{"file": "layout/_helpers_alias.py", "fn": "AliasView.column", "line": 103, "reach": true, "src": "self._p.column(kind, field)"}
+{"file": "layout/_helpers_alias.py", "fn": "AliasView.value", "line": 110, "reach": true, "src": "getattr_nonconst"}
+{"file": "layout/_helpers_alias.py", "fn": "AliasView.value", "line": 112, "reach": true, "src": "getattr_nonconst"}
+{"file": "layout/_helpers_alias.py", "fn": "AliasView.value", "line": 107, "reach": true, "src": "self._p.value(kind, key, field)"}
+{"file": "layout/_helpers_alias.py", "fn": "Canon._walk", "line": 46, "reach": true, "src": "getattr_nonconst"}
+{"file": "layout/_helpers_alias.py", "fn": "_real_order", "line": 152, "reach": true, "src": "getattr_nonconst"}
+{"file": "layout/_helpers_alias.py", "fn": "_real_order", "line": 153, "reach": true, "src": "getattr_nonconst"}
+{"file": "layout/canon_block.py", "fn": "canon_tables", "line": 147, "reach": true, "src": "projection.value(GRAPH, GRAPH_KEY, field)"}
+{"file": "layout/canonical_naming.py", "fn": "canonical_names.decorate.run", "line": 25, "reach": true, "src": "projection.value(GRAPH, GRAPH_KEY, field)"}
+{"file": "layout/contract_input.py", "fn": "LayoutDevice.__post_init__", "line": 81, "reach": true, "src": "getattr_nonconst"}
+{"file": "layout/contract_input.py", "fn": "LayoutPdk.__post_init__", "line": 140, "reach": true, "src": "getattr_nonconst"}
+{"file": "lut/_helpers_loo.py", "fn": "table_at", "line": 161, "reach": true, "src": "getattr_nonconst"}
+{"file": "lut/table_cache.py", "fn": "_feed", "line": 71, "reach": true, "src": "getattr_nonconst"}
+{"file": "lut/table_cache.py", "fn": "_has_array", "line": 92, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/dc_metrics.py", "fn": "_canonical", "line": 52, "reach": true, "src": "projection.column(kind, 'dc_colour')"}
+{"file": "metrics/evaluate.py", "fn": "metric_value", "line": 21, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/ff_gm_ratio.py", "fn": "_perturbed", "line": 63, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/ff_gm_ratio.py", "fn": "ff_gm_ratio", "line": 90, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/junction_cap.py", "fn": "DiffusionGeometry.__post_init__", "line": 103, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/junction_cap.py", "fn": "DiffusionGeometry.__post_init__", "line": 107, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/junction_cap.py", "fn": "DiffusionGeometry.__post_init__", "line": 108, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/junction_cap.py", "fn": "JunctionParams.__post_init__", "line": 72, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/junction_cap.py", "fn": "JunctionParams.__post_init__", "line": 77, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/junction_cap.py", "fn": "JunctionParams.__post_init__", "line": 78, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/junction_cap.py", "fn": "JunctionParams.__post_init__", "line": 80, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/junction_cap.py", "fn": "JunctionParams.__post_init__", "line": 81, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/loop_cut.py", "fn": "cut_circuit", "line": 66, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/lut_parameters.py", "fn": "lut_parameters", "line": 49, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/metrics_aux.py", "fn": "_result", "line": 73, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/mna_build.py", "fn": "_injections", "line": 44, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/mna_types.py", "fn": "_freeze", "line": 35, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/records.py", "fn": "MosSmallSignal.__post_init__", "line": 90, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/records.py", "fn": "MosSmallSignal.__post_init__", "line": 92, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/records.py", "fn": "MosSmallSignal.__post_init__", "line": 94, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/ss_metrics.py", "fn": "_Ledger._cut_circuit", "line": 192, "reach": true, "src": "getattr_nonconst"}
+{"file": "metrics/ss_metrics.py", "fn": "_noise_reports", "line": 354, "reach": true, "src": "getattr_nonconst"}
+{"file": "pipeline/stage_b.py", "fn": "_jsonable", "line": 54, "reach": true, "src": "getattr_nonconst"}
+{"file": "search/archive.py", "fn": "_plain", "line": 22, "reach": true, "src": "getattr_nonconst"}
+{"file": "search/front_query.py", "fn": "_from_snapshot", "line": 29, "reach": true, "src": "getattr_nonconst"}
+{"file": "search/search_context.py", "fn": "SearchContext._field", "line": 70, "reach": true, "src": "self.dc.base.value('graph', key, name)"}
+{"file": "sizing/seal_versions.py", "fn": "seal_versions", "line": 23, "reach": true, "src": "snapshot.field(kind, key, field)"}

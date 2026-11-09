@@ -1,0 +1,132 @@
+{
+ "full": {
+  "base_log_sha256": "6bb141c04800825b5431446616b50388e49ca2685dc4dd88555def28365a0dd0",
+  "merged_log_sha256": "1f10d98240b2c2a6749c75f6da87f0a9f0457a5e33e0382d72c3f02e4387210f",
+  "base_summary": {
+   "cases": {
+    "PASS": 52,
+    "SKIPPED": 7,
+    "FAIL": 1
+   },
+   "steps": {
+    "PASS": 604,
+    "RECORD": 13,
+    "FAIL": 6
+   }
+  },
+  "merged_summary": {
+   "cases": {
+    "PASS": 53,
+    "SKIPPED": 7
+   },
+   "steps": {
+    "PASS": 610,
+    "RECORD": 13
+   }
+  },
+  "case_set_equal": true,
+  "step_set_equal": true,
+  "case_verdict_diff": {
+   "34-v3-exempt-binding": [
+    "FAIL",
+    "PASS"
+   ]
+  },
+  "step_verdict_diff": {
+   "34-v3-exempt-binding::bound-exempt": [
+    "FAIL",
+    "PASS"
+   ],
+   "34-v3-exempt-binding::bound-other-def": [
+    "FAIL",
+    "PASS"
+   ],
+   "34-v3-exempt-binding::docstring-shift": [
+    "FAIL",
+    "PASS"
+   ],
+   "34-v3-exempt-binding::hash-mismatch": [
+    "FAIL",
+    "PASS"
+   ],
+   "34-v3-exempt-binding::legacy-unbound-leak": [
+    "FAIL",
+    "PASS"
+   ],
+   "34-v3-exempt-binding::malformed-element": [
+    "FAIL",
+    "PASS"
+   ]
+  },
+  "merged_nonpass_steps": {},
+  "merged_34": {
+   "34-v3-exempt-binding::legacy-unbound-leak": {
+    "verdict": "PASS",
+    "exit": 1,
+    "observed": null
+   },
+   "34-v3-exempt-binding::hash-mismatch": {
+    "verdict": "PASS",
+    "exit": 1,
+    "observed": null
+   },
+   "34-v3-exempt-binding::bound-exempt": {
+    "verdict": "PASS",
+    "exit": 0,
+    "observed": {
+     "lines": 6,
+     "by_result": {
+      "exempt": [
+       "rt_engine:rt_scale:stmt_delete:body[1]"
+      ]
+     }
+    }
+   },
+   "34-v3-exempt-binding::bound-other-def": {
+    "verdict": "PASS",
+    "exit": 1,
+    "observed": null
+   },
+   "34-v3-exempt-binding::docstring-shift": {
+    "verdict": "PASS",
+    "exit": 1,
+    "observed": null
+   },
+   "34-v3-exempt-binding::malformed-element": {
+    "verdict": "PASS",
+    "exit": 1,
+    "observed": null
+   }
+  },
+  "merged_step_verdicts_sha256": "4b961062ebcebf2ddcca54e2c21ee3ac4e53893d3eb99f5a94bbfdb5a0f58470"
+ },
+ "cases": {
+  "base_log_sha256": "bdd38f694e802bfc092692837aaa83530f3fb84a4c69aae57d42193ec72e6e50",
+  "merged_log_sha256": "82980a87163e0504dd1c6c5c31aedb07be5af9a69bc7c2beda215912b68818e8",
+  "base_summary": {
+   "cases": {
+    "PASS": 5,
+    "SKIPPED": 2
+   },
+   "steps": {
+    "PASS": 6
+   }
+  },
+  "merged_summary": {
+   "cases": {
+    "PASS": 5,
+    "SKIPPED": 2
+   },
+   "steps": {
+    "PASS": 6
+   }
+  },
+  "case_set_equal": true,
+  "step_set_equal": true,
+  "case_verdict_diff": {},
+  "step_verdict_diff": {},
+  "merged_nonpass_steps": {},
+  "merged_34": {},
+  "merged_step_verdicts_sha256": "eaa0d7013c14a0893ebe28cd6b93631c0ace5ceb9b9b9b481dcb86601f249572"
+ }
+}

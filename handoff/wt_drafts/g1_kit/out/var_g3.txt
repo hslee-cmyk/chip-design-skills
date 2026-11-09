@@ -1,0 +1,32 @@
+repo=C:\g143\p3
+log=C:\g143\p3\tools\gates\redteam\logs\20261001-220916-direct.jsonl
+
+PASS             32v-key_only-x                               
+
+케이스: {"PASS": 1}
+단계: {"PASS": 87}
+variant key_only done
+repo=C:\g143\p3
+log=C:\g143\p3\tools\gates\redteam\logs\20261001-222427-direct.jsonl
+
+PASS             32v-class_methods_all-x                      
+
+케이스: {"PASS": 1}
+단계: {"PASS": 87}
+variant class_methods_all done
+repo=C:\g143\p3
+log=C:\g143\p3\tools\gates\redteam\logs\20261001-223655-direct.jsonl
+
+PASS             32v-v6_no_module_extra-x                     
+
+케이스: {"PASS": 1}
+단계: {"PASS": 87}
+variant v6_no_module_extra done
+repo=C:\g143\p3
+log=C:\g143\p3\tools\gates\redteam\logs\20261001-225029-direct.jsonl
+
+PASS             32v-stmt_names_in-x                          
+
+케이스: {"PASS": 1}
+단계: {"PASS": 87}
+variant stmt_names_in done

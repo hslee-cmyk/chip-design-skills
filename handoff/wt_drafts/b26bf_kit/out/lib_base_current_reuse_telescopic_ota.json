@@ -1,0 +1,48 @@
+{
+ "mode": "einst",
+ "circuit": "current_reuse_telescopic_ota",
+ "elapsed_s": 431.8,
+ "instance_exists": true,
+ "instance_sha256": "1b9a4d4c12194da7a15434dcd215d8c6be8265b7fdab89ea49b595bc2e9c5b98",
+ "instance_has_interdig_ok": false,
+ "calls": 1,
+ "calls_with_relaxed": 1,
+ "relaxed_entries": 2,
+ "mismatch_entries": 0,
+ "interdig_values": [
+  "False",
+  "True"
+ ],
+ "core_seq_sha": "4477c48e380b632186bf6d341a880678980a240a948448499dd6c43996c436df",
+ "relaxed_detail": [
+  {
+   "relaxed": [
+    {
+     "pair": [
+      "M4a",
+      "M4b"
+     ],
+     "interdig_ok": true,
+     "audit_3b": [
+      true
+     ],
+     "mismatch": false
+    },
+    {
+     "pair": [
+      "M3a",
+      "M3b"
+     ],
+     "interdig_ok": false,
+     "audit_3b": [
+      false
+     ],
+     "mismatch": false
+    }
+   ],
+   "mismatch": 0,
+   "unresolved_reason": "growth_not_applicable",
+   "core_sha": "ff9ab26ebbb8e59d3649341b6e54f9777e136299acf8be057cf981fcd53cc47b"
+  }
+ ]
+}

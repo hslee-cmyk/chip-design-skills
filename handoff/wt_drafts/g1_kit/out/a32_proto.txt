@@ -1,0 +1,8 @@
+repo=C:\g143\p
+log=C:\g143\p\tools\gates\redteam\logs\20261001-214339-direct.jsonl
+
+PASS             32-moved-defs                                
+
+케이스: {"PASS": 1}
+단계: {"PASS": 87}
+exit 0 log C:/g143/p/tools/gates/redteam/logs/20261001-214339-direct.jsonl

@@ -1,0 +1,4 @@
+[('Cm1', 'capacitor', ['NodeM2', 'NodeCM']), ('Cm2', 'capacitor', ['NodeS2', 'NodeCM']), ('Rm', 'resistor', ['NodeCM', 'Vout'])]
+{"A": "NodeS2", "B": "Vout", "S": ["M301"], "out_dev": "M302", "G": "VB5", "A_G_coupling": []}
+{"A": "NodeM2", "B": "Vout", "S": [], "out_dev": "M301", "G": "NodeS2", "A_G_coupling": []}
+{"A": "NodeM2", "B": "Vout", "S": [], "out_dev": "M302", "G": "VB5", "A_G_coupling": []}

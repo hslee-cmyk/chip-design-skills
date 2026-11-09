@@ -1,0 +1,45 @@
+M1 pmos D n_fn1 G Vinn S tail_p B None
+M2 pmos D n_fn2 G Vinp S tail_p B None
+M3 nmos D n_fp1 G Vinn S tail_n B None
+M4 nmos D n_fp2 G Vinp S tail_n B None
+M5 nmos D n_m6 G vb3 S tail_n B None
+M6 pmos D n_m6 G n_m6 S VDD B None
+M7 pmos D tail_p G n_m6 S VDD B None
+M8 pmos D n_m9 G n_m31 S tail_p B None
+M9 nmos D n_m9 G n_m9 S VSS B None
+M10 nmos D tail_n G n_m9 S VSS B None
+M11 pmos D n_fp1 G n_mp S VDD B None
+M12 pmos D n_fp2 G n_mp S VDD B None
+M13 pmos D n_mp G vb1 S n_fp1 B None
+M14 pmos D n_gp G vb1 S n_fp2 B None
+M15 nmos D n_mn G vb4 S n_fn1 B None
+M16 nmos D n_gn G vb4 S n_fn2 B None
+M17 nmos D n_fn1 G n_mn S VSS B None
+M18 nmos D n_fn2 G n_mn S VSS B None
+M19 nmos D n_gp G n_abn S n_gn B None
+M20 pmos D n_gn G n_abp S n_gp B None
+M21 pmos D n_m21 G n_m21 S VDD B None
+M22 pmos D n_abp G n_abp S n_m21 B None
+M23 nmos D n_abn G n_abn S n_m24 B None
+M24 nmos D n_m24 G n_m24 S VSS B None
+M25 pmos D Vo G n_gp S VDD B None
+M26 nmos D Vo G n_gn S VSS B None
+M27 nmos D n_mp G n_abn S n_mn B None
+M28 pmos D n_mn G n_abp S n_mp B None
+M29 nmos D VDD G vb6n S n_t29 B None
+M30 nmos D n_m31 G vb5n S n_t29 B None
+M31 pmos D n_m31 G n_m31 S VDD B None
+supplies {'VDD': 1.8, 'VSS': 0.0} ports {'Vinp': {'role': 'differential_input_p', 'direction': 'input'}, 'Vinn': {'role': 'differential_input_n', 'direction': 'input'}, 'Vo': {'role': 'single_ended_output', 'direction': 'output'}}
+kvl_branch ('M19', 'M23', 'M24', 'M26') v2_rail ('n_abn', 'n_gn', 'n_m24')
+kvl_branch ('M17', 'M19', 'M26', 'M27') v2_rail ('n_abn', 'n_gn', 'n_mn')
+kvl_branch ('M20', 'M21', 'M22', 'M25') v2_rail ('n_abp', 'n_gp', 'n_m21')
+kvl_branch ('M11', 'M20', 'M25', 'M28') v2_rail ('n_abp', 'n_gp', 'n_mp')
+port_diff ('M1', 'M2', 'M3', 'M4')
+vds_sat ('M10', 'M3', 'M1', 'M8', 'M31')
+vds_sat ('M19', 'M25', 'M26')
+vds_sat ('M20', 'M26', 'M25')
+vds_sat ('M27', 'M11', 'M17')
+vds_sat ('M28', 'M17', 'M11')
+vds_sat ('M5', 'M6', 'M31', 'M8', 'M1', 'M3')
+vds_sat ('M7', 'M8', 'M31')
+vds_sat ('M8', 'M10', 'M31', 'M8')

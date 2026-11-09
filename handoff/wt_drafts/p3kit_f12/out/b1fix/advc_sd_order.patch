@@ -1,0 +1,13 @@
+diff --git a/skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py b/skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py
+index f48f286..042c5f6 100644
+--- a/skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py
++++ b/skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py
+@@ -32,7 +32,7 @@ _ASSETS_DIR = pathlib.Path(__file__).resolve().parents[2]
+ def _sd():
+     if str(_ASSETS_DIR) not in sys.path:
+         sys.path.insert(0, str(_ASSETS_DIR))
+-    return __import__("types").SimpleNamespace(**{_k: _v for _m in ("gmid_lut", "topology_authoring", "circuit_state_graph", "gmid_sizing_engine", "circuit_metrics", "theta_search", "stick_diagram", "sizing_layout_convergence", "instance_report_builder") for _k, _v in vars(__import__("importlib").import_module(_m)).items()})
++    return __import__("types").SimpleNamespace(**{_k: _v for _m in ("stick_diagram", "gmid_lut", "topology_authoring", "circuit_state_graph", "gmid_sizing_engine", "circuit_metrics", "theta_search", "sizing_layout_convergence", "instance_report_builder") for _k, _v in vars(__import__("importlib").import_module(_m)).items()})
+ 
+ 
+ def _net(*specs):

@@ -1,0 +1,28 @@
+gain-budget-gmid-sizing:1703	4
+gain-budget-gmid-sizing:1714	7
+gain-budget-gmid-sizing:1716	7
+gain-budget-gmid-sizing:1720	1
+gain-budget-gmid-sizing:1806	1
+gain-budget-gmid-sizing:2043	1
+gain-budget-gmid-sizing:2149	1
+gain-budget-gmid-sizing:2153	1
+gain-budget-gmid-sizing:224	1
+gain-budget-gmid-sizing:2271	1
+gain-budget-gmid-sizing:267	1
+gain-budget-gmid-sizing:303	1
+gain-budget-gmid-sizing:332	1
+gain-budget-gmid-sizing:341	1
+gain-budget-gmid-sizing:342	1
+gain-budget-gmid-sizing:344	1
+gain-budget-gmid-sizing:414	1
+gain-budget-gmid-sizing:423	1
+gain-budget-gmid-sizing:429	1
+gain-budget-gmid-sizing:550	1
+gain-budget-gmid-sizing:570	2
+gain-budget-gmid-sizing:658	2
+gain-budget-gmid-sizing:729	22
+gain-budget-gmid-sizing:743	1
+
+[gain-budget-gmid-sizing:550] <ss_nodal> ...음, 사용자 결정 O-179 (1)), 노드 C_total·G, 소신호 metric(봉인 통과 스냅샷의 파생, 입력 `dc` 버전 카운터 기록) (옛 '`ss`에 슬루 등가 용량 `ss.c_slew_farad`' 문언은 오기였다 -- 코드에 그런 graph 필드는 없고 as-built는 보고 칸 `LsNode.c_slew_farad`이며 DE-1 (d)가 지운다, v6.37 여섯째 커밋) / `ss` 층 봉인점 소신호 회로 `graph.ss_circuit`(값 `SsCircuit`, writer 하나 -- v6.34.1 셋째 커밋, 원래 취지와 다름(범위 확대), N3.8 '엔진 쪽 계산 자리')·노달 계 `graph.ss_nodal`(O-59 (1)) / **DC 동작 범위**(v6.18, card DE-1) = 입력 포트 창(v6.19 전체 정합 검증 A-F3·B-M1 -- 필드는 N3.8 '창 필드'의 두 필드(θ 프레임 탐색 창 `node.dc_window`(W4 뿌리) / 측정 구성 창 `node.dc_window_cfg` -- 정의 창은 사용자 결정 O-204 조건으로 같은 필드; 다듬은 정의 창은 v6.34 O-109 C1로 두지 않음)를 인용한다 -- 정의는 거기 하나, O-58 S-1 -- IT-2 범위 1 '필드'·DE-1 (a)), 출력 창(**별도 필드** -- 한 필드에 두 개념을 두지 않는다, 다듬은 출력 창 없음 -- v...
+[gain-budget-gmid-sizing:570] <ss_nodal> ...| B1 | 소신호 회로 `ss_circuit`·스탬프 | `graph.ss_circuit`·`graph.ss_nodal`(ss 층, writer 하나) | `metrics/metrics_aux.py:105`, `_helpers_nodal.py:29` 쪽 스탬프 | IT-2c(기존 문언 -- `graph.ss_circuit`·`ss_nodal` READS) |...
+[gain-budget-gmid-sizing:570] <ss_nodal> ...| B1 | 소신호 회로 `ss_circuit`·스탬프 | `graph.ss_circuit`·`graph.ss_nodal`(ss 층, writer 하나) | `metrics/metrics_aux.py:105`, `_helpers_nodal.py:29` 쪽 스탬프 | IT-2c(기존 문언 -- `graph.ss_circuit`·`ss_nodal` READS) |...

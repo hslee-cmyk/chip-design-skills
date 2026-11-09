@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# T0 card(20260930-p3-tests-location-free) V3·V4·V5·V6·V7 모양 사전 점검 -- 격리 복제본에서만(측정 전용).
+#   bash v_tools.sh <복제본 루트(T 커밋 checkout)> <base sha> <T sha> <게이트 캐시 tools/gates> <출력 디렉터리>
+# 게이트 캐시 = `git archive <gate master> tools/gates`를 푼 것. card phase 3 → --gmid-phase=3(V1과 같은 값, design 30 §10 PT3).
+# V4: interface card 신규 시그니처 0행(test-only) -- md_sync_kit/v4_subjects.py와 같은 처리(A/*.py 최상위 def·class 전부를 --subject로).
+set -u
+ROOT=$1; BASE=$2; HEAD=$3; C=$4; OUT=$5
+export APPDATA='C:\Users\HSLEE\AppData\Roaming' PYTHONIOENCODING=utf-8
+PY=/c/Python314/python.exe
+mkdir -p "$OUT"
+for t in weakening_diff source_lint reachability; do
+  s=$(date +%s)
+  PYTHONPATH=$C $PY -B $C/$t.py --root "$ROOT" --base "$BASE" --head "$HEAD" > "$OUT/$t.json" 2>&1
+  echo "$t exit $? $(( $(date +%s)-s ))s"
+done
+$PY -B C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/md_sync_kit/v4_subjects.py "$ROOT" "$OUT/v4_subjects.txt"
+args=(); while read -r x; do [ -n "$x" ] && args+=(--subject "$x"); done < "$OUT/v4_subjects.txt"
+s=$(date +%s)
+PYTHONPATH=$C $PY -B $C/test_lint.py --root "$ROOT" --base "$BASE" --head "$HEAD" --module-dir skills/analog-gmid-design/assets "${args[@]}" > "$OUT/test_lint.json" 2>&1
+echo "test_lint exit $? $(( $(date +%s)-s ))s"
+s=$(date +%s)
+PYTHONPATH=$C $PY -B $C/mutate_changed.py --root "$ROOT" --base "$BASE" --head "$HEAD" --pytest-ini $C/pytest_gate.ini \
+  --python C:/Python314/python.exe --gmid-phase=3 --gmid-strict= --out "$OUT/v3.jsonl" > "$OUT/mutate_changed.json" 2>&1
+echo "mutate_changed exit $? $(( $(date +%s)-s ))s"

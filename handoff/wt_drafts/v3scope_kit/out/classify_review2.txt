@@ -1,0 +1,37 @@
+== mode review2: changed defs 32
+   N2b targets 265 | low 22.1 min | high 14.10 h | unexecuted-line 6 | inventory-0 6
+   N2w targets 330 | low 27.5 min | high 17.61 h | unexecuted-line 9 | inventory-0 6
+   N2d targets 443 | low 36.9 min | high 23.32 h | unexecuted-line 23 | inventory-0 11
+   all mutants 2437
+   sizing_recipe.py::_build_theta_evaluator                       all= 498 N2b=  5 N2w=  6 N2d= 72 inv=60 inv_s=186.6
+   stick_diagram.py::propose_device_roles_gap_fill                all= 327 N2b= 40 N2w= 58 N2d= 68 inv=138 inv_s=202.2
+   sizing_recipe.py::optimize_full_circuit_budget                 all= 230 N2b= 10 N2w= 10 N2d= 10 inv=60 inv_s=186.6
+   stick_diagram.py::repair_matching_safety                       all= 112 N2b=  8 N2w=  8 N2d= 10 inv=69 inv_s=188.5
+   stick_diagram.py::_branch_composite_pair                       all= 102 N2b=  3 N2w= 15 N2d= 15 inv=70 inv_s=189.0
+   sizing_recipe.py::run_matching_safety_with_finger_growth       all= 100 N2b= 11 N2w= 19 N2d= 34 inv=62 inv_s=186.9
+   sizing_recipe.py::_fixup_euler_blocked_rows                    all=  90 N2b=  5 N2w=  6 N2d=  6 inv=62 inv_s=186.9
+   stick_diagram.py::refine_differential_and_mirror_relations     all=  84 N2b= 37 N2w= 40 N2d= 40 inv=145 inv_s=202.4
+   sizing_recipe.py::run_topology_pipeline_with_finger_fixup      all=  65 N2b=  5 N2w=  7 N2d=  7 inv=61 inv_s=187.1
+   stick_diagram.py::find_differential_pair_candidates            all=  65 N2b= 13 N2w= 13 N2d= 13 inv=146 inv_s=202.4
+   stick_diagram.py::load_topology                                all=  65 N2b= 12 N2w= 16 N2d= 16 inv=137 inv_s=202.2
+   sizing_recipe.py::optimize_full_circuit_budget._evaluate_row_split all=  62 N2b=  6 N2w=  6 N2d=  6 inv=60 inv_s=186.6
+   stick_diagram.py::find_matching_candidates                     all=  60 N2b=  4 N2w=  4 N2d=  4 inv=146 inv_s=202.2
+   sizing_recipe.py::_metric_kcl_residual                         all=  57 N2b=  6 N2w=  6 N2d= 11 inv=0 inv_s=0
+   stick_diagram.py::audit_vertical_stack_id_vs_kcl               all=  56 N2b= 14 N2w= 16 N2d= 16 inv=63 inv_s=187.0
+   stick_diagram.py::_composite_collapse_for_crossover            all=  55 N2b=  5 N2w= 10 N2d= 10 inv=65 inv_s=187.9
+   stick_diagram.py::run_full_circuit_audit                       all=  53 N2b=  5 N2w=  7 N2d=  7 inv=64 inv_s=187.1
+   stick_diagram.py::propose_vertical_stack_id_gap_fill           all=  48 N2b=  4 N2w=  5 N2d= 10 inv=140 inv_s=202.2
+   sizing_recipe.py::l_sharing_classes                            all=  42 N2b=  6 N2w=  6 N2d=  6 inv=60 inv_s=186.6
+   stick_diagram.py::check_symmetry_dispositions                  all=  37 N2b=  3 N2w=  3 N2d=  5 inv=140 inv_s=202.2
+   stick_diagram.py::_propose_L_roles                             all=  30 N2b=  9 N2w= 10 N2d= 15 inv=145 inv_s=202.4
+   stick_diagram.py::_kcl_and_matching_edges                      all=  30 N2b=  4 N2w=  4 N2d=  4 inv=144 inv_s=202.2
+   sizing_recipe.py::resolve_stack_layout                         all=  26 N2b=  8 N2w=  8 N2d=  9 inv=61 inv_s=186.8
+   stick_diagram.py::_propose_gm_id_roles                         all=  26 N2b=  6 N2w=  8 N2d= 10 inv=145 inv_s=202.4
+   stick_diagram.py::kcl_series_union                             all=  23 N2b=  2 N2w=  2 N2d=  2 inv=72 inv_s=189.0
+   stick_diagram.py::run_full_circuit_audit_from_topology         all=  23 N2b=  3 N2w=  3 N2d=  3 inv=63 inv_s=187.1
+   stick_diagram.py::_diff_pair_layer1_groups                     all=  22 N2b=  4 N2w=  4 N2d=  4 inv=146 inv_s=202.4
+   sizing_recipe.py::true_current_mirror_groups                   all=  17 N2b=  5 N2w=  5 N2d=  5 inv=60 inv_s=186.6
+   stick_diagram.py::rail_declaration                             all=  14 N2b= 14 N2w= 14 N2d= 14 inv=137 inv_s=202.2
+   stick_diagram.py::_kcl_branch_map                              all=   7 N2b=  3 N2w=  4 N2d=  4 inv=70 inv_s=189.0
+   stick_diagram.py::refine_differential_and_mirror_relations.classify all=   6 N2b=  2 N2w=  2 N2d=  2 inv=145 inv_s=202.4
+   stick_diagram.py::find_min_crossover_layout_with_branch_composite all=   5 N2b=  3 N2w=  5 N2d=  5 inv=64 inv_s=187.7

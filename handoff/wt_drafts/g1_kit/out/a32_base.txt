@@ -1,0 +1,95 @@
+repo=C:\g143\b
+log=C:\g143\b\tools\gates\redteam\logs\20261001-215401-direct.jsonl
+
+FAIL             32-moved-defs                                
+    - FAIL move-exact.V3: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::f'], 'move_rejected': {}, 'defs': []}
+    - FAIL move-exact.V6: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::f'], 'move_rejected': {}}
+    - FAIL move-exact.V7: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::f'], 'move_rejected': {}}
+    - FAIL absorb-own-import.V3: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::f'], 'move_rejected': {}, 'defs': []}
+    - FAIL absorb-own-import.V6: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::f'], 'move_rejected': {}}
+    - FAIL absorb-own-import.V7: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::f'], 'move_rejected': {}}
+    - FAIL move-together.V3: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::g', 'skills/analog-gmid-design/assets/b.py::helper'], 'move_rejected': {}, 'defs': []}
+    - FAIL move-together.V6: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::g', 'skills/analog-gmid-design/assets/b.py::helper'], 'move_rejected': {}}
+    - FAIL move-together.V7: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::g', 'skills/analog-gmid-design/assets/b.py::helper'], 'move_rejected': {}}
+    - FAIL move-chain.V3: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/m2.py::g'], 'move_rejected': {}, 'defs': []}
+    - FAIL move-chain.V6: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/m2.py::g'], 'move_rejected': {}}
+    - FAIL move-chain.V7: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/m2.py::g'], 'move_rejected': {}}
+    - FAIL local-shadow.V3: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::g'], 'move_rejected': {}, 'defs': []}
+    - FAIL local-shadow.V6: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::g'], 'move_rejected': {}}
+    - FAIL local-shadow.V7: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::g'], 'move_rejected': {}}
+    - FAIL class-exact.V3: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::C.m'], 'move_rejected': {}, 'defs': []}
+    - FAIL class-exact.V6: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::C.m'], 'move_rejected': {}}
+    - FAIL class-exact.V7: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::C.m'], 'move_rejected': {}}
+    - FAIL cache-together.V3: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::g'], 'move_rejected': {}, 'defs': []}
+    - FAIL cache-together.V6: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::g'], 'move_rejected': {}}
+    - FAIL cache-together.V7: exit 1 != 기대 0; 관찰 None != 기대 {'moved': ['skills/analog-gmid-design/assets/b.py::g'], 'move_rejected': {}}
+    - FAIL move-edited.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {}, 'defs': ['skills/analog-gmid-design/assets/b.py::f']}
+    - FAIL move-edited.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL move-edited.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL copy.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-2'}, 'defs': ['skills/analog-gmid-design/assets/b.py::f']}
+    - FAIL copy.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-2'}}
+    - FAIL copy.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-2'}}
+    - FAIL wrapper.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-2'}, 'defs': ['skills/analog-gmid-design/assets/a.py::f', 'skills/analog-gmid-design/assets/b.py::f']}
+    - FAIL wrapper.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-2'}}
+    - FAIL wrapper.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-2'}}
+    - FAIL ambiguous.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-1'}, 'defs': ['skills/analog-gmid-design/assets/b.py::f']}
+    - FAIL ambiguous.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-1'}}
+    - FAIL ambiguous.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-1'}}
+    - FAIL two-targets.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-3', 'skills/analog-gmid-design/assets/d.py::f': 'M-2'}, 'defs': ['skills/analog-gmid-design/assets/b.py::f', 'skills/analog-gmid-design/assets/d.py::f']}
+    - FAIL two-targets.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-3', 'skills/analog-gmid-design/assets/d.py::f': 'M-2'}}
+    - FAIL two-targets.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-3', 'skills/analog-gmid-design/assets/d.py::f': 'M-2'}}
+    - FAIL overwrite.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0'}, 'defs': ['skills/analog-gmid-design/assets/b.py::f']}
+    - FAIL overwrite.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0'}}
+    - FAIL overwrite.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0'}}
+    - FAIL overwrite-import.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0'}, 'defs': ['skills/analog-gmid-design/assets/b.py::f']}
+    - FAIL overwrite-import.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0'}}
+    - FAIL overwrite-import.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0'}}
+    - FAIL swap.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/a.py::f': 'M-0', 'skills/analog-gmid-design/assets/b.py::f': 'M-0'}, 'defs': ['skills/analog-gmid-design/assets/a.py::f', 'skills/analog-gmid-design/assets/b.py::f']}
+    - FAIL swap.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/a.py::f': 'M-0', 'skills/analog-gmid-design/assets/b.py::f': 'M-0'}}
+    - FAIL swap.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/a.py::f': 'M-0', 'skills/analog-gmid-design/assets/b.py::f': 'M-0'}}
+    - FAIL rebind.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::g': 'M-4'}, 'defs': ['skills/analog-gmid-design/assets/b.py::g']}
+    - FAIL rebind.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::g': 'M-4'}}
+    - FAIL rebind.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::g': 'M-4'}}
+    - FAIL file-dir-change-noshim.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::ff': 'M-4'}, 'defs': ['workspaces/run_harness.py::ff']}
+    - FAIL file-dir-change-noshim.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::ff': 'M-4'}}
+    - FAIL file-dir-change-noshim.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::ff': 'M-4'}}
+    - FAIL class-header-changed.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {}, 'defs': ['skills/analog-gmid-design/assets/b.py::C.m']}
+    - FAIL class-header-changed.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL class-header-changed.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL class-field-changed.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {}, 'defs': ['skills/analog-gmid-design/assets/b.py::C.m']}
+    - FAIL class-field-changed.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL class-field-changed.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL cache-split.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {}, 'defs': []}
+    - FAIL cache-split.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL cache-split.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL dest-conditional-redef.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}, 'defs': ['skills/analog-gmid-design/assets/b.py::f', 'skills/analog-gmid-design/assets/b.py::f']}
+    - FAIL dest-conditional-redef.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}}
+    - FAIL dest-conditional-redef.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}}
+    - FAIL dest-lambda-rebind.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}, 'defs': ['skills/analog-gmid-design/assets/b.py::f']}
+    - FAIL dest-lambda-rebind.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}}
+    - FAIL dest-lambda-rebind.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}}
+    - FAIL augassign-rebind.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}, 'defs': ['skills/analog-gmid-design/assets/b.py::f']}
+    - FAIL augassign-rebind.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}}
+    - FAIL augassign-rebind.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}}
+    - FAIL except-as-rebind.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}, 'defs': ['skills/analog-gmid-design/assets/b.py::f']}
+    - FAIL except-as-rebind.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}}
+    - FAIL except-as-rebind.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::f': 'M-0h'}}
+    - FAIL property-getter-changed.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {}, 'defs': ['skills/analog-gmid-design/assets/b.py::P.x', 'skills/analog-gmid-design/assets/b.py::P.x']}
+    - FAIL property-getter-changed.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL property-getter-changed.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {}}
+    - FAIL star-shadow.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::helper': 'M-0h', 'skills/analog-gmid-design/assets/b.py::g': 'M-0h'}, 'defs': ['skills/analog-gmid-design/assets/b.py::g', 'skills/analog-gmid-design/assets/b.py::helper']}
+    - FAIL star-shadow.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::helper': 'M-0h', 'skills/analog-gmid-design/assets/b.py::g': 'M-0h'}}
+    - FAIL star-shadow.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::helper': 'M-0h', 'skills/analog-gmid-design/assets/b.py::g': 'M-0h'}}
+    - FAIL global-reader.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::g': 'M-4'}, 'defs': ['skills/analog-gmid-design/assets/b.py::g']}
+    - FAIL global-reader.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::g': 'M-4'}}
+    - FAIL global-reader.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::g': 'M-4'}}
+    - FAIL ext-dir-change.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::g': 'M-4'}, 'defs': ['workspaces/run_harness.py::g']}
+    - FAIL ext-dir-change.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::g': 'M-4'}}
+    - FAIL ext-dir-change.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'workspaces/run_harness.py::g': 'M-4'}}
+    - FAIL future-dropped.V3: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::Rec': 'M-4'}, 'defs': []}
+    - FAIL future-dropped.V6: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::Rec': 'M-4'}}
+    - FAIL future-dropped.V7: 관찰 None != 기대 {'moved': [], 'move_rejected': {'skills/analog-gmid-design/assets/b.py::Rec': 'M-4'}}
+
+케이스: {"FAIL": 1}
+단계: {"FAIL": 87}
+exit 1 log C:/g143/b/tools/gates/redteam/logs/20261001-215401-direct.jsonl

@@ -1,0 +1,22 @@
+# R4 비채널 전류 / 채널 전류 (엔진 평가 점 바이어스, 단일 소자 sky130 tt 27.0 C, 모델 sha 일치 True)
+표본: C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\evidence\2026-10-31\o200_q5\q5_engine_rows.jsonl 의 current > 0 소자점 2413개, 회로 ['common_gate_amplifier', 'folded_cascode', 'nmcnr_amplifier', 'pushpull_follower_buffer', 'two_stage_ota', 'two_stage_ota_sf']
+판 A = oracle options {"gmin": "1e-15", "reltol": "1e-4", "abstol": "1e-14", "vntol": "1e-7", "itl1": "500", "itl2": "500"} / 판 B = 같은 options + gmin=1e-18
+
+## A_oracle_opts (rc 0)
+회로 | 점 수 | 최소 채널 전류 A(기준폭 5 um) | 비 중앙 | 비 최대 (소자, kind, L um, VGS, VDS, VSB) | 비>1e-3 점 | 비>1e-2 점 | 비>1 점
+common_gate_amplifier | 123 | 7.243e-10 | 3.340e-06 | 1.003e-05 (M1, nmos, 0.155, 0.271, 1.099, 0.000) | 0 | 0 | 0
+folded_cascode | 819 | 4.531e-10 | 2.252e-06 | 2.328e-05 (M1, nmos, 0.158, 0.500, 1.268, 0.342) | 0 | 0 | 0
+nmcnr_amplifier | 570 | 1.643e-09 | 3.806e-07 | 7.597e-04 (M301, nmos, 0.157, 0.537, 1.686, 0.000) | 0 | 0 | 0
+pushpull_follower_buffer | 228 | 5.068e-14 | 4.586e-06 | 5.809e-02 (M2, pmos, 0.155, 0.036, 0.661, 1.139) | 21 | 15 | 0
+two_stage_ota | 322 | 5.269e-09 | 2.158e-07 | 3.499e-05 (M7, nmos, 0.15, 0.352, 1.350, 0.000) | 0 | 0 | 0
+two_stage_ota_sf | 351 | 1.547e-07 | 4.678e-07 | 7.066e-04 (M8, nmos, 0.154, 0.561, 1.686, 0.114) | 0 | 0 | 0
+
+## B_gmin1e-18 (rc 0)
+회로 | 점 수 | 최소 채널 전류 A(기준폭 5 um) | 비 중앙 | 비 최대 (소자, kind, L um, VGS, VDS, VSB) | 비>1e-3 점 | 비>1e-2 점 | 비>1 점
+common_gate_amplifier | 123 | 7.243e-10 | 2.523e-06 | 1.003e-05 (M1, nmos, 0.155, 0.271, 1.099, 0.000) | 0 | 0 | 0
+folded_cascode | 819 | 4.531e-10 | 1.851e-06 | 2.328e-05 (M1, nmos, 0.158, 0.500, 1.268, 0.342) | 0 | 0 | 0
+nmcnr_amplifier | 570 | 1.643e-09 | 3.567e-07 | 7.597e-04 (M301, nmos, 0.157, 0.537, 1.686, 0.000) | 0 | 0 | 0
+pushpull_follower_buffer | 228 | 5.068e-14 | 3.780e-06 | 2.260e-02 (M2, pmos, 0.155, 0.036, 0.661, 1.139) | 21 | 2 | 0
+two_stage_ota | 322 | 5.269e-09 | 2.158e-07 | 3.499e-05 (M7, nmos, 0.15, 0.352, 1.350, 0.000) | 0 | 0 | 0
+two_stage_ota_sf | 351 | 1.547e-07 | 4.678e-07 | 7.066e-04 (M8, nmos, 0.154, 0.561, 1.686, 0.114) | 0 | 0 | 0
+

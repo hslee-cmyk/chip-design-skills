@@ -1,0 +1,516 @@
+{
+ "jobs": 97,
+ "by_tool": 22,
+ "by_replica": 75,
+ "overlap": 3,
+ "overlap_agree": true,
+ "survived": [
+  "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[8]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:const+:args.defaults[0].elts[0]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:const-:args.defaults[0].elts[0]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:const+:args.defaults[0].elts[1]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:const-:args.defaults[0].elts[1]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:const+:args.defaults[2]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:const-:args.defaults[2]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[0]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[0].body[0]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[2].body[0].body[1]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[2]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[18]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[1].body[0]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:const+:body[9].body[4].body[2].test.values[1].left.elts[0].args[0]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[4].body[2].test.values[1].left.elts[0].args[0]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[4].body[2].test.values[1].left.elts[1].args[0]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[7].value.slice",
+  "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[15].body[0].value.test.values[1].ops[0]",
+  "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[18].body[0]"
+ ],
+ "missing": [],
+ "merged": [
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[1]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[2]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[3]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[4]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[5]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[8]",
+   "result": "survived",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[11]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[12]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:args.defaults[0].elts[0]",
+   "result": "survived",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:args.defaults[0].elts[0]",
+   "result": "survived",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:args.defaults[0].elts[1]",
+   "result": "survived",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:args.defaults[0].elts[1]",
+   "result": "survived",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:args.defaults[1]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:args.defaults[1]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:args.defaults[2]",
+   "result": "survived",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:args.defaults[2]",
+   "result": "survived",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[0]",
+   "result": "survived",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[1]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[2]",
+   "result": "killed",
+   "by": "tool"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[0].body[0]",
+   "result": "survived",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[6].body[0].body[0].test.ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[2].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[2].body[0].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[6].body[0].body[2].body[0].body[1]",
+   "result": "survived",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[6].body[0].body[2].body[0].test.values[1].ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[7].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[7].body[1]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[7].body[2]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[7].body[3]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[1]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[2]",
+   "result": "survived",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[3]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[5]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[6]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[7]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[8]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[9]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[10]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[11]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[12]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[13]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[14]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[16]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[17]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[18]",
+   "result": "survived",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[1].body[0]",
+   "result": "survived",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[1].body[1]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4].body[1]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4].body[2]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4].body[0].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[4].body[0].test.values[1].ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[4].body[2].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[4].body[2].test.values[1].ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:body[9].body[4].body[2].test.values[1].left.elts[0].args[0]",
+   "result": "survived",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[4].body[2].test.values[1].left.elts[0].args[0]",
+   "result": "survived",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:body[9].body[4].body[2].test.values[1].left.elts[1].args[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[4].body[2].test.values[1].left.elts[1].args[0]",
+   "result": "survived",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:body[9].body[4].body[2].body[0].value.args[0].elts[0].args[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[4].body[2].body[0].value.args[0].elts[0].args[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:body[9].body[4].body[2].body[0].value.args[0].elts[1].args[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[4].body[2].body[0].value.args[0].elts[1].args[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[5].value.generators[0].ifs[0].ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[6].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[6].body[1]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[6].body[2]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const+:body[9].body[7].value.slice",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:const-:body[9].body[7].value.slice",
+   "result": "survived",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[9].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[9].body[1]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[9].test.values[0].ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[9].test.values[1].ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[11].value.test.ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:arith:body[9].body[11].value.body.args[0].args[0].args[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[12].value.generators[1].ifs[0].ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[1]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[2]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[3]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[15].body[0].value.test.values[0].ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[15].body[0].value.test.values[1].ops[0]",
+   "result": "survived",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[15].body[0].value.orelse.test.ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[1].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[1].body[1]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[15].body[1].body[2]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[15].body[1].test.values[0].ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[16].value.generators[0].ifs[0].ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[17].body[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:cmp_flip:body[9].body[17].body[0].value.elt.test.ops[0]",
+   "result": "killed",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[9].body[18].body[0]",
+   "result": "survived",
+   "by": "replica"
+  },
+  {
+   "id": "sizing_recipe:run_matching_safety_with_finger_growth:early_return:body[1]",
+   "result": "killed",
+   "by": "replica"
+  }
+ ]
+}

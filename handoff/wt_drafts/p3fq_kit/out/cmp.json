@@ -1,0 +1,172 @@
+{
+ "hash": {
+  "verdict": "FAIL",
+  "counts": {
+   "upward": 0,
+   "cycles": 0,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 79,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "upward": [],
+  "cycles": [],
+  "n_assigned": 403,
+  "per_mod": {
+   "audit_current_forced.py": 2,
+   "circuit_metrics.py": 21,
+   "circuit_state_graph.py": 82,
+   "gmid_lut.py": 8,
+   "gmid_sizing_engine.py": 102,
+   "instance_report_builder.py": 17,
+   "sizing_layout_convergence.py": 32,
+   "stick_diagram.py": 110,
+   "theta_search.py": 11,
+   "topology_authoring.py": 18
+  },
+  "mod1_units": [
+   "sizing_recipe.py::<stmt:73c6d0638d0d>",
+   "sizing_recipe.py::GmIdLUT",
+   "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "sizing_recipe.py::_invq_newton",
+   "sizing_recipe.py::_multilinear_interp",
+   "sizing_recipe.py::_multilinear_interp_point_multi",
+   "sizing_recipe.py::build_toy_lut",
+   "sizing_recipe.py::lut_conditions_from_npz"
+  ]
+ },
+ "names": {
+  "verdict": "FAIL",
+  "counts": {
+   "upward": 1,
+   "cycles": 1,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 79,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "upward": [
+   "sizing_recipe.py::SemiEmpiricalGmIdLUT -> sizing_recipe.py::_QUERY_CACHE_MAX"
+  ],
+  "cycles": [
+   [
+    "gmid_lut.py",
+    "gmid_sizing_engine.py"
+   ]
+  ],
+  "n_assigned": 403,
+  "per_mod": {
+   "audit_current_forced.py": 2,
+   "circuit_metrics.py": 21,
+   "circuit_state_graph.py": 82,
+   "gmid_lut.py": 7,
+   "gmid_sizing_engine.py": 105,
+   "instance_report_builder.py": 16,
+   "sizing_layout_convergence.py": 30,
+   "stick_diagram.py": 111,
+   "theta_search.py": 11,
+   "topology_authoring.py": 18
+  },
+  "mod1_units": [
+   "sizing_recipe.py::GmIdLUT",
+   "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "sizing_recipe.py::_invq_newton",
+   "sizing_recipe.py::_multilinear_interp",
+   "sizing_recipe.py::_multilinear_interp_point_multi",
+   "sizing_recipe.py::build_toy_lut",
+   "sizing_recipe.py::lut_conditions_from_npz"
+  ]
+ },
+ "qtok": {
+  "verdict": "FAIL",
+  "counts": {
+   "upward": 0,
+   "cycles": 0,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 80,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "upward": [],
+  "cycles": [],
+  "n_assigned": 403,
+  "per_mod": {
+   "audit_current_forced.py": 2,
+   "circuit_metrics.py": 21,
+   "circuit_state_graph.py": 82,
+   "gmid_lut.py": 8,
+   "gmid_sizing_engine.py": 104,
+   "instance_report_builder.py": 16,
+   "sizing_layout_convergence.py": 30,
+   "stick_diagram.py": 111,
+   "theta_search.py": 11,
+   "topology_authoring.py": 18
+  },
+  "mod1_units": [
+   "sizing_recipe.py::GmIdLUT",
+   "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "sizing_recipe.py::_QUERY_CACHE_MAX",
+   "sizing_recipe.py::_invq_newton",
+   "sizing_recipe.py::_multilinear_interp",
+   "sizing_recipe.py::_multilinear_interp_point_multi",
+   "sizing_recipe.py::build_toy_lut",
+   "sizing_recipe.py::lut_conditions_from_npz"
+  ],
+  "diff_vs_names": [
+   "sizing_recipe.py::_QUERY_CACHE_MAX: gmid_sizing_engine.py -> gmid_lut.py"
+  ]
+ },
+ "regfix": {
+  "verdict": "FAIL",
+  "counts": {
+   "upward": 0,
+   "cycles": 0,
+   "unassigned": 0,
+   "conflicts": 0,
+   "reg_mismatch": 80,
+   "import_time_high": 0,
+   "import_conflicts": 0
+  },
+  "upward": [],
+  "cycles": [],
+  "n_assigned": 403,
+  "per_mod": {
+   "audit_current_forced.py": 2,
+   "circuit_metrics.py": 21,
+   "circuit_state_graph.py": 82,
+   "gmid_lut.py": 8,
+   "gmid_sizing_engine.py": 104,
+   "instance_report_builder.py": 16,
+   "sizing_layout_convergence.py": 30,
+   "stick_diagram.py": 111,
+   "theta_search.py": 11,
+   "topology_authoring.py": 18
+  },
+  "mod1_units": [
+   "sizing_recipe.py::GmIdLUT",
+   "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+   "sizing_recipe.py::_QUERY_CACHE_MAX",
+   "sizing_recipe.py::_invq_newton",
+   "sizing_recipe.py::_multilinear_interp",
+   "sizing_recipe.py::_multilinear_interp_point_multi",
+   "sizing_recipe.py::build_toy_lut",
+   "sizing_recipe.py::lut_conditions_from_npz"
+  ],
+  "diff_vs_names": [
+   "sizing_recipe.py::_QUERY_CACHE_MAX: gmid_sizing_engine.py -> gmid_lut.py"
+  ]
+ },
+ "hash_vs_names_nonstmt_diff": [],
+ "hash_only_keys": 39,
+ "names_only_keys": 39,
+ "per_mod_delta_hash_to_names": {
+  "gmid_lut.py": -1,
+  "gmid_sizing_engine.py": 3,
+  "instance_report_builder.py": -1,
+  "sizing_layout_convergence.py": -2,
+  "stick_diagram.py": 1
+ }
+}

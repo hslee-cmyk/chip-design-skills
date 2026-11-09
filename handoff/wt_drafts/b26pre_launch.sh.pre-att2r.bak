@@ -1,0 +1,403 @@
+#!/usr/bin/env bash
+# b26pre card 20260930-b26-pre-test-strengthen **2차 시도** 착수 0단계(오케스트레이터) -- 1차 시도(V4 FAIL) 정리 뒤, backfill 결함 card 앞.
+# 근거: spec card(draft_b26pre.spec.md) '결정 필요 항목' 끝 '착수 조건' 1~5, '작성 전 실측' 0(measured rev)·'2차 시도 개정' 문단, b34_launch.sh 구조,
+#   design 05 §12 '재시도'(정리 형태로 worktree·브랜치를 지우고 같은 id로 1부터, spec card 개정의 gate push는 정리 뒤).
+# 구조는 b34_launch.sh를 따른다(단계별 함수, 옵션은 단계 이름 앞, measured rev 단일 출처, 게이트 캐시 절대 경로, push는 하지 않음).
+# 어느 확인이든 실패하면 그 자리에서 멈춘다(set -Eeuo pipefail + ERR trap).
+# 1차 판(새 card 커밋 S = 6c724de)은 b26pre_launch.sh.pre-att2.bak이다(상태 파일 b26pre_launch_state.txt -- 이 판은 건드리지 않는다).
+#
+# 커밋 순서(push 한 번 -- 승인 기록은 더하지 않는다):
+#   S2  spec card 개정(초안 = 1차 card + 2차 개정) + interface card 재생성(게이트 캐시 interface_card.py, 절대 경로)  -> push (단독)
+#       interface card는 재생성 결과가 1차 커밋과 바이트 같을 것으로 기대한다(모래상자 C:/g344 실측 -- 개정이 엔진 심볼 토큰을 바꾸지 않음).
+#       다르면 멈춘다(어느 토큰이 바뀌었는지 보고 IFC_SHA_EXP를 다시 정한다 -- 조용히 넘어가지 않는다).
+# test-only card라 문서 패치·승인 기록 커밋이 없다.
+#
+#   bash b26pre_launch.sh conds       # 착수 조건 1~5를 spec card 본문의 명령 그대로 gate master에서 실행 + approval 줄 확인(읽기 전용, fetch도 안 함)
+#                                     #   exit 0 = 전부 충족, 3 = 미충족 있음(표), 1 = 조건 추출 실패·명령 0개 조건·규약 불일치(표를 믿지 않는다)
+#   bash b26pre_launch.sh local       # pre -> card -> final  (로컬 커밋 S2, push 안 함 -- 끝에 push 명령 출력)
+#   bash b26pre_launch.sh after-push  # push 뒤: gate master = S2, 게이트 캐시 새 판 + test worktree 명령 출력
+#   bash b26pre_launch.sh <단계>      # pre | card | final 하나만(중단 뒤 이어 하기 -- 각 단계가 앞 단계 결과를 확인)
+#
+# 사전 시험 옵션(반드시 단계 이름 앞에): --repo <복제본> --state <상태 파일> --wt <worktree 부모>
+#   --repo를 주면 --state·--wt 필수(m2: 모래상자 실행이 실제 wt 경로로 worktree 명령을 찍지 않게). 실제 저장소 판별은 launch_common.sh lc_repo_guard.
+set -Eeuo pipefail
+shopt -s inherit_errexit
+trap 'echo "[중단] ${BASH_SOURCE[0]}:${LINENO}: ${BASH_COMMAND}" >&2' ERR
+. "$(dirname -- "${BASH_SOURCE[0]}")/launch_common.sh"
+
+# MSYS2 자식 bash는 HOME·APPDATA를 잃는다(post_p10b_runbook.sh와 같은 실측). TEMP·TMP는 lc_tmp_setup(상태 파일 옆)
+export HOME=/c/Users/HSLEE
+export APPDATA='C:\Users\HSLEE\AppData\Roaming' LOCALAPPDATA='C:\Users\HSLEE\AppData\Local' USERPROFILE='C:\Users\HSLEE'
+export PYTHONDONTWRITEBYTECODE=1 PYTHONIOENCODING=utf-8
+
+R_REAL=$LC_R_REAL
+R=$R_REAL
+W_REAL=$LC_W_REAL
+W=$W_REAL
+DR=$W_REAL/_drafts
+STATE_REAL=$DR/b26pre_launch2_state.txt   # 2차 시도 전용(1차 상태 파일 b26pre_launch_state.txt는 기록으로 남긴다)
+STATE=$STATE_REAL
+while [ $# -gt 1 ]; do
+  case "$1" in
+    --repo) R=$2; shift 2 ;;
+    --state) STATE=$2; shift 2 ;;
+    --wt) W=$2; shift 2 ;;
+    *) break ;;
+  esac
+done
+# 단계 이름 뒤에 옵션을 붙이면 조용히 무시돼 실제 저장소에서 돈다(review_post_p10b_runbook B1과 같은 가드) -- 남은 인자는 단계 이름 하나뿐
+[ $# -eq 1 ] || { echo "[중단] 사용법: $0 [--repo R --state S --wt W] <단계>  (옵션은 단계 이름 앞에만)" >&2; exit 2; }
+case "$1" in --*) echo "[중단] 단계 이름 자리에 옵션: $1 (옵션 값이 빠졌거나 순서가 틀렸다)" >&2; exit 2 ;; esac
+lc_repo_guard "$R" "$R_REAL"
+if [ "$LC_REAL" = 0 ]; then
+  lc_need_sandbox --state "$STATE" "$STATE_REAL"; lc_need_sandbox --wt "$W" "$W_REAL"
+else
+  lc_need_real --state "$STATE" "$STATE_REAL"; lc_need_real --wt "$W" "$W_REAL"
+  STATE=$STATE_REAL; W=$W_REAL
+fi
+lc_tmp_setup "$STATE"
+echo "== 대상 저장소 R=$R  상태 파일 $STATE  worktree 부모 $W"
+
+PY=/c/Python314/python.exe
+ID=20260930-b26-pre-test-strengthen
+B34ID=20260930-b34-grammar-explicit
+DRAFT_SPEC=$DR/draft_b26pre.spec.md
+PLAN=docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+F_SPEC=docs/02-design/specs/$ID.spec.md
+F_IFC=docs/02-design/specs/$ID.interface.md
+A=skills/analog-gmid-design/assets
+SD=$A/stick_diagram.py
+SR=$A/sizing_recipe.py
+NEWT=$A/tests/contracts/test_b26pre_existing_paths.py
+COAUTH="Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
+# card 머리 approval 줄(정본 = 초안 머리 블록 -- pre에서 parse_spec_card 결과와 대조)
+APPR_IDS="20261001-b26-phase3-cards"
+NSEC=11
+# 착수 조건 번호별 card 명령 수(card 본문에서 뽑는 cat-file·D2 명령)
+COND_COUNTS="1 1 1 1 1"
+# 1차 card 커밋 S1(gate에 있음 -- 2차 개정의 출발점). 제목·blob sha256은 1차 판 그대로(실측: 6c724de 트리)
+S1=6c724debd884dd1d31034f5279ae450f35e67fc4
+SUBJ_S="docs: b26pre spec card $ID(B26-1 E6·E7 경로·차동 후보 trace 루프의 기존 동작 고정 test -- 주표 20 중 18 죽임, 엔진 불변, test-only, phase 3, 승인 20261001-b26-phase3-cards) + interface card"
+S1_SPEC_SHA=2a65782450aa5c828d362b25b2fbff2a502ee9760281728a10b459bc0f9ba69f
+IFC_SHA_EXP=54552e822baccbab66465f95e7c76b6eb2ebdbe9b7e9cb5239be87d19ed8b969   # 1차 interface card = 2차 재생성 기대값(C:/g344 실측)
+# 2차 개정 초안 sha256(이 값과 다르면 멈춘다 -- 초안을 다시 고쳤으면 여기를 같은 커밋 계획에서 갱신)
+SPEC2_SHA=c7616fd834fa967946d53afa1b9a7e9a0046d22274e117bd2a0d86f0a195ee7e
+# 1차 시도 역할 커밋(T1). 2차 base에 들어 있으면 안 된다(1차는 병합·push되지 않았다)
+T1_COMMIT=d2b2ed71ce506b010e5d87c03add007069a5a322
+# 계약 1 (d) 리터럴 측정 판 -- 이 판 뒤 엔진(SR·SD)이 바뀌었으면 리터럴을 다시 잰다(card '2차 시도 개정' 문단)
+LIT_REV=6c724debd884dd1d31034f5279ae450f35e67fc4
+SUBJ_S2="docs: b26pre spec card 개정(2차 시도) $ID -- 1차 V4 FAIL 대응: 계약 1(d) 리터럴 기대값(사용자 결정 (가) 2026-10-06), 계약 2·5 중복 단언 제거, 계약 3·10·8 판정 문장은 test 본문, interface card 재생성(변화 없음)"
+# interface card 기존 함수(모듈.이름) -- 사전 시험(모래상자 C:/g170, gate master dd60db6 + 모의 선행)에서 게이트 캐시 interface_card.py로 뽑은 19개
+IFC_FUNCS="sizing_recipe.GmIdLUT.gm_gds_ratio sizing_recipe.SemiEmpiricalGmIdLUT.gm_gds_ratio sizing_recipe.apply_and_revalidate_pair_adjustment sizing_recipe.optimize_full_circuit_budget sizing_recipe.resolve_stack_layout sizing_recipe.run_matching_safety_with_finger_growth sizing_recipe.size_transistor stick_diagram.build_stick_diagram stick_diagram.common_centroid_layout stick_diagram.derive_horizontal_stack_groups stick_diagram.find_differential_pair_candidates stick_diagram.find_min_crossover_layout_with_branch_composite stick_diagram.find_structural_symmetry_candidates stick_diagram.load_topology stick_diagram.propose_device_roles_gap_fill stick_diagram.propose_vertical_stack_id_gap_fill stick_diagram.refine_differential_and_mirror_relations stick_diagram.repair_matching_safety stick_diagram.run_full_circuit_audit_from_topology"
+
+CONDS_F=$STATE.conds
+say() { printf '%s\n' "== $*"; }
+g() { git -C "$R" "$@"; }
+st_set() { touch "$STATE"; grep -v "^$1=" "$STATE" > "$STATE.tmp" || true; printf '%s=%s\n' "$1" "$2" >> "$STATE.tmp"; mv "$STATE.tmp" "$STATE"; }
+st_get() { local v; v=$(grep "^$1=" "$STATE" | tail -1 | cut -d= -f2-); test -n "$v"; printf '%s' "$v"; }
+# 게이트 코드 캐시 = <git-common-dir>/gmid-gate-cache/<gate master 전체 sha>(hook과 같은 ensure_cache)
+cache_dir() {
+  local c
+  c=$("$PY" -B -c "import sys;sys.path.insert(0,sys.argv[1]);import role_paths as rp;print(rp.ensure_cache(rp.load_env(sys.argv[2])))" "$R/tools/gates" "$R")
+  test "$(basename "$c")" = "$(g rev-parse gate/master)"
+  test -f "$c/interface_card.py"
+  printf '%s' "$c"
+}
+plan_hash() { "$PY" -B "$1/merge_gate.py" plan-tables-hash "$R/$PLAN"; }
+staged_is() { test "$(g diff --cached --name-only | sort | tr '\n' ' ')" = "$(printf '%s\n' "$@" | sort | tr '\n' ' ')"; }
+head_subj_is() { test "$(g log -1 --format=%s)" = "$1"; }
+trailer_is() {   # <커밋> <키> <값|-(없음)>
+  local v; v=$(g log -1 --format="%(trailers:key=$2,valueonly)" "$1" | tr -d '\r' | grep -v '^$' || true)
+  if [ "$3" = - ]; then test -z "$v"; else test "$v" = "$3"; fi
+}
+# _approved_ids(<rev>) -- 캐시 판 reachability(읽기 전용)
+approved_ids() { "$PY" -B -c "
+import sys;sys.path.insert(0,sys.argv[1]);import reachability as r
+print('\n'.join(sorted(r._approved_ids(sys.argv[2],sys.argv[3]))))" "$1" "$R" "$2"; }
+
+# measured rev 단일 출처 = spec card 초안 '작성 전 실측'의 '**measured at `<rev>`**'(마지막 출현 -- launch_common m8, 8개 스크립트 같은 규약).
+meas_rev() {
+  local s; s=$(lc_meas_short "$R" "$DRAFT_SPEC" '\*\*measured at `[0-9a-f]\{7,40\}`\*\*')
+  test -n "$s"
+  g rev-parse --verify "$s^{commit}"
+}
+# card 머리 블록의 approval 줄(순서 그대로) -- APPR_IDS와 같아야 한다
+draft_approvals() {
+  "$PY" -B -c "
+import sys
+t=open(sys.argv[1],encoding='utf-8').read().replace('\r\n','\n')
+assert t.startswith('---\n'); h=t.split('\n---\n',1)[0]
+print(' '.join(l.split(':',1)[1].strip() for l in h.split('\n') if l.startswith('approval:')))" "$DRAFT_SPEC"
+}
+# card approval 줄의 기록이 전부 <H>에 있고 머리 id가 파일 이름과 같다(parse-approval, 게이트 캐시 판). <H> <캐시>
+approvals_at() {
+  local H=$1 C=$2 a t; t=$(mktemp -d)                              # parse-approval은 파일 이름 <id>.md만 받는다
+  for a in $APPR_IDS; do
+    g cat-file -e "$H:.ai/approvals/$a.md" || { rm -rf "$t"; echo "[중단] approval 줄의 기록 $a가 gate ${H:0:7}에 없다" >&2; return 1; }
+    g show "$H:.ai/approvals/$a.md" > "$t/$a.md"
+    "$PY" -B "$C/merge_gate.py" parse-approval "$t/$a.md" | "$PY" -B -c "import json,sys;r=json.load(sys.stdin);assert r['id']==sys.argv[1],r['id']" "$a" \
+      || { rm -rf "$t"; echo "[중단] approval 줄의 기록 $a parse-approval 실패" >&2; return 1; }
+  done
+  rm -rf "$t"
+  echo "   approval 줄 기록 $(echo $APPR_IDS | wc -w | tr -d ' ')건 gate ${H:0:7}에 있음(parse-approval id 일치): $APPR_IDS"
+}
+
+# spec card '착수 조건' 1~5의 명령을 card 본문에서 그대로 뽑아(번호 -> 명령) 파일로 -- card 문구가 곧 실행 대상.
+# 조건 문장 안의 명령은 `git -C "$R" cat-file -e …`와 `D2=…`(Phase 2 DoD 판정 줄)뿐이다. 번호별 명령 수는 COND_COUNTS와 같아야 한다.
+# 실패는 명시적 return 1(stage_conds의 `conds_check || rc=$?` 문맥에서는 set -e가 함수 안 전체에서 꺼진다 -- review S2)
+extract_conds() {
+  "$PY" -B - "$DRAFT_SPEC" "$COND_COUNTS" > "$CONDS_F" <<'EOF' || { echo "[중단] 착수 조건 추출 실패(card '착수 조건' 블록 형식 -- 표를 만들지 않는다)" >&2; return 1; }
+import re, sys
+t = open(sys.argv[1], encoding="utf-8").read().replace("\r\n", "\n")
+want = [int(x) for x in sys.argv[2].split()]
+blk = t.split("\n* **착수 조건**", 1)[1].split("\n* **", 1)[0]
+items, cur = {}, None
+for line in blk.split("\n"):
+    m = re.match(r"^  (\d+)\. ", line)
+    if m:
+        cur = int(m.group(1)); items[cur] = ""
+    if cur is not None:
+        items[cur] += line + "\n"
+assert sorted(items) == list(range(1, len(want) + 1)), sorted(items)
+for n in sorted(items):
+    cmds = [c for c in re.findall(r"`([^`]+)`", items[n]) if c.startswith(('git -C "$R" cat-file -e ', "D2="))]
+    assert len(cmds) == want[n - 1], (n, cmds)
+    for c in cmds:
+        assert "\t" not in c and "\n" not in c
+        print("%d\t%s" % (n, c))
+EOF
+  local s=0 x; for x in $COND_COUNTS; do s=$((s + x)); done
+  test "$(wc -l < "$CONDS_F" | tr -d ' ')" = "$s" || { echo "[중단] 착수 조건 추출 줄 수가 $s가 아니다" >&2; return 1; }
+}
+# 조건 n의 card 명령 exit 코드(R·H를 넘겨 bash로 실행, stderr 버림). 명령이 둘 이상이면 처음으로 0이 아닌 값(전부 0이어야 충족).
+# 명령 0개면 E(실패 -- 거짓 0 방지). 0이어도 가리키는 선행 판정 기록이 병합 기준(lc_pred_ok)에 맞지 않으면 P(단일 기준, m6)
+cond_rc() {
+  local cmd rc=0 r k=0 id
+  while IFS= read -r cmd; do
+    k=$((k+1)); r=0; R="$R" H="$2" bash -c "$cmd" > /dev/null 2>&1 || r=$?
+    if [ "$r" = 0 ]; then for id in $(lc_pred_ids_of "$cmd"); do lc_pred_ok "$R" "$2" "$id" || r=P; done; fi
+    if [ "$rc" = 0 ] && [ "$r" != 0 ]; then rc=$r; fi
+  done < <(grep "^$1	" "$CONDS_F" | cut -f2- || true)
+  [ "$k" -gt 0 ] || rc=E
+  printf '%s' "$rc"
+}
+# Phase 2 DoD 결과 파일 규약 전체(card 명령은 줄 수·PASS만 본다): '## 판정' 줄 다음 첫 비지 않은 줄이 그 판정 줄이어야 한다 -- 0/1
+dod_strict_rc() {
+  local f=docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/phase2-dod.md
+  g cat-file -e "$1:$f" 2>/dev/null || { printf 1; return 0; }
+  g show "$1:$f" | "$PY" -B -c "
+import sys
+L=sys.stdin.buffer.read().decode('utf-8').replace('\r\n','\n').split('\n')
+v=[i for i,l in enumerate(L) if l in ('판정: PASS','판정: FAIL')]
+h=[i for i,l in enumerate(L) if l=='## 판정']
+ok=len(v)==1 and len(h)==1 and L[v[0]]=='판정: PASS' and all(not x.strip() for x in L[h[0]+1:v[0]]) and v[0]>h[0]
+print(0 if ok else 1)"
+}
+DOD_N=3   # 이 card의 Phase 2 DoD 조건 번호
+# 조건 1~5 표 출력 + 요구 집합 검사. <H> <요구 번호들> -- 요구 번호 중 하나라도 0이 아니면 실패
+conds_check() {
+  local H=$1; shift
+  extract_conds || return 1
+  local n rc s out=""
+  for n in 1 2 3 4 5; do rc=$(cond_rc "$n" "$H") || return 1; out="$out $n:$rc"; eval "RC$n=$rc"; done
+  s=$(dod_strict_rc "$H") || return 1
+  echo "   착수 조건(card 명령, gate master ${H:0:7}) exit:$out   조건 $DOD_N 결과 파일 규약 전체(Python)=$s"
+  case "$out " in *:E\ *) echo "[중단] 명령 0개인 착수 조건이 있다(E) -- card 형식이 깨졌다, 표를 믿지 않는다" >&2; return 1 ;; esac
+  [ "$s" = "$(eval echo \$RC$DOD_N)" ] || { echo "[중단] 조건 $DOD_N: card 명령과 결과 파일 규약 전체($s)가 다르다 -- 판정 줄 위치를 확인" >&2; return 1; }
+  for n in "$@"; do eval "test \"\$RC$n\" = 0" || { echo "[중단] 착수 조건 $n 미충족(exit $(eval echo \$RC$n))" >&2; return 1; }; done
+}
+# measured rev 이후 card 인용 대상 확인: SR·SD를 바꾼 커밋이 전부 B34(Change-Id B34)다(B34가 바로 앞 card -- card '작성 전 실측' 0.
+# 실제 B34 2eb7e55는 SD 4 def·docstring과 SR resolve_stack_layout docstring(def 해시 불변)을 고쳤다 -- 줄 이동은 card 착수 재측정 문단)
+engine_since() {
+  local M=$1 H=$2 c n=0 nr=0
+  g merge-base --is-ancestor "$M" "$H"
+  for c in $(g rev-list --full-history "$M..$H" -- "$SR"); do
+    nr=$((nr+1))
+    trailer_is "$c" Change-Id "$B34ID" \
+      || { echo "[중단] measured ${M:0:7} 뒤 B34 아닌 커밋 ${c:0:7}이 sizing_recipe.py를 바꿨다 -- card 인용 줄(9363~·11769~ 등)을 다시 재고 '작성 전 실측' 0을 고친다" >&2; return 1; }
+  done
+  for c in $(g rev-list --full-history "$M..$H" -- "$SD"); do
+    n=$((n+1))
+    trailer_is "$c" Change-Id "$B34ID" \
+      || { echo "[중단] measured ${M:0:7} 뒤 B34 아닌 커밋 ${c:0:7}이 stick_diagram.py를 바꿨다 -- 인용 줄을 다시 잰다" >&2; return 1; }
+  done
+  echo "   measured ${M:0:7} -> gate ${H:0:7}: sizing_recipe 커밋 ${nr}개·stick_diagram 커밋 ${n}개 전부 Change-Id $B34ID"
+  if g cat-file -e "$H:$NEWT" 2>/dev/null; then echo "[중단] 새 test 파일 $NEWT가 이미 있다" >&2; return 1; fi
+}
+
+# 2차 시도 전제(design 05 §12 '재시도'): 1차 역할 브랜치·worktree·디렉터리가 남지 않았고, 1차 card S1이 gate에 그대로 있고,
+# 1차 test 커밋 T1이 gate에 들어가지 않았고, 리터럴 측정 판 뒤 엔진이 그대로다. <H>
+attempt2_guard() {
+  local H=$1 r x
+  for r in test code audit; do
+    if g rev-parse -q --verify "refs/heads/role/$r/$ID" > /dev/null; then echo "[중단] 1차 역할 브랜치 role/$r/$ID가 남아 있다 -- 정리 형태(design 05 §12)로 먼저 지운다" >&2; return 1; fi
+    if [ -e "$W/$ID-$r" ]; then echo "[중단] 1차 worktree 경로 $W/$ID-$r가 남아 있다 -- git worktree remove(--force는 세 역할 경로에만)" >&2; return 1; fi
+  done
+  if g worktree list --porcelain | grep -q -- "/$ID-"; then echo "[중단] $ID worktree가 등록되어 있다(git worktree prune 확인)" >&2; return 1; fi
+  if [ -n "$(g for-each-ref "refs/remotes/gate/role/")" ]; then echo "[중단] gate에 role/ 참조가 보인다" >&2; return 1; fi
+  g merge-base --is-ancestor "$S1" "$H" || { echo "[중단] 1차 card 커밋 ${S1:0:7}이 gate ${H:0:7}의 조상이 아니다" >&2; return 1; }
+  test "$(g log -1 --format=%s "$S1")" = "$SUBJ_S" || { echo "[중단] ${S1:0:7} 제목이 1차 card 커밋 제목과 다르다" >&2; return 1; }
+  # gate의 지금 card = 1차 card 그대로(다른 개정이 먼저 들어갔으면 멈춘다)
+  x=$(g show "$H:$F_SPEC" | sha256sum | cut -d' ' -f1)
+  test "$x" = "$S1_SPEC_SHA" || { echo "[중단] gate ${H:0:7}의 $F_SPEC sha256 ${x:0:12}…이 1차 card(${S1_SPEC_SHA:0:12}…)와 다르다 -- 이미 개정됐나?" >&2; return 1; }
+  x=$(g show "$H:$F_IFC" | sha256sum | cut -d' ' -f1)
+  test "$x" = "$IFC_SHA_EXP" || { echo "[중단] gate ${H:0:7}의 $F_IFC sha256 ${x:0:12}…이 1차 interface card와 다르다" >&2; return 1; }
+  # 1차 test 커밋은 gate에 없다(병합·push 안 됨). 객체가 아직 있으면(gc 유예) 조상 여부만 본다
+  if g cat-file -e "$T1_COMMIT^{commit}" 2>/dev/null && g merge-base --is-ancestor "$T1_COMMIT" "$H"; then
+    echo "[중단] 1차 test 커밋 ${T1_COMMIT:0:7}이 gate ${H:0:7}에 들어 있다" >&2; return 1
+  fi
+  # 1차 판정 기록이 gate에 없다(V4 FAIL -- push되지 않았어야 한다)
+  if g cat-file -e "$H:.ai/verification/$ID.json" 2>/dev/null; then echo "[중단] 판정 기록 .ai/verification/$ID.json이 이미 gate에 있다" >&2; return 1; fi
+  # 계약 1 (d) 리터럴 측정 판 뒤 엔진 불변(바뀌었으면 리터럴을 다시 잰다)
+  g merge-base --is-ancestor "$LIT_REV" "$H"
+  g diff --quiet "$LIT_REV" "$H" -- "$SR" "$SD" || { echo "[중단] 리터럴 측정 판 ${LIT_REV:0:7} 뒤 sizing_recipe.py·stick_diagram.py가 바뀌었다 -- 계약 1 (d) 리터럴을 다시 잰다" >&2; return 1; }
+  # 초안 = 2차 개정 판(sha256 고정)
+  x=$(sha256sum "$DRAFT_SPEC" | cut -d' ' -f1)
+  test "$x" = "$SPEC2_SHA" || { echo "[중단] 초안 sha256 ${x:0:12}…이 SPEC2_SHA(${SPEC2_SHA:0:12}…)와 다르다" >&2; return 1; }
+  echo "   2차 시도 전제 OK: 1차 브랜치·worktree 0, gate card = 1차(S1 ${S1:0:7}), T1 미포함, 판정 기록 없음, ${LIT_REV:0:7}..${H:0:7} 엔진 diff 0, 초안 sha256 ${x:0:12}…"
+}
+
+stage_conds() {
+  say "conds: 착수 조건 1~5 + approval 줄(읽기 전용 -- fetch 안 함, 지금 로컬 gate/master 기준)"
+  local H rc=0 n un=""; H=$(g rev-parse gate/master)
+  CONDS_F=$(mktemp)                                                   # 상태 파일을 만들지 않는다(TMPDIR = 상태 파일 옆 .tmpd)
+  conds_check "$H" || rc=$?
+  rm -f "$CONDS_F"
+  if [ "$rc" = 0 ]; then
+    for n in 1 2 3 4 5; do eval "[ \"\$RC$n\" = 0 ]" || un="$un $n"; done
+    [ -z "$un" ] || { echo "   미충족:$un (exit 3)"; rc=3; }
+  fi
+  local a; for a in $APPR_IDS; do
+    if g cat-file -e "$H:.ai/approvals/$a.md" 2>/dev/null; then echo "   approval 줄 $a: gate에 있음"; else echo "   approval 줄 $a: gate에 없음"; [ "$rc" = 1 ] || rc=3; fi
+  done
+  local nt; nt=$(g show "$H:tools/gates/mutate_changed.py" | grep -c targets_by_def || true)
+  echo "   gate 판 mutate_changed.py targets_by_def = $nt  (0 = V3 범위 card 미병합 -- not_targeted는 5a602d4 주석에도 있어 표지 아님)"
+  echo "   역할 브랜치: $(g for-each-ref --format='%(refname:short)' refs/heads/role/ | tr '\n' ' ')"
+  return $rc
+}
+
+stage_pre() {
+  say "pre: 착수 전 확인(저장소 변경 없음)"
+  test -n "$(git config --get user.email)"
+  g fetch gate
+  test "$(g rev-parse --abbrev-ref HEAD)" = master
+  test "$(g rev-parse HEAD)" = "$(g rev-parse gate/master)"
+  test -z "$(g for-each-ref refs/heads/role/)"                        # 역할 브랜치가 있으면 문서 push를 EL1이 거부(design 05 §12)
+  if g worktree list --porcelain | grep -q -- "/$ID-"; then echo "$ID worktree가 이미 있다" >&2; false; fi
+  g diff --cached --quiet
+  test -z "$(g status --porcelain -- docs/02-design/specs/ .ai/approvals/)"
+  test -f "$R/$F_SPEC"; test -f "$R/$F_IFC"                          # 2차: 1차 card가 작업 트리에 있다(개정 대상)
+  test -s "$DRAFT_SPEC"
+  test "$(draft_approvals)" = "$APPR_IDS"
+  rm -f "$STATE"
+  local H; H=$(g rev-parse gate/master)
+  attempt2_guard "$H"
+  conds_check "$H" 1 2 3 4 5
+  test "$(g show "$H:tools/gates/mutate_changed.py" | grep -c targets_by_def)" -ge 1   # 범위 card 병합 = 주표 N2w 전제(조건 2)
+  local M; M=$(meas_rev)
+  engine_since "$M" "$H"
+  local C P; C=$(cache_dir); P=$(plan_hash "$C"); test ${#P} = 64
+  approvals_at "$H" "$C"
+  st_set MEAS "$M"; st_set GATE_BASE "$H"; st_set PLAN_HASH "$P"; st_set CACHE "$C"
+  approved_ids "$C" "$H" > "$STATE.ids.base"
+  say "pre OK: gate master ${H:0:7}, _approved_ids $(wc -l < "$STATE.ids.base" | tr -d ' '), plan_tables_hash ${P:0:16}…, cache $C"
+}
+
+stage_card() {
+  say "card (S2): spec card 개정 + interface card 재생성(게이트 캐시 interface_card.py, 절대 경로) -- Role: doc"
+  local H; H=$(g rev-parse gate/master)
+  test "$(g rev-parse HEAD)" = "$(st_get GATE_BASE)"
+  test "$H" = "$(st_get GATE_BASE)"                                   # gate master가 그사이 움직이지 않았다
+  g diff --cached --quiet
+  local C; C=$(cache_dir); test "$C" = "$(st_get CACHE)"
+  attempt2_guard "$H"
+  conds_check "$H" 1 2 3 4 5                                          # 착수 조건 전부 -- card 커밋 직전
+  approvals_at "$H" "$C"
+  g diff --quiet -- "$F_SPEC" "$F_IFC"                                # 작업 트리 card = HEAD(= 1차 card) 그대로
+  cp "$DRAFT_SPEC" "$R/$F_SPEC"
+  "$PY" -B -c "
+import sys, os
+sys.path.insert(0, sys.argv[1])
+import role_paths as rp, merge_gate as mg
+c = rp.parse_spec_card(open(sys.argv[2], encoding='utf-8').read(), sys.argv[3])
+exp = ('3', 'test-only', 'no', sys.argv[5].split(), [], int(sys.argv[6]))
+got = (c['phase'], c['evidence_type'], c['gate_change'], c['approval'], c['activated_ic_case'], len(c['sections']))
+assert got == exp, (got, exp)
+po = mg.read_plan_tables(sys.argv[4]).phase_order
+assert c['phase'] in po, po
+for a in c['approval']:
+    assert os.path.isfile(os.path.join(sys.argv[7], '.ai', 'approvals', a + '.md')), a
+print('   parse_spec_card OK', got)
+" "$C" "$R/$F_SPEC" "$ID" "$R/$PLAN" "$APPR_IDS" "$NSEC" "$R"
+  "$PY" -B "$C/interface_card.py" "$R/$F_SPEC" --root "$R" --out "$R/$F_IFC"
+  test -s "$R/$F_IFC"
+  # 기존 함수 행 = IFC_FUNCS(모듈.이름), 밑줄 시작 0, 신규 시그니처 0행
+  "$PY" -B -c "
+import sys
+t=open(sys.argv[1],encoding='utf-8').read().replace('\r\n','\n')
+rows=[l for l in t.split('\n') if l.startswith('| \`')]
+got=sorted(l.split('|')[1].strip().strip('\`')+'.'+l.split('|')[2].strip().strip('\`') for l in rows)
+exp=sorted(sys.argv[2].split())
+assert got==exp,('interface card 행이 다르다 -- card 백틱 토큰·엔진 def 이름 확인',sorted(set(got)^set(exp)))
+assert not [n for n in got if n.split('.')[-1].startswith('_')]
+print('   interface card 기존 함수',len(rows),'= 사전 시험 목록, 밑줄 시작 0')" "$R/$F_IFC" "$IFC_FUNCS"
+  # 재생성 결과 = 1차 interface card(바이트 같음 -- 모래상자 실측). 다르면 멈춘다(토큰 변화 원인을 보고 IFC_SHA_EXP를 다시 정한다)
+  test "$(sha256sum "$R/$F_IFC" | cut -d' ' -f1)" = "$IFC_SHA_EXP" \
+    || { echo "[중단] 재생성 interface card가 1차와 다르다 -- git -C $R diff -- $F_IFC 로 확인" >&2; false; }
+  g add -- "$F_SPEC" "$F_IFC"
+  staged_is "$F_SPEC"                                                 # interface card는 바뀌지 않아 staged에 없다
+  test "$(g rev-parse ":$F_SPEC")" = "$(g hash-object --no-filters "$DRAFT_SPEC")"   # staged card = 초안 바이트
+  g commit -q -m "$SUBJ_S2" --trailer "Role: doc" --trailer "Change-Id: $ID" --trailer "$COAUTH"
+  head_subj_is "$SUBJ_S2"
+  st_set S "$(g rev-parse HEAD)"
+  say "card OK: $(g rev-parse --short HEAD) (interface $(wc -l < "$R/$F_IFC" | tr -d ' ')줄)"
+}
+
+stage_final() {
+  say "final: push 전 종합 확인"
+  test "$(g rev-parse HEAD)" = "$(st_get S)"
+  local base C; base=$(st_get GATE_BASE); C=$(cache_dir)
+  test "$(g rev-parse gate/master)" = "$base"
+  test "$C" = "$(st_get CACHE)"
+  test "$(g rev-list --count "$base..HEAD")" = 1
+  test "$(g rev-parse HEAD^)" = "$base"
+  test "$(g log -1 --format=%s)" = "$SUBJ_S2"
+  test "$(g diff-tree --no-commit-id --name-only -r HEAD)" = "$F_SPEC"   # 2차: card 한 파일만(interface card 불변)
+  trailer_is HEAD Role doc; trailer_is HEAD Change-Id "$ID"
+  g show "HEAD:$F_SPEC" | cmp - "$DRAFT_SPEC"                          # 커밋된 card = 초안 바이트 동일
+  test "$(g show "HEAD:$F_IFC" | sha256sum | cut -d' ' -f1)" = "$IFC_SHA_EXP"
+  # decision 원소 집합 불변(이 커밋은 승인 기록을 더하지 않는다)
+  approved_ids "$C" HEAD > "$STATE.ids.head"
+  cmp "$STATE.ids.base" "$STATE.ids.head"
+  test "$(plan_hash "$C")" = "$(st_get PLAN_HASH)"
+  test -z "$(g status --porcelain -- docs/ .ai/approvals/)"
+  g log --format='%h %s' "$base..HEAD"
+  say "final OK -- 다음은 push 단독 호출(병렬·tail 금지):  $(lc_push_cmd "$R")   그 뒤 after-push"
+}
+
+stage_after_push() {
+  say "after-push: gate master = S2"
+  g fetch gate
+  test "$(g rev-parse gate/master)" = "$(st_get S)"
+  test "$(g rev-parse HEAD)" = "$(g rev-parse gate/master)"
+  local H; H=$(g rev-parse gate/master)
+  test "$(g ls-tree --name-only "$H" -- "$F_SPEC" "$F_IFC" | sort | tr '\n' ' ')" = "$(printf '%s\n' "$F_SPEC" "$F_IFC" | sort | tr '\n' ' ')"
+  g show "$H:$F_SPEC" | cmp - "$DRAFT_SPEC"                            # gate card = 2차 개정 초안
+  test "$(g show "$H:$F_IFC" | sha256sum | cut -d' ' -f1)" = "$IFC_SHA_EXP"
+  test -z "$(g for-each-ref refs/heads/role/)"                        # 2차 순서 1 전: 역할 브랜치 0
+  test -z "$(g status --porcelain -- docs/ .ai/approvals/)"
+  # 게이트 캐시는 gate master 하나만 둔다(ensure_cache 상한, WP-10) -- push 뒤 새 판으로 다시 받고 plan 표 불변 확인(역할 agent가 쓸 캐시)
+  local C; C=$(cache_dir); test "$(plan_hash "$C")" = "$(st_get PLAN_HASH)"
+  st_set CACHE "$C"
+  say "after-push OK -- 다음은 test worktree(단독 호출, design 05 §12 순서 1):  git -C $R worktree add $W/$ID-test -b role/test/$ID gate/master"
+}
+
+case "$1" in
+  conds) stage_conds ;;
+  pre) stage_pre ;;
+  card) stage_card ;;
+  final) stage_final ;;
+  local) stage_pre; stage_card; stage_final ;;
+  after-push) stage_after_push ;;
+  *) echo "사용: $0 [옵션…] conds|pre|local|card|final|after-push" >&2; exit 2 ;;
+esac

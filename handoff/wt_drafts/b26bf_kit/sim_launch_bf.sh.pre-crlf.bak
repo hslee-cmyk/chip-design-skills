@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+# backfill 결함 card `20261001-b26-backfill-interdig-final-audit` 착수 절차 모의(모래상자 전용 -- 실제 저장소·gate는 읽기만).
+#   bash sim_launch_bf.sh <원본 저장소> <gate master 전체 sha> <모래상자 디렉터리(없어야 함)> <결과 디렉터리>
+# 단계: 0 모래상자(복제본 r + bare 가짜 gate gate.git + 게이트 캐시)
+#       → D 승인 기록(decision) 커밋 → B spec card + interface card(게이트 캐시의 interface_card.py, 절대 경로) 커밋
+#       → P 파싱 확인(parse_spec_card·parse-approval·load_approvals·_approved_ids)
+#       → E EL4 receive(가짜 gate, 게이트 캐시의 merge_gate.py) exit 0 + 대조(트레일러 없는 커밋) exit 1
+# 선례: _drafts/b33_kit/sim_launch.sh(A 문서 패치·C diff 승인·G gate_change_ok는 이 card에 없다 -- gate_change: no, 승인 = decision).
+set -Eeuo pipefail
+shopt -s inherit_errexit
+trap 'echo "[sim] 실패: 줄 $LINENO: $BASH_COMMAND" | tee -a "$OUT/sim.log" >&2' ERR
+export HOME=/c/Users/HSLEE
+export APPDATA=/c/Users/HSLEE/AppData/Roaming
+export PYTHONIOENCODING=utf-8
+export MSYS_NO_PATHCONV=1
+test -n "$(git config --get user.email)"
+SRC=$1; GM=$2; S=$3; OUT=$4
+PY=C:/Python314/python.exe
+DR=C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts
+ID=20261001-b26-backfill-interdig-final-audit
+AID=20261001-b26-backfill-interdig-fix
+test ${#GM} -eq 40
+test ! -e "$S"
+mkdir -p "$S/tmp" "$S/nohooks" "$OUT"
+export TMP="$S/tmp" TEMP="$S/tmp"
+log() { echo "$*" | tee -a "$OUT/sim.log"; }
+: > "$OUT/sim.log"
+
+# ---- 0 모래상자
+git clone -q --no-hardlinks --no-local --no-checkout "$SRC" "$S/r"
+git -C "$S/r" remote remove origin
+git -C "$S/r" config core.longpaths true
+git -C "$S/r" config core.autocrlf false
+git -C "$S/r" config core.hooksPath "$S/nohooks"
+git -C "$S/r" checkout -q -B master "$GM"
+git clone -q --bare --no-hardlinks --no-local "$S/r" "$S/gate.git"
+rm -rf "$S/gate.git/hooks"; mkdir -p "$S/gate.git/hooks"     # hook 없음 -- EL4는 아래에서 merge_gate.py receive를 직접 부른다
+git -C "$S/r" remote add gate "$S/gate.git"
+git -C "$S/r" fetch -q gate
+test "$(git -C "$S/r" rev-parse gate/master)" = "$GM"
+R="$S/r"
+CD=$(git -C "$R" rev-parse --path-format=absolute --git-common-dir)
+"$PY" -B - "$R" "$GM" "$CD" <<'EOF' > "$OUT/cache.txt"
+# role_paths.ensure_cache와 같은 일(tree_blobs → extract_blobs → dir_matches)을 gate master로 -- 캐시 이름 = 전체 sha
+import os, sys
+r, gm, cd = sys.argv[1:4]
+sys.path.insert(0, os.path.join(r, "tools", "gates"))
+import role_paths as rp
+m = rp.tree_blobs(["-C", r], gm, rp.GATE_CODE_PREFIX, rp.GATE_CODE_EXCLUDE)
+dest = os.path.join(cd, "gmid-gate-cache", gm)
+os.makedirs(dest)
+rp.extract_blobs(["-C", r], m, dest)
+assert rp.dir_matches(dest, m)
+print(dest.replace("\\", "/"), len(m))
+EOF
+CACHE=$(cut -d' ' -f1 "$OUT/cache.txt")
+test "$(basename "$CACHE")" = "$GM"
+test -f "$CACHE/interface_card.py" && test -f "$CACHE/merge_gate.py" && test -f "$CACHE/role_paths.py"
+git -C "$R" show "$GM:tools/gates/interface_card.py" > "$S/tmp/ic_blob.py"
+cmp "$CACHE/interface_card.py" "$S/tmp/ic_blob.py"
+log "0 모래상자: r = gate master $GM, 캐시 $CACHE ($(cut -d' ' -f2 "$OUT/cache.txt") 파일, interface_card.py blob 대조 통과)"
+
+# ---- 착수 전 확인(실제 절차와 같은 단정)
+test "$(git -C "$R" rev-parse --abbrev-ref HEAD)" = master
+test "$(git -C "$R" rev-parse HEAD)" = "$(git -C "$R" rev-parse gate/master)"
+test -z "$(git -C "$R" branch --list 'role/*')"
+test -z "$(git -C "$R" status --porcelain -- docs/ .ai/approvals/)"
+test ! -e "$R/.ai/approvals/$AID.md"
+test ! -e "$R/docs/02-design/specs/$ID.spec.md"
+BASE=$(git -C "$R" rev-parse HEAD)
+N_APP0=$("$PY" -B -c "import sys;sys.path.insert(0,sys.argv[2]);import reachability as rch;print(len(rch._approved_ids(sys.argv[1],'HEAD')))" "$R" "$CACHE")
+
+# ---- D 승인 기록(decision) 커밋 -- 초안 그대로(LF·BOM 없음·HTML 주석 없음 확인)
+cp "$DR/approval_$AID.md" "$R/.ai/approvals/$AID.md"
+! grep -q '<!--' "$R/.ai/approvals/$AID.md"
+! grep -q $'\r' "$R/.ai/approvals/$AID.md"
+test "$(head -c3 "$R/.ai/approvals/$AID.md" | od -An -tx1 | tr -d ' ')" != "efbbbf"
+"$PY" -B "$CACHE/merge_gate.py" parse-approval "$R/.ai/approvals/$AID.md" > "$OUT/parse_approval.json"
+cat "$OUT/parse_approval.json" >> "$OUT/sim.log"
+git -C "$R" add -- ".ai/approvals/$AID.md"
+git -C "$R" commit -q --trailer "Role: doc" -m "docs: 승인 기록 $AID(U-BF 결정 -- relaxed_pairs interdig_ok를 반환 audit(euler 정리 뒤)의 3b로 채우도록 수정, target_kind decision; card $ID 착수 조건)"
+DC=$(git -C "$R" rev-parse HEAD)
+test "$(git -C "$R" show --format= --name-only HEAD)" = ".ai/approvals/$AID.md"
+log "D 승인 기록 커밋 $DC"
+
+# ---- B spec card + interface card(게이트 캐시의 interface_card.py, 모두 절대 경로)
+cp "$DR/draft_b26_backfill_audit.spec.md" "$R/docs/02-design/specs/$ID.spec.md"
+"$PY" -B "$CACHE/interface_card.py" "$R/docs/02-design/specs/$ID.spec.md" --root "$R" --out "$R/docs/02-design/specs/$ID.interface.md"
+cp "$R/docs/02-design/specs/$ID.interface.md" "$OUT/interface.md"
+git -C "$R" add -- "docs/02-design/specs/$ID.spec.md" "docs/02-design/specs/$ID.interface.md"
+git -C "$R" commit -q --trailer "Role: doc" -m "docs: spec card $ID(run_matching_safety_with_finger_growth relaxed_pairs interdig_ok = 반환 audit 3b, red-green, approval $AID) + interface card"
+SPECC=$(git -C "$R" rev-parse HEAD)
+log "B spec+interface 커밋 $SPECC"
+
+# ---- P 파싱 확인
+"$PY" -B - "$R" "$CACHE" "$ID" "$AID" "$N_APP0" <<'EOF' | tee -a "$OUT/sim.log"
+import os, sys
+r, cache, cid, aid, n0 = sys.argv[1:6]
+sys.path.insert(0, cache)
+import role_paths as rp
+import merge_gate as mg
+import reachability as rch
+card = rp.parse_spec_card(open(os.path.join(r, "docs/02-design/specs/%s.spec.md" % cid), encoding="utf-8").read(), cid)
+got = (card["phase"], card["evidence_type"], card["gate_change"], card["approval"])
+assert got == ("2", "red-green", "no", [aid]), got
+pt = mg.read_plan_tables(os.path.join(r, "docs/01-plan/features/gain-budget-gmid-sizing.plan.md"))
+assert "2" in pt.phase_order, pt.phase_order
+view = mg.TreeView(["-C", r], "HEAD")
+raw = view.read(mg.APPROVALS_DIR + aid + ".md")
+assert raw is not None
+hdr = mg.parse_approval_header(raw, mg.APPROVALS_DIR + aid + ".md")
+assert hdr["target_kind"] == "decision" and hdr["id"] == aid, hdr
+apps = mg.load_approvals(view)
+assert any(a["id"] == aid for a in apps)
+ids_prev = rch._approved_ids(r, "HEAD~2")
+ids_head = rch._approved_ids(r, "HEAD")
+added = sorted(set(ids_head) - set(ids_prev))
+assert len(ids_head) == int(n0) + 1 and added == ["U-BF-BACKFILL-INTERDIG"], (len(ids_head), n0, added)
+print("P parse_spec_card ok: phase 2 red-green gate_change no approval [%s], 절 %d개 %s" % (aid, len(card["sections"]), sorted(card["sections"])))
+print("P 승인 기록 머리 target_kind decision target %s, load_approvals에 있음; _approved_ids %s -> %d (+%s -- 변이·test id 모양이 아니라 V3·V4·V7 면제에 닿지 않음)" % (hdr["target"], n0, len(ids_head), added))
+print("P gate_change_ok(HEAD) = %s (gate_change: no라 쓰이지 않음)" % mg.gate_change_ok(view, cid))
+EOF
+
+# ---- E EL4 receive(가짜 gate, 게이트 캐시의 merge_gate.py = gate master 판)
+git -C "$S/gate.git" fetch -q "$R" "master:refs/heads/incoming"
+rc_ok=0
+"$PY" -B "$CACHE/merge_gate.py" receive --git-dir "$S/gate.git" --old "$GM" --new "$SPECC" > "$OUT/el4_ok.out" 2> "$OUT/el4_ok.err" || rc_ok=$?
+log "E EL4 receive --old gate master --new B(D 포함 2커밋): exit $rc_ok $(cat "$OUT/el4_ok.err")"
+test "$rc_ok" -eq 0
+# 대조: 트레일러 없는 문서 커밋 하나를 더한 것 → 거부여야 한다(게이트가 실제로 거부하는지)
+git -C "$R" checkout -q -b neg
+echo "neg" >> "$R/docs/02-design/specs/$ID.interface.md"
+git -C "$R" commit -q -am "neg: 트레일러 없음"
+NEG=$(git -C "$R" rev-parse HEAD)
+git -C "$S/gate.git" fetch -q "$R" "neg:refs/heads/neg"
+rc_neg=0
+"$PY" -B "$CACHE/merge_gate.py" receive --git-dir "$S/gate.git" --old "$GM" --new "$NEG" > "$OUT/el4_neg.out" 2> "$OUT/el4_neg.err" || rc_neg=$?
+log "E 대조(트레일러 없는 커밋): exit $rc_neg $(head -c 300 "$OUT/el4_neg.err")"
+test "$rc_neg" -eq 1
+git -C "$R" checkout -q master
+log "끝: BASE $BASE D $DC SPECC $SPECC"

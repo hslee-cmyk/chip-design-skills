@@ -1,0 +1,20 @@
+loop-carried(앞 문장, 반복문 본문)
+   all=15 N2b=6 N2w=10
+   N2w 대상=[('stmt_delete', 'body[2]'), ('stmt_delete', 'body[2].body[0]'), ('stmt_delete', 'body[2].body[1]'), ('arith', 'body[2].body[0].value.args[0]'), ('const+', 'body[2].body[0].value.args[0].right'), ('const-', 'body[2].body[0].value.args[0].right'), ('arith', 'body[2].body[1].value'), ('const+', 'body[2].body[1].value.right'), ('const-', 'body[2].body[1].value.right'), ('early_return', 'body[0]')]
+   N2w 대상 밖=[('stmt_delete', 'body[0]'), ('stmt_delete', 'body[1]'), ('stmt_delete', 'body[3]'), ('const+', 'body[0].value'), ('const-', 'body[0].value')]
+cross-block(if 안 변경 -> 바깥 return)
+   all=16 N2b=9 N2w=9
+   N2w 대상=[('stmt_delete', 'body[1]'), ('stmt_delete', 'body[1].body[0]'), ('cmp_flip', 'body[1].test.ops[0]'), ('const+', 'body[1].test.comparators[0]'), ('const-', 'body[1].test.comparators[0]'), ('arith', 'body[1].body[0].value'), ('const+', 'body[1].body[0].value.right'), ('const-', 'body[1].body[0].value.right'), ('early_return', 'body[0]')]
+   N2w 대상 밖=[('stmt_delete', 'body[0]'), ('stmt_delete', 'body[2]'), ('const+', 'body[0].value'), ('const-', 'body[0].value'), ('arith', 'body[2].value'), ('const+', 'body[2].value.right'), ('const-', 'body[2].value.right')]
+attr(self.mode = ... -> 뒤 if self.mode)
+   all=11 N2b=5 N2w=9
+   N2w 대상=[('stmt_delete', 'body[0]'), ('stmt_delete', 'body[1]'), ('stmt_delete', 'body[2]'), ('const+', 'body[0].value'), ('const-', 'body[0].value'), ('cmp_flip', 'body[2].test.ops[0]'), ('const+', 'body[2].test.comparators[0]'), ('const-', 'body[2].test.comparators[0]'), ('early_return', 'body[0]')]
+   N2w 대상 밖=[('stmt_delete', 'body[3]'), ('stmt_delete', 'body[2].body[0]')]
+method(out.append 새 문장 -> 뒤 return len(out) + 1)
+   all=8 N2b=2 N2w=6
+   N2w 대상=[('stmt_delete', 'body[1]'), ('stmt_delete', 'body[3]'), ('arith', 'body[3].value'), ('const+', 'body[3].value.right'), ('const-', 'body[3].value.right'), ('early_return', 'body[0]')]
+   N2w 대상 밖=[('stmt_delete', 'body[0]'), ('stmt_delete', 'body[2]')]
+two-step(a = 새 값 -> b = a -> 뒤 if b)
+   all=12 N2b=5 N2w=5
+   N2w 대상=[('stmt_delete', 'body[0]'), ('stmt_delete', 'body[1]'), ('const+', 'body[0].value'), ('const-', 'body[0].value'), ('early_return', 'body[0]')]
+   N2w 대상 밖=[('stmt_delete', 'body[2]'), ('stmt_delete', 'body[3]'), ('stmt_delete', 'body[4]'), ('stmt_delete', 'body[3].body[0]'), ('cmp_flip', 'body[3].test.ops[0]'), ('const+', 'body[3].test.comparators[0]'), ('const-', 'body[3].test.comparators[0]')]

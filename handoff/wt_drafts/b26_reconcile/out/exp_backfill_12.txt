@@ -1,0 +1,1 @@
+STATS {"cases": 400, "exc": 0, "relaxed": 32, "diff_loop_del": 0, "diff_after_del": 0}

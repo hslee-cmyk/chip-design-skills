@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# B41 측정 B: p10과 같은 DF-36 범위(--base 070cf69)에서 head = b29be01 + 새 test + (가상) indent 2개 묶인 면제 승인 기록.
+# 병합 도구(gate master 사본 $S/gate)로 V3 전체 실행 -> 기대: 생존 0, killed 24, exempt 2.
+# 사용: bash b41_run_b.sh <스크래치 루트(/c/g211)>   (b41_run_a.sh 뒤)
+set -euo pipefail
+S=$1
+K=$(cd "$(dirname "$0")" && pwd)
+PY=/c/Python314/python.exe
+case "$S" in /c/g211*) ;; *) echo "스크래치는 /c/g211 아래만"; exit 2;; esac
+export APPDATA="C:/Users/HSLEE/AppData/Roaming" TMP="C:/g211/tmp" TEMP="C:/g211/tmp" TMPDIR="C:/g211/tmp" PYTHONDONTWRITEBYTECODE=1 PYTHONIOENCODING=utf-8 PYTHONPATH="C:/g211/gate"
+# A와 동시에 돌 수 있게 별도 복제본(커밋만 필요 -- 도구가 --root에서 다시 격리 복제한다)
+R="$S/repoB"
+if [ ! -d "$R/.git" ]; then
+  git clone --quiet --no-checkout --no-hardlinks --no-local -c core.longpaths=true "$S/repo" "$R"
+  git -C "$R" remote remove origin
+fi
+test -z "$(git -C "$R" remote)"
+T=skills/analog-gmid-design/assets/tests/contracts/test_instance_scope_note.py
+EL=$($PY -c "
+import json,sys
+for l in open(sys.argv[1],encoding='utf-8'):
+    r=json.loads(l)
+    if r.get('rev')=='b29be01' and 'bound_elements' in r:
+        print(', '.join(e for e in r['bound_elements'] if ':const' in e))
+" "$S/out/measure.jsonl")
+test -n "$EL"
+git -C "$R" checkout --quiet -B b41e2e b29be01
+cp "$K/test_instance_scope_note.py" "$R/$T"
+cat > "$R/.ai/approvals/b41-synthetic-indent.md" <<EOF
+---
+id: b41-synthetic-indent
+date: 2026-10-02
+target_kind: decision
+target: $EL
+scope: B41 측정용 가상 기록(스크래치 복제본 전용, 저장소에 넣지 않음) -- json.dump indent ±1 등가 변이 2개 묶인 면제
+---
+EOF
+git -C "$R" add "$T" .ai/approvals/b41-synthetic-indent.md
+git -C "$R" -c user.name=b41 -c user.email=b41@invalid commit --quiet -m "b41 scratch: scope_note test + synthetic bound indent exemption"
+HEAD_E2E=$(git -C "$R" rev-parse HEAD)
+echo "head=$HEAD_E2E elements=$EL" > "$S/out/e2e.meta.txt"
+rm -f "$S/out/v3_e2e.jsonl"
+start=$(date +%s)
+set +e
+$PY -B -P "$S/gate/mutate_changed.py" --root "$R" --base 070cf69 --head "$HEAD_E2E" --pytest-ini "$S/gate/pytest_gate.ini" \
+  --gmid-phase=2 --gmid-strict= --out "$S/out/v3_e2e.jsonl" > "$S/out/v3_e2e.verdict.json"
+rc=$?
+set -e
+echo "exit=$rc elapsed=$(( $(date +%s) - start ))s" >> "$S/out/e2e.meta.txt"
+cat "$S/out/e2e.meta.txt" "$S/out/v3_e2e.verdict.json"

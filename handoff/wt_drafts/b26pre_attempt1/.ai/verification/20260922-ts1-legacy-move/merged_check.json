@@ -1,0 +1,60 @@
+{
+  "id": "20260922-ts1-legacy-move",
+  "step": "05-role-separation 12 순서 7 (병합본 검증: design 10 6.1 C2 증거 2·3·5, 7 E1·E3)",
+  "merged_commit": "ee4e42d3695458b90962393d46b118b57166a1a5",
+  "merged_parents": ["a9077148432d9fba2d2b69fb992103be3a9031f4", "7792f9c86f983738dbb374a4d951281e310a2ce9"],
+  "isolated_clone": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso (순서 3과 같은 복제본, origin 없음)",
+  "clone_commands": [
+    "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso fetch -q C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts1-legacy-move-audit role/audit/20260922-ts1-legacy-move (FETCH_HEAD = ee4e42d3695458b90962393d46b118b57166a1a5)",
+    "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso checkout -q --detach ee4e42d"
+  ],
+  "evidence_2_merged_stdout": {
+    "cwd": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+    "command_template": "PYTHONHASHSEED=<s> C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets/tests/legacy/selftest_<m>.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts1-legacy-move-iso/skills/analog-gmid-design/assets",
+    "order": "m in (sizing_recipe, stick_diagram, design_report, topology_library), s = 1..5",
+    "runs": [
+      {"module": "sizing_recipe", "seed": 1, "returncode": 0, "stdout_bytes": 40026, "stdout_sha256": "21e0687b4fc5610bcd7625c8e409c85bca6fe485536aae02ddec45d4ab655db3", "stderr_bytes": 0},
+      {"module": "sizing_recipe", "seed": 2, "returncode": 0, "stdout_bytes": 40026, "stdout_sha256": "21e0687b4fc5610bcd7625c8e409c85bca6fe485536aae02ddec45d4ab655db3", "stderr_bytes": 0},
+      {"module": "sizing_recipe", "seed": 3, "returncode": 0, "stdout_bytes": 40026, "stdout_sha256": "21e0687b4fc5610bcd7625c8e409c85bca6fe485536aae02ddec45d4ab655db3", "stderr_bytes": 0},
+      {"module": "sizing_recipe", "seed": 4, "returncode": 0, "stdout_bytes": 40026, "stdout_sha256": "21e0687b4fc5610bcd7625c8e409c85bca6fe485536aae02ddec45d4ab655db3", "stderr_bytes": 0},
+      {"module": "sizing_recipe", "seed": 5, "returncode": 0, "stdout_bytes": 40026, "stdout_sha256": "21e0687b4fc5610bcd7625c8e409c85bca6fe485536aae02ddec45d4ab655db3", "stderr_bytes": 0},
+      {"module": "stick_diagram", "seed": 1, "returncode": 0, "stdout_bytes": 109905, "stdout_sha256": "1fc5248758e5a8967616b015e563a8c486159fa83b35ef7b0926f0e834d85e77", "stderr_bytes": 0},
+      {"module": "stick_diagram", "seed": 2, "returncode": 0, "stdout_bytes": 109905, "stdout_sha256": "1fc5248758e5a8967616b015e563a8c486159fa83b35ef7b0926f0e834d85e77", "stderr_bytes": 0},
+      {"module": "stick_diagram", "seed": 3, "returncode": 0, "stdout_bytes": 109905, "stdout_sha256": "1fc5248758e5a8967616b015e563a8c486159fa83b35ef7b0926f0e834d85e77", "stderr_bytes": 0},
+      {"module": "stick_diagram", "seed": 4, "returncode": 0, "stdout_bytes": 109905, "stdout_sha256": "1fc5248758e5a8967616b015e563a8c486159fa83b35ef7b0926f0e834d85e77", "stderr_bytes": 0},
+      {"module": "stick_diagram", "seed": 5, "returncode": 0, "stdout_bytes": 109905, "stdout_sha256": "1fc5248758e5a8967616b015e563a8c486159fa83b35ef7b0926f0e834d85e77", "stderr_bytes": 0},
+      {"module": "design_report", "seed": 1, "returncode": 0, "stdout_bytes": 985, "stdout_sha256": "af14d7b85e37486638a259aaff2fcf8b3d9107dac0780cfab45e48cef6e99522", "stderr_bytes": 0},
+      {"module": "design_report", "seed": 2, "returncode": 0, "stdout_bytes": 985, "stdout_sha256": "af14d7b85e37486638a259aaff2fcf8b3d9107dac0780cfab45e48cef6e99522", "stderr_bytes": 0},
+      {"module": "design_report", "seed": 3, "returncode": 0, "stdout_bytes": 985, "stdout_sha256": "af14d7b85e37486638a259aaff2fcf8b3d9107dac0780cfab45e48cef6e99522", "stderr_bytes": 0},
+      {"module": "design_report", "seed": 4, "returncode": 0, "stdout_bytes": 985, "stdout_sha256": "af14d7b85e37486638a259aaff2fcf8b3d9107dac0780cfab45e48cef6e99522", "stderr_bytes": 0},
+      {"module": "design_report", "seed": 5, "returncode": 0, "stdout_bytes": 985, "stdout_sha256": "af14d7b85e37486638a259aaff2fcf8b3d9107dac0780cfab45e48cef6e99522", "stderr_bytes": 0},
+      {"module": "topology_library", "seed": 1, "returncode": 0, "stdout_bytes": 4577, "stdout_sha256": "26f48d08985d1981501b9231e1b5befc2c6635c4e9d3571dabbbd8db994ae7db", "stderr_bytes": 0},
+      {"module": "topology_library", "seed": 2, "returncode": 0, "stdout_bytes": 4577, "stdout_sha256": "26f48d08985d1981501b9231e1b5befc2c6635c4e9d3571dabbbd8db994ae7db", "stderr_bytes": 0},
+      {"module": "topology_library", "seed": 3, "returncode": 0, "stdout_bytes": 4577, "stdout_sha256": "26f48d08985d1981501b9231e1b5befc2c6635c4e9d3571dabbbd8db994ae7db", "stderr_bytes": 0},
+      {"module": "topology_library", "seed": 4, "returncode": 0, "stdout_bytes": 4577, "stdout_sha256": "26f48d08985d1981501b9231e1b5befc2c6635c4e9d3571dabbbd8db994ae7db", "stderr_bytes": 0},
+      {"module": "topology_library", "seed": 5, "returncode": 0, "stdout_bytes": 4577, "stdout_sha256": "26f48d08985d1981501b9231e1b5befc2c6635c4e9d3571dabbbd8db994ae7db", "stderr_bytes": 0}
+    ],
+    "concat_sha256": "5f4a8013abbcd9764cba4263548bee2acdf6cca420c2d832b901bd2157037b0a",
+    "run_byproducts": "실행 뒤 git -C <iso> status --short --ignored 0줄"
+  },
+  "evidence_3_pairwise": {
+    "method": "cmp -s <base_stdout>/<m>.s<s>.stdout <병합본 stdout>/<m>.s<s>.stdout, 20쌍 전부(해시가 아닌 바이트 비교)",
+    "equal_pairs": 20,
+    "differing_pairs": [],
+    "diff_lines": "없음(F3 부속 산출물 불필요)",
+    "concat_equal": "병합본 concat_sha256 = base_check.json evidence_1_base_stdout.concat_sha256 = 5f4a8013abbcd9764cba4263548bee2acdf6cca420c2d832b901bd2157037b0a",
+    "path_dependence": "stick_diagram stdout에 복제본 경로 문자열 1회(같은 경로에서 돌린 이유, design 10 6.1)",
+    "base_stdout_removed": "비교 뒤 base_stdout/ 20개(합 약 808KB)는 커밋하지 않고 지웠다(오케스트레이터 지시: 해시만 남겨도 된다). 파일마다 sha256은 base_check.json runs[]에 있고 병합본 stdout과 바이트 동일해 위 명령으로 다시 만들 수 있다"
+  },
+  "evidence_5_ast": {
+    "method": "git -C <iso> show <rev>:A/<m>.py 바이트를 ast.parse, 모듈 최상위 `if __name__ == \"__main__\":`(Compare Name __name__ Eq Constant '__main__') 문을 body에서 빼고 ast.dump 비교. rev = base 8bf6d8e42b28c382a67c89f2c9b2fab995f24919, 병합본 ee4e42d3695458b90962393d46b118b57166a1a5",
+    "results": [
+      {"module": "sizing_recipe", "base_blob": "e233dff3d0118e4ec7ac16dfe405f1c7c174b7cb", "merged_blob": "f578331afaa4041ef2e603a31fa93c5166499286", "base_main_block_lines": [12571, 15269], "merged_main_blocks": 0, "dump_sha256_both": "1c7234c65e49ea8fad7542b8da6ecd3117787a1d59258e37d42f5c55dcafb5b0", "ast_equal": true, "numstat": "+0 -2705"},
+      {"module": "stick_diagram", "base_blob": "4ec01a247b46db77a1956771827ec133cdc1b95c", "merged_blob": "d3e80b89c365126622198c35d925a63e482fc5e9", "base_main_block_lines": [8992, 12936], "merged_main_blocks": 0, "dump_sha256_both": "bf0262aee4d1112be75c344b269103362471bfa462aa2e6f54b92ca9816cf4b4", "ast_equal": true, "numstat": "+0 -3951"},
+      {"module": "design_report", "base_blob": "75e4b9ab585f761fb233acfc6be49ead1647c383", "merged_blob": "aa271931e3e453643583d66e4b4a93682ed554da", "base_main_block_lines": [319, 382], "merged_main_blocks": 0, "dump_sha256_both": "fda820892774c7c249760b42038623a3cf041c8de7e0a0ac50f877b511ad3260", "ast_equal": true, "numstat": "+0 -66"},
+      {"module": "topology_library", "base_blob": "cff71b4348c0ded03b77511611e987d059ce8834", "merged_blob": "e014a7a070c600a871ab92822b0b0690e9d7a61d", "base_main_block_lines": [528, 694], "merged_main_blocks": 0, "dump_sha256_both": "42bbfb47fd7a7dd66e11071ae3d125a29ebd3f11dce559b874fb289aadfd1b6d", "ast_equal": true, "numstat": "+0 -174"}
+    ],
+    "verdict": "PASS (4/4)",
+    "deleted_lines_outside_block": "블록 밖에서 지워진 줄은 배너 # 줄(sizing_recipe 3, stick_diagram 3, topology_library 4, design_report 0 -- 배너 없음)과 빈 줄뿐: 각 파일에서 배너(또는 블록) 앞 빈 줄 2개와 배너-블록 사이 빈 줄 1개(design_report는 앞 빈 줄 2개). 블록이 파일 끝이라 그 빈 줄을 두면 파일 끝 빈 줄이 남는다. 병합본 4개 모두 마지막 코드 줄 + LF 하나로 끝난다. 코드·주석 외 줄 변경 0(numstat 추가 0)"
+  }
+}

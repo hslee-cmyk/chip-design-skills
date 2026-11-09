@@ -1,0 +1,23 @@
+E3B[ast] 5913897 rc=0 E3b LIVE moved_out=57 base_files_reading_moved_out=33 pre_existing=1 E3b PASS  FAIL=0 files=0 b34=0
+E3B[exec] 5913897 rc=0 E3b EXEC strings_scanned=4 (B0+head) E3b LIVE moved_out=57 base_files_reading_moved_out=33 pre_existing=1 E3b PASS  FAIL=0 files=0 b34=0
+PROTO[r3] 5913897 rc=1 2 failed in 2.00s | layering_exit=1 unresolved=0 b34=0 errs=4
+PROTO[r6] 5913897 rc=1 2 failed in 3.25s | layering_exit=1 unresolved=0 b34=0 errs=4
+E3B[ast] a16b306 rc=0 E3b LIVE moved_out=57 base_files_reading_moved_out=33 pre_existing=1 E3b PASS  FAIL=0 files=0 b34=0
+E3B[exec] a16b306 rc=0 E3b EXEC strings_scanned=4 (B0+head) E3b LIVE moved_out=57 base_files_reading_moved_out=33 pre_existing=1 E3b PASS  FAIL=0 files=0 b34=0
+PROTO[r3] a16b306 rc=0 2 passed in 7.89s | layering_exit=0 unresolved=0 b34=0 errs=0
+PROTO[r6] a16b306 rc=0 2 passed in 7.97s | layering_exit=0 unresolved=0 b34=0 errs=0
+E3B[ast] bf0ada2 rc=0 E3b LIVE moved_out=57 base_files_reading_moved_out=33 pre_existing=1 E3b PASS  FAIL=0 files=0 b34=0
+E3B[exec] bf0ada2 rc=0 E3b EXEC strings_scanned=4 (B0+head) E3b LIVE moved_out=57 base_files_reading_moved_out=33 pre_existing=1 E3b PASS  FAIL=0 files=0 b34=0
+PROTO[r3] bf0ada2 rc=1 2 failed in 3.53s | layering_exit=1 unresolved=0 b34=0 errs=4
+PROTO[r6] bf0ada2 rc=1 2 failed in 5.98s | layering_exit=1 unresolved=0 b34=0 errs=4
+E3B[ast] a1a49c2 rc=0 E3b LIVE moved_out=57 base_files_reading_moved_out=33 pre_existing=1 E3b PASS  FAIL=0 files=0 b34=0
+E3B[exec] a1a49c2 rc=0 E3b EXEC strings_scanned=4 (B0+head) E3b LIVE moved_out=57 base_files_reading_moved_out=33 pre_existing=1  FAIL=10 files=1 b34=10
+PROTO[r3] a1a49c2 rc=0 2 passed in 7.69s | layering_exit=0 unresolved=0 b34=0 errs=0
+PROTO[r6] a1a49c2 rc=1 1 failed, 1 passed in 7.30s | layering_exit=0 unresolved=10 b34=10 errs=2
+E3B[ast] a760c78 rc=0 E3b LIVE moved_out=57 base_files_reading_moved_out=33 pre_existing=1  FAIL=78 files=13 b34=29
+E3B[exec] a760c78 rc=0 E3b EXEC strings_scanned=4 (B0+head) E3b LIVE moved_out=57 base_files_reading_moved_out=33 pre_existing=1  FAIL=88 files=13 b34=39
+PROTO[r3] a760c78 rc=1 2 failed in 8.38s | layering_exit=0 unresolved=69 b34=29 errs=4
+PROTO[r6] a760c78 rc=1 2 failed in 9.83s | layering_exit=0 unresolved=79 b34=39 errs=4
+B34 a16b306 rc=0 43 passed in 39.42s attrerr=0 c8fail=0
+B34 a1a49c2 rc=1 9 failed, 34 passed in 40.59s attrerr=9 c8fail=9
+B34 a760c78 rc=1 20 failed, 23 passed in 36.71s attrerr=20 c8fail=9

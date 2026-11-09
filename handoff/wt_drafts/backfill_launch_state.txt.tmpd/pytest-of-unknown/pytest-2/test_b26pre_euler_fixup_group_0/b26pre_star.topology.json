@@ -1,0 +1,35 @@
+{
+  "topology_name": "b26pre_star",
+  "schema_version": "2.0",
+  "supply_nets": [
+    "vdd",
+    "gnd"
+  ],
+  "netlist": [
+    {
+      "name": "M1",
+      "kind": "nmos",
+      "source": "na",
+      "drain": "nx",
+      "gate": "g1"
+    },
+    {
+      "name": "M2",
+      "kind": "nmos",
+      "source": "nx",
+      "drain": "nb",
+      "gate": "g2"
+    },
+    {
+      "name": "M3",
+      "kind": "nmos",
+      "source": "nx",
+      "drain": "nc",
+      "gate": "g3"
+    }
+  ],
+  "symmetry": {
+    "matching_pairs": [],
+    "dispositions": []
+  }
+}

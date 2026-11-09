@@ -1,0 +1,1 @@
+STATS {"cases": 400, "exc": 0, "relaxed": 38, "diff_loop_del": 0, "diff_after_del": 0, "relaxed_then_more_growth": 15, "relaxed_with_fixup": 15, "relaxed_interdig_false": 0}

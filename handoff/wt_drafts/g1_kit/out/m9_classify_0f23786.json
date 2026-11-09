@@ -1,0 +1,784 @@
+[
+ {
+  "card": "state_M1",
+  "raw": {
+   "units": 5,
+   "defs": 7,
+   "rejected": 2,
+   "by_cause": {
+    "future": 0,
+    "multi": 1,
+    "cascade": 1,
+    "other": 0
+   },
+   "examples": {
+    "multi": [
+     [
+      "gmid_lut.py::MultiLeafHubParityVerdict",
+      "M-4",
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/gmid_lut.py', 'dataclass')"
+     ]
+    ],
+    "cascade": [
+     [
+      "gmid_lut.py::check_multi_leaf_hub_parity",
+      "M-4",
+      "MultiLeafHubParityVerdict",
+      "('def', 'skills/analog-gmid-design/assets/stick_diagram.py', 'MultiLeafHubParityVerdict')",
+      "('def', 'skills/analog-gmid-design/assets/gmid_lut.py', 'MultiLeafHubParityVerdict')"
+     ]
+    ]
+   }
+  },
+  "dedup": {
+   "units": 7,
+   "defs": 8,
+   "rejected": 0,
+   "by_cause": {
+    "future": 0,
+    "multi": 0,
+    "cascade": 0,
+    "other": 0
+   },
+   "examples": {}
+  }
+ },
+ {
+  "card": "state_M2",
+  "raw": {
+   "units": 15,
+   "defs": 10,
+   "rejected": 7,
+   "by_cause": {
+    "future": 1,
+    "multi": 4,
+    "cascade": 2,
+    "other": 0
+   },
+   "examples": {
+    "multi": [
+     [
+      "topology_authoring.py::Transistor",
+      "M-4",
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/topology_authoring.py', 'dataclass')"
+     ],
+     [
+      "topology_authoring.py::_scan_case_collisions",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/topology_authoring.py', 'defaultdict')"
+     ],
+     [
+      "topology_authoring.py::_propose_headroom_roles",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/topology_authoring.py', 'defaultdict')"
+     ],
+     [
+      "topology_authoring.py::SymmetryDispositionsVerdict",
+      "M-4",
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/topology_authoring.py', 'dataclass')"
+     ]
+    ],
+    "future": [
+     [
+      "topology_authoring.py::_as_set",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    ],
+    "cascade": [
+     [
+      "topology_authoring.py::folded_cascode_example",
+      "M-4",
+      "Transistor",
+      "('def', 'skills/analog-gmid-design/assets/stick_diagram.py', 'Transistor')",
+      "('def', 'skills/analog-gmid-design/assets/topology_authoring.py', 'Transistor')"
+     ],
+     [
+      "topology_authoring.py::two_stage_ota_example",
+      "M-4",
+      "Transistor",
+      "('def', 'skills/analog-gmid-design/assets/stick_diagram.py', 'Transistor')",
+      "('def', 'skills/analog-gmid-design/assets/topology_authoring.py', 'Transistor')"
+     ]
+    ]
+   }
+  },
+  "dedup": {
+   "units": 21,
+   "defs": 16,
+   "rejected": 1,
+   "by_cause": {
+    "future": 1,
+    "multi": 0,
+    "cascade": 0,
+    "other": 0
+   },
+   "examples": {
+    "future": [
+     [
+      "topology_authoring.py::_as_set",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    ]
+   }
+  }
+ },
+ {
+  "card": "state_M3",
+  "raw": {
+   "units": 32,
+   "defs": 26,
+   "rejected": 29,
+   "by_cause": {
+    "future": 0,
+    "multi": 22,
+    "cascade": 7,
+    "other": 0
+   },
+   "examples": {
+    "multi": [
+     [
+      "circuit_state_graph.py::find_matching_candidates",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::find_stacked_matching_candidates",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::trace_vdd_to_gnd_branches",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::trace_gnd_to_vdd_branches",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::find_differential_and_mirror_forks",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::suggest_vertical_stack_composites",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::find_differential_pair_candidates",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::_diff_pair_layer1_groups",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::find_verified_differential_and_mirror_relations",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::_propose_vertical_stack_ids",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::StructuralSymmetryVerdict",
+      "M-4",
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'dataclass')"
+     ],
+     [
+      "circuit_state_graph.py::propagate_topology_forced_currents",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::DiodeStackMember",
+      "M-4",
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'dataclass')"
+     ],
+     [
+      "circuit_state_graph.py::DiodeStack",
+      "M-4",
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'dataclass')"
+     ],
+     [
+      "circuit_state_graph.py::find_diode_stacks",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::kcl_series_union",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::_kcl_and_matching_edges",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::audit_vertical_stack_id_vs_kcl",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::propose_vertical_stack_id_gap_fill",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::propose_theta_kcl_gap_fill",
+      "M-4",
+      "defaultdict",
+      "('ext', 'skills/analog-gmid-design/assets', 'collections', 'defaultdict')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'defaultdict')"
+     ],
+     [
+      "circuit_state_graph.py::SizingContext",
+      "M-4",
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'dataclass')"
+     ],
+     [
+      "circuit_state_graph.py::NodeVoltageReport",
+      "M-4",
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'dataclass')"
+     ]
+    ],
+    "cascade": [
+     [
+      "circuit_state_graph.py::_propose_gm_id_roles",
+      "M-4",
+      "find_differential_pair_candidates",
+      "('def', 'skills/analog-gmid-design/assets/stick_diagram.py', 'find_differential_pair_candidates')",
+      "('def', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'find_differential_pair_candidates')"
+     ],
+     [
+      "circuit_state_graph.py::_propose_L_roles",
+      "M-4",
+      "find_differential_pair_candidates",
+      "('def', 'skills/analog-gmid-design/assets/stick_diagram.py', 'find_differential_pair_candidates')",
+      "('def', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'find_differential_pair_candidates')"
+     ],
+     [
+      "circuit_state_graph.py::refine_differential_and_mirror_relations",
+      "M-4",
+      "_propose_vertical_stack_ids",
+      "('def', 'skills/analog-gmid-design/assets/stick_diagram.py', '_propose_vertical_stack_ids')",
+      "('def', 'skills/analog-gmid-design/assets/circuit_state_graph.py', '_propose_vertical_stack_ids')"
+     ],
+     [
+      "circuit_state_graph.py::find_structural_symmetry_candidates",
+      "M-4",
+      "StructuralSymmetryVerdict",
+      "('def', 'skills/analog-gmid-design/assets/stick_diagram.py', 'StructuralSymmetryVerdict')",
+      "('def', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'StructuralSymmetryVerdict')"
+     ],
+     [
+      "circuit_state_graph.py::propagate_node_voltages",
+      "M-4",
+      "NodeVoltageReport",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', 'NodeVoltageReport')",
+      "('def', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'NodeVoltageReport')"
+     ],
+     [
+      "circuit_state_graph.py::reconcile_vsb_from_nodes",
+      "M-4",
+      "propagate_node_voltages",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', 'propagate_node_voltages')",
+      "('def', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'propagate_node_voltages')"
+     ],
+     [
+      "circuit_state_graph.py::audit_vsb_consistency",
+      "M-4",
+      "propagate_node_voltages",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', 'propagate_node_voltages')",
+      "('def', 'skills/analog-gmid-design/assets/circuit_state_graph.py', 'propagate_node_voltages')"
+     ]
+    ]
+   }
+  },
+  "dedup": {
+   "units": 61,
+   "defs": 77,
+   "rejected": 0,
+   "by_cause": {
+    "future": 0,
+    "multi": 0,
+    "cascade": 0,
+    "other": 0
+   },
+   "examples": {}
+  }
+ },
+ {
+  "card": "state_M4",
+  "raw": {
+   "units": 97,
+   "defs": 118,
+   "rejected": 1,
+   "by_cause": {
+    "future": 1,
+    "multi": 0,
+    "cascade": 0,
+    "other": 0
+   },
+   "examples": {
+    "future": [
+     [
+      "gmid_sizing_engine.py::_kv_table",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    ]
+   }
+  },
+  "dedup": {
+   "units": 97,
+   "defs": 118,
+   "rejected": 1,
+   "by_cause": {
+    "future": 1,
+    "multi": 0,
+    "cascade": 0,
+    "other": 0
+   },
+   "examples": {
+    "future": [
+     [
+      "gmid_sizing_engine.py::_kv_table",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    ]
+   }
+  }
+ },
+ {
+  "card": "state_M5",
+  "raw": {
+   "units": 3,
+   "defs": 4,
+   "rejected": 0,
+   "by_cause": {
+    "future": 0,
+    "multi": 0,
+    "cascade": 0,
+    "other": 0
+   },
+   "examples": {}
+  },
+  "dedup": {
+   "units": 3,
+   "defs": 4,
+   "rejected": 0,
+   "by_cause": {
+    "future": 0,
+    "multi": 0,
+    "cascade": 0,
+    "other": 0
+   },
+   "examples": {}
+  }
+ },
+ {
+  "card": "state_M6",
+  "raw": {
+   "units": 12,
+   "defs": 14,
+   "rejected": 4,
+   "by_cause": {
+    "future": 0,
+    "multi": 3,
+    "cascade": 1,
+    "other": 0
+   },
+   "examples": {
+    "multi": [
+     [
+      "theta_search.py::CoverageVerdict",
+      "M-4",
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/theta_search.py', 'dataclass')"
+     ],
+     [
+      "theta_search.py::_HeadroomTopoEnv",
+      "M-4",
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/theta_search.py', 'dataclass')"
+     ],
+     [
+      "theta_search.py::_HeadroomEvalEnv",
+      "M-4",
+      "dataclass",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'dataclass')",
+      "('multi', 'skills/analog-gmid-design/assets/theta_search.py', 'dataclass')"
+     ]
+    ],
+    "cascade": [
+     [
+      "theta_search.py::check_stick_diagram_coverage",
+      "M-4",
+      "CoverageVerdict",
+      "('def', 'skills/analog-gmid-design/assets/stick_diagram.py', 'CoverageVerdict')",
+      "('def', 'skills/analog-gmid-design/assets/theta_search.py', 'CoverageVerdict')"
+     ]
+    ]
+   }
+  },
+  "dedup": {
+   "units": 16,
+   "defs": 15,
+   "rejected": 0,
+   "by_cause": {
+    "future": 0,
+    "multi": 0,
+    "cascade": 0,
+    "other": 0
+   },
+   "examples": {}
+  }
+ },
+ {
+  "card": "state_M8",
+  "raw": {
+   "units": 41,
+   "defs": 57,
+   "rejected": 0,
+   "by_cause": {
+    "future": 0,
+    "multi": 0,
+    "cascade": 0,
+    "other": 0
+   },
+   "examples": {}
+  },
+  "dedup": {
+   "units": 41,
+   "defs": 57,
+   "rejected": 0,
+   "by_cause": {
+    "future": 0,
+    "multi": 0,
+    "cascade": 0,
+    "other": 0
+   },
+   "examples": {}
+  }
+ },
+ {
+  "card": "state_M9",
+  "raw": {
+   "units": 14,
+   "defs": 15,
+   "rejected": 23,
+   "by_cause": {
+    "future": 7,
+    "multi": 6,
+    "cascade": 10,
+    "other": 0
+   },
+   "examples": {
+    "multi": [
+     [
+      "instance_report_builder.py::_build_theta_evaluator",
+      "M-4",
+      "_dc_replace",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'replace')",
+      "('multi', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_dc_replace')"
+     ],
+     [
+      "instance_report_builder.py::revalidate_finger_override",
+      "M-4",
+      "_dc_replace",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'replace')",
+      "('multi', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_dc_replace')"
+     ],
+     [
+      "instance_report_builder.py::apply_and_revalidate_pair_adjustment",
+      "M-4",
+      "_dc_replace",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'replace')",
+      "('multi', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_dc_replace')"
+     ],
+     [
+      "instance_report_builder.py::apply_and_revalidate_matching_finger_growth",
+      "M-4",
+      "_dc_replace",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'replace')",
+      "('multi', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_dc_replace')"
+     ],
+     [
+      "instance_report_builder.py::_fixup_euler_blocked_rows",
+      "M-4",
+      "_dc_replace",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'replace')",
+      "('multi', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_dc_replace')"
+     ],
+     [
+      "instance_report_builder.py::run_matching_safety_with_finger_growth",
+      "M-4",
+      "_dc_replace",
+      "('ext', 'skills/analog-gmid-design/assets', 'dataclasses', 'replace')",
+      "('multi', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_dc_replace')"
+     ]
+    ],
+    "future": [
+     [
+      "instance_report_builder.py::build_topology_device_table",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::assemble_report_data",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::<stmt:c206c582df67>",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::render_html_report",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::save_html_report",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::_theta_evidence_for_pair",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::audit_topology",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    ],
+    "cascade": [
+     [
+      "instance_report_builder.py::diagnose_sizing_roles_gap",
+      "M-4",
+      "_build_theta_evaluator",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', '_build_theta_evaluator')",
+      "('def', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_build_theta_evaluator')"
+     ],
+     [
+      "instance_report_builder.py::optimize_full_circuit_budget",
+      "M-4",
+      "_build_theta_evaluator",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', '_build_theta_evaluator')",
+      "('def', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_build_theta_evaluator')"
+     ],
+     [
+      "instance_report_builder.py::derive_theta_dependency_graph",
+      "M-4",
+      "_build_theta_evaluator",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', '_build_theta_evaluator')",
+      "('def', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_build_theta_evaluator')"
+     ],
+     [
+      "instance_report_builder.py::extract_linear_feasibility_constraints",
+      "M-4",
+      "_build_theta_evaluator",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', '_build_theta_evaluator')",
+      "('def', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_build_theta_evaluator')"
+     ],
+     [
+      "instance_report_builder.py::search_stage_budget_L_warm_start",
+      "M-4",
+      "_build_theta_evaluator",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', '_build_theta_evaluator')",
+      "('def', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_build_theta_evaluator')"
+     ],
+     [
+      "instance_report_builder.py::presolve_warm_start",
+      "M-4",
+      "_build_theta_evaluator",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', '_build_theta_evaluator')",
+      "('def', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_build_theta_evaluator')"
+     ],
+     [
+      "instance_report_builder.py::run_topology_pipeline_with_finger_fixup",
+      "M-4",
+      "apply_and_revalidate_pair_adjustment",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', 'apply_and_revalidate_pair_adjustment')",
+      "('def', 'skills/analog-gmid-design/assets/instance_report_builder.py', 'apply_and_revalidate_pair_adjustment')"
+     ],
+     [
+      "instance_report_builder.py::achievable_metric_bound",
+      "M-4",
+      "optimize_full_circuit_budget",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', 'optimize_full_circuit_budget')",
+      "('def', 'skills/analog-gmid-design/assets/instance_report_builder.py', 'optimize_full_circuit_budget')"
+     ],
+     [
+      "instance_report_builder.py::_optimize_theta_slsqp",
+      "M-4",
+      "presolve_warm_start",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', 'presolve_warm_start')",
+      "('def', 'skills/analog-gmid-design/assets/instance_report_builder.py', 'presolve_warm_start')"
+     ],
+     [
+      "instance_report_builder.py::_optimize_theta_slsqp_block_coordinate",
+      "M-4",
+      "_optimize_theta_slsqp",
+      "('def', 'skills/analog-gmid-design/assets/sizing_recipe.py', '_optimize_theta_slsqp')",
+      "('def', 'skills/analog-gmid-design/assets/instance_report_builder.py', '_optimize_theta_slsqp')"
+     ]
+    ]
+   }
+  },
+  "dedup": {
+   "units": 30,
+   "defs": 62,
+   "rejected": 7,
+   "by_cause": {
+    "future": 7,
+    "multi": 0,
+    "cascade": 0,
+    "other": 0
+   },
+   "examples": {
+    "future": [
+     [
+      "instance_report_builder.py::build_topology_device_table",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::assemble_report_data",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::<stmt:c206c582df67>",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::render_html_report",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::save_html_report",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::_theta_evidence_for_pair",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ],
+     [
+      "instance_report_builder.py::audit_topology",
+      "M-4",
+      "__future__",
+      "[]",
+      "['annotations']"
+     ]
+    ]
+   }
+  }
+ }
+]

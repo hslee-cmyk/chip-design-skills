@@ -1,0 +1,2621 @@
+{
+ "tables": 15,
+ "counts": {
+  "one": 354,
+  "multi": 0,
+  "nested": 7,
+  "nounit": 18
+ },
+ "rows": {
+  "one": [
+   {
+    "line": 67,
+    "func": "gm_from_fT",
+    "units": [
+     "sizing_recipe.py::gm_from_fT"
+    ]
+   },
+   {
+    "line": 68,
+    "func": "width_from_id_density",
+    "units": [
+     "sizing_recipe.py::width_from_id_density"
+    ]
+   },
+   {
+    "line": 69,
+    "func": "GmIdLUT",
+    "units": [
+     "sizing_recipe.py::GmIdLUT"
+    ]
+   },
+   {
+    "line": 70,
+    "func": "SizingResult",
+    "units": [
+     "sizing_recipe.py::SizingResult"
+    ]
+   },
+   {
+    "line": 71,
+    "func": "QuasiStaticVerdict",
+    "units": [
+     "sizing_recipe.py::QuasiStaticVerdict"
+    ]
+   },
+   {
+    "line": 72,
+    "func": "check_quasi_static",
+    "units": [
+     "sizing_recipe.py::check_quasi_static"
+    ]
+   },
+   {
+    "line": 73,
+    "func": "_multilinear_interp",
+    "units": [
+     "sizing_recipe.py::_multilinear_interp"
+    ]
+   },
+   {
+    "line": 74,
+    "func": "SemiEmpiricalGmIdLUT._w_ref_effective",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 75,
+    "func": "SemiEmpiricalGmIdLUT._query_multi",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 76,
+    "func": "SemiEmpiricalGmIdLUT._sizing_bundle",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 77,
+    "func": "SemiEmpiricalGmIdLUT.id_density_at_vgs",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 78,
+    "func": "SemiEmpiricalGmIdLUT.gm_id_to_id_density",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 79,
+    "func": "SemiEmpiricalGmIdLUT.cgg_absolute",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 80,
+    "func": "SemiEmpiricalGmIdLUT.gm_gds_ratio",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 81,
+    "func": "SemiEmpiricalGmIdLUT.vgs_for_gm_id",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 82,
+    "func": "SemiEmpiricalGmIdLUT.gm_id_for_vgs",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 83,
+    "func": "SemiEmpiricalGmIdLUT.noise_1f_density",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 84,
+    "func": "dense_candidates",
+    "units": [
+     "sizing_recipe.py::dense_candidates"
+    ]
+   },
+   {
+    "line": 85,
+    "func": "quantize_L",
+    "units": [
+     "sizing_recipe.py::quantize_L"
+    ]
+   },
+   {
+    "line": 86,
+    "func": "_grid_points_in_range",
+    "units": [
+     "sizing_recipe.py::_grid_points_in_range"
+    ]
+   },
+   {
+    "line": 87,
+    "func": "layout_grid_L_candidates",
+    "units": [
+     "sizing_recipe.py::layout_grid_L_candidates"
+    ]
+   },
+   {
+    "line": 88,
+    "func": "_COMPENSATION_REGISTRY",
+    "units": [
+     "sizing_recipe.py::_COMPENSATION_REGISTRY"
+    ]
+   },
+   {
+    "line": 89,
+    "func": "_LUT_VDSAT_ROLES",
+    "units": [
+     "sizing_recipe.py::_LUT_VDSAT_ROLES"
+    ]
+   },
+   {
+    "line": 90,
+    "func": "feasible_gm_ids",
+    "units": [
+     "sizing_recipe.py::feasible_gm_ids"
+    ]
+   },
+   {
+    "line": 91,
+    "func": "vgs_alias_map",
+    "units": [
+     "sizing_recipe.py::vgs_alias_map"
+    ]
+   },
+   {
+    "line": 92,
+    "func": "_vgs_root",
+    "units": [
+     "sizing_recipe.py::_vgs_root"
+    ]
+   },
+   {
+    "line": 93,
+    "func": "HeadroomPolicy",
+    "units": [
+     "sizing_recipe.py::HeadroomPolicy"
+    ]
+   },
+   {
+    "line": 94,
+    "func": "measure_L_knee",
+    "units": [
+     "sizing_recipe.py::measure_L_knee"
+    ]
+   },
+   {
+    "line": 95,
+    "func": "l_sharing_classes",
+    "units": [
+     "sizing_recipe.py::l_sharing_classes"
+    ]
+   },
+   {
+    "line": 96,
+    "func": "l_class_owners",
+    "units": [
+     "sizing_recipe.py::l_class_owners"
+    ]
+   },
+   {
+    "line": 97,
+    "func": "audit_l_sharing_consistency",
+    "units": [
+     "sizing_recipe.py::audit_l_sharing_consistency"
+    ]
+   },
+   {
+    "line": 98,
+    "func": "_metric_sum_current",
+    "units": [
+     "sizing_recipe.py::_metric_sum_current"
+    ]
+   },
+   {
+    "line": 99,
+    "func": "_metric_sum_area",
+    "units": [
+     "sizing_recipe.py::_metric_sum_area"
+    ]
+   },
+   {
+    "line": 100,
+    "func": "_metric_gain_stages_sum",
+    "units": [
+     "sizing_recipe.py::_metric_gain_stages_sum"
+    ]
+   },
+   {
+    "line": 101,
+    "func": "_nmcnr_stage1_rout",
+    "units": [
+     "sizing_recipe.py::_nmcnr_stage1_rout"
+    ]
+   },
+   {
+    "line": 102,
+    "func": "_nmcnr_predict",
+    "units": [
+     "sizing_recipe.py::_nmcnr_predict"
+    ]
+   },
+   {
+    "line": 103,
+    "func": "_metric_nmcnr_gain_db",
+    "units": [
+     "sizing_recipe.py::_metric_nmcnr_gain_db"
+    ]
+   },
+   {
+    "line": 104,
+    "func": "_metric_nmcnr_pm_deg",
+    "units": [
+     "sizing_recipe.py::_metric_nmcnr_pm_deg"
+    ]
+   },
+   {
+    "line": 105,
+    "func": "estimate_mismatch_sigma",
+    "units": [
+     "sizing_recipe.py::estimate_mismatch_sigma"
+    ]
+   },
+   {
+    "line": 106,
+    "func": "_metric_pelgrom_mismatch",
+    "units": [
+     "sizing_recipe.py::_metric_pelgrom_mismatch"
+    ]
+   },
+   {
+    "line": 107,
+    "func": "DiodeSelfConsistencyError",
+    "units": [
+     "sizing_recipe.py::DiodeSelfConsistencyError"
+    ]
+   },
+   {
+    "line": 108,
+    "func": "is_diode_connected",
+    "units": [
+     "sizing_recipe.py::is_diode_connected"
+    ]
+   },
+   {
+    "line": 109,
+    "func": "solve_diode_connected_vds",
+    "units": [
+     "sizing_recipe.py::solve_diode_connected_vds"
+    ]
+   },
+   {
+    "line": 110,
+    "func": "NodeVoltageReport",
+    "units": [
+     "sizing_recipe.py::NodeVoltageReport"
+    ]
+   },
+   {
+    "line": 111,
+    "func": "derive_vsb_from_nodes",
+    "units": [
+     "sizing_recipe.py::derive_vsb_from_nodes"
+    ]
+   },
+   {
+    "line": 112,
+    "func": "_resolve_capacitor_farad",
+    "units": [
+     "sizing_recipe.py::_resolve_capacitor_farad"
+    ]
+   },
+   {
+    "line": 113,
+    "func": "_mirror_ratio_aggregate",
+    "units": [
+     "sizing_recipe.py::_mirror_ratio_aggregate"
+    ]
+   },
+   {
+    "line": 114,
+    "func": "_metric_mirror_ratio_error_input_referred",
+    "units": [
+     "sizing_recipe.py::_metric_mirror_ratio_error_input_referred"
+    ]
+   },
+   {
+    "line": 115,
+    "func": "_metric_mirror_ratio_error",
+    "units": [
+     "sizing_recipe.py::_metric_mirror_ratio_error"
+    ]
+   },
+   {
+    "line": 116,
+    "func": "_metric_battery_centering_deviation",
+    "units": [
+     "sizing_recipe.py::_metric_battery_centering_deviation"
+    ]
+   },
+   {
+    "line": 117,
+    "func": "_metric_nulling_resistor_ohm",
+    "units": [
+     "sizing_recipe.py::_metric_nulling_resistor_ohm"
+    ]
+   },
+   {
+    "line": 118,
+    "func": "_hashable_key",
+    "units": [
+     "sizing_recipe.py::_hashable_key"
+    ]
+   },
+   {
+    "line": 119,
+    "func": "_full_circuit_devices",
+    "units": [
+     "sizing_recipe.py::_full_circuit_devices"
+    ]
+   },
+   {
+    "line": 120,
+    "func": "_metric_smallsignal_ratio_db",
+    "units": [
+     "sizing_recipe.py::_metric_smallsignal_ratio_db"
+    ]
+   },
+   {
+    "line": 121,
+    "func": "_metric_smallsignal_gain_db",
+    "units": [
+     "sizing_recipe.py::_metric_smallsignal_gain_db"
+    ]
+   },
+   {
+    "line": 122,
+    "func": "_metric_cmrr_estimate",
+    "units": [
+     "sizing_recipe.py::_metric_cmrr_estimate"
+    ]
+   },
+   {
+    "line": 123,
+    "func": "_metric_psrr_estimate",
+    "units": [
+     "sizing_recipe.py::_metric_psrr_estimate"
+    ]
+   },
+   {
+    "line": 124,
+    "func": "unit_hint_from_metric_name",
+    "units": [
+     "sizing_recipe.py::unit_hint_from_metric_name"
+    ]
+   },
+   {
+    "line": 125,
+    "func": "metric_unit_scale",
+    "units": [
+     "sizing_recipe.py::metric_unit_scale"
+    ]
+   },
+   {
+    "line": 126,
+    "func": "validate_no_legacy_vs_key",
+    "units": [
+     "sizing_recipe.py::validate_no_legacy_vs_key"
+    ]
+   },
+   {
+    "line": 127,
+    "func": "validate_metric_units",
+    "units": [
+     "sizing_recipe.py::validate_metric_units"
+    ]
+   },
+   {
+    "line": 128,
+    "func": "compute_metric",
+    "units": [
+     "sizing_recipe.py::compute_metric"
+    ]
+   },
+   {
+    "line": 129,
+    "func": "_shared_current_groups_from_compensation",
+    "units": [
+     "sizing_recipe.py::_shared_current_groups_from_compensation"
+    ]
+   },
+   {
+    "line": 130,
+    "func": "_evenly_subsample",
+    "units": [
+     "sizing_recipe.py::_evenly_subsample"
+    ]
+   },
+   {
+    "line": 131,
+    "func": "_build_shared_current_joint_plan",
+    "units": [
+     "sizing_recipe.py::_build_shared_current_joint_plan"
+    ]
+   },
+   {
+    "line": 132,
+    "func": "apply_theta_feed",
+    "units": [
+     "sizing_recipe.py::apply_theta_feed"
+    ]
+   },
+   {
+    "line": 133,
+    "func": "_constraint_tol",
+    "units": [
+     "sizing_recipe.py::_constraint_tol"
+    ]
+   },
+   {
+    "line": 134,
+    "func": "_lerp",
+    "units": [
+     "sizing_recipe.py::_lerp"
+    ]
+   },
+   {
+    "line": 135,
+    "func": "_metric_stage_budget_vds_by_device",
+    "units": [
+     "sizing_recipe.py::_metric_stage_budget_vds_by_device"
+    ]
+   },
+   {
+    "line": 136,
+    "func": "reserved_vds_for_other_stack_members",
+    "units": [
+     "sizing_recipe.py::reserved_vds_for_other_stack_members"
+    ]
+   },
+   {
+    "line": 137,
+    "func": "make_matching_feasibility_check",
+    "units": [
+     "sizing_recipe.py::make_matching_feasibility_check"
+    ]
+   },
+   {
+    "line": 138,
+    "func": "_hr_vfind",
+    "units": [
+     "sizing_recipe.py::_hr_vfind"
+    ]
+   },
+   {
+    "line": 139,
+    "func": "_hr_thin_singleton_ideal_source_check",
+    "units": [
+     "sizing_recipe.py::_hr_thin_singleton_ideal_source_check"
+    ]
+   },
+   {
+    "line": 140,
+    "func": "_hr_sum_ref_vds",
+    "units": [
+     "sizing_recipe.py::_hr_sum_ref_vds"
+    ]
+   },
+   {
+    "line": 141,
+    "func": "_hr_verify_group_kvl_sum",
+    "units": [
+     "sizing_recipe.py::_hr_verify_group_kvl_sum"
+    ]
+   },
+   {
+    "line": 142,
+    "func": "require_declared_spec_source",
+    "units": [
+     "sizing_recipe.py::require_declared_spec_source"
+    ]
+   },
+   {
+    "line": 143,
+    "func": "derived_bounds_path",
+    "units": [
+     "sizing_recipe.py::derived_bounds_path"
+    ]
+   },
+   {
+    "line": 144,
+    "func": "_base_stack_id",
+    "units": [
+     "sizing_recipe.py::_base_stack_id"
+    ]
+   },
+   {
+    "line": 145,
+    "func": "_theta_feed_footprint",
+    "units": [
+     "sizing_recipe.py::_theta_feed_footprint"
+    ]
+   },
+   {
+    "line": 146,
+    "func": "extract_linear_feasibility_constraints",
+    "units": [
+     "sizing_recipe.py::extract_linear_feasibility_constraints"
+    ]
+   },
+   {
+    "line": 147,
+    "func": "_group_score_metric",
+    "units": [
+     "sizing_recipe.py::_group_score_metric"
+    ]
+   },
+   {
+    "line": 148,
+    "func": "_group_score_interior",
+    "units": [
+     "sizing_recipe.py::_group_score_interior"
+    ]
+   },
+   {
+    "line": 149,
+    "func": "apply_and_revalidate_pair_adjustment",
+    "units": [
+     "sizing_recipe.py::apply_and_revalidate_pair_adjustment"
+    ]
+   },
+   {
+    "line": 150,
+    "func": "_sync_finger_fixup",
+    "units": [
+     "sizing_recipe.py::_sync_finger_fixup"
+    ]
+   },
+   {
+    "line": 151,
+    "func": "suggest_matching_finger_growth",
+    "units": [
+     "sizing_recipe.py::suggest_matching_finger_growth"
+    ]
+   },
+   {
+    "line": 152,
+    "func": "apply_and_revalidate_matching_finger_growth",
+    "units": [
+     "sizing_recipe.py::apply_and_revalidate_matching_finger_growth"
+    ]
+   },
+   {
+    "line": 158,
+    "func": "SharedFingerWCandidate",
+    "units": [
+     "stick_diagram.py::SharedFingerWCandidate"
+    ]
+   },
+   {
+    "line": 159,
+    "func": "_try_interdigitation_table_match",
+    "units": [
+     "stick_diagram.py::_try_interdigitation_table_match"
+    ]
+   },
+   {
+    "line": 160,
+    "func": "interdigitate_layout",
+    "units": [
+     "stick_diagram.py::interdigitate_layout"
+    ]
+   },
+   {
+    "line": 161,
+    "func": "build_mirror_symmetric_pattern",
+    "units": [
+     "stick_diagram.py::build_mirror_symmetric_pattern"
+    ]
+   },
+   {
+    "line": 162,
+    "func": "_hubleaf_sequence_node_path",
+    "units": [
+     "stick_diagram.py::_hubleaf_sequence_node_path"
+    ]
+   },
+   {
+    "line": 163,
+    "func": "_common_centroid_from_pattern_table",
+    "units": [
+     "stick_diagram.py::_common_centroid_from_pattern_table"
+    ]
+   },
+   {
+    "line": 164,
+    "func": "_try_pattern_table_match",
+    "units": [
+     "stick_diagram.py::_try_pattern_table_match"
+    ]
+   },
+   {
+    "line": 165,
+    "func": "common_centroid_layout",
+    "units": [
+     "stick_diagram.py::common_centroid_layout"
+    ]
+   },
+   {
+    "line": 166,
+    "func": "_fix_block_parity",
+    "units": [
+     "stick_diagram.py::_fix_block_parity"
+    ]
+   },
+   {
+    "line": 167,
+    "func": "_common_centroid_nway_exact",
+    "units": [
+     "stick_diagram.py::_common_centroid_nway_exact"
+    ]
+   },
+   {
+    "line": 168,
+    "func": "_proportional_round_robin",
+    "units": [
+     "stick_diagram.py::_proportional_round_robin"
+    ]
+   },
+   {
+    "line": 169,
+    "func": "_slice_into_rows",
+    "units": [
+     "stick_diagram.py::_slice_into_rows"
+    ]
+   },
+   {
+    "line": 170,
+    "func": "_row_feasible",
+    "units": [
+     "stick_diagram.py::_row_feasible"
+    ]
+   },
+   {
+    "line": 171,
+    "func": "_repair_row_parity",
+    "units": [
+     "stick_diagram.py::_repair_row_parity"
+    ]
+   },
+   {
+    "line": 172,
+    "func": "_build_rows_from_shares",
+    "units": [
+     "stick_diagram.py::_build_rows_from_shares"
+    ]
+   },
+   {
+    "line": 173,
+    "func": "_build_rows_from_shares_with_crossover",
+    "units": [
+     "stick_diagram.py::_build_rows_from_shares_with_crossover"
+    ]
+   },
+   {
+    "line": 174,
+    "func": "_common_centroid_residual",
+    "units": [
+     "stick_diagram.py::_common_centroid_residual"
+    ]
+   },
+   {
+    "line": 175,
+    "func": "_count_isolated_pairs",
+    "units": [
+     "stick_diagram.py::_count_isolated_pairs"
+    ]
+   },
+   {
+    "line": 176,
+    "func": "_common_centroid_nway_search",
+    "units": [
+     "stick_diagram.py::_common_centroid_nway_search"
+    ]
+   },
+   {
+    "line": 177,
+    "func": "_sorted_setmap",
+    "units": [
+     "stick_diagram.py::_sorted_setmap"
+    ]
+   },
+   {
+    "line": 178,
+    "func": "_scan_case_collisions",
+    "units": [
+     "stick_diagram.py::_scan_case_collisions"
+    ]
+   },
+   {
+    "line": 179,
+    "func": "_to_analog_grammar_devs",
+    "units": [
+     "stick_diagram.py::_to_analog_grammar_devs"
+    ]
+   },
+   {
+    "line": 180,
+    "func": "find_stack_edges",
+    "units": [
+     "stick_diagram.py::find_stack_edges"
+    ]
+   },
+   {
+    "line": 181,
+    "func": "SymmetryDispositionsVerdict",
+    "units": [
+     "stick_diagram.py::SymmetryDispositionsVerdict"
+    ]
+   },
+   {
+    "line": 182,
+    "func": "find_hub_merge_candidates",
+    "units": [
+     "stick_diagram.py::find_hub_merge_candidates"
+    ]
+   },
+   {
+    "line": 183,
+    "func": "StructuralSymmetryVerdict",
+    "units": [
+     "stick_diagram.py::StructuralSymmetryVerdict"
+    ]
+   },
+   {
+    "line": 184,
+    "func": "split_into_stacks",
+    "units": [
+     "stick_diagram.py::split_into_stacks"
+    ]
+   },
+   {
+    "line": 185,
+    "func": "shares_diffusion_node",
+    "units": [
+     "stick_diagram.py::shares_diffusion_node"
+    ]
+   },
+   {
+    "line": 186,
+    "func": "_verified_euler_fix",
+    "units": [
+     "stick_diagram.py::_verified_euler_fix"
+    ]
+   },
+   {
+    "line": 187,
+    "func": "merge_layout_groups_by_matching_pairs",
+    "units": [
+     "stick_diagram.py::merge_layout_groups_by_matching_pairs"
+    ]
+   },
+   {
+    "line": 188,
+    "func": "derive_horizontal_stack_groups",
+    "units": [
+     "stick_diagram.py::derive_horizontal_stack_groups"
+    ]
+   },
+   {
+    "line": 189,
+    "func": "FingerWidthIssue",
+    "units": [
+     "stick_diagram.py::FingerWidthIssue"
+    ]
+   },
+   {
+    "line": 190,
+    "func": "check_finger_width_compatibility",
+    "units": [
+     "stick_diagram.py::check_finger_width_compatibility"
+    ]
+   },
+   {
+    "line": 191,
+    "func": "StackGraph",
+    "units": [
+     "stick_diagram.py::StackGraph"
+    ]
+   },
+   {
+    "line": 192,
+    "func": "build_graph",
+    "units": [
+     "stick_diagram.py::build_graph"
+    ]
+   },
+   {
+    "line": 193,
+    "func": "_degrees",
+    "units": [
+     "stick_diagram.py::_degrees"
+    ]
+   },
+   {
+    "line": 194,
+    "func": "EulerVerdict",
+    "units": [
+     "stick_diagram.py::EulerVerdict"
+    ]
+   },
+   {
+    "line": 195,
+    "func": "hierholzer",
+    "units": [
+     "stick_diagram.py::hierholzer"
+    ]
+   },
+   {
+    "line": 196,
+    "func": "_mirror_node_map_from_pairs",
+    "units": [
+     "stick_diagram.py::_mirror_node_map_from_pairs"
+    ]
+   },
+   {
+    "line": 197,
+    "func": "_pair_odd_nodes_by_mirror",
+    "units": [
+     "stick_diagram.py::_pair_odd_nodes_by_mirror"
+    ]
+   },
+   {
+    "line": 198,
+    "func": "_build_crossover_segments",
+    "units": [
+     "stick_diagram.py::_build_crossover_segments"
+    ]
+   },
+   {
+    "line": 199,
+    "func": "_count_matching_pair_splits",
+    "units": [
+     "stick_diagram.py::_count_matching_pair_splits"
+    ]
+   },
+   {
+    "line": 200,
+    "func": "_is_perfect_crossover_score",
+    "units": [
+     "stick_diagram.py::_is_perfect_crossover_score"
+    ]
+   },
+   {
+    "line": 201,
+    "func": "_enumerate_perfect_matchings",
+    "units": [
+     "stick_diagram.py::_enumerate_perfect_matchings"
+    ]
+   },
+   {
+    "line": 202,
+    "func": "_select_crossover_pairing",
+    "units": [
+     "stick_diagram.py::_select_crossover_pairing"
+    ]
+   },
+   {
+    "line": 203,
+    "func": "find_min_crossover_layout",
+    "units": [
+     "stick_diagram.py::find_min_crossover_layout"
+    ]
+   },
+   {
+    "line": 204,
+    "func": "AdjustmentSuggestion",
+    "units": [
+     "stick_diagram.py::AdjustmentSuggestion"
+    ]
+   },
+   {
+    "line": 205,
+    "func": "PairAdjustmentSuggestion",
+    "units": [
+     "stick_diagram.py::PairAdjustmentSuggestion"
+    ]
+   },
+   {
+    "line": 206,
+    "func": "UnitCellCandidate",
+    "units": [
+     "stick_diagram.py::UnitCellCandidate"
+    ]
+   },
+   {
+    "line": 207,
+    "func": "BoxLayoutCandidate",
+    "units": [
+     "stick_diagram.py::BoxLayoutCandidate"
+    ]
+   },
+   {
+    "line": 208,
+    "func": "assign_finger_geometry",
+    "units": [
+     "stick_diagram.py::assign_finger_geometry"
+    ]
+   },
+   {
+    "line": 209,
+    "func": "apply_explicit_row_split",
+    "units": [
+     "stick_diagram.py::apply_explicit_row_split"
+    ]
+   },
+   {
+    "line": 210,
+    "func": "pitch",
+    "units": [
+     "stick_diagram.py::pitch"
+    ]
+   },
+   {
+    "line": 211,
+    "func": "RowGeometry",
+    "units": [
+     "stick_diagram.py::RowGeometry"
+    ]
+   },
+   {
+    "line": 212,
+    "func": "BoxShapeVerdict",
+    "units": [
+     "stick_diagram.py::BoxShapeVerdict"
+    ]
+   },
+   {
+    "line": 213,
+    "func": "StickResult",
+    "units": [
+     "stick_diagram.py::StickResult"
+    ]
+   },
+   {
+    "line": 214,
+    "func": "WalkVerdict",
+    "units": [
+     "stick_diagram.py::WalkVerdict"
+    ]
+   },
+   {
+    "line": 215,
+    "func": "mirror_symmetric_trail",
+    "units": [
+     "stick_diagram.py::mirror_symmetric_trail"
+    ]
+   },
+   {
+    "line": 216,
+    "func": "build_stick_diagram",
+    "units": [
+     "stick_diagram.py::build_stick_diagram"
+    ]
+   },
+   {
+    "line": 217,
+    "func": "AuditCheck",
+    "units": [
+     "stick_diagram.py::AuditCheck"
+    ]
+   },
+   {
+    "line": 218,
+    "func": "CoverageVerdict",
+    "units": [
+     "stick_diagram.py::CoverageVerdict"
+    ]
+   },
+   {
+    "line": 219,
+    "func": "INSTANCE_TOP_FIELDS",
+    "units": [
+     "stick_diagram.py::INSTANCE_TOP_FIELDS"
+    ]
+   },
+   {
+    "line": 220,
+    "func": "CompletenessVerdict",
+    "units": [
+     "stick_diagram.py::CompletenessVerdict"
+    ]
+   },
+   {
+    "line": 221,
+    "func": "NameCollisionVerdict",
+    "units": [
+     "stick_diagram.py::NameCollisionVerdict"
+    ]
+   },
+   {
+    "line": 222,
+    "func": "select_layout_tool",
+    "units": [
+     "stick_diagram.py::select_layout_tool"
+    ]
+   },
+   {
+    "line": 223,
+    "func": "audit_row_split",
+    "units": [
+     "stick_diagram.py::audit_row_split"
+    ]
+   },
+   {
+    "line": 224,
+    "func": "_layout_result_to_rows",
+    "units": [
+     "stick_diagram.py::_layout_result_to_rows"
+    ]
+   },
+   {
+    "line": 225,
+    "func": "_two_device_branch_outer",
+    "units": [
+     "stick_diagram.py::_two_device_branch_outer"
+    ]
+   },
+   {
+    "line": 226,
+    "func": "_branch_composite_pair",
+    "units": [
+     "stick_diagram.py::_branch_composite_pair"
+    ]
+   },
+   {
+    "line": 227,
+    "func": "_composite_collapse_for_crossover",
+    "units": [
+     "stick_diagram.py::_composite_collapse_for_crossover"
+    ]
+   },
+   {
+    "line": 228,
+    "func": "find_min_crossover_layout_with_branch_composite",
+    "units": [
+     "stick_diagram.py::find_min_crossover_layout_with_branch_composite"
+    ]
+   },
+   {
+    "line": 229,
+    "func": "repair_matching_safety",
+    "units": [
+     "stick_diagram.py::repair_matching_safety"
+    ]
+   },
+   {
+    "line": 230,
+    "func": "FloorplanBlock",
+    "units": [
+     "stick_diagram.py::FloorplanBlock"
+    ]
+   },
+   {
+    "line": 231,
+    "func": "_block_center",
+    "units": [
+     "stick_diagram.py::_block_center"
+    ]
+   },
+   {
+    "line": 232,
+    "func": "skyline_pack",
+    "units": [
+     "stick_diagram.py::skyline_pack"
+    ]
+   },
+   {
+    "line": 233,
+    "func": "_sweep_widths",
+    "units": [
+     "stick_diagram.py::_sweep_widths"
+    ]
+   },
+   {
+    "line": 234,
+    "func": "find_diffusion_safe_split_points",
+    "units": [
+     "stick_diagram.py::find_diffusion_safe_split_points"
+    ]
+   },
+   {
+    "line": 235,
+    "func": "pack_floorplan",
+    "units": [
+     "stick_diagram.py::pack_floorplan"
+    ]
+   },
+   {
+    "line": 236,
+    "func": "block_from_rows",
+    "units": [
+     "stick_diagram.py::block_from_rows"
+    ]
+   },
+   {
+    "line": 237,
+    "func": "rebuild_floorplan",
+    "units": [
+     "stick_diagram.py::rebuild_floorplan"
+    ]
+   },
+   {
+    "line": 238,
+    "func": "_pack_by_subkind",
+    "units": [
+     "stick_diagram.py::_pack_by_subkind"
+    ]
+   },
+   {
+    "line": 239,
+    "func": "run_full_circuit_audit_from_topology",
+    "units": [
+     "stick_diagram.py::run_full_circuit_audit_from_topology"
+    ]
+   },
+   {
+    "line": 240,
+    "func": "_box_shape_json",
+    "units": [
+     "stick_diagram.py::_box_shape_json"
+    ]
+   },
+   {
+    "line": 241,
+    "func": "_audit_result_json",
+    "units": [
+     "stick_diagram.py::_audit_result_json"
+    ]
+   },
+   {
+    "line": 242,
+    "func": "save_instance_json",
+    "units": [
+     "stick_diagram.py::save_instance_json"
+    ]
+   },
+   {
+    "line": 248,
+    "func": "render_report",
+    "units": [
+     "audit_current_forced.py::render_report"
+    ]
+   },
+   {
+    "line": 249,
+    "func": "miller_ota_topology",
+    "units": [
+     "topology_library.py::miller_ota_topology"
+    ]
+   },
+   {
+    "line": 252,
+    "func": "nmcnr_compensation_elements",
+    "units": [
+     "topology_library.py::nmcnr_compensation_elements"
+    ]
+   },
+   {
+    "line": 253,
+    "func": "nmcnr_predict_ac_response",
+    "units": [
+     "topology_library.py::nmcnr_predict_ac_response"
+    ]
+   },
+   {
+    "line": 256,
+    "func": "_kv_table",
+    "units": [
+     "design_report.py::_kv_table"
+    ]
+   },
+   {
+    "line": 258,
+    "func": "save_html_report",
+    "units": [
+     "design_report.py::save_html_report"
+    ]
+   },
+   {
+    "line": 259,
+    "func": "_as_set",
+    "units": [
+     "audit_current_forced.py::_as_set"
+    ]
+   },
+   {
+    "line": 277,
+    "func": "_QUERY_CACHE_MAX",
+    "units": [
+     "sizing_recipe.py::_QUERY_CACHE_MAX"
+    ]
+   },
+   {
+    "line": 278,
+    "func": "SemiEmpiricalGmIdLUT._query",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 279,
+    "func": "SemiEmpiricalGmIdLUT._idu_scan",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 280,
+    "func": "SemiEmpiricalGmIdLUT._gm_id_curve",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 281,
+    "func": "SemiEmpiricalGmIdLUT._solve_vgs",
+    "units": [
+     "sizing_recipe.py::SemiEmpiricalGmIdLUT"
+    ]
+   },
+   {
+    "line": 282,
+    "func": "find_optimal_sizing",
+    "units": [
+     "sizing_recipe.py::find_optimal_sizing"
+    ]
+   },
+   {
+    "line": 283,
+    "func": "solve_id_for_target_gm",
+    "units": [
+     "sizing_recipe.py::solve_id_for_target_gm"
+    ]
+   },
+   {
+    "line": 284,
+    "func": "_invert_gm_id_for_current",
+    "units": [
+     "sizing_recipe.py::_invert_gm_id_for_current"
+    ]
+   },
+   {
+    "line": 285,
+    "func": "_default_cascode_headroom",
+    "units": [
+     "sizing_recipe.py::_default_cascode_headroom"
+    ]
+   },
+   {
+    "line": 286,
+    "func": "lut_vdsat_headroom",
+    "units": [
+     "sizing_recipe.py::lut_vdsat_headroom"
+    ]
+   },
+   {
+    "line": 287,
+    "func": "allocate_stack_headroom",
+    "units": [
+     "sizing_recipe.py::allocate_stack_headroom"
+    ]
+   },
+   {
+    "line": 288,
+    "func": "_feed_vds_fallback",
+    "units": [
+     "sizing_recipe.py::_feed_vds_fallback"
+    ]
+   },
+   {
+    "line": 289,
+    "func": "search_gm_id_for_role",
+    "units": [
+     "sizing_recipe.py::search_gm_id_for_role"
+    ]
+   },
+   {
+    "line": 290,
+    "func": "gain_stage_tails",
+    "units": [
+     "sizing_recipe.py::gain_stage_tails"
+    ]
+   },
+   {
+    "line": 291,
+    "func": "_KNEE_L_CACHE",
+    "units": [
+     "sizing_recipe.py::_KNEE_L_CACHE"
+    ]
+   },
+   {
+    "line": 292,
+    "func": "synthesize_l_class_thetas",
+    "units": [
+     "sizing_recipe.py::synthesize_l_class_thetas"
+    ]
+   },
+   {
+    "line": 293,
+    "func": "_FEASIBLE_L_WINDOW_CACHE",
+    "units": [
+     "sizing_recipe.py::_FEASIBLE_L_WINDOW_CACHE"
+    ]
+   },
+   {
+    "line": 294,
+    "func": "_L_ROLE_TARGETS",
+    "units": [
+     "sizing_recipe.py::_L_ROLE_TARGETS"
+    ]
+   },
+   {
+    "line": 295,
+    "func": "derive_class_L",
+    "units": [
+     "sizing_recipe.py::derive_class_L"
+    ]
+   },
+   {
+    "line": 296,
+    "func": "_metric_flicker_plus_thermal_sum",
+    "units": [
+     "sizing_recipe.py::_metric_flicker_plus_thermal_sum"
+    ]
+   },
+   {
+    "line": 297,
+    "func": "diode_vds_cached",
+    "units": [
+     "sizing_recipe.py::diode_vds_cached"
+    ]
+   },
+   {
+    "line": 298,
+    "func": "_metric_stack_headroom_slack",
+    "units": [
+     "sizing_recipe.py::_metric_stack_headroom_slack"
+    ]
+   },
+   {
+    "line": 299,
+    "func": "set_device_vds",
+    "units": [
+     "sizing_recipe.py::set_device_vds"
+    ]
+   },
+   {
+    "line": 300,
+    "func": "diode_vds_window",
+    "units": [
+     "sizing_recipe.py::diode_vds_window"
+    ]
+   },
+   {
+    "line": 301,
+    "func": "apply_diode_self_consistent_gm_id",
+    "units": [
+     "sizing_recipe.py::apply_diode_self_consistent_gm_id"
+    ]
+   },
+   {
+    "line": 302,
+    "func": "propagate_node_voltages",
+    "units": [
+     "sizing_recipe.py::propagate_node_voltages"
+    ]
+   },
+   {
+    "line": 303,
+    "func": "reconcile_vsb_from_nodes",
+    "units": [
+     "sizing_recipe.py::reconcile_vsb_from_nodes"
+    ]
+   },
+   {
+    "line": 304,
+    "func": "audit_vsb_consistency",
+    "units": [
+     "sizing_recipe.py::audit_vsb_consistency"
+    ]
+   },
+   {
+    "line": 305,
+    "func": "_mna_stamp_capacitance",
+    "units": [
+     "sizing_recipe.py::_mna_stamp_capacitance"
+    ]
+   },
+   {
+    "line": 306,
+    "func": "build_ac_network",
+    "units": [
+     "sizing_recipe.py::build_ac_network"
+    ]
+   },
+   {
+    "line": 307,
+    "func": "_metric_parasitic_pm_deg",
+    "units": [
+     "sizing_recipe.py::_metric_parasitic_pm_deg"
+    ]
+   },
+   {
+    "line": 308,
+    "func": "_metric_kcl_residual",
+    "units": [
+     "sizing_recipe.py::_metric_kcl_residual"
+    ]
+   },
+   {
+    "line": 309,
+    "func": "_metric_supply_current",
+    "units": [
+     "sizing_recipe.py::_metric_supply_current"
+    ]
+   },
+   {
+    "line": 310,
+    "func": "_mirror_ratio_error_pairs",
+    "units": [
+     "sizing_recipe.py::_mirror_ratio_error_pairs"
+    ]
+   },
+   {
+    "line": 311,
+    "func": "input_referred_offset_pairs",
+    "units": [
+     "sizing_recipe.py::input_referred_offset_pairs"
+    ]
+   },
+   {
+    "line": 312,
+    "func": "_metric_input_referred_offset",
+    "units": [
+     "sizing_recipe.py::_metric_input_referred_offset"
+    ]
+   },
+   {
+    "line": 313,
+    "func": "_metric_rail_referenced_voltage",
+    "units": [
+     "sizing_recipe.py::_metric_rail_referenced_voltage"
+    ]
+   },
+   {
+    "line": 314,
+    "func": "_mna_solve_smallsignal",
+    "units": [
+     "sizing_recipe.py::_mna_solve_smallsignal"
+    ]
+   },
+   {
+    "line": 315,
+    "func": "_psrr_diff_pair_tail",
+    "units": [
+     "sizing_recipe.py::_psrr_diff_pair_tail"
+    ]
+   },
+   {
+    "line": 316,
+    "func": "_load_full_topology_cached",
+    "units": [
+     "sizing_recipe.py::_load_full_topology_cached"
+    ]
+   },
+   {
+    "line": 317,
+    "func": "_topology_meta_cached",
+    "units": [
+     "sizing_recipe.py::_topology_meta_cached"
+    ]
+   },
+   {
+    "line": 318,
+    "func": "_l_sharing_classes_cached",
+    "units": [
+     "sizing_recipe.py::_l_sharing_classes_cached"
+    ]
+   },
+   {
+    "line": 319,
+    "func": "_l_class_owners_cached",
+    "units": [
+     "sizing_recipe.py::_l_class_owners_cached"
+    ]
+   },
+   {
+    "line": 320,
+    "func": "_ideal_sources_cached",
+    "units": [
+     "sizing_recipe.py::_ideal_sources_cached"
+    ]
+   },
+   {
+    "line": 321,
+    "func": "_diode_set_cached",
+    "units": [
+     "sizing_recipe.py::_diode_set_cached"
+    ]
+   },
+   {
+    "line": 322,
+    "func": "_device_roles_cached",
+    "units": [
+     "sizing_recipe.py::_device_roles_cached"
+    ]
+   },
+   {
+    "line": 323,
+    "func": "_matching_pairs_cached",
+    "units": [
+     "sizing_recipe.py::_matching_pairs_cached"
+    ]
+   },
+   {
+    "line": 324,
+    "func": "_resolve_nulling_resistor_ohm",
+    "units": [
+     "sizing_recipe.py::_resolve_nulling_resistor_ohm"
+    ]
+   },
+   {
+    "line": 325,
+    "func": "_full_circuit_response",
+    "units": [
+     "sizing_recipe.py::_full_circuit_response"
+    ]
+   },
+   {
+    "line": 326,
+    "func": "FeedHandler",
+    "units": [
+     "sizing_recipe.py::FeedHandler"
+    ]
+   },
+   {
+    "line": 327,
+    "func": "_feed_root_ratio",
+    "units": [
+     "sizing_recipe.py::_feed_root_ratio"
+    ]
+   },
+   {
+    "line": 328,
+    "func": "_feed_root_const",
+    "units": [
+     "sizing_recipe.py::_feed_root_const"
+    ]
+   },
+   {
+    "line": 329,
+    "func": "_feed_root_signed_sum",
+    "units": [
+     "sizing_recipe.py::_feed_root_signed_sum"
+    ]
+   },
+   {
+    "line": 330,
+    "func": "_feed_diode_stack_target",
+    "units": [
+     "sizing_recipe.py::_feed_diode_stack_target"
+    ]
+   },
+   {
+    "line": 331,
+    "func": "_feed_gm_target_convention",
+    "units": [
+     "sizing_recipe.py::_feed_gm_target_convention"
+    ]
+   },
+   {
+    "line": 332,
+    "func": "_feed_settling_split",
+    "units": [
+     "sizing_recipe.py::_feed_settling_split"
+    ]
+   },
+   {
+    "line": 333,
+    "func": "_metric_stage_budget_finalize",
+    "units": [
+     "sizing_recipe.py::_metric_stage_budget_finalize"
+    ]
+   },
+   {
+    "line": 334,
+    "func": "_shared_current_root_grids",
+    "units": [
+     "sizing_recipe.py::_shared_current_root_grids"
+    ]
+   },
+   {
+    "line": 335,
+    "func": "_make_shared_current_scorer",
+    "units": [
+     "sizing_recipe.py::_make_shared_current_scorer"
+    ]
+   },
+   {
+    "line": 336,
+    "func": "_feed_l_class",
+    "units": [
+     "sizing_recipe.py::_feed_l_class"
+    ]
+   },
+   {
+    "line": 337,
+    "func": "InfeasibleSizingError",
+    "units": [
+     "sizing_recipe.py::InfeasibleSizingError"
+    ]
+   },
+   {
+    "line": 338,
+    "func": "resolve_stack_layout",
+    "units": [
+     "sizing_recipe.py::resolve_stack_layout"
+    ]
+   },
+   {
+    "line": 339,
+    "func": "make_replica_feasibility_check",
+    "units": [
+     "sizing_recipe.py::make_replica_feasibility_check"
+    ]
+   },
+   {
+    "line": 340,
+    "func": "_HeadroomTopoEnv",
+    "units": [
+     "sizing_recipe.py::_HeadroomTopoEnv"
+    ]
+   },
+   {
+    "line": 341,
+    "func": "_HeadroomEvalEnv",
+    "units": [
+     "sizing_recipe.py::_HeadroomEvalEnv"
+    ]
+   },
+   {
+    "line": 342,
+    "func": "_hr_fold_group_check",
+    "units": [
+     "sizing_recipe.py::_hr_fold_group_check"
+    ]
+   },
+   {
+    "line": 343,
+    "func": "achievable_metric_bound",
+    "units": [
+     "sizing_recipe.py::achievable_metric_bound"
+    ]
+   },
+   {
+    "line": 344,
+    "func": "resolve_constraint_references",
+    "units": [
+     "sizing_recipe.py::resolve_constraint_references"
+    ]
+   },
+   {
+    "line": 345,
+    "func": "_pick_split_target",
+    "units": [
+     "sizing_recipe.py::_pick_split_target"
+    ]
+   },
+   {
+    "line": 346,
+    "func": "_score_floorplan",
+    "units": [
+     "sizing_recipe.py::_score_floorplan"
+    ]
+   },
+   {
+    "line": 347,
+    "func": "diagnose_sizing_roles_gap",
+    "units": [
+     "sizing_recipe.py::diagnose_sizing_roles_gap"
+    ]
+   },
+   {
+    "line": 348,
+    "func": "_metric_device_footprint",
+    "units": [
+     "sizing_recipe.py::_metric_device_footprint"
+    ]
+   },
+   {
+    "line": 349,
+    "func": "repair_infeasible_baseline",
+    "units": [
+     "sizing_recipe.py::repair_infeasible_baseline"
+    ]
+   },
+   {
+    "line": 350,
+    "func": "revalidate_finger_override",
+    "units": [
+     "sizing_recipe.py::revalidate_finger_override"
+    ]
+   },
+   {
+    "line": 351,
+    "func": "_blocked_euler_rows",
+    "units": [
+     "sizing_recipe.py::_blocked_euler_rows"
+    ]
+   },
+   {
+    "line": 352,
+    "func": "run_matching_safety_with_finger_growth",
+    "units": [
+     "sizing_recipe.py::run_matching_safety_with_finger_growth"
+    ]
+   },
+   {
+    "line": 353,
+    "func": "run_topology_pipeline_with_finger_fixup",
+    "units": [
+     "sizing_recipe.py::run_topology_pipeline_with_finger_fixup"
+    ]
+   },
+   {
+    "line": 359,
+    "func": "Transistor",
+    "units": [
+     "stick_diagram.py::Transistor"
+    ]
+   },
+   {
+    "line": 360,
+    "func": "_import_analog_grammar",
+    "units": [
+     "stick_diagram.py::_import_analog_grammar"
+    ]
+   },
+   {
+    "line": 361,
+    "func": "find_stacked_matching_candidates",
+    "units": [
+     "stick_diagram.py::find_stacked_matching_candidates"
+    ]
+   },
+   {
+    "line": 362,
+    "func": "_propose_L_roles",
+    "units": [
+     "stick_diagram.py::_propose_L_roles"
+    ]
+   },
+   {
+    "line": 363,
+    "func": "check_symmetry_dispositions",
+    "units": [
+     "stick_diagram.py::check_symmetry_dispositions"
+    ]
+   },
+   {
+    "line": 364,
+    "func": "find_structural_symmetry_candidates",
+    "units": [
+     "stick_diagram.py::find_structural_symmetry_candidates"
+    ]
+   },
+   {
+    "line": 365,
+    "func": "geometry_colocation_union",
+    "units": [
+     "stick_diagram.py::geometry_colocation_union"
+    ]
+   },
+   {
+    "line": 366,
+    "func": "audit_vertical_stack_id_vs_kcl",
+    "units": [
+     "stick_diagram.py::audit_vertical_stack_id_vs_kcl"
+    ]
+   },
+   {
+    "line": 367,
+    "func": "find_authoritative_sizing_devices",
+    "units": [
+     "stick_diagram.py::find_authoritative_sizing_devices"
+    ]
+   },
+   {
+    "line": 368,
+    "func": "find_unreviewed_device_roles",
+    "units": [
+     "stick_diagram.py::find_unreviewed_device_roles"
+    ]
+   },
+   {
+    "line": 369,
+    "func": "find_unreviewed_matching_pairs",
+    "units": [
+     "stick_diagram.py::find_unreviewed_matching_pairs"
+    ]
+   },
+   {
+    "line": 370,
+    "func": "require_device_roles_reviewed",
+    "units": [
+     "stick_diagram.py::require_device_roles_reviewed"
+    ]
+   },
+   {
+    "line": 371,
+    "func": "run_full_circuit_audit",
+    "units": [
+     "stick_diagram.py::run_full_circuit_audit"
+    ]
+   },
+   {
+    "line": 372,
+    "func": "_failing_required_pairs",
+    "units": [
+     "stick_diagram.py::_failing_required_pairs"
+    ]
+   },
+   {
+    "line": 373,
+    "func": "_kcl_branch_map",
+    "units": [
+     "stick_diagram.py::_kcl_branch_map"
+    ]
+   },
+   {
+    "line": 374,
+    "func": "run_topology_pipeline",
+    "units": [
+     "stick_diagram.py::run_topology_pipeline"
+    ]
+   },
+   {
+    "line": 380,
+    "func": "nmcnr_3stage_topology",
+    "units": [
+     "topology_library.py::nmcnr_3stage_topology"
+    ]
+   },
+   {
+    "line": 381,
+    "func": "nmcnr_check_dominant_pole_approximation",
+    "units": [
+     "topology_library.py::nmcnr_check_dominant_pole_approximation"
+    ]
+   },
+   {
+    "line": 382,
+    "func": "ngcc_3stage_topology",
+    "units": [
+     "topology_library.py::ngcc_3stage_topology"
+    ]
+   },
+   {
+    "line": 383,
+    "func": "current_reuse_telescopic_topology",
+    "units": [
+     "topology_library.py::current_reuse_telescopic_topology"
+    ]
+   },
+   {
+    "line": 385,
+    "func": "build_topology_device_table",
+    "units": [
+     "design_report.py::build_topology_device_table"
+    ]
+   },
+   {
+    "line": 386,
+    "func": "assemble_report_data",
+    "units": [
+     "design_report.py::assemble_report_data"
+    ]
+   },
+   {
+    "line": 387,
+    "func": "render_html_report",
+    "units": [
+     "design_report.py::render_html_report"
+    ]
+   },
+   {
+    "line": 388,
+    "func": "_theta_evidence_for_pair",
+    "units": [
+     "audit_current_forced.py::_theta_evidence_for_pair"
+    ]
+   },
+   {
+    "line": 389,
+    "func": "audit_topology",
+    "units": [
+     "audit_current_forced.py::audit_topology"
+    ]
+   },
+   {
+    "line": 403,
+    "func": "_optimize_theta_slsqp_block_coordinate",
+    "units": [
+     "sizing_recipe.py::_optimize_theta_slsqp_block_coordinate"
+    ]
+   },
+   {
+    "line": 404,
+    "func": "optimize_multistage",
+    "units": [
+     "sizing_recipe.py::optimize_multistage"
+    ]
+   },
+   {
+    "line": 405,
+    "func": "stack_kvl_vgs_limit",
+    "units": [
+     "sizing_recipe.py::stack_kvl_vgs_limit"
+    ]
+   },
+   {
+    "line": 406,
+    "func": "resolve_feed_vds",
+    "units": [
+     "sizing_recipe.py::resolve_feed_vds"
+    ]
+   },
+   {
+    "line": 407,
+    "func": "SizingContext",
+    "units": [
+     "sizing_recipe.py::SizingContext"
+    ]
+   },
+   {
+    "line": 408,
+    "func": "_gm_id_already_authoritative",
+    "units": [
+     "sizing_recipe.py::_gm_id_already_authoritative"
+    ]
+   },
+   {
+    "line": 409,
+    "func": "solve_stacked_diode_pair",
+    "units": [
+     "sizing_recipe.py::solve_stacked_diode_pair"
+    ]
+   },
+   {
+    "line": 410,
+    "func": "materialize_input_offset_pairs",
+    "units": [
+     "sizing_recipe.py::materialize_input_offset_pairs"
+    ]
+   },
+   {
+    "line": 411,
+    "func": "_run_shared_current_joint_scan",
+    "units": [
+     "sizing_recipe.py::_run_shared_current_joint_scan"
+    ]
+   },
+   {
+    "line": 412,
+    "func": "_refine_shared_current_joint_scan_for_full_circuit_constraints",
+    "units": [
+     "sizing_recipe.py::_refine_shared_current_joint_scan_for_full_circuit_constraints"
+    ]
+   },
+   {
+    "line": 413,
+    "func": "_feed_metric_stage_budget",
+    "units": [
+     "sizing_recipe.py::_feed_metric_stage_budget"
+    ]
+   },
+   {
+    "line": 414,
+    "func": "_HeadroomDependencyNotReady",
+    "units": [
+     "sizing_recipe.py::_HeadroomDependencyNotReady"
+    ]
+   },
+   {
+    "line": 415,
+    "func": "_hr_resolve_vertical_group",
+    "units": [
+     "sizing_recipe.py::_hr_resolve_vertical_group"
+    ]
+   },
+   {
+    "line": 416,
+    "func": "spec_fingerprint",
+    "units": [
+     "sizing_recipe.py::spec_fingerprint"
+    ]
+   },
+   {
+    "line": 417,
+    "func": "_build_theta_evaluator",
+    "units": [
+     "sizing_recipe.py::_build_theta_evaluator"
+    ]
+   },
+   {
+    "line": 418,
+    "func": "optimize_full_circuit_budget",
+    "units": [
+     "sizing_recipe.py::optimize_full_circuit_budget"
+    ]
+   },
+   {
+    "line": 419,
+    "func": "derive_theta_dependency_graph",
+    "units": [
+     "sizing_recipe.py::derive_theta_dependency_graph"
+    ]
+   },
+   {
+    "line": 420,
+    "func": "search_stage_budget_L_warm_start",
+    "units": [
+     "sizing_recipe.py::search_stage_budget_L_warm_start"
+    ]
+   },
+   {
+    "line": 421,
+    "func": "presolve_warm_start",
+    "units": [
+     "sizing_recipe.py::presolve_warm_start"
+    ]
+   },
+   {
+    "line": 422,
+    "func": "_optimize_theta_slsqp",
+    "units": [
+     "sizing_recipe.py::_optimize_theta_slsqp"
+    ]
+   },
+   {
+    "line": 428,
+    "func": "trace_vdd_to_gnd_branches",
+    "units": [
+     "stick_diagram.py::trace_vdd_to_gnd_branches"
+    ]
+   },
+   {
+    "line": 429,
+    "func": "trace_gnd_to_vdd_branches",
+    "units": [
+     "stick_diagram.py::trace_gnd_to_vdd_branches"
+    ]
+   },
+   {
+    "line": 430,
+    "func": "suggest_vertical_stack_composites",
+    "units": [
+     "stick_diagram.py::suggest_vertical_stack_composites"
+    ]
+   },
+   {
+    "line": 431,
+    "func": "find_verified_differential_and_mirror_relations",
+    "units": [
+     "stick_diagram.py::find_verified_differential_and_mirror_relations"
+    ]
+   },
+   {
+    "line": 432,
+    "func": "_propose_vertical_stack_ids",
+    "units": [
+     "stick_diagram.py::_propose_vertical_stack_ids"
+    ]
+   },
+   {
+    "line": 433,
+    "func": "_propose_gm_id_roles",
+    "units": [
+     "stick_diagram.py::_propose_gm_id_roles"
+    ]
+   },
+   {
+    "line": 434,
+    "func": "_propose_headroom_roles",
+    "units": [
+     "stick_diagram.py::_propose_headroom_roles"
+    ]
+   },
+   {
+    "line": 435,
+    "func": "refine_differential_and_mirror_relations",
+    "units": [
+     "stick_diagram.py::refine_differential_and_mirror_relations"
+    ]
+   },
+   {
+    "line": 436,
+    "func": "propagate_topology_forced_currents",
+    "units": [
+     "stick_diagram.py::propagate_topology_forced_currents"
+    ]
+   },
+   {
+    "line": 437,
+    "func": "propose_vertical_stack_id_gap_fill",
+    "units": [
+     "stick_diagram.py::propose_vertical_stack_id_gap_fill"
+    ]
+   },
+   {
+    "line": 438,
+    "func": "propose_device_roles_gap_fill",
+    "units": [
+     "stick_diagram.py::propose_device_roles_gap_fill"
+    ]
+   },
+   {
+    "line": 439,
+    "func": "load_topology",
+    "units": [
+     "stick_diagram.py::load_topology"
+    ]
+   },
+   {
+    "line": 453,
+    "func": "size_transistor",
+    "units": [
+     "sizing_recipe.py::size_transistor"
+    ]
+   },
+   {
+    "line": 454,
+    "func": "_multilinear_interp_point_multi",
+    "units": [
+     "sizing_recipe.py::_multilinear_interp_point_multi"
+    ]
+   },
+   {
+    "line": 455,
+    "func": "true_current_mirror_groups",
+    "units": [
+     "sizing_recipe.py::true_current_mirror_groups"
+    ]
+   },
+   {
+    "line": 456,
+    "func": "_folded_cascode_rout",
+    "units": [
+     "sizing_recipe.py::_folded_cascode_rout"
+    ]
+   },
+   {
+    "line": 457,
+    "func": "_metric_folded_cascode_gain_db",
+    "units": [
+     "sizing_recipe.py::_metric_folded_cascode_gain_db"
+    ]
+   },
+   {
+    "line": 458,
+    "func": "_metric_folded_cascode_pm_deg",
+    "units": [
+     "sizing_recipe.py::_metric_folded_cascode_pm_deg"
+    ]
+   },
+   {
+    "line": 459,
+    "func": "full_circuit_response_at_omega",
+    "units": [
+     "sizing_recipe.py::full_circuit_response_at_omega"
+    ]
+   },
+   {
+    "line": 460,
+    "func": "_cmrr_diff_pair_tail",
+    "units": [
+     "sizing_recipe.py::_cmrr_diff_pair_tail"
+    ]
+   },
+   {
+    "line": 461,
+    "func": "_theta_device_map",
+    "units": [
+     "sizing_recipe.py::_theta_device_map"
+    ]
+   },
+   {
+    "line": 462,
+    "func": "_collect_device_refs",
+    "units": [
+     "sizing_recipe.py::_collect_device_refs"
+    ]
+   },
+   {
+    "line": 463,
+    "func": "_fixup_euler_blocked_rows",
+    "units": [
+     "sizing_recipe.py::_fixup_euler_blocked_rows"
+    ]
+   },
+   {
+    "line": 469,
+    "func": "find_matching_candidates",
+    "units": [
+     "stick_diagram.py::find_matching_candidates"
+    ]
+   },
+   {
+    "line": 470,
+    "func": "find_differential_pair_candidates",
+    "units": [
+     "stick_diagram.py::find_differential_pair_candidates"
+    ]
+   },
+   {
+    "line": 471,
+    "func": "_diff_pair_layer1_groups",
+    "units": [
+     "stick_diagram.py::_diff_pair_layer1_groups"
+    ]
+   },
+   {
+    "line": 472,
+    "func": "kcl_series_union",
+    "units": [
+     "stick_diagram.py::kcl_series_union"
+    ]
+   },
+   {
+    "line": 473,
+    "func": "_kcl_and_matching_edges",
+    "units": [
+     "stick_diagram.py::_kcl_and_matching_edges"
+    ]
+   },
+   {
+    "line": 474,
+    "func": "_kcl_terminal_sign",
+    "units": [
+     "stick_diagram.py::_kcl_terminal_sign"
+    ]
+   },
+   {
+    "line": 475,
+    "func": "_quantize_to_grid",
+    "units": [
+     "stick_diagram.py::_quantize_to_grid"
+    ]
+   },
+   {
+    "line": 489,
+    "func": "_invq_newton",
+    "units": [
+     "sizing_recipe.py::_invq_newton"
+    ]
+   },
+   {
+    "line": 490,
+    "func": "build_toy_lut",
+    "units": [
+     "sizing_recipe.py::build_toy_lut"
+    ]
+   },
+   {
+    "line": 491,
+    "func": "solve_diode_stack_current",
+    "units": [
+     "sizing_recipe.py::solve_diode_stack_current"
+    ]
+   },
+   {
+    "line": 492,
+    "func": "estimate_area_budget",
+    "units": [
+     "sizing_recipe.py::estimate_area_budget"
+    ]
+   },
+   {
+    "line": 493,
+    "func": "signal_path_nodes",
+    "units": [
+     "sizing_recipe.py::signal_path_nodes"
+    ]
+   },
+   {
+    "line": 494,
+    "func": "node_pole_estimate",
+    "units": [
+     "sizing_recipe.py::node_pole_estimate"
+    ]
+   },
+   {
+    "line": 495,
+    "func": "validate_theta_declaration_order",
+    "units": [
+     "sizing_recipe.py::validate_theta_declaration_order"
+    ]
+   },
+   {
+    "line": 496,
+    "func": "load_derived_bounds",
+    "units": [
+     "sizing_recipe.py::load_derived_bounds"
+    ]
+   },
+   {
+    "line": 497,
+    "func": "lut_conditions_from_npz",
+    "units": [
+     "sizing_recipe.py::lut_conditions_from_npz"
+    ]
+   },
+   {
+    "line": 503,
+    "func": "MirrorSymmetryVerdict",
+    "units": [
+     "stick_diagram.py::MirrorSymmetryVerdict"
+    ]
+   },
+   {
+    "line": 504,
+    "func": "check_mirror_symmetry",
+    "units": [
+     "stick_diagram.py::check_mirror_symmetry"
+    ]
+   },
+   {
+    "line": 505,
+    "func": "find_idiom_matches",
+    "units": [
+     "stick_diagram.py::find_idiom_matches"
+    ]
+   },
+   {
+    "line": 506,
+    "func": "find_differential_and_mirror_forks",
+    "units": [
+     "stick_diagram.py::find_differential_and_mirror_forks"
+    ]
+   },
+   {
+    "line": 507,
+    "func": "MultiLeafHubParityVerdict",
+    "units": [
+     "stick_diagram.py::MultiLeafHubParityVerdict"
+    ]
+   },
+   {
+    "line": 508,
+    "func": "check_multi_leaf_hub_parity",
+    "units": [
+     "stick_diagram.py::check_multi_leaf_hub_parity"
+    ]
+   },
+   {
+    "line": 509,
+    "func": "DiodeStackMember",
+    "units": [
+     "stick_diagram.py::DiodeStackMember"
+    ]
+   },
+   {
+    "line": 510,
+    "func": "DiodeStack",
+    "units": [
+     "stick_diagram.py::DiodeStack"
+    ]
+   },
+   {
+    "line": 511,
+    "func": "find_diode_stacks",
+    "units": [
+     "stick_diagram.py::find_diode_stacks"
+    ]
+   },
+   {
+    "line": 512,
+    "func": "audit_theta_root_direction",
+    "units": [
+     "stick_diagram.py::audit_theta_root_direction"
+    ]
+   },
+   {
+    "line": 513,
+    "func": "propose_theta_kcl_gap_fill",
+    "units": [
+     "stick_diagram.py::propose_theta_kcl_gap_fill"
+    ]
+   },
+   {
+    "line": 514,
+    "func": "apply_theta_kcl_gap_fill",
+    "units": [
+     "stick_diagram.py::apply_theta_kcl_gap_fill"
+    ]
+   },
+   {
+    "line": 515,
+    "func": "apply_device_roles_gap_fill",
+    "units": [
+     "stick_diagram.py::apply_device_roles_gap_fill"
+    ]
+   },
+   {
+    "line": 516,
+    "func": "audit_vertical_stack_id_euler_feasibility",
+    "units": [
+     "stick_diagram.py::audit_vertical_stack_id_euler_feasibility"
+    ]
+   },
+   {
+    "line": 517,
+    "func": "find_euler_repair_options",
+    "units": [
+     "stick_diagram.py::find_euler_repair_options"
+    ]
+   }
+  ],
+  "multi": [],
+  "nested": [
+   {
+    "line": 250,
+    "func": "  └ topology_fn",
+    "units": []
+   },
+   {
+    "line": 251,
+    "func": "  └ topology_fn",
+    "units": []
+   },
+   {
+    "line": 254,
+    "func": "  └ _H",
+    "units": []
+   },
+   {
+    "line": 255,
+    "func": "  └ topology_fn",
+    "units": []
+   },
+   {
+    "line": 257,
+    "func": "  └ _section",
+    "units": []
+   },
+   {
+    "line": 384,
+    "func": "  └ topology_fn",
+    "units": []
+   },
+   {
+    "line": 481,
+    "func": "  └ _find",
+    "units": []
+   }
+  ],
+  "nounit": [
+   {
+    "line": 260,
+    "func": "_gen_netlist",
+    "units": []
+   },
+   {
+    "line": 261,
+    "func": "_parse_output",
+    "units": []
+   },
+   {
+    "line": 262,
+    "func": "_ltag",
+    "units": []
+   },
+   {
+    "line": 263,
+    "func": "_cleanup_temp",
+    "units": []
+   },
+   {
+    "line": 264,
+    "func": "run_device",
+    "units": []
+   },
+   {
+    "line": 265,
+    "func": "_flag_dangling_nets",
+    "units": []
+   },
+   {
+    "line": 266,
+    "func": "_flag_gate_only_nets",
+    "units": []
+   },
+   {
+    "line": 267,
+    "func": "_net_table",
+    "units": []
+   },
+   {
+    "line": 268,
+    "func": "render_markdown",
+    "units": []
+   },
+   {
+    "line": 269,
+    "func": "canonical_spec",
+    "units": []
+   },
+   {
+    "line": 390,
+    "func": "_run_combo",
+    "units": []
+   },
+   {
+    "line": 391,
+    "func": "_spec_two_stage_ota",
+    "units": []
+   },
+   {
+    "line": 392,
+    "func": "_spec_current_reuse_telescopic_ota",
+    "units": []
+   },
+   {
+    "line": 393,
+    "func": "_spec_folded_cascode",
+    "units": []
+   },
+   {
+    "line": 394,
+    "func": "_spec_nmcnr_amplifier",
+    "units": []
+   },
+   {
+    "line": 395,
+    "func": "SPECS",
+    "units": []
+   },
+   {
+    "line": 445,
+    "func": "run",
+    "units": []
+   },
+   {
+    "line": 523,
+    "func": "derived_spec",
+    "units": []
+   }
+  ]
+ }
+}

@@ -1,0 +1,162 @@
+---
+id: 20261002-p3-move-mod8-sizing-layout-convergence
+phase: 3
+evidence_type: equivalence
+gate_change: no
+approval: 20260930-30-module-split-design
+---
+## 의도
+
+design `30-module-split` **v8.5**(사용자 승인 UD-0 `20260930-30-module-split-design`) §8 M행·§8.1·§2.2·§3·§10, card **M8**. 틀과 판정 문언은 M1 초안(`_drafts/draft_p3_m1.spec.md`)을 그대로 따르고, 이 card에서 다른 것만 적는다.
+A = `skills/analog-gmid-design/assets`, SR = `A/sizing_recipe.py`, SD = `A/stick_diagram.py`, TL = `A/topology_library.py`, DR = `A/design_report.py`, ACF = `A/audit_current_forced.py`, MOD8 = `A/sizing_layout_convergence.py`(계획 N3.10 528행 `| MOD8 | `sizing_layout_convergence.py` | 사이징↔레이아웃 수렴 루프 |`).
+
+**무엇을 하는가**: D0b가 다시 쓴 레지스트리 '이관 목적지' 열과 N3.10 표로 `move_plan plan`이 **MOD8(`sizing_layout_convergence.py`)에 배정한 최상위 단위 전부**를 split 파일(모의 base: SR 30)에서 새 파일 `A/sizing_layout_convergence.py`로 **바이트 그대로** 옮기고,
+단위를 내보낸 split 파일마다 그 이름들의 명시 재수출 줄 하나를 남긴다(design §2.2: `from sizing_layout_convergence import a, b, _c`, `import *` 금지, def 래퍼 금지). 함수 몸체·클래스·문장은 한 토큰도 바꾸지 않는다(계획 533행). 배정 집합은 card base에서 도구가 낸다 --
+이 card는 단위 목록을 손으로 정하지 않는다(작성 전 실측 2의 30단위는 모의 base의 관찰).
+
+**MOD 파일 머리(design D-30)**: `sizing_layout_convergence.py`의 import 줄 = card base `plan`의 `mod_imports["sizing_layout_convergence.py"]` **그대로**(이름마다 import 한 번). 모의 base에서 14줄이었다(재현할 수치).
+MOD8는 번호 8라 **D-22 (2)**: N3.10 번호 7 이상 모듈(SD·MOD8)을 가리키는 줄은 **파일 끝**(모든 단위 뒤), 나머지와 `from __future__`는 머리 -- 모의 머리 13줄·끝 1줄(끝 줄 = `from stick_diagram import _branch_composite_pair, apply_explicit_row_split, assi…`). 함수 안 지연 import로 바꾸지 않는다(F3).
+
+**재수출 줄 위치(design §2.2·D-22, W-2 구체화)**: 재수출 줄 = 그 split 파일 앞머리 묶음(docstring 뒤 연속한 `import`·`from … import`·`sys.path` 조작 식 문장) 중 **마지막 import 문 바로 뒤**(앞 card의 재수출 줄도 import라 그 뒤에 쌓인다). 아래 행 번호·줄 수는 모의 생성기 출력의 **관찰**이다 -- 생성기는 단위 밖 주석을 MOD 파일로 옮기지 않고 완전 shim에서는 주석·빈 줄을 남기지 않으므로, code-author가 주석을 남기면 달라진다(판정은 계약 3의 AST 열 비교라 무관).
+* SR: **완전 shim**이 된다(아래 '완전 shim'). 모의 병합본 SR는 43줄, 이 card 재수출 줄 43행.
+
+**완전 shim(design §3 SHIM (b)(c), W-1·SHIM (c) 반영)**: SR는 이 card에서 배정 단위가 0개가 되어 최상위 문장이 **docstring·`from __future__ import annotations`·재수출 줄뿐**이다. 재수출 줄 = 앞 card들이 더한 `from <MOD> import …` 줄 전부 + 이 card 줄
++ **base에 있던 `from stick_diagram import …` 줄(SHIM (c) '(base 재수출)' -- SD = MOD7, N3.10 파일이라 D0a 계약 4가 재수출 줄로 센다)**. 그 줄은 지우지 않는다: SD 경유 이름을 이 파일에서 읽는 추적 파일이 있고(F1 초안 `draft_p3_f1.spec.md` '결정 필요 항목' 5 -- 모의 생성기가 그 줄을 지워 F1 모의 base를 정정한 사례), SHIM (c) 이름 집합 = (base 재수출) ∪ (옮긴 이름)이다.
+그 밖의 import 줄(표준 라이브러리·서드파티·N3.10 밖 split 파일 import -- 예 `import math`, `from topology_library import …`)은 **지운다**(SHIM (b) 문언 그대로 -- '남은 일반 import 줄 포함, 그 card가 지운다'). **사용자 결정 W-1 (가)**(2026-10-02 "(가) T0에서 test import 수정 (Recommended)"): 그 이름들을 이 파일 경유로 읽던 unit selftest 3줄은 **T0가 이미 출처 import로 바꿨다** -- 그래서 이 card의 완전 shim은 추가 import 없는 완전 shim이고, SHIM (b) 문언을 바꾸지 않는다(작성 전 실측 7·9).
+
+**왜 이 순서인가(design §8.1)**: ORDER(작은 번호부터). M6 병합 뒤라 `sizing_layout_convergence.py`의 `mod_imports`가 가리키는 트리 모듈(circuit_metrics, circuit_state_graph, gmid_sizing_engine, stick_diagram, theta_search, topology_authoring)은 이미 있는 번호 < 8 파일이다 -- 잔여 shim·split 파일 import 0(계약 7).
+
+**착수 조건**: M1과 같음(Phase 2 DoD PASS, B34 → b26pre → backfill → B26-1 → B33 → T0·FU·G1 → D0a → D0b 병합, 면제 묶기(34)·범위 정책(35), D-27 동결 중) + **앞 card M6(`p3-move-mod6-theta-search`) 판정 기록**이 gate `master`에 있음. G1이 없으면 V3 대상 def 58·변이 3077(작성 전 실측 8 -- design §4 F5), T0가 없으면 계약 test 위치 가정(F6 -- 작성 전 실측 7).
+
+**만들면 배선**: 새 def가 없다(옮긴 정의만). 새 파일 `sizing_layout_convergence.py`의 소비자는 split 파일의 재수출 줄(그리고 그것을 거쳐 옮긴 이름을 읽는 추적 파일 -- 작성 전 실측 9)과 뒤 MOD의 `mod_imports`다. 판정 도구 `move_plan check`는 이 card의 `equivalence.commands`에 들어간다(design §2.4 (ii)).
+
+## 관찰 가능한 계약
+
+1. **범위(diff, auditor)**: 이 card `Change-Id` 커밋들의 diff = `A/sizing_layout_convergence.py`(추가) + `A/sizing_recipe.py`(수정) 2파일뿐이다. `git diff --name-only <base> <code_commit> -- tools` 빈 출력(D-16), test·문서·레지스트리·library·`A/` 밖 0. test 커밋 0.
+2. **MOVE-AST -- `move_plan check` 발견 0(auditor)**: M1 계약 2와 같은 명령(`MPC` = `tools/migrate/move_plan.py`를 마지막으로 바꾼 판정 기록의 `code_commit` 사본), `--card sizing_layout_convergence.py` → exit 0, 11종(`move-set`·`move-rejected`·`changed`·`lost`·`rebind`·`future`·`import-dup`·`stmt-order`·`order`·`shim`·`cache`) 모두 빈 목록.
+   일관성 점검(증거로 세지 않음): `assigned` 수 = `moved_units` 수, `moved_units` 목적지 모두 `A/sizing_layout_convergence.py`, `moved_defs` 키 집합 = 계약 4 V3 JSON `moved`의 `to` 집합.
+3. **바이트 이동(auditor, 독립 측정)**: (a) `sizing_layout_convergence.py` 최상위 문장 = `mod_imports["sizing_layout_convergence.py"]` 중 **D-22 (2) 대상이 아닌 줄**(가리키는 모듈이 N3.10 번호 7 이상이 아닌 줄 -- `from __future__` 포함)을 차례로 파싱한 import 문장들 + 옮긴 단위들(출처 파일 순서 TL→SD→SR→DR→ACF, 파일 안은 원본 순서 -- `m_cards_plan` §3-2, 모의 생성기와 같은 순서; 이 순서도 열 비교 대상이다) + **D-22 (2) 대상 줄**(N3.10 번호 ≥ 7 모듈을 가리키는 줄)을 차례로 파싱한 import 문장들(파일 끝). `plan`의 `mod_imports`는 머리/끝을 나누지 않은 한 목록이라, 끝 줄을 머리에서 다시 세지 않는다(“목록 전체 + 단위 + 끝 줄”로 읽으면 끝 줄을 두 번 세어 정상 병합본도 불일치한다 -- 작성 전 실측 10 R-D22·정상 병합본 두 읽기). 옮긴 단위마다 `ast.dump(node)`(docstring 포함, `include_attributes=False`)가 base의 같은 단위와 같다. 모듈 docstring·그 밖의 새 문장 0(M1-1 기본안).
+   (b) 병합본 split 파일 최상위 문장 열(`ast.dump` 열 비교): SR = docstring + `from __future__` + base의 N3.10 모듈 재수출 줄들(앞 card 것 + `from stick_diagram import …`) + 이 card 재수출 `ImportFrom(module='sizing_layout_convergence', level=0)` 하나 -- 그 밖 문장 0. 재수출 이름 집합 = 그 파일에서 옮긴 단위가 바인딩하는 이름 전부(`_` 접두 포함, 이름순, `as` 없음). (c) `from __future__ import annotations`가 `sizing_layout_convergence.py`의 첫 문장이다.
+4. **게이트(auditor, 판정 때 gate `master` 판 도구 -- G1·면제 묶기·범위 정책 병합본)**: V3 exit 0, JSON `defs` = `[]`, `mutants` = 0, `survivors` = `[]`, `move_rejected` = `{}`, `not_targeted` = 0, `targets_by_def` = `{}`; `moved`는 비지 않는다. V6 exit 0, `findings` `[]`, `move_rejected` `{}`. V7 exit 0, `new_defs` `[]`, `move_rejected` `{}`. V5 `diff_paths` `[]`.
+   V4는 FU·M1 선례대로 card가 옮기는 대표 심볼을 subject로 준다(`--subject sizing_layout_convergence:derive_role_L` `--subject sizing_layout_convergence:estimate_area_budget` → `PASS`, `files` `[]`). V8·V9 N/A.
+5. **IMPORT-ANY(design §10 `import_any` 그대로)**: 병합본에서 `IMPORT-ANY tried=<n> expected=<n> failed=0` 한 줄, `FAIL`·`INVALID` 없음, 종료 코드 0. 기대 수 = `import_layering` `present` ∪ 트리에 있는 `--split` 파일(모의 병합본 12).
+6. **동작 보존(auditor, base·병합본 같은 조건)**: (a) **PT3 전체** base·병합본 test id 집합 같고 id별 결과 같음, 실패 0(T0 병합 뒤 -- 작성 전 실측 7). (b) **E-LIB**(`e_lib.py` 사본) 출력 JSON 전체가 base와 같다. (c) **E-INST**(`e_inst_p3.py`) 파일럿·`folded_cascode`: `engine_origin`을 뺀 키 전부가 base와 같고, 병합본 `engine_origin`의 모든 경로가 `<iso>` 안이며 `sizing_layout_convergence`를 포함한다. stdout 사본은 `elapsed=<초>s`를 가리면 같다. base·병합본은 같은 체크아웃 경로에서 차례로 잰다.
+7. **ORDER·CACHE-ID·SHIM**: 계약 2의 `order`·`cache`·`shim` 발견 0이 판정이다. 풀어 쓰면 -- `sizing_layout_convergence.py`의 import가 가리키는 트리 파일은 N3.10 번호 < 8 파일(끝 import의 SD = MOD7 포함)뿐(split 파일 import 0); 모듈 최상위 빈 dict 캐시 `_ACHIEVABLE_BOUND_CACHE`는 그것을 읽고 쓰는 `achievable_metric_bound`와 **같은 card에서 같은 파일 `sizing_layout_convergence.py`로** 옮긴다(CACHE-ID -- design §2.2; V6 `unbounded_cache`는 주석 대입이라 보지 않는다); split 파일의 새 최상위 문장은 재수출 줄뿐이고 재수출 이름마다 바인딩 출처 = `("def", A/sizing_layout_convergence.py, 이름)`.
+   **완전 shim(SR)**: SHIM (b) -- 최상위 문장이 docstring·재수출 줄·`from __future__`뿐(그 밖 import 줄 0, 로직 0); SHIM (c) -- 재수출 이름 집합 = (base 재수출) ∪ (이 card가 옮긴 이름), base에 있던 `if __name__ == "__main__"` 블록 불변. **이 줄(base 재수출 `from stick_diagram import …`)의 보존은 계약 3 (b)가 판정한다** -- 대역 `check` `shim`은 이 줄의 삭제를 보지 않는다(작성 전 실측 10 R-SHIMc: `check` 발견 0; 실제 D0a `check`에서 다시 잰다).
+8. **중간 상태 이름 해석(M1-3 기본안 -- 강화)**: (a) E3 식(§10 `E3_AST`) 병합본 D-9 제외 집합 밖 파일 목록 = base 목록 − {완전 shim이 된 split 파일 자신}(SHIM (b)가 그 파일의 N3.10 밖 import 줄 -- 여기서는 SR의 `from topology_library import …`, 모의 base SR 140행 -- 를 지우므로 그 파일이 TL importer에서 빠진다; 그 밖 차이 0), 두 판 모두 `stmt`·`call` 줄 0 아님. (b) E3b 식에서 `stick_diagram`을 이 card가 단위를 내보내는 split 파일 줄기(`sizing_recipe`)로 바꾼 사본마다 `<base> <merge>`의 `E3b FAIL` 줄 집합 = `<base> <base>` 사본의 `E3b FAIL` 줄 집합(새 FAIL 0), `ERROR` 없음, `LIVE moved_out=<m>`(m > 0).
+9. **레지스트리 정합(REG-DEST 유지)**: 병합본 `plan`(같은 `MPC`, `--rev <merge>`) exit 0, 판정 목록 일곱 0, (단위 키 → MOD) 사상이 base `plan`과 같다(옮긴 단위는 규칙 `A-0`).
+10. **D-22 배치와 LAYER(design §2.2 (1)~(4))**: `sizing_layout_convergence.py`의 SD import 줄은 파일 끝, 그 밖 import는 머리.  배치는 **계약 3 (a)의 문장 열 비교가 판정**하고(이 card 병합본에서는 머리로 올려도 순환이 없어 `check`·G1·IMPORT-ANY가 통과한다 -- 작성 전 실측 10 R-D22, open items O-8), `import_layering --root <iso>`는 발견 0(LAYER는 F2 뒤 판정 -- 중간 상태 판정 아님, 기록만).
+
+## 신규 시그니처
+
+| 모듈 | 심볼 | 시그니처 |
+|---|---|---|
+
+## 판정 유형 근거
+
+**equivalence, test 커밋 0.** 근거는 M1 초안 '판정 유형 근거'와 같다(계획 N3.12.3 686행 'Phase 3 이동은 `equivalence`', design §8 M행 'test 커밋 0 가능 -- 05 §9.2 289행', FU spec 선례). 브랜치 `role/test/<id>`는 커밋 0으로 만들어 둔다.
+
+**신규 시그니처가 비는 이유**: 옮긴 심볼은 새 심볼이 아니다 -- G1 `moved_defs`가 58 def 전부를 '옮긴 정의'로 인정하고(계약 4 `moved`), 같은 이름이 split 파일 재수출로 계속 import된다.
+
+**계획 838행(V2) 'Phase 3 AST 해시 동일'을 대신하는 것**: 계약 2(`check`)와 계약 3(독립 `ast.dump` 열 비교, docstring 포함). red-green으로 하지 않는 이유는 M1 초안과 같다(위치 단언 영구 test = T0가 없앤 '정의 파일 가정'의 재도입, 위치의 영구 판정은 D0b 계약 test).
+
+**V3 규모(작성 전 실측 8)**: G1 시제품 판 V3 대상 def 0·변이 0. G1이 없으면(gate master 판 대상 선택 식) 새 파일 `sizing_layout_convergence.py`와 바뀐 split 파일의 def 58개 전부가 대상, 변이 3077개.
+
+## oracle 종류와 출처
+
+(c) 동작 보존: PT3 test id별 결과, E-LIB·E-INST 출력 -- 기대값 = base 실행 결과(auditor가 격리 복제본에서 같은 명령으로). (a) 구성: 계약 3의 기대 모양은 계획 533·534행과 design §2.2·§3에서 손으로 정하고, 배정 집합은 card base의 `plan` 출력(D0b 레지스트리 -- 이 card가 바꾸지 않는 입력)이다.
+판정 도구 `move_plan check`는 D0a `code_commit` 사본이고 code-author가 같은 card에서 바꿀 수 없다(D-16). 모의 스크립트(`_drafts/p3kit_m2_m9/`)는 작성 전 실측용 시제품이고 판정 도구가 아니다(작성자≠검증자 -- test-author·code-author·auditor에게 건네지 않는다).
+
+## 거부해야 할 입력
+
+auditor 판정기 자기 점검(병합본 사본에 하나씩 커밋해 판정기가 실제로 거부하는지 먼저 확인 -- 모의 실측은 작성 전 실측 10, 변형은 생성기 `neg226.py`가 card마다 같은 규칙으로 고른 것. R-CACHE·R-SHIMc와 계약 3 (a) 두 읽기는 독립 검토 r1(`review_m2_m9.md` S-2·S-3·S-4) 뒤 `neg266.py`·`c3.py`로 다시 잰 것):
+| ID | 변형(병합본 기준) | 거부해야 할 판정 |
+|---|---|---|
+| R-1 | 옮긴 def 하나의 몸체 정수 상수 하나 +1 (sizing_layout_convergence:88 in derive_role_L) | 계약 2 `check` `move-set`·`move-rejected`·`changed`·`lost`·`shim` + 계약 4 V3 `defs` 비지 않음 + 계약 3 (a) |
+| R-2 | 재수출 줄에서 이름 하나를 뺌 (sizing_recipe.py drop _ACHIEVABLE_BOUND_CACHE) | 계약 2 `check` `shim` + 계약 3 (b) (뺀 이름을 그 파일의 남은 단위가 읽지 않아 `rebind` 0 -- `shim` (c)가 맡는다) |
+| R-3 | `sizing_layout_convergence.py`에 `import sizing_recipe` 한 줄 | 계약 2 `check` `order` + 계약 5 IMPORT-ANY FAIL |
+| R-4 | `sizing_layout_convergence.py` import 한 줄을 두 번 (from circuit_metrics import _CONSTRAINT_OPS, _DEFAULT_METRIC_STAGE_BUDGET_GM_ID, _refine_shared_current_joint_) | 계약 2 `check` `move-set`·`move-rejected`·`changed`·`lost`·`import-dup`·`shim` + 계약 4 V3 `defs` 비지 않음 |
+| R-5 | `sizing_layout_convergence.py`의 `from __future__ import annotations` 줄을 뺌 | 계약 2 `check` `move-set`·`move-rejected`·`changed`·`lost`·`shim` + 계약 4 V3 `defs` 비지 않음 (`future` 발견 자체는 0 -- W-11: 옮긴 단위가 0이 되어 목적 파일 집합이 빈다, 거부는 `move-rejected`) |
+| R-6 | 다른 MOD 배정 단위를 함께 옮김 (stick_diagram.py::_audit_result_json (A-4 -> instance_report_builder.py)) | 계약 2 `check` `move-set` + 계약 5 IMPORT-ANY FAIL + 계약 3 (a) |
+| R-7 | `sizing_layout_convergence.py` 머리에 모듈 docstring 한 줄 | 계약 2 `check` `changed` + 계약 3 (a) |
+| R-SHIM | 완전 shim에 로직 문장 하나 (sizing_recipe.py + _SHIM_FLAG = 1) | 계약 2 `check` `changed`·`shim` + 계약 7 완전 shim |
+| R-D22 | 끝에 둔 SD/MOD8 import를 머리로 올림 (tail imports to head: 1) | 계약 3 (a)(끝 import 문장이 단위 뒤에 와야 한다 -- 고친 문언: D-22 (2) 대상이 아닌 줄 + 단위 + 대상 줄) (**모의에서 `check`·G1·IMPORT-ANY 모두 통과** -- 이 card 병합본에서는 SD가 MOD8을 import하지 않아 순환이 없다. D-22 (2) 배치는 계약 3 (a)의 문장 열 비교만 본다) |
+| R-CACHE | 캐시는 계획대로 MOD로 옮기고 그것을 읽고 쓰는 **사용 함수만 SR에 남김** (`_ACHIEVABLE_BOUND_CACHE` → `sizing_layout_convergence.py`, `achievable_metric_bound`는 SR 잔류) | 계약 2 `check` **`cache` 1** + `move-set` 1 + 계약 3 (a)(b) (계약 7 CACHE-ID를 실제로 깨우는 자기 점검 -- code-author 실수만으로 생기는 모양) |
+| R-CACHEb | (보조 -- 반대 방향) 캐시 dict만 SR에 남기고 사용 함수는 옮김 (_ACHIEVABLE_BOUND_CACHE stays in SR, user moved) | 계약 2 `check` `move-set`·`move-rejected`·`changed`·`lost`·`shim` + 계약 4 V3 `defs` 비지 않음 (**`cache` 발견 자체는 0** -- 사용 함수가 캐시 이름을 MOD 파일에서 묶지 못해 G1 M-4로 거부되어 '옮긴 단위'가 아니므로 `cache` 검사 대상이 되지 않는다. 거부는 `move-rejected`·`rebind`가 한다 -- W-11과 같은 모양) |
+| R-SHIMc | 완전 shim SR에서 base 재수출 `from stick_diagram import …` 줄을 지움 | 계약 3 (b)(SHIM (c) 열) + 계약 6 (a) PT3(수집 오류) + 계약 8 (b) E3b SR 사본 새 FAIL (**`check` 발견 0** -- 대역 `check` `shim`은 이 삭제를 보지 않는다, 계약 7) |
+
+## library 회로 적용 여부
+
+적용 -- E-LIB 9회로(`load_topology`·`run_topology_pipeline` 경로), E-INST 파일럿·`folded_cascode`(하네스 `run()`이 엔진 전 경로를 지난다). 회로·넷·소자 이름은 이 card의 도구·판정식에 없다(topology 무관 -- 배정은 레지스트리·N3.10·소스 구조에서만).
+
+## 무동작 판정 입력(무발동 값)
+
+새 산출물 필드 없음. library 회로 전부·기존 test 전부의 판정·산출물이 base와 같다(계약 6). 발동 계수 ID 없음.
+
+## 재현할 수치
+
+(모의 base = `1f63aab`(M1~M6 모의 병합 뒤), 모의 head = `2a09421`, 스크래치 `C:/g226`, 2026-10-02 -- **전부 관찰**: 사슬은 '작성 전 실측' 머리. 실제 base(B34·B26-1·B33 등 병합 뒤)에서 auditor가 다시 잰다.)
+* 배정 MOD8 30단위(SR 30), 규칙 A-4 17·A-1 8·A-5 3·A-2 2, 단위 안 def 58. 줄은 card base(모의) 파일 기준:
+  * SR: `derive_role_L`(252~342, A-5)·`estimate_area_budget`(347~376, A-4)·`resolve_stack_layout`(664~773, A-1)·`_HeadroomTopoEnv`(808~816, A-2)·`_HeadroomEvalEnv`(819~829, A-2)·`_ACHIEVABLE_BOUND_CACHE`(862~862, A-5)·`achievable_metric_bound`(869~961, A-4)·`_build_theta_evaluator`(968~1971, A-1)·`_SPLIT_SUFFIX_RE`(1986~1986, A-5)·`_base_stack_id`(1989~1993, A-4)·`_pick_split_target`(1996~2014, A-4)·`_score_floorplan`(2017~2027, A-4)·`diagnose_sizing_roles_gap`(2030~2110, A-4)·`optimize_full_circuit_budget`(2113~2565, A-1)·`derive_theta_dependency_graph`(2594~2786, A-4)·`extract_linear_feasibility_constraints`(2800~2947, A-4)·`search_stage_budget_L_warm_start`(2965~3249, A-1)·`presolve_warm_start`(3264~3464, A-1)·`_optimize_theta_slsqp`(3476~3771, A-1)·`_optimize_theta_slsqp_block_coordinate`(3774~3939, A-4)·`_collect_device_refs`(3960~3979, A-4)·`revalidate_finger_override`(3982~4079, A-1)·`apply_and_revalidate_pair_adjustment`(4082~4152, A-4)·`_blocked_euler_rows`(4155~4167, A-4)·`_sync_finger_fixup`(4170~4187, A-4)·`suggest_matching_finger_growth`(4200~4218, A-4)·`apply_and_revalidate_matching_finger_growth`(4221~4262, A-4)·`_fixup_euler_blocked_rows`(4265~4392, A-4)·`run_matching_safety_with_finger_growth`(4395~4567, A-4)·`run_topology_pipeline_with_finger_fixup`(4570~4698, A-1)
+* `mod_imports["sizing_layout_convergence.py"]`(머리 13줄): `from __future__ import annotations` / `from circuit_metrics import _CONSTRAINT_OPS, _DEFAULT_METRIC_STAGE_BUDGET_GM_ID, _refine_shared_current_joint_scan_for_full_circuit_constraints, apply_theta_feed, compute_metric, make_matching_feasibility_check` / `from circuit_state_graph import _build_shared_current_joint_plan, _diode_set_cached, _gm_id_already_authoritative, _l_class_owners_cached, _l_sharing_classes_cached, _matching_pairs_cached, _metric_device_footprint, _shared_current_groups_from_compensation, _theta_feed_footprint, audit_l_sharing_consistency, audit_vertical_stack_id_vs_kcl, audit_vsb_consistency, kcl_series_union, load_topology, materialize_input_offset_pairs, propagate_topology_forced_currents, reconcile_vsb_from_nodes, refine_differential_and_mirror_relations, require_declared_spec_source, require_device_roles_reviewed, resolve_constraint_references, spec_fingerprint, synthesize_l_class_thetas` / `from collections import defaultdict` / `from dataclasses import dataclass, replace as _dc_replace` / `from gmid_sizing_engine import InfeasibleSizingError, SizingContext, _COMPENSATION_REGISTRY, _DEFAULT_MIN_VDS_FALLBACK, _HeadroomDependencyNotReady, _L_ROLE_TARGETS, _feed_vds_fallback, _hr_fold_group_check, _hr_resolve_vertical_group, _hr_sum_ref_vds, _hr_thin_singleton_ideal_source_check, _hr_verify_group_kvl_sum, _hr_vfind, _invert_gm_id_for_current, _metric_stage_budget_vds_by_device, apply_diode_self_consistent_gm_id, derive_class_L, feasible_L_window, knee_L_for_kind, make_replica_feasibility_check, optimize_multistage, reserved_vds_for_other_stack_members, search_gm_id_for_role, set_device_vds, width_from_id_density` / `from theta_search import _grid_points_in_range, _group_score_interior, _group_score_metric, _lerp, quantize_L, repair_infeasible_baseline` / `from topology_authoring import validate_metric_units, validate_no_legacy_vs_key` / `import itertools` / `import json` / `import math` / `import numpy as np` / `import re`.
+  끝(D-22 (2)) 1줄: `from stick_diagram import _branch_composite_pair, apply_explicit_row_split, assign_finger_geometry, audit_row_split, build_stick_diagram, check_stick_diagram_coverage, derive_horizontal_stack_groups, find_min_crossover_layout_with_branch_composite, geometry_colocation_union, rebuild_floorplan, repair_matching_safety, run_topology_pipeline, split_into_stacks, suggest_pair_finger_adjustments`.
+* SR 재수출(완전 shim): `from sizing_layout_convergence import _ACHIEVABLE_BOUND_CACHE, _HeadroomEvalEnv, _HeadroomTopoEnv, _SPLIT_SUFFIX_RE, _base_stack_id, _blocked_euler_rows, _build_theta_evaluator, _collect_device_refs, _fixup_euler_blocked_rows, _optimize_theta_slsqp, _optimize_theta_slsqp_block_coordinate, _pick_split_target, _score_floorplan, _sync_finger_fixup, achievable_metric_bound, apply_and_revalidate_matching_finger_growth, apply_and_revalidate_pair_adjustment, derive_role_L, derive_theta_dependency_graph, diagnose_sizing_roles_gap, estimate_area_budget, extract_linear_feasibility_constraints, optimize_full_circuit_budget, presolve_warm_start, resolve_stack_layout, revalidate_finger_override, run_matching_safety_with_finger_growth, run_topology_pipeline_with_finger_fixup, search_stage_budget_L_warm_start, suggest_matching_finger_growth`.
+* `check` exit 0, 발견 11종 모두 0, `assigned` 30·`moved_units` 30·`moved_defs` 58 (`check` 77 s).
+* V3(G1 시제품, 실행) PASS `defs` []·`mutants` 0·`move_rejected` {}·`moved` 58; V6 PASS `findings` []; V7 PASS `new_defs` []. G1 없는 대상 선택 식: def 58·변이 3077.
+* V4 `--subject sizing_layout_convergence:derive_role_L` `--subject sizing_layout_convergence:estimate_area_budget` → exit 0 `{"tool": "V4", "verdict": "PASS", "files": [], "findings": [], "unjudged": []}`; V5 exit 0 `{"tool": "V5", "verdict": "PASS", "findings": [], "diff_paths": [], "diff_hash": null, "approved": false}`.
+* IMPORT-ANY 병합본 `IMPORT-ANY tried=12 expected=12 failed=0`. `import_layering` 발견 0.
+* PT3 base `2 failed, 1045 passed, 15 xfailed in 337.13s (0:05:37)` / 병합본 `3 failed, 1044 passed, 15 xfailed in 359.34s (0:05:59)`, test id 1062 = 1062, id별 결과 차이 1 -- `skills.analog-gmid-design.assets.tests.contracts.test_ts6_dead_probes::test_audit_vsb_consistency_has_operational_caller passed->failure`.
+  병합본 실패는 전부 T0 몫 A군(모의에 T0의 R-DEF 수정이 없음 -- design §7.1, m_cards_plan W-8): `contracts/test_dup_w_calc.py::test_size_transistor_calls_new_function`, `contracts/test_ic5.py::test_gate_docstring_declares_blind_spots`, `contracts/test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller`.
+* E-LIB `hash` `1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f`(base = 병합본 JSON 전체 같음: True). E-INST(`e_inst_p3.py` `7d26134a…`): 파일럿 키 22 중 다른 키 ["engine_origin"], `raw_sha256` `2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d`, `without_topology_ref_sha256` `185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca`; `folded_cascode` 다른 키 ["engine_origin"], `raw_sha256` `ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0`; 병합본 `engine_origin`에 `sizing_layout_convergence` 포함 True·전부 `<iso>` 안 True.
+* E3 식 base `stmt` 70·`call` 9 / 병합본 `stmt` 69·`call` 9, 병합본 제외 밖 65파일(base 목록과 같음: 아니오 -- 차이 = `stmt skills/analog-gmid-design/assets/sizing_recipe.py:140` 한 줄(완전 shim SR이 `from topology_library import …`를 지움, 계약 8 (a))).
+* E3b 식(sizing_recipe 사본) `E3b LIVE moved_out=30 base_files_reading_moved_out=37 pre_existing=1`, FAIL 9줄 = base 자기 대조 9줄, 새 FAIL 0.
+* `plan`(병합본) 일곱 목록 {"upward": 0, "cycles": 0, "unassigned": 0, "conflicts": 0, "reg_mismatch": 0, "import_time_high": 0, "import_conflicts": 0}, 사상 차이 0, 옮긴 단위 규칙 {"A-0": 30}.
+
+## 결정 필요 항목
+
+모두 **기본안이 있다**(원칙 유도 -- 사용자 질문 아님). 사용자 몫일 수 있는 것은 `_drafts/m2_m9_open_items.md`에 모았다(이 card 관련 행: O-3·O-4·O-7·O-8).
+* **M1-1·M1-3 그대로**: MOD 파일 모듈 docstring 없음(M1-1 (가) -- 모의 R-7이 `changed` 1로 거부되는 것을 이 card에서도 확인), E3·E3b 식 card 단위 사용(M1-3, 강화).
+* **M1-2 닫힘**: 사용자 결정 D-11 (가)(2026-10-02 "(가) 계획 표 MOD1에 추가 (Recommended)")로 `_QUERY_CACHE_MAX`는 MOD1. 이 card 수치는 그 개정과 계약 문언 키(바인딩 이름)를 적용한 판이다 -- 조건('D0b가 다른 개정을 더 계산하면 다시 묻는다')대로 이 모의에서는 그 밖의 `upward`·`conflicts`가 0이었다.
+* **W-1 완전 shim(사용자 결정 (가))**: SR이 이 card에서 완전 shim이 된다. SR의 비엔진 import 이름(`_dc_replace`·`json`·`math`·`np`)과 TL 이름 `nmcnr_predict_ac_response`를 SR 경유로 읽던 `test_selftest_sizing_recipe.py:24`는 T0가 이미 출처 import로 바꿨다 -- 모의 W-1 점검 0곳, PT3 수집 오류 0. **SHIM (c)**: SR의 base 재수출 `from stick_diagram import (Transistor, load_topology, …)`(gate master 5302행)는 남긴다(모의 병합본 SR 42행 -- F1 초안 '결정 필요 항목' 5).
+* **D-22 끝 import(W-5)**: MOD8은 SD 이름 14개를 파일 끝 한 줄로 받는다(재현할 수치). 모의 IMPORT-ANY 실패 0. **R-D22(그 줄을 머리로 올림)는 이 card 병합본에서 `check`·G1·IMPORT-ANY를 모두 통과한다**(SD가 아직 MOD8·MOD9를 import하지 않아 순환이 없다 -- 작성 전 실측 10) -- 그래서 배치는 계약 3 (a)의 문장 열 비교가 판정한다(open items O-8). M9에서는 같은 변형이 IMPORT-ANY FAIL.
+* **CACHE-ID(W-7)**: `_ACHIEVABLE_BOUND_CACHE`가 `achievable_metric_bound`와 함께 MOD8로 온다(모의 `cache` 0).
+* **문장 키 변경(W-4)**: `_COMPENSATION_REGISTRY`·`_L_ROLE_TARGETS`는 M4로 갔다(이 card 30단위 -- 시제품 키 판 32).
+* **id 날짜**: 초안 id `20261002-p3-move-mod8-sizing-layout-convergence`(slug는 design §8 `p3-move-mod<n>-<이름>`). card 커밋 날짜에 맞춰 바꾼다.
+
+## 작성 전 실측
+
+(재측정 = gate `master` **`4a286f0`**(`git -C <repo> rev-parse gate/master master HEAD` 셋 다 `4a286f0f…`), 2026-10-02. 실제 저장소 쓰기 없음 -- 격리 복제본 `C:/g226/r`(`git clone --no-local`, origin 제거, 빈 hooksPath, TMP/TEMP `C:/g226/tmp`), 작업 끝에 `C:/g226` 삭제, 저장소 `status --porcelain`(37줄)·reflog 시작과 같음.
+B34·b26pre·backfill·B26-1·B33·범위 정책(35)·T0·FU·G1·D0a·D0b는 **모두 미병합**이라 복제본 사슬로 대역했다: `4a286f0` → `9659236` FU 대역(DR 28행·ACF 38행 앞 `from __future__ import annotations`, `fu_standin.py`) → `9a24b34` T0 W-1 대역(unit selftest 3파일 24행의 비엔진 7이름을 출처 import로, `t0w1_standin.py` -- W-1 (가)의 T0 몫만) → `b6c35d5` G1 시제품(`g1_kit/install_proto.py`·`g1_core.py`, gate master 판 `mutate_changed.py`·`rt.py`에 그대로 설치) → `744d0fe` D-11 (가) 대역(N3.10 MOD1 '대표 대상'에 `_QUERY_CACHE_MAX` 토큰, `p3fq_kit/variant.py qtok` -- p3_followup §1.4 새 문안과 같은 바이트) → `1c19dd4` D0a 대역(`p3kit_m1/move_plan_sim.py`를 `tools/migrate/move_plan.py`로, **문장 키 = 바인딩 이름(D0a 계약 2 문언, `MP_STMT_KEY=names`)**) → `1a18416` D0b 재생성 대역(`regen_registry.py --write` one 354·nested 7·nounit 18, `보류(Phase 3)` → `보류(Phase 4)`) = **M1 base 대역** → M1~M9 이동 생성기 `gen226.py`(M1 키트 `gen_move.py` + 모듈 docstring 없음(M1-1) + W-2 머리 계산) 사슬 `chain226.py`. 원자료·스크립트 `_drafts/p3kit_m2_m9/`.
+M1 수치 재현(사슬 첫 card, M1 초안 '재현할 수치'와 대조): MOD1 8단위·`check` 발견 0·`moved_defs` 22·G1 없는 def 22·변이 590·IMPORT-ANY `tried=6`·PT3 1047 passed·15 xfailed(T0 W-1 대역 포함 판) -- 같은 값. 키 방식을 계약 문언(바인딩 이름)으로 바꾸고 D-11 (가) 토큰을 더한 판이라 M1 초안의 `<stmt:해시>` 판과 MOD4·MOD8·MOD9·SD 수가 다르다(MOD4 104·MOD8 30·MOD9 16·SD 111 -- `p3_followup_questions.md` §1.1 names+① 행과 같음).
+
+1. **사실 문장 재측정**: `git show 4a286f0:<plan>` 528행 MOD8 행 원문(위 '의도'). M1 base 대역 `plan`(재생성 전) exit 1 = `reg_mismatch` 80만(나머지 여섯 0, 배정 403 -- A-4 235·A-1 61·A-5 57·A-2 38·A-6 7·A-7 2·A-K 2·A-3 1), 재생성 뒤 exit 0·일곱 0·사상 차이 0.
+2. **단위 집합(관찰)**: 이 card 모의 base `plan` exit 0, 일곱 목록 {"upward": 0, "cycles": 0, "unassigned": 0, "conflicts": 0, "reg_mismatch": 0, "import_time_high": 0, "import_conflicts": 0}, MOD8 30단위(SR 30). 배정은 앞 card들이 옮긴 단위를 `A-0`으로 같은 MOD에 두므로 사슬 어디서나 같다(card마다 사상 차이 0 -- 계약 9).
+3. **`mod_imports`·PLAN-LAYER**: `mod_imports["sizing_layout_convergence.py"]` 14줄(재현할 수치), `import_conflicts` 0, `upward` 0, `import_time_high` 0.
+4. **쓰기 경로(계획 N3.12.2)**: `A/sizing_layout_convergence.py`·`A/sizing_recipe.py` = gmid-code-author(엔진 소스). test-author 산출물 없음. 판정 기록·계약 측정 = auditor. `tools/**`는 누구도 바꾸지 않는다(D-16).
+5. **계획서 소비자·이름 충돌**: 이 card는 이름을 지우거나 바꾸지 않는다(위치만, 재수출로 같은 import 경로 유지). 새 파일 이름 `sizing_layout_convergence.py`는 `4a286f0`에 없다(`git ls-tree` 빈 출력).
+6. **미배선**: 새 def 0. V7 `new_defs` [](G1 시제품) -- 면제 불필요.
+7. **기존 계약 test**: 모의 사슬에는 T0의 R-DEF 수정이 없다(W-1 import 3줄만 대역). 이 card 병합본 PT3 실패 = `contracts/test_dup_w_calc.py::test_size_transistor_calls_new_function`, `contracts/test_ic5.py::test_gate_docstring_declares_blind_spots`, `contracts/test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller` -- 전부 design §7.1 A군(T0 몫, m_cards_plan W-8); base(앞 card 병합본) 실패 = `contracts/test_dup_w_calc.py::test_size_transistor_calls_new_function`, `contracts/test_ic5.py::test_gate_docstring_declares_blind_spots`.
+   이 card에서 새로 깨지는 것: `test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller`(운영 호출자를 SR에서만 찾음 -- A군 261~262행; 호출자가 MOD8로 감). 같은 파일의 `_L_ROLE_MULTIPLIERS` 바인딩 검사는 SR이 완전 shim이 되면 **조용히 공허**(FAIL로 드러나지 않음 -- T0가 R-DEF로 고친다).
+8. **V3 규모**: G1 시제품 `mutate_changed.py --root C:/g226/r --base 1f63aab --head 2a09421 … --gmid-phase=3 --gmid-strict=` → 계약 4 값(재현할 수치). G1 없는 판(gate master `changed_defs`·`mutants` 정적 계수): def 58·변이 3077. 범위 정책(35) 시제품은 키트에 없다 -- 대상 def 0이라 `not_targeted`·`targets_by_def`는 0·`{}`일 것으로 본다(판정 때 실측).
+9. **읽는 쪽 범위**: E3b 식 사본 sizing_recipe `moved_out=30 base_files_reading_moved_out=37 pre_existing=1` -- 전부 재수출로 계속 해석된다(새 FAIL 0). E3 식 importer 병합본 65파일(base − 완전 shim SR 자신 -- 계약 8 (a)). W-1 점검(`p3fq_kit/shim_import_reads.py`를 병합본에 돌려 N3.10 모듈 재수출이 아닌 import 바인딩 이름을 TL·SR·DR 경유로 읽는 곳): 0곳 -- T0 W-1 대역이 3줄을 고친 상태라 0.
+10. **거부 입력 실측**(병합본 사본에 하나씩 커밋, 모의 `check` + G1 시제품 정적 V3 + IMPORT-ANY(+ ACF 밖 cwd 로드)): 원자료 `p3kit_m2_m9/out/neg.jsonl`.
+    * R-1 `sizing_layout_convergence:88 in derive_role_L`: `check` exit 1 `move-set` 11·`move-rejected` 10·`changed` 11·`lost` 11·`shim` 1; G1 정적 V3 대상 def 39·변이 2543·거부 10; IMPORT-ANY 통과.
+    * R-2 `sizing_recipe.py drop _ACHIEVABLE_BOUND_CACHE`: `check` exit 1 `shim` 1; G1 정적 V3 대상 def 0·변이 0·거부 0; IMPORT-ANY 통과.
+    * R-3 `import sizing_recipe`: `check` exit 1 `order` 1; G1 정적 V3 대상 def 0·변이 0·거부 0; IMPORT-ANY FAIL(sizing_layout_convergence).
+    * R-4 `from circuit_metrics import _CONSTRAINT_OPS, _DEFAULT_METRIC_STAGE_BUDGET_GM_ID, _refine_shared_curr`: `check` exit 1 `move-set` 16·`move-rejected` 16·`changed` 16·`lost` 16·`import-dup` 6·`shim` 1; G1 정적 V3 대상 def 47·변이 2876·거부 16; IMPORT-ANY 통과.
+    * R-5 `-future`: `check` exit 1 `move-set` 30·`move-rejected` 30·`changed` 30·`lost` 30·`shim` 1; G1 정적 V3 대상 def 58·변이 3077·거부 30; IMPORT-ANY 통과.
+    * R-6 `stick_diagram.py::_audit_result_json (A-4 -> instance_report_builder.py)`: `check` exit 1 `move-set` 1; G1 정적 V3 대상 def 0·변이 0·거부 0; IMPORT-ANY FAIL(sizing_layout_convergence).
+    * R-7 `docstring`: `check` exit 1 `changed` 1; G1 정적 V3 대상 def 0·변이 0·거부 0; IMPORT-ANY 통과.
+    * R-SHIM `sizing_recipe.py + _SHIM_FLAG = 1`: `check` exit 1 `changed` 1·`shim` 1; G1 정적 V3 대상 def 0·변이 0·거부 0; IMPORT-ANY 통과.
+    * R-D22 `tail imports to head: 1`: `check` exit 0 발견 0; G1 정적 V3 대상 def 0·변이 0·거부 0; IMPORT-ANY 통과.
+    * R-CACHE `_ACHIEVABLE_BOUND_CACHE moved to MOD, user achievable_metric_bound stays in sizing_recipe.py` (r1m 재측정, `C:/g266`, `neg266.py USERBACK`): `check` exit 1 `cache` 1(`sizing_layout_convergence.py::_ACHIEVABLE_BOUND_CACHE` ← 사용자 `sizing_recipe.py::achievable_metric_bound`)·`move-set` 1(그 밖 0); 계약 3 (a) 불일치·(b) SR 불일치; IMPORT-ANY 통과(`tried=12`).
+    * R-SHIMc `sizing_recipe.py: delete from stick_diagram import … (25 names)` (r1m, `neg266.py SHIMC`): `check` exit 0 발견 0; 계약 3 (a) 일치·**(b) SR 불일치**(10 → 9문장); IMPORT-ANY 통과(`tried=12`); PT3 수집 오류 1(`unit/test_selftest_sizing_recipe.py:24` `ImportError: cannot import name 'Transistor' from 'sizing_recipe'`, `--collect-only` 994 collected·1 error); E3b SR 사본 새 FAIL 25(`load_topology` probe 등 -- 병합본은 새 FAIL 0).
+    * 계약 3 (a) 두 읽기(r1m `c3.py`): 정상 병합본 -- 고친 문언(D-22 (2) 대상이 아닌 줄 + 단위 + 대상 줄) **일치**, 옛 문언 그대로(`mod_imports` 전체 + 단위 + 끝 줄) **불일치**(7번째 문장에서 어긋남 -- 끝 줄을 머리에서 한 번 더 셈). R-D22(끝 줄을 머리로) -- `check` exit 0 발견 0, IMPORT-ANY 통과, 고친 문언 **불일치**(14번째 문장) -- 이 card에서 R-D22를 거부하는 것은 계약 3 (a)뿐(O-8).
+    * R-CACHEb(초안 판 측정, `C:/g226`) `_ACHIEVABLE_BOUND_CACHE stays in SR, user moved`: `check` exit 1 `move-set` 2·`move-rejected` 1·`changed` 1·`lost` 1·`shim` 1; G1 정적 V3 대상 def 1·변이 47·거부 1; IMPORT-ANY 통과.
+11. **test 이름·모양**: 새 test 없음.
+12. **같음 판정**: 계약 3은 `ast.dump` 문자열 열 비교(순서 포함), 계약 6 (a)는 test id별 결과 문자열, (b)는 JSON 전체, (c)는 `engine_origin`을 뺀 키별 값 비교 + 경로 포함 조건. `set`을 `==`로 비교하는 계약 없음.
+13. **red 모양**: red 없음(equivalence). 거부 확인은 auditor 측정.
+14. **양식**: gate `4a286f0` `tools/gates`(`git archive`)의 `role_paths.parse_spec_card(text, expect_id="20261002-p3-move-mod8-sizing-layout-convergence")` → 예외 없음, 머리 `phase` 3·`evidence_type` equivalence·`gate_change` no·`approval` 1, 본문 절 11개(양식 순서 그대로). `interface_card.py <이 spec> --root <모의 base 트리>` → exit 0, 기존 함수 표 행 1 `achievable_metric_bound`. 생성된 interface card의 기존 함수 표가 **비지 않는다**(계약 7 CACHE-ID 문장이 사용 함수 이름을 적기 때문 -- 모듈 칸 `sizing_recipe`) -- M1 초안의 '두 표 비어 있음(V4 subject 우회 이유)'과 다르다. 무해: 독립 검토 r1이 M4 병합본에서 V4를 `--interface-card` 단독·`--subject` 단독·둘 다로 돌려 모두 PASS `files` [](`review_m2_m9.md` V4 행).
+15. **앞 card 의존 재확인(오케스트레이터, card 커밋 직전)**: (i) gate `master`에 M6 판정 기록 (ii) 그 판정 기록의 `code_commit`(= 이 card base)에서 `plan` 출력의 `sizing_layout_convergence.py` 배정 단위 목록·`mod_imports["sizing_layout_convergence.py"]` -- '재현할 수치'를 그 값으로 바꾼다 (iii) `git diff --stat <D0b 병합> gate/master -- tools docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` 빈 출력·엔진 diff는 M1~M6 card 커밋뿐(D-27 동결).
+16. **비용(모의)**: card 한 건 사슬(plan + 생성 + check + G1 정적 V3 + IMPORT-ANY + E3b + W-1 점검) 746 s, `check` 77 s, PT3 약 5~6분, E-INST 파일럿 약 6~8분(다른 측정과 겹친 시간).
+

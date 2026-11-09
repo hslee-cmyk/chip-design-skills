@@ -1,0 +1,1320 @@
+{
+ "applied_facts": [],
+ "circuit": "folded_cascode",
+ "count_budget": 13829760,
+ "coupling": {
+  "bias_columns": [
+   6
+  ],
+  "column_block_map": [
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": null,
+    "device": "CL",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 0,
+    "device": "M1",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 0,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 0,
+    "device": "M2",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 0,
+    "device": "M4",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 0,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 0,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 1,
+    "device": "M10",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 1,
+    "device": "M3",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 1,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 1,
+    "device": "M8",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 2,
+    "device": "M1",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 2,
+    "device": "M2",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 2,
+    "device": "M3",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 2,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 2,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 2,
+    "device": "M9",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 3,
+    "device": "M4",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 3,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 3,
+    "device": "M7",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 3,
+    "device": "M9",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 4,
+    "device": "M1",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 4,
+    "device": "M11",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 4,
+    "device": "M3",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 5,
+    "device": "M11",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 5,
+    "device": "M2",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "out"
+     ]
+    ],
+    "column": 5,
+    "device": "M4",
+    "shared": true
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 6,
+    "device": "Ibg",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 6,
+    "device": "MN",
+    "shared": false
+   },
+   {
+    "basis": "bias_column",
+    "block": null,
+    "column": 6,
+    "device": "MP",
+    "shared": false
+   }
+  ],
+  "column_mate_devices": [],
+  "kind_counts": {
+   "K1": 3,
+   "K2": 2
+  },
+  "vars": [
+   {
+    "blocks": [
+     [
+      "transfer:0",
+      [
+       "bias:6"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "out"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "class_owner_value",
+    "kind": "K1",
+    "members": [
+     "M11",
+     "MN"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "transfer:0",
+      [
+       "bias:6"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "out"
+      ]
+     ]
+    ],
+    "domain": "geom",
+    "init_rule": "class_owner_value",
+    "kind": "K1",
+    "members": [
+     "M11",
+     "MN"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "transfer:0",
+      [
+       "bias:6"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "out"
+      ]
+     ]
+    ],
+    "domain": "geom",
+    "init_rule": "class_owner_value",
+    "kind": "K1",
+    "members": [
+     "M3",
+     "M4",
+     "MP"
+    ],
+    "nets": []
+   },
+   {
+    "blocks": [
+     [
+      "transfer:0",
+      [
+       "bias:6"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "out"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "common_vgs_candidates",
+    "kind": "K2",
+    "members": [
+     "M11",
+     "MN"
+    ],
+    "nets": [
+     "vb2",
+     "gnd"
+    ]
+   },
+   {
+    "blocks": [
+     [
+      "transfer:0",
+      [
+       "bias:6"
+      ]
+     ],
+     [
+      "transfer:0",
+      [
+       "out"
+      ]
+     ]
+    ],
+    "domain": "dc",
+    "init_rule": "common_vgs_candidates",
+    "kind": "K2",
+    "members": [
+     "M3",
+     "M4",
+     "MP"
+    ],
+    "nets": [
+     "vb1",
+     "vdd"
+    ]
+   }
+  ]
+ },
+ "declared_comparison": "not_performed: folded_cascode.structure.json absent",
+ "env_fp": "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+ "exit_code": 0,
+ "ff_ratio_candidates": [],
+ "orbit_matching_crosstab": {
+  "orbits": [
+   {
+    "members": [
+     "M1"
+    ],
+    "records": [
+     [
+      "diff_pair",
+      [
+       "M1",
+       "M2"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M10"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M10",
+       "M9"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M11"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M11",
+       "MN"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M2"
+    ],
+    "records": [
+     [
+      "diff_pair",
+      [
+       "M1",
+       "M2"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M3"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M3",
+       "M4"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M4"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M3",
+       "M4"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M5"
+    ],
+    "records": [
+     [
+      "branch_symmetric",
+      [
+       "M5",
+       "M6"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M6"
+    ],
+    "records": [
+     [
+      "branch_symmetric",
+      [
+       "M5",
+       "M6"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M7"
+    ],
+    "records": [
+     [
+      "branch_symmetric",
+      [
+       "M7",
+       "M8"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M8"
+    ],
+    "records": [
+     [
+      "branch_symmetric",
+      [
+       "M7",
+       "M8"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "M9"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M10",
+       "M9"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "MN"
+    ],
+    "records": [
+     [
+      "mirror",
+      [
+       "M11",
+       "MN"
+      ]
+     ]
+    ]
+   },
+   {
+    "members": [
+     "MP"
+    ],
+    "records": []
+   }
+  ],
+  "records": [
+   {
+    "kind": "mirror",
+    "members": [
+     "M10",
+     "M9"
+    ],
+    "orbits": [
+     [
+      "M10"
+     ],
+     [
+      "M9"
+     ]
+    ]
+   },
+   {
+    "kind": "mirror",
+    "members": [
+     "M11",
+     "MN"
+    ],
+    "orbits": [
+     [
+      "M11"
+     ],
+     [
+      "MN"
+     ]
+    ]
+   },
+   {
+    "kind": "mirror",
+    "members": [
+     "M3",
+     "M4"
+    ],
+    "orbits": [
+     [
+      "M3"
+     ],
+     [
+      "M4"
+     ]
+    ]
+   },
+   {
+    "kind": "diff_pair",
+    "members": [
+     "M1",
+     "M2"
+    ],
+    "orbits": [
+     [
+      "M1"
+     ],
+     [
+      "M2"
+     ]
+    ]
+   },
+   {
+    "kind": "branch_symmetric",
+    "members": [
+     "M7",
+     "M8"
+    ],
+    "orbits": [
+     [
+      "M7"
+     ],
+     [
+      "M8"
+     ]
+    ]
+   },
+   {
+    "kind": "branch_symmetric",
+    "members": [
+     "M5",
+     "M6"
+    ],
+    "orbits": [
+     [
+      "M5"
+     ],
+     [
+      "M6"
+     ]
+    ]
+   }
+  ]
+ },
+ "review_needed": [],
+ "status": "ok",
+ "stop_reasons": [],
+ "tables": {
+  "applied_facts": [],
+  "declared": [],
+  "findings": [],
+  "l_classes": [
+   {
+    "members": [
+     "M10",
+     "M9"
+    ],
+    "owner": "M9",
+    "owner_rule": "current_source_member",
+    "status": "derived"
+   },
+   {
+    "members": [
+     "M11",
+     "MN"
+    ],
+    "owner": "M11",
+    "owner_rule": "tail_owner",
+    "status": "derived"
+   },
+   {
+    "members": [
+     "M3",
+     "M4",
+     "MP"
+    ],
+    "owner": "MP",
+    "owner_rule": "current_source_member",
+    "status": "derived"
+   }
+  ],
+  "schema_version": "1",
+  "views": [
+   {
+    "ac_ground": [
+     "bias3",
+     "gnd",
+     "vdd"
+    ],
+    "ac_ground_exceptions": [],
+    "bias_dependent": [],
+    "bias_moving": [],
+    "blocks": [
+     {
+      "impedance": [
+       [
+        "out",
+        "high"
+       ]
+      ],
+      "inputs": [
+       "vin_n",
+       "vin_p"
+      ],
+      "key": [
+       "out"
+      ],
+      "kind": "gain",
+      "nodes": [
+       "Vg10",
+       "Vg7",
+       "Vg9",
+       "X",
+       "Y",
+       "out",
+       "tail",
+       "vin_n",
+       "vin_p"
+      ],
+      "outputs": [
+       "out"
+      ],
+      "roles": [
+       [
+        "CL",
+        "load"
+       ],
+       [
+        "M1",
+        "input"
+       ],
+       [
+        "M10",
+        "mirror"
+       ],
+       [
+        "M11",
+        "tail_source"
+       ],
+       [
+        "M2",
+        "input"
+       ],
+       [
+        "M3",
+        "load"
+       ],
+       [
+        "M4",
+        "load"
+       ],
+       [
+        "M5",
+        "cascode"
+       ],
+       [
+        "M6",
+        "cascode"
+       ],
+       [
+        "M7",
+        "diode_load"
+       ],
+       [
+        "M8",
+        "mirror"
+       ],
+       [
+        "M9",
+        "diode_load"
+       ]
+      ],
+      "stage": 1,
+      "status": "derived"
+     }
+    ],
+    "cells": [
+     {
+      "degeneration": true,
+      "dev": "M1",
+      "forward": true,
+      "kind": "cs",
+      "out": "X"
+     },
+     {
+      "degeneration": false,
+      "dev": "M10",
+      "forward": true,
+      "kind": "cs",
+      "out": "Vg10"
+     },
+     {
+      "degeneration": false,
+      "dev": "M11",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": true,
+      "dev": "M2",
+      "forward": true,
+      "kind": "cs",
+      "out": "Y"
+     },
+     {
+      "degeneration": false,
+      "dev": "M3",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M4",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M5",
+      "forward": true,
+      "kind": "cg",
+      "out": "Vg7"
+     },
+     {
+      "degeneration": false,
+      "dev": "M6",
+      "forward": true,
+      "kind": "cg",
+      "out": "out"
+     },
+     {
+      "degeneration": false,
+      "dev": "M7",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": true,
+      "dev": "M8",
+      "forward": true,
+      "kind": "cs",
+      "out": "out"
+     },
+     {
+      "degeneration": false,
+      "dev": "M9",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "MN",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "MP",
+      "forward": false,
+      "kind": "diode_load",
+      "out": ""
+     }
+    ],
+    "cm_pair": false,
+    "compensation_candidates": [],
+    "composites": [],
+    "cuts": [],
+    "dist": [
+     [
+      "Vg10",
+      1
+     ],
+     [
+      "Vg7",
+      1
+     ],
+     [
+      "Vg9",
+      1
+     ],
+     [
+      "X",
+      1
+     ],
+     [
+      "Y",
+      1
+     ],
+     [
+      "out",
+      1
+     ],
+     [
+      "tail",
+      0
+     ],
+     [
+      "vin_n",
+      0
+     ],
+     [
+      "vin_p",
+      0
+     ]
+    ],
+    "drive_kind": [
+     {
+      "basis": "cascode",
+      "kind": "current",
+      "net": "Vg10",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_gate_exit",
+      "kind": "voltage",
+      "net": "Vg7",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "Vg9",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_channel_exit",
+      "kind": "current",
+      "net": "X",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_channel_exit",
+      "kind": "current",
+      "net": "Y",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "drain_entry_no_exit",
+      "kind": "current",
+      "net": "out",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "tail",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "port",
+      "kind": "voltage",
+      "net": "vin_n",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "port",
+      "kind": "voltage",
+      "net": "vin_p",
+      "tap": false,
+      "value_dependent": false
+     }
+    ],
+    "excite": [
+     [
+      "vin_n",
+      -0.5
+     ],
+     [
+      "vin_p",
+      0.5
+     ]
+    ],
+    "feedforward": [],
+    "ff_ratio_candidates": [],
+    "findings": [],
+    "forward_nets": [
+     "Vg10",
+     "Vg7",
+     "Vg9",
+     "X",
+     "Y",
+     "out",
+     "tail",
+     "vin_n",
+     "vin_p"
+    ],
+    "id": "transfer:0",
+    "kind": "transfer",
+    "loop_roles": [],
+    "loops": [],
+    "main_path": [
+     "M1",
+     "M2",
+     "M5",
+     "M6",
+     "M8"
+    ],
+    "mirror_inputs": [
+     "Vg7",
+     "Vg9"
+    ],
+    "output_direction": [
+     {
+      "charge": [
+       [
+        "M6",
+        "beta"
+       ]
+      ],
+      "discharge": [
+       [
+        "M8",
+        "sigma"
+       ]
+      ],
+      "net": "out",
+      "topology": "class_a"
+     }
+    ],
+    "pass_bundles": [],
+    "polarity": 0,
+    "pole_nodes": [
+     {
+      "block": [
+       "out"
+      ],
+      "drive": "current",
+      "impedance": "low",
+      "net": "Vg10"
+     },
+     {
+      "block": [
+       "out"
+      ],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "Vg7"
+     },
+     {
+      "block": [
+       "out"
+      ],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "Vg9"
+     },
+     {
+      "block": [
+       "out"
+      ],
+      "drive": "current",
+      "impedance": "low",
+      "net": "X"
+     },
+     {
+      "block": [
+       "out"
+      ],
+      "drive": "current",
+      "impedance": "low",
+      "net": "Y"
+     },
+     {
+      "block": [
+       "out"
+      ],
+      "drive": "current",
+      "impedance": "high",
+      "net": "out"
+     },
+     {
+      "block": [
+       "out"
+      ],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "tail"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "vb1"
+     },
+     {
+      "block": [],
+      "drive": "",
+      "impedance": "low",
+      "net": "vb2"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "high",
+      "net": "vin_n"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "high",
+      "net": "vin_p"
+     }
+    ],
+    "sense": [
+     "out"
+    ],
+    "signal_nets": [
+     "Vg10",
+     "Vg7",
+     "Vg9",
+     "X",
+     "Y",
+     "out",
+     "tail",
+     "vin_n",
+     "vin_p"
+    ],
+    "stage_dist": [
+     [
+      "Vg10",
+      1
+     ],
+     [
+      "Vg7",
+      1
+     ],
+     [
+      "Vg9",
+      1
+     ],
+     [
+      "X",
+      1
+     ],
+     [
+      "Y",
+      1
+     ],
+     [
+      "out",
+      1
+     ],
+     [
+      "tail",
+      0
+     ],
+     [
+      "vin_n",
+      0
+     ],
+     [
+      "vin_p",
+      0
+     ]
+    ],
+    "stage_starts": [
+     "M1",
+     "M2"
+    ],
+    "unreduced_diff": [],
+    "virtual_ground": []
+   }
+  ]
+ },
+ "views": [
+  {
+   "blocks": [
+    {
+     "key": [
+      "out"
+     ],
+     "kind": "gain",
+     "stage": 1
+    }
+   ],
+   "cuts": [],
+   "feedforward": [],
+   "id": "transfer:0",
+   "kind": "transfer",
+   "loop_count": 0,
+   "loop_roles": [],
+   "polarity": 0
+  }
+ ]
+}

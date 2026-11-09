@@ -1,0 +1,24 @@
+## (i) OP-5 → LA-1
+(a) LA-1 병합 사슬 8 : OP-1 → OP-1a → OP-1b → OP-3 → EO-1 → HC-S → GC-8 → LA-1
+(a) LA-1 완료(CL-1 뒤) 사슬 11 : OP-1 → OP-1a → OP-1b → OP-3 → EO-1 → HC-S → GC-8 → LA-1 → DE-1 → CL-1 → LA-1#done
+(b) OP-5가 기다리는 card 10 : EO-1, IT-1+IT-2, OP-0, OP-1, OP-1a, OP-1b, OP-2, OP-3, OP-4, cardB
+(c) EO-1 뒤 OP-5 전 기간에 병합이 강제되는 다리 card 0 : 없음
+(c) ASAP 깊이로 그 기간에 놓이는 다리 card 0 : 없음 (깊이 EO-1 5, OP-5 6)
+(d) 임계 경로 길이(card 수): LA-1 병합 8 / CL-1 10 / LA-1 완료 11 / OP-5 6 / VB-1 8 / DE-1 9 / OS-V 10
+
+## (ii′) LA-1 → OP-5
+(a) LA-1 병합 사슬 8 : OP-1 → OP-1a → OP-1b → OP-3 → EO-1 → HC-S → GC-8 → LA-1
+(a) LA-1 완료(CL-1 뒤) 사슬 13 : OP-1 → OP-1a → OP-1b → OP-3 → EO-1 → HC-S → GC-8 → LA-1 → OP-5 → OP-10 → VB-1 → CL-1 → LA-1#done
+(b) OP-5가 기다리는 card 27 : EO-1, GC-0a, GC-0b, GC-1, GC-8, GC-D, HC-0, HC-1, HC-D, HC-S, IT-1+IT-2, LA-1, NL-1, OP-0, OP-1, OP-1a, OP-1b, OP-2, OP-3, OP-4, OP-7, SF-1, TB-1, UB-1, WB-1, cardB, cardC
+(c) EO-1 뒤 OP-5 전 기간에 병합이 강제되는 다리 card 5 : GC-8, HC-1, HC-S, LA-1, WB-1
+(c) ASAP 깊이로 그 기간에 놓이는 다리 card 5 : GC-8, HC-1, HC-S, LA-1, WB-1 (깊이 EO-1 5, OP-5 9)
+(d) 임계 경로 길이(card 수): LA-1 병합 8 / CL-1 12 / LA-1 완료 13 / OP-5 9 / VB-1 11 / DE-1 9 / OS-V 10
+
+## 차(ii′ − i)
+LA-1: 8 → 8 (차 +0)
+OP-5: 6 → 9 (차 +3)
+VB-1: 8 → 11 (차 +3)
+DE-1: 9 → 9 (차 +0)
+CL-1: 10 → 12 (차 +2)
+LA-1#done: 11 → 13 (차 +2)
+OS-V: 10 → 10 (차 +0)

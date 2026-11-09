@@ -1,0 +1,41 @@
+{
+ "card": "theta_search.py",
+ "units": [
+  "sizing_recipe.py::dense_candidates",
+  "sizing_recipe.py::quantize_L",
+  "sizing_recipe.py::_grid_points_in_range",
+  "sizing_recipe.py::layout_grid_L_candidates",
+  "sizing_recipe.py::_lerp",
+  "sizing_recipe.py::derived_bounds_path",
+  "sizing_recipe.py::load_derived_bounds",
+  "sizing_recipe.py::_group_score_metric",
+  "sizing_recipe.py::_group_score_interior",
+  "sizing_recipe.py::_theta_device_map",
+  "sizing_recipe.py::repair_infeasible_baseline"
+ ],
+ "mod_imports_head": [
+  "from __future__ import annotations",
+  "from gmid_lut import SemiEmpiricalGmIdLUT",
+  "from gmid_sizing_engine import InfeasibleSizingError",
+  "import json",
+  "import math"
+ ],
+ "mod_imports_tail": [],
+ "reexports": {
+  "sizing_recipe.py": "from theta_search import _grid_points_in_range, _group_score_interior, _group_score_metric, _lerp, _theta_device_map, dense_candidates, derived_bounds_path, layout_grid_L_candidates, load_derived_bounds, quantize_L, repair_infeasible_baseline"
+ },
+ "spans": [
+  "sizing_recipe.py:95-163 FunctionDef",
+  "sizing_recipe.py:166-182 FunctionDef",
+  "sizing_recipe.py:185-212 FunctionDef",
+  "sizing_recipe.py:215-234 FunctionDef",
+  "sizing_recipe.py:791-792 FunctionDef",
+  "sizing_recipe.py:1000-1009 FunctionDef",
+  "sizing_recipe.py:1012-1019 FunctionDef",
+  "sizing_recipe.py:3115-3126 FunctionDef",
+  "sizing_recipe.py:3129-3169 FunctionDef",
+  "sizing_recipe.py:3467-3490 FunctionDef",
+  "sizing_recipe.py:3493-3662 FunctionDef"
+ ],
+ "n_defs_in_units": 14
+}

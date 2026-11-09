@@ -1,0 +1,4 @@
+f6954d99d64a9c4c1a27ee7887c47d6183e74ea004f93eedcf60705edaad9591
+{'안 함': 0, '미측정': 0, '상정 전': 0, '확인 필요': 0, 'TODO': 0}
+rows ①②③④⑤⑥⑦⑧⑨⑩
+MISSING C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-31/plan_v6386_validation50_K13.md

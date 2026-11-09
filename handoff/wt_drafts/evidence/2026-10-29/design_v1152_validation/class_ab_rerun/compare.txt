@@ -1,0 +1,4 @@
+326 326
+identical records 326
+[]
+cur0 162 gen>=1 162

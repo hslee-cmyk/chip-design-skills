@@ -1,0 +1,427 @@
+{
+ "applied_facts": [],
+ "circuit": "pushpull_follower_buffer",
+ "count_budget": 13829760,
+ "coupling": {
+  "bias_columns": [],
+  "column_block_map": [
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "vout"
+     ]
+    ],
+    "column": 0,
+    "device": "M3",
+    "shared": false
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "vout"
+     ]
+    ],
+    "column": 0,
+    "device": "M5",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "vout"
+     ]
+    ],
+    "column": 1,
+    "device": "M4",
+    "shared": false
+   },
+   {
+    "basis": "column_mate",
+    "block": [
+     "transfer:0",
+     [
+      "vout"
+     ]
+    ],
+    "column": 1,
+    "device": "M6",
+    "shared": true
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "vout"
+     ]
+    ],
+    "column": 2,
+    "device": "M1",
+    "shared": false
+   },
+   {
+    "basis": "block_member",
+    "block": [
+     "transfer:0",
+     [
+      "vout"
+     ]
+    ],
+    "column": 2,
+    "device": "M2",
+    "shared": false
+   }
+  ],
+  "column_mate_devices": [
+   "M5",
+   "M6"
+  ],
+  "kind_counts": {},
+  "vars": []
+ },
+ "declared_comparison": "not_performed: pushpull_follower_buffer.structure.json absent",
+ "env_fp": "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+ "exit_code": 0,
+ "ff_ratio_candidates": [],
+ "orbit_matching_crosstab": {
+  "orbits": [
+   {
+    "members": [
+     "M1"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M2"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M3"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M4"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M5"
+    ],
+    "records": []
+   },
+   {
+    "members": [
+     "M6"
+    ],
+    "records": []
+   }
+  ],
+  "records": []
+ },
+ "review_needed": [],
+ "status": "ok",
+ "stop_reasons": [],
+ "tables": {
+  "applied_facts": [],
+  "declared": [],
+  "findings": [],
+  "l_classes": [],
+  "schema_version": "1",
+  "views": [
+   {
+    "ac_ground": [
+     "VNB1",
+     "VPB1",
+     "agnd",
+     "vdd",
+     "vss"
+    ],
+    "ac_ground_exceptions": [],
+    "bias_dependent": [],
+    "bias_moving": [],
+    "blocks": [
+     {
+      "impedance": [
+       [
+        "vout",
+        "low"
+       ]
+      ],
+      "inputs": [
+       "vin"
+      ],
+      "key": [
+       "vout"
+      ],
+      "kind": "buffer",
+      "nodes": [
+       "A",
+       "B",
+       "vin",
+       "vout"
+      ],
+      "outputs": [
+       "vout"
+      ],
+      "roles": [
+       [
+        "M1",
+        "follower"
+       ],
+       [
+        "M2",
+        "follower"
+       ],
+       [
+        "M3",
+        "follower"
+       ],
+       [
+        "M4",
+        "follower"
+       ]
+      ],
+      "stage": 0,
+      "status": "derived"
+     }
+    ],
+    "cells": [
+     {
+      "degeneration": false,
+      "dev": "M1",
+      "forward": true,
+      "kind": "cd",
+      "out": "vout"
+     },
+     {
+      "degeneration": false,
+      "dev": "M2",
+      "forward": true,
+      "kind": "cd",
+      "out": "vout"
+     },
+     {
+      "degeneration": false,
+      "dev": "M3",
+      "forward": true,
+      "kind": "cd",
+      "out": "A"
+     },
+     {
+      "degeneration": false,
+      "dev": "M4",
+      "forward": true,
+      "kind": "cd",
+      "out": "B"
+     },
+     {
+      "degeneration": false,
+      "dev": "M5",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     },
+     {
+      "degeneration": false,
+      "dev": "M6",
+      "forward": false,
+      "kind": "off",
+      "out": ""
+     }
+    ],
+    "cm_pair": false,
+    "compensation_candidates": [],
+    "composites": [],
+    "cuts": [],
+    "dist": [
+     [
+      "A",
+      0
+     ],
+     [
+      "B",
+      0
+     ],
+     [
+      "vin",
+      0
+     ],
+     [
+      "vout",
+      0
+     ]
+    ],
+    "drive_kind": [
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "A",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "B",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "port",
+      "kind": "voltage",
+      "net": "vin",
+      "tap": false,
+      "value_dependent": false
+     },
+     {
+      "basis": "source_entry",
+      "kind": "voltage",
+      "net": "vout",
+      "tap": false,
+      "value_dependent": false
+     }
+    ],
+    "excite": [
+     [
+      "vin",
+      1.0
+     ]
+    ],
+    "feedforward": [],
+    "ff_ratio_candidates": [],
+    "findings": [],
+    "forward_nets": [
+     "A",
+     "B",
+     "vin",
+     "vout"
+    ],
+    "id": "transfer:0",
+    "kind": "transfer",
+    "loop_roles": [],
+    "loops": [],
+    "main_path": [
+     "M1",
+     "M2",
+     "M3",
+     "M4"
+    ],
+    "mirror_inputs": [],
+    "output_direction": [
+     {
+      "charge": [
+       [
+        "M1",
+        "sigma"
+       ]
+      ],
+      "discharge": [
+       [
+        "M2",
+        "sigma"
+       ]
+      ],
+      "net": "vout",
+      "topology": "push_pull"
+     }
+    ],
+    "pass_bundles": [],
+    "polarity": 0,
+    "pole_nodes": [
+     {
+      "block": [
+       "vout"
+      ],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "A"
+     },
+     {
+      "block": [
+       "vout"
+      ],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "B"
+     },
+     {
+      "block": [],
+      "drive": "voltage",
+      "impedance": "high",
+      "net": "vin"
+     },
+     {
+      "block": [
+       "vout"
+      ],
+      "drive": "voltage",
+      "impedance": "low",
+      "net": "vout"
+     }
+    ],
+    "sense": [
+     "vout"
+    ],
+    "signal_nets": [
+     "A",
+     "B",
+     "vin",
+     "vout"
+    ],
+    "stage_dist": [
+     [
+      "A",
+      0
+     ],
+     [
+      "B",
+      0
+     ],
+     [
+      "vin",
+      0
+     ],
+     [
+      "vout",
+      0
+     ]
+    ],
+    "stage_starts": [],
+    "unreduced_diff": [],
+    "virtual_ground": []
+   }
+  ]
+ },
+ "views": [
+  {
+   "blocks": [
+    {
+     "key": [
+      "vout"
+     ],
+     "kind": "buffer",
+     "stage": 0
+    }
+   ],
+   "cuts": [],
+   "feedforward": [],
+   "id": "transfer:0",
+   "kind": "transfer",
+   "loop_count": 0,
+   "loop_roles": [],
+   "polarity": 0
+  }
+ ]
+}

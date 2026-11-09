@@ -1,0 +1,130 @@
+{
+ "base": "C:/g184/base",
+ "head": "C:/g184/fu",
+ "files": {
+  "design_report.py": {
+   "same_body_code_objects": [
+    "_kv_table",
+    "_kv_table.<locals>.<genexpr>",
+    "_kv_table.<locals>.<genexpr>#1",
+    "_kv_table.<locals>.<genexpr>.<genexpr>",
+    "assemble_report_data",
+    "build_topology_device_table",
+    "build_topology_device_table.<locals>.<genexpr>",
+    "build_topology_device_table.<locals>.<genexpr>#1",
+    "build_topology_device_table.<locals>.<genexpr>#2",
+    "build_topology_device_table.<locals>._find",
+    "build_topology_device_table.<locals>._union",
+    "render_html_report",
+    "render_html_report.<locals>.<genexpr>",
+    "render_html_report.<locals>.<genexpr>#1",
+    "render_html_report.<locals>._section",
+    "save_html_report"
+   ],
+   "differ": {},
+   "annotate_only_diff": [
+    "__annotate__",
+    "__annotate__#1",
+    "__annotate__#2",
+    "__annotate__#3",
+    "__annotate__#4"
+   ],
+   "pass": true
+  },
+  "audit_current_forced.py": {
+   "same_body_code_objects": [
+    "<genexpr>",
+    "_as_set",
+    "_theta_evidence_for_pair",
+    "audit_topology",
+    "render_report"
+   ],
+   "differ": {},
+   "annotate_only_diff": [
+    "__annotate__",
+    "__annotate__#1",
+    "__annotate__#2",
+    "__annotate__#3"
+   ],
+   "pass": true
+  }
+ },
+ "selfcheck_reject": {
+  "same_body_code_objects": [
+   "_kv_table",
+   "_kv_table.<locals>.<genexpr>",
+   "_kv_table.<locals>.<genexpr>#1",
+   "_kv_table.<locals>.<genexpr>.<genexpr>",
+   "assemble_report_data",
+   "build_topology_device_table.<locals>.<genexpr>",
+   "build_topology_device_table.<locals>.<genexpr>#1",
+   "build_topology_device_table.<locals>.<genexpr>#2",
+   "build_topology_device_table.<locals>._find",
+   "build_topology_device_table.<locals>._union",
+   "render_html_report",
+   "render_html_report.<locals>.<genexpr>",
+   "render_html_report.<locals>.<genexpr>#1",
+   "render_html_report.<locals>._section",
+   "save_html_report"
+  ],
+  "differ": {
+   "build_topology_device_table": [
+    "co_code",
+    "co_varnames",
+    "co_consts",
+    "co_flags"
+   ]
+  },
+  "annotate_only_diff": [
+   "__annotate__",
+   "__annotate__#1",
+   "__annotate__#2",
+   "__annotate__#3",
+   "__annotate__#4"
+  ],
+  "pass": false
+ },
+ "import_observation": {
+  "design_report": {
+   "names_only_head": [
+    "annotations"
+   ],
+   "names_only_base": [],
+   "functions": 5,
+   "functions_with_annotation_diff": [
+    "_kv_table",
+    "assemble_report_data",
+    "build_topology_device_table",
+    "render_html_report",
+    "save_html_report"
+   ],
+   "functions_with_annotations": [
+    "_kv_table",
+    "assemble_report_data",
+    "build_topology_device_table",
+    "render_html_report",
+    "save_html_report"
+   ]
+  },
+  "audit_current_forced": {
+   "names_only_head": [
+    "annotations"
+   ],
+   "names_only_base": [],
+   "functions": 4,
+   "functions_with_annotation_diff": [
+    "_as_set",
+    "_theta_evidence_for_pair",
+    "audit_topology",
+    "render_report"
+   ],
+   "functions_with_annotations": [
+    "_as_set",
+    "_theta_evidence_for_pair",
+    "audit_topology",
+    "render_report"
+   ]
+  }
+ },
+ "pass": true
+}

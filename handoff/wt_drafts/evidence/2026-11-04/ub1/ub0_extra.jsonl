@@ -1,0 +1,39 @@
+{"circuit": "cnr_ota", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "cnr_ota", "kind": "decomposed_only", "view": "transfer:0", "blocks": [["VCON"], ["VCOP"]], "n_blocks": 3}
+{"circuit": "cnr_ota", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": 0.09954262607107012}
+{"circuit": "common_gate_amplifier", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "common_gate_amplifier", "kind": "decomposed_only", "view": "transfer:0", "blocks": [], "n_blocks": 1}
+{"circuit": "common_gate_amplifier", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": 0.0}
+{"circuit": "current_reuse_telescopic_ota", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "current_reuse_telescopic_ota", "kind": "decomposed_only", "view": "transfer:0", "blocks": [["Vom"], ["Vop"]], "n_blocks": 3}
+{"circuit": "current_reuse_telescopic_ota", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": -4.882901511437822}
+{"circuit": "erfc_ota", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "erfc_ota", "kind": "decomposed_only", "view": "transfer:0", "blocks": [["A", "B", "X", "Y", "n_m11d", "n_m12d", "n_m5s", "n_m6s", "out"]], "n_blocks": 5}
+{"circuit": "erfc_ota", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": 53.46430841518201}
+{"circuit": "folded_cascode", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "folded_cascode", "kind": "decomposed_only", "view": "transfer:0", "blocks": [], "n_blocks": 1}
+{"circuit": "folded_cascode", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": 0.0}
+{"circuit": "ngcc_3stage_ff", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "ngcc_3stage_ff", "kind": "decomposed_only", "view": "transfer:0", "blocks": [], "n_blocks": 3}
+{"circuit": "ngcc_3stage_ff", "kind": "ff_attribution", "view": "transfer:0", "ff": 2, "asbuilt_residual_db": 0.0, "literal_residual_db": 1.0737852450744612, "main_chain_without_ff_vs_full_db": -4.474722063239554}
+{"circuit": "nmcnr_amplifier", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "nmcnr_amplifier", "kind": "decomposed_only", "view": "transfer:0", "blocks": [], "n_blocks": 3}
+{"circuit": "nmcnr_amplifier", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": 0.0}
+{"circuit": "pushpull_follower_buffer", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "pushpull_follower_buffer", "kind": "decomposed_only", "view": "transfer:0", "blocks": [], "n_blocks": 1}
+{"circuit": "pushpull_follower_buffer", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": 0.0}
+{"circuit": "r2r_opamp", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "r2r_opamp", "kind": "decomposed_only", "view": "transfer:0", "blocks": [], "n_blocks": 2}
+{"circuit": "r2r_opamp", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": null}
+{"circuit": "rfc_ota", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "rfc_ota", "kind": "decomposed_only", "view": "transfer:0", "blocks": [], "n_blocks": 1}
+{"circuit": "rfc_ota", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": 0.0}
+{"circuit": "sf_pushpull_output_opamp", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "sf_pushpull_output_opamp", "kind": "decomposed_only", "view": "transfer:0", "blocks": [], "n_blocks": 2}
+{"circuit": "sf_pushpull_output_opamp", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": 0.0007914768352819124}
+{"circuit": "two_stage_ota", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "two_stage_ota", "kind": "decomposed_only", "view": "transfer:0", "blocks": [], "n_blocks": 2}
+{"circuit": "two_stage_ota", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": -7.105427357601002e-15}
+{"circuit": "two_stage_ota_sf", "kind": "resistor_only_end_nets_with_gate_reader", "nets": {}}
+{"circuit": "two_stage_ota_sf", "kind": "decomposed_only", "view": "transfer:0", "blocks": [], "n_blocks": 3}
+{"circuit": "two_stage_ota_sf", "kind": "ff_attribution", "view": "transfer:0", "ff": 0, "asbuilt_residual_db": 0.0}

@@ -1,0 +1,1110 @@
+# G:/내 드라이브/work/Todoc/기술문서/Gm_over_Id/Design of Analog CMOS Integrated Circuits (Behzad Razavi)marcado.pdf pages=706
+
+=== PDF page 312
+Chapter 9 
+Operational Amplifiers 
+Operational amplifiers ( op amps) are an integral part of many analog and mixed-signal 
+systems. Op amps with vastly different levels of complexity are used to realize functions 
+ranging from de bias generation to high-speed amplification or filtering. The design of op 
+amps continues to pose a challenge as the supply voltage and transistor channel lengths 
+scale down with each generation of CMOS technologies. 
+This chapter deals with the analysis and design of CMOS op amps. Following a review of 
+performance parameters, we describe simple op amps such as telescopic and folded cascade 
+topologies. Next, we study two-stage and gain-boosting configurations and the problem of 
+common-mode feedback. Finally, we introduce the concept of slew rate and analyze the 
+effect of supply rejection and noise in op amps. 
+9.1 General Considerations 
+We loosely define an op amp as a "high-gain differential amplifier." By "high," we mean a 
+value that is adequate for the application, typically in the range of 101 to 105. Since op 
+amps are usually employed to implement a feedback system, their open-loop gain is chosen 
+according to the precision required of the closed-loop circuit. 
+Up to two decades ago, most op amps were designed to serve as "general-purpose" 
+building blocks, satisfying the requirements of many different applications. Such efforts 
+sought to create an "ideal" op amp, e.g., with very high voltage gain (several hundred 
+thousand), high input impedance, and low output impedance, but at the cost of many other 
+aspects of the performance, e.g., speed, output voltage swings, and power dissipation. 
+By contrast, today's op amp design proceeds with the recognition that the trade-offs 
+between the parameters eventually require a multi-dimensional compromise in the overall 
+implementation, making it necessary to know the adequate value that must be achieved for 
+each parameter. For example, if the speed is critical while the gain error is not, a topology 
+is chosen that favors the former, possibly sacrificing the latter. 
+9.1.1 Performance Parameters 
+In this section, we describe a number of op amp design parameters, providing an 
+understanding of why and where each may become important. For this discussion, we 
+291 
+
+
+=== PDF page 318
+Sec. 9.2 
+One-Stage Op Amps 
+297 
+whereas that of Fig. 9.6(b) does not, a critical difference in terms of the stability offeedback 
+systems using these topologies (Chapter 10). 
+The circuits of Fig. 9.6 suffer from noise contributions of M1-M4, as calculated in 
+Chapter 7. Interestingly, in all op amp topologies, at least four devices contribute to the 
+input noise: two input transistors and two "load" transistors. 
+Example 9.3 -----------------------
+Calculate the input common-mode voltage range and the closed-loop output impedance of the unity-
+gain buffer depicted in Fig. 9.7. 
+Figure 9.7 
+Solution 
+-. 
+The minimum allowable input voltage is equal to Vcss + VosJ, where Vcss is the voltage re-
+quired across the current source. The maximum voltage is given by the level that places M, at 
+the edge of the triode region: V;n,max = Vnn - 1Vas3l + VrHI· For example, if each device 
+(including the current source) has a threshold voltage of 0.7 V and an overdrive of 0.3 V, then 
+V;n,min = 0.3 + 0.3 + 0.7 = 1.3 V and V;n,max = 3- (0.3 + 0.7) + 0.7 = 2.7 V. Thus, the input 
+CM range equals 1.4 V with a 3-V supply. 
+Since the circuit employs voltage feedback at the output, the output impedance is equal to the open-
+loop value, roP!IroN. divided by one plus the loop gain, 1 + 8mN(roplJroN). In other words, for 
+large open-loop gain, the closed-loop output impedance is approximately equal to (ro p JiroN )j[gmN 
+(ropJJroN)l = 1/gmN· 
+It is interesting to note that the closed-loop output impedance is relatively independent of the 
+open-loop output impedance. This is an important observation, allowing us to design high-gain op 
+amps by increasing the open-loop output impedance while still achieving a relatively low closed-loop 
+output impedance. 
+In order to achieve a high gain, the differential cascade topologies of Chapters 4 and 5 
+can be used. Shown in Figs. 9.8(a) and (b) for single-ended and differential output gener-
+ation, respectively, such circuits display a gain on the order of 8mN[(8mNr~N)II(gmprbp)], 
+but at the cost of output swing and additional poles. These configurations are also called 
+"telescopic" cascade op amps to distinguish them from another cascade op amp described 
+below. The circuit providing a single-ended output suffers from a mirror pole at node X, 
+creating stability issues (Chapter 10). 
+
+
+=== PDF page 319
+298 
+Chap. 9 
+Operational Amplifiers 
+(a) 
+(b) 
+Figure 9.8 Cascade ap amps. 
+As calculated in Chapter 4, the output swings of telescopic op amps are relatively limited. 
+In the fully differential version of Fig. 9.8(b ), for example, the output swing is given by 
+2[Vnn- (VoDI + Vom + Vcss + IVonsl 
+IV om I)], where Von1 denotes the overdrive 
+voltage of Mj. 
+Another drawback of telescopic cascodes is the difficulty in shorting their inputs and 
+outputs, e.g., to implement a unity-gain buffer similar to the circuit of Fig. 9.7. To under· 
+stand the issue, let us consider the unity-gain feedback topology shown in Fig. 9.9. Under 
+what conditions are both M2 and M4 in saturation? We must have Vaut :5 Vx + VrH2 and 
+vb ---..------
+tvGs4 -VTH2 
+Figure 9.9 Cascade op amp with input and output shorted. 
+• 
+
+
+=== PDF page 320
+Sec. 9.2 
+One-Stage Op Amps 
+299 
+Vout 2: Vb 
+VrH4· Since Vx = Vb 
+Vcs4, Vb- VrH4 ~ Vout ~ Vb - Vcs4 + VrH2· 
+Depicted in Fig. 9.9, this voltage range is simply equal to Vmax- Vmin = VrH4- (Vcs4-
+VrHZ), maximized by minimizing the overdrive of M4 but always less than VrHZ· 
+Example 9.4-----------------------
+For the circuit of Fig. 9.9, explain in which region each transistor operates as V;n varies from below 
+vb 
+VrH4 to above vb- Vcs4 + Vr H2· 
+Solution 
+Since the op amp attempts to force Vout to be equal to V;n, for V;n < Vb- Vr H4. we have Vout ~ V;n 
+and M4 is in the triode region while other transistors are saturated. Under this condition, the open-loop 
+gain of the op amp is reduced. 
+As V;n and hence Vout exceed Vb - Vr H4, M4 enters saturation and the open-loop gain reaches 
+a maximum. For Vh - Vr H4 < V;n < Vb - (Vcs4 - Vr HZ), both Mz and M4 are saturated and for 
+V;n > Vb - (V GS4 - Vr HZ), Mz and M1 enter the triode region, degrading the gain. 
+While a cascode op amp is rarely used as a unity-gain buffer, some other topologies such 
+as the switched-capacitor circuits of Chapter 12 require that the input and output of the op 
+amp be shorted for part of the operation period. 
+At this point, the reader may wonder how exactly we design an op amp. With so many 
+devices and performance parameters, it may not be clear where the starting point is and how 
+the numbers are chosen. Indeed, the actual design methodology of an op amp somewhat 
+depends on the specifications that the circuit must meet. For example, a high-gain op amp 
+may be designed quite differently from a low-noise op amp. Nevertheless, in most cases, 
+some aspects of the performance, e.g., output voltage swings and open-loop gain, are of 
+primary concern, pointing to a specific design procedure. The following example illustrates 
+these ideas. 
+Example 9.5-----------------------
+Design a fully differential telescopic op amp with the following specifications: V o o = 3 V, differential 
+output swing = 3 V, power dissipation = lO m W, voltage gain = 2000. Assume J.ln Cox = 60 J.lA/V2, 
+J.lpCox = 30 f.lAN2, An = 0.1 y~I, Ap = 0.2 v- 1 (for an effective channel length of 0.5 J.lm), 
+y =0, VrHN = IVrHPI =0.7V. 
+Solution 
+Fig. 9.10 shows the op amp topology along with two current mirrors defining the drain currents of 
+M7-M9. We begin with the power budget, allocating 3 rnA to M9 and the remaining 330 J.lA to Mb1 
+and Mb2· Thus, each cascade branch of the op amp carries a current of 1.5 rnA. Next, we consider 
+the required output swings. Each of nodes X and Y must be able to swing by 1.5 V without driving 
+M3-M6 into the triode region. With a 3-V supply, therefore, the total voltage available for M9 and 
+each cascode branch is equal to 1.5 V, i.e., IVoml +I Voosl + Vom + Voo1 + Voo9 = 1.5 V. Since 
+M9 carries the largest current, we choose Vo D9 ~ 0.5 V. leaving 1 V for the four transistors in the 
+cascade. Moreover, since M s-M 8 suffer from low mobility, we allocate an overdrive of approximately 
+300 m V to each, obtaining 400 m V for V o D 1 + V om. As an initial guess, Vo D1 = V o D3 = 200m V. 
+
+
+=== PDF page 322
+Sec. 9.2 
+One-Stage Op Amps 
+301 
+In order to alleviate the drawbacks of telescopic cascode op amps, namely, limited 
+output swings and difficulty in shorting the input and output, a "folded cascode" op amp 
+can be used. As described in Chapter 3 and illustrated in Fig. 9.11, in an NMOS or PMOS 
+cascode amplifier, the input device is replaced by the opposite type while still converting the 
+Vout 
+vino-f 
+Vout 
+Vb--J 
+¢> 
+V1no-J 
+': 
+-. 
+(a) 
+(b) 
+Figure 9.11 Folded cascode circuits. 
+input voltage to a current. In the four circuits shown in Fig. 9.11, the small-signal current 
+generated by M1 flows through M2 and subsequently the load, producing an output voltage 
+approximately equal to gm 1 Rout Vin· The primary advantage of the folded structure lies in 
+the choice of the voltage levels because it does not "stack" the cascade transistor on top of 
+the input device. We will return to this point later. 
+The folding idea depicted in Fig. 9.11 can easily be applied to differential pairs and 
+hence operational amplifiers as well. Shown in Fig. 9.12, the resulting circuit replaces 
+the input NMOS pair with a PMOS counterpart. Note two important differences between 
+the two circuits. (1) In Fig. 9.12(a), one bias current, Iss, provides the drain current of 
+both the input transistors and the cascade devices, whereas in Fig. 9.12(b) the input pair 
+requires an additional bias current. In other words, Iss! = lss/2 + ID3. Thus, the folded-
+cascade configuration generally consumes higher power. (2) In Fig. 9.12(a), the input CM 
+level cannot exceed Vb1 ~ Vas3 + VrHJ, whereas in Fig. 9.12(b), it cannot be less than 
+vbi ~ v GS3 + IVr H pI· It is therefore possible to design the latter to allow shorting its input 
+and output terminals with negligible swing limitation. This is in contrast to the behavior 
+
+
+=== PDF page 323
+302 
+Chap. 9 
+Operational Amplifiers 
+~------------~------~~0 
+12 
+(a) 
+(b) 
+Figure 9.12 Folded cascode op amp topology. 
+depicted in Fig. 9.9. In Fig. 9.12(b), it is possible to tie then-well of M1 and M2 to their 
+common source point. We return to this idea in Chapters 13 and 18. 
+Let us now calculate the maximum output voltage swing of the folded-cascode op amp 
+shown in Fig. 9.13, where Ms-M10 replace the ideal current sources of Fig. 9.12(b). With 
+proper choice of Vb 1 and Vb2, the lower end of the swing is given by V 0 03 + V 0 05 and the 
+upper end by Vvv- (I Vov?l + 1Vov9l). Thus, the peak-to-peak swing on each side is equal 
+to Vvv- (Vom + Vovs + IVoD?I + 1Vov91). In the telescopic cascode of Fig. 9.12(a), 
+on the other hand, the swing is less by the overdrive of the tail current source. We should 
+nonetheless note that, carrying a large current, Ms and M6 in Fig. 9.13 may require a high 
+overdrive voltage if their capacitance contribution to nodes X and Y is to be minimized. 
+Figure 9.13 Folded cascade op amp with cascode PMOS 
+loads. 
+
+
+=== PDF page 324
+Sec. 9.2 
+One-Stage Op Amps 
+303 
+We now determine the small-signal voltage gain of the folded-cascode op amp of 
+Fig. 9.13. Using the half circuit depicted in Fig. 9.14(a) and writing IAvl = GmRout• 
+we must calculate Gm and Rout· As shown in Fig. 9.14(b), the output short-circuit current 
+is approximately equal to the drain current of M1 because the impedance seen looking into 
+the source of M3, that is, (gm3 + gmb3)-1llr03, is typically much lower than r01llros. Thus, 
+Gm ~ gml· To calculate Rout• we use Fig. 9.14(c), with Rap ~ (gm? + gmb?)rmro9. to 
+write Rout ~Rap li[(gm3 
+gmb3)ro3(roillros)]. It follows that 
+How does this value compare with the gain of a telescopic op amp? For comparable 
+device dimensions and bias currents, the PMOS input differential pair exhibits a lower 
+transconductance than does an NMOS pair. Furthermore, ra 1 and r05 appear in parallel, 
+(a) 
+lout 
+(b) 
+X 
+. -
+-. 
+(c) 
+Figure 9.14 (a) Half circuit of folded cascode op amp, (b) equivalent circuit with output 
+shorted to ground, (c) equivalent circuit with output open. 
+
+
+=== PDF page 325
+304 
+Chap. 9 
+Operational Amplifiers 
+reducing the output impedance, especially because M5 carries the currents of both the input 
+device and the cascode branch. As a consequence, the gain in (9.12) is usually two to three 
+times lower than that of a comparable telescopic cascode. 
+It is also worth noting that the pole at the "folding point," i.e., the sources of M3 and 
+M4, is quite closer to the origin than that associated with the source of cascode devices 
+in a telescopic topology. In Fig. 9.15(a), Crot arises from Cas3, CsB3, CvBJ, and Cant· 
+(a) 
+(b) 
+Figure 9.15 Effect of device capacitance on the nondominant pole in telescopic and folded-
+cascode op amps. 
+By contrast, in Fig. 9.15(b), Cror contains additional contributions due to Cavs and CvBs. 
+typically significant components because M5 must be wide enough to carry a large current 
+with a small overdrive. 
+A folded-cascode op amp may incorporate NMOS input devices and PMOS cascade 
+transistors. Illustrated in Fig. 9 .16, such a circuit potentially provides a higher gain than the 
+op amp of Fig. 9.13 because of the greater mobility of NMOS devices, but at the cost of 
+lowering the pole at the folding point. To understand why, note that the pole at node X is 
+given by the product of 1/(gm3 
+gmb3) and the total capacitance at this node. The magnitude 
+of both of these components is relatively high: M3 suffers from a low transconductance and 
+/REF2 
+/REF1 
+o--J 
+M1 
+t---, Vin:,_~==+==~_j 
+/REF3 
+Figure 9.16 Realization of a folded-cascode op amp. 
+
+
+=== PDF page 326
+Sec. 9.2 
+One-Stage Op Amps 
+305 
+M5 contributes substantial capacitance because it must be wide enough to carry the drain 
+currents of both M1 and M3• In fact, for comparable bias currents, Ms-M6 in Fig. 9.16 may 
+be several times wider than M5-M6 in Fig. 9.13. 
+Our study thus far suggests that the overall voltage swing of a folded-cascode op amp 
+is only slightly higher than that of a telescopic configuration. This advantage comes at 
+the cost of higher power dissipation, lower voltage gain, lower pole frequencies, and, as 
+explained in Section 9.1 0, higher noise. Nonetheless, folded-cascode op amps are used quite 
+widely, even more than telescopic topologies, because the inputs and outputs can be shorted 
+together and the choice of the input common-mode level is easier. In a telescopic op amp, 
+three voltages must be defined carefully: the input CM level and the gate bias voltages of 
+the PMOS and NMOS cascode transistors, whereas in folded-cascode configurations only 
+the latter two are critical. 
+We now carry out the design of a folded-cascode op amp to reinforce the foregoing 
+concepts. 
+Example9.6 -----------------------
+Design a folded-cascode op amp with an NMOS input pair (Fig. 9.16) to satisfy the following 
+specifications: VvD = 3 V, differential output swing= 3 V, power dissipation= 10 mW, voltage gain 
+= 2000. Use the same device parameters as in Example 9.5. 
+Solution 
+As with the telescopic eascode of the previous example, we begin with the power and swing specifi-
+cations. Allocating 1.5 rnA to the input pair, 1.5 rnA to the two cascode branches, and the remaining 
+330 p.A to the three current mirrors, we first consider the devices in each cascode branch. Since Ms 
+and M6 must each carry 1.5 rnA, we allow an overdrive of 500 m V for these transistors so as to keep 
+their width to a reasonable value. To M3-M4, we allocate 400 mV and to M7-M10, 300 mV. Thus, 
+(W/L)s,6 = 400, (WjLh,4 = 313, (W/Lh-10 = 278. Since the minimum and maximum output 
+levels are equal to 0.6 V and 2.1 V, respectively, the optimum output common-mode level is 1.35 V. 
+The minimum dimensions of M,-Mz are dictated by the minimum input common-mode level, 
+V GSI + Vo Dll· For example, if the input and the output are shorted for part of the operation period 
+(Fig. 9.17), then VaS2 + Vovu = 1.35 V. With VoDII = 0.4 Vas an initial guess, we have Vas I = 
+Figure 9.17 Folded-cascode op amp 
+with input and output shorted. 
+
+
+=== PDF page 327
+306 
+Chap. 9 
+Operational AmpiHieo l 
+0.95 V, obtaining Vom,2 = 0.95-0.7 = 0.25 V and hence (W/L)J,2 = 400. The maximum 
+dimensions of M1 and Mz are detennined by the tolerable input capacitance and the capacitance at 
+nodes X andY in Fig. 9.16. 
+We now calculate the small-signal gain. Using gm = 2lv/(Vcs - Vr H), we have 8ml,2 = 
+0.006 NV, gm3,4 = 0.0038 NV, and gm7,8 = 0.05 NV. For L = 0.5 ttm, ro1.2 = rm-10 = 
+13.3 k$1, and ro3,4 = 2ros,6 = 6.67 k$1. It follows that the impedance seen looking into the drain of 
+M7 (or Ms) is equal to 8.8 MQ whereas, owing to the limited intrinsic gain of M3 (or M4), that seen 
+looking into the drain of M3 is equal to 66.5 k$1. The overall gain is therefore limited to about 400. 
+In order to increase the gain, we first observe that ros.6 is quite lower than rol,2· Thus, the length 
+of Ms-M6 must be increased. Also, the transconductance of M1-M2 is relatively low and can be 
+increased by widening these transistors. Finally, we may decide to double the intrinsic gain of M3 
+and M4 by doubling both their length and width, but at the cost of increasing the capacitance at nodes 
+X and Y. We leave the exact choice of the device dimensions as an exercise for the reader. 
+i 
+An important property of folded-cascode op amps is the capability of handling input 
+common-mode levels close to one of the supply rails. In Fig. 9.16, for example, the CM 
+voltage at the gates of M1 and M2 can be equalto Vvv because Vx = Vy = Vvv -500mV. 
+By the same token, a similar topology using a PMOS input pair can accommodate input 
+CM levels as low as zero. 
+Telescopic and folded-cascode op amps can also be designed to provide a single-ended 
+output. Shown in Fig. 9.18(a) is an example, where a PMOS cascode current mirror converts 
+the differential currents of M3 and M4 to a single-ended output voltage. In this implemen-
+tation, however, Vx = Vvv 
+IVcssl - IVcs?l, limiting the maximum value of Vout to 
+Vvv -1Vcssi-1Vcs71 + IVTH6i and "wasting" one PMOS threshold voltage in the swing 
+(Chapter 5). To resolve this issue, the PMOS load can be modified as shown in Fig. 9.18(b) 
+(a) 
+-. 
+(b) 
+Figure 9.18 Cascade op amps with single-ended output. 
+
+
+=== PDF page 330
+Sec. 9.4 
+Gain Boosting 
+-. 
+Vout2 
+309 
+Figure 9.22 Two-stage op amp employing cascading. 
+Figure 9.23 Two-stage op amp with 
+single-ended output. 
+Can we cascade more than two stages to achieve a higher gain? As explained in Chapter 
+10, each gain stage introduces at least one pole in the open-loop transfer function, making it 
+difficult to guarantee stability in a feedback system using such an op amp. For this reason, 
+op amps having more than two stages are rarely used. Exceptions are described in [1, 2, 3]. 
+9.4 Gain Boosting 
+The limited gain of one-stage op amps studied in Section 9.2 and the difficulties in using 
+two-stage op amps at high speeds have motivated extensive work on new topologies. Recall 
+that in one-stage op amps such as telescopic and folded-cascade topologies the objective is 
+to maximize the output impedance so as to attain a high voltage gain. The idea behind gain 
+boosting is to further increase the output impedance without adding more cascode devices. 
+
+
+=== PDF page 334
+Sec. 9.5 
+Comparison 
+313 
+gmsRautJ, where Rout!~ [gm7rm(ro9llros)]ll(gmurourol3). Thus, Rout~ gm3ro3ro1gmsRoutl· 
+In essence, since the output impedance of a cascode is boosted by a folded-cascode stage, the overall 
+output impedance is similar to that of a "quadruple" cascode. 
+Regulated cascodes can also be utilized in the load current sources of a cascode op amp. 
+Shown in Fig. 9.29(a), such a topology boosts the output impedance of the PMOS current 
+sources as well, thereby achieving a very high voltage gain. To allow maximum swings at 
+the output, amplifier A2 must employ an NMOS input differential pair. Similar ideas apply 
+to folded-cascode op amps [Fig. 9.29(b)]. 
+(a) 
+c>---j 
+vi"h---=::t:=-_j 
+-. 
+-. 
+(b) 
+Figure 9.29 Gain boosting applied to both signal path and load devices. 
+-. 
+Now recall that the premise behind gain boosting is to increase the gain without adding 
+a second stage or more cascode devices. Does this mean that the op amps of Fig. 9.29 
+have a one-stage nature? After all, the gain-boosting amplifier introduces its own poles. In 
+contrast to two-stage op amps, where the entire signal experiences the poles associated with 
+each stage, in a gain-boosted op amp, most of the signal directly flows through the cascode 
+devices to the output. Only a small "error" component is processed by the gain-boosting 
+amplifier and "slowed down." 
+9.5 Comparison 
+Our study of op amps in this chapter has introduced four principal topologies: telescopic 
+cascode, folded cascode, two-stage op amp, and gain boosting. It is instructive to compare 
+
+
+=== PDF page 335
+314 
+Chap.9 
+Operational Amplifier 
+Table 9.1 
+Comparison of performance of various op amp 
+topologies. 
+Output 
+Power 
+Gain 
+Swing 
+Speed 
+Dissipation 
+Noise 
+Telescopic 
+Medium 
+Medium 
+Highest 
+Low 
+Low 
+Folded-Cascade 
+Medium 
+Medium 
+High 
+Medium 
+Medium 
+Two-Stage 
+High 
+Highest 
+Low 
+Medium 
+Low 
+Gain-Boosted 
+High 
+Medium 
+Medium 
+High 
+Medium 
+various performance aspects of these circuits to gain a better view of their applicabilit 
+Table 9.1 comparatively presents important attributes of each op amp topology. We stuc 
+the speed differences in Chapter 10. 
+9.6 Common-Mode Feedback 
+In this and previous chapters, we have described many advantages of fully differential ci 
+cuits over their single-ended counterparts. In addition to greater output swings, differenti 
+op amps avoid mirror poles, thus achieving a higher closed-loop speed. However, high-ga 
+differential circuits require "common-mode feedback" (CMFB). 
+To understand the need for CMFB, let us begin with a simple realization of a differenti 
+amplifier [Fig. 9.30(a)]. In some applications, we short the inputs and outputs for part' 
+the operation [Fig. 9.30(b)], providing differential negative feedback. The input and outp 
+common-mode levels in this case are quite well-defined, equal to Vvv- lssRv/2. 
+o----1 
+Vin~~=+=~_j 
+(a) 
+(b) 
+Figure 9.30 (a) Simple differential pair, (b) circuit with inputs shorted to 
+outputs. 
+
+
+=== PDF page 337
+316 
+Chap. 9 
+Operational Amplifiers 
+Example 9.8-----------------------
+Consider the telescopic op amp designed in Example 9.5 and repeated in Fig. 9.33 with bias current 
+mirrors. Suppose M9 suffers from a 1% current mismatch with respect to M10 , producing Iss 
+300 ~-tA 
+-. 
+Figure9.33 
+2.97 rnA rather than 3 rnA. Assuming perfect matching for other transistors, explain what happens in 
+the circuit. 
+Solution 
+From Example 9.5, the single-ended output impedance of the circuit equals 266 kQ. Since the differ-
+ence between the drain currents of M3 and Ms (and M4 and M6) is 30 JA.A/2 = 15 JAA, the output 
+voltage error would be 266 kQ x 15 JAA== 3.99 V. Since this large error cannot be produced, Vx and 
+Vy must rise so much that Ms-M6 and M7-Ms enter the triode region, yielding /D7,8 = 1.485 rnA. 
+We should also mention that another important source of CM error in the simple biasing scheme of 
+Fig. 9.33 is the deterministic error between /D7,8 and /11 (and also between /D9 and IDto) due to 
+their different drain-source voltages. This error can nonetheless be reduced by means of the current 
+mirror techniques of Chapter 5. 
+The foregoing study implies that in high-gain amplifiers, the output CM level is quite 
+sensitive to device properties and mismatches and it cannot be stabilized by means of 
+differential feedback. Thus, a common-mode feedback network must be added to sense the 
+.. 
+CM level of the two outputs and accordingly adjust one of the bias currents in the amplifier. 
+Following our view of feedback systems in Chapter 8, we divide the task of CMFB into 
+three operations: sensing the output CM level, comparison with a reference, and returning 
+the error to the amplifier's bias network. Fig. 9.34 conceptually illustrates the idea. 
+In order to sense the output CM level, we recall that Vour,CM = (Vouti + V0 ur2)/2, where 
+Vout 1 and Vout2 are the single-ended outputs. It therefore seems plausible to employ a resistive 
+divider as shown in Fig. 9.35, generating Vout,CM = (R 1 Vaut2 + R2Vout!)/(R1 + R2), which 
+reduces to CVoutl 
+Vout2)/2 if R, = Rz. The difficulty, however, is that R 1 and R2 must be 
+much greater than the output impedance of the op amp so as to avoid lowering the open-
+loop gain. For example, in the design of Fig. 9.33, the output impedance equals 266 kQ, 
+
+
+=== PDF page 352
+Sec. 9.8 
+Slew Rate 
+331 
+(9.32) 
+revealing that both the low-frequency gain and the time constant of the circuit have decreased by a 
+factor of I+ AvCI j(C1 + Cz). The response to a unity step is thus given by 
+(9.33) 
+where 
+(9.34) 
+(b) Suppose a large positive step is applied to the gate of M1 in Fig. 9.56(a) while the initial 
+voltage across c, is zero. Then, Mz turns off and, as shown in Fig. 9.56(c), Vaur rises according to 
+Vaur(t) = I.ss /[ C 1 Cz/( c, + C2)]t. Similarly, for a large negative step at the input, Fig. 9.56(d) yields 
+Vout = -/ss/[C,Cz/(C, + Cz)]t. 
+As another example, let us find the slew rate of the telescopic op amp shown in Fig. 9.57 (a). 
+When a large differential input is applied, M1 or M2 turns off, reducing the circuit to 
+that shown in Fig. 9.57(b). Thus, Voutl and Vour2 appear as ramps with slopes equal to 
+±lss/(2CL), and consequently Voutl -
+Vaur2 exhibits a slew rate equal to lss/CL. (Of 
+course, the circuit is usually used in closed-loop form.) 
+It is also instructive to study the slewing behavior of a folded-cascade op amp with 
+single-ended output [Fig. 9.58(a)]. Figs. 9.58(a) and (b) depict the equivalent circuit for 
+Iss 
+2 f1!=--t 
+eLI 
+_r-------~-=1 
+(a) 
+(b) 
+Figure 9.57 Slewing in telescopic op amp. 
+
+
+=== PDF page 357
+336 
+Chap. 9 
+Operational Amplifiers 
+and gm 1 V1 + gm2 V2 = 0. Thus, if the circuit is symmetric, 
+(9.41) 
+We also have 
+(9.42) 
+It follows that 
+Vout = -----;::;---
+VDD 
+Ci 
+gm2ro4C 
+C +I 
+I+ 2 
+(9.43) 
+Thus, 
+(9.44) 
+9.10 Noise in Op Amps 
+In low-noise applications, the input-referred noise of op amps becomes critical. We now 
+extend the noise analysis of differential amplifiers in Chapter 7 to more sophisticated topolo-
+gies. With many transistors in an op amp, it may seem difficult to intuitively identify the 
+dominant sources of noise. A simple rule for inspection is to (mentally) change the gate 
+voltage of each transistor by a small amount and predict the effect at the output. 
+Let us first consider the telescopic op amp shown in Fig. 9.63. At relatively low fre-
+quencies, the cascade devices contribute negligible noise, leaving M 1-M2 and MrMs as 
+Figure 9.63 Noise in a telescopic op 
+amp. 
+
+
+=== PDF page 359
+338 
+Chap. 9 
+Operational Amplifiers 
+changes considerably. The same observation applies to Ms-M10 as well. To determine the 
+input-referred thermal noise, we first refer the noise of MrMs and M9-M10 to the output: 
+-2 I 
+( 
+2 2 2) 
+vn,out M7,8 = 2 4kT-3--gm7,8Rout ' 
+8m7,8 
+(9.46) 
+where the factor 2 accounts for (uncorrelated) noise of M7 and Ms and Rout denotes the 
+open-loop output resistance of the op amp. Similarly, 
+-2 I 
+2 ( 
+2 2 2) 
+vn,out M9,l0 = 
+4kT 3 
+gm9,l0Rout . 
+gm9,l0 
+(9.47) 
+Dividing these quantities by g~ 1
+• 2 R;ut and adding the contribution of Mt-Mz, we obtain 
+the overall noise: 
+r 
+= gkT (-2- + 2gm7,8 + ~8m9,l0) 
+n,wt 
+3 
+3 2 
+3 
+2 
+· 
+8ml.2 
+8mt,2 
+8mt,2 
+(9.48) 
+The effect of flicker noise can be included in a similar manner (Problem 9.15). Note that the 
+folded-cascode topology potentially suffers from greater noise than the telescopic counter· 
+part. 
+As observed for the differential amplifiers in Chapter 7, the noise contribution of th~ 
+PMOS and NMOS current sources increases in proportion to their transconductance. Thh 
+trend results in a trade-off between output voltage swings and input-referred noise: for < 
+given current, as implied by 8m = 2/v/(VGs- Vr H), if the overdrive voltage of the curren 
+sources is minimized to allow large swings, then their transconductance is maximized. 
+As another case, we calculate the input-referred thermal noise of the two-stage op amJ 
+shown in Fig. 9.65. Beginning with the second stage, we note that the noise current of M 
+Vout2 
+Figure 9.65 Noise in a two-stage op amp. 
+
+
+=== PDF page 377
+356 
+Chap. 10 
+Stability and Frequency Compensation 
+minimized, a remedy that yields low voltage gain and/or limited output swings (Chapter9). 
+The second approach, on the other hand, retains the low-frequency gain and the output 
+swings but it reduces the bandwidth by forcing the gain to fall at lower frequencies. 
+In practice, we first try to design an op amp so as to minimize the number of poles while 
+meeting other requirements. Since the resulting circuit may still suffer from insufficient 
+phase margin, we then compensate the op amp, i.e., modify the design so as to move the 
+gain crossover toward the origin. 
+Let us apply the above procedures to various op amp topologies. We begin with the 
+telescopic cascode op amp shown in Fig. 10.15, where a PMOS current mirror performs 
+differential to single-ended conversion. We identify a number of poles in the signal paths: 
+path 1 contains a high-frequency pole at the source of M3, a mirror pole at node A, and 
+another high-frequency pole at the source of M7, whereas path 2 contains a high-frequency 
+pole at the source of M4 • The two paths share a pole at the output. 
+Figure 10.15 Telescopic op amp with 
+single-ended output. 
+It is instructive to estimate the relative position of these poles. Since the output resistance 
+of the op amp is much higher than the small-signal resistances seen at the other nodes in 
+the circuit, we expect that, even with a moderate load capacitance, the output pole, wp,our. 
+is the closest to the origin. Called the "dominant pole," Wp,our usually sets the open-loop 
+3-dB bandwidth. 
+We also surmise that the first "nondominant pole," i.e., the closest pole to the origin 
+after the dominant pole, arises at node A. This is because the total capacitance at this node, 
+roughly equal to Cass + Cas6 +CoBs+ 2Cao6 + CoB3 + Cao3. is typically quite larger 
+than that at nodes X, Y, and Nand the small-signal resistance of M5, approximately 1/gm5, 
+is relatively large. 
+Which node yields the next nondominant pole: Nor X (and f)? Recall from Chapter9 
+that, to obtain a low overdrive and consume a reasonable voltage headroom, the PMOS 
+devices in the op amp are typically quite wider than the NMOS transistors. Comparing 
+M4 and M7 and neglecting body effect, we note that since gm = 210 /IVas- VrHI, if 
+
+
+=== PDF page 379
+358 
+Chap. 10 
+Stability and Frequency Compensation 
+How should we compensate the op amp? Let us assume that the number and location of 
+the nondominant poles and hence the phase plot at frequencies higher than roughly 1 Owp,out 
+remain constant. Thus, we must force the loop gain to drop such that the gain crossover 
+point moves toward the origin. To accomplish this, we simply lower the frequency of the 
+dominant pole by increasing the load capacitance. The key point is that the phase contribution 
+of the dominant pole in the vicinity of the gain or phase crossover points is close to 90' 
+and relatively independent of the location of the pole. That is, as illustrated in Fig. 10.18, 
+translating the dominant pole toward the origin affects the magnitude plot but not the critical 
+part of the phase plot. 
+20iog I~ H (ro) I 
+~(ro) 
+M~---.. 
+Figure 10.18 Translating the domi-
+nant pole toward origin. 
+In order to understand how much the dominant pole must be shifted down as well as 
+arrive at an important conclusion, let us assume (1) the second nondominant pole (wp,N) 
+in Fig. 10.15 is quite higher than the mirror pole so that the phase shift at w = wp,A is 
+equal to -135° and (2) a phase margin of 45° (which is usually inadequate) is necessary. 
+To compensate the circuit, we first identify the frequency at which the phase plot yields 
+the required phase margin, in this case, wp,A. Since the dominant pole must drop the gain 
+to unity at wp.A with a slope of 20 dB/dec, we draw a straight line from Wp,A toward the 
+origin with such a slope (Fig. 10. 19), thus obtaining the new magnitude of the dominant 
+pole, w~.out· Therefore, the load capacitance must be increased by a factor of Wp,outfw~.out' 
+From the new magnitude plot, we note that the unity -gain bandwidth of the compensated 
+op amp is equal to thefrequency of the first nondominant pole (of course with a phase margin 
+of 45°). This is a fundamental result, indicating that to achieve a wideband in a feedback 
+system employing an op amp, the first nondominant pole must be as far as possible. For 
+this reason, the mirror pole proves undesirable. 
+We should also mention that although w p,out = (Rout C L) -l, increasing Rout does nol 
+compensate the op amp. As shown in Fig. 10.20, a higher Rout results in a greater gain, 
+only affecting the low-frequency portion of the characteristics. Also, moving one of the 
+nondominant poles toward the origin does not improve the phase margin. (Why?) 
+Now consider the fully differential telescopic cascode depicted in Fig. 10.21. In additio! 
+to achieving various useful properties of differential operation, this topology avoids the mir· 
+ror pole, thereby exhibiting stable behavior for a greater bandwidth. In fact, we can identiry 
+one dominant pole at each output node and only one nondominant pole arising from node 
+X (or Y). This suggests that fully differential telescopic cascode circuits are quite stable. 
+
+
+=== PDF page 450
+Sec. 12.3 
+Switched-Capacitor Amplifiers 
+429 
+(a) 
+(b) 
+Figure 12.36 (a) ~pier 
+in sampling mode, (b) equivalent circuit of (a). 
+Speed Considerations Let us first examine the circuit in the sampling mode 
+[Fig. 12.36(a)]. What is the time constant in this phase? The total resistance in series 
+with CHis given by Ron! and the resistance between X and ground, Rx. Using the simple 
+op amp model shown in Fig. 12.36(b), where Ro denotes the open-loop output impedance 
+of the op amp, we have 
+that is, 
+Ux- Gm Vx)Ro + lxRon2 = Vx, 
+Ro + Ron2 
+Rx=----
+1 + GmRo 
+(12.45) 
+(12.46) 
+Since typically Ron2 « Ro and GmRo » 1, we have Rx ~ 1/ Gm. For example, in 
+a telescopic op amp employing differential to single-ended conversion, G m equals the 
+transconductance of each input transistor. 
+The time constant in the sampling mode is thus equal to 
+fsam = (Ron!+ dm) CH. 
+(12.47) 
+The magnitude of rsam must be sufficiently small to allow settling in the test case of Fig. 12.14 
+to the required precision. 
+Now let us consider the circuit as it enters the amplification mode. Shown in Fig. 12.37 
+along with both the op amp input capacitance and the load capacitance, the circuit must 
+begin with Vout ~ 0 and eventually produce Your ~ Vo. If C;n is relatively small, we can 
+assume that the voltages across C L and C H do not change instantaneously, concluding that 
+if Your ~ 0 and VcH ~ Vo, then Vx = - Vo at the beginning of the amplification mode. 
+In other words, the input difference sensed by the op amp initially jumps to a large value, 
+possibly causing the op amp to slew. But, let us first assume the op amp can be modeled by 
+a linear model and determine the output response. 
+To simplify the analysis, we represent the charge on C H by an explicit series voltage 
+source, Vs, that goes from zero to V0 at t =to while CH carries no charge itself (Fig. 12.38). 
+The objective is to obtain the transfer function Vour(s)/Vs(s) and hence the step response. 
+
+
+=== PDF page 452
+Sec. 12.3 
+Switched-Capacitor Amplifiers 
+431 
+which is independent of the op amp output resistance. This is because a higher R0 leads 
+to a greater loop gain, eventually yielding a constant closed-loop speed. If C;n « C L, C H, 
+then (12.52) reduces to CL/ Gm, an expected result because with negligible Cn. the output 
+resistance of the unity-gain buffer is equal to 1/ Gm. 
+We now study the slewing behavior of the circuit, considering a telescopic op amp as an 
+example. Upon entering the amplification mode, the circuit may experience a large step at 
+the inverting input (Fig. 12.37). As shown in Fig. 12.39, the tail current of the op amp's input 
+differential pair is then steered to one side and its mirror current charges the capacitance 
+seen at the output. Since M2 is off during slewing, C;n is negligible and the slew rate is 
+approximately equal to lssJ.C~he slewing continues until Vx is sufficiently close to the 
+gate voltage of M1, after which point the settling progresses with the time constant given 
+in (12.52). 
+Figure 12.39 Unity-gain sampler 
+during slewing. 
+Our foregoing studies reveal that the input capacitance of the op amp degrades both the 
+speed and the precision of the unity-gain sampler/buffer. For this reason, the bottom plate 
+of C H in Fig. 12.30 is usually driven by the input signal or the output of the op amp and 
+the top plate is connected to node X (Fig. 12.40), minimizing the parasitic capacitance 
+seen from node X to ground. This technique is called "bottom-plate sampling." Driving the 
+bottom plate by the input or the output also avoids the injection of substrate noise to node 
+X (Chapter 18). 
+It is instructive to compare the performance of the sampling circuits shown in 
+Figs. 12.29(b) and 12.30(a). In Fig. l2.29(b), the sampling time constant is smaller because 
+it depends on only the on-resistance of the switch. More importantly, in Fig. 12.29(b), the 
+amplification after the switch turns off is almost instantaneous, whereas in Fig. 12.30 it 
+requires a finite settling time. However, the critical advantage of the unity-gain sampler is 
+the input-independent charge injection. 
+
+
+=== PDF page 698
+Index 
+abstraction levels, circuit design, 7, 8 
+accelerometers, 4-5 
+active current mirrors, 145-58; common-mode properties, 
+154-58; differential pair with, 148, 150, 151, 154, 
+190; large-signal analysis of, 149-51; small-signal 
+analysis, 151-54; small-signal vehavior in, 145-48 
+active devices, 611-16; back-end processing, 614-16; basic 
+transistorfabrication, 611-14; fabrication, 611-16 
+ADC. See analog-to-digital converter 
+amplification mode: noninverting amplifiers, 432-433, 436, 
+437; unity-gain sampler, 424-25, 429-30 
+amplifiers: auxiliary, 312; cascade of, 170; continuous-time 
+feedback, 405-7; current, 254-56; differential, 
+100-34; frequency response of, 166-200; noise in 
+single-stage, 224-33; noninverting, 432-38; 
+nonlinear, 448-63; one-pole feedforward, 348; 
+operational, 291-344; output port, 66-67; 
+single-stage, 47-99, 224-33; switched-capacitor, 
+423-39; transconductance, 254-56; transimpedance, 
+254-56; types of, 254-56; variable gain, 126-28; 
+voltage, 254-56, 461 
+amplitude: distribution, 206-7; limiting, 487-95; output, 512 
+analog design, 600; introduction to, 1-8; in microprocessors 
+and memories, 5-6; octagon, 48; robust, 7-8 
+analog layout techniques, 635-60; multifinger transistors, 
+635-37; passive devices, 644-53; reference 
+distribution, 642-44; symmetry, 637-42 
+analog-to-digital converter (ADC), 1-2 
+antenna effect, 634-35 
+asymmetry, 120--24, 151-52. See also symmetry 
+auxiliary amplifiers, 312 
+average power, 202-3 
+back-end processing, 614-16 
+bandgap references, 377-404; case study, 397-400; defined, 
+389; floating, 398-99; general considerations, 377: 
+speed and noise issues, 393-97: 
+temperature-independent references, 384-90, 
+See also reference distribution 
+bandwidth: large-signal. 295; modification, 252-54; noise, 
+239; small-signal, 293-95 
+Barkbausen's Criteria, 346, 483,487 
+biasing: constant-Gm, 392-93; supply-independent, 377-81 
+binary data, 2-3 
+Bode plots, 346-47,349,357,359,362,364,547,561 
+body effect, 23-25; source follower, 71 
+bonding pads, 657-59 
+bootstrapping, 566-67 
+bottom-plate sampling, 423 
+bounce,663-65,668 
+BS!Ms, 591-92, 596-97 
+bulk, 12; NFETs and PFETs, 36 
+bulk voltage, 23-25 
+bypass capacitors, 673 
+cancellation, offset, 471-78 
+capacitance: fringe, 626; load, 169-70; mutual, 675; parallel, 
+626-27; parasitic, 171; self-, 675 
+capacitance modeling, MOS device models, 598 
+capacitive coupling, reducing, 654 
+capacitor nonlinearity, 457-58 
+capacitors: accelerometer, 4-5; behavior of MOS devices as, 
+38-39; bypass, 673; layout in passive devices, 
+650--52; metal-poly, 620--21; monolithic, 423-24; 
+MOS, 621-24; in passive MOS devices, 619-24; 
+poly-diffusion, 619-20; poly-poly, 620: 
+voltage-dependent, 521-22. See also capacitor 
+nonlinearity; switched-capacitor circuits 
+cascode current mirrors, 139-45 
+cascode current source, 140-45 
+cascode devices, layout, 638 
+cascode differential pair, 126 
+cascode operational amplifiers, 292, 298-99; folded, 301-7; 
+telescopic, 297-99, 303-4, 306 
+casco de stage, 83-92; frequency response, 185-87; gain 
+boosting in, 310--11; input-output characteristic, 84; 
+model, 186; output impedance, 85-86, 88; shielding 
+property, 89-90; single-stage amplifiers, 232-33; 
+small-signal characteristics, 84-85 
+cascades: folded, 90--92; low-voltage, 143-45; self-biased, 
+398; triple, 307 
+center frequency in voltage-controlled oscillators (VCOs). 511 
+CG stage. See common-gate stage 
+channel, long versus short, 38 
+channel charge injection, 418-20; cancellation, 421-23 
+channel-length modulation, 25-27 
+channel resistance, of MOS capacitors, 622-24 
+channeling, 609-10 
+677 
+
+
+=== PDF page 702
+ndex 
+MOS: circuit symbols, 12-13; J/V characteristics, 13-23 
+MOS capacitors, 621-24; channel resistance of, 622-24 
+MOS device models, 591-99; BSIM series, 591-92, 596--97; 
+charge and capacitance modeling, 598; Levell, 592; 
+Level 2, 593-95; Level 3, 595-96; temperature 
+dependence, 599 
+MOS devices: active, 611-16; behavior as a capacitor, 38-39; 
+capacitances, 29-33; fabricating, 611-27; layout, 
+28-29; models, 28-38, 591-99; passive, 616--24; 
+processing technology, 604-30; small-signal model, 
+33-36; subthreshold characteristics, 27-28; as 
+switches, 413-23; transconductance, 22, 28. See also 
+NMOS devices; PMOS devices 
+MOS loads, differential pair with, 124-26 
+MOS SPICE models, 36--37 
+MOS technology. See MOSFETs 
+MOSFETs (metal-oxide-silicon field-effect transistors), 6; 
+common-mode sensing using, 319; as controlled 
+linear resistor, 18-19; layout, 28-29; mismatches in, 
+463-79; ohmic sections, 213-14; operating in deep 
+triode region, 460-61; parameter variations, 
+599-600; physics, 9-38; reducing effect of 
+mismatched, 397-400; relationship between drain 
+current and terminal voltage, 15-17; saturated, 
+19-21; scaling, 579-83; small-signal model, 33-36; 
+structure, 10-12; as switches, 10, 410-14; thermal 
+noise, 212-15; transconductance, 392 
+multifinger transistors, 635-37 
+multiply-by-two circuits, 438-39; with MOS capacitor, 622 
+multipole systems, 349-51 
+mutual capacitance, 675 
+mutual inductance, 673-75 
+n-type MOS devices. See NMOS devices 
+natural signals, processing of, 1-2 
+negative feedback: effect of on nonlinearity, 454-57; system, 
+345-46. See also feedback; feedback circuits; 
+positive feedback 
+negative resistance, 505-9 
+negative-TC (temperature coefficient) voltage, 381-82 
+NFETs: bulk, 36; threshold voltage, 14. See also NMOS 
+devices 
+NMOS (n-type MOS) devices, 6; bulk voltage, 23-25; in 
+cross-coupled oscillators, 524-25; in gain-boosting 
+amplifiers, 311; latch-up in, 627-28; in operational 
+amplifiers, 301-5; parameters of Levell SPICE 
+models, 37; versus PMOS devices, 37; process 
+corners based on speed of, 600; processing 
+technology, 604-30; structure, 10-!2; as switches, 
+410-14, 416; used by source follower as current 
+source, 69 
+nodes: association with poles, 169-71; in cascade stage, 
+185-87; in common-gate stage, 183-85; and 
+differential pairs, 187-93; input, 172-77; 
+interaction between, 170; output, 172-77; and 
+source followers, 178-82. See also input nodes; 
+output nodes 
+noise, 201-45; amplitude distribution, 206--7; average power, 
+202-3; bandwidth, 239; calculation lemma, 224; 
+cascade stage, 232-33; common-gate stage, 228-31; 
+common-mode, 101; common-source stage, 225-28; 
+corner frequency, 217-18; correlated and 
+uncorrelated sources, 207-9; in differential 
+pairs, 233-39; effect of feedback on, 184-85; flicker, 
+215-18; input-referred, 219-24; kTjC, 421; 
+in operational amplifiers, 296, 336-40; 
+681 
+output-referred, 219; predicting properties of, 20 1-2; 
+reduced by offset cancellation, 476--78; reference 
+generator, 393-97; representation in circuits, 218-24; 
+in self-inductance, 668-69; in source followers, 
+231-32; sources, 218-19; spectrum, 203-6; 
+statistical characteristics, 201-9; thermal, 209-15; 
+types of, 209-18; white, 204-5 
+noisy lines, I 01 
+noninverting amplifiers, 432-38: precision considerations, 
+435-36; speed considerations, 436--38 
+nonlinear systems, input-output characteristic, 47-48 
+nonlinearity, 448-63; capacitor, 457-58; definition of, 450; 
+of differential circuits, 452-54; effect of negative 
+feedback on, 454-57; general considerations, 
+448-52; reduction, 254. See also linearity 
+Norton equivalent, 66-67 
+notations, 8 
+offset: DC, 465-70; operational amplifier, 296, 386--89 
+offset cancellation, 471-76; noise reduced by, 476--78 
+ohmic sections, MOSFET, 213-14 
+one-dimensional cross-coupling, 641-42 
+one-pole feedforward amplifiers, 348 
+one-pole systems, 252-54 
+one-port oscillators, 505-9 
+one-stage operational amplifiers, 296--307 
+op amps. See operational amplifiers 
+open-loop circuits, 250, 253-54 
+open-loop gain, 248-49, 270; in operational amplifiers, 292; 
+and voltage-voltage feedback, 273-75 
+open-loop transfer function, 247 
+operational amplifiers, 291-344; cascade, 292, 298-99; 
+closed-loop gain, 293; common-mode feedback, 314; 
+designing, 299-300; folded cascade, 301-7,331-32, 
+337-38; gain, 291-92; gain boosting, 309-13; input 
+range limitations, 325-26; large-signal bandwidth, 
+295; linearity, 296; noise and offset, 296; noise in, 
+336-40; offset and output impedance. 386--89; 
+one-stage, 296--307; open-loop gain, 292; output 
+swing, 295, 298; performance parameters, 291-96; 
+power supply rejection, 334-36; slew rate, 326--34; 
+small-signal bandwidth, 293; supply rejection, 296; 
+telescopic, 331,336--37, 356-61; telescopic cascade, 
+297-99, 303-4, 306; topology comparison, 313-14; 
+triple cascode, 307; two-stage, 307-9, 338-40, · 
+361-69,368-69 
+optical receivers, 4 
+OR gates, 532-33 
+oscillators, 482-531; Colpitts, 502-5; cross-coupled 499-501, 
+522; general considerations, 482-84; LC, 495-509, 
+521-25; one-port, 505-9; ring, 484-95; voltage 
+controlled (VCOs), 482-531,510-30 
+output amplitude, in voltage-controlled oscillators 
+(VCOs), 512 
+output characteristics: nonlinear systems, 448; of 
+phase/frequency detectors (PFDs), 553-55; sampling 
+circuit, 419. See also input characteristics; 
+input/output characteristic 
+output impedance, 173; boosting, 310-11; cascade stage, 
+85-86, 88; and current-voltage feedback, 264-65; 
+operational amplifier, 386--89; reference generator, 
+393-97; source follower, 70, 73, 180-82; variation 
+with drain-source voltage, 589-91; and 
+voltage-current feedback, 266-68; and 
+voltage-voltage feedback, 259-60 
+output nodes: in cascode stage, 185-87; in common-gate 
+
+
+=== PDF page 704
+1dex 
+saturation, 49; region, 19-21,22-23, 49; velocity, 587-89 
+scaling: constant-field, 579; current, 643-44; theory, 579-83 
+second-order effects, 23-28 
+self-capacitance, 675 
+self-inductance, 668-73 
+sense and return mechanisms, 256-58 
+sensors. 4-5 
+series feedback, 256 
+series resistance, of interconnects, 624-25 
+settling speed, in phase-locked loops (PLLs), 545-46 
+shadowing, 639 
+sheet resistance, 605 
+shielding, 655-56; cascade stage, 89-90 
+short-channel devices, versus long-channel devices, 38 
+short-channel effects, 583-91; drain-induced barrier lowering 
+(DIBL), 585, 586; hot carrier efiects, 589; mobility 
+degradation with vertical field, 585-87; output 
+impedance variation with drain-source voltage, 589; 
+threshold voltage variation, 583-85; velocity 
+saturation, 587-89 
+shunt feedback, 256 
+signals: differential, 100-2; output, 512; single-ended, 100-2 
+silicide, 614, 616-17 
+single-ended signals, versus differential signals, 100-2 
+single-pole system, 252-54 
+single-stage amplifiers, 47-99, 224-33; basic concepts, 
+47-48; cascade stage, 83-92, 232-33; choice of 
+device models, 92-93; common-gate stage, 76-83, 
+228-31; common-source stage, 48-67, 225-28; 
+source followers, 67-76,231-32 
+sinusoid waveform, 525-26 
+skew, 565-66; eliminating in voltage-controlled oscillators, 
+533-36; reducing in phase-locked loops 
+(PLLs), 575-76 
+slew rate, operational amplifiers, 326--34 
+slewing: negative, 372; positive, 372; in two-stage operation 
+amplifiers, 368-69; in unity-gain 
+sampler/buffer, 431-32 
+small-signal analysis, of active current mirrors, 151-54 
+small-signal bandwidth, operational amplifiers, 293-95 
+small-signal behavior: in active current mirrors, 145-48; 
+differential pair, 110-14 
+small-signal characteristics, cascade stage, 84-85 
+small-signal gain, 145-51; calculating, 68-69: in nonlinear 
+amplifiers, 450, 452-54 
+small-signal models, 61; of common-source stage, 52 
+small-signal output resistance, calculating, 70-72 
+source, 10, 11 
+source degeneration, common stage with, 60-67 
+source/drain junction capacitance, scaling, 580-82 
+source followers, 67-76; common-mode feedback using, 318; 
+drawbacks of, 73-76; input impedance, 73, 179; 
+input-output characteristic, 68; intrinsic, 72; as level 
+shifters, 145, 178-82; output impedance, 70, 73, 
+180-82; single-stage amplifiers, 231-32; small-signal 
+equivalent circuit, 68-69 
+source impedance, 22J-24 
+spacers, oxide, 614 
+spacing, layout, 633-34 
+spectral shaping, 205-6 
+speed: in noninverting amplifiers. 436-38; reference 
+generator, 393-97; in sampling circuits, 414-17; 
+settling, 545-46; in unity-gain sampler/buffers, 
+42932 
+SPICE models, 36-37 
+spiking, contact, 6 I 5-16 
+square wave amplification, 253 
+683 
+stability, 345-76; in charge-pump phase-locked loops 
+(CPPLLs), 561-62; general considerations, 345-48 
+stages: delay, 518-20; in ring oscillators, 486-92; tuned, 
+498-99,502 
+start-up, 389-90 
+statistical characteristics of noise, 201-9 
+step response, 326-27 
+structure, MOSFET, 10-12 
+substrate, 10-12; bounce, 663-65; coupling, 660-65 
+subthreshold conduction, 27-28 
+supply: dependence, 389-90; rejection, 296; in 
+voltage-controlled oscillators (VCOs ), 512 
+supply-independent biasing, 377-81 
+switched-capacitor amplifiers, 423-39 
+switched-capacitor circuits, 405-47; in amplification mode, 
+408-9; general considerations, 405-9; in sampling 
+rnode,408-9,410-23 
+switched-capacitor common-mode feedback, 442-43 
+switched-capacitor integrator, 439-42 
+switches: complementary, 422: dummy, 421-22; MOSFETs 
+as, 10, 410-14; sampling, 410-23; zero-offset, 414 
+symbols, MOS, 12-13 
+symmetry, 113-14, 117-20, 149-50; in layouts, 637-42. 
+See also asymmetry 
+tail current, 120-21 
+tanks, LC, 496-98 
+telephone bandwidth, and spectral shaping, 205-6 
+telescopic cascade operational amplifiers, 297-99, 303-4, 
+306. See also telescopic operational amplifiers 
+telescopic operational amplifiers: frequency compensation, 
+356-61; noise in, 336-37; slewing in, 33 I. See also 
+telescopic cascade operational amplifiers 
+temperature, proportional to absolute (PTAT), 377, 390-92 
+temperature dependence: forms, 377; in MOS device 
+models, 599 
+temperature-independent references, 381; bandgap references, 
+384-90; negative-TC (temperature coefficient) 
+voltage, 381-82; positive-TC (temperature 
+coefficient) voltage, 382-84 
+temperature-independent voltage, 384-85 
+terminal impedance modification, 250-52 
+terminals, I 0-11 
+thermal noise, 209-15: MOSFETs, 212-15; resistors, 209-12; 
+voltage,225-28 
+Thevenin equivalent, 72, 79, 112, 153, 191,437 
+three-pole systems, 350-51 
+three-stage ring oscillators, 486-89 
+threshold voltage, 10, 13-15, 27 28. 149-50; mismatches, 
+471; variation, 583-85 
+time-domain response, 347-48 
+topologies: comparison of operational amplifier, 313-14; 
+common-mode feedback, 317; current-folding, 518; 
+feedback, 258-70; folded cascade operational 
+amplifiers, 302; operational amplifiers, 296-98; 
+phase-locked loops (PLLs), 533-42 
+transconductance, 22, 28, 48; amplifiers, 254-56; MOSFET, 
+392; of common-source devices, 62, 66 
+transfer function: in charge-pump phase-locked loops 
+(CPPLLs), 557-61; closed-loop, 247; common-gate 
+stage, 171; common-source stage, 172-77; 
+input-output, 169; open-loop, 247; in phase-locked 
+loops (PLLs), 542-49; and spectral shaping, 205-6 
+transients in locked condition, response of phase-locked loops 
+(PLLsl to, 539-42 
+transimpedance amplifiers, 254-56 
+

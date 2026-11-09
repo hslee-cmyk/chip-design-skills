@@ -1,0 +1,2 @@
+base folded_cascode exit=0 elapsed_s=24.89 status_after=[ M workspaces/folded-cascode-report/folded_cascode.instance.json;]
+base current_reuse_telescopic_ota exit=0 elapsed_s=178.23 status_after=[ M workspaces/current-reuse-telescopic-ota-report/current_reuse_telescopic_ota.instance.json;?? workspaces/current-reuse-telescopic-ota-report/current_reuse_telescopic_ota.report.html;]

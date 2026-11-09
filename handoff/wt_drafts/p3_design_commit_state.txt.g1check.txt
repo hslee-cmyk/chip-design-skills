@@ -1,0 +1,1 @@
+check ok (would apply 5) [["design05-V3", "applied", 317], ["design05-V6", "applied", 320], ["design05-V7", "applied", 321], ["design05-reject", "applied", 338], ["planN310-533", "applied", 533]]

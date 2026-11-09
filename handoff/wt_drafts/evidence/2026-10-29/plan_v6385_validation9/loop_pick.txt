@@ -1,0 +1,4 @@
+('M11a', 'M11b', 'M15', 'M9a'): [('M11a', 'diode_load', 'B', True), ('M11b', 'diode_load', 'B', True), ('M15', 'cs', 'S/F', False), ('M9a', 'pass', 'S/F', False)] -> 종속 = M11a
+('M14a', 'M14b', 'M16', 'M9b'): [('M14a', 'diode_load', 'B', True), ('M14b', 'diode_load', 'B', True), ('M16', 'cs', 'S/F', False), ('M9b', 'pass', 'S/F', False)] -> 종속 = M14a
+('M18a', 'M20a', 'M20b', 'M25'): [('M18a', 'pass', 'S/F', False), ('M20a', 'diode_load', 'B', True), ('M20b', 'diode_load', 'B', True), ('M25', 'cs', 'S/F', False)] -> 종속 = M20a
+('M18b', 'M23a', 'M24b', 'M26'): [('M18b', 'pass', 'S/F', False), ('M23a', 'diode_load', 'B', True), ('M24b', 'diode_load', 'B', True), ('M26', 'cs', 'S/F', False)] -> 종속 = M23a

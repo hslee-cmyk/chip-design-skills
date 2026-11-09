@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# G1 키트 측정 복제본: $1 = scratch(C:/g<n>), $2 = 원본 저장소(읽기만). base 복제본 b, 시제품 복제본 p(install_proto.py + 공격 32 측정판).
+# 실제 저장소에는 쓰지 않는다(clone --no-local, origin 제거, 빈 hooksPath).
+set -euo pipefail
+S="$1"; SRC="$2"
+K=C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/g1_kit
+PY=C:/Python314/python.exe
+case "$S" in C:/g*) ;; *) echo "scratch must be C:/g<n>"; exit 2;; esac
+mkdir -p "$S"
+for n in b p; do
+  if [ -e "$S/$n" ]; then continue; fi
+  git clone -q --no-hardlinks --no-local "$SRC" "$S/$n"
+  git -C "$S/$n" remote remove origin
+  git -C "$S/$n" config core.hooksPath "$S/nohooks"
+done
+"$PY" -B "$K/install_proto.py" "$S/p"
+"$PY" -B "$K/gen_attack32.py" "$S/b"
+"$PY" -B "$K/gen_attack32.py" "$S/p" --scope
+git -C "$S/p" diff --stat
+"$PY" -B -c "import ast,sys;[ast.parse(open(f,encoding='utf-8').read()) for f in sys.argv[1:]];print('parse ok')" \
+  "$S/p/tools/gates/reachability.py" "$S/p/tools/gates/mutate_changed.py" "$S/p/tools/gates/source_lint.py" "$S/p/tools/gates/redteam/lib/rt.py"

@@ -1,0 +1,107 @@
+"""B26-1 v4 모의 head 생성 (review2_b26_1 B1·B2 재측정용).
+
+base = b1(C:/g103/b1 = gate master HEAD 2d58fd8 archive + B34 코드 변경, mk_b1.py). 엔진 = 7535799 + P9(b7765b0) + B34.
+head = b1 + B26-1 상당(rails, sim_head.build_b26 -- 사이트 줄은 b1에서 내용으로 다시 찾은 13줄) + 인계 삭제.
+  mode "review2" : 인계 9·10·10b·13·14·B40 (검토 review2_b26_1의 모의 head 재현용)
+  mode "v4"      : 인계 9·10b·13·B40 (사이트 10·14와 그 뒤 E2b는 B35로 넘김 -- card v4)
+"""
+import ast, re, sys
+
+sys.path.insert(0, "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/b26_reconcile")
+import sim_head as S   # noqa: E402  (BASE = C:/g103/b1)
+
+SITE_SD_B1 = [1014, 1571, 1613, 2092, 2168, 3133, 3238, 3973, 4152, 4288, 4304, 4351, 4373]
+
+
+def _check_sites(src):
+    lines = src.split("\n")
+    for n in SITE_SD_B1:
+        l = lines[n - 1]
+        assert "_RAIL_NETS" in l or '{"vdd": "vdd", "gnd": "gnd"}' in l, (n, l)
+
+
+def _def_span(src, qual):
+    fn = dict(S.rch.iter_defs(ast.parse(src)))[qual]
+    return fn.lineno - 1, fn.end_lineno
+
+
+def _replace_in_def(src, qual, old, new):
+    a, b = _def_span(src, qual)
+    lines = src.split("\n")
+    seg = "\n".join(lines[a:b])
+    assert seg.count(old) == 1, (qual, seg.count(old), old[:60])
+    return "\n".join(lines[:a] + seg.replace(old, new).split("\n") + lines[b:])
+
+
+def _unwrap_if(src, qual, if_line, else_tail=None):
+    """def 안의 `if_line` 문장을 지우고 그 블록을 한 단계 내어쓴다. else_tail이 있으면 `else:` 줄과 그 블록(else_tail 줄들)을 지운다."""
+    a, b = _def_span(src, qual)
+    lines = src.split("\n")
+    idx = [i for i in range(a, b) if lines[i] == if_line]
+    assert len(idx) == 1, (qual, if_line, idx)
+    i = idx[0]
+    ind = len(if_line) - len(if_line.lstrip())
+    out = lines[:i]
+    k = i + 1
+    while k < len(lines):
+        l = lines[k]
+        if l.strip() and (len(l) - len(l.lstrip())) <= ind:
+            break
+        out.append(l[4:] if l.startswith(" " * (ind + 4)) else l)
+        k += 1
+    if else_tail is not None:
+        assert lines[k] == " " * ind + "else:", lines[k]
+        k += 1
+        for t in else_tail:
+            assert lines[k] == t, (lines[k], t)
+            k += 1
+    out += lines[k:]
+    return "\n".join(out)
+
+
+def build_head(mode):
+    assert mode in ("review2", "v4", "rails_only")
+    S.SITE_SD = SITE_SD_B1
+    _check_sites(S.BASEF[S.SD])
+    head, outside = S.build_b26(S.BASEF)
+    if mode == "rails_only":
+        return head, outside
+    sd = head[S.SD]
+    R, P = "refine_differential_and_mirror_relations", "propose_device_roles_gap_fill"
+    # 9: classify 안 부재 분기, cls_before None
+    sd = _replace_in_def(sd, R, "        if netclass is None:\n            return None, None\n", "")
+    sd = _replace_in_def(sd, R, "    if cls_before is None:\n        return None\n", "")
+    # 10b
+    sd = _replace_in_def(sd, R, "    if relations is None:\n        return None\n", "")
+    # 13
+    sd = _replace_in_def(sd, P, "_netclass_lcmf.CASCODE) if _netclass_lcmf is not None else ())", "_netclass_lcmf.CASCODE))")
+    # B40: 분기는 남기고 unavailable_reason 키만 삭제
+    old40 = ('        return {"matching_pairs_proposals": [], "device_roles_proposals": {}, "review_needed": [],\n'
+             '                "unavailable_reason": "analog-grammar를 import할 수 없어 이 오케스트레이션 전체가 "\n'
+             '                                        "동작하지 않는다(refine_differential_and_mirror_relations()가 "\n'
+             '                                        "None을 반환)."}\n')
+    sd = _replace_in_def(sd, P, old40, '        return {"matching_pairs_proposals": [], "device_roles_proposals": {}, "review_needed": []}\n')
+    if mode == "review2":
+        # 10: if 삭제, 블록 내어쓰기
+        sd = _unwrap_if(sd, R, "    if _netclass_al is not None:")
+        # 14: if·else·else 블록 삭제, 블록 내어쓰기
+        sd = _unwrap_if(sd, P, "    if _idioms_lcmf is not None:", else_tail=["        cascoded_active_load_legs = set()"])
+    ast.parse(sd)
+    head[S.SD] = sd
+    def seg(q):
+        a, b = _def_span(sd, q)
+        return "\n".join(sd.split("\n")[a:b])
+    for q, tok in ((R, "cls_before is None"), (R, "relations is None"), (R, "netclass is None"),
+                   (P, "_netclass_lcmf is not None"), (P, "unavailable_reason")):
+        assert tok not in seg(q).split('"""', 2)[-1], (q, tok)
+    if mode == "review2":
+        assert "_netclass_al is not None" not in sd and "_idioms_lcmf is not None" not in sd and "cascoded_active_load_legs = set()" not in sd
+    else:
+        assert "_netclass_al is not None" in sd and "_idioms_lcmf is not None" in sd and "cascoded_active_load_legs = set()" in sd
+    return head, outside
+
+
+if __name__ == "__main__":
+    for m in ("review2", "v4"):
+        h, o = build_head(m)
+        print(m, "ok", {k.split('/')[-1]: v for k, v in o.items()})

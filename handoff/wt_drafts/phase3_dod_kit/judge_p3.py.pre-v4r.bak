@@ -1,0 +1,168 @@
+"""Phase 3 DoD 표 판정(design 30 §10 표 '통과 기준' 열을 그대로 기계로). 측정은 run_dod.sh가 하고 이 도구는 출력 JSON만 읽는다.
+
+    python -B judge_p3.py e01 <layer.json> <exit> <plan> [<f2base_layer.json|-> <f2base_exit|->]
+        -- E0 present = N3.10 10행(MOD1~MOD10) 전부. 표가 10행·번호 1..10이 아니면 INVALID.
+           E1 exit 0·findings 0. 단 E0이 PASS가 아니면 PENDING(공허), F2 판정 기록 base_commit 판의 거부 확인
+           (같은 도구가 SD → MOD9 임시 재수출이 있는 판에서 findings > 0)이 없으면 PENDING, 그 판에서 0이면 INVALID.
+    python -B judge_p3.py e2  <S> <cards.txt> <invalid_flag>   -- card마다 ①V3 ②check ③일관성(증거 아님). cards.txt가 8줄이 아니면 INVALID
+    python -B judge_p3.py e4  <plan_final.json> <plan_exit> <test_exit>   -- `assignment`가 없거나 비면 INVALID
+    python -B judge_p3.py e6  <chk_all.json> <exit> <chk_all_noallow.json> <noallow_exit>
+        -- v4(review_phase3_dod_refresh m2): `--allow-changed` 없이 같은 B0..H check가 exit 1이고 `changed` 단위 id 집합 = 허용 두 id·
+           다른 10종 빈 목록이어야 거부 확인(허용 id가 실제 바뀐 단위를 덮는다 -- 공허 PASS 아님). 아니면 INVALID.
+        r2: E1은 H 출력에 `findings` 키가 없으면 INVALID. E4는 plan_exit '-'(move_plan.py 없음) → PENDING,
+            plan을 돌렸는데 출력이 없으면 INVALID(두 표지를 나눔).
+
+출력: 한 줄 'E? <PASS|FAIL|INVALID|PENDING> <근거>'. PENDING = 입력이 아직 없다(card 미병합) -- 판정이 아니다.
+r1(2026-10-02, 독립 검토 review_phase3_dod.md §4 a·b·f, §5-3): 빈 입력을 PASS로 세던 경로를 막았다.
+v4(2026-10-06, review_phase3_dod_refresh.md m1·m2): CHK_KINDS 11종(`import-dup` -- D0a 계약 4 v8.4), E2 ②는 '모든 목록'(열거 밖 종류도 잡는다), e6 판정 추가.
+"""
+import json
+import os
+import sys
+
+V3_KEYS = ("defs", "mutants", "move_rejected", "not_targeted", "targets_by_def", "moved")   # design §10 E2 ①·③
+CHK_KINDS = ("move-set", "move-rejected", "changed", "lost", "rebind", "future", "import-dup", "stmt-order", "order", "shim", "cache")   # D0a 계약 4 11종(v8.4 D-30)
+E6_ALLOW = ("workspaces/run_harness.py::run",                                                    # design §10 E6 1100행(run_dod.sh e6와 같은 문자열)
+            "skills/analog-gmid-design/assets/gmid_design_pipeline.py::run_gmid_design_pipeline")
+N_MOD = 10      # 계획 N6.2 Phase 3 행 "MOD1~MOD10 존재"
+N_CARDS_E2 = 8  # design §10 cards.txt = M1~M6·M8·M9
+
+
+def load(p):
+    try:
+        with open(p, encoding="utf-8") as fh:
+            txt = fh.read().strip()
+        return json.loads(txt.splitlines()[-1]) if txt else None
+    except (OSError, ValueError):
+        return None
+
+
+def e01(layer, rc, plan, f2layer="-", f2rc="-"):
+    sys.path.insert(0, os.environ["GC"])
+    import import_layering as il
+    try:
+        table = il.mod_table(open(plan, encoding="utf-8").read())
+    except Exception as e:  # noqa: BLE001 -- 표 파손은 판정 불가(INVALID)로 적는다
+        print("E0 INVALID N3.10 표 읽기 실패: %s" % (e,)); print("E1 INVALID 같은 이유"); return
+    nums = sorted(table.values())
+    if len(table) != N_MOD or nums != list(range(1, N_MOD + 1)):
+        print("E0 INVALID N3.10 표 %d행 번호 %s(10행·MOD1~MOD10이어야 한다)" % (len(table), nums))
+        print("E1 INVALID 같은 이유"); return
+    d = load(layer)
+    if d is None or "present" not in d:
+        print("E0 INVALID import_layering 출력 없음/ERROR: %s" % (d,)); print("E1 INVALID 같은 이유"); return
+    miss = sorted(set(table) - set(d["present"]))
+    print("E0 %s present %d/%d%s" % ("PASS" if not miss else "FAIL", len(d["present"]), len(table),
+                                     "" if not miss else " 없음: " + ",".join(m + ".py" for m in miss)))
+    if "findings" not in d:  # r2(review_phase3_dod_r1 m1): 키 없음을 findings 0(PASS)으로 읽지 않는다
+        print("E1 INVALID import_layering 출력에 `findings` 키가 없다(키 %s, exit %s)" % (sorted(d), rc)); return
+    f = d["findings"]
+    raw = "exit=%s findings=%d%s" % (rc, len(f), "" if not f else " " + json.dumps(f[:6], ensure_ascii=False))
+    if miss:
+        print("E1 PENDING(E0 미충족 -- MOD 파일이 없으면 계층 위반도 있을 수 없어 공허, 판정 아님) %s" % raw); return
+    fd = load(f2layer) if f2layer != "-" else None
+    if fd is None or "findings" not in fd:
+        print("E1 PENDING(거부 확인 없음 -- F2 판정 기록 base_commit 판 import_layering 출력 없음, exit %s) %s" % (f2rc, raw)); return
+    nf = len(fd["findings"])
+    if nf == 0:
+        print("E1 INVALID 거부 확인: F2 base에서 findings 0(exit %s) -- SD → MOD9 임시 재수출이 있는 판에서 위반을 못 잡음 | %s" % (f2rc, raw))
+        return
+    print("E1 %s %s | 거부 확인 F2 base findings=%d(exit %s)" % ("PASS" if rc == "0" and not f else "FAIL", raw, nf, f2rc))
+
+
+def e2(S, cards, invalid):
+    rows = [ln.split() for ln in open(cards, encoding="utf-8") if ln.strip()]
+    if not rows:
+        print("E2 PENDING cards.txt 0줄(M1~M6·M8·M9 판정 기록 없음)"); return
+    if len(rows) != N_CARDS_E2 or any(len(r) != 4 for r in rows):
+        print("E2 INVALID cards.txt %d줄(8줄·한 줄 4칸이어야 한다: M1~M6·M8·M9)" % len(rows)); return
+    if invalid == "1":
+        print("E2 INVALID B0..HEAD tools/gates·tools/migrate 변경(D-27)"); return
+    bad = []
+    for r in rows:
+        m = r[2]
+        v3, ck = load(os.path.join(S, "v3_%s.json" % m)), load(os.path.join(S, "chk_%s.json" % m))
+        rc3 = open(os.path.join(S, "v3_%s.exit" % m)).read().strip() if os.path.exists(os.path.join(S, "v3_%s.exit" % m)) else "?"
+        rcc = open(os.path.join(S, "chk_%s.exit" % m)).read().strip() if os.path.exists(os.path.join(S, "chk_%s.exit" % m)) else "?"
+        if v3 is None:
+            bad.append("%s V3 출력 없음" % m); continue
+        miss = [k for k in V3_KEYS if k not in v3]
+        if miss:
+            bad.append("%s V3 키 없음 %s(G1·범위 정책 미병합 판이면 PENDING)" % (m, miss)); continue
+        ok1 = (rc3 == "0" and v3["defs"] == [] and v3["mutants"] == 0 and v3["move_rejected"] == {}
+               and v3["not_targeted"] == 0 and v3["targets_by_def"] == {})
+        if not ok1:
+            bad.append("%s ① V3 exit=%s defs=%s mutants=%s move_rejected=%s not_targeted=%s targets_by_def=%s" % (
+                m, rc3, v3["defs"], v3["mutants"], v3["move_rejected"], v3["not_targeted"], v3["targets_by_def"]))
+        if ck is None or "findings" not in ck:
+            bad.append("%s ② check 출력 없음" % m); continue
+        nz = {k: len(v) for k, v in ck["findings"].items() if v}   # v4 m1: '모든 목록'(열거 밖 종류가 비지 않아도 잡는다)
+        absent = [k for k in CHK_KINDS if k not in ck["findings"]]
+        if rcc != "0" or nz or absent:
+            bad.append("%s ② check exit=%s 비지 않은 발견 %s 없는 키 %s" % (m, rcc, nz, absent))
+        md = ck.get("moved_defs")
+        n_md = len(md.get("defs", [])) if isinstance(md, dict) else (len(md) if isinstance(md, list) else None)
+        print("E2 ③ %s 일관성(증거 아님, 키 모양은 G1·D0a 병합 뒤 확정) V3 moved %s개 / check moved_defs %s개 / moved_units %s개 / assigned %s개" % (
+            m, len(v3.get("moved") or []), n_md, len(ck.get("moved_units") or []), len(ck.get("assigned") or [])))
+    print("E2 %s card %d개%s" % ("PASS" if not bad else "FAIL", len(rows), "" if not bad else " -- " + " | ".join(bad)))
+
+
+def e4(plan, rc_plan, rc_test):
+    d = load(plan)
+    if d is None:  # r2(review_phase3_dod_r1 m4): 두 상태를 한 줄에 적지 않는다. run_dod.sh는 move_plan.py가 없으면 plan_exit '-'
+        if rc_plan == "-":
+            print("E4 PENDING move_plan.py(D0a) 없음 -- plan 미실행(test exit %s)" % rc_test); return
+        print("E4 INVALID plan을 실행했는데 출력 JSON이 없다/읽을 수 없다(plan exit %s, test exit %s)" % (rc_plan, rc_test)); return
+    asg = d.get("assignment")
+    if not isinstance(asg, dict) or not asg:
+        print("E4 INVALID plan 출력에 `assignment`가 없거나 비었다(키 %s) -- 'SD·ACF 밖 단위 rule 전부 A-0'을 잴 수 없다" % sorted(d)); return
+    lists = {k: d.get(k) for k in ("reg_mismatch", "unassigned", "upward", "cycles", "conflicts")}
+    absent = sorted(d.get("absent_split", []))
+    a0 = [k for k, v in asg.items()
+          if k.split("::")[0] not in ("stick_diagram.py", "audit_current_forced.py") and v.get("rule") != "A-0"]
+    ok = (rc_test == "0" and rc_plan == "0" and all(v == [] for v in lists.values())
+          and absent == ["design_report.py", "sizing_recipe.py", "topology_library.py"] and not a0)
+    print("E4 %s test exit=%s plan exit=%s 목록 %s absent_split=%s A-0 밖 %d(배정 %d단위)" % (
+        "PASS" if ok else "FAIL", rc_test, rc_plan, {k: (len(v) if isinstance(v, list) else v) for k, v in lists.items()},
+        absent, len(a0), len(asg)))
+
+
+def _unit_ids(lst):
+    """`changed` 원소 -> 단위 id 집합. 문자열이면 그대로, 사전이면 `unit` 키. 다른 모양이면 None(판정 불가)."""
+    out = set()
+    for x in lst if isinstance(lst, list) else [None]:
+        if isinstance(x, str):
+            out.add(x)
+        elif isinstance(x, dict) and isinstance(x.get("unit"), str):
+            out.add(x["unit"])
+        else:
+            return None
+    return out
+
+
+def e6(chk, rc, nochk, nrc):
+    """v4(review_phase3_dod_refresh m2): D0a 계약 4 `changed` 끝 문단(det4·det5, 단계 allow-changed-declared (1)·(2))의 모양."""
+    d = load(chk)
+    if d is None or not isinstance(d.get("findings"), dict):
+        print("E6 INVALID check 출력 없음/`findings` 없음(exit %s)" % rc); return
+    absent = [k for k in CHK_KINDS if k not in d["findings"]]
+    if absent:   # D0a 계약 4 '종류 키는 항상 있다'
+        print("E6 INVALID 없는 종류 키 %s(exit %s)" % (absent, rc)); return
+    n = load(nochk)
+    if n is None or not isinstance(n.get("findings"), dict):
+        print("E6 INVALID 거부 확인: --allow-changed 없는 check 출력 없음/`findings` 없음(exit %s)" % nrc); return
+    nf = n["findings"]
+    ids = _unit_ids(nf.get("changed"))
+    other = {k: len(v) for k, v in nf.items() if k != "changed" and v}
+    nabs = [k for k in CHK_KINDS if k not in nf]
+    if nrc != "1" or ids is None or ids != set(E6_ALLOW) or other or nabs:
+        print("E6 INVALID 거부 확인: --allow-changed 없이 exit=%s changed=%s(기대 exit 1, 정확히 %s) 다른 종류 비지 않음 %s 없는 키 %s" % (
+            nrc, "모양 모름" if ids is None else sorted(ids), list(E6_ALLOW), other, nabs)); return
+    nz = {k: len(v) for k, v in d["findings"].items() if v}
+    print("E6 %s exit=%s 비지 않은 발견 %s | 거부 확인 --allow-changed 없이 exit=1 changed=%d(허용 두 id 정확히), 다른 10종 0" % (
+        "PASS" if rc == "0" and not nz else "FAIL", rc, nz, len(ids)))
+
+
+if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+    {"e01": e01, "e2": e2, "e4": e4, "e6": e6}[sys.argv[1]](*sys.argv[2:])

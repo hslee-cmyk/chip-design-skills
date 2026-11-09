@@ -1,0 +1,244 @@
+### site
+SD  1057|     except ImportError:
+SD  1058|         return tuple(None for _ in module_names)
+
+SD  1046|     """`skills/analog-grammar/assets`를 sys.path에 넣고(멱등) 주어진 모듈들을 임포트해
+SD  1047|     튜플로 반환한다. analog-grammar가 없으면(ImportError) 전부 None인 튜플을 반환한다
+SD  1048|     -- 호출자가 언패킹 후 첫 값만 None-체크해도 되도록."""
+
+SD  1073|     if netclass is None:
+SD  1074|         return None
+
+SD  1089|     if netclass is None:
+SD  1090|         return None
+
+SD  3370|     if netclass_mod is None or idioms_mod is None:
+SD  3371|         return []
+
+SD  3376|     if matches is None:
+SD  3377|         return []
+
+SD  3373|     if not devs:
+
+SD  3381|         feed = theta.get("feeds")
+
+### handoff
+SD  1313|     if netclass is None:
+SD  1314|         return None
+
+SD  1445|     if netclass is None:
+SD  1446|         return None
+
+SD  1714|     if netclass is None:
+SD  1715|         return None
+
+SD  1894|     if netclass is None:
+SD  1895|         return None
+
+SD  2259|     if netclass is None:
+SD  2260|         return None
+
+SD  2400|         if netclass is None:
+SD  2401|             return None, None
+
+SD  2410|     if cls_before is None:
+SD  2411|         return None
+
+SD  2494|     _netclass_al, _idioms_al = _import_analog_grammar("netclass", "idioms")
+SD  2495|     if _netclass_al is not None:
+SD  2496|         _devs_al = _to_analog_grammar_devs(transistors)
+
+SD  2523|                 branch_load_partner_candidates[lb] = la
+SD  2524| 
+
+SD  2440|     if relations is None:
+SD  2441|         return None
+
+SD  3518|     if netclass_mod is None or idioms_mod is None:
+SD  3519|         return {"theta_proposals": [], "review_needed": [], "unresolved_devices": [],
+SD  3520|                 "unavailable_reason": "analog-grammar를 import할 수 없음"}
+
+SD  3522|     if not devs:
+SD  3523|         return {"theta_proposals": [], "review_needed": [], "unresolved_devices": [],
+SD  3524|                 "unavailable_reason": "gate가 있는 소자가 없음"}
+
+SD  3527|     if matches is None:
+SD  3528|         return {"theta_proposals": [], "review_needed": [], "unresolved_devices": [],
+SD  3529|                 "unavailable_reason": "find_idiom_matches() 실패"}
+
+SD  4060|     _static_ref_roles = (
+SD  4061|         (_netclass_lcmf.DIODE, _netclass_lcmf.CURR_SRC, _netclass_lcmf.ACTIVE_LOAD,
+SD  4062|          _netclass_lcmf.CASCODE) if _netclass_lcmf is not None else ())
+
+SD  4076|     if _idioms_lcmf is not None:
+SD  4077|         _devs_lcmf = _to_analog_grammar_devs(transistors)
+
+SD  4098|             _devs_lcmf, _all_matches_lcmf, _imp_lcmf, cls=_cls_lcmf)
+SD  4099|     else:
+SD  4100|         cascoded_active_load_legs = set()
+SD  4101|     # 2026-08-15(리팩터, 사용자 지적 -- "seed name 주는 helper를 이미 만들어뒀는데 재사용
+SD  4102|     # 안 했다") -- find_cascoded_active_load_legs()가 이제 propagate_reference_role_
+
+SD  3955|     if refined is None:
+SD  3956|         return {"matching_pairs_proposals": [], "device_roles_proposals": {}, "review_needed": [],
+SD  3957|                 "unavailable_reason": "analog-grammar를 import할 수 없어 이 오케스트레이션 전체가 "
+SD  3958|                                         "동작하지 않는다(refine_differential_and_mirror_relations()가 "
+SD  3959|                                         "None을 반환)."}
+
+### remain
+SD  1076|     if not devs:
+SD  1077|         return None
+
+SD  1092|     if not devs:
+SD  1093|         return None
+
+SD  1316|     if not devs:
+SD  1317|         return None
+
+SD  1448|     if not devs:
+SD  1449|         return None
+
+SD  1717|     if not devs:
+SD  1718|         return None
+
+SD  2262|     if not devs:
+SD  2263|         return None
+
+SD  3373|     if not devs:
+SD  3374|         return []
+
+SD  1543|     if composites_down is None:
+
+SD  2092|     if candidates is None:
+
+SD  2165|     if gm_id_roles is None:
+
+SD  2169|     if candidates is None:
+
+SD  2420|         if candidates is None:
+
+SD  3285|         if relations is not None:
+
+SD  3104|     stack_edges = find_stack_edges(netlist)
+
+### doc
+SD  1025| # 1.7a) analog-grammar skill 연동 -- Tier 1(topology 저작 단계, stack_id 불필요)
+SD  1026| #       matching 후보 오탐 필터. 상세 설계: references/analog-grammar-integration.md
+SD  1027| #       (2026-08-06, analog-topology-json-library 세션18 K/L절에서 시작된 논의).
+SD  1028| #       analog-grammar가 sys.path에 없으면(다른 skill이라 설치 여부가 실행 환경에
+SD  1029| #       좌우됨) 아래 어댑터(find_idiom_matches/find_stack_edges)는 조용히 None을
+SD  1030| #       반환한다 -- 호출자는 None이면 이 보강 기능 없이 기존 동작(idiom_matches=
+SD  1031| #       None/stack_edges=None)으로 폴백해야 한다.
+
+SD  1304|     analog-grammar가 없으면 `None`을 반환한다.
+
+SD  1384|     analog-grammar가 없으면(다른 skill이라 설치 여부가 환경에 좌우됨) `None`을 반환한다
+
+SD  1533|     analog-grammar가 없으면(`suggest_vertical_stack_composites()`가 의존) `None`을
+
+SD  1676|     analog-grammar가 없으면 `None`을 반환한다.
+
+SD  1891|     경우를 검증). `suggest_vertical_stack_composites()`가 `None`을 반환하면
+SD  1892|     (analog-grammar 없음) 이 함수도 `None`."""
+
+SD  2070|     analog-grammar가 없으면(`find_differential_pair_candidates()`가 의존) `None`을
+
+SD  2152|     analog-grammar가 없으면 `None`을 반환한다.
+
+SD  2241|     analog-grammar가 없으면 `None`을 반환한다.
+
+SD  2349|     analog-grammar가 없으면(`find_differential_pair_candidates()`가 의존) `None`을
+
+SD  3074|     2. **확장**: `find_stack_edges()`(analog-grammar 재사용, 없으면 soft-fail로 확장
+
+SD  3271|        실제 사례다). `inputs=`를 안 주거나 analog-grammar가 없으면 조용히 건너뛴다
+
+SD  3356|     analog-grammar를 못 불러오면 빈 리스트(다른 analog-grammar 연동 함수와 동일한 하위호환
+
+SD  3363|     검사하지 않는 것: `analog-grammar`를 못 불러오면 조용히 빈 리스트를 반환한다(실제로
+SD  3364|     검사해서 문제가 없는 것과 애초에 검사를 못한 것이 반환값만으로는 구분되지 않는다).
+
+SD  3515|     "unresolved_devices": [...]}` -- analog-grammar를 못 불러오면 전부 빈 값 +
+SD  3516|     `unavailable_reason`."""
+
+SD  3921|     analog-grammar가 없으면(`refine_differential_and_mirror_relations()`가 의존) 빈 제안 +
+SD  3922|     `unavailable_reason`을 반환한다.
+
+### callers
+SD  1072|     netclass, idioms_mod = _import_analog_grammar("netclass", "idioms")
+
+SD  1088|     (netclass,) = _import_analog_grammar("netclass")
+
+SD  1312|     netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
+
+SD  1444|     netclass, idioms_mod = _import_analog_grammar("netclass", "idioms")
+
+SD  1713|     netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
+
+SD  1893|     netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
+
+SD  2258|     netclass, idioms_mod = _import_analog_grammar("netclass", "idioms")
+
+SD  2399|         netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
+
+SD  2494|     _netclass_al, _idioms_al = _import_analog_grammar("netclass", "idioms")
+
+SD  3369|     netclass_mod, idioms_mod = _import_analog_grammar("netclass", "idioms")
+
+SD  3517|     netclass_mod, idioms_mod = _import_analog_grammar("netclass", "idioms")
+
+SD  4059|     _netclass_lcmf, _idioms_lcmf = _import_analog_grammar("netclass", "idioms")
+
+### misc
+SD  3391|             others = [term["device"] for term in feed.get("terms") or []]
+
+SD  3330| def audit_theta_root_direction(transistors: list, sizing_roles: dict | None,
+
+SD  3834| def propose_device_roles_gap_fill(transistors: list, device_roles: dict, matching_pairs_meta: list,
+
+SD  8539| def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
+
+### SR
+SR  7952|     require_device_roles_reviewed(topology_path, meta)
+SR  6509|        의 `vertical_stack_id_candidates`(analog-grammar 기반 제안)로 폴백.
+SR  6510|     4. analog-grammar 자체가 없어 candidates도 `None`이면 `geometry_colocation_union()`
+SR  6511|        (레거시 자동 추론)으로 최종 폴백 -- 이 함수가 아예 없던 회로/환경에서도 완전한
+SR  6512|        하위호환을 보장한다.
+### install.py
+   27| SKILLS = ["verilog-rtl", "verilog-a", "lattice-fpga",
+   28|           "uvm-verification", "chip-verification", "formal-verification",
+   29|           "solution-capture", "analog-gmid-design"]
+### skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py
+ 2714|     analog-grammar 미설치 상황(ImportError 경로)은 사용자 환경에 실제로 있을 때만
+ 2715|     검증 가능하므로(설치를 일부러 지웠다 복원하는 건 self-test로 하기엔 위험한 파일시스템
+ 2716|     조작이라 하지 않는다), 여기서는 두 어댑터가 실제로 소비하는 '입력이 비게 되는'
+ 2717|     경로로 None-반환을 재현한다]
+### skills/analog-gmid-design/references/analog-grammar-integration.md
+   95|     device role을 배정한다. analog-grammar가 sys.path에 없으면(다른 skill이라 설치
+   96|     여부가 이 스크립트 실행 환경에 좌우됨) None을 반환한다 — 호출자는 None이면 이
+   97|     보강 기능 없이 기존 동작(role=None)으로 폴백해야 한다. 절대 예외를 삼키고 조용히
+  107|         return None
+  111|         return None
+  118| 의존한다 — 저장소 밖에서 `analog-gmid-design/assets`만 따로 복사해 쓰는 경우엔
+  119| 자동으로 `None`이 되어 조용히 하위호환 경로로 빠진다(의도된 동작).
+  120| 
+  121| ## 4. 어댑터: `Transistor` → analog-grammar `devs` dict
+  187|     없으면 None(호출자는 find_matching_candidates(transistors, idiom_matches=None)으로
+  188|     폴백)."""
+  198|         return None
+  202|         return None
+  440| 4. **analog-grammar 부재 시 폴백**: `sys.path`에서 `analog-grammar/assets`를 일부러
+  441|    빼고 `find_idiom_matches()`가 `None`을 반환하는지, 그 `None`을 그대로
+  442|    `find_matching_candidates(transistors, idiom_matches=None)`에 넘겼을 때 기존
+  443|    동작과 동일한지 확인.
+### docs/03-analysis/gain-budget-gmid-sizing.function-registry.md
+  360| | `_import_analog_grammar` | analog-grammar sys.path 주입+import | topology_authoring | R1(sys.path 부작용을 패키지 import로) |
+### docs/02-design/specs/20260930-p9-kcl-edges.spec.md
+   58|    `spec_from_file_location`으로 읽지 않는다). 근거: `load_topology`의 자동 매칭 쌍 제안이 `_import_analog_grammar`(SD 1045, `__file__` 기준 상대 경로, ImportError면 조용히
+### docs/02-design/specs/20260930-p9-kcl-edges.interface.md
+   60| > 튜플로 반환한다. analog-grammar가 없으면(ImportError) 전부 None인 튜플을 반환한다
+### .ai/verification/20260930-p9-kcl-edges/scripts/diff_dup.py
+   17| netclass, idioms = sd._import_analog_grammar("netclass", "idioms")
+   18| AG = os.path.join(root, "skills", "analog-grammar", "assets")
+   19| if netclass is None or idioms is None:
+   20|     sys.exit("analog-grammar import failed")

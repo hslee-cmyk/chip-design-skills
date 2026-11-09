@@ -1,0 +1,13 @@
+{"case": "G", "num_top_coeff": "-Cc*i*(CAG*R*gm + CAG*R*gmc - CAG + CG*R*gm - CG)", "R_null_solved": ["(CAG + CG)/(CAG*gm + CAG*gmc + CG*gm)"], "matches_plan_formula": [true]}
+{"case": "SRC", "num_degree": 2, "num_top_coeff": "-Cc*i*(CX*R*gm - CX - Cgs)", "R_null_solved": ["(CX + Cgs)/(CX*gm)"], "R_null_over_R_S": ["(CX + Cgs)/CX"]}
+{"case": "SRC", "R": "R_S=1/gm", "R_ohm": 2000.0, "zeros_rad_s": ["(-5000000000+0j)", "(1111111111.1111112+0j)"], "n_rhp": 1}
+{"case": "SRC", "R": "R_null", "R_ohm": 4000.0, "zeros_rad_s": ["(-5000000000.000003-0j)"], "n_rhp": 0}
+{"case": "SRC", "R": "1.2*R_null", "R_ohm": 4800.0, "zeros_rad_s": ["(-5000000000.000006+0j)", "(-2777777777.7777767+0j)"], "n_rhp": 0}
+{"case": "CGD", "numerator": "i*(CAB*Cc*R*s**2 + CAB*s - Cc*R*gm*s + Cc*s - gm)"}
+{"case": "CGD", "R_over_1_gm": 0.5, "zeros_Hz": ["(-5099700246.847265+0j)", "(333893895.3732885+0j)"], "n_rhp": 1}
+{"case": "CGD", "R_over_1_gm": 1.0, "zeros_Hz": ["(-1025075538.8123046+0j)", "(830552830.5888767+0j)"], "n_rhp": 1}
+{"case": "CGD", "R_over_1_gm": 1.15, "zeros_Hz": ["(1084425113.8129246-0j)", "(-682693433.7862809+0j)"], "n_rhp": 1}
+{"case": "CGD", "R_over_1_gm": 2.0, "zeros_Hz": ["(2277989871.8800893-0j)", "(-186870758.47824323+0j)"], "n_rhp": 1}
+{"case": "CGD", "R_over_1_gm": 5.0, "zeros_Hz": ["(3511002007.7706676-0j)", "(-48497801.39365773+0j)"], "n_rhp": 1}
+{"case": "T", "with_Cx": false, "num_degree": 3, "top_coeff": "-Cm1*Cn*g1*vin*(C2 - Cm2*Rm*gm3 + Cm2)", "Rm_null": ["(C2 + Cm2)/(Cm2*gm3)"]}
+{"case": "T", "with_Cx": true, "num_degree": 3, "top_coeff": "-Cn*g1*vin*(C2*Cm1 - Cm1*Cm2*Rm*gm3 + Cm1*Cm2 - Cm1*Cx*Rm*gm3 + Cm1*Cx - Cm2*Cx*Rm*gm3 + Cm2*Cx)", "Rm_null": ["(C2*Cm1 + Cm1*Cm2 + Cm1*Cx + Cm2*Cx)/(gm3*(Cm1*Cm2 + Cm1*Cx + Cm2*Cx))"]}

@@ -1,0 +1,59 @@
+history has <Status 줄(v6.38.6 승인 판)>: True
+history has <v6.38.7 첫째 커밋>: True
+history has <출발점 L 칸 = DEC-71 (4)(b) 함수 READS>: True
+history has <(i) 출발점 L 칸 = 이득 요구 역산**: DEC-71 (4)(b) 역산 함수 하나>: True
+history has <L 역산 toy -- 이득 요구가 최소 L bin>: True
+history has <(a) 이득 L 하한 블록 목표 = found_db 비례 g_i^(1) 필드 READS>: True
+GC history 0.14.7 row: True
+
+[E-06 P:429] ... (b) LA-1 범위 축소 (c) ngcc는 front 0일 수 있음 | N6.39 범위 1·완료 1 (a)·(2)(c)·3·순서, N6.14 범위 15 (a)·'LA-1a로 뗀 부분' (a)·완료 10 (a), DEC-105 (1), O-164·O-165·O-166 결정 행 표지, E-06·U-133 행, Status 아래 미룬 결정 (8), LA-1 후속 정정 표, graph-consumption 0.14.7 |...
+[E-06 P:1974] ...생성 기준 = KVL·쓰기 계획 writer, 외부 기준 = spec 선언 필수·선언 자리 하나, 미선언 = fail-closed 정지; design v1.15.1 `cm_reference_undetermined` 생략 예외 삭제 -- N6.35 E-11) (g) 예외 정리(N6.35 E-06·E-07·E-11·E-14·E-15·E-17·E-24·E-25·E-26·E-31·E-34·E-35 -- E-31 재작성 범위 = `macro_root_missing` 한 코드에 섞인 조건 넷(`E/search/macro_poles.py:135·148·363·369`)을 E-31 대상(`:363` \|H\| = 1 근 없음)과 비대상(PM 미달·P ≠ 0·...
+[E-06 P:2014] ...목); R1·R2 묶음 확인(O-172, 검증 20 L6 -- current_reuse R1·R2가 대칭 묶음(`domain.ties`·자기동형 궤도)으로 같은 θ인지 기록, 묶이지 않으면 DEC-105 (7) '중점' 문언 정정 또는 R1 = R2 선언을 계획부터) (g) N6.35 E-06·E-07·E-14·E-15·E-17·E-24·E-25·E-26·E-31·E-34·E-35 행의 완료 toy·grep 항목(E-31 PM 미달·P ≠ 0 toy는 정의된 값으로 출발, 혼합 원인 toy는 근 없음 후보 출발 불능 -- GC-5 완료 6과 같은 결과); **P4 toy** -- card LA-1a 완료 조건 1 (d)로 옮김(사용자 결정 O-...
+[E-06 P:2443] ...| E-06 | §4 #6 | 평가할 L 앵커가 없으면 `anchors[-1]`·0 dB(`E/search/iv_gain_l.py:125-127`) | A ⚠ | DEC-105 (1) fail-closed 그대로 | LA-1a 범위 1(옛 LA-1 범위 15 (a) -- 사용자 결정 O-217·O-218)·LA-1 범위 15 (g) | LA-1a 완료 조건 1 (a)...
+
+[T_b P:429] ...ounds` 재작성 -- A_max 인증 조건 `u9_value_not_certified` 삭제·정의 불능·`StartConflict` 최선 앵커, 이득 L 하한 역산 함수 하나 -- LA-1 층 0은 같은 함수를 T_b로 부름); LA-1에 남는 것 = 층 0 1회차 READS·L-2 보완·격자 폴백·15 (h); UB-1 + NL-1 선행 유지 -- **원래 취지와 다름(승인 O-217)**: (a) nmcnr L 갇힘은 LA-1a에서 안 풀림(사유 기록, ...
+[T_b P:1956] ...-- `gain_target_first` writer·`gain_l_bounds` 재작성, 사용자 결정 O-217·O-218)과 이득 L 하한 역산의 근 찾기 핵심 함수(이 card의 층 0 L 역산은 같은 함수를 T_b로 부르고 격자 폴백·bin별 후보·국소 front 선택은 이 card 몫 -- graph 규칙 1) (b) DEC-104 R6 블록 본체(출발 단계 §6.7 7a 확장 -- 고리 종속 성분 파생, R5′ (2) 창 안 max-min)와 그 입력...
+[T_b P:1974] ...재작성): 이 card에 남는 것 = 층 0 1회차가 `graph/ach: gain_target_first`를 READS, found_db 없는 뷰의 L-2 보완, 층 0 L 역산(LA-1a의 근 찾기 핵심 함수를 T_b로 부름 -- 둘째 생산자 0)의 격자 폴백(DEC-71 (4)), 이 범위 (h). (b) 매크로 망 N9 노드·출발점 P = 0(DEC-105 (3); 재작성 범위 `E/search/macro_poles.py:3-4`·`:316-328`)(E...
+[T_b P:2030] ... LA-1a, 출발 bin 규칙 = DEC-105 (1) 오름차순 첫 bin 최소 L(bin별 후보·국소 front·격자 폴백 = LA-1 층 0), 근 찾기 핵심 함수 하나를 LA-1a가 만들고 LA-1 층 0이 T_b로 부름(실패 분기는 호출 card 몫), 매크로 출발 θ 전류 변화는 LA-1a 변화표 원인; 정정 시점 = LA-1a design 착수 전 |...
+[T_b P:2512] ...찾기 핵심 함수 하나(gain(L) = T를 같은 bin 안에서 푸는 함수 -- 목표·L 축·다른 변수는 인자; gm/ID 역산 없음 -- O-186)를 이 card가 만들고 LA-1 층 0 L 역산이 같은 함수를 T_b로 부른다(둘째 생산자 0 -- graph 규칙 1); 실패 분기는 각 호출 card 몫(출발 = 위 (b), 층 0 = 격자 폴백 -- O-218 (2)). 블록 국소 모델 = UB-1 정본 READS(그래서 UB-1 + NL-1 선행 유지 -...
+
+P2506: ### N6.39 card LA-1a -- 층 0 출발점 엔진 결함 정정: 출발점 L 칸 역산·KVL 정합(R6)·출발 회귀 가드(사용자 결정 O-214)
+
+P2516: **card 0 LA-1a-0**(검증자, 엔진 무변경, base = 이 card의 실제 base): library 13회로에서 층 0 출발점 출처(사다리 칸·중심 채움·Halton·출발 없음)·봉인점 수·출발점 L 칸(최소 L bin 고착 여부)·정지 사유(단계 A·B 정지 포함 -- 대상 4회로 밖 회로의 다른 정지 사유는 그대로 기록)·front 수를 기록한다(기준선 -- 아래 변화표 비교 상대). LA-1의 card 0 LA-0은 이 card 병합 뒤 LA-1 base에서 잰다.
+
+P2008?: 5. **검증자 값 변화표**: LA-0 기록 대비 13회로 결과(front·`gain_budget_db`·조립점·층 0 진단·외층 경로)의 변화와 원인(원인 미설명 0). **변화표는 card 안 커밋 순서별로 나눈다**(LA-Q5, 사용자 결정 O-38 (3) -- U17 ② 상태층 커밋, 층 0 조립 커밋, find_front 배선 커밋 등 순서마다 
+P2014 (g): (g) N6.35 E-06·E-07·E-14·E-15·E-17·E-24·E-25·E-26·E-31·E-34·E-35 행의 완료 toy·grep 항목(E-31 PM 미달·P ≠ 0 toy는 정의된 값으로 출발, 혼합 원인 toy는 근 없음 후보 출발 불능 -- GC-5 완료 6과 같은 결과); **P4 toy** -- card LA-1a 완료 조건 1 (d)로 옮김(사용자 결정 O-214); (h) found_db 원인 조사 기록(블록마다 원인·E-15와 같은 뿌
+P1974 (g): (g) 예외 정리(N6.35 E-06·E-07·E-11·E-14·E-15·E-17·E-24·E-25·E-26·E-31·E-34·E-35 -- E-31 재작성 범위 = `macro_root_missing` 한 코드에 섞인 조건 넷(`E/search/macro_poles.py:135·148·363·369`)을 E-31 대상(`:363` \|H\| = 1 근 없음)과 비대상(PM 미달·P ≠ 0·미수렴 = 목표 미달 -- 정의된 출발값 + 후보별 충돌 기록, 상자 미선언 = DEC-105 (10) (d)·E-15)으로 나눔, 근 존재는 블록 순서 전부로 판정(`refine=False` 첫 순서만 보는 `:332` 포함), P 계산; 행마다 대체 규칙·fail-closed·옛 코드 삭제는 그 표가 정본; **Q-A1 기본안 (가)**(옛 N5.3 Q-A1·옛 DF-37 (3), **원칙으로 정한 기본안**: N3.14 '탐색 중에도 SCHEMA_REJECTED는 삼키지 않는다' 문언 유지·
+
+LA-1a 선행 칸 <XRUN-F1 card B>: True
+LA-1a 선행 칸 <IT-1 + IT-2 통합 병합>: True
+LA-1a 선행 칸 <card WB-1>: True
+LA-1a 선행 칸 <UB-1 + NL-1>: True
+LA-1a 선행 칸 <headroom-chain HC-S>: True
+LA-1a 선행 칸 <card TB-1>: True
+LA-1a 선행 칸 <headroom-chain HC-1 + graph-consumption GC-8>: True
+LA-1a 선행 칸 <EO-1 코드 의존>: True
+LA-1 선행 칸 card LA-1a: True
+cycle: 없음; LA-1a anc 24, LA-1 anc 26, subset True; UB-1 in LA-1 anc before: True
+
+[q8:15] | 핵심 사실 3 | as-built에서 두 회로가 최소 L 칸에 갇히는 직접 원인 = 출발 구간 이득 L 하한이 **비활성**(사유 `u9_value_not_certified` -- A_max 인증 조건, 재작성 범위 `E/search/iv_context.py` `_gain_inputs`) → L 하한 없음 → 칸 0(`q8_engine_gainL.jsonl` base 행: ngcc·nmcnr 둘 다). 그 조건을 지우고 목표를 g_i^(1)로 바꾸는 것이 바로 LA-1 범위 15 (a)다. |
+[q8:16] | ngcc 실측((가)) | g_i^(1) = 39.6 / 30.0 / 41.4 dB(G 111, found_db 68.5/51.7/71.5) → 블록 L 하한 0.495 / 0.409 / 0.941 µm → 출발점 L 칸 0 → **2·2·3**(FF 동치류 M6A만 칸 0). 커널 판정 gain 행 c 최대 −4.17 → **−0.357**(as-built 외층 경로, front 0 그대로). SPICE(손 사이징 시험점): 칸 0 균일 45.1 dB → (가) L 지도 **108.6 dB**, 같은 칸 위 끝 109.5 dB, 균일 1 µm 119.7 dB(spec 111). |
+[q8:17] | nmcnr 실측((가)) | found_db = 100.7 / 73.0 / **없음**(Vout 블록) → DEC-105 (1)·U-133 (A)(승인 O-170)대로 뷰 전부 **정의 불능** → 출발점 L 칸 0 그대로. 목표를 따로 넣어도 NodeM2·Vout 블록은 1회차 원소 전류(M108·M109 / M302·RL)가 없어 평가 앵커 0(= '1회차 원소 미정'). 물리 필요 L ≳ 0.5 µm(SPICE, icmr4 nmcnr -- agent 인용). |
+[q8:18] | 권고 | **(가)**: DEC-105 (1) g_i^(1)(`gain_target_first`)을 출처로 하고, LA-1 범위 15 (a) 전부(필드 writer·`gain_l_bounds` 재작성·인증 조건 삭제·fail-closed·최선 앵커)를 LA-1a로 옮겨 그 식 하나를 DEC-71 (4)(b) 역산 함수로 둔다(LA-1 범위 1 층 0 역산은 같은 함수를 T_b로 부름). ⚠ nmcnr 갇힘은 LA-1a에서 풀리지 않는다(정의 불능 사유 기록으로 끝남 -- 원래 취지와 다름 표지, §5). ⚠ ngcc는 칸이 풀려도 as-built 외층에서 front 0일 수 있다(gain c −0.357, SPICE 108.6~109.5 dB). |
+[q8:56] | nmcnr_amplifier | 100 dB | 비활성 `u9_value_not_certified` | 12/12 동치류 칸 0 | (icmr4 nmcnr 실행 1~3, agent 인용: front 0, L 칸 0, 봉인점 44.06 dB) |
+[q8:83] - 그래서 nmcnr은 목표 출처를 어떻게 정해도 출발 단계에서 L이 풀리는 블록은 NodeS2 하나뿐이다(아래 (나-2) 실측). 남는 두 장애: (1) Vout 블록 found_db 없음(GB4 기준점 미발견 -- LA-1 범위 15 (h) 원인 조사 대상) (2) 1회차 원소 전류 M108·M109(접힘 가지 KCL 종속)·M302·RL(측정 부하 25 kΩ 가지 -- 계획 N6.39 범위 2 'nmcnr `RL` 전류는 KVL·KCL 종속(R6·KCL 파생)'과 같은 사실). (2)의 RL 전류를 R6가 정하더라도 R6(§6.1-7a)는 L 선택(§6.1-5) 뒤라 출발 단계 L 하한에는 들어오지 않는다(순서 사실, design 41 §6.1).
+[q8:84] - 물리: SPICE(icmr4 nmcnr R-설계, agent 인용 -- `wt/_drafts/evidence/2026-11-01/icmr4/nmcnr_amplifier.md` §1 표): L 0.25 µm 79.7 dB, 0.5 µm 110.1 dB, 1 µm 122.7 dB(spec 100); 엔진 봉인점(L ≈ 0.155 µm) 44.06 dB(o206, agent 인용). → 최소 L 칸에서는 물리적으로 spec 불가, L ≳ 0.5 µm 필요.
+[q8:91] | nmcnr | 33.3 dB × 3 | NodeS2 L 0.342 µm(칸 2). NodeM2·Vout은 앵커 0인데 as-built가 가장 긴 앵커 20 µm로 닫음(칸 7) = 계획이 지목한 결함 `iv_gain_l.py:125-127`(O-164) -- DEC-105 (1) fail-closed 아래에서는 정의 불능 |
+[q8:105] - 판정: (가)는 ngcc를 최소 칸(45 dB)에서 spec 근처(108.6 dB)로 옮긴다 -- 물리적으로 맞는 방향. 다만 출발 L은 '목표를 정확히 맞추는 최소 L'이고 W 없는 단계의 포락 상한으로 읽으므로(design 41 §6.4-1 '실현 가능한 L을 자르지 않음') 엔진 국소 모델이 SPICE 시험점보다 2.4 dB 낙관적이다. 칸 안 연속 L(외층 SLSQP, LR10 L-a)로 올려도 109.5 dB -- 다음 bin으로 가는 것은 L-b(front 점 전용, LR10)나 LA-1의 R8 이득 행 재개방(O-160 F-3)이다. 낙관 편향은 원칙 2(E-1 가드 없음, oracle 최종)와 정합하고, 출발값을 부풀리는 여유를 넣는 것은 상수 발명이라 후보에 두지 않는다.
+[q8:110] | 안 | 정의 | 물리 정합 | SPICE식 풀이 | graph 규칙(writer 하나) | O-214 취지 | design·계획 영향 | 실측(ngcc / nmcnr 출발 L 칸) | ⚠ |
+[q8:112] | **(가) 권고** | 목표 = DEC-105 (1) g_i^(1)(`gain_target_first`); LA-1 범위 15 (a) 전부를 LA-1a로 옮겨 식 하나 = DEC-71 (4)(b) 역산 함수(목표·변하는 L 축·다른 변수는 인자); 출발 실패 처리 = DEC-105 (1)(정의 불능·`StartConflict` 최선 앵커) | 맞음(필요조건 L 하한, LUT 단조 + LR4 예외 처리; 포락이라 낙관 -- SPICE −2.4 dB) | 아님(LUT 순방향 조회 + 블록 국소 모델 행 평가 + bin 안 bisection = 손계산, O-200) | g_i^(1) 필드 writer = S0 블록 하나, 출발 L = 출발 구간 블록, 층 0 L = 층 0 블록(입력 축이 다른 별개 필드 -- 규칙 3), 함수 공유, 새 cac
+[q8:113] | (가′) | (가) + LA-1 범위 15 (h)(found_db '기준점 미발견' 원인 조사)도 LA-1a로 | (가)와 같음 | 아님 | (가)와 같음 | nmcnr Vout found_db가 생겨도 NodeM2·Vout 블록은 1회차 원소 미정(실측) → nmcnr은 여전히 정의 불능 | 15 (h) '다른 뿌리면 멈추고 보고' 조건까지 LA-1a로 옮김, 범위 증가 | nmcnr 변화 없음으로 예상(원소 장애가 남음 -- 3.2) | 범위만 늘고 취지 달성 근거 없음 |
+[q8:115] | (나-2) | DEC-71 (4)(b) + LA-1a용 새 배분 규칙(예: G/N 등분) | 몫 배분 근거 없음(L-2 found_db 비례 결정과 다름) | 아님 | 1회차 예산의 둘째 정의 | ngcc 충족, nmcnr NodeS2만 | 계획 DEC-71 (3)·L-2·U-133 문언 충돌 → 계획 개정·사용자 결정 | ngcc 2·3·3 / nmcnr NodeS2 칸 2, 나머지 정의 불능(as-built는 20 µm로 닫는 결함) | ⚠ 원칙 11(새 배분 규칙), U-133 (B)(E)와 같은 꼴, graph 규칙 3 |
+[q8:116] | (나-3) | found_db 없는 뷰에 L-2 보완(층 0 기준점 블록 gain)을 출발 단계에서 | 기준점이 출발점보다 뒤 | 아님 | -- | nmcnr용 | U-133 (C)로 이미 기각(O-170) | 실행 불가(층 역전) | ⚠ 층 순서(원칙 7) |
+[q8:117] | (다) | 출발점 L 칸 = LR 기본(최소 칸) 유지, LA-1a는 KVL(R6)만 | 최소 칸에서 spec 물리 불가(ngcc SPICE 45.1 dB 대 111, nmcnr 44 dB 대 100 -- agent 인용) | -- | 변화 없음 | O-214 (i) 철회 = 사용자 결정 번복 | N6.39 범위 1·완료 조건 1 (a)·2 (c) 삭제, LA-1 범위 15 (a) 그대로 | 둘 다 칸 0, ngcc gain c −4.17 | ⚠ 원래 취지와 다름(O-214 (i)), 원칙 1(물리적으로 말이 안 되는 출발점 유지) |
+[q8:126] 6. ⚠ **원래 취지와 다름(따로 보고)**: (a) O-214 (i) 'nmcnr·ngcc 최소 L 칸 갇힘' 가운데 **nmcnr은 LA-1a에서 풀리지 않는다** -- 뷰 정의 불능(found_db 없음, U-133 (A))에 1회차 원소 미정(M108·M109·M302·RL)이 겹친다; LA-1a는 사유 기록(완료 조건 2 (c) 갈래)으로 닫히고, 실제 L 해소는 LA-1 층 0(L-2 보완 예산 + 층 0 전류로 역산)이다. 사용자 선택지: 받아들임 / (가′)처럼 범위를 넓힘(실측상 원소 장애가 남아 효과 근거 없음) / nmcnr 해소를 LA-1a 완료 대상에서 명시적으로 뺌. (b) LA-1 card 범위 15 (a)가 통째로 LA-1a로 옮겨 LA-1 범위가 줄어든다(card 범위 변경 -- O-214가 승인한 'LA-1 
+[q8:145] | fail-closed | (가) = DEC-105 (1) 정의 불능·`StartConflict` 그대로; as-built '가장 긴 앵커로 닫음' 결함 재현(nmcnr eq 20 µm) -- 실측 |
+[q8:160] - agent 인용: nmcnr SPICE 이득 대 L·봉인점 44.06 dB(`wt/_drafts/evidence/2026-11-01/icmr4/nmcnr_amplifier.md` §1·§2), ngcc 손 사이징 시험점 정의(`…/icmr4/ngcc_3stage_ff.md` §3.2 -- 넷리스트 생성 함수를 import해 재사용, 값은 내가 다시 잼), found_db 9회로 표(`wt/_drafts/evidence/2026-10-28/o168_input_cm_facts.md` §2 -- ngcc·nmcnr 값은 이번 실행에서 같은 값 재현).
+[q8:170] | ⑤ | 실현 가능성 실측 | (가)를 측정 스크립트로 넣어 엔진 출발 구간이 그대로 돎(ngcc 칸 2·3, 충돌 0; nmcnr 정의 불능 사유) -- 필드 입력(found_db·G·local_inputs)이 단계 B 뒤에 모두 있음 실측 |
+[q8:174] | ⑨ | 물리·회로이론 검증 | 결정자 = 단 이득 gm/gds = (gm/ID)·V_A, V_A ∝ L; LUT: nfet +18 dB·pfet +31 dB(0.15 → 1 µm), 같은 bin 비단조 ≤ 0.8 dB(LR4); SPICE ngcc 45.1 → 108.6 dB((가) L), 균일 1 µm 119.7 dB; 손계산 대 SPICE 차 −1.6 ~ −6.6 dB(FF·body 제외 식). 판정 = **맞음(조건부)** -- 필요조건 하한이고 포락 낙관(SPICE 대비 −2.4 dB)이라 출발 L만으로 spec 충족은 보장되지 않음 |
+[q8:175] | ⑩ | 결정 간 모순 점검 | **별도 점검자 몫** -- 대조 대상: O-214 (i) 지목 문언 대 (가)의 출처, O-164·O-165 (a)(15 (a) 단독 소유) 대 이동, O-170(U-133 (A)) 대 nmcnr 정의 불능, O-160 F-3(R8 재개방) 대 LA-1a 시점 ngcc front 0 가능성 |

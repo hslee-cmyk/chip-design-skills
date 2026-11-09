@@ -1,0 +1,22 @@
+old history lines 7304, new 7316; old lines preserved as prefix/suffix check:
+opcodes [('insert', 1535, 1535, 1535, 1536), ('insert', 1844, 1844, 1845, 1856)]
+L1846 parts=1 in_old=True in_new=False | | **DR-1 기하와 소신호 문단(셋째 커밋)** | 원문: «**기하와 소신호**(사용자 질문 Q-ZG1 -- 검증 2 MJ2-1로 근거 다시 잼): **물리
+L1847 parts=1 in_old=True in_new=False | | **DR-1 완료 (9) 머리** | 원문: «(9) 0 전류 MOS 기하 = Q-ZG1 결정대로(권고 (라) W_min·L θ 성분)» | 2026-10-2
+L1848 parts=1 in_old=True in_new=False | | **DEC-105 (2) A_dc 갈래 정당화 문장** | 원문: «(V_id*는 그 갈래대로 정의 불능 -- 그 갈래의 정의상 출력 이동 ≤ δV_out)»
+L1849 parts=1 in_old=True in_new=False | | **DEC-105 (2) servo ΔV_id 식** | 원문: «입력 차만 ΔV_id ≈ r/(gm/ID)(r 10 %·gm/ID 15 → 6 mV, r 3
+L1850 parts=1 in_old=True in_new=False | | **DEC-105 (2) 성분 (2) 문장** | 원문: «그래서 ΔW 효과는 성분 (1)(V_id,실현 − V_id,0)로 나타나고 성분 (2)는 탐색 봉인
+L1851 parts=1 in_old=True in_new=False | | **DEC-105 (2) DE-1 배선 표지(셋째 커밋)** | 원문: «-- Q-W1 승인 시 이 READS·순서 고정의 근거가 사라짐, 존폐 = N5.3 
+L1852 parts=1 in_old=False in_new=False | | **X-LA11 행 표지(셋째 커밋)** | 원문: « -- → v6.38.5 Q-W1 승인 시 근거(DE-1의 (m, w_f) READS)가 사라짐, 존폐 
+L1853 parts=1 in_old=True in_new=False | | **WB-1 완료 (5) 계통 offset 단언** | 원문: «계통 offset = 실현 평가 성분 (1)(2)만(Q-W1 권고안), 측정 구성 toy(se
+L1854 parts=1 in_old=False in_new=False | | **N5.3 Q-W1 행(셋째 커밋)** | 원문: «\| Q-W1 \| (v6.38.5) 탐색 평가 대 실현 평가(DEC-105 (2)) -- 권고: `De
+L1855 parts=1 in_old=False in_new=False | | **N5.3 Q-ZG1 행(셋째 커밋)** | 원문: «\| Q-ZG1 \| (v6.38.5) DR-1 구조적 0 전류 MOS 기하 출처(물리: DC 무관, 
+L1856 parts=1 in_old=True in_new=False | | **Status 줄(v6.38.5 셋째 커밋)** | 원문: «> **Status**: **Plan v6.38.5 -- O-174 구조적 0 전류 규칙(DR-
+L1857 parts=1 in_old=False in_new=False | | **WB-1 완료 (5) 소비자 괄호(둘째 커밋 삭제분 -- 검증 2 m2-4 소급)** | 원문: «(탐색 평가 = θ 유도 W, 실현 평가 = W′ -- 
+
+재검사(\| -> |, 앞뒤 공백 제거)
+L1852 in_old=True in_new=False len=85
+L1852 in_old=True in_new=False len=84
+L1854 in_old=True in_new=False len=1356
+L1854 in_old=True in_new=False len=1356
+L1855 in_old=True in_new=False len=539
+L1855 in_old=True in_new=False len=539

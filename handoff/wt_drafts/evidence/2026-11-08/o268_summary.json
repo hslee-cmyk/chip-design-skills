@@ -1,0 +1,842 @@
+{
+ "agg": {
+  "N": 13,
+  "measured": 5,
+  "input_dc_declared": 4,
+  "feedback_elements_declared": 1,
+  "feedback_empty_list": 12,
+  "feedback_pending_or_missing": 0,
+  "out_swing_centre_defined": 0,
+  "mid_in_icm_window": 4,
+  "mid_out_icm_window": 1,
+  "mid_in_kernel_w4": 4,
+  "start_vcm_eq_mid": 3,
+  "A": {
+   "선언": 4,
+   "피드백 -> 출력 스윙 중심": 1,
+   "레일 중앙값": 8
+  },
+  "A_value_in_icm": 4,
+  "A_value_out_icm": 1,
+  "B": {
+   "선언": 4,
+   "피드백 -> 출력 스윙 중심": 9,
+   "레일 중앙값": 0
+  },
+  "B_value_in_icm": 1,
+  "B_value_out_icm": 0
+ },
+ "rows": [
+  {
+   "circuit": "cnr_ota",
+   "input_dc_mode": "pending:U-75",
+   "declared_v": null,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": false,
+   "unmeasured_reason": "stage_a_stop",
+   "engine_error_tail": null,
+   "start_status": null,
+   "bounds_used": null,
+   "v_cm_start": null,
+   "v_out_start": null,
+   "input_ports": {},
+   "input_writers": null,
+   "kernel_w4_window_inputs": {},
+   "icm_config": null,
+   "ls_swing_reference": null,
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": null,
+   "mid_in_kernel_w4": null,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": null,
+   "branch_A": "레일 중앙값",
+   "value_A": 0.9,
+   "value_A_in_icm": null,
+   "branch_B": "피드백 -> 출력 스윙 중심",
+   "value_B": null,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 1.09,
+   "wall_s": 14.0,
+   "min_free_gb": 3.72
+  },
+  {
+   "circuit": "common_gate_amplifier",
+   "input_dc_mode": "pending:SP-2",
+   "declared_v": null,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": true,
+   "unmeasured_reason": null,
+   "engine_error_tail": null,
+   "start_status": "sealed",
+   "bounds_used": "spec_theta_bounds",
+   "v_cm_start": 0.6000000000000001,
+   "v_out_start": {
+    "vout": 1.2000000000000002
+   },
+   "input_ports": {
+    "vin": "single_ended_input"
+   },
+   "input_writers": {
+    "vin": {
+     "tier": "W4",
+     "relation": "free_window",
+     "element": null,
+     "known": null,
+     "y_key": "vin",
+     "order": 4
+    }
+   },
+   "kernel_w4_window_inputs": {
+    "vin": {
+     "lo": 0.0,
+     "hi": 1.2000000000000002,
+     "constraints": 2,
+     "input_status": null,
+     "tol_v": null
+    }
+   },
+   "icm_config": {
+    "config": "as_is_single_input",
+    "pivot_a_e": 8.595277397875117,
+    "pivot_resolution": 1.813108225330621e-14,
+    "vcm0": 0.6000000000000001,
+    "vcm_lo": 0.5272790850961322,
+    "vcm_hi": 0.6646300801083131,
+    "undefined": []
+   },
+   "ls_swing_reference": [],
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": false,
+   "mid_in_kernel_w4": true,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": false,
+   "branch_A": "레일 중앙값",
+   "value_A": 0.9,
+   "value_A_in_icm": false,
+   "branch_B": "피드백 -> 출력 스윙 중심",
+   "value_B": null,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 2.09,
+   "wall_s": 166.1,
+   "min_free_gb": 2.76
+  },
+  {
+   "circuit": "current_reuse_telescopic_ota",
+   "input_dc_mode": "pending:SP-2",
+   "declared_v": null,
+   "feedback_mode": "declared_elements",
+   "feedback_elements": [
+    "Cf1",
+    "Cf2"
+   ],
+   "swing_icmr_constraints": [
+    {
+     "metric": {
+      "pending": "MOD5"
+     },
+     "op": "<=",
+     "value": 0.15,
+     "view": null
+    },
+    {
+     "metric": "swing_out_v",
+     "op": ">=",
+     "value": 2.4,
+     "view": null
+    },
+    {
+     "metric": "icm_margin_v",
+     "op": ">=",
+     "value": 0,
+     "view": null
+    },
+    {
+     "metric": "noise_out_int_vrms",
+     "op": "<=",
+     "value": 0.00045,
+     "view": null
+    }
+   ],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": false,
+   "unmeasured_reason": "no_start_point",
+   "engine_error_tail": null,
+   "start_status": null,
+   "bounds_used": "spec_theta_bounds",
+   "v_cm_start": null,
+   "v_out_start": null,
+   "input_ports": {},
+   "input_writers": null,
+   "kernel_w4_window_inputs": {},
+   "icm_config": null,
+   "ls_swing_reference": null,
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": null,
+   "mid_in_kernel_w4": null,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": null,
+   "branch_A": "피드백 -> 출력 스윙 중심",
+   "value_A": null,
+   "value_A_in_icm": null,
+   "branch_B": "피드백 -> 출력 스윙 중심",
+   "value_B": null,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 4.39,
+   "wall_s": 634.3,
+   "min_free_gb": 1.42
+  },
+  {
+   "circuit": "erfc_ota",
+   "input_dc_mode": "value:0.8",
+   "declared_v": 0.8,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": false,
+   "unmeasured_reason": "stage_a_stop",
+   "engine_error_tail": null,
+   "start_status": null,
+   "bounds_used": null,
+   "v_cm_start": null,
+   "v_out_start": null,
+   "input_ports": {},
+   "input_writers": null,
+   "kernel_w4_window_inputs": {},
+   "icm_config": null,
+   "ls_swing_reference": null,
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": null,
+   "mid_in_kernel_w4": null,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": null,
+   "branch_A": "선언",
+   "value_A": 0.8,
+   "value_A_in_icm": null,
+   "branch_B": "선언",
+   "value_B": 0.8,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 0.98,
+   "wall_s": 14.0,
+   "min_free_gb": 4.53
+  },
+  {
+   "circuit": "folded_cascode",
+   "input_dc_mode": "pending:SP-2",
+   "declared_v": null,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": true,
+   "unmeasured_reason": null,
+   "engine_error_tail": null,
+   "start_status": "sealed",
+   "bounds_used": "spec_theta_bounds",
+   "v_cm_start": 0.9,
+   "v_out_start": {
+    "out": 0.8142694114095095
+   },
+   "input_ports": {
+    "vin_n": "differential_input_n",
+    "vin_p": "differential_input_p"
+   },
+   "input_writers": {
+    "vin_n": {
+     "tier": "W4",
+     "relation": "input_point",
+     "element": null,
+     "known": "vin_p",
+     "y_key": "vin_p",
+     "order": 8
+    },
+    "vin_p": {
+     "tier": "W4",
+     "relation": "input_point",
+     "element": null,
+     "known": null,
+     "y_key": "vin_p",
+     "order": 7
+    }
+   },
+   "kernel_w4_window_inputs": {
+    "vin_p": {
+     "lo": 0.0,
+     "hi": 1.8,
+     "constraints": 0,
+     "input_status": null,
+     "tol_v": null
+    }
+   },
+   "icm_config": {
+    "config": "servo",
+    "pivot_a_e": 56.459547280599224,
+    "pivot_resolution": 3.1059194942064588e-12,
+    "vcm0": 0.9,
+    "vcm_lo": 0.3305729950300522,
+    "vcm_hi": 1.7197185051132893,
+    "undefined": []
+   },
+   "ls_swing_reference": [],
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": true,
+   "mid_in_kernel_w4": true,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": true,
+   "branch_A": "레일 중앙값",
+   "value_A": 0.9,
+   "value_A_in_icm": true,
+   "branch_B": "피드백 -> 출력 스윙 중심",
+   "value_B": null,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 3.65,
+   "wall_s": 440.2,
+   "min_free_gb": 1.78
+  },
+  {
+   "circuit": "ngcc_3stage_ff",
+   "input_dc_mode": "pending:SP-2",
+   "declared_v": null,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [
+    {
+     "metric": "icmr_v",
+     "op": ">=",
+     "value": 0.6,
+     "view": null
+    }
+   ],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": false,
+   "unmeasured_reason": "stage_a_stop",
+   "engine_error_tail": null,
+   "start_status": null,
+   "bounds_used": null,
+   "v_cm_start": null,
+   "v_out_start": null,
+   "input_ports": {},
+   "input_writers": null,
+   "kernel_w4_window_inputs": {},
+   "icm_config": null,
+   "ls_swing_reference": null,
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": null,
+   "mid_in_kernel_w4": null,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": null,
+   "branch_A": "레일 중앙값",
+   "value_A": 0.9,
+   "value_A_in_icm": null,
+   "branch_B": "피드백 -> 출력 스윙 중심",
+   "value_B": null,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 0.98,
+   "wall_s": 12.0,
+   "min_free_gb": 4.48
+  },
+  {
+   "circuit": "nmcnr_amplifier",
+   "input_dc_mode": "pending:SP-2",
+   "declared_v": null,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [
+    {
+     "metric": "icmr_v",
+     "op": ">=",
+     "value": 0.5,
+     "view": null
+    },
+    {
+     "metric": "swing_out_v",
+     "op": ">=",
+     "value": 0.5,
+     "view": null
+    }
+   ],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": true,
+   "unmeasured_reason": null,
+   "engine_error_tail": null,
+   "start_status": "sealed",
+   "bounds_used": "spec_theta_bounds",
+   "v_cm_start": 0.4987951807228916,
+   "v_out_start": {
+    "Vout": 1.5420829768274933
+   },
+   "input_ports": {
+    "Vin_n": "differential_input_n",
+    "Vin_p": "differential_input_p"
+   },
+   "input_writers": {
+    "Vin_n": {
+     "tier": "W4",
+     "relation": "input_point",
+     "element": null,
+     "known": "Vin_p",
+     "y_key": "Vin_p",
+     "order": 17
+    },
+    "Vin_p": {
+     "tier": "W4",
+     "relation": "input_point",
+     "element": null,
+     "known": null,
+     "y_key": "Vin_p",
+     "order": 16
+    }
+   },
+   "kernel_w4_window_inputs": {
+    "Vin_p": {
+     "lo": 0.0,
+     "hi": 1.8,
+     "constraints": 0,
+     "input_status": null,
+     "tol_v": null
+    }
+   },
+   "icm_config": {
+    "config": "servo",
+    "pivot_a_e": 295.92906621536537,
+    "pivot_resolution": 5.714588407901728e-11,
+    "vcm0": 0.4987951807228916,
+    "vcm_lo": 0.07175562397532054,
+    "vcm_hi": 1.4264398407092853,
+    "undefined": []
+   },
+   "ls_swing_reference": [
+    [
+     [
+      "out_ranges",
+      [
+       [
+        "Vout",
+        0.04337489156572647,
+        1.7513498020337501,
+        1.5420829768274933
+       ]
+      ]
+     ],
+     [
+      "window",
+      [
+       0.07175562397532054,
+       1.4264398407092853
+      ]
+     ],
+     [
+      "v_icm",
+      0.4987951807228916
+     ],
+     [
+      "input_dc",
+      "pending"
+     ],
+     [
+      "required_input_cm_v",
+      [
+       0.4987951807228916,
+       0.07175562397532054,
+       1.4264398407092853
+      ]
+     ]
+    ]
+   ],
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": true,
+   "mid_in_kernel_w4": true,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": false,
+   "branch_A": "레일 중앙값",
+   "value_A": 0.9,
+   "value_A_in_icm": true,
+   "branch_B": "피드백 -> 출력 스윙 중심",
+   "value_B": null,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 2.94,
+   "wall_s": 336.1,
+   "min_free_gb": 2.58
+  },
+  {
+   "circuit": "pushpull_follower_buffer",
+   "input_dc_mode": "net:agnd",
+   "declared_v": 0.9,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [
+    {
+     "metric": "rout_ss_ohm",
+     "op": "<=",
+     "value": 1000,
+     "view": null
+    }
+   ],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": true,
+   "unmeasured_reason": null,
+   "engine_error_tail": null,
+   "start_status": "sealed",
+   "bounds_used": "spec_theta_bounds",
+   "v_cm_start": 0.9,
+   "v_out_start": {
+    "vout": 0.6518124472183409
+   },
+   "input_ports": {
+    "vin": "single_ended_input"
+   },
+   "input_writers": {
+    "vin": {
+     "tier": "W2",
+     "relation": "input_dc",
+     "element": null,
+     "known": null,
+     "y_key": null,
+     "order": 0
+    }
+   },
+   "kernel_w4_window_inputs": {},
+   "icm_config": {
+    "config": "as_is_single_input",
+    "pivot_a_e": 0.6537304185571652,
+    "pivot_resolution": 3.4226132025131188e-15,
+    "vcm0": 0.9,
+    "vcm_lo": 0.3447673788178419,
+    "vcm_hi": 1.7486072755533062,
+    "undefined": []
+   },
+   "ls_swing_reference": null,
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": true,
+   "mid_in_kernel_w4": null,
+   "mid_in_rails": true,
+   "declared_in_icm_window": true,
+   "start_vcm_eq_mid": true,
+   "branch_A": "선언",
+   "value_A": 0.9,
+   "value_A_in_icm": true,
+   "branch_B": "선언",
+   "value_B": 0.9,
+   "value_B_in_icm": true,
+   "peak_rss_gb": 2.45,
+   "wall_s": 210.1,
+   "min_free_gb": 2.77
+  },
+  {
+   "circuit": "r2r_opamp",
+   "input_dc_mode": "pending:U-75",
+   "declared_v": null,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": false,
+   "unmeasured_reason": "stage_a_stop",
+   "engine_error_tail": null,
+   "start_status": null,
+   "bounds_used": null,
+   "v_cm_start": null,
+   "v_out_start": null,
+   "input_ports": {},
+   "input_writers": null,
+   "kernel_w4_window_inputs": {},
+   "icm_config": null,
+   "ls_swing_reference": null,
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": null,
+   "mid_in_kernel_w4": null,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": null,
+   "branch_A": "레일 중앙값",
+   "value_A": 0.9,
+   "value_A_in_icm": null,
+   "branch_B": "피드백 -> 출력 스윙 중심",
+   "value_B": null,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 1.27,
+   "wall_s": 14.0,
+   "min_free_gb": 3.93
+  },
+  {
+   "circuit": "rfc_ota",
+   "input_dc_mode": "value:1.02",
+   "declared_v": 1.02,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": false,
+   "unmeasured_reason": "stage_a_stop",
+   "engine_error_tail": null,
+   "start_status": null,
+   "bounds_used": null,
+   "v_cm_start": null,
+   "v_out_start": null,
+   "input_ports": {},
+   "input_writers": null,
+   "kernel_w4_window_inputs": {},
+   "icm_config": null,
+   "ls_swing_reference": null,
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": null,
+   "mid_in_kernel_w4": null,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": null,
+   "branch_A": "선언",
+   "value_A": 1.02,
+   "value_A_in_icm": null,
+   "branch_B": "선언",
+   "value_B": 1.02,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 1.27,
+   "wall_s": 14.0,
+   "min_free_gb": 3.96
+  },
+  {
+   "circuit": "sf_pushpull_output_opamp",
+   "input_dc_mode": "net:agnd",
+   "declared_v": 0.9,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [
+    {
+     "metric": "rout_ss_ohm",
+     "op": "<=",
+     "value": 1000,
+     "view": null
+    },
+    {
+     "metric": "icm_margin_v",
+     "op": ">=",
+     "value": 0,
+     "view": null
+    }
+   ],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": false,
+   "unmeasured_reason": "no_start_point",
+   "engine_error_tail": null,
+   "start_status": null,
+   "bounds_used": "spec_theta_bounds",
+   "v_cm_start": null,
+   "v_out_start": null,
+   "input_ports": {},
+   "input_writers": null,
+   "kernel_w4_window_inputs": {},
+   "icm_config": null,
+   "ls_swing_reference": null,
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": null,
+   "mid_in_kernel_w4": null,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": null,
+   "branch_A": "선언",
+   "value_A": 0.9,
+   "value_A_in_icm": null,
+   "branch_B": "선언",
+   "value_B": 0.9,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 2.49,
+   "wall_s": 234.1,
+   "min_free_gb": 2.83
+  },
+  {
+   "circuit": "two_stage_ota",
+   "input_dc_mode": "pending:SP-2",
+   "declared_v": null,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": true,
+   "unmeasured_reason": null,
+   "engine_error_tail": null,
+   "start_status": "sealed",
+   "bounds_used": "spec_theta_bounds",
+   "v_cm_start": 0.9,
+   "v_out_start": {
+    "OUT": 0.9
+   },
+   "input_ports": {
+    "vin_n": "differential_input_n",
+    "vin_p": "differential_input_p"
+   },
+   "input_writers": {
+    "vin_n": {
+     "tier": "W4",
+     "relation": "input_point",
+     "element": null,
+     "known": "vin_p",
+     "y_key": "vin_p",
+     "order": 7
+    },
+    "vin_p": {
+     "tier": "W4",
+     "relation": "input_point",
+     "element": null,
+     "known": null,
+     "y_key": "vin_p",
+     "order": 6
+    }
+   },
+   "kernel_w4_window_inputs": {
+    "vin_p": {
+     "lo": 0.0,
+     "hi": 1.8,
+     "constraints": 0,
+     "input_status": null,
+     "tol_v": null
+    }
+   },
+   "icm_config": {
+    "config": "servo",
+    "pivot_a_e": 41.04694265974133,
+    "pivot_resolution": 2.989569130062942e-11,
+    "vcm0": 0.9,
+    "vcm_lo": 0.5742913940535115,
+    "vcm_hi": 1.7889038319502475,
+    "undefined": []
+   },
+   "ls_swing_reference": [],
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": true,
+   "mid_in_kernel_w4": true,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": true,
+   "branch_A": "레일 중앙값",
+   "value_A": 0.9,
+   "value_A_in_icm": true,
+   "branch_B": "피드백 -> 출력 스윙 중심",
+   "value_B": null,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 2.56,
+   "wall_s": 284.1,
+   "min_free_gb": 2.21
+  },
+  {
+   "circuit": "two_stage_ota_sf",
+   "input_dc_mode": "pending:SP-2",
+   "declared_v": null,
+   "feedback_mode": "empty_list(unity_beta_rule)",
+   "feedback_elements": [],
+   "swing_icmr_constraints": [
+    {
+     "metric": "rout_ss_ohm",
+     "op": "<=",
+     "value": 1000,
+     "view": null
+    }
+   ],
+   "spec_keys_swing_icmr": [],
+   "rail_mid_v": 0.9,
+   "rails": [
+    0.0,
+    1.8
+   ],
+   "measured": false,
+   "unmeasured_reason": "free_mem_below_1GB(0.95)",
+   "engine_error_tail": null,
+   "start_status": null,
+   "bounds_used": null,
+   "v_cm_start": null,
+   "v_out_start": null,
+   "input_ports": {},
+   "input_writers": null,
+   "kernel_w4_window_inputs": {},
+   "icm_config": null,
+   "ls_swing_reference": null,
+   "out_swing_window_plan_def": "정의 자리 없음(card DE-1 착수 전, master 생산자 0)",
+   "mid_in_icm_window": null,
+   "mid_in_kernel_w4": null,
+   "mid_in_rails": true,
+   "declared_in_icm_window": null,
+   "start_vcm_eq_mid": null,
+   "branch_A": "레일 중앙값",
+   "value_A": 0.9,
+   "value_A_in_icm": null,
+   "branch_B": "피드백 -> 출력 스윙 중심",
+   "value_B": null,
+   "value_B_in_icm": null,
+   "peak_rss_gb": 4.93,
+   "wall_s": 602.9,
+   "min_free_gb": 0.95
+  }
+ ]
+}

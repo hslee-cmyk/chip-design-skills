@@ -1,0 +1,22 @@
+{
+ "card": "gmid_lut.py",
+ "units": [
+  "sizing_recipe.py::GmIdLUT",
+  "sizing_recipe.py::_multilinear_interp",
+  "sizing_recipe.py::_multilinear_interp_point_multi",
+  "sizing_recipe.py::<stmt:73c6d0638d0d>",
+  "sizing_recipe.py::SemiEmpiricalGmIdLUT",
+  "sizing_recipe.py::_invq_newton",
+  "sizing_recipe.py::build_toy_lut",
+  "sizing_recipe.py::lut_conditions_from_npz"
+ ],
+ "mod_imports_head": [
+  "from __future__ import annotations",
+  "import math",
+  "import numpy as np"
+ ],
+ "mod_imports_tail": [],
+ "reexports": {
+  "sizing_recipe.py": "from gmid_lut import GmIdLUT, SemiEmpiricalGmIdLUT, _QUERY_CACHE_MAX, _invq_newton, _multilinear_interp, _multilinear_interp_point_multi, build_toy_lut, lut_conditions_from_npz"
+ }
+}

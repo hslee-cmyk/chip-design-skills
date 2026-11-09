@@ -1,0 +1,62 @@
+{
+ "file_identity_lf": {
+  "test_lint.py": [
+   "4cd2a0a13ae76133",
+   "4cd2a0a13ae76133",
+   true
+  ],
+  "reachability.py": [
+   "0d3c533afbadf066",
+   "0d3c533afbadf066",
+   true
+  ],
+  "merge_gate.py": [
+   "459c76fd40dd7c91",
+   "459c76fd40dd7c91",
+   true
+  ],
+  "weakening_diff.py": [
+   "75318f7ccb02058d",
+   "75318f7ccb02058d",
+   true
+  ],
+  "gate_config.json": [
+   "0792b0adbc41b0a3",
+   "0792b0adbc41b0a3",
+   true
+  ]
+ },
+ "P2_test_lint.py": {
+  "base": [
+   0,
+   "{\"tool\": \"V4\", \"verdict\": \"PASS\", \"files\": [\"skills/analog-gmid-design/assets/tests/test_pc.py\"], \"findings\": [{\"rule\": \"(2)\", \"line\": 10, \"output\": \"PASS\", \"file\": \"skills/analog-gmid-design/assets/tests/test_pc.py\", \"test\": \"test_h1\"}], \"unjudged\": []}"
+  ],
+  "merged": [
+   0,
+   "{\"tool\": \"V4\", \"verdict\": \"PASS\", \"files\": [\"skills/analog-gmid-design/assets/tests/test_pc.py\"], \"findings\": [{\"rule\": \"(2)\", \"line\": 10, \"output\": \"PASS\", \"file\": \"skills/analog-gmid-design/assets/tests/test_pc.py\", \"test\": \"test_h1\"}], \"unjudged\": []}"
+  ],
+  "same": true
+ },
+ "P2_reachability.py": {
+  "base": [
+   0,
+   "{\"tool\": \"V7\", \"verdict\": \"PASS\", \"roots\": [], \"roots_without_file\": [\"skills/analog-gmid-design/assets/gmid_design_pipeline.py::run_gmid_design_pipeline\", \"skills/analog-gmid-design/assets/sky130_lut_sweep.py::__main__\", \"skills/analog-gmid-design/assets/topology_to_markdown.py::__main__\", \"workspaces/run_harness.py::__main__\", \"workspaces/run_harness.py::run\"], \"new_defs\": [], \"unreached\": [], \"unreached_without_approval\": []}"
+  ],
+  "merged": [
+   0,
+   "{\"tool\": \"V7\", \"verdict\": \"PASS\", \"roots\": [], \"roots_without_file\": [\"skills/analog-gmid-design/assets/gmid_design_pipeline.py::run_gmid_design_pipeline\", \"skills/analog-gmid-design/assets/sky130_lut_sweep.py::__main__\", \"skills/analog-gmid-design/assets/topology_to_markdown.py::__main__\", \"workspaces/run_harness.py::__main__\", \"workspaces/run_harness.py::run\"], \"new_defs\": [], \"unreached\": [], \"unreached_without_approval\": []}"
+  ],
+  "same": true
+ },
+ "P2_lib_base": {
+  "exit": 0,
+  "out": "{\"hdr\": \"{'diff_path': [], 'id': '20261002-p-r3', 'date': '2026-10-02', 'target_kind': 'decision', 'target': 'skills/analog-gmid-design/assets/tests/test_pc.py::test_h1, skills/analog-gmid-design/assets/pc.py::h1, pc:h0:arith:body[0].value, pc:h0:arith:body[0].value@185450ba3616eb5396ac9cdda4df6418714b560a9dc4c69c9ecf95ed477f4958, U-01, m:q:const+:body[0].value.right, m:q:const+:body[0].value.right@aecd2737d7619cccdc2463d88f2682d7982eb722eff56ea45d75968fa6b6d633, pc:h1:arith:body[0].value', 'scope': 'auditor probe', 'target_list': ['skills/analog-gmid-design/assets/tests/test_pc.py::test_h1', 'skills/analog-gmid-design/assets/pc.py::h1', 'pc:h0:arith:body[0].value', 'pc:h0:arith:body[0].value@185450ba3616eb5396ac9cdda4df6418714b560a9dc4c69c9ecf95ed477f4958', 'U-01', 'm:q:const+:body[0].value.right', 'm:q:const+:body[0].value.right@aecd2737d7619cccdc2463d88f2682d7982eb722eff56ea45d75968fa6b6d633',\", \"approved_hashes\": [], \"approved_ids\": [\"U-01\", \"m:q:const+:body[0].value.right\", \"m:q:const+:body[0].value.right@aecd2737d7619cccdc2463d88f2682d7982eb722eff56ea45d75968fa6b6d633\", \"pc:h0:arith:body[0].value\", \"pc:h0:arith:body[0].value@185450ba3616eb5396ac9cdda4df6418714b560a9dc4c69c9ecf95ed477f4958\", \"pc:h1:arith:body[0].value\", \"skills/analog-gmid-design/assets/pc.py::h1\", \"skills/analog-gmid-design/assets/tests/test_pc.py::test_h1\"]}",
+  "err": ""
+ },
+ "P2_lib_merged": {
+  "exit": 0,
+  "out": "{\"hdr\": \"{'diff_path': [], 'id': '20261002-p-r3', 'date': '2026-10-02', 'target_kind': 'decision', 'target': 'skills/analog-gmid-design/assets/tests/test_pc.py::test_h1, skills/analog-gmid-design/assets/pc.py::h1, pc:h0:arith:body[0].value, pc:h0:arith:body[0].value@185450ba3616eb5396ac9cdda4df6418714b560a9dc4c69c9ecf95ed477f4958, U-01, m:q:const+:body[0].value.right, m:q:const+:body[0].value.right@aecd2737d7619cccdc2463d88f2682d7982eb722eff56ea45d75968fa6b6d633, pc:h1:arith:body[0].value', 'scope': 'auditor probe', 'target_list': ['skills/analog-gmid-design/assets/tests/test_pc.py::test_h1', 'skills/analog-gmid-design/assets/pc.py::h1', 'pc:h0:arith:body[0].value', 'pc:h0:arith:body[0].value@185450ba3616eb5396ac9cdda4df6418714b560a9dc4c69c9ecf95ed477f4958', 'U-01', 'm:q:const+:body[0].value.right', 'm:q:const+:body[0].value.right@aecd2737d7619cccdc2463d88f2682d7982eb722eff56ea45d75968fa6b6d633',\", \"approved_hashes\": [], \"approved_ids\": [\"U-01\", \"m:q:const+:body[0].value.right\", \"m:q:const+:body[0].value.right@aecd2737d7619cccdc2463d88f2682d7982eb722eff56ea45d75968fa6b6d633\", \"pc:h0:arith:body[0].value\", \"pc:h0:arith:body[0].value@185450ba3616eb5396ac9cdda4df6418714b560a9dc4c69c9ecf95ed477f4958\", \"pc:h1:arith:body[0].value\", \"skills/analog-gmid-design/assets/pc.py::h1\", \"skills/analog-gmid-design/assets/tests/test_pc.py::test_h1\"]}",
+  "err": ""
+ },
+ "P2_lib_same": true
+}

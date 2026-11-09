@@ -1,0 +1,502 @@
+{
+ "circuit_key": "folded_cascode",
+ "topology_path": "C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+ "repo_root": "C:/g452/repo",
+ "lut_path": "C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\sky130_nfet_pfet_lut_sample.npz",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0,
+  "W_ref_m": 5e-06
+ },
+ "spec_scalars": {
+  "_spec_source": "run_harness.SPECS",
+  "vdd": 1.8,
+  "L_grid_step": 5e-09,
+  "L_min": 1.5e-07,
+  "L_min_by_kind": {
+   "nmos": 1.5e-07,
+   "pmos": 1.5e-07
+  },
+  "W_bounds": [
+   1e-06,
+   0.0002
+  ],
+  "min_vds_by_role": {
+   "cascode": 0.2,
+   "mirror": 0.2
+  },
+  "min_finger_w": 1e-06,
+  "max_finger_w": 4e-05,
+  "vth0_slope": {
+   "nfet": 0.003356,
+   "pfet": 0.005856
+  },
+  "floorplan_target": {
+   "max_aspect_ratio": 1.5,
+   "min_packing_density": 0.5
+  },
+  "max_layout_retry_rounds": 6
+ },
+ "engine_ok": true,
+ "engine_seconds": 35.665279388427734,
+ "theta_star": {
+  "Ibg": 5e-07,
+  "r_split_M1_M2": 0.5,
+  "r_mirror_M3_M4": 1.5,
+  "kcl_fold_M6": 1.0,
+  "kcl_fold_M5": 1.0
+ },
+ "metrics": {
+  "power_uA": 9.5,
+  "gain_db": 41.05571897348187,
+  "pm_deg": 87.21814139323817,
+  "cmrr_db": 23.614168894383155,
+  "psrr_db": 29.04206290435072
+ },
+ "audit_ok": false,
+ "sizing": {
+  "MP": {
+   "ID": 5e-07,
+   "L": 3.4000000000000003e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.6749999999999999,
+   "_vds_source": "allocate_stack_headroom:biasgen_mp+diode_pending",
+   "vsb": 0.0,
+   "_vsb_source": "node_voltage",
+   "gm_id": 20.50207572768699,
+   "gm": 1.0251037863843494e-05,
+   "W": 0.00013863144294850977,
+   "gds": 1.7821393339417237e-07,
+   "kind": "pmos",
+   "_gm_id_source": "diode_self_consistency"
+  },
+  "MN": {
+   "ID": 5e-07,
+   "L": 2.45e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.44999999999999996,
+   "_vds_source": "allocate_stack_headroom:biasgen_mn+diode_pending",
+   "vsb": 0.0,
+   "_vsb_source": "node_voltage",
+   "gm_id": 25.257391739092874,
+   "gm": 1.2628695869546437e-05,
+   "W": 7.62579697864183e-05,
+   "gds": 2.9288952733285923e-07,
+   "kind": "nmos",
+   "_gm_id_source": "diode_self_consistency"
+  },
+  "M1": {
+   "ID": 2.5e-07,
+   "L": 3.4000000000000003e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.2,
+   "_vds_source": "allocate_stack_headroom:col_m1",
+   "vsb": 1.6,
+   "_vsb_source": "node_voltage",
+   "gm_id": 17.56438767401967,
+   "gm": 4.391096918504917e-06,
+   "W": 3.408657041906672e-06,
+   "gds": 1.224645450968399e-07,
+   "kind": "pmos"
+  },
+  "M2": {
+   "ID": 2.5e-07,
+   "L": 3.4000000000000003e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.2,
+   "_vds_source": "allocate_stack_headroom:col_m2",
+   "vsb": 1.6,
+   "_vsb_source": "node_voltage",
+   "gm_id": 17.56438767401967,
+   "gm": 4.391096918504917e-06,
+   "W": 3.408657041906672e-06,
+   "gds": 1.224645450968399e-07,
+   "kind": "pmos"
+  },
+  "M3": {
+   "ID": 7.5e-07,
+   "L": 3.4000000000000003e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.2,
+   "_vds_source": "allocate_stack_headroom:col_m3",
+   "vsb": 0.0,
+   "_vsb_source": "node_voltage",
+   "gm_id": 14.5,
+   "gm": 1.0875e-05,
+   "W": 1.0172127731792665e-06,
+   "gds": 3.770248387130791e-07,
+   "kind": "pmos"
+  },
+  "M4": {
+   "ID": 7.5e-07,
+   "L": 3.4000000000000003e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.2,
+   "_vds_source": "allocate_stack_headroom:col_m4",
+   "vsb": 0.0,
+   "_vsb_source": "node_voltage",
+   "gm_id": 14.5,
+   "gm": 1.0875e-05,
+   "W": 1.0172127731792665e-06,
+   "gds": 3.770248387130791e-07,
+   "kind": "pmos"
+  },
+  "M6": {
+   "ID": 1e-06,
+   "L": 3.4000000000000003e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.2,
+   "_vds_source": "allocate_stack_headroom:col_m6",
+   "vsb": 0.19999999999999996,
+   "_vsb_source": "node_voltage",
+   "gm_id": 19.5,
+   "gm": 1.95e-05,
+   "W": 0.0001983439992436535,
+   "gds": 5.052601359653242e-07,
+   "kind": "pmos"
+  },
+  "M5": {
+   "ID": 1e-06,
+   "L": 3.4000000000000003e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.2,
+   "_vds_source": "allocate_stack_headroom:col_m5",
+   "vsb": 1.8,
+   "_vsb_source": "node_voltage",
+   "gm_id": 19.5,
+   "gm": 1.95e-05,
+   "W": 0.000195047249738793,
+   "gds": 5.165000881517962e-07,
+   "kind": "pmos"
+  },
+  "M9": {
+   "ID": 1e-06,
+   "L": 2.45e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.44999999999999996,
+   "_vds_source": "allocate_stack_headroom:col_m9+diode_pending",
+   "vsb": 0.0,
+   "_vsb_source": "node_voltage",
+   "gm_id": 25.257391739092874,
+   "gm": 2.5257391739092874e-05,
+   "W": 0.0001525159395728366,
+   "gds": 5.857790546657185e-07,
+   "kind": "nmos",
+   "_gm_id_source": "diode_self_consistency"
+  },
+  "M10": {
+   "ID": 1e-06,
+   "L": 2.45e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.2,
+   "_vds_source": "allocate_stack_headroom:col_m10",
+   "vsb": 0.0,
+   "_vsb_source": "node_voltage",
+   "gm_id": 21.0,
+   "gm": 2.1e-05,
+   "W": 1.120214026865839e-06,
+   "gds": 7.758074528651368e-07,
+   "kind": "nmos"
+  },
+  "M7": {
+   "ID": 1e-06,
+   "L": 2.45e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.44999999999999996,
+   "_vds_source": "allocate_stack_headroom:col_m7+diode_pending",
+   "vsb": -0.6499999999999999,
+   "_vsb_source": "node_voltage",
+   "gm_id": 25.257391739092874,
+   "gm": 2.5257391739092874e-05,
+   "W": 0.0001525159395728366,
+   "gds": 5.857790546657185e-07,
+   "kind": "nmos",
+   "_gm_id_source": "diode_self_consistency"
+  },
+  "M8": {
+   "ID": 1e-06,
+   "L": 2.45e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.2,
+   "_vds_source": "allocate_stack_headroom:col_m8",
+   "vsb": 0.2,
+   "_vsb_source": "node_voltage",
+   "gm_id": 25.5,
+   "gm": 2.55e-05,
+   "W": 5.662039217260292e-05,
+   "gds": 8.527294072988575e-07,
+   "kind": "nmos"
+  },
+  "M11": {
+   "ID": 5e-07,
+   "L": 2.45e-07,
+   "_L_source": "L_role_derived",
+   "vds": 0.2,
+   "_vds_source": "allocate_stack_headroom:col_m11",
+   "vsb": 0.0,
+   "_vsb_source": "node_voltage",
+   "gm_id": 22.0,
+   "gm": 1.1e-05,
+   "W": 1.0416298261051364e-06,
+   "gds": 3.884092283754301e-07,
+   "kind": "nmos"
+  }
+ },
+ "instance_json": "C:/g452/out\\folded_cascode.instance.json",
+ "node_voltage_report": {
+  "unresolved": [],
+  "conflicts": [
+   [
+    "M4",
+    "Y",
+    0.0,
+    1.6,
+    1.6
+   ],
+   [
+    "M1",
+    "X",
+    1.6,
+    0.0,
+    1.6
+   ],
+   [
+    "M9",
+    "Vg9",
+    -0.6499999999999999,
+    0.44999999999999996,
+    1.0999999999999999
+   ],
+   [
+    "M8",
+    "out",
+    1.4000000000000001,
+    0.4,
+    1.0
+   ]
+  ],
+  "passes": 3
+ },
+ "device_pred": {
+  "M1": {
+   "kind": "pmos",
+   "gate": "vin_n",
+   "source": "tail",
+   "drain": "X",
+   "vgs": 1.05,
+   "v_gate_pred": -0.8500000000000001
+  },
+  "M10": {
+   "kind": "nmos",
+   "gate": "Vg9",
+   "source": "gnd",
+   "drain": "Vg10",
+   "vgs": 0.6661686270702364,
+   "v_gate_pred": 0.6661686270702364
+  },
+  "M11": {
+   "kind": "nmos",
+   "gate": "vb2",
+   "source": "gnd",
+   "drain": "tail",
+   "vgs": 0.6371887885163149,
+   "v_gate_pred": 0.6371887885163149
+  },
+  "M2": {
+   "kind": "pmos",
+   "gate": "vin_p",
+   "source": "tail",
+   "drain": "Y",
+   "vgs": 1.05,
+   "v_gate_pred": -0.8500000000000001
+  },
+  "M3": {
+   "kind": "pmos",
+   "gate": "vb1",
+   "source": "vdd",
+   "drain": "X",
+   "vgs": 0.9965393619593426,
+   "v_gate_pred": 0.8034606380406575
+  },
+  "M4": {
+   "kind": "pmos",
+   "gate": "vb1",
+   "source": "vdd",
+   "drain": "Y",
+   "vgs": 0.9965393619593426,
+   "v_gate_pred": 0.8034606380406575
+  },
+  "M5": {
+   "kind": "pmos",
+   "gate": "bias3",
+   "source": "Y",
+   "drain": "Vg7",
+   "vgs": 0.8861353172174284,
+   "v_gate_pred": -0.8861353172174284
+  },
+  "M6": {
+   "kind": "pmos",
+   "gate": "bias3",
+   "source": "X",
+   "drain": "out",
+   "vgs": 0.7553896680498314,
+   "v_gate_pred": 0.8446103319501687
+  },
+  "M7": {
+   "kind": "nmos",
+   "gate": "Vg7",
+   "source": "Vg9",
+   "drain": "Vg7",
+   "vgs": 0.44999999999999996,
+   "v_gate_pred": -0.19999999999999996
+  },
+  "M8": {
+   "kind": "nmos",
+   "gate": "Vg7",
+   "source": "Vg10",
+   "drain": "out",
+   "vgs": 0.5450125852343845,
+   "v_gate_pred": 0.7450125852343845
+  },
+  "M9": {
+   "kind": "nmos",
+   "gate": "Vg9",
+   "source": "gnd",
+   "drain": "Vg9",
+   "vgs": 0.44999999999999996,
+   "v_gate_pred": 0.44999999999999996
+  },
+  "MN": {
+   "kind": "nmos",
+   "gate": "vb2",
+   "source": "gnd",
+   "drain": "vb2",
+   "vgs": 0.44999999999999996,
+   "v_gate_pred": 0.44999999999999996
+  },
+  "MP": {
+   "kind": "pmos",
+   "gate": "vb1",
+   "source": "vdd",
+   "drain": "vb1",
+   "vgs": 0.6749999999999999,
+   "v_gate_pred": 1.125
+  }
+ },
+ "gate_net_pred": {
+  "Vg7": {
+   "votes": [
+    [
+     "M7",
+     -0.19999999999999996
+    ],
+    [
+     "M8",
+     0.7450125852343845
+    ]
+   ],
+   "mean": 0.2725062926171923,
+   "spread": 0.9450125852343845
+  },
+  "Vg9": {
+   "votes": [
+    [
+     "M10",
+     0.6661686270702364
+    ],
+    [
+     "M9",
+     0.44999999999999996
+    ]
+   ],
+   "mean": 0.5580843135351181,
+   "spread": 0.21616862707023643
+  },
+  "bias3": {
+   "votes": [
+    [
+     "M5",
+     -0.8861353172174284
+    ],
+    [
+     "M6",
+     0.8446103319501687
+    ]
+   ],
+   "mean": -0.020762492633629892,
+   "spread": 1.7307456491675972
+  },
+  "vb1": {
+   "votes": [
+    [
+     "M3",
+     0.8034606380406575
+    ],
+    [
+     "M4",
+     0.8034606380406575
+    ],
+    [
+     "MP",
+     1.125
+    ]
+   ],
+   "mean": 0.9106404253604383,
+   "spread": 0.3215393619593425
+  },
+  "vb2": {
+   "votes": [
+    [
+     "M11",
+     0.6371887885163149
+    ],
+    [
+     "MN",
+     0.44999999999999996
+    ]
+   ],
+   "mean": 0.5435943942581574,
+   "spread": 0.18718878851631493
+  },
+  "vin_n": {
+   "votes": [
+    [
+     "M1",
+     -0.8500000000000001
+    ]
+   ],
+   "mean": -0.8500000000000001,
+   "spread": 0.0
+  },
+  "vin_p": {
+   "votes": [
+    [
+     "M2",
+     -0.8500000000000001
+    ]
+   ],
+   "mean": -0.8500000000000001,
+   "spread": 0.0
+  }
+ },
+ "node_pred": {
+  "VDD": 1.8,
+  "vdd": 1.8,
+  "vss": 0.0,
+  "GND": 0.0,
+  "VSS": 0.0,
+  "gnd": 0.0,
+  "Vg10": 0.2,
+  "tail": 0.2,
+  "Y": 0.0,
+  "X": 1.6,
+  "Vg7": -0.2,
+  "out": 1.4000000000000001,
+  "Vg9": -0.6499999999999999,
+  "vb2": 0.44999999999999996,
+  "vb1": 1.125,
+  "bias3": -0.020762492633629892,
+  "vin_n": -0.8500000000000001,
+  "vin_p": -0.8500000000000001
+ }
+}

@@ -1,0 +1,59 @@
+== n_m5g (rail=False)
+   M5       nmos             gate    gate(no DC)
+   M19      pmos             drain   channel
+   CBAT1_L  capacitor        t0      capacitor(no DC)
+   -> DC 전도 원소(채널·저항·이상원) = ['M19.drain']
+== n_m6g (rail=False)
+   M6       nmos             gate    gate(no DC)
+   M20      pmos             drain   channel
+   CBAT1_R  capacitor        t0      capacitor(no DC)
+   -> DC 전도 원소(채널·저항·이상원) = ['M20.drain']
+== n_m8g (rail=False)
+   M7       pmos             gate    gate(no DC)
+   M8       pmos             gate    gate(no DC)
+   M21      pmos             drain   channel
+   CBAT2    capacitor        t1      capacitor(no DC)
+   -> DC 전도 원소(채널·저항·이상원) = ['M21.drain']
+== Z (rail=False)
+   M19      pmos             gate    gate(no DC)
+   M20      pmos             gate    gate(no DC)
+   M3A      nmos             gate    gate(no DC)
+   M4A      nmos             gate    gate(no DC)
+   R1       resistor         t1      resistor
+   R2       resistor         t0      resistor
+   -> DC 전도 원소(채널·저항·이상원) = ['R1.t1', 'R2.t0']
+== X (rail=False)
+   M2B      pmos             drain   channel
+   M3B      nmos             gate    gate(no DC)
+   M17B     nmos             drain   channel
+   M3C      nmos             drain   channel
+   M18A     nmos             gate    gate(no DC)
+   R1       resistor         t0      resistor
+   CBAT1_L  capacitor        t1      capacitor(no DC)
+   -> DC 전도 원소(채널·저항·이상원) = ['M2B.drain', 'M17B.drain', 'M3C.drain', 'R1.t0']
+== Y (rail=False)
+   M1B      pmos             drain   channel
+   M4B      nmos             gate    gate(no DC)
+   M17A     nmos             gate    gate(no DC)
+   M4C      nmos             drain   channel
+   M18B     nmos             drain   channel
+   R2       resistor         t1      resistor
+   CBAT1_R  capacitor        t1      capacitor(no DC)
+   -> DC 전도 원소(채널·저항·이상원) = ['M1B.drain', 'M4C.drain', 'M18B.drain', 'R2.t1']
+== vcn (rail=True)
+   M21      pmos             gate    gate(no DC)
+   M19      pmos             source  channel
+   M20      pmos             source  channel
+   M17B     nmos             gate    gate(no DC)
+   M3C      nmos             gate    gate(no DC)
+   M4C      nmos             gate    gate(no DC)
+   M18B     nmos             gate    gate(no DC)
+   -> DC 전도 원소(채널·저항·이상원) = ['M19.source', 'M20.source']
+== vcp (rail=True)
+   M21      pmos             source  channel
+   -> DC 전도 원소(채널·저항·이상원) = ['M21.source']
+
+== 구조적 0 전류 (비레일 넷의 DC 전도 원소가 하나뿐)
+   n_m5g: M19.drain -> I = 0 (KCL)
+   n_m6g: M20.drain -> I = 0 (KCL)
+   n_m8g: M21.drain -> I = 0 (KCL)

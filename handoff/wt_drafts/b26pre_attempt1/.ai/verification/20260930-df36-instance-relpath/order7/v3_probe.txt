@@ -1,0 +1,172 @@
+_topology_ref_relpath inventory 69
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_missing_sizing_still_rejected
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_other_drive_topology_rejected
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_outside_repo_topology_rejected
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_same_for_output_locations
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_same_for_path_spellings_and_cwd
+  skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::test_coverage_and_field_completeness
+  skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_base_blob_reader_reads_the_base_tree
+  skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_body_is_block_verbatim_with_single_substitution
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_deterministic_bytes
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_encoding_utf8_no_bom_lf
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_exit0_and_writes_file
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_header_fixed_lines_in_order
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_import_line_names
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_input_errors_exit2
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_missing_source_exit2
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unresolved_name_exit3
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_runs_and_matches_original_stdout
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_exit_code
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_out_json_lists_top_level_files_only
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_rejects_missing_root_exit2
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_consecutive_majors_merge_into_one
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_consecutive_majors_merged_section_ends_at_second_major
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_deps_and_provides
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_exit0_and_count
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_kind_and_category
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_major_after_plain_statement_starts_new_section
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_major_after_sub_marker_starts_new_section
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_rejects_missing_source_exit2
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_start_lines
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_verdict_counts
+  skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_declared_signal_path_is_interior_and_monotone_in_sink_set
+  skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_node_pole_estimate_classifies_every_declared_path_node
+  skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_parasitic_pm_stays_within_pole_count_bound
+  skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_pole_partition_judgment_rejects_dropped_and_double_counted_nodes
+  skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_signal_path_judgment_rejects_unreachable_and_endpoint_nodes
+  skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py::test_sized_diodes_satisfy_vgs_equals_vds_whatever_their_role
+  skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py::test_role_L_is_derived_for_every_harness_circuit
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s002_assemble_report_data
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s003_assemble_report_data
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s004_report
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s003__evaluate
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s012_optimize_full_circuit_budget
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s014_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s036_optimize_full_circuit_budget
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s037_optimize_full_circuit_budget
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s038_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s039_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s040_VGS
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s041_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s042__ref_depth
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s043_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s045_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s046_diagnose_sizing_roles_gap
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s047_nmcnr_3stage_topology
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s049_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s050_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget_known_limitation
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s052_compensation
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s053_L_role
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section_known_limitation
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s088_save_instance_json
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s157_M1
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s157_M1_known_limitation
+save_instance_json inventory 69
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_missing_sizing_still_rejected
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_other_drive_topology_rejected
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_outside_repo_topology_rejected
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_same_for_output_locations
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_same_for_path_spellings_and_cwd
+  skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::test_coverage_and_field_completeness
+  skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_base_blob_reader_reads_the_base_tree
+  skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_body_is_block_verbatim_with_single_substitution
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_deterministic_bytes
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_encoding_utf8_no_bom_lf
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_exit0_and_writes_file
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_header_fixed_lines_in_order
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_import_line_names
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_input_errors_exit2
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_missing_source_exit2
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unresolved_name_exit3
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_runs_and_matches_original_stdout
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_exit_code
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_out_json_lists_top_level_files_only
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_rejects_missing_root_exit2
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_consecutive_majors_merge_into_one
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_consecutive_majors_merged_section_ends_at_second_major
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_deps_and_provides
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_exit0_and_count
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_kind_and_category
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_major_after_plain_statement_starts_new_section
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_major_after_sub_marker_starts_new_section
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_rejects_missing_source_exit2
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_start_lines
+  skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_verdict_counts
+  skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_declared_signal_path_is_interior_and_monotone_in_sink_set
+  skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_node_pole_estimate_classifies_every_declared_path_node
+  skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_parasitic_pm_stays_within_pole_count_bound
+  skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_pole_partition_judgment_rejects_dropped_and_double_counted_nodes
+  skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_signal_path_judgment_rejects_unreachable_and_endpoint_nodes
+  skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py::test_sized_diodes_satisfy_vgs_equals_vds_whatever_their_role
+  skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py::test_role_L_is_derived_for_every_harness_circuit
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s002_assemble_report_data
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s003_assemble_report_data
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s004_report
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s003__evaluate
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s012_optimize_full_circuit_budget
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s014_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s036_optimize_full_circuit_budget
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s037_optimize_full_circuit_budget
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s038_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s039_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s040_VGS
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s041_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s042__ref_depth
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s043_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s045_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s046_diagnose_sizing_roles_gap
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s047_nmcnr_3stage_topology
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s049_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s050_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget_known_limitation
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s052_compensation
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s053_L_role
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section_known_limitation
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s088_save_instance_json
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s157_M1
+  skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s157_M1_known_limitation
+rc 1
+[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[31mF[0m
+================================== FAILURES ===================================
+[31m[1m__________________ test_base_blob_reader_reads_the_base_tree __________________[0m
+
+    [0m[94mdef[39;49;00m[90m [39;49;00m[92mtest_base_blob_reader_reads_the_base_tree[39;49;00m():[90m[39;49;00m
+        [90m# oracle (a): base Ŀ�Կ� �� �ڸ��� �ִٴ� ����� ��밪�̴� -- �Ʒ� ���ؼ� ������ ���������� �ʰ�.[39;49;00m[90m[39;49;00m
+        [94mfor[39;49;00m name [95min[39;49;00m _relocated_names():[90m[39;49;00m
+>           [94massert[39;49;00m base_blob_text([33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00m_TESTS_REL[33m}[39;49;00m[33m/[39;49;00m[33m{[39;49;00mname[33m}[39;49;00m[33m.py[39;49;00m[33m"[39;49;00m).strip()[90m[39;49;00m
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+
+[1m[31mskills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py[0m:655: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+rel_path = 'skills/analog-gmid-design/assets/tests/probe_L_search_window.py'
+
+    [0m[94mdef[39;49;00m[90m [39;49;00m[92mbase_blob_text[39;49;00m(rel_path: [96mstr[39;49;00m) -> [96mstr[39;49;00m:[90m[39;49;00m
+    [90m    [39;49;00m[33m"""base Ŀ�Կ� �ִ� `rel_path`�� ����(������ ����ȭ�ؼ� �� ��� �񱳿� ����)."""[39;49;00m[90m[39;49;00m
+        proc = subprocess.run([[33m"[39;49;00m[33mgit[39;49;00m[33m"[39;49;00m, [33m"[39;49;00m[33m-C[39;49;00m[33m"[39;49;00m, [96mstr[39;49;00m(_REPO_ROOT), [33m"[39;49;00m[33mshow[39;49;00m[33m"[39;49;00m, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00m_BASE_COMMIT[33m}[39;49;00m[33m:[39;49;00m[33m{[39;49;00mrel_path[33m}[39;49;00m[33m"[39;49;00m],[90m[39;49;00m
+                              capture_output=[94mTrue[39;49;00m)[90m[39;49;00m
+>       [94massert[39;49;00m proc.returncode == [94m0[39;49;00m, ([90m[39;49;00m
+            [33mf[39;49;00m[33m"[39;49;00m[33mbase [39;49;00m[33m{[39;49;00m_BASE_COMMIT[:[94m7[39;49;00m][33m}[39;49;00m[33m�� [39;49;00m[33m{[39;49;00mrel_path[33m}[39;49;00m[33m�� ���� ���ߴ�: [39;49;00m[33m{[39;49;00mproc.stderr.decode([33m'[39;49;00m[33mutf-8[39;49;00m[33m'[39;49;00m,[90m [39;49;00m[33m'[39;49;00m[33mreplace[39;49;00m[33m'[39;49;00m)[33m}[39;49;00m[33m"[39;49;00m)[90m[39;49;00m
+[1m[31mE       AssertionError: base 939f926�� skills/analog-gmid-design/assets/tests/probe_L_search_window.py�� ���� ���ߴ�: fatal: not a git repository (or any of the parent directories): .git[0m
+[1m[31mE         [0m
+[1m[31mE       assert 128 == 0[0m
+[1m[31mE        +  where 128 = CompletedProcess(args=['git', '-C', 'C:\\g16\\diag\\copy', 'show', '939f926fe97ba27f9c8d5110a089253c5a4501e3:skills/an...dow.py'], returncode=128, stdout=b'', stderr=b'fatal: not a git repository (or any of the parent directories): .git\n').returncode[0m
+
+[1m[31mskills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py[0m:241: AssertionError
+[36m[1m=========================== short test summary info ===========================[0m
+[31mFAILED[0m skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::[1mtest_base_blob_reader_reads_the_base_tree[0m - AssertionError: base 939f926�� skills/analog-gmid-design/assets/tests/probe...
+[31m!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!![0m
+[31m[31m[1m1 failed[0m, [32m25 passed[0m[31m in 4.08s[0m[0m

@@ -1,0 +1,252 @@
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 11-11 new 11-11
+  ...`wt/_drafts/evidence/2026-10-29/design_v1152_rejudge.md` §1, 실측 `wt/_drafts/evidence/2026-10-29/plan_v6384/`; **승인 대기** 
+   - [P1(S-10]
+   + [P9(같은 입력 → 필드 하나 -- N3.3 전역 규칙, ⚠ graph 규칙 1 적용 확장)·P9-TN(TN-1 절단 넷 필드)·P9-HC(headroom-chain HC-S 봉인점 값 필드)·P1(S-10]
+  ...원래 취지와 다름 = P1 자리·P2-b·P4·P8 
+   - [(ii);]
+   + [(ii)·P9-TN·P9-HC;]
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.plan.md insert old 530-529 new 530-551
++ 
++ **같은 입력 → 필드 하나**(v6.38.4 아홉째 커밋 -- 재판정 P9, 감사 `wt/_drafts/evidence/2026-10-29/shared_pure_fn_audit.md`; 옛 SF-1 범위 8 안 '한 규칙'을 전역 graph 규칙으로 옮김 -- **⚠ 전 card에 걸리는 graph 규칙 1의 적용 문언 확장, v6.38.4 승인 대기 P9**(새 근본원칙은 아니나 승인 전 적용하지 않음)): 같은 입력 버전에서 같은 값을 내는 계산(술어·구조 술어·파생 집계 포함, 예외 없음)을 두 자리 이상이 쓰면 그 값은 graph 필드 하나(writer 하나)이고 다른 자리는 READS한다(graph 규칙 1·3·4, NFR-2). 입력이 다른 호출(봉인값 대 출발 추정 동작점·격자·θ마다 다른 점)은 다른 양이라 순수 함수 정의 하나를 공유한다(N6.1 '조건부 제작 함수'). **경계**(감사 §3.3 G1~G7 기본안): (G5) **입력 동일성 = 읽는 graph 필드·선언의 버전**(값의 역할 이름이 아님) -- 반복 풀이 블록이 최종값으로 쓴 필드와 같은 버전을 다른 자리가 다시 조회하면 같은 입력이다(반복 마지막 점과 봉인값이 정의상 같으면 필드 하나 -- 허용오차 셀 `tol_v_cell` 판정 포함); (G1·G6) **로더·파이프라인 접착 코드는 정본 자리가 아니다** -- 로더는 파싱·스키마 문법 검사만 하고, 로더가 내던 계산값(넷 집합·엣지·투영 등)은 S0 필드(writer = S0 블록 하나)이며, 그 값을 쓰는 검사는 그 블록 뒤·탐색 전 정지(fail-closed 같음 -- SF-1 범위 8 S-10과 같은 꼴)로 옮긴다; (G2) **투영·뷰는 필드를 읽는 접근자로만** -- 새 양 없이 열 모양만 바꾸면 READS, 파생 술어·집계가 하나라도 있으면 계산이라 이 규칙 대상; (G3) **LUT memo는 비용 예외(N3.3 승인 예외·U-87)일 뿐 생산자 예외가 아니다** -- 봉인점 `OpPoint`·(VDsat, tol_VDsat)처럼 같은 점의 값은 필드(선례 `DeviceOp.idu_forward`); (G4) **모형 생성(같은 입력) = 필드, 모형 평가(다른 점) = 순수 함수 공유 허용** -- 한 함수 묶음 안에 둘이 섞이면 생성을 필드로 나눈다; (G7) **블록 입력보다 낮은 층(S0·S1)만 읽는 값은 그 층의 필드**다('한 블록 안 값' 단서는 블록 입력 층의 값에만 -- θ마다 S0 양을 다시 세지 않음, NFR-2). **판정(O-171)** = 원칙 정합(물리 결정자 대상 아님): 규칙 1(계산값은 graph 필드로만, writer 하나)·규칙 3(같은 정의 = 필드 하나)·규칙 4(참조 전달)·NFR-2(같은 실행 같은 키 재계산 0)의 직접 귀결이고 새 cache·memo·sctx 슬롯·사본 0. **완료 검사**(모든 엔진 card -- N6.3 '같은 입력 재계산 0'). **같은 입력 재계산 배정**(감사 §2.1 B1~B15 -- 엔진 인용은 재작성 범위(지울 둘째 생산자)로만, O-165 (b); 새 card 0, 기존 재작성 card 범위에 배정; 정본 자리는 층·writer 정의로 정함 -- as-built 자리 아님):
++ 
++ | # | 값(정의) | 정본 자리(층·writer) | 지울 둘째 생산자(재작성 범위, 엔진 `b12792ab`) | 배정 card |
++ |---|---|---|---|---|
++ | B1 | 소신호 회로 `ss_circuit`·스탬프 | `graph.ss_circuit`·`graph.ss_nodal`(ss 층, writer 하나) | `metrics/metrics_aux.py:105`, `_helpers_nodal.py:29` 쪽 스탬프 | IT-2c(기존 문언 -- `graph.ss_circuit`·`ss_nodal` READS) |
++ | B2 | 봉인점 소자 (VDsat, tol_VDsat) | S2 dc 층 device 필드(writer = DC 블록 하나), 봉인 7·`metrics_aux` READS | `sizing/seal_saturation.py:36·42` 대 `metrics/metrics_aux.py:119-120`의 같은 LUT 조회 | WB-1 범위 3(DC 블록 재작성) |
++ | B3 | 봉인점 LUT 순방향 점 `OpPoint` 전체(IDu·gm/ID·gds_per_w·VTH) | `device.dc_op`(writer = DC 블록), `ss_dev` READS | `sizing/block_columns.py:825`·`sizing/block_widths.py:46`·`metrics/ss_linearize.py:65` | WB-1 범위 3 |
++ | B4 | S1 → 뷰 계산 모형 `NetModel`(파생 술어 포함) | S1v 필드(writer `build_s1v`), `coupling_vars` READS(G2: 파생 술어가 있어 계산) | `graph/coupling_vars.py:179`의 둘째 `net_model(s1)` | IT-1 재작성 범위 5(S1v 술어 필드와 같은 층) |
++ | B5 | 블록 이득 모형 생성(`block_spec`·`ParamTables`·모형 구조) | `graph/ach` 칸(writer `achievability`); 평가 `row_gains`는 함수 공유(G4) | `search/iv_context.py:55-56`·`search/iv_gain_l.py:106`의 재구축 | LA-1 범위 15 |
++ | B6 | kind별 θ 전류 상자 원값 | `graph/kernel: search_domain` 칸(writer `search_domain`) | `search/iv_context.py:107`의 둘째 `current_box` | LA-1 범위 15 |
++ | B7 | n_θ(θ 변수 수) | `search_domain` 칸 READS | `search/search_context.py:137`(`centre_start` 변수 수) -- 중심점 경로는 LA-1 범위 6(P4)이 지움 | LA-1 범위 6 |
++ | B8 | 되먹임 소자 절단 넷 | S0 필드 하나(writer = 되먹임 선언 S0 블록), 로더 검사·루프 뷰·`noise_plan` READS(G1·G7) | `authoring/spec_elements.py:104`·`authoring/spec_views.py:101`·`metrics/noise_plan.py:28` `_input_side` | TN-1(재작성 -- 아래 TN-1 범위) |
++ | B9 | gate 전용 넷(바이어스 입력 단언·고정 넷 판정) | S0 필드 하나(로더 산출 -- G1), 바이어스 고정 넷 S1v 필드가 READS; 제외 포트 집합이 다르면 규칙 3대로 축을 문서화 | `authoring/bias_inputs.py:23` 대 `authoring/spec_views.py:163·182` 쌍둥이 | SF-1 범위 6(로더 단독 소유) |
++ | B10 | topology가 아는 넷 집합 | S0 필드(writer = topology 구조 S0 블록 하나 -- 규칙 6 정본 자리, G1); 넷 참조 검사는 그 블록 뒤·탐색 전 | `authoring/topology_load.py:88`·`spec_constraints.py:301`·`spec_gain_override.py:51`·`spec_node_targets.py:28`·`name_uniqueness.py:45`·`hidden_rails.py:17-18` | SF-1 범위 6 |
++ | B11 | 가지치기 전 DC 엣지 | S1 필드(writer `s1_structure` 하나 -- 규칙 6 정본 자리), 숨은 레일 검사는 S1 뒤·탐색 전(층 역전 없음, G1) | `authoring/hidden_rails.py:24` | SF-1 범위 6 |
++ | B12 | 정규화 레일 전위 | S1 필드(writer S1 블록), `kernel_context` READS(지문 재대조 삭제) | `sizing/kernel_context.py:61` | SF-1 범위 8(공급 선언) |
++ | B13 | spec → DC 입력 투영 `DcInputs`·extras 준비 | S0 필드(writer = S0 블록 하나 -- G6), 단계 A·B·탐색 문맥 READS | `pipeline/stage_b.py:151·153-156`·`search/search_context.py:164-168` | SF-1 범위 6 |
++ | B14 | 판정 제약 파생값(면적 예산 min·이득 목표 max) | `constraint_classes` 칸(writer 제약 분류 블록 -- 판정 대상 칸과 같은 블록) | `metrics/achievability.py:149·257`·`pipeline/stage_b.py:153`·`search/iv_context.py:39·54·89-90`·`search/search_context.py:168` | SF-1 범위 8 |
++ | B15 | layout 그룹 무게중심 차·hub 방향 ends | `ly_groups` 칸(writer `ly_pattern_select` -- dx/dy는 이미 필드) | `layout/rows.py:188·204` | LI-1 |
++ 
++ 배정할 card가 없는 사안: 0. 블록 안 반복(감사 §2.3 E)은 이 규칙 밖이고 O-15 (E) 블록 안 local 범위(NFR-2 점검 대상)다.
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.plan.md insert old 1351-1350 new 1373-1373
++ * **같은 입력 재계산 0**(v6.38.4 P9 -- N3.3 '같은 입력 → 필드 하나', 승인 대기 P9): graph 정본 확인에 이 검사를 넣는다. 측정 = 모듈 간 공유 callee의 호출을 정의 모듈로 해석하고(AST, 재수출 포함) 호출 자리마다 인자가 읽는 graph 필드·선언의 버전을 대조해 '같은 입력 재계산(B)'으로 분류되는 자리 수 = 0(꼴 = `wt/_drafts/evidence/2026-10-29/shared_pure_fn_audit/scan_shared_calls.py`·`classification.tsv`; 같은 정의의 인라인·쌍둥이 구현은 같은 이름·같은 식 grep으로 보조); card는 바꾼 파일이 닿는 호출 자리만 세도 되고, 정적 분류의 한계(메서드 호출 미해석 등)는 기록한다. 술어 하나만 세는 `git grep`으로 대신하지 않는다.
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1592-1592 new 1615-1615
+  ...5. **g = s 소자 한 
+   - [규칙**(v6.38.3]
+   + [규칙**(+ N3.3 '같은 입력 재계산 배정' B4 -- `NetModel` S1v 필드, `coupling_vars` READS, v6.38.4 P9)(v6.38.3]
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1816-1816 new 1839-1839
+  ...
+   - [**범위**:]
+   + [**범위**(+ N3.3 '같은 입력 재계산 배정' B15 -- 그룹 무게중심 차·hub 방향은 `ly_groups` 칸 READS, v6.38.4 P9):]
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 1889-1889 new 1912-1912
+  ...15. **C′ 앞단 결정 
+   - [구현**(v6.38.2]
+   + [구현**(+ N3.3 '같은 입력 재계산 배정' B5·B6 -- 블록 이득 모형 생성 `graph/ach` 칸·θ 전류 상자 원값 `search_domain` 칸 READS; 범위 6이 B7, v6.38.4 P9)(v6.38.2]
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2188-2188 new 2211-2211
+  ...
+   - [**범위**:]
+   + [**범위**(v6.38.4 P9 재작성 -- N3.3 '같은 입력 → 필드 하나' 배정 B8; **원래 취지와 다름**: 사용자 결정 O-83 R-N1의 '순수 함수 분리·세 자리 직접 호출'을 대체, v6.38.4 승인 대기 P9-TN):]
+  ...**범위**: (1) 절단 넷 
+   - [규칙 ]
+   + []
+  ...**범위**: (1) 절단 넷 규칙 = 
+   - [순수]
+   + [S0]
+  ...(1) 절단 넷 규칙 = 순수 
+   - [함수]
+   + [필드]
+  ...절단 넷 규칙 = 순수 함수 
+   - [하나(소자]
+   + [하나(되먹임]
+  ...넷 규칙 = 순수 함수 하나(소자 
+   - [단자 넷 ×]
+   + [소자마다]
+  ...단자 넷 × 입력 포트 넷 
+   - [집합]
+   + [쪽]
+  ...넷 × 입력 포트 넷 집합 
+   - [→ 절단]
+   + [단자]
+  ...포트 넷 집합 → 절단 넷; 
+   - []
+   + [writer = 되먹임 선언 S0 블록 하나, 규칙 정의는 그 블록 본문 한 자리 -- ]
+  ...넷 집합 → 절단 넷; 이름은 
+   - [design --]
+   + [design,]
+  ...이름은 design -- 옛 design 이름 
+   - [`feedback_cut_nets`)로]
+   + [`feedback_cut_nets`)]
+  ...design -- 옛 design 이름 `feedback_cut_nets`)로 
+   - [`_feedback_cuts.py`에서]
+   + [--]
+  ...-- 옛 design 이름 `feedback_cut_nets`)로 `_feedback_cuts.py`에서 
+   - [나눈다(N3.8]
+   + [세]
+  ...옛 design 이름 `feedback_cut_nets`)로 `_feedback_cuts.py`에서 나눈다(N3.8 
+   - ['선언]
+   + [자리의]
+  ...design 이름 `feedback_cut_nets`)로 `_feedback_cuts.py`에서 나눈다(N3.8 '선언 
+   - [되먹임의]
+   + [입력(topology]
+  ...이름 `feedback_cut_nets`)로 `_feedback_cuts.py`에서 나눈다(N3.8 '선언 되먹임의 
+   - [DC]
+   + [+]
+  ...`feedback_cut_nets`)로 `_feedback_cuts.py`에서 나눈다(N3.8 '선언 되먹임의 DC 
+   - [되먹임]
+   + [spec]
+  ...`_feedback_cuts.py`에서 나눈다(N3.8 '선언 되먹임의 DC 되먹임 
+   - [판정'의]
+   + [`feedback`)이]
+  ...나눈다(N3.8 '선언 되먹임의 DC 되먹임 판정'의 
+   - ['절단]
+   + [같아]
+  ...'선언 되먹임의 DC 되먹임 판정'의 '절단 
+   - [넷]
+   + [값이]
+  ...되먹임의 DC 되먹임 판정'의 '절단 넷 
+   - [규칙은]
+   + [같으므로(감사]
+  ...DC 되먹임 판정'의 '절단 넷 규칙은 
+   - [순수]
+   + [B8,]
+  ...되먹임 판정'의 '절단 넷 규칙은 순수 
+   - [함수 하나')]
+   + [G1·G7)]
+  ...넷 규칙은 순수 함수 하나') (2) 
+   - [authoring]
+   + [로더]
+  ...규칙은 순수 함수 하나') (2) authoring 
+   - [두 호출(topology에서)과 `noise_plan` 호출(`ss`에서 단자 넷·입력 포트 넷 집합을 넘김)이]
+   + [검사(`spec_elements`)는]
+  ...넷·입력 포트 넷 집합을 넘김)이 그 
+   - [함수를]
+   + [블록]
+  ...포트 넷 집합을 넘김)이 그 함수를 
+   - [직접]
+   + [뒤·탐색]
+  ...넷 집합을 넘김)이 그 함수를 직접 
+   - [부른다]
+   + [전 검사로, 루프 뷰(`spec_views`)와 `noise_plan`은 그 필드를 READS한다(θ마다 다시 세지 않음)]
+  ...그 함수를 직접 부른다 -- `input_terminal_nets`·`_input_side`는 
+   - [래퍼로]
+   + [래퍼로도]
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2192-2192 new 2215-2215
+  ...쓴 toy) (2) `git grep` -- 
+   - [순수]
+   + [절단]
+  ...toy) (2) `git grep` -- 순수 
+   - [함수]
+   + [넷]
+  ...(2) `git grep` -- 순수 함수 
+   - [정의 1곳, 호출]
+   + [계산]
+  ...순수 함수 정의 1곳, 호출 자리 
+   - [셋(`spec_elements`·`spec_views`·`noise_plan`),]
+   + [= writer 블록 하나(옛 '호출 자리 셋' 대체 -- v6.38.4 P9), 세 소비자는 필드 READS(N6.3 '같은 입력 재계산 0' 측정),]
+  ...완료 조건 (10)(a) (i)을 옮김): 그 
+   - [함수의]
+   + [계산의]
+  ...docstring·주석 제외)가 엔진 소스(`tests/` 제외) 가운데 
+   - [(2)의]
+   + [writer]
+  ...제외)가 엔진 소스(`tests/` 제외) 가운데 (2)의 
+   - [세]
+   + [블록 한]
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2223-2223 new 2246-2246
+  ...6. **spec 로더 단독 소유·`driving_spec` 섹션 
+   - [삭제·재배선**(v6.38]
+   + [삭제·재배선**(+ N3.3 '같은 입력 재계산 배정' B9·B10·B11·B13 -- 로더 계산값을 S0/S1 필드로 옮기고 그 값을 쓰는 검사는 블록 뒤·탐색 전 정지, G1·G6, v6.38.4 P9)(v6.38]
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2225-2225 new 2248-2248
+  ...8. **공급 전류 레일 선언 
+   - [`counted_rails`**(v6.38.2]
+   + [`counted_rails`**(+ N3.3 '같은 입력 재계산 배정' B12·B14, v6.38.4 P9)(v6.38.2]
+  ...READS하고 술어를 다시 부르지 않는다(사본·재호출 0); 
+   - [**한]
+   + [이]
+  ...술어를 다시 부르지 않는다(사본·재호출 0); **한 
+   - [규칙**(v6.38.4]
+   + [칸과]
+  ...다시 부르지 않는다(사본·재호출 0); **한 규칙**(v6.38.4 
+   - [P1]
+   + [바이어스]
+  ...부르지 않는다(사본·재호출 0); **한 규칙**(v6.38.4 P1 
+   - [확장]
+   + [고정]
+  ...않는다(사본·재호출 0); **한 규칙**(v6.38.4 P1 확장 
+   - [--]
+   + [넷]
+  ...0); **한 규칙**(v6.38.4 P1 확장 -- 
+   - [design]
+   + [술어는]
+  ...**한 규칙**(v6.38.4 P1 확장 -- design 
+   - [v1.15.2]
+   + [N3.3]
+  ...규칙**(v6.38.4 P1 확장 -- design v1.15.2 
+   - [검증 2 m-4): 같은]
+   + ['같은]
+  ...v1.15.2 검증 2 m-4): 같은 입력 
+   - [버전에서]
+   + [→]
+  ...검증 2 m-4): 같은 입력 버전에서 
+   - [같은]
+   + [필드]
+  ...2 m-4): 같은 입력 버전에서 같은 
+   - [값을]
+   + [하나']
+  ...m-4): 같은 입력 버전에서 같은 값을 
+   - [내는]
+   + [규칙의]
+  ...같은 입력 버전에서 같은 값을 내는 
+   - [계산(술어]
+   + [적용이다(v6.38.4]
+  ...입력 버전에서 같은 값을 내는 계산(술어 
+   - [포함]
+   + [P9로 규칙 본문을 N3.3으로 옮김]
+  ...값을 내는 계산(술어 포함 -- 이 
+   - [판정]
+   + [범위에는]
+  ...내는 계산(술어 포함 -- 이 판정 
+   - [대상]
+   + [적용만]
+  ...계산(술어 포함 -- 이 판정 대상 
+   - [술어와 DEC-104 R1 '바이어스 고정 넷' 같은 구조 술어 모두)을 두 자리 이상이 쓰면 그 값은 graph 필드 하나(writer 하나)이고 소비자는 READS한다(graph 규칙 1 -- 구조 술어 예외는 규칙에 근거가 없어 두지 않음); 한 블록 안에서만 쓰면 블록 안 값이고, 입력이 다른 호출(출발 추정 동작점 대 봉인값 -- R9 조회·범위 끝 이득 함수)은 다른 양이라 순수 함수 정의 하나를 공유한다(N6.1 '조건부 제작 함수');]
+   + [남김);]
+  ...green), library 9회로 판정 제약 집합 
+   - [불변.]
+   + [불변, 판정 제약 파생값(면적 예산 min·이득 목표 max) 계산 자리 = 제약 분류 블록 하나(N3.3 배정 B14 -- 소비자 쪽 필터·min/max 0, N6.3 '같은 입력 재계산 0' 측정).]
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.plan.md replace old 2294-2294 new 2317-2317
+  ...'DC 블록' -- O-165 (a), 감사 
+   - [R1):]
+   + [R1; 재작성 범위에 N3.3 '같은 입력 재계산 배정' B2·B3 -- 봉인점 (VDsat, tol_VDsat)·`OpPoint` 전체를 DC 블록이 한 번 쓰고 봉인 7·`metrics_aux`·`ss_dev`는 READS, v6.38.4 P9):]
+
+===== docs/01-plan/features/headroom-chain.plan.md replace old 24-24 new 24-24
+  ... **v0.7.9.5 -- 상위 gain-budget v6.38.4 재판정
+   - []
+   + [ P9 후속 정정(HC-S 포화 기준: 정의 함수 `sat_threshold` 하나 + 봉인 `dc_op` 점 값은 상위 DC 블록 device 필드 READS -- **원래 취지와 다름**, 상위 승인 대기 P9-HC; 둘째 커밋)·재판정]
+
+===== docs/01-plan/features/headroom-chain.plan.md replace old 51-51 new 51-51
+  ... 함수 `sat_threshold` 하나에서만 읽는다(N3.4, O-15 (C)).
+   - []
+   + [ 단 **봉인 `dc_op` 점의 (VDsat, tol_VDsat)은 같은 입력이라 S2 dc 층 device 필드 하나**(writer = 상위 DC 블록 -- 상위 WB-1 범위 3)이고 봉인 7·`metrics_aux`(ls_swing·sat 행)는 그 필드를 READS한다; 이 함수는 그 writer와, 입력이 다른 점(출발 동작점·R-1′ 후보점·격자)에서만 부른다(상위 gain-budget v6.38.4 P9 -- N3.3 '같은 입력 → 필드 하나' 배정 B2; **원래 취지와 다름**: O-15 (C) '정본 함수 하나'를 '정의 함수 하나 + 봉인점 값 필드'로, 상위 승인 대기 P9-HC).]
+
+===== docs/01-plan/features/headroom-chain.plan.md replace old 139-139 new 139-139
+  ... 행(`saturation_rows`)·출발 단계(`iv_domain`·`iv_headroom`)·R-1′ 항·R-3 판정이 모두 이
+   - []
+   + [ 함수의 정의를 쓴다 -- 봉인 `dc_op` 점 값은 상위 DC 블록이 이 함수로 한 번 쓴 device 필드를 READS하고(같은 입력 -- 상위 v6.38.4 P9 배정 B2, 원래 취지와 다름), 다른 점은]
+
+===== docs/01-plan/features/gain-budget-gmid-sizing.history.md insert old 1517-1516 new 1517-1517
++ | **v6.38.4 아홉째 커밋** 재판정 P9 -- 같은 입력 → 필드 하나 전역 규칙(계획 v6.38.4, 검증 대기) | 2026-10-29 | 근거: 공유 순수 함수 감사 `wt/_drafts/evidence/2026-10-29/shared_pure_fn_audit.md`(+ 폴더 -- 같은 입력 재계산 B1~B15, 경계 미정 G1~G7, TN-1·HC-S 충돌)와 오케스트레이터 재판정 P9(O-165/O-169: as-built 중복을 card마다 덧대지 않고 규칙·재작성 범위로 덮음). 바꾼 것: SF-1 범위 8 안 '한 규칙'을 N3.3 '같은 입력 → 필드 하나'로 옮기고 경계 G1~G7 기본안(입력 동일성 = 필드 버전, 로더·접착 코드는 정본 아님, 투영 = READS, LUT memo는 생산자 예외 아님, 모형 생성 = 필드·평가 = 함수 공유, 블록 입력보다 낮은 층 값 = 그 층 필드)을 문언으로; B1~B15 배정 표(새 card 0 -- IT-2c·WB-1 범위 3·IT-1 재작성 범위 5·LA-1 범위 6·15·SF-1 범위 6·8·TN-1·LI-1, 배정 없는 사안 0), B10·B11 정본 자리(S0 넷 집합 필드·S1 엣지 필드, 검사는 블록 뒤·탐색 전 -- 규칙 6); N6.3 '같은 입력 재계산 0' 일반 검사(감사 스크립트 꼴 B 분류 0); SF-1 범위 8 완료에 B14; 각 card 범위에 배정 표지; TN-1 범위·완료 = 절단 넷 S0 필드 하나·writer 하나(원래 취지와 다름 -- O-83 R-N1 대체, 승인 대기 P9-TN); headroom-chain HC-S 문언 = 정의 함수 하나 + 봉인점 값 필드(원래 취지와 다름 -- O-15 (C), 승인 대기 P9-HC). 판정(O-171) = 원칙 정합(graph 규칙 1·3·4·6, NFR-2), ⚠ 전역 규칙이라 승인 대기 P9. 옛 문언(바꾼 구절 원문): [GB] «**한 규칙**(v6.38.4 P1 확장 -- design v1.15.2 검증 2 m-4): 같은 입력 버전에서 같은 값을 내는 계산(술어 포함 -- 이 판정 대상 술어와 DEC-104 R1 '바이어스 고정 넷' 같은 구조 술어 모두)을 두 자리 이상이 쓰면 그 값은 graph 필드 하나(writer 하나)이고 소비자는 READS한다(graph 규칙 1 -- 구조 술어 예외는 규칙에 근거가 없어 두지 않음); 한 블록 안에서만 쓰면 블록 안 값이고, 입력이 다른 호출(출발 추정 동작점 대 봉인값 -- R9 조회·범위 끝 이득 함수)은 다른 양이라 순수 함수 정의 하나를 공유한다(N6.1 '조건부 제작 함수');» / [GB] «**자리 선택**(v6.38.1 감사 C2, DEC-104 (1′)):» / [GB] «* 코드 작성 주체와 test·기대값 작성 주체가 다르다(WP-13).» / [GB] «library 9회로 판정 제약 집합 불변.» / [GB] «3. **DC 블록 재작성**(DEC-105 (2) 'DC 블록' -- O-165 (a), 감사 R1):» / [GB] «5. **g = s 소자 한 규칙**» / [GB] «15. **C′ 앞단 결정 구현**» / [GB] «6. **spec 로더 단독 소유·`driving_spec` 섹션 삭제·재배선**» / [GB] «8. **공급 전류 레일 선언 `counted_rails`**» / [GB] «**범위**: (1) layout이 봉인 스냅샷» / [GB] «**범위**: (1) 절단 넷 규칙 = 순수 함수 하나(소자 단자 넷 × 입력 포트 넷 집합 → 절단 넷; 이름은 design -- 옛 design 이름 `feedback_cut_nets`)로 `_feedback_cuts.py`에서 나눈다(N3.8 '선언 되먹임의 DC 되먹임 판정'의 '절단 넷 규칙은 순수 함수 하나') (2) authoring 두 호출(topology에서)과 `noise_plan` 호출(`ss`에서 단자 넷·입력 포트 넷 집합을 넘김)이 그 함수를 직접 부른다 -- `input_terminal_nets`·`_input_side`는 래퍼로 남기지 않는다(O-83 R-M1)» / [GB] «(2) `git grep` -- 순수 함수 정의 1곳, 호출 자리 셋(`spec_elements`·`spec_views`·`noise_plan`), `def input_terminal_nets`·`def _input_side` 정의 0 (3) **DC 망 정적 가드**(v6.35 둘째 커밋, 검증 N-8 -- 옛 IT-2 완료 조건 (10)(a) (i)을 옮김): 그 함수의 함수 객체 참조(load -- 호출·값으로 넘김·별칭, import 경로 무관, docstring·주석 제외)가 엔진 소스(`tests/` 제외) 가운데 (2)의 세 자리에만 있고» / [headroom-chain] «값은 포화 기준 정본 함수 `sat_threshold` 하나에서만 읽는다(N3.4, O-15 (C)).» / [headroom-chain] «봉인 7·+tol 판정 여유 행(`saturation_rows`)·출발 단계(`iv_domain`·`iv_headroom`)·R-1′ 항·R-3 판정이 모두 이 함수를 부른다. 사본은 금지다.» |
+
+===== docs/01-plan/features/headroom-chain.history.md insert old 303-302 new 303-303
++ | 0.7.9.5 (둘째 커밋) | 2026-10-29 | 상위 gain-budget v6.38.4 아홉째 커밋(재판정 P9 -- 감사 `wt/_drafts/evidence/2026-10-29/shared_pure_fn_audit.md` §3.2) 후속 정정, 검증 대기: N2 '여유 tol' 항목·NFR-H2의 '정본 함수 `sat_threshold` 하나에서만 읽는다·모두 이 함수를 부른다'에 '봉인 `dc_op` 점 값은 같은 입력이라 상위 DC 블록이 쓴 device 필드 READS, 함수는 writer와 다른 점에서만'을 더함(원래 취지와 다름 -- O-15 (C), 상위 승인 대기 P9-HC). 옛 문언: «값은 포화 기준 정본 함수 `sat_threshold` 하나에서만 읽는다(N3.4, O-15 (C)).» / «봉인 7·+tol 판정 여유 행(`saturation_rows`)·출발 단계(`iv_domain`·`iv_headroom`)·R-1′ 항·R-3 판정이 모두 이 함수를 부른다. 사본은 금지다.» |

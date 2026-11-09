@@ -1,0 +1,17 @@
+구성: W=20u L=0.3u VB=0.55 VD=0.9 dVx=0.6 V (상승 1 ns), R_b=1e12
+C=1.00e-14: alpha=0.2126 dId_pk=48.16 uA  C_g,eff(역산)=37.04 fF  정지 cgg=24.56 fF  Id0=3.12 uA
+C=2.00e-14: alpha=0.3431 dId_pk=181.46 uA  C_g,eff(역산)=38.29 fF  정지 cgg=24.56 fF  Id0=3.12 uA
+C=5.00e-14: alpha=0.5566 dId_pk=630.54 uA  C_g,eff(역산)=39.83 fF  정지 cgg=24.56 fF  Id0=3.12 uA
+C=1.00e-13: alpha=0.7111 dId_pk=1054.75 uA  C_g,eff(역산)=40.64 fF  정지 cgg=24.56 fF  Id0=3.12 uA
+C=2.00e-13: alpha=0.8294 dId_pk=1408.53 uA  C_g,eff(역산)=41.13 fF  정지 cgg=24.56 fF  Id0=3.12 uA
+C=5.00e-13: alpha=0.9234 dId_pk=1702.03 uA  C_g,eff(역산)=41.46 fF  정지 cgg=24.56 fF  Id0=3.12 uA
+C=1.00e-12: alpha=0.9601 dId_pk=1819.02 uA  C_g,eff(역산)=41.58 fF  정지 cgg=24.56 fF  Id0=3.12 uA
+C=2.00e-12: alpha=0.9796 dId_pk=1881.86 uA  C_g,eff(역산)=41.65 fF  정지 cgg=24.56 fF  Id0=3.12 uA
+C=5.00e-12: alpha=0.9917 dId_pk=1921.07 uA  C_g,eff(역산)=41.68 fF  정지 cgg=24.56 fF  Id0=3.12 uA
+C=1.00e-11: alpha=0.9959 dId_pk=1934.41 uA  C_g,eff(역산)=41.67 fF  정지 cgg=24.56 fF  Id0=3.12 uA
+C=1.00e-10: alpha=0.9996 dId_pk=1946.52 uA  C_g,eff(역산)=41.68 fF  정지 cgg=24.56 fF  Id0=3.12 uA
+
+== toy 요구 전류(구성 입력: dId_req = k x dId(C=100pF), k 별) 에 대한 C 하한: 실측 경계 대 손계산 ==
+k=0.5: dId_req=973.3 uA  실측 경계 C in (5e-14, 1e-13]  alpha_req=0.681  손계산 C_min(정지 cgg 24.6 fF)=52.5 fF  C_min(경계점 C_g,eff 40.6 fF)=86.9 fF
+k=0.8: dId_req=1557.2 uA  실측 경계 C in (2e-13, 5e-13]  alpha_req=0.877  손계산 C_min(정지 cgg 24.6 fF)=175.2 fF  C_min(경계점 C_g,eff 41.5 fF)=295.7 fF
+k=0.9: dId_req=1751.9 uA  실측 경계 C in (5e-13, 1e-12]  alpha_req=0.939  손계산 C_min(정지 cgg 24.6 fF)=378.4 fF  C_min(경계점 C_g,eff 41.6 fF)=640.5 fF

@@ -1,0 +1,90 @@
+{
+ "counts": {
+  "invw|converged|fit": 53,
+  "invw|finger_below_min|none": 8,
+  "invw|slice_cycle|fit": 4,
+  "nearest|converged|fit": 53,
+  "nearest|finger_below_min|none": 8,
+  "nearest|slice_cycle|fit": 3,
+  "nearest|slice_cycle|none": 1,
+  "w|converged|fit": 53,
+  "w|finger_below_min|fit": 4,
+  "w|finger_below_min|none": 4,
+  "w|slice_cycle|fit": 4
+ },
+ "w_vs_invw_diff": [
+  [
+   "two_stage_ota",
+   "1",
+   "M4",
+   "finger_below_min",
+   {
+    "nearest": null,
+    "w": [
+     1,
+     0.515
+    ],
+    "invw": null
+   }
+  ],
+  [
+   "two_stage_ota",
+   "13",
+   "M4",
+   "finger_below_min",
+   {
+    "nearest": null,
+    "w": [
+     1,
+     0.515
+    ],
+    "invw": null
+   }
+  ],
+  [
+   "two_stage_ota_sf",
+   "28",
+   "M4",
+   "finger_below_min",
+   {
+    "nearest": null,
+    "w": [
+     1,
+     0.485
+    ],
+    "invw": null
+   }
+  ],
+  [
+   "two_stage_ota_sf",
+   "37",
+   "M4",
+   "finger_below_min",
+   {
+    "nearest": null,
+    "w": [
+     1,
+     0.485
+    ],
+    "invw": null
+   }
+  ],
+  [
+   "two_stage_ota_sf",
+   "48",
+   "M4",
+   "slice_cycle",
+   {
+    "nearest": null,
+    "w": [
+     1,
+     0.48
+    ],
+    "invw": [
+     1,
+     0.475
+    ]
+   }
+  ]
+ ]
+}

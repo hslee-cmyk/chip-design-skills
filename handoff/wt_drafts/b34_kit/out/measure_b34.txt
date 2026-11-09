@@ -1,0 +1,29 @@
+base 0f237862c007f6a53122f2bdfb3c87e6366ec133 head cd1879f4aa290fbf90b992828041a20a1110cae8
+targets ['skills/analog-gmid-design/assets/stick_diagram.py']
+_import_analog_grammar         all= 12 N2b= 3 N2w= 3 inv=159
+find_idiom_matches             all=  8 N2b= 2 N2w= 2 inv=15
+find_stack_edges               all=  6 N2b= 2 N2w= 2 inv=66
+audit_theta_root_direction     all= 29 N2b= 3 N2w= 3 inv=4
+total all=55 N2b=10 N2w=10
+N2w ids:
+  stick_diagram:_import_analog_grammar:stmt_delete:body[4]
+  stick_diagram:_import_analog_grammar:except_body_delete:body[4].handlers[0]
+  stick_diagram:_import_analog_grammar:early_return:body[1]
+  stick_diagram:find_idiom_matches:stmt_delete:body[2]
+  stick_diagram:find_idiom_matches:early_return:body[1]
+  stick_diagram:find_stack_edges:stmt_delete:body[2]
+  stick_diagram:find_stack_edges:early_return:body[1]
+  stick_diagram:audit_theta_root_direction:stmt_delete:body[2]
+  stick_diagram:audit_theta_root_direction:stmt_delete:body[5]
+  stick_diagram:audit_theta_root_direction:early_return:body[1]
+same as kit ids_b34_narrow[all]: True
+same as kit ids_b34_narrow[N2w]: True
+same as kit ids_b34_narrow[N2b]: True
+N2w == spec 10: True
+contract4/6 id stick_diagram:_import_analog_grammar:const+:body[3].body[0].value.args[0]: in all=True in N2w=False
+contract4/6 id stick_diagram:_import_analog_grammar:const-:body[3].body[0].value.args[0]: in all=True in N2w=False
+contract4/6 id stick_diagram:_import_analog_grammar:stmt_delete:body[3]: in all=True in N2w=False
+contract4/6 id stick_diagram:audit_theta_root_direction:stmt_delete:body[3]: in all=True in N2w=False
+contract4/6 id stick_diagram:audit_theta_root_direction:stmt_delete:body[3].body[0]: in all=True in N2w=False
+contract4/6 id stick_diagram:audit_theta_root_direction:stmt_delete:body[6].body[5].orelse[0]: in all=True in N2w=False
+approved elements 36, overlap with all: 0

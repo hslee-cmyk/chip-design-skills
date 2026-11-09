@@ -1,0 +1,20 @@
+search_domain: [406, 541, 613, 1466, 1848, 2039, 2192, 2196, 2464]
+S0 θ 상자 블록: [304, 1166, 1217, 1231, 2195, 2348, 2352]
+theta_capacitance_bounds_undeclared: [2195]
+iv_area: [299, 2119, 2313]
+_helpers_area: [299, 2119]
+iv_context: [539, 546, 547, 548, 680, 1166, 1774, 1776, 1857, 2192, 2194, 2195]
+Q-CB2: [11, 1166, 1167]
+SF-1 → DR-1: [11, 1166, 1217, 2195]
+빈 항: [2195, 2348]
+--406: ...| O-56 (v6.20, 최종 diff 확인) | "권고대로 해" -- O-55 U2 확장: EO-1 범위에 (a) `search_domain`이 상자를 드는 kind 목록의 `off` 제외(`intended_region` 위 술어 하나, 둘째 거르기 없음), (b) headroom-chain `device.dc_sat_v`의 `off` 갈래(HC-S·EO-1 중 늦게 병합되는 쪽 변경 → v6.38.4 P9-HC: EO-1과 `dc_sat_v` 필드 제작 card(HC-
+--541: ...| B7 | n_θ(θ 변수 수) | `search_domain` 칸의 θ 변수 수 READS(출처 하나 -- LA-1 범위 6 문언과 같음) | `search/search_context.py:137`(`centre_start` 변수 수) -- 중심점 경로는 LA-1 범위 6(P4)이 지움 | LA-1 범위 6 |
+--613: ...이면 거부(포화 쪽 대조는 봉인 7 -- 선언 영역은 실제와 대조하고 다르면 거부, 우회 금지; O-52 판의 '선언 triode의 ID ≤ 0은 기록'을 대체) (iv) ID > 0인데 I_off > ε·ID인 선언 없는·`triode` 선언 MOS는 거부(지금과 같음). `off` 선언 MOS는 사이징·역산 경로(층 0 역산·W 계산·gm/ID 할당·`search_domain`이 상자를 드는 kind 목록)에서 빠진다(offset-trim G-1 해소, O-53 B1 -- `intended_region` 위 술어 하나를 모든 소비자가 읽음, 둘째 거르기 없음, card EO-1 범위 (4); `search_domain` 열거는 사용자 결정 O-56(2026-10-20 "권고대로 해", `_drafts/u
+--613: ...OS는 거부(지금과 같음). `off` 선언 MOS는 사이징·역산 경로(층 0 역산·W 계산·gm/ID 할당·`search_domain`이 상자를 드는 kind 목록)에서 빠진다(offset-trim G-1 해소, O-53 B1 -- `intended_region` 위 술어 하나를 모든 소비자가 읽음, 둘째 거르기 없음, card EO-1 범위 (4); `search_domain` 열거는 사용자 결정 O-56(2026-10-20 "권고대로 해", `_drafts/user_decisions.md` O-56 행) -- O-55 U2 확장) -- 꺼짐 판정은 같은 판정 함수가 LUT I_off를 읽어 한다(사용자 결정 O-55(2026-10-20 "권고대로 해", `_drafts/user_decisions.md`
+--1466: ...| 그대로 소비(코드 변경 없음, 동작은 바뀜) | `E/sizing/theta_schema.py:142`(y 성분을 writer y 키에서 모음), `E/search/search_domain.py:124`(y 정의역 [0, 1]), `E/search/orbit_ties.py:22`(y 대칭 묶음) | 결과 변화는 card 0·완료 조건 2로 잰다 |
+--1848: ...cal_inverse`·`_maxmin`·`layer0_start`(as-built 층 0 최소형 -- `_repair`·`_repairable`은 위 수리 단계로 옮김), 그 소비자 `E/search/find_front.py`(`layer0_start`)·`E/search/search_context.py`(n_θ를 `centre_start`로 잼 -- `search_domain` 칸의 θ 변수 수 READS로, N3.3 배정 B7)·`E/search/residual_probe.py`(결합 잔차 표본의 전류 성분을 `centre_start`로 둠 -- 출처는 같은 조립 규칙, design)·tests. **성분별 writer 대조**(as-built 사다리 칸이 정하지 않는 성분 `wt/_drafts/evi
+--2039: ...afts/user_decisions.md` O-50 행) G3·G5 -- 범위 추가, v6.20; **사용자 결정 O-55(2026-10-20 "권고대로 해", `_drafts/user_decisions.md` O-55 행) U2로 범위 한정**: 이 card 범위는 아래 (b) 공용 함수와 봉인 7·9가 그 함수를 바로 부르는 배선뿐이다; 여기에 아래 `search_domain` kind 목록의 `off` 제외와 `dc_sat_v` `off` 갈래를 더한다 -- 사용자 결정 O-56(2026-10-20 "권고대로 해", `_drafts/user_decisions.md` O-56 행) -- O-55 U2 확장, 판정 부분은 넓히지 않음; IT-2와의 늦게 병합 몫 -- `off` 경계 행(사용자 결정 O-5
+--2039: ...점, DEC-90 (1) 선언 영역 대조)도 부른다. spec 로더의 영역 어휘에 `off`를 더한다(지금 `REGIONS = (REGION_TRIODE,)`, `E/authoring/spec_regions.py:16-17` -- 선언 소자는 봉인 7에서 빠지기만 한다). **`off` 선언 소자는 사이징·역산 경로(층 0 역산·W 계산·gm/ID 할당·`search_domain`이 상자를 드는 kind 목록 -- `off` 선언 소자만 가진 kind는 상자를 들지 않는다)에서 뺀다. 이 제외는 `intended_region` 위의 술어 하나(선언 없음·`triode` = 사이징 경로, `off` = 제외)를 위 소비자가 모두 읽는 것이고 다른 자리에 둘째 거르기를 두지 않는다(정본 하나·한 변경 한 자리,
+--2192: ...t.py`는 LA-1 범위 15와 파일 겹침만이고 나중 병합 쪽이 맞춘다(N6.1 관행 -- 새 순서 규칙 0). 새 cache·memo·sctx 슬롯·사본 0. 완료 조건 추가: 파생 호출 자리 = S0 블록 하나(`git grep` `THETA_BOUNDS`·`UNTIE_ORBITS` 엔진 소비 = 그 블록 하나), 순수 리팩터링 필드별 비교(9회로 `search_domain` 결과 같음), N6.3 래칫 B13 해소. 착수 때 base에서 다시 grep한다.
+--2196: ...범위 8과 같은 꼴). 대안 비교(물리 정합 / 손계산 속도 / design 단순성 / 실측): 이 범위 = 같음(자유도 변화 0, 선언 때만 −1) / 같음 / 기저 행 하나 + 선언 키 / library 선언 0 -- 변화 0 · design 40 새 θ 종류 ρ(옛 기본안, card LA-1) = 같음(좌표 바꾸기) / 같음 / search 7모듈(`search_domain`·`fd_jacobian`·`cone_rows`·`start_points`·`layer0_center`·`orbit_ties`·`current_symmetry`) 수정 + 출력 전류 기저 제거 ⚠ 덧대기 신호(O-165)·θ 변수 중복 위험 / 발동 0 · card LA-1 범위 15에 강제만 = 같음 / 같음 / 선언 자리(spe
+--2464: ...| U-61 | d/s 맞바꿈이 KCL과 함께 종류가 다른 소자의 전류를 묶을 때의 θ 상자(D-1) | **확정(사용자 결정 2026-10-12 "5절 권고대로")**: 궤도를 넘는(KCL 유도) 전류 묶음의 탐색 상자 = 구성원 상자의 교집합, 비면 거부(실패 레코드). 같은 궤도 안 상자 불일치는 지금처럼 거부(`search_domain` 변경 승인). DEC-97 (3) | 닫힘 |

@@ -1,0 +1,3 @@
+cap_npz = C:\Users\HSLEE\Documents\Todoc\fpga\lut_data\sky130_lut_v2\sky130_nfet_pfet_lut_v2_r2.npz
+nmos: curves 7380, interior peaks 0, of which within tol_V of node0 (tie -> node0) 0, not tie (stays at noise peak) 0, loo undefined 0; interior peak dVGS min/med/max = None/None/None V; LOO tol_V on interior-peak curves min/med/max = None/None/None V
+pmos: curves 7380, interior peaks 1354, of which within tol_V of node0 (tie -> node0) 0, not tie (stays at noise peak) 1354, loo undefined 0; interior peak dVGS min/med/max = 0.0375/0.0375/0.22499999999999998 V; LOO tol_V on interior-peak curves min/med/max = 5.428830363076045e-06/0.004501517939116212/0.016763957870695567 V

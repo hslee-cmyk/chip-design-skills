@@ -1,0 +1,156 @@
+FFFFFF                                                                   [100%]
+================================== FAILURES ===================================
+_______________________ test_import_time_high_stage[i] ________________________
+
+tmp_path = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_i_0')
+sid = 'i', src = 'from lmod import C\n\n\ndef f(x=C):\n    return x\n'
+exp_exit = 1, exp_ith = [['src.py::f', 'C']]
+
+    @pytest.mark.parametrize("sid,src,exp_exit,exp_ith", _STAGES, ids=[s[0] for s in _STAGES])
+    def test_import_time_high_stage(tmp_path, sid, src, exp_exit, exp_ith):
+>       code, out = _plan(_repo(tmp_path, src))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+d = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_i_0/r')
+
+    def _plan(d):
+>       assert _TOOL.is_file(), f"도구가 없다: {_TOOL}"
+E       AssertionError: 도구가 없다: C:\g150\d\tools\migrate\move_plan.py
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('C:/g150/d/tools/migrate/move_plan.py').is_file
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:64: AssertionError
+_______________________ test_import_time_high_stage[ii] _______________________
+
+tmp_path = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_ii0')
+sid = 'ii', src = 'from lmod import C\n\n\ndef f(x):\n    return x + C\n'
+exp_exit = 0, exp_ith = []
+
+    @pytest.mark.parametrize("sid,src,exp_exit,exp_ith", _STAGES, ids=[s[0] for s in _STAGES])
+    def test_import_time_high_stage(tmp_path, sid, src, exp_exit, exp_ith):
+>       code, out = _plan(_repo(tmp_path, src))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+d = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_ii0/r')
+
+    def _plan(d):
+>       assert _TOOL.is_file(), f"도구가 없다: {_TOOL}"
+E       AssertionError: 도구가 없다: C:\g150\d\tools\migrate\move_plan.py
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('C:/g150/d/tools/migrate/move_plan.py').is_file
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:64: AssertionError
+_____________________ test_import_time_high_stage[iii_a] ______________________
+
+tmp_path = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_ii1')
+sid = 'iii_a'
+src = 'class Jcls:\n    def m(self):\n        return 1\n\n\ndef f(x: Jcls):\n    return x\n'
+exp_exit = 1, exp_ith = [['src.py::f', 'Jcls']]
+
+    @pytest.mark.parametrize("sid,src,exp_exit,exp_ith", _STAGES, ids=[s[0] for s in _STAGES])
+    def test_import_time_high_stage(tmp_path, sid, src, exp_exit, exp_ith):
+>       code, out = _plan(_repo(tmp_path, src))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+d = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_ii1/r')
+
+    def _plan(d):
+>       assert _TOOL.is_file(), f"도구가 없다: {_TOOL}"
+E       AssertionError: 도구가 없다: C:\g150\d\tools\migrate\move_plan.py
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('C:/g150/d/tools/migrate/move_plan.py').is_file
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:64: AssertionError
+_____________________ test_import_time_high_stage[iii_b] ______________________
+
+tmp_path = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_ii2')
+sid = 'iii_b'
+src = 'from __future__ import annotations\n\nclass Jcls:\n    def m(self):\n        return 1\n\n\ndef f(x: Jcls):\n    return x\n'
+exp_exit = 0, exp_ith = []
+
+    @pytest.mark.parametrize("sid,src,exp_exit,exp_ith", _STAGES, ids=[s[0] for s in _STAGES])
+    def test_import_time_high_stage(tmp_path, sid, src, exp_exit, exp_ith):
+>       code, out = _plan(_repo(tmp_path, src))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+d = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_ii2/r')
+
+    def _plan(d):
+>       assert _TOOL.is_file(), f"도구가 없다: {_TOOL}"
+E       AssertionError: 도구가 없다: C:\g150\d\tools\migrate\move_plan.py
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('C:/g150/d/tools/migrate/move_plan.py').is_file
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:64: AssertionError
+_______________________ test_import_time_high_stage[iv] _______________________
+
+tmp_path = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_iv0')
+sid = 'iv', src = 'def g():\n    return 1\n\n\nTABLE = {"a": g}\n', exp_exit = 1
+exp_ith = [['src.py::TABLE', 'g']]
+
+    @pytest.mark.parametrize("sid,src,exp_exit,exp_ith", _STAGES, ids=[s[0] for s in _STAGES])
+    def test_import_time_high_stage(tmp_path, sid, src, exp_exit, exp_ith):
+>       code, out = _plan(_repo(tmp_path, src))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+d = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_iv0/r')
+
+    def _plan(d):
+>       assert _TOOL.is_file(), f"도구가 없다: {_TOOL}"
+E       AssertionError: 도구가 없다: C:\g150\d\tools\migrate\move_plan.py
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('C:/g150/d/tools/migrate/move_plan.py').is_file
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:64: AssertionError
+_______________________ test_import_time_high_stage[v] ________________________
+
+tmp_path = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_v_0')
+sid = 'v', src = 'def g0():\n    return 1\n\n\nTABLE = {"a": g0}\n'
+exp_exit = 0, exp_ith = []
+
+    @pytest.mark.parametrize("sid,src,exp_exit,exp_ith", _STAGES, ids=[s[0] for s in _STAGES])
+    def test_import_time_high_stage(tmp_path, sid, src, exp_exit, exp_ith):
+>       code, out = _plan(_repo(tmp_path, src))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+d = WindowsPath('C:/Windows/Temp/pytest-of-unknown/pytest-107/test_import_time_high_stage_v_0/r')
+
+    def _plan(d):
+>       assert _TOOL.is_file(), f"도구가 없다: {_TOOL}"
+E       AssertionError: 도구가 없다: C:\g150\d\tools\migrate\move_plan.py
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = WindowsPath('C:/g150/d/tools/migrate/move_plan.py').is_file
+
+C:\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py:64: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\..\..\..\..\..\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py::test_import_time_high_stage[i]
+FAILED ..\..\..\..\..\..\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py::test_import_time_high_stage[ii]
+FAILED ..\..\..\..\..\..\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py::test_import_time_high_stage[iii_a]
+FAILED ..\..\..\..\..\..\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py::test_import_time_high_stage[iii_b]
+FAILED ..\..\..\..\..\..\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py::test_import_time_high_stage[iv]
+FAILED ..\..\..\..\..\..\g150\d\skills\analog-gmid-design\assets\tests\tooling\test_move_plan.py::test_import_time_high_stage[v]
+6 failed in 13.10s

@@ -1,0 +1,3 @@
+{"case": "cap_coupled", "deg": 2, "lead": "-C_c*(C_AG*R*gm1 + C_AG*R*gm2 - C_AG + C_G*R*gm1 - C_G)", "R_null": ["(C_AG + C_G)/(C_AG*gm1 + C_AG*gm2 + C_G*gm1)"], "matches_design_formula": [true]}
+{"case": "cap_coupled_CAG0", "R_null": ["1/gm1"], "equals_1_over_gm1": [true]}
+{"case": "source_follower_coupled(gm_f + Cgs=C_AG)", "deg": 2, "R_null": ["(C_AG + C_G)/(C_AG*gm1 + C_AG*gm2 + C_G*gm1)"], "matches_design_formula": [true]}

@@ -1,0 +1,67 @@
+### CHANGED old 11 -> new 11
+  [insert] ...→ 결정 → 계획 일괄 반영·검증 → design), Q-CF1(WB-1 범위 3 cfg 이름 안 A), 
+    OLD: 
+    NEW: Q-CA1(파일럿 `classab_centering_dev_v` 제약 -- 사용자 결정 대기, 삭제 권고), 
+    ...Q-ZG1(0 전류 MOS 기하 출처 -- 권고 (나) f_HP 상한 유도(대신호 처짐·MNA) + 면적 최소 
+
+### CHANGED old 164 -> new 164
+  [insert] ...27 °C 한 조건**이다(DEC-96 (3)). 코너 메타는 기록만 한다(LUT 측정 조건은 `lut/provenance`가 S0 지문에 싣는다). 
+    OLD: 
+    NEW: ⚠ 위험 기록(v6.38.5 classab 점검 결정자 5 -- 보고만, 범위는 사용자 결정): class-AB 정지 전류가 코너에 가장 민감한 항목이다 -- sky130 실측(바이어스 전류 이상원 고정) I_Q ×0.19~×3.2(TT 27 °C 20 µA 기준), ss/fs −40 °C에서 배터리 전압 0.02 V(붕괴)·M12 포화 불가(`wt/_drafts/evidence/2026-10-29/classab_battery.md`); 코너가 범위에 들어오면 첫 점검 항목. 
+    ...ss/ff·온도 끝점에서 같은 넷리스트를 '기록만' 도는 오라클 옵션은 범위 밖(마일스톤은 범위 밖, 사용자 승인 2026-10-12 
+
+### CHANGED old 215 -> new 215
+  [replace] ...루프 소속과 무관하다. 탐지 규칙은 DEC-64이고 이 행은 그 사례다. 파일럿 적용(ratified 대상, J12-c 대조): 
+    OLD: M11a/M11b/M20a/M20b(class-AB
+    NEW: 실측
+    ... 4고리 -- {M11a, M11b, M15, M9a}(VSG11a + VSG11b = VSG15 + VSG9a)·{M14a, M14b, M16, M9b}(VGS14a
+  [replace] ...소속과 무관하다. 탐지 규칙은 DEC-64이고 이 행은 그 사례다. 파일럿 적용(ratified 대상, J12-c 대조): 실측 
+    OLD: 배터리)
+    NEW: 4고리 -- {M11a, M11b, M15, M9a}(VSG11a + VSG11b = VSG15 + VSG9a)·{M14a, M14b, M16, M9b}(VGS14a + VGS14b = VGS16 + VGS9b)·대칭 쪽 2개(엔진 `s1_gvgs` `kvl_branch` v2_rail 정확히 4 = translinear 고리 -- v6.38.5 classab 점검 R-E, `wt/_drafts/evidence/2026-10-29/classab_battery.md` §0·`classab_battery/s1_cycles.out.txt`; 원문 Fig.7(b) 고리 KVL 손 확인)
+    ... | GB1 | 탐지 규칙은 DEC-64(현 구현은 선언 기반; 소자 이름 리터럴 금지 = 구조
+
+### CHANGED old 263 -> new 263
+  [insert] ... `kvl_branch`)에 이미 종속되지 않은 멤버로 한정한다. 예: `sf_pushpull_output_opamp` 루프는 이름 정렬이면 M18, J12-f 후보는 M21/M22.
+    OLD: 
+    NEW:  **층 구분**(v6.38.5 classab 점검 R-B): 위 DEC-95 (3) 순서는 커널 쓰기 계획(W 고정 순방향 DC 풀이 -- 실현 dc_op)의 writer 트리에만 쓰고, θ 기저의 고리 종속 멤버는 DEC-104 R6(B 다이오드 멤버 종속 -- 손계산 순서 P3: 출력 소자 = AC 요구, 배터리 = 극점·분배, 기준 다이오드 = 고리를 닫는 복제)이 정한다; 같은 고리에서 두 층의 '종속'은 다른 멤버일 수 있고 정의 축이 다르다(목표 θ 대 실현 dc_op -- graph 규칙 3; 예 current_reuse 고리 {M11a, M11b, M15, M9a}: 쓰기 트리 = M9a 종속, θ 기저 = 다이오드 하나 종속 -- 둘 다 KVL 정합, 실측 I_Q 오차 −0.014 %, `wt/_drafts/evidence/2026-10-29/classab_battery.md` 결정자 1). as-built 커널 쓰기 계획은 OrderHints가 배선되지 않아(`E/sizing/kernel_context.py:53` 기본값 `NO_ORDER_HINTS`, 호출 `E/pipeline/stage_b.py:152`가 생략) M15·M16을 종속(cycle_vgs)으로 둔다 -- DEC-95 (3)② 배선 = card WB-1 범위 3b(백로그 아님).
+    ... 루프 가지 전류는 θ 전류 변수다(DEC-70) / (VDS-1) drain–source 엣지를 정확히 하나 포함한 사이클 =
+
+### CHANGED old 303 -> new 303
+  [replace] ...전류(같은 극단 상태에서 그 가지의 단자 전압으로 같은 조회 -- 정지값이 아님; v6.38.1 O-157 S8 
+    OLD: 명확화)를
+    NEW: 명확화; 반대쪽 소자 gate가 `kvl_branch` 고리에 묶이면(class-AB 부유 배터리 결합 gate) 그 단자 전압은 같은 극단 상태의 고리 KVL과 극단 상태 KCL(배터리 반대쪽 소자가 배터리 전류원 전부를 받음)로 정한다 -- LUT 조회 2회, 끝 풀이 없음; 0(구동단 범위 끝)을 쓰면 I_min을 0으로 보는 fail-open이라 금지, 정지값은 보수 쪽이지만 정의가 아님; 새 필드 0(`rel_kvl_branch` READS); 식·자리 = card DE-1 design 몫 -- v6.38.5 classab 점검 R-C)를
+    ... 뺀 순 전류다; 회로 전체 끝 풀이는 두지 않고, 구조 분류(class-A/AB)는 값 규칙을 가르지 않는다(R10
+
+### INSERTED new line 1164
+| Q-CA1 | (v6.38.5 classab 점검 R-A -- **사용자 결정 대기**, U-35 `user_spec` 재검토 몫) 파일럿 spec 제약 `classab_centering_dev_v ≤ 0.15`(= \|VGS16 − VSG15\|; metric 미등록 MOD5라 지금 판정 꺼짐, MOD5가 이름을 붙이면 켜짐) -- 사실(`wt/_drafts/evidence/2026-10-29/classab_battery.md` R-A): 물리 결정자 없음(배터리·출력·1단 헤드룸은 VDS-1·R-1′ 행이 판정), 0.15의 유도 없음, sky130 정상점(모든 소자 포화) 0.252 V를 거짓 거부(원문 180 nm 점은 0.012 V). 안: (가) 삭제 -- 권고(spec data 커밋, 소비자 0 확인) / (나) 출력 전용 metric ⚠ 소비자 0(만들고 안 씀) / (다) 유지 ⚠ 상수 발명·물리 결정자 없음. 이 계획은 결정하지 않는다 | MOD5 metric 등록 전 |
+
+### CHANGED old 1853 -> new 1854
+  [replace] ...:64-65·:117-119, 닫힘 :125-127 포함)) (b) 매크로 망 N9 노드·출발점 P = 0(DEC-105 (3); 재작성 범위 
+    OLD: `E/search/macro_poles.py:3-4`·`:316-328`)
+    NEW: `E/search/macro_poles.py:3-4`·`:316-328`)(E-2 조건부 기록 -- v6.38.5 classab 점검 R-D: pass 셀 내부 마디(class-AB 배터리 결합 gate 넷)는 지금 망 밖이라 출발 2단 Gm이 낙관적이다(f_u에서 DC의 0.48~0.63배·위상 −6~−26° -- 판정은 MNA라 fail-closed, 출발값은 판정에 안 씀). card LA-1·ME-1 변화표에서 그 회로들의 출발점 PM 거부가 많으면 design 41 §6.5 일반 규칙(pass 셀 source 마디 포함·병렬 셀 VCCS를 셀마다 gate 넷에서)으로 넓힌다 -- 지금 변경 없음)
+    ... (c) `mirror_vds` 목표 행 -- 체계 오프셋 술어 인스턴스 S0 필드(DEC-105 (4) -- writer =
+
+### INSERTED new line 2261
+3b. **커널 쓰기 계획 고리 종속 멤버 = DEC-95 (3)② 배선**(v6.38.5 classab 점검 R-B -- 백로그가 아니라 card 배정, 오케스트레이터 원칙 기본안 '만들면 배선'): 커널 쓰기 계획(`dc_writer_plan`, `E/sizing/writer_plan.py`·`kernel_context.py`)에 OrderHints(ratified 독립 선택·GB5 gm 요구 소자·뒤 stage 번호)를 넘겨(`E/pipeline/stage_b.py:152`의 `build_kernel_context` 호출 -- 지금 생략) `kvl_branch` 고리의 writer 트리 종속 멤버를 DEC-95 (3) 순서로 정한다(DEC-64 (v2) '층 구분'). **배정 확인**: 범위 3 DC 블록 재작성(노드 풀이 `block_columns.py`)은 쓰기 계획 파일을 건드리지 않으므로(as-built 파일 목록 실측) 이것은 범위 추가다 -- 이 card에 두는 근거 = 그 writer 트리를 쓰는 W 고정 순방향 풀이(실현 평가 재풀이, Q-W1)가 이 card 범위다; 파일 겹침 = card IT-1·DR-1(`writer_plan.py` -- 같은 통합 병합 금지, 나중 card가 rebase). **OrderHints 출처 필드**(GB5 gm 요구 소자·stage 번호)의 정본 자리는 design 착수 전에 확인하고, 없으면 만들지 않고 멈추고 보고한다(S-7).
+
+### CHANGED old 2263 -> new 2265
+  [replace] ...-- v6.38.4 P5) -- 검증 6 V6-1·검증 9 V9-1 (6) 결정성 비트 동일 (7) N6.3 
+    OLD: 공통.
+    NEW: 공통 (8) 범위 3b toy -- current_reuse 4 고리에서 writer 트리 종속 = 배터리 M9a·M9b와 대칭 쪽 배터리 소자, 출력 M15·M16(대칭 쪽 출력)은 독립(base = M15·M16 종속(cycle_vgs) -- red), 같은 W에서 실현 dc_op는 base와 같은 값(KVL 정합 -- tol_V 안), OrderHints 생략 경로 0(`git grep`).
+    ... (N6.35) E-18: CDD 열 없는 toy → 거부(base cgd 대체 -- red). 이 card가 HC-S보다
+
+### CHANGED old 2374 -> new 2376
+  [replace] ...+ VSG3 = VGS1 + VSG2` 형태), 파일럿 레일 경유 4사이클이 J3 정지전류 루프와 같은지(DEC-15 
+    OLD: M11a/M11b/M20a/M20b
+    NEW: 대조
+    ... -- **이 하위 물음은 '같다'로 닫힘**(v6.38.5 classab 점검 R-E: 엔진 v2_rail 4 = translinear 고리
+  [replace] ...VSG3 = VGS1 + VSG2` 형태), 파일럿 레일 경유 4사이클이 J3 정지전류 루프와 같은지(DEC-15 대조 
+    OLD: 대조),
+    NEW: -- **이 하위 물음은 '같다'로 닫힘**(v6.38.5 classab 점검 R-E: 엔진 v2_rail 4 = translinear 고리 4, 연결 사실·원문 Fig.7(b) 고리 KVL 일치 -- `wt/_drafts/evidence/2026-10-29/classab_battery.md` §0)),
+    ... 파일럿 포트 차 루프 {M1a, M1b, M4a, M4b}(v1)를 제약에서 뺄지 -- **이 물음은 O-13 (1)
+
+### CHANGED old 2434 -> new 2436
+  [replace] ...그 전까지 판정에 쓰지 않는다) / **`reference`**(다른 선언을 참조 -- `value_from_constraint`·`value_from_spec`). 기입 결과: `user_spec` 5건(파일럿 
+    OLD: `gain_db`·`cmrr_estimate_db`·`psrr_estimate_db`·`classab_centering_dev_v`,
+    NEW: `gain_db`·`cmrr_estimate_db`·`psrr_estimate_db`·`classab_centering_dev_v`(→ v6.38.5 N5.3 Q-CA1 -- 사용자 결정 대기),
+    ... `two_stage_ota` `gain_db`) / `pending_7a` 2건(`mismatch_sigma_mV`, U-17) / `reference` 2건. **자기 실행 역산 8건은 삭제했다**(`folded_cascode`·`nmcnr_amplifier`의 `gain_db`·`pm_deg`·`cmrr_db`·`psrr_db`.

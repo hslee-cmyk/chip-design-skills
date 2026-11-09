@@ -1,0 +1,5 @@
+{"case": "baseline", "exit": 0, "tail": ["18 passed in 3.50s"], "bind_hash": "4a96ecf0e82205e0828ea62f88e187b83a1096d557a97ae0b410b9f3cce2ceee"}
+{"case": "stmt_delete:body[2]", "exit": 1, "tail": ["1 failed in 1.07s"], "result": "killed"}
+{"case": "stmt_delete:body[2].body[0]", "exit": 1, "tail": ["1 failed in 0.97s"], "result": "killed"}
+{"case": "const+:body[6].body[0].value.keywords[0].value", "exit": 0, "tail": ["18 passed in 2.92s"], "result": "survived"}
+{"case": "const-:body[6].body[0].value.keywords[0].value", "exit": 0, "tail": ["18 passed in 3.11s"], "result": "survived"}

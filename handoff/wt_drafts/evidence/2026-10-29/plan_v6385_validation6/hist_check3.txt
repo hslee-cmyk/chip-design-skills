@@ -1,0 +1,6 @@
+OLD LINE 2344 seg len 463
+   MISS: R_max = 그 평가 |VGS|에서 격자 R의 최대
+OLD LINE 2344 seg len 98
+   MISS: 노드 풀이 뒤 그 평가의 |VGS| = 게이트·고정 쪽 `node.dc_v`와 C_c 값을 READS
+OLD LINE 2344 seg len 1353
+   MISS: |VGS|가 동작점마다 바뀌므로 평가마다 다시 고르고, 입력 버전이 같으면 graph reuse

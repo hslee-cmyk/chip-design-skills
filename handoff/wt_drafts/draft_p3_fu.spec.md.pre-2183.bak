@@ -1,0 +1,193 @@
+---
+id: 20261002-p3-future-annotations
+phase: 3
+evidence_type: equivalence
+gate_change: no
+approval: 20260930-30-module-split-design
+---
+## 의도
+
+design `30-module-split` **v8.5**(사용자 승인 UD-0 `20260930-30-module-split-design`, 답 2026-10-02 11:05 KST "승인 (Recommended)" -- 질문 원문 "card 17건 — 준비 card FU 포함") §6.5·D-29·§8 FU 행, card FU(준비 card). A = `skills/analog-gmid-design/assets`, DR = `A/design_report.py`, ACF = `A/audit_current_forced.py`.
+
+**문제(사실, gate `master` `dd60db6`)**: split 5파일 중 `sizing_recipe.py`(35행)·`stick_diagram.py`(32행)·`topology_library.py`(24행)에는 `from __future__ import annotations`가 있고 DR·ACF에는 없다.
+G1 M-4는 원본·목적 파일의 `__future__` 기능 집합이 같아야 옮긴 단위로 인정하고(주석이 평가값에서 문자열로 바뀌는 이동을 '바이트 그대로'로 보지 않는다), D0a `plan`의 `import_conflicts`는 한 MOD로 가는
+단위들의 `__future__` 기능 집합이 갈리면 비지 않는다(design D-30). UD-0 문서 개정(design v8.5 §9 (h) -- `_kv_table` → MOD9)을 적용한 이관표에서 **MOD2(`_as_set` 1)·MOD9(8단위) 두 곳**이
+두 종류 파일의 단위를 함께 받으므로(design v8.5 §6.5 534행, 부록 A F5v85: FU 없이 `import_conflicts` `__future__` = MOD2·MOD9, FU 뒤 0 -- 개정 적용 전 판은 `_kv_table`이 MOD4라 MOD2·MOD4·MOD9 셋)
+DR·ACF 9단위(모의 M card 기준)가 거부되거나 D0b 계약 test가 FAIL한다.
+
+**처리(design D-29 기본값 (나))**: 이 card는 DR·ACF 머리(모듈 docstring 바로 뒤, 첫 import 앞)에 `from __future__ import annotations` 한 줄씩만 더한다. 그 밖 변경 0. 판정은 이 card의 `equivalence`로 따로 하고,
+그 뒤 M card는 원래 기준(V3 `defs` = `[]`) 그대로 바이트 이동이 된다(card당 한 책임). (가) M card V3 판정은 M card 기준을 그 card만 풀어야 해서(기준 약화) 기각, (다) 배정 변경은 갈리는 MOD(v8.5: MOD2·MOD9) 모두 두 종류를 받아
+불가(design §6.5 표).
+
+**왜 동작이 바뀌지 않는가(원칙)**: PEP 563 future는 주석의 저장 형태만 바꾼다(문자열). 실행 환경 Python 3.14.2는 future 없이도 주석을 정의 시점에 평가하지 않는다(PEP 649 지연 평가) -- 두 경우 모두 주석은
+`__annotations__`·`inspect.signature`·`typing.get_type_hints`로 꺼낼 때만 드러나고, 모듈에 이름 `annotations`(`__future__._Feature`) 하나가 더해진다. 그 차이를 읽는 곳은 추적 `.py`에 없다(작성 전 실측 1).
+함수 몸체의 코드 객체는 바뀌지 않는다(계약 2). 줄 하나가 들어가 DR·ACF의 그 뒤 줄 번호가 1씩 밀린다(traceback·경고 줄 번호 -- 판정 출력에는 나오지 않음, 계약 3 실측).
+
+**배선(만들면 쓴다)**: 이 한 줄의 소비자는 D0b 계약 test(`contracts/test_p3_registry_dest.py`의 `plan` exit 0 + `import_conflicts` = `[]` -- D0b spec 계약 3)다. FU가 D0b 전에 병합되지 않으면 그 단언이
+MOD2·MOD9의 `__future__` 갈림 2건으로 FAIL해 D0b가 멈춘다(design v8.5 §6.5 534행·부록 A F5v85: UD-0 개정 적용 트리에서 FU 없음 `import_conflicts` `__future__` = MOD2·MOD9 / 있음 0.
+D0b spec 실측 3의 '3 / 0'은 v8.5 개정 (h) 전 관찰이다 -- 그 문장은 D0b card 몫). 이 card는 새 def를 만들지 않는다.
+
+**자리(design §8.1)**: `phase: 3` card -- 병합은 Phase 2 DoD PASS 뒤(계획 993행, design D-23 -- 확정 순서상 자동 성립). B33 뒤 D0b 전 아무 때나(T0·G1·D0a와 의존 없음), D-27 동결(D0b 병합~F2) 전.
+확정 한 줄 순서는 `… → B33 → Phase 3: T0, FU, G1 → D0a → D0b → M1 …`.
+
+## 관찰 가능한 계약
+
+1. **범위(diff, auditor)**: 이 card `Change-Id` 커밋들의 diff는 DR·ACF 두 파일뿐이고, 파일마다 줄 하나를 더할 뿐이다(지운 줄 0, 바뀐 줄 0, 그 밖 파일 0 -- test·레지스트리·도구·문서·library 포함).
+   AST 판정: base 모듈 `body`를 B, 병합본을 H라 하면 `H = B[:1] + [I] + B[1:]`이다 -- `B[0]`은 모듈 docstring(`Expr(Constant(str))`)이고, `I`는 `ImportFrom(module='__future__', names=[alias(name='annotations')], level=0)`
+   (비교는 `ast.dump(…, include_attributes=False)`). 그래서 (a) 모듈 docstring이 그대로 docstring이고(`ast.get_docstring` 값 base와 같음) (b) future 줄은 docstring 바로 뒤 첫 문장이며 (c) 기능은 `annotations` 하나다.
+   blob 줄 끝은 기존 파일과 같은 형식(인덱스 LF)이다. diff 부분(r2t, review_t0_fu FU m1): 파일마다 `git diff -U0 <base> <병합본>`의 `+` 줄이 정확히 하나이고 그 줄 내용(줄 끝 제외)이
+   바이트로 `from __future__ import annotations`다(뒤 주석·공백 없음), `-` 줄 0 -- AST 부분이 보지 못하는 빈 줄 추가·주석 붙은 future 줄을 이 부분이 거부한다.
+2. **함수 몸체 코드 객체 동일(auditor)**: 두 파일을 base·병합본에서 각각 `compile(src, <파일 이름>, "exec")`하고, 모듈 코드 객체 아래 모든 코드 객체를 `co_qualname`(같은 qualname이 둘 이상이면 `co_consts`
+   깊이 우선 등장 순번을 붙인 키)으로 짝짓는다. 모듈 코드 객체와 qualname이 `__annotate__`로 끝나는 코드 객체(주석 평가 함수)를 뺀 짝마다 `co_code`·`co_consts`(코드 객체 원소는 그 qualname으로 바꿔
+   `repr` 비교)·`co_names`·`co_varnames`·`co_freevars`·`co_cellvars`·`co_argcount`·`co_posonlyargcount`·`co_kwonlyargcount`·`co_flags`(`__future__.annotations.compiler_flag` 비트 제외)가 같다.
+   한쪽에만 있는 키는 `__annotate__` 키뿐이어야 한다(실측: 양쪽에 같은 수가 있고 내용만 다르다). 줄 번호 표(`co_firstlineno`·`co_linetable`)는 비교하지 않는다(계약 1의 한 줄 삽입으로 1씩 밀리는 것이 정의).
+   기대 수(재현할 수치): DR 16(qualname 12 -- `<genexpr>` 같은 이름 여럿), ACF 5, 합 21 같음, 다른 것 0; 다른 `__annotate__` DR 5·ACF 4.
+   design D-29·§6.5·승인 질문의 "코드 객체 **17개**"는 같은 측정을 qualname으로 센 수다(DR 12 + ACF 5) -- 객체 21개 = qualname 17개, 어긋남이 아니다.
+3. **동작 보존(auditor, base·병합본 같은 조건)**:
+   (a) **PT3 전체**(design 30 §10 `PT3` -- `PT`에서 `--gmid-phase=3`) base·병합본: 수집 test id 집합이 같고 id마다 결과(passed/failed/error/skipped/xfailed)가 같다. 실패 0.
+   (b) **E-LIB**(`.ai/verification/20260930-df36-instance-relpath/scripts/e_lib.py`, git blob `00fbb20f1177fb9899c75374dd73e9077b087547` -- `git show`(LF) 사본 sha256 `41b72d7d34491ed98d175941bad1631a9d7b91e7eb9e307c878328217fb68ee9`,
+   CRLF 작업 트리 사본 sha256 `045f65c8cc05e98699518ca123ef8aac0c93b6b51932179aae707e1d21f46201` -- 같은 본, 판정 기록에는 blob id와 꺼낸 방식의 sha256을 함께 적는다(r2t, review m2)) 출력 JSON 전체가 base와 같다(`hash` 포함).
+   (c) **E-INST**(`e_inst_p3.py` -- design D-28 정본, design 커밋에 들어간 `docs/03-analysis/gain-budget-gmid-sizing-30-module-split/scripts/e_inst_p3.py`; 아직 없으면 `e_inst_df36.py`) 파일럿
+   (`current_reuse_telescopic_ota`)·`folded_cascode` 출력 JSON 전체가 base와 같다(stdout 사본은 `elapsed=<n>s` 경과 시간을 가리고 같다). base와 병합본은 **같은 체크아웃 경로**에서 차례로 꺼내 잰다(`git checkout --detach` + `git clean -fdx`).
+   (d) **몸체 코드 객체 요약 출력**: 계약 2의 비교 필드를 파일·키마다 sha256 한 줄로 쓴 출력(모듈 코드 객체·`__annotate__` 제외, 키 정렬)이 base와 병합본에서 바이트 같다 -- 이것이 `equivalence.commands`의
+   한 명령이 된다(base 출력 sha256 = 병합본 출력 sha256).
+4. **게이트(auditor, 판정 때 gate `master` 판 도구)**: V3 대상 def 0·변이 0(JSON `mutants` 0, `survivors` []; G1 병합 뒤면 `defs` []·`moved` []·`move_rejected` {}; 범위 정책(35) 병합 뒤면 `not_targeted` 0·
+   `targets_by_def` {}), V6 `findings` [], V7 `new_defs` []. V5 `diff_paths` [](test diff 없음). V8·V9는 도입 Phase 4라 N/A.
+   V4: interface card 두 표가 비어 `--interface-card`만 주면 `ERROR`('피검 심볼이 없다' -- 실측)이므로 바뀐 두 모듈의 운영 진입 함수를 subject로 준다 -- `--subject design_report:render_html_report
+   --subject audit_current_forced:audit_topology`(card가 고치지 않는 심볼을 subject로 준 선례 `20260922-ts7-ic-xfail`, D0b 브리프 V4 행과 같은 우회) → `PASS`, `files` [](test 커밋 0 -- 실측).
+5. **주석 관찰 차이(기록 -- 같음 판정이 아니다)**: 병합본에서 (a) DR 5·ACF 4 함수(주석이 있는 최상위 함수 전부)의 `__annotations__` 값이 평가값에서 문자열로 바뀌고 (b) 두 모듈의 이름 집합에 `annotations`
+   하나가 더해진다(그 밖 이름 차이 0). auditor는 병합본에서 (c) 추적 `.py` 전체 `git grep -nE "get_type_hints|__annotations__|annotationlib|get_annotations|inspect\.signature"`의 대상 객체가 DR·ACF 것이 아니고
+   (d) 두 모듈 속성 `annotations`를 읽는 추적 코드가 0임을 판정 기록에 적는다(실측: (c) 5곳 -- 계약 test 2파일·probe 1파일, 대상은 `stick_diagram`·`sizing_recipe` 객체뿐; (d) 0).
+6. **배선 관찰(auditor)**: 판정 때 D0a(`tools/migrate/move_plan.py`)가 gate에 있으면 병합본에서 design §10 `MP_ARGS`로 `plan`을 돌려 `import_conflicts` 중 `__future__` 항목이 0임을 적는다(D0a가 FU 뒤면 N/A --
+   그 단언의 주인은 D0b 계약 test다). 이 card는 `import_conflicts`를 영구 test로 판정하지 않는다(판정 유형 근거).
+7. **문서·레지스트리 불변**: 계획·design·레지스트리·library를 고치지 않는다. 병합본에서 `A/tests/tools/reg_check.py --registry docs/03-analysis/gain-budget-gmid-sizing.function-registry.md --root .`가 exit 0
+   ('발견 0' -- base와 같음).
+
+## 신규 시그니처
+
+| 모듈 | 심볼 | 시그니처 |
+|---|---|---|
+
+## 판정 유형 근거
+
+**equivalence, test 커밋 0.** 동작을 보존하는 변경이다 -- 계획 N3.12.3(688행) "동작을 보존하는 변경(TS1, Phase 2 통합, Phase 3 이동)은 `equivalence`(test 커밋이 그대로이고 base와 병합본 모두 통과)",
+design 30 §8 FU 행 "equivalence(test 커밋 0)".
+
+**test 커밋 0의 근거(P9 선례와 따로)**: (i) 규칙 -- design 05 §10-4(289행, gate `master`) "equivalence | 같음, 단 ①의 `Role: test`가 0개면 M^1 = `old`"가 test 커밋 0을 명문으로 허용한다.
+(ii) 게이트 -- gate `master` `tools/gates/merge_gate.py` 1137~1166행: equivalence의 test 사슬 `chain = _first_parent_chain(M1, old, …)`이 빈 목록이어도 거부하는 줄은 `if ev == "red-green" and not chain`뿐이다.
+(iii) 정상 흐름 대조 -- redteam 공격 20(e)(`tools/gates/redteam/attacks/20e-normal-equivalence/run.sh`, `lib/sb.py` `flow_start` 327~332행)가 `role/test/<id>`를 gate/master에 만들고 커밋 없이 code → merge → audit → EL4를 지나는 흐름을 '오거부 0'으로 판정한다.
+실제 card로서는 **첫 사례**다(gate `master` equivalence 판정 기록 5건 `ts1-legacy-move`·`d-delete-dead`·`d-delete-telescopic`·`probe-relocate`·`p9-kcl-edges`는 모두 test 커밋이 있다 -- T ≠ B).
+P9(`20260930-p9-kcl-edges`)는 아래 (2)의 '구조 판정은 auditor 측정' 선례일 뿐 test 커밋 0의 선례가 아니다(P9는 T ≠ B).
+
+**계획 840행(V2) 'Phase 3 AST 해시 동일'을 이 card에서 대신하는 것**: 계약 1(두 파일 모듈 `body` 전체가 `B[:1] + [I] + B[1:]` -- 머리 future 한 줄 말고 모든 문장의 `ast.dump`가 같다 ⇒ 모든 def의 AST 해시가 같다)과
+계약 2(몸체 코드 객체 같음). 계약 1은 840행 'Phase 3 AST 해시 동일'보다 강한 판정이고, V2 basis는 이 문장을 그대로 쓴다.
+
+**red-green으로 할 수 있는가 -- 하지 않는다.** "DR·ACF에 future 줄이 있다"를 단언하는 새 test는 base에서 `AssertionError`로 실패하므로 형식상 red가 된다. 그러나
+(1) 규칙 문장: red-green은 "동작을 바꾸는 변경"이고(688행), FU의 운영 동작은 바뀌지 않는다(계약 2·3). 바뀌는 것은 주석 저장 형태뿐이고 읽는 곳이 0이다(계약 5) -- red-green으로 두면 동작 변경이 있다고 기록하게 된다.
+(2) equivalence는 "base와 병합본 모두 통과"(682·688·840행)라 base에서 실패하는 구조 단언을 영구 test에 둘 수 없다 -- P9(`20260930-p9-kcl-edges`) 판정 유형 근거와 같은 처리로 **구조 판정(계약 1·2)은 auditor 측정**에 둔다.
+(3) 그 단언을 영구 test로 두면 Phase 3 끝에 DR가 shim이 되고 F2에서 지워질 때(design §8 F2) 그 test를 고치거나 지워야 하고(V5 승인 -- 쓸데없는 결함), 그동안의 보호는 이미 D0b 계약 test(`import_conflicts` = [])가
+영구로 맡는다(만들면 배선 -- 의도 '배선'). 잃는 것: FU 병합~D0b 병합 사이에 누가 future 줄을 다시 지우면 D0b 착수 때 비로소 드러난다 -- D0b 착수 키트 0단계(`git grep "^from __future__ import annotations"` 두 파일)가 그 자리를 본다.
+
+**V3 규모(작성 전 실측 8)**: 바뀐 def 0 -- 현재 도구(`mutate_changed.py`, gate `master` 판)·G1 시제품(`_drafts/g1_kit/install_proto.py` `5790433c…`)·N2w 시제품(`_drafts/b26pre_scripts/v3_scope_widen.py`의
+`classify_w` + `DEFS["N2w"]`) 모두 대상 def 0·변이 0. V3는 def만 보므로(모듈 수준 문장 변경은 변이 0 -- 범위 정책 card(커밋된 spec) 249행 '기존 한계', 백로그 B46) 모듈 머리 한 줄은 V3 대상이 아니고, 그 줄의 판정은
+계약 1·2·3이 한다. 판정기가 공허하지 않은지: 같은 계산을 `_kv_table` 반환 주석만 바꾼 합성 head에 돌리면 바뀐 def 1·변이 18·N2w 대상 1이 나온다.
+(r2t, review m3: 그 문장은 `docs/02-design/specs/20260930-v3-changed-stmt-scope.spec.md` 249행 -- r2t 전 초안의 '244행'은 초안 줄 번호였다.)
+
+## oracle 종류와 출처
+
+(c) 동작 보존: PT3 test id별 결과, E-LIB·E-INST 출력, 몸체 코드 객체 요약 -- 기대값 = base 실행 결과(auditor가 격리 복제본에서 같은 명령으로). (a) 구성: 계약 1의 기대 AST(`B[:1] + [I] + B[1:]`)는 base
+트리와 PEP 236 규칙(future 문은 docstring·주석·빈 줄·다른 future 문 뒤에만 올 수 있다)에서 손으로 정한다. 계약 5의 차이 목록은 PEP 563(문자열 주석)·Python 3.14 데이터 모델에서 정한다.
+auditor는 판정기(계약 1·2·3(d))를 독립으로 쓴다 -- `_drafts/p3kit_fu/fu_codeobj.py`는 작성 전 실측용 시제품이고 판정 도구가 아니다(작성자≠검증자).
+
+## 거부해야 할 입력
+
+auditor 판정기 자기 점검(합성 소스, 판정기가 실제로 거부하는지 먼저 확인):
+* 계약 2: 병합본 DR의 한 함수 몸체에 문장 하나를 더한 소스 → FAIL(실측: 시제품이 `build_topology_device_table`의 `co_code`·`co_varnames`·`co_consts`·`co_flags` 차이로 FAIL).
+* 계약 1: future 줄을 docstring **앞**에 둔 소스 → 컴파일은 되지만 docstring이 사라진다(`ast.get_docstring` None -- 실측) → FAIL. future 줄을 첫 import **뒤**에 둔 소스 → `SyntaxError: from __future__ imports must occur
+  at the beginning of the file`(실측) → FAIL. 기능을 하나 더 넣은 `from __future__ import annotations, generator_stop` → FAIL. 다른 파일(예: 레지스트리 한 줄)을 함께 바꾼 diff → FAIL.
+  (r2t, review_t0_fu FU m1 -- diff 부분이 공허하지 않음의 증거) future 줄 **다음에 빈 줄 하나를 더한** 소스, **주석이 붙은** future 줄(`from __future__ import annotations  # PEP 563`) → 둘 다 AST 부분은 통과하고
+  diff 부분('+' 줄 정확히 하나·내용 바이트 같음)이 FAIL(독립 검토 실측: ast=True, diff=False).
+* 계약 3(d): 몸체를 바꾼 위 소스로 요약 출력이 base와 달라진다.
+
+## library 회로 적용 여부
+
+적용 -- E-LIB(9회로, `stick_diagram` 경로라 DR·ACF를 import하지 않는다 -- 대조 기준선), E-INST 파일럿·`folded_cascode`(하네스 `run()`이 report를 `design_report`로 만든다 -- 실제로 DR를 지난다).
+ACF는 하네스 운영 경로에 없고(`__main__` 블록·`audit_topology` 직접 호출 test) PT3로만 지난다.
+
+## 무동작 판정 입력(무발동 값)
+
+새 산출물 필드 없음. library 회로 전부·기존 test 전부의 판정·산출물이 base와 같다(계약 3). 발동 계수 ID 없음.
+
+## 재현할 수치
+
+**(r2t 2026-10-02, review_t0_fu FU-B1) V10이 재현하는 것 = 아래 A(관계·DR·ACF만 보는 값)뿐이다.** B는 `dd60db6` 판 관찰 기록이고 V10 대상이 아니다 -- B34·b26pre·backfill·B26-1이 병합되면
+test 수·E-LIB `hash`(B26-1이 `load_topology` meta에 `rails`를 더한다 -- design 30 E5)·E-INST `raw_sha256`이 바뀌므로 판에 따라 바뀌는 절대값을 재현 대상으로 두지 않는다.
+* **A1(관계, 판 무관)**: 같은 판정 판에서 base = 병합본 -- PT3 (test id, 결과) 집합 같음·실패 0(계약 3(a)), E-LIB 출력 JSON 전체 같음(`hash` 포함, 3(b)), E-INST 파일럿·`folded_cascode` 출력 JSON 전체 같음(3(c)),
+  몸체 요약 출력 sha256 같음(3(d)). 수치는 판정 때 base에서 잰 값을 판정 기록에 적는다.
+* **A2(DR·ACF와 Python만 보는 값 -- 판이 바뀌어도 그대로)**: 몸체 코드 객체 같음 DR 16(qualname 12)·ACF 5, 다름 0; 다른 `__annotate__` DR 5·ACF 4; 요약 출력(계약 3(d)) 21줄, base = 병합본;
+  `__annotations__` 문자열화 DR 5·ACF 4 함수, 모듈 이름 차이 `annotations` 하나. 전제: FU base의 DR·ACF가 `dd60db6`과 바이트 같음(`fu_launch.sh` 조건 11) + Python 3.14.2(`pre`가 확인 -- 코드 객체는 인터프리터 판에 묶인다).
+  r2t 재현: gate `4a286f0`(DR·ACF = `dd60db6`) → 두 줄 head에서 `fu_codeobj.py` 같음 DR 16·ACF 5, `__annotate__` DR 5·ACF 4, dump 21줄 base = head.
+  (r3t, review_t0_fu_r2 FU-B1') 요약 출력의 **sha256 절대값은 재현 대상이 아니다** -- 계약 3(d)는 줄 형식·직렬화를 정하지 않으므로 절대값은 판정기 줄 형식에 묶인다
+  (시제품 `fu_codeobj.py dump`와 독립 검토의 다른 줄 형식 구현은 둘 다 21줄·base = head였지만 절대값이 달랐다 -- 시제품 값은 아래 B 관찰). A2는 '21줄, base = 병합본' 관계만 본다(A1의 3(d)와 같은 꼴).
+* **B(관찰 기록, V10 대상 아님)**: 아래 `dd60db6` 판 값.
+
+(B -- base `dd60db6` → FU 모양 head `bc3fd5d`(스크래치 `C:/g184`, 두 줄만 더한 커밋), 2026-10-02)
+* 몸체 코드 객체 같음 DR 16(qualname 12)·ACF 5, 다름 0; 다른 `__annotate__` DR 5·ACF 4; 요약 출력 sha256 base = head = `f94f78955cb25fc0e3787972c5d19601903d111adb59c2d0f6007a5995c60eb2`(21줄 -- 시제품 `fu_codeobj.py dump` 줄 형식의 값).
+* PT3 base·head: 1047 passed·15 xfailed, test id 1062, 결과 차이 0(실행 393 s / 371 s).
+* E-LIB `hash` `1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f`(base = head; Phase 2 DoD E-LIB 판과 같음).
+* E-INST(`e_inst_p3.py` 문안 sha256 `7d26134a…`) 파일럿·`folded_cascode`: 출력 JSON 22키 모두 base = head -- `raw_sha256` 파일럿 `2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d`·
+  `folded_cascode` `ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0`, `without_topology_ref_sha256` `185b675e…`·`0ca6746f…`; stdout 사본은 `elapsed=<n>s`를 가리면 같다(파일럿은 가리기 전 SLSQP 경과 시간 줄만 다름).
+* V3 대상 def 0·변이 0(현재 도구·G1 시제품·N2w 시제품), V6 발견 0, V7 `new_defs` [].
+* `__annotations__` 값이 문자열로 바뀌는 함수 DR 5·ACF 4, 모듈 이름 차이 `annotations` 하나.
+
+## 결정 필요 항목
+
+없음. design 승인 UD-0(`20260930-30-module-split-design`)이 덮는다 -- design D-29 "승인된 기준을 바꾸지 않아 UD-0 범위(card 수 16 → 17은 질문 본문에 사실로)".
+사용자는 UD-0을 **승인했다**(답 2026-10-02 11:05 KST "승인 (Recommended)", 질문 원문 "card 17건 — 준비 card FU 포함"). 착수 조건(브리핑 S-1): 그 승인 기록 범위 설명에
+이 card id **`20261002-p3-future-annotations`**와 D-29 원문이 있고 기록이 gate `master`에 있어야 한다 -- (r2t, review m3) **충족**: gate `4a286f0`의 `.ai/approvals/20260930-30-module-split-design.md`
+108행(FU id)·112행(D-29 원문)에 있다(`36e170e` 커밋). `fu_launch.sh` 조건 1·2 exit 0.
+
+오케스트레이터 참고(결정 아님):
+* **id 날짜**: 초안 id `20261002-p3-future-annotations`(slug는 design §8 그대로). 승인 기록 범위 설명·D0b 키트가 이 id를 쓰게 맞춘다.
+* **레지스트리 낡은 줄 번호 하나**: 레지스트리 217행 `AuditCheck` 행 비고 "`design_report.py:32`가 `_audit_result_json` 사용"은 FU 뒤 33행이 된다. 이 card는 '그 밖 변경 0'(design §8 FU 행)이라 고치지 않는다 --
+  `reg_check.py`는 이 칸을 보지 않아 exit 0 그대로다. 기본값: 백로그 한 줄(레지스트리를 다음에 고치는 card가 이름 참조로 바꾼다 -- P9 계약 8 선례). D0b는 '근거 규칙'·목적지 열만 바꾸므로 그 card에 끼우지 않는다.
+* **앞 card 문장 갱신**: FU가 G1·D0a보다 먼저 병합되면 G1 spec '작성 전 실측' 8의 future 줄 문장("DR·ACF 없음" → "split 5파일 모두")과 D0a 브리핑의 엔진 사실 줄(future SR 35·SD 32·TL 24 → + DR 28·ACF 38)을
+  그 card 착수 때 고친다(규칙·계약 무변경 -- G1 spec 298행에 이미 적힘).
+
+## 작성 전 실측
+
+(재측정 = gate `master` `dd60db6`(`git -C <repo> rev-parse gate/master` = `dd60db6515b6fe80ab16349835c19aa75d4f292f`, 로컬 `master` 같음), 2026-10-02. 스크래치 `C:/g184`(복제본 `base`·`fu`·`iso`, 게이트 사본
+`cache` = `git archive gate/master tools/gates`), python `C:\Python314\python.exe -B`. 스크립트 `_drafts/p3kit_fu/`.)
+1. 사실 문장 재측정: `grep -n "^from __future__" A/*.py` → SR 35·SD 32·TL 24뿐(DR·ACF 0). DR: 1행 coding 주석, docstring 2~27행, 첫 import 28행(`import html as _html`), 32행 `from stick_diagram import load_topology, _audit_result_json`,
+   316줄. ACF: docstring 1~37행, 첫 import 38행(`import sys`), 43행 `from stick_diagram import load_topology`, 187줄. 둘 다 인덱스 LF·작업 트리 CRLF. 주석 조회: `git grep -nE "get_type_hints|__annotations__|annotationlib|get_annotations|inspect\.signature" -- '*.py'`
+   → 5곳(`contracts/test_dup_kcl_edges.py` 283·293 = SD 객체, `contracts/test_dup_w_calc.py` 199·450 = SR 객체, `probes/probe_mirror_ratio_error.py` 85 = SR 객체) -- DR·ACF 객체 0. DR·ACF를 이름으로 읽는 추적 `.py` 21개
+   (`.ai/verification/**` 9 -- 판정 기록 증거, `docs/03-analysis/**` 2, A 2, tests 4, `workspaces/**` 4) 중 모듈 속성 `annotations`를 읽는 곳 0. FU 모양 head(`bc3fd5d`)의 import 관찰: 두 모듈 이름 차이 `annotations` 하나,
+   `__annotations__` 값이 바뀐 함수 DR 5(`_kv_table`·`assemble_report_data`·`build_topology_device_table`·`render_html_report`·`save_html_report`)·ACF 4(`_as_set`·`_theta_evidence_for_pair`·`audit_topology`·`render_report`) = 주석이 있는 최상위 함수 전부.
+   코드 객체(`fu_codeobj.py base fu out --selfcheck`): 같음 DR 16·ACF 5, 다름 0, 다른 `__annotate__` DR 5·ACF 4, 자기 점검 FAIL 확인. 요약(`fu_codeobj.py dump`) base = head sha256 `f94f7895…`.
+2. 이름 충돌: 새 파일 없음(test 커밋 0). glob 패턴과 무관.
+3. 원칙의 계약화: 동작 불변 → 계약 2·3(전 범위: PT3 전체, library 9회로, E-INST 두 회로), 범위 최소(card당 한 책임·그 밖 변경 0) → 계약 1·7, 만들면 배선 → 의도 '배선'·계약 6(소비자 D0b 계약 test),
+   작성자≠검증자 → 'oracle' 절(시제품은 판정 도구 아님).
+4. 쓰기 경로(계획 N3.12.2): DR·ACF = gmid-code-author(엔진 소스). test-author 산출물 없음(test 커밋 0 -- design 05 §10-4 289행 M^1 = `old`). 판정 기록·계약 1~3·5·6 측정 = auditor.
+5. 계획서 소비자: 지우거나 옮기는 이름 없음. `git grep -n "__future__" -- docs/01-plan docs/02-design docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` → 0. DR·ACF 줄 번호 참조
+   `git grep -nE "(design_report|audit_current_forced)\.py:[0-9]+"` 같은 범위 → 레지스트리 217행 하나(`design_report.py:32` → FU 뒤 33, '결정 필요 항목' 참고). `reg_check.py` base·head exit 0('발견 0').
+6. 미배선: 새 def 없음. V7 base 판 도구 `new_defs` [](PASS). V7 면제 불필요.
+7. 기존 계약 test: DR·ACF를 참조하는 계약 test = `test_ic5.py:48`(`("audit_current_forced.py", "audit_topology")` 영역 키 -- 이름 기준), `test_df23_inventory.py:56`(범위 파일 목록 -- 인벤토리는
+   `measured_at` `766b5c2`에 고정, DR·ACF 항목 7개의 줄 번호는 그 커밋 기준이고 test는 엔진 소스를 읽지 않는다), `test_ts3_no_print_verdicts.py:30`(파일 이름 문자열). 줄 번호·머리 줄을 판정하는 것 없음.
+   PT3 base·head 결과 차이 0으로 확인. 조정 불필요, V5 없음.
+8. V3 규모: `mutate_changed.py --root C:/g184/fu --base dd60db6 --head bc3fd5d --pytest-ini <cache>/pytest_gate.ini --gmid-phase=3 --gmid-strict=` → PASS, `targets` DR·ACF, `mutants` 0, `survivors` [].
+   G1 시제품 설치 판(`install_proto.py` `5790433c…`, `g1_core.py` `b3c4e391…`) → PASS, `defs` []·`moved` []·`move_rejected` {}(V6·V7도 `moved` []·`move_rejected` {}). N2w 시제품(`fu_v3_n2w.py`) → 바뀐 def 0·변이 0·N2w 0,
+   대조(`_kv_table` 반환 주석 변경 합성 head) → def 1·변이 18·N2w 1. 인벤토리 test 수: 대상 def가 없어 0.
+   (G1 시제품의 `G1_SCOPE=1` 범위 정책 근사는 `scope_proto` 모듈이 키트에 없어 돌지 않았다 -- N2w 시제품 측정으로 갈음.)
+   그 밖 게이트(base 판): V4 `--interface-card`만 → `ERROR`(exit 2, 피검 심볼 없음), `--subject` 둘 추가 → `PASS`·`files` [](exit 0); V5 `PASS`·`diff_paths` []; V6 `PASS`·`findings` []; V7 `PASS`·`new_defs` [].
+9. 승인 줄: 동작 변경·다른 Phase 일 당겨오기 없음 -- 결정 승인(`target_kind: decision`) 불필요. design 승인 UD-0 `20260930-30-module-split-design`(diff)은 사용자 답이 있다(2026-10-02 11:05 KST "승인 (Recommended)")
+   `dd60db6` 때는 gate `master`에 기록이 없었다. (r2t) gate `4a286f0`에서 기록이 있고(`36e170e`) 범위 설명 108·112행에 card id `20261002-p3-future-annotations`와 D-29 원문이 있다 -- 착수 조건 S-1 충족(design D-29·UD-0 행 '준비 card FU로 card 17').
+10. 범위 계약: 계약 1은 '이 card `Change-Id` 커밋들의 diff'로 한정했다(base와 판정 대상 사이에 다른 card 커밋이 끼어도 그 diff는 세지 않는다).
+11. test 이름·모양: 새 test 없음.
+12. 같음 판정: 계약 2는 코드 객체를 `==`로 비교하지 않는다 -- 비교 필드·qualname 짝짓기(등장 순번)·`co_consts`의 코드 객체 원소 치환·flag 비트 마스크를 적었다. 계약 3(a)는 test id별 결과 문자열, (b)(c)는 JSON 전체(키 정렬은
+    스크립트 정규화), 계약 5(a)는 `repr` 문자열 비교.
+13. red 모양: red 없음(equivalence). 계약 1의 거부는 auditor 측정이다.
+14. 배정 영향(독립 검토 `review_fu.md` §3 실측, 스크래치 `C:/g190`): **FU는 이관표 배정에 영향 0** -- D0a `plan` 시제품을 base·FU head에 돌린 출력 전체(`assignment`·`upward`·`cycles`·`unassigned`·`conflicts`·`reg_mismatch`·`import_time_high`·`order`·`reexports`)가
+    같고(DR·ACF 주석은 내장 타입뿐이라 D0a 계약 2의 future 유무별 주석 이름 규칙이 배정을 바꾸지 않는다), 바뀌는 것은 `import_conflicts`의 `__future__` 갈림뿐이다.
+15. test 커밋 0 절차(gate `master` 실측): `role_hooks.py` `_judge_worktree` 913~914행 -- `role/code/<id>`·`role/audit/<id>` worktree add는 base 인자가 문자열 `role/test/<id>`일 때만 허용(그 밖 926행 `_deny`);
+    `role_commit_gate.py` `_judge_merge` 98~99행 -- audit worktree 병합은 HEAD가 `refs/heads/role/test/<id>` 끝이어야 한다; `role_hooks.py` 1066~1070행 -- code·audit 커밋 범위를 `refs/heads/role/test/<id>..HEAD`로 정하고 그 ref가 없으면 실패.
+    그래서 test 커밋이 0이어도 브랜치 `role/test/<id>`(= B, 커밋 0)는 만들어 정리 때까지 둔다(redteam 20(e) `flow_start`와 같은 모양) -- 브리핑 §1·§4.

@@ -1,0 +1,49 @@
+{
+ "verdict": "PASS",
+ "lens": {
+  "upward": 0,
+  "cycles": 0,
+  "unassigned": 0,
+  "conflicts": 0,
+  "reg_mismatch": 0,
+  "import_time_high": 0,
+  "absent_split": 0
+ },
+ "n_assigned": 403,
+ "rules": {
+  "A-K": 2,
+  "A-4": 245,
+  "A-5": 53,
+  "A-1": 61,
+  "A-2": 39,
+  "A-6": 3
+ },
+ "per_mod": {
+  "audit_current_forced.py": 2,
+  "circuit_metrics.py": 21,
+  "circuit_state_graph.py": 82,
+  "gmid_lut.py": 8,
+  "gmid_sizing_engine.py": 104,
+  "instance_report_builder.py": 16,
+  "sizing_layout_convergence.py": 30,
+  "stick_diagram.py": 111,
+  "theta_search.py": 11,
+  "topology_authoring.py": 18
+ },
+ "mod7_outside_sd": [],
+ "upward_mod_pairs": {},
+ "upward_edges": [],
+ "upward_sources": {},
+ "upward_targets": {},
+ "cycles": [],
+ "unassigned": [],
+ "conflicts": [],
+ "import_time_high": [],
+ "reg_mismatch_rules": {},
+ "reg_mismatch": [],
+ "compare": {
+  "only_here": [],
+  "only_there": [],
+  "mod_diff": []
+ }
+}

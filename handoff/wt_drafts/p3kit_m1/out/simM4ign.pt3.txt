@@ -1,0 +1,64 @@
+........................................................................ [  7%]
+........................................................................ [ 14%]
+........................................................................ [ 21%]
+........................................................................ [ 29%]
+.......................................................................F [ 36%]
+.......xxxxxx..xF........xxxxx.......................................... [ 43%]
+........................................................................ [ 51%]
+........................................................................ [ 58%]
+........................................................................ [ 65%]
+........................................................................ [ 72%]
+........................................................................ [ 80%]
+........................................................................ [ 87%]
+........................................................................ [ 94%]
+.................................x.................                      [100%]
+================================== FAILURES ===================================
+___________________ test_size_transistor_calls_new_function ___________________
+
+    def test_size_transistor_calls_new_function():
+        # oracle (a): 현재 sizing_recipe AST가 입력, 기대값은 'size_transistor 본문에 width_from_id_density 호출 1개 이상'(계약 3).
+        path = _ASSETS_DIR / "sizing_recipe.py"
+        assert path.exists(), path
+>       assert_function_calls(_read(path), _CANON_FUNC, _NEW_FUNC, _rel(path))
+
+C:\g200\m4\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py:444: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+source = '#!/usr/bin/env python\\n"""sizing_recipe.py \u2014 gm/ID sizing template (Jespers gm/ID methodology).\\n\\n\uc774 \ud30c\uc77c\uc740 \xa71(LUT \uc778\ud130\ud398\uc774\uc2a4...row": blocked[0] if blocked else None,\\n            "unresolved_reason": "max_rounds_exceeded" if blocked else None}\\n'
+func_name = 'size_transistor', callee = 'width_from_id_density'
+where = 'skills/analog-gmid-design/assets/sizing_recipe.py'
+
+    def assert_function_calls(source: str, func_name: str, callee: str, where: str) -> None:
+        """판정: `func_name` 정의가 있고 그 본문이 `callee`를 한 번 이상 부른다."""
+        n = calls_in_function(source, func_name, callee)
+>       assert n != -1, f"{where}: {func_name} 정의가 없다"
+E       AssertionError: skills/analog-gmid-design/assets/sizing_recipe.py: size_transistor 정의가 없다
+E       assert -1 != -1
+
+C:\g200\m4\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py:436: AssertionError
+__________________ test_gate_docstring_declares_blind_spots ___________________
+
+    @pytest.mark.gmid_ic("IC5", phase="1", case="")
+    def test_gate_docstring_declares_blind_spots():
+        # oracle (d): 계획 N4.1 IC5, `00-common` §5(+C1), design §5.6 형식·영역 표(spec card 계약 1~3).
+        assert _HARNESS.is_file(), f"design §5.6 소스 분류 파일이 없다: {_HARNESS}"
+        targets = []
+        for path in _source_files():
+            targets.extend(_collect_targets(path.read_text(encoding="utf-8"), path.name))
+    
+        # (1) 공허한 통과 방지.
+        assert len(targets) >= 1, "IC5 대상 함수가 0개다"
+    
+        # 표의 21개가 대상 집합 안에 있어야 (3)이 공허하지 않다.
+        found_keys = {(f, n) for f, n, _, _ in targets}
+        missing = sorted(set(_DOMAIN_TABLE) - found_keys)
+>       assert not missing, f"design §5.6 영역 표의 함수가 대상에 없다({len(missing)}개): {missing}"
+E       AssertionError: design §5.6 영역 표의 함수가 대상에 없다(11개): [('sizing_recipe.py', 'audit_l_sharing_consistency'), ('sizing_recipe.py', 'audit_vsb_consistency'), ('sizing_recipe.py', 'check_quasi_static'), ('sizing_recipe.py', 'require_declared_spec_source'), ('sizing_recipe.py', 'validate_metric_units'), ('sizing_recipe.py', 'validate_no_legacy_vs_key'), ('sizing_recipe.py', 'validate_theta_declaration_order'), ('stick_diagram.py', 'audit_theta_root_direction'), ('stick_diagram.py', 'audit_vertical_stack_id_vs_kcl'), ('stick_diagram.py', 'check_symmetry_dispositions'), ('stick_diagram.py', 'require_device_roles_reviewed')]
+E       assert not [('sizing_recipe.py', 'audit_l_sharing_consistency'), ('sizing_recipe.py', 'audit_vsb_consistency'), ('sizing_recipe.p...d_spec_source'), ('sizing_recipe.py', 'validate_metric_units'), ('sizing_recipe.py', 'validate_no_legacy_vs_key'), ...]
+
+C:\g200\m4\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py:139: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\..\..\..\..\..\g200\m4\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_size_transistor_calls_new_function
+FAILED ..\..\..\..\..\..\g200\m4\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_gate_docstring_declares_blind_spots
+2 failed, 972 passed, 13 xfailed in 193.74s (0:03:13)
+exit=1 seconds=201

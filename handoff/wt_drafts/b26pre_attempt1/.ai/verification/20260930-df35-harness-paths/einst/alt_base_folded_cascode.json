@@ -1,0 +1,53 @@
+{
+ "circuit": "folded_cascode",
+ "mode": "base",
+ "root": "C:\\g14\\eq_alt_path_len",
+ "harness_file": "C:\\g14\\eq_alt_path_len\\workspaces\\run_harness.py",
+ "literal_counts_before": [
+  2,
+  1
+ ],
+ "constants_raw": {
+  "ASSETS_DIR": "C:\\g14\\eq_alt_path_len\\skills\\analog-gmid-design\\assets",
+  "LIBRARY_DIR": "C:\\g14\\eq_alt_path_len\\skills\\analog-gmid-design\\assets\\library",
+  "WORKSPACES_DIR": "C:\\g14\\eq_alt_path_len\\workspaces",
+  "LUTFILE": "C:\\g14\\eq_alt_path_len\\skills\\analog-gmid-design\\assets\\sky130_nfet_pfet_lut_sample.npz"
+ },
+ "sys_path_added": [
+  "C:\\g14\\eq_alt_path_len\\skills\\analog-grammar\\assets",
+  "C:\\g14\\eq_alt_path_len\\skills\\analog-gmid-design\\assets"
+ ],
+ "engine_origin": {
+  "sizing_recipe": "C:\\g14\\eq_alt_path_len\\skills\\analog-gmid-design\\assets\\sizing_recipe.py",
+  "stick_diagram": "C:\\g14\\eq_alt_path_len\\skills\\analog-gmid-design\\assets\\stick_diagram.py",
+  "design_report": "C:\\g14\\eq_alt_path_len\\skills\\analog-gmid-design\\assets\\design_report.py"
+ },
+ "instance_path": "C:\\g14\\eq_alt_path_len\\workspaces\\folded-cascode-report\\folded_cascode.instance.json",
+ "exists": true,
+ "fail_in_stdout": false,
+ "path_string_hits": [
+  {
+   "json_path": "/topology_ref",
+   "value": "C:\\g14\\eq_alt_path_len\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+   "matched_root": "C:\\g14\\eq_alt_path_len"
+  }
+ ],
+ "raw_sha256": "0495dd0363213b914992ab16fd1cf7679a831587a065b1c7b06bafe15c924721",
+ "topology_ref_raw": "C:\\g14\\eq_alt_path_len\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+ "topology_ref_is_join_of_ASSETS_DIR": true,
+ "topology_ref_rel_to_clone_assets": "library/folded_cascode.topology.json",
+ "norm_sha256": "7cf0bc7576f0ae9ebc98488f334c45f5a94b93e83c4df4b686ebfdc135f92600",
+ "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+ "top_keys": [
+  "audit_row_split",
+  "box_shape",
+  "coverage",
+  "floorplan",
+  "netlist",
+  "schema_version",
+  "sizing",
+  "topology_ref"
+ ],
+ "n_sizing": 13,
+ "main_projection_raw_sha256": "8cdbf35b255ac29d0dde101254ca5c6108afac2192d4071ff3604d65bf4d373b"
+}

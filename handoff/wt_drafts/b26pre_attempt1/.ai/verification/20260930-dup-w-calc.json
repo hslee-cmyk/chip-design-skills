@@ -1,0 +1,128 @@
+{
+  "id": "20260930-dup-w-calc",
+  "spec_card": "docs/02-design/specs/20260930-dup-w-calc.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "b7d179817245a99cccea45cd5f7642f9815dcec0",
+  "test_commit": "88fed95670e9ce0f831e90b27fe5273bb15cd484",
+  "code_commit": "a9de49c031edf544a3af1ce383426c1fa01e6bab",
+  "red": {
+      "test_ids": [
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1.5e-07-1e-05-3.2]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-07-1e-09-0.02]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1e-06-0.001-15.0]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[2e-05-0.05-0.0001]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1.8e-07-3.3e-12-7.7e-06]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[3.5e-07--2.5e-05-4.1]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[3.5e-07-2.5e-05--4.1]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[-3.5e-07--2.5e-05--4.1]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.0-1e-05-2.0]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-07-0.0-2.0]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[-0.0-1e-05-2.0]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-07--0.0-2.0]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.1-0.2-0.3]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.3333333333333333-3.0-7.0]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.1-0.3-0.7]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-324-1.0-1.0]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1e-200-1e-200-1.0]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1e+200-1e+200-10000000000.0]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1.7976931348623157e+308-1.0-2.0]",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_seeded_physical_range",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_seeded_bit_patterns",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_zero_density_behaves_like_inline",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_signature",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_no_inline_w_formula_outside_new_function",
+          "skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_size_transistor_calls_new_function"
+      ],
+      "failure_hashes": [
+          "dd0336490b139bc167dd6765c510ef3028f7a9b06e3ce9388d0620db9f3f50c4",
+          "3547bcb8801e2fa259faaa960e89fb627107a3fd0ce631cf25da15baf77fa075",
+          "86f11b9a5d70d4df8716da49923bea73e54b46144546ea5f421d7557bd859302",
+          "904c362bcec71accce68a125cc8414478a7258fc2e6c4f3f7813ef826e19e442",
+          "c3d9fda1b898dbe40a1c126d99a24b48311a77ef894360da44a307560c61d04e",
+          "09cf35189e43c70e886a8f7a42b4c56bf677407bd51742d51abc60b7d82ad258",
+          "e8f2a846cbde2d6762210dbeb046efbe5f1c7353de204c9c9743db0a3681b522",
+          "13a1aa53c67a9859b86068cf8959b5b340a85b6850f350f05bef4e8d46531e66",
+          "7e476291530d3c5d8076b08f8b2972e6c24d6a07fef9ff20aeb2b58269c16d19",
+          "e275baed4b88c8b276dd12934d55d4277fbd086e894effee298b3c87e59cd189",
+          "9696c0b107370b721a697cca7da6a88f0b9f2f848872cdc8e86ff4fadd1c5aaa",
+          "2e96526a2419ddf20e66b9433029e4886aafdfade30f3e56183762098b48ffd4",
+          "0d9328605482576861bf3591e328ab08890e7904581bc902ac172cf2184ab965",
+          "53b51b288385ea5c056ff09393dcd573c3f8e33f4833829b932dd26d932d901d",
+          "08dfc0ce32645a4c8b94b9952a9aa26202fb6036e50410581a14cdd0988ac1b7",
+          "9d8f7aac0b48bbaacf079e64816ecf2b3416d690ca4b2cf0e8071a69e7d46a40",
+          "1488c8ec4306dae5d5326a09d4a9dddd54f081f858d06b213b65309a442225df",
+          "9021ca0922cee5b25207317b69fcd3015238180bd8bbc0e7f8a232366a01d192",
+          "bf926ea6b5e31f8ea1b4351b86766146e853081b09d6a806421dc01992d38204",
+          "ff1adabfb940d50eb017a413dbf71572ae29a738d484ba165efa59bedf62854b",
+          "107e5dfdd0ac8a5c9fece808b563b4db4694e2ea7648624e561ebd5b4c7e69f2",
+          "0f60eb6775ccaea0cf574024eb080934f539936359d0268793b9942211c8ebc4",
+          "9e1e207bbf14d8a09d9be300b2b5534bf3e5569637cfd23680b2aafe4aa68de1",
+          "ed83b1d712ff7122c781fb8ee7641db7fda3b7b774ceb2d2956ab59c6f3f30b6",
+          "85ba0ebe4e18106899ddaec038e143c27abd61eebd0e94f790ab78ff869e9300"
+      ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "2차 시도. 병합본 M 243e6ed7580eef76155be6bb6d42cce20ea32354(부모 [T 88fed95, K a9de49c], 트리 9453ddf0 = K 트리, Role: doc·Change-Id 일치)의 격리 복제본 C:/g12/m2(git clone --no-hardlinks --no-local --no-checkout, origin 제거, checkout --detach, remote 0·status 0줄, 실행 뒤 status 0줄)에서 base 판 캐시 b7d1798의 pytest_gate.ini로 slow 포함 전체 실행(-k·--deselect·-x·-m 없음, --gmid-phase=2 --gmid-strict=): 701 passed, 15 xfailed, 실패·오류·skip·xpass 0, 수집 716, 수집 오류 0, exit 0, 114s. 수집 대조(scripts/cmp_collect.py): T 수집 716과 id 집합이 같다(차이 0) -- base 610 + 새 106; 701 = base 595 passed + 새 106, xfail 15 = base 15. 엄격 집합은 base 판 merge_gate.strict_set(TreeView(b7d1798), 개정 spec card) = 빈 집합, merge_gate.v1_command_check 실패 0건(순서 3). 게이트 코드는 git cat-file blob b7d1798:tools/gates/<파일>로 auditor가 redteam 밖 22개를 직접 뽑았다(tools 트리 712beefc, file_set_sha256 ab7afccd... = 1차·P6과 같다). code-author 보고는 증거로 쓰지 않았다"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red-green. [사슬] base b7d1798(gate master, 1차 base 6158a5f + spec card 계약 6·판정 유형 근거 개정·interface card·design §6.1 정정·context, skills·workspaces·tools 트리는 1차와 같음) -> T 88fed95(Role: test, 부모 base, contracts/test_dup_w_calc.py 1파일, blob 58d9068e = 1차 T) -> K a9de49c(Role: code, 부모 T, sizing_recipe.py·레지스트리) -> M 243e6ed(Role: doc, 부모 [T, K], 트리 = K 트리). test 커밋 불변: git diff T M = sizing_recipe.py·레지스트리뿐. [엔진 blob] 병합본 sizing_recipe.py blob 1a730e6a = 1차 병합본 40f5dbf(K ef735b7)의 blob, 병합본 skills 트리 22732240 = 1차 병합본 skills 트리(엔진·test 전부 같음), workspaces 트리 ac9615a9 같음; 1차 병합본과의 차이는 레지스트리 2행과 base에서 온 문서뿐(auditor git diff 40f5dbf 243e6ed). [red] 순서 3(이 폴더 base_check.json): 2차 T 복제본 C:/g12/iso2에서 base 판 red 수집 플러그인이 기록한 red 25건, 전부 builtins.AssertionError(test 안 hasattr assert로 피검 함수를 가져와 수집 오류가 아니다 -- 개정 spec card '판정 유형 근거'와 일치): 계약 1 23(hand 19 + seeded 2 + zero 1 + signature 1), 계약 2 1(base 18곳), 계약 3 1. 캡처 파일이 1차와 바이트 동일, failure_hash는 sha256(test_id + 개행 + 예외 타입)으로 auditor가 따로 계산해 같다; 나머지 595 passed + 15 xfailed는 base와 같다. [green] 병합본 V1 701 passed, test_dup_w_calc.py를 -rA·red 수집 플러그인으로 따로 돌려 106 passed, 허용 타입 red 기록 0(scripts/run_m2.sh). [18곳 대조] auditor 도구 scripts/w_sites.py(계약 2 문장으로 새로 씀, test 코드 비사용): base 18곳(sizing_recipe.py 101·878·1579·2057·2575·3456·3470·3534·3557·3684·5564·5758·6770·7149·7346·8700·8765·8841)과 병합본 width_from_id_density 호출 18개를 (함수 qualname, 순서)로 짝지어 18/18이 (1) 위치 인자 3개·키워드 0, 인자 ast.dump = base (L, ID, IDu) 피연산자 순서·표현 (2) 가장 안쪽 문장 dump가 W 식 -> 자리표시자 치환 뒤 같음 (3) 가장 안쪽 함수 전체 dump가 같은 치환 뒤 같음; 남은 인라인 0; 결과 파일이 1차 대조와 rev 칸 외 같다. 도구 판별력: 합성 병합본(scripts/synth_merge.py)에서 인자 순서 바꿈·문장 주변 변경을 각각 잡는다. [엔진 다른 변경 0] scripts/module_cmp.py: 18곳·호출 18개를 같은 자리표시자로 바꾸고 새 def를 빼면 모듈 전체 ast.dump(docstring 포함)가 base와 같다(최상위 228 = 228); 엔진 범위에서 바뀐 파일은 sizing_recipe.py 하나; 새 이름을 다시 묶는 곳 0, 호출 18개 전부 Name 형태 3 위치 인자. [새 함수] 최상위 def 1개, 데코레이터 0, 본문 = docstring + 정확히 return L * ID / IDu(가드·형 변환 없음), 시그니처 def width_from_id_density(L: float, ID: float, IDu: float) -> float = 신규 시그니처 표. [size_transistor] 함수 dump가 W 식 교체 외 base와 같다(IDu<=0 가드 ValueError·반환 SizingResult 불변), 시그니처 = interface card. [계약 4] E-LIB(scripts/e_lib.py, C:/g12/eq = M 243e6ed, 같은 경로) 1d2e3bf6... 출력 파일이 base와 바이트 동일(sizing_recipe를 import하지 않아 18곳 무동작 증거); E-INST(scripts/e_inst.py, C:/g12/eq·C:/g12/ws_eq) folded_cascode 90acbbc9...·current_reuse_telescopic_ota 9988b580... 병합본 3회씩 모두 base와 같고 결과 JSON 파일 바이트 동일; E-INST가 지나지 않는 101·2575·7346은 위 AST 대조와 계약 1 비트 동일 test로 본다. [계약 5 관찰값, 임계 없음, E-INST 벽시계 새 프로세스] 시간대 1(1차 순서 3·7, base 6158a5f -> 엔진 blob이 같은 1차 병합본): folded 13.38/13.18/13.37(평균 13.31) -> 13.99/13.66/13.31(13.65, +2.6%), current_reuse 97.77/99.94/97.85(98.52) -> 105.85/99.96/99.64(101.82, +3.3%). 시간대 2(이번, 같은 경로에서 base b7d1798과 병합본 243e6ed를 연달아): folded 18.88/16.79/17.24(17.64) -> 18.61/18.71/19.46(18.93, +1.29s +7.3%), current_reuse 134.69/129.46/128.87(131.01) -> 137.19/133.17/136.08(135.48, +4.47s +3.4%). 두 시간대 사이에 기계 전체가 약 30% 느려져(같은 base가 13.3 -> 17.6s, V1 89 -> 114s) 시간대를 섞어 비교하지 않는다. 호출 비용 크기: 병합본 E-INST 호출 수 folded 6,966,000·current_reuse 24,028,416(sys.monitoring), timeit 호출 대 인라인 차 19~25 ns -> 추정 0.13~0.17s(약 1%)·0.45~0.60s(약 0.5%). current_reuse는 두 시간대 모두 +3.3~3.4%로 추정보다 크고 folded는 시간대마다 +2.6~7.3%로 흔들린다(base 3회 폭 2.1s) -- 추정을 넘는 부분의 원인은 분리하지 않았다(관찰값으로 기록). [계약 6] 병합본 레지스트리 §2 W 계산 행: 정본 칸 'width_from_id_density(식) / size_transistor(gm·gm/ID 입력 경로)' -- 사실(새 함수가 식 정본, size_transistor가 그것을 부름); 중복 칸 '인라인 18곳 통합 완료 -- 옛 목록 find_optimal_sizing·feasible_gm_ids·search_gm_id_for_role·feasible_L_window 4곳은 18곳에 모두 들어 있었고 개수만 적었다' -- 사실: base 878(find_optimal_sizing)·1579(feasible_gm_ids)·2057(search_gm_id_for_role)·2575(feasible_L_window)가 auditor 측정 18곳에 들어 있고 병합본에서 모두 호출(888·1589·2067·2585). §6 DUP size_transistor 행 비고 '식 W=L·ID/IDu는 width_from_id_density가 정본이고 size_transistor가 그것을 부른다. 엔진 인라인 0곳(18곳을 width_from_id_density 호출로 통합)' -- 사실(module_cmp 호출 18·인라인 0, size_transistor 본문 호출 1). §1 sizing_recipe R0 86 = §3 소절 행 수 86(1차와 같음). reg_check.py(병합본 blob) 병합본·base 모두 exit 0 '발견 0'. 1차 FAIL 문장('옛 목록 3함수는 현 소스와 맞지 않았음')은 병합본 레지스트리에 없다(grep 0). 관찰(판정 영향 없음, handoff): §3 R0 width_from_id_density 행 비고 '`size_transistor`와 엔진 인라인 18곳이 부른다'는 호출 수를 19로 읽힐 수 있다 -- 실측 호출은 18이고 그중 하나가 size_transistor(101행 사이트)다; spec card 의도 절의 같은 표현을 따른 것이라 계약 6 범위 밖으로 두고 적는다"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 mutate_changed.py --root C:/g12/m2 --base b7d1798 --head 243e6ed --pytest-ini <캐시>/pytest_gate.ini --gmid-phase=2 --gmid-strict= -> 도구 출력 verdict FAIL, targets [sizing_recipe.py], mutants 2060, killed 0, 생존 2060건 전부 reason '변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음' -- 1차와 같은 도구 환경 결과로 변이를 하나도 실행하지 못했다. 원인(1차에 재현, scripts/v3_baseline_probe.py): 도구가 shutil.copytree(ignore .git)로 만든 사본에서 인벤토리의 contracts/test_ts6_probe_relocate.py::test_base_blob_reader_reads_the_base_tree가 'git show 939f926:...'를 불러 'fatal: not a git repository'로 실패(-x)해 기준 실행 전체가 실패한다. 이번 변경과 무관한 기존 도구·test 조합 결함이다(handoff, 인프라 백로그). 대신한 확인(scripts/mut_sites.py, git이 있는 격리 복제본, 변이마다 V1과 같은 명령에 -x, 끝나고 원본 복원·status 0줄 -- 1차 병합본에서 실행; 2차 병합본의 skills 트리 22732240이 1차 병합본과 같아 엔진·test가 같으므로 결과가 그대로 적용된다, 결과 이 폴더 mut_sites.jsonl): 변경된 코드 자체 = 새 함수 본문 변이 5개(return None, L*ID*IDu, L+ID/IDu, L*(ID/IDu) 반올림만 다른 재결합, abs) 5/5 죽음 -- 모두 contracts/test_dup_w_calc.py 비트 동일 test가 잡는다. 호출 사이트 18곳마다 결과 2배 변이 1개: 8/18 죽음(101 size_transistor -> unit test_s009, 878 -> test_probe_parasitic_pm_all_circuits, 1579 -> test_s024, 2057 -> test_s021, 2575 -> test_s045, 3456 -> test_s014, 3557·3684 -> test_probe_parasitic_pm_all_circuits), 생존 10(3470 diode_vds_window 형제 소자 W 한계, 3534 solve_stacked_diode_pair 위쪽 W, 5564 _metric_stage_budget_finalize, 5758 _make_shared_current_scorer, 6770 make_matching_feasibility_check.check, 7149·7346 _hr_resolve_vertical_group, 8700·8765·8841 _build_theta_evaluator._evaluate) -- 전체 스위트 701 passed 그대로. 생존 10은 이번 변경이 들여온 것이 아니다: 해당 사이트의 문장·함수 AST가 호출 교체 외 base와 같고(V2 18곳 대조) test 파일도 base와 같아(새 파일 추가뿐) base 인라인 식을 2배로 바꿔도 같은 test가 못 잡는 기존 test 강도 상태다. 이 중 5564·5758·6770·7149·8700·8765·8841은 E-INST(current_reuse_telescopic_ota)가 수천~천만 회 지나므로 E-INST 해시 대조(V2)가 동작 보존을 본다; 7346·3470(folded 0회)·3534는 E-INST 도달이 없거나 적어 AST 대조(V2)가 유일한 보존 증거다. handoff: 사이트 10곳의 W 값을 판정하는 test 부재(기존 test 강도), V3 도구의 .git 없는 사본 결함"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: spec card 'oracle 종류와 출처'는 (b) 폐형식(식 L*ID/IDu 자체와 IEEE 곱셈 교환성), (c) 동작 보존(E-LIB·E-INST 기대값 = base 실행), 계약 2는 (a) 구성 입력이다. 이번 변경이 들여온 기대값은 contracts/test_dup_w_calc.py 106건뿐이고(K는 test를 건드리지 않음) auditor가 소스를 읽어 하나씩 대조했다: hand_cases 19·seeded 2(2000·1000 표본)는 기대값을 같은 입력의 인라인 식 L*ID/IDu·ID*L/IDu로 test 안에서 직접 계산 -- 피검 출력 복사가 아니고 card (b)(일치; auditor가 병합본 새 함수(0.1, 0.3, 0.7) = L*ID/IDu이고 L*(ID/IDu)와 다름을 확인); zero_density는 인라인 식이 ZeroDivisionError라는 전제 + card 의도 절 '가드를 더하지 않는다' (b)(일치; 본문에 가드 없음을 AST로 확인); signature는 card·interface card 신규 시그니처 표 (d)(일치); bitwise_check_rejects는 식과 다르게 구성한 합성 구현 3종·-0.0·float 하위형 (a)(일치); no_inline은 기대값 '0개' = card 계약 2 (a)(일치; auditor 독립 도구 base 18·병합본 0); w_formula rejects 26·accepts 17, l_family 18·id_family 12는 card 계약 2 이름 예시·'거부해야 할 입력'으로 구성한 합성 소스 (a)(일치; auditor가 각 소스를 card 문장에 대 확인, 같은 규칙의 auditor 도구도 같은 판정); size_transistor_calls는 card 계약 3 '호출 1개 이상' (a)(일치; 병합본 호출 1), signature_unchanged는 interface card 기존 시그니처 표 (d)(일치); call_check rejects 4·accepts 2는 합성 소스 (a)(일치). 도구: base 판 캐시 test_lint.py --root C:/g12/m2 --base b7d1798 --head 243e6ed --interface-card <interface card> --subject sizing_recipe:width_from_id_density -> verdict PASS, exit 0, 대상 파일 1, findings 30 = (2) NO-SUBJECT 30, FAIL·UNJUDGED 0 -- test가 피검을 _new_function()·fn 변수로 간접 호출해 (2)가 추적하지 못한다; PASS는 독립의 증거가 아니며 위 기대값별 대조가 판정 근거다"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 weakening_diff.py --root C:/g12/m2 --base b7d1798 --head 243e6ed -> verdict PASS, findings 없음, diff_paths 없음, diff_hash null, approved false, exit 0 -- 순서 3의 base -> T 출력과 바이트 동일(K는 test 파일을 건드리지 않았다). base 대비 test 쪽 변경은 새 파일 추가뿐이라 약화 대상이 없다. 승인 대상 diff 없음"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 source_lint.py --root C:/g12/m2 --base b7d1798 --head 243e6ed -> verdict PASS, targets [sizing_recipe.py], findings 없음, exit 0. 새 함수는 가드·except·상수·폴백이 없는 한 줄 식이고, 18곳의 기존 가드(IDu<=0 continue·raise, try/except ValueError)는 AST 대조로 base 그대로다(V2)"
+    },
+    "V7": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 reachability.py --root C:/g12/m2 --base b7d1798 --head 243e6ed -> verdict PASS, new_defs [sizing_recipe.py::width_from_id_density], unreached 없음, unreached_without_approval 없음, roots 4개(A/sky130_lut_sweep.py::__main__, A/topology_to_markdown.py::__main__, workspaces/run_harness.py::__main__·run), roots_without_file 1개(A/gmid_design_pipeline.py::run_gmid_design_pipeline, base부터 같음), exit 0. 실제 배선 실측: 엔진 blob이 같은 1차 병합본의 E-INST(run_harness 경로)에서 width_from_id_density 호출 folded_cascode 6,966,000회·current_reuse_telescopic_ota 24,028,416회(scripts/einst_calls.sh, 이 폴더 einst_calls/) -- 원래 인라인이던 운영 경로를 대체해 실제로 불린다"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2 v_intro[V8] = 4). 이 card는 Phase 2이고 새 함수는 폴백이 없는 식이며 E-INST 결과가 base와 같다(V2)"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2 v_intro[V9] = 6b). 식은 비트 단위로 같고 E-LIB·E-INST가 base와 같다(V2)"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치'가 '없음(성능 시간은 관찰값)'이라 reproduced_numbers는 빈 배열이다. 이 기록의 수치(수집 610 -> 716, 병합본 701 passed·15 xfailed, base red 25건과 해시, 18곳 대조, 모듈 AST, E-LIB·E-INST 값, 시간 두 시간대 24회, 호출 수, 변이 결과)는 전부 auditor가 격리 복제본 C:/g12/*에서 직접 쟀다(순서 3은 이 폴더 base_check.json). 1차 시도에서 잰 값(시간대 1 시간, 호출 수, 대체 변이)은 엔진·test·workspaces 트리가 2차와 같다는 auditor 확인(skills 22732240, workspaces ac9615a9) 위에서 재사용했다. code-author·test-author·오케스트레이터 보고는 증거로 쓰지 않았다"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260923-20-dead-code-dup-design"
+  ],
+  "auditor_run": {
+    "time": "2026-09-30T15:32:32+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-dup-w-calc-audit",
+    "commands": [
+      "환경: $PY = C:/Python314/python.exe(3.14.2), pytest 9.0.2, export APPDATA=C:/Users/HSLEE/AppData/Roaming, 출력 C:/g12/out, 스크립트 C:/g12/scripts/(사본 .ai/verification/20260930-dup-w-calc/scripts/)",
+      "게이트 코드: C:/Python314/python.exe -P C:/g12/scripts/extract_gate.py C:/g12/base2 b7d179817245a99cccea45cd5f7642f9815dcec0 C:/g12/gmid-gate-cache/b7d179817245a99cccea45cd5f7642f9815dcec0 (git ls-tree + git cat-file blob, tools/gates/ 중 redteam/ 밖 22개)",
+      "격리: git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-dup-w-calc-audit C:/g12/<이름>; git -C C:/g12/<이름> remote remove origin; git -C C:/g12/<이름> checkout -q --detach <rev> -- iso2 = T 88fed95, base2 = b7d1798, m2 = M 243e6ed, eq = 같은 경로 복제본을 checkout --detach <rev> + clean -fdxq(base b7d1798 뒤 M 243e6ed), 모두 remote 0, status 0줄",
+      "V1: PYTHONPYCACHEPREFIX=C:/g12/pyc2_v1_m PYTHONPATH=C:/g12/gmid-gate-cache/b7d179817245a99cccea45cd5f7642f9815dcec0 C:/Python314/python.exe -P -m pytest -c C:/g12/gmid-gate-cache/b7d179817245a99cccea45cd5f7642f9815dcec0/pytest_gate.ini --rootdir=C:/g12/m2 --confcutdir=C:/g12/m2 --gmid-phase=2 --gmid-strict= C:/g12/m2/skills/analog-gmid-design/assets/tests",
+      "수집·green: bash C:/g12/scripts/run_m2.sh 후 C:/Python314/python.exe -P C:/g12/scripts/cmp_collect.py <T 수집> <M 수집> <out>",
+      "base red(순서 3): GMID_RED_CAPTURE=C:/g12/out/red2_T.jsonl GMID_INTERFACE_CARD=C:/g12/iso2/docs/02-design/specs/20260930-dup-w-calc.interface.md PYTHONPYCACHEPREFIX=C:/g12/pyc2_full_iso PYTHONPATH=<캐시> C:/Python314/python.exe -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g12/iso2 --confcutdir=C:/g12/iso2 -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g12/iso2/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider (bash C:/g12/scripts/run2.sh red)",
+      "18곳 대조: C:/Python314/python.exe -P C:/g12/scripts/w_sites.py base C:/g12/base2 b7d1798... C:/g12/out/w_sites_base2.json; C:/Python314/python.exe -P C:/g12/scripts/w_sites.py compare C:/g12/m2 243e6ed... C:/g12/out/w_sites_base2.json C:/g12/out/wcmp_m2.json; 모듈 전체: C:/Python314/python.exe -P C:/g12/scripts/module_cmp.py C:/g12/m2 b7d1798... 243e6ed... C:/g12/out/module_cmp_m2.json",
+      "E-LIB: PYTHONDONTWRITEBYTECODE=1 PYTHONHASHSEED=1 C:/Python314/python.exe -P C:/g12/scripts/e_lib.py C:/g12/eq C:/g12/out/elib_m2.json",
+      "E-INST·시간: bash C:/g12/scripts/einst_time.sh C:/g12/eq <m2|base2> <folded_cascode|current_reuse_telescopic_ota> 3 (회마다 C:/g12/ws_eq 삭제, 새 프로세스, 순차; 시간대 1 값은 1차 순서 3·7의 같은 스크립트·같은 경로); 호출 수: bash C:/g12/scripts/einst_calls.sh C:/g12/eq <회로>(1차 병합본, 엔진 blob 동일)",
+      "게이트 도구(V3·V4·V5·V6·V7·reg_check): bash C:/g12/scripts/tools_m2.sh fast|v3 (base 판 캐시의 도구를 --root C:/g12/m2 --base b7d1798 --head 243e6ed 로, -P 없이)",
+      "V3 보강: PYTHONPATH=<캐시> C:/Python314/python.exe -P C:/g12/scripts/v3_baseline_probe.py <복제본> <base> <M> <.git 없는 사본> <캐시>/pytest_gate.ini <out> width_from_id_density; C:/Python314/python.exe -P C:/g12/scripts/mut_sites.py C:/g12/mut <캐시> <wcmp.json> <out.jsonl> (1차 병합본 = 같은 skills 트리)",
+      "사전 판정: PYTHONPATH=<캐시> C:/Python314/python.exe -P C:/g12/scripts/precheck_receive.py <스크래치 복제본> b7d1798... <audit 커밋> 20260930-dup-w-calc"
+    ]
+  }
+}

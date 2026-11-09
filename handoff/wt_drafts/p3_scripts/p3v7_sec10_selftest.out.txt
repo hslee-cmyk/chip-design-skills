@@ -1,0 +1,587 @@
+== 2026-10-01T16:29:27+09:00 잘라낸 줄 수: E3+E3b(v7) 176, E3(v6) 39, import_any(v7) 21, import_any(v6) 11
+B0=a796468889741bb7eb8da121ffefb0589cb2b769
+---- [e3+e3b @ base(분할 전, a796468)] HEAD=a796468 블록=tmp.JMeALFqIEM B0=a796468889741bb7eb8da121ffefb0589cb2b769
+E3 FAIL: sizing_recipe.py 있음
+E3 FAIL: topology_library.py 있음
+E3 FAIL: design_report.py 있음
+E3 FAIL:
+skills/analog-gmid-design/assets/sizing_recipe.py
+skills/analog-gmid-design/assets/tests/conftest.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py
+skills/analog-gmid-design/assets/tests/probe_physical_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_allocation_solvers.py
+skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py
+skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py
+skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py
+skills/analog-gmid-design/assets/tests/probes/probe_full_research.py
+skills/analog-gmid-design/assets/tests/probes/probe_gmid_gain_landscape.py
+skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py
+skills/analog-gmid-design/assets/tests/probes/probe_l5c_stage2out_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py
+skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_common_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_infeasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_error.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py
+skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py
+skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_stacked_diode_options.py
+skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py
+skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py
+skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py
+skills/analog-gmid-design/assets/tests/tools/regression_runner.py
+skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py
+workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py
+workspaces/current-reuse-telescopic-ota-report/resize.py
+workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py
+workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py
+workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py
+workspaces/run_harness.py
+workspaces/two-stage-ota-report/check_box_shape.py
+workspaces/two-stage-ota-report/check_box_shape_M5M7split.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep2.py
+E3b LIVE moved_out=0 base_files_reading_moved_out=0 pre_existing=1
+E3b INVALID: base에서 SD 밖으로 나간 이름을 읽는 추적 파일 0(명령 고장 또는 base 오지정)
+---- [e3+e3b @ syn/m9(SD 재수출 유지)] HEAD=c9dc128 블록=tmp.JMeALFqIEM B0=a796468889741bb7eb8da121ffefb0589cb2b769
+E3 FAIL: sizing_recipe.py 있음
+E3 FAIL: topology_library.py 있음
+E3 FAIL: design_report.py 있음
+E3 FAIL:
+skills/analog-gmid-design/assets/tests/conftest.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py
+skills/analog-gmid-design/assets/tests/probe_physical_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_allocation_solvers.py
+skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py
+skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py
+skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py
+skills/analog-gmid-design/assets/tests/probes/probe_full_research.py
+skills/analog-gmid-design/assets/tests/probes/probe_gmid_gain_landscape.py
+skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py
+skills/analog-gmid-design/assets/tests/probes/probe_l5c_stage2out_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py
+skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_common_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_infeasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_error.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py
+skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py
+skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_stacked_diode_options.py
+skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py
+skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py
+skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py
+skills/analog-gmid-design/assets/tests/tools/regression_runner.py
+skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py
+workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py
+workspaces/current-reuse-telescopic-ota-report/resize.py
+workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py
+workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py
+workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py
+workspaces/run_harness.py
+workspaces/two-stage-ota-report/check_box_shape.py
+workspaces/two-stage-ota-report/check_box_shape_M5M7split.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep2.py
+E3b LIVE moved_out=62 base_files_reading_moved_out=31 pre_existing=1
+E3b PASS
+---- [e3+e3b @ syn/dropone(재수출 하나 삭제)] HEAD=d44e312 블록=tmp.JMeALFqIEM B0=a796468889741bb7eb8da121ffefb0589cb2b769
+E3 FAIL: sizing_recipe.py 있음
+E3 FAIL: topology_library.py 있음
+E3 FAIL: design_report.py 있음
+E3 FAIL:
+skills/analog-gmid-design/assets/tests/conftest.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py
+skills/analog-gmid-design/assets/tests/probe_physical_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_allocation_solvers.py
+skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py
+skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py
+skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py
+skills/analog-gmid-design/assets/tests/probes/probe_full_research.py
+skills/analog-gmid-design/assets/tests/probes/probe_gmid_gain_landscape.py
+skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py
+skills/analog-gmid-design/assets/tests/probes/probe_l5c_stage2out_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py
+skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_common_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_infeasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_error.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py
+skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py
+skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_stacked_diode_options.py
+skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py
+skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py
+skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py
+skills/analog-gmid-design/assets/tests/tools/regression_runner.py
+skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py
+workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py
+workspaces/current-reuse-telescopic-ota-report/resize.py
+workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py
+workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py
+workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py
+workspaces/run_harness.py
+workspaces/two-stage-ota-report/check_box_shape.py
+workspaces/two-stage-ota-report/check_box_shape_M5M7split.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep2.py
+E3b LIVE moved_out=62 base_files_reading_moved_out=31 pre_existing=1
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/structural_symmetry_probe.py:10 find_structural_symmetry_candidates
+---- [e3+e3b @ syn/f2drop(F1 없이 F2)] HEAD=65ea7a2 블록=tmp.JMeALFqIEM B0=a796468889741bb7eb8da121ffefb0589cb2b769
+E3 FAIL: sizing_recipe.py 있음
+E3 FAIL: topology_library.py 있음
+E3 FAIL: design_report.py 있음
+E3 FAIL:
+skills/analog-gmid-design/assets/tests/conftest.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py
+skills/analog-gmid-design/assets/tests/probe_physical_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_allocation_solvers.py
+skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py
+skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py
+skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py
+skills/analog-gmid-design/assets/tests/probes/probe_full_research.py
+skills/analog-gmid-design/assets/tests/probes/probe_gmid_gain_landscape.py
+skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py
+skills/analog-gmid-design/assets/tests/probes/probe_l5c_stage2out_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py
+skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_common_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_infeasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_error.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py
+skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py
+skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_stacked_diode_options.py
+skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py
+skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py
+skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py
+skills/analog-gmid-design/assets/tests/tools/regression_runner.py
+skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py
+workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py
+workspaces/current-reuse-telescopic-ota-report/resize.py
+workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py
+workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py
+workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py
+workspaces/run_harness.py
+workspaces/two-stage-ota-report/check_box_shape.py
+workspaces/two-stage-ota-report/check_box_shape_M5M7split.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep2.py
+E3b LIVE moved_out=62 base_files_reading_moved_out=31 pre_existing=1
+E3b FAIL skills/analog-gmid-design/assets/audit_current_forced.py:43 load_topology
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py:237 save_instance_json
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py:274 save_instance_json
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py:288 save_instance_json
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py:87 save_instance_json
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py:265 kcl_series_union
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py:274 _kcl_and_matching_edges
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py:283 kcl_series_union
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py:293 _kcl_and_matching_edges
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py:41 Transistor
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ic3.py:107 check_stick_diagram_coverage
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ic3.py:107 check_topology_name_uniqueness
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ic3.py:107 load_topology
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ic3.py:107 save_instance_json
+E3b FAIL skills/analog-gmid-design/assets/tests/contracts/test_ic3.py:271 load_topology
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py:25 run_full_circuit_audit_from_topology
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 Transistor
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 apply_device_roles_gap_fill
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 apply_theta_kcl_gap_fill
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 audit_theta_root_direction
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 audit_vertical_stack_id_vs_kcl
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 check_multi_leaf_hub_parity
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 check_stick_diagram_coverage
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 check_symmetry_dispositions
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_authoritative_sizing_devices
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_differential_and_mirror_forks
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_differential_pair_candidates
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_diode_stacks
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_hub_merge_candidates
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_idiom_matches
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_matching_candidates
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_stack_edges
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_stacked_matching_candidates
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_unreviewed_device_roles
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_unreviewed_matching_pairs
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 find_verified_differential_and_mirror_relations
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 folded_cascode_example
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 load_topology
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 propagate_topology_forced_currents
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 propose_device_roles_gap_fill
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 propose_theta_kcl_gap_fill
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 propose_vertical_stack_id_gap_fill
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 refine_differential_and_mirror_relations
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 require_device_roles_reviewed
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 run_full_circuit_audit_from_topology
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 save_instance_json
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 search_shared_finger_w
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 split_into_stacks
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 suggest_vertical_stack_composites
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 trace_gnd_to_vdd_branches
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 trace_vdd_to_gnd_branches
+E3b FAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:24 two_stage_ota_example
+E3b FAIL skills/analog-gmid-design/assets/topology_to_markdown.py:29 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/probe_crossover_pairing_alternatives.py:16 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/probe_d1_verify.py:16 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/probe_group_split_reassembly.py:20 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/probe_l3_groups.py:7 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py:5 check_symmetry_dispositions
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py:5 find_hub_merge_candidates
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py:5 find_matching_candidates
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py:5 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py:28 run_full_circuit_audit_from_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py:28 save_instance_json
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/spice/stage1_cmrr_ngspice_crosscheck.py:30 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/spice/stage1_cmrr_sympy_derivation.py:44 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/spice/stage1_psrr_ngspice_crosscheck.py:24 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/spice/stage1_psrr_sympy_derivation.py:39 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/spice/stage2_battery_psrr_ngspice_crosscheck.py:19 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/spice/stage2_battery_psrr_sympy_derivation.py:43 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/spice/stage2_dump_exact_forms.py:14 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/spice/stage2_numeric_mna_validate.py:20 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/spice/stage2_rout_parallel_conjecture_check.py:19 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/spice/stage3_full_circuit_ngspice_crosscheck.py:18 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/spice/vg15_vop1_kcl_sympy_derivation.py:38 load_topology
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/stick.py:9 Transistor
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/stick.py:9 check_stick_diagram_coverage
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/stick.py:9 find_hub_merge_candidates
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/stick.py:9 find_matching_candidates
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/stick.py:9 save_instance_json
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/stick.py:9 search_shared_finger_w
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/structural_symmetry_probe.py:10 find_structural_symmetry_candidates
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/structural_symmetry_probe.py:10 load_topology
+E3b FAIL workspaces/run_harness.py:42 run_full_circuit_audit_from_topology
+E3b FAIL workspaces/run_harness.py:42 save_instance_json
+E3b FAIL workspaces/two-stage-ota-report/check_box_shape.py:19 run_full_circuit_audit_from_topology
+E3b FAIL workspaces/two-stage-ota-report/check_box_shape.py:19 save_instance_json
+E3b FAIL workspaces/two-stage-ota-report/check_box_shape_M5M7split.py:17 run_full_circuit_audit_from_topology
+E3b FAIL workspaces/two-stage-ota-report/check_box_shape_M5M7split.py:17 save_instance_json
+---- [e3+e3b @ syn/e3clean] HEAD=8d07e0c 블록=tmp.JMeALFqIEM B0=a796468889741bb7eb8da121ffefb0589cb2b769
+E3 PASS
+E3b LIVE moved_out=0 base_files_reading_moved_out=0 pre_existing=1
+E3b INVALID: base에서 SD 밖으로 나간 이름을 읽는 추적 파일 0(명령 고장 또는 base 오지정)
+---- [e3+e3b @ syn/e3nonascii(비ASCII importer)] HEAD=96ef817 블록=tmp.JMeALFqIEM B0=a796468889741bb7eb8da121ffefb0589cb2b769
+E3 FAIL:
+workspaces/k/probe_전압.py
+E3b LIVE moved_out=0 base_files_reading_moved_out=0 pre_existing=1
+E3b INVALID: base에서 SD 밖으로 나간 이름을 읽는 추적 파일 0(명령 고장 또는 base 오지정)
+---- [v6 E3 @ syn/e3nonascii(옛 블록 -- fail-open 재현)] HEAD=96ef817 블록=tmp.T63XoKcEYS B0=a796468889741bb7eb8da121ffefb0589cb2b769
+Traceback (most recent call last):
+  File "<string>", line 10, in <module>
+    src = subprocess.run(["git", "-C", iso, "show", rev + ":" + p], capture_output=True, check=True).stdout
+          ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['git', '-C', 'C:/g95b/repo', 'show', 'HEAD:"workspaces/k/probe_\\354\\240\\204\\354\\225\\225.py"']' returned non-zero exit status 128.
+E3 PASS
+---- [v6 E3 @ syn/e3clean(옛 블록)] HEAD=8d07e0c 블록=tmp.T63XoKcEYS B0=a796468889741bb7eb8da121ffefb0589cb2b769
+E3 PASS
+---- [e3+e3b @ syn/e3bnonascii(비ASCII SD reader)] HEAD=124a7f9 블록=tmp.JMeALFqIEM B0=a796468889741bb7eb8da121ffefb0589cb2b769
+E3 FAIL: sizing_recipe.py 있음
+E3 FAIL: topology_library.py 있음
+E3 FAIL: design_report.py 있음
+E3 FAIL:
+skills/analog-gmid-design/assets/tests/conftest.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py
+skills/analog-gmid-design/assets/tests/probe_physical_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_allocation_solvers.py
+skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py
+skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py
+skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py
+skills/analog-gmid-design/assets/tests/probes/probe_full_research.py
+skills/analog-gmid-design/assets/tests/probes/probe_gmid_gain_landscape.py
+skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py
+skills/analog-gmid-design/assets/tests/probes/probe_l5c_stage2out_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py
+skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_common_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_infeasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_error.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py
+skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py
+skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_stacked_diode_options.py
+skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py
+skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py
+skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py
+skills/analog-gmid-design/assets/tests/tools/regression_runner.py
+skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py
+workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py
+workspaces/current-reuse-telescopic-ota-report/resize.py
+workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py
+workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py
+workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py
+workspaces/run_harness.py
+workspaces/two-stage-ota-report/check_box_shape.py
+workspaces/two-stage-ota-report/check_box_shape_M5M7split.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep2.py
+E3b LIVE moved_out=62 base_files_reading_moved_out=31 pre_existing=1
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/structural_symmetry_probe.py:10 find_structural_symmetry_candidates
+E3b FAIL workspaces/k/sd_전압.py:2 find_structural_symmetry_candidates
+---- [e3+e3b @ syn/m9, 고장 B0(없는 커밋) -- 도구 오류 = FAIL] HEAD=c9dc128 블록=tmp.JMeALFqIEM B0=deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+E3 FAIL: sizing_recipe.py 있음
+E3 FAIL: topology_library.py 있음
+E3 FAIL: design_report.py 있음
+git grep failed: fatal: unable to parse object: deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+
+E3 FAIL(도구 오류 rc=1 rev=deadbeefdeadbeefdeadbeefdeadbeefdeadbeef)
+E3 FAIL:
+skills/analog-gmid-design/assets/tests/conftest.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py
+skills/analog-gmid-design/assets/tests/probe_physical_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_L_search_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_allocation_solvers.py
+skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py
+skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py
+skills/analog-gmid-design/assets/tests/probes/probe_classab_battery_headroom.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_min_vgs.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_self_consistency.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_vds_window.py
+skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py
+skills/analog-gmid-design/assets/tests/probes/probe_full_research.py
+skills/analog-gmid-design/assets/tests/probes/probe_gmid_gain_landscape.py
+skills/analog-gmid-design/assets/tests/probes/probe_interp_scheme_loo.py
+skills/analog-gmid-design/assets/tests/probes/probe_l5c_stage2out_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_lclass_warm_start.py
+skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py
+skills/analog-gmid-design/assets/tests/probes/probe_metric_tiers.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_common_L.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_infeasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_bound.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_ratio_error.py
+skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py
+skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py
+skills/analog-gmid-design/assets/tests/probes/probe_runtime_budget.py
+skills/analog-gmid-design/assets/tests/probes/probe_stack_headroom_feasibility.py
+skills/analog-gmid-design/assets/tests/probes/probe_stacked_diode_options.py
+skills/analog-gmid-design/assets/tests/probes/probe_supply_current.py
+skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py
+skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py
+skills/analog-gmid-design/assets/tests/tools/regression_runner.py
+skills/analog-gmid-design/assets/tests/unit/_library_sized_contexts.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py
+skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py
+workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py
+workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py
+workspaces/current-reuse-telescopic-ota-report/resize.py
+workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py
+workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py
+workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py
+workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py
+workspaces/run_harness.py
+workspaces/two-stage-ota-report/check_box_shape.py
+workspaces/two-stage-ota-report/check_box_shape_M5M7split.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep.py
+workspaces/two-stage-ota-report/diagnose_gain_sweep2.py
+E3b LIVE moved_out=0 base_files_reading_moved_out=0 pre_existing=0
+ERROR show deadbeefdeadbeefdeadbeefdeadbeefdeadbeef:skills/analog-gmid-design/assets/stick_diagram.py
+ERROR git grep deadbeefdeadbeefdeadbeefdeadbeefdeadbeef rc=128
+E3b FAIL workspaces/current-reuse-telescopic-ota-report/stick.py:9 block_from_row_widths
+E3b INVALID: base에서 SD 밖으로 나간 이름을 읽는 추적 파일 0(명령 고장 또는 base 오지정)
+E3b FAIL(도구 오류 rc=3)
+---- [import_any v7 @ 모의 M9 top(순환 있음), 올바른 GC] 트리=/c/g95b/tree_top GC=/c/g95b/repo/tools/gates 블록=tmp.XwKTxB7B8v
+IMPORT-ANY FAIL: design_report
+IMPORT-ANY FAIL: instance_report_builder
+IMPORT-ANY tried=13 expected=13 failed=2
+import_any rc=1
+---- [import_any v7 @ 모의 M9 bottom7(D-22 배치), 올바른 GC] 트리=/c/g95b/tree_bottom7 GC=/c/g95b/repo/tools/gates 블록=tmp.XwKTxB7B8v
+IMPORT-ANY tried=13 expected=13 failed=0
+import_any rc=0
+---- [import_any v7 @ 모의 M9 top, 고장 GC(없는 경로)] 트리=/c/g95b/tree_top GC=C:/g95b/no_such_gates 블록=tmp.XwKTxB7B8v
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import sys; sys.path.insert(0, sys.argv[1]); import import_layering as il; print(" ".join(il.mod_table(open(sys.argv[2], encoding="utf-8").read())))
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'import_layering'
+IMPORT-ANY INVALID: 모듈 목록 계산 실패
+import_any rc=2
+---- [import_any v7 @ base 트리, 올바른 GC] 트리=/c/g95b/repo GC=/c/g95b/repo/tools/gates 블록=tmp.XwKTxB7B8v
+IMPORT-ANY tried=5 expected=5 failed=0
+import_any rc=0
+---- [import_any v7 @ 잘못된 트리 루트(assets 없음)] 트리=C:/g95b/no_such_tree GC=/c/g95b/repo/tools/gates 블록=tmp.XwKTxB7B8v
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import sys; sys.path.insert(0, sys.argv[1]); import import_layering as il; print(" ".join(il.mod_table(open(sys.argv[2], encoding="utf-8").read())))
+                                                                                                           ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'C:/g95b/no_such_tree/docs/01-plan/features/gain-budget-gmid-sizing.plan.md'
+IMPORT-ANY INVALID: 모듈 목록 계산 실패
+import_any rc=2
+---- [import_any v6 @ 모의 M9 top, 고장 GC(옛 블록 -- 일부만 보고 재현)] 트리=/c/g95b/tree_top GC=C:/g95b/no_such_gates 블록=tmp.XwsMVCPQin
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import sys; sys.path.insert(0, sys.argv[1]); import import_layering as il; print(" ".join(il.mod_table(open(sys.argv[2], encoding="utf-8").read())))
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'import_layering'
+IMPORT-ANY FAIL: design_report
+import_any rc=0
+== 끝 2026-10-01T16:40:17+09:00

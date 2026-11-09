@@ -1,0 +1,31 @@
+c7 old line 1163 len 110 chunks 2 found_in_hist 2
+c7 old line 1163 len 209 chunks 3 found_in_hist 3
+c7 old line 1163 len 57 chunks 1 found_in_hist 1
+c7 old line 1163 len 163 chunks 2 found_in_hist 2
+c7 old line 1163 len 84 chunks 1 found_in_hist 1
+c7 old line 1163 len 210 chunks 3 found_in_hist 3
+c7 old line 1163 len 41 chunks 1 found_in_hist 1
+c7 old line 1163 len 50 chunks 1 found_in_hist 1
+c7 old line 2344 len 60 chunks 1 found_in_hist 1
+c7 old line 2344 len 1092 chunks 14 found_in_hist 14
+c7 old line 2344 len 362 chunks 5 found_in_hist 5
+c7 old line 2344 len 63 chunks 1 found_in_hist 1
+c7 old line 2344 len 222 chunks 3 found_in_hist 3
+c7 old line 2344 len 181 chunks 2 found_in_hist 1
+   MISSING sample: ['보간(로그 gds) -- 검증 5 m5-1)에서 그 평가의 |VGS|(소자 극성 일반형)로 조회한 R(W, L, |VGS|) ≥ R_req인 (']
+c7 old line 2344 len 68 chunks 1 found_in_hist 1
+c7 old line 2344 len 463 chunks 6 found_in_hist 4
+   MISSING sample: ['선택에 해가 있을 조건 R_max(|VGS|) ≥ R_req, 곧 C_c ≥ 1/(2π·f_low·R_max(|VGS|))(R_max = 그 평', '가 |VGS|에서 격자 R의 최대 -- 같은 DR-1 갈래가 쓰는 칸)를 연속 제약 행 하나로 둔다; 제약 행은 R_max·C_c를 READS만']
+c7 old line 2344 len 499 chunks 6 found_in_hist 6
+c7 old line 2344 len 98 chunks 1 found_in_hist 0
+   MISSING sample: ['m5-6), FD 열 0; writer = DC 블록의 DR-1 갈래 하나(노드 풀이 뒤 그 평가의 |VGS| = 게이트·고정 쪽 `node.d']
+c7 old line 2344 len 1353 chunks 17 found_in_hist 16
+   MISSING sample: ['되먹지 않아 순환 없음; |VGS|가 동작점마다 바뀌므로 평가마다 다시 고르고, 입력 버전이 같으면 graph reuse). **효율**(검증 ']
+c7 old line 2344 len 127 chunks 2 found_in_hist 2
+c7 old line 2346 len 50 chunks 1 found_in_hist 1
+c7 old line 2346 len 58 chunks 1 found_in_hist 0
+   MISSING sample: ['시 W_min·L_min + f_HP/GBW·τ 기록 toy, VSG가 바뀐 평가에서 선택이 다시 돎),']
+c8 old line 1853 len 41 chunks 1 found_in_hist 0
+   MISSING sample: ['`E/search/macro_poles.py:3-4`·`:316-328`)']
+c8 old line 2434 len 74 chunks 1 found_in_hist 0
+   MISSING sample: ['`gain_db`·`cmrr_estimate_db`·`psrr_estimate_db`·`classab_centering_dev_v`,']

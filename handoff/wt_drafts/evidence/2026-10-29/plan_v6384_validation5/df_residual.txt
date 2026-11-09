@@ -1,0 +1,18 @@
+11  규칙 대체)·F 성분 포트 함께 구동·P3 관계·'측정 구성 창 행 = 포화 행 + 전도 행 (R0)'·a_e 축·정의 불능 목록, N5.3 I-H3, N6.6 범위 1(전도 행·F 성분)·착수 실측 (d)·완료 조건 (8)(h)·(12)(b)·착수 조건 
+11  오라클·X-DE2·X-DE5, card RB-1 대상 소멸(N6.1 행·N6.25·DEC-102), DEC-23 판정 분해능 괄호, N5.3 I-H2, 후속 정정 표(oracle-portability servo 바꾸기 취소·N3.9 ICMR·슬루 행, de
+11 로 언급(Summary·N0.3·N0.4 운영 경로·N2.1 머리·DEC-26·DEC-82·tol_V·N3.10·N3.11·N3.13·N5.1·DF-19·N6.1 레인 P·옛 Phase 표·N8 위험)을 태그 참조로, N9.1에 `LT1-md-renderer`
+11 N8 옛 엔진 대조 범위 밖, N8 정밀 경로 U-66, DOF 좌표 주석, U-71~U-74 신설; 결정 반영 동기화: U-67 (나) 확정·I-A13 처리("U-67은 (나)로"); U-66 (가) 확정("U-66은 (가)로"); U-63 (가) 확정("U
+261  함수 4개)**로 등록돼 있고, 회로별 실행 spec 함수는 옛 DF-34, 파일럿 넷 이름·topology 경로가 박힌 운영 metric은 DF-29다**. 새 엔진은 이 재발을 회로·소자·넷 이름 리터럴 금지 test로 처음부터 막는다(N4.2 머리 이식
+278  표시 단위다(DEC-68 표시 단위 접두 규칙) -- 면적 축 bin 폭·차 기록은 정본 단위로 계산하고 환산은 보고에서만 한다. 이 결정이 I-A2를 닫고, U-13에는 "면적 예산을 선언할지"만 남는다 | GB8, GB6, MOD7, MOD8 | 미구현
+287 SPICE 판정 `vds_ge_vdsat`보다 보수적), VDsat = LUT `VDSAT` 열 보간(오라클 `@m[vdsat]`과 같은 양, DF-25를 대체), tol_VDsat = VDSAT 열 leave-one-out 셀값(DEC-87 방법). 열이 생
+383  엔진에 넣지 않음(둘째 생산자·θ 사본·근거 없는 상수); 별도 항목 = ngcc 단계 A `dc_role` 묶음 사실(공동 해석, N5.3 I-H4)·sf_pushpull·current_reuse DC 봉인 실패 조사(I-H5). **원래 취지와 다름(승
+383 cc 단계 A `dc_role` 묶음 사실(공동 해석, N5.3 I-H4)·sf_pushpull·current_reuse DC 봉인 실패 조사(I-H5). **원래 취지와 다름(승인 O-164)**: 실험 변형(H0r)의 판정 결과를 완료 판정 기준선으로 씀
+383 정 기준) | DEC-105, card WB-1·RS-1·CPG-1(N6.32~N6.34)·LA-1 범위 15·SF-1 범위 8·9, N5.3 I-H4·I-H5(v6.38.4 백로그 재감사로 이관 -- I-H4 = N5.3 Q-3, I-H5 = card LA
+383  | DEC-105, card WB-1·RS-1·CPG-1(N6.32~N6.34)·LA-1 범위 15·SF-1 범위 8·9, N5.3 I-H4·I-H5(v6.38.4 백로그 재감사로 이관 -- I-H4 = N5.3 Q-3, I-H5 = card LA-0·LA
+383 PG-1(N6.32~N6.34)·LA-1 범위 15·SF-1 범위 8·9, N5.3 I-H4·I-H5(v6.38.4 백로그 재감사로 이관 -- I-H4 = N5.3 Q-3, I-H5 = card LA-0·LA-1 범위 15 (f), 원문 history H2)
+399  구조 분류 -- 규칙 하나'(옛 D3 대응 문장·13회로 표 표지), N6.6 '순서' 병합 조건, N6.8 착수 조건 (iii), N5.3 I-H1(v6.38.4 백로그 재감사로 이관 -- card DR-1·N5.3 Q-4, 원문 history H2) |
+1148  재감사에서 35행이 다른 결정·구조 규칙·엔진 test로 닫혔거나 재작성으로 대상이 사라져 지웠고, 할 일이 남은 둘은 card로 배정했다: DF-37(N3.14 클래스가 `ValueError` 하위라 `except ValueError`가 삼킬 수 있음) →
+1148 or` 하위라 `except ValueError`가 삼킬 수 있음) → card LT-1 범위 (10)(N6.4, 승인 대기 BL-DF37), DF-18(최상위 진입점의 exit code·θ* 기록) → card OS-2 완료 조건(offset-strategy
+1821 h/layer0_center.py:1-9` 모듈 머리 "층 0 최소형 시작점 -- … (계획 DEC-71 최소형 = R D18·U-49·PUD DF-10, 오케스트레이터 결정 2026-10-08 'feasibility centering')", "블록 gain 
+2427 sample.npz`는 VS 축 0~0.8 V 5점이고 CGS·CGB 열이 없다(실측). 담당 Phase 4(`40-defect-fixes`, DF-27과 같은 design). 선행 조건: (1) 옛 DF-27 축 커버리지 게이트 red test가 옛 표본 L
+total 17

@@ -1,0 +1,162 @@
+=== replace old 11-11 new 11-11 (oldlen 65391 newlen 65554)
+  [line old 11/new 11] replace: -<<보류)·tol_V>> +<<보류)·**Q-T0 tol_V>>
+  [line old 11/new 11] delete: -<<정정(사용자 결정 11 문언 회복 >> +<<>>
+  [line old 11/new 11] replace: -<<확인)(Q-A1·Q-2>> +<<실측 후 결정**(card WB-1 착수 실측, v6.38.4 스무째 커밋 계획 검증 8 M2)(Q-A1·Q-2>>
+  [line old 11/new 11] replace: -<<스탬프,>> +<<스탬프·R_min 종류 후보 조건,>>
+  [line old 11/new 11] replace: -<<PDK>> +<<이상>>
+  [line old 11/new 11] replace: -<<셀(오라클>> +<<R>>
+  [line old 11/new 11] replace: -<<저항>> +<<+>>
+  [line old 11/new 11] replace: -<<모델>> +<<C_par/2(기생 C 추가로 오라클 PM 기준선>>
+  [line old 11/new 11] replace: -<<열일곱째>> +<<스무째>>
+  [line old 11/new 11] replace: -<<6>> +<<8>>
+  [line old 11/new 11] replace: -<<n-5);>> +<<M5)·Q-P8 (A)(U-130·O-166 연속 손가락 폭 → 슬라이스 폭 -- (A) 채택 시)·DEC-92 (3) O-172 한계 문언 철회(실측 R_S/R_null 0.98·1.12·1.00);>>
+  [line old 11/new 11] replace: -<<묶음'·'아홉째'·'열째·열한째'·'열둘째'·'열셋째'·'열넷째'·'열다섯째'·'열여섯째'·'열일곱째'·'열여덟째'·'열아홉째'>> +<<묶음'·'아홉째'·'열째·열한째'·'열둘째'·'열셋째'·'열넷째'·'열다섯째'·'열여섯째'~'스무째'>>
+=== replace old 287-287 new 287-287 (oldlen 1045 newlen 1053)
+  [line old 287/new 287] replace: -<<정정(N3.6)>> +<<실측(N5.3>>
+  [line old 287/new 287] replace: -<<뒤>> +<<Q-T0) 때 함께>>
+=== replace old 291-291 new 291-291 (oldlen 2049 newlen 2236)
+  [line old 291/new 291] replace: -<<결론>> +<<결론:>>
+  [line old 291/new 291] replace: -<<불변):>> +<<R_S = 출발값·MNA 판정은 같다; 다만 승인된 O-172 '한계' 문언(Σgm 과소 서술, 'S 셀 집합에 AC로 같은 출력 노드를 구동하는 소자를 넣을지는 design 판정, 규칙 확장이면 사용자 결정')은 실측(R_S/R_null 0.98·1.12·1.00)으로 철회 -- **원래 취지와 다름**, 승인 대기 v6.38.4 스무째 커밋 계획 검증 8 M5):>>
+  [line old 291/new 291] replace: -<<§2.1))는 출발값(손계산)으로만 쓴다(O-33>> +<<§2.1))(O-33>>
+=== replace old 304-304 new 304-304 (oldlen 28015 newlen 28660)
+  [line old 304/new 304] replace: -<<열거·선택과>> +<<'열거'(m마다 후보를 세움); 선택 규칙·실패 조건은 안마다 -- (A)는 (A) 칸, (B)는>>
+  [line old 304/new 304] replace: -<<(4)·(5)):>> +<<(4)·(5) -- v6.38.4 스무째 커밋 계획 검증 8 M4):>>
+  [line old 304/new 304] insert: -<<>> +<<슬라이스 집합 위 열거에서 >>
+  [line old 304/new 304] replace: -<<쪽(아래>> +<<쪽(기준>>
+  [line old 304/new 304] replace: -<<(4)의>> +<<폭 근거 -- 용량·잡음·mismatch 열을>>
+  [line old 304/new 304] replace: -<<근거).>> +<<표에서 읽으므로 손가락 기하를 기준 폭에 가깝게). 실패 = W_min 이상·w_hi 이하 슬라이스가 하나도 없을 때만 fail-closed(사유 = 실현 불능, 이름 design; (A)에는 연속해 개념이 없음). **원래 취지와 다름**(U-130·O-166의 'w_f = W/m(제조 격자)' 연속 손가락 폭을 슬라이스 폭 집합으로 -- W′ ≠ W; (A) 채택 시).>>
+  [line old 304/new 304] insert: -<<>> +<<W′·바이어스 고정 KCL로 다시 푼다(LY7 >>
+  [line old 304/new 304] replace: -<<W′에서>> +<<재평가와 같은 틀 -- 섭동 질문, O-108) 뒤 봉인을>>
+  [line old 304/new 304] replace: -<<푼다>> +<<적용한다(포화>>
+  [line old 304/new 304] replace: -<<-->> +<<포함,>>
+  [line old 304/new 304] replace: -<<쓰기>> +<<E-0). 무엇이 움직이는지는 회로가 정한다: 전류가 정해진>>
+  [line old 304/new 304] delete: -<< θ ln IDu로 W가 나오므로 r만큼 θ ID가, 종속 소자는 KCL이 정한 전류 I에서 그 슬라이스 LUT 역산으로 VGS를 다시 풀어>> +<<>>
+  [line old 304/new 304] replace: -<<r)/(gm/ID)만큼>> +<<r)/(gm/ID)(1차>>
+  [line old 304/new 304] replace: -<<동작점이>> +<<추정), 게이트 전압이 정해진 소자(미러 출력)는 ΔI/I ≈ r이고 그 결과 노드 전압이>>
+  [line old 304/new 304] replace: -<<이것은>> +<<같은>>
+  [line old 304/new 304] replace: -<<실현>> +<<W의>>
+  [line old 304/new 304] replace: -<<기하>> +<<matching>>
+  [line old 304/new 304] replace: -<<재평가(LY7)와>> +<<쌍은>>
+  [line old 304/new 304] replace: -<<꼴이고,>> +<<(m, w_s)라 비가 보존되고, 비가 다른 미러는 비 오차 (1 + r₁)/(1 + r₂)가 계통 offset metric에 나타난다(E-1이 판정).>>
+  [line old 304/new 304] replace: -<<점이다.>> +<<점이다(v6.38.4 스무째 커밋 계획 검증 8 m1).>>
+  [line old 304/new 304] replace: -<<%(model_error).>> +<<%(model_error; 근거 = W 축 보간 오차 실측 `wt/_drafts/evidence/2026-10-29/plan_v6384_validation2/p8_indep/`(최대 8.6 mV, nfet L 0.15 µm)의 IDu 환산 -- 점별 % 환산 기록은 card WB-1 착수 실측; v6.38.4 스무째 커밋 계획 검증 8 m6).>>
+  [line old 304/new 304] replace: -<<0·DEC-92 (3) 정확형 조건에서>> +<<0에서>>
+  [line old 304/new 304] replace: -<<일반>> +<<그 밖>>
+  [line old 304/new 304] insert: -<<>> +<< θ 탐색·MNA가 받음,>>
+  [line old 304/new 304] replace: -<<'조건과>> +<<손계산>>
+  [line old 304/new 304] replace: -<<물리 결정자', v6.38.4);>> +<<모델);>>
+=== replace old 619-619 new 619-619 (oldlen 2128 newlen 2149)
+  [line old 619/new 619] replace: -<<VDS)이고,>> +<<VDS)이고>>
+  [line old 619/new 619] replace: -<<셀은>> +<<셀>>
+  [line old 619/new 619] replace: -<<**축별>> +<<값은>>
+  [line old 619/new 619] replace: -<<성분**(VGS·VDS·VS·L)을>> +<<그>>
+  [line old 619/new 619] replace: -<<따로>> +<<셀>>
+  [line old 619/new 619] replace: -<<담는다. 조회점의 tol_V = **그 조회점에서 실제로 보간하는 축 성분**의>> +<<안의>>
+  [line old 619/new 619] delete: -<< L이 앵커와 같으면 L 성분을 넣지 않는다(앵커 조회에는 L 보간이 없음).>> +<<>>
+  [line old 619/new 619] replace: -<<최댓값이다(v6.38.4>> +<<최댓값이다.>>
+  [line old 619/new 619] replace: -<<열아홉째 커밋 단순화 -- tol_V 계열 재검토 A, 사용자 결정 11(`wt/_drafts/user_decisions.md` 133행 'L은 앵커 이산값만, tol_V는 남은 보간 축 기준') 문언 회복; 실측: 앵커 조회에 L 성분이 들어가 25~60배 과대, 이웃 L 사이 10³~10⁴배 불연속 -- `wt/_drafts/evidence/2026-10-29/tolv_family_rereview.md` §1.1). **용도 한정**:>> +<<**용도**:>>
+  [line old 619/new 619] insert: -<<>> +<< **셀 구성 정정 -- 실측 후 결정(N5.3 Q-T0)**(v6.38.4 스무째 커밋 계획 검증 8 M2): 조회점에서 실제로 보간하는 축 성분만(앵커 조회는 L 성분 0 -- 사용자 결정 11 문언 회복)으로 고칠지는, tol_V가 자기 정합 허용오차로 맞는지(수렴 허용오차와 LUT 해상도의 관계)와 함께 실측 뒤 정한다. 고치면 봉인 1·2·3·8과 tol_I가 25~60배 조여져 거짓 거부 위험이 있다(미측정). 담당 card = WB-1(범위 3이 노드 풀이·허용오차·봉인을 DC 블록 하나로 합침 -- N3.3 배정 표 D행 `tol_v_cell`), 착수 조건 = 9회로 봉인 거부 변화(봉인 1·2·3·8·9, 노드 잔차 대 새 tol_I 분포) 실측.>>
+=== replace old 1165-1166 new 1165-1167 (oldlen 1670 newlen 2079)
+ - | Q-E1 | (v6.38.4 열아홉째 커밋 단순화 -- **근본원칙 확장, 사용자 승인 대기**; 손계산 원칙 감사 `wt/_drafts/evidence/2026-10-29/handcalc_principle_audit.md` §4) **손계산 오차 범위 결정 규칙** -- 이 계획에서 오차 크기 판정이 필요한 항목(SF-1 범위 9 저항 모델, LA-0 (5) 포화 여유 대조, WB-1 손가락 잔차·보간 오차, P8 Q-P8 등)은 이 자리를 참조한다. **E-0 물리 관문**(오차 범위가 아니다 -- 크기와 무관하게 fail-closed): 봉인점은 '말이 되는 동작점'이다 -- 노드 KCL·KVL 자기 정합(봉인 1·2·3, 고친 tol_V 해상도), 모든 소자가 SPICE 표본 위(LUT 정의역, 슬라이스 폭, L 앵커·bin), 선언 영역 성립(봉인 7), 실현 가능(W_min, R ≥ R_min, 제조 격자). **E-1 오차 합리성 = 결정 불변**: (회로, metric) m의 손계산 오차 e_m은 ME-1이 잰 DEC-72 값이다. front·선택 점 p마다 엔진 여유 s_m(p) = metric − spec 경계로 판정한다 -- (a) \|s_m(p)\| > e_m이면 엔진 판정과 오라클 판정이 같아야 한다(다르면 e_m 과소 기록 또는 손계산 꼴 결함 → 해당 card) (b) \|s_m(p)\| ≤ e_m이면 손계산 분해능 안이고 판정은 오라클이 한다(DEC-98) (c) 목적 축 순위는 bin = max(DEC-80 분해능, e)로 가른다(NFR-5와 같은 꼴); e_m 미측정이면 판정 보류·값 '추정'(DEC-72). **E-2 정밀화 받아들임**: 엔진에 SPICE 쪽 정밀화(새 LUT 축·자료, 셀 모형, 추가 풀이, 새 판정 정의)를 넣는 조건은 (1) E-0을 깨는 경우 또는 (2) ME-1 실측에서 그 원천이 지배하는 e_m이 E-1 (a)를 어기거나 guard band 비용이 목적 축 bin보다 큰 경우뿐이고, 넣을 때는 그 metric의 e_m 전·후 실측을 완료 조건으로 둔다(사전 정밀도 비교 'SPICE 대비 몇 %'·'tol_V 이하'는 근거가 아님; ME-1 전 설계 선택은 물리 상계 추정 -- '추정' 표기). 실측 가능성: 지금 front가 있는 회로 1/9(common_gate), 9/9는 card LA-1·ME-1 뒤. 새 상수 0(spec 여유·bin·model_error). ⚠ E-2를 넣지 않으면 검증이 '정확히 같은가'를 기준으로 쓰는 일이 되풀이된다(이번 판 검증 1~7 사례) | 사용자 승인 |
+ - | Q-P8 | (v6.38.4 열아홉째 커밋 단순화 -- 손계산 원칙 감사 §2.2) 손가락 선택의 두 안(DEC-105 (2)): **(A) 슬라이스 고정**(권고 후보 -- 실현 w_f ∈ 기존 LUT 슬라이스 폭, 잔차 = W 격자 분해능을 W′ 재풀이로 받음, LUT 비용 0, 규칙 하나) / **(B) bin 양 끝 슬라이스 + 1/w·ln ID 보간**(LUT 약 2배 1회, IDu 오차 ≤ 8.7 %). 공통 = 열거·선택. ⚠ m = 1 좁은 pfet 7점(2/9 회로)에서 (A) 잔차 최대 37 %(ΔVGS 추정 ≤ 31 mV) -- E-1이 판정. ⚠ as-built 가까운 슬라이스 값은 물리 부정합이라 대안에서 제외 | card WB-1 design 착수 전 |
+ + | Q-E1 | (v6.38.4 열아홉째 커밋 단순화 -- **근본원칙 확장, 사용자 승인 대기**; 손계산 원칙 감사 `wt/_drafts/evidence/2026-10-29/handcalc_principle_audit.md` §4) **손계산 오차 범위 결정 규칙** -- 이 계획에서 오차 크기 판정이 필요한 항목(SF-1 범위 9 저항 모델, LA-0 (5) 포화 여유 대조, WB-1 손가락 잔차·보간 오차, P8 Q-P8 등)은 이 자리를 참조한다. **E-0 물리 관문**(오차 범위가 아니다 -- 크기와 무관하게 fail-closed): 봉인점은 '말이 되는 동작점'이다 -- 노드 KCL·KVL 자기 정합(봉인 1·2·3, tol_V 해상도 -- 셀 구성은 Q-T0), 모든 소자가 SPICE 표본 정의역 위(LUT 정의역, 선택된 손가락 규칙(Q-P8)의 실현 폭 -- (A) 슬라이스 폭 / (B) 슬라이스 bin 안 보간 구간, L 앵커·bin -- v6.38.4 스무째 커밋 계획 검증 8 M4), 선언 영역 성립(봉인 7), 실현 가능(W_min, R ≥ R_min, 제조 격자). **E-1 오차 합리성 = 결정 불변**: (회로, metric) m의 손계산 오차 e_m은 ME-1이 잰 DEC-72 값이다. front·선택 점 p마다 엔진 여유 s_m(p) = metric − spec 경계로 판정한다 -- (a) \|s_m(p)\| > e_m이면 엔진 판정과 오라클 판정이 같아야 한다(다르면 e_m 과소 기록 또는 손계산 꼴 결함 → 해당 card) (b) \|s_m(p)\| ≤ e_m이면 손계산 분해능 안이고 판정은 오라클이 한다(DEC-98) (c) 목적 축 순위는 bin = max(DEC-80 분해능, e)로 가른다(NFR-5와 같은 꼴); e_m 미측정이면 판정 보류·값 '추정'(DEC-72). **E-2 정밀화 받아들임**: 엔진에 SPICE 쪽 정밀화(새 LUT 축·자료, 셀 모형, 추가 풀이, 새 판정 정의)를 넣는 조건은 (1) E-0을 깨는 경우 또는 (2) ME-1 실측에서 그 원천이 지배하는 e_m이 E-1 (a)를 어기거나 guard band 비용이 목적 축 bin보다 큰 경우뿐이고, 넣을 때는 그 metric의 e_m 전·후 실측을 완료 조건으로 둔다(사전 정밀도 비교 'SPICE 대비 몇 %'·'tol_V 이하'는 근거가 아님; ME-1 전 설계 선택은 물리 상계 추정 -- '추정' 표기). 실측 가능성: 지금 front가 있는 회로 1/9(common_gate), 9/9는 card LA-1·ME-1 뒤. 새 상수 0(spec 여유·bin·model_error). ⚠ E-2를 넣지 않으면 검증이 '정확히 같은가'를 기준으로 쓰는 일이 되풀이된다(이번 판 검증 1~7 사례) | 사용자 승인 |
+ + | Q-P8 | (v6.38.4 열아홉째 커밋 단순화 -- 손계산 원칙 감사 §2.2) 손가락 선택의 두 안(DEC-105 (2)): **(A) 슬라이스 고정**(권고 후보 -- **원래 취지와 다름**: U-130·O-166의 연속 손가락 폭 w_f = W/m을 슬라이스 폭 집합으로, W′ ≠ W; 실현 w_f ∈ 기존 LUT 슬라이스 폭, 잔차 = W 격자 분해능을 W′ 재풀이로 받음, LUT 비용 0, 규칙 하나) / **(B) bin 양 끝 슬라이스 + 1/w·ln ID 보간**(LUT 약 2배 1회, IDu 오차 ≤ 8.7 %). 공통 = 열거·선택. ⚠ m = 1 좁은 pfet 7점(2/9 회로)에서 (A) 잔차 최대 37 %(ΔVGS 추정 ≤ 31 mV) -- E-1이 판정. ⚠ as-built 가까운 슬라이스 값은 물리 부정합이라 대안에서 제외 | card WB-1 design 착수 전 |
+ + | Q-T0 | (v6.38.4 스무째 커밋 계획 검증 8 M2 -- 실측 후 결정) tol_V 셀 구성: 조회점에서 실제 보간하는 축 성분만(앵커 조회 L 성분 0 -- 사용자 결정 11 문언 회복)으로 고칠지. tol_V가 자기 정합 허용오차로 맞는지(수렴 허용오차와 LUT 해상도의 관계)를 함께 본다. ⚠ 고치면 봉인이 25~60배 조여져 거짓 거부 위험(미측정) | card WB-1 착수 실측(9회로 봉인 거부 변화) 뒤 |
+=== replace old 1317-1317 new 1318-1318 (oldlen 184 newlen 272)
+  [line old 1317/new 1318] replace: -<<같은가(동일성)'는>> +<<수치가 같은가(수치 동일성)'는>>
+  [line old 1317/new 1318] insert: -<<>> +<< 정의 동일성(엔진·오라클이 같은 양을 같은 정의로 쓰는지 -- graph 규칙 3)은 기준이다(v6.38.4 스무째 커밋 계획 검증 8 m5).>>
+=== replace old 1884-1884 new 1885-1885 (oldlen 1598 newlen 1473)
+  [line old 1884/new 1885] replace: -<<판정:>> +<<LA-0>>
+  [line old 1884/new 1885] replace: -<<부호가>> +<<(5)는>>
+  [line old 1884/new 1885] replace: -<<같으면>> +<<**대조표>>
+  [line old 1884/new 1885] replace: -<<일치;>> +<<기록만**>>
+  [line old 1884/new 1885] replace: -<<부호가>> +<<한다(판정하지>>
+  [line old 1884/new 1885] replace: -<<다르고>> +<<않음>>
+  [line old 1884/new 1885] replace: -<<|s_eng|가>> +<<-->>
+  [line old 1884/new 1885] replace: -<<오차>> +<<v6.38.4>>
+  [line old 1884/new 1885] replace: -<<범위>> +<<스무째>>
+  [line old 1884/new 1885] replace: -<<밖이면>> +<<커밋>>
+  [line old 1884/new 1885] replace: -<<규칙>> +<<계획>>
+  [line old 1884/new 1885] replace: -<<결함(HC-S>> +<<검증>>
+  [line old 1884/new 1885] replace: -<<촉발);>> +<<8>>
+  [line old 1884/new 1885] replace: -<<안이면>> +<<M1:>>
+  [line old 1884/new 1885] replace: -<<손계산>> +<<LA-0은>>
+  [line old 1884/new 1885] replace: -<<예상>> +<<ME-1>>
+  [line old 1884/new 1885] replace: -<<오차(model_error 기록);>> +<<전이라>>
+  [line old 1884/new 1885] replace: -<<정해지지 않았거나 측정되지 않은 점은 판정 불능(fail-closed, 0으로 대체하지 않음). 오차 범위 = N5.3 Q-E1(결정 대기 -->> +<<없음;>>
+  [line old 1884/new 1885] replace: -<<Δs 자체를>> +<<Δs를>>
+  [line old 1884/new 1885] replace: -<<퇴화하므로 범위는 그 점 밖의 기록(DEC-72·SPICE 대조 기록)에서 와야 함; 소자별>> +<<퇴화함).>>
+  [line old 1884/new 1885] delete: -<< 차는 N3.6 SPICE 대조 '기록만' 목록에 둠 -- 엔진 VDsat 대 SPICE vdsat>> +<<>>
+  [line old 1884/new 1885] replace: -<<칸이다(둘째>> +<<칸이다(소자별 VDsat 차는 N3.6 SPICE 대조 '기록만' 목록 -- 둘째>>
+  [line old 1884/new 1885] replace: -<<금지)).>> +<<금지).>>
+  [line old 1884/new 1885] replace: -<<U-122는>> +<<**U-122>>
+  [line old 1884/new 1885] replace: -<<같은>> +<<판정**은>>
+  [line old 1884/new 1885] replace: -<<기준으로>> +<<ME-1>>
+  [line old 1884/new 1885] replace: -<<닫는다:>> +<<뒤로>>
+  [line old 1884/new 1885] replace: -<<(i)>> +<<옮겨,>>
+  [line old 1884/new 1885] delete: -<< 소자의 엔진 대 SPICE VDsat·VDS 차와 (ii) 그>> +<<>>
+  [line old 1884/new 1885] replace: -<<metric>> +<<metric의>>
+  [line old 1884/new 1885] replace: -<<차가>> +<<E-1>>
+  [line old 1884/new 1885] replace: -<<범위>> +<<판정(N5.3>>
+  [line old 1884/new 1885] replace: -<<안이면>> +<<Q-E1)으로>>
+  [line old 1884/new 1885] replace: -<<닫힘>> +<<한다>>
+  [line old 1884/new 1885] replace: -<<범위>> +<<E-1>>
+  [line old 1884/new 1885] replace: -<<밖>> +<<(a)>>
+  [line old 1884/new 1885] replace: -<<규칙>> +<<위반(|s_m|>>
+  [line old 1884/new 1885] replace: -<<결함이>> +<<> e_m인데 엔진·오라클 판정이 다름)이>>
+  [line old 1884/new 1885] replace: -<<0건이면>> +<<규칙 결함 0건 **그리고 판정 불능 0건**이면>>
+=== replace old 2197-2197 new 2198-2198 (oldlen 4969 newlen 5470)
+  [line old 2197/new 2198] replace: -<<R·w/rsheet(머리>> +<<R/r_l(머리>>
+  [line old 2197/new 2198] replace: -<<무시)에서>> +<<무시; r_l = 고정 폭 셀의 `rsheet`, 단위 Ω/µm -- 같은 양 = R·w/R□, R□ = Ω/sq; v6.38.4 스무째 커밋 계획 검증 8 m2 기호 고정)에서>>
+  [line old 2197/new 2198] replace: -<<**실현>> +<<**저항>>
+  [line old 2197/new 2198] replace: -<<하한>> +<<종류별 실현 범위>>
+  [line old 2197/new 2198] replace: -<<R_min**(E-0>> +<<R_min(종류)**(E-0>>
+  [line old 2197/new 2198] replace: -<<한>> +<<v6.38.4>>
+  [line old 2197/new 2198] replace: -<<셀로>> +<<스무째 커밋 계획 검증 8 M3·m3): R_min(종류) = 그 종류 선언 셀 하나로>>
+  [line old 2197/new 2198] replace: -<<없는>> +<<있는>>
+  [line old 2197/new 2198] replace: -<<R은>> +<<최소>>
+  [line old 2197/new 2198] replace: -<<말이>> +<<R이다(정의:>>
+  [line old 2197/new 2198] replace: -<<안>> +<<min_l>>
+  [line old 2197/new 2198] replace: -<<되는>> +<<R_cell(l),>>
+  [line old 2197/new 2198] replace: -<<동작점):>> +<<ΔV>>
+  [line old 2197/new 2198] replace: -<<R_min은>> +<<= 0, typical -- 셀 식은 오라클 시뮬레이터 평가 의미, 판·호환 모드는 OP-7 선언 자리; 예 high_po_0p35 ≈ 1701 Ω). 이 값은 기존 종류 선택 규칙(`E/core/pdk_decl.py:551-566` Ω당 면적 최소)의 **후보 조건**이다: R ≥ R_min(종류)인 후보 가운데 Ω당 면적 최소(새 상수 0, 기존 규칙에 정의역만 더함).>>
+  [line old 2197/new 2198] replace: -<<셀>> +<<R을>>
+  [line old 2197/new 2198] replace: -<<종류에서 한 번 재서 기록하는 PDK 특성값이다.>> +<<실현하는>>
+  [line old 2197/new 2198] replace: -<<자리>> +<<종류가 하나도 없을 때만 실현 불능 fail-closed다(사유 이름 design). 적용 = θ R과 값 선언 R(DUT). 실측: heldout rfc_ota RB 1412 Ω(값 선언, 원문 p.34 Fig.9)은 high_po R_min보다 작아 다른 종류로 실현되고, current_reuse R_S 1816 Ω은 high_po R_min의 6.8 % 위다. **R_min 생성**: 선언 칸>>
+  [line old 2197/new 2198] replace: -<<출처>> +<<값>>
+  [line old 2197/new 2198] replace: -<<아님;>> +<<아님),>>
+  [line old 2197/new 2198] replace: -<<예>> +<<생성>>
+  [line old 2197/new 2198] replace: -<<high_po_0p35>> +<<실행>>
+  [line old 2197/new 2198] replace: -<<R_min>> +<<=>>
+  [line old 2197/new 2198] replace: -<<≈>> +<<card>>
+  [line old 2197/new 2198] replace: -<<1701>> +<<SF-1>>
+  [line old 2197/new 2198] replace: -<<Ω).>> +<<범위>>
+  [line old 2197/new 2198] replace: -<<θ>> +<<9의>>
+  [line old 2197/new 2198] replace: -<<R>> +<<data>>
+  [line old 2197/new 2198] replace: -<<<>> +<<커밋(OP-7>>
+  [line old 2197/new 2198] replace: -<<R_min이면>> +<<'선언>>
+  [line old 2197/new 2198] replace: -<<실현>> +<<writer>>
+  [line old 2197/new 2198] replace: -<<불능>> +<<실행'과>>
+  [line old 2197/new 2198] replace: -<<fail-closed다(θ>> +<<같은>>
+  [line old 2197/new 2198] replace: -<<상자 하한과의 관계는 design). 실측: current_reuse R_S 1816 Ω이 R_min의 6.8 % 위라 이 검사를 지우면 깨진다.>> +<<꼴).>>
+  [line old 2197/new 2198] replace: -<<검사를>> +<<종류 후보 조건을>>
+  [line old 2197/new 2198] replace: -<<R·w/rsheet)>> +<<R/r_l)>>
+  [line old 2197/new 2198] replace: -<<값>> +<<값(예 1 MΩ → 약 125 fF)>>
+=== replace old 2271-2271 new 2272-2272 (oldlen 916 newlen 910)
+  [line old 2271/new 2272] replace: -<<문언·`slice_cycle`·`finger_below_min`·`zero_cancel_s_coupled`>> +<<문언·`slice_cycle`·`finger_below_min`>>
+  [line old 2271/new 2272] replace: -<<P8 승인 뒤 그>> +<<Q-P8>>
+  [line old 2271/new 2272] replace: -<<맞춤(`zero_cancel_s_coupled`는>> +<<맞추고,>>
+  [line old 2271/new 2272] replace: -<<DEC-92>> +<<`zero_cancel_s_coupled` 사유는 지운다(DEC-92>>
+  [line old 2271/new 2272] replace: -<<표지일>> +<<출력이>>
+  [line old 2271/new 2272] replace: -<<뿐>> +<<없어져 소비자 0>>
+  [line old 2271/new 2272] replace: -<<열아홉째>> +<<스무째>>
+  [line old 2271/new 2272] replace: -<<단순화)>> +<<계획 검증 8 m4)>>
+=== replace old 2528-2528 new 2529-2529 (oldlen 462 newlen 530)
+  [line old 2528/new 2529] replace: -<<card LA-0 측정 (5)(B88 약반전 포화 대조 -- v6.38.4 백로그 재감사 배정)>> +<<ME-1>>
+  [line old 2528/new 2529] replace: -<<불일치면>> +<<card LA-0 (5) 대조표(기록)를 입력으로 이득·rout metric의 E-1 판정(N5.3 Q-E1): E-1 (a) 위반이면>>
+  [line old 2528/new 2529] insert: -<<>> +<<규칙 결함 0건 그리고 판정 불능 >>
+  [line old 2528/new 2529] replace: -<<닫힘>> +<<닫힘(v6.38.4 스무째 커밋 계획 검증 8 M1)>>
+=== replace old 2540-2540 new 2541-2541 (oldlen 2215 newlen 2207)
+  [line old 2540/new 2541] replace: -<<0·DEC-92>> +<<0(DEC-92>>
+  [line old 2540/new 2541] replace: -<<정확형>> +<<손계산>>
+  [line old 2540/new 2541] replace: -<<조건, v6.38.4:>> +<<모델):>>

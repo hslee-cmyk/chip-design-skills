@@ -1,0 +1,13 @@
+{
+ "mode": "einst",
+ "circuit": "two_stage_ota",
+ "elapsed_s": 26.0,
+ "instance_exists": false,
+ "calls": 0,
+ "calls_with_relaxed": 0,
+ "relaxed_entries": 0,
+ "mismatch_entries": 0,
+ "interdig_values": [],
+ "core_seq_sha": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+ "relaxed_detail": []
+}

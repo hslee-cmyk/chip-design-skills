@@ -1,0 +1,74 @@
+{
+ "circuit_key": "two_stage_ota",
+ "topology_path": "C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota.topology.json",
+ "repo_root": "C:/g452/repo",
+ "lut_path": "C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\sky130_nfet_pfet_lut_sample.npz",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0,
+  "W_ref_m": 5e-06
+ },
+ "spec_scalars": {
+  "_spec_source": "run_harness.SPECS",
+  "vdd": 1.8,
+  "L_grid_step": 5e-09,
+  "GBW": 7000000.0,
+  "CL": 3e-12,
+  "Z": 10.0,
+  "NDP": 4.0,
+  "stage_gain_min": [
+   31.622776601683793,
+   31.622776601683793
+  ],
+  "L_min": 1.5e-07,
+  "L_min_by_kind": {
+   "nmos": 1.5e-07,
+   "pmos": 1.5e-07
+  },
+  "W_bounds": [
+   1e-06,
+   0.0002
+  ],
+  "min_vds_by_role": {
+   "cascode": 0.2,
+   "tail": 0.2
+  },
+  "stage_objective": "power",
+  "stage_w_max": 0.0005,
+  "min_finger_w": 1e-07,
+  "max_finger_w": 4e-05,
+  "vth0_slope": {
+   "nfet": 0.003356,
+   "pfet": 0.005856
+  },
+  "stack_groups_override": {
+   "M1": [
+    "M1",
+    "M2"
+   ],
+   "M3": [
+    "M3",
+    "M4"
+   ],
+   "M5": [
+    "M5",
+    "M7"
+   ],
+   "M6": [
+    "M6"
+   ]
+  },
+  "row_split": {
+   "M6": 2
+  },
+  "floorplan_target": {
+   "max_aspect_ratio": 1.5,
+   "min_packing_density": 0.5
+  },
+  "max_layout_retry_rounds": 6
+ },
+ "engine_ok": false,
+ "engine_error": "ValueError: 'stage1_out' 그룹의 VDS 합(2.37965V)이 vdd(1.8V)와 불일치(diff=+0.579654V) -- KVL(직렬 branch 전압강하 합=vdd)이 깨졌다. 소자별 값: M4=0.9172, M2=0.9, refs(M5=0.5625). 이 그룹의 소자들이 서로 다른 경로(compensation/metric_stage_budget/gm_target_convention/headroom_role)로 각자 독립적으로 vds를 받으면 이런 불일치가 생길 수 있다 -- topology.json의 device_roles/theta feeds를 확인할 것",
+ "engine_traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_drafts\\engine\\spice_harness\\engine_dump.py\", line 77, in main\n    res = optimize_full_circuit_budget(\n        topo, spec, grid_points_per_theta=cfg[\"grid_points_per_theta\"],\n        search_method=cfg.get(\"search_method\", \"grid\"),\n        slsqp_kwargs=cfg.get(\"slsqp_kwargs\"))\n  File \"C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\sizing_recipe.py\", line 9230, in optimize_full_circuit_budget\n    ctx, metrics_result = _evaluate(theta_values)\n                          ~~~~~~~~~^^^^^^^^^^^^^^\n  File \"C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\sizing_recipe.py\", line 8649, in _evaluate\n    _resolve_vertical_group(vsid)\n    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\sizing_recipe.py\", line 8614, in _resolve_vertical_group\n    return _hr_resolve_vertical_group(_hr_env, *a, **k)\n  File \"C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\sizing_recipe.py\", line 7210, in _hr_resolve_vertical_group\n    _verify_group_kvl_sum(vsid, members)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\n  File \"C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\sizing_recipe.py\", line 7118, in _verify_group_kvl_sum\n    return _hr_verify_group_kvl_sum(env, *a, **k)\n  File \"C:\\g452\\repo\\skills\\analog-gmid-design\\assets\\sizing_recipe.py\", line 7092, in _hr_verify_group_kvl_sum\n    raise ValueError(\n    ...<5 lines>...\n        f\"생길 수 있다 -- topology.json의 device_roles/theta feeds를 확인할 것\")\nValueError: 'stage1_out' 그룹의 VDS 합(2.37965V)이 vdd(1.8V)와 불일치(diff=+0.579654V) -- KVL(직렬 branch 전압강하 합=vdd)이 깨졌다. 소자별 값: M4=0.9172, M2=0.9, refs(M5=0.5625). 이 그룹의 소자들이 서로 다른 경로(compensation/metric_stage_budget/gm_target_convention/headroom_role)로 각자 독립적으로 vds를 받으면 이런 불일치가 생길 수 있다 -- topology.json의 device_roles/theta feeds를 확인할 것\n",
+ "engine_seconds": 18.976898908615112
+}

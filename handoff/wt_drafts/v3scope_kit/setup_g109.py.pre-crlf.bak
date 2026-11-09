@@ -1,0 +1,40 @@
+"""V3 범위 card 착수 키트 -- scratch C:/g109 준비(저장소 읽기 전용).
+
+  C:/g109/b1      = gate master(인자 REV, 기본 0f23786) archive  -> mk_b1.py가 B34 코드 변경을 SD에 쓴다
+  C:/g109/repo    = 저장소 격리 복제(--no-hardlinks --no-local, origin 제거, 빈 hooksPath)
+  C:/g109/scripts = _drafts/b26_scripts 측정 스크립트 사본(경로 C:/g83 -> C:/g109) + 이 키트 스크립트
+  C:/g109/out     = junit_base.xml·executed_lines.json(7535799 측정 재사용 -- v3_scripts/out)
+"""
+import io, os, shutil, subprocess, sys, tarfile
+
+REPO = "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills"
+DR = "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts"
+G = "C:/g109"
+REV = sys.argv[1] if len(sys.argv) > 1 else "0f23786"
+
+
+def git(*a, cwd=None):
+    r = subprocess.run(["git"] + list(a), capture_output=True, cwd=cwd)
+    if r.returncode:
+        raise SystemExit("git %s: %s" % (a, r.stderr.decode("utf-8", "replace")))
+    return r.stdout
+
+
+assert not os.path.exists(G), G
+for d in ("b1", "scripts", "out", "emptyhooks"):
+    os.makedirs(os.path.join(G, d))
+tarfile.open(fileobj=io.BytesIO(git("-C", REPO, "archive", REV))).extractall(G + "/b1", filter="data")
+git("clone", "--quiet", "--no-hardlinks", "--no-local", "-c", "core.longpaths=true", REPO, G + "/repo")
+git("-C", G + "/repo", "remote", "remove", "origin")
+git("-C", G + "/repo", "config", "core.hooksPath", G + "/emptyhooks")
+git("-C", G + "/repo", "config", "user.name", "sim")
+git("-C", G + "/repo", "config", "user.email", "sim@example.invalid")
+git("-C", G + "/repo", "checkout", "--quiet", "-B", "sim", REV)
+for f in ("sim_head.py", "v3_scope_classify.py", "v3_scope_widen.py", "mk_b1.py", "b26v4_head.py", "b26v4_classify.py"):
+    t = open(DR + "/b26_scripts/" + f, encoding="utf-8").read()
+    t = t.replace("C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/b26_scripts", G + "/scripts").replace("C:/g83", G)
+    assert '"C:/g8' not in t and '"C:/g6' not in t, f
+    open(G + "/scripts/" + f, "w", encoding="utf-8", newline="\n").write(t)
+for f in ("executed_lines.json", "junit_base.xml"):
+    shutil.copy(DR + "/v3_scripts/out/" + f, G + "/out/" + f)
+print("ok", REV, git("-C", G + "/repo", "rev-parse", "HEAD").decode().strip())

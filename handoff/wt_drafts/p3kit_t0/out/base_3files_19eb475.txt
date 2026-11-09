@@ -1,0 +1,146 @@
+........................................................................ [ 51%]
+.....................................................................    [100%]
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_gate_docstring_declares_blind_spots
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_format_checker_accepts_valid_control
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_format_checker_rejects_missing_blind_spot_section
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_format_checker_rejects_empty_blind_spot_section
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_format_checker_rejects_two_domain_lines
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_format_checker_rejects_unknown_domain_value
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_format_checker_rejects_missing_docstring
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_target_collector_finds_all_depths
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_domain_table_uses_allowed_values
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1.5e-07-1e-05-3.2]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-07-1e-09-0.02]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1e-06-0.001-15.0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[2e-05-0.05-0.0001]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1.8e-07-3.3e-12-7.7e-06]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[3.5e-07--2.5e-05-4.1]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[3.5e-07-2.5e-05--4.1]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[-3.5e-07--2.5e-05--4.1]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.0-1e-05-2.0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-07-0.0-2.0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[-0.0-1e-05-2.0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-07--0.0-2.0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.1-0.2-0.3]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.3333333333333333-3.0-7.0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.1-0.3-0.7]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-324-1.0-1.0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1e-200-1e-200-1.0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1e+200-1e+200-10000000000.0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1.7976931348623157e+308-1.0-2.0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_seeded_physical_range
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_seeded_bit_patterns
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_zero_density_behaves_like_inline
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_width_from_id_density_signature
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_bitwise_check_rejects_wrong_implementations
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_no_inline_w_formula_outside_new_function
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=L]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=_L]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=mL]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=L_m]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=L_up]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=L2]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=Lc]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=dev["L"]]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=ID]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=ID_target]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=I]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=dev["ID"]]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=ID_m]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=ID2]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[IDu=idu]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[IDu=IDu]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[IDu=_idu_l]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[IDu=idu2]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\uc18d\uc131 \uc774\ub984]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\ucca8\uc790 \ud0a4 \uc14b]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\uacf1 \uc21c\uc11c \ub4a4\uc9d1\ud798 + \uc18d\uc131 \ubd84\ubaa8]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\uad04\ud638]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\ud568\uc218 \uc548(\uac00\ub4dc \ub4a4)]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\ucef4\ud504\ub9ac\ud5e8\uc158 \uc548]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\uc0c8 \ud568\uc218 \ubc16\uc758 \ub450 \ubc88\uc9f8 \uc778\ub77c\uc778]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\ud638\ucd9c \uc778\uc790 \uc548]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[A = L * L / idu\n-L*L/idu(\uba74\uc801 \ub300\uc6a9, ID \uacc4\uc5f4 \uc5c6\uc74c)]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[idu = raw * L / self._w_ref_effective(L)\n-raw*L/w_ref(IDu\ub97c \ub9cc\ub4dc\ub294 \uc2dd)]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[idu = raw * L / w_ref\n-raw*L/w_ref \uc774\ub984 \ubd84\ubaa8]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = L * ID / w_unit\n-\ubd84\ubaa8\uc5d0 idu \uc5c6\uc74c]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = L * ID / gm\n-\ubd84\ubaa8\uc5d0 idu \uc5c6\uc74c(gm)]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[def width_from_id_density(L, ID, IDu):\n    return L * ID / IDu\n-\uc0c8 \ud568\uc218 \ubcf8\ubb38 \uc548]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[def width_from_id_density(L, ID, IDu):\n    w = ID * L / IDu\n    return w\n-\uc0c8 \ud568\uc218 \ubcf8\ubb38 \uc548(\uacf1 \uc21c\uc11c \ubc18\ub300)]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[# W = L * ID / IDu\nW = width_from_id_density(L, ID, IDu)\n-\uc8fc\uc11d + \ud638\ucd9c]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[doc = "W = L * ID / IDu"\n-\ubb38\uc790\uc5f4]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[def f():\n    """W = L * ID / IDu (\uc2dd 1.18)."""\n    return 0\n-docstring]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = L * ID * IDu\n-\ub098\ub217\uc148 \uc5c6\uc74c]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = L * (ID / IDu)\n-(a*b)/c \ubaa8\uc591 \uc544\ub2d8]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = gm * L / IDu\n-ID \uacc4\uc5f4 \uc5c6\uc74c(gm)]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = Lmin * ID / IDu\n-L \uacc4\uc5f4 \uc544\ub2d8(Lmin)]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = VDD * ID / IDu\n-L \uacc4\uc5f4 \uc544\ub2d8(VDD)]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = W_L * ID / IDu\n-L \uacc4\uc5f4 \uc544\ub2d8(W_L)]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = L * id_ / IDu\n-ID \uacc4\uc5f4 \uc544\ub2d8(\uc18c\ubb38\uc790 id_)]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[L-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[_L-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[mL-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[L_m-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[L_up-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[L2-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[L10-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[Lc-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[Lmin-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[Lcd-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[l-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[mm-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[W_L-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[mmL-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[VL-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[L2c-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_l_family_rule[None-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[ID-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[ID_target-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[ID_m-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[ID2-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[I-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[tail_ID-True]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[id-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[Id-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[I2-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[IB-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_id_family_rule[None-False]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_size_transistor_calls_new_function
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_size_transistor_signature_unchanged
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_call_check_rejects_synthetic_sources[def size_transistor(gm, gm_id, L, lut, vds, vsb=0.0):\n    return L * gm / gm_id\n-\ud638\ucd9c \uc5c6\uc74c]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_call_check_rejects_synthetic_sources[def other():\n    return width_from_id_density(1, 2, 3)\n-\uc815\uc758 \uc5c6\uc74c]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_call_check_rejects_synthetic_sources[def size_transistor(gm, gm_id, L, lut, vds, vsb=0.0):\n    return 0\ndef g():\n    return width_from_id_density(1, 2, 3)\n-\ub2e4\ub978 \ud568\uc218\uc5d0\uc11c\ub9cc \ud638\ucd9c]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_call_check_rejects_synthetic_sources[def size_transistor(gm, gm_id, L, lut, vds, vsb=0.0):\n    f = width_from_id_density\n    return 0\n-\ucc38\uc870\ub9cc(\ud638\ucd9c \uc544\ub2d8)]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_call_check_accepts_synthetic_sources[def size_transistor(gm, gm_id, L, lut, vds, vsb=0.0):\n    return width_from_id_density(L, gm / gm_id, 1.0)\n]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_call_check_accepts_synthetic_sources[import sizing_recipe as sr\ndef size_transistor(gm, gm_id, L, lut, vds, vsb=0.0):\n    return sr.width_from_id_density(L, 1.0, 2.0)\n]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_dead_probe_files_are_absent
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_path_absence_check_rejects_surviving_file
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_exclusive_promotion_check_rejects_original_left_behind
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_sizing_recipe_source_has_no_l_role_multipliers
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_sizing_recipe_module_has_no_l_role_multipliers_attribute
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_symbol_absence_check_rejects_source_that_binds_it[_L_ROLE_MULTIPLIERS = {"tail": 1.0}\n]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_symbol_absence_check_rejects_source_that_binds_it[def f():\n    _L_ROLE_MULTIPLIERS = 1\n    return _L_ROLE_MULTIPLIERS\n]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_symbol_absence_check_rejects_source_that_binds_it[import os as _L_ROLE_MULTIPLIERS\n]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_symbol_absence_check_rejects_source_that_binds_it[class C:\n    pass\nC._L_ROLE_MULTIPLIERS = 2\n]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_symbol_absence_check_accepts_source_without_binding
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_caller_check_rejects_sources_without_operational_call[def audit_vsb_consistency(by_name, sized, vdd):\n    return []\n]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_caller_check_rejects_sources_without_operational_call[def audit_vsb_consistency(by_name, sized, vdd):\n    return []\nrows = audit_vsb_consistency({}, {}, 1.8)\n]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_caller_check_rejects_sources_without_operational_call[def audit_vsb_consistency(by_name, sized, vdd):\n    return []\nif __name__ == '__main__':\n    audit_vsb_consistency({}, {}, 1.8)\n]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_caller_check_rejects_sources_without_operational_call[def audit_vsb_consistency(by_name, sized, vdd):\n    return audit_vsb_consistency({}, {}, vdd)\n]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_caller_check_rejects_sources_without_operational_call[def audit_vsb_consistency(by_name, sized, vdd):\n    return []\ndef test_audit():\n    assert audit_vsb_consistency({}, {}, 1.8) == []\n]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_caller_check_finds_operational_call[def run_pipeline(x):\n    return audit_vsb_consistency({}, {}, 1.8)\n-expected0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_caller_check_finds_operational_call[def run_pipeline(x):\n    return sr.audit_vsb_consistency({}, {}, 1.8)\n-expected1]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_caller_check_finds_operational_call[def outer():\n    def inner():\n        audit_vsb_consistency({}, {}, 1.8)\n    return inner\n-expected2]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_caller_check_finds_operational_call[def a():\n    audit_vsb_consistency({}, {}, 1.8)\ndef b():\n    audit_vsb_consistency({}, {}, 1.8)\n-expected3]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_pilot_instance_sizing_declares_vsb_not_vs
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_vsb_schema_check_rejects_stale_records[records0]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_vsb_schema_check_rejects_stale_records[records1]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_vsb_schema_check_rejects_stale_records[records2]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_vsb_schema_check_rejects_stale_records[records3]
+PASSED ..\..\..\..\..\..\g150\r\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_vsb_schema_check_accepts_clean_records
+141 passed in 13.13s

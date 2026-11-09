@@ -1,0 +1,8 @@
+n=2 orig    same_as_orig=True [('vdd_to_gnd', 1, ('Mi1', 'Mi2')), ('gnd_to_vdd', 1, ('Mi1', 'Mi2')), ('layer1_fallback', None, ('Mi1', 'Mi2'))]
+n=2 const+  same_as_orig=False [('layer1_fallback', None, ('Mi1', 'Mi2'))]
+n=2 arith   same_as_orig=True [('vdd_to_gnd', 1, ('Mi1', 'Mi2')), ('gnd_to_vdd', 1, ('Mi1', 'Mi2')), ('layer1_fallback', None, ('Mi1', 'Mi2'))]
+n=2 const-  same_as_orig=True [('vdd_to_gnd', 1, ('Mi1', 'Mi2')), ('gnd_to_vdd', 1, ('Mi1', 'Mi2')), ('layer1_fallback', None, ('Mi1', 'Mi2'))]
+n=3 orig    same_as_orig=True [('vdd_to_gnd', 1, ('Mi1', 'Mi2')), ('vdd_to_gnd', 1, ('Mi1', 'Mi3')), ('vdd_to_gnd', 1, ('Mi2', 'Mi3')), ('gnd_to_vdd', 1, ('Mi1', 'Mi2')), ('gnd_to_vdd', 1, ('Mi1', 'Mi3')), ('gnd_to_vdd', 1, ('Mi2', 'Mi3'))]
+n=3 const+  same_as_orig=False [('vdd_to_gnd', 1, ('Mi1', 'Mi3')), ('gnd_to_vdd', 1, ('Mi1', 'Mi3'))]
+n=3 arith   same_as_orig=False [('vdd_to_gnd', 1, ('Mi1', 'Mi3')), ('vdd_to_gnd', 1, ('Mi1', 'Mi2')), ('vdd_to_gnd', 1, ('Mi2', 'Mi3')), ('gnd_to_vdd', 1, ('Mi1', 'Mi3')), ('gnd_to_vdd', 1, ('Mi1', 'Mi2')), ('gnd_to_vdd', 1, ('Mi2', 'Mi3'))]
+n=3 const-  same_as_orig=True [('vdd_to_gnd', 1, ('Mi1', 'Mi2')), ('vdd_to_gnd', 1, ('Mi1', 'Mi3')), ('vdd_to_gnd', 1, ('Mi2', 'Mi3')), ('gnd_to_vdd', 1, ('Mi1', 'Mi2')), ('gnd_to_vdd', 1, ('Mi1', 'Mi3')), ('gnd_to_vdd', 1, ('Mi2', 'Mi3'))]

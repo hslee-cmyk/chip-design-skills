@@ -1,0 +1,18 @@
+{"clone": "C:/g64/base", "variant": "-", "case": "1b9b4ea-nameerror-swallow", "case_verdict": "PASS", "step": "attack", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/base", "variant": "-", "case": "2e1944a-grid-points", "case_verdict": "PASS", "step": "attack", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/base", "variant": "-", "case": "3250baa-l5c-if", "case_verdict": "PASS", "step": "attack", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/base", "variant": "-", "case": "5dc4679-kvl-violating-reference", "case_verdict": "SKIPPED", "step": "-", "exit": null, "verdict": "SKIPPED", "why": "재생 Phase 6b(05 §13.3) -- 0.5 대상 아님"}
+{"clone": "C:/g64/base", "variant": "-", "case": "caa970b-stale-expected-value", "case_verdict": "SKIPPED", "step": "-", "exit": null, "verdict": "SKIPPED", "why": "실행 Phase 1 != 0.5"}
+{"clone": "C:/g64/base", "variant": "-", "case": "e329283-area-alpha", "case_verdict": "PASS", "step": "attack", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/base", "variant": "-", "case": "e5fbf92-test16-baseline", "case_verdict": "PASS", "step": "attack-v4", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/base", "variant": "-", "case": "e5fbf92-test16-baseline", "case_verdict": "PASS", "step": "attack-v5", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/base", "variant": "-", "summary": {"summary": true, "mode": "direct", "phase": "0.5", "cases": {"PASS": 5, "SKIPPED": 2}, "steps": {"PASS": 6}, "repo": "C:\\g64\\base", "time": "20261001-132901"}}
+{"clone": "C:/g64/head", "variant": "fixed", "case": "1b9b4ea-nameerror-swallow", "case_verdict": "PASS", "step": "attack", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/head", "variant": "fixed", "case": "2e1944a-grid-points", "case_verdict": "PASS", "step": "attack", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/head", "variant": "fixed", "case": "3250baa-l5c-if", "case_verdict": "PASS", "step": "attack", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/head", "variant": "fixed", "case": "5dc4679-kvl-violating-reference", "case_verdict": "SKIPPED", "step": "-", "exit": null, "verdict": "SKIPPED", "why": "재생 Phase 6b(05 §13.3) -- 0.5 대상 아님"}
+{"clone": "C:/g64/head", "variant": "fixed", "case": "caa970b-stale-expected-value", "case_verdict": "SKIPPED", "step": "-", "exit": null, "verdict": "SKIPPED", "why": "실행 Phase 1 != 0.5"}
+{"clone": "C:/g64/head", "variant": "fixed", "case": "e329283-area-alpha", "case_verdict": "PASS", "step": "attack", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/head", "variant": "fixed", "case": "e5fbf92-test16-baseline", "case_verdict": "PASS", "step": "attack-v4", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/head", "variant": "fixed", "case": "e5fbf92-test16-baseline", "case_verdict": "PASS", "step": "attack-v5", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g64/head", "variant": "fixed", "summary": {"summary": true, "mode": "direct", "phase": "0.5", "cases": {"PASS": 5, "SKIPPED": 2}, "steps": {"PASS": 6}, "repo": "C:\\g64\\head", "time": "20261001-132937"}}

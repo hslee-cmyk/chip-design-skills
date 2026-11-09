@@ -1,0 +1,36 @@
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "legacy-unbound-leak", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "hash-mismatch", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "bound-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "bound-other-def", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "docstring-shift", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "malformed-element", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "unchanged-stmt-survivor", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "changed-stmt-survivor", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "enclosing-guard-survivor", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "unwrapped-stmt", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "header-only-change", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "header-default-bool", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "delete-then-use", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "decorator-mutant-applied", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "same-block-later-use", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "loop-carried-use", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "cross-block-not-targeted", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/base", "variant": "-", "summary": {"summary": true, "mode": "direct", "phase": "0.5", "cases": {"PASS": 2}, "steps": {"PASS": 17}, "repo": "C:\\g420\\a33\\base", "time": "20261007-142509"}}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "legacy-unbound-leak", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "hash-mismatch", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "bound-exempt", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "bound-other-def", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "docstring-shift", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "34-v3-exempt-binding", "case_verdict": "PASS", "step": "malformed-element", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "unchanged-stmt-survivor", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "changed-stmt-survivor", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "enclosing-guard-survivor", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "unwrapped-stmt", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "header-only-change", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "header-default-bool", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "delete-then-use", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "decorator-mutant-applied", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "same-block-later-use", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "loop-carried-use", "exit": 1, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "case": "35-v3-changed-scope", "case_verdict": "PASS", "step": "cross-block-not-targeted", "exit": 0, "verdict": "PASS", "why": ""}
+{"clone": "C:/g420/a33/head", "variant": "fixed", "summary": {"summary": true, "mode": "direct", "phase": "0.5", "cases": {"PASS": 2}, "steps": {"PASS": 17}, "repo": "C:\\g420\\a33\\head", "time": "20261007-143140"}}

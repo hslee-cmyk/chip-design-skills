@@ -1,0 +1,75 @@
+# D0a `plan` 결정성 조사 -- A-4·A-5 229·63 대 235·57
+
+작성 2026-10-06. 측정 전용(역할 산출물 아님). 기준 gate `master` `7243f28`(= 실제 저장소 HEAD). 실제 저장소는 읽기만 했다.
+
+## 1. 결론
+
+1. **두 분포의 차이는 비결정성이 아니라 문장 단위 키 방식 차이다.** 같은 rev에서 `MP_STMT_KEY=names`(D0a 계약 2 키 -- 바인딩 이름 정렬 `,` 연결)는 A-4 235·A-5 57,
+   `MP_STMT_KEY=hash`(G1 시제품 키 `<stmt:해시12>`)는 A-4 229·A-5 63이다. 키마다 시드를 바꿔 돌려도 분포·배정은 항상 같다(아래 3).
+   차이 6단위 = 레지스트리 함수 칸이 상수 이름인 최상위 문장: `sizing_recipe.py::` `_COMPENSATION_REGISTRY`·`_FEASIBLE_L_WINDOW_CACHE`·`_KNEE_L_CACHE`·`_LUT_VDSAT_ROLES`·`_L_ROLE_TARGETS`,
+   `stick_diagram.py::INSTANCE_TOP_FIELDS`. `names` 키에서는 레지스트리 행과 짝지어져 A-4, `hash` 키에서는 행과 짝이 안 맞아 A-5다(시제품 `move_plan_sim.py` 157행 키, 281행 `regmods.get(key)`).
+   키 이름이 다른 단위 39개(문장 단위 전부), `mod` 차이는 그 6개 중 3개(`_COMPENSATION_REGISTRY`·`_L_ROLE_TARGETS` MOD8 → MOD4, `INSTANCE_TOP_FIELDS` MOD9 → SD) -- 이미 `draft_p3_d0b.spec.md` 237행·`draft_p3_d0a.spec.md` '작성 전 실측' UD-6 문단에 적힌 사실과 같다.
+2. **그래도 시제품 출력 바이트는 해시 시드에 따라 갈린다(배정·규칙은 같음).** 원인 = 집합 반복 순서: 278행 `for uid in targets:`(`targets`는 문자열 집합)가 `assign` 사전 삽입 순서를 정하고,
+   그 순서가 시제품 전용 키 `rule_counts_sim`의 사전 키 순서로 샌다(`A-K`·`A-3` 중 먼저 만난 것). 같은 메커니즘이 `cycles` 목록 순서(Tarjan 시작점 = `g` 키 순서 = `assign` 순서)에도 걸려 있다(지금 트리 `cycles` 0이라 드러나지 않음).
+   PYTHONHASHSEED·파일 순서·레지스트리 파싱 순서 중 **배정 결과를 바꾸는 것은 없다** -- 규칙은 MOD 번호 최소·최대와 sorted 반복(306·338행)으로 정해진다. 레지스트리 행 순서에 기대는 곳은 하나(290행: 한 키의 MOD 하나짜리 칸이 여럿이면 첫 행) -- 지금 트리 0건.
+3. **D0a 계약은 바이트 결정성을 요구하지 않았고, 필수 합성 단계도 그것을 잡지 못했다.** `monotone-seed`는 파싱한 `assignment`를 입력 순서 두 가지로 비교한다 -- 해시 시드에 따른 집합 순서는 입력 순서와 무관하므로
+   집합 반복에 기대는 구현도 통과한다. 대부분의 단계가 원소 1개 목록이라 목록 순서 차이도 드러나지 않는다. 계약은 몇몇 목록(`order`·`reexports` 이름·`mods`·`mod_imports`)만 순서를 정했다.
+   → **계약 2에 '결정성' 문단·가장자리 (e5), 합성 단계 `determinism`을 더했다**(아래 5).
+4. **D0b 기록 수치(배정 403·규칙 분포)는 이 비결정성에 기대지 않는다.** 7개 시드 모두 배정 403·같은 분포. 다만 기록마다 **키 방식이 다르다** -- 인용할 때 키 방식을 함께 적어야 한다:
+   * `names`(계약 키): Q(D-11 토큰 뒤) A-4 235·A-5 57·A-1 61 (`d0b_briefs.md` 45행, `draft_p3_d0b.spec.md` 209·236행, `draft_p3_m1.spec.md` 130·175·212행 -- det2 정정: 앞 판의 '155행'은 test 수 문장이었다, review_d0a_det m6), B(D-11 전) A-4 236·A-5 57·A-1 60(`d0a_briefs.md` 0.2).
+   * `hash`(시제품 키): Q A-4 229·A-5 63, D-11 전 판 A-4 229·A-5 64·A-1 60(`d0b_briefs.md` 51행, `draft_p3_d0b.spec.md` 258행, design 30 부록 A F5v85 계열). 재생성 모의 `A-4 229 → 239`(`d0b_briefs.md` 55행)도 `hash` 판이다.
+   D0b 판정은 계약 키(병합된 D0a 도구)로 다시 재므로 `names` 쪽이 기대 계열이다. D0b test는 규칙 분포를 단언하지 않는다(판정 기록의 관찰 `rules`).
+
+## 2. 측정 환경
+
+* 스크래치 `C:/g307`만(TMP/TEMP `C:/g307/tmp`, 끝에 삭제). `git clone -q -c core.autocrlf=false --no-hardlinks --no-local <실제 저장소> C:/g307/r`, origin 제거, 빈 hooksPath. 셸 `cd` 없음, 경로는 인자로.
+* 사슬: `7243f28` → FU 대역(`p3fq_kit/fu_standin.py` -- DR 27행·ACF 37행 뒤) → G1 시제품(`g1_kit/install_proto.py` sha256 `218e2162…`, "installed 4", `g1_core.py` `b3c4e391…`) = **B `3d073b7`**.
+  `7243f28` 계획서 N3.10 MOD1에 `_QUERY_CACHE_MAX` 토큰이 이미 있으므로 B는 UD-6 측정의 Q(`835858c`)와 같은 입력이다.
+* 도구: `p3kit_m1/move_plan_sim.py`(sha256 `a60cfe57…`), 인자 `p3kit_m1/mpargs.sh`(design §6.3 `MP_ARGS`).
+
+## 3. 결과(원자료 `C:/g307/out` -- 삭제됨, 수치는 여기 옮김)
+
+| 실행 | 시드 | exit | stdout sha256 앞 16 | 분포 |
+|---|---|---|---|---|
+| B `names` | 0·1·2·12345·무작위(미설정) | 1 | `531f4100a9ee97cd` | 403: A-4 235·A-5 57·A-1 61·A-2 38·A-6 7·A-K 2·A-7 2·A-3 1, `reg_mismatch` 80, 그 밖 여섯 목록 0 |
+| B `names` | 5·7 | 1 | `2e12c30476f93860` | 위와 같음(파싱 결과 같음, 다른 키 = `rule_counts_sim` 키 순서뿐: `A-3`이 `A-K`보다 먼저) |
+| B `hash` | 0·1·무작위 | 1 | `3455bab33d0b0486` | 403: A-4 229·A-5 63·A-1 61·…, `reg_mismatch` 79 |
+| V(B + N3.10 MOD2에 MOD1 토큰 셋 -- `conflicts` 2) `names` | 0·1·2·3·4·6 | 1 | `5725a95561d6f762` | `conflicts` [GmIdLUT, lut_conditions_from_npz](토큰 순서 -- 시드 무관) |
+| 같은 V | 5·7 | 1 | `318672d2ae9299df` | 파싱 결과 같음, 다른 키 = `rule_counts_sim` 키 순서뿐 |
+
+`names`·`hash` 비교(시드 0): 한쪽에만 있는 키 39·39(문장 키 이름), 규칙이 바뀐 단위 6(1절). 레지스트리 동률 스캔(`regtie.py`, 시제품 `registry_rows`·A-4 토큰 규칙 그대로): 이름 359, 행이 둘 이상인 이름 1(칸 MOD 같음),
+서로 다른 MOD 하나짜리 칸을 가진 이름 0, MOD 하나 칸과 MOD 둘 칸이 섞인 이름 0.
+
+## 4. design 30에서 본 tie-break
+
+design 30 §6.2는 배정을 MOD 번호의 min/max로만 정한다(A-2·A-5 최저 참조자, A-3·A-4·승격 max, A-6 max) -- 정수 위 전순서라 **배정 동률이 없다**. 단위의 `rule`은 그 단위가 걸린 규칙(범주)이라 반복 순서와 무관하다.
+D-31 단조 고정점은 '반복 순서에 따라 결과가 갈림'(`_feed_metric_stage_budget` MOD4 → MOD6)을 막으려고 들어갔다. 출력 순서를 정할 권한의 근거는 §6.3(`6c724de` 454행) "CLI·출력·exit의 **정본은 D0a spec card 계약 1~4**"다
+(det3 정정 -- review_d0a_det2 m-d: 앞 판은 §8.1(663행) "M 작성 전 실측은 D0b 이관표 한 벌에서 결정적으로 나온다"를 근거로 들었으나, 그 문장은 M card 준비가 이관표 한 벌로 정해진다는 뜻이지 출력 바이트를 정하지 않는다 -- card m1 정정과 같다).
+design이 정하지 않은 것은 두 가지다: (1) 출력 목록·키 순서 (2) 한 키에 MOD 하나짜리 레지스트리 칸이 서로 다른 MOD로 둘 이상일 때 A-4가 읽을 칸. → spec card '결정 필요 항목' det에 원칙 기본안으로 닫았다
+((1) 원소 정렬·키 이름순 -- 정의 하나·§6.3 출력 정본 = card(det3 정정), (2) (e5) exit 2 -- (e1)~(e4)와 같은 fail-closed). 둘 다 배정 뜻을 바꾸지 않아 사용자 질문이 아니다(대안 '칸 MOD 합집합 → A-3'은 뜻을 바꾸므로 그것을 고를 때만 질문).
+(det3, review_d0a_det2 m-b) 셋째 틈: 한 키에 A-3 행(MOD 둘 이상인 칸)이 여럿이고 가장 작은 MOD가 서로 다를 때 -- §6.2 A-3(`6c724de` 415행)은 칸 하나의 식만 적는다. card 계약 2 (e6) exit 2로 닫았다(같은 fail-closed; `6c724de` 재측정 0건).
+
+## 5. 고친 파일(개정 전 사본 `*.pre-det.bak`)
+
+* `_drafts/draft_p3_d0a.spec.md`(전 `6f4fcc21…`): 머리 det 문단; 계약 1 exit 2 목록에 (e5); 계약 2 가장자리 (e5)와 '결정성' 문단(같은 입력 → `PYTHONHASHSEED`·반복 순서·파일 순서·행 읽기 순서와 무관하게 stdout 바이트 같음,
+  최상위 첫 세 키 뒤 키 이름순, 계약이 순서를 정한 목록 밖은 원소 정렬 -- 문자열 오름차순, 사전·목록 원소는 `json.dumps(sort_keys=True, ensure_ascii=False)` 문자열 오름차순); oracle 'det 필수 합성 단계' `determinism`
+  ((i) `plan` 두 시드 바이트 같음 (ii) 정렬 순서 단언 (iii) `check` 두 시드 바이트 같음 (iv) (e5) exit 2 / 칸 맞추면 A-4); '거부해야 할 입력'에 두 줄; '결정 필요 항목' det.
+  확인: `role_paths.parse_spec_card` 통과(phase 3·red-green·gate_change no·approval 그대로), `interface_card.py --root <B 복제본>` exit 0 **'기존 함수 0개'**(신규 `move_plan.*`·`main`).
+* `_drafts/d0a_briefs.md`(전 `36a53fc5…`): 필수 단계 19 → **20**(test-author 5·소요·auditor 3.1), test-author 색인에 det 줄, code-author 7에 출력 바이트 결정성.
+
+## 6. 남는 일(오케스트레이터)
+
+* 이 개정은 spec card 판을 바꾼다 -- 승인 질문·검토가 card 해시를 인용하면 다시 계산한다. 착수 0단계에서 interface card를 다시 만들 때 '기존 함수 0개'를 다시 본다(`json.dumps`를 백틱으로 적었다 -- 이번 생성에서는 0개).
+* G1 병합본의 `units` 문장 키가 `<stmt:해시>`로 남으면 D0a는 계약 2대로 문장 키를 바인딩 이름으로 다시 만든다 -- 그것이 `names` 계열 수치(A-4 235·A-5 57)다.
+
+## 7. 측정 명령(스크래치 스크립트 요지 -- 파일은 삭제됨)
+
+```
+# det.sh: clone(위 2) → fu_standin.py → install_proto.py → commit B
+for spec in names:0 names:1 names:2 names:12345 names:random hash:0 hash:1 hash:random; do
+  PYTHONHASHSEED=<seed>(random이면 env -u) MP_STMT_KEY=<key> $PY p3kit_m1/move_plan_sim.py plan --root C:/g307/r --rev $B "${MP_ARGS[@]}" > out/plan_<key>_<seed>.json
+done
+# var.sh: B에서 N3.10 MOD2 '대표 대상' 끝에 `GmIdLUT`, `_solve_vgs`, `lut_conditions_from_npz` → commit V, 시드 0~7
+# b57.sh: B names 시드 5·7, 파싱 비교(json.load 같음, 키별 json.dumps 차이 = rule_counts_sim)
+# regtie.py: registry_rows + A-4 토큰 규칙으로 이름별 칸 MOD 집합 -- 서로 다른 MOD 하나짜리 칸 0
+```

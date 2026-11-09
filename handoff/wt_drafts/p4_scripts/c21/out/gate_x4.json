@@ -1,0 +1,518 @@
+{
+ "root": "C:\\g148\\x4",
+ "has": {
+  "reject_legacy_names": true,
+  "rail_voltages": true,
+  "rail_declaration": true
+ },
+ "specs": {
+  "two_stage_ota": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "supplies_v"
+    ]
+   },
+   "supplies_v": {
+    "vdd": 1.8,
+    "gnd": 0.0
+   },
+   "vdd": null,
+   "rail_voltages": {
+    "ok": true,
+    "value": {
+     "by_net": {
+      "vdd": 1.8,
+      "gnd": 0.0
+     },
+     "hi": 1.8,
+     "lo": 0.0,
+     "span": 1.8,
+     "hi_plus_lo": 1.8
+    }
+   },
+   "reject_missing_rail": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED supplies_v ['gnd'] != supply_nets ['gnd', 'vdd']"
+   },
+   "reject_scalar_vdd": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'vdd', 'supplies_v', 'MG1')]"
+   },
+   "reject_supplies": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'supplies', 'supplies_v', 'MG1')]"
+   },
+   "accept_canonical": {
+    "ok": true,
+    "value": "accepted"
+   }
+  },
+  "current_reuse_telescopic_ota": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "supplies_v"
+    ]
+   },
+   "supplies_v": {
+    "vdd": 1.8,
+    "gnd": 0.0
+   },
+   "vdd": null,
+   "rail_voltages": {
+    "ok": true,
+    "value": {
+     "by_net": {
+      "vdd": 1.8,
+      "gnd": 0.0
+     },
+     "hi": 1.8,
+     "lo": 0.0,
+     "span": 1.8,
+     "hi_plus_lo": 1.8
+    }
+   },
+   "reject_missing_rail": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED supplies_v ['gnd'] != supply_nets ['gnd', 'vdd']"
+   },
+   "reject_scalar_vdd": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'vdd', 'supplies_v', 'MG1')]"
+   },
+   "reject_supplies": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'supplies', 'supplies_v', 'MG1')]"
+   },
+   "accept_canonical": {
+    "ok": true,
+    "value": "accepted"
+   }
+  },
+  "folded_cascode": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "supplies_v"
+    ]
+   },
+   "supplies_v": {
+    "vdd": 1.8,
+    "gnd": 0.0
+   },
+   "vdd": null,
+   "rail_voltages": {
+    "ok": true,
+    "value": {
+     "by_net": {
+      "vdd": 1.8,
+      "gnd": 0.0
+     },
+     "hi": 1.8,
+     "lo": 0.0,
+     "span": 1.8,
+     "hi_plus_lo": 1.8
+    }
+   },
+   "reject_missing_rail": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED supplies_v ['gnd'] != supply_nets ['gnd', 'vdd']"
+   },
+   "reject_scalar_vdd": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'vdd', 'supplies_v', 'MG1')]"
+   },
+   "reject_supplies": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'supplies', 'supplies_v', 'MG1')]"
+   },
+   "accept_canonical": {
+    "ok": true,
+    "value": "accepted"
+   }
+  },
+  "nmcnr_amplifier": {
+   "canonical_spec": {
+    "ok": true,
+    "value": [
+     "supplies_v"
+    ]
+   },
+   "supplies_v": {
+    "vdd": 1.8,
+    "vss": 0.0
+   },
+   "vdd": null,
+   "rail_voltages": {
+    "ok": true,
+    "value": {
+     "by_net": {
+      "vdd": 1.8,
+      "vss": 0.0
+     },
+     "hi": 1.8,
+     "lo": 0.0,
+     "span": 1.8,
+     "hi_plus_lo": 1.8
+    }
+   },
+   "reject_missing_rail": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED supplies_v ['vss'] != supply_nets ['vdd', 'vss']"
+   },
+   "reject_scalar_vdd": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'vdd', 'supplies_v', 'MG1')]"
+   },
+   "reject_supplies": {
+    "ok": false,
+    "exc": "ValueError",
+    "msg": "SCHEMA_REJECTED legacy_names where=harness_spec hits=[('', 'supplies', 'supplies_v', 'MG1')]"
+   },
+   "accept_canonical": {
+    "ok": true,
+    "value": "accepted"
+   }
+  }
+ },
+ "reject_metric_supply_nets": {
+  "ok": false,
+  "exc": "ValueError",
+  "msg": "SCHEMA_REJECTED legacy_names where=topology hits=[('/sizing_roles/metrics/*', 'supply_nets', '(삭제 -- 레일별 기록)', 'MG1')]"
+ },
+ "accept_top_supply_nets_and_excite_vdd": {
+  "ok": true,
+  "value": "accepted"
+ },
+ "library": {
+  "common_gate_amplifier": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets",
+      "voltages"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  },
+  "current_reuse_telescopic_ota": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets",
+      "voltages"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  },
+  "folded_cascode": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets",
+      "voltages"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  },
+  "ngcc_3stage_ff": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets",
+      "voltages"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  },
+  "nmcnr_amplifier": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets",
+      "voltages"
+     ],
+     "nets": [
+      "vdd",
+      "vss"
+     ]
+    }
+   }
+  },
+  "pushpull_follower_buffer": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets",
+      "voltages"
+     ],
+     "nets": [
+      "agnd",
+      "vdd",
+      "vss"
+     ]
+    }
+   }
+  },
+  "sf_pushpull_output_opamp": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets",
+      "voltages"
+     ],
+     "nets": [
+      "agnd",
+      "vdd",
+      "vss"
+     ]
+    }
+   }
+  },
+  "two_stage_ota": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets",
+      "voltages"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  },
+  "two_stage_ota_sf": {
+   "ok": true,
+   "value": {
+    "meta_keys": [
+     "_device_roles_autofilled",
+     "_device_roles_gap_fill_review_needed",
+     "_linked_files_loaded",
+     "_matching_pairs_autofilled",
+     "_matching_pairs_needs_review",
+     "_vertical_stack_id_autofilled",
+     "_vertical_stack_id_conflicts",
+     "compensation",
+     "device_roles",
+     "ideal_sources",
+     "netlist_sections_structured",
+     "rails",
+     "schema_version",
+     "sizing_roles",
+     "source",
+     "symmetry",
+     "topology_name"
+    ],
+    "rails": {
+     "type": "RailDeclaration",
+     "fields": [
+      "nets",
+      "voltages"
+     ],
+     "nets": [
+      "gnd",
+      "vdd"
+     ]
+    }
+   }
+  }
+ }
+}

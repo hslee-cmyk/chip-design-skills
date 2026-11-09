@@ -1,0 +1,65 @@
+gain-budget-gmid-sizing.plan.md 11 I-H2 | ) 계단 끝·손계산 오라클·X-DE2·X-DE5, card RB-1 대상 소멸(N6.1 행·N6.25·DEC-102), DEC-23 판정 분해능 괄호, N5.3 I-H2, 후속 정정 표(oracle-portability servo 바꾸기 취소·N3.9 ICMR·슬루 행, de
+gain-budget-gmid-sizing.plan.md 11 NB-1 | S2 발동 회로·`()` 갈래 정렬) 반영, 셋째 커밋 O-76 -- (1) `()` → 잡음 정의 불능 card NU-1·β = 1 폐루프 잡음 미래 card NB-1, (2) IT-2 완료 조건 (10)(a) 문언 확정·D4 13회로 확정, (3) rfc 보상 C `Cst
+gain-budget-gmid-sizing.plan.md 162 I-G3 | | 현재 검증 발동 회로가 0인 부류 | 규칙 분기 기준으로 library에 검증 발동 회로가 없어 DEC-59 게이트가 탐색 전에 정지시키는 회로(I-G3·I-G7 해소). 현재 예: 비증폭 회로(밴드갭, constant-gm bias, 비교기, 스위치드 커패시
+gain-budget-gmid-sizing.plan.md 162 I-G7 | | 현재 검증 발동 회로가 0인 부류 | 규칙 분기 기준으로 library에 검증 발동 회로가 없어 DEC-59 게이트가 탐색 전에 정지시키는 회로(I-G3·I-G7 해소). 현재 예: 비증폭 회로(밴드갭, constant-gm bias, 비교기, 스위치드 커패시터), g
+gain-budget-gmid-sizing.plan.md 209 DF-23 | ). 파일럿 적용(ratified 대상): 18소자, tail M5/M6를 bias 미러에 묶음(설계 의도) | GB1, K2 | 구현됨(소자 이름 리터럴 여부 DF-23) |
+gain-budget-gmid-sizing.plan.md 212 DF-25 | ID 미정은 명시적 실패 | W2 | 부분(현 코드는 선언 역할별 `min_vds` 바닥. 6b에서 S1 관계 엣지 기반·DEC-27 VDsat 바닥으로 전환, DF-25) |
+gain-budget-gmid-sizing.plan.md 213 DF-01 | EC-61로 노드전압과 bulk 넷에서 유도하며, 두 소자의 bulk가 같을 때 아래쪽 vsb = 위쪽 vsb + 위쪽 vds가 그 특수형이다 | W2 | 부분(DF-01) |
+gain-budget-gmid-sizing.plan.md 215 DF-23 | -c 대조): M11a/M11b/M20a/M20b(class-AB 배터리) | GB1 | 탐지 규칙은 DEC-64(현 구현은 선언 기반, 소자 이름 리터럴 여부 DF-23) |
+gain-budget-gmid-sizing.plan.md 217 DF-03 | 26-10-12 최종 검증 정정) | GB1, LR2 | 부분(tail 주인만 구현, tail 없는 동치류 규칙은 6a. 층0 게이트의 `ValueError`는 DF-03) |
+gain-budget-gmid-sizing.plan.md 227 DF-25 | lan.md) N2·N3.1) | W2 | 부분(탐지는 DEC-64로 통합.파일럿 KVL 상한 구현. 포화 하한은 현 코드가 강반전 근사 `2/(gm/ID)`, DF-25, 6b) |
+gain-budget-gmid-sizing.plan.md 260 DF-24 | 인이 거부한다(N3.6 항목 6). nmos·pmos 밖 kind는 `기록만` 규칙 분기로 기록한다(DEC-59) | S1 소자 `b`, W0, W2 | 미구현(DF-24) |
+gain-budget-gmid-sizing.plan.md 261 DF-34 |  metric 함수)**과 DF-31**(`_COMPENSATION_REGISTRY`의 회로별 보상 함수 4개)**로 등록돼 있고, 회로별 실행 spec 함수는 DF-34, 파일럿 넷 이름·topology 경로가 박힌 운영 metric은 DF-29다**. 새 엔진은 이 재발을 
+gain-budget-gmid-sizing.plan.md 261 DF-29 | TRY`의 회로별 보상 함수 4개)**로 등록돼 있고, 회로별 실행 spec 함수는 DF-34, 파일럿 넷 이름·topology 경로가 박힌 운영 metric은 DF-29다**. 새 엔진은 이 재발을 회로·소자·넷 이름 리터럴 금지 test로 처음부터 막는다(N4.2 머리 이식
+gain-budget-gmid-sizing.plan.md 262 DF-28 |  노드, cgs는 source 노드, cgb는 bulk 넷에 스탬프. 팔로워 입력 어드미턴스 cgd + cgb + cgs·(1 − A_buf)가 여기서 나온다, DF-28). 버퍼 블록은 gain 목표를 받지 않지만 내층 DP 단계로 결정한다(블록 gain을 누적 bin에 더하
+gain-budget-gmid-sizing.plan.md 263 DF-25 |  변수다(DEC-70) / (VDS-1) drain–source 엣지를 정확히 하나 포함한 사이클 = 그 VDS 노드를 W1/W2로 쓰고 포화 하한(VDsat, DF-25)이 VGS 합의 **부등식**(DEC-27이 사례). VDS 엣지 2개 이상인 사이클의 VDS 노드는 기둥
+gain-budget-gmid-sizing.plan.md 263 DF-23 | -65 σ로 분류된다). 신호 루프 분류(N3.2-2)와 별개이고 루프 뷰를 만들지 않는다. 선언 기반 목록(DEC-15 소자 이름)은 탐지 결과 대조로 바꾼다(DF-23). 측정 기대(J12-c ratify 대상): 파일럿 v2 4(레일 경유)·v1 1(DEC-106 뒤 --
+gain-budget-gmid-sizing.plan.md 277 DF-16 | rrent`)은 한 기둥의 직렬 전류를 소자마다 더해 **중복 계상**하고 그 배율이 가지마다 달라 **front의 순서를 바꾸므로** 목적 축으로 쓰지 않는다(DF-16 해소, U-10 확정). 기둥(DEC-71 (1))이 유도되면 **"기둥마다 전류를 한 번만 센다"**가 
+gain-budget-gmid-sizing.plan.md 278 I-A2 | 와 보고의 µm²는 표시 단위다(DEC-68 표시 단위 접두 규칙) -- 면적 축 bin 폭·차 기록은 정본 단위로 계산하고 환산은 보고에서만 한다. 이 결정이 I-A2를 닫고, U-13에는 "면적 예산을 선언할지"만 남는다 | GB8, GB6, MOD7, MOD8 | 미구현
+gain-budget-gmid-sizing.plan.md 287 DF-25 | Dsat`(엔진이 SPICE 판정 `vds_ge_vdsat`보다 보수적), VDsat = LUT `VDSAT` 열 보간(오라클 `@m[vdsat]`과 같은 양, DF-25를 대체), tol_VDsat = VDSAT 열 leave-one-out 셀값(DEC-87 방법). 열이 생
+gain-budget-gmid-sizing.plan.md 383 I-H4 |  코드(hlib)는 엔진에 넣지 않음(둘째 생산자·θ 사본·근거 없는 상수); 별도 항목 = ngcc 단계 A `dc_role` 묶음 사실(공동 해석, N5.3 I-H4)·sf_pushpull·current_reuse DC 봉인 실패 조사(I-H5). **원래 취지와 다름(승
+gain-budget-gmid-sizing.plan.md 383 I-H5 | 별도 항목 = ngcc 단계 A `dc_role` 묶음 사실(공동 해석, N5.3 I-H4)·sf_pushpull·current_reuse DC 봉인 실패 조사(I-H5). **원래 취지와 다름(승인 O-164)**: 실험 변형(H0r)의 판정 결과를 완료 판정 기준선으로 씀
+gain-budget-gmid-sizing.plan.md 391 NB-1 |  확인), 0.5 pF, CL 2.25 pF `measurement_load` | N6.6 끝 '잡음의 `()`'·(10)(a), card NU-1(N6.23)·NB-1(N6.24), N6.1 card 표, SD-1 D2·D3·D4 |
+gain-budget-gmid-sizing.plan.md 515 DF-28 | KCL 전류와 출처, 기둥 창·slack(writer 티어 W0~W4, 봉인 대상) / `ss` = gm·gmb·gds·cgg(cgs·cgb 열이 생기면 포함, DF-28), 노드 C_total·G, 소신호 metric(봉인 통과 스냅샷의 파생, 입력 `dc` 버전 카운터 기록
+gain-budget-gmid-sizing.plan.md 672 DF-28 | 제약 판정 = 봉인 통과 S2 `dc` 스냅샷의 `ss` 값 (ii) GB6 내층 = 블록 국소 DC 점의 할당용 추정. LUT에 CGS·CGB 열이 생기기 전(DF-28)에는 CGG−CGD를 g–s에 스탬프하는 근사로 표시하고 해당 metric은 `verified_by` 전까
+gain-budget-gmid-sizing.plan.md 715 DF-27 |  않는다: 축 밖 입력은 클램프하지 않고 구조화 실패 `lut_axis_out_of_range{소자, 축, 값, 범위}`(SEAL_VIOLATION)로 처리한다(DF-27). 필요한 VS 축 상한은 상수로 두지 않고 library 회로 `supplies_v`의 최대 전위 차(현
+gain-budget-gmid-sizing.plan.md 972 I-C7 | * 명칭: 슬루율 필드 이름은 metric 단위 레지스트리(DEC-53)의 이름-단위 규약과 DEC-68 접미사 규칙을 따라 하나로 정한다(I-C7 해소). 실제 이름은 MOD5 design이 레지스트리 단위표를 인용해 적는다.
+gain-budget-gmid-sizing.plan.md 1066 DF-24 | m_id·W·metric(dc·ss·ls 전부, 여기·감지 넷 선언은 그대로)이 허용오차(전압 tol_V, 그 밖은 tol_V 섭동의 감도 전파값) 안에서 같음(DF-24·DF-26 검출). Phase 4 대상은 레일 둘인 기존 회로(예: `two_stage_ota` (vdd 
+gain-budget-gmid-sizing.plan.md 1066 DF-26 | ·metric(dc·ss·ls 전부, 여기·감지 넷 선언은 그대로)이 허용오차(전압 tol_V, 그 밖은 tol_V 섭동의 감도 전파값) 안에서 같음(DF-24·DF-26 검출). Phase 4 대상은 레일 둘인 기존 회로(예: `two_stage_ota` (vdd 1.8, g
+gain-budget-gmid-sizing.plan.md 1148 DF-18 |  `ValueError` 하위라 `except ValueError`가 삼킬 수 있음) → card LT-1 범위 (10)(N6.4, 승인 대기 BL-DF37), DF-18(최상위 진입점의 exit code·θ* 기록) → N6.2 단위 6 완료 조건. design 40 §10.
+gain-budget-gmid-sizing.plan.md 1822 DF-10 | . `E/search/layer0_center.py:1-9` 모듈 머리 "층 0 최소형 시작점 -- … (계획 DEC-71 최소형 = R D18·U-49·PUD DF-10, 오케스트레이터 결정 2026-10-08 'feasibility centering')", "블록 gain 
+gain-budget-gmid-sizing.plan.md 2322 I-H3 | | E-22 | P1-16(I-H3) | V/V 행용 `\|rate\| ≤ float eps` 건너뜀 문턱이 A/V 전도 행에도 걸림 | C 
+gain-budget-gmid-sizing.plan.md 2427 DF-28 | (다르면 원인 보고, 바뀌는 기준선은 DEC-40 승인) (4) 새 LUT 해시로 S0·실패 캐시 지문이 바뀜을 기록. CGS·CGB 열의 소비(스탬프)는 7a(DF-28). VS 축 상한 = library 회로 `supplies_v` 최대 전위차에서 유도한 1.8 V(LR3 
+gain-budget-gmid-sizing.plan.md 2467 I-A13 | | U-67 | LOD·WPE·PSE 반영과 L 혼합 interdigitation 행의 좌우 대칭 검사(I-A13) | **확정(사용자 결정 2026-10-12 "U-67은 (나)로")**: (1) L 혼합 interdi
+gain-budget-gmid-sizing.plan.md 2581 DF-35 | C-34·47·51) / N2.2 / N3.10 / N3.11 / N3.12 전체 / N3.14 / N3.16 / N4.1 / N4.2 / N4.3 / N5.2(DF-35~37) / N6.1 / N6.2 / N6.3 / N7.2(U-38) / DEC-67·68·69 |
+gain-budget-gmid-sizing.plan.md 2583 DF-17 | 조), IC5 `영역:` 줄 검사 | N3.11 / N3.12.3 / N4.1(IC3·IC5) / N6.1·N6.2 Phase 1 / DEC-36·40·46 / DF-17 / U-01 |
+gain-budget-gmid-sizing.plan.md 2586 I-C11 |  N3.14 실패 클래스 도입, tol_V 함수 선도입, U-04·U-05 반영, `fallback_events` 스키마와 계측 지점 전수, exit code, I-C11 해소 설계, `supply_nets`·`supplies_v` 기반 레일 판정(DF-19·DF-26)·vsb
+gain-budget-gmid-sizing.plan.md 2586 DF-19 | llback_events` 스키마와 계측 지점 전수, exit code, I-C11 해소 설계, `supply_nets`·`supplies_v` 기반 레일 판정(DF-19·DF-26)·vsb(DF-24)·IC11, MG1(`vdd` 유도 함수, metric 인자 `supply_
+gain-budget-gmid-sizing.plan.md 2586 DF-26 | _events` 스키마와 계측 지점 전수, exit code, I-C11 해소 설계, `supply_nets`·`supplies_v` 기반 레일 판정(DF-19·DF-26)·vsb(DF-24)·IC11, MG1(`vdd` 유도 함수, metric 인자 `supply_nets` 
+gain-budget-gmid-sizing.plan.md 2586 DF-35 | .load` 전수 대체)·CC-7(θ 탐색부 함수 추출·계측 인터페이스·성능 측정 도구)·CC-8(무동작 판정 도구, 진입점 `activations_out`), DF-35·DF-36 | N5.2 전체 / N3.6 / N3.10(MOD10 계측 인자) / N3.14 / N3.16
+gain-budget-gmid-sizing.plan.md 2586 DF-36 |  전수 대체)·CC-7(θ 탐색부 함수 추출·계측 인터페이스·성능 측정 도구)·CC-8(무동작 판정 도구, 진입점 `activations_out`), DF-35·DF-36 | N5.2 전체 / N3.6 / N3.10(MOD10 계측 인자) / N3.14 / N3.16(MG1) 
+gain-budget-gmid-sizing.plan.md 2586 I-C11 | ) / N4.1 IC11 / N6.1·N6.2 Phase 4 / N6.3(성능) / `00-common` §6·§7·§10·§11 / DEC-60·61·69 / I-C11 / U-04·05·09·26·27·30 |
+gain-budget-gmid-sizing.plan.md 2589 DF-25 | .4 / N3.5 / N3.6 / N3.14 / N4.1 IC1·IC2·IC9·IC10 / N6.1·N6.2 6b / DEC-12·13·31·32·61·67 / DF-25·DF-32 / I-A6 / J8 / U-20·26(c) |
+gain-budget-gmid-sizing.plan.md 2589 DF-32 | 3.5 / N3.6 / N3.14 / N4.1 IC1·IC2·IC9·IC10 / N6.1·N6.2 6b / DEC-12·13·31·32·61·67 / DF-25·DF-32 / I-A6 / J8 / U-20·26(c) |
+gain-budget-gmid-sizing.plan.md 2589 I-A6 | .6 / N3.14 / N4.1 IC1·IC2·IC9·IC10 / N6.1·N6.2 6b / DEC-12·13·31·32·61·67 / DF-25·DF-32 / I-A6 / J8 / U-20·26(c) |
+gain-budget-gmid-sizing.plan.md 2591 DF-28 | b 유도 식, 블록 속성(`rout_ss_ohm` DEC-66, 경계 부하 = 다음 블록 입력 넷 어드미턴스 DEC-63) 계산, 스윙·입력 범위 metric, DF-28 CGS·CGB 스탬프와 근사 표시, 잔차 계산, 감도 게이트 섭동 방향·ε 계산과 발동 빈도(S0 지문 변
+gain-budget-gmid-sizing.plan.md 2591 DF-16 | 켜는 선언·U-19 | N3.8 / N3.13 / N3.16 / N6.1·N6.2 7a / DEC-05·23·49·50·53·63·66·72·74·77~80 / DF-16·28·29·30 / J6 / U-07·10·11·19 |
+gain-budget-gmid-sizing.plan.md 2592 DF-31 | N3.9 / N3.10(MOD8) / N3.15 / N3.16(MG3) / N6.1·N6.2 7b / DEC-02·03·45·53·58·63·65·70~81 / DF-31·33·34 / J3-dc·J9·J13 / U-12·13·14·21·23·24·25·31·32·33 |
+gain-budget-gmid-sizing.plan.md 2609 I-G8 | ### N9.3 새 토폴로지 추가 절차(I-G8)
+gain-budget-gmid-sizing.plan.md live-unmarked 48
+graph-consumption.plan.md 15 B-G3 | t v6.38.3 IT-1 범위 재작성 범위 5(N6.35 E-19) 결과 그대로(GC-2 범위 6·FR-G16·F-G20·K-h·BD-11·GD-10·완료 3·B-G3 대체 표지 -- 이 계획 '보존만, 일반화 백로그 B-G3'의 **원래 취지와 다름**), 빈 사다리 = 
+graph-consumption.plan.md 15 B-G3 | E-19) 결과 그대로(GC-2 범위 6·FR-G16·F-G20·K-h·BD-11·GD-10·완료 3·B-G3 대체 표지 -- 이 계획 '보존만, 일반화 백로그 B-G3'의 **원래 취지와 다름**), 빈 사다리 = 출발 불능(상위 N6.35 E-32 -- GC-5 범위·완료
+graph-consumption.plan.md 15 B-G2 | sions.md` 634행)의 (A) U-G4 범위 보완(`conduction_mask`)과 (E) 원칙 감사 범위 확장(GC-9, X-G12), (C)에 따른 B-G2 흡수를 반영했다. v0.9는 O-14(같은 문서 633행) 반영본이다 -- 트리 경로를 쓰기 계획 블록의 
+graph-consumption.plan.md 148 B-G2 | 룸, U-G8 넣기, U-G9 (가), U-G10 오라클 대조·U16 완료 조건, U-G11 (가), U-G12 GC-2·GC-3·GC-8 착수 승인(GC-8은 B-G2 뒤 재질문), U-G13 (가)(X-G11 원래 취지와 다름 승인; 칸 0 선택은 N3.6-3 모든 경우 
+graph-consumption.plan.md 394 B-G3 | 로 0인 소자)이라 같은 처리가 물리 결정자다. 상위 gain-budget v6.38.3 IT-1 범위 재작성 범위 5(N6.35 E-19)가 일반화했고 백로그 B-G3는 닫혔다(**원래 취지와 다름** -- 상위 승인 표 #26).
+graph-consumption.plan.md 763 B-G2 | | U-G12 | **결정됨(O-13): 승인 -- GC-2·GC-3 착수 승인, GC-8은 B-G2 결론 뒤 다시 묻는다**. **재질문 대상 소멸 -- O-15 (C) 승인 범위**: B-G2의 결론(위쪽
+graph-consumption.plan.md 763 B-G2 | (O-13): 승인 -- GC-2·GC-3 착수 승인, GC-8은 B-G2 결론 뒤 다시 묻는다**. **재질문 대상 소멸 -- O-15 (C) 승인 범위**: B-G2의 결론(위쪽 방향 차분 제약 그래프가 R-1′ 변 목록을 정본으로 읽고, 같은 개념은 하나로 -- O-16
+graph-consumption.plan.md 763 B-G2 |  정본 정리이고, GC-2·GC-3은 계산 결과가 바뀌지 않는다(N4-1, v0.11부터 '순수 리팩터링' 표시 -- N4-0). (결정 때 권고는 'GC-8은 B-G2 결론 뒤 다시 묻는다'였다. 그 재질문 대상은 O-15 (C)·O-16 (3) 승인으로 소멸했다) | GC
+graph-consumption.plan.md live-unmarked 8
+headroom-chain.plan.md 352 B-G2 | * **graph-consumption B-G2(R4)와의 관계**: B-G2는 `headroom_bound`·`ls_swing` 포화 부등식 그래프와 H
+headroom-chain.plan.md 352 B-G2 | * **graph-consumption B-G2(R4)와의 관계**: B-G2는 `headroom_bound`·`ls_swing` 포화 부등식 그래프와 HC-1 제약 그래프의 관계를 '
+headroom-chain.plan.md 352 B-G2 | 이름, O-16 (3))가 그 공동분석의 정의 차이 판단 자료다. 처리 card는 그대로 graph-consumption GC-8이다. U-G12의 'GC-8은 B-G2 결론 뒤 다시 묻는다'는 재질문 대상이 사라졌다(O-15 (C) 승인 범위). 이 계획은 정본 필드와 위 
+headroom-chain.plan.md 352 B-G2 | 질문 대상이 사라졌다(O-15 (C) 승인 범위). 이 계획은 정본 필드와 위 소비자별 처리 표(개념 정의)만 소유한다. graph-consumption 계획의 B-G2·GC-8 문언 갱신은 그 계획의 몫이다.
+headroom-chain.plan.md live-unmarked 4
+offset-strategy.plan.md 406 OS-M | matching과 trim 국면 1의 θ 겹침 측정(card OS-M)은 소비처가 없어 지웠다: 소비처였던 DS-1은 S-14 (다)로 결정됐고 DS-2는 PD-3로 '대상 없
+offset-strategy.plan.md live-unmarked 1

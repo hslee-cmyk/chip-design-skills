@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+# b26_1_carry.sh records 단계 u3 배선 self-test -- 기록 5 = 초안(_drafts/approval_20261001-b26-v3-equiv-range.md) + fill_u3.py(--src·--jsonl 대조).
+#   bash records_u3_test.sh            (모래상자 기본 /c/g252/rt -- RECORDS_U3_SCR로 바꿈, /c/g<숫자>[/<이름>]만)
+# * 피검: _drafts/b26_1_carry.sh `records` 단계를 모래상자 복제본(--repo)·모래상자 gate에서 실제로 돌린다(게이트 캐시·parse-approval 포함).
+#   초안을 바꾸는 사례만 피검 사본(DRAFT5= 줄 하나만 모래상자 초안으로 -- 다른 바이트 같음을 단정)을 쓴다.
+# * 기대값은 배선 계약으로 정함(피검을 불러 만들지 않는다): 좋은 값 PASS + 기록 5 바이트 = 옛 heredoc 생성기(b26_1_carry.sh.pre-u3.bak) 출력,
+#   그 밖 사례는 carry가 0 아닌 코드로 멈추고 기록 5 파일·RECORDS=1이 없으며 stderr에 그 사례의 이유 문구가 있다.
+# * 실제 저장소·gate는 읽기만(git -C … status/reflog/rev-parse 앞뒤 같음 단정). 결과는 사례마다 out/records_u3_result.tsv에 append.
+set -Eeuo pipefail
+shopt -s inherit_errexit
+trap 'echo "[중단] ${BASH_SOURCE[0]}:${LINENO}: ${BASH_COMMAND}" >&2' ERR
+
+export HOME=/c/Users/HSLEE
+PY=/c/Python314/python.exe
+KIT=/c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/b26_1_kit_selftest
+DR=/c/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts
+NEW=$DR/b26_1_carry.sh
+BAK=$DR/b26_1_carry.sh.pre-u3.bak
+DRAFT5=$DR/approval_20261001-b26-v3-equiv-range.md
+R=/c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills
+JSONL=$HOME/.claude/projects/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922.jsonl
+AID4=20261001-b26-p9-signature-update
+AID5=20261001-b26-v3-equiv-range
+SCR=${RECORDS_U3_SCR:-/c/g252/rt}
+RES=$KIT/out/records_u3_result.tsv
+export PYTHONDONTWRITEBYTECODE=1 PYTHONIOENCODING=utf-8
+
+[[ "$SCR" =~ ^/c/g[0-9]+(/[a-z0-9_]+)?$ ]] || { echo "[중단] 모래상자 경로 $SCR" >&2; exit 2; }
+test ! -e "$SCR" || { echo "[중단] 모래상자 $SCR가 이미 있다" >&2; exit 2; }
+cleanup() { if [[ "$SCR" =~ ^/c/g[0-9]+(/[a-z0-9_]+)?$ ]] && [ -d "$SCR" ]; then rm -rf -- "$SCR"; fi; }
+trap cleanup EXIT
+mkdir -p "$SCR/tmp" "$KIT/out"
+export TMP=$SCR/tmp TEMP=$SCR/tmp TMPDIR=$SCR/tmp
+SW=$(printf '%s' "$SCR" | sed -E 's#^/([a-zA-Z])/#\U\1:/#')
+test -n "$(git config --get user.email)"
+
+git -C "$R" status --porcelain > "$SCR/st0.txt"; git -C "$R" reflog -1 --format=%H > "$SCR/rl0.txt"; git -C "$R" rev-parse HEAD > "$SCR/hd0.txt"
+
+# ---- 0. 피검 범위: pre-u3.bak와 다른 곳은 u3 배선 구간뿐(DRAFT5·FILL5·JSONL5 줄 삽입, bytes_ok, stage_records)
+"$PY" -B - "$BAK" "$NEW" <<'EOF'
+import difflib, sys
+a = open(sys.argv[1], "rb").read().split(b"\n"); b = open(sys.argv[2], "rb").read().split(b"\n")
+def span(L, head):
+    i = L.index(head); return i, L.index(b"}", i)
+ra = [span(a, h) for h in (b"bytes_ok() {", b"stage_records() {")]
+rb = [span(b, h) for h in (b"bytes_ok() {", b"stage_records() {")]
+d4 = a.index(b"DRAFT4=$DR/approval_$AID4.md")
+bad = []
+for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
+    if op == "equal":
+        continue
+    ins_vars = op == "insert" and i1 == d4 + 1 and all(l.split(b"=", 1)[0] in (b"DRAFT5", b"FILL5", b"JSONL5") for l in b[j1:j2])
+    in_a = any(s - 1 <= i1 and i2 <= e + 1 for s, e in ra)
+    in_b = any(s - 1 <= j1 and j2 <= e + 1 for s, e in rb)
+    if not (ins_vars or (in_a and in_b)):
+        bad.append((op, i1 + 1, i2, j1 + 1, j2))
+assert not bad, ("u3 배선 구간 밖 변경", bad)
+jb = b"\n".join(b)
+assert b"out, aid, elem, k1, b1, sums, alab" not in jb and b'"$PY" -B - "$R/$F_A5"' not in jb, "옛 기록 5 heredoc이 남았다"
+print("0. 피검 범위 OK: pre-u3.bak 대비 변경은 DRAFT5·FILL5·JSONL5 삽입, bytes_ok, stage_records 안뿐, 옛 heredoc 없음")
+EOF
+
+# ---- 1. 모래상자: 복제본 r(gate_config gate_path만 모래상자 gate로 바꾼 커밋 B1) + bare gate
+git clone -q --no-hardlinks --no-local --no-checkout "$R" "$SCR/r"
+git -C "$SCR/r" config core.longpaths true
+git -C "$SCR/r" checkout -q master
+git -C "$SCR/r" remote remove origin
+"$PY" -B - "$SCR/r" "$SW" <<'EOF'
+import json, sys, os
+r, sw = sys.argv[1], sys.argv[2]
+p = os.path.join(r, "tools", "gates", "gate_config.json")
+raw = open(p, "rb").read(); crlf = b"\r\n" in raw
+cfg = json.loads(raw.decode("utf-8")); cfg["gate_path"] = sw + "/gate.git"; cfg["workspace_path"] = sw + "/r"
+out = json.dumps(cfg, ensure_ascii=False, indent=2) + "\n"
+open(p, "wb").write((out.replace("\n", "\r\n") if crlf else out).encode("utf-8"))
+EOF
+git -C "$SCR/r" add -- tools/gates/gate_config.json
+git -C "$SCR/r" -c core.hooksPath=/dev/null commit -q -m "sandbox: gate_path -> 모래상자(records_u3_test)"
+git clone -q --bare --no-hardlinks --no-local "$SCR/r" "$SCR/gate.git"
+git -C "$SCR/r" remote add gate "$SW/gate.git"
+git -C "$SCR/r" fetch -q gate
+B1=$(git -C "$SCR/r" rev-parse HEAD); test "$(git -C "$SCR/r" rev-parse gate/master)" = "$B1"
+CACHE=$("$PY" -B -c "import sys;sys.path.insert(0,sys.argv[1]);import role_paths as rp;print(rp.ensure_cache(rp.load_env(sys.argv[2])))" "$SCR/r/tools/gates" "$SCR/r")
+test "$(basename "$CACHE")" = "$B1"
+
+# ---- 2. 입력 원본: 보관 디렉터리(K1_SD.py = 픽스처), 상태 파일
+K1SD=$KIT/fixtures/k1_stick_diagram.py
+H=$("$PY" -B -c "
+import ast,hashlib,sys
+t=ast.parse(open(sys.argv[1],encoding='utf-8').read())
+F=[n for n in t.body if getattr(n,'name','')==sys.argv[2]][0]
+print(hashlib.sha256(ast.dump(F,annotate_fields=True,include_attributes=False,indent=None,show_empty=False).encode()).hexdigest())" "$K1SD" find_differential_pair_candidates)
+H_OTHER=$("$PY" -B -c "
+import ast,hashlib,sys
+t=ast.parse(open(sys.argv[1],encoding='utf-8').read())
+F=[n for n in t.body if getattr(n,'name','')==sys.argv[2]][0]
+print(hashlib.sha256(ast.dump(F,annotate_fields=True,include_attributes=False,indent=None,show_empty=False).encode()).hexdigest())" "$K1SD" other)
+MID="stick_diagram:find_differential_pair_candidates:const-:body[1].body[0].iter.args[0].right"
+ELEM_GOOD="$MID@$H"
+ELEM_BADHASH="$MID@$(printf '%s' "$H" | tr '0-9a-f' '1-9a-f0')"                       # 64자리 16진, K1 def 해시와 다름
+ELEM_WRONGDEF="stick_diagram:other:const-:body[0].value.right@$H_OTHER"                 # 다른 def(해시는 그 def와 맞음)
+ELEM_WRONGPATH="stick_diagram:find_differential_pair_candidates:const-:body[1].body[0].iter.args[1]@$H"      # U3 def·해시 맞음, 경로 끝이 range(… + 1, …)의 1이 아님
+mkdir -p "$SCR/src/arch"
+cp "$K1SD" "$SCR/src/arch/K1_SD.py"
+printf '{"tool": "V3", "synthetic": true}\n' > "$SCR/src/arch/attempt1_v3.json"
+printf '{"id": "x", "result": "survived"}\n' > "$SCR/src/arch/attempt1_v3.out.jsonl"
+printf '{"synthetic": true}\n' > "$SCR/src/arch/attempt1_base_check.json"
+printf 'B1 %s\n' "$B1" > "$SCR/src/arch/commits.txt"
+( cd "$SCR/src/arch" && find . -type f ! -name SHA256SUMS | LC_ALL=C sort | sed 's#^\./##' | while IFS= read -r f; do sha256sum -- "$f"; done ) > "$SCR/src/SHA256SUMS"
+mv "$SCR/src/SHA256SUMS" "$SCR/src/arch/SHA256SUMS"
+DH=$(printf 'c%.0s' $(seq 64)); T1=$B1; K1=$(printf 'b%.0s' $(seq 40))
+mkstate() {   # <V3_ELEM> -> $SCR/state.txt
+  printf 'B1=%s\nT1=%s\nK1=%s\nDIFF_HASH=%s\nCACHE=%s\nV3_ELEM=%s\nCHECK_OK=1\nBLOB=%s\nARCHIVED=1\n' "$B1" "$T1" "$K1" "$DH" "$CACHE" "$1" "$(printf 'd%.0s' $(seq 40))" > "$SCR/state.txt"
+}
+: > "$SCR/launch_state.txt"
+
+# 피검 사본(초안만 모래상자 초안으로): DRAFT5= 줄 하나만 다르다
+mkdir -p "$SCR/kit"
+cp "$DR/launch_common.sh" "$SCR/kit/launch_common.sh"
+"$PY" -B - "$NEW" "$SCR/kit/b26_1_carry.sh" "$SCR/kit/approval5.md" <<'EOF'
+import sys
+L = open(sys.argv[1], "rb").read().split(b"\n")
+i = [k for k, l in enumerate(L) if l.startswith(b"DRAFT5=")]
+assert len(i) == 1
+L2 = list(L); L2[i[0]] = b"DRAFT5=" + sys.argv[3].encode()
+assert sum(x != y for x, y in zip(L, L2)) == 1 and len(L) == len(L2)
+open(sys.argv[2], "wb").write(b"\n".join(L2))
+EOF
+
+printf 'case\texpected\tgot\tmatch\tdesc\tdetail\n' > "$RES"
+nbad=0; n=0
+# <이름> <기대 PASS|STOP> <피검 sh> <V3_ELEM> <초안(사본 피검일 때)> <STOP 이유 문구(stderr에 있어야)> <설명>
+run_case() {
+  local name=$1 exp=$2 sh=$3 elem=$4 draft=$5 why=$6 desc=$7 got detail="" m
+  n=$((n + 1))
+  rm -f "$SCR/r/.ai/approvals/$AID4.md" "$SCR/r/.ai/approvals/$AID5.md"
+  rm -rf "$SCR/arch" "$SCR/state.txt.tmpd" "$SCR/state.txt."*; cp -r "$SCR/src/arch" "$SCR/arch"
+  mkstate "$elem"
+  if [ -n "$draft" ]; then cp "$draft" "$SCR/kit/approval5.md"; fi
+  if bash "$sh" --repo "$SCR/r" --state "$SCR/state.txt" --launch-state "$SCR/launch_state.txt" --archive "$SCR/arch" --wt "$SCR/wt" records < /dev/null > "$SCR/c.out" 2> "$SCR/c.err"; then got=PASS; else got=STOP; fi
+  if [ "$got" = PASS ]; then
+    # 계약: RECORDS=1, 기록 5 = 옛 heredoc 생성기(pre-u3.bak) 출력과 바이트 같음, 자리표시·주석 0
+    grep -qx 'RECORDS=1' "$SCR/state.txt" || detail="RECORDS=1 없음 "
+    mkdir -p "$SCR/o"; rm -f "$SCR/o/$AID5.md"
+    if "$PY" -B "$KIT/fill_u3.py" --draft "$DRAFT5" --out "$SCR/o/$AID5.md" --state "$SCR/state.txt" --archive "$SCR/arch" --archive-label "$SCR/arch/" --check-carry "$BAK" > "$SCR/o.out" 2>&1; then
+      cmp -s "$SCR/o/$AID5.md" "$SCR/r/.ai/approvals/$AID5.md" || detail="${detail}carry 기록 5 != 옛 heredoc 출력 "
+    else detail="${detail}옛 heredoc 대조 실패: $(tail -1 "$SCR/o.out") "; fi
+    if grep -qE '<[A-Z][A-Z0-9_]*>|<!--|-->' "$SCR/r/.ai/approvals/$AID5.md"; then detail="${detail}자리표시·주석 남음 "; fi
+    [ -z "$detail" ] || got=PASS_BUT_BAD
+    detail=${detail:-"기록 5 $(wc -c < "$SCR/r/.ai/approvals/$AID5.md")B = pre-u3.bak heredoc 출력"}
+  else
+    # 계약: 멈춘 자리에서 기록 5를 쓰지 않았고 RECORDS=1 없음, 이유 문구가 stderr에
+    [ ! -e "$SCR/r/.ai/approvals/$AID5.md" ] || detail="기록 5가 쓰였다 "
+    ! grep -qx 'RECORDS=1' "$SCR/state.txt" || detail="${detail}RECORDS=1 있음 "
+    grep -qF -- "$why" "$SCR/c.err" || detail="${detail}이유 문구 없음[$why] "
+    [ -z "$detail" ] || got=STOP_BUT_BAD
+    detail=${detail:-"$(grep -m1 -E 'AssertionError|중단' "$SCR/c.err" | tr '\t' ' ' | cut -c1-150)"}
+  fi
+  if [ "$got" = "$exp" ]; then m=ok; else m=MISMATCH; nbad=$((nbad + 1)); fi
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$name" "$exp" "$got" "$m" "$desc" "$detail" >> "$RES"
+  printf '  %-14s 기대 %-4s 결과 %-12s %s  %s\n' "$name" "$exp" "$got" "$m" "$desc"
+}
+
+# 초안 변형(모래상자 사본) -- 원본 초안은 읽기만
+"$PY" -B - "$DRAFT5" "$SCR" <<'EOF'
+import sys, os
+t = open(sys.argv[1], "rb").read().decode("utf-8"); s = sys.argv[2]
+def w(name, x):
+    assert x != t; open(os.path.join(s, name), "wb").write(x.encode("utf-8"))
+w("d_leftover.md", t.replace("\n## 범위 설명\n", "\n## 범위 설명\n\n남은 자리표시 <LEFTOVER_X>.\n", 1))            # 모르는 자리표시(채우는 법에 없는 이름)
+q = "등가 4개를 어떻게 처리할까요?"
+assert t.count(q) == 1
+w("d_quote.md", t.replace(q, "등가 4개를 어떻게 처리할까요", 1))                                                      # 사용자 질문 원문 변조(물음표 하나)
+a = "\n> 정리 2줄 + 면제 1 (Recommended)\n"
+assert t.count(a) == 1
+w("d_answer.md", t.replace(a, "\n> 등가 4개 모두 면제\n", 1))                                                         # 사용자 답 변조
+w("d_dupph.md", t.replace("해시 `<V3_BIND_HASH_64>`는", "해시 `<V3_BIND_HASH_64>`·`<K1_40>`는", 1))                 # 자리표시 개수 변조
+i = t.index("\n<!--\n")
+w("d_twocomment.md", t[:i] + "\n<!-- 남은 주석 -->\n" + t[i:])                                                        # 주석 블록 둘
+print("초안 변형 5개")
+EOF
+
+echo "== records 단계 사례"
+run_case good          PASS "$NEW"               "$ELEM_GOOD"      ""                        ""                                   "좋은 값(실제 피검, 실제 초안)"
+run_case good_copy     PASS "$SCR/kit/b26_1_carry.sh" "$ELEM_GOOD" "$DRAFT5"                 ""                                   "좋은 값(피검 사본 + 원본 초안 사본 -- 사본 경로 무해 확인)"
+run_case hash_mismatch STOP "$NEW"               "$ELEM_BADHASH"   ""                        "묶기 해시 != src def 묶기 해시"     "V3_ELEM 해시 != 보관 K1_SD.py def 해시"
+run_case wrong_def     STOP "$NEW"               "$ELEM_WRONGDEF"  ""                        "변이 id가 U3 대상 모양이 아니다"    "다른 def 변이 id(해시는 그 def와 맞음)"
+run_case wrong_path    STOP "$NEW"               "$ELEM_WRONGPATH" ""                        "AssertionError: Call("              "U3 def·해시 맞음, 경로 끝 노드가 상수 1 아님"
+run_case leftover_ph   STOP "$SCR/kit/b26_1_carry.sh" "$ELEM_GOOD" "$SCR/d_leftover.md"     "LEFTOVER_X"                         "초안에 모르는 자리표시 <LEFTOVER_X>"
+run_case tamper_quote  STOP "$SCR/kit/b26_1_carry.sh" "$ELEM_GOOD" "$SCR/d_quote.md"        "질문 원문 불일치"                   "기록 질문 원문 변조(jsonl 대조)"
+run_case tamper_answer STOP "$SCR/kit/b26_1_carry.sh" "$ELEM_GOOD" "$SCR/d_answer.md"       "답 원문 인용 불일치"                "기록 사용자 답 변조(jsonl 대조)"
+run_case tamper_phcount STOP "$SCR/kit/b26_1_carry.sh" "$ELEM_GOOD" "$SCR/d_dupph.md"       "<K1_40>"                            "자리표시 개수 변조"
+run_case two_comments  STOP "$SCR/kit/b26_1_carry.sh" "$ELEM_GOOD" "$SCR/d_twocomment.md"   "AssertionError"                     "주석 블록 둘(채우는 법 주석 밖 주석)"
+
+# ---- 3. bytes_ok 단위(피검 함수를 뽑아 직접): 자리표시 정규식·주석
+echo "== bytes_ok 단위"
+"$PY" -B - "$NEW" "$BAK" "$SCR/bo_new.sh" "$SCR/bo_old.sh" <<'EOF'
+import sys
+for src, dst in ((sys.argv[1], sys.argv[3]), (sys.argv[2], sys.argv[4])):
+    L = open(src, "rb").read().split(b"\n"); i = L.index(b"bytes_ok() {"); j = L.index(b"}", i)
+    open(dst, "wb").write(b"\n".join(L[i:j + 1]) + b"\n")
+EOF
+printf 'clean line <변이 id>@<묶기 해시> a<b\n' > "$SCR/bo_clean.md"
+printf 'x <V3_MUTANT_ID> y\n' > "$SCR/bo_ph1.md"
+printf 'x <ARCHIVE_LABEL>attempt1_v3.json\n' > "$SCR/bo_ph2.md"
+printf 'x <K1_40>\n' > "$SCR/bo_ph3.md"
+printf 'x\n<!--\nfoo\n-->\n' > "$SCR/bo_cm.md"
+bo() {   # <함수 파일> <입력> -> PASS|STOP
+  if ( PY=$PY; . "$1"; bytes_ok "$2" ) > /dev/null 2>&1; then echo PASS; else echo STOP; fi
+}
+for c in "clean PASS PASS" "ph1 STOP PASS" "ph2 STOP PASS" "ph3 STOP PASS" "cm STOP STOP"; do
+  set -- $c; n=$((n + 1))
+  gn=$(bo "$SCR/bo_new.sh" "$SCR/bo_$1.md"); go=$(bo "$SCR/bo_old.sh" "$SCR/bo_$1.md")
+  if [ "$gn" = "$2" ]; then m=ok; else m=MISMATCH; nbad=$((nbad + 1)); fi
+  printf 'bytes_ok_%s\t%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$gn" "$m" "bytes_ok 단위" "옛 bytes_ok(pre-u3.bak) $go (정보, 기대 $3)" >> "$RES"
+  printf '  bytes_ok_%-6s 기대 %-4s 결과 %-4s %s  (옛 %s)\n' "$1" "$2" "$gn" "$m" "$go"
+done
+
+# ---- 실제 저장소 앞뒤 같음
+git -C "$R" status --porcelain > "$SCR/st1.txt"; git -C "$R" reflog -1 --format=%H > "$SCR/rl1.txt"; git -C "$R" rev-parse HEAD > "$SCR/hd1.txt"
+cmp "$SCR/st0.txt" "$SCR/st1.txt"; cmp "$SCR/rl0.txt" "$SCR/rl1.txt"; cmp "$SCR/hd0.txt" "$SCR/hd1.txt"
+echo "실제 저장소 status $(wc -l < "$SCR/st1.txt")줄·reflog $(cut -c1-7 "$SCR/rl1.txt")·HEAD $(cut -c1-7 "$SCR/hd1.txt") 앞뒤 같음"
+echo "결과 $RES -- 사례 $n, 불일치 $nbad"
+test "$nbad" -eq 0

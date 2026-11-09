@@ -1,0 +1,294 @@
+{
+ "bias": "free",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0
+ },
+ "geometry": {
+  "M3": {
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 4.9999999999999996e-06,
+   "W_declared": 8.799702685306263e-07,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.5e-12,
+    "as": 2.5e-12,
+    "pd": 7e-06,
+    "ps": 7e-06
+   }
+  },
+  "M4": {
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 4.9999999999999996e-06,
+   "W_declared": 9.334139016254308e-07,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.5e-12,
+    "as": 2.5e-12,
+    "pd": 7e-06,
+    "ps": 7e-06
+   }
+  },
+  "M6": {
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 6,
+   "W_from_fingers": 2.9999999999999997e-05,
+   "W_declared": 3.1040399532846613e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.5e-12,
+    "as": 2.5e-12,
+    "pd": 7e-06,
+    "ps": 7e-06
+   }
+  },
+  "M1": {
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 9.999999999999999e-06,
+   "W_declared": 8.497524499803719e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.5e-12,
+    "as": 2.5e-12,
+    "pd": 7e-06,
+    "ps": 7e-06
+   }
+  },
+  "M2": {
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 9.999999999999999e-06,
+   "W_declared": 8.497524499803719e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.5e-12,
+    "as": 2.5e-12,
+    "pd": 7e-06,
+    "ps": 7e-06
+   }
+  },
+  "M5": {
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 9.999999999999999e-06,
+   "W_declared": 1.1911488886010403e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.5e-12,
+    "as": 2.5e-12,
+    "pd": 7e-06,
+    "ps": 7e-06
+   }
+  },
+  "M7": {
+   "L": 1.5e-07,
+   "finger_w": 4.9999999999999996e-06,
+   "n_fingers": 22,
+   "W_from_fingers": 0.00010999999999999999,
+   "W_declared": 0.00011020047263432498,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.5e-12,
+    "as": 2.5e-12,
+    "pd": 7e-06,
+    "ps": 7e-06
+   }
+  }
+ },
+ "probes": {
+  "M3": {
+   "id": "@m.xm3.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm3.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm3.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm3.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm3.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm3.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm3.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm3.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M4": {
+   "id": "@m.xm4.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm4.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm4.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm4.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm4.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm4.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm4.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm4.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M6": {
+   "id": "@m.xm6.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm6.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm6.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm6.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm6.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm6.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm6.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm6.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M1": {
+   "id": "@m.xm1.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm1.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm1.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm1.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm1.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm1.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm1.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm1.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M2": {
+   "id": "@m.xm2.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm2.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm2.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm2.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm2.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm2.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm2.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm2.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M5": {
+   "id": "@m.xm5.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm5.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm5.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm5.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm5.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm5.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm5.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm5.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M7": {
+   "id": "@m.xm7.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm7.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm7.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm7.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm7.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm7.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm7.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm7.msky130_fd_pr__nfet_01v8[vbs]"
+  }
+ },
+ "nets": [
+  "D3",
+  "vdd",
+  "O1",
+  "OUT",
+  "vin_n",
+  "CS",
+  "vin_p",
+  "bias",
+  "N_cc_rz"
+ ],
+ "spice_node": {
+  "D3": "D3",
+  "vdd": "vdd",
+  "O1": "O1",
+  "OUT": "OUT",
+  "vin_n": "vin_n",
+  "CS": "CS",
+  "vin_p": "vin_p",
+  "bias": "bias",
+  "N_cc_rz": "N_cc_rz"
+ },
+ "rail_sources": {
+  "vdd": "Vrail_vdd"
+ },
+ "held": [],
+ "unheld": [],
+ "gate_bias": {
+  "bias": 0.5520428315383036
+ },
+ "inputs": [
+  "vin_p",
+  "vin_n"
+ ],
+ "has_ac": true,
+ "ac_file": "two_stage_ota.free.ac.txt",
+ "outputs": [
+  "OUT"
+ ],
+ "output_nodes": [
+  "OUT",
+  "0"
+ ],
+ "tb_options": {
+  "gmin": "1e-15",
+  "reltol": "1e-4",
+  "abstol": "1e-14",
+  "vntol": "1e-7",
+  "itl1": "500",
+  "itl2": "500"
+ },
+ "ratio_runs": [],
+ "rout_runs": [],
+ "input_ac_weights": {
+  "vin_p": 0.5,
+  "vin_n": -0.5
+ },
+ "dc_path_isolation": [
+  {
+   "net": "vin_p",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": false
+  },
+  {
+   "net": "vin_n",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": true
+  }
+ ],
+ "notes": [
+  "resistor Rz=2716.297717 (엔진 봉인점 device.passive_value)",
+  "capacitor CL=3e-12 (topology value_farad)",
+  "capacitor Cc=3.841766001e-13 (엔진 봉인점 device.passive_value)",
+  "free: DC 되먹임 OUT -> vin_n (V(OUT)_pred=0.9, V(vin_n)_pred=1.15564)",
+  "게이트 전용 넷 bias = 0.552043 V (bias_voltages 선언)",
+  "free: .nodeset 7개 = 예측 노드전압(뉴턴 초기값)"
+ ],
+ "blockers": [],
+ "z1": null,
+ "topology_identity": {
+  "status": "verified",
+  "topology_path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_it2c\\src\\skills\\analog-gmid-design\\assets\\library\\two_stage_ota.topology.json",
+  "sha256_actual": "8458c540c98b1e05a5048b06c094d70d48ce1ba9eeca561954de3d8ac9b4e81c",
+  "sha256_declared": "8458c540c98b1e05a5048b06c094d70d48ce1ba9eeca561954de3d8ac9b4e81c",
+  "diffs": [],
+  "compared": 10,
+  "excluded_testbench": [
+   "Vrail_vdd",
+   "Vdc_vin_p",
+   "Ldc_vin_p",
+   "Cac_vin_p",
+   "Vac_vin_p",
+   "Efb_vin_n",
+   "Vofs_vin_n",
+   "Lfb_vin_n",
+   "Cac_vin_n",
+   "Vac_vin_n",
+   "Vbias_bias"
+  ],
+  "declared_not_in_topology": {},
+  "bulk_compared": [],
+  "notes": [],
+  "bias_inputs": [
+   "bias"
+  ],
+  "required": false
+ },
+ "cm_loop": null,
+ "loop": null
+}

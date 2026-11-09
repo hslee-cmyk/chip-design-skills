@@ -1,0 +1,99 @@
+# master 7620f5ee517d29f00f7481ac3af41adc8a95e996
+# integ/it12 b9351eac1f8bc6a4ae58019351be8a6d133c9519 ss_nodal module in tree: False
+metrics/sensitivity_gate.py:30: if None in (dec, full, dec0, full0, res, res0):
+metrics/sensitivity_gate.py:40: return GateResult(not errors, tuple(checks), tuple(errors), widest)
+search/gate_run.py:25: return None
+search/gate_run.py:29: return None
+search/gate_run.py:46: return None
+search/gate_run.py:52: return None
+search/gate_run.py:58: continue
+search/gate_run.py:61: continue
+search/find_front.py:72: gate = run_sensitivity_gate(sctx, out["front"][0].result) if out["front"] else None      # [U7] 최종 해의 감도 게이트(40 §3.8-2)
+search/find_front.py:73: if gate is not None:
+metrics/block_gain_model.py:11: * `L` -- 같은 L 동치류(S1v derived)와 같은 궤도의 MOS 를 한 그룹으로, 그룹마다 LUT L 앵커(bin 내부 극값 추가는 하지 않는다 -- 아래 '설계와 다른 점').
+metrics/block_gain_model.py:20: **설계와 다른 점**(기록): (1) 저항 컨덕턴스 후보에 이웃 소자 gds 값을 더하지 않고 θ 상자 양끝 사이 로그 균등 격자 + 세분만 쓴다(세분이 극값을 찾는다). (2) L 앵커 사이 bin 내부 극값 점
+metrics/block_gain_model.py:150: ground = ground | frozenset(n for n in channel | resistive if n not in spec.nodes and n not in drive and attach.get(n, m
+metrics/block_model.py:27: from ._helpers_nodal import conductance_matrix, nodal_adjoint, nodal_factor, nodal_solve
+metrics/block_model.py:37: def _undefined(code, detail=()):
+metrics/block_model.py:41: def _unit_drive(inputs):
+metrics/block_model.py:51: def _difference(volts, nets):
+metrics/block_model.py:61: def _select(ss, owned, fixed_out, exclude, extra):
+metrics/block_model.py:82: def _path_gains(ss, block, index, size, mos_labels, res_labels, unknown, outputs):
+metrics/block_model.py:91: volt, _residual = nodal_solve(nodal_factor(conductance_matrix(sub, size), set(range(size)) - unknown), size, {index[net]
+metrics/block_model.py:98: def block_local_gain(ss, block, drive=None, others=(), exclude=(), extra=()):
+metrics/block_model.py:112: g = conductance_matrix(sub, size)
+metrics/block_residual.py:5: 한 전달 뷰의 주경로 블록 사슬(stage 순)을 **앞 블록의 국소 해 전압을 다음 블록 입력으로** 이어 풀고(`block_local_gain` 을 블록마다 한 번, 입력 구동 = 사슬 전압),
+metrics/block_residual.py:21: from ._helpers_nodal import conductance_matrix, nodal_factor, nodal_solve
+metrics/block_residual.py:24: from .block_model import block_local_gain
+metrics/block_residual.py:58: found = block_local_gain(ss, block, drive, others=every - set(block.nodes), exclude=excluded,
+metrics/block_residual.py:73: factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+metrics/ff_gm_ratio.py:6: (`block_local_gain`: 입력 구동 = 단위 구동 -- 하나 1 V·둘 ±1/2 V, 차동 입력 1 V)에 FF 묶음 소자를 합류시키고 merge 넷을 접지(단락)한 채, FF 소자들이 merge 로 내
+metrics/ff_gm_ratio.py:21: from ._helpers_nodal import conductance_matrix
+metrics/ff_gm_ratio.py:24: from .block_model import block_local_gain
+metrics/ff_gm_ratio.py:46: found = block_local_gain(ss, bb, None, others=every - set(bb.nodes), exclude=others_ff, extra=f.members)
+metrics/ff_gm_ratio.py:55: current = (conductance_matrix(ff_circuit, len(ss.nodes)) @ volt)[index[f.merge]]
+metrics/offset_analysis.py:30: from ._helpers_nodal import conductance_matrix, nodal_adjoint, nodal_factor, nodal_solve
+metrics/offset_analysis.py:69: factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+metrics/offset_systematic.py:16: from ._helpers_nodal import conductance_matrix, nodal_factor, nodal_solve
+metrics/offset_systematic.py:46: factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+
+## grep 판정 소비자 (master, tests·md 제외)
+-- block_local_gain\( 4
+   metrics/block_model.py:3:진입점: `block_local_gain(ss, block, drive, others=(), exclude=(), extra=()) -> BlockGain`.
+   metrics/block_model.py:98:def block_local_gain(ss, block, drive=None, others=(), exclude=(), extra=()):
+   metrics/block_residual.py:58:        found = block_local_gain(ss, block, drive, others=every - set(block.nodes), exclude=excluded,
+   metrics/ff_gm_ratio.py:46:    found = block_local_gain(ss, bb, None, others=every - set(bb.nodes), exclude=others_ff, extra=f.members)
+-- block_residual\( 3
+   metrics/block_residual.py:3:진입점: `block_residual(ss, view, vstruct) -> BlockResidual`.
+   metrics/block_residual.py:65:def block_residual(ss, view, vstruct):
+   metrics/metrics_aux.py:229:            found = block_residual(ss, view, vstruct)
+-- gain_residual_db 10
+   metrics/aux_types.py:222:    """전달 뷰 하나의 분해 잔차(41 §2.2). `gain_residual_db` = gain_ss_db − 20·log10|A_decomp|(A_decomp = 주경로 블록 곱 + FF 기여),
+   metrics/aux_types.py:228:    gain_residual_db: object
+   metrics/block_residual.py:7:* `gain_residual_db` = 전회로 DC 이득(본 모듈 노달 풀이 `full_gain_db`, `gain_ss_db` 의 T(0) 와 같은 양) − 20·log10|A_decomp|.
+   metrics/block_residual.py:27:QUANTITY = "gain_residual_db"
+   metrics/coupled_residual.py:5:표본 = 봉인을 통과한 준난수 θ 점마다 `block_residual` 이 낸 `gain_residual_db`(dB)다(점을 평가하는 일은 `search.residual_probe`). 산출: r̂ = 중앙값,
+   metrics/metrics_aux.py:17:* 보고(`MetricBundle.reports`, 요청과 무관하게 구조 입력이 있으면 항상): 전달 뷰마다 `block_residual`(gain_residual_db·block_gain·ff_contrib·rout_residual_ohm, 41 §2.2)
+   metrics/metrics_aux.py:274:    return (("view", found.view), ("gain_residual_db", found.gain_residual_db), ("full_gain_db", found.full_gain_db),
+   search/kernel.py:61:    """S3 evals 요약 -- 그 점의 블록 분해 잔차 보고(41 §2.2: `gain_residual_db`·`ss.block_gain`·`ss.ff_contrib`·`ss.rout_residual_ohm`). `metrics_aux` 가 안 돈 점은 빈 목
+   search/residual_probe.py:7:  봉인 점이 되지 못한다). 평가 커널(`evaluate`)을 돌리고 **봉인을 통과한 점**(`ACCEPTED_STATUSES`)에서 그 점의 `block_residual` 보고(`metrics_aux` 필드)의 `gain_residual_db` 를 잰
+   search/residual_probe.py:24:RESIDUAL_KEY = "gain_residual_db"
+-- decomposed_gain_db 6
+   metrics/aux_types.py:233:    decomposed_gain_db: object = None
+   metrics/metrics_aux.py:275:            ("decomposed_gain_db", found.decomposed_gain_db), ("rout_residual_ohm", found.rout_residual_ohm),
+   metrics/sensitivity_gate.py:9:* `base` = (분해 이득 dB, 전회로 이득 dB, 풀이 상대 잔차) -- 기준 점의 `BlockResidual`(`decomposed_gain_db`·`full_gain_db`·`solve_residual`).
+   search/gate_run.py:45:    if report is None or report["decomposed_gain_db"] is None or report["full_gain_db"] is None:
+   search/gate_run.py:62:        runs.append((var.component[0] + ":" + str(var.component[1]), found["decomposed_gain_db"], found["full_gain_db"], found["solve_residual"]))
+   search/gate_run.py:63:    return sensitivity_gate((report["decomposed_gain_db"], report["full_gain_db"], report["solve_residual"]), tuple(runs))
+-- residual_probe\( 2
+   search/residual_probe.py:3:진입점: `residual_probe(sctx, count) -> ResidualProbe`.
+   search/residual_probe.py:66:def residual_probe(sctx, count):
+-- coupled_residual\( 3
+   metrics/coupled_residual.py:3:진입점: `coupled_residual(residuals_db) -> CoupledResidual`.
+   metrics/coupled_residual.py:14:def coupled_residual(residuals_db):
+   search/residual_probe.py:90:    return ResidualProbe(coupled_residual(values), evaluated, tuple(values), stop)
+-- \.residual_probe 1
+   metrics/coupled_residual.py:5:표본 = 봉인을 통과한 준난수 θ 점마다 `block_residual` 이 낸 `gain_residual_db`(dB)다(점을 평가하는 일은 `search.residual_probe`). 산출: r̂ = 중앙값,
+-- \"residual_probe\" 3
+   _module_map.py:831:    ModuleEntry("search/residual_probe.py", "entry", "residual_probe",
+   search/s0_fields.py:25:RESIDUAL_PROBE_WRITER = "residual_probe"
+   search/s0_fields.py:33:STAGE_B_WRITES = ((RESIDUAL_PROBE_WRITER, (("graph", "residual_probe"),)), (DOF_NUMERIC_WRITER, (("graph", "dof_numeric"),)))
+-- ff_gm_ratio\( 4
+   metrics/ff_gm_ratio.py:3:진입점: `ff_gm_ratio(ss, vstruct, rel_tols=None) -> FfRatio`.
+   metrics/ff_gm_ratio.py:68:def ff_gm_ratio(ss, vstruct, rel_tols=None):
+   metrics/metrics_aux.py:221:            results[request] = _result(request, once(("ff", view), lambda: ff_gm_ratio(ss, vstruct, rel_tols)))
+   metrics/metrics_aux.py:227:            cache[("ff", view)] = ff_gm_ratio(ss, vstruct)
+
+## spec에 ff_gm_ratio 제약 선언
+0 files
+
+## floating 소비자
+master:skills/analog-gmid-design/gmid_engine/metrics/_helpers_nodal.py:7:  컨덕턴스가 하나도 안 닿은 노드(KCL 식이 없는 노드)는 미지수에서 빼고 전압 0 으로 둔다(`floating`) -- 값이 정의되지 않는 노드를
+master:skills/analog-gmid-design/gmid_engine/metrics/_helpers_nodal.py:8:  임의로 채우지 않고, 부르는 쪽이 `floating` 으로 영향 여부를 본다.
+master:skills/analog-gmid-design/gmid_engine/metrics/_helpers_nodal.py:9:* `nodal_factor(g, fixed)` -> `NodalFactor` 대신 튜플 `(unknown, lu, piv, coupling, floating)`: `unknown` = 미지수 노드(고정 아닌 노드 중 G 행이 0
+master:skills/analog-gmid-design/gmid_engine/metrics/_helpers_nodal.py:11:  `floating` = 제외한 노드 tuple.
+master:skills/analog-gmid-design/gmid_engine/metrics/_helpers_nodal.py:37:    """G (n, n), 고정 노드 집합 -> `(unknown, lu, piv, coupling, floating)`(모듈 문서)."""
+master:skills/analog-gmid-design/gmid_engine/metrics/_helpers_nodal.py:42:    floating = tuple(i for i in range(size) if i not in fixed_set and not connected[i])
+master:skills/analog-gmid-design/gmid_engine/metrics/_helpers_nodal.py:45:        return unknown, None, None, coupling, floating
+master:skills/analog-gmid-design/gmid_engine/metrics/_helpers_nodal.py:49:    return unknown, lu, piv, coupling, floating
+master:skills/analog-gmid-design/gmid_engine/metri

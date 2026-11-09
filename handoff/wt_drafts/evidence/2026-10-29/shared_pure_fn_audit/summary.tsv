@@ -1,0 +1,202 @@
+fn	kind	infra	n_sites	n_roots	roots
+authoring._feedback_cuts.input_terminal_nets	function		2	2	?(cycle);ROOT:pipeline.stage_a.run_stage_a
+authoring._rejection.reject	function	infra	23	8	?(cycle);ROOT:authoring.bias_inputs.bias_input_declaration;ROOT:authoring.devices.device_declaration;ROOT:authoring.ideal_sources.source_declaration;ROOT:authoring.passives.passive_declaration;ROOT:authoring.ports.port_declaration;ROOT:authoring.rails.rail_declaration;ROOT:pipeline.stage_a.run_stage_a
+authoring._rejection.require_object	function	infra	6	6	ROOT:authoring.bias_inputs.bias_input_declaration;ROOT:authoring.devices.device_declaration;ROOT:authoring.ideal_sources.source_declaration;ROOT:authoring.passives.passive_declaration;ROOT:authoring.ports.port_declaration;ROOT:authoring.rails.rail_declaration
+authoring._spec_fields.at	function	infra	104	12	?(cycle);MODULE-LEVEL;ROOT:authoring.spec_count_budget.count_budget_declaration;ROOT:authoring.spec_driving.driving_declaration;ROOT:authoring.spec_gain_override.gain_override_declaration;ROOT:authoring.spec_input_dc.input_dc_declaration;ROOT:authoring.spec_node_targets.node_target_declaration;ROOT:authoring.spec_noise_testbench.noise_testbench_declaration;ROOT:authoring.spec_regions.intended_regi
+authoring._spec_fields.finite_number	function	infra	14	8	?(cycle);ROOT:authoring.spec_driving.driving_declaration;ROOT:authoring.spec_gain_override.gain_override_declaration;ROOT:authoring.spec_input_dc.input_dc_declaration;ROOT:authoring.spec_node_targets.node_target_declaration;ROOT:authoring.spec_supplies.supplies_declaration;ROOT:authoring.spec_targets.compensation_target_declaration;ROOT:pipeline.stage_a.run_stage_a
+authoring._spec_fields.is_pending	function	infra	14	6	?(cycle);ROOT:authoring.spec_input_dc.input_dc_declaration;ROOT:authoring.spec_node_targets.node_target_declaration;ROOT:authoring.spec_regions.intended_region_declaration;ROOT:authoring.spec_targets.compensation_target_declaration;ROOT:pipeline.stage_a.run_stage_a
+authoring._spec_fields.key_hits	function	infra	33	11	?(cycle);ROOT:authoring.spec_count_budget.count_budget_declaration;ROOT:authoring.spec_driving.driving_declaration;ROOT:authoring.spec_gain_override.gain_override_declaration;ROOT:authoring.spec_input_dc.input_dc_declaration;ROOT:authoring.spec_node_targets.node_target_declaration;ROOT:authoring.spec_noise_testbench.noise_testbench_declaration;ROOT:authoring.spec_regions.intended_region_declaratio
+authoring._spec_fields.pending_decision	function	infra	13	6	?(cycle);ROOT:authoring.spec_input_dc.input_dc_declaration;ROOT:authoring.spec_node_targets.node_target_declaration;ROOT:authoring.spec_regions.intended_region_declaration;ROOT:authoring.spec_targets.compensation_target_declaration;ROOT:pipeline.stage_a.run_stage_a
+authoring._spec_fields.value_slot	function	infra	2	3	?(cycle);ROOT:authoring.spec_targets.compensation_target_declaration;ROOT:pipeline.stage_a.run_stage_a
+authoring._terminal_nets.mos_terminal_nets	function		6	6	?(cycle);ROOT:authoring.hidden_rails.check_hidden_rails;ROOT:authoring.name_uniqueness.check_name_uniqueness;ROOT:authoring.spec_gain_override.gain_override_declaration;ROOT:authoring.spec_node_targets.node_target_declaration;ROOT:pipeline.stage_a.run_stage_a
+authoring._terminal_nets.two_terminal_nets	function		9	7	?(cycle);ROOT:authoring.bias_inputs.bias_input_declaration;ROOT:authoring.hidden_rails.check_hidden_rails;ROOT:authoring.name_uniqueness.check_name_uniqueness;ROOT:authoring.spec_gain_override.gain_override_declaration;ROOT:authoring.spec_node_targets.node_target_declaration;ROOT:pipeline.stage_a.run_stage_a
+authoring._two_terminal.two_terminal_elements	function		2	2	ROOT:authoring.ideal_sources.source_declaration;ROOT:authoring.passives.passive_declaration
+authoring.dc_edges.dc_edges_unpruned	function		2	2	BLK:s1_structure;ROOT:authoring.hidden_rails.check_hidden_rails
+authoring.json_read.load_json_checked	function	infra	2	2	?(cycle);ROOT:pipeline.stage_a.run_stage_a
+authoring.spec_model.PendingMark	record		8	5	?(cycle);ROOT:authoring.spec_node_targets.node_target_declaration;ROOT:authoring.spec_regions.intended_region_declaration;ROOT:authoring.spec_targets.compensation_target_declaration;ROOT:pipeline.stage_a.run_stage_a
+authoring.spec_model.SenseDecl	record		4	2	?(cycle);ROOT:pipeline.stage_a.run_stage_a
+authoring.spec_model.SettingValue	record		5	2	?(cycle);ROOT:pipeline.stage_a.run_stage_a
+authoring.spec_model.ViewDecl	record		17	3	?(cycle);BLK:metrics_ss;ROOT:pipeline.stage_a.run_stage_a
+authoring.spec_sources.source_declaration_checks	function		18	11	?(cycle);ROOT:authoring.spec_count_budget.count_budget_declaration;ROOT:authoring.spec_driving.driving_declaration;ROOT:authoring.spec_gain_override.gain_override_declaration;ROOT:authoring.spec_input_dc.input_dc_declaration;ROOT:authoring.spec_node_targets.node_target_declaration;ROOT:authoring.spec_noise_testbench.noise_testbench_declaration;ROOT:authoring.spec_regions.intended_region_declaratio
+authoring.topology_load.load_topology	function		2	2	?(cycle);ROOT:pipeline.stage_a.run_stage_a
+authoring.topology_model.SchemaHit	record		232	23	?(cycle);ROOT:authoring.bias_inputs.bias_input_declaration;ROOT:authoring.devices.device_declaration;ROOT:authoring.hidden_rails.check_hidden_rails;ROOT:authoring.ideal_sources.source_declaration;ROOT:authoring.linked_files.check_linked_files;ROOT:authoring.name_uniqueness.check_name_uniqueness;ROOT:authoring.passives.passive_declaration;ROOT:authoring.ports.port_declaration;ROOT:authoring.rails.r
+core.blas_env.blas_environment	function	infra	5	3	ROOT:pipeline.stage_a.run_stage_a;ROOT:search.find_front.find_front;ROOT:search.search_context.build_search_context
+core.determinism.sorted_items	function	infra	92	44	?(cycle);BLK:build_s1v;BLK:coupling_vars;BLK:s1_branches;BLK:s1_bulk;BLK:s1_dc_conduction;BLK:s1_dc_roles;BLK:s1_gs_groups;BLK:s1_gvgs;BLK:s1_matching_groups;BLK:s1_structure;BLK:search_domain;BLK:start_intervals;ROOT:authoring.bias_inputs.bias_input_declaration;ROOT:authoring.devices.device_declaration;ROOT:authoring.hidden_rails.check_hidden_rails;ROOT:authoring.ideal_sources.source_declaration;
+core.exit_code.exit_code_for	function	infra	5	2	ROOT:pipeline.stage_a.run_stage_a;ROOT:pipeline.stage_b.run_stage_b
+core.failure_errors.InfeasibleTargetError	record	infra	2	2	BLK:dc_current_basis;ROOT:pipeline.stage_b.run_stage_b
+core.failure_errors.NonconvergentError	record	infra	4	2	BLK:dc_columns;ROOT:convergence.converge.converge
+core.failure_errors.SchemaRejectedError	record	infra	14	16	?(cycle);BLK:search_domain;BLK:start_intervals;ROOT:authoring.bias_inputs.bias_input_declaration;ROOT:authoring.devices.device_declaration;ROOT:authoring.ideal_sources.source_declaration;ROOT:authoring.passives.passive_declaration;ROOT:authoring.ports.port_declaration;ROOT:authoring.rails.rail_declaration;ROOT:core.pdk_decl.read_pdk_decl;ROOT:lut.data_location.resolve_lut_location;ROOT:lut.derived
+core.failure_errors.SealViolationError	record	infra	10	20	BLK:dc_columns;BLK:dc_seal_conduction;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:dc_widths;BLK:ly_slice_density;BLK:metrics_aux;BLK:ss_dev;BLK:start_intervals;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._param_row;ROOT:lut.derived_fns._reference_vds;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:lut.ft_curve.ft_curve;ROOT:lut.id_inverse.gm_id_for_target;ROOT:lut.idu_curve.idu_curve;ROOT:metr
+core.failure_errors.StructureUnresolvedError	record	infra	16	13	BLK:coupling_vars;BLK:dc_current_basis;BLK:dc_writer_plan;BLK:metrics_aux;BLK:metrics_ss;BLK:s1_branches;BLK:s1_bulk;BLK:s1_columns;BLK:s1_dc_conduction;BLK:s1_dc_roles;BLK:s1_gvgs;BLK:s1_symmetry;ROOT:pipeline.stage_a.run_stage_a
+core.failure_partial.attach_partial	function	infra	5	3	ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:sizing.size_and_seal.size_and_seal;ROOT:sizing.size_and_seal_local.size_and_seal_local
+core.fingerprint.fp_of	function	infra	31	15	?(cycle);BLK:ly_slice_density;ROOT:authoring.spec_model.SizingSpecDoc;ROOT:authoring.topology_model.TopologyDoc;ROOT:convergence.converge.converge;ROOT:core.compute_block.compute_block;ROOT:core.engine_code_fp.engine_code_fp;ROOT:core.projection.Projection;ROOT:lut.lut_set.load_lut_set;ROOT:lut.table_cache.TableCache;ROOT:pipeline.stage_a.run_stage_a;ROOT:pipeline.stage_b.run_stage_b;ROOT:search.f
+core.immutability.require_immutable	function	infra	6	20	?(cycle);BLK:search_domain;BLK:start_intervals;ROOT:authoring.bias_inputs.bias_input_declaration;ROOT:authoring.devices.device_declaration;ROOT:authoring.ideal_sources.source_declaration;ROOT:authoring.passives.passive_declaration;ROOT:authoring.ports.port_declaration;ROOT:authoring.rails.rail_declaration;ROOT:authoring.spec_model.SizingSpecDoc;ROOT:authoring.topology_model.TopologyDoc;ROOT:core.f
+core.metric_signature.MetricSignature	record	infra	2	3	BLK:constraint_classes;ROOT:metrics.registry._build;ROOT:pipeline.stage_a.run_stage_a
+core.writer_error.WriterPermissionError	record	infra	4	2	?(cycle);BLK:ly_slice_density
+core.writer_table.WriterTable	record	infra	7	2	BLK:ly_slice_density;MODULE-LEVEL
+graph.coupling_values.BlockRef	record		5	2	BLK:coupling_vars;ROOT:graph.column_block_map._row_key
+graph.net_model.net_model	function		2	2	BLK:build_s1v;BLK:coupling_vars
+graph.s1_model.S1Graph	record		5	2	ROOT:pipeline.stage_a.run_stage_a;ROOT:pipeline.stage_b.run_stage_b
+graph.s1_values.Evidence	record		30	7	BLK:s1_columns;BLK:s1_dc_roles;BLK:s1_gvgs;BLK:s1_matching_groups;BLK:s1_rel_kcl;BLK:s1_rel_matching;BLK:s1_rel_vgs
+graph.s1_values.RelEdge	record		9	5	BLK:s1_gvgs;BLK:s1_matching_groups;BLK:s1_rel_kcl;BLK:s1_rel_matching;BLK:s1_rel_vgs
+graph.s1v_values.Block	record		3	1	BLK:build_s1v
+graph.s1v_values.Finding	record		34	3	BLK:build_s1v;ROOT:graph.orbit_matching_crosstab.orbit_matching_crosstab;ROOT:pipeline.stage_a.run_stage_a
+graph.s1v_values.ViewSeed	record		2	1	BLK:build_s1v
+graph.signal_reach.signal_reach	function		4	1	BLK:build_s1v
+graph.supplies.supplies_declaration	function		2	2	ROOT:pipeline.stage_a.run_stage_a;ROOT:pipeline.stage_b.run_stage_b
+layout._helpers_pattern.device_views	function		2	2	BLK:ly_pattern_select;BLK:ly_rows
+layout._helpers_pattern.offsets	function		3	2	BLK:ly_pattern_select;BLK:ly_rows
+layout._helpers_pattern.orient	function		2	2	BLK:ly_pattern_select;BLK:ly_rows
+layout._helpers_pattern.pattern_rows	function		2	2	BLK:ly_pattern_select;BLK:ly_rows
+layout.area_tie.area_tie_m2	function		4	1	ROOT:convergence.converge.converge
+layout.canonical_naming.canonical_names	function		2	2	BLK:ly_pattern_select;BLK:ly_rows
+layout.canonical_rows.canonical_row	function		3	2	BLK:ly_pattern_select;BLK:ly_rows
+layout.contract_output.WRequest	record		3	3	BLK:ly_finger_geometry;BLK:ly_pattern_select;ROOT:layout.outputs.layout_outputs
+layout.crossover.find_min_crossover_layout	function		3	3	BLK:ly_pattern_select;BLK:ly_rows;ROOT:layout._helpers_hubleaf._build_rows_from_shares_with_crossover
+layout.euler_condition.check_euler_condition	function		9	5	BLK:ly_pattern_select;BLK:ly_rows;ROOT:layout._helpers_hubleaf._build_rows_from_shares;ROOT:layout._helpers_hubleaf._build_rows_from_shares_with_crossover;ROOT:layout._helpers_hubleaf._repair_row_parity
+layout.euler_graph.build_graph	function		9	5	BLK:ly_pattern_select;BLK:ly_rows;ROOT:layout._helpers_hubleaf._build_rows_from_shares;ROOT:layout._helpers_hubleaf._build_rows_from_shares_with_crossover;ROOT:layout._helpers_hubleaf._repair_row_parity
+layout.euler_trail.hierholzer	function		7	4	BLK:ly_pattern_select;BLK:ly_rows;ROOT:layout._helpers_hubleaf._build_rows_from_shares;ROOT:layout._helpers_hubleaf._build_rows_from_shares_with_crossover
+layout.patterns_common_centroid.common_centroid_layout	function		2	2	BLK:ly_pattern_select;BLK:ly_rows
+layout.patterns_row_swap.row_swap_layout	function		2	2	BLK:ly_pattern_select;BLK:ly_rows
+layout.row_euler.row_euler	function		2	2	BLK:ly_pattern_select;BLK:ly_rows
+layout.row_fold.apply_explicit_row_split	function		2	2	BLK:ly_pattern_select;BLK:ly_rows
+layout.transistor.Transistor	record		8	5	BLK:ly_pattern_select;BLK:ly_rows;ROOT:layout._helpers_hubleaf._build_rows_from_shares;ROOT:layout._helpers_hubleaf._build_rows_from_shares_with_crossover;ROOT:layout._helpers_hubleaf._repair_row_parity
+lut._helpers_anchor.l_position	function		13	18	BLK:dc_columns;BLK:dc_seal_conduction;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:dc_widths;BLK:ly_slice_density;BLK:metrics_aux;BLK:ss_dev;BLK:start_intervals;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._param_row;ROOT:lut.derived_fns._reference_vds;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:lut.ft_curve.ft_curve;ROOT:lut.id_inverse.gm_id_for_target;ROOT:lut.idu_curve.idu_curve;ROOT:metr
+lut._helpers_bins.bin_index	function		6	19	BLK:dc_columns;BLK:dc_seal_conduction;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:dc_widths;BLK:ly_slice_density;BLK:metrics_aux;BLK:ss_dev;BLK:start_intervals;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._param_row;ROOT:lut.derived_fns._reference_vds;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:lut.ft_curve.ft_curve;ROOT:lut.id_inverse.gm_id_for_target;ROOT:lut.idu_curve.idu_curve;ROOT:lut.
+lut._helpers_columns.column_source	function		5	10	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._param_row;ROOT:lut.derived_fns._reference_vds;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:search.find_front.find_front
+lut._helpers_fail.schema_rejected	function	infra	66	3	ROOT:lut.data_location.resolve_lut_location;ROOT:lut.lut_set.load_lut_set;ROOT:search.search_context.build_search_context
+lut._helpers_fail.seal_violation	function	infra	24	18	BLK:dc_columns;BLK:dc_seal_conduction;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:dc_widths;BLK:ly_slice_density;BLK:metrics_aux;BLK:ss_dev;BLK:start_intervals;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._param_row;ROOT:lut.derived_fns._reference_vds;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:lut.ft_curve.ft_curve;ROOT:lut.id_inverse.gm_id_for_target;ROOT:lut.idu_curve.idu_curve;ROOT:metr
+lut._helpers_gmid_axis.axis_curve	function		4	4	ROOT:lut.derived_fns._param_row;ROOT:lut.derived_fns._reference_vds;ROOT:lut.ft_curve.ft_curve;ROOT:lut.idu_curve.idu_curve
+lut._helpers_grids.npz_condition_mismatch	function		2	1	ROOT:lut.lut_set.load_lut_set
+lut._helpers_grids.npz_grids	function		6	1	ROOT:lut.lut_set.load_lut_set
+lut._helpers_interp.cell	function		2	8	BLK:dc_columns;BLK:dc_seal_conduction;BLK:dc_widths;BLK:ly_slice_density;BLK:metrics_aux;BLK:ss_dev;ROOT:lut.derived_fns._param_row;ROOT:lut.id_inverse.gm_id_for_target
+lut._helpers_interp.hermite	function		4	15	BLK:dc_columns;BLK:dc_seal_conduction;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:dc_widths;BLK:ly_slice_density;BLK:metrics_aux;BLK:ss_dev;BLK:start_intervals;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._param_row;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:lut.id_inverse.gm_id_for_target;ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:search.find_front.find_front
+lut._helpers_interp.hermite_root	function		3	9	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:lut.id_inverse.gm_id_for_target;ROOT:search.find_front.find_front
+lut._helpers_interp.linear_point	function		7	13	BLK:dc_columns;BLK:dc_seal_conduction;BLK:dc_seal_saturation;BLK:dc_widths;BLK:ly_slice_density;BLK:metrics_aux;BLK:ss_dev;BLK:start_intervals;ROOT:lut.derived_fns._param_row;ROOT:lut.derived_fns._reference_vds;ROOT:lut.ft_curve.ft_curve;ROOT:lut.id_inverse.gm_id_for_target;ROOT:metrics.ss_evaluate.ss_evaluate
+lut._helpers_interp.node_values	function		2	11	BLK:dc_columns;BLK:dc_seal_conduction;BLK:dc_widths;BLK:ly_slice_density;BLK:metrics_aux;BLK:ss_dev;ROOT:lut.derived_fns._param_row;ROOT:lut.derived_fns._reference_vds;ROOT:lut.ft_curve.ft_curve;ROOT:lut.id_inverse.gm_id_for_target;ROOT:lut.idu_curve.idu_curve
+lut._helpers_loo.branch_targets	function		2	8	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:search.find_front.find_front
+lut._helpers_loo.cell_max	function		4	8	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:search.find_front.find_front
+lut._helpers_loo.external_by_model	function		2	8	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:search.find_front.find_front
+lut._helpers_loo.l_interior	function		5	10	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;BLK:start_intervals;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:search.find_front.find_front
+lut._helpers_loo.l_loo_report	function		4	9	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:search.find_front.find_front
+lut._helpers_loo.linear_loo_cells	function		4	3	BLK:metrics_aux;BLK:start_intervals;ROOT:metrics.ss_evaluate.ss_evaluate
+lut._helpers_loo.loo_estimate	function		2	8	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:search.find_front.find_front
+lut._helpers_loo.opt	function		9	9	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:search.find_front.find_front
+lut._helpers_loo.per_vds	function		3	8	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:search.find_front.find_front
+lut._helpers_loo.table_at	function		3	9	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:search.find_front.find_front
+lut._helpers_loo.with_external	function		3	8	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:search.find_front.find_front
+lut._helpers_root.monotone_end	function		2	2	BLK:dc_columns;ROOT:lut.id_inverse.gm_id_for_target
+lut._helpers_root.peak_index	function		4	4	BLK:dc_columns;BLK:ly_slice_density;ROOT:lut.curve_check.curve_report;ROOT:lut.id_inverse.gm_id_for_target
+lut._helpers_root.strong_inversion_root	function		3	8	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:search.find_front.find_front
+lut._helpers_width.width_key	function		3	1	ROOT:lut.lut_set.load_lut_set
+lut.axis_guard.check_axes	function	infra	11	18	BLK:dc_columns;BLK:dc_seal_conduction;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:dc_widths;BLK:ly_slice_density;BLK:metrics_aux;BLK:ss_dev;BLK:start_intervals;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._param_row;ROOT:lut.derived_fns._reference_vds;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:lut.ft_curve.ft_curve;ROOT:lut.id_inverse.gm_id_for_target;ROOT:lut.idu_curve.idu_curve;ROOT:metr
+lut.cap_query.caps	function		3	3	BLK:ss_dev;BLK:start_intervals;ROOT:lut.ft_curve.ft_curve
+lut.derived_fns.derived	function		5	2	BLK:achievability;BLK:start_intervals
+lut.gm_id_curve.gm_id_curve	function		4	7	BLK:dc_columns;BLK:ly_slice_density;ROOT:lut.derived_fns._param_row;ROOT:lut.derived_fns._reference_vds;ROOT:lut.ft_curve.ft_curve;ROOT:lut.id_inverse.gm_id_for_target;ROOT:lut.idu_curve.idu_curve
+lut.lut_types.MismatchSigma	record		2	2	BLK:metrics_aux;BLK:start_intervals
+lut.midpoint_checks.midpoint_l_bin_checks	function		2	8	BLK:dc_columns;BLK:dc_seal_saturation;BLK:dc_tolerances;BLK:ly_slice_density;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max;ROOT:search.find_front.find_front
+lut.mismatch_query.mismatch_dvgs	function		2	2	BLK:metrics_aux;BLK:start_intervals
+lut.mismatch_sigma.mismatch_sigma_vgs	function		3	2	BLK:metrics_aux;BLK:start_intervals
+lut.noise_planes.noise_planes	function		2	2	BLK:start_intervals;ROOT:metrics.ss_evaluate.ss_evaluate
+lut.noise_query.noise_params	function		2	2	BLK:start_intervals;ROOT:metrics.ss_evaluate.ss_evaluate
+lut.point_query.op_point	function		10	8	BLK:dc_columns;BLK:dc_seal_conduction;BLK:dc_widths;BLK:ly_slice_density;BLK:metrics_aux;BLK:ss_dev;ROOT:lut.derived_fns._param_row;ROOT:lut.id_inverse.gm_id_for_target
+lut.tolerance.tol_v_table	function		4	5	BLK:dc_columns;BLK:dc_tolerances;BLK:ly_slice_density;ROOT:lut.derived_fns._edge_costs;ROOT:search.find_front.find_front
+lut.vdsat_query.vdsat	function		4	4	BLK:dc_columns;BLK:dc_seal_saturation;BLK:metrics_aux;ROOT:lut.derived_fns._reference_vds
+lut.vdsat_tolerance.tol_vdsat_table	function		5	5	BLK:dc_columns;BLK:dc_seal_saturation;BLK:metrics_aux;ROOT:lut.derived_fns._edge_costs;ROOT:lut.derived_fns._tol_vdsat_max
+metrics._helpers_dc.dc_limit_parts	function		2	2	BLK:metrics_ss;BLK:start_intervals
+metrics._helpers_nodal.conductance_matrix	function		6	1	BLK:metrics_aux
+metrics._helpers_nodal.nodal_adjoint	function		2	1	BLK:metrics_aux
+metrics._helpers_nodal.nodal_factor	function		5	1	BLK:metrics_aux
+metrics._helpers_nodal.nodal_solve	function		6	1	BLK:metrics_aux
+metrics._helpers_noise.source_gradient	function		6	4	BLK:metrics_ss;ROOT:metrics.noise_analysis._corner;ROOT:metrics.noise_analysis._excess;ROOT:metrics.noise_analysis._thermal
+metrics._helpers_noise.weights	function		4	2	BLK:metrics_ss;ROOT:metrics.noise_analysis._corner
+metrics._helpers_pencil.finite_eigs	function		4	2	BLK:metrics_ss;BLK:start_intervals
+metrics._helpers_pencil.probe_pencil	function		2	2	BLK:metrics_ss;BLK:start_intervals
+metrics._helpers_probe.probe_value	function		3	2	BLK:metrics_ss;BLK:start_intervals
+metrics._helpers_product.check_factors	function		2	2	BLK:metrics_ss;BLK:start_intervals
+metrics._helpers_product.product_at	function		3	2	BLK:metrics_ss;BLK:start_intervals
+metrics._helpers_stamp.admittance_pair	function		3	2	BLK:metrics_aux;BLK:metrics_ss
+metrics._helpers_view.view_system	function		3	1	BLK:metrics_aux
+metrics.achievability_types.BlockBound	record		5	1	BLK:achievability
+metrics.block_gain_model.block_gain_model_of	function		2	2	BLK:achievability;BLK:start_intervals
+metrics.block_gain_rows.row_gains	function		2	2	BLK:achievability;BLK:start_intervals
+metrics.block_model.block_local_gain	function		2	1	BLK:metrics_aux
+metrics.block_param_tables.ParamTables	class		2	2	BLK:achievability;BLK:start_intervals
+metrics.catalog.metric_catalog	function		2	2	BLK:constraint_classes;ROOT:pipeline.stage_a.run_stage_a
+metrics.dc_limit.solve_dc_limit	function		2	2	BLK:metrics_ss;BLK:start_intervals
+metrics.dc_metrics.metrics_dc	function		2	4	ROOT:convergence.converge.converge;ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe
+metrics.evaluate.metric_value	function		5	3	BLK:metrics_aux;BLK:metrics_dc;BLK:metrics_ss
+metrics.loop_analysis.analyze_loop	function		3	2	BLK:metrics_ss;BLK:start_intervals
+metrics.mna_solve.solve_responses	function		3	2	BLK:metrics_ss;BLK:start_intervals
+metrics.mna_types.Factor	record		2	2	BLK:metrics_ss;BLK:start_intervals
+metrics.mna_types.MetricResult	record		11	3	BLK:metrics_aux;BLK:metrics_dc;BLK:metrics_ss
+metrics.mna_types.MnaSystem	record		2	2	BLK:metrics_ss;BLK:start_intervals
+metrics.mna_types.Undefined	record		49	5	BLK:metrics_aux;BLK:metrics_dc;BLK:metrics_ss;BLK:start_intervals;ROOT:metrics.noise_analysis._corner
+metrics.noise_transfer.noise_transfer	function		4	2	BLK:metrics_ss;ROOT:metrics.noise_analysis._corner
+metrics.noise_types.NoiseAnalysis	record		6	4	BLK:metrics_ss;ROOT:metrics.noise_analysis._corner;ROOT:metrics.noise_analysis._excess;ROOT:metrics.noise_analysis._thermal
+metrics.noise_types.NoiseDecl	record		2	2	BLK:noise_decl;ROOT:metrics.ss_evaluate.ss_evaluate
+metrics.passive_values.theta_passive_pairs	function		2	4	ROOT:convergence.converge.converge;ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe
+metrics.point_solve.solve_point	function		2	2	BLK:metrics_ss;BLK:start_intervals
+metrics.records.Excitation	record		4	2	BLK:metrics_ss;BLK:start_intervals
+metrics.records.MosSmallSignal	record		2	2	BLK:metrics_aux;BLK:metrics_ss
+metrics.records.PassiveArea	record		2	2	BLK:metrics_dc;ROOT:convergence.converge.converge
+metrics.records.PassiveAreaDecl	record		3	3	BLK:metrics_dc;BLK:passive_area_decl;ROOT:convergence.converge.converge
+metrics.records.Resistor	record		2	3	BLK:metrics_aux;BLK:metrics_dc;BLK:metrics_ss
+metrics.records.Sense	record		3	2	BLK:metrics_ss;BLK:start_intervals
+metrics.records.SmallSignalCircuit	record		4	2	BLK:metrics_aux;BLK:metrics_ss
+metrics.records.StampSet	record		3	2	BLK:metrics_aux;BLK:metrics_ss
+metrics.registry.metric_registry	function		17	12	BLK:constraint_classes;BLK:metrics_aux;BLK:metrics_dc;BLK:metrics_ss;ROOT:convergence.converge.converge;ROOT:metrics.model_error.model_error_pairs;ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:metrics.verified_by.verified_by;ROOT:pipeline.stage_a.run_stage_a;ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe;ROOT:search.search_context.build_search_context
+metrics.ss_circuit.ss_circuit	function		2	2	BLK:metrics_aux;BLK:metrics_ss
+metrics.ss_types.MetricBundle	record		5	4	BLK:metrics_aux;BLK:metrics_dc;BLK:metrics_ss;ROOT:metrics.ss_evaluate.ss_evaluate
+metrics.ss_types.MetricRequest	record		4	6	BLK:metrics_dc;BLK:metrics_ss;ROOT:convergence.converge.converge;ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe
+metrics.stamp_mos.mos_stamps	function		4	2	BLK:metrics_aux;BLK:metrics_ss
+metrics.stamp_two_terminal.two_terminal_stamps	function		2	2	BLK:metrics_aux;BLK:metrics_ss
+search._helpers_area.area_estimate	function		2	1	BLK:start_intervals
+search._helpers_curves.curve_bundle	function		5	1	BLK:start_intervals
+search._helpers_curves.curve_bundle_of	function		19	1	BLK:start_intervals
+search._helpers_curves.curve_value	function		14	1	BLK:start_intervals
+search._helpers_curves.edge_cost	function		2	1	BLK:start_intervals
+search._helpers_curves.hull	function		5	1	BLK:start_intervals
+search._helpers_curves.l_anchors	function		7	1	BLK:start_intervals
+search._helpers_curves.slice_of	function		5	1	BLK:start_intervals
+search._helpers_curves.snap_vds	function		2	1	BLK:start_intervals
+search._helpers_curves.tol_vdsat	function		2	1	BLK:start_intervals
+search._helpers_guard.Tolerant	class		2	1	BLK:start_intervals
+search._helpers_guard.guard_bounds	function		2	1	BLK:start_intervals
+search._helpers_guard.guard_devices	function		2	1	BLK:start_intervals
+search._helpers_guard.guard_input_gm_id	function		2	1	BLK:start_intervals
+search.area_decl.passive_area_decl	function		2	2	ROOT:pipeline.stage_b.run_stage_b;ROOT:search.search_context.build_search_context
+search.canonical_order.canonical_order	function		3	3	ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe;ROOT:search.search_context.build_search_context
+search.canonical_rows.canonical_row_key	function		3	3	ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe;ROOT:search.search_context.build_search_context
+search.cell_floor.ln_idu_floors	function		4	1	ROOT:search.find_front.find_front
+search.cone_rows.cone_rows	function		4	4	ROOT:convergence.converge.converge;ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe;ROOT:search.search_context.build_search_context
+search.current_box.current_box	function		2	2	BLK:search_domain;BLK:start_intervals
+search.current_symmetry.current_symmetry	function		2	1	BLK:search_domain
+search.dominant_node.dominant_node	function		2	1	BLK:start_intervals
+search.fd_jacobian.fd_jacobian	function		5	1	ROOT:search.find_front.find_front
+search.kernel.evaluate	function		11	3	ROOT:convergence.converge.converge;ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe
+search.layer0_center.centre_start	function		2	2	ROOT:search.residual_probe.residual_probe;ROOT:search.search_context.build_search_context
+search.pareto.nondominated	function		3	2	ROOT:convergence.converge.converge;ROOT:search.find_front.find_front
+search.search_values.ConstraintRow	record		8	4	ROOT:convergence.converge.converge;ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe;ROOT:search.search_context.build_search_context
+search.search_values.StartPoint	record		4	1	ROOT:search.find_front.find_front
+search.search_values.Variable	record		11	4	BLK:search_domain;ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe;ROOT:search.search_context.build_search_context
+search.slsqp_outer.solve_eps	function		3	1	ROOT:search.find_front.find_front
+search.start_values.Bound	record		16	1	BLK:start_intervals
+search.start_values.StartConflict	record		15	1	BLK:start_intervals
+search.tie_expand.expand_ties	function		2	4	ROOT:convergence.converge.converge;ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe;ROOT:search.search_context.build_search_context
+sizing._helpers_lut.forward_point	function		3	2	BLK:dc_columns;BLK:dc_widths
+sizing._helpers_lut.terminal_voltages	function		4	2	BLK:dc_columns;BLK:dc_widths
+sizing._helpers_lut.tol_v_cell	function		3	2	BLK:dc_columns;BLK:dc_tolerances
+sizing._helpers_lut.w_key_of	function		7	2	BLK:dc_columns;BLK:dc_widths
+sizing._helpers_lut.with_device	function		6	3	BLK:dc_columns;BLK:dc_seal_conduction;BLK:dc_seal_saturation
+sizing._helpers_seal.judge	function		7	7	BLK:dc_seal_bulk_reverse;BLK:dc_seal_conduction;BLK:dc_seal_kcl;BLK:dc_seal_kvl_branch;BLK:dc_seal_node_conflict;BLK:dc_seal_saturation;BLK:dc_seal_vgs_match
+sizing._helpers_seal.node_values	function		2	2	BLK:dc_seal_kcl;BLK:dc_seal_node_conflict
+sizing.dc_inputs.dc_inputs_from_spec	function		2	2	ROOT:pipeline.stage_a.run_stage_a;ROOT:pipeline.stage_b.run_stage_b
+sizing.k_max.k_max	function		6	1	BLK:dc_columns
+sizing.kernel_run.run_kernel	function		2	2	ROOT:sizing.size_and_seal.size_and_seal;ROOT:sizing.size_and_seal_local.size_and_seal_local
+sizing.s2_values.DcEvaluation	record		3	6	ROOT:convergence.converge.converge;ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe;ROOT:sizing.size_and_seal.size_and_seal;ROOT:sizing.size_and_seal_local.size_and_seal_local
+sizing.s2_values.LutAccess	record		3	5	ROOT:convergence.converge.converge;ROOT:pipeline.stage_b.run_stage_b;ROOT:search.find_front.find_front;ROOT:search.residual_probe.residual_probe;ROOT:search.search_context.build_search_context
+sizing.s2_values.SealItem	record		4	9	BLK:dc_seal_bulk_reverse;BLK:dc_seal_conduction;BLK:dc_seal_kcl;BLK:dc_seal_kvl_branch;BLK:dc_seal_node_conflict;BLK:dc_seal_saturation;BLK:dc_seal_vgs_match;ROOT:sizing.size_and_seal.size_and_seal;ROOT:sizing.size_and_seal_local.size_and_seal_local
+sizing.s2_values.SealedSnapshot	record		2	3	ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:sizing.size_and_seal.size_and_seal;ROOT:sizing.size_and_seal_local.size_and_seal_local
+sizing.s2_values.TieBreak	record		3	2	BLK:dc_current_basis;BLK:dc_writer_plan
+sizing.theta_check.check_theta	function		2	3	ROOT:metrics.ss_evaluate.ss_evaluate;ROOT:sizing.size_and_seal.size_and_seal;ROOT:sizing.size_and_seal_local.size_and_seal_local

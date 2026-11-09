@@ -1,0 +1,12 @@
+---- rev=3bcab98 B0=ccb93aa mode=noexcl 블록 줄 수 E3/E3b=178 IMPORT-ANY=22
+E3 FAIL:
+docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py
+E3b LIVE moved_out=58 base_files_reading_moved_out=40 pre_existing=1
+E3b FAIL .ai/verification/20260930-df36-instance-relpath/scripts/e_lib_inst.py:35 save_instance_json
+E3b FAIL .ai/verification/20260930-p9-kcl-edges/scripts/diff_dup.py:17 _import_analog_grammar
+E3b FAIL .ai/verification/20260930-p9-kcl-edges/scripts/diff_dup.py:32 _kcl_and_matching_edges
+E3b FAIL docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py:29 _RAIL_NETS
+E3b FAIL docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py:315 find_structural_symmetry_candidates
+E3b FAIL docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py:633 find_differential_pair_candidates
+E3b FAIL docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py:641 trace_vdd_to_gnd_branches
+IMPORT-ANY tried=10 expected=10 failed=0

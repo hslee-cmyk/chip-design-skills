@@ -1,0 +1,18 @@
+# usage: run_one.py <circuit> <alt> <d1> <mode> [...더 많은 사양: 회로:alt:d1:mode 목록]
+import os, subprocess, sys, time, pathlib
+H = pathlib.Path(__file__).parent
+env = dict(os.environ, APPDATA=r"C:\Users\HSLEE\AppData\Roaming", PYTHONIOENCODING="utf-8", OPENBLAS_NUM_THREADS="1", PYTHONDONTWRITEBYTECODE="1")
+for spec in sys.argv[1:]:
+    c, alt, d1, mode = spec.split(":")
+    e = dict(env, PG_ALT=alt, PG_D1=d1)
+    t = time.time()
+    log = H / "out" / ("log_%s_%s_d%s_%s.txt" % (c, alt, d1, mode))
+    with open(log, "wb") as fh:
+        try:
+            r = subprocess.run([sys.executable, "r5r6v2.py", c, "spec", "k1", "1", alt + "d" + d1, "0", mode, "gbw"], cwd=H, env=e, stdout=fh, stderr=subprocess.STDOUT, timeout=900)
+            rc = r.returncode
+        except subprocess.TimeoutExpired:
+            rc = "timeout"
+    tail = log.read_bytes()[-160:].decode("utf-8", "replace").strip().split("\n")[-1]
+    with open(H / "out" / "status.txt", "ab") as fh:
+        fh.write(("%s %s d%s %s rc=%s %.0fs %s\n" % (c, alt, d1, mode, rc, time.time() - t, tail)).encode("utf-8"))

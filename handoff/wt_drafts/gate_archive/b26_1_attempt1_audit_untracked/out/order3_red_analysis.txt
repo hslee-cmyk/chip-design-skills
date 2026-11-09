@@ -1,0 +1,202 @@
+{
+ "b1_tail": "1114 passed, 15 xfailed in 367.97s (0:06:07)",
+ "t1_s0_tail": "131 failed, 1040 passed, 15 xfailed, 8 errors in 420.98s (0:07:00)",
+ "t1_s1_tail": "131 failed, 1040 passed, 15 xfailed, 8 errors in 396.87s (0:06:36)",
+ "b1_counts": {
+  "PASSED": 1114,
+  "XFAIL": 15
+ },
+ "t1_s0_counts": {
+  "PASSED": 1040,
+  "XFAIL": 15,
+  "ERROR": 8,
+  "FAILED": 131
+ },
+ "t1_s1_counts": {
+  "PASSED": 1040,
+  "XFAIL": 15,
+  "ERROR": 8,
+  "FAILED": 131
+ },
+ "t1_seed_outcomes_identical": true,
+ "red_s0_n": 147,
+ "red_s1_n": 147,
+ "red_seed_identical": true,
+ "new_by_column": {
+  "base TypeError 집계 밖": {
+   "FAILED//red=builtins.AttributeError": 15,
+   "FAILED//red=None": 1
+  },
+  "신규 심볼 red": {
+   "FAILED//red=builtins.AttributeError": 14,
+   "PASSED//red=None": 1
+  },
+  "단언 red": {
+   "FAILED//red=builtins.Failed": 9,
+   "FAILED//red=None": 3,
+   "FAILED//red=builtins.AssertionError": 10,
+   "PASSED//red=None": 11
+  },
+  "green 회귀 고정": {
+   "PASSED//red=None": 1
+  }
+ },
+ "existing_changed_by_exc": {
+  "": 87
+ },
+ "red_set_sha256_testid_exctype": "3741573811b3adaa2bcc113cded50d9f6f20218bed117798b79cf621ab418ee2"
+}
+b1 failed: []
+base TypeError 집계 밖 | test_b26_c13_absent_grammar_raises_import_error[common_gate_amplifier] | FAILED  | red: builtins.AttributeError | 
+base TypeError 집계 밖 | test_b26_c13_absent_grammar_raises_import_error[current_reuse_telescopic_ota] | FAILED  | red: builtins.AttributeError | 
+base TypeError 집계 밖 | test_b26_c13_absent_grammar_raises_import_error[folded_cascode] | FAILED  | red: builtins.AttributeError | 
+base TypeError 집계 밖 | test_b26_c13_absent_grammar_raises_import_error[ngcc_3stage_ff] | FAILED  | red: builtins.AttributeError | 
+base TypeError 집계 밖 | test_b26_c13_absent_grammar_raises_import_error[nmcnr_amplifier] | FAILED  | red: builtins.AttributeError | 
+base TypeError 집계 밖 | test_b26_c13_absent_grammar_raises_import_error[pushpull_follower_buffer] | FAILED  | red: builtins.AttributeError | 
+base TypeError 집계 밖 | test_b26_c13_absent_grammar_raises_import_error[sf_pushpull_output_opamp] | FAILED  | red: builtins.AttributeError | 
+base TypeError 집계 밖 | test_b26_c13_absent_grammar_raises_import_error[two_stage_ota] | FAILED  | red: builtins.AttributeError | 
+base TypeError 집계 밖 | test_b26_c13_absent_grammar_raises_import_error[two_stage_ota_sf] | FAILED  | red: builtins.AttributeError | 
+base TypeError 집계 밖 | test_b26_c14_no_gate_input_returns | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_empty_list_accepted | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_frozen_dataclass_with_nets_field_only | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_rejection_check_fails_on_silent_or_unlabeled_refusal | PASSED  | red: None | 
+신규 심볼 red | test_b26_c1_rejects_bad_declaration[dict_not_list] | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_rejects_bad_declaration[duplicate_element] | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_rejects_bad_declaration[empty_string_element] | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_rejects_bad_declaration[int_element] | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_rejects_bad_declaration[missing_key] | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_rejects_bad_declaration[none_element] | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_rejects_bad_declaration[none_value] | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_rejects_bad_declaration[str_not_list] | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_rejects_bad_declaration[tuple_not_list] | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_returns_declared_nets | FAILED  | red: builtins.AttributeError | 
+신규 심볼 red | test_b26_c1_undeclared_vdd_is_not_rail | FAILED  | red: builtins.AttributeError | 
+단언 red | test_b26_c2_linked_declaration_format_rejected[duplicate_element] | FAILED  | red: builtins.Failed | 
+단언 red | test_b26_c2_linked_declaration_format_rejected[empty_string_element] | FAILED  | red: builtins.Failed | 
+단언 red | test_b26_c2_linked_declaration_format_rejected[int_element] | FAILED  | red: builtins.Failed | 
+단언 red | test_b26_c2_linked_declaration_format_rejected[str_not_list] | FAILED  | red: builtins.Failed | 
+단언 red | test_b26_c2_linked_declaration_set_mismatch_rejected[subset] | FAILED  | red: builtins.Failed | 
+단언 red | test_b26_c2_linked_declaration_set_mismatch_rejected[superset] | FAILED  | red: builtins.Failed | 
+단언 red | test_b26_c2_linked_same_set_other_order_accepted | FAILED  | red: None | 
+단언 red | test_b26_c2_linked_without_declaration_uses_entry | FAILED  | red: None | 
+단언 red | test_b26_c2_meta_rails_is_entry_declaration | FAILED  | red: None | 
+단언 red | test_b26_c2_missing_supply_nets_rejected | FAILED  | red: builtins.Failed | 
+신규 심볼 red | test_b26_c3_rail_declaration_call_count | FAILED  | red: builtins.AttributeError | 
+green 회귀 고정 | test_b26_c4_existing_defaults_unchanged | PASSED  | red: None | 
+base TypeError 집계 밖 | test_b26_c4_rails_keyword_only_without_default | FAILED  | red: None | 
+단언 red | test_b26_c5_l_sharing_classes_rejects_meta_without_rails | FAILED  | red: builtins.Failed | 
+단언 red | test_b26_c6_declared_rail_excluded | FAILED  | red: builtins.AssertionError | 
+단언 red | test_b26_c6_exclude_nets | PASSED  | red: None | 
+단언 red | test_b26_c6_metric_rail_nets_key_rejected | FAILED  | red: builtins.Failed | 
+단언 red | test_b26_c6_missing_id_raises_key_error | PASSED  | red: None | 
+단언 red | test_b26_c6_mos_sign_and_max | PASSED  | red: None | 
+단언 red | test_b26_c6_no_remaining_node_is_zero | PASSED  | red: None | 
+단언 red | test_b26_c6_non_current_source_skipped | PASSED  | red: None | 
+단언 red | test_b26_c6_null_value_source_excludes_its_nodes | PASSED  | red: None | 
+단언 red | test_b26_c6_single_terminal_source_skipped | PASSED  | red: None | 
+단언 red | test_b26_c6_undeclared_vdd_counted_as_internal_node | FAILED  | red: builtins.AssertionError | 
+단언 red | test_b26_c6_valued_source_flows_first_to_second_terminal | PASSED  | red: None | 
+base TypeError 집계 밖 | test_b26_c7_reverse_direct_calls_treat_undeclared_names_as_internal | FAILED  | red: builtins.AttributeError | 
+단언 red | test_b26_c7_reverse_matching_pair_on_undeclared_source | FAILED  | red: builtins.AssertionError | 
+단언 red | test_b26_c7_reverse_mirror_class_on_undeclared_gate | FAILED  | red: builtins.AssertionError | 
+단언 red | test_b26_c7_reverse_vertical_stack_id_follows_undeclared_names | FAILED  | red: builtins.AssertionError | 
+base TypeError 집계 밖 | test_b26_c7a_direct_calls_rail_shared_pair_not_candidate | FAILED  | red: builtins.AttributeError | 
+base TypeError 집계 밖 | test_b26_c7a_positive_undeclared_shared_source_is_candidate | FAILED  | red: builtins.AttributeError | 
+단언 red | test_b26_c7a_rail_shared_pair_not_autofilled | FAILED  | red: builtins.AssertionError | 
+base TypeError 집계 밖 | test_b26_c7b_direct_kcl_edges_skip_declared_rails | FAILED  | red: builtins.AttributeError | 
+단언 red | test_b26_c7b_rail_does_not_carry_vertical_stack_id | FAILED  | red: builtins.AssertionError | 
+단언 red | test_b26_c7c_rail_gate_does_not_form_mirror_class | FAILED  | red: builtins.AssertionError | 
+단언 red | test_b26_c7d_kcl_residual_excludes_declared_rails | FAILED  | red: builtins.AssertionError | 
+base TypeError 집계 밖 | test_b26_c7e_gap_fill_rail_sites | FAILED  | red: builtins.AttributeError | 
+단언 red | test_b26_oracle_b_setup_invariant_under_rail_rename[current_reuse_telescopic_ota] | PASSED  | red: None | 
+단언 red | test_b26_oracle_b_setup_invariant_under_rail_rename[folded_cascode] | PASSED  | red: None | 
+단언 red | test_b26_oracle_b_setup_invariant_under_rail_rename[nmcnr_amplifier] | PASSED  | red: None | 
+단언 red | test_b26_oracle_b_setup_invariant_under_rail_rename[two_stage_ota] | FAILED  | red: builtins.AssertionError | 
+--- existing changed 87
+skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_resolve_stack_candidates PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_trace_three_branches_order PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_trace_two_branches PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_no_ports PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_ports PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[common_gate_amplifier] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[current_reuse_telescopic_ota] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[folded_cascode] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[ngcc_3stage_ff] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[nmcnr_amplifier] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[pushpull_follower_buffer] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[sf_pushpull_output_opamp] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[two_stage_ota] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[two_stage_ota_sf] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c5_no_gate_devices_unchanged PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[common_gate_amplifier] PASSED -> FAILED  | red: builtins.AssertionError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[current_reuse_telescopic_ota] PASSED -> FAILED  | red: builtins.AssertionError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[folded_cascode] PASSED -> FAILED  | red: builtins.AssertionError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[ngcc_3stage_ff] PASSED -> FAILED  | red: builtins.AssertionError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[nmcnr_amplifier] PASSED -> FAILED  | red: builtins.AssertionError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[pushpull_follower_buffer] PASSED -> FAILED  | red: builtins.AssertionError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[sf_pushpull_output_opamp] PASSED -> FAILED  | red: builtins.AssertionError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota] PASSED -> FAILED  | red: builtins.AssertionError | 
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota_sf] PASSED -> FAILED  | red: builtins.AssertionError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[chain_interleaved] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_pair_reversed_order] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_pair_without_shared_net] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_triple_chains] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_triple_reversed_rep_last_declared] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_matching_joins_isolated] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_matching_joins_two_branches] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_no_matching] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[rail_named_net_three_uses_not_merged] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[source_equals_drain_not_merged] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[three_use_net_not_merged] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_signature_unchanged PASSED -> FAILED  | red: builtins.AssertionError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[chain_interleaved] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_pair_reversed_order] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_pair_without_shared_net] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_triple_chains] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_triple_reversed_rep_last_declared] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_matching_joins_isolated] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_matching_joins_two_branches] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_no_matching] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[rail_named_net_three_uses_not_merged] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[source_equals_drain_not_merged] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[three_use_net_not_merged] PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_signature_unchanged PASSED -> FAILED  | red: builtins.AssertionError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s013_resolve_stack_layout PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s060_run_full_circuit_audit PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s067_MB PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s069_section PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s070_section PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s071_section PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s103_repair_matching_safety PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s104_repair_matching_safety PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s105_repair_matching_safety PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s106__branch_composite_pair PASSED -> ERROR  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s107__composite_collapse_for_crossover PASSED -> ERROR  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s108_section PASSED -> ERROR  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s109_repair_matching_safety PASSED -> ERROR  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s116_None PASSED -> ERROR  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s117_connectivity PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s118_folded_cascode_example PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s119_M2 PASSED -> ERROR  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s120_section PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s130_find_differential_pair_candidates PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s131_refine_differential_and_mirror_relations PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s133_refine_differential_and_mirror_relations PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s134__propose_vertical_stack_ids PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s135_section PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s136_refine_differential_and_mirror_relations PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s138_refine_differential_and_mirror_relations PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s139_find_verified_differential_and_mirror_relations PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s140_audit_vertical_stack_id_vs_kcl PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s141_merge_layout_groups_by_matching_pairs PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s142_section PASSED -> ERROR  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s151_section PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s152_section PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s153_section PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s154_load_topology PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s155_propose_device_roles_gap_fill PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s156_section PASSED -> ERROR  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s158_propose_device_roles_gap_fill PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s159_apply_device_roles_gap_fill PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s160_propose_device_roles_gap_fill PASSED -> FAILED  | red: builtins.AttributeError | 
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s162_section PASSED -> FAILED  | red: builtins.AttributeError | 

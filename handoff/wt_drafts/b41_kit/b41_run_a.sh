@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# B41 측정 A: 격리 복제본(gate master) -> 묶기 해시·변이 문장·indent 등가 -> 새 test의 kill 증명.
+# 사용: bash b41_run_a.sh <저장소> <스크래치 루트(예: /c/g211)>
+set -euo pipefail
+REPO=$1; S=$2
+K=$(cd "$(dirname "$0")" && pwd)
+PY=/c/Python314/python.exe
+MASTER=36e170eec5b9e893c03927e5bb45635071de7e69
+case "$S" in /c/g211*) ;; *) echo "스크래치는 /c/g211 아래만"; exit 2;; esac
+mkdir -p "$S/tmp" "$S/out"
+export APPDATA="C:/Users/HSLEE/AppData/Roaming" TMP="C:/g211/tmp" TEMP="C:/g211/tmp" TMPDIR="C:/g211/tmp" PYTHONDONTWRITEBYTECODE=1 PYTHONIOENCODING=utf-8
+R="$S/repo"
+if [ ! -d "$R/.git" ]; then
+  git clone -c core.autocrlf=false --quiet --no-checkout --no-hardlinks --no-local -c core.longpaths=true "$REPO" "$R"
+  git -C "$R" remote remove origin
+fi
+git -C "$R" checkout --quiet --detach "$MASTER"
+test "$(git -C "$R" rev-parse HEAD)" = "$MASTER"
+rm -rf "$S/gate"; cp -r "$R/tools/gates" "$S/gate"
+sha256sum "$K"/*.py "$K"/*.sh > "$S/out/kit.sha256"
+
+# 1) 묶기 해시(DF-36 head b29be01, gate master)·변이 문장·indent 등가(작업 트리 = master)
+rm -f "$S/out/measure.jsonl"
+$PY -B -P "$K/b41_measure.py" "$R" 070cf69 b29be01 "$MASTER" --out "$S/out/measure.jsonl" | tee "$S/out/measure.summary.txt"
+
+# 2) kill 증명 -- (a) 기존 inventory 대표(test_df36·test_ic3·test_s088)만: 4개 생존 기대 (b) 새 test만: stmt_delete 2개 죽음 기대
+T=skills/analog-gmid-design/assets/tests/contracts/test_instance_scope_note.py
+rm -f "$S/out/kill_existing.jsonl" "$S/out/kill_new.jsonl"
+$PY -B -P "$K/b41_kill.py" "$R" "$S/gate" "$S/gate/pytest_gate.ini" "$S/out/kill_existing.jsonl" \
+  skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py \
+  skills/analog-gmid-design/assets/tests/contracts/test_ic3.py \
+  "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s088_save_instance_json" \
+  | tee "$S/out/kill_existing.summary.txt"
+cp "$K/test_instance_scope_note.py" "$R/$T"
+$PY -B -P "$K/b41_kill.py" "$R" "$S/gate" "$S/gate/pytest_gate.ini" "$S/out/kill_new.jsonl" "$T" | tee "$S/out/kill_new.summary.txt"
+rm -f "$R/$T"
+git -C "$R" status --porcelain | tee "$S/out/status_after_a.txt"

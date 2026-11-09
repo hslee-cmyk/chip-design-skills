@@ -1,0 +1,453 @@
+# master 7620f5ee517d29f00f7481ac3af41adc8a95e996
+
+## 옛 이름 소비자 master
+### OrderHints
+   sizing/CONTRACT.md:1001:* `OrderHints(independent, gm_required, stage)`(모두 MOS 이름 tuple 또는 ((MOS, 번호), ...)), `NO_ORDER_HINTS`. `dc_writer_plan(snapsh
+   sizing/__init__.py:125:    OrderHints,
+   sizing/__init__.py:194:    "OrderHints",
+   sizing/kernel_context.py:7:`order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
+   sizing/kernel_context.py:41:    OrderHints,
+   sizing/kernel_context.py:58:    if not isinstance(order_hints, OrderHints):
+   sizing/kernel_context.py:59:        raise TypeError("build_kernel_context: order_hints 는 OrderHints 여야 한다")
+   sizing/s2_values.py:204:class OrderHints:
+   sizing/s2_values.py:215:NO_ORDER_HINTS = OrderHints()
+   tests/sizing/test_kernel_run.py:341:# 결정론 (CONTRACT 9절) -- U4 경로(L 동치류·OrderHints·W_request·S2p·국소 봉인)
+   tests/sizing/test_kernel_run.py:349:from gmid_engine.sizing import OrderHints, size_and_seal, size_and_seal_local, theta_name
+   tests/sizing/test_kernel_run.py:353:_, ctx = C.build_ctx_u4(tmp / "m", C.circuit_mirror(), acc, l_classes=lc, order_hints=OrderHints(independent=("M2"
+   tests/sizing/test_s2_values.py:284:    assert names(S.OrderHints) == ("independent", "gm_required", "stage")
+   tests/sizing/test_s2_values.py:285:    assert S.NO_ORDER_HINTS == S.OrderHints((), (), ())
+   tests/sizing/test_size_and_seal.py:389:from gmid_engine.sizing import OrderHints                                                  # noqa: E402
+   tests/sizing/test_size_and_seal.py:431:# 9회로 봉인 해는 탐색(U15/U16)이 만든다 -- 이 단위의 IC1 은 U4 경로(L 동치류·W_request·S2p·입력 창·OrderHints)로 봉인된 toy
+   tests/sizing/test_size_and_seal.py:464:                        order_hints=OrderHints(independent=("M2",)), element_values=(("I1", 1e-5),))[1]
+   tests/sizing/test_size_and_seal.py:493:    """netlist 순서·L 동치류 목록/멤버 순서·OrderHints tuple 순서·W_request 순서를 섞은 두 입력 -> 계획·평가 스냅샷 지문 같음
+   tests/sizing/test_size_and_seal.py:502:    # build_s1v 몫이라 이 test 의 입력 주입(inject_l_classes)은 같은 정준 순서로 준다. 나머지 섞기(netlist·OrderHints·W_request)는 그대로.
+   tests/sizing/test_size_and_seal.py:504:    h_a = OrderHints(gm_required=("M2", "M3"), stage=(("M1", 1), ("M2", 2)))
+   tests/sizing/test_size_and_seal.py:505:    h_b = OrderHints(gm_required=("M3", "M2"), stage=(("M2", 2), ("M1", 1)))
+   tests/sizing/test_writer_plan.py:252:from gmid_engine.sizing import NO_ORDER_HINTS, OrderHints                                       # noqa: E402
+   tests/sizing/test_writer_plan.py:282:    (OrderHints(independent=("MB",)), "MB"),                             # ratified 독립
+   tests/sizing/test_writer_plan.py:283:    (OrderHints(gm_required=("MB",)), "MB"),                             # GB5 gm 요구
+   tests/sizing/test_writer_plan.py:284:    (OrderHints(stage=(("MA", 1), ("MB", 2))), "MB"),                     # 뒤 stage
+   tests/sizing/test_writer_plan.py:285:    (OrderHints(stage=(("MA", 2), ("MB", 1))), "MA"),
+   tests/sizing/test_writer_plan.py:286:    (OrderHints(independent=("MA",), gm_required=("MB",)), "MA"),        # ratified > gm 요구
+   tests/sizing/test_writer_plan.py:287:    (OrderHints(gm_required=("MA",), stage=(("MA", 1), ("MB", 2))), "MA"),  # gm 요구 > 뒤 stage
+   tests/sizing/test_writer_plan.py:299:    (OrderHints(independent=("M2",)), "M2"),                             # ratified > diode
+   tests/sizing/test_writer_plan.py:300:    (OrderHints(gm_required=("M2",)), "M1"),                             # diode > gm 요구
+   tests/sizing/test_writer_plan.py:301:    (OrderHints(stage=(("M1", 1), ("M2", 2))), "M1"),                     # diode > 뒤 stage
+   tests/sizing/test_writer_plan.py:311:    """힌트가 비면 종래 순서와 같다(CONTRACT 14.4): 인자 생략·NO_ORDER_HINTS·빈 OrderHints 의 계획 스냅샷 비트 동일."""
+   tests/sizing/test_writer_plan.py:314:    c = _sym(tmp_path / "c", r4_access, OrderHints((), (), ()))
+   tests/sizing/test_writer_plan.py:322:    b = _mir(tmp_path / "b", r4_access, OrderHints(independent=("M3",), gm_required=("M3",), stage=(("M3", 9),)))
+   tests/sizing/test_writer_plan.py:333:    for i, hints in enumerate((OrderHints(independent=(b,)), OrderHints(stage=((a, 1), (b, 2))), OrderHints(gm_re
+### NO_ORDER_HINTS
+   sizing/CONTRACT.md:4:> * [XRUN-F1 B] `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext` --
+   sizing/CONTRACT.md:7:> * `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS) -> KernelContext` -- `l_classes` 인자는 없다: L 동치류는 S1v 필
+   sizing/CONTRACT.md:977:* `build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS)`. `l_classes` = U1 `S1v.l_classes` (LCl
+   sizing/CONTRACT.md:1001:* `OrderHints(independent, gm_required, stage)`(모두 MOS 이름 tuple 또는 ((MOS, 번호), ...)), `NO_ORDER_HINTS`. `dc_writer_plan(snapsh
+   sizing/CONTRACT.md:1002:  order_hints=NO_ORDER_HINTS)`: 엣지 키 = (종류: 같은 DC < 저항 < MOS, [MOS] ratified 독립 < 그 밖, diode < 그 밖, gm 요구 < 그 밖, 뒤 stage(번호 큰 
+   sizing/__init__.py:123:    NO_ORDER_HINTS,
+   sizing/__init__.py:188:    "NO_ORDER_HINTS",
+   sizing/kernel_context.py:4:진입점: `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext`.
+   sizing/kernel_context.py:37:    NO_ORDER_HINTS,
+   sizing/kernel_context.py:53:def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters):
+   sizing/kernel_context.py:86:                          *(() if order_hints == NO_ORDER_HINTS else (order_hints,)), donors=donors, counters=counters)   
+   sizing/s2_values.py:208:    정한다. 출처는 U1 의 S1v·ratified 로더이고 비어 있으면(`NO_ORDER_HINTS`) 구조 색·이름 순서 그대로다."""
+   sizing/s2_values.py:215:NO_ORDER_HINTS = OrderHints()
+   sizing/writer_plan.py:3:진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order_hints=NO_ORDER_HINT
+   sizing/writer_plan.py:65:    NO_ORDER_HINTS,
+   sizing/writer_plan.py:131:    hints = rest[0] if rest else NO_ORDER_HINTS
+   tests/sizing/test_s2_values.py:285:    assert S.NO_ORDER_HINTS == S.OrderHints((), (), ())
+   tests/sizing/test_writer_plan.py:252:from gmid_engine.sizing import NO_ORDER_HINTS, OrderHints                                       # noqa: E402
+   tests/sizing/test_writer_plan.py:281:    (NO_ORDER_HINTS, "MA"),                                              # 동률 -> 이름(MA < MB)
+   tests/sizing/test_writer_plan.py:298:    (NO_ORDER_HINTS, "M1"),                                              # diode 가 writer
+   tests/sizing/test_writer_plan.py:311:    """힌트가 비면 종래 순서와 같다(CONTRACT 14.4): 인자 생략·NO_ORDER_HINTS·빈 OrderHints 의 계획 스냅샷 비트 동일."""
+   tests/sizing/test_writer_plan.py:313:    b = _sym(tmp_path / "b", r4_access, NO_ORDER_HINTS)
+   tests/sizing/test_writer_plan.py:321:    a = _mir(tmp_path / "a", r4_access, NO_ORDER_HINTS)
+### order_hints
+   sizing/CONTRACT.md:4:> * [XRUN-F1 B] `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext` --
+   sizing/CONTRACT.md:7:> * `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS) -> KernelContext` -- `l_classes` 인자는 없다: L 동치류는 S1v 필
+   sizing/CONTRACT.md:977:* `build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS)`. `l_classes` = U1 `S1v.l_classes` (LCl
+   sizing/CONTRACT.md:1002:  order_hints=NO_ORDER_HINTS)`: 엣지 키 = (종류: 같은 DC < 저항 < MOS, [MOS] ratified 독립 < 그 밖, diode < 그 밖, gm 요구 < 그 밖, 뒤 stage(번호 큰 
+   sizing/CONTRACT.md:1004:* **스텁**: 힌트의 출처(U1 S1v stage 번호, GB5 gm 요구, `structure.json` ratified 로더)는 U1 이 채운다. 지금은 `build_kernel_context(..., order_hin
+   sizing/kernel_context.py:4:진입점: `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext`.
+   sizing/kernel_context.py:7:`order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
+   sizing/kernel_context.py:53:def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters):
+   sizing/kernel_context.py:58:    if not isinstance(order_hints, OrderHints):
+   sizing/kernel_context.py:59:        raise TypeError("build_kernel_context: order_hints 는 OrderHints 여야 한다")
+   sizing/kernel_context.py:86:                          *(() if order_hints == NO_ORDER_HINTS else (order_hints,)), donors=donors, counters=counters)   
+   sizing/writer_plan.py:3:진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order_hints=NO_ORDER_HINT
+   sizing/writer_plan.py:15:   유지 -> 대칭 궤도 대표(같은 궤도 = 같은 구조 색) -> 이름'. 앞 세 단계 중 ratified·gm 요구·stage 는 `order_hints`(U1 S1v·
+   tests/sizing/conftest.py:969:def build_ctx_u4(tmp_path, doc, access, l_classes=(), order_hints=None, supplies=None, **inputs_kw):
+   tests/sizing/conftest.py:970:    """`build_ctx` 와 같되 U4 인자(l_classes·order_hints)를 넘긴다. order_hints None = 인자를 주지 않는다(기본값 경로).
+   tests/sizing/conftest.py:979:    if order_hints is not None:
+   tests/sizing/conftest.py:980:        kw["order_hints"] = order_hints
+   tests/sizing/test_kernel_run.py:353:_, ctx = C.build_ctx_u4(tmp / "m", C.circuit_mirror(), acc, l_classes=lc, order_hints=OrderHints(independent=("M2"
+   tests/sizing/test_size_and_seal.py:464:                        order_hints=OrderHints(independent=("M2",)), element_values=(("I1", 1e-5),))[1]
+   tests/sizing/test_size_and_seal.py:506:    _, a = build_ctx_u4(tmp_path / "a", doc_a, r4_access, l_classes=lc_a, order_hints=h_a, element_values=(("I1
+   tests/sizing/test_size_and_seal.py:507:    _, b = build_ctx_u4(tmp_path / "b", doc_b, r4_access, l_classes=lc_b, order_hints=h_b, element_values=(("I1
+   tests/sizing/test_writer_plan.py:273:    return build_ctx_u4(tmp_path, _sym_doc(names), r4_access, order_hints=hints)[1]
+   tests/sizing/test_writer_plan.py:277:    return build_ctx_u4(tmp_path, circuit_mirror(), r4_access, order_hints=hints, element_values=(("I1", 1e-5),))
+### TIE_ROOT
+   sizing/CONTRACT.md:238:- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·`TIE_ROOT`("w4_root")·
+   sizing/__init__.py:93:    TIE_ROOT,
+   sizing/__init__.py:248:    "TIE_ROOT",
+   sizing/s2_values.py:117:TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 뿌리 후보가 같은 구조 색
+   sizing/writer_plan.py:57:    TIE_ROOT,
+   sizing/writer_plan.py:233:            ties.append(TieBreak(TIE_ROOT, tied, (root,)))
+   tests/sizing/test_s2_values.py:196:    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_INPUT_ORDER, S.TIE_CURRENT_PIVOT) == (
+### w4_root
+   sizing/CONTRACT.md:238:- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·`TIE_ROOT`("w4_root")·
+   sizing/CONTRACT.md:323:   뿌리와 같은 색인 후보가 둘 이상이면 `TieBreak(w4_root, 그 후보들, (뿌리,))`. 뿌리 = (W4, free_window). 그다음 4 와 같은 BFS.
+   sizing/CONTRACT.md:636:  (`writer_edge` {M1a, M1b}·{M4a, M4b}, `w4_root`·`input_tie_order` {Vim, Vip}, `current_pivot` {R1, R2}). 통과 θ 를 σ 로 옮긴
+   sizing/CONTRACT.md:888:- **O4 (해결)** F 없는 성분 뿌리 = (구조 색, 이름) 최소, 같은 색 후보는 `w4_root` 기록.
+   sizing/s2_values.py:117:TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 뿌리 후보가 같은 구조 색
+   sizing/writer_plan.py:21:   중 (구조 색, 이름) 최소(y 키 = 넷) -- W4. 최소 색 후보가 둘 이상이면 `w4_root` 기록. G_vgs 에 없는 노드 = W4(y 키 = 넷).
+   tests/sizing/test_s2_values.py:197:        "writer_edge", "w4_root", "input_tie_order", "current_pivot")
+### TIE_KRUSKAL
+   sizing/CONTRACT.md:238:- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·`TIE_ROOT`("w4_root")·
+   sizing/__init__.py:92:    TIE_KRUSKAL,
+   sizing/__init__.py:247:    "TIE_KRUSKAL",
+   sizing/s2_values.py:116:TIE_KRUSKAL = "writer_edge"                            # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
+   sizing/writer_plan.py:56:    TIE_KRUSKAL,
+   sizing/writer_plan.py:184:            ties.append(TieBreak(TIE_KRUSKAL, tuple(sorted(n for n, _t in members)),
+   tests/sizing/test_s2_values.py:196:    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_INPUT_ORDER, S.TIE_CURRENT_PIVOT) == (
+### writer_edge
+   sizing/CONTRACT.md:238:- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·`TIE_ROOT`("w4_root")·
+   sizing/CONTRACT.md:314:   신장 숲. 같은 (순위, 색) 원소 묶음이 트리/비트리로 갈리면 `TieBreak(writer_edge, 묶음, 트리로 간 원소들)`(묶음을 다 처리한
+   sizing/CONTRACT.md:636:  (`writer_edge` {M1a, M1b}·{M4a, M4b}, `w4_root`·`input_tie_order` {Vim, Vip}, `current_pivot` {R1, R2}). 통과 θ 를 σ 로 옮긴
+   sizing/s2_values.py:116:TIE_KRUSKAL = "writer_edge"                            # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
+   sizing/writer_plan.py:17:   `writer_edge` 기록(묶음 처리 뒤 성분 분할은 묶음 안 순서와 무관하므로 이름이 가르는 것은 그 묶음 안의 선택뿐이다).
+   tests/sizing/test_s2_values.py:197:        "writer_edge", "w4_root", "input_tie_order", "current_pivot")
+### dc_tie_breaks
+   sizing/CONTRACT.md:194:| graph.dc_tie_breaks [r2] | dc_writer_plan | DC_KEY | tuple[`TieBreak`] |
+   sizing/CONTRACT.md:288:  정준 그래프(위치로 다시 쓴 그래프)는 이름 치환·원소 순서에 불변이라, 위치만 읽는 계산은 같은 정준 그래프에 같은 계산을 한 것이다. `dc_tie_breaks` 는 호환 필드로 남고
+   sizing/CONTRACT.md:306:writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 키 = (구조 색, 이름) -- 이름은 같은 색 안에서만.
+   sizing/CONTRACT.md:634:  모두 원래 계획의 `dc_tie_breaks`·`CurrentBasis.ties` 후보에 든다. 작성자 측 실측(generality `random_renaming` seed 1·2):
+   sizing/s2_values.py:146:    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_re
+   sizing/writer_plan.py:6:결정을 가른 경우(같은 구조 색 후보가 서로 다른 결과로 갈린 경우)는 `graph.dc_tie_breaks` 에 `TieBreak` 로 남긴다.
+   sizing/writer_plan.py:73:WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))
+   sizing/writer_plan.py:246:            ("graph", "dc_tie_breaks"): {DC_KEY: tuple(ties)}, ("device", "dc_self_referential"): self_ref}
+   tests/generality/test_metamorphic_sizing.py:7:  원래 계획의 `dc_tie_breaks`·`CurrentBasis.ties` 후보에 든다. 기록이 없는 결정은 이름과 무관하다.
+   tests/generality/test_metamorphic_sizing.py:45:    for t in tuple(_plan(ctx.base, "dc_tie_breaks")) + tuple(_plan(ctx.base, "dc_current_basis").ties):
+   tests/sizing/test_s2_values.py:22:    ("graph", "dc_tie_breaks"): "dc_writer_plan",           # [r2]
+   tests/sizing/test_writer_plan.py:7:  dc_tie_breaks·CurrentBasis.ties 후보 안(9절).
+   tests/sizing/test_writer_plan.py:31:    ties = b.value("graph", DC_KEY, "dc_tie_breaks")
+   tests/sizing/test_writer_plan.py:120:    """[r11] 3.0b: 모든 정렬 키의 구조 색이 정점마다 유일해 이름이 결정을 가르지 않는다 -> dc_tie_breaks = ().
+   tests/sizing/test_writer_plan.py:207:    assert tuple(ctx2.base.value("graph", DC_KEY, "dc_tie_breaks")) == ()
+   tests/sizing/test_writer_plan.py:316:    assert a.base.value("graph", DC_KEY, "dc_tie_breaks") == b.base.value("graph", DC_KEY, "dc_tie_breaks")
+
+## 새 이름 충돌 master
+   theta_class 0 | 
+   ThetaClass 0 | 
+   THETA_CLASS_WRITER 0 | 
+   dependent_member 0 | 
+   dc_colour_not_unique 0 | 
+   test_theta_class 0 | 
+   BRANCH_COLOUR_NOT_UNIQUE 0 | 
+   structure_fact_mismatch 15 | graph/dc_roles.py:24:   (`structure_fact_mismatch`, 유도 값). 소자가 없는 사실(고아)은 S1 에 기 ; graph/l_classes.py:19:않는다(대조 기록 `structure_fact_mismatch`·`structure_fact_orphan ; graph/s1_values.py:76:BASIS_FACT_MISMATCH = "structure_fact_mismatch"        # e ; graph/s1v_fields.py:13:  -> ratified 사실 대조(override 적용 기록·confirm 일치·`structure_
+   structure_fact_orphan 13 | graph/dc_roles.py:24:   (`structure_fact_mismatch`, 유도 값). 소자가 없는 사실(고아)은 S1 에 기 ; graph/l_classes.py:19:않는다(대조 기록 `structure_fact_mismatch`·`structure_fact_orphan ; graph/s1v_fields.py:13:  -> ratified 사실 대조(override 적용 기록·confirm 일치·`structure_ ; graph/s1v_values.py:162:F_FACT_ORPHAN = "structure_fact_orphan"
+
+## concept 상수 master
+   graph/s1v_values.py:24:CONCEPT_DRIVE_KIND = "drive_kind"
+   graph/s1v_values.py:25:CONCEPT_STAGE_MEMBERS = "stage_members"
+   graph/s1v_values.py:26:CONCEPT_DC_ROLE = "dc_role"
+   graph/s1v_values.py:27:CONCEPT_LOOP_ROLE = "loop_role"
+   graph/s1v_values.py:28:CONCEPT_FEEDFORWARD_CELL = "feedforward_cell"
+   graph/s1v_values.py:29:CONCEPT_AC_GROUND_EXCEPTION = "ac_ground_exception"
+   graph/s1v_values.py:30:CONCEPT_MATCHING_PAIR = "matching_pair"
+   graph/s1v_values.py:31:CONCEPT_L_OWNER = "l_owner"         # L 동치류 주인(override, 41 §1.12.5, C-3): subject = 동치류 멤버 이름 정렬 JSON 배열, 
+
+## dc_writer_plan 호출자 master
+   sizing/CONTRACT.md:164:  `dc_writer_plan(정렬 W3 넷 tuple, input_dc_v is not None)` -> `dc_scc_order` -> `dc_theta_schema(값 선언 DC 저항 
+   sizing/CONTRACT.md:303:## 3. 쓰기 계획 `dc_writer_plan(snapshot, target_nets, input_dc_declared)` (θ 무관)
+   sizing/CONTRACT.md:1001:* `OrderHints(independent, gm_required, stage)`(모두 MOS 이름 tuple 또는 ((MOS, 번호), ...)), `NO_ORDER_HINTS`. `d
+   sizing/kernel_context.py:85:    base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None,
+   sizing/writer_plan.py:3:진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order
+   sizing/writer_plan.py:129:def dc_writer_plan(projection):
+   tests/sizing/test_writer_plan.py:1:"""`dc_writer_plan(snapshot, target_nets, input_dc_declared)` -- CONTRACT 3절 [r2].
+   tests/sizing/test_writer_plan.py:240:    assert dc_writer_plan(base, (), False, **run_of(ctx)) is base
+
+## test 파일별 order_hints·OrderHints·w4_root·input_tie 계수 master
+   tests/sizing/conftest.py:4
+   tests/sizing/test_kernel_run.py:3
+   tests/sizing/test_s2_values.py:4
+   tests/sizing/test_size_and_seal.py:9
+   tests/sizing/test_writer_plan.py:20
+# integ/it12 b9351eac1f8bc6a4ae58019351be8a6d133c9519
+
+## 옛 이름 소비자 integ/it12
+### OrderHints
+   sizing/CONTRACT.md:1001:* `OrderHints(independent, gm_required, stage)`(모두 MOS 이름 tuple 또는 ((MOS, 번호), ...)), `NO_ORDER_HINTS`. `dc_writer_plan(snapsh
+   sizing/__init__.py:122:    OrderHints,
+   sizing/__init__.py:191:    "OrderHints",
+   sizing/kernel_context.py:7:`order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
+   sizing/kernel_context.py:41:    OrderHints,
+   sizing/kernel_context.py:58:    if not isinstance(order_hints, OrderHints):
+   sizing/kernel_context.py:59:        raise TypeError("build_kernel_context: order_hints 는 OrderHints 여야 한다")
+   sizing/s2_values.py:208:class OrderHints:
+   sizing/s2_values.py:219:NO_ORDER_HINTS = OrderHints()
+   tests/sizing/test_kernel_run.py:341:# 결정론 (CONTRACT 9절) -- U4 경로(L 동치류·OrderHints·W_request·S2p·국소 봉인)
+   tests/sizing/test_kernel_run.py:349:from gmid_engine.sizing import OrderHints, size_and_seal, size_and_seal_local, theta_name
+   tests/sizing/test_kernel_run.py:353:_, ctx = C.build_ctx_u4(tmp / "m", C.circuit_mirror(), acc, l_classes=lc, order_hints=OrderHints(independent=("M2"
+   tests/sizing/test_s2_values.py:308:    assert names(S.OrderHints) == ("independent", "gm_required", "stage")
+   tests/sizing/test_s2_values.py:309:    assert S.NO_ORDER_HINTS == S.OrderHints((), (), ())
+   tests/sizing/test_size_and_seal.py:403:from gmid_engine.sizing import OrderHints                                                  # noqa: E402
+   tests/sizing/test_size_and_seal.py:445:# 9회로 봉인 해는 탐색(U15/U16)이 만든다 -- 이 단위의 IC1 은 U4 경로(L 동치류·W_request·S2p·입력 창·OrderHints)로 봉인된 toy
+   tests/sizing/test_size_and_seal.py:478:                        order_hints=OrderHints(independent=("M2",)), element_values=(("I1", 1e-5),))[1]
+   tests/sizing/test_size_and_seal.py:507:    """netlist 순서·L 동치류 목록/멤버 순서·OrderHints tuple 순서·W_request 순서를 섞은 두 입력 -> 계획·평가 스냅샷 지문 같음
+   tests/sizing/test_size_and_seal.py:516:    # build_s1v 몫이라 이 test 의 입력 주입(inject_l_classes)은 같은 정준 순서로 준다. 나머지 섞기(netlist·OrderHints·W_request)는 그대로.
+   tests/sizing/test_size_and_seal.py:518:    h_a = OrderHints(gm_required=("M2", "M3"), stage=(("M1", 1), ("M2", 2)))
+   tests/sizing/test_size_and_seal.py:519:    h_b = OrderHints(gm_required=("M3", "M2"), stage=(("M2", 2), ("M1", 1)))
+   tests/sizing/test_writer_plan.py:251:from gmid_engine.sizing import NO_ORDER_HINTS, OrderHints                                       # noqa: E402
+   tests/sizing/test_writer_plan.py:281:    (OrderHints(independent=("MB",)), "MB"),                             # ratified 독립
+   tests/sizing/test_writer_plan.py:282:    (OrderHints(gm_required=("MB",)), "MB"),                             # GB5 gm 요구
+   tests/sizing/test_writer_plan.py:283:    (OrderHints(stage=(("MA", 1), ("MB", 2))), "MB"),                     # 뒤 stage
+   tests/sizing/test_writer_plan.py:284:    (OrderHints(stage=(("MA", 2), ("MB", 1))), "MA"),
+   tests/sizing/test_writer_plan.py:285:    (OrderHints(independent=("MA",), gm_required=("MB",)), "MA"),        # ratified > gm 요구
+   tests/sizing/test_writer_plan.py:286:    (OrderHints(gm_required=("MA",), stage=(("MA", 1), ("MB", 2))), "MA"),  # gm 요구 > 뒤 stage
+   tests/sizing/test_writer_plan.py:298:    (OrderHints(independent=("M2",)), "M2"),                             # ratified > diode
+   tests/sizing/test_writer_plan.py:299:    (OrderHints(gm_required=("M2",)), "M1"),                             # diode > gm 요구
+   tests/sizing/test_writer_plan.py:300:    (OrderHints(stage=(("M1", 1), ("M2", 2))), "M1"),                     # diode > 뒤 stage
+   tests/sizing/test_writer_plan.py:310:    """힌트가 비면 종래 순서와 같다(CONTRACT 14.4): 인자 생략·NO_ORDER_HINTS·빈 OrderHints 의 계획 스냅샷 비트 동일."""
+   tests/sizing/test_writer_plan.py:313:    c = _sym(tmp_path / "c", r4_access, OrderHints((), (), ()))
+   tests/sizing/test_writer_plan.py:321:    b = _mir(tmp_path / "b", r4_access, OrderHints(independent=("M3",), gm_required=("M3",), stage=(("M3", 9),)))
+   tests/sizing/test_writer_plan.py:332:    for i, hints in enumerate((OrderHints(independent=(b,)), OrderHints(stage=((a, 1), (b, 2))), OrderHints(gm_re
+### NO_ORDER_HINTS
+   sizing/CONTRACT.md:4:> * [XRUN-F1 B] `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext` --
+   sizing/CONTRACT.md:7:> * `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS) -> KernelContext` -- `l_classes` 인자는 없다: L 동치류는 S1v 필
+   sizing/CONTRACT.md:977:* `build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS)`. `l_classes` = U1 `S1v.l_classes` (LCl
+   sizing/CONTRACT.md:1001:* `OrderHints(independent, gm_required, stage)`(모두 MOS 이름 tuple 또는 ((MOS, 번호), ...)), `NO_ORDER_HINTS`. `dc_writer_plan(snapsh
+   sizing/CONTRACT.md:1002:  order_hints=NO_ORDER_HINTS)`: 엣지 키 = (종류: 저항 < MOS, [MOS] ratified 독립 < 그 밖, diode < 그 밖, gm 요구 < 그 밖, 뒤 stage(번호 큰 쪽) < 앞, 
+   sizing/__init__.py:120:    NO_ORDER_HINTS,
+   sizing/__init__.py:185:    "NO_ORDER_HINTS",
+   sizing/kernel_context.py:4:진입점: `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext`.
+   sizing/kernel_context.py:37:    NO_ORDER_HINTS,
+   sizing/kernel_context.py:53:def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters):
+   sizing/kernel_context.py:86:                          *(() if order_hints == NO_ORDER_HINTS else (order_hints,)), donors=donors, counters=counters)   
+   sizing/s2_values.py:212:    정한다. 출처는 U1 의 S1v·ratified 로더이고 비어 있으면(`NO_ORDER_HINTS`) 구조 색·이름 순서 그대로다."""
+   sizing/s2_values.py:219:NO_ORDER_HINTS = OrderHints()
+   sizing/writer_plan.py:3:진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order_hints=NO_ORDER_HINT
+   sizing/writer_plan.py:68:    NO_ORDER_HINTS,
+   sizing/writer_plan.py:150:    hints = rest[0] if rest else NO_ORDER_HINTS
+   tests/sizing/test_s2_values.py:309:    assert S.NO_ORDER_HINTS == S.OrderHints((), (), ())
+   tests/sizing/test_writer_plan.py:251:from gmid_engine.sizing import NO_ORDER_HINTS, OrderHints                                       # noqa: E402
+   tests/sizing/test_writer_plan.py:280:    (NO_ORDER_HINTS, "MA"),                                              # 동률 -> 이름(MA < MB)
+   tests/sizing/test_writer_plan.py:297:    (NO_ORDER_HINTS, "M1"),                                              # diode 가 writer
+   tests/sizing/test_writer_plan.py:310:    """힌트가 비면 종래 순서와 같다(CONTRACT 14.4): 인자 생략·NO_ORDER_HINTS·빈 OrderHints 의 계획 스냅샷 비트 동일."""
+   tests/sizing/test_writer_plan.py:312:    b = _sym(tmp_path / "b", r4_access, NO_ORDER_HINTS)
+   tests/sizing/test_writer_plan.py:320:    a = _mir(tmp_path / "a", r4_access, NO_ORDER_HINTS)
+### order_hints
+   sizing/CONTRACT.md:4:> * [XRUN-F1 B] `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext` --
+   sizing/CONTRACT.md:7:> * `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS) -> KernelContext` -- `l_classes` 인자는 없다: L 동치류는 S1v 필
+   sizing/CONTRACT.md:977:* `build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS)`. `l_classes` = U1 `S1v.l_classes` (LCl
+   sizing/CONTRACT.md:1002:  order_hints=NO_ORDER_HINTS)`: 엣지 키 = (종류: 저항 < MOS, [MOS] ratified 독립 < 그 밖, diode < 그 밖, gm 요구 < 그 밖, 뒤 stage(번호 큰 쪽) < 앞, 
+   sizing/CONTRACT.md:1004:* **스텁**: 힌트의 출처(U1 S1v stage 번호, GB5 gm 요구, `structure.json` ratified 로더)는 U1 이 채운다. 지금은 `build_kernel_context(..., order_hin
+   sizing/kernel_context.py:4:진입점: `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext`.
+   sizing/kernel_context.py:7:`order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
+   sizing/kernel_context.py:53:def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters):
+   sizing/kernel_context.py:58:    if not isinstance(order_hints, OrderHints):
+   sizing/kernel_context.py:59:        raise TypeError("build_kernel_context: order_hints 는 OrderHints 여야 한다")
+   sizing/kernel_context.py:86:                          *(() if order_hints == NO_ORDER_HINTS else (order_hints,)), donors=donors, counters=counters)   
+   sizing/writer_plan.py:3:진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order_hints=NO_ORDER_HINT
+   sizing/writer_plan.py:14:   유지 -> 대칭 궤도 대표(같은 궤도 = 같은 구조 색) -> 이름'. 앞 세 단계 중 ratified·gm 요구·stage 는 `order_hints`(U1 S1v·
+   tests/sizing/conftest.py:970:def build_ctx_u4(tmp_path, doc, access, l_classes=(), order_hints=None, supplies=None, **inputs_kw):
+   tests/sizing/conftest.py:971:    """`build_ctx` 와 같되 U4 인자(l_classes·order_hints)를 넘긴다. order_hints None = 인자를 주지 않는다(기본값 경로).
+   tests/sizing/conftest.py:980:    if order_hints is not None:
+   tests/sizing/conftest.py:981:        kw["order_hints"] = order_hints
+   tests/sizing/test_kernel_run.py:353:_, ctx = C.build_ctx_u4(tmp / "m", C.circuit_mirror(), acc, l_classes=lc, order_hints=OrderHints(independent=("M2"
+   tests/sizing/test_size_and_seal.py:478:                        order_hints=OrderHints(independent=("M2",)), element_values=(("I1", 1e-5),))[1]
+   tests/sizing/test_size_and_seal.py:520:    _, a = build_ctx_u4(tmp_path / "a", doc_a, r4_access, l_classes=lc_a, order_hints=h_a, element_values=(("I1
+   tests/sizing/test_size_and_seal.py:521:    _, b = build_ctx_u4(tmp_path / "b", doc_b, r4_access, l_classes=lc_b, order_hints=h_b, element_values=(("I1
+   tests/sizing/test_writer_plan.py:272:    return build_ctx_u4(tmp_path, _sym_doc(names), r4_access, order_hints=hints)[1]
+   tests/sizing/test_writer_plan.py:276:    return build_ctx_u4(tmp_path, circuit_mirror(), r4_access, order_hints=hints, element_values=(("I1", 1e-5),))
+### TIE_ROOT
+   sizing/CONTRACT.md:240:- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·`TIE_ROOT`("w4_root")·
+   sizing/__init__.py:90:    TIE_ROOT,
+   sizing/__init__.py:242:    "TIE_ROOT",
+   sizing/s2_values.py:121:TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 뿌리 후보가 같은 구조 색
+   sizing/writer_plan.py:60:    TIE_ROOT,
+   sizing/writer_plan.py:248:            ties.append(TieBreak(TIE_ROOT, tied, (root,)))
+   tests/sizing/test_s2_values.py:201:    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_CURRENT_PIVOT) == (
+### w4_root
+   sizing/CONTRACT.md:240:- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·`TIE_ROOT`("w4_root")·
+   sizing/CONTRACT.md:324:   뿌리와 같은 색인 후보가 둘 이상이면 `TieBreak(w4_root, 그 후보들, (뿌리,))`. 뿌리 = (W4, free_window). 그다음 4 와 같은 BFS.
+   sizing/CONTRACT.md:636:  (`writer_edge` {M1a, M1b}·{M4a, M4b}, `w4_root` {Vim, Vip}, `current_pivot` {R1, R2}). 통과 θ 를 σ 로 옮긴
+   sizing/CONTRACT.md:888:- **O4 (해결)** F 없는 성분 뿌리 = (구조 색, 이름) 최소, 같은 색 후보는 `w4_root` 기록.
+   sizing/s2_values.py:121:TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 뿌리 후보가 같은 구조 색
+   sizing/writer_plan.py:20:   중 (구조 색, 이름) 최소(y 키 = 넷) -- W4. 최소 색 후보가 둘 이상이면 `w4_root` 기록. G_vgs 에 없는 노드 = W4(y 키 = 넷).
+   tests/sizing/test_s2_values.py:202:        "writer_edge", "w4_root", "current_pivot")
+### TIE_KRUSKAL
+   sizing/CONTRACT.md:240:- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·`TIE_ROOT`("w4_root")·
+   sizing/__init__.py:89:    TIE_KRUSKAL,
+   sizing/__init__.py:241:    "TIE_KRUSKAL",
+   sizing/s2_values.py:120:TIE_KRUSKAL = "writer_edge"                           # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
+   sizing/writer_plan.py:59:    TIE_KRUSKAL,
+   sizing/writer_plan.py:201:            ties.append(TieBreak(TIE_KRUSKAL, tuple(sorted(n for n, _t in members)),
+   tests/sizing/test_s2_values.py:201:    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_CURRENT_PIVOT) == (
+### writer_edge
+   sizing/CONTRACT.md:240:- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·`TIE_ROOT`("w4_root")·
+   sizing/CONTRACT.md:316:   신장 숲. 같은 (순위, 색) 원소 묶음이 트리/비트리로 갈리면 `TieBreak(writer_edge, 묶음, 트리로 간 원소들)`(묶음을 다 처리한
+   sizing/CONTRACT.md:636:  (`writer_edge` {M1a, M1b}·{M4a, M4b}, `w4_root` {Vim, Vip}, `current_pivot` {R1, R2}). 통과 θ 를 σ 로 옮긴
+   sizing/s2_values.py:120:TIE_KRUSKAL = "writer_edge"                           # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
+   sizing/writer_plan.py:16:   `writer_edge` 기록(묶음 처리 뒤 성분 분할은 묶음 안 순서와 무관하므로 이름이 가르는 것은 그 묶음 안의 선택뿐이다).
+   tests/sizing/test_s2_values.py:202:        "writer_edge", "w4_root", "current_pivot")
+### dc_tie_breaks
+   sizing/CONTRACT.md:195:| graph.dc_tie_breaks [r2] | dc_writer_plan | DC_KEY | tuple[`TieBreak`] |
+   sizing/CONTRACT.md:290:  정준 그래프(위치로 다시 쓴 그래프)는 이름 치환·원소 순서에 불변이라, 위치만 읽는 계산은 같은 정준 그래프에 같은 계산을 한 것이다. `dc_tie_breaks` 는 호환 필드로 남고
+   sizing/CONTRACT.md:308:writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 키 = (구조 색, 이름) -- 이름은 같은 색 안에서만.
+   sizing/CONTRACT.md:634:  모두 원래 계획의 `dc_tie_breaks`·`CurrentBasis.ties` 후보에 든다. 작성자 측 실측(generality `random_renaming` seed 1·2):
+   sizing/s2_values.py:149:    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_re
+   sizing/writer_plan.py:6:결정을 가른 경우(같은 구조 색 후보가 서로 다른 결과로 갈린 경우)는 `graph.dc_tie_breaks` 에 `TieBreak` 로 남긴다.
+   sizing/writer_plan.py:76:WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"),
+   sizing/writer_plan.py:268:            ("graph", "dc_tie_breaks"): {DC_KEY: tuple(ties)}, ("device", "dc_self_referential"): self_ref,
+   tests/generality/test_metamorphic_sizing.py:7:  원래 계획의 `dc_tie_breaks`·`CurrentBasis.ties` 후보에 든다. 기록이 없는 결정은 이름과 무관하다.
+   tests/generality/test_metamorphic_sizing.py:45:    for t in tuple(_plan(ctx.base, "dc_tie_breaks")) + tuple(_plan(ctx.base, "dc_current_basis").ties):
+   tests/sizing/test_s2_values.py:22:    ("graph", "dc_tie_breaks"): "dc_writer_plan",           # [r2]
+   tests/sizing/test_writer_plan.py:7:  dc_tie_breaks·CurrentBasis.ties 후보 안(9절).
+   tests/sizing/test_writer_plan.py:31:    ties = b.value("graph", DC_KEY, "dc_tie_breaks")
+   tests/sizing/test_writer_plan.py:120:    """[r11] 3.0b: 모든 정렬 키의 구조 색이 정점마다 유일해 이름이 결정을 가르지 않는다 -> dc_tie_breaks = ().
+   tests/sizing/test_writer_plan.py:206:    assert tuple(ctx2.base.value("graph", DC_KEY, "dc_tie_breaks")) == ()
+   tests/sizing/test_writer_plan.py:315:    assert a.base.value("graph", DC_KEY, "dc_tie_breaks") == b.base.value("graph", DC_KEY, "dc_tie_breaks")
+   tests/sizing/test_writer_plan.py:518:    """graph 계약 I1: node.dc_writer·device.dc_coord·graph.dc_tie_breaks 는 dc_writer_plan 이 쓴다(필드 writer 하나)."""
+
+## 새 이름 충돌 integ/it12
+   theta_class 0 | 
+   ThetaClass 0 | 
+   THETA_CLASS_WRITER 0 | 
+   dependent_member 0 | 
+   dc_colour_not_unique 0 | 
+   test_theta_class 0 | 
+   BRANCH_COLOUR_NOT_UNIQUE 0 | 
+   structure_fact_mismatch 15 | graph/dc_roles.py:24:   (`structure_fact_mismatch`, 유도 값). 소자가 없는 사실(고아)은 S1 에 기 ; graph/l_classes.py:19:않는다(대조 기록 `structure_fact_mismatch`·`structure_fact_orphan ; graph/s1_values.py:76:BASIS_FACT_MISMATCH = "structure_fact_mismatch"        # e ; graph/s1v_fields.py:13:  -> ratified 사실 대조(override 적용 기록·confirm 일치·`structure_
+   structure_fact_orphan 13 | graph/dc_roles.py:24:   (`structure_fact_mismatch`, 유도 값). 소자가 없는 사실(고아)은 S1 에 기 ; graph/l_classes.py:19:않는다(대조 기록 `structure_fact_mismatch`·`structure_fact_orphan ; graph/s1v_fields.py:13:  -> ratified 사실 대조(override 적용 기록·confirm 일치·`structure_ ; graph/s1v_values.py:162:F_FACT_ORPHAN = "structure_fact_orphan"
+
+## concept 상수 integ/it12
+   graph/s1v_values.py:24:CONCEPT_DRIVE_KIND = "drive_kind"
+   graph/s1v_values.py:25:CONCEPT_STAGE_MEMBERS = "stage_members"
+   graph/s1v_values.py:26:CONCEPT_DC_ROLE = "dc_role"
+   graph/s1v_values.py:27:CONCEPT_LOOP_ROLE = "loop_role"
+   graph/s1v_values.py:28:CONCEPT_FEEDFORWARD_CELL = "feedforward_cell"
+   graph/s1v_values.py:29:CONCEPT_AC_GROUND_EXCEPTION = "ac_ground_exception"
+   graph/s1v_values.py:30:CONCEPT_MATCHING_PAIR = "matching_pair"
+   graph/s1v_values.py:31:CONCEPT_L_OWNER = "l_owner"         # L 동치류 주인(override, 41 §1.12.5, C-3): subject = 동치류 멤버 이름 정렬 JSON 배열, 
+
+## dc_writer_plan 호출자 integ/it12
+   sizing/CONTRACT.md:165:  `dc_writer_plan(정렬 W3 넷 tuple, input_dc_v is not None)` -> `dc_scc_order` -> `dc_theta_schema(값 선언 DC 저항 
+   sizing/CONTRACT.md:305:## 3. 쓰기 계획 `dc_writer_plan(snapshot, target_nets, input_dc_declared)` (θ 무관)
+   sizing/CONTRACT.md:1001:* `OrderHints(independent, gm_required, stage)`(모두 MOS 이름 tuple 또는 ((MOS, 번호), ...)), `NO_ORDER_HINTS`. `d
+   sizing/kernel_context.py:85:    base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None,
+   sizing/writer_plan.py:3:진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order
+   sizing/writer_plan.py:148:def dc_writer_plan(projection):
+   tests/sizing/test_writer_plan.py:1:"""`dc_writer_plan(snapshot, target_nets, input_dc_declared)` -- CONTRACT 3절 [r2].
+   tests/sizing/test_writer_plan.py:239:    assert dc_writer_plan(base, (), False, **run_of(ctx)) is base
+
+## test 파일별 order_hints·OrderHints·w4_root·input_tie 계수 integ/it12
+   tests/search/test_fd_jacobian.py:1
+   tests/sizing/conftest.py:4
+   tests/sizing/test_kernel_run.py:3
+   tests/sizing/test_s2_values.py:4
+   tests/sizing/test_size_and_seal.py:9
+   tests/sizing/test_writer_plan.py:20
+
+## integ/it12 겹침
+   sizing/writer_plan.py ['59', '36']
+   sizing/s2_values.py ['16', '8']
+   sizing/kernel_context.py 겹침 0
+   sizing/__init__.py ['2', '8']
+   sizing/CONTRACT.md ['48', '43']
+   _module_map.py ['3', '3']
+   tests/sizing/test_writer_plan.py ['369', '11']
+   tests/sizing/conftest.py ['5', '4']
+   tests/sizing/test_kernel_run.py ['84', '0']
+   tests/sizing/test_s2_values.py ['33', '9']
+   tests/sizing/test_size_and_seal.py ['18', '4']
+
+## _module_map sizing 층 (integ/it12)
+    "sizing",
+    "metrics",
+    "search",
+    "layout",
+    "convergence",
+    "report",
+    "pipeline",
+)
+
+
+@dataclasses.dataclass(frozen=True)
+class ModuleEntry:
+    """`path`: gmid_engine 기준 상대 경로(`/` 구분). `kind`: "entry"(독립 진입점 1개), "data"(데이터 선언 모듈 --
+    공개 정의가 전부 dataclass/NamedTuple/Enum/Exception 클래스, 한 개념으로 셈) 또는 "helper"(공용 helper, 규칙 B 예외).
+    `entry_point`: 그 파일의 독립 진입점 이름(data·helper 는 None). `compute_block`: 그 파일의 계산 블록
+    이름(없으면 None, 규칙 C -- 파일당 최대 1). `plan_ids`: 구현하는 계획·설계 ID."""
+
+    path: str
+    kind: str
+    entry_point: object
+    responsibility: str
+    plan_ids: tuple
+    compute_block: object = None
+
+
+LAYERS = (
+    (
+        "core",
+        (
+            ("blas_env.py", "canonical_key.py", "determinism.py", "donors.py", "fingerprint.py", "graft.py", "immutability.py", "margin.py",
+             "run_counters.py", "units.py", "writer_error.py"),
+            ("bounded_lru.py", "engine_code_fp.py", "failure_record.py", "field_value.py", "metric_signature.py", "projection.py",
+             "writer_table.py"),
+            ("failure_errors.py", "graph_record.py"),
+            ("failure_classes.py", "graph_snapshot.py", "pdk_decl.py"),
+            ("canon_pointer.py", "compute_block.py", "exit_code.py", "failure_partial.py"),
+        ),
+    ),
+
+## structure.json 사실 파일(library)
+   current_reuse_telescopic_ota.structure.json
+   nmcnr_amplifier.structure.json
+
+## S1v 필드·stage·roles
+   graph/s1v_values.py:306:class Block:
+   graph/s1v_values.py:16:    "drive_kind.py", "feedforward_cells.py", "l_classes.py", "loop_classify.py", "loop_cuts.py", "loop_roles.py", "loops.py",
+   graph/s1v_values.py:21:STRUCTURE_RULE_EXTRA_FILES = ("composite_diode.py", "dc_roles.py", "gs_groups.py", "matching_groups.py")
+   graph/s1v_values.py:309:    `inputs` = 블록 입력 넷, `outputs` = 출력노드, `roles` = (소자, AC 역할) 이름순, AC 역할 ∈ {input(시작 CS·CG), cascode(CG), mirror(미러 입력을 gate
+   graph/s1v_values.py:320:    roles: tuple
+   graph/s1v_values.py:390:    `ff_ratio_candidates` = `FfRatioCandidate` 목록, `loop_roles` = 이 전달 뷰의 `LoopRole` 목록, `polarity` = 루프 뷰의 극성(그 뷰의 DC 사이클 극성,
+   graph/s1v_values.py:422:    loop_roles: tuple = ()
+   graph/s1v_values.py:276:    drain_entry_channel_exit(drain 진입, 채널로만 나감 -> 전류), drain_entry_gate_and_channel_exit(둘 다 -> stage 경계, 전압), drain_entry_tap
+   graph/s1v_values.py:308:    `stage` = 시작 셀 입력 넷 `stage_dist` + 1(버퍼 블록은 입력 넷 `stage_dist`, 복합은 멤버 최소),
+   graph/s1v_values.py:317:    stage: int
+   graph/s1v_values.py:330:    `chain` = 묶은 뒤 블록 DAG 가 stage 단계마다 이어지는 사슬인가, `status`."""
+   graph/s1v_values.py:385:    (stage 번호용)·`stage_starts`·`mirror_inputs` = 축약 뷰 기준, `blocks`(이득·버퍼·복합)·`composites`·`pole_nodes`·`output_direction`,
+   graph/s1v_values.py:445:    `bias_cells` = 묶음 내부 넷에 drain 이 붙은 바이어스 전류원, `load_cells` = 같은 넷의 diode 부하, `bypassed_blocks` = 우회한 주경로 블록 키(앞 stage 부터),
+   graph/s1v_values.py:474:    `owner_rule` ∈ {tail_owner(동치류에 tail 하나), tail_first_gain_stage(tail 여럿 -> 첫 전달 뷰 최전단 stage), current_source_member(tail 없
+   graph/s1v_values.py:475:    멤버, 복합 diode 포함), main_path_signal(멤버 중 gain 제약 전달 뷰의 주경로 stage 시작 셀, 41 §1.12.5), name_order(그 밖 -> 이름 정렬 첫 멤버, review_ne
+
+## 구조 색·정준 위치
+   graph/automorphism_orbits.py:5:* 궤도 = 생성자들이 만드는 군 아래 정점의 동치류(union-find). **궤도 id = 구성원의 정준 위치 최솟값** -- 정준 그래프에서 궤도가 차지하는 위치 집합은 라벨링에
+   graph/canonical_form.py:108:    """`start` = `colour0` 의 1-WL 평형 분할(`wl`, 다시 계산하지 않는다) -> (정준 위치 {정점: int}, 자기동형 생성자 list[dict])."""
+   graph/canonical_form.py:169:    position, generators = _search(marked, neighbours, wl)  # 같은 그래프의 정준 위치·자기동형 생성자(평형 분할 = wl)
+   graph/s1_symmetry.py:10:* 계산: `canonical_form`(선언 표시를 넣은 그래프 하나 -- `wl`·정준 위치·자기동형 생성자, D-2) -> `automorphism_orbits`.
+   graph/s1_symmetry.py:12:  - `device.dc_colour`·`node.dc_colour` = (`wl`, 정준 위치) 쌍의 정렬 순위 -- 서로 다른 1-WL 색 사이의 순서는 `wl`, 같은 색 안은 정준 위치(정점마다 유일, 이름 무관).
+   graph/s1_symmetry.py:13:  - `graph.orbits` = `Orbits`(원소·넷 궤도 id = 구성원 정준 위치 최솟값).
+   graph/s1_values.py:261:    궤도 id = 구성원의 정준 위치 최솟값(이름에 불변, 같은 궤도 ⇔ 같은 값)."""
+   sizing/block_columns.py:294:        # 기둥 방향·합산 순서를 구조 색(정준 위치)으로 -- S1 기둥은 레일 이름순 방향이라 이름 치환이 부동소수 합 순서를 바꾸는 것을 막는다
+   sizing/writer_plan.py:5:모든 순서 결정의 키는 **구조 색 먼저**(`dc_colour` -- graph 대칭 블록 `s1_symmetry`, 이름을 읽지 않는 1-WL 색 + 정준 위치) 그다음 이름이다. 이름이 실제로
+
+## build_s1v vs build_kernel_context 순서(S1v가 lift 전에 있는지)
+   sizing/kernel_context.py:9:순서: 인자 검사 -> `supplies_declaration`(graph, 레일 집합과 대조) + S1 키의 supplies 지문 대조 -> `lift_s1` ->
+   sizing/kernel_context.py:12:`kernel_fields`(writer `kernel_context`: `graph/kernel: fixed_values·resistor_values·l_ties` -- L 동치류는 S1v 필드 `graph/s1v: l_classes` 에서 읽는다(de
+   sizing/kernel_context.py:28:from .s2_lift import lift_s1
+   sizing/kernel_context.py:81:    base = lift_s1(s1graph)
+   sizing/s2_lift.py:3:진입점: `lift_s1(s1graph) -> GraphSnapshot`.
+   sizing/s2_lift.py:17:def lift_s1(s1graph):
+   sizing/s2_lift.py:19:        raise TypeError("lift_s1: 권한표가 S1_WRITERS 를 덮는 S1Graph 여야 한다")
+   sizing/s2_lift.py:23:            raise ValueError("lift_s1: S1 writer " + repr(writer) + " 가 돌지 않은 S1Graph 다(build_s1 결과만 받는다)")
+   sizing/s2_values.py:7:`lift_s1` 이 S1 스냅샷을 이 권한표로 옮기고, 그 뒤 dc 계산 블록이 필드를 쓴다(필드마다 writer 하나, 값과 함께 입력
+
+## KernelContext 호출자의 S1 인자
+   pipeline/stage_b.py:152:        kctx = build_kernel_context(s1, inputs, pre_layout_lut_access(memo), donors=stage_a.donors, counters=stage_a.counters)
+   sizing/__init__.py:5:`dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, pre_layout_lut_access(memo))` (S0 당 1회) ->
+   sizing/kernel_context.py:4:진입점: `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext`.
+   sizing/kernel_context.py:53:def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters):
+
+## tests build_kernel_context 호출 계수(master)
+파일 28 합 64

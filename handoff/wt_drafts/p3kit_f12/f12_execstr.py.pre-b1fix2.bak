@@ -1,0 +1,233 @@
+"""F1 작성 전 실측 -- 실행 문자열(내장 스크립트) 전수 스캔(측정 전용, 판정 도구가 아니다: auditor는 계약 문언만 보고 독립으로 쓴다).
+
+review_p3_f1_b34t B1: `test_b34_grammar_explicit.py`의 `_B34_FRESH_SCRIPT`(subprocess `-c`로 실행되는 문자열)가 SD 삭제 집합 이름을 읽는데
+design §10 `E3_AST`·`E3B_AST file_reads`는 문자열 안을 보지 않는다.
+
+    python -B f12_execstr.py <저장소 루트> <rev> <out.json> [--drop <SD 삭제 집합 json 목록 파일>]
+
+규칙(계약 1 (e) 문언과 같은 식):
+ 실행 문자열 = 추적 .py 안 문자열 상수(`ast.Constant` str, docstring 자리 제외) 중 **같은 파일 안에서 실행 자리에 닿는 것**.
+   실행 자리: (s1) 내장 `exec`·`eval`·`compile`(이름 호출 -- `re.compile` 같은 속성 호출 아님)의 첫 인자,
+             (s2) 리스트·튜플 표시에서 상수 `"-c"` 바로 뒤 원소(인터프리터 `-c` 인자),
+             (s3) `write_text`·`write`의 첫 인자이면서 **스크립트 모양**(파싱되고 import 문이 있음)인 문자열(파일로 써서 실행하는 스크립트 --
+                  실행 여부를 모르므로 닫힌 쪽; 출력·기록 문자열은 스크립트 모양이 아니라 빠진다).
+   닿음: 그 자리의 식이 (r1) 문자열 상수 자체, (r2) 문자열 상수를 대입받은 이름(파일 안 어느 스코프든 -- 닫힌 쪽),
+         (r3) 함수 매개변수이고 그 함수가 매개변수를 실행 자리로 넘기면, 그 함수 호출의 같은 위치·같은 이름 인자(고정점),
+         (r4) `+`로 이은 식이면 각 피연산자.
+ 보조 검출(내용) = 문자열 상수(docstring 자리 제외)가 `ast.parse`(실패하면 `textwrap.dedent` 뒤)로 파싱되고 그 안에 import 문이 있는 것.
+   실행 문자열이 아닌 보조 검출은 '실행 아님' 후보로 따로 적는다(판정은 사람 -- auditor 목록).
+각 문자열마다 그 파싱 트리에 design §10 E3_AST 식(SR·TL·DR import 문·import 호출)과 E3B_AST `file_reads`(SD 모듈 식 읽기)를 적용한다.
+"""
+import ast
+import json
+import subprocess
+import sys
+import textwrap
+
+MODS = {"sizing_recipe", "topology_library", "design_report"}
+IMPF = ("import_module", "_import", "__import__")
+ATTRF = ("getattr", "hasattr", "setattr", "delattr")
+EXECF = ("exec", "eval", "compile")
+WRITEF = ("write_text", "write")
+G = []
+
+
+def git(*a):
+    r = subprocess.run(G + list(a), capture_output=True)
+    if r.returncode:
+        raise SystemExit("git %s: %s" % (a, r.stderr.decode("utf-8", "replace")))
+    return r.stdout
+
+
+def fname(e):
+    f = e.func
+    return f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+
+
+def e3_hits(tree):   # design §10 E3_AST 식 그대로
+    out = []
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import) and any(a.name.split(".")[0] in MODS for a in n.names):
+            out.append(("stmt", n.lineno))
+        elif isinstance(n, ast.ImportFrom) and n.level == 0 and n.module and n.module.split(".")[0] in MODS:
+            out.append(("stmt", n.lineno))
+        elif isinstance(n, ast.Call) and n.args and isinstance(n.args[0], ast.Constant) and isinstance(n.args[0].value, str):
+            if fname(n) in IMPF and n.args[0].value.split(".")[0] in MODS:
+                out.append(("call", n.lineno))
+    return out
+
+
+def file_reads(tree):   # design §10 E3B_AST file_reads 그대로
+    al, fn_sd = set(), set()
+
+    def is_sd(e):
+        if isinstance(e, ast.Name):
+            return e.id in al
+        if isinstance(e, ast.Call):
+            f = e.func
+            nm = f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+            if nm in IMPF and e.args and isinstance(e.args[0], ast.Constant) and e.args[0].value == "stick_diagram":
+                return True
+            return isinstance(f, ast.Name) and f.id in fn_sd
+        return False
+    ch = True
+    while ch:
+        ch = False
+        for n in ast.walk(tree):
+            new = set()
+            if isinstance(n, ast.Import):
+                new = {a.asname or a.name for a in n.names if a.name == "stick_diagram"}
+            elif isinstance(n, (ast.Assign, ast.AnnAssign, ast.NamedExpr)) and n.value is not None and is_sd(n.value):
+                tg = n.targets if isinstance(n, ast.Assign) else [n.target]
+                new = {t.id for t in tg if isinstance(t, ast.Name)}
+            elif isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name not in fn_sd and any(
+                    isinstance(r, ast.Return) and r.value is not None and is_sd(r.value) for r in ast.walk(n)):
+                fn_sd.add(n.name)
+                ch = True
+            if new - al:
+                al |= new
+                ch = True
+    out = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.ImportFrom) and n.level == 0 and n.module == "stick_diagram":
+            out |= {(n.lineno, a.name) for a in n.names}
+        elif isinstance(n, ast.Attribute) and is_sd(n.value):
+            out.add((n.lineno, n.attr))
+        elif isinstance(n, ast.Call) and n.args and is_sd(n.args[0]) and fname(n) in ATTRF:
+            a = n.args[1] if len(n.args) > 1 else None
+            out.add((n.lineno, a.value if isinstance(a, ast.Constant) and isinstance(a.value, str) else "<동적 이름>"))
+    return out
+
+
+def docstring_ids(tree):
+    ids = set()
+    for n in ast.walk(tree):
+        if isinstance(n, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and n.body:
+            s = n.body[0]
+            if isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant) and isinstance(s.value.value, str):
+                ids.add(id(s.value))
+    return ids
+
+
+def parse_embedded(s):
+    for t in (s, textwrap.dedent(s)):
+        try:
+            return ast.parse(t)
+        except (SyntaxError, ValueError):
+            continue
+    return None
+
+
+def exec_strings(tree):
+    """실행 자리에 닿는 문자열 상수 노드 id 집합(규칙 s1~s3 · r1~r4)."""
+    name_consts = {}   # 이름 -> [상수 노드]
+    for n in ast.walk(tree):
+        if isinstance(n, (ast.Assign, ast.AnnAssign)) and isinstance(getattr(n, "value", None), ast.Constant) \
+                and isinstance(n.value.value, str):
+            for t in (n.targets if isinstance(n, ast.Assign) else [n.target]):
+                if isinstance(t, ast.Name):
+                    name_consts.setdefault(t.id, []).append(n.value)
+    funcs = {n.name: n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    sink_params = {}   # 함수 이름 -> {(위치, 이름)}
+
+    def sink_exprs(scope):
+        out = []
+        for n in ast.walk(scope):
+            if isinstance(n, ast.Call) and n.args:
+                fn = fname(n)
+                if isinstance(n.func, ast.Name) and fn in EXECF:   # 내장 exec/eval/compile만(`re.compile` 등 속성 호출은 아니다)
+                    out.append((n.args[0], "exec"))
+                elif fn in WRITEF:
+                    out.append((n.args[0], "write"))
+                elif fn in sink_params:
+                    for i, a in enumerate(n.args):
+                        if any(pos == i for pos, _nm in sink_params[fn]):
+                            out.append((a, "param:" + fn))
+                    for kw in n.keywords:
+                        if any(nm == kw.arg for _pos, nm in sink_params[fn]):
+                            out.append((kw.value, "param:" + fn))
+            if isinstance(n, (ast.List, ast.Tuple)):
+                for i, e in enumerate(n.elts[:-1]):
+                    if isinstance(e, ast.Constant) and e.value == "-c":
+                        out.append((n.elts[i + 1], "-c"))
+        return out
+
+    def leaves(e):
+        if isinstance(e, ast.BinOp) and isinstance(e.op, ast.Add):
+            return leaves(e.left) + leaves(e.right)
+        return [e]
+    grew = True
+    while grew:   # r3: 매개변수를 실행 자리로 넘기는 함수(고정점)
+        grew = False
+        for fnm, f in funcs.items():
+            params = [a.arg for a in f.args.posonlyargs + f.args.args]
+            for e, _k in sink_exprs(f):
+                for lf in leaves(e):
+                    if isinstance(lf, ast.Name) and lf.id in params:
+                        key = (params.index(lf.id), lf.id)
+                        if key not in sink_params.setdefault(fnm, set()):
+                            sink_params[fnm].add(key)
+                            grew = True
+    hit = {}
+    for e, kind in sink_exprs(tree):
+        for lf in leaves(e):
+            cs = [lf] if isinstance(lf, ast.Constant) and isinstance(lf.value, str) else                 (name_consts.get(lf.id, []) if isinstance(lf, ast.Name) else [])
+            for c in cs:
+                # (s3) 파일 쓰기 자리는 스크립트 모양(파싱되고 import 문이 있음)인 문자열만 -- 출력·기록 문자열 제외
+                if "write" in kind and not script_shaped(c.value):
+                    continue
+                hit[id(c)] = kind + ("" if c is lf else " via " + lf.id)
+    return hit
+
+
+def script_shaped(s):
+    t = parse_embedded(s)
+    return t is not None and any(isinstance(x, (ast.Import, ast.ImportFrom)) for x in ast.walk(t))
+
+
+def main():
+    global G
+    ROOT, REV, OUT = sys.argv[1:4]
+    DROP = set(json.load(open(sys.argv[sys.argv.index("--drop") + 1], encoding="utf-8"))) if "--drop" in sys.argv else set()
+    G = ["git", "-c", "core.quotepath=off", "-C", ROOT]
+    res = {"rev": REV, "files_scanned": 0, "exec": [], "content_only": [], "parse_error": []}
+    paths = [p for p in git("ls-tree", "-r", "--name-only", "-z", REV).decode("utf-8").split("\0") if p.endswith(".py")]
+    for p in paths:
+        src = git("show", REV + ":" + p)
+        try:
+            tree = ast.parse(src)
+        except SyntaxError:
+            res["parse_error"].append(p)
+            continue
+        res["files_scanned"] += 1
+        docs = docstring_ids(tree)
+        hit = exec_strings(tree)
+        for n in ast.walk(tree):
+            if not (isinstance(n, ast.Constant) and isinstance(n.value, str)) or id(n) in docs:
+                continue
+            is_exec = id(n) in hit
+            sub = parse_embedded(n.value) if (is_exec or "import" in n.value) else None
+            has_imp = sub is not None and any(isinstance(x, (ast.Import, ast.ImportFrom)) for x in ast.walk(sub))
+            if not is_exec and not has_imp:
+                continue
+            ent = {"path": p, "line": n.lineno, "len": len(n.value), "sink": hit.get(id(n)), "parses": sub is not None}
+            if sub is not None:
+                ent["e3"] = e3_hits(sub)
+                rd = sorted(file_reads(sub))
+                ent["sd_reads"] = len(rd)
+                ent["sd_drop_reads"] = sorted({nm for _l, nm in rd if nm in DROP})
+                ent["imports"] = sorted({(a.name if isinstance(x, ast.Import) else (x.module or ".")) for x in ast.walk(sub)
+                                         if isinstance(x, (ast.Import, ast.ImportFrom)) for a in (x.names if isinstance(x, ast.Import) else [x])})
+            (res["exec"] if is_exec else res["content_only"]).append(ent)
+    with open(OUT, "w", encoding="utf-8") as fh:
+        json.dump(res, fh, ensure_ascii=False, indent=1)
+    print(json.dumps({"files": res["files_scanned"], "exec": len(res["exec"]), "content_only": len(res["content_only"]),
+                      "exec_with_e3_or_drop": [(x["path"], x["line"], len(x.get("e3", [])), len(x.get("sd_drop_reads", [])))
+                                               for x in res["exec"] if x.get("e3") or x.get("sd_drop_reads")],
+                      "content_only_engine": [(x["path"], x["line"], x.get("imports")) for x in res["content_only"]
+                                              if set(x.get("imports", [])) & (MODS | {"stick_diagram", "audit_current_forced"})]},
+                     ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()

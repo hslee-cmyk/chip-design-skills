@@ -1,0 +1,472 @@
+#!/usr/bin/env bash
+# B26-1 card 20260930-b26-rail-accessor-set 착수 0단계(오케스트레이터) -- B34 → b26pre → backfill 결함 card 병합 뒤(네 card 중 마지막).
+# 근거: spec card(draft_b26_1.spec.md) '결정 필요 항목'의 '승인 줄 배치' 1~3과 '착수 조건' 1~11, b34_launch.sh·b26pre_launch.sh 구조.
+# 구조는 b34_launch.sh를 따른다(단계별 함수, 옵션은 단계 이름 앞, measured rev 단일 출처, 게이트 캐시 절대 경로, push는 하지 않음).
+# 어느 확인이든 실패하면 그 자리에서 멈춘다(set -Eeuo pipefail + ERR trap).
+# 이 스크립트는 '두 번 시도 절차' 단계 1(1차 시도) 직전까지다. 1차 시도 뒤 운반(단계 2)은 b26_1_carry.sh.
+#
+# 커밋 순서(push 두 번 -- 착수 조건 10 "decision 기록 20260930-b26-b40-reason-key가 gate master에 커밋되어 있다(이 card 순서 0 커밋 전)"):
+#   P  승인 기록 20260930-b26-b40-reason-key(decision, U4)                     -> push #1 (단독)  [gate에 이미 있으면(초안과 바이트 같음) 건너뜀]
+#   S  spec card + interface card(게이트 캐시 interface_card.py, 절대 경로)    -> push #2 (단독)
+#   승인 기록 20261001-b26-phase3-cards는 B34 0단계가 올렸다(착수 조건 11). 4·5(p9-signature·v3-equiv-range)는 b26_1_carry.sh.
+#
+#   bash b26_1_launch.sh conds           # 착수 조건 1~11(card 명령 + card 문장에서 뽑은 확인) + approval 줄 -- 읽기 전용, fetch도 안 함
+#   bash b26_1_launch.sh local1          # pre -> appr -> final-appr  (로컬 커밋 P, push 안 함 -- 끝에 push 명령 출력; 건너뜀이면 pre만)
+#   bash b26_1_launch.sh after-push-appr # push #1 뒤: gate master = P, 착수 조건 1~11 exit 0
+#   bash b26_1_launch.sh local2          # card -> final              (로컬 커밋 S, push 안 함)
+#   bash b26_1_launch.sh after-push      # push #2 뒤: gate master = S = 1차 시도 base B1(상태 파일 B1 -- carry의 단일 출처) + test worktree 명령
+#   bash b26_1_launch.sh <단계>          # pre | appr | final-appr | card | final 하나만(중단 뒤 이어 하기 -- 각 단계가 앞 단계 결과를 확인)
+#
+# 사전 시험 옵션(반드시 단계 이름 앞에): --repo <복제본> --state <상태 파일> [--wt <worktree 부모 디렉터리>]
+set -Eeuo pipefail
+shopt -s inherit_errexit
+trap 'echo "[중단] ${BASH_SOURCE[0]}:${LINENO}: ${BASH_COMMAND}" >&2' ERR
+
+# MSYS2 자식 bash는 HOME·APPDATA를 잃는다(post_p10b_runbook.sh와 같은 실측)
+export HOME=/c/Users/HSLEE
+export APPDATA='C:\Users\HSLEE\AppData\Roaming' LOCALAPPDATA='C:\Users\HSLEE\AppData\Local' USERPROFILE='C:\Users\HSLEE'
+export PYTHONDONTWRITEBYTECODE=1 PYTHONIOENCODING=utf-8
+
+R_REAL=/c/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills
+R=$R_REAL
+W_REAL=/c/Users/HSLEE/Documents/Todoc/fpga/wt
+W=$W_REAL
+DR=$W_REAL/_drafts
+STATE_REAL=$DR/b26_1_launch_state.txt
+STATE=$STATE_REAL
+while [ $# -gt 1 ]; do
+  case "$1" in
+    --repo) R=$2; shift 2 ;;
+    --state) STATE=$2; shift 2 ;;
+    --wt) W=$2; shift 2 ;;
+    *) break ;;
+  esac
+done
+# 단계 이름 뒤에 옵션을 붙이면 조용히 무시돼 실제 저장소에서 돈다(review_post_p10b_runbook B1과 같은 가드) -- 남은 인자는 단계 이름 하나뿐
+[ $# -eq 1 ] || { echo "[중단] 사용법: $0 [--repo R --state S --wt W] <단계>  (옵션은 단계 이름 앞에만)" >&2; exit 2; }
+case "$1" in --*) echo "[중단] 단계 이름 자리에 옵션: $1 (옵션 값이 빠졌거나 순서가 틀렸다)" >&2; exit 2 ;; esac
+if [ "$R" != "$R_REAL" ]; then
+  [ "$STATE" != "$STATE_REAL" ] || { echo "[중단] --repo 사용 시 --state 필수(실제 상태 파일 보호)" >&2; exit 2; }
+  [ "$W" != "$W_REAL" ] || { echo "[중단] --repo 사용 시 --wt 필수(실제 worktree 부모 보호)" >&2; exit 2; }
+else
+  [ "$STATE" = "$STATE_REAL" ] && [ "$W" = "$W_REAL" ] || { echo "[중단] 실제 저장소에서는 --state·--wt를 바꾸지 않는다" >&2; exit 2; }
+fi
+echo "== 대상 저장소 R=$R  상태 파일 $STATE  worktree 부모 $W"
+
+PY=/c/Python314/python.exe
+ID=20260930-b26-rail-accessor-set
+AID=20260930-b26-b40-reason-key
+ATARGET=U4-B40-UNAVAILABLE-REASON-KEY
+DRAFT_SPEC=$DR/draft_b26_1.spec.md
+DRAFT_APR=$DR/approval_$AID.md
+DRAFT_P9APR=$DR/approval_20261001-b26-p9-signature-update.md
+UDEC=$DR/user_decisions.md
+PLAN=docs/01-plan/features/gain-budget-gmid-sizing.plan.md
+F_SPEC=docs/02-design/specs/$ID.spec.md
+F_IFC=docs/02-design/specs/$ID.interface.md
+F_APR=.ai/approvals/$AID.md
+A=skills/analog-gmid-design/assets
+SD=$A/stick_diagram.py
+SR=$A/sizing_recipe.py
+P9T=$A/tests/contracts/test_dup_kcl_edges.py
+NEWT=$A/tests/contracts/test_b26_rail_accessor.py
+# card 머리 approval 줄(정본 = 초안 머리 블록 -- pre에서 대조). 4·5는 1차 시도 뒤 carry가 더한다('승인 줄 배치' 4·5)
+APPR_IDS="20260930-b26-before-phase3 20261001-b26-phase3-cards 20260930-b26-b40-reason-key"
+NSEC=12
+# 착수 조건 번호별 card 명령 수(card 본문 백틱 안 `chk …`·`git -C "$R" cat-file -e …`·`D2=…`). 5는 정의 문단의 양성 대조 `chk` 2개(P9·topology-md-sync)를 함께 실행한다
+COND_COUNTS="0 0 0 0 3 1 1 0 0 1 2"
+# measured rev 이후 이 경로를 바꿔도 되는 card(Change-Id) -- 확정 순서 P9 → … → B34 → b26pre → backfill(card '착수 조건' 머리)
+ALLOW_SD="20260930-p9-kcl-edges 20260930-b34-grammar-explicit"
+ALLOW_SR="20260930-p9-kcl-edges 20261001-b26-backfill-interdig-final-audit"
+ALLOW_P9T="20260930-p9-kcl-edges"
+COAUTH="Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
+SUBJ_P="docs: 승인 기록 $AID(U4 -- B26-1 계약 14 B40: propose_device_roles_gap_fill refined is None 분기 반환의 unavailable_reason 키 삭제만, decision -- 사용자 답과 질문 원문 인용)"
+SUBJ_S="docs: B26-1 spec card $ID(레일 선언 접근자 RailDeclaration·rail_declaration, 이름 집합 판정 사이트 -> 선언, B34 인계 분기·B40 정리, 두 번 시도 절차, red-green, phase 3, 승인 20260930-b26-before-phase3·20261001-b26-phase3-cards·$AID) + interface card"
+# interface card 행(모듈.이름, 기존 44 + 신규 2) -- 사전 시험(모래상자 C:/g172, gate master dd60db6 + 모의 선행)에서 게이트 캐시 interface_card.py로 뽑은 46개.
+# 실제 착수 base에는 B34·backfill 엔진 변경이 있다(이름 증감 없음으로 예상) -- 다르면 card 단계가 차이를 찍고 멈춘다(다시 재고 이 목록을 고친다)
+IFC_ROWS="sizing_recipe._build_theta_evaluator sizing_recipe._fixup_euler_blocked_rows sizing_recipe._hr_resolve_vertical_group sizing_recipe._load_full_topology_cached sizing_recipe._metric_kcl_residual sizing_recipe._topology_meta_cached sizing_recipe.audit_l_sharing_consistency sizing_recipe.compute_metric sizing_recipe.derive_vsb_from_nodes sizing_recipe.l_class_owners sizing_recipe.l_sharing_classes sizing_recipe.node_pole_estimate sizing_recipe.optimize_full_circuit_budget sizing_recipe.propagate_node_voltages sizing_recipe.resolve_stack_layout sizing_recipe.run_matching_safety_with_finger_growth sizing_recipe.run_topology_pipeline_with_finger_fixup sizing_recipe.synthesize_l_class_thetas sizing_recipe.true_current_mirror_groups stick_diagram.RailDeclaration stick_diagram._branch_composite_pair stick_diagram._composite_collapse_for_crossover stick_diagram._diff_pair_layer1_groups stick_diagram._import_analog_grammar stick_diagram._kcl_and_matching_edges stick_diagram._kcl_branch_map stick_diagram._propose_L_roles stick_diagram._propose_gm_id_roles stick_diagram.audit_vertical_stack_id_vs_kcl stick_diagram.check_symmetry_dispositions stick_diagram.find_differential_pair_candidates stick_diagram.find_matching_candidates stick_diagram.find_min_crossover_layout_with_branch_composite stick_diagram.kcl_series_union stick_diagram.load_topology stick_diagram.propose_device_roles_gap_fill stick_diagram.propose_theta_kcl_gap_fill stick_diagram.propose_vertical_stack_id_gap_fill stick_diagram.rail_declaration stick_diagram.refine_differential_and_mirror_relations stick_diagram.repair_matching_safety stick_diagram.run_full_circuit_audit stick_diagram.run_full_circuit_audit_from_topology stick_diagram.run_topology_pipeline stick_diagram.trace_gnd_to_vdd_branches stick_diagram.trace_vdd_to_gnd_branches"
+IFC_NEW="stick_diagram.RailDeclaration stick_diagram.rail_declaration"
+
+CONDS_F=$STATE.conds
+say() { printf '%s\n' "== $*"; }
+g() { git -C "$R" "$@"; }
+st_set() { touch "$STATE"; grep -v "^$1=" "$STATE" > "$STATE.tmp" || true; printf '%s=%s\n' "$1" "$2" >> "$STATE.tmp"; mv "$STATE.tmp" "$STATE"; }
+st_get() { local v; v=$(grep "^$1=" "$STATE" | tail -1 | cut -d= -f2-); test -n "$v"; printf '%s' "$v"; }
+# 게이트 코드 캐시 = <git-common-dir>/gmid-gate-cache/<gate master 전체 sha>(hook과 같은 ensure_cache)
+cache_dir() {
+  local c
+  c=$("$PY" -B -c "import sys;sys.path.insert(0,sys.argv[1]);import role_paths as rp;print(rp.ensure_cache(rp.load_env(sys.argv[2])))" "$R/tools/gates" "$R")
+  test "$(basename "$c")" = "$(g rev-parse gate/master)"
+  test -f "$c/interface_card.py"
+  printf '%s' "$c"
+}
+plan_hash() { "$PY" -B "$1/merge_gate.py" plan-tables-hash "$R/$PLAN"; }
+staged_is() { test "$(g diff --cached --name-only | sort | tr '\n' ' ')" = "$(printf '%s\n' "$@" | sort | tr '\n' ' ')"; }
+head_subj_is() { test "$(g log -1 --format=%s)" = "$1"; }
+trailer_is() {   # <커밋> <키> <값|-(없음)>
+  local v; v=$(g log -1 --format="%(trailers:key=$2,valueonly)" "$1" | tr -d '\r' | grep -v '^$' || true)
+  if [ "$3" = - ]; then test -z "$v"; else test "$v" = "$3"; fi
+}
+# _approved_ids(<rev>) -- 캐시 판 reachability(읽기 전용)
+approved_ids() { "$PY" -B -c "
+import sys;sys.path.insert(0,sys.argv[1]);import reachability as r
+print('\n'.join(sorted(r._approved_ids(sys.argv[2],sys.argv[3]))))" "$1" "$R" "$2"; }
+
+# measured rev 단일 출처 = card '의도'의 B34 인계 줄 인용 문장 "줄 번호는 gate `master` `<rev>`"(첫 번째). card는 "B34·P9가 SD 줄을 옮기므로
+# 착수할 때 줄 번호를 다시 잰다"고 적었다 -- 그래서 그 판 이후 SD·SR·P9 계약 test를 바꾼 커밋이 확정 순서의 card(ALLOW_*)뿐인지 본다(그 밖이면 멈춤).
+meas_rev() {
+  local s; s=$(grep -o '줄 번호는 gate `master` `[0-9a-f]\{7,40\}`' "$DRAFT_SPEC" | head -1 | sed -E 's/.*`([0-9a-f]+)`$/\1/')
+  test -n "$s"
+  g rev-parse --verify "$s^{commit}"
+}
+engine_since() {   # <M> <H>
+  local M=$1 H=$2 path allow c cid n=0
+  g merge-base --is-ancestor "$M" "$H"
+  for path in SD SR P9T; do
+    allow=$(eval echo "\$ALLOW_$path")
+    for c in $(g rev-list --no-merges "$M..$H" -- "$(eval echo "\$$path")"); do
+      n=$((n+1))
+      cid=$(g log -1 --format='%(trailers:key=Change-Id,valueonly)' "$c" | tr -d '\r' | grep -v '^$' || true)
+      case " $allow " in *" $cid "*) echo "   ${c:0:7} $path Change-Id $cid" ;;
+        *) echo "[중단] measured ${M:0:7} 뒤 확정 순서 밖 커밋 ${c:0:7}(Change-Id '${cid}')이 $path를 바꿨다 -- card 줄 인용·계약 test 인용을 다시 잰다" >&2; return 1 ;; esac
+    done
+  done
+  echo "   measured ${M:0:7} -> gate ${H:0:7}: SD·SR·P9 계약 test 변경 커밋 ${n}개 전부 확정 순서 card"
+  if g cat-file -e "$H:$NEWT" 2>/dev/null; then echo "[중단] 새 test 파일 $NEWT가 이미 있다" >&2; return 1; fi
+  # 승인 기록 4(diff)의 diff_base 쪽 = B1의 P9 계약 test. 시그니처 test 두 개가 card 인용 그대로인지(이름·정확 일치 단언)
+  g show "$H:$P9T" | "$PY" -B -c "
+import sys,ast
+t=ast.parse(sys.stdin.buffer.read().decode('utf-8'))
+names={n.name for n in t.body if isinstance(n,ast.FunctionDef)}
+need={'test_kcl_series_union_signature_unchanged','test_kcl_and_matching_edges_signature_unchanged'}
+assert need<=names,need-names
+print('   P9 계약 test 시그니처 test 2개 있음(승인 기록 4 대상)')"
+}
+
+# card 머리 블록의 approval 줄(순서 그대로) -- APPR_IDS와 같아야 한다
+draft_approvals() {
+  "$PY" -B -c "
+import sys
+t=open(sys.argv[1],encoding='utf-8').read().replace('\r\n','\n')
+assert t.startswith('---\n'); h=t.split('\n---\n',1)[0]
+print(' '.join(l.split(':',1)[1].strip() for l in h.split('\n') if l.startswith('approval:')))" "$DRAFT_SPEC"
+}
+# card approval 줄의 기록이 전부 <H>에 있고 머리 id가 파일 이름과 같다(parse-approval, 게이트 캐시 판). <H> <캐시>
+approvals_at() {
+  # parse-approval은 파일 이름이 <id>.md여야 읽는다(parse_approval_header: basename 대조) -- mktemp 파일 이름(tmp.XXXX)으로는 거부된다(사전 시험 실측). 임시 디렉터리 안에 <id>.md로 둔다
+  local H=$1 C=$2 a t; t=$(mktemp -d)
+  for a in $APPR_IDS; do
+    g cat-file -e "$H:.ai/approvals/$a.md" || { rm -rf "$t"; echo "[중단] approval 줄의 기록 $a가 gate ${H:0:7}에 없다" >&2; return 1; }
+    g show "$H:.ai/approvals/$a.md" > "$t/$a.md"
+    "$PY" -B "$C/merge_gate.py" parse-approval "$t/$a.md" | "$PY" -B -c "import json,sys;r=json.load(sys.stdin);assert r['id']==sys.argv[1] and r['target_kind']=='decision',r" "$a"
+  done
+  rm -rf "$t"
+  echo "   approval 줄 기록 $(echo $APPR_IDS | wc -w | tr -d ' ')건 gate ${H:0:7}에 있음(parse-approval id 일치, decision): $APPR_IDS"
+}
+
+# 착수 조건 1~11. card 블록 = "착수 조건(순서 …):" 줄부터 다음 '## ' 제목 전까지, 항목 = 줄 머리 "<n>. ".
+# (가) card 명령: 백틱 안 `chk …`·`git -C "$R" cat-file -e …`·`D2=…`(번호별 수 = COND_COUNTS). `chk`·`J` 정의(조건 5 문단)는 그대로 모든 명령 앞에 둔다.
+# (나) card에 명령이 없는 조건(1~4·8·9)은 card 문장이 적은 사실을 확인하는 명령(DERIVED)을 둔다 -- 그 사실의 토큰(TOK, '|'로 나눔: sha·id·답 문구)이 card 항목 문장에 있어야 한다(card가 단일 출처).
+DERIVED_1='git -C "$R" cat-file -e "$H:.ai/approvals/20260930-b26-before-phase3.md" && git -C "$R" merge-base --is-ancestor 2d58fd8 "$H"'
+TOK_1='20260930-b26-before-phase3|2d58fd8'
+DERIVED_2='git -C "$R" merge-base --is-ancestor 8356c1e "$H"'
+TOK_2='8356c1e'
+DERIVED_3='chk 20260930-p9-kcl-edges && git -C "$R" merge-base --is-ancestor 93b18db "$H" && git -C "$R" merge-base --is-ancestor 766b5c2 "$H"'
+TOK_3='93b18db|766b5c2'
+DERIVED_4='chk 20260930-p10-df23-inventory && chk 20260930-df23-registry-record'
+TOK_4='20260930-p10-df23-inventory'
+DERIVED_8='chk 20260930-b26-pre-test-strengthen && chk 20261001-b26-backfill-interdig-final-audit && grep -qF "[U3] \"정리 2줄 + 면제 1 (Recommended)\"" "$UDEC"'
+TOK_8='20260930-b26-pre-test-strengthen|20261001-b26-backfill-interdig-final-audit|정리 2줄 + 면제 1 (Recommended)'
+DERIVED_9='grep -qF "[U5] \"갱신 승인 (Recommended)\"" "$UDEC" && test -s "$DRAFT_P9APR"'
+TOK_9='갱신 승인 (Recommended)'
+extract_conds() {
+  "$PY" -B - "$DRAFT_SPEC" "$COND_COUNTS" "$CONDS_F" <<'EOF'
+import re, sys
+t = open(sys.argv[1], encoding="utf-8").read().replace("\r\n", "\n")
+want = [int(x) for x in sys.argv[2].split()]
+parts = t.split("\n착수 조건(순서 ")
+assert len(parts) == 2, "착수 조건 블록이 정확히 하나가 아니다(%d)" % (len(parts) - 1)
+blk = parts[1].split("\n## ", 1)[0]
+items, cur = {}, None
+for line in blk.split("\n"):
+    m = re.match(r"^(\d+)\. ", line)
+    if m:
+        cur = int(m.group(1)); items[cur] = ""
+    if cur is not None:
+        items[cur] += line + "\n"
+assert sorted(items) == list(range(1, len(want) + 1)), sorted(items)
+spans = {n: re.findall(r"`([^`]+)`", items[n]) for n in items}
+pre = [c for c in spans[5] if c.startswith("J='") or c.startswith("chk() {")]
+assert len(pre) == 2 and pre[0].startswith("J='") and pre[1].startswith("chk() {"), pre
+with open(sys.argv[3] + ".prelude", "w", encoding="utf-8", newline="\n") as fh:
+    fh.write(pre[0] + "\n" + pre[1] + "\n")
+with open(sys.argv[3], "w", encoding="utf-8", newline="\n") as fh:
+    for n in sorted(items):
+        cmds = [c for c in spans[n] if c.startswith(("chk ", 'git -C "$R" cat-file -e ', "D2="))]
+        assert len(cmds) == want[n - 1], (n, cmds)
+        for c in cmds:
+            assert "\t" not in c and "\n" not in c
+            fh.write("%d\tcard\t%s\n" % (n, c))
+with open(sys.argv[3] + ".items", "w", encoding="utf-8", newline="\n") as fh:
+    for n in sorted(items):
+        fh.write("%d\t%s\n" % (n, items[n].replace("\n", " ").replace("\t", " ")))
+EOF
+  local n d x toks
+  for n in 1 2 3 4 8 9; do
+    eval "d=\$DERIVED_$n; toks=\$TOK_$n"
+    while IFS= read -r x; do
+      [ -n "$x" ] || continue
+      grep "^$n	" "$CONDS_F.items" | grep -qF -- "$x" \
+        || { echo "[중단] 조건 $n 확인 토큰 '$x'가 card 항목 문장에 없다 -- card 문장과 DERIVED_$n이 어긋났다" >&2; return 1; }
+    done < <(printf '%s\n' "$toks" | tr '|' '\n')
+    printf '%s\tderived\t%s\n' "$n" "$d" >> "$CONDS_F"
+  done
+}
+run_cmd() {   # <H> <명령> -- card의 chk·J 정의를 앞에 두고 bash로(stderr 버림)
+  local r=0
+  R="$R" H="$1" DR="$DR" UDEC="$UDEC" DRAFT_P9APR="$DRAFT_P9APR" bash -c "$(cat "$CONDS_F.prelude")
+$2" > /dev/null 2>&1 || r=$?
+  printf '%s' "$r"
+}
+# 조건 n의 exit(명령이 여럿이면 처음으로 0이 아닌 값 -- 전부 0이어야 충족)
+cond_rc() {
+  local rc=0 r kind cmd
+  while IFS=$'\t' read -r _ kind cmd; do
+    r=$(run_cmd "$2" "$cmd")
+    if [ "$rc" = 0 ] && [ "$r" != 0 ]; then rc=$r; fi
+  done < <(grep "^$1	" "$CONDS_F")
+  printf '%s' "$rc"
+}
+# Phase 2 DoD 결과 파일 규약 전체(card D2 명령은 줄 수·PASS만 본다): '## 판정' 줄 다음 첫 비지 않은 줄이 그 판정 줄이어야 한다 -- 0/1
+dod_strict_rc() {
+  local f=docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/phase2-dod.md
+  g cat-file -e "$1:$f" 2>/dev/null || { printf 1; return 0; }
+  g show "$1:$f" | "$PY" -B -c "
+import sys
+L=sys.stdin.buffer.read().decode('utf-8').replace('\r\n','\n').split('\n')
+v=[i for i,l in enumerate(L) if l in ('판정: PASS','판정: FAIL')]
+h=[i for i,l in enumerate(L) if l=='## 판정']
+ok=len(v)==1 and len(h)==1 and L[v[0]]=='판정: PASS' and all(not x.strip() for x in L[h[0]+1:v[0]]) and v[0]>h[0]
+print(0 if ok else 1)"
+}
+# 조건 1~11 표 출력 + 요구 집합 검사. <H> <요구 번호들>
+conds_check() {
+  local H=$1; shift
+  extract_conds
+  local n rc s d2 out=""
+  for n in 1 2 3 4 5 6 7 8 9 10 11; do rc=$(cond_rc "$n" "$H"); out="$out $n:$rc"; eval "RC$n=$rc"; done
+  s=$(dod_strict_rc "$H")
+  d2=$(run_cmd "$H" "$(awk -F'\t' '$1 == "11" && $2 == "card" && index($3, "D2=") == 1' "$CONDS_F" | cut -f3-)")
+  echo "   착수 조건(gate master ${H:0:7}) exit:$out   [조건 11 D2 card 명령=$d2, 결과 파일 규약 전체(Python)=$s]"
+  [ "$s" = "$d2" ] || { echo "[중단] 조건 11: card D2 명령($d2)과 결과 파일 규약 전체($s)가 다르다 -- 판정 줄 위치를 확인" >&2; return 1; }
+  for n in "$@"; do eval "test \"\$RC$n\" = 0" || { echo "[중단] 착수 조건 $n 미충족(exit $(eval echo \$RC$n))" >&2; return 1; }; done
+}
+
+stage_conds() {
+  say "conds: 착수 조건 1~11 + approval 줄(읽기 전용 -- fetch 안 함, 지금 로컬 gate/master 기준)"
+  local H rc=0; H=$(g rev-parse gate/master)
+  CONDS_F=$(mktemp)                                                   # 상태 파일을 만들지 않는다(TMPDIR 아래 임시 파일)
+  conds_check "$H" || rc=$?
+  echo "   조건별 명령(card = card 본문 그대로, derived = card 문장의 사실 확인):"
+  sed 's/^/     /' "$CONDS_F"
+  rm -f "$CONDS_F" "$CONDS_F.prelude" "$CONDS_F.items"
+  local a; for a in $APPR_IDS; do
+    if g cat-file -e "$H:.ai/approvals/$a.md" 2>/dev/null; then echo "   approval 줄 $a: gate에 있음"; else echo "   approval 줄 $a: gate에 없음"; rc=1; fi
+  done
+  echo "   역할 브랜치: $(g for-each-ref --format='%(refname:short)' refs/heads/role/ | tr '\n' ' ')"
+  return $rc
+}
+
+stage_pre() {
+  say "pre: 착수 전 확인(저장소 변경 없음)"
+  test -n "$(git config --get user.email)"
+  g fetch gate
+  test "$(g rev-parse --abbrev-ref HEAD)" = master
+  test "$(g rev-parse HEAD)" = "$(g rev-parse gate/master)"
+  test -z "$(g for-each-ref refs/heads/role/)"                        # 역할 브랜치가 있으면 문서 push를 EL1이 거부(design 05 §12)
+  if g worktree list --porcelain | grep -q -- "/$ID-"; then echo "$ID worktree가 이미 있다" >&2; false; fi
+  g diff --cached --quiet
+  test -z "$(g status --porcelain -- docs/02-design/specs/ .ai/approvals/ docs/03-analysis/)"
+  test ! -e "$R/$F_SPEC"; test ! -e "$R/$F_IFC"
+  for f in "$DRAFT_SPEC" "$DRAFT_APR" "$DRAFT_P9APR" "$UDEC"; do test -s "$f"; done
+  test "$(draft_approvals)" = "$APPR_IDS"
+  rm -f "$STATE"
+  local H; H=$(g rev-parse gate/master)
+  conds_check "$H" 1 2 3 4 5 6 7 8 9 11                                # 10은 이 0단계 P 커밋(+push #1)이 채운다
+  local M; M=$(meas_rev)
+  engine_since "$M" "$H"
+  local C P; C=$(cache_dir); P=$(plan_hash "$C"); test ${#P} = 64
+  st_set MEAS "$M"; st_set GATE_BASE "$H"; st_set PLAN_HASH "$P"; st_set CACHE "$C"
+  approved_ids "$C" "$H" > "$STATE.ids.base"
+  if [ "$RC10" = 0 ]; then
+    # 결정 기록이 이미 gate에 있다 -- 내용이 초안과 같아야 하고 appr 단계를 건너뛴다
+    g show "$H:$F_APR" | cmp - "$DRAFT_APR"
+    st_set APPR_SKIP 1; st_set GATE_BASE2 "$H"
+    say "pre OK(결정 기록 $AID 이미 gate에 있음 -- appr·push #1 건너뜀, 다음은 local2)"
+  else
+    st_set APPR_SKIP 0
+    say "pre OK: gate master ${H:0:7}, _approved_ids $(wc -l < "$STATE.ids.base" | tr -d ' '), plan_tables_hash ${P:0:16}…, cache $C"
+  fi
+}
+
+stage_appr() {
+  say "appr (P): 승인 기록 $AID(decision) -- Role: doc"
+  test "$(st_get APPR_SKIP)" = 0
+  test "$(g rev-parse HEAD)" = "$(st_get GATE_BASE)"
+  g diff --cached --quiet
+  test ! -e "$R/$F_APR"
+  cp "$DRAFT_APR" "$R/$F_APR"
+  # 바이트 단정: BOM 없음, CR 0, HTML 주석·자리표시 0('! grep'은 set -e가 잡지 않고, MSYS2 grep은 CR 하나짜리 패턴을 빈 패턴으로 다룬다 -- 실측)
+  "$PY" -B -c "
+import sys
+b=open(sys.argv[1],'rb').read()
+bad=[k for k,v in (('BOM',b.startswith(b'\xef\xbb\xbf')),('CR',b'\r' in b),('주석',b'<!--' in b),('자리표시',b'<rev-parse>' in b or b'<id>' in b or b'<TARGET' in b or b'<DIFF_' in b)) if v]
+assert not bad,bad
+print('   승인 기록 바이트 OK',len(b))" "$R/$F_APR"
+  "$PY" -B "$(st_get CACHE)/merge_gate.py" parse-approval "$R/$F_APR" > "$STATE.appr.json"
+  "$PY" -B -c "
+import json,sys
+r=json.load(open(sys.argv[1],encoding='utf-8'))
+exp=dict(id=sys.argv[2],date='2026-10-01',target_kind='decision',target=sys.argv[3])
+bad={k:(r.get(k),v) for k,v in exp.items() if r.get(k)!=v}
+assert not bad,bad
+print('   parse_approval_header OK',r['target_kind'],r['target'])" "$STATE.appr.json" "$AID" "$ATARGET"
+  g add -- "$F_APR"
+  staged_is "$F_APR"
+  g commit -q -m "$SUBJ_P" \
+    -m "_drafts/approval_$AID.md 그대로. 사용자 2026-10-01 21:14 KST U4 \"추가 승인 1건 (Recommended)\" 원문 인용. spec card $ID 착수 조건 10(이 기록이 gate master에 있은 뒤 spec card 커밋)·'승인 줄 배치' 3." \
+    --trailer "Role: doc" --trailer "$COAUTH"
+  head_subj_is "$SUBJ_P"
+  st_set P "$(g rev-parse HEAD)"
+  say "appr OK: $(g rev-parse --short HEAD)"
+}
+
+stage_final_appr() {
+  say "final-appr: push #1 전 확인"
+  test "$(g rev-parse HEAD)" = "$(st_get P)"
+  local base C; base=$(st_get GATE_BASE); C=$(st_get CACHE)
+  test "$(g rev-parse gate/master)" = "$base"
+  test "$(g rev-list --count "$base..HEAD")" = 1
+  test "$(g diff-tree --no-commit-id --name-only -r HEAD)" = "$F_APR"
+  trailer_is HEAD Role doc; trailer_is HEAD Change-Id -
+  # decision 원소 집합은 이 기록의 target 하나만 는다(V3·V4·V7이 읽는 집합 -- B26-1 변이 id와 겹침 0 유지)
+  approved_ids "$C" HEAD > "$STATE.ids.p"
+  test "$(comm -13 "$STATE.ids.base" "$STATE.ids.p" | tr -d '\r')" = "$ATARGET"
+  test -z "$(comm -23 "$STATE.ids.base" "$STATE.ids.p")"
+  test "$(plan_hash "$C")" = "$(st_get PLAN_HASH)"
+  test -z "$(g status --porcelain -- docs/ .ai/approvals/)"
+  g log --format='%h %s' "$base..HEAD"
+  say "final-appr OK -- 다음은 push #1 단독 호출(병렬·tail 금지):  git -C $R push gate master:master   그 뒤 after-push-appr"
+}
+
+stage_after_push_appr() {
+  say "after-push-appr: gate master = P, 착수 조건 1~11"
+  g fetch gate
+  test "$(g rev-parse gate/master)" = "$(st_get P)"
+  test "$(g rev-parse HEAD)" = "$(g rev-parse gate/master)"
+  conds_check "$(g rev-parse gate/master)" 1 2 3 4 5 6 7 8 9 10 11
+  # 게이트 캐시는 gate master 하나만 둔다(ensure_cache 상한, WP-10) -- push 뒤 hook이 옛 캐시를 지운다. 새 판으로 다시 받는다
+  local C; C=$(cache_dir); test "$(plan_hash "$C")" = "$(st_get PLAN_HASH)"
+  st_set CACHE "$C"
+  st_set GATE_BASE2 "$(g rev-parse gate/master)"
+  say "after-push-appr OK -- 다음은 local2"
+}
+
+stage_card() {
+  say "card (S): spec card + interface card(게이트 캐시 interface_card.py, 절대 경로) -- Role: doc"
+  local H; H=$(g rev-parse gate/master)
+  test "$(g rev-parse HEAD)" = "$(st_get GATE_BASE2)"
+  test "$H" = "$(st_get GATE_BASE2)"                                  # gate master가 그사이 움직이지 않았다
+  g diff --cached --quiet
+  local C; C=$(cache_dir); test "$C" = "$(st_get CACHE)"
+  conds_check "$H" 1 2 3 4 5 6 7 8 9 10 11                            # 착수 조건 전부 -- card 커밋 직전
+  approvals_at "$H" "$C"
+  test ! -e "$R/$F_SPEC"; test ! -e "$R/$F_IFC"
+  cp "$DRAFT_SPEC" "$R/$F_SPEC"
+  "$PY" -B -c "
+import sys, os
+sys.path.insert(0, sys.argv[1])
+import role_paths as rp, merge_gate as mg
+c = rp.parse_spec_card(open(sys.argv[2], encoding='utf-8').read(), sys.argv[3])
+exp = ('3', 'red-green', 'no', sys.argv[5].split(), [], int(sys.argv[6]))
+got = (c['phase'], c['evidence_type'], c['gate_change'], c['approval'], c['activated_ic_case'], len(c['sections']))
+assert got == exp, (got, exp)
+po = mg.read_plan_tables(sys.argv[4]).phase_order
+assert c['phase'] in po, po
+for a in c['approval']:
+    assert os.path.isfile(os.path.join(sys.argv[7], '.ai', 'approvals', a + '.md')), a
+print('   parse_spec_card OK', got)
+" "$C" "$R/$F_SPEC" "$ID" "$R/$PLAN" "$APPR_IDS" "$NSEC" "$R"
+  "$PY" -B "$C/interface_card.py" "$R/$F_SPEC" --root "$R" --out "$R/$F_IFC"
+  test -s "$R/$F_IFC"
+  # 행 = IFC_ROWS(모듈.이름), 신규 시그니처 절 행 = IFC_NEW
+  "$PY" -B -c "
+import sys
+t=open(sys.argv[1],encoding='utf-8').read().replace('\r\n','\n')
+key=lambda l: l.split('|')[1].strip().strip('\`')+'.'+l.split('|')[2].strip().strip('\`')
+rows=[l for l in t.split('\n') if l.startswith('| \`')]
+got=sorted(key(l) for l in rows); exp=sorted(sys.argv[2].split())
+assert got==exp,('interface card 행이 다르다 -- card 백틱 토큰·엔진 def 이름 확인(착수 base 재측정)',sorted(set(got)^set(exp)))
+new=sorted(key(l) for l in t.split('\n## 신규 시그니처',1)[1].split('\n') if l.startswith('| \`'))
+assert new==sorted(sys.argv[3].split()),new
+print('   interface card 행',len(rows),'= 사전 시험 목록(신규 시그니처',len(new),')')" "$R/$F_IFC" "$IFC_ROWS" "$IFC_NEW"
+  g add -- "$F_SPEC" "$F_IFC"
+  staged_is "$F_SPEC" "$F_IFC"
+  test "$(g diff --cached --numstat -- "$F_SPEC" | cut -f2)" = 0
+  g commit -q -m "$SUBJ_S" --trailer "Role: doc" --trailer "Change-Id: $ID" --trailer "$COAUTH"
+  head_subj_is "$SUBJ_S"
+  st_set S "$(g rev-parse HEAD)"
+  say "card OK: $(g rev-parse --short HEAD) (interface $(wc -l < "$R/$F_IFC" | tr -d ' ')줄)"
+}
+
+stage_final() {
+  say "final: push #2 전 종합 확인"
+  test "$(g rev-parse HEAD)" = "$(st_get S)"
+  local base C; base=$(st_get GATE_BASE2); C=$(cache_dir)
+  test "$(g rev-parse gate/master)" = "$base"
+  test "$C" = "$(st_get CACHE)"
+  test "$(g rev-list --count "$base..HEAD")" = 1
+  test "$(g rev-parse HEAD^)" = "$base"
+  test "$(g log -1 --format=%s)" = "$SUBJ_S"
+  test "$(g diff-tree --no-commit-id --name-only -r HEAD | sort | tr '\n' ' ')" = "$(printf '%s\n' "$F_SPEC" "$F_IFC" | sort | tr '\n' ' ')"
+  trailer_is HEAD Role doc; trailer_is HEAD Change-Id "$ID"
+  g show "HEAD:$F_SPEC" | cmp - "$DRAFT_SPEC"                          # 커밋된 card = 초안 바이트 동일
+  # decision 원소 집합 불변(이 커밋은 승인 기록을 더하지 않는다)
+  approved_ids "$C" "$base" > "$STATE.ids.b2"; approved_ids "$C" HEAD > "$STATE.ids.head"
+  cmp "$STATE.ids.b2" "$STATE.ids.head"
+  test "$(plan_hash "$C")" = "$(st_get PLAN_HASH)"
+  test -z "$(g status --porcelain -- docs/ .ai/approvals/)"
+  g log --format='%h %s' "$base..HEAD"
+  say "final OK -- 다음은 push #2 단독 호출(병렬·tail 금지):  git -C $R push gate master:master   그 뒤 after-push"
+}
+
+stage_after_push() {
+  say "after-push: gate master = S = 1차 시도 base B1"
+  g fetch gate
+  test "$(g rev-parse gate/master)" = "$(st_get S)"
+  test "$(g rev-parse HEAD)" = "$(g rev-parse gate/master)"
+  local H; H=$(g rev-parse gate/master)
+  test "$(g ls-tree --name-only "$H" -- "$F_APR" "$F_SPEC" "$F_IFC" | sort | tr '\n' ' ')" = "$(printf '%s\n' "$F_APR" "$F_SPEC" "$F_IFC" | sort | tr '\n' ' ')"
+  test -z "$(g status --porcelain -- docs/ .ai/approvals/)"
+  # 게이트 캐시는 gate master 하나만 둔다(ensure_cache 상한, WP-10) -- push 뒤 새 판으로 다시 받고 plan 표 불변 확인(역할 agent가 쓸 캐시)
+  local C; C=$(cache_dir); test "$(plan_hash "$C")" = "$(st_get PLAN_HASH)"
+  st_set CACHE "$C"
+  st_set B1 "$H"                                                      # '두 번 시도 절차' 1차 base B1 -- b26_1_carry.sh가 이 줄만 읽는다(단일 출처)
+  say "after-push OK -- B1 = $H. 1차 시도(병합 안 함, card '두 번 시도 절차' 1) 순서 1(단독 호출):  git -C $R worktree add $W/$ID-test -b role/test/$ID gate/master"
+  echo "   1차 auditor 순서 3·V3 측정 산출물 위치(card 단계 1): $W/$ID-audit/.ai/verification/$ID/{base_check.json,attempt1_v3.json,attempt1_v3.out.jsonl}"
+  echo "   1차 시도 K1까지 끝나면: bash $DR/b26_1_carry.sh check"
+}
+
+case "$1" in
+  conds) stage_conds ;;
+  pre) stage_pre ;;
+  appr) stage_appr ;;
+  final-appr) stage_final_appr ;;
+  after-push-appr) stage_after_push_appr ;;
+  card) stage_card ;;
+  final) stage_final ;;
+  local1) stage_pre; if [ "$(st_get APPR_SKIP)" = 0 ]; then stage_appr; stage_final_appr; fi ;;
+  local2) stage_card; stage_final ;;
+  after-push) stage_after_push ;;
+  *) echo "사용: $0 [옵션…] conds|pre|local1|appr|final-appr|after-push-appr|local2|card|final|after-push" >&2; exit 2 ;;
+esac

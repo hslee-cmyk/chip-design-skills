@@ -1,0 +1,2467 @@
+{
+  "schema_version": "2.0",
+  "topology_ref": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json",
+  "sizing": {
+    "M1a": {
+      "gm": 8.738186260285896e-05,
+      "gm_id": 17.538622535998,
+      "L": 5.35e-07,
+      "vsb": 0.2500000000000002,
+      "W": 7.203302841694141e-05,
+      "ID": 4.9822534479836025e-06,
+      "gds": 7.255347650481002e-07,
+      "kind": "pmos",
+      "_L_source": "compensation",
+      "vds": 0.44999999999999996,
+      "_vds_source": "compensation:stage0",
+      "_vsb_source": "node_voltage"
+    },
+    "M1b": {
+      "gm": 8.738186260285896e-05,
+      "gm_id": 17.538622535998,
+      "L": 5.35e-07,
+      "vsb": 0.2500000000000002,
+      "W": 7.203302841694141e-05,
+      "ID": 4.9822534479836025e-06,
+      "gds": 7.255347650481002e-07,
+      "kind": "pmos",
+      "_L_source": "compensation",
+      "vds": 0.44999999999999996,
+      "_vds_source": "compensation:stage0",
+      "_vsb_source": "node_voltage"
+    },
+    "M4a": {
+      "gm": 7.971605516773764e-05,
+      "gm_id": 16.0,
+      "L": 1.4000000000000001e-06,
+      "vsb": 0.02727847682435297,
+      "W": 5.215162709733722e-06,
+      "ID": 4.9822534479836025e-06,
+      "gds": 5.538859891513592e-07,
+      "kind": "nmos",
+      "_L_source": "compensation",
+      "vds": 0.44999999999999996,
+      "_vds_source": "compensation:stage1",
+      "_vsb_source": "node_voltage"
+    },
+    "M4b": {
+      "gm": 7.971605516773764e-05,
+      "gm_id": 16.0,
+      "L": 1.4000000000000001e-06,
+      "vsb": 0.02727847682435297,
+      "W": 5.215162709733722e-06,
+      "ID": 4.9822534479836025e-06,
+      "gds": 5.538859891513592e-07,
+      "kind": "nmos",
+      "_L_source": "compensation",
+      "vds": 0.44999999999999996,
+      "_vds_source": "compensation:stage1",
+      "_vsb_source": "node_voltage"
+    },
+    "M15": {
+      "gm": 0.00027534911423409737,
+      "gm_id": 10.5,
+      "L": 1.5e-07,
+      "vsb": 0.0,
+      "W": 5.854268740523218e-06,
+      "ID": 2.622372516515213e-05,
+      "gds": 3.159203217680796e-05,
+      "kind": "pmos",
+      "_L_source": "metric_stage_budget",
+      "vds": 0.8999999999999999,
+      "_vds_source": "metric_stage_budget"
+    },
+    "M25": {
+      "gm": 0.00027534911423409737,
+      "gm_id": 10.5,
+      "L": 1.5e-07,
+      "vsb": 0.0,
+      "W": 5.854268740523218e-06,
+      "ID": 2.622372516515213e-05,
+      "gds": 3.159203217680796e-05,
+      "kind": "pmos",
+      "_L_source": "metric_stage_budget",
+      "vds": 0.8999999999999999,
+      "_vds_source": "metric_stage_budget"
+    },
+    "M16": {
+      "gm": 0.0004720270529727383,
+      "gm_id": 18.0,
+      "L": 1.5e-07,
+      "vsb": 0.0,
+      "W": 9.09770815179403e-06,
+      "ID": 2.622372516515213e-05,
+      "gds": 2.0475899774499614e-05,
+      "kind": "nmos",
+      "_L_source": "metric_stage_budget",
+      "vds": 0.9000000000000001,
+      "_vds_source": "metric_stage_budget"
+    },
+    "M26": {
+      "gm": 0.0004720270529727383,
+      "gm_id": 18.0,
+      "L": 1.5e-07,
+      "vsb": 0.0,
+      "W": 9.09770815179403e-06,
+      "ID": 2.622372516515213e-05,
+      "gds": 2.0475899774499614e-05,
+      "kind": "nmos",
+      "_L_source": "metric_stage_budget",
+      "vds": 0.9000000000000001,
+      "_vds_source": "metric_stage_budget"
+    },
+    "M2a": {
+      "ID": 4.9822534479836025e-06,
+      "L": 1e-06,
+      "W": 7.203302841694141e-05,
+      "gm": 8.822764470991658e-05,
+      "gds": 8.644860271901121e-07,
+      "gm_id": 17.70838148461189,
+      "kind": "pmos",
+      "vsb": 0.9227215231756472,
+      "_L_source": "metric_stage_budget",
+      "vds": 0.2,
+      "_vds_source": "metric_stage_budget",
+      "_vsb_source": "node_voltage"
+    },
+    "M2b": {
+      "ID": 4.9822534479836025e-06,
+      "L": 1e-06,
+      "_L_source": "metric_stage_budget_vds_deferred",
+      "vds": 0.2,
+      "_vds_source": "same_as_device:M2a",
+      "vsb": 0.9227215231756469,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.70838148461189,
+      "gm": 8.822764470991658e-05,
+      "W": 7.203302841694141e-05,
+      "gds": 8.644860271901121e-07,
+      "kind": "pmos",
+      "_gm_id_source": "matching_pair:M2a"
+    },
+    "M3a": {
+      "ID": 4.9822534479836025e-06,
+      "L": 1e-06,
+      "W": 3.4946575807269517e-06,
+      "gm": 7.473380171975404e-05,
+      "gds": 1.8163070235383996e-06,
+      "gm_id": 15.0,
+      "kind": "nmos",
+      "vsb": 0.4772784768243529,
+      "_L_source": "metric_stage_budget",
+      "vds": 0.2,
+      "_vds_source": "metric_stage_budget",
+      "_vsb_source": "node_voltage"
+    },
+    "M3b": {
+      "ID": 4.9822534479836025e-06,
+      "L": 1e-06,
+      "_L_source": "metric_stage_budget_vds_deferred",
+      "vds": 0.2,
+      "_vds_source": "same_as_device:M3a",
+      "vsb": 0.47727847682435304,
+      "_vsb_source": "node_voltage",
+      "gm_id": 15.0,
+      "gm": 7.473380171975404e-05,
+      "W": 3.3926394952952267e-06,
+      "gds": 1.9953764956453336e-06,
+      "kind": "nmos",
+      "_gm_id_source": "matching_pair:M3a"
+    },
+    "M9a": {
+      "W": 7.203302841694141e-05,
+      "gm_id": 16.76424484127613,
+      "L": 1.5e-07,
+      "kind": "pmos",
+      "ID": 1.3111862582576066e-06,
+      "gm": 2.1981047465947234e-05,
+      "gds": 2.908876309467262e-06,
+      "_L_source": "replica",
+      "vds": 0.2977532686932415,
+      "_vds_source": "allocate_stack_headroom:biasgen_vom_a",
+      "vsb": 0.8249682544824056,
+      "_vsb_source": "node_voltage"
+    },
+    "M37a": {
+      "ID": 7.952985889261211e-06,
+      "gm": 0.00014749402470953452,
+      "gm_id": 18.54574203491211,
+      "W": 5e-06,
+      "L": 3.5e-07,
+      "vsb": 0.7375,
+      "kind": "nmos",
+      "gds": 4.491078839416038e-06,
+      "_L_source": "gm_target_convention",
+      "vds": 0.2,
+      "_vds_source": "gm_target_convention",
+      "_vsb_source": "node_voltage"
+    },
+    "M18a": {
+      "W": 7.203302841694141e-05,
+      "gm_id": 16.76424484127613,
+      "L": 1.5e-07,
+      "kind": "pmos",
+      "ID": 1.3111862582576066e-06,
+      "gm": 2.1981047465947234e-05,
+      "gds": 2.908876309467262e-06,
+      "_L_source": "replica",
+      "vds": 0.2977532686932415,
+      "_vds_source": "allocate_stack_headroom:biasgen_vop_a",
+      "vsb": 0.8249682544824056,
+      "_vsb_source": "node_voltage"
+    },
+    "M10": {
+      "L": 5.109106823223974e-07,
+      "_L_source": "l_class_theta",
+      "ID": 2.989352068790162e-06,
+      "vds": 0.677278476824353,
+      "_vds_source": "vds_match_vgs_of:M16",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 22.381419017180587,
+      "gm": 6.690594124146827e-05,
+      "W": 1.7886952038032808e-05,
+      "gds": 5.649929309246767e-07,
+      "kind": "nmos"
+    },
+    "M12": {
+      "L": 5.109106823223974e-07,
+      "_L_source": "l_class_theta",
+      "ID": 1.992901379193441e-07,
+      "vds": 0.30000000000000004,
+      "_vds_source": "allocate_stack_headroom:biasgen_vom_battery_a",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 22.49983771544868,
+      "gm": 4.483995761474628e-06,
+      "W": 1.29555504647714e-06,
+      "gds": 5.497373888712235e-08,
+      "kind": "nmos"
+    },
+    "M19": {
+      "L": 5.109106823223974e-07,
+      "_L_source": "l_class_theta",
+      "ID": 2.989352068790162e-06,
+      "vds": 0.677278476824353,
+      "_vds_source": "vds_match_vgs_of:M26",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 22.381419017180587,
+      "gm": 6.690594124146827e-05,
+      "W": 1.7886952038032808e-05,
+      "gds": 5.649929309246767e-07,
+      "kind": "nmos"
+    },
+    "M21": {
+      "L": 5.109106823223974e-07,
+      "_L_source": "l_class_theta",
+      "ID": 1.992901379193441e-07,
+      "vds": 0.30000000000000004,
+      "_vds_source": "allocate_stack_headroom:biasgen_vop_battery_a",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 22.49983771544868,
+      "gm": 4.483995761474628e-06,
+      "W": 1.29555504647714e-06,
+      "gds": 5.497373888712235e-08,
+      "kind": "nmos"
+    },
+    "M38": {
+      "L": 5.109106823223974e-07,
+      "_L_source": "l_class_theta",
+      "ID": 1.5905971778522423e-05,
+      "vds": 0.7375,
+      "_vds_source": "allocate_stack_headroom:cmfb_tail",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 22.361574492509387,
+      "gm": 0.0003556825728011812,
+      "W": 9.411179789834186e-05,
+      "gds": 2.9235421217079483e-06,
+      "kind": "nmos"
+    },
+    "M5": {
+      "L": 5.109106823223974e-07,
+      "_L_source": "l_class_theta",
+      "ID": 9.964506895967205e-06,
+      "vds": 0.2500000000000001,
+      "_vds_source": "allocate_stack_headroom:diffpair_branch_a",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 22.511340775059278,
+      "gm": 0.0002243144103905459,
+      "W": 6.57462513773704e-05,
+      "gds": 3.1380187453621997e-06,
+      "kind": "nmos"
+    },
+    "M66": {
+      "L": 5.109106823223974e-07,
+      "_L_source": "l_class_theta",
+      "ID": 1.992901379193441e-07,
+      "vds": 0.5625,
+      "_vds_source": "allocate_stack_headroom:vbias4_stack+diode_pending",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 22.419107181085913,
+      "gm": 4.467906962147169e-06,
+      "W": 1.2195015200966542e-06,
+      "gds": 4.026447403871228e-08,
+      "kind": "nmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M68": {
+      "L": 5.109106823223974e-07,
+      "_L_source": "l_class_theta",
+      "ID": 1.992901379193441e-07,
+      "vds": 0.3125,
+      "_vds_source": "allocate_stack_headroom:vbias2_stack",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 22.496410905037493,
+      "gm": 4.483312831955159e-06,
+      "W": 1.291250561269389e-06,
+      "gds": 5.367643720151711e-08,
+      "kind": "nmos"
+    },
+    "M13": {
+      "L": 4.739047237100781e-07,
+      "_L_source": "l_class_theta",
+      "ID": 1.992901379193441e-07,
+      "vds": 0.5625000000000002,
+      "_vds_source": "allocate_stack_headroom:biasgen_vom_battery_b",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.28060936323045,
+      "gm": 3.4438550233285054e-06,
+      "W": 4.732943970813091e-06,
+      "gds": 3.356714340126237e-08,
+      "kind": "pmos"
+    },
+    "M17": {
+      "L": 4.739047237100781e-07,
+      "_L_source": "l_class_theta",
+      "ID": 2.9893520687901614e-06,
+      "vds": 0.8249682544824056,
+      "_vds_source": "vds_match_vgs_of:M25",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.263253701293774,
+      "gm": 5.160594316601195e-05,
+      "W": 6.807141099103616e-05,
+      "gds": 4.425287873891048e-07,
+      "kind": "pmos"
+    },
+    "M18_bg": {
+      "L": 4.739047237100781e-07,
+      "_L_source": "l_class_theta",
+      "ID": 1.992901379193441e-07,
+      "vds": 0.8624999999999999,
+      "_vds_source": "allocate_stack_headroom:biasgen_ref+diode_pending",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.26068740448879,
+      "gm": 3.439884773423257e-06,
+      "W": 4.512604563823083e-06,
+      "gds": 2.909806938998951e-08,
+      "kind": "pmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M22": {
+      "L": 4.739047237100781e-07,
+      "_L_source": "l_class_theta",
+      "ID": 1.992901379193441e-07,
+      "vds": 0.5625000000000002,
+      "_vds_source": "allocate_stack_headroom:biasgen_vop_battery_b",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.28060936323045,
+      "gm": 3.4438550233285054e-06,
+      "W": 4.732943970813091e-06,
+      "gds": 3.356714340126237e-08,
+      "kind": "pmos"
+    },
+    "M36a": {
+      "L": 4.739047237100781e-07,
+      "_L_source": "l_class_theta",
+      "ID": 7.952985889261211e-06,
+      "vds": 0.8624999999999999,
+      "_vds_source": "allocate_stack_headroom:cmfb_load_a+diode_pending",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.26068740448879,
+      "gm": 0.0001372740033668481,
+      "W": 0.00018008257104235354,
+      "gds": 1.1612041502875978e-06,
+      "kind": "pmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M36b": {
+      "L": 4.739047237100781e-07,
+      "_L_source": "l_class_theta",
+      "ID": 7.952985889261211e-06,
+      "vds": 0.8624999999999999,
+      "_vds_source": "same_as_device:M36a+diode_pending",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.26068740448879,
+      "gm": 0.0001372740033668481,
+      "W": 0.00018008257104235354,
+      "gds": 1.1612041502875978e-06,
+      "kind": "pmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M6": {
+      "L": 4.739047237100781e-07,
+      "_L_source": "l_class_theta",
+      "ID": 4.9822534479836025e-06,
+      "vds": 0.2500000000000001,
+      "_vds_source": "allocate_stack_headroom:diffpair_branch_a",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.351727988221683,
+      "gm": 8.645070659779106e-05,
+      "W": 0.00014406605683388283,
+      "gds": 1.2141977533659605e-06,
+      "kind": "pmos"
+    },
+    "M60": {
+      "L": 4.739047237100781e-07,
+      "_L_source": "l_class_theta",
+      "ID": 1.992901379193441e-07,
+      "vds": 1.2375,
+      "_vds_source": "allocate_stack_headroom:vbias4_gen",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.2345034553798,
+      "gm": 3.434666570594053e-06,
+      "W": 4.279846562586257e-06,
+      "gds": 2.6262131801644223e-08,
+      "kind": "pmos"
+    },
+    "M61": {
+      "L": 4.739047237100781e-07,
+      "_L_source": "l_class_theta",
+      "ID": 1.992901379193441e-07,
+      "vds": 0.3125,
+      "_vds_source": "allocate_stack_headroom:vbias3_stack",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.294218645669567,
+      "gm": 3.44656721910278e-06,
+      "W": 4.963819857668177e-06,
+      "gds": 4.287239489484541e-08,
+      "kind": "pmos"
+    },
+    "M7": {
+      "L": 4.739047237100781e-07,
+      "_L_source": "l_class_theta",
+      "ID": 9.964506895967206e-07,
+      "vds": 0.2500000000000001,
+      "_vds_source": "same_as_device:M6",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.29579006018973,
+      "gm": 1.723440193259616e-05,
+      "W": 2.5179966466174984e-05,
+      "gds": 2.426295007029144e-07,
+      "kind": "pmos"
+    },
+    "M8": {
+      "L": 4.739047237100781e-07,
+      "_L_source": "l_class_theta",
+      "ID": 2.9893520687901614e-06,
+      "vds": 0.8249682544824056,
+      "_vds_source": "vds_match_vgs_of:M15",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.263253701293774,
+      "gm": 5.160594316601195e-05,
+      "W": 6.807141099103616e-05,
+      "gds": 4.425287873891048e-07,
+      "kind": "pmos"
+    },
+    "M37b": {
+      "ID": 7.952985889261211e-06,
+      "L": 3.5e-07,
+      "_L_source": "L_role_derived",
+      "gm_id": 18.54574203491211,
+      "vsb": 0.7375,
+      "kind": "nmos",
+      "W": 4.485373229001445e-06,
+      "gm": 0.00014749402470953452,
+      "gds": 4.754482073886543e-06,
+      "vds": 0.2,
+      "_vds_source": "vertical_group_sibling:M37a",
+      "_vsb_source": "node_voltage",
+      "_gm_id_source": "matching_pair:M37a"
+    },
+    "M39": {
+      "ID": 3.181194355704485e-07,
+      "L": 3.4000000000000003e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.7875,
+      "_vds_source": "allocate_stack_headroom:cmfb_vocdes_gen+diode_pending",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.00470040260364,
+      "gm": 5.409525694120848e-06,
+      "W": 1.0728648222717078e-05,
+      "gds": 9.86716462924457e-08,
+      "kind": "pmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M11a": {
+      "ID": 1.992901379193441e-07,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.6749999999999999,
+      "_vds_source": "allocate_stack_headroom:biasgen_vom_battery_a+diode_pending",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.196899821715846,
+      "gm": 3.427172537254895e-06,
+      "W": 1.1961574049332022e-05,
+      "gds": 1.0628913052607615e-07,
+      "kind": "pmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M11b": {
+      "ID": 1.992901379193441e-07,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.825,
+      "_vds_source": "allocate_stack_headroom:biasgen_vom_battery_a+diode_pending",
+      "vsb": 0.675,
+      "_vsb_source": "node_voltage",
+      "gm_id": 21.059028131421655,
+      "gm": 4.196856620758369e-06,
+      "W": 7.203302841694141e-05,
+      "gds": 1.1393955958285788e-07,
+      "kind": "pmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M20a": {
+      "ID": 1.992901379193441e-07,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.6749999999999999,
+      "_vds_source": "allocate_stack_headroom:biasgen_vop_battery_a+diode_pending",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.196899821715846,
+      "gm": 3.427172537254895e-06,
+      "W": 1.1961574049332022e-05,
+      "gds": 1.0628913052607615e-07,
+      "kind": "pmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M20b": {
+      "ID": 1.992901379193441e-07,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.825,
+      "_vds_source": "allocate_stack_headroom:biasgen_vop_battery_a+diode_pending",
+      "vsb": 0.675,
+      "_vsb_source": "node_voltage",
+      "gm_id": 21.059028131421655,
+      "gm": 4.196856620758369e-06,
+      "W": 7.203302841694141e-05,
+      "gds": 1.1393955958285788e-07,
+      "kind": "pmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M58": {
+      "ID": 1.992901379193441e-07,
+      "L": 3.4000000000000003e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.44999999999999996,
+      "_vds_source": "allocate_stack_headroom:vbias2_stack",
+      "vsb": 0.2500000000000001,
+      "gm_id": 17.0,
+      "gm": 3.3879323446288498e-06,
+      "W": 1.686119609004363e-06,
+      "gds": 6.834372389391776e-08,
+      "kind": "pmos"
+    },
+    "M57": {
+      "ID": 1.992901379193441e-07,
+      "L": 3.4000000000000003e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.7875,
+      "_vds_source": "allocate_stack_headroom:vbias2_stack+diode_pending",
+      "vsb": 0.7,
+      "_vsb_source": "node_voltage",
+      "gm_id": 23.308244000428324,
+      "gm": 4.645103161503086e-06,
+      "W": 0.00016415868321699957,
+      "gds": 7.542927184440902e-08,
+      "kind": "pmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M9b": {
+      "ID": 1.6781658105325548e-06,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.29775326869324137,
+      "_vds_source": "allocate_stack_headroom:biasgen_vom_floatsrc_sink",
+      "vsb": 0.677278476824353,
+      "_vsb_source": "node_voltage",
+      "gm_id": 20.5,
+      "gm": 3.440239911591737e-05,
+      "W": 1.0505800798734123e-06,
+      "gds": 9.691546704057007e-07,
+      "kind": "nmos"
+    },
+    "M18b": {
+      "ID": 1.6781658105325548e-06,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.29775326869324137,
+      "_vds_source": "allocate_stack_headroom:biasgen_vop_floatsrc_sink",
+      "vsb": 0.6772784768243529,
+      "_vsb_source": "node_voltage",
+      "gm_id": 20.5,
+      "gm": 3.440239911591737e-05,
+      "W": 1.0505800798734123e-06,
+      "gds": 9.691546704057007e-07,
+      "kind": "nmos"
+    },
+    "M14a": {
+      "ID": 1.992901379193441e-07,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.6749999999999999,
+      "_vds_source": "allocate_stack_headroom:biasgen_vom_battery_b+diode_pending",
+      "vsb": 0.5624999999999999,
+      "_vsb_source": "node_voltage",
+      "gm_id": 24.775616539395845,
+      "gm": 4.937536037172981e-06,
+      "W": 1.9156323306406827e-06,
+      "gds": 9.961882206153861e-08,
+      "kind": "nmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M14b": {
+      "ID": 1.992901379193441e-07,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.5625,
+      "_vds_source": "allocate_stack_headroom:biasgen_vom_battery_b+diode_pending",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 23.36962256178702,
+      "gm": 4.65733530346155e-06,
+      "W": 1.8354067582329677e-06,
+      "gds": 9.848300649610945e-08,
+      "kind": "nmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M23a": {
+      "ID": 1.992901379193441e-07,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.6749999999999999,
+      "_vds_source": "allocate_stack_headroom:biasgen_vop_battery_b+diode_pending",
+      "vsb": 0.5624999999999999,
+      "_vsb_source": "node_voltage",
+      "gm_id": 24.775616539395845,
+      "gm": 4.937536037172981e-06,
+      "W": 1.9156323306406827e-06,
+      "gds": 9.961882206153861e-08,
+      "kind": "nmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M24b": {
+      "ID": 1.992901379193441e-07,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.5625,
+      "_vds_source": "allocate_stack_headroom:biasgen_vop_battery_b+diode_pending",
+      "vsb": 0.0,
+      "_vsb_source": "node_voltage",
+      "gm_id": 23.36962256178702,
+      "gm": 4.65733530346155e-06,
+      "W": 1.8354067582329677e-06,
+      "gds": 9.848300649610945e-08,
+      "kind": "nmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M64": {
+      "ID": 1.992901379193441e-07,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.6749999999999999,
+      "_vds_source": "allocate_stack_headroom:vbias3_stack+diode_pending",
+      "vsb": 0.589778476824353,
+      "_vsb_source": "node_voltage",
+      "gm_id": 24.95594596665689,
+      "gm": 4.973473913602751e-06,
+      "W": 2.1595220056610846e-06,
+      "gds": 1.0064323127542565e-07,
+      "kind": "nmos",
+      "_gm_id_source": "diode_self_consistency"
+    },
+    "M63": {
+      "ID": 1.992901379193441e-07,
+      "L": 2.45e-07,
+      "_L_source": "L_role_derived",
+      "vds": 0.5625,
+      "_vds_source": "allocate_stack_headroom:vbias3_stack",
+      "vsb": 0.02727847682435297,
+      "_vsb_source": "node_voltage",
+      "gm_id": 23.0,
+      "gm": 4.583673172144914e-06,
+      "W": 1.0872912230940393e-06,
+      "gds": 9.610798480023759e-08,
+      "kind": "nmos"
+    },
+    "M40": {
+      "ID": 3.181194355704485e-07,
+      "L": 3.4000000000000003e-07,
+      "_L_source": "L_role_derived",
+      "vds": 1.0125,
+      "_vds_source": "allocate_stack_headroom:cmfb_vocdes_gen+diode_pending",
+      "vsb": 0.7874999999999999,
+      "_vsb_source": "node_voltage",
+      "gm_id": 17.3204450817846,
+      "gm": 5.509970213246268e-06,
+      "W": 4.536322668768857e-06,
+      "gds": 9.532336460375629e-08,
+      "kind": "pmos",
+      "_gm_id_source": "diode_self_consistency"
+    }
+  },
+  "netlist": [
+    {
+      "name": "M6",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vx",
+      "n_fingers": 4,
+      "finger_w": 3.601651420847071e-05,
+      "w": 0.00014406605683388283,
+      "l": 4.739047237100781e-07,
+      "gate": "Vbias1",
+      "stack_id": "diffpair_branch_a__pmos"
+    },
+    {
+      "name": "M7",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vx",
+      "n_fingers": 4,
+      "finger_w": 6.294991616543746e-06,
+      "w": 2.5179966466174984e-05,
+      "l": 4.739047237100781e-07,
+      "gate": "Vcmfb",
+      "stack_id": "vx_tail_b"
+    },
+    {
+      "name": "M5",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vy",
+      "n_fingers": 2,
+      "finger_w": 3.601651420847071e-05,
+      "w": 7.203302841694141e-05,
+      "l": 5.109106823223974e-07,
+      "gate": "Vbias4",
+      "stack_id": "diffpair_branch_a__nmos"
+    },
+    {
+      "name": "M8",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vg15",
+      "n_fingers": 2,
+      "finger_w": 3.601651420847071e-05,
+      "w": 7.203302841694141e-05,
+      "l": 4.739047237100781e-07,
+      "gate": "Vbias1",
+      "stack_id": "biasgen_vom_a"
+    },
+    {
+      "name": "M9a",
+      "kind": "pmos",
+      "source": "Vg15",
+      "drain": "Vop1",
+      "n_fingers": 2,
+      "finger_w": 3.601651420847071e-05,
+      "w": 7.203302841694141e-05,
+      "l": 1.5e-07,
+      "gate": "N11b",
+      "stack_id": "biasgen_vom_a"
+    },
+    {
+      "name": "M18a",
+      "kind": "pmos",
+      "source": "Vg25",
+      "drain": "Vom1",
+      "n_fingers": 2,
+      "finger_w": 3.601651420847071e-05,
+      "w": 7.203302841694141e-05,
+      "l": 1.5e-07,
+      "gate": "N20b",
+      "stack_id": "biasgen_vom_a"
+    },
+    {
+      "name": "M17",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vg25",
+      "n_fingers": 2,
+      "finger_w": 3.601651420847071e-05,
+      "w": 7.203302841694141e-05,
+      "l": 4.739047237100781e-07,
+      "gate": "Vbias1",
+      "stack_id": "biasgen_vom_a"
+    },
+    {
+      "name": "M11a",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N11a11b",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 2.45e-07,
+      "gate": "N11a11b",
+      "stack_id": "biasgen_vom_battery_a__pmos"
+    },
+    {
+      "name": "M11b",
+      "kind": "pmos",
+      "source": "N11a11b",
+      "drain": "N11b",
+      "n_fingers": 2,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 2.45e-07,
+      "gate": "N11b",
+      "stack_id": "biasgen_vom_battery_a__pmos"
+    },
+    {
+      "name": "M20a",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N20a20b",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 2.45e-07,
+      "gate": "N20a20b",
+      "stack_id": "biasgen_vom_battery_a__pmos"
+    },
+    {
+      "name": "M20b",
+      "kind": "pmos",
+      "source": "N20a20b",
+      "drain": "N20b",
+      "n_fingers": 2,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 2.45e-07,
+      "gate": "N20b",
+      "stack_id": "biasgen_vom_battery_a__pmos"
+    },
+    {
+      "name": "M15",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vom",
+      "n_fingers": 2,
+      "finger_w": 2.927134370261609e-06,
+      "w": 5.854268740523218e-06,
+      "l": 1.5e-07,
+      "gate": "Vg15",
+      "stack_id": "output_stage_a__pmos"
+    },
+    {
+      "name": "M25",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vop",
+      "n_fingers": 2,
+      "finger_w": 2.927134370261609e-06,
+      "w": 5.854268740523218e-06,
+      "l": 1.5e-07,
+      "gate": "Vg25",
+      "stack_id": "output_stage_a__pmos"
+    },
+    {
+      "name": "M9b",
+      "kind": "nmos",
+      "source": "Vop1",
+      "drain": "Vg15",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 2.45e-07,
+      "gate": "N14a14b",
+      "stack_id": "biasgen_vom_floatsrc_sink"
+    },
+    {
+      "name": "M10",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vop1",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 5.109106823223974e-07,
+      "gate": "Vbias4",
+      "stack_id": "biasgen_vom_floatsrc_sink"
+    },
+    {
+      "name": "M18b",
+      "kind": "nmos",
+      "source": "Vom1",
+      "drain": "Vg25",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 2.45e-07,
+      "gate": "N24b23a",
+      "stack_id": "biasgen_vom_floatsrc_sink"
+    },
+    {
+      "name": "M19",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vom1",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 5.109106823223974e-07,
+      "gate": "Vbias4",
+      "stack_id": "biasgen_vom_floatsrc_sink"
+    },
+    {
+      "name": "M12",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "N11b",
+      "n_fingers": 1,
+      "finger_w": 1.29555504647714e-06,
+      "w": 1.29555504647714e-06,
+      "l": 5.109106823223974e-07,
+      "gate": "Vbias4",
+      "stack_id": "biasgen_vom_battery_a__nmos"
+    },
+    {
+      "name": "M21",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "N20b",
+      "n_fingers": 1,
+      "finger_w": 1.29555504647714e-06,
+      "w": 1.29555504647714e-06,
+      "l": 5.109106823223974e-07,
+      "gate": "Vbias4",
+      "stack_id": "biasgen_vom_battery_a__nmos"
+    },
+    {
+      "name": "M14a",
+      "kind": "nmos",
+      "source": "N14a_14b",
+      "drain": "N14a14b",
+      "n_fingers": 1,
+      "finger_w": 2.3664719854065454e-06,
+      "w": 2.3664719854065454e-06,
+      "l": 2.45e-07,
+      "gate": "N14a14b",
+      "stack_id": "biasgen_vom_battery_b__nmos"
+    },
+    {
+      "name": "M14b",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "N14a_14b",
+      "n_fingers": 1,
+      "finger_w": 2.3664719854065454e-06,
+      "w": 2.3664719854065454e-06,
+      "l": 2.45e-07,
+      "gate": "N14a_14b",
+      "stack_id": "biasgen_vom_battery_b__nmos"
+    },
+    {
+      "name": "M23a",
+      "kind": "nmos",
+      "source": "N23a24b",
+      "drain": "N24b23a",
+      "n_fingers": 1,
+      "finger_w": 2.3664719854065454e-06,
+      "w": 2.3664719854065454e-06,
+      "l": 2.45e-07,
+      "gate": "N24b23a",
+      "stack_id": "biasgen_vom_battery_b__nmos"
+    },
+    {
+      "name": "M24b",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "N23a24b",
+      "n_fingers": 1,
+      "finger_w": 2.3664719854065454e-06,
+      "w": 2.3664719854065454e-06,
+      "l": 2.45e-07,
+      "gate": "N23a24b",
+      "stack_id": "biasgen_vom_battery_b__nmos"
+    },
+    {
+      "name": "M16",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vom",
+      "n_fingers": 2,
+      "finger_w": 4.548854075897015e-06,
+      "w": 9.09770815179403e-06,
+      "l": 1.5e-07,
+      "gate": "Vop1",
+      "stack_id": "output_stage_a__nmos"
+    },
+    {
+      "name": "M26",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vop",
+      "n_fingers": 2,
+      "finger_w": 4.548854075897015e-06,
+      "w": 9.09770815179403e-06,
+      "l": 1.5e-07,
+      "gate": "Vom1",
+      "stack_id": "output_stage_a__nmos"
+    },
+    {
+      "name": "M13",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N14a14b",
+      "n_fingers": 2,
+      "finger_w": 2.3664719854065454e-06,
+      "w": 4.732943970813091e-06,
+      "l": 4.739047237100781e-07,
+      "gate": "Vbias1",
+      "stack_id": "biasgen_vom_battery_b__pmos"
+    },
+    {
+      "name": "M22",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N24b23a",
+      "n_fingers": 2,
+      "finger_w": 2.3664719854065454e-06,
+      "w": 4.732943970813091e-06,
+      "l": 4.739047237100781e-07,
+      "gate": "Vbias1",
+      "stack_id": "biasgen_vom_battery_b__pmos"
+    },
+    {
+      "name": "M64",
+      "kind": "nmos",
+      "source": "N64_63",
+      "drain": "Vbias3",
+      "n_fingers": 1,
+      "finger_w": 2.3664719854065454e-06,
+      "w": 2.3664719854065454e-06,
+      "l": 2.45e-07,
+      "gate": "Vbias3",
+      "stack_id": "vbias3_stack__nmos"
+    },
+    {
+      "name": "M63",
+      "kind": "nmos",
+      "source": "Vy",
+      "drain": "N64_63",
+      "n_fingers": 1,
+      "finger_w": 2.3664719854065454e-06,
+      "w": 2.3664719854065454e-06,
+      "l": 2.45e-07,
+      "gate": "Vbias3",
+      "stack_id": "vbias3_stack__nmos"
+    },
+    {
+      "name": "M58",
+      "kind": "pmos",
+      "source": "Vx",
+      "drain": "N58_57",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 3.4000000000000003e-07,
+      "gate": "Vbias2",
+      "stack_id": "vbias2_stack__pmos"
+    },
+    {
+      "name": "M57",
+      "kind": "pmos",
+      "source": "N58_57",
+      "drain": "Vbias2",
+      "n_fingers": 5,
+      "finger_w": 3.601651420847071e-05,
+      "w": 0.00018008257104235354,
+      "l": 3.4000000000000003e-07,
+      "gate": "Vbias2",
+      "stack_id": "vbias2_stack__pmos"
+    },
+    {
+      "name": "M66",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vbias4",
+      "n_fingers": 1,
+      "finger_w": 1.2195015200966542e-06,
+      "w": 1.2195015200966542e-06,
+      "l": 5.109106823223974e-07,
+      "gate": "Vbias4",
+      "stack_id": "vbias4_stack"
+    },
+    {
+      "name": "M68",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vbias2",
+      "n_fingers": 1,
+      "finger_w": 1.291250561269389e-06,
+      "w": 1.291250561269389e-06,
+      "l": 5.109106823223974e-07,
+      "gate": "Vbias4",
+      "stack_id": "vbias2_stack__nmos"
+    },
+    {
+      "name": "M36a",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vcmfb",
+      "n_fingers": 5,
+      "finger_w": 3.601651420847071e-05,
+      "w": 0.00018008257104235354,
+      "l": 4.739047237100781e-07,
+      "gate": "Vcmfb",
+      "stack_id": "cmfb_load_a"
+    },
+    {
+      "name": "M36b",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N36b",
+      "n_fingers": 5,
+      "finger_w": 3.601651420847071e-05,
+      "w": 0.00018008257104235354,
+      "l": 4.739047237100781e-07,
+      "gate": "N36b",
+      "stack_id": "cmfb_load_a"
+    },
+    {
+      "name": "M38",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Ncmfb_tail",
+      "n_fingers": 3,
+      "finger_w": 3.601651420847071e-05,
+      "w": 0.00010804954262541211,
+      "l": 5.109106823223974e-07,
+      "gate": "Vbias4",
+      "stack_id": "cmfb_tail_seg1_seg1"
+    },
+    {
+      "name": "M39",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Voc_des",
+      "n_fingers": 2,
+      "finger_w": 4.548854075897015e-06,
+      "w": 9.09770815179403e-06,
+      "l": 3.4000000000000003e-07,
+      "gate": "Voc_des",
+      "stack_id": "cmfb_vocdes_gen"
+    },
+    {
+      "name": "M40",
+      "kind": "pmos",
+      "source": "Voc_des",
+      "drain": "gnd",
+      "n_fingers": 1,
+      "finger_w": 4.548854075897015e-06,
+      "w": 4.548854075897015e-06,
+      "l": 3.4000000000000003e-07,
+      "gate": "gnd",
+      "stack_id": "cmfb_vocdes_gen"
+    },
+    {
+      "name": "M1a",
+      "kind": "pmos",
+      "source": "Vx",
+      "drain": "N1a2a",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 5.35e-07,
+      "gate": "Vip",
+      "stack_id": "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0"
+    },
+    {
+      "name": "M2a",
+      "kind": "pmos",
+      "source": "N1a2a",
+      "drain": "Vom1",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 1e-06,
+      "gate": "Vbias2",
+      "stack_id": "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0"
+    },
+    {
+      "name": "M1b",
+      "kind": "pmos",
+      "source": "Vx",
+      "drain": "N1b2b",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 5.35e-07,
+      "gate": "Vim",
+      "stack_id": "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0"
+    },
+    {
+      "name": "M2b",
+      "kind": "pmos",
+      "source": "N1b2b",
+      "drain": "Vop1",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 1e-06,
+      "gate": "Vbias2",
+      "stack_id": "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0"
+    },
+    {
+      "name": "M1b",
+      "kind": "pmos",
+      "source": "Vx",
+      "drain": "N1b2b",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 5.35e-07,
+      "gate": "Vim",
+      "stack_id": "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1"
+    },
+    {
+      "name": "M2b",
+      "kind": "pmos",
+      "source": "N1b2b",
+      "drain": "Vop1",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 1e-06,
+      "gate": "Vbias2",
+      "stack_id": "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1"
+    },
+    {
+      "name": "M1a",
+      "kind": "pmos",
+      "source": "Vx",
+      "drain": "N1a2a",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 5.35e-07,
+      "gate": "Vip",
+      "stack_id": "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1"
+    },
+    {
+      "name": "M2a",
+      "kind": "pmos",
+      "source": "N1a2a",
+      "drain": "Vom1",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 1e-06,
+      "gate": "Vbias2",
+      "stack_id": "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1"
+    },
+    {
+      "name": "M4a",
+      "kind": "nmos",
+      "source": "Vy",
+      "drain": "N3a4a",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 1.4000000000000001e-06,
+      "gate": "Vip",
+      "stack_id": "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+    },
+    {
+      "name": "M3a",
+      "kind": "nmos",
+      "source": "N3a4a",
+      "drain": "Vom1",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 1e-06,
+      "gate": "Vbias3",
+      "stack_id": "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+    },
+    {
+      "name": "M4b",
+      "kind": "nmos",
+      "source": "Vy",
+      "drain": "N3b4b",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 1.4000000000000001e-06,
+      "gate": "Vim",
+      "stack_id": "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+    },
+    {
+      "name": "M3b",
+      "kind": "nmos",
+      "source": "N3b4b",
+      "drain": "Vop1",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 1e-06,
+      "gate": "Vbias3",
+      "stack_id": "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+    },
+    {
+      "name": "M18_bg",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vbias1",
+      "n_fingers": 1,
+      "finger_w": 4.548854075897015e-06,
+      "w": 4.548854075897015e-06,
+      "l": 4.739047237100781e-07,
+      "gate": "Vbias1",
+      "stack_id": "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0"
+    },
+    {
+      "name": "M61",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vbias3",
+      "n_fingers": 1,
+      "finger_w": 4.548854075897015e-06,
+      "w": 4.548854075897015e-06,
+      "l": 4.739047237100781e-07,
+      "gate": "Vbias1",
+      "stack_id": "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0"
+    },
+    {
+      "name": "M60",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vbias4",
+      "n_fingers": 1,
+      "finger_w": 4.548854075897015e-06,
+      "w": 4.548854075897015e-06,
+      "l": 4.739047237100781e-07,
+      "gate": "Vbias1",
+      "stack_id": "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0"
+    },
+    {
+      "name": "M37b",
+      "kind": "nmos",
+      "source": "Ncmfb_tail",
+      "drain": "N36b",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 3.5e-07,
+      "gate": "Voc_des",
+      "stack_id": "cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+    },
+    {
+      "name": "M37a",
+      "kind": "nmos",
+      "source": "Ncmfb_tail",
+      "drain": "Vcmfb",
+      "n_fingers": 1,
+      "finger_w": 3.601651420847071e-05,
+      "w": 3.601651420847071e-05,
+      "l": 3.5e-07,
+      "gate": "Voc",
+      "stack_id": "cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+    }
+  ],
+  "floorplan": {
+    "placements": {
+      "diffpair_branch_a__pmos": {
+        "x": -2.049187724656932e-05,
+        "y": 0.0,
+        "width": 1.8956188948403124e-06,
+        "height": 3.601651420847071e-05
+      },
+      "biasgen_vom_a": {
+        "x": -1.8522758351729005e-05,
+        "y": 0.0,
+        "width": 2.495618894840312e-06,
+        "height": 3.601651420847071e-05
+      },
+      "biasgen_vom_battery_a__pmos": {
+        "x": -1.5953639456888693e-05,
+        "y": 0.0,
+        "width": 1.47e-06,
+        "height": 3.601651420847071e-05
+      },
+      "vbias2_stack__pmos": {
+        "x": -1.4410139456888695e-05,
+        "y": 0.0,
+        "width": 2.0400000000000004e-06,
+        "height": 3.601651420847071e-05
+      },
+      "cmfb_load_a": {
+        "x": -1.2296639456888694e-05,
+        "y": 0.0,
+        "width": 4.739047237100781e-06,
+        "height": 3.601651420847071e-05
+      },
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0": {
+        "x": -7.4840922197879125e-06,
+        "y": 0.0,
+        "width": 3.07e-06,
+        "height": 3.601651420847071e-05
+      },
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1": {
+        "x": -4.340592219787911e-06,
+        "y": 0.0,
+        "width": 3.07e-06,
+        "height": 3.601651420847071e-05
+      },
+      "vx_tail_b": {
+        "x": -1.1970922197879098e-06,
+        "y": 0.0,
+        "width": 1.8956188948403124e-06,
+        "height": 6.294991616543746e-06
+      },
+      "cmfb_vocdes_gen": {
+        "x": 7.720266750524007e-07,
+        "y": 0.0,
+        "width": 1.02e-06,
+        "height": 4.548854075897015e-06
+      },
+      "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0": {
+        "x": 1.8655266750523996e-06,
+        "y": 0.0,
+        "width": 4.739047237100781e-07,
+        "height": 4.548854075897015e-06
+      },
+      "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0": {
+        "x": 2.412931398762478e-06,
+        "y": 0.0,
+        "width": 9.478094474201562e-07,
+        "height": 4.548854075897015e-06
+      },
+      "output_stage_a__pmos": {
+        "x": 3.4342408461826358e-06,
+        "y": 0.0,
+        "width": 6e-07,
+        "height": 2.927134370261609e-06
+      },
+      "biasgen_vom_battery_b__pmos": {
+        "x": 4.107740846182635e-06,
+        "y": 0.0,
+        "width": 1.8956188948403124e-06,
+        "height": 2.3664719854065454e-06
+      },
+      "diffpair_branch_a__nmos": {
+        "x": 6.076859741022946e-06,
+        "y": 0.0,
+        "width": 1.0218213646447948e-06,
+        "height": 3.601651420847071e-05
+      },
+      "biasgen_vom_floatsrc_sink": {
+        "x": 7.172181105667741e-06,
+        "y": 0.0,
+        "width": 1.5118213646447948e-06,
+        "height": 3.601651420847071e-05
+      },
+      "cmfb_tail_seg1_seg1": {
+        "x": 8.757502470312536e-06,
+        "y": 0.0,
+        "width": 1.5327320469671924e-06,
+        "height": 3.601651420847071e-05
+      },
+      "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0": {
+        "x": 1.0363734517279728e-05,
+        "y": 0.0,
+        "width": 4.8e-06,
+        "height": 3.601651420847071e-05
+      },
+      "cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0": {
+        "x": 1.5237234517279728e-05,
+        "y": 0.0,
+        "width": 7e-07,
+        "height": 3.601651420847071e-05
+      },
+      "output_stage_a__nmos": {
+        "x": 1.6010734517279726e-05,
+        "y": 0.0,
+        "width": 6e-07,
+        "height": 4.548854075897015e-06
+      },
+      "biasgen_vom_battery_b__nmos": {
+        "x": 1.6684234517279726e-05,
+        "y": 0.0,
+        "width": 9.8e-07,
+        "height": 2.3664719854065454e-06
+      },
+      "vbias3_stack__nmos": {
+        "x": 1.7737734517279725e-05,
+        "y": 0.0,
+        "width": 4.9e-07,
+        "height": 2.3664719854065454e-06
+      },
+      "biasgen_vom_battery_a__nmos": {
+        "x": 1.8301234517279728e-05,
+        "y": 0.0,
+        "width": 1.0218213646447948e-06,
+        "height": 1.29555504647714e-06
+      },
+      "vbias2_stack__nmos": {
+        "x": 1.939655588192452e-05,
+        "y": 0.0,
+        "width": 5.109106823223974e-07,
+        "height": 1.291250561269389e-06
+      },
+      "vbias4_stack": {
+        "x": 1.998096656424692e-05,
+        "y": 0.0,
+        "width": 5.109106823223974e-07,
+        "height": 1.2195015200966542e-06
+      }
+    },
+    "bbox": {
+      "width": 4.098375449313864e-05,
+      "height": 3.601651420847071e-05
+    },
+    "aspect_ratio": 1.1379156310329357,
+    "packing_density": 0.9982066064734918
+  },
+  "box_shape": {
+    "ok": false,
+    "rectangular": false,
+    "elongation_ok": true,
+    "row_widths": {
+      "diffpair_branch_a__pmos": 1.8956188948403124e-06,
+      "vx_tail_b": 1.8956188948403124e-06,
+      "diffpair_branch_a__nmos": 1.0218213646447948e-06,
+      "biasgen_vom_a": 2.495618894840312e-06,
+      "biasgen_vom_battery_a__pmos": 1.47e-06,
+      "output_stage_a__pmos": 6e-07,
+      "biasgen_vom_floatsrc_sink": 1.5118213646447948e-06,
+      "biasgen_vom_battery_a__nmos": 1.0218213646447948e-06,
+      "biasgen_vom_battery_b__nmos": 9.8e-07,
+      "output_stage_a__nmos": 6e-07,
+      "biasgen_vom_battery_b__pmos": 1.8956188948403124e-06,
+      "vbias3_stack__nmos": 4.9e-07,
+      "vbias2_stack__pmos": 2.0400000000000004e-06,
+      "vbias4_stack": 5.109106823223974e-07,
+      "vbias2_stack__nmos": 5.109106823223974e-07,
+      "cmfb_load_a": 4.739047237100781e-06,
+      "cmfb_tail_seg1_seg1": 1.5327320469671924e-06,
+      "cmfb_vocdes_gen": 1.02e-06,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0": 3.07e-06,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1": 3.07e-06,
+      "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0": 4.8e-06,
+      "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0": 4.739047237100781e-07,
+      "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0": 9.478094474201562e-07,
+      "cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0": 7e-07
+    },
+    "row_heights": {
+      "diffpair_branch_a__pmos": 3.601651420847071e-05,
+      "vx_tail_b": 6.294991616543746e-06,
+      "diffpair_branch_a__nmos": 3.601651420847071e-05,
+      "biasgen_vom_a": 3.601651420847071e-05,
+      "biasgen_vom_battery_a__pmos": 3.601651420847071e-05,
+      "output_stage_a__pmos": 2.927134370261609e-06,
+      "biasgen_vom_floatsrc_sink": 3.601651420847071e-05,
+      "biasgen_vom_battery_a__nmos": 1.29555504647714e-06,
+      "biasgen_vom_battery_b__nmos": 2.3664719854065454e-06,
+      "output_stage_a__nmos": 4.548854075897015e-06,
+      "biasgen_vom_battery_b__pmos": 2.3664719854065454e-06,
+      "vbias3_stack__nmos": 2.3664719854065454e-06,
+      "vbias2_stack__pmos": 3.601651420847071e-05,
+      "vbias4_stack": 1.2195015200966542e-06,
+      "vbias2_stack__nmos": 1.291250561269389e-06,
+      "cmfb_load_a": 3.601651420847071e-05,
+      "cmfb_tail_seg1_seg1": 3.601651420847071e-05,
+      "cmfb_vocdes_gen": 4.548854075897015e-06,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0": 3.601651420847071e-05,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1": 3.601651420847071e-05,
+      "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0": 3.601651420847071e-05,
+      "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0": 4.548854075897015e-06,
+      "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0": 4.548854075897015e-06,
+      "cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0": 3.601651420847071e-05
+    },
+    "total_width_m": 4.8e-06,
+    "total_height_m": 0.0004705214358761048,
+    "width_ratio": 10.128618179667075,
+    "elongation": 98.02529914085517,
+    "approx": false,
+    "message": "FAIL: 행 폭 비율(10.13) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것"
+  },
+  "audit_row_split": {
+    "ok": false,
+    "checks": [
+      {
+        "name": "1. euler[diffpair_branch_a__pmos]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[vx_tail_b]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[diffpair_branch_a__nmos]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[biasgen_vom_a]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[biasgen_vom_battery_a__pmos]",
+        "ok": true,
+        "detail": "odd_nodes=['N11a11b', 'N20a20b']"
+      },
+      {
+        "name": "1. euler[output_stage_a__pmos]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[biasgen_vom_floatsrc_sink]",
+        "ok": true,
+        "detail": "odd_nodes=['Vg15', 'Vg25']"
+      },
+      {
+        "name": "1. euler[biasgen_vom_battery_a__nmos]",
+        "ok": true,
+        "detail": "odd_nodes=['N11b', 'N20b']"
+      },
+      {
+        "name": "1. euler[biasgen_vom_battery_b__nmos]",
+        "ok": true,
+        "detail": "odd_nodes=['N14a14b', 'N24b23a']"
+      },
+      {
+        "name": "1. euler[output_stage_a__nmos]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[biasgen_vom_battery_b__pmos]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[vbias3_stack__nmos]",
+        "ok": true,
+        "detail": "odd_nodes=['Vbias3', 'Vy']"
+      },
+      {
+        "name": "1. euler[vbias2_stack__pmos]",
+        "ok": true,
+        "detail": "odd_nodes=['Vbias2', 'Vx']"
+      },
+      {
+        "name": "1. euler[vbias4_stack]",
+        "ok": true,
+        "detail": "odd_nodes=['Vbias4', 'gnd']"
+      },
+      {
+        "name": "1. euler[vbias2_stack__nmos]",
+        "ok": true,
+        "detail": "odd_nodes=['Vbias2', 'gnd']"
+      },
+      {
+        "name": "1. euler[cmfb_load_a]",
+        "ok": true,
+        "detail": "odd_nodes=['N36b', 'Vcmfb']"
+      },
+      {
+        "name": "1. euler[cmfb_tail_seg1_seg1]",
+        "ok": true,
+        "detail": "odd_nodes=['Ncmfb_tail', 'gnd']"
+      },
+      {
+        "name": "1. euler[cmfb_vocdes_gen]",
+        "ok": true,
+        "detail": "odd_nodes=['Voc_des', 'gnd']"
+      },
+      {
+        "name": "1. euler[diffpair_branch_a__pmos_repair0_repair0_repair0_repair0]",
+        "ok": true,
+        "detail": "odd_nodes=['Vom1', 'Vop1']"
+      },
+      {
+        "name": "1. euler[diffpair_branch_a__pmos_repair0_repair0_repair0_repair1]",
+        "ok": true,
+        "detail": "odd_nodes=['Vom1', 'Vop1']"
+      },
+      {
+        "name": "1. euler[diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0]",
+        "ok": true,
+        "detail": "odd_nodes=['Vom1', 'Vop1']"
+      },
+      {
+        "name": "1. euler[biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0]",
+        "ok": true,
+        "detail": "odd_nodes=['Vbias1', 'vdd']"
+      },
+      {
+        "name": "1. euler[biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0]",
+        "ok": true,
+        "detail": "odd_nodes=['Vbias3', 'Vbias4']"
+      },
+      {
+        "name": "1. euler[cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0]",
+        "ok": true,
+        "detail": "odd_nodes=['N36b', 'Vcmfb']"
+      },
+      {
+        "name": "2. box-shape",
+        "ok": false,
+        "detail": "FAIL: 행 폭 비율(10.13) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것"
+      },
+      {
+        "name": "3a. row-presence[M1a/M1b] (kind=sensitivity=offset,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['diffpair_branch_a__pmos_repair0_repair0_repair0_repair0', 'diffpair_branch_a__pmos_repair0_repair0_repair0_repair1']; M1a/M1b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M1a/M1b] [참고용 -- 이 kind는 필수 아님]",
+        "ok": true,
+        "detail": "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0: 인접; diffpair_branch_a__pmos_repair0_repair0_repair0_repair1: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M1a/M1b]",
+        "ok": true,
+        "detail": "M1a centroid=(1.50,18.50), M1b centroid=(1.50,18.50), |dx|=0.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M4a/M4b] (kind=sensitivity=offset,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0']; M4a/M4b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M4a/M4b] [참고용 -- 이 kind는 필수 아님]",
+        "ok": true,
+        "detail": "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M4a/M4b]",
+        "ok": false,
+        "detail": "M4a centroid=(1.00,20.00), M4b centroid=(2.00,20.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M2a/M2b] (kind=sensitivity=ratio,shares_node=False)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['diffpair_branch_a__pmos_repair0_repair0_repair0_repair0', 'diffpair_branch_a__pmos_repair0_repair0_repair0_repair1']; M2a/M2b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M2a/M2b] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0: NOT 인접; diffpair_branch_a__pmos_repair0_repair0_repair0_repair1: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M2a/M2b]",
+        "ok": true,
+        "detail": "M2a centroid=(1.50,18.50), M2b centroid=(1.50,18.50), |dx|=0.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M3a/M3b] (kind=sensitivity=ratio,shares_node=False)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0']; M3a/M3b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M3a/M3b] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M3a/M3b]",
+        "ok": false,
+        "detail": "M3a centroid=(0.00,20.00), M3b centroid=(3.00,20.00), |dx|=3.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M8/M17] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_a']; M8/M17 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M8/M17]",
+        "ok": true,
+        "detail": "biasgen_vom_a: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M8/M17] [참고용 -- 이 kind는 필수 아님]",
+        "ok": true,
+        "detail": "M8 centroid=(4.50,3.00), M17 centroid=(4.50,3.00), |dx|=0.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M13/M22] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_battery_b__pmos']; M13/M22 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M13/M22]",
+        "ok": true,
+        "detail": "biasgen_vom_battery_b__pmos: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M13/M22] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M13 centroid=(0.50,10.00), M22 centroid=(2.50,10.00), |dx|=2.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M18_bg/M8] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M18_bg/M8 중 한쪽만 있는 행: ['biasgen_vom_a', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M18_bg/M8]",
+        "ok": false,
+        "detail": "biasgen_vom_a: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M18_bg/M8] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M18_bg centroid=(0.00,21.00), M8 centroid=(4.50,3.00), |dx|=4.50 |dy|=18.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M18_bg/M13] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M18_bg/M13 중 한쪽만 있는 행: ['biasgen_vom_battery_b__pmos', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M18_bg/M13]",
+        "ok": false,
+        "detail": "biasgen_vom_battery_b__pmos: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M18_bg/M13] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M18_bg centroid=(0.00,21.00), M13 centroid=(0.50,10.00), |dx|=0.50 |dy|=11.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M18_bg/M17] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M18_bg/M17 중 한쪽만 있는 행: ['biasgen_vom_a', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M18_bg/M17]",
+        "ok": false,
+        "detail": "biasgen_vom_a: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M18_bg/M17] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M18_bg centroid=(0.00,21.00), M17 centroid=(4.50,3.00), |dx|=4.50 |dy|=18.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M18_bg/M22] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M18_bg/M22 중 한쪽만 있는 행: ['biasgen_vom_battery_b__pmos', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M18_bg/M22]",
+        "ok": false,
+        "detail": "biasgen_vom_battery_b__pmos: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M18_bg/M22] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M18_bg centroid=(0.00,21.00), M22 centroid=(2.50,10.00), |dx|=2.50 |dy|=11.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M18_bg/M60] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M18_bg/M60 중 한쪽만 있는 행: ['biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M18_bg/M60]",
+        "ok": false,
+        "detail": "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M18_bg/M60] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M18_bg centroid=(0.00,21.00), M60 centroid=(1.00,22.00), |dx|=1.00 |dy|=1.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M18_bg/M61] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M18_bg/M61 중 한쪽만 있는 행: ['biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M18_bg/M61]",
+        "ok": false,
+        "detail": "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M18_bg/M61] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M18_bg centroid=(0.00,21.00), M61 centroid=(0.00,22.00), |dx|=0.00 |dy|=1.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M8/M13] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M8/M13 중 한쪽만 있는 행: ['biasgen_vom_a', 'biasgen_vom_battery_b__pmos'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M8/M13]",
+        "ok": false,
+        "detail": "biasgen_vom_a: NOT 인접; biasgen_vom_battery_b__pmos: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M8/M13] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M8 centroid=(4.50,3.00), M13 centroid=(0.50,10.00), |dx|=4.00 |dy|=7.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M8/M17] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_a']; M8/M17 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M8/M17]",
+        "ok": true,
+        "detail": "biasgen_vom_a: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M8/M17] [참고용 -- 이 kind는 필수 아님]",
+        "ok": true,
+        "detail": "M8 centroid=(4.50,3.00), M17 centroid=(4.50,3.00), |dx|=0.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M8/M22] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M8/M22 중 한쪽만 있는 행: ['biasgen_vom_a', 'biasgen_vom_battery_b__pmos'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M8/M22]",
+        "ok": false,
+        "detail": "biasgen_vom_a: NOT 인접; biasgen_vom_battery_b__pmos: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M8/M22] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M8 centroid=(4.50,3.00), M22 centroid=(2.50,10.00), |dx|=2.00 |dy|=7.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M8/M60] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M8/M60 중 한쪽만 있는 행: ['biasgen_vom_a', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M8/M60]",
+        "ok": false,
+        "detail": "biasgen_vom_a: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M8/M60] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M8 centroid=(4.50,3.00), M60 centroid=(1.00,22.00), |dx|=3.50 |dy|=19.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M8/M61] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M8/M61 중 한쪽만 있는 행: ['biasgen_vom_a', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M8/M61]",
+        "ok": false,
+        "detail": "biasgen_vom_a: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M8/M61] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M8 centroid=(4.50,3.00), M61 centroid=(0.00,22.00), |dx|=4.50 |dy|=19.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M13/M17] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M13/M17 중 한쪽만 있는 행: ['biasgen_vom_a', 'biasgen_vom_battery_b__pmos'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M13/M17]",
+        "ok": false,
+        "detail": "biasgen_vom_a: NOT 인접; biasgen_vom_battery_b__pmos: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M13/M17] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M13 centroid=(0.50,10.00), M17 centroid=(4.50,3.00), |dx|=4.00 |dy|=7.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M13/M22] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_battery_b__pmos']; M13/M22 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M13/M22]",
+        "ok": true,
+        "detail": "biasgen_vom_battery_b__pmos: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M13/M22] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M13 centroid=(0.50,10.00), M22 centroid=(2.50,10.00), |dx|=2.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M13/M60] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M13/M60 중 한쪽만 있는 행: ['biasgen_vom_battery_b__pmos', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M13/M60]",
+        "ok": false,
+        "detail": "biasgen_vom_battery_b__pmos: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M13/M60] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M13 centroid=(0.50,10.00), M60 centroid=(1.00,22.00), |dx|=0.50 |dy|=12.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M13/M61] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M13/M61 중 한쪽만 있는 행: ['biasgen_vom_battery_b__pmos', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M13/M61]",
+        "ok": false,
+        "detail": "biasgen_vom_battery_b__pmos: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M13/M61] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M13 centroid=(0.50,10.00), M61 centroid=(0.00,22.00), |dx|=0.50 |dy|=12.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M17/M22] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M17/M22 중 한쪽만 있는 행: ['biasgen_vom_a', 'biasgen_vom_battery_b__pmos'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M17/M22]",
+        "ok": false,
+        "detail": "biasgen_vom_a: NOT 인접; biasgen_vom_battery_b__pmos: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M17/M22] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M17 centroid=(4.50,3.00), M22 centroid=(2.50,10.00), |dx|=2.00 |dy|=7.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M17/M60] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M17/M60 중 한쪽만 있는 행: ['biasgen_vom_a', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M17/M60]",
+        "ok": false,
+        "detail": "biasgen_vom_a: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M17/M60] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M17 centroid=(4.50,3.00), M60 centroid=(1.00,22.00), |dx|=3.50 |dy|=19.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M17/M61] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M17/M61 중 한쪽만 있는 행: ['biasgen_vom_a', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M17/M61]",
+        "ok": false,
+        "detail": "biasgen_vom_a: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M17/M61] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M17 centroid=(4.50,3.00), M61 centroid=(0.00,22.00), |dx|=4.50 |dy|=19.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M22/M60] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M22/M60 중 한쪽만 있는 행: ['biasgen_vom_battery_b__pmos', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M22/M60]",
+        "ok": false,
+        "detail": "biasgen_vom_battery_b__pmos: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M22/M60] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M22 centroid=(2.50,10.00), M60 centroid=(1.00,22.00), |dx|=1.50 |dy|=12.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M22/M61] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M22/M61 중 한쪽만 있는 행: ['biasgen_vom_battery_b__pmos', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M22/M61]",
+        "ok": false,
+        "detail": "biasgen_vom_battery_b__pmos: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M22/M61] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M22 centroid=(2.50,10.00), M61 centroid=(0.00,22.00), |dx|=2.50 |dy|=12.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M60/M61] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0']; M60/M61 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M60/M61]",
+        "ok": true,
+        "detail": "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M60/M61] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M60 centroid=(1.00,22.00), M61 centroid=(0.00,22.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M18_bg/M60] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M18_bg/M60 중 한쪽만 있는 행: ['biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M18_bg/M60]",
+        "ok": false,
+        "detail": "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M18_bg/M60] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M18_bg centroid=(0.00,21.00), M60 centroid=(1.00,22.00), |dx|=1.00 |dy|=1.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M18_bg/M61] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M18_bg/M61 중 한쪽만 있는 행: ['biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0', 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M18_bg/M61]",
+        "ok": false,
+        "detail": "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0: NOT 인접; biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M18_bg/M61] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M18_bg centroid=(0.00,21.00), M61 centroid=(0.00,22.00), |dx|=0.00 |dy|=1.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M60/M61] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0']; M60/M61 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M60/M61]",
+        "ok": true,
+        "detail": "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M60/M61] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M60 centroid=(1.00,22.00), M61 centroid=(0.00,22.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M11a/M20a] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_battery_a__pmos']; M11a/M20a 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M11a/M20a]",
+        "ok": true,
+        "detail": "biasgen_vom_battery_a__pmos: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M11a/M20a] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M11a centroid=(2.00,4.00), M20a centroid=(3.00,4.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M11b/M20b] (kind=sensitivity=ratio,shares_node=False)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_battery_a__pmos']; M11b/M20b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M11b/M20b] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "biasgen_vom_battery_a__pmos: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M11b/M20b]",
+        "ok": false,
+        "detail": "M11b centroid=(0.50,4.00), M20b centroid=(4.50,4.00), |dx|=4.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M12/M21] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_battery_a__nmos']; M12/M21 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M12/M21]",
+        "ok": true,
+        "detail": "biasgen_vom_battery_a__nmos: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M12/M21] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M12 centroid=(0.00,7.00), M21 centroid=(1.00,7.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M14a/M23a] (kind=sensitivity=ratio,shares_node=False)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_battery_b__nmos']; M14a/M23a 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M14a/M23a] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "biasgen_vom_battery_b__nmos: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M14a/M23a]",
+        "ok": false,
+        "detail": "M14a centroid=(0.00,8.00), M23a centroid=(3.00,8.00), |dx|=3.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M14b/M24b] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_battery_b__nmos']; M14b/M24b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M14b/M24b]",
+        "ok": true,
+        "detail": "biasgen_vom_battery_b__nmos: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M14b/M24b] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M14b centroid=(1.00,8.00), M24b centroid=(2.00,8.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M10/M19] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_floatsrc_sink']; M10/M19 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M10/M19]",
+        "ok": true,
+        "detail": "biasgen_vom_floatsrc_sink: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M10/M19] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M10 centroid=(1.00,6.00), M19 centroid=(2.00,6.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M15/M25] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['output_stage_a__pmos']; M15/M25 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M15/M25]",
+        "ok": true,
+        "detail": "output_stage_a__pmos: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M15/M25] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M15 centroid=(0.50,5.00), M25 centroid=(2.50,5.00), |dx|=2.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M16/M26] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['output_stage_a__nmos']; M16/M26 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M16/M26]",
+        "ok": true,
+        "detail": "output_stage_a__nmos: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M16/M26] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M16 centroid=(0.50,9.00), M26 centroid=(2.50,9.00), |dx|=2.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M9a/M18a] (kind=sensitivity=ratio,shares_node=False)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_a']; M9a/M18a 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M9a/M18a] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "biasgen_vom_a: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M9a/M18a]",
+        "ok": false,
+        "detail": "M9a centroid=(0.50,3.00), M18a centroid=(4.50,3.00), |dx|=4.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M9b/M18b] (kind=sensitivity=ratio,shares_node=False)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_floatsrc_sink']; M9b/M18b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M9b/M18b] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "biasgen_vom_floatsrc_sink: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M9b/M18b]",
+        "ok": false,
+        "detail": "M9b centroid=(0.00,6.00), M18b centroid=(3.00,6.00), |dx|=3.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M10/M12] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M10/M12 중 한쪽만 있는 행: ['biasgen_vom_floatsrc_sink', 'biasgen_vom_battery_a__nmos'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M10/M12]",
+        "ok": false,
+        "detail": "biasgen_vom_floatsrc_sink: NOT 인접; biasgen_vom_battery_a__nmos: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M10/M12] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M10 centroid=(1.00,6.00), M12 centroid=(0.00,7.00), |dx|=1.00 |dy|=1.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M10/M19] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_floatsrc_sink']; M10/M19 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M10/M19]",
+        "ok": true,
+        "detail": "biasgen_vom_floatsrc_sink: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M10/M19] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M10 centroid=(1.00,6.00), M19 centroid=(2.00,6.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M10/M21] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M10/M21 중 한쪽만 있는 행: ['biasgen_vom_floatsrc_sink', 'biasgen_vom_battery_a__nmos'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M10/M21]",
+        "ok": false,
+        "detail": "biasgen_vom_floatsrc_sink: NOT 인접; biasgen_vom_battery_a__nmos: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M10/M21] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M10 centroid=(1.00,6.00), M21 centroid=(1.00,7.00), |dx|=0.00 |dy|=1.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M12/M19] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M12/M19 중 한쪽만 있는 행: ['biasgen_vom_floatsrc_sink', 'biasgen_vom_battery_a__nmos'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M12/M19]",
+        "ok": false,
+        "detail": "biasgen_vom_floatsrc_sink: NOT 인접; biasgen_vom_battery_a__nmos: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M12/M19] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M12 centroid=(0.00,7.00), M19 centroid=(2.00,6.00), |dx|=2.00 |dy|=1.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M12/M21] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['biasgen_vom_battery_a__nmos']; M12/M21 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M12/M21]",
+        "ok": true,
+        "detail": "biasgen_vom_battery_a__nmos: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M12/M21] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M12 centroid=(0.00,7.00), M21 centroid=(1.00,7.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M19/M21] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M19/M21 중 한쪽만 있는 행: ['biasgen_vom_floatsrc_sink', 'biasgen_vom_battery_a__nmos'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M19/M21]",
+        "ok": false,
+        "detail": "biasgen_vom_floatsrc_sink: NOT 인접; biasgen_vom_battery_a__nmos: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M19/M21] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M19 centroid=(2.00,6.00), M21 centroid=(1.00,7.00), |dx|=1.00 |dy|=1.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M37a/M37b] (kind=sensitivity=offset,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0']; M37a/M37b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M37a/M37b] [참고용 -- 이 kind는 필수 아님]",
+        "ok": true,
+        "detail": "cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M37a/M37b]",
+        "ok": false,
+        "detail": "M37a centroid=(1.00,23.00), M37b centroid=(0.00,23.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M36a/M36b] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['cmfb_load_a']; M36a/M36b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M36a/M36b]",
+        "ok": true,
+        "detail": "cmfb_load_a: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M36a/M36b] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M36a centroid=(2.00,15.00), M36b centroid=(7.00,15.00), |dx|=5.00 |dy|=0.00 (허용오차 0.5)"
+      }
+    ]
+  },
+  "coverage": {
+    "ok": true,
+    "missing": []
+  }
+}

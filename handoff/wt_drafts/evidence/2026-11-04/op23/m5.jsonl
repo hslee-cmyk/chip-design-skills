@@ -1,0 +1,5 @@
+{"m": "format_vs_decl", "fmt": "repr", "points": 944, "differ": 0, "unmatched": 0, "ex": []}
+{"m": "format_vs_decl", "fmt": "num8g", "points": 944, "differ": 0, "unmatched": 0, "ex": []}
+{"m": "format_vs_decl", "fmt": "num15g", "points": 944, "differ": 0, "unmatched": 0, "ex": []}
+{"m": "readback_scale", "lines": ["@m.xm1.msky130_fd_pr__nfet_01v8[l] = 5.000000e-07", "@m.xm1.msky130_fd_pr__nfet_01v8[w] = 2.000000e-06", "@m.xm1.msky130_fd_pr__nfet_01v8[m] = 2.000000e+00", "@m.xm1.msky130_fd_pr__nfet_01v8[ad] = 1.000000e-12", "@m.xm1.msky130_fd_pr__nfet_01v8[pd] = 4.000000e-06", "@m.xm1.msky130_fd_pr__nfet_01v8[id] = 8.698091e-06"]}
+{"m": "readback_si", "lines": ["@m.xm1.msky130_fd_pr__nfet_01v8[l] = 5.000000e-07", "@m.xm1.msky130_fd_pr__nfet_01v8[w] = 2.000000e-06", "@m.xm1.msky130_fd_pr__nfet_01v8[m] = 2.000000e+00", "@m.xm1.msky130_fd_pr__nfet_01v8[ad] = 1.000000e-12", "@m.xm1.msky130_fd_pr__nfet_01v8[pd] = 4.000000e-06", "@m.xm1.msky130_fd_pr__nfet_01v8[id] = 8.698091e-06"]}

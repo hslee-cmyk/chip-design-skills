@@ -1,0 +1,374 @@
+* static curves
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.option gmin=1e-15 reltol=1e-5 abstol=1e-15
+vvb g 0 0.55
+vvd d 0 0.9
+xm1 d g 0 0 sky130_fd_pr__nfet_01v8 w=20u l=0.3u
+.control
+alter vvb dc = 0.55
+op
+echo PT 0.55 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.555
+op
+echo PT 0.555 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.56
+op
+echo PT 0.56 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.565
+op
+echo PT 0.565 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.57
+op
+echo PT 0.57 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.575
+op
+echo PT 0.575 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.58
+op
+echo PT 0.58 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.585
+op
+echo PT 0.585 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.59
+op
+echo PT 0.59 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.595
+op
+echo PT 0.595 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.6
+op
+echo PT 0.6 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.605
+op
+echo PT 0.605 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.61
+op
+echo PT 0.61 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.615
+op
+echo PT 0.615 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.62
+op
+echo PT 0.62 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.625
+op
+echo PT 0.625 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.63
+op
+echo PT 0.63 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.635
+op
+echo PT 0.635 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.64
+op
+echo PT 0.64 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.645
+op
+echo PT 0.645 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.65
+op
+echo PT 0.65 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.655
+op
+echo PT 0.655 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.66
+op
+echo PT 0.66 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.665
+op
+echo PT 0.665 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.67
+op
+echo PT 0.67 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.675
+op
+echo PT 0.675 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.68
+op
+echo PT 0.68 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.685
+op
+echo PT 0.685 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.69
+op
+echo PT 0.69 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.695
+op
+echo PT 0.695 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.7
+op
+echo PT 0.7 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.705
+op
+echo PT 0.705 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.71
+op
+echo PT 0.71 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.715
+op
+echo PT 0.715 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.72
+op
+echo PT 0.72 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.725
+op
+echo PT 0.725 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.73
+op
+echo PT 0.73 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.735
+op
+echo PT 0.735 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.74
+op
+echo PT 0.74 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.745
+op
+echo PT 0.745 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.75
+op
+echo PT 0.75 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.755
+op
+echo PT 0.755 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.76
+op
+echo PT 0.76 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.765
+op
+echo PT 0.765 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.77
+op
+echo PT 0.77 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.775
+op
+echo PT 0.775 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.78
+op
+echo PT 0.78 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.785
+op
+echo PT 0.785 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.79
+op
+echo PT 0.79 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.795
+op
+echo PT 0.795 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.8
+op
+echo PT 0.8 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.805
+op
+echo PT 0.805 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.81
+op
+echo PT 0.81 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.815
+op
+echo PT 0.815 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.82
+op
+echo PT 0.82 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.825
+op
+echo PT 0.825 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.83
+op
+echo PT 0.83 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.835
+op
+echo PT 0.835 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.84
+op
+echo PT 0.84 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.845
+op
+echo PT 0.845 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.85
+op
+echo PT 0.85 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.855
+op
+echo PT 0.855 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.86
+op
+echo PT 0.86 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.865
+op
+echo PT 0.865 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.87
+op
+echo PT 0.87 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.875
+op
+echo PT 0.875 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.88
+op
+echo PT 0.88 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.885
+op
+echo PT 0.885 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.89
+op
+echo PT 0.89 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.895
+op
+echo PT 0.895 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.9
+op
+echo PT 0.9 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.905
+op
+echo PT 0.905 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.91
+op
+echo PT 0.91 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.915
+op
+echo PT 0.915 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.92
+op
+echo PT 0.92 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.925
+op
+echo PT 0.925 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.93
+op
+echo PT 0.93 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.935
+op
+echo PT 0.935 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.94
+op
+echo PT 0.94 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.945
+op
+echo PT 0.945 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.95
+op
+echo PT 0.95 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.955
+op
+echo PT 0.955 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.96
+op
+echo PT 0.96 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.965
+op
+echo PT 0.965 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.97
+op
+echo PT 0.97 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.975
+op
+echo PT 0.975 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.98
+op
+echo PT 0.98 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.985
+op
+echo PT 0.985 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.99
+op
+echo PT 0.99 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 0.995
+op
+echo PT 0.995 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.0
+op
+echo PT 1.0 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.005
+op
+echo PT 1.005 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.01
+op
+echo PT 1.01 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.015
+op
+echo PT 1.015 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.02
+op
+echo PT 1.02 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.025
+op
+echo PT 1.025 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.03
+op
+echo PT 1.03 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.035
+op
+echo PT 1.035 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.04
+op
+echo PT 1.04 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.045
+op
+echo PT 1.045 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.05
+op
+echo PT 1.05 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.055
+op
+echo PT 1.055 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.06
+op
+echo PT 1.06 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.065
+op
+echo PT 1.065 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.07
+op
+echo PT 1.07 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.075
+op
+echo PT 1.075 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.08
+op
+echo PT 1.08 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.085
+op
+echo PT 1.085 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.09
+op
+echo PT 1.09 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.095
+op
+echo PT 1.095 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.1
+op
+echo PT 1.1 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.105
+op
+echo PT 1.105 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.11
+op
+echo PT 1.11 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.115
+op
+echo PT 1.115 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.12
+op
+echo PT 1.12 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.125
+op
+echo PT 1.125 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.13
+op
+echo PT 1.13 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.135
+op
+echo PT 1.135 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.14
+op
+echo PT 1.14 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.145
+op
+echo PT 1.145 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+alter vvb dc = 1.15
+op
+echo PT 1.15 $&@m.xm1.msky130_fd_pr__nfet_01v8[cgg] $&i(vvd)
+.endc
+.end

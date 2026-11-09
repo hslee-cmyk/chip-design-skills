@@ -1,0 +1,23 @@
+repo=C:\g259\iso
+log=C:\g259\iso\tools\gates\redteam\logs\20261002-184233-direct.jsonl
+
+PASS             20a-code-author-role-test-or-other-id        
+PASS             20b-orchestrator-commit-in-role-wt           
+PASS             20c-two-ids-one-push                         
+PASS             20d-tprime-on-code-side                      
+PASS             20e-normal-equivalence                       
+PASS             20e-normal-redgreen                          
+PASS             20e-normal-testonly                          
+SKIPPED          21-remote-config-tamper                      modes ['installed']에 direct 없음
+SKIPPED          22-gate-tamper                               modes ['installed']에 direct 없음
+PASS             24-command-parsing                           
+PASS             25-dispute-cleanup                           
+PASS             27a-el2-foreign-uncommitted                  
+PASS             27b-orchestrator-cleanup                     
+PASS             27c-el3-integrity-marker                     
+PASS             27d-assign-subst                             
+PASS             27e-worktree-add-q                           
+PASS             30-rejudge-cache                             
+
+케이스: {"PASS": 15, "SKIPPED": 2}
+단계: {"PASS": 86, "RECORD": 5}

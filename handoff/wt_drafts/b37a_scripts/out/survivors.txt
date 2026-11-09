@@ -1,0 +1,6 @@
+load_topology stmt_delete body[16]
+load_topology stmt_delete body[25]
+load_topology stmt_delete body[13].body[2]
+input_referred_offset_pairs const- body[3].body[2].value.generators[0].ifs[0].values[1].comparators[0]
+resolve_stack_layout stmt_delete body[5]
+resolve_stack_layout cmp_flip body[5].test.values[0].ops[0]

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\evidence\2026-11-03\la1a_design\la1a_uncovered.py", line 22, in <module>
+    import test_s0_layer_9circuits as T
+  File "C:\Users\HSLEE\Documents\Todoc\fpga\wt\design-v115\skills\analog-gmid-design\gmid_engine\tests\integration\test_s0_layer_9circuits.py", line 184, in <module>
+    SEARCHED = [c for c in CIRCUITS if _searched(c)]
+                                       ~~~~~~~~~^^^
+  File "C:\Users\HSLEE\Documents\Todoc\fpga\wt\design-v115\skills\analog-gmid-design\gmid_engine\tests\integration\test_s0_layer_9circuits.py", line 181, in _searched
+    return BASELINE[circuit]["status"] == ["ok", "ok"]
+           ~~~~~~~~^^^^^^^^^
+KeyError: 'cnr_ota'

@@ -1,0 +1,226 @@
+{
+ "case_set_same": true,
+ "replay_set_same": true,
+ "case_verdict_diff": {
+  "35-v3-changed-scope": [
+   "FAIL",
+   "PASS"
+  ]
+ },
+ "step_set_diff": {},
+ "step_verdict_diff": {
+  "35-v3-changed-scope::cross-block-not-targeted": [
+   "FAIL",
+   "PASS"
+  ],
+  "35-v3-changed-scope::decorator-mutant-applied": [
+   "FAIL",
+   "PASS"
+  ],
+  "35-v3-changed-scope::enclosing-guard-survivor": [
+   "FAIL",
+   "PASS"
+  ],
+  "35-v3-changed-scope::header-default-bool": [
+   "FAIL",
+   "PASS"
+  ],
+  "35-v3-changed-scope::same-block-later-use": [
+   "FAIL",
+   "PASS"
+  ],
+  "35-v3-changed-scope::unchanged-stmt-survivor": [
+   "FAIL",
+   "PASS"
+  ]
+ },
+ "step_exit_diff": {
+  "35-v3-changed-scope::cross-block-not-targeted": [
+   1,
+   0
+  ],
+  "35-v3-changed-scope::decorator-mutant-applied": [
+   1,
+   0
+  ],
+  "35-v3-changed-scope::unchanged-stmt-survivor": [
+   1,
+   0
+  ]
+ },
+ "step_observed_diff": {
+  "35-v3-changed-scope::cross-block-not-targeted": [
+   {
+    "lines": 17,
+    "by_result": {}
+   },
+   {
+    "lines": 17,
+    "by_result": {
+     "not_targeted": [
+      "rt_engine:rt_k:arith:body[2].value",
+      "rt_engine:rt_k:const+:body[0].value",
+      "rt_engine:rt_k:const+:body[2].value.right",
+      "rt_engine:rt_k:const-:body[0].value",
+      "rt_engine:rt_k:const-:body[2].value.right",
+      "rt_engine:rt_k:stmt_delete:body[0]",
+      "rt_engine:rt_k:stmt_delete:body[2]"
+     ]
+    }
+   }
+  ],
+  "35-v3-changed-scope::unchanged-stmt-survivor": [
+   {
+    "lines": 10,
+    "by_result": {}
+   },
+   {
+    "lines": 10,
+    "by_result": {
+     "not_targeted": [
+      "rt_engine:rt_calc:arith:body[0].value.args[0]",
+      "rt_engine:rt_calc:const+:body[0].value.args[0].right",
+      "rt_engine:rt_calc:const-:body[0].value.args[0].right",
+      "rt_engine:rt_calc:stmt_delete:body[0]"
+     ]
+    }
+   }
+  ]
+ },
+ "replay_diff": {},
+ "red_steps_base": [
+  "cross-block-not-targeted",
+  "decorator-mutant-applied",
+  "enclosing-guard-survivor",
+  "header-default-bool",
+  "same-block-later-use",
+  "unchanged-stmt-survivor"
+ ],
+ "fail_to_pass_35": [
+  "cross-block-not-targeted",
+  "decorator-mutant-applied",
+  "enclosing-guard-survivor",
+  "header-default-bool",
+  "same-block-later-use",
+  "unchanged-stmt-survivor"
+ ],
+ "only_35_differs_in_verdict": true,
+ "step_verdict_diff_equals_red": true,
+ "contract7_same": {
+  "34-v3-exempt-binding": true,
+  "v3_survivor": true,
+  "26-gate-output-utf8": true,
+  "27f-v6-reconfigure-except": true,
+  "28-v3-gmid-options": true,
+  "29-v4-decision-exempt": true,
+  "31-v3-git-history": true
+ },
+ "merged_counts": {
+  "cases": {
+   "PASS": 54,
+   "SKIPPED": 7
+  },
+  "steps": {
+   "PASS": 621,
+   "RECORD": 13
+  }
+ },
+ "base_counts": {
+  "cases": {
+   "PASS": 53,
+   "SKIPPED": 7,
+   "FAIL": 1
+  },
+  "steps": {
+   "PASS": 615,
+   "RECORD": 13,
+   "FAIL": 6
+  }
+ },
+ "coverage": {
+  "expected": 61,
+  "got": 61,
+  "missing": [],
+  "extra": []
+ },
+ "merged_35_steps": {
+  "unchanged-stmt-survivor": {
+   "verdict": "PASS",
+   "exit": 0,
+   "observed": {
+    "lines": 10,
+    "by_result": {
+     "not_targeted": [
+      "rt_engine:rt_calc:arith:body[0].value.args[0]",
+      "rt_engine:rt_calc:const+:body[0].value.args[0].right",
+      "rt_engine:rt_calc:const-:body[0].value.args[0].right",
+      "rt_engine:rt_calc:stmt_delete:body[0]"
+     ]
+    }
+   }
+  },
+  "changed-stmt-survivor": {
+   "verdict": "PASS",
+   "exit": 1,
+   "observed": null
+  },
+  "enclosing-guard-survivor": {
+   "verdict": "PASS",
+   "exit": 1,
+   "observed": null
+  },
+  "unwrapped-stmt": {
+   "verdict": "PASS",
+   "exit": 1,
+   "observed": null
+  },
+  "header-only-change": {
+   "verdict": "PASS",
+   "exit": 1,
+   "observed": null
+  },
+  "header-default-bool": {
+   "verdict": "PASS",
+   "exit": 1,
+   "observed": null
+  },
+  "delete-then-use": {
+   "verdict": "PASS",
+   "exit": 1,
+   "observed": null
+  },
+  "decorator-mutant-applied": {
+   "verdict": "PASS",
+   "exit": 0,
+   "observed": null
+  },
+  "same-block-later-use": {
+   "verdict": "PASS",
+   "exit": 1,
+   "observed": null
+  },
+  "loop-carried-use": {
+   "verdict": "PASS",
+   "exit": 1,
+   "observed": null
+  },
+  "cross-block-not-targeted": {
+   "verdict": "PASS",
+   "exit": 0,
+   "observed": {
+    "lines": 17,
+    "by_result": {
+     "not_targeted": [
+      "rt_engine:rt_k:arith:body[2].value",
+      "rt_engine:rt_k:const+:body[0].value",
+      "rt_engine:rt_k:const+:body[2].value.right",
+      "rt_engine:rt_k:const-:body[0].value",
+      "rt_engine:rt_k:const-:body[2].value.right",
+      "rt_engine:rt_k:stmt_delete:body[0]",
+      "rt_engine:rt_k:stmt_delete:body[2]"
+     ]
+    }
+   }
+  }
+ }
+}

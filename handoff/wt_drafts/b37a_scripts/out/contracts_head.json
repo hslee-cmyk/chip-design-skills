@@ -1,0 +1,275 @@
+{
+ "c3_library_all_nonrail": {
+  "common_gate_amplifier": {
+   "renamed": 5,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "current_reuse_telescopic_ota": {
+   "renamed": 35,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "folded_cascode": {
+   "renamed": 12,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "ngcc_3stage_ff": {
+   "renamed": 11,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "nmcnr_amplifier": {
+   "renamed": 15,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "pushpull_follower_buffer": {
+   "renamed": 6,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "sf_pushpull_output_opamp": {
+   "renamed": 20,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "two_stage_ota": {
+   "renamed": 7,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  },
+  "two_stage_ota_sf": {
+   "renamed": 8,
+   "same": true,
+   "diff_keys": [],
+   "diff_devices": {}
+  }
+ },
+ "c3_synthetic_ports_only": {
+  "ota": {
+   "all_same": true,
+   "distinct": 1
+  },
+  "tele": {
+   "all_same": true,
+   "distinct": 1
+  }
+ },
+ "b1_nonport_gate_rename": {
+  "same": false,
+  "diff_keys": [
+   "_device_roles_autofilled",
+   "device_roles"
+  ]
+ },
+ "c4": {
+  "sig_a": {
+   "M2": "S1",
+   "M3": "S1",
+   "M4": "S1",
+   "M5": "S1",
+   "M6": "S1"
+  },
+  "Vip": {
+   "M2": "S1",
+   "M3": "S1",
+   "M4": "S1",
+   "M5": "S1",
+   "M6": "S1"
+  }
+ },
+ "c5": {
+  "has_ports_kw": true,
+  "sig_a": [
+   [
+    "M0"
+   ],
+   [
+    "M1"
+   ],
+   [
+    "M2"
+   ],
+   [
+    "M3"
+   ],
+   [
+    "M4"
+   ],
+   [
+    "M5"
+   ],
+   [
+    "M6"
+   ]
+  ],
+  "Vip": [
+   [
+    "M0"
+   ],
+   [
+    "M1"
+   ],
+   [
+    "M2"
+   ],
+   [
+    "M3"
+   ],
+   [
+    "M4"
+   ],
+   [
+    "M5"
+   ],
+   [
+    "M6"
+   ]
+  ],
+  "vin_p": [
+   [
+    "M0"
+   ],
+   [
+    "M1"
+   ],
+   [
+    "M2"
+   ],
+   [
+    "M3"
+   ],
+   [
+    "M4"
+   ],
+   [
+    "M5"
+   ],
+   [
+    "M6"
+   ]
+  ],
+  "Vinp": [
+   [
+    "M0"
+   ],
+   [
+    "M1"
+   ],
+   [
+    "M2"
+   ],
+   [
+    "M3"
+   ],
+   [
+    "M4"
+   ],
+   [
+    "M5"
+   ],
+   [
+    "M6"
+   ]
+  ]
+ },
+ "c6": {
+  "reject": {
+   "no_key": "ValueError: ports: 선언이 없다(DEC-62)",
+   "null": "ValueError: ports: dict가 아니다(DEC-62)",
+   "list": "ValueError: ports: dict가 아니다(DEC-62)",
+   "item_not_dict": "ValueError: ports: 항목 형식 오류 'sig_a'(DEC-62)",
+   "no_role": "ValueError: ports: 항목 형식 오류 'sig_a'(DEC-62)",
+   "role_vocab": "ValueError: ports: role 어휘 밖 'sig_a'(DEC-62)",
+   "dir_contra_in": "ValueError: ports: direction과 role 모순 'sig_a'(DEC-62)",
+   "dir_contra_out": "ValueError: ports: direction과 role 모순 'out'(DEC-62)",
+   "empty_name": "ValueError: ports: 빈 넷 이름(DEC-62)",
+   "not_in_netlist": "ValueError: ports: netlist에 없는 넷 ['zz_absent'](DEC-62)",
+   "on_rail": "ValueError: ports: 레일과 겹치는 포트 ['vdd'](DEC-62)"
+  },
+  "accept": {
+   "empty": {
+    "inputs": [],
+    "outputs": []
+   },
+   "comment_only": {
+    "inputs": [],
+    "outputs": []
+   },
+   "outputs_only": {
+    "inputs": [],
+    "outputs": [
+     "out"
+    ]
+   },
+   "inputs_only": {
+    "inputs": [
+     "sig_a",
+     "sig_b"
+    ],
+    "outputs": []
+   },
+   "with_direction_consistent": {
+    "inputs": [
+     "sig_a",
+     "sig_b"
+    ],
+    "outputs": [
+     "out"
+    ]
+   }
+  },
+  "accessor_direct": {
+   "no_key": "ValueError: ports: 선언이 없다(DEC-62)",
+   "null": "ValueError: ports: dict가 아니다(DEC-62)",
+   "list": "ValueError: ports: dict가 아니다(DEC-62)",
+   "item_not_dict": "ValueError: ports: 항목 형식 오류 'sig_a'(DEC-62)",
+   "no_role": "ValueError: ports: 항목 형식 오류 'sig_a'(DEC-62)",
+   "role_vocab": "ValueError: ports: role 어휘 밖 'sig_a'(DEC-62)",
+   "dir_contra_in": "ValueError: ports: direction과 role 모순 'sig_a'(DEC-62)",
+   "dir_contra_out": "ValueError: ports: direction과 role 모순 'out'(DEC-62)",
+   "empty_name": "ValueError: ports: 빈 넷 이름(DEC-62)",
+   "not_in_netlist": "ACCEPTED",
+   "on_rail": "ACCEPTED"
+  },
+  "linked": {
+   "linked_differs": "ValueError: ports: 연결 파일 선언이 진입 파일과 다르다 b.topology.json(DEC-62)",
+   "linked_vocab": "ValueError: ports: role 어휘 밖 'sig_a'(DEC-62)",
+   "linked_absent": "ACCEPTED",
+   "linked_same": "ACCEPTED"
+  }
+ },
+ "c7": {
+  "no_direction": [
+   [
+    "M1",
+    "M2"
+   ]
+  ],
+  "with_direction": [
+   [
+    "M1",
+    "M2"
+   ]
+  ],
+  "empty_ports_with_offset_pair": "ValueError: C:\\g68\\b37a_33by5l_l\\c7_empty_ports_with_offset_pair.topology.json: offset 쌍이 있는데 `ports`에 입력 role 넷이 없다(DEC-62)",
+  "empty_ports_no_offset_pair": []
+ },
+ "c8": {
+  "seq": [
+   1,
+   2,
+   2
+  ]
+ }
+}

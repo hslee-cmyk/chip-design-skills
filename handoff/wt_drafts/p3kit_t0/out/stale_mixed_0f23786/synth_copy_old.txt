@@ -1,0 +1,8 @@
+....                                                                     [100%]
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g150\s_copy_old\skills\analog-gmid-design\assets\tests\contracts\test_ic5.py::test_gate_docstring_declares_blind_spots
+PASSED ..\..\..\..\..\..\g150\s_copy_old\skills\analog-gmid-design\assets\tests\contracts\test_dup_w_calc.py::test_size_transistor_calls_new_function
+PASSED ..\..\..\..\..\..\g150\s_copy_old\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_sizing_recipe_source_has_no_l_role_multipliers
+PASSED ..\..\..\..\..\..\g150\s_copy_old\skills\analog-gmid-design\assets\tests\contracts\test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller
+4 passed in 7.43s

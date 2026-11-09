@@ -1,0 +1,45 @@
+---
+kind: recommend
+headers: K13
+candidate_doc: C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-31/plan_v6386_decision_candidates.md
+candidate_sha256: effd71da882eeab633bca16e8434ecda5db4505463835baacf91dbd68c272ab0
+validation: C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-31/plan_v6386_validation40_K13.md
+reason:
+---
+# 점검 파일 -- K13 (계획 v6.38.6, plan/v6386 9ddfbe31) -- 셋째 판(K10과 분리, 검증 39 B39-M1·M2·C39-M1 반영)
+
+## bkit 단계표
+| 대상 | 계획 | 검증 | 승인 | design | card |
+|---|---|---|---|---|---|
+| 계획 v6.38.6 (plan/v6386 9ddfbe31, 커밋 13개) | 첫째~열셋째 | 검증 34~39, K13 절은 열셋째 커밋 때 재작성 → 검증 40 | K10·K13 결정 뒤 승인 요청 | design v1.16.1은 계획 승인 뒤 재검증 | 안 함(design 승인 뒤) |
+
+## 단계별 점검표
+- graph 단일 정본: 새 필드 = PDK 선언 항목(R3·R4·R9 등), writer = 선언 로더 하나, R10 pdk_root 세 곳은 graph 규칙 3 어긋남(결정 전 ⚠) -- 실측(후보 문서 K13 ③·⑤)
+- 상수 발명: 새 상수 0(값은 PDK 선언 출처 칸 -- O-197) -- 실측(후보 문서 K13 ③)
+- 회로 이름: 0 -- 실측(후보 문서 K13 본문)
+- 만들면 배선(원칙 9): 중심 원칙 -- (가)는 첫 소비 card SF-1이 R3·R4·로더 확장·DEC-79 식을 함께 만듦, (나) 분리 병합은 소비자 0 기간 ⚠, R7~R10은 (r3) 역할별 소비자 자리 배정 -- 실측(후보 문서 K13 대안표 둘)
+- fail-closed(원칙 10): R3·R4 미선언이면 E-12(계획:2374)로 그 점 면적 정의 불능(점 단위, 실행 정지 아님) -- (가)가 공백 0 -- 실측(계획:2374 E-12, 후보 문서 K13 사실)
+- 계획 먼저: design 미착수 -- 실측(design-v115 v1.16.1에서 정지, 계획 승인 대기)
+- 작성자 ≠ 검증자: 작성 = 계획 작성 agent·점검 파일 = 오케스트레이터, 검증 = 검증 40 agent -- 실측(검증 39·40 기록)
+- G-10·블록 안 재계산·DC/AC: 해당 없음(코드 변경 0 -- 계획 결정 질문)
+
+## 원래 취지와 다름
+- (가): SF-1 성격 확장(원래 취지와 다름 후보 -- O-128 Q5 SF-1 = spec 선언 card).
+- (나)를 고르면: O-182 Q-CB2 배정(R1·R2·R5 = SF-1)을 새 card로 옮김(원래 취지와 다름 후보).
+- (r3): R7·R8·R10은 소비자 card가 계획에 없어 각각 별도 결정 대상으로 남음(배정 공백 표지).
+
+## 권고 실측 출처
+- `wt/_drafts/evidence/2026-10-31/k13_cprime/out.txt`(C′), `wt/_drafts/evidence/2026-10-31/k13_cprime/eff_out.txt`(면적 효율), 감사 `wt/_drafts/evidence/2026-10-31/o197_pdk_portability_audit.md` S3·S4·T1·E1, 검증 38·39 `wt/_drafts/evidence/2026-10-31/plan_v6386_validation39.md`.
+
+## 권고 확인표: K13
+| # | 항목 | 내용 | 근거 칸 |
+|---|---|---|---|
+| ① | 지적 사실 직접 재확인 | SF-1 범위 9 '선언 항목은 이 범위가 만든다'·상한 DEC-79 인용, N3.16 PDK 상수 행(O-182 Q-CB2 배정), R 행(열두째 커밋), E-12(계획:2374) | 실측(plan-v6386 계획 grep HEAD 02ffeca4) |
+| ② | 계획 전체 grep | DEC-79 C 면적 식 구현 card 언급 0, '로더 확장' 언급 = R 행·Status, R7~R10 소비자 card 언급 0 | 실측(계획 grep) |
+| ③ | 원칙 전수 | 원칙 9, 7, 11·O-197(R9 E1·R10 S4 어긋남), graph 규칙 3(R10), 10(E-12 점 정의 불능), O-183, 24((가) SF-1 확장·(나) O-182 배정 이동) | 실측(후보 문서 K13 ③) |
+| ④ | 대안 비교표 + ⚠ | (가)(나)(다) 그리고 R7~R10 (r1) 한 card 편입 ⚠ 원칙 9(R7·R8) / (r2) 따로 둠 ⚠ R9·R10 원칙 11·graph 3 미해소 / (r3) 역할별 소비자 자리 -- 권고 (가) + (r3) | 실측(후보 문서 K13 대안표 둘) |
+| ⑤ | 실현 가능성 실측 | 로더 형식 넷에 DRC tech 형식·양 사이 식 없음, 규칙표 MIM 절 값 N/A, R2 기존 형식 가능; R9 소비자 pdk_decl.py:47·526, R10 소비자 = 로더 둘·선언 셋, R7 엔진 소비자 0(test 31 파일), R8 = LR8·단위 9 MOD7 | 실측(master 325ee241 git grep), agent 인용(검증 38 MIM 절, 감사 S3·T1) |
+| ⑥ | 열린 결정 상호작용·design 영향 | O-194 K9·O-195가 DEC-79 식에 기댐, Q-2(R6) SF-1 안 기존 열린 결정, design 40 §3.1-1 (a)·§7.1 함께 개정, K11 (ii)와 R7(S2 진입점) 겹침, C′ 기준선 9·(가) 9·(나) 9·(다) 9 | 실측(wt/_drafts/evidence/2026-10-31/k13_cprime/out.txt), agent 인용(감사 D1·D2) |
+| ⑦ | 원래 취지 | (가) = SF-1 성격 확장, (나) = O-182 Q-CB2 배정 이동, (다) = SF-1 범위 유지(O-195 귀결 지연) | 실측(계획 N6.1 SF-1 행 머리·N3.16 PDK 상수 행) |
+| ⑧ | 원문 쪽 + 로컬 PDF | PDK 선언·로더 구조라 회로 원문 대상 아님 | 해당 없음(PDK 원본 사실은 선언 출처 칸 몫 -- O-197) |
+| ⑨ | 물리·회로이론 검증 | 결정자 = MIM 실현 면적(O-195), 큰 배열 효율 ≈ u²/(u+s)² -- u = 1~30 µm에서 0.30~0.95, 면적 유도 C 상한 8.9~28.4 pF(two_stage)·23.6~75.7 pF(current_reuse); R7~R10 배정은 소프트웨어 자리라 물리 결정자 없음; 판정 조건부 맞음(조건: SF-1 커밋 로더(R9 포함) → 선언 → 식 → 소비자 분리, 로더 형식 추가는 기존 양 sha·값 불변 확인, R7·R8·R10 card 정할 때까지 결정 대상 표지) | 실측(wt/_drafts/evidence/2026-10-31/k13_cprime/eff_out.txt), agent 인용(검증 35 K9 상한) |

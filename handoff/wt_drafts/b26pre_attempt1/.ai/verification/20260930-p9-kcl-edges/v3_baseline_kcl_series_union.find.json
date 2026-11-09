@@ -1,0 +1,10 @@
+{
+ "head": "c8d55dbfc8772fe1d37c2a559a50aa4454fc965b",
+ "key": "kcl_series_union.find",
+ "n_inventory": 144,
+ "exit": 0,
+ "elapsed_s": 193.86,
+ "summary": [
+  "183 passed, 3 xfailed in 187.40s (0:03:07)"
+ ]
+}

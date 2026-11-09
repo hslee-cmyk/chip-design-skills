@@ -1,0 +1,38 @@
+F.F...F                                                                  [100%]
+================================== FAILURES ===================================
+____________________________ test_p3rd_plan_exit_0 ____________________________
+
+    def test_p3rd_plan_exit_0():
+        rc, out = _p3rd_plan()
+>       assert rc == 0, {k: len(out.get(k, [])) for k in ("upward", "cycles", "unassigned", "conflicts", "reg_mismatch", "import_time_high")}
+E       AssertionError: {'conflicts': 0, 'cycles': 1, 'import_time_high': 0, 'reg_mismatch': 0, ...}
+E       assert 1 == 0
+
+C:\g162\tmp\pt\test_p3rd_proto.py:35: AssertionError
+____________________________ test_p3rd_layer_empty ____________________________
+
+    def test_p3rd_layer_empty():
+        _, out = _p3rd_plan()
+>       assert out["upward"] == [] and out["cycles"] == []
+E       AssertionError: assert (['design_repo...network', ...] == []
+E         
+E         Left contains 34 more items, first extra item: 'design_report.py::save_html_report -> design_report.py::render_html_report'
+E         Use -v to get more diff)
+
+C:\g162\tmp\pt\test_p3rd_proto.py:45: AssertionError
+__________________________ test_p3rd_no_phase3_hold ___________________________
+
+    def test_p3rd_no_phase3_hold():
+        text = (_ROOT / _REG).read_text(encoding="utf-8")
+>       assert re.findall(r"보류\(Phase 3\)", text) == []
+E       AssertionError: assert ['보류(Phase 3)...hase 3)', ...] == []
+E         
+E         Left contains 9 more items, first extra item: '보류(Phase 3)'
+E         Use -v to get more diff
+
+C:\g162\tmp\pt\test_p3rd_proto.py:67: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\..\..\..\..\..\g162\tmp\pt\test_p3rd_proto.py::test_p3rd_plan_exit_0
+FAILED ..\..\..\..\..\..\g162\tmp\pt\test_p3rd_proto.py::test_p3rd_layer_empty
+FAILED ..\..\..\..\..\..\g162\tmp\pt\test_p3rd_proto.py::test_p3rd_no_phase3_hold
+3 failed, 4 passed in 17.97s

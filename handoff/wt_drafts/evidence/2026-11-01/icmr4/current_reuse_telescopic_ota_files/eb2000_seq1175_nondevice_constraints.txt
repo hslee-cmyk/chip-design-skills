@@ -1,0 +1,7 @@
+{'name': 'spec:area_search_m2<=', 'c': -1.5070480078578008e+16, 'value': None, 'active': True}
+{'name': 'ss:2:pm_cm_ss_deg>=', 'c': -15.48686173113824, 'value': None, 'active': True}
+{'name': 'ss:5:offset_in_sigma_mv<=', 'c': 3.3493956180621245, 'value': None, 'active': False}
+{'name': 'ss:6:offset_sys_mv<=', 'c': 4.245142650788394, 'value': None, 'active': False}
+{'name': 'ss:7:swing_out_v>=', 'c': 11.53142348522861, 'value': None, 'active': False}
+{'name': 'ss:8:icm_margin_v>=', 'c': 0.39432763573563434, 'value': None, 'active': True}
+{'name': 'ss:9:noise_out_int_vrms<=', 'c': 297.8241816373635, 'value': None, 'active': False}

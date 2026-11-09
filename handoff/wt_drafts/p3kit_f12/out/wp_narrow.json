@@ -1,0 +1,452 @@
+{
+ "targets": [
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py",
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py",
+  "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py",
+  "workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py",
+  "workspaces/current-reuse-telescopic-ota-report/resize.py",
+  "workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py",
+  "workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py",
+  "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py",
+  "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py",
+  "workspaces/current-reuse-telescopic-ota-report/stick.py",
+  "workspaces/current-reuse-telescopic-ota-report/structural_symmetry_probe.py",
+  "workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py",
+  "workspaces/two-stage-ota-report/check_box_shape.py",
+  "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py",
+  "workspaces/two-stage-ota-report/diagnose_gain_sweep.py",
+  "workspaces/two-stage-ota-report/diagnose_gain_sweep2.py"
+ ],
+ "folders": [
+  "workspaces/current-reuse-telescopic-ota-report",
+  "workspaces/two-stage-ota-report"
+ ],
+ "depths": [
+  2
+ ],
+ "narrow_globs": [
+  "workspaces/current-reuse-telescopic-ota-report/*.py",
+  "workspaces/two-stage-ota-report/*.py"
+ ],
+ "rows_text": "| gmid-code-author | `workspaces/current-reuse-telescopic-ota-report/*.py` | -- | 없음 |\n| gmid-code-author | `workspaces/two-stage-ota-report/*.py` | -- | 없음 |\n",
+ "anchor_line": 602,
+ "hash_before": "7167e02839f86c4ecbcd91a63a9833c4d83a8aab8008bfe2d8cfc36206d2596d",
+ "hash_after": "16b899d1c745ddd0d305b2a977eecc74b0c830d89507d7eb3476b7323a08aec1",
+ "hash_wide": "31828c5e059dd41ed7a89f4d8757c402f9f7a61340411444d8101855f0623b57",
+ "read_plan_tables_same": true,
+ "rows_before": 68,
+ "rows_after": 70,
+ "tracked_py_workspaces": 39,
+ "covered_after": [
+  "workspaces/current-reuse-telescopic-ota-report/build_html.py",
+  "workspaces/current-reuse-telescopic-ota-report/build_report.py",
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py",
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py",
+  "workspaces/current-reuse-telescopic-ota-report/probe_crossover_pairing_alternatives.py",
+  "workspaces/current-reuse-telescopic-ota-report/probe_d1_verify.py",
+  "workspaces/current-reuse-telescopic-ota-report/probe_group_split_reassembly.py",
+  "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py",
+  "workspaces/current-reuse-telescopic-ota-report/probe_l3_groups.py",
+  "workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py",
+  "workspaces/current-reuse-telescopic-ota-report/resize.py",
+  "workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py",
+  "workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py",
+  "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py",
+  "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py",
+  "workspaces/current-reuse-telescopic-ota-report/stick.py",
+  "workspaces/current-reuse-telescopic-ota-report/structural_symmetry_probe.py",
+  "workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py",
+  "workspaces/two-stage-ota-report/check_box_shape.py",
+  "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py",
+  "workspaces/two-stage-ota-report/diagnose_gain_sweep.py",
+  "workspaces/two-stage-ota-report/diagnose_gain_sweep2.py"
+ ],
+ "covered_after_n": 22,
+ "covered_after_nontarget": [
+  "workspaces/current-reuse-telescopic-ota-report/build_html.py",
+  "workspaces/current-reuse-telescopic-ota-report/build_report.py",
+  "workspaces/current-reuse-telescopic-ota-report/probe_crossover_pairing_alternatives.py",
+  "workspaces/current-reuse-telescopic-ota-report/probe_d1_verify.py",
+  "workspaces/current-reuse-telescopic-ota-report/probe_group_split_reassembly.py",
+  "workspaces/current-reuse-telescopic-ota-report/probe_l3_groups.py"
+ ],
+ "covered_wide_n": 38,
+ "freed_vs_wide": [
+  "workspaces/current-reuse-telescopic-ota-report/spice/cmfb_amp_gain_sympy_derivation.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/cmfb_cmrr_ngspice_crosscheck.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/gen_single_device.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/stage1_cmrr_ngspice_crosscheck.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/stage1_cmrr_sympy_derivation.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/stage1_psrr_ngspice_crosscheck.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/stage1_psrr_sympy_derivation.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/stage2_battery_psrr_ngspice_crosscheck.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/stage2_battery_psrr_sympy_derivation.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/stage2_dump_exact_forms.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/stage2_numeric_mna_validate.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/stage2_rout_parallel_conjecture_check.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/stage3_full_circuit_ngspice_crosscheck.py",
+  "workspaces/current-reuse-telescopic-ota-report/spice/vg15_vop1_kcl_sympy_derivation.py",
+  "workspaces/verilog-rtl-workspace/desc-opt/gen_html.py",
+  "workspaces/verilog-rtl-workspace/desc-opt/launch_all.py"
+ ],
+ "targets_code_author_only_after": true,
+ "outside_unchanged_n": 17,
+ "outside_changed": [],
+ "verilog_rtl_py": {
+  "workspaces/verilog-rtl-workspace/desc-opt/gen_html.py": {
+   "overlaps_before": false,
+   "overlaps_after": false,
+   "overlaps_wide": true
+  },
+  "workspaces/verilog-rtl-workspace/desc-opt/launch_all.py": {
+   "overlaps_before": false,
+   "overlaps_after": false,
+   "overlaps_wide": true
+  }
+ },
+ "probes": {
+  "workspaces/run_harness.py": {
+   "before": {
+    "gmid-code-author": true,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "after": {
+    "gmid-code-author": true,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "ov_before": true,
+   "ov_after": true,
+   "classify": "source"
+  },
+  "workspaces/x.py": {
+   "before": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": true
+   },
+   "after": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": true
+   },
+   "ov_before": true,
+   "ov_after": true,
+   "classify": null
+  },
+  "workspaces/current-reuse-telescopic-ota-report/__init__.py": {
+   "before": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": true
+   },
+   "after": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": true
+   },
+   "ov_before": true,
+   "ov_after": true,
+   "classify": null
+  },
+  "workspaces/current-reuse-telescopic-ota-report/conftest.py": {
+   "before": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": true
+   },
+   "after": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": true
+   },
+   "ov_before": true,
+   "ov_after": true,
+   "classify": null
+  },
+  "workspaces/two-stage-ota-report/conftest.py": {
+   "before": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": true
+   },
+   "after": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": true
+   },
+   "ov_before": true,
+   "ov_after": true,
+   "classify": null
+  },
+  "workspaces/current-reuse-telescopic-ota-report/spice/x.py": {
+   "before": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "after": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "ov_before": false,
+   "ov_after": false,
+   "classify": null
+  },
+  "workspaces/current-reuse-telescopic-ota-report/a/b/__init__.py": {
+   "before": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "after": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "ov_before": false,
+   "ov_after": false,
+   "classify": null
+  },
+  "workspaces/two-stage-ota-report/sitecustomize.py": {
+   "before": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": true
+   },
+   "after": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": true
+   },
+   "ov_before": true,
+   "ov_after": true,
+   "classify": null
+  },
+  "workspaces/current-reuse-telescopic-ota-report/new_probe.py": {
+   "before": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "after": {
+    "gmid-code-author": true,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "ov_before": false,
+   "ov_after": true,
+   "classify": null
+  },
+  "workspaces/folded-cascode-ota-report/x.py": {
+   "before": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "after": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "ov_before": false,
+   "ov_after": false,
+   "classify": null
+  },
+  "workspaces/verilog-rtl-workspace/desc-opt/gen_html.py": {
+   "before": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "after": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "ov_before": false,
+   "ov_after": false,
+   "classify": null
+  },
+  "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session18_save.py": {
+   "before": {
+    "gmid-code-author": false,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "after": {
+    "gmid-code-author": true,
+    "gmid-test-author": false,
+    "gmid-verification-auditor": false,
+    "오케스트레이터": false,
+    "사용자": false
+   },
+   "ov_before": false,
+   "ov_after": true,
+   "classify": null
+  }
+ },
+ "per_target": {
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/current-reuse-telescopic-ota-report/resize.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/current-reuse-telescopic-ota-report/stick.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/current-reuse-telescopic-ota-report/structural_symmetry_probe.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/two-stage-ota-report/check_box_shape.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/two-stage-ota-report/diagnose_gain_sweep.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  },
+  "workspaces/two-stage-ota-report/diagnose_gain_sweep2.py": {
+   "gmid-code-author": true,
+   "gmid-test-author": false,
+   "gmid-verification-auditor": false,
+   "오케스트레이터": false,
+   "사용자": false
+  }
+ },
+ "ALL_OK": true
+}

@@ -1,0 +1,70 @@
+........................................................................ [  8%]
+........................................................................ [ 17%]
+........................................................................ [ 26%]
+........................................................................ [ 35%]
+........................xxxxxx..x.........xxxxx......................... [ 44%]
+........................................................................ [ 53%]
+........................................................................ [ 61%]
+.........................F.F............................................ [ 70%]
+........................................................................ [ 79%]
+.x...x.................................................................. [ 88%]
+.................................................................x...... [ 97%]
+.....................                                                    [100%]
+================================== FAILURES ===================================
+__________________ test_base_blob_reader_reads_the_base_tree __________________
+
+    def test_base_blob_reader_reads_the_base_tree():
+        # oracle (a): base 커밋에 옛 자리가 있다는 사실이 기대값이다 -- 아래 기준선 대조가 공허해지지 않게.
+        for name in _relocated_names():
+>           assert base_blob_text(f"{_TESTS_REL}/{name}.py").strip()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py:655: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+rel_path = 'skills/analog-gmid-design/assets/tests/probe_L_search_window.py'
+
+    def base_blob_text(rel_path: str) -> str:
+        """base 커밋에 있던 `rel_path`의 내용(개행은 정규화해서 줄 목록 비교에 쓴다)."""
+        proc = subprocess.run(["git", "-C", str(_REPO_ROOT), "show", f"{_BASE_COMMIT}:{rel_path}"],
+                              capture_output=True)
+>       assert proc.returncode == 0, (
+            f"base {_BASE_COMMIT[:7]}의 {rel_path}를 읽지 못했다: {proc.stderr.decode('utf-8', 'replace')}")
+E       AssertionError: base 939f926의 skills/analog-gmid-design/assets/tests/probe_L_search_window.py를 읽지 못했다: fatal: not a git repository (or any of the parent directories): .git
+E         
+E       assert 128 == 0
+E        +  where 128 = CompletedProcess(args=['git', '-C', 'C:\\g60\\base', 'show', '939f926fe97ba27f9c8d5110a089253c5a4501e3:skills/analog-g...dow.py'], returncode=128, stdout=b'', stderr=b'fatal: not a git repository (or any of the parent directories): .git\n').returncode
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py:241: AssertionError
+_______________ test_moved_tool_matches_base_except_path_lines ________________
+
+    def test_moved_tool_matches_base_except_path_lines():
+        # oracle (c): 기준선 = base 커밋 blob 그 자체(계약 5의 '경로 계산 줄을 뺀 나머지가 원본과 같다').
+        new_path = _TOOLS_DIR / _TOOL_NAME
+        assert new_path.is_file(), f"{new_path} 가 없다"
+>       assert_only_path_lines_changed(base_blob_text(f"{_TESTS_REL}/{_TOOL_NAME}"),
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                       new_path.read_text(encoding="utf-8"), _TOOL_NAME)
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py:672: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+rel_path = 'skills/analog-gmid-design/assets/tests/derive_achievable_bounds.py'
+
+    def base_blob_text(rel_path: str) -> str:
+        """base 커밋에 있던 `rel_path`의 내용(개행은 정규화해서 줄 목록 비교에 쓴다)."""
+        proc = subprocess.run(["git", "-C", str(_REPO_ROOT), "show", f"{_BASE_COMMIT}:{rel_path}"],
+                              capture_output=True)
+>       assert proc.returncode == 0, (
+            f"base {_BASE_COMMIT[:7]}의 {rel_path}를 읽지 못했다: {proc.stderr.decode('utf-8', 'replace')}")
+E       AssertionError: base 939f926의 skills/analog-gmid-design/assets/tests/derive_achievable_bounds.py를 읽지 못했다: fatal: not a git repository (or any of the parent directories): .git
+E         
+E       assert 128 == 0
+E        +  where 128 = CompletedProcess(args=['git', '-C', 'C:\\g60\\base', 'show', '939f926fe97ba27f9c8d5110a089253c5a4501e3:skills/analog-g...nds.py'], returncode=128, stdout=b'', stderr=b'fatal: not a git repository (or any of the parent directories): .git\n').returncode
+
+skills\analog-gmid-design\assets\tests\contracts\test_ts6_probe_relocate.py:241: AssertionError
+=========================== short test summary info ===========================
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_base_blob_reader_reads_the_base_tree
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines
+2 failed, 796 passed, 15 xfailed in 309.83s (0:05:09)
+exit 1

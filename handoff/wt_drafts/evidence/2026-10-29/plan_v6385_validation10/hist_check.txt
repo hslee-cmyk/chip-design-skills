@@ -1,0 +1,38 @@
+HIST	M9a 손 판정 F라 권고 (다) B 멤버 종속 + (A) 옛 OrderHints 삭제·쓰기 계획 키 재작성(card TB-1);
+HIST	C 상자는 Q-CB1 (나)로 해소 권고)
+HIST	사용자 결정됨)·Q-W1 후보·Q-KV1 (다)(DEC-95 (3) ①·② 개정·TB-1 범위)·Q-CA1(채택 시 U-35 `user_spec` 삭제)·Q-CB1('10번'·N13·DEC-105 (10)(a));
+HIST	M9a 손 판정 F(검증 8 MJ8-1)라 권고 (다)
+MISS	| DEC-95 | **탐색 방법 묶음**(reference 검토 Q10): (1) 외층 L bin 처리 = LR10 (2) 면적 동률 폭 ΔA_tie = `MANUFACTURINGGRID` × max(두 점 bbox 변)(DEC-79 '격자 한 칸'의 식) (3) 종속 gm_id 소자
+MISS	입력 = S1v `Block.roles`·`device.dc_coord`·spec(GBW·rout)·L 동치류, topology 태그는 쓰지 않는다;
+MISS	**W와 실현 기하의 관계**(검증 5 V5-2
+PLAN	결합 C 하한 결정자 = 결합비 α와 SR(대신호)
+MISS	권고 (나) 역할별 분리, **원래 취지와 다름**
+MISS	**표지 자리·되돌릴 목록**(design 영향 대조 `wt/_drafts/evidence/2026-10-29/plan_v6385_design_impact.md` §3 2): 권고안 문언이 본문에 들어간 자리 = DEC-105 (2) '탐색 평가와 실현 평가'·'실현 총 폭'·측정 구성
+MISS	권고**(승인 시 ⚠ 원인이 상자에서 해소, (i) 불필요;
+HIST	권고 정리: Q-ZG1 = (나) 기하 W_min·L_min, C 상자는 Q-CB1에 따름.
+HIST	**M9a R13 손 판정**(검증 8 MJ8-1
+HIST	F = 그 밖 신호 소자, B = 부하·미러·바이어스·FF'와 연결: M9a는 채널이 Vop1(1단 출력)↔Vg15(M15 gate)를 잇고 gate만 바이어스(N11b)다
+HIST	AC에서 1단 신호를 M15 gate로 넘기는 정방향 pass 경로(as-built S1v 전달 뷰 `kind: pass`·`forward: true`·main_path 안
+HIST	`plan_v6385_validation8/s1v_m9a.txt`;
+HIST	배터리 전달 H0 = 1.40~1.53·배터리 극점이 PM을 깎음
+HIST	`classab_battery.md` 결정자 3·7)이라 신호 소자이고, R3이 그 gm을 정하지 않으므로 **F**(확신도 중);
+HIST	M9b(채널 Vg15↔Vop1, gate N14a14b 바이어스, source Vop1
+HIST	1단 신호를 source로 받아 drain Vg15로 넘기는 CG 꼴 pass)도 같은 근거로 **F**(확신도 중하
+HIST	S1v 셀 기록 미확인)
+HIST	M18a·M18b는 대칭으로 같다.
+MISS	**귀결**: F이면 DEC-95 (3)(①이 다이오드를 독립으로 둠, ②가 출력을 독립으로 둠 → 배터리 종속)은 F를 종속으로 골라 L-11('B는 어느 층에서도 독립 변수가 아니다')·R6(B ln IDu 종속)과 충돌한다
+MISS	순환 0·역전 0·새 필드 0 ⚠ F 경우 L-11·R6과 모순 유지 (나) DEC-95 ② → R13 S·F 멤버 독립, ① 유지 ⚠ 같은 모순(B 아닌 멤버 종속)·R13 앞당김 필요 (다) **권고**: 고리에 R13 B 멤버가 있으면 B 멤버가 종속(B 안 순위 = diode →
+MISS	**권고 (나) 역할별 분리**: 보상 C = '10번' 공통 상자 유지(⚠ 관례 근거
+MISS	PM 목표 없는 3회로 Cc·ngcc Cm2가 하한에 붙는 사례 기록);
+PLAN	상수 발명 금지)
+HIST	결합 C 판별 = 구조 규칙('C 한 끝 넷에 MOS 게이트와 구조적 0 전류 MOS만 닿음'
+HIST	**Q-ZG1과의 관계**: 승인되면 Q-ZG1 ⚠(C_BAT 하한 SR 저하·front 공백)의 원인이 상자에서 해소되고 Q-ZG1 (i) 수용은 불필요
+MISS	맞음(조건: 하한 값은 oracle 실측 경계와 사용자 승인, sky130 bench는 경향) | card SF-1 결합 C data 커밋 전(SR 항목 정의 뒤 재측정) |
+MISS	v6.38.2 U-132 기본안) | N6.29 | headroom-chain HC-S(`sat_threshold`).
+MISS	엔진 동작 변경 포함**(v6.38.2 DEC-105 (10)
+MISS	그리고 쓰기 계획 Kruskal 키가 이 필드를 READS하도록 `E/sizing/writer_plan.py`를 고치고 옛 OrderHints(`E/sizing/s2_values.py:208-219`·`kernel_context.py:53·85`)와 그 Kruskal 단계를 지우는 일이
+MISS	입력 = S1v `Block.roles`·`device.dc_coord`·spec 선언 사실(GBW·rout·정착 선언 있음)·L 동치류, topology 태그 READS 0.
+MISS	O-144 J3 이연 범위): 이 card의 필드는 병합 때 **엔진 소비자 0**이다(as-built `vds_saturation`도 test만 읽음).
+MISS	새 필드는 아직 판정·탐색에 쓰이지 않고, 재배선 자리는 값 동일) (6) N6.3 공통 (7) 범위 3·4의 toy·변화표는 U-132 기본안으로 card LA-1 완료 조건 10 (c)·(d).
+HIST	**권고**(Q-CB1 승인 시 ⚠의 원인이 상자에서 해소되어 (i) 수용은 불필요;
+MISS	엔진 실패가 아니고(design 40 §10.5 `oracle_only_fail` ≠ 엔진 실패) card 완료를 막지 않으며, 사유(U-112 닫힘·O-144 되먹임 없음·Q-ZG1 ⚠ C_BAT 하한 SR)를 판정 기록에 남긴다
