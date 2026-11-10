@@ -1,5 +1,9 @@
 # 지식 시스템 아키텍처 — 4계층 / 2-tier RAG
 
+> **2026-11-10 변경**: 전역 장기지식(구 `kb-global`)의 정본·툴링은 별도 repo **ai-memory**
+> (`~/ai-memory`, env `AI_MEMORY_REPO`)로 이전했다 — 칩 키트 밖, 모든 PC·프로젝트·AI 공유.
+> 인덱스는 `~/.ai-memory/`(env `AI_MEMORY_HOME`). bkit metric feature 이름 `kb-global`은 이력 연속성을 위해 유지.
+
 > **한 줄 결론**: 프로젝트에서 풀어낸 지식을 *사라지지 않는 자산*으로 만든다. 프로젝트별 단기 지식은
 > **graphify(관계 그래프)**, 전 프로젝트 공유 일반 원칙은 **전역 RAG(의미 검색)**로 분리하고,
 > **정본은 git, 인덱스는 재생성**으로 둔다. 모든 검색은 다국어 2단계(임베딩→reranker)이고,
@@ -27,9 +31,9 @@
 ```
             ┌─────────────────────── 4계층 ───────────────────────┐
  L1 기록    무슨 일이 있었나 (자동·원시)        bkit: audit/decisions/regression-rules/metrics
- L2 큐레이션 어떻게 풀었나 (사람·증류·정본)      docs/solutions(프로젝트) + kb-global/principles(전역)
+ L2 큐레이션 어떻게 풀었나 (사람·증류·정본)      docs/solutions(프로젝트) + ai-memory/memory(전역)
  L3 항법    무엇이 무엇과 연결되나 (관계 지도)    graphify  → <project>/graphify-out
- L4 검색    질문에 맞는 조각 회수 (의미 검색)     전역 RAG  → .tools/kb-global/kb.sqlite
+ L4 검색    질문에 맞는 조각 회수 (의미 검색)     영구메모리 RAG → ~/.ai-memory/kb.sqlite
 
             ┌────────────── 2-tier 메모리 ──────────────┐
  단기·프로젝트   = L3 graphify (관계, 프로젝트 로컬, 휘발)
@@ -60,7 +64,7 @@ bkit 플러그인이 **자동으로** 남기는 append-only 기록. 사람이 �
 사람이 확인해 증류한 재사용 지식. **두 스코프**로 나뉜다:
 - **프로젝트 단기**: `<project>/docs/solutions/**` — 그 프로젝트에서 푼 버그 instance를
   실패분류 T1..T9 폴더에 기록(frontmatter + `schema.yaml` + `validate.py`).
-- **전역 장기(증류)**: `chip-design-skills/kb-global/principles/**` +
+- **전역 장기(증류)**: 별도 repo `ai-memory`의 `memory/<domain>/**` +
   `chip-design-skills/agent-kit/failure-taxonomy.md` — 여러 프로젝트에 일반화되는 원칙만.
 - 도메인 지식: `<project>/.ai/analysis/`(모듈 분석), `<project>/.ai/knowledge/`(버그·툴 가이드).
 
@@ -72,8 +76,8 @@ bkit 플러그인이 **자동으로** 남기는 append-only 기록. 사람이 �
 
 ### 3.4 L4 — 검색 (전역 RAG, 공유)
 **증류 원칙만** 임베딩한 의미 검색. 모든 프로젝트가 하나의 전역 인덱스를 공유한다.
-- 코퍼스: `kb-global/principles/` + `agent-kit/failure-taxonomy.md`(정본 git, **직접 색인**).
-- 저장: `.tools/kb-global/kb.sqlite`(sqlite-vec, 재생성). 외부 전송 0 → RTL IP 보안.
+- 코퍼스: `ai-memory/memory/` + `agent-kit/failure-taxonomy.md`(ai-memory `sources.yaml` 외부 정본, **직접 색인**).
+- 저장: `AI_MEMORY_HOME`(기본 `~/.ai-memory/`)`/kb.sqlite`(sqlite-vec, 재생성). 외부 전송 0 → RTL IP 보안.
 - 파이프라인: 다국어 2단계(§7). 질의는 스코프 무관 → cross-project 재사용의 핵심.
 
 ---
@@ -83,7 +87,7 @@ bkit 플러그인이 **자동으로** 남기는 append-only 기록. 사람이 �
 | | 단기·작업 기억 | 장기·일반 기억 |
 |--|----------------|----------------|
 | 인덱스 | **graphify**(관계·항법) | **전역 RAG**(의미 검색) |
-| 코퍼스 | 프로젝트 `.ai/analysis`·설계·`docs/solutions`(instance) | `kb-global/principles` + taxonomy(증류만) |
+| 코퍼스 | 프로젝트 `.ai/analysis`·설계·`docs/solutions`(instance) | `ai-memory/memory` + taxonomy(증류만) |
 | 잘하는 질의 | "X와 연결된 것/X→Y 경로/허브" | "이 질문과 의미적으로 가까운 조각" |
 | 스코프 | **프로젝트 로컬**(관계는 프로젝트 내부에서 dense) | **전 프로젝트**(의미 유사도는 스코프 무관) |
 | 수명·크기 | 프로젝트와 함께, 휘발/재생성, 작게 | 영속·누적, 증류만 → 작고 고신호 |
@@ -101,16 +105,16 @@ bkit 플러그인이 **자동으로** 남기는 append-only 기록. 사람이 �
 | 정본 (git·원격 백업 → 유실 불가) | 인덱스 (비추적, 언제든 재생성) |
 |----------------------------------|-------------------------------|
 | `<project>/docs/solutions/**` (각 프로젝트 repo) | `<project>/graphify-out/` (L3) |
-| `chip-design-skills/kb-global/principles/**` (전역 원칙) | `.tools/kb-global/kb.sqlite` (L4 인덱스) |
+| `ai-memory/memory/**` (전역 원칙, 별도 repo) | `~/.ai-memory/kb.sqlite` (L4 인덱스) |
 | `chip-design-skills/agent-kit/failure-taxonomy.md` | `.tools/hf-cache/` (임베딩 모델 캐시) |
-| 툴링: `kb_index/kb_search/kb_eval/eval_gate.py`, `requirements.txt` | `.tools/kb-venv/` (공유 venv) |
+| 툴링: `ai-memory/tools/*`, `ai-memory/requirements.txt`, 키트 `kb-venv-requirements.txt` | `.tools/kb-venv/` (공유 venv) |
 
 핵심 설계(**단일 정본**): `kb_index.py`는 런타임에 principles 복사본을 만들지 않고
 **git 정본을 직접 색인**한다(경로는 `parents[1]=워크스페이스`로 자동 해석). 따라서 정본/인덱스가
 분기할 수 없고, 격상된 지식은 항상 git(원격)에 있어 유실되지 않는다.
 
-⚠️ **격상은 정본에만 쓴다**: 일반 원칙은 `chip-design-skills/kb-global/principles/`(git)를 편집한다.
-런타임 `.tools/kb-global`은 인덱스 전용이라 **거기 쓰면 다음 배포 때 덮여 사라진다**.
+⚠️ **격상은 정본에만 쓴다**: 일반 원칙은 `ai-memory/memory/<domain>/`(git)를 편집한다.
+런타임 `~/.ai-memory/`는 인덱스 전용(재생성)이라 거기 쓰면 사라진다.
 
 ---
 
@@ -124,7 +128,7 @@ bkit 플러그인이 **자동으로** 남기는 append-only 기록. 사람이 �
         │ sync_rules.py
         ▼   regression-rules.json 동기(bkit) + critical-patterns 승격 후보 리포트
 [3] 일반화(3건+ 또는 명백한 원칙)
-        │ chip-design-skills/kb-global/principles/ 편집 + commit/push   ← L2 전역 정본
+        │ ai-memory/memory/<domain>/ 편집 + eval_gate + commit/push   ← L2 전역 정본
         ▼   kb_index.py 재색인
 [4] 전역 RAG 갱신 → 모든 프로젝트가 공유              ← L4
         ▲
@@ -143,12 +147,12 @@ docs/solutions/<T*>/*.md
         ├──[A] 카테고리 fresh ≥ 2개 또는 severity=critical
         │       → critical-patterns.md (이 프로젝트 RTL 코딩 전 강제 회독)
         └──[B] problem_type=toolflow 또는 module=System (RTL 타입 아닌 것)
-                → kb-global/principles/ (전 프로젝트 전역 원칙)
+                → ai-memory/memory/ (전 프로젝트 전역 원칙)
 ```
 
-**[B] kb-global 경로** — 즉시 후보 (violationCount 무관):
+**[B] 영구메모리(ai-memory) 경로** — 즉시 후보 (violationCount 무관):
 - `toolflow` 타입 또는 System-level 솔루션은 환경·툴 수준으로 프로젝트 무관 → 생성 즉시 후보
-- 추적: `kb-global/principles/*.md` 프론트매터 `promoted_from:` 리스트로 중복 탐지
+- 추적: `ai-memory/memory/**/*.md` 프론트매터 `promoted_from:` 리스트로 중복 탐지
 
 **[A] critical-patterns.md 경로** — 카테고리 반복 감지:
 - `fresh` = contributed_from 미등록 **AND** kb_promoted_ids 미등록
@@ -203,20 +207,21 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
 
 검색 품질을 "느낌"이 아니라 **숫자**로 관리한다.
 
-- **eval 하니스**: `kb_eval.py` + 골드셋 `kb-global/eval/queries.json`(한/영 16질의, 부분일치 라벨).
+- **eval 하니스**: `ai-memory/tools/kb_eval.py` + 골드셋 `ai-memory/eval/queries.json`(한/영 16질의, 부분일치 라벨).
   설정별 **MRR/P@1/hit@k** 비교. 실측: bi-encoder only MRR 0.79·P@1 0.75(2질의 top-5 miss) →
   **rerank(pool≥10) MRR 1.00·P@1 1.00**.
   ```bash
-  "$KB_PY" .tools/kb-global/kb_eval.py --verbose
+  "$KB_PY" ~/ai-memory/tools/kb_eval.py --verbose
   ```
-- **pre-push 게이트**: `.githooks/pre-push` + `eval_gate.py`. `kb-global/**`가 push에 포함되면
+- **pre-push 게이트**: `ai-memory/tools/eval_gate.py`. 키트 `.githooks/pre-push`는 `failure-taxonomy.md`가 push에 포함되면
+  ai-memory 게이트(`--gate`)를 호출한다. 게이트 동작:
   인덱스 최신화 → eval → `MRR/P@1 < 임계`(기본 0.9)면 **push 차단**. 전 프로젝트 공유 지식의
   품질 회귀를 push 직전에 막는다. 인프라 문제는 SKIP(`KB_EVAL_STRICT=1`이면 차단). 우회: `--no-verify`.
   **캐싱**: 임베딩 모델 cold start가 ~3분 소요되므로 `eval_gate.py`는 SHA-256 콘텐츠 해시 기반
-  캐시(기본 TTL 8시간, `KB_EVAL_CACHE_TTL_H` env)를 사용한다. `principles/` 내용이 바뀌지 않으면
+  캐시(기본 TTL 8시간, `KB_EVAL_CACHE_TTL_H` env)를 사용한다. 색인 코퍼스(memory + taxonomy)가 바뀌지 않으면
   캐시 히트 → 0.2초 내 통과. 내용 변경 시 push 전 `eval_gate.py`를 수동 실행(pre-warm)해
   캐시를 채워두면 hook이 즉시 통과한다. PASS 결과만 캐시(FAIL은 재push 때 항상 재평가).
-  **bkit quality-metrics 통합**: eval_gate PASS 시 워크스페이스 내 모든 프로젝트의
+  **bkit quality-metrics 통합**: eval_gate PASS 시 ai-memory `sources.yaml` `bkit_workspaces`의 모든 프로젝트
   `.bkit/state/quality-metrics.json`에 `kb-global` feature로 MRR/P@1/질의 수를 기록한다.
   `bkit_metrics_get` MCP로 RAG 품질 이력 조회 가능(feature=`kb-global`, metrics: `kb_search_mrr`/`kb_search_p1`/`kb_eval_n_queries`).
   ⚠️ 코퍼스가 커지면 골드셋을 함께 키우고 재측정(pool/모델 재튜닝).
@@ -229,7 +234,7 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
 |------|----------|------|
 | **A. validate+sync** | 프로젝트 `.git/hooks/pre-commit` | `docs/solutions/*.md` 커밋 시 `validate.py`(불량이면 **차단**) + `sync_rules.py`(regression-rules 재생성·stage) |
 | **B. graph 갱신** | 프로젝트 `.git/hooks/post-commit` | `.v/.sv` 커밋 + `graphify-out` 존재 시 `graphify update` 백그라운드(코드 전용·비차단) |
-| **C. 품질 게이트** | 키트 `.githooks/pre-push` | kb-global push 시 eval 게이트. PASS 시 `.bkit/state/quality-metrics.json`에 MRR/P@1 기록 |
+| **C. 품질 게이트** | 키트 `.githooks/pre-push` → ai-memory `eval_gate.py --gate` | taxonomy push 시 eval 게이트. PASS 시 `.bkit/state/quality-metrics.json`에 MRR/P@1 기록 |
 | **D. recall 넛지** | CC `PreToolUse` 훅 `kb-preflight-nudge.py` | RTL(`db/design/**/*.v`) Edit/Write 시 세션당 1회 "preflight 권장" 컨텍스트 주입(비차단) |
 | **E. preflight audit** | `preflight.py` 자체 | 실행 시 `.bkit/audit/YYYY-MM-DD.jsonl`에 `gate_passed/quality` 기록 (actorId=preflight, mode=lean\|rerank). RTL 착수 전 지식 조회 증적 |
 | **F. 격상 audit** | `/kb-promote` Step 5 (`sync_rules.py --record-promo`) | [A]/[B] 격상 시 `audit/*.jsonl` + `decisions/*.jsonl`에 기록 (actorId=kb-promote, decisionType=quality_gate_result) |
@@ -244,18 +249,17 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
 
 | 위치 | 무엇 | git |
 |------|------|:--:|
-| `kb-global/principles/*.md` | 전역 증류 원칙(정본) | ✅ |
-| `agent-kit/failure-taxonomy.md` | 실패분류 T1..T9(정본) | ✅ |
-| `kb-global/kb_index.py` | 전역 RAG 인덱서(정본 직접 색인) | ✅ |
-| `kb-global/kb_search.py` | 2단계 검색(bi-encoder+reranker) | ✅ |
-| `kb-global/kb_eval.py` + `eval/queries.json` | 품질 eval + 골드셋 | ✅ |
-| `kb-global/eval_gate.py` + `.githooks/pre-push` | 회귀 차단 게이트 | ✅ |
-| `kb-global/requirements.txt` | 공유 venv 핀 | ✅ |
+| `ai-memory/memory/**/*.md` (별도 repo) | 전역 증류 원칙(정본) | ✅ |
+| `agent-kit/failure-taxonomy.md` | 실패분류 T1..T9(정본, ai-memory가 직접 색인) | ✅ |
+| `ai-memory/tools/{am_paths,kb_index,kb_search}.py` | 경로 해석·인덱서·2단계 검색 | ✅ |
+| `ai-memory/tools/kb_eval.py` + `eval/queries.json` | 품질 eval + 골드셋 | ✅ |
+| `ai-memory/tools/eval_gate.py` + 키트 `.githooks/pre-push` | 회귀 차단 게이트 | ✅ |
+| `ai-memory/requirements.txt` + 키트 `kb-venv-requirements.txt` | 공유 venv 핀(RAG / graphify) | ✅ |
 | `project-template/{ai/rag/preflight.py, docs/solutions/**}` | 프로젝트 스캐폴드 | ✅ |
-| `<workspace>/.tools/kb-venv` · `hf-cache` · `kb-global/kb.sqlite` | 공유 venv·모델·인덱스 | ❌ 재생성 |
+| `<workspace>/.tools/kb-venv` · `hf-cache`, `~/.ai-memory/kb.sqlite` | 공유 venv·모델·인덱스 | ❌ 재생성 |
 | `<project>/graphify-out` | 프로젝트 관계 그래프 | ❌ 재생성 |
 
-전역 도구는 `install.py --only kb-global`이 `<workspace>/.tools/kb-global`로 배포한다(인덱스는 보존).
+영구메모리는 별도 repo다. `install.py --only ai-memory`는 없으면 `~/ai-memory`로 clone만 한다(배포 사본 없음).
 
 ---
 
@@ -267,9 +271,10 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
 ```bash
 cd <workspace>
 python -m venv .tools/kb-venv
-.tools/kb-venv/Scripts/python.exe -m pip install --only-binary=:all: -r chip-design-skills/kb-global/requirements.txt
-python chip-design-skills/install.py --only kb-global   # 전역 툴링 배포
-"$KB_PY" .tools/kb-global/kb_index.py                    # 전역 RAG 색인
+python chip-design-skills/install.py --only ai-memory   # ~/ai-memory clone (없을 때만)
+.tools/kb-venv/Scripts/python.exe -m pip install --only-binary=:all: \
+    -r ~/ai-memory/requirements.txt -r chip-design-skills/kb-venv-requirements.txt
+"$KB_PY" ~/ai-memory/tools/kb_index.py                   # 영구메모리 RAG 색인 (~/.ai-memory/)
 ```
 
 **(1) 새 프로젝트 합류 — 한 방 온보딩**
@@ -306,9 +311,8 @@ python chip-design-skills/install.py --onboard --project <repo>
 ```
 `/kb-promote` skill이 [A]/[B] 후보별로 내용 미리보기 + 승인 → 패턴 합성/작성 → ID 등록 → 커밋/push 까지 처리. [B]는 push 전 eval_gate pre-warm 필요(§8 캐싱 참고).
 ```bash
-# [B] eval pre-warm (kb-global 내용 변경 후, push 전)
-"$KB_PY" chip-design-skills/kb-global/eval_gate.py   # → PASS 확인 후 push
-"$KB_PY" <workspace>/.tools/kb-global/kb_index.py    # push 후 재색인
+# [B] eval pre-warm (ai-memory memory/ 변경 후, push 전)
+"$KB_PY" ~/ai-memory/tools/eval_gate.py   # → PASS 확인 후 ai-memory push (재색인 포함)
 ```
 
 ---
@@ -339,7 +343,7 @@ python chip-design-skills/install.py --onboard --project <repo>
 ---
 
 ### 관련 문서
-- `../kb-global/README.md` — 전역 지식층 운영 상세(영속성 모델·검색 파이프라인·게이트).
+- `ai-memory/README.md` — 영구메모리 운영 상세(구조·검색·게이트·쓰기 규칙). 이전 안내: `../kb-global/README.md`.
 - `<project>/.ai/KNOWLEDGE_MAP.md` — 각 프로젝트의 정본/인덱스 경계.
 - `04-bkit-customization-guide.md` — bkit 커스터마이즈(이 시스템의 install.py 배포 기반).
 - `../agent-kit/methodology.md` — RTL 에이전트 방법론(Constrain & Escalate).

@@ -19,7 +19,7 @@ kit/skills always go global (agents reference ~/.claude/agent-kit by absolute pa
 Hooks register at USER scope by default (common to every project) and merge — as a
 union — with bkit's own plugin hooks (Claude Code fires all hook scopes; none shadow).
 """
-import shutil, pathlib, argparse, sys, json, os, re
+import shutil, pathlib, argparse, sys, json, os, re, subprocess
 
 HOME = pathlib.Path.home() / ".claude"
 REPO = pathlib.Path(__file__).parent
@@ -106,44 +106,31 @@ def install_kit(dry):
         print(f"agent-kit installed -> {dest}")
 
 
-def install_kb_global(dry, workspace=None):
-    """Deploy the long-term knowledge *tooling* to <workspace>/.tools/kb-global/.
+AI_MEMORY_URL = "git@github.com:hslee-cmyk/ai-memory.git"
 
-    Option 2 (단일 정본): kb_index.py는 정본 코퍼스(kb-global/principles/ + agent-kit/
-    failure-taxonomy.md)를 git repo에서 **직접 색인**한다 → 런타임에 principles 복사본을
-    두지 않는다(분기·유실 불가). 따라서 이 함수는 툴링만 배포한다:
-      kb_index.py, kb_search.py, README.md (편의용 런타임 사본) + requirements.txt.
-    인덱스(kb.sqlite)·캐시·venv는 보존(파일 단위 복사). 정본 principles는 repo에만 존재.
-    workspace 기본값 = 이 repo의 부모(= fpga 워크스페이스).
+
+def ai_memory_repo():
+    """영구메모리 정본 repo 위치. env AI_MEMORY_REPO > 기본 ~/ai-memory."""
+    return pathlib.Path(os.path.expanduser(os.environ.get("AI_MEMORY_REPO", "~/ai-memory")))
+
+
+def install_ai_memory(dry):
+    """영구메모리(구 kb-global)는 별도 repo `ai-memory`가 정본이다 (2026-11 이전).
+
+    이 키트는 더 이상 원칙·RAG 툴링을 배포하지 않는다. ai-memory가 없으면 clone만 한다.
+    인덱스는 ai-memory/tools/kb_index.py가 AI_MEMORY_HOME(기본 ~/.ai-memory)에 재생성한다.
     """
-    src = REPO / "kb-global"
-    if not src.exists():
-        print("SKIP kb-global (no kb-global/ dir)"); return
-    ws = pathlib.Path(workspace).expanduser().resolve() if workspace else REPO.parent
-    dest = ws / ".tools" / "kb-global"
-    stale_principles = dest / "principles"   # Option 1 잔재 — 있으면 제거(혼동 방지)
-    if dry:
-        print(f"[dry-run] kb-global tooling -> {dest}/ (kb_index/kb_search/README; preserve kb.sqlite)")
-        print(f"[dry-run]   정본 principles는 repo에만(런타임 복사 안 함). 정본 직접 색인.")
-        if stale_principles.exists():
-            print(f"[dry-run]   remove stale runtime principles: {stale_principles}")
-        print(f"[dry-run]   requirements.txt -> {ws / '.tools' / 'requirements.txt'}")
+    repo = ai_memory_repo()
+    if (repo / "tools" / "kb_search.py").exists():
+        print(f"ai-memory present -> {repo}  (갱신: git -C {repo.as_posix()} pull --ff-only)")
         return
-    dest.mkdir(parents=True, exist_ok=True)
-    for f in ("kb_index.py", "kb_search.py", "kb_eval.py", "README.md"):
-        if (src / f).exists():
-            shutil.copy2(src / f, dest / f)
-    if (src / "eval").is_dir():                       # eval 골드셋 + 하니스
-        (dest / "eval").mkdir(parents=True, exist_ok=True)
-        for p in sorted((src / "eval").glob("*.json")):
-            shutil.copy2(p, dest / "eval" / p.name)
-    if (src / "requirements.txt").exists():
-        shutil.copy2(src / "requirements.txt", ws / ".tools" / "requirements.txt")
-    if stale_principles.exists():
-        shutil.rmtree(stale_principles)
-        print(f"  removed stale runtime principles -> {stale_principles}")
-    print(f"kb-global tooling installed -> {dest}  (정본 principles는 repo 직접 색인; kb.sqlite 보존)")
-    print(f"  재색인: <ws>/.tools/kb-venv/Scripts/python.exe {dest / 'kb_index.py'}")
+    if dry:
+        print(f"[dry-run] git clone {AI_MEMORY_URL} {repo}"); return
+    r = subprocess.run(["git", "clone", AI_MEMORY_URL, str(repo)])
+    if r.returncode != 0:
+        print(f"  WARN: ai-memory clone 실패 — 수동: git clone {AI_MEMORY_URL} {repo}"); return
+    print(f"ai-memory cloned -> {repo}")
+    print(f"  색인: <RAG venv python> {repo / 'tools' / 'kb_index.py'}")
 
 
 # --------------------------------------------------------------------- hooks
@@ -475,10 +462,8 @@ def install_rag(dry, project, force=False):
     Surgical alternative to --init-ai-infra: only touches .ai/rag/, skips all other .ai/
     content. Safe on existing projects — NEVER overwrites existing files.
 
-    Path invariant preflight.py relies on:
-        <fpga-workspace>/.tools/kb-global/   (KB_GLOBAL, shared)
-        <project>/.ai/rag/preflight.py        (HERE → PROJ → FPGA = HERE.parents[2])
-    So the project must live at <fpga-workspace>/<any-name>/ — same parent as the .tools dir.
+    preflight.py는 영구메모리 검색을 ai-memory repo(env AI_MEMORY_REPO, 기본 ~/ai-memory)의
+    tools/kb_search.py로 호출한다. RAG venv는 <fpga-workspace>/.tools/kb-venv (프로젝트의 부모).
     """
     if not project:
         print("ERROR: --only rag requires --project PATH"); return 1
@@ -488,9 +473,11 @@ def install_rag(dry, project, force=False):
         print(f"ERROR: rag template not found: {src}"); return 1
     dest = proj / ".ai" / "rag"
     fpga = proj.parent
-    kb_global = fpga / ".tools" / "kb-global" / "kb.sqlite"
-    if not kb_global.exists():
-        print(f"  WARN: kb.sqlite not found at {kb_global} — run kb_index.py first")
+    am_home = pathlib.Path(os.path.expanduser(os.environ.get("AI_MEMORY_HOME", "~/.ai-memory")))
+    if not (ai_memory_repo() / "tools" / "kb_search.py").exists():
+        print(f"  WARN: ai-memory repo 없음 ({ai_memory_repo()}) — `--only ai-memory`로 clone")
+    elif not (am_home / "kb.sqlite").exists():
+        print(f"  WARN: {am_home / 'kb.sqlite'} 없음 — ai-memory/tools/kb_index.py 먼저 실행")
     created = []
     for f in sorted(src.iterdir()):
         if not f.is_file():
@@ -913,7 +900,7 @@ def main():
     ap = argparse.ArgumentParser(description="Install chip-design skills + agents + kit + hooks")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--only",
-                    choices=["skills", "agents", "kit", "hooks", "bkit-agents", "kb-global", "rag"],
+                    choices=["skills", "agents", "kit", "hooks", "bkit-agents", "ai-memory", "rag"],
                     help="install only one component ('rag' deploys .ai/rag/preflight.py to --project)")
     ap.add_argument("--project", metavar="PATH",
                     help="install AGENTS/HOOKS into PATH/.claude/ (project-level, overrides "
@@ -1006,7 +993,7 @@ def main():
     if a.only in (None, "skills"):      install_skills(a.dry_run)
     if a.only in (None, "agents"):      install_agents(a.dry_run, a.project)
     if a.only in (None, "kit"):         install_kit(a.dry_run)
-    if a.only in (None, "kb-global"):   install_kb_global(a.dry_run)  # workspace = repo parent
+    if a.only in (None, "ai-memory"):   install_ai_memory(a.dry_run)  # 영구메모리 정본 repo (clone only)
     if a.only in (None, "hooks"):       install_hooks(a.dry_run, a.project, a.python)
     if a.only in (None, "bkit-agents"): install_bkit_agents(a.dry_run, a.project)
     if a.only == "rag":                 install_rag(a.dry_run, a.project, a.force)  # project required

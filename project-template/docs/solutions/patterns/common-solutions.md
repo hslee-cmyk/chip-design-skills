@@ -1,7 +1,7 @@
 # Common Solution Patterns (프로젝트 로컬)
 
 > 같은 류 문제가 **3건 이상** 쌓이면 일반화해 기록. 이후 전 프로젝트로 일반화되면
-> `fpga/.tools/kb-global/principles/`로 격상한다.
+> 영구메모리 정본 `ai-memory` repo의 `memory/<domain>/`로 격상한다(`/kb-promote` [B]).
 
 <!-- 템플릿:
 ## CS-N · <패턴 이름>

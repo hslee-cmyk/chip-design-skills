@@ -78,7 +78,7 @@ KB_PY=/c/Users/HSLEE/Documents/Todoc/fpga/.tools/kb-venv/Scripts/python.exe
 
 → ① `docs/solutions/patterns/critical-patterns.md` 강제 규칙 ② RAG 의미검색(L4) ③ graphify 관계 항법(L3).
 
-**capture→curate→격상→recall 루프**: 해결 후 `docs/solutions/`에 자산화 → `sync_rules.py`(bkit regression-rules 동기) → 일반화 시 `chip-design-skills/kb-global/principles/`(git)에 추가·push → `kb_index.py` 재색인. L1 로그(`.bkit/**`)는 bkit MCP로 질의.
+**capture→curate→격상→recall 루프**: 해결 후 `docs/solutions/`에 자산화 → `sync_rules.py`(bkit regression-rules 동기) → 일반화 시 영구메모리 `ai-memory/memory/<domain>/`(git, `/kb-promote` [B])에 추가·push → `ai-memory/tools/kb_index.py` 재색인. L1 로그(`.bkit/**`)는 bkit MCP로 질의.
 
 ## bkit Integration
 
