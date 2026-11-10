@@ -269,13 +269,15 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - 실 데이터: LM-1d 산출 `verify_midpoints_w/` 30개 파일(출처 기록 `assets/lut_v2_midpoints_w.provenance.json` `files[]`), 위치 선언 배열이 그 30행을 고정한다.
 
 ### 1.8 [r6] 데이터 위치 `resolve_lut_location(config_path, env) -> LutLocation`
-- 설정 JSON: `{"root": {"env": 이름, "default": 폴더}, "pdk_root": {"env", "default"}(선택), "files": {"manifest": {"path", "sha256"},
+- 설정 JSON: `{"root": {"env": 이름, "default": 폴더}, "pdk_root": {"env", "default", "subdir"(선택)}(선택), "files": {"manifest": {"path", "sha256", "newline"(선택)},
   "cap_npz": {...}, "verify_midpoints": [{"path", "sha256"}, ...](선택, [LM-1e] 폭별 중점 파일 배열 -- 옛 단일 객체·빈 배열·같은 `path` 둘·원소 형식 오류는
   `lut_location_config_invalid` item `verify_midpoints`; 파일 없음 `lut_location_file_missing`, raw sha256 불일치 `lut_location_sha256_mismatch`; 원소의 다른 키는 읽지 않음)}}`. 다른 키는 무시. `env` = 매핑(부르는 쪽이 `os.environ` 를 넘긴다 -- 모듈은 환경을
   직접 읽지 않는다).
 - root·pdk_root = `env[이름]` 이 비어 있지 않으면 그 값(`sources` 에 `"env:<이름>"`), 아니면 `default`(`"config_default"`), 둘 다 없으면
-  `lut_location_config_invalid`. 경로는 `os.path.abspath`.
-- 파일: `path` 는 root 기준 상대(절대 경로·`..` 조각·빈 값·sha256 없음 → `lut_location_config_invalid` detail `item, why`), 파일 없음 →
+  `lut_location_config_invalid`. 경로는 `os.path.abspath`. [2026-11-10, 사용자 승인 2026-11-10 "지금 한 작업과 관련된 문서개정을 승인할께"] pdk_root 의 선택 `subdir`(상대 경로, `..`·절대 금지 -- 아니면 `lut_location_config_invalid`)은
+  위에서 고른 폴더 아래 하위 폴더다 -- PDK 선언(core/CONTRACT.md 9.1)과 같은 PDK 상위 폴더 변수 `GMID_PDK_ROOT` 에서 라이브러리 폴더(`sky130_fd_pr`)를 도출한다.
+- 파일: `path` 는 root 기준 상대(어느 OS 표기로든 절대 경로(`/x`·`C:/x`·`\x`)·`..` 조각·빈 값·sha256 없음 → `lut_location_config_invalid` detail `item, why`). 선택 `newline`(`"lf"` 만, 아니면 `lut_location_config_invalid`)이면
+  텍스트 파일의 sha256 을 CRLF -> LF 환산 값으로 대조한다(체크아웃의 줄바꿈과 무관; 바이너리 npz 에는 쓰지 않고 원본 바이트로 잰다), 파일 없음 →
   `lut_location_file_missing`(detail `item, path`), sha256 다름 → `lut_location_sha256_mismatch`(detail `item, path, recorded, actual`).
   manifest·cap_npz 항목이 없으면 `lut_location_config_invalid`. 설정 파일 없음 → `lut_location_config_missing`, root 폴더 없음 →
   `lut_location_root_missing`, `root`·`files` 가 객체가 아님 → `lut_location_config_invalid`. 슬라이스는 여기서 재지 않는다(manifest 가
@@ -286,7 +288,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   `load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_paths, noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path)`.
   새 파일은 공유 데이터 폴더의 **새 버전 파일**이다(기존 r2 파일은 고치지 않는다) -- 이 브랜치의 설정만 가리킨다.
 - 저장소 설정: `skills/analog-gmid-design/assets/lut_v2_location.json` -- root 기본 `C:/Users/HSLEE/Documents/Todoc/fpga/lut_data/sky130_lut_v2`
-  (git 밖, `GMID_LUT_V2_ROOT` 로 덮어씀), pdk_root 기본 `C:/pdk/sky130_fd_pr`(`GMID_PDK_ROOT`), 세 파일 sha256 고정. 쓰는 법:
+  (git 밖, `GMID_LUT_V2_ROOT` 로 덮어씀), pdk_root = `GMID_PDK_ROOT`(PDK 상위 폴더, 기본 `C:/pdk`) 아래 `subdir` `sky130_fd_pr`, 세 파일 sha256 고정(manifest 는 `newline: "lf"` 로 LF 환산 값). 쓰는 법:
   `loc = resolve_lut_location(<설정>, os.environ)` → `load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
   verify_midpoints=loc.midpoints_paths)`.
 - **test 기본 경로 전환(O-180 으로 완료)**: test 는 LUT 를 위 설정의 `resolve_lut_location` 결과로만 읽고 `load_lut_set` 에 `pdk_root`·
