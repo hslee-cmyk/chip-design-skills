@@ -4,7 +4,7 @@
 - 실데이터: [r6] 기본 = LUT v2(CONTRACT 1.8 -- 저장소 설정 `assets/lut_v2_location.json` 을 `resolve_lut_location(설정,
   os.environ)` 으로 풀어 manifest·기준 LUT·검증 중점 파일·pdk_root 를 얻고 `load_lut_set` 에 `pdk_root`·`verify_midpoints` 를 넘긴다).
   LUT 파일은 위치 선언 하나로만 읽는다(O-180: LUT 를 가리키는 환경 덮어쓰기 없음. 데이터 루트 위치는 선언의 env 뿐이고
-  sha256 이 같은 파일만 받는다). PDK tech LEF(`GMID_PDK_TLEF`)는 LUT 가 아니라 유지.
+  sha256 이 같은 파일만 받는다). PDK tech LEF(`GMID_PDK_ROOT` 아래)는 LUT 가 아니라 유지.
   경로가 없으면 skip 이 아니라 명시적 FAIL(데이터가 없어 검증을 못 했다는 사실을 숨기지 않는다). 마커 `lut_realdata`.
 - 독립 경로: npz 를 numpy 로 직접 열어 격자점 값을 꺼내고, 보간·역보간·옛 `_solve_vgs` 규칙은 이 파일에서 따로 구현한다.
 """
@@ -42,7 +42,7 @@ REALDATA_MARKER = "lut_realdata"
 
 # [r6] CONTRACT 1.8 저장소 설정(LUT v2 위치, sha256 고정)
 LOCATION_CONFIG = SKILL_DIR / "assets" / "lut_v2_location.json"
-_DEFAULT_TLEF = r"C:/pdk/sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef"
+from pdk_root import fd_pr_dir, tlef_path
 
 # 실데이터 선언(test 쪽 PDK 선언): manifest device 이름 -> kind, kind -> 기준 LUT 열 접미사(기준 npz 의 열 이름 ID_n·CGG_p 등)
 REAL_DEVICE_KINDS = (("nfet_01v8", "nmos"), ("pfet_01v8", "pmos"))
@@ -1242,7 +1242,7 @@ def real_paths(real_location):
         "midpoints": tuple(loc.midpoints_paths),          # [LM-1e §1] 절대 경로 tuple(path 오름차순)
         "pdk_root": loc.pdk_root,
         "bin_rule": loc.bin_rule_path,
-        "tlef": _need("GMID_PDK_TLEF", _DEFAULT_TLEF, "PDK tech LEF"),
+        "tlef": _need(None, tlef_path(), "PDK tech LEF"),
     }
 
 
@@ -1619,7 +1619,7 @@ class NgspiceBins:
                 continue
             with np.load(base / s["file"]) as z:
                 meta = json.loads(str(z["meta_json"]))
-            self.files[s["device"]] = [os.path.join(meta["pdk_root"], rel) for rel in meta["model_files_sha256"]
+            self.files[s["device"]] = [os.path.join(fd_pr_dir(), rel) for rel in meta["model_files_sha256"]
                                        if rel.endswith(".spice")]
 
     def pm3(self, device):

@@ -28,9 +28,13 @@ _TEST_CACHE_MAX_LEN = 60                           # 오케스트레이터 결�
 def _isolate_table_cache():
     with open(_LOCATION_CONFIG, encoding="utf-8") as f:
         entry = json.load(f)["table_cache"]
-    real = os.path.normcase(os.path.abspath(entry["default"]))
-    test_dir = os.path.join(os.path.dirname(os.path.abspath(entry["default"])), _TEST_CACHE_DIRNAME)
-    if os.path.normcase(test_dir) == real or len(test_dir) >= _TEST_CACHE_MAX_LEN:
+    base = os.environ.get(entry["env"]) or entry["default"]     # 환경 변수가 비어 있지 않으면 그 폴더가 실제 캐시다(기본값은 Windows 경로라 Linux 에서는 쓸 수 없다)
+    if not os.path.isabs(base):
+        raise RuntimeError("실제 캐시 폴더가 절대 경로가 아니다(%s): 환경 변수 %s 로 이 OS 의 폴더를 지정한다" % (base, entry["env"]))
+    real = os.path.normcase(os.path.abspath(base))
+    test_dir = os.path.join(os.path.dirname(os.path.abspath(base)), _TEST_CACHE_DIRNAME)
+    too_long = sys.platform == "win32" and len(test_dir) >= _TEST_CACHE_MAX_LEN      # 길이 한도는 Windows MAX_PATH 때문이다(위 docstring)
+    if os.path.normcase(test_dir) == real or too_long:
         raise RuntimeError("test 캐시 폴더가 실제 캐시와 같거나 너무 길다: %s" % test_dir)
     os.environ[entry["env"]] = test_dir
 

@@ -179,7 +179,7 @@ def test_w_key_is_rounded_ratio_with_other_grid(toy_build):
 
 @pytest.mark.lut_realdata
 def test_real_provenance(real_paths, real_spec, real_manifest, real_slice_files):
-    p = lut_provenance(real_paths["manifest"], real_paths["cap"], real_spec, bin_rule=real_paths["bin_rule"])
+    p = lut_provenance(real_paths["manifest"], real_paths["cap"], real_spec, bin_rule=real_paths["bin_rule"], pdk_root=real_paths["pdk_root"])
     assert p.manifest_sha256 == sha256_file(real_paths["manifest"])
     assert p.generator_sha256 == real_manifest["generator_sha256"]
     assert p.cap_sha256 == sha256_file(real_paths["cap"])

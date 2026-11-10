@@ -25,7 +25,8 @@ SKILL_DIR = Path(__file__).resolve().parents[3]
 PDK_DECL = SKILL_DIR / "assets" / "sky130_pdk_decl.json"
 LUT_RULE_DECL = SKILL_DIR / "assets" / "sky130_lut_rule_decl.json"
 _PDK = json.loads(PDK_DECL.read_text(encoding="utf-8"))
-_SKY_PRESENT = all(os.path.isfile(_PDK["pdk_root"] + "/" + s["path"]) for s in _PDK["sources"].values())
+from pdk_root import effective_pdk_root
+_SKY_PRESENT = all(os.path.isfile(effective_pdk_root(_PDK["pdk_root"]) + "/" + s["path"]) for s in _PDK["sources"].values())
 
 W_EVAL = 3e-6
 POINT = (2e-6, 1.0, 0.5)            # J-1 조회점 (L, vds, vsb) = 격자 마디 (1, 1, 1)

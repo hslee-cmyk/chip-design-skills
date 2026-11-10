@@ -7,7 +7,7 @@ CLI 진입점만 subprocess 로 부른다. 기대값은 (a) 손계산, (b) 이 �
 기본 실행에서 옛 엔진을 새로 돌리는 test(~260 s)는 `legacy_slow` 마커로 빠진다. `--run-legacy` 로 켠다.
 독립 기준 실행이 수십 분 걸리는 test 는 `slow` 마커가 붙는다(기본 실행에 포함, 빠른 실행은 `-m "not slow"` 로 뺀다;
 전체 검증은 그대로 돌린다).
-환경: SPICE_ORACLE_NGSPICE(ngspice_con.exe), SPICE_ORACLE_PDK(sky130_fd_pr 루트).
+환경: GMID_NGSPICE(ngspice 실행 파일), GMID_PDK_ROOT(PDK 상위 폴더, 그 아래 sky130_fd_pr).
 """
 from __future__ import annotations
 
@@ -27,8 +27,8 @@ SKILL_DIR = ORACLE_DIR.parents[1]
 if str(ORACLE_DIR) not in sys.path:             # 새 구조 test 가 `core.*`, `adapters.ngspice.*`, `oracle_run` 을 import 한다
     sys.path.insert(0, str(ORACLE_DIR))
 PY = sys.executable
-NGSPICE = Path(os.environ.get("SPICE_ORACLE_NGSPICE", r"C:\ngspice\Spice64\bin\ngspice_con.exe"))
-PDK = Path(os.environ.get("SPICE_ORACLE_PDK", r"C:\pdk\sky130_fd_pr"))
+NGSPICE = Path(os.environ.get("GMID_NGSPICE", r"C:\ngspice\Spice64\bin\ngspice_con.exe"))      # ngspice 실행 파일 변수 하나(GMID_NGSPICE)
+PDK = Path(os.environ.get("GMID_PDK_ROOT") or "C:/pdk") / "sky130_fd_pr"      # PDK 상위 폴더 변수 하나(GMID_PDK_ROOT)에서 도출
 
 NFET = "sky130_fd_pr__nfet_01v8"
 PFET = "sky130_fd_pr__pfet_01v8"

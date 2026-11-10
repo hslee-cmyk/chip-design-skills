@@ -198,7 +198,8 @@ def _periphery_rules():
     skill = Path(__file__).resolve().parents[3]
     decl = json.loads((skill / "assets" / "sky130_pdk_decl.json").read_text(encoding="utf-8"))
     src = decl["sources"]["periphery_rules"]
-    path = Path(decl["pdk_root"]) / src["path"]
+    from pdk_root import effective_pdk_root
+    path = Path(effective_pdk_root(decl["pdk_root"])) / src["path"]
     if not path.is_file():
         pytest.fail("PDK 규칙 원본 없음: %s -- skip 하지 않는다" % path, pytrace=False)
     pat = re.compile(src["section_pattern"])

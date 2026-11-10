@@ -582,10 +582,25 @@ def _resistor_quantities(spec, quantities):
     return tuple(out)
 
 
-def read_pdk_decl(decl_path, memo):
+def _resolve_root(spec, env):
+    """선언의 `pdk_root` -> 폴더 문자열. 문자열은 그대로, `{"env", "default"}` 는 환경 변수(비어 있지 않으면) 아니면 default. 형식 오류 -> None."""
+    if isinstance(spec, str):
+        return spec or None
+    if not isinstance(spec, dict) or set(spec) - {"env", "default"} or not isinstance(spec.get("default"), str) or not spec["default"]:
+        return None
+    name = spec.get("env")
+    if name is not None and not isinstance(name, str):
+        return None
+    return (env.get(name) if name else None) or spec["default"]
+
+
+def read_pdk_decl(decl_path, memo, env=None):
     """선언 파일 `decl_path`(JSON, 스키마 `gmid_pdk_decl/1`)를 읽어 길이마다 규칙 식을 원본 파일 값으로 계산한 `PdkDecl`.
 
-    `memo` = 부르는 쪽 `BoundedLRU`(원본 파일 파싱 결과를 (형식, sha256, 파싱 인자) 키로 둔다)."""
+    `memo` = 부르는 쪽 `BoundedLRU`(원본 파일 파싱 결과를 (형식, sha256, 파싱 인자) 키로 둔다).
+    `pdk_root` 는 문자열(그 폴더) 또는 `{"env": 변수 이름, "default": 폴더}` 다 -- 후자는 기계마다 PDK 위치가 다르므로 환경 변수가 비어 있지 않으면 그 폴더,
+    아니면 `default` 를 원본 경로의 기준으로 쓴다(LUT 위치 설정 `resolve_lut_location` 과 같은 형식·같은 변수 `GMID_PDK_ROOT` = PDK 상위 폴더).
+    `env` = 환경 매핑(선택, 기본 `os.environ`). 결과(`PdkDecl`, 지문)에는 루트 경로가 들어가지 않으므로 위치가 달라도 같은 원본이면 같은 값이다."""
     if not isinstance(memo, BoundedLRU):
         raise TypeError("read_pdk_decl: memo 는 core BoundedLRU 여야 한다(상한은 부르는 쪽이 정한다)")
     if not os.path.isfile(decl_path):
@@ -604,8 +619,8 @@ def read_pdk_decl(decl_path, memo):
     if not isinstance(source_specs, dict) or not source_specs or not isinstance(quantity_specs, dict) \
             or not quantity_specs:
         raise _reject("pdk_decl_shape", where="sources/quantities", path=decl_path)
-    root = decl["pdk_root"]
-    if not isinstance(root, str) or not root or not isinstance(decl["pdk"], str) or not decl["pdk"]:
+    root = _resolve_root(decl["pdk_root"], os.environ if env is None else env)
+    if root is None or not isinstance(decl["pdk"], str) or not decl["pdk"]:
         raise _reject("pdk_decl_shape", where="pdk/pdk_root", path=decl_path)
     decl_dir = os.path.dirname(os.path.abspath(decl_path))
     sources = {name: _load_source(root, decl_dir, name, spec, memo) for name, spec in sorted_items(source_specs)}
@@ -616,6 +631,6 @@ def read_pdk_decl(decl_path, memo):
     if clash:
         raise _reject("pdk_quantity_duplicate", quantities=tuple(clash))
     quantities = tuple(sorted(quantities + selected, key=lambda item: item[0]))
-    return PdkDecl(decl["pdk"], hashlib.sha256(raw).hexdigest(),
+    return PdkDecl(decl["pdk"], hashlib.sha256(raw.replace(_CRLF, _LF)).hexdigest(),     # 선언 파일 자신의 지문도 줄바꿈(CRLF/LF)과 무관하다
                    tuple((name, digest) for name, (_path, digest, _) in sorted_items(sources)), quantities,
                    _mismatch_models(decl.get("mismatch_models"), sources, source_specs))

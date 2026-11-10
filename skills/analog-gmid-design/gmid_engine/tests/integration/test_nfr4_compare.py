@@ -252,6 +252,80 @@ def test_nfr4_cmp_fingerprint_continuous_field():
     assert _verdict(N.fieldwise(base, other), "s0/graph/start/area_est_m2")["verdict"] == "UNDECIDABLE"
 
 
+# ---------------------------------------------------------------- cross_env: 다른 환경의 타당성 (설계 40 §2.4.13 (2) 개정)
+
+def with_front(rec, env, n_points=1, status="sealed", item_status="pass", c=2.5, oracle=None):
+    """record() 에 front 점 n_points 개와 다른 환경 지문 env 를 붙인 기록(손). 점마다 평가 보고서 status·항목 status·제약값 c."""
+    out = copy.deepcopy(rec)
+    out["env_fp"] = [["stage_a", env], ["runs", env]]
+    for i in range(n_points):
+        b = "result/front[%d]/result/" % i
+        out["fields"][b + "evaluation/report/status"] = F("D", status, "front")
+        out["fields"][b + "evaluation/report/items[0]/status"] = F("D", item_status, "front")
+        out["fields"][b + "constraints/w_min:M1/c"] = F("C", h(c), "front", "c")
+    if oracle is not None:
+        out["oracle"] = oracle
+    return out
+
+
+def test_nfr4_cross_env_valid_fronts_pass_even_if_fronts_differ():
+    """각 환경의 front 점이 타당하면 PASS -- 두 환경의 front 개수·내용이 달라도 요구하지 않는다(보고만)."""
+    a, b = with_front(record(), "E1", 2), with_front(record(), "E2", 1, c=7.0)
+    rep = N.compare(a, b, "cross_env")
+    assert rep["verdict"] == "PASS" and rep["kind"] == "cross_env", rep
+    assert rep["summary"] == {"base": {"front_points": 2, "oracle_checked": False}, "other": {"front_points": 1, "oracle_checked": False}}
+    assert rep["front_presence_differs"] is False and rep["vacuous"] is False
+    assert rep["oracle_not_run"] == ["base", "other"]
+
+
+def test_nfr4_cross_env_front_presence_difference_is_reported_not_failed():
+    """한 환경만 front 를 찾은 경우(실측 common_gate_amplifier): FAIL 이 아니라 front_presence_differs 보고."""
+    rep = N.compare(with_front(record(), "E1", 1), with_front(record(), "E2", 0), "cross_env")
+    assert rep["verdict"] == "PASS" and rep["front_presence_differs"] is True and rep["vacuous"] is False
+
+
+@pytest.mark.parametrize("kw, note", [
+    (dict(status="failed"), "report_status:failed"),
+    (dict(item_status="fail"), "item_not_pass:"),
+    (dict(c=-1e-3), "constraint_negative:"),
+])
+def test_nfr4_cross_env_invalid_front_point_fails(kw, note):
+    """front 점이 엔진 타당성(sealed·항목 pass·제약 c>=0)을 어기면 어느 환경의 것이든 FAIL (손: 어긴 곳을 note 로)."""
+    for bad_side in ("base", "other"):
+        good, bad = with_front(record(), "E1", 1), with_front(record(), "E2", 1, **kw)
+        a, b = (bad, good) if bad_side == "base" else (good, bad)
+        rep = N.compare(a, b, "cross_env")
+        assert rep["verdict"] == "FAIL", (bad_side, kw)
+        fails = [e for e in rep["fields"] if e["verdict"] == "FAIL"]
+        assert len(fails) == 1 and fails[0]["path"].startswith(bad_side + ":") and fails[0]["note"].startswith(note), fails
+
+
+def test_nfr4_cross_env_both_empty_is_vacuous_pass():
+    """두 환경 모두 front 가 없으면 아무것도 검증하지 못했다: PASS 이되 vacuous."""
+    rep = N.compare(with_front(record(), "E1", 0), with_front(record(), "E2", 0), "cross_env")
+    assert rep["verdict"] == "PASS" and rep["vacuous"] is True and rep["oracle_not_run"] == []
+
+
+def test_nfr4_cross_env_oracle_verdicts():
+    """기록에 oracle 판정이 있으면 모두 pass 여야 한다. 하나라도 아니면 FAIL, 없으면 oracle_not_run 보고."""
+    ok = [{"point": 0, "status": "pass"}]
+    rep = N.compare(with_front(record(), "E1", 1, oracle=ok), with_front(record(), "E2", 1, oracle=ok), "cross_env")
+    assert rep["verdict"] == "PASS" and rep["oracle_not_run"] == []
+    bad = [{"point": 0, "status": "fail"}]
+    rep = N.compare(with_front(record(), "E1", 1, oracle=ok), with_front(record(), "E2", 1, oracle=bad), "cross_env")
+    assert rep["verdict"] == "FAIL"
+    assert [e["path"] for e in rep["fields"] if e["verdict"] == "FAIL"] == ["other:oracle[point 0]"]
+
+
+def test_nfr4_cross_env_same_env_rejected_and_preconditions_undecidable():
+    """같은 환경(env_fp 같음)은 same_env 로 비교한다(ValueError). 전제 위반(예: E_B 미선언)은 판정 불능."""
+    with pytest.raises(ValueError):
+        N.compare(with_front(record(), "E1", 1), with_front(record(), "E1", 1), "cross_env")
+    a, b = with_front(record(), "E1", 1), with_front(record(), "E2", 1)
+    b["eval_budget_source"] = "derived_once:floor(B/median_t_eval)@n_evals=7"
+    assert N.compare(a, b, "cross_env")["verdict"] == "UNDECIDABLE"
+
+
 # ---------------------------------------------------------------- N-T28 전제 (판정 불능)
 
 def _pre_cases():

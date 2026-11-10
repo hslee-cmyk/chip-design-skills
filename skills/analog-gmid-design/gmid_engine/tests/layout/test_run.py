@@ -520,7 +520,8 @@ from gmid_engine.lut import resolve_lut_location  # noqa: E402
 # LUT 는 위치 선언(assets/lut_v2_location.json, lut CONTRACT 1.8) 하나뿐이다(O-180). 다른 LUT 를 가리키는 환경변수 덮어쓰기는 없다.
 def _real_loc():
     return resolve_lut_location(str(_SKILL / "assets" / "lut_v2_location.json"), os.environ)
-REAL_TLEF = os.environ.get("GMID_PDK_TLEF", r"C:/pdk/sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef")
+from pdk_root import tlef_path
+REAL_TLEF = tlef_path()
 REAL_KEYS = (600, 1000)          # 실행 시간(슬라이스당 tol_V 표) 때문에 4.18 의 두 후보 키만 PDK 폭 키로 준다
 # 파일럿 소자(4.18; ID·gm/ID·VDS·VSB 는 tools/spice_oracle/smoke 의 sizing oracle_input, W_m = DM T1 표의 참고 W)
 PILOT = (("M3a", 1e-6, 4.9822534479836025e-06, 15.0, 0.2, 0.4772784768243529, 3.495e-6),
