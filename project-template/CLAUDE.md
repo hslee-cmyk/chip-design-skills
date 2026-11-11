@@ -69,6 +69,15 @@ bkit `cto-lead`는 고정 Task() allow-list → **직접 호출** 또는 descrip
 
 순서: analyst → advisor → coder → reviewer + prover. partitioning escalation: advisor만 결정.
 
+## 작업메모리 (모든 AI 공통 — GEMINI.md·AGENTS.md도 이 파일을 따른다)
+
+1. **세션 시작**: `.ai/working/ACTIVE.md`를 읽는다. 이어받을 작업이 있으면 그 `working/<slug>.md`만 연다.
+2. **새 작업**: `working/_TEMPLATE.md`로 `working/<slug>.md`(≤ 60줄) 생성 + ACTIVE.md 1줄. 큰 작업은 `.ai/plans/<slug>/ROADMAP.md` + 현재 phase 실행서만(다음 phase는 직전 phase 완료 시 작성).
+3. **진행 중**: 의미 있는 진전·실패·결정마다 작업 파일의 체크리스트·시도·다음 할 일을 갱신한다(다른 AI가 이어받을 수 있게).
+4. **종료**: 해결한 버그 → `/solution-capture`, 여러 프로젝트에 일반화되는 지식 → ai-memory `memory_propose` → 작업 파일과 ACTIVE.md 줄 삭제.
+
+`TODO.md` = 미해결 **문제**, `.ai/working/` = 진행 중 **작업**. 작업메모리는 RAG·graphify에 색인하지 않는다.
+
 ## 지식 프리플라이트 (RTL/버그 착수 전)
 
 ```bash
@@ -78,7 +87,7 @@ KB_PY=/c/Users/HSLEE/Documents/Todoc/fpga/.tools/kb-venv/Scripts/python.exe
 
 → ① `docs/solutions/patterns/critical-patterns.md` 강제 규칙 ② RAG 의미검색(L4) ③ graphify 관계 항법(L3).
 
-**capture→curate→격상→recall 루프**: 해결 후 `docs/solutions/`에 자산화 → `sync_rules.py`(bkit regression-rules 동기) → 일반화 시 `chip-design-skills/kb-global/principles/`(git)에 추가·push → `kb_index.py` 재색인. L1 로그(`.bkit/**`)는 bkit MCP로 질의.
+**capture→curate→격상→recall 루프**: 해결 후 `docs/solutions/`에 자산화 → `sync_rules.py`(bkit regression-rules 동기) → 일반화 시 영구메모리 `ai-memory/memory/<domain>/`(git, `/kb-promote` [B])에 추가·push → `ai-memory/tools/kb_index.py` 재색인. L1 로그(`.bkit/**`)는 bkit MCP로 질의.
 
 ## bkit Integration
 
