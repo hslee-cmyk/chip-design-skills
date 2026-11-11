@@ -100,10 +100,12 @@ def install_kit(dry):
     if dry:
         print(f"[dry-run] agent-kit -> {dest}/ : {[p.name for p in sorted(src.iterdir())]}")
     else:
-        if dest.exists():
-            shutil.rmtree(dest)
-        shutil.copytree(src, dest)
+        # rmtree 하지 않는다: failure-taxonomy.md는 정본이 ai-memory(memory/rtl/)이고 ai-memory
+        # tools/render_global.py가 이 위치에 배포본을 쓴다(2026-11-11). 키트 파일만 덮어쓴다.
+        shutil.copytree(src, dest, dirs_exist_ok=True)
         print(f"agent-kit installed -> {dest}")
+        if not (dest / "failure-taxonomy.md").exists():
+            print("  WARN: failure-taxonomy.md 없음 — ai-memory에서 배포: <RAG venv python> ~/ai-memory/tools/render_global.py")
 
 
 AI_MEMORY_URL = "git@github.com:hslee-cmyk/ai-memory.git"

@@ -7,7 +7,7 @@
 > **한 줄 결론**: 프로젝트에서 풀어낸 지식을 *사라지지 않는 자산*으로 만든다. 프로젝트별 단기 지식은
 > **graphify(관계 그래프)**, 전 프로젝트 공유 일반 원칙은 **전역 RAG(의미 검색)**로 분리하고,
 > **정본은 git, 인덱스는 재생성**으로 둔다. 모든 검색은 다국어 2단계(임베딩→reranker)이고,
-> 검색 품질은 eval로 측정·pre-push 게이트로 회귀를 차단한다.
+> 검색 품질은 eval로 측정·ai-memory pre-push 게이트로 회귀를 차단한다.
 
 이 문서는 `chip-design-skills` 키트가 fpga 워크스페이스 전체에 깔아둔 **지식 시스템**의 설계와 사용법을
 설명한다. 새 프로젝트를 합류시키거나, 지식을 자산화·격상하거나, 검색 품질을 손볼 때 이 문서를 읽는다.
@@ -64,8 +64,8 @@ bkit 플러그인이 **자동으로** 남기는 append-only 기록. 사람이 �
 사람이 확인해 증류한 재사용 지식. **두 스코프**로 나뉜다:
 - **프로젝트 단기**: `<project>/docs/solutions/**` — 그 프로젝트에서 푼 버그 instance를
   실패분류 T1..T9 폴더에 기록(frontmatter + `schema.yaml` + `validate.py`).
-- **전역 장기(증류)**: 별도 repo `ai-memory`의 `memory/<domain>/**` +
-  `chip-design-skills/agent-kit/failure-taxonomy.md` — 여러 프로젝트에 일반화되는 원칙만.
+- **전역 장기(증류)**: 별도 repo `ai-memory`의 `memory/<domain>/**`(실패분류 T1..T9 `memory/rtl/failure-taxonomy.md` 포함,
+  2026-11-11 키트 `agent-kit/`에서 이전) — 여러 프로젝트에 일반화되는 원칙만.
 - 도메인 지식: `<project>/.ai/analysis/`(모듈 분석), `<project>/.ai/knowledge/`(버그·툴 가이드).
 
 ### 3.3 L3 — 항법 (graphify, 프로젝트 로컬)
@@ -76,7 +76,8 @@ bkit 플러그인이 **자동으로** 남기는 append-only 기록. 사람이 �
 
 ### 3.4 L4 — 검색 (전역 RAG, 공유)
 **증류 원칙만** 임베딩한 의미 검색. 모든 프로젝트가 하나의 전역 인덱스를 공유한다.
-- 코퍼스: `ai-memory/memory/` + `agent-kit/failure-taxonomy.md`(ai-memory `sources.yaml` 외부 정본, **직접 색인**).
+- 코퍼스: `ai-memory/memory/`(failure-taxonomy 포함). RTL agent가 읽는 `~/.claude/agent-kit/failure-taxonomy.md`는
+  ai-memory `tools/render_global.py`가 쓰는 배포본(생성물)이다.
 - 저장: `AI_MEMORY_HOME`(기본 `~/.ai-memory/`)`/kb.sqlite`(sqlite-vec, 재생성). 외부 전송 0 → RTL IP 보안.
 - 파이프라인: 다국어 2단계(§7). 질의는 스코프 무관 → cross-project 재사용의 핵심.
 
@@ -106,7 +107,7 @@ bkit 플러그인이 **자동으로** 남기는 append-only 기록. 사람이 �
 |----------------------------------|-------------------------------|
 | `<project>/docs/solutions/**` (각 프로젝트 repo) | `<project>/graphify-out/` (L3) |
 | `ai-memory/memory/**` (전역 원칙, 별도 repo) | `~/.ai-memory/kb.sqlite` (L4 인덱스) |
-| `chip-design-skills/agent-kit/failure-taxonomy.md` | `.tools/hf-cache/` (임베딩 모델 캐시) |
+| (failure-taxonomy는 위 `ai-memory/memory/rtl/`) | `.tools/hf-cache/` (임베딩 모델 캐시) · `~/.claude/agent-kit/failure-taxonomy.md`(배포본) |
 | 툴링: `ai-memory/tools/*`, `ai-memory/requirements.txt`, 키트 `kb-venv-requirements.txt` | `.tools/kb-venv/` (공유 venv) |
 
 핵심 설계(**단일 정본**): `kb_index.py`는 런타임에 principles 복사본을 만들지 않고
@@ -203,7 +204,7 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
 
 ---
 
-## 8. 품질 보증 — eval + pre-push 게이트
+## 8. 품질 보증 — eval + pre-push 게이트 (ai-memory)
 
 검색 품질을 "느낌"이 아니라 **숫자**로 관리한다.
 
@@ -213,8 +214,8 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
   ```bash
   "$KB_PY" ~/ai-memory/tools/kb_eval.py --verbose
   ```
-- **pre-push 게이트**: `ai-memory/tools/eval_gate.py`. 키트 `.githooks/pre-push`는 `failure-taxonomy.md`가 push에 포함되면
-  ai-memory 게이트(`--gate`)를 호출한다. 게이트 동작:
+- **pre-push 게이트**: ai-memory `.githooks/pre-push` → `tools/eval_gate.py --gate`(`memory/`·`eval/`·`sources.yaml` 변경 push 시).
+  키트의 옛 `.githooks/pre-push`(kb-global·taxonomy 트리거)는 정본 이전으로 대상이 없어져 2026-11-11 삭제. 게이트 동작:
   인덱스 최신화 → eval → `MRR/P@1 < 임계`(기본 0.9)면 **push 차단**. 전 프로젝트 공유 지식의
   품질 회귀를 push 직전에 막는다. 인프라 문제는 SKIP(`KB_EVAL_STRICT=1`이면 차단). 우회: `--no-verify`.
   **캐싱**: 임베딩 모델 cold start가 ~3분 소요되므로 `eval_gate.py`는 SHA-256 콘텐츠 해시 기반
@@ -234,7 +235,7 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
 |------|----------|------|
 | **A. validate+sync** | 프로젝트 `.git/hooks/pre-commit` | `docs/solutions/*.md` 커밋 시 `validate.py`(불량이면 **차단**) + `sync_rules.py`(regression-rules 재생성·stage) |
 | **B. graph 갱신** | 프로젝트 `.git/hooks/post-commit` | `.v/.sv` 커밋 + `graphify-out` 존재 시 `graphify update` 백그라운드(코드 전용·비차단) |
-| **C. 품질 게이트** | 키트 `.githooks/pre-push` → ai-memory `eval_gate.py --gate` | taxonomy push 시 eval 게이트. PASS 시 `.bkit/state/quality-metrics.json`에 MRR/P@1 기록 |
+| **C. 품질 게이트** | ai-memory `.githooks/pre-push` → `eval_gate.py --gate` | 영구메모리(taxonomy 포함) push 시 eval 게이트. PASS 시 `.bkit/state/quality-metrics.json`에 MRR/P@1 기록 |
 | **D. recall 넛지** | CC `PreToolUse` 훅 `kb-preflight-nudge.py` | RTL(`db/design/**/*.v`) Edit/Write 시 세션당 1회 "preflight 권장" 컨텍스트 주입(비차단) |
 | **E. preflight audit** | `preflight.py` 자체 | 실행 시 `.bkit/audit/YYYY-MM-DD.jsonl`에 `gate_passed/quality` 기록 (actorId=preflight, mode=lean\|rerank). RTL 착수 전 지식 조회 증적 |
 | **F. 격상 audit** | `/kb-promote` Step 5 (`sync_rules.py --record-promo`) | [A]/[B] 격상 시 `audit/*.jsonl` + `decisions/*.jsonl`에 기록 (actorId=kb-promote, decisionType=quality_gate_result) |
@@ -250,10 +251,10 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
 | 위치 | 무엇 | git |
 |------|------|:--:|
 | `ai-memory/memory/**/*.md` (별도 repo) | 전역 증류 원칙(정본) | ✅ |
-| `agent-kit/failure-taxonomy.md` | 실패분류 T1..T9(정본, ai-memory가 직접 색인) | ✅ |
+| `ai-memory/memory/rtl/failure-taxonomy.md` (별도 repo) | 실패분류 T1..T9(정본). 배포본 `~/.claude/agent-kit/failure-taxonomy.md` | ✅ |
 | `ai-memory/tools/{am_paths,kb_index,kb_search}.py` | 경로 해석·인덱서·2단계 검색 | ✅ |
 | `ai-memory/tools/kb_eval.py` + `eval/queries.json` | 품질 eval + 골드셋 | ✅ |
-| `ai-memory/tools/eval_gate.py` + 키트 `.githooks/pre-push` | 회귀 차단 게이트 | ✅ |
+| `ai-memory/tools/eval_gate.py` + ai-memory `.githooks/pre-push` | 회귀 차단 게이트 | ✅ |
 | `ai-memory/requirements.txt` + 키트 `kb-venv-requirements.txt` | 공유 venv 핀(RAG / graphify) | ✅ |
 | `project-template/{ai/rag/preflight.py, docs/solutions/**}` | 프로젝트 스캐폴드 | ✅ |
 | `<workspace>/.tools/kb-venv` · `hf-cache`, `~/.ai-memory/kb.sqlite` | 공유 venv·모델·인덱스 | ❌ 재생성 |
