@@ -26,6 +26,9 @@ allowed-tools:
 > 핵심: 이 skill의 가치는 **대화 내역에서 자산화할 내용을 발췌·구조화**하는 것이다.
 > 스키마/검증/격상은 우리 것을 쓴다 — plugin compound-docs의 Rails 스키마가 아니다.
 
+관계: **`/solution-capture`(대화 → `docs/solutions`)** → `/kb-promote`(`docs/solutions` → critical-patterns [A] / ai-memory [B]).
+작업을 닫는 `/wrap`은 해결한 비자명 버그를 이 skill로 넘긴다(작업메모리 `.ai/working/<slug>.md`의 시도·결과 절이 발췌 재료).
+
 **경로 변수**: `KB_PY = <workspace>/.tools/kb-venv/Scripts/python.exe` (공유 venv).
 **스키마 정본**: `<project>/docs/solutions/schema.yaml`. **검증**: `validate.py`. **동기**: `sync_rules.py`.
 
@@ -39,7 +42,7 @@ allowed-tools:
 - **제외**: 단순 오타, 자명한 문법오류, 즉시 고친 사소한 수정 → 자산화하지 않고 종료.
 
 ### Step 2 — 대화에서 컨텍스트 발췌 (이 skill의 핵심)
-대화 히스토리에서 아래를 추출한다. 빠진 필수 항목이 있으면 **사용자에게 묻고 대기**(추측 금지):
+대화 히스토리(압축됐으면 작업메모리 `.ai/working/<slug>.md`의 시도·결과·결정 절도)에서 아래를 추출한다. 빠진 필수 항목이 있으면 **사용자에게 묻고 대기**(추측 금지):
 - **module**: 어느 모듈/컴포넌트 (예: `d_i2c/ext_i2cSlave`)
 - **symptom**: 관찰된 증상/에러 (정확한 메시지·신호)
 - **investigation**: 실패한 시도(무엇이 안 됐고 왜) — 미래의 잘못된 경로 회피용
@@ -47,6 +50,7 @@ allowed-tools:
 - **solution**: 무엇이 고쳤나 (코드/파라미터/제약 변경, 가능하면 BAD→GOOD)
 - **prevention**: 재발 방지법
 - **verifier**: 어느 게이트가 잡나 — `static | formal | sim | pnr`
+  (라우팅 정본 = ai-memory `failure-taxonomy.md` Routing 절: STATIC·STATIC-REACH → `static`, FORMAL → `formal`, SIM → `sim`)
 - **evidence**: 증거 유형 — `lint_log | sby_cex | waveform | utilization_rpt | timing_rpt | hw_observed`
 
 ### Step 3 — 기존 문서 확인 (중복 방지)
@@ -137,10 +141,11 @@ related: [<교차참조 경로>, ...]
 ```
 
 **옵션 3 (전역 격상)** — 여러 프로젝트에 일반화되는 원칙일 때:
-`/kb-promote` [B]로 실행한다. 요지:
+**`/kb-promote` [B]로 실행한다(절차·검증은 그 skill이 정본).** 요지:
 1. `ai-memory/memory/<domain>/` 정본(git, `~/ai-memory` 또는 `$AI_MEMORY_REPO`)에 일반화 형태로 추가
-   (특정 instance 금지, frontmatter: `kind`/`domain`/`tags`/`promoted_from`) + `INDEX.md` 1행.
-2. `"$KB_PY" ~/ai-memory/tools/eval_gate.py` PASS(재색인 포함) → ai-memory commit + push.
+   (특정 instance 금지, frontmatter: `kind`/`domain`/`tags`/`promoted_from`) + `INDEX.md` 행(노드 열 포함).
+   **`## P-<KEYWORD>` 제목 아래 `<!-- rel: alias=…; generalizes=T# -->` 필수** — 없으면 색인·push가 막힌다(ai-memory `ontology.yaml`).
+2. `"$KB_PY" ~/ai-memory/tools/eval_gate.py` PASS(재색인·온톨로지 검증 포함) → ai-memory commit + push.
 ⚠️ 런타임 `~/.ai-memory/`엔 원칙을 쓰지 말 것 (인덱스 전용·비버전관리).
 
 ---
@@ -148,7 +153,8 @@ related: [<교차참조 경로>, ...]
 ## 하지 말 것
 - plugin compound-docs의 Rails 스키마(build_error 등)·카테고리 사용 금지 → **우리 T1..T9** 사용.
 - frontmatter 검증(Step 5) 건너뛰기 금지(BLOCKING).
-- 개인 선호·휘발 맥락은 자산화 대상 아님 (그건 Claude memory). durable·shareable한 기술 지식만.
+- 휘발 맥락은 자산화 대상 아님 — 진행 중 상태는 작업메모리(`.ai/working`), 끝난 작업의 경과는 일화(`/wrap` → `.ai/episodes`),
+  개인 선호는 ai-memory `preference/`(제안·승인). 여기엔 durable·shareable한 기술 지식(해결한 버그)만.
 - 모호한 서술("뭔가 이상했다") 금지 — 정확한 증상·신호·근본원인.
 
 ## 참고
