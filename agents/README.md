@@ -2,7 +2,7 @@
 
 Claude Code subagents for Verilog/SystemVerilog RTL, derived from an AI-failure forensic study of
 `venezia-fpga` (57 human-correction commits on an AI-implemented feature). A **Constrain-&-Escalate**
-4-agent + router system: detect the architectural boundary, escalate decisions, route each bug class to its
+4-agent + routing system: detect the architectural boundary, escalate decisions, route each bug class to its
 cheapest reliable verifier (formal / static / sim).
 
 > This `agents/` dir holds **only valid agent `.md` files** (Claude Code scans `~/.claude/agents/*.md`).
@@ -17,10 +17,11 @@ cheapest reliable verifier (formal / static / sim).
 | `verilog-rtl-prover` | independent formal intent properties (sby), FAIL-first | opus | + Write/Edit |
 
 ## agent-kit (`../agent-kit/` → `~/.claude/agent-kit/`)
-- **tools**: `boundary-classifier.py` (structural-delta ARCH/IFACE/LOCAL) · `bug-class-router.py` (class→route+owner)
-  · `harness_builder.py` (sby harness skeleton) · `pre-merge-check.py` (ARCH→BLOCK gate)
-- **refs**: `failure-taxonomy.md` (T1–T9) · `property-library.md` (TPL-1..7) · `adr-template.md` · `methodology.md`
-  · `evidence.md`
+- **tools** (키트 `agent-kit/`, install.py가 설치): `boundary-classifier.py` (structural-delta ARCH/IFACE/LOCAL)
+  · `harness_builder.py` (sby harness skeleton) · `pre-merge-check.py` (ARCH→BLOCK gate) · `adr-template.md`
+- **knowledge** (정본 = ai-memory `memory/rtl/`, 이 위치엔 `render_global.py` 배포본): `failure-taxonomy.md` (T1–T9 +
+  **Routing 정본**) · `methodology.md` (§4a FSM 분할 기준) · `evidence.md` · `property-library.md` (TPL-1..7).
+  구 `bug-class-router.py`는 2026-11-11 삭제(라우팅 = taxonomy Routing 절).
 - Agents reference these by absolute path `~/.claude/agent-kit/...` (resolves in any project after install).
 
 ## Deploy
@@ -58,6 +59,6 @@ git config core.hooksPath .githooks      # see .githooks/pre-commit ; bypass: gi
   module examples in the kit docs are from venezia-fpga and are illustrative.
 
 ## Tool path note
-`bug-class-router.py` / `pre-merge-check.py` operate on the design git tree — invoke from within it
-(`cd db/design && python ~/.claude/agent-kit/bug-class-router.py --commit <hash>`). `boundary-classifier.py` and
+`boundary-classifier.py` / `pre-merge-check.py` operate on the design git tree — invoke from within it
+(`cd db/design && python ~/.claude/agent-kit/pre-merge-check.py <commit-or-range>`). `boundary-classifier.py` and
 the others are co-located in `agent-kit/` so their cross-calls resolve.

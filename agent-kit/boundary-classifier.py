@@ -9,6 +9,10 @@ Computes a STRUCTURAL-DELTA signature from a commit's Verilog diff and classifie
   LOCAL -> in-place logic/expression edit. Safe for the constrained Implementer;
            correctness is checked by the Prover (formal) / directed sim, NOT here.
 
+Label definitions + gate policy: canonical in ai-memory `failure-taxonomy.md` -> Routing -> 구조 라벨; the
+fold-vs-split rule it forces: ai-memory `methodology.md` §4a. This file is the implementation (regexes, weights).
+Known limit: the patterns assume `u_` instance prefixes and `define-macro FSM case arms (plan agent-kit-routing-canon).
+
 This is the Architect-advisor's classifier. The point (per the AI-failure forensics):
 the "new FSM vs new state" decision must be COMPUTED from the structural delta, never
 judged from a grepped fragment.
