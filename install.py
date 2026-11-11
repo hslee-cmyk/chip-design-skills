@@ -624,6 +624,12 @@ def init_ai_infra(dry, project, force):
                         if not dst.exists():
                             dst.touch()
                     continue
+                # 작업메모리 템플릿 정본 = ai-memory templates/working (hook이 읽는 칸 규칙과 같은 자리).
+                # 키트 project-template/ai/working은 ai-memory가 없을 때 쓰는 사본(`wm_wrap.py refresh --dir`로 동기).
+                if s.parent == src_root / "ai" / "working":
+                    canon = ai_memory_repo() / "templates" / "working" / fn
+                    if canon.is_file():
+                        s = canon
                 emit(s, dst)
 
     print(f"== AI infra scaffold -> {proj}  (name='{name}', toolchain={tool or 'unknown'})")
