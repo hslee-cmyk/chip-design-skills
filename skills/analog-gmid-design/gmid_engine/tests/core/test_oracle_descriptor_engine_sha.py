@@ -41,7 +41,8 @@ def test_engine_sources_and_extra_sources_do_not_overlap():
     d = _load(DESC)
     decl_path = (DESC.parent / d["engine_decl"]["path"]).resolve()
     decl = _load(decl_path)
-    pdk_root = Path(decl["pdk_root"])
+    from pdk_root import effective_pdk_root
+    pdk_root = Path(effective_pdk_root(decl["pdk_root"]))
     eng = _files(decl_path, decl["sources"], pdk_root)
     ext = _files(decl_path, d["extra_sources"], pdk_root)
     assert eng and ext

@@ -1,0 +1,615 @@
+{
+ "id": "20261110-nfr4-crossenv",
+ "note": "측정 요약. 판정 기록(auditor)이 아니라 작성자(Claude)의 측정 증거 -- 독립 판정 전.",
+ "machine": "Intel Xeon E5-2687W (Sandy Bridge, AVX, AVX2 없음), CentOS 7, glibc 2.17, 16코어",
+ "engine_env": "Python 3.14.10, numpy 2.5.4, scipy 1.18.1 (conda-forge, OpenBLAS 0.3.34 pthreads, 스레드 1 고정)",
+ "kernel_control": "OPENBLAS_CORETYPE=Nehalem 대 기본(Sandybridge)",
+ "comparisons": {
+  "cga_budget40_same_env(A1,A2)": {
+   "kind": "same_env",
+   "runs": [
+    "A1",
+    "A2"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "9909e029088c"
+    ]
+   ],
+   "fields": [
+    8257,
+    8257
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 0,
+   "front_points": [
+    0,
+    0
+   ],
+   "solver_stops": [
+    {
+     "eps:eval_budget": 2,
+     "layer0:converged": 1
+    },
+    {
+     "eps:eval_budget": 2,
+     "layer0:converged": 1
+    }
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "cga_budget40_kernel(A1,B)": {
+   "kind": "kernel_Nehalem",
+   "runs": [
+    "A1",
+    "B"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    8257,
+    9760
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 1869,
+   "front_points": [
+    0,
+    0
+   ],
+   "solver_stops": [
+    {
+     "eps:eval_budget": 2,
+     "layer0:converged": 1
+    },
+    {
+     "eps:slsqp_4": 1,
+     "eps:eval_budget": 1,
+     "layer0:converged": 1
+    }
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "cga_budget300_kernel": {
+   "kind": "kernel_Nehalem",
+   "runs": [
+    "S300",
+    "S300B"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    23396,
+    18222
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 9068,
+   "front_points": [
+    1,
+    0
+   ],
+   "solver_stops": [
+    {
+     "eps:slsqp_8": 1,
+     "eps:converged": 1,
+     "layer0:converged": 1
+    },
+    {
+     "eps:slsqp_4": 2,
+     "layer0:converged": 1
+    }
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "cga_budget1000_kernel": {
+   "kind": "kernel_Nehalem",
+   "runs": [
+    "G1000",
+    "G1000B"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    23396,
+    18222
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 9068,
+   "front_points": [
+    1,
+    0
+   ],
+   "solver_stops": [
+    {
+     "eps:slsqp_8": 1,
+     "eps:converged": 1,
+     "layer0:converged": 1
+    },
+    {
+     "eps:slsqp_4": 2,
+     "layer0:converged": 1
+    }
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "cga_budget3000_kernel": {
+   "kind": "kernel_Nehalem",
+   "runs": [
+    "G3000",
+    "G3000B"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    23396,
+    18222
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 9068,
+   "front_points": [
+    1,
+    0
+   ],
+   "solver_stops": [
+    {
+     "eps:slsqp_8": 1,
+     "eps:converged": 1,
+     "layer0:converged": 1
+    },
+    {
+     "eps:slsqp_4": 2,
+     "layer0:converged": 1
+    }
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "cnr_ota_budget1000_kernel": {
+   "kind": "kernel_Nehalem",
+   "runs": [
+    "H_cnr_ota",
+    "H_cnr_ota_N"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    7300,
+    7300
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 0,
+   "front_points": [
+    0,
+    0
+   ],
+   "solver_stops": [
+    {},
+    {}
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "current_reuse_telescopic_ota_budget1000_kernel": {
+   "kind": "kernel_Nehalem",
+   "runs": [
+    "H_current_reuse_telescopic_ota",
+    "H_current_reuse_telescopic_ota_N"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    587115,
+    587217
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 242308,
+   "front_points": [
+    0,
+    0
+   ],
+   "solver_stops": [
+    {},
+    {}
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "erfc_ota_budget1000_kernel": {
+   "kind": "kernel_Nehalem",
+   "runs": [
+    "H_erfc_ota",
+    "H_erfc_ota_N"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    5510,
+    5510
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 0,
+   "front_points": [
+    0,
+    0
+   ],
+   "solver_stops": [
+    {},
+    {}
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "folded_cascode_budget1000_kernel": {
+   "kind": "kernel_Nehalem",
+   "runs": [
+    "H_folded_cascode",
+    "H_folded_cascode_N"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    233666,
+    160309
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 133819,
+   "front_points": [
+    0,
+    0
+   ],
+   "solver_stops": [
+    {
+     "eps:slsqp_4": 1,
+     "eps:slsqp_8": 1,
+     "layer0:converged": 1
+    },
+    {
+     "eps:slsqp_4": 1,
+     "eps:slsqp_8": 1,
+     "layer0:converged": 1
+    }
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "ngcc_3stage_ff_budget1000_kernel": {
+   "kind": "kernel_Nehalem",
+   "runs": [
+    "H_ngcc_3stage_ff",
+    "H_ngcc_3stage_ff_N"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    2692,
+    2692
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 0,
+   "front_points": [
+    0,
+    0
+   ],
+   "solver_stops": [
+    {},
+    {}
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "two_stage_ota_budget1000_kernel": {
+   "kind": "kernel_Nehalem",
+   "runs": [
+    "H_two_stage_ota",
+    "H_two_stage_ota_N"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    289895,
+    148285
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 197890,
+   "front_points": [
+    0,
+    0
+   ],
+   "solver_stops": [
+    {
+     "eps:slsqp_4": 2,
+     "layer0:converged": 1
+    },
+    {
+     "eps:slsqp_4": 2,
+     "layer0:converged": 1
+    }
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "pureSQP_cga_budget40_same_env(P1,P2)": {
+   "kind": "pure_sqp_prototype",
+   "runs": [
+    "P1",
+    "P2"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "9909e029088c"
+    ]
+   ],
+   "fields": [
+    7538,
+    7538
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 0,
+   "front_points": [
+    0,
+    0
+   ],
+   "solver_stops": [
+    {
+     "eps:slsqp_4": 2,
+     "layer0:converged": 1
+    },
+    {
+     "eps:slsqp_4": 2,
+     "layer0:converged": 1
+    }
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "pureSQP_cga_budget40_kernel(P1,PB)": {
+   "kind": "pure_sqp_prototype",
+   "runs": [
+    "P1",
+    "PB"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    7538,
+    7538
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 0,
+   "front_points": [
+    0,
+    0
+   ],
+   "solver_stops": [
+    {
+     "eps:slsqp_4": 2,
+     "layer0:converged": 1
+    },
+    {
+     "eps:slsqp_4": 2,
+     "layer0:converged": 1
+    }
+   ],
+   "code_fp": "8b6bae44189c"
+  },
+  "pureSQP_cga_budget300_kernel_final(Z300,Z300B)": {
+   "kind": "pure_sqp_prototype",
+   "runs": [
+    "Z300",
+    "Z300B"
+   ],
+   "env_fp": [
+    [
+     "9909e029088c"
+    ],
+    [
+     "ca4622f01794"
+    ]
+   ],
+   "fields": [
+    65455,
+    65455
+   ],
+   "strict_differing_fields(non-time,non-env_fp)": 0,
+   "front_points": [
+    0,
+    0
+   ],
+   "solver_stops": [
+    {
+     "eps:slsqp_4": 1,
+     "eps:eval_budget": 1,
+     "layer0:converged": 1
+    },
+    {
+     "eps:slsqp_4": 1,
+     "eps:eval_budget": 1,
+     "layer0:converged": 1
+    }
+   ],
+   "code_fp": "8b6bae44189c"
+  }
+ },
+ "raw_records": {
+  "A1": {
+   "sha256": "b77d7a9c9133a59188c644b9fc58deda18d60d4fedb1bc9d87271ed82afe20bf",
+   "bytes": 891611,
+   "where": "scratch/nfr4_work/A1.json (저장소 밖, 큰 원본)"
+  },
+  "A2": {
+   "sha256": "eeb3fd0be0018de1c80eaa3fea4bc05eae670c26b3026ee0f3eb7ed8a793a0b3",
+   "bytes": 891611,
+   "where": "scratch/nfr4_work/A2.json (저장소 밖, 큰 원본)"
+  },
+  "B": {
+   "sha256": "6903ac1bcf69bc0efe757b631170b3f1eca6aa541473bc1a390cc60433e4aea9",
+   "bytes": 1055933,
+   "where": "scratch/nfr4_work/B.json (저장소 밖, 큰 원본)"
+  },
+  "G1000": {
+   "sha256": "17eb318e79f212e87f72b8ab0bca69542034b2d6fe2d97abc6aba57baf90723d",
+   "bytes": 2551072,
+   "where": "scratch/nfr4_work/G1000.json (저장소 밖, 큰 원본)"
+  },
+  "G1000B": {
+   "sha256": "c8e965bc687617ff1a7e6f8221ee7cca0d2abb5e0429029ccbcc6fc215d13f84",
+   "bytes": 1981359,
+   "where": "scratch/nfr4_work/G1000B.json (저장소 밖, 큰 원본)"
+  },
+  "G3000": {
+   "sha256": "7ca73b713b78452bee47400b9686ef6f580ce8950250c73dfa041f7b9b5429aa",
+   "bytes": 2551074,
+   "where": "scratch/nfr4_work/G3000.json (저장소 밖, 큰 원본)"
+  },
+  "G3000B": {
+   "sha256": "ef8967247601bd4bdf089c747fa46e6c5a58e814bb5b3f53d5c353dba9a1f256",
+   "bytes": 1981361,
+   "where": "scratch/nfr4_work/G3000B.json (저장소 밖, 큰 원본)"
+  },
+  "H_cnr_ota": {
+   "sha256": "ade2ef55f794a2d2b7aed2ad8838304e7f1cb4a7da82c05e246c378c98d3934f",
+   "bytes": 782245,
+   "where": "scratch/nfr4_work/H_cnr_ota.json (저장소 밖, 큰 원본)"
+  },
+  "H_cnr_ota_N": {
+   "sha256": "abc5f20c70e1ea3fec823e309ac0abdba3aefdbf8df8501db3b50d818153ce79",
+   "bytes": 782245,
+   "where": "scratch/nfr4_work/H_cnr_ota_N.json (저장소 밖, 큰 원본)"
+  },
+  "H_current_reuse_telescopic_ota": {
+   "sha256": "b1e8999f684ce238701a06cd02524b76ac1f61b8199f62ab3d8a7cb2c834f70b",
+   "bytes": 63604116,
+   "where": "scratch/nfr4_work/H_current_reuse_telescopic_ota.json (저장소 밖, 큰 원본)"
+  },
+  "H_current_reuse_telescopic_ota_N": {
+   "sha256": "128692369c1cc5f1ad4eb2b1b90045d50429b8ce6b1cc208dd62c36f9a30b17f",
+   "bytes": 63617240,
+   "where": "scratch/nfr4_work/H_current_reuse_telescopic_ota_N.json (저장소 밖, 큰 원본)"
+  },
+  "H_erfc_ota": {
+   "sha256": "6b3b3b11219b5ae1c7c07a8c3de12a65e16567e37352b11c9bad82bc7c6fb19b",
+   "bytes": 583414,
+   "where": "scratch/nfr4_work/H_erfc_ota.json (저장소 밖, 큰 원본)"
+  },
+  "H_erfc_ota_N": {
+   "sha256": "b14b9a68dd1a640c1a1682f7956a8474635dae974ca7c55e63a3893e66b677ca",
+   "bytes": 583414,
+   "where": "scratch/nfr4_work/H_erfc_ota_N.json (저장소 밖, 큰 원본)"
+  },
+  "H_folded_cascode": {
+   "sha256": "03ef48ba55c98abe01de10f3e9ba982825f10a95350d87188657d28302e106b2",
+   "bytes": 26169911,
+   "where": "scratch/nfr4_work/H_folded_cascode.json (저장소 밖, 큰 원본)"
+  },
+  "H_folded_cascode_N": {
+   "sha256": "365f51d800e49ad99837ad302e26417e180109fde3e04da1069a856f2ebfcdca",
+   "bytes": 17880038,
+   "where": "scratch/nfr4_work/H_folded_cascode_N.json (저장소 밖, 큰 원본)"
+  },
+  "H_ngcc_3stage_ff": {
+   "sha256": "2b2ef13d7bdd044572ecb825900a82b443a0a58eb42f7fa6b46735195e928dc3",
+   "bytes": 291536,
+   "where": "scratch/nfr4_work/H_ngcc_3stage_ff.json (저장소 밖, 큰 원본)"
+  },
+  "H_ngcc_3stage_ff_N": {
+   "sha256": "9af96cb97ca4959aebd50265437329de3c9b38e0fcf0347408057522c76656bd",
+   "bytes": 291536,
+   "where": "scratch/nfr4_work/H_ngcc_3stage_ff_N.json (저장소 밖, 큰 원본)"
+  },
+  "H_two_stage_ota": {
+   "sha256": "6be7a88e6251814cf3dbb9fb8cedf5cc77a106e4fee0c33c85c168a94a62c457",
+   "bytes": 32575716,
+   "where": "scratch/nfr4_work/H_two_stage_ota.json (저장소 밖, 큰 원본)"
+  },
+  "H_two_stage_ota_N": {
+   "sha256": "65733368a66a2c646d97cb74063c2ec7f3a4089d5ea4f9e82af2d8177390ddb0",
+   "bytes": 16635500,
+   "where": "scratch/nfr4_work/H_two_stage_ota_N.json (저장소 밖, 큰 원본)"
+  },
+  "P1": {
+   "sha256": "531e06b4cb99bad48922f606b7013371a2ef868e23c66ef3f5318786d96edde3",
+   "bytes": 815178,
+   "where": "scratch/nfr4_work/P1.json (저장소 밖, 큰 원본)"
+  },
+  "P2": {
+   "sha256": "aad9782b7587e3e4235c64ef034abc94df7dbc68aad3ae514ff54cc325c74d70",
+   "bytes": 815178,
+   "where": "scratch/nfr4_work/P2.json (저장소 밖, 큰 원본)"
+  },
+  "PB": {
+   "sha256": "bd3d6994461e6a793b19a6edba23a4802a9e1f2774b6c63444cd9ca2e92b33c8",
+   "bytes": 815178,
+   "where": "scratch/nfr4_work/PB.json (저장소 밖, 큰 원본)"
+  },
+  "S300": {
+   "sha256": "ad05759aab67e17f0995ab3d0f8234ac9d05bd70644360e9fa6358971bb50ed4",
+   "bytes": 2551066,
+   "where": "scratch/nfr4_work/S300.json (저장소 밖, 큰 원본)"
+  },
+  "S300B": {
+   "sha256": "f0ed22c2ee7337f2b7a1b1c6ac3ee3c04178bd200558dd623388a37ce997603e",
+   "bytes": 1981353,
+   "where": "scratch/nfr4_work/S300B.json (저장소 밖, 큰 원본)"
+  },
+  "Z300": {
+   "sha256": "107a7ca41a2f1c75734cfde3a5bb9dea07f70085bd45952568dce8e93324dab0",
+   "bytes": 7237203,
+   "where": "scratch/nfr4_work/Z300.json (저장소 밖, 큰 원본)"
+  },
+  "Z300B": {
+   "sha256": "1d15a602ca9a01dd7c9ef7463bbcf17cf8bee5a337c77422fc6cdd81ab92ccb1",
+   "bytes": 7237203,
+   "where": "scratch/nfr4_work/Z300B.json (저장소 밖, 큰 원본)"
+  }
+ }
+}

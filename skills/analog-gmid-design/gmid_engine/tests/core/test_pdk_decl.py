@@ -31,6 +31,8 @@ from gmid_engine.core import (
     require_immutable,
 )
 
+from pdk_root import effective_pdk_root, pdk_roots
+
 SKILL_DIR = Path(__file__).resolve().parents[3]
 SKY130_DECL = SKILL_DIR / "assets" / "sky130_pdk_decl.json"
 REL = 1e-12
@@ -48,7 +50,7 @@ SKY = _load_json(SKY130_DECL)
 
 
 def _src_path(decl, name):
-    return decl["pdk_root"] + "/" + decl["sources"][name]["path"]
+    return effective_pdk_root(decl["pdk_root"]) + "/" + decl["sources"][name]["path"]
 
 
 _SKY_FILES_PRESENT = all(os.path.isfile(_src_path(SKY, n)) for n in SKY["sources"])
@@ -60,6 +62,12 @@ needs_sky130 = pytest.mark.skipif(not _SKY_FILES_PRESENT, reason="sky130 원본(
 def _sha256(path):
     with open(path, "rb") as f:
         return hashlib.sha256(f.read()).hexdigest()
+
+
+def _sha256_lf(path):
+    """줄바꿈 LF 환산 sha256 -- `newline: "lf"` 를 선언한 원본·선언 파일 자신의 지문(CRLF/LF 체크아웃과 무관)."""
+    with open(path, "rb") as f:
+        return hashlib.sha256(f.read().replace(b"\r\n", b"\n")).hexdigest()
 
 
 _LEF_LINE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s+([^\s;]+)\s*;\s*$")
@@ -216,7 +224,7 @@ def sky_decl():
 def test_sky130_sources_match_declared_sha256():
     # 전제: 커밋된 선언의 sha256 이 실제 원본과 같다(9.4).
     for name, src in SKY["sources"].items():
-        assert _sha256(_src_path(SKY, name)) == src["sha256"], name
+        assert _sha256_lf(_src_path(SKY, name)) == src["sha256"], name
 
 
 @needs_sky130
@@ -242,7 +250,7 @@ def test_sky130_rules_carry_provenance(sky_decl, name):
     assert tuple(r.rule_id for r in q.rules) == SKY_RULE_ORDER[name]
     source = SKY["quantities"][name]["source"]
     path = _src_path(SKY, source)
-    sha = _sha256(path)
+    sha = _sha256_lf(path)
     for r in q.rules:
         assert isinstance(r, PdkRule)
         value_m, text, unit, line = my_rule_m(SKY, source, r.rule_id)
@@ -254,7 +262,7 @@ def test_sky130_rules_carry_provenance(sky_decl, name):
         assert r.source == source
         # [U17 ①-b 2차, 결정 7] 경로 대신 내용: 원본 이름 + 그 파일 바이트 sha256(test 가 직접 해시) = 선언의 sha256
         assert r.sha256 == sha == SKY["sources"][source]["sha256"]
-        assert_path_free(r, (SKY["pdk_root"], path, SKILL_DIR))
+        assert_path_free(r, (*pdk_roots(SKY["pdk_root"]), path, SKILL_DIR))
 
 
 @needs_sky130
@@ -267,16 +275,37 @@ def test_sky130_empty_unit_rows_read_as_declared_unit(sky_decl):
 
 
 @needs_sky130
+def test_sky130_decl_independent_of_line_endings(tmp_path):
+    """선언이 줄바꿈(LF/CRLF 체크아웃)에 영향받지 않는다: 같은 원본·같은 선언 파일을 LF 로 복사한 것과 CRLF 로 복사한 것을 읽으면 값·지문·
+    선언 파일 지문이 같다((비교) 같은 함수 두 출력). 선언 파일 자신의 줄바꿈도 바꾼다."""
+    def tree(name, newline):
+        root = tmp_path / name
+        for src in SKY["sources"].values():
+            data = Path(_src_path(SKY, next(n for n, s in SKY["sources"].items() if s is src))).read_bytes().replace(b"\r\n", b"\n")
+            dst = root / src["path"]
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.write_bytes(data.replace(b"\n", newline))
+        decl = tmp_path / (name + ".decl.json")
+        decl.write_bytes(SKY130_DECL.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", newline))
+        return read_pdk_decl(str(decl), BoundedLRU(4), {"GMID_PDK_ROOT": str(root)})
+
+    lf, crlf = tree("lf", b"\n"), tree("crlf", b"\r\n")
+    assert lf.decl_sha256 == crlf.decl_sha256 == _sha256_lf(SKY130_DECL)
+    assert lf.sources == crlf.sources and lf.quantities == crlf.quantities
+    assert fp_of(lf) == fp_of(crlf)
+
+
+@needs_sky130
 def test_sky130_decl_record_shape(sky_decl):
     assert isinstance(sky_decl, PdkDecl)
     assert sky_decl.pdk == "sky130"
     # [U17 ①-b 2차, 결정 7] 어느 선언 파일인지 = 선언 파일 바이트 sha256(경로 속성 decl_path 없음)
-    assert sky_decl.decl_sha256 == _sha256(SKY130_DECL)
+    assert sky_decl.decl_sha256 == _sha256_lf(SKY130_DECL)
     # sources: 원본 이름 순, 항목마다 이름 + 그 원본 바이트 sha256(test 가 직접 해시), 경로 성분 없음
-    exp_sources = tuple(sorted((n, _sha256(_src_path(SKY, n))) for n in SKY["sources"]))
+    exp_sources = tuple(sorted((n, _sha256_lf(_src_path(SKY, n))) for n in SKY["sources"]))
     # [U17 ①-b 3차] tuple 동등: 항목 = (이름, sha256) 두 칸뿐(core 9.2 as-built), 다른 칸(경로 등)이 끼면 실패
     assert sky_decl.sources == exp_sources
-    assert_path_free(sky_decl, [SKY["pdk_root"], SKY130_DECL, SKILL_DIR] + [_src_path(SKY, n) for n in SKY["sources"]])
+    assert_path_free(sky_decl, [*pdk_roots(SKY["pdk_root"]), SKY130_DECL, SKILL_DIR] + [_src_path(SKY, n) for n in SKY["sources"]])
     names = tuple(n for n, _ in sky_decl.quantities)
     # [U3, 계약 9.7·설계 40 §7.1 Q9] resistor_types 규칙이 고른 후보의 세 양을 `<selected_as>_*` 이름으로 quantities 에 더한다
     sel = SKY["resistor_types"]["selected_as"]
@@ -846,7 +875,7 @@ def _src_full_path(decl, name, decl_path):
     src = decl["sources"][name]
     if src.get("base", "pdk_root") == "decl_dir":
         return os.path.dirname(os.path.abspath(decl_path)).replace("\\", "/") + "/" + src["path"]
-    return decl["pdk_root"] + "/" + src["path"]
+    return effective_pdk_root(decl["pdk_root"]) + "/" + src["path"]
 
 
 @functools.lru_cache(maxsize=16)
@@ -977,7 +1006,7 @@ def test_lut_rule_decl_values_and_provenance():
     (src,) = d.sources
     # [U17 ①-b 2차, 결정 7] 어느 원본인지 = 이름 + 생성기 파일 LF 바이트 sha256(test 가 직접 해시), 경로 성분 없음
     assert src[0] == "lut_generator" and lf_sha in tuple(src)
-    assert d.decl_sha256 == _sha256(LUT_RULE_DECL)
+    assert d.decl_sha256 == _sha256_lf(LUT_RULE_DECL)
     for n in LUT_TABLE:
         for r in d.quantity(n).rules:
             vm, text, unit, line = my_spice_rule_m(LUT, "lut_generator", str(LUT_RULE_DECL), r.rule_id)
@@ -1424,8 +1453,8 @@ def test_sky130_mismatch_blocks_match_independent_parse(sky_decl, kind, dev, n_b
     assert isinstance(mm, PdkMismatchModel) and mm.kind == kind
     # [U17 ①-b 2차, 결정 7] 어느 모델 카드인지 = 카드 원본 바이트 sha256(test 가 직접 해시), 경로 속성 없음
     card_src = SKY["mismatch_models"][kind]["model_source"]
-    assert mm.model_sha256 == _sha256(_src_path(SKY, card_src)) == SKY["sources"][card_src]["sha256"]
-    assert_path_free(mm, (SKY["pdk_root"], SKILL_DIR))
+    assert mm.model_sha256 == _sha256_lf(_src_path(SKY, card_src)) == SKY["sources"][card_src]["sha256"]
+    assert_path_free(mm, (*pdk_roots(SKY["pdk_root"]), SKILL_DIR))
     exp = {b[0]: b for b in _card_blocks(_card_text(dev))}
     vals = _slope_values(dev)
     assert len(mm.blocks) == len(exp) == n_blocks

@@ -335,7 +335,7 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 
 ---
 
-## 9. PDK 선언 `read_pdk_decl(decl_path, memo) -> PdkDecl` (계획 N3.16 'PDK 상수', U-30, WP-03, DEC-80 (i), DEC-91, DEC-93 (5), LY10)
+## 9. PDK 선언 `read_pdk_decl(decl_path, memo, env=None) -> PdkDecl` (계획 N3.16 'PDK 상수', U-30, WP-03, DEC-80 (i), DEC-91, DEC-93 (5), LY10)
 
 근거: PDK 상수는 한 곳 선언, 값마다 출처 규칙 번호, 코드에 숫자를 박지 않는다. 소비자: MOD7 `LayoutPdk`(layout CONTRACT 4.1·4.10 --
 `manufacturing_grid_m` 과 `PDK_RULE_QUANTITIES` 다섯 길이 + `rule_ids`), metrics 접합 용량(metrics CONTRACT 8절 -- LUT 생성 규칙 확산 기하
@@ -345,7 +345,7 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 
 ### 9.1 선언 파일 (JSON, UTF-8) -- PDK 마다 데이터 하나 (sky130 = `skills/analog-gmid-design/assets/sky130_pdk_decl.json`)
 - 최상위는 JSON 객체(배열·수·문자열이면 `pdk_decl_shape`). 키 정확히 `schema`(= `"gmid_pdk_decl/1"`), `pdk`(비지 않은 문자열),
-  `pdk_root`(비지 않은 문자열), `sources`(비지 않은 객체), `quantities`(비지 않은 객체) + 선택 `note`·[U3] `mismatch_models`·`resistor_types`
+  `pdk_root`(비지 않은 문자열, 또는 `{"env": 변수 이름, "default": 폴더}` -- 후자는 `env[이름]`(보통 `GMID_PDK_ROOT` = PDK 상위 폴더)이 비어 있지 않으면 그 폴더, 아니면 `default`; `env` 인자 기본 `os.environ`), `sources`(비지 않은 객체), `quantities`(비지 않은 객체) + 선택 `note`·[U3] `mismatch_models`·`resistor_types`
   (9.6·9.7). 그 밖 키·빠진 키 -> `pdk_decl_keys`;
   `pdk`·`pdk_root`·`sources`·`quantities`·`sources.<이름>`·`quantities.<이름>` 의 타입·빈 값 위반 -> `pdk_decl_shape`.
 - `sources.<이름>`: 경로는 `pdk_root + "/" + path`(선택 `base` 가 `"decl_dir"` 이면 `선언 파일 폴더(절대 경로) + "/" + path`). 공통 키
@@ -391,7 +391,7 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
   (layout `LayoutPdk` 길이는 >= 0).
 
 ### 9.2 결과
-- `PdkDecl(pdk, decl_sha256, sources, quantities, mismatch_models=())` -- frozen, `require_immutable` 통과, `fp_of` 결정론. 값에 파일 경로는 없다(사용자 결정 7: checkout 마다 달라 S0 값이 checkout 에 묶인다. 원본 파일 경로는 로딩 중 선언 폴더 기준으로 해석해 쓰고 버린다).
+- `PdkDecl(pdk, decl_sha256, sources, quantities, mismatch_models=())` -- `decl_sha256` = 선언 파일 바이트를 CRLF -> LF 환산해 잰 sha256(체크아웃의 줄바꿈과 무관), frozen, `require_immutable` 통과, `fp_of` 결정론. 값에 파일 경로는 없다(사용자 결정 7: checkout 마다 달라 S0 값이 checkout 에 묶인다. 원본 파일 경로는 로딩 중 선언 폴더 기준으로 해석해 쓰고 버린다).
   [U3] `mismatch_models` = ((kind, `PdkMismatchModel`), ...) kind 정렬; `decl.mismatch_model(kind)` (선언에 없으면 `pdk_mismatch_undeclared`).
   `sources` = ((원본 이름, sha256), ...) 이름 정렬(경로 없음), `quantities` = ((이름, `PdkQuantity`), ...) 이름 정렬.
 - `PdkQuantity(name, value_m, expression, rules, basis)`: `value_m` = 식에 규칙 값(m)을 넣은 float, `expression` = 선언 글 그대로,
@@ -448,13 +448,13 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 periphery.csv `X.1a`(dummy_poly L = 그 소자 최소 L)가 정한다 -- 식 변경 없음. (`min_finger_w_m` 은 이 ratify 범위 밖.)
 
 **모델 카드 원본(DEC-91, 2026-10-08; 접합 파라미터 키는 JC-1 에서 삭제)** -- 같은 선언 파일의 원본 둘: `nfet_01v8_tt_model_card` =
-`C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice`(sha256 `eec2f478...`, `model_pattern`
+`C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice`(sha256 `3d706d50...`(LF 환산), `model_pattern`
 `sky130_fd_pr__nfet_01v8__model\.[0-9]+` -> 블록 180개), `pfet_01v8_tt_model_card` = `.../pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice`
-(sha256 `3ecdcb8c...`, 블록 108개) -- 둘 다 LUT v2 meta `model_files_sha256` 과 같은 파일, `units_m` `{"": 1.0}`. 줄 끝(정정
-2026-10-08): `C:/pdk/sky130_fd_pr` 는 git 체크아웃이고(`core.autocrlf=true`) **git blob 은 LF, 이 설치의 작업 사본은 CRLF**
-(`git ls-files --eol` 실측 `i/lf w/crlf`, 두 파일 모든 줄 CRLF). 선언 sha256 은 작업 사본(CRLF) 바이트 값 = LUT meta 가 기록한 값이라
-`newline` 키를 두지 않는다. LF 로 체크아웃한 다른 설치(또는 LF 사본)에서는 `pdk_source_sha256_mismatch` 로 거부된다 -- 그때는 그 설치의
-바이트로 선언을 다시 고정하거나 `newline: "lf"` + blob sha256 으로 바꾼다(LUT meta sha256 과는 어긋남을 감수). 파서는 줄 끝과 무관하다.
+(sha256 `bf40d8c3...`(LF 환산), 블록 108개) -- 둘 다 LUT v2 meta `model_files_sha256` 과 같은 파일, `units_m` `{"": 1.0}`. 줄 끝(2026-11-10 개정, 사용자 승인 2026-11-10 "지금 한 작업과 관련된 문서개정을 승인할께"): 선언한 모든 원본에 `newline: "lf"` 를 두고 sha256 은 **LF 환산 값**(= git blob 과 같은 바이트)으로 고정한다 -- 체크아웃이
+CRLF(Windows `core.autocrlf=true`)든 LF(Linux)든 같은 선언이 통과한다. 옛 방침(2026-10-08 정정)은 선언 sha256 을 작업 사본(CRLF) 바이트 값 = LUT meta 가 기록한 값으로 두고
+`newline` 키를 두지 않았다(LF 설치는 `pdk_source_sha256_mismatch`). 개정으로 모델 카드 두 원본의 선언 sha256 은 LUT v2 meta `model_files_sha256`(CRLF 바이트 값 `eec2f478...`·`3ecdcb8c...`)과
+더 이상 같지 않다(어긋남을 감수 -- 옛 문장이 허용한 대안). LUT 쪽 모델 파일 대조(`lut_provenance`, lut/CONTRACT.md 1.3)는 아직 원본 바이트로 재므로 `pdk_root` 아래 `sky130_fd_pr` 작업 사본이
+Windows 와 같은 줄 끝(CRLF)이어야 통과한다. 파서는 줄 끝과 무관하다.
 PDK 선언의 `junction_` 양은 `junction_nmos_tnom`·`junction_pmos_tnom` 두 개뿐이다(식 `tnom`, 모델 카드 값 그대로; 소비자 = oracle 기술 파일, 엔진 소비자 0 --
 tnom 두 키 이동·삭제는 oracle-portability JP-1). 엔진 접합 용량은 PDK 접합 파라미터를 읽지 않는다(PDK 이식성, O-197): LUT 기준 폭 표 VGS 최소 조회 ×
 LUT 생성 규칙 확산 면적 비(metrics CONTRACT 8절). 옛 접합 파라미터 52키(값 표·규칙 행 포함)는 JC-1 에서 삭제했다.
@@ -568,7 +568,7 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
   MKL 기호 = `MKL_Set_Num_Threads`·`mkl_set_num_threads`, BLIS 기호 = `bli_thread_set_num_threads`.
 - `BlasEnvironment`(frozen·hashable): `python_implementation`, `python_version`, `platform`(`sys.platform`), `machine`(`platform.machine()`), `numpy_version`, `scipy_version`, `blas`(tuple).
   `blas` 항목 = (family, 소유 패키지, 파일 이름(경로 마지막 성분), config, corename, parallel, 확인한 스레드 수). 소유 패키지 = 모듈 파일이 최상위 Python 패키지 폴더 또는 그 형제 `<패키지>.libs` 안이면
-  그 패키지 이름, 아니면 None. 항목 순서 = 항목 tuple 의 사전식 정렬(None 은 빈 문자열)이라 열거 순서와 무관. 같은 프로세스 두 호출의 `fp_of` 가 같고 바깥 스레드 설정과 무관하다.
+  그 패키지 이름, 아니면 None(공유 libblas 배치 -- conda-forge 등 -- 의 환경 공용 OpenBLAS 는 패키지 폴더 밖이라 None). 항목 순서 = 항목 tuple 의 사전식 정렬(None 은 빈 문자열)이라 열거 순서와 무관. 같은 프로세스 두 호출의 `fp_of` 가 같고 바깥 스레드 설정과 무관하다.
 
 ### 12.2 `pin_blas_threads()` (import 때 `gmid_engine/__init__.py` 가 1회)
 순서: 지원 플랫폼 확인(Windows·Linux, 밖이면 `RuntimeError`) -> `os.environ["OPENBLAS_NUM_THREADS"] = "1"` -> numpy·`scipy.linalg` 적재 -> `loaded_blas_modules()` 의 OpenBLAS 모듈마다 `set_threads(1)` ->
@@ -576,9 +576,9 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
 
 ### 12.3 `blas_environment()` -- 확인과 값 (무상태)
 설정하지 않고 열거·조회만 한다. 모듈 집합을 어디에도 보관하지 않고 지금 적재된 모듈 전부가 조건을 만족하는지만 본다(조회 1인 새 OpenBLAS 모듈은 통과하고 `blas` 항목이 늘어 `fp_of` 가 달라진다).
-`RuntimeError`: numpy·scipy `show_config(mode="dicts")["Build Dependencies"]["blas"]["name"]` 에 `openblas`(대소문자 무시) 없음(읽지 못해도), `family` 가 `openblas` 가 아닌 모듈(MKL·BLIS)이 하나라도 있음,
-OpenBLAS 기록의 `set_threads` 또는 `get_threads` 가 None, 조회 != 1, 소유 패키지 {numpy, scipy} 중 `blas` 항목의 소유 패키지로 나타나지 않는 것이 있음(`... 의 BLAS 라이브러리를 적재 모듈에서 찾지 못했다`). `config`·`corename`·`parallel` 이 None 이면 거부하지 않고 항목의 그 값이 None.
-열거: Windows `EnumProcessModules`(+ 모듈 핸들로 기호 찾기), Linux `/proc/self/maps`, 그 밖 플랫폼 `RuntimeError`. 알려진 스레드 API 기호가 없는 BLAS 는 찾을 수 없다(범위 밖).
+`RuntimeError`: numpy·scipy `show_config(mode="dicts")["Build Dependencies"]["blas"]["name"]` 에 `openblas`(대소문자 무시)도 범용 이름 `blas`(공유 libblas)도 아님(읽지 못해도), `family` 가 `openblas` 가 아닌 모듈(MKL·BLIS)이 하나라도 있음,
+OpenBLAS 기록의 `set_threads` 또는 `get_threads` 가 None, 조회 != 1, 소유 패키지 {numpy, scipy} 중 `blas` 항목의 소유 패키지로 나타나지 않고 그 패키지의 확장 모듈이 조회 기호를 가져오는 적재 BLAS 모듈도 없는 것이 있음(`... 의 BLAS 라이브러리를 적재 모듈에서 찾지 못했다`). `config`·`corename`·`parallel` 이 None 이면 거부하지 않고 항목의 그 값이 None.
+열거: Windows `EnumProcessModules`(+ 모듈 핸들로 기호 찾기), Linux `/proc/self/maps`(스레드 API 기호를 그 파일이 **직접 정의한** 모듈만 -- `dladdr`, 의존 라이브러리의 기호는 세지 않아 모듈을 더 import 해도 항목·`env_fp` 가 변하지 않는다), 그 밖 플랫폼 `RuntimeError`. 알려진 스레드 API 기호가 없는 BLAS 는 찾을 수 없다(범위 밖).
 
 ### 12.4 소비자
 재확인 (a) `pipeline.run_stage_a`(보고서 최상위 키 `env_fp` = `fp_of(반환값)`), (b) `search.build_search_context`, (c) `search.find_front`(runs 줄 `env_fp`), (d) `search.layer0_start`, (e) `search.solve_eps`(호출마다).

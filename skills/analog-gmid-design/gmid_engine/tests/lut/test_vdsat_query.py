@@ -20,6 +20,7 @@ from gmid_engine.lut import vdsat
 
 from .conftest import (BIN_L, TOY_VGS, detail_of, l_weights, lin_point_ref, mid_toy_arrays, mid_vdsat, new_memo,
                        r6_toy_cap_arrays, rel_close, toy_slice_arrays)
+from pdk_root import fd_pr_dir
 
 BIN_AB = (0, 0, 0, 1, 1, 3, 3, 4)                    # conftest 머리 표: 폭 1e-6 슬라이스 anchor_bin(손계산)
 
@@ -231,7 +232,7 @@ def test_ngspice_grid_vdsat_equals_lut(raw_slice, tmp_path, kind):
     lines = ["* vdsat grid rerun"]
     for rel in meta["model_files_sha256"]:
         if rel.endswith(".spice"):
-            lines.append('.include "%s"' % os.path.join(meta["pdk_root"], rel).replace("\\", "/"))
+            lines.append('.include "%s"' % os.path.join(fd_pr_dir(), rel).replace("\\", "/"))
     ad, pd = w_um * 0.5, w_um + 2.0
     lines += ["vgs g 0 dc 0", "vds d 0 dc 0", "vb b 0 dc 0",
               "xdut d g 0 b sky130_fd_pr__%s l=%su w=%su ad=%sp as=%sp pd=%su ps=%su nf=1"

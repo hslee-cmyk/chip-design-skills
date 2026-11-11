@@ -1,12 +1,12 @@
 {
   "schema": "gmid_pdk_decl/1",
   "pdk": "sky130",
-  "pdk_root": "C:/pdk",
+  "pdk_root": {"env": "GMID_PDK_ROOT", "default": "C:/pdk"},
   "note": "PDK 선언(계획 N3.16 'PDK 상수', U-30, DEC-93 (5), LY10). 값은 아래 원본 파일에서 엔진(gmid_engine.core.read_pdk_decl)이 계산한다 -- 여기에는 규칙 번호 식과 원본 출처만 둔다. 길이 식(quantities 의 basis)은 레이아웃 기하 해석이라 사용자 ratify 대상이다(2026-10-07 작성). 접합 용량은 엔진이 LUT 기준 폭 표에서 읽으므로(JC-1, DEC-107) 접합 파라미터 키는 없고, 남은 junction_nmos_tnom·junction_pmos_tnom 두 키의 소비자는 oracle 기술 파일이다(엔진 소비자 0). 레이아웃 전 확산 기하 규칙은 LUT 생성 규칙이라 별도 선언 sky130_lut_rule_decl.json.",
   "sources": {
     "tech_lef": {
       "path": "sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef",
-      "sha256": "c8351e320a3d89640a1aae4cc0991d41646553362007fb45f40d3882d3b1688f",
+      "newline": "lf", "sha256": "c8351e320a3d89640a1aae4cc0991d41646553362007fb45f40d3882d3b1688f",
       "format": "lef_statement",
       "encoding": "utf-8",
       "units_m": {"": 1e-6},
@@ -14,7 +14,7 @@
     },
     "periphery_rules": {
       "path": "skywater-pdk/docs/rules/periphery/periphery.csv",
-      "sha256": "432c56b98213cb308c21a23f939f51f87539cf081b7dbd476f5dc837f61d6311",
+      "newline": "lf", "sha256": "432c56b98213cb308c21a23f939f51f87539cf081b7dbd476f5dc837f61d6311",
       "format": "rule_table_csv",
       "encoding": "utf-8",
       "section_pattern": "^\\(([^()]+?)(?:\\.-)+\\)$",
@@ -27,7 +27,7 @@
     },
     "nfet_01v8_tt_model_card": {
       "path": "sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
-      "sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+      "newline": "lf", "sha256": "3d706d50cf2e57175aea78bcf27e4ee07d9f750b154a4b06e6090531364a831b",
       "format": "spice_model_card",
       "encoding": "utf-8",
       "model_pattern": "sky130_fd_pr__nfet_01v8__model\\.[0-9]+",
@@ -36,7 +36,7 @@
     },
     "pfet_01v8_tt_model_card": {
       "path": "sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
-      "sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+      "newline": "lf", "sha256": "bf40d8c358fc11998f60f3734208dce44c206b0007a51c7bb5680f55d41a5c55",
       "format": "spice_model_card",
       "encoding": "utf-8",
       "model_pattern": "sky130_fd_pr__pfet_01v8__model\\.[0-9]+",
@@ -45,7 +45,7 @@
     },
     "mim_cap_params": {
       "path": "sky130_fd_pr/models/r+c/res_typical__cap_typical__lin.spice",
-      "sha256": "dc4243210bb6bf59d31a1cdc935b6116cfcb1c6e4d6213d7bbc0c7ebaa5f0848",
+      "newline": "lf", "sha256": "aa793ec63ab459d26ef90afefde9601494ba6d4baa7311d6890d643b5c6cccc1",
       "format": "spice_instance_line",
       "encoding": "utf-8",
       "line_pattern": "^\\+\\s*(camimc\\s*=\\s*[^\\s$]+)",
@@ -54,7 +54,7 @@
     },
     "nfet_01v8_mismatch_slopes": {
       "path": "sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
-      "sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+      "newline": "lf", "sha256": "24a3b29d7d7f26f99098811c31eb5497950a3aed520ab83768a96f35467fe818",
       "format": "spice_instance_line",
       "encoding": "utf-8",
       "line_pattern": "^\\.param\\s+(.*)$",
@@ -63,7 +63,7 @@
     },
     "pfet_01v8_mismatch_slopes": {
       "path": "sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
-      "sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+      "newline": "lf", "sha256": "f4d560668712678ea60641de923fce7691e64acda951949f840986837c31741a",
       "format": "spice_instance_line",
       "encoding": "utf-8",
       "line_pattern": "^\\.param\\s+(.*)$",
@@ -72,7 +72,7 @@
     },
     "scale_option": {
       "path": "sky130_fd_pr/models/all.spice",
-      "sha256": "63a430b91d8936a3b0eb80a1b9421c7482572da055f6b7ef00ead36dad0fe498",
+      "newline": "lf", "sha256": "5739aa5c696842bff5e4cd2774fb27a25dc64c92a7086632763e06647bccb0de",
       "format": "spice_instance_line",
       "encoding": "utf-8",
       "line_pattern": "^\\.option\\s+(scale\\s*=\\s*\\S+)\\s*$",
@@ -81,7 +81,7 @@
     },
     "poly_res_params": {
       "path": "sky130_fd_pr/models/r+c/res_typical__cap_typical.spice",
-      "sha256": "4066516f0d2bfbcee08b14d4a701e7b7278138c00464203a2e881ab3192f0d19",
+      "newline": "lf", "sha256": "3b1f8cbce726e224bb4afb365393f07140e4f7287d61662bd42cd096d9403d1b",
       "format": "spice_instance_line",
       "encoding": "utf-8",
       "line_pattern": "^\\+\\s*(rp1\\s*=\\s*[^\\s$]+)",

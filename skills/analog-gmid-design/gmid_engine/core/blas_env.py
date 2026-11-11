@@ -14,8 +14,11 @@
   (모듈 집합을 보관하지 않는다 -- 지금 적재된 모듈 전부가 조건을 만족하는지와 numpy·scipy 각각의 소유 BLAS 항목이 있는지만 본다).
 * `pin_blas_threads()` -- 환경 변수 `OPENBLAS_NUM_THREADS` = "1" -> numpy·`scipy.linalg` 적재 -> 적재된 OpenBLAS 모듈마다 설정 API 로 1 -> `blas_environment()` 로 확인.
 
-거부(`RuntimeError`, 조용한 대체 없음): numpy·scipy 빌드 설정(`show_config(mode="dicts")`)의 BLAS 이름에 `openblas`(대소문자 무시)가 없음, 그 패키지의
+거부(`RuntimeError`, 조용한 대체 없음): numpy·scipy 빌드 설정(`show_config(mode="dicts")`)의 BLAS 이름에 `openblas`(대소문자 무시)가 없고 범용 이름 `blas`(conda-forge 등 공유 libblas)도 아님, 그 패키지의
 BLAS 라이브러리를 못 찾음(고정·재확인 (a)~(e) 모두), OpenBLAS 기록의 설정·조회 기호 없음, 조회 값 != 1, MKL·BLIS 기호 모듈이 있음, 열거 미구현 플랫폼.
+Linux 는 기호를 그 라이브러리가 **직접 정의한** 경우만 BLAS 모듈로 센다(dladdr -- 의존 라이브러리 기호까지 찾는 dlsym 때문에 OpenBLAS 에 링크한 scipy 확장 모듈이 모두 모듈로 세어져
+모듈을 더 import 할 때마다 항목·`env_fp` 가 바뀌는 것을 막는다; Windows 는 원래 자기 기호만 찾는다). 패키지 폴더 밖의 공유 OpenBLAS(conda-forge 등)는 소유 패키지 칸이 None 이고,
+그 패키지의 확장 모듈이 조회 기호를 그 라이브러리에서 가져올 때만 그 패키지의 BLAS 로 인정한다(`_links_to_provider`).
 `config`·`corename`·`parallel` 기호가 없는 것은 거부 사유가 아니다(해당 항목 값이 None). 알려진 스레드 API 기호를 내보내지 않는 BLAS 는 찾을 수 없다(범위 밖).
 numpy·scipy 는 함수 안에서 import 한다(core 는 모듈 수준에서 numpy·scipy 를 import 하지 않는다).
 """
@@ -27,6 +30,7 @@ import sys
 
 _THREADS_ENV = "OPENBLAS_NUM_THREADS"
 _OPENBLAS = "openblas"
+_GENERIC_BLAS_NAMES = ("blas",)      # conda-forge 등 범용 libblas 로 빌드된 numpy·scipy 의 빌드 설정 BLAS 이름 -- 실제 공급자는 적재 모듈 검사(OpenBLAS 기호·스레드 1·MKL/BLIS 없음)가 가른다
 _MKL = "mkl"
 _BLIS = "blis"
 _BUILD_PACKAGES = ("numpy", "scipy")
@@ -116,12 +120,42 @@ def _libraries():
     return _linux_libraries()
 
 
-def _symbol(library, names):
+class _DlInfo(ctypes.Structure):
+    _fields_ = (("dli_fname", ctypes.c_char_p), ("dli_fbase", ctypes.c_void_p), ("dli_sname", ctypes.c_char_p),
+                ("dli_saddr", ctypes.c_void_p))
+
+
+def _dladdr():
+    try:
+        function = ctypes.CDLL(None).dladdr
+    except (AttributeError, OSError):
+        function = ctypes.CDLL("libdl.so.2").dladdr
+    function.argtypes = [ctypes.c_void_p, ctypes.POINTER(_DlInfo)]
+    function.restype = ctypes.c_int
+    return function
+
+
+def _defining_path(function):
+    """Linux: 기호 `function` 을 **정의한** 공유 객체의 실제 경로(dladdr), 못 구하면 None."""
+    address = ctypes.cast(function, ctypes.c_void_p).value
+    info = _DlInfo()
+    if not address or not _dladdr()(address, ctypes.byref(info)) or not info.dli_fname:
+        return None
+    return os.path.realpath(os.fsdecode(info.dli_fname))
+
+
+def _symbol(library, names, path=None):
+    """`library` 의 첫 기호. Linux 에서 `path` 를 주면 그 라이브러리가 기호를 직접 정의한 경우만 인정한다 -- Linux 의 dlsym 은 의존 라이브러리의
+    기호도 찾으므로(OpenBLAS 에 링크한 scipy 확장 모듈마다 BLAS 모듈로 세어져 모듈을 더 import 할 때마다 항목·`env_fp` 가 바뀐다), Windows
+    `GetProcAddress`(자기 기호만)와 같게 맞춘다."""
     for name in names:
         try:
-            return getattr(library, name)
+            function = getattr(library, name)
         except AttributeError:
             continue
+        if path is not None and sys.platform.startswith(_PLATFORM_LINUX) and _defining_path(function) != os.path.realpath(path):
+            continue
+        return function
     return None
 
 
@@ -148,16 +182,16 @@ def _openblas_names(base):
 
 
 def _module_record(path, library):
-    set_threads = _symbol(library, _openblas_names("set_num_threads"))
-    get_threads = _symbol(library, _openblas_names("get_num_threads"))
+    set_threads = _symbol(library, _openblas_names("set_num_threads"), path)
+    get_threads = _symbol(library, _openblas_names("get_num_threads"), path)
     if set_threads is not None or get_threads is not None:
         return BlasModule(
             path, _OPENBLAS, _typed(set_threads, None, (ctypes.c_int,)), _typed(get_threads, ctypes.c_int, ()),
-            _as_text(_typed(_symbol(library, _openblas_names("get_config")), ctypes.c_char_p, ())),
-            _as_text(_typed(_symbol(library, _openblas_names("get_corename")), ctypes.c_char_p, ())),
-            _typed(_symbol(library, _openblas_names("get_parallel")), ctypes.c_int, ()))
+            _as_text(_typed(_symbol(library, _openblas_names("get_config"), path), ctypes.c_char_p, ())),
+            _as_text(_typed(_symbol(library, _openblas_names("get_corename"), path), ctypes.c_char_p, ())),
+            _typed(_symbol(library, _openblas_names("get_parallel"), path), ctypes.c_int, ()))
     for family, names in ((_MKL, _MKL_SET_NAMES), (_BLIS, _BLIS_SET_NAMES)):
-        found = _symbol(library, names)
+        found = _symbol(library, names, path)
         if found is not None:
             return BlasModule(path, family, found, None, None, None, None)
     return None
@@ -182,7 +216,8 @@ def _require_openblas_build(packages):
             blas_name = package.show_config(mode="dicts")["Build Dependencies"]["blas"]["name"]
         except (KeyError, TypeError) as exc:
             raise RuntimeError("BLAS 스레드 고정: " + package.__name__ + " 빌드 설정에서 BLAS 이름을 읽지 못했다: " + repr(exc)) from exc
-        if _OPENBLAS not in str(blas_name).casefold():
+        name = str(blas_name).casefold()
+        if _OPENBLAS not in name and name not in _GENERIC_BLAS_NAMES:
             raise RuntimeError("BLAS 스레드 고정: " + package.__name__ + " 의 빌드 BLAS 가 OpenBLAS 계열이 아니다: " + str(blas_name)
                                + " (이 BLAS 의 고정·확인 방법은 design 40 §2.4.13 (1) 에 없다)")
 
@@ -232,14 +267,30 @@ def _sort_key(entry):
     return tuple("" if value is None else value for value in entry)
 
 
+def _links_to_provider(name, folders, providers):
+    """Linux: 패키지 `name` 의 확장 모듈이 OpenBLAS 스레드 조회 기호를 `providers`(적재 BLAS 모듈의 실제 경로) 중 하나에서 가져오는가.
+    공유 libblas 로 빌드된 패키지(conda-forge 등)는 자기 폴더에 BLAS 파일이 없어 소유 패키지 칸이 None 이므로, 실제 연결을 증거로 삼는다."""
+    if not sys.platform.startswith(_PLATFORM_LINUX):
+        return False
+    roots = [folder + os.sep for owner, folder in folders if owner == name]
+    for path, library in _linux_libraries():
+        if any(os.path.normcase(os.path.abspath(path)).startswith(root) for root in roots):
+            function = _symbol(library, _openblas_names("get_num_threads"))
+            if function is not None and _defining_path(function) in providers:
+                return True
+    return False
+
+
 def blas_environment():
     numpy, scipy = packages = _packages()
     _require_openblas_build(packages)
     folders = _package_folders()
-    entries = sorted((_entry(module, folders) for module in loaded_blas_modules()), key=_sort_key)
+    modules = loaded_blas_modules()
+    entries = sorted((_entry(module, folders) for module in modules), key=_sort_key)
     owners = {entry[1] for entry in entries}
+    providers = {os.path.realpath(module.path) for module in modules}
     for name in _BUILD_PACKAGES:
-        if name not in owners:
+        if name not in owners and not _links_to_provider(name, folders, providers):
             raise RuntimeError("BLAS 스레드 고정: " + name + " 의 BLAS 라이브러리를 적재 모듈에서 찾지 못했다")
     return BlasEnvironment(platform.python_implementation(), platform.python_version(), sys.platform, platform.machine(),
                            numpy.__version__, scipy.__version__, tuple(entries))

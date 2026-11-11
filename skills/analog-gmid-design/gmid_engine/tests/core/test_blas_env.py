@@ -43,8 +43,8 @@ UNSET = None
 
 # ---------------------------------------------------------------- 독립 관찰 도구 (하위 프로세스에서도 import 해 쓴다)
 
-def blas_lib_paths():
-    """numpy·scipy 패키지 폴더 형제 `<패키지>.libs` 의 `*openblas*` 파일(import 하지 않고 find_spec 으로 위치만)."""
+def _wheel_lib_paths():
+    """휠 배치: numpy·scipy 패키지 폴더 형제 `<패키지>.libs` 의 `*openblas*` 파일(import 하지 않고 find_spec 으로 위치만)."""
     out = []
     for pkg in ("numpy", "scipy"):
         spec = importlib.util.find_spec(pkg)
@@ -52,6 +52,39 @@ def blas_lib_paths():
             continue
         out += sorted(glob.glob(os.path.join(os.path.dirname(spec.origin) + ".libs", "*openblas*")))
     return out
+
+
+def _shared_lib_paths():
+    """공유 배치(conda 등): numpy·scipy 가 환경 공용 libopenblas 하나를 같이 쓴다 -- 심볼릭 링크를 풀어 실제 파일 하나씩."""
+    patterns = (os.path.join(sys.prefix, "lib", "libopenblas*.so*"), os.path.join(sys.prefix, "Library", "bin", "*openblas*.dll"))
+    return sorted({os.path.realpath(p) for pattern in patterns for p in glob.glob(pattern)})
+
+
+def blas_lib_paths():
+    """독립 관찰용 OpenBLAS 파일 목록: 휠 배치면 `.libs` 의 파일(numpy·scipy 각각), 아니면 공유 배치의 환경 공용 파일."""
+    return _wheel_lib_paths() or _shared_lib_paths()
+
+
+WHEEL_LAYOUT = bool(_wheel_lib_paths())
+MIN_LIBS = 2 if WHEEL_LAYOUT else 1      # 공허 방지 하한: 휠 배치 = numpy·scipy 각각, 공유 배치 = 둘이 같이 쓰는 하나
+
+
+def package_module_path(pkg):
+    """패키지 폴더 안의 확장 모듈 파일 하나(공유 배치에서 가짜 BlasModule 의 '패키지 소유 경로'로 쓴다 -- 소유는 폴더로 정해진다)."""
+    spec = importlib.util.find_spec(pkg)
+    root = os.path.dirname(spec.origin)
+    for pattern in ("**/*.so", "**/*.pyd"):
+        found = sorted(glob.glob(os.path.join(root, pattern), recursive=True))
+        if found:
+            return found[0]
+    raise AssertionError("확장 모듈 없음: " + pkg)
+
+
+def numpy_lib_path():
+    """numpy 쪽 OpenBLAS 파일: 휠 배치 = `numpy.libs` 안, 공유 배치 = 공용 파일."""
+    paths = blas_lib_paths()
+    own = [p for p in paths if "numpy" in os.path.basename(os.path.dirname(p))]
+    return (own or paths)[0]
 
 
 def _sym(lib, names):
@@ -157,7 +190,7 @@ def test_blas_pin_import_sets_every_openblas_to_one_outer_8():
                        "emit({'env': os.environ.get('OPENBLAS_NUM_THREADS'), "
                        "'threads': {os.path.basename(p): H.ctypes_threads(p) for p in H.blas_lib_paths()}})\n", threads="8")
     got = _ok(proc, got)
-    assert len(got["threads"]) >= 2, got                                   # 공허 방지: numpy·scipy 둘 다
+    assert len(got["threads"]) >= MIN_LIBS, got                            # 공허 방지: 휠 배치 = numpy·scipy 둘 다, 공유 배치 = 공용 하나
     assert got["threads"] == {k: 1 for k in got["threads"]}, got           # oracle (독립): ctypes 직접 조회
     assert got["env"] == "1", got
 
@@ -170,7 +203,7 @@ def test_blas_pin_holds_when_numpy_imported_first():
                        "post = {os.path.basename(p): H.ctypes_threads(p) for p in H.blas_lib_paths()}\n"
                        "emit({'pre': pre, 'post': post})\n", threads=UNSET)
     got = _ok(proc, got)
-    assert len(got["pre"]) >= 2 and all(n > 1 for n in got["pre"].values()), got   # 전제: 고정 전에는 1 이 아니다(공허 방지)
+    assert len(got["pre"]) >= MIN_LIBS and all(n > 1 for n in got["pre"].values()), got   # 전제: 고정 전에는 1 이 아니다(공허 방지)
     assert got["post"] == {k: 1 for k in got["pre"]}, got
 
 
@@ -185,9 +218,23 @@ def test_blas_pin_outer_setting_does_not_change_environment_value():
     for outer in ("1", "8", "18", UNSET):
         proc, got = run_py(code, threads=outer)
         got = _ok(proc, got)
-        assert len(got["threads"]) >= 2 and set(got["threads"].values()) == {1}, (outer, got)
+        assert len(got["threads"]) >= MIN_LIBS and set(got["threads"].values()) == {1}, (outer, got)
         fps[outer] = got["fp"]
     assert len(set(fps.values())) == 1, fps
+
+
+def test_blas_pin_environment_fp_stable_after_more_scipy_imports():
+    """회귀(Linux 열거): OpenBLAS 에 링크한 scipy 확장 모듈을 더 import 해도 BLAS 항목 수·env_fp 가 바뀌지 않는다. 바뀌면 같은 실행의 단계 A 와
+    find_front 가 기록한 env_fp 가 달라져 비교기 전제 (다)가 판정 불능을 낸다((비교) 같은 함수 두 출력)."""
+    code = ("import gmid_engine\n"
+            "from gmid_engine.core import blas_environment, fp_of\n"
+            "before = blas_environment()\n"
+            "import scipy.optimize, scipy.sparse.linalg, scipy.interpolate, scipy.signal, scipy.fft\n"
+            "after = blas_environment()\n"
+            "emit({'n0': len(H.blas_entries(before)), 'n1': len(H.blas_entries(after)), 'same': fp_of(before) == fp_of(after)})\n")
+    proc, got = run_py(code, threads="1")
+    got = _ok(proc, got)
+    assert got["n0"] == got["n1"] >= 1 and got["same"], got
 
 
 # ---------------------------------------------------------------- N-T4: BlasEnvironment 구성 (C1)
@@ -218,10 +265,10 @@ def test_blas_pin_environment_value_shape():
     assert sys.platform in strs and platform.machine() in strs, strs
     assert numpy.__version__ in strs and scipy.__version__ in strs, strs
     ents = blas_entries(env)
-    assert len(ents) == 2, env                                             # numpy·scipy 각 1개(지금 환경 실측)
+    assert len(ents) == MIN_LIBS, env                                      # 휠 배치 = numpy·scipy 각 1개, 공유 배치 = 공용 1개(지금 환경 실측)
     assert {e[0] for e in ents} == {"openblas"}
-    assert {e[1] for e in ents} == {"numpy", "scipy"}
-    names = {os.path.basename(p) for p in blas_lib_paths()}               # (독립) .libs glob
+    assert {e[1] for e in ents} == ({"numpy", "scipy"} if WHEEL_LAYOUT else {None})   # 공유 배치는 패키지 폴더 밖이라 소유 칸이 None
+    names = {os.path.basename(p) for p in blas_lib_paths()}               # (독립) .libs glob 또는 환경 공용 파일
     for e in ents:
         assert isinstance(e[2], str) and "/" not in e[2] and "\\" not in e[2], e
         assert e[2] in names, (e[2], names)
@@ -263,7 +310,7 @@ POINTS = {{
     "d": lambda: layer0_start(case.sctx),
     "e": lambda: solve_eps(case.sctx, st[0], AXIS_AREA, None, ("t",)),
 }}
-NP_LIB = [p for p in H.blas_lib_paths() if "numpy" in os.path.basename(os.path.dirname(p))][0]
+NP_LIB = H.numpy_lib_path()
 
 
 def call(point):
@@ -316,10 +363,11 @@ emit({"n0": n0, "separate": separate, "copy_threads": copy_threads, "d": d, "n1"
 """
     proc, got = run_py(code, threads="1")
     got = _ok(proc, got)
-    assert got["n0"] == 2 and got["separate"] and got["copy_threads"] == 1, got     # 전제
+    assert got["n0"] == MIN_LIBS and got["separate"] and got["copy_threads"] == 1, got     # 전제
     assert got["d"] == "ok", got                                                    # 무상태: 조회 1 이면 재확인 통과
-    assert got["n1"] == 3 and got["fp_changed"], got
-    assert got["owners1"] == ["None", "numpy", "scipy"], got                        # 임시 폴더 = 패키지 밖 -> 소유 None
+    assert got["n1"] == MIN_LIBS + 1 and got["fp_changed"], got
+    expected = ["None", "numpy", "scipy"] if WHEEL_LAYOUT else ["None", "None"]     # 임시 폴더 = 패키지 밖 -> 소유 None(공유 배치는 공용 파일도 None)
+    assert got["owners1"] == expected, got
 
 
 # ---------------------------------------------------------------- N-T7 ~ N-T9: 교체 지점 loaded_blas_modules (C1, 손)
@@ -344,11 +392,15 @@ def _fake(module, path, family="openblas", get=1, sticky=None, no_set=False, no_
 
 
 def _pkg_paths():
+    """가짜 BlasModule 의 '패키지 소유 경로' 둘(numpy 쪽·scipy 쪽). 휠 배치 = 각 `.libs` 의 파일, 공유 배치 = 각 패키지 폴더 안의 확장 모듈 파일
+    (소유는 파일 위치로만 정해지고 가짜 모듈은 파일을 열지 않는다)."""
     paths = blas_lib_paths()
     np_lib = [p for p in paths if os.path.basename(os.path.dirname(p)) == "numpy.libs"]
     sp_lib = [p for p in paths if os.path.basename(os.path.dirname(p)) == "scipy.libs"]
-    assert np_lib and sp_lib, paths
-    return np_lib[0], sp_lib[0]
+    if np_lib and sp_lib:
+        return np_lib[0], sp_lib[0]
+    assert not WHEEL_LAYOUT, paths
+    return package_module_path("numpy"), package_module_path("scipy")
 
 
 def _swap(monkeypatch, mods):
@@ -451,7 +503,8 @@ def _fake_show(mode="stdout"):
     return d
 
 
-assert "openblas" in _orig(mode="dicts")["Build Dependencies"]["blas"]["name"].lower()   # 전제: 진짜 설정은 openblas
+_real = _orig(mode="dicts")["Build Dependencies"]["blas"]["name"].lower()
+assert "openblas" in _real or _real == "blas"   # 전제: 진짜 설정은 openblas(휠) 또는 범용 blas(conda-forge 등 공유 libblas)
 numpy.show_config = _fake_show
 """ + IMPORT_GUARDED
     proc, got = run_py(code, threads="1")

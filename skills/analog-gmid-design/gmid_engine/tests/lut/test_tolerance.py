@@ -28,6 +28,7 @@ from .conftest import (BIN_ANCHOR_BIN_HI, BIN_ANCHOR_BIN_LO, BIN_L, T_KEYS, T_MI
                        MID_DEVICE, TOY_SPEC, bin_toy_raw, build_t, detail_of, hermite_val, mid_file, mid_toy_arrays, midpoint_ref, new_memo,
                        parse_model_bins, r4_toy_slice_arrays, rel_close, same_bounds, sha256_file, t_spec, tol_cell_ref,
                        toy_slice_arrays, um)
+from pdk_root import fd_pr_dir
 
 # [WB-1 M-TH1c] 지표 gm_id_inverse(역산)와 셀 칸 gm_id_inverse_v·gm_id_inverse_loo_v·n_targets·n_inverse_failed 가 삭제됐다 -> 해당 단언은 폐기
 # (RETIRED_TESTS_wb1.md). 남은 지표 id_equivalent 의 4줄만 본다.
@@ -863,7 +864,7 @@ def _netlist(meta, cell, pol, body_sign, w_um, l_um, vs_list, sweeps, workdir, s
     lines = ["* r5 tol_V cell-midpoint sample %s W=%gum L=%gum" % (cell, w_um, l_um)]
     for rel in meta["model_files_sha256"]:
         if rel.endswith(".spice"):
-            lines.append('.include "%s"' % os.path.join(meta["pdk_root"], rel).replace("\\", "/"))
+            lines.append('.include "%s"' % os.path.join(fd_pr_dir(), rel).replace("\\", "/"))
     lines += ["vgs g 0 dc 0", "vds d 0 dc 0", "vb b 0 dc 0",
               "xdut d g 0 b sky130_fd_pr__%s l=%su w=%su ad=%sp as=%sp pd=%su ps=%su nf=1"
               % (cell, repr(l_um), repr(w_um), "%.6g" % ad, "%.6g" % ad, "%.6g" % pd, "%.6g" % pd),

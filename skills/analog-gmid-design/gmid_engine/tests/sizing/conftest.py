@@ -329,7 +329,6 @@ def r4_access(r4_lut):
 # ---------------------------------------------------------------------------
 REALDATA_MARKER = "sizing_realdata"
 LOCATION_CONFIG = SKILL_DIR / "assets" / "lut_v2_location.json"
-_DEFAULT_TLEF = r"C:/pdk/sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef"
 REAL_DEVICE_KINDS = (("nfet_01v8", "nmos"), ("pfet_01v8", "pmos"))
 REAL_CAP_SUFFIX = (("nmos", "_n"), ("pmos", "_p"))
 
@@ -350,7 +349,8 @@ def real_lut_v2():
     except SchemaRejectedError as e:
         pytest.fail("LUT v2 데이터 위치를 풀지 못함(실데이터 test 는 skip 하지 않는다): %r" % (e.record.detail,),
                     pytrace=False)
-    tlef = os.environ.get("GMID_PDK_TLEF") or _DEFAULT_TLEF
+    from pdk_root import tlef_path
+    tlef = tlef_path()
     if not Path(tlef).is_file():
         pytest.fail("PDK tlef 없음: %s" % tlef, pytrace=False)
     m = re.search(r"^\s*MANUFACTURINGGRID\s+([0-9.eE+-]+)\s*;", Path(tlef).read_text(encoding="utf-8", errors="replace"),

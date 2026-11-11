@@ -66,6 +66,25 @@ def _reject(path, env=None):
     return detail_of(ei.value)
 
 
+def test_text_entry_sha_independent_of_line_endings(tmp_path):
+    """`files.<항목>.newline = "lf"` 면 sha256 은 CRLF→LF 환산 값이다: LF 파일·CRLF 파일 둘 다 같은 설정으로 통과한다. 키가 없으면 원본 바이트
+    그대로라 CRLF 로 바뀐 파일은 거부된다(대조군). "lf" 밖 값은 형식 오류."""
+    text = b"{\n \"a\": 1\n}\n"
+    for crlf in (False, True):
+        c = Cfg(tmp_path, name="crlf" if crlf else "lf")
+        (c.root / "manifest.json").write_bytes(text.replace(b"\n", b"\r\n") if crlf else text)
+        cfg = json.loads(json.dumps(c.cfg))
+        cfg["files"]["manifest"] = {"path": "manifest.json", "newline": "lf", "sha256": hashlib.sha256(text).hexdigest()}
+        assert resolve_lut_location(c.write(cfg), {}).manifest_path
+    c = Cfg(tmp_path, name="ctrl")                                    # 대조군: newline 키 없이 LF 값으로 고정 -> CRLF 파일은 sha 불일치
+    (c.root / "manifest.json").write_bytes(text.replace(b"\n", b"\r\n"))
+    cfg = json.loads(json.dumps(c.cfg))
+    cfg["files"]["manifest"] = {"path": "manifest.json", "sha256": hashlib.sha256(text).hexdigest()}
+    assert _reject(c.write(cfg))["reason"] == "lut_location_sha256_mismatch"
+    cfg["files"]["manifest"] = {"path": "manifest.json", "newline": "crlf", "sha256": hashlib.sha256(text).hexdigest()}
+    assert _reject(c.write(cfg))["reason"] == "lut_location_config_invalid"
+
+
 def test_defaults_resolved(tmp_path):
     c = Cfg(tmp_path)
     loc = resolve_lut_location(c.write(), {})
@@ -325,7 +344,7 @@ def test_repo_config_resolves_and_pins_sha(real_location):
     assert loc.midpoints_paths == tuple(os.path.abspath(os.path.join(loc.root, e["path"])) for e in ents)
     assert [_sha(p) for p in loc.midpoints_paths] == [e["sha256"] for e in ents]
     env_pdk = os.environ.get(cfg["pdk_root"]["env"]) or None
-    assert loc.pdk_root == os.path.abspath(env_pdk or cfg["pdk_root"]["default"])
+    assert loc.pdk_root == os.path.abspath(os.path.join(env_pdk or cfg["pdk_root"]["default"], cfg["pdk_root"].get("subdir", "")))
 
 
 @pytest.mark.lut_realdata
@@ -340,9 +359,16 @@ def test_repo_config_env_precedence_uses_passed_mapping(tmp_path):
     det = detail_of(ei.value)
     assert det["reason"] == "lut_location_file_missing"
     assert os.path.dirname(os.path.abspath(det["path"])) == os.path.abspath(str(empty))
-    loc = resolve_lut_location(str(LOCATION_CONFIG), {})
-    assert dict(loc.sources)["root"] == "config_default"
-    assert loc.root == os.path.abspath(cfg["root"]["default"])
+    default_root = os.path.abspath(cfg["root"]["default"])
+    if os.path.isdir(default_root):
+        loc = resolve_lut_location(str(LOCATION_CONFIG), {})
+        assert dict(loc.sources)["root"] == "config_default"
+        assert loc.root == default_root
+    else:                                  # 기본값은 선언을 쓴 기계의 폴더라 이 기계에 없을 수 있다 -- 그래도 default 로 풀었다는 증거: 거부 경로가 default 다
+        with pytest.raises(SchemaRejectedError) as ei2:
+            resolve_lut_location(str(LOCATION_CONFIG), {})
+        det2 = detail_of(ei2.value)
+        assert det2["reason"] == "lut_location_root_missing" and os.path.abspath(det2["path"]) == default_root
 
 
 @pytest.mark.lut_realdata
@@ -381,14 +407,17 @@ def test_repo_config_r2_sha256_match_files_directly():
     oracle: (a) 파일 바이트의 sha256 을 직접 잼."""
     cfg = json.loads(LOCATION_CONFIG.read_text(encoding="utf-8"))
     root = _cfg_root(cfg)
-    l_sha = _sha(L_GRID_FILE)
+    l_bytes = L_GRID_FILE.read_bytes().replace(b"\r\n", b"\n")
+    l_shas = {hashlib.sha256(l_bytes).hexdigest(), hashlib.sha256(l_bytes.replace(b"\n", b"\r\n")).hexdigest()}   # LUT 메타는 Windows(CRLF) 체크아웃에서 기록됐다 -- 같은 내용이면 줄바꿈과 무관
     for item, name in R2_NAMES.items():
         ent = cfg["files"][item]
         assert ent["path"] == name, item
         p = os.path.join(root, ent["path"])
         assert _sha(p) == ent["sha256"], item
         meta = json.loads(str(_npz_raw(p)["meta_json"]))
-        assert meta["L_source"]["sha256"] == l_sha, item
-    assert _sha(os.path.join(root, cfg["files"]["manifest"]["path"])) == cfg["files"]["manifest"]["sha256"]
+        assert meta["L_source"]["sha256"] in l_shas, item
+    man = cfg["files"]["manifest"]
+    assert man.get("newline") == "lf"            # 텍스트 항목은 줄바꿈 LF 환산 값으로 고정한다
+    assert hashlib.sha256(Path(os.path.join(root, man["path"])).read_bytes().replace(b"\r\n", b"\n")).hexdigest() == man["sha256"]
 
 

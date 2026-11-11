@@ -12,7 +12,9 @@
 판정(설계 40 §2.4.13 (2)·(5)):
 - 같은 환경(두 실행 env_fp 같음·code_fp 같음) 1차 검사 `first_pass`: 비트 동일 집합(T 칸만 뺀 모든 칸)이 같으면 PASS, 하나라도 다르면 FAIL(필드별로
   넘어가지 않는다 -- C 칸이 분해능 안이어도 FAIL). env_fp·code_fp 가 다르면 이 검사를 할 수 없다(ValueError).
-- 다른 환경·수치 보존 리팩터링 `fieldwise`: D 정확히 같음(아니면 FAIL), C |Δ| ≤ 분해능(같은 구역 D 가 모두 같을 때만 -- 아니면 NOT_COMPARED),
+- 다른 실행 환경 `cross_env`(개정 2026-11-10, 설계 40 §2.4.13 (2)): 두 환경의 산출물이 같기를 요구하지 않는다 -- 환경마다 낸 front 점이 모두 엔진 타당성 조건을 만족하고
+  (기록에 `oracle` 판정이 있으면 모두 pass) 이면 PASS, 아니면 FAIL. front 개수·유무 차이·oracle 미실행은 보고만, 두 환경 모두 front 가 없으면 `vacuous`.
+- 수치 보존 리팩터링(같은 환경) `fieldwise`(진단용으로 다른 환경에도 부를 수 있다 -- 종류 `other_env`): D 정확히 같음(아니면 FAIL), C |Δ| ≤ 분해능(같은 구역 D 가 모두 같을 때만 -- 아니면 NOT_COMPARED),
   분해능을 만들 자료가 없으면 판정 불능, K·T 는 판정 없이 보고(REPORT).
 - 전제(1차 검사·필드별 공통, 두 기록 각각): (가) E_B 선언(`eval_budget_source` == "declared", 탐색이 있는 실행만), (나) 벽시계 정지 없음
   (`stops_wall_budget` == 0 이고 `stop_values` 어디에도 "wall_budget" 없음), (다) 같은 실행의 env_fp 기록이 모두 같고 단계 A 기록이 있으며, 탐색이
@@ -24,6 +26,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 
 FORMAT = "nfr4_run_record/1"
@@ -249,10 +252,76 @@ def fieldwise(base, other):
     return _report("fieldwise", True, base, other, entries, pre)
 
 
+_FRONT = re.compile(r"^result/front\[(\d+)\]/")
+
+
+def front_points(record):
+    """기록의 front 점 번호(오름차순) -- 탐색 결과 `result/front[i]/...` 칸이 있는 점."""
+    return sorted({int(m.group(1)) for p in _fields(record) for m in [_FRONT.match(p)] if m})
+
+
+def point_violations(record, i):
+    """front 점 i 가 엔진 자신의 타당성 조건을 어기는 곳 목록(빈 목록 = 타당): 평가 보고서 status == "sealed", 보고서 항목 status 모두 "pass",
+    제약값 `c` 모두 >= 0 (c 는 만족하면 0 이상)."""
+    base = "result/front[%d]/result/" % i          # front 점 하나의 기록은 `result/front[i]/result/...`(평가 결과) 아래에 있다
+    out = []
+    f = _fields(record)
+    st = f.get(base + "evaluation/report/status")
+    if st is None or st.get("value") != "sealed":
+        out.append("report_status:%s" % (None if st is None else st.get("value")))
+    for p, v in sorted(f.items()):
+        if p.startswith(base + "evaluation/report/items[") and p.endswith("]/status") and v.get("value") != "pass":
+            out.append("item_not_pass:" + p[len(base):])
+        if p.startswith(base + "constraints/") and p.endswith("/c") and v.get("cls") == "C" and not v.get("fp"):
+            try:
+                if _hex(v["value"]) < 0.0:
+                    out.append("constraint_negative:" + p[len(base):])
+            except (TypeError, ValueError):
+                out.append("constraint_unreadable:" + p[len(base):])
+    return out
+
+
+def cross_env(base, other):
+    """다른 실행 환경 두 실행의 **타당성** 비교(설계 40 §2.4.13 (2) 개정, 사용자 승인 2026-11-10): 두 환경의 front 가 같기를 요구하지 않는다 --
+    SLSQP 반복점은 CPU 커널 같은 마지막 비트 차이에 민감해(실측: 층 0 시작점 상대 1e-10~1e-8 차이가 이산 판단·front 유무를 바꾼다) 경로·front 가 환경마다 다를 수 있다.
+    통과 조건은 각 환경이 **낸 front 점마다** 엔진 타당성 조건(`point_violations`)을 만족하는 것이고, 기록에 `oracle`(= [{"point": i, "status": "pass"|...}, ...])이
+    있으면 모두 "pass" 여야 한다. front 개수·유무 차이와 oracle 미실행은 보고만 한다. 두 환경 모두 front 가 없으면 아무것도 검증하지 못한 것이라
+    `vacuous` 가 참이다(판정은 PASS 이되 그렇게 표시한다). 같은 환경 두 실행은 `same_env`(비트 동일)로 비교한다 -- env_fp 가 같으면 ValueError."""
+    eb, eo = env_of(base), env_of(other)
+    if eb is not None and eo is not None and eb == eo:
+        raise ValueError("cross_env 는 서로 다른 실행 환경만 비교한다(env_fp 같음: %r) -- 같은 환경은 same_env" % (eb,))
+    pre = {"base": preconditions(base), "other": preconditions(other)}
+    entries = []
+    summary = {}
+    for side, rec in (("base", base), ("other", other)):
+        pts = front_points(rec)
+        oracle = rec.get("oracle")
+        summary[side] = {"front_points": len(pts), "oracle_checked": oracle is not None}
+        for i in pts:
+            bad = point_violations(rec, i)
+            entries.append({"path": "%s:result/front[%d]" % (side, i), "cls": "D", "base": None, "other": None, "delta": None, "resolution": None,
+                            "source": "엔진 타당성(sealed·항목 pass·제약 c>=0)", "verdict": FAIL if bad else PASS,
+                            "note": ",".join(bad) if bad else None})
+        for item in oracle or []:
+            ok = item.get("status") == "pass"
+            entries.append({"path": "%s:oracle[point %s]" % (side, item.get("point")), "cls": "D", "base": None, "other": None, "delta": None,
+                            "resolution": None, "source": "oracle(SPICE) 판정", "verdict": PASS if ok else FAIL,
+                            "note": None if ok else str(item.get("status"))})
+    rep = _report("cross_env", False, base, other, entries, pre)
+    nb, no = summary["base"]["front_points"], summary["other"]["front_points"]
+    rep["summary"] = summary
+    rep["front_presence_differs"] = (nb == 0) != (no == 0)
+    rep["vacuous"] = nb == 0 and no == 0
+    rep["oracle_not_run"] = [side for side in ("base", "other") if not summary[side]["oracle_checked"] and summary[side]["front_points"] > 0]
+    return rep
+
+
 def compare(base, other, kind):
-    """kind = "same_env"(1차 검사) | "other_env" | "refactor"(필드별)."""
+    """kind = "same_env"(1차 검사) | "other_env" | "refactor"(필드별) | "cross_env"(다른 환경의 타당성)."""
     if kind == "same_env":
         return first_pass(base, other)
+    if kind == "cross_env":
+        return cross_env(base, other)
     if kind in ("other_env", "refactor"):
         rep = fieldwise(base, other)
         rep["kind"] = kind
@@ -274,7 +343,7 @@ def write_report(report, path):
 
 
 def main(argv=None):
-    """python nfr4_compare.py <기준 기록.json> <비교 기록.json> <same_env|other_env|refactor> <보고.json>"""
+    """python nfr4_compare.py <기준 기록.json> <비교 기록.json> <same_env|other_env|refactor|cross_env> <보고.json>"""
     args = list(sys.argv[1:] if argv is None else argv)
     if len(args) != 4:
         print(main.__doc__)

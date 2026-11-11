@@ -1,0 +1,34 @@
+{
+ "undecidable": 0,
+ "verdict": "PASS",
+ "kind": "cross_env",
+ "fieldwise": false,
+ "circuit": "ngcc_3stage_ff",
+ "env_fp": [
+  "9909e029088ca98f08040d0f3b8af8bbf663e16fd854cea96903e1682108823e",
+  "ca4622f01794758e82e1175a980e2fa353d7f5dd5030ed74c9a883d3532f3cdb"
+ ],
+ "code_fp": [
+  "8b6bae44189c77a5c2e2dcb902f59818e14c3fbe6d06767057fac4be151853f5",
+  "8b6bae44189c77a5c2e2dcb902f59818e14c3fbe6d06767057fac4be151853f5"
+ ],
+ "preconditions": {
+  "base": [],
+  "other": []
+ },
+ "diffs": [],
+ "fields": [],
+ "summary": {
+  "base": {
+   "front_points": 0,
+   "oracle_checked": false
+  },
+  "other": {
+   "front_points": 0,
+   "oracle_checked": false
+  }
+ },
+ "front_presence_differs": false,
+ "vacuous": true,
+ "oracle_not_run": []
+}
