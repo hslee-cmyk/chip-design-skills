@@ -93,19 +93,49 @@ def install_bkit_agents(dry, project=None):
     _install_agents_from(REPO / "bkit" / "agents", _agents_dest(project), "bkit-agents", dry)
 
 
+# ~/.claude/agent-kit 에는 키트 파일(아래 manifest로 관리)과 ai-memory 배포본(첫 줄 표지)이 함께 있다.
+# 배포본 = 지식 문서(정본 ai-memory memory/rtl/, tools/render_global.py가 씀) — 키트는 절대 지우지 않는다.
+# plan agent-kit-routing-canon FR-08 (2026-11-11).
+KIT_MANIFEST = ".kit-manifest"
+AI_MEMORY_MARK = "<!-- 생성물: 정본 = ai-memory/"
+AI_MEMORY_DEPLOYED = ("failure-taxonomy.md", "evidence.md", "methodology.md", "property-library.md")
+
+
+def _is_ai_memory_copy(p):
+    try:
+        with open(p, encoding="utf-8", errors="replace") as f:
+            return f.readline().startswith(AI_MEMORY_MARK)
+    except OSError:
+        return False
+
+
 def install_kit(dry):
     src, dest = REPO / "agent-kit", HOME / "agent-kit"
     if not src.exists():
         print("SKIP agent-kit (no agent-kit/ dir)"); return
+    kit = sorted(p.relative_to(src).as_posix() for p in src.rglob("*")
+                 if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc")
+    man = dest / KIT_MANIFEST
+    if man.exists():
+        prev = {l.strip() for l in man.read_text(encoding="utf-8").splitlines() if l.strip()}
+    else:   # manifest 도입 전 설치: 표지 없는 파일 전부가 옛 키트 설치분
+        prev = {p.relative_to(dest).as_posix() for p in dest.rglob("*")
+                if p.is_file() and "__pycache__" not in p.parts and p.name != KIT_MANIFEST} if dest.exists() else set()
+    stale = sorted(r for r in prev - set(kit) if not _is_ai_memory_copy(dest / r))
     if dry:
-        print(f"[dry-run] agent-kit -> {dest}/ : {[p.name for p in sorted(src.iterdir())]}")
-    else:
-        # rmtree 하지 않는다: failure-taxonomy.md는 정본이 ai-memory(memory/rtl/)이고 ai-memory
-        # tools/render_global.py가 이 위치에 배포본을 쓴다(2026-11-11). 키트 파일만 덮어쓴다.
-        shutil.copytree(src, dest, dirs_exist_ok=True)
-        print(f"agent-kit installed -> {dest}")
-        if not (dest / "failure-taxonomy.md").exists():
-            print("  WARN: failure-taxonomy.md 없음 — ai-memory에서 배포: <RAG venv python> ~/ai-memory/tools/render_global.py")
+        print(f"[dry-run] agent-kit -> {dest}/ : {kit}")
+        print(f"[dry-run]   remove stale kit files: {stale}")
+        return
+    shutil.copytree(src, dest, dirs_exist_ok=True, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    for r in stale:
+        (dest / r).unlink(missing_ok=True)
+        print(f"  removed stale kit file: {r}")
+    shutil.rmtree(dest / "__pycache__", ignore_errors=True)
+    man.write_text("\n".join(kit) + "\n", encoding="utf-8")
+    print(f"agent-kit installed -> {dest}  ({len(kit)} kit files, manifest {KIT_MANIFEST})")
+    missing = [n for n in AI_MEMORY_DEPLOYED if not _is_ai_memory_copy(dest / n)]
+    if missing:
+        print(f"  WARN: ai-memory 배포본 없음/옛 사본 {missing} — <RAG venv python> ~/ai-memory/tools/render_global.py")
 
 
 AI_MEMORY_URL = "git@github.com:hslee-cmyk/ai-memory.git"

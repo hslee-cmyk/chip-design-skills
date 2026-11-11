@@ -24,11 +24,10 @@ FSM a fold would target.
 | \<e.g. BTNOP timer countdown\> | \<spans many host iterations\> | \<yes\> | \<—\> | \<yes\> |
 | \<e.g. next-packet pre-fetch & hold\> | \<async (FIFO fill rate)\> | \<yes\> | \<yes (FIFO→FSM)\> | \<—\> |
 
-**DEFAULT-FLIP rule:** if any responsibility runs concurrently at a different lifetime/rate (cross-iteration
-timer/counter · producer/consumer decoupling · a **wait-only state** that just stalls the host FSM until an
-external time/event) → the DEFAULT is a **separate FSM/module (Option A below)**; folding into a host state
-(Option B) must be justified *against* that default. Combinational depth is a 2nd-order concern *after* the
-fold axis is chosen — never the 1st-order reason to fold.
+**DEFAULT-FLIP rule** — canonical in ai-memory `methodology.md` §4a (deployed `~/.claude/agent-kit/methodology.md`).
+In short: a responsibility running concurrently at a different lifetime/rate (cross-iteration timer/counter ·
+producer/consumer decoupling · a wait-only state) makes a **separate FSM/module (Option A)** the default; Option B
+must be justified against it. Read §4a for the full rule before filling the options.
 
 ## Candidate partitionings
 ### Option A — \<separate FSM + module + interconnect — the DEFAULT when a concurrent/diff-lifetime responsibility exists\>

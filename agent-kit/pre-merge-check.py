@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 """Pre-merge architectural GATE (the architect-advisor's CI wiring).
 
-Classify a change with boundary-classifier.py and gate the merge:
+Classify a change with boundary-classifier.py and gate the merge. Label definitions and this gate policy are
+canonical in ai-memory `failure-taxonomy.md` -> Routing -> 구조 라벨 (deployed ~/.claude/agent-kit/failure-taxonomy.md);
+this file implements them:
   ARCH  -> BLOCK (exit 1): ADR + architect-advisor escalation required. Partitioning ("new FSM
            vs new state", new module/instance, clock re-wire) is a HUMAN decision, not an ad-hoc
            edit. Major (score>=20) vs minor-structural (<=3) noted.
   IFACE -> WARN: whole-design fan-out audit (T2) before merge.
-  LOCAL -> PASS here: route each finding to its verifier by taxonomy class (bug-class-router.py)
+  LOCAL -> PASS here: route each finding to its verifier by taxonomy class (failure-taxonomy.md Routing)
            -- correctness is NOT gated structurally; it is owned by reviewer (STATIC) / prover
            (FORMAL) / directed sim (CDC).
 
-Usage (run inside db/design):
-  python ../../.ai/agent-proposals/pre-merge-check.py <commit-or-range>   # e.g. HEAD, or A..B
+Usage (run inside the design git tree, e.g. db/design):
+  python ~/.claude/agent-kit/pre-merge-check.py <commit-or-range>   # e.g. HEAD, or A..B
 Intended as a pre-merge / CI step on db/design. Exit code 1 blocks the merge when an
 un-escalated architectural change is present.
 """
@@ -53,7 +55,7 @@ def main(argv):
     for _, sc, h, subj in iface:
         print(f"  [WARN]  IFACE  {h[:8]}  {subj[:48]}  -> whole-design fan-out audit (T2)")
     if local:
-        print(f"  [PASS]  {len(local)} LOCAL  -> route each finding by taxonomy class (bug-class-router.py);")
+        print(f"  [PASS]  {len(local)} LOCAL  -> route each finding by taxonomy class (failure-taxonomy.md Routing);")
         print(f"          correctness owned by reviewer(STATIC) / prover(FORMAL) / sim(CDC), not gated here.")
     blocked = bool(arch)
     print(f"\nGATE: {'BLOCK -- un-escalated architectural change (ADR required)' if blocked else 'PASS -- no architectural boundary crossed'}")
