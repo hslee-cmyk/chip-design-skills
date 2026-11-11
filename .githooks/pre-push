@@ -1,13 +1,13 @@
 #!/bin/sh
 # chip-design-skills pre-push gate.
-# RAG 색인 코퍼스(kb-global/** + agent-kit/failure-taxonomy.md — kb_index가 직접 색인하는 정본)가
-# push에 포함되면 retrieval eval을 돌려 검색 품질(MRR/P@1)이 임계 미만이면 push를 BLOCK한다.
-# (전 프로젝트 공유 지식 회귀 방지. taxonomy도 색인 대상이므로 트리거에 포함 — kb_index.py SOURCES와 일치.)
+# 영구메모리 정본은 별도 repo ai-memory(2026-11 이전)다. 이 repo에서 ai-memory가 직접 색인하는 것은
+# agent-kit/failure-taxonomy.md(ai-memory sources.yaml 외부 정본)뿐이다. 그것이 push에 포함되면
+# ai-memory의 eval_gate(--gate, 캐시 전용)로 검색 품질(MRR/P@1) 회귀를 BLOCK한다.
 #
 # Enable once per clone:   git config core.hooksPath .githooks
 # Bypass a single push:    git push --no-verify
 # Threshold env:           KB_EVAL_MIN_MRR / KB_EVAL_MIN_P1 / KB_EVAL_STRICT
-# Gate logic:              kb-global/eval_gate.py
+# Gate logic:              $AI_MEMORY_REPO(기본 ~/ai-memory)/tools/eval_gate.py
 
 z=0000000000000000000000000000000000000000
 need=0
@@ -20,7 +20,7 @@ while read l_ref l_sha r_ref r_sha; do
     base="$r_sha"
   fi
   if [ -n "$base" ]; then
-    git diff --name-only "$base" "$l_sha" 2>/dev/null | grep -Eiq '^kb-global/|^agent-kit/failure-taxonomy\.md' && need=1
+    git diff --name-only "$base" "$l_sha" 2>/dev/null | grep -Eiq '^agent-kit/failure-taxonomy\.md' && need=1
   else
     need=1                                         # base 불명 → fail-safe로 검사
   fi
@@ -35,8 +35,16 @@ if [ -x "$venv" ]; then PY="$venv"; else
 fi
 [ -z "$PY" ] && { echo "[pre-push] python 없음 - eval 게이트 skip"; exit 0; }
 
-echo "[pre-push] 색인 코퍼스(kb-global/ 또는 failure-taxonomy) 변경 감지 → eval 캐시 확인..."
-"$PY" "$root/kb-global/eval_gate.py" --gate
+# ai-memory 위치는 python으로 해석 — preflight.py·install.py와 같은 규칙(env AI_MEMORY_REPO > ~/ai-memory).
+# (셸 $HOME은 MSYS2에서 /home/<user>일 수 있어 python의 ~ 와 다를 수 있음)
+am=$("$PY" -c "import os;print(os.path.expanduser(os.environ.get('AI_MEMORY_REPO','~/ai-memory')))")
+# MSYS2 sh는 USERPROFILE을 넘기지 않아 ~ 가 안 풀릴 수 있음 → Windows 사용자 홈으로 보정
+if [ ! -f "$am/tools/eval_gate.py" ] && command -v cygpath >/dev/null 2>&1; then
+  am="$(cygpath -H)/${USERNAME:-$(id -un)}/ai-memory"
+fi
+[ -f "$am/tools/eval_gate.py" ] || { echo "[pre-push] ai-memory 없음($am) - eval 게이트 skip"; exit 0; }
+echo "[pre-push] failure-taxonomy 변경 감지 → ai-memory eval 캐시 확인..."
+"$PY" "$am/tools/eval_gate.py" --gate
 rc=$?
 [ "$rc" -ne 0 ] && echo "[pre-push] BLOCKED — 캐시 없거나 품질 회귀. 위 안내대로 eval_gate.py 먼저 실행 후 재push. 우회: git push --no-verify"
 exit $rc

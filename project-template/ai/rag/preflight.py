@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """지식 프리플라이트 (2-tier, 우선순위·차이설명) — RTL/버그 착수 전 조회.
 
-  1. 일반 원칙 [GENERAL] — 전역 RAG (fpga/.tools/kb-global). 전 프로젝트 적용·정본 git·**우선**.
+  1. 일반 원칙 [GENERAL] — 영구메모리 RAG (ai-memory repo). 전 PC·프로젝트 적용·정본 git·**우선**.
   2. 프로젝트 고유 [PROJECT] — 이 프로젝트 graphify (관계·instance). 더 깊은 탐색은 graphify MCP.
 
 원칙: 일반 원칙이 *우선*(정본). 프로젝트 내용은 그 원칙의 구체 적용/instance.
@@ -20,7 +20,7 @@ Usage:
     --verifier <value> → --tag <value>    (verifier metadata = kb_search tag)
 """
 from __future__ import annotations
-import json, re, subprocess, sys, uuid as _uuid
+import json, os, re, subprocess, sys, uuid as _uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -31,8 +31,9 @@ for _s in (sys.stdout, sys.stderr):
 
 HERE = Path(__file__).resolve().parent           # <proj>/.ai/rag
 PROJ = HERE.parent.parent                         # <proj>
-FPGA = HERE.parents[2]                             # fpga 워크스페이스
-KB_GLOBAL = FPGA / ".tools" / "kb-global"
+# 영구메모리 정본 repo (git clone 위치). env AI_MEMORY_REPO > 기본 ~/ai-memory
+AI_MEMORY = Path(os.path.expanduser(os.environ.get("AI_MEMORY_REPO", "~/ai-memory")))
+KB_SEARCH = AI_MEMORY / "tools" / "kb_search.py"
 PY = sys.executable
 FILT = ("warning", "symlink", "huggingface", "fetching", "developer mode",
         "docs.microsoft", "hf_token")
@@ -91,7 +92,7 @@ def _write_preflight_audit(query: str, mode: str,
         "actorId": "preflight",
         "action": "gate_passed",
         "category": "quality",
-        "target": "kb-global",
+        "target": "ai-memory",
         "targetType": "feature",
         "details": details,
         "result": "success",
@@ -149,12 +150,16 @@ def main():
     hdr(f'1. 일반 원칙 [GENERAL · 전 프로젝트 적용 · 정본 git · 우선] — "{query}"')
     kb_out = ""
     try:
-        kb_out, err, rc = run([PY, str(KB_GLOBAL / "kb_search.py"), query, "-k", "5", *extra])
+        if not KB_SEARCH.exists():
+            raise FileNotFoundError(f"ai-memory 없음: {KB_SEARCH} "
+                                    "(git clone git@github.com:hslee-cmyk/ai-memory.git ~/ai-memory "
+                                    "또는 AI_MEMORY_REPO 지정)")
+        kb_out, err, rc = run([PY, str(KB_SEARCH), query, "-k", "5", *extra])
         print(kb_out or "(결과 없음)")
         if rc != 0 and err:
             print("[kb_search stderr]", err[:300])
     except Exception as e:
-        print(f"(전역 RAG 조회 실패: {e})")
+        print(f"(영구메모리 RAG 조회 실패: {e})")
 
     # audit: kb_search 완료 후 기록 → recalled_principles 포함 가능
     recalled = _parse_top_hits(kb_out)
@@ -178,10 +183,10 @@ def main():
     print("일반 원칙(GENERAL) vs 프로젝트 내용(PROJECT) — 어떻게 다른가")
     print("-" * 72)
     print("- GENERAL: 전 프로젝트에 적용되는 *규칙*(무엇을 해야/하지 말아야). "
-          "정본=chip-design-skills/kb-global(git). **충돌 시 우선.**")
+          "정본=ai-memory repo memory/(git). **충돌 시 우선.**")
     print("- PROJECT: 이 repo의 모듈분석·설계·버그 *instance*(여기선 어떻게 구현/발생). "
           "정본=<proj>/{.ai, docs}. graphify가 관계 항법.")
-    print("- 프로젝트에서 일반화되는 패턴은 kb-global/principles로 격상되면 GENERAL이 된다.")
+    print("- 프로젝트에서 일반화되는 패턴은 ai-memory memory/로 격상되면 GENERAL이 된다.")
     print("\n착수: GENERAL 원칙을 우선 적용 + PROJECT 관계로 이 설계의 구체 맥락 보강 → "
           "PLAN-BEFORE-CODE. 해결 후 /solution-capture 로 자산화.")
     return 0

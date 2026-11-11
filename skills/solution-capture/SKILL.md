@@ -3,7 +3,7 @@ name: solution-capture
 description: |
   해결한 비자명 RTL/검증 문제를 대화 내역에서 발췌해 프로젝트 docs/solutions 자산으로 구조화하는 skill.
   compound-engineering의 compound-docs 발췌 로직을 이 프로젝트의 지식 시스템(T1..T9 스키마,
-  validate.py, kb-global 격상)에 이식한 것. 지식 시스템 상세: chip-design-skills/docs/05.
+  validate.py, 영구메모리(ai-memory) 격상)에 이식한 것. 지식 시스템 상세: chip-design-skills/docs/05.
   다음 상황에서 사용:
   (1) 버그/이슈를 해결한 직후 — "그게 됐다/고쳤다/해결됨" 등 확인 시 자산화
   (2) 여러 번 시도해야 풀린 비자명 디버깅, 비자명 근본원인을 기록할 때
@@ -21,7 +21,7 @@ allowed-tools:
 # solution-capture — RTL 해결 자산화 skill
 
 대화에서 **방금 해결한 비자명 문제**를 발췌해 `<project>/docs/solutions/<T*>/`에 검증된 자산으로 남긴다.
-이 시스템의 단기 계층(L2 프로젝트). 일반화되면 전역 `kb-global/principles`로 격상한다.
+이 시스템의 단기 계층(L2 프로젝트). 일반화되면 영구메모리 `ai-memory/memory/`로 격상한다.
 
 > 핵심: 이 skill의 가치는 **대화 내역에서 자산화할 내용을 발췌·구조화**하는 것이다.
 > 스키마/검증/격상은 우리 것을 쓴다 — plugin compound-docs의 Rails 스키마가 아니다.
@@ -131,17 +131,17 @@ related: [<교차참조 경로>, ...]
 다음:
 1. 계속 진행 (기본)
 2. bkit regression-rules 동기 (sync_rules.py)
-3. 일반 원칙으로 격상 — 전역 kb-global/principles (전 프로젝트 공유)  ← 일반화될 때
+3. 일반 원칙으로 격상 — 영구메모리 ai-memory/memory (전 PC·프로젝트 공유)  ← 일반화될 때
 4. 관련 문서 링크
 5. 자산 보기
 ```
 
 **옵션 3 (전역 격상)** — 여러 프로젝트에 일반화되는 원칙일 때:
-1. `chip-design-skills/kb-global/principles/` 정본(git)에 일반화 형태로 추가
-   (특정 instance 금지, frontmatter: `kind`/`domain`/`tags`).
-2. commit + push (pre-push eval 게이트 통과 필요).
-3. `"$KB_PY" <workspace>/.tools/kb-global/kb_index.py` 재색인 → 전 프로젝트 공유.
-⚠️ 런타임 `.tools/kb-global`엔 원칙을 쓰지 말 것 (인덱스 전용·비버전관리).
+`/kb-promote` [B]로 실행한다. 요지:
+1. `ai-memory/memory/<domain>/` 정본(git, `~/ai-memory` 또는 `$AI_MEMORY_REPO`)에 일반화 형태로 추가
+   (특정 instance 금지, frontmatter: `kind`/`domain`/`tags`/`promoted_from`) + `INDEX.md` 1행.
+2. `"$KB_PY" ~/ai-memory/tools/eval_gate.py` PASS(재색인 포함) → ai-memory commit + push.
+⚠️ 런타임 `~/.ai-memory/`엔 원칙을 쓰지 말 것 (인덱스 전용·비버전관리).
 
 ---
 

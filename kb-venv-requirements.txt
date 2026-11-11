@@ -1,0 +1,13 @@
+# fpga 워크스페이스 공유 지식-툴링 venv (kb-venv) — 키트 소관 핀 (L3 graphify + frontmatter)
+# RAG 스택(fastembed/onnxruntime/sqlite-vec …) 핀의 정본은 ai-memory/requirements.txt (중복 핀 금지).
+# 정책: 전부 ≥7일 적격(supply-chain).
+# 설치(워크스페이스당 1회):
+#   python -m venv .tools/kb-venv
+#   .tools/kb-venv/Scripts/python -m pip install --only-binary=:all: \
+#       -r ~/ai-memory/requirements.txt -r chip-design-skills/kb-venv-requirements.txt
+
+# 지식 그래프 (L3) — tree-sitter-verilog로 RTL AST 추출
+graphifyy==0.8.39
+
+# frontmatter 파싱 (sync_rules / validate)
+PyYAML==6.0.3

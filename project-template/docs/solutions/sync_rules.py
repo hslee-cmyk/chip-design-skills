@@ -20,6 +20,7 @@ Usage:
 """
 from __future__ import annotations
 import json
+import os
 import re
 import sys
 import uuid as _uuid
@@ -38,8 +39,8 @@ HERE = Path(__file__).resolve().parent          # docs/solutions
 PROJ = HERE.parent.parent                        # <project-root>
 RULES_PATH = PROJ / ".bkit" / "state" / "regression-rules.json"
 CRIT_PATH = HERE / "patterns" / "critical-patterns.md"
-# kb-global: <workspace>/chip-design-skills/kb-global/principles/
-KB_GLOBAL_PATH = PROJ.parent / "chip-design-skills" / "kb-global" / "principles"
+# 영구메모리 정본: <ai-memory>/memory/ (env AI_MEMORY_REPO > 기본 ~/ai-memory)
+KB_GLOBAL_PATH = Path(os.path.expanduser(os.environ.get("AI_MEMORY_REPO", "~/ai-memory"))) / "memory"
 
 PROMOTE_THRESHOLD = 2                            # violationCount >= 2 → Required Reading 후보
 
@@ -106,7 +107,7 @@ def _critical_contributed_ids() -> set:
 
 
 def _kb_global_texts() -> str:
-    """kb-global/principles/ 전체 텍스트를 이어붙여 반환 (미존재 시 빈 문자열)."""
+    """영구메모리 ai-memory/memory/ 전체 텍스트를 이어붙여 반환 (미존재 시 빈 문자열)."""
     if not KB_GLOBAL_PATH.exists():
         return ""
     parts = []
@@ -119,7 +120,7 @@ def _kb_global_texts() -> str:
 
 
 def _kb_global_promoted_ids() -> set:
-    """kb-global/principles/ 파일들의 promoted_from 목록을 모아 반환."""
+    """영구메모리 ai-memory/memory/ 파일들의 promoted_from 목록을 모아 반환."""
     if not KB_GLOBAL_PATH.exists():
         return set()
     ids: set[str] = set()
@@ -275,7 +276,7 @@ def main() -> int:
     else:
         print("  없음.")
 
-    kb_label = str(KB_GLOBAL_PATH) if KB_GLOBAL_PATH.exists() else "(경로 없음 — chip-design-skills 미발견)"
+    kb_label = str(KB_GLOBAL_PATH) if KB_GLOBAL_PATH.exists() else "(경로 없음 — ai-memory 미발견: AI_MEMORY_REPO 확인)"
     print(f"\n[B] kb-global 격상 후보 (toolflow/System-level, kb-global 미등재):")
     print(f"    대상: {kb_label}")
     if kb_candidates:
@@ -284,8 +285,8 @@ def main() -> int:
             mod = fm.get("module", "?")
             print(f"  - [{r['category']}] {r['id']}  "
                   f"(module={mod}, sev={r['severity']})  ← {r['source']}")
-        print("  → chip-design-skills/kb-global/principles/ 에 일반화 원칙으로 격상 권장.")
-        print("    격상 후: git commit + push → KB_PY .tools/kb-global/kb_index.py 재색인.")
+        print("  → ai-memory memory/<domain>/ 에 일반화 원칙으로 격상 권장 (/kb-promote [B]).")
+        print("    격상 후: ai-memory eval_gate.py PASS → commit + push → kb_index.py 재색인.")
     else:
         print("  없음.")
 
