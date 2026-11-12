@@ -11,7 +11,7 @@
 자가 점검: `python ask_gate_selftest.py`, `python append_guard_selftest.py` (Linux에서 append 쪽은 `TEMP=/tmp TMP=/tmp`로 실행).
 
 ## 머신별 `.claude/settings.json` (git 밖)
-환경 변수: `ASK_GATE_PRINCIPLES`(원칙 파일 = 키트 CLAUDE.md), `ASK_GATE_REPO`(적용 루트 = 키트 루트),
+환경 변수: `ASK_GATE_PRINCIPLES`(원칙 26 정본 = skill `.claude/skills/report-bundle/SKILL.md`, 기본값이 이 저장소 상대 경로라 보통 지정하지 않는다), `ASK_GATE_REPO`(적용 루트 = 키트 루트),
 `ASK_GATE_DIR`(점검 폴더 `wt/_drafts/ask_gates`), `ASK_GATE_BASE`(`wt/_drafts/...` 상대 경로 기준 = `wt`의 부모),
 `APPEND_GUARD_ALLOW`(추가 허용 루트, os.pathsep 구분). 미지정 시 스크립트 기본값(Windows 경로)을 쓴다.
 
@@ -25,7 +25,7 @@ Windows (python `C:\Python314\python.exe`, 기본값 경로 그대로):
 Linux (예: cloud0 — `~/claude.run/wt -> worktrees` 링크로 `wt/_drafts` 경로를 맞춘다):
 ```json
 {"hooks": {"PreToolUse": [
-  {"matcher": "AskUserQuestion", "hooks": [{"type": "command", "command": "ASK_GATE_PRINCIPLES=\"$HOME/claude.run/chip-design-skills/CLAUDE.md\" ASK_GATE_REPO=\"$HOME/claude.run/chip-design-skills\" ASK_GATE_DIR=\"$HOME/claude.run/wt/_drafts/ask_gates\" ASK_GATE_BASE=\"$HOME/claude.run\" \"/opt/mcp-env/bin/python3\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/ask_gate.py\""}]},
+  {"matcher": "AskUserQuestion", "hooks": [{"type": "command", "command": "ASK_GATE_REPO=\"$HOME/claude.run/chip-design-skills\" ASK_GATE_DIR=\"$HOME/claude.run/wt/_drafts/ask_gates\" ASK_GATE_BASE=\"$HOME/claude.run\" \"/opt/mcp-env/bin/python3\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/ask_gate.py\""}]},
   {"matcher": "Bash|PowerShell", "hooks": [{"type": "command", "command": "APPEND_GUARD_ALLOW=\"/tmp:/var/tmp\" \"/opt/mcp-env/bin/python3\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/append_guard.py\""}]}
 ]}}
 ```
