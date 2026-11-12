@@ -286,14 +286,15 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
 | **A. validate+sync** | 프로젝트 `.git/hooks/pre-commit` | `docs/solutions/*.md` 커밋 시 `validate.py`(불량이면 **차단**) + `sync_rules.py`(regression-rules 재생성·stage) |
 | **B. graph 갱신** | 프로젝트 `.git/hooks/post-commit` | `.v/.sv` 커밋 + `graphify-out` 존재 시 `graphify update` 백그라운드(코드 전용·비차단) |
 | **C. 품질 게이트** | ai-memory `.githooks/pre-push` → `eval_gate.py --gate` | 영구메모리(taxonomy 포함) push 시 eval 게이트. PASS 시 `.bkit/state/quality-metrics.json`에 MRR/P@1 기록 |
-| **D. recall 넛지** | CC `PreToolUse` 훅 `kb-preflight-nudge.py` | RTL(`db/design/**/*.v`) Edit/Write 시 세션당 1회 "preflight 권장" 컨텍스트 주입(비차단) |
+| **D. 자동 회상** | CC hook `ai-memory/hooks/rc_*.py`(`setup.py` ⑤b, 전역) — ai-memory Phase 9 계획 v2 | **AI가 판단, hook은 힌트만.** `UserPromptSubmit`: 승인류가 아니면 '회상 단계' 한 줄(관련되면 맥락으로 질의를 써서 `memory_search`/`episode_search`) + 참고 후보 ID, 입력에 ID·별칭이 그대로 있으면 그 노드의 제목 힌트(본문은 `memory_read`). `PreToolUse Edit\|Write`: 편집 경로 → 영역 점검표(RTL T1–T9·`.sby` TPL·hook·지시 파일·auto memory), 영역별 세션 1회(옛 `kb-preflight-nudge` 대체). `PostToolUseFailure`: 오류의 ID·별칭 → 제목 힌트, 없으면 회상 단계 줄(세션당 3회). 예산 600자/4,000자, `[mem:ID]` 인용, `recall_report`로 사용률 측정 |
 | **E. preflight audit** | `preflight.py` 자체 | 실행 시 `.bkit/audit/YYYY-MM-DD.jsonl`에 `gate_passed/quality` 기록 (actorId=preflight, mode=lean\|rerank). RTL 착수 전 지식 조회 증적 |
 | **F. 격상 audit** | `/kb-promote` Step 5 (`sync_rules.py --record-promo`) | [A]/[B] 격상 시 `audit/*.jsonl` + `decisions/*.jsonl`에 기록 (actorId=kb-promote, decisionType=quality_gate_result) |
 | capture 넛지 | `/solution-capture` skill 트리거 | "그게 됐다"류 감지 → 자산화(모델 판단) |
 | **G. 작업메모리** | CC hook `ai-memory/hooks/wm_*.py`(`setup.py` ⑤b가 `~/.claude/settings.json`에 병합, 기존 hook 보존) | `.ai/working/ACTIVE.md`가 있는 프로젝트만. **SessionStart**: startup·clear = ACTIVE + `다음 할 일`, compact·resume = 진행 중 작업 파일 전문(≤ 8,000자). **PreCompact**: 요약 지시("상태 정본은 작업 파일") + 자동 기록, 압축은 막지 않음. **Stop**: 자동 기록 한 줄(B) + git 변경이 있었는데 본문 미갱신이면 세션당 1회 갱신 요구(A). 도구 실행 상태(`.bkit` 등)는 변경 감지에서 제외 |
 | **H. 작업 종료** | `/wrap` skill(키트) + `ai-memory/tools/wm_wrap.py gather·check·close` | 교훈 → solution-capture·kb-promote·memory_propose(제안), 경과 → 일화, 작업 파일 정리(사용자 확인 뒤) |
+| **I. 의무(obligation)** | CC hook `ai-memory/hooks/ob_*.py` + `<proj>/.ai/obligations.yaml`(git) | 프로젝트에서 반복해야 하는 절차·출력 항목. 트리거 입력이면 필수 항목 주입, 압축 직후 재주입, 응답이 트리거인데 필수 표지가 빠지면 Stop이 1회 차단. 필수 항목은 정본 문서에서 파싱(사본 없음), 수명(`until`)이 끝나면 은퇴. 준수율은 `recall_report` |
 
-배포: `python install.py --install-git-hooks --project <repo>`(A·B) · `--only hooks --project <repo>`(D).
+배포: `python install.py --install-git-hooks --project <repo>`(A·B) · D·G·I는 `ai-memory/tools/setup.py --only-claude-hooks`(전역, 멱등).
 `.git/hooks`는 클론마다 재실행 필요. 완전 무인 자산화는 *판단*이 LLM 몫이라 불가하며, 그게 의도다(노이즈 방지).
 
 ---
