@@ -20,4 +20,4 @@ obligations:
     status: active
     until: "card LA-1a + LA-1 병합(그 뒤 LA-1 재점검 O-225로 넘어감)"
     source: "사용자 2026-11-04 '원인규명이 가능한 정도로 테스트를 축소해서 하고, LA-1구현할 때까지는 …'"
-    note: "원문 = .claude/rules/o229-la1-sprint.md (상시 로드). 이 항목은 수명 관리용이다."
+    note: "정본 = .claude/rules/o229-la1-sprint.md (상시 로드). 이 항목은 수명 관리용이다."
