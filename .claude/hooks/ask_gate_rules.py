@@ -1,10 +1,12 @@
-"""원칙 26(chip-design-skills/CLAUDE.md)에서 게이트 검사 항목을 읽는 공용 파서. hook과 템플릿 생성기가 같이 쓴다."""
+"""원칙 26에서 게이트 검사 항목을 읽는 공용 파서. hook과 템플릿 생성기가 같이 쓴다.
+원칙 26 정본 = skill `.claude/skills/report-bundle/SKILL.md`(2026-11-12 CLAUDE.md 개정으로 이전 — 경로는 이 파일 기준 상대 경로라
+Windows·cloud0 어디서든 같은 저장소의 정본을 읽는다). env ASK_GATE_PRINCIPLES로 덮어쓸 수 있다."""
 import json
 import os
 import re
 
-DEF_PRINCIPLES = "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/CLAUDE.md"
 HERE = os.path.dirname(os.path.abspath(__file__))
+DEF_PRINCIPLES = os.path.normpath(os.path.join(HERE, "..", "skills", "report-bundle", "SKILL.md"))
 DEF_EXTRA = os.path.join(HERE, "ask_gate_extra.json")
 CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳"
 
@@ -22,7 +24,7 @@ def load_rules(principles=None, extra=None):
         with open(principles, "rb") as f:
             lines = f.read().decode("utf-8-sig").replace("\r\n", "\n").split("\n")
     except OSError as e:
-        raise RuleError(fmt + "CLAUDE.md 를 읽을 수 없음 (%s: %s)" % (principles, e))
+        raise RuleError(fmt + "원칙 26 정본(skill report-bundle)을 읽을 수 없음 (%s: %s)" % (principles, e))
     start = next((i for i, l in enumerate(lines) if re.match(r"^26\.\s", l)), None)
     if start is None:
         raise RuleError(fmt + "'26. ' 로 시작하는 줄이 없음 (%s)" % principles)

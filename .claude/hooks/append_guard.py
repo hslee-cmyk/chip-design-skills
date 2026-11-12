@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Bash·PowerShell PreToolUse 게이트 -- 셸 추가 쓰기(`>>`, `tee -a`, heredoc 파일 쓰기, Add-Content, Out-File -Append)를
-임시 폴더 밖 파일에 하면 exit 2로 거부한다(CLAUDE.md 원칙 29: 프로젝트 파일 수정은 Edit/Write 또는 Python 바이너리 치환·append만).
+임시 폴더 밖 파일에 하면 exit 2로 거부한다(원칙 29, `.claude/rules/operations.md`: 프로젝트 파일 수정은 Edit/Write 또는 Python 바이너리 치환·append만).
 대상 경로를 정할 수 없으면(변수 등) 거부한다(fail-closed). 허용 대상: 임시 폴더, /dev/null, NUL, $null, fd(&1·&2).
 환경 변수: APPEND_GUARD_ALLOW(추가 허용 루트, os.pathsep 구분).
 """
@@ -171,7 +171,7 @@ def main():
         return 2
     if errs:
         sys.stderr.write(
-            "append_guard: 셸 추가 쓰기 거부 (CLAUDE.md 원칙 29 -- heredoc·`>>` append 금지).\n"
+            "append_guard: 셸 추가 쓰기 거부 (원칙 29 .claude/rules/operations.md -- heredoc·`>>` append 금지).\n"
             + "".join("  - %s\n" % e for e in errs)
             + "대신: 새 파일·전체 교체는 Write, 부분 수정은 Edit, 추가는 Python 바이너리 append"
               "(open(p,'ab'), 쓰기 전 기존 바이트 접두 확인). 임시 파일은 임시 폴더에 쓰면 허용.\n")

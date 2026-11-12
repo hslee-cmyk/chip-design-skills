@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""TEMPLATE.md 를 원칙 26(CLAUDE.md)에서 파싱한 규칙으로 생성한다. 원칙 26 이 바뀌면 다시 실행한다.
+"""TEMPLATE.md 를 원칙 26(skill report-bundle)에서 파싱한 규칙으로 생성한다. 원칙 26 이 바뀌면 다시 실행한다.
 사용: python ask_gate_template.py [출력경로]   (기본: ask_gate_rules 의 게이트 폴더/TEMPLATE.md)
 """
 import os
